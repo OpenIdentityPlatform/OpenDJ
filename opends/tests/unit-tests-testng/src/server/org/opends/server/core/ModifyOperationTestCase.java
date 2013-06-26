@@ -27,54 +27,37 @@
  */
 package org.opends.server.core;
 
-
+import static org.opends.server.TestCaseUtils.*;
+import static org.opends.server.protocols.ldap.LDAPConstants.*;
+import static org.testng.Assert.*;
 
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
 
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.Test;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeClass;
-
-import org.opends.server.TestCaseUtils;
 import org.opends.messages.Message;
+import org.opends.server.TestCaseUtils;
 import org.opends.server.api.Backend;
 import org.opends.server.plugins.DisconnectClientPlugin;
 import org.opends.server.plugins.ShortCircuitPlugin;
 import org.opends.server.plugins.UpdatePreOpPlugin;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
-import org.opends.server.protocols.ldap.BindRequestProtocolOp;
-import org.opends.server.protocols.ldap.BindResponseProtocolOp;
-import org.opends.server.protocols.ldap.ModifyRequestProtocolOp;
-import org.opends.server.protocols.ldap.ModifyResponseProtocolOp;
-import org.opends.server.protocols.ldap.LDAPAttribute;
-import org.opends.server.protocols.ldap.LDAPMessage;
-import org.opends.server.protocols.ldap.LDAPModification;
-import org.opends.server.protocols.ldap.LDAPFilter;
-import org.opends.server.protocols.ldap.LDAPControl;
+import org.opends.server.protocols.ldap.*;
 import org.opends.server.tools.LDAPModify;
 import org.opends.server.tools.LDAPWriter;
 import org.opends.server.types.*;
 import org.opends.server.util.Base64;
 import org.opends.server.util.ServerConstants;
+import org.opends.server.util.StaticUtils;
 import org.opends.server.workflowelement.localbackend.LocalBackendModifyOperation;
-
-import static org.testng.Assert.*;
-
-import static org.opends.server.TestCaseUtils.TEST_BACKEND_ID;
-import static org.opends.server.TestCaseUtils.applyModifications;
-import static org.opends.server.protocols.ldap.LDAPConstants.*;
-
-
+import org.testng.annotations.*;
 
 /**
  * A set of test cases for modify operations
  */
+@SuppressWarnings("javadoc")
 public class ModifyOperationTestCase
        extends OperationTestCase
 {
@@ -88,8 +71,9 @@ public class ModifyOperationTestCase
   @AfterMethod(alwaysRun=true)
   public void reenableBackend() throws DirectoryException {
     Object[][] backendBaseDNs = getBaseDNs();
-    for (int i = 0; i < backendBaseDNs.length; i++) {
-      String backendBaseDN = backendBaseDNs[i][0].toString();
+    for (Object[] backendBaseDN2 : backendBaseDNs)
+    {
+      String backendBaseDN = backendBaseDN2[0].toString();
       Backend b = DirectoryServer.getBackend(DN.decode(backendBaseDN));
       b.setWritabilityMode(WritabilityMode.ENABLED);
     }
@@ -482,13 +466,12 @@ public class ModifyOperationTestCase
     assertTrue(modifyOperation.getProcessingStopTime() >=
                modifyOperation.getProcessingStartTime());
     assertTrue(modifyOperation.getProcessingTime() >= 0);
-    assertNotNull(modifyOperation.getResponseLogElements());
 
-    List localOps =
+    List<LocalBackendModifyOperation> localOps =
       (List) (modifyOperation.getAttachment(Operation.LOCALBACKENDOPERATIONS));
     assertNotNull(localOps);
-    for (Object localOp : localOps){
-      LocalBackendModifyOperation curOp = (LocalBackendModifyOperation) localOp;
+    for (LocalBackendModifyOperation curOp : localOps)
+    {
       curOp.getNewPasswords();
       curOp.getCurrentPasswords();
       assertNotNull(curOp.getCurrentEntry());
@@ -515,7 +498,6 @@ public class ModifyOperationTestCase
     assertTrue(modifyOperation.getProcessingStopTime() >=
                modifyOperation.getProcessingStartTime());
     assertTrue(modifyOperation.getProcessingTime() >= 0);
-    assertNotNull(modifyOperation.getResponseLogElements());
 
     long changeNumber = modifyOperation.getChangeNumber();
     modifyOperation.setChangeNumber(changeNumber);
@@ -4096,10 +4078,7 @@ public class ModifyOperationTestCase
       assertEquals(message.getProtocolOpType(), OP_TYPE_EXTENDED_RESPONSE);
     }
 
-    try
-    {
-      s.close();
-    } catch (Exception e) {}
+    StaticUtils.close(s);
   }
 
 
@@ -4154,10 +4133,7 @@ public class ModifyOperationTestCase
       assertEquals(message.getProtocolOpType(), OP_TYPE_EXTENDED_RESPONSE);
     }
 
-    try
-    {
-      s.close();
-    } catch (Exception e) {}
+    StaticUtils.close(s);
   }
 
 
@@ -4228,10 +4204,7 @@ responseLoop:
           break responseLoop;
         default:
           // This is a problem.  It's an unexpected response.
-          try
-          {
-            s.close();
-          } catch (Exception e) {}
+        StaticUtils.close(s);
 
           throw new Exception("Unexpected response message " + message +
                               " encountered in " +
@@ -4239,10 +4212,7 @@ responseLoop:
       }
     }
 
-    try
-    {
-      s.close();
-    } catch (Exception e) {}
+    StaticUtils.close(s);
   }
 
 
@@ -4309,10 +4279,7 @@ responseLoop:
           break responseLoop;
         default:
           // This is a problem.  It's an unexpected response.
-          try
-          {
-            s.close();
-          } catch (Exception e) {}
+        StaticUtils.close(s);
 
           throw new Exception("Unexpected response message " + message +
                               " encountered in " +
@@ -4320,10 +4287,7 @@ responseLoop:
       }
     }
 
-    try
-    {
-      s.close();
-    } catch (Exception e) {}
+    StaticUtils.close(s);
   }
 
 

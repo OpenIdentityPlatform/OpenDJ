@@ -23,39 +23,33 @@
  *
  *
  *      Copyright 2007-2008 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS
  */
 package org.opends.server.core;
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
 
-import static org.opends.server.core.CoreConstants.LOG_ELEMENT_ERROR_MESSAGE;
-import static org.opends.server.core.CoreConstants.LOG_ELEMENT_ID_TO_ABANDON;
-import static org.opends.server.core.CoreConstants.LOG_ELEMENT_PROCESSING_TIME;
-import static org.opends.server.core.CoreConstants.LOG_ELEMENT_RESULT_CODE;
-import static org.opends.server.loggers.AccessLogger.logAbandonRequest;
-import static org.opends.server.loggers.AccessLogger.logAbandonResult;
 import static org.opends.messages.CoreMessages.*;
+import static org.opends.server.loggers.AccessLogger.*;
+
 import java.util.List;
 
+import org.opends.messages.Message;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.types.*;
 import org.opends.server.types.operation.PostOperationAbandonOperation;
 import org.opends.server.types.operation.PreParseAbandonOperation;
 
-
 /**
  * This class defines an operation that may be used to abandon an operation
  * that may already be in progress in the Directory Server.
  */
 public class AbandonOperationBasis extends AbstractOperation
-    implements Runnable,
-               AbandonOperation,
+    implements AbandonOperation,
                PreParseAbandonOperation,
                PostOperationAbandonOperation
 {
 
-  // The message ID of the operation that should be abandoned.
+  /** The message ID of the operation that should be abandoned. */
   private final int idToAbandon;
 
 
@@ -93,6 +87,7 @@ public class AbandonOperationBasis extends AbstractOperation
    *
    * @return  The message ID of the operation that should be abandoned.
    */
+  @Override
   public final int getIDToAbandon()
   {
     return idToAbandon;
@@ -110,60 +105,6 @@ public class AbandonOperationBasis extends AbstractOperation
     // candidate for being called by the logging subsystem.
 
     return OperationType.ABANDON;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public final String[][] getRequestLogElements()
-  {
-    // Note that no debugging will be done in this method because it is a likely
-    // candidate for being called by the logging subsystem.
-
-    return new String[][]
-    {
-      new String[] { LOG_ELEMENT_ID_TO_ABANDON, String.valueOf(idToAbandon) }
-    };
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public final String[][] getResponseLogElements()
-  {
-    // Note that no debugging will be done in this method because it is a likely
-    // candidate for being called by the logging subsystem.
-
-    // There is no response for an abandon.  However, we will still want to log
-    // information about whether it was successful.
-    String resultCode = String.valueOf(getResultCode().getIntValue());
-
-    String errorMessage;
-    MessageBuilder errorMessageBuffer = getErrorMessage();
-    if (errorMessageBuffer == null)
-    {
-      errorMessage = null;
-    }
-    else
-    {
-      errorMessage = errorMessageBuffer.toString();
-    }
-
-    String processingTime =
-         String.valueOf(getProcessingTime());
-
-    return new String[][]
-    {
-      new String[] { LOG_ELEMENT_RESULT_CODE, resultCode },
-      new String[] { LOG_ELEMENT_ERROR_MESSAGE, errorMessage },
-      new String[] { LOG_ELEMENT_PROCESSING_TIME, processingTime }
-    };
   }
 
 
@@ -210,6 +151,7 @@ public class AbandonOperationBasis extends AbstractOperation
    * managing synchronization, and any other work that might need to
    * be done in the course of processing.
    */
+  @Override
   public final void run()
   {
     setResultCode(ResultCode.UNDEFINED);

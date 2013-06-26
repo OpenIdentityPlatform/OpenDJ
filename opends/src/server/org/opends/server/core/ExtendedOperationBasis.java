@@ -23,36 +23,28 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2012 ForgeRock AS.
+ *      Portions copyright 2011-2013 ForgeRock AS.
  */
 package org.opends.server.core;
-import org.opends.messages.MessageBuilder;
 
+import static org.opends.messages.CoreMessages.*;
+import static org.opends.server.loggers.AccessLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.util.ServerConstants.*;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ExtendedOperationHandler;
 import org.opends.server.api.plugin.PluginResult;
+import org.opends.server.loggers.debug.DebugLogger;
+import org.opends.server.loggers.debug.DebugTracer;
+import org.opends.server.types.*;
 import org.opends.server.types.operation.PostOperationExtendedOperation;
 import org.opends.server.types.operation.PostResponseExtendedOperation;
 import org.opends.server.types.operation.PreOperationExtendedOperation;
 import org.opends.server.types.operation.PreParseExtendedOperation;
-
-import static org.opends.server.core.CoreConstants.*;
-import static org.opends.server.loggers.AccessLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-
-import org.opends.server.loggers.debug.DebugLogger;
-import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.*;
-
-import static org.opends.messages.CoreMessages.*;
-import static org.opends.server.util.ServerConstants.*;
-
-
 
 /**
  * This class defines an extended operation, which can perform virtually any
@@ -71,19 +63,19 @@ public class ExtendedOperationBasis
    */
   private static final DebugTracer TRACER = DebugLogger.getTracer();
 
-  // The value for the request associated with this extended operation.
+  /** The value for the request associated with this extended operation. */
   private ByteString requestValue;
 
-  // The value for the response associated with this extended operation.
+  /** The value for the response associated with this extended operation. */
   private ByteString responseValue;
 
-  // The set of response controls for this extended operation.
+  /** The set of response controls for this extended operation. */
   private List<Control> responseControls;
 
-  // The OID for the request associated with this extended operation.
+  /** The OID for the request associated with this extended operation. */
   private String requestOID;
 
-  // The OID for the response associated with this extended operation.
+  /** The OID for the response associated with this extended operation. */
   private String responseOID;
 
 
@@ -135,6 +127,7 @@ public class ExtendedOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final String getRequestOID()
   {
     return requestOID;
@@ -149,6 +142,7 @@ public class ExtendedOperationBasis
    * @param  requestOID  The OID for the request associated with this extended
    *                     operation.
    */
+  @Override
   public final void setRequestOID(String requestOID)
   {
     this.requestOID = requestOID;
@@ -159,6 +153,7 @@ public class ExtendedOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final ByteString getRequestValue()
   {
     return requestValue;
@@ -173,6 +168,7 @@ public class ExtendedOperationBasis
    * @param  requestValue  The value for the request associated with this
    *                       extended operation.
    */
+  @Override
   public final void setRequestValue(ByteString requestValue)
   {
     this.requestValue = requestValue;
@@ -183,6 +179,7 @@ public class ExtendedOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final String getResponseOID()
   {
     return responseOID;
@@ -193,6 +190,7 @@ public class ExtendedOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final void setResponseOID(String responseOID)
   {
     this.responseOID = responseOID;
@@ -203,6 +201,7 @@ public class ExtendedOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final ByteString getResponseValue()
   {
     return responseValue;
@@ -213,6 +212,7 @@ public class ExtendedOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final void setResponseValue(ByteString responseValue)
   {
     this.responseValue = responseValue;
@@ -227,95 +227,7 @@ public class ExtendedOperationBasis
   {
     // Note that no debugging will be done in this method because it is a likely
     // candidate for being called by the logging subsystem.
-
     return OperationType.EXTENDED;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public final String[][] getRequestLogElements()
-  {
-    // Note that no debugging will be done in this method because it is a likely
-    // candidate for being called by the logging subsystem.
-
-    return new String[][]
-    {
-      new String[] { LOG_ELEMENT_EXTENDED_REQUEST_OID, requestOID }
-    };
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public final String[][] getResponseLogElements()
-  {
-    // Note that no debugging will be done in this method because it is a likely
-    // candidate for being called by the logging subsystem.
-
-    String resultCode = String.valueOf(getResultCode().getIntValue());
-
-    String errorMessage;
-    MessageBuilder errorMessageBuffer = getErrorMessage();
-    if (errorMessageBuffer == null)
-    {
-      errorMessage = null;
-    }
-    else
-    {
-      errorMessage = errorMessageBuffer.toString();
-    }
-
-    String matchedDNStr;
-    DN matchedDN = getMatchedDN();
-    if (matchedDN == null)
-    {
-      matchedDNStr = null;
-    }
-    else
-    {
-      matchedDNStr = matchedDN.toString();
-    }
-
-    String referrals;
-    List<String> referralURLs = getReferralURLs();
-    if ((referralURLs == null) || referralURLs.isEmpty())
-    {
-      referrals = null;
-    }
-    else
-    {
-      StringBuilder buffer = new StringBuilder();
-      Iterator<String> iterator = referralURLs.iterator();
-      buffer.append(iterator.next());
-
-      while (iterator.hasNext())
-      {
-        buffer.append(", ");
-        buffer.append(iterator.next());
-      }
-
-      referrals = buffer.toString();
-    }
-
-    String processingTime =
-         String.valueOf(getProcessingTime());
-
-    return new String[][]
-    {
-      new String[] { LOG_ELEMENT_RESULT_CODE, resultCode },
-      new String[] { LOG_ELEMENT_ERROR_MESSAGE, errorMessage },
-      new String[] { LOG_ELEMENT_MATCHED_DN, matchedDNStr },
-      new String[] { LOG_ELEMENT_REFERRAL_URLS, referrals },
-      new String[] { LOG_ELEMENT_EXTENDED_RESPONSE_OID, responseOID },
-      new String[] { LOG_ELEMENT_PROCESSING_TIME, processingTime }
-    };
   }
 
 

@@ -23,23 +23,15 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS
  */
 package org.opends.server.core;
-import org.opends.messages.MessageBuilder;
 
-
-import static org.opends.server.core.CoreConstants.LOG_ELEMENT_ENTRY_DN;
-import static org.opends.server.core.CoreConstants.LOG_ELEMENT_ERROR_MESSAGE;
-import static org.opends.server.core.CoreConstants.LOG_ELEMENT_MATCHED_DN;
-import static org.opends.server.core.CoreConstants.LOG_ELEMENT_PROCESSING_TIME;
-import static org.opends.server.core.CoreConstants.LOG_ELEMENT_REFERRAL_URLS;
-import static org.opends.server.core.CoreConstants.LOG_ELEMENT_RESULT_CODE;
-import static org.opends.server.loggers.AccessLogger.logDeleteRequest;
-import static org.opends.server.loggers.AccessLogger.logDeleteResponse;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.messages.CoreMessages.*;
+import static org.opends.server.loggers.AccessLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import org.opends.server.api.ClientConnection;
@@ -51,8 +43,6 @@ import org.opends.server.types.*;
 import org.opends.server.types.operation.PostResponseDeleteOperation;
 import org.opends.server.types.operation.PreParseDeleteOperation;
 import org.opends.server.workflowelement.localbackend.*;
-
-
 
 /**
  * This class defines an operation that may be used to remove an entry from the
@@ -69,19 +59,19 @@ public class DeleteOperationBasis
    */
   private static final DebugTracer TRACER = DebugLogger.getTracer();
 
-  // The raw, unprocessed entry DN as included in the client request.
+  /** The raw, unprocessed entry DN as included in the client request. */
   private ByteString rawEntryDN;
 
-  // The DN of the entry for the delete operation.
+  /** The DN of the entry for the delete operation. */
   private DN entryDN;
 
-  // The proxied authorization target DN for this operation.
+  /** The proxied authorization target DN for this operation. */
   private DN proxiedAuthorizationDN;
 
-  // The set of response controls for this delete operation.
+  /** The set of response controls for this delete operation. */
   private List<Control> responseControls;
 
-  // The change number that has been assigned to this operation.
+  /** The change number that has been assigned to this operation. */
   private long changeNumber;
 
 
@@ -145,6 +135,7 @@ public class DeleteOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final ByteString getRawEntryDN()
   {
     return rawEntryDN;
@@ -153,6 +144,7 @@ public class DeleteOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final void setRawEntryDN(ByteString rawEntryDN)
   {
     this.rawEntryDN = rawEntryDN;
@@ -163,6 +155,7 @@ public class DeleteOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final DN getEntryDN()
   {
     try
@@ -191,6 +184,7 @@ public class DeleteOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final long getChangeNumber()
   {
     return changeNumber;
@@ -199,6 +193,7 @@ public class DeleteOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final void setChangeNumber(long changeNumber)
   {
     this.changeNumber = changeNumber;
@@ -212,96 +207,13 @@ public class DeleteOperationBasis
   {
     // Note that no debugging will be done in this method because it is a likely
     // candidate for being called by the logging subsystem.
-
     return OperationType.DELETE;
   }
 
-
   /**
    * {@inheritDoc}
    */
-  @Override()
-  public final String[][] getRequestLogElements()
-  {
-    // Note that no debugging will be done in this method because it is a likely
-    // candidate for being called by the logging subsystem.
-
-    return new String[][]
-    {
-      new String[] { LOG_ELEMENT_ENTRY_DN, String.valueOf(rawEntryDN) }
-    };
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public final String[][] getResponseLogElements()
-  {
-    // Note that no debugging will be done in this method because it is a likely
-    // candidate for being called by the logging subsystem.
-
-    String resultCode = String.valueOf(getResultCode().getIntValue());
-
-    String errorMessage;
-    MessageBuilder errorMessageBuffer = getErrorMessage();
-    if (errorMessageBuffer == null)
-    {
-      errorMessage = null;
-    }
-    else
-    {
-      errorMessage = errorMessageBuffer.toString();
-    }
-
-    String matchedDNStr;
-    DN matchedDN = getMatchedDN();
-    if (matchedDN == null)
-    {
-      matchedDNStr = null;
-    }
-    else
-    {
-      matchedDNStr = matchedDN.toString();
-    }
-
-    String referrals;
-    List<String> referralURLs = getReferralURLs();
-    if ((referralURLs == null) || referralURLs.isEmpty())
-    {
-      referrals = null;
-    }
-    else
-    {
-      StringBuilder buffer = new StringBuilder();
-      Iterator<String> iterator = referralURLs.iterator();
-      buffer.append(iterator.next());
-
-      while (iterator.hasNext())
-      {
-        buffer.append(", ");
-        buffer.append(iterator.next());
-      }
-
-      referrals = buffer.toString();
-    }
-
-    String processingTime =
-         String.valueOf(getProcessingTime());
-
-    return new String[][]
-    {
-      new String[] { LOG_ELEMENT_RESULT_CODE, resultCode },
-      new String[] { LOG_ELEMENT_ERROR_MESSAGE, errorMessage },
-      new String[] { LOG_ELEMENT_MATCHED_DN, matchedDNStr },
-      new String[] { LOG_ELEMENT_REFERRAL_URLS, referrals },
-      new String[] { LOG_ELEMENT_PROCESSING_TIME, processingTime }
-    };
-  }
-
-  /**
-   * {@inheritDoc}
-   */
+  @Override
   public DN getProxiedAuthorizationDN()
   {
     return proxiedAuthorizationDN;
@@ -351,6 +263,7 @@ public class DeleteOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public void setProxiedAuthorizationDN(DN proxiedAuthorizationDN)
   {
     this.proxiedAuthorizationDN = proxiedAuthorizationDN;
@@ -359,6 +272,7 @@ public class DeleteOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final void run()
   {
     setResultCode(ResultCode.UNDEFINED);
@@ -484,15 +398,13 @@ public class DeleteOperationBasis
     {
       // Invoke the post response plugins that have been registered by
       // the workflow elements
-      List localOperations =
+      List<LocalBackendDeleteOperation> localOperations =
         (List)getAttachment(Operation.LOCALBACKENDOPERATIONS);
 
       if (localOperations != null)
       {
-        for (Object localOp : localOperations)
+        for (LocalBackendDeleteOperation localOperation : localOperations)
         {
-          LocalBackendDeleteOperation localOperation =
-            (LocalBackendDeleteOperation)localOp;
           pluginConfigManager.invokePostResponseDeletePlugins(localOperation);
         }
       }
@@ -525,8 +437,8 @@ public class DeleteOperationBasis
    *
    * This method always returns null.
    */
+  @Override
   public Entry getEntryToDelete() {
-    // TODO Auto-generated method stub
     return null;
   }
 

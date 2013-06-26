@@ -89,45 +89,6 @@ public interface Operation extends Runnable
   );
 
   /**
-   * Retrieves a set of standard elements that should be logged in all
-   * requests and responses for all types of operations.  Each element
-   * in the array will itself be a two-element array in which the
-   * first element is the name of the field and the second is a string
-   * representation of the value, or {@code null} if there is no value
-   * for that field.
-   *
-   * @return  A standard set of elements that should be logged in
-   *          requests and responses for all types of operations.
-   */
-  public abstract String[][] getCommonLogElements();
-
-  /**
-   * Retrieves a standard set of elements that should be logged in
-   * requests for this type of operation.  Each element in the array
-   * will itself be a two-element array in which the first element is
-   * the name of the field and the second is a string representation
-   * of the value, or {@code null} if there is no value for that
-   * field.
-   *
-   * @return  A standard set of elements that should be logged in
-   *          requests for this type of operation.
-   */
-  public abstract String[][] getRequestLogElements();
-
-  /**
-   * Retrieves a standard set of elements that should be logged in
-   * responses for this type of operation.  Each element in the array
-   * will itself be a two-element array in which the first element is
-   * the name of the field and the second is a string representation
-   * of the value, or {@code null} if there is no value for that
-   * field.
-   *
-   * @return  A standard set of elements that should be logged in
-   *          responses for this type of operation.
-   */
-  public abstract String[][] getResponseLogElements();
-
-  /**
    * Retrieves the client connection with which this operation is
    * associated.
    *

@@ -27,16 +27,16 @@
  */
 package org.opends.server.core;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import static org.opends.messages.CoreMessages.*;
+import static org.opends.server.loggers.AccessLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
+
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
 import org.opends.server.api.AuthenticationPolicyState;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.plugin.PluginResult;
@@ -52,13 +52,6 @@ import org.opends.server.types.operation.PreParseSearchOperation;
 import org.opends.server.types.operation.SearchEntrySearchOperation;
 import org.opends.server.types.operation.SearchReferenceSearchOperation;
 import org.opends.server.util.TimeThread;
-
-import static org.opends.messages.CoreMessages.*;
-import static org.opends.server.core.CoreConstants.*;
-import static org.opends.server.loggers.AccessLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class defines an operation that may be used to locate entries in the
@@ -1007,118 +1000,7 @@ public class SearchOperationBasis
   {
     // Note that no debugging will be done in this method because it is a likely
     // candidate for being called by the logging subsystem.
-
     return OperationType.SEARCH;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public final String[][] getRequestLogElements()
-  {
-    // Note that no debugging will be done in this method because it is a likely
-    // candidate for being called by the logging subsystem.
-
-    String attrs;
-    if ((attributes == null) || attributes.isEmpty())
-    {
-      attrs = null;
-    }
-    else
-    {
-      StringBuilder attrBuffer = new StringBuilder();
-      Iterator<String> iterator = attributes.iterator();
-      attrBuffer.append(iterator.next());
-
-      while (iterator.hasNext())
-      {
-        attrBuffer.append(", ");
-        attrBuffer.append(iterator.next());
-      }
-
-      attrs = attrBuffer.toString();
-    }
-
-    return new String[][]
-    {
-      new String[] { LOG_ELEMENT_BASE_DN, String.valueOf(rawBaseDN) },
-      new String[] { LOG_ELEMENT_SCOPE, String.valueOf(scope) },
-      new String[] { LOG_ELEMENT_SIZE_LIMIT, String.valueOf(sizeLimit) },
-      new String[] { LOG_ELEMENT_TIME_LIMIT, String.valueOf(timeLimit) },
-      new String[] { LOG_ELEMENT_FILTER, String.valueOf(rawFilter) },
-      new String[] { LOG_ELEMENT_REQUESTED_ATTRIBUTES, attrs }
-    };
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public final String[][] getResponseLogElements()
-  {
-    // Note that no debugging will be done in this method because it is a likely
-    // candidate for being called by the logging subsystem.
-
-    String resultCode = String.valueOf(getResultCode().getIntValue());
-
-    String errorMessage;
-    MessageBuilder errorMessageBuffer = getErrorMessage();
-    if (errorMessageBuffer == null)
-    {
-      errorMessage = null;
-    }
-    else
-    {
-      errorMessage = errorMessageBuffer.toString();
-    }
-
-    String matchedDNStr;
-    DN matchedDN = getMatchedDN();
-    if (matchedDN == null)
-    {
-      matchedDNStr = null;
-    }
-    else
-    {
-      matchedDNStr = matchedDN.toString();
-    }
-
-    String referrals;
-    List<String> referralURLs = getReferralURLs();
-    if ((referralURLs == null) || referralURLs.isEmpty())
-    {
-      referrals = null;
-    }
-    else
-    {
-      StringBuilder buffer = new StringBuilder();
-      Iterator<String> iterator = referralURLs.iterator();
-      buffer.append(iterator.next());
-
-      while (iterator.hasNext())
-      {
-        buffer.append(", ");
-        buffer.append(iterator.next());
-      }
-
-      referrals = buffer.toString();
-    }
-
-    String processingTime =
-         String.valueOf(processingStopTime - processingStartTime);
-
-    return new String[][]
-    {
-      new String[] { LOG_ELEMENT_RESULT_CODE, resultCode },
-      new String[] { LOG_ELEMENT_ERROR_MESSAGE, errorMessage },
-      new String[] { LOG_ELEMENT_MATCHED_DN, matchedDNStr },
-      new String[] { LOG_ELEMENT_REFERRAL_URLS, referrals },
-      new String[] { LOG_ELEMENT_ENTRIES_SENT, String.valueOf(entriesSent) },
-      new String[] { LOG_ELEMENT_REFERENCES_SENT,
-                     String.valueOf(referencesSent ) },
-      new String[] { LOG_ELEMENT_PROCESSING_TIME, processingTime }
-    };
   }
 
   /**
@@ -1574,7 +1456,7 @@ public class SearchOperationBasis
       if (filter.getAttributeType().isObjectClassType())
       {
         AttributeValue v = filter.getAssertionValue();
-        // FIXME : technically this is not correct since the presense
+        // FIXME : technically this is not correct since the presence
         // of draft oc would trigger rfc oc visibility and visa versa.
         String stringValueLC = toLowerCase(v.getValue().toString());
         if (stringValueLC.equals(OC_LDAP_SUBENTRY_LC) ||

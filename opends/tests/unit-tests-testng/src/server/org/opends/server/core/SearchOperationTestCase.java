@@ -23,12 +23,11 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2012 ForgeRock AS
+ *      Portions copyright 2011-2013 ForgeRock AS
  */
-
 package org.opends.server.core;
 
-import static org.opends.server.util.ServerConstants.OID_LDUP_SUBENTRIES;
+import static org.opends.server.util.ServerConstants.*;
 import static org.testng.Assert.*;
 
 import java.io.IOException;
@@ -43,37 +42,17 @@ import org.opends.server.plugins.InvocationCounterPlugin;
 import org.opends.server.protocols.asn1.ASN1Exception;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
-import org.opends.server.protocols.ldap.BindRequestProtocolOp;
-import org.opends.server.protocols.ldap.BindResponseProtocolOp;
-import org.opends.server.protocols.ldap.LDAPAttribute;
-import org.opends.server.protocols.ldap.LDAPConstants;
-import org.opends.server.protocols.ldap.LDAPControl;
-import org.opends.server.protocols.ldap.LDAPFilter;
-import org.opends.server.protocols.ldap.LDAPMessage;
-import org.opends.server.protocols.ldap.LDAPResultCode;
-import org.opends.server.protocols.ldap.SearchRequestProtocolOp;
-import org.opends.server.protocols.ldap.SearchResultDoneProtocolOp;
-import org.opends.server.protocols.ldap.SearchResultEntryProtocolOp;
+import org.opends.server.protocols.ldap.*;
 import org.opends.server.tools.LDAPModify;
 import org.opends.server.tools.LDAPWriter;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.Control;
-import org.opends.server.types.DN;
-import org.opends.server.types.DereferencePolicy;
-import org.opends.server.types.Entry;
-import org.opends.server.types.LDAPException;
-import org.opends.server.types.Operation;
-import org.opends.server.types.ResultCode;
-import org.opends.server.types.SearchResultEntry;
-import org.opends.server.types.SearchResultReference;
-import org.opends.server.types.SearchScope;
+import org.opends.server.types.*;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.util.StaticUtils;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+@SuppressWarnings("javadoc")
 public class SearchOperationTestCase extends OperationTestCase
 {
   private static final String SUFFIX = "dc=example,dc=com";
@@ -271,7 +250,6 @@ public class SearchOperationTestCase extends OperationTestCase
     assertTrue(searchOperation.getProcessingStartTime() > 0);
     assertTrue(searchOperation.getProcessingStopTime() > 0);
     assertTrue(searchOperation.getProcessingTime() >= 0);
-    assertNotNull(searchOperation.getResponseLogElements());
 
 //    assertEquals(InvocationCounterPlugin.getPreParseCount(), 1);
 //    assertEquals(InvocationCounterPlugin.getPreOperationCount(), 1);

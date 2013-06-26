@@ -23,37 +23,31 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS.
+ *      Portions copyright 2011-2013 ForgeRock AS.
  */
 package org.opends.server.core;
 
-
+import static org.opends.server.protocols.ldap.LDAPConstants.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.testng.Assert.*;
 
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.Test;
-
+import org.opends.messages.Message;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.plugins.DisconnectClientPlugin;
 import org.opends.server.plugins.InvocationCounterPlugin;
 import org.opends.server.plugins.ShortCircuitPlugin;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.ldap.*;
-import org.opends.server.tools.LDAPSearch;
+import org.opends.server.tools.*;
 import org.opends.server.tools.LDAPReader;
-import org.opends.server.tools.LDAPWriter;
 import org.opends.server.types.*;
-import org.opends.messages.Message;
-import org.opends.server.tools.LDAPDelete;
-import org.opends.server.tools.LDAPModify;
-
-import static org.testng.Assert.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.protocols.ldap.LDAPConstants.*;
-
+import org.opends.server.util.StaticUtils;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
 
 /**
  * A set of test cases for bind operations
@@ -220,14 +214,14 @@ public class BindOperationTestCase
     Operation[] bindOps = new Operation[simpleBinds.length + saslBinds.length];
 
     int pos = 0;
-    for (int i=0; i < simpleBinds.length; i++)
+    for (Object[] simpleBind : simpleBinds)
     {
-      bindOps[pos++] = (BindOperation) simpleBinds[i][0];
+      bindOps[pos++] = (BindOperation) simpleBind[0];
     }
 
-    for (int i=0; i < saslBinds.length; i++)
+    for (Object[] saslBind : saslBinds)
     {
-      bindOps[pos++] = (BindOperation) saslBinds[i][0];
+      bindOps[pos++] = (BindOperation) saslBind[0];
     }
 
     return bindOps;
@@ -778,73 +772,6 @@ public class BindOperationTestCase
 
 
   /**
-   * Tests the <CODE>getResponseLogElements</CODE> method for a completed
-   * successful bind operation using simple authentication.
-   */
-  @Test()
-  public void testGetResponseLogElementsSimple()
-  {
-    InternalClientConnection conn =
-         new InternalClientConnection(new AuthenticationInfo());
-
-    BindOperation bindOperation =
-         conn.processSimpleBind(ByteString.valueOf("cn=Directory Manager"),
-                                ByteString.valueOf("password"));
-    assertEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
-    assertNotNull(bindOperation.getResponseLogElements());
-    assertTrue(bindOperation.getResponseLogElements().length > 0);
-  }
-
-
-
-  /**
-   * Tests the <CODE>getResponseLogElements</CODE> method for a completed bind
-   * operation using SASL authentication.
-   */
-  @Test()
-  public void testGetResponseLogElementsSASL()
-  {
-    InternalClientConnection conn =
-         new InternalClientConnection(new AuthenticationInfo());
-
-    ByteString saslCreds =
-         ByteString.valueOf("\u0000dn:cn=Directory Manager\u0000password");
-
-    BindOperation bindOperation =
-         conn.processSASLBind(DN.nullDN(), "PLAIN", saslCreds);
-    assertEquals(bindOperation.getResultCode(), ResultCode.SUCCESS);
-    assertNotNull(bindOperation.getResponseLogElements());
-    assertTrue(bindOperation.getResponseLogElements().length > 0);
-  }
-
-
-
-  /**
-   * Tests the <CODE>getResponseLogElements</CODE> method for a failed simple
-   * bind attempt in which the target user didn't exist.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
-   */
-  @Test()
-  public void testGetResponseLogElementsSimpleNoSuchUser()
-         throws Exception
-  {
-    TestCaseUtils.initializeTestBackend(true);
-
-    InternalClientConnection conn =
-         new InternalClientConnection(new AuthenticationInfo());
-
-    BindOperation bindOperation =
-         conn.processSimpleBind(ByteString.valueOf("uid=test,o=test"),
-                                ByteString.valueOf("password"));
-    assertEquals(bindOperation.getResultCode(), ResultCode.INVALID_CREDENTIALS);
-    assertNotNull(bindOperation.getResponseLogElements());
-    assertTrue(bindOperation.getResponseLogElements().length > 0);
-  }
-
-
-
-  /**
    * Tests a simple bind operation to ensure that all plugin types are invoked
    * as expected.
    */
@@ -928,10 +855,7 @@ public class BindOperationTestCase
       assertEquals(message.getProtocolOpType(), OP_TYPE_EXTENDED_RESPONSE);
     }
 
-    try
-    {
-      s.close();
-    } catch (Exception e) {}
+    StaticUtils.close(s);
   }
 
 
@@ -968,10 +892,7 @@ public class BindOperationTestCase
       assertEquals(message.getProtocolOpType(), OP_TYPE_EXTENDED_RESPONSE);
     }
 
-    try
-    {
-      s.close();
-    } catch (Exception e) {}
+    StaticUtils.close(s);
   }
 
 
@@ -1008,10 +929,7 @@ public class BindOperationTestCase
       assertEquals(message.getProtocolOpType(), OP_TYPE_EXTENDED_RESPONSE);
     }
 
-    try
-    {
-      s.close();
-    } catch (Exception e) {}
+    StaticUtils.close(s);
   }
 
 
@@ -1048,10 +966,7 @@ public class BindOperationTestCase
       message = r.readMessage();
     }
 
-    try
-    {
-      s.close();
-    } catch (Exception e) {}
+    StaticUtils.close(s);
   }
 
 
@@ -1086,10 +1001,7 @@ public class BindOperationTestCase
       assertEquals(message.getProtocolOpType(), OP_TYPE_EXTENDED_RESPONSE);
     }
 
-    try
-    {
-      s.close();
-    } catch (Exception e) {}
+    StaticUtils.close(s);
   }
 
 
@@ -1126,10 +1038,7 @@ public class BindOperationTestCase
       assertEquals(message.getProtocolOpType(), OP_TYPE_EXTENDED_RESPONSE);
     }
 
-    try
-    {
-      s.close();
-    } catch (Exception e) {}
+    StaticUtils.close(s);
   }
 
 
@@ -1166,10 +1075,7 @@ public class BindOperationTestCase
       assertEquals(message.getProtocolOpType(), OP_TYPE_EXTENDED_RESPONSE);
     }
 
-    try
-    {
-      s.close();
-    } catch (Exception e) {}
+    StaticUtils.close(s);
   }
 
 
@@ -1206,10 +1112,7 @@ public class BindOperationTestCase
       message = r.readMessage();
     }
 
-    try
-    {
-      s.close();
-    } catch (Exception e) {}
+    StaticUtils.close(s);
   }
 
 
@@ -1246,10 +1149,7 @@ public class BindOperationTestCase
       assertEquals(message.getProtocolOpType(), OP_TYPE_EXTENDED_RESPONSE);
     }
 
-    try
-    {
-      s.close();
-    } catch (Exception e) {}
+    StaticUtils.close(s);
   }
 
 
@@ -1287,10 +1187,7 @@ public class BindOperationTestCase
       assertEquals(message.getProtocolOpType(), OP_TYPE_EXTENDED_RESPONSE);
     }
 
-    try
-    {
-      s.close();
-    } catch (Exception e) {}
+    StaticUtils.close(s);
   }
 
 
@@ -1328,10 +1225,7 @@ public class BindOperationTestCase
       assertEquals(message.getProtocolOpType(), OP_TYPE_EXTENDED_RESPONSE);
     }
 
-    try
-    {
-      s.close();
-    } catch (Exception e) {}
+    StaticUtils.close(s);
   }
 
 
@@ -1369,10 +1263,7 @@ public class BindOperationTestCase
       message = r.readMessage();
     }
 
-    try
-    {
-      s.close();
-    } catch (Exception e) {}
+    StaticUtils.close(s);
   }
 
 
@@ -1404,10 +1295,7 @@ public class BindOperationTestCase
     BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
     assertEquals(bindResponse.getResultCode(), 80);
 
-    try
-    {
-      s.close();
-    } catch (Exception e) {}
+    StaticUtils.close(s);
   }
 
 
@@ -1440,10 +1328,7 @@ public class BindOperationTestCase
     BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
     assertEquals(bindResponse.getResultCode(), 80);
 
-    try
-    {
-      s.close();
-    } catch (Exception e) {}
+    StaticUtils.close(s);
   }
 
 
@@ -1475,10 +1360,7 @@ public class BindOperationTestCase
     BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
     assertEquals(bindResponse.getResultCode(), 80);
 
-    try
-    {
-      s.close();
-    } catch (Exception e) {}
+    StaticUtils.close(s);
   }
 
 
@@ -1511,10 +1393,7 @@ public class BindOperationTestCase
     BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
     assertEquals(bindResponse.getResultCode(), 80);
 
-    try
-    {
-      s.close();
-    } catch (Exception e) {}
+    StaticUtils.close(s);
   }
 
 
@@ -1547,10 +1426,7 @@ public class BindOperationTestCase
     BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
     assertEquals(bindResponse.getResultCode(), 80);
 
-    try
-    {
-      s.close();
-    } catch (Exception e) {}
+    StaticUtils.close(s);
   }
 
 
@@ -1584,10 +1460,7 @@ public class BindOperationTestCase
     BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
     assertEquals(bindResponse.getResultCode(), 80);
 
-    try
-    {
-      s.close();
-    } catch (Exception e) {}
+    StaticUtils.close(s);
   }
 
 

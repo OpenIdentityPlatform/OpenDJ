@@ -27,18 +27,16 @@
  */
 package org.opends.server.core;
 
-
+import static org.opends.server.protocols.ldap.LDAPConstants.*;
+import static org.testng.Assert.*;
 
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
 
-import org.testng.annotations.Test;
-import org.testng.annotations.AfterMethod;
-
-import org.opends.server.TestCaseUtils;
 import org.opends.messages.Message;
+import org.opends.server.TestCaseUtils;
 import org.opends.server.api.Backend;
 import org.opends.server.plugins.DisconnectClientPlugin;
 import org.opends.server.plugins.ShortCircuitPlugin;
@@ -50,12 +48,10 @@ import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.tools.LDAPDelete;
 import org.opends.server.tools.LDAPWriter;
 import org.opends.server.types.*;
+import org.opends.server.util.StaticUtils;
 import org.opends.server.workflowelement.localbackend.LocalBackendDeleteOperation;
-
-import static org.testng.Assert.*;
-import static org.opends.server.protocols.ldap.LDAPConstants.*;
-
-
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.Test;
 
 /**
  * A set of test cases for delete operations
@@ -63,7 +59,7 @@ import static org.opends.server.protocols.ldap.LDAPConstants.*;
 public class DeleteOperationTestCase
        extends OperationTestCase
 {
-  // Some of the tests disable the backends, so we reenable them here.
+  /** Some of the tests disable the backends, so we reenable them here. */
   @AfterMethod(alwaysRun=true)
   public void reenableBackend() throws DirectoryException {
     Backend b = DirectoryServer.getBackend(DN.decode("o=test"));
@@ -203,7 +199,6 @@ public class DeleteOperationTestCase
     assertTrue(deleteOperation.getProcessingStopTime() >=
                deleteOperation.getProcessingStartTime());
     assertTrue(deleteOperation.getProcessingTime() >= 0);
-    assertNotNull(deleteOperation.getResponseLogElements());
 
 
     long changeNumber = deleteOperation.getChangeNumber();
@@ -231,11 +226,11 @@ public class DeleteOperationTestCase
          conn.processDelete(ByteString.valueOf("o=test"));
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveCompletedOperationElements(deleteOperation);
-    List localOps =
+    List<LocalBackendDeleteOperation> localOps =
       (List) (deleteOperation.getAttachment(Operation.LOCALBACKENDOPERATIONS));
     assertNotNull(localOps);
-    for (Object localOp : localOps){
-      LocalBackendDeleteOperation curOp = (LocalBackendDeleteOperation) localOp;
+    for (LocalBackendDeleteOperation curOp : localOps)
+    {
       assertNotNull(curOp.getEntryToDelete());
     }
   }
@@ -260,11 +255,11 @@ public class DeleteOperationTestCase
     DeleteOperation deleteOperation =
          conn.processDelete(ByteString.valueOf("ou=People,o=test"));
     assertFalse(deleteOperation.getResultCode() == ResultCode.SUCCESS);
-    List localOps =
+    List<LocalBackendDeleteOperation> localOps =
       (List) (deleteOperation.getAttachment(Operation.LOCALBACKENDOPERATIONS));
     assertNotNull(localOps);
-    for (Object localOp : localOps){
-      LocalBackendDeleteOperation curOp = (LocalBackendDeleteOperation) localOp;
+    for (LocalBackendDeleteOperation curOp : localOps)
+    {
       assertNull(curOp.getEntryToDelete());
     }
   }
@@ -910,10 +905,7 @@ public class DeleteOperationTestCase
       assertEquals(message.getProtocolOpType(), OP_TYPE_EXTENDED_RESPONSE);
     }
 
-    try
-    {
-      s.close();
-    } catch (Exception e) {}
+    StaticUtils.close(s);
   }
 
 
@@ -962,10 +954,7 @@ public class DeleteOperationTestCase
       assertEquals(message.getProtocolOpType(), OP_TYPE_EXTENDED_RESPONSE);
     }
 
-    try
-    {
-      s.close();
-    } catch (Exception e) {}
+    StaticUtils.close(s);
   }
 
 
@@ -1014,10 +1003,7 @@ public class DeleteOperationTestCase
       assertEquals(message.getProtocolOpType(), OP_TYPE_EXTENDED_RESPONSE);
     }
 
-    try
-    {
-      s.close();
-    } catch (Exception e) {}
+    StaticUtils.close(s);
   }
 
 
@@ -1090,10 +1076,7 @@ responseLoop:
       }
     }
 
-    try
-    {
-      s.close();
-    } catch (Exception e) {}
+    StaticUtils.close(s);
   }
 
 

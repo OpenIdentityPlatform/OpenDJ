@@ -27,8 +27,6 @@
  */
 package org.opends.server.core;
 
-
-
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
 import static org.testng.Assert.*;
 
@@ -45,21 +43,15 @@ import org.opends.server.plugins.DisconnectClientPlugin;
 import org.opends.server.plugins.ShortCircuitPlugin;
 import org.opends.server.plugins.UpdatePreOpPlugin;
 import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.protocols.ldap.AddRequestProtocolOp;
-import org.opends.server.protocols.ldap.AddResponseProtocolOp;
-import org.opends.server.protocols.ldap.BindRequestProtocolOp;
-import org.opends.server.protocols.ldap.BindResponseProtocolOp;
-import org.opends.server.protocols.ldap.LDAPAttribute;
-import org.opends.server.protocols.ldap.LDAPMessage;
+import org.opends.server.protocols.ldap.*;
 import org.opends.server.tools.LDAPModify;
 import org.opends.server.tools.LDAPReader;
 import org.opends.server.tools.LDAPWriter;
 import org.opends.server.types.*;
+import org.opends.server.util.StaticUtils;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-
-
 
 /**
  * A set of test cases for add operations
@@ -68,7 +60,7 @@ public class AddOperationTestCase
        extends OperationTestCase
 {
 
-  // Some of the tests disable the backends, so we reenable them here.
+  /** Some of the tests disable the backends, so we reenable them here. */
   @AfterMethod(alwaysRun=true)
   public void reenableBackend() throws DirectoryException {
     Backend b = DirectoryServer.getBackend(DN.decode("o=test"));
@@ -565,7 +557,6 @@ public class AddOperationTestCase
     assertTrue(addOperation.getProcessingStopTime() >=
                addOperation.getProcessingStartTime());
     assertTrue(addOperation.getProcessingTime() >= 0);
-    assertNotNull(addOperation.getResponseLogElements());
 
     long changeNumber = addOperation.getChangeNumber();
     addOperation.setChangeNumber(changeNumber);
@@ -868,10 +859,7 @@ public class AddOperationTestCase
     assertEquals(ldapStatistics.getAddRequests(), addRequests+1);
     waitForAddResponsesStat(addResponses+1);
 
-    try
-    {
-      s.close();
-    } catch (Exception e) {}
+    StaticUtils.close(s);
   }
 
 
@@ -1706,10 +1694,7 @@ public class AddOperationTestCase
     assertEquals(ldapStatistics.getAddRequests(), addRequests+1);
     waitForAddResponsesStat(addResponses+1);
 
-    try
-    {
-      s.close();
-    } catch (Exception e) {}
+    StaticUtils.close(s);
 
     DirectoryServer.setWritabilityMode(WritabilityMode.ENABLED);
   }
@@ -1858,10 +1843,7 @@ public class AddOperationTestCase
     assertEquals(ldapStatistics.getAddRequests(), addRequests+1);
     waitForAddResponsesStat(addResponses+1);
 
-    try
-    {
-      s.close();
-    } catch (Exception e) {}
+    StaticUtils.close(s);
 
     b.setWritabilityMode(WritabilityMode.ENABLED);
   }
@@ -2108,10 +2090,7 @@ public class AddOperationTestCase
       assertEquals(message.getProtocolOpType(), OP_TYPE_EXTENDED_RESPONSE);
     }
 
-    try
-    {
-      s.close();
-    } catch (Exception e) {}
+    StaticUtils.close(s);
   }
 
 
@@ -2171,10 +2150,7 @@ public class AddOperationTestCase
       assertEquals(message.getProtocolOpType(), OP_TYPE_EXTENDED_RESPONSE);
     }
 
-    try
-    {
-      s.close();
-    } catch (Exception e) {}
+    StaticUtils.close(s);
   }
 
 
@@ -2234,10 +2210,7 @@ public class AddOperationTestCase
       assertEquals(message.getProtocolOpType(), OP_TYPE_EXTENDED_RESPONSE);
     }
 
-    try
-    {
-      s.close();
-    } catch (Exception e) {}
+    StaticUtils.close(s);
   }
 
 
@@ -2310,10 +2283,8 @@ responseLoop:
           break responseLoop;
         default:
           // This is a problem.  It's an unexpected response.
-          try
-          {
-            s.close();
-          } catch (Exception e) {}
+
+        StaticUtils.close(s);
 
           throw new Exception("Unexpected response message " + message +
                               " encountered in " +
@@ -2321,10 +2292,7 @@ responseLoop:
       }
     }
 
-    try
-    {
-      s.close();
-    } catch (Exception e) {}
+    StaticUtils.close(s);
   }
 
 

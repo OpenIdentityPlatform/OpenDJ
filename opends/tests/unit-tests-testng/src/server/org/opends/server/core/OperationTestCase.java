@@ -23,27 +23,23 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS
  */
 package org.opends.server.core;
 
-
-
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.Test;
-import org.testng.annotations.BeforeMethod;
+import static org.testng.Assert.*;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.ConnectionHandler;
 import org.opends.server.protocols.ldap.LDAPConnectionHandler;
-import org.opends.server.protocols.ldap.LDAPStatistics;
 import org.opends.server.protocols.ldap.LDAPControl;
+import org.opends.server.protocols.ldap.LDAPStatistics;
 import org.opends.server.types.Control;
 import org.opends.server.types.Operation;
-
-import static org.testng.Assert.*;
-
-
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
 
 /**
  * A set of generic test cases for operations
@@ -51,10 +47,10 @@ import static org.testng.Assert.*;
 public abstract class OperationTestCase
        extends CoreTestCase
 {
-  // The LDAPStatistics object associated with the LDAP connection handler.
+  /** The LDAPStatistics object associated with the LDAP connection handler. */
   protected LDAPStatistics ldapStatistics;
 
-  // The LDAPStatistics object associated with the LDAPS connection handler.
+  /** The LDAPStatistics object associated with the LDAPS connection handler. */
   protected LDAPStatistics ldapsStatistics;
 
   @BeforeMethod
@@ -63,8 +59,10 @@ public abstract class OperationTestCase
     TestCaseUtils.quiesceServer();
   }
 
-  // When this was part of an @BeforeClass method, it was not called reliably
-  // for each subclass.
+  /**
+   * When this was part of an @BeforeClass method, it was not called reliably
+   * for each subclass.
+   */
   @BeforeMethod
   public void initializeLDAPStatistics()
   {
@@ -167,34 +165,6 @@ public abstract class OperationTestCase
   public void testGetOperationType(Operation operation)
   {
     assertNotNull(operation.getOperationType());
-  }
-
-
-
-  /**
-   * Tests the <CODE>getCommonLogElements</CODE> method for the provided
-   * operation.
-   *
-   * @param  operation  The operation to test.
-   */
-  @Test(dataProvider = "testOperations")
-  public void testGetCommonLogElements(Operation operation)
-  {
-    assertNotNull(operation.getCommonLogElements());
-  }
-
-
-
-  /**
-   * Tests the <CODE>getRequestLogElements</CODE> method for the provided
-   * operation.
-   *
-   * @param  operation  The operation to test.
-   */
-  @Test(dataProvider = "testOperations")
-  public void testGetRequestLogElements(Operation operation)
-  {
-    assertNotNull(operation.getRequestLogElements());
   }
 
 

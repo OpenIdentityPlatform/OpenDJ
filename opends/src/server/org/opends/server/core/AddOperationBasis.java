@@ -23,27 +23,18 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS
  */
 package org.opends.server.core;
-import org.opends.messages.MessageBuilder;
 
-
-import static org.opends.server.config.ConfigConstants.ATTR_OBJECTCLASS;
-import static org.opends.server.core.CoreConstants.LOG_ELEMENT_ENTRY_DN;
-import static org.opends.server.core.CoreConstants.LOG_ELEMENT_ERROR_MESSAGE;
-import static org.opends.server.core.CoreConstants.LOG_ELEMENT_MATCHED_DN;
-import static org.opends.server.core.CoreConstants.LOG_ELEMENT_PROCESSING_TIME;
-import static org.opends.server.core.CoreConstants.LOG_ELEMENT_REFERRAL_URLS;
-import static org.opends.server.core.CoreConstants.LOG_ELEMENT_RESULT_CODE;
-import static org.opends.server.loggers.AccessLogger.logAddRequest;
-import static org.opends.server.loggers.AccessLogger.logAddResponse;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.messages.CoreMessages.*;
-import static org.opends.server.util.StaticUtils.toLowerCase;
+import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.loggers.AccessLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.util.StaticUtils.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -53,13 +44,11 @@ import org.opends.server.core.networkgroups.NetworkGroup;
 import org.opends.server.loggers.debug.DebugLogger;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.ldap.LDAPAttribute;
+import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.types.*;
 import org.opends.server.types.operation.PostResponseAddOperation;
 import org.opends.server.types.operation.PreParseAddOperation;
 import org.opends.server.workflowelement.localbackend.LocalBackendAddOperation;
-import org.opends.server.protocols.ldap.LDAPResultCode;
-
-
 
 /**
  * This class defines an operation that may be used to add a new entry to the
@@ -67,8 +56,7 @@ import org.opends.server.protocols.ldap.LDAPResultCode;
  */
 public class AddOperationBasis
        extends AbstractOperation
-       implements PreParseAddOperation, AddOperation, Runnable,
-                  PostResponseAddOperation
+       implements PreParseAddOperation, AddOperation, PostResponseAddOperation
 {
 
   /**
@@ -76,38 +64,43 @@ public class AddOperationBasis
    */
   private static final DebugTracer TRACER = DebugLogger.getTracer();
 
-  // The set of response controls to send to the client.
+  /** The set of response controls to send to the client. */
   private ArrayList<Control> responseControls;
 
-  // The raw, unprocessed entry DN as provided in the request.  This may or may
-  // not be a valid DN.
+  /**
+   * The raw, unprocessed entry DN as provided in the request. This may or may
+   * not be a valid DN.
+   */
   private ByteString rawEntryDN;
 
-  // The processed DN of the entry to add.
+  /** The processed DN of the entry to add. */
   private DN entryDN;
 
-  // The proxied authorization target DN for this operation.
+  /** The proxied authorization target DN for this operation. */
   private DN proxiedAuthorizationDN;
 
-  // The set of attributes (including the objectclass attribute) in a raw,
-  // unprocessed form as provided in the request.  One or more of these
-  // attributes may be invalid.
+  /**
+   * The set of attributes (including the objectclass attribute) in a raw,
+   * unprocessed form as provided in the request. One or more of these
+   * attributes may be invalid.
+   */
   private List<RawAttribute> rawAttributes;
 
-  // The set of operational attributes for the entry to add.
+  /** The set of operational attributes for the entry to add. */
   private Map<AttributeType,List<Attribute>> operationalAttributes;
 
-  // The set of user attributes for the entry to add.
+  /** The set of user attributes for the entry to add. */
   private Map<AttributeType,List<Attribute>> userAttributes;
 
-  // The set of objectclasses for the entry to add.
+  /** The set of objectclasses for the entry to add. */
   private Map<ObjectClass,String> objectClasses;
 
-  // The change number that has been assigned to this operation.
+  /** The change number that has been assigned to this operation. */
   private long changeNumber;
 
-  // The flag indicates if  an LDAP error was reported.
+  /** The flag indicates if an LDAP error was reported. */
   private boolean ldapError;
+
   /**
    * Creates a new add operation with the provided information.
    *
@@ -213,6 +206,7 @@ public class AddOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final ByteString getRawEntryDN()
   {
     return rawEntryDN;
@@ -221,6 +215,7 @@ public class AddOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final void setRawEntryDN(ByteString rawEntryDN)
   {
     this.rawEntryDN = rawEntryDN;
@@ -232,6 +227,7 @@ public class AddOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final DN getEntryDN()
   {
     try
@@ -260,6 +256,7 @@ public class AddOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final List<RawAttribute> getRawAttributes()
   {
     return rawAttributes;
@@ -269,6 +266,7 @@ public class AddOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final void addRawAttribute(RawAttribute rawAttribute)
   {
     rawAttributes.add(rawAttribute);
@@ -282,6 +280,7 @@ public class AddOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final void setRawAttributes(List<RawAttribute> rawAttributes)
   {
     this.rawAttributes = rawAttributes;
@@ -296,6 +295,7 @@ public class AddOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final Map<ObjectClass,String> getObjectClasses()
   {
     if (objectClasses == null){
@@ -309,6 +309,7 @@ public class AddOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final void addObjectClass(ObjectClass objectClass, String name)
   {
     objectClasses.put(objectClass, name);
@@ -319,6 +320,7 @@ public class AddOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final void removeObjectClass(ObjectClass objectClass)
   {
     objectClasses.remove(objectClass);
@@ -329,6 +331,7 @@ public class AddOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final Map<AttributeType,List<Attribute>> getUserAttributes()
   {
     if (userAttributes == null){
@@ -341,6 +344,7 @@ public class AddOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final Map<AttributeType,List<Attribute>> getOperationalAttributes()
   {
     if (operationalAttributes == null){
@@ -486,6 +490,7 @@ public class AddOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final void setAttribute(AttributeType attributeType,
                                  List<Attribute> attributeList)
   {
@@ -517,6 +522,7 @@ public class AddOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final void removeAttribute(AttributeType attributeType)
   {
     if (attributeType.isOperational())
@@ -532,6 +538,7 @@ public class AddOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final long getChangeNumber()
   {
     return changeNumber;
@@ -541,6 +548,7 @@ public class AddOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final void setChangeNumber(long changeNumber)
   {
     this.changeNumber = changeNumber;
@@ -550,6 +558,7 @@ public class AddOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final OperationType getOperationType()
   {
     // Note that no debugging will be done in this method because it is a likely
@@ -562,88 +571,7 @@ public class AddOperationBasis
   /**
    * {@inheritDoc}
    */
-  public final String[][] getRequestLogElements()
-  {
-    // Note that no debugging will be done in this method because it is a likely
-    // candidate for being called by the logging subsystem.
-
-    return new String[][]
-    {
-      new String[] { LOG_ELEMENT_ENTRY_DN, String.valueOf(rawEntryDN) }
-    };
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public final String[][] getResponseLogElements()
-  {
-    // Note that no debugging will be done in this method because it is a likely
-    // candidate for being called by the logging subsystem.
-
-    String resultCode = String.valueOf(getResultCode().getIntValue());
-
-    String errorMessage;
-    MessageBuilder errorMessageBuffer = getErrorMessage();
-    if (errorMessageBuffer == null)
-    {
-      errorMessage = null;
-    }
-    else
-    {
-      errorMessage = errorMessageBuffer.toString();
-    }
-
-    String matchedDNStr;
-    DN matchedDN = getMatchedDN();
-    if (matchedDN == null)
-    {
-      matchedDNStr = null;
-    }
-    else
-    {
-      matchedDNStr = matchedDN.toString();
-    }
-
-    String referrals;
-    List<String> referralURLs = getReferralURLs();
-    if ((referralURLs == null) || referralURLs.isEmpty())
-    {
-      referrals = null;
-    }
-    else
-    {
-      StringBuilder buffer = new StringBuilder();
-      Iterator<String> iterator = referralURLs.iterator();
-      buffer.append(iterator.next());
-
-      while (iterator.hasNext())
-      {
-        buffer.append(", ");
-        buffer.append(iterator.next());
-      }
-
-      referrals = buffer.toString();
-    }
-
-    String processingTime =
-         String.valueOf(getProcessingTime());
-
-    return new String[][]
-    {
-      new String[] { LOG_ELEMENT_RESULT_CODE, resultCode },
-      new String[] { LOG_ELEMENT_ERROR_MESSAGE, errorMessage },
-      new String[] { LOG_ELEMENT_MATCHED_DN, matchedDNStr },
-      new String[] { LOG_ELEMENT_REFERRAL_URLS, referrals },
-      new String[] { LOG_ELEMENT_PROCESSING_TIME, processingTime }
-    };
-  }
-
-  /**
-   * {@inheritDoc}
-   */
+  @Override
   public DN getProxiedAuthorizationDN()
   {
     return proxiedAuthorizationDN;
@@ -652,6 +580,7 @@ public class AddOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final ArrayList<Control> getResponseControls()
   {
     return responseControls;
@@ -662,6 +591,7 @@ public class AddOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final void addResponseControl(Control control)
   {
     responseControls.add(control);
@@ -672,6 +602,7 @@ public class AddOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final void removeResponseControl(Control control)
   {
     responseControls.remove(control);
@@ -682,6 +613,7 @@ public class AddOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final void toString(StringBuilder buffer)
   {
     buffer.append("AddOperation(connID=");
@@ -696,6 +628,7 @@ public class AddOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public void setProxiedAuthorizationDN(DN proxiedAuthorizationDN)
   {
     this.proxiedAuthorizationDN = proxiedAuthorizationDN;
@@ -704,6 +637,7 @@ public class AddOperationBasis
   /**
    * {@inheritDoc}
    */
+  @Override
   public final void run()
   {
     setResultCode(ResultCode.UNDEFINED);
@@ -898,10 +832,10 @@ public class AddOperationBasis
    *
    * This method always returns null.
    */
+  @Override
   public Entry getEntryToAdd()
   {
     return null;
   }
 
 }
-
