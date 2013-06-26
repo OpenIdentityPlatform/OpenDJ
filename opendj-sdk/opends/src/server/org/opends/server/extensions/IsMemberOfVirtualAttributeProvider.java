@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions copyright 2011-2012 ForgeRock AS
+ *      Portions copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -195,14 +195,7 @@ public class IsMemberOfVirtualAttributeProvider
     {
       DN groupDN = DN.decode(value.getValue());
       Group<?> g = DirectoryServer.getGroupManager().getGroupInstance(groupDN);
-      if (g == null)
-      {
-        return false;
-      }
-      else
-      {
-        return g.isMember(entry);
-      }
+      return g != null && g.isMember(entry);
     }
     catch (Exception e)
     {
@@ -312,12 +305,8 @@ public class IsMemberOfVirtualAttributeProvider
                               SearchOperation searchOperation,
                               boolean isPreIndexed)
   {
-    if (isPreIndexed)
-    {
-      return false;
-    }
-    return isSearchable(rule.getAttributeType(), searchOperation.getFilter(),
-                        0);
+    return !isPreIndexed &&
+        isSearchable(rule.getAttributeType(), searchOperation.getFilter(), 0);
   }
 
 
@@ -329,7 +318,7 @@ public class IsMemberOfVirtualAttributeProvider
    * to make the determination.
    *
    * @param  attributeType  The attribute type used to hold the entryDN value.
-   * @param  searchFilter   The search filter for which to make the
+   * @param  filter         The search filter for which to make the
    *                        determination.
    * @param  depth          The current recursion depth for this processing.
    *
