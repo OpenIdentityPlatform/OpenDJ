@@ -34,13 +34,11 @@
  
  <para>This chapter covers upgrade from OpenDJ 2.4.5 and later versions.</para>
 
- <para>For upgrades from earlier versions, upgrade first to OpenDJ
- <?eval ${stableServerVersion}?>, and then follow the procedures in this
- chapter. See <link xlink:show="new"
+ <para>For upgrades from earlier versions, upgrade first to at least OpenDJ
+ 2.4.5, and then follow the procedures in this chapter. See <link xlink:show="new"
  xlink:href="https://wikis.forgerock.org/confluence/display/OPENDJ/OpenDJ+Installation+Guide#OpenDJInstallationGuide-UpgradingOpenDJDirectoryServer"
  >Upgrading OpenDJ Directory Server</link> in the OpenDJ Wiki for details on
- upgrading to OpenDJ <?eval ${stableServerVersion}?> from earlier
- versions.</para>
+ upgrading to OpenDJ 2.4.5 from earlier versions.</para>
 
  <procedure xml:id="before-you-upgrade">
   <title>Before You Upgrade</title>
