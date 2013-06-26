@@ -36,6 +36,9 @@ import org.opends.server.util.StaticUtils;
 
 /**
  * Represents information about the license file.
+ *
+ * NOTE: the license file location must be kept in sync with build.xml and
+ * org.opends.quicksetup.LicenseFile.
  */
 public class LicenseFile
 {

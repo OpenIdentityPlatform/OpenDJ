@@ -175,9 +175,23 @@
   <property name="snmp.resource.dir" location="src/snmp/resource" />
   <property name="snmp.gen.dir"      location="src/snmp/generated" />
   <property name="snmp.src.dir"      location="src/snmp/src" />
-
   <property name="snmp.classes.dir"
             location="${classes.dir}/org/opends/server/snmp" />
+ 
+
+  <!-- Properties for license inclusion. -->
+  <condition property="include.license.file">
+    <available file="${license.file}" type="file" />
+  </condition>
+  <fail message="The license file '${license.file}' could not be found">
+    <condition>
+      <and>
+        <isset property="license.file"/>
+        <length string="${license.file}" trim="true" when="greater" length="0"/>
+        <isfalse value="${include.license.file}"/>
+      </and>
+    </condition>
+  </fail>
 
   <!-- sort-of Maven like properties for opendj dependencies-->
   <fileset id="opendj.runtime.jars" dir="${lib.dir}">
@@ -959,6 +973,9 @@
 
     <!-- Regenerate example plugin. -->
     <antcall target="example-plugin" />
+    
+    <!-- Copy license if required. -->
+    <antcall target="copylicense" />
   </target>
 
 
@@ -1002,6 +1019,24 @@
       <jvmarg value="-DOpendsWiki=${wiki.home}"/>
       <jvmarg value="-DLdapMapping"/>
     </java>
+  </target>
+  
+  <!-- Create license file if requested.
+         
+       This target should only be called from targets which have defined the
+       pdir property, such as prepackage and rebuild.
+         
+       The license file will be copied to ${pdir}/Legal/license_to_accept.txt.
+       This file location is hard-coded in the following classes:
+         
+       org.opends.server.tools.upgrade.LicenseFile
+       org.opends.quicksetup.LicenseFile
+         
+       Care must be taken to keep these filenames synchronized.
+  -->
+  <target name="copylicense" if="include.license.file" >
+    <mkdir dir="${pdir}/Legal" />
+    <copy tofile="${pdir}/Legal/license_to_accept.txt" file="${license.file}" />
   </target>
 
   <!-- Populate the Directory Server package, but don't zip it up. -->
@@ -1184,6 +1219,7 @@
     <copy todir="${pdir}/legal-notices">
       <fileset dir="${resource.dir}/legal-notices" />
     </copy>
+    <antcall target="copylicense" />
 
     <copy todir="${pdir}">
       <fileset file="${resource.dir}/README" />
