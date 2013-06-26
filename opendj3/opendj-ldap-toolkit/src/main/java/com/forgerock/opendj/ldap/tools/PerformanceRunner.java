@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS.
+ *      Portions copyright 2011-2013 ForgeRock AS.
  */
 
 package com.forgerock.opendj.ldap.tools;
@@ -190,8 +190,6 @@ abstract class PerformanceRunner implements ConnectionEventListener {
                 printer = null;
             }
 
-            final String[] strings = new String[numColumns];
-
             final long startTime = System.currentTimeMillis();
             long statTime = startTime;
             long gcDuration = 0;
@@ -235,6 +233,7 @@ abstract class PerformanceRunner implements ConnectionEventListener {
                 recentDuration /= 1000.0;
                 averageDuration /= 1000.0;
 
+                final String[] strings = new String[numColumns];
                 strings[0] = String.format("%.1f", resultCount / recentDuration);
                 strings[1] = String.format("%.1f", totalResultCount / averageDuration);
 
@@ -349,6 +348,7 @@ abstract class PerformanceRunner implements ConnectionEventListener {
             this.startTime = startTime;
         }
 
+        @Override
         public void handleErrorResult(final ErrorResultException error) {
             failedRecentCount.getAndIncrement();
             updateStats();
@@ -358,6 +358,7 @@ abstract class PerformanceRunner implements ConnectionEventListener {
             }
         }
 
+        @Override
         public void handleResult(final S result) {
             successRecentCount.getAndIncrement();
             updateStats();
@@ -763,15 +764,17 @@ abstract class PerformanceRunner implements ConnectionEventListener {
         argParser.addArgument(arguments);
     }
 
+    @Override
     public void handleConnectionClosed() {
         // Ignore
     }
 
+    @Override
     public synchronized void handleConnectionError(final boolean isDisconnectNotification,
             final ErrorResultException error) {
         if (!stopRequested) {
-            app.println(LocalizableMessage.raw("Error occurred on one or more " + "connections: "
-                    + error.getResult().toString()));
+            app.println(LocalizableMessage.raw("Error occurred on one or more connections: "
+                    + error.getResult()));
             if (error.getCause() != null && app.isVerbose()) {
                 error.getCause().printStackTrace(app.getErrorStream());
             }
@@ -779,6 +782,7 @@ abstract class PerformanceRunner implements ConnectionEventListener {
         }
     }
 
+    @Override
     public void handleUnsolicitedNotification(final ExtendedResult notification) {
         // Ignore
     }
@@ -854,9 +858,7 @@ abstract class PerformanceRunner implements ConnectionEventListener {
             stopRequested = true;
             app.println(LocalizableMessage.raw(e.getResult().getDiagnosticMessage()));
         } finally {
-            for (final Connection c : connections) {
-                c.close();
-            }
+            StaticUtils.closeSilently(connections);
         }
 
         return 0;

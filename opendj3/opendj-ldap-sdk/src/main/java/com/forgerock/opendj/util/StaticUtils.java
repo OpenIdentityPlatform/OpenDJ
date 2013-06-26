@@ -81,10 +81,10 @@ public final class StaticUtils {
      */
     public static final byte[] EMPTY_BYTES = new byte[0];
 
-    // The name of the time zone for universal coordinated time (UTC).
+    /** The name of the time zone for universal coordinated time (UTC). */
     private static final String TIME_ZONE_UTC = "UTC";
 
-    // UTC TimeZone is assumed to never change over JVM lifetime
+    /** UTC TimeZone is assumed to never change over JVM lifetime. */
     private static final TimeZone TIME_ZONE_UTC_OBJ = TimeZone.getTimeZone(TIME_ZONE_UTC);
 
     /**
@@ -1174,6 +1174,22 @@ public final class StaticUtils {
      *            The resources to be closed, which may be {@code null}.
      */
     public static void closeSilently(Closeable... resources) {
+        if (resources == null) {
+            return;
+        }
+        closeSilently(Arrays.asList(resources));
+    }
+
+    /**
+     * Closes the provided resources ignoring any errors which occurred.
+     *
+     * @param resources
+     *            The resources to be closed, which may be {@code null}.
+     */
+    public static void closeSilently(Iterable<? extends Closeable> resources) {
+        if (resources == null) {
+            return;
+        }
         for (Closeable r : resources) {
             try {
                 if (r != null) {
