@@ -60,7 +60,7 @@ import org.opends.server.util.args.ArgumentException;
  */
 public class ControlPanelLauncher
 {
-  static private ControlPanelArgumentParser argParser;
+  static private ControlPanelArgumentParser  argParser;
 
   /** Prefix for log files. */
   static public final String LOG_FILE_PREFIX = "opendj-control-panel-";
@@ -159,7 +159,7 @@ public class ControlPanelLauncher
    * worked (and the splash screen was displayed) we will never get out of it
    * (we will call a System.exit() when we close the graphical status dialog).
    *
-   * @params String[] args the arguments used to call the
+   * @param  args the arguments used to call the
    *         ControlPanelSplashScreen main method.
    * @return 0 if everything worked fine, or 1 if we could not display properly
    *         the ControlPanelSplashScreen.
@@ -194,9 +194,8 @@ public class ControlPanelLauncher
             while (t != null)
             {
               StackTraceElement[] stack = t.getStackTrace();
-              for (int i = 0; i < stack.length; i++)
-              {
-                buf.append(stack[i].toString()+"\n");
+              for (StackTraceElement aStack : stack) {
+                buf.append(aStack.toString()).append("\n");
               }
 
               t = t.getCause();
