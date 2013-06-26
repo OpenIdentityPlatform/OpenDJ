@@ -23,7 +23,7 @@
  !
  !
  !      Copyright 2006-2010 Sun Microsystems, Inc.
- !      Portions Copyright 2011-2013 ForgeRock AS
+ !      Portions Copyright 2011-2015 ForgeRock AS
  !      Portions Copyright 2012 Delta Victor Consultants
  ! -->
 
@@ -575,7 +575,7 @@
       </classpath>
     </taskdef>
 
-    <getsvnrevision property="REVISION_NUMBER" />
+    <property name="REVISION_NUMBER" value="9086" />
 
     <!-- Get the url repo of the current Subversion workspace -->
     <taskdef name="getsvnurlrepo"
@@ -590,7 +590,7 @@
       </classpath>
     </taskdef>
 
-    <getsvnurlrepo property="URL_REPOSITORY" />
+    <property name="URL_REPOSITORY" value="ssh://git@stash.forgerock.org:7999/opendj/opendj.git" />
 
 
     <!-- Construct the version number string -->
