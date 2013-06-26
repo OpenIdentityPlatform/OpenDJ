@@ -162,18 +162,6 @@
    </listitem>
   </varlistentry>
   <varlistentry>
-   <term><filename>install.html</filename></term>
-   <listitem>
-    <para>Quick installation instructions in case you are offline</para>
-   </listitem>
-  </varlistentry>
-  <varlistentry>
-   <term><filename>install.txt</filename></term>
-   <listitem>
-    <para>Text version of <filename>install.html</filename></para>
-   </listitem>
-  </varlistentry>
-  <varlistentry>
    <term><filename>instance.loc</filename></term>
    <listitem>
     <para>Pointer to OpenDJ on the file system, useful in installations where
