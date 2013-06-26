@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS.
  */
 package org.opends.server.loggers;
 
@@ -45,7 +46,7 @@ public class LogCategory
   /**
    * Create a named type.
    * <p>
-   * Note that this constructor is "protected" to allow subclassing.
+   * Note that this constructor is "protected" to allow sub-classing.
    *
    * @param name  the name of the category, for example "MESSAGE".
    */
@@ -68,7 +69,7 @@ public class LogCategory
   }
 
   /**
-   * Retrieves the string reprentation of this log category.
+   * Retrieves the string representation of this log category.
    *
    * @return the non-localized name of the LogCategory, for example "ENTRY".
    */
