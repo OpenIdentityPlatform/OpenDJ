@@ -27,15 +27,11 @@
  */
 package org.opends.server.core;
 
-
-
 import org.opends.server.admin.std.server.AccessControlHandlerCfg;
 import org.opends.server.api.AccessControlHandler;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.*;
 import org.opends.server.workflowelement.localbackend.*;
-
-
 
 /**
  * This class implements a default access control provider for the Directory
@@ -98,7 +94,7 @@ class DefaultAccessControlHandler
    * {@inheritDoc}
    */
   @Override
-  public boolean isAllowed(LocalBackendBindOperation bindOperation)
+  public boolean isAllowed(BindOperation bindOperation)
   {
     return true;
   }
@@ -164,7 +160,7 @@ class DefaultAccessControlHandler
    * {@inheritDoc}
    */
   @Override
-  public boolean isAllowed(LocalBackendModifyDNOperation modifyDNOperation)
+  public boolean isAllowed(ModifyDNOperation modifyDNOperation)
   {
     return true;
   }
@@ -175,7 +171,7 @@ class DefaultAccessControlHandler
    * {@inheritDoc}
    */
   @Override
-  public boolean isAllowed(LocalBackendSearchOperation searchOperation)
+  public boolean isAllowed(SearchOperation searchOperation)
   {
     return true;
   }

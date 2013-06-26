@@ -28,8 +28,6 @@
  */
 package org.opends.server.authorization.dseecompat;
 
-
-
 import static org.opends.messages.AccessControlMessages.*;
 import static org.opends.server.authorization.dseecompat.Aci.*;
 import static org.opends.server.config.ConfigConstants.*;
@@ -39,11 +37,7 @@ import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.SortedSet;
+import java.util.*;
 import java.util.concurrent.locks.Lock;
 
 import org.opends.messages.Message;
@@ -54,17 +48,13 @@ import org.opends.server.api.ConfigHandler;
 import org.opends.server.backends.jeb.EntryContainer;
 import org.opends.server.config.ConfigException;
 import org.opends.server.controls.GetEffectiveRightsRequestControl;
-import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.ExtendedOperation;
-import org.opends.server.core.SearchOperation;
+import org.opends.server.core.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.types.*;
 import org.opends.server.workflowelement.localbackend.*;
-
-
 
 /**
  * The AciHandler class performs the main processing for the dseecompat
@@ -209,7 +199,7 @@ public final class AciHandler extends
       SearchResultEntry unfilteredEntry, SearchResultEntry filteredEntry)
   {
     AciLDAPOperationContainer operationContainer =
-      new AciLDAPOperationContainer(operation, (ACI_READ), unfilteredEntry);
+        new AciLDAPOperationContainer(operation, ACI_READ, unfilteredEntry);
 
     // Proxy access check has already been done for this entry in the
     // maySend method, set the seen flag to true to bypass any proxy
@@ -361,7 +351,7 @@ public final class AciHandler extends
    * {@inheritDoc}
    */
   @Override
-  public boolean isAllowed(LocalBackendBindOperation bindOperation)
+  public boolean isAllowed(BindOperation bindOperation)
   {
     // Not planned to be implemented.
     return true;
@@ -436,7 +426,7 @@ public final class AciHandler extends
    * @return True if access is allowed.
    */
   @Override
-  public boolean isAllowed(LocalBackendModifyDNOperation operation)
+  public boolean isAllowed(ModifyDNOperation operation)
   {
     boolean ret = true;
     DN newSuperiorDN;
@@ -468,7 +458,7 @@ public final class AciHandler extends
       if (ret && (newSuperiorDN != null))
       {
         AciLDAPOperationContainer operationContainer =
-            new AciLDAPOperationContainer(operation, (ACI_EXPORT),
+            new AciLDAPOperationContainer(operation, ACI_EXPORT,
                 operation.getOriginalEntry());
         // The RDNs are not equal, skip the proxy check since it was
         // already performed in the aciCheckRDNs call above.
@@ -504,7 +494,7 @@ public final class AciHandler extends
    * {@inheritDoc}
    */
   @Override
-  public boolean isAllowed(LocalBackendSearchOperation searchOperation)
+  public boolean isAllowed(SearchOperation searchOperation)
   {
     // Not planned to be implemented.
     return true;
@@ -526,7 +516,7 @@ public final class AciHandler extends
     else
     {
       AciLDAPOperationContainer operationContainer =
-        new AciLDAPOperationContainer(operation, (ACI_READ), entry);
+          new AciLDAPOperationContainer(operation, ACI_READ, entry);
       return testFilter(operationContainer, filter);
     }
   }
@@ -580,7 +570,7 @@ public final class AciHandler extends
       e.addAttribute(builder.toAttribute(), null);
       SearchResultEntry se = new SearchResultEntry(e);
       AciLDAPOperationContainer operationContainer =
-          new AciLDAPOperationContainer(operation, (ACI_READ), se);
+          new AciLDAPOperationContainer(operation, ACI_READ, se);
       operationContainer.setCurrentAttributeType(refAttrType);
       ret = accessAllowed(operationContainer);
     }
@@ -601,7 +591,7 @@ public final class AciHandler extends
     }
 
     AciLDAPOperationContainer operationContainer =
-      new AciLDAPOperationContainer(operation, (ACI_SEARCH), entry);
+        new AciLDAPOperationContainer(operation, ACI_SEARCH, entry);
 
     // Pre/post read controls are associated with other types of operation.
     if (operation instanceof SearchOperation)
@@ -1016,31 +1006,35 @@ public final class AciHandler extends
 
 
   /**
-   * Perform all needed RDN checks for the modifyDN operation. The old
-   * RDN is not equal to the new RDN. The access checks are: - Verify
-   * WRITE access to the original entry. - Verfiy WRITE_ADD access on
-   * each RDN component of the new RDN. The WRITE_ADD access is used
-   * because this access could be restricted by the targattrfilters
-   * keyword. - If the deleteOLDRDN flag is set, verify WRITE_DELETE
-   * access on the old RDN. The WRITE_DELETE access is used because this
-   * access could be restricted by the targattrfilters keyword.
+   * Perform all needed RDN checks for the modifyDN operation. The old RDN is
+   * not equal to the new RDN. The access checks are:
+   * <ul>
+   * <li>Verify WRITE access to the original entry.</li>
+   * <li>Verify WRITE_ADD access on each RDN component of the new RDN. The
+   * WRITE_ADD access is used because this access could be restricted by the
+   * targattrfilters keyword.</li>
+   * <li>If the deleteOLDRDN flag is set, verify WRITE_DELETE access on the old
+   * RDN. The WRITE_DELETE access is used because this access could be
+   * restricted by the targattrfilters keyword.
+   * <li>
+   * </ul>
    *
    * @param operation
-   *          The ModifyDN operation class containing information to
-   *          check access on.
+   *          The ModifyDN operation class containing information to check
+   *          access on.
    * @param oldRDN
    *          The old RDN component.
    * @param newRDN
    *          The new RDN component.
    * @return True if access is allowed.
    */
-  private boolean aciCheckRDNs(LocalBackendModifyDNOperation operation,
+  private boolean aciCheckRDNs(ModifyDNOperation operation,
       RDN oldRDN, RDN newRDN)
   {
     boolean ret;
 
     AciLDAPOperationContainer operationContainer =
-        new AciLDAPOperationContainer(operation, (ACI_WRITE), operation
+        new AciLDAPOperationContainer(operation, ACI_WRITE, operation
             .getOriginalEntry());
     ret = accessAllowed(operationContainer);
     if (ret)
@@ -1069,8 +1063,8 @@ public final class AciHandler extends
    *           If a problem occurs while trying to retrieve the new
    *           superior entry.
    */
-  private boolean aciCheckSuperiorEntry(DN superiorDN,
-      LocalBackendModifyDNOperation op) throws DirectoryException
+  private boolean aciCheckSuperiorEntry(DN superiorDN, ModifyDNOperation op)
+      throws DirectoryException
   {
     boolean ret = false;
     final Lock entryLock = LockManager.lockRead(superiorDN);
@@ -1088,8 +1082,7 @@ public final class AciHandler extends
       if (superiorEntry != null)
       {
         AciLDAPOperationContainer operationContainer =
-            new AciLDAPOperationContainer(op, (ACI_IMPORT),
-                superiorEntry);
+            new AciLDAPOperationContainer(op, ACI_IMPORT, superiorEntry);
         ret = accessAllowed(operationContainer);
       }
     }
