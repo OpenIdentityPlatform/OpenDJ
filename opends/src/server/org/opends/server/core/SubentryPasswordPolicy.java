@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2012 ForgeRock AS.
+ *      Portions copyright 2011-2013 ForgeRock AS.
  */
 
 package org.opends.server.core;
@@ -54,7 +54,7 @@ import org.opends.server.types.*;
  * policies as OpenDJ password policies it performs a mapping of Draft defined
  * attributes to OpenDJ implementation specific attributes. Any missing
  * attributes are inherited from server default password policy. This class is
- * also reponsible for any Draft attributes validation ie making sure that
+ * also responsible for any Draft attributes validation ie making sure that
  * provided values are acceptable and within the predefined range.
  */
 public final class SubentryPasswordPolicy extends PasswordPolicy
@@ -539,7 +539,7 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
 
 
   /**
-   * Helper method to retieve an attribute value from given entry.
+   * Helper method to retrieve an attribute value from given entry.
    *
    * @param entry
    *          the entry to retrieve an attribute value from.
