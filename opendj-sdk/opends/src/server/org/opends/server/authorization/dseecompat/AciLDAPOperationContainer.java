@@ -25,7 +25,6 @@
  *      Copyright 2008-2009 Sun Microsystems, Inc.
  *      Portions Copyright 2011 ForgeRock AS
  */
-
 package org.opends.server.authorization.dseecompat;
 
 import org.opends.server.core.*;
@@ -145,7 +144,7 @@ public class AciLDAPOperationContainer extends AciContainer  {
      * @param rights  The rights of the modify DN operation.
      * @param entry  The entry to evaluated for this modify DN.
      */
-    public AciLDAPOperationContainer(LocalBackendModifyDNOperation operation,
+    public AciLDAPOperationContainer(ModifyDNOperation operation,
                                      int rights,
                                      Entry entry) {
         super(operation, rights,  entry);

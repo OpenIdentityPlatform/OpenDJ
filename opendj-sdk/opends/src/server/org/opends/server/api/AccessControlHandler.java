@@ -27,18 +27,14 @@
  */
 package org.opends.server.api;
 
-
-
-import org.opends.messages.Message;
-
 import java.util.List;
 
+import org.opends.messages.Message;
 import org.opends.server.admin.std.server.AccessControlHandlerCfg;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.*;
 import org.opends.server.types.*;
 import org.opends.server.workflowelement.localbackend.*;
-
 
 /**
  * This class defines the set of methods and structures that must be
@@ -74,7 +70,6 @@ public abstract class AccessControlHandler
    *           related to the server configuration.
    */
   public abstract void initializeAccessControlHandler(T configuration)
-
   throws ConfigException, InitializationException;
 
 
@@ -184,8 +179,7 @@ public abstract class AccessControlHandler
    *           be decoded. Care must be taken not to expose any
    *           potentially sensitive information in the exception.
    */
-  public abstract boolean isAllowed(
-      LocalBackendBindOperation bindOperation)
+  public abstract boolean isAllowed(BindOperation bindOperation)
     throws DirectoryException;
 
 
@@ -247,8 +241,7 @@ public abstract class AccessControlHandler
    *           be decoded. Care must be taken not to expose any
    *           potentially sensitive information in the exception.
    */
-  public abstract boolean isAllowed(
-      ExtendedOperation extendedOperation)
+  public abstract boolean isAllowed(ExtendedOperation extendedOperation)
     throws DirectoryException;
 
 
@@ -289,8 +282,7 @@ public abstract class AccessControlHandler
    *           be decoded. Care must be taken not to expose any
    *           potentially sensitive information in the exception.
    */
-  public abstract boolean isAllowed(
-      LocalBackendModifyDNOperation modifyDNOperation)
+  public abstract boolean isAllowed(ModifyDNOperation modifyDNOperation)
     throws DirectoryException;
 
 
@@ -313,8 +305,7 @@ public abstract class AccessControlHandler
    *           be decoded. Care must be taken not to expose any
    *           potentially sensitive information in the exception.
    */
-  public abstract boolean isAllowed(
-      LocalBackendSearchOperation searchOperation)
+  public abstract boolean isAllowed(SearchOperation searchOperation)
     throws DirectoryException;
 
 
