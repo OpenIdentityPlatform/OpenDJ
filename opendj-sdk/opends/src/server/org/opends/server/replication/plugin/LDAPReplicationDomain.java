@@ -794,8 +794,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     /*
      * Search the domain root entry that is used to save the generation id
      */
-
-    LinkedHashSet<String> attributes = new LinkedHashSet<String>(1);
+    Set<String> attributes = new LinkedHashSet<String>(1);
     attributes.add(REPLICATION_GENERATION_ID);
     attributes.add(REPLICATION_FRACTIONAL_EXCLUDE);
     attributes.add(REPLICATION_FRACTIONAL_INCLUDE);
@@ -817,8 +816,8 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     SearchResultEntry resultEntry = null;
     if (search.getResultCode() == ResultCode.SUCCESS)
     {
-      LinkedList<SearchResultEntry> result = search.getSearchEntries();
-      resultEntry = result.getFirst();
+      List<SearchResultEntry> result = search.getSearchEntries();
+      resultEntry = result.get(0);
       if (resultEntry != null)
       {
         AttributeType synchronizationGenIDType =
@@ -2389,7 +2388,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     LDAPFilter filter = LDAPFilter.createEqualityFilter(DS_SYNC_CONFLICT,
         ByteString.valueOf(freedDN.toString()));
 
-     LinkedHashSet<String> attrs = new LinkedHashSet<String>(1);
+     Set<String> attrs = new LinkedHashSet<String>(1);
      attrs.add(EntryHistorical.HISTORICAL_ATTRIBUTE_NAME);
      attrs.add(EntryHistorical.ENTRYUUID_ATTRIBUTE_NAME);
      attrs.add("*");
@@ -2400,10 +2399,9 @@ public final class LDAPReplicationDomain extends ReplicationDomain
        0, 0, false, filter,
        attrs, null);
 
-     LinkedList<SearchResultEntry> entries = searchOp.getSearchEntries();
      Entry entryToRename = null;
      ChangeNumber entryToRenameCN = null;
-     for (SearchResultEntry entry : entries)
+     for (SearchResultEntry entry : searchOp.getSearchEntries())
      {
        EntryHistorical history = EntryHistorical.newInstanceFromEntry(entry);
        if (entryToRename == null)
@@ -2818,7 +2816,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     {
       InternalClientConnection conn =
                 InternalClientConnection.getRootConnection();
-      LinkedHashSet<String> attrs = new LinkedHashSet<String>(1);
+      Set<String> attrs = new LinkedHashSet<String>(1);
       attrs.add(ENTRYUUID_ATTRIBUTE_NAME);
       InternalSearchOperation search = conn.processSearch(dn,
             SearchScope.BASE_OBJECT, DereferencePolicy.NEVER_DEREF_ALIASES,
@@ -2828,10 +2826,10 @@ public final class LDAPReplicationDomain extends ReplicationDomain
 
       if (search.getResultCode() == ResultCode.SUCCESS)
       {
-        LinkedList<SearchResultEntry> result = search.getSearchEntries();
+        List<SearchResultEntry> result = search.getSearchEntries();
         if (!result.isEmpty())
         {
-          SearchResultEntry resultEntry = result.getFirst();
+          SearchResultEntry resultEntry = result.get(0);
           if (resultEntry != null)
           {
             return EntryHistorical.getEntryUUID(resultEntry);
@@ -2861,10 +2859,10 @@ public final class LDAPReplicationDomain extends ReplicationDomain
             SearchFilter.createFilterFromString("entryuuid="+uuid));
       if (search.getResultCode() == ResultCode.SUCCESS)
       {
-        LinkedList<SearchResultEntry> result = search.getSearchEntries();
+        List<SearchResultEntry> result = search.getSearchEntries();
         if (!result.isEmpty())
         {
-          SearchResultEntry resultEntry = result.getFirst();
+          SearchResultEntry resultEntry = result.get(0);
           if (resultEntry != null)
           {
             return resultEntry.getDN();
@@ -3280,7 +3278,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     // Find an rename child entries.
     try
     {
-      LinkedHashSet<String> attrs = new LinkedHashSet<String>(1);
+      Set<String> attrs = new LinkedHashSet<String>(1);
       attrs.add(ENTRYUUID_ATTRIBUTE_NAME);
       attrs.add(EntryHistorical.HISTORICAL_ATTRIBUTE_NAME);
 
@@ -3292,7 +3290,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
 
       if (op.getResultCode() == ResultCode.SUCCESS)
       {
-        LinkedList<SearchResultEntry> entries = op.getSearchEntries();
+        List<SearchResultEntry> entries = op.getSearchEntries();
         if (entries != null)
         {
           for (SearchResultEntry entry : entries)
@@ -3720,7 +3718,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
      * Search the database entry that is used to periodically
      * save the generation id
      */
-    LinkedHashSet<String> attributes = new LinkedHashSet<String>(1);
+    Set<String> attributes = new LinkedHashSet<String>(1);
     attributes.add(REPLICATION_GENERATION_ID);
     InternalSearchOperation search = conn.processSearch(asn1BaseDn,
         SearchScope.BASE_OBJECT,
@@ -3749,8 +3747,8 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     }
     else
     {
-      LinkedList<SearchResultEntry> result = search.getSearchEntries();
-      SearchResultEntry resultEntry = result.getFirst();
+      List<SearchResultEntry> result = search.getSearchEntries();
+      SearchResultEntry resultEntry = result.get(0);
       if (resultEntry != null)
       {
         AttributeType synchronizationGenIDType =
@@ -4724,7 +4722,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
 
       // Publish and remove all the changes from the replayOperations list
       // that are older than the endChangeNumber.
-      LinkedList<FakeOperation> opsToSend = new LinkedList<FakeOperation>();
+      List<FakeOperation> opsToSend = new LinkedList<FakeOperation>();
       synchronized (replayOperations)
       {
         Iterator<FakeOperation> itOp = replayOperations.values().iterator();
@@ -4805,7 +4803,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
        + fromChangeNumber + ")(" + EntryHistorical.HISTORICAL_ATTRIBUTE_NAME +
        "<=dummy:" + maxValueForId + "))");
 
-    LinkedHashSet<String> attrs = new LinkedHashSet<String>(1);
+    Set<String> attrs = new LinkedHashSet<String>(1);
     attrs.add(EntryHistorical.HISTORICAL_ATTRIBUTE_NAME);
     attrs.add(EntryHistorical.ENTRYUUID_ATTRIBUTE_NAME);
     attrs.add("*");
@@ -5057,7 +5055,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     else if (names.size() == 1 && names.contains("*"))
     {
       // Potential fast-path for delete operations.
-      LinkedList<Attribute> attributes = new LinkedList<Attribute>();
+      List<Attribute> attributes = new LinkedList<Attribute>();
       for (List<Attribute> attributeList : entry.getUserAttributes().values())
       {
         attributes.addAll(attributeList);
@@ -5616,14 +5614,13 @@ private boolean solveNamingConflict(ModifyDNOperation op,
        long endDate)
    throws DirectoryException
    {
-     LDAPFilter filter = null;
-
      TRACER.debugInfo("[PURGE] purgeConflictsHistorical "
          + "on domain: " + baseDn
          + "endDate:" + new Date(endDate)
          + "lastChangeNumberPurgedFromHist: "
          + lastChangeNumberPurgedFromHist.toStringUI());
 
+     LDAPFilter filter = null;
      try
      {
        filter = LDAPFilter.decode(
@@ -5635,7 +5632,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
        // Not possible. We know the filter just above is correct.
      }
 
-     LinkedHashSet<String> attrs = new LinkedHashSet<String>(1);
+     Set<String> attrs = new LinkedHashSet<String>(1);
      attrs.add(EntryHistorical.HISTORICAL_ATTRIBUTE_NAME);
      attrs.add(EntryHistorical.ENTRYUUID_ATTRIBUTE_NAME);
      attrs.add("*");
@@ -5651,18 +5648,13 @@ private boolean solveNamingConflict(ModifyDNOperation op,
      if (task != null)
        task.setProgressStats(lastChangeNumberPurgedFromHist, count);
 
-     LinkedList<SearchResultEntry> entries = searchOp.getSearchEntries();
-     for (SearchResultEntry entry : entries)
+     for (SearchResultEntry entry : searchOp.getSearchEntries())
      {
        long maxTimeToRun = endDate - TimeThread.getTime();
        if (maxTimeToRun < 0)
        {
-         Message errMsg = Message.raw(Category.SYNC, Severity.NOTICE,
-             " end date reached");
-         DirectoryException de = new DirectoryException(
-             ResultCode.ADMIN_LIMIT_EXCEEDED,
-             errMsg);
-         throw (de);
+        throw new DirectoryException(ResultCode.ADMIN_LIMIT_EXCEEDED,
+            Message.raw(Category.SYNC, Severity.NOTICE, " end date reached"));
        }
 
        EntryHistorical entryHist = EntryHistorical.newInstanceFromEntry(entry);
@@ -5671,9 +5663,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
        Attribute attr = entryHist.encodeAndPurge();
        count += entryHist.getLastPurgedValuesCount();
        List<Modification> mods = new LinkedList<Modification>();
-       Modification mod;
-       mod = new Modification(ModificationType.REPLACE, attr);
-       mods.add(mod);
+       mods.add(new Modification(ModificationType.REPLACE, attr));
 
        ModifyOperationBasis newOp =
          new ModifyOperationBasis(
