@@ -150,8 +150,7 @@ public class BaseDNDescriptor implements Comparable<BaseDNDescriptor>
    */
   public int compareTo(BaseDNDescriptor desc)
   {
-    int returnValue = -1;
-    returnValue = desc.getDn().compareTo(getDn());
+    int returnValue = desc.getDn().compareTo(getDn());
     if (returnValue == 0)
     {
       returnValue = getType().compareTo(desc.getType());
