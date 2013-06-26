@@ -503,9 +503,9 @@ Replication: </screen>
    <para>Before you install OpenDJ, install a Java runtime environment if none
    is installed yet.</para>
 
-   <screen>$ java -version
-java version ...
-OpenJDK Runtime Environment ...</screen>
+   <screen>$ su
+Password:
+# rpm -ivh jdk-*.rpm</screen>
   </step>
 
   <step>
