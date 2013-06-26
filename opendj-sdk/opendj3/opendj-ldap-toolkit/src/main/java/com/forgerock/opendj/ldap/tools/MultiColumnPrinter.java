@@ -22,12 +22,13 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2013 ForgeRock AS.
  */
 
 package com.forgerock.opendj.ldap.tools;
 
-import java.util.Enumeration;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Vector;
 
 /**
@@ -74,16 +75,16 @@ import java.util.Vector;
  * </PRE>
  * <P>
  * This class also supports multi-row titles and having title strings spanning
- * multiple collumns. Example usage:
+ * multiple columns. Example usage:
  *
  * <PRE>
  * TestPrinter tp = new TestPrinter(4, 2, &quot;-&quot;);
  * String oneRow[] = new String[4];
  * int[] span = new int[4];
- * span[0] = 2; // spans 2 collumns
- * span[1] = 0; // spans 0 collumns
- * span[2] = 2; // spans 2 collumns
- * span[3] = 0; // spans 0 collumns
+ * span[0] = 2; // spans 2 columns
+ * span[1] = 0; // spans 0 columns
+ * span[2] = 2; // spans 2 columns
+ * span[3] = 0; // spans 0 columns
  * tp.setTitleAlign(CENTER);
  * oneRow[0] = &quot;Name&quot;;
  * oneRow[1] = &quot;&quot;;
@@ -122,11 +123,11 @@ import java.util.Vector;
  */
 final class MultiColumnPrinter {
 
-    final static int LEFT = 0;
+    static final int LEFT = 0;
 
-    final static int CENTER = 1;
+    static final int CENTER = 1;
 
-    final static int RIGHT = 2;
+    static final int RIGHT = 2;
 
     private int numCol = 2;
 
@@ -138,9 +139,9 @@ final class MultiColumnPrinter {
 
     private String border = null;
 
-    private Vector<String[]> titleTable = null;
+    private List<String[]> titleTable = null;
 
-    private Vector<int[]> titleSpanTable = null;
+    private List<int[]> titleSpanTable = null;
 
     private final int[] curLength;
 
@@ -154,6 +155,8 @@ final class MultiColumnPrinter {
      *            number of columns
      * @param gap
      *            gap between each column
+     * @param app
+     *            the console application to use for outputting data
      */
     MultiColumnPrinter(final int numCol, final int gap, final ConsoleApplication app) {
         this(numCol, gap, null, LEFT, app);
@@ -168,6 +171,8 @@ final class MultiColumnPrinter {
      *            gap between each column
      * @param border
      *            character used to frame the titles
+     * @param app
+     *            the console application to use for outputting data
      */
     MultiColumnPrinter(final int numCol, final int gap, final String border,
             final ConsoleApplication app) {
@@ -185,6 +190,8 @@ final class MultiColumnPrinter {
      *            character used to frame the titles
      * @param align
      *            type of alignment within columns
+     * @param app
+     *            the console application to use for outputting data
      */
     MultiColumnPrinter(final int numCol, final int gap, final String border, final int align,
             final ConsoleApplication app) {
@@ -223,11 +230,11 @@ final class MultiColumnPrinter {
 
     /**
      * Adds to the row of strings to be used as the title for the table. Also
-     * allows for certain title strings to span multiple collumns The span
-     * parameter is an array of integers which indicate how many collumns the
-     * corresponding title string will occupy. For a row that is 4 collumns
+     * allows for certain title strings to span multiple columns The span
+     * parameter is an array of integers which indicate how many columns the
+     * corresponding title string will occupy. For a row that is 4 columns
      * wide, it is possible to have some title strings in a row to 'span'
-     * multiple collumns:
+     * multiple columns:
      * <P>
      *
      * <PRE>
@@ -240,14 +247,14 @@ final class MultiColumnPrinter {
      * </PRE>
      *
      * In the example above, the title row has a string 'Name' that spans 2
-     * collumns. The string 'Contact' also spans 2 collumns. The above is done
+     * columns. The string 'Contact' also spans 2 columns. The above is done
      * by passing in to addTitle() an array that contains:
      *
      * <PRE>
-     * span[0] = 2; // spans 2 collumns
-     * span[1] = 0; // spans 0 collumns, ignore
-     * span[2] = 2; // spans 2 collumns
-     * span[3] = 0; // spans 0 collumns, ignore
+     * span[0] = 2; // spans 2 columns
+     * span[1] = 0; // spans 0 columns, ignore
+     * span[2] = 2; // spans 2 columns
+     * span[3] = 0; // spans 0 columns, ignore
      * </PRE>
      * <P>
      * A span value of 1 is the default. The method addTitle(String[] row)
@@ -264,20 +271,20 @@ final class MultiColumnPrinter {
      * @param row
      *            Array of strings to print in one row of title.
      * @param span
-     *            Array of integers that reflect the number of collumns the
+     *            Array of integers that reflect the number of columns the
      *            corresponding title string will occupy.
      */
     void addTitle(final String[] row, final int[] span) {
         // Need to create a new instance of it, otherwise the new values
         // will always overwrite the old values.
 
-        final String[] rowInstance = new String[(row.length)];
+        final String[] rowInstance = new String[row.length];
         for (int i = 0; i < row.length; i++) {
             rowInstance[i] = row[i];
         }
-        titleTable.addElement(rowInstance);
+        titleTable.add(rowInstance);
 
-        titleSpanTable.addElement(span);
+        titleSpanTable.add(span);
     }
 
     /**
@@ -331,11 +338,9 @@ final class MultiColumnPrinter {
         // Get the longest string for each column and store in curLength[]
 
         // Scan through title rows
-        Enumeration<String[]> elm = titleTable.elements();
-        Enumeration<int[]> spanEnum = titleSpanTable.elements();
-        while (elm.hasMoreElements()) {
-            final String[] row = elm.nextElement();
-            final int[] curSpan = spanEnum.nextElement();
+        Iterator<int[]> spanEnum = titleSpanTable.iterator();
+        for (String[] row : titleTable) {
+            final int[] curSpan = spanEnum.next();
 
             for (int i = 0; i < numCol; i++) {
                 // None of the fields should be null, but if it
@@ -347,8 +352,8 @@ final class MultiColumnPrinter {
                 int len = row[i].length();
 
                 /*
-                 * If a title string spans multiple collumns, then the space it
-                 * occupies in each collumn is at most len/span (since we have
+                 * If a title string spans multiple columns, then the space it
+                 * occupies in each column is at most len/span (since we have
                  * gap to take into account as well).
                  */
                 final int span = curSpan[i];
@@ -367,7 +372,7 @@ final class MultiColumnPrinter {
                         }
 
                         /*
-                         * Add remainder to last collumn in span to avoid
+                         * Add remainder to last column in span to avoid
                          * round-off errors.
                          */
                         curLength[(i + span) - 1] += rem;
@@ -377,12 +382,10 @@ final class MultiColumnPrinter {
         }
 
         printBorder();
-        elm = titleTable.elements();
-        spanEnum = titleSpanTable.elements();
 
-        while (elm.hasMoreElements()) {
-            final String[] row = elm.nextElement();
-            final int[] curSpan = spanEnum.nextElement();
+        spanEnum = titleSpanTable.iterator();
+        for (String[] row : titleTable) {
+            final int[] curSpan = spanEnum.next();
 
             for (int i = 0; i < numCol; i++) {
                 int availableSpace = 0;
