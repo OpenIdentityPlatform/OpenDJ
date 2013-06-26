@@ -27,17 +27,8 @@
  */
 package org.opends.server.protocols.internal;
 
-
-
 import java.net.InetAddress;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -59,8 +50,6 @@ import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-
-
 
 /**
  * This class defines a pseudo-connection object that can be used for
@@ -2091,7 +2080,7 @@ public final class InternalClientConnection
                             DereferencePolicy derefPolicy,
                             int sizeLimit, int timeLimit,
                             boolean typesOnly, String filterString,
-                            LinkedHashSet<String> attributes)
+                            Set<String> attributes)
          throws DirectoryException
   {
     return processSearch(rawBaseDN, scope, derefPolicy, sizeLimit,
@@ -2133,7 +2122,7 @@ public final class InternalClientConnection
                             DereferencePolicy derefPolicy,
                             int sizeLimit, int timeLimit,
                             boolean typesOnly, String filterString,
-                            LinkedHashSet<String> attributes,
+                            Set<String> attributes,
                             InternalSearchListener searchListener)
          throws DirectoryException
   {
@@ -2178,7 +2167,7 @@ public final class InternalClientConnection
                             DereferencePolicy derefPolicy,
                             int sizeLimit, int timeLimit,
                             boolean typesOnly, String filterString,
-                            LinkedHashSet<String> attributes,
+                            Set<String> attributes,
                             List<Control> controls,
                             InternalSearchListener searchListener)
          throws DirectoryException
@@ -2255,7 +2244,7 @@ public final class InternalClientConnection
                             DereferencePolicy derefPolicy,
                             int sizeLimit, int timeLimit,
                             boolean typesOnly, RawFilter filter,
-                            LinkedHashSet<String> attributes)
+                            Set<String> attributes)
   {
     return processSearch(rawBaseDN, scope, derefPolicy, sizeLimit,
                          timeLimit, typesOnly, filter, attributes,
@@ -2292,7 +2281,7 @@ public final class InternalClientConnection
                             DereferencePolicy derefPolicy,
                             int sizeLimit, int timeLimit,
                             boolean typesOnly, RawFilter filter,
-                            LinkedHashSet<String> attributes,
+                            Set<String> attributes,
                             InternalSearchListener searchListener)
   {
     return processSearch(rawBaseDN, scope, derefPolicy, sizeLimit,
@@ -2332,7 +2321,7 @@ public final class InternalClientConnection
                             DereferencePolicy derefPolicy,
                             int sizeLimit, int timeLimit,
                             boolean typesOnly, RawFilter filter,
-                            LinkedHashSet<String> attributes,
+                            Set<String> attributes,
                             List<Control> controls,
                             InternalSearchListener searchListener)
   {
@@ -2401,7 +2390,7 @@ public final class InternalClientConnection
                             DereferencePolicy derefPolicy,
                             int sizeLimit, int timeLimit,
                             boolean typesOnly, SearchFilter filter,
-                            LinkedHashSet<String> attributes)
+                            Set<String> attributes)
   {
     return processSearch(baseDN, scope, derefPolicy, sizeLimit,
                          timeLimit, typesOnly, filter, attributes,
@@ -2437,7 +2426,7 @@ public final class InternalClientConnection
                             DereferencePolicy derefPolicy,
                             int sizeLimit, int timeLimit,
                             boolean typesOnly, SearchFilter filter,
-                            LinkedHashSet<String> attributes,
+                            Set<String> attributes,
                             InternalSearchListener searchListener)
   {
     return processSearch(baseDN, scope, derefPolicy, sizeLimit,
@@ -2476,7 +2465,7 @@ public final class InternalClientConnection
                             DereferencePolicy derefPolicy,
                             int sizeLimit, int timeLimit,
                             boolean typesOnly, SearchFilter filter,
-                            LinkedHashSet<String> attributes,
+                            Set<String> attributes,
                             List<Control> controls,
                             InternalSearchListener searchListener)
   {
