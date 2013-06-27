@@ -297,11 +297,26 @@
         'attribute' : 'TYPE'
         }
       </call>
-      <if expr="RC != 48 and dsVersion == '2.6.0'">
-        <!-- 'Legal/license_to_accept.txt' exists so add 'acceptLicense' option -->
-        <script>
-          STAFCmdParamsList.append('--acceptLicense')
-        </script>
+      <if expr="RC != 48">
+        <!-- 'Legal/license_to_accept.txt' exists -->
+        <if expr="UPGRADE_OPENDJNAME != ''">
+          <!-- UPGRADE MODE -->
+          <if expr="UPGRADE_OPENDJNAME >= 'OpenDJ-2.5.0' and UPGRADE_OPENDJNAME != 'OpenDJ-2.5.0-Xpress1'">
+            <!--Upgrade from a version >= '2.5.0' so add 'acceptLicense' option -->
+            <script>
+              STAFCmdParamsList.append('--acceptLicense')
+            </script>
+          </if>
+          <else>
+            <!-- STANDARD MODE -->
+            <if expr="dsVersion >= '2.5.0' and dsVersion != '2.5.0-Xpress1'">
+              <!-- Install a fresh version >= '2.5.0' so add 'acceptLicense' option -->
+              <script>
+                STAFCmdParamsList.append('--acceptLicense')
+              </script>
+            </if>
+          </else>
+        </if>
       </if>
 
       <script>
