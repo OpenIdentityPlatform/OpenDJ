@@ -99,11 +99,35 @@
       <script>
         STAFCmdParamsList=[]
         STAFCmdParams=''
+      </script>
+      
+      <!-- Check if 'Legal/license_to_accept.txt' exists -->
+      <call function="'GetEntry'">
+        {
+        'location'  : location ,
+        'entry'     : '%s/Legal/license_to_accept.txt' % dsPath ,
+        'attribute' : 'TYPE'
+        }
+      </call>
+      <if expr="RC != 48">
+        <!-- 'Legal/license_to_accept.txt' exists so add 'acceptLicense' option -->
+        <script>
+          STAFCmdParamsList.append('--acceptLicense')
+        </script>
+      </if>
 
+      <if expr="UPGRADE_OPENDJNAME == 'OpenDJ-2.5.0-Xpress1'">
+        <!-- Upgrade from 'OpenDJ-2.5.0-Xpress1' so add 'force' option -->
+        <script>
+          STAFCmdParamsList.append('--force')
+        </script>
+      </if>
+
+      <script>
         if dsPath:
-          STAFCmd='%s/upgrade%s' % (dsPath,fileExt) 
+          STAFCmd='%s/upgrade%s' % (dsPath,fileExt)
           STAFCmdParamsList.append('-n')
-                  
+          
         if dsHelp:
           STAFCmdParamsList.append('-H')
 
@@ -240,13 +264,50 @@
     <sequence>
     
       <!-- Build the Command -->
+      
+      <!-- Get the information about the server -->
+      <call function="'GetVar'">
+        { 'location'  : STAF_REMOTE_HOSTNAME,
+          'type'      : 'shared',
+          'variable'  : 'Job%s_ServerInfo' % STAXParentID
+        }
+      </call>
+
+      <if expr="RC != 0">
+        <script>
+          STAFResult='{}'
+        </script>
+      </if>
+
       <script>
+        jobInfo=eval(STAFResult)
+        if jobInfo.has_key(dsPath):
+          serverInformation=jobInfo[dsPath]
+          dsVersion=serverInformation['server version']
+
         STAFCmdParamsList=[]
         STAFCmdParams=''
+      </script>
 
+      <!-- Check if 'Legal/license_to_accept.txt' exists -->
+      <call function="'GetEntry'">
+        {
+        'location'  : location ,
+        'entry'     : '%s/Legal/license_to_accept.txt' % dsPath ,
+        'attribute' : 'TYPE'
+        }
+      </call>
+      <if expr="RC != 48 and dsVersion == '2.6.0'">
+        <!-- 'Legal/license_to_accept.txt' exists so add 'acceptLicense' option -->
+        <script>
+          STAFCmdParamsList.append('--acceptLicense')
+        </script>
+      </if>
+
+      <script>
         if dsPath:
           STAFCmd='%s/setup%s' % (dsPath,fileExt)
-          STAFCmdParamsList.append('--cli')    
+          STAFCmdParamsList.append('--cli')
           STAFCmdParamsList.append('-n')    
 
         if dsHost:
