@@ -23,41 +23,14 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS
  */
-
 package org.opends.server.authorization.dseecompat;
 
-import org.opends.server.DirectoryServerTestCase;
-import org.opends.server.TestCaseUtils;
-import org.opends.server.config.ConfigConstants;
-import org.opends.server.core.DirectoryServer;
-import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.protocols.ldap.LDAPResultCode;
-import org.opends.server.tools.LDAPModify;
-import org.opends.server.tools.LDAPSearch;
-import org.opends.server.tools.LDAPDelete;
-import org.opends.server.tools.LDAPPasswordModify;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.DN;
-import org.opends.server.types.Entry;
-import org.opends.server.types.Modification;
-import org.opends.server.types.ModificationType;
-import org.opends.server.types.ResultCode;
-
-import static org.opends.server.util.ServerConstants.EOL;
-
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
-import org.testng.Assert;
-import org.testng.Reporter;
+import static org.opends.server.util.ServerConstants.*;
 
 import java.io.*;
-import java.util.Hashtable;
-import java.util.List;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.ArrayList;
+import java.util.*;
 
 import javax.naming.NamingException;
 import javax.naming.NoPermissionException;
@@ -66,12 +39,28 @@ import javax.naming.directory.DirContext;
 import javax.naming.directory.InitialDirContext;
 import javax.naming.directory.ModificationItem;
 
+import org.opends.server.DirectoryServerTestCase;
+import org.opends.server.TestCaseUtils;
+import org.opends.server.config.ConfigConstants;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.protocols.internal.InternalClientConnection;
+import org.opends.server.protocols.ldap.LDAPResultCode;
+import org.opends.server.tools.LDAPDelete;
+import org.opends.server.tools.LDAPModify;
+import org.opends.server.tools.LDAPPasswordModify;
+import org.opends.server.tools.LDAPSearch;
+import org.opends.server.types.*;
+import org.testng.Assert;
+import org.testng.Reporter;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
 
+@SuppressWarnings("javadoc")
 @Test(groups = {"precommit", "dseecompat"}, sequential = true)
 public abstract class  AciTestCase extends DirectoryServerTestCase {
+
   private Attribute globalACIAttribute = null;
-
-
 
   @BeforeClass
   public void aciTestCaseSetup() throws Exception
@@ -182,7 +171,7 @@ public abstract class  AciTestCase extends DirectoryServerTestCase {
 
   protected String pwdModify(String bindDn, String bindPassword,
                              String newPassword, String noOpControl,
-                             String pwdPolicyControl, int rc) {
+                             String pwdPolicyControl, int expectedRc) {
 
     ArrayList<String> argList=new ArrayList<String>(20);
     argList.add("-h");
@@ -210,7 +199,7 @@ public abstract class  AciTestCase extends DirectoryServerTestCase {
     int ret=
            LDAPPasswordModify.mainPasswordModify(argList.toArray(args),
                    false, oStream, oStream);
-    Assert.assertEquals(rc, ret,  "Returned error: " + oStream.toString());
+    Assert.assertEquals(expectedRc, ret, "Returned error: " + oStream);
     return oStream.toString();
   }
 
@@ -247,7 +236,7 @@ public abstract class  AciTestCase extends DirectoryServerTestCase {
     oStream.reset();
     int retVal =
             LDAPSearch.mainSearch(argList.toArray(args), false, oStream, oStream);
-    Assert.assertEquals(0, retVal,  "Returned error: " + oStream.toString());
+    Assert.assertEquals(0, retVal, "Returned error: " + oStream);
     return oStream.toString();
   }
 
@@ -257,9 +246,9 @@ public abstract class  AciTestCase extends DirectoryServerTestCase {
                                String[] attrList,
                                String base, String filter ,String attr,
                                boolean pwdPolicy, boolean reportAuthzID,
-                               int rc)  {
+                               int expectedRc) {
     return _LDAPSearchParams(bindDn, bindPassword, proxyDN, authzid, attrList,
-            base, filter, attr, pwdPolicy, reportAuthzID, rc);
+        base, filter, attr, pwdPolicy, reportAuthzID, expectedRc);
   }
 
   protected String LDAPSearchParams(String bindDn, String bindPassword,
@@ -273,8 +262,9 @@ public abstract class  AciTestCase extends DirectoryServerTestCase {
   private String _LDAPSearchParams(String bindDn, String bindPassword,
                             String proxyDN, String authzid, String[] attrList,
                             String base, String filter ,String attr,
-                            boolean pwdPolicy, boolean reportAuthzID, int rc) {
-    ArrayList<String> argList=new ArrayList<String>(20);
+                            boolean pwdPolicy, boolean reportAuthzID,
+                            int expectedRc) {
+    List<String> argList = new ArrayList<String>(20);
     argList.add("-h");
     argList.add("127.0.0.1");
     argList.add("-p");
@@ -318,18 +308,21 @@ public abstract class  AciTestCase extends DirectoryServerTestCase {
     oStream.reset();
     int retVal =
          LDAPSearch.mainSearch(argList.toArray(args), false, oStream, oStream);
-    Assert.assertEquals(retVal, rc, "Returned error: " + oStream.toString());
+    Assert.assertEquals(retVal, expectedRc, "Returned error: " + oStream);
     return oStream.toString();
   }
 
   protected void LDIFAdd(String ldif, String bindDn, String bindPassword,
-                            String controlStr, int rc) throws Exception {
-    _LDIFModify(ldif, bindDn, bindPassword, controlStr, true, rc, false);
+      String controlStr, int expectedRc) throws Exception
+  {
+    _LDIFModify(ldif, bindDn, bindPassword, controlStr, true, expectedRc, false);
   }
 
   protected void LDIFModify(String ldif, String bindDn, String bindPassword,
-                            String controlStr, int rc) throws Exception {
-    _LDIFModify(ldif, bindDn, bindPassword, controlStr, false, rc, false);
+      String controlStr, int expectedRc) throws Exception
+  {
+    _LDIFModify(ldif, bindDn, bindPassword, controlStr, false, expectedRc,
+        false);
   }
 
   protected void LDIFModify(String ldif, String bindDn, String bindPassword)
@@ -350,13 +343,15 @@ public abstract class  AciTestCase extends DirectoryServerTestCase {
   }
 
   protected void LDIFDelete(String dn, String bindDn, String bindPassword,
-                            String controlStr, int rc) {
-    _LDIFDelete(dn, bindDn, bindPassword, controlStr, rc);
+      String controlStr, int expectedRc)
+  {
+    _LDIFDelete(dn, bindDn, bindPassword, controlStr, expectedRc);
   }
 
   private void _LDIFDelete(String dn, String bindDn, String bindPassword,
-                           String controlStr, int rc) {
-    ArrayList<String> argList=new ArrayList<String>(20);
+      String controlStr, int expectedRc)
+  {
+    List<String> argList = new ArrayList<String>(20);
     argList.add("-h");
     argList.add("127.0.0.1");
     argList.add("-p");
@@ -371,20 +366,21 @@ public abstract class  AciTestCase extends DirectoryServerTestCase {
     }
     argList.add(dn);
     String[] args = new String[argList.size()];
-    ldapDelete(argList.toArray(args), rc);
+    ldapDelete(argList.toArray(args), expectedRc);
   }
 
-  private void ldapDelete(String[] args, int rc) {
+  private void ldapDelete(String[] args, int expectedRc)
+  {
     oStream.reset();
     int retVal = LDAPDelete.mainDelete(args, false, oStream, oStream);
-    Assert.assertEquals(rc, retVal, "Returned error: " + oStream.toString());
+    Assert.assertEquals(expectedRc, retVal, "Returned error: " + oStream);
   }
 
 
   private void _LDIFModify(String ldif, String bindDn, String bindPassword,
-                           String controlStr, boolean add,  int rc,
-                           boolean useAdminPort)
-          throws Exception {
+      String controlStr, boolean add, int expectedRc, boolean useAdminPort)
+      throws Exception
+  {
     File tempFile = getTemporaryLdifFile();
     TestCaseUtils.writeFile(tempFile, ldif);
     ArrayList<String> argList=new ArrayList<String>(20);
@@ -412,11 +408,12 @@ public abstract class  AciTestCase extends DirectoryServerTestCase {
     argList.add("-f");
     argList.add(tempFile.getAbsolutePath());
     String[] args = new String[argList.size()];
-    ldapModify(argList.toArray(args), rc);
+    ldapModify(argList.toArray(args), expectedRc);
   }
 
-  protected void JNDIModify(Hashtable<?, ?> env, String name,
-                            String attr, String val, int rc) {
+  protected void JNDIModify(Hashtable<?, ?> env, String name, String attr,
+      String val, int expectedRc)
+  {
       try {
           DirContext ctx = new InitialDirContext(env);
           ModificationItem[] mods = new ModificationItem[1 ];
@@ -425,20 +422,22 @@ public abstract class  AciTestCase extends DirectoryServerTestCase {
           ctx.modifyAttributes(name, mods);
           ctx.close();
       } catch (NoPermissionException npe) {
-          Assert.assertEquals(LDAPResultCode.INSUFFICIENT_ACCESS_RIGHTS,  rc,
-                              "Returned error: " + npe.getMessage());
+          Assert.assertEquals(LDAPResultCode.INSUFFICIENT_ACCESS_RIGHTS,
+              expectedRc, "Returned error: " + npe.getMessage());
           return;
       } catch (NamingException ex) {
-          Assert.assertEquals(-1,  rc, "Returned error: " + ex.getMessage());
+          Assert.assertEquals(-1, expectedRc, "Returned error: "
+              + ex.getMessage());
       }
-      Assert.assertEquals(LDAPResultCode.SUCCESS, rc, "");
+      Assert.assertEquals(LDAPResultCode.SUCCESS, expectedRc, "");
   }
 
-  private void ldapModify(String[] args, int rc) {
+  private void ldapModify(String[] args, int expectedRc)
+  {
     oStream.reset();
     int retVal =LDAPModify.mainModify(args, false, oStream, oStream);
-    if(rc != -1)
-       Assert.assertEquals(rc, retVal, "Returned error: " + oStream.toString());
+    if (expectedRc != -1)
+      Assert.assertEquals(expectedRc, retVal, "Returned error: " + oStream);
   }
 
   protected void deleteAttrFromEntry(String dn, String attr) throws Exception {
@@ -485,8 +484,7 @@ public abstract class  AciTestCase extends DirectoryServerTestCase {
     return ldif.toString();
   }
 
-  protected static String
-  makeAddEntryLDIF(String dn, String ... lines) {
+  protected static String makeAddEntryLDIF(String dn, String ... lines) {
     StringBuilder ldif = new StringBuilder();
     ldif.append("dn: ").append(dn).append(EOL);
     ldif.append("changetype: add").append(EOL);
