@@ -1643,7 +1643,7 @@ public final class ReplicationServer
    * @param excludedServiceIDs the provided list of serviceIDs excluded from
    *                          the computation of eligibleCN.
    */
-  public void disableEligibility(List<String> excludedServiceIDs)
+  public void disableEligibility(Set<String> excludedServiceIDs)
   {
     this.excludedServiceIDs = excludedServiceIDs;
   }
@@ -1788,10 +1788,8 @@ public final class ReplicationServer
    * @return                       The first and last draftCN.
    * @throws DirectoryException    When it happens.
    */
-  public int[] getECLDraftCNLimits(
-      ChangeNumber crossDomainEligibleCN,
-      ArrayList<String> excludedServiceIDs)
-  throws DirectoryException
+  public int[] getECLDraftCNLimits(ChangeNumber crossDomainEligibleCN,
+      Set<String> excludedServiceIDs) throws DirectoryException
   {
     /* The content of the DraftCNdb depends on the SEARCH operations done before
      * requesting the DraftCN. If no operations, DraftCNdb is empty.
@@ -1914,8 +1912,7 @@ public final class ReplicationServer
    * @param excludedServiceIDs The list of serviceIDs excluded from ECL.
    * @return the last cookie value.
    */
-  public MultiDomainServerState getLastECLCookie(
-    List<String> excludedServiceIDs)
+  public MultiDomainServerState getLastECLCookie(Set<String> excludedServiceIDs)
   {
     disableEligibility(excludedServiceIDs);
 

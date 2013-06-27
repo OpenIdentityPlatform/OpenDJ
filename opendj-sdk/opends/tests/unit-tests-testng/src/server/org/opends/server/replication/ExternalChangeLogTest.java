@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.replication;
 
@@ -134,7 +134,6 @@ import org.testng.annotations.Test;
 /**
  * Tests for the replicationServer code.
  */
-
 public class ExternalChangeLogTest extends ReplicationTestCase
 {
   // The tracer object for the debug logger
@@ -3990,11 +3989,9 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       }
       sleep(1000);
       debugInfo(tn, "Perfs test in compat - search lastChangeNumber");
-      ArrayList<String> excludedDomains =
+      Set<String> excludedDomains =
         MultimasterReplication.getECLDisabledDomains();
-      if (!excludedDomains.contains(
-          ServerConstants.DN_EXTERNAL_CHANGELOG_ROOT))
-        excludedDomains.add(ServerConstants.DN_EXTERNAL_CHANGELOG_ROOT);
+      excludedDomains.add(ServerConstants.DN_EXTERNAL_CHANGELOG_ROOT);
 
       ECLWorkflowElement eclwe = (ECLWorkflowElement)
       DirectoryServer.getWorkflowElement("EXTERNAL CHANGE LOG");

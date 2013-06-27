@@ -28,17 +28,12 @@
 package org.opends.server.replication.server;
 
 import static org.opends.messages.ReplicationMessages.*;
-import static org.opends.server.loggers.ErrorLogger.logError;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.replication.protocol.ProtocolVersion.*;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.zip.DataFormatException;
@@ -51,11 +46,7 @@ import org.opends.server.replication.common.MultiDomainServerState;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.common.ServerStatus;
 import org.opends.server.replication.protocol.*;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.Attributes;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.ResultCode;
+import org.opends.server.types.*;
 import org.opends.server.util.ServerConstants;
 
 /**
@@ -65,14 +56,16 @@ import org.opends.server.util.ServerConstants;
 public final class ECLServerHandler extends ServerHandler
 {
 
-  // This is a string identifying the operation, provided by the client part
-  // of the ECL, used to help interpretation of messages logged.
-  String operationId;
+  /**
+   * This is a string identifying the operation, provided by the client part of
+   * the ECL, used to help interpretation of messages logged.
+   */
+  private String operationId;
 
-  // Iterator on the draftCN database.
+  /** Iterator on the draftCN database. */
   private DraftCNDbIterator draftCNDbIter = null;
 
-  boolean draftCompat = false;
+  private boolean draftCompat = false;
   /**
    * Specifies the last draft changer number (seqnum) requested.
    */
@@ -107,8 +100,7 @@ public final class ECLServerHandler extends ServerHandler
   /**
    * Specifies the excluded DNs (like cn=admin, ...).
    */
-  public ArrayList<String> excludedServiceIDs = new ArrayList<String>();
-  //HashSet<String> excludedServiceIDs = new HashSet<String>();
+  public Set<String> excludedServiceIDs = new HashSet<String>();
 
   /**
    * Eligible changeNumber - only changes older or equal to eligibleCN
@@ -1203,7 +1195,7 @@ public final class ECLServerHandler extends ServerHandler
     {
       try
       {
-        acquired = sendWindow.tryAcquire((long) 500, TimeUnit.MILLISECONDS);
+        acquired = sendWindow.tryAcquire(500, TimeUnit.MILLISECONDS);
         interrupted = false;
       } catch (InterruptedException e)
       {
