@@ -27,24 +27,20 @@
  */
 package org.opends.server.types;
 
-
-
 import java.io.File;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
+import org.opends.quicksetup.util.Utils;
 import org.opends.server.api.ConfigHandler;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.extensions.ConfigFileHandler;
-import org.opends.quicksetup.util.Utils;
 
-import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.messages.CoreMessages.*;
+import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.util.ServerConstants.*;
-
-
 
 /**
  * This class provides a set of properties that may control various
@@ -60,8 +56,8 @@ import static org.opends.server.util.ServerConstants.*;
      mayInvoke=true)
 public final class DirectoryEnvironmentConfig
 {
-  // The set of properties for the environment config.
-  private final HashMap<String,String> configProperties;
+  /** The set of properties for the environment config. */
+  private final Map<String, String> configProperties;
 
 
 
@@ -256,33 +252,47 @@ public final class DirectoryEnvironmentConfig
               ERR_DIRCFG_SERVER_ALREADY_RUNNING.get());
     }
 
-    if ((! serverRoot.exists()) || (! serverRoot.isDirectory()))
+    if (!serverRoot.exists() || !serverRoot.isDirectory())
     {
       throw new InitializationException(
               ERR_DIRCFG_INVALID_SERVER_ROOT.get(
                       serverRoot.getAbsolutePath()));
     }
 
-    String serverRootPath;
+    return setPathProperty(PROPERTY_SERVER_ROOT, serverRoot);
+  }
+
+  /**
+   * Sets a path property.
+   *
+   * @param propertyName
+   *          The property name to set.
+   * @param newPath
+   *          The path to set on the property.
+   * @return The previous property value, or {@code null} if there was none.
+   * @throws InitializationException
+   *           If the Directory Server is already running or there is a problem
+   *           with the provided server root.
+   */
+  private File setPathProperty(String propertyName, File newPath)
+      throws InitializationException
+  {
+    String normalizedNewPath;
     try
     {
-      serverRootPath = serverRoot.getCanonicalPath();
+      normalizedNewPath = newPath.getCanonicalPath();
     }
     catch (Exception e)
     {
-      serverRootPath = serverRoot.getAbsolutePath();
+      normalizedNewPath = newPath.getAbsolutePath();
     }
 
-    String oldRootPath = setProperty(PROPERTY_SERVER_ROOT,
-                                     serverRootPath);
-    if (oldRootPath == null)
+    String oldPath = setProperty(propertyName, normalizedNewPath);
+    if (oldPath != null)
     {
-      return null;
+      return new File(oldPath);
     }
-    else
-    {
-      return new File(oldRootPath);
-    }
+    return null;
   }
 
   /**
@@ -310,33 +320,14 @@ public final class DirectoryEnvironmentConfig
               ERR_DIRCFG_SERVER_ALREADY_RUNNING.get());
     }
 
-    if ((! instanceRoot.exists()) || (! instanceRoot.isDirectory()))
+    if (!instanceRoot.exists() || !instanceRoot.isDirectory())
     {
       throw new InitializationException(
               ERR_DIRCFG_INVALID_SERVER_ROOT.get(
                   instanceRoot.getAbsolutePath()));
     }
 
-    String instanceRootPath;
-    try
-    {
-      instanceRootPath = instanceRoot.getCanonicalPath();
-    }
-    catch (Exception e)
-    {
-      instanceRootPath = instanceRoot.getAbsolutePath();
-    }
-
-    String oldInstancePath = setProperty(PROPERTY_INSTANCE_ROOT,
-        instanceRootPath);
-    if (oldInstancePath == null)
-    {
-      return null;
-    }
-    else
-    {
-      return new File(oldInstancePath);
-    }
+    return setPathProperty(PROPERTY_INSTANCE_ROOT, instanceRoot);
   }
 
 
@@ -402,33 +393,14 @@ public final class DirectoryEnvironmentConfig
               ERR_DIRCFG_SERVER_ALREADY_RUNNING.get());
     }
 
-    if ((! configFile.exists()) || (! configFile.isFile()))
+    if (!configFile.exists() || !configFile.isFile())
     {
       throw new InitializationException(
               ERR_DIRCFG_INVALID_CONFIG_FILE.get(
                       configFile.getAbsolutePath()));
     }
 
-    String configFilePath;
-    try
-    {
-      configFilePath = configFile.getCanonicalPath();
-    }
-    catch (Exception e)
-    {
-      configFilePath = configFile.getAbsolutePath();
-    }
-
-    String oldConfigFilePath = setProperty(PROPERTY_CONFIG_FILE,
-                                           configFilePath);
-    if (oldConfigFilePath == null)
-    {
-      return null;
-    }
-    else
-    {
-      return new File(oldConfigFilePath);
-    }
+    return setPathProperty(PROPERTY_CONFIG_FILE, configFile);
   }
 
 
@@ -491,7 +463,7 @@ public final class DirectoryEnvironmentConfig
               ERR_DIRCFG_SERVER_ALREADY_RUNNING.get());
     }
 
-    if (! (ConfigHandler.class.isAssignableFrom(configClass)))
+    if (!ConfigHandler.class.isAssignableFrom(configClass))
     {
       throw new InitializationException(
               ERR_DIRCFG_INVALID_CONFIG_CLASS.get(
@@ -535,13 +507,22 @@ public final class DirectoryEnvironmentConfig
    */
   public boolean useLastKnownGoodConfiguration()
   {
-    String useLastKnownGoodStr =
-         getProperty(PROPERTY_USE_LAST_KNOWN_GOOD_CONFIG);
-    return useLastKnownGoodStr != null &&
-        useLastKnownGoodStr.equalsIgnoreCase("true");
+    return isPropertyTrue(PROPERTY_USE_LAST_KNOWN_GOOD_CONFIG);
   }
 
-
+  /**
+   * Indicates whether the property value is set and equal to "true" for the
+   * supplied property name.
+   *
+   * @param propertyName
+   *          the name of the property to be checked
+   * @return {@code true} if the property is set and the property value is
+   *         <code>"true"</code>, {@code false} otherwise .
+   */
+  private boolean isPropertyTrue(String propertyName)
+  {
+    return "true".equalsIgnoreCase(getProperty(propertyName));
+  }
 
   /**
    * Specifies whether the Directory Server should attempt to start
@@ -565,17 +546,8 @@ public final class DirectoryEnvironmentConfig
                       boolean useLastKnownGoodConfiguration)
          throws InitializationException
   {
-    if (DirectoryServer.isRunning())
-    {
-      throw new InitializationException(
-              ERR_DIRCFG_SERVER_ALREADY_RUNNING.get());
-    }
-
-    String oldUseLastKnownGoodStr =
-         setProperty(PROPERTY_USE_LAST_KNOWN_GOOD_CONFIG,
-                     String.valueOf(useLastKnownGoodConfiguration));
-    return oldUseLastKnownGoodStr != null &&
-        oldUseLastKnownGoodStr.equalsIgnoreCase("true");
+    return setBooleanProperty(PROPERTY_USE_LAST_KNOWN_GOOD_CONFIG,
+        useLastKnownGoodConfiguration);
   }
 
 
@@ -593,8 +565,8 @@ public final class DirectoryEnvironmentConfig
   {
     String maintainArchiveStr =
          getProperty(PROPERTY_MAINTAIN_CONFIG_ARCHIVE);
-    return maintainArchiveStr == null ||
-        (!maintainArchiveStr.equalsIgnoreCase("false"));
+    return maintainArchiveStr == null
+        || !"false".equalsIgnoreCase(maintainArchiveStr);
   }
 
 
@@ -627,8 +599,7 @@ public final class DirectoryEnvironmentConfig
     String oldMaintainStr =
          setProperty(PROPERTY_MAINTAIN_CONFIG_ARCHIVE,
                      String.valueOf(maintainConfigArchive));
-    return oldMaintainStr == null ||
-        (!oldMaintainStr.equalsIgnoreCase("false"));
+    return oldMaintainStr == null || !"false".equalsIgnoreCase(oldMaintainStr);
   }
 
 
@@ -793,34 +764,14 @@ public final class DirectoryEnvironmentConfig
               ERR_DIRCFG_SERVER_ALREADY_RUNNING.get());
     }
 
-    if ((! schemaDirectory.exists()) ||
-        (! schemaDirectory.isDirectory()))
+    if (!schemaDirectory.exists() || !schemaDirectory.isDirectory())
     {
       throw new InitializationException(
               ERR_DIRCFG_INVALID_SCHEMA_DIRECTORY.get(
                       schemaDirectory.getAbsolutePath()));
     }
 
-    String schemaDirectoryPath;
-    try
-    {
-      schemaDirectoryPath = schemaDirectory.getCanonicalPath();
-    }
-    catch (Exception e)
-    {
-      schemaDirectoryPath = schemaDirectory.getAbsolutePath();
-    }
-
-    String oldSchemaDir = setProperty(PROPERTY_SCHEMA_DIRECTORY,
-                                     schemaDirectoryPath);
-    if (oldSchemaDir == null)
-    {
-      return null;
-    }
-    else
-    {
-      return new File(oldSchemaDir);
-    }
+    return setPathProperty(PROPERTY_SCHEMA_DIRECTORY, schemaDirectory);
   }
 
 
@@ -905,26 +856,7 @@ public final class DirectoryEnvironmentConfig
       }
     }
 
-    String lockDirectoryPath;
-    try
-    {
-      lockDirectoryPath = lockDirectory.getCanonicalPath();
-    }
-    catch (Exception e)
-    {
-      lockDirectoryPath = lockDirectory.getAbsolutePath();
-    }
-
-    String oldLockDir = setProperty(PROPERTY_LOCK_DIRECTORY,
-                                    lockDirectoryPath);
-    if (oldLockDir == null)
-    {
-      return null;
-    }
-    else
-    {
-      return new File(oldLockDir);
-    }
+    return setPathProperty(PROPERTY_LOCK_DIRECTORY, lockDirectory);
   }
 
 
@@ -939,9 +871,7 @@ public final class DirectoryEnvironmentConfig
    */
   public boolean disableConnectionHandlers()
   {
-    String disableStr =
-         getProperty(PROPERTY_DISABLE_CONNECTION_HANDLERS);
-    return disableStr != null && disableStr.equalsIgnoreCase("true");
+    return isPropertyTrue(PROPERTY_DISABLE_CONNECTION_HANDLERS);
   }
 
   /**
@@ -955,9 +885,7 @@ public final class DirectoryEnvironmentConfig
    */
   public boolean disableSynchronization()
   {
-    String disableStr =
-         getProperty(PROPERTY_DISABLE_SYNCHRONIZATION);
-    return disableStr != null && disableStr.equalsIgnoreCase("true");
+    return isPropertyTrue(PROPERTY_DISABLE_SYNCHRONIZATION);
   }
 
   /**
@@ -971,9 +899,7 @@ public final class DirectoryEnvironmentConfig
    */
   public boolean disableAdminDataSynchronization()
   {
-    String disableStr =
-         getProperty(PROPERTY_DISABLE_ADMIN_DATA_SYNCHRONIZATION);
-    return disableStr != null && disableStr.equalsIgnoreCase("true");
+    return isPropertyTrue(PROPERTY_DISABLE_ADMIN_DATA_SYNCHRONIZATION);
   }
 
   /**
@@ -997,19 +923,35 @@ public final class DirectoryEnvironmentConfig
                       boolean disableConnectionHandlers)
          throws InitializationException
   {
+    return setBooleanProperty(PROPERTY_DISABLE_CONNECTION_HANDLERS,
+        disableConnectionHandlers);
+  }
+
+  /**
+   * Sets a boolean property.
+   *
+   * @param propertyName
+   *          the property name to set
+   * @param newValue
+   *          the new value to set for the property
+   * @return The previous setting for this configuration option. If no previous
+   *         value was specified, then {@code false} will be returned.
+   * @throws InitializationException
+   *           If the Directory Server is already running or there is a problem
+   *           with the provided server root.
+   */
+  private boolean setBooleanProperty(String propertyName, boolean newValue)
+      throws InitializationException
+  {
     if (DirectoryServer.isRunning())
     {
       throw new InitializationException(
               ERR_DIRCFG_SERVER_ALREADY_RUNNING.get());
     }
 
-    String oldDisableStr =
-         setProperty(PROPERTY_DISABLE_CONNECTION_HANDLERS,
-                     String.valueOf(disableConnectionHandlers));
-    return oldDisableStr != null && oldDisableStr.equalsIgnoreCase("true");
+    final String oldValue = setProperty(propertyName, String.valueOf(newValue));
+    return "true".equalsIgnoreCase(oldValue);
   }
-
-
 
   /**
    * Indicates whether all threads created by the Directory Server
@@ -1021,9 +963,7 @@ public final class DirectoryEnvironmentConfig
    */
   public boolean forceDaemonThreads()
   {
-    String forceDaemonStr =
-         getProperty(PROPERTY_FORCE_DAEMON_THREADS);
-    return forceDaemonStr != null && forceDaemonStr.equalsIgnoreCase("true");
+    return isPropertyTrue(PROPERTY_FORCE_DAEMON_THREADS);
   }
 
 
@@ -1046,17 +986,8 @@ public final class DirectoryEnvironmentConfig
   public boolean setForceDaemonThreads(boolean forceDaemonThreads)
          throws InitializationException
   {
-    if (DirectoryServer.isRunning())
-    {
-      throw new InitializationException(
-              ERR_DIRCFG_SERVER_ALREADY_RUNNING.get());
-    }
-
-    String oldForceDaemonStr =
-         setProperty(PROPERTY_FORCE_DAEMON_THREADS,
-                     String.valueOf(forceDaemonThreads));
-    return oldForceDaemonStr != null &&
-        oldForceDaemonStr.equalsIgnoreCase("true");
+    return setBooleanProperty(PROPERTY_FORCE_DAEMON_THREADS,
+        forceDaemonThreads);
   }
 
 
@@ -1071,8 +1002,7 @@ public final class DirectoryEnvironmentConfig
    */
   public boolean disableExec()
   {
-    String disableStr = getProperty(PROPERTY_DISABLE_EXEC);
-    return disableStr != null && disableStr.equalsIgnoreCase("true");
+    return isPropertyTrue(PROPERTY_DISABLE_EXEC);
   }
 
 
@@ -1096,15 +1026,7 @@ public final class DirectoryEnvironmentConfig
   public boolean setDisableExec(boolean disableExec)
          throws InitializationException
   {
-    if (DirectoryServer.isRunning())
-    {
-      throw new InitializationException(
-              ERR_DIRCFG_SERVER_ALREADY_RUNNING.get());
-    }
-
-    String oldDisableStr = setProperty(PROPERTY_DISABLE_EXEC,
-                     String.valueOf(disableExec));
-    return oldDisableStr != null && oldDisableStr.equalsIgnoreCase("true");
+    return setBooleanProperty(PROPERTY_DISABLE_EXEC, disableExec);
   }
 
 
@@ -1353,4 +1275,3 @@ public final class DirectoryEnvironmentConfig
     }
   }
 }
-

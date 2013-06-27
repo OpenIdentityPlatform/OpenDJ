@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.replication.server;
 
@@ -37,14 +37,15 @@ import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.common.ChangeNumberGenerator;
 import org.opends.server.replication.protocol.DeleteMsg;
 import org.testng.annotations.Test;
-import static org.testng.Assert.*;
+
 import static org.opends.server.TestCaseUtils.*;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.testng.Assert.*;
 
 /**
  * Test the dbHandler class
  */
+@SuppressWarnings("javadoc")
 public class DbHandlerTest extends ReplicationTestCase
 {
   // The tracer object for the debug logger
@@ -279,7 +280,7 @@ public class DbHandlerTest extends ReplicationTestCase
     }
   }
 
-  /*
+  /**
    * Test the feature of clearing a dbHandler used by a replication server.
    * The clear feature is used when a replication server receives a request
    * to reset the generationId of a given domain.
@@ -368,7 +369,6 @@ public class DbHandlerTest extends ReplicationTestCase
   /**
    * Test the logic that manages counter records in the DbHandler in order to
    * optimize the counting of record in the replication changelog db.
-   * @throws Exception
    */
   @Test(enabled=true, groups = { "opendj-256" })
   void testDbCounts() throws Exception
@@ -403,6 +403,7 @@ public class DbHandlerTest extends ReplicationTestCase
     // After a purge.
     // After shutdowning/closing and reopening the db.
     testDBCount(40, 10);
+    // FIXME next line is the one failing with the stacktrace above
     testDBCount(4000, 1000);
   }
 
