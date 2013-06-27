@@ -125,7 +125,7 @@
   &lt;dependency&gt;
     &lt;groupId&gt;org.forgerock.opendj&lt;/groupId&gt;
     &lt;artifactId&gt;opendj-ldap-sdk&lt;/artifactId&gt;
-    &lt;version&gt;<?eval ${currentSDKversion}?>&lt;/version&gt;
+    &lt;version&gt;<?eval ${sdkDocTargetVersion}?>&lt;/version&gt;
   &lt;/dependency&gt;
 &lt;/dependencies&gt;</programlisting>
    </step>
@@ -145,30 +145,30 @@
    </step>
    <step>
     <para>Unzip the bundle,
-    <filename>opendj-ldap-toolkit-<?eval ${currentSDKversion}?>.zip</filename>,
+    <filename>opendj-ldap-toolkit-<?eval ${sdkDocTargetVersion}?>.zip</filename>,
     where you want to install the SDK.</para>
-    <screen>$ unzip opendj-ldap-toolkit-<?eval ${currentSDKversion}?>.zip</screen>
+    <screen>$ unzip opendj-ldap-toolkit-<?eval ${sdkDocTargetVersion}?>.zip</screen>
    </step>
     <step>
      <para>Add the tools to your PATH.</para>
      <screen>(UNIX)
-$ export PATH=/path/to/opendj-ldap-toolkit-<?eval ${currentSDKversion}?>/bin:$PATH</screen>
+$ export PATH=/path/to/opendj-ldap-toolkit-<?eval ${sdkDocTargetVersion}?>/bin:$PATH</screen>
         <screen>(Windows)
-C:\>set PATH=\\path\to\opendj-ldap-toolkit-<?eval ${currentSDKversion}?>\bat:%PATH%</screen>
+C:\>set PATH=\\path\to\opendj-ldap-toolkit-<?eval ${sdkDocTargetVersion}?>\bat:%PATH%</screen>
     </step>
     <step>
      <para> Add the OpenDJ LDAP SDK for the APIs, the I18N core library,
      and Grizzly I/O framework for the transport to your CLASSPATH, typically found under
-     <filename>opendj-ldap-toolkit-<?eval ${currentSDKversion}?>/lib/</filename>.</para>
+     <filename>opendj-ldap-toolkit-<?eval ${sdkDocTargetVersion}?>/lib/</filename>.</para>
      <screen>(UNIX)
 $ export CLASSPATH=/path/to/lib/grizzly-framework-<?eval ${grizzlyFrameworkVersion}?>.jar:$CLASSPATH
 $ export CLASSPATH=/path/to/lib/i18n-core-<?eval ${i18nFrameworkVersion}?>.jar:$CLASSPATH
-$ export CLASSPATH=/path/to/lib/opendj-ldap-sdk-<?eval ${currentSDKversion}?>.jar:$CLASSPATH
+$ export CLASSPATH=/path/to/lib/opendj-ldap-sdk-<?eval ${sdkDocTargetVersion}?>.jar:$CLASSPATH
      </screen>
      <screen>(Windows)
 C:\>set CLASSPATH=\\path\to\lib\grizzly-framework-<?eval ${grizzlyFrameworkVersion}?>.jar:%CLASSPATH%
 C:\>set CLASSPATH=\\path\to\lib\i18n-core-<?eval ${i18nFrameworkVersion}?>.jar:%CLASSPATH%
-C:\>set CLASSPATH=\\path\to\lib\opendj-ldap-sdk-<?eval ${currentSDKversion}?>.jar:%CLASSPATH%</screen>
+C:\>set CLASSPATH=\\path\to\lib\opendj-ldap-sdk-<?eval ${sdkDocTargetVersion}?>.jar:%CLASSPATH%</screen>
     </step>
   </procedure>
 
@@ -216,22 +216,22 @@ $ mvn install
    </step>
    <step>
     <para>Unzip the tools and libraries included in the file,
-    <filename>opendj3/opendj-ldap-toolkit/target/opendj-ldap-toolkit-<?eval ${currentSDKversion}?>.zip</filename>.</para>
+    <filename>opendj3/opendj-ldap-toolkit/target/opendj-ldap-toolkit-<?eval ${sdkDocTargetVersion}?>.zip</filename>.</para>
    </step>
    <step>
-    <para>Add the <filename>opendj-ldap-toolkit-<?eval ${currentSDKversion}?>/bin</filename>
-    (UNIX) or <filename>opendj-ldap-toolkit-<?eval ${currentSDKversion}?>\bat</filename>
+    <para>Add the <filename>opendj-ldap-toolkit-<?eval ${sdkDocTargetVersion}?>/bin</filename>
+    (UNIX) or <filename>opendj-ldap-toolkit-<?eval ${sdkDocTargetVersion}?>\bat</filename>
     (Windows) directory to your PATH.</para>
    </step>
    <step>
     <para>Set your CLASSPATH to include the OpenDJ LDAP SDK library,
-    <filename>opendj-ldap-sdk-<?eval ${currentSDKVersion}?>.jar</filename>, 
+    <filename>opendj-ldap-sdk-<?eval ${sdkDocTargetVersion}?>.jar</filename>, 
     the I18N core library,
     <filename>i18n-core-<?eval ${i18nFrameworkVersion}?>.jar</filename>, and the
     Grizzly framework,
     <filename>grizzly-framework-<?eval ${grizzlyFrameworkVersion}?>.jar</filename>
     under
-    <filename>opendj-ldap-toolkit-<?eval ${currentSDKversion}?>/lib/</filename>.</para>
+    <filename>opendj-ldap-toolkit-<?eval ${sdkDocTargetVersion}?>/lib/</filename>.</para>
    </step>
   </procedure>
 
