@@ -157,7 +157,7 @@ $ </screen>
   <step>
    <para>Remove the package from your system.</para>
 
-   <screen># rpm -e opendj-<?eval ${docTargetVersion}?>.noarch.rpm
+   <screen># rpm -e opendj
 Pre Uninstall - uninstall
 Stopping Server...
 [03/Jun/2013:10:42:46 +0200] category=BACKEND severity=NOTICE
