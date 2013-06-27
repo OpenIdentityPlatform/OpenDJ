@@ -29,22 +29,17 @@ package org.opends.server.replication.protocol;
 
 
 
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.util.StaticUtils.*;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.Socket;
 import java.net.SocketException;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.zip.DataFormatException;
 
 import javax.net.ssl.SSLSocket;
@@ -58,7 +53,7 @@ import org.opends.server.util.StaticUtils;
 /**
  * This class defines a replication session using TLS.
  */
-public final class Session extends DirectoryThread
+public final class Session extends DirectoryThread implements Closeable
 {
   /**
    * The tracer object for the debug logger.
@@ -84,7 +79,7 @@ public final class Session extends DirectoryThread
    */
   private volatile long lastReceiveTime = 0;
 
-  /*
+  /**
    * Close and error guarded by stateLock: use a different lock to publish since
    * publishing can block, and we don't want to block while closing failed
    * connections.
@@ -93,25 +88,25 @@ public final class Session extends DirectoryThread
   private volatile boolean closeInitiated = false;
   private Throwable sessionError = null;
 
-  /*
+  /**
    * Publish guarded by publishLock: use a full lock here so that we can
    * optionally publish StopMsg during close.
    */
   private final Lock publishLock = new ReentrantLock();
 
-  /*
+  /**
    * These do not need synchronization because they are only modified during the
    * initial single threaded handshake.
    */
   private short protocolVersion = ProtocolVersion.getCurrentVersion();
   private boolean isEncrypted = true; // Initially encrypted.
 
-  /*
+  /**
    * Use a buffered input stream to avoid too many system calls.
    */
   private BufferedInputStream input;
 
-  /*
+  /**
    * Use a buffered output stream in order to combine message length and content
    * into a single TCP packet if possible.
    */
@@ -165,6 +160,7 @@ public final class Session extends DirectoryThread
    * This method is called when the session with the remote must be closed.
    * This object won't be used anymore after this method is called.
    */
+  @Override
   public void close()
   {
     Throwable localSessionError;
@@ -564,6 +560,7 @@ public final class Session extends DirectoryThread
    * Run method for the Session.
    * Loops waiting for buffers from the queue and sends them when available.
    */
+  @Override
   public void run()
   {
     isRunning.set(true);
