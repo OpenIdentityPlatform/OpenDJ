@@ -96,6 +96,14 @@
      xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-513"
      >OPENDJ-513</link>).</para>
     </listitem>
+
+    <listitem>
+     <para>OpenDJ now supports the PBKDF2 password storage scheme (<link
+     xlink:show="new"
+     xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-510"
+     >OPENDJ-510</link>).</para>
+    </listitem>
+
     <listitem>
      <para>Performance has been significantly improved for searches with a
      virtual attribute in the filter (<link xlink:show="new"
