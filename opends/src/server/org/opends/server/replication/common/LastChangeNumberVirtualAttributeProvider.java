@@ -27,14 +27,13 @@
  */
 package org.opends.server.replication.common;
 
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
+import static org.opends.messages.ExtensionMessages.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-import static org.opends.messages.ExtensionMessages.*;
 import org.opends.messages.Message;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.UserDefinedVirtualAttributeCfg;
@@ -45,15 +44,7 @@ import org.opends.server.core.SearchOperation;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.plugin.MultimasterReplication;
 import org.opends.server.replication.server.ReplicationServer;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.AttributeValues;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.ConfigChangeResult;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.Entry;
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.ResultCode;
-import org.opends.server.types.VirtualAttributeRule;
+import org.opends.server.types.*;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.workflowelement.externalchangelog.ECLWorkflowElement;
 
@@ -145,11 +136,9 @@ public class LastChangeNumberVirtualAttributeProvider
       if (eclwe!=null)
       {
         // Set a list of excluded domains (also exclude 'cn=changelog' itself)
-        ArrayList<String> excludedDomains =
+        Set<String> excludedDomains =
           MultimasterReplication.getECLDisabledDomains();
-        if (!excludedDomains.contains(
-            ServerConstants.DN_EXTERNAL_CHANGELOG_ROOT))
-          excludedDomains.add(ServerConstants.DN_EXTERNAL_CHANGELOG_ROOT);
+        excludedDomains.add(ServerConstants.DN_EXTERNAL_CHANGELOG_ROOT);
 
         ReplicationServer rs = eclwe.getReplicationServer();
         rs.disableEligibility(excludedDomains);
@@ -209,6 +198,7 @@ public class LastChangeNumberVirtualAttributeProvider
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationChangeAcceptable(
                       UserDefinedVirtualAttributeCfg configuration,
                       List<Message> unacceptableReasons)
@@ -221,6 +211,7 @@ public class LastChangeNumberVirtualAttributeProvider
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationChange(
                                  UserDefinedVirtualAttributeCfg configuration)
   {

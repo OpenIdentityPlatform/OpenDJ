@@ -33,9 +33,7 @@ import static org.opends.server.replication.plugin.
 ReplicationRepairRequestControl.*;
 import static org.opends.server.util.StaticUtils.*;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -848,9 +846,9 @@ public class MultimasterReplication
    * Gets the baseDn of the domains that have a private backend.
    * @return The private baseDN.
    */
-  public static ArrayList<String> getECLDisabledDomains()
+  public static Set<String> getECLDisabledDomains()
   {
-    ArrayList<String> disabledServiceIDs = new ArrayList<String>();
+    Set<String> disabledServiceIDs = new HashSet<String>();
 
     for (LDAPReplicationDomain domain : domains.values())
     {

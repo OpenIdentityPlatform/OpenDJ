@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2010-2012 ForgeRock AS
+ *      Portions Copyright 2010-2013 ForgeRock AS
  */
 package org.opends.server.workflowelement.externalchangelog;
 
@@ -31,12 +31,11 @@ package org.opends.server.workflowelement.externalchangelog;
 
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.ErrorLogger.logError;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-import static org.opends.server.util.LDIFWriter.appendLDIFSeparatorAndValue;
+import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.util.LDIFWriter.*;
 import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.getExceptionMessage;
+import static org.opends.server.util.StaticUtils.*;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -238,10 +237,9 @@ public class ECLSearchOperation
       startECLSessionMsg.setOperationId(this.toString());
 
       // Set a list of excluded domains (also exclude 'cn=changelog' itself)
-      ArrayList<String> excludedDomains =
+      Set<String> excludedDomains =
         MultimasterReplication.getECLDisabledDomains();
-      if (!excludedDomains.contains(ServerConstants.DN_EXTERNAL_CHANGELOG_ROOT))
-        excludedDomains.add(ServerConstants.DN_EXTERNAL_CHANGELOG_ROOT);
+      excludedDomains.add(ServerConstants.DN_EXTERNAL_CHANGELOG_ROOT);
       startECLSessionMsg.setExcludedDNs(excludedDomains);
 
       // Process the search base and filter to convert them from their raw forms

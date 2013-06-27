@@ -27,52 +27,21 @@
  */
 package org.opends.server.replication.protocol;
 
-import static org.opends.server.TestCaseUtils.TEST_ROOT_DN_STRING;
-import static org.opends.server.replication.protocol.OperationContext.SYNCHROCONTEXT;
-import static org.opends.server.replication.protocol.ProtocolVersion.getCurrentVersion;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertTrue;
-import static org.testng.Assert.fail;
+import static org.opends.server.TestCaseUtils.*;
+import static org.opends.server.replication.protocol.OperationContext.*;
+import static org.opends.server.replication.protocol.ProtocolVersion.*;
+import static org.testng.Assert.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.zip.DataFormatException;
 
 import org.opends.messages.Message;
-import org.opends.server.core.AddOperation;
-import org.opends.server.core.AddOperationBasis;
-import org.opends.server.core.DeleteOperationBasis;
-import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.ModifyDNOperationBasis;
-import org.opends.server.core.ModifyOperation;
-import org.opends.server.core.ModifyOperationBasis;
+import org.opends.server.controls.SubtreeDeleteControl;
+import org.opends.server.core.*;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.replication.ReplicationTestCase;
-import org.opends.server.replication.common.AssuredMode;
-import org.opends.server.replication.common.ChangeNumber;
-import org.opends.server.replication.common.DSInfo;
-import org.opends.server.replication.common.MultiDomainServerState;
-import org.opends.server.replication.common.RSInfo;
-import org.opends.server.replication.common.ServerState;
-import org.opends.server.replication.common.ServerStatus;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeBuilder;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.Attributes;
-import org.opends.server.types.DN;
-import org.opends.server.types.Modification;
-import org.opends.server.types.ModificationType;
-import org.opends.server.types.ObjectClass;
-import org.opends.server.types.Operation;
-import org.opends.server.types.RDN;
-import org.opends.server.types.RawAttribute;
+import org.opends.server.replication.common.*;
+import org.opends.server.types.*;
 import org.opends.server.util.TimeThread;
 import org.opends.server.workflowelement.localbackend.LocalBackendAddOperation;
 import org.opends.server.workflowelement.localbackend.LocalBackendDeleteOperation;
@@ -81,7 +50,6 @@ import org.opends.server.workflowelement.localbackend.LocalBackendModifyOperatio
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-import org.opends.server.controls.SubtreeDeleteControl;
 /**
  * Test the constructors, encoders and decoders of the replication protocol
  * PDUs classes (message classes)
@@ -643,7 +611,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     DN dn = DN.decode(rawDN);
 
     AddOperation addOpB = new AddOperationBasis(connection,
-        (long) 1, 1, null, dn, objectClassList, userAttList, opList);
+        1, 1, null, dn, objectClassList, userAttList, opList);
     LocalBackendAddOperation addOp = new LocalBackendAddOperation(addOpB);
     OperationContext opCtx = new AddContext(cn, "thisIsaUniqueID",
         "parentUniqueId");
@@ -813,15 +781,15 @@ public class SynchronizationMsgTest extends ReplicationTestCase
   {
     String baseDN = TEST_ROOT_DN_STRING;
     ServerState state = new ServerState();
-    state.update(new ChangeNumber((long)0, 0,0));
+    state.update(new ChangeNumber(0, 0,0));
     Object[] set1 = new Object[] {1, baseDN, 0, state, 0L, false, (byte)0};
 
     state = new ServerState();
-    state.update(new ChangeNumber((long)75, 5,263));
+    state.update(new ChangeNumber(75, 5,263));
     Object[] set2 = new Object[] {16, baseDN, 100, state, 1248L, true, (byte)31};
 
     state = new ServerState();
-    state.update(new ChangeNumber((long)75, 98573895,45263));
+    state.update(new ChangeNumber(75, 98573895,45263));
     Object[] set3 = new Object[] {16, baseDN, 100, state, 1248L, true, (byte)31};
 
     return new Object [][] { set1, set2, set3 };
@@ -857,15 +825,15 @@ public class SynchronizationMsgTest extends ReplicationTestCase
   {
     String baseDN = TEST_ROOT_DN_STRING;
     ServerState state = new ServerState();
-    state.update(new ChangeNumber((long)0, 0,0));
+    state.update(new ChangeNumber(0, 0,0));
     Object[] set1 = new Object[] {1, baseDN, 0, "localhost:8989", state, 0L, (byte)0, 0};
 
     state = new ServerState();
-    state.update(new ChangeNumber((long)75, 5,263));
+    state.update(new ChangeNumber(75, 5,263));
     Object[] set2 = new Object[] {16, baseDN, 100, "anotherHost:1025", state, 1245L, (byte)25, 3456};
 
     state = new ServerState();
-    state.update(new ChangeNumber((long)75, 5, 45263));
+    state.update(new ChangeNumber(75, 5, 45263));
     Object[] set3 = new Object[] {16, baseDN, 100, "anotherHost:1025", state, 1245L, (byte)25, 3456};
 
     return new Object [][] { set1, set2, set3 };
@@ -902,15 +870,15 @@ public class SynchronizationMsgTest extends ReplicationTestCase
   {
     String baseDN = TEST_ROOT_DN_STRING;
     ServerState state = new ServerState();
-    state.update(new ChangeNumber((long)0, 0, 0));
+    state.update(new ChangeNumber(0, 0, 0));
     Object[] set1 = new Object[] {1, baseDN, 0, "localhost:8989", state, 0L, (byte)0, 0, 0, 0};
 
     state = new ServerState();
-    state.update(new ChangeNumber((long)75, 5, 263));
+    state.update(new ChangeNumber(75, 5, 263));
     Object[] set2 = new Object[] {16, baseDN, 100, "anotherHost:1025", state, 1245L, (byte)25, 3456, 3, 31512};
 
     state = new ServerState();
-    state.update(new ChangeNumber((long)123, 5, 98));
+    state.update(new ChangeNumber(123, 5, 98));
     Object[] set3 = new Object[] {36, baseDN, 100, "anotherHostAgain:8017", state, 6841L, (byte)32, 2496, 630, 9524};
 
     return new Object [][] { set1, set2, set3 };
@@ -1006,18 +974,18 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     a3.add("uid");
     Set<String> a4 = new HashSet<String>();
 
-    DSInfo dsInfo1 = new DSInfo(13, "dsHost1:111", 26, (long)154631, ServerStatus.FULL_UPDATE_STATUS,
+    DSInfo dsInfo1 = new DSInfo(13, "dsHost1:111", 26, 154631, ServerStatus.FULL_UPDATE_STATUS,
       false, AssuredMode.SAFE_DATA_MODE, (byte)12, (byte)132, urls1, a1, a1, (short)1);
 
-    DSInfo dsInfo2 = new DSInfo(-436, "dsHost2:222", 493, (long)-227896, ServerStatus.DEGRADED_STATUS,
+    DSInfo dsInfo2 = new DSInfo(-436, "dsHost2:222", 493, -227896, ServerStatus.DEGRADED_STATUS,
       true, AssuredMode.SAFE_READ_MODE, (byte)-7, (byte)-265, urls2, a2, a2, (short)2);
 
-    DSInfo dsInfo3 = new DSInfo(2436, "dsHost3:333", 591, (long)0, ServerStatus.NORMAL_STATUS,
+    DSInfo dsInfo3 = new DSInfo(2436, "dsHost3:333", 591, 0, ServerStatus.NORMAL_STATUS,
       false, AssuredMode.SAFE_READ_MODE, (byte)17, (byte)0, urls3, a3, a3, (short)3);
-    DSInfo dsInfo4 = new DSInfo(415, "dsHost4:444", 146, (long)0, ServerStatus.BAD_GEN_ID_STATUS,
+    DSInfo dsInfo4 = new DSInfo(415, "dsHost4:444", 146, 0, ServerStatus.BAD_GEN_ID_STATUS,
       true, AssuredMode.SAFE_DATA_MODE, (byte)2, (byte)15, urls4, a4, a4, (short)4);
 
-    DSInfo dsInfo5 = new DSInfo(452436, "dsHost5:555", 45591, (long)0, ServerStatus.NORMAL_STATUS,
+    DSInfo dsInfo5 = new DSInfo(452436, "dsHost5:555", 45591, 0, ServerStatus.NORMAL_STATUS,
         false, AssuredMode.SAFE_READ_MODE, (byte)17, (byte)0, urls3, a1, a1, (short)5);
 
     List<DSInfo> dsList1 = new ArrayList<DSInfo>();
@@ -1035,13 +1003,13 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     dsList4.add(dsInfo2);
     dsList4.add(dsInfo1);
 
-    RSInfo rsInfo1 = new RSInfo(4527, "rsHost1:123", (long)45316, (byte)103, 1);
+    RSInfo rsInfo1 = new RSInfo(4527, "rsHost1:123", 45316, (byte)103, 1);
 
-    RSInfo rsInfo2 = new RSInfo(4527, "rsHost2:456", (long)0, (byte)0, 1);
+    RSInfo rsInfo2 = new RSInfo(4527, "rsHost2:456", 0, (byte)0, 1);
 
-    RSInfo rsInfo3 = new RSInfo(0, "rsHost3:789", (long)-21113, (byte)98, 1);
+    RSInfo rsInfo3 = new RSInfo(0, "rsHost3:789", -21113, (byte)98, 1);
 
-    RSInfo rsInfo4 = new RSInfo(45678, "rsHost4:1011", (long)-21113, (byte)98, 1);
+    RSInfo rsInfo4 = new RSInfo(45678, "rsHost4:1011", -21113, (byte)98, 1);
 
     List<RSInfo> rsList1 = new ArrayList<RSInfo>();
     rsList1.add(rsInfo1);
@@ -1406,7 +1374,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     final String test = "string used for test";
     UpdateMsg msg =
       new UpdateMsg(
-          new ChangeNumber((long) 1, 2 , 39123),
+          new ChangeNumber(1, 2 , 39123),
           test.getBytes());
     UpdateMsg newMsg = new UpdateMsg(msg.getBytes());
     assertEquals(test.getBytes(), newMsg.getPayload());
@@ -1449,7 +1417,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     ChangeNumber changeNumber = new ChangeNumber(TimeThread.getTime(), 123,  45);
     String generalizedState = "fakegenstate";
     ServerState state = new ServerState();
-    assertTrue(state.update(new ChangeNumber((long)75, 5,263)));
+    assertTrue(state.update(new ChangeNumber(75, 5,263)));
     short mode = 3;
     int firstDraftChangeNumber = 13;
     int lastDraftChangeNumber  = 14;
@@ -1463,7 +1431,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     msg.setLastDraftChangeNumber(lastDraftChangeNumber);
     msg.setECLRequestType(mode);
     msg.setOperationId(myopid);
-    ArrayList<String> dns = new ArrayList<String>();
+    Set<String> dns = new HashSet<String>();
     String dn1 = "cn=admin data";
     String dn2 = "cn=config";
     dns.add(dn1);
@@ -1481,7 +1449,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
         msg.getCrossDomainServerState().equalsIgnoreCase(newMsg.getCrossDomainServerState()));
     assertTrue(
         msg.getOperationId().equalsIgnoreCase(newMsg.getOperationId()));
-    ArrayList<String> dns2 = newMsg.getExcludedServiceIDs();
+    Set<String> dns2 = newMsg.getExcludedServiceIDs();
     assertTrue(dns2.size()==2);
     boolean dn1found=false,dn2found=false;
     for (String dn : dns2)
@@ -1537,7 +1505,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
 
       // create op
       AddOperation addOpB = new AddOperationBasis(connection,
-          (long) 1, 1, null, dn, objectClassList, userAttList, opList);
+          1, 1, null, dn, objectClassList, userAttList, opList);
       LocalBackendAddOperation addOp = new LocalBackendAddOperation(addOpB);
       OperationContext opCtx = new AddContext(cn, "thisIsaUniqueID",
           "parentUniqueId");
@@ -1617,7 +1585,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
 
       // create op
       ModifyOperation modifyOpB = new ModifyOperationBasis(
-          connection, (long)1, 1, null, dn, mods);
+          connection, 1, 1, null, dn, mods);
       LocalBackendModifyOperation modifyOp =
         new LocalBackendModifyOperation(modifyOpB);
       OperationContext opCtx = new ModifyContext(cn, "thisIsaUniqueID");

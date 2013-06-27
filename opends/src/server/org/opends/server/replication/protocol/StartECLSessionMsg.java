@@ -29,11 +29,13 @@ package org.opends.server.replication.protocol;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.zip.DataFormatException;
 
 import org.opends.server.replication.common.ChangeNumber;
+import org.opends.server.util.StaticUtils;
 
 
 /**
@@ -59,7 +61,7 @@ public class StartECLSessionMsg extends ReplicationMsg
   public final static short REQUEST_TYPE_FROM_DRAFT_CHANGE_NUMBER = 1;
 
   /**
-   * This specifies that the ECL is requested ony for the entry that have
+   * This specifies that the ECL is requested only for the entry that have
    * a repl change number matching the provided one.
    * TODO: not yet implemented
    */
@@ -82,31 +84,38 @@ public class StartECLSessionMsg extends ReplicationMsg
    */
   public final static short PERSISTENT_CHANGES_ONLY = 2;
 
-  // The type of request as defined by REQUEST_TYPE_...
+  /** The type of request as defined by REQUEST_TYPE_... */
   private short  eclRequestType;
 
-  // When eclRequestType = FROM_COOKIE,
-  // specifies the provided cookie value.
+  /**
+   * When eclRequestType = FROM_COOKIE, specifies the provided cookie value.
+   */
   private String crossDomainServerState = "";
 
-  // When eclRequestType = FROM_CHANGE_NUMBER,
-  // specifies the provided change number first and last - [CHANGELOG]
+  /**
+   * When eclRequestType = FROM_CHANGE_NUMBER, specifies the provided change
+   * number first and last - [CHANGELOG].
+   */
   private int    firstDraftChangeNumber = -1;
   private int    lastDraftChangeNumber = -1;
 
-  // When eclRequestType = EQUALS_REPL_CHANGE_NUMBER,
-  // specifies the provided replication change number.
+  /**
+   * When eclRequestType = EQUALS_REPL_CHANGE_NUMBER, specifies the provided
+   * replication change number.
+   */
   private ChangeNumber changeNumber;
 
-  // Specifies whether the search is persistent and changesOnly
+  /** Specifies whether the search is persistent and changesOnly. */
   private short  isPersistent = NON_PERSISTENT;
 
-  // A string helping debuging and tracing the client operation related when
-  // processing, on the RS side, a request on the ECL.
+  /**
+   * A string helping debugging and tracing the client operation related when
+   * processing, on the RS side, a request on the ECL.
+   */
   private String operationId = "";
 
-  // Excluded domains
-  private ArrayList<String> excludedServiceIDs = new ArrayList<String>();
+  /** Excluded domains. */
+  private Set<String> excludedServiceIDs = new HashSet<String>();
 
   /**
    * Creates a new StartSessionMsg message from its encoded form.
@@ -205,7 +214,7 @@ public class StartECLSessionMsg extends ReplicationMsg
     changeNumber = new ChangeNumber(0,0,0);
     isPersistent = NON_PERSISTENT;
     operationId = "-1";
-    excludedServiceIDs = new ArrayList<String>();
+    excludedServiceIDs = new HashSet<String>();
   }
 
   /**
@@ -214,11 +223,8 @@ public class StartECLSessionMsg extends ReplicationMsg
   @Override
   public byte[] getBytes(short protocolVersion)
   {
-    String excludedSIDsString = "";
-    for (String excludedServiceID : excludedServiceIDs)
-    {
-      excludedSIDsString = excludedSIDsString.concat(excludedServiceID+";");
-    }
+    String excludedSIDsString =
+        StaticUtils.collectionToString(excludedServiceIDs, ";");
 
     try
     {
@@ -277,7 +283,7 @@ public class StartECLSessionMsg extends ReplicationMsg
   @Override
   public String toString()
   {
-    return (this.getClass().getCanonicalName() + " [" +
+    return getClass().getCanonicalName() + " [" +
             " requestType="+ eclRequestType +
             " persistentSearch="       + isPersistent +
             " changeNumber="           + changeNumber +
@@ -285,7 +291,7 @@ public class StartECLSessionMsg extends ReplicationMsg
             " lastDraftChangeNumber="  + lastDraftChangeNumber +
             " generalizedState="       + crossDomainServerState +
             " operationId="            + operationId +
-            " excludedDNs="            + excludedServiceIDs + "]");
+            " excludedDNs="            + excludedServiceIDs + "]";
   }
 
   /**
@@ -417,7 +423,7 @@ public class StartECLSessionMsg extends ReplicationMsg
    * Getter on the list of excluded ServiceIDs.
    * @return the list of excluded ServiceIDs.
    */
-  public ArrayList<String> getExcludedServiceIDs()
+  public Set<String> getExcludedServiceIDs()
   {
     return this.excludedServiceIDs;
   }
@@ -426,7 +432,7 @@ public class StartECLSessionMsg extends ReplicationMsg
    * Setter on the list of excluded ServiceIDs.
    * @param excludedServiceIDs the provided list of excluded ServiceIDs.
    */
-  public void setExcludedDNs(ArrayList<String> excludedServiceIDs)
+  public void setExcludedDNs(Set<String> excludedServiceIDs)
   {
     this.excludedServiceIDs = excludedServiceIDs;
   }
