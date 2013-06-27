@@ -27,21 +27,19 @@
  */
 package org.opends.server.replication.server;
 
+import static org.opends.messages.ReplicationMessages.*;
+import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.util.StaticUtils.*;
+
+import java.io.Closeable;
+import java.util.List;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
-
-import static org.opends.server.loggers.ErrorLogger.logError;
-import static org.opends.messages.ReplicationMessages.*;
-import static org.opends.server.util.StaticUtils.decodeUTF8;
-import static org.opends.server.util.StaticUtils.getBytes;
-import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
-
-import java.util.List;
-
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.protocol.UpdateMsg;
-
-import java.util.concurrent.locks.ReentrantReadWriteLock;
+import org.opends.server.util.StaticUtils;
 
 import com.sleepycat.je.*;
 
@@ -58,8 +56,10 @@ public class ReplicationDB
   private int serverId;
   private String baseDn;
 
-  // The lock used to provide exclusive access to the thread that
-  // close the db (shutdown or clear).
+  /**
+   * The lock used to provide exclusive access to the thread that close the db
+   * (shutdown or clear).
+   */
   private ReentrantReadWriteLock dbCloseLock;
 
   // Change counter management
@@ -85,20 +85,22 @@ public class ReplicationDB
   //     since the previous counter record
   // 2/- the change to be stored has a new timestamp - so that the counter
   //     record is the first record for this timestamp.
-  //
 
 
+  /** Current value of the counter. */
   private int  counterCurrValue = 1;
-  // Current value of the counter.
 
+  /**
+   * When not null, the next change with a ts different from
+   * tsForNewCounterRecord will lead to store a new counterRecord.
+   */
   private long counterTsLimit = 0;
-  // When not null,
-  // the next change with a ts different from tsForNewCounterRecord will lead
-  // to store a new counterRecord.
 
+  /**
+   * The counter record will never be written to the db more often than each
+   * counterWindowSize changes.
+   */
   private int  counterWindowSize = 1000;
-  // The counter record will never be written to the db more often than each
-  // counterWindowSize changes.
 
  /**
    * Creates a new database or open existing database that will be used
@@ -126,7 +128,6 @@ public class ReplicationDB
 
     dbCloseLock = new ReentrantReadWriteLock(true);
 
-    //
     Cursor cursor;
     Transaction txn = null;
     DatabaseEntry key = new DatabaseEntry();
@@ -292,17 +293,7 @@ public class ReplicationDB
   {
     try
     {
-      if (cursor != null)
-      {
-        try
-        {
-          cursor.close();
-        }
-        catch (DatabaseException e)
-        {
-          // Ignore.
-        }
-      }
+      StaticUtils.close(cursor);
     }
     finally
     {
@@ -458,9 +449,10 @@ public class ReplicationDB
    */
   public ChangeNumber getPreviousChangeNumber(ChangeNumber changeNumber)
   {
-
     if (changeNumber == null)
+    {
       return null;
+    }
 
     Cursor cursor = null;
     ChangeNumber cn = null;
@@ -565,11 +557,15 @@ public class ReplicationDB
    * This Class implements a cursor that can be used to browse a
    * replicationServer database.
    */
-  public class ReplServerDBCursor
+  public class ReplServerDBCursor implements Closeable
   {
-     // The transaction that will protect the actions done with the cursor
-    // Will be let null for a read cursor
-    // Will be set non null for a write cursor
+    /**
+     * The transaction that will protect the actions done with the cursor
+     * <p>
+     * Will be let null for a read cursor
+     * <p>
+     * Will be set non null for a write cursor
+     */
     private final Transaction txn;
     private final Cursor cursor;
     private final DatabaseEntry key;
@@ -706,6 +702,7 @@ public class ReplicationDB
     /**
      * Close the ReplicationServer Cursor.
      */
+    @Override
     public void close()
     {
       synchronized (this)
@@ -1111,10 +1108,10 @@ public class ReplicationDB
     this.counterWindowSize = size;
   }
 
-
-
-  // Returns {@code true} if the DB is closed. This method assumes that either
-  // the db read/write lock has been taken.
+  /**
+   * Returns {@code true} if the DB is closed. This method assumes that either
+   * the db read/write lock has been taken.
+   */
   private boolean isDBClosed()
   {
     return db == null;
