@@ -560,7 +560,7 @@ public class ReplicationDB
   public class ReplServerDBCursor implements Closeable
   {
     /**
-     * The transaction that will protect the actions done with the cursor
+     * The transaction that will protect the actions done with the cursor.
      * <p>
      * Will be let null for a read cursor
      * <p>

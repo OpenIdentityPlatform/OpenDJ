@@ -104,7 +104,7 @@ public class DbHandler implements Runnable
   private int queueLowmarkBytes = 100 * queueLowmark;
   private int queueHimarkBytes = 100 * queueHimark;
 
-  /** The number of bytes currently in the queue */
+  /** The number of bytes currently in the queue. */
   private int queueByteSize = 0;
 
   private ReplicationDB db;
