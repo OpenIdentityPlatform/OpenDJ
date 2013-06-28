@@ -40,6 +40,16 @@
  <section xml:id="fixes">
   <title>Key Fixes</title>
 
+  <note><!-- TODO: reconsider when 2.4.x is no longer supported. -->
+   <para>OpenDJ 2.6.0 includes important improvements to replication.
+   Replication remains fully compatible with earlier versions. However, some
+   operations that work fine with OpenDJ 2.6.0, such as replicating large
+   groups and replicating high volumes of adds and deletes, can cause
+   issues for earlier versions. Make sure you upgrade all servers to 2.6.0
+   before allowing clients to take advantage of write operations that could
+   cause trouble for older servers.</para>
+  </note>
+
   <para>The following important bugs were fixed in this release.</para>
 
   <para>TODO</para><!-- https://github.com/markcraig/release-notes-list-builder -->
