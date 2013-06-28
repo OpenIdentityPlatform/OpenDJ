@@ -87,13 +87,26 @@
   
   <para>OpenDJ <?eval ${docTargetVersion}?> makes use of new environment
   variables aligned with the project name to use <literal>OPENDJ</literal>.
-  Use of the old variables is deprecated. The old variables are likely to be
+  Use of the old variables is Deprecated. The old variables are likely to be
   removed in a future release.</para>
+
+  <para>The <command>dsframework</command> command is Deprecated and likely
+  to be removed in a future release.</para>
+
+  <itemizedlist>
+   <para>The following OpenDJ LDAP SDK methods are Deprecated and likely to be
+   removed in a future release.</para>
+   <listitem><para><literal>org.forgerock.opendj.ldap.LDAPListenerOptions#getTCPNIOTransport</literal></para></listitem>
+   <listitem><para><literal>org.forgerock.opendj.ldap.LDAPListenerOptions#setTCPNIOTransport</literal></para></listitem>
+   <listitem><para><literal>org.forgerock.opendj.ldap.LDAPOptions#getTCPNIOTransport</literal></para></listitem>
+   <listitem><para><literal>org.forgerock.opendj.ldap.LDAPOptions#setTCPNIOTransport</literal></para></listitem>
+  </itemizedlist>
  </section>
  
  <section xml:id="removed-functionality">
   <title>Removed Functionality</title>
   
-  <para>Native packages in SVR4 format for Solaris are no longer provided.</para>
+  <para>Native packages in SVR4 format for Solaris are no longer provided at
+  this time.</para>
  </section>
 </chapter>

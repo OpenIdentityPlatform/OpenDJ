@@ -32,6 +32,107 @@
  <para>This appendix includes ForgeRock definitions for product release levels
  and interface stability.</para>
 
-  <xinclude:include href="../shared/sec-release-levels.xml" />
-  <xinclude:include href="../shared/sec-interface-stability.xml" />
+ <itemizedlist>
+  <para>In addition to the indications concerning interface stability that
+  you find in the documentation, review the following information about OpenDJ
+  user and application programming interfaces.</para>
+
+  <listitem>
+   <para>Client tools &#8212; <command>ldap*</command>, <command>ldif*</command>,
+   and <command>*rate</command> commands &#8212; are Evolving.</para>
+  </listitem>
+
+  <listitem>
+   <para>The following classes, interfaces, and methods in the <link
+   xlink:show="new" xlink:href="${serverJavadocBase}">OpenDJ directory server
+   APIs</link> are Evolving.</para>
+
+   <itemizedlist>
+    <listitem><para><literal>org.forgerock.opendj.ldap.Connections#newInternalConnection</literal></para></listitem>
+    <listitem><para><literal>org.forgerock.opendj.ldap.Connections#newInternalConnectionFactory</literal></para></listitem>
+    <listitem><para><literal>org.forgerock.opendj.ldap.Connections#newServerConnectionFactory</literal></para></listitem>
+    <listitem><para><literal>org.forgerock.opendj.ldap.FutureResult</literal></para></listitem>
+    <listitem><para><literal>org.forgerock.opendj.ldap.LDAPClientContext</literal></para></listitem>
+    <listitem><para><literal>org.forgerock.opendj.ldap.LDAPListener</literal></para></listitem>
+    <listitem><para><literal>org.forgerock.opendj.ldap.LDAPListenerOptions</literal></para></listitem>
+    <listitem><para><literal>org.forgerock.opendj.ldap.MemoryBackend</literal></para></listitem>
+    <listitem><para><literal>org.forgerock.opendj.ldap.RequestContext</literal></para></listitem>
+    <listitem><para><literal>org.forgerock.opendj.ldap.RequestHandler</literal></para></listitem>
+    <listitem><para><literal>org.forgerock.opendj.ldap.RequestHandlerFactory</literal></para></listitem>
+    <listitem><para><literal>org.forgerock.opendj.ldap.ServerConnection</literal></para></listitem>
+    <listitem><para><literal>org.forgerock.opendj.ldap.ServerConnectionFactory</literal></para></listitem>
+   </itemizedlist>
+  </listitem>
+
+  <listitem>
+   <para>The following classes and interfaces in the <link xlink:show="new"
+   xlink:href="${sdkJavadocBase}">OpenDJ LDAP SDK APIs</link> are Evolving.</para>
+
+   <itemizedlist>
+    <listitem><para><literal>org.forgerock.opendj.ldap.ConnectionSecurityLayer</literal></para></listitem>
+    <listitem><para><literal>org.forgerock.opendj.ldap.LDAPUrl</literal></para></listitem>
+    <listitem><para><literal>org.forgerock.opendj.ldap.requests.BindRequest</literal>, including sub-types and especially SASL sub-types</para></listitem>
+    <listitem><para><literal>org.forgerock.opendj.ldap.schema.MatchingRuleImpl</literal></para></listitem>
+    <listitem><para><literal>org.forgerock.opendj.ldap.schema.SchemaValidationPolicy</literal></para></listitem>
+    <listitem><para><literal>org.forgerock.opendj.ldap.schema.SyntaxImpl</literal></para></listitem>
+   </itemizedlist>
+
+   <para>The following methods are Deprecated.</para>
+
+   <itemizedlist>
+    <listitem><para><literal>org.forgerock.opendj.ldap.LDAPListenerOptions#getTCPNIOTransport</literal></para></listitem>
+    <listitem><para><literal>org.forgerock.opendj.ldap.LDAPListenerOptions#setTCPNIOTransport</literal></para></listitem>
+    <listitem><para><literal>org.forgerock.opendj.ldap.LDAPOptions#getTCPNIOTransport</literal></para></listitem>
+    <listitem><para><literal>org.forgerock.opendj.ldap.LDAPOptions#setTCPNIOTransport</literal></para></listitem>
+   </itemizedlist>
+
+   <para>The class <literal>org.forgerock.opendj.ldap.CoreMessages</literal> is
+   Internal.</para>
+  </listitem>
+
+  <listitem>
+   <para>For all Java APIs, <literal>com.*</literal> packages are Internal.</para>
+  </listitem>
+
+  <listitem>
+   <para>The configuration, user, and application programming interfaces for
+   RESTful access over HTTP to directory data are Evolving. This includes
+   interfaces exposed for the HTTP Connection Handler, its access log, and also
+   the REST LDAP gateway.</para>
+  </listitem>
+
+  <listitem>
+   <para>Text in log messages should be considered Internal. Log message IDs are
+   Evolving.</para>
+  </listitem>
+
+  <listitem>
+   <para>The default content of <literal>cn=schema</literal> (directory server
+   LDAP schema) is Evolving.</para>
+  </listitem>
+
+  <listitem>
+   <para>The monitoring interface <literal>cn=monitor</literal> for LDAP and
+   the monitoring interface exposed by the JMX Connection Handler are
+   Evolving.</para>
+  </listitem>
+
+  <listitem>
+   <para>Newly Deprecated and Removed interfaces are identified in the
+   <citetitle>Release Notes</citetitle> chapter, <link xlink:show="new"
+   xlink:href="release-notes#chap-compatibility"
+   xlink:role="http://docbook.org/xlink/role/olink"><citetitle>OpenDJ
+   Compatibility</citetitle></link>.</para>
+  </listitem>
+
+  <listitem>
+   <para>Interfaces that are not described in released product documentation
+   should be considered Internal/Undocumented. For example, the LDIF
+   representation of the server configuration, <filename>config.ldif</filename>,
+   should be considered Internal.</para>
+  </listitem>
+ </itemizedlist>
+
+ <xinclude:include href="../shared/sec-release-levels.xml" />
+ <xinclude:include href="../shared/sec-interface-stability.xml" />
 </appendix>
