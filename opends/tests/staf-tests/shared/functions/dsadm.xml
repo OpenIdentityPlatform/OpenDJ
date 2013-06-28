@@ -267,7 +267,7 @@
       
       <!-- Get the information about the server -->
       <call function="'GetVar'">
-        { 'location'  : STAF_REMOTE_HOSTNAME,
+        { 'location'  : dsHost,
           'type'      : 'shared',
           'variable'  : 'Job%s_ServerInfo' % STAXParentID
         }
@@ -281,10 +281,13 @@
 
       <script>
         jobInfo=eval(STAFResult)
-        if jobInfo.has_key(dsPath):
-          serverInformation=jobInfo[dsPath]
+        instPath = '%s/%s' % (DIRECTORY_INSTANCE_BIN,OPENDSNAME)
+        if jobInfo.has_key(instPath):
+          serverInformation=jobInfo[instPath]
           dsVersion=serverInformation['server version']
-
+        else:
+          dsVersion='unknown'
+                
         STAFCmdParamsList=[]
         STAFCmdParams=''
       </script>
