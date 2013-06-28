@@ -69,12 +69,12 @@ public class MonitorMsg extends RoutableMsg
    */
   static class SubTopoMonitorData
   {
-    /** This replication server DbState */
+    /** This replication server DbState. */
     private ServerState replServerDbState;
-    /** The data related to the LDAP servers connected to this RS */
+    /** The data related to the LDAP servers connected to this RS. */
     private final Map<Integer, ServerData> ldapStates =
         new HashMap<Integer, ServerData>();
-    /** The data related to the RS servers connected to this RS */
+    /** The data related to the RS servers connected to this RS. */
     private final Map<Integer, ServerData> rsStates =
         new HashMap<Integer, ServerData>();
   }
