@@ -44,6 +44,10 @@
  xlink:role="http://docbook.org/xlink/role/olink"><citetitle>To Set Up REST
  Access to OpenDJ Directory Server</citetitle></link>.</para>
 
+ <para>Interface stability: <link xlink:href="admin-guide#interface-stability"
+ xlink:show="new" xlink:role="http://docbook.org/xlink/role/olink"
+ >Evolving</link></para>
+
  <section xml:id="understand-rest">
   <title>Understanding the OpenDJ REST API</title>
 
