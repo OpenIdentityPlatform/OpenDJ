@@ -49,6 +49,10 @@
   exposed. The following example shows monitoring information about the
   <literal>userRoot</literal> backend holding Example.com data.</para>
   
+  <para>Interface stability: <link xlink:href="admin-guide#interface-stability"
+  xlink:show="new" xlink:role="http://docbook.org/xlink/role/olink"
+  >Evolving</link></para>
+
   <screen>$ ldapsearch --port 1389 --baseDN cn=monitor "(cn=userRoot backend)"
 dn: cn=userRoot backend,cn=Disk Space Monitor,cn=monitor
 disk-state: normal
@@ -184,6 +188,10 @@ SNMPv2-SMI::mib-2.66.1.1.2.1 = STRING: "/path/to/opendj"
   <command>dsconfig</command> command to configure the JMX connection
   handler.</para>
   
+  <para>Interface stability: <link xlink:href="admin-guide#interface-stability"
+  xlink:show="new" xlink:role="http://docbook.org/xlink/role/olink"
+  >Evolving</link></para>
+
   <screen>$ dsconfig
  set-connection-handler-prop
  --port 4444
@@ -344,6 +352,10 @@ example-20110623030000000  Backup  Waiting on start time</screen>
     xlink:href="http://www.microsoft.com/technet/prodtechnol/WindowsServer2003/Library/IIS/676400bc-8969-4aa7-851a-9319490a9bbb.mspx?mfr=true"
     >Microsoft's implementation</link> as well. The following default
     fields are shown here in the order they occur in the log file.</para>
+
+    <para>Interface stability: <link xlink:href="admin-guide#interface-stability"
+    xlink:show="new" xlink:role="http://docbook.org/xlink/role/olink"
+    >Evolving</link></para>
 
     <variablelist>
      <varlistentry>
