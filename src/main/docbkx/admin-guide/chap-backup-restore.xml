@@ -246,28 +246,9 @@ Restore task 20110613155052932 scheduled to start Jun 13, 2011 3:50:52 PM CEST</
    Replicas</citetitle></link>.</para>
 
    <step>
-    <para>Prepare the replica to be restored.</para>
-    <screen>$ dsreplication
- pre-external-initialization
- --adminUID admin
- --adminPassword password
- --trustAll --no-prompt
- --port 4444
- --baseDN dc=example,dc=com
+    <para>Restore the server database from the backup archive that you are
+    sure is newer than the last purge of the replication change log.</para>
 
-Preparing base DN dc=example,dc=com to be initialized externally ..... Done.
-
-Now you can proceed to the initialization of the contents of the base DN's
- on all the replicated servers.  You can use the command import-ldif or
- the binary copy to do so.  You must use the same LDIF file or binary copy
- on each server.
-
-When the initialization is completed you must use the subcommand
- 'post-external-initialization' for replication to work with the new
- base DN's contents.</screen>
-   </step>
-   <step>
-    <para>Restore the server database from the backup archive.</para>
     <screen>$ stop-ds
 Stopping Server...
 
@@ -290,21 +271,7 @@ $ restore --backupDirectory /path/to/opendj/bak --backupID 20110613080032
 $ start-ds
 ... The Directory Server has started successfully</screen>
    </step>
-   <step>
-    <para>Reset replication metadata on the replica.</para>
-    <screen>$ dsreplication
- post-external-initialization
- --adminUID admin
- --adminPassword password
- --port 4444
- --baseDN dc=example,dc=com
- --trustAll
- --no-prompt
 
-Updating replication information on base DN dc=example,dc=com ..... Done.
-
-Post initialization procedure completed successfully.</screen>
-   </step>
   </procedure>
  </section>
 </chapter>
