@@ -29,19 +29,19 @@ package org.opends.server.replication.protocol;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.util.zip.DataFormatException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.zip.DataFormatException;
 
-import org.opends.server.replication.common.ServerState;
-import org.opends.server.protocols.asn1.ASN1Reader;
 import org.opends.server.protocols.asn1.ASN1;
+import org.opends.server.protocols.asn1.ASN1Reader;
 import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.server.replication.common.ChangeNumber;
-import org.opends.server.types.ByteStringBuilder;
-import org.opends.server.types.ByteString;
+import org.opends.server.replication.common.ServerState;
 import org.opends.server.types.ByteSequenceReader;
+import org.opends.server.types.ByteString;
+import org.opends.server.types.ByteStringBuilder;
 
 /**
  * This message is part of the replication protocol.
@@ -57,30 +57,29 @@ public class MonitorMsg extends RoutableMsg
    * of the data of the first missing change for each LDAP server
    * connected to a Replication Server.
    */
-  class ServerData
+  static class ServerData
   {
-    ServerState state;
-    Long approxFirstMissingDate;
+    private ServerState state;
+    private Long approxFirstMissingDate;
   }
 
   /**
    * Data structure to manage the state of this replication server
    * and the state information for the servers connected to it.
-   *
    */
-  class SubTopoMonitorData
+  static class SubTopoMonitorData
   {
-    // This replication server DbState
-    ServerState replServerDbState;
-    // The data related to the LDAP servers connected to this RS
-    HashMap<Integer, ServerData> ldapStates =
-      new HashMap<Integer, ServerData>();
-    // The data related to the RS servers connected to this RS
-    HashMap<Integer, ServerData> rsStates =
-      new HashMap<Integer, ServerData>();
+    /** This replication server DbState */
+    private ServerState replServerDbState;
+    /** The data related to the LDAP servers connected to this RS */
+    private final Map<Integer, ServerData> ldapStates =
+        new HashMap<Integer, ServerData>();
+    /** The data related to the RS servers connected to this RS */
+    private final Map<Integer, ServerData> rsStates =
+        new HashMap<Integer, ServerData>();
   }
 
-  SubTopoMonitorData data = new SubTopoMonitorData();
+  private SubTopoMonitorData data = new SubTopoMonitorData();
 
   /**
    * Creates a new MonitorMsg.
@@ -131,14 +130,6 @@ public class MonitorMsg extends RoutableMsg
   public void setServerState(int serverId, ServerState state,
       Long approxFirstMissingDate, boolean isLDAP)
   {
-    if (data.ldapStates == null)
-    {
-      data.ldapStates = new HashMap<Integer, ServerData>();
-    }
-    if (data.rsStates == null)
-    {
-      data.rsStates = new HashMap<Integer, ServerData>();
-    }
     ServerData sd = new ServerData();
     sd.state = state;
     sd.approxFirstMissingDate = approxFirstMissingDate;
@@ -482,9 +473,7 @@ public class MonitorMsg extends RoutableMsg
     for (Integer sid : data.ldapStates.keySet())
     {
       ServerData sd = data.ldapStates.get(sid);
-      stateS +=
-               "\n[LSstate("+ sid + ")=" +
-                sd.state.toString() + "]" +
+      stateS += "\n[LSstate("+ sid + ")=" + sd.state + "]" +
                 " afmd=" + sd.approxFirstMissingDate + "]";
     }
 
@@ -492,12 +481,10 @@ public class MonitorMsg extends RoutableMsg
     for (Integer sid : data.rsStates.keySet())
     {
       ServerData sd = data.rsStates.get(sid);
-      stateS +=
-               "\n[RSState("+ sid + ")=" +
-               sd.state.toString() + "]" +
-               " afmd=" + sd.approxFirstMissingDate + "]";
+      stateS += "\n[RSState("+ sid + ")=" + sd.state + "]" +
+                " afmd=" + sd.approxFirstMissingDate + "]";
     }
-    return this.getClass().getCanonicalName() +
+    return getClass().getCanonicalName() +
     "[ sender=" + this.senderID +
     " destination=" + this.destination +
     " data=[" + stateS + "]" +
