@@ -28,7 +28,7 @@
          xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
          xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
          xmlns:xlink='http://www.w3.org/1999/xlink'
-        >
+         xmlns:xinclude='http://www.w3.org/2001/XInclude'>
  <title>Managing Data Replication</title>
 
  <para>OpenDJ uses advanced data replication with automated conflict
@@ -399,26 +399,35 @@ for a detailed log of this operation.</screen>
   <section xml:id="init-repl">
    <title>Initializing Replicas</title>
   
-   <para>Although you can enable replication before you have user data, you
-   must initialize each replica to activate the replication process.</para>
-   
-   <para>You can perform initialization either over the replication protocol,
-   by importing the same LDIF data on all server before performing
-   initialization when starting out, by importing data from LDIF that you
-   exported from another replica when adding a server to the topology, or by
-   restoring a backup from an existing replica onto a new server.</para>
+   <para>You can initialize replication between servers by performing
+   initialization over the network after you have enabled replication, or by
+   importing the same LDIF data on all servers and then enabling replication.
+   You can also add a new server by restoring a backup from an existing replica
+   onto the new server and then enabling replication with an existing
+   replica.</para>
+
+   <itemizedlist>
+    <para>The alternatives are described step-by-step in the following
+    procedures.</para>
+
+    <listitem><para><xref linkend="init-repl-online" /></para></listitem>
+    <listitem><para><xref linkend="init-repl-ldif" /></para></listitem>
+    <listitem><para><xref linkend="init-repl-backup" /></para></listitem>
+   </itemizedlist>
    
    <procedure xml:id="init-repl-online">
-    <title>To Initialize Online</title>
+    <title>To Initialize Replication Over the Network</title>
     
-    <para>Online initialization is straightforward, and works well if
-    your network bandwidth is large compared to the amount of data to
-    replicate.</para>
-    
+    <para>Initialization over the network while the server is online works well
+    when you have no initial data, or when your network bandwidth is large
+    compared to the initial amount of data to replicate.</para>
+
     <step>
-     <para>Make sure you have enabled servers you want to participate in
-     replication.</para>
+     <para>Enable replication on all servers.</para>
+
+     <para>See <xref linkend="enable-repl" /> for instructions.</para>
     </step>
+
     <step>
      <para>Start replication with the <command>dsreplication
      initialize-all</command> command.</para>
@@ -446,41 +455,30 @@ for a detailed log of this operation.</screen>
    <procedure xml:id="init-repl-ldif">
     <title>To Initialize All Servers From the Same LDIF</title>
     
-    <para>Follow these steps to prepare a replication topology starting from
-    directory data in LDIF.</para>
-    
-    <para>Depending on the size of the data and your network bandwidth, you
-    might find it quicker to initialize all replica as described in
-    <xref linkend="init-repl-online" />, and then import the LDIF on a single
-    replica.</para>
+    <para>This procedure can be useful when you are starting with a large amount
+    of directory data that is available locally to all directory servers.</para>
     
     <step>
-     <para>Import the same LDIF on all servers you want to participate in
-     replication.</para>
-    </step>
-    <step>
-     <para>Make sure you have enabled servers you want to participate in
-     replication.</para>
-    </step>
-    <step>
-     <para>Start replication with the <command>dsreplication
-     initialize-all</command> command.</para>
-     <screen>$ dsreplication
- initialize-all
- --adminUID admin
- --adminPassword password
- --baseDN dc=example,dc=com
- --hostname opendj.example.com
- --port 4444
- --trustAll
- --no-prompt
-Initializing base DN dc=example,dc=com with the contents from
- opendj.example.com:4444: 161 entries processed (100 % complete).
-Base DN initialized successfully.
+     <para>Import the same LDIF on all servers as described in the procedure,
+     <link xlink:show="new" xlink:role="http://docbook.org/xlink/role/olink"
+     xlink:href="admin-guide#import-ldif"><citetitle>To Import LDIF
+     Data</citetitle></link>.</para>
 
-See
-/var/.../opends-replication-5745536041520679254.log
-for a detailed log of this operation.</screen>
+     <para>Do not yet accept updates to the directory data.
+     <xref linkend="read-only-repl" /> shows how to prevent replicas from
+     accepting updates from clients.</para>
+    </step>
+
+    <step>
+     <para>Enable replication for all servers.</para>
+
+     <para>See <xref linkend="enable-repl" /> for instructions.</para>
+    </step>
+
+    <step>
+     <para>Allow updates to the directory data by setting
+     <literal>writability-mode:enabled</literal> using a command like the
+     one you found in <xref linkend="read-only-repl" />.</para>
     </step>
    </procedure>
    
@@ -488,19 +486,25 @@ for a detailed log of this operation.</screen>
     <title>To Create a New Replica From Existing Backup</title>
     
     <para>You can create a new replica from a backup of a server in the existing
-    topology. The <command>dsreplication</command> commands use differ slightly
-    from the other cases, as you must reset the generation ID on the new
-    replica, such that replication can proceed from the proper starting point.
-    Follow these steps to add another server to the topology.</para>
+    topology.</para>
     
     <step>
-     <para>Install a new server to serve as the new replica.</para>
+     <para>Install a new server to use as the new replica.</para>
     </step>
+
     <step>
-     <para>Backup the database to replicate from an existing server.</para>
+     <para>Backup the database on an existing server as described in
+     <link xlink:show="new" xlink:role="http://docbook.org/xlink/role/olink"
+     xlink:href="admin-guide#backup"><citetitle>Backing Up Directory
+     Data</citetitle></link>.</para>
+
+     <para>At this point, other servers in the topology can continue to process
+     updates.</para>
     </step>
+
     <step>
      <para>Enable replication on the new replica.</para>
+
      <screen>$ dsreplication
  enable
  --adminUID admin
@@ -552,47 +556,23 @@ Replication has been successfully enabled.  Note that for replication to
 See
 /var/.../opends-replication-1672058070147419978.log
 for a detailed log of this operation.</screen>
+
+     <para>Contrary to the message from the command, you do not need to use
+     the <command>dsreplication initialize</command> command at this
+     point.</para>
     </step>
-    <step>
-     <para>Prepare the new replica for initialization.</para>
-     <screen>$ dsreplication
- pre-external-initialization
- --adminUID admin
- --adminPassword password
- --port 4444
- --baseDN dc=example,dc=com
- --trustAll
- --no-prompt
 
-Preparing base DN dc=example,dc=com to be initialized externally ..... Done.
-
-Now you can proceed to the initialization of the contents of the base DN's
- on all the replicated servers.  You can use the command import-ldif or the
- binary copy to do so.  You must use the same LDIF file or binary copy on
- each server.
-
-When the initialization is completed you must use the subcommand
- 'post-external-initialization' for replication to work with the
- new base DN's contents.</screen>
-    </step>
     <step>
      <para>On the new server, restore the database from the backup
-     archive.</para>
-    </step>
-    <step>
-     <para>Initialize replication on the new replica.</para>
-     <screen>$ dsreplication
- post-external-initialization
- --adminUID admin
- --adminPassword password
- --port 4444
- --baseDN dc=example,dc=com
- --trustAll
- --no-prompt
+     archive as described in the procedure, <link xlink:show="new"
+     xlink:role="http://docbook.org/xlink/role/olink"
+     xlink:href="admin-guide#restore-replica"><citetitle>To Restore a
+     Replica</citetitle></link>.</para>
 
-Updating replication information on base DN dc=example,dc=com ..... Done.
-
-Post initialization procedure completed successfully.</screen>
+     <para>As long as you restore the database on the new replica before the
+     replication purge delay runs out, updates processed by other servers after
+     you created the backup are replicated to the new server after you restore
+     the data.</para>
     </step>
    </procedure>
   </section>
