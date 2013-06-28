@@ -83,6 +83,26 @@
     of replication servers in your topology. Project testing has, however,
     focused only on topologies of up to eight replication servers.</para>
    </listitem>
+
+   <listitem>
+    <para>OpenDJ plugin extensions must follow the guidelines set forth in
+    the <filename>README</filename> file delivered in
+    <filename>opendj/example-plugin.zip</filename>. When developing your
+    extension, aim to remain loosely coupled with any particular version of
+    OpenDJ. Libraries used must be installed in
+    <filename>opendj/lib/extensions/</filename> (or bundle them in your
+    .jar). Keep your configuration separate from the server configuration.
+    Also, unless you are reusing standard schema definitions, keep your
+    schema definitions separate as well.</para>
+
+    <para>This can affect how your extension works after upgrade. In
+    particular <literal>opendj-accountchange-handler-1.0.0</literal> does
+    not work with OpenDJ 2.6.0 after upgrade (<link xlink:show="new"
+    xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-991"
+    >OPENDJ-991</link>). See that issue for notes on how make that version
+    of the extension work with OpenDJ 2.6.0.</para>
+   </listitem>
+
    <listitem>
     <para>On Niagara systems such as T2000, hardware SSL crypto acceleration
     runs more slowly than software crypto acceleration. To work around this
