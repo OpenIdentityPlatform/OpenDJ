@@ -166,6 +166,7 @@ public class ChangeNumber implements java.io.Serializable,
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean equals(Object obj)
   {
     if (obj instanceof ChangeNumber)
@@ -228,6 +229,7 @@ public class ChangeNumber implements java.io.Serializable,
    *
    * @return the string
    */
+  @Override
   public String toString()
   {
     return String.format("%016x%04x%08x", timeStamp, serverId, seqnum);
@@ -338,10 +340,10 @@ public class ChangeNumber implements java.io.Serializable,
   /**
    * check if the current Object is strictly older than ChangeNumber
    * given in parameter.
-   * @param CN the Changenumber to compare with
+   * @param CN the ChangeNumber to compare with
    * @return true if strictly older, false if younger or same
    */
-  public Boolean older(ChangeNumber CN)
+  public boolean older(ChangeNumber CN)
   {
     return compare(this, CN) < 0;
   }
@@ -349,17 +351,17 @@ public class ChangeNumber implements java.io.Serializable,
   /**
    * check if the current Object is older than ChangeNumber
    * given in parameter.
-   * @param CN the Changenumber to compare with
+   * @param CN the ChangeNumber to compare with
    * @return true if older or equal, false if younger
    */
-  public Boolean olderOrEqual(ChangeNumber CN)
+  public boolean olderOrEqual(ChangeNumber CN)
   {
     return compare(this, CN) <= 0;
   }
 
   /**
    * Check if the current Object is newer than ChangeNumber.
-   * @param CN the Changenumber to compare with
+   * @param CN the ChangeNumber to compare with
    * @return true if newer
    */
   public boolean newerOrEquals(ChangeNumber CN)
@@ -369,7 +371,7 @@ public class ChangeNumber implements java.io.Serializable,
 
   /**
    * Check if the current Object is strictly newer than ChangeNumber.
-   * @param CN the Changenumber to compare with
+   * @param CN the ChangeNumber to compare with
    * @return true if strictly newer
    */
   public boolean newer(ChangeNumber CN)
@@ -383,6 +385,7 @@ public class ChangeNumber implements java.io.Serializable,
    * @return a negative integer, zero, or a positive integer as this object
    *         is less than, equal to, or greater than the specified object.
    */
+  @Override
   public int compareTo(ChangeNumber cn)
   {
     return compare(this, cn);
