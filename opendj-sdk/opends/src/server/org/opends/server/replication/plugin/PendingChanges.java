@@ -169,6 +169,7 @@ public class PendingChanges
       return numSentUpdates;
     }
 
+    // peek the oldest changeNumber
     ChangeNumber firstChangeNumber = pendingChanges.firstKey();
     PendingChange firstChange = pendingChanges.get(firstChangeNumber);
 
@@ -185,6 +186,8 @@ public class PendingChanges
         }
         else
         {
+          // do not push updates until the RS catches up.
+          // @see #setRecovering(boolean)
           domain.getServerState().update(updateMsg.getChangeNumber());
         }
       }
@@ -196,6 +199,7 @@ public class PendingChanges
       }
       else
       {
+        // peek the oldest changeNumber
         firstChangeNumber = pendingChanges.firstKey();
         firstChange = pendingChanges.get(firstChangeNumber);
       }
