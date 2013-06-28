@@ -29,19 +29,12 @@ package org.opends.server.replication.common;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.zip.DataFormatException;
 
 import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.server.replication.protocol.ProtocolVersion;
 import org.opends.server.types.ByteString;
-
 
 /**
  * ServerState class.
@@ -52,7 +45,16 @@ import org.opends.server.types.ByteString;
  */
 public class ServerState implements Iterable<Integer>
 {
-  private final HashMap<Integer, ChangeNumber> list;
+
+  /**
+   * Contains what the current server knows about the last ChangeNumber seen for
+   * each serverId.
+   */
+  private final Map<Integer, ChangeNumber> lastCnSeenPerServerId;
+  /**
+   * Whether the state has been saved to persistent storage. It starts at true,
+   * and moves to false when an update is made to the current object.
+   */
   private volatile boolean saved = true;
 
   /**
@@ -60,7 +62,7 @@ public class ServerState implements Iterable<Integer>
    */
   public ServerState()
   {
-    list = new HashMap<Integer, ChangeNumber>();
+    lastCnSeenPerServerId = new HashMap<Integer, ChangeNumber>();
   }
 
   /**
@@ -70,9 +72,9 @@ public class ServerState implements Iterable<Integer>
    */
   public void clear()
   {
-    synchronized (list)
+    synchronized (lastCnSeenPerServerId)
     {
-      list.clear();
+      lastCnSeenPerServerId.clear();
     }
   }
 
@@ -92,7 +94,7 @@ public class ServerState implements Iterable<Integer>
   {
     try
     {
-      list = new HashMap<Integer, ChangeNumber>();
+      lastCnSeenPerServerId = new HashMap<Integer, ChangeNumber>();
 
       while (endpos > pos)
       {
@@ -115,7 +117,7 @@ public class ServerState implements Iterable<Integer>
         /*
          * Add the serverid
          */
-        list.put(serverId, cn);
+        lastCnSeenPerServerId.put(serverId, cn);
       }
 
     } catch (UnsupportedEncodingException e)
@@ -161,19 +163,16 @@ public class ServerState implements Iterable<Integer>
 
     saved = false;
 
-    synchronized(list)
+    synchronized (lastCnSeenPerServerId)
     {
       int id =  changeNumber.getServerId();
-      ChangeNumber oldCN = list.get(id);
+      ChangeNumber oldCN = lastCnSeenPerServerId.get(id);
       if (oldCN == null || changeNumber.newer(oldCN))
       {
-        list.put(id,changeNumber);
+        lastCnSeenPerServerId.put(id, changeNumber);
         return true;
       }
-      else
-      {
-        return false;
-      }
+      return false;
     }
   }
 
@@ -193,7 +192,7 @@ public class ServerState implements Iterable<Integer>
 
     boolean updated = false;
 
-    for (ChangeNumber cn : serverState.list.values())
+    for (ChangeNumber cn : serverState.lastCnSeenPerServerId.values())
     {
       if (update(cn))
       {
@@ -218,18 +217,19 @@ public class ServerState implements Iterable<Integer>
 
     boolean result = false;
 
-    synchronized (list)
+    synchronized (lastCnSeenPerServerId)
     {
       clear();
       for (Integer id : serverState) {
         ChangeNumber maxChangeNumber = serverState.getMaxChangeNumber(id);
-        if (this.update(maxChangeNumber)) {
+        if (update(maxChangeNumber))
+        {
           result = true;
         }
       }
     }
 
-    return (result);
+    return result;
   }
 
   /**
@@ -245,16 +245,15 @@ public class ServerState implements Iterable<Integer>
    */
   public Set<String> toStringSet()
   {
-    HashSet<String> set = new HashSet<String>();
+    Set<String> set = new HashSet<String>();
 
-    synchronized (list)
+    synchronized (lastCnSeenPerServerId)
     {
-      for (int key  : list.keySet())
+      for (int key : lastCnSeenPerServerId.keySet())
       {
-        ChangeNumber change = list.get(key);
+        ChangeNumber change = lastCnSeenPerServerId.get(key);
         Date date = new Date(change.getTime());
-        set.add(change.toString() + " " + date.toString() + " "
-            + change.getTime());
+        set.add(change + " " + date + " " + change.getTime());
       }
     }
 
@@ -271,11 +270,12 @@ public class ServerState implements Iterable<Integer>
   {
     ArrayList<ByteString> values = new ArrayList<ByteString>(0);
 
-    synchronized (list)
+    synchronized (lastCnSeenPerServerId)
     {
-      for (int id : list.keySet())
+      for (int id : lastCnSeenPerServerId.keySet())
       {
-        ByteString value = ByteString.valueOf(list.get(id).toString());
+        ByteString value =
+            ByteString.valueOf(lastCnSeenPerServerId.get(id).toString());
         values.add(value);
       }
     }
@@ -297,18 +297,18 @@ public class ServerState implements Iterable<Integer>
   public void writeTo(ASN1Writer writer, short protocolVersion)
       throws IOException
   {
-    synchronized (list)
+    synchronized (lastCnSeenPerServerId)
     {
       if (protocolVersion >= ProtocolVersion.REPLICATION_PROTOCOL_V7)
       {
-        for (ChangeNumber cn : list.values())
+        for (ChangeNumber cn : lastCnSeenPerServerId.values())
         {
           writer.writeOctetString(cn.toByteString());
         }
       }
       else
       {
-        for (ChangeNumber cn : list.values())
+        for (ChangeNumber cn : lastCnSeenPerServerId.values())
         {
           writer.writeOctetString(cn.toString());
         }
@@ -320,20 +320,21 @@ public class ServerState implements Iterable<Integer>
    * Return the text representation of ServerState.
    * @return the text representation of ServerState
    */
+  @Override
   public String toString()
   {
     StringBuilder buffer = new StringBuilder();
 
-    synchronized (list)
+    synchronized (lastCnSeenPerServerId)
     {
-      for (int key  : list.keySet())
+      for (int key : lastCnSeenPerServerId.keySet())
       {
-        ChangeNumber change = list.get(key);
+        ChangeNumber change = lastCnSeenPerServerId.get(key);
         buffer.append(change.toString());
         buffer.append(" ");
       }
-      if (!list.isEmpty())
-        buffer.deleteCharAt(buffer.length()-1);
+      if (!lastCnSeenPerServerId.isEmpty())
+        buffer.deleteCharAt(buffer.length() - 1);
     }
 
     return buffer.toString();
@@ -347,7 +348,7 @@ public class ServerState implements Iterable<Integer>
    */
   public ChangeNumber getMaxChangeNumber(int serverId2)
   {
-    return list.get(serverId2);
+    return lastCnSeenPerServerId.get(serverId2);
   }
 
   /**
@@ -358,11 +359,11 @@ public class ServerState implements Iterable<Integer>
   {
     ChangeNumber maxCN = null;
 
-    synchronized (list)
+    synchronized (lastCnSeenPerServerId)
     {
-      for (int id : list.keySet())
+      for (int id : lastCnSeenPerServerId.keySet())
       {
-        ChangeNumber tmpMax = list.get(id);
+        ChangeNumber tmpMax = lastCnSeenPerServerId.get(id);
         if ((maxCN==null) || (tmpMax.newer(maxCN)))
           maxCN = tmpMax;
       }
@@ -391,18 +392,18 @@ public class ServerState implements Iterable<Integer>
    */
   public byte[] getBytes() throws UnsupportedEncodingException
   {
-    synchronized (list)
+    synchronized (lastCnSeenPerServerId)
     {
       int length = 0;
-      List<String> idList = new ArrayList<String>(list.size());
-      for (int id : list.keySet())
+      List<String> idList = new ArrayList<String>(lastCnSeenPerServerId.size());
+      for (int id : lastCnSeenPerServerId.keySet())
       {
         String temp = String.valueOf(id);
         idList.add(temp);
         length += temp.length() + 1;
       }
-      List<String> cnList = new ArrayList<String>(list.size());
-      for (ChangeNumber cn : list.values())
+      List<String> cnList = new ArrayList<String>(lastCnSeenPerServerId.size());
+      for (ChangeNumber cn : lastCnSeenPerServerId.values())
       {
         String temp = cn.toString();
         cnList.add(temp);
@@ -411,7 +412,7 @@ public class ServerState implements Iterable<Integer>
       byte[] result = new byte[length];
 
       int pos = 0;
-      for (int i=0; i< list.size(); i++)
+      for (int i = 0; i < lastCnSeenPerServerId.size(); i++)
       {
         String str = idList.get(i);
         pos = addByteArray(str.getBytes("UTF-8"), result, pos);
@@ -425,9 +426,10 @@ public class ServerState implements Iterable<Integer>
   /**
    * {@inheritDoc}
    */
+  @Override
   public Iterator<Integer> iterator()
   {
-    return list.keySet().iterator();
+    return lastCnSeenPerServerId.keySet().iterator();
   }
 
   /**
@@ -440,9 +442,10 @@ public class ServerState implements Iterable<Integer>
    */
   public boolean cover(ServerState covered)
   {
-    for (ChangeNumber coveredChange : covered.list.values())
+    for (ChangeNumber coveredChange : covered.lastCnSeenPerServerId.values())
     {
-      ChangeNumber change = this.list.get(coveredChange.getServerId());
+      ChangeNumber change =
+          this.lastCnSeenPerServerId.get(coveredChange.getServerId());
       if ((change == null) || (change.older(coveredChange)))
       {
         return false;
@@ -460,7 +463,7 @@ public class ServerState implements Iterable<Integer>
    */
   public boolean cover(ChangeNumber covered)
   {
-    ChangeNumber change = this.list.get(covered.getServerId());
+    ChangeNumber change = this.lastCnSeenPerServerId.get(covered.getServerId());
     return !((change == null) || (change.older(covered)));
   }
 
@@ -471,7 +474,7 @@ public class ServerState implements Iterable<Integer>
    */
   public boolean isEmpty()
   {
-    return list.isEmpty();
+    return lastCnSeenPerServerId.isEmpty();
   }
 
   /**
@@ -481,13 +484,13 @@ public class ServerState implements Iterable<Integer>
   public ServerState duplicate()
   {
     ServerState newState = new ServerState();
-    synchronized (list)
+    synchronized (lastCnSeenPerServerId)
     {
-      for (Integer key  : list.keySet())
+      for (Integer key : lastCnSeenPerServerId.keySet())
       {
-        ChangeNumber change = list.get(key);
+        ChangeNumber change = lastCnSeenPerServerId.get(key);
         Integer id =  change.getServerId();
-        newState.list.put(id,change);
+        newState.lastCnSeenPerServerId.put(id, change);
       }
     }
     return newState;
@@ -506,15 +509,15 @@ public class ServerState implements Iterable<Integer>
     throws  IllegalArgumentException
   {
      if ( (ss1 == null) || (ss2 == null) )
-       throw new IllegalArgumentException("Null server state(s)");
+      throw new IllegalArgumentException("Null server state(s)");
 
      int diff = 0;
-     for (Integer serverId : ss1.list.keySet())
+     for (Integer serverId : ss1.lastCnSeenPerServerId.keySet())
      {
-       ChangeNumber cn1 = ss1.list.get(serverId);
+       ChangeNumber cn1 = ss1.lastCnSeenPerServerId.get(serverId);
        if (cn1 != null)
        {
-         ChangeNumber cn2 = ss2.list.get(serverId);
+         ChangeNumber cn2 = ss2.lastCnSeenPerServerId.get(serverId);
          if (cn2 != null)
          {
            diff += ChangeNumber.diffSeqNum(cn1, cn2);
@@ -561,15 +564,15 @@ public class ServerState implements Iterable<Integer>
   public ServerState duplicateOnlyOlderThan(ChangeNumber cn)
   {
     ServerState newState = new ServerState();
-    synchronized (list)
+    synchronized (lastCnSeenPerServerId)
     {
-      for (Integer key  : list.keySet())
+      for (Integer key : lastCnSeenPerServerId.keySet())
       {
-        ChangeNumber change = list.get(key);
+        ChangeNumber change = lastCnSeenPerServerId.get(key);
         Integer id =  change.getServerId();
         if (change.older(cn))
         {
-          newState.list.put(id,change);
+          newState.lastCnSeenPerServerId.put(id, change);
         }
       }
     }
