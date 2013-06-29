@@ -143,7 +143,8 @@
           <script>
             c = '%s/setup%s' % (PORTS_I1_ROOT, fileExt)
             p = []
-            p.append('--cli --no-prompt --rootUserPassword kangourou')
+            p.append('--cli --no-prompt --rootUserPassword kangourou %s' \
+                     % licenseOption)
             p.append('--ldapPort %s' % PORTS_I1_PORT)
             p.append('--adminConnectorPort %s' % PORTS_I1_ADMIN_PORT)
             p = ' '.join(p)
@@ -187,7 +188,7 @@
             c = '%s/%s/setup%s' % (ODS_UNZIPPED, OPENDSNAME, fileExt)
             p = []
             p.append('--cli --no-prompt --rootUserPassword kangourou')
-            p.append('--ldapPort %s' % PORTS_I1_PORT)
+            p.append('--ldapPort %s %s' % (PORTS_I1_PORT, licenseOption))
             p = ' '.join(p)
           </script>
       
@@ -271,7 +272,7 @@
             p.append('--cli --no-prompt --rootUserPassword kangourou')
             p.append('--ldapPort %s' % PORTS_I2_PORT)
             p.append('--ldapsPort %s' % PORTS_I1_PORT)
-            p.append('--generateSelfSignedCertificate')
+            p.append('--generateSelfSignedCertificate %s' % licenseOption)
             p = ' '.join(p)
           </script>
       
@@ -353,7 +354,7 @@
             p = []
             p.append('--cli --no-prompt --rootUserPassword kangourou')
             p.append('--ldapPort %s' % PORTS_I2_PORT)
-            p.append('--jmxPort %s' % PORTS_I1_PORT)
+            p.append('--jmxPort %s %s' % (PORTS_I1_PORT, licenseOption))
             p = ' '.join(p)
           </script>
     
@@ -439,7 +440,7 @@
             c = '%s/setup%s' % (PORTS_I2_ROOT, fileExt)
             p = []
             p.append('--cli --no-prompt --ldapPort %s' % PORTS_I1_PORT)
-            p.append('--rootUserPassword "kangourou"')
+            p.append('--rootUserPassword "kangourou" %s' % licenseOption)
             p.append('--skipPortCheck --doNotStart --noPropertiesFile')
             p = ' '.join(p)
           </script>
@@ -573,7 +574,7 @@
                 c = '%s/%s/setup%s' % (ODS_UNZIPPED, OPENDSNAME, fileExt)
                 p = []
                 p.append('--cli --no-prompt --rootUserPassword kangourou')
-                p.append('--ldapPort 1')
+                p.append('--ldapPort 1 %s' % licenseOption)
                 p = ' '.join(p)
               </script>
 

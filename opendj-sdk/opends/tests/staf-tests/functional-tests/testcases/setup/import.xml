@@ -164,7 +164,7 @@
             p.append('--rootUserPassword "kangourou"')
             p.append('--baseDN "o=o1"')
             p.append('--baseDN "o=o2"')
-            p.append('--sampleData 5')
+            p.append('--sampleData 5 %s' % licenseOption)
             p = ' '.join(p)
           </script>
 
@@ -347,7 +347,7 @@
             p.append('--ldifFile %s' % IMP_LDIF_FILE)
             p.append('--rejectFile %s' % IMP_REJECT_FILE)
             p.append('--skipFile %s' % IMP_SKIP_FILE)
-            p.append('--verbose')
+            p.append('--verbose %s' % licenseOption)
             p = ' '.join(p)
           </script>
 

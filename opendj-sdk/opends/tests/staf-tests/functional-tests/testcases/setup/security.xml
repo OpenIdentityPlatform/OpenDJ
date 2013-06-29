@@ -220,7 +220,7 @@
             p.append('--adminConnectorPort %s' % SEC_I1_ADMIN_PORT)  
             p.append('--rootUserDN "%s"' % DM_DN)
             p.append('--rootUserPassword "%s"' % DM_PW)
-            p.append('--generateSelfSignedCertificate')
+            p.append('--generateSelfSignedCertificate %s' % licenseOption)
             p = ' '.join(p)
           </script>
 
@@ -359,7 +359,8 @@
             p.append('--adminConnectorPort %s' % SEC_I2_ADMIN_PORT)  
             p.append('--rootUserDN "%s"' % DM_DN)
             p.append('--rootUserPassword "%s"' % DM_PW)
-            p.append('--generateSelfSignedCertificate --enableStartTLS')
+            p.append('--generateSelfSignedCertificate --enableStartTLS %s' \
+                     % licenseOption)
             p = ' '.join(p)
           </script>
  

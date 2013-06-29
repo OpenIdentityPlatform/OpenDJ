@@ -198,7 +198,7 @@
             p = []
             p.append('--cli --no-prompt --ldapPort %s' % (DM_I1_PORT))
             p.append('--adminConnectorPort %s' % DM_I1_ADMIN_PORT)
-            p.append('--rootUserPassword "kangourou"')
+            p.append('--rootUserPassword "kangourou" %s' % licenseOption)
             p = ' '.join(p)
           </script>
       
@@ -256,7 +256,8 @@
             p = []
             p.append('--cli --no-prompt --ldapPort %s' % (DM_I2_PORT))
             p.append('--adminConnectorPort %s' % DM_I2_ADMIN_PORT)
-            p.append('--rootUserDN "cn=DM" --rootUserPassword "kangourou"')
+            p.append('--rootUserDN "cn=DM" --rootUserPassword "kangourou" %s' \
+                     % licenseOption)
             p = ' '.join(p)
           </script>
       
@@ -732,7 +733,8 @@
           <script>
             c = '%s/setup%s' % (DM_I3_ROOT, fileExt)
             p = []
-            p.append('--cli --no-prompt --rootUserDN "cn=DM" --quiet')
+            p.append('--cli --no-prompt --rootUserDN "cn=DM" --quiet %s' \
+                     % licenseOption)
             p.append('--rootUserPasswordFile %s' % DM_PASSWD_FILE)
             p = ' '.join(p)
           </script>
