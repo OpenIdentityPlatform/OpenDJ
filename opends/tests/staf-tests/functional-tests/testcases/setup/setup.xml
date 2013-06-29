@@ -73,6 +73,33 @@
               'arguments' :  'DIRECTORY %s FAILIFEXISTS' % ODS_UNZIPPED
             }
           </call>
+          
+          <!-- Get the information about the server -->
+          <call function="'GetVar'">
+            { 'location'  : STAF_REMOTE_HOSTNAME,
+              'type'      : 'shared',
+              'variable'  : 'Job%s_ServerInfo' % STAXParentID
+            }
+          </call>
+          <if expr="RC != 0">
+            <script>
+              STAFResult='{}'
+            </script>
+          </if>
+          <script>
+            jobInfo=eval(STAFResult)
+            instPath = '%s/%s' % (DIRECTORY_INSTANCE_BIN,OPENDSNAME)
+            if jobInfo.has_key(instPath):
+              serverInformation=jobInfo[instPath]
+              dsVersion=serverInformation['server version']
+            else:
+              dsVersion='unknown'
+              
+            if dsVersion >= '2.5.0' and dsVersion != '2.5.0-Xpress1':
+              licenseOption = '--acceptLicense'
+            else:
+              licenseOption = ''
+          </script>
 
           <script>
             testList = []
