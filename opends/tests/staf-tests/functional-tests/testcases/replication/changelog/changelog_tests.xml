@@ -133,59 +133,6 @@
 
                   replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
                 </script>
-
-
-                <!-- *************** -->
-                <!-- Trace for debug -->
-                <!-- *************** -->
-                <message>
-                  'DEBUG: Get attribute l for entry uid=iabizen.0 => value should be GEC'
-                </message>
-                <call function="'ldapSearchWithScript'">
-                  { 'location'         : replServer.getHostname(),
-                    'dsPath'           : replServerPath,
-                    'dsInstanceHost'   : replServer.getHostname(),
-                    'dsInstancePort'   : replServer.getPort(),
-                    'dsInstanceDn'     : replServer.getRootDn(),
-                    'dsInstancePswd'   : replServer.getRootPwd(),
-                    'dsBaseDN'         : userDn,
-                    'dsFilter'         : 'objectclass=*',
-                    'dsAttributes'     : 'l'
-                  }                
-                </call>
-                <message>
-                    STAXResult[0][1]
-                </message>
-                
-                <loop from="1" to="10">
-                  <sequence>
-	                <message>
-	                  'DEBUG: Get content of dc=replicationChanges' 
-	                </message>
-	                <call function="'ldapSearchWithScript'">
-	                  { 'location'         : replServer.getHostname(),
-	                    'dsPath'           : replServerPath,
-	                    'dsInstanceHost'   : replServer.getHostname(),
-	                    'dsInstancePort'   : replServer.getPort(),
-	                    'dsInstanceDn'     : replServer.getRootDn(),
-	                    'dsInstancePswd'   : replServer.getRootPwd(),
-	                    'dsBaseDN'         : 'dc=replicationChanges',
-	                    'dsFilter'         : 'objectclass=*'
-	                  }                
-	                </call>
-	                <message>
-	                    STAXResult[0][1]
-	                </message>
-
-		            <call function="'Sleep'">
-		              { 'sleepForMilliSeconds' :  2000 }
-		            </call>
-                  </sequence>
-                </loop>
-                <!-- *************** -->
-                <!-- Trace for debug -->
-                <!-- *************** -->
-                
   
                 <!-- Search for entry add -->
                 <call function="'ldapSearchWithScript'">
@@ -231,13 +178,19 @@
                   searchRC = STAXResult[0][0]
                   searchResult = STAXResult[0][1]
                   resultLength = len(searchResult) > 0
+                  
+                  if is_windows_platform(mylocation):
+                      knownIssue = 'OPENDJ-110'
+                  else:
+                      knownIssue = None
                 </script>
                 <!-- expect entry returned => len(searchResult) > 0 
                   =====> resultLength = 1 -->
                 <call function="'checktestRC'">
                   { 'returncode' : resultLength ,
                     'result'     : searchResult ,
-                    'expected'   : 1
+                    'expected'   : 1,
+                    'issue'      : knownIssue
                   }
                 </call>
                                       
@@ -1637,13 +1590,11 @@
                     # => expect entry returned
                     # => len(searchResult) > 0 => resultLength = 1
                     myExpectedRC = 1
-                    myKnownIssue = None
                 </script>
                 <call function="'checktestRC'">
                   { 'returncode' : resultLength ,
                     'result'     : searchResult ,
-                    'expected'   : myExpectedRC,
-                    'issue'      : myKnownIssue
+                    'expected'   : myExpectedRC
                   }
                 </call>                                           
                              
