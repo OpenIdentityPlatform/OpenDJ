@@ -448,9 +448,10 @@ public final class LDAPClientConnection extends ClientConnection implements
   private final int bufferSize;
   private final RedirectingByteChannel saslChannel;
   private final RedirectingByteChannel tlsChannel;
-  private volatile ConnectionSecurityProvider activeProvider = null;
-  private volatile ConnectionSecurityProvider tlsPendingProvider = null;
+  private volatile ConnectionSecurityProvider saslActiveProvider = null;
+  private volatile ConnectionSecurityProvider tlsActiveProvider = null;
   private volatile ConnectionSecurityProvider saslPendingProvider = null;
+  private volatile ConnectionSecurityProvider tlsPendingProvider = null;
 
 
   /**
@@ -686,10 +687,16 @@ public final class LDAPClientConnection extends ClientConnection implements
   @Override
   public boolean isSecure()
   {
-    if (activeProvider != null)
-      return activeProvider.isSecure();
-    else
-      return false;
+    boolean secure = false;
+    if (tlsActiveProvider != null)
+    {
+      secure = tlsActiveProvider.isSecure();
+    }
+    if (!secure && saslActiveProvider != null)
+    {
+      secure = saslActiveProvider.isSecure();
+    }
+    return secure;
   }
 
 
@@ -2472,7 +2479,18 @@ public final class LDAPClientConnection extends ClientConnection implements
     buffer.append("\" security=\"");
     if (isSecure())
     {
-      buffer.append(activeProvider.getName());
+      if (tlsActiveProvider != null)
+      {
+        buffer.append(tlsActiveProvider.getName());
+      }
+      if (saslActiveProvider != null)
+      {
+        if (tlsActiveProvider != null)
+        {
+          buffer.append(",");
+        }
+        buffer.append(saslActiveProvider.getName());
+      }
     }
     else
     {
@@ -2523,10 +2541,10 @@ public final class LDAPClientConnection extends ClientConnection implements
   @Override
   public boolean prepareTLS(MessageBuilder unavailableReason)
   {
-    if (isSecure() && "TLS".equals(activeProvider.getName()))
+    if (tlsActiveProvider != null)
     {
       unavailableReason.append(ERR_LDAP_TLS_EXISTING_SECURITY_PROVIDER
-          .get(activeProvider.getName()));
+          .get(tlsActiveProvider.getName()));
       return false;
     }
     // Make sure that the connection handler allows the use of the
@@ -2620,7 +2638,7 @@ public final class LDAPClientConnection extends ClientConnection implements
    */
   private void enableTLS()
   {
-    activeProvider = tlsPendingProvider;
+    tlsActiveProvider = tlsPendingProvider;
     tlsChannel.redirect(tlsPendingProvider);
     tlsPendingProvider = null;
   }
@@ -2635,7 +2653,7 @@ public final class LDAPClientConnection extends ClientConnection implements
    */
   private void enableSSL(ConnectionSecurityProvider sslProvider)
   {
-    activeProvider = sslProvider;
+    tlsActiveProvider = sslProvider;
     tlsChannel.redirect(sslProvider);
   }
 
@@ -2646,7 +2664,7 @@ public final class LDAPClientConnection extends ClientConnection implements
    */
   private void enableSASL()
   {
-    activeProvider = saslPendingProvider;
+    saslActiveProvider = saslPendingProvider;
     saslChannel.redirect(saslPendingProvider);
     saslPendingProvider = null;
   }
@@ -2660,12 +2678,15 @@ public final class LDAPClientConnection extends ClientConnection implements
    */
   public Certificate[] getClientCertificateChain()
   {
-    if (activeProvider != null)
+    if (tlsActiveProvider != null)
     {
-      return activeProvider.getClientCertificateChain();
+      return tlsActiveProvider.getClientCertificateChain();
     }
-    else
-      return new Certificate[0];
+    if (saslActiveProvider != null)
+    {
+      return saslActiveProvider.getClientCertificateChain();
+    }
+    return new Certificate[0];
   }
 
 
@@ -2689,10 +2710,9 @@ public final class LDAPClientConnection extends ClientConnection implements
   @Override
   public int getSSF()
   {
-    if (activeProvider != null)
-      return activeProvider.getSSF();
-    else
-      return 0;
+    int tlsSSF = tlsActiveProvider != null ? tlsActiveProvider.getSSF() : 0;
+    int saslSSF = saslActiveProvider != null ? saslActiveProvider.getSSF() : 0;
+    return Math.max(tlsSSF, saslSSF);
   }
 
 
