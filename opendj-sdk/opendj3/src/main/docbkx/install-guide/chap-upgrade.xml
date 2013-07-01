@@ -127,6 +127,25 @@
   </step>
 
   <step>
+   <para>When you upgrade from OpenDJ 2.5.0-Xpress1, you must rebuild the
+   <literal>ds-sync-hist</literal> ordering index before you restart the
+   server, as indicated in the message from the upgrade tool.</para>
+
+   <programlisting language="none"
+>  OpenDJ 2.5.0-Xpress1 introduced a regression in the ds-sync-hist ordering
+  index. This index must be rebuilt after the upgrade has completed and before
+  restarting OpenDJ. Do you wish to continue? (yes/no) [no]: yes</programlisting>
+
+   <para>To rebuild the index, use the <command>rebuild-index</command>
+   command after upgrade but before starting the server as in the following
+   example.</para>
+
+   <screen>$ ./opendj/bin/rebuild-index --baseDN dc=example,dc=com --index ds-sync-hist
+... msg=Rebuild of index(es) ds-sync-hist started ...
+... msg=Rebuild complete. Processed XXX entries in YYY seconds...</screen>
+  </step>
+
+  <step>
    <para>Start the upgraded OpenDJ server.</para>
 
    <para>At this point the upgrade process is complete. See the resulting
