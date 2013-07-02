@@ -26,13 +26,15 @@
  *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.replication.server;
+
 import static org.opends.messages.ReplicationMessages.*;
-import static org.opends.server.loggers.ErrorLogger.logError;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
+import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.util.StaticUtils.*;
 
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.opends.messages.MessageBuilder;
@@ -43,6 +45,7 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.common.ChangeNumber;
+import org.opends.server.replication.common.MultiDomainServerState;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.server.DraftCNDB.DraftCNDBCursor;
 import org.opends.server.types.Attribute;
@@ -50,8 +53,6 @@ import org.opends.server.types.Attributes;
 import org.opends.server.types.InitializationException;
 
 import com.sleepycat.je.DatabaseException;
-import java.util.Map;
-import org.opends.server.replication.common.MultiDomainServerState;
 
 /**
  * This class is used for managing the replicationServer database for each
@@ -70,7 +71,7 @@ public class DraftCNDbHandler implements Runnable
    * The tracer object for the debug logger.
    */
   private static final DebugTracer TRACER = getTracer();
-  static int NO_KEY = 0;
+  private static int NO_KEY = 0;
 
   private DraftCNDB db;
   private int firstkey = NO_KEY;
@@ -78,16 +79,19 @@ public class DraftCNDbHandler implements Runnable
   private DbMonitorProvider dbMonitor = new DbMonitorProvider();
   private boolean shutdown = false;
   private boolean trimDone = false;
-  /*
-  A dedicated thread loops trim().
-  trim()  : deletes from the DB a number of changes that are older than a
-  certain date.
-  */
+  /**
+   * A dedicated thread loops trim().
+   * <p>
+   * trim() : deletes from the DB a number of changes that are older than a
+   * certain date.
+   */
   private DirectoryThread thread;
   /**
    * The trim age in milliseconds. Changes record in the change DB that
    * are older than this age are removed.
    */
+  // FIXME it never gets updated even when the replication server purge delay
+  // is updated
   private long trimAge;
 
   private ReplicationServer replicationServer;
@@ -114,7 +118,7 @@ public class DraftCNDbHandler implements Runnable
     lastkey = db.readLastDraftCN();
 
     // Trimming thread
-    thread = new DirectoryThread(this, "Replication DraftCN db ");
+    thread = new DirectoryThread(this, "Replication DraftCN db");
     thread.start();
 
     // Monitoring registration
@@ -131,7 +135,6 @@ public class DraftCNDbHandler implements Runnable
    * @param value The associated value.
    * @param serviceID The associated serviceID.
    * @param cn The associated replication change number.
-   *
    */
   public synchronized void add(int key, String value, String serviceID,
       ChangeNumber cn)
@@ -265,6 +268,7 @@ public class DraftCNDbHandler implements Runnable
    * Periodically Flushes the ReplicationServerDomain cache from memory to the
    * stable storage and trims the old updates.
    */
+  @Override
   public void run()
   {
     while (!shutdown)
@@ -323,11 +327,15 @@ public class DraftCNDbHandler implements Runnable
    * changes from the DB.
    * @throws Exception When an exception occurs while accessing a resource
    * from the DB.
-   *
    */
   public void clear(String serviceIDToClear)
       throws DatabaseException, Exception
   {
+    // FIXME according to JE javadoc, this is a "fairly expensive operation"
+    // It could be faster to:
+    // - open a cursor
+    // - check if there is a next entry
+    // - close the cursor (or reuse it down below)
     if (this.count() == 0)
     {
       return;
@@ -400,10 +408,8 @@ public class DraftCNDbHandler implements Runnable
             cnVector = cnStartStates.get(serviceID);
 
             if (debugEnabled())
-              TRACER.debugInfo("DraftCNDBHandler:clear() - ChangeVector:"+
-                      cnVector.toString()+
-                      " -- StartState:"+startState.toString());
-            // cnVector.update(cn);
+              TRACER.debugInfo("DraftCNDBHandler:clear() - ChangeVector:" +
+                      cnVector + " -- StartState:" + startState);
           }
           catch(Exception e)
           {
@@ -419,8 +425,8 @@ public class DraftCNDbHandler implements Runnable
           {
             cursor.delete();
             if (debugEnabled())
-              TRACER.debugInfo("DraftCNDBHandler:clear() - deleted "+
-                      cn.toString()+"Not covering startState");
+              TRACER.debugInfo("DraftCNDBHandler:clear() - deleted " +
+                      cn + "Not covering startState");
             continue;
           }
 
@@ -452,9 +458,9 @@ public class DraftCNDbHandler implements Runnable
      * {@inheritDoc}
      */
     @Override
-    public ArrayList<Attribute> getMonitorData()
+    public List<Attribute> getMonitorData()
     {
-      ArrayList<Attribute> attributes = new ArrayList<Attribute>();
+      List<Attribute> attributes = new ArrayList<Attribute>();
       attributes.add(Attributes.create("first-draft-changenumber",
           Integer.toString(db.readFirstDraftCN())));
       attributes.add(Attributes.create("last-draft-changenumber",
@@ -490,7 +496,7 @@ public class DraftCNDbHandler implements Runnable
   @Override
   public String toString()
   {
-    return("draftCNdb:" + " " + firstkey + " " + lastkey);
+    return "draftCNdb:" + " " + firstkey + " " + lastkey;
   }
 
   /**
@@ -508,7 +514,6 @@ public class DraftCNDbHandler implements Runnable
    * changes from the DB.
    * @throws Exception When an exception occurs while accessing a resource
    * from the DB.
-   *
    */
   public void clear() throws DatabaseException, Exception
   {
@@ -530,7 +535,7 @@ public class DraftCNDbHandler implements Runnable
 
   /**
    * Takes the lock on this object (blocking until lock can be acquired).
-   * @throws java.lang.InterruptedException If interrupted.
+   * @throws InterruptedException If interrupted.
    */
    public void lock() throws InterruptedException
   {
@@ -567,13 +572,12 @@ public class DraftCNDbHandler implements Runnable
           " first=" + db.readFirstDraftCN() +
           " last=" + db.readLastDraftCN() +
           " count=" + db.count() +
-          " exception" + e + " " + e.getMessage());
+          " exception " + e + " " + e.getMessage());
       return null;
     }
     finally
     {
-      if (draftCNDBCursor != null)
-        draftCNDBCursor.close();
+      close(draftCNDBCursor);
     }
     return value;
   }
