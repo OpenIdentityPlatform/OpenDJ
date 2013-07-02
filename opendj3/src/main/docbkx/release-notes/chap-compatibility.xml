@@ -35,7 +35,7 @@
  also deprecated and removed functionality.</para>
 
  <section xml:id="changed-functionality">
-  <title>Major Changes to Existing Functionality</title>
+  <title>Important Changes to Existing Functionality</title>
 
   <para>OpenDJ <?eval ${docTargetVersion}?> improves on earlier releases
   introducing many new features. Also take the following into account.</para>
@@ -70,6 +70,22 @@
     xlink:show="new" xlink:href="http://www.iso.org/iso/country_codes.htm">ISO
     3166</link> such as <literal>US</literal> instead of full names such as
     <literal>United States</literal>.</para>
+   </listitem>
+   <listitem>
+    <para>OpenDJ directory server now allows any client to use the LDAP
+    Permissive Modify Request control, <literal>1.2.840.113556.1.4.1413</literal>,
+    by default for newly installed servers.</para>
+
+    <para>When you upgrade from earlier versions of OpenDJ, however, the
+    previous <literal>global-aci</literal> setting that governs this behavior
+    is not updated. To apply the change manually, change the relevant
+    <literal>global-aci</literal> by using the <command>dsconfig</command>
+    command. An example of how to change a <literal>global-aci</literal>
+    property can be found in the <citetitle>Administration Guide</citetitle>,
+    <link xlink:show="new"
+    xlink:href="admin-guide#access-control-disable-anonymous"
+    xlink:role="http://docbook.org/xlink/role/olink"><citetitle>ACI: Disable
+    Anonymous Access</citetitle></link>.</para>
    </listitem>
   </itemizedlist>
 
