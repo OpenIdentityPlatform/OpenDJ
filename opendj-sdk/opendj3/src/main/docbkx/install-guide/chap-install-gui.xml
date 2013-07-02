@@ -39,10 +39,10 @@
 
  <xinclude:include href="../shared/itemizedlist-download.xml" />
 
- <para>The Quick Setup and Nightly Build links use Java WebStart to let you
- perform an installation of OpenDJ directory server starting with a click in
- your web browser, which can be a great way to try OpenDJ directory server for
- the first time, or to do a quick test installation.</para>
+ <para>QuickSetup uses Java WebStart to let you perform an installation of
+ OpenDJ directory server starting with a click in your web browser, which can
+ be a great way to try OpenDJ directory server for the first time, or to do a
+ quick test installation.</para>
 
  <note>
   <para>OpenDJ directory server relies on Java 6 or later, so if your browser
@@ -62,18 +62,17 @@
 
  <para>If the WebStart installation does not work in your browser, copy
  the WebStart URL, ending in <literal>QuickSetup.jnlp</literal>, from the
- OpenDJ download page. This is the first link in the list of links for
- a version of OpenDJ. Next, pass the link as an argument to the
+ OpenDJ download page. Next, pass the link as an argument to the
  <command>javaws</command> command in a terminal window to start the
  installer.</para>
 
- <screen>$ export PATH=/path/to/java6/bin:$PATH
+ <screen>$ export PATH=/path/to/java/bin:$PATH
 $ javaws <replaceable>URL-to-QuickSetup-Installer</replaceable></screen>
 
  <para>The WebStart installer corresponds to what you start if you download
  OpenDJ-<?eval ${docTargetVersion}?>.zip, unzip the file, and then run
- OpenDJ-<?eval ${docTargetVersion}?>/setup (UNIX), OpenDJ-<?eval
- ${docTargetVersion}?>\setup.bat (Windows), or QuickSetup.app (Mac OS X).</para>
+ <command>./opendj/setup</command> (UNIX), <command>opendj\setup.bat</command>
+  (Windows), or <command>opendj/QuickSetup.app</command> (Mac OS X).</para>
 
  <para>Java WebStart launches the the QuickSetup wizard, and soon the
  Welcome screen appears.</para>
@@ -82,64 +81,101 @@ $ javaws <replaceable>URL-to-QuickSetup-Installer</replaceable></screen>
   <imageobject>
    <imagedata fileref="images/QuickSetup-welcome.png" format="PNG" />
   </imageobject>
-  <caption><para>The Welcome screen appears.</para></caption>
+  <textobject>
+   <para>The Welcome screen summarizes the setup process.</para>
+  </textobject>
+ </mediaobject>
+
+ <mediaobject xml:id="figure-quicksetup-license">
+  <imageobject>
+   <imagedata fileref="images/QuickSetup-license.png" format="PNG" />
+  </imageobject>
+  <textobject>
+   <para>Accept the license to install OpenDJ directory server if QuickSetup
+   presents a license text.</para>
+  </textobject>
  </mediaobject>
 
  <mediaobject xml:id="figure-quicksetup-svrconf">
   <imageobject>
    <imagedata fileref="images/QuickSetup-svrconf.png" format="PNG" />
   </imageobject>
-  <caption><para>Notice in the Server Settings screen that the default ports
-  are 389 or 1389 for LDAP, 4444 for administrative access.</para></caption>
+  <textobject>
+   <para>In the Server Settings screen that the default ports
+   are 389 or 1389 for LDAP, 4444 for administrative access.</para>
+  </textobject>
  </mediaobject>
 
  <mediaobject xml:id="figure-quicksetup-replopts">
    <imageobject>
      <imagedata fileref="images/QuickSetup-replopts.png" format="PNG" />
    </imageobject>
-   <caption><para>You can replicate data for high availability through the
-   Topology Options screen.</para></caption>
+   <textobject>
+    <para>You can replicate data for high availability through the
+    Topology Options screen.</para>
+   </textobject>
  </mediaobject>
 
  <mediaobject xml:id="figure-quicksetup-gendata">
   <imageobject>
    <imagedata fileref="images/QuickSetup-gendata.png" format="PNG" />
   </imageobject>
-  <caption><para>Generate test data as part of server setup in the Directory
-  Data screen.</para></caption>
+   <textobject>
+    <para>You can generate test data as part of server setup in the Directory
+    Data screen.</para>
+   </textobject>
  </mediaobject>
 
  <mediaobject xml:id="figure-quicksetup-jvmopts">
   <imageobject>
    <imagedata fileref="images/QuickSetup-jvmopts.png" format="PNG" />
   </imageobject>
-  <caption><para>For a real installation, you can adjust JVM parameters for
-  your server, for example to allow OpenDJ to use more memory.</para></caption>
+   <textobject>
+    <para>For a real installation, you can adjust JVM parameters for
+    your server, for example to allow OpenDJ to use more memory.</para>
+   </textobject>
  </mediaobject>
 
  <mediaobject xml:id="figure-quicksetup-review">
   <imageobject>
    <imagedata fileref="images/QuickSetup-review.png" format="PNG" />
   </imageobject>
-  <caption><para>Opt to start your server when setup completes.</para></caption>
+   <textobject>
+    <para>You can opt to start your server when setup completes.</para>
+   </textobject>
  </mediaobject>
 
  <mediaobject xml:id="figure-quicksetup-finished">
   <imageobject>
    <imagedata fileref="images/QuickSetup-finished.png" format="PNG" />
   </imageobject>
-  <caption><para>Finally, click Launch Control Panel to check your newly
-  installed server.</para></caption>
+   <textobject>
+    <para>Click the Launch Control Panel button to check your newly
+    installed server.</para>
+   </textobject>
  </mediaobject>
 
- <mediaobject xml:id="figure-quicksetup-cpstart">
+ <mediaobject xml:id="figure-quicksetup-control-panel">
   <imageobject>
-   <imagedata fileref="images/QuickSetup-cpstart.png" format="PNG" />
+   <imagedata fileref="images/OpenDJ-Control-Panel.png" format="PNG" />
   </imageobject>
-  <caption><para>Run <command>OpenDJ-<?eval
-  ${docTargetVersion}?>/bin/control-panel</command> (UNIX), double-click
-  <command>OpenDJ-<?eval ${docTargetVersion}?>\bat\control-panel.bat</command>
-  (Windows), or <command>bin/Control Panel.app</command> (Mac OS X) to launch
-  the Control Panel again later.</para></caption>
+   <textobject>
+    <para>OpenDJ Control Panel offers basic administration capabilities.</para>
+   </textobject>
  </mediaobject>
+
+ <itemizedlist>
+  <para>To launch OpenDJ Control Panel again later, you can run one of the
+  following, depending on your host system.</para>
+
+  <listitem>
+   <para>(Mac OS X) <command>opendj/bin/ControlPanel.app</command></para>
+  </listitem>
+  <listitem>
+   <para>(UNIX) <command>opendj/bin/control-panel</command></para>
+  </listitem>
+  <listitem>
+   <para>(Windows) <command>opendj\bat\control-panel.bat</command></para>
+  </listitem>
+ </itemizedlist>
 </chapter>
