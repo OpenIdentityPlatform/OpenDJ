@@ -26,12 +26,13 @@
  *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.replication.server;
-import static org.opends.messages.ReplicationMessages.*;
-import static org.opends.server.loggers.ErrorLogger.logError;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-import static org.opends.server.util.StaticUtils.decodeUTF8;
-import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
+import static org.opends.messages.ReplicationMessages.*;
+import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.util.StaticUtils.*;
+
+import java.io.Closeable;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.opends.messages.MessageBuilder;
@@ -53,8 +54,10 @@ public class DraftCNDB
   private ReplicationDbEnv dbenv = null;
   private ReplicationServer replicationServer;
 
-  // The lock used to provide exclusive access to the thread that
-  // close the db (shutdown or clear).
+  /**
+   * The lock used to provide exclusive access to the thread that close the db
+   * (shutdown or clear).
+   */
   private ReentrantReadWriteLock dbCloseLock;
 
   /**
@@ -198,17 +201,7 @@ public class DraftCNDB
   {
     try
     {
-      if (cursor != null)
-      {
-        try
-        {
-          cursor.close();
-        }
-        catch (DatabaseException e)
-        {
-          // Ignore.
-        }
-      }
+      close(cursor);
     }
     finally
     {
@@ -341,13 +334,15 @@ public class DraftCNDB
   /**
    * This Class implements a cursor that can be used to browse the database.
    */
-  public class DraftCNDBCursor
+  public class DraftCNDBCursor implements Closeable
   {
     private final Cursor cursor;
 
-    // The transaction that will protect the actions done with the cursor
-    // Will be let null for a read cursor
-    // Will be set non null for a write cursor
+    /**
+     * The transaction that will protect the actions done with the cursor.
+     * Will be let null for a read cursor.
+     * Will be set non null for a write cursor.
+     */
     private final Transaction txn;
     private final DatabaseEntry key;
     private final DatabaseEntry entry;
@@ -499,6 +494,7 @@ public class DraftCNDB
     /**
      * Close the ReplicationServer Cursor.
      */
+    @Override
     public void close()
     {
       synchronized (this)
@@ -625,7 +621,7 @@ public class DraftCNDB
       try
       {
         String str = decodeUTF8(key.getData());
-        return Integer.valueOf(str);
+        return Integer.parseInt(str);
       }
       catch (Exception e)
       {
@@ -764,10 +760,12 @@ public class DraftCNDB
     }
   }
 
-
-
-  //Returns {@code true} if the DB is closed. This method assumes that either
-  // the db read/write lock has been taken.
+  /**
+   * Returns {@code true} if the DB is closed. This method assumes that either
+   * the db read/write lock has been taken.
+   *
+   * @return {@code true} if the DB is closed.
+   */
   private boolean isDBClosed()
   {
     return db == null;
