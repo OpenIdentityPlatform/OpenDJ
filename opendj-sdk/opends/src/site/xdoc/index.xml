@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2012 ForgeRock AS
+  !      Copyright 2011-2013 ForgeRock AS
   !    
 -->
 <document xmlns="http://maven.apache.org/XDOC/2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -46,12 +46,12 @@
       </p>
       <subsection name="Download">
         <p>
-          By far the simplest method is to download it directly from the
+          By far the simplest method is to download a snapshot directly from the
           ForgeRock Maven
           <a
-            href="http://maven.forgerock.org/repo/snapshots/org/forgerock/opendj/opendj-server/2.5.0-SNAPSHOT">repository</a>
-          or from the ForgeRock
-          <a href="http://www.forgerock.com/downloads-opendj.html">download</a>
+            href="http://maven.forgerock.org/repo/snapshots/org/forgerock/opendj/opendj-server/">repository</a>
+          or a supported build from the ForgeRock
+          <a href="https://download.forgerock.com/#/opendj">download</a>
           page.
         </p>
       </subsection>
