@@ -38,20 +38,17 @@
  <procedure xml:id="uninstall-gui">
   <title>To Uninstall OpenDJ From the Graphical Uninstaller</title>
   <step>
-   <para>(UNIX) Run
-   <command>OpenDJ-<?eval ${docTargetVersion}?>/uninstall</command>.</para>
-   <para>(Windows) Double-click
-   <filename>OpenDJ-<?eval ${docTargetVersion}?>\uninstall.bat</filename>.</para>
-   <para>(Mac OS X) Double-click
-   <filename>OpenDJ-<?eval ${docTargetVersion}?>/Uninstall.app</filename>.</para>
+   <para>(UNIX) Run <command>opendj/uninstall</command>.</para>
+   <para>(Windows) Double-click <filename>opendj\uninstall.bat</filename>.</para>
+   <para>(Mac OS X) Double-click <filename>opendj/Uninstall.app</filename>.</para>
 
    <mediaobject xml:id="figure-uninstall-start">
     <imageobject>
      <imagedata fileref="images/uninstall-start.png" format="PNG" />
     </imageobject>
-    <caption>
+    <textobject>
      <para>Select what to remove in the initial screen.</para>
-    </caption>
+    </textobject>
    </mediaobject>
   </step>
 
@@ -63,6 +60,9 @@
     <imageobject>
      <imagedata fileref="images/uninstall-finished.png" format="PNG" />
     </imageobject>
+    <textobject>
+     <para>The final screen indicates what must be removed manually.</para>
+    </textobject>
    </mediaobject>
   </step>
  </procedure>
@@ -75,8 +75,7 @@
   </step>
   
   <step>
-   <para>Run the <command>OpenDJ-<?eval ${docTargetVersion}?>/uninstall
-   --cli</command> command.</para>
+   <para>Run the <command>opendj/uninstall --cli</command> command.</para>
    
    <para>This command starts the removal program in interactive mode on the
    command line, prompting you for each option. Alternatively, use additional

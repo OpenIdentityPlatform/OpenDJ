@@ -60,6 +60,9 @@
    <imageobject>
     <imagedata fileref="images/replA-setup.png" format="PNG" />
    </imageobject>
+   <textobject>
+    <para>QuickSetup makes it easy to configure replication.</para>
+   </textobject>
   </mediaobject>
   
   <para>In the Topology Options screen for subsequent servers, also select
@@ -71,6 +74,9 @@
    <imageobject>
     <imagedata fileref="images/replB-setup.png" format="PNG" />
    </imageobject>
+   <textobject>
+    <para>Subsequent servers can point to the first server at setup time.</para>
+   </textobject>
   </mediaobject>
   
   <para>You also set up a global administrator account, stored under
@@ -81,6 +87,10 @@
    <imageobject>
     <imagedata fileref="images/replB-global-admin.png" format="PNG" />
    </imageobject>
+   <textobject>
+    <para>The global administrator account exists on all servers in the
+    replication topology.</para>
+   </textobject>
   </mediaobject>
   
   <para>You further set up what to replicate.</para>
@@ -89,6 +99,10 @@
    <imageobject>
     <imagedata fileref="images/replB-data-repl.png" format="PNG" />
    </imageobject>
+   <textobject>
+    <para>You choose the user data to replicate. OpenDJ automatically replicates
+    administrative data and directory schema.</para>
+   </textobject>
   </mediaobject>
   
   <para>Once replication is set up, it works for all the replicas. You can
@@ -99,6 +113,10 @@
    <imageobject>
     <imagedata fileref="images/replA-monitor-repl.png" format="PNG" />
    </imageobject>
+   <textobject>
+    <para>OpenDJ Control Panel indicates the status of data being
+    replicated.</para>
+   </textobject>
   </mediaobject>
   
  </section>
