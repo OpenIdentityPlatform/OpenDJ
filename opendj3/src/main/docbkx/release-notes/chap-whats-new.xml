@@ -216,13 +216,6 @@
      >OPENDJ-383</link>).</para>
     </listitem>
     <listitem>
-     <para>OpenDJ now exposes the <literal>je.log.fileCacheSize</literal>
-     property through the <literal>ds-cfg-db-log-filecache-size</literal>
-     configuration attribute (<link xlink:show="new"
-     xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-383"
-     >OPENDJ-383</link>).</para>
-    </listitem>
-    <listitem>
      <para>OpenDJ verify and rebuild index commands now use JE 5 disk ordered
      cursoring (<link xlink:show="new"
      xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-372"
