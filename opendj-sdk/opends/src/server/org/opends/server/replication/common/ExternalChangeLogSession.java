@@ -23,8 +23,11 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS
  */
 package org.opends.server.replication.common;
+
+import java.io.Closeable;
 
 import org.opends.server.replication.protocol.ECLUpdateMsg;
 import org.opends.server.types.DirectoryException;
@@ -33,21 +36,19 @@ import org.opends.server.types.DirectoryException;
  * This interface defines a session used to search the external changelog
  * in the Directory Server.
  */
-public interface ExternalChangeLogSession
+public interface ExternalChangeLogSession extends Closeable
 {
   /**
    * Returns the next message available for the ECL (blocking).
    * @return the next available message from the ECL.
    * @throws DirectoryException When an error occurs.
    */
-  public abstract ECLUpdateMsg getNextUpdate()
-  throws DirectoryException;
+  ECLUpdateMsg getNextUpdate() throws DirectoryException;
 
   /**
    * Closes the session.
-   * @throws DirectoryException when needed.
    */
-  public abstract void close()
-  throws DirectoryException;
+  @Override
+  void close();
 
 }
