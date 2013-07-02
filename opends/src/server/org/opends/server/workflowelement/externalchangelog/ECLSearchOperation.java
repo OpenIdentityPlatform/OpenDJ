@@ -910,56 +910,77 @@ public class ECLSearchOperation
   private Entry createRootEntry(boolean hasSubordinates)
   {
     // Attributes.
-    HashMap<AttributeType,List<Attribute>> userAttrs =
+    Map<AttributeType, List<Attribute>> userAttrs =
       new LinkedHashMap<AttributeType,List<Attribute>>();
-    HashMap<AttributeType,List<Attribute>> operationalAttrs =
+    Map<AttributeType, List<Attribute>> operationalAttrs =
       new LinkedHashMap<AttributeType,List<Attribute>>();
 
     // CN.
-    AttributeType aType = DirectoryServer.getAttributeType(ATTR_COMMON_NAME);
-    if (aType == null)
-      aType = DirectoryServer.getDefaultAttributeType(ATTR_COMMON_NAME);
-    Attribute a = Attributes.create(ATTR_COMMON_NAME, "changelog");
-    List<Attribute> attrList = Collections.singletonList(a);
-    userAttrs.put(aType, attrList);
+    addAttributeByUppercaseName(ATTR_COMMON_NAME, ATTR_COMMON_NAME,
+        "changelog", userAttrs, operationalAttrs);
 
     // subSchemaSubentry
-    aType = DirectoryServer.getAttributeType(ATTR_SUBSCHEMA_SUBENTRY_LC);
-    if (aType == null)
-      aType = DirectoryServer.getDefaultAttributeType(ATTR_SUBSCHEMA_SUBENTRY);
-    a = Attributes.create(ATTR_SUBSCHEMA_SUBENTRY,
-        ConfigConstants.DN_DEFAULT_SCHEMA_ROOT);
-    attrList = Collections.singletonList(a);
-    if (aType.isOperational())
-      operationalAttrs.put(aType, attrList);
-    else userAttrs.put(aType, attrList);
+    addAttributeByUppercaseName(ATTR_SUBSCHEMA_SUBENTRY_LC,
+        ATTR_SUBSCHEMA_SUBENTRY, ConfigConstants.DN_DEFAULT_SCHEMA_ROOT,
+        userAttrs, operationalAttrs);
 
     // TODO:numSubordinates
 
     // hasSubordinates
-    aType = DirectoryServer.getAttributeType("hassubordinates");
-    if (aType == null)
-      aType = DirectoryServer.getDefaultAttributeType("hasSubordinates");
-    a = Attributes.create("hasSubordinates", Boolean.toString(hasSubordinates));
-    attrList = Collections.singletonList(a);
-    if (aType.isOperational())
-      operationalAttrs.put(aType, attrList);
-    else userAttrs.put(aType, attrList);
+    addAttributeByUppercaseName("hassubordinates", "hasSubordinates", Boolean
+        .toString(hasSubordinates), userAttrs, operationalAttrs);
 
     // entryDN
-    aType = DirectoryServer.getAttributeType("entrydn");
-    if (aType == null)
-      aType = DirectoryServer.getDefaultAttributeType("entryDN");
-    a = Attributes.create("entryDN", CHANGELOG_ROOT_DN.toNormalizedString());
-    attrList = Collections.singletonList(a);
-    if (aType.isOperational())
-      operationalAttrs.put(aType, attrList);
-    else
-      userAttrs.put(aType, attrList);
+    addAttributeByUppercaseName("entrydn", "entryDN", CHANGELOG_ROOT_DN
+        .toNormalizedString(), userAttrs, operationalAttrs);
 
-    Entry e = new Entry(CHANGELOG_ROOT_DN, CHANGELOG_ROOT_OBJECT_CLASSES,
+    return new Entry(CHANGELOG_ROOT_DN, CHANGELOG_ROOT_OBJECT_CLASSES,
         userAttrs, operationalAttrs);
-    return e;
+  }
+
+  private void addAttributeByUppercaseName(String attrNameLowercase,
+      String attrNameUppercase, String attrValue,
+      Map<AttributeType, List<Attribute>> userAttrs,
+      Map<AttributeType, List<Attribute>> operationalAttrs)
+  {
+    AttributeType aType = DirectoryServer.getAttributeType(attrNameLowercase);
+    if (aType == null)
+    {
+      aType = DirectoryServer.getDefaultAttributeType(attrNameUppercase);
+    }
+    final Attribute a = Attributes.create(attrNameUppercase, attrValue);
+    final List<Attribute> attrList = Collections.singletonList(a);
+    if (aType.isOperational())
+    {
+      operationalAttrs.put(aType, attrList);
+    }
+    else
+    {
+      userAttrs.put(aType, attrList);
+    }
+  }
+
+  private static void addAttributeByType(String attrNameLowercase,
+      String attrNameUppercase, String attrValue,
+      Map<AttributeType, List<Attribute>> userAttrs,
+      Map<AttributeType, List<Attribute>> operationalAttrs)
+  {
+    AttributeType aType = DirectoryServer.getAttributeType(attrNameLowercase);
+    if (aType == null)
+    {
+      aType = DirectoryServer.getDefaultAttributeType(attrNameUppercase);
+    }
+    Attribute a = Attributes.create(aType, attrValue);
+    List<Attribute> attrList = new ArrayList<Attribute>(1);
+    attrList.add(a);
+    if (aType.isOperational())
+    {
+      operationalAttrs.put(aType, attrList);
+    }
+    else
+    {
+      userAttrs.put(aType, attrList);
+    }
   }
 
   /**
@@ -993,8 +1014,6 @@ public class ECLSearchOperation
       String changeInitiatorsName)
   throws DirectoryException
   {
-    AttributeType aType;
-
     String dnString;
     if (draftChangenumber == 0)
     {
@@ -1010,198 +1029,75 @@ public class ECLSearchOperation
     }
 
     // Objectclass
-    HashMap<AttributeType,List<Attribute>> uAttrs =
+    Map<AttributeType, List<Attribute>> uAttrs =
       new LinkedHashMap<AttributeType,List<Attribute>>();
 
-    HashMap<AttributeType,List<Attribute>> operationalAttrs =
+    Map<AttributeType, List<Attribute>> operationalAttrs =
       new LinkedHashMap<AttributeType,List<Attribute>>();
 
     // Operational standard attributes
 
-    // subSchemaSubentry
-    aType = DirectoryServer.getAttributeType(ATTR_SUBSCHEMA_SUBENTRY_LC);
-    if (aType == null)
-      aType = DirectoryServer
-          .getDefaultAttributeType(ATTR_SUBSCHEMA_SUBENTRY_LC);
-    Attribute a = Attributes.create(aType,
-        ConfigConstants.DN_DEFAULT_SCHEMA_ROOT);
-    List<Attribute> attrList = Collections.singletonList(a);
-    if (aType.isOperational())
-      operationalAttrs.put(aType, attrList);
-    else
-      uAttrs.put(aType, attrList);
+    addAttributeByType(ATTR_SUBSCHEMA_SUBENTRY_LC, ATTR_SUBSCHEMA_SUBENTRY_LC,
+        ConfigConstants.DN_DEFAULT_SCHEMA_ROOT, uAttrs, operationalAttrs);
 
     // numSubordinates
-    aType = DirectoryServer.getAttributeType("numsubordinates");
-    if (aType == null)
-      aType = DirectoryServer.getDefaultAttributeType("numSubordinates");
-    a = Attributes.create(aType, "0");
-    attrList = Collections.singletonList(a);
-    if (aType.isOperational())
-      operationalAttrs.put(aType, attrList);
-    else
-      uAttrs.put(aType, attrList);
+    addAttributeByType("numsubordinates", "numSubordinates", "0", uAttrs,
+        operationalAttrs);
 
     // hasSubordinates
-    aType = DirectoryServer.getAttributeType("hassubordinates");
-    if (aType == null)
-      aType = DirectoryServer.getDefaultAttributeType("hasSubordinates");
-    a = Attributes.create(aType, "false");
-    attrList = Collections.singletonList(a);
-    if (aType.isOperational())
-      operationalAttrs.put(aType, attrList);
-    else
-      uAttrs.put(aType, attrList);
+    addAttributeByType("hassubordinates", "hasSubordinates", "false", uAttrs,
+        operationalAttrs);
 
     // entryDN
-    aType = DirectoryServer.getAttributeType("entrydn");
-    if (aType == null)
-      aType = DirectoryServer.getDefaultAttributeType("entryDN");
-    a = Attributes.create(aType, dnString);
-    attrList = Collections.singletonList(a);
-    if (aType.isOperational())
-      operationalAttrs.put(aType, attrList);
-    else
-      uAttrs.put(aType, attrList);
+    addAttributeByType("entrydn", "entryDN", dnString, uAttrs,
+        operationalAttrs);
 
     // REQUIRED attributes
 
     // ECL Changelog draft change number
-    if((aType = DirectoryServer.getAttributeType("changenumber")) == null)
-      aType = DirectoryServer.getDefaultAttributeType("changeNumber");
-    a = Attributes.create(aType, String.valueOf(draftChangenumber));
-    attrList = new ArrayList<Attribute>(1);
-    attrList.add(a);
-    if(aType.isOperational())
-      operationalAttrs.put(aType, attrList);
-    else
-      uAttrs.put(aType, attrList);
+    addAttributeByType("changenumber", "changeNumber", String
+        .valueOf(draftChangenumber), uAttrs, operationalAttrs);
 
-    //
-    if((aType = DirectoryServer.getAttributeType("changetime")) == null)
-      aType = DirectoryServer.getDefaultAttributeType("changeTime");
-    SimpleDateFormat dateFormat;
-    dateFormat = new SimpleDateFormat(DATE_FORMAT_GMT_TIME);
+    SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT_GMT_TIME);
     dateFormat.setTimeZone(TimeZone.getTimeZone("UTC")); // ??
-    a = Attributes.create(aType,
-        dateFormat.format(new Date(changeNumber.getTime())));
-    attrList = new ArrayList<Attribute>(1);
-    attrList.add(a);
-    if(aType.isOperational())
-      operationalAttrs.put(aType, attrList);
-    else
-      uAttrs.put(aType, attrList);
+    String format = dateFormat.format(new Date(changeNumber.getTime()));
+    addAttributeByType("changetime", "changeTime", format, uAttrs,
+        operationalAttrs);
 
-    //
-    if((aType = DirectoryServer.getAttributeType("changetype")) == null)
-      aType = DirectoryServer.getDefaultAttributeType("changeType");
-    a = Attributes.create(aType, changetype);
-    attrList = new ArrayList<Attribute>(1);
-    attrList.add(a);
-    if(aType.isOperational())
-      operationalAttrs.put(aType, attrList);
-    else
-      uAttrs.put(aType, attrList);
+    addAttributeByType("changetype", "changeType", changetype, uAttrs,
+        operationalAttrs);
 
-    //
-    if((aType = DirectoryServer.getAttributeType("targetdn")) == null)
-      aType = DirectoryServer.getDefaultAttributeType("targetDN");
-    a = Attributes.create(aType, targetDN.toNormalizedString());
-    attrList = new ArrayList<Attribute>(1);
-    attrList.add(a);
-    if(aType.isOperational())
-      operationalAttrs.put(aType, attrList);
-    else
-      uAttrs.put(aType, attrList);
+    addAttributeByType("targetdn", "targetDN", targetDN.toNormalizedString(),
+        uAttrs, operationalAttrs);
 
     // NON REQUESTED attributes
 
-    if((aType = DirectoryServer.getAttributeType("replicationcsn")) == null)
-      aType = DirectoryServer.getDefaultAttributeType("replicationCSN");
-    a = Attributes.create(aType, changeNumber.toString());
-    attrList = new ArrayList<Attribute>(1);
-    attrList.add(a);
-    if(aType.isOperational())
-      operationalAttrs.put(aType, attrList);
-    else
-      uAttrs.put(aType, attrList);
+    addAttributeByType("replicationcsn", "replicationCSN", changeNumber
+        .toString(), uAttrs, operationalAttrs);
 
-    //
-    if((aType = DirectoryServer.getAttributeType("replicaidentifier")) == null)
-      aType = DirectoryServer.getDefaultAttributeType("replicaIdentifier");
-    a = Attributes.create(aType, Integer.toString(changeNumber.getServerId()));
-    attrList = new ArrayList<Attribute>(1);
-    attrList.add(a);
-    if(aType.isOperational())
-      operationalAttrs.put(aType, attrList);
-    else
-      uAttrs.put(aType, attrList);
+    addAttributeByType("replicaidentifier", "replicaIdentifier", Integer
+        .toString(changeNumber.getServerId()), uAttrs, operationalAttrs);
 
     if (clearLDIFchanges != null)
     {
-      if ((aType = DirectoryServer.getAttributeType("changes")) == null)
-      {
-        aType = DirectoryServer.getDefaultAttributeType("changes");
-      }
-
-      a = Attributes.create(aType, clearLDIFchanges); // force base64
-      attrList = new ArrayList<Attribute>(1);
-      attrList.add(a);
-
-      if (aType.isOperational())
-      {
-        operationalAttrs.put(aType, attrList);
-      }
-      else
-      {
-        uAttrs.put(aType, attrList);
-      }
+      addAttributeByType("changes", "changes", clearLDIFchanges, uAttrs,
+          operationalAttrs);
     }
 
     if (changeInitiatorsName != null)
     {
-      if ((aType = DirectoryServer
-          .getAttributeType("changeinitiatorsname")) == null)
-      {
-        aType = DirectoryServer
-            .getDefaultAttributeType("changeInitiatorsName");
-      }
-      a = Attributes.create(aType, changeInitiatorsName);
-      attrList = new ArrayList<Attribute>(1);
-      attrList.add(a);
-
-      if (aType.isOperational())
-      {
-        operationalAttrs.put(aType, attrList);
-      }
-      else
-      {
-        uAttrs.put(aType, attrList);
-      }
+      addAttributeByType("changeinitiatorsname", "changeInitiatorsName",
+          changeInitiatorsName, uAttrs, operationalAttrs);
     }
 
     if (targetUUID != null)
     {
-      if((aType = DirectoryServer.getAttributeType("targetentryuuid")) == null)
-        aType = DirectoryServer.getDefaultAttributeType("targetEntryUUID");
-      a = Attributes.create(aType, targetUUID);
-      attrList = new ArrayList<Attribute>(1);
-      attrList.add(a);
-      if(aType.isOperational())
-        operationalAttrs.put(aType, attrList);
-      else
-        uAttrs.put(aType, attrList);
+      addAttributeByType("targetentryuuid", "targetEntryUUID", targetUUID,
+          uAttrs, operationalAttrs);
     }
 
-    if((aType = DirectoryServer.getAttributeType("changelogcookie")) == null)
-      aType = DirectoryServer.getDefaultAttributeType("changeLogCookie");
-    a = Attributes.create(aType, cookie);
-    attrList = new ArrayList<Attribute>(1);
-    attrList.add(a);
-    if(aType.isOperational())
-      operationalAttrs.put(aType, attrList);
-    else
-      uAttrs.put(aType, attrList);
+    addAttributeByType("changelogcookie", "changeLogCookie", cookie, uAttrs,
+        operationalAttrs);
 
     if (includedAttributes != null && !includedAttributes.isEmpty())
     {
@@ -1218,37 +1114,17 @@ public class ECLSearchOperation
       }
       String includedAttributesLDIF = builder.toString();
 
-      if ((aType = DirectoryServer
-          .getAttributeType("includedattributes")) == null)
-      {
-        aType = DirectoryServer
-            .getDefaultAttributeType("includedAttributes");
-      }
-      a = Attributes.create(aType, includedAttributesLDIF);
-      attrList = new ArrayList<Attribute>(1);
-      attrList.add(a);
-
-      if (aType.isOperational())
-      {
-        operationalAttrs.put(aType, attrList);
-      }
-      else
-      {
-        uAttrs.put(aType, attrList);
-      }
+      addAttributeByType("includedattributes", "includedAttributes",
+          includedAttributesLDIF, uAttrs, operationalAttrs);
     }
 
     // at the end build the CL entry to be returned
-    Entry cle = new Entry(
+    return new Entry(
         DN.decode(dnString),
         CHANGELOG_ENTRY_OBJECT_CLASSES,
         uAttrs,
         operationalAttrs);
-
-    return cle;
   }
-
-
 
   /**
    * {@inheritDoc}
@@ -1351,40 +1227,28 @@ public class ECLSearchOperation
     }
 
     // Here are the 3 elementary cases we know how to optimize
-    if ((sf.getFilterType() == FilterType.GREATER_OR_EQUAL)
-        && (sf.getAttributeType() != null)
-        && (sf.getAttributeType().getPrimaryName().
-            equalsIgnoreCase("changeNumber")))
+    if (matches(sf, FilterType.GREATER_OR_EQUAL, "changeNumber"))
     {
       int sn = Integer.decode(
           sf.getAssertionValue().getNormalizedValue().toString());
       startCLmsg.setFirstDraftChangeNumber(sn);
       return startCLmsg;
     }
-    else if ((sf.getFilterType() == FilterType.LESS_OR_EQUAL)
-        && (sf.getAttributeType() != null)
-        && (sf.getAttributeType().getPrimaryName().
-            equalsIgnoreCase("changeNumber")))
+    else if (matches(sf, FilterType.LESS_OR_EQUAL, "changeNumber"))
     {
       int sn = Integer.decode(
           sf.getAssertionValue().getNormalizedValue().toString());
       startCLmsg.setLastDraftChangeNumber(sn);
       return startCLmsg;
     }
-    else if ((sf.getFilterType() == FilterType.EQUALITY)
-        && (sf.getAttributeType() != null)
-        && (sf.getAttributeType().getPrimaryName().
-            equalsIgnoreCase("replicationcsn")))
+    else if (matches(sf, FilterType.EQUALITY, "replicationcsn"))
     {
       // == exact changenumber
       ChangeNumber cn = new ChangeNumber(sf.getAssertionValue().toString());
       startCLmsg.setChangeNumber(cn);
       return startCLmsg;
     }
-    else if ((sf.getFilterType() == FilterType.EQUALITY)
-        && (sf.getAttributeType() != null)
-        && (sf.getAttributeType().getPrimaryName().
-            equalsIgnoreCase("changenumber")))
+    else if (matches(sf, FilterType.EQUALITY, "changenumber"))
     {
       int sn = Integer.decode(
           sf.getAssertionValue().getNormalizedValue().toString());
@@ -1417,11 +1281,10 @@ public class ECLSearchOperation
       }
       if (l1 == -1)
         startCLmsg.setLastDraftChangeNumber(l2);
+      else if (l2 == -1)
+        startCLmsg.setLastDraftChangeNumber(l1);
       else
-        if (l2 == -1)
-          startCLmsg.setLastDraftChangeNumber(l1);
-        else
-          startCLmsg.setLastDraftChangeNumber(Math.min(l1,l2));
+        startCLmsg.setLastDraftChangeNumber(Math.min(l1, l2));
 
       startCLmsg.setFirstDraftChangeNumber(Math.max(f1,f2));
       return startCLmsg;
@@ -1430,5 +1293,13 @@ public class ECLSearchOperation
     {
       return startCLmsg;
     }
+  }
+
+  private static boolean matches(SearchFilter sf, FilterType filterType,
+      String primaryName)
+  {
+    return sf.getFilterType() == filterType
+        && sf.getAttributeType() != null
+        && sf.getAttributeType().getPrimaryName().equalsIgnoreCase(primaryName);
   }
 }
