@@ -51,10 +51,12 @@
   SPARC and x86, various Linux distributions, Microsoft Windows,
   and Apple Mac OS X.</para>
   
-  <para>OpenDJ software requires Java 6 or later, specifically at least the
-  Java Standard Edition 6.0 (Sun version 1.6.0_10) runtime environment.
-  ForgeRock recommends that you keep your Java installation up to date with
-  the latest security fixes.</para>
+  <para>OpenDJ software requires Java 6 or 7, specifically at least the Java
+  Standard Edition runtime environment. ForgeRock has tested most with Oracle
+  Java Platform, Standard Edition.</para>
+
+  <para>ForgeRock recommends that you keep your Java installation up to date
+  with the latest security fixes.</para>
 
   <para>To build applications with the OpenDJ LDAP SDK, you need the
   corresponding Java SDK.</para>
@@ -100,20 +102,20 @@ opendj hard nofile 131072</programlisting>
   <?eval ${docTargetVersion}?> has been validated on the following operating
   systems.</para>
 
- <itemizedlist>
-  <listitem>
-   <para>Apple Mac OS X 10.7</para>
-  </listitem>
-  <listitem>
-   <para>Linux 2.6 and later</para>
-  </listitem>
-  <listitem>
-   <para>Microsoft Windows Server 2008</para>
-  </listitem>
-  <listitem>
-   <para>Oracle Solaris 10</para>
-  </listitem>
- </itemizedlist>
+  <itemizedlist>
+   <listitem>
+    <para>Apple Mac OS X 10.7, 10.8</para>
+   </listitem>
+   <listitem>
+    <para>Linux 2.6 and later</para>
+   </listitem>
+   <listitem>
+    <para>Microsoft Windows Server 2008 R2 and Windows Server 2012</para>
+   </listitem>
+   <listitem>
+    <para>Oracle Solaris 11</para>
+   </listitem>
+  </itemizedlist>
 
   <para>In order to avoid directory database file corruption after crashes or
   power failures on Linux systems, enable file system write barriers and make
@@ -121,6 +123,17 @@ opendj hard nofile 131072</programlisting>
   enable write barriers and how to set the journaling mode for data, see the
   options for your file system in the <command>mount</command> command manual
   page.</para>
+ </section>
+
+ <section xml:id="prerequisites-virtualization">
+  <title>Virtualization</title>
+  <indexterm>
+   <primary>Virtualization</primary>
+   <secondary>Requirements</secondary>
+  </indexterm>
+
+  <para>ForgeRock has tested OpenDJ software on systems running atop VMware
+  vSphere Hypervisor (ESXi) 5.1.</para>
  </section>
 
  <section xml:id="prerequisites-application-servers">
@@ -133,8 +146,10 @@ opendj hard nofile 131072</programlisting>
   <para>OpenDJ directory server runs as a standalone Java service, and
   does not depend on an application server.</para>
 
-  <para>OpenDJ <?eval ${docTargetVersion}?> DSML and REST LDAP gateway Servlets
-  have been validated on Apache Tomcat 6.</para>
+  <para>OpenDJ DSML gateway has been validated on Apache Tomcat 6 and 7.</para>
+
+  <para>OpenDJ REST LDAP gateway has been validated on Apache Tomcat 6 and
+  Jetty 7.</para>
  </section>
 
  <section xml:id="prerequisites-fqdn">
@@ -200,7 +215,7 @@ opendj hard nofile 131072</programlisting>
   tend to help OpenDJ software deliver the lowest response times. For top end
   performance in terms both of sub-millisecond response times and also
   of throughput ranging from tens of thousands to hundreds of thousands
-  of operations per second, the latest x86 architecture chips tend to
+  of operations per second, the latest x86/x64 architecture chips tend to
   perform better than others tested. Chip multi-threading (CMT) processors
   can do very well on directory servers providing pure search throughput,
   even though response times can be higher. Yet, CMT processors can be slow
