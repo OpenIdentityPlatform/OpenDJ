@@ -1966,6 +1966,7 @@ public final class ReplicationServer
   {
     MessageBuilder mb = new MessageBuilder();
     mb.append(ERR_CHANGELOG_SHUTDOWN_DATABASE_ERROR.get());
+    mb.append(".   ");
     mb.append(stackTraceToSingleLineString(e));
     logError(mb.toMessage());
     shutdown();

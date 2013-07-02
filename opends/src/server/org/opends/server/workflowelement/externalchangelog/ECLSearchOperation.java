@@ -27,8 +27,6 @@
  */
 package org.opends.server.workflowelement.externalchangelog;
 
-
-
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.ErrorLogger.*;
@@ -62,8 +60,6 @@ import org.opends.server.types.operation.SearchEntrySearchOperation;
 import org.opends.server.types.operation.SearchReferenceSearchOperation;
 import org.opends.server.util.ServerConstants;
 
-
-
 /**
  * This class defines an operation used to search for entries in a local backend
  * of the Directory Server.
@@ -83,24 +79,17 @@ public class ECLSearchOperation
    */
   private StartECLSessionMsg startECLSessionMsg;
 
-  //The set of supported controls for this WE
-  private static final HashSet<String> CHANGELOG_SUPPORTED_CONTROLS;
-  static
-  {
-    CHANGELOG_SUPPORTED_CONTROLS = new HashSet<String>(0);
-    CHANGELOG_SUPPORTED_CONTROLS
-        .add(ServerConstants.OID_SERVER_SIDE_SORT_REQUEST_CONTROL);
-    CHANGELOG_SUPPORTED_CONTROLS.add(ServerConstants.OID_VLV_REQUEST_CONTROL);
-  }
+  /** The set of supported controls for this WE. */
+  private static final Set<String> CHANGELOG_SUPPORTED_CONTROLS =
+      new HashSet<String>(Arrays.asList(
+          ServerConstants.OID_SERVER_SIDE_SORT_REQUEST_CONTROL,
+          ServerConstants.OID_VLV_REQUEST_CONTROL));
 
-
-  // The set of objectclasses that will be used in ECL root entry.
+  /** The set of objectclasses that will be used in ECL root entry. */
   private static final HashMap<ObjectClass, String>
-    CHANGELOG_ROOT_OBJECT_CLASSES;
+    CHANGELOG_ROOT_OBJECT_CLASSES = new LinkedHashMap<ObjectClass, String>(2);
   static
   {
-    CHANGELOG_ROOT_OBJECT_CLASSES = new LinkedHashMap<ObjectClass, String>(2);
-
     ObjectClass topOC = DirectoryServer.getObjectClass(OC_TOP, true);
     CHANGELOG_ROOT_OBJECT_CLASSES.put(topOC, OC_TOP);
 
@@ -108,13 +97,11 @@ public class ECLSearchOperation
     CHANGELOG_ROOT_OBJECT_CLASSES.put(containerOC, "container");
   }
 
-  // The set of objectclasses that will be used in ECL entries.
+  /** The set of objectclasses that will be used in ECL entries. */
   private static final HashMap<ObjectClass, String>
-    CHANGELOG_ENTRY_OBJECT_CLASSES;
+    CHANGELOG_ENTRY_OBJECT_CLASSES = new LinkedHashMap<ObjectClass, String>(2);
   static
   {
-    CHANGELOG_ENTRY_OBJECT_CLASSES = new LinkedHashMap<ObjectClass, String>(2);
-
     ObjectClass topOC = DirectoryServer.getObjectClass(OC_TOP, true);
     CHANGELOG_ENTRY_OBJECT_CLASSES.put(topOC, OC_TOP);
 
@@ -124,22 +111,17 @@ public class ECLSearchOperation
   }
 
 
-  // The attribute type for the "creatorsName" attribute.
-  private static final AttributeType CREATORS_NAME_TYPE;
+  /** The attribute type for the "creatorsName" attribute. */
+  private static final AttributeType CREATORS_NAME_TYPE = DirectoryConfig
+      .getAttributeType(OP_ATTR_CREATORS_NAME_LC, true);
 
-  // The attribute type for the "modifiersName" attribute.
-  private static final AttributeType MODIFIERS_NAME_TYPE;
-
-  static
-  {
-    CREATORS_NAME_TYPE = DirectoryConfig.getAttributeType(
-        OP_ATTR_CREATORS_NAME_LC, true);
+  /** The attribute type for the "modifiersName" attribute. */
+  private static final AttributeType
     MODIFIERS_NAME_TYPE = DirectoryConfig.getAttributeType(
         OP_ATTR_MODIFIERS_NAME_LC, true);
-  }
 
 
-  // The associated DN.
+  /** The associated DN. */
   private static final DN CHANGELOG_ROOT_DN;
   static
   {
@@ -341,15 +323,8 @@ public class ECLSearchOperation
           persistentSearch.cancel();
           setSendResponse(true);
         }
-        if (eclSession != null)
-        {
-          try
-          {
-            eclSession.close();
-          }
-          catch(Exception ignored){}
-        }
-          throw coe;
+        close(eclSession);
+        throw coe;
       }
       catch (Exception e)
       {
@@ -399,9 +374,8 @@ public class ECLSearchOperation
     List<Control> requestControls  = getRequestControls();
     if ((requestControls != null) && (! requestControls.isEmpty()))
     {
-      for (int i=0; i < requestControls.size(); i++)
+      for (Control c : requestControls)
       {
-        Control c   = requestControls.get(i);
         String  oid = c.getOID();
 
         if (!AccessControlConfigManager.getInstance().getAccessControlHandler()
@@ -684,7 +658,7 @@ public class ECLSearchOperation
     {
       if (persistentSearch == null || abortECLSession)
       {
-        eclSession.close();
+        close(eclSession);
       }
     }
   }
@@ -1284,14 +1258,7 @@ public class ECLSearchOperation
   {
     if (debugEnabled())
       TRACER.debugInfo(this + " cancel() " + eclSession);
-    if (eclSession != null)
-    {
-      try
-      {
-        eclSession.close();
-      }
-      catch(Exception e){}
-    }
+    close(eclSession);
     return super.cancel(cancelRequest);
   }
 
@@ -1303,14 +1270,7 @@ public class ECLSearchOperation
   {
     if (debugEnabled())
       TRACER.debugInfo(this + " abort() " + eclSession);
-    if (eclSession != null)
-    {
-      try
-      {
-        eclSession.close();
-      }
-      catch(Exception e){}
-    }
+    close(eclSession);
   }
 
   /**
