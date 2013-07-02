@@ -46,7 +46,7 @@ import org.opends.messages.MessageBuilder;
 import org.opends.messages.Severity;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.VirtualAttributeCfgDefn;
-import org.opends.server.admin.std.meta.VirtualAttributeCfgDefn.*;
+import org.opends.server.admin.std.meta.VirtualAttributeCfgDefn.ConflictBehavior;
 import org.opends.server.admin.std.server.ReplicationServerCfg;
 import org.opends.server.admin.std.server.UserDefinedVirtualAttributeCfg;
 import org.opends.server.api.*;
@@ -1033,17 +1033,11 @@ public final class ReplicationServer
       }
       catch (IOException e)
       {
-        Message message = ERR_COULD_NOT_CLOSE_THE_SOCKET.get(e.toString());
-        logError(message);
-        new ConfigChangeResult(DirectoryServer.getServerErrorResultCode(),
-                               false);
+        logError(ERR_COULD_NOT_CLOSE_THE_SOCKET.get(e.toString()));
       }
       catch (InterruptedException e)
       {
-        Message message = ERR_COULD_NOT_STOP_LISTEN_THREAD.get(e.toString());
-        logError(message);
-        new ConfigChangeResult(DirectoryServer.getServerErrorResultCode(),
-                               false);
+        logError(ERR_COULD_NOT_STOP_LISTEN_THREAD.get(e.toString()));
       }
     }
 
@@ -1426,10 +1420,7 @@ public final class ReplicationServer
     {
       return domains.iterator();
     }
-    else
-    {
-      return null;
-    }
+    return null;
   }
 
   /**
@@ -1741,10 +1732,7 @@ public final class ReplicationServer
       {
         return draftCNDbHandler.getFirstKey();
       }
-      else
-      {
-        return 0;
-      }
+      return 0;
     }
   }
 
@@ -1760,10 +1748,7 @@ public final class ReplicationServer
       {
         return draftCNDbHandler.getLastKey();
       }
-      else
-      {
-        return 0;
-      }
+      return 0;
     }
   }
 
@@ -2014,5 +1999,13 @@ public final class ReplicationServer
 
       return url;
     }
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public String toString()
+  {
+    return "RS(" + serverId + ") on " + serverURL + ", domains="
+        + baseDNs.keySet();
   }
 }
