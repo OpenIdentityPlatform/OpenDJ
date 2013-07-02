@@ -36,6 +36,7 @@ import java.io.*;
 import java.net.Socket;
 import java.net.SocketException;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
@@ -333,14 +334,25 @@ public final class Session extends DirectoryThread implements Closeable
     final byte[] buffer = msg.getBytes(protocolVersion);
     if (isRunning.get())
     {
-      try {
-        sendQueue.put(buffer);
+      while (!closeInitiated)
+      {
+        try
+        {
+          // Avoid blocking forever so that we can check for session closure.
+          if (sendQueue.offer(buffer, 100, TimeUnit.MILLISECONDS))
+          {
+            return;
+          }
+        }
+        catch (final InterruptedException e)
+        {
+          setSessionError(e);
+          throw new IOException(e.getMessage());
+        }
       }
-      catch (final InterruptedException e) {
-        setSessionError(e);
-        throw new IOException(e.getMessage());
-      }
-    } else {
+    }
+    else
+    {
       send(buffer);
     }
   }
