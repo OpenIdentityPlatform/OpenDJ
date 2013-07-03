@@ -86,7 +86,7 @@ public class EntryHistorical
   private static final DebugTracer TRACER = getTracer();
 
   /**
-   * The delay to purge the historical informations.
+   * The delay to purge the historical information.
    * This delay indicates the time the domain keeps the historical
    * information necessary to solve conflicts.When a change stored in the
    * historical part of the user entry has a date (from its replication
@@ -588,7 +588,7 @@ public class EntryHistorical
   }
 
   /**
-   * Set the delay to purge the historical informations. The purge is applied
+   * Set the delay to purge the historical information. The purge is applied
    * only when historical attribute is updated (write operations).
    *
    * @param purgeDelay the purge delay in ms
@@ -665,7 +665,7 @@ public class EntryHistorical
     try
     {
       // For each value of the historical attr read (mod. on a user attribute)
-      //   build an AttrInfo subobject
+      //   build an AttrInfo sub-object
 
       // Traverse the Attributes (when several options for the hist attr)
       // of the historical attribute read from the entry
@@ -860,7 +860,7 @@ public class EntryHistorical
 
   /**
    * Get the Entry Unique Id from an add operation.
-   * This must be called after the entry uuid preop plugin (i.e no
+   * This must be called after the entry uuid pre-op plugin (i.e no
    * sooner than the replication provider pre-op)
    *
    * @param op The operation
