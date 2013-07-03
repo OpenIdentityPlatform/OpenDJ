@@ -55,7 +55,18 @@ public class AttrHistoricalMultiple extends AttrHistorical
   private ChangeNumber deleteTime;
   /** Last time the attribute was modified. */
   private ChangeNumber lastUpdateTime;
-  private final Map<AttrValueHistorical,AttrValueHistorical> valuesHist;
+  /**
+   * Change history for the values of this attribute. We are using a
+   * LinkedHasMap here because we want:
+   * <ol>
+   * <li>Fast access for removing/adding a AttrValueHistorical keyed by the
+   * AttributeValue => Use a Map</li>
+   * <li>Ordering changes according to the changeNumber of each changes => Use a
+   * LinkedHashMap</li>
+   * </ol>
+   */
+  private final Map<AttrValueHistorical, AttrValueHistorical> valuesHist =
+      new LinkedHashMap<AttrValueHistorical, AttrValueHistorical>();
 
    /**
     * Create a new object from the provided informations.
@@ -69,11 +80,10 @@ public class AttrHistoricalMultiple extends AttrHistorical
    {
      this.deleteTime = deleteTime;
      this.lastUpdateTime = updateTime;
-     if (valuesHist == null)
-       this.valuesHist =
-         new LinkedHashMap<AttrValueHistorical,AttrValueHistorical>();
-     else
-       this.valuesHist = valuesHist;
+     if (valuesHist != null)
+     {
+       this.valuesHist.putAll(valuesHist);
+     }
    }
 
    /**
@@ -83,8 +93,6 @@ public class AttrHistoricalMultiple extends AttrHistorical
    {
      this.deleteTime = null;
      this.lastUpdateTime = null;
-     this.valuesHist =
-         new LinkedHashMap<AttrValueHistorical,AttrValueHistorical>();
    }
 
    /**
@@ -428,7 +436,7 @@ public class AttrHistoricalMultiple extends AttrHistorical
       Iterator<AttrValueHistorical> it = valuesHist.keySet().iterator();
       while (it.hasNext())
       {
-        AttrValueHistorical valInfo; valInfo = it.next();
+        AttrValueHistorical valInfo = it.next();
 
         if (changeNumber.older(valInfo.getValueUpdateTime()))
         {
@@ -596,7 +604,7 @@ public class AttrHistoricalMultiple extends AttrHistorical
           builder.remove(addVal);
         }
         else
-        {
+        { // it is a delete
           /* this value is marked as a deleted value
            * check if this mod is more recent the this delete
            */

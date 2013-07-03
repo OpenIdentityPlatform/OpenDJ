@@ -28,10 +28,9 @@
 package org.opends.server.replication.plugin;
 
 import static org.opends.messages.ReplicationMessages.*;
-import static org.opends.server.loggers.ErrorLogger.logError;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-import static org.opends.server.util.StaticUtils.getBytes;
+import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.util.StaticUtils.*;
 
 import java.util.*;
 
@@ -62,7 +61,6 @@ import org.opends.server.util.TimeThread;
  * One Historical object is created for each entry in the entry cache
  * each Historical Object contains a list of attribute historical information
  */
-
 public class EntryHistorical
 {
   /**
@@ -72,7 +70,7 @@ public class EntryHistorical
 
   /**
    * Name used to store attachment of historical information in the
-   * operation. This attachement allows to use in several different places
+   * operation. This attachment allows to use in several different places
    * the historical while reading/writing ONCE it from/to the entry.
    */
   public static final String HISTORICAL = "ds-synch-historical";
@@ -87,9 +85,8 @@ public class EntryHistorical
    */
   private static final DebugTracer TRACER = getTracer();
 
-
-
-  /* The delay to purge the historical informations
+  /**
+   * The delay to purge the historical informations.
    * This delay indicates the time the domain keeps the historical
    * information necessary to solve conflicts.When a change stored in the
    * historical part of the user entry has a date (from its replication
@@ -101,7 +98,7 @@ public class EntryHistorical
    */
   private long purgeDelayInMillisec = -1;
 
-  /*
+  /**
    * The oldest ChangeNumber stored in this entry historical attribute.
    * null when this historical object has been created from
    * an entry that has no historical attribute and after the last
@@ -155,14 +152,16 @@ public class EntryHistorical
    *
    */
 
-  // The date when the entry was added.
+  /** The date when the entry was added. */
   private ChangeNumber entryADDDate = null;
 
-  // The date when the entry was last renamed.
+  /** The date when the entry was last renamed. */
   private ChangeNumber entryMODDNDate = null;
 
-  // contains Historical information for each attribute sorted by attribute type
-  // key:AttributeType  value:AttrInfoWithOptions
+  /**
+   * Contains Historical information for each attribute sorted by attribute
+   * type. key:AttributeType value:AttrInfoWithOptions
+   */
   private HashMap<AttributeType,AttrHistoricalWithOptions> attributesHistorical
     = new HashMap<AttributeType,AttrHistoricalWithOptions>();
 
@@ -216,14 +215,20 @@ public class EntryHistorical
 
   /**
    * Update the historical information for the provided operation.
-   * Steps :
-   * - compute the historical attribute
-   * - update the mods in the provided operation by adding the update of the
-   *   historical attribute
-   * - update the modifiedEntry, already computed by core since we are in the
-   *   preOperation plugin, that is called just before commiting into the DB.
+   * <p>
+   * Steps:
+   * <ul>
+   * <li>compute the historical attribute</li>
+   * <li>update the mods in the provided operation by adding the update of the
+   * historical attribute</li>
+   * <li>update the modifiedEntry, already computed by core since we are in the
+   * preOperation plugin, that is called just before committing into the DB.
+   * </li>
+   * </ul>
+   * </p>
    *
-   * @param modifyOperation the modification.
+   * @param modifyOperation
+   *          the modification.
    */
   public void setHistoricalAttrToOperation(
       PreOperationModifyOperation modifyOperation)
@@ -258,8 +263,7 @@ public class EntryHistorical
     // - add the modification of the ds-sync-hist attribute,
     // to the current modifications of the MOD operation
     Attribute attr = encodeAndPurge();
-    Modification mod = new Modification(ModificationType.REPLACE, attr);
-    mods.add(mod);
+    mods.add(new Modification(ModificationType.REPLACE, attr));
     // - update the already modified entry
     modifiedEntry.replaceAttribute(attr);
   }
@@ -290,9 +294,7 @@ public class EntryHistorical
     //
     // - add the modification of the ds-sync-hist attribute,
     // to the current modifications of the operation
-    Modification mod;
-    mod = new Modification(ModificationType.REPLACE, attr);
-    mods.add(mod);
+    mods.add(new Modification(ModificationType.REPLACE, attr));
     // - update the already modified entry
     modifiedEntry.removeAttribute(attr.getAttributeType());
     modifiedEntry.addAttribute(attr, null);
@@ -328,9 +330,9 @@ public class EntryHistorical
 
     // Get the changeNumber from the attached synchronization context
     // Create the attribute (encoded)
-    Attribute attr =
-      Attributes.create(historicalAttrType,
-          encodeAddHistorical(OperationContext.getChangeNumber(addOperation)));
+    ChangeNumber addCn = OperationContext.getChangeNumber(addOperation);
+    AttributeValue attrValue = encodeHistorical(addCn, "add");
+    Attribute attr = Attributes.create(historicalAttrType, attrValue);
 
     // Set the created attribute to the operation
     List<Attribute> attrList = new LinkedList<Attribute>();
@@ -339,41 +341,25 @@ public class EntryHistorical
   }
 
   /**
-   * Encode in the returned attributeValue, this historical information for
-   * an ADD operation.
-   * For ADD Operation : "dn:changeNumber:add"
+   * Builds an attributeValue for the supplied historical information and
+   * operation type . For ADD Operation : "dn:changeNumber:add", for MODDN
+   * Operation : "dn:changeNumber:moddn", etc.
    *
-   * @param cn     The date when the ADD Operation happened.
-   * @return       The encoded attribute value containing the historical
-   *               information for the Operation.
+   * @param cn
+   *          The date when the ADD Operation happened.
+   * @param operationType
+   *          the operation type to encode
+   * @return The attribute value containing the historical information for the
+   *         Operation type.
    */
-  private static AttributeValue encodeAddHistorical(ChangeNumber cn)
+  private static AttributeValue encodeHistorical(ChangeNumber cn,
+      String operationType)
   {
     AttributeType historicalAttrType =
       DirectoryServer.getSchema().getAttributeType(HISTORICAL_ATTRIBUTE_NAME);
 
-    String strValue = "dn:" + cn.toString() +":add";
-    AttributeValue val = AttributeValues.create(historicalAttrType, strValue);
-    return val;
-  }
-
-  /**
-   * Encode in the returned attributeValue, the historical information for
-   * a MODDN operation.
-   * For MODDN Operation : "dn:changeNumber:moddn"
-   *
-   * @param cn     The date when the MODDN Operation happened.
-   * @return       The encoded attribute value containing the historical
-   *               information for the Operation.
-   */
-  private static AttributeValue encodeMODDNHistorical(ChangeNumber cn)
-  {
-    AttributeType historicalAttrType =
-      DirectoryServer.getSchema().getAttributeType(HISTORICAL_ATTRIBUTE_NAME);
-
-    String strValue = "dn:" + cn.toString() +":moddn";
-    AttributeValue val = AttributeValues.create(historicalAttrType, strValue);
-    return val;
+    String strValue = "dn:" + cn + ":" + operationType;
+    return AttributeValues.create(historicalAttrType, strValue);
   }
 
   /**
@@ -390,7 +376,6 @@ public class EntryHistorical
    */
   private AttrHistorical getOrCreateAttrHistorical(Modification mod)
   {
-
     // Read the provided mod
     Attribute modAttr = mod.getAttribute();
     if (isHistoricalAttribute(modAttr))
@@ -438,10 +423,12 @@ public class EntryHistorical
   }
 
   /**
-   * Encode this historical information object in an operational attribute
-   * and purge it from the values older than the purge delay.
+   * Encode this historical information object in an operational attribute and
+   * purge it from the values older than the purge delay.
    *
    * @return The historical information encoded in an operational attribute.
+   * @see HistoricalAttributeValue#HistoricalAttributeValue(String) the decode
+   *      operation in HistoricalAttributeValue
    */
   public Attribute encodeAndPurge()
   {
@@ -462,42 +449,38 @@ public class EntryHistorical
     {
       // Encode an attribute type
       AttributeType type = entryWithOptions.getKey();
-      HashMap<Set<String> , AttrHistorical> attrwithoptions =
+      Map<Set<String>, AttrHistorical> attrWithOptions =
                                 entryWithOptions.getValue().getAttributesInfo();
 
-      for (Map.Entry<Set<String>, AttrHistorical> entry :
-           attrwithoptions.entrySet())
+      for (Map.Entry<Set<String>, AttrHistorical> entry : attrWithOptions
+          .entrySet())
       {
         // Encode an (attribute type/option)
-        boolean delAttr = false;
         Set<String> options = entry.getKey();
-        String optionsString = "";
         AttrHistorical attrHist = entry.getValue();
 
-
+        String optionsString = "";
         if (options != null)
         {
           StringBuilder optionsBuilder = new StringBuilder();
           for (String s : options)
           {
-            optionsBuilder.append(';');
-            optionsBuilder.append(s);
+            optionsBuilder.append(';').append(s);
           }
           optionsString = optionsBuilder.toString();
         }
 
         ChangeNumber deleteTime = attrHist.getDeleteTime();
         /* generate the historical information for deleted attributes */
-        if (deleteTime != null)
-        {
-          delAttr = true;
-        }
+        boolean delAttr = deleteTime != null;
 
         for (AttrValueHistorical attrValHist : attrHist.getValuesHistorical()
             .keySet())
         {
+          attrValHist.getAttributeValue();
+
           // Encode an attribute value
-          String strValue;
+          final String strValue;
           if (attrValHist.getValueDeleteTime() != null)
           {
             // this hist must be purged now, so skip its encoding
@@ -547,9 +530,7 @@ public class EntryHistorical
               }
             }
 
-            AttributeValue val = AttributeValues.create(historicalAttrType,
-                                                    strValue);
-            builder.add(val);
+            builder.add(AttributeValues.create(historicalAttrType, strValue));
           }
         }
 
@@ -584,7 +565,7 @@ public class EntryHistorical
       }
       else
       {
-        builder.add(encodeAddHistorical(entryADDDate));
+        builder.add(encodeHistorical(entryADDDate, "add"));
       }
     }
 
@@ -599,7 +580,7 @@ public class EntryHistorical
       }
       else
       {
-        builder.add(encodeMODDNHistorical(entryMODDNDate));
+        builder.add(encodeHistorical(entryMODDNDate, "moddn"));
       }
     }
 
@@ -629,12 +610,7 @@ public class EntryHistorical
    */
   public boolean addedOrRenamedAfter(ChangeNumber cn)
   {
-    if (cn.older(entryADDDate) || cn.older(entryMODDNDate))
-    {
-      return true;
-    }
-    else
-      return false;
+    return cn.older(entryADDDate) || cn.older(entryMODDNDate);
   }
 
 
@@ -757,14 +733,11 @@ public class EntryHistorical
               lastAttrType = attrType;
               lastOptions = options;
             }
-            else
+            else if (!options.equals(lastOptions))
             {
-              if (!options.equals(lastOptions))
-              {
-                attrInfo = AttrHistorical.createAttributeHistorical(attrType);
-                attrInfoWithOptions.put(options, attrInfo);
-                lastOptions = options;
-              }
+              attrInfo = AttrHistorical.createAttributeHistorical(attrType);
+              attrInfoWithOptions.put(options, attrInfo);
+              lastOptions = options;
             }
 
             attrInfo.assign(histKey, value, cn);
@@ -831,20 +804,19 @@ public class EntryHistorical
             // the already generated Operation if it can be found.
             ChangeNumber cn = histVal.getCn();
             Modification mod = histVal.generateMod();
-            FakeModifyOperation modifyFakeOperation;
             FakeOperation fakeOperation = operations.get(cn);
 
-            if ((fakeOperation != null) &&
-                      (fakeOperation instanceof FakeModifyOperation))
+            if (fakeOperation instanceof FakeModifyOperation)
             {
-              modifyFakeOperation = (FakeModifyOperation) fakeOperation;
+              FakeModifyOperation modifyFakeOperation =
+                  (FakeModifyOperation) fakeOperation;
               modifyFakeOperation.addModification(mod);
             }
             else
             {
               String uuidString = getEntryUUID(entry);
-              modifyFakeOperation = new FakeModifyOperation(entry.getDN(), cn,
-                  uuidString);
+              FakeModifyOperation modifyFakeOperation =
+                  new FakeModifyOperation(entry.getDN(), cn, uuidString);
               modifyFakeOperation.addModification(mod);
               operations.put(histVal.getCn(), modifyFakeOperation);
             }
@@ -927,14 +899,10 @@ public class EntryHistorical
    */
   private void updateOldestCN(ChangeNumber cn)
   {
-    if (cn != null)
-    {
-      if (this.oldestChangeNumber == null)
-        this.oldestChangeNumber = cn;
-      else
-        if (cn.older(this.oldestChangeNumber))
-            this.oldestChangeNumber = cn;
-    }
+    if (cn != null
+        && (this.oldestChangeNumber == null
+            || cn.older(this.oldestChangeNumber)))
+      this.oldestChangeNumber = cn;
   }
 
   /**
@@ -950,11 +918,11 @@ public class EntryHistorical
     return this.oldestChangeNumber;
   }
 
-
-
-  // Extracts the entryUUID attribute value from the provided list of
-  // attributes. If the attribute is not present one is generated from the DN
-  // using the same algorithm as the entryUUID virtual attribute provider.
+  /**
+   * Extracts the entryUUID attribute value from the provided list of
+   * attributes. If the attribute is not present one is generated from the DN
+   * using the same algorithm as the entryUUID virtual attribute provider.
+   */
   private static String extractEntryUUID(List<Attribute> entryUUIDAttributes,
       DN entryDN)
   {
