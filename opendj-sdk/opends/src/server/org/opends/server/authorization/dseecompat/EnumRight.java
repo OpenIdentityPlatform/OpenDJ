@@ -39,59 +39,71 @@ public enum EnumRight {
 
     /**
      * This enumeration is returned when the result of the right is "read".
+     *
+     * @see Aci#ACI_READ
      */
     READ        ("read"),
     /**
      * This enumeration is returned when the result of the right is "write".
+     *
+     * @see Aci#ACI_WRITE
      */
     WRITE       ("write"),
     /**
      * This enumeration is returned when the result of the right is "add".
+     *
+     * @see Aci#ACI_ADD
      */
     ADD         ("add"),
     /**
      * This enumeration is returned when the result of the right is "delete".
+     *
+     * @see Aci#ACI_DELETE
      */
     DELETE      ("delete"),
     /**
      * This enumeration is returned when the result of the right is "search".
+     *
+     * @see Aci#ACI_SEARCH
      */
     SEARCH      ("search"),
     /**
      * This enumeration is returned when the result of the right is "compare".
+     *
+     * @see Aci#ACI_COMPARE
      */
     COMPARE     ("compare"),
     /**
      * This enumeration is returned when the result of the right is
      * "selfwrite".
+     *
+     * @see Aci#ACI_SELF
      */
     SELFWRITE   ("selfwrite"),
     /**
      * This enumeration is returned when the result of the right is "proxy".
+     *
+     * @see Aci#ACI_PROXY
      */
     PROXY       ("proxy"),
     /**
      * This enumeration is returned when the result of the right is "import".
+     *
+     * @see Aci#ACI_IMPORT
      */
     IMPORT      ("import"),
     /**
      * This enumeration is returned when the result of the right is "export".
+     *
+     * @see Aci#ACI_EXPORT
      */
     EXPORT      ("export"),
     /**
      * This enumeration is returned when the result of the right is "all".
+     *
+     * @see Aci#ACI_ALL
      */
-    ALL         ("all"),
-    /**
-     * This enumeration is used internally by the modify operation
-     * processing and is not part of the ACI syntax.
-     */
-    DELWRITE    ("delwrite"),
-    /**
-     * This enumerations is used internally by the modify operation
-     * processing and is not part of the ACI syntax.
-     */
-    ADDWRITE    ("addwrite");
+    ALL         ("all");
 
     /**
      * The name of the right.
@@ -193,10 +205,22 @@ public enum EnumRight {
      * @return EnumRight corresponding to the provided rightsMask.
      */
     public static Set<EnumRight> getEnumRight(int rightsMask) {
-        if (hasRights(rightsMask, ACI_ALL))
-            return EnumSet.of(ALL);
-
         final EnumSet<EnumRight> results = EnumSet.noneOf(EnumRight.class);
+        // Next 3 rights are not included in ALL for historical reasons.
+        // ALL already existed when they got added. For compatibility reasons
+        // with existing deployments, they were not included in ALL.
+        if (hasRights(rightsMask, ACI_EXPORT))
+            results.add(EXPORT);
+        if (hasRights(rightsMask, ACI_IMPORT))
+            results.add(IMPORT);
+        if (hasRights(rightsMask, ACI_PROXY))
+            results.add(PROXY);
+
+        if (hasRights(rightsMask, ACI_ALL)) {
+            results.add(ALL);
+            return results;
+        }
+        // the remaining rights are already included in ALL
         if (hasRights(rightsMask, ACI_READ))
             results.add(READ);
         if (hasRights(rightsMask, ACI_WRITE))
@@ -209,13 +233,7 @@ public enum EnumRight {
             results.add(SEARCH);
         if (hasRights(rightsMask, ACI_COMPARE))
             results.add(COMPARE);
-        if (hasRights(rightsMask, ACI_EXPORT))
-            results.add(EXPORT);
-        if (hasRights(rightsMask, ACI_IMPORT))
-            results.add(IMPORT);
-        if (hasRights(rightsMask, ACI_PROXY))
-            results.add(PROXY);
-        if (hasRights(rightsMask, ACI_SELF))
+        if (hasRights(rightsMask, ACI_SELF)) // included in WRITE
             results.add(SELFWRITE);
         return results;
     }
