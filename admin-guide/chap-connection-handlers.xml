@@ -912,8 +912,9 @@ supportedTLSProtocols: TLSv1.2
    xlink:href="admin-guide#appendix-rest2ldap"
    xlink:role="http://docbook.org/xlink/role/olink"><citetitle>REST LDAP
    Configuration</citetitle></link>. The default mapping works out of the box
-   with default Example.com data and with <link xlink:show="new"
-   xlink:href="http://opendj.forgerock.org/Example.ldif">Example.ldif</link>.</para>
+   with Example.com data generated as part of the setup process and with
+   <link xlink:show="new" xlink:href="http://opendj.forgerock.org/Example.ldif"
+   >Example.ldif</link>.</para>
 
    <step>
     <para>Enable the connection handler.</para>
@@ -1311,5 +1312,14 @@ $ curl
     handler.</para>
    </step>
   </procedure>
+ </section>
+
+ <section xml:id="snmp-access">
+  <title>SNMP Access</title>
+
+  <para>For instructions on setting up the SNMP Connection Handler, see the
+  section, <link xlink:href="admin-guide#snmp-monitoring"
+  xlink:role="http://docbook.org/xlink/role/olink"><citetitle>SNMP-Based
+  Monitoring</citetitle></link>.</para>
  </section>
 </chapter>

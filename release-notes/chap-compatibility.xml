@@ -49,19 +49,23 @@
     OpenDJ <?eval ${docTargetVersion}?></citetitle></link> for
     instructions.</para>
    </listitem>
+
    <listitem>
     <para>The default DB cache size is now 50%, rather than 10%.</para>
     <para>If you have multiple backends, configure cache sizes
     accordingly.</para>
    </listitem>
+
    <listitem>
     <para>The number of LDAP request handlers now defaults to half the CPU
     count.</para>
    </listitem>
+
    <listitem>
     <para>The replication purge delay default has increased from one day to
     three days.</para>
    </listitem>
+
    <listitem>
     <para>Syntax checking has been added for certificate and country attribute
     values. This affects applications updating those attribute values.
@@ -71,21 +75,45 @@
     3166</link> such as <literal>US</literal> instead of full names such as
     <literal>United States</literal>.</para>
    </listitem>
+
    <listitem>
-    <para>OpenDJ directory server now allows any client to use the LDAP
-    Permissive Modify Request control, <literal>1.2.840.113556.1.4.1413</literal>,
-    by default for newly installed servers.</para>
+    <para>The following global ACI settings have changed.</para>
+
+    <itemizedlist>
+     <listitem>
+      <para>OpenDJ directory server now allows any client to use the LDAP
+      Permissive Modify Request control, <literal>1.2.840.113556.1.4.1413</literal>,
+      by default for newly installed servers.</para>
+     </listitem>
+
+     <listitem>
+      <para>The "Anonymous read access" global ACI has changed. The list of
+      attributes that are not allowed has been changed to add
+      <literal>includedAttributes</literal> and to remove
+      <literal>targetUniqueID</literal>.</para>
+     </listitem>
+    </itemizedlist>
 
     <para>When you upgrade from earlier versions of OpenDJ, however, the
-    previous <literal>global-aci</literal> setting that governs this behavior
-    is not updated. To apply the change manually, change the relevant
-    <literal>global-aci</literal> by using the <command>dsconfig</command>
-    command. An example of how to change a <literal>global-aci</literal>
-    property can be found in the <citetitle>Administration Guide</citetitle>,
-    <link xlink:show="new"
+    previous <literal>global-aci</literal> settings are not updated. To apply
+    the changes manually, change the relevant <literal>global-aci</literal>
+    settings by using the <command>dsconfig</command> command. An example of
+    how to change a <literal>global-aci</literal> property can be found in the
+    <citetitle>Administration Guide</citetitle>, <link xlink:show="new"
     xlink:href="admin-guide#access-control-disable-anonymous"
     xlink:role="http://docbook.org/xlink/role/olink"><citetitle>ACI: Disable
     Anonymous Access</citetitle></link>.</para>
+   </listitem>
+
+   <listitem>
+    <para>For the SNMP, the default <literal>security-agent-file</literal> has
+    changed to <filename>opendj-snmp.security</filename> (<link xlink:show="new"
+    xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-982"
+    >OPENDJ-982</link>), and the upgrade process changes the file name. If the
+    SNMP Connection Handler fails to start after upgrade, use the
+    <command>dsconfig</command> command to make sure that the
+    <literal>security-agent-file</literal> property is correctly set for your
+    installation.</para>
    </listitem>
   </itemizedlist>
 
@@ -122,7 +150,7 @@
  <section xml:id="removed-functionality">
   <title>Removed Functionality</title>
   
-  <para>Native packages in SVR4 format for Solaris are no longer provided at
-  this time.</para>
+  <para>Native packages in SVR4 format for Solaris are not provided at this
+  time.</para>
  </section>
 </chapter>

@@ -62,7 +62,6 @@
     <screen>$ sudo opendj/bin/create-rc-script
  --outputFile /etc/init.d/opendj
  --userName mark
-[sudo] password for mark: 
 $ sudo /etc/init.d/opendj start</screen>
     <para>For example, on Linux if you run OpenDJ as root, you can use the
     RC script to start the server at system boot, and stop the server at
@@ -112,7 +111,6 @@ update-rc.d: see &lt;http://wiki.debian.org/LSBInitScripts&gt;
     <screen>$ sudo opendj/bin/create-rc-script
  --outputFile /etc/init.d/opendj
  --userName mark
-[sudo] password for mark: 
 $ sudo /etc/init.d/opendj stop</screen>
    </listitem>
    <listitem>
@@ -139,7 +137,6 @@ $ sudo /etc/init.d/opendj stop</screen>
     <screen>$ sudo opendj/bin/create-rc-script
  --outputFile /etc/init.d/opendj
  --userName mark
-[sudo] password for mark: 
 $ /etc/init.d/opendj restart</screen>
    </listitem>
    <listitem>

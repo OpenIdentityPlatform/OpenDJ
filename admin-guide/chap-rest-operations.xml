@@ -874,8 +874,7 @@ $ curl
   <literal>_action=create</literal> in the query string, and the JSON content of
   your resource.</para>
 
-  <para>The following example creates a new user entry. Lines are folded for
-  readability.</para>
+  <para>The following example creates a new user entry.</para>
 
   <screen width="82">$ curl
  --request POST
@@ -949,9 +948,6 @@ $ curl
     <term>Comparison expressions</term>
     <listitem>
      <para>You can build filters using the following comparison expressions.</para>
-
-     <para>Request URLs are folded in the following examples to make them
-     easier to read.</para>
 
      <variablelist>
       <varlistentry>
