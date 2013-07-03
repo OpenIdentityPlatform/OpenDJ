@@ -66,8 +66,6 @@ import org.opends.server.types.*;
  *  options are stored with the attribute names using; as a separator
  *  example :
  *  description;FR;France:00000108b3a6554100000001:add:added_value
- *
- *
  */
 public class HistoricalAttributeValue
 {
@@ -79,14 +77,17 @@ public class HistoricalAttributeValue
   private HistAttrModificationKey histKey;
   private String stringValue;
 
-  // This flag indicates that this value was generated to store the last date
-  // when the entry was renamed.
+  /**
+   * This flag indicates that this value was generated to store the last date
+   * when the entry was renamed.
+   */
   private boolean ismodDN = false;
 
   /**
    * Create a new object from the String encoded form.
    *
    * @param strVal The String encoded form of historical attribute value.
+   * @see EntryHistorical#encodeAndPurge() encoding in EntryHistorical
    */
   public HistoricalAttributeValue(String strVal)
   {
