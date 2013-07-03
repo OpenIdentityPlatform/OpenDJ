@@ -34,20 +34,32 @@ $ ./OpenDJ-2.4.5/bin/stop-ds --quiet
 ... msg=The backend userRoot is now taken offline
 ... msg=The Directory Server is now stopped
 $ zip -rq OpenDJ-backup.zip OpenDJ-2.4.5
-$ unzip -q ~/Downloads/OpenDJ-<?eval ${docTargetVersion}?>.zip
+$ unzip -q ~/Downloads/OpenDJ-2.6.0.zip
 $ cp -r opendj/* OpenDJ-2.4.5/
 $ rm -rf opendj
 $ mv OpenDJ-2.4.5 opendj
-$ ./opendj/upgrade --no-prompt
+$ ./opendj/upgrade --no-prompt --acceptLicense
 
 >>>> OpenDJ Upgrade Utility
 
- * OpenDJ will be upgraded from version 2.4.5.7743 to <?eval ${docTargetVersion}?>.<replaceable>revision</replaceable>
+ * OpenDJ will be upgraded from version 2.4.5.7743 to 2.6.0.9086
  * See '/path/to/opendj/upgrade.log' for a detailed log of this operation
+
+READ THIS SOFTWARE LICENSE AGREEMENT CAREFULLY. BY DOWNLOADING OR INSTALLING
+THE FORGEROCK SOFTWARE, YOU, ON BEHALF OF YOURSELF AND YOUR COMPANY, AGREE TO
+BE BOUND BY THIS SOFTWARE LICENSE AGREEMENT. IF YOU DO NOT AGREE TO THESE
+TERMS, DO NOT DOWNLOAD OR INSTALL THE FORGEROCK SOFTWARE.
+
+ ...
+
+Please read the License Agreement above.
+You must accept the terms of the agreement before continuing with the
+installation
+Do you accept the License Agreement? yes
 
 >>>> Preparing to upgrade
 
-  OpenDJ <?eval ${docTargetVersion}?> modified the default configuration of the 'isMemberOf' virtual
+  OpenDJ 2.5.0 modified the default configuration of the 'isMemberOf' virtual
   attribute so that it is included with group entries. This was done in order
   to make it easier for users to determine which groups a 'nested' group
   belongs to.
@@ -61,6 +73,7 @@ $ ./opendj/upgrade --no-prompt
   Fixing de-DE collation matching rule OID............................   100%
   Updating password policy configurations.............................   100%
   Updating audit log publisher configuration..........................   100%
+  Rename SNMP security config file....................................   100%
   Adding 'etag' virtual attribute schema..............................   100%
   Configuring 'etag' virtual attribute................................   100%
   Configuring 'ds-pwp-password-expiration-time' virtual attribute.....   100%
@@ -74,10 +87,12 @@ $ ./opendj/upgrade --no-prompt
   Adding 'http-config.json' configuration file........................   100%
   Adding HTTP connection handler configuration........................   100%
   Adding file-based HTTP access logger................................   100%
+  Adding 'emailAddress' attribute.....................................   100%
+  Updating subject attribute to user attribute configuration..........   100%
   Replacing schema file '02-config.ldif'..............................   100%
   Archiving concatenated schema.......................................   100%
 
->>>> OpenDJ was successfully upgraded from version 2.4.5.7743 to <?eval ${docTargetVersion}?>.<replaceable>revision</replaceable>
+>>>> OpenDJ was successfully upgraded from version 2.4.5.7743 to 2.6.0.9086
 
  * See '/path/to/opendj/upgrade.log' for a detailed log of this operation
 $ ./opendj/bin/start-ds --quiet

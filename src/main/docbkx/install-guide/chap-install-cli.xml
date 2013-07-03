@@ -79,7 +79,7 @@
     </varlistentry>
 
     <varlistentry>
-     <term>opendj_<?eval ${docTargetVersion}?>_all.deb</term>
+     <term>opendj_<?eval ${docTargetVersion}?>-1_all.deb</term>
      <listitem>
       <para>OpenDJ directory server native package for Debian and related
       Linux distributions.</para>
@@ -87,7 +87,7 @@
     </varlistentry>
 
     <varlistentry>
-     <term>opendj-<?eval ${docTargetVersion}?>.noarch.rpm</term>
+     <term>opendj-<?eval ${docTargetVersion}?>-1.noarch.rpm</term>
      <listitem>
       <para>OpenDJ directory server native package for Red Hat and related
       Linux distributions.</para>
@@ -100,6 +100,12 @@
       <para>Cross-platform OpenDJ DSML gateway web archive</para>
      </listitem>
     </varlistentry>
+
+    <varlistentry>
+     <term>opendj-rest2ldap-servlet-<?eval ${docTargetVersion}?>-servlet.war</term>
+     <listitem>
+      <para>Cross-platform OpenDJ REST LDAP gateway web archive</para>
+     </listitem></varlistentry>
    </variablelist>
   </step>
 
@@ -165,9 +171,17 @@
    Java WebStart with a remote version of the software.</para>
 
    <screen>$ /path/to/opendj/setup --cli
+READ THIS SOFTWARE LICENSE AGREEMENT CAREFULLY. BY DOWNLOADING OR INSTALLING
+THE FORGEROCK SOFTWARE, YOU, ON BEHALF OF YOURSELF AND YOUR COMPANY, AGREE TO
+BE BOUND BY THIS SOFTWARE LICENSE AGREEMENT. IF YOU DO NOT AGREE TO THESE
+TERMS, DO NOT DOWNLOAD OR INSTALL THE FORGEROCK SOFTWARE.
 
-OpenDJ <?eval ${docTargetVersion}?>
-Please wait while the setup program initializes...
+...
+
+Please read the License Agreement above.
+You must accept the terms of the agreement before continuing with the
+installation.
+Accept the license (Yes/No) [No]:Yes
 
 What would you like to use as the initial root user DN for the Directory
 Server? [cn=Directory Manager]:
@@ -349,7 +363,7 @@ To see basic server configuration status and configuration you can launch \
      <term>Start the server</term>
      <listitem>
       <para>If you do not start the server during installation, you can use
-      the <command>bin/start-ds</command> command later.</para>
+      the <command>/path/to/opendj/bin/start-ds</command> command later.</para>
      </listitem>
     </varlistentry>
    </variablelist>
@@ -418,10 +432,10 @@ Replication: Disabled</screen>
   <step>
    <para>Install the OpenDJ directory server package.</para>
 
-   <screen>$ sudo dpkg -i opendj*.deb
+   <screen>$ sudo dpkg -i opendj_<?eval ${docTargetVersion}?>-1_all.deb
 Selecting previously unselected package opendj.
 (Reading database ... 185569 files and directories currently installed.)
-Unpacking opendj (from opendj_<?eval ${docTargetVersion}?>_all.deb) ...
+Unpacking opendj (from opendj_<?eval ${docTargetVersion}?>-1_all.deb) ...
 
 Setting up opendj (<?eval ${docTargetVersion}?>) ...
 $</screen>
@@ -438,7 +452,6 @@ $</screen>
    <command>sudo /opt/opendj/setup</command>.</para>
 
    <screen>$ sudo /opt/opendj/setup --cli
-[ sudo ] password for user:
 ...
 To see basic server configuration status and configuration you can launch
  /opt/opendj/bin/status</screen>
@@ -499,21 +512,29 @@ Replication: </screen>
   <para>On Red Hat and related Linux distributions such as Fedora and CentOS,
   you can install OpenDJ directory server from the RPM package.</para>
 
+  <step>
+   <para>Log in as superuser to install the software.</para>
+
+   <screen>$ su
+Password:
+# </screen>
+  </step>
+
   <step performance="optional">
    <para>Before you install OpenDJ, install a Java runtime environment if none
    is installed yet.</para>
 
-   <screen>$ su
-Password:
-# rpm -ivh jdk-*.rpm</screen>
+   <para>You might need to download an .rpm to install the Java runtime
+   environment, and then install it using the <command>rpm</command>
+   command.</para>
+
+   <screen># rpm -ivh jre-*.rpm</screen>
   </step>
 
   <step>
    <para>Install the OpenDJ directory server package.</para>
 
-   <screen>$ su
-Password:
-# rpm -i opendj*.rpm
+   <screen># rpm -i opendj-<?eval ${docTargetVersion}?>-1.noarch.rpm
 Pre Install - initial install
 Post Install - initial install
 
@@ -636,8 +657,9 @@ ldifFile                        =/net/install/dj/Example.ldif
    <screen>$ cat /net/install/dj/1/setup.sh
 #!/bin/sh
 
-unzip -d /path/to /net/install/dj/OpenDJ-<?eval ${docTargetVersion}?> &amp;&amp; cd /path/to/opendj
-./setup --cli --propertiesFilePath /net/install/dj/1/setup.props --no-prompt</screen>
+unzip -d /path/to /net/install/dj/OpenDJ-<?eval ${docTargetVersion}?>.zip &amp;&amp; cd /path/to/opendj
+./setup --cli --propertiesFilePath /net/install/dj/1/setup.props \
+  --acceptLicense --no-prompt</screen>
   </step>
 
   <step>
@@ -651,9 +673,14 @@ Archive:  /net/install/dj/OpenDJ-<?eval ${docTargetVersion}?>.zip
   inflating: /path/to/opendj/uninstall
   inflating: /path/to/opendj/upgrade
 
-OpenDJ <?eval ${docTargetVersion}?>
-Please wait while the setup program initializes...
+READ THIS SOFTWARE LICENSE AGREEMENT CAREFULLY. BY DOWNLOADING OR INSTALLING
+THE FORGEROCK SOFTWARE, YOU, ON BEHALF OF YOURSELF AND YOUR COMPANY, AGREE TO
+BE BOUND BY THIS SOFTWARE LICENSE AGREEMENT. IF YOU DO NOT AGREE TO THESE
+TERMS, DO NOT DOWNLOAD OR INSTALL THE FORGEROCK SOFTWARE.
 
+...
+
+Do you accept the License Agreement?yes
 See /var/folders/.../opendj-setup-....log for a detailed log of this operation.
 
 Configuring Directory Server ..... Done.
