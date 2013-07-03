@@ -56,7 +56,7 @@
   </step>
 
   <step>
-   <para>In order to revert should the upgrade fail, make sure you perform a
+   <para>In order to revert if the upgrade fails, make sure you perform a
    full backup of your current OpenDJ installation.</para>
 
    <para>It might be most expedient to back up the file system directory where
@@ -73,7 +73,7 @@
   <title>To Upgrade an OpenDJ Directory Server</title>
 
   <para>To upgrade OpenDJ directory server installed from native packages (.deb,
-  .rpm), use the package management tools provided by the system.</para>
+  .rpm), use the command-line package management tools provided by the system.</para>
 
   <para>The following steps describe how to upgrade OpenDJ directory server
   installed from the cross-platform (.zip) delivery.</para>
@@ -115,7 +115,8 @@
    <para>By default, the <command>upgrade</command> command requests
    confirmation before making important configuration changes. You can use
    the <option>--no-prompt</option> option to run the command
-   non-interactively.</para>
+   non-interactively, with the <option>--acceptLicense</option> option to
+   accept the license terms non-interactively.</para>
 
    <para>When using the <option>--no-prompt</option> option, if the
    <command>upgrade</command> command cannot complete because it requires

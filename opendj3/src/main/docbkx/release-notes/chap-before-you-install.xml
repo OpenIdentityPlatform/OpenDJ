@@ -113,7 +113,7 @@ opendj hard nofile 131072</programlisting>
     <para>Microsoft Windows Server 2008 R2 and Windows Server 2012</para>
    </listitem>
    <listitem>
-    <para>Oracle Solaris 11</para>
+    <para>Oracle Solaris 11 x86</para>
    </listitem>
   </itemizedlist>
 
@@ -149,7 +149,7 @@ opendj hard nofile 131072</programlisting>
   <para>OpenDJ DSML gateway has been validated on Apache Tomcat 6 and 7.</para>
 
   <para>OpenDJ REST LDAP gateway has been validated on Apache Tomcat 6 and
-  Jetty 7.</para>
+  Jetty 8.</para>
  </section>
 
  <section xml:id="prerequisites-fqdn">
