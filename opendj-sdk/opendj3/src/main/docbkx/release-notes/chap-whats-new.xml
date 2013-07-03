@@ -118,6 +118,21 @@
     </listitem>
 
     <listitem>
+     <para>OpenDJ now lets you filter access and audit logs to focus on
+     messages that interest you. OpenDJ supports many criteria for flexible
+     log filtering (<link xlink:show="new"
+     xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-308"
+     >OPENDJ-308</link>).</para>
+    </listitem>
+
+    <listitem>
+     <para>OpenDJ now includes an ETag attribute for optimistic concurrency
+     control (<link xlink:show="new"
+     xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-409"
+     >OPENDJ-409</link>).</para>
+    </listitem>
+
+    <listitem>
      <para>OpenDJ now supports the PBKDF2 password storage scheme (<link
      xlink:show="new"
      xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-510"
@@ -230,13 +245,6 @@
     </listitem>
 
     <listitem>
-     <para>OpenDJ now includes an ETag attribute for optimistic concurrency
-     control (<link xlink:show="new"
-     xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-409"
-     >OPENDJ-409</link>).</para>
-    </listitem>
-
-    <listitem>
      <para>OpenDJ now runs more reliably as a Windows Service (<link
      xlink:show="new"
      xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-617"
@@ -274,14 +282,6 @@
      (<link xlink:show="new"
      xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-677"
      >OPENDJ-677</link>).</para>
-    </listitem>
-
-    <listitem>
-     <para>OpenDJ now lets you filter access and audit logs to focus on
-     messages that interest you. OpenDJ supports many criteria for flexible
-     log filtering (<link xlink:show="new"
-     xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-308"
-     >OPENDJ-308</link>).</para>
     </listitem>
 
     <listitem>
