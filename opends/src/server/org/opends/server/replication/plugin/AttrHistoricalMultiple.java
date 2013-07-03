@@ -57,7 +57,7 @@ public class AttrHistoricalMultiple extends AttrHistorical
   private ChangeNumber lastUpdateTime;
   /**
    * Change history for the values of this attribute. We are using a
-   * LinkedHasMap here because we want:
+   * LinkedHashMap here because we want:
    * <ol>
    * <li>Fast access for removing/adding a AttrValueHistorical keyed by the
    * AttributeValue => Use a Map</li>
@@ -69,7 +69,7 @@ public class AttrHistoricalMultiple extends AttrHistorical
       new LinkedHashMap<AttrValueHistorical, AttrValueHistorical>();
 
    /**
-    * Create a new object from the provided informations.
+    * Create a new object from the provided information.
     * @param deleteTime the last time this attribute was deleted
     * @param updateTime the last time this attribute was updated
     * @param valuesHist the new attribute values when updated.
@@ -240,9 +240,9 @@ public class AttrHistoricalMultiple extends AttrHistorical
   }
 
   /**
-   * Get the list of historical informations for the values.
+   * Get the list of historical information for the values.
    *
-   * @return the list of historical informations for the values.
+   * @return the list of historical information for the values.
    */
   @Override
   public Map<AttrValueHistorical,AttrValueHistorical> getValuesHistorical()
