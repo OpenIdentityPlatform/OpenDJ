@@ -30,6 +30,7 @@ package org.opends.server.replication.common;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.*;
+import java.util.Map.Entry;
 import java.util.zip.DataFormatException;
 
 import org.opends.server.protocols.asn1.ASN1Writer;
@@ -241,9 +242,8 @@ public class ServerState implements Iterable<Integer>
 
     synchronized (serverIdToChangeNumber)
     {
-      for (int key : serverIdToChangeNumber.keySet())
+      for (ChangeNumber change : serverIdToChangeNumber.values())
       {
-        ChangeNumber change = serverIdToChangeNumber.get(key);
         Date date = new Date(change.getTime());
         set.add(change + " " + date + " " + change.getTime());
       }
@@ -264,11 +264,9 @@ public class ServerState implements Iterable<Integer>
 
     synchronized (serverIdToChangeNumber)
     {
-      for (int serverId : serverIdToChangeNumber.keySet())
+      for (ChangeNumber changeNumber : serverIdToChangeNumber.values())
       {
-        ByteString value =
-            ByteString.valueOf(serverIdToChangeNumber.get(serverId).toString());
-        values.add(value);
+        values.add(ByteString.valueOf(changeNumber.toString()));
       }
     }
     return values;
@@ -319,11 +317,9 @@ public class ServerState implements Iterable<Integer>
 
     synchronized (serverIdToChangeNumber)
     {
-      for (int key : serverIdToChangeNumber.keySet())
+      for (ChangeNumber change : serverIdToChangeNumber.values())
       {
-        ChangeNumber change = serverIdToChangeNumber.get(key);
-        buffer.append(change.toString());
-        buffer.append(" ");
+        buffer.append(change).append(" ");
       }
       if (!serverIdToChangeNumber.isEmpty())
         buffer.deleteCharAt(buffer.length() - 1);
@@ -353,9 +349,8 @@ public class ServerState implements Iterable<Integer>
 
     synchronized (serverIdToChangeNumber)
     {
-      for (int serverId : serverIdToChangeNumber.keySet())
+      for (ChangeNumber tmpMax : serverIdToChangeNumber.values())
       {
-        ChangeNumber tmpMax = serverIdToChangeNumber.get(serverId);
         if ((maxCN==null) || (tmpMax.newer(maxCN)))
           maxCN = tmpMax;
       }
@@ -386,27 +381,27 @@ public class ServerState implements Iterable<Integer>
   {
     synchronized (serverIdToChangeNumber)
     {
+      final int size = serverIdToChangeNumber.size();
+      List<String> idList = new ArrayList<String>(size);
+      List<String> cnList = new ArrayList<String>(size);
+      // calculate the total length needed to allocate byte array
       int length = 0;
-      List<String> idList =
-          new ArrayList<String>(serverIdToChangeNumber.size());
-      for (int serverId : serverIdToChangeNumber.keySet())
+      for (Entry<Integer, ChangeNumber> entry : serverIdToChangeNumber
+          .entrySet())
       {
-        String temp = String.valueOf(serverId);
-        idList.add(temp);
-        length += temp.length() + 1;
-      }
-      List<String> cnList =
-          new ArrayList<String>(serverIdToChangeNumber.size());
-      for (ChangeNumber cn : serverIdToChangeNumber.values())
-      {
-        String temp = cn.toString();
-        cnList.add(temp);
-        length += temp.length() + 1;
+        String serverIdStr = String.valueOf(entry.getKey());
+        idList.add(serverIdStr);
+        length += serverIdStr.length() + 1;
+
+        String changeNumberStr = entry.getValue().toString();
+        cnList.add(changeNumberStr);
+        length += changeNumberStr.length() + 1;
       }
       byte[] result = new byte[length];
 
+      // write the server state into the byte array
       int pos = 0;
-      for (int i = 0; i < serverIdToChangeNumber.size(); i++)
+      for (int i = 0; i < size; i++)
       {
         String str = idList.get(i);
         pos = addByteArray(str.getBytes("UTF-8"), result, pos);
@@ -481,11 +476,9 @@ public class ServerState implements Iterable<Integer>
     ServerState newState = new ServerState();
     synchronized (serverIdToChangeNumber)
     {
-      for (Integer key : serverIdToChangeNumber.keySet())
+      for (ChangeNumber change : serverIdToChangeNumber.values())
       {
-        ChangeNumber change = serverIdToChangeNumber.get(key);
-        Integer serverId = change.getServerId();
-        newState.serverIdToChangeNumber.put(serverId, change);
+        newState.serverIdToChangeNumber.put(change.getServerId(), change);
       }
     }
     return newState;
@@ -563,13 +556,11 @@ public class ServerState implements Iterable<Integer>
     ServerState newState = new ServerState();
     synchronized (serverIdToChangeNumber)
     {
-      for (Integer key : serverIdToChangeNumber.keySet())
+      for (ChangeNumber change : serverIdToChangeNumber.values())
       {
-        ChangeNumber change = serverIdToChangeNumber.get(key);
-        Integer serverId = change.getServerId();
         if (change.older(cn))
         {
-          newState.serverIdToChangeNumber.put(serverId, change);
+          newState.serverIdToChangeNumber.put(change.getServerId(), change);
         }
       }
     }
