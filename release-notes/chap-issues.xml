@@ -52,7 +52,7 @@
 
   <para>The following important bugs were fixed in this release.</para>
 
-  <!-- List generated at 20:11:38 20130628 using http://bugster.forgerock.org/jira/rest/api/2/search?jql=project+%3D+OpenDJ+AND+fixVersion+%3D+"2.6.0"+AND+type+%3D+Bug+AND+resolution+%3D+Fixed+AND+labels+%3D+release-notes&startAt=0&maxResults=500&fields=summary-->
+  <!-- List generated at 08:22:22 20130703 using http://bugster.forgerock.org/jira/rest/api/2/search?jql=project+%3D+OpenDJ+AND+fixVersion+%3D+"2.6.0"+AND+type+%3D+Bug+AND+resolution+%3D+Fixed+AND+labels+%3D+release-notes&startAt=0&maxResults=500&fields=summary-->
   <itemizedlist>
    <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-988" xlink:show="new">OPENDJ-988</link>: Filtering access logs by userdn doesn't work</para></listitem>
    <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-982" xlink:show="new">OPENDJ-982</link>: Upgrade: SNMP Connection Handler does not start after the upgrade</para></listitem>
@@ -237,7 +237,7 @@
   <para>The following important issues remained open at the time this release
   became available.</para>
 
-  <!-- List generated at 20:12:36 20130628 using http://bugster.forgerock.org/jira/rest/api/2/search?jql=project+%3D+OpenDJ+AND+%28resolution+%3D+Unresolved+OR+%28resolution+%3D+Fixed+AND+fixVersion++>+"2.6.0"+and+fixVersion+%21%3D+"2.6.0"%29%29+AND+labels+%3D+release-notes&startAt=0&maxResults=500&fields=summary-->
+  <!-- List generated at 08:23:19 20130703 using http://bugster.forgerock.org/jira/rest/api/2/search?jql=project+%3D+OpenDJ+AND+%28resolution+%3D+Unresolved+OR+%28resolution+%3D+Fixed+AND+fixVersion++>+"2.6.0"+and+fixVersion+%21%3D+"2.6.0"%29%29+AND+labels+%3D+release-notes&startAt=0&maxResults=500&fields=summary-->
   <itemizedlist>
    <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1033" xlink:show="new">OPENDJ-1033</link>: The Rest2LDAP servlet does not support SSL</para></listitem>
    <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-934" xlink:show="new">OPENDJ-934</link>: Changes to RS window-size property require a server restart</para></listitem>
@@ -251,7 +251,6 @@
    <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-412" xlink:show="new">OPENDJ-412</link>: Blocked persistent searches may block all worker threads</para></listitem>
    <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-365" xlink:show="new">OPENDJ-365</link>: Potential deadlock in JE backend while performing a mix of update operations</para></listitem>
    <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-270" xlink:show="new">OPENDJ-270</link>: dsreplication disable takes a long time</para></listitem>
-   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-155" xlink:show="new">OPENDJ-155</link>: Add support for OpenDJ extended matching rules and syntaxes</para></listitem>
    <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-49" xlink:show="new">OPENDJ-49</link>: Replication replay does not take into consideration the server/backend's writability mode.</para></listitem>
   </itemizedlist>
  </section>
