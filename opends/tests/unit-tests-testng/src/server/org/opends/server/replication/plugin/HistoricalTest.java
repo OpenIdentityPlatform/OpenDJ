@@ -29,6 +29,9 @@
 package org.opends.server.replication.plugin;
 
 
+import static org.opends.server.TestCaseUtils.*;
+import static org.testng.Assert.*;
+
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
@@ -41,23 +44,10 @@ import org.opends.server.replication.protocol.LDAPUpdateMsg;
 import org.opends.server.replication.protocol.ModifyMsg;
 import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.tools.LDAPModify;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.Attributes;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.DN;
-import org.opends.server.types.Entry;
-import org.opends.server.types.Modification;
-import org.opends.server.types.ModificationType;
-import org.opends.server.types.Operation;
-import org.opends.server.types.ResultCode;
-import org.opends.server.types.SearchResultEntry;
-import org.opends.server.types.SearchScope;
+import org.opends.server.types.*;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import static org.testng.Assert.*;
-import static org.opends.server.TestCaseUtils.*;
 import java.net.ServerSocket;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -67,20 +57,19 @@ import java.util.UUID;
 /**
  * Tests the Historical class.
  */
+@SuppressWarnings("javadoc")
 public class HistoricalTest
      extends ReplicationTestCase
 {
   private int replServerPort;
-  String testName = "historicalTest";
+  private String testName = "historicalTest";
 
   /**
    * Set up replication on the test backend.
-   * @throws Exception If an error occurs.
    */
   @BeforeClass
   @Override
-  public void setUp()
-       throws Exception
+  public void setUp() throws Exception
   {
     super.setUp();
 
@@ -124,11 +113,9 @@ public class HistoricalTest
    * and written to an operational attribute of the entry.
    * Also test that historical is purged according to the purge delay that
    * is provided.
-   * @throws Exception If the test fails.
    */
   @Test(enabled=true)
-  public void testEncodingAndPurge()
-       throws Exception
+  public void testEncodingAndPurge() throws Exception
   {
     //  Add a test entry.
     TestCaseUtils.addEntry(
@@ -202,8 +189,6 @@ public class HistoricalTest
     assertEquals(hist.getLastPurgedValuesCount(),0);
     assertEquals(after, before);
 
-    LDAPReplicationDomain domain = MultimasterReplication.findDomain(
-        DN.decode("uid=user.1," + TEST_ROOT_DN_STRING), null);
     Thread.sleep(1000);
 
     args[9] = TestCaseUtils.createTempFile(
@@ -249,11 +234,9 @@ public class HistoricalTest
    * broker API to simulate the ordering that would happen on the first server
    * on one entry, and the reverse ordering that would happen on the
    * second server on a different entry.  Confused yet?
-   * @throws Exception If the test fails.
    */
   @Test(enabled=true, groups="slow")
-  public void conflictSingleValue()
-       throws Exception
+  public void conflictSingleValue() throws Exception
   {
     final DN dn1 = DN.decode("cn=test1," + TEST_ROOT_DN_STRING);
     final DN dn2 = DN.decode("cn=test2," + TEST_ROOT_DN_STRING);
@@ -382,8 +365,7 @@ public class HistoricalTest
   {
     List<Modification> mods = new ArrayList<Modification>(1);
     mods.add(mod);
-    ModifyMsg modMsg = new ModifyMsg(changeNum, dn, mods, entryuuid);
-    broker.publish(modMsg);
+    broker.publish(new ModifyMsg(changeNum, dn, mods, entryuuid));
   }
 
   /**
@@ -504,14 +486,12 @@ public class HistoricalTest
         String parentId = LDAPReplicationDomain.findEntryUUID(dn1.getParent());
         assertTrue(addmsg.getParentEntryUUID().equals(parentId));
         addmsg.createOperation(InternalClientConnection.getRootConnection());
-      } else
+      }
+      else if (count == 1)
       {
-        if (count == 1)
-        {
           // The first operation should be an ADD operation.
           fail("FakeAddOperation was not correctly generated"
               + " from historical information");
-        }
       }
     }
 
@@ -531,18 +511,18 @@ public class HistoricalTest
    * the time to purge everything in 1 run .. and thus to relauch it to finish
    * the purge. And verify that the second run starts on the changeNumber where
    * the previous task run had stopped.
-   *
-   * @throws Exception If the test fails.
    */
   @Test(enabled=true)
-  public void testRecurringPurgeIn1Run()
-  throws Exception
+  public void testRecurringPurgeIn1Run() throws Exception
   {
     int entryCnt = 10;
 
     addEntriesWithHistorical(1, entryCnt);
 
-    // set the purge delay to 1 sec
+    // set the purge delay to 1 minute
+    // FIXME could we change this setting to also accept seconds?
+    // This way this test would not take one minute to run
+    // (and it could also fail less often in jenkins).
     TestCaseUtils.dsconfig(
         "set-replication-domain-prop",
         "--provider-name","Multimaster Synchronization",
@@ -565,8 +545,6 @@ public class HistoricalTest
     addTask(taskInit, ResultCode.SUCCESS, null);
 
     // every entry should be purged from its hist
-    try
-    {
       // Search for matching entries in config backend
       InternalSearchOperation op = connection.processSearch(
           ByteString.valueOf(TEST_ROOT_DN_STRING),
@@ -579,17 +557,12 @@ public class HistoricalTest
       LinkedList<SearchResultEntry> entries = op.getSearchEntries();
       assertTrue(entries != null);
       assertEquals(entries.size(), 0);
-    } catch (Exception e)
-    {
-      fail("assertNoConfigEntriesWithFilter: could not search config backend" + e.getMessage());
-    }
   }
 
   /**
    * Add a provided number of generated entries containing historical.
    * @param dnSuffix A suffix to be added to the dn
    * @param entryCnt The number of entries to create
-   * @throws Exception
    */
   private void addEntriesWithHistorical(int dnSuffix, int entryCnt)
   throws Exception

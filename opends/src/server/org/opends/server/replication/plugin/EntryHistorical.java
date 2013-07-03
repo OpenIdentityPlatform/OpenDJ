@@ -477,57 +477,46 @@ public class EntryHistorical
         for (AttrValueHistorical attrValHist : attrHist.getValuesHistorical()
             .keySet())
         {
-          attrValHist.getAttributeValue();
+          final AttributeValue value = attrValHist.getAttributeValue();
 
           // Encode an attribute value
           final String strValue;
           if (attrValHist.getValueDeleteTime() != null)
           {
-            // this hist must be purged now, so skip its encoding
-            if ((purgeDelayInMillisec>0) &&
-                (attrValHist.getValueDeleteTime().getTime()<=purgeDate))
+            if (needsPurge(attrValHist.getValueDeleteTime(), purgeDate))
             {
-              this.lastPurgedValuesCount++;
+              // this hist must be purged now, so skip its encoding
               continue;
             }
-            strValue = type.getNormalizedPrimaryName() + optionsString + ":" +
-            attrValHist.getValueDeleteTime().toString() +
-            ":del:" + attrValHist.getAttributeValue().toString();
-            AttributeValue val = AttributeValues.create(historicalAttrType,
-                                                    strValue);
-            builder.add(val);
+            strValue = encode("del", type, optionsString, attrValHist
+                    .getValueDeleteTime(), value);
+            builder.add(AttributeValues.create(historicalAttrType, strValue));
           }
           else if (attrValHist.getValueUpdateTime() != null)
           {
-            if ((purgeDelayInMillisec>0) &&
-                (attrValHist.getValueUpdateTime().getTime()<=purgeDate))
+            if (needsPurge(attrValHist.getValueUpdateTime(), purgeDate))
             {
               // this hist must be purged now, so skip its encoding
-              this.lastPurgedValuesCount++;
               continue;
             }
-            if ((delAttr && attrValHist.getValueUpdateTime() == deleteTime)
-               && (attrValHist.getAttributeValue() != null))
+
+            final ChangeNumber updateTime = attrValHist.getValueUpdateTime();
+            // FIXME very suspicious use of == in the next if statement,
+            // unit tests do not like changing it
+            if (delAttr && updateTime == deleteTime && value != null)
             {
-              strValue = type.getNormalizedPrimaryName() + optionsString + ":" +
-              attrValHist.getValueUpdateTime().toString() +  ":repl:" +
-              attrValHist.getAttributeValue().toString();
+              strValue = encode("repl", type, optionsString, updateTime, value);
               delAttr = false;
+            }
+            else if (value != null)
+            {
+              strValue = encode("add", type, optionsString, updateTime, value);
             }
             else
             {
-              if (attrValHist.getAttributeValue() == null)
-              {
-                strValue = type.getNormalizedPrimaryName() + optionsString
-                           + ":" + attrValHist.getValueUpdateTime().toString() +
-                           ":add";
-              }
-              else
-              {
-                strValue = type.getNormalizedPrimaryName() + optionsString
-                           + ":" + attrValHist.getValueUpdateTime().toString() +
-                           ":add:" + attrValHist.getAttributeValue().toString();
-              }
+              // "add" without any value is suspicious. Tests never go there.
+              // Is this used to encode "add" with an empty string?
+              strValue = encode("add", type, optionsString, updateTime);
             }
 
             builder.add(AttributeValues.create(historicalAttrType, strValue));
@@ -536,55 +525,57 @@ public class EntryHistorical
 
         if (delAttr)
         {
-          // Stores the attr deletion hist when not older than the purge delay
-          if ((purgeDelayInMillisec>0) &&
-              (deleteTime.getTime()<=purgeDate))
+          if (needsPurge(deleteTime, purgeDate))
           {
             // this hist must be purged now, so skip its encoding
-            this.lastPurgedValuesCount++;
             continue;
           }
-          String strValue = type.getNormalizedPrimaryName()
-              + optionsString + ":" + deleteTime.toString()
-              + ":attrDel";
-          AttributeValue val =
-              AttributeValues.create(historicalAttrType, strValue);
-          builder.add(val);
+          String strValue = encode("attrDel", type, optionsString, deleteTime);
+          builder.add(AttributeValues.create(historicalAttrType, strValue));
         }
       }
     }
 
-    // Encode the historical information for the ADD Operation.
-    if (entryADDDate != null)
+    if (entryADDDate != null && !needsPurge(entryADDDate, purgeDate))
     {
+      // Encode the historical information for the ADD Operation.
       // Stores the ADDDate when not older than the purge delay
-      if ((purgeDelayInMillisec>0) &&
-          (entryADDDate.getTime()<=purgeDate))
-      {
-        this.lastPurgedValuesCount++;
-      }
-      else
-      {
-        builder.add(encodeHistorical(entryADDDate, "add"));
-      }
+      builder.add(encodeHistorical(entryADDDate, "add"));
     }
 
-    // Encode the historical information for the MODDN Operation.
-    if (entryMODDNDate != null)
+    if (entryMODDNDate != null && !needsPurge(entryMODDNDate, purgeDate))
     {
+      // Encode the historical information for the MODDN Operation.
       // Stores the MODDNDate when not older than the purge delay
-      if ((purgeDelayInMillisec>0) &&
-          (entryMODDNDate.getTime()<=purgeDate))
-      {
-        this.lastPurgedValuesCount++;
-      }
-      else
-      {
-        builder.add(encodeHistorical(entryMODDNDate, "moddn"));
-      }
+      builder.add(encodeHistorical(entryMODDNDate, "moddn"));
     }
 
     return builder.toAttribute();
+  }
+
+  private boolean needsPurge(ChangeNumber cn, long purgeDate)
+  {
+    boolean needsPurge = purgeDelayInMillisec > 0 && cn.getTime() <= purgeDate;
+    if (needsPurge)
+    {
+      // this hist must be purged now, because older than the purge delay
+      this.lastPurgedValuesCount++;
+    }
+    return needsPurge;
+  }
+
+  private String encode(String operation, AttributeType type,
+      String optionsString, ChangeNumber changeTime)
+  {
+    return type.getNormalizedPrimaryName() + optionsString + ":" + changeTime
+        + ":" + operation;
+  }
+
+  private String encode(String operation, AttributeType type,
+      String optionsString, ChangeNumber changeTime, AttributeValue value)
+  {
+    return type.getNormalizedPrimaryName() + optionsString + ":" + changeTime
+        + ":" + operation + ":" + value;
   }
 
   /**
