@@ -34,7 +34,10 @@ import org.opends.messages.Message;
 import org.opends.messages.MessageDescriptor.Arg1;
 import org.opends.messages.MessageDescriptor.Arg2;
 import org.opends.server.admin.std.meta.PasswordPolicyCfgDefn;
-import org.opends.server.api.*;
+import org.opends.server.api.AuthenticationPolicyState;
+import org.opends.server.api.Backend;
+import org.opends.server.api.ClientConnection;
+import org.opends.server.api.SASLMechanismHandler;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.controls.*;
 import org.opends.server.core.*;
@@ -65,8 +68,6 @@ public class LocalBackendBindOperation
    */
   private static final DebugTracer TRACER = getTracer();
 
-
-
   /**
    * The backend in which the bind operation should be processed.
    */
@@ -83,15 +84,19 @@ public class LocalBackendBindOperation
    */
   protected boolean isGraceLogin;
 
-  // Indicates whether the user must change his/her password before doing
-  // anything else.
+  /**
+   * Indicates whether the user must change his/her password before doing
+   * anything else.
+   */
   private boolean mustChangePassword;
 
-  // Indicates whether the user requested the password policy control.
+  /** Indicates whether the user requested the password policy control. */
   private boolean pwPolicyControlRequested;
 
-  // Indicates whether the server should return the authorization ID as a
-  // control in the bind response.
+  /**
+   * Indicates whether the server should return the authorization ID as a
+   * control in the bind response.
+   */
   private boolean returnAuthzID;
 
   /**
@@ -99,7 +104,7 @@ public class LocalBackendBindOperation
    */
   protected boolean executePostOpPlugins;
 
-  // The client connection associated with this bind operation.
+  /** The client connection associated with this bind operation. */
   private ClientConnection clientConnection;
 
   /**
@@ -107,28 +112,28 @@ public class LocalBackendBindOperation
    */
   protected DN bindDN;
 
-  // The lookthrough limit that should be enforced for the user.
+  /** The lookthrough limit that should be enforced for the user. */
   private int lookthroughLimit;
 
-  // The value to use for the password policy warning.
+  /** The value to use for the password policy warning. */
   private int pwPolicyWarningValue;
 
-  // The size limit that should be enforced for the user.
+  /** The size limit that should be enforced for the user. */
   private int sizeLimit;
 
-  // The time limit that should be enforced for the user.
+  /** The time limit that should be enforced for the user. */
   private int timeLimit;
 
-  // The idle time limit that should be enforced for the user.
+  /** The idle time limit that should be enforced for the user. */
   private long idleTimeLimit;
 
-  // Authentication policy state.
+  /** Authentication policy state. */
   private AuthenticationPolicyState authPolicyState;
 
-  // The password policy error type for this bind operation.
+  /** The password policy error type for this bind operation. */
   private PasswordPolicyErrorType pwPolicyErrorType;
 
-  // The password policy warning type for this bind operation.
+  /** The password policy warning type for this bind operation. */
   private PasswordPolicyWarningType pwPolicyWarningType;
 
   /**
@@ -136,7 +141,7 @@ public class LocalBackendBindOperation
    */
   protected PluginConfigManager pluginConfigManager;
 
-  // The SASL mechanism used for this bind operation.
+  /** The SASL mechanism used for this bind operation. */
   private String saslMechanism;
 
 
