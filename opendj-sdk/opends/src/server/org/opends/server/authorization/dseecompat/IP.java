@@ -23,8 +23,8 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS
  */
-
 package org.opends.server.authorization.dseecompat;
 import org.opends.messages.Message;
 
@@ -41,23 +41,21 @@ import java.net.InetAddress;
  */
 public class IP implements KeywordBindRule {
 
-    /*
-      Regular expression used to do a quick check on the characters in a
-      bind rule address. These are all of the valid characters that may
-      appear in an bind rule address part.
-    */
+    /**
+     * Regular expression used to do a quick check on the characters in a
+     * bind rule address. These are all of the valid characters that may
+     * appear in an bind rule address part.
+     */
     private  static final String ipRegEx =
             "((?i)[\\.{1}[a-f]\\d:\\+{1}\\*/{1}\\t\\[{1}\\]{1}]+(?-i))";
 
-    /*
-      List of the pattern classes, one for each address decoded from the
-      bind rule.
-    */
+    /**
+     * List of the pattern classes, one for each address decoded from the bind
+     * rule.
+     */
     private List<PatternIP> patternIPList=null;
 
-    /*
-      The type of the bind rule (!= or =).
-     */
+    /** The type of the bind rule (!= or =). */
     private EnumBindRuleType type=null;
 
     /**
@@ -129,4 +127,19 @@ public class IP implements KeywordBindRule {
         }
         return matched.getRet(type, false);
     }
+
+    /** {@inheritDoc} */
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder();
+        toString(sb);
+        return sb.toString();
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public final void toString(StringBuilder buffer) {
+        buffer.append(super.toString());
+    }
+
 }

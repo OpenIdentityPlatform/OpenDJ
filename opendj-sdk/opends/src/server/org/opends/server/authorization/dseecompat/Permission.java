@@ -23,14 +23,17 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS
  */
-
 package org.opends.server.authorization.dseecompat;
-import org.opends.messages.Message;
-
 import static org.opends.messages.AccessControlMessages.*;
 import static org.opends.server.authorization.dseecompat.Aci.*;
+
+import java.util.Iterator;
+import java.util.Set;
 import java.util.regex.Pattern;
+
+import org.opends.messages.Message;
 
 /**
  * A class representing the permissions of an bind rule. The permissions
@@ -38,23 +41,23 @@ import java.util.regex.Pattern;
  */
 public class Permission {
 
-    /*
+    /**
      *  The access type (allow,deny) corresponding to the ACI permission value.
      */
     private EnumAccessType accessType = null;
 
-    /*
+    /**
      * The rights (search, add, delete, ...) corresponding to the ACI rights
      * value.
      */
     private int rights;
 
-    /*
+    /**
      * Regular expression token representing the separator.
      */
     private static final String separatorToken = ",";
 
-    /*
+    /**
      * Regular expression used to match the ACI rights string.
      */
     private static final String rightsRegex = ZERO_OR_MORE_WHITESPACE +
@@ -108,9 +111,8 @@ public class Permission {
      * rule.
      * @throws AciException  If the accesstype or rights strings are invalid.
      */
-    public static
-    Permission decode (String accessType, String rights)
-    throws AciException {
+    public static Permission decode (String accessType, String rights)
+            throws AciException {
         return new Permission(accessType, rights);
     }
 
@@ -131,5 +133,40 @@ public class Permission {
      */
     public boolean hasRights(int rights) {
         return (this.rights & rights) != 0;
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder();
+        toString(sb);
+        return sb.toString();
+    }
+
+    /**
+     * Appends a string representation of this object to the provided buffer.
+     *
+     * @param buffer
+     *          The buffer into which a string representation of this object
+     *          should be appended.
+     */
+    public final void toString(StringBuilder buffer) {
+        if (this.accessType != null) {
+            buffer.append(accessType.toString().toLowerCase());
+            Set<EnumRight> enumRights = EnumRight.getEnumRight(rights);
+            if (enumRights != null) {
+                buffer.append("(");
+                for (Iterator<EnumRight> iter = enumRights.iterator(); iter
+                        .hasNext();) {
+                    buffer.append(iter.next().getRight());
+                    if (iter.hasNext()) {
+                        buffer.append(",");
+                    }
+                }
+                buffer.append(")");
+            } else {
+                buffer.append("(all)");
+            }
+        }
     }
 }

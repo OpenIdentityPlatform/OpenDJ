@@ -23,20 +23,22 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS
  */
-
 package org.opends.server.authorization.dseecompat;
-import org.opends.messages.Message;
 
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.SearchFilter;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.core.DirectoryServer;
 import static org.opends.messages.AccessControlMessages.*;
 import static org.opends.server.authorization.dseecompat.Aci.*;
-import java.util.regex.Pattern;
-import java.util.regex.Matcher;
+
 import java.util.LinkedHashMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import org.opends.messages.Message;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.types.AttributeType;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.SearchFilter;
 
 /**
  * The TargAttrFilterList class represents an targattrfilters list. A
@@ -46,42 +48,42 @@ import java.util.LinkedHashMap;
  */
 public class TargAttrFilterList {
 
-    /*
-     * The mask coresponding to the operation of this list (add or del).
-     */
+  /**
+   * The mask corresponding to the operation of this list (add or del).
+   */
     private int mask=0;
 
-    /*
-     * ListHashMap keyed by the attribute type and mapping to the corresponding
-     * search filter. LinkedHashMap is used so everything is in order.
-     */
+  /**
+   * ListHashMap keyed by the attribute type and mapping to the corresponding
+   * search filter. LinkedHashMap is used so everything is in order.
+   */
     private LinkedHashMap<AttributeType, SearchFilter> attrFilterList;
 
-    /*
-     * Regular expression group count.
-     */
+  /**
+   * Regular expression group count.
+   */
     private static int expectedGroupCount=2;
 
-    /*
-     * Regular expression attribute group position.
-     */
+  /**
+   * Regular expression attribute group position.
+   */
     private static int attributePos=1;
 
-    /*
-     * Regular expression filter group position.
-     */
+  /**
+   * Regular expression filter group position.
+   */
     private static int filterPos=2;
 
-    /*
-     * Regular expression used to match a filter list including the strange
-     * "and" token used to join the multiple attribute type filter pairs.
-     */
+  /**
+   * Regular expression used to match a filter list including the strange "and"
+   * token used to join the multiple attribute type filter pairs.
+   */
     private static final String filterListSeperator =
               ZERO_OR_MORE_WHITESPACE  + "&&" + ZERO_OR_MORE_WHITESPACE;
 
-    /*
-     * Regular expression used to match an attribute filter pair.
-     */
+  /**
+   * Regular expression used to match an attribute filter pair.
+   */
     private static final String attributeFilter=
             ATTR_NAME + ZERO_OR_MORE_WHITESPACE + ":{1}" +
             ZERO_OR_MORE_WHITESPACE + "(\\({1}.*\\){1})";

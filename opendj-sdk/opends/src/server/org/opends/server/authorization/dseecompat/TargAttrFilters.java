@@ -23,51 +23,51 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS
  */
-
 package org.opends.server.authorization.dseecompat;
-import org.opends.messages.Message;
 
 import static org.opends.messages.AccessControlMessages.*;
 import static org.opends.server.authorization.dseecompat.Aci.*;
-import org.opends.server.types.*;
 
-import java.util.regex.Pattern;
-import java.util.regex.Matcher;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import org.opends.messages.Message;
+import org.opends.server.types.*;
 
 /**
  * The TargAttrFilters class represents a targattrfilters rule of an ACI.
  */
 public class TargAttrFilters {
 
-    /*
+    /**
      * A valid targattrfilters rule may have two TargFilterlist parts -- the
      * first one is required.
      */
-    TargAttrFilterList firstFilterList=null;
-    TargAttrFilterList secondFilterList=null;
+    private TargAttrFilterList firstFilterList = null;
+    private TargAttrFilterList secondFilterList = null;
 
-    /*
+    /**
      * Regular expression group position for the first operation value.
      */
     private static final int firstOpPos = 1;
 
-    /*
+    /**
      * Regular expression group position for the rest of an partially parsed
      * rule.
      */
     private static final int restOfExpressionPos=2;
 
-    /*
+    /**
      * Regular expression used to match the operation group (either add or del).
      */
     private static final String ADD_OR_DEL_KEYWORD_GROUP = "(add|del)";
 
-    /*
+    /**
      * Regular expression used to check for valid expression separator.
      */
-
     private static final
     String secondOpSeparator="\\)" +  ZERO_OR_MORE_WHITESPACE + ",";
 
@@ -80,31 +80,31 @@ public class TargAttrFilters {
             "[,]{1}" + ZERO_OR_MORE_WHITESPACE + "del|add" +
             ZERO_OR_MORE_WHITESPACE + EQUAL_SIGN + ZERO_OR_MORE_WHITESPACE;
 
-    /*
+    /**
      * Regular expression used to match the first targFilterList, it must exist
      * or an exception is thrown.
      */
     private static final String firstOp = "^" + ADD_OR_DEL_KEYWORD_GROUP +
             ZERO_OR_MORE_WHITESPACE + EQUAL_SIGN + ZERO_OR_MORE_WHITESPACE;
 
-    /*
+    /**
      * Regular expression used to group the remainder of a partially parsed
      * rule.  Any character one or more times.
      */
     private static String restOfExpression = "(.+)";
 
-    /*
+    /**
      * Regular expression used to match the first operation keyword and the
      * rest of the expression.
      */
     private static String keywordFullPattern = firstOp + restOfExpression;
 
-    /*
+    /**
      * The enumeration representing the operation.
      */
     EnumTargetOperator op;
 
-    /*
+    /**
      * A mask used to denote if the rule has add, del or both operations in the
      * composite TargFilterList parts.
      */

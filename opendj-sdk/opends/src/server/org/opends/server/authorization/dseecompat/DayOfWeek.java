@@ -23,29 +23,28 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS
  */
-
 package org.opends.server.authorization.dseecompat;
-import org.opends.messages.Message;
 
 import static org.opends.messages.AccessControlMessages.*;
+
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.LinkedList;
+import java.util.List;
+
+import org.opends.messages.Message;
 
 /**
  * This class implements the dayofweek bind rule keyword.
  */
 public class DayOfWeek  implements KeywordBindRule {
 
-    /*
-     * List containing the enumeration of the day of the week.
-     */
-    LinkedList<EnumDayOfWeek> days=null;
+    /** List containing the enumeration of the day of the week. */
+    private List<EnumDayOfWeek> days = null;
 
-    /*
-     * Enumeration representing the bind rule operation type.
-     */
+    /** Enumeration representing the bind rule operation type. */
     private EnumBindRuleType type=null;
 
     /**
@@ -53,7 +52,7 @@ public class DayOfWeek  implements KeywordBindRule {
      * @param days  A list of day of the week enumerations.
      * @param type An enumeration representing the bind rule type.
      */
-    private DayOfWeek(LinkedList<EnumDayOfWeek> days, EnumBindRuleType type) {
+    private DayOfWeek(List<EnumDayOfWeek> days, EnumBindRuleType type) {
         this.days=days;
         this.type=type;
     }
@@ -69,11 +68,11 @@ public class DayOfWeek  implements KeywordBindRule {
     public static KeywordBindRule decode(String expr, EnumBindRuleType type)
     throws AciException
     {
-        LinkedList<EnumDayOfWeek>days=new LinkedList<EnumDayOfWeek>();
+        List<EnumDayOfWeek> days = new LinkedList<EnumDayOfWeek>();
         String[] dayArray=expr.split(",", -1);
-        for(int i=0, m=dayArray.length; i < m; i++)
+        for (String element : dayArray)
         {
-          EnumDayOfWeek day=EnumDayOfWeek.createDayOfWeek(dayArray[i]);
+          EnumDayOfWeek day=EnumDayOfWeek.createDayOfWeek(element);
           if (day == null)
           {
               Message message = WARN_ACI_SYNTAX_INVALID_DAYOFWEEK.get(expr);
@@ -90,6 +89,7 @@ public class DayOfWeek  implements KeywordBindRule {
      * @param evalCtx  An evaluation context to use in the evaluation.
      * @return An enumeration evaluation result.
      */
+    @Override
     public EnumEvalResult evaluate(AciEvalContext evalCtx) {
         EnumEvalResult matched=EnumEvalResult.FALSE;
         GregorianCalendar calendar = new GregorianCalendar();
@@ -99,4 +99,21 @@ public class DayOfWeek  implements KeywordBindRule {
             matched=EnumEvalResult.TRUE;
         return matched.getRet(type, false);
     }
+
+    /** {@inheritDoc} */
+    @Override
+    public String toString()
+    {
+      final StringBuilder sb = new StringBuilder();
+      toString(sb);
+      return sb.toString();
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public final void toString(StringBuilder buffer)
+    {
+      buffer.append(super.toString());
+    }
+
 }

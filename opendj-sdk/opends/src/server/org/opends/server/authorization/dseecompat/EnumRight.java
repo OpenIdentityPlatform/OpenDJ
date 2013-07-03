@@ -23,10 +23,14 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS
  */
-
 package org.opends.server.authorization.dseecompat;
+
 import static org.opends.server.authorization.dseecompat.Aci.*;
+
+import java.util.EnumSet;
+import java.util.Set;
 
 /**
  * This class provides an enumeration of the allowed rights.
@@ -89,7 +93,7 @@ public enum EnumRight {
      */
     ADDWRITE    ("addwrite");
 
-    /*
+    /**
      * The name of the right.
      */
     private final String right;
@@ -100,6 +104,15 @@ public enum EnumRight {
      */
     EnumRight (String right) {
         this.right = right ;
+    }
+
+    /**
+     * Returns the string representation of the right.
+     *
+     * @return the string representation of the right
+     */
+    public String getRight() {
+        return right;
     }
 
     /**
@@ -170,5 +183,54 @@ public enum EnumRight {
                 break;
         }
         return mask;
+    }
+
+    /**
+     * Return the EnumRight corresponding to the provided rightsMask.
+     *
+     * @param rightsMask
+     *          the rights mask for which to return the corresponding EnumRight
+     * @return EnumRight corresponding to the provided rightsMask.
+     */
+    public static Set<EnumRight> getEnumRight(int rightsMask) {
+        if (hasRights(rightsMask, ACI_ALL))
+            return EnumSet.of(ALL);
+
+        final EnumSet<EnumRight> results = EnumSet.noneOf(EnumRight.class);
+        if (hasRights(rightsMask, ACI_READ))
+            results.add(READ);
+        if (hasRights(rightsMask, ACI_WRITE))
+            results.add(WRITE);
+        if (hasRights(rightsMask, ACI_ADD))
+            results.add(ADD);
+        if (hasRights(rightsMask, ACI_DELETE))
+            results.add(DELETE);
+        if (hasRights(rightsMask, ACI_SEARCH))
+            results.add(SEARCH);
+        if (hasRights(rightsMask, ACI_COMPARE))
+            results.add(COMPARE);
+        if (hasRights(rightsMask, ACI_EXPORT))
+            results.add(EXPORT);
+        if (hasRights(rightsMask, ACI_IMPORT))
+            results.add(IMPORT);
+        if (hasRights(rightsMask, ACI_PROXY))
+            results.add(PROXY);
+        if (hasRights(rightsMask, ACI_SELF))
+            results.add(SELFWRITE);
+        return results;
+    }
+
+    /**
+     * Checks if the provided rights mask has the specified rights.
+     *
+     * @param rightsMask
+     *          The rights mask to look into.
+     * @param rights
+     *          The rights to check for.
+     * @return true if the rights mask has the specified rights, false
+     *           otherwise.
+     */
+    public static boolean hasRights(int rightsMask, int rights) {
+        return (rightsMask & rights) == rights;
     }
 }

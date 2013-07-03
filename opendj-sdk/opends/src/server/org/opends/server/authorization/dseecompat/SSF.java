@@ -23,8 +23,8 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS
  */
-
 package org.opends.server.authorization.dseecompat;
 
 import org.opends.messages.Message;
@@ -33,13 +33,10 @@ import static org.opends.messages.AccessControlMessages.*;
 /**
  * The class represents the ssf keyword in a bind rule.SSF stands for
  * security strength factor.
- *
  */
 public class SSF implements KeywordBindRule {
 
-    /*
-     *  Enumeration representing the bind rule operation type.
-     */
+    /** Enumeration representing the bind rule operation type. */
     private EnumBindRuleType type=null;
 
     private static final int MAX_KEY_BITS=1024;
@@ -58,8 +55,7 @@ public class SSF implements KeywordBindRule {
      * @return A SSF instance.
      * @throws AciException If the SSF instance cannot be created.
      */
-    static SSF
-    decode(String expr, EnumBindRuleType type) throws AciException  {
+    static SSF decode(String expr, EnumBindRuleType type) throws AciException {
         int valueAsInt = 0;
         try {
             valueAsInt = Integer.parseInt(expr);
@@ -113,4 +109,21 @@ public class SSF implements KeywordBindRule {
         }
         return matched.getRet(type, false);
     }
+
+    /** {@inheritDoc} */
+    @Override
+    public String toString()
+    {
+        final StringBuilder sb = new StringBuilder();
+        toString(sb);
+        return sb.toString();
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public final void toString(StringBuilder buffer)
+    {
+        buffer.append(super.toString());
+    }
+
 }
