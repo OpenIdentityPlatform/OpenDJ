@@ -71,7 +71,7 @@ $ javaws <replaceable>URL-to-QuickSetup-Installer</replaceable></screen>
 
  <para>The WebStart installer corresponds to what you start if you download
  OpenDJ-<?eval ${docTargetVersion}?>.zip, unzip the file, and then run
- <command>./opendj/setup</command> (UNIX), <command>opendj\setup.bat</command>
+ <command>opendj/setup</command> (UNIX), <command>opendj\setup.bat</command>
   (Windows), or <command>opendj/QuickSetup.app</command> (Mac OS X).</para>
 
  <para>Java WebStart launches the the QuickSetup wizard, and soon the
