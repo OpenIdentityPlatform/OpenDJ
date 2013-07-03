@@ -245,8 +245,9 @@
   <para>The following important issues remained open at the time this release
   became available.</para>
 
-  <!-- List generated at 10:31:05 20130703 using http://bugster.forgerock.org/jira/rest/api/2/search?jql=project+%3D+OpenDJ+AND+%28resolution+%3D+Unresolved+OR+%28resolution+%3D+Fixed+AND+fixVersion++>+"2.6.0"+and+fixVersion+%21%3D+"2.6.0"%29%29+AND+labels+%3D+release-notes&startAt=0&maxResults=500&fields=summary-->
+  <!-- List generated at 17:03:19 20130703 using http://bugster.forgerock.org/jira/rest/api/2/search?jql=project+%3D+OpenDJ+AND+%28resolution+%3D+Unresolved+OR+%28resolution+%3D+Fixed+AND+fixVersion++>+"2.6.0"+and+fixVersion+%21%3D+"2.6.0"%29%29+AND+labels+%3D+release-notes&startAt=0&maxResults=500&fields=summary-->
   <itemizedlist>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1048" xlink:show="new">OPENDJ-1048</link>: OpenDJ QuickSetup creates the "licenseAccepted" file in the wrong place</para></listitem>
    <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1043" xlink:show="new">OPENDJ-1043</link>: Worker Thread was interrupted while waiting for new work while shutting down </para></listitem>
    <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1033" xlink:show="new">OPENDJ-1033</link>: The Rest2LDAP servlet does not support SSL</para></listitem>
    <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-934" xlink:show="new">OPENDJ-934</link>: Changes to RS window-size property require a server restart</para></listitem>
