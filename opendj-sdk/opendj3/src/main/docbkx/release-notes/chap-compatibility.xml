@@ -106,8 +106,9 @@
    </listitem>
 
    <listitem>
-    <para>For the SNMP, the default <literal>security-agent-file</literal> has
-    changed to <filename>opendj-snmp.security</filename> (<link xlink:show="new"
+    <para>For the SNMP Connection Handler, the default
+    <literal>security-agent-file</literal> has changed to
+    <filename>opendj-snmp.security</filename> (<link xlink:show="new"
     xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-982"
     >OPENDJ-982</link>), and the upgrade process changes the file name. If the
     SNMP Connection Handler fails to start after upgrade, use the
