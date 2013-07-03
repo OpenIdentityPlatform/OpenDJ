@@ -103,6 +103,7 @@
     of the extension work with OpenDJ 2.6.0.</para>
    </listitem>
 
+   <!-- This hardware is EOL.
    <listitem>
     <para>On Niagara systems such as T2000, hardware SSL crypto acceleration
     runs more slowly than software crypto acceleration. To work around this
@@ -119,6 +120,7 @@
      </listitem>
     </orderedlist>
    </listitem>
+   -->
   </itemizedlist>
  </section>
 
