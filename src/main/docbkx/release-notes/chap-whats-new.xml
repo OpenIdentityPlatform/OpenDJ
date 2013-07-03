@@ -228,6 +228,13 @@
      >OPENDJ-371</link>, <link xlink:show="new"
      xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-662"
      >OPENDJ-662</link>).</para>
+
+     <para>With the new version, explicitly use the Java setting
+     <option>-XX:+UseCompressedOops</option> to improve performance, even if
+     the setting is enabled by default in recent versions of the Java runtime
+     environment. To apply JVM settings for your server, edit
+     <filename>config/java.properties</filename>, and apply the changes with
+     the <command>dsjavaproperties</command> command.</para>
     </listitem>
     <listitem>
      <para>More OpenDJ tools now prompt for a bind password when none is
