@@ -23,8 +23,8 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS
  */
-
 package org.opends.server.authorization.dseecompat;
 
 /**
@@ -63,9 +63,7 @@ public enum EnumBindRuleType {
      */
     GREATER_OR_EQUAL_BINDRULE_TYPE  (">=");
 
-    /*
-     * The bind rule type name.
-     */
+    /** The bind rule type name. */
     private final String type;
 
     /**
@@ -74,6 +72,16 @@ public enum EnumBindRuleType {
      */
     EnumBindRuleType(String type){
         this.type = type;
+    }
+
+    /**
+     * Returns the comparison operator corresponding to this EnumBindRuleType.
+     *
+     * @return the string representing the comparison operator
+     */
+    public String getType()
+    {
+      return type;
     }
 
     /**

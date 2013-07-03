@@ -23,54 +23,46 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS
  */
-
 package org.opends.server.authorization.dseecompat;
 
-import org.opends.messages.Message;
-
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.messages.AccessControlMessages.*;
 import static org.opends.server.authorization.dseecompat.Aci.*;
+import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.StaticUtils.*;
 
-import org.opends.server.loggers.debug.DebugTracer;
-
 import java.net.InetAddress;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.opends.messages.Message;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
 
 /**
  * This class implements the dns bind rule keyword.
  */
 public class DNS implements KeywordBindRule {
+
   /**
    * The tracer object for the debug logger.
    */
   private static final DebugTracer TRACER = getTracer();
 
+    /** List of patterns to match against. */
+    private List<String> patterns = null;
 
-    /*
-     * List of patterns to match against.
-     */
-    LinkedList<String> patterns=null;
-
-    /*
-     * The enumeration representing the bind rule type of the DNS rule.
-     */
+    /** The enumeration representing the bind rule type of the DNS rule. */
     private EnumBindRuleType type=null;
 
-    /*
-     *  Regular expression group used to match a dns rule.
-     */
+    /** Regular expression group used to match a dns rule. */
     private static final String valueRegex = "([a-zA-Z0-9\\.\\-\\*]+)";
 
-    /*
-     * Regular expression group used to match one or more DNS values.
-     */
+    /** Regular expression group used to match one or more DNS values. */
     private static final String valuesRegExGroup =
             valueRegex + ZERO_OR_MORE_WHITESPACE +
             "(," +  ZERO_OR_MORE_WHITESPACE  +  valueRegex  +  ")*";
@@ -80,7 +72,7 @@ public class DNS implements KeywordBindRule {
      * @param patterns List of dns patterns to match against.
      * @param type An enumeration representing the bind rule type.
      */
-    DNS(LinkedList<String> patterns, EnumBindRuleType type) {
+    DNS(List<String> patterns, EnumBindRuleType type) {
         this.patterns=patterns;
         this.type=type;
     }
@@ -100,7 +92,7 @@ public class DNS implements KeywordBindRule {
             Message message = WARN_ACI_SYNTAX_INVALID_DNS_EXPRESSION.get(expr);
             throw new AciException(message);
         }
-        LinkedList<String>dns=new LinkedList<String>();
+        List<String> dns = new LinkedList<String>();
         int valuePos = 1;
         Pattern valuePattern = Pattern.compile(valueRegex);
         Matcher valueMatcher = valuePattern.matcher(expr);
@@ -181,6 +173,7 @@ public class DNS implements KeywordBindRule {
      * @param evalCtx  An evaluation context to use in the evaluation.
      * @return An enumeration evaluation result.
      */
+    @Override
     public EnumEvalResult evaluate(AciEvalContext evalCtx) {
         EnumEvalResult matched=EnumEvalResult.FALSE;
         String[] remoteHost = evalCtx.getHostName().split("\\.", -1);
@@ -206,7 +199,7 @@ public class DNS implements KeywordBindRule {
      * the bind rule expression. The first array slot may be a wild-card "*".
      * @return  True if the remote hostname matches the pattern.
      */
-      boolean evalHostName(String[] remoteHostName, String[] pat) {
+    boolean evalHostName(String[] remoteHostName, String[] pat) {
       boolean wildCard=pat[0].equals("*");
       //Check if there is a single wild-card.
       if(pat.length == 1 && wildCard)
@@ -226,4 +219,19 @@ public class DNS implements KeywordBindRule {
                 return false;
       return true;
     }
+
+    /** {@inheritDoc} */
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder();
+        toString(sb);
+        return sb.toString();
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public final void toString(StringBuilder buffer) {
+        buffer.append(super.toString());
+    }
+
 }

@@ -23,34 +23,37 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS
  */
-
 package org.opends.server.authorization.dseecompat;
-import org.opends.messages.Message;
 
 import static org.opends.messages.AccessControlMessages.*;
-import java.util.*;
-import org.opends.server.types.*;
+
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+
+import org.opends.messages.Message;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.types.*;
 
 /**
  * This class represents the userdn keyword in a bind rule.
  */
 public class UserDN implements KeywordBindRule {
-    /*
+
+    /**
      * A dummy URL for invalid URLs such as: all, parent, anyone, self.
      */
     private static String urlStr="ldap:///";
 
-    /*
+    /**
      * This list holds a list of objects representing a EnumUserDNType
      * URL mapping.
      */
     private List<UserDNTypeURL> urlList=null;
 
-    /*
-     * Enumeration of the userdn operation type.
-     */
+    /** Enumeration of the userdn operation type. */
     private EnumBindRuleType type=null;
 
     /**
@@ -78,9 +81,9 @@ public class UserDN implements KeywordBindRule {
 
         String[] vals=expression.split("[|][|]");
         List<UserDNTypeURL> urlList = new LinkedList<UserDNTypeURL>();
-         for(int i=0, m=vals.length; i < m; i++)
+        for (String val : vals)
         {
-            StringBuilder value = new StringBuilder(vals[i].trim());
+            StringBuilder value = new StringBuilder(val.trim());
            /*
             * TODO Evaluate using a wild-card in the dn portion of LDAP url.
             * The current implementation (DS6) does not treat a "*"
@@ -174,6 +177,7 @@ public class UserDN implements KeywordBindRule {
      * @return  An evaluation result enumeration containing the result
      * of the evaluation.
      */
+    @Override
     public EnumEvalResult evaluate(AciEvalContext evalCtx) {
         EnumEvalResult matched = EnumEvalResult.FALSE;
         boolean undefined=false;
@@ -372,4 +376,26 @@ public class UserDN implements KeywordBindRule {
         }
         return matched;
     }
+
+    /** {@inheritDoc} */
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder();
+        toString(sb);
+        return sb.toString();
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public final void toString(StringBuilder buffer) {
+        buffer.append("userdn");
+        buffer.append(this.type.getType());
+        for (UserDNTypeURL url : this.urlList) {
+            buffer.append("\"");
+            buffer.append(urlStr);
+            buffer.append(url.getUserDNType().toString().toLowerCase());
+            buffer.append("\"");
+        }
+    }
+
 }

@@ -23,18 +23,19 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2013 ForgeRock AS.
  */
-
 package org.opends.server.authorization.dseecompat;
-import org.opends.messages.Message;
 
 import static org.opends.messages.AccessControlMessages.*;
 import static org.opends.server.authorization.dseecompat.Aci.*;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.opends.messages.Message;
 
 /**
  * This class represents the body of an ACI. The body of the ACI is the
@@ -42,64 +43,62 @@ import java.util.regex.Pattern;
  */
 public class AciBody {
 
-    /*
+    /**
      * Regular expression group position for the version string.
      */
     private static final int VERSION = 1;
 
-    /*
+    /**
      * Regular expression group position for the name string.
      */
     private static final int NAME = 2;
 
-    /*
+    /**
      * Regular expression group position for the permission string.
      */
     private static final int PERM = 1;
 
-    /*
+    /**
      * Regular expression group position for the rights string.
      */
     private static final int RIGHTS = 2;
 
-    /*
+    /**
      * Regular expression group position for the bindrule string.
      */
     private static final int BINDRULE = 3;
 
-    /*
+    /**
      * Index into the ACI string where the ACI body starts.
      */
     private int startPos=0;
 
-    /*
-    * The name of the ACI, currently not used but parsed.
-    */
+    /**
+     * The name of the ACI, currently not used but parsed.
+     */
     private String name = null;
 
-    /*
-    * The version of the ACi, current not used but parsed and checked
-    * for 3.0.
-    */
+    /**
+     * The version of the ACi, current not used but parsed and checked for 3.0.
+     */
     private String version = null;
 
-    /*
-     This structure represents a permission-bind rule pairs. There can be
-     several of these.
-    */
+    /**
+     * This structure represents a permission-bind rule pairs. There can be
+     * several of these.
+     */
     private List<PermBindRulePair> permBindRulePairs;
 
-    /*
+    /**
      * Regular expression used to match the access type group (allow, deny) and
      * the rights group "(read, write, ...)". The last pattern looks for a group
      * surrounded by parenthesis. The group must contain at least one
      * non-paren character.
      */
-    private static final
-    String permissionRegex =
+    private static final String permissionRegex =
                WORD_GROUP + ZERO_OR_MORE_WHITESPACE + "\\(([^()]+)\\)";
 
-    /*
+    /**
      * Regular expression that matches a bind rule group at a coarse level. It
      * matches any character one or more times, a single quotation and
      * an optional right parenthesis.
@@ -107,7 +106,7 @@ public class AciBody {
     private static final String bindRuleRegex =
             "(.+?\"[)]*)" + ACI_STATEMENT_SEPARATOR;
 
-    /*
+    /**
      * Regular expression used to match the actions of the ACI. The actions
      * are permissions and matching bind rules.
      */
@@ -115,17 +114,17 @@ public class AciBody {
             ZERO_OR_MORE_WHITESPACE + permissionRegex +
             ZERO_OR_MORE_WHITESPACE + bindRuleRegex;
 
-    /*
+    /**
      * Regular expression used to match the version value (digit.digit).
      */
     private static final String versionRegex = "(\\d\\.\\d)";
 
-    /*
+    /**
      * Regular expression used to match the version token. Case insensitive.
      */
     private static final String versionToken = "(?i)version(?-i)";
 
-    /*
+    /**
      * Regular expression used to match the acl token. Case insensitive.
      */
     private static final String aclToken = "(?i)acl(?-i)";
@@ -141,7 +140,7 @@ public class AciBody {
         "\"([^\"]*)\"" + ACI_STATEMENT_SEPARATOR + actionRegex +
         ZERO_OR_MORE_WHITESPACE  + "\\)";
 
-    /*
+    /**
      * Regular expression used to match the header of the ACI body. The
      * header is version and acl name.
      */
@@ -260,7 +259,7 @@ public class AciBody {
      *
      * @return The permission-bind rule pairs.
      */
-    private List<PermBindRulePair> getPermBindRulePairs() {
+    List<PermBindRulePair> getPermBindRulePairs() {
         return permBindRulePairs;
     }
 
@@ -374,4 +373,31 @@ public class AciBody {
   public String getVersion () {
     return version;
   }
+
+  /** {@inheritDoc} */
+  @Override
+  public String toString()
+  {
+    final StringBuilder sb = new StringBuilder();
+    toString(sb);
+    return sb.toString();
+  }
+
+  /**
+   * Appends a string representation of this object to the provided buffer.
+   *
+   * @param buffer
+   *          The buffer into which a string representation of this object
+   *          should be appended.
+   */
+  public final void toString(StringBuilder buffer)
+  {
+    buffer.append("(version ").append(this.version);
+    buffer.append("; acl \"").append(this.name).append("\"; ");
+    for (PermBindRulePair pair : this.permBindRulePairs)
+    {
+      buffer.append(pair);
+    }
+  }
+
 }

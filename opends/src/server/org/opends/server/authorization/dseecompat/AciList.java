@@ -23,20 +23,21 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS
  */
-
 package org.opends.server.authorization.dseecompat;
-import org.opends.messages.Message;
 
-import org.opends.server.api.Backend;
-import static org.opends.server.authorization.dseecompat.AciHandler.*;
-import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.messages.AccessControlMessages.*;
-import org.opends.server.api.DITCacheMap;
-import org.opends.server.types.*;
+import static org.opends.server.authorization.dseecompat.AciHandler.*;
+import static org.opends.server.loggers.ErrorLogger.*;
 
 import java.util.*;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+
+import org.opends.messages.Message;
+import org.opends.server.api.Backend;
+import org.opends.server.api.DITCacheMap;
+import org.opends.server.types.*;
 
 /**
  * The AciList class performs caching of the ACI attribute values
@@ -44,22 +45,20 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  */
 public class AciList {
 
-  /*
+  /**
    * A map containing all the ACIs.
    * We use the copy-on-write technique to avoid locking when reading.
    */
   private volatile DITCacheMap<List<Aci>> aciList =
        new DITCacheMap<List<Aci>>();
 
-  /*
+  /**
    * Lock to protect internal data structures.
    */
   private final ReentrantReadWriteLock lock =
           new ReentrantReadWriteLock();
 
-  /*
-  * The configuration DN used to compare against the global ACI entry DN.
-  */
+  /** The configuration DN used to compare against the global ACI entry DN. */
   private DN configDN;
 
   /**
@@ -102,12 +101,10 @@ public class AciList {
               AciTargets targets = aci.getTargets();
               //If there is a target, evaluate it to see if this ACI should
               //be included in the candidate set.
-              if (targets != null) {
-                boolean ret = AciTargets.isTargetApplicable(aci, targets,
-                        entryDN);
-                if (ret) {
+              if (targets != null
+                  && AciTargets.isTargetApplicable(aci, targets, entryDN))
+              {
                   candidates.add(aci);  //Add this ACI to the candidates.
-                }
               }
             }
           } else {
@@ -414,7 +411,7 @@ public class AciList {
 
   /**
    * Rename all ACIs under the specified old DN to the new DN. A simple
-   * interation over the entire list is performed.
+   * interaction over the entire list is performed.
    * @param oldDN The DN of the original entry that was moved.
    * @param newDN The DN of the new entry.
    */

@@ -23,8 +23,8 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS
  */
-
 package org.opends.server.authorization.dseecompat;
 
 /**
@@ -41,4 +41,13 @@ public interface KeywordBindRule
      * @return An enumeration evaluation result.
      */
     public EnumEvalResult evaluate(AciEvalContext evalCtx);
+
+    /**
+     * Appends a string representation of this object to the provided buffer.
+     *
+     * @param buffer
+     *          The buffer into which a string representation of this object
+     *          should be appended.
+     */
+    void toString(StringBuilder buffer);
 }

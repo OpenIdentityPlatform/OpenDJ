@@ -23,8 +23,8 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS
  */
-
 package org.opends.server.authorization.dseecompat;
 import org.opends.messages.Message;
 
@@ -37,19 +37,15 @@ import java.util.regex.Pattern;
  */
 public class TimeOfDay implements KeywordBindRule {
 
-    /*
+    /**
      * Regular expression matching a valid timeofday rule value (0-2359).
      */
     private static final String timeofdayRegex = "[0-2]\\d[0-5]\\d";
 
-    /*
-     *  Enumeration representing the bind rule operation type.
-     */
+    /** Enumeration representing the bind rule operation type. */
     private EnumBindRuleType type=null;
 
-    /*
-     * Holds the time value parsed from the ACI.
-     */
+    /** Holds the time value parsed from the ACI. */
     private int timeRef;
 
     /**
@@ -143,4 +139,21 @@ public class TimeOfDay implements KeywordBindRule {
         }
         return matched.getRet(type, false);
     }
+
+    /** {@inheritDoc} */
+    @Override
+    public String toString()
+    {
+        final StringBuilder sb = new StringBuilder();
+        toString(sb);
+        return sb.toString();
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public final void toString(StringBuilder buffer)
+    {
+        buffer.append(super.toString());
+    }
+
 }

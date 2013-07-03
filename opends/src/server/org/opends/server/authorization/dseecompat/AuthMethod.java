@@ -23,23 +23,21 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS
  */
-
 package org.opends.server.authorization.dseecompat;
-import org.opends.messages.Message;
-
 import static org.opends.messages.AccessControlMessages.*;
+import static org.opends.server.loggers.ErrorLogger.*;
+
+import org.opends.messages.Message;
 import org.opends.server.core.DirectoryServer;
-import static org.opends.server.loggers.ErrorLogger.logError;
-
-
 
 /**
  * The AuthMethod class represents an authmethod bind rule keyword expression.
  */
 public class AuthMethod implements KeywordBindRule {
 
-    /*
+    /**
      * Enumeration representing the authentication method.
      */
     private EnumAuthMethod authMethod=null;
@@ -49,7 +47,7 @@ public class AuthMethod implements KeywordBindRule {
      */
     private String saslMech = null;
 
-    /*
+    /**
      * Enumeration representing the bind rule operation type.
      */
     private EnumBindRuleType type=null;
@@ -110,9 +108,27 @@ public class AuthMethod implements KeywordBindRule {
      * @param evalCtx  An evaluation context to use.
      * @return  An enumeration evaluation result.
      */
+    @Override
     public EnumEvalResult evaluate(AciEvalContext evalCtx) {
         EnumEvalResult matched =
              evalCtx.hasAuthenticationMethod(authMethod, saslMech);
         return matched.getRet(type, false);
     }
+
+    /** {@inheritDoc} */
+    @Override
+    public String toString()
+    {
+      final StringBuilder sb = new StringBuilder();
+      toString(sb);
+      return sb.toString();
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public final void toString(StringBuilder buffer)
+    {
+      buffer.append(super.toString());
+    }
+
 }

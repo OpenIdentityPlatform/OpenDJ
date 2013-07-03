@@ -23,37 +23,33 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS
  */
-
 package org.opends.server.authorization.dseecompat;
-import org.opends.messages.Message;
 
 import static org.opends.messages.AccessControlMessages.*;
 import static org.opends.server.authorization.dseecompat.Aci.*;
-import org.opends.server.types.*;
-import org.opends.server.api.Group;
-import org.opends.server.core.GroupManager;
-import org.opends.server.core.DirectoryServer;
-import java.util.Iterator;
+
 import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.opends.messages.Message;
+import org.opends.server.api.Group;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.GroupManager;
+import org.opends.server.types.*;
 
 /**
  * This class implements the groupdn bind rule keyword.
  */
 public class GroupDN implements KeywordBindRule {
 
-    /*
-     * List of group DNs.
-     */
-    LinkedList<DN> groupDNs=null;
+    /** List of group DNs. */
+    private List<DN> groupDNs = null;
 
-    /*
-     * Enumeration representing the groupdn operator type.
-     */
+    /** Enumeration representing the groupdn operator type. */
     private EnumBindRuleType type=null;
 
     /**
@@ -69,7 +65,7 @@ public class GroupDN implements KeywordBindRule {
      * @param type An enumeration representing the bind rule type.
      * @param groupDNs A list of the dns representing groups.
      */
-    private GroupDN(EnumBindRuleType type, LinkedList<DN> groupDNs ) {
+    private GroupDN(EnumBindRuleType type, List<DN> groupDNs ) {
         this.groupDNs=groupDNs;
         this.type=type;
     }
@@ -89,7 +85,7 @@ public class GroupDN implements KeywordBindRule {
                 WARN_ACI_SYNTAX_INVALID_GROUPDN_EXPRESSION.get(expr);
             throw new AciException(message);
         }
-        LinkedList<DN>groupDNs=new LinkedList<DN>();
+        List<DN> groupDNs = new LinkedList<DN>();
         int ldapURLPos = 1;
         Pattern ldapURLPattern = Pattern.compile(LDAP_URL);
         Matcher ldapURLMatcher = ldapURLPattern.matcher(expr);
@@ -115,14 +111,15 @@ public class GroupDN implements KeywordBindRule {
      * @param evalCtx  An evaluation context to use  in the evaluation.
      * @return  Enumeration evaluation result.
      */
+    @Override
     public EnumEvalResult evaluate(AciEvalContext evalCtx) {
         EnumEvalResult matched = EnumEvalResult.FALSE;
-       Iterator<DN> it=groupDNs.iterator();
-        for(; it.hasNext() && matched != EnumEvalResult.TRUE;) {
-            DN  groupDN=it.next();
+        for (DN groupDN : groupDNs) {
             Group<?> group = getGroupManager().getGroupInstance(groupDN);
-            if((group != null) && (evalCtx.isMemberOf(group)))
+            if((group != null) && (evalCtx.isMemberOf(group))) {
                matched = EnumEvalResult.TRUE;
+               break;
+            }
         }
         return matched.getRet(type, false);
     }
@@ -167,4 +164,19 @@ public class GroupDN implements KeywordBindRule {
     private static GroupManager getGroupManager() {
         return DirectoryServer.getGroupManager();
     }
+
+    /** {@inheritDoc} */
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder();
+        toString(sb);
+        return sb.toString();
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public final void toString(StringBuilder buffer) {
+        buffer.append(super.toString());
+    }
+
 }

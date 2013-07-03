@@ -23,20 +23,22 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
-
 package org.opends.server.authorization.dseecompat;
-import org.opends.messages.Message;
 
 import static org.opends.messages.AccessControlMessages.*;
+
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
+
+import org.opends.messages.Message;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.types.*;
+
 /*
  * TODO Evaluate making this class more efficient.
  *
@@ -58,36 +60,28 @@ public class UserAttr implements KeywordBindRule {
         USERDN, GROUPDN, ROLEDN, URL, VALUE
     }
 
-    /*
-     * Filter used in  internal search.
-     */
+    /** Filter used internal search. */
     private static SearchFilter filter;
 
-    /*
+    /**
      * Used to create an attribute type that can compare the value below in
      * an entry returned from an internal search.
      */
     private  String attrStr=null;
 
-    /*
+    /**
      * Used to compare a attribute value returned from a search against this
      * value which might have been defined in the ACI userattr rule.
      */
     private  String attrVal=null;
 
-    /*
-     * Contains the type of the userattr, one of the above enumerations.
-     */
+    /** Contains the type of the userattr, one of the above enumerations. */
     private UserAttrType userAttrType=null;
 
-    /*
-     * An enumeration representing the bind rule type.
-     */
+    /** An enumeration representing the bind rule type. */
     private EnumBindRuleType type=null;
 
-    /*
-     * The class used to hold the parent inheritance information.
-     */
+    /** The class used to hold the parent inheritance information. */
     private ParentInheritance parentInheritance=null;
 
     static {
@@ -174,6 +168,7 @@ public class UserAttr implements KeywordBindRule {
      * userattr expression.
      * @return  An enumeration containing the result of the evaluation.
      */
+    @Override
     public EnumEvalResult evaluate(AciEvalContext evalCtx) {
       EnumEvalResult matched;
       //The working resource entry might be filtered and not have an
@@ -414,6 +409,22 @@ public class UserAttr implements KeywordBindRule {
             }
         }
         return result;
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public String toString()
+    {
+        final StringBuilder sb = new StringBuilder();
+        toString(sb);
+        return sb.toString();
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public final void toString(StringBuilder buffer)
+    {
+        buffer.append(super.toString());
     }
 
 }

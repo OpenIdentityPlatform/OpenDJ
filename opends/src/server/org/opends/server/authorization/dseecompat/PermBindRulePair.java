@@ -23,8 +23,8 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS
  */
-
 package org.opends.server.authorization.dseecompat;
 
 /**
@@ -33,14 +33,10 @@ package org.opends.server.authorization.dseecompat;
  */
 public class PermBindRulePair {
 
-    /*
-     * The Bind Rule part.
-     */
+    /** The Bind Rule part. */
     private BindRule bindRule;
 
-    /*
-     * The permission part.
-     */
+    /** The permission part. */
     private Permission perm=null;
 
     /**
@@ -96,5 +92,31 @@ public class PermBindRulePair {
      */
     public boolean hasRights(int right) {
         return perm.hasRights(right);
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder();
+        toString(sb);
+        return sb.toString();
+    }
+
+    /**
+     * Appends a string representation of this object to the provided buffer.
+     *
+     * @param buffer
+     *          The buffer into which a string representation of this object
+     *          should be appended.
+     */
+    public final void toString(StringBuilder buffer) {
+        if (this.perm != null) {
+            this.perm.toString(buffer);
+        }
+        buffer.append(" ");
+        if (this.bindRule != null) {
+            this.bindRule.toString(buffer);
+        }
+        buffer.append(")"); // not sure why, but we need this extra parenthesis
     }
 }
