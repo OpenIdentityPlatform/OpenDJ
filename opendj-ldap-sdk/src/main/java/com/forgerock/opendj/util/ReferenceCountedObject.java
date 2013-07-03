@@ -25,6 +25,7 @@
 
 package com.forgerock.opendj.util;
 
+
 /**
  * An object which is lazily created when first referenced, and destroyed when
  * the last reference is released.
@@ -72,9 +73,12 @@ public abstract class ReferenceCountedObject<T> {
         public void release() {
             T instanceToRelease = null;
             synchronized (lock) {
-                if (value != null && instance == value && --refCount == 0) {
-                    instanceToRelease = value;
-                    instance = null;
+                if (value != null) {
+                    if (instance == value && --refCount == 0) {
+                        // This was the last reference.
+                        instanceToRelease = value;
+                        instance = null;
+                    }
 
                     /*
                      * Force NPE for subsequent get() attempts and prevent
@@ -83,7 +87,6 @@ public abstract class ReferenceCountedObject<T> {
                     value = null;
                 }
             }
-
             if (instanceToRelease != null) {
                 destroyInstance(instanceToRelease);
             }

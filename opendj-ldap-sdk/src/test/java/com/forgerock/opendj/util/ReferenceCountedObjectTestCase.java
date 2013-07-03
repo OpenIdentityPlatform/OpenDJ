@@ -91,36 +91,46 @@ public class ReferenceCountedObjectTestCase extends UtilTestCase {
     }
 
     /**
-     * This test attempts to test that finalization works. It loops at most 100
-     * times performing GCs and checking to see if the finalizer was called.
-     * Usually objects are finalized after 2 GCs, so the loop should complete
-     * quite quickly.
-     *
-     * @throws Exception
-     *             If an unexpected error occurred.
+     * This test attempts to test that finalization works.
      */
     @Test
-    public void testFinalization() throws Exception {
+    public void testFinalization() {
         final Impl impl = mock(Impl.class);
         when(impl.newInstance()).thenReturn(object);
         final ReferenceCountedObject<Object> rco = rco(impl);
-        ReferenceCountedObject<Object>.Reference ref = rco.acquire();
-        System.gc();
-        System.gc();
+        final ReferenceCountedObject<Object>.Reference ref = rco.acquire();
         verify(impl, never()).destroyInstance(object);
-        // Read in order to prevent optimization.
-        if (ref != null) {
-            ref = null;
-        }
-        for (int i = 0; i < 100; i++) {
-            System.gc();
-            try {
-                verify(impl).destroyInstance(object);
-                break; // Finalized so stop.
-            } catch (final Throwable t) {
-                // Retry.
-            }
-        }
+        ref.finalize(); // Simulate GC.
+        verify(impl).destroyInstance(object);
+    }
+
+    /**
+     * Test for issue OPENDJ-1049.
+     */
+    @Test
+    public void testReleaseOnceOnly() {
+        final Impl impl = mock(Impl.class);
+        when(impl.newInstance()).thenReturn(object);
+        final ReferenceCountedObject<Object> rco = rco(impl);
+
+        // Create two references.
+        final ReferenceCountedObject<Object>.Reference ref1 = rco.acquire();
+        final ReferenceCountedObject<Object>.Reference ref2 = rco.acquire();
+
+        /*
+         * Now release first reference multiple times and make sure that the
+         * resource is not destroyed.
+         */
+        ref1.release();
+        ref1.release();  // Redundant release.
+        ref1.finalize(); // Simulate GC.
+        verify(impl, never()).destroyInstance(object);
+
+        /*
+         * Now release second reference which should cause the resource to be
+         * destroyed.
+         */
+        ref2.release();
         verify(impl).destroyInstance(object);
     }
 
