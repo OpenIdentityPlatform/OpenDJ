@@ -145,7 +145,7 @@ public class CTHeartbeatPublisherThread extends DirectoryThread
       if (debugEnabled())
       {
         TRACER.debugInfo(getName() + "could not send a heartbeat." +
-            e.getMessage() + e.toString());
+            e.getMessage() + e);
       }
       // This will be caught in another thread.
     }
