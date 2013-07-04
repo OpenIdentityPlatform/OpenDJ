@@ -122,8 +122,8 @@
               }
             </call>
 
-            <!-- Set replication purge delay in cdthe various replication servers -->
-            <paralleliterate var="server" in="_topologyServerList">
+            <!-- Set replication purge delay in the various replication servers -->
+            <iterate var="server" in="_topologyServerList">
               <sequence>
                 <script>
                   replServer = server
@@ -151,7 +151,7 @@
                   }
                 </call>
               </sequence>
-            </paralleliterate>
+            </iterate>
 
             <!-- Verify the synchronization of the trees among the servers in
               the topology -->
@@ -1690,6 +1690,7 @@
                 <script>
                   lcn = get_last_attr_from_entry(STAXResult,'lastChangeNumber')
                   cnsList.append(lcn)
+                  global_lcnsList.set(lcn)
                 </script>
                   
               </sequence>
