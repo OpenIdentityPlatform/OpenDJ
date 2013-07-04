@@ -114,7 +114,7 @@ public final class ECLServerHandler extends ServerHandler
    */
   public String dumpState()
   {
-    return this.getClass().getCanonicalName() +
+    return getClass().getCanonicalName() +
            "[" +
            "[draftCompat=" + draftCompat +
            "] [persistent=" + isPersistent +
@@ -170,7 +170,8 @@ public final class ECLServerHandler extends ServerHandler
           .append(rsd).append("] [nextMsg=").append(nextMsg).append("(")
           .append(nextMsg != null ?
           new Date(nextMsg.getChangeNumber().getTime()).toString():"")
-          .append(")" + "] [nextNonEligibleMsg=").append(nextNonEligibleMsg)
+          .append(")")
+          .append("] [nextNonEligibleMsg=").append(nextNonEligibleMsg)
           .append("] [startState=").append(startState).append("] [stopState=")
           .append(stopState).append("] [currentState=").append(currentState)
           .append("]]");
@@ -248,9 +249,9 @@ public final class ECLServerHandler extends ServerHandler
                 + " getNextEligibleMessageForDomain(" + opid+ ") "
                 + "newMsg isEligible=" + isEligible + " since "
                 + "newMsg=[" + newMsg.getChangeNumber()
-                + " " + new Date(newMsg.getChangeNumber().getTime()).toString()
+                + " " + new Date(newMsg.getChangeNumber().getTime())
                 + "] eligibleCN=[" + eligibleCN
-                + " " + new Date(eligibleCN.getTime()).toString()+"]"
+                + " " + new Date(eligibleCN.getTime())+"]"
                 + dumpState());
 
             if (isEligible)
@@ -430,7 +431,7 @@ public final class ECLServerHandler extends ServerHandler
     {
       // no chance to have a bad domain set here
     }
-    this.initialize(startECLSessionMsg);
+    initialize(startECLSessionMsg);
   }
 
   /**
@@ -668,7 +669,7 @@ public final class ECLServerHandler extends ServerHandler
       TRACER.debugCaught(DebugLogLevel.ERROR, de);
       if (draftCNDbIter != null)
         draftCNDbIter.releaseCursor();
-      throw(de);
+      throw de;
     }
     catch(Exception e)
     {
@@ -800,8 +801,8 @@ public final class ECLServerHandler extends ServerHandler
                     rsd.getStartState().getMaxChangeNumber(aServerId);
                   ChangeNumber providedChange =
                     newDomainCtxt.startState.getMaxChangeNumber(aServerId);
-                  if ((providedChange != null)
-                      && (providedChange.older(dbOldestChange)))
+                  if (providedChange != null
+                      && providedChange.older(dbOldestChange))
                   {
                     cookieTooOld=true;
                   }
@@ -848,7 +849,7 @@ public final class ECLServerHandler extends ServerHandler
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
           ERR_RESYNC_REQUIRED_MISSING_DOMAIN_IN_PROVIDED_COOKIE.get(
               missingDomains,
-              "<" + (providedCookie + missingDomains)+ ">"));
+              "<" + providedCookie + missingDomains + ">"));
       }
 
       domainCtxts = tmpSet.toArray(new DomainContext[tmpSet.size()]);
@@ -1201,7 +1202,7 @@ public final class ECLServerHandler extends ServerHandler
       {
         // loop until not interrupted
       }
-    } while (((interrupted) || (!acquired)) && (!shutdownWriter));
+    } while ((interrupted || !acquired) && !shutdownWriter);
     if (msg != null)
     {
       incrementOutCount();
@@ -1271,7 +1272,7 @@ public final class ECLServerHandler extends ServerHandler
 
       int iDom;
       boolean continueLooping = true;
-      while ((continueLooping) && (searchPhase == INIT_PHASE))
+      while (continueLooping && searchPhase == INIT_PHASE)
       {
         // Step 1 & 2
         if (searchPhase == INIT_PHASE)
@@ -1590,7 +1591,7 @@ public final class ECLServerHandler extends ServerHandler
     int oldest = -1;
     for (int i=0; i<domainCtxts.length; i++)
     {
-      if ((domainCtxts[i].active))
+      if (domainCtxts[i].active)
       {
         // on the first loop, oldest==-1
         // .msg is null when the previous (non blocking) nextMessage did

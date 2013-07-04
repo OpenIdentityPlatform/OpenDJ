@@ -540,7 +540,7 @@ public class ReplicationBroker
 
       // Unsupported message type: should not happen
       throw new IllegalArgumentException("Unexpected PDU type: " +
-        msg.getClass().getName() + " :\n" + msg.toString());
+        msg.getClass().getName() + " :\n" + msg);
     }
 
     /**
@@ -1167,9 +1167,8 @@ public class ReplicationBroker
 
         if (debugEnabled())
         {
-          TRACER.debugInfo("RB for dn " + baseDn
-            + " and with server id " + Integer.toString(serverId)
-            + " computed " + Integer.toString(nChanges) + " changes late.");
+          TRACER.debugInfo("RB for dn " + baseDn + " and with server id "
+              + serverId + " computed " + nChanges + " changes late.");
         }
 
         /*
@@ -1276,8 +1275,7 @@ public class ReplicationBroker
       if (debugEnabled())
       {
         TRACER.debugInfo("In RB for " + baseDn + "\nRB HANDSHAKE SENT:\n"
-          + serverStartMsg.toString() + "\nAND RECEIVED:\n"
-          + msg.toString());
+            + serverStartMsg + "\nAND RECEIVED:\n" + msg);
       }
 
       // Wrap received message in a server info object
@@ -1286,7 +1284,7 @@ public class ReplicationBroker
 
       // Sanity check
       String repDn = replServerInfo.getBaseDn();
-      if (!(this.baseDn.equals(repDn)))
+      if (!this.baseDn.equals(repDn))
       {
         errorMessage = ERR_DS_DN_DOES_NOT_MATCH.get(repDn,
             this.baseDn);
@@ -1412,8 +1410,8 @@ public class ReplicationBroker
        */
       if (debugEnabled())
       {
-        TRACER.debugInfo("In RB for " + baseDn
-          + "\nRB HANDSHAKE SENT:\n" + startECLSessionMsg.toString());
+        TRACER.debugInfo("In RB for " + baseDn + "\nRB HANDSHAKE SENT:\n"
+            + startECLSessionMsg);
       }
 
       // Alright set the timeout to the desired value
@@ -1484,9 +1482,8 @@ public class ReplicationBroker
 
       if (debugEnabled())
       {
-        TRACER.debugInfo("In RB for " + baseDn
-          + "\nRB HANDSHAKE SENT:\n" + startSessionMsg.toString()
-          + "\nAND RECEIVED:\n" + topologyMsg.toString());
+        TRACER.debugInfo("In RB for " + baseDn + "\nRB HANDSHAKE SENT:\n"
+            + startSessionMsg + "\nAND RECEIVED:\n" + topologyMsg);
       }
 
       // Alright set the timeout to the desired value
@@ -2368,7 +2365,7 @@ public class ReplicationBroker
             }
           }
         }
-        if ((!credit) && (currentWindowSemaphore.availablePermits() == 0))
+        if (!credit && currentWindowSemaphore.availablePermits() == 0)
         {
           synchronized (connectPhaseLock)
           {
@@ -2829,19 +2826,15 @@ public class ReplicationBroker
     // These parameters needs to be renegotiated with the ReplicationServer
     // so if they have changed, that requires restarting the session with
     // the ReplicationServer.
-    Boolean needToRestartSession = false;
-
     // A new session is necessary only when information regarding
     // the connection is modified
-    if (this.replicationServerUrls == null
+    boolean needToRestartSession =
+        this.replicationServerUrls == null
         || replicationServers.size() != this.replicationServerUrls.size()
         || !replicationServers.containsAll(this.replicationServerUrls)
         || window != this.maxRcvWindow
         || heartbeatInterval != this.heartbeatInterval
-        || groupId != this.groupId)
-    {
-      needToRestartSession = true;
-    }
+        || groupId != this.groupId;
 
     this.replicationServerUrls = replicationServers;
     this.rcvWindow = window;

@@ -666,7 +666,7 @@ public class ReplicationBackend
       attrs.put(ocType, ldapAttrList);
 
       TRACER.debugInfo("State=" +
-          exportContainer.getDbServerState().toString());
+          exportContainer.getDbServerState());
       Attribute stateAttr = Attributes.create("state", exportContainer
           .getDbServerState().toString());
       ldapAttrList.clear();
@@ -727,8 +727,8 @@ public class ReplicationBackend
         SearchFilter filter = searchOperation.getFilter();
         previousChangeNumber = extractChangeNumber(filter);
 
-        if ((previousChangeNumber == null) &&
-            (filter.getFilterType().equals(FilterType.AND)))
+        if (previousChangeNumber == null &&
+            filter.getFilterType().equals(FilterType.AND))
         {
           for (SearchFilter filterComponents: filter.getFilterComponents())
           {
@@ -818,7 +818,7 @@ public class ReplicationBackend
 
     if ( (filterType.equals(FilterType.GREATER_OR_EQUAL) ||
              filterType.equals(FilterType.EQUALITY) ) &&
-             (filter.getAttributeType().equals(changeNumberAttrType)))
+             filter.getAttributeType().equals(changeNumberAttrType))
     {
       try
       {
@@ -867,7 +867,7 @@ public class ReplicationBackend
           AddOperation addOperation = (AddOperation)msg.createOperation(conn);
 
           dn = DN.decode("puid=" + addMsg.getParentEntryUUID() + "+" +
-              CHANGE_NUMBER + "=" + msg.getChangeNumber().toString() + "+" +
+              CHANGE_NUMBER + "=" + msg.getChangeNumber() + "+" +
               msg.getDn() + "," + BASE_DN);
 
           Map<AttributeType,List<Attribute>> attrs =
@@ -918,7 +918,7 @@ public class ReplicationBackend
           DeleteMsg delMsg = (DeleteMsg)msg;
 
           dn = DN.decode("uuid=" + msg.getEntryUUID() + "," +
-              CHANGE_NUMBER + "=" + delMsg.getChangeNumber().toString()+ "," +
+              CHANGE_NUMBER + "=" + delMsg.getChangeNumber() + "," +
               msg.getDn() +","+ BASE_DN);
 
           DeleteChangeRecordEntry changeRecord =
@@ -941,7 +941,7 @@ public class ReplicationBackend
           ModifyOperation op = (ModifyOperation)msg.createOperation(conn);
 
           dn = DN.decode("uuid=" + msg.getEntryUUID() + "," +
-              CHANGE_NUMBER + "=" + msg.getChangeNumber().toString()+ "," +
+              CHANGE_NUMBER + "=" + msg.getChangeNumber() + "," +
               msg.getDn() +","+ BASE_DN);
           op.setInternalOperation(true);
 
@@ -965,7 +965,7 @@ public class ReplicationBackend
           ModifyDNOperation op = (ModifyDNOperation)msg.createOperation(conn);
 
           dn = DN.decode("uuid=" + msg.getEntryUUID() + "," +
-              CHANGE_NUMBER + "=" + msg.getChangeNumber().toString()+ "," +
+              CHANGE_NUMBER + "=" + msg.getChangeNumber() + "," +
               msg.getDn() +","+ BASE_DN);
           op.setInternalOperation(true);
 
@@ -1286,7 +1286,7 @@ public class ReplicationBackend
     {
       for (Control c : requestControls)
       {
-        if (c.getOID().equals(OID_INTERNAL_GROUP_MEMBERSHIP_UPDATE))
+        if (OID_INTERNAL_GROUP_MEMBERSHIP_UPDATE.equals(c.getOID()))
         {
           return;
         }
@@ -1298,8 +1298,8 @@ public class ReplicationBackend
     try
     {
       DN backendBaseDN = DN.decode(BASE_DN);
-      if ( (searchOperation.getScope().equals(SearchScope.BASE_OBJECT)) &&
-           (backendBaseDN.equals(searchOperation.getBaseDN())) )
+      if ( searchOperation.getScope().equals(SearchScope.BASE_OBJECT) &&
+           backendBaseDN.equals(searchOperation.getBaseDN()) )
       {
         return;
       }
