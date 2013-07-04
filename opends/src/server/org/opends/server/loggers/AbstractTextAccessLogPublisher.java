@@ -26,8 +26,6 @@
  */
 package org.opends.server.loggers;
 
-
-
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -37,8 +35,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
 
 import org.opends.messages.Message;
+import org.opends.messages.MessageDescriptor.Arg2;
 import org.opends.server.admin.server.ConfigurationAddListener;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.server.ConfigurationDeleteListener;
@@ -54,8 +54,6 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.core.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.*;
-
-
 
 /**
  * This class provides the base implementation of the access loggers used by the
@@ -182,73 +180,38 @@ public abstract class AbstractTextAccessLogPublisher
       clientAddressEqualTo = cfg.getConnectionClientAddressEqualTo();
       clientAddressNotEqualTo = cfg.getConnectionClientAddressNotEqualTo();
 
-      userDNEqualTo = new PatternDN[cfg.getUserDNEqualTo().size()];
-      i = 0;
-      for (final String s : cfg.getUserDNEqualTo())
-      {
-        try
-        {
-          userDNEqualTo[i++] = PatternDN.decode(s);
-        }
-        catch (final DirectoryException e)
-        {
-          final Message m = ERR_CONFIG_LOGGING_INVALID_USER_DN_PATTERN.get(
-              String.valueOf(cfg.dn()), s);
-          throw new ConfigException(m);
-        }
-      }
-
-      userDNNotEqualTo = new PatternDN[cfg.getUserDNNotEqualTo().size()];
-      i = 0;
-      for (final String s : cfg.getUserDNNotEqualTo())
-      {
-        try
-        {
-          userDNNotEqualTo[i++] = PatternDN.decode(s);
-        }
-        catch (final DirectoryException e)
-        {
-          final Message m = ERR_CONFIG_LOGGING_INVALID_USER_DN_PATTERN.get(
-              String.valueOf(cfg.dn()), s);
-          throw new ConfigException(m);
-        }
-      }
+      userDNEqualTo = decodePatterns(cfg.getUserDNEqualTo(),
+              ERR_CONFIG_LOGGING_INVALID_USER_DN_PATTERN, cfg.dn());
+      userDNNotEqualTo = decodePatterns(cfg.getUserDNNotEqualTo(),
+              ERR_CONFIG_LOGGING_INVALID_USER_DN_PATTERN, cfg.dn());
 
       userIsMemberOf = cfg.getUserIsMemberOf().toArray(new DN[0]);
       userIsNotMemberOf = cfg.getUserIsNotMemberOf().toArray(new DN[0]);
 
-      targetDNEqualTo = new PatternDN[cfg.getRequestTargetDNEqualTo().size()];
-      i = 0;
-      for (final String s : cfg.getRequestTargetDNEqualTo())
-      {
-        try
-        {
-          targetDNEqualTo[i++] = PatternDN.decode(s);
-        }
-        catch (final DirectoryException e)
-        {
-          final Message m = ERR_CONFIG_LOGGING_INVALID_TARGET_DN_PATTERN.get(
-              String.valueOf(cfg.dn()), s);
-          throw new ConfigException(m);
-        }
-      }
+      targetDNEqualTo = decodePatterns(cfg.getRequestTargetDNEqualTo(),
+              ERR_CONFIG_LOGGING_INVALID_TARGET_DN_PATTERN, cfg.dn());
+      targetDNNotEqualTo = decodePatterns(cfg.getRequestTargetDNNotEqualTo(),
+              ERR_CONFIG_LOGGING_INVALID_TARGET_DN_PATTERN, cfg.dn());
+    }
 
-      targetDNNotEqualTo = new PatternDN[cfg.getRequestTargetDNNotEqualTo()
-          .size()];
-      i = 0;
-      for (final String s : cfg.getRequestTargetDNNotEqualTo())
+    private PatternDN[] decodePatterns(Set<String> patterns,
+        Arg2<CharSequence, CharSequence> errorMessage, DN dn)
+        throws ConfigException
+    {
+      PatternDN[] results = new PatternDN[patterns.size()];
+      int i = 0;
+      for (final String s : patterns)
       {
         try
         {
-          targetDNNotEqualTo[i++] = PatternDN.decode(s);
+          results[i++] = PatternDN.decode(s);
         }
         catch (final DirectoryException e)
         {
-          final Message m = ERR_CONFIG_LOGGING_INVALID_TARGET_DN_PATTERN.get(
-              String.valueOf(cfg.dn()), s);
-          throw new ConfigException(m);
+          throw new ConfigException(errorMessage.get(String.valueOf(dn), s));
         }
       }
+      return results;
     }
 
 
@@ -497,44 +460,37 @@ public abstract class AbstractTextAccessLogPublisher
         }
         catch (final DirectoryException e)
         {
-          // The DN raw target DN was invalid. It will never match any
-          // not-equal-to nor equal-to patterns, so return appropriate result.
-          if (targetDNEqualTo.length != 0)
-          {
-            // Invalid DN will never match equal-to patterns.
-            return false;
-          }
-          else
-          {
-            // Invalid DN does not match any not-equal-to patterns.
-            return true;
-          }
+          // The DN raw target DN was invalid:
+          // Invalid DN will never match equal-to patterns,
+          // Invalid DN does not match any not-equal-to patterns,
+          // so return appropriate result.
+          return targetDNEqualTo.length == 0;
         }
       }
 
-      if (targetDNNotEqualTo.length > 0)
+      return filterDN(targetDN, targetDNNotEqualTo, targetDNEqualTo);
+    }
+
+    private boolean filterDN(final DN dn, PatternDN[] notEqualTo,
+        PatternDN[] equalTo)
+    {
+      for (final PatternDN pattern : notEqualTo)
       {
-        for (final PatternDN pattern : targetDNNotEqualTo)
+        if (pattern.matchesDN(dn))
         {
-          if (pattern.matchesDN(targetDN))
-          {
-            return false;
-          }
+          return false;
         }
       }
 
-      if (targetDNEqualTo.length > 0)
+      for (final PatternDN pattern : equalTo)
       {
-        for (final PatternDN pattern : targetDNEqualTo)
+        if (pattern.matchesDN(dn))
         {
-          if (pattern.matchesDN(targetDN))
-          {
-            return true;
-          }
+          return true;
         }
       }
 
-      // The target DN did not match.
+      // The DN did not match.
       return false;
     }
 
@@ -677,30 +633,7 @@ public abstract class AbstractTextAccessLogPublisher
         return userDNEqualTo.length == 0;
       }
 
-      if (userDNNotEqualTo.length > 0)
-      {
-        for (final PatternDN pattern : userDNNotEqualTo)
-        {
-          if (pattern.matchesDN(userDN))
-          {
-            return false;
-          }
-        }
-      }
-
-      if (userDNEqualTo.length > 0)
-      {
-        for (final PatternDN pattern : userDNEqualTo)
-        {
-          if (pattern.matchesDN(userDN))
-          {
-            return true;
-          }
-        }
-      }
-
-      // The user DN did not match.
-      return false;
+      return filterDN(userDN, userDNNotEqualTo, userDNEqualTo);
     }
 
 
