@@ -23,17 +23,13 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS
  */
 package org.opends.server.util;
 
-
-
-import java.lang.reflect.Method;
 import java.util.Arrays;
 
 import org.opends.server.api.DirectoryThread;
-
-
 
 /**
  * This class provides a means of interactively reading a password from the
@@ -84,6 +80,7 @@ public final class PasswordReader
        mayInstantiate=false,
        mayExtend=false,
        mayInvoke=false)
+  @Override
   public void run()
   {
     Thread currentThread   = Thread.currentThread();
@@ -141,19 +138,12 @@ public final class PasswordReader
    */
   public static char[] readPassword()
   {
-    // First, use reflection to determine whether the System.console() method
-    // is available.
     try
     {
-      Method consoleMethod = System.class.getDeclaredMethod("console",
-                                                            new Class[0]);
-      if (consoleMethod != null)
+      char[] password = System.console().readPassword();
+      if (password != null)
       {
-        char[] password = readPasswordUsingConsole(consoleMethod);
-        if (password != null)
-        {
-          return password;
-        }
+        return password;
       }
     }
     catch (Exception e)
@@ -168,30 +158,6 @@ public final class PasswordReader
     // If we've gotten here, then the System.console() method must not exist.
     // Fall back on using backspaces.
     return readPasswordUsingBackspaces();
-  }
-
-
-
-  /**
-   * Uses reflection to invoke the <CODE>java.io.Console.readPassword()</CODE>
-   * method in order to retrieve the password from the user.
-   *
-   * @param  consoleMethod  The <CODE>Method</CODE> object that may be used to
-   *                        obtain a <CODE>Console</CODE> instance.
-   *
-   * @return  The password as an array of characters.
-   *
-   * @throws  Exception  If any problem occurs while attempting to read the
-   *                     password.
-   */
-  private static char[] readPasswordUsingConsole(Method consoleMethod)
-          throws Exception
-  {
-    Object consoleObject  = consoleMethod.invoke(null);
-    Method passwordMethod =
-         consoleObject.getClass().getDeclaredMethod("readPassword",
-                                                    new Class[0]);
-    return (char[]) passwordMethod.invoke(consoleObject);
   }
 
 

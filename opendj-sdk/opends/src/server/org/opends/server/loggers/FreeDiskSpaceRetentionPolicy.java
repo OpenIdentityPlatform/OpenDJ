@@ -23,33 +23,32 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS
  */
 package org.opends.server.loggers;
-import org.opends.messages.Message;
+
+import static org.opends.messages.LoggerMessages.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.util.StaticUtils.*;
 
 import java.io.File;
-import java.lang.reflect.Method;
-import java.util.Arrays;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.messages.LoggerMessages.*;
-import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.ResultCode;
-import org.opends.server.types.ConfigChangeResult;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.admin.std.server.FreeDiskSpaceLogRetentionPolicyCfg;
+import org.opends.messages.Message;
 import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.admin.std.server.FreeDiskSpaceLogRetentionPolicyCfg;
 import org.opends.server.core.DirectoryServer;
-import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
-
+import org.opends.server.loggers.debug.DebugTracer;
+import org.opends.server.types.ConfigChangeResult;
+import org.opends.server.types.DebugLogLevel;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.ResultCode;
 
 /**
- * This class implements a retention policy based on the free disk
- * space available expressed as a percentage. This policy is only
- * available on Java 6.
+ * This class implements a retention policy based on the free disk space
+ * available expressed as a percentage.
  */
 public class FreeDiskSpaceRetentionPolicy implements
     RetentionPolicy<FreeDiskSpaceLogRetentionPolicyCfg>,
@@ -66,6 +65,7 @@ public class FreeDiskSpaceRetentionPolicy implements
   /**
    * {@inheritDoc}
    */
+  @Override
   public void initializeLogRetentionPolicy(
       FreeDiskSpaceLogRetentionPolicyCfg config)
   {
@@ -78,6 +78,7 @@ public class FreeDiskSpaceRetentionPolicy implements
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationChangeAcceptable(
       FreeDiskSpaceLogRetentionPolicyCfg config,
       List<Message> unacceptableReasons)
@@ -89,6 +90,7 @@ public class FreeDiskSpaceRetentionPolicy implements
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationChange(
       FreeDiskSpaceLogRetentionPolicyCfg config)
   {
@@ -106,6 +108,7 @@ public class FreeDiskSpaceRetentionPolicy implements
   /**
    * {@inheritDoc}
    */
+  @Override
   public File[] deleteFiles(FileNamingPolicy fileNamingPolicy)
       throws DirectoryException
   {
@@ -119,7 +122,7 @@ public class FreeDiskSpaceRetentionPolicy implements
                                    message);
     }
 
-    ArrayList<File> filesToDelete = new ArrayList<File>();
+    List<File> filesToDelete = new ArrayList<File>();
 
     if(files.length <= 0)
     {
@@ -127,14 +130,9 @@ public class FreeDiskSpaceRetentionPolicy implements
     }
 
     long freeSpace = 0;
-
     try
     {
-      // Use reflection to see use the getFreeSpace method if available.
-      // this method is only available on Java 6.
-      Method meth = File.class.getMethod("getFreeSpace", new Class[0]);
-      Object value = meth.invoke(files[0]);
-      freeSpace = ((Long) value).longValue();
+      freeSpace = files[0].getFreeSpace();
     }
     catch (Exception e)
     {
@@ -177,12 +175,13 @@ public class FreeDiskSpaceRetentionPolicy implements
       }
     }
 
-    return filesToDelete.toArray(new File[0]);
+    return filesToDelete.toArray(new File[filesToDelete.size()]);
   }
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public String toString()
   {
     return "Free Disk Retention Policy " + config.dn().toString();

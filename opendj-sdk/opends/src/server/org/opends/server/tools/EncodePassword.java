@@ -27,12 +27,10 @@
  */
 package org.opends.server.tools;
 
-
-
+import java.io.Console;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -58,19 +56,9 @@ import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.schema.AuthPasswordSyntax;
 import org.opends.server.schema.UserPasswordSyntax;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.DN;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.NullOutputStream;
-import org.opends.server.types.WritabilityMode;
+import org.opends.server.types.*;
 import org.opends.server.util.BuildVersion;
-import org.opends.server.util.args.ArgumentException;
-import org.opends.server.util.args.ArgumentParser;
-import org.opends.server.util.args.BooleanArgument;
-import org.opends.server.util.args.FileBasedArgument;
-import org.opends.server.util.args.StringArgument;
+import org.opends.server.util.args.*;
 
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.messages.ToolMessages.*;
@@ -80,8 +68,6 @@ import static org.opends.server.protocols.ldap.LDAPResultCode.*;
 import static org.opends.server.tools.ToolConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-
-
 
 /**
  * This program provides a utility that may be used to interact with the
@@ -1070,27 +1056,17 @@ public class EncodePassword
       throws IOException
   {
     String password;
-    try // JDK 6 console
+    try
     {
-      // get the Console (class the constructor)
-      Method constructor =
-        System.class.getDeclaredMethod("console",new Class[0]);
-      Object console = constructor.invoke(null, new Object[0]);
-
+      Console console = System.console();
       if (console != null)
       {
-        // class to method
-        Class<?> c = Class.forName("java.io.Console");
-        Object[] args = new Object[] { prompt, new Object[0] };
-        Method m = c.getDeclaredMethod("readPassword",
-            new Class[] { String.class, args.getClass() });
-        password = new String((char[]) m.invoke(console, args));
+        password = new String(console.readPassword(prompt));
       }
       else
       {
         throw new IOException("No console");
       }
-
     }
     catch (Exception e)
     {
