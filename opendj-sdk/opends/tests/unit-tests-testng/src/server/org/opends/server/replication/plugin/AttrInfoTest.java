@@ -27,30 +27,29 @@
  */
 package org.opends.server.replication.plugin;
 
-import java.util.ArrayList;
-import java.util.HashMap;
+import static org.testng.Assert.*;
+
+import java.util.Collections;
 import java.util.Map;
 
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.ChangeNumber;
-import org.opends.server.replication.plugin.AttrHistoricalMultiple;
-import org.opends.server.replication.plugin.AttrValueHistorical;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
-import org.opends.server.types.Attributes;
 import org.opends.server.types.AttributeValues;
+import org.opends.server.types.Attributes;
 import org.opends.server.util.TimeThread;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-import static org.testng.Assert.*;
 
 /**
  * Test AttrInfo and AttrInfoWithOptions
  */
-public class AttrInfoTest
-    extends ReplicationTestCase
+@SuppressWarnings("javadoc")
+public class AttrInfoTest extends ReplicationTestCase
 {
+
   /**
    * Build some data for the AttrInfo test below.
    */
@@ -93,15 +92,14 @@ public class AttrInfoTest
     // Check add(AttributeValue val, ChangeNumber CN)
     attrInfo1.add(att, updateTime);
     Map<AttrValueHistorical,AttrValueHistorical> values1 = attrInfo1.getValuesHistorical();
-    assertTrue(values1.size() == 1);
+    assertEquals(values1.size(), 1);
     AttrValueHistorical valueInfo1 = new AttrValueHistorical(att, updateTime, null);
     assertTrue(values1.containsKey(valueInfo1));
 
     // Check constructor with parameter
     AttrValueHistorical valueInfo2 = new AttrValueHistorical(att, updateTime, deleteTime);
-    HashMap<AttrValueHistorical,AttrValueHistorical> values = new HashMap<AttrValueHistorical,AttrValueHistorical>();
-    values.put(valueInfo2,valueInfo2);
-    AttrHistoricalMultiple attrInfo2 = new AttrHistoricalMultiple(deleteTime, updateTime, values);
+    AttrHistoricalMultiple attrInfo2 = new AttrHistoricalMultiple(
+        deleteTime, updateTime, Collections.singletonMap(valueInfo2, valueInfo2));
 
     // Check equality
     //assertTrue(attrInfo1.getDeleteTime().compareTo(attrInfo2.getDeleteTime())==0);
@@ -110,28 +108,27 @@ public class AttrInfoTest
     AttrHistoricalMultiple attrInfo3 = new AttrHistoricalMultiple(deleteTime, updateTime, null);
     attrInfo3.add(att, updateTime);
     Map<AttrValueHistorical,AttrValueHistorical> values3 = attrInfo3.getValuesHistorical();
-    assertTrue(values3.size() == 1);
+    assertEquals(values3.size(), 1);
     valueInfo1 = new AttrValueHistorical(att, updateTime, null);
     assertTrue(values3.containsKey(valueInfo1));
 
     // Check duplicate
     AttrHistoricalMultiple attrInfo4 = attrInfo3.duplicate();
     Map<AttrValueHistorical,AttrValueHistorical> values4 = attrInfo4.getValuesHistorical();
-    assertTrue(attrInfo4.getDeleteTime().compareTo(attrInfo3.getDeleteTime())==0);
+    assertEquals(attrInfo4.getDeleteTime().compareTo(attrInfo3.getDeleteTime()), 0);
     assertEquals(values4.size(), values3.size());
 
     // Check delete(AttributeValue val, ChangeNumber CN)
     attrInfo4.delete(att, updateTime);
-    assertTrue(attrInfo4.getValuesHistorical().size() == 1);
+    assertEquals(attrInfo4.getValuesHistorical().size(), 1);
 
     // Check delete(LinkedHashSet<AttributeValue> values, ChangeNumber CN)
     AttributeType type = DirectoryServer.getAttributeType("description");
     attrInfo3.delete(Attributes.create(type, att), updateTime) ;
-    assertTrue(attrInfo3.getValuesHistorical().size() == 1);
+    assertEquals(attrInfo3.getValuesHistorical().size(), 1);
 
     // Check delete(ChangeNumber CN)
     attrInfo2.delete(updateTime) ;
-    assertTrue(attrInfo2.getValuesHistorical().size() == 0);
-
+    assertEquals(attrInfo2.getValuesHistorical().size(), 0);
   }
 }
