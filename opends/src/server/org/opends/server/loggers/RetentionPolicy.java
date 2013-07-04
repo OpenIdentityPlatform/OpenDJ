@@ -23,20 +23,21 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS
  */
 package org.opends.server.loggers;
 
+import java.io.File;
+
 import org.opends.server.admin.std.server.LogRetentionPolicyCfg;
 import org.opends.server.config.ConfigException;
-import org.opends.server.types.InitializationException;
 import org.opends.server.types.DirectoryException;
-
-import java.io.File;
+import org.opends.server.types.InitializationException;
 
 /**
  * This interface describes the retention policy that should be used
  * for the logger. Supported policies include number of files and
- * disk utilization (for Java 6).
+ * disk utilization.
  *
  * @param <T> The type of retention policy configuration handled by
  *            this retention policy implementation.
