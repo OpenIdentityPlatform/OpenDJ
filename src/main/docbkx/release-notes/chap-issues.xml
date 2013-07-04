@@ -44,7 +44,7 @@
    <para>This release contains fixes that resolve security issues within OpenDJ.
    Older versions of OpenDJ contain these security issues. It is recommended
    that you upgrade to this release to resolve these security issues. ForgeRock
-   customers can contact support for detials on the security issues.</para>
+   customers can contact support for details.</para>
 
    <!-- TODO: reconsider when 2.4.x is no longer supported. -->
    <para>OpenDJ 2.6.0 also includes important improvements to replication.
