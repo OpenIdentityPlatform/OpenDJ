@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2012 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 
 package org.opends.quicksetup.installer.offline;
@@ -110,7 +110,7 @@ public class OfflineInstaller extends Installer
       checkAbort();
 
       // create license accepted file
-      LicenseFile.createFileLicenseApproved();
+      LicenseFile.createFileLicenseApproved(this.getInstallationPath());
 
       checkAbort() ;
 
