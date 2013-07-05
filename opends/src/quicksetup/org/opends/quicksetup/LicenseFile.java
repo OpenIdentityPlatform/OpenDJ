@@ -42,9 +42,8 @@ import org.opends.server.util.ServerConstants;
 import org.opends.server.util.StaticUtils;
 
 /**
- * Represents information about the license file.
- *
- * NOTE: the license file location must be kept in sync with build.xml and
+ * Represents information about the license file. NOTE: the license file
+ * location must be kept in sync with build.xml and
  * org.opends.server.tools.upgrade.LicenseFile.
  */
 public class LicenseFile
@@ -64,28 +63,6 @@ public class LicenseFile
    * The accepted license file name.
    */
   private final static String ACCEPTED_LICENSE_FILE_NAME = "licenseAccepted";
-
-  /**
-   * Get the directory in which legal files are stored.
-   */
-  private static String getLegalDirectory()
-  {
-
-    String installRootFromSystem = System.getProperty("INSTALL_ROOT");
-
-    if (installRootFromSystem == null)
-    {
-      installRootFromSystem = System.getenv("INSTALL_ROOT");
-    }
-
-    if (installRootFromSystem == null)
-    {
-      installRootFromSystem = "";
-    }
-
-    return installRootFromSystem + File.separatorChar + LEGAL_FOLDER_NAME;
-
-  }
 
   /**
    * Get the directory in which legal files are stored.
@@ -131,7 +108,8 @@ public class LicenseFile
    */
   static private String getName()
   {
-    return getLegalDirectory() + File.separatorChar + LICENSE_FILE_NAME;
+    return getInstanceLegalDirectory() + File.separatorChar
+        + LICENSE_FILE_NAME;
   }
 
   /**
@@ -152,8 +130,8 @@ public class LicenseFile
    */
   static private URL getWebStartLicenseFile()
   {
-    final String licenseResource = LEGAL_FOLDER_NAME + File.separatorChar
-        + LICENSE_FILE_NAME;
+    final String licenseResource =
+        LEGAL_FOLDER_NAME + File.separatorChar + LICENSE_FILE_NAME;
     return Thread.currentThread().getContextClassLoader().getResource(
         licenseResource);
   }
@@ -161,9 +139,9 @@ public class LicenseFile
   /**
    * Checks if the license file exists.
    *
-   * @return <CODE>true</CODE> if the license file exists
-   *         in the Legal directory in the top level installation directory
-   *         <CODE>false</CODE> otherwise.
+   * @return <CODE>true</CODE> if the license file exists in the Legal directory
+   *         in the top level installation directory <CODE>false</CODE>
+   *         otherwise.
    */
   static public boolean exists()
   {
@@ -267,16 +245,20 @@ public class LicenseFile
   }
 
   /**
-   * Create a file which indicates that the license has been approved.
+   * Creates a file - in the legal folder from the specified directory; which
+   * indicates that the license has been approved.
+   *
+   * @param installationPath
+   *          The server installation's path.
    */
-  static public void createFileLicenseApproved()
+  static public void createFileLicenseApproved(final String installationPath)
   {
-    if (getApproval())
+    if (getApproval() && installationPath != null)
     {
       try
       {
-        new File(getInstanceLegalDirectory() + File.separatorChar
-            + ACCEPTED_LICENSE_FILE_NAME).createNewFile();
+        new File(installationPath + File.separatorChar + LEGAL_FOLDER_NAME
+            + File.separatorChar + ACCEPTED_LICENSE_FILE_NAME).createNewFile();
       }
       catch (IOException e)
       {
