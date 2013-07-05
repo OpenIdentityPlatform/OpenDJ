@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2012 ForgeRock AS
+  !      Copyright 2011-2013 ForgeRock AS
   !
 -->
 <document
@@ -36,15 +36,15 @@
    <p>The OpenDJ community actively develops open source directory services,
    including a high performance, highly available, secure directory server,
    built-in data replication, client tools, and an LDAP SDK. OpenDJ offers
-   extensive LDAPv3 support. OpenDJ DSML gateway enables applications
-   accessing directory data through DSMLv2. All modules are 100% Java based
-   and require Java 1.6.</p>
+   extensive LDAPv3 support, as well as RESTful access to directory data over
+   HTTP. OpenDJ DSML gateway enables applications accessing directory data
+   through DSMLv2. All modules are 100% Java based and require at least
+   Java 6.</p>
    <p>Coming soon on the <a
    href="https://wikis.forgerock.org/confluence/display/OPENDJ/OpenDJ+Roadmap"
-   >OpenDJ Roadmap</a>, you see that the community plans to add RESTful web
-   services access to the directory, and to develop directory proxy services
-   with virtual directory capabilities such as data mapping and connectors
-   for non-directory data sources.</p>
+   >OpenDJ Roadmap</a>, you see that the community plans to develop directory
+   proxy services with virtual directory capabilities such as data mapping and
+   connectors for non-directory data sources.</p>
   </section>
   <section name="Welcome Users">
    <p>The OpenDJ community shares an interest in improving and extending

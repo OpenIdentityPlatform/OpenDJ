@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2012 ForgeRock AS
+  !      Copyright 2011-2013 ForgeRock AS
   !    
 -->
 <document
@@ -36,7 +36,7 @@
    <p>This core documentation is <strong>in progress</strong> as part of
    the OpenDJ project.</p>
    <p>For completed, released documentation, see <a
-   href="http://docs.forgerock.org/en/index.html?product=opendj"
+   href="http://docs.forgerock.org/en/opendj/"
    >docs.forgerock.org</a>.</p>
    <dl>
     <dt>Release Notes</dt>
