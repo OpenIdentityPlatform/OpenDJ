@@ -15,6 +15,7 @@
  */
 package org.forgerock.opendj.rest2ldap;
 
+import static java.util.Arrays.asList;
 import static org.forgerock.opendj.ldap.Filter.alwaysFalse;
 import static org.forgerock.opendj.ldap.Filter.alwaysTrue;
 import static org.forgerock.opendj.ldap.requests.Requests.newAddRequest;
@@ -211,69 +212,103 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
         final Context c = wrap(context);
         final ResultHandler<Resource> h = wrap(c, handler);
 
-        /*
-         * Get the connection, search if needed, then determine modifications,
-         * then perform modify.
-         */
-        c.run(h, doUpdate(c, resourceId, request.getRevision(), new ResultHandler<DN>() {
-            @Override
-            public void handleError(final ResourceException error) {
-                h.handleError(error);
-            }
-
-            @Override
-            public void handleResult(final DN dn) {
-                //  Convert the patch operations to LDAP modifications.
-                final ResultHandler<List<Modification>> handler =
-                        accumulate(request.getPatchOperations().size(),
-                                new ResultHandler<List<List<Modification>>>() {
-                                    @Override
-                                    public void handleError(final ResourceException error) {
-                                        h.handleError(error);
-                                    }
-
-                                    @Override
-                                    public void handleResult(final List<List<Modification>> result) {
-                                        //  The patch operations have been converted successfully.
-                                        try {
-                                            final ModifyRequest modifyRequest =
-                                                    newModifyRequest(dn);
-                                            if (config.readOnUpdatePolicy() == CONTROLS) {
-                                                final String[] attributes =
-                                                        getLDAPAttributes(c, request.getFields());
-                                                modifyRequest.addControl(PostReadRequestControl
-                                                        .newControl(false, attributes));
-                                            }
-                                            if (config.usePermissiveModify()) {
-                                                modifyRequest
-                                                        .addControl(PermissiveModifyRequestControl
-                                                                .newControl(true));
-                                            }
-                                            addAssertionControl(modifyRequest, request
-                                                    .getRevision());
-
-                                            // Add the modifications.
-                                            for (final List<Modification> modifications : result) {
-                                                if (modifications != null) {
-                                                    modifyRequest.getModifications().addAll(
-                                                            modifications);
-                                                }
-                                            }
-
-                                            // Perform the modify request.
-                                            c.getConnection().applyChangeAsync(modifyRequest, null,
-                                                    postUpdateHandler(c, h));
-                                        } catch (final Exception e) {
-                                            h.handleError(asResourceException(e));
-                                        }
-                                    }
-                                });
-
-                for (final PatchOperation operation : request.getPatchOperations()) {
-                    attributeMapper.patch(c, new JsonPointer(), operation, handler);
+        if (request.getPatchOperations().isEmpty()) {
+            /*
+             * This patch is a no-op so just read the entry and check its
+             * version.
+             */
+            c.run(h, new Runnable() {
+                @Override
+                public void run() {
+                    final String[] attributes = getLDAPAttributes(c, request.getFields());
+                    final SearchRequest searchRequest =
+                            nameStrategy.createSearchRequest(c, getBaseDN(c), resourceId)
+                                    .addAttribute(attributes);
+                    c.getConnection().searchSingleEntryAsync(searchRequest,
+                            postEmptyPatchHandler(c, request, h));
                 }
-            }
-        }));
+            });
+        } else {
+            /*
+             * Get the connection, search if needed, then determine
+             * modifications, then perform modify.
+             */
+            c.run(h, doUpdate(c, resourceId, request.getRevision(), new ResultHandler<DN>() {
+                @Override
+                public void handleError(final ResourceException error) {
+                    h.handleError(error);
+                }
+
+                @Override
+                public void handleResult(final DN dn) {
+                    //  Convert the patch operations to LDAP modifications.
+                    final ResultHandler<List<Modification>> handler =
+                            accumulate(request.getPatchOperations().size(),
+                                    new ResultHandler<List<List<Modification>>>() {
+                                        @Override
+                                        public void handleError(final ResourceException error) {
+                                            h.handleError(error);
+                                        }
+
+                                        @Override
+                                        public void handleResult(
+                                                final List<List<Modification>> result) {
+                                            //  The patch operations have been converted successfully.
+                                            try {
+                                                final ModifyRequest modifyRequest =
+                                                        newModifyRequest(dn);
+
+                                                // Add the modifications.
+                                                for (final List<Modification> modifications : result) {
+                                                    if (modifications != null) {
+                                                        modifyRequest.getModifications().addAll(
+                                                                modifications);
+                                                    }
+                                                }
+
+                                                final List<String> attributes =
+                                                        asList(getLDAPAttributes(c, request
+                                                                .getFields()));
+                                                if (modifyRequest.getModifications().isEmpty()) {
+                                                    /*
+                                                     * This patch is a no-op so
+                                                     * just read the entry and
+                                                     * check its version.
+                                                     */
+                                                    c.getConnection().readEntryAsync(dn,
+                                                            attributes,
+                                                            postEmptyPatchHandler(c, request, h));
+                                                } else {
+                                                    // Add controls and perform the modify request.
+                                                    if (config.readOnUpdatePolicy() == CONTROLS) {
+                                                        modifyRequest
+                                                                .addControl(PostReadRequestControl
+                                                                        .newControl(false,
+                                                                                attributes));
+                                                    }
+                                                    if (config.usePermissiveModify()) {
+                                                        modifyRequest
+                                                                .addControl(PermissiveModifyRequestControl
+                                                                        .newControl(true));
+                                                    }
+                                                    addAssertionControl(modifyRequest, request
+                                                            .getRevision());
+                                                    c.getConnection().applyChangeAsync(
+                                                            modifyRequest, null,
+                                                            postUpdateHandler(c, h));
+                                                }
+                                            } catch (final Exception e) {
+                                                h.handleError(asResourceException(e));
+                                            }
+                                        }
+                                    });
+
+                    for (final PatchOperation operation : request.getPatchOperations()) {
+                        attributeMapper.patch(c, new JsonPointer(), operation, handler);
+                    }
+                }
+            }));
+        }
     }
 
     @Override
@@ -545,10 +580,21 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
                                                 public void handleResult(
                                                         final List<Modification> result) {
                                                     // Perform the modify operation.
-                                                    modifyRequest.getModifications().addAll(result);
-                                                    c.getConnection().applyChangeAsync(
-                                                            modifyRequest, null,
-                                                            postUpdateHandler(c, h));
+                                                    if (result.isEmpty()) {
+                                                        /*
+                                                         * No changes to be
+                                                         * performed, so just
+                                                         * return the entry that
+                                                         * we read.
+                                                         */
+                                                        adaptEntry(c, entry, h);
+                                                    } else {
+                                                        modifyRequest.getModifications().addAll(
+                                                                result);
+                                                        c.getConnection().applyChangeAsync(
+                                                                modifyRequest, null,
+                                                                postUpdateHandler(c, h));
+                                                    }
                                                 }
                                             });
                                 } catch (final Exception e) {
@@ -869,6 +915,27 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
 
     private String getRevisionFromEntry(final Entry entry) {
         return etagAttribute != null ? entry.parseAttribute(etagAttribute).asString() : null;
+    }
+
+    private org.forgerock.opendj.ldap.ResultHandler<SearchResultEntry> postEmptyPatchHandler(
+            final Context c, final PatchRequest request, final ResultHandler<Resource> h) {
+        return new org.forgerock.opendj.ldap.ResultHandler<SearchResultEntry>() {
+            @Override
+            public void handleErrorResult(final ErrorResultException error) {
+                h.handleError(asResourceException(error));
+            }
+
+            @Override
+            public void handleResult(final SearchResultEntry entry) {
+                try {
+                    // Fail if there is a version mismatch.
+                    ensureMVCCVersionMatches(entry, request.getRevision());
+                    adaptEntry(c, entry, h);
+                } catch (final Exception e) {
+                    h.handleError(asResourceException(e));
+                }
+            }
+        };
     }
 
     private org.forgerock.opendj.ldap.ResultHandler<Result> postUpdateHandler(final Context c,
