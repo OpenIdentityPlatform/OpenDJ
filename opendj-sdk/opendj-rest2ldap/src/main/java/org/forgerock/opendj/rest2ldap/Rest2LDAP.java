@@ -21,6 +21,8 @@ import static org.forgerock.opendj.ldap.schema.CoreSchema.getEntryUUIDAttributeT
 import static org.forgerock.opendj.rest2ldap.ReadOnUpdatePolicy.CONTROLS;
 import static org.forgerock.opendj.rest2ldap.Utils.ensureNotNull;
 
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
@@ -52,13 +54,16 @@ import org.forgerock.opendj.ldap.ErrorResultException;
 import org.forgerock.opendj.ldap.FailoverLoadBalancingAlgorithm;
 import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.opendj.ldap.LDAPConnectionFactory;
+import org.forgerock.opendj.ldap.LDAPOptions;
 import org.forgerock.opendj.ldap.LinkedAttribute;
 import org.forgerock.opendj.ldap.MultipleEntriesFoundException;
 import org.forgerock.opendj.ldap.RDN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.RoundRobinLoadBalancingAlgorithm;
+import org.forgerock.opendj.ldap.SSLContextBuilder;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.TimeoutResultException;
+import org.forgerock.opendj.ldap.TrustManagers;
 import org.forgerock.opendj.ldap.requests.BindRequest;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
@@ -70,6 +75,23 @@ import org.forgerock.opendj.ldap.schema.Schema;
  * collections.
  */
 public final class Rest2LDAP {
+
+    /**
+     * Indicates whether or not LDAP client connections should use SSL or
+     * StartTLS.
+     */
+    private enum ConnectionSecurity {
+        NONE, SSL, STARTTLS
+    }
+
+    /**
+     * Specifies the mechanism which should be used for trusting certificates
+     * presented by the LDAP server.
+     */
+    private enum TrustManagerType {
+        TRUSTALL, JVM, FILE
+    }
+
     /**
      * A builder for incrementally constructing LDAP resource collections.
      */
@@ -965,6 +987,48 @@ public final class Rest2LDAP {
             bindRequest = null;
         }
 
+        // Parse SSL/StartTLS parameters.
+        final ConnectionSecurity connectionSecurity =
+                configuration.get("connectionSecurity").defaultTo(ConnectionSecurity.NONE).asEnum(
+                        ConnectionSecurity.class);
+        final LDAPOptions options = new LDAPOptions();
+        if (connectionSecurity != ConnectionSecurity.NONE) {
+            try {
+                // Configure SSL.
+                final SSLContextBuilder builder = new SSLContextBuilder();
+
+                // Parse trust store configuration.
+                final TrustManagerType trustManagerType =
+                        configuration.get("trustManager").defaultTo(TrustManagerType.TRUSTALL)
+                                .asEnum(TrustManagerType.class);
+                switch (trustManagerType) {
+                case TRUSTALL:
+                    builder.setTrustManager(TrustManagers.trustAll());
+                    break;
+                case JVM:
+                    // Do nothing: JVM trust manager is the default.
+                    break;
+                case FILE:
+                    final String fileName =
+                            configuration.get("fileBasedTrustManagerFile").required().asString();
+                    final String password =
+                            configuration.get("fileBasedTrustManagerPassword").asString();
+                    final String type = configuration.get("fileBasedTrustManagerType").asString();
+                    builder.setTrustManager(TrustManagers.checkUsingTrustStore(fileName,
+                            password != null ? password.toCharArray() : null, type));
+                    break;
+                }
+                options.setSSLContext(builder.getSSLContext());
+                options.setUseStartTLS(connectionSecurity == ConnectionSecurity.STARTTLS);
+            } catch (GeneralSecurityException e) {
+                // Rethrow as unchecked exception.
+                throw new IllegalArgumentException(e);
+            } catch (IOException e) {
+                // Rethrow as unchecked exception.
+                throw new IllegalArgumentException(e);
+            }
+        }
+
         // Parse primary data center.
         final JsonValue primaryLDAPServers = configuration.get("primaryLDAPServers");
         if (!primaryLDAPServers.isList() || primaryLDAPServers.size() == 0) {
@@ -972,7 +1036,7 @@ public final class Rest2LDAP {
         }
         final ConnectionFactory primary =
                 parseLDAPServers(primaryLDAPServers, bindRequest, connectionPoolSize,
-                        heartBeatIntervalSeconds);
+                        heartBeatIntervalSeconds, options);
 
         // Parse secondary data center(s).
         final JsonValue secondaryLDAPServers = configuration.get("secondaryLDAPServers");
@@ -981,7 +1045,7 @@ public final class Rest2LDAP {
             if (secondaryLDAPServers.size() > 0) {
                 secondary =
                         parseLDAPServers(secondaryLDAPServers, bindRequest, connectionPoolSize,
-                                heartBeatIntervalSeconds);
+                                heartBeatIntervalSeconds, options);
             } else {
                 secondary = null;
             }
@@ -1029,12 +1093,12 @@ public final class Rest2LDAP {
 
     private static ConnectionFactory parseLDAPServers(final JsonValue config,
             final BindRequest bindRequest, final int connectionPoolSize,
-            final int heartBeatIntervalSeconds) {
+            final int heartBeatIntervalSeconds, final LDAPOptions options) {
         final List<ConnectionFactory> servers = new ArrayList<ConnectionFactory>(config.size());
         for (final JsonValue server : config) {
             final String host = server.get("hostname").required().asString();
             final int port = server.get("port").required().asInteger();
-            ConnectionFactory factory = new LDAPConnectionFactory(host, port);
+            ConnectionFactory factory = new LDAPConnectionFactory(host, port, options);
             if (bindRequest != null) {
                 factory = Connections.newAuthenticatedConnectionFactory(factory, bindRequest);
             }
