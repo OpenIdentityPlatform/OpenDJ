@@ -128,7 +128,6 @@ public class DSMLServlet extends HttpServlet {
   private static final String UNRESOLVABLE_URI = "unresolvableURI";
 
   // definitions of onError values
-  private static final String ON_ERROR_RESUME = "resume";
   private static final String ON_ERROR_EXIT = "exit";
 
   private static JAXBContext jaxbContext;
@@ -295,7 +294,7 @@ public class DSMLServlet extends HttpServlet {
               return proxyAuthzControl;
           }
         }
-      } while (opType != LDAPConstants.OP_TYPE_SEARCH_RESULT_DONE);
+      } while (true);
     }
     catch (LDAPException le)
     {
@@ -334,9 +333,9 @@ public class DSMLServlet extends HttpServlet {
     LDAPConnection connection = null;
     BatchRequest batchRequest = null;
 
-    // Keep the Servlet input stream buffered in case the SOAP unmarshalling
+    // Keep the Servlet input stream buffered in case the SOAP un-marshalling
     // fails, the SAX parsing will be able to retrieve the requestID even if
-    // the XML is malmformed by resetting the input stream.
+    // the XML is malformed by resetting the input stream.
     BufferedInputStream is = new BufferedInputStream(req.getInputStream(),
                                                      65536);
     if ( is.markSupported() ) {
@@ -344,7 +343,7 @@ public class DSMLServlet extends HttpServlet {
     }
 
     // Create response in the beginning as it might be used if the parsing
-    // failes.
+    // fails.
     BatchResponse batchResponse = objFactory.createBatchResponse();
     List<JAXBElement<?>> batchResponses = batchResponse.getBatchResponses();
     Document doc = db.newDocument();
@@ -449,7 +448,7 @@ public class DSMLServlet extends HttpServlet {
       }
     }
 
-    // if an error already occured, the list is not empty
+    // if an error already occurred, the list is not empty
     if ( batchResponses.isEmpty() ) {
       try {
         SOAPMessage message = messageFactory.createMessage(mimeHeaders, is);
@@ -540,7 +539,7 @@ public class DSMLServlet extends HttpServlet {
               if ( result != null ) {
                 batchResponses.add(result);
               }
-              // evaluate response to check if an error occured
+              // evaluate response to check if an error occurred
               Object o = result.getValue();
               if ( o instanceof ErrorResponse ) {
                 if ( ON_ERROR_EXIT.equals(batchRequest.getOnError()) ) {
@@ -603,7 +602,7 @@ public class DSMLServlet extends HttpServlet {
 
       xmlReader.parse(new InputSource(is));
     } catch (Throwable e) {
-      // document is unparsable so will jump here
+      // document cannot br parsed, so will jump here
     }
     if ( parserErrorMessage!= null ) {
       errorResponse.setMessage(parserErrorMessage);
@@ -619,7 +618,7 @@ public class DSMLServlet extends HttpServlet {
    * Returns an error response with attributes set according to the exception
    * provided as argument.
    *
-   * @param t the exception that occured
+   * @param t the exception that occurred
    *
    * @return a JAXBElement that contains an ErrorResponse
    */
@@ -737,7 +736,7 @@ public class DSMLServlet extends HttpServlet {
         return objFactory.createBatchResponseModifyResponse(modResponse);
       } else if (request instanceof AuthRequest) {
         // Process the Auth request.
-        // Only returns an BatchReponse with an AuthResponse containing the
+        // Only returns an BatchResponse with an AuthResponse containing the
         // LDAP result code AUTH_METHOD_NOT_SUPPORTED
         ResultCode resultCode = objFactory.createResultCode();
         resultCode.setCode(LDAPResultCode.AUTH_METHOD_NOT_SUPPORTED);
@@ -775,7 +774,7 @@ public class DSMLServlet extends HttpServlet {
 
     res.setHeader("Content-Type", "text/xml");
 
-    SOAPElement bodyElement = replyBody.addDocument(doc);
+    replyBody.addDocument(doc);
 
     reply.saveChanges();
 
