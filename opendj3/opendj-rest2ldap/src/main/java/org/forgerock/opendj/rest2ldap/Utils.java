@@ -64,12 +64,16 @@ final class Utils {
         private final List<V> results;
 
         private AccumulatingResultHandler(final int size, final ResultHandler<List<V>> handler) {
-            if (size <= 0) {
+            if (size < 0) {
                 throw new IllegalStateException();
             }
             this.latch = new AtomicInteger(size);
             this.results = new ArrayList<V>(size);
             this.handler = handler;
+            if (size == 0) {
+                // Invoke immediately.
+                handler.handleResult(results);
+            }
         }
 
         @Override
