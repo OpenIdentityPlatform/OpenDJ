@@ -312,7 +312,6 @@ public class DSMLServlet extends HttpServlet {
       Message m = INFO_RESULT_CLIENT_SIDE_ENCODING_ERROR.get();
       throw new LDAPConnectionException(m, CLIENT_SIDE_CONNECT_ERROR, null, ie);
     }
-    throw new LDAPConnectionException(Message.EMPTY);
   }
 
   /**
@@ -602,7 +601,7 @@ public class DSMLServlet extends HttpServlet {
 
       xmlReader.parse(new InputSource(is));
     } catch (Throwable e) {
-      // document cannot br parsed, so will jump here
+      // document cannot be parsed, so will jump here
     }
     if ( parserErrorMessage!= null ) {
       errorResponse.setMessage(parserErrorMessage);
