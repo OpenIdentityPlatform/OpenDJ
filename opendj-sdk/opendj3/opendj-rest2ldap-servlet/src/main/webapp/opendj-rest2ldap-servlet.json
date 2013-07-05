@@ -4,9 +4,40 @@
     "ldapConnectionFactories" : {
         // Unauthenticated connections used for performing bind requests.
         "default" : {
-            "connectionPoolSize"       : 10,
+            // Indicates whether or not LDAP connections should be secured using
+            // SSL or StartTLS. Acceptable values are:
+            //
+            // "none"     - use plain LDAP connections (default)
+            // "ssl"      - secure connection using LDAPS
+            // "startTLS" - secure connection using LDAP+StartTLS
+            //
+            "connectionSecurity"       : "none",
+
+            // Specifies the policy for trusting server certificates exchanged
+            // during SSL/StartTLS negotiation. This setting and the following
+            // trust policy settings will be ignored if there is no connection
+            // security. Acceptable values are:
+            //
+            // "trustAll" - blindly trust all server certificates (default)
+            // "jvm"      - only certificates signed by the authorities
+            //              associated with the host JVM will be accepted
+            // "file"     - use a file-based trust store for validating
+            //              certificates. This option requires the following
+            //              "fileBasedTrustManager*" settings to be configured.
+            //
+            "trustManager"             : "trustAll",
+
+            // File based trust manager configuration (see above).
+            "fileBasedTrustManagerType"     : "JKS",
+            "fileBasedTrustManagerFile"     : "/path/to/truststore",
+            "fileBasedTrustManagerPassword" : "password",
+
+            // Re-usable pool of 24 connections per server.
+            "connectionPoolSize"       : 24,
+
+            // Check pooled connections are alive every 30 seconds.
             "heartBeatIntervalSeconds" : 30,
-            
+
             // The preferred load-balancing pool.
             "primaryLDAPServers"       : [
                 {
@@ -19,13 +50,13 @@
                 // Empty.
             ]
         },
-        
+
         // Authenticated connections which will be used for searches during
         // authentication and proxied operations (if enabled). This factory
         // will re-use the server "default" configuration.
         "root" : {
             "inheritFrom"    : "default",
-            
+
             // Defines how authentication should be performed. Only "simple"
             // authentication is supported at the moment.
             "authentication" : {
@@ -36,7 +67,7 @@
             }
         }
     },
-    
+
     // The Rest2LDAP authentication filter configuration. The filter will be
     // disabled if the configuration is not present. Upon successful
     // authentication the filter will create a security context containing the
@@ -47,21 +78,21 @@
     "authenticationFilter" : {
         // Indicates whether the filter should allow HTTP BASIC authentication.
         "supportHTTPBasicAuthentication" : true,
-        
+
         // Indicates whether the filter should allow alternative authentication
         // and, if so, which HTTP headers it should obtain the username and
         // password from.
-        "supportAltAuthentication"        : true, 
+        "supportAltAuthentication"        : true,
         "altAuthenticationUsernameHeader" : "X-OpenIDM-Username",
         "altAuthenticationPasswordHeader" : "X-OpenIDM-Password",
-        
+
         // Indicates whether the authenticated LDAP connection should be cached
         // for use within the Rest2LDAP Servlet for subsequent LDAP operations.
         // If this is set to true then the Servlet will not need its own LDAP
         // connection factory and will also not need to use proxied
         // authorization.
         "reuseAuthenticatedConnection" : true,
-        
+
         // Specifies how LDAP authentications should be performed. The method
         // must be one of:
         //
@@ -74,29 +105,29 @@
         //                   substituting the username into the
         //                   "searchFilterTemplate" using %s substitution.
         "method" : "search-simple",
-        
+
         // The connection factory which will be exclusively used for
         // authenticating users using LDAP bind operations.
         "bindLDAPConnectionFactory" : "default",
-        
+
         // The SASL AuthzID template which will be used for "sasl-plain"
         // authentication. The %s format parameters will be substituted with
         // the client-provided username, using DN character escaping for DN
         // AuthzIDs.
         "saslAuthzIdTemplate" : "dn:uid=%s,ou=people,dc=example,dc=com",
-        
+
         // The connection factory which will be used for performing LDAP
         // searches to locate users when "search-simple" authentication is
         // enabled.
         "searchLDAPConnectionFactory" : "root",
-        
+
         // The search parameters to use for "search-simple" authentication. The
         // %s filter format parameters will be substituted with the
         // client-provided username, using LDAP filter string character escaping.
         "searchBaseDN"         : "ou=people,dc=example,dc=com",
         "searchScope"          : "sub", // Or "one".
         "searchFilterTemplate" : "(&(objectClass=inetOrgPerson)(uid=%s))"
-        
+
         // TODO: support for HTTP sessions?
     },
 
@@ -110,7 +141,7 @@
         // be passed on from the filter, which may not always be the case
         // if the filter is configured to use HTTP sessions.
         "ldapConnectionFactory" : "root",
-        
+
         // Specifies how LDAP authorization should be performed. The method
         // must be one of:
         //
@@ -125,12 +156,12 @@
         //                 authorization will only be used if there is no
         //                 pre-authenticated connection available.
         "authorizationPolicy" : "proxy",
-        
+
         // The AuthzID template which will be used for proxied authorization.
         // The template should contain fields which are expected to be found in
         // the security context create during authentication, e.g. "dn" and "id".
         "proxyAuthzIdTemplate" : "dn:{dn}",
-        
+
         // The REST APIs and their LDAP attribute mappings.
         "mappings" : {
             "/users" : {
