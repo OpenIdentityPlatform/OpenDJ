@@ -68,7 +68,8 @@
   </menu>
 
   <menu name="Released Documentation">
-    <item name="OpenDJ 2.5.0-Xpress1" href="http://docs.forgerock.org/en/index.html?product=opendj&amp;version=2.5.0-Xpress1" />
+    <item name="OpenDJ 2.6.0" href="http://docs.forgerock.org/en/opendj/2.6.0/" />
+    <item name="OpenDJ 2.5.0-Xpress1" href="http://docs.forgerock.org/en/opendj/2.5.0-Xpress1/" />
   </menu>
 
   <menu name="OpenDJ Documentation">

@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2012 ForgeRock AS
+  !      Copyright 2011-2013 ForgeRock AS
   !
 -->
 <document
@@ -33,9 +33,18 @@
  </properties>
  <body>
   <section name="New Releases">
+   <p>July 04, 2013. OpenDJ 2.6.0 is now available! OpenDJ 2.6.0 is an important
+   release of ForgeRock's directory services product, with many key fixes and
+   new features. See the <a
+   href="http://docs.forgerock.org/en/opendj/2.6.0/release-notes/">Release
+   Notes</a> for more. You can get the binaries from the ForgeRock <a
+   href="https://download.forgerock.com/#/opendj">OpenDJ download page</a>.</p>
+  </section>
+
+  <section name="Previous Releases">
    <p>July 26, 2012. OpenDJ 2.4.6 has been released! OpenDJ 2.4.6 is an
    update release of the OpenDJ project. You can get the release from the
-   <a href="http://www.forgerock.org/opendj.html">download page</a>. See the <a
+   <a href="http://forgerock.org/opendj-archive.html">download page</a>. See the <a
    href="https://wikis.forgerock.org/confluence/display/OPENDJ/OpenDJ+2.4.6+Release+Notes"
    >Release Notes</a> for additional information.</p>
 
@@ -45,38 +54,38 @@
    referential integrity for groups, access log filtering and formatting,
    optimistic concurrency control using ETags, synchronization of Samba and
    OpenDJ passwords, 30 additional new features and enhancements, and 150 bug
-   fixes. Get OpenDJ 2.5.0 Xpress from the
-   <a href="http://www.forgerock.org/opendj.html">download page</a>. Be sure to
+   fixes. Get OpenDJ 2.5.0 Xpress from the ForgeRock
+   <a href="http://forgerock.org/opendj-archive.html">download page</a>. Be sure to
    read the <a href="http://docs.forgerock.org/en/opendj/2.5.0-Xpress1/release-notes/index.html"
    >Release Notes</a> for additional information.</p>
 
    <p>February 27, 2012. OpenDJ 2.4.5 is now available. OpenDJ 2.4.5 is an
    update release of the OpenDJ project. You can get the release from the
-   <a href="http://www.forgerock.org/opendj.html">download page</a>. See the <a
+   <a href="http://forgerock.org/opendj-archive.html">download page</a>. See the <a
    href="https://wikis.forgerock.org/confluence/display/OPENDJ/OpenDJ+2.4.5+Release+Notes"
    >Release Notes</a> for additional information. Note that you must rebuild
    the ds-sync-hist index after upgrade, but before restarting OpenDJ.</p>
 
    <p>October 14, 2011. OpenDJ 2.4.4 has been released. OpenDJ 2.4.4 is an
    update release of the OpenDJ project. You can get the release from the
-   <a href="http://www.forgerock.org/opendj.html">download page</a>. See the <a
+   <a href="http://forgerock.org/opendj-archive.html">download page</a>. See the <a
    href="https://wikis.forgerock.org/confluence/display/OPENDJ/OpenDJ+2.4.4+Release+Notes"
    >Release Notes</a> for the lists of fixes and known issues.</p>
 
    <p>June 17, 2011. We released OpenDJ 2.4.3 today! OpenDJ 2.4.3 is an update
    release of the OpenDJ project and resolves several issues found around
    the External Change Log and the bundled database version. Visit the <a
-   href="http://www.forgerock.org/opendj.html">download page</a> for
+   href="http://forgerock.org/opendj-archive.html">archive page</a> for
    the Java WebStart and .zip versions, SVR4 packages for Solaris, and the
    DSML gateway. <a
    href="https://wikis.forgerock.org/confluence/display/OPENDJ/OpenDJ+2.4.3+Release+Notes"
    >Release Notes</a> are on the Wiki.</p>
 
    <p>April 24, 2011. OpenDJ 2.4.2 is out! Come get 2.4.2 from the <a
-   href="http://www.forgerock.org/opendj.html">download page</a>.</p>
+   href="http://forgerock.org/opendj-archive.html">download page</a>.</p>
 
    <p>March 2, 2011. OpenDJ 2.4.1 now available! Get it from the <a
-   href="http://www.forgerock.org/opendj.html">download page</a>.</p>
+   href="http://forgerock.org/opendj-archive.html">download page</a>.</p>
   </section>
  </body>
 </document>
