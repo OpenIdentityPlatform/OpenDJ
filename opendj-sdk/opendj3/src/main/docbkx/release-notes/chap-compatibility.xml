@@ -119,7 +119,7 @@
    </listitem>
   </itemizedlist>
 
-<!-- Not yet for OpenDJ 2.6.0.
+<!-- Not yet
   <para>The <command>ldif-diff</command> command has been renamed
   <command>ldifdiff</command>, and the <option>-\-outputLDIF</option>,
   <option>-\-overwriteExisting</option>, <option>-\-sourceLDIF</option>,

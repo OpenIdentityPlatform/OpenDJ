@@ -100,9 +100,9 @@
     <currentSDKversion>${project.version}</currentSDKversion>
     <stableSDKversion>version.not.defined</stableSDKversion>
     <currentServerVersion>2.5.0-SNAPSHOT</currentServerVersion>
-    <stableServerVersion>2.4.6</stableServerVersion>
-    <docTargetVersion>2.6.0</docTargetVersion>
-    <sdkDocTargetVersion>2.6.0</sdkDocTargetVersion>
+    <docTargetVersion>2.8.0</docTargetVersion>
+    <docPreviousVersion>2.6.0</docPreviousVersion>
+    <sdkDocTargetVersion>${docTargetVersion}</sdkDocTargetVersion>
     <siteDistributionURL>scp://forgerock.org/var/www/vhosts/opendj.forgerock.org/httpdocs</siteDistributionURL>
     <i18nFrameworkVersion>1.4.0</i18nFrameworkVersion>
     <grizzlyFrameworkVersion>2.3.4-SNAPSHOT</grizzlyFrameworkVersion>
