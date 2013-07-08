@@ -40,5 +40,12 @@
      <para>TODO</para>
     </listitem>
 
+    <listitem>
+     <para>OpenDJ REST LDAP gateway now supports SSL and StartTLS connections
+     to directory servers (<link xlink:show="new"
+     xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1033"
+     >OPENDJ-1033</link>).</para>
+    </listitem>
+
   </itemizedlist>
 </chapter>
