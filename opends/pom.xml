@@ -169,6 +169,24 @@
           </execution>
         </executions>
       </plugin>
+
+      <plugin>
+        <groupId>org.forgerock.maven.plugins</groupId>
+        <artifactId>javadoc-updater-maven-plugin</artifactId>
+        <version>1.0.0</version>
+        <executions>
+          <execution>
+            <phase>site</phase>
+            <goals>
+              <goal>fixjavadoc</goal>
+            </goals>
+            <configuration>
+              <directory>build/site/javadoc</directory>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>build-helper-maven-plugin</artifactId>
