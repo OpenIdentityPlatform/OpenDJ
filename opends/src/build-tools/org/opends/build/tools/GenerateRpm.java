@@ -68,7 +68,7 @@ public class GenerateRpm extends Task
   public void setTopDir(File topDir)
   {
     this.topDir = topDir;
-    topDirAbsolutePath = topDir.getAbsolutePath();
+    topDirAbsolutePath = topDir.getAbsolutePath().replaceAll(" ", "\\\\ ");
   }
 
   /**
@@ -370,11 +370,11 @@ public class GenerateRpm extends Task
       sb.append("# %build" + EOL);
       sb.append(EOL);
       sb.append("%install" + EOL);
-      sb.append("mkdir -p $RPM_BUILD_ROOT%{_prefix}" + EOL);
-      sb.append("cd $RPM_BUILD_ROOT%{_prefix}" + EOL);
+      sb.append("mkdir -p \"$RPM_BUILD_ROOT%{_prefix}\"" + EOL);
+      sb.append("cd \"$RPM_BUILD_ROOT%{_prefix}\"" + EOL);
       for (final File f : listFiles)
       {
-        sb.append("cp -r " + f.getPath() + " ." + EOL);
+        sb.append("cp -r \"" + f.getPath() + "\" ." + EOL);
       }
       sb.append(EOL);
       sb.append("# =========================" + EOL);
