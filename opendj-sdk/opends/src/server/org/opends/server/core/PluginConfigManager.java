@@ -30,14 +30,7 @@ package org.opends.server.core;
 
 
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.StringTokenizer;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -62,8 +55,8 @@ import org.opends.server.workflowelement.localbackend.*;
 
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.messages.PluginMessages.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -370,8 +363,7 @@ public class PluginConfigManager
       Class<? extends DirectoryServerPlugin> pluginClass =
            propertyDefinition.loadClass(className, DirectoryServerPlugin.class);
       DirectoryServerPlugin<? extends PluginCfg> plugin =
-           (DirectoryServerPlugin<? extends PluginCfg>)
-           pluginClass.newInstance();
+          pluginClass.newInstance();
 
       if (initialize)
       {
@@ -1870,34 +1862,12 @@ public class PluginConfigManager
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        Message message = ERR_PLUGIN_PRE_PARSE_PLUGIN_EXCEPTION.
-            get(abandonOperation.getOperationType().getOperationName(),
-                String.valueOf(p.getPluginEntryDN()),
-                abandonOperation.getConnectionID(),
-                abandonOperation.getOperationID(),
-                stackTraceToSingleLineString(e));
-        logError(message);
-
-        return PluginResult.PreParse.stopProcessing(
-            DirectoryServer.getServerErrorResultCode(), message);
+        return handlePreParseException(e, abandonOperation, p);
       }
 
       if (result == null)
       {
-        Message message = ERR_PLUGIN_PRE_PARSE_PLUGIN_RETURNED_NULL.
-            get(abandonOperation.getOperationType().getOperationName(),
-                String.valueOf(p.getPluginEntryDN()),
-                abandonOperation.getConnectionID(),
-                String.valueOf(abandonOperation.getOperationID()));
-        logError(message);
-
-        return PluginResult.PreParse.stopProcessing(
-            DirectoryServer.getServerErrorResultCode(), message);
+        return handlePreParseResult(abandonOperation, p);
       }
       else if (!result.continuePluginProcessing())
       {
@@ -1915,6 +1885,39 @@ public class PluginConfigManager
     return result;
   }
 
+
+  private PluginResult.PreParse handlePreParseException(
+      Exception e, PreParseOperation operation, DirectoryServerPlugin plugin)
+  {
+    if (debugEnabled())
+    {
+      TRACER.debugCaught(DebugLogLevel.ERROR, e);
+    }
+
+    Message message =
+        ERR_PLUGIN_PRE_PARSE_PLUGIN_EXCEPTION.get(operation.getOperationType()
+            .getOperationName(), String.valueOf(plugin.getPluginEntryDN()),
+            operation.getConnectionID(), operation.getOperationID(),
+            stackTraceToSingleLineString(e));
+    logError(message);
+
+    return PluginResult.PreParse.stopProcessing(DirectoryServer
+        .getServerErrorResultCode(), message);
+  }
+
+  private PluginResult.PreParse handlePreParseResult(
+      PreParseOperation operation, DirectoryServerPlugin plugin)
+  {
+    Message message =
+        ERR_PLUGIN_PRE_PARSE_PLUGIN_RETURNED_NULL.get(operation
+            .getOperationType().getOperationName(), String.valueOf(plugin
+            .getPluginEntryDN()), operation.getConnectionID(), String
+            .valueOf(operation.getOperationID()));
+    logError(message);
+
+    return PluginResult.PreParse.stopProcessing(DirectoryServer
+        .getServerErrorResultCode(), message);
+  }
 
 
   /**
@@ -1951,33 +1954,12 @@ public class PluginConfigManager
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        Message message = ERR_PLUGIN_PRE_PARSE_PLUGIN_EXCEPTION.
-            get(addOperation.getOperationType().getOperationName(),
-                String.valueOf(p.getPluginEntryDN()),
-                addOperation.getConnectionID(), addOperation.getOperationID(),
-                stackTraceToSingleLineString(e));
-        logError(message);
-
-        return PluginResult.PreParse.stopProcessing(
-            DirectoryServer.getServerErrorResultCode(), message);
+        return handlePreParseException(e, addOperation, p);
       }
 
       if (result == null)
       {
-        Message message = ERR_PLUGIN_PRE_PARSE_PLUGIN_RETURNED_NULL.
-            get(addOperation.getOperationType().getOperationName(),
-                String.valueOf(p.getPluginEntryDN()),
-                addOperation.getConnectionID(),
-                String.valueOf(addOperation.getOperationID()));
-        logError(message);
-
-        return PluginResult.PreParse.stopProcessing(
-            DirectoryServer.getServerErrorResultCode(), message);
+        return handlePreParseResult(addOperation, p);
       }
       else if (!result.continuePluginProcessing())
       {
@@ -2025,33 +2007,12 @@ public class PluginConfigManager
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        Message message = ERR_PLUGIN_PRE_PARSE_PLUGIN_EXCEPTION.
-            get(bindOperation.getOperationType().getOperationName(),
-                String.valueOf(p.getPluginEntryDN()),
-                bindOperation.getConnectionID(), bindOperation.getOperationID(),
-                stackTraceToSingleLineString(e));
-        logError(message);
-
-        return PluginResult.PreParse.stopProcessing(
-            DirectoryServer.getServerErrorResultCode(), message);
+        return handlePreParseException(e, bindOperation, p);
       }
 
       if (result == null)
       {
-        Message message = ERR_PLUGIN_PRE_PARSE_PLUGIN_RETURNED_NULL.
-            get(bindOperation.getOperationType().getOperationName(),
-                String.valueOf(p.getPluginEntryDN()),
-                bindOperation.getConnectionID(),
-                String.valueOf(bindOperation.getOperationID()));
-        logError(message);
-
-        return PluginResult.PreParse.stopProcessing(
-            DirectoryServer.getServerErrorResultCode(), message);
+        return handlePreParseResult(bindOperation, p);
       }
       else if (!result.continuePluginProcessing())
       {
@@ -2105,34 +2066,12 @@ public class PluginConfigManager
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        Message message = ERR_PLUGIN_PRE_PARSE_PLUGIN_EXCEPTION.
-            get(compareOperation.getOperationType().getOperationName(),
-                String.valueOf(p.getPluginEntryDN()),
-                compareOperation.getConnectionID(),
-                compareOperation.getOperationID(),
-                stackTraceToSingleLineString(e));
-        logError(message);
-
-        return PluginResult.PreParse.stopProcessing(
-            DirectoryServer.getServerErrorResultCode(), message);
+        return handlePreParseException(e, compareOperation, p);
       }
 
       if (result == null)
       {
-        Message message = ERR_PLUGIN_PRE_PARSE_PLUGIN_RETURNED_NULL.
-            get(compareOperation.getOperationType().getOperationName(),
-                String.valueOf(p.getPluginEntryDN()),
-                compareOperation.getConnectionID(),
-                String.valueOf(compareOperation.getOperationID()));
-        logError(message);
-
-        return PluginResult.PreParse.stopProcessing(
-            DirectoryServer.getServerErrorResultCode(), message);
+        return handlePreParseResult(compareOperation, p);
       }
       else if (!result.continuePluginProcessing())
       {
@@ -2186,34 +2125,12 @@ public class PluginConfigManager
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        Message message = ERR_PLUGIN_PRE_PARSE_PLUGIN_EXCEPTION.
-            get(deleteOperation.getOperationType().getOperationName(),
-                String.valueOf(p.getPluginEntryDN()),
-                deleteOperation.getConnectionID(),
-                deleteOperation.getOperationID(),
-                stackTraceToSingleLineString(e));
-        logError(message);
-
-        return PluginResult.PreParse.stopProcessing(
-            DirectoryServer.getServerErrorResultCode(), message);
+        return handlePreParseException(e, deleteOperation, p);
       }
 
       if (result == null)
       {
-        Message message = ERR_PLUGIN_PRE_PARSE_PLUGIN_RETURNED_NULL.
-            get(deleteOperation.getOperationType().getOperationName(),
-                String.valueOf(p.getPluginEntryDN()),
-                deleteOperation.getConnectionID(),
-                String.valueOf(deleteOperation.getOperationID()));
-        logError(message);
-
-        return PluginResult.PreParse.stopProcessing(
-            DirectoryServer.getServerErrorResultCode(), message);
+        return handlePreParseResult(deleteOperation, p);
       }
       else if (!result.continuePluginProcessing())
       {
@@ -2267,34 +2184,12 @@ public class PluginConfigManager
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        Message message = ERR_PLUGIN_PRE_PARSE_PLUGIN_EXCEPTION.
-            get(extendedOperation.getOperationType().getOperationName(),
-                String.valueOf(p.getPluginEntryDN()),
-                extendedOperation.getConnectionID(),
-                extendedOperation.getOperationID(),
-                stackTraceToSingleLineString(e));
-        logError(message);
-
-        return PluginResult.PreParse.stopProcessing(
-            DirectoryServer.getServerErrorResultCode(), message);
+        return handlePreParseException(e, extendedOperation, p);
       }
 
       if (result == null)
       {
-        Message message = ERR_PLUGIN_PRE_PARSE_PLUGIN_RETURNED_NULL.
-            get(extendedOperation.getOperationType().getOperationName(),
-                String.valueOf(p.getPluginEntryDN()),
-                extendedOperation.getConnectionID(),
-                String.valueOf(extendedOperation.getOperationID()));
-        logError(message);
-
-        return PluginResult.PreParse.stopProcessing(
-            DirectoryServer.getServerErrorResultCode(), message);
+        return handlePreParseResult(extendedOperation, p);
       }
       else if (!result.continuePluginProcessing())
       {
@@ -2348,34 +2243,12 @@ public class PluginConfigManager
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        Message message = ERR_PLUGIN_PRE_PARSE_PLUGIN_EXCEPTION.
-            get(modifyOperation.getOperationType().getOperationName(),
-                String.valueOf(p.getPluginEntryDN()),
-                modifyOperation.getConnectionID(),
-                modifyOperation.getOperationID(),
-                stackTraceToSingleLineString(e));
-        logError(message);
-
-        return PluginResult.PreParse.stopProcessing(
-            DirectoryServer.getServerErrorResultCode(), message);
+        return handlePreParseException(e, modifyOperation, p);
       }
 
       if (result == null)
       {
-        Message message = ERR_PLUGIN_PRE_PARSE_PLUGIN_RETURNED_NULL.
-            get(modifyOperation.getOperationType().getOperationName(),
-                String.valueOf(p.getPluginEntryDN()),
-                modifyOperation.getConnectionID(),
-                String.valueOf(modifyOperation.getOperationID()));
-        logError(message);
-
-        return PluginResult.PreParse.stopProcessing(
-            DirectoryServer.getServerErrorResultCode(), message);
+        return handlePreParseResult(modifyOperation, p);
       }
       else if (!result.continuePluginProcessing())
       {
@@ -2429,34 +2302,12 @@ public class PluginConfigManager
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        Message message = ERR_PLUGIN_PRE_PARSE_PLUGIN_EXCEPTION.
-            get(modifyDNOperation.getOperationType().getOperationName(),
-                String.valueOf(p.getPluginEntryDN()),
-                modifyDNOperation.getConnectionID(),
-                modifyDNOperation.getOperationID(),
-                stackTraceToSingleLineString(e));
-        logError(message);
-
-        return PluginResult.PreParse.stopProcessing(
-            DirectoryServer.getServerErrorResultCode(), message);
+        return handlePreParseException(e, modifyDNOperation, p);
       }
 
       if (result == null)
       {
-        Message message = ERR_PLUGIN_PRE_PARSE_PLUGIN_RETURNED_NULL.
-            get(modifyDNOperation.getOperationType().getOperationName(),
-                String.valueOf(p.getPluginEntryDN()),
-                modifyDNOperation.getConnectionID(),
-                String.valueOf(modifyDNOperation.getOperationID()));
-        logError(message);
-
-        return PluginResult.PreParse.stopProcessing(
-            DirectoryServer.getServerErrorResultCode(), message);
+        return handlePreParseResult(modifyDNOperation, p);
       }
       else if (!result.continuePluginProcessing())
       {
@@ -2510,34 +2361,12 @@ public class PluginConfigManager
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        Message message = ERR_PLUGIN_PRE_PARSE_PLUGIN_EXCEPTION.
-            get(searchOperation.getOperationType().getOperationName(),
-                String.valueOf(p.getPluginEntryDN()),
-                searchOperation.getConnectionID(),
-                searchOperation.getOperationID(),
-                stackTraceToSingleLineString(e));
-        logError(message);
-
-        return PluginResult.PreParse.stopProcessing(
-            DirectoryServer.getServerErrorResultCode(), message);
+        return handlePreParseException(e, searchOperation, p);
       }
 
       if (result == null)
       {
-        Message message = ERR_PLUGIN_PRE_PARSE_PLUGIN_RETURNED_NULL.
-            get(searchOperation.getOperationType().getOperationName(),
-                String.valueOf(p.getPluginEntryDN()),
-                searchOperation.getConnectionID(),
-                String.valueOf(searchOperation.getOperationID()));
-        logError(message);
-
-        return PluginResult.PreParse.stopProcessing(
-            DirectoryServer.getServerErrorResultCode(), message);
+        return handlePreParseResult(searchOperation, p);
       }
       else if (!result.continuePluginProcessing())
       {
@@ -2585,34 +2414,12 @@ public class PluginConfigManager
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        Message message = ERR_PLUGIN_PRE_PARSE_PLUGIN_EXCEPTION.
-            get(unbindOperation.getOperationType().getOperationName(),
-                String.valueOf(p.getPluginEntryDN()),
-                unbindOperation.getConnectionID(),
-                unbindOperation.getOperationID(),
-                stackTraceToSingleLineString(e));
-        logError(message);
-
-        return PluginResult.PreParse.stopProcessing(
-            DirectoryServer.getServerErrorResultCode(), message);
+        return handlePreParseException(e, unbindOperation, p);
       }
 
       if (result == null)
       {
-        Message message = ERR_PLUGIN_PRE_PARSE_PLUGIN_RETURNED_NULL.
-            get(unbindOperation.getOperationType().getOperationName(),
-                String.valueOf(p.getPluginEntryDN()),
-                unbindOperation.getConnectionID(),
-                String.valueOf(unbindOperation.getOperationID()));
-        logError(message);
-
-        return PluginResult.PreParse.stopProcessing(
-            DirectoryServer.getServerErrorResultCode(), message);
+        return handlePreParseResult(unbindOperation, p);
       }
       else if (!result.continuePluginProcessing())
       {
@@ -2667,38 +2474,14 @@ public class PluginConfigManager
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        Message message = ERR_PLUGIN_PRE_OPERATION_PLUGIN_EXCEPTION.
-            get(addOperation.getOperationType().getOperationName(),
-                String.valueOf(p.getPluginEntryDN()),
-                addOperation.getConnectionID(), addOperation.getOperationID(),
-                stackTraceToSingleLineString(e));
-        logError(message);
-
-        registerSkippedPreOperationPlugins(i, preOperationAddPlugins,
-            addOperation);
-
-        return PluginResult.PreOperation.stopProcessing(
-            DirectoryServer.getServerErrorResultCode(), message);
+        return handlePreOperationException(e, i, preOperationAddPlugins,
+            addOperation, p);
       }
 
       if (result == null)
       {
-        Message message = ERR_PLUGIN_PRE_OPERATION_PLUGIN_RETURNED_NULL.
-            get(addOperation.getOperationType().getOperationName(),
-                String.valueOf(p.getPluginEntryDN()),
-                addOperation.getConnectionID(), addOperation.getOperationID());
-        logError(message);
-
-        registerSkippedPreOperationPlugins(i, preOperationAddPlugins,
-            addOperation);
-
-        return PluginResult.PreOperation.stopProcessing(
-            DirectoryServer.getServerErrorResultCode(), message);
+        return handlePreOperationResult(addOperation, i, preOperationAddPlugins,
+            p);
       }
       else if (!result.continuePluginProcessing())
       {
@@ -2749,39 +2532,14 @@ public class PluginConfigManager
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        Message message = ERR_PLUGIN_PRE_OPERATION_PLUGIN_EXCEPTION.
-            get(bindOperation.getOperationType().getOperationName(),
-                String.valueOf(p.getPluginEntryDN()),
-                bindOperation.getConnectionID(), bindOperation.getOperationID(),
-                stackTraceToSingleLineString(e));
-        logError(message);
-
-        registerSkippedPreOperationPlugins(i, preOperationBindPlugins,
-            bindOperation);
-
-        return PluginResult.PreOperation.stopProcessing(
-            DirectoryServer.getServerErrorResultCode(), message);
+        return handlePreOperationException(e, i, preOperationBindPlugins,
+            bindOperation, p);
       }
 
       if (result == null)
       {
-        Message message = ERR_PLUGIN_PRE_OPERATION_PLUGIN_RETURNED_NULL.
-            get(bindOperation.getOperationType().getOperationName(),
-                String.valueOf(p.getPluginEntryDN()),
-                bindOperation.getConnectionID(),
-                bindOperation.getOperationID());
-        logError(message);
-
-        registerSkippedPreOperationPlugins(i, preOperationBindPlugins,
-            bindOperation);
-
-        return PluginResult.PreOperation.stopProcessing(
-            DirectoryServer.getServerErrorResultCode(), message);
+        return handlePreOperationResult(bindOperation, i,
+            preOperationBindPlugins, p);
       }
       else if (!result.continuePluginProcessing())
       {
@@ -2839,40 +2597,14 @@ public class PluginConfigManager
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        Message message = ERR_PLUGIN_PRE_OPERATION_PLUGIN_EXCEPTION.
-            get(compareOperation.getOperationType().getOperationName(),
-                String.valueOf(p.getPluginEntryDN()),
-                compareOperation.getConnectionID(),
-                compareOperation.getOperationID(),
-                stackTraceToSingleLineString(e));
-        logError(message);
-
-        registerSkippedPreOperationPlugins(i, preOperationComparePlugins,
-            compareOperation);
-
-        return PluginResult.PreOperation.stopProcessing(
-            DirectoryServer.getServerErrorResultCode(), message);
+        return handlePreOperationException(e, i, preOperationComparePlugins,
+            compareOperation, p);
       }
 
       if (result == null)
       {
-        Message message = ERR_PLUGIN_PRE_OPERATION_PLUGIN_RETURNED_NULL.
-            get(compareOperation.getOperationType().getOperationName(),
-                String.valueOf(p.getPluginEntryDN()),
-                compareOperation.getConnectionID(),
-                compareOperation.getOperationID());
-        logError(message);
-
-        registerSkippedPreOperationPlugins(i, preOperationComparePlugins,
-            compareOperation);
-
-        return PluginResult.PreOperation.stopProcessing(
-            DirectoryServer.getServerErrorResultCode(), message);
+        return handlePreOperationResult(compareOperation, i,
+            preOperationComparePlugins, p);
       }
       else if (!result.continuePluginProcessing())
       {
@@ -2927,40 +2659,14 @@ public class PluginConfigManager
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        Message message = ERR_PLUGIN_PRE_OPERATION_PLUGIN_EXCEPTION.
-            get(deleteOperation.getOperationType().getOperationName(),
-                String.valueOf(p.getPluginEntryDN()),
-                deleteOperation.getConnectionID(),
-                deleteOperation.getOperationID(),
-                stackTraceToSingleLineString(e));
-        logError(message);
-
-        registerSkippedPreOperationPlugins(i, preOperationDeletePlugins,
-            deleteOperation);
-
-        return PluginResult.PreOperation.stopProcessing(
-            DirectoryServer.getServerErrorResultCode(), message);
+        return handlePreOperationException(e, i, preOperationDeletePlugins,
+            deleteOperation, p);
       }
 
       if (result == null)
       {
-        Message message = ERR_PLUGIN_PRE_OPERATION_PLUGIN_RETURNED_NULL.
-            get(deleteOperation.getOperationType().getOperationName(),
-                String.valueOf(p.getPluginEntryDN()),
-                deleteOperation.getConnectionID(),
-                deleteOperation.getOperationID());
-        logError(message);
-
-        registerSkippedPreOperationPlugins(i, preOperationDeletePlugins,
-            deleteOperation);
-
-        return PluginResult.PreOperation.stopProcessing(
-            DirectoryServer.getServerErrorResultCode(), message);
+        return handlePreOperationResult(deleteOperation, i,
+            preOperationDeletePlugins, p);
       }
       else if (!result.continuePluginProcessing())
       {
@@ -2979,6 +2685,45 @@ public class PluginConfigManager
     }
 
     return result;
+  }
+
+  private PluginResult.PreOperation handlePreOperationException(Exception e,
+      int i, DirectoryServerPlugin[] plugins, PreOperationOperation operation,
+      DirectoryServerPlugin plugin)
+  {
+    if (debugEnabled())
+    {
+      TRACER.debugCaught(DebugLogLevel.ERROR, e);
+    }
+
+    Message message =
+        ERR_PLUGIN_PRE_OPERATION_PLUGIN_EXCEPTION.get(operation
+            .getOperationType().getOperationName(), String.valueOf(plugin
+            .getPluginEntryDN()), operation.getConnectionID(), operation
+            .getOperationID(), stackTraceToSingleLineString(e));
+    logError(message);
+
+    registerSkippedPreOperationPlugins(i, plugins, operation);
+
+    return PluginResult.PreOperation.stopProcessing(DirectoryServer
+        .getServerErrorResultCode(), message);
+  }
+
+  private PluginResult.PreOperation handlePreOperationResult(
+      PreOperationOperation operation, int i, DirectoryServerPlugin[] plugins,
+      DirectoryServerPlugin plugin)
+  {
+    Message message =
+        ERR_PLUGIN_PRE_OPERATION_PLUGIN_RETURNED_NULL.get(operation
+            .getOperationType().getOperationName(), String.valueOf(plugin
+            .getPluginEntryDN()), operation.getConnectionID(), operation
+            .getOperationID());
+    logError(message);
+
+    registerSkippedPreOperationPlugins(i, plugins, operation);
+
+    return PluginResult.PreOperation.stopProcessing(DirectoryServer
+        .getServerErrorResultCode(), message);
   }
 
 
@@ -3019,40 +2764,14 @@ public class PluginConfigManager
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        Message message = ERR_PLUGIN_PRE_OPERATION_PLUGIN_EXCEPTION.
-            get(extendedOperation.getOperationType().getOperationName(),
-                String.valueOf(p.getPluginEntryDN()),
-                extendedOperation.getConnectionID(),
-                extendedOperation.getOperationID(),
-                stackTraceToSingleLineString(e));
-        logError(message);
-
-        registerSkippedPreOperationPlugins(i, preOperationExtendedPlugins,
-            extendedOperation);
-
-        return PluginResult.PreOperation.stopProcessing(
-            DirectoryServer.getServerErrorResultCode(), message);
+        return handlePreOperationException(e, i, preOperationExtendedPlugins,
+            extendedOperation, p);
       }
 
       if (result == null)
       {
-        Message message = ERR_PLUGIN_PRE_OPERATION_PLUGIN_RETURNED_NULL.
-            get(extendedOperation.getOperationType().getOperationName(),
-                String.valueOf(p.getPluginEntryDN()),
-                extendedOperation.getConnectionID(),
-                extendedOperation.getOperationID());
-        logError(message);
-
-        registerSkippedPreOperationPlugins(i, preOperationExtendedPlugins,
-            extendedOperation);
-
-        return PluginResult.PreOperation.stopProcessing(
-            DirectoryServer.getServerErrorResultCode(), message);
+        return handlePreOperationResult(extendedOperation, i,
+            preOperationExtendedPlugins, p);
       }
       else if (!result.continuePluginProcessing())
       {
@@ -3110,40 +2829,14 @@ public class PluginConfigManager
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        Message message = ERR_PLUGIN_PRE_OPERATION_PLUGIN_EXCEPTION.
-            get(modifyOperation.getOperationType().getOperationName(),
-                String.valueOf(p.getPluginEntryDN()),
-                modifyOperation.getConnectionID(),
-                modifyOperation.getOperationID(),
-                stackTraceToSingleLineString(e));
-        logError(message);
-
-        registerSkippedPreOperationPlugins(i, preOperationModifyPlugins,
-            modifyOperation);
-
-        return PluginResult.PreOperation.stopProcessing(
-            DirectoryServer.getServerErrorResultCode(), message);
+        return handlePreOperationException(e, i, preOperationModifyPlugins,
+            modifyOperation, p);
       }
 
       if (result == null)
       {
-        Message message = ERR_PLUGIN_PRE_OPERATION_PLUGIN_RETURNED_NULL.
-            get(modifyOperation.getOperationType().getOperationName(),
-                String.valueOf(p.getPluginEntryDN()),
-                modifyOperation.getConnectionID(),
-                modifyOperation.getOperationID());
-        logError(message);
-
-        registerSkippedPreOperationPlugins(i, preOperationModifyPlugins,
-            modifyOperation);
-
-        return PluginResult.PreOperation.stopProcessing(
-            DirectoryServer.getServerErrorResultCode(), message);
+        return handlePreOperationResult(modifyOperation, i,
+            preOperationModifyPlugins, p);
       }
       else if (!result.continuePluginProcessing())
       {
@@ -3201,40 +2894,14 @@ public class PluginConfigManager
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        Message message = ERR_PLUGIN_PRE_OPERATION_PLUGIN_EXCEPTION.
-            get(modifyDNOperation.getOperationType().getOperationName(),
-                String.valueOf(p.getPluginEntryDN()),
-                modifyDNOperation.getConnectionID(),
-                modifyDNOperation.getOperationID(),
-                stackTraceToSingleLineString(e));
-        logError(message);
-
-        registerSkippedPreOperationPlugins(i, preOperationModifyDNPlugins,
-            modifyDNOperation);
-
-        return PluginResult.PreOperation.stopProcessing(
-            DirectoryServer.getServerErrorResultCode(), message);
+        return handlePreOperationException(e, i, preOperationModifyDNPlugins,
+            modifyDNOperation, p);
       }
 
       if (result == null)
       {
-        Message message = ERR_PLUGIN_PRE_OPERATION_PLUGIN_RETURNED_NULL.
-            get(modifyDNOperation.getOperationType().getOperationName(),
-                String.valueOf(p.getPluginEntryDN()),
-                modifyDNOperation.getConnectionID(),
-                modifyDNOperation.getOperationID());
-        logError(message);
-
-        registerSkippedPreOperationPlugins(i, preOperationModifyDNPlugins,
-            modifyDNOperation);
-
-        return PluginResult.PreOperation.stopProcessing(
-            DirectoryServer.getServerErrorResultCode(), message);
+        return handlePreOperationResult(modifyDNOperation, i,
+            preOperationModifyDNPlugins, p);
       }
       else if (!result.continuePluginProcessing())
       {
@@ -3292,40 +2959,14 @@ public class PluginConfigManager
       }
       catch (Exception e)
       {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        Message message = ERR_PLUGIN_PRE_OPERATION_PLUGIN_EXCEPTION.
-            get(searchOperation.getOperationType().getOperationName(),
-                String.valueOf(p.getPluginEntryDN()),
-                searchOperation.getConnectionID(),
-                searchOperation.getOperationID(),
-                stackTraceToSingleLineString(e));
-        logError(message);
-
-        registerSkippedPreOperationPlugins(i, preOperationSearchPlugins,
-             searchOperation);
-
-        return PluginResult.PreOperation.stopProcessing(
-            DirectoryServer.getServerErrorResultCode(), message);
+        return handlePreOperationException(e, i, preOperationSearchPlugins,
+            searchOperation, p);
       }
 
       if (result == null)
       {
-        Message message = ERR_PLUGIN_PRE_OPERATION_PLUGIN_RETURNED_NULL.
-            get(searchOperation.getOperationType().getOperationName(),
-                String.valueOf(p.getPluginEntryDN()),
-                searchOperation.getConnectionID(),
-                searchOperation.getOperationID());
-        logError(message);
-
-        registerSkippedPreOperationPlugins(i, preOperationSearchPlugins,
-             searchOperation);
-
-        return PluginResult.PreOperation.stopProcessing(
-            DirectoryServer.getServerErrorResultCode(), message);
+        return handlePreOperationResult(searchOperation, i,
+            preOperationSearchPlugins, p);
       }
       else if (!result.continuePluginProcessing())
       {
@@ -3446,7 +3087,7 @@ public class PluginConfigManager
     ArrayList<DirectoryServerPlugin> skippedPlugins =
         skippedPreOperationPlugins.remove(addOperation);
 
-      for (DirectoryServerPlugin p : postOperationAddPlugins)
+    for (DirectoryServerPlugin p : postOperationAddPlugins)
     {
       if (addOperation.isInternalOperation() &&
           (! p.invokeForInternalOperations()))
@@ -3619,7 +3260,7 @@ public class PluginConfigManager
     ArrayList<DirectoryServerPlugin> skippedPlugins =
         skippedPreOperationPlugins.remove(compareOperation);
 
-      for (DirectoryServerPlugin p : postOperationComparePlugins)
+    for (DirectoryServerPlugin p : postOperationComparePlugins)
     {
       if (compareOperation.isInternalOperation() &&
           (! p.invokeForInternalOperations()))
@@ -5256,9 +4897,7 @@ public class PluginConfigManager
 
       try
       {
-        DirectoryServerPlugin<? extends PluginCfg> gp =
-             (DirectoryServerPlugin<? extends PluginCfg>) p;
-        result = gp.processSubordinateModifyDN(modifyDNOperation, oldEntry,
+        result = p.processSubordinateModifyDN(modifyDNOperation, oldEntry,
                                                newEntry, modifications);
       }
       catch (Exception e)
@@ -5335,9 +4974,7 @@ public class PluginConfigManager
 
       try
       {
-        DirectoryServerPlugin<? extends PluginCfg> gp =
-             (DirectoryServerPlugin<? extends PluginCfg>) p;
-        result = gp.processSubordinateDelete(deleteOperation, entry);
+        result = p.processSubordinateDelete(deleteOperation, entry);
       }
       catch (Exception e)
       {
