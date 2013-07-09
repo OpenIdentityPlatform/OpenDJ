@@ -134,6 +134,7 @@ import org.testng.annotations.Test;
 /**
  * Tests for the replicationServer code.
  */
+@SuppressWarnings("javadoc")
 public class ExternalChangeLogTest extends ReplicationTestCase
 {
   // The tracer object for the debug logger
@@ -340,7 +341,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
 
   @Test(enabled=true, groups="slow", dependsOnMethods = { "ECLReplicationServerTest"})
-  public void ECLReplicationServerFullTest7()
+  public void ECLReplicationServerFullTest7() throws Exception
   {
     // Persistent search with changesOnly request
     ECLPsearch(true, false);
@@ -348,7 +349,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
   }
 
   @Test(enabled=true, groups="slow", dependsOnMethods = { "ECLReplicationServerTest"})
-  public void ECLReplicationServerFullTest8()
+  public void ECLReplicationServerFullTest8() throws Exception
   {
     // Persistent search with init values request
     ECLPsearch(false, false);
@@ -379,10 +380,9 @@ public class ExternalChangeLogTest extends ReplicationTestCase
   @Test(enabled=true, groups="slow", dependsOnMethods = { "ECLReplicationServerTest"})
   public void ECLReplicationServerFullTest11()
   {
-    // Test directly from the java obect that the changeTimeHeartbeatState
+    // Test directly from the java object that the changeTimeHeartbeatState
     // stored are ok.
     ChangeTimeHeartbeatTest();
-
   }
 
   @Test(enabled=true, groups="slow", dependsOnMethods = { "ECLReplicationServerTest"})
@@ -401,7 +401,6 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     // ***********************************************
     // Empty replication changelog
     ECLCompatEmpty();
-
   }
 
   @Test(enabled=true, groups="slow", dependsOnMethods = { "ECLReplicationServerTest"})
@@ -413,7 +412,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
   }
 
   @Test(enabled=true, groups="slow", dependsOnMethods = { "ECLReplicationServerTest"})
-  public void ECLReplicationServerFullTest15()
+  public void ECLReplicationServerFullTest15() throws Exception
   {
     // Write 4 changes and read ECL from start
     int ts = ECLCompatWriteReadAllOps(1);
@@ -446,7 +445,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
   }
 
   @Test(enabled=true, groups="slow", dependsOnMethods = { "ECLReplicationServerTest"})
-  public void ECLReplicationServerFullTest16()
+  public void ECLReplicationServerFullTest16() throws Exception
   {
     // Persistent search in init + changes mode
     ECLPsearch(false, true);
@@ -1936,7 +1935,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
   /**
    * Test persistent search
    */
-  private void ECLPsearch(boolean changesOnly, boolean compatMode)
+  private void ECLPsearch(boolean changesOnly, boolean compatMode) throws Exception
   {
     String tn = "ECLPsearch_" + String.valueOf(changesOnly) + "_" +
       String.valueOf(compatMode);
@@ -1957,7 +1956,6 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     }
     assertNotNull(ldapStatistics);
 
-    try
     {
       // Create broker on suffix
       ReplicationBroker server01 = openReplicationSession(
@@ -2143,7 +2141,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       }
       debugInfo(tn, "Second search done successfully : " + searchResultEntry);
       server01.stop();
-      try { s.close(); } catch (Exception e) {};
+      close(s);
       while (!s.isClosed()) sleep(100);
 
       // TODO:  Testing ACI is disabled because it is currently failing when
@@ -2212,12 +2210,8 @@ public class ExternalChangeLogTest extends ReplicationTestCase
         assertEquals(searchEntries,0, "Bad search entry# in ACI test of " + tn);
       }
 
-      try { s.close(); } catch (Exception e) {};
+      close(s);
       while (!s.isClosed()) sleep(100);
-    }
-    catch(Exception e)
-    {
-      fail("Test " + tn + " fails with " +  stackTraceToSingleLineString(e));
     }
     debugInfo(tn, "Ends test successfully");
   }
@@ -2692,17 +2686,17 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
       if (s1 != null)
       {
-        try { s1.close(); } catch (Exception ignored) {};
+        close(s1);
         while (!s1.isClosed()) sleep(100);
       }
       if (s2 != null)
       {
-        try { s2.close(); } catch (Exception e) {};
+        close(s2);
         while (!s2.isClosed()) sleep(100);
       }
       if (s3 != null)
       {
-        try { s3.close(); } catch (Exception e) {};
+        close(s3);
         while (!s3.isClosed()) sleep(100);
       }
       replicationServer.clearDb();
@@ -3378,8 +3372,6 @@ public class ExternalChangeLogTest extends ReplicationTestCase
           DN.decode(TEST_ROOT_DN_STRING),  1201,
           100, replicationServerPort,
           brokerSessionTimeout, true);
-
-      String user1entryUUID = "11111111-1112-1113-1114-111111111115";
 
       LinkedHashSet<String> attributes = new LinkedHashSet<String>();
       attributes.add("+");
