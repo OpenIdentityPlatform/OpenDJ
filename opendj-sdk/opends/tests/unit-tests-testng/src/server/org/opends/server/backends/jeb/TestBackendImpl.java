@@ -27,31 +27,32 @@
  */
 package org.opends.server.backends.jeb;
 
+import static org.assertj.core.api.Assertions.*;
+import static org.testng.Assert.*;
+
 import java.util.*;
 
 import org.opends.server.TestCaseUtils;
-import org.opends.server.admin.std.server.LocalDBBackendCfg;
-import org.opends.server.admin.std.meta.LocalDBBackendCfgDefn;
 import org.opends.server.admin.server.AdminTestCaseUtils;
+import org.opends.server.admin.std.meta.LocalDBBackendCfgDefn;
+import org.opends.server.admin.std.server.LocalDBBackendCfg;
 import org.opends.server.controls.SubtreeDeleteControl;
-import org.opends.server.core.ModifyDNOperationBasis;
+import org.opends.server.core.DeleteOperationBasis;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.ModifyDNOperationBasis;
+import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.types.*;
 import org.opends.server.util.Base64;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.AfterClass;
 
-import static org.testng.Assert.*;
 import com.sleepycat.je.DatabaseEntry;
 import com.sleepycat.je.LockMode;
-
-import org.opends.server.core.DeleteOperationBasis;
-import org.opends.server.core.ModifyOperationBasis;
 
 /**
  * BackendImpl Tester.
@@ -568,7 +569,7 @@ public class TestBackendImpl extends JebTestCase {
     InternalSearchOperation search =
         conn.processSearch(DN.decode("dc=test,dc=com"), SearchScope.BASE_OBJECT,
             LDAPFilter.decode("(objectClass=*)").toSearchFilter());
-    LinkedList<SearchResultEntry> result = search.getSearchEntries();
+    List<SearchResultEntry> result = search.getSearchEntries();
 
     assertEquals(result.size(), 1);
     assertEquals(result.get(0).getDN().toString(), "dc=test,dc=com");
@@ -595,7 +596,7 @@ public class TestBackendImpl extends JebTestCase {
 
     assertEquals(result.size(), 13);
     for (Entry entry : result) {
-      assertNotSame(entry.getDN().toString(), "dc=test,dc=com");
+      assertThat(entry.getDN().toString()).isNotEqualTo("dc=test,dc=com");
     }
 
     search = conn.processSearch(DN.decode("dc=test,dc=com"),
@@ -633,7 +634,7 @@ public class TestBackendImpl extends JebTestCase {
   public void testSearchIndex() throws Exception {
     InternalClientConnection conn =
         InternalClientConnection.getRootConnection();
-    LinkedHashSet<String> attribs = new LinkedHashSet<String>();
+    Set<String> attribs = new LinkedHashSet<String>();
 
     String debugString;
     int finalStartPos;
@@ -642,19 +643,15 @@ public class TestBackendImpl extends JebTestCase {
 
     InternalSearchOperation search =
         conn.processSearch(DN.decode("dc=test,dc=com"),
-
             SearchScope.WHOLE_SUBTREE,
-
             DereferencePolicy.NEVER_DEREF_ALIASES,
             0,
             0,
             false,
-
             LDAPFilter.decode("(&(cn=Aaccf Amar)(cn=Ardyth Bainton))").toSearchFilter(),
             attribs);
 
-    LinkedList<SearchResultEntry> result = search.getSearchEntries();
-
+    List<SearchResultEntry> result = search.getSearchEntries();
     assertEquals(result.size(), 0);
 
     attribs.add(ATTR_DEBUG_SEARCH_INDEX);
@@ -706,7 +703,6 @@ public class TestBackendImpl extends JebTestCase {
         0,
         0,
         false,
-
         LDAPFilter.decode("(&(employeeNumber=*)(cn=A*)(employeeNumber>=0)(employeeNumber<=z))").toSearchFilter(),
         attribs);
     result = search.getSearchEntries();
@@ -726,7 +722,6 @@ public class TestBackendImpl extends JebTestCase {
         0,
         0,
         false,
-
         LDAPFilter.decode("(&(employeeNumber<=z)(cn<=Abbey Abbie)(cn>=0)(|(cn>=Abahri Abazari)(employeeNumber<=9)))").toSearchFilter(),
         attribs);
     result = search.getSearchEntries();
@@ -746,7 +741,6 @@ public class TestBackendImpl extends JebTestCase {
         0,
         0,
         false,
-
         LDAPFilter.decode("(cn~=Aartjan)").toSearchFilter(),
         attribs);
     result = search.getSearchEntries();
@@ -767,7 +761,7 @@ public class TestBackendImpl extends JebTestCase {
       "testNumSubordinatesIndexEntryLimitExceeded"})
   public void testDeleteSubtree() throws Exception {
     Control control = new SubtreeDeleteControl(false);
-    ArrayList<Control> deleteSubTreeControl = new ArrayList<Control>();
+    List<Control> deleteSubTreeControl = new ArrayList<Control>();
     deleteSubTreeControl.add(control);
     InternalClientConnection conn =
         InternalClientConnection.getRootConnection();
@@ -797,7 +791,7 @@ public class TestBackendImpl extends JebTestCase {
   @Test(dependsOnMethods = {"testAdd", "testSearchIndex",
       "testSearchScope", "testMatchedDN"})
   public void testDeleteEntry() throws Exception {
-    ArrayList<Control> noControls = new ArrayList<Control>(0);
+    List<Control> noControls = new ArrayList<Control>(0);
     InternalClientConnection conn =
         InternalClientConnection.getRootConnection();
 
@@ -1033,7 +1027,7 @@ public class TestBackendImpl extends JebTestCase {
     ec.sharedLock.lock();
     try
     {
-      ArrayList<Modification> modifications = new ArrayList<Modification>();
+      List<Modification> modifications = new ArrayList<Modification>();
       modifications.add(new Modification(ModificationType.ADD, Attributes
           .create("title", "debugger")));
 
@@ -1107,7 +1101,7 @@ public class TestBackendImpl extends JebTestCase {
       assertEquals(nameIndex.presenceIndex.containsID(null, key, entryID),
           ConditionResult.TRUE);
 
-      ArrayList<Control> noControls = new ArrayList<Control>(0);
+      List<Control> noControls = new ArrayList<Control>(0);
       InternalClientConnection conn = InternalClientConnection
           .getRootConnection();
 
@@ -1122,33 +1116,25 @@ public class TestBackendImpl extends JebTestCase {
       assertTrue(entry.getAttribute("title").contains(
           Attributes.create("title", "debugger")));
 
-      assertTrue(entry.getAttribute("cn").get(0)
-          .contains(
-          AttributeValues.create(entry.getAttribute("cn").get(0)
-                  .getAttributeType(), "Aaren Rigor")));
-      assertTrue(entry.getAttribute("cn").get(0).contains(
-          AttributeValues.create(
-              entry.getAttribute("cn").get(0).getAttributeType(),
-              "Aarenister Rigor")));
-      assertFalse(entry.getAttribute("cn").get(0).contains(
-          AttributeValues.create(
-              entry.getAttribute("cn").get(0).getAttributeType(), "Aaren Atp")));
+      final Attribute cnAttr = entry.getAttribute("cn").get(0);
+      assertTrue(cnAttr.contains(AttributeValues.create(
+              cnAttr.getAttributeType(), "Aaren Rigor")));
+      assertTrue(cnAttr.contains(AttributeValues.create(
+              cnAttr.getAttributeType(), "Aarenister Rigor")));
+      assertFalse(cnAttr.contains(AttributeValues.create(
+              cnAttr.getAttributeType(), "Aaren Atp")));
 
-      Set<String> options = new LinkedHashSet<String>();
-      options.add("lang-de");
+      Set<String> options = Collections.singleton("lang-de");
       assertTrue(entry.getAttribute("givenname", options).get(0).contains(
           AttributeValues.create(entry.getAttribute("givenname", options).get(0)
               .getAttributeType(), "test")));
-      options = new LinkedHashSet<String>();
-      options.add("lang-cn");
+      options = Collections.singleton("lang-cn");
       assertNull(entry.getAttribute("givenname", options));
-      options = new LinkedHashSet<String>();
-      options.add("lang-es");
+      options = Collections.singleton("lang-es");
       assertTrue(entry.getAttribute("givenname", options).get(0).contains(
           AttributeValues.create(entry.getAttribute("givenname", options).get(0)
               .getAttributeType(), "newtest3")));
-      options = new LinkedHashSet<String>();
-      options.add("lang-fr");
+      options = Collections.singleton("lang-fr");
       assertTrue(entry.getAttribute("givenname", options).get(0).contains(
           AttributeValues.create(entry.getAttribute("givenname", options).get(0)
               .getAttributeType(), "test2")));
@@ -1312,7 +1298,7 @@ public class TestBackendImpl extends JebTestCase {
           DN.decode("ou=People,dc=test,dc=com"), LockMode.DEFAULT);
       assertTrue(newSuperiorID.compareTo(oldID) > 0);
 
-      ArrayList<Control> noControls = new ArrayList<Control>(0);
+      List<Control> noControls = new ArrayList<Control>(0);
       InternalClientConnection conn =
           InternalClientConnection.getRootConnection();
 
@@ -1408,7 +1394,7 @@ public class TestBackendImpl extends JebTestCase {
     assertNull(index.substringIndex);
     assertNull(index.orderingIndex);
     assertNotNull(index.approximateIndex);
-    ArrayList<DatabaseContainer> databases = new ArrayList<DatabaseContainer>();
+    List<DatabaseContainer> databases = new ArrayList<DatabaseContainer>();
     ec.listDatabases(databases);
     boolean eqfound = false;
     boolean prfound = false;
@@ -1446,7 +1432,7 @@ public class TestBackendImpl extends JebTestCase {
 
     InternalClientConnection conn =
         InternalClientConnection.getRootConnection();
-    LinkedHashSet<String> attribs = new LinkedHashSet<String>();
+    Set<String> attribs = new LinkedHashSet<String>();
     attribs.add(ATTR_DEBUG_SEARCH_INDEX);
 
     InternalSearchOperation search =
@@ -1463,7 +1449,7 @@ public class TestBackendImpl extends JebTestCase {
                                toSearchFilter(),
                            attribs);
 
-    LinkedList<SearchResultEntry> result = search.getSearchEntries();
+    List<SearchResultEntry> result = search.getSearchEntries();
 
     //No indexes should be used.
     String debugString =
@@ -1628,34 +1614,28 @@ public class TestBackendImpl extends JebTestCase {
 
     InternalClientConnection conn =
         InternalClientConnection.getRootConnection();
-    LinkedHashSet<String> attribs = new LinkedHashSet<String>();
+    Set<String> attribs = new LinkedHashSet<String>();
     attribs.add(ATTR_DEBUG_SEARCH_INDEX);
-
-    String debugString;
 
     InternalSearchOperation search =
         conn.processSearch(DN.decode("dc=test,dc=com"),
-
             SearchScope.SUBORDINATE_SUBTREE,
-
             DereferencePolicy.NEVER_DEREF_ALIASES,
             0,
             0,
             false,
-
             LDAPFilter.decode("(carLicense=377*)").toSearchFilter(),
             attribs);
 
-    LinkedList<SearchResultEntry> result = search.getSearchEntries();
+    List<SearchResultEntry> result = search.getSearchEntries();
 
     //No indexes should be used.
-    debugString =
+    String debugString =
         result.get(0).getAttribute("debugsearchindex").get(0).toString();
-    assertTrue(debugString.contains("NOT-INDEXED"));
-
+    assertThat(debugString).contains("NOT-INDEXED");
   }
 
-    @Test(dependsOnMethods = "testSearchNotIndexed")
+  @Test(dependsOnMethods = "testSearchNotIndexed")
   public void testNumSubordinatesIndexEntryLimitExceeded() throws Exception
   {
     DN dn = DN.decode("dc=test,dc=com");
@@ -1694,20 +1674,17 @@ public class TestBackendImpl extends JebTestCase {
     ResultCode noSuchObject = ResultCode.NO_SUCH_OBJECT;
 
     DN testComDN            = DN.decode(                   "dc=test,dc=com");
-    DN peopleTestComDN      = DN.decode(          "cn=dummy,dc=test,dc=com");
-    DN dummyTestComDN       = DN.decode(         "ou=people,dc=test,dc=com");
+    DN dummyTestComDN       = DN.decode(          "cn=dummy,dc=test,dc=com");
+    DN peopleTestComDN      = DN.decode(         "ou=people,dc=test,dc=com");
     DN dummyPeopleTestComDN = DN.decode("cn=dummy,ou=people,dc=test,dc=com");
 
     // Sets of DNs
-    Object[][] myData =
-    {
+    return new Object[][] {
       {testComDN,            null,            success},
       {peopleTestComDN,      null,            success},
       {dummyTestComDN,       testComDN,       noSuchObject},
       {dummyPeopleTestComDN, peopleTestComDN, noSuchObject},
     };
-
-    return myData;
   }
 
 
