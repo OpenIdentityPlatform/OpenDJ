@@ -28,7 +28,7 @@
           xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
           xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
           xmlns:xlink='http://www.w3.org/1999/xlink'
-        >
+          xmlns:xinclude='http://www.w3.org/2001/XInclude'>
  <title>REST LDAP Configuration</title>
  <indexterm><primary>REST</primary></indexterm>
  <indexterm><primary>HTTP</primary></indexterm>
@@ -97,9 +97,36 @@
            <literal>connectionPoolSize</literal> connections to the
            servers.</para>
 
-           <para>Default: 10</para>
+           <para>Default: 24</para>
 
-           <programlisting language="javascript">"connectionPoolSize": 10</programlisting>
+           <programlisting language="javascript">"connectionPoolSize": 24</programlisting>
+          </listitem>
+         </varlistentry>
+
+         <varlistentry>
+          <term>"connectionSecurity" (optional)</term>
+          <listitem>
+           <para>Whether connections to LDAP servers should be secured by using
+           SSL or StartTLS. The following values are supported.</para>
+
+           <itemizedlist>
+            <listitem>
+             <para>"none" (default) means connections use plain LDAP and are
+             not secured.</para>
+            </listitem>
+
+            <listitem>
+             <para>"ssl" means connections are secured using LDAPS.</para>
+            </listitem>
+
+            <listitem>
+             <para>"startTLS" means connections are secured using LDAP and
+             StartTLS.</para>
+            </listitem>
+           </itemizedlist>
+
+            <para>If you set "connectionSecurity", also review the
+            "trustManager" and "fileBasedTrustManager*" settings.</para>
           </listitem>
          </varlistentry>
 
@@ -113,6 +140,49 @@
            <para>Default: 30 (seconds)</para>
 
            <programlisting language="javascript">"heartBeatIntervalSeconds": 30</programlisting>
+          </listitem>
+         </varlistentry>
+
+         <varlistentry>
+          <term>"fileBasedTrustManagerFile" (optional)</term>
+          <listitem>
+           <para>If "trustManager" is set to "file", then this setting
+           configures the location of the trust store file.</para>
+
+           <para>Default: "/path/to/truststore"</para>
+          </listitem>
+         </varlistentry>
+
+         <varlistentry>
+          <term>"fileBasedTrustManagerPassword" (optional)</term>
+          <listitem>
+           <para>If "trustManager" is set to "file", then this setting
+           specifies the trust store password.</para>
+
+           <para>Default: "password"</para>
+          </listitem>
+         </varlistentry>
+
+         <varlistentry>
+          <term>"fileBasedTrustManagerType" (optional)</term>
+          <listitem>
+           <para>If "trustManager" is set to "file", then this setting
+           configures the format for the data in the trust store file specified
+           by the "fileBasedTrustManagerFile" setting. Formats include the
+           following, though other implementations might be supported as well
+           depending on the Java environment.</para>
+
+           <itemizedlist>
+            <listitem>
+             <para>"JKS" (default) specifies Java Key Store format.</para>
+            </listitem>
+
+            <listitem>
+             <para>"PKCS12" specifies Public-Key Cryptography Standards 12
+             format.</para>
+            </listitem>
+           </itemizedlist>
+
           </listitem>
          </varlistentry>
 
@@ -164,6 +234,36 @@
            <para>No secondary LDAP servers are configured by default.</para>
           </listitem>
          </varlistentry>
+
+         <varlistentry>
+          <term>"trustManager" (optional)</term>
+          <listitem>
+           <para>If "connectionSecurity" is set to "ssl" or "startTLS", then
+           this setting configures how the LDAP servers are trusted. This
+           setting is ignored if "connectionSecurity" is set to "none".</para>
+
+           <itemizedlist>
+            <listitem>
+             <para>"file" means trust the LDAP server certificate if it is
+             signed by a Certificate Authority (CA) trusted according to the
+             file-based trust store configured with the "fileBasedTrustManager*"
+             settings.</para>
+            </listitem>
+
+            <listitem>
+             <para>"jvm" means trust the LDAP server certificate if it is signed
+             by a CA trusted by the Java environment.</para>
+            </listitem>
+
+            <listitem>
+             <para>"trustAll" (default) means blindly trust all LDAP server
+             certificates.</para>
+            </listitem>
+           </itemizedlist>
+
+          </listitem>
+         </varlistentry>
+
         </variablelist>
        </listitem>
      </varlistentry>

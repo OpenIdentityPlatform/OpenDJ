@@ -48,7 +48,9 @@
      <para>OpenDJ REST LDAP gateway lets clients access directory data in remote
      LDAP servers over HTTP (<link xlink:show="new"
      xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-757"
-     >OPENDJ-757</link>). See the procedure, <link xlink:show="new"
+     >OPENDJ-757</link>, <link xlink:show="new"
+     xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1033"
+     >OPENDJ-1033</link>). See the procedure, <link xlink:show="new"
      xlink:href="install-guide#install-rest2ldap-servlet"
      xlink:role="http://docbook.org/xlink/role/olink"><citetitle>To Install
      OpenDJ REST LDAP Gateway</citetitle></link>, to get started.</para>
