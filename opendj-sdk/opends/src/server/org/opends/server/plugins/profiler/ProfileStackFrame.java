@@ -292,6 +292,7 @@ public class ProfileStackFrame
    *
    * @return  The hash code for this stack frame.
    */
+  @Override
   public int hashCode()
   {
     return (className.hashCode() + methodName.hashCode());
@@ -309,6 +310,7 @@ public class ProfileStackFrame
    * @return  <CODE>true</CODE> if the provided object may be considered equal
    *          to this stack frame, or <CODE>false</CODE> if not.
    */
+  @Override
   public boolean equals(Object o)
   {
     if (o == null)
@@ -354,18 +356,11 @@ public class ProfileStackFrame
    * @throws  ClassCastException  If the provided object is not a profile stack
    *                              frame.
    */
+  @Override
   public int compareTo(Object o)
          throws ClassCastException
   {
-    ProfileStackFrame f;
-    try
-    {
-      f = (ProfileStackFrame) o;
-    }
-    catch (ClassCastException cce)
-    {
-      throw cce;
-    }
+    ProfileStackFrame f = (ProfileStackFrame) o;
 
     long thisCount = getTotalCount();
     long thatCount = f.getTotalCount();
@@ -395,6 +390,7 @@ public class ProfileStackFrame
    *
    * @return  A string representation of this stack frame.
    */
+  @Override
   public String toString()
   {
     StringBuilder buffer = new StringBuilder();

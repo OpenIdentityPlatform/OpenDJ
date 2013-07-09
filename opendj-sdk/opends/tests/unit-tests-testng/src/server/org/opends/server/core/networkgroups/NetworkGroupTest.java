@@ -28,35 +28,21 @@
 package org.opends.server.core.networkgroups;
 
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertNull;
-import static org.opends.server.config.ConfigConstants.DN_BACKEND_BASE;
+import static org.opends.messages.CoreMessages.*;
+import static org.opends.server.config.ConfigConstants.*;
+import static org.testng.Assert.*;
 
 import java.util.ArrayList;
 import java.util.Collections;
 
-import static org.opends.messages.CoreMessages.*;
-
-import org.opends.server.TestCaseUtils;
 import org.opends.server.DirectoryServerTestCase;
+import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.std.meta.NetworkGroupCfgDefn.AllowedAuthMethod;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.core.*;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.ldap.LDAPFilter;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.Attributes;
-import org.opends.server.types.AuthenticationInfo;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.DN;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.Entry;
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.Modification;
-import org.opends.server.types.ModificationType;
-import org.opends.server.types.ResultCode;
-import org.opends.server.types.SearchScope;
+import org.opends.server.types.*;
 import org.opends.server.workflowelement.WorkflowElement;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
@@ -110,17 +96,8 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
     String networkGroupID2 = "networkGroup2";
 
     // Workflow base DNs
-    DN dn1 = null;
-    DN dn2 = null;
-    try
-    {
-      dn1 = DN.decode("o=test1");
-      dn2 = DN.decode("o=test2");
-    }
-    catch (DirectoryException de)
-    {
-      throw de;
-    }
+    DN dn1 = DN.decode("o=test1");
+    DN dn2 = DN.decode("o=test2");
 
     // Network group info
     Object[][] myData =
@@ -160,41 +137,21 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
   public Object[][] initDNSet_1()
     throws Exception
   {
-    DN dnRootDSE = null;
-    DN dnConfig  = null;
-    DN dnMonitor = null;
-    DN dnSchema  = null;
-    DN dnTasks   = null;
-    DN dnBackups = null;
-    DN dnDummy   = null;
+    DN dnRootDSE = DN.decode("");
+    DN dnConfig  = DN.decode("cn=config");
+    DN dnMonitor = DN.decode("cn=monitor");
+    DN dnSchema  = DN.decode("cn=schema");
+    DN dnTasks   = DN.decode("cn=tasks");
+    DN dnBackups = DN.decode("cn=backups");
+    DN dnDummy   = DN.decode("o=dummy_suffix");
 
-    DN dnSubordinateConfig  = null;
-    DN dnSubordinateMonitor = null;
-    DN dnSubordinateTasks   = null;
-
-    try
-    {
-      dnRootDSE = DN.decode("");
-      dnConfig  = DN.decode("cn=config");
-      dnMonitor = DN.decode("cn=monitor");
-      dnSchema  = DN.decode("cn=schema");
-      dnTasks   = DN.decode("cn=tasks");
-      dnBackups = DN.decode("cn=backups");
-      dnDummy   = DN.decode("o=dummy_suffix");
-
-      dnSubordinateConfig  = DN.decode("cn=Work Queue,cn=config");
-      dnSubordinateMonitor = DN.decode("cn=schema Backend,cn=monitor");
-      dnSubordinateTasks   = DN.decode("cn=Scheduled Tasks,cn=tasks");
-
-      // No DN subordinate for schema because the schema backend is
-      // currently empty.
-      // No DN subordinate for cn=backups because by default there is no
-      // child entry under cn=backups.
-    }
-    catch (DirectoryException de)
-    {
-      throw de;
-    }
+    DN dnSubordinateConfig  = DN.decode("cn=Work Queue,cn=config");
+    DN dnSubordinateMonitor = DN.decode("cn=schema Backend,cn=monitor");
+    DN dnSubordinateTasks   = DN.decode("cn=Scheduled Tasks,cn=tasks");
+    // No DN subordinate for schema because the schema backend is
+    // currently empty.
+    // No DN subordinate for cn=backups because by default there is no
+    // child entry under cn=backups.
 
     // Sets of DNs
     Object[][] myData =
@@ -232,27 +189,13 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
     throws Exception
   {
     // Network group definition
-    DN     dn1          = null;
-    DN     dn2          = null;
-    DN     dn3          = null;
-    DN     subordinate1 = null;
-    DN     subordinate2 = null;
-    DN     subordinate3 = null;
-    DN     unrelatedDN  = null;
-    try
-    {
-      dn1          = DN.decode("o=test1");
-      dn2          = DN.decode("o=test2");
-      dn3          = DN.decode("o=test3");
-      subordinate1 = DN.decode("ou=subtest1,o=test1");
-      subordinate2 = DN.decode("ou=subtest2,o=test2");
-      subordinate3 = DN.decode("ou=subtest3,o=test3");
-      unrelatedDN  = DN.decode("o=dummy");
-    }
-    catch (DirectoryException de)
-    {
-      throw de;
-    }
+    DN     dn1          = DN.decode("o=test1");
+    DN     dn2          = DN.decode("o=test2");
+    DN     dn3          = DN.decode("o=test3");
+    DN     subordinate1 = DN.decode("ou=subtest1,o=test1");
+    DN     subordinate2 = DN.decode("ou=subtest2,o=test2");
+    DN     subordinate3 = DN.decode("ou=subtest3,o=test3");
+    DN     unrelatedDN  = DN.decode("o=dummy");
 
     // Network group info
     Object[][] myData =
@@ -302,7 +245,7 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
   {
     // Network group definition
     String networkGroupID = "networkGroup1";
-    DN  dn = null;
+    DN  dn = DN.decode("o=test1");
     int prio = 1;
 
     // Resource limits
@@ -313,15 +256,6 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
     int searchTimeLimit = 100;
     int searchSizeLimit = 50;
     int minSubstringLength = 4;
-
-    try
-    {
-      dn = DN.decode("o=test1");
-    }
-    catch (DirectoryException de)
-    {
-      throw de;
-    }
 
     // Network group info
     Object[][] myData =
@@ -353,15 +287,9 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
   {
     String networkGroupID1 = "group1";
     String networkGroupID2 = "group2";
-    DN dn1 = null;
-    DN dn2 = null;
+    DN dn1 = DN.decode("o=test1");
+    DN dn2 = DN.decode("o=test2");
 
-    try {
-      dn1 = DN.decode("o=test1");
-      dn2 = DN.decode("o=test2");
-    } catch (DirectoryException de) {
-      throw de;
-    }
     Object[][] myData = {
       {
         networkGroupID1,
@@ -1114,8 +1042,6 @@ public class NetworkGroupTest extends DirectoryServerTestCase {
     NetworkGroup networkGroup = new NetworkGroup("secured_group");
     networkGroup.register();
     networkGroup.setConnectionCriteria(secCriteria);
-
-    NetworkGroup defaultNg = NetworkGroup.getDefaultNetworkGroup();
 
     // Create a new client connection, with anonymous authentication
     // It should match the secured group as internal connections

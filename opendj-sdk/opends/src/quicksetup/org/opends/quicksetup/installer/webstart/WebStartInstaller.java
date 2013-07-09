@@ -193,10 +193,6 @@ public class WebStartInstaller extends Installer {
         {
           new ServerController(this).startServer(!isStartVerbose());
         }
-        catch (ApplicationException ae)
-        {
-          throw ae;
-        }
         finally
         {
           if (!isVerbose())
