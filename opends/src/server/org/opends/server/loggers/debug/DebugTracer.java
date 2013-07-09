@@ -52,7 +52,7 @@ import com.sleepycat.je.Database;
 
 public class DebugTracer
 {
-  // The class this aspect traces.
+  /** The class this aspect traces. */
   private String className;
 
   /**
@@ -65,7 +65,7 @@ public class DebugTracer
     Map<String, TraceSettings> methodSettings;
   }
 
-  PublisherSettings[] publisherSettings;
+  private PublisherSettings[] publisherSettings;
 
   /**
    * Construct a new DebugTracer object with cached settings obtained from
@@ -73,7 +73,7 @@ public class DebugTracer
    *
    * @param publishers The array of publishers to obtain the settings from.
    */
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings({ "unchecked", "rawtypes" })
   DebugTracer(DebugLogPublisher[] publishers)
   {
     // Trim off the debug logging and non OpenDS frames.
@@ -743,7 +743,7 @@ public class DebugTracer
   }
 
   /**
-   * Log an cought exception.
+   * Log a caught exception.
    *
    * @param level the level of the log message.
    * @param ex the exception caught.
@@ -1107,7 +1107,7 @@ public class DebugTracer
    *
    * @param publishers The array of publishers to obtain the settings from.
    */
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings({ "unchecked", "rawtypes" })
   void updateSettings(DebugLogPublisher[] publishers)
   {
     PublisherSettings[] newSettings =
@@ -1149,9 +1149,8 @@ public class DebugTracer
     {
       // Skip leading frames debug logging classes and getStackTrace
       // method call frame if any.
-      for (int i = 0; i < stackTrace.length; i++)
+      for (StackTraceElement aStackTrace : stackTrace)
       {
-        StackTraceElement aStackTrace = stackTrace[i];
         if(aStackTrace.getClassName().startsWith("java.lang.Thread"))
         {
           continue;
