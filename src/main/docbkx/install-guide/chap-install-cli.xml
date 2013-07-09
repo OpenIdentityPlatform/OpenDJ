@@ -737,9 +737,21 @@ To see basic server configuration status and configuration you can launch
    correctly match your directory data.</para>
 
    <para>For details on the configuration, see <link
-   xlink:href="admin-guide#appendix-rest2ldap"
+   xlink:href="admin-guide#appendix-rest2ldap" xlink:show="new"
    xlink:role="http://docbook.org/xlink/role/olink"><citetitle>REST LDAP
    Configuration</citetitle></link>.</para>
+
+   <para>When connecting to directory servers over LDAPS or LDAP and StartTLS,
+   you can configure the trust manager to use a file-based trust store for
+   server certificates that the gateway should trust. This allows the gateway to
+   validate server certificates signed for example by a Certificate Authority
+   not recognized by the Java environment when setting up LDAPS or StartTLS
+   connections. See <link xlink:show="new"
+   xlink:href="admin-guide#setup-server-cert"
+   xlink:role="http://docbook.org/xlink/role/olink"><citetitle>Preparing For
+   Secure Communications</citetitle></link> for an example showing how to use
+   the <command>keytool</command> command to support a server certificate into
+   a trust store file.</para>
   </step>
 
   <step>
