@@ -27,13 +27,19 @@
  */
 package org.opends.server.util;
 
+import static org.opends.messages.UtilityMessages.*;
+import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.util.StaticUtils.*;
+import static org.opends.server.util.Validator.*;
+
 import java.io.*;
 import java.net.URL;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
+
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
-import static org.opends.messages.UtilityMessages.*;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.backends.jeb.EntryID;
 import org.opends.server.backends.jeb.RootContainer;
@@ -41,16 +47,10 @@ import org.opends.server.backends.jeb.importLDIF.Importer;
 import org.opends.server.backends.jeb.importLDIF.Suffix;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.PluginConfigManager;
-import static org.opends.server.loggers.ErrorLogger.logError;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPModification;
 import org.opends.server.types.*;
-import static org.opends.server.util.StaticUtils.addSuperiorObjectClasses;
-import static org.opends.server.util.StaticUtils.toLowerCase;
-import static org.opends.server.util.Validator.ensureNotNull;
 
 
 /**
@@ -70,43 +70,53 @@ public final class LDIFReader implements Closeable
    */
   private static final DebugTracer TRACER = getTracer();
 
-  // The reader that will be used to read the data.
+  /** The reader that will be used to read the data. */
   private BufferedReader reader;
 
-  // The buffer to use to read data from a URL.
+  /** The buffer to use to read data from a URL. */
   private byte[] buffer;
 
-  // The import configuration that specifies what should be imported.
+  /** The import configuration that specifies what should be imported. */
   private LDIFImportConfig importConfig;
 
-  // The lines that comprise the body of the last entry read.
-  private LinkedList<StringBuilder> lastEntryBodyLines;
+  /** The lines that comprise the body of the last entry read. */
+  private List<StringBuilder> lastEntryBodyLines;
 
-  // The lines that comprise the header (DN and any comments) for the last entry
-  // read.
-  private LinkedList<StringBuilder> lastEntryHeaderLines;
+  /**
+   * The lines that comprise the header (DN and any comments) for the last entry
+   * read.
+   */
+  private List<StringBuilder> lastEntryHeaderLines;
 
 
-  // The number of entries that have been ignored by this LDIF reader because
-  // they didn't match the criteria.
+  /**
+   * The number of entries that have been ignored by this LDIF reader because
+   * they didn't match the criteria.
+   */
   private final AtomicLong entriesIgnored = new AtomicLong();
 
-  // The number of entries that have been read by this LDIF reader, including
-  // those that were ignored because they didn't match the criteria, and
-  // including those that were rejected because they were invalid in some way.
+  /**
+   * The number of entries that have been read by this LDIF reader, including
+   * those that were ignored because they didn't match the criteria, and
+   * including those that were rejected because they were invalid in some way.
+   */
   private final AtomicLong entriesRead = new AtomicLong();
 
-  // The number of entries that have been rejected by this LDIF reader.
+  /** The number of entries that have been rejected by this LDIF reader. */
   private final AtomicLong entriesRejected = new AtomicLong();
 
-  // The line number on which the last entry started.
+  /** The line number on which the last entry started. */
   private long lastEntryLineNumber;
 
-  // The line number of the last line read from the LDIF file, starting with 1.
+  /**
+   * The line number of the last line read from the LDIF file, starting with 1.
+   */
   private long lineNumber;
 
-  // The plugin config manager that will be used if we are to invoke plugins
-  // on the entries as they are read.
+  /**
+   * The plugin config manager that will be used if we are to invoke plugins on
+   * the entries as they are read.
+   */
   private PluginConfigManager pluginConfigManager;
 
   private RootContainer rootContainer;
@@ -297,11 +307,11 @@ public final class LDIFReader implements Closeable
         suffix.addPending(entryDN);
       }
       // Read the set of attributes from the entry.
-      HashMap<ObjectClass,String> objectClasses =
+      Map<ObjectClass, String> objectClasses =
            new HashMap<ObjectClass,String>();
-      HashMap<AttributeType,List<AttributeBuilder>> userAttrBuilders =
+      Map<AttributeType, List<AttributeBuilder>> userAttrBuilders =
            new HashMap<AttributeType,List<AttributeBuilder>>();
-      HashMap<AttributeType,List<AttributeBuilder>> operationalAttrBuilders =
+      Map<AttributeType, List<AttributeBuilder>> operationalAttrBuilders =
            new HashMap<AttributeType,List<AttributeBuilder>>();
       try
       {
@@ -327,40 +337,10 @@ public final class LDIFReader implements Closeable
 
       // Create the entry and see if it is one that should be included in the
       // import.
-      HashMap<AttributeType,List<Attribute>> userAttributes =
-        new HashMap<AttributeType,List<Attribute>>(
-        userAttrBuilders.size());
-      HashMap<AttributeType,List<Attribute>> operationalAttributes =
-        new HashMap<AttributeType,List<Attribute>>(
-        operationalAttrBuilders.size());
-      for (Map.Entry<AttributeType, List<AttributeBuilder>>
-           attrTypeEntry : userAttrBuilders.entrySet())
-      {
-        AttributeType attrType = attrTypeEntry.getKey();
-        List<AttributeBuilder> attrBuilderList = attrTypeEntry.getValue();
-        List<Attribute> attrList =
-          new ArrayList<Attribute>(attrBuilderList.size());
-        for (AttributeBuilder builder : attrBuilderList)
-        {
-          attrList.add(builder.toAttribute());
-        }
-        userAttributes.put(attrType, attrList);
-      }
-      for (Map.Entry<AttributeType, List<AttributeBuilder>>
-           attrTypeEntry : operationalAttrBuilders.entrySet())
-      {
-        AttributeType attrType = attrTypeEntry.getKey();
-        List<AttributeBuilder> attrBuilderList = attrTypeEntry.getValue();
-        List<Attribute> attrList =
-          new ArrayList<Attribute>(attrBuilderList.size());
-        for (AttributeBuilder builder : attrBuilderList)
-        {
-          attrList.add(builder.toAttribute());
-        }
-        operationalAttributes.put(attrType, attrList);
-      }
-      // Create the entry and see if it is one that should be included in the
-      // import.
+      Map<AttributeType, List<Attribute>> userAttributes =
+          toAttributesMap(userAttrBuilders);
+      Map<AttributeType, List<Attribute>> operationalAttributes =
+          toAttributesMap(operationalAttrBuilders);
       Entry entry =  new Entry(entryDN, objectClasses, userAttributes,
                                operationalAttributes);
       TRACER.debugProtocolElement(DebugLogLevel.VERBOSE, entry.toString());
@@ -454,6 +434,31 @@ public final class LDIFReader implements Closeable
   }
 
 
+  private Map<AttributeType, List<Attribute>> toAttributesMap(
+      Map<AttributeType, List<AttributeBuilder>> attrBuilders)
+  {
+    Map<AttributeType, List<Attribute>> attributes =
+        new HashMap<AttributeType, List<Attribute>>(attrBuilders.size());
+    for (Map.Entry<AttributeType, List<AttributeBuilder>>
+      attrTypeEntry : attrBuilders.entrySet())
+    {
+      AttributeType attrType = attrTypeEntry.getKey();
+      List<Attribute> attrList = toAttributesList(attrTypeEntry.getValue());
+      attributes.put(attrType, attrList);
+    }
+    return attributes;
+  }
+
+  private List<Attribute> toAttributesList(List<AttributeBuilder> builders)
+  {
+    List<Attribute> results = new ArrayList<Attribute>(builders.size());
+    for (AttributeBuilder builder : builders)
+    {
+      results.add(builder.toAttribute());
+    }
+    return results;
+  }
+
 
   /**
    * Reads the next entry from the LDIF source.
@@ -517,59 +522,24 @@ public final class LDIFReader implements Closeable
       }
 
       // Read the set of attributes from the entry.
-      HashMap<ObjectClass,String> objectClasses =
+      Map<ObjectClass,String> objectClasses =
            new HashMap<ObjectClass,String>();
-      HashMap<AttributeType,List<AttributeBuilder>> userAttrBuilders =
+      Map<AttributeType,List<AttributeBuilder>> userAttrBuilders =
            new HashMap<AttributeType,List<AttributeBuilder>>();
-      HashMap<AttributeType,List<AttributeBuilder>> operationalAttrBuilders =
+      Map<AttributeType,List<AttributeBuilder>> operationalAttrBuilders =
            new HashMap<AttributeType,List<AttributeBuilder>>();
-      try
+      for (StringBuilder line : lines)
       {
-        for (StringBuilder line : lines)
-        {
-          readAttribute(lines, line, entryDN, objectClasses, userAttrBuilders,
-                        operationalAttrBuilders, checkSchema);
-        }
-      }
-      catch (LDIFException e)
-      {
-        throw e;
+        readAttribute(lines, line, entryDN, objectClasses, userAttrBuilders,
+            operationalAttrBuilders, checkSchema);
       }
 
       // Create the entry and see if it is one that should be included in the
       // import.
-      HashMap<AttributeType,List<Attribute>> userAttributes =
-        new HashMap<AttributeType,List<Attribute>>(
-        userAttrBuilders.size());
-      HashMap<AttributeType,List<Attribute>> operationalAttributes =
-        new HashMap<AttributeType,List<Attribute>>(
-        operationalAttrBuilders.size());
-      for (Map.Entry<AttributeType, List<AttributeBuilder>>
-           attrTypeEntry : userAttrBuilders.entrySet())
-      {
-        AttributeType attrType = attrTypeEntry.getKey();
-        List<AttributeBuilder> attrBuilderList = attrTypeEntry.getValue();
-        List<Attribute> attrList =
-          new ArrayList<Attribute>(attrBuilderList.size());
-        for (AttributeBuilder builder : attrBuilderList)
-        {
-          attrList.add(builder.toAttribute());
-        }
-        userAttributes.put(attrType, attrList);
-      }
-      for (Map.Entry<AttributeType, List<AttributeBuilder>>
-           attrTypeEntry : operationalAttrBuilders.entrySet())
-      {
-        AttributeType attrType = attrTypeEntry.getKey();
-        List<AttributeBuilder> attrBuilderList = attrTypeEntry.getValue();
-        List<Attribute> attrList =
-          new ArrayList<Attribute>(attrBuilderList.size());
-        for (AttributeBuilder builder : attrBuilderList)
-        {
-          attrList.add(builder.toAttribute());
-        }
-        operationalAttributes.put(attrType, attrList);
-      }
+      Map<AttributeType, List<Attribute>> userAttributes =
+          toAttributesMap(userAttrBuilders);
+      Map<AttributeType, List<Attribute>> operationalAttributes =
+          toAttributesMap(operationalAttrBuilders);
       Entry entry =  new Entry(entryDN, objectClasses, userAttributes,
                                operationalAttributes);
       TRACER.debugProtocolElement(DebugLogLevel.VERBOSE, entry.toString());
@@ -1151,11 +1121,11 @@ public final class LDIFReader implements Closeable
    * @throws  LDIFException  If a problem occurs while trying to decode the
    *                         attribute contained in the provided entry.
    */
-  private void readAttribute(LinkedList<StringBuilder> lines,
+  private void readAttribute(List<StringBuilder> lines,
        StringBuilder line, DN entryDN,
-       HashMap<ObjectClass,String> objectClasses,
-       HashMap<AttributeType,List<AttributeBuilder>> userAttrBuilders,
-       HashMap<AttributeType,List<AttributeBuilder>> operationalAttrBuilders,
+       Map<ObjectClass,String> objectClasses,
+       Map<AttributeType,List<AttributeBuilder>> userAttrBuilders,
+       Map<AttributeType,List<AttributeBuilder>> operationalAttrBuilders,
        boolean checkSchema)
           throws LDIFException
   {
@@ -1345,7 +1315,7 @@ public final class LDIFReader implements Closeable
    *                                not match the specified attribute name.
    */
   private Attribute readSingleValueAttribute(
-       LinkedList<StringBuilder> lines, StringBuilder line, DN entryDN,
+       List<StringBuilder> lines, StringBuilder line, DN entryDN,
        String attributeName) throws LDIFException
   {
     // Parse the attribute type description.
@@ -1480,6 +1450,7 @@ public final class LDIFReader implements Closeable
   /**
    * Closes this LDIF reader and the underlying file or input stream.
    */
+  @Override
   public void close()
   {
     // If we should invoke import plugins, then do so.
@@ -1717,8 +1688,7 @@ public final class LDIFReader implements Closeable
    *           If a problem occurs while attempting to determine the
    *           attribute value.
    */
-
-  private String getModifyDNAttributeValue(LinkedList<StringBuilder> lines,
+  private String getModifyDNAttributeValue(List<StringBuilder> lines,
                                    StringBuilder line,
                                    DN entryDN,
                                    String attributeName) throws LDIFException
@@ -1819,14 +1789,13 @@ public final class LDIFReader implements Closeable
    *           If there was an error when parsing the change record.
    */
   private ChangeRecordEntry parseDeleteChangeRecordEntry(DN entryDN,
-      LinkedList<StringBuilder> lines) throws LDIFException {
-
+      List<StringBuilder> lines) throws LDIFException
+  {
     if (!lines.isEmpty())
     {
       Message message = ERR_LDIF_INVALID_DELETE_ATTRIBUTES.get();
       throw new LDIFException(message, lineNumber, true);
     }
-
     return new DeleteChangeRecordEntry(entryDN);
   }
 
@@ -1844,11 +1813,10 @@ public final class LDIFReader implements Closeable
    *           If there was an error when parsing the change record.
    */
   private ChangeRecordEntry parseAddChangeRecordEntry(DN entryDN,
-      LinkedList<StringBuilder> lines) throws LDIFException {
-
-    HashMap<ObjectClass,String> objectClasses =
-      new HashMap<ObjectClass,String>();
-    HashMap<AttributeType,List<AttributeBuilder>> attrBuilders =
+      List<StringBuilder> lines) throws LDIFException
+  {
+    Map<ObjectClass, String> objectClasses = new HashMap<ObjectClass, String>();
+    Map<AttributeType, List<AttributeBuilder>> attrBuilders =
       new HashMap<AttributeType, List<AttributeBuilder>>();
     for(StringBuilder line : lines)
     {
@@ -1863,24 +1831,13 @@ public final class LDIFReader implements Closeable
       AttributeValue av = AttributeValues.create(ocType, value);
       builder.add(av);
     }
-    List<Attribute> ocAttrList = new ArrayList<Attribute>(1);
-    ocAttrList.add(builder.toAttribute());
-    HashMap<AttributeType,List<Attribute>> attributes =
-      new HashMap<AttributeType, List<Attribute>>(attrBuilders.size());
-    attributes.put(ocType, ocAttrList);
-
-    for (Map.Entry<AttributeType, List<AttributeBuilder>>
-      attrTypeEntry : attrBuilders.entrySet())
+    Map<AttributeType, List<Attribute>> attributes =
+        toAttributesMap(attrBuilders);
+    if (attributes.get(ocType) == null)
     {
-      AttributeType attrType = attrTypeEntry.getKey();
-      List<AttributeBuilder> attrBuilderList = attrTypeEntry.getValue();
-      List<Attribute> attrList =
-        new ArrayList<Attribute>(attrBuilderList.size());
-      for (AttributeBuilder attrBuilder : attrBuilderList)
-      {
-        attrList.add(attrBuilder.toAttribute());
-      }
-      attributes.put(attrType, attrList);
+      List<Attribute> ocAttrList = new ArrayList<Attribute>(1);
+      ocAttrList.add(builder.toAttribute());
+      attributes.put(ocType, ocAttrList);
     }
 
     return new AddChangeRecordEntry(entryDN, attributes);
@@ -1899,7 +1856,7 @@ public final class LDIFReader implements Closeable
    * @throws LDIFException
    *           If the colon was badly placed or not found.
    */
-  private int parseColonPosition(LinkedList<StringBuilder> lines,
+  private int parseColonPosition(List<StringBuilder> lines,
       StringBuilder line) throws LDIFException {
 
     int colonPos = line.indexOf(":");
@@ -1933,7 +1890,7 @@ public final class LDIFReader implements Closeable
    *           If an error occurred when parsing the attribute value.
    */
   private ByteString parseSingleValue(
-      LinkedList<StringBuilder> lines,
+      List<StringBuilder> lines,
       StringBuilder line,
       DN entryDN,
       int colonPos,
@@ -2081,9 +2038,8 @@ public final class LDIFReader implements Closeable
    * @param message
    *          The associated error message.
    */
-  private void logToRejectWriter(LinkedList<StringBuilder> lines,
-      Message message) {
-
+  private void logToRejectWriter(List<StringBuilder> lines, Message message)
+  {
     entriesRejected.incrementAndGet();
     BufferedWriter rejectWriter = importConfig.getRejectWriter();
     if (rejectWriter != null)
@@ -2100,8 +2056,8 @@ public final class LDIFReader implements Closeable
    * @param message
    *          The associated error message.
    */
-  private void logToSkipWriter(LinkedList<StringBuilder> lines,
-      Message message) {
+  private void logToSkipWriter(List<StringBuilder> lines, Message message)
+  {
     entriesIgnored.incrementAndGet();
     BufferedWriter skipWriter = importConfig.getSkipWriter();
     if (skipWriter != null)
@@ -2116,12 +2072,11 @@ public final class LDIFReader implements Closeable
    * @param writer
    *          The writer to write to.
    * @param lines
- *          The set of rejected lines.
+   *          The set of rejected lines.
    * @param message
    *          The associated error message.
    */
-  private void logToWriter(BufferedWriter writer,
-      LinkedList<StringBuilder> lines,
+  private void logToWriter(BufferedWriter writer, List<StringBuilder> lines,
       Message message)
   {
     if (writer != null)
@@ -2154,8 +2109,8 @@ public final class LDIFReader implements Closeable
    * Adds any missing RDN attributes to the entry that is being imported.
    */
   private void addRDNAttributesIfNecessary(DN entryDN,
-          HashMap<AttributeType,List<Attribute>>userAttributes,
-          HashMap<AttributeType,List<Attribute>> operationalAttributes)
+          Map<AttributeType,List<Attribute>>userAttributes,
+          Map<AttributeType,List<Attribute>> operationalAttributes)
   {
     RDN rdn = entryDN.getRDN();
     int numAVAs = rdn.getNumValues();
@@ -2166,79 +2121,53 @@ public final class LDIFReader implements Closeable
       String         n = rdn.getAttributeName(i);
       if (t.isOperational())
       {
-        List<Attribute> attrList = operationalAttributes.get(t);
-        if (attrList == null)
-        {
-          attrList = new ArrayList<Attribute>();
-          attrList.add(Attributes.create(t, n, v));
-          operationalAttributes.put(t, attrList);
-        }
-        else
-        {
-          boolean found = false;
-          for (int j = 0; j < attrList.size(); j++)
-          {
-            Attribute a = attrList.get(j);
-
-            if (a.hasOptions())
-            {
-              continue;
-            }
-
-            if (!a.contains(v))
-            {
-              AttributeBuilder builder = new AttributeBuilder(a);
-              builder.add(v);
-              attrList.set(j, builder.toAttribute());
-            }
-
-            found = true;
-            break;
-          }
-
-          if (!found)
-          {
-            attrList.add(Attributes.create(t, n, v));
-          }
-        }
+        addRDNAttributesIfNecessary(operationalAttributes, t, v, n);
       }
       else
       {
-        List<Attribute> attrList = userAttributes.get(t);
-        if (attrList == null)
+        addRDNAttributesIfNecessary(userAttributes, t, v, n);
+      }
+    }
+  }
+
+
+  private void addRDNAttributesIfNecessary(
+      Map<AttributeType, List<Attribute>> attributes, AttributeType t,
+      AttributeValue v, String n)
+  {
+    List<Attribute> attrList = attributes.get(t);
+    if (attrList == null)
+    {
+      attrList = new ArrayList<Attribute>();
+      attrList.add(Attributes.create(t, n, v));
+      attributes.put(t, attrList);
+    }
+    else
+    {
+      boolean found = false;
+      for (int j = 0; j < attrList.size(); j++)
+      {
+        Attribute a = attrList.get(j);
+
+        if (a.hasOptions())
         {
-          attrList = new ArrayList<Attribute>();
-          attrList.add(Attributes.create(t, n, v));
-          userAttributes.put(t, attrList);
+          continue;
         }
-        else
+
+        if (!a.contains(v))
         {
-          boolean found = false;
-          for (int j = 0; j < attrList.size(); j++)
-          {
-            Attribute a = attrList.get(j);
-
-            if (a.hasOptions())
-            {
-              continue;
-            }
-
-            if (!a.contains(v))
-            {
-              AttributeBuilder builder = new AttributeBuilder(a);
-              builder.add(v);
-              attrList.set(j, builder.toAttribute());
-            }
-
-            found = true;
-            break;
-          }
-
-          if (!found)
-          {
-            attrList.add(Attributes.create(t, n, v));
-          }
+          AttributeBuilder builder = new AttributeBuilder(a);
+          builder.add(v);
+          attrList.set(j, builder.toAttribute());
         }
+
+        found = true;
+        break;
+      }
+
+      if (!found)
+      {
+        attrList.add(Attributes.create(t, n, v));
       }
     }
   }
