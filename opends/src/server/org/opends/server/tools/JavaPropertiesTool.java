@@ -642,7 +642,7 @@ public class JavaPropertiesTool extends ConsoleApplication
       }
       buf.append(
           "      else"+EOL+
-          "        OPENDJ_JAVA_BIN=\"${OPENDJ_JAVA_HOME}/bin/java\""+EOL+
+          "        OPENDJ_JAVA_BIN=\"${OPENDS_JAVA_HOME}/bin/java\""+EOL+
           "        export OPENDJ_JAVA_BIN"+EOL+
           "      fi"+EOL+
           "    else"+EOL+
@@ -650,7 +650,7 @@ public class JavaPropertiesTool extends ConsoleApplication
           "      export OPENDJ_JAVA_BIN"+EOL+
           "    fi"+EOL+
           "  else"+EOL+
-          "    OPENDJ_JAVA_BIN=\"${OPENDS_JAVA_HOME}/bin/java\""+EOL+
+          "    OPENDJ_JAVA_BIN=\"${OPENDJ_JAVA_HOME}/bin/java\""+EOL+
           "    export OPENDJ_JAVA_BIN"+EOL+
           "  fi"+EOL+
 
