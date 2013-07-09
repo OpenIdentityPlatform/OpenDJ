@@ -84,7 +84,7 @@ public class WebStartDownloader implements DownloadServiceListener {
 
   /**
    * This enumeration contains the different Status on which
-   * the dowloading process of the jars can be.
+   * the downloading process of the jars can be.
    *
    */
   public enum Status
