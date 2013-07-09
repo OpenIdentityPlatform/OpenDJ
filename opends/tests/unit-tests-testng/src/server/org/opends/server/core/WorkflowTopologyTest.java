@@ -99,22 +99,10 @@ public class WorkflowTopologyTest extends UtilTestCase
   public Object[][] initDNSet_1()
     throws Exception
   {
-    DN dnNull         = null;
-    DN baseDN1        = null;
-    DN subordinateDN1 = null;
-    DN unrelatedDN    = null;
-
-    try
-    {
-      dnNull         = DN.decode ("");
-      baseDN1        = DN.decode ("o=test");
-      subordinateDN1 = DN.decode ("ou=subtest,o=test");
-      unrelatedDN    = DN.decode ("o=dummy");
-    }
-    catch (DirectoryException de)
-    {
-      throw de;
-    }
+    DN dnNull         = DN.decode ("");
+    DN baseDN1        = DN.decode ("o=test");
+    DN subordinateDN1 = DN.decode ("ou=subtest,o=test");
+    DN unrelatedDN    = DN.decode ("o=dummy");
 
     // Sets of DNs
     Object[][] myData =
@@ -194,7 +182,6 @@ public class WorkflowTopologyTest extends UtilTestCase
     //           |              |
     //           |              |
     //    ou=subordinate3
-    try
     {
       String suffix         = "ou=test1";
       String baseDN1        = suffix;
@@ -216,10 +203,6 @@ public class WorkflowTopologyTest extends UtilTestCase
 
       unrelatedDN = DN.decode ("o=dummy");
       rootDSE     = DN.decode ("");
-    }
-    catch (DirectoryException de)
-    {
-      throw de;
     }
 
     // Sets of DNs
@@ -289,7 +272,6 @@ public class WorkflowTopologyTest extends UtilTestCase
     //                          |                 |
     //                          |                 |
     //                   ou=subordinate2   ou=subordinate3
-    try
     {
       String suffix         = "dc=example,dc=com";
       String baseDN1        = suffix;
@@ -311,10 +293,6 @@ public class WorkflowTopologyTest extends UtilTestCase
 
       unrelatedDN = DN.decode ("o=dummy");
       rootDSE     = DN.decode ("");
-    }
-    catch (DirectoryException de)
-    {
-      throw de;
     }
 
     // Sets of DNs

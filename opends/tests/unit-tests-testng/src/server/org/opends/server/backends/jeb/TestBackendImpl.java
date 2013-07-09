@@ -56,6 +56,7 @@ import org.opends.server.core.ModifyOperationBasis;
 /**
  * BackendImpl Tester.
  */
+@SuppressWarnings("javadoc")
 public class TestBackendImpl extends JebTestCase {
   private String homeDirName;
 
@@ -1692,22 +1693,10 @@ public class TestBackendImpl extends JebTestCase {
     ResultCode success      = ResultCode.SUCCESS;
     ResultCode noSuchObject = ResultCode.NO_SUCH_OBJECT;
 
-    DN testComDN            = null;
-    DN peopleTestComDN      = null;
-    DN dummyTestComDN       = null;
-    DN dummyPeopleTestComDN = null;
-
-    try
-    {
-      testComDN            = DN.decode(                   "dc=test,dc=com");
-      dummyTestComDN       = DN.decode(          "cn=dummy,dc=test,dc=com");
-      peopleTestComDN      = DN.decode(         "ou=people,dc=test,dc=com");
-      dummyPeopleTestComDN = DN.decode("cn=dummy,ou=people,dc=test,dc=com");
-    }
-    catch (DirectoryException de)
-    {
-      throw de;
-    }
+    DN testComDN            = DN.decode(                   "dc=test,dc=com");
+    DN peopleTestComDN      = DN.decode(          "cn=dummy,dc=test,dc=com");
+    DN dummyTestComDN       = DN.decode(         "ou=people,dc=test,dc=com");
+    DN dummyPeopleTestComDN = DN.decode("cn=dummy,ou=people,dc=test,dc=com");
 
     // Sets of DNs
     Object[][] myData =

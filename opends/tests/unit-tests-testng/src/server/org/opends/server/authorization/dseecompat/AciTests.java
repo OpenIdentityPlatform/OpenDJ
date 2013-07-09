@@ -83,6 +83,7 @@ import java.text.SimpleDateFormat;
  * they are built by buildAciValue, so that we are less likely to screw up
  * the syntax.
  */
+@SuppressWarnings("javadoc")
 @Test(sequential=true, groups="slow")
 public class AciTests extends AciTestCase {
 // TODO: test modify use cases
@@ -1826,14 +1827,12 @@ private static final  String ACI_PROXY_CONTROL_LEVEL_1 =
         SingleSearchParams.nonProxiedSearch(ADMIN_DN, ADMIN_PW, LEVEL_3_USER_DN,
                       OBJECTCLASS_STAR, SCOPE_BASE,
                       null, null, null);
-      try {
+      {
           addEntries(BASIC_LDIF__GROUP_SEARCH_TESTS, DIR_MGR_DN, DIR_MGR_PW);
           modEntries(COMPARE_ACI, DIR_MGR_DN, DIR_MGR_PW);
           String userResults =
                   ldapCompare(adminParam.getLdapCompareArgs("cn:level3 user"));
           Assert.assertFalse(userResults.equals(""));
-      } catch(Throwable e) {
-          throw e;
       }
   }
 
@@ -1865,7 +1864,7 @@ private static final  String ACI_PROXY_CONTROL_LEVEL_1 =
                                      "pa$$word",PROXY_USER_DN, SALES_USER_NEW_1,
                                       OBJECTCLASS_STAR, SCOPE_BASE,
                                       null, null, null);
-    try {
+    {
       addEntries(BASIC_LDIF__GROUP_SEARCH_TESTS, DIR_MGR_DN, DIR_MGR_PW);
       modEntries(ACI_PROXY_IMPORT_MGR, DIR_MGR_DN, DIR_MGR_PW);
       modEntries(ACI_PROXY_CONTROL_LEVEL_1, DIR_MGR_DN, DIR_MGR_PW);
@@ -1885,8 +1884,6 @@ private static final  String ACI_PROXY_CONTROL_LEVEL_1 =
       modEntries(modrdnLdif1, LEVEL_1_USER_DN, "pa$$word", PROXY_USER_DN);
       String userOrigResults = ldapSearch(userParamOrig.getLdapSearchArgs());
       Assert.assertFalse(userOrigResults.equals(""));
-    } catch (Throwable e)  {
-      throw e;
     }
   }
 
@@ -1909,7 +1906,7 @@ private static final  String ACI_PROXY_CONTROL_LEVEL_1 =
                                       null, null, null);
 
 
-     try {
+    {
         addEntries(BASIC_LDIF__GROUP_SEARCH_TESTS, DIR_MGR_DN, DIR_MGR_PW);
         modEntries(ACI_IMPORT_MGR, DIR_MGR_DN, DIR_MGR_PW);
         modEntries(ACI_IMPORT_MGR_NEW, DIR_MGR_DN, DIR_MGR_PW);
@@ -1927,9 +1924,7 @@ private static final  String ACI_PROXY_CONTROL_LEVEL_1 =
         modEntries(modrdnLdif1, LEVEL_1_USER_DN, "pa$$word");
         String userOrigResults = ldapSearch(userParamOrig.getLdapSearchArgs());
         Assert.assertFalse(userOrigResults.equals(""));
-   } catch (Throwable e)  {
-       throw e;
-   }
+    }
   }
 
   /**
@@ -1950,14 +1945,10 @@ private static final  String ACI_PROXY_CONTROL_LEVEL_1 =
    */
   @Test()
   public void testNonSelfWrite() throws Throwable {
-          try {
-            addEntries(BASIC_LDIF__GROUP_SEARCH_TESTS, DIR_MGR_DN, DIR_MGR_PW);
-            modEntries(SELFWRITE_ACI, DIR_MGR_DN, DIR_MGR_PW);
-            deleteAttrFromEntry(OU_GROUP_1_DN, "member",LEVEL_1_USER_DN,
-                                LEVEL_3_USER_DN, "pa$$word",  false);
-          } catch(Throwable e) {
-                throw e;
-          }
+    addEntries(BASIC_LDIF__GROUP_SEARCH_TESTS, DIR_MGR_DN, DIR_MGR_PW);
+    modEntries(SELFWRITE_ACI, DIR_MGR_DN, DIR_MGR_PW);
+    deleteAttrFromEntry(OU_GROUP_1_DN, "member", LEVEL_1_USER_DN,
+        LEVEL_3_USER_DN, "pa$$word", false);
   }
 
   /**
@@ -1967,14 +1958,10 @@ private static final  String ACI_PROXY_CONTROL_LEVEL_1 =
    */
   @Test()
   public void testSelfWrite() throws Throwable {
-          try {
-            addEntries(BASIC_LDIF__GROUP_SEARCH_TESTS, DIR_MGR_DN, DIR_MGR_PW);
-            modEntries(SELFWRITE_ACI, DIR_MGR_DN, DIR_MGR_PW);
-            deleteAttrFromEntry(OU_GROUP_1_DN, "member",LEVEL_1_USER_DN,
-                                LEVEL_1_USER_DN, "pa$$word",  true);
-          } catch(Throwable e) {
-                throw e;
-          }
+    addEntries(BASIC_LDIF__GROUP_SEARCH_TESTS, DIR_MGR_DN, DIR_MGR_PW);
+    modEntries(SELFWRITE_ACI, DIR_MGR_DN, DIR_MGR_PW);
+    deleteAttrFromEntry(OU_GROUP_1_DN, "member", LEVEL_1_USER_DN,
+        LEVEL_1_USER_DN, "pa$$word", true);
   }
 
   /**
@@ -1982,27 +1969,23 @@ private static final  String ACI_PROXY_CONTROL_LEVEL_1 =
    * @throws Throwable  If the search doesn't return any entries.
    */
   @Test()
-   public void testDNSWildCard()  throws Throwable {
+  public void testDNSWildCard() throws Throwable {
         SingleSearchParams userParam =
           SingleSearchParams.nonProxiedSearch(LEVEL_1_USER_DN,
                                    "pa$$word", LEVEL_3_USER_DN,
                                    OBJECTCLASS_STAR, SCOPE_BASE,
                                    null, null, null);
-        try {
+        {
             addEntries(BASIC_LDIF__GROUP_SEARCH_TESTS, DIR_MGR_DN, DIR_MGR_PW);
             modEntries(DNS_ALL_ACI, DIR_MGR_DN, DIR_MGR_PW);
             String userResults = ldapSearch(userParam.getLdapSearchArgs());
             Assert.assertFalse(userResults.equals(""));
-        } catch(Throwable e) {
-                throw e;
         }
- }
+  }
 
 
   /**
    * Test group  bind rule ACI keywords.
-   *
-   * @throws Throwable
    */
  @Test()
  public void testGroupAcis()  throws Throwable {
@@ -2017,15 +2000,13 @@ private static final  String ACI_PROXY_CONTROL_LEVEL_1 =
                                      "pa$$word", LEVEL_3_USER_DN,
                                      OBJECTCLASS_STAR, SCOPE_BASE,
                                      null, null, null);
-        try {
+        {
             addEntries(BASIC_LDIF__GROUP_SEARCH_TESTS, DIR_MGR_DN, DIR_MGR_PW);
             modEntries(GROUP1_GROUPDN_MODS, DIR_MGR_DN, DIR_MGR_PW);
             String userResults = ldapSearch(userParam.getLdapSearchArgs());
             Assert.assertFalse(userResults.equals(""));
             String adminResults = ldapSearch(adminParam.getLdapSearchArgs());
             Assert.assertTrue(adminResults.equals(""));
-        } catch(Throwable e) {
-                throw e;
         }
  }
 
@@ -2046,7 +2027,7 @@ private static final  String ACI_PROXY_CONTROL_LEVEL_1 =
                                      "pa$$word", OU_BASE_DN,
                                      OBJECTCLASS_STAR, SCOPE_BASE,
                                      null, null, null);
-      try {
+
         addEntries(BASIC_LDIF__SEARCH_TESTS, DIR_MGR_DN, DIR_MGR_PW);
         modEntries(GLOBAL_MODS, DIR_MGR_DN, DIR_MGR_PW);
         String monitorResults = ldapSearch(monitorParam.getLdapSearchArgs());
@@ -2058,10 +2039,7 @@ private static final  String ACI_PROXY_CONTROL_LEVEL_1 =
         Assert.assertTrue(monitorResults.equals(""));
         baseResults = ldapSearch(baseParam.getLdapSearchArgs());
         Assert.assertTrue(baseResults.equals(""));
-      } catch (Throwable e) {
-           throw e;
-       }
- }
+  }
 
   @Test(dataProvider = "searchTestParams")
   public void testSearchWithAcis(SingleSearchParams params) throws Throwable {
@@ -2180,7 +2158,7 @@ private static final  String ACI_PROXY_CONTROL_LEVEL_1 =
             "pa$$word", OU_BASE_DN,
             OBJECTCLASS_STAR, SCOPE_BASE,
             null, null, null);
-    try {
+
       String monitorResults = ldapSearch(monitorParam.getLdapSearchArgs());
       Assert.assertFalse(monitorResults.equals(""));
       String baseResults = ldapSearch(baseParam.getLdapSearchArgs());
@@ -2190,27 +2168,16 @@ private static final  String ACI_PROXY_CONTROL_LEVEL_1 =
       Assert.assertTrue(monitorResults.equals(""));
       baseResults = ldapSearch(baseParam.getLdapSearchArgs());
       Assert.assertTrue(baseResults.equals(""));
-    } catch (Throwable e) {
-      throw e;
-    }
 
     // Test selfwrite right. Attempt to bind as level3 user and remove
     // level1 user from a group, should fail.
-    try {
-      deleteAttrFromEntry(OU_GROUP_1_DN, "member", LEVEL_1_USER_DN,
-              LEVEL_3_USER_DN, "pa$$word", false);
-    } catch (Throwable e) {
-      throw e;
-    }
+    deleteAttrFromEntry(OU_GROUP_1_DN, "member", LEVEL_1_USER_DN,
+        LEVEL_3_USER_DN, "pa$$word", false);
 
     // Test selfwrite right. Attempt to bind as level1 user and remove
     // itself from a group, should succeed.
-    try {
-      deleteAttrFromEntry(OU_GROUP_1_DN, "member", LEVEL_1_USER_DN,
-              LEVEL_1_USER_DN, "pa$$word", true);
-    } catch (Throwable e) {
-      throw e;
-    }
+    deleteAttrFromEntry(OU_GROUP_1_DN, "member", LEVEL_1_USER_DN,
+        LEVEL_1_USER_DN, "pa$$word", true);
   }
 
 

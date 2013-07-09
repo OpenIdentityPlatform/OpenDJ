@@ -86,6 +86,7 @@ public class OfflineInstaller extends Installer
    * Actually performs the install in this thread.  The thread is blocked.
    *
    */
+  @Override
   public void run()
   {
     runError = null;
@@ -146,10 +147,6 @@ public class OfflineInstaller extends Installer
         try
         {
           new ServerController(this).startServer(!isStartVerbose());
-        }
-        catch (ApplicationException ae)
-        {
-          throw ae;
         }
         finally
         {
