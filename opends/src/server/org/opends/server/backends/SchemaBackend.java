@@ -193,16 +193,22 @@ public class SchemaBackend
   /** The attribute type that will be used to include the defined name forms. */
   private AttributeType nameFormsType;
 
-  /** The value containing DN of the user we'll say created the configuration. */
+  /**
+   * The value containing DN of the user we'll say created the configuration.
+   */
   private AttributeValue creatorsName;
 
-  /** The value containing the DN of the last user to modify the configuration. */
+  /**
+   * The value containing the DN of the last user to modify the configuration.
+   */
   private AttributeValue modifiersName;
 
   /** The timestamp that will be used for the schema creation time. */
   private AttributeValue createTimestamp;
 
-  /** The timestamp that will be used for the latest schema modification time. */
+  /**
+   * The timestamp that will be used for the latest schema modification time.
+   */
   private AttributeValue modifyTimestamp;
 
   /**

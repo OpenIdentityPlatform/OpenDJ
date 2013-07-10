@@ -201,7 +201,7 @@ public final class Schema
 
   /**
    * The set of name forms for this schema, mapped between the structural
-   * objectclass for the definition and the list of name forms
+   * objectclass for the definition and the list of name forms.
    */
   private ConcurrentHashMap<ObjectClass,List<NameForm>>
           nameFormsByOC;
