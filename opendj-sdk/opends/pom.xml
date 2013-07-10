@@ -91,6 +91,36 @@
   <properties>
     <ant.home>ext/ant</ant.home>
     <BUILD_NUMBER>0</BUILD_NUMBER>
+
+    <!-- START Documentation properties -->
+
+    <docTargetVersion>2.8.0</docTargetVersion>
+    <docPreviousVersion>2.6.0</docPreviousVersion>
+    <sdkDocTargetVersion>${docTargetVersion}</sdkDocTargetVersion>
+    <gaId>UA-23412190-8</gaId>
+    <!--
+      Release date is specified only when building the documentation
+      for publication. For example:
+          -D"releaseDate=Software release date: January 1, 1970"
+      Otherwise release date should remain empty.
+    -->
+    <releaseDate />
+    <softwareReleaseDate>${releaseDate}</softwareReleaseDate>
+    <checkstyleHeaderLocation>org/forgerock/checkstyle/opendj-java-header</checkstyleHeaderLocation>
+    <frDocPluginVersion>1.2.0</frDocPluginVersion>
+
+    <!-- Permit doc build to override relative locations of non DocBook content -->
+    <coreDocBase>http://opendj.forgerock.org/doc/</coreDocBase>
+    <configRefBase>http://opendj.forgerock.org/opendj-server/configref/</configRefBase>
+    <serverJavadocBase>http://opendj.forgerock.org/opendj-server/javadoc/</serverJavadocBase>
+    <sdkJavadocBase>http://opendj.forgerock.org/opendj-ldap-sdk/apidocs/</sdkJavadocBase>
+
+    <!-- Filtered docbkx sources -->
+    <docbkxSourceDirectory>${basedir}/target/docbkx-filtered</docbkxSourceDirectory>
+    <docbkxOutputDirectory>${basedir}/target/docbkx</docbkxOutputDirectory> <!-- Pending DOCS-93 -->
+    <docbkxBuildDirectory>build</docbkxBuildDirectory>
+
+    <!-- END Documentation properties -->
   </properties>
   <build>
     <directory>build</directory>
@@ -107,6 +137,7 @@
             </goals>
             <configuration>
               <target>
+                <delete dir="target" />
                 <ant target="clean" />
               </target>
             </configuration>
@@ -126,18 +157,6 @@
             </configuration>
           </execution>
           <execution>
-            <id>generate-log-reference</id>
-            <phase>compile</phase>
-            <goals>
-              <goal>run</goal>
-            </goals>
-            <configuration>
-              <target>
-                <ant target="generateLogReference" />
-              </target>
-            </configuration>
-          </execution>
-          <execution>
             <id>generate-docs</id>
             <phase>pre-site</phase>
             <goals>
@@ -147,6 +166,7 @@
               <target>
                 <ant target="javadoc" />
                 <ant target="configguide" />
+                <ant target="generateLogReference" />
               </target>
             </configuration>
           </execution>
@@ -166,6 +186,78 @@
                 </copy>
               </target>
             </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-resources-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>filter-docbkx-resources</id>
+            <phase>pre-site</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <inherited>false</inherited>
+            <configuration>
+              <!-- Filter XML to allow ${property} in attribute values. -->
+             <outputDirectory>${docbkxSourceDirectory}</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>src/main/docbkx</directory>
+                  <filtering>true</filtering>
+                  <includes>
+                    <include>**/*.xml</include>
+                  </includes>
+                </resource>
+                <resource>
+                  <directory>src/main/docbkx</directory>
+                  <filtering>false</filtering>
+                  <excludes>
+                    <exclude>**/*.xml</exclude>
+                  </excludes>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.forgerock.commons</groupId>
+        <artifactId>forgerock-doc-maven-plugin</artifactId>
+        <version>${frDocPluginVersion}</version>
+        <inherited>false</inherited>
+        <configuration>
+         <buildDirectory>${docbkxBuildDirectory}</buildDirectory>
+         <docbkxSourceDirectory>${docbkxSourceDirectory}</docbkxSourceDirectory> <!-- Use filtered XML -->
+         <docbkxOutputDirectory>${docbkxOutputDirectory}</docbkxOutputDirectory>
+         <projectName>OpenDJ</projectName>
+         <googleAnalyticsId>${gaId}</googleAnalyticsId>
+        </configuration>
+        <executions>
+          <execution>
+            <id>copy-common</id>
+            <phase>pre-site</phase>
+            <goals>
+              <goal>boilerplate</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>build-doc</id>
+            <phase>pre-site</phase>
+            <goals>
+              <goal>build</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>layout-doc</id>
+            <phase>site</phase>
+            <goals>
+              <goal>layout</goal>
+            </goals>
           </execution>
         </executions>
       </plugin>
@@ -264,7 +356,4 @@
       </build>
     </profile>
   </profiles>
-  <modules>
-    <module>opendj-log-ref</module>
-  </modules>
 </project>

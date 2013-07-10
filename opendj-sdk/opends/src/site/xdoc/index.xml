@@ -67,7 +67,7 @@
     <section name="Getting started">
       <p>
         Once you have obtained a copy of the OpenDJ Directory Server, read the
-        <a href="../doc/install-guide/index.html">Installation Guide</a>
+        <a href="./doc/install-guide/index.html">Installation Guide</a>
         for further instructions.
       </p>
     </section>

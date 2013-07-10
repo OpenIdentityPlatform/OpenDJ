@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at
+  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2013 ForgeRock AS
+  !
+-->
+<itemizedlist
+ xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+ xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+ xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ xmlns:xlink='http://www.w3.org/1999/xlink'>
+
+ <para>Download OpenDJ software from one of the following locations.</para>
+
+ <listitem>
+  <para>The ForgeRock <link xlink:href="http://forgerock.com/download-stack/"
+  xlink:show="new">Enterprise Downloads</link> page has the latest stable,
+  supported release of OpenDJ and the other products in the ForgeRock identity
+  stack.</para>
+ </listitem>
+
+ <listitem>
+  <para>The <link xlink:href="http://forgerock.org/opendj.html"
+  xlink:show="new">Nightly Builds</link> page posts links to the latest nightly
+  builds of OpenDJ software. Note that these builds are the working version
+  from the trunk and are not for use in a production environment.</para>
+ </listitem>
+
+ <listitem>
+  <para>The <link xlink:href="http://forgerock.org/opendj-archive.html"
+  xlink:show="new">Community Archives</link> page includes stable community
+  builds for previous releases of OpenDJ software.</para>
+ </listitem>
+</itemizedlist>

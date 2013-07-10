@@ -438,9 +438,6 @@
 
     <copy file="${resource.dir}/log-message-reference.xml"
           todir="${msg.logref.dir}" />
-    <jar destfile="${docgen.dir}/log-ref.jar"
-         basedir="${msg.logref.dir}"
-         includes="**/*.xml" />
   </target>
 
   <!-- Remove all dynamically-generated build files. -->

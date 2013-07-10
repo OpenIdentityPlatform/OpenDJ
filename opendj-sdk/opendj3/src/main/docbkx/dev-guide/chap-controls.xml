@@ -69,9 +69,8 @@
   </indexterm>
 
   <para>For OpenDJ, the controls supported are listed in the
-  <citetitle>Administration Guide</citetitle> appendix, <link
-  xlink:href="admin-guide#appendix-controls"
-  xlink:role="http://docbook.org/xlink/role/olink"><citetitle>LDAP
+  <citetitle>Administration Guide</citetitle> appendix, <link xlink:show="new"
+  xlink:href="${coreDocBase}admin-guide#appendix-controls"><citetitle>LDAP
   Controls</citetitle></link>. You can access the list of OIDs for
   supported LDAP controls by reading the <literal>supportedControl</literal>
   attribute of the root DSE.</para>
@@ -589,10 +588,9 @@ if (isSupported(PasswordExpiredResponseControl.OID)) {
   password policy configuration to set a short maximum password age, change
   Barbara Jensen's password, and wait for it to expire. See the OpenDJ
   <citetitle>Administration Guide</citetitle> procedure explaining how
-  <link xlink:href="admin-guide#default-pwp"
-  xlink:role="http://docbook.org/xlink/role/olink"><citetitle
-  >To Adjust the Default Password Policy</citetitle></link> for an example
-  of how to adjust the maximum password age.</para>
+  <link xlink:href="${coreDocBase}admin-guide#default-pwp" xlink:show="new"
+  ><citetitle>To Adjust the Default Password Policy</citetitle></link> for an
+  example of how to adjust the maximum password age.</para>
 
   <programlisting
   >Password expired for uid=bjensen,ou=People,dc=example,dc=com</programlisting>
@@ -641,10 +639,9 @@ if (isSupported(PasswordExpiringResponseControl.OID)) {
   interval, change Barbara Jensen's password, and wait until you enter the
   warning interval before password expiration. See the OpenDJ
   <citetitle>Administration Guide</citetitle> procedure explaining how
-  <link xlink:href="admin-guide#default-pwp"
-  xlink:role="http://docbook.org/xlink/role/olink"><citetitle
-  >To Adjust the Default Password Policy</citetitle></link> for an example
-  of how to adjust the maximum password age. Also set a short
+  <link xlink:href="${coreDocBase}admin-guide#default-pwp"
+  xlink:show="new"><citetitle>To Adjust the Default Password Policy</citetitle></link>
+  for an example of how to adjust the maximum password age. Also set a short
   <literal>password-expiration-warning-interval</literal> value.</para>
 
   <programlisting>Password for uid=bjensen,ou=People,dc=example,dc=com
@@ -714,8 +711,7 @@ if (isSupported(PasswordPolicyRequestControl.OID)) {
   Barbara Jensen's password, and then run the example during the warning
   interval and after the password has expired. See the OpenDJ
   <citetitle>Administration Guide</citetitle> procedure explaining how
-  <link xlink:href="admin-guide#default-pwp"
-  xlink:role="http://docbook.org/xlink/role/olink"><citetitle
+  <link xlink:href="${coreDocBase}admin-guide#default-pwp" xlink:show="new"><citetitle
   >To Adjust the Default Password Policy</citetitle></link> for an example
   of how to adjust the maximum password age. Also set a short
   <literal>password-expiration-warning-interval</literal> value.</para>

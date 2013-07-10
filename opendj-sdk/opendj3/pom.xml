@@ -132,10 +132,11 @@
     <frDocPluginVersion>1.2.0</frDocPluginVersion>
 
     <!-- Permit doc build to override relative locations of non DocBook content -->
+    <coreDocBase>http://opendj.forgerock.org/doc/</coreDocBase>
     <configRefBase>http://opendj.forgerock.org/opendj-server/configref/</configRefBase>
     <serverJavadocBase>http://opendj.forgerock.org/opendj-server/javadoc/</serverJavadocBase>
     <sdkJavadocBase>http://opendj.forgerock.org/opendj-ldap-sdk/apidocs/</sdkJavadocBase>
-    
+
     <!-- Filtered docbkx sources -->
     <docbkxSourceDirectory>target/docbkx-filtered</docbkxSourceDirectory>
   </properties>
@@ -175,32 +176,7 @@
           </execution>
         </executions>
       </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-dependency-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>unpack-log-ref</id>
-            <phase>pre-site</phase>
-            <goals>
-              <goal>unpack</goal>
-            </goals>
-          </execution>
-        </executions>
-        <configuration>
-          <artifactItems>
-            <artifactItem>
-              <groupId>org.forgerock.opendj</groupId>
-              <artifactId>opendj-log-ref</artifactId>
-              <version>${currentServerVersion}</version>
-              <type>jar</type>
-              <overWrite>true</overWrite>
-              <outputDirectory>${project.build.directory}/logref</outputDirectory>
-              <includes>**/*.xml</includes>
-            </artifactItem>
-          </artifactItems>
-        </configuration>
-      </plugin>
+
       <plugin>
         <groupId>org.forgerock.commons</groupId>
         <artifactId>forgerock-doc-maven-plugin</artifactId>
