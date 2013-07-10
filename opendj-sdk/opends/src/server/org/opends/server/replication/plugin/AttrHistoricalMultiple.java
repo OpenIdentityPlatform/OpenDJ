@@ -335,8 +335,8 @@ public class AttrHistoricalMultiple extends AttrHistorical
   }
 
   /**
-   * This method calculate the historical information and update the hist
-   * attribute to store the historical information for modify operation that
+   * This method calculates the historical information and update the hist
+   * attribute to store the historical information for a modify operation that
    * does not conflict with previous operation.
    * This is the usual path and should therefore be optimized.
    *
