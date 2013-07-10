@@ -42,6 +42,7 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -99,140 +100,161 @@ public final class Schema
 
 
 
-  // The matching rule that will be used to normalize schema element
-  // definitions.
+  /**
+   * The matching rule that will be used to normalize schema element
+   * definitions.
+   */
   private MatchingRule normalizationMatchingRule;
 
-  // The set of subordinate attribute types registered within the
-  // server schema.
+  /**
+   * The set of subordinate attribute types registered within the server schema.
+   */
   private ConcurrentHashMap<AttributeType,List<AttributeType>>
                subordinateTypes;
 
-  // The set of attribute type definitions for this schema, mapped
-  // between the lowercase names and OID for the definition and the
-  // attribute type itself.
+  /**
+   * The set of attribute type definitions for this schema, mapped between the
+   * lowercase names and OID for the definition and the attribute type itself.
+   */
   private ConcurrentHashMap<String,AttributeType> attributeTypes;
 
-  // The set of objectclass definitions for this schema, mapped
-  // between the lowercase names and OID for the definition and the
-  // objectclass itself.
+  /**
+   * The set of objectclass definitions for this schema, mapped between the
+   * lowercase names and OID for the definition and the objectclass itself.
+   */
   private ConcurrentHashMap<String,ObjectClass> objectClasses;
 
-  // The set of attribute syntaxes for this schema, mapped between the
-  // OID for the syntax and the syntax itself.
+  /**
+   * The set of attribute syntaxes for this schema, mapped between the OID for
+   * the syntax and the syntax itself.
+   */
   private ConcurrentHashMap<String,AttributeSyntax<?>> syntaxes;
 
-  // The entire set of matching rules for this schema, mapped between
-  // the lowercase names and OID for the definition and the matching
-  // rule itself.
+  /**
+   * The entire set of matching rules for this schema, mapped between the
+   * lowercase names and OID for the definition and the matching rule itself.
+   */
   private ConcurrentHashMap<String,MatchingRule> matchingRules;
 
-  // The set of approximate matching rules for this schema, mapped
-  // between the lowercase names and OID for the definition and the
-  // matching rule itself.
+  /**
+   * The set of approximate matching rules for this schema, mapped between the
+   * lowercase names and OID for the definition and the matching rule itself.
+   */
   private ConcurrentHashMap<String,ApproximateMatchingRule>
                approximateMatchingRules;
 
-  // The set of equality matching rules for this schema, mapped
-  // between the lowercase names and OID for the definition and the
-  // matching rule itself.
+  /**
+   * The set of equality matching rules for this schema, mapped between the
+   * lowercase names and OID for the definition and the matching rule itself.
+   */
   private ConcurrentHashMap<String,EqualityMatchingRule>
                equalityMatchingRules;
 
-  // The set of ordering matching rules for this schema, mapped
-  // between the lowercase names and OID for the definition and the
-  // matching rule itself.
+  /**
+   * The set of ordering matching rules for this schema, mapped between the
+   * lowercase names and OID for the definition and the matching rule itself.
+   */
   private ConcurrentHashMap<String,OrderingMatchingRule>
                orderingMatchingRules;
 
-  // The set of substring matching rules for this schema, mapped
-  // between the lowercase names and OID for the definition and the
-  // matching rule itself.
+  /**
+   * The set of substring matching rules for this schema, mapped between the
+   * lowercase names and OID for the definition and the matching rule itself.
+   */
   private ConcurrentHashMap<String,SubstringMatchingRule>
                substringMatchingRules;
 
-  // The set of extensible matching rules for this schema, mapped
-  // between the lowercase names and OID for the definition and the
-  // matching rule itself.
+  /**
+   * The set of extensible matching rules for this schema, mapped between the
+   * lowercase names and OID for the definition and the matching rule itself.
+   */
   private ConcurrentHashMap<String,ExtensibleMatchingRule>
                extensibleMatchingRules;
 
-  // The set of matching rule uses for this schema, mapped between the
-  // matching rule for the definition and the matching rule use
-  // itself.
+  /**
+   * The set of matching rule uses for this schema, mapped between the matching
+   * rule for the definition and the matching rule use itself.
+   */
   private ConcurrentHashMap<MatchingRule,MatchingRuleUse>
                matchingRuleUses;
 
-  // The set of DIT content rules for this schema, mapped between the
-  // structural objectclass for the definition and the DIT content
-  // rule itself.
+  /**
+   * The set of DIT content rules for this schema, mapped between the structural
+   * objectclass for the definition and the DIT content rule itself.
+   */
   private ConcurrentHashMap<ObjectClass,DITContentRule>
                ditContentRules;
 
-  // The set of DIT structure rules for this schema, mapped between
-  // the name form for the definition and the DIT structure rule
-  // itself.
+  /**
+   * The set of DIT structure rules for this schema, mapped between the name
+   * form for the definition and the DIT structure rule itself.
+   */
   private ConcurrentHashMap<Integer,DITStructureRule>
                ditStructureRulesByID;
 
-  // The set of DIT structure rules for this schema, mapped between
-  // the name form for the definition and the DIT structure rule
-  // itself.
+  /**
+   * The set of DIT structure rules for this schema, mapped between the name
+   * form for the definition and the DIT structure rule itself.
+   */
   private ConcurrentHashMap<NameForm,DITStructureRule>
                ditStructureRulesByNameForm;
 
-  // The set of name forms for this schema, mapped between the
-  // structural objectclass for the definition and the list of name
-  // forms
+  /**
+   * The set of name forms for this schema, mapped between the structural
+   * objectclass for the definition and the list of name forms
+   */
   private ConcurrentHashMap<ObjectClass,List<NameForm>>
           nameFormsByOC;
 
-  // The set of name forms for this schema, mapped between the
-  // names/OID and the name form itself.
+  /**
+   * The set of name forms for this schema, mapped between the names/OID and the
+   * name form itself.
+   */
   private ConcurrentHashMap<String,NameForm> nameFormsByName;
 
-  // The set of ldap syntax descriptions for this schema, mapped
-  // the OID and the ldap syntax description itself.
+  /**
+   * The set of ldap syntax descriptions for this schema, mapped the OID and the
+   * ldap syntax description itself.
+   */
   private ConcurrentHashMap<String,LDAPSyntaxDescription>
           ldapSyntaxDescriptions;
 
-  // The set of pre-encoded attribute syntax representations.
-  private LinkedHashSet<AttributeValue> syntaxSet;
+  /** The set of pre-encoded attribute syntax representations. */
+  private Set<AttributeValue> syntaxSet;
 
-  // The set of pre-encoded attribute type representations.
-  private LinkedHashSet<AttributeValue> attributeTypeSet;
+  /** The set of pre-encoded attribute type representations. */
+  private Set<AttributeValue> attributeTypeSet;
 
-  // The set of pre-encoded DIT content rule representations.
-  private LinkedHashSet<AttributeValue> ditContentRuleSet;
+  /** The set of pre-encoded DIT content rule representations. */
+  private Set<AttributeValue> ditContentRuleSet;
 
-  // The set of pre-encoded DIT structure rule representations.
-  private LinkedHashSet<AttributeValue> ditStructureRuleSet;
+  /** The set of pre-encoded DIT structure rule representations. */
+  private Set<AttributeValue> ditStructureRuleSet;
 
-  // The set of pre-encoded matching rule representations.
-  private LinkedHashSet<AttributeValue> matchingRuleSet;
+  /** The set of pre-encoded matching rule representations. */
+  private Set<AttributeValue> matchingRuleSet;
 
-  // The set of pre-encoded matching rule use representations.
-  private LinkedHashSet<AttributeValue> matchingRuleUseSet;
+  /** The set of pre-encoded matching rule use representations. */
+  private Set<AttributeValue> matchingRuleUseSet;
 
-  // The set of pre-encoded name form representations.
-  private LinkedHashSet<AttributeValue> nameFormSet;
+  /** The set of pre-encoded name form representations. */
+  private Set<AttributeValue> nameFormSet;
 
-  // The set of pre-encoded objectclass representations.
-  private LinkedHashSet<AttributeValue> objectClassSet;
+  /** The set of pre-encoded objectclass representations. */
+  private Set<AttributeValue> objectClassSet;
 
-  // The oldest modification timestamp for any schema configuration
-  // file.
+  /** The oldest modification timestamp for any schema configuration file. */
   private long oldestModificationTime;
 
-  // The youngest modification timestamp for any schema configuration
-  // file.
+  /** The youngest modification timestamp for any schema configuration file. */
   private long youngestModificationTime;
 
-  // A set of extra attributes that are not used directly by
-  // the schema but may be used by other component to store
-  // information in the schema.
-  // ex : Replication uses this to store its state and GenerationID.
-
+  /**
+   * A set of extra attributes that are not used directly by the schema but may
+   * be used by other component to store information in the schema.
+   * <p>
+   * ex : Replication uses this to store its state and GenerationID.
+   */
   private Map<String, Attribute> extraAttributes =
     new HashMap<String, Attribute>();
 
@@ -313,7 +335,7 @@ public final class Schema
    *
    * @return  The set of defined attribute types for this schema.
    */
-  public LinkedHashSet<AttributeValue> getAttributeTypeSet()
+  public Set<AttributeValue> getAttributeTypeSet()
   {
     return attributeTypeSet;
   }
@@ -612,7 +634,7 @@ public final class Schema
    *
    * @return  The set of defined objectclasses for this schema.
    */
-  public LinkedHashSet<AttributeValue> getObjectClassSet()
+  public Set<AttributeValue> getObjectClassSet()
   {
     return objectClassSet;
   }
@@ -803,7 +825,7 @@ public final class Schema
    *
    * @return  The set of defined attribute syntaxes for this schema.
    */
-  public LinkedHashSet<AttributeValue> getSyntaxSet()
+  public Set<AttributeValue> getSyntaxSet()
   {
     return syntaxSet;
   }
@@ -1097,7 +1119,7 @@ public final class Schema
    *
    * @return  The set of defined matching rules for this schema.
    */
-  public LinkedHashSet<AttributeValue> getMatchingRuleSet()
+  public Set<AttributeValue> getMatchingRuleSet()
   {
     return matchingRuleSet;
   }
@@ -2217,7 +2239,7 @@ public final class Schema
    *
    * @return  The set of defined matching rule uses for this schema.
    */
-  public LinkedHashSet<AttributeValue> getMatchingRuleUseSet()
+  public Set<AttributeValue> getMatchingRuleUseSet()
   {
     return matchingRuleUseSet;
   }
@@ -2378,7 +2400,7 @@ public final class Schema
    *
    * @return  The set of defined DIT content rules for this schema.
    */
-  public LinkedHashSet<AttributeValue> getDITContentRuleSet()
+  public Set<AttributeValue> getDITContentRuleSet()
   {
     return ditContentRuleSet;
   }
@@ -2521,7 +2543,7 @@ public final class Schema
    *
    * @return  The set of defined DIT structure rules for this schema.
    */
-  public LinkedHashSet<AttributeValue> getDITStructureRuleSet()
+  public Set<AttributeValue> getDITStructureRuleSet()
   {
     return ditStructureRuleSet;
   }
@@ -2753,7 +2775,7 @@ public final class Schema
    *
    * @return  The set of defined name forms for this schema.
    */
-  public LinkedHashSet<AttributeValue> getNameFormSet()
+  public Set<AttributeValue> getNameFormSet()
   {
     return nameFormSet;
   }
@@ -3397,19 +3419,13 @@ public final class Schema
     String concatFilePath = null;
     try
     {
-      LinkedHashSet<String> attributeTypes =
-           new LinkedHashSet<String>();
-      LinkedHashSet<String> objectClasses =
-           new LinkedHashSet<String>();
-      LinkedHashSet<String> nameForms = new LinkedHashSet<String>();
-      LinkedHashSet<String> ditContentRules =
-           new LinkedHashSet<String>();
-      LinkedHashSet<String> ditStructureRules =
-           new LinkedHashSet<String>();
-      LinkedHashSet<String> matchingRuleUses =
-           new LinkedHashSet<String>();
-      LinkedHashSet<String> ldapSyntaxes =
-           new LinkedHashSet<String>();
+      Set<String> attributeTypes = new LinkedHashSet<String>();
+      Set<String> objectClasses = new LinkedHashSet<String>();
+      Set<String> nameForms = new LinkedHashSet<String>();
+      Set<String> ditContentRules = new LinkedHashSet<String>();
+      Set<String> ditStructureRules = new LinkedHashSet<String>();
+      Set<String> matchingRuleUses = new LinkedHashSet<String>();
+      Set<String> ldapSyntaxes = new LinkedHashSet<String>();
       genConcatenatedSchema(attributeTypes, objectClasses, nameForms,
                             ditContentRules, ditStructureRules,
                             matchingRuleUses,ldapSyntaxes);
@@ -3547,13 +3563,13 @@ public final class Schema
    *                       schema file elements.
    */
   public static void genConcatenatedSchema(
-                          LinkedHashSet<String> attributeTypes,
-                          LinkedHashSet<String> objectClasses,
-                          LinkedHashSet<String> nameForms,
-                          LinkedHashSet<String> ditContentRules,
-                          LinkedHashSet<String> ditStructureRules,
-                          LinkedHashSet<String> matchingRuleUses,
-                          LinkedHashSet<String> ldapSyntaxes)
+                          Set<String> attributeTypes,
+                          Set<String> objectClasses,
+                          Set<String> nameForms,
+                          Set<String> ditContentRules,
+                          Set<String> ditStructureRules,
+                          Set<String> matchingRuleUses,
+                          Set<String> ldapSyntaxes)
           throws IOException
   {
     // Get a sorted list of the files in the schema directory.
@@ -3672,13 +3688,13 @@ public final class Schema
    *                       schema file elements.
    */
   public static void readConcatenatedSchema(String concatSchemaFile,
-                          LinkedHashSet<String> attributeTypes,
-                          LinkedHashSet<String> objectClasses,
-                          LinkedHashSet<String> nameForms,
-                          LinkedHashSet<String> ditContentRules,
-                          LinkedHashSet<String> ditStructureRules,
-                          LinkedHashSet<String> matchingRuleUses,
-                          LinkedHashSet<String> ldapSyntaxes)
+                          Set<String> attributeTypes,
+                          Set<String> objectClasses,
+                          Set<String> nameForms,
+                          Set<String> ditContentRules,
+                          Set<String> ditStructureRules,
+                          Set<String> matchingRuleUses,
+                          Set<String> ldapSyntaxes)
           throws IOException
   {
     BufferedReader reader =
@@ -3721,13 +3737,13 @@ public final class Schema
    */
 
   private static void parseSchemaLine(String line,
-                               LinkedHashSet<String> attributeTypes,
-                               LinkedHashSet<String> objectClasses,
-                               LinkedHashSet<String> nameForms,
-                               LinkedHashSet<String> ditContentRules,
-                               LinkedHashSet<String> ditStructureRules,
-                               LinkedHashSet<String> matchingRuleUses,
-                               LinkedHashSet<String> ldapSyntaxes)
+                               Set<String> attributeTypes,
+                               Set<String> objectClasses,
+                               Set<String> nameForms,
+                               Set<String> ditContentRules,
+                               Set<String> ditStructureRules,
+                               Set<String> matchingRuleUses,
+                               Set<String> ldapSyntaxes)
   {
     String value;
     String lowerLine = toLowerCase(line);
@@ -3789,10 +3805,10 @@ public final class Schema
    *                      identified differences should be written.
    */
   public static void compareConcatenatedSchema(
-                          LinkedHashSet<String> oldElements,
-                          LinkedHashSet<String> newElements,
+                          Set<String> oldElements,
+                          Set<String> newElements,
                           AttributeType elementType,
-                          LinkedList<Modification> mods)
+                          List<Modification> mods)
   {
     AttributeType attributeTypesType =
       DirectoryServer.getAttributeType(ATTR_ATTRIBUTE_TYPES_LC, true);

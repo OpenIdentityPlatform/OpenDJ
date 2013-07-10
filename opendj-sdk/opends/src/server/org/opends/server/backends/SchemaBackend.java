@@ -127,91 +127,115 @@ public class SchemaBackend
 
 
 
-  // The set of user-defined attributes that will be included in the schema
-  // entry.
+  /**
+   * The set of user-defined attributes that will be included in the schema
+   * entry.
+   */
   private ArrayList<Attribute> userDefinedAttributes;
 
-  // The attribute type that will be used to include the defined attribute
-  // types.
+  /**
+   * The attribute type that will be used to include the defined attribute
+   * types.
+   */
   private AttributeType attributeTypesType;
 
-  // The attribute type that will be used to hold the schema creation timestamp.
+  /**
+   * The attribute type that will be used to hold the schema creation timestamp.
+   */
   private AttributeType createTimestampType;
 
-  // The attribute type that will be used to hold the schema creator's name.
+  /** The attribute type that will be used to hold the schema creator's name. */
   private AttributeType creatorsNameType;
 
-  // The attribute type that will be used to include the defined DIT content
-  // rules.
+  /**
+   * The attribute type that will be used to include the defined DIT content
+   * rules.
+   */
   private AttributeType ditContentRulesType;
 
-  // The attribute type that will be used to include the defined DIT structure
-  // rules.
+  /**
+   * The attribute type that will be used to include the defined DIT structure
+   * rules.
+   */
   private AttributeType ditStructureRulesType;
 
-  // The attribute type that will be used to include the defined attribute
-  // syntaxes.
+  /**
+   * The attribute type that will be used to include the defined attribute
+   * syntaxes.
+   */
   private AttributeType ldapSyntaxesType;
 
-  // The attribute type that will be used to include the defined matching rules.
+  /**
+   * The attribute type that will be used to include the defined matching rules.
+   */
   private AttributeType matchingRulesType;
 
-  // The attribute type that will be used to include the defined matching rule
-  // uses.
+  /**
+   * The attribute type that will be used to include the defined matching rule
+   * uses.
+   */
   private AttributeType matchingRuleUsesType;
 
-  // The attribute that will be used to hold the schema modifier's name.
+  /** The attribute that will be used to hold the schema modifier's name. */
   private AttributeType modifiersNameType;
 
-  // The attribute type that will be used to hold the schema modification
-  // timestamp.
+  /**
+   * The attribute type that will be used to hold the schema modification
+   * timestamp.
+   */
   private AttributeType modifyTimestampType;
 
-  // The attribute type that will be used to include the defined object classes.
+  /**
+   * The attribute type that will be used to include the defined object classes.
+   */
   private AttributeType objectClassesType;
 
-  // The attribute type that will be used to include the defined name forms.
+  /** The attribute type that will be used to include the defined name forms. */
   private AttributeType nameFormsType;
 
-  // The value containing DN of the user we'll say created the configuration.
+  /** The value containing DN of the user we'll say created the configuration. */
   private AttributeValue creatorsName;
 
-  // The value containing the DN of the last user to modify the configuration.
+  /** The value containing the DN of the last user to modify the configuration. */
   private AttributeValue modifiersName;
 
-  // The timestamp that will be used for the schema creation time.
+  /** The timestamp that will be used for the schema creation time. */
   private AttributeValue createTimestamp;
 
-  // The timestamp that will be used for the latest schema modification time.
+  /** The timestamp that will be used for the latest schema modification time. */
   private AttributeValue modifyTimestamp;
 
-  // Indicates whether the attributes of the schema entry should always be
-  // treated as user attributes even if they are defined as operational.
+  /**
+   * Indicates whether the attributes of the schema entry should always be
+   * treated as user attributes even if they are defined as operational.
+   */
   private boolean showAllAttributes;
 
-  // The DN of the configuration entry for this backend.
+  /** The DN of the configuration entry for this backend. */
   private DN configEntryDN;
 
-  // The current configuration state.
+  /** The current configuration state. */
   private SchemaBackendCfg currentConfig;
 
-  // The set of base DNs for this backend.
+  /** The set of base DNs for this backend. */
   private DN[] baseDNs;
 
-  // The set of objectclasses that will be used in the schema entry.
+  /** The set of objectclasses that will be used in the schema entry. */
   private HashMap<ObjectClass,String> schemaObjectClasses;
 
-  // The set of supported controls for this backend.
-  private HashSet<String> supportedControls;
+  /** The set of supported controls for this backend. */
+  private Set<String> supportedControls;
 
-  // The set of supported features for this backend.
-  private HashSet<String> supportedFeatures;
+  /** The set of supported features for this backend. */
+  private Set<String> supportedFeatures;
 
-  // The time that the schema was last modified.
+  /** The time that the schema was last modified. */
   private long modifyTime;
 
-  //Regular expression used to strip minimum upper bound value from
-  //syntax Attribute Type Description. The value looks like: {count}.
+  /**
+   * Regular expression used to strip minimum upper bound value from syntax
+   * Attribute Type Description. The value looks like: {count}.
+   */
   private String stripMinUpperBoundRegEx = "\\{\\d+\\}";
 
 
@@ -386,13 +410,13 @@ public class SchemaBackend
     try
     {
       // First, generate lists of elements from the current schema.
-      LinkedHashSet<String> newATs  = new LinkedHashSet<String>();
-      LinkedHashSet<String> newOCs  = new LinkedHashSet<String>();
-      LinkedHashSet<String> newNFs  = new LinkedHashSet<String>();
-      LinkedHashSet<String> newDCRs = new LinkedHashSet<String>();
-      LinkedHashSet<String> newDSRs = new LinkedHashSet<String>();
-      LinkedHashSet<String> newMRUs = new LinkedHashSet<String>();
-      LinkedHashSet<String> newLSDs = new LinkedHashSet<String>();
+      Set<String> newATs  = new LinkedHashSet<String>();
+      Set<String> newOCs  = new LinkedHashSet<String>();
+      Set<String> newNFs  = new LinkedHashSet<String>();
+      Set<String> newDCRs = new LinkedHashSet<String>();
+      Set<String> newDSRs = new LinkedHashSet<String>();
+      Set<String> newMRUs = new LinkedHashSet<String>();
+      Set<String> newLSDs = new LinkedHashSet<String>();
       Schema.genConcatenatedSchema(newATs, newOCs, newNFs, newDCRs, newDSRs,
                                    newMRUs,newLSDs);
 
@@ -439,19 +463,19 @@ public class SchemaBackend
         }
       }
 
-      LinkedHashSet<String> oldATs  = new LinkedHashSet<String>();
-      LinkedHashSet<String> oldOCs  = new LinkedHashSet<String>();
-      LinkedHashSet<String> oldNFs  = new LinkedHashSet<String>();
-      LinkedHashSet<String> oldDCRs = new LinkedHashSet<String>();
-      LinkedHashSet<String> oldDSRs = new LinkedHashSet<String>();
-      LinkedHashSet<String> oldMRUs = new LinkedHashSet<String>();
-      LinkedHashSet<String> oldLSDs = new LinkedHashSet<String>();
+      Set<String> oldATs  = new LinkedHashSet<String>();
+      Set<String> oldOCs  = new LinkedHashSet<String>();
+      Set<String> oldNFs  = new LinkedHashSet<String>();
+      Set<String> oldDCRs = new LinkedHashSet<String>();
+      Set<String> oldDSRs = new LinkedHashSet<String>();
+      Set<String> oldMRUs = new LinkedHashSet<String>();
+      Set<String> oldLSDs = new LinkedHashSet<String>();
       Schema.readConcatenatedSchema(concatFilePath, oldATs, oldOCs, oldNFs,
                                     oldDCRs, oldDSRs, oldMRUs,oldLSDs);
 
       // Create a list of modifications and add any differences between the old
       // and new schema into them.
-      LinkedList<Modification> mods = new LinkedList<Modification>();
+      List<Modification> mods = new LinkedList<Modification>();
       Schema.compareConcatenatedSchema(oldATs, newATs, attributeTypesType,
                                        mods);
       Schema.compareConcatenatedSchema(oldOCs, newOCs, objectClassesType, mods);
@@ -681,10 +705,10 @@ public class SchemaBackend
   private Entry getSchemaEntry(DN entryDN, boolean includeSchemaFile,
                                           boolean ignoreShowAllOption)
   {
-    LinkedHashMap<AttributeType, List<Attribute>> userAttrs =
+    Map<AttributeType, List<Attribute>> userAttrs =
       new LinkedHashMap<AttributeType, List<Attribute>>();
 
-    LinkedHashMap<AttributeType, List<Attribute>> operationalAttrs =
+    Map<AttributeType, List<Attribute>> operationalAttrs =
       new LinkedHashMap<AttributeType, List<Attribute>>();
 
     // Add the RDN attribute(s) for the provided entry.
@@ -714,14 +738,13 @@ public class SchemaBackend
     Schema schema = DirectoryServer.getSchema();
 
     // Add the "attributeTypes" attribute.
-    LinkedHashSet<AttributeValue> valueSet = DirectoryServer
-        .getAttributeTypeSet();
+    Set<AttributeValue> valueSet = DirectoryServer.getAttributeTypeSet();
 
     // Add the file name to the description of the attribute type if
     // this was requested by the caller.
     if (includeSchemaFile)
     {
-      LinkedHashSet<AttributeValue> newValueSet =
+      Set<AttributeValue> newValueSet =
         new LinkedHashSet<AttributeValue>(valueSet.size());
 
       for (AttributeValue value : valueSet)
@@ -796,7 +819,7 @@ public class SchemaBackend
     // the caller.
     if (includeSchemaFile)
     {
-      LinkedHashSet<AttributeValue> newValueSet =
+      Set<AttributeValue> newValueSet =
         new LinkedHashSet<AttributeValue>(valueSet.size());
 
       for (AttributeValue value : valueSet)
@@ -3434,7 +3457,7 @@ public class SchemaBackend
    */
   private Entry createEmptySchemaEntry()
   {
-    LinkedHashMap<ObjectClass,String> objectClasses =
+    Map<ObjectClass,String> objectClasses =
          new LinkedHashMap<ObjectClass,String>();
     objectClasses.put(DirectoryServer.getTopObjectClass(), OC_TOP);
     objectClasses.put(DirectoryServer.getObjectClass(OC_LDAP_SUBENTRY_LC, true),
@@ -3442,10 +3465,10 @@ public class SchemaBackend
     objectClasses.put(DirectoryServer.getObjectClass(OC_SUBSCHEMA, true),
                       OC_SUBSCHEMA);
 
-    LinkedHashMap<AttributeType,List<Attribute>> userAttributes =
+    Map<AttributeType,List<Attribute>> userAttributes =
          new LinkedHashMap<AttributeType,List<Attribute>>();
 
-    LinkedHashMap<AttributeType,List<Attribute>> operationalAttributes =
+    Map<AttributeType,List<Attribute>> operationalAttributes =
          new LinkedHashMap<AttributeType,List<Attribute>>();
 
     DN  dn  = DirectoryServer.getSchemaDN();
@@ -3453,7 +3476,7 @@ public class SchemaBackend
     for (int i=0; i < rdn.getNumValues(); i++)
     {
       AttributeType type = rdn.getAttributeType(i);
-      LinkedList<Attribute> attrList = new LinkedList<Attribute>();
+      List<Attribute> attrList = new LinkedList<Attribute>();
       attrList.add(Attributes.create(type, rdn.getAttributeValue(i)));
       if (type.isOperational())
       {
@@ -3499,7 +3522,7 @@ public class SchemaBackend
      * this only for the real part of the ldapsyntaxes attribute. The real part
      * is read and write to/from the schema files.
      */
-    LinkedHashSet<AttributeValue> values = new LinkedHashSet<AttributeValue>();
+    Set<AttributeValue> values = new LinkedHashSet<AttributeValue>();
     for (LDAPSyntaxDescription ldapSyntax :
                                    schema.getLdapSyntaxDescriptions().values())
     {
@@ -3522,7 +3545,7 @@ public class SchemaBackend
     // Add all of the appropriate attribute types to the schema entry.  We need
     // to be careful of the ordering to ensure that any superior types in the
     // same file are written before the subordinate types.
-    HashSet<AttributeType> addedTypes = new HashSet<AttributeType>();
+    Set<AttributeType> addedTypes = new HashSet<AttributeType>();
     values = new LinkedHashSet<AttributeValue>();
     for (AttributeType at : schema.getAttributeTypes().values())
     {
@@ -3545,7 +3568,7 @@ public class SchemaBackend
     // Add all of the appropriate objectclasses to the schema entry.  We need
     // to be careful of the ordering to ensure that any superior classes in the
     // same file are written before the subordinate classes.
-    HashSet<ObjectClass> addedClasses = new HashSet<ObjectClass>();
+    Set<ObjectClass> addedClasses = new HashSet<ObjectClass>();
     values = new LinkedHashSet<AttributeValue>();
     for (ObjectClass oc : schema.getObjectClasses().values())
     {
@@ -3618,7 +3641,7 @@ public class SchemaBackend
     // Add all of the appropriate DIT structure rules to the schema entry.  We
     // need to be careful of the ordering to ensure that any superior rules in
     // the same file are written before the subordinate rules.
-    HashSet<DITStructureRule> addedDSRs = new HashSet<DITStructureRule>();
+    Set<DITStructureRule> addedDSRs = new HashSet<DITStructureRule>();
     values = new LinkedHashSet<AttributeValue>();
     for (DITStructureRule dsr : schema.getDITStructureRulesByID().values())
     {
@@ -3705,8 +3728,8 @@ public class SchemaBackend
    */
   private void addAttrTypeToSchemaFile(Schema schema, String schemaFile,
                                        AttributeType attributeType,
-                                       LinkedHashSet<AttributeValue> values,
-                                       HashSet<AttributeType> addedTypes,
+                                       Set<AttributeValue> values,
+                                       Set<AttributeType> addedTypes,
                                        int depth)
           throws DirectoryException
   {
@@ -3756,8 +3779,8 @@ public class SchemaBackend
    */
   private void addObjectClassToSchemaFile(Schema schema, String schemaFile,
                                           ObjectClass objectClass,
-                                          LinkedHashSet<AttributeValue> values,
-                                          HashSet<ObjectClass> addedClasses,
+                                          Set<AttributeValue> values,
+                                          Set<ObjectClass> addedClasses,
                                           int depth)
           throws DirectoryException
   {
@@ -3808,8 +3831,8 @@ public class SchemaBackend
    */
   private void addDITStructureRuleToSchemaFile(Schema schema, String schemaFile,
                     DITStructureRule ditStructureRule,
-                    LinkedHashSet<AttributeValue> values,
-                    HashSet<DITStructureRule> addedDSRs, int depth)
+                    Set<AttributeValue> values,
+                    Set<DITStructureRule> addedDSRs, int depth)
           throws DirectoryException
   {
     if (depth > 20)
@@ -4240,7 +4263,7 @@ public class SchemaBackend
    * {@inheritDoc}
    */
   @Override()
-  public HashSet<String> getSupportedControls()
+  public Set<String> getSupportedControls()
   {
     return supportedControls;
   }
@@ -4251,7 +4274,7 @@ public class SchemaBackend
    * {@inheritDoc}
    */
   @Override()
-  public HashSet<String> getSupportedFeatures()
+  public Set<String> getSupportedFeatures()
   {
     return supportedFeatures;
   }
@@ -5781,7 +5804,7 @@ public class SchemaBackend
       // deleteBaseDNs will contain the set of DNs that should no longer be used
       // and should be deregistered from the server, and the newBaseDNs set will
       // just contain the set of DNs to add.
-      HashSet<DN> deleteBaseDNs = new HashSet<DN>(baseDNs.length);
+      Set<DN> deleteBaseDNs = new HashSet<DN>(baseDNs.length);
       for (DN baseDN : baseDNs)
       {
         if (! newBaseDNs.remove(baseDN))

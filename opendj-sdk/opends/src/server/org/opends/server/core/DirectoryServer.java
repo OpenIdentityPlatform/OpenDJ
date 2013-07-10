@@ -398,10 +398,10 @@ public final class DirectoryServer
   private ConcurrentHashMap<String,SASLMechanismHandler> saslMechanismHandlers;
 
   /** The connection handler configuration manager for the Directory Server. */
-  private ConnectionHandlerConfigManager connectionHandlerConfigManager = null;
+  private ConnectionHandlerConfigManager connectionHandlerConfigManager;
 
   /** The set of alert handlers registered with the Directory Server. */
-  private CopyOnWriteArrayList<AlertHandler> alertHandlers;
+  private List<AlertHandler> alertHandlers;
 
   /** The set of backup task listeners registered with the Directory Server. */
   private CopyOnWriteArrayList<BackupTaskListener> backupTaskListeners;
@@ -410,11 +410,11 @@ public final class DirectoryServer
    * The set of change notification listeners registered with the Directory
    * Server.
    */
-  private CopyOnWriteArrayList<ChangeNotificationListener>
+  private List<ChangeNotificationListener>
                changeNotificationListeners;
 
   /** The set of connection handlers registered with the Directory Server. */
-  private CopyOnWriteArrayList<ConnectionHandler> connectionHandlers;
+  private List<ConnectionHandler> connectionHandlers;
 
   /** The set of export task listeners registered with the Directory Server. */
   private CopyOnWriteArrayList<ExportTaskListener> exportTaskListeners;
@@ -429,35 +429,34 @@ public final class DirectoryServer
    * The set of initialization completed listeners that have been registered
    * with the Directory Server.
    */
-  private CopyOnWriteArrayList<InitializationCompletedListener>
+  private List<InitializationCompletedListener>
           initializationCompletedListeners;
 
   /**
    * The set of shutdown listeners that have been registered with the Directory
    * Server.
    */
-  private CopyOnWriteArrayList<ServerShutdownListener> shutdownListeners;
+  private List<ServerShutdownListener> shutdownListeners;
 
   /**
    * The set of synchronization providers that have been registered with the
    * Directory Server.
    */
-  private
-    CopyOnWriteArrayList<SynchronizationProvider<SynchronizationProviderCfg>>
+  private List<SynchronizationProvider<SynchronizationProviderCfg>>
                synchronizationProviders;
 
   /** The set of virtual attributes defined in the server. */
-  private CopyOnWriteArrayList<VirtualAttributeRule> virtualAttributes;
+  private List<VirtualAttributeRule> virtualAttributes;
 
   /**
    * The set of backend initialization listeners registered with the Directory
    * Server.
    */
-  private CopyOnWriteArraySet<BackendInitializationListener>
+  private Set<BackendInitializationListener>
                backendInitializationListeners;
 
   /** The set of root DNs registered with the Directory Server. */
-  private CopyOnWriteArraySet<DN> rootDNs;
+  private Set<DN> rootDNs;
 
   /** The core configuration manager for the Directory Server. */
   private CoreConfigManager coreConfigManager;
@@ -548,7 +547,7 @@ public final class DirectoryServer
   private ExtensionConfigManager extensionConfigManager;
 
   /** The set of connections that are currently established. */
-  private LinkedHashSet<ClientConnection> establishedConnections;
+  private Set<ClientConnection> establishedConnections;
 
   /** The sets of mail server properties. */
   private List<Properties> mailServerPropertySets;
@@ -1623,9 +1622,26 @@ public final class DirectoryServer
    */
   private void bootstrapAttributeSyntaxes()
   {
+    initAndRegister(new AttributeTypeSyntax());
+    defaultBinarySyntax = initAndRegister(new BinarySyntax());
+    defaultBooleanSyntax = initAndRegister(new BooleanSyntax());
+    defaultStringSyntax = initAndRegister(new DirectoryStringSyntax());
+    defaultSyntax = defaultStringSyntax;
+    defaultDNSyntax = initAndRegister(new DistinguishedNameSyntax());
+    initAndRegister(new IA5StringSyntax());
+    defaultIntegerSyntax = initAndRegister(new IntegerSyntax());
+    initAndRegister(new GeneralizedTimeSyntax());
+    initAndRegister(new ObjectClassSyntax());
+    initAndRegister(new OIDSyntax());
+    initAndRegister(new TelephoneNumberSyntax());
+  }
+
+
+  private <T extends AttributeSyntaxCfg> AttributeSyntax<T> initAndRegister(
+      AttributeSyntax<T> syntax)
+  {
     try
     {
-      AttributeTypeSyntax syntax = new AttributeTypeSyntax();
       syntax.initializeSyntax(null);
       registerAttributeSyntax(syntax, true);
     }
@@ -1636,205 +1652,10 @@ public final class DirectoryServer
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_CANNOT_BOOTSTRAP_SYNTAX.get(
-          AttributeTypeSyntax.class.getName(), stackTraceToSingleLineString(e));
-      logError(message);
+      logError(ERR_CANNOT_BOOTSTRAP_SYNTAX.get(syntax.getClass().getName(),
+          stackTraceToSingleLineString(e)));
     }
-
-
-    try
-    {
-      defaultBinarySyntax = new BinarySyntax();
-      defaultBinarySyntax.initializeSyntax(null);
-      registerAttributeSyntax(defaultBinarySyntax, true);
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message = ERR_CANNOT_BOOTSTRAP_SYNTAX.get(
-          BinarySyntax.class.getName(), stackTraceToSingleLineString(e));
-      logError(message);
-    }
-
-
-    try
-    {
-      defaultBooleanSyntax = new BooleanSyntax();
-      defaultBooleanSyntax.initializeSyntax(null);
-      registerAttributeSyntax(defaultBooleanSyntax, true);
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message = ERR_CANNOT_BOOTSTRAP_SYNTAX.get(
-          BooleanSyntax.class.getName(), stackTraceToSingleLineString(e));
-      logError(message);
-    }
-
-
-    try
-    {
-      defaultStringSyntax = new DirectoryStringSyntax();
-      defaultStringSyntax.initializeSyntax(null);
-      registerAttributeSyntax(defaultStringSyntax, true);
-      defaultSyntax = defaultStringSyntax;
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message = ERR_CANNOT_BOOTSTRAP_SYNTAX.
-          get(DirectoryStringSyntax.class.getName(),
-              stackTraceToSingleLineString(e));
-      logError(message);
-    }
-
-
-    try
-    {
-      defaultDNSyntax = new DistinguishedNameSyntax();
-      defaultDNSyntax.initializeSyntax(null);
-      registerAttributeSyntax(defaultDNSyntax, true);
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message = ERR_CANNOT_BOOTSTRAP_SYNTAX.
-          get(DistinguishedNameSyntax.class.getName(),
-              stackTraceToSingleLineString(e));
-      logError(message);
-    }
-
-
-    try
-    {
-      IA5StringSyntax syntax = new IA5StringSyntax();
-      syntax.initializeSyntax(null);
-      registerAttributeSyntax(syntax, true);
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message = ERR_CANNOT_BOOTSTRAP_SYNTAX.get(
-          IA5StringSyntax.class.getName(), stackTraceToSingleLineString(e));
-      logError(message);
-    }
-
-
-    try
-    {
-      defaultIntegerSyntax = new IntegerSyntax();
-      defaultIntegerSyntax.initializeSyntax(null);
-      registerAttributeSyntax(defaultIntegerSyntax, true);
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message = ERR_CANNOT_BOOTSTRAP_SYNTAX.get(
-          IntegerSyntax.class.getName(), stackTraceToSingleLineString(e));
-      logError(message);
-    }
-
-
-    try
-    {
-      GeneralizedTimeSyntax syntax = new GeneralizedTimeSyntax();
-      syntax.initializeSyntax(null);
-      registerAttributeSyntax(syntax, true);
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message = ERR_CANNOT_BOOTSTRAP_SYNTAX.
-          get(GeneralizedTimeSyntax.class.getName(),
-              stackTraceToSingleLineString(e));
-      logError(message);
-    }
-
-
-    try
-    {
-      ObjectClassSyntax syntax = new ObjectClassSyntax();
-      syntax.initializeSyntax(null);
-      registerAttributeSyntax(syntax, true);
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message = ERR_CANNOT_BOOTSTRAP_SYNTAX.get(
-          ObjectClassSyntax.class.getName(), stackTraceToSingleLineString(e));
-      logError(message);
-    }
-
-
-    try
-    {
-      OIDSyntax syntax = new OIDSyntax();
-      syntax.initializeSyntax(null);
-      registerAttributeSyntax(syntax, true);
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message = ERR_CANNOT_BOOTSTRAP_SYNTAX.get(
-          OIDSyntax.class.getName(), stackTraceToSingleLineString(e));
-      logError(message);
-    }
-
-
-    try
-    {
-      TelephoneNumberSyntax syntax = new TelephoneNumberSyntax();
-      syntax.initializeSyntax(null);
-      registerAttributeSyntax(syntax, true);
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message = ERR_CANNOT_BOOTSTRAP_SYNTAX.
-          get(TelephoneNumberSyntax.class.getName(),
-              stackTraceToSingleLineString(e));
-      logError(message);
-    }
+    return syntax;
   }
 
 
@@ -1982,11 +1803,11 @@ public final class DirectoryServer
     // preserve any configuration add/delete/change listeners that might have
     // been registered with the old configuration (which will primarily be
     // schema elements) so they can be re-registered with the new configuration.
-    LinkedHashMap<String,List<ConfigAddListener>> addListeners =
+    Map<String, List<ConfigAddListener>> addListeners =
          new LinkedHashMap<String,List<ConfigAddListener>>();
-    LinkedHashMap<String,List<ConfigDeleteListener>> deleteListeners =
+    Map<String, List<ConfigDeleteListener>> deleteListeners =
          new LinkedHashMap<String,List<ConfigDeleteListener>>();
-    LinkedHashMap<String,List<ConfigChangeListener>> changeListeners =
+    Map<String, List<ConfigChangeListener>> changeListeners =
          new LinkedHashMap<String,List<ConfigChangeListener>>();
     getChangeListeners(configHandler.getConfigRootEntry(), addListeners,
                        deleteListeners, changeListeners);
@@ -2114,26 +1935,25 @@ public final class DirectoryServer
    *                          the corresponding configuration entry.
    */
   private void getChangeListeners(ConfigEntry configEntry,
-       LinkedHashMap<String,List<ConfigAddListener>> addListeners,
-       LinkedHashMap<String,List<ConfigDeleteListener>> deleteListeners,
-       LinkedHashMap<String,List<ConfigChangeListener>> changeListeners)
+      Map<String, List<ConfigAddListener>> addListeners,
+      Map<String, List<ConfigDeleteListener>> deleteListeners,
+      Map<String, List<ConfigChangeListener>> changeListeners)
   {
-    CopyOnWriteArrayList<ConfigAddListener> cfgAddListeners =
-         configEntry.getAddListeners();
+    List<ConfigAddListener> cfgAddListeners = configEntry.getAddListeners();
     if ((cfgAddListeners != null) && (cfgAddListeners.size() > 0))
     {
       addListeners.put(configEntry.getDN().toString(), cfgAddListeners);
     }
 
-    CopyOnWriteArrayList<ConfigDeleteListener> cfgDeleteListeners =
-         configEntry.getDeleteListeners();
+    List<ConfigDeleteListener> cfgDeleteListeners =
+        configEntry.getDeleteListeners();
     if ((cfgDeleteListeners != null) && (cfgDeleteListeners.size() > 0))
     {
       deleteListeners.put(configEntry.getDN().toString(), cfgDeleteListeners);
     }
 
-    CopyOnWriteArrayList<ConfigChangeListener> cfgChangeListeners =
-         configEntry.getChangeListeners();
+    List<ConfigChangeListener> cfgChangeListeners =
+        configEntry.getChangeListeners();
     if ((cfgChangeListeners != null) && (cfgChangeListeners.size() > 0))
     {
       changeListeners.put(configEntry.getDN().toString(), cfgChangeListeners);
@@ -3235,7 +3055,7 @@ public final class DirectoryServer
    * @return  The set of encoded matching rules that have been defined in the
    *          Directory Server.
    */
-  public static LinkedHashSet<AttributeValue> getMatchingRuleSet()
+  public static Set<AttributeValue> getMatchingRuleSet()
   {
     return directoryServer.schema.getMatchingRuleSet();
   }
@@ -3634,7 +3454,7 @@ public final class DirectoryServer
    * @return  The set of encoded objectclasses that have been defined in the
    *          Directory Server.
    */
-  public static LinkedHashSet<AttributeValue> getObjectClassSet()
+  public static Set<AttributeValue> getObjectClassSet()
   {
     return directoryServer.schema.getObjectClassSet();
   }
@@ -3838,7 +3658,7 @@ public final class DirectoryServer
    * @return  The set of encoded attribute types that have been defined in the
    *          Directory Server.
    */
-  public static LinkedHashSet<AttributeValue> getAttributeTypeSet()
+  public static Set<AttributeValue> getAttributeTypeSet()
   {
     return directoryServer.schema.getAttributeTypeSet();
   }
@@ -4057,7 +3877,7 @@ public final class DirectoryServer
    * @return  The set of encoded attribute syntaxes that have been defined in
    *          the Directory Server.
    */
-  public static LinkedHashSet<AttributeValue> getAttributeSyntaxSet()
+  public static Set<AttributeValue> getAttributeSyntaxSet()
   {
     return directoryServer.schema.getSyntaxSet();
   }
@@ -4238,7 +4058,7 @@ public final class DirectoryServer
    * @return  The set of encoded matching rule uses that have been defined in
    *          the Directory Server.
    */
-  public static LinkedHashSet<AttributeValue> getMatchingRuleUseSet()
+  public static Set<AttributeValue> getMatchingRuleUseSet()
   {
     return directoryServer.schema.getMatchingRuleUseSet();
   }
@@ -4318,7 +4138,7 @@ public final class DirectoryServer
    * @return  The set of encoded DIT content rules that have been defined in the
    *          Directory Server.
    */
-  public static LinkedHashSet<AttributeValue> getDITContentRuleSet()
+  public static Set<AttributeValue> getDITContentRuleSet()
   {
     return directoryServer.schema.getDITContentRuleSet();
   }
@@ -4397,7 +4217,7 @@ public final class DirectoryServer
    * @return  The set of encoded DIT structure rules that have been defined in
    *          the Directory Server.
    */
-  public static LinkedHashSet<AttributeValue> getDITStructureRuleSet()
+  public static Set<AttributeValue> getDITStructureRuleSet()
   {
     return directoryServer.schema.getDITStructureRuleSet();
   }
@@ -4493,7 +4313,7 @@ public final class DirectoryServer
    * @return  The set of encoded name forms that have been defined in the
    *          Directory Server.
    */
-  public static LinkedHashSet<AttributeValue> getNameFormSet()
+  public static Set<AttributeValue> getNameFormSet()
   {
     return directoryServer.schema.getNameFormSet();
   }
@@ -4593,8 +4413,8 @@ public final class DirectoryServer
    */
   public static List<VirtualAttributeRule> getVirtualAttributes(Entry entry)
   {
-    LinkedList<VirtualAttributeRule> ruleList =
-         new LinkedList<VirtualAttributeRule>();
+    List<VirtualAttributeRule> ruleList =
+        new LinkedList<VirtualAttributeRule>();
 
     for (VirtualAttributeRule rule : directoryServer.virtualAttributes)
     {
@@ -4803,7 +4623,7 @@ public final class DirectoryServer
    * @return  The set of alert handlers that have been registered with the
    *          Directory Server.
    */
-  public static CopyOnWriteArrayList<AlertHandler> getAlertHandlers()
+  public static List<AlertHandler> getAlertHandlers()
   {
     return directoryServer.alertHandlers;
   }
@@ -5864,7 +5684,7 @@ public final class DirectoryServer
    *
    * @return  The DNs for the root users configured in the Directory Server.
    */
-  public static CopyOnWriteArraySet<DN> getRootDNs()
+  public static Set<DN> getRootDNs()
   {
     return directoryServer.rootDNs;
   }
@@ -7173,7 +6993,7 @@ public final class DirectoryServer
    *
    * @return  The set of connection handlers configured in the Directory Server.
    */
-  public static CopyOnWriteArrayList<ConnectionHandler> getConnectionHandlers()
+  public static List<ConnectionHandler> getConnectionHandlers()
   {
     return directoryServer.connectionHandlers;
   }
@@ -7238,8 +7058,8 @@ public final class DirectoryServer
    */
   private void startConnectionHandlers() throws ConfigException
   {
-    LinkedHashSet<HostPort> usedListeners = new LinkedHashSet<HostPort>();
-    LinkedHashSet<Message> errorMessages = new LinkedHashSet<Message>();
+    Set<HostPort> usedListeners = new LinkedHashSet<HostPort>();
+    Set<Message> errorMessages = new LinkedHashSet<Message>();
     // Check that the port specified in the connection handlers is
     // available.
     for (ConnectionHandler<?> c : connectionHandlers)
@@ -7475,7 +7295,7 @@ public final class DirectoryServer
    * @return  The set of change notification listeners registered with the
    *          Directory Server.
    */
-  public static CopyOnWriteArrayList<ChangeNotificationListener>
+  public static List<ChangeNotificationListener>
                      getChangeNotificationListeners()
   {
     return directoryServer.changeNotificationListeners;
@@ -7522,8 +7342,7 @@ public final class DirectoryServer
    * @return  The set of synchronization providers that have been registered
    *          with the Directory Server.
    */
-  public static
-    CopyOnWriteArrayList<SynchronizationProvider<SynchronizationProviderCfg>>
+  public static List<SynchronizationProvider<SynchronizationProviderCfg>>
       getSynchronizationProviders()
   {
     return directoryServer.synchronizationProviders;
@@ -9396,7 +9215,7 @@ public final class DirectoryServer
         // We're not really trying to start, so rebuild the argument list
         // without the "--checkStartability" argument and try again.  Exit with
         // whatever that exits with.
-        LinkedList<String> newArgList = new LinkedList<String>();
+        List<String> newArgList = new LinkedList<String>();
         for (String arg : args)
         {
           if (! arg.equalsIgnoreCase("--checkstartability"))
