@@ -68,9 +68,9 @@
 
     <menu name="OpenDJ Documentation">
       <item name="All Formats" href="../docs.html" />
-      <item name="Release Notes" href="../doc/release-notes/index.html" />
-      <item name="Installation Guide" href="../doc/install-guide/index.html" />
-      <item name="Administration Guide" href="../doc/admin-guide/index.html" />
+      <item name="Release Notes" href="./doc/release-notes/index.html" />
+      <item name="Installation Guide" href="./doc/install-guide/index.html" />
+      <item name="Administration Guide" href="./doc/admin-guide/index.html" />
       <item name="Config Reference" href="./configref/index.html" />
       <item name="Plugin Javadoc" href="./javadoc/index.html" />
     </menu>

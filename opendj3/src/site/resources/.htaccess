@@ -1,0 +1,10 @@
+# Redirect in the aftermath of OPENDJ-1005...
+
+RedirectMatch 301 ^/doc/OpenDJ-Admin-Guide(.*)$ http://opendj.forgerock.org/opendj-server/doc/OpenDJ-Admin-Guide$1
+RedirectMatch 301 ^/doc/admin-guide/(.*)$ http://opendj.forgerock.org/opendj-server/doc/admin-guide/$1
+
+RedirectMatch 301 ^/doc/OpenDJ-Install-Guide(.*)$ http://opendj.forgerock.org/opendj-server/doc/OpenDJ-Install-Guide$1
+RedirectMatch 301 ^/doc/install-guide/(.*)$ http://opendj.forgerock.org/opendj-server/doc/install-guide/$1
+
+RedirectMatch 301 ^/doc/OpenDJ-Release-Notes(.*)$ http://opendj.forgerock.org/opendj-server/doc/OpenDJ-Release-Notes$1
+RedirectMatch 301 ^/doc/release-notes/(.*)$ http://opendj.forgerock.org/opendj-server/doc/release-notes/$1

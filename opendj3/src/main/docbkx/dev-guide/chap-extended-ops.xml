@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2012 ForgeRock AS
+  !      Copyright 2011-2013 ForgeRock AS
   !    
 -->
 <chapter xml:id='chap-extended-ops'
@@ -66,11 +66,10 @@
 
   <para>For OpenDJ, the extended operations supported are listed in the
   <citetitle>Administration Guide</citetitle> appendix, <link
-  xlink:href="admin-guide#appendix-extended-ops"
-  xlink:role="http://docbook.org/xlink/role/olink"><citetitle>LDAP Extended
-  Operations</citetitle></link>. You can access the list of OIDs for
-  supported LDAP controls by reading the <literal>supportedExtension</literal>
-  attribute of the root DSE.</para>
+  xlink:href="${coreDocBase}admin-guide#appendix-extended-ops"
+  xlink:show="new"><citetitle>LDAP Extended Operations</citetitle></link>.
+  You can access the list of OIDs for supported LDAP controls by reading the
+  <literal>supportedExtension</literal> attribute of the root DSE.</para>
 
   <screen>$ ldapsearch
  --baseDN ""

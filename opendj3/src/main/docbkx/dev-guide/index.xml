@@ -84,16 +84,16 @@
    <filename>/path/to/opendj-ldap-toolkit-<?eval ${sdkDocTargetVersion}?>/bin</filename>.</para>
   </partintro>
 
-  <xinclude:include href='../shared/man-authrate.xml' />
-  <xinclude:include href='../shared/man-ldapcompare.xml' />
-  <xinclude:include href='../shared/man-ldapmodify.xml' />
-  <xinclude:include href='../shared/man-ldappasswordmodify.xml' />
-  <xinclude:include href='../shared/man-ldapsearch.xml' />
-  <xinclude:include href='../shared/man-ldifdiff.xml' />
-  <xinclude:include href='../shared/man-ldifmodify.xml' />
-  <xinclude:include href='../shared/man-ldifsearch.xml' />
-  <xinclude:include href='../shared/man-modrate.xml' />
-  <xinclude:include href='../shared/man-searchrate.xml' />
+  <xinclude:include href='man-authrate.xml' />
+  <xinclude:include href='man-ldapcompare.xml' />
+  <xinclude:include href='man-ldapmodify.xml' />
+  <xinclude:include href='man-ldappasswordmodify.xml' />
+  <xinclude:include href='man-ldapsearch.xml' />
+  <xinclude:include href='man-ldifdiff.xml' />
+  <xinclude:include href='man-ldifmodify.xml' />
+  <xinclude:include href='man-ldifsearch.xml' />
+  <xinclude:include href='man-modrate.xml' />
+  <xinclude:include href='man-searchrate.xml' />
  </reference>
 
  <xinclude:include href="../shared/glossary.xml" />
