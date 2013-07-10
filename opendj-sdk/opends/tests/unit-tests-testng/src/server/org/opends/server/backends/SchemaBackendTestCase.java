@@ -30,10 +30,7 @@ package org.opends.server.backends;
 
 
 import java.io.File;
-import java.util.LinkedHashMap;
-
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
+import java.util.Map;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.server.config.ConfigException;
@@ -60,9 +57,10 @@ import org.opends.server.types.ObjectClass;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchScope;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
 
 import static org.testng.Assert.*;
-
 import static org.opends.server.util.StaticUtils.*;
 
 
@@ -70,10 +68,11 @@ import static org.opends.server.util.StaticUtils.*;
 /**
  * A set of test cases for the schema backend.
  */
+@SuppressWarnings("javadoc")
 public class SchemaBackendTestCase
        extends BackendTestCase
 {
-  // A reference to the schema backend.
+  /** A reference to the schema backend. */
   private SchemaBackend schemaBackend;
 
 
@@ -5544,7 +5543,7 @@ public class SchemaBackendTestCase
   @Test()
   public void testGetAlerts()
   {
-    LinkedHashMap<String,String> alerts = schemaBackend.getAlerts();
+    Map<String, String> alerts = schemaBackend.getAlerts();
     assertNotNull(alerts);
     assertFalse(alerts.isEmpty());
   }

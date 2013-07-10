@@ -23,12 +23,13 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS
  */
 package org.opends.server.api;
 
 
 
-import java.util.LinkedHashMap;
+import java.util.Map;
 
 import org.opends.server.types.DN;
 
@@ -80,6 +81,6 @@ public interface AlertGenerator
    * @return  Information about the set of alerts that this generator
    *          may produce.
    */
-  public LinkedHashMap<String,String> getAlerts();
+  public Map<String, String> getAlerts();
 }
 

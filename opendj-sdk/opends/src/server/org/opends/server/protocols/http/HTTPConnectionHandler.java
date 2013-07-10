@@ -364,9 +364,9 @@ public class HTTPConnectionHandler extends
 
   /** {@inheritDoc} */
   @Override
-  public LinkedHashMap<String, String> getAlerts()
+  public Map<String, String> getAlerts()
   {
-    LinkedHashMap<String, String> alerts = new LinkedHashMap<String, String>();
+    Map<String, String> alerts = new LinkedHashMap<String, String>();
 
     alerts.put(ALERT_TYPE_HTTP_CONNECTION_HANDLER_CONSECUTIVE_FAILURES,
         ALERT_DESCRIPTION_HTTP_CONNECTION_HANDLER_CONSECUTIVE_FAILURES);
