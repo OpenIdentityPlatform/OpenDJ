@@ -23,17 +23,17 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2013 ForgeRock AS.
  */
-
 package org.opends.server.protocols.ldap;
 
 import static org.opends.server.config.ConfigConstants.*;
 import static org.testng.Assert.*;
 
 import java.util.Collection;
-import java.util.LinkedHashMap;
 import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 import org.opends.messages.Message;
 import org.opends.server.TestCaseUtils;
@@ -50,6 +50,7 @@ import org.opends.server.types.SSLClientAuthPolicy;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+@SuppressWarnings("javadoc")
 public class TestLDAPConnectionHandler extends LdapTestCase {
 
   private static Message reasonMsg= Message.raw("Don't need a reason.");
@@ -67,13 +68,13 @@ public class TestLDAPConnectionHandler extends LdapTestCase {
     TestCaseUtils.startServer();
   }
 
-  @Test()
   /**
    *  Creates two handlers, one which is SSL type. Then change some values via the setter
    *  methods.
    *
    * @throws Exception if the handler cannot be instantiated.
    */
+  @Test()
   public void testLDAPConnectionHandler() throws Exception {
     Entry LDAPHandlerEntry=null;
 
@@ -108,7 +109,7 @@ public class TestLDAPConnectionHandler extends LdapTestCase {
     LDAPConnHandler.toString(new StringBuilder());
     LDAPConnHandler.toString();
     LDAPStatistics tracker=LDAPConnHandler.getStatTracker();
-    LinkedHashMap<String,String> alerts = LDAPConnHandler.getAlerts();
+    Map<String,String> alerts = LDAPConnHandler.getAlerts();
     String c=LDAPConnHandler.getClassName();
     DN dn = LDAPConnHandler.getComponentEntryDN();
     Collection<String> cips = LDAPConnHandler.getEnabledSSLCipherSuites();
@@ -135,7 +136,6 @@ public class TestLDAPConnectionHandler extends LdapTestCase {
     LDAPConnHandler.processServerShutdown(reasonMsg);
   }
 
-  @Test(expectedExceptions=ConfigException.class)
   /**
    *  Start a handler an then give its hasAcceptableConfiguration a ConfigEntry with
    *  numerous invalid cases and single-valued attrs with duplicate values.
@@ -143,6 +143,7 @@ public class TestLDAPConnectionHandler extends LdapTestCase {
    * @throws Exception if handler cannot be instantiated or the configuration is
    *                   accepted.
    */
+  @Test(expectedExceptions = ConfigException.class)
   public void testBadLDAPConnectionHandlerConfiguration() throws Exception
   {
     Entry BadHandlerEntry=TestCaseUtils.makeEntry(
@@ -314,7 +315,7 @@ public class TestLDAPConnectionHandler extends LdapTestCase {
     GoodHandlerEntry.addAttribute(a13, null);
     GoodHandlerEntry.addAttribute(a14, null);
     GoodHandlerEntry.addAttribute(a15, null);
-    LinkedList<Message> reasons = new LinkedList<Message>();
+    List<Message> reasons = new LinkedList<Message>();
     LDAPConnectionHandlerCfg config = LdapTestCase.getConfiguration(GoodHandlerEntry);
     //see if we're ok
     boolean ret=LDAPConnHandler.isConfigurationChangeAcceptable(config, reasons);
@@ -322,6 +323,5 @@ public class TestLDAPConnectionHandler extends LdapTestCase {
     //apply it
     LDAPConnHandler.applyConfigurationChange(config);
     LDAPConnHandler.finalizeConnectionHandler(reasonMsg);
-
   }
 }

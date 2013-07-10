@@ -28,7 +28,7 @@
 package org.opends.server.protocols.jmx;
 
 import static org.opends.messages.ProtocolMessages.*;
-import static org.opends.server.loggers.ErrorLogger.logError;
+import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.util.StaticUtils.*;
 
 import java.io.IOException;
@@ -38,6 +38,7 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import org.opends.messages.Message;
 import org.opends.server.admin.server.ConfigurationChangeListener;
@@ -80,27 +81,27 @@ public final class JmxConnectionHandler extends
   public static final String TRUST_MANAGER_ARRAY_KEY =
     "org.opends.server.protocol.jmx.ssl.trust.manager.array";
 
-  // The fully-qualified name of this class.
+  /** The fully-qualified name of this class. */
   private static final String CLASS_NAME =
     "org.opends.server.protocols.jmx.JMXConnectionHandler";
 
-  // The list of active client connection.
-  private LinkedList<ClientConnection> connectionList;
+  /** The list of active client connection. */
+  private List<ClientConnection> connectionList;
 
-  // The current configuration state.
+  /** The current configuration state. */
   private JMXConnectionHandlerCfg currentConfig;
 
-  // The JMX RMI Connector associated with the Connection handler.
+  /** The JMX RMI Connector associated with the Connection handler. */
   private RmiConnector rmiConnector;
 
-  // The unique name for this connection handler.
+  /** The unique name for this connection handler. */
   private String connectionHandlerName;
 
-  // The protocol used to communicate with clients.
+  /** The protocol used to communicate with clients. */
   private String protocol;
 
-  // The set of listeners for this connection handler.
-  private LinkedList<HostPort> listeners = new LinkedList<HostPort>();
+  /** The set of listeners for this connection handler. */
+  private List<HostPort> listeners = new LinkedList<HostPort>();
 
   /**
    * Creates a new instance of this JMX connection handler. It must be
@@ -122,7 +123,7 @@ public final class JmxConnectionHandler extends
       JMXConnectionHandlerCfg config) {
     // Create variables to include in the response.
     ResultCode resultCode = ResultCode.SUCCESS;
-    ArrayList<Message> messages = new ArrayList<Message>();
+    List<Message> messages = new ArrayList<Message>();
 
     // Determine whether or not the RMI connection needs restarting.
     boolean rmiConnectorRestart = false;
@@ -214,8 +215,9 @@ public final class JmxConnectionHandler extends
    *         may produce.
    */
   @Override
-  public LinkedHashMap<String, String> getAlerts() {
-    LinkedHashMap<String, String> alerts = new LinkedHashMap<String, String>();
+  public Map<String, String> getAlerts()
+  {
+    Map<String, String> alerts = new LinkedHashMap<String, String>();
 
     return alerts;
   }

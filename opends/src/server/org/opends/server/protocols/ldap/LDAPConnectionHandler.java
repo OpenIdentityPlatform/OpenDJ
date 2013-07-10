@@ -453,9 +453,9 @@ public final class LDAPConnectionHandler extends
    *         produce.
    */
   @Override
-  public LinkedHashMap<String, String> getAlerts()
+  public Map<String, String> getAlerts()
   {
-    LinkedHashMap<String, String> alerts = new LinkedHashMap<String, String>();
+    Map<String, String> alerts = new LinkedHashMap<String, String>();
 
     alerts.put(ALERT_TYPE_LDAP_CONNECTION_HANDLER_CONSECUTIVE_FAILURES,
         ALERT_DESCRIPTION_LDAP_CONNECTION_HANDLER_CONSECUTIVE_FAILURES);

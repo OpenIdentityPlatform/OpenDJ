@@ -26,17 +26,16 @@
  *      Portions Copyright 2013 ForgeRock AS
  */
 package org.opends.server.backends.jeb;
-import org.opends.messages.Message;
 
-import java.io.IOException;
 import java.io.File;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-
 import java.io.FileInputStream;
 import java.io.FilenameFilter;
+import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Level;
 import java.util.zip.Adler32;
 import java.util.zip.CheckedInputStream;
 
@@ -45,14 +44,16 @@ import com.sleepycat.je.Durability;
 import com.sleepycat.je.EnvironmentConfig;
 import com.sleepycat.je.EnvironmentFailureException;
 
-import java.util.logging.Level;
-
-import org.opends.server.api.DiskSpaceMonitorHandler;
-import org.opends.server.backends.jeb.importLDIF.*;
+import org.opends.messages.Message;
+import org.opends.server.admin.Configuration;
+import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.LocalDBIndexCfgDefn;
-import org.opends.server.api.Backend;
-import org.opends.server.api.MonitorProvider;
+import org.opends.server.admin.std.server.LocalDBBackendCfg;
 import org.opends.server.api.AlertGenerator;
+import org.opends.server.api.Backend;
+import org.opends.server.api.DiskSpaceMonitorHandler;
+import org.opends.server.api.MonitorProvider;
+import org.opends.server.backends.jeb.importLDIF.Importer;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
@@ -61,23 +62,18 @@ import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.extensions.DiskSpaceMonitor;
+import org.opends.server.loggers.debug.DebugTracer;
+import org.opends.server.types.*;
 import org.opends.server.util.LDIFException;
 import org.opends.server.util.RuntimeInformation;
 import org.opends.server.util.Validator;
-import static org.opends.server.util.StaticUtils.*;
 
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.messages.JebMessages.*;
-import static org.opends.server.loggers.ErrorLogger.logError;
+import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.*;
-
 import static org.opends.server.util.ServerConstants.*;
-import org.opends.server.admin.std.server.LocalDBBackendCfg;
-import org.opends.server.admin.Configuration;
-import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.types.DN;
+import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This is an implementation of a Directory Server Backend which stores entries
@@ -241,6 +237,7 @@ public class BackendImpl
     {
       jdbFiles =
           Arrays.asList(backendDirectory.listFiles(new FilenameFilter() {
+            @Override
             public boolean accept(File dir, String name) {
               return name.endsWith(".jdb");
             }
@@ -918,8 +915,7 @@ public class BackendImpl
       // FIXME: No reason why we cannot implement a move between containers
       // since the containers share the same database environment.
       Message msg = WARN_JEB_FUNCTION_NOT_SUPPORTED.get();
-      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-                                   msg);
+      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, msg);
     }
 
     currentContainer.sharedLock.lock();
@@ -1512,6 +1508,7 @@ public class BackendImpl
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationChangeAcceptable(
       LocalDBBackendCfg cfg,
       List<Message> unacceptableReasons)
@@ -1535,6 +1532,7 @@ public class BackendImpl
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationChange(LocalDBBackendCfg newCfg)
   {
     ConfigChangeResult ccr;
@@ -1712,6 +1710,7 @@ public class BackendImpl
   /**
    * {@inheritDoc}
    */
+  @Override
   public String getClassName() {
     return CLASS_NAME;
   }
@@ -1719,8 +1718,10 @@ public class BackendImpl
   /**
    * {@inheritDoc}
    */
-  public LinkedHashMap<String, String> getAlerts() {
-    LinkedHashMap<String, String> alerts = new LinkedHashMap<String, String>();
+  @Override
+  public Map<String, String> getAlerts()
+  {
+    Map<String, String> alerts = new LinkedHashMap<String, String>();
 
     alerts.put(ALERT_TYPE_BACKEND_ENVIRONMENT_UNUSABLE,
             ALERT_DESCRIPTION_BACKEND_ENVIRONMENT_UNUSABLE);
@@ -1734,6 +1735,7 @@ public class BackendImpl
   /**
    * {@inheritDoc}
    */
+  @Override
   public DN getComponentEntryDN() {
     return cfg.dn();
   }
@@ -1769,6 +1771,7 @@ public class BackendImpl
   /**
    * {@inheritDoc}
    */
+  @Override
   public void diskLowThresholdReached(DiskSpaceMonitor monitor) {
     Message msg = ERR_JEB_DISK_LOW_THRESHOLD_REACHED.get(
         monitor.getDirectory().getPath(), cfg.getBackendId(),
@@ -1781,6 +1784,7 @@ public class BackendImpl
   /**
    * {@inheritDoc}
    */
+  @Override
   public void diskFullThresholdReached(DiskSpaceMonitor monitor) {
     Message msg = ERR_JEB_DISK_FULL_THRESHOLD_REACHED.get(
         monitor.getDirectory().getPath(), cfg.getBackendId(),
@@ -1793,6 +1797,7 @@ public class BackendImpl
   /**
    * {@inheritDoc}
    */
+  @Override
   public void diskSpaceRestored(DiskSpaceMonitor monitor) {
     Message msg = NOTE_JEB_DISK_SPACE_RESTORED.get(monitor.getFreeSpace(),
         monitor.getDirectory().getPath(), cfg.getBackendId(),

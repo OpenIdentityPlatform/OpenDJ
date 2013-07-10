@@ -5934,9 +5934,9 @@ public class SchemaBackend
    * {@inheritDoc}
    */
   @Override
-  public LinkedHashMap<String,String> getAlerts()
+  public Map<String, String> getAlerts()
   {
-    LinkedHashMap<String,String> alerts = new LinkedHashMap<String,String>();
+    Map<String, String> alerts = new LinkedHashMap<String, String>();
 
     alerts.put(ALERT_TYPE_CANNOT_COPY_SCHEMA_FILES,
                ALERT_DESCRIPTION_CANNOT_COPY_SCHEMA_FILES);

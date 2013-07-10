@@ -23,17 +23,17 @@
  *
  *
  *      Portions Copyright 2006-2007-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS
  */
 package org.opends.server.config;
-import org.opends.messages.Message;
-
-
 
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
+
 import javax.management.Attribute;
 import javax.management.AttributeList;
 import javax.management.AttributeNotFoundException;
@@ -48,6 +48,7 @@ import javax.management.MBeanOperationInfo;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
 
+import org.opends.messages.Message;
 import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.ClientConnection;
@@ -55,19 +56,19 @@ import org.opends.server.api.DirectoryServerMBean;
 import org.opends.server.api.InvokableComponent;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.protocols.jmx.Credential;
-
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.loggers.ErrorLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
+import org.opends.server.protocols.internal.InternalClientConnection;
+import org.opends.server.protocols.internal.InternalSearchOperation;
+import org.opends.server.protocols.jmx.Credential;
+import org.opends.server.protocols.jmx.JmxClientConnection;
+import org.opends.server.protocols.ldap.LDAPFilter;
+import org.opends.server.types.*;
+
 import static org.opends.messages.ConfigMessages.*;
+import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-import org.opends.server.protocols.jmx.JmxClientConnection;
-import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.protocols.ldap.LDAPFilter;
-import org.opends.server.protocols.internal.InternalSearchOperation ;
-import org.opends.server.types.*;
 
 
 /**
@@ -96,20 +97,19 @@ public final class JMXMBean
 
 
 
-  // The set of alert generators for this MBean.
-  private CopyOnWriteArrayList<AlertGenerator> alertGenerators;
+  /** The set of alert generators for this MBean. */
+  private List<AlertGenerator> alertGenerators;
 
-  // The set of invokable components for this MBean.
-  private CopyOnWriteArrayList<InvokableComponent> invokableComponents;
+  /** The set of invokable components for this MBean. */
+  private List<InvokableComponent> invokableComponents;
 
-  // The set of monitor providers for this MBean.
-  private CopyOnWriteArrayList<MonitorProvider<? extends MonitorProviderCfg>>
-               monitorProviders;
+  /** The set of monitor providers for this MBean. */
+  private List<MonitorProvider<? extends MonitorProviderCfg>> monitorProviders;
 
-  // The DN of the configuration entry with which this MBean is associated.
+  /** The DN of the configuration entry with which this MBean is associated. */
   private DN configEntryDN;
 
-  // The object name for this MBean.
+  /** The object name for this MBean. */
   private ObjectName objectName;
 
 
@@ -237,6 +237,7 @@ public final class JMXMBean
    *
    * @return  The JMX object name for this JMX MBean.
    */
+  @Override
   public ObjectName getObjectName()
   {
     return objectName;
@@ -249,7 +250,7 @@ public final class JMXMBean
    *
    * @return  The set of alert generators for this JMX MBean.
    */
-  public CopyOnWriteArrayList<AlertGenerator> getAlertGenerators()
+  public List<AlertGenerator> getAlertGenerators()
   {
     return alertGenerators;
   }
@@ -301,7 +302,7 @@ public final class JMXMBean
    *
    * @return  The set of invokable components associated with this JMX MBean.
    */
-  public CopyOnWriteArrayList<InvokableComponent> getInvokableComponents()
+  public List<InvokableComponent> getInvokableComponents()
   {
     return invokableComponents;
   }
@@ -353,7 +354,7 @@ public final class JMXMBean
    *
    * @return  The set of monitor providers associated with this JMX MBean.
    */
-  public CopyOnWriteArrayList<MonitorProvider<? extends MonitorProviderCfg>>
+  public List<MonitorProvider<? extends MonitorProviderCfg>>
               getMonitorProviders()
   {
     return monitorProviders;
@@ -437,7 +438,7 @@ public final class JMXMBean
 
           if (iterator.hasNext())
           {
-            ArrayList<String> stringValues = new ArrayList<String>();
+            List<String> stringValues = new ArrayList<String>();
             stringValues.add(value.getValue().toString());
 
             while (iterator.hasNext())
@@ -473,6 +474,7 @@ public final class JMXMBean
    * @throws  AttributeNotFoundException  If the specified attribute is not
    *                                      associated with this MBean.
    */
+  @Override
   public Attribute getAttribute(String attributeName)
          throws AttributeNotFoundException
   {
@@ -563,6 +565,7 @@ public final class JMXMBean
    * @throws  InvalidAttributeValueException  If the provided value is not
    *                                          acceptable for this MBean.
    */
+  @Override
   public void setAttribute(javax.management.Attribute attribute)
          throws AttributeNotFoundException, InvalidAttributeValueException
   {
@@ -576,6 +579,7 @@ public final class JMXMBean
    *
    * @return  The list of attributes retrieved.
    */
+  @Override
   public AttributeList getAttributes(String[] attributes)
     {
 
@@ -670,7 +674,7 @@ monitorLoop:
 
             if (iterator.hasNext())
             {
-              ArrayList<String> stringValues = new ArrayList<String>();
+              List<String> stringValues = new ArrayList<String>();
               stringValues.add(value.getValue().toString());
 
               while (iterator.hasNext())
@@ -709,6 +713,7 @@ monitorLoop:
    *          this case, the list will always be empty because we do not support
    *          setting attribute values over JMX.
    */
+  @Override
   public AttributeList setAttributes(AttributeList attributes)
   {
     return new AttributeList();
@@ -733,6 +738,7 @@ monitorLoop:
    * @throws  MBeanException  If a problem is encountered while invoking the
    *                          method.
    */
+  @Override
   public Object invoke(String actionName, Object[] params, String[] signature)
          throws MBeanException
   {
@@ -803,6 +809,7 @@ monitorLoop:
    * @return  An instance of <CODE>MBeanInfo</CODE> allowing all attributes and
    *          actions exposed by this Dynamic MBean to be retrieved.
    */
+  @Override
   public MBeanInfo getMBeanInfo()
   {
     ClientConnection clientConnection = getClientConnection();
@@ -811,7 +818,7 @@ monitorLoop:
       return new MBeanInfo(CLASS_NAME, null, null, null, null, null);
     }
 
-    ArrayList<MBeanAttributeInfo> attrs = new ArrayList<MBeanAttributeInfo>();
+    List<MBeanAttributeInfo> attrs = new ArrayList<MBeanAttributeInfo>();
     for (MonitorProvider<? extends MonitorProviderCfg> monitor :
          monitorProviders)
     {
@@ -826,13 +833,13 @@ monitorLoop:
     attrs.toArray(mBeanAttributes);
 
 
-    ArrayList<MBeanNotificationInfo> notifications =
+    List<MBeanNotificationInfo> notifications =
          new ArrayList<MBeanNotificationInfo>();
     for (AlertGenerator generator : alertGenerators)
     {
       String className = generator.getClassName();
 
-      LinkedHashMap<String,String> alerts = generator.getAlerts();
+      Map<String, String> alerts = generator.getAlerts();
       for (String type : alerts.keySet())
       {
         String[] types       = { type };
@@ -848,7 +855,7 @@ monitorLoop:
     notifications.toArray(mBeanNotifications);
 
 
-    ArrayList<MBeanOperationInfo> ops = new ArrayList<MBeanOperationInfo>();
+    List<MBeanOperationInfo> ops = new ArrayList<MBeanOperationInfo>();
     for (InvokableComponent component : invokableComponents)
     {
       for (InvokableMethod method : component.getOperationSignatures())

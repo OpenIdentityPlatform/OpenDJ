@@ -46,6 +46,7 @@ import java.net.InetAddress;
 import java.text.DecimalFormat;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -283,20 +284,20 @@ public final class DirectoryServer
   private ConfigHandler configHandler;
 
   /** The set of account status notification handlers defined in the server. */
-  private ConcurrentHashMap<DN,AccountStatusNotificationHandler>
+  private ConcurrentMap<DN, AccountStatusNotificationHandler>
                accountStatusNotificationHandlers;
 
   /** The set of certificate mappers registered with the server. */
-  private ConcurrentHashMap<DN,CertificateMapper> certificateMappers;
+  private ConcurrentMap<DN, CertificateMapper> certificateMappers;
 
   /** The set of alternate bind DNs for the root users. */
-  private ConcurrentHashMap<DN,DN> alternateRootBindDNs;
+  private ConcurrentMap<DN, DN> alternateRootBindDNs;
 
   /**
    * The set of identity mappers registered with the server (mapped between the
    * configuration entry Dn and the mapper).
    */
-  private ConcurrentHashMap<DN,IdentityMapper> identityMappers;
+  private ConcurrentMap<DN, IdentityMapper> identityMappers;
 
   /**
    * The set of JMX MBeans that have been registered with the server (mapped
@@ -305,67 +306,67 @@ public final class DirectoryServer
   private ConcurrentHashMap<DN,JMXMBean> mBeans;
 
   /** The set of key manager providers registered with the server. */
-  private ConcurrentHashMap<DN,KeyManagerProvider> keyManagerProviders;
+  private ConcurrentMap<DN, KeyManagerProvider> keyManagerProviders;
 
   /** The set of extensions registered with the server. */
-  private ConcurrentHashMap<DN,Extension> extensions;
+  private ConcurrentMap<DN, Extension> extensions;
 
   /**
    * The set of password generators registered with the Directory Server, as a
    * mapping between the DN of the associated configuration entry and the
    * generator implementation.
    */
-  private ConcurrentHashMap<DN,PasswordGenerator> passwordGenerators;
+  private ConcurrentMap<DN, PasswordGenerator> passwordGenerators;
 
   /**
    * The set of authentication policies registered with the Directory Server, as
    * a mapping between the DN of the associated configuration entry and the
    * policy implementation.
    */
-  private ConcurrentHashMap<DN,AuthenticationPolicy> authenticationPolicies;
+  private ConcurrentMap<DN, AuthenticationPolicy> authenticationPolicies;
 
   /**
    * The set of password validators registered with the Directory Server, as a
    * mapping between the DN of the associated configuration entry and the
    * validator implementation.
    */
-  private ConcurrentHashMap<DN,
+  private ConcurrentMap<DN,
                PasswordValidator<? extends PasswordValidatorCfg>>
                passwordValidators;
 
   /** The set of trust manager providers registered with the server. */
-  private ConcurrentHashMap<DN,TrustManagerProvider> trustManagerProviders;
+  private ConcurrentMap<DN, TrustManagerProvider> trustManagerProviders;
 
   /**
    * The set of log rotation policies registered with the Directory Server, as a
    * mapping between the DN of the associated configuration entry and the policy
    * implementation.
    */
-  private ConcurrentHashMap<DN, RotationPolicy> rotationPolicies;
+  private ConcurrentMap<DN, RotationPolicy> rotationPolicies;
 
   /**
    * The set of log retention policies registered with the Directory Server, as
    * a mapping between the DN of the associated configuration entry and the
    * policy implementation.
    */
-  private ConcurrentHashMap<DN, RetentionPolicy> retentionPolicies;
+  private ConcurrentMap<DN, RetentionPolicy> retentionPolicies;
 
   /** The set supported LDAP protocol versions. */
-  private ConcurrentHashMap<Integer,List<ConnectionHandler>>
+  private ConcurrentMap<Integer, List<ConnectionHandler>>
                supportedLDAPVersions;
 
   /**
    * The set of extended operation handlers registered with the server (mapped
    * between the OID of the extended operation and the handler).
    */
-  private ConcurrentHashMap<String,ExtendedOperationHandler>
+  private ConcurrentMap<String, ExtendedOperationHandler>
                extendedOperationHandlers;
 
   /**
    * The set of monitor providers registered with the Directory Server, as a
    * mapping between the monitor name and the corresponding implementation.
    */
-  private ConcurrentHashMap<String,
+  private ConcurrentMap<String,
                             MonitorProvider<? extends MonitorProviderCfg>>
                monitorProviders;
 
@@ -388,14 +389,14 @@ public final class DirectoryServer
    * The set of password storage schemes defined in the server (mapped between
    * the DN of the configuration entry and the storage scheme).
    */
-  private ConcurrentHashMap<DN,PasswordStorageScheme>
+  private ConcurrentMap<DN, PasswordStorageScheme>
                passwordStorageSchemesByDN;
 
   /**
    * The set of SASL mechanism handlers registered with the server (mapped
    * between the mechanism name and the handler).
    */
-  private ConcurrentHashMap<String,SASLMechanismHandler> saslMechanismHandlers;
+  private ConcurrentMap<String, SASLMechanismHandler> saslMechanismHandlers;
 
   /** The connection handler configuration manager for the Directory Server. */
   private ConnectionHandlerConfigManager connectionHandlerConfigManager;
@@ -660,7 +661,7 @@ public final class DirectoryServer
    * state, representing either checksum or other unique value to be used for
    * detecting any offline modifications to a given backend.
    */
-  private ConcurrentHashMap<String,Long> offlineBackendsStateIDs;
+  private ConcurrentMap<String, Long> offlineBackendsStateIDs;
 
   /** The set of supported controls registered with the Directory Server. */
   private TreeSet<String> supportedControls;
@@ -689,7 +690,7 @@ public final class DirectoryServer
    * The mappings between the names and WorkflowElements registered with the
    * Directory Server.
    */
-  private final ConcurrentHashMap<String, WorkflowElement> workflowElements =
+  private final ConcurrentMap<String, WorkflowElement> workflowElements =
           new ConcurrentHashMap<String, WorkflowElement>();
 
   /** The workflow configuration mode (auto or manual). */
@@ -3041,7 +3042,7 @@ public final class DirectoryServer
    *
    * @return  The set of matching rules registered with the Directory Server.
    */
-  public static ConcurrentHashMap<String,MatchingRule> getMatchingRules()
+  public static ConcurrentMap<String, MatchingRule> getMatchingRules()
   {
     return directoryServer.schema.getMatchingRules();
   }
@@ -3123,7 +3124,7 @@ public final class DirectoryServer
    * @return  The set of approximate matching rules registered with the
    *          Directory Server.
    */
-  public static ConcurrentHashMap<String,ApproximateMatchingRule>
+  public static ConcurrentMap<String, ApproximateMatchingRule>
                      getApproximateMatchingRules()
   {
     return directoryServer.schema.getApproximateMatchingRules();
@@ -3197,7 +3198,7 @@ public final class DirectoryServer
    * @return  The set of equality matching rules registered with the Directory
    *          Server.
    */
-  public static ConcurrentHashMap<String,EqualityMatchingRule>
+  public static ConcurrentMap<String, EqualityMatchingRule>
                      getEqualityMatchingRules()
   {
     return directoryServer.schema.getEqualityMatchingRules();
@@ -3268,7 +3269,7 @@ public final class DirectoryServer
    * @return  The set of ordering matching rules registered with the Directory
    *          Server.
    */
-  public static ConcurrentHashMap<String,OrderingMatchingRule>
+  public static ConcurrentMap<String, OrderingMatchingRule>
                      getOrderingMatchingRules()
   {
     return directoryServer.schema.getOrderingMatchingRules();
@@ -3339,7 +3340,7 @@ public final class DirectoryServer
    * @return  The set of substring matching rules registered with the Directory
    *          Server.
    */
-  public static ConcurrentHashMap<String,SubstringMatchingRule>
+  public static ConcurrentMap<String, SubstringMatchingRule>
                      getSubstringMatchingRules()
   {
     return directoryServer.schema.getSubstringMatchingRules();
@@ -3440,7 +3441,7 @@ public final class DirectoryServer
    *
    * @return  The set of objectclasses defined in the Directory Server.
    */
-  public static ConcurrentHashMap<String,ObjectClass> getObjectClasses()
+  public static ConcurrentMap<String, ObjectClass> getObjectClasses()
   {
     return directoryServer.schema.getObjectClasses();
   }
@@ -3644,7 +3645,7 @@ public final class DirectoryServer
    * @return The set of attribute type definitions that have been
    *         defined in the Directory Server.
    */
-  public static ConcurrentHashMap<String,AttributeType> getAttributeTypes()
+  public static ConcurrentMap<String, AttributeType> getAttributeTypes()
   {
     return directoryServer.schema.getAttributeTypes();
   }
@@ -3862,7 +3863,7 @@ public final class DirectoryServer
    *
    * @return The set of attribute syntaxes defined in the Directory Server.
    */
-  public static ConcurrentHashMap<String,
+  public static ConcurrentMap<String,
                                   AttributeSyntax<?>> getAttributeSyntaxes()
   {
     return directoryServer.schema.getSyntaxes();
@@ -4043,7 +4044,7 @@ public final class DirectoryServer
    *
    * @return  The set of matching rule uses defined in the Directory Server.
    */
-  public static ConcurrentHashMap<MatchingRule,MatchingRuleUse>
+  public static ConcurrentMap<MatchingRule, MatchingRuleUse>
                      getMatchingRuleUses()
   {
     return directoryServer.schema.getMatchingRuleUses();
@@ -4123,7 +4124,7 @@ public final class DirectoryServer
    *
    * @return  The set of DIT content rules defined in the Directory Server.
    */
-  public static ConcurrentHashMap<ObjectClass,DITContentRule>
+  public static ConcurrentMap<ObjectClass, DITContentRule>
                      getDITContentRules()
   {
     return directoryServer.schema.getDITContentRules();
@@ -4202,7 +4203,7 @@ public final class DirectoryServer
    *
    * @return  The set of DIT structure rules defined in the Directory Server.
    */
-  public static ConcurrentHashMap<NameForm,DITStructureRule>
+  public static ConcurrentMap<NameForm, DITStructureRule>
                      getDITStructureRules()
   {
     return directoryServer.schema.getDITStructureRulesByNameForm();
@@ -4299,7 +4300,7 @@ public final class DirectoryServer
    *
    * @return  The set of name forms defined in the Directory Server.
    */
-  public static ConcurrentHashMap<ObjectClass,List<NameForm>> getNameForms()
+  public static ConcurrentMap<ObjectClass, List<NameForm>> getNameForms()
   {
     return directoryServer.schema.getNameFormsByObjectClass();
   }
@@ -4877,8 +4878,7 @@ public final class DirectoryServer
    * @return  The set of password validators that have been registered for use
    *          with the Directory Server.
    */
-  public static
-       ConcurrentHashMap<DN,
+  public static ConcurrentMap<DN,
             PasswordValidator<? extends PasswordValidatorCfg>>
             getPasswordValidators()
   {
@@ -4946,7 +4946,7 @@ public final class DirectoryServer
    * @return  The set of account status notification handlers defined in the
    *          Directory Server.
    */
-  public static ConcurrentHashMap<DN,AccountStatusNotificationHandler>
+  public static ConcurrentMap<DN, AccountStatusNotificationHandler>
                      getAccountStatusNotificationHandlers()
   {
     return directoryServer.accountStatusNotificationHandlers;
@@ -5012,7 +5012,7 @@ public final class DirectoryServer
    * @return  The set of password generators that have been registered for use
    *          with the Directory Server.
    */
-  public static ConcurrentHashMap<DN,PasswordGenerator> getPasswordGenerators()
+  public static ConcurrentMap<DN, PasswordGenerator> getPasswordGenerators()
   {
     return directoryServer.passwordGenerators;
   }
@@ -5353,7 +5353,7 @@ public final class DirectoryServer
    * @return  The set of monitor providers that have been registered with the
    *          Directory Server.
    */
-  public static ConcurrentHashMap<String,
+  public static ConcurrentMap<String,
                                   MonitorProvider<? extends MonitorProviderCfg>>
                      getMonitorProviders()
   {
@@ -5740,7 +5740,7 @@ public final class DirectoryServer
    * @return  The set of alternate bind DNs for root users, mapped between the
    *          alternate DN and the real DN.
    */
-  public static ConcurrentHashMap<DN,DN> getAlternateRootBindDNs()
+  public static ConcurrentMap<DN, DN> getAlternateRootBindDNs()
   {
     return directoryServer.alternateRootBindDNs;
   }
@@ -6686,7 +6686,7 @@ public final class DirectoryServer
    * @return  The set of extended operations that may be processed by the
    *         Directory Server.
    */
-  public static ConcurrentHashMap<String,ExtendedOperationHandler>
+  public static ConcurrentMap<String, ExtendedOperationHandler>
                      getSupportedExtensions()
   {
     return directoryServer.extendedOperationHandlers;
@@ -6745,7 +6745,7 @@ public final class DirectoryServer
    * @return  The set of SASL mechanisms that are supported by the Directory
    *          Server.
    */
-  public static ConcurrentHashMap<String,SASLMechanismHandler>
+  public static ConcurrentMap<String, SASLMechanismHandler>
                      getSupportedSASLMechanisms()
   {
     return directoryServer.saslMechanismHandlers;
@@ -6879,7 +6879,7 @@ public final class DirectoryServer
    * @return  The set of identity mappers defined in the Directory Server
    *          configuration.
    */
-  public static ConcurrentHashMap<DN,IdentityMapper> getIdentityMappers()
+  public static ConcurrentMap<DN, IdentityMapper> getIdentityMappers()
   {
     return directoryServer.identityMappers;
   }
@@ -9022,9 +9022,9 @@ public final class DirectoryServer
    *          produce.
    */
   @Override
-  public LinkedHashMap<String,String> getAlerts()
+  public Map<String, String> getAlerts()
   {
-    LinkedHashMap<String,String> alerts = new LinkedHashMap<String,String>();
+    Map<String, String> alerts = new LinkedHashMap<String, String>();
 
     alerts.put(ALERT_TYPE_SERVER_STARTED, ALERT_DESCRIPTION_SERVER_STARTED);
     alerts.put(ALERT_TYPE_SERVER_SHUTDOWN, ALERT_DESCRIPTION_SERVER_SHUTDOWN);
