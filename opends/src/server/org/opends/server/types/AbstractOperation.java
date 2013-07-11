@@ -73,31 +73,25 @@ public abstract class AbstractOperation
   protected static final List<Control> NO_RESPONSE_CONTROLS =
        new ArrayList<Control>(0);
 
-
   /**
    * The client connection with which this operation is associated.
    */
   protected final ClientConnection clientConnection;
-
 
   /**
    * The message ID for this operation.
    */
   protected final int messageID;
 
-
-
   /**
    * The operation ID for this operation.
    */
   protected final long operationID;
 
-
   /**
    * Whether nanotime was used for this operation.
    */
   protected final boolean useNanoTime;
-
 
   /**
    * The cancel request for this operation.
@@ -278,41 +272,21 @@ public abstract class AbstractOperation
     return clientConnection.getConnectionID();
   }
 
-
-
-  /**
-   * Retrieves the operation ID for this operation.
-   *
-   * @return  The operation ID for this operation.
-   */
+  /** {@inheritDoc} */
   @Override
   public final long getOperationID()
   {
     return operationID;
   }
 
-
-
-  /**
-   * Retrieves the message ID assigned to this operation.
-   *
-   * @return  The message ID assigned to this operation.
-   */
+  /** {@inheritDoc} */
   @Override
   public final int getMessageID()
   {
     return messageID;
   }
 
-
-
-  /**
-   * Retrieves the set of controls included in the request from the
-   * client.  The returned list must not be altered.
-   *
-   * @return  The set of controls included in the request from the
-   *          client.
-   */
+  /** {@inheritDoc} */
   @Override
   public final List<Control> getRequestControls()
   {
@@ -349,30 +323,14 @@ public abstract class AbstractOperation
     return null;
   }
 
-
-  /**
-   * Adds the provided control to the set of request controls for this
-   * operation.  This method may only be called by pre-parse plugins.
-   *
-   * @param  control  The control to add to the set of request
-   *                  controls for this operation.
-   */
+  /** {@inheritDoc} */
   @Override
   public final void addRequestControl(Control control)
   {
     requestControls.add(control);
   }
 
-
-
-  /**
-   * Removes the provided control from the set of request controls for
-   * this operation.  This method may only be called by pre-parse
-   * plugins.
-   *
-   * @param  control  The control to remove from the set of request
-   *                  controls for this operation.
-   */
+  /** {@inheritDoc} */
   @Override
   public final void removeRequestControl(Control control)
   {
@@ -381,56 +339,28 @@ public abstract class AbstractOperation
 
 
 
-  /**
-   * Retrieves the result code for this operation.
-   *
-   * @return  The result code associated for this operation, or
-   *          {@code UNDEFINED} if the operation has not yet
-   *          completed.
-   */
+  /** {@inheritDoc} */
   @Override
   public final ResultCode getResultCode()
   {
     return resultCode;
   }
 
-
-
-  /**
-   * Specifies the result code for this operation.  This method may
-   * not be called by post-response plugins.
-   *
-   * @param  resultCode  The result code for this operation.
-   */
+  /** {@inheritDoc} */
   @Override
   public final void setResultCode(ResultCode resultCode)
   {
     this.resultCode = resultCode;
   }
 
-
-
-  /**
-   * Retrieves the error message for this operation.  Its contents may
-   * be altered by pre-parse, pre-operation, and post-operation
-   * plugins, but not by post-response plugins.
-   *
-   * @return  The error message for this operation.
-   */
+  /** {@inheritDoc} */
   @Override
   public final MessageBuilder getErrorMessage()
   {
     return errorMessage;
   }
 
-
-
-  /**
-   * Specifies the error message for this operation.  This method may
-   * not be called by post-response plugins.
-   *
-   * @param  errorMessage  The error message for this operation.
-   */
+  /** {@inheritDoc} */
   @Override
   public final void setErrorMessage(MessageBuilder errorMessage)
   {
@@ -444,17 +374,7 @@ public abstract class AbstractOperation
     }
   }
 
-
-
-  /**
-   * Appends the provided message to the error message buffer.  If the
-   * buffer has not yet been created, then this will create it first
-   * and then add the provided message.  This method may not be called
-   * by post-response plugins.
-   *
-   * @param  message  The message to append to the error message
-   *                  buffer.
-   */
+  /** {@inheritDoc} */
   @Override
   public final void appendErrorMessage(Message message)
   {
@@ -507,76 +427,35 @@ public abstract class AbstractOperation
     additionalLogItems.add(item);
   }
 
-
-
-  /**
-   * Retrieves the matched DN for this operation.
-   *
-   * @return The matched DN for this operation, or {@code null} if the operation
-   *         has not yet completed or does not have a matched DN.
-   */
+  /** {@inheritDoc} */
   @Override
   public final DN getMatchedDN()
   {
     return matchedDN;
   }
 
-
-
-  /**
-   * Specifies the matched DN for this operation.  This may not be
-   * called by post-response plugins.
-   *
-   * @param  matchedDN  The matched DN for this operation.
-   */
+  /** {@inheritDoc} */
   @Override
   public final void setMatchedDN(DN matchedDN)
   {
     this.matchedDN = matchedDN;
   }
 
-
-
-  /**
-   * Retrieves the set of referral URLs for this operation.  Its
-   * contents must not be altered by the caller.
-   *
-   * @return  The set of referral URLs for this operation, or
-   *          {@code null} if the operation is not yet complete or
-   *          does not have a set of referral URLs.
-   */
+  /** {@inheritDoc} */
   @Override
   public final List<String> getReferralURLs()
   {
     return referralURLs;
   }
 
-
-
-  /**
-   * Specifies the set of referral URLs for this operation.  This may
-   * not be called by post-response plugins.
-   *
-   * @param  referralURLs  The set of referral URLs for this
-   *                       operation.
-   */
+  /** {@inheritDoc} */
   @Override
   public final void setReferralURLs(List<String> referralURLs)
   {
     this.referralURLs = referralURLs;
   }
 
-
-
-  /**
-   * Sets the response elements for this operation based on the
-   * information contained in the provided {@code DirectoryException}
-   * object.  This method may not be called by post-response plugins.
-   *
-   * @param  directoryException  The exception containing the
-   *                             information to use for the response
-   *                             elements.
-   */
+  /** {@inheritDoc} */
   @Override
   public final void setResponseData(
                          DirectoryException directoryException)
@@ -654,80 +533,28 @@ public abstract class AbstractOperation
     return dontSynchronizeFlag;
   }
 
-
-
-  /**
-   * Specifies whether this operation must be synchronized to other
-   * copies of the data.
-   *
-   * @param  dontSynchronize  Specifies whether this operation must be
-   *                          synchronized to other copies
-   *                          of the data.
-   */
+  /** {@inheritDoc} */
   @Override
   public final void setDontSynchronize(boolean dontSynchronize)
   {
     this.dontSynchronizeFlag = dontSynchronize;
   }
 
-
-
-  /**
-   * Retrieves the entry for the user that should be considered the
-   * authorization identity for this operation.  In many cases, it
-   * will be the same as the authorization entry for the underlying
-   * client connection, or {@code null} if no authentication has been
-   * performed on that connection.  However, it may be some other
-   * value if special processing has been requested (e.g., the
-   * operation included a proxied authorization control).  This method
-   * should not be called by pre-parse plugins because the correct
-   * value may not yet have been determined.
-   *
-   * @return  The entry for the user that should be considered the
-   *          authorization identity for this operation, or
-   *          {@code null} if the authorization identity should be the
-   *          unauthenticated  user.
-   */
+  /** {@inheritDoc} */
   @Override
   public final Entry getAuthorizationEntry()
   {
     return authorizationEntry;
   }
 
-
-
-  /**
-   * Provides the entry for the user that should be considered the
-   * authorization identity for this operation.  This must not be
-   * called from within a plugin.
-   *
-   * @param  authorizationEntry  The entry for the user that should be
-   *                             considered the authorization identity
-   *                             for this operation, or {@code null}
-   *                             if it should be the unauthenticated
-   *                             user.
-   */
+  /** {@inheritDoc} */
   @Override
   public final void setAuthorizationEntry(Entry authorizationEntry)
   {
     this.authorizationEntry = authorizationEntry;
   }
 
-
-
-  /**
-   * Retrieves the authorization DN for this operation.  In many
-   * cases, it will be the same as the DN of the authenticated user
-   * for the underlying connection, or the null DN if no
-   * authentication has been performed on that connection.  However,
-   * it may be some other value if special processing has been
-   * requested (e.g., the operation included a proxied authorization
-   * control).  This method should not be called by pre-parse plugins
-   * because the correct value may not have yet been determined.
-   *
-   * @return  The authorization DN for this operation, or the null DN
-   *          if it should be the unauthenticated user..
-   */
+  /** {@inheritDoc} */
   @Override
   public final DN getAuthorizationDN()
   {
@@ -741,14 +568,7 @@ public abstract class AbstractOperation
     }
   }
 
-
-
-  /**
-   * Retrieves the set of attachments defined for this operation, as a
-   * mapping between the attachment name and the associated object.
-   *
-   * @return  The set of attachments defined for this operation.
-   */
+  /** {@inheritDoc} */
   @Override
   public final Map<String,Object> getAttachments()
   {
@@ -769,67 +589,28 @@ public abstract class AbstractOperation
     this.attachments = attachments;
   }
 
-
-
-  /**
-   * Retrieves the attachment with the specified name.
-   *
-   * @param  name  The name for the attachment to retrieve.  It will
-   *               be treated in a case-sensitive manner.
-   *
-   * @return  The requested attachment object, or {@code null} if it
-   *          does not exist.
-   */
+  /** {@inheritDoc} */
   @Override
   public final Object getAttachment(String name)
   {
     return attachments.get(name);
   }
 
-
-
-  /**
-   * Removes the attachment with the specified name.
-   *
-   * @param  name  The name for the attachment to remove.  It will be
-   *               treated in a case-sensitive manner.
-   *
-   * @return  The attachment that was removed, or {@code null} if it
-   *          does not exist.
-   */
+  /** {@inheritDoc} */
   @Override
   public final Object removeAttachment(String name)
   {
     return attachments.remove(name);
   }
 
-
-
-  /**
-   * Sets the value of the specified attachment.  If an attachment
-   * already exists with the same name, it will be replaced.
-   * Otherwise, a new attachment will be added.
-   *
-   * @param  name   The name to use for the attachment.
-   * @param  value  The value to use for the attachment.
-   *
-   * @return  The former value held by the attachment with the given
-   *          name, or {@code null} if there was previously no such
-   *          attachment.
-   */
+  /** {@inheritDoc} */
   @Override
   public final Object setAttachment(String name, Object value)
   {
     return attachments.put(name, value);
   }
 
-
-
-  /**
-   * Indicates that processing on this operation has completed
-   * successfully and that the client should perform any associated
-   * cleanup work.
-   */
+  /** {@inheritDoc} */
   @Override
   public final void operationCompleted()
   {
@@ -838,18 +619,7 @@ public abstract class AbstractOperation
     clientConnection.removeOperationInProgress(messageID);
   }
 
-
-
-  /**
-   * Attempts to cancel this operation before processing has
-   * completed.
-   *
-   * @param  cancelRequest  Information about the way in which the
-   *                        operation should be canceled.
-   *
-   * @return  A code providing information on the result of the
-   *          cancellation.
-   */
+  /** {@inheritDoc} */
   @Override
   public CancelResult cancel(CancelRequest cancelRequest)
   {
@@ -942,13 +712,7 @@ public abstract class AbstractOperation
     return cancelResult;
   }
 
-
-
-  /**
-   * Retrieves a string representation of this operation.
-   *
-   * @return  A string representation of this operation.
-   */
+  /** {@inheritDoc} */
   @Override
   public final String toString()
   {
@@ -957,13 +721,7 @@ public abstract class AbstractOperation
     return buffer.toString();
   }
 
-
-
-  /**
-   * Retrieves the time that processing started for this operation.
-   *
-   * @return  The time that processing started for this operation.
-   */
+  /** {@inheritDoc} */
   @Override
   public final long getProcessingStartTime()
   {
@@ -984,15 +742,7 @@ public abstract class AbstractOperation
     }
   }
 
-
-
-  /**
-   * Retrieves the time that processing stopped for this operation.
-   * This will actually hold a time immediately before the response
-   * was sent to the client.
-   *
-   * @return  The time that processing stopped for this operation.
-   */
+  /** {@inheritDoc} */
   @Override
   public final long getProcessingStopTime()
   {
@@ -1032,18 +782,7 @@ public abstract class AbstractOperation
     return (processingStopTime - processingStartTime);
   }
 
-
-
-  /**
-   * Retrieves the length of time in nanoseconds that
-   * the server spent processing this operation if available.
-   * This should not be called until after the server has sent the
-   * response to the client.
-   *
-   * @return  The length of time in nanoseconds that the server
-   *          spent processing this operation or -1 if its not
-   *          available.
-   */
+  /** {@inheritDoc} */
   @Override
   public final long getProcessingNanoTime()
   {
