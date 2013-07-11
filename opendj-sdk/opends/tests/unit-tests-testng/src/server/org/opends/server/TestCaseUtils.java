@@ -103,6 +103,8 @@ import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.protocols.ldap.LDAPReader;
 import org.opends.server.tools.LDAPModify;
 import org.opends.server.tools.dsconfig.DSConfig;
+import org.opends.server.types.AttributeType;
+import org.opends.server.types.AttributeTypeConstants;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryEnvironmentConfig;
@@ -113,6 +115,7 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.OperatingSystem;
 import org.opends.server.types.ResultCode;
+import org.opends.server.types.Schema;
 import org.opends.server.util.BuildVersion;
 import org.opends.server.util.EmbeddedUtils;
 import org.opends.server.util.LDIFReader;
@@ -246,6 +249,35 @@ public final class TestCaseUtils {
    * The config directory in the test environment.
    */
   private static File testConfigDir;
+
+  /**
+   * Setup in-memory versions of everything needed to run unit tests with the
+   * {@link DirectoryServer} class.
+   * <p>
+   * This method is trying hard to provide sensible defaults and core data you
+   * would expect from a normal install, including AttributeTypes, etc.
+   */
+  public static void startFakeServer()
+  {
+    DirectoryServer.setSchema(initializeInMemory(new Schema()));
+  }
+
+  private static Schema initializeInMemory(final Schema schema)
+  {
+    try
+    {
+      for (AttributeType attributeType : AttributeTypeConstants.ALL)
+      {
+        schema.registerAttributeType(attributeType, true);
+      }
+      return schema;
+    }
+    catch (DirectoryException e)
+    {
+      // rethrow this to fail the current test
+      throw new RuntimeException(e);
+    }
+  }
 
   /**
    * Starts the Directory Server so that it will be available for use while
@@ -414,8 +446,14 @@ public final class TestCaseUtils {
             + "instance.loc");
         installLoc.deleteOnExit();
         FileWriter w = new FileWriter(installLoc);
-        w.write(testInstanceRoot.getAbsolutePath());
-        w.close();
+        try
+        {
+          w.write(testInstanceRoot.getAbsolutePath());
+        }
+        finally
+        {
+          w.close();
+        }
 
         if (opendmkJar.exists())
         {
