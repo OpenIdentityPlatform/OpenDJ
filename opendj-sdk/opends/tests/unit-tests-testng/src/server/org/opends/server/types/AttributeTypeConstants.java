@@ -31,8 +31,8 @@ import java.util.Collections;
 import org.opends.server.schema.OIDSyntax;
 
 /**
- * Holds in-memory constants representing the AttributeTypes. This allow not
- * starting the whole server for simple unit tests.
+ * Holds in-memory constants representing the AttributeTypes. This allows to not
+ * start the whole server for simple unit tests.
  */
 @SuppressWarnings("javadoc")
 public interface AttributeTypeConstants
