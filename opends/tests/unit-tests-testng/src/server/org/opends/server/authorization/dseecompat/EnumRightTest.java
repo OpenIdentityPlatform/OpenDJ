@@ -33,11 +33,12 @@ import static org.testng.Assert.*;
 import java.util.EnumSet;
 import java.util.Set;
 
+import org.opends.server.DirectoryServerTestCase;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 @SuppressWarnings("javadoc")
-public class EnumRightTest extends AciTestCase
+public class EnumRightTest extends DirectoryServerTestCase
 {
 
   private static final int ALL_RIGHTS_MASK = ACI_READ | ACI_WRITE | ACI_ADD
