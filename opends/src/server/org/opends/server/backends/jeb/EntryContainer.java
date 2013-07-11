@@ -205,6 +205,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
     /**
      * {@inheritDoc}
      */
+    @Override
     public boolean isConfigurationAddAcceptable(
         LocalDBIndexCfg cfg,
         List<Message> unacceptableReasons)
@@ -226,6 +227,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
     /**
      * {@inheritDoc}
      */
+    @Override
     public ConfigChangeResult applyConfigurationAdd(LocalDBIndexCfg cfg)
     {
       ConfigChangeResult ccr;
@@ -261,6 +263,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
     /**
      * {@inheritDoc}
      */
+    @Override
     public boolean isConfigurationDeleteAcceptable(
         LocalDBIndexCfg cfg, List<Message> unacceptableReasons)
     {
@@ -271,6 +274,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
     /**
      * {@inheritDoc}
      */
+    @Override
     public ConfigChangeResult applyConfigurationDelete(LocalDBIndexCfg cfg)
     {
       ConfigChangeResult ccr;
@@ -313,6 +317,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
     /**
      * {@inheritDoc}
      */
+    @Override
     public boolean isConfigurationAddAcceptable(
         LocalDBVLVIndexCfg cfg, List<Message> unacceptableReasons)
     {
@@ -377,6 +382,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
     /**
      * {@inheritDoc}
      */
+    @Override
     public ConfigChangeResult applyConfigurationAdd(LocalDBVLVIndexCfg cfg)
     {
       ConfigChangeResult ccr;
@@ -411,6 +417,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
     /**
      * {@inheritDoc}
      */
+    @Override
     public boolean isConfigurationDeleteAcceptable(
         LocalDBVLVIndexCfg cfg,
         List<Message> unacceptableReasons)
@@ -422,6 +429,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
     /**
      * {@inheritDoc}
      */
+    @Override
     public ConfigChangeResult applyConfigurationDelete(LocalDBVLVIndexCfg cfg)
     {
       ConfigChangeResult ccr;
@@ -2941,6 +2949,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
      *         first argument is less than, equal to, or greater than the
      *         second.
      */
+    @Override
     public int compare(byte[] a, byte[] b)
     {
       for (int ai = a.length - 1, bi = b.length - 1;
@@ -3592,6 +3601,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationChangeAcceptable(
       LocalDBBackendCfg cfg, List<Message> unacceptableReasons)
   {
@@ -3603,6 +3613,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationChange(LocalDBBackendCfg cfg)
   {
     boolean adminActionRequired = false;
