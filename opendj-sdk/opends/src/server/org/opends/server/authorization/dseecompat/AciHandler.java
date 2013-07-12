@@ -1202,7 +1202,8 @@ public final class AciHandler extends
    *          The operation being evaluated.
    * @return True if this operation is allowed access.
    */
-  private boolean isAllowed(AciContainer operationContainer, Operation operation)
+  private boolean isAllowed(AciContainer operationContainer,
+      Operation operation)
   {
     return skipAccessCheck(operation) || accessAllowed(operationContainer);
   }
