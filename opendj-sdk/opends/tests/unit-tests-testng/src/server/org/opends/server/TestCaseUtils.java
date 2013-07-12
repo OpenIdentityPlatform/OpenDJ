@@ -221,6 +221,13 @@ public final class TestCaseUtils {
   public static boolean SERVER_STARTED = false;
 
   /**
+   * This is used to store the schema as it was before starting the fake server
+   * (for example, it could have been the real schema) so test tearDown can set
+   * it back.
+   */
+  private static Schema schemaBeforeStartingFakeServer;
+
+  /**
    * The LDAP port the server is bound to on start.
    */
   private static int serverLdapPort;
@@ -256,9 +263,13 @@ public final class TestCaseUtils {
    * <p>
    * This method is trying hard to provide sensible defaults and core data you
    * would expect from a normal install, including AttributeTypes, etc.
+   *
+   * @see #shutdownFakeServer() Matching method that must be called in the test
+   *      tear down.
    */
   public static void startFakeServer()
   {
+    schemaBeforeStartingFakeServer = DirectoryServer.getSchema();
     DirectoryServer.setSchema(initializeInMemory(new Schema()));
   }
 
@@ -819,6 +830,16 @@ public final class TestCaseUtils {
     {
       throw new RuntimeException(e);
     }
+  }
+
+  /**
+   * Undo all the setup done by #startFakeServer().
+   *
+   * @see #startFakeServer() Matching method that starts the fake server
+   */
+  public static void shutdownFakeServer()
+  {
+    DirectoryServer.setSchema(schemaBeforeStartingFakeServer);
   }
 
   /**
