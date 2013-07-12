@@ -74,7 +74,9 @@ public class LocalBackendAddOperation
    */
   private static final DebugTracer TRACER = getTracer();
 
-
+  /**
+   * Simple boolean helper class.
+   */
   private static final class BooleanHolder
   {
     boolean value;
