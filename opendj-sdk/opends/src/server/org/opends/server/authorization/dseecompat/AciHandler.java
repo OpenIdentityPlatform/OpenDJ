@@ -269,7 +269,7 @@ public final class AciHandler extends
     if (!ret)
     {
       Entry e = new Entry(entryDN, null, null, null);
-      AciLDAPOperationContainer operationContainer =
+      AciContainer operationContainer =
           new AciLDAPOperationContainer(op, e, control,
               (ACI_READ | ACI_CONTROL));
       ret = accessAllowed(operationContainer);
@@ -316,7 +316,7 @@ public final class AciHandler extends
     {
       Entry e =
           new Entry(operation.getAuthorizationDN(), null, null, null);
-      AciLDAPOperationContainer operationContainer =
+      AciContainer operationContainer =
           new AciLDAPOperationContainer(operation, e,
               (ACI_READ | ACI_EXT_OP));
       ret = accessAllowed(operationContainer);
@@ -333,7 +333,7 @@ public final class AciHandler extends
   public boolean isAllowed(LocalBackendAddOperation operation)
       throws DirectoryException
   {
-    AciLDAPOperationContainer operationContainer =
+    AciContainer operationContainer =
         new AciLDAPOperationContainer(operation, ACI_ADD);
     boolean ret = isAllowed(operationContainer, operation);
 
@@ -375,8 +375,9 @@ public final class AciHandler extends
   @Override
   public boolean isAllowed(LocalBackendCompareOperation operation)
   {
-    AciLDAPOperationContainer operationContainer =
+    AciContainer operationContainer =
         new AciLDAPOperationContainer(operation, ACI_COMPARE);
+
     String baseName;
     String rawAttributeType = operation.getRawAttributeType();
     int semicolonPosition = rawAttributeType.indexOf(';');
@@ -389,11 +390,13 @@ public final class AciHandler extends
     {
       baseName = toLowerCase(rawAttributeType);
     }
+
     AttributeType attributeType;
     if ((attributeType = DirectoryServer.getAttributeType(baseName)) == null)
     {
       attributeType = DirectoryServer.getDefaultAttributeType(baseName);
     }
+
     AttributeValue attributeValue =
         AttributeValues.create(attributeType, operation
             .getAssertionValue());
@@ -414,7 +417,7 @@ public final class AciHandler extends
   @Override
   public boolean isAllowed(LocalBackendDeleteOperation operation)
   {
-    AciLDAPOperationContainer operationContainer =
+    AciContainer operationContainer =
         new AciLDAPOperationContainer(operation, ACI_DELETE);
     return isAllowed(operationContainer, operation);
   }
@@ -460,7 +463,7 @@ public final class AciHandler extends
       // original entry DN has export access.
       if (ret && newSuperiorDN != null)
       {
-        AciLDAPOperationContainer operationContainer =
+        AciContainer operationContainer =
             new AciLDAPOperationContainer(operation, ACI_EXPORT,
                 operation.getOriginalEntry());
         // The RDNs are not equal, skip the proxy check since it was
@@ -485,7 +488,7 @@ public final class AciHandler extends
   public boolean isAllowed(LocalBackendModifyOperation operation)
       throws DirectoryException
   {
-    AciLDAPOperationContainer operationContainer =
+    AciContainer operationContainer =
         new AciLDAPOperationContainer(operation, ACI_NULL);
     return aciCheckMods(operationContainer, operation,
         skipAccessCheck(operation));
@@ -518,7 +521,7 @@ public final class AciHandler extends
     }
     else
     {
-      AciLDAPOperationContainer operationContainer =
+      AciContainer operationContainer =
           new AciLDAPOperationContainer(operation, ACI_READ, entry);
       return testFilter(operationContainer, filter);
     }
@@ -539,9 +542,8 @@ public final class AciHandler extends
       AuthenticationInfo authInfo =
           new AuthenticationInfo(proxyUser, DirectoryServer
               .isRootDN(proxyUser.getDN()));
-      AciLDAPOperationContainer operationContainer =
-          new AciLDAPOperationContainer(op, proxiedUser, authInfo,
-              ACI_PROXY);
+      AciContainer operationContainer =
+          new AciLDAPOperationContainer(op, proxiedUser, authInfo, ACI_PROXY);
       ret = accessAllowedEntry(operationContainer);
     }
     return ret;
@@ -572,7 +574,7 @@ public final class AciHandler extends
 
       e.addAttribute(builder.toAttribute(), null);
       SearchResultEntry se = new SearchResultEntry(e);
-      AciLDAPOperationContainer operationContainer =
+      AciContainer operationContainer =
           new AciLDAPOperationContainer(operation, ACI_READ, se);
       operationContainer.setCurrentAttributeType(refAttrType);
       ret = accessAllowed(operationContainer);
@@ -593,7 +595,7 @@ public final class AciHandler extends
       return true;
     }
 
-    AciLDAPOperationContainer operationContainer =
+    AciContainer operationContainer =
         new AciLDAPOperationContainer(operation, ACI_SEARCH, entry);
 
     // Pre/post read controls are associated with other types of operation.
@@ -758,7 +760,7 @@ public final class AciHandler extends
    *          needed to check access.
    * @return True if access is allowed.
    */
-  boolean accessAllowedEntry(AciLDAPOperationContainer container)
+  boolean accessAllowedEntry(AciContainer container)
   {
     boolean ret = false;
     // set flag that specifies this is the first attribute evaluated
@@ -816,8 +818,7 @@ public final class AciHandler extends
    *          The partially filtered search result entry being returned to the
    *          client.
    */
-  private void filterEntry(AciLDAPOperationContainer container,
-      Entry filteredEntry)
+  private void filterEntry(AciContainer container, Entry filteredEntry)
   {
     List<AttributeType> typeList = getAllAttrs(filteredEntry);
     for (AttributeType attrType : typeList)
@@ -855,7 +856,7 @@ public final class AciHandler extends
    * @throws DirectoryException
    *           If a modified ACI could not be decoded.
    */
-  private boolean aciCheckMods(AciLDAPOperationContainer container,
+  private boolean aciCheckMods(AciContainer container,
       LocalBackendModifyOperation operation, boolean skipAccessCheck)
       throws DirectoryException
   {
@@ -1025,12 +1026,10 @@ public final class AciHandler extends
   private boolean aciCheckRDNs(ModifyDNOperation operation,
       RDN oldRDN, RDN newRDN)
   {
-    boolean ret;
-
-    AciLDAPOperationContainer operationContainer =
+    AciContainer operationContainer =
         new AciLDAPOperationContainer(operation, ACI_WRITE, operation
             .getOriginalEntry());
-    ret = accessAllowed(operationContainer);
+    boolean ret = accessAllowed(operationContainer);
     if (ret)
     {
       ret = checkRDN(ACI_WRITE_ADD, newRDN, operationContainer);
@@ -1060,7 +1059,6 @@ public final class AciHandler extends
   private boolean aciCheckSuperiorEntry(DN superiorDN, ModifyDNOperation op)
       throws DirectoryException
   {
-    boolean ret = false;
     final Lock entryLock = LockManager.lockRead(superiorDN);
     if (entryLock == null)
     {
@@ -1070,21 +1068,22 @@ public final class AciHandler extends
       logError(message);
       return false;
     }
+
     try
     {
       Entry superiorEntry = DirectoryServer.getEntry(superiorDN);
       if (superiorEntry != null)
       {
-        AciLDAPOperationContainer operationContainer =
+        AciContainer operationContainer =
             new AciLDAPOperationContainer(op, ACI_IMPORT, superiorEntry);
-        ret = accessAllowed(operationContainer);
+        return accessAllowed(operationContainer);
       }
+      return false;
     }
     finally
     {
       LockManager.unlock(superiorDN, entryLock);
     }
-    return ret;
   }
 
 
@@ -1203,14 +1202,10 @@ public final class AciHandler extends
    *          The operation being evaluated.
    * @return True if this operation is allowed access.
    */
-  private boolean isAllowed(
-      AciLDAPOperationContainer operationContainer, Operation operation)
+  private boolean isAllowed(AciContainer operationContainer, Operation operation)
   {
-    return skipAccessCheck(operation)
-        || accessAllowed(operationContainer);
+    return skipAccessCheck(operation) || accessAllowed(operationContainer);
   }
-
-
 
   /**
    * Check if the specified attribute type is a DN by checking if its
@@ -1466,8 +1461,8 @@ public final class AciHandler extends
    *           If there is a problem matching the entry using the
    *           provided filter.
    */
-  private boolean testFilter(AciLDAPOperationContainer container,
-      SearchFilter filter) throws DirectoryException
+  private boolean testFilter(AciContainer container, SearchFilter filter)
+      throws DirectoryException
   {
     // If the resource entry has a dn equal to "cn=debugsearch" and it
     // contains the special attribute type "debugsearchindex", then the
