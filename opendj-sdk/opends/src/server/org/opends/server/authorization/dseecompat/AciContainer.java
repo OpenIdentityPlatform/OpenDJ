@@ -82,11 +82,6 @@ implements AciTargetMatchContext, AciEvalContext {
     private boolean isEntryTestRule = false;
 
     /**
-     * True if the evaluation is a result of an LDAP add operation.
-     */
-    private boolean isAddOp=false;
-
-    /**
      * The right mask to use in the evaluation of the LDAP operation.
      */
     private int rightsMask;
@@ -248,7 +243,6 @@ implements AciTargetMatchContext, AciEvalContext {
       this.resourceEntry=entry;
       this.operation=operation;
       this.clientConnection=operation.getClientConnection();
-      this.isAddOp = operation instanceof AddOperation;
       this.authInfo = clientConnection.getAuthenticationInfo();
 
       //If the proxied authorization control was processed, then the operation
@@ -671,11 +665,9 @@ implements AciTargetMatchContext, AciEvalContext {
     public DN getClientDN() {
       if(this.useAuthzid)
         return this.authzid;
-      else
-       if (this.authorizationEntry == null)
-         return DN.nullDN();
-       else
-         return this.authorizationEntry.getDN();
+      else if (this.authorizationEntry != null)
+        return this.authorizationEntry.getDN();
+      return DN.nullDN();
     }
 
    /**
@@ -731,7 +723,7 @@ implements AciTargetMatchContext, AciEvalContext {
     */
     @Override
     public boolean isAddOperation() {
-        return isAddOp;
+        return operation instanceof AddOperation;
     }
 
    /**
@@ -845,22 +837,18 @@ implements AciTargetMatchContext, AciEvalContext {
      */
     @Override
     public boolean isMemberOf(Group<?> group) {
-        boolean ret;
         try {
             if(useAuthzid) {
-                ret = group.isMember(this.authzid);
-            } else {
-                Entry e = getClientEntry();
-                if(e != null) {
-                    ret=group.isMember(e);
-                } else {
-                    ret=group.isMember(getClientDN());
-                }
+                return group.isMember(this.authzid);
             }
+            Entry e = getClientEntry();
+            if (e != null) {
+                return group.isMember(e);
+            }
+            return group.isMember(getClientDN());
         } catch (DirectoryException ex) {
-            ret=false;
+            return false;
         }
-        return  ret;
     }
 
   /**
@@ -925,8 +913,7 @@ implements AciTargetMatchContext, AciEvalContext {
    */
   @Override
   public boolean hasEvalUserAttributes() {
-    return (evalAllAttributes & ACI_FOUND_USER_ATTR_RULE) ==
-            ACI_FOUND_USER_ATTR_RULE;
+    return hasAttribute(ACI_FOUND_USER_ATTR_RULE);
   }
 
   /**
@@ -934,8 +921,7 @@ implements AciTargetMatchContext, AciEvalContext {
    */
   @Override
   public boolean hasEvalOpAttributes() {
-    return (evalAllAttributes & ACI_FOUND_OP_ATTR_RULE) ==
-            ACI_FOUND_OP_ATTR_RULE;
+    return hasAttribute(ACI_FOUND_OP_ATTR_RULE);
   }
 
   /**
@@ -943,10 +929,9 @@ implements AciTargetMatchContext, AciEvalContext {
    * user attributes rule match.
    *
    * @return  True if the above condition was seen.
-   **/
+   */
   public boolean hasAllUserAttributes() {
-    return (evalAllAttributes & ACI_USER_ATTR_STAR_MATCHED) ==
-            ACI_USER_ATTR_STAR_MATCHED;
+    return hasAttribute(ACI_USER_ATTR_STAR_MATCHED);
   }
 
   /**
@@ -954,10 +939,14 @@ implements AciTargetMatchContext, AciEvalContext {
    * operational attributes rule match.
    *
    * @return  True if the above condition was seen.
-   **/
-    public boolean hasAllOpAttributes() {
-    return (evalAllAttributes & ACI_OP_ATTR_PLUS_MATCHED) ==
-            ACI_OP_ATTR_PLUS_MATCHED;
+   */
+  public boolean hasAllOpAttributes() {
+    return hasAttribute(ACI_OP_ATTR_PLUS_MATCHED);
+  }
+
+  private boolean hasAttribute(int aciAttribute)
+  {
+    return (evalAllAttributes & aciAttribute) == aciAttribute;
   }
 
   /**
