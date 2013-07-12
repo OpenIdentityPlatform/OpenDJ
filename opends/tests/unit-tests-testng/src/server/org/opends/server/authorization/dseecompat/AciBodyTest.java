@@ -30,6 +30,7 @@ import static org.assertj.core.api.Assertions.*;
 
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
+import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -42,6 +43,12 @@ public class AciBodyTest extends DirectoryServerTestCase
   public void setUp()
   {
     TestCaseUtils.startFakeServer();
+  }
+
+  @AfterClass
+  public void tearDown()
+  {
+    TestCaseUtils.shutdownFakeServer();
   }
 
   @DataProvider(name = "validAcis")
