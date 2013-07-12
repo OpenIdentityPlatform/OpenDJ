@@ -24,13 +24,12 @@
  *
  *      Copyright 2008 Sun Microsystems, Inc.
  */
-
 package org.opends.server.authorization.dseecompat;
 
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.Entry;
-import java.util.LinkedList;
+import java.util.List;
 
 /**
  * The AciTargetMatchContext interface provides a
@@ -46,13 +45,13 @@ public interface AciTargetMatchContext {
      * Set the deny ACI list.
      * @param denyList The deny ACI list.
      */
-    public void setDenyList(LinkedList<Aci> denyList);
+    public void setDenyList(List<Aci> denyList);
 
     /**
      * Set the allow ACI list.
      * @param allowList The list of allow ACIs.
      */
-    public void setAllowList(LinkedList<Aci> allowList);
+    public void setAllowList(List<Aci> allowList);
 
     /**
      * Get the entry being evaluated. This is known as the

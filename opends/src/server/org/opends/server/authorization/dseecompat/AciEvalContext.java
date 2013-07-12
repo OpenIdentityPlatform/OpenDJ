@@ -25,7 +25,6 @@
  *      Copyright 2008-2010 Sun Microsystems, Inc.
  *      Portions Copyright 2011 ForgeRock AS
  */
-
 package org.opends.server.authorization.dseecompat;
 
 import org.opends.server.types.DN;
@@ -34,7 +33,7 @@ import org.opends.server.types.AttributeType;
 import org.opends.server.api.Group;
 
 import java.net.InetAddress;
-import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Interface that provides a view of the AciContainer that is
@@ -66,13 +65,13 @@ public interface AciEvalContext
      * Get the list of deny ACIs.
      * @return The deny ACI list.
      */
-    public LinkedList<Aci> getDenyList();
+    public List<Aci> getDenyList();
 
     /**
      * Get the list allow ACIs.
      * @return The allow ACI list.
      */
-    public LinkedList<Aci> getAllowList();
+    public List<Aci> getAllowList();
 
     /**
      * Set when the deny list is being evaluated.
