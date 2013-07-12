@@ -82,11 +82,6 @@ implements AciTargetMatchContext, AciEvalContext {
     private boolean isEntryTestRule = false;
 
     /**
-     * True if the evaluation of an ACI is from the deny list.
-     */
-    private boolean isDenyEval;
-
-    /**
      * True if the evaluation is a result of an LDAP add operation.
      */
     private boolean isAddOp=false;
@@ -477,27 +472,19 @@ implements AciTargetMatchContext, AciEvalContext {
     * {@inheritDoc}
     */
     @Override
-    public void setDecidingAci(Aci aci) {
-      this.decidingAci=aci;
-    }
-
-   /**
-    * {@inheritDoc}
-    */
-    @Override
     public String getDecidingAciName() {
       if(this.decidingAci != null)
          return this.decidingAci.getName();
       else return null;
     }
 
-   /**
-    * {@inheritDoc}
-    */
-    @Override
-    public void setEvalReason(EnumEvalReason reason) {
-      this.evalReason=reason;
-    }
+  /** {@inheritDoc} */
+  @Override
+  public void setEvaluationResult(EnumEvalReason reason, Aci decidingAci)
+  {
+    this.evalReason = reason;
+    this.decidingAci = decidingAci;
+  }
 
    /**
     * {@inheritDoc}
@@ -665,7 +652,8 @@ implements AciTargetMatchContext, AciEvalContext {
     */
     @Override
     public boolean isDenyEval() {
-        return isDenyEval;
+        return EnumEvalReason.NO_ALLOW_ACIS.equals(evalReason)
+            || EnumEvalReason.EVALUATED_DENY_ACI.equals(evalReason);
     }
 
    /**
@@ -674,14 +662,6 @@ implements AciTargetMatchContext, AciEvalContext {
     @Override
     public boolean isAnonymousUser() {
         return !authInfo.isAuthenticated();
-    }
-
-   /**
-    * {@inheritDoc}
-    */
-    @Override
-    public void setDenyEval(boolean val) {
-        isDenyEval = val;
     }
 
    /**

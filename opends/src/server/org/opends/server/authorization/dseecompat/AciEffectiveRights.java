@@ -29,6 +29,7 @@
 package org.opends.server.authorization.dseecompat;
 
 import static org.opends.server.authorization.dseecompat.Aci.*;
+
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.*;
 
@@ -433,8 +434,7 @@ public class AciEffectiveRights {
     //another authzid or they don't have privs  -- fall through.
     if(skipCheck && container.isAuthzidAuthorizationDN()) {
       resString.append("write").append(":1");
-      container.setEvalReason(EnumEvalReason.SKIP_ACI);
-      container.setDecidingAci(null);
+      container.setEvaluationResult(EnumEvalReason.SKIP_ACI, null);
       createSummary(container, true, "main");
     } else {
      //Reset everything.
@@ -559,8 +559,7 @@ public class AciEffectiveRights {
     //another authzid or they don't have privs  -- fall through.
     if(skipCheck && container.isAuthzidAuthorizationDN()) {
       resString.append(rightStr).append(":1");
-      container.setEvalReason(EnumEvalReason.SKIP_ACI);
-      container.setDecidingAci(null);
+      container.setEvaluationResult(EnumEvalReason.SKIP_ACI, null);
       createSummary(container, true, "main");
     } else {
       boolean ret;
