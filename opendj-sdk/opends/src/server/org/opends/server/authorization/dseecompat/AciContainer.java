@@ -34,7 +34,6 @@ import static org.opends.server.util.ServerConstants.*;
 import java.net.InetAddress;
 import java.security.cert.Certificate;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 
 import org.opends.server.api.ClientConnection;
@@ -57,7 +56,7 @@ implements AciTargetMatchContext, AciEvalContext {
     /**
      * The allow and deny lists.
      */
-    private LinkedList<Aci> denyList, allowList;
+    private List<Aci> denyList, allowList;
 
     /**
      * The attribute type in the resource entry currently being evaluated.
@@ -338,7 +337,7 @@ implements AciTargetMatchContext, AciEvalContext {
     }
 
   /**
-   * Set to true if an entry has already been processsed by an access proxy
+   * Set to true if an entry has already been processed by an access proxy
    * check.
    *
    * @param val The value to set the seenEntry boolean to.
@@ -394,7 +393,7 @@ implements AciTargetMatchContext, AciEvalContext {
 
   /**
    * Return the list of additional attributes specified in the
-   * geteffectiveritghts control.
+   * geteffectiverights control.
    *
    * @return The list of attributes to return rights information about in the
    * entry.
@@ -526,7 +525,7 @@ implements AciTargetMatchContext, AciEvalContext {
 
   /**
    * Returns true if the geteffectiverights control's authZid DN is equal to the
-   * authoritzation entry's DN.
+   * authorization entry's DN.
    *
    * @return True if the authZid is equal to the authorization entry's DN.
    */
@@ -553,7 +552,7 @@ implements AciTargetMatchContext, AciEvalContext {
     * {@inheritDoc}
     */
     @Override
-    public void setDenyList(LinkedList<Aci> denys) {
+    public void setDenyList(List<Aci> denys) {
         denyList=denys;
     }
 
@@ -561,7 +560,7 @@ implements AciTargetMatchContext, AciEvalContext {
     * {@inheritDoc}
     */
     @Override
-    public void setAllowList(LinkedList<Aci> allows) {
+    public void setAllowList(List<Aci> allows) {
         allowList=allows;
     }
 
@@ -649,7 +648,7 @@ implements AciTargetMatchContext, AciEvalContext {
     * {@inheritDoc}
     */
     @Override
-    public LinkedList<Aci> getDenyList() {
+    public List<Aci> getDenyList() {
         return denyList;
     }
 
@@ -657,7 +656,7 @@ implements AciTargetMatchContext, AciEvalContext {
     * {@inheritDoc}
     */
     @Override
-    public LinkedList<Aci> getAllowList() {
+    public List<Aci> getAllowList() {
        return allowList;
     }
 

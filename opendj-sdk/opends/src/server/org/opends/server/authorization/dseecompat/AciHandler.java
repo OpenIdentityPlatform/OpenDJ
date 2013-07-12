@@ -98,7 +98,7 @@ public final class AciHandler extends
    */
   private static AttributeType debugSearchIndex;
 
-  /*
+  /**
    * DN corresponding to "debugsearchindex" attribute type.
    */
   private static DN debugSearchIndexDN;
@@ -121,8 +121,10 @@ public final class AciHandler extends
 
 
 
-  // We initialize these for each new AciHandler so that we can clear
-  // out the stale references that can occur during an in-core restart.
+  /**
+   * We initialize these for each new AciHandler so that we can clear out the
+   * stale references that can occur during an in-core restart.
+   */
   private static void initStatics()
   {
     if ((aciType = DirectoryServer.getAttributeType("aci")) == null)
@@ -262,8 +264,8 @@ public final class AciHandler extends
   public boolean isAllowed(DN entryDN, Operation op, Control control)
       throws DirectoryException
   {
-    boolean ret;
-    if (!(ret = skipAccessCheck(op)))
+    boolean ret = skipAccessCheck(op);
+    if (!ret)
     {
       Entry e = new Entry(entryDN, null, null, null);
       AciLDAPOperationContainer operationContainer =
@@ -271,15 +273,15 @@ public final class AciHandler extends
               (ACI_READ | ACI_CONTROL));
       ret = accessAllowed(operationContainer);
     }
-    if (control.getOID().equals(OID_PROXIED_AUTH_V2)
-        || control.getOID().equals(OID_PROXIED_AUTH_V1))
+    if (OID_PROXIED_AUTH_V2.equals(control.getOID())
+        || OID_PROXIED_AUTH_V1.equals(control.getOID()))
     {
       if (ret)
       {
         op.setAttachment(ORIG_AUTH_ENTRY, op.getAuthorizationEntry());
       }
     }
-    else if (control.getOID().equals(OID_GET_EFFECTIVE_RIGHTS))
+    else if (OID_GET_EFFECTIVE_RIGHTS.equals(control.getOID()))
     {
       if (ret)
       {
@@ -308,8 +310,8 @@ public final class AciHandler extends
   @Override
   public boolean isAllowed(ExtendedOperation operation)
   {
-    boolean ret;
-    if (!(ret = skipAccessCheck(operation)))
+    boolean ret = skipAccessCheck(operation);
+    if (!ret)
     {
       Entry e =
           new Entry(operation.getAuthorizationDN(), null, null, null);
@@ -435,7 +437,7 @@ public final class AciHandler extends
     if (!skipAccessCheck(operation))
     {
       // If this is a modifyDN move to a new superior, then check if the
-      // superior DN has import accesss.
+      // superior DN has import access.
       if ((newSuperiorDN = operation.getNewSuperior()) != null)
       {
         try
@@ -455,7 +457,7 @@ public final class AciHandler extends
 
       // If this is a modifyDN move to a new superior, then check if the
       // original entry DN has export access.
-      if (ret && (newSuperiorDN != null))
+      if (ret && newSuperiorDN != null)
       {
         AciLDAPOperationContainer operationContainer =
             new AciLDAPOperationContainer(operation, ACI_EXPORT,
@@ -530,8 +532,8 @@ public final class AciHandler extends
   public boolean mayProxy(Entry proxyUser, Entry proxiedUser,
       Operation op)
   {
-    boolean ret;
-    if (!(ret = skipAccessCheck(proxyUser)))
+    boolean ret = skipAccessCheck(proxyUser);
+    if (!ret)
     {
       AuthenticationInfo authInfo =
           new AuthenticationInfo(proxyUser, DirectoryServer
@@ -553,8 +555,8 @@ public final class AciHandler extends
   public boolean maySend(DN dn, Operation operation,
       SearchResultReference reference)
   {
-    boolean ret;
-    if (!(ret = skipAccessCheck(operation)))
+    boolean ret = skipAccessCheck(operation);
+    if (!ret)
     {
       Entry e = new Entry(dn, null, null, null);
       AttributeBuilder builder =
@@ -656,9 +658,9 @@ public final class AciHandler extends
     // Check if the ACI_SELF right needs to be set (selfwrite right).
     // Only done if the right is ACI_WRITE, an attribute value is set
     // and that attribute value is a DN.
-    if ((container.getCurrentAttributeValue() != null)
-        && (container.hasRights(ACI_WRITE))
-        && (isAttributeDN(container.getCurrentAttributeType())))
+    if (container.getCurrentAttributeValue() != null
+        && container.hasRights(ACI_WRITE)
+        && isAttributeDN(container.getCurrentAttributeType()))
     {
       String DNString = null;
       try
@@ -692,11 +694,9 @@ public final class AciHandler extends
           && !container.hasRights(ACI_SKIP_PROXY_CHECK))
       {
         int currentRights = container.getRights();
-        // Save the current rights so they can be put back if on
-        // success.
+        // Save the current rights so they can be put back if on success.
         container.setRights(ACI_PROXY);
-        // Switch to the original authorization entry, not the proxied
-        // one.
+        // Switch to the original authorization entry, not the proxied one.
         container.useOrigAuthorizationEntry(true);
         if (!accessAllowed(container))
         {
@@ -713,18 +713,14 @@ public final class AciHandler extends
       container.setSeenEntry(true);
     }
 
-    /*
-     * First get all allowed candidate ACIs.
-     */
-    LinkedList<Aci> candidates = aciList.getCandidateAcis(dn);
+    // First get all allowed candidate ACIs.
+    List<Aci> candidates = aciList.getCandidateAcis(dn);
     /*
      * Create an applicable list of ACIs by target matching each
      * candidate ACI against the container's target match view.
      */
     createApplicableList(candidates, container);
-    /*
-     * Evaluate the applicable list.
-     */
+    // Evaluate the applicable list.
     boolean ret = testApplicableLists(container);
     // Build summary string if doing geteffectiverights eval.
     if (container.isGetEffectiveRightsEval())
@@ -871,22 +867,19 @@ public final class AciHandler extends
       Attribute modAttr = m.getAttribute();
       AttributeType modAttrType = modAttr.getAttributeType();
 
-      if (modAttrType.equals(aciType))
+      if (modAttrType.equals(aciType)
+          /*
+           * Check that the operation has modify privileges if it contains
+           * an "aci" attribute type.
+           */
+          && !operation.getClientConnection().hasPrivilege(
+              Privilege.MODIFY_ACL, operation))
       {
-        /*
-         * Check that the operation has modify privileges if it contains
-         * an "aci" attribute type.
-         */
-        if (!operation.getClientConnection().hasPrivilege(
-            Privilege.MODIFY_ACL, operation))
-        {
-          Message message =
-              INFO_ACI_MODIFY_FAILED_PRIVILEGE.get(String
-                  .valueOf(container.getResourceDN()), String
-                  .valueOf(container.getClientDN()));
-          logError(message);
-          return false;
-        }
+        Message message =
+            INFO_ACI_MODIFY_FAILED_PRIVILEGE.get(String.valueOf(container
+                .getResourceDN()), String.valueOf(container.getClientDN()));
+        logError(message);
+        return false;
       }
       // This access check handles the case where all attributes of this
       // type are being replaced or deleted. If only a subset is being
@@ -1111,21 +1104,18 @@ public final class AciHandler extends
    */
   private boolean checkRDN(int right, RDN rdn, AciContainer container)
   {
-    boolean ret = false;
-    int numAVAs = rdn.getNumValues();
     container.setRights(right);
+    final int numAVAs = rdn.getNumValues();
     for (int i = 0; i < numAVAs; i++)
     {
-      AttributeType type = rdn.getAttributeType(i);
-      AttributeValue value = rdn.getAttributeValue(i);
-      container.setCurrentAttributeType(type);
-      container.setCurrentAttributeValue(value);
-      if (!(ret = accessAllowed(container)))
+      container.setCurrentAttributeType(rdn.getAttributeType(i));
+      container.setCurrentAttributeValue(rdn.getAttributeValue(i));
+      if (!accessAllowed(container))
       {
-        break;
+        return false;
       }
     }
-    return ret;
+    return true;
   }
 
 
@@ -1139,11 +1129,11 @@ public final class AciHandler extends
    * @param targetMatchCtx
    *          Target matching context to use for testing each ACI.
    */
-  private void createApplicableList(LinkedList<Aci> candidates,
+  private void createApplicableList(List<Aci> candidates,
       AciTargetMatchContext targetMatchCtx)
   {
-    LinkedList<Aci> denys = new LinkedList<Aci>();
-    LinkedList<Aci> allows = new LinkedList<Aci>();
+    List<Aci> denys = new LinkedList<Aci>();
+    List<Aci> allows = new LinkedList<Aci>();
     for (Aci aci : candidates)
     {
       if (Aci.isApplicable(aci, targetMatchCtx))
@@ -1232,7 +1222,7 @@ public final class AciHandler extends
    */
   private boolean isAttributeDN(AttributeType attribute)
   {
-    return (attribute.getSyntaxOID().equals(SYNTAX_DN_OID));
+    return SYNTAX_DN_OID.equals(attribute.getSyntaxOID());
   }
 
 
@@ -1399,14 +1389,11 @@ public final class AciHandler extends
    */
   private boolean testApplicableLists(AciEvalContext evalCtx)
   {
-    EnumEvalResult res;
     evalCtx.setEvalReason(EnumEvalReason.NO_REASON);
-    LinkedList<Aci> denys = evalCtx.getDenyList();
-    LinkedList<Aci> allows = evalCtx.getAllowList();
     // If allows list is empty and not doing geteffectiverights return
     // false.
     evalCtx.setDenyEval(true);
-    if (allows.isEmpty()
+    if (evalCtx.getAllowList().isEmpty()
         && !(evalCtx.isGetEffectiveRightsEval()
             && !evalCtx.hasRights(ACI_SELF) && evalCtx
             .isTargAttrFilterMatchAciEmpty()))
@@ -1415,9 +1402,10 @@ public final class AciHandler extends
       evalCtx.setDecidingAci(null);
       return false;
     }
-    for (Aci denyAci : denys)
+
+    for (Aci denyAci : evalCtx.getDenyList())
     {
-      res = Aci.evaluate(evalCtx, denyAci);
+      final EnumEvalResult res = Aci.evaluate(evalCtx, denyAci);
       // Failure could be returned if a system limit is hit or
       // search fails
       if (res.equals(EnumEvalResult.FAIL))
@@ -1452,9 +1440,9 @@ public final class AciHandler extends
     }
     // Now check the allows -- flip the deny flag to false first.
     evalCtx.setDenyEval(false);
-    for (Aci allowAci : allows)
+    for (Aci allowAci : evalCtx.getAllowList())
     {
-      res = Aci.evaluate(evalCtx, allowAci);
+      final EnumEvalResult res = Aci.evaluate(evalCtx, allowAci);
       if (res.equals(EnumEvalResult.TRUE))
       {
         if (evalCtx.isGetEffectiveRightsEval()
@@ -1463,8 +1451,7 @@ public final class AciHandler extends
         {
           // Iterate to next only if deny ACI contains a targattrfilters
           // keyword.
-          if (AciEffectiveRights.setTargAttrAci(evalCtx, allowAci,
-              false))
+          if (AciEffectiveRights.setTargAttrAci(evalCtx, allowAci, false))
           {
             continue;
           }
@@ -1504,7 +1491,6 @@ public final class AciHandler extends
   private boolean testFilter(AciLDAPOperationContainer container,
       SearchFilter filter) throws DirectoryException
   {
-    boolean ret = true;
     // If the resource entry has a dn equal to "cn=debugsearch" and it
     // contains the special attribute type "debugsearchindex", then the
     // resource entry is a pseudo entry created for debug purposes.
@@ -1531,17 +1517,16 @@ public final class AciHandler extends
     case NOT:
     {
       SearchFilter f = filter.getNotComponent();
-      ret = testFilter(container, f);
-      break;
+      return testFilter(container, f);
     }
     default:
     {
       AttributeType attrType = filter.getAttributeType();
       container.setCurrentAttributeType(attrType);
-      ret = accessAllowed(container);
+      return accessAllowed(container);
     }
     }
-    return ret;
+    return true;
   }
 
 
@@ -1590,8 +1575,7 @@ public final class AciHandler extends
         {
           try
           {
-            DN dn = entry.getDN();
-            Aci.decode(value.getValue(), dn);
+            Aci.decode(value.getValue(), entry.getDN());
           }
           catch (AciException ex)
           {
