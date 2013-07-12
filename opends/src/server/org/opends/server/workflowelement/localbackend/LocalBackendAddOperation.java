@@ -75,46 +75,50 @@ public class LocalBackendAddOperation
   private static final DebugTracer TRACER = getTracer();
 
 
+  private static final class BooleanHolder
+  {
+    boolean value;
+  }
 
   /**
    * The backend in which the entry is to be added.
    */
-  protected Backend backend;
+  private Backend backend;
 
   /**
    * Indicates whether the request includes the LDAP no-op control.
    */
-  protected boolean noOp;
+  private boolean noOp;
 
   /**
    * The DN of the entry to be added.
    */
-  protected DN entryDN;
+  private DN entryDN;
 
   /**
    * The entry being added to the server.
    */
-  protected Entry entry;
+  private Entry entry;
 
   /**
    * The post-read request control included in the request, if applicable.
    */
-  protected LDAPPostReadRequestControl postReadRequest;
+  private LDAPPostReadRequestControl postReadRequest;
 
   /**
    * The set of object classes for the entry to add.
    */
-  protected Map<ObjectClass, String> objectClasses;
+  private Map<ObjectClass, String> objectClasses;
 
   /**
    * The set of operational attributes for the entry to add.
    */
-  protected Map<AttributeType,List<Attribute>> operationalAttributes;
+  private Map<AttributeType, List<Attribute>> operationalAttributes;
 
   /**
    * The set of user attributes for the entry to add.
    */
-  protected Map<AttributeType,List<Attribute>> userAttributes;
+  private Map<AttributeType, List<Attribute>> userAttributes;
 
 
 
@@ -160,8 +164,6 @@ public class LocalBackendAddOperation
   public void processLocalAdd(final LocalBackendWorkflowElement wfe)
       throws CanceledOperationException
   {
-    boolean executePostOpPlugins = false;
-
     this.backend = wfe.getBackend();
     ClientConnection clientConnection = getClientConnection();
 
@@ -172,536 +174,10 @@ public class LocalBackendAddOperation
     // Check for a request to cancel this operation.
     checkIfCanceled(false);
 
-    // Create a labeled block of code that we can break out of if a problem is
-    // detected.
-addProcessing:
-    {
-      // Process the entry DN and set of attributes to convert them from their
-      // raw forms as provided by the client to the forms required for the rest
-      // of the add processing.
-      entryDN = getEntryDN();
-      if (entryDN == null)
-      {
-        break addProcessing;
-      }
 
+    BooleanHolder executePostOpPlugins = new BooleanHolder();
+    processAdd(clientConnection, executePostOpPlugins, pluginConfigManager);
 
-      // Check for a request to cancel this operation.
-      checkIfCanceled(false);
-
-
-      // Grab a read lock on the parent entry, if there is one.  We need to do
-      // this to ensure that the parent is not deleted or renamed while this add
-      // is in progress, and we could also need it to check the entry against
-      // a DIT structure rule.
-      Lock parentLock = null;
-      Lock entryLock  = null;
-
-      DN parentDN = entryDN.getParentDNInSuffix();
-      try
-      {
-        parentLock = lockParent(parentDN);
-      }
-      catch (DirectoryException de)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, de);
-        }
-
-        setResponseData(de);
-        break addProcessing;
-      }
-
-      try
-      {
-        // Check for a request to cancel this operation.
-        checkIfCanceled(false);
-
-
-        // Grab a write lock on the target entry.  We'll need to do this
-        // eventually anyway, and we want to make sure that the two locks are
-        // always released when exiting this method, no matter what.  Since
-        // the entry shouldn't exist yet, locking earlier than necessary
-        // shouldn't cause a problem.
-        entryLock = LockManager.lockWrite(entryDN);
-        if (entryLock == null)
-        {
-          setResultCode(ResultCode.BUSY);
-          appendErrorMessage(ERR_ADD_CANNOT_LOCK_ENTRY.get(
-                                  String.valueOf(entryDN)));
-          break addProcessing;
-        }
-
-
-        // Invoke any conflict resolution processing that might be needed by the
-        // synchronization provider.
-        for (SynchronizationProvider<?> provider :
-             DirectoryServer.getSynchronizationProviders())
-        {
-          try
-          {
-            SynchronizationProviderResult result =
-                provider.handleConflictResolution(this);
-            if (! result.continueProcessing())
-            {
-              setResultCode(result.getResultCode());
-              appendErrorMessage(result.getErrorMessage());
-              setMatchedDN(result.getMatchedDN());
-              setReferralURLs(result.getReferralURLs());
-              break addProcessing;
-            }
-          }
-          catch (DirectoryException de)
-          {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, de);
-            }
-
-            logError(ERR_ADD_SYNCH_CONFLICT_RESOLUTION_FAILED.get(
-                          getConnectionID(), getOperationID(),
-                          getExceptionMessage(de)));
-
-            setResponseData(de);
-            break addProcessing;
-          }
-        }
-
-        objectClasses = getObjectClasses();
-        userAttributes = getUserAttributes();
-        operationalAttributes = getOperationalAttributes();
-
-        if ((objectClasses == null ) || (userAttributes == null) ||
-            (operationalAttributes == null))
-        {
-          break addProcessing;
-        }
-
-        for (AttributeType at : userAttributes.keySet())
-        {
-          // If the attribute type is marked "NO-USER-MODIFICATION" then fail
-          // unless this is an internal operation or is related to
-          // synchronization in some way.
-          // This must be done before running the password policy code
-          // and any other code that may add attributes marked as
-          // "NO-USER-MODIFICATION"
-          //
-          // Note that doing this checks at this time
-          // of the processing does not make it possible for pre-parse plugins
-          // to add NO-USER-MODIFICATION attributes to the entry.
-          if (at.isNoUserModification())
-          {
-            if (! (isInternalOperation() || isSynchronizationOperation()))
-            {
-              setResultCode(ResultCode.CONSTRAINT_VIOLATION);
-              appendErrorMessage(ERR_ADD_ATTR_IS_NO_USER_MOD.get(
-                                      String.valueOf(entryDN),
-                                      at.getNameOrOID()));
-
-              break addProcessing;
-            }
-          }
-        }
-
-        for (AttributeType at : operationalAttributes.keySet())
-        {
-          if (at.isNoUserModification())
-          {
-            if (! (isInternalOperation() || isSynchronizationOperation()))
-            {
-              setResultCode(ResultCode.CONSTRAINT_VIOLATION);
-              appendErrorMessage(ERR_ADD_ATTR_IS_NO_USER_MOD.get(
-                                      String.valueOf(entryDN),
-                                      at.getNameOrOID()));
-
-              break addProcessing;
-            }
-          }
-        }
-
-        // Check to see if the entry already exists.  We do this before
-        // checking whether the parent exists to ensure a referral entry
-        // above the parent results in a correct referral.
-        try
-        {
-          if (DirectoryServer.entryExists(entryDN))
-          {
-            setResultCode(ResultCode.ENTRY_ALREADY_EXISTS);
-            appendErrorMessage(ERR_ADD_ENTRY_ALREADY_EXISTS.get(
-                                    String.valueOf(entryDN)));
-            break addProcessing;
-          }
-        }
-        catch (DirectoryException de)
-        {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, de);
-          }
-
-          setResponseData(de);
-          break addProcessing;
-        }
-
-
-        // Get the parent entry, if it exists.
-        Entry parentEntry = null;
-        if (parentDN != null)
-        {
-          try
-          {
-            parentEntry = DirectoryServer.getEntry(parentDN);
-
-            if (parentEntry == null)
-            {
-              DN matchedDN = parentDN.getParentDNInSuffix();
-              while (matchedDN != null)
-              {
-                try
-                {
-                  if (DirectoryServer.entryExists(matchedDN))
-                  {
-                    setMatchedDN(matchedDN);
-                    break;
-                  }
-                }
-                catch (Exception e)
-                {
-                  if (debugEnabled())
-                  {
-                    TRACER.debugCaught(DebugLogLevel.ERROR, e);
-                  }
-                  break;
-                }
-
-                matchedDN = matchedDN.getParentDNInSuffix();
-              }
-
-
-              // The parent doesn't exist, so this add can't be successful.
-              setResultCode(ResultCode.NO_SUCH_OBJECT);
-              appendErrorMessage(ERR_ADD_NO_PARENT.get(String.valueOf(entryDN),
-                                      String.valueOf(parentDN)));
-              break addProcessing;
-            }
-          }
-          catch (DirectoryException de)
-          {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, de);
-            }
-
-            setResponseData(de);
-            break addProcessing;
-          }
-        }
-
-
-        // Check to make sure that all of the RDN attributes are included as
-        // attribute values.  If not, then either add them or report an error.
-        try
-        {
-          addRDNAttributesIfNecessary();
-        }
-        catch (DirectoryException de)
-        {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, de);
-          }
-
-          setResponseData(de);
-          break addProcessing;
-        }
-
-        //Add any superior objectclass(s) missing in an entries
-        //objectclass map.
-        addSuperiorObjectClasses(objectClasses);
-
-        // Create an entry object to encapsulate the set of attributes and
-        // objectclasses.
-        entry = new Entry(entryDN, objectClasses, userAttributes,
-                          operationalAttributes);
-
-        // Check to see if the entry includes a privilege specification.  If so,
-        // then the requester must have the PRIVILEGE_CHANGE privilege.
-        AttributeType privType =
-             DirectoryServer.getAttributeType(OP_ATTR_PRIVILEGE_NAME, true);
-        if (entry.hasAttribute(privType) &&
-            (! clientConnection.hasPrivilege(Privilege.PRIVILEGE_CHANGE, this)))
-        {
-
-          appendErrorMessage(
-               ERR_ADD_CHANGE_PRIVILEGE_INSUFFICIENT_PRIVILEGES.get());
-          setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
-          break addProcessing;
-        }
-
-
-        // If it's not a synchronization operation, then check
-        // to see if the entry contains one or more passwords and if they
-        // are valid in accordance with the password policies associated with
-        // the user.  Also perform any encoding that might be required by
-        // password storage schemes.
-        if (! isSynchronizationOperation())
-        {
-          try
-          {
-            handlePasswordPolicy();
-          }
-          catch (DirectoryException de)
-          {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, de);
-            }
-
-            setResponseData(de);
-            break addProcessing;
-          }
-        }
-
-
-        // If the server is configured to check schema and the
-        // operation is not a synchronization operation,
-        // check to see if the entry is valid according to the server schema,
-        // and also whether its attributes are valid according to their syntax.
-        if ((DirectoryServer.checkSchema()) && (! isSynchronizationOperation()))
-        {
-          try
-          {
-            checkSchema(parentEntry);
-          }
-          catch (DirectoryException de)
-          {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, de);
-            }
-
-            setResponseData(de);
-            break addProcessing;
-          }
-        }
-
-
-        // Get the backend in which the add is to be performed.
-        if (backend == null)
-        {
-          setResultCode(ResultCode.NO_SUCH_OBJECT);
-          appendErrorMessage(Message.raw("No backend for entry " +
-                                         entryDN.toString())); // TODO: i18n
-          break addProcessing;
-        }
-
-
-        // Check to see if there are any controls in the request. If so, then
-        // see if there is any special processing required.
-        try
-        {
-          processControls(parentDN);
-        }
-        catch (DirectoryException de)
-        {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, de);
-          }
-
-          setResponseData(de);
-          break addProcessing;
-        }
-
-
-        // Check to see if the client has permission to perform the add.
-
-        // FIXME: for now assume that this will check all permission
-        // pertinent to the operation. This includes proxy authorization
-        // and any other controls specified.
-
-        // FIXME: earlier checks to see if the entry already exists or
-        // if the parent entry does not exist may have already exposed
-        // sensitive information to the client.
-        try
-        {
-          if (AccessControlConfigManager.getInstance()
-              .getAccessControlHandler().isAllowed(this) == false)
-          {
-            setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
-            appendErrorMessage(ERR_ADD_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS
-                .get(String.valueOf(entryDN)));
-            break addProcessing;
-          }
-        }
-        catch (DirectoryException e)
-        {
-          setResultCode(e.getResultCode());
-          appendErrorMessage(e.getMessageObject());
-          break addProcessing;
-        }
-
-        // Check for a request to cancel this operation.
-        checkIfCanceled(false);
-
-        // If the operation is not a synchronization operation,
-        // Invoke the pre-operation add plugins.
-        if (! isSynchronizationOperation())
-        {
-          executePostOpPlugins = true;
-          PluginResult.PreOperation preOpResult =
-            pluginConfigManager.invokePreOperationAddPlugins(this);
-          if (!preOpResult.continueProcessing())
-          {
-            setResultCode(preOpResult.getResultCode());
-            appendErrorMessage(preOpResult.getErrorMessage());
-            setMatchedDN(preOpResult.getMatchedDN());
-            setReferralURLs(preOpResult.getReferralURLs());
-            break addProcessing;
-          }
-        }
-
-
-        // If it is not a private backend, then check to see if the server or
-        // backend is operating in read-only mode.
-        if (! backend.isPrivateBackend())
-        {
-          switch (DirectoryServer.getWritabilityMode())
-          {
-            case DISABLED:
-              setResultCode(ResultCode.UNWILLING_TO_PERFORM);
-              appendErrorMessage(ERR_ADD_SERVER_READONLY.get(
-                                      String.valueOf(entryDN)));
-              break addProcessing;
-
-            case INTERNAL_ONLY:
-              if (! (isInternalOperation() || isSynchronizationOperation()))
-              {
-                setResultCode(ResultCode.UNWILLING_TO_PERFORM);
-                appendErrorMessage(ERR_ADD_SERVER_READONLY.get(
-                                        String.valueOf(entryDN)));
-                break addProcessing;
-              }
-              break;
-          }
-
-          switch (backend.getWritabilityMode())
-          {
-            case DISABLED:
-              setResultCode(ResultCode.UNWILLING_TO_PERFORM);
-              appendErrorMessage(ERR_ADD_BACKEND_READONLY.get(
-                                      String.valueOf(entryDN)));
-              break addProcessing;
-
-            case INTERNAL_ONLY:
-              if (! (isInternalOperation() || isSynchronizationOperation()))
-              {
-                setResultCode(ResultCode.UNWILLING_TO_PERFORM);
-                appendErrorMessage(ERR_ADD_BACKEND_READONLY.get(
-                                        String.valueOf(entryDN)));
-                break addProcessing;
-              }
-              break;
-          }
-        }
-
-
-        try
-        {
-          if (noOp)
-          {
-            appendErrorMessage(INFO_ADD_NOOP.get());
-            setResultCode(ResultCode.NO_OPERATION);
-          }
-          else
-          {
-            for (SynchronizationProvider<?> provider :
-                 DirectoryServer.getSynchronizationProviders())
-            {
-              try
-              {
-                SynchronizationProviderResult result =
-                    provider.doPreOperation(this);
-                if (! result.continueProcessing())
-                {
-                  setResultCode(result.getResultCode());
-                  appendErrorMessage(result.getErrorMessage());
-                  setMatchedDN(result.getMatchedDN());
-                  setReferralURLs(result.getReferralURLs());
-                  break addProcessing;
-                }
-              }
-              catch (DirectoryException de)
-              {
-                if (debugEnabled())
-                {
-                  TRACER.debugCaught(DebugLogLevel.ERROR, de);
-                }
-
-                logError(ERR_ADD_SYNCH_PREOP_FAILED.get(getConnectionID(),
-                              getOperationID(), getExceptionMessage(de)));
-                setResponseData(de);
-                break addProcessing;
-              }
-            }
-
-            backend.addEntry(entry, this);
-          }
-
-          LocalBackendWorkflowElement.addPostReadResponse(this,
-              postReadRequest, entry);
-
-          if (! noOp)
-          {
-            setResultCode(ResultCode.SUCCESS);
-          }
-        }
-        catch (DirectoryException de)
-        {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, de);
-          }
-
-          setResponseData(de);
-          break addProcessing;
-        }
-      }
-      finally
-      {
-        for (SynchronizationProvider<?> provider :
-          DirectoryServer.getSynchronizationProviders())
-        {
-          try
-          {
-            provider.doPostOperation(this);
-          }
-          catch (DirectoryException de)
-          {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, de);
-            }
-
-            logError(ERR_ADD_SYNCH_POSTOP_FAILED.get(getConnectionID(),
-                getOperationID(), getExceptionMessage(de)));
-            setResponseData(de);
-            break;
-          }
-        }
-
-        if (entryLock != null)
-        {
-          LockManager.unlock(entryDN, entryLock);
-        }
-
-        if (parentLock != null)
-        {
-          LockManager.unlock(parentDN, parentLock);
-        }
-      }
-    }
 
     // Invoke the post-operation or post-synchronization add plugins.
     if (isSynchronizationOperation())
@@ -711,12 +187,12 @@ addProcessing:
         pluginConfigManager.invokePostSynchronizationAddPlugins(this);
       }
     }
-    else if (executePostOpPlugins)
+    else if (executePostOpPlugins.value)
     {
       // FIXME -- Should this also be done while holding the locks?
       PluginResult.PostOperation postOpResult =
           pluginConfigManager.invokePostOperationAddPlugins(this);
-      if(!postOpResult.continueProcessing())
+      if (!postOpResult.continueProcessing())
       {
         setResultCode(postOpResult.getResultCode());
         appendErrorMessage(postOpResult.getErrorMessage());
@@ -736,7 +212,8 @@ addProcessing:
         public void run()
         {
           // Notify persistent searches.
-          for (PersistentSearch psearch : wfe.getPersistentSearches()) {
+          for (PersistentSearch psearch : wfe.getPersistentSearches())
+          {
             psearch.processAdd(entry, getChangeNumber());
           }
 
@@ -765,7 +242,412 @@ addProcessing:
     }
   }
 
+  private void processAdd(ClientConnection clientConnection,
+      BooleanHolder executePostOpPlugins,
+      PluginConfigManager pluginConfigManager)
+      throws CanceledOperationException
+  {
+    // Process the entry DN and set of attributes to convert them from their
+    // raw forms as provided by the client to the forms required for the rest
+    // of the add processing.
+    entryDN = getEntryDN();
+    if (entryDN == null)
+    {
+      return;
+    }
 
+    // Check for a request to cancel this operation.
+    checkIfCanceled(false);
+
+    // Grab a read lock on the parent entry, if there is one. We need to do
+    // this to ensure that the parent is not deleted or renamed while this add
+    // is in progress, and we could also need it to check the entry against
+    // a DIT structure rule.
+    Lock entryLock = null;
+    Lock parentLock = null;
+    DN parentDN = null;
+
+    try
+    {
+      parentDN = entryDN.getParentDNInSuffix();
+      parentLock = lockParent(parentDN);
+
+      // Check for a request to cancel this operation.
+      checkIfCanceled(false);
+
+      // Grab a write lock on the target entry. We'll need to do this
+      // eventually anyway, and we want to make sure that the two locks are
+      // always released when exiting this method, no matter what. Since
+      // the entry shouldn't exist yet, locking earlier than necessary
+      // shouldn't cause a problem.
+      entryLock = LockManager.lockWrite(entryDN);
+      if (entryLock == null)
+      {
+        setResultCode(ResultCode.BUSY);
+        appendErrorMessage(ERR_ADD_CANNOT_LOCK_ENTRY.get(String
+            .valueOf(entryDN)));
+        return;
+      }
+
+      // Invoke any conflict resolution processing that might be needed by the
+      // synchronization provider.
+      for (SynchronizationProvider<?> provider : DirectoryServer
+          .getSynchronizationProviders())
+      {
+        try
+        {
+          SynchronizationProviderResult result =
+              provider.handleConflictResolution(this);
+          if (!result.continueProcessing())
+          {
+            setResultCode(result.getResultCode());
+            appendErrorMessage(result.getErrorMessage());
+            setMatchedDN(result.getMatchedDN());
+            setReferralURLs(result.getReferralURLs());
+            return;
+          }
+        }
+        catch (DirectoryException de)
+        {
+          logError(ERR_ADD_SYNCH_CONFLICT_RESOLUTION_FAILED.get(
+              getConnectionID(), getOperationID(), getExceptionMessage(de)));
+          throw de;
+        }
+      }
+
+      objectClasses = getObjectClasses();
+      userAttributes = getUserAttributes();
+      operationalAttributes = getOperationalAttributes();
+
+      if ((objectClasses == null) || (userAttributes == null)
+          || (operationalAttributes == null))
+      {
+        return;
+      }
+
+      // If the attribute type is marked "NO-USER-MODIFICATION" then fail
+      // unless this is an internal operation or is related to
+      // synchronization in some way.
+      // This must be done before running the password policy code
+      // and any other code that may add attributes marked as
+      // "NO-USER-MODIFICATION"
+      //
+      // Note that doing this checks at this time
+      // of the processing does not make it possible for pre-parse plugins
+      // to add NO-USER-MODIFICATION attributes to the entry.
+      if (checkHasReadOnlyAttributes(userAttributes)
+          || checkHasReadOnlyAttributes(operationalAttributes))
+      {
+        return;
+      }
+
+
+      // Check to see if the entry already exists. We do this before
+      // checking whether the parent exists to ensure a referral entry
+      // above the parent results in a correct referral.
+      if (DirectoryServer.entryExists(entryDN))
+      {
+        setResultCode(ResultCode.ENTRY_ALREADY_EXISTS);
+        appendErrorMessage(ERR_ADD_ENTRY_ALREADY_EXISTS.get(String
+            .valueOf(entryDN)));
+        return;
+      }
+
+      // Get the parent entry, if it exists.
+      Entry parentEntry = null;
+      if (parentDN != null)
+      {
+        parentEntry = DirectoryServer.getEntry(parentDN);
+
+        if (parentEntry == null)
+        {
+          DN matchedDN = parentDN.getParentDNInSuffix();
+          while (matchedDN != null)
+          {
+            try
+            {
+              if (DirectoryServer.entryExists(matchedDN))
+              {
+                setMatchedDN(matchedDN);
+                break;
+              }
+            }
+            catch (Exception e)
+            {
+              if (debugEnabled())
+              {
+                TRACER.debugCaught(DebugLogLevel.ERROR, e);
+              }
+              break;
+            }
+
+            matchedDN = matchedDN.getParentDNInSuffix();
+          }
+
+          // The parent doesn't exist, so this add can't be successful.
+          setResultCode(ResultCode.NO_SUCH_OBJECT);
+          appendErrorMessage(ERR_ADD_NO_PARENT.get(String.valueOf(entryDN),
+              String.valueOf(parentDN)));
+          return;
+        }
+      }
+
+      // Check to make sure that all of the RDN attributes are included as
+      // attribute values. If not, then either add them or report an error.
+      addRDNAttributesIfNecessary();
+
+      // Add any superior objectclass(s) missing in an entries
+      // objectclass map.
+      addSuperiorObjectClasses(objectClasses);
+
+      // Create an entry object to encapsulate the set of attributes and
+      // objectclasses.
+      entry = new Entry(entryDN, objectClasses, userAttributes,
+              operationalAttributes);
+
+      // Check to see if the entry includes a privilege specification. If so,
+      // then the requester must have the PRIVILEGE_CHANGE privilege.
+      AttributeType privType =
+          DirectoryServer.getAttributeType(OP_ATTR_PRIVILEGE_NAME, true);
+      if (entry.hasAttribute(privType)
+          && !clientConnection.hasPrivilege(Privilege.PRIVILEGE_CHANGE, this))
+      {
+        appendErrorMessage(ERR_ADD_CHANGE_PRIVILEGE_INSUFFICIENT_PRIVILEGES
+            .get());
+        setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
+        return;
+      }
+
+      // If it's not a synchronization operation, then check
+      // to see if the entry contains one or more passwords and if they
+      // are valid in accordance with the password policies associated with
+      // the user. Also perform any encoding that might be required by
+      // password storage schemes.
+      if (!isSynchronizationOperation())
+      {
+        handlePasswordPolicy();
+      }
+
+      // If the server is configured to check schema and the
+      // operation is not a synchronization operation,
+      // check to see if the entry is valid according to the server schema,
+      // and also whether its attributes are valid according to their syntax.
+      if (DirectoryServer.checkSchema() && !isSynchronizationOperation())
+      {
+        checkSchema(parentEntry);
+      }
+
+      // Get the backend in which the add is to be performed.
+      if (backend == null)
+      {
+        setResultCode(ResultCode.NO_SUCH_OBJECT);
+        appendErrorMessage(Message.raw("No backend for entry "
+            + entryDN.toString())); // TODO: i18n
+        return;
+      }
+
+      // Check to see if there are any controls in the request. If so, then
+      // see if there is any special processing required.
+      processControls(parentDN);
+
+      // Check to see if the client has permission to perform the add.
+
+      // FIXME: for now assume that this will check all permission
+      // pertinent to the operation. This includes proxy authorization
+      // and any other controls specified.
+
+      // FIXME: earlier checks to see if the entry already exists or
+      // if the parent entry does not exist may have already exposed
+      // sensitive information to the client.
+      try
+      {
+        if (!AccessControlConfigManager.getInstance().getAccessControlHandler()
+            .isAllowed(this))
+        {
+          setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
+          appendErrorMessage(ERR_ADD_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS
+              .get(String.valueOf(entryDN)));
+          return;
+        }
+      }
+      catch (DirectoryException e)
+      {
+        setResultCode(e.getResultCode());
+        appendErrorMessage(e.getMessageObject());
+        return;
+      }
+
+      // Check for a request to cancel this operation.
+      checkIfCanceled(false);
+
+      // If the operation is not a synchronization operation,
+      // Invoke the pre-operation add plugins.
+      if (!isSynchronizationOperation())
+      {
+        executePostOpPlugins.value = true;
+        PluginResult.PreOperation preOpResult =
+            pluginConfigManager.invokePreOperationAddPlugins(this);
+        if (!preOpResult.continueProcessing())
+        {
+          setResultCode(preOpResult.getResultCode());
+          appendErrorMessage(preOpResult.getErrorMessage());
+          setMatchedDN(preOpResult.getMatchedDN());
+          setReferralURLs(preOpResult.getReferralURLs());
+          return;
+        }
+      }
+
+      // If it is not a private backend, then check to see if the server or
+      // backend is operating in read-only mode.
+      if (!backend.isPrivateBackend())
+      {
+        switch (DirectoryServer.getWritabilityMode())
+        {
+        case DISABLED:
+          setResultCode(ResultCode.UNWILLING_TO_PERFORM);
+          appendErrorMessage(ERR_ADD_SERVER_READONLY.get(String
+              .valueOf(entryDN)));
+          return;
+
+        case INTERNAL_ONLY:
+          if (!(isInternalOperation() || isSynchronizationOperation()))
+          {
+            setResultCode(ResultCode.UNWILLING_TO_PERFORM);
+            appendErrorMessage(ERR_ADD_SERVER_READONLY.get(String
+                .valueOf(entryDN)));
+            return;
+          }
+          break;
+        }
+
+        switch (backend.getWritabilityMode())
+        {
+        case DISABLED:
+          setResultCode(ResultCode.UNWILLING_TO_PERFORM);
+          appendErrorMessage(ERR_ADD_BACKEND_READONLY.get(String
+              .valueOf(entryDN)));
+          return;
+
+        case INTERNAL_ONLY:
+          if (!(isInternalOperation() || isSynchronizationOperation()))
+          {
+            setResultCode(ResultCode.UNWILLING_TO_PERFORM);
+            appendErrorMessage(ERR_ADD_BACKEND_READONLY.get(String
+                .valueOf(entryDN)));
+            return;
+          }
+          break;
+        }
+      }
+
+      if (noOp)
+      {
+        appendErrorMessage(INFO_ADD_NOOP.get());
+        setResultCode(ResultCode.NO_OPERATION);
+      }
+      else
+      {
+        for (SynchronizationProvider<?> provider : DirectoryServer
+            .getSynchronizationProviders())
+        {
+          try
+          {
+            SynchronizationProviderResult result =
+                provider.doPreOperation(this);
+            if (!result.continueProcessing())
+            {
+              setResultCode(result.getResultCode());
+              appendErrorMessage(result.getErrorMessage());
+              setMatchedDN(result.getMatchedDN());
+              setReferralURLs(result.getReferralURLs());
+              return;
+            }
+          }
+          catch (DirectoryException de)
+          {
+            logError(ERR_ADD_SYNCH_PREOP_FAILED.get(getConnectionID(),
+                getOperationID(), getExceptionMessage(de)));
+            throw de;
+          }
+        }
+
+        backend.addEntry(entry, this);
+      }
+
+      LocalBackendWorkflowElement.addPostReadResponse(this, postReadRequest,
+          entry);
+
+      if (!noOp)
+      {
+        setResultCode(ResultCode.SUCCESS);
+      }
+    }
+    catch (DirectoryException de)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, de);
+      }
+
+      setResponseData(de);
+      return;
+    }
+    finally
+    {
+      for (SynchronizationProvider<?> provider : DirectoryServer
+          .getSynchronizationProviders())
+      {
+        try
+        {
+          provider.doPostOperation(this);
+        }
+        catch (DirectoryException de)
+        {
+          if (debugEnabled())
+          {
+            TRACER.debugCaught(DebugLogLevel.ERROR, de);
+          }
+
+          logError(ERR_ADD_SYNCH_POSTOP_FAILED.get(getConnectionID(),
+              getOperationID(), getExceptionMessage(de)));
+          setResponseData(de);
+          break;
+        }
+      }
+
+      if (entryLock != null)
+      {
+        LockManager.unlock(entryDN, entryLock);
+      }
+
+      if (parentLock != null)
+      {
+        LockManager.unlock(parentDN, parentLock);
+      }
+    }
+  }
+
+
+
+  private boolean checkHasReadOnlyAttributes(
+      Map<AttributeType, List<Attribute>> attributes)
+  {
+    for (AttributeType at : attributes.keySet())
+    {
+      if (at.isNoUserModification())
+      {
+        if (!(isInternalOperation() || isSynchronizationOperation()))
+        {
+          setResultCode(ResultCode.CONSTRAINT_VIOLATION);
+          appendErrorMessage(ERR_ADD_ATTR_IS_NO_USER_MOD.get(String
+              .valueOf(entryDN), at.getNameOrOID()));
+
+          return true;
+        }
+      }
+    }
+    return false;
+  }
 
   /**
    * Acquire a read lock on the parent of the entry to add.
@@ -827,8 +709,7 @@ addProcessing:
    *                              attributes and the server is configured to
    *                              reject such entries.
    */
-  protected void addRDNAttributesIfNecessary()
-          throws DirectoryException
+  private void addRDNAttributesIfNecessary() throws DirectoryException
   {
     RDN rdn = entryDN.getRDN();
     int numAVAs = rdn.getNumValues();
@@ -839,116 +720,72 @@ addProcessing:
       String         n = rdn.getAttributeName(i);
       if (t.isOperational())
       {
-        List<Attribute> attrList = operationalAttributes.get(t);
-        if (attrList == null)
-        {
-          if (isSynchronizationOperation() ||
-              DirectoryServer.addMissingRDNAttributes())
-          {
-            attrList = new ArrayList<Attribute>();
-            attrList.add(Attributes.create(t, n, v));
-            operationalAttributes.put(t, attrList);
-          }
-          else
-          {
-            throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                                         ERR_ADD_MISSING_RDN_ATTRIBUTE.get(
-                                              String.valueOf(entryDN), n));
-          }
-        }
-        else
-        {
-          boolean found = false;
-          for (int j = 0; j < attrList.size(); j++) {
-            Attribute a = attrList.get(j);
-
-            if (a.hasOptions())
-            {
-              continue;
-            }
-
-            if (!a.contains(v))
-            {
-              AttributeBuilder builder = new AttributeBuilder(a);
-              builder.add(v);
-              attrList.set(j, builder.toAttribute());
-            }
-
-            found = true;
-            break;
-          }
-
-          if (!found)
-          {
-            if (isSynchronizationOperation() ||
-                DirectoryServer.addMissingRDNAttributes())
-            {
-              attrList.add(Attributes.create(t, n, v));
-            }
-            else
-            {
-              throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                                           ERR_ADD_MISSING_RDN_ATTRIBUTE.get(
-                                                String.valueOf(entryDN), n));
-            }
-          }
-        }
+        addRDNAttributesIfNecessary(operationalAttributes, t, v, n);
       }
       else
       {
-        List<Attribute> attrList = userAttributes.get(t);
-        if (attrList == null)
+        addRDNAttributesIfNecessary(userAttributes, t, v, n);
+      }
+    }
+  }
+
+
+
+  private void addRDNAttributesIfNecessary(
+      Map<AttributeType, List<Attribute>> attributes, AttributeType t,
+      AttributeValue v, String n) throws DirectoryException
+  {
+    List<Attribute> attrList = attributes.get(t);
+    if (attrList == null)
+    {
+      if (isSynchronizationOperation() ||
+          DirectoryServer.addMissingRDNAttributes())
+      {
+        attrList = new ArrayList<Attribute>();
+        attrList.add(Attributes.create(t, n, v));
+        attributes.put(t, attrList);
+      }
+      else
+      {
+        throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
+                                     ERR_ADD_MISSING_RDN_ATTRIBUTE.get(
+                                          String.valueOf(entryDN), n));
+      }
+    }
+    else
+    {
+      boolean found = false;
+      for (int j = 0; j < attrList.size(); j++) {
+        Attribute a = attrList.get(j);
+
+        if (a.hasOptions())
         {
-          if (isSynchronizationOperation() ||
-              DirectoryServer.addMissingRDNAttributes())
-          {
-            attrList = new ArrayList<Attribute>();
-            attrList.add(Attributes.create(t, n, v));
-            userAttributes.put(t, attrList);
-          }
-          else
-          {
-            throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                                         ERR_ADD_MISSING_RDN_ATTRIBUTE.get(
-                                              String.valueOf(entryDN),n));
-          }
+          continue;
+        }
+
+        if (!a.contains(v))
+        {
+          AttributeBuilder builder = new AttributeBuilder(a);
+          builder.add(v);
+          attrList.set(j, builder.toAttribute());
+        }
+
+        found = true;
+        break;
+      }
+
+      if (!found)
+      {
+        if (isSynchronizationOperation() ||
+            DirectoryServer.addMissingRDNAttributes())
+        {
+          attrList.add(Attributes.create(t, n, v));
         }
         else
         {
-          boolean found = false;
-          for (int j = 0; j < attrList.size(); j++) {
-            Attribute a = attrList.get(j);
-
-            if (a.hasOptions())
-            {
-              continue;
-            }
-
-            if (!a.contains(v))
-            {
-              AttributeBuilder builder = new AttributeBuilder(a);
-              builder.add(v);
-              attrList.set(j, builder.toAttribute());
-            }
-
-            found = true;
-            break;
-          }
-
-          if (!found)
-          {
-            if (isSynchronizationOperation() ||
-                DirectoryServer.addMissingRDNAttributes())
-            {
-              attrList.add(Attributes.create(t, n, v));
-            }
-            else
-            {
-              throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                                           ERR_ADD_MISSING_RDN_ATTRIBUTE.get(
-                                                String.valueOf(entryDN),n));
-            }
-          }
+          throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
+                                       ERR_ADD_MISSING_RDN_ATTRIBUTE.get(
+                                            String.valueOf(entryDN), n));
         }
       }
     }
@@ -1210,8 +1047,7 @@ addProcessing:
    * @throws  DirectoryException  If the entry violates the server schema
    *                              configuration.
    */
-  protected void checkSchema(Entry parentEntry)
-          throws DirectoryException
+  private void checkSchema(Entry parentEntry) throws DirectoryException
   {
     MessageBuilder invalidReason = new MessageBuilder();
     if (! entry.conformsToSchema(parentEntry, true, true, true, invalidReason))
@@ -1219,172 +1055,10 @@ addProcessing:
       throw new DirectoryException(ResultCode.OBJECTCLASS_VIOLATION,
                                    invalidReason.toMessage());
     }
-    else
-    {
-      switch (DirectoryServer.getSyntaxEnforcementPolicy())
-      {
-        case REJECT:
-          invalidReason = new MessageBuilder();
-          for (List<Attribute> attrList : userAttributes.values())
-          {
-            for (Attribute a : attrList)
-            {
-              AttributeSyntax<?> syntax = a.getAttributeType().getSyntax();
-              if (syntax != null)
-              {
-                for (AttributeValue v : a)
-                {
-                  if (! syntax.valueIsAcceptable(v.getValue(), invalidReason))
-                  {
-                    if (!syntax.isHumanReadable() || syntax.isBinary())
-                    {
-                      // Value is not human-readable
-                      Message message = WARN_ADD_OP_INVALID_SYNTAX_NO_VALUE.get(
-                                        String.valueOf(entryDN),
-                                        String.valueOf(a.getName()),
-                                        String.valueOf(invalidReason));
 
-                      throw new DirectoryException(
-                                   ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                   message);
-                    }
-                    else
-                    {
-                      Message message = WARN_ADD_OP_INVALID_SYNTAX.get(
-                                        String.valueOf(entryDN),
-                                        String.valueOf(v.getValue().toString()),
-                                        String.valueOf(a.getName()),
-                                        String.valueOf(invalidReason));
-
-                      throw new DirectoryException(
-                                   ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                   message);
-                    }
-                  }
-                }
-              }
-            }
-          }
-
-          for (List<Attribute> attrList :
-               operationalAttributes.values())
-          {
-            for (Attribute a : attrList)
-            {
-              AttributeSyntax<?> syntax = a.getAttributeType().getSyntax();
-              if (syntax != null)
-              {
-                for (AttributeValue v : a)
-                {
-                  if (! syntax.valueIsAcceptable(v.getValue(),
-                                                 invalidReason))
-                  {
-                    if (!syntax.isHumanReadable() || syntax.isBinary())
-                    {
-                      // Value is not human-readable
-                      Message message = WARN_ADD_OP_INVALID_SYNTAX_NO_VALUE.
-                        get(String.valueOf(entryDN),
-                            String.valueOf(a.getName()),
-                            String.valueOf(invalidReason));
-
-                      throw new DirectoryException(
-                                   ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                   message);
-                    }
-                    else
-                    {
-                      Message message = WARN_ADD_OP_INVALID_SYNTAX.
-                        get(String.valueOf(entryDN),
-                            String.valueOf(v.getValue().toString()),
-                            String.valueOf(a.getName()),
-                            String.valueOf(invalidReason));
-
-                      throw new DirectoryException(
-                                   ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                   message);
-                    }
-                  }
-                }
-              }
-            }
-          }
-
-          break;
-
-
-        case WARN:
-          invalidReason = new MessageBuilder();
-          for (List<Attribute> attrList : userAttributes.values())
-          {
-            for (Attribute a : attrList)
-            {
-              AttributeSyntax<?> syntax = a.getAttributeType().getSyntax();
-              if (syntax != null)
-              {
-                for (AttributeValue v : a)
-                {
-                  if (! syntax.valueIsAcceptable(v.getValue(),
-                                                 invalidReason))
-                  {
-                    if (!syntax.isHumanReadable() || syntax.isBinary())
-                    {
-                      // Value is not human-readable
-                      logError(WARN_ADD_OP_INVALID_SYNTAX_NO_VALUE.get(
-                                  String.valueOf(entryDN),
-                                  String.valueOf(a.getName()),
-                                  String.valueOf(invalidReason)));
-                    }
-                    else
-                    {
-                      logError(WARN_ADD_OP_INVALID_SYNTAX.get(
-                                  String.valueOf(entryDN),
-                                  String.valueOf(v.getValue().toString()),
-                                  String.valueOf(a.getName()),
-                                  String.valueOf(invalidReason)));
-                    }
-                  }
-                }
-              }
-            }
-          }
-
-          for (List<Attribute> attrList : operationalAttributes.values())
-          {
-            for (Attribute a : attrList)
-            {
-              AttributeSyntax<?> syntax = a.getAttributeType().getSyntax();
-              if (syntax != null)
-              {
-                for (AttributeValue v : a)
-                {
-                  if (! syntax.valueIsAcceptable(v.getValue(),
-                                                 invalidReason))
-                  {
-                    if (!syntax.isHumanReadable() || syntax.isBinary())
-                    {
-                      // Value is not human-readable
-                      logError(WARN_ADD_OP_INVALID_SYNTAX_NO_VALUE.get(
-                                  String.valueOf(entryDN),
-                                  String.valueOf(a.getName()),
-                                  String.valueOf(invalidReason)));
-                    }
-                    else
-                    {
-                      logError(WARN_ADD_OP_INVALID_SYNTAX.get(
-                                  String.valueOf(entryDN),
-                                  String.valueOf(v.getValue().toString()),
-                                  String.valueOf(a.getName()),
-                                  String.valueOf(invalidReason)));
-                    }
-                  }
-                }
-              }
-            }
-          }
-
-          break;
-      }
-    }
+    invalidReason = new MessageBuilder();
+    checkAttributes(invalidReason, userAttributes);
+    checkAttributes(invalidReason, operationalAttributes);
 
 
     // See if the entry contains any attributes or object classes marked
@@ -1424,6 +1098,53 @@ addProcessing:
   }
 
 
+  private void checkAttributes(MessageBuilder invalidReason,
+      Map<AttributeType, List<Attribute>> attributes) throws DirectoryException
+  {
+    for (List<Attribute> attrList : attributes.values())
+    {
+      for (Attribute a : attrList)
+      {
+        AttributeSyntax<?> syntax = a.getAttributeType().getSyntax();
+        if (syntax != null)
+        {
+          for (AttributeValue v : a)
+          {
+            if (!syntax.valueIsAcceptable(v.getValue(), invalidReason))
+            {
+              Message message;
+              if (!syntax.isHumanReadable() || syntax.isBinary())
+              {
+                // Value is not human-readable
+                message = WARN_ADD_OP_INVALID_SYNTAX_NO_VALUE.
+                    get(String.valueOf(entryDN),
+                        String.valueOf(a.getName()),
+                        String.valueOf(invalidReason));
+              }
+              else
+              {
+                message = WARN_ADD_OP_INVALID_SYNTAX.
+                    get(String.valueOf(entryDN),
+                        String.valueOf(v.getValue().toString()),
+                        String.valueOf(a.getName()),
+                        String.valueOf(invalidReason));
+
+              }
+
+              switch (DirectoryServer.getSyntaxEnforcementPolicy())
+              {
+              case REJECT:
+                throw new DirectoryException(
+                    ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
+              case WARN:
+                logError(message);
+              }
+            }
+          }
+        }
+      }
+    }
+  }
 
   /**
    * Processes the set of controls contained in the add request.
@@ -1433,8 +1154,7 @@ addProcessing:
    * @throws  DirectoryException  If there is a problem with any of the
    *                              request controls.
    */
-  protected void processControls(DN parentDN)
-          throws DirectoryException
+  private void processControls(DN parentDN) throws DirectoryException
   {
     List<Control> requestControls = getRequestControls();
     if ((requestControls != null) && (! requestControls.isEmpty()))
@@ -1528,7 +1248,7 @@ addProcessing:
           addAdditionalLogItem(AdditionalLogItem.keyOnly(getClass(),
               "obsoleteProxiedAuthzV1Control"));
 
-          // The requester must have the PROXIED_AUTH privilige in order to
+          // The requester must have the PROXIED_AUTH privilege in order to
           // be able to use this control.
           if (! getClientConnection().hasPrivilege(Privilege.PROXIED_AUTH,
                                                    this))
@@ -1553,7 +1273,7 @@ addProcessing:
         }
         else if (oid.equals(OID_PROXIED_AUTH_V2))
         {
-          // The requester must have the PROXIED_AUTH privilige in order to
+          // The requester must have the PROXIED_AUTH privilege in order to
           // be able to use this control.
           if (! getClientConnection().hasPrivilege(Privilege.PROXIED_AUTH,
                                                    this))
