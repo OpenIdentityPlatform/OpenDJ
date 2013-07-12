@@ -30,6 +30,7 @@ package org.opends.server.authorization.dseecompat;
 
 import static org.opends.messages.AccessControlMessages.*;
 import static org.opends.server.authorization.dseecompat.Aci.*;
+import static org.opends.server.authorization.dseecompat.EnumEvalReason.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
@@ -1389,17 +1390,15 @@ public final class AciHandler extends
    */
   private boolean testApplicableLists(AciEvalContext evalCtx)
   {
-    evalCtx.setEvalReason(EnumEvalReason.NO_REASON);
-    // If allows list is empty and not doing geteffectiverights return
-    // false.
-    evalCtx.setDenyEval(true);
+    evalCtx.setEvaluationResult(NO_REASON, null);
+
     if (evalCtx.getAllowList().isEmpty()
-        && !(evalCtx.isGetEffectiveRightsEval()
-            && !evalCtx.hasRights(ACI_SELF) && evalCtx
-            .isTargAttrFilterMatchAciEmpty()))
+        && (!evalCtx.isGetEffectiveRightsEval()
+            || evalCtx.hasRights(ACI_SELF)
+            || !evalCtx.isTargAttrFilterMatchAciEmpty()))
     {
-      evalCtx.setEvalReason(EnumEvalReason.NO_ALLOW_ACIS);
-      evalCtx.setDecidingAci(null);
+      // If allows list is empty and not doing geteffectiverights return false.
+      evalCtx.setEvaluationResult(NO_ALLOW_ACIS, null);
       return false;
     }
 
@@ -1410,36 +1409,25 @@ public final class AciHandler extends
       // search fails
       if (res.equals(EnumEvalResult.FAIL))
       {
-        evalCtx.setEvalReason(EnumEvalReason.EVALUATED_DENY_ACI);
-        evalCtx.setDecidingAci(denyAci);
+        evalCtx.setEvaluationResult(EVALUATED_DENY_ACI, denyAci);
         return false;
       }
       else if (res.equals(EnumEvalResult.TRUE))
       {
         if (evalCtx.isGetEffectiveRightsEval()
             && !evalCtx.hasRights(ACI_SELF)
-            && !evalCtx.isTargAttrFilterMatchAciEmpty())
+            && !evalCtx.isTargAttrFilterMatchAciEmpty()
+            // Iterate to next only if deny ACI contains a targattrfilters
+            // keyword.
+            && AciEffectiveRights.setTargAttrAci(evalCtx, denyAci, true))
         {
-          // Iterate to next only if deny ACI contains a targattrfilters
-          // keyword.
-          if (AciEffectiveRights.setTargAttrAci(evalCtx, denyAci, true))
-          {
-            continue;
-          }
-          evalCtx.setEvalReason(EnumEvalReason.EVALUATED_DENY_ACI);
-          evalCtx.setDecidingAci(denyAci);
-          return false;
+          continue;
         }
-        else
-        {
-          evalCtx.setEvalReason(EnumEvalReason.EVALUATED_DENY_ACI);
-          evalCtx.setDecidingAci(denyAci);
-          return false;
-        }
+        evalCtx.setEvaluationResult(EVALUATED_DENY_ACI, denyAci);
+        return false;
       }
     }
-    // Now check the allows -- flip the deny flag to false first.
-    evalCtx.setDenyEval(false);
+
     for (Aci allowAci : evalCtx.getAllowList())
     {
       final EnumEvalResult res = Aci.evaluate(evalCtx, allowAci);
@@ -1447,29 +1435,19 @@ public final class AciHandler extends
       {
         if (evalCtx.isGetEffectiveRightsEval()
             && !evalCtx.hasRights(ACI_SELF)
-            && !evalCtx.isTargAttrFilterMatchAciEmpty())
+            && !evalCtx.isTargAttrFilterMatchAciEmpty()
+            // Iterate to next only if deny ACI contains a targattrfilters
+            // keyword.
+            && AciEffectiveRights.setTargAttrAci(evalCtx, allowAci, false))
         {
-          // Iterate to next only if deny ACI contains a targattrfilters
-          // keyword.
-          if (AciEffectiveRights.setTargAttrAci(evalCtx, allowAci, false))
-          {
-            continue;
-          }
-          evalCtx.setEvalReason(EnumEvalReason.EVALUATED_ALLOW_ACI);
-          evalCtx.setDecidingAci(allowAci);
-          return true;
+          continue;
         }
-        else
-        {
-          evalCtx.setEvalReason(EnumEvalReason.EVALUATED_ALLOW_ACI);
-          evalCtx.setDecidingAci(allowAci);
-          return true;
-        }
+        evalCtx.setEvaluationResult(EVALUATED_ALLOW_ACI, allowAci);
+        return true;
       }
     }
     // Nothing matched fall through.
-    evalCtx.setEvalReason(EnumEvalReason.NO_MATCHED_ALLOWS_ACIS);
-    evalCtx.setDecidingAci(null);
+    evalCtx.setEvaluationResult(NO_MATCHED_ALLOWS_ACIS, null);
     return false;
   }
 

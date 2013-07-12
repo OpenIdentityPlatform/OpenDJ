@@ -74,12 +74,6 @@ public interface AciEvalContext
     public List<Aci> getAllowList();
 
     /**
-     * Set when the deny list is being evaluated.
-     * @param v True if deny's are being evaluated.
-     */
-    public void setDenyEval(boolean v);
-
-    /**
      * Returns true if the deny list is being evaluated.
      * @return True if the deny list is being evaluated.
      */
@@ -217,14 +211,17 @@ public interface AciEvalContext
     public void setTargAttrFiltersMatchOp(int flag);
 
   /**
-   * Set the reason the last access evaluation was evaluated the way it
-   * was. Used by geteffectiverights control evaluation to eventually build the
-   * summary string.
+   * Set the reason and the ACI that decided why the last access evaluation was
+   * evaluated the way it was. Used by geteffectiverights control evaluation to
+   * eventually build the summary string.
    *
-   * @param reason  The enumeration representing the reason of the last access
-   * evaluation.
+   * @param reason
+   *          The enumeration representing the reason of the last access
+   *          evaluation.
+   * @param decidingAci
+   *          The ACI that decided the last access evaluation.
    */
-    public void setEvalReason(EnumEvalReason reason);
+  void setEvaluationResult(EnumEvalReason reason, Aci decidingAci);
 
   /**
    * Return the reason the last access evaluation was evaluated the way it
@@ -235,14 +232,6 @@ public interface AciEvalContext
    * evaluation.
    */
     public EnumEvalReason getEvalReason();
-
-  /**
-   * Set the ACI that decided that last access evaluation. Used by
-   * geteffectiverights control evaluation to the build summary string.
-   *
-   * @param aci The ACI that decided the last access evaluation.
-   */
-    public void setDecidingAci(Aci aci);
 
   /**
    * Check if an evaluation context contains a set of access rights.
