@@ -69,7 +69,7 @@ public final class Iterators {
             throw new UnsupportedOperationException();
         }
 
-    };
+    }
 
     private static final class EmptyIterator<M> implements Iterator<M> {
         /**
