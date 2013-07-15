@@ -27,8 +27,6 @@
  */
 package org.opends.server.workflowelement.localbackend;
 
-
-
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.ErrorLogger.*;
@@ -37,7 +35,6 @@ import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
@@ -57,8 +54,6 @@ import org.opends.server.types.operation.PostResponseModifyOperation;
 import org.opends.server.types.operation.PostSynchronizationModifyOperation;
 import org.opends.server.types.operation.PreOperationModifyOperation;
 import org.opends.server.util.Validator;
-
-
 
 /**
  * This class defines an operation used to modify an entry in a local backend
@@ -82,7 +77,7 @@ public class LocalBackendModifyOperation
    */
   protected Backend backend;
 
-  // Indicates whether the request included the user's current password.
+  /** Indicates whether the request included the user's current password. */
   private boolean currentPasswordProvided;
 
   /**
@@ -91,7 +86,7 @@ public class LocalBackendModifyOperation
    */
   protected boolean enabledStateChanged;
 
-  // Indicates whether the user's account is currently enabled.
+  /** Indicates whether the user's account is currently enabled. */
   private boolean isEnabled;
 
   /**
@@ -105,7 +100,7 @@ public class LocalBackendModifyOperation
   protected boolean permissiveModify = false;
 
   /**
-   * Indicates whether this modify operation includees a password change.
+   * Indicates whether this modify operation includes a password change.
    */
   protected boolean passwordChanged;
 
@@ -144,19 +139,19 @@ public class LocalBackendModifyOperation
    */
   protected Entry modifiedEntry = null;
 
-  // The number of passwords contained in the modify operation.
+  /** The number of passwords contained in the modify operation. */
   private int numPasswords;
 
-  // The post-read request control, if present.
+  /** The post-read request control, if present.*/
   private LDAPPostReadRequestControl postReadRequest;
 
-  // The pre-read request control, if present.
+  /** The pre-read request control, if present.*/
   private LDAPPreReadRequestControl preReadRequest;
 
-  // The set of clear-text current passwords (if any were provided).
+  /** The set of clear-text current passwords (if any were provided).*/
   private List<AttributeValue> currentPasswords = null;
 
-  // The set of clear-text new passwords (if any were provided).
+  /** The set of clear-text new passwords (if any were provided).*/
   private List<AttributeValue> newPasswords = null;
 
   /**
@@ -293,355 +288,15 @@ public class LocalBackendModifyOperation
   public void processLocalModify(final LocalBackendWorkflowElement wfe)
       throws CanceledOperationException
   {
-    boolean executePostOpPlugins = false;
     this.backend = wfe.getBackend();
 
     clientConnection = getClientConnection();
 
-    // Get the plugin config manager that will be used for invoking plugins.
-    PluginConfigManager pluginConfigManager =
-      DirectoryServer.getPluginConfigManager();
-
     // Check for a request to cancel this operation.
     checkIfCanceled(false);
 
-    // Create a labeled block of code that we can break out of if a problem is
-    // detected.
-modifyProcessing:
-    {
-      entryDN = getEntryDN();
-      if (entryDN == null){
-        break modifyProcessing;
-      }
-
-      // Process the modifications to convert them from their raw form to the
-      // form required for the rest of the modify processing.
-      modifications = getModifications();
-      if (modifications == null)
-      {
-        break modifyProcessing;
-      }
-
-      if (modifications.isEmpty())
-      {
-        setResultCode(ResultCode.CONSTRAINT_VIOLATION);
-        appendErrorMessage(ERR_MODIFY_NO_MODIFICATIONS.get(
-                                String.valueOf(entryDN)));
-        break modifyProcessing;
-      }
-
-      // Check for a request to cancel this operation.
-      checkIfCanceled(false);
-
-      // Acquire a write lock on the target entry.
-      final Lock entryLock = LockManager.lockWrite(entryDN);
-      if (entryLock == null)
-      {
-        setResultCode(ResultCode.BUSY);
-        appendErrorMessage(ERR_MODIFY_CANNOT_LOCK_ENTRY.get(
-                                String.valueOf(entryDN)));
-        break modifyProcessing;
-      }
-
-
-      try
-      {
-        // Check for a request to cancel this operation.
-        checkIfCanceled(false);
-
-
-        try
-        {
-          // Get the entry to modify.  If it does not exist, then fail.
-          currentEntry = backend.getEntry(entryDN);
-
-          if (currentEntry == null)
-          {
-            setResultCode(ResultCode.NO_SUCH_OBJECT);
-            appendErrorMessage(ERR_MODIFY_NO_SUCH_ENTRY.get(
-                String.valueOf(entryDN)));
-
-            // See if one of the entry's ancestors exists.
-            try
-            {
-              DN parentDN = entryDN.getParentDNInSuffix();
-              while (parentDN != null)
-              {
-                if (DirectoryServer.entryExists(parentDN))
-                {
-                  setMatchedDN(parentDN);
-                  break;
-                }
-
-                parentDN = parentDN.getParentDNInSuffix();
-              }
-            }
-            catch (Exception e)
-            {
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, e);
-              }
-            }
-
-            break modifyProcessing;
-          }
-
-          // Check to see if there are any controls in the request.  If so, then
-          // see if there is any special processing required.
-          processRequestControls();
-
-          // Get the password policy state object for the entry that can be used
-          // to perform any appropriate password policy processing.  Also, see
-          // if the entry is being updated by the end user or an administrator.
-          DN authzDN = getAuthorizationDN();
-          selfChange = entryDN.equals(authzDN);
-
-          // Check that the authorizing account isn't required to change its
-          // password.
-          if (( !isInternalOperation()) && !selfChange
-              && getAuthorizationEntry() != null) {
-            AuthenticationPolicy authzPolicy = AuthenticationPolicy.forUser(
-                getAuthorizationEntry(), true);
-            if (authzPolicy.isPasswordPolicy())
-            {
-              PasswordPolicyState authzState = (PasswordPolicyState) authzPolicy
-                  .createAuthenticationPolicyState(getAuthorizationEntry());
-              if (authzState.mustChangePassword())
-              {
-                pwpErrorType = PasswordPolicyErrorType.CHANGE_AFTER_RESET;
-                setResultCode(ResultCode.CONSTRAINT_VIOLATION);
-                appendErrorMessage(ERR_MODIFY_MUST_CHANGE_PASSWORD
-                    .get(authzDN != null ? String.valueOf(authzDN)
-                        : "anonymous"));
-                break modifyProcessing;
-              }
-            }
-          }
-
-          // FIXME -- Need a way to enable debug mode.
-          AuthenticationPolicy policy = AuthenticationPolicy.forUser(
-              currentEntry, true);
-          if (policy.isPasswordPolicy())
-          {
-            pwPolicyState = (PasswordPolicyState) policy
-                .createAuthenticationPolicyState(currentEntry);
-          }
-        }
-        catch (DirectoryException de)
-        {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, de);
-          }
-
-          setResponseData(de);
-          break modifyProcessing;
-        }
-
-
-        // Create a duplicate of the entry and apply the changes to it.
-        modifiedEntry = currentEntry.duplicate(false);
-
-        if (! noOp)
-        {
-            if(!handleConflictResolution()) {
-                break modifyProcessing;
-            }
-        }
-
-
-        try
-        {
-          handleSchemaProcessing();
-        }
-        catch (DirectoryException de)
-        {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, de);
-          }
-
-          setResponseData(de);
-          break modifyProcessing;
-        }
-
-
-        // Check to see if the client has permission to perform the modify.
-        // The access control check is not made any earlier because the handler
-        // needs access to the modified entry.
-
-        // FIXME: for now assume that this will check all permissions
-        // pertinent to the operation. This includes proxy authorization
-        // and any other controls specified.
-
-        // FIXME: earlier checks to see if the entry already exists may have
-        // already exposed sensitive information to the client.
-        try
-        {
-          if (!AccessControlConfigManager.getInstance()
-              .getAccessControlHandler().isAllowed(this))
-          {
-            setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
-            appendErrorMessage(ERR_MODIFY_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS
-                .get(String.valueOf(entryDN)));
-            break modifyProcessing;
-          }
-        }
-        catch (DirectoryException e)
-        {
-          setResultCode(e.getResultCode());
-          appendErrorMessage(e.getMessageObject());
-          break modifyProcessing;
-        }
-
-
-        try
-        {
-          handleInitialPasswordPolicyProcessing();
-          performAdditionalPasswordChangedProcessing();
-        }
-        catch (DirectoryException de)
-        {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, de);
-          }
-
-          setResponseData(de);
-          break modifyProcessing;
-        }
-
-
-        if ((!passwordChanged) && (!isInternalOperation()) && selfChange
-            && pwPolicyState != null && pwPolicyState.mustChangePassword())
-        {
-          // The user did not attempt to change their password.
-          pwpErrorType = PasswordPolicyErrorType.CHANGE_AFTER_RESET;
-          setResultCode(ResultCode.CONSTRAINT_VIOLATION);
-          DN authzDN = getAuthorizationDN();
-          appendErrorMessage(ERR_MODIFY_MUST_CHANGE_PASSWORD
-              .get(authzDN != null ? String.valueOf(authzDN) : "anonymous"));
-          break modifyProcessing;
-        }
-
-
-        // If the server is configured to check the schema and the
-        // operation is not a synchronization operation,
-        // make sure that the new entry is valid per the server schema.
-        if ((DirectoryServer.checkSchema()) && (! isSynchronizationOperation()))
-        {
-          MessageBuilder invalidReason = new MessageBuilder();
-          if (! modifiedEntry.conformsToSchema(null, false, false, false,
-              invalidReason))
-          {
-            setResultCode(ResultCode.OBJECTCLASS_VIOLATION);
-            appendErrorMessage(ERR_MODIFY_VIOLATES_SCHEMA.get(
-                                    String.valueOf(entryDN), invalidReason));
-            break modifyProcessing;
-          }
-        }
-
-
-        // Check for a request to cancel this operation.
-        checkIfCanceled(false);
-
-        // If the operation is not a synchronization operation,
-        // Invoke the pre-operation modify plugins.
-        if (! isSynchronizationOperation())
-        {
-          executePostOpPlugins = true;
-          PluginResult.PreOperation preOpResult =
-            pluginConfigManager.invokePreOperationModifyPlugins(this);
-          if (!preOpResult.continueProcessing())
-          {
-            setResultCode(preOpResult.getResultCode());
-            appendErrorMessage(preOpResult.getErrorMessage());
-            setMatchedDN(preOpResult.getMatchedDN());
-            setReferralURLs(preOpResult.getReferralURLs());
-            break modifyProcessing;
-          }
-        }
-
-
-        // Actually perform the modify operation.  This should also include
-        // taking care of any synchronization that might be needed.
-        if (backend == null)
-        {
-          setResultCode(ResultCode.NO_SUCH_OBJECT);
-          appendErrorMessage(ERR_MODIFY_NO_BACKEND_FOR_ENTRY.get(
-                                  String.valueOf(entryDN)));
-          break modifyProcessing;
-        }
-
-        try
-        {
-          try
-          {
-            checkWritability();
-          }
-          catch (DirectoryException de)
-          {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, de);
-            }
-
-            setResponseData(de);
-            break modifyProcessing;
-          }
-
-
-          if (noOp)
-          {
-            appendErrorMessage(INFO_MODIFY_NOOP.get());
-            setResultCode(ResultCode.NO_OPERATION);
-          }
-          else
-          {
-            if (!processPreOperation())
-            {
-              break modifyProcessing;
-            }
-
-            backend.replaceEntry(currentEntry, modifiedEntry, this);
-
-            // See if we need to generate any account status notifications as a
-            // result of the changes.
-            handleAccountStatusNotifications();
-          }
-
-
-          // Handle any processing that may be needed for the pre-read and/or
-          // post-read controls.
-          LocalBackendWorkflowElement.addPreReadResponse(this,
-              preReadRequest, currentEntry);
-          LocalBackendWorkflowElement.addPostReadResponse(this,
-              postReadRequest, modifiedEntry);
-
-
-          if (! noOp)
-          {
-            setResultCode(ResultCode.SUCCESS);
-          }
-        }
-        catch (DirectoryException de)
-        {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, de);
-          }
-
-          setResponseData(de);
-          break modifyProcessing;
-        }
-      }
-      finally
-      {
-        LockManager.unlock(entryDN, entryLock);
-        processSynchPostOperationPlugins();
-      }
-    }
+    BooleanHolder executePostOpPlugins = new BooleanHolder();
+    processModify(executePostOpPlugins);
 
     // If the password policy request control was included, then make sure we
     // send the corresponding response control.
@@ -652,6 +307,8 @@ modifyProcessing:
     }
 
     // Invoke the post-operation or post-synchronization modify plugins.
+    PluginConfigManager pluginConfigManager =
+        DirectoryServer.getPluginConfigManager();
     if (isSynchronizationOperation())
     {
       if (getResultCode() == ResultCode.SUCCESS)
@@ -659,7 +316,7 @@ modifyProcessing:
         pluginConfigManager.invokePostSynchronizationModifyPlugins(this);
       }
     }
-    else if (executePostOpPlugins)
+    else if (executePostOpPlugins.value)
     {
       // FIXME -- Should this also be done while holding the locks?
       PluginResult.PostOperation postOpResult =
@@ -720,6 +377,278 @@ modifyProcessing:
   }
 
 
+  private void processModify(BooleanHolder executePostOpPlugins)
+      throws CanceledOperationException
+  {
+    entryDN = getEntryDN();
+    if (entryDN == null)
+    {
+      return;
+    }
+
+    // Process the modifications to convert them from their raw form to the
+    // form required for the rest of the modify processing.
+    modifications = getModifications();
+    if (modifications == null)
+    {
+      return;
+    }
+
+    if (modifications.isEmpty())
+    {
+      setResultCode(ResultCode.CONSTRAINT_VIOLATION);
+      appendErrorMessage(ERR_MODIFY_NO_MODIFICATIONS.get(String
+          .valueOf(entryDN)));
+      return;
+    }
+
+    // Check for a request to cancel this operation.
+    checkIfCanceled(false);
+
+    // Acquire a write lock on the target entry.
+    final Lock entryLock = LockManager.lockWrite(entryDN);
+    if (entryLock == null)
+    {
+      setResultCode(ResultCode.BUSY);
+      appendErrorMessage(ERR_MODIFY_CANNOT_LOCK_ENTRY.get(String
+          .valueOf(entryDN)));
+      return;
+    }
+
+    try
+    {
+      // Check for a request to cancel this operation.
+      checkIfCanceled(false);
+
+      // Get the entry to modify. If it does not exist, then fail.
+      currentEntry = backend.getEntry(entryDN);
+
+      if (currentEntry == null)
+      {
+        setResultCode(ResultCode.NO_SUCH_OBJECT);
+        appendErrorMessage(ERR_MODIFY_NO_SUCH_ENTRY
+            .get(String.valueOf(entryDN)));
+
+        // See if one of the entry's ancestors exists.
+        try
+        {
+          DN parentDN = entryDN.getParentDNInSuffix();
+          while (parentDN != null)
+          {
+            if (DirectoryServer.entryExists(parentDN))
+            {
+              setMatchedDN(parentDN);
+              break;
+            }
+
+            parentDN = parentDN.getParentDNInSuffix();
+          }
+        }
+        catch (Exception e)
+        {
+          if (debugEnabled())
+          {
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
+          }
+        }
+
+        return;
+      }
+
+      // Check to see if there are any controls in the request. If so, then
+      // see if there is any special processing required.
+      processRequestControls();
+
+      // Get the password policy state object for the entry that can be used
+      // to perform any appropriate password policy processing. Also, see
+      // if the entry is being updated by the end user or an administrator.
+      final DN authzDN = getAuthorizationDN();
+      selfChange = entryDN.equals(authzDN);
+
+      // Check that the authorizing account isn't required to change its
+      // password.
+      if ((!isInternalOperation()) && !selfChange
+          && getAuthorizationEntry() != null)
+      {
+        AuthenticationPolicy authzPolicy =
+            AuthenticationPolicy.forUser(getAuthorizationEntry(), true);
+        if (authzPolicy.isPasswordPolicy())
+        {
+          PasswordPolicyState authzState =
+              (PasswordPolicyState) authzPolicy
+                  .createAuthenticationPolicyState(getAuthorizationEntry());
+          if (authzState.mustChangePassword())
+          {
+            pwpErrorType = PasswordPolicyErrorType.CHANGE_AFTER_RESET;
+            setResultCode(ResultCode.CONSTRAINT_VIOLATION);
+            appendErrorMessage(ERR_MODIFY_MUST_CHANGE_PASSWORD
+                .get(authzDN != null ? String.valueOf(authzDN) : "anonymous"));
+            return;
+          }
+        }
+      }
+
+      // FIXME -- Need a way to enable debug mode.
+      AuthenticationPolicy policy =
+          AuthenticationPolicy.forUser(currentEntry, true);
+      if (policy.isPasswordPolicy())
+      {
+        pwPolicyState =
+            (PasswordPolicyState) policy
+                .createAuthenticationPolicyState(currentEntry);
+      }
+
+      // Create a duplicate of the entry and apply the changes to it.
+      modifiedEntry = currentEntry.duplicate(false);
+
+      if (!noOp)
+      {
+        if (!handleConflictResolution())
+        {
+          return;
+        }
+      }
+
+      handleSchemaProcessing();
+
+      // Check to see if the client has permission to perform the modify.
+      // The access control check is not made any earlier because the handler
+      // needs access to the modified entry.
+
+      // FIXME: for now assume that this will check all permissions
+      // pertinent to the operation. This includes proxy authorization
+      // and any other controls specified.
+
+      // FIXME: earlier checks to see if the entry already exists may have
+      // already exposed sensitive information to the client.
+      try
+      {
+        if (!AccessControlConfigManager.getInstance().getAccessControlHandler()
+            .isAllowed(this))
+        {
+          setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
+          appendErrorMessage(ERR_MODIFY_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS
+              .get(String.valueOf(entryDN)));
+          return;
+        }
+      }
+      catch (DirectoryException e)
+      {
+        setResultCode(e.getResultCode());
+        appendErrorMessage(e.getMessageObject());
+        return;
+      }
+
+      handleInitialPasswordPolicyProcessing();
+      performAdditionalPasswordChangedProcessing();
+
+      if ((!passwordChanged) && (!isInternalOperation()) && selfChange
+          && pwPolicyState != null && pwPolicyState.mustChangePassword())
+      {
+        // The user did not attempt to change their password.
+        pwpErrorType = PasswordPolicyErrorType.CHANGE_AFTER_RESET;
+        setResultCode(ResultCode.CONSTRAINT_VIOLATION);
+        appendErrorMessage(ERR_MODIFY_MUST_CHANGE_PASSWORD
+            .get(authzDN != null ? String.valueOf(authzDN) : "anonymous"));
+        return;
+      }
+
+      // If the server is configured to check the schema and the
+      // operation is not a synchronization operation,
+      // make sure that the new entry is valid per the server schema.
+      if ((DirectoryServer.checkSchema()) && (!isSynchronizationOperation()))
+      {
+        MessageBuilder invalidReason = new MessageBuilder();
+        if (!modifiedEntry.conformsToSchema(null, false, false, false,
+            invalidReason))
+        {
+          setResultCode(ResultCode.OBJECTCLASS_VIOLATION);
+          appendErrorMessage(ERR_MODIFY_VIOLATES_SCHEMA.get(String
+              .valueOf(entryDN), invalidReason));
+          return;
+        }
+      }
+
+      // Check for a request to cancel this operation.
+      checkIfCanceled(false);
+
+      // If the operation is not a synchronization operation,
+      // Invoke the pre-operation modify plugins.
+      if (!isSynchronizationOperation())
+      {
+        executePostOpPlugins.value = true;
+        PluginResult.PreOperation preOpResult =
+            DirectoryServer.getPluginConfigManager()
+                .invokePreOperationModifyPlugins(this);
+        if (!preOpResult.continueProcessing())
+        {
+          setResultCode(preOpResult.getResultCode());
+          appendErrorMessage(preOpResult.getErrorMessage());
+          setMatchedDN(preOpResult.getMatchedDN());
+          setReferralURLs(preOpResult.getReferralURLs());
+          return;
+        }
+      }
+
+      // Actually perform the modify operation. This should also include
+      // taking care of any synchronization that might be needed.
+      if (backend == null)
+      {
+        setResultCode(ResultCode.NO_SUCH_OBJECT);
+        appendErrorMessage(ERR_MODIFY_NO_BACKEND_FOR_ENTRY.get(String
+            .valueOf(entryDN)));
+        return;
+      }
+
+      checkWritability();
+
+      if (noOp)
+      {
+        appendErrorMessage(INFO_MODIFY_NOOP.get());
+        setResultCode(ResultCode.NO_OPERATION);
+      }
+      else
+      {
+        if (!processPreOperation())
+        {
+          return;
+        }
+
+        backend.replaceEntry(currentEntry, modifiedEntry, this);
+
+        // See if we need to generate any account status notifications as a
+        // result of the changes.
+        handleAccountStatusNotifications();
+      }
+
+      // Handle any processing that may be needed for the pre-read and/or
+      // post-read controls.
+      LocalBackendWorkflowElement.addPreReadResponse(this, preReadRequest,
+          currentEntry);
+      LocalBackendWorkflowElement.addPostReadResponse(this, postReadRequest,
+          modifiedEntry);
+
+      if (!noOp)
+      {
+        setResultCode(ResultCode.SUCCESS);
+      }
+    }
+    catch (DirectoryException de)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, de);
+      }
+
+      setResponseData(de);
+      return;
+    }
+    finally
+    {
+      LockManager.unlock(entryDN, entryLock);
+      processSynchPostOperationPlugins();
+    }
+  }
 
   /**
    * Processes any controls contained in the modify request.
@@ -1490,6 +1419,8 @@ modifyProcessing:
         {
           if (!syntax.valueIsAcceptable(v.getValue(), invalidReason))
           {
+            // FIXME remove next line of code. According to Matt, since this is
+            // just a warning, the code should not set the resultCode
             setResultCode(ResultCode.INVALID_ATTRIBUTE_SYNTAX);
             if (!syntax.isHumanReadable() || syntax.isBinary())
             {
@@ -1520,23 +1451,16 @@ modifyProcessing:
     // Add the provided attribute or merge an existing attribute with
     // the values of the new attribute. If there are any duplicates,
     // then fail.
-    LinkedList<AttributeValue> duplicateValues =
+    List<AttributeValue> duplicateValues =
       new LinkedList<AttributeValue>();
     modifiedEntry.addAttribute(attr, duplicateValues);
     if (!duplicateValues.isEmpty() && !permissiveModify)
     {
-      StringBuilder buffer = new StringBuilder();
-      Iterator<AttributeValue> iterator = duplicateValues.iterator();
-      buffer.append(iterator.next().getValue().toString());
-      while (iterator.hasNext())
-      {
-        buffer.append(", ");
-        buffer.append(iterator.next().getValue().toString());
-      }
+      String duplicateValuesStr = collectionToString(duplicateValues, ", ");
 
       throw new DirectoryException(ResultCode.ATTRIBUTE_OR_VALUE_EXISTS,
           ERR_MODIFY_ADD_DUPLICATE_VALUE.get(String.valueOf(entryDN), attr
-              .getName(), buffer));
+              .getName(), duplicateValuesStr));
     }
   }
 
@@ -1609,7 +1533,7 @@ modifyProcessing:
     // Remove the specified attribute values or the entire attribute from the
     // value.  If there are any specified values that were not present, then
     // fail.  If the RDN attribute value would be removed, then fail.
-    LinkedList<AttributeValue> missingValues = new LinkedList<AttributeValue>();
+    List<AttributeValue> missingValues = new LinkedList<AttributeValue>();
     boolean attrExists = modifiedEntry.removeAttribute(attr, missingValues);
 
     if (attrExists)
@@ -1633,18 +1557,12 @@ modifyProcessing:
       {
         if (! permissiveModify)
         {
-          StringBuilder buffer = new StringBuilder();
-          Iterator<AttributeValue> iterator = missingValues.iterator();
-          buffer.append(iterator.next().getValue().toString());
-          while (iterator.hasNext())
-          {
-            buffer.append(", ");
-            buffer.append(iterator.next().getValue().toString());
-          }
+          String missingValuesStr = collectionToString(missingValues, ", ");
 
           throw new DirectoryException(ResultCode.NO_SUCH_ATTRIBUTE,
                        ERR_MODIFY_DELETE_MISSING_VALUES.get(
-                            String.valueOf(entryDN), attr.getName(), buffer));
+                            String.valueOf(entryDN), attr.getName(),
+                            missingValuesStr));
         }
       }
     }
@@ -2264,5 +2182,3 @@ modifyProcessing:
       }
   }
 }
-
-

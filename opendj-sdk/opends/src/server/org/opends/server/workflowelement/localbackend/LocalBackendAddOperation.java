@@ -27,8 +27,6 @@
  */
 package org.opends.server.workflowelement.localbackend;
 
-
-
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.ErrorLogger.*;
@@ -58,8 +56,6 @@ import org.opends.server.types.operation.PostSynchronizationAddOperation;
 import org.opends.server.types.operation.PreOperationAddOperation;
 import org.opends.server.util.TimeThread;
 
-
-
 /**
  * This class defines an operation used to add an entry in a local backend
  * of the Directory Server.
@@ -73,14 +69,6 @@ public class LocalBackendAddOperation
    * The tracer object for the debug logger.
    */
   private static final DebugTracer TRACER = getTracer();
-
-  /**
-   * Simple boolean helper class.
-   */
-  private static final class BooleanHolder
-  {
-    boolean value;
-  }
 
   /**
    * The backend in which the entry is to be added.
@@ -169,17 +157,15 @@ public class LocalBackendAddOperation
     this.backend = wfe.getBackend();
     ClientConnection clientConnection = getClientConnection();
 
-    // Get the plugin config manager that will be used for invoking plugins.
-    PluginConfigManager pluginConfigManager =
-         DirectoryServer.getPluginConfigManager();
-
     // Check for a request to cancel this operation.
     checkIfCanceled(false);
 
 
     BooleanHolder executePostOpPlugins = new BooleanHolder();
-    processAdd(clientConnection, executePostOpPlugins, pluginConfigManager);
+    processAdd(clientConnection, executePostOpPlugins);
 
+    PluginConfigManager pluginConfigManager =
+        DirectoryServer.getPluginConfigManager();
 
     // Invoke the post-operation or post-synchronization add plugins.
     if (isSynchronizationOperation())
@@ -245,9 +231,7 @@ public class LocalBackendAddOperation
   }
 
   private void processAdd(ClientConnection clientConnection,
-      BooleanHolder executePostOpPlugins,
-      PluginConfigManager pluginConfigManager)
-      throws CanceledOperationException
+      BooleanHolder executePostOpPlugins) throws CanceledOperationException
   {
     // Process the entry DN and set of attributes to convert them from their
     // raw forms as provided by the client to the forms required for the rest
@@ -488,7 +472,8 @@ public class LocalBackendAddOperation
       {
         executePostOpPlugins.value = true;
         PluginResult.PreOperation preOpResult =
-            pluginConfigManager.invokePreOperationAddPlugins(this);
+            DirectoryServer.getPluginConfigManager()
+                .invokePreOperationAddPlugins(this);
         if (!preOpResult.continueProcessing())
         {
           setResultCode(preOpResult.getResultCode());
