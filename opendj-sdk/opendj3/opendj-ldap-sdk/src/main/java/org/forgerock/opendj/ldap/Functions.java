@@ -199,7 +199,7 @@ public final class Functions {
             public N apply(final M value, final Void p) {
                 final X tmp = first.apply(value, p);
                 return second.apply(tmp, p);
-            };
+            }
         };
     }
 
@@ -231,7 +231,7 @@ public final class Functions {
             public N apply(final M value, final P p) {
                 final X tmp = first.apply(value, p);
                 return second.apply(tmp, null);
-            };
+            }
         };
     }
 
@@ -263,7 +263,7 @@ public final class Functions {
             public N apply(final M value, final P p) {
                 final X tmp = first.apply(value, null);
                 return second.apply(tmp, p);
-            };
+            }
         };
     }
 
