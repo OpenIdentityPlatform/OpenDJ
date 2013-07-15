@@ -26,8 +26,6 @@
  */
 package org.opends.server.backends.task;
 
-
-
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -49,8 +47,6 @@ import org.opends.server.types.ResultCode;
 import static org.testng.Assert.*;
 
 import static org.opends.server.util.ServerConstants.*;
-
-
 
 /**
  * A set of test cases that can be used to test the task backend.
@@ -275,7 +271,7 @@ public class TaskBackendTestCase
       "dn: " + taskDN,
       "changetype: modify",
       "replace: ds-task-state",
-      "ds-task-state: " + TaskState.CANCELED_BEFORE_STARTING.toString());
+      "ds-task-state: " + TaskState.CANCELED_BEFORE_STARTING);
     assertEquals(resultCode, 0);
 
     // Delete the task unless it is already deleted by the task scheduler.
@@ -615,10 +611,6 @@ public class TaskBackendTestCase
       return false;
     }
 
-    if (DirectoryServer.entryExists(DN.decode(taskDN))) {
-      return true;
-    } else {
-      return false;
-    }
+    return DirectoryServer.entryExists(DN.decode(taskDN));
   }
 }
