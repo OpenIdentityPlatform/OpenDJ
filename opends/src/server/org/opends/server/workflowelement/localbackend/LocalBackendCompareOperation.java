@@ -68,22 +68,22 @@ public class LocalBackendCompareOperation
   /**
    * The backend in which the comparison is to be performed.
    */
-  protected Backend backend;
+  private Backend backend;
 
   /**
    * The client connection for this operation.
    */
-  protected ClientConnection clientConnection;
+  private ClientConnection clientConnection;
 
   /**
    * The DN of the entry to compare.
    */
-  protected DN entryDN;
+  private DN entryDN;
 
   /**
    * The entry to be compared.
    */
-  protected Entry entry = null;
+  private Entry entry;
 
 
 
@@ -125,242 +125,26 @@ public class LocalBackendCompareOperation
   public void processLocalCompare(LocalBackendWorkflowElement wfe)
       throws CanceledOperationException
   {
-    boolean executePostOpPlugins = false;
-
     this.backend = wfe.getBackend();
 
     clientConnection  = getClientConnection();
 
-    // Get the plugin config manager that will be used for invoking plugins.
-    PluginConfigManager pluginConfigManager =
-         DirectoryServer.getPluginConfigManager();
-
-
-    // Get a reference to the client connection
-    ClientConnection clientConnection = getClientConnection();
-
-
     // Check for a request to cancel this operation.
     checkIfCanceled(false);
 
 
-    // Create a labeled block of code that we can break out of if a problem is
-    // detected.
-compareProcessing:
-    {
-      // Process the entry DN to convert it from the raw form to the form
-      // required for the rest of the compare processing.
-      entryDN = getEntryDN();
-      if (entryDN == null)
-      {
-        break compareProcessing;
-      }
-
-
-      // If the target entry is in the server configuration, then make sure the
-      // requester has the CONFIG_READ privilege.
-      if (DirectoryServer.getConfigHandler().handlesEntry(entryDN) &&
-          (! clientConnection.hasPrivilege(Privilege.CONFIG_READ, this)))
-      {
-        appendErrorMessage(ERR_COMPARE_CONFIG_INSUFFICIENT_PRIVILEGES.get());
-        setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
-        break compareProcessing;
-      }
-
-
-      // Check for a request to cancel this operation.
-      checkIfCanceled(false);
-
-
-      // Grab a read lock on the entry.
-      final Lock readLock = LockManager.lockRead(entryDN);
-      if (readLock == null)
-      {
-        setResultCode(ResultCode.BUSY);
-        appendErrorMessage(ERR_COMPARE_CANNOT_LOCK_ENTRY.get(
-                                String.valueOf(entryDN)));
-        break compareProcessing;
-      }
-
-      try
-      {
-        // Get the entry.  If it does not exist, then fail.
-        try
-        {
-          entry = DirectoryServer.getEntry(entryDN);
-
-          if (entry == null)
-          {
-            setResultCode(ResultCode.NO_SUCH_OBJECT);
-            appendErrorMessage(
-                    ERR_COMPARE_NO_SUCH_ENTRY.get(String.valueOf(entryDN)));
-
-            // See if one of the entry's ancestors exists.
-            DN parentDN = entryDN.getParentDNInSuffix();
-            while (parentDN != null)
-            {
-              try
-              {
-                if (DirectoryServer.entryExists(parentDN))
-                {
-                  setMatchedDN(parentDN);
-                  break;
-                }
-              }
-              catch (Exception e)
-              {
-                if (debugEnabled())
-                {
-                  TRACER.debugCaught(DebugLogLevel.ERROR, e);
-                }
-                break;
-              }
-
-              parentDN = parentDN.getParentDNInSuffix();
-            }
-
-            break compareProcessing;
-          }
-        }
-        catch (DirectoryException de)
-        {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, de);
-          }
-
-          setResultCode(de.getResultCode());
-          appendErrorMessage(de.getMessageObject());
-          break compareProcessing;
-        }
-
-        // Check to see if there are any controls in the request.  If so, then
-        // see if there is any special processing required.
-        try
-        {
-          handleRequestControls();
-        }
-        catch (DirectoryException de)
-        {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, de);
-          }
-
-          setResponseData(de);
-          break compareProcessing;
-        }
-
-
-        // Check to see if the client has permission to perform the
-        // compare.
-
-        // FIXME: for now assume that this will check all permission
-        // pertinent to the operation. This includes proxy authorization
-        // and any other controls specified.
-
-        // FIXME: earlier checks to see if the entry already exists may
-        // have already exposed sensitive information to the client.
-        try
-        {
-          if (!AccessControlConfigManager.getInstance()
-              .getAccessControlHandler().isAllowed(this))
-          {
-            setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
-            appendErrorMessage(ERR_COMPARE_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS
-                .get(String.valueOf(entryDN)));
-            break compareProcessing;
-          }
-        }
-        catch (DirectoryException e)
-        {
-          setResultCode(e.getResultCode());
-          appendErrorMessage(e.getMessageObject());
-          break compareProcessing;
-        }
-
-        // Check for a request to cancel this operation.
-        checkIfCanceled(false);
-
-
-        // Invoke the pre-operation compare plugins.
-        executePostOpPlugins = true;
-        PluginResult.PreOperation preOpResult =
-             pluginConfigManager.invokePreOperationComparePlugins(this);
-          if (!preOpResult.continueProcessing())
-          {
-            setResultCode(preOpResult.getResultCode());
-            appendErrorMessage(preOpResult.getErrorMessage());
-            setMatchedDN(preOpResult.getMatchedDN());
-            setReferralURLs(preOpResult.getReferralURLs());
-            break compareProcessing;
-          }
-
-
-        // Get the base attribute type and set of options.
-        Set<String> options = getAttributeOptions();
-
-        // Actually perform the compare operation.
-        AttributeType attrType = getAttributeType();
-
-        List<Attribute> attrList = entry.getAttribute(attrType, options);
-        if ((attrList == null) || attrList.isEmpty())
-        {
-          setResultCode(ResultCode.NO_SUCH_ATTRIBUTE);
-          if (options == null)
-          {
-            appendErrorMessage(WARN_COMPARE_OP_NO_SUCH_ATTR.get(
-                                    String.valueOf(entryDN),
-                                    getRawAttributeType()));
-          }
-          else
-          {
-            appendErrorMessage(WARN_COMPARE_OP_NO_SUCH_ATTR_WITH_OPTIONS.get(
-                                    String.valueOf(entryDN),
-                                    getRawAttributeType()));
-          }
-        }
-        else
-        {
-          AttributeValue value = AttributeValues.create(attrType,
-                                                    getAssertionValue());
-
-          boolean matchFound = false;
-          for (Attribute a : attrList)
-          {
-            if (a.contains(value))
-            {
-              matchFound = true;
-              break;
-            }
-          }
-
-          if (matchFound)
-          {
-            setResultCode(ResultCode.COMPARE_TRUE);
-          }
-          else
-          {
-            setResultCode(ResultCode.COMPARE_FALSE);
-          }
-        }
-      }
-      finally
-      {
-        LockManager.unlock(entryDN, readLock);
-      }
-    }
-
+    BooleanHolder executePostOpPlugins = new BooleanHolder();
+    processCompare(executePostOpPlugins);
 
     // Check for a request to cancel this operation.
     checkIfCanceled(false);
-
 
     // Invoke the post-operation compare plugins.
-    if (executePostOpPlugins)
+    if (executePostOpPlugins.value)
     {
       PluginResult.PostOperation postOpResult =
-           pluginConfigManager.invokePostOperationComparePlugins(this);
+          DirectoryServer.getPluginConfigManager()
+              .invokePostOperationComparePlugins(this);
       if (!postOpResult.continueProcessing())
       {
         setResultCode(postOpResult.getResultCode());
@@ -371,7 +155,209 @@ compareProcessing:
     }
   }
 
+  private void processCompare(BooleanHolder executePostOpPlugins)
+      throws CanceledOperationException
+  {
+    // Process the entry DN to convert it from the raw form to the form
+    // required for the rest of the compare processing.
+    entryDN = getEntryDN();
+    if (entryDN == null)
+    {
+      return;
+    }
 
+
+    // If the target entry is in the server configuration, then make sure the
+    // requester has the CONFIG_READ privilege.
+    if (DirectoryServer.getConfigHandler().handlesEntry(entryDN)
+        && (!clientConnection.hasPrivilege(Privilege.CONFIG_READ, this)))
+    {
+      appendErrorMessage(ERR_COMPARE_CONFIG_INSUFFICIENT_PRIVILEGES.get());
+      setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
+      return;
+    }
+
+    // Check for a request to cancel this operation.
+    checkIfCanceled(false);
+
+
+    // Grab a read lock on the entry.
+    final Lock readLock = LockManager.lockRead(entryDN);
+    if (readLock == null)
+    {
+      setResultCode(ResultCode.BUSY);
+      appendErrorMessage(ERR_COMPARE_CANNOT_LOCK_ENTRY.get(String
+          .valueOf(entryDN)));
+      return;
+    }
+
+    try
+    {
+      // Get the entry. If it does not exist, then fail.
+      try
+      {
+        entry = DirectoryServer.getEntry(entryDN);
+
+        if (entry == null)
+        {
+          setResultCode(ResultCode.NO_SUCH_OBJECT);
+          appendErrorMessage(ERR_COMPARE_NO_SUCH_ENTRY.get(String
+              .valueOf(entryDN)));
+
+          // See if one of the entry's ancestors exists.
+          DN parentDN = entryDN.getParentDNInSuffix();
+          while (parentDN != null)
+          {
+            try
+            {
+              if (DirectoryServer.entryExists(parentDN))
+              {
+                setMatchedDN(parentDN);
+                break;
+              }
+            }
+            catch (Exception e)
+            {
+              if (debugEnabled())
+              {
+                TRACER.debugCaught(DebugLogLevel.ERROR, e);
+              }
+              break;
+            }
+
+            parentDN = parentDN.getParentDNInSuffix();
+          }
+
+          return;
+        }
+      }
+      catch (DirectoryException de)
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, de);
+        }
+
+        setResultCode(de.getResultCode());
+        appendErrorMessage(de.getMessageObject());
+        return;
+      }
+
+      // Check to see if there are any controls in the request. If so, then
+      // see if there is any special processing required.
+      try
+      {
+        handleRequestControls();
+      }
+      catch (DirectoryException de)
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, de);
+        }
+
+        setResponseData(de);
+        return;
+      }
+
+
+      // Check to see if the client has permission to perform the
+      // compare.
+
+      // FIXME: for now assume that this will check all permission
+      // pertinent to the operation. This includes proxy authorization
+      // and any other controls specified.
+
+      // FIXME: earlier checks to see if the entry already exists may
+      // have already exposed sensitive information to the client.
+      try
+      {
+        if (!AccessControlConfigManager.getInstance().getAccessControlHandler()
+            .isAllowed(this))
+        {
+          setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
+          appendErrorMessage(ERR_COMPARE_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS
+              .get(String.valueOf(entryDN)));
+          return;
+        }
+      }
+      catch (DirectoryException e)
+      {
+        setResultCode(e.getResultCode());
+        appendErrorMessage(e.getMessageObject());
+        return;
+      }
+
+      // Check for a request to cancel this operation.
+      checkIfCanceled(false);
+
+
+      // Invoke the pre-operation compare plugins.
+      executePostOpPlugins.value = true;
+      PluginResult.PreOperation preOpResult =
+          DirectoryServer.getPluginConfigManager()
+              .invokePreOperationComparePlugins(this);
+      if (!preOpResult.continueProcessing())
+      {
+        setResultCode(preOpResult.getResultCode());
+        appendErrorMessage(preOpResult.getErrorMessage());
+        setMatchedDN(preOpResult.getMatchedDN());
+        setReferralURLs(preOpResult.getReferralURLs());
+        return;
+      }
+
+
+      // Get the base attribute type and set of options.
+      Set<String> options = getAttributeOptions();
+
+      // Actually perform the compare operation.
+      AttributeType attrType = getAttributeType();
+
+      List<Attribute> attrList = entry.getAttribute(attrType, options);
+      if ((attrList == null) || attrList.isEmpty())
+      {
+        setResultCode(ResultCode.NO_SUCH_ATTRIBUTE);
+        if (options == null)
+        {
+          appendErrorMessage(WARN_COMPARE_OP_NO_SUCH_ATTR.get(String
+              .valueOf(entryDN), getRawAttributeType()));
+        }
+        else
+        {
+          appendErrorMessage(WARN_COMPARE_OP_NO_SUCH_ATTR_WITH_OPTIONS.get(
+              String.valueOf(entryDN), getRawAttributeType()));
+        }
+      }
+      else
+      {
+        AttributeValue value =
+            AttributeValues.create(attrType, getAssertionValue());
+
+        boolean matchFound = false;
+        for (Attribute a : attrList)
+        {
+          if (a.contains(value))
+          {
+            matchFound = true;
+            break;
+          }
+        }
+
+        if (matchFound)
+        {
+          setResultCode(ResultCode.COMPARE_TRUE);
+        }
+        else
+        {
+          setResultCode(ResultCode.COMPARE_FALSE);
+        }
+      }
+    }
+    finally
+    {
+      LockManager.unlock(entryDN, readLock);
+    }
+  }
 
   /**
    * Performs any processing required for the controls included in the request.
@@ -379,15 +365,13 @@ compareProcessing:
    * @throws  DirectoryException  If a problem occurs that should prevent the
    *                              operation from succeeding.
    */
-  protected void handleRequestControls()
-          throws DirectoryException
+  private void handleRequestControls() throws DirectoryException
   {
     List<Control> requestControls = getRequestControls();
     if ((requestControls != null) && (! requestControls.isEmpty()))
     {
-      for (int i=0; i < requestControls.size(); i++)
+      for (Control c : requestControls)
       {
-        Control c   = requestControls.get(i);
         String  oid = c.getOID();
 
         if (!LocalBackendWorkflowElement.isControlAllowed(entryDN, this, c))
@@ -462,7 +446,7 @@ compareProcessing:
           addAdditionalLogItem(AdditionalLogItem.keyOnly(getClass(),
               "obsoleteProxiedAuthzV1Control"));
 
-          // The requester must have the PROXIED_AUTH privilige in order to
+          // The requester must have the PROXIED_AUTH privilege in order to
           // be able to use this control.
           if (! clientConnection.hasPrivilege(Privilege.PROXIED_AUTH, this))
           {
@@ -486,7 +470,7 @@ compareProcessing:
         }
         else if (oid.equals(OID_PROXIED_AUTH_V2))
         {
-          // The requester must have the PROXIED_AUTH privilige in order to
+          // The requester must have the PROXIED_AUTH privilege in order to
           // be able to use this control.
           if (! clientConnection.hasPrivilege(Privilege.PROXIED_AUTH, this))
           {
@@ -524,4 +508,3 @@ compareProcessing:
     }
   }
 }
-

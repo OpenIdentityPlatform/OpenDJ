@@ -74,43 +74,43 @@ public class LocalBackendModifyDNOperation
   /**
    * The backend in which the operation is to be processed.
    */
-  protected Backend backend;
+  private Backend backend;
 
   /**
    * Indicates whether the no-op control was included in the request.
    */
-  protected boolean noOp;
+  private boolean noOp;
 
   /**
    * The client connection on which this operation was requested.
    */
-  protected ClientConnection clientConnection;
+  private ClientConnection clientConnection;
 
   /**
    * The original DN of the entry.
    */
-  protected DN entryDN;
+  private DN entryDN;
 
   /**
    * The current entry, before it is renamed.
    */
-  protected Entry currentEntry;
+  private Entry currentEntry;
 
   /**
    * The new entry, as it will appear after it has been renamed.
    */
-  protected Entry newEntry;
+  private Entry newEntry;
 
-  // The LDAP post-read request control, if present in the request.
+  /** The LDAP post-read request control, if present in the request. */
   private LDAPPostReadRequestControl postReadRequest;
 
-  // The LDAP pre-read request control, if present in the request.
+  /** The LDAP pre-read request control, if present in the request. */
   private LDAPPreReadRequestControl preReadRequest;
 
   /**
    * The new RDN for the entry.
    */
-  protected RDN newRDN;
+  private RDN newRDN;
 
 
 
@@ -171,447 +171,19 @@ public class LocalBackendModifyDNOperation
   public void processLocalModifyDN(final LocalBackendWorkflowElement wfe)
       throws CanceledOperationException
   {
-    boolean executePostOpPlugins = false;
     this.backend = wfe.getBackend();
 
     clientConnection = getClientConnection();
 
-    // Get the plugin config manager that will be used for invoking plugins.
-    PluginConfigManager pluginConfigManager =
-         DirectoryServer.getPluginConfigManager();
-
     // Check for a request to cancel this operation.
     checkIfCanceled(false);
 
-    // Create a labeled block of code that we can break out of if a problem is
-    // detected.
-modifyDNProcessing:
-    {
-      // Process the entry DN, newRDN, and newSuperior elements from their raw
-      // forms as provided by the client to the forms required for the rest of
-      // the modify DN processing.
-      entryDN = getEntryDN();
-
-      newRDN = getNewRDN();
-      if (newRDN == null)
-      {
-        break modifyDNProcessing;
-      }
-
-      DN newSuperior = getNewSuperior();
-      if ((newSuperior == null) &&
-          (getRawNewSuperior() != null))
-      {
-        break modifyDNProcessing;
-      }
-
-      // Construct the new DN to use for the entry.
-      DN parentDN;
-      if (newSuperior == null)
-      {
-        parentDN = entryDN.getParentDNInSuffix();
-      }
-      else
-      {
-        if(newSuperior.isDescendantOf(entryDN))
-        {
-          setResultCode(ResultCode.UNWILLING_TO_PERFORM);
-          appendErrorMessage(ERR_MODDN_NEW_SUPERIOR_IN_SUBTREE.get(
-              String.valueOf(entryDN), String.valueOf(newSuperior)));
-          break modifyDNProcessing;
-        }
-        parentDN = newSuperior;
-      }
-
-      if ((parentDN == null) || parentDN.isNullDN())
-      {
-        setResultCode(ResultCode.UNWILLING_TO_PERFORM);
-        appendErrorMessage(ERR_MODDN_NO_PARENT.get(String.valueOf(entryDN)));
-        break modifyDNProcessing;
-      }
-
-      DN newDN = parentDN.concat(newRDN);
-
-      // Get the backend for the current entry, and the backend for the new
-      // entry.  If either is null, or if they are different, then fail.
-      Backend currentBackend = backend;
-      if (currentBackend == null)
-      {
-        setResultCode(ResultCode.NO_SUCH_OBJECT);
-        appendErrorMessage(ERR_MODDN_NO_BACKEND_FOR_CURRENT_ENTRY.get(
-                                String.valueOf(entryDN)));
-        break modifyDNProcessing;
-      }
-
-      Backend newBackend = DirectoryServer.getBackend(newDN);
-      if (newBackend == null)
-      {
-        setResultCode(ResultCode.NO_SUCH_OBJECT);
-        appendErrorMessage(ERR_MODDN_NO_BACKEND_FOR_NEW_ENTRY.get(
-                                String.valueOf(entryDN),
-                                String.valueOf(newDN)));
-        break modifyDNProcessing;
-      }
-      else if (! currentBackend.equals(newBackend))
-      {
-        setResultCode(ResultCode.UNWILLING_TO_PERFORM);
-        appendErrorMessage(ERR_MODDN_DIFFERENT_BACKENDS.get(
-                                String.valueOf(entryDN),
-                                String.valueOf(newDN)));
-        break modifyDNProcessing;
-      }
-
-
-      // Check for a request to cancel this operation.
-      checkIfCanceled(false);
-
-
-      // Acquire write locks for the current and new DN.
-      final Lock currentLock = LockManager.lockWrite(entryDN);
-      if (currentLock == null)
-      {
-        setResultCode(ResultCode.BUSY);
-        appendErrorMessage(ERR_MODDN_CANNOT_LOCK_CURRENT_DN.get(
-                                String.valueOf(entryDN)));
-        break modifyDNProcessing;
-      }
-
-      Lock newLock = null;
-      try
-      {
-        newLock = LockManager.lockWrite(newDN);
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        LockManager.unlock(entryDN, currentLock);
-
-        if (newLock != null)
-        {
-          LockManager.unlock(newDN, newLock);
-        }
-
-        setResultCode(DirectoryServer.getServerErrorResultCode());
-        appendErrorMessage(ERR_MODDN_EXCEPTION_LOCKING_NEW_DN.get(
-                                String.valueOf(entryDN), String.valueOf(newDN),
-                                getExceptionMessage(e)));
-        break modifyDNProcessing;
-      }
-
-      if (newLock == null)
-      {
-        LockManager.unlock(entryDN, currentLock);
-
-        setResultCode(ResultCode.BUSY);
-        appendErrorMessage(ERR_MODDN_CANNOT_LOCK_NEW_DN.get(
-                                String.valueOf(entryDN),
-                                String.valueOf(newDN)));
-        break modifyDNProcessing;
-      }
-
-      try
-      {
-        // Check for a request to cancel this operation.
-        checkIfCanceled(false);
-
-
-        // Get the current entry from the appropriate backend.  If it doesn't
-        // exist, then fail.
-        try
-        {
-          currentEntry = currentBackend.getEntry(entryDN);
-        }
-        catch (DirectoryException de)
-        {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, de);
-          }
-
-          setResponseData(de);
-          break modifyDNProcessing;
-        }
-
-        if (getOriginalEntry() == null)
-        {
-          // See if one of the entry's ancestors exists.
-          parentDN = entryDN.getParentDNInSuffix();
-          while (parentDN != null)
-          {
-            try
-            {
-              if (DirectoryServer.entryExists(parentDN))
-              {
-                setMatchedDN(parentDN);
-                break;
-              }
-            }
-            catch (Exception e)
-            {
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, e);
-              }
-              break;
-            }
-
-            parentDN = parentDN.getParentDNInSuffix();
-          }
-
-          setResultCode(ResultCode.NO_SUCH_OBJECT);
-          appendErrorMessage(ERR_MODDN_NO_CURRENT_ENTRY.get(
-                                  String.valueOf(entryDN)));
-          break modifyDNProcessing;
-        }
-
-
-        // Check to see if there are any controls in the request.  If so, then
-        // see if there is any special processing required.
-        try
-        {
-          handleRequestControls();
-        }
-        catch (DirectoryException de)
-        {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, de);
-          }
-
-          setResponseData(de);
-          break modifyDNProcessing;
-        }
-
-
-        // Check to see if the client has permission to perform the
-        // modify DN.
-
-        // FIXME: for now assume that this will check all permission
-        // pertinent to the operation. This includes proxy authorization
-        // and any other controls specified.
-
-        // FIXME: earlier checks to see if the entry or new superior
-        // already exists may have already exposed sensitive information
-        // to the client.
-        try
-        {
-          if (!AccessControlConfigManager.getInstance()
-              .getAccessControlHandler().isAllowed(this))
-          {
-            setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
-            appendErrorMessage(ERR_MODDN_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS
-                .get(String.valueOf(entryDN)));
-            break modifyDNProcessing;
-          }
-        }
-        catch (DirectoryException e)
-        {
-          setResultCode(e.getResultCode());
-          appendErrorMessage(e.getMessageObject());
-          break modifyDNProcessing;
-        }
-
-        // Duplicate the entry and set its new DN.  Also, create an empty list
-        // to hold the attribute-level modifications.
-        newEntry = currentEntry.duplicate(false);
-        newEntry.setDN(newDN);
-
-        // init the modifications
-        addModification(null);
-        List<Modification> modifications = this.getModifications();
-
-        if(!handleConflictResolution()) {
-            break modifyDNProcessing;
-        }
-
-        // If the operation is not a synchronization operation,
-        //  - Apply the RDN changes.
-        //  - Invoke the pre-operation modify DN plugins.
-        //  - apply additional modifications provided by the plugins.
-        // If the operation is a synchronization operation
-        //  - apply the operation as it was originally done on the master.
-        if (! isSynchronizationOperation())
-        {
-          // Apply any changes to the entry based on the change in its RDN.
-          // Also perform schema checking on the updated entry.
-          try
-          {
-            applyRDNChanges(modifications);
-          }
-          catch (DirectoryException de)
-          {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, de);
-            }
-
-            setResponseData(de);
-            break modifyDNProcessing;
-          }
-
-
-          // Check for a request to cancel this operation.
-          checkIfCanceled(false);
-
-
-          // Get a count of the current number of modifications.  The
-          // pre-operation plugins may alter this list, and we need to be able
-          // to identify which changes were made after they're done.
-          int modCount = modifications.size();
-
-          executePostOpPlugins = true;
-          PluginResult.PreOperation preOpResult =
-            pluginConfigManager.invokePreOperationModifyDNPlugins(this);
-          if (!preOpResult.continueProcessing())
-          {
-            setResultCode(preOpResult.getResultCode());
-            appendErrorMessage(preOpResult.getErrorMessage());
-            setMatchedDN(preOpResult.getMatchedDN());
-            setReferralURLs(preOpResult.getReferralURLs());
-            break modifyDNProcessing;
-          }
-
-
-          // Check to see if any of the pre-operation plugins made any changes
-          // to the entry.  If so, then apply them.
-          if (modifications.size() > modCount)
-          {
-            try
-            {
-              applyPreOpModifications(modifications, modCount, true);
-            }
-            catch (DirectoryException de)
-            {
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, de);
-              }
-
-              setResponseData(de);
-              break modifyDNProcessing;
-            }
-          }
-        }
-        else
-        {
-          // This is a synchronization operation
-          // Apply the modifications as they were originally done.
-          try
-          {
-            applyRDNChanges(modifications);
-            applyPreOpModifications(modifications, 0, false);
-          }
-          catch (DirectoryException de)
-          {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, de);
-            }
-
-            setResponseData(de);
-            break modifyDNProcessing;
-          }
-        }
-
-
-        // Actually perform the modify DN operation.
-        // This should include taking
-        // care of any synchronization that might be needed.
-        try
-        {
-          // If it is not a private backend, then check to see if the server or
-          // backend is operating in read-only mode.
-          if (! currentBackend.isPrivateBackend())
-          {
-            switch (DirectoryServer.getWritabilityMode())
-            {
-              case DISABLED:
-                setResultCode(ResultCode.UNWILLING_TO_PERFORM);
-                appendErrorMessage(ERR_MODDN_SERVER_READONLY.get(
-                                        String.valueOf(entryDN)));
-                break modifyDNProcessing;
-
-              case INTERNAL_ONLY:
-                if (! (isInternalOperation() || isSynchronizationOperation()))
-                {
-                  setResultCode(ResultCode.UNWILLING_TO_PERFORM);
-                  appendErrorMessage(ERR_MODDN_SERVER_READONLY.get(
-                                          String.valueOf(entryDN)));
-                  break modifyDNProcessing;
-                }
-            }
-
-            switch (currentBackend.getWritabilityMode())
-            {
-              case DISABLED:
-                setResultCode(ResultCode.UNWILLING_TO_PERFORM);
-                appendErrorMessage(ERR_MODDN_BACKEND_READONLY.get(
-                                        String.valueOf(entryDN)));
-                break modifyDNProcessing;
-
-              case INTERNAL_ONLY:
-                if (! (isInternalOperation() || isSynchronizationOperation()))
-                {
-                  setResultCode(ResultCode.UNWILLING_TO_PERFORM);
-                  appendErrorMessage(ERR_MODDN_BACKEND_READONLY.get(
-                                          String.valueOf(entryDN)));
-                  break modifyDNProcessing;
-                }
-            }
-          }
-
-
-          if (noOp)
-          {
-            appendErrorMessage(INFO_MODDN_NOOP.get());
-            setResultCode(ResultCode.NO_OPERATION);
-          }
-          else
-          {
-              if(!processPreOperation()) {
-                  break modifyDNProcessing;
-              }
-              currentBackend.renameEntry(entryDN, newEntry, this);
-          }
-
-
-          // Attach the pre-read and/or post-read controls to the response if
-          // appropriate.
-          LocalBackendWorkflowElement.addPreReadResponse(this,
-              preReadRequest, currentEntry);
-          LocalBackendWorkflowElement.addPostReadResponse(this,
-              postReadRequest, newEntry);
-
-
-          if (! noOp)
-          {
-            setResultCode(ResultCode.SUCCESS);
-          }
-        }
-        catch (DirectoryException de)
-        {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, de);
-          }
-
-          setResponseData(de);
-          break modifyDNProcessing;
-        }
-      }
-      finally
-      {
-        LockManager.unlock(entryDN, currentLock);
-        LockManager.unlock(newDN, newLock);
-        processSynchPostOperationPlugins();
-      }
-    }
+    BooleanHolder executePostOpPlugins = new BooleanHolder();
+    processModifyDN(executePostOpPlugins);
 
     // Invoke the post-operation or post-synchronization modify DN plugins.
+    PluginConfigManager pluginConfigManager =
+        DirectoryServer.getPluginConfigManager();
     if (isSynchronizationOperation())
     {
       if (getResultCode() == ResultCode.SUCCESS)
@@ -619,10 +191,10 @@ modifyDNProcessing:
         pluginConfigManager.invokePostSynchronizationModifyDNPlugins(this);
       }
     }
-    else if (executePostOpPlugins)
+    else if (executePostOpPlugins.value)
     {
       PluginResult.PostOperation postOpResult =
-           pluginConfigManager.invokePostOperationModifyDNPlugins(this);
+          pluginConfigManager.invokePostOperationModifyDNPlugins(this);
       if (!postOpResult.continueProcessing())
       {
         setResultCode(postOpResult.getResultCode());
@@ -646,8 +218,8 @@ modifyDNProcessing:
           // Notify persistent searches.
           for (PersistentSearch psearch : wfe.getPersistentSearches())
           {
-            psearch.processModifyDN(newEntry, getChangeNumber(),
-                currentEntry.getDN());
+            psearch.processModifyDN(newEntry, getChangeNumber(), currentEntry
+                .getDN());
           }
 
           // Notify change listeners.
@@ -666,8 +238,9 @@ modifyDNProcessing:
                 TRACER.debugCaught(DebugLogLevel.ERROR, e);
               }
 
-              Message message = ERR_MODDN_ERROR_NOTIFYING_CHANGE_LISTENER
-                  .get(getExceptionMessage(e));
+              Message message =
+                  ERR_MODDN_ERROR_NOTIFYING_CHANGE_LISTENER
+                      .get(getExceptionMessage(e));
               logError(message);
             }
           }
@@ -676,7 +249,350 @@ modifyDNProcessing:
     }
   }
 
+  private void processModifyDN(BooleanHolder executePostOpPlugins)
+      throws CanceledOperationException
+  {
+    // Process the entry DN, newRDN, and newSuperior elements from their raw
+    // forms as provided by the client to the forms required for the rest of
+    // the modify DN processing.
+    entryDN = getEntryDN();
 
+    newRDN = getNewRDN();
+    if (newRDN == null)
+    {
+      return;
+    }
+
+    DN newSuperior = getNewSuperior();
+    if (newSuperior == null && getRawNewSuperior() != null)
+    {
+      return;
+    }
+
+    // Construct the new DN to use for the entry.
+    DN parentDN;
+    if (newSuperior == null)
+    {
+      parentDN = entryDN.getParentDNInSuffix();
+    }
+    else
+    {
+      if (newSuperior.isDescendantOf(entryDN))
+      {
+        setResultCode(ResultCode.UNWILLING_TO_PERFORM);
+        appendErrorMessage(ERR_MODDN_NEW_SUPERIOR_IN_SUBTREE.get(String
+            .valueOf(entryDN), String.valueOf(newSuperior)));
+        return;
+      }
+      parentDN = newSuperior;
+    }
+
+    if (parentDN == null || parentDN.isNullDN())
+    {
+      setResultCode(ResultCode.UNWILLING_TO_PERFORM);
+      appendErrorMessage(ERR_MODDN_NO_PARENT.get(String.valueOf(entryDN)));
+      return;
+    }
+
+    DN newDN = parentDN.concat(newRDN);
+
+    // Get the backend for the current entry, and the backend for the new
+    // entry. If either is null, or if they are different, then fail.
+    Backend currentBackend = backend;
+    if (currentBackend == null)
+    {
+      setResultCode(ResultCode.NO_SUCH_OBJECT);
+      appendErrorMessage(ERR_MODDN_NO_BACKEND_FOR_CURRENT_ENTRY.get(String
+          .valueOf(entryDN)));
+      return;
+    }
+
+    Backend newBackend = DirectoryServer.getBackend(newDN);
+    if (newBackend == null)
+    {
+      setResultCode(ResultCode.NO_SUCH_OBJECT);
+      appendErrorMessage(ERR_MODDN_NO_BACKEND_FOR_NEW_ENTRY.get(String
+          .valueOf(entryDN), String.valueOf(newDN)));
+      return;
+    }
+    else if (!currentBackend.equals(newBackend))
+    {
+      setResultCode(ResultCode.UNWILLING_TO_PERFORM);
+      appendErrorMessage(ERR_MODDN_DIFFERENT_BACKENDS.get(String
+          .valueOf(entryDN), String.valueOf(newDN)));
+      return;
+    }
+
+    // Check for a request to cancel this operation.
+    checkIfCanceled(false);
+
+    // Acquire write locks for the current and new DN.
+    final Lock currentLock = LockManager.lockWrite(entryDN);
+    if (currentLock == null)
+    {
+      setResultCode(ResultCode.BUSY);
+      appendErrorMessage(ERR_MODDN_CANNOT_LOCK_CURRENT_DN.get(String
+          .valueOf(entryDN)));
+      return;
+    }
+
+    Lock newLock = null;
+    try
+    {
+      newLock = LockManager.lockWrite(newDN);
+    }
+    catch (Exception e)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
+
+      LockManager.unlock(entryDN, currentLock);
+
+      if (newLock != null)
+      {
+        LockManager.unlock(newDN, newLock);
+      }
+
+      setResultCode(DirectoryServer.getServerErrorResultCode());
+      appendErrorMessage(ERR_MODDN_EXCEPTION_LOCKING_NEW_DN.get(String
+          .valueOf(entryDN), String.valueOf(newDN), getExceptionMessage(e)));
+      return;
+    }
+
+    if (newLock == null)
+    {
+      LockManager.unlock(entryDN, currentLock);
+
+      setResultCode(ResultCode.BUSY);
+      appendErrorMessage(ERR_MODDN_CANNOT_LOCK_NEW_DN.get(String
+          .valueOf(entryDN), String.valueOf(newDN)));
+      return;
+    }
+
+    try
+    {
+      // Check for a request to cancel this operation.
+      checkIfCanceled(false);
+
+      // Get the current entry from the appropriate backend. If it doesn't
+      // exist, then fail.
+      currentEntry = currentBackend.getEntry(entryDN);
+
+      if (getOriginalEntry() == null)
+      {
+        // See if one of the entry's ancestors exists.
+        parentDN = entryDN.getParentDNInSuffix();
+        while (parentDN != null)
+        {
+          try
+          {
+            if (DirectoryServer.entryExists(parentDN))
+            {
+              setMatchedDN(parentDN);
+              break;
+            }
+          }
+          catch (Exception e)
+          {
+            if (debugEnabled())
+            {
+              TRACER.debugCaught(DebugLogLevel.ERROR, e);
+            }
+            break;
+          }
+
+          parentDN = parentDN.getParentDNInSuffix();
+        }
+
+        setResultCode(ResultCode.NO_SUCH_OBJECT);
+        appendErrorMessage(ERR_MODDN_NO_CURRENT_ENTRY.get(String
+            .valueOf(entryDN)));
+        return;
+      }
+
+      // Check to see if there are any controls in the request. If so, then
+      // see if there is any special processing required.
+      handleRequestControls();
+
+      // Check to see if the client has permission to perform the
+      // modify DN.
+
+      // FIXME: for now assume that this will check all permission
+      // pertinent to the operation. This includes proxy authorization
+      // and any other controls specified.
+
+      // FIXME: earlier checks to see if the entry or new superior
+      // already exists may have already exposed sensitive information
+      // to the client.
+      try
+      {
+        if (!AccessControlConfigManager.getInstance().getAccessControlHandler()
+            .isAllowed(this))
+        {
+          setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
+          appendErrorMessage(ERR_MODDN_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS
+              .get(String.valueOf(entryDN)));
+          return;
+        }
+      }
+      catch (DirectoryException e)
+      {
+        setResultCode(e.getResultCode());
+        appendErrorMessage(e.getMessageObject());
+        return;
+      }
+
+      // Duplicate the entry and set its new DN. Also, create an empty list
+      // to hold the attribute-level modifications.
+      newEntry = currentEntry.duplicate(false);
+      newEntry.setDN(newDN);
+
+      // init the modifications
+      addModification(null);
+      List<Modification> modifications = this.getModifications();
+
+      if (!handleConflictResolution())
+      {
+        return;
+      }
+
+      // If the operation is not a synchronization operation,
+      // - Apply the RDN changes.
+      // - Invoke the pre-operation modify DN plugins.
+      // - apply additional modifications provided by the plugins.
+      // If the operation is a synchronization operation
+      // - apply the operation as it was originally done on the master.
+      if (!isSynchronizationOperation())
+      {
+        // Apply any changes to the entry based on the change in its RDN.
+        // Also perform schema checking on the updated entry.
+        applyRDNChanges(modifications);
+
+        // Check for a request to cancel this operation.
+        checkIfCanceled(false);
+
+        // Get a count of the current number of modifications. The
+        // pre-operation plugins may alter this list, and we need to be able
+        // to identify which changes were made after they're done.
+        int modCount = modifications.size();
+
+        executePostOpPlugins.value = true;
+        PluginResult.PreOperation preOpResult =
+            DirectoryServer.getPluginConfigManager()
+                .invokePreOperationModifyDNPlugins(this);
+        if (!preOpResult.continueProcessing())
+        {
+          setResultCode(preOpResult.getResultCode());
+          appendErrorMessage(preOpResult.getErrorMessage());
+          setMatchedDN(preOpResult.getMatchedDN());
+          setReferralURLs(preOpResult.getReferralURLs());
+          return;
+        }
+
+        // Check to see if any of the pre-operation plugins made any changes
+        // to the entry. If so, then apply them.
+        if (modifications.size() > modCount)
+        {
+          applyPreOpModifications(modifications, modCount, true);
+        }
+      }
+      else
+      {
+        // This is a synchronization operation
+        // Apply the modifications as they were originally done.
+        applyRDNChanges(modifications);
+        applyPreOpModifications(modifications, 0, false);
+      }
+
+      // Actually perform the modify DN operation.
+      // This should include taking
+      // care of any synchronization that might be needed.
+      // If it is not a private backend, then check to see if the server or
+      // backend is operating in read-only mode.
+      if (!currentBackend.isPrivateBackend())
+      {
+        switch (DirectoryServer.getWritabilityMode())
+        {
+        case DISABLED:
+          setResultCode(ResultCode.UNWILLING_TO_PERFORM);
+          appendErrorMessage(ERR_MODDN_SERVER_READONLY.get(String
+              .valueOf(entryDN)));
+          return;
+
+        case INTERNAL_ONLY:
+          if (!(isInternalOperation() || isSynchronizationOperation()))
+          {
+            setResultCode(ResultCode.UNWILLING_TO_PERFORM);
+            appendErrorMessage(ERR_MODDN_SERVER_READONLY.get(String
+                .valueOf(entryDN)));
+            return;
+          }
+        }
+
+        switch (currentBackend.getWritabilityMode())
+        {
+        case DISABLED:
+          setResultCode(ResultCode.UNWILLING_TO_PERFORM);
+          appendErrorMessage(ERR_MODDN_BACKEND_READONLY.get(String
+              .valueOf(entryDN)));
+          return;
+
+        case INTERNAL_ONLY:
+          if (!(isInternalOperation() || isSynchronizationOperation()))
+          {
+            setResultCode(ResultCode.UNWILLING_TO_PERFORM);
+            appendErrorMessage(ERR_MODDN_BACKEND_READONLY.get(String
+                .valueOf(entryDN)));
+            return;
+          }
+        }
+      }
+
+      if (noOp)
+      {
+        appendErrorMessage(INFO_MODDN_NOOP.get());
+        setResultCode(ResultCode.NO_OPERATION);
+      }
+      else
+      {
+        if (!processPreOperation())
+        {
+          return;
+        }
+        currentBackend.renameEntry(entryDN, newEntry, this);
+      }
+
+      // Attach the pre-read and/or post-read controls to the response if
+      // appropriate.
+      LocalBackendWorkflowElement.addPreReadResponse(this, preReadRequest,
+          currentEntry);
+      LocalBackendWorkflowElement.addPostReadResponse(this, postReadRequest,
+          newEntry);
+
+      if (!noOp)
+      {
+        setResultCode(ResultCode.SUCCESS);
+      }
+    }
+    catch (DirectoryException de)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, de);
+      }
+
+      setResponseData(de);
+      return;
+    }
+    finally
+    {
+      LockManager.unlock(entryDN, currentLock);
+      LockManager.unlock(newDN, newLock);
+      processSynchPostOperationPlugins();
+    }
+  }
 
   /**
    * Processes the set of controls included in the request.
@@ -684,8 +600,7 @@ modifyDNProcessing:
    * @throws  DirectoryException  If a problem occurs that should cause the
    *                              modify DN operation to fail.
    */
-  protected void handleRequestControls()
-          throws DirectoryException
+  private void handleRequestControls() throws DirectoryException
   {
     List<Control> requestControls = getRequestControls();
     if ((requestControls != null) && (! requestControls.isEmpty()))
@@ -790,7 +705,7 @@ modifyDNProcessing:
           addAdditionalLogItem(AdditionalLogItem.keyOnly(getClass(),
               "obsoleteProxiedAuthzV1Control"));
 
-          // The requester must have the PROXIED_AUTH privilige in order to
+          // The requester must have the PROXIED_AUTH privilege in order to
           // be able to use this control.
           if (! clientConnection.hasPrivilege(Privilege.PROXIED_AUTH, this))
           {
@@ -814,7 +729,7 @@ modifyDNProcessing:
         }
         else if (oid.equals(OID_PROXIED_AUTH_V2))
         {
-          // The requester must have the PROXIED_AUTH privilige in order to
+          // The requester must have the PROXIED_AUTH privilege in order to
           // be able to use this control.
           if (! clientConnection.hasPrivilege(Privilege.PROXIED_AUTH, this))
           {
@@ -864,7 +779,7 @@ modifyDNProcessing:
    * @throws  DirectoryException  If a problem occurs that should cause the
    *                              modify DN operation to fail.
    */
-  protected void applyRDNChanges(List<Modification> modifications)
+  private void applyRDNChanges(List<Modification> modifications)
           throws DirectoryException
   {
     // If we should delete the old RDN values from the entry, then do so.
@@ -891,8 +806,7 @@ modifyDNProcessing:
           }
         }
 
-        LinkedList<AttributeValue> missingValues =
-             new LinkedList<AttributeValue>();
+        List<AttributeValue> missingValues = new LinkedList<AttributeValue>();
         newEntry.removeAttribute(a, missingValues);
 
         if (missingValues.isEmpty())
@@ -912,8 +826,7 @@ modifyDNProcessing:
           newRDN.getAttributeName(i),
           newRDN.getAttributeValue(i));
 
-      LinkedList<AttributeValue> duplicateValues =
-           new LinkedList<AttributeValue>();
+      List<AttributeValue> duplicateValues = new LinkedList<AttributeValue>();
       newEntry.addAttribute(a, duplicateValues);
 
       if (duplicateValues.isEmpty())
@@ -981,7 +894,7 @@ modifyDNProcessing:
    * @throws  DirectoryException  If a problem occurs that should cause the
    *                              modify DN operation to fail.
    */
-  protected void applyPreOpModifications(List<Modification> modifications,
+  private void applyPreOpModifications(List<Modification> modifications,
                                        int startPos, boolean checkSchema)
           throws DirectoryException
   {
@@ -993,14 +906,13 @@ modifyDNProcessing:
       switch (m.getModificationType())
       {
         case ADD:
-          LinkedList<AttributeValue> duplicateValues =
+          List<AttributeValue> duplicateValues =
                new LinkedList<AttributeValue>();
           newEntry.addAttribute(a, duplicateValues);
           break;
 
         case DELETE:
-          LinkedList<AttributeValue> missingValues =
-               new LinkedList<AttributeValue>();
+          List<AttributeValue> missingValues = new LinkedList<AttributeValue>();
           newEntry.removeAttribute(a, missingValues);
           break;
 
@@ -1038,7 +950,8 @@ modifyDNProcessing:
    * @return  {@code true} if processing should continue for the operation, or
    *          {@code false} if not.
    */
-  protected boolean handleConflictResolution() {
+  private boolean handleConflictResolution()
+  {
       boolean returnVal = true;
 
       for (SynchronizationProvider<?> provider :
@@ -1075,7 +988,8 @@ modifyDNProcessing:
    * @return  {@code true} if processing should continue for the operation, or
    *          {@code false} if not.
    */
-  protected boolean processPreOperation() {
+  private boolean processPreOperation()
+  {
       boolean returnVal = true;
 
       for (SynchronizationProvider<?> provider :
@@ -1108,7 +1022,8 @@ modifyDNProcessing:
   /**
    * Invoke post operation synchronization providers.
    */
-  protected void processSynchPostOperationPlugins() {
+  private void processSynchPostOperationPlugins()
+  {
       for (SynchronizationProvider<?> provider : DirectoryServer
               .getSynchronizationProviders()) {
           try {
