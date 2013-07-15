@@ -305,27 +305,11 @@ public class InstallDS extends ConsoleApplication
   public static int mainCLI(String[] args,
       OutputStream outStream, OutputStream errStream, InputStream inStream)
   {
-    PrintStream out;
-    if (outStream == null)
-    {
-      out = NullOutputStream.printStream();
-    }
-    else
-    {
-      out = new PrintStream(outStream);
-    }
+    PrintStream out = NullOutputStream.wrapOrNullStream(outStream);
 
     System.setProperty(Constants.CLI_JAVA_PROPERTY, "true");
 
-    PrintStream err;
-    if (errStream == null)
-    {
-      err = NullOutputStream.printStream();
-    }
-    else
-    {
-      err = new PrintStream(errStream);
-    }
+    PrintStream err = NullOutputStream.wrapOrNullStream(errStream);
 
     try {
       QuickSetupLog.initLogFileHandler(
@@ -568,6 +552,7 @@ public class InstallDS extends ConsoleApplication
     installer.setProgressMessageFormatter(formatter);
     installer.addProgressUpdateListener(
         new ProgressUpdateListener() {
+          @Override
           public void progressUpdate(ProgressUpdateEvent ev) {
             if (ev.getNewLogs() != null)
             {
