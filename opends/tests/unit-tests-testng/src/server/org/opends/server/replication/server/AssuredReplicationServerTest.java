@@ -34,14 +34,7 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -53,22 +46,9 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.ReplicationTestCase;
-import org.opends.server.replication.common.AssuredMode;
-import org.opends.server.replication.common.ChangeNumberGenerator;
-import org.opends.server.replication.common.DSInfo;
-import org.opends.server.replication.common.RSInfo;
-import org.opends.server.replication.common.ServerState;
-import org.opends.server.replication.common.ServerStatus;
+import org.opends.server.replication.common.*;
 import org.opends.server.replication.plugin.MultimasterReplication;
-import org.opends.server.replication.protocol.AckMsg;
-import org.opends.server.replication.protocol.DeleteMsg;
-import org.opends.server.replication.protocol.ErrorMsg;
-import org.opends.server.replication.protocol.Session;
-import org.opends.server.replication.protocol.ReplServerStartMsg;
-import org.opends.server.replication.protocol.ReplSessionSecurity;
-import org.opends.server.replication.protocol.ReplicationMsg;
-import org.opends.server.replication.protocol.TopologyMsg;
-import org.opends.server.replication.protocol.UpdateMsg;
+import org.opends.server.replication.protocol.*;
 import org.opends.server.replication.service.ReplicationDomain;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.util.StaticUtils;
@@ -85,6 +65,7 @@ import static org.testng.Assert.*;
  * Test Server part of the assured feature in both safe data and
  * safe read modes.
  */
+@SuppressWarnings("javadoc")
 public class AssuredReplicationServerTest
   extends ReplicationTestCase
 {
@@ -499,8 +480,7 @@ public class AssuredReplicationServerTest
       // Check connected server port
       String serverStr = fakeReplicationDomain.getReplicationServer();
       int index = serverStr.lastIndexOf(':');
-      if ((index == -1) || (index >= serverStr.length()))
-        fail("Enable to find port number in: " + serverStr);
+      assertFalse(index == -1, "Enable to find port number in: " + serverStr);
       String rdPortStr = serverStr.substring(index + 1);
       int rdPort = Integer.parseInt(rdPortStr);// fail the test if not an int
       assertEquals(rdPort, rsPort);
@@ -1795,42 +1775,38 @@ public class AssuredReplicationServerTest
     // Check what received/did fake Rss
     if (nSentUpdates < 4)  // Fake RS 3 is stopped after 3 updates sent
     {
-      if (fakeRs1GenId != DEFAULT_GENID)
-        assertEquals(fakeRs1.getReceivedUpdates(), 0);
-      else
-        assertEquals(fakeRs1.getReceivedUpdates(), nSentUpdates);
-      assertTrue(fakeRs1.receivedUpdatesOk());
-      if (expectedServers.contains(FRS1_ID))
-        assertTrue(fakeRs1.ackReplied());
-      else
-        assertFalse(fakeRs1.ackReplied());
+      assertReceivedMsgs(fakeRs1, FRS1_ID, fakeRs1GenId, nSentUpdates,
+          expectedServers);
     }
 
     if (nSentUpdates < 3)  // Fake RS 3 is stopped after 2 updates sent
     {
-      if (fakeRs2GenId != DEFAULT_GENID)
-        assertEquals(fakeRs2.getReceivedUpdates(), 0);
-      else
-        assertEquals(fakeRs2.getReceivedUpdates(), nSentUpdates);
-      assertTrue(fakeRs2.receivedUpdatesOk());
-      if (expectedServers.contains(FRS2_ID))
-        assertTrue(fakeRs2.ackReplied());
-      else
-        assertFalse(fakeRs2.ackReplied());
+      assertReceivedMsgs(fakeRs2, FRS2_ID, fakeRs2GenId, nSentUpdates,
+          expectedServers);
     }
 
     if (nSentUpdates < 2) // Fake RS 3 is stopped after 1 update sent
     {
-      if (fakeRs3GenId != DEFAULT_GENID)
-        assertEquals(fakeRs3.getReceivedUpdates(), 0);
-      else
-        assertEquals(fakeRs3.getReceivedUpdates(), nSentUpdates);
-      assertTrue(fakeRs3.receivedUpdatesOk());
-      if (expectedServers.contains(FRS3_ID))
-        assertTrue(fakeRs3.ackReplied());
-      else
-        assertFalse(fakeRs3.ackReplied());
+      assertReceivedMsgs(fakeRs3, FRS3_ID, fakeRs3GenId, nSentUpdates,
+          expectedServers);
     }
+  }
+
+  /**
+   * Asserts what messages were received by the {@link FakeReplicationServer}s.
+   */
+  private void assertReceivedMsgs(FakeReplicationServer fakeRs, int fakeRsId,
+      long generationId, int nSentUpdates, List<Integer> expectedServers)
+  {
+    if (generationId != DEFAULT_GENID)
+      assertEquals(fakeRs.getReceivedUpdates(), 0);
+    else
+      assertEquals(fakeRs.getReceivedUpdates(), nSentUpdates);
+    assertTrue(fakeRs.receivedUpdatesOk());
+    if (expectedServers.contains(fakeRsId))
+      assertTrue(fakeRs.ackReplied());
+    else
+      assertFalse(fakeRs.ackReplied());
   }
 
   /**
@@ -1970,22 +1946,23 @@ public class AssuredReplicationServerTest
    */
   private void waitForStableTopo(FakeReplicationDomain fakeRd, int expectedDs, int expectedRs)
   {
-    int nSec = 30;
     List<DSInfo> dsInfo = null;
     List<RSInfo> rsInfo = null;
-    while(nSec > 0)
+    long nSec = 0;
+    long startTime = System.currentTimeMillis();
+    do
     {
       dsInfo = fakeRd.getReplicasList();
       rsInfo = fakeRd.getRsList();
-      if ((dsInfo.size() == expectedDs) &&
-          (rsInfo.size() == expectedRs)) // Must include real RS so '+1'
+      if (dsInfo.size() == expectedDs && rsInfo.size() == expectedRs)
       {
-        debugInfo("waitForStableTopo: expected topo obtained after " + (30-nSec) + " second(s).");
+        debugInfo("waitForStableTopo: expected topo obtained after " + nSec + " second(s).");
         return;
       }
-      sleep(1000);
-      nSec--;
+      sleep(100);
+      nSec = (System.currentTimeMillis() - startTime) / 1000;
     }
+    while (nSec < 30);
     fail("Did not reach expected topo view in time: expected " + expectedDs +
       " DSs (had " + dsInfo +") and " + expectedRs + " RSs (had " + rsInfo +").");
   }
@@ -2029,45 +2006,35 @@ public class AssuredReplicationServerTest
    * -1 is used, the server is out of scope
    */
   private List<Integer> computeExpectedServersSafeData(
-      int fakeRs1Gid, long fakeRs1GenId, int fakeRs1Scen,
-      int fakeRs2Gid, long fakeRs2GenId, int fakeRs2Scen,
-      int fakeRs3Gid, long fakeRs3GenId, int fakeRs3Scen)
+      int rs1Gid, long rs1GenId, int rs1Scen,
+      int rs2Gid, long rs2GenId, int rs2Scen,
+      int rs3Gid, long rs3GenId, int rs3Scen)
   {
-    List<Integer> exptectedServers = new ArrayList<Integer>();
-    if (areGroupAndGenerationIdOk(fakeRs1Gid, fakeRs1GenId))
+    List<Integer> expectedServers = new ArrayList<Integer>();
+    assertRSExpectations(expectedServers, rs1Gid, rs1GenId, rs1Scen, FRS1_ID);
+    assertRSExpectations(expectedServers, rs2Gid, rs2GenId, rs2Scen, FRS2_ID);
+    assertRSExpectations(expectedServers, rs3Gid, rs3GenId, rs3Scen, FRS3_ID);
+    return expectedServers;
+  }
+
+  /**
+   * @param expectedServers
+   *          the RS expected to reply ok in the given test
+   */
+  private void assertRSExpectations(List<Integer> expectedServers, int groupId,
+      long generationId, int expectedScenario, int rsId)
+  {
+    if (areGroupAndGenerationIdOk(groupId, generationId))
     {
-      if (fakeRs1Scen == REPLY_OK_RS_SCENARIO)
+      List<Integer> acceptableScenarios =
+          Arrays.asList(REPLY_OK_RS_SCENARIO, TIMEOUT_RS_SCENARIO);
+      assertTrue(acceptableScenarios.contains(expectedScenario),
+          "No other scenario should be used here than " + acceptableScenarios);
+      if (expectedScenario == REPLY_OK_RS_SCENARIO)
       {
-        exptectedServers.add(FRS1_ID);
-      } else if (fakeRs1Scen != TIMEOUT_RS_SCENARIO)
-      {
-        fail("No other scenario should be used here");
-        return null;
+        expectedServers.add(rsId);
       }
     }
-    if (areGroupAndGenerationIdOk(fakeRs2Gid, fakeRs2GenId))
-    {
-      if (fakeRs2Scen == REPLY_OK_RS_SCENARIO)
-      {
-        exptectedServers.add(FRS2_ID);
-      } else if (fakeRs2Scen != TIMEOUT_RS_SCENARIO)
-      {
-        fail("No other scenario should be used here");
-        return null;
-      }
-    }
-    if (areGroupAndGenerationIdOk(fakeRs3Gid, fakeRs3GenId))
-    {
-      if (fakeRs3Scen == REPLY_OK_RS_SCENARIO)
-      {
-        exptectedServers.add(FRS3_ID);
-      } else if (fakeRs3Scen != TIMEOUT_RS_SCENARIO)
-      {
-        fail("No other scenario should be used here");
-        return null;
-      }
-    }
-    return exptectedServers;
   }
 
   /**
@@ -2179,8 +2146,8 @@ public class AssuredReplicationServerTest
         assertFalse(ackMsg.hasWrongStatus());
         assertEquals(ackMsg.getFailedServers().size(), 0);
       }
-
-   } finally
+    }
+    finally
     {
       endTest();
     }
@@ -2692,7 +2659,6 @@ public class AssuredReplicationServerTest
       boolean dsIsEligible = areGroupAndGenerationIdOk(otherFakeDsGid, otherFakeDsGenId);
       boolean rsIsEligible = areGroupAndGenerationIdOk(otherFakeRsGid, otherFakeRsGenId);
       boolean dsIsExpected = false;
-      boolean rsIsExpected = false;
       // Booleans to tell if we expect to see the timeout, wrong status and replay error flags
       boolean shouldSeeTimeout = false;
       boolean shouldSeeWrongStatus = false;
@@ -2725,7 +2691,6 @@ public class AssuredReplicationServerTest
         switch (otherFakeRsScen)
         {
           case REPLY_OK_RS_SCENARIO:
-            rsIsExpected = true;
             break;
           case TIMEOUT_RS_SCENARIO:
             shouldSeeRsIdInError = true;
@@ -3647,8 +3612,7 @@ public class AssuredReplicationServerTest
           sleep(1000);
         }
       }
-      if (error)
-        fail("DS2 not in degraded status");
+      assertFalse(error, "DS2 not in degraded status");
 
       sleep(500); // Sleep a while as counters are updated just after sending thread is unblocked
       assertEquals(fakeRd1.getAssuredSrSentUpdates(), 4);
@@ -3755,8 +3719,7 @@ public class AssuredReplicationServerTest
           sleep(1000);
         }
       }
-      if (error)
-        fail("DS2 not back to normal status");
+      assertFalse(error, "DS2 not back to normal status");
 
       // DS2 should also change status so reset its assured monitoring data so no received sr updates
       assertEquals(fakeRd1.getAssuredSrSentUpdates(), 5);
