@@ -430,28 +430,7 @@ public class LocalBackendModifyOperation
             .get(String.valueOf(entryDN)));
 
         // See if one of the entry's ancestors exists.
-        try
-        {
-          DN parentDN = entryDN.getParentDNInSuffix();
-          while (parentDN != null)
-          {
-            if (DirectoryServer.entryExists(parentDN))
-            {
-              setMatchedDN(parentDN);
-              break;
-            }
-
-            parentDN = parentDN.getParentDNInSuffix();
-          }
-        }
-        catch (Exception e)
-        {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
-        }
-
+        findAndSetMatchingDN(entryDN);
         return;
       }
 
@@ -647,6 +626,31 @@ public class LocalBackendModifyOperation
     {
       LockManager.unlock(entryDN, entryLock);
       processSynchPostOperationPlugins();
+    }
+  }
+
+  private void findAndSetMatchingDN(DN entryDN)
+  {
+    try
+    {
+      DN matchedDN = entryDN.getParentDNInSuffix();
+      while (matchedDN != null)
+      {
+        if (DirectoryServer.entryExists(matchedDN))
+        {
+          setMatchedDN(matchedDN);
+          return;
+        }
+
+        matchedDN = matchedDN.getParentDNInSuffix();
+      }
+    }
+    catch (Exception e)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
     }
   }
 
