@@ -71,29 +71,29 @@ public class LocalBackendDeleteOperation
   /**
    * The backend in which the operation is to be processed.
    */
-  protected Backend backend;
+  private Backend backend;
 
   /**
    * Indicates whether the LDAP no-op control has been requested.
    */
-  protected boolean noOp;
+  private boolean noOp;
 
   /**
    * The client connection on which this operation was requested.
    */
-  protected ClientConnection clientConnection;
+  private ClientConnection clientConnection;
 
   /**
    * The DN of the entry to be deleted.
    */
-  protected DN entryDN;
+  private DN entryDN;
 
   /**
    * The entry to be deleted.
    */
-  protected Entry entry;
+  private Entry entry;
 
-  // The pre-read request control included in the request, if applicable.
+  /** The pre-read request control included in the request, if applicable. */
   private LDAPPreReadRequestControl preReadRequest;
 
 
@@ -137,278 +137,19 @@ public class LocalBackendDeleteOperation
   public void processLocalDelete(final LocalBackendWorkflowElement wfe)
       throws CanceledOperationException
   {
-    boolean executePostOpPlugins = false;
     this.backend = wfe.getBackend();
 
     clientConnection = getClientConnection();
 
-    // Get the plugin config manager that will be used for invoking plugins.
-    PluginConfigManager pluginConfigManager =
-         DirectoryServer.getPluginConfigManager();
-
     // Check for a request to cancel this operation.
     checkIfCanceled(false);
 
-    // Create a labeled block of code that we can break out of if a problem is
-    // detected.
-deleteProcessing:
-    {
-      // Process the entry DN to convert it from its raw form as provided by the
-      // client to the form required for the rest of the delete processing.
-      entryDN = getEntryDN();
-      if (entryDN == null){
-        break deleteProcessing;
-      }
-
-      // Grab a write lock on the entry.
-      final Lock entryLock = LockManager.lockWrite(entryDN);
-      if (entryLock == null)
-      {
-        setResultCode(ResultCode.BUSY);
-        appendErrorMessage(ERR_DELETE_CANNOT_LOCK_ENTRY.get(
-                                String.valueOf(entryDN)));
-        break deleteProcessing;
-      }
-
-      try
-      {
-        // Get the entry to delete.  If it doesn't exist, then fail.
-        try
-        {
-          entry = backend.getEntry(entryDN);
-          if (entry == null)
-          {
-            setResultCode(ResultCode.NO_SUCH_OBJECT);
-            appendErrorMessage(ERR_DELETE_NO_SUCH_ENTRY.get(
-                                    String.valueOf(entryDN)));
-
-            try
-            {
-              DN parentDN = entryDN.getParentDNInSuffix();
-              while (parentDN != null)
-              {
-                if (DirectoryServer.entryExists(parentDN))
-                {
-                  setMatchedDN(parentDN);
-                  break;
-                }
-
-                parentDN = parentDN.getParentDNInSuffix();
-              }
-            }
-            catch (Exception e)
-            {
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, e);
-              }
-            }
-
-            break deleteProcessing;
-          }
-        }
-        catch (DirectoryException de)
-        {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, de);
-          }
-
-          setResponseData(de);
-          break deleteProcessing;
-        }
-
-        if(!handleConflictResolution()) {
-            break deleteProcessing;
-        }
-
-        // Check to see if the client has permission to perform the
-        // delete.
-
-        // Check to see if there are any controls in the request.  If so, then
-        // see if there is any special processing required.
-        try
-        {
-          handleRequestControls();
-        }
-        catch (DirectoryException de)
-        {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, de);
-          }
-
-          setResponseData(de);
-          break deleteProcessing;
-        }
-
-
-        // FIXME: for now assume that this will check all permission
-        // pertinent to the operation. This includes proxy authorization
-        // and any other controls specified.
-
-        // FIXME: earlier checks to see if the entry already exists may
-        // have already exposed sensitive information to the client.
-        try
-        {
-          if (!AccessControlConfigManager.getInstance()
-              .getAccessControlHandler().isAllowed(this))
-          {
-            setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
-            appendErrorMessage(ERR_DELETE_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS
-                .get(String.valueOf(entryDN)));
-            break deleteProcessing;
-          }
-        }
-        catch (DirectoryException e)
-        {
-          setResultCode(e.getResultCode());
-          appendErrorMessage(e.getMessageObject());
-          break deleteProcessing;
-        }
-
-        // Check for a request to cancel this operation.
-        checkIfCanceled(false);
-
-
-        // If the operation is not a synchronization operation,
-        // invoke the pre-delete plugins.
-        if (! isSynchronizationOperation())
-        {
-          executePostOpPlugins = true;
-          PluginResult.PreOperation preOpResult =
-               pluginConfigManager.invokePreOperationDeletePlugins(this);
-          if (!preOpResult.continueProcessing())
-          {
-            setResultCode(preOpResult.getResultCode());
-            appendErrorMessage(preOpResult.getErrorMessage());
-            setMatchedDN(preOpResult.getMatchedDN());
-            setReferralURLs(preOpResult.getReferralURLs());
-            break deleteProcessing;
-          }
-        }
-
-
-        // Get the backend to use for the delete.  If there is none, then fail.
-        if (backend == null)
-        {
-          setResultCode(ResultCode.NO_SUCH_OBJECT);
-          appendErrorMessage(ERR_DELETE_NO_SUCH_ENTRY.get(
-                                  String.valueOf(entryDN)));
-          break deleteProcessing;
-        }
-
-
-        // If it is not a private backend, then check to see if the server or
-        // backend is operating in read-only mode.
-        if (! backend.isPrivateBackend())
-        {
-          switch (DirectoryServer.getWritabilityMode())
-          {
-            case DISABLED:
-              setResultCode(ResultCode.UNWILLING_TO_PERFORM);
-              appendErrorMessage(ERR_DELETE_SERVER_READONLY.get(
-                                      String.valueOf(entryDN)));
-              break deleteProcessing;
-
-            case INTERNAL_ONLY:
-              if (! (isInternalOperation() || isSynchronizationOperation()))
-              {
-                setResultCode(ResultCode.UNWILLING_TO_PERFORM);
-                appendErrorMessage(ERR_DELETE_SERVER_READONLY.get(
-                                        String.valueOf(entryDN)));
-                break deleteProcessing;
-              }
-          }
-
-          switch (backend.getWritabilityMode())
-          {
-            case DISABLED:
-              setResultCode(ResultCode.UNWILLING_TO_PERFORM);
-              appendErrorMessage(ERR_DELETE_BACKEND_READONLY.get(
-                                      String.valueOf(entryDN)));
-              break deleteProcessing;
-
-            case INTERNAL_ONLY:
-              if (! (isInternalOperation() || isSynchronizationOperation()))
-              {
-                setResultCode(ResultCode.UNWILLING_TO_PERFORM);
-                appendErrorMessage(ERR_DELETE_BACKEND_READONLY.get(
-                                        String.valueOf(entryDN)));
-                break deleteProcessing;
-              }
-          }
-        }
-
-
-        // The selected backend will have the responsibility of making sure that
-        // the entry actually exists and does not have any children (or possibly
-        // handling a subtree delete).  But we will need to check if there are
-        // any subordinate backends that should stop us from attempting the
-        // delete.
-        Backend[] subBackends = backend.getSubordinateBackends();
-        for (Backend b : subBackends)
-        {
-          DN[] baseDNs = b.getBaseDNs();
-          for (DN dn : baseDNs)
-          {
-            if (dn.isDescendantOf(entryDN))
-            {
-              setResultCode(ResultCode.NOT_ALLOWED_ON_NONLEAF);
-              appendErrorMessage(ERR_DELETE_HAS_SUB_BACKEND.get(
-                                      String.valueOf(entryDN),
-                                      String.valueOf(dn)));
-              break deleteProcessing;
-            }
-          }
-        }
-
-
-        // Actually perform the delete.
-        try
-        {
-          if (noOp)
-          {
-            setResultCode(ResultCode.NO_OPERATION);
-            appendErrorMessage(INFO_DELETE_NOOP.get());
-          }
-          else
-          {
-              if(!processPreOperation()) {
-                  break deleteProcessing;
-              }
-              backend.deleteEntry(entryDN, this);
-          }
-
-
-          LocalBackendWorkflowElement.addPreReadResponse(this,
-              preReadRequest, entry);
-
-
-          if (! noOp)
-          {
-            setResultCode(ResultCode.SUCCESS);
-          }
-        }
-        catch (DirectoryException de)
-        {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, de);
-          }
-
-          setResponseData(de);
-          break deleteProcessing;
-        }
-      }
-      finally
-      {
-        LockManager.unlock(entryDN, entryLock);
-        processSynchPostOperationPlugins();
-      }
-    }
+    BooleanHolder executePostOpPlugins = new BooleanHolder();
+    processDelete(executePostOpPlugins);
 
     // Invoke the post-operation or post-synchronization delete plugins.
+    PluginConfigManager pluginConfigManager =
+        DirectoryServer.getPluginConfigManager();
     if (isSynchronizationOperation())
     {
       if (getResultCode() == ResultCode.SUCCESS)
@@ -416,7 +157,7 @@ deleteProcessing:
         pluginConfigManager.invokePostSynchronizationDeletePlugins(this);
       }
     }
-    else if (executePostOpPlugins)
+    else if (executePostOpPlugins.value)
     {
       PluginResult.PostOperation postOpResult =
           pluginConfigManager.invokePostOperationDeletePlugins(this);
@@ -430,7 +171,6 @@ deleteProcessing:
       }
     }
 
-
     // Register a post-response call-back which will notify persistent
     // searches and change listeners.
     if (getResultCode() == ResultCode.SUCCESS)
@@ -442,7 +182,8 @@ deleteProcessing:
         public void run()
         {
           // Notify persistent searches.
-          for (PersistentSearch psearch : wfe.getPersistentSearches()) {
+          for (PersistentSearch psearch : wfe.getPersistentSearches())
+          {
             psearch.processDelete(entry, getChangeNumber());
           }
 
@@ -462,13 +203,237 @@ deleteProcessing:
                 TRACER.debugCaught(DebugLogLevel.ERROR, e);
               }
 
-              Message message = ERR_DELETE_ERROR_NOTIFYING_CHANGE_LISTENER
-                  .get(getExceptionMessage(e));
+              Message message =
+                  ERR_DELETE_ERROR_NOTIFYING_CHANGE_LISTENER
+                      .get(getExceptionMessage(e));
               logError(message);
             }
           }
         }
       });
+    }
+  }
+
+  private void processDelete(BooleanHolder executePostOpPlugins)
+      throws CanceledOperationException
+  {
+    // Process the entry DN to convert it from its raw form as provided by the
+    // client to the form required for the rest of the delete processing.
+    entryDN = getEntryDN();
+    if (entryDN == null)
+    {
+      return;
+    }
+
+    // Grab a write lock on the entry.
+    final Lock entryLock = LockManager.lockWrite(entryDN);
+    if (entryLock == null)
+    {
+      setResultCode(ResultCode.BUSY);
+      appendErrorMessage(ERR_DELETE_CANNOT_LOCK_ENTRY.get(String
+          .valueOf(entryDN)));
+      return;
+    }
+
+    try
+    {
+      // Get the entry to delete. If it doesn't exist, then fail.
+      entry = backend.getEntry(entryDN);
+      if (entry == null)
+      {
+        setResultCode(ResultCode.NO_SUCH_OBJECT);
+        appendErrorMessage(ERR_DELETE_NO_SUCH_ENTRY
+            .get(String.valueOf(entryDN)));
+
+        try
+        {
+          DN parentDN = entryDN.getParentDNInSuffix();
+          while (parentDN != null)
+          {
+            if (DirectoryServer.entryExists(parentDN))
+            {
+              setMatchedDN(parentDN);
+              break;
+            }
+
+            parentDN = parentDN.getParentDNInSuffix();
+          }
+        }
+        catch (Exception e)
+        {
+          if (debugEnabled())
+          {
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
+          }
+        }
+
+        return;
+      }
+
+      if (!handleConflictResolution())
+      {
+        return;
+      }
+
+      // Check to see if the client has permission to perform the
+      // delete.
+
+      // Check to see if there are any controls in the request. If so, then
+      // see if there is any special processing required.
+      handleRequestControls();
+
+      // FIXME: for now assume that this will check all permission
+      // pertinent to the operation. This includes proxy authorization
+      // and any other controls specified.
+
+      // FIXME: earlier checks to see if the entry already exists may
+      // have already exposed sensitive information to the client.
+      try
+      {
+        if (!AccessControlConfigManager.getInstance().getAccessControlHandler()
+            .isAllowed(this))
+        {
+          setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
+          appendErrorMessage(ERR_DELETE_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS
+              .get(String.valueOf(entryDN)));
+          return;
+        }
+      }
+      catch (DirectoryException e)
+      {
+        setResultCode(e.getResultCode());
+        appendErrorMessage(e.getMessageObject());
+        return;
+      }
+
+      // Check for a request to cancel this operation.
+      checkIfCanceled(false);
+
+      // If the operation is not a synchronization operation,
+      // invoke the pre-delete plugins.
+      if (!isSynchronizationOperation())
+      {
+        executePostOpPlugins.value = true;
+        PluginResult.PreOperation preOpResult =
+            DirectoryServer.getPluginConfigManager()
+                .invokePreOperationDeletePlugins(this);
+        if (!preOpResult.continueProcessing())
+        {
+          setResultCode(preOpResult.getResultCode());
+          appendErrorMessage(preOpResult.getErrorMessage());
+          setMatchedDN(preOpResult.getMatchedDN());
+          setReferralURLs(preOpResult.getReferralURLs());
+          return;
+        }
+      }
+
+      // Get the backend to use for the delete. If there is none, then fail.
+      if (backend == null)
+      {
+        setResultCode(ResultCode.NO_SUCH_OBJECT);
+        appendErrorMessage(ERR_DELETE_NO_SUCH_ENTRY
+            .get(String.valueOf(entryDN)));
+        return;
+      }
+
+      // If it is not a private backend, then check to see if the server or
+      // backend is operating in read-only mode.
+      if (!backend.isPrivateBackend())
+      {
+        switch (DirectoryServer.getWritabilityMode())
+        {
+        case DISABLED:
+          setResultCode(ResultCode.UNWILLING_TO_PERFORM);
+          appendErrorMessage(ERR_DELETE_SERVER_READONLY.get(String
+              .valueOf(entryDN)));
+          return;
+
+        case INTERNAL_ONLY:
+          if (!(isInternalOperation() || isSynchronizationOperation()))
+          {
+            setResultCode(ResultCode.UNWILLING_TO_PERFORM);
+            appendErrorMessage(ERR_DELETE_SERVER_READONLY.get(String
+                .valueOf(entryDN)));
+            return;
+          }
+        }
+
+        switch (backend.getWritabilityMode())
+        {
+        case DISABLED:
+          setResultCode(ResultCode.UNWILLING_TO_PERFORM);
+          appendErrorMessage(ERR_DELETE_BACKEND_READONLY.get(String
+              .valueOf(entryDN)));
+          return;
+
+        case INTERNAL_ONLY:
+          if (!(isInternalOperation() || isSynchronizationOperation()))
+          {
+            setResultCode(ResultCode.UNWILLING_TO_PERFORM);
+            appendErrorMessage(ERR_DELETE_BACKEND_READONLY.get(String
+                .valueOf(entryDN)));
+            return;
+          }
+        }
+      }
+
+      // The selected backend will have the responsibility of making sure that
+      // the entry actually exists and does not have any children (or possibly
+      // handling a subtree delete). But we will need to check if there are
+      // any subordinate backends that should stop us from attempting the
+      // delete.
+      Backend[] subBackends = backend.getSubordinateBackends();
+      for (Backend b : subBackends)
+      {
+        for (DN dn : b.getBaseDNs())
+        {
+          if (dn.isDescendantOf(entryDN))
+          {
+            setResultCode(ResultCode.NOT_ALLOWED_ON_NONLEAF);
+            appendErrorMessage(ERR_DELETE_HAS_SUB_BACKEND.get(String
+                .valueOf(entryDN), String.valueOf(dn)));
+            return;
+          }
+        }
+      }
+
+      // Actually perform the delete.
+      if (noOp)
+      {
+        setResultCode(ResultCode.NO_OPERATION);
+        appendErrorMessage(INFO_DELETE_NOOP.get());
+      }
+      else
+      {
+        if (!processPreOperation())
+        {
+          return;
+        }
+        backend.deleteEntry(entryDN, this);
+      }
+
+      LocalBackendWorkflowElement.addPreReadResponse(this, preReadRequest,
+          entry);
+
+      if (!noOp)
+      {
+        setResultCode(ResultCode.SUCCESS);
+      }
+    }
+    catch (DirectoryException de)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, de);
+      }
+
+      setResponseData(de);
+      return;
+    }
+    finally
+    {
+      LockManager.unlock(entryDN, entryLock);
+      processSynchPostOperationPlugins();
     }
   }
 
@@ -480,15 +445,14 @@ deleteProcessing:
    * @throws  DirectoryException  If a problem occurs that should cause the
    *                              operation to fail.
    */
-  protected void handleRequestControls()
+  private void handleRequestControls()
           throws DirectoryException
   {
     List<Control> requestControls = getRequestControls();
     if ((requestControls != null) && (! requestControls.isEmpty()))
     {
-      for (int i=0; i < requestControls.size(); i++)
+      for (Control c : requestControls)
       {
-        Control c   = requestControls.get(i);
         String  oid = c.getOID();
 
         if (!LocalBackendWorkflowElement.isControlAllowed(entryDN, this, c))
@@ -572,7 +536,7 @@ deleteProcessing:
           addAdditionalLogItem(AdditionalLogItem.keyOnly(getClass(),
               "obsoleteProxiedAuthzV1Control"));
 
-          // The requester must have the PROXIED_AUTH privilige in order to
+          // The requester must have the PROXIED_AUTH privilege in order to
           // be able to use this control.
           if (! clientConnection.hasPrivilege(Privilege.PROXIED_AUTH, this))
           {
@@ -596,7 +560,7 @@ deleteProcessing:
         }
         else if (oid.equals(OID_PROXIED_AUTH_V2))
         {
-          // The requester must have the PROXIED_AUTH privilige in order to
+          // The requester must have the PROXIED_AUTH privilege in order to
           // be able to use this control.
           if (! clientConnection.hasPrivilege(Privilege.PROXIED_AUTH, this))
           {
@@ -642,7 +606,7 @@ deleteProcessing:
    * @return  {@code true} if processing should continue for the operation, or
    *          {@code false} if not.
    */
-  protected boolean handleConflictResolution() {
+  private boolean handleConflictResolution() {
       boolean returnVal = true;
 
       for (SynchronizationProvider<?> provider :
@@ -676,8 +640,7 @@ deleteProcessing:
   /**
    * Invoke post operation synchronization providers.
    */
-  protected void processSynchPostOperationPlugins() {
-
+  private void processSynchPostOperationPlugins() {
       for (SynchronizationProvider<?> provider :
           DirectoryServer.getSynchronizationProviders()) {
           try {
@@ -700,7 +663,7 @@ deleteProcessing:
    * @return  {@code true} if processing should continue for the operation, or
    *          {@code false} if not.
    */
-  protected boolean processPreOperation() {
+  private boolean processPreOperation() {
       boolean returnVal = true;
 
       for (SynchronizationProvider<?> provider :
@@ -731,4 +694,3 @@ deleteProcessing:
       return returnVal;
   }
 }
-
