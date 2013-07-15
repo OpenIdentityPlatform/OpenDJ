@@ -26,9 +26,6 @@
  *      Portions Copyright 2012-2013 ForgeRock AS
  */
 package org.opends.server.tools;
-import org.opends.messages.Message;
-
-
 
 import java.io.File;
 import java.io.IOException;
@@ -41,14 +38,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import org.opends.messages.Message;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
-import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.ExistingFileBehavior;
 import org.opends.server.types.InitializationException;
@@ -73,11 +71,9 @@ import org.opends.server.util.args.BooleanArgument;
 import org.opends.server.util.args.StringArgument;
 
 import static org.opends.messages.ToolMessages.*;
-import static org.opends.server.util.ServerConstants.MAX_LINE_WIDTH;
-import static org.opends.server.util.StaticUtils.*;
 import static org.opends.server.tools.ToolConstants.*;
-
-
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class provides a program that may be used to apply a set of changes (in
@@ -433,15 +429,7 @@ public class LDIFModify
                                    OutputStream outStream,
                                    OutputStream errStream)
   {
-    PrintStream err;
-    if (errStream == null)
-    {
-      err = NullOutputStream.printStream();
-    }
-    else
-    {
-      err = new PrintStream(errStream);
-    }
+    PrintStream err = NullOutputStream.wrapOrNullStream(errStream);
 
     // Prepare the argument parser.
     BooleanArgument showUsage;

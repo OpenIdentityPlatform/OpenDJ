@@ -176,23 +176,8 @@ public abstract class ConsoleApplication
       this.in = new BufferedReader(new NullReader());
     }
 
-    if (out != null)
-    {
-      this.out = out;
-    }
-    else
-    {
-      this.out = NullOutputStream.printStream();
-    }
-
-    if (err != null)
-    {
-      this.err = out;
-    }
-    else
-    {
-      this.err = NullOutputStream.printStream();
-    }
+    this.out = NullOutputStream.wrapOrNullStream(out);
+    this.err = NullOutputStream.wrapOrNullStream(err);
   }
 
   /**
@@ -217,23 +202,8 @@ public abstract class ConsoleApplication
       this.in = new BufferedReader(new NullReader());
     }
 
-    if (out != null)
-    {
-      this.out = new PrintStream(out);
-    }
-    else
-    {
-      this.out = NullOutputStream.printStream();
-    }
-
-    if (err != null)
-    {
-      this.err = new PrintStream(err);
-    }
-    else
-    {
-      this.err = NullOutputStream.printStream();
-    }
+    this.out = NullOutputStream.wrapOrNullStream(out);
+    this.err = NullOutputStream.wrapOrNullStream(err);
   }
 
   /**

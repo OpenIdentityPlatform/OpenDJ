@@ -23,12 +23,9 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.tools;
-import org.opends.messages.Message;
-
-
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -40,8 +37,9 @@ import java.util.LinkedList;
 import java.util.TimeZone;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
-
 import javax.net.ssl.SSLException;
+
+import org.opends.messages.Message;
 import org.opends.server.admin.AdministrationConnector;
 import org.opends.server.controls.ProxiedAuthV2Control;
 import org.opends.server.core.DirectoryServer;
@@ -71,8 +69,6 @@ import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.opends.server.tools.ToolConstants.*;
-
-
 
 /**
  * This class provides a tool that can send a request to the Directory Server
@@ -182,25 +178,8 @@ public class StopDS
   public static int stopDS(String[] args, OutputStream outStream,
                            OutputStream errStream)
   {
-    PrintStream out;
-    if (outStream == null)
-    {
-      out = NullOutputStream.printStream();
-    }
-    else
-    {
-      out = new PrintStream(outStream);
-    }
-
-    PrintStream err;
-    if (errStream == null)
-    {
-      err = NullOutputStream.printStream();
-    }
-    else
-    {
-      err = new PrintStream(errStream);
-    }
+    PrintStream out = NullOutputStream.wrapOrNullStream(outStream);
+    PrintStream err = NullOutputStream.wrapOrNullStream(errStream);
 
 
     // Define all the arguments that may be used with this program.

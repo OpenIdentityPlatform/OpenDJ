@@ -26,9 +26,6 @@
  *      Portions Copyright 2013 ForgeRock AS
  */
 package org.opends.server.tools.makeldif;
-import org.opends.messages.Message;
-
-
 
 import java.io.File;
 import java.io.IOException;
@@ -37,6 +34,7 @@ import java.io.PrintStream;
 import java.util.LinkedList;
 import java.util.Random;
 
+import org.opends.messages.Message;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.ExistingFileBehavior;
@@ -52,11 +50,9 @@ import org.opends.server.util.args.IntegerArgument;
 import org.opends.server.util.args.StringArgument;
 
 import static org.opends.messages.ToolMessages.*;
+import static org.opends.server.tools.ToolConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-import static org.opends.server.tools.ToolConstants.*;
-
-
 
 /**
  * This class defines a program that can be used to generate LDIF content based
@@ -71,12 +67,10 @@ public class MakeLDIF
   private static final String CLASS_NAME =
        "org.opends.server.tools.makeldif.MakeLDIF";
 
-
-
-  // The LDIF writer that will be used to write the entries.
+  /** The LDIF writer that will be used to write the entries. */
   private LDIFWriter ldifWriter;
 
-  // The total number of entries that have been written.
+  /** The total number of entries that have been written. */
   private long entriesWritten;
 
   private PrintStream out = System.out;
@@ -130,23 +124,8 @@ public class MakeLDIF
       OutputStream outStream,
       OutputStream errStream)
   {
-    if (outStream == null)
-    {
-      out = NullOutputStream.printStream();
-    }
-    else
-    {
-      out = new PrintStream(outStream);
-    }
-
-    if (errStream == null)
-    {
-      err = NullOutputStream.printStream();
-    }
-    else
-    {
-      err = new PrintStream(errStream);
-    }
+    out = NullOutputStream.wrapOrNullStream(outStream);
+    err = NullOutputStream.wrapOrNullStream(errStream);
 
 //  Create and initialize the argument parser for this program.
     Message toolDescription = INFO_MAKELDIF_TOOL_DESCRIPTION.get();
@@ -443,6 +422,7 @@ public class MakeLDIF
    *
    * @throws  MakeLDIFException  If some other problem occurs.
    */
+  @Override
   public boolean writeEntry(TemplateEntry entry)
          throws IOException, MakeLDIFException
   {
@@ -497,6 +477,7 @@ public class MakeLDIF
    * Notifies the entry writer that no more entries will be provided and that
    * any associated cleanup may be performed.
    */
+  @Override
   public void closeEntryWriter()
   {
     Message message = INFO_MAKELDIF_PROCESSING_COMPLETE.get(entriesWritten);

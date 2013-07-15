@@ -55,16 +55,12 @@ import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static org.opends.admin.ads.ServerDescriptor.getReplicationServer;
-import static org.opends.admin.ads.ServerDescriptor.getServerRepresentation;
-import static org.opends.admin.ads.ServerDescriptor.getSuffixDisplay;
+import static org.opends.admin.ads.ServerDescriptor.*;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.QuickSetupMessages.*;
 import static org.opends.messages.ToolMessages.*;
-import static org.opends.messages.UtilityMessages.
- ERR_CONFIRMATION_TRIES_LIMIT_REACHED;
-import static org.opends.quicksetup.util.Utils.getFirstValue;
-import static org.opends.quicksetup.util.Utils.getThrowableMsg;
+import static org.opends.messages.UtilityMessages.*;
+import static org.opends.quicksetup.util.Utils.*;
 import static org.opends.server.tools.ToolConstants.*;
 import static org.opends.server.tools.dsreplication.ReplicationCliReturnCode.*;
 
@@ -82,6 +78,9 @@ import javax.naming.ldap.InitialLdapContext;
 import javax.net.ssl.TrustManager;
 
 import org.opends.admin.ads.ADSContext;
+import org.opends.admin.ads.ADSContext.ADSPropertySyntax;
+import org.opends.admin.ads.ADSContext.AdministratorProperty;
+import org.opends.admin.ads.ADSContext.ServerProperty;
 import org.opends.admin.ads.ADSContextException;
 import org.opends.admin.ads.ReplicaDescriptor;
 import org.opends.admin.ads.ServerDescriptor;
@@ -89,8 +88,6 @@ import org.opends.admin.ads.SuffixDescriptor;
 import org.opends.admin.ads.TopologyCache;
 import org.opends.admin.ads.TopologyCacheException;
 import org.opends.admin.ads.TopologyCacheFilter;
-import org.opends.admin.ads.ADSContext.ADSPropertySyntax;
-import org.opends.admin.ads.ADSContext.AdministratorProperty;
 import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.admin.ads.util.PreferredConnection;
@@ -325,25 +322,8 @@ public class ReplicationCliMain extends ConsoleApplication
   public static int mainCLI(String[] args, boolean initializeServer,
       OutputStream outStream, OutputStream errStream, InputStream inStream)
   {
-    PrintStream out;
-    if (outStream == null)
-    {
-      out = NullOutputStream.printStream();
-    }
-    else
-    {
-      out = new PrintStream(outStream);
-    }
-
-    PrintStream err;
-    if (errStream == null)
-    {
-      err = NullOutputStream.printStream();
-    }
-    else
-    {
-      err = new PrintStream(errStream);
-    }
+    PrintStream out = NullOutputStream.wrapOrNullStream(outStream);
+    PrintStream err = NullOutputStream.wrapOrNullStream(errStream);
 
     try
     {
@@ -8069,11 +8049,11 @@ public class ReplicationCliMain extends ConsoleApplication
       domains[i] = sync.getReplicationDomain(domainNames[i]);
     }
     ReplicationDomainCfgClient domain = null;
-    for (int i=0; i<domains.length; i++)
+    for (ReplicationDomainCfgClient domain2 : domains)
     {
-      if (Utils.areDnsEqual(baseDN, domains[i].getBaseDN().toString()))
+      if (Utils.areDnsEqual(baseDN, domain2.getBaseDN().toString()))
       {
-        domain = domains[i];
+        domain = domain2;
         break;
       }
     }
@@ -8933,10 +8913,10 @@ public class ReplicationCliMain extends ConsoleApplication
         String[] domainNames = sync.listReplicationDomains();
         if (domainNames != null)
         {
-          for (int i=0; i<domainNames.length; i++)
+          for (String domainName : domainNames)
           {
             ReplicationDomainCfgClient domain =
-              sync.getReplicationDomain(domainNames[i]);
+              sync.getReplicationDomain(domainName);
             for (String baseDN : baseDNs)
             {
               lastBaseDN = baseDN;
@@ -8970,7 +8950,7 @@ public class ReplicationCliMain extends ConsoleApplication
                     }
                     else
                     {
-                      sync.removeReplicationDomain(domainNames[i]);
+                      sync.removeReplicationDomain(domainName);
                       sync.commit();
                     }
                   }
@@ -9085,16 +9065,16 @@ public class ReplicationCliMain extends ConsoleApplication
         String[] domainNames = sync.listReplicationDomains();
         if (domainNames != null)
         {
-          for (int i=0; i<domainNames.length; i++)
+          for (String domainName : domainNames)
           {
             ReplicationDomainCfgClient domain =
-              sync.getReplicationDomain(domainNames[i]);
+              sync.getReplicationDomain(domainName);
             if (Utils.areDnsEqual(domain.getBaseDN().toString(), baseDN))
             {
               printProgress(formatter.getFormattedWithPoints(
                   INFO_REPLICATION_DISABLING_BASEDN.get(baseDN,
                       hostPort)));
-              sync.removeReplicationDomain(domainNames[i]);
+              sync.removeReplicationDomain(domainName);
               sync.commit();
 
               printProgress(formatter.getFormattedDone());
@@ -9510,14 +9490,12 @@ public class ReplicationCliMain extends ConsoleApplication
     {
       Set<ADSContext.ServerProperty> propertiesToCompare =
         new HashSet<ADSContext.ServerProperty>();
-      ADSContext.ServerProperty[] properties =
-        ADSContext.ServerProperty.values();
-      for (int i=0; i<properties.length; i++)
+      for (ServerProperty property : ADSContext.ServerProperty.values())
       {
-        if (properties[i].getAttributeSyntax() !=
+        if (property.getAttributeSyntax() !=
           ADSPropertySyntax.CERTIFICATE_BINARY)
         {
-          propertiesToCompare.add(properties[i]);
+          propertiesToCompare.add(property);
         }
       }
       for (Map<ADSContext.ServerProperty, Object> server1 : registry1)

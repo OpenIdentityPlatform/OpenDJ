@@ -24,12 +24,9 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2012 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.tools;
-import org.opends.messages.Message;
-
-
 
 import java.io.OutputStream;
 import java.io.PrintStream;
@@ -41,6 +38,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.net.ssl.SSLException;
 
+import org.opends.messages.Message;
 import org.opends.server.admin.AdministrationConnector;
 import org.opends.server.protocols.asn1.*;
 import org.opends.server.protocols.ldap.ExtendedRequestProtocolOp;
@@ -537,27 +535,8 @@ public class ManageAccount
   public static int main(String[] args, Boolean initServer,
                          OutputStream outStream, OutputStream errStream)
   {
-
-    if (outStream == null)
-    {
-      out = NullOutputStream.printStream();
-    }
-    else
-    {
-      out = new PrintStream(outStream);
-    }
-
-    if (errStream == null)
-    {
-      err = NullOutputStream.printStream();
-    }
-    else
-    {
-      err = new PrintStream(errStream);
-    }
-
-
-
+    out = NullOutputStream.wrapOrNullStream(outStream);
+    err = NullOutputStream.wrapOrNullStream(errStream);
 
     // Parse the command-line arguments provided to the program.
     int result = parseArgsAndConnect(args, initServer);

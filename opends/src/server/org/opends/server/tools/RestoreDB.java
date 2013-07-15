@@ -142,25 +142,8 @@ public class RestoreDB extends TaskTool {
   private int process(String[] args, boolean initializeServer,
                       OutputStream outStream, OutputStream errStream)
   {
-    PrintStream out;
-    if (outStream == null)
-    {
-      out = NullOutputStream.printStream();
-    }
-    else
-    {
-      out = new PrintStream(outStream);
-    }
-
-    PrintStream err;
-    if (errStream == null)
-    {
-      err = NullOutputStream.printStream();
-    }
-    else
-    {
-      err = new PrintStream(errStream);
-    }
+    PrintStream out = NullOutputStream.wrapOrNullStream(outStream);
+    PrintStream err = NullOutputStream.wrapOrNullStream(errStream);
 
     // Create the command-line argument parser for use with this program.
     LDAPConnectionArgumentParser argParser =

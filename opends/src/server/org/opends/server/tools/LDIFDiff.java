@@ -145,25 +145,8 @@ public class LDIFDiff
   public static int mainDiff(String[] args, boolean serverInitialized,
                              OutputStream outStream, OutputStream errStream)
   {
-    PrintStream out;
-    if (outStream == null)
-    {
-      out = NullOutputStream.printStream();
-    }
-    else
-    {
-      out = new PrintStream(outStream);
-    }
-
-    PrintStream err;
-    if (errStream == null)
-    {
-      err = NullOutputStream.printStream();
-    }
-    else
-    {
-      err = new PrintStream(errStream);
-    }
+    PrintStream out = NullOutputStream.wrapOrNullStream(outStream);
+    PrintStream err = NullOutputStream.wrapOrNullStream(errStream);
 
     BooleanArgument overwriteExisting;
     BooleanArgument showUsage;

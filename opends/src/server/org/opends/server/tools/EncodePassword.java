@@ -135,25 +135,8 @@ public class EncodePassword
                                    OutputStream outStream,
                                    OutputStream errStream)
   {
-    PrintStream out;
-    if (outStream == null)
-    {
-      out = NullOutputStream.printStream();
-    }
-    else
-    {
-      out = new PrintStream(outStream);
-    }
-
-    PrintStream err;
-    if (errStream == null)
-    {
-      err = NullOutputStream.printStream();
-    }
-    else
-    {
-      err = new PrintStream(errStream);
-    }
+    PrintStream out = NullOutputStream.wrapOrNullStream(outStream);
+    PrintStream err = NullOutputStream.wrapOrNullStream(errStream);
 
     // Define the command-line arguments that may be used with this program.
     BooleanArgument   authPasswordSyntax   = null;

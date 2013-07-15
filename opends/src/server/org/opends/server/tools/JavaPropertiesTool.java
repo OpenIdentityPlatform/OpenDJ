@@ -174,27 +174,11 @@ public class JavaPropertiesTool extends ConsoleApplication
   public static int mainCLI(String[] args, OutputStream outStream,
       OutputStream errStream, InputStream inStream)
   {
-    PrintStream out;
-    if (outStream == null)
-    {
-      out = NullOutputStream.printStream();
-    }
-    else
-    {
-      out = new PrintStream(outStream);
-    }
+    PrintStream out = NullOutputStream.wrapOrNullStream(outStream);
 
     System.setProperty(Constants.CLI_JAVA_PROPERTY, "true");
 
-    PrintStream err;
-    if (errStream == null)
-    {
-      err = NullOutputStream.printStream();
-    }
-    else
-    {
-      err = new PrintStream(errStream);
-    }
+    PrintStream err = NullOutputStream.wrapOrNullStream(errStream);
 
     JavaPropertiesTool tool = new JavaPropertiesTool(out, err, inStream);
 

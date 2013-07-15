@@ -23,11 +23,9 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2012 ForgeRock AS.
+ *      Portions Copyright 2012-2013 ForgeRock AS
  */
 package org.opends.server.tools;
-import org.opends.admin.ads.util.ConnectionUtils;
-import org.opends.messages.Message;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -37,7 +35,10 @@ import java.io.PrintStream;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.opends.admin.ads.util.ConnectionUtils;
+import org.opends.messages.Message;
 import org.opends.server.controls.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.ldap.*;
 import org.opends.server.util.Base64;
 import org.opends.server.util.EmbeddedUtils;
@@ -53,14 +54,12 @@ import org.opends.server.protocols.asn1.ASN1Exception;
 import org.opends.server.types.*;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
 import static org.opends.server.protocols.ldap.LDAPResultCode.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.opends.server.tools.ToolConstants.*;
-
 
 /**
  * This class provides a tool that can be used to issue search requests to the
@@ -645,25 +644,8 @@ public class LDAPSearch
       boolean returnMatchingEntries, OutputStream outStream,
       OutputStream errStream)
   {
-    PrintStream out;
-    if (outStream == null)
-    {
-      out = NullOutputStream.printStream();
-    }
-    else
-    {
-      out = new PrintStream(outStream);
-    }
-
-    PrintStream err;
-    if (errStream == null)
-    {
-      err = NullOutputStream.printStream();
-    }
-    else
-    {
-      err = new PrintStream(errStream);
-    }
+    PrintStream out = NullOutputStream.wrapOrNullStream(outStream);
+    PrintStream err = NullOutputStream.wrapOrNullStream(errStream);
 
     LDAPConnectionOptions connectionOptions = new LDAPConnectionOptions();
     LDAPSearchOptions searchOptions = new LDAPSearchOptions();

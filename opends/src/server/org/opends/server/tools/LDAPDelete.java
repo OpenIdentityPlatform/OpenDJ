@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2012 ForgeRock AS.
+ *      Portions Copyright 2012-2013 ForgeRock AS.
  */
 package org.opends.server.tools;
 import org.opends.admin.ads.util.ConnectionUtils;
@@ -293,25 +293,8 @@ public class LDAPDelete
   public static int mainDelete(String[] args, boolean initializeServer,
                                OutputStream outStream, OutputStream errStream)
   {
-    PrintStream out;
-    if (outStream == null)
-    {
-      out = NullOutputStream.printStream();
-    }
-    else
-    {
-      out = new PrintStream(outStream);
-    }
-
-    PrintStream err;
-    if (errStream == null)
-    {
-      err = NullOutputStream.printStream();
-    }
-    else
-    {
-      err = new PrintStream(errStream);
-    }
+    PrintStream out = NullOutputStream.wrapOrNullStream(outStream);
+    PrintStream err = NullOutputStream.wrapOrNullStream(errStream);
 
 
     LDAPConnectionOptions connectionOptions = new LDAPConnectionOptions();

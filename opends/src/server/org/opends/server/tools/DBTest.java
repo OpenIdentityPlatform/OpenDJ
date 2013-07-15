@@ -27,38 +27,32 @@
  */
 package org.opends.server.tools;
 
-import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.messages.ToolMessages.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.tools.ToolConstants.*;
+import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
-import org.opends.server.util.args.*;
-import static org.opends.server.util.ServerConstants.MAX_LINE_WIDTH;
-
-import org.opends.server.util.BuildVersion;
-import org.opends.server.util.StaticUtils;
-import org.opends.server.util.table.TableBuilder;
-import org.opends.server.util.table.TextTablePrinter;
-import org.opends.server.types.*;
-
-import static org.opends.messages.ToolMessages.*;
 import org.opends.messages.Message;
-
-import static org.opends.server.tools.ToolConstants.OPTION_SHORT_CONFIG_CLASS;
-import static org.opends.server.tools.ToolConstants.OPTION_LONG_CONFIG_CLASS;
-import static org.opends.server.tools.ToolConstants.OPTION_SHORT_HELP;
-import static org.opends.server.tools.ToolConstants.OPTION_LONG_HELP;
-import org.opends.server.extensions.ConfigFileHandler;
-import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.LockFileManager;
-import org.opends.server.core.CoreConfigManager;
-import org.opends.server.config.ConfigException;
-import org.opends.server.api.Backend;
 import org.opends.server.admin.std.server.BackendCfg;
 import org.opends.server.admin.std.server.LocalDBBackendCfg;
+import org.opends.server.api.Backend;
 import org.opends.server.backends.jeb.*;
+import org.opends.server.config.ConfigException;
+import org.opends.server.core.CoreConfigManager;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.LockFileManager;
+import org.opends.server.extensions.ConfigFileHandler;
+import org.opends.server.loggers.debug.DebugTracer;
+import org.opends.server.types.*;
+import org.opends.server.util.BuildVersion;
+import org.opends.server.util.StaticUtils;
+import org.opends.server.util.args.*;
+import org.opends.server.util.table.TableBuilder;
+import org.opends.server.util.table.TextTablePrinter;
 
-import java.io.*;
+import java.io.OutputStream;
+import java.io.PrintStream;
 import java.util.*;
 
 import com.sleepycat.je.*;
@@ -77,30 +71,34 @@ public class DBTest
    */
   private static final DebugTracer TRACER = getTracer();
 
-  // The error stream which this application should use.
+  /** The error stream which this application should use. */
   private final PrintStream err;
 
-  // The output stream which this application should use.
+  /** The output stream which this application should use. */
   private final PrintStream out;
 
-  // Flag indicating whether or not the global arguments have
-  // already been initialized.
+  /**
+   * Flag indicating whether or not the global arguments have already been
+   * initialized.
+   */
   private boolean globalArgumentsInitialized = false;
 
-  // The command-line argument parser.
+  /** The command-line argument parser. */
   private final SubCommandArgumentParser parser;
 
-  // The argument which should be used to request usage information.
+  /** The argument which should be used to request usage information. */
   private BooleanArgument showUsageArgument;
 
-  // The argument which should be used to specify the config class.
+  /** The argument which should be used to specify the config class. */
   private StringArgument configClass;
 
-  // THe argument which should be used to specify the config file.
+  /** THe argument which should be used to specify the config file. */
   private StringArgument configFile;
 
-  // Flag indicating whether or not the sub-commands have
-  // already been initialized.
+  /**
+   * Flag indicating whether or not the sub-commands have already been
+   * initialized.
+   */
   private boolean subCommandsInitialized = false;
 
 
@@ -157,17 +155,8 @@ public class DBTest
    */
   public DBTest(OutputStream out, OutputStream err)
   {
-    if (out != null) {
-      this.out = new PrintStream(out);
-    } else {
-      this.out = NullOutputStream.printStream();
-    }
-
-    if (err != null) {
-      this.err = new PrintStream(err);
-    } else {
-      this.err = NullOutputStream.printStream();
-    }
+    this.out = NullOutputStream.wrapOrNullStream(out);
+    this.err = NullOutputStream.wrapOrNullStream(err);
 
     Message toolDescription = INFO_DESCRIPTION_DBTEST_TOOL.get();
     this.parser = new SubCommandArgumentParser(this.getClass().getName(),
