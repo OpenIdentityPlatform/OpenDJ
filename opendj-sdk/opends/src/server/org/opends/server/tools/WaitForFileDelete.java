@@ -23,11 +23,9 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS
  */
 package org.opends.server.tools;
-import org.opends.messages.Message;
-
-
 
 import java.io.File;
 import java.io.InputStream;
@@ -35,6 +33,7 @@ import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.RandomAccessFile;
 
+import org.opends.messages.Message;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.NullOutputStream;
 import org.opends.server.util.args.ArgumentException;
@@ -135,25 +134,8 @@ public class WaitForFileDelete extends ConsoleApplication
       OutputStream outStream, OutputStream errStream, InputStream inStream)
   {
     int exitCode;
-    PrintStream out;
-    if (outStream == null)
-    {
-      out = NullOutputStream.printStream();
-    }
-    else
-    {
-      out = new PrintStream(outStream);
-    }
-
-    PrintStream err;
-    if (errStream == null)
-    {
-      err = NullOutputStream.printStream();
-    }
-    else
-    {
-      err = new PrintStream(errStream);
-    }
+    PrintStream out = NullOutputStream.wrapOrNullStream(outStream);
+    PrintStream err = NullOutputStream.wrapOrNullStream(errStream);
     try
     {
       WaitForFileDelete wffd = new WaitForFileDelete(out, err, System.in);

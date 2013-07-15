@@ -230,25 +230,8 @@ class StatusCli extends ConsoleApplication
   public static int mainCLI(String[] args, boolean initializeServer,
       OutputStream outStream, OutputStream errStream, InputStream inStream)
   {
-    PrintStream out;
-    if (outStream == null)
-    {
-      out = NullOutputStream.printStream();
-    }
-    else
-    {
-      out = new PrintStream(outStream);
-    }
-
-    PrintStream err;
-    if (errStream == null)
-    {
-      err = NullOutputStream.printStream();
-    }
-    else
-    {
-      err = new PrintStream(errStream);
-    }
+    PrintStream out = NullOutputStream.wrapOrNullStream(outStream);
+    PrintStream err = NullOutputStream.wrapOrNullStream(errStream);
 
     try {
       ControlPanelLog.initLogFileHandler(

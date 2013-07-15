@@ -23,12 +23,9 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2013 ForgeRock AS.
  */
 package org.opends.server.tools;
-import org.opends.messages.Message;
-
-
 
 import java.net.InetAddress;
 import java.security.GeneralSecurityException;
@@ -43,6 +40,7 @@ import java.io.StringReader;
 
 import javax.crypto.Cipher;
 
+import org.opends.messages.Message;
 import org.opends.server.admin.DefaultBehaviorProvider;
 import org.opends.server.admin.DefinedDefaultBehaviorProvider;
 import org.opends.server.admin.StringPropertyDefinition;
@@ -82,8 +80,6 @@ import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.opends.server.tools.ToolConstants.*;
-
-
 
 /**
  * This class provides a very basic tool that can be used to configure some of
@@ -211,19 +207,9 @@ public class ConfigureDS
     StringArgument    certNickName;
     StringArgument    keyManagerPath;
     StringArgument    serverRoot;
-    PrintStream       out, err;
+    PrintStream out = NullOutputStream.wrapOrNullStream(outStream);
+    PrintStream err = NullOutputStream.wrapOrNullStream(errStream);
 
-    if (outStream != null) {
-      out = new PrintStream(outStream);
-    } else {
-      out = NullOutputStream.printStream();
-    }
-
-    if (errStream != null) {
-      err = new PrintStream(errStream);
-    } else {
-      err = NullOutputStream.printStream();
-    }
     Message toolDescription = INFO_CONFIGDS_TOOL_DESCRIPTION.get();
     ArgumentParser argParser = new ArgumentParser(CLASS_NAME, toolDescription,
                                                   false);

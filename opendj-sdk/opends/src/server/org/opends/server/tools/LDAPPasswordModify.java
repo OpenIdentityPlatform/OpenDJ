@@ -23,12 +23,9 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS
  */
 package org.opends.server.tools;
-import org.opends.admin.ads.util.ConnectionUtils;
-import org.opends.messages.Message;
-
-
 
 import java.io.OutputStream;
 import java.io.PrintStream;
@@ -36,6 +33,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.opends.admin.ads.util.ConnectionUtils;
+import org.opends.messages.Message;
 import org.opends.server.controls.PasswordPolicyErrorType;
 import org.opends.server.controls.PasswordPolicyResponseControl;
 import org.opends.server.controls.PasswordPolicyWarningType;
@@ -62,8 +61,6 @@ import static org.opends.server.util.StaticUtils.*;
 import static org.opends.server.tools.ToolConstants.*;
 import static org.opends.server.protocols.ldap.LDAPResultCode.*;
 
-
-
 /**
  * This program provides a utility that uses the LDAP password modify extended
  * operation to change the password for a user.  It exposes the three primary
@@ -72,7 +69,7 @@ import static org.opends.server.protocols.ldap.LDAPResultCode.*;
  * <UL>
  *   <LI>The user identity whose password should be changed.</LI>
  *   <LI>The current password for the user.</LI>
- *   <LI>The new password for the user.
+ *   <LI>The new password for the user.</LI>
  * </UL>
  *
  * All of these are optional components that may be included or omitted from the
@@ -142,25 +139,8 @@ public class LDAPPasswordModify
                                        OutputStream outStream,
                                        OutputStream errStream)
   {
-    PrintStream out;
-    if (outStream == null)
-    {
-      out = NullOutputStream.printStream();
-    }
-    else
-    {
-      out = new PrintStream(outStream);
-    }
-
-    PrintStream err;
-    if (errStream == null)
-    {
-      err = NullOutputStream.printStream();
-    }
-    else
-    {
-      err = new PrintStream(errStream);
-    }
+    PrintStream out = NullOutputStream.wrapOrNullStream(outStream);
+    PrintStream err = NullOutputStream.wrapOrNullStream(errStream);
 
 
     // Create the arguments that will be used by this program.

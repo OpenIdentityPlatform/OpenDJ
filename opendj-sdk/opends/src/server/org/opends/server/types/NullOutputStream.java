@@ -23,15 +23,12 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS
  */
 package org.opends.server.types;
 
-
-
 import java.io.OutputStream;
 import java.io.PrintStream;
-
-
 
 /**
  * This class defines a custom output stream that simply discards any
@@ -84,6 +81,24 @@ public final class NullOutputStream
   }
 
 
+  /**
+   * Returns s wrapped into a {@link PrintStream} if is not null,
+   * {@link NullOutputStream#printStream()} otherwise.
+   *
+   * @param s
+   *          the OutputStream to wrap into a {@link PrintStream}. Can be null.
+   * @return a PrintStream wrapping s if not null,
+   *         {@link NullOutputStream#printStream()} otherwise.
+   */
+  public static PrintStream wrapOrNullStream(OutputStream s)
+  {
+    if (s != null)
+    {
+      return new PrintStream(s);
+    }
+    return NullOutputStream.printStream();
+  }
+
 
   /**
    * Creates a new instance of this null output stream.
@@ -98,6 +113,7 @@ public final class NullOutputStream
   /**
    * Closes the output stream.  This has no effect.
    */
+  @Override
   public void close()
   {
     // No implementation is required.
@@ -108,6 +124,7 @@ public final class NullOutputStream
   /**
    * Flushes the output stream.  This has no effect.
    */
+  @Override
   public void flush()
   {
     // No implementation is required.
@@ -121,6 +138,7 @@ public final class NullOutputStream
    *
    * @param  b  The byte array containing the data to be written.
    */
+  @Override
   public void write(byte[] b)
   {
     // No implementation is required.
@@ -136,6 +154,7 @@ public final class NullOutputStream
    * @param  off  The offset at which the real data begins.
    * @param  len  The number of bytes to be written.
    */
+  @Override
   public void write(byte[] b, int off, int len)
   {
     // No implementation is required.
@@ -149,6 +168,7 @@ public final class NullOutputStream
    *
    * @param  b  The byte to be written.
    */
+  @Override
   public void write(int b)
   {
     // No implementation is required.

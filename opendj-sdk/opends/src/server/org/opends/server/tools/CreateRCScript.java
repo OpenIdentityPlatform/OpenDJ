@@ -97,15 +97,7 @@ public class CreateRCScript
   public static int main(String[] args, OutputStream outStream,
                          OutputStream errStream)
   {
-    PrintStream err;
-    if (errStream == null)
-    {
-      err = NullOutputStream.printStream();
-    }
-    else
-    {
-      err = new PrintStream(errStream);
-    }
+    PrintStream err = NullOutputStream.wrapOrNullStream(errStream);
 
     EmbeddedUtils.initializeForClientUse();
 

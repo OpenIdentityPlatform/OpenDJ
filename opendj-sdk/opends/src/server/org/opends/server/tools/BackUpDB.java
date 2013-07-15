@@ -26,9 +26,6 @@
  *      Portions copyright 2013 ForgeRock AS.
  */
 package org.opends.server.tools;
-import org.opends.messages.Message;
-
-
 
 import java.io.File;
 import java.io.OutputStream;
@@ -41,39 +38,45 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.TimeZone;
 
+import org.opends.messages.Message;
+import org.opends.server.admin.std.server.BackendCfg;
 import org.opends.server.api.Backend;
-import org.opends.server.api.ErrorLogPublisher;
 import org.opends.server.api.DebugLogPublisher;
+import org.opends.server.api.ErrorLogPublisher;
 import org.opends.server.config.ConfigException;
-import static org.opends.server.config.ConfigConstants.*;
 import org.opends.server.core.CoreConfigManager;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
 import org.opends.server.extensions.ConfigFileHandler;
-import org.opends.server.loggers.TextWriter;
-import org.opends.server.loggers.TextErrorLogPublisher;
 import org.opends.server.loggers.ErrorLogger;
-import org.opends.server.loggers.debug.TextDebugLogPublisher;
+import org.opends.server.loggers.TextErrorLogPublisher;
+import org.opends.server.loggers.TextWriter;
 import org.opends.server.loggers.debug.DebugLogger;
-import static org.opends.server.loggers.ErrorLogger.*;
-
-import org.opends.server.types.*;
+import org.opends.server.loggers.debug.TextDebugLogPublisher;
+import org.opends.server.protocols.ldap.LDAPAttribute;
+import org.opends.server.tasks.BackupTask;
+import org.opends.server.tools.tasks.TaskTool;
+import org.opends.server.types.BackupConfig;
+import org.opends.server.types.BackupDirectory;
+import org.opends.server.types.ByteString;
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.InitializationException;
+import org.opends.server.types.NullOutputStream;
+import org.opends.server.types.RawAttribute;
 import org.opends.server.util.BuildVersion;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.BooleanArgument;
-import org.opends.server.util.args.StringArgument;
 import org.opends.server.util.args.LDAPConnectionArgumentParser;
+import org.opends.server.util.args.StringArgument;
 import org.opends.server.util.cli.CLIException;
 
 import static org.opends.messages.ToolMessages.*;
+import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.tools.ToolConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-import static org.opends.server.tools.ToolConstants.*;
-import org.opends.server.tools.tasks.TaskTool;
-import org.opends.server.admin.std.server.BackendCfg;
-import org.opends.server.tasks.BackupTask;
-import org.opends.server.protocols.ldap.LDAPAttribute;
-
 
 /**
  * This program provides a utility that may be used to back up a Directory
@@ -150,25 +153,8 @@ public class BackUpDB extends TaskTool
   private int process(String[] args, boolean initializeServer,
                       OutputStream outStream, OutputStream errStream)
   {
-    PrintStream out;
-    if (outStream == null)
-    {
-      out = NullOutputStream.printStream();
-    }
-    else
-    {
-      out = new PrintStream(outStream);
-    }
-
-    PrintStream err;
-    if (errStream == null)
-    {
-      err = NullOutputStream.printStream();
-    }
-    else
-    {
-      err = new PrintStream(errStream);
-    }
+    PrintStream out = NullOutputStream.wrapOrNullStream(outStream);
+    PrintStream err = NullOutputStream.wrapOrNullStream(errStream);
 
     // Create the command-line argument parser for use with this program.
     LDAPConnectionArgumentParser argParser =
@@ -447,6 +433,7 @@ public class BackUpDB extends TaskTool
   /**
    * {@inheritDoc}
    */
+  @Override
   public void addTaskAttributes(List<RawAttribute> attributes)
   {
     ArrayList<ByteString> values;
@@ -546,6 +533,7 @@ public class BackUpDB extends TaskTool
   /**
    * {@inheritDoc}
    */
+  @Override
   public String getTaskObjectclass() {
     return "ds-task-backup";
   }
@@ -553,6 +541,7 @@ public class BackUpDB extends TaskTool
   /**
    * {@inheritDoc}
    */
+  @Override
   public Class<?> getTaskClass() {
     return BackupTask.class;
   }
@@ -560,6 +549,7 @@ public class BackUpDB extends TaskTool
   /**
    * {@inheritDoc}
    */
+  @Override
   protected int processLocal(boolean initializeServer,
                            PrintStream out,
                            PrintStream err) {
@@ -1137,6 +1127,7 @@ public class BackUpDB extends TaskTool
   /**
    * {@inheritDoc}
    */
+  @Override
   public String getTaskId() {
     if (backupIDString != null) {
       return backupIDString.getValue();
