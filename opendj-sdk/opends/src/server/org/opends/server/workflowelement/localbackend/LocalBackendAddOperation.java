@@ -347,28 +347,7 @@ public class LocalBackendAddOperation
 
         if (parentEntry == null)
         {
-          DN matchedDN = parentDN.getParentDNInSuffix();
-          while (matchedDN != null)
-          {
-            try
-            {
-              if (DirectoryServer.entryExists(matchedDN))
-              {
-                setMatchedDN(matchedDN);
-                break;
-              }
-            }
-            catch (Exception e)
-            {
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, e);
-              }
-              break;
-            }
-
-            matchedDN = matchedDN.getParentDNInSuffix();
-          }
+          findAndSetMatchingDN(parentDN);
 
           // The parent doesn't exist, so this add can't be successful.
           setResultCode(ResultCode.NO_SUCH_OBJECT);
@@ -614,7 +593,30 @@ public class LocalBackendAddOperation
     }
   }
 
+  private void findAndSetMatchingDN(DN entryDN)
+  {
+    try
+    {
+      DN matchedDN = entryDN.getParentDNInSuffix();
+      while (matchedDN != null)
+      {
+        if (DirectoryServer.entryExists(matchedDN))
+        {
+          setMatchedDN(matchedDN);
+          return;
+        }
 
+        matchedDN = matchedDN.getParentDNInSuffix();
+      }
+    }
+    catch (Exception e)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
+    }
+  }
 
   private boolean checkHasReadOnlyAttributes(
       Map<AttributeType, List<Attribute>> attributes)

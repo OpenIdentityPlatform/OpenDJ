@@ -115,21 +115,17 @@ public class PasswordModifyExtendedOperation
    */
   private static final DebugTracer TRACER = getTracer();
 
-
-
-  // The current configuration state.
+  /** The current configuration state. */
   private PasswordModifyExtendedOperationHandlerCfg currentConfig;
 
-  // The DN of the identity mapper.
+  /** The DN of the identity mapper. */
   private DN identityMapperDN;
 
-  // The reference to the identity mapper.
+  /** The reference to the identity mapper. */
   private IdentityMapper<?> identityMapper;
 
-  // The default set of supported control OIDs for this extended
+  /** The default set of supported control OIDs for this extended */
   private Set<String> supportedControlOIDs = new HashSet<String>(0);
-
-
 
   /**
    * Create an instance of this password modify extended operation.  All
@@ -139,11 +135,7 @@ public class PasswordModifyExtendedOperation
   public PasswordModifyExtendedOperation()
   {
     super();
-
   }
-
-
-
 
   /**
    * Initializes this extended operation handler based on the information in the
@@ -920,7 +912,7 @@ public class PasswordModifyExtendedOperation
       {
         // Remove all existing encoded values that match the old password.
         Set<AttributeValue> existingValues = pwPolicyState.getPasswordValues();
-        LinkedHashSet<AttributeValue> deleteValues =
+        Set<AttributeValue> deleteValues =
              new LinkedHashSet<AttributeValue>(existingValues.size());
         if (pwPolicyState.getAuthenticationPolicy().isAuthPasswordSyntax())
         {
@@ -1245,35 +1237,12 @@ public class PasswordModifyExtendedOperation
       if (userEntry == null)
       {
         operation.setResultCode(ResultCode.NO_SUCH_OBJECT);
-
         operation.appendErrorMessage(
                 ERR_EXTOP_PASSMOD_NO_USER_ENTRY_BY_AUTHZID.get(
                         String.valueOf(entryDN)));
 
         // See if one of the entry's ancestors exists.
-        DN parentDN = entryDN.getParentDNInSuffix();
-        while (parentDN != null)
-        {
-          try
-          {
-            if (DirectoryServer.entryExists(parentDN))
-            {
-              operation.setMatchedDN(parentDN);
-              break;
-            }
-          }
-          catch (Exception e)
-          {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, e);
-            }
-            break;
-          }
-
-          parentDN = parentDN.getParentDNInSuffix();
-        }
-
+        findAndSetMatchingDN(operation, entryDN);
         return null;
       }
 
@@ -1295,7 +1264,30 @@ public class PasswordModifyExtendedOperation
     }
   }
 
+  private void findAndSetMatchingDN(Operation operation, DN entryDN)
+  {
+    try
+    {
+      DN matchedDN = entryDN.getParentDNInSuffix();
+      while (matchedDN != null)
+      {
+        if (DirectoryServer.entryExists(matchedDN))
+        {
+          operation.setMatchedDN(matchedDN);
+          return;
+        }
 
+        matchedDN = matchedDN.getParentDNInSuffix();
+      }
+    }
+    catch (Exception e)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
+    }
+  }
 
   /**
    * {@inheritDoc}
@@ -1386,7 +1378,7 @@ public class PasswordModifyExtendedOperation
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
-    ArrayList<Message> messages            = new ArrayList<Message>();
+    List<Message>     messages            = new ArrayList<Message>();
 
 
     // Make sure that the specified identity mapper is OK.
