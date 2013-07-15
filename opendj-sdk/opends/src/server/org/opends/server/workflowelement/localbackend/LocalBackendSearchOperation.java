@@ -27,8 +27,6 @@
  */
 package org.opends.server.workflowelement.localbackend;
 
-
-
 import java.util.List;
 
 import org.opends.server.api.Backend;
@@ -43,7 +41,6 @@ import org.opends.server.controls.SubentriesControl;
 import org.opends.server.core.AccessControlConfigManager;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.PersistentSearch;
-import org.opends.server.core.PluginConfigManager;
 import org.opends.server.core.SearchOperationWrapper;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.loggers.debug.DebugTracer;
@@ -57,8 +54,6 @@ import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-
-
 
 /**
  * This class defines an operation used to search for entries in a local backend
@@ -79,33 +74,33 @@ public class LocalBackendSearchOperation
   /**
    * The backend in which the search is to be performed.
    */
-  protected Backend backend;
+  private Backend backend;
 
   /**
    * Indicates whether we should actually process the search.  This should
    * only be false if it's a persistent search with changesOnly=true.
    */
-  protected boolean processSearch;
+  private boolean processSearch;
 
   /**
    * The client connection for the search operation.
    */
-  protected ClientConnection clientConnection;
+  private ClientConnection clientConnection;
 
   /**
    * The base DN for the search.
    */
-  protected DN baseDN;
+  private DN baseDN;
 
   /**
    * The persistent search request, if applicable.
    */
-  protected PersistentSearch persistentSearch;
+  private PersistentSearch persistentSearch;
 
   /**
    * The filter for the search.
    */
-  protected SearchFilter filter;
+  private SearchFilter filter;
 
 
 
@@ -134,195 +129,27 @@ public class LocalBackendSearchOperation
   public void processLocalSearch(LocalBackendWorkflowElement wfe)
       throws CanceledOperationException
   {
-    boolean executePostOpPlugins = false;
     this.backend = wfe.getBackend();
 
     clientConnection = getClientConnection();
 
-    // Get the plugin config manager that will be used for invoking plugins.
-    PluginConfigManager pluginConfigManager =
-      DirectoryServer.getPluginConfigManager();
     processSearch = true;
 
     // Check for a request to cancel this operation.
     checkIfCanceled(false);
 
-    // Create a labeled block of code that we can break out of if a problem is
-    // detected.
-searchProcessing:
-    {
-      // Process the search base and filter to convert them from their raw forms
-      // as provided by the client to the forms required for the rest of the
-      // search processing.
-      baseDN = getBaseDN();
-      filter = getFilter();
-
-      if ((baseDN == null) || (filter == null)){
-        break searchProcessing;
-      }
-
-      // Check to see if there are any controls in the request.  If so, then
-      // see if there is any special processing required.
-      try
-      {
-        handleRequestControls();
-      }
-      catch (DirectoryException de)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, de);
-        }
-
-        setResponseData(de);
-        break searchProcessing;
-      }
-
-
-      // Check to see if the client has permission to perform the
-      // search.
-
-      // FIXME: for now assume that this will check all permission
-      // pertinent to the operation. This includes proxy authorization
-      // and any other controls specified.
-      try
-      {
-        if (!AccessControlConfigManager.getInstance()
-            .getAccessControlHandler().isAllowed(this))
-        {
-          setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
-          appendErrorMessage(ERR_SEARCH_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS
-              .get(String.valueOf(baseDN)));
-          break searchProcessing;
-        }
-      }
-      catch (DirectoryException e)
-      {
-        setResultCode(e.getResultCode());
-        appendErrorMessage(e.getMessageObject());
-        break searchProcessing;
-      }
-
-      // Check for a request to cancel this operation.
-      checkIfCanceled(false);
-
-
-      // Invoke the pre-operation search plugins.
-      executePostOpPlugins = true;
-      PluginResult.PreOperation preOpResult =
-          pluginConfigManager.invokePreOperationSearchPlugins(this);
-      if (!preOpResult.continueProcessing())
-      {
-        setResultCode(preOpResult.getResultCode());
-        appendErrorMessage(preOpResult.getErrorMessage());
-        setMatchedDN(preOpResult.getMatchedDN());
-        setReferralURLs(preOpResult.getReferralURLs());
-        break searchProcessing;
-      }
-
-
-      // Check for a request to cancel this operation.
-      checkIfCanceled(false);
-
-
-      // Get the backend that should hold the search base.  If there is none,
-      // then fail.
-      if (backend == null)
-      {
-        setResultCode(ResultCode.NO_SUCH_OBJECT);
-        appendErrorMessage(ERR_SEARCH_BASE_DOESNT_EXIST.get(
-                                String.valueOf(baseDN)));
-        break searchProcessing;
-      }
-
-
-      // We'll set the result code to "success".  If a problem occurs, then it
-      // will be overwritten.
-      setResultCode(ResultCode.SUCCESS);
-
-
-      // If there's a persistent search, then register it with the server.
-      if (persistentSearch != null)
-      {
-        //The Core server maintains the count of concurrent persistent searches
-        //so that all the backends (Remote and Local)  are aware of it. Verify
-        //with the core if we have already reached the threshold.
-        if(!DirectoryServer.allowNewPersistentSearch())
-        {
-          setResultCode(ResultCode.ADMIN_LIMIT_EXCEEDED);
-          appendErrorMessage(ERR_MAX_PSEARCH_LIMIT_EXCEEDED.get());
-          break searchProcessing;
-        }
-        wfe.registerPersistentSearch(persistentSearch);
-        persistentSearch.enable();
-      }
-
-
-      // Process the search in the backend and all its subordinates.
-      try
-      {
-        if (processSearch)
-        {
-          backend.search(this);
-        }
-      }
-      catch (DirectoryException de)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.VERBOSE, de);
-        }
-
-        setResponseData(de);
-
-        if (persistentSearch != null)
-        {
-          persistentSearch.cancel();
-          setSendResponse(true);
-        }
-
-        break searchProcessing;
-      }
-      catch (CanceledOperationException coe)
-      {
-        if (persistentSearch != null)
-        {
-          persistentSearch.cancel();
-          setSendResponse(true);
-        }
-
-        throw coe;
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        setResultCode(DirectoryServer.getServerErrorResultCode());
-        appendErrorMessage(ERR_SEARCH_BACKEND_EXCEPTION.get(
-                                getExceptionMessage(e)));
-
-        if (persistentSearch != null)
-        {
-          persistentSearch.cancel();
-          setSendResponse(true);
-        }
-
-        break searchProcessing;
-      }
-    }
-
+    BooleanHolder executePostOpPlugins = new BooleanHolder();
+    processSearch(wfe, executePostOpPlugins);
 
     // Check for a request to cancel this operation.
     checkIfCanceled(false);
 
     // Invoke the post-operation search plugins.
-    if (executePostOpPlugins)
+    if (executePostOpPlugins.value)
     {
       PluginResult.PostOperation postOpResult =
-           pluginConfigManager.invokePostOperationSearchPlugins(this);
+          DirectoryServer.getPluginConfigManager()
+              .invokePostOperationSearchPlugins(this);
       if (!postOpResult.continueProcessing())
       {
         setResultCode(postOpResult.getResultCode());
@@ -333,15 +160,180 @@ searchProcessing:
     }
   }
 
+  private void processSearch(LocalBackendWorkflowElement wfe,
+      BooleanHolder executePostOpPlugins) throws CanceledOperationException
+  {
+    // Process the search base and filter to convert them from their raw forms
+    // as provided by the client to the forms required for the rest of the
+    // search processing.
+    baseDN = getBaseDN();
+    filter = getFilter();
+
+    if ((baseDN == null) || (filter == null))
+    {
+      return;
+    }
+
+    // Check to see if there are any controls in the request. If so, then
+    // see if there is any special processing required.
+    try
+    {
+      handleRequestControls();
+    }
+    catch (DirectoryException de)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, de);
+      }
+
+      setResponseData(de);
+      return;
+    }
+
+
+    // Check to see if the client has permission to perform the
+    // search.
+
+    // FIXME: for now assume that this will check all permission
+    // pertinent to the operation. This includes proxy authorization
+    // and any other controls specified.
+    try
+    {
+      if (!AccessControlConfigManager.getInstance().getAccessControlHandler()
+          .isAllowed(this))
+      {
+        setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
+        appendErrorMessage(ERR_SEARCH_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS
+            .get(String.valueOf(baseDN)));
+        return;
+      }
+    }
+    catch (DirectoryException e)
+    {
+      setResultCode(e.getResultCode());
+      appendErrorMessage(e.getMessageObject());
+      return;
+    }
+
+    // Check for a request to cancel this operation.
+    checkIfCanceled(false);
+
+
+    // Invoke the pre-operation search plugins.
+    executePostOpPlugins.value = true;
+    PluginResult.PreOperation preOpResult =
+        DirectoryServer.getPluginConfigManager()
+            .invokePreOperationSearchPlugins(this);
+    if (!preOpResult.continueProcessing())
+    {
+      setResultCode(preOpResult.getResultCode());
+      appendErrorMessage(preOpResult.getErrorMessage());
+      setMatchedDN(preOpResult.getMatchedDN());
+      setReferralURLs(preOpResult.getReferralURLs());
+      return;
+    }
+
+
+    // Check for a request to cancel this operation.
+    checkIfCanceled(false);
+
+
+    // Get the backend that should hold the search base. If there is none,
+    // then fail.
+    if (backend == null)
+    {
+      setResultCode(ResultCode.NO_SUCH_OBJECT);
+      appendErrorMessage(ERR_SEARCH_BASE_DOESNT_EXIST.get(String
+          .valueOf(baseDN)));
+      return;
+    }
+
+
+    // We'll set the result code to "success". If a problem occurs, then it
+    // will be overwritten.
+    setResultCode(ResultCode.SUCCESS);
+
+
+    // If there's a persistent search, then register it with the server.
+    if (persistentSearch != null)
+    {
+      // The Core server maintains the count of concurrent persistent searches
+      // so that all the backends (Remote and Local) are aware of it. Verify
+      // with the core if we have already reached the threshold.
+      if (!DirectoryServer.allowNewPersistentSearch())
+      {
+        setResultCode(ResultCode.ADMIN_LIMIT_EXCEEDED);
+        appendErrorMessage(ERR_MAX_PSEARCH_LIMIT_EXCEEDED.get());
+        return;
+      }
+      wfe.registerPersistentSearch(persistentSearch);
+      persistentSearch.enable();
+    }
+
+
+    // Process the search in the backend and all its subordinates.
+    try
+    {
+      if (processSearch)
+      {
+        backend.search(this);
+      }
+    }
+    catch (DirectoryException de)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.VERBOSE, de);
+      }
+
+      setResponseData(de);
+
+      if (persistentSearch != null)
+      {
+        persistentSearch.cancel();
+        setSendResponse(true);
+      }
+
+      return;
+    }
+    catch (CanceledOperationException coe)
+    {
+      if (persistentSearch != null)
+      {
+        persistentSearch.cancel();
+        setSendResponse(true);
+      }
+
+      throw coe;
+    }
+    catch (Exception e)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
+
+      setResultCode(DirectoryServer.getServerErrorResultCode());
+      appendErrorMessage(ERR_SEARCH_BACKEND_EXCEPTION
+          .get(getExceptionMessage(e)));
+
+      if (persistentSearch != null)
+      {
+        persistentSearch.cancel();
+        setSendResponse(true);
+      }
+    }
+  }
+
 
   /**
    * Handles any controls contained in the request.
    *
-   * @throws  DirectoryException  If there is a problem with any of the request
-   *                              controls.
+   * @throws DirectoryException
+   *           If there is a problem with any of the request controls.
    */
-  protected void handleRequestControls()
-          throws DirectoryException
+  private void handleRequestControls() throws DirectoryException
   {
     List<Control> requestControls  = getRequestControls();
     if ((requestControls != null) && (! requestControls.isEmpty()))
@@ -443,7 +435,7 @@ searchProcessing:
           addAdditionalLogItem(AdditionalLogItem.keyOnly(getClass(),
               "obsoleteProxiedAuthzV1Control"));
 
-          // The requester must have the PROXIED_AUTH privilige in order to be
+          // The requester must have the PROXIED_AUTH privilege in order to be
           // able to use this control.
           if (! clientConnection.hasPrivilege(Privilege.PROXIED_AUTH, this))
           {
@@ -467,7 +459,7 @@ searchProcessing:
         }
         else if (oid.equals(OID_PROXIED_AUTH_V2))
         {
-          // The requester must have the PROXIED_AUTH privilige in order to be
+          // The requester must have the PROXIED_AUTH privilege in order to be
           // able to use this control.
           if (! clientConnection.hasPrivilege(Privilege.PROXIED_AUTH, this))
           {
