@@ -288,7 +288,7 @@
   <title>Examples</title>
   <para>The following command removes OpenDJ directory server without
   interaction.</para>
-  <screen>$ ./opendj/uninstall -a --cli -I admin -w password -n
+  <screen>$ /path/to/opendj/uninstall -a --cli -I admin -w password -n
 
 Stopping Directory Server ..... Done.
 Deleting Files under the Installation Path ..... Done.

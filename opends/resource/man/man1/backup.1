@@ -2,12 +2,12 @@
 .\"     Title: backup
 .\"    Author: 
 .\" Generator: DocBook XSL-NS Stylesheets v1.76.1 <http://docbook.sf.net/>
-.\"      Date: 05/16/2013
+.\"      Date: 07/16/2013
 .\"    Manual: Tools Reference
-.\"    Source: OpenDJ 2.6.0
+.\"    Source: OpenDJ 2.8.0
 .\"  Language: English
 .\"
-.TH "BACKUP" "1" "05/16/2013" "OpenDJ 2\&.6\&.0" "Tools Reference"
+.TH "BACKUP" "1" "07/16/2013" "OpenDJ 2\&.8\&.0" "Tools Reference"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -278,13 +278,13 @@ The following example backs up all user data while the server is offline\&.
 .RS 4
 .\}
 .nf
-$ /path/to/opendj/bin/stop\-ds
+$ stop\-ds
 Stopping Server\&.\&.\&.
 \&.\&.\&.
-$ /path/to/opendj/bin/backup \-\-backupAll \-\-backupDirectory /path/to/opendj/bak
+$ backup \-\-backupAll \-\-backupDirectory /path/to/opendj/bak
 \&.\&.\&.
 [28/Sep/2012:12:14:22 +0200] \&.\&.\&. msg=The backup process completed successfully
-$ /path/to/opendj/bin/start\-ds
+$ start\-ds
 [28/Sep/2012:12:15:48 +0200] \&.\&.\&. The Directory Server has started successfully
 .fi
 .if n \{\

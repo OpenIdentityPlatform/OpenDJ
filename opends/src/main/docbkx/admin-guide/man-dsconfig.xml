@@ -373,7 +373,7 @@
    <listitem><para>get-<replaceable>component</replaceable>-prop</para></listitem>
    <listitem><para>set-<replaceable>component</replaceable>-prop</para></listitem>
   </itemizedlist>
-  
+
   <para>Component properties for the <command>dsconfig</command> command are
   covered in the <link xlink:show="new" xlink:href="${configRefBase}"
   ><citetitle>OpenDJ Configuration Reference</citetitle></link>.</para>
@@ -5462,7 +5462,7 @@
 
   <para>The following example starts <command>dsconfig</command> in interactive,
   menu-driven mode on the default port of the current host.</para>
-  <screen>$ dsconfig -h `hostname` -p 4444 -D "cn=Directory Manager" -w password
+  <screen>$ dsconfig -h opendj.example.com -p 4444 -D "cn=Directory Manager" -w password
 
 &gt;&gt;&gt;&gt; OpenDJ configuration console main menu
 
@@ -5495,9 +5495,9 @@ Enter choice: </screen>
 
   <para>The following examples demonstrates generating a batch file that
   corresponds to an interactive session enabling the debug log. The example
-  then demonstates using a modified batch file to disable the debug log.</para>
+  then demonstrates using a modified batch file to disable the debug log.</para>
   <screen>$ dsconfig
- --hostname `hostname`
+ --hostname opendj.example.com
  --port 4444
  --bindDN "cn=Directory Manager"
  --bindPassword password

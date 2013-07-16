@@ -72,7 +72,7 @@
   <screen>$ dsconfig
  set-password-policy-prop
  --port 4444
- --hostname `hostname`
+ --hostname opendj.example.com
  --bindDN "cn=Directory Manager"
  --bindPassword password
  --policy-name "Default Password Policy" 
@@ -226,7 +226,7 @@ Account Is Disabled:  false</screen>
     <screen>$ dsconfig
  set-global-configuration-prop
  --port 4444
- --hostname `hostname`
+ --hostname opendj.example.com
  --bindDN "cn=Directory Manager"
  --bindPassword password
  --set smtp-server:smtp.example.com
@@ -239,7 +239,7 @@ Account Is Disabled:  false</screen>
     <screen>$ dsconfig
  set-account-status-notification-handler-prop
  --port 4444
- --hostname `hostname`
+ --hostname opendj.example.com
  --bindDN "cn=Directory Manager"
  --bindPassword password
  --handler-name "SMTP Handler"
@@ -264,7 +264,7 @@ Account Is Disabled:  false</screen>
     <screen>$ dsconfig
  set-password-policy-prop
  --port 4444
- --hostname `hostname`
+ --hostname opendj.example.com
  --bindDN "cn=Directory Manager"
  --bindPassword password
  --policy-name "Default Password Policy"

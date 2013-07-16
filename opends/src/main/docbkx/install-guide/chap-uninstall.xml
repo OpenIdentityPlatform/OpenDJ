@@ -33,14 +33,14 @@
  <indexterm><primary>Uninstalling</primary></indexterm>
  
  <para>Remove OpenDJ directory server software with the
- <command>uninstall</command> command.</para>
+ <command>/path/to/opendj/uninstall</command> command.</para>
  
  <procedure xml:id="uninstall-gui">
   <title>To Uninstall OpenDJ From the Graphical Uninstaller</title>
   <step>
-   <para>(UNIX) Run <command>opendj/uninstall</command>.</para>
-   <para>(Windows) Double-click <filename>opendj\uninstall.bat</filename>.</para>
-   <para>(Mac OS X) Double-click <filename>opendj/Uninstall.app</filename>.</para>
+   <para>(UNIX) Run <command>/path/to/opendj/uninstall</command>.</para>
+   <para>(Windows) Double-click <filename>/path/to/opendj\uninstall.bat</filename>.</para>
+   <para>(Mac OS X) Double-click <filename>/path/to/opendj/Uninstall.app</filename>.</para>
 
    <mediaobject xml:id="figure-uninstall-start">
     <imageobject>
@@ -75,15 +75,14 @@
   </step>
   
   <step>
-   <para>Run the <command>opendj/uninstall --cli</command> command.</para>
+   <para>Run the <command>/path/to/opendj/uninstall --cli</command> command.</para>
    
    <para>This command starts the removal program in interactive mode on the
    command line, prompting you for each option. Alternatively, use additional
    <command>uninstall</command> options to specify choices for the options.
    See <command>uninstall --help</command> for more information.</para>
    
-   <screen>$ cd /path/to/opendj
-$ ./uninstall --cli
+   <screen>$ /path/to/opendj/uninstall --cli
 Do you want to remove all components of the server or select the components to
 remove?
 

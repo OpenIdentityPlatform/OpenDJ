@@ -345,13 +345,13 @@ scheduled successfully</screen>
 
   <para>The following example backs up all user data while the server is
   offline.</para>
-  <screen>$ /path/to/opendj/bin/stop-ds
+  <screen>$ stop-ds
 Stopping Server...
 ...
-$ /path/to/opendj/bin/backup --backupAll --backupDirectory /path/to/opendj/bak
+$ backup --backupAll --backupDirectory /path/to/opendj/bak
 ...
 [28/Sep/2012:12:14:22 +0200] ... msg=The backup process completed successfully
-$ /path/to/opendj/bin/start-ds
+$ start-ds
 [28/Sep/2012:12:15:48 +0200] ... The Directory Server has started successfully
 </screen>
  </refsect1>

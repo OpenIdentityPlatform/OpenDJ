@@ -40,7 +40,7 @@
  the concepts, and how to perform a task using the command-line tools, you
  no doubt need no more than to know where to start in the Control Panel to
  accomplish what you set out to do.</para>
- 
+
  <para>At a protocol level, administration tools and interfaces connect to
  servers through a different network port than that used to listen for traffic
  from other client applications.</para>
@@ -59,13 +59,13 @@
   <itemizedlist>
    <para>Start OpenDJ Control Panel.</para>
    <listitem>
-    <para>(UNIX) Run <command>opendj/bin/control-panel</command>.</para>
+    <para>(Linux, Solaris) Run <command>/path/to/opendj/bin/control-panel</command>.</para>
    </listitem>
    <listitem>
-    <para>(Windows) Double-click <filename>opendj\bat\control-panel.bat</filename>.</para>
+    <para>(Windows) Double-click <filename>C:\path\to\opendj\bat\control-panel.bat</filename>.</para>
    </listitem>
    <listitem>
-    <para>(Mac OS X) Double-click <filename>opendj/bin/ControlPanel.app</filename>.</para>
+    <para>(Mac OS X) Double-click <filename>/path/to/opendj/bin/ControlPanel.app</filename>.</para>
    </listitem>
   </itemizedlist>
   
@@ -164,23 +164,54 @@
   <title>Command-Line Tools</title>
   <indexterm><primary>Commands</primary></indexterm>
   
+  <para>Before you try the examples in this guide, set your PATH to include
+  the OpenDJ directory server tools. Where the tools are located depends on
+  the operating system and on the packages used to install OpenDJ.</para>
+
+  <informaltable>
+   <thead>
+    <row>
+     <entry>OpenDJ running on...</entry>
+     <entry>OpenDJ installed from...</entry>
+     <entry>Default path to tools...</entry>
+    </row>
+   </thead>
+   <tbody>
+    <row>
+     <entry>Apple Mac OS X, Linux distributions, Oracle Solaris</entry>
+     <entry>WebStart, .zip</entry>
+     <entry><filename>/path/to/opendj/bin</filename></entry>
+    </row>
+    <row>
+     <entry>Linux distributions</entry>
+     <entry>.deb, .rpm</entry>
+     <entry><filename>/opt/opendj/bin</filename></entry>
+    </row>
+    <row>
+     <entry>Microsoft Windows</entry>
+     <entry>WebStart, .zip</entry>
+     <entry><filename>C:\path\to\opendj\bat</filename></entry>
+    </row>
+    <row>
+     <entry>Oracle Solaris</entry>
+     <entry>SVR4</entry>
+     <entry><filename>/usr/opendj/bin</filename></entry>
+    </row>
+   </tbody>
+  </informaltable>
+
+  <para>The <command>setup</command>, <command>upgrade</command>, and
+  <command>uninstall</command> tools are located in the parent directory of the
+  other tools, as these tools are not used for everyday administration.
+  For example, if the path to most tools is
+  <filename>/path/to/opendj/bin</filename> you can find these tools in
+  <filename>/path/to/opendj</filename>.</para>
+
   <para>All OpenDJ command-line tools take the <option>--help</option> option.</para>
-  
+
   <para>All commands call Java programs and therefore involve starting a
   JVM.</para>
-  
-  <itemizedlist>
-   <para>Setup, upgrade, and uninstall tools are located in the directory where
-   you unpacked OpenDJ, such as <filename>/path/to/opendj</filename>. Find the
-   additional command-line tools for your platform.</para>
-   <listitem>
-    <para>(UNIX) In <filename>opendj/bin</filename>.</para>
-   </listitem>
-   <listitem>
-    <para>(Windows) In <filename>opendj\bat</filename>.</para>
-   </listitem>
-  </itemizedlist>
-  
+
   <para>The following list uses the UNIX names for the tools. On Windows
   all command-line tools have the extension .bat.</para>
   
@@ -439,7 +470,9 @@
     </listitem>
    </varlistentry>
    <varlistentry>
-    <term>windows-service.bat (Windows)</term>
+    <term><link xlink:href="admin-guide#windows-service"
+    xlink:role="http://docbook.org/xlink/role/olink">windows-service</link>
+    (Windows only)</term>
     <listitem>
      <para>Register OpenDJ as a Windows Service.</para>
     </listitem>
