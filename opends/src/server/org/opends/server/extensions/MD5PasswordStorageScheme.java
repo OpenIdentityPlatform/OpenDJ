@@ -23,12 +23,14 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS
  */
 package org.opends.server.extensions;
 
 
 
 import java.security.MessageDigest;
+import java.util.Arrays;
 
 import org.opends.messages.Message;
 import org.opends.server.admin.std.server.MD5PasswordStorageSchemeCfg;
@@ -141,13 +143,14 @@ public class MD5PasswordStorageScheme
          throws DirectoryException
   {
     byte[] digestBytes;
+    byte[] plaintextBytes = null;
 
     synchronized (digestLock)
     {
       try
       {
         // TODO: Can we avoid this copy?
-        byte[] plaintextBytes = plaintext.toByteArray();
+        plaintextBytes = plaintext.toByteArray();
         digestBytes = messageDigest.digest(plaintextBytes);
       }
       catch (Exception e)
@@ -161,6 +164,11 @@ public class MD5PasswordStorageScheme
             CLASS_NAME, getExceptionMessage(e));
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message, e);
+      }
+      finally
+      {
+        if (plaintextBytes != null)
+          Arrays.fill(plaintextBytes, (byte) 0);
       }
     }
 
@@ -181,14 +189,15 @@ public class MD5PasswordStorageScheme
     buffer.append(STORAGE_SCHEME_NAME_MD5);
     buffer.append('}');
 
-    // TODO: Can we avoid this copy?
-    byte[] plaintextBytes = plaintext.toByteArray();
+    byte[] plaintextBytes = null;
     byte[] digestBytes;
 
     synchronized (digestLock)
     {
       try
       {
+        // TODO: Can we avoid this copy?
+        plaintextBytes = plaintext.toByteArray();
         digestBytes = messageDigest.digest(plaintextBytes);
       }
       catch (Exception e)
@@ -202,6 +211,11 @@ public class MD5PasswordStorageScheme
             CLASS_NAME, getExceptionMessage(e));
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message, e);
+      }
+      finally
+      {
+        if (plaintextBytes != null)
+          Arrays.fill(plaintextBytes, (byte) 0);
       }
     }
 
@@ -220,14 +234,15 @@ public class MD5PasswordStorageScheme
   public boolean passwordMatches(ByteSequence plaintextPassword,
                                  ByteSequence storedPassword)
   {
-    // TODO: Can we avoid this copy?
-    byte[] plaintextPasswordBytes = plaintextPassword.toByteArray();
+    byte[] plaintextPasswordBytes = null;
     ByteString userPWDigestBytes;
 
     synchronized (digestLock)
     {
       try
       {
+        // TODO: Can we avoid this copy?
+        plaintextPasswordBytes = plaintextPassword.toByteArray();
         userPWDigestBytes =
             ByteString.wrap(messageDigest.digest(plaintextPasswordBytes));
       }
@@ -239,6 +254,11 @@ public class MD5PasswordStorageScheme
         }
 
         return false;
+      }
+      finally
+      {
+        if (plaintextPasswordBytes != null)
+          Arrays.fill(plaintextPasswordBytes, (byte) 0);
       }
     }
 

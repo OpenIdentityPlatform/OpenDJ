@@ -177,9 +177,10 @@ public class PBKDF2PasswordStorageScheme
   public ByteString encodePassword(ByteSequence plaintext)
          throws DirectoryException
   {
-    byte[] saltBytes     = new byte[NUM_SALT_BYTES];
+    byte[] saltBytes      = new byte[NUM_SALT_BYTES];
     byte[] digestBytes;
-    int    iterations    = config.getPBKDF2Iterations();
+    char[] plaintextChars = null;
+    int    iterations     = config.getPBKDF2Iterations();
 
     synchronized(factoryLock)
     {
@@ -187,7 +188,8 @@ public class PBKDF2PasswordStorageScheme
       {
         random.nextBytes(saltBytes);
 
-        KeySpec spec = new PBEKeySpec(plaintext.toString().toCharArray(),
+        plaintextChars = plaintext.toString().toCharArray();
+        KeySpec spec = new PBEKeySpec(plaintextChars,
             saltBytes, iterations, SHA1_LENGTH * 8);
         digestBytes = factory.generateSecret(spec).getEncoded();
       }
@@ -202,6 +204,11 @@ public class PBKDF2PasswordStorageScheme
             CLASS_NAME, getExceptionMessage(e));
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message, e);
+      }
+      finally
+      {
+        if (plaintextChars != null)
+          Arrays.fill(plaintextChars, '0');
       }
     }
     // Append the salt to the hashed value and base64-the whole thing.
@@ -304,13 +311,15 @@ public class PBKDF2PasswordStorageScheme
                      saltLength);
 
     byte[] userDigestBytes;
+    char[] plaintextChars = null;
 
     synchronized (factoryLock)
     {
       try
       {
+        plaintextChars = plaintextPassword.toString().toCharArray();
         KeySpec spec = new PBEKeySpec(
-            plaintextPassword.toString().toCharArray(), saltBytes,
+            plaintextChars, saltBytes,
             iterations, SHA1_LENGTH * 8);
         userDigestBytes = factory.generateSecret(spec).getEncoded();
       }
@@ -322,6 +331,11 @@ public class PBKDF2PasswordStorageScheme
         }
 
         return false;
+      }
+      finally
+      {
+        if (plaintextChars != null)
+          Arrays.fill(plaintextChars, '0');
       }
     }
 
@@ -360,9 +374,10 @@ public class PBKDF2PasswordStorageScheme
   public ByteString encodeAuthPassword(ByteSequence plaintext)
          throws DirectoryException
   {
-    byte[] saltBytes     = new byte[NUM_SALT_BYTES];
+    byte[] saltBytes      = new byte[NUM_SALT_BYTES];
     byte[] digestBytes;
-    int    iterations    = config.getPBKDF2Iterations();
+    char[] plaintextChars = null;
+    int    iterations     = config.getPBKDF2Iterations();
 
     synchronized(factoryLock)
     {
@@ -370,8 +385,9 @@ public class PBKDF2PasswordStorageScheme
       {
         random.nextBytes(saltBytes);
 
+        plaintextChars = plaintext.toString().toCharArray();
         KeySpec spec = new PBEKeySpec(
-            plaintext.toString().toCharArray(), saltBytes,
+            plaintextChars, saltBytes,
             iterations, SHA1_LENGTH * 8);
         digestBytes = factory.generateSecret(spec).getEncoded();
       }
@@ -386,6 +402,11 @@ public class PBKDF2PasswordStorageScheme
             CLASS_NAME, getExceptionMessage(e));
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message, e);
+      }
+      finally
+      {
+        if (plaintextChars != null)
+          Arrays.fill(plaintextChars, '0');
       }
     }
     // Encode and return the value.
@@ -446,13 +467,15 @@ public class PBKDF2PasswordStorageScheme
                      saltBytes.length);
 
     byte[] userDigestBytes;
+    char[] plaintextChars = null;
 
     synchronized (factoryLock)
     {
       try
       {
+        plaintextChars = plaintextPassword.toString().toCharArray();
         KeySpec spec = new PBEKeySpec(
-            plaintextPassword.toString().toCharArray(), saltBytes,
+            plaintextChars, saltBytes,
             iterations, SHA1_LENGTH * 8);
         userDigestBytes = factory.generateSecret(spec).getEncoded();
       }
@@ -464,6 +487,11 @@ public class PBKDF2PasswordStorageScheme
         }
 
         return false;
+      }
+      finally
+      {
+        if (plaintextChars != null)
+          Arrays.fill(plaintextChars, '0');
       }
     }
 
@@ -540,16 +568,18 @@ public class PBKDF2PasswordStorageScheme
   public static String encodeOffline(byte[] passwordBytes)
          throws DirectoryException
   {
-    byte[] saltBytes     = new byte[NUM_SALT_BYTES];
+    byte[] saltBytes      = new byte[NUM_SALT_BYTES];
     byte[] digestBytes;
-    int    iterations    = 10000;
+    char[] plaintextChars = null;
+    int    iterations     = 10000;
 
     try
     {
       SecureRandom.getInstance(SECURE_PRNG_SHA1).nextBytes(saltBytes);
 
+      plaintextChars = passwordBytes.toString().toCharArray();
       KeySpec spec = new PBEKeySpec(
-          passwordBytes.toString().toCharArray(), saltBytes,
+          plaintextChars, saltBytes,
           iterations, SHA1_LENGTH * 8);
       digestBytes = SecretKeyFactory
           .getInstance(MESSAGE_DIGEST_ALGORITHM_PBKDF2)
@@ -566,6 +596,11 @@ public class PBKDF2PasswordStorageScheme
           CLASS_NAME, getExceptionMessage(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
           message, e);
+    }
+    finally
+    {
+      if (plaintextChars != null)
+        Arrays.fill(plaintextChars, '0');
     }
 
     // Append the salt to the hashed value and base64-the whole thing.

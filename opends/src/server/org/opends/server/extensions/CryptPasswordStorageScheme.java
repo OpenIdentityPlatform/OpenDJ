@@ -31,6 +31,7 @@
 package org.opends.server.extensions;
 
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Random;
@@ -131,13 +132,13 @@ public class CryptPasswordStorageScheme
   private ByteString unixCryptEncodePassword(ByteSequence plaintext)
          throws DirectoryException
   {
-
+    byte[] plaintextBytes = null;
     byte[] digestBytes;
 
     try
     {
-      // TODO: Can we avoid this copy?
-      byte[] plaintextBytes = plaintext.toByteArray();
+      // TODO: can we avoid this copy?
+      plaintextBytes = plaintext.toByteArray();
       digestBytes = crypt.crypt(plaintextBytes, randomSalt());
     }
     catch (Exception e)
@@ -146,6 +147,11 @@ public class CryptPasswordStorageScheme
           CLASS_NAME, stackTraceToSingleLineString(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message, e);
+    }
+    finally
+    {
+      if (plaintextBytes != null)
+        Arrays.fill(plaintextBytes, (byte) 0);
     }
 
     return ByteString.wrap(digestBytes);
@@ -190,9 +196,12 @@ public class CryptPasswordStorageScheme
   private ByteString sha256CryptEncodePassword(ByteSequence plaintext)
       throws DirectoryException {
     String output;
+    byte[] plaintextBytes = null;
+
     try
     {
-      output = Sha2Crypt.sha256Crypt(plaintext.toByteArray());
+      plaintextBytes = plaintext.toByteArray();
+      output = Sha2Crypt.sha256Crypt(plaintextBytes);
     }
     catch (Exception e)
     {
@@ -200,6 +209,11 @@ public class CryptPasswordStorageScheme
           CLASS_NAME, stackTraceToSingleLineString(e));
       throw new DirectoryException(
           DirectoryServer.getServerErrorResultCode(), message, e);
+    }
+    finally
+    {
+      if (plaintextBytes != null)
+        Arrays.fill(plaintextBytes, (byte) 0);
     }
     return ByteString.valueOf(output);
   }
@@ -207,9 +221,12 @@ public class CryptPasswordStorageScheme
   private ByteString sha512CryptEncodePassword(ByteSequence plaintext)
       throws DirectoryException {
     String output;
+    byte[] plaintextBytes = null;
+
     try
     {
-      output = Sha2Crypt.sha512Crypt(plaintext.toByteArray());
+      plaintextBytes = plaintext.toByteArray();
+      output = Sha2Crypt.sha512Crypt(plaintextBytes);
     }
     catch (Exception e)
     {
@@ -217,6 +234,11 @@ public class CryptPasswordStorageScheme
           CLASS_NAME, stackTraceToSingleLineString(e));
       throw new DirectoryException(
           DirectoryServer.getServerErrorResultCode(), message, e);
+    }
+    finally
+    {
+      if (plaintextBytes != null)
+        Arrays.fill(plaintextBytes, (byte) 0);
     }
     return ByteString.valueOf(output);
   }
@@ -273,11 +295,12 @@ public class CryptPasswordStorageScheme
                                  ByteSequence storedPassword)
   {
     // TODO: Can we avoid this copy?
-    byte[] plaintextPasswordBytes = plaintextPassword.toByteArray();
+    byte[] plaintextPasswordBytes = null;
 
     ByteString userPWDigestBytes;
     try
     {
+      plaintextPasswordBytes = plaintextPassword.toByteArray();
       // The salt is stored as the first two bytes of the storedPassword
       // value, and crypt.crypt() only looks at the first two bytes, so
       // we can pass it in directly.
@@ -288,6 +311,11 @@ public class CryptPasswordStorageScheme
     catch (Exception e)
     {
       return false;
+    }
+    finally
+    {
+      if (plaintextPasswordBytes != null)
+        Arrays.fill(plaintextPasswordBytes, (byte) 0);
     }
 
     return userPWDigestBytes.equals(storedPassword);
@@ -311,31 +339,45 @@ public class CryptPasswordStorageScheme
 
   private boolean sha256CryptPasswordMatches(ByteSequence plaintextPassword,
       ByteSequence storedPassword) {
+    byte[] plaintextPasswordBytes = null;
     String storedString = storedPassword.toString();
     try
     {
+      plaintextPasswordBytes = plaintextPassword.toByteArray();
       String userString = Sha2Crypt.sha256Crypt(
-          plaintextPassword.toByteArray(), storedString);
+          plaintextPasswordBytes, storedString);
       return userString.equals(storedString);
     }
     catch (Exception e)
     {
       return false;
+    }
+    finally
+    {
+      if (plaintextPasswordBytes != null)
+        Arrays.fill(plaintextPasswordBytes, (byte) 0);
     }
   }
 
   private boolean sha512CryptPasswordMatches(ByteSequence plaintextPassword,
       ByteSequence storedPassword) {
+    byte[] plaintextPasswordBytes = null;
     String storedString = storedPassword.toString();
     try
     {
+      plaintextPasswordBytes = plaintextPassword.toByteArray();
       String userString = Sha2Crypt.sha512Crypt(
-          plaintextPassword.toByteArray(), storedString);
+          plaintextPasswordBytes, storedString);
       return userString.equals(storedString);
     }
     catch (Exception e)
     {
       return false;
+    }
+    finally
+    {
+      if (plaintextPasswordBytes != null)
+        Arrays.fill(plaintextPasswordBytes, (byte) 0);
     }
   }
 

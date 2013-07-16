@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -36,6 +37,8 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.*;
 import org.opends.server.util.Base64;
+
+import java.util.Arrays;
 
 import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.extensions.ExtensionsConstants.*;
@@ -108,10 +111,11 @@ public class RC4PasswordStorageScheme
   public ByteString encodePassword(ByteSequence plaintext)
          throws DirectoryException
   {
+    byte[] plaintextBytes = null;
     try
     {
       // TODO: Can we avoid this copy?
-      byte[] plaintextBytes = plaintext.toByteArray();
+      plaintextBytes = plaintext.toByteArray();
       byte[] encodedBytes = cryptoManager.encrypt(CIPHER_TRANSFORMATION_RC4,
                                                   KEY_SIZE_RC4,
                                                   plaintextBytes);
@@ -129,6 +133,11 @@ public class RC4PasswordStorageScheme
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    m, e);
     }
+    finally
+    {
+      if (plaintextBytes != null)
+        Arrays.fill(plaintextBytes, (byte) 0);
+    }
   }
 
 
@@ -144,11 +153,12 @@ public class RC4PasswordStorageScheme
     buffer.append('{');
     buffer.append(STORAGE_SCHEME_NAME_RC4);
     buffer.append('}');
+    byte[] plaintextBytes = null;
 
     try
     {
       // TODO: Can we avoid this copy?
-      byte[] plaintextBytes = plaintext.toByteArray();
+      plaintextBytes = plaintext.toByteArray();
       byte[] encodedBytes = cryptoManager.encrypt(CIPHER_TRANSFORMATION_RC4,
                                                   KEY_SIZE_RC4,
                                                   plaintextBytes);
@@ -165,6 +175,11 @@ public class RC4PasswordStorageScheme
                                                   getExceptionMessage(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    m, e);
+    }
+    finally
+    {
+      if (plaintextBytes != null)
+        Arrays.fill(plaintextBytes, (byte) 0);
     }
 
     return ByteString.valueOf(buffer.toString());
