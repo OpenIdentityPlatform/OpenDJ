@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2012 ForgeRock AS
+  !      Copyright 2012-2013 ForgeRock AS
   !    
 -->
 <appendix xml:id='appendix-log-messages'
@@ -41,8 +41,8 @@
  operations rather than OpenDJ directory server and tools, and so are not
  listed here. Instead, this appendix covers severe and fatal error messages
  for the directory server and its tools, such as those logged in
- <filename>/path/to/OpenDJ/logs/errors</filename>, and
- <filename>/path/to/OpenDJ/logs/replication</filename>.</para>
+ <filename>/path/to/opendj/logs/errors</filename>, and
+ <filename>/path/to/opendj/logs/replication</filename>.</para>
 
  <!-- <xinclude:include href="log-ref-access-control.xml" /> -->
  <!-- <xinclude:include href="log-ref-admin-tool.xml" /> -->
