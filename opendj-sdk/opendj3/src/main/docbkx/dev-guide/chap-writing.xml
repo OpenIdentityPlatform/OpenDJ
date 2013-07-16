@@ -176,10 +176,11 @@ try {
   <para>The <literal>Connection.modify()</literal> methods let you add, replace,
   and delete attributes values on an entry. Either the modifications are
   expressed in LDIF, or you build a <literal>ModifyRequest</literal> to
-  express the changes.</para>
-
-  <para>The following excerpt demonstrates how to replace one attribute value
-  and to add another.</para>
+  express the changes. To build a <literal>ModifyRequest</literal>, you can
+  either specify individual changes, or derive the modifications from the
+  differences between the original entry and a modified copy, as in the
+  following excerpt. This is not always a particularly efficient method, but
+  it can be easy to use in some cases.</para>
 
   <programlisting language="java"
   >final LDAPConnectionFactory factory = new LDAPConnectionFactory(host, port);
@@ -206,6 +207,16 @@ try {
         connection.close();
     }
 }</programlisting>
+
+  <para>Especially when working with large entries, a more efficient choice is
+  to construct a <literal>ModifyRequest</literal> without copying the entire
+  entry, but instead by specifying individual changes. See a demonstration
+  of this technique in <xref linkend="updating-static-groups" />.</para>
+
+  <para>If the modifications are easier to construct in LDIF, you can write the
+  LDIF to the directory server as shown in the chapter, <link xlink:show="new"
+  xlink:href="dev-guide#chap-ldif" xlink:role="http://docbook.org/xlink/role/olink"
+  ><citetitle>Working With LDIF</citetitle></link>.</para>
  </section>
  
  <section xml:id="renaming-entries">
