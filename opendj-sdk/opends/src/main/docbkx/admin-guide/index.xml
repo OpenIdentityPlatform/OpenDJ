@@ -136,6 +136,7 @@
    <xinclude:include href='man-uninstall.xml' />
    <xinclude:include href='man-upgrade.xml' />
    <xinclude:include href='man-verify-index.xml' />
+   <xinclude:include href='man-windows-service.xml' />
  </reference>
 
  <xinclude:include href="../shared/glossary.xml" />
