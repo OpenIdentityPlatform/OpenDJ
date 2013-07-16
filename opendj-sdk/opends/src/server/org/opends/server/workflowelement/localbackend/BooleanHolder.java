@@ -36,4 +36,22 @@ class BooleanHolder
 
   /** The boolean value held in this class. */
   boolean value;
+
+  /**
+   * Default ctor.
+   *
+   * @param defaultValue
+   *          the default value for this object
+   */
+  public BooleanHolder(boolean defaultValue)
+  {
+    this.value = defaultValue;
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public String toString()
+  {
+    return Boolean.toString(this.value);
+  }
 }

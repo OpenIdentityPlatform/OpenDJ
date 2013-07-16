@@ -138,7 +138,7 @@ public class LocalBackendSearchOperation
     // Check for a request to cancel this operation.
     checkIfCanceled(false);
 
-    BooleanHolder executePostOpPlugins = new BooleanHolder();
+    BooleanHolder executePostOpPlugins = new BooleanHolder(false);
     processSearch(wfe, executePostOpPlugins);
 
     // Check for a request to cancel this operation.
