@@ -374,9 +374,66 @@
    <listitem><para>set-<replaceable>component</replaceable>-prop</para></listitem>
   </itemizedlist>
 
-  <para>Component properties for the <command>dsconfig</command> command are
-  covered in the <link xlink:show="new" xlink:href="${configRefBase}"
-  ><citetitle>OpenDJ Configuration Reference</citetitle></link>.</para>
+  <para>Here, <replaceable>component</replaceable> names correspond to the
+  names of managed object types referred to as <link xlink:show="new"
+  xlink:href="${configRefBase}ManagedObjectList.html"><citetitle
+  >Components</citetitle></link> in the <citetitle>OpenDJ Configuration
+  Reference</citetitle>, and that have no parent components. (In other words,
+  only the names of components with no parents correspond to subcommands.)
+  Subcommand <replaceable>component</replaceable> names are lower-case,
+  hyphenated versions of the friendly names used in the <citetitle>OpenDJ
+  Configuration Reference</citetitle>. When you act on an actual configuration
+  component, you provide the name of the component as an option argument.</para>
+
+  <itemizedlist>
+   <para>For example, the Log Publisher component has these corresponding
+   subcommands.</para>
+   <listitem><para><command>create-log-publisher</command></para></listitem>
+   <listitem><para><command>list-log-publishers</command></para></listitem>
+   <listitem><para><command>delete-log-publisher</command></para></listitem>
+   <listitem><para><command>get-log-publisher-prop</command></para></listitem>
+   <listitem><para><command>set-log-publisher-prop</command></para></listitem>
+  </itemizedlist>
+
+  <para>When you create or delete Log Publisher components and when you get
+  and set their configuration properties, you provide the name of the actual
+  log publisher, which you can find by using the
+  <command>list-log-publishers</command> subcommand.</para>
+
+  <screen>$ dsconfig
+ list-log-publishers
+ --hostname opendj.example.com
+ --port 4444
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --trustAll
+
+Log Publisher                 : Type                   : enabled
+------------------------------:------------------------:--------
+File-Based Access Logger      : file-based-access      : true
+File-Based Audit Logger       : file-based-audit       : false
+File-Based Debug Logger       : file-based-debug       : false
+File-Based Error Logger       : file-based-error       : true
+File-Based HTTP Access Logger : file-based-http-access : false
+Replication Repair Logger     : file-based-error       : true
+
+$ dsconfig
+ get-log-publisher-prop
+ --publisher-name "File-Based Access Logger"
+ --property rotation-policy
+ --hostname opendj.example.com
+ --port 4444
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --trustAll
+Property        : Value(s)
+----------------:--------------------------------------------------------------
+rotation-policy : 24 Hours Time Limit Rotation Policy, Size Limit Rotation
+                : Policy</screen>
+
+  <para>To find documentation for specific component properties, also see the
+  <link xlink:show="new" xlink:href="${configRefBase}"><citetitle>OpenDJ
+  Configuration Reference</citetitle></link>.</para>
   
   <para>Many subcommands let you set property values. Notice in the reference
   for the subcommands below that specific options are available for handling
