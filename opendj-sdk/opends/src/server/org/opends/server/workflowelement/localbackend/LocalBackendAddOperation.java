@@ -347,7 +347,7 @@ public class LocalBackendAddOperation
 
         if (parentEntry == null)
         {
-          findAndSetMatchingDN(parentDN);
+          setMatchedDN(findMatchedDN(parentDN));
 
           // The parent doesn't exist, so this add can't be successful.
           setResultCode(ResultCode.NO_SUCH_OBJECT);
@@ -593,7 +593,7 @@ public class LocalBackendAddOperation
     }
   }
 
-  private void findAndSetMatchingDN(DN entryDN)
+  private DN findMatchedDN(DN entryDN)
   {
     try
     {
@@ -602,8 +602,7 @@ public class LocalBackendAddOperation
       {
         if (DirectoryServer.entryExists(matchedDN))
         {
-          setMatchedDN(matchedDN);
-          return;
+          return matchedDN;
         }
 
         matchedDN = matchedDN.getParentDNInSuffix();
@@ -616,6 +615,7 @@ public class LocalBackendAddOperation
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
     }
+    return null;
   }
 
   private boolean checkHasReadOnlyAttributes(

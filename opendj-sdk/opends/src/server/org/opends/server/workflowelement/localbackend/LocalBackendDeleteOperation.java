@@ -245,7 +245,7 @@ public class LocalBackendDeleteOperation
         appendErrorMessage(ERR_DELETE_NO_SUCH_ENTRY
             .get(String.valueOf(entryDN)));
 
-        findAndSetMatchingDN(entryDN);
+        setMatchedDN(findMatchedDN(entryDN));
         return;
       }
 
@@ -416,7 +416,7 @@ public class LocalBackendDeleteOperation
     }
   }
 
-  private void findAndSetMatchingDN(DN entryDN)
+  private DN findMatchedDN(DN entryDN)
   {
     try
     {
@@ -425,8 +425,7 @@ public class LocalBackendDeleteOperation
       {
         if (DirectoryServer.entryExists(matchedDN))
         {
-          setMatchedDN(matchedDN);
-          return;
+          return matchedDN;
         }
 
         matchedDN = matchedDN.getParentDNInSuffix();
@@ -439,6 +438,7 @@ public class LocalBackendDeleteOperation
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
     }
+    return null;
   }
 
   /**
