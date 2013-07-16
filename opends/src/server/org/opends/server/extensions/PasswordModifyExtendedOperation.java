@@ -124,7 +124,7 @@ public class PasswordModifyExtendedOperation
   /** The reference to the identity mapper. */
   private IdentityMapper<?> identityMapper;
 
-  /** The default set of supported control OIDs for this extended */
+  /** The default set of supported control OIDs for this extended. */
   private Set<String> supportedControlOIDs = new HashSet<String>(0);
 
   /**
@@ -1242,7 +1242,7 @@ public class PasswordModifyExtendedOperation
                         String.valueOf(entryDN)));
 
         // See if one of the entry's ancestors exists.
-        findAndSetMatchingDN(operation, entryDN);
+        operation.setMatchedDN(findMatchedDN(entryDN));
         return null;
       }
 
@@ -1264,7 +1264,7 @@ public class PasswordModifyExtendedOperation
     }
   }
 
-  private void findAndSetMatchingDN(Operation operation, DN entryDN)
+  private DN findMatchedDN(DN entryDN)
   {
     try
     {
@@ -1273,8 +1273,7 @@ public class PasswordModifyExtendedOperation
       {
         if (DirectoryServer.entryExists(matchedDN))
         {
-          operation.setMatchedDN(matchedDN);
-          return;
+          return matchedDN;
         }
 
         matchedDN = matchedDN.getParentDNInSuffix();
@@ -1287,6 +1286,7 @@ public class PasswordModifyExtendedOperation
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
     }
+    return null;
   }
 
   /**

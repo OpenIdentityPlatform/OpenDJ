@@ -205,7 +205,7 @@ public class LocalBackendCompareOperation
               .valueOf(entryDN)));
 
           // See if one of the entry's ancestors exists.
-          findAndSetMatchingDN(entryDN);
+          setMatchedDN(findMatchedDN(entryDN));
           return;
         }
       }
@@ -337,7 +337,7 @@ public class LocalBackendCompareOperation
     }
   }
 
-  private void findAndSetMatchingDN(DN entryDN)
+  private DN findMatchedDN(DN entryDN)
   {
     try
     {
@@ -346,8 +346,7 @@ public class LocalBackendCompareOperation
       {
         if (DirectoryServer.entryExists(matchedDN))
         {
-          setMatchedDN(matchedDN);
-          return;
+          return matchedDN;
         }
 
         matchedDN = matchedDN.getParentDNInSuffix();
@@ -360,6 +359,7 @@ public class LocalBackendCompareOperation
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
     }
+    return null;
   }
 
   /**
