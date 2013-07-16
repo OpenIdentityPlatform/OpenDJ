@@ -168,37 +168,40 @@
   the OpenDJ directory server tools. Where the tools are located depends on
   the operating system and on the packages used to install OpenDJ.</para>
 
-  <informaltable>
-   <thead>
-    <row>
-     <entry>OpenDJ running on...</entry>
-     <entry>OpenDJ installed from...</entry>
-     <entry>Default path to tools...</entry>
-    </row>
-   </thead>
-   <tbody>
-    <row>
-     <entry>Apple Mac OS X, Linux distributions, Oracle Solaris</entry>
-     <entry>WebStart, .zip</entry>
-     <entry><filename>/path/to/opendj/bin</filename></entry>
-    </row>
-    <row>
-     <entry>Linux distributions</entry>
-     <entry>.deb, .rpm</entry>
-     <entry><filename>/opt/opendj/bin</filename></entry>
-    </row>
-    <row>
-     <entry>Microsoft Windows</entry>
-     <entry>WebStart, .zip</entry>
-     <entry><filename>C:\path\to\opendj\bat</filename></entry>
-    </row>
-    <row>
-     <entry>Oracle Solaris</entry>
-     <entry>SVR4</entry>
-     <entry><filename>/usr/opendj/bin</filename></entry>
-    </row>
-   </tbody>
-  </informaltable>
+  <table xml:id="cli-path-locations">
+   <title>Paths To Administration Tools</title>
+   <tgroup cols="3">
+    <thead>
+     <row>
+      <entry>OpenDJ running on...</entry>
+      <entry>OpenDJ installed from...</entry>
+      <entry>Default path to tools...</entry>
+     </row>
+    </thead>
+    <tbody>
+     <row>
+      <entry>Apple Mac OS X, Linux distributions, Oracle Solaris</entry>
+      <entry>WebStart, .zip</entry>
+      <entry><filename>/path/to/opendj/bin</filename></entry>
+     </row>
+     <row>
+      <entry>Linux distributions</entry>
+      <entry>.deb, .rpm</entry>
+      <entry><filename>/opt/opendj/bin</filename></entry>
+     </row>
+     <row>
+      <entry>Microsoft Windows</entry>
+      <entry>WebStart, .zip</entry>
+      <entry><filename>C:\path\to\opendj\bat</filename></entry>
+     </row>
+     <row>
+      <entry>Oracle Solaris</entry>
+      <entry>SVR4</entry>
+      <entry><filename>/usr/opendj/bin</filename></entry>
+     </row>
+    </tbody>
+   </tgroup>
+  </table>
 
   <para>The <command>setup</command>, <command>upgrade</command>, and
   <command>uninstall</command> tools are located in the parent directory of the
