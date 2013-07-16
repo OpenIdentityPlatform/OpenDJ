@@ -169,13 +169,13 @@ $ javaws <replaceable>URL-to-QuickSetup-Installer</replaceable></screen>
   following, depending on your host system.</para>
 
   <listitem>
-   <para>(Mac OS X) <command>opendj/bin/ControlPanel.app</command></para>
+   <para>(Mac OS X) <command>/path/to/opendj/bin/ControlPanel.app</command></para>
   </listitem>
   <listitem>
-   <para>(UNIX) <command>opendj/bin/control-panel</command></para>
+   <para>(UNIX) <command>/path/to/opendj/bin/control-panel</command></para>
   </listitem>
   <listitem>
-   <para>(Windows) <command>opendj\bat\control-panel.bat</command></para>
+   <para>(Windows) <command>C:\path\to\opendj\bat\control-panel.bat</command></para>
   </listitem>
  </itemizedlist>
 </chapter>

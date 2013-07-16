@@ -27,18 +27,16 @@
           xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
           xmlns:xlink='http://www.w3.org/1999/xlink'
           xmlns:xinclude='http://www.w3.org/2001/XInclude'
->$ cd /path/to
-$ ls
-OpenDJ-2.4.5
-$ ./OpenDJ-2.4.5/bin/stop-ds --quiet
+>$ /path/to/OpenDJ-2.4.5/bin/stop-ds --quiet
 ... msg=The backend userRoot is now taken offline
 ... msg=The Directory Server is now stopped
+$ cd /path/to
 $ zip -rq OpenDJ-backup.zip OpenDJ-2.4.5
 $ unzip -q ~/Downloads/OpenDJ-2.6.0.zip
 $ cp -r opendj/* OpenDJ-2.4.5/
 $ rm -rf opendj
 $ mv OpenDJ-2.4.5 opendj
-$ ./opendj/upgrade --no-prompt --acceptLicense
+$ /path/to/opendj/upgrade --no-prompt --acceptLicense
 
 >>>> OpenDJ Upgrade Utility
 
@@ -95,5 +93,5 @@ Do you accept the License Agreement? yes
 >>>> OpenDJ was successfully upgraded from version 2.4.5.7743 to 2.6.0.9086
 
  * See '/path/to/opendj/upgrade.log' for a detailed log of this operation
-$ ./opendj/bin/start-ds --quiet
+$ /path/to/opendj/bin/start-ds --quiet
 $ </screen>

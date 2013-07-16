@@ -2,12 +2,12 @@
 .\"     Title: setup
 .\"    Author: 
 .\" Generator: DocBook XSL-NS Stylesheets v1.76.1 <http://docbook.sf.net/>
-.\"      Date: 05/16/2013
+.\"      Date: 07/16/2013
 .\"    Manual: Tools Reference
-.\"    Source: OpenDJ 2.6.0
+.\"    Source: OpenDJ 2.8.0
 .\"  Language: English
 .\"
-.TH "SETUP" "1" "05/16/2013" "OpenDJ 2\&.6\&.0" "Tools Reference"
+.TH "SETUP" "1" "07/16/2013" "OpenDJ 2\&.8\&.0" "Tools Reference"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -240,11 +240,11 @@ The following command installs OpenDJ directory server, enabling StartTLS and im
 .RS 4
 .\}
 .nf
-$ \&./opendj/setup \-\-cli \-b dc=example,dc=com \-d 100 \-D "cn=Directory Manager"
- \-w password \-h `hostname` \-p 1389
+$ /path/to/opendj/setup \-\-cli \-b dc=example,dc=com \-d 100
+ \-D "cn=Directory Manager" \-w password \-h opendj\&.example\&.com \-p 1389
  \-\-generateSelfSignedCertificate \-\-enableStartTLS \-n 
 
-OpenDJ 2\&.6\&.0
+OpenDJ 2\&.8\&.0
 Please wait while the setup program initializes\&.\&.\&.
 
 See /var/\&.\&.\&./opends\-setup\-484\&.\&.\&.561\&.log for a detailed log of this operation\&.

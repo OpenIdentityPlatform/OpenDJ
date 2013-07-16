@@ -96,9 +96,10 @@
   <title>Tools Reference</title>
 
   <partintro>
-   <para>You can find the tools under the <filename>bin/</filename> or
-   <filename>bat\</filename> folder where you installed OpenDJ directory
-   server. For example, <filename>/path/to/opendj/bin</filename>.</para>
+   <para>You can find tools under the folder where you installed OpenDJ
+   directory server as listed in <link xlink:href="admin-guide#cli-overview"
+   xlink:show="new" xlink:role="http://docbook.org/xlink/role/olink"
+   ><citetitle>Command-Line Tools</citetitle></link>.</para>
   </partintro>
 
    <xinclude:include href='man-backup.xml' />

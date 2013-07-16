@@ -103,15 +103,14 @@
    <step>
     <para>Generate the encoded version of the new password using the OpenDJ
     <command>encode-password</command> command.</para>
-    <screen>$ cd /path/to/opendj/bin/
-$ ./encode-password --storageScheme SSHA512 --clearPassword password
+    <screen>$ encode-password --storageScheme SSHA512 --clearPassword password
 Encoded Password:  "{SSHA512}yWqHnYV4a5llPvE7WHLe5jzK27oZQWLIlVcs9gySu4TyZJMg
  NQNRtnR/Xx2xces1wu1dVLI9jVVtl1W4BVsmOKjyjr0rWrHt"</screen>
    </step>
 
    <step>
     <para>Stop OpenDJ directory server while you edit the configuration.</para>
-    <screen>$ ./stop-ds</screen>
+    <screen>$ stop-ds</screen>
    </step>
 
    <step>
@@ -144,13 +143,13 @@ ds-rlim-size-limit: 0</programlisting>
 
    <step>
     <para>Start OpenDJ directory server again.</para>
-    <screen>$ ./start-ds</screen>
+    <screen>$ start-ds</screen>
    </step>
 
    <step>
     <para>Verify that you can administer the server as Directory Manager using
     the new password.</para>
-    <screen>$ ./dsconfig -p 4444 -h `hostname` -D "cn=Directory Manager" -w password
+    <screen>$ dsconfig -p 4444 -h opendj.example.com -D "cn=Directory Manager" -w password
 
 
 &gt;&gt;&gt;&gt; OpenDJ configuration console main menu
@@ -180,8 +179,7 @@ Enter choice: q</screen>
    <step>
     <para>Use the <command>ldappasswordmodify</command> command to reset the
     global administrator's password</para>
-    <screen>$ cd /path/to/opendj/bin/
-$ ./ldappasswordmodify
+    <screen>$ ldappasswordmodify
  --useStartTLS
  --port 1389
  --hostname opendj.example.com
@@ -385,7 +383,7 @@ ADD operation successful for DN
   <screen>$ dsconfig
  set-global-configuration-prop
  --port 4444
- --hostname `hostname`
+ --hostname opendj.example.com
  --bindDN "cn=Directory Manager"
  --bindPassword password
  --set single-structural-objectclass-behavior:warn

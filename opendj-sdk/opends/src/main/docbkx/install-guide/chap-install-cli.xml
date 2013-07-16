@@ -151,7 +151,7 @@
   
   <step>
    <para>Run the <command>setup --cli</command> command found in the
-   <filename>opendj</filename> directory.</para>
+   <filename>/path/to/opendj</filename> directory.</para>
 
    <para>This command starts the setup program in interactive mode on the
    command line, prompting you for each option. Alternatively, use

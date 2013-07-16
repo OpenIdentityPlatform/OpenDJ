@@ -49,7 +49,7 @@
    <para>Use one of the following techniques.</para>
    <listitem>
     <para>Use the <command>start-ds</command> command.</para>
-    <screen>$ opendj/bin/start-ds</screen>
+    <screen>$ start-ds</screen>
     <para>Alternatively, you can specify the --no-detach option to start
     the server in the foreground.</para>
    </listitem>
@@ -59,7 +59,7 @@
     <para>Unless you run OpenDJ as root, use the --userName
     <replaceable>userName</replaceable> option to specify the user
     who installed OpenDJ.</para>
-    <screen>$ sudo opendj/bin/create-rc-script
+    <screen>$ sudo create-rc-script
  --outputFile /etc/init.d/opendj
  --userName mark
 $ sudo /etc/init.d/opendj start</screen>
@@ -81,7 +81,7 @@ update-rc.d: see &lt;http://wiki.debian.org/LSBInitScripts&gt;
    <listitem>
     <para>(Windows) Register OpenDJ as a Windows Service, and then manage
     the service through Windows administration tools.</para>
-    <screen>C:\Users\Mark&gt; opendj\bat\windows-service.bat --enableService</screen>
+    <screen>C:\path\to\opendj\bat&gt; windows-service.bat --enableService</screen>
    </listitem>
   </itemizedlist>
 
@@ -103,12 +103,12 @@ update-rc.d: see &lt;http://wiki.debian.org/LSBInitScripts&gt;
    <para>Use one of the following techniques.</para>
    <listitem>
     <para>Use the <command>stop-ds</command> command.</para>
-    <screen>$ opendj/bin/stop-ds</screen>
+    <screen>$ stop-ds</screen>
    </listitem>
    <listitem>
     <para>(UNIX) Create an RC script, and then use the script to stop
     the server.</para>
-    <screen>$ sudo opendj/bin/create-rc-script
+    <screen>$ sudo create-rc-script
  --outputFile /etc/init.d/opendj
  --userName mark
 $ sudo /etc/init.d/opendj stop</screen>
@@ -116,7 +116,7 @@ $ sudo /etc/init.d/opendj stop</screen>
    <listitem>
     <para>(Windows) Register OpenDJ as a Windows Service, and then manage
     the service through Windows administration tools.</para>
-    <screen>C:\Users\Mark&gt; opendj\bat\windows-service.bat --enableService</screen>
+    <screen>C:\path\to\opendj\bat&gt; windows-service.bat --enableService</screen>
    </listitem>
   </itemizedlist>
  </section>
@@ -129,12 +129,12 @@ $ sudo /etc/init.d/opendj stop</screen>
    <para>Use one of the following techniques.</para>
    <listitem>
     <para>Use the <command>stop-ds</command> command.</para>
-    <screen>$ opendj/bin/stop-ds --restart</screen>
+    <screen>$ stop-ds --restart</screen>
    </listitem>
    <listitem>
     <para>(UNIX) Create an RC script, and then use the script to stop
     the server.</para>
-    <screen>$ sudo opendj/bin/create-rc-script
+    <screen>$ sudo create-rc-script
  --outputFile /etc/init.d/opendj
  --userName mark
 $ /etc/init.d/opendj restart</screen>
@@ -142,7 +142,7 @@ $ /etc/init.d/opendj restart</screen>
    <listitem>
     <para>(Windows) Register OpenDJ as a Windows Service, and then manage
     the service through Windows administration tools.</para>
-    <screen>C:\Users\Mark&gt; opendj\bat\windows-service.bat --enableService</screen>
+    <screen>C:\path\to\opendj\bat&gt; windows-service.bat --enableService</screen>
    </listitem>
   </itemizedlist>
  </section>
