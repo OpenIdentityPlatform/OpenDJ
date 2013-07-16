@@ -133,7 +133,7 @@ public class LocalBackendCompareOperation
     checkIfCanceled(false);
 
 
-    BooleanHolder executePostOpPlugins = new BooleanHolder();
+    BooleanHolder executePostOpPlugins = new BooleanHolder(false);
     processCompare(executePostOpPlugins);
 
     // Check for a request to cancel this operation.

@@ -144,7 +144,7 @@ public class LocalBackendDeleteOperation
     // Check for a request to cancel this operation.
     checkIfCanceled(false);
 
-    BooleanHolder executePostOpPlugins = new BooleanHolder();
+    BooleanHolder executePostOpPlugins = new BooleanHolder(false);
     processDelete(executePostOpPlugins);
 
     // Invoke the post-operation or post-synchronization delete plugins.

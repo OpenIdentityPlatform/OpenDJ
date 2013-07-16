@@ -161,7 +161,7 @@ public class LocalBackendAddOperation
     checkIfCanceled(false);
 
 
-    BooleanHolder executePostOpPlugins = new BooleanHolder();
+    BooleanHolder executePostOpPlugins = new BooleanHolder(false);
     processAdd(clientConnection, executePostOpPlugins);
 
     PluginConfigManager pluginConfigManager =
