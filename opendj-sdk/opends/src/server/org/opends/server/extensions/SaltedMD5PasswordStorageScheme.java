@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -189,6 +190,10 @@ public class SaltedMD5PasswordStorageScheme
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message, e);
       }
+      finally
+      {
+        Arrays.fill(plainPlusSalt, (byte) 0);
+      }
     }
 
     // Append the salt to the hashed value and base64-the whole thing.
@@ -246,6 +251,10 @@ public class SaltedMD5PasswordStorageScheme
             CLASS_NAME, getExceptionMessage(e));
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message, e);
+      }
+      finally
+      {
+        Arrays.fill(plainPlusSalt, (byte) 0);
       }
     }
 
@@ -320,6 +329,10 @@ public class SaltedMD5PasswordStorageScheme
 
         return false;
       }
+      finally
+      {
+        Arrays.fill(plainPlusSalt, (byte) 0);
+      }
     }
 
     return Arrays.equals(digestBytes, userDigestBytes);
@@ -389,6 +402,10 @@ public class SaltedMD5PasswordStorageScheme
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message, e);
       }
+      finally
+      {
+        Arrays.fill(plainPlusSalt, (byte) 0);
+      }
     }
 
 
@@ -438,8 +455,15 @@ public class SaltedMD5PasswordStorageScheme
 
     synchronized (digestLock)
     {
-      return Arrays.equals(digestBytes,
+      try
+      {
+        return Arrays.equals(digestBytes,
                                 messageDigest.digest(plainPlusSaltBytes));
+      }
+      finally
+      {
+        Arrays.fill(plainPlusSaltBytes, (byte) 0);
+      }
     }
   }
 

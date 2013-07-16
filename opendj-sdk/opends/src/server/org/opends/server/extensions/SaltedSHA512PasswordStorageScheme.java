@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2010 ForgeRock AS.
+ *      Portions Copyright 2010-2013 ForgeRock AS.
  */
 package org.opends.server.extensions;
 
@@ -192,6 +192,10 @@ public class SaltedSHA512PasswordStorageScheme
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message, e);
       }
+      finally
+      {
+        Arrays.fill(plainPlusSalt, (byte) 0);
+      }
     }
 
     // Append the salt to the hashed value and base64-the whole thing.
@@ -249,6 +253,10 @@ public class SaltedSHA512PasswordStorageScheme
             CLASS_NAME, getExceptionMessage(e));
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message, e);
+      }
+      finally
+      {
+        Arrays.fill(plainPlusSalt, (byte) 0);
       }
     }
 
@@ -334,6 +342,10 @@ public class SaltedSHA512PasswordStorageScheme
 
         return false;
       }
+      finally
+      {
+        Arrays.fill(plainPlusSalt, (byte) 0);
+      }
     }
 
     return Arrays.equals(digestBytes, userDigestBytes);
@@ -403,6 +415,10 @@ public class SaltedSHA512PasswordStorageScheme
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      message, e);
       }
+      finally
+      {
+        Arrays.fill(plainPlusSalt, (byte) 0);
+      }
     }
 
 
@@ -452,8 +468,15 @@ public class SaltedSHA512PasswordStorageScheme
 
     synchronized (digestLock)
     {
-      return Arrays.equals(digestBytes,
-                                messageDigest.digest(plainPlusSaltBytes));
+      try
+      {
+        return Arrays.equals(digestBytes,
+                                  messageDigest.digest(plainPlusSaltBytes));
+      }
+      finally
+      {
+        Arrays.fill(plainPlusSaltBytes, (byte) 0);
+      }
     }
   }
 
@@ -555,6 +578,7 @@ public class SaltedSHA512PasswordStorageScheme
     System.arraycopy(digestBytes, 0, digestPlusSalt, 0, digestBytes.length);
     System.arraycopy(saltBytes, 0, digestPlusSalt, digestBytes.length,
                      NUM_SALT_BYTES);
+    Arrays.fill(passwordPlusSalt, (byte) 0);
 
     return "{" + STORAGE_SCHEME_NAME_SALTED_SHA_512 + "}" +
            Base64.encode(digestPlusSalt);
