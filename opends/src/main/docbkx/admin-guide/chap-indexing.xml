@@ -50,9 +50,10 @@
  
  <para>Rather than granting the <literal>unindexed-search</literal> privilege
  to more users and client applications, you configure indexes to correspond
- to the searches that clients need to perform.</para>
+ to the searches that clients need to perform. See
+ <xref linkend="debug-search-indexes" /> for details.</para>
  
- <para>This chapter first describes index types, then demonstrates how to
+ <para>This chapter first describes index types, and demonstrates how to
  index attribute values. This chapter also lists the default indexing
  configuration for OpenDJ directory server.</para>
  
@@ -203,7 +204,145 @@ cn: Barbara Maddox</screen>
    than a specified time.</para>
   </section>
  </section>
- 
+
+  <section xml:id="debug-search-indexes">
+  <title>Determining What Needs Indexing</title>
+  <indexterm>
+   <primary>Indexes</primary>
+   <secondary>Debugging searches</secondary>
+  </indexterm>
+
+  <para>OpenDJ search performance depends on indexes. As mentioned above,
+  unindexed searches are so resource intensive that by default OpenDJ refuses
+  to perform unindexed searches. This is because, in order to find candidate
+  matches for an unindexed search, OpenDJ has to scan the entire directory
+  database. Most searches should therefore use indexes.</para>
+
+  <para>A simple way of checking the indexes that match a search is to request
+  the <literal>debugsearchindex</literal> attribute in your results.</para>
+
+  <screen>$ ldapsearch --port 1389 --baseDN dc=example,dc=com "(uid=user.1000)"
+ debugsearchindex
+dn: cn=debugsearch
+debugsearchindex: filter=(uid=user.1000)[INDEX:uid.equality][COUNT:1] final=[COU
+ NT:1]</screen>
+
+  <para>When you request the <literal>debugsearchindex</literal> attribute,
+  instead of performing the search, OpenDJ returns debug information indicating
+  how it would process the search operation. In the example above you notice
+  OpenDJ hits the equality index for <literal>uid</literal> right away.</para>
+
+  <para>A less exact search requires more work from OpenDJ. In the following
+  example OpenDJ would have to return over 10,000 entries.</para>
+
+  <screen>$ ldapsearch --port 1389 --baseDN dc=example,dc=com "(uid=*)" debugsearchindex
+dn: cn=debugsearch
+debugsearchindex: filter=(uid=*)[NOT-INDEXED] scope=wholeSubtree[LIMIT-EXCEEDED:
+ 10002] final=[NOT-INDEXED]</screen>
+
+  <para>By default OpenDJ rejects unindexed searches when the number of
+  candidate entries goes beyond the search or look-though limit.</para>
+
+  <screen>$ ldapsearch --port 1389 --baseDN dc=example,dc=com "(uid=*)"
+SEARCH operation failed
+Result Code:  50 (Insufficient Access Rights)
+Additional Information:  You do not have sufficient privileges to perform
+ an unindexed search</screen>
+
+  <para>When an unindexed search is performed, it shows up in the access
+  log with the <literal>unindexed</literal> label.</para>
+
+  <programlisting language="none"
+  >...SEARCH RES ... result=50 message="You do not have sufficient privileges
+ to perform an unindexed search" nentries=0 unindexed etime=1</programlisting>
+
+  <para>If directory users tell you their client applications are getting this
+  error, then you can work with them either to help them make their search
+  filter specific enough to use existing indexes, or to index attributes they
+  need indexed in order to perform their searches. For example, if a
+  directory client application is having trouble performing a search with
+  a filters such as <literal>(objectClass=person)</literal>, you can suggest
+  that they adjust the search to be more specific, such as
+  <literal>(&amp;(mail=username@maildomain.net)(objectClass=person))</literal>,
+  so that the server can use an index, in this case equality for mail, to
+  limit the number of candidate entries to check for matches.</para>
+
+  <para>You can view and edit what is indexed through OpenDJ Control Panel,
+  Indexes > Manage Indexes. Alternatively you can manage indexes using the
+  command-line tools demonstrated in <xref linkend="configure-indexes" />.
+  If an index already exists, but you suspect it is not working properly, see
+  <xref linkend="verify-index" />, too.</para>
+
+  <para>If you do need to allow some applications to perform unindexed searches,
+  because they need to retrieve very large numbers of entries for example, then
+  you can assign them the <literal>unindexed-search</literal> privilege. See
+  <link xlink:show="new" xlink:href="admin-guide#configure-privileges"
+  xlink:role="http://docbook.org/xlink/role/olink"><citetitle>Configuring
+  Privileges</citetitle></link> for details. A successful unindexed search also
+  shows up in the access log with the label <literal>unindexed</literal>,
+  usually with a large etime as well.</para>
+
+  <programlisting language="none"
+  >...SEARCH RES conn=11 op=1 msgID=2 result=0 nentries=10000 unindexed etime=1129</programlisting>
+
+  <para>There is a trade off between the cost of maintaining an index and the
+  value the index has in speeding up searches. Although monitoring index use
+  is not something to leave active in production due to the additional cost and
+  memory needed to maintain the statistics, in a test environment you can
+  activate index analysis using the <command>dsconfig set-backend-prop</command>
+  command.</para>
+
+  <screen>$ dsconfig
+ set-backend-prop
+ --port 4444
+ --hostname opendj.example.com
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --backend-name userRoot
+ --set index-filter-analyzer-enabled:true
+ --no-prompt
+ --trustAll</screen>
+
+  <para>The command causes OpenDJ to analyze filters used and keep the results
+  in memory, so that you can read them through the <literal>cn=monitor</literal>
+  interface.</para>
+
+  <screen>$ ldapsearch
+ --port 1389
+ --baseDN "cn=userRoot Database Environment,cn=monitor"
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ "(objectclass=*)"
+ filter-use
+dn: cn=userRoot Database Environment,cn=monitor
+filter-use: (mail=aa*@maildomain.net) hits:1 maxmatches:0 message:
+filter-use: (objectClass=*) hits:1 maxmatches:-1 message:presence index type is
+ disabled for the objectClass attribute
+filter-use: (uid=user.1000) hits:2 maxmatches:1 message:
+filter-use: (uid=user.1001) hits:1 maxmatches:1 message:
+filter-use: (cn=aa*) hits:1 maxmatches:10 message:
+filter-use: (cn=b*) hits:1 maxmatches:834 message:</screen>
+
+  <para>The <literal>filter-use</literal> values consist of the filter, followed
+  by <literal>hits</literal> being the number of times the filter was used,
+  followed by <literal>maxmatches</literal> being the number of matches found
+  for the filter, followed by a message.</para>
+
+  <para>You can turn off index analysis with the <command>dsconfig
+  set-backend-prop</command> command as well.</para>
+
+  <screen>$ dsconfig
+ set-backend-prop
+ --port 4444
+ --hostname opendj.example.com
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --backend-name userRoot
+ --set index-filter-analyzer-enabled:false
+ --no-prompt
+ --trustAll</screen>
+ </section>
+
  <section xml:id="configure-indexes">
   <title>Configuring &amp; Rebuilding Indexes</title>
   <indexterm>
@@ -491,24 +630,79 @@ newUnusedAttribute.substring  Index  ...newUnusedAttribute.substring  true...</s
    the number of entries that an index key points to exceeds the index entry
    limit, OpenDJ stops maintaining the list of entries for that index key.</para>
    
-   <para>The default index entry limit value is 4000. 4000 is usually plenty
-   large for all index keys, except for <literal>objectClass</literal> indexes.
-   If you have clients performing searches with filters such as
-   <literal>(objectClass=person)</literal>, you might suggest that they adjust
-   the search to be more specific, such as
-   <literal>(&amp;(mail=username@maildomain.net)(objectClass=person))</literal>,
-   so that the server can use an index, in this case equality for mail, to
-   limit the number of candidate entries to check for matches.</para>
+   <para>The default index entry limit value is 4000. 4000 is intended to be
+   large enough for most index keys, though it prevents OpenDJ from maintaining
+   indexes at any cost. You can use the <command>dbtest</command> command to
+   evaluate how well attributes are indexed, and consider whether to change
+   the index entry limit. Non-zero values in the "Undefined" column indicate
+   the number of index keys that have reached the limit and are no longer
+   maintained. The "Undefined keys" are then listed below.</para>
 
-   <para>You can change the index entry limit on a per index basis.</para>
+   <informalexample><?dbfo pgwide="1"?>
+    <screen>$ dbtest list-index-status --backendID userRoot --baseDN dc=example,dc=com
+Index Name                 Index Type  JE Database Name                             Index Valid  Record Count  Undefined  95%  90%  85%
+---------------------------------------------------------------------------------------------------------------------------------------
+id2children                Index       dc_example_dc_com_id2children                true         2             1          0    0    0
+id2subtree                 Index       dc_example_dc_com_id2subtree                 true         2             2          0    0    0
+uid.equality               Index       dc_example_dc_com_uid.equality               true         10000         0          0    0    0
+aci.presence               Index       dc_example_dc_com_aci.presence               true         0             0          0    0    0
+ds-sync-conflict.equality  Index       dc_example_dc_com_ds-sync-conflict.equality  true         0             0          0    0    0
+givenName.equality         Index       dc_example_dc_com_givenName.equality         true         8605          0          0    0    0
+givenName.substring        Index       dc_example_dc_com_givenName.substring        true         19629         0          0    0    0
+objectClass.equality       Index       dc_example_dc_com_objectClass.equality       true         6             4          0    0    0
+member.equality            Index       dc_example_dc_com_member.equality            true         0             0          0    0    0
+uniqueMember.equality      Index       dc_example_dc_com_uniqueMember.equality      true         0             0          0    0    0
+cn.equality                Index       dc_example_dc_com_cn.equality                true         10000         0          0    0    0
+cn.substring               Index       dc_example_dc_com_cn.substring               true         86040         0          0    0    0
+sn.equality                Index       dc_example_dc_com_sn.equality                true         10000         0          0    0    0
+sn.substring               Index       dc_example_dc_com_sn.substring               true         32217         0          0    0    0
+telephoneNumber.equality   Index       dc_example_dc_com_telephoneNumber.equality   true         10000         0          0    0    0
+telephoneNumber.substring  Index       dc_example_dc_com_telephoneNumber.substring  true         73235         0          0    0    0
+ds-sync-hist.ordering      Index       dc_example_dc_com_ds-sync-hist.ordering      true         0             0          0    0    0
+mail.equality              Index       dc_example_dc_com_mail.equality              true         10000         0          0    0    0
+mail.substring             Index       dc_example_dc_com_mail.substring             true         31235         15         0    0    0
+entryUUID.equality         Index       dc_example_dc_com_entryUUID.equality         true         10002         0          0    0    0
+
+Total: 20
+
+Index: objectClass.equality
+Undefined keys: [inetorgperson] [organizationalperson] [person] [top]
+
+Index: id2children
+Undefined keys: [2]
+
+Index: mail.substring
+Undefined keys: [.net] [@maild] [aildom] [ain.ne] [domain] [et] [ildoma] [in.net] [ldomai] [maildo] [main.n] [n.net] [net] [omain.] [t]
+
+Index: id2subtree
+Undefined keys: [1] [2]</screen>
+   </informalexample>
+
+   <para>In this case (for a directory with only about 10,000 entries) the
+   list of undefined keys is perfectly reasonable. Every user entry has the
+   object classes listed, and every user entry has a mail address ending in
+   <literal>@maildomain.net</literal>, so those values are not specific enough
+   to be used in search filters. The <literal>id2children</literal> and
+   <literal>id2subtree</literal> are for OpenDJ's internal use.</para>
+
+   <para>If you do find the limit is too low for a certain key, you can change
+   the index entry limit on a per index basis.</para>
    
    <example xml:id="change-index-entry-limit">
     <title>Change Index Entry Limit</title>
     
     <para>The following example changes the index entry limit for the
     <literal>objectClass</literal> index, and then rebuilds the index for the
-    configuration change to take effect.</para>
-    
+    configuration change to take effect. The example is contrived, but the
+    steps are the same for any other index.</para>
+
+    <important>
+     <para>Changing the index entry limit significantly can result in
+     serious performance degradation. Be prepared to test performance
+     thoroughly before you roll out an index entry limit change in
+     production.</para>
+    </important>
+
     <screen>$ dsconfig
  set-local-db-index-prop
  --port 4444
@@ -585,48 +779,7 @@ Rebuild Index task 20110607160349596 scheduled to start Jun 7, 2011 4:03:49 PM</
    important information is whether any errors are found in the indexes.</para>
   </example>
  </section>
- 
- <section xml:id="debug-search-indexes">
-  <title>Checking Indexes For a Search</title>
-   <indexterm>
-    <primary>Indexes</primary>
-    <secondary>Debugging searches</secondary>
-   </indexterm>
-  
-  <para>When searching, you can improve performance by making sure your search
-  is indexed as you expect. One way of checking is to request the
-  <literal>debugsearchindex</literal> attribute in your results.</para>
-  
-  <screen>$ ldapsearch
- --port 1389
- --baseDN dc=example,dc=com
- "(uid=bjensen)"
- debugsearchindex
-dn: cn=debugsearch
-debugsearchindex: filter=(uid=bjensen)[INDEX:uid.equality][COUNT:1]
- final=[COUNT:1]</screen>
- 
-  <para>When you request the <literal>debugsearchindex</literal> attribute,
-  instead of performing the search, OpenDJ returns debug information indicating
-  how it would process the search operation. In the example above you notice
-  OpenDJ hits the equality index for <literal>uid</literal> right away.</para>
-  
-  <para>A less exact search requires more work from OpenDJ. In the following
-  example OpenDJ would have to return 160 entries.</para>
-  
-  <screen>$ ldapsearch
- --port 1389
- --baseDN dc=example,dc=com
- "(uid=*)"
- debugsearchindex
-dn: cn=debugsearch
-debugsearchindex: filter=(uid=*)[NOT-INDEXED] scope=wholeSubtree[COUNT:160]
- final=[COUNT:160]</screen>
-  
-  <para>By default OpenDJ rejects unindexed searches when the number of
-  candidate entries goes beyond the search or look-though limit.</para>
- </section>
- 
+
  <section xml:id="default-indexes">
   <title>Default Indexes</title>
    <indexterm>
