@@ -170,8 +170,8 @@ mail: escape@example.com</screen></footnote></para>
   <para>LDAP entries are arranged hierarchically in the directory. The
   hierarchical organization resembles a file system on a PC or a web server,
   often imagined as an upside-down tree structure, looking similar to a
-  pyramid.<footnote><para>Hence pyramid icons are associated with directory
-  servers.</para></footnote>The distinguished name consists of components
+  pyramid. <footnote><para>Hence pyramid icons are associated with directory
+  servers.</para></footnote> The distinguished name consists of components
   separated by commas,
   <literal>uid=bjensen,ou=People,dc=example,dc=com</literal>. Those components
   reflect the hierarchy of directory entries.</para>
@@ -191,12 +191,14 @@ mail: escape@example.com</screen></footnote></para>
   <literal>ou=People,dc=example,dc=com</literal>, an organization unit and
   parent entry for the people at Example.com. The
   <literal>ou=People</literal> entry is located under the entry with DN
-  <literal>dc=example,dc=com</literal>, the root entry for Example.com.
-  DC stands for domain component. The directory has other root entries, such
+  <literal>dc=example,dc=com</literal>, the base entry for Example.com.
+  DC stands for domain component. The directory has other base entries, such
   as <literal>cn=config</literal>, under which the configuration is accessible
-  through LDAP, and potentially others such as
-  <literal>dc=mycompany,dc=com</literal> or <literal>o=myOrganization</literal>.
-  Thus when you look up entries, you specify the parent entry to look under
+  through LDAP. A directory can serve multiple organizations, too. You might
+  find <literal>dc=example,dc=com</literal>,
+  <literal>dc=mycompany,dc=com</literal>, and
+  <literal>o=myOrganization</literal> in the same LDAP directory.
+  Therefore when you look up entries, you specify the base DN to look under
   in the same way you need to know whether to look in the New York, Paris,
   or Tokyo phone book to find a telephone number.<footnote>
   <para>The root entry for the directory, technically the entry with DN
