@@ -371,7 +371,7 @@ mail: escape@example.com</screen></footnote></para>
   Attribute Values</citetitle></link>.</para>
  </section>
 
- <section xml:id="about-schema">
+ <section xml:id="schema-overview">
   <title>About LDAP Schema</title>
   <indexterm>
    <primary>Schema</primary>
