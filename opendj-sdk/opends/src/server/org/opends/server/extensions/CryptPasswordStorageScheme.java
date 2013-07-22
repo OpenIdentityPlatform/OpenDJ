@@ -68,7 +68,7 @@ public class CryptPasswordStorageScheme
        "org.opends.server.extensions.CryptPasswordStorageScheme";
 
   /**
-   * The current configuration for the CryptPasswordStorageScheme
+   * The current configuration for the CryptPasswordStorageScheme.
    */
   private CryptPasswordStorageSchemeCfg currentConfig;
 
