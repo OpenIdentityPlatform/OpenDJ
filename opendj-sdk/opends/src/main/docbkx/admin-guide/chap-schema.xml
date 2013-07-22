@@ -53,7 +53,7 @@
   <title>About Directory Schema</title>
   
   <para>Directory schema, described in <link
-  xlink:href='http://tools.ietf.org/html/rfc4512'>RFC 4512</link>, define
+  xlink:href='http://tools.ietf.org/html/rfc4512'>RFC 4512</link>, defines
   the kinds of information you find in the directory, and can define how
   the information are related. This chapter focuses primarily on two types
   of directory schema definitions.</para>
@@ -200,7 +200,7 @@ objectClasses: ( 2.5.6.6 NAME 'person' SUP top STRUCTURAL MUST ( sn $ cn )
   directory schema definitions while the server is running. As a result you can
   add support for new applications that require new attributes or new kinds
   of entries without interrupting the directory service. OpenDJ also replicates
-  schema definitions, so the schema you add on one replica are propagated to
+  schema definitions, so the schema you add on one replica is propagated to
   other replicas without you having to intervene manually.</para>
   
   <para>As it is easy to introduce typos into schema definitions, the

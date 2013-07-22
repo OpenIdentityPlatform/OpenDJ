@@ -63,6 +63,7 @@
 
  <xinclude:include href="preface.xml" />
 
+ <xinclude:include href='chap-understanding-ldap.xml' />
  <xinclude:include href='chap-admin-tools.xml' />
  <xinclude:include href='chap-server-process.xml' />
  <xinclude:include href='chap-import-export.xml' />
