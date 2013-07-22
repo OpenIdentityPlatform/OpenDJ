@@ -22,7 +22,7 @@
  * CDDL HEADER END
  *
  *
- * Copyright 2010 ForgeRock AS
+ * Copyright 2010-2013 ForgeRock AS
  *
  * BSD-compatible md5 password crypt
  * Ported to Java from C based on crypt-md5.c by Poul-Henning Kamp,
@@ -36,9 +36,13 @@
  */
 package org.opends.server.util;
 
+import org.opends.server.types.ByteSequence;
+import org.opends.server.types.ByteString;
+
 import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 
 /**
  * BSD MD5 Crypt algorithm, ported from C.
@@ -62,19 +66,10 @@ public final class BSDMD5Crypt {
       value >>= 6;
     }
 
-    return (output.toString());
+    return output.toString();
   }
 
-  /* Clear bytes, equivalent of memset */
-  static private void clearBytes(byte bytes[])
-  {
-    for (int i = 0; i < bytes.length; i++)
-    {
-      bytes[i] = 0;
-    }
-  }
-
-  /**
+    /**
    * Encode the supplied password in BSD MD5 crypt form, using
    * a random salt.
    *
@@ -85,7 +80,7 @@ public final class BSDMD5Crypt {
    * @throws NoSuchAlgorithmException If the MD5 algorithm is not supported.
    *
    */
-  static public String crypt(String password)
+  static public String crypt(ByteSequence password)
           throws NoSuchAlgorithmException
   {
     SecureRandom randomGenerator = new SecureRandom();
@@ -115,11 +110,12 @@ public final class BSDMD5Crypt {
    * @throws NoSuchAlgorithmException If the MD5 algorithm is not supported.
    *
    */
-  static public String crypt(String password, String salt)
+  static public String crypt(ByteSequence password, String salt)
           throws NoSuchAlgorithmException
   {
     MessageDigest ctx, ctx1;
     byte digest1[], digest[];
+    byte[] plaintextBytes = password.toByteArray();
 
     /* First skip the magic string */
     if (salt.startsWith(magic))
@@ -142,7 +138,7 @@ public final class BSDMD5Crypt {
     ctx = MessageDigest.getInstance("MD5");
 
     /* The password first, since that is what is most unknown */
-    ctx.update(password.getBytes());
+    ctx.update(plaintextBytes);
 
     /* Then our magic string */
     ctx.update(magic.getBytes());
@@ -152,9 +148,9 @@ public final class BSDMD5Crypt {
 
     /* Then just as many characters of the MD5(password,salt,password) */
     ctx1 = MessageDigest.getInstance("MD5");
-    ctx1.update(password.getBytes());
+    ctx1.update(plaintextBytes);
     ctx1.update(salt.getBytes());
-    ctx1.update(password.getBytes());
+    ctx1.update(plaintextBytes);
     digest1 = ctx1.digest();
 
 
@@ -164,7 +160,7 @@ public final class BSDMD5Crypt {
     }
 
     /* Don't leave anything around in vm they could use. */
-    clearBytes(digest1);
+    Arrays.fill(digest1, (byte) 0);
 
     /* Then something really weird... */
     for (int i = password.length(); i != 0; i >>= 1)
@@ -174,7 +170,7 @@ public final class BSDMD5Crypt {
         ctx.update(digest1[0]);
       } else
       {
-        ctx.update(password.getBytes()[0]);
+        ctx.update(plaintextBytes[0]);
       }
     }
 
@@ -197,7 +193,7 @@ public final class BSDMD5Crypt {
 
       if ((i & 1) != 0)
       {
-        ctx1.update(password.getBytes());
+        ctx1.update(plaintextBytes);
       } else
       {
         ctx1.update(digest);
@@ -208,14 +204,14 @@ public final class BSDMD5Crypt {
       }
       if ((i % 7) != 0)
       {
-        ctx1.update(password.getBytes());
+        ctx1.update(plaintextBytes);
       }
       if ((i & 1) != 0)
       {
         ctx1.update(digest);
       } else
       {
-        ctx1.update(password.getBytes());
+        ctx1.update(plaintextBytes);
       }
       digest = ctx1.digest();
     }
@@ -241,7 +237,8 @@ public final class BSDMD5Crypt {
     output.append(intTo64(l, 2));
 
     /* Don't leave anything around in vm they could use. */
-    clearBytes(digest);
+    Arrays.fill(digest, (byte) 0);
+    Arrays.fill(plaintextBytes, (byte) 0);
     ctx = null;
     ctx1 = null;
 
@@ -276,10 +273,11 @@ public final class BSDMD5Crypt {
     {
       if (argv.length == 2)
       {
-        System.out.println(BSDMD5Crypt.crypt(argv[0], argv[1]));
+        System.out.println(BSDMD5Crypt.crypt(ByteString.valueOf(argv[0]),
+                argv[1]));
       } else
       {
-        System.out.println(BSDMD5Crypt.crypt(argv[0]));
+        System.out.println(BSDMD5Crypt.crypt(ByteString.valueOf(argv[0])));
       }
     } catch (Exception e)
     {
