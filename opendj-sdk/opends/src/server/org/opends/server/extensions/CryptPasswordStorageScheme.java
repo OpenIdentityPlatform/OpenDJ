@@ -25,33 +25,28 @@
  *      Copyright 2008 Sun Microsystems, Inc.
  *      Portions Copyright 2010-2013 ForgeRock AS
  *      Portions Copyright 2012 Dariusz Janny <dariusz.janny@gmail.com>
- *
  */
-
 package org.opends.server.extensions;
 
-
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.ArrayList;
 import java.util.Random;
-
 
 import org.opends.messages.Message;
 import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.admin.std.server.PasswordStorageSchemeCfg;
 import org.opends.server.admin.std.server.CryptPasswordStorageSchemeCfg;
+import org.opends.server.admin.std.server.PasswordStorageSchemeCfg;
 import org.opends.server.api.PasswordStorageScheme;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.*;
-import org.opends.server.util.Crypt;
 import org.opends.server.util.BSDMD5Crypt;
+import org.opends.server.util.Crypt;
 
 import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.extensions.ExtensionsConstants.*;
-import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
-
+import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class defines a Directory Server password storage scheme based on the
@@ -72,7 +67,7 @@ public class CryptPasswordStorageScheme
   private static final String CLASS_NAME =
        "org.opends.server.extensions.CryptPasswordStorageScheme";
 
-  /*
+  /**
    * The current configuration for the CryptPasswordStorageScheme
    */
   private CryptPasswordStorageSchemeCfg currentConfig;
@@ -80,7 +75,7 @@ public class CryptPasswordStorageScheme
   /**
    * An array of values that can be used to create salt characters
    * when encoding new crypt hashes.
-   * */
+   */
   private static final byte[] SALT_CHARS =
     ("./0123456789abcdefghijklmnopqrstuvwxyz"
     +"ABCDEFGHIJKLMNOPQRSTUVWXYZ").getBytes();
@@ -88,7 +83,6 @@ public class CryptPasswordStorageScheme
   private final Random randomSaltIndex = new Random();
   private final Object saltLock = new Object();
   private final Crypt crypt = new Crypt();
-  private final BSDMD5Crypt bsdmd5crypt = new BSDMD5Crypt();
 
 
   /**
@@ -128,7 +122,6 @@ public class CryptPasswordStorageScheme
   /**
    * Encrypt plaintext password with the Unix Crypt algorithm.
    */
-
   private ByteString unixCryptEncodePassword(ByteSequence plaintext)
          throws DirectoryException
   {
@@ -165,13 +158,13 @@ public class CryptPasswordStorageScheme
   private byte[] randomSalt() {
     synchronized (saltLock)
     {
-      byte[] salt = new byte[2];
       int sb1 = randomSaltIndex.nextInt(SALT_CHARS.length);
       int sb2 = randomSaltIndex.nextInt(SALT_CHARS.length);
-      salt[0] = SALT_CHARS[sb1];
-      salt[1] = SALT_CHARS[sb2];
 
-      return salt;
+      return new byte[] {
+        SALT_CHARS[sb1],
+        SALT_CHARS[sb2],
+      };
     }
   }
 
@@ -507,6 +500,7 @@ public class CryptPasswordStorageScheme
 
     return false;
   }
+
   /**
    * {@inheritDoc}
    */
@@ -518,13 +512,14 @@ public class CryptPasswordStorageScheme
     CryptPasswordStorageSchemeCfg config =
             (CryptPasswordStorageSchemeCfg) configuration;
     return isConfigurationChangeAcceptable(config, unacceptableReasons);
-}
+  }
 
 
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationChangeAcceptable(
                       CryptPasswordStorageSchemeCfg configuration,
                       List<Message> unacceptableReasons)
@@ -538,12 +533,13 @@ public class CryptPasswordStorageScheme
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationChange(
                       CryptPasswordStorageSchemeCfg configuration)
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
-    ArrayList<Message> messages            = new ArrayList<Message>();
+    List<Message>     messages            = new ArrayList<Message>();
 
 
     currentConfig = configuration;
