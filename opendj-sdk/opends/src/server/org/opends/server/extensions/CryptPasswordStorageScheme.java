@@ -181,7 +181,7 @@ public class CryptPasswordStorageScheme
     String output;
     try
     {
-      output = BSDMD5Crypt.crypt(plaintext.toString());
+      output = BSDMD5Crypt.crypt(plaintext);
     }
     catch (Exception e)
     {
@@ -327,7 +327,7 @@ public class CryptPasswordStorageScheme
     String storedString = storedPassword.toString();
     try
     {
-      String userString   = BSDMD5Crypt.crypt(plaintextPassword.toString(),
+      String userString   = BSDMD5Crypt.crypt(plaintextPassword,
         storedString);
       return userString.equals(storedString);
     }
