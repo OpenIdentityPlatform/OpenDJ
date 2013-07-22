@@ -71,8 +71,7 @@
   <para>Install an LDAP server such as OpenDJ directory server that you can
   use to test the applications you develop. Also, load sample data into your
   server. The sample data used in this guide are available in LDIF form at
-  <link xlink:show="new" xlink:href="http://opendj.forgerock.org/Example.ldif"
-  >http://opendj.forgerock.org/Example.ldif</link>.</para>
+  <link xlink:show="new" xlink:href="http://opendj.forgerock.org/Example.ldif" />.</para>
  </section>
 
  <section xml:id="getting-the-ldap-sdk">
