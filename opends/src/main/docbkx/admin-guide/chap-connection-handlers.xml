@@ -1000,6 +1000,16 @@ supportedTLSProtocols: TLSv1.2
     including how to import a CA-signed certificate.</para>
 
     <screen>$ dsconfig
+ set-trust-manager-provider-prop
+ --hostname opendj.example.com
+ --port 4444
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --provider-name "Blind Trust"
+ --set enabled:true
+ --no-prompt
+ --trustAll
+$ dsconfig
  set-connection-handler-prop
  --hostname opendj.example.com
  --port 4444
@@ -1011,6 +1021,7 @@ supportedTLSProtocols: TLSv1.2
  --set key-manager-provider:JKS
  --set trust-manager-provider:"Blind Trust"
  --no-prompt
+ --trustAll
 $ stop-ds --restart
 Stopping Server...
 .... The Directory Server has started successfully
