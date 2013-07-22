@@ -27,13 +27,12 @@
  */
 package org.opends.server.core;
 
-
-
 import java.io.File;
 import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.util.HashMap;
+import java.util.Map;
 
 import org.opends.server.api.Backend;
 import org.opends.server.loggers.debug.DebugTracer;
@@ -44,8 +43,6 @@ import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
-
-
 /**
  * This class provides a mechanism for allowing the Directory Server to utilize
  * file locks as provided by the underlying OS.  File locks may be exclusive or
@@ -53,24 +50,22 @@ import static org.opends.server.util.StaticUtils.*;
  */
 public class LockFileManager
 {
+
   /**
    * The tracer object for the debug logger.
    */
   private static final DebugTracer TRACER = getTracer();
 
-
-
-
   /** A map between the filenames and the lock files for exclusive locks. */
-  private static HashMap<String,FileLock> exclusiveLocks =
+  private static Map<String, FileLock> exclusiveLocks =
        new HashMap<String,FileLock>();
 
   /** A map between the filenames and the lock files for shared locks. */
-  private static HashMap<String,FileLock> sharedLocks =
+  private static Map<String, FileLock> sharedLocks =
        new HashMap<String,FileLock>();
 
   /** A map between the filenames and reference counts for shared locks. */
-  private static HashMap<String,Integer> sharedLockReferences =
+  private static Map<String, Integer> sharedLockReferences =
        new HashMap<String,Integer>();
 
   /** The lock providing threadsafe access to the lock map data. */
