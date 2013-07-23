@@ -532,20 +532,21 @@ public final class Upgrade
   {
     final String lockFile = LockFileManager.getServerLockFileName();
 
-    final Message message = ERR_UPGRADE_REQUIRES_SERVER_OFFLINE.get();
+    final StringBuilder failureReason = new StringBuilder();
     try
-    {
-      final StringBuilder failureReason = new StringBuilder();
-      if (!LockFileManager.acquireExclusiveLock(lockFile, failureReason))
-      {
-        throw new ClientException(EXIT_CODE_ERROR, message);
-      }
-    }
-    catch (Exception e)
     {
       // Assume that if we cannot acquire the lock file the server is
       // running.
-      throw new ClientException(EXIT_CODE_ERROR, message);
+      if (!LockFileManager.acquireExclusiveLock(lockFile, failureReason))
+      {
+        LOG.log(Level.SEVERE, failureReason.toString());
+        throw new ClientException(EXIT_CODE_ERROR,
+            ERR_UPGRADE_REQUIRES_SERVER_OFFLINE.get());
+      }
+    }
+    finally
+    {
+      LockFileManager.releaseLock(lockFile, failureReason);
     }
   }
 
