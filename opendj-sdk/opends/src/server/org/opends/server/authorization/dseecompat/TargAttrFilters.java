@@ -30,7 +30,8 @@ package org.opends.server.authorization.dseecompat;
 import static org.opends.messages.AccessControlMessages.*;
 import static org.opends.server.authorization.dseecompat.Aci.*;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -102,7 +103,7 @@ public class TargAttrFilters {
     /**
      * The enumeration representing the operation.
      */
-    EnumTargetOperator op;
+    private EnumTargetOperator op;
 
     /**
      * A mask used to denote if the rule has add, del or both operations in the
@@ -111,7 +112,7 @@ public class TargAttrFilters {
     private int operationMask;
 
     /**
-     * Represents an targatterfilters keyword rule.
+     * Represents an targattrfilters keyword rule.
      * @param op The enumeration representing the operation type.
      *
      * @param firstFilterList  The first filter list class parsed from the rule.
@@ -198,10 +199,7 @@ public class TargAttrFilters {
                     get(expression);
               throw new AciException(message);
           }
-          String sOp="del";
-          if(getMask(firstOp) == TARGATTRFILTERS_DELETE)
-            sOp="add";
-          String rg= sOp + "=";
+          String rg = getReverseOp(firstOp) + "=";
           //This check catches the case where there might not be a
           //',' character between the first filter list and the second.
           if(subExpression.indexOf(rg) != -1) {
@@ -234,26 +232,35 @@ public class TargAttrFilters {
             }
             String temp2= filterList.substring(1,filterList.length());
             //Assume the first op is an "add" so this has to be a "del".
-            String secondOp="del";
             //If the first op is a "del", the second has to be an "add".
-            if(getMask(firstOp) == TARGATTRFILTERS_DELETE)
-                secondOp="add";
+            String secondOp = getReverseOp(firstOp);
             secondFilterList =
                     TargAttrFilterList.decode(getMask(secondOp), temp2);
         }
         return new TargAttrFilters(type, firstFilterList, secondFilterList);
     }
 
+  /**
+   * If the passed in op is an "add", then return "del"; Otherwise If the passed
+   * in op is an "del", then return "add".
+   */
+  private static String getReverseOp(String op)
+  {
+    if (getMask(op) == TARGATTRFILTERS_DELETE)
+      return "add";
+    return "del";
+  }
+
     /**
-     * Return the mask corrsponding to the specified string.
+     * Return the mask corresponding to the specified string.
+     *
      * @param op The op string.
      * @return   The mask corresponding to the operation string.
      */
     private static  int getMask(String op) {
         if(op.equals("add"))
             return TARGATTRFILTERS_ADD;
-        else
-            return TARGATTRFILTERS_DELETE;
+        return TARGATTRFILTERS_DELETE;
     }
 
     /**
@@ -265,7 +272,6 @@ public class TargAttrFilters {
      */
     public TargAttrFilterList
     getTargAttrFilterList(AciTargetMatchContext matchCtx) {
-        TargAttrFilterList filterList=null;
         int mask=ACI_NULL;
         //Set up the wanted mask by evaluating both the target match
         //context's rights and the mask.
@@ -276,14 +282,15 @@ public class TargAttrFilters {
                  matchCtx.hasRights(ACI_DELETE)) &&
                 hasMask(TARGATTRFILTERS_DELETE))
             mask=TARGATTRFILTERS_DELETE;
+
         //Check the first list first, it always has to be there. If it doesn't
         //match then check the second if it exists.
         if(firstFilterList.hasMask(mask))
-            filterList=firstFilterList;
+            return firstFilterList;
         else if((secondFilterList != null) &&
                 secondFilterList.hasMask(mask))
-            filterList=secondFilterList;
-        return filterList;
+            return secondFilterList;
+        return null;
     }
 
     /**
@@ -292,7 +299,7 @@ public class TargAttrFilters {
      * operation.
      * @param matchCtx The target match context containing the information
      * needed to match.
-     * @param aci  The ACI currently being evaluted for a target match.
+     * @param aci  The ACI currently being evaluated for a target match.
      * @return True if this TargAttrFitlers object is applicable to this
      * target match context.
      */
@@ -304,7 +311,7 @@ public class TargAttrFilters {
         //in AciTargets.isApplicable().
         if(attrFilterList == null)
             return true;
-        LinkedHashMap<AttributeType, SearchFilter> filterList  =
+        Map<AttributeType, SearchFilter> filterList  =
                 attrFilterList.getAttributeTypeFilterList();
         boolean attrMatched=true;
         AttributeType attrType=matchCtx.getCurrentAttributeType();
@@ -324,11 +331,18 @@ public class TargAttrFilters {
               matchCtx.setTargAttrFiltersAciName(aci.getName());
               matchCtx.addTargAttrFiltersMatchAci(aci);
             }
-            if(op.equals(EnumTargetOperator.NOT_EQUALITY))
-                attrMatched = !attrMatched;
+            attrMatched = revertForInequalityOperator(op, attrMatched);
         }
         return attrMatched;
     }
+
+  private boolean revertForInequalityOperator(EnumTargetOperator op,
+      boolean result)
+  {
+    if (EnumTargetOperator.NOT_EQUALITY.equals(op))
+      return !result;
+    return result;
+  }
 
     /**
      * Check if this TargAttrFilters object is applicable to the specified
@@ -344,10 +358,9 @@ public class TargAttrFilters {
         //List didn't match current operation return true.
         if(attrFilterList == null)
             return true;
-        LinkedHashMap<AttributeType, SearchFilter> filterList  =
+
+        Map<AttributeType, SearchFilter> filterList  =
                 attrFilterList.getAttributeTypeFilterList();
-        boolean attrMatched=true;
-        //Get the resource entry.
         Entry resEntry=matchCtx.getResourceEntry();
         //Iterate through each attribute type in the filter list checking
         //the resource entry to see if it has that attribute type. If not
@@ -356,23 +369,30 @@ public class TargAttrFilters {
       for(Map.Entry<AttributeType, SearchFilter> e : filterList.entrySet()) {
             AttributeType attrType=e.getKey();
             SearchFilter f=e.getValue();
-            //Found a match in the entry, iterate over each attribute
-            //type in the entry and check its values agaist the filter.
-            if(resEntry.hasAttribute(attrType)) {
-                ListIterator<Attribute> attrIterator=
-                        resEntry.getAttribute(attrType).listIterator();
-                for(;attrIterator.hasNext() && attrMatched;) {
-                    Attribute a=attrIterator.next();
-                    attrMatched=matchFilterAttributeValues(a, attrType, f);
-                }
+            if(!matchFilterAttributeType(resEntry, attrType, f)) {
+                return revertForInequalityOperator(op, false);
             }
-            if(!attrMatched)
-              break;
         }
-        if(op.equals(EnumTargetOperator.NOT_EQUALITY))
-            attrMatched = !attrMatched;
-        return attrMatched;
+        return revertForInequalityOperator(op, true);
     }
+
+  private boolean matchFilterAttributeType(Entry entry,
+      AttributeType attrType, SearchFilter f)
+  {
+    if (entry.hasAttribute(attrType))
+    {
+      // Found a match in the entry, iterate over each attribute
+      // type in the entry and check its values against the filter.
+      for (Attribute a : entry.getAttribute(attrType))
+      {
+        if (!matchFilterAttributeValues(a, attrType, f))
+        {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
 
     /**
      * Iterate over each attribute type attribute and compare the values
@@ -385,14 +405,13 @@ public class TargAttrFilters {
     private boolean matchFilterAttributeValues(Attribute a,
                                                AttributeType attrType,
                                                SearchFilter filter) {
-        boolean filterMatch=true;
-        Iterator<AttributeValue> valIterator = a.iterator();
         //Iterate through each value and apply the filter against it.
-        for(; valIterator.hasNext() && filterMatch;) {
-            AttributeValue value=valIterator.next();
-            filterMatch=matchFilterAttributeValue(attrType, value, filter);
+        for (AttributeValue value : a) {
+            if (!matchFilterAttributeValue(attrType, value, filter)) {
+                return false;
+            }
         }
-        return filterMatch;
+        return true;
     }
 
     /**
@@ -408,16 +427,14 @@ public class TargAttrFilters {
     private boolean matchFilterAttributeValue(AttributeType attrType,
                                               AttributeValue value,
                                               SearchFilter filter) {
-        boolean filterMatch;
         Attribute attr = Attributes.create(attrType, value);
         Entry e = new Entry(DN.nullDN(), null, null, null);
         e.addAttribute(attr, new ArrayList<AttributeValue>());
         try {
-            filterMatch=filter.matchesEntry(e);
+            return filter.matchesEntry(e);
         } catch(DirectoryException ex) {
-            filterMatch=false;
+            return false;
         }
-        return filterMatch;
     }
 
     /**
