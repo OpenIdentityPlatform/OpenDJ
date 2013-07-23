@@ -391,8 +391,8 @@ public final class AciHandler extends
       baseName = toLowerCase(rawAttributeType);
     }
 
-    AttributeType attributeType;
-    if ((attributeType = DirectoryServer.getAttributeType(baseName)) == null)
+    AttributeType attributeType = DirectoryServer.getAttributeType(baseName);
+    if (attributeType == null)
     {
       attributeType = DirectoryServer.getDefaultAttributeType(baseName);
     }
@@ -435,14 +435,14 @@ public final class AciHandler extends
   public boolean isAllowed(ModifyDNOperation operation)
   {
     boolean ret = true;
-    DN newSuperiorDN;
     RDN oldRDN = operation.getOriginalEntry().getDN().getRDN();
     RDN newRDN = operation.getNewRDN();
     if (!skipAccessCheck(operation))
     {
       // If this is a modifyDN move to a new superior, then check if the
       // superior DN has import access.
-      if ((newSuperiorDN = operation.getNewSuperior()) != null)
+      final DN newSuperiorDN = operation.getNewSuperior();
+      if (newSuperiorDN != null)
       {
         try
         {
@@ -536,17 +536,17 @@ public final class AciHandler extends
   public boolean mayProxy(Entry proxyUser, Entry proxiedUser,
       Operation op)
   {
-    boolean ret = skipAccessCheck(proxyUser);
-    if (!ret)
+    if (skipAccessCheck(proxyUser))
     {
-      AuthenticationInfo authInfo =
-          new AuthenticationInfo(proxyUser, DirectoryServer
-              .isRootDN(proxyUser.getDN()));
-      AciContainer operationContainer =
-          new AciLDAPOperationContainer(op, proxiedUser, authInfo, ACI_PROXY);
-      ret = accessAllowedEntry(operationContainer);
+      return true;
     }
-    return ret;
+
+    final AuthenticationInfo authInfo =
+        new AuthenticationInfo(proxyUser, DirectoryServer.isRootDN(proxyUser
+            .getDN()));
+    final AciContainer operationContainer =
+        new AciLDAPOperationContainer(op, proxiedUser, authInfo, ACI_PROXY);
+    return accessAllowedEntry(operationContainer);
   }
 
 
