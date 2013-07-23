@@ -100,7 +100,7 @@
     <currentSDKversion>${project.version}</currentSDKversion>
     <stableSDKversion>version.not.defined</stableSDKversion>
     <currentServerVersion>2.5.0-SNAPSHOT</currentServerVersion>
-    <docTargetVersion>2.8.0</docTargetVersion>
+    <docTargetVersion>${project.version}</docTargetVersion><!-- Reset before final publication -->
     <docPreviousVersion>2.6.0</docPreviousVersion>
     <sdkDocTargetVersion>${docTargetVersion}</sdkDocTargetVersion>
     <siteDistributionURL>scp://forgerock.org/var/www/vhosts/opendj.forgerock.org/httpdocs</siteDistributionURL>
