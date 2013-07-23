@@ -23,18 +23,20 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS
  */
-
 package org.opends.server.authorization.dseecompat;
-import org.opends.messages.Message;
 
 import static org.opends.messages.AccessControlMessages.*;
 import static org.opends.server.authorization.dseecompat.Aci.*;
+
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import org.opends.messages.Message;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.DN;
 import org.opends.server.types.SearchScope;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * This class represents target part of an ACI's syntax. This is the part
@@ -46,27 +48,27 @@ import java.util.regex.Pattern;
  */
 public class AciTargets {
 
-    /*
+    /**
      * ACI syntax has a target keyword.
      */
     private Target target = null ;
 
-    /*
+    /**
      * ACI syntax has a targetscope keyword.
      */
     private SearchScope targetScope = SearchScope.WHOLE_SUBTREE;
 
-    /*
+    /**
      * ACI syntax has a targetattr keyword.
      */
     private TargetAttr targetAttr = null ;
 
-    /*
+    /**
      * ACI syntax has a targetfilter keyword.
      */
     private TargetFilter targetFilter=null;
 
-    /*
+    /**
      * ACI syntax has a targattrtfilters keyword.
      */
     private TargAttrFilters targAttrFilters=null;
@@ -81,28 +83,28 @@ public class AciTargets {
     */
     private ExtOp extOp=null;
 
-    /*
+    /**
      * The number of regular expression group positions in a valid ACI target
      * expression.
      */
     private static final int targetElementCount = 3;
 
-    /*
+    /**
      *  Regular expression group position of a target keyword.
      */
     private static final int targetKeywordPos       = 1;
 
-    /*
+    /**
      *  Regular expression group position of a target operator enumeration.
      */
     private static final int targetOperatorPos      = 2;
 
-    /*
+    /**
      *  Regular expression group position of a target expression statement.
      */
     private static final int targetExpressionPos    = 3;
 
-    /*
+    /**
      * Regular expression used to match a single target rule.
      */
     private static final String targetRegex =
@@ -112,12 +114,12 @@ public class AciTargets {
            ZERO_OR_MORE_WHITESPACE;
 
     /**
-    * Regular expression used to match one or more target rules. The patern is
-    * part of a general ACI verification.
-    */
+     * Regular expression used to match one or more target rules. The pattern is
+     * part of a general ACI verification.
+     */
     public static final String targetsRegex = "(" + targetRegex + ")*";
 
-    /*
+    /**
      * Rights that are skipped for certain target evaluations.
      * The test is use the skipRights array is:
      *
@@ -138,8 +140,7 @@ public class AciTargets {
      *  If both are true, than the target match test returns true
      *  for this ACI.
      */
-
-    private static final int skipRights = (ACI_ADD | ACI_DELETE | ACI_PROXY);
+    private static final int skipRights = ACI_ADD | ACI_DELETE | ACI_PROXY;
 
     /**
      * Creates an ACI target from the specified arguments. All of these
@@ -422,11 +423,10 @@ public class AciTargets {
      */
     public static boolean isTargetFilterApplicable(Aci aci,
                                               AciTargetMatchContext matchCtx) {
-        boolean ret=true;
         TargetFilter targetFilter=aci.getTargets().getTargetFilter();
         if(targetFilter != null)
-             ret=targetFilter.isApplicable(matchCtx);
-        return ret;
+             return targetFilter.isApplicable(matchCtx);
+        return true;
     }
 
     /**
@@ -439,11 +439,10 @@ public class AciTargets {
      */
     public static boolean isTargetControlApplicable(Aci aci,
                                             AciTargetMatchContext matchCtx) {
-      boolean ret=false;
       TargetControl targetControl=aci.getTargets().getTargetControl();
       if(targetControl != null)
-        ret=targetControl.isApplicable(matchCtx);
-      return ret;
+        return targetControl.isApplicable(matchCtx);
+      return false;
     }
 
     /**
@@ -456,11 +455,10 @@ public class AciTargets {
      */
     public static boolean isExtOpApplicable(Aci aci,
                                               AciTargetMatchContext matchCtx) {
-      boolean ret=false;
       ExtOp extOp=aci.getTargets().getExtOp();
       if(extOp != null)
-        ret=extOp.isApplicable(matchCtx);
-      return ret;
+        return extOp.isApplicable(matchCtx);
+      return false;
     }
 
 
@@ -572,16 +570,15 @@ public class AciTargets {
     /**
      * Main target isApplicable method. This method performs the target keyword
      * match functionality, which allows for directory entry "targeting" using
-     * the specifed ACI, ACI targets class and DN.
+     * the specified ACI, ACI targets class and DN.
+     *
      * @param aci The ACI to match the target against.
      * @param targets The targets to use in this evaluation.
      * @param entryDN The DN to use in this evaluation.
      * @return True if the ACI matched the target and DN.
      */
-
     public static boolean isTargetApplicable(Aci aci,
             AciTargets targets, DN entryDN) {
-        boolean ret=true;
         DN targetDN=aci.getDN();
         /*
          * Scoping of the ACI uses either the DN of the entry
@@ -645,12 +642,13 @@ public class AciTargets {
          */
         if((targets.getTarget() != null) &&
                 (targets.getTarget().isPattern()))  {
-            ret=targets.getTarget().matchesPattern(entryDN);
+            final boolean ret = targets.getTarget().matchesPattern(entryDN);
             EnumTargetOperator op=targets.getTarget().getOperator();
             if(op == EnumTargetOperator.NOT_EQUALITY)
-                ret=!ret;
+                return !ret;
+            return ret;
         }
-        return ret;
+        return true;
     }
 
 
