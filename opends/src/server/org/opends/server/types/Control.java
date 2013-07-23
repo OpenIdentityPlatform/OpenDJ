@@ -42,10 +42,10 @@ import java.io.IOException;
      mayInvoke=true)
 public abstract class Control
 {
-  // The criticality for this control.
+  /** The criticality for this control. */
   private boolean isCritical;
 
-  // The OID for this control.
+  /** The OID for this control. */
   private String oid;
 
 
