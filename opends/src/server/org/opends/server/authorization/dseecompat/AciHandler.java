@@ -311,17 +311,15 @@ public final class AciHandler extends
   @Override
   public boolean isAllowed(ExtendedOperation operation)
   {
-    boolean ret = skipAccessCheck(operation);
-    if (!ret)
+    if (skipAccessCheck(operation))
     {
-      Entry e =
-          new Entry(operation.getAuthorizationDN(), null, null, null);
-      AciContainer operationContainer =
-          new AciLDAPOperationContainer(operation, e,
-              (ACI_READ | ACI_EXT_OP));
-      ret = accessAllowed(operationContainer);
+      return true;
     }
-    return ret;
+
+    Entry e = new Entry(operation.getAuthorizationDN(), null, null, null);
+    final AciContainer container =
+        new AciLDAPOperationContainer(operation, e, (ACI_READ | ACI_EXT_OP));
+    return accessAllowed(container);
   }
 
 
@@ -333,19 +331,17 @@ public final class AciHandler extends
   public boolean isAllowed(LocalBackendAddOperation operation)
       throws DirectoryException
   {
-    AciContainer operationContainer =
+    AciContainer container =
         new AciLDAPOperationContainer(operation, ACI_ADD);
-    boolean ret = isAllowed(operationContainer, operation);
+    if (!isAllowed(container, operation))
+    {
+      return false;
+    }
 
     // LDAP add needs a verify ACI syntax step in case any
     // "aci" attribute types are being added.
-    if (ret)
-    {
-      ret =
-          verifySyntax(operation.getEntryToAdd(), operation,
-              operationContainer.getClientDN());
-    }
-    return ret;
+    return verifySyntax(operation.getEntryToAdd(), operation, container
+        .getClientDN());
   }
 
 
@@ -417,9 +413,9 @@ public final class AciHandler extends
   @Override
   public boolean isAllowed(LocalBackendDeleteOperation operation)
   {
-    AciContainer operationContainer =
+    AciContainer container =
         new AciLDAPOperationContainer(operation, ACI_DELETE);
-    return isAllowed(operationContainer, operation);
+    return isAllowed(container, operation);
   }
 
 
@@ -519,12 +515,10 @@ public final class AciHandler extends
     {
       return true;
     }
-    else
-    {
-      AciContainer operationContainer =
-          new AciLDAPOperationContainer(operation, ACI_READ, entry);
-      return testFilter(operationContainer, filter);
-    }
+
+    AciContainer container =
+        new AciLDAPOperationContainer(operation, ACI_READ, entry);
+    return testFilter(container, filter);
   }
 
 
@@ -544,9 +538,9 @@ public final class AciHandler extends
     final AuthenticationInfo authInfo =
         new AuthenticationInfo(proxyUser, DirectoryServer.isRootDN(proxyUser
             .getDN()));
-    final AciContainer operationContainer =
+    final AciContainer container =
         new AciLDAPOperationContainer(op, proxiedUser, authInfo, ACI_PROXY);
-    return accessAllowedEntry(operationContainer);
+    return accessAllowedEntry(container);
   }
 
 
@@ -558,28 +552,28 @@ public final class AciHandler extends
   public boolean maySend(DN dn, Operation operation,
       SearchResultReference reference)
   {
-    boolean ret = skipAccessCheck(operation);
-    if (!ret)
+    if (skipAccessCheck(operation))
     {
-      Entry e = new Entry(dn, null, null, null);
-      AttributeBuilder builder =
-          new AttributeBuilder(refAttrType, ATTR_REFERRAL_URL);
-      List<String> URLStrings = reference.getReferralURLs();
-
-      // Load the values, a bind rule might want to evaluate them.
-      for (String URLString : URLStrings)
-      {
-        builder.add(AttributeValues.create(refAttrType, URLString));
-      }
-
-      e.addAttribute(builder.toAttribute(), null);
-      SearchResultEntry se = new SearchResultEntry(e);
-      AciContainer operationContainer =
-          new AciLDAPOperationContainer(operation, ACI_READ, se);
-      operationContainer.setCurrentAttributeType(refAttrType);
-      ret = accessAllowed(operationContainer);
+      return true;
     }
-    return ret;
+
+    final AttributeBuilder builder =
+        new AttributeBuilder(refAttrType, ATTR_REFERRAL_URL);
+
+    // Load the values, a bind rule might want to evaluate them.
+    final List<String> URLStrings = reference.getReferralURLs();
+    for (String URLString : URLStrings)
+    {
+      builder.add(AttributeValues.create(refAttrType, URLString));
+    }
+
+    final Entry e = new Entry(dn, null, null, null);
+    e.addAttribute(builder.toAttribute(), null);
+    final SearchResultEntry se = new SearchResultEntry(e);
+    final AciContainer container =
+        new AciLDAPOperationContainer(operation, ACI_READ, se);
+    container.setCurrentAttributeType(refAttrType);
+    return accessAllowed(container);
   }
 
 
@@ -724,7 +718,7 @@ public final class AciHandler extends
      */
     createApplicableList(candidates, container);
     // Evaluate the applicable list.
-    boolean ret = testApplicableLists(container);
+    final boolean ret = testApplicableLists(container);
     // Build summary string if doing geteffectiverights eval.
     if (container.isGetEffectiveRightsEval())
     {
@@ -762,46 +756,38 @@ public final class AciHandler extends
    */
   boolean accessAllowedEntry(AciContainer container)
   {
-    boolean ret = false;
     // set flag that specifies this is the first attribute evaluated
     // in the entry
     container.setIsFirstAttribute(true);
-    List<AttributeType> typeList =
-        getAllAttrs(container.getResourceEntry());
-    for (AttributeType attrType : typeList)
+    for (AttributeType attrType : getAllAttrs(container.getResourceEntry()))
     {
-      container.setCurrentAttributeType(attrType);
       /*
        * Check if access is allowed. If true, then check to see if an
        * entry test rule was found (no targetattrs) during target match
        * evaluation. If such a rule was found, set the current attribute
        * type to "null" and check access again so that rule is applied.
        */
+      container.setCurrentAttributeType(attrType);
       if (accessAllowed(container))
       {
         if (container.hasEntryTestRule())
         {
           container.setCurrentAttributeType(null);
-          if (!accessAllowed(container))
+          if (!accessAllowed(container) && container.isDenyEval())
           {
             /*
-             * If we failed because of a deny permission-bind rule, we
-             * need to stop and return false.
+             * If we failed because of a deny permission-bind rule, we need to
+             * stop and return false.
+             * If we failed because there was no explicit allow rule, then we
+             * grant implicit access to the entry.
              */
-            if (container.isDenyEval())
-            {
-              return false;
-            }
-            /*
-             * If we failed because there was no explicit allow rule,
-             * then we grant implicit access to the entry.
-             */
+            return false;
           }
         }
         return true;
       }
     }
-    return ret;
+    return false;
   }
 
 
@@ -820,8 +806,7 @@ public final class AciHandler extends
    */
   private void filterEntry(AciContainer container, Entry filteredEntry)
   {
-    List<AttributeType> typeList = getAllAttrs(filteredEntry);
-    for (AttributeType attrType : typeList)
+    for (AttributeType attrType : getAllAttrs(filteredEntry))
     {
       if (container.hasAllUserAttributes() && !attrType.isOperational())
       {
@@ -1026,17 +1011,18 @@ public final class AciHandler extends
   private boolean aciCheckRDNs(ModifyDNOperation operation,
       RDN oldRDN, RDN newRDN)
   {
-    AciContainer operationContainer =
+    AciContainer container =
         new AciLDAPOperationContainer(operation, ACI_WRITE, operation
             .getOriginalEntry());
-    boolean ret = accessAllowed(operationContainer);
-    if (ret)
+    if (!accessAllowed(container))
     {
-      ret = checkRDN(ACI_WRITE_ADD, newRDN, operationContainer);
+      return false;
     }
+
+    boolean ret = checkRDN(ACI_WRITE_ADD, newRDN, container);
     if (ret && operation.deleteOldRDN())
     {
-      ret = checkRDN(ACI_WRITE_DELETE, oldRDN, operationContainer);
+      ret = checkRDN(ACI_WRITE_DELETE, oldRDN, container);
     }
     return ret;
   }
@@ -1074,9 +1060,9 @@ public final class AciHandler extends
       Entry superiorEntry = DirectoryServer.getEntry(superiorDN);
       if (superiorEntry != null)
       {
-        AciContainer operationContainer =
+        AciContainer container =
             new AciLDAPOperationContainer(op, ACI_IMPORT, superiorEntry);
-        return accessAllowed(operationContainer);
+        return accessAllowed(container);
       }
       return false;
     }
@@ -1169,22 +1155,19 @@ public final class AciHandler extends
    */
   private List<AttributeType> getAllAttrs(Entry e)
   {
-    Map<AttributeType, List<Attribute>> attrMap = e.getUserAttributes();
-    Map<AttributeType, List<Attribute>> opAttrMap =
-        e.getOperationalAttributes();
     List<AttributeType> typeList = new LinkedList<AttributeType>();
-    Attribute attr = e.getObjectClassAttribute();
     /*
      * When a search is not all attributes returned, the "objectclass"
      * attribute type is missing from the entry.
      */
+    final Attribute attr = e.getObjectClassAttribute();
     if (attr != null)
     {
       AttributeType ocType = attr.getAttributeType();
       typeList.add(ocType);
     }
-    typeList.addAll(attrMap.keySet());
-    typeList.addAll(opAttrMap.keySet());
+    typeList.addAll(e.getUserAttributes().keySet());
+    typeList.addAll(e.getOperationalAttributes().keySet());
     return typeList;
   }
 
@@ -1236,7 +1219,7 @@ public final class AciHandler extends
    */
   private void processConfigAcis() throws InitializationException
   {
-    LinkedHashSet<String> requestAttrs = new LinkedHashSet<String>(1);
+    Set<String> requestAttrs = new LinkedHashSet<String>(1);
     requestAttrs.add("aci");
     LinkedList<Message> failedACIMsgs = new LinkedList<Message>();
     InternalClientConnection conn =
@@ -1317,9 +1300,9 @@ public final class AciHandler extends
       DseeCompatAccessControlHandlerCfg configuration)
       throws InitializationException
   {
-    SortedSet<Aci> globalAcis = configuration.getGlobalACI();
     try
     {
+      final SortedSet<Aci> globalAcis = configuration.getGlobalACI();
       if (globalAcis != null)
       {
         aciList.addAci(DN.nullDN(), globalAcis);
@@ -1410,12 +1393,7 @@ public final class AciHandler extends
       }
       else if (res.equals(EnumEvalResult.TRUE))
       {
-        if (evalCtx.isGetEffectiveRightsEval()
-            && !evalCtx.hasRights(ACI_SELF)
-            && !evalCtx.isTargAttrFilterMatchAciEmpty()
-            // Iterate to next only if deny ACI contains a targattrfilters
-            // keyword.
-            && AciEffectiveRights.setTargAttrAci(evalCtx, denyAci, true))
+        if (testAndSetTargAttrOperationMatches(evalCtx, denyAci, true))
         {
           continue;
         }
@@ -1429,12 +1407,7 @@ public final class AciHandler extends
       final EnumEvalResult res = Aci.evaluate(evalCtx, allowAci);
       if (res.equals(EnumEvalResult.TRUE))
       {
-        if (evalCtx.isGetEffectiveRightsEval()
-            && !evalCtx.hasRights(ACI_SELF)
-            && !evalCtx.isTargAttrFilterMatchAciEmpty()
-            // Iterate to next only if deny ACI contains a targattrfilters
-            // keyword.
-            && AciEffectiveRights.setTargAttrAci(evalCtx, allowAci, false))
+        if (testAndSetTargAttrOperationMatches(evalCtx, allowAci, false))
         {
           continue;
         }
@@ -1447,7 +1420,15 @@ public final class AciHandler extends
     return false;
   }
 
-
+  private boolean testAndSetTargAttrOperationMatches(AciEvalContext evalCtx,
+      Aci aci, boolean isDenyAci)
+  {
+    return evalCtx.isGetEffectiveRightsEval()
+        && !evalCtx.hasRights(ACI_SELF)
+        && !evalCtx.isTargAttrFilterMatchAciEmpty()
+        // Iterate to next only if ACI contains a targattrfilters keyword.
+        && AciEffectiveRights.setTargAttrAci(evalCtx, aci, isDenyAci);
+  }
 
   /**
    * Test the attribute types of the search filter for access. This
@@ -1490,13 +1471,11 @@ public final class AciHandler extends
     }
     case NOT:
     {
-      SearchFilter f = filter.getNotComponent();
-      return testFilter(container, f);
+      return testFilter(container, filter.getNotComponent());
     }
     default:
     {
-      AttributeType attrType = filter.getAttributeType();
-      container.setCurrentAttributeType(attrType);
+      container.setCurrentAttributeType(filter.getAttributeType());
       return accessAllowed(container);
     }
     }
