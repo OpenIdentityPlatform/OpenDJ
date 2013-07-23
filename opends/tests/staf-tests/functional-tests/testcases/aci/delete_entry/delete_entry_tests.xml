@@ -1694,7 +1694,8 @@
                 'dsInstancePswd'   : 'ACIRules' ,
                 'dsBaseDN'         : 'ou=extra branch 1, ou=non-aci branch, o=Delete Tests, o=ACI Tests,dc=example,dc=com' ,
                 'extraParams'      : '-x',
-                'expectedRC'       : 50
+                'expectedRC'       : 50,
+                'knownIssue'       : 'OPENDJ-1088'
             }
             </call>
 
