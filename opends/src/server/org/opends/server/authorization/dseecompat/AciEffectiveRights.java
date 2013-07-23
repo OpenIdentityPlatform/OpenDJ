@@ -461,7 +461,7 @@ public class AciEffectiveRights {
     if(skipCheck && container.isAuthzidAuthorizationDN()) {
       resString.append("write").append(":1");
       container.setEvaluationResult(EnumEvalReason.SKIP_ACI, null);
-      createSummary(container, true, "main");
+      container.setEvalSummary(createSummary(container, true));
     } else {
       // Reset everything.
       container.resetEffectiveRightsParams();
@@ -580,7 +580,7 @@ public class AciEffectiveRights {
     if(skipCheck && container.isAuthzidAuthorizationDN()) {
       resString.append(rightStr).append(":1");
       container.setEvaluationResult(EnumEvalReason.SKIP_ACI, null);
-      createSummary(container, true, "main");
+      container.setEvalSummary(createSummary(container, true));
     } else {
       boolean ret;
       //Check if read right check, if so do accessAllowedEntry.
@@ -703,29 +703,18 @@ public class AciEffectiveRights {
    *
    * @param evalCtx The evaluation context to gather information from.
    * @param evalRet The value returned from the access evaluation.
-   * @param srcStr String that can be used to specify where the summary call's
-   *               origin is.
+   * @return A summary of the ACI evaluation
    */
- public static
-  void createSummary(AciEvalContext evalCtx, boolean evalRet, String srcStr) {
-    String accessStatus=NOT_ALLOWED;
-    if(evalRet)
-      accessStatus=ALLOWED;
-    String accessReason="";
-    StringBuilder decideAci=new StringBuilder("");
+  public static String createSummary(AciEvalContext evalCtx, boolean evalRet)
+  {
+    String srcStr = "main";
+    String accessStatus = evalRet ? ALLOWED : NOT_ALLOWED;
+
     //Try and determine what reason string to use.
-    if(evalCtx.getEvalReason() == EnumEvalReason.EVALUATED_ALLOW_ACI) {
-      accessReason=EVALUATED_ALLOW;
-      decideAci.append(", deciding_aci: ").append(evalCtx.getDecidingAciName());
-    } else if(evalCtx.getEvalReason() == EnumEvalReason.EVALUATED_DENY_ACI) {
-      accessReason=EVALUATED_DENY;
-      decideAci.append(", deciding_aci: ").append(evalCtx.getDecidingAciName());
-    }  else if(evalCtx.getEvalReason() == EnumEvalReason.NO_ALLOW_ACIS)
-      accessReason=NO_ALLOWS;
-    else if(evalCtx.getEvalReason() == EnumEvalReason.NO_MATCHED_ALLOWS_ACIS)
-      accessReason=NO_ALLOWS_MATCHED;
-    else if(evalCtx.getEvalReason() == EnumEvalReason.SKIP_ACI)
-      accessReason=SKIP_ACI;
+    String accessReason = getEvalReason(evalCtx.getEvalReason());
+    StringBuilder decideAci =
+        getDecidingAci(evalCtx.getEvalReason(), evalCtx.getDecidingAciName());
+
     //Only manipulate the evaluation context's targattrfilters ACI name
     //if not a selfwrite evaluation and the context's targattrfilter match
     //hashtable is not empty.
@@ -765,10 +754,39 @@ public class AciEffectiveRights {
       attrStr=aType.getPrimaryName();
     if(evalCtx.getTargAttrFiltersAciName() != null)
       decideAci.append(", access depends on attr value");
-    String summaryStr = String.format(summaryFormatStr, srcStr, accessStatus,
+    return String.format(summaryFormatStr, srcStr, accessStatus,
                          right,evalCtx.getResourceDN().toString(),attrStr, user,
                             accessReason, decideAci.toString());
-    evalCtx.setEvalSummary(summaryStr);
+  }
+
+  private static String getEvalReason(EnumEvalReason evalReason)
+  {
+    if (evalReason == EnumEvalReason.EVALUATED_ALLOW_ACI)
+      return EVALUATED_ALLOW;
+    else if (evalReason == EnumEvalReason.EVALUATED_DENY_ACI)
+      return EVALUATED_DENY;
+    else if (evalReason == EnumEvalReason.NO_ALLOW_ACIS)
+      return NO_ALLOWS;
+    else if (evalReason == EnumEvalReason.NO_MATCHED_ALLOWS_ACIS)
+      return NO_ALLOWS_MATCHED;
+    else if (evalReason == EnumEvalReason.SKIP_ACI)
+      return SKIP_ACI;
+    return "";
+  }
+
+  private static StringBuilder getDecidingAci(EnumEvalReason evalReason,
+      String decidingAciName)
+  {
+    StringBuilder decideAci = new StringBuilder();
+    if (evalReason == EnumEvalReason.EVALUATED_ALLOW_ACI)
+    {
+      decideAci.append(", deciding_aci: ").append(decidingAciName);
+    }
+    else if (evalReason == EnumEvalReason.EVALUATED_DENY_ACI)
+    {
+      decideAci.append(", deciding_aci: ").append(decidingAciName);
+    }
+    return decideAci;
   }
 
   /**

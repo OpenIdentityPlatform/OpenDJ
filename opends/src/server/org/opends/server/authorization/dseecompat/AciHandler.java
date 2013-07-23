@@ -128,34 +128,11 @@ public final class AciHandler extends
    */
   private static void initStatics()
   {
-    if ((aciType = DirectoryServer.getAttributeType("aci")) == null)
-    {
-      aciType = DirectoryServer.getDefaultAttributeType("aci");
-    }
+    aciType = getAttributeType("aci");
+    globalAciType = getAttributeType(ATTR_AUTHZ_GLOBAL_ACI);
+    debugSearchIndex = getAttributeType(EntryContainer.ATTR_DEBUG_SEARCH_INDEX);
+    refAttrType = getAttributeType(ATTR_REFERRAL_URL);
 
-    if ((globalAciType =
-        DirectoryServer.getAttributeType(ATTR_AUTHZ_GLOBAL_ACI)) == null)
-    {
-      globalAciType =
-          DirectoryServer
-              .getDefaultAttributeType(ATTR_AUTHZ_GLOBAL_ACI);
-    }
-
-    if ((debugSearchIndex =
-        DirectoryServer
-            .getAttributeType(EntryContainer.ATTR_DEBUG_SEARCH_INDEX)) == null)
-    {
-      debugSearchIndex =
-          DirectoryServer
-              .getDefaultAttributeType(EntryContainer.ATTR_DEBUG_SEARCH_INDEX);
-    }
-
-    if ((refAttrType =
-        DirectoryServer.getAttributeType(ATTR_REFERRAL_URL)) == null)
-    {
-      refAttrType =
-          DirectoryServer.getDefaultAttributeType(ATTR_REFERRAL_URL);
-    }
     try
     {
       debugSearchIndexDN = DN.decode("cn=debugsearch");
@@ -164,6 +141,16 @@ public final class AciHandler extends
     {
       // Should never happen.
     }
+  }
+
+  private static AttributeType getAttributeType(String name)
+  {
+    AttributeType attrType = DirectoryServer.getAttributeType(name);
+    if (attrType == null)
+    {
+      attrType = DirectoryServer.getDefaultAttributeType(name);
+    }
+    return attrType;
   }
 
 
@@ -387,11 +374,7 @@ public final class AciHandler extends
       baseName = toLowerCase(rawAttributeType);
     }
 
-    AttributeType attributeType = DirectoryServer.getAttributeType(baseName);
-    if (attributeType == null)
-    {
-      attributeType = DirectoryServer.getDefaultAttributeType(baseName);
-    }
+    AttributeType attributeType = getAttributeType(baseName);
 
     AttributeValue attributeValue =
         AttributeValues.create(attributeType, operation
@@ -722,7 +705,8 @@ public final class AciHandler extends
     // Build summary string if doing geteffectiverights eval.
     if (container.isGetEffectiveRightsEval())
     {
-      AciEffectiveRights.createSummary(container, ret, "main");
+      container.setEvalSummary(
+          AciEffectiveRights.createSummary(container, ret));
     }
     return ret;
   }
