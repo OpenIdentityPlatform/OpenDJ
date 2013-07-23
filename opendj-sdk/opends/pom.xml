@@ -94,7 +94,7 @@
 
     <!-- START Documentation properties -->
 
-    <docTargetVersion>2.8.0</docTargetVersion>
+    <docTargetVersion>${project.version}</docTargetVersion><!-- Reset before final publication -->
     <docPreviousVersion>2.6.0</docPreviousVersion>
     <sdkDocTargetVersion>${docTargetVersion}</sdkDocTargetVersion>
     <gaId>UA-23412190-8</gaId>
