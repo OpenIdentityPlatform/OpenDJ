@@ -25,7 +25,6 @@
  *      Copyright 2008 Sun Microsystems, Inc.
  *      Portions Copyright 2011-2013 ForgeRock AS
  */
-
 package org.opends.server.authorization.dseecompat;
 
 import static org.opends.server.authorization.dseecompat.Aci.*;
@@ -42,108 +41,142 @@ import java.util.Set;
  */
 public class AciEffectiveRights {
 
-  //Value used when a aclRights attribute was seen in the search operation
-  //attribute set.
+  /**
+   * Value used when a aclRights attribute was seen in the search operation
+   * attribute set.
+   */
   private static final int ACL_RIGHTS = 0x001;
 
-  //Value used when a aclRightsInfo attribute was seen in the search operation
-  //attribute set.
+  /**
+   * Value used when a aclRightsInfo attribute was seen in the search operation
+   * attribute set.
+   */
   private static final int ACL_RIGHTS_INFO = 0x002;
 
-  //Value used when an ACI has a targattrfilters keyword match and the result
-  //of the access check was a deny.
+  /**
+   * Value used when an ACI has a targattrfilters keyword match and the result
+   * of the access check was a deny.
+   */
   private static final int ACL_TARGATTR_DENY_MATCH = 0x004;
 
-  //Value used when an ACI has a targattrfilters keyword match and the result
-  //of the access check was an allow.
+  /**
+   * Value used when an ACI has a targattrfilters keyword match and the result
+   * of the access check was an allow.
+   */
   private static final int ACL_TARGATTR_ALLOW_MATCH = 0x008;
 
-  //String used to build attribute type name when an aclRights result needs to
-  //be added to the return entry.
+  /**
+   * String used to build attribute type name when an aclRights result needs to
+   * be added to the return entry.
+   */
   private static final String aclRightsAttrStr = "aclRights";
 
-  //String used to build attribute type name when an AclRightsInfo result needs
-  //to be added to the return entry.
+  /**
+   * String used to build attribute type name when an AclRightsInfo result needs
+   * to be added to the return entry.
+   */
   private static final String aclRightsInfoAttrStr = "aclRightsInfo";
 
-  //String used to build attribute type name when an entryLevel rights
-  //attribute type name needs to be added to the return entry.
+  /**
+   * String used to build attribute type name when an entryLevel rights
+   * attribute type name needs to be added to the return entry.
+   */
   private static final String entryLevelStr = "entryLevel";
 
-  //String used to build attribute type name when an attributeLevel rights
-  //attribute type name needs to be added to the return entry.
+  /**
+   * String used to build attribute type name when an attributeLevel rights
+   * attribute type name needs to be added to the return entry.
+   */
   private static final String attributeLevelStr = "attributeLevel";
 
-  //The string that is used as the attribute type name when an
-  //aclRights entryLevel evaluation needs to be added to the return entry.
+  /**
+   * The string that is used as the attribute type name when an aclRights
+   * entryLevel evaluation needs to be added to the return entry.
+   */
   private static final String aclRightsEntryLevelStr=
                                      aclRightsAttrStr + ";" + entryLevelStr;
 
-  //The string that is used as the  attribute type name when an
-  //aclRights attribute level evaluation needs to be added to the return entry.
-  //This string has the attribute type name used in the evaluation appended to
-  //it to form the final attribute type name.
+  /**
+   * The string that is used as the attribute type name when an aclRights
+   * attribute level evaluation needs to be added to the return entry. This
+   * string has the attribute type name used in the evaluation appended to it to
+   * form the final attribute type name.
+   */
   private static final String aclRightsAttributeLevelStr=
         aclRightsAttrStr +  ";" + attributeLevelStr;
 
-  //The string used to build attribute type name when an attribute level
-  //aclRightsInfo attribute needs to be added to the return entry. This string
-  //has the attribute type name used in the evaluation appended to it to form
-  //the final attribute type name.
+  /**
+   * The string used to build attribute type name when an attribute level
+   * aclRightsInfo attribute needs to be added to the return entry. This string
+   * has the attribute type name used in the evaluation appended to it to form
+   * the final attribute type name.
+   */
   private static final String aclRightsInfoAttrLogsStr =
                       aclRightsInfoAttrStr + ";logs;attributeLevel";
 
-  //The string used to build attribute type name when an entryLevel
-  //aclRightsInfo attribute needs to be added to the return entry.
+  /**
+   * The string used to build attribute type name when an entryLevel
+   * aclRightsInfo attribute needs to be added to the return entry.
+   */
   private static final String aclRightsInfoEntryLogsStr =
                       aclRightsInfoAttrStr + ";logs;entryLevel";
 
-  //Attribute type used in access evaluation to see if the geteffectiverights
-  //related to the "aclRights" attribute can be performed.
+  /**
+   * Attribute type used in access evaluation to see if the geteffectiverights
+   * related to the "aclRights" attribute can be performed.
+   */
   private static AttributeType aclRights = null;
 
-  //Attribute type used in access evaluation to see if the geteffectiverights
-  //related to the "aclRightsInfo" attribute can be performed.
+  /**
+   * Attribute type used in access evaluation to see if the geteffectiverights
+   * related to the "aclRightsInfo" attribute can be performed.
+   */
   private static AttributeType aclRightsInfo = null;
 
-  //Attribute type used in the geteffectiverights selfwrite evaluation.
+  /** Attribute type used in the geteffectiverights selfwrite evaluation. */
   private static AttributeType dnAttributeType=null;
 
-  //The distinguishedName string.
+  /**The distinguishedName string. */
   private static final String dnAttrStr = "distinguishedname";
 
-  //String used to fill in the summary status field when access was allowed.
+  /**
+   * String used to fill in the summary status field when access was allowed.
+   */
   private static String ALLOWED="access allowed";
 
-  //String used to fill in the summary status field when access was not allowed.
+  /**
+   * String used to fill in the summary status field when access was not
+   * allowed.
+   */
   private static String NOT_ALLOWED="access not allowed";
 
-  //Evaluated as anonymous user. Used to fill in summary field.
+  /** Evaluated as anonymous user. Used to fill in summary field. */
   private static String anonymous="anonymous";
 
-  //Format used to build the summary string.
+  /** Format used to build the summary string. */
   private static String summaryFormatStr =
         "acl_summary(%s): %s(%s) on entry/attr(%s, %s) to (%s)" +
         " (not proxied) ( reason: %s %s)";
 
-  //Strings below represent access denied or allowed evaluation reasons.
-  //Used to fill in the summary status field.
-  //Access evaluated an allow ACI.
+  /**
+   * Strings below represent access denied or allowed evaluation reasons. Used
+   * to fill in the summary status field. Access evaluated an allow ACI.
+   */
   private static String EVALUATED_ALLOW="evaluated allow";
 
-  //Access evaluated a deny ACI.
+  /** Access evaluated a deny ACI. */
   private static String EVALUATED_DENY="evaluated deny";
 
-  //Access evaluated deny because there were no allow ACIs.
+  /** Access evaluated deny because there were no allow ACIs. */
   private static String NO_ALLOWS="no acis matched the resource";
 
-  //Access evaluated deny because no allow or deny ACIs evaluated.
+  /** Access evaluated deny because no allow or deny ACIs evaluated. */
   private static String NO_ALLOWS_MATCHED="no acis matched the subject";
 
-  //Access evaluated allow because the clientDN has bypass-acl privileges.
+  /** Access evaluated allow because the clientDN has bypass-acl privileges. */
   private static String SKIP_ACI="user has bypass-acl privileges";
 
-  //TODO add support for the modify-acl privilige?
+  //TODO add support for the modify-acl privilege?
 
   /**
    * Attempts to add the geteffectiverights asked for in the search to the entry
@@ -218,25 +251,25 @@ public class AciEffectiveRights {
     int attrMask = ACI_NULL;
     for (String a : searchAttributes)
     {
-      if (a.equalsIgnoreCase(aclRightsAttrStr))
+      if (aclRightsAttrStr.equalsIgnoreCase(a))
       {
         attrMask |= ACL_RIGHTS;
       }
-      else if (a.equalsIgnoreCase(aclRightsInfoAttrStr))
+      else if (aclRightsInfoAttrStr.equalsIgnoreCase(a))
       {
         attrMask |= ACL_RIGHTS_INFO;
       }
       else
       {
         // Check for shorthands for user attributes "*" or operational "+".
-        if (a.equals("*"))
+        if ("*".equals(a))
         {
           // Add objectclass.
           AttributeType ocType = DirectoryServer.getObjectClassAttributeType();
           nonRightsAttrs.add(ocType);
           nonRightsAttrs.addAll(e.getUserAttributes().keySet());
         }
-        else if (a.equals("+"))
+        else if ("+".equals(a))
         {
           nonRightsAttrs.addAll(e.getOperationalAttributes().keySet());
         }
@@ -270,20 +303,14 @@ public class AciEffectiveRights {
     // If no attributes were requested return only entryLevel rights, else
     // return attributeLevel rights and entryLevel rights. Always try and
     // return the specific attribute rights if they exist.
-    if (nonRightsAttrs.isEmpty())
-    {
-      addAttributeLevelRights(container, handler, attrMask, e,
-          container.getSpecificAttributes(), skipCheck, true);
-      addEntryLevelRights(container, handler, attrMask, e, skipCheck);
-    }
-    else
+    if (!nonRightsAttrs.isEmpty())
     {
       addAttributeLevelRights(container, handler, attrMask, e, nonRightsAttrs,
           skipCheck, false);
-      addAttributeLevelRights(container, handler, attrMask, e,
-          container.getSpecificAttributes(), skipCheck, true);
-      addEntryLevelRights(container, handler, attrMask, e, skipCheck);
     }
+    addAttributeLevelRights(container, handler, attrMask, e, container
+        .getSpecificAttributes(), skipCheck, true);
+    addEntryLevelRights(container, handler, attrMask, e, skipCheck);
   }
 
 
@@ -308,7 +335,7 @@ public class AciEffectiveRights {
    * @param handler
    *          The Aci Handler to use in the access evaluations.
    * @param mask
-   *          Mask specifing what rights attribute processing to perform
+   *          Mask specifying what rights attribute processing to perform
    *          (aclRights or aclRightsInfo or both).
    * @param retEntry
    *          The entry to return.
@@ -426,7 +453,6 @@ public class AciEffectiveRights {
       AciLDAPOperationContainer container, AciHandler handler,
       boolean skipCheck)
   {
-    boolean addRet=false, delRet=false;
     StringBuilder resString=new  StringBuilder();
     //If the user has bypass-acl privs and the authzid is equal to the
     //authorization dn, create a right string with a '1' and a valid
@@ -437,25 +463,21 @@ public class AciEffectiveRights {
       container.setEvaluationResult(EnumEvalReason.SKIP_ACI, null);
       createSummary(container, true, "main");
     } else {
-     //Reset everything.
+      // Reset everything.
       container.resetEffectiveRightsParams();
       //Reset name.
       container.setTargAttrFiltersAciName(null);
       container.setRights(ACI_WRITE_ADD | ACI_SKIP_PROXY_CHECK);
-      if(handler.accessAllowed(container)) {
-        if(container.getTargAttrFiltersAciName() == null)
-          addRet=true;
-      }
+      final boolean addRet = handler.accessAllowed(container)
+              && container.getTargAttrFiltersAciName() == null;
       container.setRights(ACI_WRITE_DELETE | ACI_SKIP_PROXY_CHECK);
-      if(handler.accessAllowed(container)) {
-        if(container.getTargAttrFiltersAciName() == null)
-          delRet=true;
-      }
+      final boolean delRet = handler.accessAllowed(container)
+              && container.getTargAttrFiltersAciName() == null;
       //If both booleans are true, then access was allowed by ACIs that did
       //not contain targattrfilters.
-      if(addRet && delRet)
+      if(addRet && delRet) {
         resString.append("write").append(":1");
-      else {
+      } else {
         //If there is an ACI name then an ACI with a targattrfilters allowed,
         //access. A '?' is needed because that evaluation really depends on an
         //unknown attribute value, not the dummy value. If there is no ACI
@@ -482,7 +504,7 @@ public class AciEffectiveRights {
    * @param handler
    *          The Aci Handler to use in the access evaluations.
    * @param mask
-   *          Mask specifing what rights attribute processing to perform
+   *          Mask specifying what rights attribute processing to perform
    *          (aclRights or aclRightsInfo or both).
    * @param retEntry
    *          The entry to return.
@@ -490,7 +512,6 @@ public class AciEffectiveRights {
    *          True if ACI evaluation was skipped because bypass-acl privilege
    *          was found.
    */
-
   private static void addEntryLevelRights(AciLDAPOperationContainer container,
       AciHandler handler, int mask, final Entry retEntry,
       boolean skipCheck)
@@ -507,9 +528,9 @@ public class AciEffectiveRights {
     evalInfo.append(rightsString(container, handler, skipCheck, "delete"));
     addEntryLevelRightsInfo(container, mask, retEntry, "delete");
     evalInfo.append(',');
-    container.setCurrentAttributeType(null);
     //The read right needs the entry with the full set of attributes. This was
     //saved in the Aci Handlers maysend method.
+    container.setCurrentAttributeType(null);
     container.setRights(ACI_READ | ACI_SKIP_PROXY_CHECK);
     evalInfo.append(rightsString(container, handler, skipCheck, "read"));
     addEntryLevelRightsInfo(container, mask, retEntry, "read");
@@ -527,8 +548,7 @@ public class AciEffectiveRights {
     if(hasAttrMask(mask, ACL_RIGHTS)) {
       AttributeType attributeType=
               DirectoryServer.getDefaultAttributeType(aclRightsEntryLevelStr);
-      Attribute attr = Attributes.create(attributeType, evalInfo
-          .toString());
+      Attribute attr = Attributes.create(attributeType, evalInfo.toString());
       retEntry.addAttribute(attr,null);
     }
   }
@@ -584,7 +604,7 @@ public class AciEffectiveRights {
    *
    * @param container The LDAP operation container to use in the evaluations.
    * @param handler   The Aci Handler to use in the access evaluations.
-   * @param mask Mask specifing what rights attribute processing to perform
+   * @param mask Mask specifying what rights attribute processing to perform
    *              (aclRights or aclRightsInfo or both).
    * @return True if access to the geteffectiverights attribute types are
    *         allowed.
@@ -603,7 +623,7 @@ public class AciEffectiveRights {
         container.setRights(ACI_READ | ACI_SKIP_PROXY_CHECK);
         retInfo=handler.accessAllowed(container);
     }
-    return !(!retRight || !retInfo);
+    return retRight && retInfo;
   }
 
 
@@ -612,7 +632,7 @@ public class AciEffectiveRights {
    * summary string built from the last access check.
    *
    * @param container  The LDAP operation container to use in the evaluations.
-   * @param mask  Mask specifing what rights attribute processing to perform
+   * @param mask  Mask specifying what rights attribute processing to perform
    *              (aclRights or aclRightsInfo or both).
    * @param aType The attribute type to use in building the attribute type name.
    * @param retEntry The entry to add the rights information to.
@@ -645,7 +665,7 @@ public class AciEffectiveRights {
    * the summary string built from the last access check.
    *
    * @param container   The LDAP operation container to use in the evaluations.
-   * @param mask Mask specifing what rights attribute processing to perform
+   * @param mask Mask specifying what rights attribute processing to perform
    *              (aclRights or aclRightsInfo or both).
    * @param retEntry  The entry to add the rights information to.
    * @param rightStr The string representation of the rights evaluated.
@@ -657,8 +677,7 @@ public class AciEffectiveRights {
 
      //Check if the aclRightsInfo attribute was requested.
      if(hasAttrMask(mask,ACL_RIGHTS_INFO)) {
-       String typeStr=
-               aclRightsInfoEntryLogsStr + ";" + rightStr;
+      String typeStr = aclRightsInfoEntryLogsStr + ";" + rightStr;
        AttributeType attributeType=
                  DirectoryServer.getDefaultAttributeType(typeStr);
        Attribute attr = Attributes.create(attributeType,
@@ -766,15 +785,12 @@ public class AciEffectiveRights {
    */
   public static
   boolean  setTargAttrAci(AciEvalContext evalCtx, Aci aci, boolean denyAci) {
-    boolean ret=false;
     if(evalCtx.hasTargAttrFiltersMatchAci(aci)) {
-       if(denyAci)
-        evalCtx.setTargAttrFiltersMatchOp(ACL_TARGATTR_DENY_MATCH);
-      else
-        evalCtx.setTargAttrFiltersMatchOp(ACL_TARGATTR_ALLOW_MATCH);
-      ret=true;
+      int flag = denyAci ? ACL_TARGATTR_DENY_MATCH : ACL_TARGATTR_ALLOW_MATCH;
+      evalCtx.setTargAttrFiltersMatchOp(flag);
+      return true;
     }
-    return ret;
+    return false;
   }
 
   /**
