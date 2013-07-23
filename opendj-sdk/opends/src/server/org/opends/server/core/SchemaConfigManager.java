@@ -26,9 +26,6 @@
  *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.core;
-import org.opends.messages.Message;
-
-
 
 import java.io.File;
 import java.io.FilenameFilter;
@@ -37,45 +34,21 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.opends.messages.Message;
 import org.opends.server.config.ConfigException;
-import org.opends.server.schema.AttributeTypeSyntax;
-import org.opends.server.schema.DITContentRuleSyntax;
-import org.opends.server.schema.DITStructureRuleSyntax;
-import org.opends.server.schema.MatchingRuleUseSyntax;
-import org.opends.server.schema.NameFormSyntax;
-import org.opends.server.schema.ObjectClassSyntax;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.DITContentRule;
-import org.opends.server.types.DITStructureRule;
-import org.opends.server.types.Entry;
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.LDIFImportConfig;
-import org.opends.server.types.MatchingRuleUse;
-import org.opends.server.types.Modification;
-import org.opends.server.types.ModificationType;
-import org.opends.server.types.NameForm;
-import org.opends.server.types.ObjectClass;
-import org.opends.server.types.Schema;
-import org.opends.server.util.LDIFReader;
-
-import static org.opends.server.config.ConfigConstants.*;
-import org.opends.server.types.DebugLogLevel;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.loggers.ErrorLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.schema.LDAPSyntaxDescriptionSyntax;
-import org.opends.server.types.LDAPSyntaxDescription;
+import org.opends.server.schema.*;
+import org.opends.server.types.*;
+import org.opends.server.util.LDIFReader;
 import org.opends.server.util.StaticUtils;
 
 import static org.opends.messages.ConfigMessages.*;
+import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-
-
 
 /**
  * This class defines a utility that will be used to manage the interaction with
@@ -93,10 +66,8 @@ public class SchemaConfigManager
    */
   private static final DebugTracer TRACER = getTracer();
 
-  // The schema that has been parsed from the server configuration.
+  /** The schema that has been parsed from the server configuration. */
   private Schema schema;
-
-
 
   /**
    * Creates a new instance of this schema config manager.
@@ -483,12 +454,51 @@ public class SchemaConfigManager
           schemaFile, schemaDirPath, getExceptionMessage(e));
       logError(message);
     }
-
-    StaticUtils.close(reader);
+    finally
+    {
+      StaticUtils.close(reader);
+    }
 
     // Get the attributeTypes attribute from the entry.
-    LinkedList<Modification> mods = new LinkedList<Modification>();
+    List<Modification> mods = new LinkedList<Modification>();
+
     //parse the syntaxes first because attributes rely on these.
+    List<Attribute> ldapSyntaxList =
+        getLdapSyntaxesAttributes(schema, entry, mods);
+    List<Attribute> attrList = getAttributeTypeAttributes(schema, entry, mods);
+    List<Attribute> ocList = getObjectClassesAttributes(schema, entry, mods);
+    List<Attribute> nfList = getNameFormsAttributes(schema, entry, mods);
+    List<Attribute> dcrList = getDITContentRulesAttributes(schema, entry, mods);
+    List<Attribute> dsrList =
+        getDITStructureRulesAttributes(schema, entry, mods);
+    List<Attribute> mruList =
+        getMatchingRuleUsesAttributes(schema, entry, mods);
+
+    // Loop on all the attribute of the schema entry to
+    // find the extra attribute that should be loaded in the Schema.
+    for (Attribute attribute : entry.getAttributes())
+    {
+      if (!isSchemaAttribute(attribute))
+      {
+        schema.addExtraAttribute(attribute.getName(), attribute);
+      }
+    }
+
+    parseLdapSyntaxesDefinitions(schema, schemaFile, failOnError,
+        ldapSyntaxList);
+    parseAttributeTypeDefinitions(schema, schemaFile, failOnError, attrList);
+    parseObjectclassDefinitions(schema, schemaFile, failOnError, ocList);
+    parseNameFormDefinitions(schema, schemaFile, failOnError, nfList);
+    parseDITContentRuleDefinitions(schema, schemaFile, failOnError, dcrList);
+    parseDITStructureRuleDefinitions(schema, schemaFile, failOnError, dsrList);
+    parseMatchingRuleUseDefinitions(schema, schemaFile, failOnError, mruList);
+
+    return mods;
+  }
+
+  private static List<Attribute> getLdapSyntaxesAttributes(Schema schema,
+      Entry entry, List<Modification> mods) throws ConfigException
+  {
     LDAPSyntaxDescriptionSyntax ldapSyntax;
     try
     {
@@ -520,15 +530,13 @@ public class SchemaConfigManager
                                                    ldapSyntax);
     }
 
-    List<Attribute> ldapSyntaxList = entry.getAttribute(ldapSyntaxAttrType);
-    if ((ldapSyntaxList != null) && (! ldapSyntaxList.isEmpty()))
-    {
-      for (Attribute a : ldapSyntaxList)
-      {
-        mods.add(new Modification(ModificationType.ADD, a));
-      }
-    }
+    return createAddModifications(entry, mods, ldapSyntaxAttrType);
+  }
 
+  private static List<Attribute> getAttributeTypeAttributes(Schema schema,
+      Entry entry, List<Modification> mods) throws ConfigException,
+      InitializationException
+  {
     AttributeTypeSyntax attrTypeSyntax;
     try
     {
@@ -560,17 +568,14 @@ public class SchemaConfigManager
                                                    attrTypeSyntax);
     }
 
-    List<Attribute> attrList = entry.getAttribute(attributeAttrType);
-    if ((attrList != null) && (! attrList.isEmpty()))
-    {
-      for (Attribute a : attrList)
-      {
-        mods.add(new Modification(ModificationType.ADD, a));
-      }
-    }
+    return createAddModifications(entry, mods, attributeAttrType);
+  }
 
-
-    // Get the objectClasses attribute from the entry.
+  /** Get the objectClasses attribute from the entry. */
+  private static List<Attribute> getObjectClassesAttributes(Schema schema,
+      Entry entry, List<Modification> mods) throws ConfigException,
+      InitializationException
+  {
     ObjectClassSyntax ocSyntax;
     try
     {
@@ -601,17 +606,14 @@ public class SchemaConfigManager
                                                    ocSyntax);
     }
 
-    List<Attribute> ocList = entry.getAttribute(objectclassAttrType);
-    if ((ocList != null) && (! ocList.isEmpty()))
-    {
-      for (Attribute a : ocList)
-      {
-        mods.add(new Modification(ModificationType.ADD, a));
-      }
-    }
+    return createAddModifications(entry, mods, objectclassAttrType);
+  }
 
-
-    // Get the name forms attribute from the entry.
+  /** Get the name forms attribute from the entry. */
+  private static List<Attribute> getNameFormsAttributes(Schema schema,
+      Entry entry, List<Modification> mods) throws ConfigException,
+      InitializationException
+  {
     NameFormSyntax nfSyntax;
     try
     {
@@ -641,17 +643,14 @@ public class SchemaConfigManager
            DirectoryServer.getDefaultAttributeType(ATTR_NAME_FORMS, nfSyntax);
     }
 
-    List<Attribute> nfList = entry.getAttribute(nameFormAttrType);
-    if ((nfList != null) && (! nfList.isEmpty()))
-    {
-      for (Attribute a : nfList)
-      {
-        mods.add(new Modification(ModificationType.ADD, a));
-      }
-    }
+    return createAddModifications(entry, mods, nameFormAttrType);
+  }
 
-
-    // Get the DIT content rules attribute from the entry.
+  /** Get the DIT content rules attribute from the entry. */
+  private static List<Attribute> getDITContentRulesAttributes(Schema schema,
+      Entry entry, List<Modification> mods) throws ConfigException,
+      InitializationException
+  {
     DITContentRuleSyntax dcrSyntax;
     try
     {
@@ -683,17 +682,14 @@ public class SchemaConfigManager
                                                    dcrSyntax);
     }
 
-    List<Attribute> dcrList = entry.getAttribute(dcrAttrType);
-    if ((dcrList != null) && (! dcrList.isEmpty()))
-    {
-      for (Attribute a : dcrList)
-      {
-        mods.add(new Modification(ModificationType.ADD, a));
-      }
-    }
+    return createAddModifications(entry, mods, dcrAttrType);
+  }
 
-
-    // Get the DIT structure rules attribute from the entry.
+  /** Get the DIT structure rules attribute from the entry. */
+  private static List<Attribute> getDITStructureRulesAttributes(Schema schema,
+      Entry entry, List<Modification> mods) throws ConfigException,
+      InitializationException
+  {
     DITStructureRuleSyntax dsrSyntax;
     try
     {
@@ -725,17 +721,14 @@ public class SchemaConfigManager
                                                    dsrSyntax);
     }
 
-    List<Attribute> dsrList = entry.getAttribute(dsrAttrType);
-    if ((dsrList != null) && (! dsrList.isEmpty()))
-    {
-      for (Attribute a : dsrList)
-      {
-        mods.add(new Modification(ModificationType.ADD, a));
-      }
-    }
+    return createAddModifications(entry, mods, dsrAttrType);
+  }
 
-
-    // Get the matching rule uses attribute from the entry.
+  /** Get the matching rule uses attribute from the entry. */
+  private static List<Attribute> getMatchingRuleUsesAttributes(Schema schema,
+      Entry entry, List<Modification> mods) throws ConfigException,
+      InitializationException
+  {
     MatchingRuleUseSyntax mruSyntax;
     try
     {
@@ -767,28 +760,28 @@ public class SchemaConfigManager
                                                    mruSyntax);
     }
 
-    List<Attribute> mruList = entry.getAttribute(mruAttrType);
-    if ((mruList != null) && (! mruList.isEmpty()))
+    return createAddModifications(entry, mods, mruAttrType);
+  }
+
+  private static List<Attribute> createAddModifications(Entry entry,
+      List<Modification> mods, AttributeType attrType)
+  {
+    List<Attribute> attributes = entry.getAttribute(attrType);
+    if (attributes != null && !attributes.isEmpty())
     {
-      for (Attribute a : mruList)
+      for (Attribute a : attributes)
       {
         mods.add(new Modification(ModificationType.ADD, a));
       }
     }
+    return attributes;
+  }
 
-    // Loop on all the attribute of the schema entry to
-    // find the extra attribute that shoule be loaded in the Schema.
-    for (Attribute attribute : entry.getAttributes())
-    {
-      if (!isSchemaAttribute(attribute))
-      {
-        schema.addExtraAttribute(attribute.getName(), attribute);
-      }
-    }
-
-
-
-    // Parse the ldapsyntaxes definitions if there are any.
+  /** Parse the ldapsyntaxes definitions if there are any. */
+  private static void parseLdapSyntaxesDefinitions(Schema schema,
+      String schemaFile, boolean failOnError, List<Attribute> ldapSyntaxList)
+      throws ConfigException
+  {
     if (ldapSyntaxList != null)
     {
       for (Attribute a : ldapSyntaxList)
@@ -879,12 +872,16 @@ public class SchemaConfigManager
               }
             }
           }
-
         }
       }
     }
+  }
 
-    // Parse the attribute type definitions if there are any.
+  /** Parse the attribute type definitions if there are any. */
+  private static void parseAttributeTypeDefinitions(Schema schema,
+      String schemaFile, boolean failOnError, List<Attribute> attrList)
+      throws ConfigException
+  {
     if (attrList != null)
     {
       for (Attribute a : attrList)
@@ -975,9 +972,13 @@ public class SchemaConfigManager
         }
       }
     }
+  }
 
-
-    // Parse the objectclass definitions if there are any.
+  /** Parse the objectclass definitions if there are any. */
+  private static void parseObjectclassDefinitions(Schema schema,
+      String schemaFile, boolean failOnError, List<Attribute> ocList)
+      throws ConfigException
+  {
     if (ocList != null)
     {
       for (Attribute a : ocList)
@@ -1070,9 +1071,13 @@ public class SchemaConfigManager
         }
       }
     }
+  }
 
-
-    // Parse the name form definitions if there are any.
+  /** Parse the name form definitions if there are any. */
+  private static void parseNameFormDefinitions(Schema schema,
+      String schemaFile, boolean failOnError, List<Attribute> nfList)
+      throws ConfigException
+  {
     if (nfList != null)
     {
       for (Attribute a : nfList)
@@ -1162,9 +1167,13 @@ public class SchemaConfigManager
         }
       }
     }
+  }
 
-
-    // Parse the DIT content rule definitions if there are any.
+  /** Parse the DIT content rule definitions if there are any. */
+  private static void parseDITContentRuleDefinitions(Schema schema,
+      String schemaFile, boolean failOnError, List<Attribute> dcrList)
+      throws ConfigException
+  {
     if (dcrList != null)
     {
       for (Attribute a : dcrList)
@@ -1256,9 +1265,13 @@ public class SchemaConfigManager
         }
       }
     }
+  }
 
-
-    // Parse the DIT structure rule definitions if there are any.
+  /** Parse the DIT structure rule definitions if there are any. */
+  private static void parseDITStructureRuleDefinitions(Schema schema,
+      String schemaFile, boolean failOnError, List<Attribute> dsrList)
+      throws ConfigException
+  {
     if (dsrList != null)
     {
       for (Attribute a : dsrList)
@@ -1350,9 +1363,13 @@ public class SchemaConfigManager
         }
       }
     }
+  }
 
-
-    // Parse the matching rule use definitions if there are any.
+  /** Parse the matching rule use definitions if there are any. */
+  private static void parseMatchingRuleUseDefinitions(Schema schema,
+      String schemaFile, boolean failOnError, List<Attribute> mruList)
+      throws ConfigException
+  {
     if (mruList != null)
     {
       for (Attribute a : mruList)
@@ -1445,8 +1462,6 @@ public class SchemaConfigManager
         }
       }
     }
-
-    return mods;
   }
 
 
