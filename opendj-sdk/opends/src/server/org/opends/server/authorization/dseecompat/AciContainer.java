@@ -967,4 +967,48 @@ implements AciTargetMatchContext, AciEvalContext {
   public int getCurrentSSF() {
       return clientConnection.getSSF();
   }
+
+  /** {@inheritDoc} */
+  @Override
+  public String toString()
+  {
+    final StringBuilder sb = new StringBuilder();
+    if (attributeType != null)
+    {
+      appendSeparatorIfNeeded(sb);
+      sb.append(attributeType);
+      if (attributeValue != null)
+      {
+        sb.append(":").append(attributeType);
+      }
+    }
+    if (allowList != null)
+    {
+      appendSeparatorIfNeeded(sb);
+      sb.append(allowList.size()).append(" allow ACIs");
+    }
+    if (denyList != null)
+    {
+      appendSeparatorIfNeeded(sb);
+      sb.append(denyList.size()).append(" deny ACIs");
+    }
+    if (evalReason != null)
+    {
+      appendSeparatorIfNeeded(sb);
+      sb.append("evaluationResult: ").append(evalReason);
+      if (decidingAci != null)
+      {
+        sb.append(",").append(decidingAci);
+      }
+    }
+    return sb.toString();
+  }
+
+  private void appendSeparatorIfNeeded(StringBuilder sb)
+  {
+    if (sb.length() > 0)
+    {
+      sb.append(", ");
+    }
+  }
 }
