@@ -27,6 +27,7 @@
  */
 package org.opends.quicksetup.installer;
 
+import java.awt.event.WindowEvent;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -35,78 +36,35 @@ import java.net.URI;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.awt.event.WindowEvent;
 
-import javax.naming.NameAlreadyBoundException;
-import javax.naming.NameNotFoundException;
-import javax.naming.NamingEnumeration;
-import javax.naming.NamingException;
-import javax.naming.NamingSecurityException;
-import javax.naming.directory.Attribute;
-import javax.naming.directory.BasicAttribute;
-import javax.naming.directory.BasicAttributes;
-import javax.naming.directory.DirContext;
-import javax.naming.directory.SearchControls;
-import javax.naming.directory.SearchResult;
+import javax.naming.*;
+import javax.naming.directory.*;
 import javax.naming.ldap.InitialLdapContext;
+import javax.naming.ldap.Rdn;
+import javax.swing.JPanel;
 
-import org.opends.admin.ads.ADSContext;
-import org.opends.admin.ads.ADSContextException;
-import org.opends.admin.ads.ReplicaDescriptor;
-import org.opends.admin.ads.ServerDescriptor;
-import org.opends.admin.ads.SuffixDescriptor;
-import org.opends.admin.ads.TopologyCache;
-import org.opends.admin.ads.TopologyCacheException;
-import org.opends.admin.ads.TopologyCacheFilter;
+import org.opends.admin.ads.*;
 import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.admin.ads.util.PreferredConnection;
-import org.opends.quicksetup.ApplicationException;
-import org.opends.quicksetup.ButtonName;
-import org.opends.quicksetup.Constants;
-import org.opends.quicksetup.Installation;
-import org.opends.quicksetup.JavaArguments;
-import org.opends.quicksetup.LicenseFile;
-import org.opends.quicksetup.ProgressStep;
-import org.opends.quicksetup.QuickSetupLog;
-import org.opends.quicksetup.ReturnCode;
-import org.opends.quicksetup.SecurityOptions;
-import org.opends.quicksetup.Step;
-import org.opends.quicksetup.UserData;
-import org.opends.quicksetup.UserDataCertificateException;
-import org.opends.quicksetup.UserDataConfirmationException;
-import org.opends.quicksetup.UserDataException;
-import org.opends.quicksetup.WizardStep;
+import org.opends.messages.Message;
+import org.opends.messages.MessageBuilder;
+import org.opends.quicksetup.*;
+import org.opends.quicksetup.event.ButtonActionListener;
+import org.opends.quicksetup.event.ButtonEvent;
+import org.opends.quicksetup.installer.ui.*;
 import org.opends.quicksetup.ui.*;
 import org.opends.quicksetup.util.FileManager;
 import org.opends.quicksetup.util.IncompatibleVersionException;
 import org.opends.quicksetup.util.Utils;
-
-import static org.opends.quicksetup.util.Utils.*;
-import static org.opends.quicksetup.Step.*;
 import org.opends.server.util.CertificateManager;
-import org.opends.quicksetup.event.ButtonActionListener;
-import org.opends.quicksetup.event.ButtonEvent;
-import org.opends.quicksetup.installer.ui.DataOptionsPanel;
-import org.opends.quicksetup.installer.ui.DataReplicationPanel;
-import org.opends.quicksetup.installer.ui.GlobalAdministratorPanel;
-import org.opends.quicksetup.installer.ui.InstallReviewPanel;
-import org.opends.quicksetup.installer.ui.InstallWelcomePanel;
-import org.opends.quicksetup.installer.ui.InstallLicensePanel;
-import org.opends.quicksetup.installer.ui.RemoteReplicationPortsPanel;
-import org.opends.quicksetup.installer.ui.RuntimeOptionsPanel;
-import org.opends.quicksetup.installer.ui.ServerSettingsPanel;
-import org.opends.quicksetup.installer.ui.SuffixesToReplicatePanel;
+import org.opends.server.util.DynamicConstants;
 import org.opends.server.util.SetupUtils;
 import org.opends.server.util.StaticUtils;
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+
 import static org.opends.messages.QuickSetupMessages.*;
-
-import javax.naming.ldap.Rdn;
-import javax.swing.*;
-import org.opends.server.util.DynamicConstants;
-
+import static org.opends.quicksetup.Step.*;
+import static org.opends.quicksetup.util.Utils.*;
 
 /**
  * This is an abstract class that is in charge of actually performing the
@@ -158,12 +116,16 @@ public abstract class Installer extends GuiApplication {
 
   private static final int MAX_NUMBER_ENTRIES = 10000000;
 
-  // If the user decides to import more than this number of entries, the
-  // import process of automatically generated data will be verbose.
+  /**
+   * If the user decides to import more than this number of entries, the import
+   * process of automatically generated data will be verbose.
+   */
   private static final int THRESOLD_AUTOMATIC_DATA_VERBOSE = 20000;
 
-  // If the user decides to import a number of entries higher than this
-  // threshold, the start process will be verbose.
+  /**
+   * If the user decides to import a number of entries higher than this
+   * threshold, the start process will be verbose.
+   */
   private static final int NENTRIES_THRESOLD_FOR_VERBOSE_START = 100000;
 
   /** Set of progress steps that have been completed. */
@@ -903,7 +865,7 @@ public abstract class Installer extends GuiApplication {
 
     checkAbort();
 
-    ArrayList<String> argList = new ArrayList<String>();
+    List<String> argList = new ArrayList<String>();
     argList.add("-C");
     argList.add(getConfigurationClassName());
 
@@ -1292,21 +1254,16 @@ public abstract class Installer extends GuiApplication {
     }
     checkAbort();
 
-    ArrayList<String> argList = new ArrayList<String>();
-
+    List<String> argList = new ArrayList<String>();
     argList.add("-n");
     argList.add(getBackendName());
-
     for (File f : ldifFiles)
     {
       argList.add("-l");
       argList.add(f.getAbsolutePath());
     }
-
     argList.add("-F");
-
     argList.add("-Q");
-
     argList.add("--noPropertiesFile");
 
     final String[] args = new String[argList.size()];
@@ -1400,7 +1357,7 @@ public abstract class Installer extends GuiApplication {
       pointAdder.start();
     }
 
-    ArrayList<String> argList = new ArrayList<String>();
+    List<String> argList = new ArrayList<String>();
     argList.add("-n");
     argList.add(getBackendName());
     for (String ldifPath : ldifPaths)
@@ -1530,16 +1487,14 @@ public abstract class Installer extends GuiApplication {
     {
       setNotifyListeners(false);
     }
-    final ArrayList<String> argList = new ArrayList<String>();
+    final List<String> argList = new ArrayList<String>();
     argList.add("-n");
     argList.add(getBackendName());
     argList.add("-A");
     argList.add(templatePath.getAbsolutePath());
     argList.add("-s"); // seed
     argList.add("0");
-
     argList.add("-F");
-
     argList.add("--noPropertiesFile");
 
     final String[] args = new String[argList.size()];
@@ -3071,7 +3026,7 @@ public abstract class Installer extends GuiApplication {
   private void updateUserDataForServerSettingsPanel(QuickSetup qs)
       throws UserDataException
   {
-    ArrayList<Message> errorMsgs = new ArrayList<Message>();
+    List<Message> errorMsgs = new ArrayList<Message>();
     Message confirmationMsg = null;
 
     if (isWebStart())
@@ -3194,16 +3149,8 @@ public abstract class Installer extends GuiApplication {
         qs.displayFieldInvalid(FieldName.SERVER_PORT, true);
       } else if (!canUseAsPort(port))
       {
-        if (isPriviledgedPort(port))
-        {
-          errorMsgs.add(INFO_CANNOT_BIND_PRIVILEDGED_PORT.get(
-            String.valueOf(port)));
-        } else
-        {
-          errorMsgs.add(INFO_CANNOT_BIND_PORT.get(String.valueOf(port)));
-        }
+        errorMsgs.add(getCannotBindErrorMessage(port));
         qs.displayFieldInvalid(FieldName.SERVER_PORT, true);
-
       } else
       {
         getUserData().setServerPort(port);
@@ -3232,17 +3179,8 @@ public abstract class Installer extends GuiApplication {
         qs.displayFieldInvalid(FieldName.ADMIN_CONNECTOR_PORT, true);
       } else if (!canUseAsPort(adminConnectorPort))
       {
-        if (isPriviledgedPort(adminConnectorPort))
-        {
-          errorMsgs.add(INFO_CANNOT_BIND_PRIVILEDGED_PORT.get(
-            String.valueOf(adminConnectorPort)));
-        } else
-        {
-          errorMsgs.add(INFO_CANNOT_BIND_PORT.get(
-              String.valueOf(adminConnectorPort)));
-        }
+        errorMsgs.add(getCannotBindErrorMessage(adminConnectorPort));
         qs.displayFieldInvalid(FieldName.ADMIN_CONNECTOR_PORT, true);
-
       }
       else if (adminConnectorPort == port)
       {
@@ -3255,7 +3193,6 @@ public abstract class Installer extends GuiApplication {
         getUserData().setAdminConnectorPort(adminConnectorPort);
         qs.displayFieldInvalid(FieldName.ADMIN_CONNECTOR_PORT, false);
       }
-
     } catch (NumberFormatException nfe)
     {
       errorMsgs.add(INFO_INVALID_PORT_VALUE_RANGE.get(
@@ -3277,16 +3214,8 @@ public abstract class Installer extends GuiApplication {
         qs.displayFieldInvalid(FieldName.SECURITY_OPTIONS, true);
       } else if (!canUseAsPort(securePort))
       {
-        if (isPriviledgedPort(securePort))
-        {
-          errorMsgs.add(INFO_CANNOT_BIND_PRIVILEDGED_PORT.get(
-            String.valueOf(securePort)));
-        } else
-        {
-          errorMsgs.add(INFO_CANNOT_BIND_PORT.get(String.valueOf(securePort)));
-        }
+        errorMsgs.add(getCannotBindErrorMessage(securePort));
         qs.displayFieldInvalid(FieldName.SECURITY_OPTIONS, true);
-
       }
       else if (port == securePort)
       {
@@ -3391,6 +3320,15 @@ public abstract class Installer extends GuiApplication {
     }
   }
 
+  private Message getCannotBindErrorMessage(int port)
+  {
+    if (isPriviledgedPort(port))
+    {
+      return INFO_CANNOT_BIND_PRIVILEDGED_PORT.get(String.valueOf(port));
+    }
+    return INFO_CANNOT_BIND_PORT.get(String.valueOf(port));
+  }
+
   /**
    * Validate the data provided by the user in the data options panel and update
    * the userData object according to that content.
@@ -3405,7 +3343,7 @@ public abstract class Installer extends GuiApplication {
     Integer replicationPort = -1;
     boolean secureReplication = false;
     Integer port = null;
-    ArrayList<Message> errorMsgs = new ArrayList<Message>();
+    List<Message> errorMsgs = new ArrayList<Message>();
 
     DataReplicationOptions.Type type = (DataReplicationOptions.Type)
       qs.getFieldValue(FieldName.REPLICATION_OPTIONS);
@@ -3524,7 +3462,7 @@ public abstract class Installer extends GuiApplication {
     }
   }
 
-  private int checkReplicationPort(QuickSetup qs, ArrayList<Message> errorMsgs)
+  private int checkReplicationPort(QuickSetup qs, List<Message> errorMsgs)
   {
     int replicationPort = -1;
     String sPort = qs.getFieldStringValue(FieldName.REPLICATION_PORT);
@@ -3540,15 +3478,7 @@ public abstract class Installer extends GuiApplication {
         qs.displayFieldInvalid(FieldName.SERVER_PORT, true);
       } else if (!canUseAsPort(replicationPort))
       {
-        if (isPriviledgedPort(replicationPort))
-        {
-          errorMsgs.add(INFO_CANNOT_BIND_PRIVILEDGED_PORT.get(
-                  String.valueOf(replicationPort)));
-        } else
-        {
-          errorMsgs.add(INFO_CANNOT_BIND_PORT.get(
-                  String.valueOf(replicationPort)));
-        }
+        errorMsgs.add(getCannotBindErrorMessage(replicationPort));
         qs.displayFieldInvalid(FieldName.REPLICATION_PORT, true);
 
       } else
@@ -3579,7 +3509,7 @@ public abstract class Installer extends GuiApplication {
   }
 
   private void checkRemoteHostPortDnAndPwd(String host, String sPort, String dn,
-      String pwd, QuickSetup qs, ArrayList<Message> errorMsgs)
+      String pwd, QuickSetup qs, List<Message> errorMsgs)
   {
     // Check host
     if ((host == null) || (host.length() == 0))
@@ -3628,7 +3558,7 @@ public abstract class Installer extends GuiApplication {
   }
 
   private void updateUserDataWithADS(String host, int port, String dn,
-      String pwd, QuickSetup qs, ArrayList<Message> errorMsgs,
+      String pwd, QuickSetup qs, List<Message> errorMsgs,
       boolean[] hasGlobalAdministrators,
       String[] effectiveDn) throws UserDataException
   {
@@ -3831,7 +3761,7 @@ public abstract class Installer extends GuiApplication {
   private void updateUserDataForCreateAdministratorPanel(QuickSetup qs)
   throws UserDataException
   {
-    ArrayList<Message> errorMsgs = new ArrayList<Message>();
+    List<Message> errorMsgs = new ArrayList<Message>();
 
     // Check the Global Administrator UID
     String uid = qs.getFieldStringValue(FieldName.GLOBAL_ADMINISTRATOR_UID);
@@ -3903,7 +3833,7 @@ public abstract class Installer extends GuiApplication {
   private void updateUserDataForSuffixesOptionsPanel(QuickSetup qs)
   throws UserDataException
   {
-    ArrayList<Message> errorMsgs = new ArrayList<Message>();
+    List<Message> errorMsgs = new ArrayList<Message>();
     if (qs.getFieldValue(FieldName.SUFFIXES_TO_REPLICATE_OPTIONS) ==
       SuffixesToReplicateOptions.Type.REPLICATE_WITH_EXISTING_SUFFIXES)
     {
@@ -3965,7 +3895,7 @@ public abstract class Installer extends GuiApplication {
   private void updateUserDataForRemoteReplicationPorts(QuickSetup qs)
       throws UserDataException
   {
-    ArrayList<Message> errorMsgs = new ArrayList<Message>();
+    List<Message> errorMsgs = new ArrayList<Message>();
     Map<ServerDescriptor, AuthenticationData> servers =
       getUserData().getRemoteWithNoReplicationPort();
     Map<?, ?> hm =
@@ -4037,12 +3967,11 @@ public abstract class Installer extends GuiApplication {
    *
    * @throws UserDataException if the data provided by the user is not
    *           valid.
-   *
    */
   private void updateUserDataForNewSuffixOptionsPanel(QuickSetup qs)
       throws UserDataException
   {
-    ArrayList<Message> errorMsgs = new ArrayList<Message>();
+    List<Message> errorMsgs = new ArrayList<Message>();
 
     NewSuffixOptions dataOptions = null;
 
@@ -4182,7 +4111,6 @@ public abstract class Installer extends GuiApplication {
   /**
    * Update the userData object according to the content of the runtime options
    * panel.
-   *
    */
   private void updateUserDataForRuntimeOptionsPanel(QuickSetup qs)
   {
@@ -4195,7 +4123,6 @@ public abstract class Installer extends GuiApplication {
   /**
    * Update the userData object according to the content of the review
    * panel.
-   *
    */
   private void updateUserDataForReviewPanel(QuickSetup qs)
   {

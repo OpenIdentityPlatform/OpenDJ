@@ -26,7 +26,6 @@
  *      Portions Copyright 2011-2013 ForgeRock AS
  *      Portions Copyright 2011 profiq s.r.o.
  */
-
 package org.opends.server.tools;
 
 import static org.opends.messages.AdminToolMessages.*;
@@ -41,10 +40,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.security.KeyStoreException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedList;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -82,8 +78,6 @@ import org.opends.server.util.cli.Menu;
 import org.opends.server.util.cli.MenuBuilder;
 import org.opends.server.util.cli.MenuResult;
 
-
-
 /**
  * This class provides a very simple mechanism for installing the OpenDS
  * Directory Service.  It performs the following tasks:
@@ -113,7 +107,6 @@ public class InstallDS extends ConsoleApplication
   /**
    * The enumeration containing the different return codes that the command-line
    * can have.
-   *
    */
   enum ErrorReturnCode
   {
@@ -244,7 +237,7 @@ public class InstallDS extends ConsoleApplication
    */
   static private final Logger LOG = Logger.getLogger(InstallDS.class.getName());
 
-  // The argument parser
+  /** The argument parser. */
   private InstallDSArgumentParser argParser;
 
   /**
@@ -264,7 +257,6 @@ public class InstallDS extends ConsoleApplication
    *
    * @param args the command-line arguments provided to this program.
    */
-
   public static void main(String[] args)
   {
     int retCode = mainCLI(args, System.out, System.err, System.in);
@@ -280,7 +272,6 @@ public class InstallDS extends ConsoleApplication
    *
    * @return The error code.
    */
-
   public static int mainCLI(String[] args)
   {
     return mainCLI(args, System.out, System.err, System.in);
@@ -301,7 +292,6 @@ public class InstallDS extends ConsoleApplication
    * @param  inStream          The input stream to use for standard input.
    * @return The error code.
    */
-
   public static int mainCLI(String[] args,
       OutputStream outStream, OutputStream errStream, InputStream inStream)
   {
@@ -696,7 +686,7 @@ public class InstallDS extends ConsoleApplication
   private void initializeUserDataWithParser(UserData uData)
   throws UserDataException
   {
-    LinkedList<Message> errorMessages = new LinkedList<Message>();
+    List<Message> errorMessages = new LinkedList<Message>();
     uData.setQuiet(isQuiet());
     uData.setVerbose(isVerbose());
     uData.setConnectTimeout(getConnectTimeout());
@@ -751,59 +741,16 @@ public class InstallDS extends ConsoleApplication
 
       if (!argParser.skipPortCheckArg.isPresent())
       {
-        // Check if the port can be used.
-        if (!SetupUtils.canUseAsPort(ldapPort))
-        {
-          Message message;
-          if (SetupUtils.isPriviledgedPort(ldapPort))
-          {
-            message = ERR_INSTALLDS_CANNOT_BIND_TO_PRIVILEGED_PORT.get(
-                ldapPort);
-          }
-          else
-          {
-            message = ERR_INSTALLDS_CANNOT_BIND_TO_PORT.get(ldapPort);
-          }
-          errorMessages.add(message);
-        }
-
-//      Check if the port can be used.
-        if (!SetupUtils.canUseAsPort(adminConnectorPort))
-        {
-          Message message;
-          if (SetupUtils.isPriviledgedPort(adminConnectorPort))
-          {
-            message = ERR_INSTALLDS_CANNOT_BIND_TO_PRIVILEGED_PORT.get(
-                adminConnectorPort);
-          }
-          else
-          {
-            message = ERR_INSTALLDS_CANNOT_BIND_TO_PORT.get(adminConnectorPort);
-          }
-          errorMessages.add(message);
-        }
+        checkCanUsePort(ldapPort, errorMessages);
+        checkCanUsePort(adminConnectorPort, errorMessages);
       }
       if (argParser.jmxPortArg.isPresent())
       {
         int jmxPort = argParser.jmxPortArg.getIntValue();
         uData.setServerJMXPort(jmxPort);
-        //   Check if the port can be used.
         if (!argParser.skipPortCheckArg.isPresent())
         {
-          if (!SetupUtils.canUseAsPort(jmxPort))
-          {
-            Message message;
-            if (SetupUtils.isPriviledgedPort(jmxPort))
-            {
-              message = ERR_INSTALLDS_CANNOT_BIND_TO_PRIVILEGED_PORT.get(
-                  jmxPort);
-            }
-            else
-            {
-              message = ERR_INSTALLDS_CANNOT_BIND_TO_PORT.get(jmxPort);
-            }
-            errorMessages.add(message);
-          }
+          checkCanUsePort(jmxPort, errorMessages);
         }
       }
     }
@@ -818,7 +765,7 @@ public class InstallDS extends ConsoleApplication
     if (argParser.importLDIFArg.isPresent())
     {
       // Check that the files exist
-      LinkedList<String> nonExistingFiles = new LinkedList<String>();
+      List<String> nonExistingFiles = new LinkedList<String>();
       for (String file : argParser.importLDIFArg.getValues())
       {
         if (!Utils.fileExists(file))
@@ -883,23 +830,9 @@ public class InstallDS extends ConsoleApplication
     {
       errorMessages.add(ae.getMessageObject());
     }
-    if (enableSSL)
+    if (enableSSL && !argParser.skipPortCheckArg.isPresent())
     {
-      if (!argParser.skipPortCheckArg.isPresent())
-      {
-        if (!SetupUtils.canUseAsPort(ldapsPort))
-        {
-          if (SetupUtils.isPriviledgedPort(ldapsPort))
-          {
-            errorMessages.add(
-                ERR_INSTALLDS_CANNOT_BIND_TO_PRIVILEGED_PORT.get(ldapsPort));
-          }
-          else
-          {
-            errorMessages.add(ERR_INSTALLDS_CANNOT_BIND_TO_PORT.get(ldapsPort));
-          }
-        }
-      }
+      checkCanUsePort(ldapsPort, errorMessages);
     }
     SecurityOptions securityOptions;
     LinkedList<String> keystoreAliases = new LinkedList<String>();
@@ -973,6 +906,23 @@ public class InstallDS extends ConsoleApplication
           Utils.getMessageFromCollection(errorMessages,
               formatter.getLineBreak().toString()));
     }
+  }
+
+  private void checkCanUsePort(int port, List<Message> errorMessages)
+  {
+    if (!SetupUtils.canUseAsPort(port))
+    {
+      errorMessages.add(getCannotBindErrorMessage(port));
+    }
+  }
+
+  private Message getCannotBindErrorMessage(int port)
+  {
+    if (SetupUtils.isPriviledgedPort(port))
+    {
+      return ERR_INSTALLDS_CANNOT_BIND_TO_PRIVILEGED_PORT.get(port);
+    }
+    return ERR_INSTALLDS_CANNOT_BIND_TO_PORT.get(port);
   }
 
   /**
@@ -1105,7 +1055,7 @@ public class InstallDS extends ConsoleApplication
         dns.addAll(arg.getValues());
         usedProvided = true;
       }
-      LinkedList<String> toRemove = new LinkedList<String>();
+      List<String> toRemove = new LinkedList<String>();
       for (String dn : dns)
       {
         try
@@ -1149,7 +1099,7 @@ public class InstallDS extends ConsoleApplication
     String hostName = promptForHostNameIfRequired();
     uData.setHostName(hostName);
 
-    LinkedList<Integer> usedPorts = new LinkedList<Integer>();
+    List<Integer> usedPorts = new LinkedList<Integer>();
     //  Determine the LDAP port number.
     int ldapPort = promptIfRequiredForPortData(argParser.ldapPortArg,
         INFO_INSTALLDS_PROMPT_LDAPPORT.get(), usedPorts, true);
@@ -1234,32 +1184,19 @@ public class InstallDS extends ConsoleApplication
 
         if (!argParser.skipPortCheckArg.isPresent())
         {
-          // Check if the port can be used.
           if (!SetupUtils.canUseAsPort(portNumber))
           {
-            Message message;
-            if (SetupUtils.isPriviledgedPort(portNumber))
+            Message message = getCannotBindErrorMessage(portNumber);
+            if (prompted || includeLineBreak)
             {
-              if (prompted || includeLineBreak)
-              {
-                println();
-              }
-              message = ERR_INSTALLDS_CANNOT_BIND_TO_PRIVILEGED_PORT.get(
-                  portNumber);
-              println(message);
-              portNumber = -1;
-            }
-            else
-            {
-              if (prompted || includeLineBreak)
-              {
-                println();
-              }
-              message = ERR_INSTALLDS_CANNOT_BIND_TO_PORT.get(portNumber);
-              println(message);
               println();
-              portNumber = -1;
             }
+            println(message);
+            if (!SetupUtils.isPriviledgedPort(portNumber))
+            {
+              println();
+            }
+            portNumber = -1;
           }
         }
         if (portNumber != -1)
@@ -1331,7 +1268,7 @@ public class InstallDS extends ConsoleApplication
     if (argParser.importLDIFArg.isPresent())
     {
       // Check that the files exist
-      LinkedList<String> nonExistingFiles = new LinkedList<String>();
+      List<String> nonExistingFiles = new LinkedList<String>();
       LinkedList<String> importLDIFFiles = new LinkedList<String>();
       for (String file : argParser.importLDIFArg.getValues())
       {
@@ -1634,7 +1571,7 @@ public class InstallDS extends ConsoleApplication
     boolean enableStartTLS = false;
     int ldapsPort = -1;
 
-    LinkedList<Integer> usedPorts = new LinkedList<Integer>();
+    List<Integer> usedPorts = new LinkedList<Integer>();
     usedPorts.add(uData.getServerPort());
     if (uData.getServerJMXPort() != -1)
     {
@@ -2136,7 +2073,7 @@ public class InstallDS extends ConsoleApplication
       throw new IllegalStateException(
           "Called promptIfRequiredCertificate with invalid type: "+type);
     }
-    LinkedList<Message> errorMessages = new LinkedList<Message>();
+    List<Message> errorMessages = new LinkedList<Message>();
     LinkedList<String> keystoreAliases = new LinkedList<String>();
     boolean firstTry = true;
     int nPasswordPrompts = 0;
@@ -2432,7 +2369,7 @@ public class InstallDS extends ConsoleApplication
    * @param nicknames the list of certificates the user must choose from.
    * @return the chosen certificate nickname.
    */
-  private String promptForCertificateNickname(LinkedList<String> nicknames)
+  private String promptForCertificateNickname(List<String> nicknames)
   {
     String nickname = null;
     while (nickname == null)
