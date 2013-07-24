@@ -96,7 +96,8 @@ public abstract class Installer extends GuiApplication {
 
   /** Map containing information about what has been configured remotely. */
   private Map<ServerDescriptor, ConfiguredReplication>
-    hmConfiguredRemoteReplication = new HashMap<ServerDescriptor, ConfiguredReplication>();
+      hmConfiguredRemoteReplication =
+          new HashMap<ServerDescriptor, ConfiguredReplication>();
 
   // Constants used to do checks
   private static final int MIN_DIRECTORY_MANAGER_PWD = 1;
