@@ -708,11 +708,10 @@ public class InstallDS extends ConsoleApplication
       errorMessages.add(message);
     }
     uData.setDirectoryManagerDn(dmDN);
-
     uData.setDirectoryManagerPwd(argParser.getDirectoryManagerPassword());
 
     // Check the validity of the base DNs
-    LinkedList<String> baseDNs = argParser.baseDNArg.getValues();
+    List<String> baseDNs = argParser.baseDNArg.getValues();
     if (baseDNs.isEmpty() && argParser.baseDNArg.getDefaultValue() != null)
     {
       baseDNs.add(argParser.baseDNArg.getDefaultValue());
@@ -942,10 +941,10 @@ public class InstallDS extends ConsoleApplication
 
     promptIfRequiredForDirectoryManager(uData);
     promptIfRequiredForPortData(uData);
-    promptIfRequiredForImportData(uData);
-    promptIfRequiredForSecurityData(uData);
-    promptIfRequiredForWindowsService(uData);
-    promptIfRequiredForStartServer(uData);
+    uData.setNewSuffixOptions(promptIfRequiredForImportData());
+    uData.setSecurityOptions(promptIfRequiredForSecurityData(uData));
+    uData.setEnableWindowsService(promptIfRequiredForWindowsService());
+    uData.setStartServer(promptIfRequiredForStartServer());
   }
 
   /**
@@ -1096,8 +1095,7 @@ public class InstallDS extends ConsoleApplication
    */
   private void promptIfRequiredForPortData(UserData uData)
   {
-    String hostName = promptForHostNameIfRequired();
-    uData.setHostName(hostName);
+    uData.setHostName(promptForHostNameIfRequired());
 
     List<Integer> usedPorts = new LinkedList<Integer>();
     //  Determine the LDAP port number.
@@ -1220,14 +1218,16 @@ public class InstallDS extends ConsoleApplication
   }
 
   /**
-   * This method updates the contents of a UserData object with what the user
-   * specified in the command-line for the base DN and data import parameters.
-   * If the user did not provide explicitly some data or if the provided data is
-   * not valid, it prompts the user to provide it.
-   * @param uData the UserData object to be updated.
-   * @throws UserDataException if something went wrong checking the data.
+   * This method returns what the user specified in the command-line for the
+   * base DN and data import parameters. If the user did not provide explicitly
+   * some data or if the provided data is not valid, it prompts the user to
+   * provide it.
+   *
+   * @return the NewSuffixOptions telling how to import data
+   * @throws UserDataException
+   *           if something went wrong checking the data.
    */
-  private void promptIfRequiredForImportData(UserData uData)
+  private NewSuffixOptions promptIfRequiredForImportData()
   throws UserDataException
   {
     boolean prompt = true;
@@ -1248,28 +1248,27 @@ public class InstallDS extends ConsoleApplication
     NewSuffixOptions dataOptions;
     if (!prompt)
     {
-      LinkedList<String> baseDNs = new LinkedList<String>();
+      List<String> baseDNs = new LinkedList<String>();
       dataOptions = NewSuffixOptions.createEmpty(baseDNs);
     }
     else
     {
       // Check the validity of the base DNs
-      LinkedList<String> baseDNs = promptIfRequiredForDNs(
+      List<String> baseDNs = promptIfRequiredForDNs(
           argParser.baseDNArg, INFO_INSTALLDS_PROMPT_BASEDN.get(), true);
       dataOptions = promptIfRequiredForDataOptions(baseDNs);
     }
-    uData.setNewSuffixOptions(dataOptions);
+    return dataOptions;
   }
 
-  private NewSuffixOptions promptIfRequiredForDataOptions(
-      LinkedList<String> baseDNs)
+  private NewSuffixOptions promptIfRequiredForDataOptions(List<String> baseDNs)
   {
     NewSuffixOptions dataOptions;
     if (argParser.importLDIFArg.isPresent())
     {
       // Check that the files exist
       List<String> nonExistingFiles = new LinkedList<String>();
-      LinkedList<String> importLDIFFiles = new LinkedList<String>();
+      List<String> importLDIFFiles = new LinkedList<String>();
       for (String file : argParser.importLDIFArg.getValues())
       {
         if (!Utils.fileExists(file))
@@ -1453,7 +1452,7 @@ public class InstallDS extends ConsoleApplication
 
       if (populateType == POPULATE_TYPE_IMPORT_FROM_LDIF)
       {
-        LinkedList<String> importLDIFFiles = new LinkedList<String>();
+        List<String> importLDIFFiles = new LinkedList<String>();
         while (importLDIFFiles.isEmpty())
         {
           Message message = INFO_INSTALLDS_PROMPT_IMPORT_FILE.get();
@@ -1555,15 +1554,18 @@ public class InstallDS extends ConsoleApplication
   }
 
   /**
-   * This method updates the contents of a UserData object with what the user
-   * specified in the command-line for the security parameters.
-   * If the user did not provide explicitly some data or if the provided data is
-   * not valid, it prompts the user to provide it.
-   * @param uData the UserData object to be updated.
-   * @throws UserDataException if the user did not manage to provide the
-   * keystore password after a certain number of tries.
+   * This method returns what the user specified in the command-line for the
+   * security parameters. If the user did not provide explicitly some data or if
+   * the provided data is not valid, it prompts the user to provide it.
+   *
+   * @param uData
+   *          the current UserData object.
+   * @return the {@link SecurityOptions} to be used when starting the server
+   * @throws UserDataException
+   *           if the user did not manage to provide the keystore password after
+   *           a certain number of tries.
    */
-  private void promptIfRequiredForSecurityData(UserData uData)
+  private SecurityOptions promptIfRequiredForSecurityData(UserData uData)
   throws UserDataException
   {
     // Check that the security data provided is valid.
@@ -1779,17 +1781,17 @@ public class InstallDS extends ConsoleApplication
         }
       }
     }
-    uData.setSecurityOptions(securityOptions);
+    return securityOptions;
   }
 
   /**
-   * This method updates the contents of a UserData object with what the user
-   * specified in the command-line for the Windows Service parameters.
-   * If the user did not provide explicitly the data, it prompts the user to
-   * provide it.
-   * @param uData the UserData object to be updated.
+   * This method returns what the user specified in the command-line for the
+   * Windows Service parameters. If the user did not provide explicitly the
+   * data, it prompts the user to provide it.
+   *
+   * @return whether windows service should be enabled
    */
-  private void promptIfRequiredForWindowsService(UserData uData)
+  private boolean promptIfRequiredForWindowsService()
   {
     boolean enableService = false;
     // If we are in Windows ask if the server must run as a windows service.
@@ -1815,17 +1817,17 @@ public class InstallDS extends ConsoleApplication
         }
       }
     }
-    uData.setEnableWindowsService(enableService);
+    return enableService;
   }
 
   /**
-   * This method updates the contents of a UserData object with what the user
-   * specified in the command-line for the Directory Manager parameters.
-   * If the user did not provide explicitly the data, it prompts the user to
-   * provide it.
-   * @param uData the UserData object to be updated.
+   * This method returns what the user specified in the command-line for the
+   * Directory Manager parameters. If the user did not provide explicitly the
+   * data, it prompts the user to provide it.
+   *
+   * @return whether server should be started
    */
-  private void promptIfRequiredForStartServer(UserData uData)
+  private boolean promptIfRequiredForStartServer()
   {
     boolean startServer = false;
     if (!argParser.doNotStartArg.isPresent())
@@ -1844,7 +1846,7 @@ public class InstallDS extends ConsoleApplication
         startServer = true;
       }
     }
-    uData.setStartServer(startServer);
+    return startServer;
   }
 
   /**
@@ -2436,9 +2438,8 @@ public class InstallDS extends ConsoleApplication
       if (values[i] != null)
       {
         Message l = labels[i];
-        sb.append(l.toString());
+        sb.append(l.toString()).append(" ");
 
-        sb.append(" ");
         String[] lines = values[i].toString().split(Constants.LINE_SEPARATOR);
         for (int j=0; j<lines.length; j++)
         {
