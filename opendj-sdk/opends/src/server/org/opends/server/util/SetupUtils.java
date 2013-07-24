@@ -23,18 +23,11 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.util;
 
-
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -44,12 +37,10 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.Random;
 import java.util.Set;
 
-import java.util.Random;
-
 import org.opends.server.types.OperatingSystem;
-
 
 /**
  * This class provides a number of utility methods that may be used during the
@@ -287,7 +278,7 @@ public class SetupUtils
    */
   public static boolean isWindows()
   {
-      return OperatingSystem.WINDOWS == getOperatingSystem();
+    return OperatingSystem.WINDOWS == getOperatingSystem();
   }
 
   /**
@@ -298,17 +289,12 @@ public class SetupUtils
    */
   public static boolean isVista()
   {
-    boolean isVista;
     String os = System.getProperty("os.name");
     if (os != null)
     {
-     isVista = isWindows() && (os.toLowerCase().indexOf("vista") != -1);
+      return isWindows() && (os.toLowerCase().indexOf("vista") != -1);
     }
-    else
-    {
-      isVista = false;
-    }
-    return isVista;
+    return false;
   }
 
   /**
@@ -319,18 +305,12 @@ public class SetupUtils
    */
   public static boolean isWindows2008()
   {
-    boolean isWindows2008;
     String os = System.getProperty("os.name");
     if (os != null)
     {
-      isWindows2008 = isWindows() &&
-      (os.toLowerCase().indexOf("server 2008") != -1);
+      return isWindows() && (os.toLowerCase().indexOf("server 2008") != -1);
     }
-    else
-    {
-      isWindows2008 = false;
-    }
-    return isWindows2008;
+    return false;
   }
 
   /**
@@ -341,17 +321,12 @@ public class SetupUtils
    */
   public static boolean isWindows7()
   {
-    boolean isWindows7;
     String os = System.getProperty("os.name");
     if (os != null)
     {
-      isWindows7 = (os.toLowerCase().indexOf("windows 7") != -1);
+      return os.toLowerCase().indexOf("windows 7") != -1;
     }
-    else
-    {
-      isWindows7 = false;
-    }
-    return isWindows7;
+    return false;
   }
 
   /**
@@ -428,7 +403,6 @@ public class SetupUtils
         s = new Socket();
         s.connect(socketAddress, 1000);
         canUseAsPort = false;
-
       } catch (Throwable t)
       {
       }
@@ -445,8 +419,6 @@ public class SetupUtils
           }
         }
       }
-
-
     } catch (IOException ex)
     {
       canUseAsPort = false;
@@ -479,10 +451,10 @@ public class SetupUtils
   }
 
   /**
-   * Returns {@code true} if the provided port is a priviledged port,
+   * Returns {@code true} if the provided port is a privileged port,
    * {@code false} otherwise.
    * @param port the port we are analyzing.
-   * @return {@code true} if the provided port is a priviledged port,
+   * @return {@code true} if the provided port is a privileged port,
    * {@code false} otherwise.
    */
   public static boolean isPriviledgedPort(int port)
@@ -576,8 +548,14 @@ public class SetupUtils
     byte[] certificateBytes = certificate.getEncoded();
 
     FileOutputStream outputStream = new FileOutputStream(path, false);
-    outputStream.write(certificateBytes);
-    outputStream.close();
+    try
+    {
+      outputStream.write(certificateBytes);
+    }
+    finally
+    {
+      close(outputStream);
+    }
   }
 
   /**
@@ -603,8 +581,14 @@ public class SetupUtils
     byte[] certificateBytes = certificate.getEncoded();
 
     FileOutputStream outputStream = new FileOutputStream(path, false);
-    outputStream.write(certificateBytes);
-    outputStream.close();
+    try
+    {
+      outputStream.write(certificateBytes);
+    }
+    finally
+    {
+      close(outputStream);
+    }
   }
 
   /* The next two methods are used to generate the random password for the
@@ -687,17 +671,7 @@ public class SetupUtils
     }
     finally
     {
-      try
-      {
-        if (br != null)
-        {
-          br.close();
-        }
-      }
-      catch (Exception e)
-      {
-        // ignore
-      }
+      close(br);
     }
     if (hostName == null)
     {
@@ -709,5 +683,19 @@ public class SetupUtils
     }
     return hostName;
   }
-}
 
+  private static void close(Closeable toClose)
+  {
+    if (toClose != null)
+    {
+      try
+      {
+        toClose.close();
+      }
+      catch (Exception e)
+      {
+        // ignore
+      }
+    }
+  }
+}
