@@ -25,24 +25,20 @@
  *      Copyright 2006-2008 Sun Microsystems, Inc.
  *      Portions Copyright 2013 ForgeRock AS.
  */
-
-
 package org.opends.quicksetup.installer;
 
 import java.util.LinkedList;
-
+import java.util.List;
 
 /**
  * This class is used to provide a data model for the Data Options panel of the
  * installer.
- *
  */
 public class NewSuffixOptions
 {
   /**
    * This enumeration is used to know what the user wants to do for the data
    * (import data or not, what use as source of the data...).
-   *
    */
   public enum Type
   {
@@ -66,12 +62,11 @@ public class NewSuffixOptions
 
   private Type type;
 
-  private LinkedList<String> baseDns = new LinkedList<String>();
+  private List<String> baseDns = new LinkedList<String>();
 
-  private LinkedList<String> ldifPaths = new LinkedList<String>();
+  private List<String> ldifPaths = new LinkedList<String>();
 
   private String rejectedFile;
-
   private String skippedFile;
 
   private int numberEntries = 2000;
@@ -79,9 +74,8 @@ public class NewSuffixOptions
   /**
    * Private constructor.
    * @param baseDns the base DNs of the suffix options.
-   *
    */
-  private NewSuffixOptions(LinkedList<String> baseDns)
+  private NewSuffixOptions(List<String> baseDns)
   {
     this.baseDns.addAll(baseDns);
   }
@@ -91,7 +85,7 @@ public class NewSuffixOptions
    * @param baseDNs the base DNs of the suffix options.
    * @return a base entry suffix options.
    */
-  public static NewSuffixOptions createBaseEntry(LinkedList<String> baseDNs)
+  public static NewSuffixOptions createBaseEntry(List<String> baseDNs)
   {
     NewSuffixOptions ops = new NewSuffixOptions(baseDNs);
     ops.type = Type.CREATE_BASE_ENTRY;
@@ -103,7 +97,7 @@ public class NewSuffixOptions
    * @param baseDNs the base DNs of the suffix options.
    * @return an empty suffix options.
    */
-  public static NewSuffixOptions createEmpty(LinkedList<String> baseDNs)
+  public static NewSuffixOptions createEmpty(List<String> baseDNs)
   {
     NewSuffixOptions ops = new NewSuffixOptions(baseDNs);
     ops.type = Type.LEAVE_DATABASE_EMPTY;
@@ -118,9 +112,8 @@ public class NewSuffixOptions
    * @param skippedFile the files where the skipped entries are stored.
    * @return a base entry suffix options.
    */
-  public static NewSuffixOptions createImportFromLDIF(
-      LinkedList<String> baseDNs, LinkedList<String> ldifPaths,
-      String rejectedFile, String skippedFile)
+  public static NewSuffixOptions createImportFromLDIF(List<String> baseDNs,
+      List<String> ldifPaths, String rejectedFile, String skippedFile)
   {
     NewSuffixOptions ops = new NewSuffixOptions(baseDNs);
     ops.type = Type.IMPORT_FROM_LDIF_FILE;
@@ -137,7 +130,7 @@ public class NewSuffixOptions
    * @return a base entry suffix options.
    */
   public static NewSuffixOptions createAutomaticallyGenerated(
-      LinkedList<String> baseDNs, int numberEntries)
+      List<String> baseDNs, int numberEntries)
   {
     NewSuffixOptions ops = new NewSuffixOptions(baseDNs);
     ops.type = Type.IMPORT_AUTOMATICALLY_GENERATED_DATA;
