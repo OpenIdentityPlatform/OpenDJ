@@ -25,7 +25,6 @@
  *      Copyright 2008-2010 Sun Microsystems, Inc.
  *      Portions copyright 2011-2013 ForgeRock AS.
  */
-
 package org.opends.quicksetup;
 
 import java.net.*;
@@ -579,17 +578,7 @@ public class UserData
    */
   static public int getDefaultPort()
   {
-    int defaultPort = -1;
-
-    for (int i=0;i<10000 && (defaultPort == -1);i+=1000)
-    {
-      int port = i + 389;
-      if (Utils.canUseAsPort(port))
-      {
-        defaultPort = port;
-      }
-    }
-    return defaultPort;
+    return getDefaultPort(389);
   }
 
   /**
@@ -602,17 +591,7 @@ public class UserData
    */
   static public int getDefaultAdminConnectorPort()
   {
-    int defaultPort = -1;
-
-    for (int i=0;i<10000 && (defaultPort == -1);i+=1000)
-    {
-      int port = i + 4444;
-      if (Utils.canUseAsPort(port))
-      {
-        defaultPort = port;
-      }
-    }
-    return defaultPort;
+    return getDefaultPort(4444);
   }
 
   /**
@@ -626,24 +605,27 @@ public class UserData
    */
   public static int getDefaultSslPort(int defaultLdapPort)
   {
-    int defaultPort = -1;
-
     int port = defaultLdapPort - 389 + 636;
     // Try first with the correlated port of the default LDAP port.
     if (Utils.canUseAsPort(port))
     {
-      defaultPort = port;
+      return port;
     }
 
-    for (int i=0;i<10000 && (defaultPort == -1);i+=1000)
+    return getDefaultPort(636);
+  }
+
+  private static int getDefaultPort(int basePort)
+  {
+    for (int i = 0; i < 10000; i += 1000)
     {
-      port = i + 636;
+      int port = i + basePort;
       if (Utils.canUseAsPort(port))
       {
-        defaultPort = port;
+        return port;
       }
     }
-    return defaultPort;
+    return -1;
   }
 
   /**
@@ -814,7 +796,7 @@ public class UserData
   public Map<ServerDescriptor, AuthenticationData>
   getRemoteWithNoReplicationPort()
   {
-    HashMap<ServerDescriptor, AuthenticationData> copy =
+    Map<ServerDescriptor, AuthenticationData> copy =
       new HashMap<ServerDescriptor, AuthenticationData>();
     copy.putAll(remoteWithNoReplicationPort);
     return copy;
