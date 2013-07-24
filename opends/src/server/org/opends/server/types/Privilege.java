@@ -23,16 +23,14 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS
  */
 package org.opends.server.types;
 
-
-
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
-
-
 
 /**
  * This class implements an enumeration that defines the set of
@@ -240,7 +238,7 @@ public enum Privilege
    * A map that will be used to hold a mapping between privilege names
    * and enum values.
    */
-  private static final HashMap<String,Privilege> PRIV_MAP =
+  private static final Map<String, Privilege> PRIV_MAP =
        new HashMap<String,Privilege>();
 
 
@@ -250,75 +248,21 @@ public enum Privilege
    * users if the root privilege set is not specified in the
    * configuration.
    */
-  private static final HashSet<Privilege> DEFAULT_ROOT_PRIV_SET =
+  private static final Set<Privilege> DEFAULT_ROOT_PRIV_SET =
        new HashSet<Privilege>();
 
 
-
-  /**
-   * The names of the available privileges defined in this class.
-   */
-  private static final HashSet<String> PRIV_NAMES =
-       new HashSet<String>();
-
-
-
-  // The human-readable name for this privilege.
+  /** The human-readable name for this privilege. */
   private final String privilegeName;
 
 
 
   static
   {
-    PRIV_MAP.put("bypass-acl", BYPASS_ACL);
-    PRIV_MAP.put("bypass-lockdown", BYPASS_LOCKDOWN);
-    PRIV_MAP.put("modify-acl", MODIFY_ACL);
-    PRIV_MAP.put("config-read", CONFIG_READ);
-    PRIV_MAP.put("config-write", CONFIG_WRITE);
-    PRIV_MAP.put("jmx-read", JMX_READ);
-    PRIV_MAP.put("jmx-write", JMX_WRITE);
-    PRIV_MAP.put("jmx-notify", JMX_NOTIFY);
-    PRIV_MAP.put("ldif-import", LDIF_IMPORT);
-    PRIV_MAP.put("ldif-export", LDIF_EXPORT);
-    PRIV_MAP.put("backend-backup", BACKEND_BACKUP);
-    PRIV_MAP.put("backend-restore", BACKEND_RESTORE);
-    PRIV_MAP.put("server-lockdown", SERVER_LOCKDOWN);
-    PRIV_MAP.put("server-shutdown", SERVER_SHUTDOWN);
-    PRIV_MAP.put("server-restart", SERVER_RESTART);
-    PRIV_MAP.put("proxied-auth", PROXIED_AUTH);
-    PRIV_MAP.put("disconnect-client", DISCONNECT_CLIENT);
-    PRIV_MAP.put("cancel-request", CANCEL_REQUEST);
-    PRIV_MAP.put("password-reset", PASSWORD_RESET);
-    PRIV_MAP.put("data-sync", DATA_SYNC);
-    PRIV_MAP.put("update-schema", UPDATE_SCHEMA);
-    PRIV_MAP.put("privilege-change", PRIVILEGE_CHANGE);
-    PRIV_MAP.put("unindexed-search", UNINDEXED_SEARCH);
-    PRIV_MAP.put("subentry-write", SUBENTRY_WRITE);
-
-    PRIV_NAMES.add("bypass-acl");
-    PRIV_NAMES.add("bypass-lockdown");
-    PRIV_NAMES.add("modify-acl");
-    PRIV_NAMES.add("config-read");
-    PRIV_NAMES.add("config-write");
-    PRIV_NAMES.add("jmx-read");
-    PRIV_NAMES.add("jmx-write");
-    PRIV_NAMES.add("jmx-notify");
-    PRIV_NAMES.add("ldif-import");
-    PRIV_NAMES.add("ldif-export");
-    PRIV_NAMES.add("backend-backup");
-    PRIV_NAMES.add("backend-restore");
-    PRIV_NAMES.add("server-lockdown");
-    PRIV_NAMES.add("server-shutdown");
-    PRIV_NAMES.add("server-restart");
-    PRIV_NAMES.add("proxied-auth");
-    PRIV_NAMES.add("disconnect-client");
-    PRIV_NAMES.add("cancel-request");
-    PRIV_NAMES.add("password-reset");
-    PRIV_NAMES.add("data-sync");
-    PRIV_NAMES.add("update-schema");
-    PRIV_NAMES.add("privilege-change");
-    PRIV_NAMES.add("unindexed-search");
-    PRIV_NAMES.add("subentry-write");
+    for (Privilege privilege : Privilege.values())
+    {
+      PRIV_MAP.put(privilege.privilegeName, privilege);
+    }
 
     DEFAULT_ROOT_PRIV_SET.add(BYPASS_ACL);
     DEFAULT_ROOT_PRIV_SET.add(BYPASS_LOCKDOWN);
@@ -388,6 +332,7 @@ public enum Privilege
    *
    * @return  The human-readable name for this privilege.
    */
+  @Override
   public String toString()
   {
     return privilegeName;
@@ -402,7 +347,7 @@ public enum Privilege
    */
   public static Set<String> getPrivilegeNames()
   {
-    return PRIV_NAMES;
+    return PRIV_MAP.keySet();
   }
 
 
