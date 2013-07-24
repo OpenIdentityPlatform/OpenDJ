@@ -83,6 +83,7 @@ import static org.opends.quicksetup.util.Utils.*;
  *
  */
 public abstract class Installer extends GuiApplication {
+
   private TopologyCache lastLoadedCache;
 
   /** Indicates that we've detected that there is something installed. */
@@ -94,8 +95,8 @@ public abstract class Installer extends GuiApplication {
   private boolean javaVersionCheckFailed;
 
   /** Map containing information about what has been configured remotely. */
-  Map<ServerDescriptor, ConfiguredReplication> hmConfiguredRemoteReplication =
-    new HashMap<ServerDescriptor, ConfiguredReplication>();
+  private Map<ServerDescriptor, ConfiguredReplication>
+    hmConfiguredRemoteReplication = new HashMap<ServerDescriptor, ConfiguredReplication>();
 
   // Constants used to do checks
   private static final int MIN_DIRECTORY_MANAGER_PWD = 1;
@@ -134,7 +135,7 @@ public abstract class Installer extends GuiApplication {
 
   private final List<WizardStep> lstSteps = new ArrayList<WizardStep>();
 
-  private final HashSet<WizardStep> SUBSTEPS = new HashSet<WizardStep>();
+  private final Set<WizardStep> SUBSTEPS = new HashSet<WizardStep>();
   {
     SUBSTEPS.add(Step.CREATE_GLOBAL_ADMINISTRATOR);
     SUBSTEPS.add(Step.SUFFIXES_OPTIONS);
@@ -142,7 +143,7 @@ public abstract class Installer extends GuiApplication {
     SUBSTEPS.add(Step.REMOTE_REPLICATION_PORTS);
   }
 
-  private final HashMap<WizardStep, WizardStep> hmPreviousSteps =
+  private final Map<WizardStep, WizardStep> hmPreviousSteps =
     new HashMap<WizardStep, WizardStep>();
 
   private char[] selfSignedCertPw = null;
@@ -1698,8 +1699,7 @@ public abstract class Installer extends GuiApplication {
       // configuration of the other server.  The algorithm consists on putting
       // the remote servers in a list and pick the backend as they appear on the
       // list.
-      LinkedHashSet<ServerDescriptor> serverList =
-        new LinkedHashSet<ServerDescriptor>();
+      Set<ServerDescriptor> serverList = new LinkedHashSet<ServerDescriptor>();
       for (SuffixDescriptor suffix : suffixes)
       {
         for (ReplicaDescriptor replica : suffix.getReplicas())
@@ -1862,14 +1862,14 @@ public abstract class Installer extends GuiApplication {
        replication server also replicate ADS). */
     Map<String, Set<String>> replicationServers
             = new HashMap<String, Set<String>>();
-    HashSet<String> adsServers = new HashSet<String>();
+    Set<String> adsServers = new HashSet<String>();
 
     if (getUserData().getReplicationOptions().getType()
             == DataReplicationOptions.Type.FIRST_IN_TOPOLOGY)
     {
-      LinkedList<String> baseDns =
+      List<String> baseDns =
         getUserData().getNewSuffixOptions().getBaseDns();
-      HashSet<String> h = new HashSet<String>();
+      Set<String> h = new HashSet<String>();
       h.add(getLocalReplicationServer());
       adsServers.add(getLocalReplicationServer());
       for (String dn : baseDns)
@@ -1883,7 +1883,7 @@ public abstract class Installer extends GuiApplication {
         getUserData().getSuffixesToReplicateOptions().getSuffixes();
       for (SuffixDescriptor suffix : suffixes)
       {
-        HashSet<String> h = new HashSet<String>();
+        Set<String> h = new HashSet<String>();
         h.addAll(suffix.getReplicationServers());
         adsServers.addAll(suffix.getReplicationServers());
         h.add(getLocalReplicationServer());
@@ -1990,7 +1990,7 @@ public abstract class Installer extends GuiApplication {
                 getHostPort(server));
           }
         }
-        HashSet<String> dns = new HashSet<String>();
+        Set<String> dns = new HashSet<String>();
         for (ReplicaDescriptor replica : hm.get(server))
         {
           dns.add(replica.getSuffix().getDN());
@@ -2924,16 +2924,11 @@ public abstract class Installer extends GuiApplication {
 
   private String getLdapUrl(AuthenticationData auth)
   {
-    String ldapUrl;
     if (auth.useSecureConnection())
     {
-      ldapUrl = "ldaps://"+auth.getHostName()+":"+auth.getPort();
+      return "ldaps://" + auth.getHostName() + ":" + auth.getPort();
     }
-    else
-    {
-      ldapUrl = "ldap://"+auth.getHostName()+":"+auth.getPort();
-    }
-    return ldapUrl;
+    return "ldap://" + auth.getHostName() + ":" + auth.getPort();
   }
 
   private String getHostDisplay(AuthenticationData auth)
@@ -3101,15 +3096,12 @@ public abstract class Installer extends GuiApplication {
       {
         errorMsgs.add(INFO_DIRECTORY_NOT_WRITABLE.get(serverLocation));
         qs.displayFieldInvalid(FieldName.SERVER_LOCATION, true);
-
-      } else if (!hasEnoughSpace(serverLocation,
-          getRequiredInstallSpace()))
+      } else if (!hasEnoughSpace(serverLocation, getRequiredInstallSpace()))
       {
         long requiredInMb = getRequiredInstallSpace() / (1024 * 1024);
         errorMsgs.add(INFO_NOT_ENOUGH_DISK_SPACE.get(
                 serverLocation, String.valueOf(requiredInMb)));
         qs.displayFieldInvalid(FieldName.SERVER_LOCATION, true);
-
       } else if (isWindows() && (serverLocation.contains("%")))
       {
         errorMsgs.add(INFO_INVALID_CHAR_IN_PATH.get("%"));
@@ -3480,7 +3472,6 @@ public abstract class Installer extends GuiApplication {
       {
         errorMsgs.add(getCannotBindErrorMessage(replicationPort));
         qs.displayFieldInvalid(FieldName.REPLICATION_PORT, true);
-
       } else
       {
         /* Check that we did not chose this port for another protocol */
@@ -3792,7 +3783,6 @@ public abstract class Installer extends GuiApplication {
       errorMsgs.add(INFO_NOT_EQUAL_PWD.get());
       qs.displayFieldInvalid(FieldName.GLOBAL_ADMINISTRATOR_PWD_CONFIRM, true);
       pwdValid = false;
-
     }
     if (pwd1.length() < MIN_DIRECTORY_MANAGER_PWD)
     {
@@ -3998,7 +3988,7 @@ public abstract class Installer extends GuiApplication {
 
     if (baseDn.equals(""))
     {
-      LinkedList<String> baseDns = new LinkedList<String>();
+      List<String> baseDns = new LinkedList<String>();
       dataOptions = NewSuffixOptions.createEmpty(baseDns);
     }
     else
