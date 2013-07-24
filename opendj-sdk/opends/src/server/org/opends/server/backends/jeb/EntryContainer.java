@@ -27,47 +27,38 @@
  *      Portions copyright 2013 Manuel Gaupp
  */
 package org.opends.server.backends.jeb;
-import org.opends.messages.Message;
+
+import static org.opends.messages.JebMessages.*;
+import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.util.StaticUtils.*;
 
 import com.sleepycat.je.*;
-
-import org.opends.server.api.*;
-import org.opends.server.api.plugin.PluginResult;
-import org.opends.server.core.AddOperation;
-import org.opends.server.core.DeleteOperation;
-import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.PluginConfigManager;
-import org.opends.server.core.ModifyOperation;
-import org.opends.server.core.ModifyDNOperation;
-import org.opends.server.core.SearchOperation;
-import org.opends.server.protocols.ldap.LDAPResultCode;
-import org.opends.server.controls.PagedResultsControl;
-import org.opends.server.controls.ServerSideSortRequestControl;
-import org.opends.server.controls.ServerSideSortResponseControl;
-import org.opends.server.controls.SubtreeDeleteControl;
-import org.opends.server.controls.VLVRequestControl;
-import org.opends.server.types.*;
-import org.opends.server.util.StaticUtils;
-import org.opends.server.util.ServerConstants;
-import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
 import java.util.*;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import static org.opends.messages.JebMessages.*;
-
+import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.loggers.ErrorLogger.logError;
+import org.opends.server.admin.server.ConfigurationAddListener;
+import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.admin.server.ConfigurationDeleteListener;
 import org.opends.server.admin.std.server.LocalDBBackendCfg;
 import org.opends.server.admin.std.server.LocalDBIndexCfg;
 import org.opends.server.admin.std.server.LocalDBVLVIndexCfg;
-import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.admin.server.ConfigurationAddListener;
-import org.opends.server.admin.server.ConfigurationDeleteListener;
+import org.opends.server.api.Backend;
+import org.opends.server.api.ClientConnection;
+import org.opends.server.api.EntryCache;
+import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.config.ConfigException;
+import org.opends.server.controls.*;
+import org.opends.server.core.*;
+import org.opends.server.loggers.debug.DebugTracer;
+import org.opends.server.protocols.ldap.LDAPResultCode;
+import org.opends.server.types.*;
+import org.opends.server.util.ServerConstants;
+import org.opends.server.util.StaticUtils;
 
 /**
  * Storage container for LDAP entries.  Each base DN of a JE backend is given
@@ -1104,8 +1095,8 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
       Attribute attr = Attributes.create(ATTR_DEBUG_SEARCH_INDEX,
           debugBuffer.toString());
 
-      Entry debugEntry;
-      debugEntry = new Entry(DN.decode("cn=debugsearch"), null, null, null);
+      Entry debugEntry =
+          new Entry(DN.decode("cn=debugsearch"), null, null, null);
       debugEntry.addAttribute(attr, new ArrayList<AttributeValue>());
 
       searchOperation.returnEntry(debugEntry, null);
@@ -2163,22 +2154,18 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
   public boolean entryExists(DN entryDN)
   throws DirectoryException
   {
-    EntryCache<?> entryCache = DirectoryServer.getEntryCache();
-
     // Try the entry cache first.
-    if (entryCache != null)
+    EntryCache<?> entryCache = DirectoryServer.getEntryCache();
+    if (entryCache != null && entryCache.containsEntry(entryDN))
     {
-      if (entryCache.containsEntry(entryDN))
-      {
         return true;
-      }
     }
 
-    // Read the ID from dn2id.
-    EntryID id = null;
     try
     {
-      id = dn2id.get(null, entryDN, LockMode.DEFAULT);
+      // Read the ID from dn2id.
+      EntryID id = dn2id.get(null, entryDN, LockMode.DEFAULT);
+      return id != null;
     }
     catch (DatabaseException e)
     {
@@ -2188,7 +2175,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
       }
     }
 
-    return id != null;
+    return false;
   }
 
   /**
@@ -3951,18 +3938,16 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
   private DN getMatchedDN(DN baseDN)
   throws DirectoryException
   {
-    DN matchedDN = null;
     DN parentDN  = baseDN.getParentDNInSuffix();
-    while ((parentDN != null) && parentDN.isDescendantOf(getBaseDN()))
+    while (parentDN != null && parentDN.isDescendantOf(getBaseDN()))
     {
       if (entryExists(parentDN))
       {
-        matchedDN = parentDN;
-        break;
+        return parentDN;
       }
       parentDN = parentDN.getParentDNInSuffix();
     }
-    return matchedDN;
+    return null;
   }
 
   /**
