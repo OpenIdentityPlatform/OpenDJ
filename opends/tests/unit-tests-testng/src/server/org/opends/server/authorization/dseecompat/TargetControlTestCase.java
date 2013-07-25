@@ -23,22 +23,23 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2013 ForgeRock AS.
  */
-
-
 package org.opends.server.authorization.dseecompat;
 
+import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.util.ServerConstants.*;
+
+import org.opends.server.protocols.ldap.LDAPResultCode;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-import org.testng.annotations.*;
-import org.opends.server.protocols.ldap.LDAPResultCode;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.config.ConfigConstants.ATTR_AUTHZ_GLOBAL_ACI;
 
 /**
  * Unit test to test the targetcontrol ACI keyword.
  */
+@SuppressWarnings("javadoc")
 public class TargetControlTestCase extends AciTestCase {
 
   private static final String superUser="uid=superuser,ou=admins,o=test";
@@ -86,7 +87,7 @@ public class TargetControlTestCase extends AciTestCase {
     "userPassword: password",
   };
 
-  //Valid targetcontrol statements. Not the complete ACI.
+  /** Valid targetcontrol statements. Not the complete ACI. */
   @DataProvider(name = "validStatements")
   public Object[][] valids() {
     return new Object[][] {
@@ -96,7 +97,7 @@ public class TargetControlTestCase extends AciTestCase {
     };
   }
 
-   //Invalid targetcontrol statements. Not the complete ACI.
+  /** Invalid targetcontrol statements. Not the complete ACI. */
   @DataProvider(name = "invalidStatements")
   public Object[][] invalids() {
     return new Object[][] {
@@ -120,19 +121,21 @@ public class TargetControlTestCase extends AciTestCase {
           "allow (search, read) " +
           "userdn=\"ldap:///uid=superuser,ou=admins,o=test\";)";
 
- //Disallow all controls with wild-card.
+  /** Disallow all controls with wild-card. */
   private static final
   String controlNotWC = "(targetcontrol!=\"" + "*" + "\")" +
           "(version 3.0; acl \"control\";" +
           "allow(read) userdn=\"ldap:///" + superUser + "\";)";
 
-  //Allow all controls with wild-card.
+  /** Allow all controls with wild-card. */
   private static final
   String controlWC = "(targetcontrol=\"" + "*" + "\")" +
           "(version 3.0; acl \"control\";" +
           "allow(read) userdn=\"ldap:///" + superUser + "\";)";
 
-  //People branch can do any control but geteffectiverights assertion control.
+  /**
+   * People branch can do any control but geteffectiverights assertion control.
+   */
   private static final
   String controlPeople = "(targetcontrol!=\"" +
           OID_GET_EFFECTIVE_RIGHTS + "\")" +
@@ -140,15 +143,17 @@ public class TargetControlTestCase extends AciTestCase {
           "(version 3.0; acl \"control\";" +
           "allow(read) userdn=\"ldap:///" + "anyone" + "\";)";
 
-  //Admin branch can only do geteffectiverights control.
+  /** Admin branch can only do geteffectiverights control. */
   private static final
   String controlAdmin = "(targetcontrol=\"" + OID_GET_EFFECTIVE_RIGHTS + "\")" +
           "(target=\"ldap:///" + adminBase + "\")" +
           "(version 3.0; acl \"control\";" +
           "allow(read) userdn=\"ldap:///" + "anyone" + "\";)";
 
-  //Allow either reportauthzID or passwordpolicy controls. Used in the
-  //bind tests.
+  /**
+   * Allow either reportauthzID or passwordpolicy controls. Used in the bind
+   * tests.
+   */
   private static final
   String pwdControls =
           "(targetcontrol=\"" + OID_AUTHZID_REQUEST + "||" +
@@ -157,8 +162,9 @@ public class TargetControlTestCase extends AciTestCase {
           "allow(read) userdn=\"ldap:///" + "anyone" + "\";)";
 
 
-  //Allow either no-op or passwordpolicy controls. Used in the
-  //ext op tests.
+  /**
+   * Allow either no-op or passwordpolicy controls. Used in the extop tests.
+   */
   private static final
   String extOpControls =
           "(targetcontrol=\"" + OID_LDAP_NOOP_OPENLDAP_ASSIGNED + "||" +
@@ -166,15 +172,17 @@ public class TargetControlTestCase extends AciTestCase {
           "(version 3.0; acl \"control\";" +
           "allow(read) userdn=\"ldap:///" + "anyone" + "\";)";
 
- //Allow all to extended op.
+  /** Allow all to extended op. */
   private static final
   String extOpAll =
           "(extop=\"" + "*" + "\")" +
           "(version 3.0; acl \"control\";" +
           "allow(read) userdn=\"ldap:///" + "anyone" + "\";)";
 
-  //Only allow access to the password policy control. Used to test if the
-  //targetattr rule will give access erroneously.
+  /**
+   * Only allow access to the password policy control. Used to test if the
+   * targetattr rule will give access erroneously.
+   */
   private static final
   String complicated =
           "(targetcontrol=\"" + OID_PASSWORD_POLICY_CONTROL + "\")" +
@@ -222,14 +230,13 @@ public class TargetControlTestCase extends AciTestCase {
    *
    * @throws Exception If an unexpected result is returned.
    */
-
   @Test()
   public void testTargetattrSideEffect() throws Exception {
    String pwdLdifs =
         makeAddLDIF("aci", peopleBase, complicated);
     LDIFModify(pwdLdifs, DIR_MGR_DN, PWD);
     String noOpCtrlStr=OID_LDAP_NOOP_OPENLDAP_ASSIGNED + ":true";
-    //This should fail beacause this ACI only allows acces to the
+    // This should fail because this ACI only allows access to the
     //password policy control.
     pwdModify(level4User, PWD, newPWD, noOpCtrlStr, null,
             LDAPResultCode.INSUFFICIENT_ACCESS_RIGHTS);
@@ -287,7 +294,7 @@ public class TargetControlTestCase extends AciTestCase {
 
   /**
    * Test target from global ACI level. Two global ACIs are added, one allowing
-   * all controls except geteffective rights to the ou=people, o=test
+   * all controls except geteffectiverights to the ou=people, o=test
    * suffix. The other ACI only allows the geteffectiverights control on
    * the ou=admin, o=test suffix. Comments in method should explain more
    * what operations and controls are attempted.
@@ -306,7 +313,7 @@ public class TargetControlTestCase extends AciTestCase {
             "dn: " + level1User, null,
             level1User, filter, "aclRights mail description",
             false, false, 0);
-    //Ok because geteffectiverights control is allowed on
+    //OK because geteffectiverights control is allowed on
     //ou=admin, o=test
     LDAPSearchParams(level3User, PWD, null,
             "dn: " + level1User, null,
@@ -338,7 +345,6 @@ public class TargetControlTestCase extends AciTestCase {
    */
   @Test()
   public void testWildCard() throws Exception {
-
     String aciDeny=makeAddLDIF("aci", base, controlNotWC);
     String aciRight=makeAddLDIF("aci", base, aclRightsAci);
     LDIFModify(aciDeny, DIR_MGR_DN, PWD);
