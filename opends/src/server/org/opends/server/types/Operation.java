@@ -211,6 +211,23 @@ public interface Operation extends Runnable
   public abstract void setResultCode(ResultCode resultCode);
 
   /**
+   * Retrieves the real, masked result code for this operation.
+   *
+   * @return The real, masked result code associated for this operation, or
+   *         {@code UNDEFINED} if the operation has not yet completed.
+   */
+  ResultCode getMaskedResultCode();
+
+  /**
+   * Specifies the real, masked result code for this operation. This method may
+   * not be called by post-response plugins.
+   *
+   * @param maskedResultCode
+   *          The real, masked result code for this operation.
+   */
+  void setMaskedResultCode(ResultCode maskedResultCode);
+
+  /**
    * Retrieves the error message for this operation.  Its contents may
    * be altered by pre-parse, pre-operation, and post-operation
    * plugins, but not by post-response plugins.
@@ -236,6 +253,35 @@ public interface Operation extends Runnable
    * @param  message  The message to append to the error message
    */
   public abstract void appendErrorMessage(Message message);
+
+  /**
+   * Retrieves the real, masked error message for this operation. Its contents
+   * may be altered by pre-parse, pre-operation, and post-operation plugins, but
+   * not by post-response plugins.
+   *
+   * @return The real, masked error message for this operation.
+   */
+  MessageBuilder getMaskedErrorMessage();
+
+  /**
+   * Specifies the real, masked error message for this operation. This method
+   * may not be called by post-response plugins.
+   *
+   * @param maskedErrorMessage
+   *          The real, masked error message for this operation.
+   */
+  void setMaskedErrorMessage(MessageBuilder maskedErrorMessage);
+
+  /**
+   * Appends the provided message to the real, masked error message buffer. If
+   * the buffer has not yet been created, then this will create it first and
+   * then add the provided message. This method may not be called by
+   * post-response plugins.
+   *
+   * @param maskedMessage
+   *          The message to append to the real, masked error message
+   */
+  void appendMaskedErrorMessage(Message maskedMessage);
 
   /**
    * Returns an unmodifiable list containing the additional log items for this

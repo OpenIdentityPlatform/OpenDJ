@@ -353,7 +353,7 @@ public class TargetControlTestCase extends AciTestCase {
             base, filter, "aclRights mail description", false, false,
             0 /* disallowed but non-critical */);
     LDIFModify(aciRight, superUser, PWD, OID_LDAP_READENTRY_PREREAD,
-            LDAPResultCode.INSUFFICIENT_ACCESS_RIGHTS);
+            LDAPResultCode.NO_SUCH_OBJECT);
     deleteAttrFromEntry (base, "aci");
     String aciAllow=makeAddLDIF("aci", base, controlWC, ALLOW_ALL);
     LDIFModify(aciAllow, DIR_MGR_DN, PWD);

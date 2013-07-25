@@ -447,9 +447,7 @@ public final class TextAccessLogPublisher extends
     {
       appendAbandonRequest(abandonOperation, buffer);
     }
-    buffer.append(" result=");
-    buffer.append(abandonOperation.getResultCode().getIntValue());
-    appendMessage(buffer, abandonOperation);
+    appendResultCodeAndMessage(buffer, abandonOperation);
 
     logAdditionalLogItems(abandonOperation, buffer);
 
@@ -506,10 +504,7 @@ public final class TextAccessLogPublisher extends
     {
       appendAddRequest(addOperation, buffer);
     }
-    buffer.append(" result=");
-    buffer.append(addOperation.getResultCode().getIntValue());
-
-    appendMessage(buffer, addOperation);
+    appendResultCodeAndMessage(buffer, addOperation);
 
     logAdditionalLogItems(addOperation, buffer);
 
@@ -569,10 +564,7 @@ public final class TextAccessLogPublisher extends
     {
       appendBindRequest(bindOperation, buffer);
     }
-    buffer.append(" result=");
-    buffer.append(bindOperation.getResultCode().getIntValue());
-
-    appendMessage(buffer, bindOperation);
+    appendResultCodeAndMessage(buffer, bindOperation);
 
     final Message failureMessage = bindOperation.getAuthFailureReason();
     if (failureMessage != null)
@@ -674,10 +666,7 @@ public final class TextAccessLogPublisher extends
     {
       appendCompareRequest(compareOperation, buffer);
     }
-    buffer.append(" result=");
-    buffer.append(compareOperation.getResultCode().getIntValue());
-
-    appendMessage(buffer, compareOperation);
+    appendResultCodeAndMessage(buffer, compareOperation);
 
     logAdditionalLogItems(compareOperation, buffer);
 
@@ -773,10 +762,7 @@ public final class TextAccessLogPublisher extends
     {
       appendDeleteRequest(deleteOperation, buffer);
     }
-    buffer.append(" result=");
-    buffer.append(deleteOperation.getResultCode().getIntValue());
-
-    appendMessage(buffer, deleteOperation);
+    appendResultCodeAndMessage(buffer, deleteOperation);
 
     logAdditionalLogItems(deleteOperation, buffer);
 
@@ -885,11 +871,7 @@ public final class TextAccessLogPublisher extends
       }
       appendLabel(buffer, "oid", oid);
     }
-
-    buffer.append(" result=");
-    buffer.append(extendedOperation.getResultCode().getIntValue());
-
-    appendMessage(buffer, extendedOperation);
+    appendResultCodeAndMessage(buffer, extendedOperation);
 
     logAdditionalLogItems(extendedOperation, buffer);
 
@@ -946,10 +928,7 @@ public final class TextAccessLogPublisher extends
     {
       appendModifyDNRequest(modifyDNOperation, buffer);
     }
-    buffer.append(" result=");
-    buffer.append(modifyDNOperation.getResultCode().getIntValue());
-
-    appendMessage(buffer, modifyDNOperation);
+    appendResultCodeAndMessage(buffer, modifyDNOperation);
 
     logAdditionalLogItems(modifyDNOperation, buffer);
 
@@ -1009,10 +988,7 @@ public final class TextAccessLogPublisher extends
     {
       appendModifyRequest(modifyOperation, buffer);
     }
-    buffer.append(" result=");
-    buffer.append(modifyOperation.getResultCode().getIntValue());
-
-    appendMessage(buffer, modifyOperation);
+    appendResultCodeAndMessage(buffer, modifyOperation);
 
     logAdditionalLogItems(modifyOperation, buffer);
 
@@ -1072,10 +1048,7 @@ public final class TextAccessLogPublisher extends
     {
       appendSearchRequest(searchOperation, buffer);
     }
-    buffer.append(" result=");
-    buffer.append(searchOperation.getResultCode().getIntValue());
-
-    appendMessage(buffer, searchOperation);
+    appendResultCodeAndMessage(buffer, searchOperation);
 
     buffer.append(" nentries=");
     buffer.append(searchOperation.getEntriesSent());
@@ -1267,13 +1240,27 @@ public final class TextAccessLogPublisher extends
     }
   }
 
-  private void appendMessage(final StringBuilder buffer,
-      final Operation operation)
+  private void appendResultCodeAndMessage(StringBuilder buffer,
+      Operation operation)
   {
+    buffer.append(" result=");
+    buffer.append(operation.getResultCode().getIntValue());
+
     final MessageBuilder msg = operation.getErrorMessage();
     if ((msg != null) && (msg.length() > 0))
     {
       appendLabel(buffer, "message", msg);
+    }
+
+    if (operation.getMaskedResultCode() != null)
+    {
+      buffer.append(" maskedResult=");
+      buffer.append(operation.getMaskedResultCode().getIntValue());
+    }
+    final MessageBuilder maskedMsg = operation.getMaskedErrorMessage();
+    if (maskedMsg != null && maskedMsg.length() > 0)
+    {
+      appendLabel(buffer, "maskedMessage", maskedMsg);
     }
   }
 

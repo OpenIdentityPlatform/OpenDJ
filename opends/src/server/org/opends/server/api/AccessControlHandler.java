@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.api;
 
@@ -55,6 +55,7 @@ import org.opends.server.workflowelement.localbackend.*;
 public abstract class AccessControlHandler
                       <T extends AccessControlHandlerCfg>
 {
+
   /**
    * Initializes the access control handler implementation based on
    * the information in the provided configuration entry.
@@ -115,6 +116,40 @@ public abstract class AccessControlHandler
   public abstract void finalizeAccessControlHandler();
 
 
+  /**
+   * Checks whether the ACIs prevent sending information about the provided
+   * entry, or entryDN if entry is null.
+   *
+   * @param entry
+   *          the entry for which to check if ACIs prevent information
+   *          disclosure, if null, then a fake entry will be created from the
+   *          entryDN parameter
+   * @param entryDN
+   *          the entry dn for which to check if ACIs prevent information
+   *          disclosure. Only used if entry is null.
+   * @param operation
+   *          the operation for which to check if ACIs prevent information
+   *          disclosure
+   * @return true if the information for this entry can be disclosed, false
+   *         otherwise.
+   * @throws DirectoryException
+   *           If an error occurred while performing the access control check.
+   */
+  public boolean canDiscloseInformation(Entry entry, DN entryDN,
+      Operation operation) throws DirectoryException
+  {
+    if (entry == null)
+    {
+      entry = DirectoryServer.getEntry(entryDN);
+    }
+    if (entry == null)
+    {
+      // no such entry exist, let's be safe and forbid any info disclosure.
+      return false;
+    }
+    return maySend(operation, new SearchResultEntry(entry, operation
+        .getResponseControls()));
+  }
 
   /**
    * Indicates whether the provided add operation is allowed based on

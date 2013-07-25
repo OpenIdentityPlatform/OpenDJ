@@ -70,8 +70,6 @@ public class LocalBackendModifyOperation
    */
   private static final DebugTracer TRACER = getTracer();
 
-
-
   /**
    * The backend in which the target entry exists.
    */
@@ -295,40 +293,47 @@ public class LocalBackendModifyOperation
     // Check for a request to cancel this operation.
     checkIfCanceled(false);
 
-    BooleanHolder executePostOpPlugins = new BooleanHolder(false);
-    processModify(executePostOpPlugins);
-
-    // If the password policy request control was included, then make sure we
-    // send the corresponding response control.
-    if (pwPolicyControlRequested)
+    try
     {
-      addResponseControl(new PasswordPolicyResponseControl(null, 0,
-                                                           pwpErrorType));
-    }
+      BooleanHolder executePostOpPlugins = new BooleanHolder(false);
+      processModify(executePostOpPlugins);
 
-    // Invoke the post-operation or post-synchronization modify plugins.
-    PluginConfigManager pluginConfigManager =
-        DirectoryServer.getPluginConfigManager();
-    if (isSynchronizationOperation())
-    {
-      if (getResultCode() == ResultCode.SUCCESS)
+      // If the password policy request control was included, then make sure we
+      // send the corresponding response control.
+      if (pwPolicyControlRequested)
       {
-        pluginConfigManager.invokePostSynchronizationModifyPlugins(this);
+        addResponseControl(new PasswordPolicyResponseControl(null, 0,
+            pwpErrorType));
+      }
+
+      // Invoke the post-operation or post-synchronization modify plugins.
+      PluginConfigManager pluginConfigManager =
+          DirectoryServer.getPluginConfigManager();
+      if (isSynchronizationOperation())
+      {
+        if (getResultCode() == ResultCode.SUCCESS)
+        {
+          pluginConfigManager.invokePostSynchronizationModifyPlugins(this);
+        }
+      }
+      else if (executePostOpPlugins.value)
+      {
+        // FIXME -- Should this also be done while holding the locks?
+        PluginResult.PostOperation postOpResult =
+            pluginConfigManager.invokePostOperationModifyPlugins(this);
+        if (!postOpResult.continueProcessing())
+        {
+          setResultCode(postOpResult.getResultCode());
+          appendErrorMessage(postOpResult.getErrorMessage());
+          setMatchedDN(postOpResult.getMatchedDN());
+          setReferralURLs(postOpResult.getReferralURLs());
+          return;
+        }
       }
     }
-    else if (executePostOpPlugins.value)
+    finally
     {
-      // FIXME -- Should this also be done while holding the locks?
-      PluginResult.PostOperation postOpResult =
-           pluginConfigManager.invokePostOperationModifyPlugins(this);
-      if (!postOpResult.continueProcessing())
-      {
-        setResultCode(postOpResult.getResultCode());
-        appendErrorMessage(postOpResult.getErrorMessage());
-        setMatchedDN(postOpResult.getMatchedDN());
-        setReferralURLs(postOpResult.getReferralURLs());
-        return;
-      }
+      LocalBackendWorkflowElement.filterNonDisclosableMatchedDN(this);
     }
 
 
@@ -407,16 +412,16 @@ public class LocalBackendModifyOperation
 
     // Acquire a write lock on the target entry.
     final Lock entryLock = LockManager.lockWrite(entryDN);
-    if (entryLock == null)
-    {
-      setResultCode(ResultCode.BUSY);
-      appendErrorMessage(ERR_MODIFY_CANNOT_LOCK_ENTRY.get(String
-          .valueOf(entryDN)));
-      return;
-    }
 
     try
     {
+      if (entryLock == null)
+      {
+        setResultCodeAndMessageNoInfoDisclosure(currentEntry, ResultCode.BUSY,
+            ERR_MODIFY_CANNOT_LOCK_ENTRY.get(String.valueOf(entryDN)));
+        return;
+      }
+
       // Check for a request to cancel this operation.
       checkIfCanceled(false);
 
@@ -480,12 +485,9 @@ public class LocalBackendModifyOperation
       // Create a duplicate of the entry and apply the changes to it.
       modifiedEntry = currentEntry.duplicate(false);
 
-      if (!noOp)
+      if (!noOp && !handleConflictResolution())
       {
-        if (!handleConflictResolution())
-        {
-          return;
-        }
+        return;
       }
 
       handleSchemaProcessing();
@@ -505,9 +507,10 @@ public class LocalBackendModifyOperation
         if (!AccessControlConfigManager.getInstance().getAccessControlHandler()
             .isAllowed(this))
         {
-          setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
-          appendErrorMessage(ERR_MODIFY_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS
-              .get(String.valueOf(entryDN)));
+          setResultCodeAndMessageNoInfoDisclosure(modifiedEntry,
+              ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
+              ERR_MODIFY_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS.get(String
+                  .valueOf(entryDN)));
           return;
         }
       }
@@ -620,13 +623,31 @@ public class LocalBackendModifyOperation
       }
 
       setResponseData(de);
-      return;
     }
     finally
     {
-      LockManager.unlock(entryDN, entryLock);
+      if (entryLock != null)
+      {
+        LockManager.unlock(entryDN, entryLock);
+      }
       processSynchPostOperationPlugins();
     }
+  }
+
+  private DirectoryException newDirectoryException(Entry entry,
+      ResultCode resultCode, Message message) throws DirectoryException
+  {
+    return LocalBackendWorkflowElement.newDirectoryException(this, entry, null,
+        resultCode, message, ResultCode.NO_SUCH_OBJECT,
+        ERR_MODIFY_NO_SUCH_ENTRY.get(String.valueOf(entryDN)));
+  }
+
+  private void setResultCodeAndMessageNoInfoDisclosure(Entry entry,
+      ResultCode realResultCode, Message realMessage) throws DirectoryException
+  {
+    LocalBackendWorkflowElement.setResultCodeAndMessageNoInfoDisclosure(this,
+        entry, null, realResultCode, realMessage, ResultCode.NO_SUCH_OBJECT,
+        ERR_MODIFY_NO_SUCH_ENTRY.get(String.valueOf(entryDN)));
   }
 
   private DN findMatchedDN(DN entryDN)
@@ -694,7 +715,7 @@ public class LocalBackendModifyOperation
               TRACER.debugCaught(DebugLogLevel.ERROR, de);
             }
 
-            throw new DirectoryException(de.getResultCode(),
+            throw newDirectoryException(currentEntry, de.getResultCode(),
                            ERR_MODIFY_CANNOT_PROCESS_ASSERTION_FILTER.get(
                                 String.valueOf(entryDN),
                                 de.getMessageObject()));
@@ -714,9 +735,9 @@ public class LocalBackendModifyOperation
           {
             if (!filter.matchesEntry(currentEntry))
             {
-              throw new DirectoryException(ResultCode.ASSERTION_FAILED,
-                  ERR_MODIFY_ASSERTION_FAILED.get(String
-                      .valueOf(entryDN)));
+              throw newDirectoryException(currentEntry,
+                  ResultCode.ASSERTION_FAILED,
+                  ERR_MODIFY_ASSERTION_FAILED.get(String.valueOf(entryDN)));
             }
           }
           catch (DirectoryException de)
@@ -731,7 +752,7 @@ public class LocalBackendModifyOperation
               TRACER.debugCaught(DebugLogLevel.ERROR, de);
             }
 
-            throw new DirectoryException(de.getResultCode(),
+            throw newDirectoryException(currentEntry, de.getResultCode(),
                            ERR_MODIFY_CANNOT_PROCESS_ASSERTION_FILTER.get(
                                 String.valueOf(entryDN),
                                 de.getMessageObject()));
@@ -825,7 +846,7 @@ public class LocalBackendModifyOperation
         {
           if ((backend == null) || (! backend.supportsControl(oid)))
           {
-            throw new DirectoryException(
+            throw newDirectoryException(currentEntry,
                            ResultCode.UNAVAILABLE_CRITICAL_EXTENSION,
                            ERR_MODIFY_UNSUPPORTED_CRITICAL_CONTROL.get(
                                 String.valueOf(entryDN), oid));
@@ -858,8 +879,9 @@ public class LocalBackendModifyOperation
         if (! (isInternalOperation() || isSynchronizationOperation() ||
                 m.isInternal()))
         {
-          throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                  ERR_MODIFY_ATTR_IS_NO_USER_MOD.get(
+          throw newDirectoryException(currentEntry,
+              ResultCode.CONSTRAINT_VIOLATION,
+              ERR_MODIFY_ATTR_IS_NO_USER_MOD.get(
                           String.valueOf(entryDN), a.getName()));
         }
       }
@@ -875,8 +897,9 @@ public class LocalBackendModifyOperation
           if (! (isInternalOperation() || isSynchronizationOperation() ||
                   m.isInternal()))
           {
-            throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                    ERR_MODIFY_ATTR_IS_OBSOLETE.get(
+            throw newDirectoryException(currentEntry,
+                ResultCode.CONSTRAINT_VIOLATION,
+                ERR_MODIFY_ATTR_IS_OBSOLETE.get(
                             String.valueOf(entryDN), a.getName()));
           }
         }
@@ -1379,7 +1402,7 @@ public class LocalBackendModifyOperation
     // attribute.
     if (attr.isEmpty())
     {
-      throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
+      throw newDirectoryException(currentEntry, ResultCode.PROTOCOL_ERROR,
           ERR_MODIFY_ADD_NO_VALUES.get(String.valueOf(entryDN),
               attr.getName()));
     }
@@ -1403,15 +1426,17 @@ public class LocalBackendModifyOperation
             if (!syntax.isHumanReadable() || syntax.isBinary())
             {
               // Value is not human-readable
-              throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                ERR_MODIFY_ADD_INVALID_SYNTAX_NO_VALUE.get(
-                    String.valueOf(entryDN), attr.getName(), invalidReason));
+              throw newDirectoryException(currentEntry,
+                  ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+                  ERR_MODIFY_ADD_INVALID_SYNTAX_NO_VALUE.get(
+                      String.valueOf(entryDN), attr.getName(), invalidReason));
             }
             else
             {
-              throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                ERR_MODIFY_ADD_INVALID_SYNTAX.get(String.valueOf(entryDN), attr
-                    .getName(), v.getValue().toString(), invalidReason));
+              throw newDirectoryException(currentEntry,
+                  ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+                  ERR_MODIFY_ADD_INVALID_SYNTAX.get(String.valueOf(entryDN),
+                      attr.getName(), v.getValue().toString(), invalidReason));
             }
           }
         }
@@ -1455,16 +1480,16 @@ public class LocalBackendModifyOperation
     // Add the provided attribute or merge an existing attribute with
     // the values of the new attribute. If there are any duplicates,
     // then fail.
-    List<AttributeValue> duplicateValues =
-      new LinkedList<AttributeValue>();
+    List<AttributeValue> duplicateValues = new LinkedList<AttributeValue>();
     modifiedEntry.addAttribute(attr, duplicateValues);
     if (!duplicateValues.isEmpty() && !permissiveModify)
     {
       String duplicateValuesStr = collectionToString(duplicateValues, ", ");
 
-      throw new DirectoryException(ResultCode.ATTRIBUTE_OR_VALUE_EXISTS,
-          ERR_MODIFY_ADD_DUPLICATE_VALUE.get(String.valueOf(entryDN), attr
-              .getName(), duplicateValuesStr));
+      throw newDirectoryException(currentEntry,
+          ResultCode.ATTRIBUTE_OR_VALUE_EXISTS,
+          ERR_MODIFY_ADD_DUPLICATE_VALUE.get(
+              String.valueOf(entryDN), attr.getName(), duplicateValuesStr));
     }
   }
 
@@ -1505,16 +1530,16 @@ public class LocalBackendModifyOperation
       ObjectClass oc = DirectoryServer.getObjectClass(lowerName);
       if (oc == null)
       {
-        Message message = ERR_ENTRY_ADD_UNKNOWN_OC.get(name, String
-            .valueOf(entryDN));
-        throw new DirectoryException(ResultCode.OBJECTCLASS_VIOLATION, message);
+        throw newDirectoryException(currentEntry,
+            ResultCode.OBJECTCLASS_VIOLATION,
+            ERR_ENTRY_ADD_UNKNOWN_OC.get(name, String.valueOf(entryDN)));
       }
 
       if (oc.isObsolete())
       {
-        Message message = ERR_ENTRY_ADD_OBSOLETE_OC.get(name, String
-            .valueOf(entryDN));
-        throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
+        throw newDirectoryException(currentEntry,
+            ResultCode.CONSTRAINT_VIOLATION,
+            ERR_ENTRY_ADD_OBSOLETE_OC.get(name, String.valueOf(entryDN)));
       }
     }
   }
@@ -1551,10 +1576,10 @@ public class LocalBackendModifyOperation
             (! modifiedEntry.hasValue(t, attr.getOptions(),
                                       rdn.getAttributeValue(t))))
         {
-          throw new DirectoryException(ResultCode.NOT_ALLOWED_ON_RDN,
-                                       ERR_MODIFY_DELETE_RDN_ATTR.get(
-                                            String.valueOf(entryDN),
-                                            attr.getName()));
+          throw newDirectoryException(currentEntry,
+              ResultCode.NOT_ALLOWED_ON_RDN,
+              ERR_MODIFY_DELETE_RDN_ATTR.get(
+                  String.valueOf(entryDN), attr.getName()));
         }
       }
       else
@@ -1563,10 +1588,10 @@ public class LocalBackendModifyOperation
         {
           String missingValuesStr = collectionToString(missingValues, ", ");
 
-          throw new DirectoryException(ResultCode.NO_SUCH_ATTRIBUTE,
-                       ERR_MODIFY_DELETE_MISSING_VALUES.get(
-                            String.valueOf(entryDN), attr.getName(),
-                            missingValuesStr));
+          throw newDirectoryException(currentEntry,
+              ResultCode.NO_SUCH_ATTRIBUTE,
+              ERR_MODIFY_DELETE_MISSING_VALUES.get(
+                  String.valueOf(entryDN), attr.getName(), missingValuesStr));
         }
       }
     }
@@ -1574,7 +1599,7 @@ public class LocalBackendModifyOperation
     {
       if (! permissiveModify)
       {
-        throw new DirectoryException(ResultCode.NO_SUCH_ATTRIBUTE,
+        throw newDirectoryException(currentEntry, ResultCode.NO_SUCH_ATTRIBUTE,
                      ERR_MODIFY_DELETE_NO_SUCH_ATTR.get(
                           String.valueOf(entryDN), attr.getName()));
       }
@@ -1615,15 +1640,17 @@ public class LocalBackendModifyOperation
             if (!syntax.isHumanReadable() || syntax.isBinary())
             {
               // Value is not human-readable
-              throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                ERR_MODIFY_REPLACE_INVALID_SYNTAX_NO_VALUE.get(
-                    String.valueOf(entryDN), attr.getName(), invalidReason));
+              throw newDirectoryException(currentEntry,
+                  ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+                  ERR_MODIFY_REPLACE_INVALID_SYNTAX_NO_VALUE.get(
+                      String.valueOf(entryDN), attr.getName(), invalidReason));
             }
             else
             {
-              throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                ERR_MODIFY_REPLACE_INVALID_SYNTAX.get(String.valueOf(entryDN),
-                    attr.getName(), v.getValue().toString(), invalidReason));
+              throw newDirectoryException(currentEntry,
+                  ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+                  ERR_MODIFY_REPLACE_INVALID_SYNTAX.get(String.valueOf(entryDN),
+                      attr.getName(), v.getValue().toString(), invalidReason));
             }
           }
         }
@@ -1673,7 +1700,7 @@ public class LocalBackendModifyOperation
         && (!modifiedEntry.hasValue(t, attr.getOptions(), rdn
             .getAttributeValue(t))))
     {
-      throw new DirectoryException(ResultCode.NOT_ALLOWED_ON_RDN,
+      throw newDirectoryException(modifiedEntry, ResultCode.NOT_ALLOWED_ON_RDN,
           ERR_MODIFY_DELETE_RDN_ATTR.get(String.valueOf(entryDN), attr
               .getName()));
     }
@@ -1699,7 +1726,7 @@ public class LocalBackendModifyOperation
     RDN rdn = modifiedEntry.getDN().getRDN();
     if ((rdn != null) && rdn.hasAttributeType(t))
     {
-      throw new DirectoryException(ResultCode.NOT_ALLOWED_ON_RDN,
+      throw newDirectoryException(modifiedEntry, ResultCode.NOT_ALLOWED_ON_RDN,
           ERR_MODIFY_INCREMENT_RDN.get(String.valueOf(entryDN),
               attr.getName()));
     }
@@ -1708,14 +1735,14 @@ public class LocalBackendModifyOperation
     // an integer.
     if (attr.isEmpty())
     {
-      throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
+      throw newDirectoryException(modifiedEntry, ResultCode.PROTOCOL_ERROR,
           ERR_MODIFY_INCREMENT_REQUIRES_VALUE.get(String.valueOf(entryDN), attr
               .getName()));
     }
 
     if (attr.size() > 1)
     {
-      throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
+      throw newDirectoryException(modifiedEntry, ResultCode.PROTOCOL_ERROR,
           ERR_MODIFY_INCREMENT_REQUIRES_SINGLE_VALUE.get(String
               .valueOf(entryDN), attr.getName()));
     }
@@ -1743,7 +1770,8 @@ public class LocalBackendModifyOperation
     Attribute a = modifiedEntry.getExactAttribute(t, attr.getOptions());
     if (a == null)
     {
-      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
+      throw newDirectoryException(modifiedEntry,
+          ResultCode.CONSTRAINT_VIOLATION,
           ERR_MODIFY_INCREMENT_REQUIRES_EXISTING_VALUE.get(String
               .valueOf(entryDN), attr.getName()));
     }
@@ -2110,8 +2138,8 @@ public class LocalBackendModifyOperation
               SynchronizationProviderResult result =
                   provider.handleConflictResolution(this);
               if (! result.continueProcessing()) {
-                  setResultCode(result.getResultCode());
-                  appendErrorMessage(result.getErrorMessage());
+                  setResultCodeAndMessageNoInfoDisclosure(modifiedEntry,
+                      result.getResultCode(), result.getErrorMessage());
                   setMatchedDN(result.getMatchedDN());
                   setReferralURLs(result.getReferralURLs());
                   returnVal = false;

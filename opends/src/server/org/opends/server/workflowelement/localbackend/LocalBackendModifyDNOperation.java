@@ -178,31 +178,38 @@ public class LocalBackendModifyDNOperation
     // Check for a request to cancel this operation.
     checkIfCanceled(false);
 
-    BooleanHolder executePostOpPlugins = new BooleanHolder(false);
-    processModifyDN(executePostOpPlugins);
-
-    // Invoke the post-operation or post-synchronization modify DN plugins.
-    PluginConfigManager pluginConfigManager =
-        DirectoryServer.getPluginConfigManager();
-    if (isSynchronizationOperation())
+    try
     {
-      if (getResultCode() == ResultCode.SUCCESS)
+      BooleanHolder executePostOpPlugins = new BooleanHolder(false);
+      processModifyDN(executePostOpPlugins);
+
+      // Invoke the post-operation or post-synchronization modify DN plugins.
+      PluginConfigManager pluginConfigManager =
+          DirectoryServer.getPluginConfigManager();
+      if (isSynchronizationOperation())
       {
-        pluginConfigManager.invokePostSynchronizationModifyDNPlugins(this);
+        if (getResultCode() == ResultCode.SUCCESS)
+        {
+          pluginConfigManager.invokePostSynchronizationModifyDNPlugins(this);
+        }
+      }
+      else if (executePostOpPlugins.value)
+      {
+        PluginResult.PostOperation postOpResult =
+            pluginConfigManager.invokePostOperationModifyDNPlugins(this);
+        if (!postOpResult.continueProcessing())
+        {
+          setResultCode(postOpResult.getResultCode());
+          appendErrorMessage(postOpResult.getErrorMessage());
+          setMatchedDN(postOpResult.getMatchedDN());
+          setReferralURLs(postOpResult.getReferralURLs());
+          return;
+        }
       }
     }
-    else if (executePostOpPlugins.value)
+    finally
     {
-      PluginResult.PostOperation postOpResult =
-          pluginConfigManager.invokePostOperationModifyDNPlugins(this);
-      if (!postOpResult.continueProcessing())
-      {
-        setResultCode(postOpResult.getResultCode());
-        appendErrorMessage(postOpResult.getErrorMessage());
-        setMatchedDN(postOpResult.getMatchedDN());
-        setReferralURLs(postOpResult.getReferralURLs());
-        return;
-      }
+      LocalBackendWorkflowElement.filterNonDisclosableMatchedDN(this);
     }
 
     // Register a post-response call-back which will notify persistent
@@ -328,51 +335,42 @@ public class LocalBackendModifyDNOperation
 
     // Acquire write locks for the current and new DN.
     final Lock currentLock = LockManager.lockWrite(entryDN);
-    if (currentLock == null)
-    {
-      setResultCode(ResultCode.BUSY);
-      appendErrorMessage(ERR_MODDN_CANNOT_LOCK_CURRENT_DN.get(String
-          .valueOf(entryDN)));
-      return;
-    }
-
     Lock newLock = null;
-    try
-    {
-      newLock = LockManager.lockWrite(newDN);
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      LockManager.unlock(entryDN, currentLock);
-
-      if (newLock != null)
-      {
-        LockManager.unlock(newDN, newLock);
-      }
-
-      setResultCode(DirectoryServer.getServerErrorResultCode());
-      appendErrorMessage(ERR_MODDN_EXCEPTION_LOCKING_NEW_DN.get(String
-          .valueOf(entryDN), String.valueOf(newDN), getExceptionMessage(e)));
-      return;
-    }
-
-    if (newLock == null)
-    {
-      LockManager.unlock(entryDN, currentLock);
-
-      setResultCode(ResultCode.BUSY);
-      appendErrorMessage(ERR_MODDN_CANNOT_LOCK_NEW_DN.get(String
-          .valueOf(entryDN), String.valueOf(newDN)));
-      return;
-    }
 
     try
     {
+      if (currentLock == null)
+      {
+        setResultCodeAndMessageNoInfoDisclosure(null, entryDN, ResultCode.BUSY,
+            ERR_MODDN_CANNOT_LOCK_CURRENT_DN.get(String.valueOf(entryDN)));
+        return;
+      }
+
+      try
+      {
+        newLock = LockManager.lockWrite(newDN);
+        if (newLock == null)
+        {
+          setResultCodeAndMessageNoInfoDisclosure(null, newDN, ResultCode.BUSY,
+              ERR_MODDN_CANNOT_LOCK_NEW_DN.get(String.valueOf(entryDN), String
+                  .valueOf(newDN)));
+          return;
+        }
+      }
+      catch (Exception e)
+      {
+        if (debugEnabled())
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        }
+
+        setResultCodeAndMessageNoInfoDisclosure(null, newDN,
+            DirectoryServer.getServerErrorResultCode(),
+            ERR_MODDN_EXCEPTION_LOCKING_NEW_DN.get(String.valueOf(entryDN),
+                String.valueOf(newDN), getExceptionMessage(e)));
+        return;
+      }
+
       // Check for a request to cancel this operation.
       checkIfCanceled(false);
 
@@ -410,9 +408,10 @@ public class LocalBackendModifyDNOperation
         if (!AccessControlConfigManager.getInstance().getAccessControlHandler()
             .isAllowed(this))
         {
-          setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
-          appendErrorMessage(ERR_MODDN_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS
-              .get(String.valueOf(entryDN)));
+          setResultCodeAndMessageNoInfoDisclosure(currentEntry, entryDN,
+              ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
+              ERR_MODDN_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS.get(String
+                  .valueOf(entryDN)));
           return;
         }
       }
@@ -430,7 +429,7 @@ public class LocalBackendModifyDNOperation
 
       // init the modifications
       addModification(null);
-      List<Modification> modifications = this.getModifications();
+      List<Modification> modifications = getModifications();
 
       if (!handleConflictResolution())
       {
@@ -567,10 +566,32 @@ public class LocalBackendModifyDNOperation
     }
     finally
     {
-      LockManager.unlock(entryDN, currentLock);
-      LockManager.unlock(newDN, newLock);
+      if (currentLock != null)
+      {
+        LockManager.unlock(entryDN, currentLock);
+      }
+      if (newLock != null)
+      {
+        LockManager.unlock(newDN, newLock);
+      }
       processSynchPostOperationPlugins();
     }
+  }
+
+  private DirectoryException newDirectoryException(Entry entry, DN entryDN,
+      ResultCode resultCode, Message message) throws DirectoryException
+  {
+    return LocalBackendWorkflowElement.newDirectoryException(this, entry,
+        entryDN, resultCode, message, ResultCode.NO_SUCH_OBJECT,
+        ERR_MODDN_NO_CURRENT_ENTRY.get(String.valueOf(entryDN)));
+  }
+
+  private void setResultCodeAndMessageNoInfoDisclosure(Entry entry, DN entryDN,
+      ResultCode realResultCode, Message realMessage) throws DirectoryException
+  {
+    LocalBackendWorkflowElement.setResultCodeAndMessageNoInfoDisclosure(this,
+        entry, entryDN, realResultCode, realMessage, ResultCode.NO_SUCH_OBJECT,
+        ERR_MODDN_NO_CURRENT_ENTRY.get(String.valueOf(entryDN)));
   }
 
   private DN findMatchedDN(DN entryDN)
@@ -637,10 +658,11 @@ public class LocalBackendModifyDNOperation
               TRACER.debugCaught(DebugLogLevel.ERROR, de);
             }
 
-            throw new DirectoryException(de.getResultCode(),
-                           ERR_MODDN_CANNOT_PROCESS_ASSERTION_FILTER.get(
-                                String.valueOf(entryDN),
-                                de.getMessageObject()));
+            throw newDirectoryException(currentEntry, entryDN,
+                de.getResultCode(),
+                ERR_MODDN_CANNOT_PROCESS_ASSERTION_FILTER.get(
+                    String.valueOf(entryDN),
+                    de.getMessageObject()));
           }
 
           // Check if the current user has permission to make
@@ -657,7 +679,8 @@ public class LocalBackendModifyDNOperation
           {
             if (!filter.matchesEntry(currentEntry))
             {
-              throw new DirectoryException(ResultCode.ASSERTION_FAILED,
+              throw newDirectoryException(currentEntry, entryDN,
+                  ResultCode.ASSERTION_FAILED,
                   ERR_MODDN_ASSERTION_FAILED.get(String
                       .valueOf(entryDN)));
             }
@@ -674,10 +697,11 @@ public class LocalBackendModifyDNOperation
               TRACER.debugCaught(DebugLogLevel.ERROR, de);
             }
 
-            throw new DirectoryException(de.getResultCode(),
-                           ERR_MODDN_CANNOT_PROCESS_ASSERTION_FILTER.get(
-                                String.valueOf(entryDN),
-                                de.getMessageObject()));
+            throw newDirectoryException(currentEntry, entryDN,
+                de.getResultCode(),
+                ERR_MODDN_CANNOT_PROCESS_ASSERTION_FILTER.get(
+                    String.valueOf(entryDN),
+                    de.getMessageObject()));
           }
         }
         else if (oid.equals(OID_LDAP_NOOP_OPENLDAP_ASSIGNED))
