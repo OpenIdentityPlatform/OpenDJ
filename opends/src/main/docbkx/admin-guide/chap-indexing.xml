@@ -221,7 +221,12 @@ cn: Barbara Maddox</screen>
   <para>A simple way of checking the indexes that match a search is to request
   the <literal>debugsearchindex</literal> attribute in your results.</para>
 
-  <screen>$ ldapsearch --port 1389 --baseDN dc=example,dc=com "(uid=user.1000)"
+  <screen>$ ldapsearch
+ --port 1389
+ --baseDN dc=example,dc=com
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ "(uid=user.1000)"
  debugsearchindex
 dn: cn=debugsearch
 debugsearchindex: filter=(uid=user.1000)[INDEX:uid.equality][COUNT:1] final=[COU
@@ -235,7 +240,13 @@ debugsearchindex: filter=(uid=user.1000)[INDEX:uid.equality][COUNT:1] final=[COU
   <para>A less exact search requires more work from OpenDJ. In the following
   example OpenDJ would have to return over 10,000 entries.</para>
 
-  <screen>$ ldapsearch --port 1389 --baseDN dc=example,dc=com "(uid=*)" debugsearchindex
+  <screen>$ ldapsearch
+ --port 1389
+ --baseDN dc=example,dc=com
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ "(uid=*)"
+ debugsearchindex
 dn: cn=debugsearch
 debugsearchindex: filter=(uid=*)[NOT-INDEXED] scope=wholeSubtree[LIMIT-EXCEEDED:
  10002] final=[NOT-INDEXED]</screen>
