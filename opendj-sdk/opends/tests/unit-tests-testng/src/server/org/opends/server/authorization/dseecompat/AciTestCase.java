@@ -196,10 +196,9 @@ public abstract class  AciTestCase extends DirectoryServerTestCase {
     }
     String[] args = new String[argList.size()];
     oStream.reset();
-    int ret=
-           LDAPPasswordModify.mainPasswordModify(argList.toArray(args),
+    int ret = LDAPPasswordModify.mainPasswordModify(argList.toArray(args),
                    false, oStream, oStream);
-    Assert.assertEquals(expectedRc, ret, "Returned error: " + oStream);
+    Assert.assertEquals(ret, expectedRc, "Returned error: " + oStream);
     return oStream.toString();
   }
 
@@ -236,7 +235,7 @@ public abstract class  AciTestCase extends DirectoryServerTestCase {
     oStream.reset();
     int retVal =
             LDAPSearch.mainSearch(argList.toArray(args), false, oStream, oStream);
-    Assert.assertEquals(0, retVal, "Returned error: " + oStream);
+    Assert.assertEquals(retVal, 0, "Returned error: " + oStream);
     return oStream.toString();
   }
 
@@ -373,7 +372,7 @@ public abstract class  AciTestCase extends DirectoryServerTestCase {
   {
     oStream.reset();
     int retVal = LDAPDelete.mainDelete(args, false, oStream, oStream);
-    Assert.assertEquals(expectedRc, retVal, "Returned error: " + oStream);
+    Assert.assertEquals(retVal, expectedRc, "Returned error: " + oStream);
   }
 
 
@@ -437,7 +436,7 @@ public abstract class  AciTestCase extends DirectoryServerTestCase {
     oStream.reset();
     int retVal =LDAPModify.mainModify(args, false, oStream, oStream);
     if (expectedRc != -1)
-      Assert.assertEquals(expectedRc, retVal, "Returned error: " + oStream);
+      Assert.assertEquals(retVal, expectedRc, "Returned error: " + oStream);
   }
 
   protected void deleteAttrFromEntry(String dn, String attr) throws Exception {
@@ -691,11 +690,11 @@ public abstract class  AciTestCase extends DirectoryServerTestCase {
             "ds-privilege-name: proxied-auth");
   }
 
-  protected HashMap<String, String>
-  getAttrMap(String resultString) {
+  protected Map<String, String> getAttrMap(String resultString)
+  {
     StringReader r=new StringReader(resultString);
     BufferedReader br=new BufferedReader(r);
-    HashMap<String, String> attrMap = new HashMap<String,String>();
+    Map<String, String> attrMap = new HashMap<String, String>();
     try {
       while(true) {
         String s = br.readLine();
@@ -709,7 +708,7 @@ public abstract class  AciTestCase extends DirectoryServerTestCase {
         attrMap.put(a[0].toLowerCase(),a[1]);
       }
     } catch (IOException e) {
-      Assert.assertEquals(0, 1,  e.getMessage());
+      Assert.fail(e.getMessage());
     }
     return attrMap;
   }

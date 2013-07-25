@@ -23,24 +23,24 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS
  */
-
-
 package org.opends.server.authorization.dseecompat;
 
-
-
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
-import org.testng.annotations.BeforeMethod;
-import org.testng.Assert;
 import static org.opends.server.config.ConfigConstants.*;
-import java.util.HashMap;
 import static org.opends.server.util.ServerConstants.*;
+
+import java.util.Map;
+
+import org.testng.Assert;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
 
 /**
  * This class tests ACI behavior using alternate root bind DNs.
  */
+@SuppressWarnings("javadoc")
 public class AlternateRootDN extends AciTestCase {
 
   private static final String user1="uid=user.1,ou=People,o=test";
@@ -55,7 +55,8 @@ public class AlternateRootDN extends AciTestCase {
        "(version 3.0; acl \"proxy" +  user3 + "\";" +
        "allow (proxy) userdn=\"ldap:///" + user3 + "\";)";
 
-  //Need an ACI to allow proxy control
+  /** Need an ACI to allow proxy control */
+  private static final
   String controlACI = "(targetcontrol=\"" + OID_PROXIED_AUTH_V2 + "\")" +
           "(version 3.0; acl \"control\";" +
           "allow(read) userdn=\"ldap:///" + user3 + "\";)";
@@ -96,20 +97,20 @@ public class AlternateRootDN extends AciTestCase {
     String adminDNResults =
             LDAPSearchParams(adminDN, PWD, null, null, null,
                     user1, pwdFilter, ATTR_USER_PASSWORD);
-    Assert.assertFalse(adminDNResults.equals(""));
-    HashMap<String, String> attrMap=getAttrMap(adminDNResults);
+    Assert.assertFalse("".equals(adminDNResults));
+    Map<String, String> attrMap = getAttrMap(adminDNResults);
     Assert.assertTrue(attrMap.containsKey(ATTR_USER_PASSWORD));
     String adminRootDNResults =
             LDAPSearchParams(adminRootDN, PWD, null, null, null,
                     user1, pwdFilter, ATTR_USER_PASSWORD);
-    Assert.assertFalse(adminRootDNResults.equals(""));
-    HashMap<String, String> attrMap1=getAttrMap(adminRootDNResults);
+    Assert.assertFalse("".equals(adminRootDNResults));
+    Map<String, String> attrMap1 = getAttrMap(adminRootDNResults);
     Assert.assertTrue(attrMap1.containsKey(ATTR_USER_PASSWORD));
     String rootDNResults =
             LDAPSearchParams(rootDN, PWD, null, null, null,
                     user1, pwdFilter, ATTR_USER_PASSWORD);
-    Assert.assertFalse(rootDNResults.equals(""));
-    HashMap<String, String> attrMap2=getAttrMap(rootDNResults);
+    Assert.assertFalse("".equals(rootDNResults));
+    Map<String, String> attrMap2 = getAttrMap(rootDNResults);
     Assert.assertTrue(attrMap2.containsKey(ATTR_USER_PASSWORD));
     deleteAttrFromEntry(user1, "aci");
   }
@@ -133,20 +134,20 @@ public class AlternateRootDN extends AciTestCase {
     String adminDNResults =
             LDAPSearchParams(user3, PWD, adminDN, null, null,
                     user1, pwdFilter, ATTR_USER_PASSWORD);
-    Assert.assertFalse(adminDNResults.equals(""));
-    HashMap<String, String> attrMap=getAttrMap(adminDNResults);
+    Assert.assertFalse("".equals(adminDNResults));
+    Map<String, String> attrMap = getAttrMap(adminDNResults);
     Assert.assertTrue(attrMap.containsKey(ATTR_USER_PASSWORD));
     String adminRootDNResults =
             LDAPSearchParams(user3, PWD, adminRootDN, null, null,
                     user1, pwdFilter, ATTR_USER_PASSWORD);
-    Assert.assertFalse(adminRootDNResults.equals(""));
-    HashMap<String, String> attrMap1=getAttrMap(adminRootDNResults);
+    Assert.assertFalse("".equals(adminRootDNResults));
+    Map<String, String> attrMap1 = getAttrMap(adminRootDNResults);
     Assert.assertTrue(attrMap1.containsKey(ATTR_USER_PASSWORD));
     String rootDNResults =
             LDAPSearchParams(user3, PWD, adminDN, null, null,
                     user1, pwdFilter, ATTR_USER_PASSWORD);
-    Assert.assertFalse(rootDNResults.equals(""));
-    HashMap<String, String> attrMap2=getAttrMap(rootDNResults);
+    Assert.assertFalse("".equals(rootDNResults));
+    Map<String, String> attrMap2 = getAttrMap(rootDNResults);
     Assert.assertTrue(attrMap2.containsKey(ATTR_USER_PASSWORD));
     deleteAttrFromEntry(user1, "aci");
   }
