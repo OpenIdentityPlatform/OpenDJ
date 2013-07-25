@@ -59,9 +59,9 @@ import org.testng.annotations.Test;
  */
 public class ReplicationServerLoadBalancingTest extends ReplicationTestCase
 {
-  // Number of DSs
+  /** Number of DSs */
   private static final int NDS = 20;
-  // Number of RSs
+  /** Number of RSs */
   private static final int NRS = 4;
   private final LDAPReplicationDomain rd[] = new LDAPReplicationDomain[NDS];
   private final ReplicationServer rs[] = new ReplicationServer[NRS];
@@ -71,7 +71,7 @@ public class ReplicationServerLoadBalancingTest extends ReplicationTestCase
   private static final int RS2_ID = 502;
   private static final int RS3_ID = 503;
 
-  // The tracer object for the debug logger
+  /** The tracer object for the debug logger */
   private static final DebugTracer TRACER = getTracer();
 
   private void debugInfo(String s)
@@ -164,15 +164,16 @@ public class ReplicationServerLoadBalancingTest extends ReplicationTestCase
 
   private int getNbRSs(String testCase)
   {
-    if (testCase.equals("testFailoversAndWeightChanges")
-        || testCase.equals("testSpreadLoad"))
+    if ("testFailoversAndWeightChanges".equals(testCase)
+        || "testSpreadLoad".equals(testCase))
     {
       return NRS;
-    } else if (testCase.equals("testNoYoyo1"))
+    }
+    else if ("testNoYoyo1".equals(testCase))
     {
       return 2;
     }
-    else if (testCase.equals("testNoYoyo2") || testCase.equals("testNoYoyo3"))
+    else if ("testNoYoyo2".equals(testCase) || "testNoYoyo3".equals(testCase))
     {
       return 3;
     }
@@ -200,8 +201,7 @@ public class ReplicationServerLoadBalancingTest extends ReplicationTestCase
     ReplServerFakeConfiguration conf =
       new ReplServerFakeConfiguration(rsPort[rsIndex], dir, 0, rsIndex+501, 0, 100,
       replServers, 1, 1000, 5000, weight);
-    ReplicationServer replicationServer = new ReplicationServer(conf);
-    return replicationServer;
+    return new ReplicationServer(conf);
   }
 
   /**
@@ -212,23 +212,26 @@ public class ReplicationServerLoadBalancingTest extends ReplicationTestCase
   {
     SortedSet<String> replServers = new TreeSet<String>();
 
-    if (testCase.equals("testFailoversAndWeightChanges")
-        || testCase.equals("testSpreadLoad"))
+    if ("testFailoversAndWeightChanges".equals(testCase)
+        || "testSpreadLoad".equals(testCase))
     {
       // 4 servers used for this test case.
       for (int i = 0; i < NRS; i++)
       {
         if (i != rsIndex)
+        {
           replServers.add("localhost:" + rsPort[i]);
+        }
       }
-    } else
+    }
+    else
+    {
       fail("Unknown test case: " + testCase);
+    }
 
     String dir = "replicationServerLoadBalancingTest" + rsIndex + testCase + "Db";
-    ReplServerFakeConfiguration conf =
-      new ReplServerFakeConfiguration(rsPort[rsIndex], dir, 0, rsIndex+501, 0, 100,
-      replServers, 1, 1000, 5000, weight);
-    return conf;
+    return new ReplServerFakeConfiguration(rsPort[rsIndex], dir, 0,
+        rsIndex + 501, 0, 100, replServers, 1, 1000, 5000, weight);
   }
 
   /**
@@ -316,10 +319,11 @@ public class ReplicationServerLoadBalancingTest extends ReplicationTestCase
   private int getDSConnectedToRS(int rsIndex)
   {
     Iterator<ReplicationServerDomain> rsdIt = rs[rsIndex].getDomainIterator();
-    if (rsdIt == null) // No domain yet so no connections yet
-      return 0;
-    return rsdIt.next().getConnectedDSs().keySet().
-      size();
+    if (rsdIt != null)
+    {
+      return rsdIt.next().getConnectedDSs().keySet().size();
+    }
+    return 0;
   }
 
   /**
@@ -383,7 +387,9 @@ public class ReplicationServerLoadBalancingTest extends ReplicationTestCase
           }
         }
         if (nPeer == nRSs-1)
+        {
           nOk++;
+        }
       }
 
       if (nOk == nRSs)
@@ -526,8 +532,8 @@ public class ReplicationServerLoadBalancingTest extends ReplicationTestCase
       rd[3] = createReplicationDomain(3, testCase);
       assertTrue(rd[3].isConnected());
       int ds4ConnectedRsId = rd[3].getRsServerId();
-      assertTrue((ds4ConnectedRsId == RS1_ID) || (ds4ConnectedRsId == RS2_ID) ||
-        (ds4ConnectedRsId == RS3_ID),
+      assertTrue(ds4ConnectedRsId == RS1_ID || ds4ConnectedRsId == RS2_ID ||
+        ds4ConnectedRsId == RS3_ID,
         "DS4 should be connected to either RS1, RS2 or RS3 but is it is " +
         "connected to RS id " + ds4ConnectedRsId);
 
@@ -537,7 +543,7 @@ public class ReplicationServerLoadBalancingTest extends ReplicationTestCase
       rd[4] = createReplicationDomain(4, testCase);
       assertTrue(rd[4].isConnected());
         int ds5ConnectedRsId = rd[4].getRsServerId();
-      assertTrue((ds5ConnectedRsId != ds4ConnectedRsId),
+      assertTrue(ds5ConnectedRsId != ds4ConnectedRsId,
         "DS5 should be connected to a RS which is not the same as the one of " +
         "DS4 (" + ds4ConnectedRsId + ")");
 
@@ -547,8 +553,8 @@ public class ReplicationServerLoadBalancingTest extends ReplicationTestCase
       rd[5] = createReplicationDomain(5, testCase);
       assertTrue(rd[5].isConnected());
         int ds6ConnectedRsId = rd[5].getRsServerId();
-      assertTrue((ds6ConnectedRsId != ds4ConnectedRsId) &&
-        (ds6ConnectedRsId != ds5ConnectedRsId),
+      assertTrue(ds6ConnectedRsId != ds4ConnectedRsId &&
+        ds6ConnectedRsId != ds5ConnectedRsId,
         "DS6 should be connected to a RS which is not the same as the one of " +
         "DS4 (" + ds4ConnectedRsId + ") or DS5 (" + ds5ConnectedRsId + ") : " +
         ds6ConnectedRsId);
@@ -607,23 +613,29 @@ public class ReplicationServerLoadBalancingTest extends ReplicationTestCase
       int rsWith4DsIndex = -1; // The RS (index) that has 4 DSs
       // Now check the number of connected DSs for each RS
       int rs1ConnectedDSNumber = getDSConnectedToRS(0);
-      assertTrue(((rs1ConnectedDSNumber == 3) || (rs1ConnectedDSNumber == 4)),
+      assertTrue(rs1ConnectedDSNumber == 3 || rs1ConnectedDSNumber == 4,
         "Wrong expected number of DSs connected to RS1: " +
         rs1ConnectedDSNumber);
       if (rs1ConnectedDSNumber == 4)
+      {
         rsWith4DsIndex = 0;
+      }
       int rs2ConnectedDSNumber = getDSConnectedToRS(1);
-      assertTrue(((rs2ConnectedDSNumber == 3) || (rs2ConnectedDSNumber == 4)),
+      assertTrue(rs2ConnectedDSNumber == 3 || rs2ConnectedDSNumber == 4,
         "Wrong expected number of DSs connected to RS2: " +
         rs2ConnectedDSNumber);
       if (rs2ConnectedDSNumber == 4)
+      {
         rsWith4DsIndex = 1;
+      }
       int rs4ConnectedDSNumber = getDSConnectedToRS(3);
-      assertTrue(((rs4ConnectedDSNumber == 3) || (rs4ConnectedDSNumber == 4)),
+      assertTrue(rs4ConnectedDSNumber == 3 || rs4ConnectedDSNumber == 4,
         "Wrong expected number of DSs connected to RS4: " +
         rs4ConnectedDSNumber);
       if (rs4ConnectedDSNumber == 4)
+      {
         rsWith4DsIndex = 3;
+      }
       int sumOfRs1Rs2Rs4 = rs1ConnectedDSNumber + rs2ConnectedDSNumber +
         rs4ConnectedDSNumber;
       assertEquals(sumOfRs1Rs2Rs4, 10, "Expected 10 DSs connected to RS1, RS2" +
@@ -645,7 +657,9 @@ public class ReplicationServerLoadBalancingTest extends ReplicationTestCase
       for (int id : fourDsList)
       {
         if (id < lowestDsId)
+        {
           lowestDsId = id;
+        }
       }
 
       // Get 2 DS ids of 2 DSs connected to RS3 and stop matching DSs
@@ -691,15 +705,15 @@ public class ReplicationServerLoadBalancingTest extends ReplicationTestCase
       assertTrue(rd[aSecondDsOnRs3Id].isConnected());
       // Now check the number of connected DSs for each RS
       rs1ConnectedDSNumber = getDSConnectedToRS(0);
-      assertTrue(((rs1ConnectedDSNumber == 3) || (rs1ConnectedDSNumber == 4)),
+      assertTrue(rs1ConnectedDSNumber == 3 || rs1ConnectedDSNumber == 4,
         "Wrong expected number of DSs connected to RS1: " +
         rs1ConnectedDSNumber);
       rs2ConnectedDSNumber = getDSConnectedToRS(1);
-      assertTrue(((rs2ConnectedDSNumber == 3) || (rs2ConnectedDSNumber == 4)),
+      assertTrue(rs2ConnectedDSNumber == 3 || rs2ConnectedDSNumber == 4,
         "Wrong expected number of DSs connected to RS2: " +
         rs2ConnectedDSNumber);
       rs4ConnectedDSNumber = getDSConnectedToRS(3);
-      assertTrue(((rs4ConnectedDSNumber == 3) || (rs4ConnectedDSNumber == 4)),
+      assertTrue(rs4ConnectedDSNumber == 3 || rs4ConnectedDSNumber == 4,
         "Wrong expected number of DSs connected to RS4: " +
         rs4ConnectedDSNumber);
       sumOfRs1Rs2Rs4 = rs1ConnectedDSNumber + rs2ConnectedDSNumber +
@@ -807,28 +821,32 @@ public class ReplicationServerLoadBalancingTest extends ReplicationTestCase
     }
   }
 
-  // Translate an int array into a human readable string
+  /** Translate an int array into a human readable string */
   private static String intArrayToString(int[] ints)
   {
     StringBuilder sb = new StringBuilder("[");
     for (int i = 0; i < ints.length; i++)
     {
       if (i != 0)
+      {
         sb.append(",");
+      }
       sb.append(ints[i]);
     }
     sb.append("]");
     return sb.toString();
   }
 
-  // Translate an int[][] array into a human readable string
+  /** Translate an int[][] array into a human readable string */
   private static String intArrayToString(int[][] ints)
   {
     StringBuilder sb = new StringBuilder("[");
     for (int i = 0; i < ints.length; i++)
     {
       if (i != 0)
+      {
         sb.append(",");
+      }
       sb.append(intArrayToString(ints[i]));
     }
     sb.append("]");
