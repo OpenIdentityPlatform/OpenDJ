@@ -42,7 +42,6 @@ import org.opends.server.types.operation.PostResponseOperation;
 import org.opends.server.types.operation.PreParseOperation;
 import org.opends.server.util.Validator;
 
-
 /**
  * This class defines a generic operation that may be processed by the
  * Directory Server.  Specific subclasses should implement specific
@@ -139,6 +138,12 @@ public abstract class AbstractOperation
   private ResultCode resultCode;
 
   /**
+   * The real, masked result code  for this operation that will not be included
+   * in the response to the client, but will be logged.
+   */
+  private ResultCode maskedResultCode;
+
+  /**
    * Additional information that should be included in the log but not sent to
    * the client.
    */
@@ -149,6 +154,12 @@ public abstract class AbstractOperation
    * in the response to the client.
    */
   private MessageBuilder errorMessage;
+
+  /**
+   * The real, masked error message for this operation that will not be included
+   * in the response to the client, but will be logged.
+   */
+  private MessageBuilder maskedErrorMessage;
 
   /**
    * Indicates whether this operation needs to be synchronized to other copies
@@ -355,6 +366,20 @@ public abstract class AbstractOperation
 
   /** {@inheritDoc} */
   @Override
+  public final ResultCode getMaskedResultCode()
+  {
+    return maskedResultCode;
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public final void setMaskedResultCode(ResultCode maskedResultCode)
+  {
+    this.maskedResultCode = maskedResultCode;
+  }
+
+  /** {@inheritDoc} */
+  @Override
   public final MessageBuilder getErrorMessage()
   {
     return errorMessage;
@@ -364,14 +389,7 @@ public abstract class AbstractOperation
   @Override
   public final void setErrorMessage(MessageBuilder errorMessage)
   {
-    if (errorMessage == null)
-    {
-      this.errorMessage = new MessageBuilder();
-    }
-    else
-    {
-      this.errorMessage = errorMessage;
-    }
+    this.errorMessage = errorMessage;
   }
 
   /** {@inheritDoc} */
@@ -380,20 +398,44 @@ public abstract class AbstractOperation
   {
     if (errorMessage == null)
     {
-      errorMessage = new MessageBuilder(message);
+      errorMessage = new MessageBuilder();
     }
-    else
+    else if (errorMessage.length() > 0)
     {
-      if (errorMessage.length() > 0)
-      {
-        errorMessage.append("  ");
-      }
-
-      errorMessage.append(message);
+      errorMessage.append("  ");
     }
+    errorMessage.append(message);
   }
 
+  /** {@inheritDoc} */
+  @Override
+  public final MessageBuilder getMaskedErrorMessage()
+  {
+    return maskedErrorMessage;
+  }
 
+  /** {@inheritDoc} */
+  @Override
+  public final void setMaskedErrorMessage(MessageBuilder maskedErrorMessage)
+  {
+    this.maskedErrorMessage = maskedErrorMessage;
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public final void appendMaskedErrorMessage(Message maskedMessage)
+  {
+    if (maskedErrorMessage == null)
+    {
+      maskedErrorMessage = new MessageBuilder();
+    }
+    else if (maskedErrorMessage.length() > 0)
+    {
+      maskedErrorMessage.append("  ");
+    }
+
+    maskedErrorMessage.append(maskedMessage);
+  }
 
   /**
    * {@inheritDoc}
@@ -460,11 +502,13 @@ public abstract class AbstractOperation
   public final void setResponseData(
                          DirectoryException directoryException)
   {
-    this.resultCode   = directoryException.getResultCode();
-    this.matchedDN    = directoryException.getMatchedDN();
-    this.referralURLs = directoryException.getReferralURLs();
+    this.resultCode       = directoryException.getResultCode();
+    this.maskedResultCode = directoryException.getMaskedResultCode();
+    this.matchedDN        = directoryException.getMatchedDN();
+    this.referralURLs     = directoryException.getReferralURLs();
 
     appendErrorMessage(directoryException.getMessageObject());
+    appendMaskedErrorMessage(directoryException.getMaskedMessage());
   }
 
 

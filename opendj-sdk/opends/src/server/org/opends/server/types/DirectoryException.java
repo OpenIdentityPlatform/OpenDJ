@@ -23,17 +23,13 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS
  */
 package org.opends.server.types;
-import org.opends.messages.Message;
-
-
-
-
 
 import java.util.List;
 
-
+import org.opends.messages.Message;
 
 /**
  * This class defines an exception that may be thrown if a problem
@@ -58,16 +54,38 @@ public final class DirectoryException
 
 
 
-  // The matched DN for this directory exception.
+  /** The matched DN returned to the client for this directory exception. */
   private final DN matchedDN;
 
-  // The set of referral URLs for this directory exception.
+  /** The set of referral URLs for this directory exception. */
   private final List<String> referralURLs;
 
-  // The result code for this directory exception.
+  /**
+   * The result code returned to the client for this directory exception. Note:
+   * for security considerations (information leak) this result code might not
+   * be the underlying reason why the directory server refused to execute the
+   * operation.
+   *
+   * @see #maskedResultCode for the underlying reason why the directory server
+   *      refused to execute the operation
+   */
   private final ResultCode resultCode;
 
+  /**
+   * If set, this is the real message for this directory exception that cannot
+   * be returned to the client, but will be logged.
+   *
+   * @see #getMessage() for the message returned to the client
+   */
+  private Message maskedMessage;
 
+  /**
+   * If set, this is the real result code for this directory exception that
+   * cannot be returned to the client, but will be logged.
+   *
+   * @see #resultCode for the reason code returned to the client
+   */
+  private ResultCode maskedResultCode;
 
   /**
    * Creates a new directory exception with the provided information.
@@ -224,5 +242,52 @@ public final class DirectoryException
   {
     return referralURLs;
   }
-}
 
+  /**
+   * Returns the real, masked message for this directory exception that cannot
+   * be returned to the client, but will be logged.
+   *
+   * @return the real, masked message
+   * @see #getMessage() for the message returned to the client
+   */
+  public Message getMaskedMessage()
+  {
+    return maskedMessage;
+  }
+
+  /**
+   * Returns the real result code for this directory exception that cannot be
+   * returned to the client, but will be logged.
+   *
+   * @return the real, masked result code
+   * @see #getResultCode() for the result code returned to the client
+   */
+  public ResultCode getMaskedResultCode()
+  {
+    return maskedResultCode;
+  }
+
+  /**
+   * Sets the real message for this directory exception that cannot be returned
+   * to the client, but will be logged.
+   *
+   * @param maskedMessage
+   *          the real, masked message to set
+   */
+  public void setMaskedMessage(Message maskedMessage)
+  {
+    this.maskedMessage = maskedMessage;
+  }
+
+  /**
+   * Sets the real result code for this directory exception that cannot be
+   * returned to the client, but will be logged.
+   *
+   * @param maskedResultCode
+   *          the real, masked result code to set
+   */
+  public void setMaskedResultCode(ResultCode maskedResultCode)
+  {
+    this.maskedResultCode = maskedResultCode;
+  }
+}

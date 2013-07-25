@@ -86,6 +86,13 @@ public class OperationWrapper<W extends Operation> implements Operation
     operation.appendErrorMessage(message);
   }
 
+  /** {@inheritDoc} */
+  @Override
+  public void appendMaskedErrorMessage(Message maskedMessage)
+  {
+    operation.appendMaskedErrorMessage(maskedMessage);
+  }
+
   /**
    * {@inheritDoc}
    */
@@ -206,6 +213,20 @@ public class OperationWrapper<W extends Operation> implements Operation
   public MessageBuilder getErrorMessage()
   {
     return operation.getErrorMessage();
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public MessageBuilder getMaskedErrorMessage()
+  {
+    return operation.getMaskedErrorMessage();
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public ResultCode getMaskedResultCode()
+  {
+    return operation.getMaskedResultCode();
   }
 
   /**
@@ -462,6 +483,20 @@ public class OperationWrapper<W extends Operation> implements Operation
     operation.setInternalOperation(isInternalOperation);
   }
 
+  /** {@inheritDoc} */
+  @Override
+  public void setMaskedErrorMessage(MessageBuilder maskedErrorMessage)
+  {
+    operation.setMaskedErrorMessage(maskedErrorMessage);
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public void setMaskedResultCode(ResultCode maskedResultCode)
+  {
+    operation.setMaskedResultCode(maskedResultCode);
+  }
+
   /**
    * {@inheritDoc}
    */
@@ -537,6 +572,13 @@ public class OperationWrapper<W extends Operation> implements Operation
     }
 
     return false;
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public String toString()
+  {
+    return "Wrapped " + operation.toString();
   }
 
   /**

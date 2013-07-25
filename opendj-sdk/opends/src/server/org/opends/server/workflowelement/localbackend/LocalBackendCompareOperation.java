@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
 
+import org.opends.messages.Message;
 import org.opends.server.api.Backend;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.plugin.PluginResult;
@@ -132,26 +133,32 @@ public class LocalBackendCompareOperation
     // Check for a request to cancel this operation.
     checkIfCanceled(false);
 
-
-    BooleanHolder executePostOpPlugins = new BooleanHolder(false);
-    processCompare(executePostOpPlugins);
-
-    // Check for a request to cancel this operation.
-    checkIfCanceled(false);
-
-    // Invoke the post-operation compare plugins.
-    if (executePostOpPlugins.value)
+    try
     {
-      PluginResult.PostOperation postOpResult =
-          DirectoryServer.getPluginConfigManager()
-              .invokePostOperationComparePlugins(this);
-      if (!postOpResult.continueProcessing())
+      BooleanHolder executePostOpPlugins = new BooleanHolder(false);
+      processCompare(executePostOpPlugins);
+
+      // Check for a request to cancel this operation.
+      checkIfCanceled(false);
+
+      // Invoke the post-operation compare plugins.
+      if (executePostOpPlugins.value)
       {
-        setResultCode(postOpResult.getResultCode());
-        appendErrorMessage(postOpResult.getErrorMessage());
-        setMatchedDN(postOpResult.getMatchedDN());
-        setReferralURLs(postOpResult.getReferralURLs());
+        PluginResult.PostOperation postOpResult =
+            DirectoryServer.getPluginConfigManager()
+                .invokePostOperationComparePlugins(this);
+        if (!postOpResult.continueProcessing())
+        {
+          setResultCode(postOpResult.getResultCode());
+          appendErrorMessage(postOpResult.getErrorMessage());
+          setMatchedDN(postOpResult.getMatchedDN());
+          setReferralURLs(postOpResult.getReferralURLs());
+        }
       }
+    }
+    finally
+    {
+      LocalBackendWorkflowElement.filterNonDisclosableMatchedDN(this);
     }
   }
 
@@ -170,7 +177,7 @@ public class LocalBackendCompareOperation
     // If the target entry is in the server configuration, then make sure the
     // requester has the CONFIG_READ privilege.
     if (DirectoryServer.getConfigHandler().handlesEntry(entryDN)
-        && (!clientConnection.hasPrivilege(Privilege.CONFIG_READ, this)))
+        && !clientConnection.hasPrivilege(Privilege.CONFIG_READ, this))
     {
       appendErrorMessage(ERR_COMPARE_CONFIG_INSUFFICIENT_PRIVILEGES.get());
       setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
@@ -183,16 +190,16 @@ public class LocalBackendCompareOperation
 
     // Grab a read lock on the entry.
     final Lock readLock = LockManager.lockRead(entryDN);
-    if (readLock == null)
-    {
-      setResultCode(ResultCode.BUSY);
-      appendErrorMessage(ERR_COMPARE_CANNOT_LOCK_ENTRY.get(String
-          .valueOf(entryDN)));
-      return;
-    }
 
     try
     {
+      if (readLock == null)
+      {
+        setResultCodeAndMessageNoInfoDisclosure(null, entryDN, ResultCode.BUSY,
+            ERR_COMPARE_CANNOT_LOCK_ENTRY.get(String.valueOf(entryDN)));
+        return;
+      }
+
       // Get the entry. If it does not exist, then fail.
       try
       {
@@ -216,27 +223,14 @@ public class LocalBackendCompareOperation
           TRACER.debugCaught(DebugLogLevel.ERROR, de);
         }
 
-        setResultCode(de.getResultCode());
-        appendErrorMessage(de.getMessageObject());
+        setResultCodeAndMessageNoInfoDisclosure(entry, entryDN,
+            de.getResultCode(), de.getMessageObject());
         return;
       }
 
       // Check to see if there are any controls in the request. If so, then
       // see if there is any special processing required.
-      try
-      {
-        handleRequestControls();
-      }
-      catch (DirectoryException de)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, de);
-        }
-
-        setResponseData(de);
-        return;
-      }
+      handleRequestControls();
 
 
       // Check to see if the client has permission to perform the
@@ -253,9 +247,10 @@ public class LocalBackendCompareOperation
         if (!AccessControlConfigManager.getInstance().getAccessControlHandler()
             .isAllowed(this))
         {
-          setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
-          appendErrorMessage(ERR_COMPARE_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS
-              .get(String.valueOf(entryDN)));
+          setResultCodeAndMessageNoInfoDisclosure(entry, entryDN,
+              ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
+              ERR_COMPARE_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS.get(String
+                  .valueOf(entryDN)));
           return;
         }
       }
@@ -331,10 +326,38 @@ public class LocalBackendCompareOperation
         }
       }
     }
+    catch (DirectoryException de)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, de);
+      }
+
+      setResponseData(de);
+    }
     finally
     {
-      LockManager.unlock(entryDN, readLock);
+      if (readLock != null)
+      {
+        LockManager.unlock(entryDN, readLock);
+      }
     }
+  }
+
+  private DirectoryException newDirectoryException(Entry entry,
+      ResultCode resultCode, Message message) throws DirectoryException
+  {
+    return LocalBackendWorkflowElement.newDirectoryException(this, entry, null,
+        resultCode, message, ResultCode.NO_SUCH_OBJECT,
+        ERR_COMPARE_NO_SUCH_ENTRY.get(String.valueOf(entryDN)));
+  }
+
+  private void setResultCodeAndMessageNoInfoDisclosure(Entry entry, DN entryDN,
+      ResultCode realResultCode, Message realMessage) throws DirectoryException
+  {
+    LocalBackendWorkflowElement.setResultCodeAndMessageNoInfoDisclosure(this,
+        entry, entryDN, realResultCode, realMessage, ResultCode.NO_SUCH_OBJECT,
+        ERR_COMPARE_NO_SUCH_ENTRY.get(String.valueOf(entryDN)));
   }
 
   private DN findMatchedDN(DN entryDN)
@@ -400,7 +423,7 @@ public class LocalBackendCompareOperation
               TRACER.debugCaught(DebugLogLevel.ERROR, de);
             }
 
-            throw new DirectoryException(de.getResultCode(),
+            throw newDirectoryException(entry, de.getResultCode(),
                            ERR_COMPARE_CANNOT_PROCESS_ASSERTION_FILTER.get(
                                 String.valueOf(entryDN),
                                 de.getMessageObject()));
@@ -420,7 +443,7 @@ public class LocalBackendCompareOperation
           {
             if (!filter.matchesEntry(entry))
             {
-              throw new DirectoryException(ResultCode.ASSERTION_FAILED,
+              throw newDirectoryException(entry, ResultCode.ASSERTION_FAILED,
                   ERR_COMPARE_ASSERTION_FAILED.get(String
                       .valueOf(entryDN)));
             }
@@ -437,7 +460,7 @@ public class LocalBackendCompareOperation
               TRACER.debugCaught(DebugLogLevel.ERROR, de);
             }
 
-            throw new DirectoryException(de.getResultCode(),
+            throw newDirectoryException(entry, de.getResultCode(),
                            ERR_COMPARE_CANNOT_PROCESS_ASSERTION_FILTER.get(
                                 String.valueOf(entryDN),
                                 de.getMessageObject()));

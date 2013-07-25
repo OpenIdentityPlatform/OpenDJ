@@ -144,31 +144,38 @@ public class LocalBackendDeleteOperation
     // Check for a request to cancel this operation.
     checkIfCanceled(false);
 
-    BooleanHolder executePostOpPlugins = new BooleanHolder(false);
-    processDelete(executePostOpPlugins);
-
-    // Invoke the post-operation or post-synchronization delete plugins.
-    PluginConfigManager pluginConfigManager =
-        DirectoryServer.getPluginConfigManager();
-    if (isSynchronizationOperation())
+    try
     {
-      if (getResultCode() == ResultCode.SUCCESS)
+      BooleanHolder executePostOpPlugins = new BooleanHolder(false);
+      processDelete(executePostOpPlugins);
+
+      // Invoke the post-operation or post-synchronization delete plugins.
+      PluginConfigManager pluginConfigManager =
+          DirectoryServer.getPluginConfigManager();
+      if (isSynchronizationOperation())
       {
-        pluginConfigManager.invokePostSynchronizationDeletePlugins(this);
+        if (getResultCode() == ResultCode.SUCCESS)
+        {
+          pluginConfigManager.invokePostSynchronizationDeletePlugins(this);
+        }
+      }
+      else if (executePostOpPlugins.value)
+      {
+        PluginResult.PostOperation postOpResult =
+            pluginConfigManager.invokePostOperationDeletePlugins(this);
+        if (!postOpResult.continueProcessing())
+        {
+          setResultCode(postOpResult.getResultCode());
+          appendErrorMessage(postOpResult.getErrorMessage());
+          setMatchedDN(postOpResult.getMatchedDN());
+          setReferralURLs(postOpResult.getReferralURLs());
+          return;
+        }
       }
     }
-    else if (executePostOpPlugins.value)
+    finally
     {
-      PluginResult.PostOperation postOpResult =
-          pluginConfigManager.invokePostOperationDeletePlugins(this);
-      if (!postOpResult.continueProcessing())
-      {
-        setResultCode(postOpResult.getResultCode());
-        appendErrorMessage(postOpResult.getErrorMessage());
-        setMatchedDN(postOpResult.getMatchedDN());
-        setReferralURLs(postOpResult.getReferralURLs());
-        return;
-      }
+      LocalBackendWorkflowElement.filterNonDisclosableMatchedDN(this);
     }
 
     // Register a post-response call-back which will notify persistent
@@ -227,16 +234,16 @@ public class LocalBackendDeleteOperation
 
     // Grab a write lock on the entry.
     final Lock entryLock = LockManager.lockWrite(entryDN);
-    if (entryLock == null)
-    {
-      setResultCode(ResultCode.BUSY);
-      appendErrorMessage(ERR_DELETE_CANNOT_LOCK_ENTRY.get(String
-          .valueOf(entryDN)));
-      return;
-    }
 
     try
     {
+      if (entryLock == null)
+      {
+        setResultCodeAndMessageNoInfoDisclosure(entry, ResultCode.BUSY,
+            ERR_DELETE_CANNOT_LOCK_ENTRY.get(String.valueOf(entryDN)));
+        return;
+      }
+
       // Get the entry to delete. If it doesn't exist, then fail.
       entry = backend.getEntry(entryDN);
       if (entry == null)
@@ -272,9 +279,10 @@ public class LocalBackendDeleteOperation
         if (!AccessControlConfigManager.getInstance().getAccessControlHandler()
             .isAllowed(this))
         {
-          setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
-          appendErrorMessage(ERR_DELETE_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS
-              .get(String.valueOf(entryDN)));
+          setResultCodeAndMessageNoInfoDisclosure(entry,
+              ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
+              ERR_DELETE_AUTHZ_INSUFFICIENT_ACCESS_RIGHTS.get(String
+                  .valueOf(entryDN)));
           return;
         }
       }
@@ -322,17 +330,17 @@ public class LocalBackendDeleteOperation
         switch (DirectoryServer.getWritabilityMode())
         {
         case DISABLED:
-          setResultCode(ResultCode.UNWILLING_TO_PERFORM);
-          appendErrorMessage(ERR_DELETE_SERVER_READONLY.get(String
-              .valueOf(entryDN)));
+          setResultCodeAndMessageNoInfoDisclosure(entry,
+              ResultCode.UNWILLING_TO_PERFORM,
+              ERR_DELETE_SERVER_READONLY.get(String.valueOf(entryDN)));
           return;
 
         case INTERNAL_ONLY:
           if (!(isInternalOperation() || isSynchronizationOperation()))
           {
-            setResultCode(ResultCode.UNWILLING_TO_PERFORM);
-            appendErrorMessage(ERR_DELETE_SERVER_READONLY.get(String
-                .valueOf(entryDN)));
+            setResultCodeAndMessageNoInfoDisclosure(entry,
+                ResultCode.UNWILLING_TO_PERFORM,
+                ERR_DELETE_SERVER_READONLY.get(String.valueOf(entryDN)));
             return;
           }
         }
@@ -340,17 +348,17 @@ public class LocalBackendDeleteOperation
         switch (backend.getWritabilityMode())
         {
         case DISABLED:
-          setResultCode(ResultCode.UNWILLING_TO_PERFORM);
-          appendErrorMessage(ERR_DELETE_BACKEND_READONLY.get(String
-              .valueOf(entryDN)));
+          setResultCodeAndMessageNoInfoDisclosure(entry,
+              ResultCode.UNWILLING_TO_PERFORM,
+              ERR_DELETE_BACKEND_READONLY.get(String.valueOf(entryDN)));
           return;
 
         case INTERNAL_ONLY:
           if (!(isInternalOperation() || isSynchronizationOperation()))
           {
-            setResultCode(ResultCode.UNWILLING_TO_PERFORM);
-            appendErrorMessage(ERR_DELETE_BACKEND_READONLY.get(String
-                .valueOf(entryDN)));
+            setResultCodeAndMessageNoInfoDisclosure(entry,
+                ResultCode.UNWILLING_TO_PERFORM,
+                ERR_DELETE_BACKEND_READONLY.get(String.valueOf(entryDN)));
             return;
           }
         }
@@ -368,9 +376,10 @@ public class LocalBackendDeleteOperation
         {
           if (dn.isDescendantOf(entryDN))
           {
-            setResultCode(ResultCode.NOT_ALLOWED_ON_NONLEAF);
-            appendErrorMessage(ERR_DELETE_HAS_SUB_BACKEND.get(String
-                .valueOf(entryDN), String.valueOf(dn)));
+            setResultCodeAndMessageNoInfoDisclosure(entry,
+                ResultCode.NOT_ALLOWED_ON_NONLEAF,
+                ERR_DELETE_HAS_SUB_BACKEND.get(String.valueOf(entryDN),
+                    String.valueOf(dn)));
             return;
           }
         }
@@ -407,13 +416,31 @@ public class LocalBackendDeleteOperation
       }
 
       setResponseData(de);
-      return;
     }
     finally
     {
-      LockManager.unlock(entryDN, entryLock);
+      if (entryLock != null)
+      {
+        LockManager.unlock(entryDN, entryLock);
+      }
       processSynchPostOperationPlugins();
     }
+  }
+
+  private DirectoryException newDirectoryException(Entry entry,
+      ResultCode resultCode, Message message) throws DirectoryException
+  {
+    return LocalBackendWorkflowElement.newDirectoryException(this, entry, null,
+        resultCode, message, ResultCode.NO_SUCH_OBJECT,
+        ERR_DELETE_NO_SUCH_ENTRY.get(String.valueOf(entryDN)));
+  }
+
+  private void setResultCodeAndMessageNoInfoDisclosure(Entry entry,
+      ResultCode resultCode, Message message) throws DirectoryException
+  {
+    LocalBackendWorkflowElement.setResultCodeAndMessageNoInfoDisclosure(this,
+        entry, null, resultCode, message, ResultCode.NO_SUCH_OBJECT,
+        ERR_DELETE_NO_SUCH_ENTRY.get(String.valueOf(entryDN)));
   }
 
   private DN findMatchedDN(DN entryDN)
@@ -480,7 +507,7 @@ public class LocalBackendDeleteOperation
               TRACER.debugCaught(DebugLogLevel.ERROR, de);
             }
 
-            throw new DirectoryException(de.getResultCode(),
+            throw newDirectoryException(entry, de.getResultCode(),
                            ERR_DELETE_CANNOT_PROCESS_ASSERTION_FILTER.get(
                                 String.valueOf(entryDN),
                                 de.getMessageObject()));
@@ -500,7 +527,7 @@ public class LocalBackendDeleteOperation
           {
             if (!filter.matchesEntry(entry))
             {
-              throw new DirectoryException(ResultCode.ASSERTION_FAILED,
+              throw newDirectoryException(entry, ResultCode.ASSERTION_FAILED,
                   ERR_DELETE_ASSERTION_FAILED.get(String
                       .valueOf(entryDN)));
             }
@@ -517,7 +544,7 @@ public class LocalBackendDeleteOperation
               TRACER.debugCaught(DebugLogLevel.ERROR, de);
             }
 
-            throw new DirectoryException(de.getResultCode(),
+            throw newDirectoryException(entry, de.getResultCode(),
                            ERR_DELETE_CANNOT_PROCESS_ASSERTION_FILTER.get(
                                 String.valueOf(entryDN),
                                 de.getMessageObject()));
@@ -591,7 +618,7 @@ public class LocalBackendDeleteOperation
         {
           if ((backend == null) || (! backend.supportsControl(oid)))
           {
-            throw new DirectoryException(
+            throw newDirectoryException(entry,
                            ResultCode.UNAVAILABLE_CRITICAL_EXTENSION,
                            ERR_DELETE_UNSUPPORTED_CRITICAL_CONTROL.get(
                                 String.valueOf(entryDN), oid));
@@ -617,8 +644,8 @@ public class LocalBackendDeleteOperation
               SynchronizationProviderResult result =
                   provider.handleConflictResolution(this);
               if (! result.continueProcessing()) {
-                  setResultCode(result.getResultCode());
-                  appendErrorMessage(result.getErrorMessage());
+                  setResultCodeAndMessageNoInfoDisclosure(entry,
+                      result.getResultCode(), result.getErrorMessage());
                   setMatchedDN(result.getMatchedDN());
                   setReferralURLs(result.getReferralURLs());
                   returnVal = false;

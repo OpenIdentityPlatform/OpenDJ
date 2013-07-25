@@ -27,8 +27,6 @@
  */
 package org.opends.server.workflowelement.localbackend;
 
-
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.TreeMap;
@@ -47,14 +45,13 @@ import org.opends.server.controls.LDAPPostReadResponseControl;
 import org.opends.server.controls.LDAPPreReadRequestControl;
 import org.opends.server.controls.LDAPPreReadResponseControl;
 import org.opends.server.core.*;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.*;
 import org.opends.server.workflowelement.LeafWorkflowElement;
 
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
-
-
-
+import static org.opends.server.loggers.debug.DebugLogger.*;
 
 /**
  * This class defines a local backend workflow element; e-g an entity that
@@ -64,26 +61,34 @@ public class LocalBackendWorkflowElement extends
     LeafWorkflowElement<LocalBackendWorkflowElementCfg>
     implements ConfigurationChangeListener<LocalBackendWorkflowElementCfg>
 {
-  // the backend associated with the local workflow element
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
+
+  /** the backend associated with the local workflow element. */
   private Backend backend;
 
 
-  // the set of local backend workflow elements registered with the server
+  /** the set of local backend workflow elements registered with the server. */
   private static TreeMap<String, LocalBackendWorkflowElement>
        registeredLocalBackends =
             new TreeMap<String, LocalBackendWorkflowElement>();
 
-  // The set of persistent searches registered with this work flow
-  // element.
+  /**
+   * The set of persistent searches registered with this work flow element.
+   */
   private final List<PersistentSearch> persistentSearches =
     new CopyOnWriteArrayList<PersistentSearch>();
 
-  // a lock to guarantee safe concurrent access to the registeredLocalBackends
-  // variable
+  /**
+   * a lock to guarantee safe concurrent access to the registeredLocalBackends
+   * variable.
+   */
   private static final Object registeredLocalBackendsLock = new Object();
 
 
-  // A string indicating the type of the workflow element.
+  /** A string indicating the type of the workflow element. */
   private static final String BACKEND_WORKFLOW_ELEMENT = "Backend";
 
 
@@ -177,10 +182,7 @@ public class LocalBackendWorkflowElement extends
       List<Message>                  unacceptableReasons
       )
   {
-    boolean isAcceptable =
-      processWorkflowElementConfig(configuration, false);
-
-    return isAcceptable;
+    return processWorkflowElementConfig(configuration, false);
   }
 
 
@@ -192,14 +194,10 @@ public class LocalBackendWorkflowElement extends
       LocalBackendWorkflowElementCfg configuration
       )
   {
-    // Returned result.
-    ConfigChangeResult changeResult = new ConfigChangeResult(
-        ResultCode.SUCCESS, false, new ArrayList<Message>()
-        );
-
     processWorkflowElementConfig(configuration, true);
 
-    return changeResult;
+    return new ConfigChangeResult(ResultCode.SUCCESS, false,
+        new ArrayList<Message>());
   }
 
 
@@ -354,7 +352,7 @@ public class LocalBackendWorkflowElement extends
       }
       else
       {
-        // We don't want the backend to process this non-critical control, so
+        // We do not want the backend to process this non-critical control, so
         // remove it.
         op.removeRequestControl(control);
         return false;
@@ -363,7 +361,148 @@ public class LocalBackendWorkflowElement extends
     return true;
   }
 
+  /**
+   * Returns a new {@link DirectoryException} built from the provided
+   * resultCodes and messages. Depending on whether ACIs prevent information
+   * disclosure, the provided resultCode and message will be masked and
+   * altResultCode and altMessage will be used instead.
+   *
+   * @param operation
+   *          the operation for which to check if ACIs prevent information
+   *          disclosure
+   * @param entry
+   *          the entry for which to check if ACIs prevent information
+   *          disclosure, if null, then a fake entry will be created from the
+   *          entryDN parameter
+   * @param entryDN
+   *          the entry dn for which to check if ACIs prevent information
+   *          disclosure. Only used if entry is null.
+   * @param resultCode
+   *          the result code to put on the DirectoryException if ACIs allow
+   *          disclosure. Otherwise it will be put on the DirectoryException as
+   *          a masked result code.
+   * @param message
+   *          the message to put on the DirectoryException if ACIs allow
+   *          disclosure. Otherwise it will be put on the DirectoryException as
+   *          a masked message.
+   * @param altResultCode
+   *          the result code to put on the DirectoryException if ACIs do not
+   *          allow disclosing the resultCode.
+   * @param altMessage
+   *          the result code to put on the DirectoryException if ACIs do not
+   *          allow disclosing the message.
+   * @return a new DirectoryException containing the provided resultCodes and
+   *         messages depending on ACI allowing disclosure or not
+   * @throws DirectoryException
+   *           If an error occurred while performing the access control check.
+   */
+  static DirectoryException newDirectoryException(Operation operation,
+      Entry entry, DN entryDN, ResultCode resultCode, Message message,
+      ResultCode altResultCode, Message altMessage) throws DirectoryException
+  {
+    if (AccessControlConfigManager.getInstance().getAccessControlHandler()
+        .canDiscloseInformation(entry, entryDN, operation))
+    {
+      return new DirectoryException(resultCode, message);
+    }
+    // replacement reason returned to the user
+    final DirectoryException ex =
+        new DirectoryException(altResultCode, altMessage);
+    // real underlying reason
+    ex.setMaskedResultCode(resultCode);
+    ex.setMaskedMessage(message);
+    return ex;
+  }
 
+  /**
+   * Sets the provided resultCodes and messages on the provided operation.
+   * Depending on whether ACIs prevent information disclosure, the provided
+   * resultCode and message will be masked and altResultCode and altMessage will
+   * be used instead.
+   *
+   * @param operation
+   *          the operation for which to check if ACIs prevent information
+   *          disclosure
+   * @param entry
+   *          the entry for which to check if ACIs prevent information
+   *          disclosure, if null, then a fake entry will be created from the
+   *          entryDN parameter
+   * @param entryDN
+   *          the entry dn for which to check if ACIs prevent information
+   *          disclosure. Only used if entry is null.
+   * @param resultCode
+   *          the result code to put on the DirectoryException if ACIs allow
+   *          disclosure. Otherwise it will be put on the DirectoryException as
+   *          a masked result code.
+   * @param message
+   *          the message to put on the DirectoryException if ACIs allow
+   *          disclosure. Otherwise it will be put on the DirectoryException as
+   *          a masked message.
+   * @param altResultCode
+   *          the result code to put on the DirectoryException if ACIs do not
+   *          allow disclosing the resultCode.
+   * @param altMessage
+   *          the result code to put on the DirectoryException if ACIs do not
+   *          allow disclosing the message.
+   * @throws DirectoryException
+   *           If an error occurred while performing the access control check.
+   */
+  static void setResultCodeAndMessageNoInfoDisclosure(Operation operation,
+      Entry entry, DN entryDN, ResultCode resultCode, Message message,
+      ResultCode altResultCode, Message altMessage) throws DirectoryException
+  {
+    if (AccessControlConfigManager.getInstance().getAccessControlHandler()
+        .canDiscloseInformation(entry, entryDN, operation))
+    {
+      operation.setResultCode(resultCode);
+      operation.appendErrorMessage(message);
+    }
+    else
+    {
+      // replacement reason returned to the user
+      operation.setResultCode(altResultCode);
+      operation.appendMaskedErrorMessage(altMessage);
+      // real underlying reason
+      operation.setMaskedResultCode(resultCode);
+      operation.appendMaskedErrorMessage(message);
+    }
+  }
+
+  /**
+   * Removes the matchedDN from the supplied operation if ACIs prevent its
+   * disclosure.
+   *
+   * @param operation
+   *          where to filter the matchedDN from
+   */
+  static void filterNonDisclosableMatchedDN(Operation operation)
+  {
+    if (operation.getMatchedDN() == null)
+    {
+      return;
+    }
+
+    try
+    {
+      if (!AccessControlConfigManager.getInstance().getAccessControlHandler()
+          .canDiscloseInformation(null, operation.getMatchedDN(), operation))
+      {
+        operation.setMatchedDN(null);
+      }
+    }
+    catch (DirectoryException de)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, de);
+      }
+
+      operation.setResponseData(de);
+      // At this point it is impossible to tell whether the matchedDN can be
+      // disclosed. It is probably safer to hide it by default.
+      operation.setMatchedDN(null);
+    }
+  }
 
   /**
    * Adds the post-read response control to the response if requested.

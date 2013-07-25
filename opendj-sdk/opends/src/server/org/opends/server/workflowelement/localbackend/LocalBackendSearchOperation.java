@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2012 ForgeRock AS
+ *      Portions copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.workflowelement.localbackend;
 
@@ -138,25 +138,32 @@ public class LocalBackendSearchOperation
     // Check for a request to cancel this operation.
     checkIfCanceled(false);
 
-    BooleanHolder executePostOpPlugins = new BooleanHolder(false);
-    processSearch(wfe, executePostOpPlugins);
-
-    // Check for a request to cancel this operation.
-    checkIfCanceled(false);
-
-    // Invoke the post-operation search plugins.
-    if (executePostOpPlugins.value)
+    try
     {
-      PluginResult.PostOperation postOpResult =
-          DirectoryServer.getPluginConfigManager()
-              .invokePostOperationSearchPlugins(this);
-      if (!postOpResult.continueProcessing())
+      BooleanHolder executePostOpPlugins = new BooleanHolder(false);
+      processSearch(wfe, executePostOpPlugins);
+
+      // Check for a request to cancel this operation.
+      checkIfCanceled(false);
+
+      // Invoke the post-operation search plugins.
+      if (executePostOpPlugins.value)
       {
-        setResultCode(postOpResult.getResultCode());
-        appendErrorMessage(postOpResult.getErrorMessage());
-        setMatchedDN(postOpResult.getMatchedDN());
-        setReferralURLs(postOpResult.getReferralURLs());
+        PluginResult.PostOperation postOpResult =
+            DirectoryServer.getPluginConfigManager()
+                .invokePostOperationSearchPlugins(this);
+        if (!postOpResult.continueProcessing())
+        {
+          setResultCode(postOpResult.getResultCode());
+          appendErrorMessage(postOpResult.getErrorMessage());
+          setMatchedDN(postOpResult.getMatchedDN());
+          setReferralURLs(postOpResult.getReferralURLs());
+        }
       }
+    }
+    finally
+    {
+      LocalBackendWorkflowElement.filterNonDisclosableMatchedDN(this);
     }
   }
 
