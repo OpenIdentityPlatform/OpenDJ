@@ -135,8 +135,7 @@ public class ReplicationServerLoadBalancingTest extends ReplicationTestCase
     {
       if (rs[i] != null)
       {
-        rs[i].clearDb();
-        rs[i].remove();
+        stopRs(i);
         StaticUtils.recursiveDelete(new File(DirectoryServer.getInstanceRoot(),
                  rs[i].getDbDirName()));
         rs[i] = null;
@@ -278,7 +277,7 @@ public class ReplicationServerLoadBalancingTest extends ReplicationTestCase
 
       // Start a first DS to make every RSs inter connect
       rd[0] = createReplicationDomain(0, testCase);
-        assertTrue(rd[0].isConnected());
+      assertTrue(rd[0].isConnected());
 
       // Wait for RSs inter-connections
       checkRSConnectionsAndGenId(new int[] {0, 1, 2, 3},
@@ -542,7 +541,7 @@ public class ReplicationServerLoadBalancingTest extends ReplicationTestCase
        */
       rd[4] = createReplicationDomain(4, testCase);
       assertTrue(rd[4].isConnected());
-        int ds5ConnectedRsId = rd[4].getRsServerId();
+      int ds5ConnectedRsId = rd[4].getRsServerId();
       assertTrue(ds5ConnectedRsId != ds4ConnectedRsId,
         "DS5 should be connected to a RS which is not the same as the one of " +
         "DS4 (" + ds4ConnectedRsId + ")");
@@ -552,7 +551,7 @@ public class ReplicationServerLoadBalancingTest extends ReplicationTestCase
        */
       rd[5] = createReplicationDomain(5, testCase);
       assertTrue(rd[5].isConnected());
-        int ds6ConnectedRsId = rd[5].getRsServerId();
+      int ds6ConnectedRsId = rd[5].getRsServerId();
       assertTrue(ds6ConnectedRsId != ds4ConnectedRsId &&
         ds6ConnectedRsId != ds5ConnectedRsId,
         "DS6 should be connected to a RS which is not the same as the one of " +
@@ -744,13 +743,7 @@ public class ReplicationServerLoadBalancingTest extends ReplicationTestCase
       /**
        * Stop RS2 and RS4, we must end up with RS1 has 4 DSs, and RS3 has 16 DSs
        */
-
-      // Stop RS2
-      rs[1].clearDb();
-      rs[1].remove();
-      // Stop RS4
-      rs[3].clearDb();
-      rs[3].remove();
+      stopRs(1, 3);
 
       checkForCorrectNumbersOfConnectedDSs(new int[][]{new int[] {4, -1, 16, -1}},
         "Stopped RS2 and RS4");
@@ -772,10 +765,7 @@ public class ReplicationServerLoadBalancingTest extends ReplicationTestCase
        * Stop RS3, we must end up with RS1 has 3 DSs, and RS2 has 7 DSs and
        * RS4 has 10 DSs
        */
-
-      // Stop RS3
-      rs[2].clearDb();
-      rs[2].remove();
+      stopRs(2);
 
       checkForCorrectNumbersOfConnectedDSs(new int[][]{
         new int[] {2, 8, -1, 10},
@@ -801,16 +791,7 @@ public class ReplicationServerLoadBalancingTest extends ReplicationTestCase
       /**
        * Stop RS1, RS2 and RS3, all DSs should be connected to RS4
        */
-
-      // Stop RS1
-      rs[0].clearDb();
-      rs[0].remove();
-      // Stop RS2
-      rs[1].clearDb();
-      rs[1].remove();
-      // Stop RS3
-      rs[2].clearDb();
-      rs[2].remove();
+      stopRs(0, 1, 2);
 
       checkForCorrectNumbersOfConnectedDSs(new int[][]{new int[] {-1, -1, -1, 20}},
         "Stopped RS1, RS2 and RS3");
@@ -818,6 +799,18 @@ public class ReplicationServerLoadBalancingTest extends ReplicationTestCase
     } finally
     {
       endTest();
+    }
+  }
+
+  private void stopRs(int... rsIndexes)
+  {
+    for (int rsIndex : rsIndexes)
+    {
+      if (rs[rsIndex] != null)
+      {
+        rs[rsIndex].clearDb();
+        rs[rsIndex].remove();
+      }
     }
   }
 
