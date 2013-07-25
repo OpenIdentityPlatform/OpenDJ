@@ -23,15 +23,14 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2013 ForgeRock AS
  */
-
 package org.opends.messages;
 
-import java.util.Locale;
-import java.util.ResourceBundle;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
+import java.util.ResourceBundle;
 
 /**
  * Base class for all Message descriptor classes.
@@ -126,6 +125,7 @@ public abstract class MessageDescriptor {
     /**
      * {@inheritDoc}
      */
+    @Override
     boolean requiresFormatter() {
       return requiresFormat;
     }
@@ -172,7 +172,7 @@ public abstract class MessageDescriptor {
 
     /**
      * Creates a message with arguments that will replace format
-     * specifiers in the assocated format string when the message
+     * specifiers in the associated format string when the message
      * is rendered to string representation.
      * @return Message object
      * @param a1 message argument
@@ -184,6 +184,7 @@ public abstract class MessageDescriptor {
     /**
      * {@inheritDoc}
      */
+    @Override
     boolean requiresFormatter() {
       return true;
     }
@@ -232,7 +233,7 @@ public abstract class MessageDescriptor {
 
     /**
      * Creates a message with arguments that will replace format
-     * specifiers in the assocated format string when the message
+     * specifiers in the associated format string when the message
      * is rendered to string representation.
      * @return Message object
      * @param a1 message argument
@@ -245,6 +246,7 @@ public abstract class MessageDescriptor {
     /**
      * {@inheritDoc}
      */
+    @Override
     boolean requiresFormatter() {
       return true;
     }
@@ -294,7 +296,7 @@ public abstract class MessageDescriptor {
 
     /**
      * Creates a message with arguments that will replace format
-     * specifiers in the assocated format string when the message
+     * specifiers in the associated format string when the message
      * is rendered to string representation.
      * @return Message object
      * @param a1 message argument
@@ -308,6 +310,7 @@ public abstract class MessageDescriptor {
     /**
      * {@inheritDoc}
      */
+    @Override
     boolean requiresFormatter() {
       return true;
     }
@@ -358,7 +361,7 @@ public abstract class MessageDescriptor {
 
     /**
      * Creates a message with arguments that will replace format
-     * specifiers in the assocated format string when the message
+     * specifiers in the associated format string when the message
      * is rendered to string representation.
      * @return Message object
      * @param a1 message argument
@@ -373,6 +376,7 @@ public abstract class MessageDescriptor {
     /**
      * {@inheritDoc}
      */
+    @Override
     boolean requiresFormatter() {
       return true;
     }
@@ -424,7 +428,7 @@ public abstract class MessageDescriptor {
 
     /**
      * Creates a message with arguments that will replace format
-     * specifiers in the assocated format string when the message
+     * specifiers in the associated format string when the message
      * is rendered to string representation.
      * @return Message object
      * @param a1 message argument
@@ -440,6 +444,7 @@ public abstract class MessageDescriptor {
     /**
      * {@inheritDoc}
      */
+    @Override
     boolean requiresFormatter() {
       return true;
     }
@@ -493,7 +498,7 @@ public abstract class MessageDescriptor {
 
     /**
      * Creates a message with arguments that will replace format
-     * specifiers in the assocated format string when the message
+     * specifiers in the associated format string when the message
      * is rendered to string representation.
      * @return Message object
      * @param a1 message argument
@@ -510,6 +515,7 @@ public abstract class MessageDescriptor {
     /**
      * {@inheritDoc}
      */
+    @Override
     boolean requiresFormatter() {
       return true;
     }
@@ -565,7 +571,7 @@ public abstract class MessageDescriptor {
 
     /**
      * Creates a message with arguments that will replace format
-     * specifiers in the assocated format string when the message
+     * specifiers in the associated format string when the message
      * is rendered to string representation.
      * @return Message object
      * @param a1 message argument
@@ -583,6 +589,7 @@ public abstract class MessageDescriptor {
     /**
      * {@inheritDoc}
      */
+    @Override
     boolean requiresFormatter() {
       return true;
     }
@@ -639,7 +646,7 @@ public abstract class MessageDescriptor {
 
     /**
      * Creates a message with arguments that will replace format
-     * specifiers in the assocated format string when the message
+     * specifiers in the associated format string when the message
      * is rendered to string representation.
      * @return Message object
      * @param a1 message argument
@@ -659,6 +666,7 @@ public abstract class MessageDescriptor {
     /**
      * {@inheritDoc}
      */
+    @Override
     boolean requiresFormatter() {
       return true;
     }
@@ -715,7 +723,7 @@ public abstract class MessageDescriptor {
 
     /**
      * Creates a message with arguments that will replace format
-     * specifiers in the assocated format string when the message
+     * specifiers in the associated format string when the message
      * is rendered to string representation.
      * @return Message object
      * @param a1 message argument
@@ -736,6 +744,7 @@ public abstract class MessageDescriptor {
     /**
      * {@inheritDoc}
      */
+    @Override
     boolean requiresFormatter() {
       return true;
     }
@@ -793,7 +802,7 @@ public abstract class MessageDescriptor {
 
     /**
      * Creates a message with arguments that will replace format
-     * specifiers in the assocated format string when the message
+     * specifiers in the associated format string when the message
      * is rendered to string representation.
      * @return Message object
      * @param a1 message argument
@@ -815,6 +824,7 @@ public abstract class MessageDescriptor {
     /**
      * {@inheritDoc}
      */
+    @Override
     boolean requiresFormatter() {
       return true;
     }
@@ -874,7 +884,7 @@ public abstract class MessageDescriptor {
 
     /**
      * Creates a message with arguments that will replace format
-     * specifiers in the assocated format string when the message
+     * specifiers in the associated format string when the message
      * is rendered to string representation.
      * @return Message object
      * @param a1 message argument
@@ -897,6 +907,7 @@ public abstract class MessageDescriptor {
     /**
      * {@inheritDoc}
      */
+    @Override
     boolean requiresFormatter() {
       return true;
     }
@@ -946,7 +957,7 @@ public abstract class MessageDescriptor {
 
     /**
      * Creates a message with arguments that will replace format
-     * specifiers in the assocated format string when the message
+     * specifiers in the associated format string when the message
      * is rendered to string representation.
      * @return Message object
      * @param args message arguments
@@ -958,6 +969,7 @@ public abstract class MessageDescriptor {
     /**
      * {@inheritDoc}
      */
+    @Override
     boolean requiresFormatter() {
       return true;
     }
@@ -994,7 +1006,7 @@ public abstract class MessageDescriptor {
 
     /**
      * Creates a message with arguments that will replace format
-     * specifiers in the assocated format string when the message
+     * specifiers in the associated format string when the message
      * is rendered to string representation.
      * @return Message object
      * @param args message arguments
@@ -1017,6 +1029,7 @@ public abstract class MessageDescriptor {
     /**
      * {@inheritDoc}
      */
+    @Override
     boolean requiresFormatter() {
       return this.requiresFormatter;
     }
@@ -1071,7 +1084,7 @@ public abstract class MessageDescriptor {
   }
 
   /**
-   * Obtains the severity of this descriptor.  Gauranteed not to be null.
+   * Obtains the severity of this descriptor.  Guaranteed not to be null.
    * @return Category of this message
    */
   public final Severity getSeverity() {
@@ -1175,7 +1188,7 @@ public abstract class MessageDescriptor {
    * to the given format string.  Note that a format string
    * might have literal specifiers (%% or %n for example) that
    * require formatting but are not replaced by arguments.
-   * @param s candiate for formatting
+   * @param s candidate for formatting
    * @return boolean where true indicates that the format
    *         string requires formatting
    */
