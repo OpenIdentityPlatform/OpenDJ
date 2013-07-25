@@ -57,7 +57,7 @@ public class ConfigGuideGeneration {
   // I18n support. Today all the strings are hardcoded in this file
 
   private final static String ACI_SYNTAX_REL_URL =
-    "/doc/admin-guide/OpenDJ-Admin-Guide.html#chap-privileges-acis";
+    "/doc/admin-guide/#about-acis";
   private final static String DURATION_SYNTAX_REL_URL =
     "duration-syntax.html";
   private final String CSS_FILE = "opendj-config.css";
