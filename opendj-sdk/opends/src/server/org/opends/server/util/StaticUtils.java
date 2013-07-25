@@ -4724,6 +4724,38 @@ public final class StaticUtils
   }
 
   /**
+   * Closes the provided {@link ServerSocket}s ignoring any errors which
+   * occurred.
+   * <p>
+   * With java 7 we will be able to use {@link StaticUtils#close(Closeable...)}
+   * </p>
+   *
+   * @param sockets
+   *          The sockets to be closed, which may be <code>null</code>.
+   */
+  public static void close(ServerSocket... sockets)
+  {
+    if (sockets == null)
+    {
+      return;
+    }
+    for (ServerSocket socket : sockets)
+    {
+      if (socket != null)
+      {
+        try
+        {
+          socket.close();
+        }
+        catch (IOException ignored)
+        {
+          // Ignore.
+        }
+      }
+    }
+  }
+
+  /**
    * Closes the provided {@link InitialLdapContext}s ignoring any errors which
    * occurred.
    *
