@@ -23,29 +23,28 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS
  */
-
-
 package org.opends.server.authorization.dseecompat;
 
 import static org.opends.messages.AccessControlMessages.*;
+
 import java.util.HashSet;
+import java.util.Set;
 
 /**
  * This class represents an ACI's targetcontrol keyword.
  */
-
 public class TargetControl {
 
-  /*
+  /**
    * HashSet of OID strings parsed from the decode.
    */
-  private HashSet<String> controlOIDS = new HashSet<String>();
+  private Set<String> controlOIDS = new HashSet<String>();
 
- /*
-  * Enumeration representing the targetcontrol operator.
-  */
-
+  /**
+   * Enumeration representing the targetcontrol operator.
+   */
   private EnumTargetOperator op = EnumTargetOperator.EQUALITY;
 
   /**
@@ -55,7 +54,8 @@ public class TargetControl {
    * @param controlOIDS  Set of control OIDS to use in the evaluation (may
    *                     contain wild-card '*').
    */
-  private TargetControl(EnumTargetOperator op, HashSet<String> controlOIDS) {
+  private TargetControl(EnumTargetOperator op, Set<String> controlOIDS)
+  {
     this.controlOIDS=controlOIDS;
     this.op=op;
   }
@@ -72,8 +72,7 @@ public class TargetControl {
    */
   public static TargetControl decode(EnumTargetOperator operator, String expr)
           throws AciException {
-    HashSet<String> controlOIDs =
-          Aci.decodeOID(expr,
+    Set<String> controlOIDs = Aci.decodeOID(expr,
                   WARN_ACI_SYNTAX_INVALID_TARGETCONTROL_EXPRESSION.get(expr));
     return new TargetControl(operator, controlOIDs);
   }
@@ -99,4 +98,3 @@ public class TargetControl {
     return ret;
   }
 }
-

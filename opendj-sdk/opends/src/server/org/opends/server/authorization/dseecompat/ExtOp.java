@@ -23,31 +23,28 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS
  */
-
 package org.opends.server.authorization.dseecompat;
 
 import static org.opends.messages.AccessControlMessages.*;
 
 import java.util.HashSet;
-
+import java.util.Set;
 
 /**
  * This class represents an ACI's extop keyword rule.
  */
-
 public class ExtOp {
 
-
-  /*
+  /**
    * HashSet of OID strings parsed from the decode.
    */
-  private HashSet<String> extOpOIDs = new HashSet<String>();
+  private Set<String> extOpOIDs = new HashSet<String>();
 
- /*
-  * Enumeration representing the extop operator.
-  */
-
+  /**
+   * Enumeration representing the extop operator.
+   */
   private EnumTargetOperator op = EnumTargetOperator.EQUALITY;
 
   /**
@@ -57,11 +54,11 @@ public class ExtOp {
    * @param extOpOIDs  Set of extended operation OIDS to use in the evaluation
    *                  (wild-card '*' allowed).
    */
-  private ExtOp(EnumTargetOperator op, HashSet<String> extOpOIDs) {
+  private ExtOp(EnumTargetOperator op, Set<String> extOpOIDs)
+  {
     this.extOpOIDs=extOpOIDs;
     this.op=op;
   }
-
 
   /**
    *  Decode an extop expression string.
@@ -75,8 +72,7 @@ public class ExtOp {
    */
   public static ExtOp decode(EnumTargetOperator operator, String expr)
           throws AciException {
-    HashSet<String> extOpOIDs =
-          Aci.decodeOID(expr,
+    Set<String> extOpOIDs = Aci.decodeOID(expr,
                   WARN_ACI_SYNTAX_INVALID_TARGEXTOP_EXPRESSION.get(expr));
     return new ExtOp(operator, extOpOIDs);
   }
@@ -101,5 +97,4 @@ public class ExtOp {
           ret = !ret;
     return ret;
   }
-
 }

@@ -23,34 +23,34 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2010-2012 ForgeRock AS
+ *      Portions Copyright 2010-2013 ForgeRock AS
  */
-
 package org.opends.server.authorization.dseecompat;
-import org.opends.messages.Message;
 
-import org.opends.server.types.DN;
-import org.opends.server.types.ByteSequence;
 import static org.opends.messages.AccessControlMessages.*;
-import static org.opends.server.util.StaticUtils.isDigit;
+import static org.opends.server.util.StaticUtils.*;
 
-import java.util.regex.Pattern;
 import java.util.HashSet;
+import java.util.Set;
+import java.util.regex.Pattern;
+
+import org.opends.messages.Message;
+import org.opends.server.types.ByteSequence;
+import org.opends.server.types.DN;
 
 /**
  * The Aci class represents ACI strings.
  */
-public class Aci
-  implements Comparable<Aci>
+public class Aci implements Comparable<Aci>
 {
 
-    /*
+    /**
      * The body of the ACI is the version, name and permission-bind rule
      * pairs.
      */
     private AciBody body;
 
-    /*
+    /**
      * The ACI targets.
      */
     private AciTargets targets=null;
@@ -60,12 +60,12 @@ public class Aci
      */
     public static final String supportedVersion="3.0";
 
-    /*
+    /**
      * String representation of the ACI used.
      */
     private String aciString;
 
-    /*
+    /**
      * The DN of the entry containing this ACI.
      */
     private final DN dn;
@@ -104,7 +104,7 @@ public class Aci
     public static final String ACI_STATEMENT_SEPARATOR =
                 ZERO_OR_MORE_WHITESPACE + ";" + ZERO_OR_MORE_WHITESPACE;
 
-    /*
+    /**
      * This regular expression is used to do a quick syntax check
      * when an ACI is being decoded.
      */
@@ -169,15 +169,15 @@ public class Aci
             ZERO_OR_MORE_WHITESPACE +
                     "\\+" + ZERO_OR_MORE_WHITESPACE;
 
-    /*
+    /**
      * Regular expression used to do quick check of OID string.
      */
     private static final String OID_NAME = "[\\d.\\*]*";
 
-    /*
-    * Regular expression that matches one or more OID_NAME's separated by
-    * the "||" token.
-    */
+    /**
+     * Regular expression that matches one or more OID_NAME's separated by
+     * the "||" token.
+     */
     private static final String oidListRegex  =  ZERO_OR_MORE_WHITESPACE +
             OID_NAME + ZERO_OR_MORE_WHITESPACE + "(" +
             LOGICAL_OR + ZERO_OR_MORE_WHITESPACE + OID_NAME +
@@ -327,7 +327,6 @@ public class Aci
      * evaluation if the flag is ACI_OP_ATTR_PLUS_MATCHED (all operational
      * attributes match) and the attribute type is operational.
      */
-
     public static final int ACI_OP_ATTR_PLUS_MATCHED = 0x0004;
 
     /**
@@ -389,6 +388,7 @@ public class Aci
      * was used to create the Aci class.
      * @return A string representation of the ACI.
      */
+    @Override
     public String toString() {
         return aciString;
     }
@@ -466,23 +466,24 @@ public class Aci
         //If an ACI has extOp or targetControl targets skip it because the
         //matchCtx right does not contain either ACI_EXT_OP or ACI_CONTROL at
         //this point.
-        if(aci.getTargets().getExtOp() != null ||
-          (aci.getTargets().getTargetControl() != null)) {
+        if(aci.getTargets().getExtOp() != null
+       		|| aci.getTargets().getTargetControl() != null) {
            return false;
-        } else {
-        int ctxRights = matchCtx.getRights();
-        //Check if the ACI and context have similar rights.
-        if(!aci.hasRights(ctxRights)) {
-          if(!(aci.hasRights(ACI_SEARCH| ACI_READ) &&
-                  matchCtx.hasRights(ACI_SEARCH | ACI_READ)))
-            return false;
         }
-        return  AciTargets.isTargetApplicable(aci, matchCtx) &&
+        return  haveSimilarRights(aci, matchCtx) &&
+                AciTargets.isTargetApplicable(aci, matchCtx) &&
                 AciTargets.isTargetFilterApplicable(aci, matchCtx) &&
                 AciTargets.isTargAttrFiltersApplicable(aci, matchCtx) &&
                 AciTargets.isTargetAttrApplicable(aci, matchCtx);
       }
-      }
+    }
+
+    private static boolean haveSimilarRights(Aci aci,
+        AciTargetMatchContext matchCtx)
+    {
+      return aci.hasRights(matchCtx.getRights())
+            || (aci.hasRights(ACI_SEARCH| ACI_READ)
+                  && matchCtx.hasRights(ACI_SEARCH | ACI_READ));
     }
 
     /**
@@ -546,10 +547,9 @@ public class Aci
    *
    * @throws AciException If the specified expression string is invalid.
    */
-
-    public static HashSet<String> decodeOID(String expr, Message msg)
+    public static Set<String> decodeOID(String expr, Message msg)
     throws AciException {
-      HashSet<String> OIDs = new HashSet<String>();
+      Set<String> OIDs = new HashSet<String>();
       //Quick check to see if the expression is valid.
       if (Pattern.matches(oidListRegex, expr)) {
         // Remove the spaces in the oid string and
@@ -572,7 +572,7 @@ public class Aci
     }
 
     /**
-     *  Verfiy the specified OID string.
+     * Verify the specified OID string.
      *
      * @param oidStr The string representing an OID.
      *
@@ -581,7 +581,7 @@ public class Aci
     private static void verifyOid(String oidStr) throws AciException {
       int pos=0, length=oidStr.length();
       char c;
-      if(oidStr.equals("*"))
+      if("*".equals(oidStr))
         return;
       boolean lastWasPeriod = false;
       while ((pos < length) && ((c = oidStr.charAt(pos++)) != ' ')) {
@@ -590,8 +590,8 @@ public class Aci
             Message message = WARN_ACI_SYNTAX_DOUBLE_PERIOD_IN_NUMERIC_OID.get(
                 oidStr, pos-1);
             throw new AciException(message);
-          }  else
-            lastWasPeriod = true;
+          }
+          lastWasPeriod = true;
         }  else if (! isDigit(c)) {
           Message message =
               WARN_ACI_SYNTAX_ILLEGAL_CHAR_IN_NUMERIC_OID.get(oidStr, c, pos-1);
@@ -614,6 +614,7 @@ public class Aci
      *          after the provided Aci, or zero if there is no difference
      *          with regard to ordering.
      */
+    @Override
     public int compareTo(Aci aci)
     {
       return this.aciString.compareTo(aci.toString());
