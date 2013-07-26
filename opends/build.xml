@@ -1336,47 +1336,71 @@
 
     <property name="prefix"    value="/opt/opendj"/>
     <property name="release"   value="1"/>
-    <taskdef name="genrpm"
-             classname="org.opends.build.tools.GenerateRpm">
+
+    <mkdir dir="${build.dir}/rpm/BUILD" />
+    <mkdir dir="${build.dir}/rpm/RPMS" />
+    <mkdir dir="${build.dir}/rpm/SOURCES" />
+    <mkdir dir="${build.dir}/rpm/SPECS" />
+    <mkdir dir="${build.dir}/rpm/SRPMS" />  
+  	 
+    <condition property="rpmRelease" value="${release}" else="${release}.${pkg_version_qualifier}">
+        <or>
+            <not>
+                <isset property="pkg_version_qualifier"/>
+            </not>
+            <equals arg1="${pkg_version_qualifier}" arg2="" />
+        </or>
+    </condition>
+  	
+    <copy todir="${build.dir}/rpm/SPECS">
+      <fileset file="resource/rpm/specFile"/>
+      <filterset begintoken="[[ " endtoken=" ]]">
+        <filter token="topDir" value="${build.dir}/rpm"/>
+        <filter token="prefix" value="${prefix}"/>
+        <filter token="pre" value="${SHORT_NAME}-${VERSION_NUMBER_STRING}"/>
+        <filter token="productName" value="${PRODUCT_NAME}"/>
+        <filter token="shortName" value="${SHORT_NAME}"/>
+        <filter token="pkgName" value="${PKG_NAME}"/>
+        <filter token="referenceURL" value="${DOC_REFERENCE_HOME}"/>
+        <filter token="sourceDirName" value="${package.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}"/>
+        <filter token="specFileName" value="${build.dir}/rpm/SPECS/specFile"/>
+        <filter token="version" value="${pkg_version_string}"/>      	
+        <filter token="release" value="${rpmRelease}" />
+      </filterset>
+    </copy>
+
+    <taskdef name="processFilesForPackages"
+                     classname="org.opends.build.tools.ProcessFilesForPackages">
       <classpath>
         <fileset dir="${build.dir}/build-tools">
           <include name="*.jar" />
         </fileset>
       </classpath>
     </taskdef>
-
-    <mkdir dir="${build.dir}/rpm/BUILD" />
-    <mkdir dir="${build.dir}/rpm/RPMS" />
-    <mkdir dir="${build.dir}/rpm/SOURCES" />
-    <mkdir dir="${build.dir}/rpm/SPECS" />
-    <mkdir dir="${build.dir}/rpm/SRPMS" />
-
-    <genrpm
-        topDir="${build.dir}/rpm"
-        prefix="${prefix}"
-        productName="${PRODUCT_NAME}"
-        shortName="${PKG_NAME}"
-        referenceURL="${DOC_REFERENCE_HOME}"
-        sourceDirName="${package.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}"
-        specFileName="${build.dir}/rpm/SPECS/specFile"
-        version="${pkg_version_string}"
-        release="${release}.${pkg_version_qualifier}"
-        overwrite="true">
-    </genrpm>
-
+    <processFilesForPackages sourceDirName="${package.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}" />           
+    <copy file="resource/rpm/files" tofile="${build.dir}/rpm/SOURCES/files" />
+    
+    <replace file="${build.dir}/rpm/SOURCES/files" token="# [[ listFiles ]]" value="${listRPMFiles}" />
+    <replace file="${build.dir}/rpm/SPECS/specFile" token="# [[ docsList ]]" value="${listRPMDocFiles}" />    
+    <replace file="${build.dir}/rpm/SPECS/specFile" token="# [[ installRpmFiles ]]" value="cp -rf ${package.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}/* . ${line.separator}" />
+    
+    <copy file="resource/rpm/excludedFiles" tofile="${build.dir}/rpm/SOURCES/excludedFiles" />
+    <replace file="${build.dir}/rpm/SOURCES/excludedFiles" token="# [[ excludedListFiles ]]" value="${excludedRPMFiles}" />
+  
     <rpm specfile="specFile"
          topdir="${build.dir}/rpm"
-         quiet="true">
+         quiet="true"
+         removeSpec="false">
     </rpm>
-
+  	
+    <mkdir dir="${build.dir}/rpm/RPMS/noarch" />
     <copy todir="${package.dir}">
       <fileset dir="${build.dir}/rpm/RPMS/noarch">
         <include name="*.rpm" />
       </fileset>
     </copy>
-
   </target>
-
+	
   <!-- Package the Directory Server for the DEB distribution. -->
   <target name="package-DEB"
           description="Package the Directory Server for DEB distribution.">
