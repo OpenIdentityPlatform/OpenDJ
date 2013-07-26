@@ -359,8 +359,9 @@ public class AddOperationBasis
    */
   private final void computeObjectClassesAndAttributes()
   {
-    if (((objectClasses == null) || (userAttributes == null) ||
-        (operationalAttributes == null))  && !ldapError)
+    if (!ldapError
+        && (objectClasses == null || userAttributes == null
+            || operationalAttributes == null))
     {
       objectClasses         = new HashMap<ObjectClass,String>();
       userAttributes        = new HashMap<AttributeType,List<Attribute>>();
@@ -376,15 +377,14 @@ public class AddOperationBasis
           // If the attribute type is marked "NO-USER-MODIFICATION" then fail
           // unless this is an internal operation or is related to
           // synchronization in some way.
-          if (attrType.isNoUserModification())
+          if (attrType.isNoUserModification()
+              && !isInternalOperation()
+              && !isSynchronizationOperation())
           {
-            if (! (isInternalOperation() || isSynchronizationOperation()))
-            {
-              throw new LDAPException(LDAPResultCode.UNWILLING_TO_PERFORM,
-                      ERR_ADD_ATTR_IS_NO_USER_MOD.get(
-                      String.valueOf(entryDN),
-                      attr.getName()));
-            }
+            throw new LDAPException(LDAPResultCode.UNWILLING_TO_PERFORM,
+                ERR_ADD_ATTR_IS_NO_USER_MOD.get(
+                    String.valueOf(entryDN),
+                    attr.getName()));
           }
 
           if(attrType.isBinary())
@@ -494,27 +494,15 @@ public class AddOperationBasis
   public final void setAttribute(AttributeType attributeType,
                                  List<Attribute> attributeList)
   {
-    if (attributeType.isOperational())
+    Map<AttributeType, List<Attribute>> attributes =
+        getAttributes(attributeType.isOperational());
+    if (attributeList == null || attributeList.isEmpty())
     {
-      if ((attributeList == null) || (attributeList.isEmpty()))
-      {
-        operationalAttributes.remove(attributeType);
-      }
-      else
-      {
-        operationalAttributes.put(attributeType, attributeList);
-      }
+      attributes.remove(attributeType);
     }
     else
     {
-      if ((attributeList == null) || (attributeList.isEmpty()))
-      {
-        userAttributes.remove(attributeType);
-      }
-      else
-      {
-        userAttributes.put(attributeType, attributeList);
-      }
+      attributes.put(attributeType, attributeList);
     }
   }
 
@@ -525,14 +513,17 @@ public class AddOperationBasis
   @Override
   public final void removeAttribute(AttributeType attributeType)
   {
-    if (attributeType.isOperational())
+    getAttributes(attributeType.isOperational()).remove(attributeType);
+  }
+
+  private Map<AttributeType, List<Attribute>> getAttributes(
+      boolean isOperational)
+  {
+    if (isOperational)
     {
-      operationalAttributes.remove(attributeType);
+      return operationalAttributes;
     }
-    else
-    {
-      userAttributes.remove(attributeType);
-    }
+    return userAttributes;
   }
 
   /**
@@ -748,12 +739,13 @@ public class AddOperationBasis
   /**
    * Invokes the post response plugins. If a workflow has been executed
    * then invoke the post response plugins provided by the workflow
-   * elements of the worklfow, otherwise invoke the post reponse plugins
+   * elements of the workflow, otherwise invoke the post response plugins
    * that have been registered with the current operation.
    *
    * @param workflowExecuted <code>true</code> if a workflow has been
    *                         executed
    */
+  @SuppressWarnings({ "unchecked", "rawtypes" })
   private void invokePostResponsePlugins(boolean workflowExecuted)
   {
     // Get the plugin config manager that will be used for invoking plugins.
@@ -765,16 +757,14 @@ public class AddOperationBasis
     {
       // Invoke the post response plugins that have been registered by
       // the workflow elements
-      List<?> localOperations =
-        (List<?>)getAttachment(Operation.LOCALBACKENDOPERATIONS);
+      List<LocalBackendAddOperation> localOperations =
+          (List) getAttachment(Operation.LOCALBACKENDOPERATIONS);
 
       if (localOperations != null)
       {
-        for (Object localOp : localOperations)
+        for (LocalBackendAddOperation localOp : localOperations)
         {
-          LocalBackendAddOperation localOperation =
-            (LocalBackendAddOperation)localOp;
-          pluginConfigManager.invokePostResponseAddPlugins(localOperation);
+          pluginConfigManager.invokePostResponseAddPlugins(localOp);
         }
       }
     }
