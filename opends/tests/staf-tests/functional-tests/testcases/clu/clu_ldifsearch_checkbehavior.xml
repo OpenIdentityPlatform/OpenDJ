@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Portions Copyright 2008-2009 Sun Microsystems, Inc.
+ !      Portions Copyright 2013 ForgeRock AS
  ! -->
 <stax>
   
@@ -125,14 +126,7 @@
                   'targetLdif' : '%s/ldapsearch.out' % remote.temp ,
                   'outputLdif' : '%s/ldifsearch.diff' % remote.temp
                   }
-                </call>
-  
-                <call function="'checktestRC'">
-                  {
-                  'returncode' : STAXResult ,
-                  'result'     : STAXResult
-                  }
-                </call>              
+                </call>        
                 
                 <call function="'testCase_Postamble'"/>
                 
@@ -193,13 +187,6 @@
                   'sourceLdif' : '%s/scope_ldifsearch.out' % remote.temp ,
                   'targetLdif' : '%s/scope_ldapsearch.out' % remote.temp ,
                   'outputLdif' : '%s/scope_ldifsearch.diff' % remote.temp
-                  }
-                </call>
-                
-                <call function="'checktestRC'">
-                  {
-                  'returncode' : STAXResult ,
-                  'result'     : STAXResult
                   }
                 </call>
                 
@@ -308,13 +295,6 @@
                   'targetLdif' : '%s/clu/ldapsearch_filterfile_and_attribute.ref'\
                                  % remote.data ,
                   'outputLdif' : '%s/ldifmodify.diff' % remote.temp
-                  }
-                </call>
-  
-                <call function="'checktestRC'">
-                  {
-                  'returncode' : STAXResult ,
-                  'result'     : STAXResult
                   }
                 </call>
   
@@ -436,13 +416,6 @@
                   }
                 </call>
                 
-                <call function="'checktestRC'">
-                  {
-                  'returncode' : STAXResult ,
-                  'result'     : STAXResult
-                  }
-                </call>
-                
                 <message>
                   'ldifsearch: @inetorgperson as attribute'
                 </message>
@@ -476,13 +449,6 @@
                   'sourceLdif' : '%s/ocname2_ldifsearch.out' % remote.temp ,
                   'targetLdif' : '%s/ocname2_ldapsearch.out' % remote.temp ,
                   'outputLdif' : '%s/ocname2_ldifsearch.diff' % remote.temp
-                  }
-                </call>
-                
-                <call function="'checktestRC'">
-                  {
-                  'returncode' : STAXResult ,
-                  'result'     : STAXResult
                   }
                 </call>
                 

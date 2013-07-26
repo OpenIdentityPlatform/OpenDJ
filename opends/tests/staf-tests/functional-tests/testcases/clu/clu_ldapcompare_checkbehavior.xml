@@ -103,7 +103,6 @@
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                   'dsDn'             : ['postalCode:63792' ,
                                         '%s' % dsdn] ,
-                  'useCmpRC'         : 'True' ,
                   'expectedRC'       : 6
                   }
                 </call>
@@ -160,7 +159,6 @@
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                   'dsDn'             : ['postalCode:00000' ,
                                         '%s' % dsdn] ,
-                  'useCmpRC'         : 'True' ,
                   'expectedRC'       : 5
                   }
                 </call>
@@ -215,6 +213,7 @@
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                   'dsDn'             : ['postalCode:63792' ,
                                         '%s' % dsdn] ,
+                  'useCmpRC'         : 'False' ,
                   'expectedRC'       : 0
                   }
                 </call>
@@ -269,6 +268,7 @@
                   'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                   'dsDn'             : ['postalCode:00000' ,
                                         '%s' % dsdn] ,
+                  'useCmpRC'         : 'False' ,
                   'expectedRC'       : 0
                   }
                 </call>
@@ -332,7 +332,6 @@
                   'dsDn'             : ['st:NY' ,
                                         '%s' % dn1 ,
                                         '%s' % dn2] ,
-                  'useCmpRC'         : 'True' ,
                   'expectedRC'       : 6
                   }
                 </call>
@@ -398,7 +397,6 @@
                   'dsDn'             : ['postalCode:89759' ,
                                         '%s' % dn1 ,
                                         '%s' % dn2] ,
-                  'useCmpRC'         : 'True' ,
                   'expectedRC'       : 5
                   }
                 </call>

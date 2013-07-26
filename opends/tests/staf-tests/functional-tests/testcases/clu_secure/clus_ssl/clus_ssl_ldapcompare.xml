@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2010 Sun Microsystems, Inc.
+ !      Portions Copyright 2013 ForgeRock AS
  ! -->
 <stax>
 
@@ -84,7 +85,7 @@
                 'dsUseSSL'         : ' ' ,
                 'dsTrustAll'       : ' ' ,
                 'dsDn'             : ['postalCode:21700' ,'%s' %dncompare],
-                'expectedRC'       : 'noCheck'
+                'expectedRC'       : 5
                 }
               </call>
 
@@ -104,8 +105,7 @@
                 'dsInstancePort'   : DIRECTORY_INSTANCE_SSL_PORT ,
                 'dsUseSSL'         : ' ' ,
                 'dsTrustAll'       : ' ' ,
-                'dsDn'             : ['postalCode:01700' ,'%s' %dncompare],
-                'expectedRC'       : 'noCheck'
+                'dsDn'             : ['postalCode:01700' ,'%s' %dncompare]
                 }
               </call>
 
@@ -161,7 +161,7 @@
                                       %InstanceInstallDir,
                 'dsTrustStorePassword': 'clientruststorepass',
                 'dsDn'             : ['street: 50303 Sunset' ,'%s' %dncompare2],
-                'expectedRC'       : 'noCheck'
+                'expectedRC'       : 5
                 }
               </call>
 
@@ -184,8 +184,7 @@
                                       %InstanceInstallDir,
                 'dsTrustStorePassword': 'clientruststorepass',
                 'dsDn'             : ['street: 50303 Sunset Street' ,'%s' \
-                                       %dncompare2] ,
-                'expectedRC'       : 'noCheck'
+                                       %dncompare2]
                 }
               </call>
               

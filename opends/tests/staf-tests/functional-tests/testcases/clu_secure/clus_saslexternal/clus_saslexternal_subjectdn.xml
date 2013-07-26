@@ -219,7 +219,7 @@
                 'dsCertNickname'   : 'client-250-cert',
                 'dsDn'             : ['street: 0901 Chestnut Street' ,'%s' \
                                       %dncompare],
-                'expectedRC'       : 0
+                'expectedRC'       : 5
                 }
               </call>
 
@@ -248,8 +248,7 @@
                 'dsKeyStorePassword' : 'clientkeystorepass',
                 'dsCertNickname'   : 'client-250-cert',
                 'dsDn'             : ['street: 30901 Chestnut Street' ,'%s' \
-                                      %dncompare] ,
-                'expectedRC'       : 0
+                                      %dncompare]
                 }
               </call>
 
@@ -396,7 +395,7 @@
                 'dsCertNickname'   : 'client-250-cert',
                 'dsDn'             : ['street: 3001 Chestnut Street' ,'%s' \
                                      %dncompare],
-                'expectedRC'       : 0
+                'expectedRC'       : 5
                 }
               </call>
 
@@ -427,8 +426,7 @@
                 'dsKeyStorePassword' : 'clientkeystorepass',
                 'dsCertNickname'   : 'client-250-cert',
                 'dsDn'             : ['street: 30901 Chestnut Street' ,'%s' \
-                                     %dncompare] ,
-                'expectedRC'       : 0
+                                     %dncompare]
                 }
               </call>
 

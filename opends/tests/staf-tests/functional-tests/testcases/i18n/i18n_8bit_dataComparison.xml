@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2007-2009 Sun Microsystems, Inc.
+ !      Portions Copyright 2013 ForgeRock AS
  ! -->
 
 <stax>
@@ -107,7 +108,7 @@
                     RefFile = '%s/i18n/8-bit/base64/Data_Comparison.Ref.base64.ldif' % remote.data
                   </script>
                   
-                  <call function="'LdifDiffWithScript-new'">
+                  <call function="'LdifDiffWithScript'">
                   { 
                   'sourceLdif' : RefFile ,
                   'targetLdif' : '%s/ldapsearch.out' % remote.temp ,

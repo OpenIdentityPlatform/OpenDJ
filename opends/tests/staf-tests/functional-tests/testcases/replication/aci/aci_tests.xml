@@ -24,7 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2010 Sun Microsystems, Inc.
- !      Portions Copyright 2011-2012 ForgeRock AS.
+ !      Portions Copyright 2011-2013 ForgeRock AS.
  ! -->
 <stax>
                         
@@ -580,8 +580,7 @@
                     'dsInstanceDn'   : myEntry.getDn(),
                     'dsInstancePswd' : myUserpassword,
                     'dsDn'           : ['telephonenumber:%s' % \
-                                        myTelephonenumber, myTargetEntryDn],
-                    'expectedRC'     : 0
+                                        myTelephonenumber, myTargetEntryDn]
                   }                
                 </call>
               </sequence>
@@ -758,8 +757,7 @@
                     'dsInstanceDn'   : myEntry.getDn(),
                     'dsInstancePswd' : myUserpassword,
                     'dsDn'           : ['telephonenumber:%s' % \
-                                        myTelephonenumber, myTargetEntryDn],
-                    'expectedRC'     : 0
+                                        myTelephonenumber, myTargetEntryDn]
                   }                
                 </call>
               </sequence>
@@ -974,8 +972,7 @@
                     'dsInstanceDn'   : myEntry.getDn(),
                     'dsInstancePswd' : myUserpassword,
                     'dsDn'           : ['telephonenumber:%s' % \
-                                        myTelephonenumber, myTargetEntryDn],
-                    'expectedRC'     : 0
+                                        myTelephonenumber, myTargetEntryDn]
                   }                
                 </call>
               </sequence>
@@ -1129,8 +1126,7 @@
                     'dsInstanceDn'   : myEntry.getDn(),
                     'dsInstancePswd' : myUserpassword,
                     'dsDn'           : ['telephonenumber:%s' % \
-                                        myTelephonenumber, myTargetEntryDn],
-                    'expectedRC'     : 0
+                                        myTelephonenumber, myTargetEntryDn]
                   }                
                 </call>
               </sequence>

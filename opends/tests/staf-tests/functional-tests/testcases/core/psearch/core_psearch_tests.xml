@@ -24,7 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2010 Sun Microsystems, Inc.
- !      Portions Copyright 2011 ForgeRock AS.
+ !      Portions Copyright 2011-2013 ForgeRock AS.
  ! -->
 <stax>
 
@@ -178,9 +178,6 @@
                 'outputLdif' : '%s/psearch-delete-diffs.out' % remote.temp
               }
               </call>
-              <if expr="STAXResult != 0">
-                <tcstatus result="'fail'"/>
-              </if>
 
             </sequence>
           </parallel>
@@ -456,9 +453,6 @@
                 'outputLdif' : '%s/psearch-modify-diffs.out' % remote.temp
               }
               </call>
-              <if expr="STAXResult != 0">
-                <tcstatus result="'fail'"/>
-              </if>
 
             </sequence>
           </parallel>
@@ -733,9 +727,6 @@
                   'outputLdif' : '%s/psearch-moddn-diffs.out' % remote.temp
                 }
               </call>
-              <if expr="STAXResult != 0">
-                <tcstatus result="'fail'"/>
-              </if>
 
             </sequence>
           </parallel>
@@ -1011,9 +1002,6 @@
                 'outputLdif' : '%s/psearch-add-diffs.out' % remote.temp
               }
               </call>
-              <if expr="STAXResult != 0">
-                <tcstatus result="'fail'"/>
-              </if>
 
             </sequence>
           </parallel>
