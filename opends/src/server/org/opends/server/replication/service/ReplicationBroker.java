@@ -2119,20 +2119,16 @@ public class ReplicationBroker
 
           // The local server is not part of the servers to disconnect from the
           // current RS.
-          return bestServers.get(currentRsServerId);
-        } else
-        {
+        } else {
           // The average distance of the other RSs does not show a lack of DSs:
           // no need to disconnect any DS from the current RS.
-          return bestServers.get(currentRsServerId);
         }
-      } else
-      {
+      } else {
         // The RS load goal is reached or there are not enough DSs connected to
         // it to reach it: do not disconnect from this RS and return rsInfo for
         // this RS
-        return bestServers.get(currentRsServerId);
       }
+      return bestServers.get(currentRsServerId);
     }
   }
 
