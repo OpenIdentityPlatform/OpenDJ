@@ -188,24 +188,23 @@ public final class AciHandler extends
   public void filterEntry(Operation operation,
       SearchResultEntry unfilteredEntry, SearchResultEntry filteredEntry)
   {
-    AciLDAPOperationContainer operationContainer =
+    AciLDAPOperationContainer container =
         new AciLDAPOperationContainer(operation, ACI_READ, unfilteredEntry);
 
     // Proxy access check has already been done for this entry in the
-    // maySend method, set the seen flag to true to bypass any proxy
-    // check.
-    operationContainer.setSeenEntry(true);
+    // maySend method, set the seen flag to true to bypass any proxy check.
+    container.setSeenEntry(true);
 
     boolean skipCheck = skipAccessCheck(operation);
     if (!skipCheck)
     {
-      filterEntry(operationContainer, filteredEntry);
+      filterEntry(container, filteredEntry);
     }
 
-    if (operationContainer.hasGetEffectiveRightsControl())
+    if (container.hasGetEffectiveRightsControl())
     {
       AciEffectiveRights.addRightsToEntry(this,
-          ((SearchOperation) operation).getAttributes(), operationContainer,
+          ((SearchOperation) operation).getAttributes(), container,
           filteredEntry, skipCheck);
     }
   }
@@ -252,42 +251,38 @@ public final class AciHandler extends
   public boolean isAllowed(DN entryDN, Operation op, Control control)
       throws DirectoryException
   {
-    boolean ret = skipAccessCheck(op);
-    if (!ret)
+    if (!skipAccessCheck(op))
     {
       Entry e = new Entry(entryDN, null, null, null);
-      AciContainer operationContainer =
-          new AciLDAPOperationContainer(op, e, control,
-              (ACI_READ | ACI_CONTROL));
-      ret = accessAllowed(operationContainer);
+      AciContainer container = new AciLDAPOperationContainer(op, e, control,
+              ACI_READ | ACI_CONTROL);
+      if (!accessAllowed(container))
+      {
+        return false;
+      }
     }
+
     if (OID_PROXIED_AUTH_V2.equals(control.getOID())
         || OID_PROXIED_AUTH_V1.equals(control.getOID()))
     {
-      if (ret)
-      {
-        op.setAttachment(ORIG_AUTH_ENTRY, op.getAuthorizationEntry());
-      }
+      op.setAttachment(ORIG_AUTH_ENTRY, op.getAuthorizationEntry());
     }
     else if (OID_GET_EFFECTIVE_RIGHTS.equals(control.getOID()))
     {
-      if (ret)
+      GetEffectiveRightsRequestControl getEffectiveRightsControl;
+      if (control instanceof LDAPControl)
       {
-        GetEffectiveRightsRequestControl getEffectiveRightsControl;
-        if (control instanceof LDAPControl)
-        {
-          getEffectiveRightsControl = GetEffectiveRightsRequestControl.DECODER
-              .decode(control.isCritical(), ((LDAPControl) control).getValue());
-        }
-        else
-        {
-          getEffectiveRightsControl =
-              (GetEffectiveRightsRequestControl) control;
-        }
-        op.setAttachment(OID_GET_EFFECTIVE_RIGHTS, getEffectiveRightsControl);
+        getEffectiveRightsControl =
+            GetEffectiveRightsRequestControl.DECODER.decode(control
+                .isCritical(), ((LDAPControl) control).getValue());
       }
+      else
+      {
+        getEffectiveRightsControl = (GetEffectiveRightsRequestControl) control;
+      }
+      op.setAttachment(OID_GET_EFFECTIVE_RIGHTS, getEffectiveRightsControl);
     }
-    return ret;
+    return true;
   }
 
 
@@ -358,7 +353,7 @@ public final class AciHandler extends
   @Override
   public boolean isAllowed(LocalBackendCompareOperation operation)
   {
-    AciContainer operationContainer =
+    AciContainer container =
         new AciLDAPOperationContainer(operation, ACI_COMPARE);
 
     String baseName;
@@ -375,13 +370,12 @@ public final class AciHandler extends
     }
 
     AttributeType attributeType = getAttributeType(baseName);
-
     AttributeValue attributeValue =
         AttributeValues.create(attributeType, operation
             .getAssertionValue());
-    operationContainer.setCurrentAttributeType(attributeType);
-    operationContainer.setCurrentAttributeValue(attributeValue);
-    return isAllowed(operationContainer, operation);
+    container.setCurrentAttributeType(attributeType);
+    container.setCurrentAttributeValue(attributeValue);
+    return isAllowed(container, operation);
   }
 
 
@@ -413,49 +407,41 @@ public final class AciHandler extends
   @Override
   public boolean isAllowed(ModifyDNOperation operation)
   {
-    boolean ret = true;
+    if (skipAccessCheck(operation))
+    {
+      return true;
+    }
+
+    // If this is a modifyDN move to a new superior, then check if the
+    // superior DN has import access.
+    final DN newSuperiorDN = operation.getNewSuperior();
+    if (!aciCheckSuperiorEntry(newSuperiorDN, operation))
+    {
+      return false;
+    }
+
+    // Perform the RDN access checks.
     RDN oldRDN = operation.getOriginalEntry().getDN().getRDN();
     RDN newRDN = operation.getNewRDN();
-    if (!skipAccessCheck(operation))
+    if (aciCheckRDNs(operation, oldRDN, newRDN))
     {
       // If this is a modifyDN move to a new superior, then check if the
-      // superior DN has import access.
-      final DN newSuperiorDN = operation.getNewSuperior();
+      // original entry DN has export access.
       if (newSuperiorDN != null)
       {
-        try
-        {
-          ret = aciCheckSuperiorEntry(newSuperiorDN, operation);
-        }
-        catch (DirectoryException ex)
-        {
-          ret = false;
-        }
-      }
-      // Perform the RDN access checks.
-      if (ret)
-      {
-        ret = aciCheckRDNs(operation, oldRDN, newRDN);
-      }
-
-      // If this is a modifyDN move to a new superior, then check if the
-      // original entry DN has export access.
-      if (ret && newSuperiorDN != null)
-      {
-        AciContainer operationContainer =
+        AciContainer container =
             new AciLDAPOperationContainer(operation, ACI_EXPORT,
                 operation.getOriginalEntry());
-        // The RDNs are not equal, skip the proxy check since it was
-        // already performed in the aciCheckRDNs call above.
-        boolean rdnEquals = oldRDN.equals(newRDN);
-        if (!rdnEquals)
+        if (!oldRDN.equals(newRDN))
         {
-          operationContainer.setSeenEntry(true);
+          // The RDNs are not equal, skip the proxy check since it was
+          // already performed in the aciCheckRDNs call above.
+          container.setSeenEntry(true);
         }
-        ret = accessAllowed(operationContainer);
+        return accessAllowed(container);
       }
     }
-    return ret;
+    return true;
   }
 
 
@@ -467,10 +453,8 @@ public final class AciHandler extends
   public boolean isAllowed(LocalBackendModifyOperation operation)
       throws DirectoryException
   {
-    AciContainer operationContainer =
-        new AciLDAPOperationContainer(operation, ACI_NULL);
-    return aciCheckMods(operationContainer, operation,
-        skipAccessCheck(operation));
+    AciContainer container = new AciLDAPOperationContainer(operation, ACI_NULL);
+    return aciCheckMods(container, operation, skipAccessCheck(operation));
   }
 
 
@@ -572,7 +556,7 @@ public final class AciHandler extends
       return true;
     }
 
-    AciContainer operationContainer =
+    AciContainer container =
         new AciLDAPOperationContainer(operation, ACI_SEARCH, entry);
 
     // Pre/post read controls are associated with other types of operation.
@@ -580,8 +564,7 @@ public final class AciHandler extends
     {
       try
       {
-        if (!testFilter(operationContainer,
-            ((SearchOperation) operation).getFilter()))
+        if (!testFilter(container, ((SearchOperation) operation).getFilter()))
         {
           return false;
         }
@@ -592,20 +575,19 @@ public final class AciHandler extends
       }
     }
 
-    operationContainer.clearEvalAttributes(ACI_NULL);
-    operationContainer.setRights(ACI_READ);
+    container.clearEvalAttributes(ACI_NULL);
+    container.setRights(ACI_READ);
 
-    if (!accessAllowedEntry(operationContainer))
+    if (!accessAllowedEntry(container))
     {
       return false;
     }
 
-    if (!operationContainer.hasEvalUserAttributes())
+    if (!container.hasEvalUserAttributes())
     {
       operation.setAttachment(ALL_USER_ATTRS_MATCHED, ALL_USER_ATTRS_MATCHED);
     }
-
-    if (!operationContainer.hasEvalOpAttributes())
+    if (!container.hasEvalOpAttributes())
     {
       operation.setAttachment(ALL_OP_ATTRS_MATCHED, ALL_OP_ATTRS_MATCHED);
     }
@@ -1014,21 +996,22 @@ public final class AciHandler extends
 
 
   /**
-   * Check access on the new superior entry if it exists. If the entry
-   * does not exist or the DN cannot be locked then false is returned.
+   * Check access on the new superior entry if it exists. If superiordn is null,
+   * the entry does not exist or the DN cannot be locked then false is returned.
    *
    * @param superiorDN
    *          The DN of the new superior entry.
    * @param op
    *          The modifyDN operation to check access on.
    * @return True if access is granted to the new superior entry.
-   * @throws DirectoryException
-   *           If a problem occurs while trying to retrieve the new
-   *           superior entry.
    */
   private boolean aciCheckSuperiorEntry(DN superiorDN, ModifyDNOperation op)
-      throws DirectoryException
   {
+    if (superiorDN == null)
+    {
+      return false;
+    }
+
     final Lock entryLock = LockManager.lockRead(superiorDN);
     if (entryLock == null)
     {
@@ -1048,6 +1031,10 @@ public final class AciHandler extends
             new AciLDAPOperationContainer(op, ACI_IMPORT, superiorEntry);
         return accessAllowed(container);
       }
+      return false;
+    }
+    catch (DirectoryException ex)
+    {
       return false;
     }
     finally
@@ -1162,17 +1149,16 @@ public final class AciHandler extends
    * modify and delete operations use this function. The other supported
    * LDAP operations have more specialized checks.
    *
-   * @param operationContainer
+   * @param container
    *          The container containing the information needed to
    *          evaluate this operation.
    * @param operation
    *          The operation being evaluated.
    * @return True if this operation is allowed access.
    */
-  private boolean isAllowed(AciContainer operationContainer,
-      Operation operation)
+  private boolean isAllowed(AciContainer container, Operation operation)
   {
-    return skipAccessCheck(operation) || accessAllowed(operationContainer);
+    return skipAccessCheck(operation) || accessAllowed(container);
   }
 
   /**
