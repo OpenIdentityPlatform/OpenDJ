@@ -467,7 +467,7 @@ public class Aci implements Comparable<Aci>
         //matchCtx right does not contain either ACI_EXT_OP or ACI_CONTROL at
         //this point.
         if(aci.getTargets().getExtOp() != null
-       		|| aci.getTargets().getTargetControl() != null) {
+                || aci.getTargets().getTargetControl() != null) {
            return false;
         }
         return  haveSimilarRights(aci, matchCtx) &&

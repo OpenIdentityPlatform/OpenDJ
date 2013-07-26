@@ -33,6 +33,7 @@ import static org.opends.server.util.ServerConstants.*;
 
 import java.net.InetAddress;
 import java.security.cert.Certificate;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 
@@ -680,6 +681,10 @@ implements AciTargetMatchContext, AciEvalContext {
 
    /**
     * {@inheritDoc}
+    * <p>
+    * JNR: I find the implementation in this method dubious.
+    *
+    * @see EnumRight#hasRights(int, int)
     */
     @Override
     public boolean hasRights(int rights) {
@@ -853,6 +858,10 @@ implements AciTargetMatchContext, AciEvalContext {
 
   /**
    * {@inheritDoc}
+   * <p>
+   * JNR: I find the implementation in this method dubious.
+   *
+   * @see EnumRight#getEnumRight(int)
    */
     @Override
     public String rightToString() {
@@ -976,22 +985,16 @@ implements AciTargetMatchContext, AciEvalContext {
     if (attributeType != null)
     {
       appendSeparatorIfNeeded(sb);
-      sb.append(attributeType);
+      sb.append("attributeType: ").append(attributeType.getNameOrOID());
       if (attributeValue != null)
       {
-        sb.append(":").append(attributeType);
+        sb.append(":").append(attributeValue);
       }
     }
-    if (allowList != null)
-    {
-      appendSeparatorIfNeeded(sb);
-      sb.append(allowList.size()).append(" allow ACIs");
-    }
-    if (denyList != null)
-    {
-      appendSeparatorIfNeeded(sb);
-      sb.append(denyList.size()).append(" deny ACIs");
-    }
+    appendSeparatorIfNeeded(sb);
+    sb.append(size(allowList)).append(" allow ACIs");
+    appendSeparatorIfNeeded(sb);
+    sb.append(size(denyList)).append(" deny ACIs");
     if (evalReason != null)
     {
       appendSeparatorIfNeeded(sb);
@@ -1010,5 +1013,14 @@ implements AciTargetMatchContext, AciEvalContext {
     {
       sb.append(", ");
     }
+  }
+
+  private int size(Collection<?> col)
+  {
+    if (col != null)
+    {
+      return col.size();
+    }
+    return 0;
   }
 }

@@ -507,24 +507,24 @@ public class AciTargets {
                                          AciTargetMatchContext targetMatchCtx) {
         boolean ret=true;
         if(!targetMatchCtx.getTargAttrFiltersMatch()) {
-            AciTargets targets=aci.getTargets();
-            AttributeType a=targetMatchCtx.getCurrentAttributeType();
-            int rights=targetMatchCtx.getRights();
+            TargetAttr targetAttr = aci.getTargets().getTargetAttr();
+            AttributeType attrType = targetMatchCtx.getCurrentAttributeType();
             boolean isFirstAttr=targetMatchCtx.isFirstAttribute();
-            if((a != null) && (targets.getTargetAttr() != null))  {
-              ret=TargetAttr.isApplicable(a,targets.getTargetAttr());
-              setEvalAttributes(targetMatchCtx,targets,ret);
-            } else if((a != null) || (targets.getTargetAttr() != null)) {
-                if((aci.hasRights(skipRights)) &&
-                                                (skipRightsHasRights(rights)))
-                    ret=true;
-                else if ((targets.getTargetAttr() != null) &&
-                        (a == null) && (aci.hasRights(ACI_WRITE)))
+
+            if (attrType != null && targetAttr != null)  {
+              ret=TargetAttr.isApplicable(attrType,targetAttr);
+              setEvalAttributes(targetMatchCtx,targetAttr,ret);
+            } else if (attrType != null || targetAttr != null) {
+                if (aci.hasRights(skipRights)
+                        && skipRightsHasRights(targetMatchCtx.getRights()))
+                    ret = true;
+                else if (attrType == null && targetAttr != null
+                            && aci.hasRights(ACI_WRITE))
                     ret = true;
                 else
                     ret = false;
             }
-            if((isFirstAttr) && (aci.getTargets().getTargetAttr() == null)
+            if (isFirstAttr && targetAttr == null
                 && aci.getTargets().getTargAttrFilters() == null)
                 targetMatchCtx.setEntryTestRule(true);
         }
@@ -660,12 +660,12 @@ public class AciTargets {
      *
      *
      * @param ctx  The ctx to check against.
-     * @param targets The targets part of the ACI.
+     * @param targetAttr The targetattrs part of the ACI.
      * @param ret  The is true if the ACI has already been evaluated to be
      *             applicable.
      */
     private static
-    void setEvalAttributes(AciTargetMatchContext ctx, AciTargets targets,
+    void setEvalAttributes(AciTargetMatchContext ctx, TargetAttr targetAttr,
                            boolean ret) {
         ctx.clearEvalAttributes(ACI_USER_ATTR_STAR_MATCHED);
         ctx.clearEvalAttributes(ACI_OP_ATTR_PLUS_MATCHED);
@@ -681,12 +681,13 @@ public class AciTargets {
          For example, the expression is: (targetattrs="cn || +) and the current
          attribute type is cn.
         */
-        if(ret && targets.getTargetAttr().isAllUserAttributes() &&
+        if(ret && targetAttr.isAllUserAttributes() &&
                 !ctx.hasEvalUserAttributes())
           ctx.setEvalUserAttributes(ACI_USER_ATTR_STAR_MATCHED);
         else
           ctx.setEvalUserAttributes(ACI_FOUND_USER_ATTR_RULE);
-        if(ret && targets.getTargetAttr().isAllOpAttributes() &&
+
+        if(ret && targetAttr.isAllOpAttributes() &&
                 !ctx.hasEvalOpAttributes())
           ctx.setEvalOpAttributes(ACI_OP_ATTR_PLUS_MATCHED);
         else
