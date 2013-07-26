@@ -144,8 +144,13 @@ public abstract class AccessControlHandler
     }
     if (entry == null)
     {
-      // no such entry exist, let's be safe and forbid any info disclosure.
-      return false;
+      // no such entry exist, only disclose underlying information if it is an
+      // internal (broad meaning) operation, otherwise let's be safe and forbid
+      // any info disclosure for external operations.
+      // This will avoid breaking conflicts resolution in replication
+      return operation.isInternalOperation()
+          || operation.isSynchronizationOperation()
+          || operation.isInnerOperation();
     }
     return maySend(operation, new SearchResultEntry(entry, operation
         .getResponseControls()));
