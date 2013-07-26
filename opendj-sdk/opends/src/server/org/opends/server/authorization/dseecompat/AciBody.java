@@ -336,7 +336,10 @@ public class AciBody {
    * needed in the actual evaluation of the ACI. This routine returns only the
    * rights needed in the evaluation. The order does matter, ACI_SELF evaluation
    * needs to be before ACI_WRITE.
-   *
+    * <p>
+    * JNR: I find the implementation in this method dubious.
+    * @see EnumRight#hasRights(int, int)
+    *
    * @param evalCtx  The evaluation context to determine the rights of.
    * @return  The evaluation rights to used in the evaluation.
    */
