@@ -84,6 +84,8 @@
       <para>OpenDJ directory server now allows any client to use the LDAP
       Permissive Modify Request control, <literal>1.2.840.113556.1.4.1413</literal>,
       by default for newly installed servers.</para>
+
+      <para>This was introduced in OpenDJ 2.6.0.</para>
      </listitem>
 
      <listitem>
@@ -91,6 +93,17 @@
       attributes that are not allowed has been changed to add
       <literal>includedAttributes</literal> and to remove
       <literal>targetUniqueID</literal>.</para>
+
+      <para>This was introduced in OpenDJ 2.6.0.</para>
+     </listitem>
+
+     <listitem>
+      <para>The attribute <literal>debugsearchindex</literal> has also been
+      added to the list of attributes that are not allowed in the "Anonymous
+      read access" global ACI.</para>
+
+      <!-- TODO: update to concrete version, e.g. 2.8.0, upon release -->
+      <para>This was introduced in OpenDJ <?eval ${docTargetVersion}?>.</para>
      </listitem>
     </itemizedlist>
 
