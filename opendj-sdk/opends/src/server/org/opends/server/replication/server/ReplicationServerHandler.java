@@ -28,8 +28,8 @@
 package org.opends.server.replication.server;
 
 import static org.opends.messages.ReplicationMessages.*;
-import static org.opends.server.loggers.ErrorLogger.logError;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.replication.protocol.ProtocolVersion.*;
 
 import java.io.IOException;
@@ -553,49 +553,36 @@ public class ReplicationServerHandler extends ServerHandler
         // If not, there's nothing to do anyway.
         if (generationId != localGenerationId)
         {
-          // if the 2 RS have different generationID
-          if (replicationServerDomain.getGenerationIdSavedStatus())
-          {
-            /*
-            if the present RS has received changes regarding its
-            gen ID and so won't change without a reset
-            then  we are just degrading the peer.
-            */
-            Message message = WARN_BAD_GENERATION_ID_FROM_RS.get(
-                serverId, session.getReadableRemoteAddress(),
-                generationId, getServiceId(),
-                getReplicationServerId(), localGenerationId);
-            logError(message);
-          }
-          else
-          {
-            /*
-            The present RS has never received changes regarding its
-            gen ID.
-
-            Example case:
-            - we are in RS1
-            - RS2 has genId2 from LS2 (genId2 <=> no data in LS2)
-            - RS1 has genId1 from LS1 /genId1 comes from data in
-            suffix
-            - we are in RS1 and we receive a START msg from RS2
-            - Each RS keeps its genID / is degraded and when LS2
-            will be populated from LS1 everything will become ok.
-
-            Issue:
-            FIXME : Would it be a good idea in some cases to just
-            set the gen ID received from the peer RS
-            specially if the peer has a non null state and
-            we have a null state ?
-            replicationServerDomain.
-            setGenerationId(generationId, false);
-            */
-            Message message = WARN_BAD_GENERATION_ID_FROM_RS.get(
-                serverId, session.getReadableRemoteAddress(),
-                generationId, getServiceId(),
-                getReplicationServerId(), localGenerationId);
-            logError(message);
-          }
+          /* Either:
+           *
+           * 1) The 2 RS have different generationID
+           * replicationServerDomain.getGenerationIdSavedStatus() == true
+           *
+           * if the present RS has received changes regarding its
+           * gen ID and so won't change without a reset
+           * then  we are just degrading the peer.
+           *
+           * 2) This RS has never received any changes for the current
+           * generation ID.
+           *
+           * Example case:
+           * - we are in RS1
+           * - RS2 has genId2 from LS2 (genId2 <=> no data in LS2)
+           * - RS1 has genId1 from LS1 /genId1 comes from data in suffix
+           * - we are in RS1 and we receive a START msg from RS2
+           * - Each RS keeps its genID / is degraded and when LS2
+           * will be populated from LS1 everything will become ok.
+           *
+           * Issue:
+           * FIXME : Would it be a good idea in some cases to just set the
+           * gen ID received from the peer RS specially if the peer has a
+           * non null state and we have a null state ?
+           * replicationServerDomain.setGenerationId(generationId, false);
+           */
+          Message message = WARN_BAD_GENERATION_ID_FROM_RS.get(
+                  serverId, session.getReadableRemoteAddress(), generationId,
+                  getServiceId(), getReplicationServerId(), localGenerationId);
+          logError(message);
         }
       }
     }
@@ -643,6 +630,7 @@ public class ReplicationServerHandler extends ServerHandler
   /**
    * Shutdown This ServerHandler.
    */
+  @Override
   public void shutdown()
   {
     super.shutdown();
@@ -823,14 +811,17 @@ public class ReplicationServerHandler extends ServerHandler
       return "Unknown server";
     }
   }
+
   /**
    * Gets the status of the connected DS.
    * @return The status of the connected DS.
    */
+  @Override
   public ServerStatus getStatus()
   {
     return ServerStatus.INVALID_STATUS;
   }
+
   /**
    * Retrieves the Address URL for this server handler.
    *
