@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2008-2009 Sun Microsystems, Inc.
+ !      Portions Copyright 2013 ForgeRock AS
  ! -->
 <stax>
   
@@ -97,7 +98,7 @@
                   {
                   'templateFile'   : template ,
                   'ldifFile'       : '%s/clu/make-ldif_seed0_1.ldif' % remote.temp ,
-                  'randomSeed'     : 0
+                  'randomSeed'     : "0"
                   }
                 </call>
                 
@@ -150,7 +151,7 @@
                   {
                   'templateFile'   : template ,
                   'ldifFile'       : '%s/clu/make-ldif_seed0_2.ldif' % remote.temp ,
-                  'randomSeed'     : 0
+                  'randomSeed'     : "0"
                   }
                 </call>
   
@@ -287,7 +288,8 @@
                   { 
                   'sourceLdif' : '%s/clu/make-ldif_seed0_1.ldif' % remote.temp ,
                   'targetLdif' : '%s/clu/make-ldif_noseed_1.ldif' % remote.temp ,
-                  'outputLdif' : '%s/clu/make-ldif_noseed_1.diff' % remote.temp
+                  'outputLdif' : '%s/clu/make-ldif_noseed_1.diff' % remote.temp ,
+                  'expectedRC' : 5
                   }
                 </call>           
                 
@@ -299,7 +301,8 @@
                   { 
                   'sourceLdif' : '%s/clu/make-ldif_noseed_1.ldif' % remote.temp ,
                   'targetLdif' : '%s/clu/make-ldif_noseed_2.ldif' % remote.temp ,
-                  'outputLdif' : '%s/clu/make-ldif_noseed_2.diff' % remote.temp
+                  'outputLdif' : '%s/clu/make-ldif_noseed_2.diff' % remote.temp ,
+                  'expectedRC' : 5
                   }
                 </call>
                 
@@ -312,7 +315,8 @@
                   { 
                   'sourceLdif' : '%s/clu/make-ldif_seed0_1.ldif' % remote.temp ,
                   'targetLdif' : '%s/clu/make-ldif_seed5.ldif' % remote.temp ,
-                  'outputLdif' : '%s/clu/make-ldif_seed5.diff' % remote.temp
+                  'outputLdif' : '%s/clu/make-ldif_seed5.diff' % remote.temp ,
+                  'expectedRC' : 5
                   }
                 </call>
   

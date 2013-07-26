@@ -544,7 +544,7 @@
       </if>
       <if expr="RC == 0">
         <sequence>
-          <call function="'LdifDiffWithScript-new'">
+          <call function="'LdifDiffWithScript'">
             { 'location'            : dsMaster.getHostname(),
               'dsPath'              : dsMasterPath,
               'sourceLdif' : '%s/%s' % (remote.temp, filteredRefTree),
@@ -552,7 +552,7 @@
               'outputLdif' : '%s/%s' % (remote.temp,treeDiffs)
             }
           </call>
-          <if expr="STAXResult == 0">
+          <if expr="STAXResult == 6">
             <sequence>
               <return>0, None</return>
             </sequence>

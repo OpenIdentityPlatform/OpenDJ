@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2010 Sun Microsystems, Inc.
+ !      Portions Copyright 2013 ForgeRock AS
  ! -->
 <stax>
 
@@ -83,7 +84,7 @@
                 'dsUseStartTLS'    : ' ' ,
                 'dsTrustAll'       : ' ' ,
                 'dsDn'             : ['postalCode:6728' ,'%s' %dncompare],
-                'expectedRC'       : 'noCheck'
+                'expectedRC'       : 5
                 }
               </call>
 
@@ -104,7 +105,6 @@
                 'dsUseStartTLS'    : ' ' ,
                 'dsTrustAll'       : ' ' ,
                 'dsDn'             : ['postalCode:67258' ,'%s' %dncompare],
-                'expectedRC'       : 'noCheck'
                 }
               </call>
 
@@ -160,7 +160,7 @@
                 'dsTrustStorePassword': 'clientruststorepass',
                 'dsDn'           : ['description: This is for Amber Arbuckle.',\
                                    '%s' %dncompare2] ,
-                'expectedRC'     : 'noCheck'
+                'expectedRC'     : 5
                 }
               </call>
 
@@ -183,8 +183,7 @@
                                       % InstanceInstallDir,
                 'dsTrustStorePassword': 'clientruststorepass',
                 'dsDn'            : ['description: This is the description for \
-                                   Amber Arbuckle.' ,'%s' %dncompare2] ,
-                'expectedRC'      : 'noCheck'
+                                   Amber Arbuckle.' ,'%s' %dncompare2]
                 }
               </call>
 

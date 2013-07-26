@@ -24,6 +24,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2008-2009 Sun Microsystems, Inc.
+ !      Portions Copyright 2013 ForgeRock AS
  ! -->
 <stax>
   
@@ -109,13 +110,6 @@
                   'sourceLdif' : '%s/clu/ldifmodify.out' % remote.temp ,
                   'targetLdif' : '%s/clu/ldifmodify.ref' % remote.data ,
                   'outputLdif' : '%s/clu/ldifmodify.diff' % remote.temp
-                  }
-                </call>
-  
-                <call function="'checktestRC'">
-                  {
-                  'returncode' : STAXResult ,
-                  'result'     : STAXResult
                   }
                 </call>
                 

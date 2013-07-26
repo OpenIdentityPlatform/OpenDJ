@@ -308,7 +308,7 @@
   </function>
     
   <!-- This function compares two LDIF files using the ldif-diff script -->
-  <function name="LdifDiffWithScript">
+  <function name="LdifDiffWithScript-old">
     <function-prolog>
       This function  compares two LDIF files and reports the differences in LDIF format
     </function-prolog>
@@ -819,7 +819,7 @@
                   'ignoreAttrsFile' : ignoreAttrsFile
                 }
               </call>
-              <if expr="STAXResult != 0">
+              <if expr="STAXResult != 6">
                 <sequence>
                   <script>
                     failedServers.append('%s:%s' % \
@@ -1167,7 +1167,7 @@
             }
           </call>
           <script>
-            if STAXResult != 0 :
+            if STAXResult != 6:
               failedServers.append('%s:%s' % (server.getHostname(), server.getPort()))
           </script>
         </sequence>
@@ -1886,7 +1886,7 @@
   </function>
   
   <!-- This function compares two LDIF files using the ldif-diff script -->
-  <function name="LdifDiffWithScript-new" scope="local">
+  <function name="LdifDiffWithScript" scope="local">
     <function-prolog>
       This function  compares two LDIF files and reports the differences
       in LDIF format
@@ -1945,7 +1945,7 @@
         </function-arg-description>
         <function-arg-property name="type" value="option"/>
       </function-arg-def>
-      <function-arg-def name="useCmpRC" type="optional">
+      <function-arg-def name="useCmpRC" type="optional" default="'True'">
         <function-arg-description>
           Use an exit code that indicates whether difference were not found.
           Results are an exit code of 6 (COMPARE_TRUE) or
@@ -1959,9 +1959,9 @@
         </function-arg-description>
         <function-arg-property name="help" value="option"/>
       </function-arg-def>
-      <function-arg-def name="expectedRC" type="optional" default="0">
+      <function-arg-def name="expectedRC" type="optional" default="6">
         <function-arg-description>
-          Expected return code value. Default value is 0.
+          Expected return code value. Default value is 6 (COMPARE_TRUE).
           Wildcard 'noCheck' to not check the RC
         </function-arg-description>
         <function-arg-property name="type" value="integer"/>
@@ -1996,7 +1996,7 @@
           foldersToCreate.append(os.path.dirname(outputLdif))
           STAFCmdParamsList.append('-o %s' % outputLdif)
         
-        if useCmpRC:
+        if useCmpRC == 'True':
           STAFCmdParamsList.append('-r')
 
         if overwriteExisting:
@@ -2031,6 +2031,63 @@
         'knownIssue' : knownIssue
         }
       </call>
+      
+      <if expr="RC == 5 and expectedRC != 5">
+        <sequence>
+          <!-- Check the size of the diff file, and avoid reading its
+               content with getFile if the file is too big to prevent
+               the staf process from running out of memory -->
+          <call function="'GetEntry'">
+            {
+            'location'  : location,
+            'entry'     : outputLdif,
+            'attribute' : 'SIZE'
+            }
+          </call>
+          <script>
+            # GetEntry returns: STAXResult = [cmdRC, cmdResult]
+            if RC == 0:
+              diffsFileSize = int(STAXResult[1]['lowerSize'])
+              msg = 'File: %s   Size (bytes): %s' % (outputLdif, diffsFileSize)
+            else:
+              diffsFileSize = MAX_READABLE_SIZE
+              msg = 'Could not retrieve the size of file %s' % outputLdif
+          </script>
+          <message log="1"> 'LdifDiffWithScript: %s' % msg </message>
+          <if expr="diffsFileSize &lt; MAX_READABLE_SIZE">
+            <sequence>
+              <call function="'getFile'">
+                { 'location' : location,
+                  'filename' : outputLdif
+                }                
+              </call>
+              <script>
+                # getFile returns: STAXResult = [cmdRC, cmdResult]
+                diffsFileContent = STAXResult[1]
+               </script>
+            </sequence>
+            <else>
+              <script>
+                # diffs file to big to be read
+                diffsFileContent = 'File too big to be read.'
+              </script>
+            </else>
+          </if>
+
+          <message log="1" level="'Error'">
+            'Source and target LDIF files are DIFFERENT: \n\n%s' % \
+            diffsFileContent
+          </message>
+        </sequence>
+        <else>
+          <sequence>
+            <message>
+              'NO DIFFERENCES were detected between the source and the target \
+              LDIF files.'
+            </message>
+          </sequence>
+        </else>
+      </if>     
       
       <return>STAXResult</return>
     </sequence>

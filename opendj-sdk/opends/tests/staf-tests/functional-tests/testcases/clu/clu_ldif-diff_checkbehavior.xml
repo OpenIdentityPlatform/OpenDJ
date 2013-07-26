@@ -96,13 +96,11 @@
                   'ldif-diff: compare ldif files with no diffs'
                 </message>
                 
-                <call function="'LdifDiffWithScript-new'">
+                <call function="'LdifDiffWithScript'">
                   {
                   'sourceLdif' : sourceldif ,
                   'targetLdif' : sourceldif ,
-                  'outputLdif' : '%s/clu/ldif-diff_nodiffs_rc.out' % remote.temp ,
-                  'useCmpRC'   : 'True' ,
-                  'expectedRC' : 6
+                  'outputLdif' : '%s/clu/ldif-diff_nodiffs_rc.out' % remote.temp
                   }
                 </call>
 
@@ -147,12 +145,11 @@
                   'ldif-diff: compare ldif files with diffs'
                 </message>
                 
-                <call function="'LdifDiffWithScript-new'">
+                <call function="'LdifDiffWithScript'">
                   {
                   'sourceLdif' : sourceldif ,
                   'targetLdif' : targetldif ,
                   'outputLdif' : '%s/clu/ldif-diff_nodiffs_rc.out' % remote.temp ,
-                  'useCmpRC'   : 'True' ,
                   'expectedRC' : 5
                   }
                 </call>
@@ -197,11 +194,13 @@
                   'ldif-diff: compare ldif files with no diffs'
                 </message>
                 
-                <call function="'LdifDiffWithScript-new'">
+                <call function="'LdifDiffWithScript'">
                   {
                   'sourceLdif' : sourceldif ,
                   'targetLdif' : sourceldif ,
-                  'outputLdif' : '%s/clu/ldif-diff_nodiffs.out' % remote.temp
+                  'outputLdif' : '%s/clu/ldif-diff_nodiffs.out' % remote.temp ,
+                  'useCmpRC'   : 'False' ,
+                  'expectedRC' : 0
                   }
                 </call>
 
@@ -246,11 +245,13 @@
                   'ldif-diff: compare ldif files with diffs'
                 </message>
                 
-                <call function="'LdifDiffWithScript-new'">
+                <call function="'LdifDiffWithScript'">
                   {
                   'sourceLdif' : sourceldif ,
                   'targetLdif' : targetldif ,
-                  'outputLdif' : '%s/clu/ldif-diff_withdiffs.out' % remote.temp
+                  'outputLdif' : '%s/clu/ldif-diff_withdiffs.out' % remote.temp ,
+                  'useCmpRC'   : 'False' ,
+                  'expectedRC' : 0
                   }
                 </call>
                 
@@ -293,11 +294,12 @@
                   'ldif-diff: check diff file'
                 </message>
                 
-                <call function="'LdifDiffWithScript-new'">
+                <call function="'LdifDiffWithScript'">
                   {
                   'sourceLdif' : sourceldif ,
                   'targetLdif' : targetldif ,
-                  'outputLdif' : '%s/clu/ldif-diff.out' % remote.temp
+                  'outputLdif' : '%s/clu/ldif-diff.out' % remote.temp ,
+                  'expectedRC' : 5
                   }
                 </call>
                 
@@ -339,13 +341,14 @@
                   'ldif-diff: check diff file with single value changes'
                 </message>
                 
-                <call function="'LdifDiffWithScript-new'">
+                <call function="'LdifDiffWithScript'">
                   {
                   'sourceLdif'         : sourceldif ,
                   'targetLdif'         : targetldif ,
                   'outputLdif'         : '%s/clu/ldif-diff_singlevalue.out' \
                                          % remote.temp ,
-                  'singleValueChanges' : 'True'
+                  'singleValueChanges' : 'True' ,
+                  'expectedRC'         : 5
                   }
                 </call>
                 
