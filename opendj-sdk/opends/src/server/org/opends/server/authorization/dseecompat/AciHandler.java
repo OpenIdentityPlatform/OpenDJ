@@ -418,36 +418,37 @@ public final class AciHandler extends
       return true;
     }
 
+    final RDN oldRDN = operation.getOriginalEntry().getDN().getRDN();
+    final RDN newRDN = operation.getNewRDN();
+    final DN newSuperiorDN = operation.getNewSuperior();
+
     // If this is a modifyDN move to a new superior, then check if the
     // superior DN has import access.
-    final DN newSuperiorDN = operation.getNewSuperior();
-    if (!aciCheckSuperiorEntry(newSuperiorDN, operation))
+    if (newSuperiorDN != null
+        && !aciCheckSuperiorEntry(newSuperiorDN, operation))
     {
       return false;
     }
 
     // Perform the RDN access checks.
-    RDN oldRDN = operation.getOriginalEntry().getDN().getRDN();
-    RDN newRDN = operation.getNewRDN();
-    if (aciCheckRDNs(operation, oldRDN, newRDN))
+    boolean rdnChangesAllowed = aciCheckRDNs(operation, oldRDN, newRDN);
+
+    // If this is a modifyDN move to a new superior, then check if the
+    // original entry DN has export access.
+    if (rdnChangesAllowed && newSuperiorDN != null)
     {
-      // If this is a modifyDN move to a new superior, then check if the
-      // original entry DN has export access.
-      if (newSuperiorDN != null)
+      AciContainer container =
+          new AciLDAPOperationContainer(operation, ACI_EXPORT, operation
+              .getOriginalEntry());
+      if (!oldRDN.equals(newRDN))
       {
-        AciContainer container =
-            new AciLDAPOperationContainer(operation, ACI_EXPORT,
-                operation.getOriginalEntry());
-        if (!oldRDN.equals(newRDN))
-        {
-          // The RDNs are not equal, skip the proxy check since it was
-          // already performed in the aciCheckRDNs call above.
-          container.setSeenEntry(true);
-        }
-        return accessAllowed(container);
+        // The RDNs are not equal, skip the proxy check since it was
+        // already performed in the aciCheckRDNs call above.
+        container.setSeenEntry(true);
       }
+      return accessAllowed(container);
     }
-    return true;
+    return rdnChangesAllowed;
   }
 
 
@@ -1013,11 +1014,6 @@ public final class AciHandler extends
    */
   private boolean aciCheckSuperiorEntry(DN superiorDN, ModifyDNOperation op)
   {
-    if (superiorDN == null)
-    {
-      return false;
-    }
-
     final Lock entryLock = LockManager.lockRead(superiorDN);
     if (entryLock == null)
     {
