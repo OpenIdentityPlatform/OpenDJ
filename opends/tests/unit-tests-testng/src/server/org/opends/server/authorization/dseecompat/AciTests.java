@@ -29,38 +29,28 @@
  */
 package org.opends.server.authorization.dseecompat;
 
-import org.opends.server.TestCaseUtils;
-import org.opends.messages.Message;
-import org.opends.server.types.LDIFImportConfig;
-import org.opends.server.types.LDIFExportConfig;
-import org.opends.server.tools.*;
-import org.testng.annotations.*;
-import static org.testng.Assert.assertEquals;
-import org.testng.Assert;
-import static org.opends.server.util.ServerConstants.EOL;
-import org.opends.server.protocols.ldap.LDAPResultCode;
-import org.opends.server.util.LDIFReader;
-import org.opends.server.util.LDIFWriter;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.util.ServerConstants.*;
-import java.io.File;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.StringReader;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.Collections;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Set;
-import java.util.HashSet;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.regex.Pattern;
+import static org.testng.Assert.*;
+
+import java.io.*;
 import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.regex.Pattern;
+
+import org.opends.messages.Message;
+import org.opends.server.TestCaseUtils;
+import org.opends.server.protocols.ldap.LDAPResultCode;
+import org.opends.server.tools.*;
+import org.opends.server.types.LDIFExportConfig;
+import org.opends.server.types.LDIFImportConfig;
+import org.opends.server.util.LDIFReader;
+import org.opends.server.util.LDIFWriter;
+import org.testng.Assert;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
 
 /**
  * These are more functional tests than unit tests.  They go directly over
@@ -263,7 +253,7 @@ public class AciTests extends AciTestCase {
   private static final String BIND_RULE_ADMIN_AND_LOCALHOST_OR_SSL = and(BIND_RULE_USERDN_ADMIN, or(BIND_RULE_AUTHMETHOD_SSL, BIND_RULE_DNS_LOCALHOST));
 
 
-  // This are made up
+  // These are made up
   private static final String BIND_RULE_GROUPDN_1 = "groupdn=\"ldap:///cn=SomeGroup,dc=example,dc=com\"";
   private static final String BIND_RULE_GROUPDN_2 = "groupdn=\"ldap:///cn=SomeGroup,dc=example,dc=com || ldap:///cn=SomeOtherGroup,dc=example,dc=com\"";
   private static final String BIND_RULE_GROUPDN_3 = "groupdn=\"ldap:///cn=SomeGroup,dc=example,dc=com || ldap:///cn=SomeOtherGroup,dc=example,dc=com || ldap:///cn=SomeThirdGroup,dc=example,dc=com\"";
@@ -311,6 +301,9 @@ public class AciTests extends AciTestCase {
 
   private static final String ALLOW_ALL_TO_COMPARE =
              buildAciValue("name", "allow compare", "targetattr", "*", "target", "ldap:///cn=*," + OU_LEAF_DN, "allow(compare)", BIND_RULE_USERDN_ALL);
+  private static final String ALLOW_ALL_TO_COMPARE_NO_TARGETATTR =
+      buildAciValue("name", "allow compare", "target", "ldap:///cn=*,"
+          + OU_LEAF_DN, "allow(compare)", BIND_RULE_USERDN_ALL);
 
   private static final String DENY_READ_CN_SN_IF_PERSON = buildAciValue("name",
       "deny read cn sn if person", "targetfilter", "objectClass=person",
@@ -1128,6 +1121,8 @@ public class AciTests extends AciTestCase {
 
   // ACI used to test LDAP compare.
   private static final String COMPARE_ACI =  makeAddAciLdif(OU_LEAF_DN, ALLOW_ALL_TO_COMPARE);
+  private static final String COMPARE_ACI_NO_TARGETATTR = makeAddAciLdif(
+      OU_LEAF_DN, ALLOW_ALL_TO_COMPARE_NO_TARGETATTR);
 
   // ACI used to test LDAP search with attributes.
   private static final String SEARCH_ATTRIBUTES_ALLOW_ACI = makeAddAciLdif(
@@ -1136,9 +1131,8 @@ public class AciTests extends AciTestCase {
       OU_LEAF_DN, DENY_READ_CN_SN_IF_PERSON);
 
   //ACI used to test selfwrite
-  private static final
-  String SELFWRITE_ACI =  makeAddAciLdif(OU_GROUP_1_DN,
-                                        ALLOW_ALL_TO_SELFWRITE);
+  private static final String SELFWRITE_ACI = makeAddAciLdif(
+      OU_GROUP_1_DN, ALLOW_ALL_TO_SELFWRITE);
 
   //ACIs used for standard modDN tests (export, import)
 
@@ -1661,10 +1655,6 @@ private static final  String ACI_PROXY_CONTROL_LEVEL_1 =
       _attributes = new String[0];
     }
 
-    public SingleSearchParams clone(String initialDitLdif, String aciLdif) {
-      return new SingleSearchParams(this, initialDitLdif, aciLdif);
-    }
-
     public String[] getLdapSearchArgs()
     {
       final List<String> args = new ArrayList<String>();
@@ -1727,6 +1717,7 @@ private static final  String ACI_PROXY_CONTROL_LEVEL_1 =
          "-p", getServerLdapPort(),
          "-D", _bindDn,
          "-w", _bindPw,
+         "--useCompareResultCode",
         attrAssertion,
         _searchBaseDn};
     }
@@ -1739,12 +1730,8 @@ private static final  String ACI_PROXY_CONTROL_LEVEL_1 =
     /** ACIs that will produce the same search results for the above DIT. */
     private final List<String> _equivalentAciLdifs;
 
-    /**  */
     private final List<SingleSearchParams> _searchTests = new ArrayList<SingleSearchParams>();
 
-    /**
-     *
-     */
     public SearchTestParams(String initialDitLdif, String... equivalentAciLdifs) {
       _initialDitLdif = initialDitLdif;
       _equivalentAciLdifs = Arrays.asList(equivalentAciLdifs);
@@ -1756,9 +1743,6 @@ private static final  String ACI_PROXY_CONTROL_LEVEL_1 =
       }
     }
 
-    /**
-     *
-     */
     private List<SingleSearchParams> explodeTestParams() throws Exception {
       List<SingleSearchParams> explodedTests = new ArrayList<SingleSearchParams>();
 
@@ -1817,23 +1801,34 @@ private static final  String ACI_PROXY_CONTROL_LEVEL_1 =
     }
   }
 
- /**
-  * Test LDAP compare.
-  * @throws Throwable If the compare is not valid for the ACI.
- */
- @Test()
-  public void testCompare() throws Throwable {
-      SingleSearchParams adminParam =
-        SingleSearchParams.nonProxiedSearch(ADMIN_DN, ADMIN_PW, LEVEL_3_USER_DN,
-                      OBJECTCLASS_STAR, SCOPE_BASE,
-                      null, null, null);
-      {
-          addEntries(BASIC_LDIF__GROUP_SEARCH_TESTS, DIR_MGR_DN, DIR_MGR_PW);
-          modEntries(COMPARE_ACI, DIR_MGR_DN, DIR_MGR_PW);
-          String userResults =
-                  ldapCompare(adminParam.getLdapCompareArgs("cn:level3 user"));
-          Assert.assertFalse(userResults.equals(""));
-      }
+  /**
+   * Test LDAP compare.
+   * @throws Throwable If the compare is not valid for the ACI.
+   */
+  @Test()
+  public void testCompareDoesNotDiscloseInfo() throws Throwable
+  {
+    SingleSearchParams adminParam =
+        SingleSearchParams.nonProxiedSearch(ADMIN_DN, ADMIN_PW,
+            LEVEL_3_USER_DN, OBJECTCLASS_STAR, SCOPE_BASE, null, null, null);
+
+    addEntries(BASIC_LDIF__GROUP_SEARCH_TESTS, DIR_MGR_DN, DIR_MGR_PW);
+    modEntries(COMPARE_ACI, DIR_MGR_DN, DIR_MGR_PW);
+    ldapCompare(adminParam.getLdapCompareArgs("cn:level3 user"),
+        LDAPResultCode.NO_SUCH_OBJECT);
+  }
+
+  @Test()
+  public void testCompareDoesNotDiscloseInfoNoTargetAttr() throws Throwable
+  {
+    SingleSearchParams adminParam =
+        SingleSearchParams.nonProxiedSearch(ADMIN_DN, ADMIN_PW,
+            LEVEL_3_USER_DN, OBJECTCLASS_STAR, SCOPE_BASE, null, null, null);
+
+    addEntries(BASIC_LDIF__GROUP_SEARCH_TESTS, DIR_MGR_DN, DIR_MGR_PW);
+    modEntries(COMPARE_ACI_NO_TARGETATTR, DIR_MGR_DN, DIR_MGR_PW);
+    ldapCompare(adminParam.getLdapCompareArgs("cn:level3 user"),
+        LDAPResultCode.NO_SUCH_OBJECT);
   }
 
 
@@ -1934,9 +1929,8 @@ private static final  String ACI_PROXY_CONTROL_LEVEL_1 =
   public void testAnonymousModDNSameRDN() throws Throwable {
     addEntries(BASIC_LDIF__GROUP_SEARCH_TESTS, DIR_MGR_DN, DIR_MGR_PW);
     String modRDNLdif = makeModDN(OU_LEAF_DN, "ou=leaf", "1", null);
-    LDIFModify(modRDNLdif, "", "", null,
-               LDAPResultCode.INSUFFICIENT_ACCESS_RIGHTS);
-    }
+    LDIFModify(modRDNLdif, "", "", null, LDAPResultCode.NO_SUCH_OBJECT);
+  }
 
   /**
    * Test selfwrite right. Attempt to bind as level3 user and remove level1
@@ -2189,24 +2183,23 @@ private static final  String ACI_PROXY_CONTROL_LEVEL_1 =
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 
-  /**
-   * Build the value for the aci from the specified fields.
-   *
-   * This is a bit of a kludge, but it does help us from having nested "\"",
-   * and it does allow us to more easily generate combinations of acis.
-   */
 
 
     /**
-     * Create an ACI string with the specifed variable string list. The method
+     * Create an ACI string with the specified variable string list. The method
      * uses the global ACI attribute type name, instead of "aci".
      * @param aciFields The fields to use to build the ACI.
      * @return  An ACI string.
      */
     private static String buildGlobalAciValue(String... aciFields) {
      return(_buildAciValue(ATTR_AUTHZ_GLOBAL_ACI + ": ", aciFields));
-  }
+    }
 
+  /**
+   * Build the value for the aci from the specified fields. This is a bit of a
+   * kludge, but it does help us from having nested "\"", and it does allow us
+   * to more easily generate combinations of acis.
+   */
   private static String buildAciValue(String... aciFields) {
      return(_buildAciValue("aci:", aciFields));
   }
@@ -2292,17 +2285,11 @@ private static String _buildAciValue(String attr, String... aciFields) {
     return ldif.toString();
   }
 
-  /**
-   *
-   */
   private void addEntries(String ldif, String bindDn, String bindPassword) throws Exception {
     addEntries(ldif, bindDn, bindPassword, true);
   }
 
 
-  /**
-   *
-   */
   private void addEntries(String ldif, String bindDn, String bindPassword, boolean expectSuccess) throws Exception {
     File tempFile = getTemporaryLdifFile();
     TestCaseUtils.writeFile(tempFile, ldif);
@@ -2329,27 +2316,23 @@ private static String _buildAciValue(String attr, String... aciFields) {
   private String ldapSearch(String[] args) throws Exception {
     clearOutputStream();
     int retVal = LDAPSearch.mainSearch(args, false, getOutputStream(), getOutputStream());
-    Assert.assertEquals(0, retVal,  "Non-zero return code because, error: " + getOutputStreamContents());
+    Assert.assertEquals(retVal, 0, "Non-zero return code because, error: " + getOutputStreamContents());
     return getOutputStreamContents();
   }
 
- private String ldapCompare(String[] args) throws Exception {
+  private String ldapCompare(String[] args, int expectedRc) throws Exception {
     clearOutputStream();
-    int retVal =
-            LDAPCompare.mainCompare(args, false, getOutputStream(),
-                                    getOutputStream());
-    Assert.assertEquals(0, retVal,  "Non-zero return code because, error: " + getOutputStreamContents());
+    int retVal = LDAPCompare.mainCompare(args, false, getOutputStream(), getOutputStream());
+    Assert.assertEquals(retVal, expectedRc,  "Non-zero return code because, error: " + getOutputStreamContents());
     return getOutputStreamContents();
   }
 
-  private void
-  modEntries(String ldif, String bindDn, String bindPassword)
+  private void modEntries(String ldif, String bindDn, String bindPassword)
           throws Exception {
     modEntries(ldif, bindDn, bindPassword, null, true, false);
   }
 
-  private void
-  modEntries(String ldif, String bindDn, String bindPassword, String proxyDN)
+  private void modEntries(String ldif, String bindDn, String bindPassword, String proxyDN)
           throws Exception {
     modEntries(ldif, bindDn, bindPassword, proxyDN, true, false);
   }
@@ -2483,9 +2466,8 @@ private static String _buildAciValue(String attr, String... aciFields) {
 
     if (diffLdifFile.exists()) {
       return stripComments(TestCaseUtils.readFile(diffLdifFile));
-    } else {
-      return "";
     }
+    return "";
   }
 
   private static String stripPassword(String ldif) {
