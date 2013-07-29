@@ -90,64 +90,37 @@ public class ModifyOperationTestCase
   public Object[][] getModifyOperations()
          throws Exception
   {
-    ArrayList<ModifyOperation> opList = new ArrayList<ModifyOperation>();
+    List<ModifyOperation> opList = new ArrayList<ModifyOperation>();
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
-    ArrayList<Control> noControls = new ArrayList<Control>();
+    List<Control> noControls = new ArrayList<Control>();
 
 
-    ArrayList<RawModification> ldapMods = new ArrayList<RawModification>();
+    List<RawModification> ldapMods = new ArrayList<RawModification>();
     ArrayList<ByteString> ldapValues = new ArrayList<ByteString>();
     ldapValues.add(ByteString.valueOf("foo"));
     LDAPAttribute ldapAttr = new LDAPAttribute("description", ldapValues);
     ldapMods.add(new LDAPModification(ModificationType.ADD, ldapAttr));
 
-    opList.add(new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
-                                   InternalClientConnection.nextMessageID(), null,
-                                   ByteString.empty(), ldapMods));
-    opList.add(new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
-                                   InternalClientConnection.nextMessageID(), noControls,
-                                   ByteString.empty(), ldapMods));
-    opList.add(new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
-                                   InternalClientConnection.nextMessageID(), null,
-                                   ByteString.valueOf("o=test"), ldapMods));
-    opList.add(new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
-                                   InternalClientConnection.nextMessageID(), noControls,
-                                   ByteString.valueOf("o=test"), ldapMods));
+    opList.add(newModifyOperation(null, ByteString.empty(), ldapMods));
+    opList.add(newModifyOperation(noControls, ByteString.empty(), ldapMods));
+    opList.add(newModifyOperation(null, ByteString.valueOf("o=test"), ldapMods));
+    opList.add(newModifyOperation(noControls, ByteString.valueOf("o=test"), ldapMods));
 
     ldapMods = new ArrayList<RawModification>();
     ldapMods.add(new LDAPModification(ModificationType.DELETE, ldapAttr));
 
-    opList.add(new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
-                                   InternalClientConnection.nextMessageID(), null,
-                                   ByteString.empty(), ldapMods));
-    opList.add(new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
-                                   InternalClientConnection.nextMessageID(), noControls,
-                                   ByteString.empty(), ldapMods));
-    opList.add(new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
-                                   InternalClientConnection.nextMessageID(), null,
-                                   ByteString.valueOf("o=test"), ldapMods));
-    opList.add(new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
-                                   InternalClientConnection.nextMessageID(), noControls,
-                                   ByteString.valueOf("o=test"), ldapMods));
+    opList.add(newModifyOperation(null, ByteString.empty(), ldapMods));
+    opList.add(newModifyOperation(noControls, ByteString.empty(), ldapMods));
+    opList.add(newModifyOperation(null, ByteString.valueOf("o=test"), ldapMods));
+    opList.add(newModifyOperation(noControls, ByteString.valueOf("o=test"), ldapMods));
 
     ldapMods = new ArrayList<RawModification>();
     ldapMods.add(new LDAPModification(ModificationType.REPLACE, ldapAttr));
 
-    opList.add(new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
-                                   InternalClientConnection.nextMessageID(), null,
-                                   ByteString.empty(), ldapMods));
-    opList.add(new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
-                                   InternalClientConnection.nextMessageID(), noControls,
-                                   ByteString.empty(), ldapMods));
-    opList.add(new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
-                                   InternalClientConnection.nextMessageID(), null,
-                                   ByteString.valueOf("o=test"), ldapMods));
-    opList.add(new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
-                                   InternalClientConnection.nextMessageID(), noControls,
-                                   ByteString.valueOf("o=test"), ldapMods));
+    opList.add(newModifyOperation(null, ByteString.empty(), ldapMods));
+    opList.add(newModifyOperation(noControls, ByteString.empty(), ldapMods));
+    opList.add(newModifyOperation(null, ByteString.valueOf("o=test"), ldapMods));
+    opList.add(newModifyOperation(noControls, ByteString.valueOf("o=test"), ldapMods));
 
     ldapMods = new ArrayList<RawModification>();
     ArrayList<ByteString> values2 = new ArrayList<ByteString>();
@@ -156,86 +129,49 @@ public class ModifyOperationTestCase
     ldapMods.add(new LDAPModification(ModificationType.DELETE, ldapAttr));
     ldapMods.add(new LDAPModification(ModificationType.ADD, ldapAttr2));
 
-    opList.add(new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
-                                   InternalClientConnection.nextMessageID(), null,
-                                   ByteString.empty(), ldapMods));
-    opList.add(new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
-                                   InternalClientConnection.nextMessageID(), noControls,
-                                   ByteString.empty(), ldapMods));
-    opList.add(new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
-                                   InternalClientConnection.nextMessageID(), null,
-                                   ByteString.valueOf("o=test"), ldapMods));
-    opList.add(new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
-                                   InternalClientConnection.nextMessageID(), noControls,
-                                   ByteString.valueOf("o=test"), ldapMods));
+    opList.add(newModifyOperation(null, ByteString.empty(), ldapMods));
+    opList.add(newModifyOperation(noControls, ByteString.empty(), ldapMods));
+    opList.add(newModifyOperation(null, ByteString.valueOf("o=test"), ldapMods));
+    opList.add(newModifyOperation(noControls, ByteString.valueOf("o=test"), ldapMods));
 
     ldapMods = new ArrayList<RawModification>();
     ldapAttr2 = new LDAPAttribute("cn", values2);
     ldapMods.add(new LDAPModification(ModificationType.REPLACE, ldapAttr));
     ldapMods.add(new LDAPModification(ModificationType.REPLACE, ldapAttr2));
 
-    opList.add(new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
-                                   InternalClientConnection.nextMessageID(), null,
-                                   ByteString.empty(), ldapMods));
-    opList.add(new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
-                                   InternalClientConnection.nextMessageID(), noControls,
-                                   ByteString.empty(), ldapMods));
-    opList.add(new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
-                                   InternalClientConnection.nextMessageID(), null,
-                                   ByteString.valueOf("o=test"), ldapMods));
-    opList.add(new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
-                                   InternalClientConnection.nextMessageID(), noControls,
-                                   ByteString.valueOf("o=test"), ldapMods));
+    opList.add(newModifyOperation(null, ByteString.empty(), ldapMods));
+    opList.add(newModifyOperation(noControls, ByteString.empty(), ldapMods));
+    opList.add(newModifyOperation(null, ByteString.valueOf("o=test"), ldapMods));
+    opList.add(newModifyOperation(noControls, ByteString.valueOf("o=test"), ldapMods));
 
 
 
-    ArrayList<Modification> mods = new ArrayList<Modification>();
+    List<Modification> mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.ADD,
         Attributes.create("description", "foo")));
 
-    opList.add(new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
-                                   InternalClientConnection.nextMessageID(), null, DN.nullDN(), mods));
-    opList.add(new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
-                                   InternalClientConnection.nextMessageID(), noControls, DN.nullDN(),
-                                   mods));
-    opList.add(new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
-                                   InternalClientConnection.nextMessageID(), null,
-                                   DN.decode("o=test"), mods));
-    opList.add(new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
-                                   InternalClientConnection.nextMessageID(), noControls,
-                                   DN.decode("o=test"), mods));
+    opList.add(newModifyOperation(null, DN.nullDN(), mods));
+    opList.add(newModifyOperation(noControls, DN.nullDN(), mods));
+    opList.add(newModifyOperation(null, DN.decode("o=test"), mods));
+    opList.add(newModifyOperation(noControls, DN.decode("o=test"), mods));
 
     mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.DELETE,
         Attributes.create("description", "foo")));
 
-    opList.add(new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
-                                   InternalClientConnection.nextMessageID(), null, DN.nullDN(), mods));
-    opList.add(new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
-                                   InternalClientConnection.nextMessageID(), noControls, DN.nullDN(),
-                                   mods));
-    opList.add(new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
-                                   InternalClientConnection.nextMessageID(), null,
-                                   DN.decode("o=test"), mods));
-    opList.add(new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
-                                   InternalClientConnection.nextMessageID(), noControls,
-                                   DN.decode("o=test"), mods));
+    opList.add(newModifyOperation(null, DN.nullDN(), mods));
+    opList.add(newModifyOperation(noControls, DN.nullDN(), mods));
+    opList.add(newModifyOperation(null, DN.decode("o=test"), mods));
+    opList.add(newModifyOperation(noControls, DN.decode("o=test"), mods));
 
     mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.REPLACE,
         Attributes.create("description", "foo")));
 
-    opList.add(new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
-                                   InternalClientConnection.nextMessageID(), null, DN.nullDN(), mods));
-    opList.add(new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
-                                   InternalClientConnection.nextMessageID(), noControls, DN.nullDN(),
-                                   mods));
-    opList.add(new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
-                                   InternalClientConnection.nextMessageID(), null,
-                                   DN.decode("o=test"), mods));
-    opList.add(new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
-                                   InternalClientConnection.nextMessageID(), noControls,
-                                   DN.decode("o=test"), mods));
+    opList.add(newModifyOperation(null, DN.nullDN(), mods));
+    opList.add(newModifyOperation(noControls, DN.nullDN(), mods));
+    opList.add(newModifyOperation(null, DN.decode("o=test"), mods));
+    opList.add(newModifyOperation(noControls, DN.decode("o=test"), mods));
 
     mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.DELETE,
@@ -243,17 +179,10 @@ public class ModifyOperationTestCase
     mods.add(new Modification(ModificationType.ADD,
         Attributes.create("description", "bar")));
 
-    opList.add(new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
-                                   InternalClientConnection.nextMessageID(), null, DN.nullDN(), mods));
-    opList.add(new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
-                                   InternalClientConnection.nextMessageID(), noControls, DN.nullDN(),
-                                   mods));
-    opList.add(new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
-                                   InternalClientConnection.nextMessageID(), null,
-                                   DN.decode("o=test"), mods));
-    opList.add(new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
-                                   InternalClientConnection.nextMessageID(), noControls,
-                                   DN.decode("o=test"), mods));
+    opList.add(newModifyOperation(null, DN.nullDN(), mods));
+    opList.add(newModifyOperation(noControls, DN.nullDN(), mods));
+    opList.add(newModifyOperation(null, DN.decode("o=test"), mods));
+    opList.add(newModifyOperation(noControls, DN.decode("o=test"), mods));
 
     mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.REPLACE,
@@ -261,17 +190,10 @@ public class ModifyOperationTestCase
     mods.add(new Modification(ModificationType.REPLACE,
         Attributes.create("cn", "bar")));
 
-    opList.add(new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
-                                   InternalClientConnection.nextMessageID(), null, DN.nullDN(), mods));
-    opList.add(new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
-                                   InternalClientConnection.nextMessageID(), noControls, DN.nullDN(),
-                                   mods));
-    opList.add(new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
-                                   InternalClientConnection.nextMessageID(), null,
-                                   DN.decode("o=test"), mods));
-    opList.add(new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
-                                   InternalClientConnection.nextMessageID(), noControls,
-                                   DN.decode("o=test"), mods));
+    opList.add(newModifyOperation(null, DN.nullDN(), mods));
+    opList.add(newModifyOperation(noControls, DN.nullDN(), mods));
+    opList.add(newModifyOperation(null, DN.decode("o=test"), mods));
+    opList.add(newModifyOperation(noControls, DN.decode("o=test"), mods));
 
 
 
@@ -282,6 +204,26 @@ public class ModifyOperationTestCase
     }
 
     return objArray;
+  }
+
+  private ModifyOperation newModifyOperation(List<Control> requestControls,
+      DN entryDn, List<Modification> modifications)
+  {
+    return new ModifyOperationBasis(
+        InternalClientConnection.getRootConnection(),
+        InternalClientConnection.nextOperationID(),
+        InternalClientConnection.nextMessageID(),
+        requestControls, entryDn, modifications);
+  }
+
+  private ModifyOperation newModifyOperation(List<Control> requestControls,
+      ByteString rawEntryDn, List<RawModification> rawModifications)
+  {
+    return new ModifyOperationBasis(
+        InternalClientConnection.getRootConnection(),
+        InternalClientConnection.nextOperationID(),
+        InternalClientConnection.nextMessageID(),
+        requestControls, rawEntryDn, rawModifications);
   }
 
   @DataProvider(name = "baseDNs")
@@ -349,19 +291,14 @@ public class ModifyOperationTestCase
   @Test()
   public void testGetEntryDNInitiallyNull()
   {
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
     ArrayList<ByteString> values = new ArrayList<ByteString>();
     values.add(ByteString.valueOf("foo"));
     LDAPAttribute attr = new LDAPAttribute("description", values);
 
-    ArrayList<RawModification> mods = new ArrayList<RawModification>();
+    List<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
-    ModifyOperation modifyOperation =
-         new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
-                             null, ByteString.empty(), mods);
+    ModifyOperation modifyOperation = newModifyOperation(null, ByteString.empty(), mods);
     assertNotNull(modifyOperation.getEntryDN());
   }
 
@@ -377,15 +314,10 @@ public class ModifyOperationTestCase
   public void testGetEntryDNInitiallyNonNull()
          throws Exception
   {
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
-    ArrayList<Modification> mods = new ArrayList<Modification>();
+    List<Modification> mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.REPLACE,
         Attributes.create("description", "foo")));
-    ModifyOperation modifyOperation =
-         new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
-                             null, DN.nullDN(), mods);
+    ModifyOperation modifyOperation = newModifyOperation(null, DN.nullDN(), mods);
     assertNotNull(modifyOperation.getEntryDN());
   }
 
@@ -402,15 +334,11 @@ public class ModifyOperationTestCase
   public void testGetEntryDNNonNullChangedToNull()
          throws Exception
   {
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
-    ArrayList<Modification> mods = new ArrayList<Modification>();
+    List<Modification> mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.REPLACE,
         Attributes.create("description", "foo")));
     ModifyOperation modifyOperation =
-         new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
-                             null, DN.nullDN(), mods);
+        newModifyOperation(null, DN.nullDN(), mods);
     assertNotNull(modifyOperation.getEntryDN());
 
     modifyOperation.setRawEntryDN(ByteString.valueOf("ou=Users,o=test"));
@@ -515,7 +443,6 @@ public class ModifyOperationTestCase
   public void testGetAndAddModifications()
          throws Exception
   {
-
     Entry e = DirectoryServer.getEntry(DN.decode("o=test"));
     assertNull(e.getAttribute(DirectoryServer.getAttributeType(
                                                    "description", true)));
@@ -529,7 +456,7 @@ public class ModifyOperationTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
 
-    ArrayList<Modification> mods = new ArrayList<Modification>();
+    List<Modification> mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.REPLACE,
         Attributes.create("l", "Austin")));
 
@@ -560,7 +487,7 @@ public class ModifyOperationTestCase
     values.add(ByteString.valueOf("foo"));
     LDAPAttribute attr = new LDAPAttribute("description", values);
 
-    ArrayList<RawModification> mods = new ArrayList<RawModification>();
+    List<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     ModifyOperation modifyOperation =
@@ -585,7 +512,7 @@ public class ModifyOperationTestCase
     values.add(ByteString.valueOf("foo"));
     LDAPAttribute attr = new LDAPAttribute("description", values);
 
-    ArrayList<RawModification> mods = new ArrayList<RawModification>();
+    List<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     ModifyOperation modifyOperation =
@@ -613,7 +540,7 @@ public class ModifyOperationTestCase
     values.add(ByteString.valueOf("foo"));
     LDAPAttribute attr = new LDAPAttribute("description", values);
 
-    ArrayList<RawModification> mods = new ArrayList<RawModification>();
+    List<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     ModifyOperation modifyOperation =
@@ -642,7 +569,7 @@ public class ModifyOperationTestCase
     values.add(ByteString.valueOf("foo"));
     LDAPAttribute attr = new LDAPAttribute("description", values);
 
-    ArrayList<RawModification> mods = new ArrayList<RawModification>();
+    List<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     ModifyOperation modifyOperation =
@@ -667,7 +594,7 @@ public class ModifyOperationTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
 
-    ArrayList<RawModification> mods = new ArrayList<RawModification>();
+    List<RawModification> mods = new ArrayList<RawModification>();
 
     ModifyOperation modifyOperation =
          conn.processModify(ByteString.valueOf(baseDN), mods);
@@ -687,7 +614,6 @@ public class ModifyOperationTestCase
   public void testSuccessAddAttribute()
          throws Exception
   {
-
     Entry e = DirectoryServer.getEntry(DN.decode("o=test"));
     assertNull(e.getAttribute(DirectoryServer.getAttributeType("description",
                                                                true)));
@@ -699,7 +625,7 @@ public class ModifyOperationTestCase
     values.add(ByteString.valueOf("foo"));
     LDAPAttribute attr = new LDAPAttribute("description", values);
 
-    ArrayList<RawModification> mods = new ArrayList<RawModification>();
+    List<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     ModifyOperation modifyOperation =
@@ -724,17 +650,11 @@ public class ModifyOperationTestCase
   public void testSuccessAddAttributeValue()
          throws Exception
   {
-
     Entry e = DirectoryServer.getEntry(DN.decode("o=test"));
 
-    int numValues = 0;
     List<Attribute> attrList =
          e.getAttribute(DirectoryServer.getAttributeType("o", true));
-    for (Attribute a : attrList)
-    {
-      numValues += a.size();
-    }
-    assertEquals(numValues, 1);
+    assertEquals(countValues(attrList), 1);
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
@@ -743,7 +663,7 @@ public class ModifyOperationTestCase
     values.add(ByteString.valueOf("test2"));
     LDAPAttribute attr = new LDAPAttribute("o", values);
 
-    ArrayList<RawModification> mods = new ArrayList<RawModification>();
+    List<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.ADD, attr));
 
     ModifyOperation modifyOperation =
@@ -752,13 +672,8 @@ public class ModifyOperationTestCase
     retrieveSuccessfulOperationElements(modifyOperation);
 
     e = DirectoryServer.getEntry(DN.decode("o=test"));
-    numValues = 0;
     attrList = e.getAttribute(DirectoryServer.getAttributeType("o", true));
-    for (Attribute a : attrList)
-    {
-      numValues += a.size();
-    }
-    assertEquals(numValues, 2);
+    assertEquals(countValues(attrList), 2);
   }
 
 
@@ -775,14 +690,9 @@ public class ModifyOperationTestCase
   {
     Entry e = DirectoryServer.getEntry(DN.decode(baseDN));
 
-    int numValues = 0;
     List<Attribute> attrList =
          e.getAttribute(DirectoryServer.getAttributeType("o", true));
-    for (Attribute a : attrList)
-    {
-      numValues += a.size();
-    }
-    assertEquals(numValues, 1);
+    assertEquals(countValues(attrList), 1);
 
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
@@ -791,7 +701,7 @@ public class ModifyOperationTestCase
     values.add(ByteString.valueOf("test"));
     LDAPAttribute attr = new LDAPAttribute("o;lang-en-us", values);
 
-    ArrayList<RawModification> mods = new ArrayList<RawModification>();
+    List<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.ADD, attr));
 
     ModifyOperation modifyOperation =
@@ -800,13 +710,18 @@ public class ModifyOperationTestCase
     retrieveSuccessfulOperationElements(modifyOperation);
 
     e = DirectoryServer.getEntry(DN.decode(baseDN));
-    numValues = 0;
     attrList = e.getAttribute(DirectoryServer.getAttributeType("o", true));
+    assertEquals(countValues(attrList), 2);
+  }
+
+  private int countValues(List<Attribute> attrList)
+  {
+    int count = 0;
     for (Attribute a : attrList)
     {
-      numValues += a.size();
+      count += a.size();
     }
-    assertEquals(numValues, 2);
+    return count;
   }
 
 
@@ -848,7 +763,7 @@ public class ModifyOperationTestCase
     values.add(ByteString.valueOf("foo"));
     LDAPAttribute attr = new LDAPAttribute("displayName", values);
 
-    ArrayList<RawModification> mods = new ArrayList<RawModification>();
+    List<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.ADD, attr));
 
     ModifyOperation modifyOperation =
@@ -898,7 +813,7 @@ public class ModifyOperationTestCase
     values.add(ByteString.valueOf("false"));
     LDAPAttribute attr = new LDAPAttribute("ds-pwp-account-disabled", values);
 
-    ArrayList<RawModification> mods = new ArrayList<RawModification>();
+    List<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.ADD, attr));
 
     ModifyOperation modifyOperation =
@@ -948,7 +863,7 @@ public class ModifyOperationTestCase
     values.add(ByteString.valueOf("bar"));
     LDAPAttribute attr = new LDAPAttribute("displayName", values);
 
-    ArrayList<RawModification> mods = new ArrayList<RawModification>();
+    List<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     ModifyOperation modifyOperation =
@@ -999,7 +914,7 @@ public class ModifyOperationTestCase
     values.add(ByteString.valueOf("false"));
     LDAPAttribute attr = new LDAPAttribute("ds-pwp-account-disabled", values);
 
-    ArrayList<RawModification> mods = new ArrayList<RawModification>();
+    List<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     ModifyOperation modifyOperation =
@@ -1048,7 +963,7 @@ public class ModifyOperationTestCase
     values.add(ByteString.valueOf("Test"));
     LDAPAttribute attr = new LDAPAttribute("givenName", values);
 
-    ArrayList<RawModification> mods = new ArrayList<RawModification>();
+    List<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.ADD, attr));
 
     ModifyOperation modifyOperation =
@@ -1098,7 +1013,7 @@ public class ModifyOperationTestCase
     values.add(ByteString.valueOf("Foo"));
     LDAPAttribute attr = new LDAPAttribute("description", values);
 
-    ArrayList<RawModification> mods = new ArrayList<RawModification>();
+    List<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     ModifyOperation modifyOperation =
@@ -1148,7 +1063,7 @@ public class ModifyOperationTestCase
     values.add(ByteString.valueOf("invaliddn"));
     LDAPAttribute attr = new LDAPAttribute("manager", values);
 
-    ArrayList<RawModification> mods = new ArrayList<RawModification>();
+    List<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     ModifyOperation modifyOperation =
@@ -1197,7 +1112,7 @@ public class ModifyOperationTestCase
     values.add(ByteString.valueOf("invaliddn"));
     LDAPAttribute attr = new LDAPAttribute("manager", values);
 
-    ArrayList<RawModification> mods = new ArrayList<RawModification>();
+    List<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.ADD, attr));
 
     ModifyOperation modifyOperation =
@@ -1246,7 +1161,7 @@ public class ModifyOperationTestCase
     values.add(ByteString.valueOf("foo"));
     LDAPAttribute attr = new LDAPAttribute("dc", values);
 
-    ArrayList<RawModification> mods = new ArrayList<RawModification>();
+    List<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.ADD, attr));
 
     ModifyOperation modifyOperation =
@@ -1297,7 +1212,7 @@ public class ModifyOperationTestCase
     values.add(ByteString.valueOf("foo"));
     LDAPAttribute attr = new LDAPAttribute("dc", values);
 
-    ArrayList<RawModification> mods = new ArrayList<RawModification>();
+    List<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.ADD, attr));
 
     values = new ArrayList<ByteString>();
@@ -1351,7 +1266,7 @@ public class ModifyOperationTestCase
     values.add(ByteString.valueOf("foo"));
     LDAPAttribute attr = new LDAPAttribute("uid", values);
 
-    ArrayList<RawModification> mods = new ArrayList<RawModification>();
+    List<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     ModifyOperation modifyOperation =
@@ -1397,7 +1312,7 @@ public class ModifyOperationTestCase
 
 
     LDAPAttribute attr = new LDAPAttribute("uid");
-    ArrayList<RawModification> mods = new ArrayList<RawModification>();
+    List<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.DELETE, attr));
 
     ModifyOperation modifyOperation =
@@ -1446,7 +1361,7 @@ public class ModifyOperationTestCase
     values.add(ByteString.valueOf("test.user"));
     LDAPAttribute attr = new LDAPAttribute("uid", values);
 
-    ArrayList<RawModification> mods = new ArrayList<RawModification>();
+    List<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.DELETE, attr));
 
     ModifyOperation modifyOperation =
@@ -1495,7 +1410,7 @@ public class ModifyOperationTestCase
     values.add(ByteString.valueOf("Foo"));
     LDAPAttribute attr = new LDAPAttribute("givenName", values);
 
-    ArrayList<RawModification> mods = new ArrayList<RawModification>();
+    List<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     ModifyOperation modifyOperation =
@@ -1541,7 +1456,7 @@ public class ModifyOperationTestCase
 
 
     LDAPAttribute attr = new LDAPAttribute("givenName");
-    ArrayList<RawModification> mods = new ArrayList<RawModification>();
+    List<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.DELETE, attr));
 
     ModifyOperation modifyOperation =
@@ -1587,7 +1502,7 @@ public class ModifyOperationTestCase
 
 
     LDAPAttribute attr = new LDAPAttribute("displayName");
-    ArrayList<RawModification> mods = new ArrayList<RawModification>();
+    List<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.DELETE, attr));
 
     ModifyOperation modifyOperation =
@@ -1638,7 +1553,7 @@ public class ModifyOperationTestCase
     values.add(ByteString.valueOf("foo"));
     LDAPAttribute attr = new LDAPAttribute("mail", values);
 
-    ArrayList<RawModification> mods = new ArrayList<RawModification>();
+    List<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.DELETE, attr));
 
     ModifyOperation modifyOperation =
@@ -1688,7 +1603,7 @@ public class ModifyOperationTestCase
     values.add(ByteString.valueOf("foo"));
     LDAPAttribute attr = new LDAPAttribute("mail", values);
 
-    ArrayList<RawModification> mods = new ArrayList<RawModification>();
+    List<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.DELETE, attr));
 
     ModifyOperation modifyOperation =
@@ -1740,7 +1655,7 @@ public class ModifyOperationTestCase
     values.add(ByteString.valueOf("bar"));
     LDAPAttribute attr = new LDAPAttribute("mail", values);
 
-    ArrayList<RawModification> mods = new ArrayList<RawModification>();
+    List<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.DELETE, attr));
 
     ModifyOperation modifyOperation =
@@ -1786,7 +1701,7 @@ public class ModifyOperationTestCase
 
 
     LDAPAttribute attr = new LDAPAttribute("sn");
-    ArrayList<RawModification> mods = new ArrayList<RawModification>();
+    List<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.DELETE, attr));
 
     ModifyOperation modifyOperation =
@@ -1835,7 +1750,7 @@ public class ModifyOperationTestCase
     values.add(ByteString.valueOf("User"));
     LDAPAttribute attr = new LDAPAttribute("sn", values);
 
-    ArrayList<RawModification> mods = new ArrayList<RawModification>();
+    List<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.DELETE, attr));
 
     ModifyOperation modifyOperation =
@@ -1885,7 +1800,7 @@ public class ModifyOperationTestCase
     values.add(ByteString.valueOf("bar"));
     LDAPAttribute attr = new LDAPAttribute("description", values);
 
-    ArrayList<RawModification> mods = new ArrayList<RawModification>();
+    List<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     ModifyOperation modifyOperation =
@@ -1935,7 +1850,7 @@ public class ModifyOperationTestCase
     values.add(ByteString.valueOf("test.user"));
     LDAPAttribute attr = new LDAPAttribute("uid", values);
 
-    ArrayList<RawModification> mods = new ArrayList<RawModification>();
+    List<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     ModifyOperation modifyOperation =
@@ -2005,7 +1920,7 @@ public class ModifyOperationTestCase
     values.add(ByteString.valueOf("Test User"));
     LDAPAttribute attr = new LDAPAttribute("cn", values);
 
-    ArrayList<RawModification> mods = new ArrayList<RawModification>();
+    List<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.DELETE, attr));
     mods.add(new LDAPModification(ModificationType.ADD, attr));
 
@@ -2079,7 +1994,7 @@ public class ModifyOperationTestCase
     values.add(ByteString.valueOf("X"));
     LDAPAttribute attr = new LDAPAttribute("givenName;lang-fr", values);
 
-    ArrayList<RawModification> mods = new ArrayList<RawModification>();
+    List<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.DELETE, attr));
 
     ModifyOperation modifyOperation =
@@ -2146,7 +2061,7 @@ public class ModifyOperationTestCase
 
 
     LDAPAttribute attr = new LDAPAttribute("description");
-    ArrayList<RawModification> mods = new ArrayList<RawModification>();
+    List<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     ModifyOperation modifyOperation =
@@ -2192,7 +2107,7 @@ public class ModifyOperationTestCase
 
 
     LDAPAttribute attr = new LDAPAttribute("description");
-    ArrayList<RawModification> mods = new ArrayList<RawModification>();
+    List<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     ModifyOperation modifyOperation =
@@ -2241,7 +2156,7 @@ public class ModifyOperationTestCase
     values.add(ByteString.valueOf("foo"));
     LDAPAttribute attr = new LDAPAttribute("description", values);
 
-    ArrayList<RawModification> mods = new ArrayList<RawModification>();
+    List<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     ModifyOperation modifyOperation =
@@ -2290,7 +2205,7 @@ public class ModifyOperationTestCase
     ArrayList<ByteString> values = new ArrayList<ByteString>();
     values.add(ByteString.valueOf("foo"));
     LDAPAttribute attr = new LDAPAttribute("mail", values);
-    ArrayList<RawModification> mods = new ArrayList<RawModification>();
+    List<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.DELETE, attr));
 
     values = new ArrayList<ByteString>();
@@ -2345,7 +2260,7 @@ public class ModifyOperationTestCase
     ArrayList<ByteString> values = new ArrayList<ByteString>();
     values.add(ByteString.valueOf("foo"));
     LDAPAttribute attr = new LDAPAttribute("mail", values);
-    ArrayList<RawModification> mods = new ArrayList<RawModification>();
+    List<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.DELETE, attr));
 
     values = new ArrayList<ByteString>();
@@ -2399,7 +2314,7 @@ public class ModifyOperationTestCase
     ArrayList<ByteString> values = new ArrayList<ByteString>();
     values.add(ByteString.valueOf("foo"));
     LDAPAttribute attr = new LDAPAttribute("mail", values);
-    ArrayList<RawModification> mods = new ArrayList<RawModification>();
+    List<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.DELETE, attr));
 
     values = new ArrayList<ByteString>();
@@ -2450,7 +2365,7 @@ public class ModifyOperationTestCase
 
 
     LDAPAttribute attr = new LDAPAttribute("displayName");
-    ArrayList<RawModification> mods = new ArrayList<RawModification>();
+    List<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.DELETE, attr));
 
     ModifyOperation modifyOperation =
@@ -2499,7 +2414,7 @@ public class ModifyOperationTestCase
     values.add(ByteString.valueOf("Foo"));
     LDAPAttribute attr = new LDAPAttribute("displayName", values);
 
-    ArrayList<RawModification> mods = new ArrayList<RawModification>();
+    List<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.DELETE, attr));
 
     ModifyOperation modifyOperation =
@@ -2545,7 +2460,7 @@ public class ModifyOperationTestCase
 
 
     LDAPAttribute attr = new LDAPAttribute("objectClass");
-    ArrayList<RawModification> mods = new ArrayList<RawModification>();
+    List<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.DELETE, attr));
 
     ModifyOperation modifyOperation =
@@ -2591,7 +2506,7 @@ public class ModifyOperationTestCase
 
 
     LDAPAttribute attr = new LDAPAttribute("objectClass");
-    ArrayList<RawModification> mods = new ArrayList<RawModification>();
+    List<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     ModifyOperation modifyOperation =
@@ -2634,7 +2549,7 @@ public class ModifyOperationTestCase
     values.add(ByteString.valueOf("organizationalUnit"));
     LDAPAttribute attr = new LDAPAttribute("objectClass", values);
 
-    ArrayList<RawModification> mods = new ArrayList<RawModification>();
+    List<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.DELETE, attr));
 
     ModifyOperation modifyOperation =
@@ -2676,7 +2591,7 @@ public class ModifyOperationTestCase
     values.add(ByteString.valueOf("organization"));
     LDAPAttribute attr = new LDAPAttribute("objectClass", values);
 
-    ArrayList<RawModification> mods = new ArrayList<RawModification>();
+    List<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.ADD, attr));
 
     ModifyOperation modifyOperation =
@@ -2725,7 +2640,7 @@ public class ModifyOperationTestCase
     ArrayList<ByteString> values = new ArrayList<ByteString>();
     values.add(ByteString.valueOf("1"));
     LDAPAttribute attr = new LDAPAttribute("employeeNumber", values);
-    ArrayList<RawModification> mods = new ArrayList<RawModification>();
+    List<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.INCREMENT, attr));
 
     ModifyOperation modifyOperation =
@@ -2792,7 +2707,7 @@ public class ModifyOperationTestCase
     ArrayList<ByteString> values = new ArrayList<ByteString>();
     values.add(ByteString.valueOf("10"));
     LDAPAttribute attr = new LDAPAttribute("employeeNumber", values);
-    ArrayList<RawModification> mods = new ArrayList<RawModification>();
+    List<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.INCREMENT, attr));
 
     ModifyOperation modifyOperation =
@@ -2859,7 +2774,7 @@ public class ModifyOperationTestCase
     ArrayList<ByteString> values = new ArrayList<ByteString>();
     values.add(ByteString.valueOf("-1"));
     LDAPAttribute attr = new LDAPAttribute("employeeNumber", values);
-    ArrayList<RawModification> mods = new ArrayList<RawModification>();
+    List<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.INCREMENT, attr));
 
     ModifyOperation modifyOperation =
@@ -2924,7 +2839,7 @@ public class ModifyOperationTestCase
     ArrayList<ByteString> values = new ArrayList<ByteString>();
     values.add(ByteString.valueOf("1"));
     LDAPAttribute attr = new LDAPAttribute("displayName", values);
-    ArrayList<RawModification> mods = new ArrayList<RawModification>();
+    List<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.INCREMENT, attr));
 
     ModifyOperation modifyOperation =
@@ -2973,7 +2888,7 @@ public class ModifyOperationTestCase
     ArrayList<ByteString> values = new ArrayList<ByteString>();
     values.add(ByteString.valueOf("notnumeric"));
     LDAPAttribute attr = new LDAPAttribute("description", values);
-    ArrayList<RawModification> mods = new ArrayList<RawModification>();
+    List<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.INCREMENT, attr));
 
     ModifyOperation modifyOperation =
@@ -3023,7 +2938,7 @@ public class ModifyOperationTestCase
     ArrayList<ByteString> values = new ArrayList<ByteString>();
     values.add(ByteString.valueOf("1"));
     LDAPAttribute attr = new LDAPAttribute("roomNumber", values);
-    ArrayList<RawModification> mods = new ArrayList<RawModification>();
+    List<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.INCREMENT, attr));
 
     ModifyOperation modifyOperation =
@@ -3070,7 +2985,7 @@ public class ModifyOperationTestCase
 
 
     LDAPAttribute attr = new LDAPAttribute("roomNumber");
-    ArrayList<RawModification> mods = new ArrayList<RawModification>();
+    List<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.INCREMENT, attr));
 
     ModifyOperation modifyOperation =
@@ -3120,7 +3035,7 @@ public class ModifyOperationTestCase
     values.add(ByteString.valueOf("1"));
     values.add(ByteString.valueOf("2"));
     LDAPAttribute attr = new LDAPAttribute("roomNumber", values);
-    ArrayList<RawModification> mods = new ArrayList<RawModification>();
+    List<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.INCREMENT, attr));
 
     ModifyOperation modifyOperation =
@@ -3168,7 +3083,7 @@ public class ModifyOperationTestCase
     ArrayList<ByteString> values = new ArrayList<ByteString>();
     values.add(ByteString.valueOf("1"));
     LDAPAttribute attr = new LDAPAttribute("employeeNumber", values);
-    ArrayList<RawModification> mods = new ArrayList<RawModification>();
+    List<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.INCREMENT, attr));
 
     ModifyOperation modifyOperation =
@@ -3219,7 +3134,7 @@ public class ModifyOperationTestCase
     ArrayList<ByteString> values = new ArrayList<ByteString>();
     values.add(ByteString.valueOf("extensibleObject"));
     LDAPAttribute attr = new LDAPAttribute("objectClass", values);
-    ArrayList<RawModification> mods = new ArrayList<RawModification>();
+    List<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.DELETE, attr));
 
     ModifyOperation modifyOperation =
@@ -3273,7 +3188,7 @@ public class ModifyOperationTestCase
     ArrayList<ByteString> values = new ArrayList<ByteString>();
     values.add(ByteString.valueOf("extensibleObject"));
     LDAPAttribute attr = new LDAPAttribute("objectClass", values);
-    ArrayList<RawModification> mods = new ArrayList<RawModification>();
+    List<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.ADD, attr));
 
     ModifyOperation modifyOperation =
@@ -3336,7 +3251,7 @@ public class ModifyOperationTestCase
     ArrayList<ByteString> values = new ArrayList<ByteString>();
     values.add(ByteString.valueOf("inetOrgPerson"));
     LDAPAttribute attr = new LDAPAttribute("objectClass", values);
-    ArrayList<RawModification> mods = new ArrayList<RawModification>();
+    List<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.ADD, attr));
 
     ModifyOperation modifyOperation =
@@ -3386,7 +3301,7 @@ public class ModifyOperationTestCase
     ArrayList<ByteString> values = new ArrayList<ByteString>();
     values.add(ByteString.valueOf("organizationalUnit"));
     LDAPAttribute attr = new LDAPAttribute("objectClass", values);
-    ArrayList<RawModification> mods = new ArrayList<RawModification>();
+    List<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.DELETE, attr));
 
     ModifyOperation modifyOperation =
@@ -3450,7 +3365,7 @@ public class ModifyOperationTestCase
     ArrayList<ByteString> values = new ArrayList<ByteString>();
     values.add(ByteString.valueOf("12345678-1234-1234-1234-1234567890ab"));
     LDAPAttribute attr = new LDAPAttribute("entryUUID", values);
-    ArrayList<RawModification> mods = new ArrayList<RawModification>();
+    List<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     long modifyRequests  = ldapStatistics.getModifyRequests();
@@ -3513,7 +3428,7 @@ public class ModifyOperationTestCase
     ArrayList<ByteString> values = new ArrayList<ByteString>();
     values.add(ByteString.valueOf("extensibleObject"));
     LDAPAttribute attr = new LDAPAttribute("objectClass", values);
-    ArrayList<RawModification> mods = new ArrayList<RawModification>();
+    List<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.ADD, attr));
 
     ModifyOperation modifyOperation =
@@ -3567,7 +3482,7 @@ public class ModifyOperationTestCase
     ArrayList<ByteString> values = new ArrayList<ByteString>();
     values.add(ByteString.valueOf("extensibleObject"));
     LDAPAttribute attr = new LDAPAttribute("objectClass", values);
-    ArrayList<RawModification> mods = new ArrayList<RawModification>();
+    List<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.ADD, attr));
 
     ModifyOperation modifyOperation =
@@ -3638,7 +3553,7 @@ public class ModifyOperationTestCase
     ArrayList<ByteString> values = new ArrayList<ByteString>();
     values.add(ByteString.valueOf("extensibleObject"));
     LDAPAttribute attr = new LDAPAttribute("objectClass", values);
-    ArrayList<RawModification> mods = new ArrayList<RawModification>();
+    List<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.ADD, attr));
 
     long modifyRequests  = ldapStatistics.getModifyRequests();
@@ -3704,7 +3619,7 @@ public class ModifyOperationTestCase
     ArrayList<ByteString> values = new ArrayList<ByteString>();
     values.add(ByteString.valueOf("extensibleObject"));
     LDAPAttribute attr = new LDAPAttribute("objectClass", values);
-    ArrayList<RawModification> mods = new ArrayList<RawModification>();
+    List<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.ADD, attr));
 
     ModifyOperation modifyOperation =
@@ -3759,7 +3674,7 @@ public class ModifyOperationTestCase
     ArrayList<ByteString> values = new ArrayList<ByteString>();
     values.add(ByteString.valueOf("extensibleObject"));
     LDAPAttribute attr = new LDAPAttribute("objectClass", values);
-    ArrayList<RawModification> mods = new ArrayList<RawModification>();
+    List<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.ADD, attr));
 
     ModifyOperation modifyOperation =
@@ -3831,7 +3746,7 @@ public class ModifyOperationTestCase
     ArrayList<ByteString> values = new ArrayList<ByteString>();
     values.add(ByteString.valueOf("extensibleObject"));
     LDAPAttribute attr = new LDAPAttribute("objectClass", values);
-    ArrayList<RawModification> mods = new ArrayList<RawModification>();
+    List<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.ADD, attr));
 
     long modifyRequests  = ldapStatistics.getModifyRequests();
@@ -3879,7 +3794,7 @@ public class ModifyOperationTestCase
     values.add(ByteString.valueOf("foo"));
     LDAPAttribute attr = new LDAPAttribute("description", values);
 
-    ArrayList<RawModification> mods = new ArrayList<RawModification>();
+    List<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     ModifyOperation modifyOperation =
@@ -3915,7 +3830,7 @@ public class ModifyOperationTestCase
     values.add(ByteString.valueOf("foo"));
     LDAPAttribute attr = new LDAPAttribute("dc", values);
 
-    ArrayList<RawModification> mods = new ArrayList<RawModification>();
+    List<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     ModifyOperation modifyOperation =
@@ -3932,25 +3847,21 @@ public class ModifyOperationTestCase
   /**
    * Tests a modify operation that gets canceled before startup.
    *
-   * @throws  Exception  If an unexpected probem occurs.
+   * @throws  Exception  If an unexpected problem occurs.
    */
   @Test(dataProvider = "baseDNs")
   public void testCancelBeforeStartup(String baseDN)
          throws Exception
   {
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
     ArrayList<ByteString> values = new ArrayList<ByteString>();
     values.add(ByteString.valueOf("foo"));
     LDAPAttribute attr = new LDAPAttribute("description", values);
 
-    ArrayList<RawModification> mods = new ArrayList<RawModification>();
+    List<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
-    ModifyOperationBasis modifyOperation =
-         new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
-                             null, ByteString.valueOf(baseDN), mods);
+    ModifyOperation modifyOperation =
+        newModifyOperation(null, ByteString.valueOf(baseDN), mods);
 
     CancelRequest cancelRequest = new CancelRequest(false,
                                                     Message.raw("testCancelBeforeStartup"));
@@ -3964,26 +3875,21 @@ public class ModifyOperationTestCase
   /**
    * Tests a modify operation that gets canceled before startup.
    *
-   * @throws  Exception  If an unexpected probem occurs.
+   * @throws  Exception  If an unexpected problem occurs.
    */
   @Test(dataProvider = "baseDNs")
   public void testCancelAfterOperation(String baseDN)
          throws Exception
   {
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
     ArrayList<ByteString> values = new ArrayList<ByteString>();
     values.add(ByteString.valueOf("foo"));
     LDAPAttribute attr = new LDAPAttribute("description", values);
 
-    ArrayList<RawModification> mods = new ArrayList<RawModification>();
+    List<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
-    ModifyOperationBasis modifyOperation =
-         new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
-                             null, ByteString.valueOf(baseDN), mods);
-
+    ModifyOperation modifyOperation =
+        newModifyOperation(null, ByteString.valueOf(baseDN), mods);
     modifyOperation.run();
 
     CancelRequest cancelRequest = new CancelRequest(false,
@@ -4016,7 +3922,7 @@ public class ModifyOperationTestCase
       values.add(ByteString.valueOf("foo"));
       LDAPAttribute attr = new LDAPAttribute("description", values);
 
-      ArrayList<RawModification> mods = new ArrayList<RawModification>();
+      List<RawModification> mods = new ArrayList<RawModification>();
       mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
       ModifyOperation modifyOperation =
@@ -4061,7 +3967,7 @@ public class ModifyOperationTestCase
     values.add(ByteString.valueOf("foo"));
     LDAPAttribute attr = new LDAPAttribute("description", values);
 
-    ArrayList<RawModification> mods = new ArrayList<RawModification>();
+    List<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     ModifyRequestProtocolOp modifyRequest =
@@ -4115,7 +4021,7 @@ public class ModifyOperationTestCase
     values.add(ByteString.valueOf("foo"));
     LDAPAttribute attr = new LDAPAttribute("description", values);
 
-    ArrayList<RawModification> mods = new ArrayList<RawModification>();
+    List<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     ModifyRequestProtocolOp modifyRequest =
@@ -4169,7 +4075,7 @@ public class ModifyOperationTestCase
     values.add(ByteString.valueOf("foo"));
     LDAPAttribute attr = new LDAPAttribute("description", values);
 
-    ArrayList<RawModification> mods = new ArrayList<RawModification>();
+    List<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     ModifyRequestProtocolOp modifyRequest =
@@ -4248,7 +4154,7 @@ responseLoop:
     values.add(ByteString.valueOf("foo"));
     LDAPAttribute attr = new LDAPAttribute("description", values);
 
-    ArrayList<RawModification> mods = new ArrayList<RawModification>();
+    List<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
     ModifyRequestProtocolOp modifyRequest =
@@ -4416,20 +4322,15 @@ responseLoop:
   public void testShortCircuitInPreParse()
          throws Exception
   {
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
     List<Control> controls =
          ShortCircuitPlugin.createShortCircuitControlList(0, "PreParse");
 
-    ArrayList<RawModification> mods = new ArrayList<RawModification>();
+    List<RawModification> mods = new ArrayList<RawModification>();
     mods.add(RawModification.create(ModificationType.REPLACE, "description",
                                     "foo"));
 
-    ModifyOperationBasis modifyOperation =
-         new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
-                             controls, ByteString.valueOf("o=test"), mods);
+    ModifyOperation modifyOperation =
+        newModifyOperation(controls, ByteString.valueOf("o=test"), mods);
     modifyOperation.run();
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     assertTrue(DirectoryServer.entryExists(DN.decode("o=test")));
@@ -4479,10 +4380,10 @@ responseLoop:
     values.add(ByteString.valueOf("Test"));
     LDAPAttribute attr = new LDAPAttribute("givenName", values);
 
-    ArrayList<RawModification> mods = new ArrayList<RawModification>();
+    List<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.ADD, attr));
 
-    ArrayList<Control> requestControls = new ArrayList<Control>();
+    List<Control> requestControls = new ArrayList<Control>();
     requestControls.add(
         new LDAPControl(ServerConstants.OID_PERMISSIVE_MODIFY_CONTROL, false));
 
@@ -4530,10 +4431,10 @@ responseLoop:
     values.add(ByteString.valueOf("Foo"));
     LDAPAttribute attr = new LDAPAttribute("givenName", values);
 
-    ArrayList<RawModification> mods = new ArrayList<RawModification>();
+    List<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.DELETE, attr));
 
-    ArrayList<Control> requestControls = new ArrayList<Control>();
+    List<Control> requestControls = new ArrayList<Control>();
     requestControls.add(
         new LDAPControl(ServerConstants.OID_PERMISSIVE_MODIFY_CONTROL, false));
 
@@ -4578,10 +4479,10 @@ responseLoop:
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     LDAPAttribute attr = new LDAPAttribute("description");
-    ArrayList<RawModification> mods = new ArrayList<RawModification>();
+    List<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.DELETE, attr));
 
-    ArrayList<Control> requestControls = new ArrayList<Control>();
+    List<Control> requestControls = new ArrayList<Control>();
     requestControls.add(
         new LDAPControl(ServerConstants.OID_PERMISSIVE_MODIFY_CONTROL, false));
 
@@ -4985,7 +4886,7 @@ responseLoop:
     ArrayList<ByteString> values = new ArrayList<ByteString>();
     values.add(ByteString.wrap(Base64.decode(certificateValue)));
     LDAPAttribute attr = new LDAPAttribute("usercertificate", values);
-    ArrayList<RawModification> mods = new ArrayList<RawModification>();
+    List<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.ADD, attr));
 
     ModifyOperation modifyOperation =
@@ -5037,7 +4938,7 @@ responseLoop:
     ArrayList<ByteString> values = new ArrayList<ByteString>();
     values.add(ByteString.valueOf("foo"));
     LDAPAttribute attr = new LDAPAttribute("dc", values);
-    ArrayList<RawModification> mods = new ArrayList<RawModification>();
+    List<RawModification> mods = new ArrayList<RawModification>();
     mods.add(new LDAPModification(ModificationType.ADD, attr));
     ModifyOperation modifyOperation = conn.processModify(
         ByteString.valueOf("cn=Test User," + baseDN), mods);

@@ -637,8 +637,8 @@ public class LocalBackendModifyOperation
   private DirectoryException newDirectoryException(Entry entry,
       ResultCode resultCode, Message message) throws DirectoryException
   {
-    return LocalBackendWorkflowElement.newDirectoryException(this, entry, null,
-        resultCode, message, ResultCode.NO_SUCH_OBJECT,
+    return LocalBackendWorkflowElement.newDirectoryException(this, entry,
+        entryDN, resultCode, message, ResultCode.NO_SUCH_OBJECT,
         ERR_MODIFY_NO_SUCH_ENTRY.get(String.valueOf(entryDN)));
   }
 
@@ -646,7 +646,7 @@ public class LocalBackendModifyOperation
       ResultCode realResultCode, Message realMessage) throws DirectoryException
   {
     LocalBackendWorkflowElement.setResultCodeAndMessageNoInfoDisclosure(this,
-        entry, null, realResultCode, realMessage, ResultCode.NO_SUCH_OBJECT,
+        entry, entryDN, realResultCode, realMessage, ResultCode.NO_SUCH_OBJECT,
         ERR_MODIFY_NO_SUCH_ENTRY.get(String.valueOf(entryDN)));
   }
 
