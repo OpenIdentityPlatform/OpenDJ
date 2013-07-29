@@ -23,9 +23,11 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS
  */
 package org.opends.server.types;
 
+import java.io.Closeable;
 
 /**
  * This class defines a mechanism that may be used to iterate over the
@@ -40,8 +42,9 @@ package org.opends.server.types;
      mayInstantiate=false,
      mayExtend=true,
      mayInvoke=true)
-public abstract class MemberList
+public abstract class MemberList implements Closeable
 {
+
   /**
    * Indicates whether the group contains any more members.
    *
@@ -66,14 +69,11 @@ public abstract class MemberList
          throws MembershipException
   {
     Entry e = nextMemberEntry();
-    if (e == null)
-    {
-      return null;
-    }
-    else
+    if (e != null)
     {
       return e.getDN();
     }
+    return null;
   }
 
 
@@ -101,6 +101,7 @@ public abstract class MemberList
    * end has been reached, although it will not be necessary if the
    * call to {@code hasMoreMembers} returns {@code false}.
    */
+  @Override
   public abstract void close();
 }
 
