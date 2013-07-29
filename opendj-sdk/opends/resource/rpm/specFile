@@ -43,7 +43,7 @@ Release: [[ release ]]
 # Software Licenced Under
 License: CDDL
 # RPM Group
-Group: Applications/Network
+Group: Productivity/Networking/LDAP/Servers
 # Link to Application web site
 URL: [[ referenceURL ]]
 # Distributing Organisation
@@ -100,7 +100,7 @@ if [ "$1" == "1" ]; then
     echo "Pre Install - initial install"
 else if [ "$1" == "2" ] ; then
 # Only if the instance has been configured
-    if [ isInstanceConfigured ]
+    if [ -e "%{_prefix}"/config/buildinfo ] && [ "$(ls -A "%{_prefix}"/config/archived-configs)" ]
     then
         echo "Pre Install - upgrade install"
 # If the server is running before upgrade, creates a file flag
@@ -120,8 +120,8 @@ if [ "$1" == "1" ] ; then
     echo "Post Install - initial install"
 else if [ "$1" == "2" ] ; then
     echo "Post Install - upgrade install"
-# Only if the instance has been configured
-    if [ isInstanceConfigured ]
+# Only if the instance has been configured    
+    if [ -e "%{_prefix}"/config/buildinfo ] && [ "$(ls -A "%{_prefix}"/config/archived-configs)" ]
     then
         "%{_prefix}"/./upgrade -n --acceptLicense
 # Upgrade ok 
@@ -158,8 +158,8 @@ fi
 %preun
 if [ "$1" == "0" ] ; then
     echo "Pre Uninstall - uninstall"
-# Only if the instance has been configured
-    if [ isInstanceConfigured ]
+# Only if the instance has been configured    
+    if [ -e "%{_prefix}"/config/buildinfo ] && [ "$(ls -A "%{_prefix}"/config/archived-configs)" ]
     then
 	"%{_prefix}"/bin/./stop-ds
     fi
@@ -178,16 +178,6 @@ else if [ "$1" == "1" ] ; then
     fi
 fi
 
-# -------------------------
-# Returns true/0 if the instance has been configured.
-isInstanceConfigured() {
-    if [ -f "%{_prefix}"/config/buildinfo ] && [ "$(ls -A "%{_prefix}"/config/archived-configs)" ]
-    then
-        return 0
-    else
-        return 1
-    fi
-}
 # =========================
 # Files section
 # =========================
