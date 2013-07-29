@@ -26,6 +26,7 @@
  *      Portions Copyright 2013 ForgeRock AS.
  */
 package org.opends.server.types;
+
 import static org.opends.messages.UtilityMessages.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -39,8 +40,6 @@ import java.util.zip.GZIPOutputStream;
 
 import org.opends.messages.Message;
 import org.opends.server.loggers.debug.DebugTracer;
-
-
 
 /**
  * This class defines a data structure for holding configuration
@@ -59,75 +58,84 @@ public final class LDIFExportConfig extends OperationConfig
    */
   private static final DebugTracer TRACER = getTracer();
 
-  // Indicates whether the data should be compressed as it is written.
+  /** Indicates whether the data should be compressed as it is written. */
   private boolean compressData;
 
-  // Indicates whether the data should be encrypted as it is written.
+  /** Indicates whether the data should be encrypted as it is written. */
   private boolean encryptData;
 
-  // Indicates whether we should exclude operational attributes.
-  private boolean excludeOperationalAttributes;
-
-  // Indicates whether to generate a cryptographic hash of the data as
-  // it is // written.
+  /**
+   * Indicates whether to generate a cryptographic hash of the data as it is
+   * written.
+   */
   private boolean hashData;
 
-  // Indicates whether to include the objectclasses in the entries
-  // written in the export.
+  /**
+   * Indicates whether to include the objectclasses in the entries written in
+   * the export.
+   */
   private boolean includeObjectClasses;
 
-  // Indicates whether to include operational attributes in the
-  // export.
+  /**
+   * Indicates whether to include operational attributes in the export.
+   */
   private boolean includeOperationalAttributes;
 
-  // Indicates whether to include virutal attributes in the export.
+  /** Indicates whether to include virtual attributes in the export. */
   private boolean includeVirtualAttributes;
 
-  // Indicates whether to invoke LDIF export plugins on entries being
-  // exported.
+  /**
+   * Indicates whether to invoke LDIF export plugins on entries being exported.
+   */
   private boolean invokeExportPlugins;
 
-  // Indicates whether to digitally sign the hash when the export is
-  // complete.
+  /**
+   * Indicates whether to digitally sign the hash when the export is complete.
+   */
   private boolean signHash;
 
-  // Indicates whether to include attribute types (i.e., names) only
-  // or both types and values.
+  /**
+   * Indicates whether to include attribute types (i.e., names) only or both
+   * types and values.
+   */
   private boolean typesOnly;
 
-  // The buffered writer to which the LDIF data should be written.
+  /** The buffered writer to which the LDIF data should be written. */
   private BufferedWriter writer;
 
-  // The behavior that should be used when writing an LDIF file and a
-  // file with the same name already exists.
+  /**
+   * The behavior that should be used when writing an LDIF file and a file with
+   * the same name already exists.
+   */
   private ExistingFileBehavior existingFileBehavior;
 
-  // The column number at which long lines should be wrapped.
+  /** The column number at which long lines should be wrapped. */
   private int wrapColumn;
 
-  // The set of base DNs to exclude from the export.
+  /** The set of base DNs to exclude from the export. */
   private List<DN> excludeBranches;
 
-  // The set of base DNs to include from the export.
+  /** The set of base DNs to include from the export. */
   private List<DN> includeBranches;
 
-  // The set of search filters for entries to exclude from the export.
+  /** The set of search filters for entries to exclude from the export. */
   private List<SearchFilter> excludeFilters;
 
-  // The set of search filters for entries to include in the export.
+  /** The set of search filters for entries to include in the export. */
   private List<SearchFilter> includeFilters;
 
-  // The output stream to which the LDIF data should be written.
+  /** The output stream to which the LDIF data should be written. */
   private OutputStream ldifOutputStream;
 
-  // The set of attribute types that should be excluded from the
-  // export.
+  /**
+   * The set of attribute types that should be excluded from the export.
+   */
   private Set<AttributeType> excludeAttributes;
 
-  // The set of attribute types that should be included in the export.
+  /** The set of attribute types that should be included in the export. */
   private Set<AttributeType> includeAttributes;
 
-  // The path to the LDIF file that should be written.
+  /** The path to the LDIF file that should be written. */
   private String ldifFile;
 
 
@@ -154,7 +162,6 @@ public final class LDIFExportConfig extends OperationConfig
     includeFilters               = new ArrayList<SearchFilter>();
     compressData                 = false;
     encryptData                  = false;
-    excludeOperationalAttributes = false;
     hashData                     = false;
     includeObjectClasses         = true;
     includeOperationalAttributes = true;
@@ -254,8 +261,7 @@ public final class LDIFExportConfig extends OperationConfig
           }
           else
           {
-            // Create new file ensuring that we can set its
-            // permissions.
+            // Create new file ensuring that we can set its permissions.
             f.createNewFile();
             mustSetPermissions = true;
             ldifOutputStream = new FileOutputStream(ldifFile);
@@ -273,8 +279,7 @@ public final class LDIFExportConfig extends OperationConfig
           }
           catch (Exception e)
           {
-            // The file could not be created with the correct
-            // permissions.
+            // The file could not be created with the correct permissions.
             Message message =
               WARN_EXPORT_LDIF_SET_PERMISSION_FAILED.get(f.toString(),
                     stackTraceToSingleLineString(e));
@@ -304,8 +309,7 @@ public final class LDIFExportConfig extends OperationConfig
 
 
       // Create the writer.
-      writer =
-           new BufferedWriter(new OutputStreamWriter(outputStream));
+      writer = new BufferedWriter(new OutputStreamWriter(outputStream));
     }
 
     return writer;
@@ -633,8 +637,7 @@ public final class LDIFExportConfig extends OperationConfig
    *                                should be included in the
    *                                export.
    */
-  public void setIncludeObjectClasses(
-                   boolean includeObjectClasses)
+  public void setIncludeObjectClasses(boolean includeObjectClasses)
   {
     this.includeObjectClasses = includeObjectClasses;
   }
@@ -747,8 +750,7 @@ public final class LDIFExportConfig extends OperationConfig
    *                            included in the entries written to
    *                            LDIF.
    */
-  public void setIncludeAttributes(
-                   Set<AttributeType> includeAttributes)
+  public void setIncludeAttributes(Set<AttributeType> includeAttributes)
   {
     if (includeAttributes == null)
     {
@@ -775,14 +777,10 @@ public final class LDIFExportConfig extends OperationConfig
    */
   public boolean includeAttribute(AttributeType attributeType)
   {
-    if ((! excludeAttributes.isEmpty()) &&
-        excludeAttributes.contains(attributeType))
-    {
-      return false;
-    }
-
-    return includeAttributes.isEmpty() ||
-        includeAttributes.contains(attributeType);
+    return (excludeAttributes.isEmpty()
+              || !excludeAttributes.contains(attributeType))
+        && (includeAttributes.isEmpty()
+              || includeAttributes.contains(attributeType));
   }
 
 
@@ -935,10 +933,10 @@ public final class LDIFExportConfig extends OperationConfig
   /**
    * Closes any resources that this export config might have open.
    */
+  @Override
   public void close()
   {
-    // FIXME -- Need to add code to generate a signed hash of the LDIF
-    //          content.
+    // FIXME -- Need to add code to generate a signed hash of the LDIF content.
 
     if (writer != null) {
       try
