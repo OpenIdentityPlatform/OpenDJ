@@ -96,6 +96,7 @@
                     'dsInstancePswd'   : DIRECTORY_INSTANCE_PSWD ,
                     'dsBaseDN'         : 'o=Älka Màrzella' ,
                     'dsFilter'         : 'objectclass=I18n-Person' ,
+                    'dsAttributes'     : 'I18n-singlename' ,
                     'dsSortOrder'      : 'I18n-singlename' ,
                     'dsEncoding'       : '8859-1' ,
                     'expectedRC'       : 'noCheck' ,
