@@ -46,10 +46,10 @@ import org.testng.annotations.Test;
 public class AttributeBuilderTest extends TypesTestCase
 {
 
-  // CN attribute type used in all tests.
+  /** CN attribute type used in all tests. */
   private AttributeType cnType = null;
 
-  // CN attribute value used in all tests.
+  /** CN attribute value used in all tests. */
   private AttributeValue cnValue = null;
 
   private final String[] noOptions = new String[] {};
@@ -106,28 +106,10 @@ public class AttributeBuilderTest extends TypesTestCase
 
     return new Object[][]
     {
-        {
-            1,
-            Attributes.empty(cnType),
-            cnType,
-            "cn",
-            noOptions,
-            noValues
-        },
-        {
-            2, Attributes.empty("cn"), cnType, "cn", noOptions, noValues
-        },
-        {
-            3, Attributes.empty("CN"), cnType, "CN", noOptions, noValues
-        },
-        {
-            4,
-            Attributes.empty(cnType, "CN"),
-            cnType,
-            "CN",
-            noOptions,
-            noValues
-        },
+        { 1, Attributes.empty(cnType), cnType, "cn", noOptions, noValues },
+        { 2, Attributes.empty("cn"), cnType, "cn", noOptions, noValues },
+        { 3, Attributes.empty("CN"), cnType, "CN", noOptions, noValues },
+        { 4, Attributes.empty(cnType, "CN"), cnType, "CN", noOptions, noValues},
         {
             5,
             Attributes.empty(Attributes.empty(cnType, "CN")),
@@ -138,8 +120,7 @@ public class AttributeBuilderTest extends TypesTestCase
         },
         {
             6,
-            Attributes.empty(Attributes.create(cnType, "CN",
-                "john doe")),
+            Attributes.empty(Attributes.create(cnType, "CN", "john doe")),
             cnType,
             "CN",
             noOptions,
@@ -1602,15 +1583,7 @@ public class AttributeBuilderTest extends TypesTestCase
       AttributeType type, String name, String[] options, String[] values)
       throws Exception
   {
-    // Check hasOptions().
-    if (options.length == 0)
-    {
-      Assert.assertFalse(a.hasOptions());
-    }
-    else
-    {
-      Assert.assertTrue(a.hasOptions());
-    }
+    Assert.assertEquals(options.length != 0, a.hasOptions());
   }
 
 
@@ -1636,15 +1609,7 @@ public class AttributeBuilderTest extends TypesTestCase
       AttributeType type, String name, String[] options, String[] values)
       throws Exception
   {
-    // Check isEmpty().
-    if (values.length == 0)
-    {
-      Assert.assertTrue(a.isEmpty());
-    }
-    else
-    {
-      Assert.assertFalse(a.isEmpty());
-    }
+    Assert.assertEquals(values.length == 0, a.isEmpty());
   }
 
 
@@ -1707,8 +1672,7 @@ public class AttributeBuilderTest extends TypesTestCase
       try
       {
         a.iterator().next();
-        Assert
-            .fail("iterator() contains at least one value for empty attribute");
+        Assert.fail("iterator() contains at least one value for empty attribute");
       }
       catch (NoSuchElementException e)
       {
@@ -1946,7 +1910,7 @@ public class AttributeBuilderTest extends TypesTestCase
 
 
 
-  // Creates a new attribute.
+  /** Creates a new attribute. */
   private Attribute createAttribute(AttributeType type, String name,
       String[] options, String[] values)
   {
