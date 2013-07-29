@@ -657,7 +657,7 @@ public class ModifyOperationTestCase
   public void testFailAddToSingleValuedAttribute(String baseDN)
          throws Exception
   {
-    Entry entry = TestCaseUtils.makeEntry(
+    processAdd(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -669,9 +669,6 @@ public class ModifyOperationTestCase
          "cn: Test User",
          "displayName: Test User",
          "userPassword: password");
-
-    AddOperation addOperation = processAdd(entry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     LDAPAttribute attr = newLDAPAttribute("displayName", "foo");
     ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, add(attr));
@@ -691,7 +688,7 @@ public class ModifyOperationTestCase
   public void testFailAddToSingleValuedOperationalAttribute(String baseDN)
          throws Exception
   {
-    Entry entry = TestCaseUtils.makeEntry(
+    processAdd(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -704,9 +701,6 @@ public class ModifyOperationTestCase
          "displayName: Test User",
          "userPassword: password",
          "ds-pwp-account-disabled: true");
-
-    AddOperation addOperation = processAdd(entry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     LDAPAttribute attr = newLDAPAttribute("ds-pwp-account-disabled", "false");
     ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, add(attr));
@@ -726,7 +720,7 @@ public class ModifyOperationTestCase
   public void testFailReplaceSingleValuedWithMultipleValues(String baseDN)
          throws Exception
   {
-    Entry entry = TestCaseUtils.makeEntry(
+    processAdd(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -738,9 +732,6 @@ public class ModifyOperationTestCase
          "cn: Test User",
          "displayName: Test User",
          "userPassword: password");
-
-    AddOperation addOperation = processAdd(entry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     LDAPAttribute attr = newLDAPAttribute("displayName", "foo", "bar");
     ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, replace(attr));
@@ -761,7 +752,7 @@ public class ModifyOperationTestCase
        String baseDN)
          throws Exception
   {
-    Entry entry = TestCaseUtils.makeEntry(
+    processAdd(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -773,9 +764,6 @@ public class ModifyOperationTestCase
          "cn: Test User",
          "displayName: Test User",
          "userPassword: password");
-
-    AddOperation addOperation = processAdd(entry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     LDAPAttribute attr = newLDAPAttribute("ds-pwp-account-disabled", "true", "false");
     ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, replace(attr));
@@ -826,12 +814,15 @@ public class ModifyOperationTestCase
     return conn.processModify(ByteString.valueOf(entryDN), mods, requestControls);
   }
 
-  private AddOperation processAdd(Entry entry)
+  private void processAdd(String... entryLines) throws Exception
   {
+    Entry entry = TestCaseUtils.makeEntry(entryLines);
     InternalClientConnection conn =
         InternalClientConnection.getRootConnection();
-    return conn.processAdd(entry.getDN(), entry.getObjectClasses(), entry
-        .getUserAttributes(), entry.getOperationalAttributes());
+    AddOperation addOperation =
+        conn.processAdd(entry.getDN(), entry.getObjectClasses(), entry
+            .getUserAttributes(), entry.getOperationalAttributes());
+    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
 
@@ -846,7 +837,7 @@ public class ModifyOperationTestCase
   public void testFailAddDuplicateValue(String baseDN)
          throws Exception
   {
-    Entry entry = TestCaseUtils.makeEntry(
+    processAdd(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -858,9 +849,6 @@ public class ModifyOperationTestCase
          "cn: Test User",
          "displayName: Test User",
          "userPassword: password");
-
-    AddOperation addOperation = processAdd(entry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     LDAPAttribute attr = newLDAPAttribute("givenName", "Test");
     ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, add(attr));
@@ -880,7 +868,7 @@ public class ModifyOperationTestCase
   public void testFailReplaceWithDuplicates(String baseDN)
          throws Exception
   {
-    Entry entry = TestCaseUtils.makeEntry(
+    processAdd(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -892,9 +880,6 @@ public class ModifyOperationTestCase
          "cn: Test User",
          "displayName: Test User",
          "userPassword: password");
-
-    AddOperation addOperation = processAdd(entry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     LDAPAttribute attr = newLDAPAttribute("description", "Foo", "Foo");
     ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, replace(attr));
@@ -914,7 +899,7 @@ public class ModifyOperationTestCase
   public void testFailReplaceWithSyntaxViolation(String baseDN)
          throws Exception
   {
-    Entry entry = TestCaseUtils.makeEntry(
+    processAdd(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -927,9 +912,6 @@ public class ModifyOperationTestCase
          "displayName: Test User",
          "userPassword: password",
          "manager: cn=boss," + baseDN);
-
-    AddOperation addOperation = processAdd(entry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     LDAPAttribute attr = newLDAPAttribute("manager", "invaliddn");
     ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, replace(attr));
@@ -949,7 +931,7 @@ public class ModifyOperationTestCase
   public void testFailAddSyntaxViolation(String baseDN)
          throws Exception
   {
-    Entry entry = TestCaseUtils.makeEntry(
+    processAdd(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -961,9 +943,6 @@ public class ModifyOperationTestCase
          "cn: Test User",
          "displayName: Test User",
          "userPassword: password");
-
-    AddOperation addOperation = processAdd(entry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     LDAPAttribute attr = newLDAPAttribute("manager", "invaliddn");
     ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, add(attr));
@@ -983,7 +962,7 @@ public class ModifyOperationTestCase
   public void testFailAddDisallowedAttribute(String baseDN)
          throws Exception
   {
-    Entry entry = TestCaseUtils.makeEntry(
+    processAdd(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -995,9 +974,6 @@ public class ModifyOperationTestCase
          "cn: Test User",
          "displayName: Test User",
          "userPassword: password");
-
-    AddOperation addOperation = processAdd(entry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     LDAPAttribute attr = newLDAPAttribute("dc", "foo");
     ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, add(attr));
@@ -1019,7 +995,7 @@ public class ModifyOperationTestCase
        String baseDN)
          throws Exception
   {
-    Entry entry = TestCaseUtils.makeEntry(
+    processAdd(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -1031,9 +1007,6 @@ public class ModifyOperationTestCase
          "cn: Test User",
          "displayName: Test User",
          "userPassword: password");
-
-    AddOperation addOperation = processAdd(entry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     LDAPAttribute attr = newLDAPAttribute("dc", "foo");
     attr = newLDAPAttribute("objectClass", "extensibleObject");
@@ -1054,7 +1027,7 @@ public class ModifyOperationTestCase
   public void testFailReplaceRDNAttribute(String baseDN)
          throws Exception
   {
-    Entry entry = TestCaseUtils.makeEntry(
+    processAdd(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -1066,9 +1039,6 @@ public class ModifyOperationTestCase
          "cn: Test User",
          "displayName: Test User",
          "userPassword: password");
-
-    AddOperation addOperation = processAdd(entry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     LDAPAttribute attr = newLDAPAttribute("uid", "foo");
     ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, replace(attr));
@@ -1088,7 +1058,7 @@ public class ModifyOperationTestCase
   public void testFailRemoveRDNAttribute(String baseDN)
          throws Exception
   {
-    Entry entry = TestCaseUtils.makeEntry(
+    processAdd(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -1100,9 +1070,6 @@ public class ModifyOperationTestCase
          "cn: Test User",
          "displayName: Test User",
          "userPassword: password");
-
-    AddOperation addOperation = processAdd(entry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     LDAPAttribute attr = new LDAPAttribute("uid");
     ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, delete(attr));
@@ -1122,7 +1089,7 @@ public class ModifyOperationTestCase
   public void testFailRemoveRDNValue(String baseDN)
          throws Exception
   {
-    Entry entry = TestCaseUtils.makeEntry(
+    processAdd(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -1134,9 +1101,6 @@ public class ModifyOperationTestCase
          "cn: Test User",
          "displayName: Test User",
          "userPassword: password");
-
-    AddOperation addOperation = processAdd(entry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     LDAPAttribute attr = newLDAPAttribute("uid", "test.user");
     ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, delete(attr));
@@ -1156,7 +1120,7 @@ public class ModifyOperationTestCase
   public void testFailReplaceOneOfMultipleRDNAttributes(String baseDN)
          throws Exception
   {
-    Entry entry = TestCaseUtils.makeEntry(
+    processAdd(
          "dn: givenName=Test+sn=User," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -1168,9 +1132,6 @@ public class ModifyOperationTestCase
          "cn: Test User",
          "displayName: Test User",
          "userPassword: password");
-
-    AddOperation addOperation = processAdd(entry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     LDAPAttribute attr = newLDAPAttribute("givenName", "Foo");
     ModifyOperation modifyOperation = processModify("givenName=Test,sn=User," + baseDN, replace(attr));
@@ -1190,7 +1151,7 @@ public class ModifyOperationTestCase
   public void testFailRemoveOneOfMultipleRDNValues(String baseDN)
          throws Exception
   {
-    Entry entry = TestCaseUtils.makeEntry(
+    processAdd(
          "dn: givenName=Test+sn=User," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -1202,9 +1163,6 @@ public class ModifyOperationTestCase
          "cn: Test User",
          "displayName: Test User",
          "userPassword: password");
-
-    AddOperation addOperation = processAdd(entry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     LDAPAttribute attr = new LDAPAttribute("givenName");
     ModifyOperation modifyOperation = processModify("givenName=Test,sn=User," + baseDN, delete(attr));
@@ -1224,7 +1182,7 @@ public class ModifyOperationTestCase
   public void testSuccessRemoveCompleteAttribute(String baseDN)
          throws Exception
   {
-    Entry entry = TestCaseUtils.makeEntry(
+    processAdd(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -1236,9 +1194,6 @@ public class ModifyOperationTestCase
          "cn: Test User",
          "displayName: Test User",
          "userPassword: password");
-
-    AddOperation addOperation = processAdd(entry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     LDAPAttribute attr = new LDAPAttribute("displayName");
     ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, delete(attr));
@@ -1258,7 +1213,7 @@ public class ModifyOperationTestCase
   public void testSuccessRemoveOneOfManyValues(String baseDN)
          throws Exception
   {
-    Entry entry = TestCaseUtils.makeEntry(
+    processAdd(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -1272,9 +1227,6 @@ public class ModifyOperationTestCase
          "userPassword: password",
          "mail: foo",
          "mail: bar");
-
-    AddOperation addOperation = processAdd(entry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     LDAPAttribute attr = newLDAPAttribute("mail", "foo");
     ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, delete(attr));
@@ -1294,7 +1246,7 @@ public class ModifyOperationTestCase
   public void testSuccessRemoveOnlyValue(String baseDN)
          throws Exception
   {
-    Entry entry = TestCaseUtils.makeEntry(
+    processAdd(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -1307,9 +1259,6 @@ public class ModifyOperationTestCase
          "displayName: Test User",
          "userPassword: password",
          "mail: foo");
-
-    AddOperation addOperation = processAdd(entry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     LDAPAttribute attr = newLDAPAttribute("mail", "foo");
     ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, delete(attr));
@@ -1329,7 +1278,7 @@ public class ModifyOperationTestCase
   public void testSuccessRemoveAllOfManyValues(String baseDN)
          throws Exception
   {
-    Entry entry = TestCaseUtils.makeEntry(
+    processAdd(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -1343,9 +1292,6 @@ public class ModifyOperationTestCase
          "userPassword: password",
          "mail: foo",
          "mail: bar");
-
-    AddOperation addOperation = processAdd(entry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     LDAPAttribute attr = newLDAPAttribute("mail", "foo", "bar");
     ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, delete(attr));
@@ -1365,7 +1311,7 @@ public class ModifyOperationTestCase
   public void testFailRemoveRequiredAttribute(String baseDN)
          throws Exception
   {
-    Entry entry = TestCaseUtils.makeEntry(
+    processAdd(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -1377,9 +1323,6 @@ public class ModifyOperationTestCase
          "cn: Test User",
          "displayName: Test User",
          "userPassword: password");
-
-    AddOperation addOperation = processAdd(entry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     LDAPAttribute attr = new LDAPAttribute("sn");
     ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, delete(attr));
@@ -1399,7 +1342,7 @@ public class ModifyOperationTestCase
   public void testFailRemoveRequiredAttributeValue(String baseDN)
          throws Exception
   {
-    Entry entry = TestCaseUtils.makeEntry(
+    processAdd(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -1411,9 +1354,6 @@ public class ModifyOperationTestCase
          "cn: Test User",
          "displayName: Test User",
          "userPassword: password");
-
-    AddOperation addOperation = processAdd(entry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     LDAPAttribute attr = newLDAPAttribute("sn", "User");
     ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, delete(attr));
@@ -1433,7 +1373,7 @@ public class ModifyOperationTestCase
   public void testSuccessReplaceExistingWithNew(String baseDN)
          throws Exception
   {
-    Entry entry = TestCaseUtils.makeEntry(
+    processAdd(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -1446,9 +1386,6 @@ public class ModifyOperationTestCase
          "displayName: Test User",
          "userPassword: password",
          "mail: foo");
-
-    AddOperation addOperation = processAdd(entry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     LDAPAttribute attr = newLDAPAttribute("description", "bar");
     ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, replace(attr));
@@ -1468,7 +1405,7 @@ public class ModifyOperationTestCase
   public void testSuccessReplaceExistingWithSame(String baseDN)
          throws Exception
   {
-    Entry entry = TestCaseUtils.makeEntry(
+    processAdd(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -1481,9 +1418,6 @@ public class ModifyOperationTestCase
          "displayName: Test User",
          "userPassword: password",
          "mail: foo");
-
-    AddOperation addOperation = processAdd(entry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     LDAPAttribute attr = newLDAPAttribute("uid", "test.user");
     ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, replace(attr));
@@ -1523,7 +1457,7 @@ public class ModifyOperationTestCase
   public void testSuccessDeleteAndAddSameValue(String baseDN)
          throws Exception
   {
-    Entry entry = TestCaseUtils.makeEntry(
+    processAdd(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -1536,9 +1470,6 @@ public class ModifyOperationTestCase
          "displayName: Test User",
          "userPassword: password",
          "mail: foo");
-
-    AddOperation addOperation = processAdd(entry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     LDAPAttribute attr = newLDAPAttribute("cn", "Test User");
     ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, delete(attr), add(attr));
@@ -1579,7 +1510,7 @@ public class ModifyOperationTestCase
   public void testSuccessDeleteAttributeWithOption(String baseDN)
          throws Exception
   {
-    Entry entry = TestCaseUtils.makeEntry(
+    processAdd(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -1594,9 +1525,6 @@ public class ModifyOperationTestCase
          "displayName: Test User",
          "userPassword: password",
          "mail: foo");
-
-    AddOperation addOperation = processAdd(entry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     LDAPAttribute attr = newLDAPAttribute("givenName;lang-fr", "X");
     ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, delete(attr));
@@ -1636,7 +1564,7 @@ public class ModifyOperationTestCase
   public void testSuccessReplaceExistingWithNothing(String baseDN)
          throws Exception
   {
-    Entry entry = TestCaseUtils.makeEntry(
+    processAdd(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -1649,9 +1577,6 @@ public class ModifyOperationTestCase
          "displayName: Test User",
          "userPassword: password",
          "mail: foo");
-
-    AddOperation addOperation = processAdd(entry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     LDAPAttribute attr = new LDAPAttribute("description");
     ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, replace(attr));
@@ -1671,7 +1596,7 @@ public class ModifyOperationTestCase
   public void testSuccessReplaceNonExistingWithNothing(String baseDN)
          throws Exception
   {
-    Entry entry = TestCaseUtils.makeEntry(
+    processAdd(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -1683,9 +1608,6 @@ public class ModifyOperationTestCase
          "cn: Test User",
          "displayName: Test User",
          "userPassword: password");
-
-    AddOperation addOperation = processAdd(entry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     LDAPAttribute attr = new LDAPAttribute("description");
     ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, replace(attr));
@@ -1705,7 +1627,7 @@ public class ModifyOperationTestCase
   public void testSuccessReplaceNonExistingWithNew(String baseDN)
          throws Exception
   {
-    Entry entry = TestCaseUtils.makeEntry(
+    processAdd(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -1717,9 +1639,6 @@ public class ModifyOperationTestCase
          "cn: Test User",
          "displayName: Test User",
          "userPassword: password");
-
-    AddOperation addOperation = processAdd(entry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     LDAPAttribute attr = newLDAPAttribute("description", "foo");
     ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, replace(attr));
@@ -1739,7 +1658,7 @@ public class ModifyOperationTestCase
   public void testSuccessRemoveOnlyExistingAndAddNew(String baseDN)
          throws Exception
   {
-    Entry entry = TestCaseUtils.makeEntry(
+    processAdd(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -1752,9 +1671,6 @@ public class ModifyOperationTestCase
          "displayName: Test User",
          "userPassword: password",
          "mail: foo");
-
-    AddOperation addOperation = processAdd(entry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     LDAPAttribute attr = newLDAPAttribute("mail", "foo");
     LDAPAttribute attr2 = newLDAPAttribute("mail", "bar");
@@ -1775,7 +1691,7 @@ public class ModifyOperationTestCase
   public void testSuccessRemoveOneExistingAndAddNew(String baseDN)
          throws Exception
   {
-    Entry entry = TestCaseUtils.makeEntry(
+    processAdd(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -1789,9 +1705,6 @@ public class ModifyOperationTestCase
          "userPassword: password",
          "mail: foo",
          "mail: bar");
-
-    AddOperation addOperation = processAdd(entry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     LDAPAttribute attr = newLDAPAttribute("mail", "foo");
     LDAPAttribute attr2 = new LDAPAttribute("mail", "baz");
@@ -1812,7 +1725,7 @@ public class ModifyOperationTestCase
   public void testSuccessRemoveOneExistingAndAddMultipleNew(String baseDN)
          throws Exception
   {
-    Entry entry = TestCaseUtils.makeEntry(
+    processAdd(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -1825,9 +1738,6 @@ public class ModifyOperationTestCase
          "displayName: Test User",
          "userPassword: password",
          "mail: foo");
-
-    AddOperation addOperation = processAdd(entry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     LDAPAttribute attr = newLDAPAttribute("mail", "foo");
     LDAPAttribute attr2 = newLDAPAttribute("mail", "bar", "baz");
@@ -1848,7 +1758,7 @@ public class ModifyOperationTestCase
   public void testFailRemoveNonExistentAttribute(String baseDN)
          throws Exception
   {
-    Entry entry = TestCaseUtils.makeEntry(
+    processAdd(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -1859,9 +1769,6 @@ public class ModifyOperationTestCase
          "sn: User",
          "cn: Test User",
          "userPassword: password");
-
-    AddOperation addOperation = processAdd(entry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     LDAPAttribute attr = new LDAPAttribute("displayName");
     ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, delete(attr));
@@ -1881,7 +1788,7 @@ public class ModifyOperationTestCase
   public void testFailRemoveNonExistentValue(String baseDN)
          throws Exception
   {
-    Entry entry = TestCaseUtils.makeEntry(
+    processAdd(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -1893,9 +1800,6 @@ public class ModifyOperationTestCase
          "cn: Test User",
          "displayName: Test User",
          "userPassword: password");
-
-    AddOperation addOperation = processAdd(entry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     LDAPAttribute attr = newLDAPAttribute("displayName", "Foo");
     ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, delete(attr));
@@ -1915,7 +1819,7 @@ public class ModifyOperationTestCase
   public void testFailRemoveAllObjectClasses(String baseDN)
          throws Exception
   {
-    Entry entry = TestCaseUtils.makeEntry(
+    processAdd(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -1927,9 +1831,6 @@ public class ModifyOperationTestCase
          "cn: Test User",
          "displayName: Test User",
          "userPassword: password");
-
-    AddOperation addOperation = processAdd(entry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     LDAPAttribute attr = new LDAPAttribute("objectClass");
     ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, delete(attr));
@@ -1949,7 +1850,7 @@ public class ModifyOperationTestCase
   public void testFailReplaceObjectClassesWithNothing(String baseDN)
          throws Exception
   {
-    Entry entry = TestCaseUtils.makeEntry(
+    processAdd(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -1961,9 +1862,6 @@ public class ModifyOperationTestCase
          "cn: Test User",
          "displayName: Test User",
          "userPassword: password");
-
-    AddOperation addOperation = processAdd(entry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     LDAPAttribute attr = new LDAPAttribute("objectClass");
     ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, replace(attr));
@@ -1983,15 +1881,12 @@ public class ModifyOperationTestCase
   public void testFailRemoveStructuralObjectclass(String baseDN)
          throws Exception
   {
-    Entry entry = TestCaseUtils.makeEntry(
+    processAdd(
          "dn: ou=People," + baseDN,
          "objectClass: top",
          "objectClass: organizationalUnit",
          "objectClass: extensibleObject",
          "ou: People");
-
-    AddOperation addOperation = processAdd(entry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     LDAPAttribute attr = newLDAPAttribute("objectClass", "organizationalUnit");
     ModifyOperation modifyOperation = processModify("ou=People," + baseDN, delete(attr));
@@ -2011,15 +1906,12 @@ public class ModifyOperationTestCase
   public void testFailAddSecondStructuralObjectClass(String baseDN)
          throws Exception
   {
-    Entry entry = TestCaseUtils.makeEntry(
+    processAdd(
          "dn: ou=People," + baseDN,
          "objectClass: top",
          "objectClass: organizationalUnit",
          "objectClass: extensibleObject",
          "ou: People");
-
-    AddOperation addOperation = processAdd(entry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     LDAPAttribute attr = newLDAPAttribute("objectClass", "organization");
     ModifyOperation modifyOperation = processModify("ou=People," + baseDN, add(attr));
@@ -2039,7 +1931,7 @@ public class ModifyOperationTestCase
   public void testSuccessIncrementByOne(String baseDN)
          throws Exception
   {
-    Entry entry = TestCaseUtils.makeEntry(
+    processAdd(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -2053,9 +1945,6 @@ public class ModifyOperationTestCase
          "userPassword: password",
          "mail: foo",
          "employeeNumber: 1");
-
-    AddOperation addOperation = processAdd(entry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     LDAPAttribute attr = newLDAPAttribute("employeeNumber", "1");
     ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, increment(attr));
@@ -2081,7 +1970,7 @@ public class ModifyOperationTestCase
   public void testSuccessIncrementByTen(String baseDN)
          throws Exception
   {
-    Entry entry = TestCaseUtils.makeEntry(
+    processAdd(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -2095,9 +1984,6 @@ public class ModifyOperationTestCase
          "userPassword: password",
          "mail: foo",
          "employeeNumber: 1");
-
-    AddOperation addOperation = processAdd(entry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     LDAPAttribute attr = newLDAPAttribute("employeeNumber", "10");
     ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, increment(attr));
@@ -2123,7 +2009,7 @@ public class ModifyOperationTestCase
   public void testSuccessIncrementByNegativeOne(String baseDN)
          throws Exception
   {
-    Entry entry = TestCaseUtils.makeEntry(
+    processAdd(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -2137,9 +2023,6 @@ public class ModifyOperationTestCase
          "userPassword: password",
          "mail: foo",
          "employeeNumber: 1");
-
-    AddOperation addOperation = processAdd(entry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     LDAPAttribute attr = newLDAPAttribute("employeeNumber", "-1");
     ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, increment(attr));
@@ -2179,7 +2062,7 @@ public class ModifyOperationTestCase
   public void testFailIncrementNonNumeric(String baseDN)
          throws Exception
   {
-    Entry entry = TestCaseUtils.makeEntry(
+    processAdd(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -2191,9 +2074,6 @@ public class ModifyOperationTestCase
          "cn: Test User",
          "displayName: Test User",
          "userPassword: password");
-
-    AddOperation addOperation = processAdd(entry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     LDAPAttribute attr = newLDAPAttribute("displayName", "1");
     ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, increment(attr));
@@ -2213,7 +2093,7 @@ public class ModifyOperationTestCase
   public void testFailIncrementValueNonNumeric(String baseDN)
          throws Exception
   {
-    Entry entry = TestCaseUtils.makeEntry(
+    processAdd(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -2226,9 +2106,6 @@ public class ModifyOperationTestCase
          "displayName: Test User",
          "userPassword: password",
          "mail: 1");
-
-    AddOperation addOperation = processAdd(entry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     LDAPAttribute attr = newLDAPAttribute("description", "notnumeric");
     ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, increment(attr));
@@ -2248,7 +2125,7 @@ public class ModifyOperationTestCase
   public void testSuccessIncrementMultiValued(String baseDN)
          throws Exception
   {
-    Entry entry = TestCaseUtils.makeEntry(
+    processAdd(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -2262,9 +2139,6 @@ public class ModifyOperationTestCase
          "userPassword: password",
          "roomNumber: 1",
          "roomNumber: 2");
-
-    AddOperation addOperation = processAdd(entry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     LDAPAttribute attr = newLDAPAttribute("roomNumber", "1");
     ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, increment(attr));
@@ -2284,7 +2158,7 @@ public class ModifyOperationTestCase
   public void testFailIncrementNoIncrementValues(String baseDN)
          throws Exception
   {
-    Entry entry = TestCaseUtils.makeEntry(
+    processAdd(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -2297,9 +2171,6 @@ public class ModifyOperationTestCase
          "displayName: Test User",
          "userPassword: password",
          "roomNumber: 1");
-
-    AddOperation addOperation = processAdd(entry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     LDAPAttribute attr = new LDAPAttribute("roomNumber");
     ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, increment(attr));
@@ -2319,7 +2190,7 @@ public class ModifyOperationTestCase
   public void testFailIncrementMultipleIncrementValues(String baseDN)
          throws Exception
   {
-    Entry entry = TestCaseUtils.makeEntry(
+    processAdd(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -2332,9 +2203,6 @@ public class ModifyOperationTestCase
          "displayName: Test User",
          "userPassword: password",
          "roomNumber: 1");
-
-    AddOperation addOperation = processAdd(entry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     LDAPAttribute attr = newLDAPAttribute("roomNumber", "1", "2");
     ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, increment(attr));
@@ -2354,7 +2222,7 @@ public class ModifyOperationTestCase
   public void testFailIncrementNonExisting(String baseDN)
          throws Exception
   {
-    Entry entry = TestCaseUtils.makeEntry(
+    processAdd(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -2366,9 +2234,6 @@ public class ModifyOperationTestCase
          "cn: Test User",
          "displayName: Test User",
          "userPassword: password");
-
-    AddOperation addOperation = processAdd(entry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     LDAPAttribute attr = newLDAPAttribute("employeeNumber", "1");
     ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, increment(attr));
@@ -2388,7 +2253,7 @@ public class ModifyOperationTestCase
   public void testSuccessRemoveUnneededAuxiliaryObjectClass(String baseDN)
          throws Exception
   {
-    Entry entry = TestCaseUtils.makeEntry(
+    processAdd(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -2403,9 +2268,6 @@ public class ModifyOperationTestCase
          "userPassword: password",
          "mail: foo",
          "employeeNumber: 1");
-
-    AddOperation addOperation = processAdd(entry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     LDAPAttribute attr = newLDAPAttribute("objectClass", "extensibleObject");
     ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, delete(attr));
@@ -2429,7 +2291,7 @@ public class ModifyOperationTestCase
   public void testSuccessAddAuxiliaryObjectClass(String baseDN)
          throws Exception
   {
-    Entry entry = TestCaseUtils.makeEntry(
+    processAdd(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -2443,9 +2305,6 @@ public class ModifyOperationTestCase
          "userPassword: password",
          "mail: foo",
          "employeeNumber: 1");
-
-    AddOperation addOperation = processAdd(entry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     LDAPAttribute attr = newLDAPAttribute("objectClass", "extensibleObject");
     ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, add(attr));
@@ -2472,7 +2331,7 @@ public class ModifyOperationTestCase
   public void testFailAddDuplicateObjectClass(String baseDN)
          throws Exception
   {
-    Entry entry = TestCaseUtils.makeEntry(
+    processAdd(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -2486,9 +2345,6 @@ public class ModifyOperationTestCase
          "userPassword: password",
          "mail: foo",
          "employeeNumber: 1");
-
-    AddOperation addOperation = processAdd(entry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     LDAPAttribute attr = newLDAPAttribute("objectClass", "inetOrgPerson");
     ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, add(attr));
@@ -2508,7 +2364,7 @@ public class ModifyOperationTestCase
   public void testFailRemoveNonExistingObjectClass(String baseDN)
          throws Exception
   {
-    Entry entry = TestCaseUtils.makeEntry(
+    processAdd(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -2522,9 +2378,6 @@ public class ModifyOperationTestCase
          "userPassword: password",
          "mail: foo",
          "employeeNumber: 1");
-
-    AddOperation addOperation = processAdd(entry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     LDAPAttribute attr = newLDAPAttribute("objectClass", "organizationalUnit");
     ModifyOperation modifyOperation = processModify("uid=test.user," + baseDN, delete(attr));
@@ -2544,7 +2397,7 @@ public class ModifyOperationTestCase
   public void testFailReplaceNoUserModification(String baseDN)
          throws Exception
   {
-    Entry entry = TestCaseUtils.makeEntry(
+    processAdd(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -2556,10 +2409,6 @@ public class ModifyOperationTestCase
          "cn: Test User",
          "displayName: Test User",
          "userPassword: password");
-
-    AddOperation addOperation = processAdd(entry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
@@ -2611,7 +2460,7 @@ public class ModifyOperationTestCase
   public void testFailServerCompletelyReadOnly(String baseDN)
          throws Exception
   {
-    Entry entry = TestCaseUtils.makeEntry(
+    processAdd(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -2625,10 +2474,6 @@ public class ModifyOperationTestCase
          "userPassword: password",
          "mail: foo",
          "employeeNumber: 1");
-
-    AddOperation addOperation = processAdd(entry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-
 
     DirectoryServer.setWritabilityMode(WritabilityMode.DISABLED);
 
@@ -2652,7 +2497,7 @@ public class ModifyOperationTestCase
   public void testSucceedServerInternalOnlyWritability(String baseDN)
          throws Exception
   {
-    Entry entry = TestCaseUtils.makeEntry(
+    processAdd(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -2666,10 +2511,6 @@ public class ModifyOperationTestCase
          "userPassword: password",
          "mail: foo",
          "employeeNumber: 1");
-
-    AddOperation addOperation = processAdd(entry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-
 
     DirectoryServer.setWritabilityMode(WritabilityMode.INTERNAL_ONLY);
 
@@ -2693,7 +2534,7 @@ public class ModifyOperationTestCase
   public void testFailServerInternalOnlyWritability(String baseDN)
          throws Exception
   {
-    Entry entry = TestCaseUtils.makeEntry(
+    processAdd(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -2708,12 +2549,7 @@ public class ModifyOperationTestCase
          "mail: foo",
          "employeeNumber: 1");
 
-    AddOperation addOperation = processAdd(entry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-
-
     DirectoryServer.setWritabilityMode(WritabilityMode.INTERNAL_ONLY);
-
 
     Socket s = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
     org.opends.server.tools.LDAPReader r = new org.opends.server.tools.LDAPReader(s);
@@ -2767,7 +2603,7 @@ public class ModifyOperationTestCase
   public void testFailBackendCompletelyReadOnly(String baseDN)
          throws Exception
   {
-    Entry entry = TestCaseUtils.makeEntry(
+    processAdd(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -2781,10 +2617,6 @@ public class ModifyOperationTestCase
          "userPassword: password",
          "mail: foo",
          "employeeNumber: 1");
-
-    AddOperation addOperation = processAdd(entry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-
 
     Backend b = DirectoryServer.getBackend(DN.decode(baseDN));
     b.setWritabilityMode(WritabilityMode.DISABLED);
@@ -2809,7 +2641,7 @@ public class ModifyOperationTestCase
   public void testSucceedBackendInternalOnlyWritability(String baseDN)
          throws Exception
   {
-    Entry entry = TestCaseUtils.makeEntry(
+    processAdd(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -2823,10 +2655,6 @@ public class ModifyOperationTestCase
          "userPassword: password",
          "mail: foo",
          "employeeNumber: 1");
-
-    AddOperation addOperation = processAdd(entry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-
 
     Backend b = DirectoryServer.getBackend(DN.decode(baseDN));
     b.setWritabilityMode(WritabilityMode.INTERNAL_ONLY);
@@ -2851,7 +2679,7 @@ public class ModifyOperationTestCase
   public void testFailBackendInternalOnlyWritability(String baseDN)
          throws Exception
   {
-    Entry entry = TestCaseUtils.makeEntry(
+    processAdd(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -2865,10 +2693,6 @@ public class ModifyOperationTestCase
          "userPassword: password",
          "mail: foo",
          "employeeNumber: 1");
-
-    AddOperation addOperation = processAdd(entry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-
 
     Backend b = DirectoryServer.getBackend(DN.decode(baseDN));
     b.setWritabilityMode(WritabilityMode.INTERNAL_ONLY);
@@ -2926,7 +2750,6 @@ public class ModifyOperationTestCase
   public void testSuccessNotifyChangeListeners()
          throws Exception
   {
-
     TestChangeNotificationListener changeListener =
          new TestChangeNotificationListener();
     DirectoryServer.registerChangeNotificationListener(changeListener);
@@ -3457,7 +3280,7 @@ responseLoop:
   public void testSuccessPermissiveModifyControlAddDuplicateValue(String baseDN)
          throws Exception
   {
-    Entry entry = TestCaseUtils.makeEntry(
+    processAdd(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -3469,9 +3292,6 @@ responseLoop:
          "cn: Test User",
          "displayName: Test User",
          "userPassword: password");
-
-    AddOperation addOperation = processAdd(entry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     LDAPAttribute attr = newLDAPAttribute("givenName", "Test");
 
@@ -3499,7 +3319,7 @@ responseLoop:
   public void testSuccessPermissiveModifyControlRemoveNonExistentValue(String baseDN)
          throws Exception
   {
-    Entry entry = TestCaseUtils.makeEntry(
+    processAdd(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -3511,9 +3331,6 @@ responseLoop:
          "cn: Test User",
          "displayName: Test User",
          "userPassword: password");
-
-    AddOperation addOperation = processAdd(entry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     LDAPAttribute attr = newLDAPAttribute("givenName", "Foo");
 
@@ -3541,7 +3358,7 @@ responseLoop:
   public void testSuccessPermissiveModifyControlRemoveNonExistentAttribute(String baseDN)
          throws Exception
   {
-    Entry entry = TestCaseUtils.makeEntry(
+    processAdd(
          "dn: uid=test.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -3553,9 +3370,6 @@ responseLoop:
          "cn: Test User",
          "displayName: Test User",
          "userPassword: password");
-
-    AddOperation addOperation = processAdd(entry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     LDAPAttribute attr = new LDAPAttribute("description");
     List<RawModification> mods = new ArrayList<RawModification>();
@@ -3584,7 +3398,7 @@ responseLoop:
   public void testModifyDelAddPasswordAttribute(String baseDN)
          throws Exception
   {
-     Entry entry = TestCaseUtils.makeEntry(
+    processAdd(
          "dn: uid=testPassword01.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -3596,10 +3410,6 @@ responseLoop:
          "cn: Test User",
          "displayName: Test User",
          "userPassword: password");
-
-    AddOperation addOperation = processAdd(entry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-
 
     String path = TestCaseUtils.createTempFile(
          "dn: uid=testPassword01.user," + baseDN,
@@ -3633,7 +3443,7 @@ responseLoop:
   public void testModifyDelOneAddOnePasswordAttribute(String baseDN)
          throws Exception
   {
-     Entry entry = TestCaseUtils.makeEntry(
+    processAdd(
          "dn: uid=testPassword02.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -3645,10 +3455,6 @@ responseLoop:
          "cn: Test User",
          "displayName: Test User",
          "userPassword: password");
-
-    AddOperation addOperation = processAdd(entry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-
 
     String path = TestCaseUtils.createTempFile(
          "dn: uid=testPassword02.user," + baseDN,
@@ -3683,7 +3489,7 @@ responseLoop:
   public void testModifyDelEncryptedAddOnePasswordAttribute(String baseDN)
          throws Exception
   {
-     Entry entry = TestCaseUtils.makeEntry(
+    processAdd(
          "dn: uid=testPassword03.user," + baseDN,
          "objectClass: top",
          "objectClass: person",
@@ -3696,14 +3502,10 @@ responseLoop:
          "displayName: Test User",
          "userPassword: password");
 
-    AddOperation addOperation = processAdd(entry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-
     Entry e = DirectoryServer.getEntry(
             DN.decode("uid=testPassword03.user," + baseDN));
     List<Attribute> attrList =
          e.getAttribute(DirectoryServer.getAttributeType("userpassword", true));
-
     assertNotNull(attrList);
 
     String passwd = null;
@@ -3714,7 +3516,6 @@ responseLoop:
         passwd = v.toString();
       }
     }
-
     assertNotNull(passwd);
 
     String path = TestCaseUtils.createTempFile(
@@ -3972,12 +3773,9 @@ responseLoop:
   {
     String baseDN = "dc=example,dc=com";
     TestCaseUtils.clearJEBackend(true, "userRoot", baseDN);
-    Entry entry = TestCaseUtils.makeEntry("dn: cn=Test User," + baseDN,
+    processAdd("dn: cn=Test User," + baseDN,
         "objectClass: top", "objectClass: person",
         "objectClass: organizationalPerson", "sn: User", "cn: Test User");
-
-    AddOperation addOperation = processAdd(entry);
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
     // First check that adding "dc" fails because it is not allowed by
     // inetOrgPerson.
@@ -4008,12 +3806,9 @@ responseLoop:
       assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
       // Add new entry and modify.
-      entry = TestCaseUtils.makeEntry("dn: cn=Test User2," + baseDN,
+      processAdd("dn: cn=Test User2," + baseDN,
           "objectClass: top", "objectClass: person",
           "objectClass: organizationalPerson", "sn: User2", "cn: Test User2");
-
-      addOperation = processAdd(entry);
-      assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
       modifyOperation = processModify("cn=Test User2," + baseDN, mods);
       assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
@@ -4036,11 +3831,9 @@ responseLoop:
       assertEquals(result, 0, "Schema update failed");
 
       // Add new entry and modify (this time it should fail).
-      entry = TestCaseUtils.makeEntry("dn: cn=Test User3," + baseDN,
+      processAdd("dn: cn=Test User3," + baseDN,
           "objectClass: top", "objectClass: person",
           "objectClass: organizationalPerson", "sn: User3", "cn: Test User3");
-      addOperation = processAdd(entry);
-      assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
 
       modifyOperation = processModify("cn=Test User3," + baseDN, mods);
       assertEquals(modifyOperation.getResultCode(), ResultCode.OBJECTCLASS_VIOLATION);
