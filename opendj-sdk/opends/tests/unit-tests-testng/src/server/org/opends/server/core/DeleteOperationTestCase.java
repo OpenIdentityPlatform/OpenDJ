@@ -217,11 +217,7 @@ public class DeleteOperationTestCase extends OperationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
-    DeleteOperation deleteOperation =
-         conn.processDelete(ByteString.valueOf("o=test"));
+    DeleteOperation deleteOperation = processDeleteRaw("o=test");
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveCompletedOperationElements(deleteOperation);
     List<LocalBackendDeleteOperation> localOps =
@@ -233,7 +229,30 @@ public class DeleteOperationTestCase extends OperationTestCase
     }
   }
 
+  private DeleteOperation processDeleteRaw(String entryDN)
+  {
+    InternalClientConnection conn =
+        InternalClientConnection.getRootConnection();
+    return conn.processDelete(ByteString.valueOf(entryDN));
+  }
 
+  private DeleteOperation processDelete(String entryDN) throws DirectoryException
+  {
+    InternalClientConnection conn =
+        InternalClientConnection.getRootConnection();
+    return conn.processDelete(DN.decode(entryDN));
+  }
+
+  private void processAdd(String... entryLines) throws Exception
+  {
+    Entry e = TestCaseUtils.makeEntry(entryLines);
+    InternalClientConnection conn =
+        InternalClientConnection.getRootConnection();
+    AddOperation addOperation =
+        conn.processAdd(e.getDN(), e.getObjectClasses(), e.getUserAttributes(),
+            e.getOperationalAttributes());
+    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
+  }
 
   /**
    * Tests the <CODE>getEntryToDelete</CODE> method for a delete operation that
@@ -247,11 +266,7 @@ public class DeleteOperationTestCase extends OperationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
-    DeleteOperation deleteOperation =
-         conn.processDelete(ByteString.valueOf("ou=People,o=test"));
+    DeleteOperation deleteOperation = processDeleteRaw("ou=People,o=test");
     assertFalse(deleteOperation.getResultCode() == ResultCode.SUCCESS);
     List<LocalBackendDeleteOperation> localOps =
       (List) (deleteOperation.getAttachment(Operation.LOCALBACKENDOPERATIONS));
@@ -275,14 +290,7 @@ public class DeleteOperationTestCase extends OperationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "o=test"
-    };
+    String[] args = getArgs("o=test");
     assertEquals(LDAPDelete.mainDelete(args, false, null, null), 0);
   }
 
@@ -299,11 +307,7 @@ public class DeleteOperationTestCase extends OperationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
-    DeleteOperation deleteOperation =
-         conn.processDelete(ByteString.valueOf("o=test"));
+    DeleteOperation deleteOperation = processDeleteRaw("o=test");
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveCompletedOperationElements(deleteOperation);
   }
@@ -321,11 +325,7 @@ public class DeleteOperationTestCase extends OperationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
-    DeleteOperation deleteOperation =
-         conn.processDelete(DN.decode("o=test"));
+    DeleteOperation deleteOperation = processDelete("o=test");
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveCompletedOperationElements(deleteOperation);
   }
@@ -343,21 +343,12 @@ public class DeleteOperationTestCase extends OperationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    Entry e = TestCaseUtils.makeEntry("dn: cn=test,o=test",
-                                      "objectClass: top",
-                                      "objectClass: device",
-                                      "cn: test");
+    processAdd("dn: cn=test,o=test",
+               "objectClass: top",
+               "objectClass: device",
+               "cn: test");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(e.getDN(), e.getObjectClasses(),
-                         e.getUserAttributes(), e.getOperationalAttributes());
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-
-
-    DeleteOperation deleteOperation =
-         conn.processDelete(ByteString.valueOf("cn=test,o=test"));
+    DeleteOperation deleteOperation = processDeleteRaw("cn=test,o=test");
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveCompletedOperationElements(deleteOperation);
   }
@@ -375,21 +366,12 @@ public class DeleteOperationTestCase extends OperationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    Entry e = TestCaseUtils.makeEntry("dn: cn=test,o=test",
-                                      "objectClass: top",
-                                      "objectClass: device",
-                                      "cn: test");
+    processAdd("dn: cn=test,o=test",
+               "objectClass: top",
+               "objectClass: device",
+               "cn: test");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(e.getDN(), e.getObjectClasses(),
-                         e.getUserAttributes(), e.getOperationalAttributes());
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-
-
-    DeleteOperation deleteOperation =
-         conn.processDelete(DN.decode("cn=test,o=test"));
+    DeleteOperation deleteOperation = processDelete("cn=test,o=test");
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveCompletedOperationElements(deleteOperation);
   }
@@ -407,11 +389,7 @@ public class DeleteOperationTestCase extends OperationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
-    DeleteOperation deleteOperation =
-         conn.processDelete(ByteString.valueOf("malformed"));
+    DeleteOperation deleteOperation = processDeleteRaw("malformed");
     assertFalse(deleteOperation.getResultCode() == ResultCode.SUCCESS);
   }
 
@@ -429,11 +407,7 @@ public class DeleteOperationTestCase extends OperationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
-    DeleteOperation deleteOperation =
-         conn.processDelete(ByteString.valueOf("o=does not exist"));
+    DeleteOperation deleteOperation = processDeleteRaw("o=does not exist");
     assertFalse(deleteOperation.getResultCode() == ResultCode.SUCCESS);
   }
 
@@ -451,11 +425,7 @@ public class DeleteOperationTestCase extends OperationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
-    DeleteOperation deleteOperation =
-         conn.processDelete(DN.decode("o=does not exist"));
+    DeleteOperation deleteOperation = processDelete("o=does not exist");
     assertFalse(deleteOperation.getResultCode() == ResultCode.SUCCESS);
   }
 
@@ -472,11 +442,7 @@ public class DeleteOperationTestCase extends OperationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
-    DeleteOperation deleteOperation =
-         conn.processDelete(ByteString.valueOf("cn=entry,o=does not exist"));
+    DeleteOperation deleteOperation = processDeleteRaw("cn=entry,o=does not exist");
     assertFalse(deleteOperation.getResultCode() == ResultCode.SUCCESS);
   }
 
@@ -494,11 +460,7 @@ public class DeleteOperationTestCase extends OperationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
-    DeleteOperation deleteOperation =
-         conn.processDelete(DN.decode("cn=entry,o=does not exist"));
+    DeleteOperation deleteOperation = processDelete("cn=entry,o=does not exist");
     assertFalse(deleteOperation.getResultCode() == ResultCode.SUCCESS);
   }
 
@@ -516,11 +478,7 @@ public class DeleteOperationTestCase extends OperationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
-    DeleteOperation deleteOperation =
-         conn.processDelete(ByteString.valueOf("cn=entry,o=test"));
+    DeleteOperation deleteOperation = processDeleteRaw("cn=entry,o=test");
     assertFalse(deleteOperation.getResultCode() == ResultCode.SUCCESS);
   }
 
@@ -538,11 +496,7 @@ public class DeleteOperationTestCase extends OperationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
-    DeleteOperation deleteOperation =
-         conn.processDelete(DN.decode("cn=entry,o=test"));
+    DeleteOperation deleteOperation = processDelete("cn=entry,o=test");
     assertFalse(deleteOperation.getResultCode() == ResultCode.SUCCESS);
   }
 
@@ -559,21 +513,12 @@ public class DeleteOperationTestCase extends OperationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    Entry e = TestCaseUtils.makeEntry("dn: cn=test,o=test",
-                                      "objectClass: top",
-                                      "objectClass: device",
-                                      "cn: test");
+    processAdd("dn: cn=test,o=test",
+               "objectClass: top",
+               "objectClass: device",
+               "cn: test");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(e.getDN(), e.getObjectClasses(),
-                         e.getUserAttributes(), e.getOperationalAttributes());
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-
-
-    DeleteOperation deleteOperation =
-         conn.processDelete(ByteString.valueOf("o=test"));
+    DeleteOperation deleteOperation = processDeleteRaw("o=test");
     assertFalse(deleteOperation.getResultCode() == ResultCode.SUCCESS);
   }
 
@@ -590,21 +535,12 @@ public class DeleteOperationTestCase extends OperationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    Entry e = TestCaseUtils.makeEntry("dn: cn=test,o=test",
-                                      "objectClass: top",
-                                      "objectClass: device",
-                                      "cn: test");
+    processAdd("dn: cn=test,o=test",
+               "objectClass: top",
+               "objectClass: device",
+               "cn: test");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-         conn.processAdd(e.getDN(), e.getObjectClasses(),
-                         e.getUserAttributes(), e.getOperationalAttributes());
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
-
-
-    DeleteOperation deleteOperation =
-         conn.processDelete(ByteString.valueOf("o=test"));
+    DeleteOperation deleteOperation = processDeleteRaw("o=test");
     assertFalse(deleteOperation.getResultCode() == ResultCode.SUCCESS);
   }
 
@@ -622,13 +558,9 @@ public class DeleteOperationTestCase extends OperationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
     DirectoryServer.setWritabilityMode(WritabilityMode.DISABLED);
 
-    DeleteOperation deleteOperation =
-         conn.processDelete(ByteString.valueOf("o=test"));
+    DeleteOperation deleteOperation = processDeleteRaw("o=test");
     assertFalse(deleteOperation.getResultCode() == ResultCode.SUCCESS);
 
     DirectoryServer.setWritabilityMode(WritabilityMode.ENABLED);
@@ -648,13 +580,9 @@ public class DeleteOperationTestCase extends OperationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
     DirectoryServer.setWritabilityMode(WritabilityMode.INTERNAL_ONLY);
 
-    DeleteOperation deleteOperation =
-         conn.processDelete(ByteString.valueOf("o=test"));
+    DeleteOperation deleteOperation = processDeleteRaw("o=test");
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
 
     DirectoryServer.setWritabilityMode(WritabilityMode.ENABLED);
@@ -676,14 +604,7 @@ public class DeleteOperationTestCase extends OperationTestCase
 
     DirectoryServer.setWritabilityMode(WritabilityMode.INTERNAL_ONLY);
 
-    String[] args =
-    {
-      "-h", "127.0.0.1",
-      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-      "-D", "cn=Directory Manager",
-      "-w", "password",
-      "o=test"
-    };
+    String[] args = getArgs("o=test");
     assertFalse(LDAPDelete.mainDelete(args, false, null, null) == 0);
 
     DirectoryServer.setWritabilityMode(WritabilityMode.ENABLED);
@@ -703,14 +624,10 @@ public class DeleteOperationTestCase extends OperationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
     Backend backend = DirectoryServer.getBackend(DN.decode("o=test"));
     backend.setWritabilityMode(WritabilityMode.DISABLED);
 
-    DeleteOperation deleteOperation =
-         conn.processDelete(ByteString.valueOf("o=test"));
+    DeleteOperation deleteOperation = processDeleteRaw("o=test");
     assertFalse(deleteOperation.getResultCode() == ResultCode.SUCCESS);
 
     backend.setWritabilityMode(WritabilityMode.ENABLED);
@@ -730,14 +647,10 @@ public class DeleteOperationTestCase extends OperationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
     Backend backend = DirectoryServer.getBackend(DN.decode("o=test"));
     backend.setWritabilityMode(WritabilityMode.INTERNAL_ONLY);
 
-    DeleteOperation deleteOperation =
-         conn.processDelete(ByteString.valueOf("o=test"));
+    DeleteOperation deleteOperation = processDeleteRaw("o=test");
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
 
     backend.setWritabilityMode(WritabilityMode.ENABLED);
@@ -760,17 +673,21 @@ public class DeleteOperationTestCase extends OperationTestCase
     Backend backend = DirectoryServer.getBackend(DN.decode("o=test"));
     backend.setWritabilityMode(WritabilityMode.INTERNAL_ONLY);
 
-    String[] args =
-    {
+    String[] args = getArgs("o=test");
+    assertFalse(LDAPDelete.mainDelete(args, false, null, null) == 0);
+
+    backend.setWritabilityMode(WritabilityMode.ENABLED);
+  }
+
+  private String[] getArgs(String entryDn)
+  {
+    return new String[] {
       "-h", "127.0.0.1",
       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
       "-D", "cn=Directory Manager",
       "-w", "password",
-      "o=test"
+      entryDn
     };
-    assertFalse(LDAPDelete.mainDelete(args, false, null, null) == 0);
-
-    backend.setWritabilityMode(WritabilityMode.ENABLED);
   }
 
 
@@ -837,11 +754,7 @@ public class DeleteOperationTestCase extends OperationTestCase
 
     try
     {
-      InternalClientConnection conn =
-           InternalClientConnection.getRootConnection();
-
-      DeleteOperation deleteOperation =
-           conn.processDelete(ByteString.valueOf("o=test"));
+      DeleteOperation deleteOperation = processDeleteRaw("o=test");
       assertEquals(deleteOperation.getResultCode(), ResultCode.BUSY);
     }
     finally
@@ -1087,11 +1000,7 @@ responseLoop:
     DirectoryServer.registerChangeNotificationListener(changeListener);
     assertEquals(changeListener.getAddCount(), 0);
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
-    DeleteOperation deleteOperation =
-         conn.processDelete(ByteString.valueOf("o=test"));
+    DeleteOperation deleteOperation = processDeleteRaw("o=test");
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveCompletedOperationElements(deleteOperation);
 
@@ -1118,11 +1027,7 @@ responseLoop:
     DirectoryServer.registerChangeNotificationListener(changeListener);
     assertEquals(changeListener.getAddCount(), 0);
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
-    DeleteOperation deleteOperation =
-         conn.processDelete(ByteString.valueOf("cn=nonexistent,o=test"));
+    DeleteOperation deleteOperation = processDeleteRaw("cn=nonexistent,o=test");
     assertFalse(deleteOperation.getResultCode() == ResultCode.SUCCESS);
 
     assertEquals(changeListener.getDeleteCount(), 0);
