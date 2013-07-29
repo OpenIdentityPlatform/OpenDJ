@@ -27,6 +27,12 @@
  */
 package org.opends.server.workflowelement.localbackend;
 
+import static org.opends.messages.CoreMessages.*;
+import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
+
 import java.util.List;
 import java.util.concurrent.locks.Lock;
 
@@ -36,7 +42,10 @@ import org.opends.server.api.ChangeNotificationListener;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.SynchronizationProvider;
 import org.opends.server.api.plugin.PluginResult;
-import org.opends.server.controls.*;
+import org.opends.server.controls.LDAPAssertionRequestControl;
+import org.opends.server.controls.LDAPPreReadRequestControl;
+import org.opends.server.controls.ProxiedAuthV1Control;
+import org.opends.server.controls.ProxiedAuthV2Control;
 import org.opends.server.core.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.*;
@@ -44,12 +53,6 @@ import org.opends.server.types.operation.PostOperationDeleteOperation;
 import org.opends.server.types.operation.PostResponseDeleteOperation;
 import org.opends.server.types.operation.PostSynchronizationDeleteOperation;
 import org.opends.server.types.operation.PreOperationDeleteOperation;
-
-import static org.opends.messages.CoreMessages.*;
-import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class defines an operation used to delete an entry in a local backend
@@ -430,7 +433,8 @@ public class LocalBackendDeleteOperation
   private DirectoryException newDirectoryException(Entry entry,
       ResultCode resultCode, Message message) throws DirectoryException
   {
-    return LocalBackendWorkflowElement.newDirectoryException(this, entry, null,
+    return LocalBackendWorkflowElement.newDirectoryException(this, entry,
+        entryDN,
         resultCode, message, ResultCode.NO_SUCH_OBJECT,
         ERR_DELETE_NO_SUCH_ENTRY.get(String.valueOf(entryDN)));
   }
@@ -439,7 +443,7 @@ public class LocalBackendDeleteOperation
       ResultCode resultCode, Message message) throws DirectoryException
   {
     LocalBackendWorkflowElement.setResultCodeAndMessageNoInfoDisclosure(this,
-        entry, null, resultCode, message, ResultCode.NO_SUCH_OBJECT,
+        entry, entryDN, resultCode, message, ResultCode.NO_SUCH_OBJECT,
         ERR_DELETE_NO_SUCH_ENTRY.get(String.valueOf(entryDN)));
   }
 

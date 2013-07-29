@@ -56,9 +56,10 @@ import org.testng.annotations.Test;
 /**
  * A set of test cases for delete operations
  */
-public class DeleteOperationTestCase
-       extends OperationTestCase
+@SuppressWarnings("javadoc")
+public class DeleteOperationTestCase extends OperationTestCase
 {
+
   /** Some of the tests disable the backends, so we reenable them here. */
   @AfterMethod(alwaysRun=true)
   public void reenableBackend() throws DirectoryException {
@@ -73,29 +74,38 @@ public class DeleteOperationTestCase
   protected Operation[] createTestOperations()
          throws Exception
   {
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
+    List<Control> noControls = new ArrayList<Control>();
     return new Operation[]
     {
-      new DeleteOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
-                          new ArrayList<Control>(), ByteString.empty()),
-      new DeleteOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
-                          null, ByteString.empty()),
-      new DeleteOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
-                          new ArrayList<Control>(),
-                          ByteString.valueOf("o=test")),
-      new DeleteOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
-                          null, ByteString.valueOf("o=test")),
-      new DeleteOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
-                          new ArrayList<Control>(), DN.nullDN()),
-      new DeleteOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
-                          null, DN.nullDN()),
-      new DeleteOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
-                          new ArrayList<Control>(), DN.decode("o=test")),
-      new DeleteOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
-                          null, DN.decode("o=test"))
+      newDeleteOperation(noControls, ByteString.empty()),
+      newDeleteOperation(null, ByteString.empty()),
+      newDeleteOperation(noControls, ByteString.valueOf("o=test")),
+      newDeleteOperation(null, ByteString.valueOf("o=test")),
+      newDeleteOperation(noControls, DN.nullDN()),
+      newDeleteOperation(null, DN.nullDN()),
+      newDeleteOperation(noControls, DN.decode("o=test")),
+      newDeleteOperation(null, DN.decode("o=test"))
     };
+  }
+
+  private DeleteOperation newDeleteOperation(
+      List<Control> requestControls, ByteString rawEntryDn)
+  {
+    return new DeleteOperationBasis(
+        InternalClientConnection.getRootConnection(),
+        InternalClientConnection.nextOperationID(),
+        InternalClientConnection.nextMessageID(),
+        requestControls, rawEntryDn);
+  }
+
+  private DeleteOperation newDeleteOperation(
+      List<Control> requestControls, DN entryDn)
+  {
+    return new DeleteOperationBasis(
+        InternalClientConnection.getRootConnection(),
+        InternalClientConnection.nextOperationID(),
+        InternalClientConnection.nextMessageID(),
+        requestControls, entryDn);
   }
 
 
@@ -129,12 +139,8 @@ public class DeleteOperationTestCase
   @Test()
   public void testGetEntryDNNull()
   {
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
     DeleteOperation deleteOperation =
-         new DeleteOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
-                             null, ByteString.valueOf("o=test"));
+        newDeleteOperation(null, ByteString.valueOf("o=test"));
     assertNotNull(deleteOperation.getEntryDN());
   }
 
@@ -149,12 +155,8 @@ public class DeleteOperationTestCase
   public void testGetEntryDNNotNull()
          throws Exception
   {
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
     DeleteOperation deleteOperation =
-         new DeleteOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
-                             null, DN.decode("o=test"));
+        newDeleteOperation(null, DN.decode("o=test"));
     assertNotNull(deleteOperation.getEntryDN());
   }
 
@@ -173,12 +175,8 @@ public class DeleteOperationTestCase
   public void testGetEntryDNChangedToNull()
          throws Exception
   {
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
     DeleteOperation deleteOperation =
-         new DeleteOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
-                             null, DN.decode("o=test"));
+        newDeleteOperation(null, DN.decode("o=test"));
     assertNotNull(deleteOperation.getEntryDN());
 
     deleteOperation.setRawEntryDN(ByteString.valueOf("dc=example,dc=com"));
@@ -780,7 +778,7 @@ public class DeleteOperationTestCase
   /**
    * Tests a delete operation that gets canceled before startup.
    *
-   * @throws  Exception  If an unexpected probem occurs.
+   * @throws  Exception  If an unexpected problem occurs.
    */
   @Test()
   public void testCancelBeforeStartup()
@@ -788,12 +786,8 @@ public class DeleteOperationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
-    DeleteOperationBasis deleteOperation =
-         new DeleteOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
-                             null, ByteString.valueOf("o=test"));
+    DeleteOperation deleteOperation =
+        newDeleteOperation(null, ByteString.valueOf("o=test"));
 
     CancelRequest cancelRequest = new CancelRequest(false,
                                                     Message.raw("testCancelBeforeStartup"));
@@ -805,7 +799,7 @@ public class DeleteOperationTestCase
   /**
    * Tests a delete operation that gets canceled before startup.
    *
-   * @throws  Exception  If an unexpected probem occurs.
+   * @throws  Exception  If an unexpected problem occurs.
    */
   @Test()
   public void testCancelAfterOperation()
@@ -813,13 +807,8 @@ public class DeleteOperationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
-    DeleteOperationBasis deleteOperation =
-         new DeleteOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
-                             null, ByteString.valueOf("o=test"));
-
+    DeleteOperation deleteOperation =
+        newDeleteOperation(null, ByteString.valueOf("o=test"));
     deleteOperation.run();
 
     CancelRequest cancelRequest = new CancelRequest(false,
@@ -1154,15 +1143,11 @@ responseLoop:
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
     List<Control> controls =
          ShortCircuitPlugin.createShortCircuitControlList(0, "PreParse");
 
-    DeleteOperationBasis deleteOperation =
-         new DeleteOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
-                             controls, ByteString.valueOf("o=test"));
+    DeleteOperation deleteOperation =
+        newDeleteOperation(controls, ByteString.valueOf("o=test"));
     deleteOperation.run();
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
     assertTrue(DirectoryServer.entryExists(DN.decode("o=test")));
