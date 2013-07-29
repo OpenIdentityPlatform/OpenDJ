@@ -815,8 +815,7 @@
                   'dsPath'          : dsPath,
                   'sourceLdif'      : '%s/../%s' % (dsPath, sampleTree),
                   'targetLdif'      : '%s/../%s' % (dsPath, referenceTree),
-                  'outputLdif'      : '%s/../%s' % (dsPath, treeDiffs),
-                  'ignoreAttrsFile' : ignoreAttrsFile
+                  'outputLdif'      : '%s/../%s' % (dsPath, treeDiffs)
                 }
               </call>
               <if expr="STAXResult != 6">
@@ -2032,7 +2031,10 @@
         }
       </call>
       
-      <if expr="RC == 5 and expectedRC != 5">
+      <script>
+        STAXCode=RC
+      </script>      
+      <if expr="STAXCode == 5 and expectedRC != 5">
         <sequence>
           <!-- Check the size of the diff file, and avoid reading its
                content with getFile if the file is too big to prevent
@@ -2089,7 +2091,7 @@
         </else>
       </if>     
       
-      <return>STAXResult</return>
+      <return>STAXCode</return>
     </sequence>
   </function>
   
