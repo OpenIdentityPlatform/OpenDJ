@@ -459,7 +459,7 @@
         dsReplicaPath = '%s/%s' % (dsReplica.getDir(),OPENDSNAME)
 
       </script>
-      <call function="'SearchObject'">
+      <call function="'ldapSearchWithScript'">
         { 'location'            : dsMaster.getHostname(),
           'dsPath'              : dsMasterPath,
           'dsInstanceHost'      : dsMaster.getHostname(),
@@ -468,7 +468,8 @@
           'dsInstancePswd'      : dsMaster.getRootPwd(),
           'dsBaseDN'            : baseDN,
           'dsFilter'            : 'objectclass=*',
-          'dsScope'             : 'sub'
+          'dsScope'             : 'sub',
+          'dsDontWrap'          : 'true',
         }
       </call>
       <if expr="RC == 0">
@@ -488,6 +489,9 @@
               # if new attribute line
               elif not f[0].isspace():
                 currentAttr = f.split(':',1)[0]
+                # for instance if description is a valid attribute, 
+                # so localized description (description;lang-fr) is also valid
+                currentAttr = currentAttr.split(';',1)[0]
                 # if valid attribute
                 if currentAttr in keptAttributes:
                   refFiltered.append(f+"\n")
@@ -511,7 +515,7 @@
       </if>
       <if expr="RC == 0">
         <sequence>
-          <call function="'SearchObject'">
+          <call function="'ldapSearchWithScript'">
             { 'location'            : dsReplica.getHostname(),
               'dsPath'              : dsReplicaPath,
               'dsInstanceHost'      : dsReplica.getHostname(),
@@ -520,7 +524,8 @@
               'dsInstancePswd'      : dsReplica.getRootPwd(),
               'dsBaseDN'            : 'o=example',
               'dsFilter'            : 'objectclass=*',
-              'dsScope'             : 'sub'
+              'dsScope'             : 'sub',
+              'dsDontWrap'          : 'true',
             }
           </call>
         </sequence>
