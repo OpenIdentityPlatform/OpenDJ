@@ -355,11 +355,6 @@ public final class AciHandler extends
   {
     AciContainer container =
         new AciLDAPOperationContainer(operation, ACI_COMPARE);
-    if (!isAllowed(container, operation))
-    {
-      // first check more global ACIs without targetattrs defined on them
-      return false;
-    }
 
     String baseName;
     String rawAttributeType = operation.getRawAttributeType();
@@ -380,7 +375,6 @@ public final class AciHandler extends
             .getAssertionValue());
     container.setCurrentAttributeType(attributeType);
     container.setCurrentAttributeValue(attributeValue);
-    // then check more precise ACIs with targetattrs defined on them
     return isAllowed(container, operation);
   }
 
