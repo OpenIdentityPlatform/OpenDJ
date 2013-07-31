@@ -400,8 +400,8 @@ public class TargetAttrTestCase extends AciTestCase {
         { "!=", "cn || sn", "sn", false },
         { "!=", "cn", "sn", true }, // Not eq user attr
         { "!=", "cn || sn", "description", true }, // Not eq user attr
-        { "!=", "cn || sn", "modifytimestamp", true }, // Not eq op attr
-        { "!=", "aci", "cn", true },
+        { "!=", "cn || sn", "modifytimestamp", false }, // Not eq op attr
+        { "!=", "aci", "cn", false },
         { "!=", "aci", "modifytimestamp", true },
     };
   }
