@@ -1431,7 +1431,8 @@
                 'dsInstanceDn'          : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                 'dsInstancePswd'        : 'ACIRules' ,
                 'attrToBeCompared'      : 'roomnumber:4376',
-                'entryToBeCompared'     : 'uid=jrunner, ou=People, ou=aci branch, o=ACI Tests, dc=example,dc=com' }
+                'entryToBeCompared'     : 'uid=jrunner, ou=People, ou=aci branch, o=ACI Tests, dc=example,dc=com',
+                'expectedRC'            : 5 }
             </call>
 
             <script> 
@@ -1585,7 +1586,8 @@
                 'dsInstanceDn'          : 'uid=auser,ou=people,o=ACI Tests,dc=example,dc=com' ,
                 'dsInstancePswd'        : 'ACIRules' ,
                 'attrToBeCompared'      : 'roomnumber:4376',
-                'entryToBeCompared'     : 'uid=jrunner, ou=People, ou=aci branch, o=ACI Tests, dc=example,dc=com' }
+                'entryToBeCompared'     : 'uid=jrunner, ou=People, ou=aci branch, o=ACI Tests, dc=example,dc=com' ,
+                'expectedRC'            : 5 }
             </call>
 
             <script> 
