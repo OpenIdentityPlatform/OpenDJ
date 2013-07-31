@@ -2095,6 +2095,21 @@
                   'expectedString'  : expectedString }
             </call>
           </if>
+          
+          <!-- If output contains "There are no tasks defined", add known issue -->
+          <script>
+            import re
+            setIssue = False
+            if re.search('.*There are no tasks defined with ID.*', cmdOutput) is not None:
+              setIssue = True
+          </script>
+          <if expr="setIssue == True">
+            <sequence>
+              <call function="'setKnownIssue'">
+                { 'issueId' : 'OPENDJ-1071' }
+              </call>
+            </sequence>
+          </if>
         </sequence>
       </timer>
 
