@@ -192,10 +192,13 @@ aci: (target="ldap:///dc=example,dc=com") (targetattr =
       multiple attribute type names with ||.</para>
       <para>This specification affects the entry where the ACI is located, or
       the entries specified by other targets in the ACI.</para>
-      <para>You can use an asterisk, *, to specify all non-operational
-      attributes, although you will see better performance when explicitly
-      including or excluding attribute types needed. You can use a plus, +, to
-      specify all operational attributes.</para>
+      <para>You can use an asterisk, *, to specify all user attributes, although
+      you will see better performance when explicitly including or excluding
+      attribute types needed. You can use a plus, +, to specify all operational
+      attributes.</para>
+      <para>Note that a negated <replaceable>attr-list</replaceable> of
+      operational attributes will only match other operational attributes and
+      never any user attributes, and vice-versa.</para>
       <para>If you do not include this target specification, then by default
       no attributes are affected by the ACI.</para>
      </listitem>
@@ -607,7 +610,7 @@ aci: (target="ldap:///dc=example,dc=com") (targetattr =
      <listitem>
       <para>The ACI must allow the <literal>add</literal> permission to entries
       in the target. This implicitly allows the attributes and values to be set.
-      Use <literal>targetattrfilters</literal> to explicitly deny access to any
+      Use <literal>targattrfilters</literal> to explicitly deny access to any
       values if required.</para>
       <para>For example, the ACI required to allow
       <literal>uid=bjensen,ou=People,dc=example,dc=com</literal> to add an entry
@@ -648,7 +651,7 @@ aci: (target="ldap:///dc=example,dc=com") (targetattr =
      <listitem>
       <para>The ACI must allow the <literal>delete</literal> permission to the
       target entry. This implicitly allows the attributes and values in the
-      target to be deleted. Use <literal>targetattrfilters</literal> to
+      target to be deleted. Use <literal>targattrfilters</literal> to
       explicitly deny access to the values if required.</para>
       <para>For example, the ACI required to allow
       <literal>uid=bjensen,ou=People,dc=example,dc=com</literal> to delete an
@@ -664,7 +667,7 @@ aci: (target="ldap:///dc=example,dc=com") (targetattr =
       <para>The ACI must allow the <literal>write</literal> permission to
       attributes in the target entries. This implicitly allows all
       values in the target attribute to be modified. Use
-      <literal>targetattrfilters</literal> to explicitly deny access to specific
+      <literal>targattrfilters</literal> to explicitly deny access to specific
       values if required.</para>
       <para>For example, the ACI required to allow
       <literal>uid=bjensen,ou=People,dc=example,dc=com</literal> to modify the 
@@ -685,7 +688,7 @@ aci: (target="ldap:///dc=example,dc=com") (targetattr =
       <para>The ACI must allow <literal>write</literal> permission to the
       attributes in the old RDN and the new RDN. All values of the old RDN and
       new RDN can be written implicitly; use
-      <literal>targetattrfilters</literal> to explicitly deny access to values
+      <literal>targattrfilters</literal> to explicitly deny access to values
       used if required.</para>
       <para>For example, the ACI required to allow
       <literal>uid=bjensen,ou=People,dc=example,dc=com</literal> to rename
@@ -707,9 +710,7 @@ aci: (target="ldap:///dc=example,dc=com") (targetattr =
       used to allow particular attributes to be returned. If
       <literal>read</literal> permission is allowed to any attribute, the
       server will automatically allow the <literal>objectClass</literal>
-      attribute to also be read. All values of readable attributes can be
-      implicitly read; to restrict this use
-      <literal>targetattrfilters</literal>.</para>
+      attribute to also be read.</para>
       <para>For example, the ACI required to allow
       <literal>uid=bjensen,ou=People,dc=example,dc=com</literal> to search for
       <literal>uid</literal> attributes, and also to read that attribute in
