@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2012 ForgeRock AS
+ *      Portions Copyright 2012-2013 ForgeRock AS
  */
 
 package org.opends.server.authorization.dseecompat;
@@ -276,7 +276,6 @@ public class TargetAttr {
                   targetAttr.opAttributes.contains(a))
             ret=true;
           if(targetAttr.isAllOpAttributes() ||
-             !targetAttr.attributes.isEmpty() ||
              !targetAttr.opAttributes.isEmpty()) {
             if(targetAttr.getOperator().
                     equals(EnumTargetOperator.NOT_EQUALITY))
@@ -287,7 +286,6 @@ public class TargetAttr {
                   targetAttr.attributes.contains(a))
             ret=true;
           if(targetAttr.isAllUserAttributes() ||
-                  !targetAttr.opAttributes.isEmpty() ||
                   !targetAttr.attributes.isEmpty()) {
             if(targetAttr.getOperator().
                     equals(EnumTargetOperator.NOT_EQUALITY))
