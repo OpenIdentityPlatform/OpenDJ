@@ -1379,10 +1379,11 @@
     </taskdef>
     <processFilesForPackages sourceDirName="${package.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}" />           
     <copy file="resource/rpm/files" tofile="${build.dir}/rpm/SOURCES/files" />
+    <copy file="resource/rpm/docFiles" tofile="${build.dir}/rpm/SOURCES/docFiles" />
     
     <replace file="${build.dir}/rpm/SOURCES/files" token="# [[ listFiles ]]" value="${listRPMFiles}" />
-    <replace file="${build.dir}/rpm/SPECS/specFile" token="# [[ docsList ]]" value="${listRPMDocFiles}" />    
-    <replace file="${build.dir}/rpm/SPECS/specFile" token="# [[ installRpmFiles ]]" value="cp -rf ${package.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}/* . ${line.separator}" />
+    <replace file="${build.dir}/rpm/SOURCES/docFiles" token="# [[ docsList ]]" value="${listRPMDocFiles}" />    
+    <replace file="${build.dir}/rpm/SPECS/specFile" token="# [[ installRpmFiles ]]" value="${installRpmFiles}" />
     
     <copy file="resource/rpm/excludedFiles" tofile="${build.dir}/rpm/SOURCES/excludedFiles" />
     <replace file="${build.dir}/rpm/SOURCES/excludedFiles" token="# [[ excludedListFiles ]]" value="${excludedRPMFiles}" />

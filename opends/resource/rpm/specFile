@@ -71,13 +71,20 @@ simplest and fastest directory servers to deploy and manage.
 # %build
 
 %install
-mkdir -p "$RPM_BUILD_ROOT%{_prefix}"
-cd "$RPM_BUILD_ROOT%{_prefix}"
+mkdir -p "${RPM_BUILD_ROOT}%{_prefix}"
+cd "${RPM_BUILD_ROOT}%{_prefix}"
 # [[ installRpmFiles ]]
-# Remove the excluded files. They shouldn't be a part of this package. 
-/bin/grep -v '^#' "$RPM_SOURCE_DIR/excludedFiles" | while read excludedFiles 
+#Moves the doc files to doc folder
+mkdir -p "%{buildroot}%{_defaultdocdir}/%{name}-%{version}"
+/bin/grep -v '^#' "${RPM_SOURCE_DIR}/docFiles" | while read docFiles 
 do
-    rm -r "$RPM_BUILD_ROOT%{_prefix}$excludedFiles"
+    mv "$RPM_BUILD_ROOT"%{_prefix}$docFiles "$RPM_BUILD_ROOT"%{_defaultdocdir}/%{name}-%{version}/
+done
+
+# Removes the excluded files. They shouldn't be a part of this package. 
+/bin/grep -v '^#' "${RPM_SOURCE_DIR}/excludedFiles" | while read excludedFiles 
+do
+    rm -r "${RPM_BUILD_ROOT}"%{_prefix}$excludedFiles
 done
 
 %clean
@@ -183,12 +190,16 @@ fi
 # =========================
 %files -f "%{_sourcedir}"/files
 %defattr(-,root,root)
-# [[ docsList ]]
+%{_defaultdocdir}/%{name}-%{version}/
 
 # =========================
 # Changelog
 # =========================
 %changelog
+* Wed Jul 31 2013 ForgeRock
+- Fixed the doc's section.
+- Target no longer fails when build path contains spaces.
+
 * Thu Jul 18 2013 ForgeRock
 - Fixed the sections' order and added a new "clean" section.
 - Added '%doc' section.

@@ -27,6 +27,7 @@ package org.opends.build.tools;
 
 import java.io.File;
 import java.io.FileFilter;
+import java.net.URI;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -62,7 +63,7 @@ public class ProcessFilesForPackages extends Task
    */
   public String getSourceDirName()
   {
-    return sourceDirName.replaceAll(" ", "\\\\ ");
+    return sourceDirName;
   }
 
   /**
@@ -83,6 +84,7 @@ public class ProcessFilesForPackages extends Task
     {
       // Process the filtering of the files contained in the given directory.
       filterFiles(new File(getSourceDirName()));
+      files.removeAll(docFiles);
       // Sorts the list.
       Collections.sort(files);
       Collections.sort(docFiles);
@@ -92,6 +94,7 @@ public class ProcessFilesForPackages extends Task
           formatAsDocList(docFiles));
       getProject().setNewProperty("excludedRPMFiles",
           formatAsExcludedList(excludedFiles));
+      getProject().setNewProperty("installRpmFiles", getInstallationFiles());
     }
     catch (Exception e)
     {
@@ -100,6 +103,16 @@ public class ProcessFilesForPackages extends Task
     }
   }
 
+  /**
+   * Returns the installation files for the RPM package.
+   *
+   * @return A string containing the installation files for the RPM package.
+   */
+  private String getInstallationFiles()
+  {
+    return new StringBuilder("cp -rf \"").append(sourceDirName).append("\"/* .")
+        .append(EOL).toString();
+  }
   /**
    * Formats the file list to be supported by RPM.
    *
@@ -157,13 +170,11 @@ public class ProcessFilesForPackages extends Task
     final StringBuilder sb = new StringBuilder();
     for (final File f : fileList)
     {
-      // FIXME If directory is mentioned, files are duplicated in doc directory
-      // in us/share/opendj{version} and in the package install opt/opendj/
+      // FIXME The folder needs to be copied as well.
       if (!f.isDirectory())
       {
-        sb.append("%doc $RPM_BUILD_ROOT%{_prefix}").append(
-            relativeToSourceDirName(f));
-        sb.append(EOL);
+        sb.append(
+            relativeToSourceDirName(f)).append(EOL);
       }
     }
     return sb.toString();
@@ -182,7 +193,13 @@ public class ProcessFilesForPackages extends Task
   {
     final ExcludeFileFilter exFilter = new ExcludeFileFilter();
     final DocFileFilter docFilter = new DocFileFilter();
-    for (final File f : dir.listFiles())
+
+    // The spaces in path can generate errors. (see OPENDJ-1063)
+    final File fdir =
+        new File(new URI("file:///"
+            + dir.getAbsolutePath().replaceAll(" ", "%20")));
+
+    for (final File f : fdir.listFiles())
     {
       if (f.isDirectory())
       {
