@@ -52,9 +52,17 @@
                 # UPGRADE MODE
                 # Only for upgrade from 2.4.x
                 GLOBAL_ACI_SEARCH="(targetattr!=\"userPassword||authPassword||changes||changeNumber||changeType||changeTime||targetDN||newRDN||newSuperior||deleteOldRDN||targetEntryUUID||targetUniqueID||changeInitiatorsName||changeLogCookie\")(version 3.0; acl \"Anonymous read access\"; allow (read,search,compare) userdn=\"ldap:///anyone\";)"
+              elif UPGRADE_OPENDJNAME != '' and re.search('2.5.*',UPGRADE_OPENDJNAME) is not None:
+                # UPGRADE MODE
+                # Only for upgrade from 2.5.x
+                GLOBAL_ACI_SEARCH="(targetattr!=\"userPassword||authPassword||changes||changeNumber||changeType||changeTime||targetDN||newRDN||newSuperior||deleteOldRDN||targetEntryUUID||targetUniqueID||changeInitiatorsName||changeLogCookie\")(version 3.0; acl \"Anonymous read access\"; allow (read,search,compare) userdn=\"ldap:///anyone\";)"
+              elif UPGRADE_OPENDJNAME != '' and re.search('2.6.*',UPGRADE_OPENDJNAME) is not None:
+                # UPGRADE MODE
+                # Only for upgrade from 2.6.x
+                GLOBAL_ACI_SEARCH="(targetattr!=\"userPassword||authPassword||changes||changeNumber||changeType||changeTime||targetDN||newRDN||newSuperior||deleteOldRDN||targetEntryUUID||targetUniqueID||changeInitiatorsName||changeLogCookie\")(version 3.0; acl \"Anonymous read access\"; allow (read,search,compare) userdn=\"ldap:///anyone\";)"
               else:
                 # NORMAL MODE
-                GLOBAL_ACI_SEARCH="(targetattr!=\"userPassword||authPassword||changes||changeNumber||changeType||changeTime||targetDN||newRDN||newSuperior||deleteOldRDN||targetEntryUUID||changeInitiatorsName||changeLogCookie||includedAttributes\")(version 3.0; acl \"Anonymous read access\"; allow (read,search,compare) userdn=\"ldap:///anyone\";)"
+                GLOBAL_ACI_SEARCH="(targetattr!=\"userPassword||authPassword||debugsearchindex||changes||changeNumber||changeType||changeTime||targetDN||newRDN||newSuperior||deleteOldRDN\")(version 3.0; acl \"Anonymous read access\"; allow (read,search,compare) userdn=\"ldap:///anyone\";)"
             </script>
             <call function="'testGroup_Preamble'" />
             <script>
