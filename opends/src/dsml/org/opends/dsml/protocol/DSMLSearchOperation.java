@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2012 ForgeRock AS.
+ *      Portions Copyright 2012-2013 ForgeRock AS.
  */
 package org.opends.dsml.protocol;
 
@@ -585,7 +585,7 @@ public class DSMLSearchOperation
 
             dsmlAttr.setName(nm);
             List<Object> dsmlAttrVal = dsmlAttr.getValue();
-            ArrayList<ByteString> vals = attr.getValues();
+            List<ByteString> vals = attr.getValues();
             for (ByteString val : vals)
             {
               dsmlAttrVal.add(ByteStringUtility.convertByteString(val));
