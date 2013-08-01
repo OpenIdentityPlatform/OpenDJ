@@ -2103,7 +2103,7 @@
             if re.search('.*There are no tasks defined with ID.*', cmdOutput) is not None:
               setIssue = True
           </script>
-          <if expr="setIssue == True">
+          <if expr="setIssue == True and expectedRC == 0">
             <sequence>
               <call function="'setKnownIssue'">
                 { 'issueId' : 'OPENDJ-1071' }
