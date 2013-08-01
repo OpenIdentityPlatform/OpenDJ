@@ -446,6 +446,17 @@ public final class Rest2LDAPAuthnFilter implements Filter {
                         if (sync.isAsync()) {
                             try {
                                 chain.doFilter(request, response);
+
+                                /*
+                                 * Fix for OPENDJ-1105: Jetty 8 a bug where
+                                 * synchronous downstream completion (i.e. in
+                                 * the servlet) is ignored due to upstream
+                                 * active async context. The following code
+                                 * should be benign in other containers.
+                                 */
+                                if (response.isCommitted()) {
+                                    sync.signalAndComplete();
+                                }
                             } catch (Throwable t) {
                                 sync.signalAndComplete(asResourceException(t));
                             }
