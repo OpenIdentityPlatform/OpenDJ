@@ -39,6 +39,7 @@ import javax.security.auth.callback.TextOutputCallback;
 
 import org.opends.messages.Message;
 import org.opends.server.tools.ClientException;
+import org.opends.server.types.InitializationException;
 import org.opends.server.util.BuildVersion;
 
 
@@ -84,6 +85,23 @@ public final class UpgradeContext
    * If force upgrade is enabled.
    */
   private boolean isForceUpgradeMode;
+
+
+
+  /**
+   * Creates a new upgrade context for upgrading from the instance version (as
+   * obtained from config/buildinfo) to the binary version.
+   *
+   * @param handler
+   *          The call-back handler for interacting with the upgrade
+   *          application.
+   * @throws InitializationException
+   *           If an error occurred while reading or parsing the version.
+   */
+  public UpgradeContext(CallbackHandler handler) throws InitializationException
+  {
+    this(BuildVersion.instanceVersion(), BuildVersion.binaryVersion(), handler);
+  }
 
 
 
@@ -149,10 +167,12 @@ public final class UpgradeContext
    *
    * @param isIgnoreErrorsMode
    *          {@code true} if ignore error mode is activated.
+   * @return This upgrade context.
    */
-  public void setIgnoreErrorsMode(boolean isIgnoreErrorsMode)
+  public UpgradeContext setIgnoreErrorsMode(boolean isIgnoreErrorsMode)
   {
     this.isIgnoreErrorsMode = isIgnoreErrorsMode;
+    return this;
   }
 
 
@@ -174,10 +194,12 @@ public final class UpgradeContext
    *
    * @param isAcceptLicenseMode
    *          {@code true} if the accept license mode is activated.
+   * @return This upgrade context.
    */
-  public void setAcceptLicenseMode(boolean isAcceptLicenseMode)
+  public UpgradeContext setAcceptLicenseMode(boolean isAcceptLicenseMode)
   {
     this.isAcceptLicenseMode = isAcceptLicenseMode;
+    return this;
   }
 
 
@@ -211,10 +233,12 @@ public final class UpgradeContext
    *
    * @param isInteractiveMode
    *          {@code true} if the interactive mode is activated.
+   * @return This upgrade context.
    */
-  public void setInteractiveMode(boolean isInteractiveMode)
+  public UpgradeContext setInteractiveMode(boolean isInteractiveMode)
   {
     this.isInteractiveMode = isInteractiveMode;
+    return this;
   }
 
 
@@ -236,10 +260,12 @@ public final class UpgradeContext
    *
    * @param isForceUpgradeMode
    *          {@code true} if the force upgrade mode is activated.
+   * @return This upgrade context.
    */
-  public void setForceUpgradeMode(boolean isForceUpgradeMode)
+  public UpgradeContext setForceUpgradeMode(boolean isForceUpgradeMode)
   {
     this.isForceUpgradeMode = isForceUpgradeMode;
+    return this;
   }
 
 
@@ -346,31 +372,5 @@ public final class UpgradeContext
           ERR_UPGRADE_DISPLAY_CONFIRM_ERROR.get(e.getMessage()));
     }
     return confirmYNCallback.getSelectedIndex();
-  }
-
-
-
-  /**
-   * Returns the default option string.
-   *
-   * @param defaultOption
-   *          The default option int value.
-   * @return The default option string.
-   */
-  public static String getDefaultOption(final int defaultOption)
-  {
-    if (defaultOption == ConfirmationCallback.YES)
-    {
-      return INFO_PROMPT_YES_COMPLETE_ANSWER.get().toString();
-    }
-    else if (defaultOption == ConfirmationCallback.NO)
-    {
-      return INFO_PROMPT_NO_COMPLETE_ANSWER.get().toString();
-    }
-    else if (defaultOption == ConfirmationCallback.CANCEL)
-    {
-      return INFO_TASKINFO_CMD_CANCEL_CHAR.get().toString();
-    }
-    return null;
   }
 }

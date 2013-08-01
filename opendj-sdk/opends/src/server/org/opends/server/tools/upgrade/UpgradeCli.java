@@ -52,7 +52,6 @@ import javax.security.auth.callback.UnsupportedCallbackException;
 import org.opends.messages.Message;
 import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.tools.ClientException;
-import org.opends.server.util.BuildVersion;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.util.args.ArgumentException;
@@ -357,14 +356,11 @@ public final class UpgradeCli extends ConsoleApplication implements
       UpgradeLog.initLogFileHandler();
 
       // Upgrade's context.
-      UpgradeContext context =
-          new UpgradeContext(BuildVersion.instanceVersion(), BuildVersion
-              .binaryVersion(), this);
-
-      context.setIgnoreErrorsMode(isIgnoreErrors());
-      context.setAcceptLicenseMode(isAcceptLicense());
-      context.setInteractiveMode(isInteractive());
-      context.setForceUpgradeMode(isForceUpgrade());
+      UpgradeContext context = new UpgradeContext(this)
+          .setIgnoreErrorsMode(isIgnoreErrors())
+          .setAcceptLicenseMode(isAcceptLicense())
+          .setInteractiveMode(isInteractive())
+          .setForceUpgradeMode(isForceUpgrade());
 
       // Starts upgrade.
       Upgrade.upgrade(context);
@@ -452,9 +448,7 @@ public final class UpgradeCli extends ConsoleApplication implements
         final ConfirmationCallback cc = (ConfirmationCallback) c;
         List<String> choices = new ArrayList<String>();
 
-        final String defaultOption =
-            UpgradeContext.getDefaultOption(cc.getDefaultOption());
-
+        final String defaultOption = getDefaultOption(cc.getDefaultOption());
         StringBuilder prompt =
             new StringBuilder(StaticUtils.wrapText(cc.getPrompt(),
                 ServerConstants.MAX_LINE_WIDTH, 2));
@@ -553,10 +547,9 @@ public final class UpgradeCli extends ConsoleApplication implements
             cc.setSelectedIndex(cc.getDefaultOption());
           }
           // Displays the prompt
-          prompt.append(" ").append(
-              UpgradeContext.getDefaultOption(cc.getSelectedIndex()));
+          prompt.append(" ").append(getDefaultOption(cc.getSelectedIndex()));
           println(Style.SUBTITLE, Message.raw(prompt), 0);
-          LOG.log(INFO, UpgradeContext.getDefaultOption(cc.getSelectedIndex()));
+          LOG.log(INFO, getDefaultOption(cc.getSelectedIndex()));
         }
       }
       else
@@ -565,5 +558,24 @@ public final class UpgradeCli extends ConsoleApplication implements
         throw new UnsupportedCallbackException(c, "Unrecognized Callback");
       }
     }
+  }
+
+
+
+  private static String getDefaultOption(final int defaultOption)
+  {
+    if (defaultOption == ConfirmationCallback.YES)
+    {
+      return INFO_PROMPT_YES_COMPLETE_ANSWER.get().toString();
+    }
+    else if (defaultOption == ConfirmationCallback.NO)
+    {
+      return INFO_PROMPT_NO_COMPLETE_ANSWER.get().toString();
+    }
+    else if (defaultOption == ConfirmationCallback.CANCEL)
+    {
+      return INFO_TASKINFO_CMD_CANCEL_CHAR.get().toString();
+    }
+    return null;
   }
 }
