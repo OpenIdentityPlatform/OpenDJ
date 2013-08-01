@@ -23,10 +23,9 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS
  */
 package org.opends.server.protocols.ldap;
-
-
 
 import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -38,7 +37,6 @@ import java.util.List;
 import org.opends.messages.Message;
 import org.opends.server.types.*;
 
-
 /**
  * This class defines the data structures and methods to use when interacting
  * with an LDAP attribute, which is the basic unit of information in an LDAP
@@ -47,10 +45,10 @@ import org.opends.server.types.*;
 public class LDAPAttribute
        extends RawAttribute
 {
-  // The set of values for this attribute.
-  private ArrayList<ByteString> values;
+  /** The set of values for this attribute. */
+  private List<ByteString> values;
 
-  // The attribute type for this attribute.
+  /** The attribute type for this attribute. */
   private String attributeType;
 
 
@@ -156,21 +154,7 @@ public class LDAPAttribute
    */
   public LDAPAttribute(Attribute attribute)
   {
-    if (attribute.hasOptions())
-    {
-      StringBuilder attrName = new StringBuilder(attribute.getName());
-      for (String o : attribute.getOptions())
-      {
-        attrName.append(";");
-        attrName.append(o);
-      }
-
-      this.attributeType = attrName.toString();
-    }
-    else
-    {
-      this.attributeType = attribute.getName();
-    }
+    this.attributeType = attribute.getNameWithOptions();
 
     if (attribute.isVirtual())
     {
@@ -199,6 +183,7 @@ public class LDAPAttribute
    *
    * @return  The attribute type for this attribute.
    */
+  @Override
   public String getAttributeType()
   {
     return attributeType;
@@ -211,6 +196,7 @@ public class LDAPAttribute
    *
    * @param  attributeType  The attribute type for this attribute.
    */
+  @Override
   public void setAttributeType(String attributeType)
   {
     this.attributeType = attributeType;
@@ -224,7 +210,8 @@ public class LDAPAttribute
    *
    * @return  The set of values for this attribute.
    */
-  public ArrayList<ByteString> getValues()
+  @Override
+  public List<ByteString> getValues()
   {
     return values;
   }
@@ -241,6 +228,7 @@ public class LDAPAttribute
    * @throws  LDAPException  If the provided value is invalid according to the
    *                         attribute syntax.
    */
+  @Override
   public Attribute toAttribute()
          throws LDAPException
   {
@@ -311,6 +299,7 @@ public class LDAPAttribute
    *
    * @param  buffer  The buffer to which the information should be appended.
    */
+  @Override
   public void toString(StringBuilder buffer)
   {
     buffer.append("LDAPAttribute(type=");
@@ -341,6 +330,7 @@ public class LDAPAttribute
    * @param  indent  The number of spaces from the margin that the lines should
    *                 be indented.
    */
+  @Override
   public void toString(StringBuilder buffer, int indent)
   {
     StringBuilder indentBuf = new StringBuilder(indent);

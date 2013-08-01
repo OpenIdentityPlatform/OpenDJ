@@ -23,25 +23,24 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS
  */
 package org.opends.server.types;
-import org.opends.messages.Message;
 
-
-
-import java.util.ArrayList;
-import java.io.IOException;
-
-import org.opends.server.protocols.asn1.*;
-import org.opends.server.protocols.ldap.LDAPAttribute;
-
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
 import static org.opends.messages.ProtocolMessages.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.protocols.ldap.LDAPResultCode.*;
 import static org.opends.server.util.Validator.*;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
+import org.opends.messages.Message;
+import org.opends.server.loggers.debug.DebugTracer;
+import org.opends.server.protocols.asn1.ASN1Reader;
+import org.opends.server.protocols.asn1.ASN1Writer;
+import org.opends.server.protocols.ldap.LDAPAttribute;
 
 /**
  * This class defines a raw attribute, which has a type (which may
@@ -180,7 +179,7 @@ public abstract class RawAttribute
    *
    * @return  The set of values for this attribute.
    */
-  public abstract ArrayList<ByteString> getValues();
+  public abstract List<ByteString> getValues();
 
 
 
@@ -210,7 +209,7 @@ public abstract class RawAttribute
     stream.writeOctetString(getAttributeType());
 
     stream.writeStartSet();
-    ArrayList<ByteString> values = getValues();
+    List<ByteString> values = getValues();
     if ((values != null))
     {
       for(ByteString value : values)
@@ -322,6 +321,7 @@ public abstract class RawAttribute
    *
    * @return  A string representation of this attribute.
    */
+  @Override
   public String toString()
   {
     StringBuilder buffer = new StringBuilder();
