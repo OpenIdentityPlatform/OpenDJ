@@ -120,6 +120,7 @@
                   <call function="'searchString'">
                   { 'expectedString' : 'Tasks cannot be%sadded due to insufficient access rights' % newLine,
                     'returnString'	 : resultString ,
+                    'knownIssue'     : 'OPENDJ-1107'
                     }
                   </call>
                   
