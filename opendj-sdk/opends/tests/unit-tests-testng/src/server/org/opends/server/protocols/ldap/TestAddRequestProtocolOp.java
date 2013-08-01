@@ -23,27 +23,27 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS
  */
 package org.opends.server.protocols.ldap;
 
-import org.opends.server.types.LDAPException;
-import org.opends.server.types.RawAttribute;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.ByteStringBuilder;
-import static org.opends.server.util.ServerConstants.EOL;
-import org.opends.server.util.Base64;
-import org.opends.server.protocols.asn1.ASN1Writer;
-import org.opends.server.protocols.asn1.ASN1;
-import org.opends.server.protocols.asn1.ASN1Reader;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.io.BufferedReader;
-import java.io.StringReader;
-
+import static org.opends.server.util.ServerConstants.*;
 import static org.testng.Assert.*;
 
-import org.testng.annotations.*;
+import java.io.BufferedReader;
+import java.io.StringReader;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.opends.server.protocols.asn1.ASN1;
+import org.opends.server.protocols.asn1.ASN1Reader;
+import org.opends.server.protocols.asn1.ASN1Writer;
+import org.opends.server.types.ByteString;
+import org.opends.server.types.ByteStringBuilder;
+import org.opends.server.types.LDAPException;
+import org.opends.server.types.RawAttribute;
+import org.opends.server.util.Base64;
+import org.testng.annotations.Test;
 
 /**
  * This class defines a set of tests for the
@@ -89,25 +89,20 @@ public class TestAddRequestProtocolOp extends LdapTestCase
    * @return              The generate attributes.
    *
    */
-  private ArrayList<RawAttribute> generateAttributes(int numAttributes,
+  private List<RawAttribute> generateAttributes(int numAttributes,
                                                       int numValues,
                                                       String prefix)
   {
-    ArrayList<RawAttribute> attributes = new ArrayList<RawAttribute>();
-    LDAPAttribute attribute;
-    ByteString value;
-    int i, j;
+    List<RawAttribute> attributes = new ArrayList<RawAttribute>();
 
-    for(i = 0; i < numAttributes; i++)
+    for (int i = 0; i < numAttributes; i++)
     {
       ArrayList<ByteString> values = new ArrayList<ByteString>();
-      for(j = 0; j < numValues; j++)
+      for (int j = 0; j < numValues; j++)
       {
-        value = ByteString.valueOf(prefix + "Value"+i+"."+j);
-        values.add(value);
+        values.add(ByteString.valueOf(prefix + "Value" + i + "." + j));
       }
-      attribute = new LDAPAttribute("testAttribute"+i, values);
-      attributes.add(attribute);
+      attributes.add(new LDAPAttribute("testAttribute" + i, values));
     }
 
     return attributes;
@@ -121,16 +116,10 @@ public class TestAddRequestProtocolOp extends LdapTestCase
       return false;
     }
 
-    int i, j;
-    RawAttribute attribute1;
-    RawAttribute attribute2;
-    ArrayList<ByteString> values1;
-    ArrayList<ByteString> values2;
-
-    for(i = 0; i < attributes1.size(); i++)
+    for (int i = 0; i < attributes1.size(); i++)
     {
-      attribute1 = attributes1.get(i);
-      attribute2 = attributes2.get(i);
+      RawAttribute attribute1 = attributes1.get(i);
+      RawAttribute attribute2 = attributes2.get(i);
       if(!attribute1.getAttributeType().equals(attribute2.getAttributeType()))
       {
         return false;
@@ -139,9 +128,9 @@ public class TestAddRequestProtocolOp extends LdapTestCase
       {
         return false;
       }
-      values1 = attribute1.getValues();
-      values2 = attribute2.getValues();
-      for(j = 0; j < values1.size(); j++)
+      List<ByteString> values1 = attribute1.getValues();
+      List<ByteString> values2 = attribute2.getValues();
+      for (int j = 0; j < values1.size(); j++)
       {
         if(!values1.get(j).equals(values2.get(j)))
         {
@@ -186,7 +175,7 @@ public class TestAddRequestProtocolOp extends LdapTestCase
   public void testConstructors() throws Exception
   {
     AddRequestProtocolOp addRequest;
-    ArrayList<RawAttribute> attributes;
+    List<RawAttribute> attributes;
 
     //Test to make sure the constructor with dn param works.
     addRequest = new AddRequestProtocolOp(dn);
@@ -286,14 +275,14 @@ public class TestAddRequestProtocolOp extends LdapTestCase
   {
     ByteStringBuilder builder = new ByteStringBuilder();
     ASN1Writer writer = ASN1.getWriter(builder);
-    AddRequestProtocolOp addEncoded;
-    AddRequestProtocolOp addDecoded;
 
-    addEncoded = new AddRequestProtocolOp(null, null);
+    AddRequestProtocolOp addEncoded = new AddRequestProtocolOp(null, null);
     addEncoded.write(writer);
 
     ASN1Reader reader = ASN1.getReader(builder.toByteString());
-    addDecoded = (AddRequestProtocolOp)LDAPReader.readProtocolOp(reader);
+    AddRequestProtocolOp addDecoded =
+        (AddRequestProtocolOp) LDAPReader.readProtocolOp(reader);
+    assertEquals(addEncoded, addDecoded);
   }
 
   /**
@@ -308,7 +297,7 @@ public class TestAddRequestProtocolOp extends LdapTestCase
     ASN1Writer writer = ASN1.getWriter(builder);
     AddRequestProtocolOp addEncoded;
     AddRequestProtocolOp addDecoded;
-    ArrayList<RawAttribute> attributes;
+    List<RawAttribute> attributes;
 
 
     //Test case for a full encode decode operation with normal params.
@@ -355,26 +344,22 @@ public class TestAddRequestProtocolOp extends LdapTestCase
   @Test
   public void testToLDIF() throws Exception
   {
-    AddRequestProtocolOp addRequest;
-    ArrayList<RawAttribute> attributes;
     StringBuilder buffer = new StringBuilder();
-    BufferedReader reader;
-    String line;
-    int i, j;
-    int numAttributes, numValues;
 
-    numAttributes = 10;
-    numValues = 5;
-    attributes = generateAttributes(numAttributes, numValues, "test");
-    addRequest = new AddRequestProtocolOp(dn, attributes);
+    int numAttributes = 10;
+    int numValues = 5;
+    List<RawAttribute> attributes =
+        generateAttributes(numAttributes, numValues, "test");
+    AddRequestProtocolOp addRequest = new AddRequestProtocolOp(dn, attributes);
     addRequest.toLDIF(buffer, 80);
 
-    reader = new BufferedReader(new StringReader(buffer.toString()));
-    line = reader.readLine();
+    BufferedReader reader =
+        new BufferedReader(new StringReader(buffer.toString()));
+    String line = reader.readLine();
     assertEquals(line, "dn: "+dn);
-    for(i = 0; i < numAttributes; i++)
+    for (int i = 0; i < numAttributes; i++)
     {
-      for(j = 0; j < numValues; j++)
+      for (int j = 0; j < numValues; j++)
       {
         line = reader.readLine();
         assertEquals(line, "testAttribute"+i+": "+"testValue"+i+"."+j);
@@ -390,35 +375,31 @@ public class TestAddRequestProtocolOp extends LdapTestCase
   @Test
   public void testToLDIFBase64() throws Exception
   {
-    AddRequestProtocolOp addRequest;
-    ArrayList<RawAttribute> attributes;
     StringBuilder buffer = new StringBuilder();
-    BufferedReader reader;
-    String line;
-    String expectedLine;
-    int i, j;
-    int numAttributes, numValues;
 
-    numAttributes = 10;
-    numValues = 5;
-    attributes = generateAttributes(numAttributes, numValues, " test");
+    int numAttributes = 10;
+    int numValues = 5;
+    List<RawAttribute> attributes =
+        generateAttributes(numAttributes, numValues, " test");
 
-    ByteString dnNeedsBase64 =
-      ByteString.valueOf("dc=example,dc=com ");
+    ByteString dnNeedsBase64 = ByteString.valueOf("dc=example,dc=com ");
 
-    addRequest = new AddRequestProtocolOp(dnNeedsBase64, attributes);
+    AddRequestProtocolOp addRequest =
+        new AddRequestProtocolOp(dnNeedsBase64, attributes);
     addRequest.toLDIF(buffer, 80);
 
-    reader = new BufferedReader(new StringReader(buffer.toString()));
-    line = reader.readLine();
+    BufferedReader reader =
+        new BufferedReader(new StringReader(buffer.toString()));
+    String line = reader.readLine();
     assertEquals(line, "dn:: "+Base64.encode(dnNeedsBase64));
-    for(i = 0; i < numAttributes; i++)
+    for (int i = 0; i < numAttributes; i++)
     {
-      for(j = 0; j < numValues; j++)
+      for (int j = 0; j < numValues; j++)
       {
         line = reader.readLine();
-        expectedLine =  " testValue"+i+"."+j;
-        assertEquals(line, "testAttribute"+i+":: "+Base64.encode(expectedLine.getBytes()));
+        String expectedLine = " testValue" + i + "." + j;
+        assertEquals(line, "testAttribute" + i + ":: "
+            + Base64.encode(expectedLine.getBytes()));
       }
     }
   }
@@ -431,21 +412,18 @@ public class TestAddRequestProtocolOp extends LdapTestCase
   @Test
   public void TestToStringSingleLine() throws Exception
   {
-    AddRequestProtocolOp addRequest;
-    ArrayList<RawAttribute> attributes;
     StringBuilder buffer = new StringBuilder();
-    StringBuilder key = new StringBuilder();
-    int i;
-    int numAttributes, numValues;
 
-    numAttributes = 10;
-    numValues = 5;
-    attributes = generateAttributes(numAttributes, numValues, "test");
-    addRequest = new AddRequestProtocolOp(dn, attributes);
+    int numAttributes = 10;
+    int numValues = 5;
+    List<RawAttribute> attributes =
+        generateAttributes(numAttributes, numValues, "test");
+    AddRequestProtocolOp addRequest = new AddRequestProtocolOp(dn, attributes);
     addRequest.toString(buffer);
 
+    StringBuilder key = new StringBuilder();
     key.append("AddRequest(dn="+dn+", attrs={");
-    for(i = 0; i < numAttributes; i++)
+    for (int i = 0; i < numAttributes; i++)
     {
       attributes.get(i).toString(key);
       if(i < numAttributes - 1)
@@ -466,26 +444,23 @@ public class TestAddRequestProtocolOp extends LdapTestCase
   @Test
   public void TestToStringMultiLine() throws Exception
   {
-    AddRequestProtocolOp addRequest;
-    ArrayList<RawAttribute> attributes;
     StringBuilder buffer = new StringBuilder();
-    StringBuilder key = new StringBuilder();
-    int i;
-    int numAttributes, numValues, indent;
 
-    numAttributes = 10;
-    numValues = 5;
-    indent = 5;
-    attributes = generateAttributes(numAttributes, numValues, "test");
-    addRequest = new AddRequestProtocolOp(dn, attributes);
+    int numAttributes = 10;
+    int numValues = 5;
+    int indent = 5;
+    List<RawAttribute> attributes =
+        generateAttributes(numAttributes, numValues, "test");
+    AddRequestProtocolOp addRequest = new AddRequestProtocolOp(dn, attributes);
     addRequest.toString(buffer, indent);
 
     StringBuilder indentBuf = new StringBuilder(indent);
-    for (i=0 ; i < indent; i++)
+    for (int i = 0; i < indent; i++)
     {
       indentBuf.append(' ');
     }
 
+    StringBuilder key = new StringBuilder();
     key.append(indentBuf);
     key.append("Add Request");
     key.append(EOL);

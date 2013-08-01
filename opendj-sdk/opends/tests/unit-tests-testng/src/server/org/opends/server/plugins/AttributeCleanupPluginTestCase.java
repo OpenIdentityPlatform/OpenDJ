@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2011 profiq s.r.o.
+ *      Portions copyright 2013 ForgeRock AS
  */
 package org.opends.server.plugins;
 
@@ -31,6 +32,7 @@ import static org.testng.Assert.*;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.server.AdminTestCaseUtils;
@@ -50,14 +52,12 @@ import org.testng.annotations.Test;
 /**
  * Tests for the attribute cleanup plugin.
  */
+@SuppressWarnings("javadoc")
 public class AttributeCleanupPluginTestCase extends PluginTestCase
 {
 
-
-
   @BeforeClass()
-  public void startServer()
-         throws Exception
+  public void startServer() throws Exception
   {
     TestCaseUtils.startServer();
   }
@@ -67,7 +67,6 @@ public class AttributeCleanupPluginTestCase extends PluginTestCase
   @DataProvider(name = "validConfigs")
   public Object[][] getValidConfigs() throws Exception
   {
-
     List<Entry> entries = TestCaseUtils.makeEntries(
       "dn: cn=Attribute Cleanup,cn=Plugins,cn=config",
       "objectClass: top",
@@ -102,22 +101,14 @@ public class AttributeCleanupPluginTestCase extends PluginTestCase
       "ds-cfg-java-class: org.opends.server.plugins.AttributeCleanupPlugin",
       "ds-cfg-rename-inbound-attributes: cn:uid");
 
-    Object[][] array = new Object[entries.size()][1];
-    for (int i=0; i < array.length; i++)
-    {
-      array[i] = new Object[] { entries.get(i) };
-    }
-
-    return array;
-
+    return toArrayArray(entries);
   }
 
   @Test(dataProvider = "validConfigs")
   public void testInitializeWithValidConfigs(Entry e)
     throws Exception
   {
-    HashSet<PluginType> pluginTypes = getPluginTypes(e);
-
+    Set<PluginType> pluginTypes = getPluginTypes(e);
     assertTrue(!pluginTypes.isEmpty());
 
     AttributeCleanupPluginCfg config =
@@ -180,6 +171,11 @@ public class AttributeCleanupPluginTestCase extends PluginTestCase
       "ds-cfg-java-class: org.opends.server.plugins.AttributeCleanupPlugin",
       "ds-cfg-rename-inbound-attributes: cn:cn");
 
+    return toArrayArray(entries);
+  }
+
+  private Object[][] toArrayArray(List<Entry> entries)
+  {
     Object[][] array = new Object[entries.size()][1];
     for (int i=0; i < array.length; i++)
     {
@@ -196,7 +192,7 @@ public class AttributeCleanupPluginTestCase extends PluginTestCase
   public void testInitializeWithInvalidConfigs(Entry e)
     throws ConfigException, InitializationException
   {
-    HashSet<PluginType> pluginTypes = new HashSet<PluginType>();
+    Set<PluginType> pluginTypes = new HashSet<PluginType>();
     List<Attribute> attrList = e.getAttribute("ds-cfg-plugin-type");
 
     assertNotNull(attrList);
@@ -234,9 +230,7 @@ public class AttributeCleanupPluginTestCase extends PluginTestCase
   @Test()
   public void testRenameAttributesForAddOperation() throws Exception
   {
-    /* Configure the plugint to rename incoming 'cn' attributes to
-     * 'description'.
-     */
+    // Configure the plugin to rename incoming 'cn' attributes to 'description'.
     Entry confEntry = TestCaseUtils.makeEntry(
       "dn: cn=Attribute Cleanup,cn=Plugins,cn=config",
       "objectClass: top",
@@ -249,7 +243,7 @@ public class AttributeCleanupPluginTestCase extends PluginTestCase
       "ds-cfg-rename-inbound-attributes: cn:description",
       "ds-cfg-java-class: org.opends.server.plugins.AttributeCleanupPlugin");
 
-    HashSet<PluginType> pluginTypes = getPluginTypes(confEntry);
+    Set<PluginType> pluginTypes = getPluginTypes(confEntry);
 
     AttributeCleanupPluginCfg config =
       AdminTestCaseUtils.getConfiguration(
@@ -277,7 +271,6 @@ public class AttributeCleanupPluginTestCase extends PluginTestCase
     values.add(ByteString.valueOf("inetorgperson"));
 
     List<RawAttribute> rawAttributes = new ArrayList<RawAttribute>();
-
     rawAttributes.add(RawAttribute.create("objectClass", values));
     rawAttributes.add(RawAttribute.create("uid", "test"));
     rawAttributes.add(RawAttribute.create("cn", "Name Surname"));
@@ -310,7 +303,7 @@ public class AttributeCleanupPluginTestCase extends PluginTestCase
     {
       if(rawAttr.getAttributeType().equalsIgnoreCase("description"))
       {
-        ArrayList<ByteString> attrVals = rawAttr.getValues();
+        List<ByteString> attrVals = rawAttr.getValues();
         assertEquals("Name Surname", attrVals.get(0).toString());
         plugin.finalizePlugin();
         return;
@@ -345,7 +338,7 @@ public class AttributeCleanupPluginTestCase extends PluginTestCase
       "ds-cfg-remove-inbound-attributes: createTimeStamp",
       "ds-cfg-java-class: org.opends.server.plugins.AttributeCleanupPlugin");
 
-    HashSet<PluginType> pluginTypes = getPluginTypes(confEntry);
+    Set<PluginType> pluginTypes = getPluginTypes(confEntry);
 
     AttributeCleanupPluginCfg config =
       AdminTestCaseUtils.getConfiguration(
@@ -407,11 +400,9 @@ public class AttributeCleanupPluginTestCase extends PluginTestCase
 
     for(RawAttribute rawAttr : rawAttrs)
     {
-      if(rawAttr.getAttributeType().equalsIgnoreCase("modifyTimeStamp")
-         || rawAttr.getAttributeType().equalsIgnoreCase("createTimeStamp"))
-      {
-        fail("Attribute '" + rawAttr.getAttributeType() + "' exists and it shouldn't");
-      }
+      assertFalse(rawAttr.getAttributeType().equalsIgnoreCase("modifyTimeStamp")
+          || rawAttr.getAttributeType().equalsIgnoreCase("createTimeStamp"),
+          "Attribute '" + rawAttr.getAttributeType() + "' exists and it shouldn't");
     }
 
     plugin.finalizePlugin();
@@ -446,7 +437,7 @@ public class AttributeCleanupPluginTestCase extends PluginTestCase
       "ds-cfg-remove-inbound-attributes: createTimeStamp",
       "ds-cfg-java-class: org.opends.server.plugins.AttributeCleanupPlugin");
 
-    HashSet<PluginType> pluginTypes = getPluginTypes(confEntry);
+    Set<PluginType> pluginTypes = getPluginTypes(confEntry);
 
     AttributeCleanupPluginCfg config =
       AdminTestCaseUtils.getConfiguration(
@@ -520,7 +511,7 @@ public class AttributeCleanupPluginTestCase extends PluginTestCase
       "ds-cfg-remove-inbound-attributes: createTimeStamp",
       "ds-cfg-java-class: org.opends.server.plugins.AttributeCleanupPlugin");
 
-    HashSet<PluginType> pluginTypes = getPluginTypes(confEntry);
+    Set<PluginType> pluginTypes = getPluginTypes(confEntry);
 
     AttributeCleanupPluginCfg config =
       AdminTestCaseUtils.getConfiguration(
@@ -601,7 +592,6 @@ public class AttributeCleanupPluginTestCase extends PluginTestCase
 
   /**
    * Verify the attribute renaming for the MODIFY operation.
-   * @throws Exception
    */
   @Test()
   public void testRenameAttributesForModifyOperation() throws Exception
@@ -621,7 +611,7 @@ public class AttributeCleanupPluginTestCase extends PluginTestCase
       "ds-cfg-rename-inbound-attributes: modifyTimeStamp:description",
       "ds-cfg-java-class: org.opends.server.plugins.AttributeCleanupPlugin");
 
-    HashSet<PluginType> pluginTypes = getPluginTypes(confEntry);
+    Set<PluginType> pluginTypes = getPluginTypes(confEntry);
 
     AttributeCleanupPluginCfg config =
       AdminTestCaseUtils.getConfiguration(
@@ -683,31 +673,28 @@ public class AttributeCleanupPluginTestCase extends PluginTestCase
       RawAttribute modAttr = rawMod.getAttribute();
       if (modAttr.getAttributeType().equalsIgnoreCase("description"))
       {
-        ArrayList<ByteString> descrValues = modAttr.getValues();
+        List<ByteString> descrValues = modAttr.getValues();
         assertEquals("2011091212400000Z", descrValues.get(0).toString());
         plugin.finalizePlugin();
         return;
       }
-      if (modAttr.getAttributeType().equalsIgnoreCase("modifyTimeStamp"))
-      {
-        fail("modifyTimeStamp shouldn't exist but it does.");
-      }
+      assertFalse(modAttr.getAttributeType().equalsIgnoreCase("modifyTimeStamp"),
+          "modifyTimeStamp shouldn't exist but it does.");
     }
 
     fail();
-
-
   }
 
 
   /**
    * Helper method to get the plugin types from the configuration entry.
+   *
    * @param e Configuration entry.
-   * @return HashSet of plugin types.
+   * @return Set of plugin types.
    */
-  private HashSet<PluginType> getPluginTypes(Entry e)
+  private Set<PluginType> getPluginTypes(Entry e)
   {
-    HashSet<PluginType> pluginTypes = new HashSet<PluginType>();
+    Set<PluginType> pluginTypes = new HashSet<PluginType>();
     List<Attribute> attrList = e.getAttribute("ds-cfg-plugin-type");
 
     for(Attribute a : attrList)
