@@ -40,15 +40,20 @@ public class FormattedNotificationCallback extends TextOutputCallback
    */
   private static final long serialVersionUID = 1L;
 
-  static final int TITLE_CALLBACK = 5;
+  /** Output a title. */
+  public static final int TITLE_CALLBACK = 5;
 
-  static final int SUBTITLE_CALLBACK = 6;
+  /** Output a sub-title. */
+  public static final int SUBTITLE_CALLBACK = 6;
 
-  static final int NOTICE_CALLBACK = 7;
+  /** Output a notice message. */
+  public static final int NOTICE_CALLBACK = 7;
 
-  static final int ERROR_CALLBACK = 8;
+  /** Output an error. */
+  public static final int ERROR_CALLBACK = 8;
 
-  static final int BREAKLINE = 9;
+  /** Output a line break. */
+  public static final int BREAKLINE = 9;
 
   /**
    * An integer representing the message's sub-type.
@@ -63,7 +68,7 @@ public class FormattedNotificationCallback extends TextOutputCallback
    * @param messageSubType
    *          An integer representing the sub-type of this message.
    */
-  public FormattedNotificationCallback(final Message message,
+  FormattedNotificationCallback(final Message message,
       final int messageSubType)
   {
     super(TextOutputCallback.INFORMATION, message.toString());
@@ -78,16 +83,5 @@ public class FormattedNotificationCallback extends TextOutputCallback
   public int getMessageSubType()
   {
     return messageSubType;
-  }
-
-  /**
-   * Sets the message's sub-type.
-   *
-   * @param messageSubType
-   *          The message's sub-type.
-   */
-  public void setMessageSubType(int messageSubType)
-  {
-    this.messageSubType = messageSubType;
   }
 }
