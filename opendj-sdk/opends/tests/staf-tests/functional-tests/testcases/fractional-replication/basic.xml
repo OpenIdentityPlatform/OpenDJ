@@ -630,7 +630,8 @@
               'dsInstanceDn'   : Pservers[1].getRootDn(),
               'dsInstancePswd' : Pservers[1].getRootPwd(),
               'entryToBeAdded' : masterEntry,
-              'expectedRC'     : 53
+              'expectedRC'     : 53,
+              'knownIssue'     : 'OPENDJ-1106'
             }
           </call>
           <!-- adding entry without filterable attributes in replica -->
