@@ -23,12 +23,11 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2012 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.extensions;
 
-
-
+import java.io.Closeable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -36,16 +35,7 @@ import java.io.InputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.security.MessageDigest;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.TreeSet;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.zip.Deflater;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
@@ -53,7 +43,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ConcurrentMap;
 import javax.crypto.Mac;
 
 import org.opends.messages.Message;
@@ -81,16 +71,16 @@ import org.opends.server.util.DynamicConstants;
 import org.opends.server.util.LDIFException;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.LDIFWriter;
+import org.opends.server.util.StaticUtils;
 import org.opends.server.util.TimeThread;
 
+import static org.opends.messages.ConfigMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.extensions.ExtensionsConstants.*;
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.messages.ConfigMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-
 
 /**
  * This class defines a simple configuration handler for the Directory Server
@@ -118,7 +108,7 @@ public class ConfigFileHandler
   /**
    * The set of supported control OIDs for this backend.
    */
-  private static final HashSet<String> SUPPORTED_CONTROLS =
+  private static final Set<String> SUPPORTED_CONTROLS =
                             new HashSet<String>(0);
 
 
@@ -126,7 +116,7 @@ public class ConfigFileHandler
   /**
    * The set of supported feature OIDs for this backend.
    */
-  private static final HashSet<String> SUPPORTED_FEATURES =
+  private static final Set<String> SUPPORTED_FEATURES =
                             new HashSet<String>(0);
 
 
@@ -143,41 +133,47 @@ public class ConfigFileHandler
 
 
 
-  // Indicates whether to maintain a configuration archive.
+  /** Indicates whether to maintain a configuration archive. */
   private boolean maintainConfigArchive;
 
-  // Indicates whether to start using the last known good configuration.
+  /** Indicates whether to start using the last known good configuration. */
   private boolean useLastKnownGoodConfig;
 
-  // A SHA-1 digest of the last known configuration.  This should only be
-  // incorrect if the server configuration file has been manually edited with
-  // the server online, which is a bad thing.
+  /**
+   * A SHA-1 digest of the last known configuration. This should only be
+   * incorrect if the server configuration file has been manually edited with
+   * the server online, which is a bad thing.
+   */
   private byte[] configurationDigest;
 
-  // The mapping that holds all of the configuration entries that have been read
-  // from the LDIF file.
-  private ConcurrentHashMap<DN,ConfigEntry> configEntries;
+  /**
+   * The mapping that holds all of the configuration entries that have been read
+   * from the LDIF file.
+   */
+  private ConcurrentMap<DN,ConfigEntry> configEntries;
 
-  // The reference to the configuration root entry.
+  /** The reference to the configuration root entry. */
   private ConfigEntry configRootEntry;
 
-  // The set of base DNs for this config handler backend.
+  /** The set of base DNs for this config handler backend. */
   private DN[] baseDNs;
 
-  // The maximum config archive size to maintain.
+  /** The maximum config archive size to maintain. */
   private int maxConfigArchiveSize;
 
-  // The write lock used to ensure that only one thread can apply a
-  // configuration update at any given time.
+  /**
+   * The write lock used to ensure that only one thread can apply a
+   * configuration update at any given time.
+   */
   private final Object configLock = new Object();
 
-  // The path to the configuration file.
+  /** The path to the configuration file. */
   private String configFile;
 
-  // The install root directory for the Directory Server.
+  /** The install root directory for the Directory Server. */
   private String serverRoot;
 
-  // The instance root directory for the Directory Server.
+  /** The instance root directory for the Directory Server. */
   private String instanceRoot;
 
 
@@ -266,7 +262,7 @@ public class ConfigFileHandler
     // configuration in the archive.  If it doesn't, then archive it.
     maintainConfigArchive = envConfig.maintainConfigArchive();
     maxConfigArchiveSize  = envConfig.getMaxConfigArchiveSize();
-    if (maintainConfigArchive && (! useLastKnownGoodConfig))
+    if (maintainConfigArchive && !useLastKnownGoodConfig)
     {
       try
       {
@@ -365,17 +361,7 @@ public class ConfigFileHandler
         TRACER.debugCaught(DebugLogLevel.ERROR, le);
       }
 
-      try
-      {
-        reader.close();
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-      }
+      close(reader);
 
       Message message = ERR_CONFIG_FILE_INVALID_LDIF_ENTRY.get(
           le.getLineNumber(), f.getAbsolutePath(), String.valueOf(le));
@@ -388,17 +374,7 @@ public class ConfigFileHandler
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      try
-      {
-        reader.close();
-      }
-      catch (Exception e2)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e2);
-        }
-      }
+      close(reader);
 
       Message message =
           ERR_CONFIG_FILE_READ_ERROR.get(f.getAbsolutePath(),
@@ -410,17 +386,7 @@ public class ConfigFileHandler
     // Make sure that the provide LDIF file is not empty.
     if (entry == null)
     {
-      try
-      {
-        reader.close();
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-      }
+      close(reader);
 
       Message message = ERR_CONFIG_FILE_EMPTY.get(f.getAbsolutePath());
       throw new InitializationException(message);
@@ -446,18 +412,7 @@ public class ConfigFileHandler
         TRACER.debugCaught(DebugLogLevel.ERROR, ie);
       }
 
-      try
-      {
-        reader.close();
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-      }
-
+      close(reader);
       throw ie;
     }
     catch (Exception e)
@@ -467,17 +422,7 @@ public class ConfigFileHandler
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      try
-      {
-        reader.close();
-      }
-      catch (Exception e2)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e2);
-        }
-      }
+      close(reader);
 
       // This should not happen, so we can use a generic error here.
       Message message = ERR_CONFIG_FILE_GENERIC_ERROR.get(f.getAbsolutePath(),
@@ -509,17 +454,7 @@ public class ConfigFileHandler
           TRACER.debugCaught(DebugLogLevel.ERROR, le);
         }
 
-        try
-        {
-          reader.close();
-        }
-        catch (Exception e)
-        {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
-        }
+        close(reader);
 
         Message message = ERR_CONFIG_FILE_INVALID_LDIF_ENTRY.get(
                                le.getLineNumber(), f.getAbsolutePath(),
@@ -533,17 +468,7 @@ public class ConfigFileHandler
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        try
-        {
-          reader.close();
-        }
-        catch (Exception e2)
-        {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e2);
-          }
-        }
+        close(reader);
 
         Message message = ERR_CONFIG_FILE_READ_ERROR.get(f.getAbsolutePath(),
                                                          String.valueOf(e));
@@ -555,18 +480,7 @@ public class ConfigFileHandler
       // file.
       if (entry == null)
       {
-        try
-        {
-          reader.close();
-        }
-        catch (Exception e)
-        {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
-        }
-
+        close(reader);
         break;
       }
 
@@ -575,17 +489,7 @@ public class ConfigFileHandler
       DN entryDN = entry.getDN();
       if (configEntries.containsKey(entryDN))
       {
-        try
-        {
-          reader.close();
-        }
-        catch (Exception e)
-        {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
-        }
+        close(reader);
 
         Message message = ERR_CONFIG_FILE_DUPLICATE_ENTRY.get(
                                entryDN.toString(),
@@ -599,17 +503,7 @@ public class ConfigFileHandler
       DN parentDN = entryDN.getParent();
       if (parentDN == null)
       {
-        try
-        {
-          reader.close();
-        }
-        catch (Exception e)
-        {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
-        }
+        close(reader);
 
         Message message = ERR_CONFIG_FILE_UNKNOWN_PARENT.get(
                                entryDN.toString(),
@@ -621,17 +515,7 @@ public class ConfigFileHandler
       ConfigEntry parentEntry = configEntries.get(parentDN);
       if (parentEntry == null)
       {
-        try
-        {
-          reader.close();
-        }
-        catch (Exception e)
-        {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
-        }
+        close(reader);
 
         Message message = ERR_CONFIG_FILE_NO_PARENT.get(entryDN.toString(),
                                reader.getLastEntryLineNumber(),
@@ -656,17 +540,7 @@ public class ConfigFileHandler
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        try
-        {
-          reader.close();
-        }
-        catch (Exception e2)
-        {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e2);
-          }
-        }
+        close(reader);
 
         Message message = ERR_CONFIG_FILE_GENERIC_ERROR.get(f.getAbsolutePath(),
                                                             String.valueOf(e));
@@ -684,8 +558,8 @@ public class ConfigFileHandler
       try
       {
         File configDirFile = f.getParentFile();
-        if ((configDirFile != null) &&
-            configDirFile.getName().equals(CONFIG_DIR_NAME))
+        if (configDirFile != null &&
+            CONFIG_DIR_NAME.equals(configDirFile.getName()))
         {
           /*
            * Do a best effort to avoid having a relative representation (for
@@ -848,16 +722,7 @@ public class ConfigFileHandler
     }
     finally
     {
-      if (inputStream != null)
-      {
-        try
-        {
-          inputStream.close();
-        }
-        catch (IOException e) {
-          // ignore;
-        }
-      }
+      StaticUtils.close(inputStream);
     }
   }
 
@@ -927,7 +792,7 @@ public class ConfigFileHandler
             latestCounter   = counter;
             continue;
           }
-          else if ((timestamp == latestTimestamp) && (counter > latestCounter))
+          else if (timestamp == latestTimestamp && counter > latestCounter)
           {
             latestFileName  = name;
             latestTimestamp = timestamp;
@@ -1017,24 +882,11 @@ public class ConfigFileHandler
 
 
     // Apply the changes and make sure there were no errors.
-    LinkedList<Message> errorList = new LinkedList<Message>();
+    List<Message> errorList = new LinkedList<Message>();
     boolean successful = LDIFModify.modifyLDIF(sourceReader, changesReader,
                                                targetWriter, errorList);
 
-    try
-    {
-      sourceReader.close();
-    } catch (Exception e) {}
-
-    try
-    {
-      changesReader.close();
-    } catch (Exception e) {}
-
-    try
-    {
-      targetWriter.close();
-    } catch (Exception e) {}
+    StaticUtils.close(sourceReader, changesReader, targetWriter);
 
     if (! successful)
     {
@@ -1317,8 +1169,8 @@ public class ConfigFileHandler
     if (addOperation != null)
     {
       ClientConnection clientConnection = addOperation.getClientConnection();
-      if (! (clientConnection.hasAllPrivileges(CONFIG_READ_AND_WRITE,
-                                               addOperation)))
+      if (!clientConnection.hasAllPrivileges(CONFIG_READ_AND_WRITE,
+                                             addOperation))
       {
         Message message = ERR_CONFIG_FILE_ADD_INSUFFICIENT_PRIVILEGES.get();
         throw new DirectoryException(ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
@@ -1385,8 +1237,7 @@ public class ConfigFileHandler
 
       // See if the parent entry has any add listeners.  If so, then iterate
       // through them and make sure the new entry is acceptable.
-      CopyOnWriteArrayList<ConfigAddListener> addListeners =
-           parentEntry.getAddListeners();
+      List<ConfigAddListener> addListeners = parentEntry.getAddListeners();
       MessageBuilder unacceptableReason = new MessageBuilder();
       for (ConfigAddListener l : addListeners)
       {
@@ -1426,8 +1277,8 @@ public class ConfigFileHandler
 
 
       // Notify all the add listeners that the entry has been added.
-      ResultCode          resultCode = ResultCode.SUCCESS;
-      LinkedList<Message> messages   = new LinkedList<Message>();
+      ResultCode    resultCode = ResultCode.SUCCESS;
+      List<Message> messages   = new LinkedList<Message>();
       for (ConfigAddListener l : addListeners)
       {
         ConfigChangeResult result = l.applyConfigurationAdd(newEntry);
@@ -1481,8 +1332,8 @@ public class ConfigFileHandler
     if (deleteOperation != null)
     {
       ClientConnection clientConnection = deleteOperation.getClientConnection();
-      if (! (clientConnection.hasAllPrivileges(CONFIG_READ_AND_WRITE,
-                                               deleteOperation)))
+      if (!clientConnection.hasAllPrivileges(CONFIG_READ_AND_WRITE,
+                                             deleteOperation))
       {
         Message message = ERR_CONFIG_FILE_DELETE_INSUFFICIENT_PRIVILEGES.get();
         throw new DirectoryException(ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
@@ -1546,7 +1397,7 @@ public class ConfigFileHandler
 
       // Get the delete listeners from the parent and make sure that they are
       // all OK with the delete.
-      CopyOnWriteArrayList<ConfigDeleteListener> deleteListeners =
+      List<ConfigDeleteListener> deleteListeners =
            parentEntry.getDeleteListeners();
       MessageBuilder unacceptableReason = new MessageBuilder();
       for (ConfigDeleteListener l : deleteListeners)
@@ -1586,8 +1437,8 @@ public class ConfigFileHandler
 
 
       // Notify all the delete listeners that the entry has been removed.
-      ResultCode          resultCode = ResultCode.SUCCESS;
-      LinkedList<Message> messages   = new LinkedList<Message>();
+      ResultCode    resultCode = ResultCode.SUCCESS;
+      List<Message> messages   = new LinkedList<Message>();
       for (ConfigDeleteListener l : deleteListeners)
       {
         ConfigChangeResult result = l.applyConfigurationDelete(entry);
@@ -1645,8 +1496,8 @@ public class ConfigFileHandler
     if (modifyOperation != null)
     {
       ClientConnection clientConnection = modifyOperation.getClientConnection();
-      if (! (clientConnection.hasAllPrivileges(CONFIG_READ_AND_WRITE,
-                                               modifyOperation)))
+      if (!clientConnection.hasAllPrivileges(CONFIG_READ_AND_WRITE,
+                                             modifyOperation))
       {
         Message message = ERR_CONFIG_FILE_MODIFY_INSUFFICIENT_PRIVILEGES.get();
         throw new DirectoryException(ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
@@ -1728,7 +1579,7 @@ public class ConfigFileHandler
 
       // See if there are any config change listeners registered for this entry.
       // If there are, then make sure they are all OK with the change.
-      CopyOnWriteArrayList<ConfigChangeListener> changeListeners =
+      List<ConfigChangeListener> changeListeners =
            currentEntry.getChangeListeners();
       MessageBuilder unacceptableReason = new MessageBuilder();
       for (ConfigChangeListener l : changeListeners)
@@ -1752,8 +1603,8 @@ public class ConfigFileHandler
 
 
       // Notify all the change listeners of the update.
-      ResultCode         resultCode  = ResultCode.SUCCESS;
-      LinkedList<Message> messages   = new LinkedList<Message>();
+      ResultCode   resultCode  = ResultCode.SUCCESS;
+      List<Message> messages   = new LinkedList<Message>();
       for (ConfigChangeListener l : changeListeners)
       {
         ConfigChangeResult result = l.applyConfigurationChange(currentEntry);
@@ -1809,8 +1660,8 @@ public class ConfigFileHandler
     {
       ClientConnection clientConnection =
            modifyDNOperation.getClientConnection();
-      if (! (clientConnection.hasAllPrivileges(CONFIG_READ_AND_WRITE,
-                                               modifyDNOperation)))
+      if (!clientConnection.hasAllPrivileges(CONFIG_READ_AND_WRITE,
+                                             modifyDNOperation))
       {
         Message message = ERR_CONFIG_FILE_MODDN_INSUFFICIENT_PRIVILEGES.get();
         throw new DirectoryException(ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
@@ -1895,12 +1746,9 @@ public class ConfigFileHandler
         for (ConfigEntry child : baseEntry.getChildren().values())
         {
           e = child.getEntry().duplicate(true);
-          if (filter.matchesEntry(e))
+          if (filter.matchesEntry(e) && !searchOperation.returnEntry(e, null))
           {
-            if (! searchOperation.returnEntry(e, null))
-            {
-              break;
-            }
+            break;
           }
         }
         break;
@@ -1956,12 +1804,9 @@ public class ConfigFileHandler
           throws DirectoryException
   {
     Entry e = baseEntry.getEntry().duplicate(true);
-    if (filter.matchesEntry(e))
+    if (filter.matchesEntry(e) && !searchOperation.returnEntry(e, null))
     {
-      if (! searchOperation.returnEntry(e, null))
-      {
-        return false;
-      }
+      return false;
     }
 
     for (ConfigEntry child : baseEntry.getChildren().values())
@@ -2025,8 +1870,7 @@ public class ConfigFileHandler
             outputStream.write(buffer, 0, bytesRead);
           }
 
-          inputStream.close();
-          outputStream.close();
+          StaticUtils.close(inputStream, outputStream);
 
           Message message = WARN_CONFIG_MANUAL_CHANGES_DETECTED.get(
               configFile, newConfigFile.getAbsolutePath());
@@ -2238,15 +2082,7 @@ public class ConfigFileHandler
     }
     finally
     {
-      try
-      {
-        inputStream.close();
-      } catch (Exception e) {}
-
-      try
-      {
-        outputStream.close();
-      } catch (Exception e) {}
+      StaticUtils.close(inputStream, outputStream);
     }
 
 
@@ -2258,7 +2094,7 @@ public class ConfigFileHandler
       int numToDelete = archivedFileList.length - maxConfigArchiveSize;
       if (numToDelete > 0)
       {
-        TreeSet<String> archiveSet = new TreeSet<String>();
+        Set<String> archiveSet = new TreeSet<String>();
         for (String name : archivedFileList)
         {
           if (! name.startsWith("config-"))
@@ -2273,7 +2109,7 @@ public class ConfigFileHandler
         }
 
         Iterator<String> iterator = archiveSet.iterator();
-        for (int i=0; ((i < numToDelete) && iterator.hasNext()); i++)
+        for (int i=0; i < numToDelete && iterator.hasNext(); i++)
         {
           File f = new File(archiveDirectory, iterator.next());
           try
@@ -2357,17 +2193,7 @@ public class ConfigFileHandler
       }
       finally
       {
-        try
-        {
-          outputStream.close();
-        }
-        catch (Exception e)
-        {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
-        }
+        close(outputStream);
       }
     }
     catch (Exception e)
@@ -2383,17 +2209,7 @@ public class ConfigFileHandler
     }
     finally
     {
-      try
-      {
-        inputStream.close();
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-      }
+      close(inputStream);
     }
 
 
@@ -2471,7 +2287,7 @@ public class ConfigFileHandler
    * {@inheritDoc}
    */
   @Override()
-  public HashSet<String> getSupportedControls()
+  public Set<String> getSupportedControls()
   {
     return SUPPORTED_CONTROLS;
   }
@@ -2482,7 +2298,7 @@ public class ConfigFileHandler
    * {@inheritDoc}
    */
   @Override()
-  public HashSet<String> getSupportedFeatures()
+  public Set<String> getSupportedFeatures()
   {
     return SUPPORTED_FEATURES;
   }
@@ -2903,15 +2719,7 @@ public class ConfigFileHandler
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      try
-      {
-        inputStream.close();
-      } catch (Exception e2) {}
-
-      try
-      {
-        zipStream.close();
-      } catch (Exception e2) {}
+      StaticUtils.close(inputStream, zipStream);
 
       message = ERR_CONFIG_BACKUP_CANNOT_BACKUP_CONFIG_FILE.get(
           configFile, stackTraceToSingleLineString(e));
@@ -2969,15 +2777,7 @@ public class ConfigFileHandler
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      try
-      {
-        inputStream.close();
-      } catch (Exception e2) {}
-
-      try
-      {
-        zipStream.close();
-      } catch (Exception e2) {}
+      StaticUtils.close(inputStream, zipStream);
 
       message = ERR_CONFIG_BACKUP_CANNOT_BACKUP_ARCHIVED_CONFIGS.get(
           configFile, stackTraceToSingleLineString(e));
@@ -3596,9 +3396,9 @@ public class ConfigFileHandler
    * {@inheritDoc}
    */
   @Override
-  public LinkedHashMap<String,String> getAlerts()
+  public Map<String,String> getAlerts()
   {
-    LinkedHashMap<String,String> alerts = new LinkedHashMap<String,String>();
+    Map<String,String> alerts = new LinkedHashMap<String,String>();
 
     alerts.put(ALERT_TYPE_CANNOT_WRITE_CONFIGURATION,
                ALERT_DESCRIPTION_CANNOT_WRITE_CONFIGURATION);
@@ -3689,5 +3489,20 @@ public class ConfigFileHandler
   @Override
   public void preloadEntryCache() throws UnsupportedOperationException {
     throw new UnsupportedOperationException("Operation not supported.");
+  }
+
+  private void close(Closeable toClose)
+  {
+    try
+    {
+      toClose.close();
+    }
+    catch (Exception e)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
+    }
   }
 }
