@@ -301,9 +301,6 @@ public class AciTests extends AciTestCase {
 
   private static final String ALLOW_ALL_TO_COMPARE =
              buildAciValue("name", "allow compare", "targetattr", "*", "target", "ldap:///cn=*," + OU_LEAF_DN, "allow(compare)", BIND_RULE_USERDN_ALL);
-  private static final String ALLOW_ALL_TO_COMPARE_NO_TARGETATTR =
-      buildAciValue("name", "allow compare", "target", "ldap:///cn=*,"
-          + OU_LEAF_DN, "allow(compare)", BIND_RULE_USERDN_ALL);
 
   private static final String DENY_READ_CN_SN_IF_PERSON = buildAciValue("name",
       "deny read cn sn if person", "targetfilter", "objectClass=person",
@@ -1121,8 +1118,6 @@ public class AciTests extends AciTestCase {
 
   // ACI used to test LDAP compare.
   private static final String COMPARE_ACI =  makeAddAciLdif(OU_LEAF_DN, ALLOW_ALL_TO_COMPARE);
-  private static final String COMPARE_ACI_NO_TARGETATTR = makeAddAciLdif(
-      OU_LEAF_DN, ALLOW_ALL_TO_COMPARE_NO_TARGETATTR);
 
   // ACI used to test LDAP search with attributes.
   private static final String SEARCH_ATTRIBUTES_ALLOW_ACI = makeAddAciLdif(
@@ -1806,7 +1801,7 @@ private static final  String ACI_PROXY_CONTROL_LEVEL_1 =
    * @throws Throwable If the compare is not valid for the ACI.
    */
   @Test()
-  public void testCompareDoesNotDiscloseInfo() throws Throwable
+  public void testCompare() throws Throwable
   {
     SingleSearchParams adminParam =
         SingleSearchParams.nonProxiedSearch(ADMIN_DN, ADMIN_PW,
@@ -1814,21 +1809,10 @@ private static final  String ACI_PROXY_CONTROL_LEVEL_1 =
 
     addEntries(BASIC_LDIF__GROUP_SEARCH_TESTS, DIR_MGR_DN, DIR_MGR_PW);
     modEntries(COMPARE_ACI, DIR_MGR_DN, DIR_MGR_PW);
-    ldapCompare(adminParam.getLdapCompareArgs("cn:level3 user"),
-        LDAPResultCode.NO_SUCH_OBJECT);
-  }
-
-  @Test()
-  public void testCompareDoesNotDiscloseInfoNoTargetAttr() throws Throwable
-  {
-    SingleSearchParams adminParam =
-        SingleSearchParams.nonProxiedSearch(ADMIN_DN, ADMIN_PW,
-            LEVEL_3_USER_DN, OBJECTCLASS_STAR, SCOPE_BASE, null, null, null);
-
-    addEntries(BASIC_LDIF__GROUP_SEARCH_TESTS, DIR_MGR_DN, DIR_MGR_PW);
-    modEntries(COMPARE_ACI_NO_TARGETATTR, DIR_MGR_DN, DIR_MGR_PW);
-    ldapCompare(adminParam.getLdapCompareArgs("cn:level3 user"),
-        LDAPResultCode.NO_SUCH_OBJECT);
+    String userResults =
+        ldapCompare(adminParam.getLdapCompareArgs("cn:level3 user"),
+            LDAPResultCode.COMPARE_TRUE);
+    Assert.assertFalse(userResults.equals(""));
   }
 
 
