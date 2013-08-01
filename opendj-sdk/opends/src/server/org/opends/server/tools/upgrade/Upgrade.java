@@ -75,18 +75,18 @@ public final class Upgrade
   /**
    * The success exit code value.
    */
-  public static final int EXIT_CODE_SUCCESS = 0;
+  static final int EXIT_CODE_SUCCESS = 0;
 
   /**
    * The error exit code value.
    */
-  public static final int EXIT_CODE_ERROR = 1;
+  static final int EXIT_CODE_ERROR = 1;
 
   /**
    * The exit code value that will be used if upgrade requires manual
    * intervention.
    */
-  public static final int EXIT_CODE_MANUAL_INTERVENTION = 2;
+  static final int EXIT_CODE_MANUAL_INTERVENTION = 2;
 
   /**
    * Developers should register upgrade tasks below.
@@ -322,7 +322,7 @@ public final class Upgrade
    * @return A list containing all the tasks which are required in order to
    *         upgrade from {@code fromVersion} to {@code toVersion}.
    */
-  public static List<UpgradeTask> getUpgradeTasks(
+ private static List<UpgradeTask> getUpgradeTasks(
       final BuildVersion fromVersion, final BuildVersion toVersion)
   {
     final List<UpgradeTask> tasks = new LinkedList<UpgradeTask>();

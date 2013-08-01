@@ -55,7 +55,7 @@ public class ProgressNotificationCallback extends TextOutputCallback
    * @param progress
    *          An integer representing the percentage of the task's progress.
    */
-  public ProgressNotificationCallback(final int messageType,
+  ProgressNotificationCallback(final int messageType,
       final Message message, final int progress)
   {
     super(messageType, message.toString());
@@ -73,24 +73,13 @@ public class ProgressNotificationCallback extends TextOutputCallback
   }
 
   /**
-   * Sets the percentage's progress.
-   *
-   * @param progress
-   *          The percentage's progress.
-   */
-  public void setProgress(int progress)
-  {
-    this.progress = progress;
-  }
-
-  /**
    * Change the progress on an existing progress notification callback.
    *
    * @param progress
    *          The new value of the progress.
    * @return A progress Notification Callback
    */
-  public ProgressNotificationCallback changeProgress(int progress)
+  ProgressNotificationCallback setProgress(int progress)
   {
     this.progress = progress;
     return this;

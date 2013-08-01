@@ -129,10 +129,10 @@ public final class UpgradeTasks
 
         try
         {
-          context.notifyProgress(pnc.changeProgress(20));
+          context.notifyProgress(pnc.setProgress(20));
 
           copy(schemaFileTemplate, configSchemaDirectory, true);
-          context.notifyProgress(pnc.changeProgress(100));
+          context.notifyProgress(pnc.setProgress(100));
         }
         catch (final IOException e)
         {
@@ -169,10 +169,10 @@ public final class UpgradeTasks
 
         try
         {
-          context.notifyProgress(pnc.changeProgress(20));
+          context.notifyProgress(pnc.setProgress(20));
 
           copy(configFile, configDirectory, true);
-          context.notifyProgress(pnc.changeProgress(100));
+          context.notifyProgress(pnc.setProgress(100));
         }
         catch (final IOException e)
         {
@@ -273,7 +273,7 @@ public final class UpgradeTasks
 
           displayChangeCount(pathDestination.getPath(), changeCount);
 
-          context.notifyProgress(pnc.changeProgress(100));
+          context.notifyProgress(pnc.setProgress(100));
         }
         catch (final IOException e)
         {
@@ -319,7 +319,7 @@ public final class UpgradeTasks
 
         final File pathDestination = new File(configSchemaDirectory, fileName);
 
-        context.notifyProgress(pnc.changeProgress(20));
+        context.notifyProgress(pnc.setProgress(20));
 
         try
         {
@@ -329,7 +329,7 @@ public final class UpgradeTasks
 
           displayChangeCount(pathDestination.getPath(), changeCount);
 
-          context.notifyProgress(pnc.changeProgress(100));
+          context.notifyProgress(pnc.setProgress(100));
         }
         catch (final IOException e)
         {
@@ -541,7 +541,7 @@ public final class UpgradeTasks
           updateConfigUpgradeSchemaFile(configSchemaDirectory, String
               .valueOf(context.getToVersion().getRevisionNumber()));
 
-          context.notifyProgress(pnc.changeProgress(100));
+          context.notifyProgress(pnc.setProgress(100));
         }
         catch (final Exception ex)
         {
@@ -584,7 +584,7 @@ public final class UpgradeTasks
                     + File.separator + "opends-snmp.security");
             if (oldSnmpConfig.exists())
             {
-              context.notifyProgress(pnc.changeProgress(20));
+              context.notifyProgress(pnc.setProgress(20));
               LOG.log(Level.INFO, summary.toString());
 
               final File snmpConfig =
@@ -593,7 +593,7 @@ public final class UpgradeTasks
 
               FileManager.rename(oldSnmpConfig, snmpConfig);
 
-              context.notifyProgress(pnc.changeProgress(100));
+              context.notifyProgress(pnc.setProgress(100));
             }
           }
           catch (final Exception ex)
@@ -659,7 +659,7 @@ public final class UpgradeTasks
 
             displayChangeCount(configFile.getPath(), changeCount);
 
-            context.notifyProgress(pnc.changeProgress(100));
+            context.notifyProgress(pnc.setProgress(100));
           }
           catch (final Exception e)
           {
@@ -705,7 +705,7 @@ public final class UpgradeTasks
       throws ClientException
   {
     countErrors++;
-    context.notifyProgress(pnc.changeProgress(-100));
+    context.notifyProgress(pnc.setProgress(-100));
     LOG.log(Level.SEVERE, message.toString());
     if (!context.isIgnoreErrorsMode())
     {
@@ -764,7 +764,7 @@ public final class UpgradeTasks
 
             displayChangeCount(configFile.getPath(), changeCount);
 
-            context.notifyProgress(pnc.changeProgress(100));
+            context.notifyProgress(pnc.setProgress(100));
           }
           catch (final Exception e)
           {

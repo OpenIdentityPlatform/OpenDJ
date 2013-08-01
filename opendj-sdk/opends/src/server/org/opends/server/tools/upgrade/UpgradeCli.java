@@ -196,7 +196,7 @@ public final class UpgradeCli extends ConsoleApplication implements
    *
    * @return {@code true} if the upgrade process is forced.
    */
-  public boolean isForceUpgrade()
+  private boolean isForceUpgrade()
   {
     return force.isPresent();
   }
@@ -207,7 +207,7 @@ public final class UpgradeCli extends ConsoleApplication implements
    *
    * @return {@code true} if the errors are forced to be ignored.
    */
-  public boolean isIgnoreErrors()
+  private boolean isIgnoreErrors()
   {
     return ignoreErrors.isPresent();
   }
@@ -217,7 +217,7 @@ public final class UpgradeCli extends ConsoleApplication implements
    *
    * @return {@code true} if license is accepted by default.
    */
-  public boolean isAcceptLicense()
+  private boolean isAcceptLicense()
   {
     return acceptLicense.isPresent();
   }

@@ -40,7 +40,7 @@ import org.opends.server.util.StaticUtils;
  * NOTE: the license file location must be kept in sync with build.xml and
  * org.opends.quicksetup.LicenseFile.
  */
-public class LicenseFile
+class LicenseFile
 {
   /**
    * Get the directory in which legal files are stored.
@@ -132,7 +132,7 @@ public class LicenseFile
    *         the Legal directory in the top level installation directory
    *         <CODE>false</CODE> otherwise.
    */
-  static public boolean exists()
+  static boolean exists()
   {
     return getFile().exists();
   }
@@ -142,7 +142,7 @@ public class LicenseFile
    *
    * @return the textual contents of the license file.
    */
-  static public String getText()
+  static String getText()
   {
     FileReader reader;
 
@@ -181,7 +181,7 @@ public class LicenseFile
    * @return <CODE>true</CODE> if the license has been accepted by the user
    *         <CODE>false</CODE> otherwise.
    */
-  static public boolean getApproval()
+  static boolean getApproval()
   {
     return approved;
   }
@@ -192,7 +192,7 @@ public class LicenseFile
    * @param p_approved
    *          the license approval status
    */
-  static public void setApproval(boolean p_approved)
+  static void setApproval(boolean p_approved)
   {
     approved = p_approved;
   }
@@ -200,7 +200,7 @@ public class LicenseFile
   /**
    * Create a file which indicates that the license has been approved.
    */
-  static public void createFileLicenseApproved()
+  static void createFileLicenseApproved()
   {
     if (getApproval())
     {
@@ -221,7 +221,7 @@ public class LicenseFile
    * @return <CODE>true</CODE> if the license had already been approved by the
    *         user <CODE>false</CODE> otherwise.
    */
-  static public boolean isAlreadyApproved()
+  static boolean isAlreadyApproved()
   {
     File f =
         new File(getInstanceLegalDirectory() + File.separatorChar

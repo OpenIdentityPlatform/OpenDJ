@@ -117,7 +117,7 @@ final class UpgradeUtils
    *
    * @return the path of the installation of the directory server.
    */
-  public static String getInstallPathFromClasspath()
+  static String getInstallPathFromClasspath()
   {
     String installPath = DirectoryServer.getServerRoot();
     if (installPath != null)
@@ -173,7 +173,7 @@ final class UpgradeUtils
    *          The installation path
    * @return the path of the installation of the directory server.
    */
-  public static String getInstancePathFromInstallPath(final String installPath)
+  static String getInstancePathFromInstallPath(final String installPath)
   {
     String instancePathFileName = Installation.INSTANCE_LOCATION_PATH;
     final File configureScriptPath =
@@ -239,7 +239,7 @@ final class UpgradeUtils
    *          File to get the path
    * @return the absolute path for the given file.
    */
-  public static String getPath(File f)
+  static String getPath(File f)
   {
     String path = null;
     if (f != null)
@@ -274,7 +274,7 @@ final class UpgradeUtils
    *          the relative path.
    * @return the absolute path for the given parentPath and relativePath.
    */
-  public static String getPath(final String parentPath,
+  static String getPath(final String parentPath,
       final String relativePath)
   {
     return getPath(new File(new File(parentPath), relativePath));
@@ -287,7 +287,7 @@ final class UpgradeUtils
    * @return <CODE>true</CODE> if we are running under windows and
    *         <CODE>false</CODE> otherwise.
    */
-  public static boolean isWindows()
+  static boolean isWindows()
   {
     return SetupUtils.isWindows();
   }
@@ -299,7 +299,7 @@ final class UpgradeUtils
    * @return <CODE>true</CODE> if we are running under Unix and
    *         <CODE>false</CODE> otherwise.
    */
-  public static boolean isUnix()
+  static boolean isUnix()
   {
     return SetupUtils.isUnix();
   }
@@ -313,7 +313,7 @@ final class UpgradeUtils
    *          possible child 0f <code>ancestor</code>
    * @return return true if ancestor is a parent of descendant
    */
-  static public boolean isParentOf(final File ancestor, File descendant)
+  static boolean isParentOf(final File ancestor, File descendant)
   {
     if (ancestor != null)
     {
@@ -338,7 +338,7 @@ final class UpgradeUtils
    * path in the file system; <code>false</code> otherwise or if
    * either of the files are null
    */
-  public static boolean isDescendant(File descendant, File path) {
+  static boolean isDescendant(File descendant, File path) {
     boolean isDescendant = false;
     if (descendant != null && path != null) {
       File parent = descendant.getParentFile();

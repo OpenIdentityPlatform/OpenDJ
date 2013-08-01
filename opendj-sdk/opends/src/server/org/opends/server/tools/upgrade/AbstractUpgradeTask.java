@@ -31,12 +31,12 @@ import org.opends.server.tools.ClientException;
 /**
  * Abstract upgrade task implementation.
  */
-public abstract class AbstractUpgradeTask implements UpgradeTask
+abstract class AbstractUpgradeTask implements UpgradeTask
 {
   /**
    * Creates a new abstract upgrade task.
    */
-  protected AbstractUpgradeTask()
+  AbstractUpgradeTask()
   {
     // No implementation required.
   }
