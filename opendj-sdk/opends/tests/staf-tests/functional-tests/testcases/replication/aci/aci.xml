@@ -110,6 +110,8 @@
                   testsList.append('replication_aci_005')
                   testsList.append('replication_aci_006')
                   testsList.append('replication_aci_007')
+                  testsList.append('replication_aci_008')
+                  testsList.append('replication_aci_009')
                 </script>
 
                 <!-- Execute the Tests -->
