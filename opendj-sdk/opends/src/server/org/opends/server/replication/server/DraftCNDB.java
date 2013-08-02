@@ -580,10 +580,10 @@ public class DraftCNDB
     }
 
     /**
-     * Getter for the serviceID field of the current cursor.
-     * @return The current serviceID.
+     * Getter for the baseDN field of the current cursor.
+     * @return The current baseDN.
      */
-    public String currentServiceID()
+    public String currentBaseDN()
     {
       if (isClosed)
       {
@@ -594,7 +594,7 @@ public class DraftCNDB
       {
         if (seqnumData != null)
         {
-          return seqnumData.getServiceID();
+          return seqnumData.getBaseDN();
         }
       }
       catch(Exception e)

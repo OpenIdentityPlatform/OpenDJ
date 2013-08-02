@@ -23,15 +23,15 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.replication.common;
 
 import static org.opends.messages.ReplicationMessages.*;
 
+import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.Iterator;
 
 import org.opends.messages.Category;
 import org.opends.messages.Message;
@@ -39,11 +39,13 @@ import org.opends.messages.Severity;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.ResultCode;
 
-
 /**
- * This object is used to store a list of ServerState object, one by
- * replication domain. Globally, it is the generalization of ServerState
- * (that applies to one domain) to a list of domains.
+ * This object is used to store a list of ServerState object, one by replication
+ * domain. Globally, it is the generalization of ServerState (that applies to
+ * one domain) to a list of domains.
+ * <p>
+ * MultiDomainServerState is also known as "cookie" and is used with the
+ * cookie-based changelog.
  */
 public class MultiDomainServerState implements Iterable<String>
 {
@@ -86,15 +88,15 @@ public class MultiDomainServerState implements Iterable<String>
   }
 
   /**
-   * Update the ServerState of the provided serviceId with the
+   * Update the ServerState of the provided baseDN with the
    * replication change number provided.
    *
-   * @param serviceId    The provided serviceId.
+   * @param baseDN       The provided baseDN.
    * @param changeNumber The provided ChangeNumber.
    *
    * @return a boolean indicating if the update was meaningful.
    */
-  public boolean update(String serviceId, ChangeNumber changeNumber)
+  public boolean update(String baseDN, ChangeNumber changeNumber)
   {
     if (changeNumber == null)
       return false;
@@ -102,33 +104,30 @@ public class MultiDomainServerState implements Iterable<String>
     synchronized(this)
     {
       int serverId =  changeNumber.getServerId();
-      ServerState oldServerState = list.get(serviceId);
+      ServerState oldServerState = list.get(baseDN);
       if (oldServerState == null)
         oldServerState = new ServerState();
 
       if (changeNumber.newer(oldServerState.getMaxChangeNumber(serverId)))
       {
         oldServerState.update(changeNumber);
-        list.put(serviceId,oldServerState);
+        list.put(baseDN, oldServerState);
         return true;
       }
-      else
-      {
-        return false;
-      }
+      return false;
     }
   }
 
   /**
-   * Update the ServerState of the provided serviceId with the
+   * Update the ServerState of the provided baseDN with the
    * provided server state.
    *
-   * @param serviceId    The provided serviceId.
+   * @param baseDN       The provided baseDN.
    * @param serverState  The provided serverState.
    */
-  public void update(String serviceId, ServerState serverState)
+  public void update(String baseDN, ServerState serverState)
   {
-    list.put(serviceId,serverState.duplicate());
+    list.put(baseDN,serverState.duplicate());
   }
 
   /**
@@ -141,11 +140,10 @@ public class MultiDomainServerState implements Iterable<String>
     String res = "";
     if ((list != null) && (!list.isEmpty()))
     {
-      for (String serviceId  : list.keySet())
+      for (String baseDN  : list.keySet())
       {
-        ServerState ss = list.get(serviceId);
-        res += serviceId + ":" + ss.toString();
-        res += ";";
+        ServerState ss = list.get(baseDN);
+        res += baseDN + ":" + ss + ";";
       }
     }
     return res;
@@ -174,6 +172,7 @@ public class MultiDomainServerState implements Iterable<String>
   /**
    * {@inheritDoc}
    */
+  @Override
   public Iterator<String> iterator()
   {
     return list.keySet().iterator();
@@ -196,10 +195,10 @@ public class MultiDomainServerState implements Iterable<String>
    */
   public boolean cover(MultiDomainServerState covered)
   {
-    for (String serviceId : covered.list.keySet())
+    for (String baseDN : covered.list.keySet())
     {
-      ServerState state = list.get(serviceId);
-      ServerState coveredState = covered.list.get(serviceId);
+      ServerState state = list.get(baseDN);
+      ServerState coveredState = covered.list.get(baseDN);
       if ((state==null)||(coveredState == null) || (!state.cover(coveredState)))
       {
         return false;

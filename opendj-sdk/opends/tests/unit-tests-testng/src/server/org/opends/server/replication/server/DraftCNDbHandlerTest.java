@@ -23,13 +23,11 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.replication.server;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.*;
 
 import java.io.File;
 import java.net.ServerSocket;
@@ -107,9 +105,9 @@ public class DraftCNDbHandlerTest extends ReplicationTestCase
       String value2 = "value2";
       String value3 = "value3";
 
-      String serviceID1 = "serviceID1";
-      String serviceID2 = "serviceID2";
-      String serviceID3 = "serviceID3";
+      String baseDN1 = "baseDN1";
+      String baseDN2 = "baseDN2";
+      String baseDN3 = "baseDN3";
 
       ChangeNumberGenerator gen = new ChangeNumberGenerator( 1, 0);
       ChangeNumber changeNumber1 = gen.newChangeNumber();
@@ -117,9 +115,9 @@ public class DraftCNDbHandlerTest extends ReplicationTestCase
       ChangeNumber changeNumber3 = gen.newChangeNumber();
 
       // Add records
-      handler.add(sn1, value1, serviceID1, changeNumber1);
-      handler.add(sn2, value2, serviceID2, changeNumber2);
-      handler.add(sn3, value3, serviceID3, changeNumber3);
+      handler.add(sn1, value1, baseDN1, changeNumber1);
+      handler.add(sn2, value2, baseDN2, changeNumber2);
+      handler.add(sn3, value3, baseDN3, changeNumber3);
 
       // The ChangeNumber should not get purged
       int firstkey = handler.getFirstKey();
@@ -130,20 +128,20 @@ public class DraftCNDbHandlerTest extends ReplicationTestCase
       try
       {
         assertEquals(dbc.currentChangeNumber(), changeNumber1);
-        assertEquals(dbc.currentServiceID(), serviceID1);
+        assertEquals(dbc.currentBaseDN(), baseDN1);
         assertEquals(dbc.currentValue(), value1);
         assertTrue(dbc.toString().length() != 0);
 
         assertTrue(dbc.next());
 
         assertEquals(dbc.currentChangeNumber(), changeNumber2);
-        assertEquals(dbc.currentServiceID(), serviceID2);
+        assertEquals(dbc.currentBaseDN(), baseDN2);
         assertEquals(dbc.currentValue(), value2);
 
         assertTrue(dbc.next());
 
         assertEquals(dbc.currentChangeNumber(), changeNumber3);
-        assertEquals(dbc.currentServiceID(), serviceID3);
+        assertEquals(dbc.currentBaseDN(), baseDN3);
         assertEquals(dbc.currentValue(), value3);
 
         assertFalse(dbc.next());
@@ -238,9 +236,9 @@ public class DraftCNDbHandlerTest extends ReplicationTestCase
       String value2 = "value2";
       String value3 = "value3";
 
-      String serviceID1 = "serviceID1";
-      String serviceID2 = "serviceID2";
-      String serviceID3 = "serviceID3";
+      String baseDN1 = "baseDN1";
+      String baseDN2 = "baseDN2";
+      String baseDN3 = "baseDN3";
 
       ChangeNumberGenerator gen = new ChangeNumberGenerator( 1, 0);
       ChangeNumber changeNumber1 = gen.newChangeNumber();
@@ -248,9 +246,9 @@ public class DraftCNDbHandlerTest extends ReplicationTestCase
       ChangeNumber changeNumber3 = gen.newChangeNumber();
 
       // Add records
-      handler.add(sn1, value1, serviceID1, changeNumber1);
-      handler.add(sn2, value2, serviceID2, changeNumber2);
-      handler.add(sn3, value3, serviceID3, changeNumber3);
+      handler.add(sn1, value1, baseDN1, changeNumber1);
+      handler.add(sn2, value2, baseDN2, changeNumber2);
+      handler.add(sn3, value3, baseDN3, changeNumber3);
       Thread.sleep(500);
 
       // Checks
@@ -308,7 +306,7 @@ public class DraftCNDbHandlerTest extends ReplicationTestCase
       // Check the db is cleared.
       assertEquals(handler.getFirstKey(), 0);
       assertEquals(handler.getLastKey(), 0);
-      assertTrue(handler.count()==0);
+      assertEquals(handler.count(), 0);
 
     } finally
     {

@@ -133,20 +133,20 @@ public class DraftCNDbHandler implements Runnable
    * than its maximum.
    * @param key The key for this record in the db.
    * @param value The associated value.
-   * @param serviceID The associated serviceID.
+   * @param baseDN The associated baseDN.
    * @param cn The associated replication change number.
    */
-  public synchronized void add(int key, String value, String serviceID,
+  public synchronized void add(int key, String value, String baseDN,
       ChangeNumber cn)
   {
-    db.addEntry(key, value, serviceID, cn);
+    db.addEntry(key, value, baseDN, cn);
 
     if (debugEnabled())
       TRACER.debugInfo(
           "In DraftCNDbhandler.add, added: "
         + " key=" + key
         + " value=" + value
-        + " serviceID=" + serviceID
+        + " baseDN=" + baseDN
         + " cn=" + cn);
   }
 
@@ -320,15 +320,15 @@ public class DraftCNDbHandler implements Runnable
 
   /**
    * Clear the changes from this DB (from both memory cache and DB storage)
-   * for the provided serviceID.
-   * @param serviceIDToClear The serviceID for which we want to remove
+   * for the provided baseDN.
+   * @param baseDNToClear The baseDN for which we want to remove
    *         all records from the DraftCNDb - null means all.
    * @throws DatabaseException When an exception occurs while removing the
    * changes from the DB.
    * @throws Exception When an exception occurs while accessing a resource
    * from the DB.
    */
-  public void clear(String serviceIDToClear)
+  public void clear(String baseDNToClear)
       throws DatabaseException, Exception
   {
     // FIXME according to JE javadoc, this is a "fairly expensive operation"
@@ -361,17 +361,17 @@ public class DraftCNDbHandler implements Runnable
           ChangeNumber cn = cursor.currentChangeNumber();
 
           // From the draftCNDb change record, get the domain and changeNumber
-          String serviceID = cursor.currentServiceID();
+          String baseDN = cursor.currentBaseDN();
 
-          if ((serviceIDToClear != null)
-              && (serviceIDToClear.equalsIgnoreCase(serviceID)))
+          if ((baseDNToClear != null)
+              && (baseDNToClear.equalsIgnoreCase(baseDN)))
           {
             cursor.delete();
             continue;
           }
 
           ReplicationServerDomain domain = replicationServer
-              .getReplicationServerDomain(serviceID, false);
+              .getReplicationServerDomain(baseDN, false);
 
           if (domain == null)
           {
@@ -405,7 +405,7 @@ public class DraftCNDbHandler implements Runnable
             Map<String,ServerState> cnStartStates =
                 MultiDomainServerState.splitGenStateToServerStates(
                         cursor.currentValue());
-            cnVector = cnStartStates.get(serviceID);
+            cnVector = cnStartStates.get(baseDN);
 
             if (debugEnabled())
               TRACER.debugInfo("DraftCNDBHandler:clear() - ChangeVector:" +
@@ -616,24 +616,24 @@ public class DraftCNDbHandler implements Runnable
   }
 
   /**
-   * Get the serviceID associated to a provided key.
+   * Get the baseDN associated to a provided key.
    * @param key the provided key.
-   * @return the serviceID, null when none.
+   * @return the baseDN, null when none.
    */
-  public String getServiceID(int key)
+  public String getBaseDN(int key)
   {
     String sid = null;
     DraftCNDBCursor draftCNDBCursor = null;
     try
     {
       draftCNDBCursor = db.openReadCursor(key);
-      sid = draftCNDBCursor.currentServiceID();
+      sid = draftCNDBCursor.currentBaseDN();
     }
     catch(Exception e)
     {
       if (debugEnabled())
-        TRACER.debugInfo("In DraftCNDbHandler.getServiceID, read: " +
-          " key=" + key + " serviceID returned is null" +
+        TRACER.debugInfo("In DraftCNDbHandler.getBaseDN(), read: " +
+          " key=" + key + " baseDN returned is null" +
           " first=" + db.readFirstDraftCN() +
           " last=" + db.readLastDraftCN() +
           " count=" + db.count() +

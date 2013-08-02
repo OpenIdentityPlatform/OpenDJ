@@ -86,7 +86,7 @@ public class ECLSearchOperation
           ServerConstants.OID_VLV_REQUEST_CONTROL));
 
   /** The set of objectclasses that will be used in ECL root entry. */
-  private static final HashMap<ObjectClass, String>
+  private static final Map<ObjectClass, String>
     CHANGELOG_ROOT_OBJECT_CLASSES = new LinkedHashMap<ObjectClass, String>(2);
   static
   {
@@ -98,7 +98,7 @@ public class ECLSearchOperation
   }
 
   /** The set of objectclasses that will be used in ECL entries. */
-  private static final HashMap<ObjectClass, String>
+  private static final Map<ObjectClass, String>
     CHANGELOG_ENTRY_OBJECT_CLASSES = new LinkedHashMap<ObjectClass, String>(2);
   static
   {
@@ -787,16 +787,15 @@ public class ECLSearchOperation
                 + e.getMessage()));
       }
 
-      ArrayList<RawAttribute> eclAttributes = addMsg.getEclIncludes();
+      List<RawAttribute> eclAttributes = addMsg.getEclIncludes();
 
-      clEntry = createChangelogEntry(eclmsg.getServiceId(), eclmsg
+      clEntry = createChangelogEntry(eclmsg.getBaseDN(), eclmsg
           .getCookie().toString(), DN.decode(addMsg.getDn()),
           addMsg.getChangeNumber(), ldifChanges, // entry as created (in LDIF
                                                  // format)
           addMsg.getEntryUUID(),
           eclAttributes, // entry attributes
           eclmsg.getDraftChangeNumber(), "add", changeInitiatorsName);
-
     }
     else if (msg instanceof ModifyCommonMsg)
     {
@@ -857,7 +856,7 @@ public class ECLSearchOperation
       String changeType = (modifyMsg instanceof ModifyDNMsg) ? "modrdn"
           : "modify";
 
-      clEntry = createChangelogEntry(eclmsg.getServiceId(), eclmsg
+      clEntry = createChangelogEntry(eclmsg.getBaseDN(), eclmsg
           .getCookie().toString(), DN.decode(modifyMsg.getDn()),
           modifyMsg.getChangeNumber(), ldifChanges,
           modifyMsg.getEntryUUID(),
@@ -869,8 +868,7 @@ public class ECLSearchOperation
       {
         ModifyDNMsg modDNMsg = (ModifyDNMsg) modifyMsg;
 
-        Attribute a = Attributes.create("newrdn",
-            modDNMsg.getNewRDN());
+        Attribute a = Attributes.create("newrdn", modDNMsg.getNewRDN());
         clEntry.addAttribute(a, null);
 
         if (modDNMsg.getNewSuperior() != null)
@@ -889,7 +887,7 @@ public class ECLSearchOperation
     {
       DeleteMsg delMsg = (DeleteMsg) msg;
 
-      clEntry = createChangelogEntry(eclmsg.getServiceId(), eclmsg
+      clEntry = createChangelogEntry(eclmsg.getBaseDN(), eclmsg
           .getCookie().toString(), DN.decode(delMsg.getDn()),
           delMsg.getChangeNumber(),
           null, // no changes
@@ -987,7 +985,7 @@ public class ECLSearchOperation
    * Create an ECL entry from a set of provided information. This is the part
    * of entry creation common to all types of msgs (ADD, DEL, MOD, MODDN).
    *
-   * @param serviceID       The provided cookie value.
+   * @param baseDN          The provided baseDN value.
    * @param cookie          The provided cookie value.
    * @param targetDN        The provided targetDN.
    * @param changeNumber    The provided replication changeNumber.
@@ -1002,7 +1000,7 @@ public class ECLSearchOperation
    *         When any error occurs.
    */
   private static Entry createChangelogEntry(
-      String serviceID,
+      String baseDN,
       String cookie,
       DN targetDN,
       ChangeNumber changeNumber,
@@ -1018,7 +1016,7 @@ public class ECLSearchOperation
     if (draftChangenumber == 0)
     {
       // Draft uncompat mode
-      dnString = "replicationCSN=" + changeNumber + "," + serviceID + ","
+      dnString = "replicationCSN=" + changeNumber + "," + baseDN + ","
           + ServerConstants.DN_EXTERNAL_CHANGELOG_ROOT;
     }
     else
@@ -1031,12 +1029,10 @@ public class ECLSearchOperation
     // Objectclass
     Map<AttributeType, List<Attribute>> uAttrs =
       new LinkedHashMap<AttributeType,List<Attribute>>();
-
     Map<AttributeType, List<Attribute>> operationalAttrs =
       new LinkedHashMap<AttributeType,List<Attribute>>();
 
     // Operational standard attributes
-
     addAttributeByType(ATTR_SUBSCHEMA_SUBENTRY_LC, ATTR_SUBSCHEMA_SUBENTRY_LC,
         ConfigConstants.DN_DEFAULT_SCHEMA_ROOT, uAttrs, operationalAttrs);
 

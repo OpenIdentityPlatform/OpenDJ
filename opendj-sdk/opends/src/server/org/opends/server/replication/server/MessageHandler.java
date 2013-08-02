@@ -27,7 +27,7 @@
  */
 package org.opends.server.replication.server;
 
-import static org.opends.messages.ReplicationMessages.ERR_RS_DN_DOES_NOT_MATCH;
+import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 
 import java.util.ArrayList;
@@ -44,11 +44,7 @@ import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.protocol.UpdateMsg;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.Attributes;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.ResultCode;
+import org.opends.server.types.*;
 
 /**
  * This class implements a buffering/producer/consumer mechanism of
@@ -90,7 +86,7 @@ public class MessageHandler extends MonitorProvider<MonitorProviderCfg>
    */
   protected int replicationServerId;
   /**
-   * Specifies the related replication server domain based on serviceId(baseDn).
+   * Specifies the related replication server domain based on baseDn.
    */
   protected ReplicationServerDomain replicationServerDomain = null;
   /**
@@ -118,9 +114,9 @@ public class MessageHandler extends MonitorProvider<MonitorProviderCfg>
    */
   private ServerState serverState;
   /**
-   * Specifies the identifier of the service (usually the baseDn of the domain).
+   * Specifies the baseDn of the domain.
    */
-  private String serviceId = null;
+  private String baseDN = null;
   /**
    * Specifies whether the consumer is still active or not.
    * If not active, the handler will not return any message.
@@ -208,9 +204,8 @@ public class MessageHandler extends MonitorProvider<MonitorProviderCfg>
   {
     if (replicationServerDomain==null)
     {
-      replicationServerDomain =
-        replicationServer.getReplicationServerDomain(
-            serviceId, createIfNotExist, waitConnections);
+      replicationServerDomain = replicationServer.getReplicationServerDomain(
+            baseDN, createIfNotExist, waitConnections);
     }
     return replicationServerDomain;
   }
@@ -590,12 +585,13 @@ public class MessageHandler extends MonitorProvider<MonitorProviderCfg>
   }
 
   /**
-   * Get the name of the serviceId (usually baseDn) for this handler.
-   * @return The name of the serviceId.
+   * Get the baseDN for this handler.
+   *
+   * @return The name of the baseDN.
    */
-  protected String getServiceId()
+  protected String getBaseDN()
   {
-    return serviceId;
+    return baseDN;
   }
 
   /**
@@ -650,32 +646,31 @@ public class MessageHandler extends MonitorProvider<MonitorProviderCfg>
 
 
   /**
-   * Set the serviceId (usually baseDn) for this handler. Expected to be done
-   * once and never changed during the handler life.
+   * Set the baseDN for this handler. Expected to be done once and never changed
+   * during the handler life.
    *
-   * @param serviceId       The provided serviceId.
-   * @param isDataServer    The handler is a dataServer
-   *
-   * @exception DirectoryException raised when a problem occurs.
+   * @param baseDN
+   *          The provided baseDN.
+   * @param isDataServer
+   *          The handler is a dataServer
+   * @exception DirectoryException
+   *              raised when a problem occurs.
    */
-  protected void setServiceIdAndDomain(String serviceId, boolean isDataServer)
+  protected void setBaseDNAndDomain(String baseDN, boolean isDataServer)
   throws DirectoryException
   {
-    if (this.serviceId != null)
+    if (this.baseDN != null)
     {
-      if (!this.serviceId.equalsIgnoreCase(serviceId))
+      if (!this.baseDN.equalsIgnoreCase(baseDN))
       {
-        Message message = ERR_RS_DN_DOES_NOT_MATCH.get(
-            this.serviceId,
-            serviceId);
-        throw new DirectoryException(ResultCode.OTHER,
-            message, null);
+        Message message = ERR_RS_DN_DOES_NOT_MATCH.get(this.baseDN, baseDN);
+        throw new DirectoryException(ResultCode.OTHER, message, null);
       }
     }
     else
     {
-      this.serviceId = serviceId;
-      if (!serviceId.equalsIgnoreCase("cn=changelog"))
+      this.baseDN = baseDN;
+      if (!baseDN.equalsIgnoreCase("cn=changelog"))
         this.replicationServerDomain = getDomain(true, isDataServer);
     }
   }

@@ -50,10 +50,12 @@ import org.opends.server.workflowelement.localbackend.LocalBackendModifyOperatio
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+
 /**
  * Test the constructors, encoders and decoders of the replication protocol
  * PDUs classes (message classes)
  */
+@SuppressWarnings("javadoc")
 public class SynchronizationMsgTest extends ReplicationTestCase
 {
   /**
@@ -92,12 +94,12 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     mods2.add(mod2);
 
     AttributeBuilder builder = new AttributeBuilder(type);
-    List<Modification> mods3 = new ArrayList<Modification>();
     builder.add("string");
     builder.add("value");
     builder.add("again");
     Attribute attr3 = builder.toAttribute();
     Modification mod3 = new Modification(ModificationType.ADD, attr3);
+    List<Modification> mods3 = new ArrayList<Modification>();
     mods3.add(mod3);
 
     List<Modification> mods4 = new ArrayList<Modification>();
@@ -745,7 +747,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     DeleteMsg delmsg = new DeleteMsg(op);
     int draftcn = 21;
 
-    String serviceId = "serviceid";
+    String baseDN = "dc=example,dc=com";
 
     // create a cookie
     MultiDomainServerState cookie =
@@ -754,26 +756,26 @@ public class SynchronizationMsgTest extends ReplicationTestCase
           "o=test2:000001210b6f21e904b100000002 000001210b6f21e904b200000002;");
 
     // Constructor test
-    ECLUpdateMsg msg1 = new ECLUpdateMsg(delmsg, cookie, serviceId, draftcn);
+    ECLUpdateMsg msg1 = new ECLUpdateMsg(delmsg, cookie, baseDN, draftcn);
     assertTrue(msg1.getCookie().equalsTo(cookie));
-    assertTrue(msg1.getServiceId().equalsIgnoreCase(serviceId));
-    assertTrue((msg1.getDraftChangeNumber()==draftcn));
+    assertTrue(msg1.getBaseDN().equalsIgnoreCase(baseDN));
+    assertEquals(msg1.getDraftChangeNumber(), draftcn);
     DeleteMsg delmsg2 = (DeleteMsg)msg1.getUpdateMsg();
-    assertTrue(delmsg.compareTo(delmsg2)==0);
+    assertEquals(delmsg.compareTo(delmsg2), 0);
 
     // Constructor test (with byte[])
     ECLUpdateMsg msg2 = new ECLUpdateMsg(msg1.getBytes(getCurrentVersion()));
     assertTrue(msg2.getCookie().equalsTo(msg2.getCookie()));
     assertTrue(msg2.getCookie().equalsTo(cookie));
-    assertTrue(msg2.getServiceId().equalsIgnoreCase(msg1.getServiceId()));
-    assertTrue(msg2.getServiceId().equalsIgnoreCase(serviceId));
-    assertTrue(msg2.getDraftChangeNumber()==(msg1.getDraftChangeNumber()));
-    assertTrue(msg2.getDraftChangeNumber()==draftcn);
+    assertTrue(msg2.getBaseDN().equalsIgnoreCase(msg1.getBaseDN()));
+    assertTrue(msg2.getBaseDN().equalsIgnoreCase(baseDN));
+    assertEquals(msg2.getDraftChangeNumber(), msg1.getDraftChangeNumber());
+    assertEquals(msg2.getDraftChangeNumber(), draftcn);
 
     DeleteMsg delmsg1 = (DeleteMsg)msg1.getUpdateMsg();
     delmsg2 = (DeleteMsg)msg2.getUpdateMsg();
-    assertTrue(delmsg2.compareTo(delmsg)==0);
-    assertTrue(delmsg2.compareTo(delmsg1)==0);
+    assertEquals(delmsg2.compareTo(delmsg), 0);
+    assertEquals(delmsg2.compareTo(delmsg1), 0);
   }
 
   @DataProvider(name="createServerStartData")
@@ -921,7 +923,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
   public void stopMsgTest() throws Exception
   {
     StopMsg msg = new StopMsg();
-    StopMsg newMsg = new StopMsg(msg.getBytes(getCurrentVersion()));
+    new StopMsg(msg.getBytes(getCurrentVersion()));
   }
 
   /**
@@ -1406,6 +1408,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     assertEquals(msg.getGenerationId(), newMsg.getGenerationId());
     assertTrue(msg.getGroupId() == newMsg.getGroupId());
   }
+
   /**
    * Test StartSessionMsg encoding and decoding.
    */
@@ -1431,9 +1434,9 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     msg.setLastDraftChangeNumber(lastDraftChangeNumber);
     msg.setECLRequestType(mode);
     msg.setOperationId(myopid);
-    Set<String> dns = new HashSet<String>();
     String dn1 = "cn=admin data";
     String dn2 = "cn=config";
+    Set<String> dns = new HashSet<String>();
     dns.add(dn1);
     dns.add(dn2);
     msg.setExcludedDNs(dns);
@@ -1441,16 +1444,17 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     StartECLSessionMsg newMsg = new StartECLSessionMsg(msg.getBytes(getCurrentVersion()));
     // test equality between the two copies
     assertEquals(msg.getChangeNumber(), newMsg.getChangeNumber());
-    assertTrue(msg.isPersistent() == newMsg.isPersistent());
-    assertTrue(msg.getFirstDraftChangeNumber() == newMsg.getFirstDraftChangeNumber());
+    assertEquals(msg.isPersistent(), newMsg.isPersistent());
+    assertEquals(msg.getFirstDraftChangeNumber(), newMsg
+        .getFirstDraftChangeNumber());
     assertEquals(msg.getECLRequestType(), newMsg.getECLRequestType());
     assertEquals(msg.getLastDraftChangeNumber(), newMsg.getLastDraftChangeNumber());
     assertTrue(
         msg.getCrossDomainServerState().equalsIgnoreCase(newMsg.getCrossDomainServerState()));
     assertTrue(
         msg.getOperationId().equalsIgnoreCase(newMsg.getOperationId()));
-    Set<String> dns2 = newMsg.getExcludedServiceIDs();
-    assertTrue(dns2.size()==2);
+    Set<String> dns2 = newMsg.getExcludedBaseDNs();
+    assertEquals(dns2.size(), 2);
     boolean dn1found=false,dn2found=false;
     for (String dn : dns2)
     {
@@ -1461,7 +1465,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     assertTrue(dn2found);
   }
 
-  int perfRep = 100000;
+  private int perfRep = 100000;
 
 
   @Test(enabled=false,dataProvider = "createAddData")
@@ -1473,7 +1477,6 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     long createmsgfromop = 0;
     long encodemsg = 0;
     long getbytes = 0;
-    long alld = 0;
     long setentryattr = 0;
     long buildnew = 0;
     long t1,t2,t3,t31,t4,t5,t6 = 0;
@@ -1537,8 +1540,6 @@ public class SynchronizationMsgTest extends ReplicationTestCase
       new AddMsg(bytes);
       t6 = System.nanoTime();
       buildnew += (t6 - t5);
-
-      alld += (t6 - t1);
     }
 
     System.out.println(
@@ -1571,7 +1572,6 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     long createmsgfromop = 0;
     long encodemsg = 0;
     long getbytes = 0;
-    long alld = 0;
     long setentryattr = 0;
     long buildnew = 0;
     long t1,t2,t3,t31,t4,t5,t6 = 0;
@@ -1617,8 +1617,6 @@ public class SynchronizationMsgTest extends ReplicationTestCase
       new ModifyMsg(bytes);
       t6 = System.nanoTime();
       buildnew += (t6 - t5);
-
-      alld += (t6 - t1);
     }
 
     System.out.println(
@@ -1651,7 +1649,6 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     long createmsgfromop = 0;
     long encodemsg = 0;
     long getbytes = 0;
-    long alld = 0;
     long setentryattr = 0;
     long buildnew = 0;
     long t1,t2,t3,t31,t4,t5,t6 = 0;
@@ -1693,8 +1690,6 @@ public class SynchronizationMsgTest extends ReplicationTestCase
       new DeleteMsg(bytes);
       t6 = System.nanoTime();
       buildnew += (t6 - t5);
-
-      alld += (t6 - t1);
     }
 
     System.out.println(

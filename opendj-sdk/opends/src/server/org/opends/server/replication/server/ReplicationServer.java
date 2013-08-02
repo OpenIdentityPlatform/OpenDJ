@@ -180,8 +180,8 @@ public final class ReplicationServer
   private final Object connectThreadLock = new Object();
   private long domainTicket = 0L;
 
-  /** ServiceIDs excluded for ECL. */
-  private Collection<String> excludedServiceIDs = new ArrayList<String>();
+  /** BaseDNs excluded for ECL. */
+  private Collection<String> excludedBaseDNs = new ArrayList<String>();
 
   /**
    * The weight affected to the replication server.
@@ -1631,12 +1631,12 @@ public final class ReplicationServer
 
   /**
    * Excluded a list of domain from eligibility computation.
-   * @param excludedServiceIDs the provided list of serviceIDs excluded from
+   * @param excludedBaseDNs the provided list of baseDNs excluded from
    *                          the computation of eligibleCN.
    */
-  public void disableEligibility(Set<String> excludedServiceIDs)
+  public void disableEligibility(Set<String> excludedBaseDNs)
   {
-    this.excludedServiceIDs = excludedServiceIDs;
+    this.excludedBaseDNs = excludedBaseDNs;
   }
 
   /**
@@ -1653,8 +1653,8 @@ public final class ReplicationServer
     ChangeNumber eligibleCN = null;
     for (ReplicationServerDomain domain : getReplicationServerDomains())
     {
-      if ((excludedServiceIDs != null) &&
-          excludedServiceIDs.contains(domain.getBaseDn()))
+      if ((excludedBaseDNs != null) &&
+          excludedBaseDNs.contains(domain.getBaseDn()))
         continue;
 
       ChangeNumber domainEligibleCN = domain.getEligibleCN();
@@ -1769,12 +1769,12 @@ public final class ReplicationServer
    *
    * @param  crossDomainEligibleCN The provided crossDomainEligibleCN used as
    *                               the upper limit for the lastDraftCN
-   * @param  excludedServiceIDs  The serviceIDs that are excluded from the ECL.
+   * @param  excludedBaseDNs       The baseDNs that are excluded from the ECL.
    * @return                       The first and last draftCN.
    * @throws DirectoryException    When it happens.
    */
   public int[] getECLDraftCNLimits(ChangeNumber crossDomainEligibleCN,
-      Set<String> excludedServiceIDs) throws DirectoryException
+      Set<String> excludedBaseDNs) throws DirectoryException
   {
     /* The content of the DraftCNdb depends on the SEARCH operations done before
      * requesting the DraftCN. If no operations, DraftCNdb is empty.
@@ -1830,13 +1830,13 @@ public final class ReplicationServer
       changeNumberForLastSeqnum = draftCNDbH.getChangeNumber(lastDraftCN);
 
       // Get the domain associated with the current last DraftCN
-      domainForLastSeqnum = draftCNDbH.getServiceID(lastDraftCN);
+      domainForLastSeqnum = draftCNDbH.getBaseDN(lastDraftCN);
     }
 
     // Domain by domain
     for (ReplicationServerDomain rsd : getReplicationServerDomains())
     {
-      if (excludedServiceIDs.contains(rsd.getBaseDn()))
+      if (excludedBaseDNs.contains(rsd.getBaseDn()))
         continue;
 
       // for this domain, have the state in the replchangelog
@@ -1894,19 +1894,19 @@ public final class ReplicationServer
 
   /**
    * Returns the last (newest) cookie value.
-   * @param excludedServiceIDs The list of serviceIDs excluded from ECL.
+   * @param excludedBaseDNs The list of baseDNs excluded from ECL.
    * @return the last cookie value.
    */
-  public MultiDomainServerState getLastECLCookie(Set<String> excludedServiceIDs)
+  public MultiDomainServerState getLastECLCookie(Set<String> excludedBaseDNs)
   {
-    disableEligibility(excludedServiceIDs);
+    disableEligibility(excludedBaseDNs);
 
     MultiDomainServerState result = new MultiDomainServerState();
     // Initialize start state for  all running domains with empty state
     for (ReplicationServerDomain rsd : getReplicationServerDomains())
     {
-      if ((excludedServiceIDs != null)
-          && (excludedServiceIDs.contains(rsd.getBaseDn())))
+      if ((excludedBaseDNs != null)
+          && (excludedBaseDNs.contains(rsd.getBaseDn())))
         continue;
 
       if (rsd.getDbServerState().isEmpty())

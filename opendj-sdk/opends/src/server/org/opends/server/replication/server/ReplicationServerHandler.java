@@ -54,8 +54,8 @@ import org.opends.server.types.*;
 public class ReplicationServerHandler extends ServerHandler
 {
 
-  /*
-   * Properties filled only if remote server is a RS
+  /**
+   * Properties filled only if remote server is a RS.
    */
   private String serverAddressURL;
   /**
@@ -87,7 +87,7 @@ public class ReplicationServerHandler extends ServerHandler
       serverAddressURL =
         session.getRemoteAddress() + ":" + serverURL.substring(separator +
             1);
-      setServiceIdAndDomain(inReplServerStartMsg.getBaseDn(), false);
+      setBaseDNAndDomain(inReplServerStartMsg.getBaseDn(), false);
       setInitialServerState(inReplServerStartMsg.getServerState());
       setSendWindowSize(inReplServerStartMsg.getWindowSize());
       if (protocolVersion > ProtocolVersion.REPLICATION_PROTOCOL_V1)
@@ -117,7 +117,7 @@ public class ReplicationServerHandler extends ServerHandler
   private ReplServerStartMsg sendStartToRemote() throws IOException
   {
     ReplServerStartMsg outReplServerStartMsg = new ReplServerStartMsg(
-        replicationServerId, replicationServerURL, getServiceId(),
+        replicationServerId, replicationServerURL, getBaseDN(),
         maxRcvWindow, replicationServerDomain.getDbServerState(),
         localGenerationId, sslEncryption,
         getLocalGroupId(), replicationServerDomain.getReplicationServer()
@@ -150,17 +150,17 @@ public class ReplicationServerHandler extends ServerHandler
   /**
    * Connect the hosting RS to the RS represented by THIS handler
    * on an outgoing connection.
-   * @param serviceId The serviceId (usually baseDn).
+   * @param baseDN The baseDN
    * @param sslEncryption The sslEncryption requested to the remote RS.
    * @throws DirectoryException when an error occurs.
    */
-  public void connect(String serviceId, boolean sslEncryption)
+  public void connect(String baseDN, boolean sslEncryption)
   throws DirectoryException
   {
     // we are the initiator and decides of the encryption
     this.sslEncryption = sslEncryption;
 
-    setServiceIdAndDomain(serviceId, false);
+    setBaseDNAndDomain(baseDN, false);
 
     localGenerationId = replicationServerDomain.getGenerationId();
     oldGenerationId = localGenerationId;
@@ -315,7 +315,6 @@ public class ReplicationServerHandler extends ServerHandler
    */
   public void startFromRemoteRS(ReplServerStartMsg inReplServerStartMsg)
   {
-    //
     localGenerationId = -1;
     oldGenerationId = -100;
     try
@@ -581,7 +580,7 @@ public class ReplicationServerHandler extends ServerHandler
            */
           Message message = WARN_BAD_GENERATION_ID_FROM_RS.get(
                   serverId, session.getReadableRemoteAddress(), generationId,
-                  getServiceId(), getReplicationServerId(), localGenerationId);
+                  getBaseDN(), getReplicationServerId(), localGenerationId);
           logError(message);
         }
       }
@@ -767,8 +766,7 @@ public class ReplicationServerHandler extends ServerHandler
     ArrayList<Attribute> attributes = super.getMonitorData();
 
     // Add the specific RS ones
-    attributes.add(Attributes.create("Replication-Server",
-        serverURL));
+    attributes.add(Attributes.create("Replication-Server", serverURL));
 
     MonitorData md = replicationServerDomain.getDomainMonitorData();
 

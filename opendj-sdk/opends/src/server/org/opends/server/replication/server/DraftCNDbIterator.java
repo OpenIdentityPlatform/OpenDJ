@@ -23,15 +23,15 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.replication.server;
 
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
+import static org.opends.server.loggers.debug.DebugLogger.*;
 
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.common.ChangeNumber;
-import org.opends.server.replication.server.DraftCNDB.*;
+import org.opends.server.replication.server.DraftCNDB.DraftCNDBCursor;
 import org.opends.server.types.DebugLogLevel;
 
 import com.sleepycat.je.DatabaseException;
@@ -68,14 +68,15 @@ public class DraftCNDbIterator
   }
 
   /**
-   * Getter for the serviceID field.
+   * Getter for the baseDN field.
+   *
    * @return The service ID.
    */
-  public String getServiceID()
+  public String getBaseDN()
   {
     try
     {
-      return this.draftCNDbCursor.currentServiceID();
+      return this.draftCNDbCursor.currentBaseDN();
     }
     catch(Exception e)
     {
@@ -147,6 +148,7 @@ public class DraftCNDbIterator
    * Release the cursor in case the iterator was badly used and releaseCursor
    * was never called.
    */
+  @Override
   protected void finalize()
   {
     releaseCursor();
