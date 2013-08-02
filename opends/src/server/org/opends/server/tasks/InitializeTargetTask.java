@@ -23,32 +23,24 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS
  */
 package org.opends.server.tasks;
-import org.opends.server.replication.plugin.LDAPReplicationDomain;
-
-import org.opends.messages.Message;
-import org.opends.messages.TaskMessages;
-import org.opends.server.types.ResultCode;
-
-import org.opends.messages.MessageBuilder;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.core.DirectoryServer.getAttributeType;
+import static org.opends.server.core.DirectoryServer.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
-
-import org.opends.server.loggers.debug.DebugTracer;
 
 import java.util.List;
 
+import org.opends.messages.Message;
+import org.opends.messages.MessageBuilder;
+import org.opends.messages.TaskMessages;
 import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskState;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.DN;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.Entry;
-
+import org.opends.server.loggers.debug.DebugTracer;
+import org.opends.server.replication.plugin.LDAPReplicationDomain;
+import org.opends.server.types.*;
 
 /**
  * This class provides an implementation of a Directory Server task that can
@@ -70,6 +62,7 @@ public class InitializeTargetTask extends Task
   /**
    * {@inheritDoc}
    */
+  @Override
   public Message getDisplayName() {
     return TaskMessages.INFO_TASK_INITIALIZE_TARGET_NAME.get();
   }
@@ -123,11 +116,12 @@ public class InitializeTargetTask extends Task
   /**
    * {@inheritDoc}
    */
+  @Override
   protected TaskState runTask()
   {
     if (debugEnabled())
-      TRACER.debugInfo("[IE] InitializeTargetTask is starting on domain: "+
-          domain.getServiceID());
+      TRACER.debugInfo("[IE] InitializeTargetTask is starting on domain: "
+          + domain.getBaseDNString());
 
     try
     {

@@ -27,6 +27,11 @@
  */
 package org.opends.server.replication.server;
 
+import static org.opends.server.TestCaseUtils.*;
+import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.testng.Assert.*;
+
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -55,11 +60,6 @@ import org.opends.server.util.StaticUtils;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-
-import static org.opends.server.TestCaseUtils.*;
-import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.testng.Assert.*;
 
 /**
  * Test Server part of the assured feature in both safe data and
@@ -595,7 +595,7 @@ public class AssuredReplicationServerTest
 
     /**
      * Creates a fake replication domain (DS)
-     * @param serviceID The base dn used at connection to RS
+     * @param baseDN The base dn used at connection to RS
      * @param serverID our server id
      * @param generationId the generation id we use at connection to real RS
      * @param groupId our group id
@@ -608,7 +608,7 @@ public class AssuredReplicationServerTest
      * @throws org.opends.server.config.ConfigException
      */
     public FakeReplicationDomain(
-      String serviceID,
+      String baseDN,
       int serverID,
       long generationId,
       byte groupId,
@@ -619,7 +619,7 @@ public class AssuredReplicationServerTest
       int scenario,
       ServerState serverState) throws ConfigException
     {
-      super(serviceID, serverID, serverState);
+      super(baseDN, serverID, serverState);
       this.generationId = generationId;
       setGroupId(groupId);
       setAssured(assured);
@@ -769,7 +769,8 @@ public class AssuredReplicationServerTest
     public void sendNewFakeUpdate(boolean useAssured) throws TimeoutException
     {
       // Create a new delete update message (the simplest to create)
-      DeleteMsg delMsg = new DeleteMsg(getServiceID(), gen.newChangeNumber(),
+      DeleteMsg delMsg =
+          new DeleteMsg(getBaseDNString(), gen.newChangeNumber(),
         UUID.randomUUID().toString());
 
       // Send it (this uses the defined assured conf at constructor time)

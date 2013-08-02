@@ -23,30 +23,25 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS
  */
 package org.opends.server.tasks;
+
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.core.DirectoryServer.getAttributeType;
-
-import org.opends.server.replication.plugin.LDAPReplicationDomain;
-import org.opends.server.replication.service.ReplicationDomain;
-
+import static org.opends.server.core.DirectoryServer.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
 
 import java.util.List;
 
+import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 import org.opends.messages.TaskMessages;
-import org.opends.messages.Message;
 import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskState;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.DN;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.Entry;
-import org.opends.server.types.ResultCode;
+import org.opends.server.replication.plugin.LDAPReplicationDomain;
+import org.opends.server.replication.service.ReplicationDomain;
+import org.opends.server.types.*;
 
 /**
  * This class provides an implementation of a Directory Server task that can
@@ -63,18 +58,10 @@ public class SetGenerationIdTask extends Task
   private ReplicationDomain domain        = null;
   private Long generationId = null;
 
-  private static final void debugInfo(String s)
-  {
-    if (debugEnabled())
-    {
-      // System.out.println(Message.raw(Category.SYNC, Severity.NOTICE, s));
-      TRACER.debugInfo(s);
-    }
-  }
-
   /**
    * {@inheritDoc}
    */
+  @Override
   public Message getDisplayName() {
     return TaskMessages.INFO_TASK_SET_GENERATION_ID_NAME.get();
   }
@@ -82,10 +69,9 @@ public class SetGenerationIdTask extends Task
   /**
    * {@inheritDoc}
    */
-  @Override public void initializeTask() throws DirectoryException
+  @Override
+  public void initializeTask() throws DirectoryException
   {
-    List<Attribute> attrList;
-
     if (TaskState.isDone(getTaskState()))
     {
       return;
@@ -95,15 +81,14 @@ public class SetGenerationIdTask extends Task
     Entry taskEntry = getTaskEntry();
 
     // Retrieves the eventual generation-ID
-    AttributeType typeNewValue;
-    typeNewValue =
+    AttributeType typeNewValue =
       getAttributeType(ATTR_TASK_SET_GENERATION_ID_NEW_VALUE, true);
-    attrList = taskEntry.getAttribute(typeNewValue);
+    List<Attribute> attrList = taskEntry.getAttribute(typeNewValue);
     if ((attrList != null) && !attrList.isEmpty())
     {
       try
       {
-        generationId = new Long(TaskUtils.getSingleValueString(attrList));
+        generationId = Long.parseLong(TaskUtils.getSingleValueString(attrList));
       }
       catch(Exception e)
       {
@@ -116,8 +101,7 @@ public class SetGenerationIdTask extends Task
     }
 
     // Retrieves the replication domain
-    AttributeType typeDomainBase;
-    typeDomainBase =
+    AttributeType typeDomainBase =
       getAttributeType(ATTR_TASK_SET_GENERATION_ID_DOMAIN_DN, true);
 
     attrList = taskEntry.getAttribute(typeDomainBase);
@@ -140,10 +124,14 @@ public class SetGenerationIdTask extends Task
   /**
    * {@inheritDoc}
    */
+  @Override
   protected TaskState runTask()
   {
-    debugInfo("setGenerationIdTask is starting on domain%s" +
-        domain.getServiceID());
+    if (debugEnabled())
+    {
+      TRACER.debugInfo("setGenerationIdTask is starting on domain %s"
+              + domain.getBaseDNString());
+    }
 
     try
     {
@@ -155,7 +143,10 @@ public class SetGenerationIdTask extends Task
       return TaskState.STOPPED_BY_ERROR;
     }
 
-    debugInfo("setGenerationIdTask is ending SUCCESSFULLY");
+    if (debugEnabled())
+    {
+      TRACER.debugInfo("setGenerationIdTask is ending SUCCESSFULLY");
+    }
     return TaskState.COMPLETED_SUCCESSFULLY;
   }
 }

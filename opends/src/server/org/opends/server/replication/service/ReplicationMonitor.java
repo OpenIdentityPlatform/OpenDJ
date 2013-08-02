@@ -27,19 +27,14 @@
  */
 package org.opends.server.replication.service;
 
-import java.util.Collection;
-
 import java.util.ArrayList;
-
+import java.util.Collection;
 import java.util.Map;
+
 import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeBuilder;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValues;
-import org.opends.server.types.Attributes;
+import org.opends.server.types.*;
 
 /**
  * Class used to generate monitoring information for the replication.
@@ -77,7 +72,7 @@ public class ReplicationMonitor extends MonitorProvider<MonitorProviderCfg>
   {
     return "Directory server DS(" + domain.getServerId() + ") "
         + domain.getLocalUrl() + ",cn="
-        + domain.getServiceID().replace(',', '_').replace('=', '_')
+        + domain.getBaseDNString().replace(',', '_').replace('=', '_')
         + ",cn=Replication";
   }
 
@@ -95,7 +90,7 @@ public class ReplicationMonitor extends MonitorProvider<MonitorProviderCfg>
     ArrayList<Attribute> attributes = new ArrayList<Attribute>();
 
     /* get the base dn */
-    Attribute attr = Attributes.create("domain-name", domain.getServiceID());
+    Attribute attr = Attributes.create("domain-name", domain.getBaseDNString());
     attributes.add(attr);
 
     /* get the base dn */

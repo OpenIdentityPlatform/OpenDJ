@@ -2331,7 +2331,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
         {
           // This exception may only be raised if assured replication is
           // enabled
-          Message errorMsg = NOTE_DS_ACK_TIMEOUT.get(getServiceID(),
+          Message errorMsg = NOTE_DS_ACK_TIMEOUT.get(getBaseDNString(),
             Long.toString(getAssuredTimeout()), msg.toString());
           logError(errorMsg);
         }
