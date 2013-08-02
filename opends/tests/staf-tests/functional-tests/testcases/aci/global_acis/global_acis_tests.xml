@@ -271,6 +271,30 @@
                   'expectedResult'     : '1' }
             </call>
             
+            <call function="'searchStringForSubstring'">
+                { 'returnString'       : returnString ,
+                  'testString'         : 'structuralObjectClass:' ,
+                  'expectedResult'     : '1' }
+            </call>
+        
+            <call function="'searchStringForSubstring'">
+                { 'returnString'       : returnString ,
+                  'testString'         : 'numSubordinates:' ,
+                  'expectedResult'     : '1' }
+            </call>
+            
+            <call function="'searchStringForSubstring'">
+                { 'returnString'       : returnString ,
+                  'testString'         : 'hasSubordinates:' ,
+                  'expectedResult'     : '1' }
+            </call>
+
+            <call function="'searchStringForSubstring'">
+                { 'returnString'       : returnString ,
+                  'testString'         : 'etag:' ,
+                  'expectedResult'     : '1' }
+            </call>
+
             <call function="'checktestString'">
                 { 'returnString'       : returnString ,
                   'expectedString'     : 'dn: uid=scarter,ou=People,ou=aci branch,o=ACI Tests' }
@@ -632,6 +656,12 @@
             <call function="'searchStringForSubstring'">
                 { 'returnString'       : returnString ,
                   'testString'         : 'vendorVersion:' ,
+                  'expectedResult'     : '1' }
+            </call>
+            
+            <call function="'searchStringForSubstring'">
+                { 'returnString'       : returnString ,
+                  'testString'         : 'supportedLDAPVersion:' ,
                   'expectedResult'     : '1' }
             </call>
             

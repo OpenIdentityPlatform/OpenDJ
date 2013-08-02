@@ -27,7 +27,361 @@
  !      Portions Copyright 2011-2013 ForgeRock AS.
  ! -->
 <stax>
-                        
+
+
+  <!--- Test Case information
+  #@TestMarker          Replication ACI Tests
+  #@TestName            Replication: ACI: Read cn=changelog with default global aci
+  #@TestID              Read cn=changelog
+  #@TestPurpose         With default ACI check readabilty of cn=changelog as DM and user
+  #@TestPreamble
+  #@TestSteps           Binding as DM, read cn=changelog (expect SUCCESS)
+  #@TestSteps           Binding as user, read cn=changelog (expect ERROR 50)
+  #@TestPostamble
+  #@TestResult          Success if cn=changelog cannot be read by user
+  -->
+  <function name="replication_aci_001" scope="local">
+    <testcase name="getTestCaseName('cn=changelog readabilty with default aci')">                     
+      <sequence> 
+        <try>
+          <sequence>
+       
+            <call function="'testCase_Preamble'"/>
+
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <message>
+              'Replication: ACI: Admin modify an entry to populate cn=changelog'
+            </message>
+
+            <call function="'modifyAnAttribute'">
+              { 'location'          : masterHost,
+                'dsPath'            : masterPath,
+                'dsInstanceHost'    : masterHost,
+                'dsInstancePort'    : master.getPort(),
+                'dsInstanceDn'      : master.getRootDn(),
+                'dsInstancePswd'    : master.getRootPwd(),
+                'DNToModify'        : 'uid=scarter,ou=People,%s' % synchroSuffix ,
+                'attributeName'     : 'roomnumber',
+                'newAttributeValue' : '5000',
+                'changetype'        : 'replace'
+              }
+            </call>
+
+            <message>
+              'Replication: ACI: Admin can read cn=changelog'
+            </message>
+            
+            <call function="'ldapSearchWithScript'">
+              {
+                'location'         : masterHost ,
+                'dsPath'           : masterPath ,
+                'dsInstanceHost'   : masterHost ,
+                'dsInstancePort'   : master.getPort() ,
+                'dsInstanceDn'     : master.getRootDn() ,
+                'dsInstancePswd'   : master.getRootPwd() ,
+                'dsBaseDN'         : 'cn=changelog' ,
+                'dsFilter'         : 'objectClass=*'
+              }
+            </call> 
+            <script>
+              returnString = STAXResult[0][1]
+            </script>
+
+            <message>
+              'Replication: ACI: Checking dn: changeNumber=1,cn=changelog'
+            </message>
+            <call function="'searchString'">
+              { 'returnString'   : returnString,
+                'expectedString' : 'dn: changeNumber=1,cn=changelog'
+              }
+            </call>
+            <call function="'searchString'">
+              { 'returnString'   : returnString,
+                'expectedString' : 'targetDN: uid=scarter,ou=people,o=example'
+              }
+            </call>
+            <message>returnString</message>
+            
+            <message>
+              'Replication: ACI: User cannot read cn=changelog'
+            </message>
+
+            <call function="'ldapSearchWithScript'">
+              {
+                'location'         : masterHost ,
+                'dsPath'           : masterPath ,
+                'dsInstanceHost'   : masterHost ,
+                'dsInstancePort'   : master.getPort() ,
+                'dsInstanceDn'     : 'uid=sholmes,ou=People,%s' % synchroSuffix ,
+                'dsInstancePswd'   : 'elementary' ,
+                'dsBaseDN'         : 'cn=changelog' ,
+                'dsFilter'         : 'objectClass=*'
+              }
+            </call> 
+            <script>
+              returnString = STAXResult[0][1]
+            </script>
+
+            <message>
+              'Replication: ACI: Checking dn: changeNumber=1,cn=changelog'
+            </message>
+            <call function="'searchString'">
+              { 'returnString'   : returnString,
+                'expectedString' : 'dn: changeNumber=1,cn=changelog'
+              }
+            </call>
+            <call function="'searchString'">
+              { 'returnString'   : returnString,
+                'expectedString' : 'targetDN: uid=scarter,ou=people,o=example',
+                'expectedRC'     : 1
+              }
+            </call>
+
+            <message>
+              'Replication: ACI: Anonymous cannot read cn=changelog'
+            </message>
+
+            <call function="'ldapSearchWithScript'">
+              {
+                'location'         : masterHost ,
+                'dsPath'           : masterPath ,
+                'dsInstanceHost'   : masterHost ,
+                'dsInstancePort'   : master.getPort() ,
+                'dsBaseDN'         : 'cn=changelog' ,
+                'dsFilter'         : 'objectClass=*'
+              }
+            </call> 
+            <script>
+              returnString = STAXResult[0][1]
+            </script>
+
+            <message>
+              'Replication: ACI: Checking dn: changeNumber=1,cn=changelog'
+            </message>
+            <call function="'searchString'">
+              { 'returnString'   : returnString,
+                'expectedString' : 'dn: changeNumber=1,cn=changelog'
+              }
+            </call>
+            <call function="'searchString'">
+              { 'returnString'   : returnString,
+                'expectedString' : 'targetDN: uid=scarter,ou=people,o=example',
+                'expectedRC'     : 1
+              }
+            </call>
+
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
+  <!--- Test Case information
+  #@TestMarker          Replication ACI Tests
+  #@TestName            Replication: ACI: Read ds-sync-hist attribute with default global aci
+  #@TestID              Read ds-sync-hist attribute
+  #@TestPurpose         With default ACI check readabilty of ds-sync-hist attribute as DM and user
+  #@TestPreamble
+  #@TestSteps           Binding as DM, read ds-sync-hist attribute (expect SUCCESS)
+  #@TestSteps           Binding as user, read ds-sync-hist attribute (expect ERROR 50)
+  #@TestPostamble
+  #@TestResult          Success if ds-sync-hist attribute cannot be read by user
+  -->
+  <function name="replication_aci_002" scope="local">
+    <testcase name="getTestCaseName('ds-sync-hist attribute readability with default aci')">                     
+      <sequence> 
+        <try>
+          <sequence>
+       
+            <call function="'testCase_Preamble'"/>
+
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <message>
+              'Replication: ACI: Admin modify some entries to generate ds-sync-hist attribtes'
+            </message>
+            
+            <call function="'modifyAnAttribute'">
+              { 'location'          : masterHost,
+                'dsPath'            : masterPath,
+                'dsInstanceHost'    : masterHost,
+                'dsInstancePort'    : master.getPort(),
+                'dsInstanceDn'      : master.getRootDn(),
+                'dsInstancePswd'    : master.getRootPwd(),
+                'DNToModify'        : 'uid=sholmes,ou=People,%s' % synchroSuffix ,
+                'attributeName'     : 'roomnumber',
+                'newAttributeValue' : '5000',
+                'changetype'        : 'replace'
+              }
+            </call>
+            
+            <call function="'modifyAnAttribute'">
+              { 'location'          : masterHost,
+                'dsPath'            : masterPath,
+                'dsInstanceHost'    : masterHost,
+                'dsInstancePort'    : master.getPort(),
+                'dsInstanceDn'      : master.getRootDn(),
+                'dsInstancePswd'    : master.getRootPwd(),
+                'DNToModify'        : 'uid=dward,ou=People,%s' % synchroSuffix ,
+                'attributeName'     : 'roomnumber',
+                'newAttributeValue' : '5000',
+                'changetype'        : 'replace'
+              }
+            </call>
+
+            <message>
+              'Replication: ACI: Admin can read ds-sync-hist attribute'
+            </message>
+            
+            <call function="'ldapSearchWithScript'">
+              {
+                'location'         : masterHost ,
+                'dsPath'           : masterPath ,
+                'dsInstanceHost'   : masterHost ,
+                'dsInstancePort'   : master.getPort() ,
+                'dsInstanceDn'     : master.getRootDn() ,
+                'dsInstancePswd'   : master.getRootPwd() ,
+                'dsBaseDN'         : 'uid=dward,ou=People,%s' % synchroSuffix ,
+                'dsFilter'         : 'objectClass=*' ,
+                'dsAttributes'     : 'ds-sync-hist'
+              }
+            </call> 
+            <script>
+              returnString = STAXResult[0][1]
+            </script>
+            
+            <message>
+              'Replication: ACI: Checking ds-sync-hist'
+            </message>
+            <call function="'searchString'">
+              { 'returnString'   : returnString,
+                'expectedString' : 'ds-sync-hist:'
+              }
+            </call>
+
+            <message>
+              'Replication: ACI: User cannot read ds-sync-hist attribute on his own entry'
+            </message>
+
+            <call function="'ldapSearchWithScript'">
+              {
+                'location'         : masterHost ,
+                'dsPath'           : masterPath ,
+                'dsInstanceHost'   : masterHost ,
+                'dsInstancePort'   : master.getPort() ,
+                'dsInstanceDn'     : 'uid=sholmes,ou=People,%s' % synchroSuffix ,
+                'dsInstancePswd'   : 'elementary' ,
+                'dsBaseDN'         : 'uid=sholmes,ou=People,%s' % synchroSuffix ,
+                'dsFilter'         : 'objectClass=*' ,
+                'dsAttributes'     : 'ds-sync-hist'
+              }
+            </call> 
+            <script>
+              returnString = STAXResult[0][1]
+            </script>
+
+            <message>
+              'Replication: ACI: Checking ds-sync-hist'
+            </message>
+            <call function="'searchString'">
+              { 'returnString'   : returnString,
+                'expectedString' : 'ds-sync-hist:',
+                'expectedRC'     : 1
+              }
+            </call>
+
+            <message>
+              'Replication: ACI: User cannot read ds-sync-hist attribute on another user entry'
+            </message>
+
+            <call function="'ldapSearchWithScript'">
+              {
+                'location'         : masterHost ,
+                'dsPath'           : masterPath ,
+                'dsInstanceHost'   : masterHost ,
+                'dsInstancePort'   : master.getPort() ,
+                'dsInstanceDn'     : 'uid=sholmes,ou=People,%s' % synchroSuffix ,
+                'dsInstancePswd'   : 'elementary' ,
+                'dsBaseDN'         : 'uid=dward,ou=People,%s' % synchroSuffix ,
+                'dsFilter'         : 'objectClass=*' ,
+                'dsAttributes'     : 'ds-sync-hist'
+              }
+            </call> 
+            <script>
+              returnString = STAXResult[0][1]
+            </script>
+
+            <message>
+              'Replication: ACI: Checking ds-sync-hist'
+            </message>
+            <call function="'searchString'">
+              { 'returnString'   : returnString,
+                'expectedString' : 'ds-sync-hist:',
+                'expectedRC'     : 1
+              }
+            </call>
+
+            <message>
+              'Replication: ACI: Anonymous cannot read ds-sync-hist attribute'
+            </message>
+
+            <call function="'ldapSearchWithScript'">
+              {
+                'location'         : masterHost ,
+                'dsPath'           : masterPath ,
+                'dsInstanceHost'   : masterHost ,
+                'dsInstancePort'   : master.getPort() ,
+                'dsBaseDN'         : 'uid=dward,ou=People,%s' % synchroSuffix ,
+                'dsFilter'         : 'objectClass=*' ,
+                'dsAttributes'     : 'ds-sync-hist'
+              }
+            </call> 
+            <script>
+              returnString = STAXResult[0][1]
+            </script>
+            
+            <message>
+              'Replication: ACI: Checking ds-sync-hist'
+            </message>
+            <call function="'searchString'">
+              { 'returnString'   : returnString,
+                'expectedString' : 'ds-sync-hist:',
+                'expectedRC'     : 1
+              }
+            </call>
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
   <!--- Test Case information
   #@TestMarker          Replication ACI Tests
   #@TestName            Replication: ACI: Add entry with ACI
@@ -43,7 +397,7 @@
   #@TestResult          Success if the servers synchronised and the aci
                         correctly applied after replication
   -->
-  <function name="replication_aci_001" scope="local">
+  <function name="replication_aci_003" scope="local">
     <testcase name="getTestCaseName('Add entry with ACI')">                     
       <sequence> 
         <try>
@@ -191,7 +545,7 @@
   #@TestResult          Success if the servers synchronised and the aci
                         correctly applied after replication
   -->
-  <function name="replication_aci_002" scope="local">
+  <function name="replication_aci_004" scope="local">
     <testcase name="getTestCaseName('Modify_add ACI')">                     
       <sequence> 
         <try>
@@ -370,7 +724,7 @@
   #@TestResult          Success if the servers synchronised and the aci
                         correctly applied after replication
   -->
-  <function name="replication_aci_003" scope="local">
+  <function name="replication_aci_005" scope="local">
     <testcase name="getTestCaseName('Modify_replace ACI target')">                     
       <sequence> 
         <try>
@@ -530,7 +884,7 @@
   #@TestResult          Success if the servers synchronised and the aci
                         correctly applied after replication
   -->
-  <function name="replication_aci_004" scope="local">
+  <function name="replication_aci_006" scope="local">
     <testcase name="getTestCaseName('Modify_replace ACI permission')">                     
       <sequence> 
         <try>
@@ -688,7 +1042,7 @@
   #@TestResult          Success if the servers synchronised and the aci
                         correctly applied after replication
   -->
-  <function name="replication_aci_005" scope="local">
+  <function name="replication_aci_007" scope="local">
     <testcase name="getTestCaseName('Modify_replace ACI bind rule')">                     
       <sequence> 
         <try>
@@ -863,7 +1217,7 @@
   #@TestResult          Success if the servers synchronised and the aci
                         correctly applied after replication
   -->
-  <function name="replication_aci_006" scope="local">
+  <function name="replication_aci_008" scope="local">
     <testcase name="getTestCaseName('Bypass-acl privilege')">                     
       <sequence> 
         <try>
@@ -1017,7 +1371,7 @@
   #@TestResult          Success if the servers synchronised and the aci
                         correctly applied after replication
   -->
-  <function name="replication_aci_007" scope="local">
+  <function name="replication_aci_009" scope="local">
     <testcase name="getTestCaseName('Modify_delete ACI')">                     
       <sequence> 
         <try>
