@@ -27,7 +27,7 @@
  */
 package org.opends.server.replication.server;
 
-import static org.opends.server.util.StaticUtils.getBytes;
+import static org.opends.server.util.StaticUtils.*;
 
 import java.io.UnsupportedEncodingException;
 
@@ -45,21 +45,20 @@ public class DraftCNData extends DatabaseEntry
 
   private static final long serialVersionUID = 1L;
 
-  String value;
-  String serviceID;
-  ChangeNumber changeNumber;
+  private String value;
+  private String baseDN;
+  private ChangeNumber changeNumber;
 
   /**
    * Creates a record to be stored in the DraftCNDB.
    * @param value The value (cookie).
-   * @param serviceID The serviceID (domain DN).
+   * @param baseDN The baseDN (domain DN).
    * @param changeNumber The replication change number.
    */
-  public DraftCNData(String value,
-                     String serviceID, ChangeNumber changeNumber)
+  public DraftCNData(String value, String baseDN, ChangeNumber changeNumber)
   {
     String record = value
-                   + FIELD_SEPARATOR + serviceID
+                   + FIELD_SEPARATOR + baseDN
                    + FIELD_SEPARATOR + changeNumber;
     setData(getBytes(record));
   }
@@ -88,7 +87,7 @@ public class DraftCNData extends DatabaseEntry
 
       String[] str = stringData.split(FIELD_SEPARATOR, 3);
       value = str[0];
-      serviceID = str[1];
+      baseDN = str[1];
       changeNumber = new ChangeNumber(str[2]);
     }
     catch (UnsupportedEncodingException e)
@@ -114,15 +113,15 @@ public class DraftCNData extends DatabaseEntry
 
   /**
    * Getter for the service ID.
-   * @return The serviceID..
+   * @return The baseDN
    * @throws Exception when a problem occurs.
    */
-  public String getServiceID()
+  public String getBaseDN()
   throws Exception
   {
     if (value == null)
       this.decodeData(this.getData());
-    return this.serviceID;
+    return this.baseDN;
   }
 
   /**
@@ -142,6 +141,7 @@ public class DraftCNData extends DatabaseEntry
    * Provide a string representation of these data.
    * @return the string representation of these data.
    */
+  @Override
   public String toString()
   {
     StringBuilder buffer = new StringBuilder();
@@ -156,7 +156,7 @@ public class DraftCNData extends DatabaseEntry
   public void toString(StringBuilder buffer)
   {
     buffer.append("DraftCNData : [value=").append(value);
-    buffer.append("] [serviceID=").append(serviceID);
+    buffer.append("] [serviceID=").append(baseDN);
     buffer.append("] [changeNumber=").append(changeNumber).append("]");
   }
 }

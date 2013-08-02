@@ -26,17 +26,16 @@
  *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.replication.server;
-import org.opends.messages.Message;
 
-import static org.opends.server.loggers.ErrorLogger.logError;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 import static org.opends.messages.ReplicationMessages.*;
+import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.util.StaticUtils.*;
 
 import java.net.SocketException;
 import java.util.NoSuchElementException;
 
+import org.opends.messages.Message;
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.common.ServerStatus;
@@ -94,6 +93,7 @@ public class ServerWriter extends DirectoryThread
    * Loops waiting for changes from the ReplicationServerDomain and forward them
    * to the other servers
    */
+  @Override
   public void run()
   {
     Message errMessage = null;
@@ -138,7 +138,7 @@ public class ServerWriter extends DirectoryThread
               logError(WARN_IGNORING_UPDATE_TO_DS_BADGENID.get(
                   handler.getReplicationServerId(),
                   update.getChangeNumber().toString(),
-                  handler.getServiceId(), handler.getServerId(),
+                  handler.getBaseDN(), handler.getServerId(),
                   session.getReadableRemoteAddress(),
                   handler.getGenerationId(),
                   referenceGenerationId));
@@ -146,7 +146,7 @@ public class ServerWriter extends DirectoryThread
               logError(WARN_IGNORING_UPDATE_TO_DS_FULLUP.get(
                   handler.getReplicationServerId(),
                   update.getChangeNumber().toString(),
-                  handler.getServiceId(), handler.getServerId(),
+                  handler.getBaseDN(), handler.getServerId(),
                   session.getReadableRemoteAddress()));
             continue;
           }
@@ -165,7 +165,7 @@ public class ServerWriter extends DirectoryThread
                 WARN_IGNORING_UPDATE_TO_RS.get(
                     handler.getReplicationServerId(),
                     update.getChangeNumber().toString(),
-                    handler.getServiceId(),
+                    handler.getBaseDN(),
                     handler.getServerId(),
                     session.getReadableRemoteAddress(),
                     handler.getGenerationId(),
@@ -204,13 +204,13 @@ public class ServerWriter extends DirectoryThread
       {
         errMessage = ERR_DS_BADLY_DISCONNECTED.get(
             handler.getReplicationServerId(), handler.getServerId(),
-            session.getReadableRemoteAddress(), handler.getServiceId());
+            session.getReadableRemoteAddress(), handler.getBaseDN());
       }
       else
       {
         errMessage = ERR_RS_BADLY_DISCONNECTED.get(
             handler.getReplicationServerId(), handler.getServerId(),
-            session.getReadableRemoteAddress(), handler.getServiceId());
+            session.getReadableRemoteAddress(), handler.getBaseDN());
       }
 
       logError(errMessage);
@@ -225,13 +225,13 @@ public class ServerWriter extends DirectoryThread
       {
         errMessage = ERR_DS_BADLY_DISCONNECTED.get(
             handler.getReplicationServerId(), handler.getServerId(),
-            session.getReadableRemoteAddress(), handler.getServiceId());
+            session.getReadableRemoteAddress(), handler.getBaseDN());
       }
       else
       {
         errMessage = ERR_RS_BADLY_DISCONNECTED.get(
             handler.getReplicationServerId(), handler.getServerId(),
-            session.getReadableRemoteAddress(), handler.getServiceId());
+            session.getReadableRemoteAddress(), handler.getBaseDN());
       }
       logError(errMessage);
     }

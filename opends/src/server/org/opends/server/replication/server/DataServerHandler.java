@@ -133,7 +133,7 @@ public class DataServerHandler extends ServerHandler
                 "In RS " +
                 replicationServerDomain.getReplicationServer().getServerId() +
                 ". Closing connection to DS " + getServerId() +
-                " for baseDn " + getServiceId() +
+                " for baseDn " + getBaseDN() +
                 " to force reconnection as new local" +
                 " generationId and remote one match and DS is in bad gen id: " +
                 newGenId);
@@ -171,7 +171,7 @@ public class DataServerHandler extends ServerHandler
             TRACER.debugInfo(
                 "In RS " +
                 replicationServerDomain.getReplicationServer().getServerId() +
-                ". DS " + getServerId() + " for baseDn " + getServiceId() +
+                ". DS " + getServerId() + " for baseDn " + getBaseDN() +
                 " has already generation id " + newGenId +
             " so no ChangeStatusMsg sent to him.");
           }
@@ -193,7 +193,7 @@ public class DataServerHandler extends ServerHandler
       Message message = NOTE_BAD_GEN_ID_IN_FULL_UPDATE.get(
           Integer.toString(replicationServerDomain.
               getReplicationServer().getServerId()),
-              getServiceId(),
+              getBaseDN(),
               Integer.toString(serverId),
               Long.toString(generationId),
               Long.toString(newGenId));
@@ -205,7 +205,7 @@ public class DataServerHandler extends ServerHandler
 
     if (newStatus == ServerStatus.INVALID_STATUS)
     {
-      Message msg = ERR_RS_CANNOT_CHANGE_STATUS.get(getServiceId(),
+      Message msg = ERR_RS_CANNOT_CHANGE_STATUS.get(getBaseDN(),
           Integer.toString(serverId), status.toString(), event.toString());
       logError(msg);
       return;
@@ -221,7 +221,7 @@ public class DataServerHandler extends ServerHandler
           "In RS " +
           replicationServerDomain.getReplicationServer().getServerId() +
           " Sending change status for reset gen id to " + getServerId() +
-          " for baseDn " + getServiceId() + ":\n" + csMsg);
+          " for baseDn " + getBaseDN() + ":\n" + csMsg);
     }
 
     session.publish(csMsg);
@@ -243,7 +243,7 @@ public class DataServerHandler extends ServerHandler
     ServerStatus newStatus = StatusMachine.computeNewStatus(status, event);
     if (newStatus == ServerStatus.INVALID_STATUS)
     {
-      Message msg = ERR_RS_CANNOT_CHANGE_STATUS.get(getServiceId(),
+      Message msg = ERR_RS_CANNOT_CHANGE_STATUS.get(getBaseDN(),
           Integer.toString(serverId), status.toString(), event.toString());
       logError(msg);
       // Status analyzer must only change from NORMAL_STATUS to DEGRADED_STATUS
@@ -264,7 +264,7 @@ public class DataServerHandler extends ServerHandler
           "In RS " +
           replicationServerDomain.getReplicationServer().getServerId() +
           " Sending change status from status analyzer to " + getServerId() +
-          " for baseDn " + getServiceId() + ":\n" + csMsg);
+          " for baseDn " + getBaseDN() + ":\n" + csMsg);
     }
 
     session.publish(csMsg);
@@ -383,7 +383,7 @@ public class DataServerHandler extends ServerHandler
     if (event == StatusMachineEvent.INVALID_EVENT)
     {
       Message msg = ERR_RS_INVALID_NEW_STATUS.get(reqStatus.toString(),
-          getServiceId(), Integer.toString(serverId));
+          getBaseDN(), Integer.toString(serverId));
       logError(msg);
       return ServerStatus.INVALID_STATUS;
     }
@@ -392,7 +392,7 @@ public class DataServerHandler extends ServerHandler
     ServerStatus newStatus = StatusMachine.computeNewStatus(status, event);
     if (newStatus == ServerStatus.INVALID_STATUS)
     {
-      Message msg = ERR_RS_CANNOT_CHANGE_STATUS.get(getServiceId(),
+      Message msg = ERR_RS_CANNOT_CHANGE_STATUS.get(getBaseDN(),
           Integer.toString(serverId), status.toString(), event.toString());
       logError(msg);
       return ServerStatus.INVALID_STATUS;
@@ -421,7 +421,7 @@ public class DataServerHandler extends ServerHandler
     heartbeatInterval = serverStartMsg.getHeartbeatInterval();
 
     // generic stuff
-    setServiceIdAndDomain(serverStartMsg.getBaseDn(), true);
+    setBaseDNAndDomain(serverStartMsg.getBaseDn(), true);
     setInitialServerState(serverStartMsg.getServerState());
     setSendWindowSize(serverStartMsg.getWindowSize());
 
@@ -613,7 +613,7 @@ public class DataServerHandler extends ServerHandler
     {
       // Peer DS uses protocol < V4 : send it a ReplServerStartMsg
       startMsg = new ReplServerStartMsg(replicationServerId,
-          replicationServerURL, getServiceId(), maxRcvWindow,
+          replicationServerURL, getBaseDN(), maxRcvWindow,
           replicationServerDomain.getDbServerState(),
           localGenerationId, sslEncryption, getLocalGroupId(),
           replicationServerDomain.getReplicationServer()
@@ -623,7 +623,7 @@ public class DataServerHandler extends ServerHandler
     {
       // Peer DS uses protocol V4 : send it a ReplServerStartDSMsg
       startMsg = new ReplServerStartDSMsg(replicationServerId,
-          replicationServerURL, getServiceId(), maxRcvWindow,
+          replicationServerURL, getBaseDN(), maxRcvWindow,
           replicationServerDomain.getDbServerState(),
           localGenerationId, sslEncryption, getLocalGroupId(),
           replicationServerDomain.getReplicationServer()
@@ -707,7 +707,7 @@ public class DataServerHandler extends ServerHandler
     {
       Message message = ERR_RS_INVALID_INIT_STATUS.get(
           this.status.toString(),
-          getServiceId(),
+          getBaseDN(),
           Integer.toString(serverId));
       throw new DirectoryException(ResultCode.OTHER, message);
     }
@@ -735,21 +735,21 @@ public class DataServerHandler extends ServerHandler
       {
         Message message = WARN_BAD_GENERATION_ID_FROM_DS.get(
             serverId, session.getReadableRemoteAddress(),
-            generationId, getServiceId(),
+            generationId, getBaseDN(),
             getReplicationServerId(), localGenerationId);
         logError(message);
       }
     }
     else
     {
-      // We are an empty Replicationserver
+      // We are an empty ReplicationServer
       if ((generationId > 0) && (!getServerState().isEmpty()))
       {
         // If the LDAP server has already sent changes
         // it is not expected to connect to an empty RS
         Message message = WARN_BAD_GENERATION_ID_FROM_DS.get(
             serverId, session.getReadableRemoteAddress(),
-            generationId, getServiceId(),
+            generationId, getBaseDN(),
             getReplicationServerId(), localGenerationId);
         logError(message);
       }

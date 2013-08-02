@@ -28,10 +28,9 @@
 package org.opends.server.replication.server;
 
 import static org.opends.messages.ReplicationMessages.*;
-import static org.opends.server.loggers.ErrorLogger.logError;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
+import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.util.StaticUtils.*;
 
 import java.io.IOException;
 
@@ -85,6 +84,7 @@ public class ServerReader extends DirectoryThread
   /**
    * Create a loop that reads changes and hands them off to be processed.
    */
+  @Override
   public void run()
   {
     Message errMessage = null;
@@ -141,7 +141,7 @@ public class ServerReader extends DirectoryThread
                   logError(WARN_IGNORING_UPDATE_FROM_DS_BADGENID.get(
                       handler.getReplicationServerId(),
                       ((UpdateMsg) msg).getChangeNumber().toString(),
-                      handler.getServiceId(), handler.getServerId(),
+                      handler.getBaseDN(), handler.getServerId(),
                       session.getReadableRemoteAddress(),
                       handler.getGenerationId(),
                       referenceGenerationId));
@@ -149,7 +149,7 @@ public class ServerReader extends DirectoryThread
                   logError(WARN_IGNORING_UPDATE_FROM_DS_FULLUP.get(
                       handler.getReplicationServerId(),
                       ((UpdateMsg) msg).getChangeNumber().toString(),
-                      handler.getServiceId(), handler.getServerId(),
+                      handler.getBaseDN(), handler.getServerId(),
                       session.getReadableRemoteAddress()));
                 filtered = true;
               }
@@ -167,7 +167,7 @@ public class ServerReader extends DirectoryThread
                     WARN_IGNORING_UPDATE_FROM_RS.get(
                         handler.getReplicationServerId(),
                         ((UpdateMsg) msg).getChangeNumber().toString(),
-                        handler.getServiceId(),
+                        handler.getBaseDN(),
                         handler.getServerId(),
                         session.getReadableRemoteAddress(),
                         handler.getGenerationId(),
@@ -237,7 +237,7 @@ public class ServerReader extends DirectoryThread
             {
               errMessage =
                 ERR_RECEIVED_CHANGE_STATUS_NOT_FROM_DS.get(
-                    handler.getServiceId(),
+                    handler.getBaseDN(),
                     Integer.toString(handler.getServerId()),
                     csMsg.toString());
               logError(errMessage);
@@ -269,8 +269,8 @@ public class ServerReader extends DirectoryThread
           } else if (msg == null)
           {
             /*
-             * The remote server has sent an unknown message,
-             * close the conenction.
+             * The remote server has sent an unknown message, close the
+             * connection.
              */
             errMessage = NOTE_READER_NULL_MSG.get(handler.toString());
             logError(errMessage);
@@ -303,13 +303,13 @@ public class ServerReader extends DirectoryThread
         {
           errMessage = ERR_DS_BADLY_DISCONNECTED.get(
               handler.getReplicationServerId(), handler.getServerId(),
-              remoteAddress, handler.getServiceId());
+              remoteAddress, handler.getBaseDN());
         }
         else
         {
           errMessage = ERR_RS_BADLY_DISCONNECTED.get(
               handler.getReplicationServerId(), handler.getServerId(),
-              remoteAddress, handler.getServiceId());
+              remoteAddress, handler.getBaseDN());
         }
         logError(errMessage);
       }
@@ -334,8 +334,7 @@ public class ServerReader extends DirectoryThread
        */
       if (debugEnabled())
       {
-        TRACER.debugInfo("In " + this.getName()
-            + " closing the session");
+        TRACER.debugInfo("In " + this.getName() + " closing the session");
       }
       session.close();
       handler.doStop();

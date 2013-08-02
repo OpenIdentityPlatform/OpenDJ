@@ -28,8 +28,8 @@
 package org.opends.server.replication.server;
 
 import static org.opends.messages.ReplicationMessages.*;
-import static org.opends.server.loggers.ErrorLogger.logError;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -324,6 +324,7 @@ public abstract class ServerHandler extends MessageHandler
    * Set the shut down flag to true and returns the previous value of the flag.
    * @return The previous value of the shut down flag
    */
+  @Override
   public boolean engageShutdown()
   {
     // Use thread safe boolean
@@ -571,6 +572,7 @@ public abstract class ServerHandler extends MessageHandler
    * Get the count of updates received from the server.
    * @return the count of update received from the server.
    */
+  @Override
   public int getInCount()
   {
     return inCount;
@@ -591,7 +593,7 @@ public abstract class ServerHandler extends MessageHandler
     ArrayList<Attribute> attributes = super.getMonitorData();
 
     attributes.add(Attributes.create("server-id", String.valueOf(serverId)));
-    attributes.add(Attributes.create("domain-name", getServiceId()));
+    attributes.add(Attributes.create("domain-name", getBaseDN()));
 
     // Deprecated
     attributes.add(Attributes.create("max-waiting-changes", String
@@ -658,6 +660,7 @@ public abstract class ServerHandler extends MessageHandler
    * Get the count of updates sent to this server.
    * @return  The count of update sent to this server.
    */
+  @Override
   public int getOutCount()
   {
     return outCount;
@@ -774,6 +777,7 @@ public abstract class ServerHandler extends MessageHandler
   /**
    * Increase the counter of update received from the server.
    */
+  @Override
   public void incrementInCount()
   {
     inCount++;
@@ -782,6 +786,7 @@ public abstract class ServerHandler extends MessageHandler
   /**
    * Increase the counter of updates sent to the server.
    */
+  @Override
   public void incrementOutCount()
   {
     outCount++;
@@ -894,13 +899,13 @@ public abstract class ServerHandler extends MessageHandler
       Random random = new Random();
       int randomTime = random.nextInt(6); // Random from 0 to 5
       // Wait at least 3 seconds + (0 to 5 seconds)
-      long timeout = (long) (3000 + ( randomTime * 1000 ) );
+      long timeout = 3000 + (randomTime * 1000);
       boolean noTimeout = replicationServerDomain.tryLock(timeout);
       if (!noTimeout)
       {
         // Timeout
         Message message = WARN_TIMEOUT_WHEN_CROSS_CONNECTION.get(
-            getServiceId(),
+            getBaseDN(),
             serverId,
             session.getReadableRemoteAddress(),
             replicationServerId);
@@ -952,7 +957,7 @@ public abstract class ServerHandler extends MessageHandler
       // while it is not, this means that some problem happened in the
       // window exchange procedure !
       // lets update the LDAP server with out current window size and hope
-      // that everything will work better in the futur.
+      // that everything will work better in the future.
       // TODO also log an error message.
       WindowMsg msg = new WindowMsg(rcvWindow);
       session.publish(msg);
@@ -1022,6 +1027,7 @@ public abstract class ServerHandler extends MessageHandler
   /**
    * Shutdown This ServerHandler.
    */
+  @Override
   public void shutdown()
   {
     shutdownWriter();
@@ -1084,7 +1090,7 @@ public abstract class ServerHandler extends MessageHandler
     {
       try
       {
-        acquired = sendWindow.tryAcquire((long) 500, TimeUnit.MILLISECONDS);
+        acquired = sendWindow.tryAcquire(500, TimeUnit.MILLISECONDS);
         interrupted = false;
       } catch (InterruptedException e)
       {

@@ -37,7 +37,6 @@ import java.util.zip.DataFormatException;
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.util.StaticUtils;
 
-
 /**
  * This class specifies the parameters of a search request on the ECL.
  * It is used as an interface between the requestor (plugin part)
@@ -115,7 +114,7 @@ public class StartECLSessionMsg extends ReplicationMsg
   private String operationId = "";
 
   /** Excluded domains. */
-  private Set<String> excludedServiceIDs = new HashSet<String>();
+  private Set<String> excludedBaseDNs = new HashSet<String>();
 
   /**
    * Creates a new StartSessionMsg message from its encoded form.
@@ -189,7 +188,7 @@ public class StartECLSessionMsg extends ReplicationMsg
       if (excludedDNsString.length()>0)
       {
         String[] excludedDNsStr = excludedDNsString.split(";");
-        Collections.addAll(this.excludedServiceIDs, excludedDNsStr);
+        Collections.addAll(this.excludedBaseDNs, excludedDNsStr);
       }
       pos += length + 1;
 
@@ -214,7 +213,7 @@ public class StartECLSessionMsg extends ReplicationMsg
     changeNumber = new ChangeNumber(0,0,0);
     isPersistent = NON_PERSISTENT;
     operationId = "-1";
-    excludedServiceIDs = new HashSet<String>();
+    excludedBaseDNs = new HashSet<String>();
   }
 
   /**
@@ -223,8 +222,8 @@ public class StartECLSessionMsg extends ReplicationMsg
   @Override
   public byte[] getBytes(short protocolVersion)
   {
-    String excludedSIDsString =
-        StaticUtils.collectionToString(excludedServiceIDs, ";");
+    String excludedBaseDNsString =
+        StaticUtils.collectionToString(excludedBaseDNs, ";");
 
     try
     {
@@ -243,7 +242,7 @@ public class StartECLSessionMsg extends ReplicationMsg
       byte[] byteOperationId =
         String.valueOf(operationId).getBytes("UTF-8");
       byte[] byteExcludedDNs =
-        String.valueOf(excludedSIDsString).getBytes("UTF-8");
+        String.valueOf(excludedBaseDNsString).getBytes("UTF-8");
 
       int length =
         byteMode.length + 1 +
@@ -291,7 +290,7 @@ public class StartECLSessionMsg extends ReplicationMsg
             " lastDraftChangeNumber="  + lastDraftChangeNumber +
             " generalizedState="       + crossDomainServerState +
             " operationId="            + operationId +
-            " excludedDNs="            + excludedServiceIDs + "]";
+            " excludedDNs="            + excludedBaseDNs + "]";
   }
 
   /**
@@ -403,7 +402,7 @@ public class StartECLSessionMsg extends ReplicationMsg
 
   /**
    * Setter of the operation id.
-   * @param operationId The provided opration id.
+   * @param operationId The provided operation id.
    */
   public void setOperationId(String operationId)
   {
@@ -420,21 +419,24 @@ public class StartECLSessionMsg extends ReplicationMsg
   }
 
   /**
-   * Getter on the list of excluded ServiceIDs.
-   * @return the list of excluded ServiceIDs.
+   * Getter on the list of excluded baseDNs.
+   *
+   * @return the list of excluded baseDNs.
    */
-  public Set<String> getExcludedServiceIDs()
+  public Set<String> getExcludedBaseDNs()
   {
-    return this.excludedServiceIDs;
+    return this.excludedBaseDNs;
   }
 
   /**
-   * Setter on the list of excluded ServiceIDs.
-   * @param excludedServiceIDs the provided list of excluded ServiceIDs.
+   * Setter on the list of excluded baseDNs.
+   *
+   * @param excludedBaseDNs
+   *          the provided list of excluded baseDNs.
    */
-  public void setExcludedDNs(Set<String> excludedServiceIDs)
+  public void setExcludedDNs(Set<String> excludedBaseDNs)
   {
-    this.excludedServiceIDs = excludedServiceIDs;
+    this.excludedBaseDNs = excludedBaseDNs;
   }
 
 }

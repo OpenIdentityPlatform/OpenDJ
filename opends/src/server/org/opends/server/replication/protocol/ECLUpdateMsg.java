@@ -29,8 +29,9 @@ package org.opends.server.replication.protocol;
 
 import java.io.UnsupportedEncodingException;
 import java.util.zip.DataFormatException;
-import org.opends.server.types.DirectoryException;
+
 import org.opends.server.replication.common.MultiDomainServerState;
+import org.opends.server.types.DirectoryException;
 
 /**
  * Container for the ECL information sent from the ReplicationServer
@@ -38,31 +39,31 @@ import org.opends.server.replication.common.MultiDomainServerState;
  */
 public class ECLUpdateMsg extends ReplicationMsg
 {
-  // The replication change returned.
+  /** The replication change returned. */
   private final LDAPUpdateMsg updateMsg;
 
-  // The serviceId (baseDN) of the domain to which applies the change.
-  private final String serviceId;
+  /** The baseDN of the domain to which applies the change. */
+  private final String baseDN;
 
-  // The value of the cookie updated with the current change
+  /** The value of the cookie updated with the current change. */
   private MultiDomainServerState cookie;
 
-  // The changenumber as specified by draft-good-ldap-changelog.
+  /** The changeNumber as specified by draft-good-ldap-changelog. */
   private int draftChangeNumber;
 
   /**
    * Creates a new message.
-   * @param update    The provided update.
+   * @param updateMsg The provided update message.
    * @param cookie    The provided cookie value
-   * @param serviceId The provided serviceId.
+   * @param baseDN    The provided baseDN.
    * @param draftChangeNumber The provided draft change number.
    */
-  public ECLUpdateMsg(LDAPUpdateMsg update, MultiDomainServerState cookie,
-      String serviceId, int draftChangeNumber)
+  public ECLUpdateMsg(LDAPUpdateMsg updateMsg, MultiDomainServerState cookie,
+      String baseDN, int draftChangeNumber)
   {
     this.cookie = cookie;
-    this.serviceId = serviceId;
-    this.updateMsg = update;
+    this.baseDN = baseDN;
+    this.updateMsg = updateMsg;
     this.draftChangeNumber = draftChangeNumber;
   }
 
@@ -85,7 +86,7 @@ public class ECLUpdateMsg extends ReplicationMsg
       if (in[0] != MSG_TYPE_ECL_UPDATE)
       {
         throw new DataFormatException("byte[] is not a valid " +
-            this.getClass().getCanonicalName());
+            getClass().getCanonicalName());
       }
       int pos = 1;
 
@@ -95,9 +96,9 @@ public class ECLUpdateMsg extends ReplicationMsg
       this.cookie = new MultiDomainServerState(cookieStr);
       pos += length + 1;
 
-      // Decode the serviceId
+      // Decode the baseDN
       length = getNextLength(in, pos);
-      this.serviceId = new String(in, pos, length, "UTF-8");
+      this.baseDN = new String(in, pos, length, "UTF-8");
       pos += length + 1;
 
       // Decode the draft changeNumber
@@ -145,12 +146,13 @@ public class ECLUpdateMsg extends ReplicationMsg
   }
 
   /**
-   * Getter for the serviceId.
-   * @return The serviceId.
+   * Getter for the baseDN.
+   *
+   * @return The baseDN.
    */
-  public  String getServiceId()
+  public String getBaseDN()
   {
-    return serviceId;
+    return baseDN;
   }
 
   /**
@@ -172,7 +174,7 @@ public class ECLUpdateMsg extends ReplicationMsg
     " updateMsg: " + updateMsg +
     " cookie: " + cookie +
     " draftChangeNumber: " + draftChangeNumber +
-    " serviceId: " + serviceId + "]";
+    " serviceId: " + baseDN + "]";
   }
 
   /**
@@ -182,14 +184,14 @@ public class ECLUpdateMsg extends ReplicationMsg
   public byte[] getBytes(short protocolVersion)
       throws UnsupportedEncodingException
   {
-    byte[] byteCookie    = String.valueOf(cookie).getBytes("UTF-8");
-    byte[] byteServiceId = String.valueOf(serviceId).getBytes("UTF-8");
+    byte[] byteCookie = String.valueOf(cookie).getBytes("UTF-8");
+    byte[] byteBaseDN = String.valueOf(baseDN).getBytes("UTF-8");
     byte[] byteDraftChangeNumber =
       Integer.toString(draftChangeNumber).getBytes("UTF-8");
     byte[] byteUpdateMsg = updateMsg.getBytes(protocolVersion);
 
     int length = 1 + byteCookie.length +
-                 1 + byteServiceId.length +
+                 1 + byteBaseDN.length +
                  1 + byteDraftChangeNumber.length +
                  1 + byteUpdateMsg.length + 1;
 
@@ -199,16 +201,10 @@ public class ECLUpdateMsg extends ReplicationMsg
     resultByteArray[0] = MSG_TYPE_ECL_UPDATE;
     int pos = 1;
 
-    // Encode cookie
+    // Encode all fields
     pos = addByteArray(byteCookie, resultByteArray, pos);
-
-    // Encode serviceid
-    pos = addByteArray(byteServiceId, resultByteArray, pos);
-
-    /* Put the draftChangeNumber */
+    pos = addByteArray(byteBaseDN, resultByteArray, pos);
     pos = addByteArray(byteDraftChangeNumber, resultByteArray, pos);
-
-    // Encode msg
     pos = addByteArray(byteUpdateMsg, resultByteArray, pos);
 
     return resultByteArray;

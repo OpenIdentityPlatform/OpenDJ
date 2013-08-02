@@ -26,11 +26,11 @@
  *      Portions copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.replication.server;
+
 import static org.opends.messages.ReplicationMessages.*;
-import static org.opends.server.loggers.ErrorLogger.logError;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
+import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.util.StaticUtils.*;
 
 import java.io.IOException;
 import java.net.SocketException;
@@ -48,7 +48,6 @@ import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.workflowelement.externalchangelog.ECLSearchOperation;
 import org.opends.server.workflowelement.externalchangelog.ECLWorkflowElement;
-
 
 /**
  * This class defines a server writer, which is used to send changes to a
@@ -136,6 +135,7 @@ public class ECLServerWriter extends ServerWriter
    * Loops waiting for changes from the ReplicationServerDomain and
    * forward them to the other servers
    */
+  @Override
   public void run()
   {
     try
@@ -176,7 +176,7 @@ public class ECLServerWriter extends ServerWriter
               handler.getReplicationServerId(),
               handler.getServerId(),
               session.getReadableRemoteAddress(),
-              handler.getServiceId());
+              handler.getBaseDN());
         }
         else
         {
@@ -184,7 +184,7 @@ public class ECLServerWriter extends ServerWriter
               handler.getReplicationServerId(),
               handler.getServerId(),
               session.getReadableRemoteAddress(),
-              handler.getServiceId());
+              handler.getBaseDN());
         }
         logError(errMessage);
       }
@@ -194,8 +194,7 @@ public class ECLServerWriter extends ServerWriter
       // An unexpected error happened.
       // Log an error and close the connection.
       Message errMessage = ERR_WRITER_UNEXPECTED_EXCEPTION
-          .get(handler.toString() + " "
-              + stackTraceToSingleLineString(e));
+          .get(handler + " " + stackTraceToSingleLineString(e));
       logError(errMessage);
     }
     finally
