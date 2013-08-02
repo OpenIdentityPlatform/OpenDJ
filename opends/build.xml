@@ -1349,14 +1349,12 @@
       </fileset>
     </copy>
 
-    <property name="wix.dir" location="C:\Program Files (x86)\WiX Toolset v3.7\bin"/>
-
     <mkdir dir="${build.dir}/msi/build" />
     <copy file="${resource.dir}/msi/package.wxs" toDir="${build.dir}/msi/build"/>
     <mkdir dir="${build.dir}/msi/dist" />
 
     <!-- Construct a .wxs file from the directory structure -->
-    <exec executable="${wix.dir}/heat.exe" dir="${build.dir}/msi/files">
+    <exec executable="heat.exe" dir="${build.dir}/msi/files">
       <arg value="dir"/>
       <arg value="."/>
       <arg value="-nologo"/>
@@ -1371,7 +1369,7 @@
     </exec>
 
     <!-- Compile all .wxs files into .wixobj files (fast) -->
-    <exec executable="${wix.dir}/candle.exe" dir="${build.dir}/msi">
+    <exec executable="candle.exe" dir="${build.dir}/msi">
       <arg value="-nologo"/>
       <arg value="-out"/> <arg value="${build.dir}/msi/build/"/>
       <arg value="-dsrc=files"/>
@@ -1383,8 +1381,8 @@
       <arg value="build/payload.wxs"/>
     </exec>
 
-    <!-- Build the package. This is the slow part. -->
-    <exec executable="${wix.dir}/light.exe" dir="${build.dir}/msi">
+    <!-- Build the package (slow) -->
+    <exec executable="light.exe" dir="${build.dir}/msi">
       <arg value="-nologo"/>
       <arg value="-ext"/> <arg value="WixUIExtension"/>
       <arg value="-out"/> <arg value="dist/${SHORT_NAME}-${MAJOR_VERSION}.${MINOR_VERSION}.${POINT_VERSION}.msi"/>
