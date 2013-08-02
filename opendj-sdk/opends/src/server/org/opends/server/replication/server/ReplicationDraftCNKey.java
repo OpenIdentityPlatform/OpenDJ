@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions Copyright 2010-2011 ForgeRock AS.
+ *      Portions Copyright 2010-2013 ForgeRock AS.
  */
 package org.opends.server.replication.server;
 
@@ -32,7 +32,6 @@ import java.io.UnsupportedEncodingException;
 import com.sleepycat.je.DatabaseEntry;
 
 /**
- * Superclass of DatabaseEntry.
  * Useful to create ReplicationServer keys from sequence numbers.
  */
 public class ReplicationDraftCNKey extends DatabaseEntry
@@ -50,6 +49,7 @@ public class ReplicationDraftCNKey extends DatabaseEntry
       String s = String.valueOf(draftCN);
       int a = 16-s.length();
       String sscn = "0000000000000000".substring(0, a) + s;
+      // Should it use StaticUtils.getBytes() to increase performances?
       this.setData(sscn.getBytes("UTF-8"));
     } catch (UnsupportedEncodingException e)
     {
@@ -65,7 +65,6 @@ public class ReplicationDraftCNKey extends DatabaseEntry
   public int getDraftCN()
   {
     String s = new String(this.getData());
-    int i = Integer.valueOf(s);
-    return i;
+    return Integer.valueOf(s);
   }
 }
