@@ -33,6 +33,7 @@ import static org.forgerock.opendj.ldap.responses.Responses.newResult;
 import static org.forgerock.opendj.ldap.responses.Responses.newSearchResultEntry;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.NavigableMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 
@@ -81,7 +82,7 @@ import org.forgerock.opendj.ldif.EntryReader;
  * <li>indexing
  * </ul>
  * This class can be used in conjunction with the factories defined in
- * {@link Connections} to create simpler servers as well as mock LDAP
+ * {@link Connections} to create simple servers as well as mock LDAP
  * connections. For example, to create a mock LDAP connection factory:
  *
  * <pre>
@@ -89,12 +90,20 @@ import org.forgerock.opendj.ldif.EntryReader;
  * Connection connection = newInternalConnectionFactory(newServerConnectionFactory(backend), null)
  *         .getConnection();
  * </pre>
+ *
+ * To create a simple LDAP server listening on 0.0.0.0:1389:
+ *
+ * <pre>
+ * MemoryBackend backend = new MemoryBackend();
+ * LDAPListener listener = new LDAPListener(1389, Connections
+ *         .&lt;LDAPClientContext&gt; newServerConnectionFactory(backend));
+ * </pre>
  */
 public final class MemoryBackend implements RequestHandler<RequestContext> {
     private final DecodeOptions decodeOptions;
     private final ConcurrentSkipListMap<DN, Entry> entries = new ConcurrentSkipListMap<DN, Entry>();
-    private final Object writeLock = new Object();
     private final Schema schema;
+    private final Object writeLock = new Object();
 
     /**
      * Creates a new empty memory backend which will use the default schema.
@@ -110,7 +119,8 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
      * @param reader
      *            The entry reader.
      * @throws IOException
-     *             If an unexpected IO error occurred while reading the entries.
+     *             If an unexpected IO error occurred while reading the entries,
+     *             or if duplicate entries are detected.
      */
     public MemoryBackend(final EntryReader reader) throws IOException {
         this(Schema.getDefaultSchema(), reader);
@@ -136,28 +146,86 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
      * @param reader
      *            The entry reader.
      * @throws IOException
-     *             If an unexpected IO error occurred while reading the entries.
+     *             If an unexpected IO error occurred while reading the entries,
+     *             or if duplicate entries are detected.
      */
     public MemoryBackend(final Schema schema, final EntryReader reader) throws IOException {
         this.schema = schema;
         this.decodeOptions = new DecodeOptions().setSchema(schema);
-        if (reader != null) {
-            try {
-                while (reader.hasNext()) {
-                    final Entry entry = reader.readEntry();
-                    final DN dn = entry.getName();
-                    if (entries.containsKey(dn)) {
-                        throw new ErrorResultIOException(newErrorResult(
-                                ResultCode.ENTRY_ALREADY_EXISTS, "Attempted to add the entry '"
-                                        + dn.toString() + "' multiple times"));
-                    } else {
-                        entries.put(dn, entry);
-                    }
-                }
-            } finally {
-                reader.close();
-            }
+        load(reader, false);
+    }
+
+    /**
+     * Clears the contents of this memory backend so that it does not contain
+     * any entries.
+     *
+     * @return This memory backend.
+     */
+    public MemoryBackend clear() {
+        synchronized (writeLock) {
+            entries.clear();
         }
+        return this;
+    }
+
+    /**
+     * Returns {@code true} if the named entry exists in this memory backend.
+     *
+     * @param dn
+     *            The name of the entry.
+     * @return {@code true} if the named entry exists in this memory backend.
+     */
+    public boolean contains(final DN dn) {
+        return get(dn) != null;
+    }
+
+    /**
+     * Returns {@code true} if the named entry exists in this memory backend.
+     *
+     * @param dn
+     *            The name of the entry.
+     * @return {@code true} if the named entry exists in this memory backend.
+     */
+    public boolean contains(final String dn) {
+        return get(dn) != null;
+    }
+
+    /**
+     * Returns the named entry contained in this memory backend, or {@code null}
+     * if it does not exist.
+     *
+     * @param dn
+     *            The name of the entry to be returned.
+     * @return The named entry.
+     */
+    public Entry get(final DN dn) {
+        return entries.get(dn);
+    }
+
+    /**
+     * Returns the named entry contained in this memory backend, or {@code null}
+     * if it does not exist.
+     *
+     * @param dn
+     *            The name of the entry to be returned.
+     * @return The named entry.
+     */
+    public Entry get(final String dn) {
+        return get(DN.valueOf(dn, schema));
+    }
+
+    /**
+     * Returns a collection containing all of the entries in this memory
+     * backend. The returned collection is backed by this memory backend, so
+     * changes to the collection are reflected in this memory backend and
+     * vice-versa. The returned collection supports entry removal, iteration,
+     * and is thread safe, but it does not support addition of new entries.
+     *
+     * @return A collection containing all of the entries in this memory
+     *         backend.
+     */
+    public Collection<Entry> getAll() {
+        return entries.values();
     }
 
     @Override
@@ -363,6 +431,63 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
         } catch (final ErrorResultException e) {
             resultHandler.handleErrorResult(e);
         }
+    }
+
+    /**
+     * Returns {@code true} if this memory backend does not contain any entries.
+     *
+     * @return {@code true} if this memory backend does not contain any entries.
+     */
+    public boolean isEmpty() {
+        return entries.isEmpty();
+    }
+
+    /**
+     * Reads all of the entries from the provided entry reader and adds them to
+     * the content of this memory backend.
+     *
+     * @param reader
+     *            The entry reader.
+     * @param overwrite
+     *            {@code true} if existing entries should be replaced, or
+     *            {@code false} if an error should be returned when duplicate
+     *            entries are encountered.
+     * @return This memory backend.
+     * @throws IOException
+     *             If an unexpected IO error occurred while reading the entries,
+     *             or if duplicate entries are detected and {@code overwrite} is
+     *             {@code false}.
+     */
+    public MemoryBackend load(final EntryReader reader, final boolean overwrite) throws IOException {
+        synchronized (writeLock) {
+            if (reader != null) {
+                try {
+                    while (reader.hasNext()) {
+                        final Entry entry = reader.readEntry();
+                        final DN dn = entry.getName();
+                        if (!overwrite && entries.containsKey(dn)) {
+                            throw new ErrorResultIOException(newErrorResult(
+                                    ResultCode.ENTRY_ALREADY_EXISTS, "Attempted to add the entry '"
+                                            + dn.toString() + "' multiple times"));
+                        } else {
+                            entries.put(dn, entry);
+                        }
+                    }
+                } finally {
+                    reader.close();
+                }
+            }
+        }
+        return this;
+    }
+
+    /**
+     * Returns the number of entries contained in this memory backend.
+     *
+     * @return The number of entries contained in this memory backend.
+     */
+    public int size() {
+        return entries.size();
     }
 
     private <R extends Result> R addResultControls(final Request request, final Entry before,
