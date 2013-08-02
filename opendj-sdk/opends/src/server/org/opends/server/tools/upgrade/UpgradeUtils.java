@@ -429,6 +429,9 @@ final class UpgradeUtils
       {
         LinkedList<String> dataRelativesToBck = new LinkedList<String>();
         entry = entryReader.readEntry();
+        // Backend dn
+        dataRelativesToBck.add(entry.getAttribute("ds-cfg-base-dn")
+            .firstValueAsString());
         // db path
         dataRelativesToBck.add(entry.getAttribute("ds-cfg-db-directory")
             .firstValueAsString());
@@ -742,11 +745,33 @@ final class UpgradeUtils
         final File destination =
             new File(configDirectory, Installation.UPGRADE_PATH
                 + File.separator + "schema.ldif." + revision);
+
+        // Checks if the parent exists (eg. embedded
+        // server doesn't seem to provide that folder)
+        if (!destination.getParentFile().exists())
+        {
+          LOG.log(Level.INFO, String.format("File %s's parent doesn't exist",
+              destination.getPath()));
+
+          destination.getParentFile().mkdirs();
+
+          LOG.log(Level.INFO, String.format("Parent directory created.",
+              destination.getPath()));
+        }
+        if (!destination.exists())
+        {
+          destination.createNewFile();
+        }
+
+        LOG.log(Level.INFO, String.format("Writing entries in %s.", destination
+            .getAbsolutePath()));
+
         writer = new LDIFEntryWriter(new FileOutputStream(destination));
         writer.writeEntry(theNewSchemaEntry);
 
-        LOG.log(Level.INFO, String.format("%s file created successfully.",
-            destination.getAbsolutePath()));
+        LOG.log(Level.INFO, String.format(
+            "%s file created and completed successfully.", destination
+                .getAbsolutePath()));
       }
     }
     finally
