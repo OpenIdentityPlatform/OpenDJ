@@ -23,33 +23,24 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS
  */
 package org.opends.server.tasks;
-import org.opends.server.replication.plugin.LDAPReplicationDomain;
-
-import org.opends.server.types.ResultCode;
-
-import org.opends.messages.MessageBuilder;
-
-
-import org.opends.messages.Message;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.core.DirectoryServer.getAttributeType;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
+import static org.opends.server.core.DirectoryServer.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
 
 import java.util.List;
 
+import org.opends.messages.Message;
+import org.opends.messages.MessageBuilder;
 import org.opends.messages.TaskMessages;
 import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskState;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.DN;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.Entry;
+import org.opends.server.replication.plugin.LDAPReplicationDomain;
+import org.opends.server.types.*;
 
 /**
  * This class provides an implementation of a Directory Server task that can
@@ -63,24 +54,29 @@ public class InitializeTask extends Task
    */
   private static final DebugTracer TRACER = getTracer();
 
-  private String  domainString            = null;
+  private String domainString;
   private int  source;
-  private LDAPReplicationDomain domain        = null;
+  private LDAPReplicationDomain domain;
   private TaskState initState;
 
-  // The total number of entries expected to be processed when this import
-  // will end successfully
-  long total = 0;
+  /**
+   * The total number of entries expected to be processed when this import will
+   * end successfully.
+   */
+  private long total = 0;
 
-  // The number of entries still to be processed for this import to be
-  // completed
-  long left = 0;
+  /**
+   * The number of entries still to be processed for this import to be
+   * completed.
+   */
+  private long left = 0;
 
   private Message taskCompletionError = null;
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public Message getDisplayName() {
     return TaskMessages.INFO_TASK_INITIALIZE_NAME.get();
   }
@@ -135,12 +131,13 @@ public class InitializeTask extends Task
   /**
    * {@inheritDoc}
    */
+  @Override
   protected TaskState runTask()
   {
     if (debugEnabled())
     {
       TRACER.debugInfo("[IE] InitializeTask is starting on domain: %s "
-          + " from source:%d", domain.getServiceID(), source);
+          + " from source:%d", domain.getBaseDNString(), source);
     }
     initState = getTaskState();
     try

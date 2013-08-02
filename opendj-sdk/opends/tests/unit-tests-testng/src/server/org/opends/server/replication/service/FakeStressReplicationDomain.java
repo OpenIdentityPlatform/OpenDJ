@@ -55,14 +55,14 @@ public class FakeStressReplicationDomain extends ReplicationDomain
   private BlockingQueue<UpdateMsg> queue = null;
 
   public FakeStressReplicationDomain(
-      String serviceID,
+      String baseDN,
       int serverID,
       Collection<String> replicationServers,
       int window,
       long heartbeatInterval,
       BlockingQueue<UpdateMsg> queue) throws ConfigException
   {
-    super(serviceID, serverID, 100);
+    super(baseDN, serverID, 100);
     startPublishService(replicationServers, window, heartbeatInterval, 500);
     startListenService();
     this.queue = queue;

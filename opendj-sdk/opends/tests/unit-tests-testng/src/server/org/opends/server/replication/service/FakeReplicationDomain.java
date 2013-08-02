@@ -68,21 +68,21 @@ public class FakeReplicationDomain extends ReplicationDomain
   private long generationID = 1;
 
   public FakeReplicationDomain(
-      String serviceID,
+      String baseDN,
       int serverID,
       Collection<String> replicationServers,
       int window,
       long heartbeatInterval,
       BlockingQueue<UpdateMsg> queue) throws ConfigException
   {
-    super(serviceID, serverID, 100);
+    super(baseDN, serverID, 100);
     startPublishService(replicationServers, window, heartbeatInterval, 500);
     startListenService();
     this.queue = queue;
   }
 
   public FakeReplicationDomain(
-      String serviceID,
+      String baseDN,
       int serverID,
       Collection<String> replicationServers,
       int window,
@@ -91,7 +91,7 @@ public class FakeReplicationDomain extends ReplicationDomain
       StringBuilder importString,
       int exportedEntryCount) throws ConfigException
   {
-    super(serviceID, serverID, 100);
+    super(baseDN, serverID, 100);
     startPublishService(replicationServers, window, heartbeatInterval, 500);
     startListenService();
     this.exportString = exportString;
@@ -119,7 +119,6 @@ public class FakeReplicationDomain extends ReplicationDomain
       throw new DirectoryException(ResultCode.OPERATIONS_ERROR,
           ERR_BACKEND_EXPORT_ENTRY.get("", ""));
     }
-
   }
 
   @Override

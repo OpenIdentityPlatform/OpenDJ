@@ -23,36 +23,24 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS
  */
 package org.opends.server.tasks;
-import org.opends.server.replication.plugin.LDAPReplicationDomain;
-
-import org.opends.server.types.ResultCode;
-
-import org.opends.messages.MessageBuilder;
-
-
-import org.opends.messages.Message;
-import org.opends.messages.Category;
-import org.opends.messages.Severity;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.core.DirectoryServer.getAttributeType;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
+import static org.opends.server.core.DirectoryServer.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+
 import java.util.List;
 
-import org.opends.messages.TaskMessages;
+import org.opends.messages.*;
 import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskState;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.DN;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.Entry;
-import org.opends.server.util.TimeThread;
 import org.opends.server.replication.common.ChangeNumber;
+import org.opends.server.replication.plugin.LDAPReplicationDomain;
+import org.opends.server.types.*;
+import org.opends.server.util.TimeThread;
 
 /**
  * This class provides an implementation of a Directory Server task that can
@@ -182,7 +170,7 @@ public class PurgeConflictsHistoricalTask extends Task
     if (debugEnabled())
     {
       debugInfo("[PURGE] PurgeConflictsHistoricalTask is starting "
-          + "on domain: " + domain.getServiceID()
+          + "on domain: " + domain.getBaseDNString()
           + "max duration (sec):" + purgeTaskMaxDurationInSec);
     }
     try

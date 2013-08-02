@@ -848,14 +848,14 @@ public class MultimasterReplication
    */
   public static Set<String> getECLDisabledDomains()
   {
-    Set<String> disabledServiceIDs = new HashSet<String>();
+    Set<String> disabledBaseDNs = new HashSet<String>();
 
     for (LDAPReplicationDomain domain : domains.values())
     {
       if (!domain.isECLEnabled())
-        disabledServiceIDs.add(domain.getBaseDN().toNormalizedString());
+        disabledBaseDNs.add(domain.getBaseDN().toNormalizedString());
     }
-    return disabledServiceIDs;
+    return disabledBaseDNs;
   }
 
   /**

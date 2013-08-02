@@ -63,7 +63,8 @@ public class ListenerThread extends DirectoryThread
   public ListenerThread(ReplicationDomain repDomain)
   {
     super("Replica DS(" + repDomain.getServerId()
-        + ") listener for domain \"" + repDomain.getServiceID()
+ + ") listener for domain \""
+        + repDomain.getBaseDNString()
         + "\"");
     this.repDomain = repDomain;
   }
@@ -145,7 +146,8 @@ public class ListenerThread extends DirectoryThread
         if (n >= FACTOR)
         {
           TRACER.debugInfo("Interrupting listener thread for dn "
-              + repDomain.getServiceID() + " in DS " + repDomain.getServerId());
+              + repDomain.getBaseDNString() + " in DS "
+              + repDomain.getServerId());
           this.interrupt();
         }
       }

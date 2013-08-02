@@ -241,7 +241,7 @@ public final class ECLServerHandler extends ServerHandler
             TRACER.debugInfo(" In ECLServerHandler, for " + mh.getBaseDN() +
                 " getNextEligibleMessageForDomain(" + opid+ ") "
                 + " got new message : "
-                +  " serviceId=[" + mh.getBaseDN()
+                +  " baseDN=[" + mh.getBaseDN()
                 + "] [newMsg=" + newMsg + "]" + dumpState());
 
           // in non blocking mode, return null when no more msg
