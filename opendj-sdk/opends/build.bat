@@ -24,6 +24,7 @@ rem CDDL HEADER END
 rem
 rem
 rem      Copyright 2008-2010 Sun Microsystems, Inc.
+rem      Portions Copyright 2013 ForgeRock AS.
 
 setlocal
 
@@ -34,7 +35,7 @@ goto runAnt
 
 :noJavaHome
 echo Error: JAVA_HOME environment variable is not set.
-echo        Please set it to a valid Java 5 installation.
+echo        Please set it to a valid Java 6 installation.
 goto end
 
 

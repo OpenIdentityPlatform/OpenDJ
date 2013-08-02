@@ -1320,6 +1320,80 @@
     <echo message="Package Built: ${package.built.ts}"/>
   </target>
 
+  <!-- Package the Directory Server for the MSI distribution. -->
+  <target name="package-MSI"
+          description="Package the Directory Server for MSI distribution.">
+    <taskdef name="getversionnumber"
+                     classname="org.opends.build.tools.CreateVersionString">
+      <classpath>
+        <fileset dir="${build.dir}/build-tools">
+          <include name="*.jar" />
+        </fileset>
+      </classpath>
+    </taskdef>
+
+    <getversionnumber property="VERSION_NUMBER_STRING" />
+
+    <mkdir dir="${build.dir}/msi/files" />
+    <copy toDir="${build.dir}/msi/files">
+      <fileset dir="${package.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}">
+        <!-- Exclude Mac apps -->
+        <exclude name="QuickSetup.app/**"/>
+        <exclude name="Uninstall.app/**"/>
+        <!-- Exclude shell scripts -->
+        <exclude name="bin/**"/>
+        <exclude name="setup"/>
+        <exclude name="uninstall"/>
+        <exclude name="upgrade"/>
+        <exclude name="**/*.sh"/>
+      </fileset>
+    </copy>
+
+    <property name="wix.dir" location="C:\Program Files (x86)\WiX Toolset v3.7\bin"/>
+
+    <mkdir dir="${build.dir}/msi/build" />
+    <copy file="${resource.dir}/msi/package.wxs" toDir="${build.dir}/msi/build"/>
+    <mkdir dir="${build.dir}/msi/dist" />
+
+    <!-- Construct a .wxs file from the directory structure -->
+    <exec executable="${wix.dir}/heat.exe" dir="${build.dir}/msi/files">
+      <arg value="dir"/>
+      <arg value="."/>
+      <arg value="-nologo"/>
+      <arg value="-cg"/> <arg value="all"/>
+      <arg value="-gg"/>
+      <arg value="-sfrag"/>
+      <arg value="-srd"/>
+      <arg value="-dr"/> <arg value="OPENDJ"/>
+      <arg value="-var"/> <arg value="var.src"/>
+      <arg value="-template"/> <arg value="fragment"/>
+      <arg value="-o"/> <arg value="${build.dir}/msi/build/payload.wxs"/>
+    </exec>
+
+    <!-- Compile all .wxs files into .wixobj files (fast) -->
+    <exec executable="${wix.dir}/candle.exe" dir="${build.dir}/msi">
+      <arg value="-nologo"/>
+      <arg value="-out"/> <arg value="${build.dir}/msi/build/"/>
+      <arg value="-dsrc=files"/>
+      <arg value="-dname=${SHORT_NAME}"/>
+      <arg value="-dmajor=${MAJOR_VERSION}"/>
+      <arg value="-dminor=${MINOR_VERSION}"/>
+      <arg value="-dpoint=${POINT_VERSION}"/>
+      <arg value="build/package.wxs"/>
+      <arg value="build/payload.wxs"/>
+    </exec>
+
+    <!-- Build the package. This is the slow part. -->
+    <exec executable="${wix.dir}/light.exe" dir="${build.dir}/msi">
+      <arg value="-nologo"/>
+      <arg value="-ext"/> <arg value="WixUIExtension"/>
+      <arg value="-out"/> <arg value="dist/${SHORT_NAME}-${MAJOR_VERSION}.${MINOR_VERSION}.${POINT_VERSION}.msi"/>
+      <arg value="build/package.wixobj"/>
+      <arg value="build/payload.wixobj"/>
+    </exec>
+
+  </target>
+
   <!-- Package the Directory Server for the RPM distribution. -->
   <target name="package-RPM"
           description="Package the Directory Server for RPM distribution.">
