@@ -193,6 +193,11 @@
     </condition>
   </fail>
 
+  <!-- Allow platform-specific checks. -->
+  <condition property="build.windows">
+    <os family="windows"/>
+  </condition>
+
   <!-- sort-of Maven like properties for opendj dependencies-->
   <fileset id="opendj.runtime.jars" dir="${lib.dir}">
     <include name="**/jar/*.jar" />
@@ -1323,6 +1328,7 @@
   <!-- Package the Directory Server for the MSI distribution. -->
   <target name="package-MSI"
           description="Package the Directory Server for MSI distribution.">
+    <fail unless="build.windows">MSI packages can only be built on Windows.</fail>
     <taskdef name="getversionnumber"
                      classname="org.opends.build.tools.CreateVersionString">
       <classpath>
