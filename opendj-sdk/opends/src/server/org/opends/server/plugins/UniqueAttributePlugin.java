@@ -27,14 +27,8 @@
  */
 package org.opends.server.plugins;
 
-import java.util.LinkedList;
-import java.util.ArrayList;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import org.opends.messages.Message;
 import org.opends.server.admin.server.ConfigurationChangeListener;
@@ -43,41 +37,17 @@ import org.opends.server.admin.std.server.PluginCfg;
 import org.opends.server.admin.std.server.UniqueAttributePluginCfg;
 import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.Backend;
-import org.opends.server.api.plugin.DirectoryServerPlugin;
-import org.opends.server.api.plugin.PluginResult;
+import org.opends.server.api.plugin.*;
 import org.opends.server.api.plugin.PluginResult.PostOperation;
-import org.opends.server.api.plugin.PluginType;
+import org.opends.server.api.plugin.PluginResult.PreOperation;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.schema.SchemaConstants;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.ConfigChangeResult;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.DereferencePolicy;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.DN;
-import org.opends.server.types.Entry;
-import org.opends.server.types.IndexType;
-import org.opends.server.types.Modification;
-import org.opends.server.types.RDN;
-import org.opends.server.types.ResultCode;
-import org.opends.server.types.SearchFilter;
-import org.opends.server.types.SearchResultEntry;
-import org.opends.server.types.SearchScope;
-import org.opends.server.types.operation.PostOperationAddOperation;
-import org.opends.server.types.operation.PostOperationModifyDNOperation;
-import org.opends.server.types.operation.PostOperationModifyOperation;
-import org.opends.server.types.operation.PostSynchronizationAddOperation;
-import org.opends.server.types.operation.PostSynchronizationModifyDNOperation;
-import org.opends.server.types.operation.PostSynchronizationModifyOperation;
-import org.opends.server.types.operation.PreOperationAddOperation;
-import org.opends.server.types.operation.PreOperationModifyDNOperation;
-import org.opends.server.types.operation.PreOperationModifyOperation;
+import org.opends.server.types.*;
+import org.opends.server.types.operation.*;
 
 import static org.opends.messages.PluginMessages.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
@@ -117,13 +87,15 @@ public class UniqueAttributePlugin
 
 
 
-  //Current plugin configuration.
+  /** Current plugin configuration. */
   private UniqueAttributePluginCfg currentConfiguration;
 
 
 
-  // The data structure to store the mapping between the attribute value
-  // and the corresponding dn.
+  /**
+   * The data structure to store the mapping between the attribute value and the
+   * corresponding dn.
+   */
   private ConcurrentHashMap<AttributeValue,DN> uniqueAttrValue2Dn;
 
 
@@ -219,6 +191,7 @@ public class UniqueAttributePlugin
       return PluginResult.PreOperation.continueOperationProcessing();
     }
 
+    DN entryDN = entry.getDN();
     List<AttributeValue> recordedValues = new LinkedList<AttributeValue>();
     for (AttributeType t : config.getType())
     {
@@ -229,53 +202,11 @@ public class UniqueAttributePlugin
         {
           for (AttributeValue v : a)
           {
-            try
+            PreOperation stop =
+                checkUniqueness(entryDN, t, v, baseDNs, recordedValues, config);
+            if (stop != null)
             {
-              //Raise an exception if a conflicting concurrent operation is in
-              //progress. Otherwise, store this attribute value with its
-              //corresponding DN and proceed.
-              DN conflictDN = uniqueAttrValue2Dn.putIfAbsent(v, entry.getDN());
-              if (conflictDN == null)
-              {
-                recordedValues.add(v);
-                conflictDN = getConflictingEntryDN(baseDNs, entry.getDN(),
-                                                   config, v);
-              }
-              if (conflictDN != null)
-              {
-                // Before returning, we need to remove all values added
-                // in the uniqueAttrValue2Dn map, because PostOperation
-                // plugin does not get called.
-                for (AttributeValue v2 : recordedValues)
-                {
-                   uniqueAttrValue2Dn.remove(v2);
-                }
-                Message msg = ERR_PLUGIN_UNIQUEATTR_ATTR_NOT_UNIQUE.get(
-                      t.getNameOrOID(), v.getValue().toString(),
-                      conflictDN.toString());
-                return PluginResult.PreOperation.stopProcessing(
-                      ResultCode.CONSTRAINT_VIOLATION, msg);
-              }
-            }
-            catch (DirectoryException de)
-            {
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, de);
-              }
-
-              Message m = ERR_PLUGIN_UNIQUEATTR_INTERNAL_ERROR.get(
-                               de.getResultCode().toString(),
-                               de.getMessageObject());
-
-             // Try some cleanup before returning, to avoid memory leaks
-             for (AttributeValue v2 : recordedValues)
-             {
-               uniqueAttrValue2Dn.remove(v2);
-             }
-
-              return PluginResult.PreOperation.stopProcessing(
-                    DirectoryServer.getServerErrorResultCode(), m);
+              return stop;
             }
           }
         }
@@ -321,47 +252,11 @@ public class UniqueAttributePlugin
         case REPLACE:
           for (AttributeValue v : a)
           {
-            try
+            PreOperation stop =
+              checkUniqueness(entryDN, t, v, baseDNs, recordedValues, config);
+            if (stop != null)
             {
-              //Raise an exception if a conflicting concurrent operation is in
-              //progress. Otherwise, store this attribute value with its
-              //corresponding DN and proceed.
-              DN conflictDN = uniqueAttrValue2Dn.putIfAbsent(v, entryDN);
-              if (conflictDN == null)
-              {
-                recordedValues.add(v);
-                conflictDN = getConflictingEntryDN(baseDNs, entryDN, config,
-                                                   v);
-              }
-              if (conflictDN != null)
-              {
-                // Before returning, we need to remove all values added
-                // in the uniqueAttrValue2Dn map, because PostOperation
-                // plugin does not get called.
-                for (AttributeValue v2 : recordedValues)
-                {
-                   uniqueAttrValue2Dn.remove(v2);
-                }
-                 Message msg = ERR_PLUGIN_UNIQUEATTR_ATTR_NOT_UNIQUE.get(
-                    t.getNameOrOID(), v.getValue().toString(),
-                    conflictDN.toString());
-                return PluginResult.PreOperation.stopProcessing(
-                    ResultCode.CONSTRAINT_VIOLATION, msg);
-              }
-            }
-            catch (DirectoryException de)
-            {
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, de);
-              }
-
-              Message message = ERR_PLUGIN_UNIQUEATTR_INTERNAL_ERROR.get(
-                                     de.getResultCode().toString(),
-                                     de.getMessageObject());
-
-              return PluginResult.PreOperation.stopProcessing(
-                    DirectoryServer.getServerErrorResultCode(), message);
+              return stop;
             }
           }
           break;
@@ -383,53 +278,11 @@ public class UniqueAttributePlugin
 
               for (AttributeValue v : updatedAttr)
               {
-                try
+                PreOperation stop = checkUniqueness(
+                    entryDN, t, v, baseDNs, recordedValues, config);
+                if (stop != null)
                 {
-                  //Raise an exception if a conflicting concurrent operation is
-                  //in progress. Otherwise, store this attribute value with its
-                  //corresponding DN and proceed.
-                  DN conflictDN = uniqueAttrValue2Dn.putIfAbsent(v, entryDN);
-                  if (conflictDN == null)
-                  {
-                    recordedValues.add(v);
-                    conflictDN = getConflictingEntryDN(baseDNs, entryDN,
-                                                        config, v);
-                  }
-                  if (conflictDN != null)
-                  {
-                    // Before returning, we need to remove all values added
-                    // in the uniqueAttrValue2Dn map, because PostOperation
-                    // plugin does not get called.
-                    for (AttributeValue v2 : recordedValues)
-                    {
-                      uniqueAttrValue2Dn.remove(v2);
-                    }
-                    Message msg = ERR_PLUGIN_UNIQUEATTR_ATTR_NOT_UNIQUE.get(
-                        t.getNameOrOID(), v.getValue().toString(),
-                        conflictDN.toString());
-                    return PluginResult.PreOperation.stopProcessing(
-                        ResultCode.CONSTRAINT_VIOLATION, msg);
-                  }
-                }
-                catch (DirectoryException de)
-                {
-                  if (debugEnabled())
-                  {
-                    TRACER.debugCaught(DebugLogLevel.ERROR, de);
-                  }
-
-                  Message message = ERR_PLUGIN_UNIQUEATTR_INTERNAL_ERROR.get(
-                                         de.getResultCode().toString(),
-                                         de.getMessageObject());
-
-                  // Try some cleanup before returning, to avoid memory leaks
-                  for (AttributeValue v2 : recordedValues)
-                  {
-                    uniqueAttrValue2Dn.remove(v2);
-                  }
-
-                  return PluginResult.PreOperation.stopProcessing(
-                      DirectoryServer.getServerErrorResultCode(), message);
+                  return stop;
                 }
               }
             }
@@ -447,6 +300,62 @@ public class UniqueAttributePlugin
   }
 
 
+
+  private PreOperation checkUniqueness(DN entryDN, AttributeType t,
+      AttributeValue v, Set<DN> baseDNs, List<AttributeValue> recordedValues,
+      UniqueAttributePluginCfg config)
+  {
+    try
+    {
+      //Raise an exception if a conflicting concurrent operation is
+      //in progress. Otherwise, store this attribute value with its
+      //corresponding DN and proceed.
+      DN conflictDN = uniqueAttrValue2Dn.putIfAbsent(v, entryDN);
+      if (conflictDN == null)
+      {
+        recordedValues.add(v);
+        conflictDN = getConflictingEntryDN(baseDNs, entryDN,
+                                            config, v);
+      }
+      if (conflictDN != null)
+      {
+        // Before returning, we need to remove all values added
+        // in the uniqueAttrValue2Dn map, because PostOperation
+        // plugin does not get called.
+        for (AttributeValue v2 : recordedValues)
+        {
+          uniqueAttrValue2Dn.remove(v2);
+        }
+        Message msg = ERR_PLUGIN_UNIQUEATTR_ATTR_NOT_UNIQUE.get(
+            t.getNameOrOID(), v.getValue().toString(),
+            conflictDN.toString());
+        return PluginResult.PreOperation.stopProcessing(
+            ResultCode.CONSTRAINT_VIOLATION, msg);
+      }
+    }
+    catch (DirectoryException de)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, de);
+      }
+
+      Message message =
+          ERR_PLUGIN_UNIQUEATTR_INTERNAL_ERROR.get(
+                             de.getResultCode().toString(),
+                             de.getMessageObject());
+
+      // Try some cleanup before returning, to avoid memory leaks
+      for (AttributeValue v2 : recordedValues)
+      {
+        uniqueAttrValue2Dn.remove(v2);
+      }
+
+      return PluginResult.PreOperation.stopProcessing(
+          DirectoryServer.getServerErrorResultCode(), message);
+    }
+    return null;
+  }
 
   /**
    * {@inheritDoc}
@@ -476,55 +385,13 @@ public class UniqueAttributePlugin
         continue;
       }
 
-      try
+      AttributeValue v = newRDN.getAttributeValue(i);
+      DN entryDN = modifyDNOperation.getEntryDN();
+      PreOperation stop =
+          checkUniqueness(entryDN, t, v, baseDNs, recordedValues, config);
+      if (stop != null)
       {
-        AttributeValue v = newRDN.getAttributeValue(i);
-        //Raise an exception if a conflicting concurrent operation is in
-        //progress. Otherwise, store this attribute value with its
-        //corresponding DN and proceed.
-        DN conflictDN =
-            uniqueAttrValue2Dn.putIfAbsent(v, modifyDNOperation.getEntryDN());
-        if (conflictDN == null)
-        {
-          recordedValues.add(v);
-          conflictDN = getConflictingEntryDN(baseDNs,
-            modifyDNOperation.getEntryDN(), config, v);
-        }
-        if (conflictDN != null)
-        {
-          // Before returning, we need to remove all values added
-          // in the uniqueAttrValue2Dn map, because PostOperation
-          // plugin does not get called.
-          for (AttributeValue v2 : recordedValues)
-          {
-            uniqueAttrValue2Dn.remove(v2);
-          }
-          Message msg = ERR_PLUGIN_UNIQUEATTR_ATTR_NOT_UNIQUE.get(
-              t.getNameOrOID(), v.getValue().toString(),
-              conflictDN.toString());
-          return PluginResult.PreOperation.stopProcessing(
-              ResultCode.CONSTRAINT_VIOLATION, msg);
-        }
-      }
-      catch (DirectoryException de)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, de);
-        }
-
-        Message m = ERR_PLUGIN_UNIQUEATTR_INTERNAL_ERROR.get(
-                         de.getResultCode().toString(),
-                         de.getMessageObject());
-
-        // Try some cleanup before returning, to avoid memory leaks
-        for (AttributeValue v2 : recordedValues)
-        {
-          uniqueAttrValue2Dn.remove(v2);
-        }
-
-        return PluginResult.PreOperation.stopProcessing(
-            DirectoryServer.getServerErrorResultCode(), m);
+        return stop;
       }
     }
 
@@ -550,6 +417,7 @@ public class UniqueAttributePlugin
       return;
     }
 
+    DN entryDN = entry.getDN();
     for (AttributeType t : config.getType())
     {
       List<Attribute> attrList = entry.getAttribute(t);
@@ -559,43 +427,8 @@ public class UniqueAttributePlugin
         {
           for (AttributeValue v : a)
           {
-            try
-            {
-              DN conflictDN = uniqueAttrValue2Dn.get(v);
-              if (conflictDN == null)
-              {
-                conflictDN = getConflictingEntryDN(baseDNs, entry.getDN(),
-                                                    config, v);
-              }
-              if (conflictDN != null)
-              {
-                Message m = ERR_PLUGIN_UNIQUEATTR_SYNC_NOT_UNIQUE.get(
-                                 t.getNameOrOID(),
-                                 addOperation.getConnectionID(),
-                                 addOperation.getOperationID(),
-                                 v.getValue().toString(),
-                                 entry.getDN().toString(),
-                                 conflictDN.toString());
-                DirectoryServer.sendAlertNotification(this,
-                                     ALERT_TYPE_UNIQUE_ATTR_SYNC_CONFLICT, m);
-              }
-            }
-            catch (DirectoryException de)
-            {
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, de);
-              }
-
-              Message m = ERR_PLUGIN_UNIQUEATTR_INTERNAL_ERROR_SYNC.get(
-                               addOperation.getConnectionID(),
-                               addOperation.getOperationID(),
-                               entry.getDN().toString(),
-                               de.getResultCode().toString(),
-                               de.getMessageObject());
-              DirectoryServer.sendAlertNotification(this,
-                                   ALERT_TYPE_UNIQUE_ATTR_SYNC_ERROR, m);
-            }
+            sendAlertForUnresolvedConflict(addOperation, entryDN, entryDN, t,
+                v, baseDNs, config);
           }
         }
       }
@@ -637,44 +470,8 @@ public class UniqueAttributePlugin
         case REPLACE:
           for (AttributeValue v : a)
           {
-            try
-            {
-              DN conflictDN = uniqueAttrValue2Dn.get(v);
-              if (conflictDN == null)
-              {
-               conflictDN = getConflictingEntryDN(baseDNs, entryDN, config,
-                                                    v);
-              }
-              if (conflictDN != null)
-              {
-                Message message = ERR_PLUGIN_UNIQUEATTR_SYNC_NOT_UNIQUE.get(
-                                       t.getNameOrOID(),
-                                       modifyOperation.getConnectionID(),
-                                       modifyOperation.getOperationID(),
-                                       v.getValue().toString(),
-                                       entryDN.toString(),
-                                       conflictDN.toString());
-                DirectoryServer.sendAlertNotification(this,
-                                     ALERT_TYPE_UNIQUE_ATTR_SYNC_CONFLICT,
-                                     message);
-              }
-            }
-            catch (DirectoryException de)
-            {
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, de);
-              }
-
-              Message message = ERR_PLUGIN_UNIQUEATTR_INTERNAL_ERROR_SYNC.get(
-                                    modifyOperation.getConnectionID(),
-                                    modifyOperation.getOperationID(),
-                                    entryDN.toString(),
-                                    de.getResultCode().toString(),
-                                    de.getMessageObject());
-              DirectoryServer.sendAlertNotification(this,
-                                   ALERT_TYPE_UNIQUE_ATTR_SYNC_ERROR, message);
-            }
+            sendAlertForUnresolvedConflict(modifyOperation, entryDN, entryDN, t,
+                v, baseDNs, config);
           }
           break;
 
@@ -695,46 +492,8 @@ public class UniqueAttributePlugin
 
               for (AttributeValue v : updatedAttr)
               {
-                try
-                {
-                  DN conflictDN = uniqueAttrValue2Dn.get(v);
-                  if (conflictDN == null)
-                  {
-                   conflictDN = getConflictingEntryDN(baseDNs, entryDN,
-                                                        config, v);
-                  }
-                  if (conflictDN != null)
-                  {
-                    Message message = ERR_PLUGIN_UNIQUEATTR_SYNC_NOT_UNIQUE.get(
-                                           t.getNameOrOID(),
-                                           modifyOperation.getConnectionID(),
-                                           modifyOperation.getOperationID(),
-                                           v.getValue().toString(),
-                                           entryDN.toString(),
-                                           conflictDN.toString());
-                    DirectoryServer.sendAlertNotification(this,
-                                         ALERT_TYPE_UNIQUE_ATTR_SYNC_CONFLICT,
-                                         message);
-                  }
-                }
-                catch (DirectoryException de)
-                {
-                  if (debugEnabled())
-                  {
-                    TRACER.debugCaught(DebugLogLevel.ERROR, de);
-                  }
-
-                  Message message =
-                       ERR_PLUGIN_UNIQUEATTR_INTERNAL_ERROR_SYNC.get(
-                            modifyOperation.getConnectionID(),
-                            modifyOperation.getOperationID(),
-                            entryDN.toString(),
-                            de.getResultCode().toString(),
-                            de.getMessageObject());
-                  DirectoryServer.sendAlertNotification(this,
-                                       ALERT_TYPE_UNIQUE_ATTR_SYNC_ERROR,
-                                       message);
-                }
+                sendAlertForUnresolvedConflict(modifyOperation, entryDN, entryDN,
+                    t, v, baseDNs, config);
               }
             }
           }
@@ -767,6 +526,8 @@ public class UniqueAttributePlugin
       return;
     }
 
+    DN entryDN = modifyDNOperation.getEntryDN();
+    DN updatedEntryDN = modifyDNOperation.getUpdatedEntry().getDN();
     RDN newRDN = modifyDNOperation.getNewRDN();
     for (int i=0; i < newRDN.getNumValues(); i++)
     {
@@ -777,45 +538,54 @@ public class UniqueAttributePlugin
         continue;
       }
 
-      try
-      {
-        AttributeValue v = newRDN.getAttributeValue(i);
-        DN conflictDN = uniqueAttrValue2Dn.get(v);
-        if (conflictDN == null)
-        {
-         conflictDN = getConflictingEntryDN(baseDNs,
-                             modifyDNOperation.getEntryDN(), config, v);
-        }
-        if (conflictDN != null)
-        {
-          Message m =
-               ERR_PLUGIN_UNIQUEATTR_SYNC_NOT_UNIQUE.get(
-                    t.getNameOrOID(),
-                    modifyDNOperation.getConnectionID(),
-                    modifyDNOperation.getOperationID(),
-                    v.getValue().toString(),
-                    modifyDNOperation.getUpdatedEntry().getDN().toString(),
-                    conflictDN.toString());
-          DirectoryServer.sendAlertNotification(this,
-                               ALERT_TYPE_UNIQUE_ATTR_SYNC_CONFLICT, m);
-        }
-      }
-      catch (DirectoryException de)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, de);
-        }
+      AttributeValue v = newRDN.getAttributeValue(i);
+      sendAlertForUnresolvedConflict(modifyDNOperation, entryDN,
+          updatedEntryDN, t, v, baseDNs, config);
+    }
+  }
 
-        Message m = ERR_PLUGIN_UNIQUEATTR_INTERNAL_ERROR_SYNC.get(
-                         modifyDNOperation.getConnectionID(),
-                         modifyDNOperation.getOperationID(),
-                         modifyDNOperation.getUpdatedEntry().getDN().toString(),
-                         de.getResultCode().toString(),
-                         de.getMessageObject());
-        DirectoryServer.sendAlertNotification(this,
-                             ALERT_TYPE_UNIQUE_ATTR_SYNC_ERROR, m);
+
+
+  private void sendAlertForUnresolvedConflict(PluginOperation operation,
+      DN entryDN, DN updatedEntryDN, AttributeType t, AttributeValue v,
+      Set<DN> baseDNs, UniqueAttributePluginCfg config)
+  {
+    try
+    {
+      DN conflictDN = uniqueAttrValue2Dn.get(v);
+      if (conflictDN == null)
+      {
+        conflictDN = getConflictingEntryDN(baseDNs, entryDN, config, v);
       }
+      if (conflictDN != null)
+      {
+        Message message = ERR_PLUGIN_UNIQUEATTR_SYNC_NOT_UNIQUE.get(
+                               t.getNameOrOID(),
+                               operation.getConnectionID(),
+                               operation.getOperationID(),
+                               v.getValue().toString(),
+                               updatedEntryDN.toString(),
+                               conflictDN.toString());
+        DirectoryServer.sendAlertNotification(this,
+                             ALERT_TYPE_UNIQUE_ATTR_SYNC_CONFLICT,
+                             message);
+      }
+    }
+    catch (DirectoryException de)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, de);
+      }
+
+      Message message = ERR_PLUGIN_UNIQUEATTR_INTERNAL_ERROR_SYNC.get(
+                            operation.getConnectionID(),
+                            operation.getOperationID(),
+                            updatedEntryDN.toString(),
+                            de.getResultCode().toString(),
+                            de.getMessageObject());
+      DirectoryServer.sendAlertNotification(this,
+                           ALERT_TYPE_UNIQUE_ATTR_SYNC_ERROR, message);
     }
   }
 
