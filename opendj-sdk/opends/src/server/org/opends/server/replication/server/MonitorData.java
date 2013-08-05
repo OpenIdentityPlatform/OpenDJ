@@ -27,11 +27,11 @@
  */
 package org.opends.server.replication.server;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
+import static org.opends.server.loggers.debug.DebugLogger.*;
 
 import java.util.Iterator;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.common.ChangeNumber;
@@ -64,27 +64,29 @@ public class MonitorData
    */
 
 
-  // For each LDAP server, its server state
-  private ConcurrentHashMap<Integer, ServerState> LDAPStates =
+  /** For each LDAP server, its server state. */
+  private ConcurrentMap<Integer, ServerState> LDAPStates =
     new ConcurrentHashMap<Integer, ServerState>();
 
-  // A Map containing the ServerStates of each RS.
-  private ConcurrentHashMap<Integer, ServerState> RSStates =
+  /** A Map containing the ServerStates of each RS. */
+  private ConcurrentMap<Integer, ServerState> RSStates =
     new ConcurrentHashMap<Integer, ServerState>();
 
-  // For each LDAP server, the last(max) CN it published
-  private ConcurrentHashMap<Integer, ChangeNumber> maxCNs =
+  /** For each LDAP server, the last(max) CN it published. */
+  private ConcurrentMap<Integer, ChangeNumber> maxCNs =
     new ConcurrentHashMap<Integer, ChangeNumber>();
 
-  // For each LDAP server, an approximation of the date of the first missing
-  // change
-  private ConcurrentHashMap<Integer, Long> fmd =
+  /**
+   * For each LDAP server, an approximation of the date of the first missing
+   * change.
+   */
+  private ConcurrentMap<Integer, Long> fmd =
     new ConcurrentHashMap<Integer, Long>();
 
-  private ConcurrentHashMap<Integer, Long> missingChanges =
+  private ConcurrentMap<Integer, Long> missingChanges =
     new ConcurrentHashMap<Integer, Long>();
 
-  private ConcurrentHashMap<Integer, Long> missingChangesRS =
+  private ConcurrentMap<Integer, Long> missingChangesRS =
     new ConcurrentHashMap<Integer, Long>();
 
 
@@ -96,10 +98,9 @@ public class MonitorData
   public long getApproxDelay(int serverId)
   {
     Long afmd = fmd.get(serverId);
-    if ((afmd != null) && (afmd>0))
-      return (TimeThread.getTime() - afmd)/1000;
-    else
-      return 0;
+    if (afmd != null && afmd > 0)
+      return (TimeThread.getTime() - afmd) / 1000;
+    return 0;
   }
 
   /**
@@ -109,8 +110,8 @@ public class MonitorData
    */
   public long getApproxFirstMissingDate(int serverId)
   {
-    Long res;
-    if ((res = fmd.get(serverId)) != null)
+    Long res = fmd.get(serverId);
+    if (res != null)
       return res;
     return 0;
   }
@@ -123,10 +124,9 @@ public class MonitorData
   public long getMissingChanges(int serverId)
   {
     Long res = missingChanges.get(serverId);
-    if (res==null)
+    if (res == null)
       return 0;
-    else
-      return res;
+    return res;
   }
 
   /**
@@ -139,10 +139,9 @@ public class MonitorData
   public long getMissingChangesRS(int serverId)
   {
     Long res = missingChangesRS.get(serverId);
-    if (res==null)
+    if (res == null)
       return 0;
-    else
-      return res;
+    return res;
   }
 
   /**
@@ -169,9 +168,8 @@ public class MonitorData
               ChangeNumber.diffSeqNum(lsjMaxCN, lsiLastCN);
 
           if (debugEnabled()) {
-            mds +=
-                "+ diff(" + lsjMaxCN + "-"
-                    + lsiLastCN + ")=" + missingChangesLsiLsj;
+            mds += "+ diff(" + lsjMaxCN + "-"
+                + lsiLastCN + ")=" + missingChangesLsiLsj;
           }
           /*
           Regarding a DS that is generating changes. If it is a local DS1,
@@ -185,12 +183,10 @@ public class MonitorData
           when it is recovering from an old snapshot and the local RS is
           sending him the changes it is missing.
           */
-          if (lsjSid.equals(lsiSid)) {
-            if (missingChangesLsiLsj <= 50) {
-              missingChangesLsiLsj = 0;
-              if (debugEnabled()) {
-                mds += " (diff replaced by 0 as for server id " + lsiSid + ")";
-              }
+          if (lsjSid.equals(lsiSid) && missingChangesLsiLsj <= 50) {
+            missingChangesLsiLsj = 0;
+            if (debugEnabled()) {
+              mds += " (diff replaced by 0 as for server id " + lsiSid + ")";
             }
           }
 
@@ -220,9 +216,8 @@ public class MonitorData
               ChangeNumber.diffSeqNum(lsjMaxCN, lsiLastCN);
 
           if (debugEnabled()) {
-            mds +=
-                "+ diff(" + lsjMaxCN + "-"
-                    + lsiLastCN + ")=" + missingChangesLsiLsj;
+            mds += "+ diff(" + lsjMaxCN + "-"
+                + lsiLastCN + ")=" + missingChangesLsiLsj;
           }
           lsiMissingChanges += missingChangesLsiLsj;
         }
@@ -239,13 +234,14 @@ public class MonitorData
           "Complete monitor data : Missing changes ("+ lsiSid +")=" + mds);
       }
     }
-    }
+  }
 
   /**
    * Returns a <code>String</code> object representing this
    * object's value.
    * @return  a string representation of the value of this object in
    */
+  @Override
   public String toString()
   {
     String mds = "Monitor data=\n";
@@ -259,22 +255,19 @@ public class MonitorData
     // LDAP data
     for (Integer sid : LDAPStates.keySet()) {
       ServerState ss = LDAPStates.get(sid);
-      mds += "\nLSData(" + sid + ")=\t" + "state=[" + ss.toString()
-          + "] afmd=" + this.getApproxFirstMissingDate(sid);
-
-      mds += " missingDelay=" + this.getApproxDelay(sid);
-
-      mds += " missingCount=" + missingChanges.get(sid);
+      mds += "\nLSData(" + sid + ")=\t"
+          + "state=[" + ss + "] afmd=" + getApproxFirstMissingDate(sid)
+          + " missingDelay=" + getApproxDelay(sid)
+          + " missingCount=" + missingChanges.get(sid);
     }
 
     // RS data
     for (Integer sid : RSStates.keySet()) {
       ServerState ss = RSStates.get(sid);
-      mds += "\nRSData(" + sid + ")=\t" + "state=[" + ss.toString()
-      + "] missingCount=" + missingChangesRS.get(sid);
+      mds += "\nRSData(" + sid + ")=\t" + "state=[" + ss
+          + "] missingCount=" + missingChangesRS.get(sid);
     }
 
-    //
     mds += "\n--";
     return mds;
   }
@@ -305,10 +298,9 @@ public class MonitorData
     {
       maxCNs.put(serverId, newCN);
     }
-    else
+    else if (newCN.newer(currentMaxCN))
     {
-      if (newCN.newer(currentMaxCN))
-        maxCNs.replace(serverId, newCN);
+      maxCNs.replace(serverId, newCN);
     }
   }
 
@@ -356,10 +348,9 @@ public class MonitorData
     {
       fmd.put(serverId, newFmd);
     }
-    else
+    else if (newFmd != 0 && (newFmd < currentfmd || currentfmd == 0))
     {
-      if (  (newFmd!=0) && ((newFmd<currentfmd) || (currentfmd == 0)) )
-        fmd.replace(serverId, newFmd);
+      fmd.replace(serverId, newFmd);
     }
   }
 
