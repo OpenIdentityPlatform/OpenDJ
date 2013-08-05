@@ -27,14 +27,13 @@
  */
 package org.opends.server.plugins;
 
-
-
 import java.util.LinkedList;
 import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.opends.messages.Message;
@@ -45,9 +44,9 @@ import org.opends.server.admin.std.server.UniqueAttributePluginCfg;
 import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.Backend;
 import org.opends.server.api.plugin.DirectoryServerPlugin;
-import org.opends.server.api.plugin.PluginType;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.api.plugin.PluginResult.PostOperation;
+import org.opends.server.api.plugin.PluginType;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
@@ -84,8 +83,6 @@ import static org.opends.messages.PluginMessages.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 
-
-
 /**
  * This class implements a Directory Server plugin that can be used to ensure
  * that all values for a given attribute or set of attributes are unique within
@@ -112,8 +109,7 @@ public class UniqueAttributePlugin
    * The set of attributes that will be requested when performing internal
    * search operations.  This indicates that no attributes should be returned.
    */
-  private static final LinkedHashSet<String> SEARCH_ATTRS =
-       new LinkedHashSet<String>(1);
+  private static final Set<String> SEARCH_ATTRS = new LinkedHashSet<String>(1);
   static
   {
     SEARCH_ATTRS.add(SchemaConstants.NO_ATTRIBUTES);
@@ -223,8 +219,7 @@ public class UniqueAttributePlugin
       return PluginResult.PreOperation.continueOperationProcessing();
     }
 
-    LinkedList<AttributeValue> recordedValues =
-        new LinkedList<AttributeValue>();
+    List<AttributeValue> recordedValues = new LinkedList<AttributeValue>();
     for (AttributeType t : config.getType())
     {
       List<Attribute> attrList = entry.getAttribute(t);
@@ -236,12 +231,11 @@ public class UniqueAttributePlugin
           {
             try
             {
-              DN conflictDN = null;
               //Raise an exception if a conflicting concurrent operation is in
               //progress. Otherwise, store this attribute value with its
               //corresponding DN and proceed.
-              if((conflictDN=
-                      uniqueAttrValue2Dn.putIfAbsent(v, entry.getDN()))==null)
+              DN conflictDN = uniqueAttrValue2Dn.putIfAbsent(v, entry.getDN());
+              if (conflictDN == null)
               {
                 recordedValues.add(v);
                 conflictDN = getConflictingEntryDN(baseDNs, entry.getDN(),
@@ -310,8 +304,7 @@ public class UniqueAttributePlugin
       return PluginResult.PreOperation.continueOperationProcessing();
     }
 
-    LinkedList<AttributeValue> recordedValues =
-        new LinkedList<AttributeValue>();
+    List<AttributeValue> recordedValues = new LinkedList<AttributeValue>();
     for (Modification m : modifyOperation.getModifications())
     {
       Attribute a = m.getAttribute();
@@ -330,12 +323,11 @@ public class UniqueAttributePlugin
           {
             try
             {
-              DN conflictDN = null;
               //Raise an exception if a conflicting concurrent operation is in
               //progress. Otherwise, store this attribute value with its
               //corresponding DN and proceed.
-              if((conflictDN=
-                      uniqueAttrValue2Dn.putIfAbsent(v, entryDN))==null)
+              DN conflictDN = uniqueAttrValue2Dn.putIfAbsent(v, entryDN);
+              if (conflictDN == null)
               {
                 recordedValues.add(v);
                 conflictDN = getConflictingEntryDN(baseDNs, entryDN, config,
@@ -393,12 +385,11 @@ public class UniqueAttributePlugin
               {
                 try
                 {
-                  DN conflictDN = null;
                   //Raise an exception if a conflicting concurrent operation is
                   //in progress. Otherwise, store this attribute value with its
                   //corresponding DN and proceed.
-                  if((conflictDN=
-                      uniqueAttrValue2Dn.putIfAbsent(v, entryDN))==null)
+                  DN conflictDN = uniqueAttrValue2Dn.putIfAbsent(v, entryDN);
+                  if (conflictDN == null)
                   {
                     recordedValues.add(v);
                     conflictDN = getConflictingEntryDN(baseDNs, entryDN,
@@ -474,8 +465,7 @@ public class UniqueAttributePlugin
       return PluginResult.PreOperation.continueOperationProcessing();
     }
 
-    LinkedList<AttributeValue> recordedValues =
-        new LinkedList<AttributeValue>();
+    List<AttributeValue> recordedValues = new LinkedList<AttributeValue>();
     RDN newRDN = modifyDNOperation.getNewRDN();
     for (int i=0; i < newRDN.getNumValues(); i++)
     {
@@ -489,12 +479,12 @@ public class UniqueAttributePlugin
       try
       {
         AttributeValue v = newRDN.getAttributeValue(i);
-        DN conflictDN = null;
         //Raise an exception if a conflicting concurrent operation is in
         //progress. Otherwise, store this attribute value with its
         //corresponding DN and proceed.
-        if((conflictDN=uniqueAttrValue2Dn.putIfAbsent(
-                              v, modifyDNOperation.getEntryDN()))==null)
+        DN conflictDN =
+            uniqueAttrValue2Dn.putIfAbsent(v, modifyDNOperation.getEntryDN());
+        if (conflictDN == null)
         {
           recordedValues.add(v);
           conflictDN = getConflictingEntryDN(baseDNs,
@@ -571,8 +561,8 @@ public class UniqueAttributePlugin
           {
             try
             {
-              DN conflictDN = null;
-              if((conflictDN=uniqueAttrValue2Dn.get(v)) == null)
+              DN conflictDN = uniqueAttrValue2Dn.get(v);
+              if (conflictDN == null)
               {
                 conflictDN = getConflictingEntryDN(baseDNs, entry.getDN(),
                                                     config, v);
@@ -649,8 +639,8 @@ public class UniqueAttributePlugin
           {
             try
             {
-              DN conflictDN = null;
-              if((conflictDN=uniqueAttrValue2Dn.get(v)) == null)
+              DN conflictDN = uniqueAttrValue2Dn.get(v);
+              if (conflictDN == null)
               {
                conflictDN = getConflictingEntryDN(baseDNs, entryDN, config,
                                                     v);
@@ -707,8 +697,8 @@ public class UniqueAttributePlugin
               {
                 try
                 {
-                  DN conflictDN = null;
-                  if((conflictDN=uniqueAttrValue2Dn.get(v)) == null)
+                  DN conflictDN = uniqueAttrValue2Dn.get(v);
+                  if (conflictDN == null)
                   {
                    conflictDN = getConflictingEntryDN(baseDNs, entryDN,
                                                         config, v);
@@ -790,8 +780,8 @@ public class UniqueAttributePlugin
       try
       {
         AttributeValue v = newRDN.getAttributeValue(i);
-        DN conflictDN = null;
-        if((conflictDN=uniqueAttrValue2Dn.get(v)) == null)
+        DN conflictDN = uniqueAttrValue2Dn.get(v);
+        if (conflictDN == null)
         {
          conflictDN = getConflictingEntryDN(baseDNs,
                              modifyDNOperation.getEntryDN(), config, v);
@@ -894,7 +884,7 @@ public class UniqueAttributePlugin
     }
     else
     {
-      ArrayList<SearchFilter> equalityFilters =
+      List<SearchFilter> equalityFilters =
            new ArrayList<SearchFilter>(attrTypes.size());
       for (AttributeType t : attrTypes)
       {
@@ -958,6 +948,7 @@ public class UniqueAttributePlugin
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationChangeAcceptable(
                       UniqueAttributePluginCfg configuration,
                       List<Message> unacceptableReasons)
@@ -1017,6 +1008,7 @@ public class UniqueAttributePlugin
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationChange(
                                  UniqueAttributePluginCfg newConfiguration)
   {
@@ -1029,6 +1021,7 @@ public class UniqueAttributePlugin
   /**
    * {@inheritDoc}
    */
+  @Override
   public DN getComponentEntryDN()
   {
     return currentConfiguration.dn();
@@ -1039,6 +1032,7 @@ public class UniqueAttributePlugin
   /**
    * {@inheritDoc}
    */
+  @Override
   public String getClassName()
   {
     return UniqueAttributePlugin.class.getName();
@@ -1049,9 +1043,10 @@ public class UniqueAttributePlugin
   /**
    * {@inheritDoc}
    */
-  public LinkedHashMap<String,String> getAlerts()
+  @Override
+  public Map<String,String> getAlerts()
   {
-    LinkedHashMap<String,String> alerts = new LinkedHashMap<String,String>(2);
+    Map<String,String> alerts = new LinkedHashMap<String,String>(2);
 
     alerts.put(ALERT_TYPE_UNIQUE_ATTR_SYNC_CONFLICT,
                ALERT_DESCRIPTION_UNIQUE_ATTR_SYNC_CONFLICT);
