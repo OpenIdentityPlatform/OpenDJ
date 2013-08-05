@@ -103,8 +103,17 @@
                 <!-- List of Test Cases -->
                 <script>
                   testsList=[]
-                  testsList.append('replication_aci_001')
-                  testsList.append('replication_aci_002')
+                  
+                  if globalSplitServers is None:
+                    # External changelog not supported in replication split servers mode
+                    # This test case will only be run in normal mode 
+                    testsList.append('replication_aci_001')
+                    
+                  if UPGRADE_OPENDJNAME == '':
+                    # The global acis are not updated by the upgrade process
+                    # This test case will only be run on fresh install
+                    testsList.append('replication_aci_002')
+                  
                   testsList.append('replication_aci_003')
                   testsList.append('replication_aci_004')
                   testsList.append('replication_aci_005')
