@@ -1285,7 +1285,6 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
    */
   public UpdateMsg take(ServerHandler handler)
   {
-    UpdateMsg msg;
     /*
      * Get the balanced tree that we use to sort the changes to be
      * sent to the replica from the cookie
@@ -1295,9 +1294,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
      * and update this replicaId RUV
      *
      */
-    msg = handler.take();
-
-    return msg;
+    return handler.take();
   }
 
   /**
