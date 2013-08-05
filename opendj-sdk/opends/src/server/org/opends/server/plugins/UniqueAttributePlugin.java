@@ -492,8 +492,8 @@ public class UniqueAttributePlugin
 
               for (AttributeValue v : updatedAttr)
               {
-                sendAlertForUnresolvedConflict(modifyOperation, entryDN, entryDN,
-                    t, v, baseDNs, config);
+                sendAlertForUnresolvedConflict(modifyOperation, entryDN,
+                    entryDN, t, v, baseDNs, config);
               }
             }
           }
