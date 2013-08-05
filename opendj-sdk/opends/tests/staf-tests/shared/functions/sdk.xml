@@ -973,7 +973,7 @@
   
   <function name="LdifDiffSdk">
     <function-prolog>
-      This function runs ldap delrate tool from OpenDJ SDK
+      This function runs ldif-diff tool from OpenDJ SDK
     </function-prolog>
     <function-map-args>
       <function-arg-def name="location" type="optional" default="STAF_REMOTE_HOSTNAME">
