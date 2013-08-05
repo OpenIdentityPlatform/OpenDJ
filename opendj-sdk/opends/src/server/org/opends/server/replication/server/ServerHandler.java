@@ -32,7 +32,7 @@ import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
@@ -217,7 +217,7 @@ public abstract class ServerHandler extends MessageHandler
   /**
    * The thread that will send heartbeats.
    */
-  HeartbeatThread heartbeatThread = null;
+  private HeartbeatThread heartbeatThread;
 
   /**
    * Set when ServerWriter is stopping.
@@ -241,21 +241,16 @@ public abstract class ServerHandler extends MessageHandler
    *                 communicate with the remote entity.
    * @param queueSize The maximum number of update that will be kept
    *                  in memory by this ServerHandler.
-   * @param replicationServerURL The URL of the hosting replication server.
-   * @param replicationServerId The serverId of the hosting replication server.
    * @param replicationServer The hosting replication server.
    * @param rcvWindowSize The window size to receive from the remote server.
    */
   public ServerHandler(
       Session session,
       int queueSize,
-      String replicationServerURL,
-      int replicationServerId,
       ReplicationServer replicationServer,
       int rcvWindowSize)
   {
-    super(queueSize, replicationServerURL,
-        replicationServerId, replicationServer);
+    super(queueSize, replicationServer);
     this.session = session;
     this.rcvWindowSizeHalf = rcvWindowSize / 2;
     this.maxRcvWindow = rcvWindowSize;
@@ -587,10 +582,10 @@ public abstract class ServerHandler extends MessageHandler
    *          requested.
    */
   @Override
-  public ArrayList<Attribute> getMonitorData()
+  public List<Attribute> getMonitorData()
   {
     // Get the generic ones
-    ArrayList<Attribute> attributes = super.getMonitorData();
+    List<Attribute> attributes = super.getMonitorData();
 
     attributes.add(Attributes.create("server-id", String.valueOf(serverId)));
     attributes.add(Attributes.create("domain-name", getBaseDN()));
@@ -908,7 +903,7 @@ public abstract class ServerHandler extends MessageHandler
             getBaseDN(),
             serverId,
             session.getReadableRemoteAddress(),
-            replicationServerId);
+            getReplicationServerId());
         throw new DirectoryException(ResultCode.OTHER, message);
       }
     }

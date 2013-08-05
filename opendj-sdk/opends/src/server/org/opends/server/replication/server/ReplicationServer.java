@@ -334,20 +334,20 @@ public final class ReplicationServer
 
         if (msg instanceof ServerStartMsg)
         {
-          DataServerHandler handler = new DataServerHandler(session,
-              queueSize,serverURL,serverId,this,rcvWindow);
+          DataServerHandler handler = new DataServerHandler(
+              session, queueSize, this, rcvWindow);
           handler.startFromRemoteDS((ServerStartMsg)msg);
         }
         else if (msg instanceof ReplServerStartMsg)
         {
           ReplicationServerHandler handler = new ReplicationServerHandler(
-              session,queueSize,serverURL,serverId,this,rcvWindow);
+              session, queueSize, this, rcvWindow);
           handler.startFromRemoteRS((ReplServerStartMsg)msg);
         }
         else if (msg instanceof ServerStartECLMsg)
         {
           ECLServerHandler handler = new ECLServerHandler(
-              session,queueSize,serverURL,serverId,this,rcvWindow);
+              session, queueSize, this, rcvWindow);
           handler.startFromRemoteServer((ServerStartECLMsg)msg);
         }
         else
@@ -500,8 +500,7 @@ public final class ReplicationServer
       session = replSessionSecurity.createClientSession(socket, timeoutMS);
 
       ReplicationServerHandler handler = new ReplicationServerHandler(
-          session, queueSize, this.serverURL, serverId, this,
-          rcvWindow);
+          session, queueSize, this, rcvWindow);
       handler.connect(baseDn, sslEncryption);
     }
     catch (Exception e)
