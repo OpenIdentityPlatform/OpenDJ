@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2013 ForgeRock AS.
  */
 package org.opends.server.replication.server;
 
@@ -116,29 +116,20 @@ public class MsgQueue
       UpdateMsg msgSameChangeNumber = map.put(update.getChangeNumber(), update);
       if (msgSameChangeNumber != null)
       {
-        boolean sameMsgs = false;
         try
         {
-          if (
-            (msgSameChangeNumber.getBytes().length == update.getBytes().length)
-            && (msgSameChangeNumber.isAssured() == update.isAssured())
-            && (msgSameChangeNumber.getVersion() == update.getVersion()) )
-            {
-              sameMsgs = true;
-            }
-
-
-            if (!sameMsgs)
-            {
-              // Adding 2 msgs with the same ChangeNumber is ok only when
-              // the 2 masgs are the same
-              bytesCount += (update.size() - msgSameChangeNumber.size());
-              Message errMsg = ERR_RSQUEUE_DIFFERENT_MSGS_WITH_SAME_CN.get(
-                  msgSameChangeNumber.getChangeNumber().toString(),
-                  msgSameChangeNumber.toString(),
-                  update.toString());
-              logError(errMsg);
-            }
+          if (msgSameChangeNumber.getBytes().length != update.getBytes().length
+              || msgSameChangeNumber.isAssured() != update.isAssured()
+              || msgSameChangeNumber.getVersion() != update.getVersion())
+          {
+            // Adding 2 msgs with the same ChangeNumber is ok only when
+            // the 2 msgs are the same
+            bytesCount += (update.size() - msgSameChangeNumber.size());
+            Message errMsg = ERR_RSQUEUE_DIFFERENT_MSGS_WITH_SAME_CN.get(
+                msgSameChangeNumber.getChangeNumber().toString(),
+                msgSameChangeNumber.toString(), update.toString());
+            logError(errMsg);
+          }
         }
         catch(Exception e)
         {}
