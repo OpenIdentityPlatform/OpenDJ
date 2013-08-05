@@ -23,10 +23,9 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2012 ForgeRock AS
+ *      Portions Copyright 2012-2013 ForgeRock AS
  */
 package org.opends.server.replication.server;
-
 
 import org.opends.server.replication.common.ExternalChangeLogSession;
 import org.opends.server.replication.protocol.ECLUpdateMsg;
@@ -37,12 +36,10 @@ import org.opends.server.types.DirectoryException;
  * This class implements a session used to search the external changelog
  * in the Directory Server.
  */
-public class ExternalChangeLogSessionImpl
-  implements ExternalChangeLogSession
+public class ExternalChangeLogSessionImpl implements ExternalChangeLogSession
 {
 
-  ECLServerHandler handler;
-
+  private ECLServerHandler handler;
 
   /**
    * Create a new external changelog session.
@@ -56,11 +53,7 @@ public class ExternalChangeLogSessionImpl
       StartECLSessionMsg startECLSessionMsg)
   throws DirectoryException
   {
-    this.handler = new ECLServerHandler(
-        rs.getServerURL(),
-        rs.getServerId(),
-        rs,
-        startECLSessionMsg);
+    this.handler = new ECLServerHandler(rs, startECLSessionMsg);
   }
 
   /**
@@ -69,6 +62,7 @@ public class ExternalChangeLogSessionImpl
    * @return the next available message from the ECL.
    * @throws DirectoryException when needed.
    */
+  @Override
   public ECLUpdateMsg getNextUpdate()
   throws DirectoryException
   {
@@ -78,6 +72,7 @@ public class ExternalChangeLogSessionImpl
   /**
    * Close the session.
    */
+  @Override
   public void close()
   {
     // ECL is a special case in the sense that there is no

@@ -31,6 +31,7 @@ import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -78,14 +79,6 @@ public class MessageHandler extends MonitorProvider<MonitorProviderCfg>
    */
   protected ReplicationServer replicationServer = null;
   /**
-   * The URL of the hosting replication server.
-   */
-  protected String replicationServerURL = null;
-  /**
-   * The serverID of the hosting replication server.
-   */
-  protected int replicationServerId;
-  /**
    * Specifies the related replication server domain based on baseDn.
    */
   protected ReplicationServerDomain replicationServerDomain = null;
@@ -108,7 +101,7 @@ public class MessageHandler extends MonitorProvider<MonitorProviderCfg>
   /**
    * Specifies whether the consumer is following the producer (is not late).
    */
-  protected boolean following = false;
+  private boolean following = false;
   /**
    * Specifies the current serverState of this handler.
    */
@@ -132,20 +125,12 @@ public class MessageHandler extends MonitorProvider<MonitorProviderCfg>
    * Creates a new server handler instance with the provided socket.
    * @param queueSize The maximum number of update that will be kept
    *                  in memory by this ServerHandler.
-   * @param replicationServerURL The URL of the hosting replication server.
-   * @param replicationServerId The ID of the hosting replication server.
    * @param replicationServer The hosting replication server.
    */
-  public MessageHandler(
-      int queueSize,
-      String replicationServerURL,
-      int replicationServerId,
-      ReplicationServer replicationServer)
+  public MessageHandler(int queueSize, ReplicationServer replicationServer)
   {
     this.maxQueueSize = queueSize;
     this.maxQueueBytesSize = queueSize * 100;
-    this.replicationServerURL = replicationServerURL;
-    this.replicationServerId = replicationServerId;
     this.replicationServer = replicationServer;
   }
 
@@ -228,18 +213,16 @@ public class MessageHandler extends MonitorProvider<MonitorProviderCfg>
    *          requested.
    */
   @Override
-  public ArrayList<Attribute> getMonitorData()
+  public List<Attribute> getMonitorData()
   {
-    ArrayList<Attribute> attributes = new ArrayList<Attribute>();
+    List<Attribute> attributes = new ArrayList<Attribute>();
     attributes.add(Attributes.create("handler", getMonitorInstanceName()));
     attributes.add(
         Attributes.create("queue-size", String.valueOf(msgQueue.count())));
     attributes.add(
         Attributes.create(
             "queue-size-bytes", String.valueOf(msgQueue.bytesCount())));
-    attributes.add(
-        Attributes.create(
-            "following", String.valueOf(following)));
+    attributes.add(Attributes.create("following", String.valueOf(following)));
     return attributes;
   }
 
@@ -560,7 +543,7 @@ public class MessageHandler extends MonitorProvider<MonitorProviderCfg>
         return msgQueue.count();
       else
       {
-        /**
+        /*
          * When the server  is not able to follow, the msgQueue
          * may become too large and therefore won't contain all the
          * changes. Some changes may only be stored in the backing DB
@@ -680,9 +663,6 @@ public class MessageHandler extends MonitorProvider<MonitorProviderCfg>
    */
   public void shutdown()
   {
-    /*
-     * Shutdown ServerWriter
-     */
     synchronized (msgQueue)
     {
       msgQueue.clear();
@@ -719,6 +699,16 @@ public class MessageHandler extends MonitorProvider<MonitorProviderCfg>
    */
   public int getReplicationServerId()
   {
-    return this.replicationServerId;
+    return this.replicationServer.getServerId();
+  }
+
+  /**
+   * Get the server URL of the hosting replication server.
+   *
+   * @return the replication server URL.
+   */
+  public String getReplicationServerURL()
+  {
+    return this.replicationServer.getServerURL();
   }
 }

@@ -33,7 +33,6 @@ import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.replication.protocol.ProtocolVersion.*;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -117,7 +116,7 @@ public class ReplicationServerHandler extends ServerHandler
   private ReplServerStartMsg sendStartToRemote() throws IOException
   {
     ReplServerStartMsg outReplServerStartMsg = new ReplServerStartMsg(
-        replicationServerId, replicationServerURL, getBaseDN(),
+        getReplicationServerId(), getReplicationServerURL(), getBaseDN(),
         maxRcvWindow, replicationServerDomain.getDbServerState(),
         localGenerationId, sslEncryption,
         getLocalGroupId(), replicationServerDomain.getReplicationServer()
@@ -130,21 +129,16 @@ public class ReplicationServerHandler extends ServerHandler
    * Creates a new handler object to a remote replication server.
    * @param session The session with the remote RS.
    * @param queueSize The queue size to manage updates to that RS.
-   * @param replicationServerURL The hosting local RS URL.
-   * @param replicationServerId The hosting local RS serverId.
    * @param replicationServer The hosting local RS object.
    * @param rcvWindowSize The receiving window size.
    */
   public ReplicationServerHandler(
       Session session,
       int queueSize,
-      String replicationServerURL,
-      int replicationServerId,
       ReplicationServer replicationServer,
       int rcvWindowSize)
   {
-    super(session, queueSize, replicationServerURL, replicationServerId,
-        replicationServer, rcvWindowSize);
+    super(session, queueSize, replicationServer, rcvWindowSize);
   }
 
   /**
@@ -760,10 +754,10 @@ public class ReplicationServerHandler extends ServerHandler
    *          requested.
    */
   @Override
-  public ArrayList<Attribute> getMonitorData()
+  public List<Attribute> getMonitorData()
   {
     // Get the generic ones
-    ArrayList<Attribute> attributes = super.getMonitorData();
+    List<Attribute> attributes = super.getMonitorData();
 
     // Add the specific RS ones
     attributes.add(Attributes.create("Replication-Server", serverURL));

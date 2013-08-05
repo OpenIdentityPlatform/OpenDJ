@@ -28,8 +28,8 @@
 package org.opends.server.replication.server;
 
 import static org.opends.messages.ReplicationMessages.*;
-import static org.opends.server.loggers.ErrorLogger.logError;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
+import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.replication.common.StatusMachine.*;
 import static org.opends.server.replication.protocol.ProtocolVersion.*;
 
@@ -62,20 +62,22 @@ import org.opends.server.types.ResultCode;
  */
 public class DataServerHandler extends ServerHandler
 {
-  // Temporary generationId received in handshake/phase1,
-  // and used after handshake/phase2
-  long tmpGenerationId;
+  /**
+   * Temporary generationId received in handshake/phase1, and used after
+   * handshake/phase2.
+   */
+  private long tmpGenerationId;
 
-  // Status of this DS (only used if this server handler represents a DS)
+  /** Status of this DS (only used if this server handler represents a DS). */
   private ServerStatus status = ServerStatus.INVALID_STATUS;
 
-  // Referrals URLs this DS is exporting
+  /** Referrals URLs this DS is exporting. */
   private List<String> refUrls = new ArrayList<String>();
-  // Assured replication enabled on DS or not
+  /** Assured replication enabled on DS or not. */
   private boolean assuredFlag = false;
-  // DS assured mode (relevant if assured replication enabled)
+  /** DS assured mode (relevant if assured replication enabled). */
   private AssuredMode assuredMode = AssuredMode.SAFE_DATA_MODE;
-  // DS safe data level (relevant if assured mode is safe data)
+  /** DS safe data level (relevant if assured mode is safe data). */
   private byte safeDataLevel = (byte) -1;
   private Set<String> eclIncludes = new HashSet<String>();
   private Set<String> eclIncludesForDeletes = new HashSet<String>();
@@ -84,21 +86,16 @@ public class DataServerHandler extends ServerHandler
    * Creates a new data server handler.
    * @param session The session opened with the remote data server.
    * @param queueSize The queue size.
-   * @param replicationServerURL The URL of the hosting RS.
-   * @param replicationServerId The serverID of the hosting RS.
    * @param replicationServer The hosting RS.
    * @param rcvWindowSize The receiving window size.
    */
   public DataServerHandler(
       Session session,
       int queueSize,
-      String replicationServerURL,
-      int replicationServerId,
       ReplicationServer replicationServer,
       int rcvWindowSize)
   {
-    super(session, queueSize, replicationServerURL, replicationServerId,
-        replicationServer, rcvWindowSize);
+    super(session, queueSize, replicationServer, rcvWindowSize);
   }
 
   /**
@@ -291,10 +288,10 @@ public class DataServerHandler extends ServerHandler
    *          requested.
    */
   @Override
-  public ArrayList<Attribute> getMonitorData()
+  public List<Attribute> getMonitorData()
   {
     // Get the generic ones
-    ArrayList<Attribute> attributes = super.getMonitorData();
+    List<Attribute> attributes = super.getMonitorData();
 
     // Add the specific DS ones
     attributes.add(Attributes.create("replica", serverURL));
@@ -355,6 +352,7 @@ public class DataServerHandler extends ServerHandler
    * Gets the status of the connected DS.
    * @return The status of the connected DS.
    */
+  @Override
   public ServerStatus getStatus()
   {
     return status;
@@ -451,7 +449,7 @@ public class DataServerHandler extends ServerHandler
     replicationServerDomain.buildAndSendTopoInfoToRSs();
   }
 
-  // Send our own TopologyMsg to DS
+  /** Send our own TopologyMsg to DS. */
   private TopologyMsg sendTopoToRemoteDS() throws IOException
   {
     TopologyMsg outTopoMsg = replicationServerDomain
@@ -579,7 +577,6 @@ public class DataServerHandler extends ServerHandler
       logError(message);
 
       super.finalizeStart();
-
     }
     catch(DirectoryException de)
     {
@@ -612,8 +609,8 @@ public class DataServerHandler extends ServerHandler
     if (getProtocolVersion() < ProtocolVersion.REPLICATION_PROTOCOL_V4)
     {
       // Peer DS uses protocol < V4 : send it a ReplServerStartMsg
-      startMsg = new ReplServerStartMsg(replicationServerId,
-          replicationServerURL, getBaseDN(), maxRcvWindow,
+      startMsg = new ReplServerStartMsg(getReplicationServerId(),
+              getReplicationServerURL(), getBaseDN(), maxRcvWindow,
           replicationServerDomain.getDbServerState(),
           localGenerationId, sslEncryption, getLocalGroupId(),
           replicationServerDomain.getReplicationServer()
@@ -622,8 +619,8 @@ public class DataServerHandler extends ServerHandler
     else
     {
       // Peer DS uses protocol V4 : send it a ReplServerStartDSMsg
-      startMsg = new ReplServerStartDSMsg(replicationServerId,
-          replicationServerURL, getBaseDN(), maxRcvWindow,
+      startMsg = new ReplServerStartDSMsg(getReplicationServerId(),
+              getReplicationServerURL(), getBaseDN(), maxRcvWindow,
           replicationServerDomain.getDbServerState(),
           localGenerationId, sslEncryption, getLocalGroupId(),
           replicationServerDomain.getReplicationServer()
@@ -641,9 +638,9 @@ public class DataServerHandler extends ServerHandler
    */
   public DSInfo toDSInfo()
   {
-    return new DSInfo(serverId, serverURL, replicationServerId, generationId,
-      status, assuredFlag, assuredMode, safeDataLevel, groupId, refUrls,
-      eclIncludes, eclIncludesForDeletes, getProtocolVersion());
+    return new DSInfo(serverId, serverURL, getReplicationServerId(),
+        generationId, status, assuredFlag, assuredMode, safeDataLevel, groupId,
+        refUrls, eclIncludes, eclIncludesForDeletes, getProtocolVersion());
   }
 
   /**
