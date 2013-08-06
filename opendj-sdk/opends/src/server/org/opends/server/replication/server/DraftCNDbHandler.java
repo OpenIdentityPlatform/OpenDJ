@@ -184,7 +184,7 @@ public class DraftCNDbHandler implements Runnable
    * {@link Database#count()} javadoc mentions: <blockquote>Note that this
    * method does scan a significant portion of the database and should be
    * considered a fairly expensive operation.</blockquote>
-   * 
+   *
    * @return <code>true</code> if this database is empty, <code>false</code>
    *         otherwise
    */
