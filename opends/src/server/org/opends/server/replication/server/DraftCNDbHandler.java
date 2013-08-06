@@ -178,6 +178,22 @@ public class DraftCNDbHandler implements Runnable
   }
 
   /**
+   * Returns whether this database is empty.
+   * <p>
+   * FIXME Find a way to implement this method in a more efficient manner.
+   * {@link Database#count()} javadoc mentions: <blockquote>Note that this
+   * method does scan a significant portion of the database and should be
+   * considered a fairly expensive operation.</blockquote>
+   * 
+   * @return <code>true</code> if this database is empty, <code>false</code>
+   *         otherwise
+   */
+  public boolean isEmpty()
+  {
+    return count() == 0;
+  }
+
+  /**
    * Get a read cursor on the database from a provided key.
    * The cursor MUST be released after use.
    * @param key The provided key.
