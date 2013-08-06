@@ -1365,7 +1365,8 @@ public final class ECLServerHandler extends ServerHandler
                       if (isEndOfDraftCNReached)
                       {
                         // we are at the end of the DraftCNdb in the append mode
-                        storeNewChange(draftCNDb, oldestChange, oldestChange.getBaseDN());
+                        storeNewChange(draftCNDb, oldestChange, oldestChange
+                            .getBaseDN());
                         break;
                       }
                     }
