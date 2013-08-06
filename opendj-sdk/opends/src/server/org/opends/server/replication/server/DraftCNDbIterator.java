@@ -43,7 +43,7 @@ import com.sleepycat.je.DatabaseException;
 public class DraftCNDbIterator
 {
   private static final DebugTracer TRACER = getTracer();
-  private DraftCNDBCursor draftCNDbCursor = null;
+  private DraftCNDBCursor draftCNDbCursor;
 
   /**
    * Creates a new ReplicationIterator.
@@ -93,8 +93,7 @@ public class DraftCNDbIterator
   {
     try
     {
-      ChangeNumber cn = this.draftCNDbCursor.currentChangeNumber();
-      return cn;
+      return this.draftCNDbCursor.currentChangeNumber();
     }
     catch(Exception e)
     {
@@ -117,13 +116,15 @@ public class DraftCNDbIterator
   /**
    * Skip to the next record of the database.
    * @return true if has next, false elsewhere
-   * @throws Exception When exception raised.
    * @throws DatabaseException When database exception raised.
    */
-  public boolean next()
-  throws Exception, DatabaseException
+  public boolean next() throws DatabaseException
   {
-    return draftCNDbCursor.next();
+    if (draftCNDbCursor != null)
+    {
+      return draftCNDbCursor.next();
+    }
+    return false;
   }
 
   /**
