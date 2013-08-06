@@ -1313,10 +1313,6 @@ public final class ECLServerHandler extends ServerHandler
                 ChangeNumber cnFromDraftCNDb = draftCNDbIter.getChangeNumber();
                 String dnFromDraftCNDb = draftCNDbIter.getBaseDN();
 
-                // are replogcn and DraftCNcn should be the same change ?
-                int areCNEqual = cnFromChangelogDb.compareTo(cnFromDraftCNDb);
-                int areDNEqual = dnFromChangelogDb.compareTo(dnFromDraftCNDb);
-
                 if (debugEnabled())
                   TRACER.debugInfo("getNextECLUpdate generating draftCN "
                     + " comparing the 2 db DNs :"
@@ -1324,7 +1320,9 @@ public final class ECLServerHandler extends ServerHandler
                     + " timestamps:" + new Date(cnFromChangelogDb.getTime())
                     + " ?older" +   new Date(cnFromDraftCNDb.getTime()));
 
-                if ((areDNEqual==0) && (areCNEqual==0))
+                // should replogcn and DraftCN be the same change ?
+                if (areSameChange(cnFromChangelogDb, dnFromChangelogDb,
+                    cnFromDraftCNDb, dnFromDraftCNDb))
                 {
                   // same domain and same CN => same change
 
@@ -1334,9 +1332,7 @@ public final class ECLServerHandler extends ServerHandler
                       + " assigning draftCN=" + draftCNDbIter.getDraftCN()
                       + " to change=" + oldestChange);
 
-                  oldestChange.setDraftChangeNumber(
-                      draftCNDbIter.getDraftCN());
-
+                  oldestChange.setDraftChangeNumber(draftCNDbIter.getDraftCN());
                   break;
                 }
                 else
@@ -1369,19 +1365,7 @@ public final class ECLServerHandler extends ServerHandler
                       if (isEndOfDraftCNReached)
                       {
                         // we are at the end of the DraftCNdb in the append mode
-
-                        // generate a new draftCN and assign to this change
-                        oldestChange.setDraftChangeNumber(
-                            replicationServer.getNewDraftCN());
-
-                        // store in DraftCNdb the pair
-                        // (draftCN_of_the_cur_change, state_before_this_change)
-                        draftCNDb.add(
-                            oldestChange.getDraftChangeNumber(),
-                            previousCookie.toString(),
-                            oldestChange.getBaseDN(),
-                            oldestChange.getUpdateMsg().getChangeNumber());
-
+                        storeNewChange(draftCNDb, oldestChange, oldestChange.getBaseDN());
                         break;
                       }
                     }
@@ -1407,17 +1391,7 @@ public final class ECLServerHandler extends ServerHandler
               else
               {
                 // we are at the end of the DraftCNdb in the append mode
-                // store in DraftCNdb the pair
-                // (DraftCN of the current change, state before this change)
-                oldestChange.setDraftChangeNumber(
-                    replicationServer.getNewDraftCN());
-
-                draftCNDb.add(
-                    oldestChange.getDraftChangeNumber(),
-                    this.previousCookie.toString(),
-                    suffix,
-                    oldestChange.getUpdateMsg().getChangeNumber());
-
+                storeNewChange(draftCNDb, oldestChange, suffix);
                 break;
               }
             } // while DraftCN
@@ -1480,17 +1454,7 @@ public final class ECLServerHandler extends ServerHandler
           {
             // should generate DraftCN
             DraftCNDbHandler draftCNDb =replicationServer.getDraftCNDbHandler();
-
-            oldestChange.setDraftChangeNumber(
-                replicationServer.getNewDraftCN());
-
-            // store in DraftCNdb the pair
-            // (DraftCN of the current change, state before this change)
-            draftCNDb.add(
-                oldestChange.getDraftChangeNumber(),
-                this.previousCookie.toString(),
-                suffix,
-                oldestChange.getUpdateMsg().getChangeNumber());
+            storeNewChange(draftCNDb, oldestChange, suffix);
           }
         }
       }
@@ -1524,6 +1488,29 @@ public final class ECLServerHandler extends ServerHandler
 
     }
     return oldestChange;
+  }
+
+  private boolean areSameChange(ChangeNumber cn1, String dn1, ChangeNumber cn2,
+      String dn2)
+  {
+    boolean sameDN = dn1.compareTo(dn2) == 0;
+    boolean sameCN = cn1.compareTo(cn2) == 0;
+    return sameDN && sameCN;
+  }
+
+  private void storeNewChange(DraftCNDbHandler draftCNDb, ECLUpdateMsg change,
+      String suffix)
+  {
+    // generate a new draftCN and assign to this change
+    change.setDraftChangeNumber(replicationServer.getNewDraftCN());
+
+    // store in DraftCNdb the pair
+    // (DraftCN of the current change, state before this change)
+    draftCNDb.add(
+        change.getDraftChangeNumber(),
+        previousCookie.toString(),
+        suffix,
+        change.getUpdateMsg().getChangeNumber());
   }
 
   /**
