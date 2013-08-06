@@ -184,6 +184,13 @@ public class DraftCNDbHandler implements Runnable
    * {@link Database#count()} javadoc mentions: <blockquote>Note that this
    * method does scan a significant portion of the database and should be
    * considered a fairly expensive operation.</blockquote>
+   * <p>
+   * It could be faster to:
+   * <ul>
+   * <li>open a cursor, check if the next entry exits, then close the cursor
+   * </li>
+   * <li>call <code>db.readFirstDraftCN() != 0</code></li>
+   * </ul>
    *
    * @return <code>true</code> if this database is empty, <code>false</code>
    *         otherwise
@@ -347,12 +354,7 @@ public class DraftCNDbHandler implements Runnable
   public void clear(String baseDNToClear)
       throws DatabaseException, Exception
   {
-    // FIXME according to JE javadoc, this is a "fairly expensive operation"
-    // It could be faster to:
-    // - open a cursor
-    // - check if there is a next entry
-    // - close the cursor (or reuse it down below)
-    if (this.count() == 0)
+    if (isEmpty())
     {
       return;
     }
