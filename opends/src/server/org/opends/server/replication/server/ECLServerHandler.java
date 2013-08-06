@@ -549,8 +549,6 @@ public final class ECLServerHandler extends ServerHandler
 
       // Any possible optimization on draft CN in the request filter ?
       final String providedCookie = findCookie(startDraftCN);
-      this.draftCompat = true;
-
       initializeChangelogDomainCtxts(providedCookie, true);
     }
     catch(DirectoryException de)
@@ -602,21 +600,21 @@ public final class ECLServerHandler extends ServerHandler
         return null;
       }
 
-      final int key = draftCNDb.getFirstKey();
-      String crossDomainStartState = draftCNDb.getValue(key);
-      draftCNDbIter = draftCNDb.generateIterator(key);
+      final int firstKey = draftCNDb.getFirstKey();
+      String crossDomainStartState = draftCNDb.getValue(firstKey);
+      draftCNDbIter = draftCNDb.generateIterator(firstKey);
       return crossDomainStartState;
     }
 
     // Request filter DOES contain a startDraftCN
 
     // Read the draftCNDb to see whether it contains startDraftCN
-    int key = startDraftCN;
-    String crossDomainStartState = draftCNDb.getValue(startDraftCN);
+    final int startDraftCNKey = startDraftCN;
+    String crossDomainStartState = draftCNDb.getValue(startDraftCNKey);
     if (crossDomainStartState != null)
     {
       // found the provided startDraftCN, let's return it
-      draftCNDbIter = draftCNDb.generateIterator(key);
+      draftCNDbIter = draftCNDb.generateIterator(startDraftCNKey);
       return crossDomainStartState;
     }
 
@@ -633,13 +631,12 @@ public final class ECLServerHandler extends ServerHandler
 
     // If the startDraftCN provided is lower than the first Draft CN in
     // the DB, let's use the lower limit.
-    if (startDraftCN < key)
+    if (startDraftCN < firstDraftCN)
     {
-      key = firstDraftCN;
-      crossDomainStartState = draftCNDb.getValue(key);
+      crossDomainStartState = draftCNDb.getValue(firstDraftCN);
       if (crossDomainStartState != null)
       {
-        draftCNDbIter = draftCNDb.generateIterator(key);
+        draftCNDbIter = draftCNDb.generateIterator(firstDraftCN);
         return crossDomainStartState;
       }
 
@@ -657,9 +654,9 @@ public final class ECLServerHandler extends ServerHandler
         return null;
       }
 
-      key = draftCNDb.getLastKey();
-      crossDomainStartState = draftCNDb.getValue(key);
-      draftCNDbIter = draftCNDb.generateIterator(key);
+      final int lastKey = draftCNDb.getLastKey();
+      crossDomainStartState = draftCNDb.getValue(lastKey);
+      draftCNDbIter = draftCNDb.generateIterator(lastKey);
       return crossDomainStartState;
 
       // TODO:ECL ... ok we'll start from the end of the draftCNDb BUT ...
