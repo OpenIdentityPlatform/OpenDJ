@@ -698,108 +698,103 @@ public final class ECLServerHandler extends ServerHandler
 
     try
     {
-      Iterator<ReplicationServerDomain> rsdi = rs.getDomainIterator();
-
       // Creates the table that will contain the real-time info for each
       // and every domain.
       Set<DomainContext> tmpSet = new HashSet<DomainContext>();
       String missingDomains = "";
-      if (rsdi != null)
+      for (Iterator<ReplicationServerDomain> iter = rs.getDomainIterator();
+           iter.hasNext();)
       {
-        while (rsdi.hasNext())
+        ReplicationServerDomain rsd = iter.next();
+
+        // skip the 'unreal' changelog domain
+        if (rsd == this.replicationServerDomain)
+          continue;
+
+        // skip the excluded domains
+        if (excludedBaseDNs.contains(rsd.getBaseDn()))
         {
-          // process a domain
-          ReplicationServerDomain rsd = rsdi.next();
-
-          // skip the 'unreal' changelog domain
-          if (rsd == this.replicationServerDomain)
-            continue;
-
-          // skip the excluded domains
-          if (excludedBaseDNs.contains(rsd.getBaseDn()))
-          {
-            // this is an excluded domain
-            if (allowUnknownDomains)
-              startStatesFromProvidedCookie.remove(rsd.getBaseDn());
-            continue;
-          }
-
-          // skip unused domains
-          if (rsd.getDbServerState().isEmpty())
-            continue;
-
-          // Creates the new domain context
-          DomainContext newDomainCtxt = new DomainContext();
-          newDomainCtxt.active = true;
-          newDomainCtxt.rsd = rsd;
-          newDomainCtxt.domainLatestTrimDate = rsd.getLatestDomainTrimDate();
-
-          // Assign the start state for the domain
-          if (isPersistent == PERSISTENT_CHANGES_ONLY)
-          {
-            newDomainCtxt.startState = rsd.getEligibleState(eligibleCN);
+          // this is an excluded domain
+          if (allowUnknownDomains)
             startStatesFromProvidedCookie.remove(rsd.getBaseDn());
+          continue;
+        }
+
+        // skip unused domains
+        if (rsd.getDbServerState().isEmpty())
+          continue;
+
+        // Creates the new domain context
+        DomainContext newDomainCtxt = new DomainContext();
+        newDomainCtxt.active = true;
+        newDomainCtxt.rsd = rsd;
+        newDomainCtxt.domainLatestTrimDate = rsd.getLatestDomainTrimDate();
+
+        // Assign the start state for the domain
+        if (isPersistent == PERSISTENT_CHANGES_ONLY)
+        {
+          newDomainCtxt.startState = rsd.getEligibleState(eligibleCN);
+          startStatesFromProvidedCookie.remove(rsd.getBaseDn());
+        }
+        else
+        {
+          // let's take the start state for this domain from the provided
+          // cookie
+          newDomainCtxt.startState =
+              startStatesFromProvidedCookie.remove(rsd.getBaseDn());
+
+          if (providedCookie == null
+              || providedCookie.length() == 0
+              || allowUnknownDomains)
+          {
+            // when there is no cookie provided in the request,
+            // let's start traversing this domain from the beginning of
+            // what we have in the replication changelog
+            if (newDomainCtxt.startState == null)
+            {
+              ChangeNumber latestTrimCN =
+                  new ChangeNumber(newDomainCtxt.domainLatestTrimDate, 0, 0);
+              newDomainCtxt.startState =
+                  rsd.getStartState().duplicateOnlyOlderThan(latestTrimCN);
+            }
           }
           else
           {
-            // let's take the start state for this domain from the provided
-            // cookie
-            newDomainCtxt.startState =
-              startStatesFromProvidedCookie.remove(rsd.getBaseDn());
-
-            if ((providedCookie==null)||(providedCookie.length()==0)
-                ||allowUnknownDomains)
+            // when there is a cookie provided in the request,
+            if (newDomainCtxt.startState == null)
             {
-              // when there is no cookie provided in the request,
-              // let's start traversing this domain from the beginning of
-              // what we have in the replication changelog
-              if (newDomainCtxt.startState == null)
+              missingDomains += (rsd.getBaseDn() + ":;");
+              continue;
+            }
+            else if (!newDomainCtxt.startState.isEmpty())
+            {
+              if (hasCookieBeenTrimmedFromDB(rsd, newDomainCtxt.startState))
               {
-                ChangeNumber latestTrimCN =
-                    new ChangeNumber(newDomainCtxt.domainLatestTrimDate, 0,0);
-                newDomainCtxt.startState = rsd.getStartState()
-                        .duplicateOnlyOlderThan(latestTrimCN);
+                throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+                    ERR_RESYNC_REQUIRED_TOO_OLD_DOMAIN_IN_PROVIDED_COOKIE
+                        .get(newDomainCtxt.rsd.getBaseDn()));
               }
             }
-            else
-            {
-              // when there is a cookie provided in the request,
-              if (newDomainCtxt.startState == null)
-              {
-                missingDomains += (rsd.getBaseDn() + ":;");
-                continue;
-              }
-              else if (!newDomainCtxt.startState.isEmpty())
-              {
-                if (hasCookieBeenTrimmedFromDB(rsd, newDomainCtxt.startState))
-                {
-                  throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-                      ERR_RESYNC_REQUIRED_TOO_OLD_DOMAIN_IN_PROVIDED_COOKIE.get(
-                          newDomainCtxt.rsd.getBaseDn()));
-                }
-              }
-            }
-
-            // Set the stop state for the domain from the eligibleCN
-            newDomainCtxt.stopState = rsd.getEligibleState(eligibleCN);
           }
-          newDomainCtxt.currentState = new ServerState();
 
-          // Creates an unconnected SH for the domain
-          MessageHandler mh =
-              new MessageHandler(maxQueueSize, replicationServer);
-          mh.setInitialServerState(newDomainCtxt.startState);
-          mh.setBaseDNAndDomain(rsd.getBaseDn(), false);
-          // register the unconnected into the domain
-          rsd.registerHandler(mh);
-          newDomainCtxt.mh = mh;
-
-          previousCookie.update(newDomainCtxt.rsd.getBaseDn(),
-                                newDomainCtxt.startState);
-
-          // store the new context
-          tmpSet.add(newDomainCtxt);
+          // Set the stop state for the domain from the eligibleCN
+          newDomainCtxt.stopState = rsd.getEligibleState(eligibleCN);
         }
+        newDomainCtxt.currentState = new ServerState();
+
+        // Creates an unconnected SH for the domain
+        MessageHandler mh = new MessageHandler(maxQueueSize, replicationServer);
+        mh.setInitialServerState(newDomainCtxt.startState);
+        mh.setBaseDNAndDomain(rsd.getBaseDn(), false);
+        // register the unconnected into the domain
+        rsd.registerHandler(mh);
+        newDomainCtxt.mh = mh;
+
+        previousCookie.update(newDomainCtxt.rsd.getBaseDn(),
+                              newDomainCtxt.startState);
+
+        // store the new context
+        tmpSet.add(newDomainCtxt);
       }
 
       if (missingDomains.length()>0)

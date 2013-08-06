@@ -318,7 +318,7 @@ public class ReplicationServerLoadBalancingTest extends ReplicationTestCase
   private int getDSConnectedToRS(int rsIndex)
   {
     Iterator<ReplicationServerDomain> rsdIt = rs[rsIndex].getDomainIterator();
-    if (rsdIt != null)
+    if (rsdIt.hasNext())
     {
       return rsdIt.next().getConnectedDSs().keySet().size();
     }
@@ -357,15 +357,17 @@ public class ReplicationServerLoadBalancingTest extends ReplicationTestCase
       {
         int rsIndex = rsIndexes[i];
         ReplicationServer repServer = rs[rsIndex];
-        Iterator<ReplicationServerDomain> rsdIt = repServer.getDomainIterator();
         int curRsId = repServer.getServerId();
-        if (rsdIt == null)
+
+        Iterator<ReplicationServerDomain> iter = repServer.getDomainIterator();
+        if (!iter.hasNext())
         {
           // No domain yet, RS is not yet connected to others
           debugInfo("RS " + curRsId + " has no domain yet");
           break;
         }
-        Set<Integer> connectedRSsId = rsdIt.next().getConnectedRSs().keySet();
+        Set<Integer> connectedRSsId = iter.next().getConnectedRSs().keySet();
+
         // Does this RS see all other RSs
         int nPeer = 0;
         debugInfo("Checking RSs connected to RS " + curRsId);
@@ -407,15 +409,16 @@ public class ReplicationServerLoadBalancingTest extends ReplicationTestCase
       for (int i = 0; i < nRSs; i++)
       {
         ReplicationServer repServer = rs[i];
-        Iterator<ReplicationServerDomain> rsdIt = repServer.getDomainIterator();
         int curRsId = repServer.getServerId();
-        if (rsdIt == null)
+
+        Iterator<ReplicationServerDomain> iter = repServer.getDomainIterator();
+        if (!iter.hasNext())
         {
           // No domain yet, RS is not yet connected to others
           debugInfo("RS " + curRsId + " has no domain yet");
           break;
         }
-        Long rsGenId = rsdIt.next().getGenerationId();
+        Long rsGenId = iter.next().getGenerationId();
 
         // Expecting all RSs to have gen id equal and not -1
         if (rsGenId == -1L)

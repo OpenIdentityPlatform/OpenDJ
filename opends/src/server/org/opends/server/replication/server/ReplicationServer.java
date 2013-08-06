@@ -1414,12 +1414,7 @@ public final class ReplicationServer
    */
   public Iterator<ReplicationServerDomain> getDomainIterator()
   {
-    Collection<ReplicationServerDomain> domains = getReplicationServerDomains();
-    if (!domains.isEmpty())
-    {
-      return domains.iterator();
-    }
-    return null;
+    return getReplicationServerDomains().iterator();
   }
 
   /**
