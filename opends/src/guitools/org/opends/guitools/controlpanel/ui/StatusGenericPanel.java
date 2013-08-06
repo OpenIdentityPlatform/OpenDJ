@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013 ForgeRock AS.
  */
 package org.opends.guitools.controlpanel.ui;
 
@@ -2097,15 +2097,15 @@ implements ConfigChangeListener
   }
 
   /**
-   * Tells whether a given entry exists and contains the specified object class.
+   * Tells whether a given entry exists and contains one of the specified object
+   * classes.
    * @param dn the DN of the entry.
-   * @param objectClass the object class.
-   * @return <CODE>true</CODE> if the entry exists and contains the specified
-   * object class and <CODE>false</CODE> otherwise.
+   * @param objectClasses the object classes to check.
+   * @return <CODE>true</CODE> if the entry exists and contains one of the
+   * specified object classes and <CODE>false</CODE> otherwise.
    */
-  protected boolean hasObjectClass(String dn, String objectClass)
+  protected boolean hasObjectClass(String dn, String... objectClasses)
   {
-    boolean hasObjectClass = false;
     try
     {
       SearchControls ctls = new SearchControls();
@@ -2130,10 +2130,12 @@ implements ConfigChangeListener
           {
             for (String s : values)
             {
-              if (s.equalsIgnoreCase(objectClass))
+              for (String objectClass: objectClasses)
               {
-                hasObjectClass = true;
-                break;
+                if (s.equalsIgnoreCase(objectClass))
+                {
+                  return true;
+                }
               }
             }
           }
@@ -2147,7 +2149,7 @@ implements ConfigChangeListener
     catch (Throwable t)
     {
     }
-    return hasObjectClass;
+    return false;
   }
 
   /**

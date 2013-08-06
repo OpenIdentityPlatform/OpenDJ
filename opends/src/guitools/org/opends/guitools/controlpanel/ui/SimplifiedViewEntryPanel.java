@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -190,6 +191,8 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
         INFO_CTRL_PANEL_POSTALADDRESS_FRIENDLY_NAME.get());
     hmFriendlyAttrNames.put(ServerConstants.ATTR_UNIQUE_MEMBER_LC,
         INFO_CTRL_PANEL_UNIQUEMEMBER_FRIENDLY_NAME.get());
+    hmFriendlyAttrNames.put(ServerConstants.ATTR_MEMBER,
+        INFO_CTRL_PANEL_MEMBER_FRIENDLY_NAME.get());
     hmFriendlyAttrNames.put(ServerConstants.ATTR_MEMBER_URL_LC,
         INFO_CTRL_PANEL_MEMBERURL_FRIENDLY_NAME.get());
     hmFriendlyAttrNames.put(ServerConstants.ATTR_C,

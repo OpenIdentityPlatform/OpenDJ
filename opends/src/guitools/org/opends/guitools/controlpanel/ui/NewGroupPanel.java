@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -734,7 +735,7 @@ public class NewGroupPanel extends AbstractNewEntryPanel
   protected String getLDIF()
   {
     StringBuilder sb = new StringBuilder();
-    sb.append("dn: "+dn.getText()+"\n");
+    sb.append("dn: ").append(dn.getText()).append("\n");
 
     String[] attrNames = {"cn", "description"};
     JTextField[] textFields = {name, description};
@@ -743,14 +744,14 @@ public class NewGroupPanel extends AbstractNewEntryPanel
       String value = textFields[i].getText().trim();
       if (value.length() > 0)
       {
-        sb.append(attrNames[i]+": "+value+"\n");
+        sb.append(attrNames[i]).append(": ").append(value).append("\n");
       }
     }
 
     sb.append("objectclass: top\n");
     if (staticGroup.isSelected())
     {
-      sb.append("objectClass: "+ServerConstants.OC_GROUP_OF_UNIQUE_NAMES);
+      sb.append("objectClass: ").append(ServerConstants.OC_GROUP_OF_NAMES);
       String[] members = staticMembers.getText().split("\n");
       LinkedHashSet<DN> dns = new LinkedHashSet<DN>();
       for (String member : members)
@@ -772,19 +773,23 @@ public class NewGroupPanel extends AbstractNewEntryPanel
 
       for (DN dn : dns)
       {
-        sb.append("\n"+ServerConstants.ATTR_UNIQUE_MEMBER+": "+dn.toString());
+        sb.append("\n").append(ServerConstants.ATTR_MEMBER)
+          .append(": ").append(dn);
       }
     }
     else if (dynamicGroup.isSelected())
     {
-      sb.append("objectClass: "+ServerConstants.OC_GROUP_OF_URLS+"\n");
-      sb.append(ServerConstants.ATTR_MEMBER_URL+": "+filter.getText().trim());
+      sb.append("objectClass: ").append(ServerConstants.OC_GROUP_OF_URLS)
+        .append("\n");
+      sb.append(ServerConstants.ATTR_MEMBER_URL).append(": ")
+        .append(filter.getText().trim());
     }
     else
     {
       sb.append("objectClass: ds-virtual-static-group\n");
-      sb.append("objectClass: "+ServerConstants.OC_GROUP_OF_UNIQUE_NAMES+"\n");
-      sb.append("ds-target-group-dn: "+referenceGroup.getText().trim());
+      sb.append("objectClass: ").append(ServerConstants.OC_GROUP_OF_NAMES)
+        .append("\n");
+      sb.append("ds-target-group-dn: ").append(referenceGroup.getText().trim());
     }
 
     return sb.toString();

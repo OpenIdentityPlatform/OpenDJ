@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -63,6 +64,7 @@ import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.messages.Message;
 import org.opends.server.types.DN;
 import org.opends.server.types.OpenDsException;
+import org.opends.server.util.ServerConstants;
 
 /**
  * The dialog that is displayed when we want to add entries to a set of groups.
@@ -388,7 +390,9 @@ public class AddToGroupPanel extends StatusGenericPanel
             errors.add(
                 ERR_CTRL_PANEL_GROUP_COULD_NOT_BE_FOUND.get(groupDn));
           }
-          else if (!hasObjectClass(groupDn, "groupOfUniqueNames"))
+          else if (!hasObjectClass(groupDn, ServerConstants.OC_GROUP_OF_NAMES,
+            ServerConstants.OC_GROUP_OF_ENTRIES,
+            ServerConstants.OC_GROUP_OF_UNIQUE_NAMES))
           {
             errors.add(ERR_CTRL_PANEL_NOT_A_STATIC_GROUP.get(groupDn));
           }
