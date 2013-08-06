@@ -23,4 +23,5 @@
 #
 #      Copyright 2013 ForgeRock AS
 #
+/etc/init.d/opendj
 # [[ listFiles ]]
