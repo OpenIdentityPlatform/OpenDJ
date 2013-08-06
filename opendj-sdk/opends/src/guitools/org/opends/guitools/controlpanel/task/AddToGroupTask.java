@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.task;
@@ -251,6 +252,8 @@ public class AddToGroupTask extends Task
     ctls.setSearchScope(SearchControls.OBJECT_SCOPE);
     ctls.setReturningAttributes(
         new String[] {
+            ServerConstants.OBJECTCLASS_ATTRIBUTE_TYPE_NAME,
+            ServerConstants.ATTR_MEMBER,
             ServerConstants.ATTR_UNIQUE_MEMBER
         });
     String filter = BrowserController.ALL_OBJECTS_FILTER;
@@ -261,11 +264,19 @@ public class AddToGroupTask extends Task
 
     try
     {
+      String memberAttr = ServerConstants.ATTR_MEMBER;
       while (result.hasMore())
       {
         SearchResult sr = result.next();
+        Set<String> objectClasses =
+          ConnectionUtils.getValues(sr, ServerConstants
+            .OBJECTCLASS_ATTRIBUTE_TYPE_NAME);
+        if (objectClasses.contains(ServerConstants.OC_GROUP_OF_UNIQUE_NAMES))
+        {
+          memberAttr = ServerConstants.ATTR_UNIQUE_MEMBER;
+        }
         Set<String> values =
-          ConnectionUtils.getValues(sr, ServerConstants.ATTR_UNIQUE_MEMBER);
+          ConnectionUtils.getValues(sr, memberAttr);
         Set<String> dnsToAdd = new LinkedHashSet<String>();
         if (values != null)
         {
@@ -296,7 +307,7 @@ public class AddToGroupTask extends Task
         if (dnsToAdd.size() > 0)
         {
           Attribute attribute =
-            new BasicAttribute(ServerConstants.ATTR_UNIQUE_MEMBER);
+            new BasicAttribute(memberAttr);
           for (String dn : dnsToAdd)
           {
             attribute.add(dn);

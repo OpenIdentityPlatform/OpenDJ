@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.browser;
@@ -44,6 +45,7 @@ import javax.swing.ImageIcon;
 
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.quicksetup.ui.UIFactory;
+import org.opends.server.util.ServerConstants;
 
 /**
  * This class is used as a cache containing the icons that are used by the
@@ -86,23 +88,32 @@ public class IconPool {
 
 
   private static final String[] ICON_PATH = {
-    "person",  "ds-user.png",
-    "organization", "ds-folder.png",
-    "organizationalunit",  "ds-ou.png",
-    "groupofuniquenames",  "ds-group.png",
-    "groupofurls",  "ds-group.png",
-    "ds-virtual-static-group",  "ds-group.png",
+    ServerConstants.OC_PERSON,  "ds-user.png",
+    ServerConstants.OC_ORGANIZATION, "ds-folder.png",
+    ServerConstants.OC_ORGANIZATIONAL_UNIT_LC,  "ds-ou.png",
+    ServerConstants.OC_GROUP_OF_NAMES_LC, "ds-group.png",
+    ServerConstants.OC_GROUP_OF_ENTRIES_LC, "ds-group.png",
+    ServerConstants.OC_GROUP_OF_UNIQUE_NAMES_LC,  "ds-group.png",
+    ServerConstants.OC_GROUP_OF_URLS_LC,  "ds-group.png",
+    ServerConstants.OC_VIRTUAL_STATIC_GROUP,  "ds-group.png",
     "passwordpolicy",   "ds-ppol.png"
   };
 
   private static final String[] DESCRIPTION = {
-    "person", INFO_PERSON_ICON_DESCRIPTION.get().toString(),
-    "organization", INFO_ORGANIZATION_ICON_DESCRIPTION.get().toString(),
-    "organizationalunit",
+    ServerConstants.OC_PERSON, INFO_PERSON_ICON_DESCRIPTION.get().toString(),
+    ServerConstants.OC_ORGANIZATION, INFO_ORGANIZATION_ICON_DESCRIPTION.get()
+      .toString(),
+    ServerConstants.OC_ORGANIZATIONAL_UNIT_LC,
     INFO_ORGANIZATIONAL_UNIT_ICON_DESCRIPTION.get().toString(),
-    "groupofuniquenames", INFO_STATIC_GROUP_ICON_DESCRIPTION.get().toString(),
-    "groupofurls", INFO_DYNAMIC_GROUP_ICON_DESCRIPTION.get().toString(),
-    "ds-virtual-static-group",
+    ServerConstants.OC_GROUP_OF_NAMES_LC, INFO_STATIC_GROUP_ICON_DESCRIPTION
+      .get().toString(),
+    ServerConstants.OC_GROUP_OF_ENTRIES_LC, INFO_STATIC_GROUP_ICON_DESCRIPTION
+      .get().toString(),
+    ServerConstants.OC_GROUP_OF_UNIQUE_NAMES_LC,
+      INFO_STATIC_GROUP_ICON_DESCRIPTION.get().toString(),
+    ServerConstants.OC_GROUP_OF_URLS_LC, INFO_DYNAMIC_GROUP_ICON_DESCRIPTION
+      .get().toString(),
+    ServerConstants.OC_VIRTUAL_STATIC_GROUP,
     INFO_VIRTUAL_STATIC_GROUP_ICON_DESCRIPTION.get().toString(),
     "passwordpolicy", INFO_PASSWORD_POLICY_ICON_DESCRIPTION.get().toString()
   };

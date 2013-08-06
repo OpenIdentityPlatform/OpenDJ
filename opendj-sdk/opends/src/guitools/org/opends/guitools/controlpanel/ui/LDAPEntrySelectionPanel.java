@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS.
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -251,7 +252,8 @@ public class LDAPEntrySelectionPanel extends AbstractBrowseEntriesPanel
       break;
     case STATIC_GROUPS:
       filterAttribute.setSelectedItem(LDAP_FILTER);
-      super.filter.setText("objectClass=groupOfUniqueNames");
+      super.filter.setText("(|(objectClass=groupOfNames)" +
+        "(objectClass=groupOfEntries)(objectClass=groupOfUniqueNames))");
       break;
     case DEFAULT:
       Object o = filterAttribute.getItemAt(0);
