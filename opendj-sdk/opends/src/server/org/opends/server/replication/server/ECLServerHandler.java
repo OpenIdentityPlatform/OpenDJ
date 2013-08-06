@@ -322,8 +322,8 @@ public final class ECLServerHandler extends ServerHandler
    * @return Whether the remote server requires encryption or not.
    * @throws DirectoryException When a problem occurs.
    */
-  public boolean processStartFromRemote(ServerStartECLMsg inECLStartMsg)
-  throws DirectoryException
+  private boolean processStartFromRemote(ServerStartECLMsg inECLStartMsg)
+      throws DirectoryException
   {
     try
     {
@@ -529,8 +529,8 @@ public final class ECLServerHandler extends ServerHandler
    * @param crossDomainStartState The provided cookie value.
    * @throws DirectoryException When an error is raised.
    */
-  public void initializeCLSearchFromGenState(String crossDomainStartState)
-  throws DirectoryException
+  private void initializeCLSearchFromGenState(String crossDomainStartState)
+      throws DirectoryException
   {
     initializeChangelogDomainCtxts(crossDomainStartState, false);
   }
@@ -540,115 +540,18 @@ public final class ECLServerHandler extends ServerHandler
    * @param startDraftCN The provided draft first change number.
    * @throws DirectoryException When an error is raised.
    */
-  public void initializeCLSearchFromDraftCN(int startDraftCN)
-  throws DirectoryException
+  private void initializeCLSearchFromDraftCN(int startDraftCN)
+      throws DirectoryException
   {
     try
     {
-      String crossDomainStartState;
-      draftCompat = true;
-
-      DraftCNDbHandler draftCNDb = replicationServer.getDraftCNDbHandler();
-
-      // Any possible optimization on draft CN in the request filter ?
-      if (startDraftCN <= 1)
-      {
-        // Request filter DOES NOT contain any firstDraftCN
-        // So we'll generate from the beginning of what we have stored here.
-
-        // Get starting state from first DraftCN from DraftCNdb
-        if (draftCNDb.count() == 0)
-        {
-        // DraftCNdb IS EMPTY hence start from what we have in the changelog db.
-          isEndOfDraftCNReached = true;
-          crossDomainStartState = null;
-        }
-        else
-        {
-          // DraftCNdb IS NOT EMPTY hence start from
-          // the generalizedServerState related to the start of the draftDb
-          crossDomainStartState = draftCNDb.getValue(draftCNDb.getFirstKey());
-
-          // And get an iterator to traverse the draftCNDb
-          draftCNDbIter =
-              draftCNDb.generateIterator(draftCNDb.getFirstKey());
-        }
-      }
-      else
-      {
-        // Request filter DOES contain a startDraftCN
-
-        // Read the draftCNDb to see whether it contains startDraftCN
-        crossDomainStartState = draftCNDb.getValue(startDraftCN);
-
-        if (crossDomainStartState != null)
-        {
-          // startDraftCN (from the request filter) is present in the draftCnDb
-          // Get an iterator to traverse the draftCNDb
-          draftCNDbIter =
-            draftCNDb.generateIterator(startDraftCN);
-        }
-        else
-        {
-          // startDraftCN provided in the request IS NOT in the DraftCNDb
-
-          // Get the draftLimits (from the eligibleCN got at the beginning of
-          // the operation) in order to have the first and possible last
-          // DraftCN.
-          int[] limits = replicationServer.getECLDraftCNLimits(
-              eligibleCN, excludedBaseDNs);
-
-          // If the startDraftCN provided is lower than the first Draft CN in
-          // the DB, let's use the lower limit.
-          if (startDraftCN < limits[0])
-          {
-            crossDomainStartState = draftCNDb.getValue(limits[0]);
-
-            if (crossDomainStartState != null)
-            {
-              // startDraftCN (from the request filter) is present in the
-              // draftCnDb.
-              // Get an iterator to traverse it.
-              draftCNDbIter =
-                draftCNDb.generateIterator(limits[0]);
-            }
-            else
-            {
-              // This shouldn't happen
-              // Let's start from what we have in the changelog db.
-              isEndOfDraftCNReached = true;
-              crossDomainStartState = null;
-            }
-          }
-          else if (startDraftCN<=limits[1])
-          {
-            // startDraftCN is between first and potential last and has never
-            // been returned yet
-            if (draftCNDb.count() == 0)
-            {
-              // db is empty
-              isEndOfDraftCNReached = true;
-              crossDomainStartState = null;
-            }
-            else
-            {
-             crossDomainStartState = draftCNDb.getValue(draftCNDb.getLastKey());
-              draftCNDbIter =
-                  draftCNDb.generateIterator(draftCNDb.getLastKey());
-            }
-            // TODO:ECL ... ok we'll start from the end of the draftCNDb BUT ...
-            // this may be very long. Work on perf improvement here.
-          }
-          else
-          {
-            // startDraftCN is > the potential last DraftCN
-            throw new DirectoryException(ResultCode.SUCCESS, Message.raw(""));
-          }
-        }
-      }
       this.draftCompat = true;
 
-      initializeChangelogDomainCtxts(crossDomainStartState, true);
+      // Any possible optimization on draft CN in the request filter ?
+      final String providedCookie = findCookie(startDraftCN);
+      this.draftCompat = true;
+
+      initializeChangelogDomainCtxts(providedCookie, true);
     }
     catch(DirectoryException de)
     {
@@ -670,15 +573,112 @@ public final class ECLServerHandler extends ServerHandler
   }
 
   /**
+   * Finds in the draft changelog DB the cookie corresponding to the passed in
+   * startDraftCN.
+   *
+   * @param startDraftCN
+   *          the start draftCN coming from the request filter.
+   * @return the cookie corresponding to the passed in startDraftCN.
+   * @throws Exception
+   *           if a general problem occurred
+   * @throws DirectoryException
+   *           if a database problem occurred
+   */
+  private String findCookie(int startDraftCN) throws Exception,
+      DirectoryException
+  {
+    DraftCNDbHandler draftCNDb = replicationServer.getDraftCNDbHandler();
+
+    if (startDraftCN <= 1)
+    {
+      // Request filter DOES NOT contain any firstDraftCN
+      // So we'll generate from the first DraftCN in the DraftCNdb
+      if (draftCNDb.isEmpty())
+      {
+        // FIXME JNR if we find a way to make draftCNDb.isEmpty() a non costly
+        // operation, then I think we can move this check to the top of this
+        // method
+        isEndOfDraftCNReached = true;
+        return null;
+      }
+
+      final int key = draftCNDb.getFirstKey();
+      String crossDomainStartState = draftCNDb.getValue(key);
+      draftCNDbIter = draftCNDb.generateIterator(key);
+      return crossDomainStartState;
+    }
+
+    // Request filter DOES contain a startDraftCN
+
+    // Read the draftCNDb to see whether it contains startDraftCN
+    int key = startDraftCN;
+    String crossDomainStartState = draftCNDb.getValue(startDraftCN);
+    if (crossDomainStartState != null)
+    {
+      // found the provided startDraftCN, let's return it
+      draftCNDbIter = draftCNDb.generateIterator(key);
+      return crossDomainStartState;
+    }
+
+    // startDraftCN provided in the request IS NOT in the DraftCNDb
+
+    /*
+     * Get the draftLimits (from the eligibleCN got at the beginning of the
+     * operation) in order to have the first and possible last DraftCN.
+     */
+    final int[] limits =
+        replicationServer.getECLDraftCNLimits(eligibleCN, excludedBaseDNs);
+    final int firstDraftCN = limits[0];
+    final int lastDraftCN = limits[1];
+
+    // If the startDraftCN provided is lower than the first Draft CN in
+    // the DB, let's use the lower limit.
+    if (startDraftCN < key)
+    {
+      key = firstDraftCN;
+      crossDomainStartState = draftCNDb.getValue(key);
+      if (crossDomainStartState != null)
+      {
+        draftCNDbIter = draftCNDb.generateIterator(key);
+        return crossDomainStartState;
+      }
+
+      // This should not happen
+      isEndOfDraftCNReached = true;
+      return null;
+    }
+    else if (startDraftCN <= lastDraftCN)
+    {
+      // startDraftCN is between first and potential last and has never
+      // been returned yet
+      if (draftCNDb.isEmpty())
+      {
+        isEndOfDraftCNReached = true;
+        return null;
+      }
+
+      key = draftCNDb.getLastKey();
+      crossDomainStartState = draftCNDb.getValue(key);
+      draftCNDbIter = draftCNDb.generateIterator(key);
+      return crossDomainStartState;
+
+      // TODO:ECL ... ok we'll start from the end of the draftCNDb BUT ...
+      // this may be very long. Work on perf improvement here.
+    }
+
+    // startDraftCN is greater than the potential last DraftCN
+    throw new DirectoryException(ResultCode.SUCCESS, Message.raw(""));
+  }
+
+  /**
    * Initialize the context for each domain.
    * @param  providedCookie the provided generalized state
    * @param  allowUnknownDomains Provides all changes for domains not included
    *           in the provided cookie.
    * @throws DirectoryException When an error occurs.
    */
-  public void initializeChangelogDomainCtxts(String providedCookie,
-      boolean allowUnknownDomains)
-  throws DirectoryException
+  private void initializeChangelogDomainCtxts(String providedCookie,
+      boolean allowUnknownDomains) throws DirectoryException
   {
     /*
     This map is initialized from the providedCookie.
@@ -1025,10 +1025,9 @@ public final class ECLServerHandler extends ServerHandler
    * @param startECLSessionMsg The provided starting state.
    * @throws DirectoryException when a problem occurs.
    */
-  public void initialize(StartECLSessionMsg startECLSessionMsg)
-  throws DirectoryException
+  private void initialize(StartECLSessionMsg startECLSessionMsg)
+      throws DirectoryException
   {
-
     this.operationId = startECLSessionMsg.getOperationId();
 
     isPersistent  = startECLSessionMsg.isPersistent();
@@ -1224,8 +1223,7 @@ public final class ECLServerHandler extends ServerHandler
    * @return the ECL update message, null when there aren't anymore.
    * @throws DirectoryException when an error occurs.
    */
-  public ECLUpdateMsg getNextECLUpdate()
-  throws DirectoryException
+  public ECLUpdateMsg getNextECLUpdate() throws DirectoryException
   {
     ECLUpdateMsg oldestChange = null;
 
@@ -1551,7 +1549,7 @@ public final class ECLServerHandler extends ServerHandler
 
   /**
    * Find the domainCtxt of the domain with the oldest change.
-   * 
+   *
    * @return the domainCtxt of the domain with the oldest change, null when
    *         none.
    */
