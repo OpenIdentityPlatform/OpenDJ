@@ -87,6 +87,10 @@ do
     rm -r "${RPM_BUILD_ROOT}"%{_prefix}$excludedFiles
 done
 
+# Moves the init.d script.
+mkdir -p "$RPM_BUILD_ROOT"/etc/init.d/
+install -m 755 "$RPM_SOURCE_DIR"/opendj "$RPM_BUILD_ROOT"/etc/init.d/opendj
+
 %clean
 [ "${RPM_BUILD_ROOT}" != "/" ] && rm -rf "${RPM_BUILD_ROOT}"
 
@@ -123,6 +127,10 @@ fi
 # -------------------------
 # Post Install
 %post
+# Registers the service
+/sbin/chkconfig --add opendj
+# Symlink to process ID
+ln -s /opt/opendj/logs/server.pid /var/run/opendj.pid 
 if [ "$1" == "1" ] ; then
     echo "Post Install - initial install"
 else if [ "$1" == "2" ] ; then
@@ -165,6 +173,11 @@ fi
 %preun
 if [ "$1" == "0" ] ; then
     echo "Pre Uninstall - uninstall"
+# Stops the service and delete it.    
+    /etc/init.d/opendj stop >/dev/null 2>&1
+    /sbin/chkconfig --del opendj
+    # Unlink the symlink to the process ID.
+    unlink /var/run/opendj.pid 
 # Only if the instance has been configured    
     if [ -e "%{_prefix}"/config/buildinfo ] && [ "$(ls -A "%{_prefix}"/config/archived-configs)" ]
     then
@@ -196,6 +209,9 @@ fi
 # Changelog
 # =========================
 %changelog
+* Tue Aug 6 2013 ForgeRock
+- Added init.d service script.
+
 * Wed Jul 31 2013 ForgeRock
 - Fixed the doc's section.
 - Target no longer fails when build path contains spaces.

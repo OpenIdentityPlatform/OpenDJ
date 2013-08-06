@@ -1465,6 +1465,8 @@
     
     <copy file="resource/rpm/excludedFiles" tofile="${build.dir}/rpm/SOURCES/excludedFiles" />
     <replace file="${build.dir}/rpm/SOURCES/excludedFiles" token="# [[ excludedListFiles ]]" value="${excludedRPMFiles}" />
+  	
+    <copy file="resource/rpm/opendj" tofile="${build.dir}/rpm/SOURCES/opendj" />
   
     <rpm specfile="specFile"
          topdir="${build.dir}/rpm"
