@@ -965,7 +965,7 @@ public class HTTPConnectionHandler extends
     if (this.httpServer != null)
     {
       TRACER.debugInfo("Stopping HTTP server...");
-      this.httpServer.stop();
+      this.httpServer.shutdownNow();
       cleanUpHttpServer();
       TRACER.debugInfo("HTTP server stopped");
       logError(NOTE_CONNHANDLER_STOPPED_LISTENING.get(handlerName));
