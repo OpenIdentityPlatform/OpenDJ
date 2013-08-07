@@ -888,8 +888,8 @@ public final class ECLServerHandler extends ServerHandler
     for (int serverId : rsDomain.getStartState())
     {
       ChangeNumber dbOldestChange =
-          rsDomain.getStartState().getMaxChangeNumber(serverId);
-      ChangeNumber providedChange = cookie.getMaxChangeNumber(serverId);
+          rsDomain.getStartState().getChangeNumber(serverId);
+      ChangeNumber providedChange = cookie.getChangeNumber(serverId);
       if (providedChange != null
           && providedChange.older(dbOldestChange))
       {

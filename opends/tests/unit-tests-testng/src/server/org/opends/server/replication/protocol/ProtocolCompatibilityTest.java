@@ -154,8 +154,8 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     assertEquals(msg.getServerURL(), newMsg.getServerURL());
     assertEquals(msg.getBaseDn(), newMsg.getBaseDn());
     assertEquals(msg.getWindowSize(), newMsg.getWindowSize());
-    assertEquals(msg.getServerState().getMaxChangeNumber(1),
-        newMsg.getServerState().getMaxChangeNumber(1));
+    assertEquals(msg.getServerState().getChangeNumber(1),
+        newMsg.getServerState().getChangeNumber(1));
     assertEquals(msg.getSSLEncryption(), newMsg.getSSLEncryption());
 
     // Check default value for only post V1 fields
@@ -178,8 +178,8 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     assertEquals(msg.getServerURL(), vlastMsg.getServerURL());
     assertEquals(msg.getBaseDn(), vlastMsg.getBaseDn());
     assertEquals(msg.getWindowSize(), vlastMsg.getWindowSize());
-    assertEquals(msg.getServerState().getMaxChangeNumber(1),
-        vlastMsg.getServerState().getMaxChangeNumber(1));
+    assertEquals(msg.getServerState().getChangeNumber(1),
+        vlastMsg.getServerState().getChangeNumber(1));
     assertEquals(msg.getSSLEncryption(), vlastMsg.getSSLEncryption());
     assertEquals(msg.getGroupId(), vlastMsg.getGroupId());
     assertEquals(msg.getDegradedStatusThreshold(), vlastMsg.getDegradedStatusThreshold());

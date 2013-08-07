@@ -815,8 +815,8 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     assertEquals(msg.getWindowSize(), newMsg.getWindowSize());
     assertEquals(msg.getHeartbeatInterval(), newMsg.getHeartbeatInterval());
     assertEquals(msg.getSSLEncryption(), newMsg.getSSLEncryption());
-    assertEquals(msg.getServerState().getMaxChangeNumber(1),
-        newMsg.getServerState().getMaxChangeNumber(1));
+    assertEquals(msg.getServerState().getChangeNumber(1),
+        newMsg.getServerState().getChangeNumber(1));
     assertEquals(newMsg.getVersion(), getCurrentVersion());
     assertEquals(msg.getGenerationId(), newMsg.getGenerationId());
     assertTrue(msg.getGroupId() == newMsg.getGroupId());
@@ -857,8 +857,8 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     assertEquals(msg.getServerURL(), newMsg.getServerURL());
     assertEquals(msg.getBaseDn(), newMsg.getBaseDn());
     assertEquals(msg.getWindowSize(), newMsg.getWindowSize());
-    assertEquals(msg.getServerState().getMaxChangeNumber(1),
-        newMsg.getServerState().getMaxChangeNumber(1));
+    assertEquals(msg.getServerState().getChangeNumber(1),
+        newMsg.getServerState().getChangeNumber(1));
     assertEquals(newMsg.getVersion(), getCurrentVersion());
     assertEquals(msg.getGenerationId(), newMsg.getGenerationId());
     assertEquals(msg.getSSLEncryption(), newMsg.getSSLEncryption());
@@ -903,8 +903,8 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     assertEquals(msg.getServerURL(), newMsg.getServerURL());
     assertEquals(msg.getBaseDn(), newMsg.getBaseDn());
     assertEquals(msg.getWindowSize(), newMsg.getWindowSize());
-    assertEquals(msg.getServerState().getMaxChangeNumber(1),
-        newMsg.getServerState().getMaxChangeNumber(1));
+    assertEquals(msg.getServerState().getChangeNumber(1),
+        newMsg.getServerState().getChangeNumber(1));
     assertEquals(newMsg.getVersion(), getCurrentVersion());
     assertEquals(msg.getGenerationId(), newMsg.getGenerationId());
     assertEquals(msg.getSSLEncryption(), newMsg.getSSLEncryption());
@@ -1402,8 +1402,8 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     assertEquals(msg.getWindowSize(), newMsg.getWindowSize());
     assertEquals(msg.getHeartbeatInterval(), newMsg.getHeartbeatInterval());
     assertEquals(msg.getSSLEncryption(), newMsg.getSSLEncryption());
-    assertEquals(msg.getServerState().getMaxChangeNumber(1),
-        newMsg.getServerState().getMaxChangeNumber(1));
+    assertEquals(msg.getServerState().getChangeNumber(1),
+        newMsg.getServerState().getChangeNumber(1));
     assertEquals(newMsg.getVersion(), getCurrentVersion());
     assertEquals(msg.getGenerationId(), newMsg.getGenerationId());
     assertTrue(msg.getGroupId() == newMsg.getGroupId());

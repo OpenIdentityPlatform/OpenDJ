@@ -4629,7 +4629,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
        * changes.
        */
       ChangeNumber replServerMaxChangeNumber =
-        replicationServerState.getMaxChangeNumber(serverId);
+        replicationServerState.getChangeNumber(serverId);
 
       // we don't want to update from here (a DS) an empty RS because
       // normally the RS should have been updated by other RSes except for

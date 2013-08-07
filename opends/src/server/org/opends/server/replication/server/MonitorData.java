@@ -162,7 +162,7 @@ public class MonitorData
       if (lsiState != null) {
         for (Integer lsjSid : this.maxCNs.keySet()) {
           ChangeNumber lsjMaxCN = this.maxCNs.get(lsjSid);
-          ChangeNumber lsiLastCN = lsiState.getMaxChangeNumber(lsjSid);
+          ChangeNumber lsiLastCN = lsiState.getChangeNumber(lsjSid);
 
           int missingChangesLsiLsj =
               ChangeNumber.diffSeqNum(lsjMaxCN, lsiLastCN);
@@ -210,7 +210,7 @@ public class MonitorData
       {
         for (Integer lsjSid : this.maxCNs.keySet()) {
           ChangeNumber lsjMaxCN = this.maxCNs.get(lsjSid);
-          ChangeNumber lsiLastCN = lsiState.getMaxChangeNumber(lsjSid);
+          ChangeNumber lsiLastCN = lsiState.getChangeNumber(lsjSid);
 
           int missingChangesLsiLsj =
               ChangeNumber.diffSeqNum(lsjMaxCN, lsiLastCN);
@@ -279,7 +279,7 @@ public class MonitorData
   public void setMaxCNs(ServerState state)
   {
     for (Integer sid : state) {
-      ChangeNumber newCN = state.getMaxChangeNumber(sid);
+      ChangeNumber newCN = state.getChangeNumber(sid);
       setMaxCN(sid, newCN);
     }
   }

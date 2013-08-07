@@ -214,7 +214,7 @@ public class ServerState implements Iterable<Integer>
       clear();
       for (Integer serverId : serverState)
       {
-        ChangeNumber maxChangeNumber = serverState.getMaxChangeNumber(serverId);
+        ChangeNumber maxChangeNumber = serverState.getChangeNumber(serverId);
         if (update(maxChangeNumber))
         {
           result = true;
@@ -329,19 +329,25 @@ public class ServerState implements Iterable<Integer>
   }
 
   /**
-   * Get the largest ChangeNumber seen for a given LDAP server ID.
+   * Returns the {@code ChangeNumber} contained in this server state which
+   * corresponds to the provided server ID.
    *
-   * @param serverId2 : the server ID
-   * @return the largest ChangeNumber seen
+   * @param serverId
+   *          The server ID.
+   * @return The {@code ChangeNumber} contained in this server state which
+   *         corresponds to the provided server ID.
    */
-  public ChangeNumber getMaxChangeNumber(int serverId2)
+  public ChangeNumber getChangeNumber(int serverId)
   {
-    return serverIdToChangeNumber.get(serverId2);
+    return serverIdToChangeNumber.get(serverId);
   }
 
   /**
-   * Get the largest ChangeNumber.
-   * @return the largest ChangeNumber
+   * Returns the largest (most recent) {@code ChangeNumber} in this server
+   * state.
+   *
+   * @return The largest (most recent) {@code ChangeNumber} in this server
+   *         state.
    */
   public ChangeNumber getMaxChangeNumber()
   {

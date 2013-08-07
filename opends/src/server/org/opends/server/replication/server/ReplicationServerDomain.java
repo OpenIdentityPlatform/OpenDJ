@@ -2633,7 +2633,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
           .duplicate();
 
       // the max CN sent by that LS also comes from the SH
-      ChangeNumber maxcn = dsState.getMaxChangeNumber(serverID);
+      ChangeNumber maxcn = dsState.getChangeNumber(serverID);
       if (maxcn == null)
       {
         // This directly connected LS has never produced any change
@@ -2652,7 +2652,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     pendingMonitorData.setRSState(replicationServer.getServerId(),
         dbServerState);
     for (int sid : dbServerState) {
-      ChangeNumber storedCN = dbServerState.getMaxChangeNumber(sid);
+      ChangeNumber storedCN = dbServerState.getChangeNumber(sid);
       pendingMonitorData.setMaxCN(sid, storedCN);
     }
   }
@@ -3080,7 +3080,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     {
       for (int sid : dbState) {
         DbHandler h = sourceDbHandlers.get(sid);
-        ChangeNumber mostRecentDbCN = dbState.getMaxChangeNumber(sid);
+        ChangeNumber mostRecentDbCN = dbState.getChangeNumber(sid);
         try {
           // Is the most recent change in the Db newer than eligible CN ?
           // if yes (like cn15 in the example above, then we have to go back
@@ -3158,7 +3158,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
 
       // Should it be considered for eligibility ?
       ChangeNumber heartbeatLastDN =
-        getChangeTimeHeartbeatState().getMaxChangeNumber(sid);
+        getChangeTimeHeartbeatState().getChangeNumber(sid);
 
       // If the most recent UpdateMsg or CLHeartbeatMsg received is very old
       // then the domain is considered down and not considered for eligibility
@@ -3324,8 +3324,8 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     for (int sid : dbState) {
       // process one sid
       ChangeNumber startCN = null;
-      if (startState.getMaxChangeNumber(sid) != null)
-        startCN = startState.getMaxChangeNumber(sid);
+      if (startState.getChangeNumber(sid) != null)
+        startCN = startState.getChangeNumber(sid);
       long sidRes = getCount(sid, startCN, endCN);
 
       // The startPoint is excluded when counting the ECL eligible changes
