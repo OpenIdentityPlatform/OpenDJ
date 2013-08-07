@@ -3157,7 +3157,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
       int sid = db.getServerId();
 
       // Should it be considered for eligibility ?
-      ChangeNumber heartbeatLastDN =
+      ChangeNumber heartbeatLastCN =
         getChangeTimeHeartbeatState().getChangeNumber(sid);
 
       // If the most recent UpdateMsg or CLHeartbeatMsg received is very old
@@ -3208,10 +3208,10 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
       {
         eligibleCN = changelogLastCN;
       }
-      if (heartbeatLastDN != null
-          && (eligibleCN == null || heartbeatLastDN.newer(eligibleCN)))
+      if (heartbeatLastCN != null
+          && (eligibleCN == null || heartbeatLastCN.newer(eligibleCN)))
       {
-        eligibleCN = heartbeatLastDN;
+        eligibleCN = heartbeatLastCN;
       }
     }
 
