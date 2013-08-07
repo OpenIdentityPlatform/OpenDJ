@@ -292,7 +292,7 @@ public class MessageHandler extends MonitorProvider<MonitorProviderCfg>
             for (int serverId : replicationServerDomain.getServers())
             {
               ChangeNumber lastCsn = serverState
-                  .getMaxChangeNumber(serverId);
+                  .getChangeNumber(serverId);
               ReplicationIterator iterator = replicationServerDomain
                   .getChangelogIterator(serverId, lastCsn);
               if (iterator != null)
@@ -475,7 +475,7 @@ public class MessageHandler extends MonitorProvider<MonitorProviderCfg>
             for (int serverId : replicationServerDomain.getServers())
             {
               // get the last already sent CN from that server
-              ChangeNumber lastCsn = serverState.getMaxChangeNumber(serverId);
+              ChangeNumber lastCsn = serverState.getChangeNumber(serverId);
               // get an iterator in this server db from that last change
               ReplicationIterator iterator =
                 replicationServerDomain.getChangelogIterator(serverId, lastCsn);

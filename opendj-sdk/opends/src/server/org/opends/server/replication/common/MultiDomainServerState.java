@@ -108,7 +108,7 @@ public class MultiDomainServerState implements Iterable<String>
       if (oldServerState == null)
         oldServerState = new ServerState();
 
-      if (changeNumber.newer(oldServerState.getMaxChangeNumber(serverId)))
+      if (changeNumber.newer(oldServerState.getChangeNumber(serverId)))
       {
         oldServerState.update(changeNumber);
         list.put(baseDN, oldServerState);

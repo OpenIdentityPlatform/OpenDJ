@@ -3683,6 +3683,6 @@ public abstract class ReplicationDomain
    */
   public ChangeNumber getLastLocalChange()
   {
-    return state.getMaxChangeNumber(serverID);
+    return state.getChangeNumber(serverID);
   }
 }

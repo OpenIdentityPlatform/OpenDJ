@@ -66,10 +66,10 @@ public class ChangeNumberGenerator
    this.lastTime = TimeThread.getTime();
    for (int stateId : state)
    {
-     if (this.lastTime < state.getMaxChangeNumber(stateId).getTime())
-       this.lastTime = state.getMaxChangeNumber(stateId).getTime();
+     if (this.lastTime < state.getChangeNumber(stateId).getTime())
+       this.lastTime = state.getChangeNumber(stateId).getTime();
      if (stateId == id)
-       this.seqnum = state.getMaxChangeNumber(id).getSeqnum();
+       this.seqnum = state.getChangeNumber(id).getSeqnum();
    }
    this.serverId = id;
 
@@ -157,7 +157,7 @@ public class ChangeNumberGenerator
   {
     for (int localServerId : state)
     {
-      adjust(state.getMaxChangeNumber(localServerId));
+      adjust(state.getChangeNumber(localServerId));
      }
   }
 }

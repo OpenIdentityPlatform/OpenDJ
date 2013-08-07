@@ -405,7 +405,7 @@ public class PersistentServerState
     // maxCn stored in the serverState
     synchronized (this)
     {
-      serverStateMaxCn = state.getMaxChangeNumber(serverId);
+      serverStateMaxCn = state.getChangeNumber(serverId);
 
       if (serverStateMaxCn == null)
         return;
@@ -472,6 +472,6 @@ public class PersistentServerState
    */
   public ChangeNumber getMaxChangeNumber(int serverID)
   {
-    return state.getMaxChangeNumber(serverID);
+    return state.getChangeNumber(serverID);
   }
 }

@@ -1201,15 +1201,15 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       ReplicationServerDomain rsd =
         replicationServer.getReplicationServerDomain(TEST_ROOT_DN_STRING, false);
       ServerState startState = rsd.getStartState();
-      assertTrue(startState.getMaxChangeNumber(s1test.getServerId()).getSeqnum()==1);
-      assertTrue(startState.getMaxChangeNumber(s2test.getServerId()) != null);
-      assertTrue(startState.getMaxChangeNumber(s2test.getServerId()).getSeqnum()==7);
+      assertTrue(startState.getChangeNumber(s1test.getServerId()).getSeqnum()==1);
+      assertTrue(startState.getChangeNumber(s2test.getServerId()) != null);
+      assertTrue(startState.getChangeNumber(s2test.getServerId()).getSeqnum()==7);
 
       rsd =
         replicationServer.getReplicationServerDomain(TEST_ROOT_DN_STRING2, false);
       startState = rsd.getStartState();
-      assertTrue(startState.getMaxChangeNumber(s2test2.getServerId()).getSeqnum()==2);
-      assertTrue(startState.getMaxChangeNumber(s1test2.getServerId()).getSeqnum()==6);
+      assertTrue(startState.getChangeNumber(s2test2.getServerId()).getSeqnum()==2);
+      assertTrue(startState.getChangeNumber(s1test2.getServerId()).getSeqnum()==6);
 
       //
       // Test lastExternalChangelogCookie attribute of the ECL

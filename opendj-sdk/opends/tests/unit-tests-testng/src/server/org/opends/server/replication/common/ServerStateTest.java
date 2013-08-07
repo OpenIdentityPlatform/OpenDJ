@@ -88,8 +88,8 @@ public class ServerStateTest extends ReplicationTestCase
     // TODO Check the value
 
     // Check getMaxChangeNumber
-    assertEquals(cn2.compareTo(serverState.getMaxChangeNumber(cn2.getServerId())),0);
-    assertEquals(cn3.compareTo(serverState.getMaxChangeNumber(cn3.getServerId())),0);
+    assertEquals(cn2.compareTo(serverState.getChangeNumber(cn2.getServerId())),0);
+    assertEquals(cn3.compareTo(serverState.getChangeNumber(cn3.getServerId())),0);
 
     // Check the toString
     String stringRep = serverState.toString();

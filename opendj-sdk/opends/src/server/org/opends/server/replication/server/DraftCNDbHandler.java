@@ -406,7 +406,7 @@ public class DraftCNDbHandler implements Runnable
           // reading
           domain.getEligibleState(crossDomainEligibleCN);
 
-          ChangeNumber fcn = startState.getMaxChangeNumber(cn
+          ChangeNumber fcn = startState.getChangeNumber(cn
               .getServerId());
 
           int currentKey = cursor.currentKey();
@@ -438,7 +438,7 @@ public class DraftCNDbHandler implements Runnable
           }
 
           if ((cnVector == null)
-                  || ((cnVector.getMaxChangeNumber(cn.getServerId()) != null)
+                  || ((cnVector.getChangeNumber(cn.getServerId()) != null)
                       && !cnVector.cover(startState)))
           {
             cursor.delete();
