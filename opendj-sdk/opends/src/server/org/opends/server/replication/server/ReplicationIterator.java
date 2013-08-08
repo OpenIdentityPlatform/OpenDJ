@@ -43,27 +43,25 @@ public class ReplicationIterator
   private ReplServerDBCursor cursor = null;
   private DbHandler dbh;
   private ReplicationDB db;
-  ChangeNumber lastNonNullCurrentCN;
+  private ChangeNumber lastNonNullCurrentCN;
 
   /**
    * Creates a new ReplicationIterator.
    * All created iterator must be released by the caller using the
    * releaseCursor() method.
    *
-   * @param id the Identifier of the server on which the iterator applies.
    * @param db The db where the iterator must be created.
    * @param changeNumber The ChangeNumber after which the iterator must start.
-   * @param dbh The associated DbHandler.
+   * @param dbHandler The associated DbHandler.
    * @throws Exception If there is no other change to push after change
    *         with changeNumber number.
    * @throws DatabaseException if a database problem happened.
    */
-  public ReplicationIterator(
-          int id, ReplicationDB db, ChangeNumber changeNumber, DbHandler dbh)
-          throws Exception, DatabaseException
+  public ReplicationIterator(ReplicationDB db, ChangeNumber changeNumber,
+      DbHandler dbHandler) throws Exception, DatabaseException
   {
     this.db = db;
-    this.dbh = dbh;
+    this.dbh = dbHandler;
     this.lastNonNullCurrentCN = changeNumber;
 
     try
@@ -79,7 +77,7 @@ public class ReplicationIterator
     if (cursor == null)
     {
       // flush the queue into the db
-      dbh.flush();
+      dbHandler.flush();
 
       // look again in the db
       cursor = db.openReadCursor(changeNumber);
@@ -173,6 +171,7 @@ public class ReplicationIterator
    * Release the cursor in case the iterator was badly used and releaseCursor
    * was never called.
    */
+  @Override
   protected void finalize()
   {
     releaseCursor();
