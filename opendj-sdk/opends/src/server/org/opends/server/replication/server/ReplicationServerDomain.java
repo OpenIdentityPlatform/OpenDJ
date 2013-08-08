@@ -1076,7 +1076,8 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
           {
             if (debugEnabled())
             {
-              TRACER.debugInfo("In " + replicationServer.getMonitorInstanceName()
+              TRACER.debugInfo("In "
+                  + replicationServer.getMonitorInstanceName()
                   + " remote server " + handler.getMonitorInstanceName()
                   + " is the last DS to be stopped: stopping status analyzer");
             }
