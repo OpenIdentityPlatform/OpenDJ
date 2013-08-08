@@ -23,8 +23,10 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS
  */
 package org.opends.server.tools;
+
 import org.opends.messages.Message;
 
 import org.opends.server.api.Backend;
@@ -57,20 +59,20 @@ public class BackendToolUtils
    * Retrieves information about the backends defined in the Directory Server
    * configuration.
    *
-   * @param  backendList  A list into which instantiated (but not initialized)
-   *                      backend instances will be placed.
-   * @param  entryList    A list into which the config entries associated with
-   *                      the backends will be placed.
-   * @param  dnList       A list into which the set of base DNs for each backend
-   *                      will be placed.
-   *
+   * @param backendList
+   *          A list into which instantiated (but not initialized) backend
+   *          instances will be placed.
+   * @param entryList
+   *          A list into which the config entries associated with the backends
+   *          will be placed.
+   * @param dnList
+   *          A list into which the set of base DNs for each backend will be
+   *          placed.
    * @return 0 if everything went fine. 1 if an error occurred.
-   *
    */
   @SuppressWarnings("unchecked")
   public static int getBackends(ArrayList<Backend> backendList,
-                                ArrayList<BackendCfg> entryList,
-                                ArrayList<List<DN>> dnList)
+      ArrayList<BackendCfg> entryList, ArrayList<List<DN>> dnList)
   {
     // Get the base entry for all backend configuration.
     DN backendBaseDN;
@@ -80,15 +82,17 @@ public class BackendToolUtils
     }
     catch (DirectoryException de)
     {
-      Message message = ERR_CANNOT_DECODE_BACKEND_BASE_DN.get(
-          DN_BACKEND_BASE, de.getMessageObject());
+      Message message =
+          ERR_CANNOT_DECODE_BACKEND_BASE_DN.get(DN_BACKEND_BASE, de
+              .getMessageObject());
       logError(message);
       return 1;
     }
     catch (Exception e)
     {
-      Message message = ERR_CANNOT_DECODE_BACKEND_BASE_DN.get(
-          DN_BACKEND_BASE, getExceptionMessage(e));
+      Message message =
+          ERR_CANNOT_DECODE_BACKEND_BASE_DN.get(DN_BACKEND_BASE,
+              getExceptionMessage(e));
       logError(message);
       return 1;
     }
@@ -100,19 +104,20 @@ public class BackendToolUtils
     }
     catch (ConfigException ce)
     {
-      Message message = ERR_CANNOT_RETRIEVE_BACKEND_BASE_ENTRY.get(
-          DN_BACKEND_BASE, ce.getMessage());
+      Message message =
+          ERR_CANNOT_RETRIEVE_BACKEND_BASE_ENTRY.get(DN_BACKEND_BASE, ce
+              .getMessage());
       logError(message);
       return 1;
     }
     catch (Exception e)
     {
-      Message message = ERR_CANNOT_RETRIEVE_BACKEND_BASE_ENTRY.get(
-          DN_BACKEND_BASE, getExceptionMessage(e));
+      Message message =
+          ERR_CANNOT_RETRIEVE_BACKEND_BASE_ENTRY.get(DN_BACKEND_BASE,
+              getExceptionMessage(e));
       logError(message);
       return 1;
     }
-
 
     // Iterate through the immediate children, attempting to parse them as
     // backends.
@@ -126,11 +131,11 @@ public class BackendToolUtils
       {
 
         StringConfigAttribute idStub =
-             new StringConfigAttribute(ATTR_BACKEND_ID,
-                     INFO_CONFIG_BACKEND_ATTR_DESCRIPTION_BACKEND_ID.get(),
-                                       true, false, true);
+            new StringConfigAttribute(ATTR_BACKEND_ID,
+                INFO_CONFIG_BACKEND_ATTR_DESCRIPTION_BACKEND_ID.get(), true,
+                false, true);
         StringConfigAttribute idAttr =
-             (StringConfigAttribute) configEntry.getConfigAttribute(idStub);
+            (StringConfigAttribute) configEntry.getConfigAttribute(idStub);
         if (idAttr == null)
         {
           continue;
@@ -142,19 +147,20 @@ public class BackendToolUtils
       }
       catch (ConfigException ce)
       {
-        Message message = ERR_CANNOT_DETERMINE_BACKEND_ID.get(
-            String.valueOf(configEntry.getDN()), ce.getMessage());
+        Message message =
+            ERR_CANNOT_DETERMINE_BACKEND_ID.get(String.valueOf(configEntry
+                .getDN()), ce.getMessage());
         logError(message);
         return 1;
       }
       catch (Exception e)
       {
-        Message message = ERR_CANNOT_DETERMINE_BACKEND_ID.get(
-            String.valueOf(configEntry.getDN()), getExceptionMessage(e));
+        Message message =
+            ERR_CANNOT_DETERMINE_BACKEND_ID.get(String.valueOf(configEntry
+                .getDN()), getExceptionMessage(e));
         logError(message);
         return 1;
       }
-
 
       // Get the backend class name attribute from the entry.  If there isn't
       // one, then just skip the entry.
@@ -163,12 +169,11 @@ public class BackendToolUtils
       {
 
         StringConfigAttribute classStub =
-             new StringConfigAttribute(
-                     ATTR_BACKEND_CLASS,
-                     INFO_CONFIG_BACKEND_ATTR_DESCRIPTION_CLASS.get(),
-                     true, false, false);
+            new StringConfigAttribute(ATTR_BACKEND_CLASS,
+                INFO_CONFIG_BACKEND_ATTR_DESCRIPTION_CLASS.get(), true, false,
+                false);
         StringConfigAttribute classAttr =
-             (StringConfigAttribute) configEntry.getConfigAttribute(classStub);
+            (StringConfigAttribute) configEntry.getConfigAttribute(classStub);
         if (classAttr == null)
         {
           continue;
@@ -180,15 +185,17 @@ public class BackendToolUtils
       }
       catch (ConfigException ce)
       {
-        Message message = ERR_CANNOT_DETERMINE_BACKEND_CLASS.get(
-            String.valueOf(configEntry.getDN()), ce.getMessage());
+        Message message =
+            ERR_CANNOT_DETERMINE_BACKEND_CLASS.get(String.valueOf(configEntry
+                .getDN()), ce.getMessage());
         logError(message);
         return 1;
       }
       catch (Exception e)
       {
-        Message message = ERR_CANNOT_DETERMINE_BACKEND_CLASS.get(
-            String.valueOf(configEntry.getDN()), getExceptionMessage(e));
+        Message message =
+            ERR_CANNOT_DETERMINE_BACKEND_CLASS.get(String.valueOf(configEntry
+                .getDN()), getExceptionMessage(e));
         logError(message);
         return 1;
       }
@@ -200,9 +207,9 @@ public class BackendToolUtils
       }
       catch (Exception e)
       {
-        Message message = ERR_CANNOT_LOAD_BACKEND_CLASS.
-            get(backendClassName, String.valueOf(configEntry.getDN()),
-                getExceptionMessage(e));
+        Message message =
+            ERR_CANNOT_LOAD_BACKEND_CLASS.get(backendClassName, String
+                .valueOf(configEntry.getDN()), getExceptionMessage(e));
         logError(message);
         return 1;
       }
@@ -218,13 +225,12 @@ public class BackendToolUtils
       }
       catch (Exception e)
       {
-        Message message = ERR_CANNOT_INSTANTIATE_BACKEND_CLASS.
-            get(backendClassName, String.valueOf(configEntry.getDN()),
-                getExceptionMessage(e));
+        Message message =
+            ERR_CANNOT_INSTANTIATE_BACKEND_CLASS.get(backendClassName, String
+                .valueOf(configEntry.getDN()), getExceptionMessage(e));
         logError(message);
         return 1;
       }
-
 
       // Get the base DN attribute from the entry.  If there isn't one, then
       // just skip this entry.
@@ -233,12 +239,11 @@ public class BackendToolUtils
       {
 
         DNConfigAttribute baseDNStub =
-             new DNConfigAttribute(
-                     ATTR_BACKEND_BASE_DN,
-                     INFO_CONFIG_BACKEND_ATTR_DESCRIPTION_BASE_DNS.get(),
-                     true, true, true);
+            new DNConfigAttribute(ATTR_BACKEND_BASE_DN,
+                INFO_CONFIG_BACKEND_ATTR_DESCRIPTION_BASE_DNS.get(), true,
+                true, true);
         DNConfigAttribute baseDNAttr =
-             (DNConfigAttribute) configEntry.getConfigAttribute(baseDNStub);
+            (DNConfigAttribute) configEntry.getConfigAttribute(baseDNStub);
         if (baseDNAttr == null)
         {
           Message message =
@@ -252,12 +257,12 @@ public class BackendToolUtils
       }
       catch (Exception e)
       {
-        Message message = ERR_CANNOT_DETERMINE_BASES_FOR_BACKEND.get(
-            String.valueOf(configEntry.getDN()), getExceptionMessage(e));
+        Message message =
+            ERR_CANNOT_DETERMINE_BASES_FOR_BACKEND.get(String
+                .valueOf(configEntry.getDN()), getExceptionMessage(e));
         logError(message);
         return 1;
       }
-
 
       backendList.add(backend);
       entryList.add(cfg);
