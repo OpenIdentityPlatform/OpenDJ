@@ -32,34 +32,9 @@ import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.testng.Assert.*;
 
-import java.io.BufferedReader;
-import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.PrintStream;
-import java.io.StringReader;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.net.SocketAddress;
-import java.net.SocketException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import java.io.*;
+import java.net.*;
+import java.util.*;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Handler;
 import java.util.logging.LogManager;
@@ -74,22 +49,13 @@ import org.opends.server.admin.std.client.RootCfgClient;
 import org.opends.server.api.Backend;
 import org.opends.server.api.WorkQueue;
 import org.opends.server.backends.MemoryBackend;
-import org.opends.server.backends.jeb.BackendImpl;
-import org.opends.server.backends.jeb.DatabaseContainer;
-import org.opends.server.backends.jeb.EntryContainer;
-import org.opends.server.backends.jeb.Index;
-import org.opends.server.backends.jeb.RootContainer;
+import org.opends.server.backends.jeb.*;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.extensions.ConfigFileHandler;
-import org.opends.server.loggers.AccessLogger;
-import org.opends.server.loggers.ErrorLogger;
-import org.opends.server.loggers.HTTPAccessLogger;
-import org.opends.server.loggers.TextAccessLogPublisher;
-import org.opends.server.loggers.TextErrorLogPublisher;
-import org.opends.server.loggers.TextHTTPAccessLogPublisher;
+import org.opends.server.loggers.*;
 import org.opends.server.loggers.debug.DebugLogger;
 import org.opends.server.loggers.debug.TextDebugLogPublisher;
 import org.opends.server.plugins.InvocationCounterPlugin;
@@ -103,19 +69,8 @@ import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.protocols.ldap.LDAPReader;
 import org.opends.server.tools.LDAPModify;
 import org.opends.server.tools.dsconfig.DSConfig;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeTypeConstants;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.DN;
-import org.opends.server.types.DirectoryEnvironmentConfig;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.Entry;
+import org.opends.server.types.*;
 import org.opends.server.types.FilePermission;
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.LDIFImportConfig;
-import org.opends.server.types.OperatingSystem;
-import org.opends.server.types.ResultCode;
-import org.opends.server.types.Schema;
 import org.opends.server.util.BuildVersion;
 import org.opends.server.util.EmbeddedUtils;
 import org.opends.server.util.LDIFReader;
@@ -790,8 +745,7 @@ public final class TestCaseUtils {
   private static ServerSocket bindPort(int port)
           throws IOException
   {
-    ServerSocket serverLdapSocket;
-    serverLdapSocket = new ServerSocket();
+    ServerSocket serverLdapSocket = new ServerSocket();
     serverLdapSocket.setReuseAddress(true);
     serverLdapSocket.bind(new InetSocketAddress("127.0.0.1", port));
     return serverLdapSocket;
@@ -806,10 +760,48 @@ public final class TestCaseUtils {
    */
   public static ServerSocket bindFreePort() throws IOException
   {
-    ServerSocket serverLdapSocket = new ServerSocket();
-    serverLdapSocket.setReuseAddress(true);
-    serverLdapSocket.bind(new InetSocketAddress("127.0.0.1", 0));
-    return serverLdapSocket;
+    return bindPort(0);
+  }
+
+  /**
+   * Find a free port on the local host.
+   * 
+   * @throws IOException
+   *           in case of underlying exception.
+   * @return the free port number found
+   */
+  public static int findFreePort() throws IOException
+  {
+    return findFreePorts(1)[0];
+  }
+
+  /**
+   * Find nb free ports on the local host.
+   *
+   * @param nb
+   *          the number of free ports to find
+   * @throws IOException
+   *           in case of underlying exception.
+   * @return an array with the free port numbers found
+   */
+  public static int[] findFreePorts(int nb) throws IOException
+  {
+    final ServerSocket[] sockets = new ServerSocket[nb];
+    try
+    {
+      final int[] ports = new int[nb];
+      for (int i = 0; i < nb; i++)
+      {
+        final ServerSocket socket = bindFreePort();
+        sockets[i] = socket;
+        ports[i] = socket.getLocalPort();
+      }
+      return ports;
+    }
+    finally
+    {
+      close(sockets);
+    }
   }
 
   /**

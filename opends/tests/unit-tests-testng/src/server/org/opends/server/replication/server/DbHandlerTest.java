@@ -27,10 +27,16 @@
  */
 package org.opends.server.replication.server;
 
+import static org.opends.server.TestCaseUtils.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.testng.Assert.*;
+
 import java.io.File;
-import java.net.ServerSocket;
+import java.io.IOException;
 
 import org.opends.server.TestCaseUtils;
+import org.opends.server.admin.std.server.ReplicationServerCfg;
+import org.opends.server.config.ConfigException;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.ChangeNumber;
@@ -38,18 +44,15 @@ import org.opends.server.replication.common.ChangeNumberGenerator;
 import org.opends.server.replication.protocol.DeleteMsg;
 import org.testng.annotations.Test;
 
-import static org.opends.server.TestCaseUtils.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.testng.Assert.*;
-
 /**
  * Test the dbHandler class
  */
 @SuppressWarnings("javadoc")
 public class DbHandlerTest extends ReplicationTestCase
 {
-  // The tracer object for the debug logger
+  /** The tracer object for the debug logger */
   private static final DebugTracer TRACER = getTracer();
+
   /**
    * Utility - log debug message - highlight it is from the test and not
    * from the server code. Makes easier to observe the test steps.
@@ -69,33 +72,15 @@ public class DbHandlerTest extends ReplicationTestCase
     ReplicationServer replicationServer = null;
     ReplicationDbEnv dbEnv = null;
     DbHandler handler = null;
-    ReplicationIterator it = null;
     try
     {
       TestCaseUtils.startServer();
 
-      //  find  a free port for the replicationServer
-      ServerSocket socket = TestCaseUtils.bindFreePort();
-      int changelogPort = socket.getLocalPort();
-      socket.close();
-
-      // configure a ReplicationServer.
-      ReplServerFakeConfiguration conf =
-        new ReplServerFakeConfiguration(changelogPort, null, 0,
-        2, 0, 100, null);
-      replicationServer = new ReplicationServer(conf);
+      replicationServer = configureReplicationServer(100);
 
       // create or clean a directory for the dbHandler
-      String buildRoot = System.getProperty(TestCaseUtils.PROPERTY_BUILD_ROOT);
-      String path = System.getProperty(TestCaseUtils.PROPERTY_BUILD_DIR,
-              buildRoot + File.separator + "build");
-      path = path + File.separator + "unit-tests" + File.separator + "dbHandler";
-      testRoot = new File(path);
-      if (testRoot.exists())
-      {
-        TestCaseUtils.deleteDirectory(testRoot);
-      }
-      testRoot.mkdirs();
+      String path = getReplicationDbPath();
+      testRoot = createDirectory(path);
 
       dbEnv = new ReplicationDbEnv(path, replicationServer);
 
@@ -109,18 +94,10 @@ public class DbHandlerTest extends ReplicationTestCase
       ChangeNumber changeNumber4 = gen.newChangeNumber();
       ChangeNumber changeNumber5 = gen.newChangeNumber();
 
-      DeleteMsg update1 = new DeleteMsg(TEST_ROOT_DN_STRING, changeNumber1,
-        "uid");
-      DeleteMsg update2 = new DeleteMsg(TEST_ROOT_DN_STRING, changeNumber2,
-        "uid");
-      DeleteMsg update3 = new DeleteMsg(TEST_ROOT_DN_STRING, changeNumber3,
-      "uid");
-      DeleteMsg update4 = new DeleteMsg(TEST_ROOT_DN_STRING, changeNumber4,
-      "uid");
-
-      handler.add(update1);
-      handler.add(update2);
-      handler.add(update3);
+      handler.add(new DeleteMsg(TEST_ROOT_DN_STRING, changeNumber1, "uid"));
+      handler.add(new DeleteMsg(TEST_ROOT_DN_STRING, changeNumber2, "uid"));
+      handler.add(new DeleteMsg(TEST_ROOT_DN_STRING, changeNumber3, "uid"));
+      DeleteMsg update4 = new DeleteMsg(TEST_ROOT_DN_STRING, changeNumber4, "uid");
 
       //--
       // Iterator tests with memory queue only populated
@@ -128,31 +105,8 @@ public class DbHandlerTest extends ReplicationTestCase
       // verify that memory queue is populated
       assertEquals(handler.getQueueSize(),3);
 
-      // Iterator from existing CN
-      it = handler.generateIterator(changeNumber1);
-      assertTrue(it.next());
-      assertTrue(it.getChange().getChangeNumber().compareTo(changeNumber2)==0,
-          " Actual change number=" + it.getChange().getChangeNumber() +
-          " Expect change number=" + changeNumber2);
-      assertTrue(it.next());
-      assertTrue(it.getChange().getChangeNumber().compareTo(changeNumber3)==0,
-          " Actual change number=" + it.getChange().getChangeNumber());
-      assertFalse(it.next());
-      it.releaseCursor();
-      it=null;
-
-      // Iterator from NON existing CN
-      Exception ec = null;
-      try
-      {
-        it = handler.generateIterator(changeNumber5);
-      }
-      catch(Exception e)
-      {
-        ec = e;
-      }
-      assertNotNull(ec);
-      assert(ec.getLocalizedMessage().equals("ChangeNumber not available"));
+      assertFoundInOrder(handler, changeNumber1, changeNumber2, changeNumber3);
+      assertNotFound(handler, changeNumber5);
 
       //--
       // Iterator tests with db only populated
@@ -161,30 +115,8 @@ public class DbHandlerTest extends ReplicationTestCase
       // verify that memory queue is empty (all changes flushed in the db)
       assertEquals(handler.getQueueSize(),0);
 
-      // Test iterator from existing CN
-      it = handler.generateIterator(changeNumber1);
-      assertTrue(it.next());
-      assertTrue(it.getChange().getChangeNumber().compareTo(changeNumber2)==0,
-          " Actual change number=" + it.getChange().getChangeNumber());
-      assertTrue(it.next());
-      assertTrue(it.getChange().getChangeNumber().compareTo(changeNumber3)==0,
-          " Actual change number=" + it.getChange().getChangeNumber());
-      assertFalse(it.next());
-      it.releaseCursor();
-      it=null;
-
-      // Iterator from NON existing CN
-      ec = null;
-      try
-      {
-        it = handler.generateIterator(changeNumber5);
-      }
-      catch(Exception e)
-      {
-        ec = e;
-      }
-      assertNotNull(ec);
-      assert(ec.getLocalizedMessage().equals("ChangeNumber not available"));
+      assertFoundInOrder(handler, changeNumber1, changeNumber2, changeNumber3);
+      assertNotFound(handler, changeNumber5);
 
       // Test first and last
       assertEquals(changeNumber1, handler.getFirstChange());
@@ -198,52 +130,11 @@ public class DbHandlerTest extends ReplicationTestCase
       // verify memory queue contains this one
       assertEquals(handler.getQueueSize(),1);
 
-      // Test iterator from existing CN
-      it = handler.generateIterator(changeNumber1);
-      assertTrue(it.next());
-      assertTrue(it.getChange().getChangeNumber().compareTo(changeNumber2)==0,
-          " Actual change number=" + it.getChange().getChangeNumber());
-      assertTrue(it.next());
-      assertTrue(it.getChange().getChangeNumber().compareTo(changeNumber3)==0,
-          " Actual change number=" + it.getChange().getChangeNumber());
-      assertTrue(it.next());
-      assertTrue(it.getChange().getChangeNumber().compareTo(changeNumber4)==0,
-          " Actual change number=" + it.getChange().getChangeNumber());
-      assertFalse(it.next());
-      assertTrue(it.getChange()==null);
-      it.releaseCursor();
-      it=null;
-
+      assertFoundInOrder(handler, changeNumber1, changeNumber2, changeNumber3, changeNumber4);
       // Test iterator from existing CN at the limit between queue and db
-      it = handler.generateIterator(changeNumber3);
-      assertTrue(it.next());
-      assertTrue(it.getChange().getChangeNumber().compareTo(changeNumber4)==0,
-          " Actual change number=" + it.getChange().getChangeNumber());
-      assertFalse(it.next());
-      assertTrue(it.getChange()==null);
-      it.releaseCursor();
-      it=null;
-
-      // Test iterator from existing CN at the limit between queue and db
-      it = handler.generateIterator(changeNumber4);
-      assertFalse(it.next());
-      assertTrue(it.getChange()==null,
-          " Actual change number=" + it.getChange());
-      it.releaseCursor();
-      it=null;
-
-      // Test iterator from NON existing CN
-      ec = null;
-      try
-      {
-        it = handler.generateIterator(changeNumber5);
-      }
-      catch(Exception e)
-      {
-        ec = e;
-      }
-      assertNotNull(ec);
-      assert(ec.getLocalizedMessage().equals("ChangeNumber not available"));
+      assertFoundInOrder(handler, changeNumber3, changeNumber4);
+      assertFoundInOrder(handler, changeNumber4);
+      assertNotFound(handler, changeNumber5);
 
       handler.setPurgeDelay(1);
 
@@ -262,13 +153,9 @@ public class DbHandlerTest extends ReplicationTestCase
           purged = true;
         }
       }
+      // FIXME should add an assert here
     } finally
     {
-      if (it != null)
-      {
-        it.releaseCursor();
-        it=null;
-      }
       if (handler != null)
         handler.shutdown();
       if (dbEnv != null)
@@ -277,6 +164,74 @@ public class DbHandlerTest extends ReplicationTestCase
       replicationServer.remove();
       if (testRoot != null)
         TestCaseUtils.deleteDirectory(testRoot);
+    }
+  }
+
+  private ReplicationServer configureReplicationServer(int windowSize)
+      throws IOException, ConfigException
+  {
+    final int changelogPort = findFreePort();
+    final ReplicationServerCfg conf =
+        new ReplServerFakeConfiguration(changelogPort, null, 0, 2, 0, windowSize, null);
+    return new ReplicationServer(conf);
+  }
+
+  private String getReplicationDbPath()
+  {
+    String buildRoot = System.getProperty(TestCaseUtils.PROPERTY_BUILD_ROOT);
+    String path =
+        System.getProperty(TestCaseUtils.PROPERTY_BUILD_DIR, buildRoot
+            + File.separator + "build");
+    return path + File.separator + "unit-tests" + File.separator + "dbHandler";
+  }
+
+  private File createDirectory(String path) throws IOException
+  {
+    File testRoot = new File(path);
+    if (testRoot.exists())
+    {
+      TestCaseUtils.deleteDirectory(testRoot);
+    }
+    testRoot.mkdirs();
+    return testRoot;
+  }
+
+  private ReplicationIterator assertFoundInOrder(DbHandler handler,
+      ChangeNumber... changeNumbers) throws Exception
+  {
+    if (changeNumbers.length == 0)
+    {
+      return null;
+    }
+
+    ReplicationIterator it = handler.generateIterator(changeNumbers[0]);
+    for (int i = 1; i < changeNumbers.length; i++)
+    {
+      assertTrue(it.next());
+      final ChangeNumber cn = it.getChange().getChangeNumber();
+      final boolean equals = cn.compareTo(changeNumbers[i]) == 0;
+      assertTrue(equals, "Actual change number=" + cn
+          + ", Expected change number=" + changeNumbers[i]);
+    }
+    assertFalse(it.next());
+    assertNull(it.getChange(), "Actual change number=" + it.getChange()
+        + ", Expected null");
+
+    it.releaseCursor();
+    return it;
+  }
+
+  private void assertNotFound(DbHandler handler, ChangeNumber changeNumber)
+  {
+    try
+    {
+      ReplicationIterator iter = handler.generateIterator(changeNumber);
+      iter.releaseCursor();
+      fail("Expected exception");
+    }
+    catch (Exception e)
+    {
+      assertEquals(e.getLocalizedMessage(), "ChangeNumber not available");
     }
   }
 
@@ -296,28 +251,11 @@ public class DbHandlerTest extends ReplicationTestCase
     {
       TestCaseUtils.startServer();
 
-      //  find  a free port for the replicationServer
-      ServerSocket socket = TestCaseUtils.bindFreePort();
-      int changelogPort = socket.getLocalPort();
-      socket.close();
-
-      // configure a ReplicationServer.
-      ReplServerFakeConfiguration conf =
-        new ReplServerFakeConfiguration(changelogPort, null, 0,
-        2, 0, 100, null);
-      replicationServer = new ReplicationServer(conf);
+      replicationServer = configureReplicationServer(100);
 
       // create or clean a directory for the dbHandler
-      String buildRoot = System.getProperty(TestCaseUtils.PROPERTY_BUILD_ROOT);
-      String path = System.getProperty(TestCaseUtils.PROPERTY_BUILD_DIR,
-              buildRoot + File.separator + "build");
-      path = path + File.separator + "unit-tests" + File.separator + "dbHandler";
-      testRoot = new File(path);
-      if (testRoot.exists())
-      {
-        TestCaseUtils.deleteDirectory(testRoot);
-      }
-      testRoot.mkdirs();
+      String path = getReplicationDbPath();
+      testRoot = createDirectory(path);
 
       dbEnv = new ReplicationDbEnv(path, replicationServer);
 
@@ -331,17 +269,10 @@ public class DbHandlerTest extends ReplicationTestCase
       ChangeNumber changeNumber2 = gen.newChangeNumber();
       ChangeNumber changeNumber3 = gen.newChangeNumber();
 
-      DeleteMsg update1 = new DeleteMsg(TEST_ROOT_DN_STRING, changeNumber1,
-        "uid");
-      DeleteMsg update2 = new DeleteMsg(TEST_ROOT_DN_STRING, changeNumber2,
-        "uid");
-      DeleteMsg update3 = new DeleteMsg(TEST_ROOT_DN_STRING, changeNumber3,
-        "uid");
-
       // Add the changes
-      handler.add(update1);
-      handler.add(update2);
-      handler.add(update3);
+      handler.add(new DeleteMsg(TEST_ROOT_DN_STRING, changeNumber1, "uid"));
+      handler.add(new DeleteMsg(TEST_ROOT_DN_STRING, changeNumber2, "uid"));
+      handler.add(new DeleteMsg(TEST_ROOT_DN_STRING, changeNumber3, "uid"));
 
       // Check they are here
       assertEquals(changeNumber1, handler.getFirstChange());
@@ -366,6 +297,7 @@ public class DbHandlerTest extends ReplicationTestCase
         TestCaseUtils.deleteDirectory(testRoot);
     }
   }
+
   /**
    * Test the logic that manages counter records in the DbHandler in order to
    * optimize the counting of record in the replication changelog db.
@@ -416,35 +348,17 @@ public class DbHandlerTest extends ReplicationTestCase
     ReplicationServer replicationServer = null;
     ReplicationDbEnv dbEnv = null;
     DbHandler handler = null;
-    ReplicationIterator ri = null;
-    int actualCnt = 0;
+    long actualCnt = 0;
     String testcase;
     try
     {
       TestCaseUtils.startServer();
 
-      //  find  a free port for the replicationServer
-      ServerSocket socket = TestCaseUtils.bindFreePort();
-      int changelogPort = socket.getLocalPort();
-      socket.close();
-
-      // configure a ReplicationServer.
-      ReplServerFakeConfiguration conf =
-        new ReplServerFakeConfiguration(changelogPort, null, 0,
-            2, 0, 100000, null);
-      replicationServer = new ReplicationServer(conf);
+      replicationServer = configureReplicationServer(100000);
 
       // create or clean a directory for the dbHandler
-      String buildRoot = System.getProperty(TestCaseUtils.PROPERTY_BUILD_ROOT);
-      String path = System.getProperty(TestCaseUtils.PROPERTY_BUILD_DIR,
-              buildRoot + File.separator + "build");
-      path = path + File.separator + "unit-tests" + File.separator + "dbHandler";
-      testRoot = new File(path);
-      if (testRoot.exists())
-      {
-        TestCaseUtils.deleteDirectory(testRoot);
-      }
-      testRoot.mkdirs();
+      String path = getReplicationDbPath();
+      testRoot = createDirectory(path);
 
       dbEnv = new ReplicationDbEnv(path, replicationServer);
 
@@ -589,7 +503,7 @@ public class DbHandlerTest extends ReplicationTestCase
 
       handler.setPurgeDelay(100);
       sleep(4000);
-      int totalCount = handler.getCount(null, null);
+      long totalCount = handler.getCount(null, null);
       debugInfo(tn,testcase + " After purge, total count=" + totalCount);
 
       testcase="AFTER PURGE (first, last)=";
@@ -619,12 +533,9 @@ public class DbHandlerTest extends ReplicationTestCase
       assertEquals(null, handler.getFirstChange());
       assertEquals(null, handler.getLastChange());
       debugInfo(tn,"Success");
-
     }
     finally
     {
-      if (ri!=null)
-        ri.releaseCursor();
       if (handler != null)
         handler.shutdown();
       if (dbEnv != null)
@@ -635,4 +546,5 @@ public class DbHandlerTest extends ReplicationTestCase
         TestCaseUtils.deleteDirectory(testRoot);
     }
   }
+
 }

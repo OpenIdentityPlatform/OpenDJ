@@ -315,25 +315,26 @@ public class ReplicationDbEnv
           serverId + " " + baseDn + " " + generationId);
       try
       {
-        String key = serverId + FIELD_SEPARATOR + baseDn;
+        final String serverIdKey = serverId + FIELD_SEPARATOR + baseDn;
 
         // Opens the database for the changes received from this server
         // on this domain. Create it if it does not already exist.
         DatabaseConfig dbConfig = new DatabaseConfig();
         dbConfig.setAllowCreate(true);
         dbConfig.setTransactional(true);
-        Database db = dbEnvironment.openDatabase(null, key, dbConfig);
+        Database db = dbEnvironment.openDatabase(null, serverIdKey, dbConfig);
 
         // Creates the record serverId/domain base Dn in the stateDb
         // if it does not already exist.
-        putInStateDBIfNotExist(key, key);
+        putInStateDBIfNotExist(serverIdKey, serverIdKey);
 
         // Creates the record domain base Dn/ generationId in the stateDb
         // if it does not already exist.
-        key = GENERATION_ID_TAG + FIELD_SEPARATOR + baseDn;
-        String data = GENERATION_ID_TAG + FIELD_SEPARATOR + generationId
-                + FIELD_SEPARATOR + baseDn;
-        putInStateDBIfNotExist(key, data);
+        final String genIdKey = GENERATION_ID_TAG + FIELD_SEPARATOR + baseDn;
+        final String genIdData = GENERATION_ID_TAG
+            + FIELD_SEPARATOR + generationId
+            + FIELD_SEPARATOR + baseDn;
+        putInStateDBIfNotExist(genIdKey, genIdData);
         return db;
       }
       catch (UnsupportedEncodingException e)

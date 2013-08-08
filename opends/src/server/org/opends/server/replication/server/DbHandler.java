@@ -282,7 +282,7 @@ public class DbHandler implements Runnable
     {
       flush();
     }
-    return new ReplicationIterator(serverId, db, changeNumber, this);
+    return new ReplicationIterator(db, changeNumber, this);
   }
 
   /**
@@ -657,7 +657,7 @@ public class DbHandler implements Runnable
    * @param to   The upper (newer) change number.
    * @return The computed number of changes.
    */
-  public int getCount(ChangeNumber from, ChangeNumber to)
+  public long getCount(ChangeNumber from, ChangeNumber to)
   {
     // Now that we always keep the last ChangeNumber in the DB to avoid
     // expiring cookies too quickly, we need to check if the "to"
