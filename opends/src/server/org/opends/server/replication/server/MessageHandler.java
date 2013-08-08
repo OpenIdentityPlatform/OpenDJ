@@ -140,9 +140,8 @@ public class MessageHandler extends MonitorProvider<MonitorProviderCfg>
    *
    * @param update The update that must be added to the list of updates of
    * this handler.
-   * @param sourceHandler The source handler that generated the update.
    */
-  public void add(UpdateMsg update, MessageHandler sourceHandler)
+  public void add(UpdateMsg update)
   {
     synchronized (msgQueue)
     {
@@ -445,15 +444,13 @@ public class MessageHandler extends MonitorProvider<MonitorProviderCfg>
     {
       if (following)
       {
-        if (msgQueue.isEmpty())
-        {
-          result = null;
-        } else
+        if (!msgQueue.isEmpty())
         {
           UpdateMsg msg = msgQueue.first();
           result = msg.getChangeNumber();
         }
-      } else
+      }
+      else
       {
         if (lateQueue.isEmpty())
         {
