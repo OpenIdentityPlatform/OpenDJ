@@ -3273,13 +3273,18 @@ private boolean solveNamingConflict(ModifyDNOperation op,
    */
   private boolean findAndRenameChild(DN entryDN, Operation conflictOp)
   {
+    /*
+     * TODO JNR Ludo thinks that: "Ideally, the operation should verify that the
+     * entryUUID has not changed or try to use the entryUUID rather than the
+     * DN.". entryUUID can be obtained from the caller of the current method.
+     */
     boolean conflict = false;
 
     // Find an rename child entries.
     try
     {
       Set<String> attrs = new LinkedHashSet<String>(1);
-      attrs.add(ENTRYUUID_ATTRIBUTE_NAME);
+      attrs.add(EntryHistorical.ENTRYUUID_ATTRIBUTE_NAME);
       attrs.add(EntryHistorical.HISTORICAL_ATTRIBUTE_NAME);
 
       InternalSearchOperation op =
@@ -5595,20 +5600,26 @@ private boolean solveNamingConflict(ModifyDNOperation op,
   }
 
   /**
-   * Check if the operation that just happened has cleared a conflict :
-   * Clearing a conflict happens if the operation has free a DN that
-   * for which an other entry was in conflict.
+   * Check if the operation that just happened has cleared a conflict : Clearing
+   * a conflict happens if the operation has freed a DN for which another entry
+   * was in conflict.
+   * <p>
    * Steps:
-   * - get the DN freed by a DELETE or MODRDN op
-   * - search for entries put in the conflict space (dn=entryUUID'+'....)
-   *   because the expected DN was not available (ds-sync-conflict=expected DN)
-   * - retain the entry with the oldest conflict
-   * - rename this entry with the freedDN as it was expected originally
+   * <ul>
+   * <li>get the DN freed by a DELETE or MODRDN op</li>
+   * <li>search for entries put in the conflict space (dn=entryUUID'+'....)
+   * because the expected DN was not available (ds-sync-conflict=expected DN)
+   * </li>
+   * <li>retain the entry with the oldest conflict</li>
+   * <li>rename this entry with the freedDN as it was expected originally</li>
+   * </ul>
    *
-   * @param task     the task raising this purge.
-   * @param endDate  the date to stop this task whether the job is done or not.
-   * @throws DirectoryException when an exception happens.
-   *
+   * @param task
+   *          the task raising this purge.
+   * @param endDate
+   *          the date to stop this task whether the job is done or not.
+   * @throws DirectoryException
+   *           when an exception happens.
    */
    public void purgeConflictsHistorical(PurgeConflictsHistoricalTask task,
        long endDate)

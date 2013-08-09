@@ -27,6 +27,9 @@
  */
 package org.opends.server.replication.server;
 
+import static com.sleepycat.je.LockMode.*;
+import static com.sleepycat.je.OperationStatus.*;
+
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
@@ -230,8 +233,7 @@ public class DraftCNDB
         cursor = db.openCursor(null, null);
         DatabaseEntry key = new DatabaseEntry();
         DatabaseEntry entry = new DatabaseEntry();
-        OperationStatus status = cursor.getFirst(key, entry, LockMode.DEFAULT);
-        if (status != OperationStatus.SUCCESS)
+        if (cursor.getFirst(key, entry, LockMode.DEFAULT) != SUCCESS)
         {
           /* database is empty */
           return 0;
@@ -301,8 +303,7 @@ public class DraftCNDB
         cursor = db.openCursor(null, null);
         DatabaseEntry key = new DatabaseEntry();
         DatabaseEntry entry = new DatabaseEntry();
-        OperationStatus status = cursor.getLast(key, entry, LockMode.DEFAULT);
-        if (status != OperationStatus.SUCCESS)
+        if (cursor.getLast(key, entry, LockMode.DEFAULT) != SUCCESS)
         {
           /* database is empty */
           return 0;
@@ -361,11 +362,6 @@ public class DraftCNDB
      */
     private DraftCNDBCursor(int startingDraftCN) throws Exception
     {
-      // For consistency with other constructor, we'll use a local here,
-      // even though it's always null.
-      final Transaction localTxn = null;
-      Cursor localCursor = null;
-
       this.key = new ReplicationDraftCNKey(startingDraftCN);
       this.entry = new DatabaseEntry();
 
@@ -374,6 +370,7 @@ public class DraftCNDB
       // unlock it when throwing an exception.
       dbCloseLock.readLock().lock();
 
+      Cursor localCursor = null;
       try
       {
         // If the DB has been closed then create empty cursor.
@@ -385,32 +382,27 @@ public class DraftCNDB
           return;
         }
 
-        localCursor = db.openCursor(localTxn, null);
+        localCursor = db.openCursor(null, null);
         if (startingDraftCN >= 0)
         {
-          if (localCursor.getSearchKey(
-              key, entry, LockMode.DEFAULT) != OperationStatus.SUCCESS)
+          if (localCursor.getSearchKey(key, entry, LockMode.DEFAULT) != SUCCESS)
           {
             // We could not move the cursor to the expected startingChangeNumber
-            if (localCursor.getSearchKeyRange(key, entry,
-                LockMode.DEFAULT) != OperationStatus.SUCCESS)
+            if (localCursor.getSearchKeyRange(key, entry, DEFAULT) != SUCCESS)
             {
               // We could not even move the cursor closed to it => failure
               throw new Exception("ChangeLog Draft Change Number "
                   + startingDraftCN + " is not available");
             }
+
+            if (localCursor.getPrev(key, entry, LockMode.DEFAULT) != SUCCESS)
+            {
+              localCursor.close();
+              localCursor = db.openCursor(null, null);
+            }
             else
             {
-              if (localCursor.getPrev(key, entry, LockMode.DEFAULT)
-                      != OperationStatus.SUCCESS)
-              {
-                localCursor.close();
-                localCursor = db.openCursor(localTxn, null);
-              }
-              else
-              {
-                 seqnumData =  new DraftCNData(entry.getData());
-              }
+              seqnumData = new DraftCNData(entry.getData());
             }
           }
           else
@@ -419,7 +411,7 @@ public class DraftCNDB
           }
         }
 
-        this.txn = localTxn;
+        this.txn = null;
         this.cursor = localCursor;
       }
       catch (Exception e)

@@ -23,62 +23,46 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS
  */
 package org.opends.server.controls;
-import org.opends.messages.Message;
 
-
+import static org.opends.messages.ProtocolMessages.*;
 
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
+import org.opends.messages.Message;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.types.LDAPException;
-
-import static org.opends.messages.ProtocolMessages.*;
-
-
 
 /**
  * This enumeration defines the set of possible change types that may be used in
  * conjunction with the persistent search control, as defined in
  * draft-ietf-ldapext-psearch.
+ * <p>
+ * It is a different type from {@link ChangeOperationType} to enforce type
+ * safety, despite mirroring it completely.
  */
 public enum PersistentSearchChangeType
 {
-  /**
-   * The change type that will be used for add operations.
-   */
+  /** The change type that will be used for add operations. */
   ADD(1),
 
-
-
-  /**
-   * The change type that will be used for delete operations.
-   */
+  /** The change type that will be used for delete operations. */
   DELETE(2),
 
-
-
-  /**
-   * The change type that will be used for modify operations.
-   */
+  /** The change type that will be used for modify operations. */
   MODIFY(4),
 
-
-
-  /**
-   * The change type that will be used for modify DN operations.
-   */
+  /** The change type that will be used for modify DN operations. */
   MODIFY_DN(8);
 
 
 
-  // The integer value associated with this change type.
+  /** The integer value associated with this change type. */
   private int intValue;
-
-
 
   /**
    * Creates a new instance of a persistent search change type with the provided
@@ -111,6 +95,7 @@ public enum PersistentSearchChangeType
    * @return  A string representation of this persistent search change type, or
    *          "unknown" if it has an unknown type.
    */
+  @Override
   public String toString()
   {
     switch (intValue)
@@ -175,7 +160,7 @@ public enum PersistentSearchChangeType
   public static Set<PersistentSearchChangeType> intToTypes(int intValue)
          throws LDAPException
   {
-    HashSet<PersistentSearchChangeType> changeTypes =
+    Set<PersistentSearchChangeType> changeTypes =
          new HashSet<PersistentSearchChangeType>(4);
 
     switch (intValue)
