@@ -29,7 +29,11 @@ package org.opends.server.tools;
 
 import org.opends.messages.Message;
 
-import static org.opends.server.util.StaticUtils.wrapText;
+import static org.opends.messages.ToolMessages.*;
+import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.loggers.ErrorLogger.logError;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
 
 import org.opends.server.util.BuildVersion;
 import org.opends.server.util.args.ArgumentException;
@@ -38,11 +42,7 @@ import org.opends.server.util.args.LDAPConnectionArgumentParser;
 import org.opends.server.util.args.StringArgument;
 import org.opends.server.extensions.ConfigFileHandler;
 
-import static org.opends.messages.ToolMessages.*;
 import org.opends.server.config.ConfigException;
-
-import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.ErrorLogger.logError;
 
 import org.opends.server.loggers.TextWriter;
 import org.opends.server.loggers.ErrorLogger;
@@ -51,8 +51,6 @@ import org.opends.server.loggers.debug.TextDebugLogPublisher;
 import org.opends.server.loggers.debug.DebugLogger;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.CoreConfigManager;
 import org.opends.server.core.LockFileManager;
@@ -314,7 +312,7 @@ public class RebuildIndex extends TaskTool
   protected int processLocal(final boolean initializeServer,
       final PrintStream out, final PrintStream err)
   {
-    // Perform the initial bootstrap of the Directory Server and process the
+    // Performs the initial bootstrap of the Directory Server and processes the
     // configuration.
     DirectoryServer directoryServer = DirectoryServer.getInstance();
 
@@ -352,7 +350,7 @@ public class RebuildIndex extends TaskTool
         return 1;
       }
 
-      // Initialize the Directory Server schema elements.
+      // Initializes the Directory Server schema elements.
       try
       {
         directoryServer.initializeSchema();
@@ -377,7 +375,7 @@ public class RebuildIndex extends TaskTool
         return 1;
       }
 
-      // Initialize the Directory Server core configuration.
+      // Initializes the Directory Server core configuration.
       try
       {
         final CoreConfigManager coreConfigManager = new CoreConfigManager();
@@ -405,7 +403,7 @@ public class RebuildIndex extends TaskTool
         return 1;
       }
 
-      // Initialize the Directory Server crypto manager.
+      // Initializes the Directory Server crypto manager.
       try
       {
         directoryServer.initializeCryptoManager();
@@ -450,7 +448,7 @@ public class RebuildIndex extends TaskTool
       }
     }
 
-    // Decode the base DN provided by the user.
+    // Decodes the base DN provided by the user.
     DN rebuildBaseDN;
     try
     {
@@ -473,59 +471,41 @@ public class RebuildIndex extends TaskTool
       return 1;
     }
 
-    // Get information about the backends defined in the server.
+    // Retrieves the backend which holds the selected base DN.
     Backend backend = null;
-    DN[] baseDNArray;
-
-    final ArrayList<Backend> backendList = new ArrayList<Backend>();
-    final ArrayList<BackendCfg> entryList = new ArrayList<BackendCfg>();
-    final ArrayList<List<DN>> dnList = new ArrayList<List<DN>>();
-    BackendToolUtils.getBackends(backendList, entryList, dnList);
-
-    final int numBackends = backendList.size();
-    for (int i = 0; i < numBackends; i++)
+    try
     {
-      final Backend b = backendList.get(i);
-      final List<DN> baseDNs = dnList.get(i);
-
-      for (final DN baseDN : baseDNs)
-      {
-        if (baseDN.equals(rebuildBaseDN))
-        {
-          if (backend == null)
-          {
-            backend = b;
-            baseDNArray = new DN[baseDNs.size()];
-            baseDNs.toArray(baseDNArray);
-          }
-          else
-          {
-            final Message message =
-                ERR_MULTIPLE_BACKENDS_FOR_BASE.get(baseDNString.getValue());
-            logError(message);
-            return 1;
-          }
-          break;
-        }
-      }
+      backend = getBackend(rebuildBaseDN);
     }
-
-    if (backend == null)
+    catch (ConfigException e)
     {
-      final Message message =
-          ERR_NO_BACKENDS_FOR_BASE.get(baseDNString.getValue());
-      logError(message);
+      logError(e.getMessageObject());
       return 1;
     }
-
-    if (!(backend instanceof BackendImpl))
+    catch (Exception e)
     {
-      final Message message = ERR_BACKEND_NO_INDEXING_SUPPORT.get();
-      logError(message);
+      logError(Message.raw(e.getMessage()));
       return 1;
     }
 
     // Initializes and sets the rebuild index configuration.
+    final RebuildConfig rebuildConfig =
+        initializeRebuildIndexConfiguration(rebuildBaseDN);
+
+    // Launches the rebuild process.
+    return processRebuildIndex(backend, rebuildConfig);
+  }
+
+  /**
+   * Initializes and sets the rebuild index configuration.
+   *
+   * @param rebuildBaseDN
+   *          The selected base DN.
+   * @return A rebuild configuration.
+   */
+  private RebuildConfig initializeRebuildIndexConfiguration(
+      final DN rebuildBaseDN)
+  {
     final RebuildConfig rebuildConfig = new RebuildConfig();
     rebuildConfig.setBaseDN(rebuildBaseDN);
     for (final String s : indexList.getValues())
@@ -551,9 +531,7 @@ public class RebuildIndex extends TaskTool
     }
 
     rebuildConfig.setTmpDirectory(tmpDirectory.getValue());
-
-    // Launch the rebuild process.
-    return processRebuildIndex(backend, rebuildConfig);
+    return rebuildConfig;
   }
 
   /**
@@ -634,6 +612,70 @@ public class RebuildIndex extends TaskTool
     return returnCode;
   }
 
+  /**
+   * Gets information about the backends defined in the server. Iterates through
+   * them, finding the one backend to be verified.
+   *
+   * @param selectedDN
+   *          The user selected DN.
+   * @return The backend which holds the selected base DN.
+   * @throws ConfigException
+   *           If the backend is poorly configured.
+   * @throws Exception
+   *           If an exception occurred during the backend search.
+   */
+  private Backend getBackend(final DN selectedDN) throws ConfigException,
+      Exception
+  {
+    Backend backend = null;
+    DN[] baseDNArray;
+
+    final ArrayList<Backend> backendList = new ArrayList<Backend>();
+    final ArrayList<BackendCfg> entryList = new ArrayList<BackendCfg>();
+    final ArrayList<List<DN>> dnList = new ArrayList<List<DN>>();
+    BackendToolUtils.getBackends(backendList, entryList, dnList);
+
+    final int numBackends = backendList.size();
+    for (int i = 0; i < numBackends; i++)
+    {
+      final Backend b = backendList.get(i);
+      final List<DN> baseDNs = dnList.get(i);
+
+      for (final DN baseDN : baseDNs)
+      {
+        if (baseDN.equals(selectedDN))
+        {
+          if (backend == null)
+          {
+            backend = b;
+            baseDNArray = new DN[baseDNs.size()];
+            baseDNs.toArray(baseDNArray);
+          }
+          else
+          {
+            final Message message =
+                ERR_MULTIPLE_BACKENDS_FOR_BASE.get(baseDNString.getValue());
+            throw new ConfigException(message);
+          }
+          break;
+        }
+      }
+    }
+
+    if (backend == null)
+    {
+      final Message message =
+          ERR_NO_BACKENDS_FOR_BASE.get(baseDNString.getValue());
+      throw new ConfigException(message);
+    }
+
+    if (!(backend instanceof BackendImpl))
+    {
+      final Message message = ERR_BACKEND_NO_INDEXING_SUPPORT.get();
+      throw new ConfigException(message);
+    }
+    return backend;
+  }
 
   /**
    * {@inheritDoc}
