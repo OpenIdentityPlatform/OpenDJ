@@ -26,10 +26,8 @@
  */
 package org.opends.server.util;
 
-
-
 /**
- * This enumeration defines the days of the week.
+ * This enumeration defines the set of possible change types.
  */
 @org.opends.server.types.PublicAPI(
      stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
@@ -38,42 +36,28 @@ package org.opends.server.util;
      mayInvoke=true)
 public enum ChangeOperationType
 {
-  /**
-   * The change type for add operations.
-   */
+  /** The change type for add operations. */
   ADD("ADD", "add"),
 
-
-
-  /**
-   * The change type for delete operations.
-   */
+  /** The change type for delete operations. */
   DELETE("DELETE", "delete"),
 
-
-
-  /**
-   * The change type for modify operations.
-   */
+  /** The change type for modify operations. */
   MODIFY("MODIFY", "modify"),
 
-
-
-  /**
-   * The change type for modify DN operations.
-   */
+  /** The change type for modify DN operations. */
   MODIFY_DN("MODIFY_DN", "moddn");
 
 
 
-  // The name of this change type as it should appear in the "changetype" field
-  // in LDIF records.
+  /**
+   * The name of this change type as it should appear in the "changetype" field
+   * in LDIF records.
+   */
   private String ldifChangeType;
 
-  // The user-friendly name given to this change type.
+  /** The user-friendly name given to this change type. */
   private String type;
-
-
 
   /**
    * Creates a change type with the given string value.
@@ -118,6 +102,7 @@ public enum ChangeOperationType
    *
    * @return  A string representation of this type.
    */
+  @Override
   public String toString()
   {
     return type;

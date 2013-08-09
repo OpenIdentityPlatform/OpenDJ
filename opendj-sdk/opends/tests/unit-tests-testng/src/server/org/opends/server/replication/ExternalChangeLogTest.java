@@ -630,7 +630,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
   /** Add an entry in the database */
   private void addEntry(Entry entry) throws Exception
   {
-    AddOperationBasis addOp = new AddOperationBasis(connection,
+    AddOperation addOp = new AddOperationBasis(connection,
         InternalClientConnection.nextOperationID(), InternalClientConnection
         .nextMessageID(), null, entry.getDN(), entry.getObjectClasses(),
         entry.getUserAttributes(), entry.getOperationalAttributes());
@@ -804,10 +804,10 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       publishDeleteMsgInOTest(s1test, cn, tn, 1);
 
       cn = new ChangeNumber(time++, ts++, s2test2.getServerId());
-      publishDeleteMsgInOTest(s2test2, cn, tn, 2);
+      publishDeleteMsgInOTest2(s2test2, cn, tn, 2);
 
       ChangeNumber cn3 = new ChangeNumber(time++, ts++, s2test2.getServerId());
-      publishDeleteMsgInOTest(s2test2, cn3, tn, 3);
+      publishDeleteMsgInOTest2(s2test2, cn3, tn, 3);
 
       cn = new ChangeNumber(time++, ts++, s1test.getServerId());
       publishDeleteMsgInOTest(s1test, cn, tn, 4);
@@ -1262,10 +1262,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
       // Publish MOD
       ChangeNumber cn3 = new ChangeNumber(TimeThread.getTime(), ts++, 1201);
-      Attribute attr1 = Attributes.create("description", "new value");
-      Modification mod1 = new Modification(ModificationType.REPLACE, attr1);
-      List<Modification> mods = new ArrayList<Modification>();
-      mods.add(mod1);
+      List<Modification> mods = createMods("description", "new value");
       ModifyMsg modMsg = new ModifyMsg(cn3, DN
           .decode("uid="+tn+"3," + TEST_ROOT_DN_STRING), mods, tn+"uuid3");
       server01.publish(modMsg);
@@ -1274,13 +1271,12 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       // Publish modDN
       DN newSuperior = DN.decode(TEST_ROOT_DN_STRING2);
       ChangeNumber cn4 = new ChangeNumber(TimeThread.getTime(), ts++, 1201);
-      ModifyDNOperationBasis op = new ModifyDNOperationBasis(connection, 1, 1, null,
+      ModifyDNOperation op = new ModifyDNOperationBasis(connection, 1, 1, null,
           DN.decode("uid="+tn+"4," + TEST_ROOT_DN_STRING), // entryDN
           RDN.decode("uid="+tn+"new4"), // new rdn
           true,  // deleteoldrdn
           newSuperior);
-      op.setAttachment(SYNCHROCONTEXT, new ModifyDnContext(cn4, tn+"uuid4",
-      "newparentId"));
+      op.setAttachment(SYNCHROCONTEXT, new ModifyDnContext(cn4, tn+"uuid4", "newparentId"));
       LocalBackendModifyDNOperation localOp = new LocalBackendModifyDNOperation(op);
       ModifyDNMsg modDNMsg = new ModifyDNMsg(localOp);
       server01.publish(modDNMsg);
@@ -2384,8 +2380,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
     if (createBaseEntry)
     {
-      Entry e = createEntry(baseDN);
-      memoryBackend.addEntry(e, null);
+      memoryBackend.addEntry(createEntry(baseDN), null);
     }
     return memoryBackend;
   }
@@ -2583,10 +2578,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
       // Publish MOD
       ChangeNumber cn3 = new ChangeNumber(TimeThread.getTime(), ts++, 1201);
-      Attribute attr1 = Attributes.create("description", "new value");
-      Modification mod1 = new Modification(ModificationType.REPLACE, attr1);
-      List<Modification> mods = new ArrayList<Modification>();
-      mods.add(mod1);
+      List<Modification> mods = createMods("description", "new value");
       ModifyMsg modMsg = new ModifyMsg(cn3, DN
           .decode("uid="+tn+"3," + TEST_ROOT_DN_STRING), mods, user1entryUUID);
       server01.publish(modMsg);
@@ -2594,13 +2586,12 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
       // Publish modDN
       ChangeNumber cn4 = new ChangeNumber(TimeThread.getTime(), ts++, 1201);
-      ModifyDNOperationBasis op = new ModifyDNOperationBasis(connection, 1, 1, null,
+      ModifyDNOperation op = new ModifyDNOperationBasis(connection, 1, 1, null,
           DN.decode("uid="+tn+"4," + TEST_ROOT_DN_STRING), // entryDN
           RDN.decode("uid="+tn+"new4"), // new rdn
           true,  // deleteoldrdn
           DN.decode(TEST_ROOT_DN_STRING2)); // new superior
-      op.setAttachment(SYNCHROCONTEXT, new ModifyDnContext(cn4, user1entryUUID,
-      "newparentId"));
+      op.setAttachment(SYNCHROCONTEXT, new ModifyDnContext(cn4, user1entryUUID, "newparentId"));
       LocalBackendModifyDNOperation localOp = new LocalBackendModifyDNOperation(op);
       ModifyDNMsg modDNMsg = new ModifyDNMsg(localOp);
       server01.publish(modDNMsg);
@@ -3270,7 +3261,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     debugInfo(tn, "Starting test\n\n");
     Backend backend2 = null;
     Backend backend3 = null;
-    DeleteOperationBasis delOp =null;
+    DeleteOperation delOp = null;
     LDAPReplicationDomain domain2 = null;
     LDAPReplicationDomain domain3 = null;
     LDAPReplicationDomain domain21 = null;
@@ -3341,11 +3332,8 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
       sleep(1000);
 
-      Entry e2 = createEntry(baseDn2);
-      addEntry(e2);
-
-      Entry e3 = createEntry(baseDn3);
-      addEntry(e3);
+      addEntry(createEntry(baseDn2));
+      addEntry(createEntry(baseDn3));
 
       String lentry =
           "dn: cn=Fiona Jensen," + TEST_ROOT_DN_STRING2 + "\n"
@@ -3375,29 +3363,13 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       addEntry(uentry2); // add robert in o=test3
 
       // mod 'sn' of fiona (o=test2) with 'sn' configured as ecl-incl-att
-      AttributeBuilder builder = new AttributeBuilder("sn");
-      builder.add("newsn");
-      Modification mod = new Modification(ModificationType.REPLACE, builder.toAttribute());
-      List<Modification> mods = new ArrayList<Modification>();
-      mods.add(mod);
-      ModifyOperationBasis modOpBasis =
-        new ModifyOperationBasis(connection, 1, 1, null, uentry1.getDN(), mods);
-      modOpBasis.run();
-      waitOpResult(modOpBasis, ResultCode.SUCCESS);
+      runModifyOperation(uentry1, createMods("sn", "newsn"));
 
       // mod 'telephonenumber' of robert (o=test3)
-      builder = new AttributeBuilder("telephonenumber");
-      builder.add("555555");
-      mod = new Modification(ModificationType.REPLACE, builder.toAttribute());
-      mods = new ArrayList<Modification>();
-      mods.add(mod);
-      ModifyOperationBasis modOpBasis2 =
-        new ModifyOperationBasis(connection, 1, 1, null, uentry2.getDN(), mods);
-      modOpBasis2.run();
-      waitOpResult(modOpBasis2, ResultCode.SUCCESS);
+      runModifyOperation(uentry2, createMods("telephonenumber", "555555"));
 
       // moddn robert (o=test3) to robert2 (o=test3)
-      ModifyDNOperationBasis modDNOp = new ModifyDNOperationBasis(connection,
+      ModifyDNOperation modDNOp = new ModifyDNOperationBasis(connection,
           InternalClientConnection.nextOperationID(),
           InternalClientConnection.nextMessageID(),
           null,
@@ -3520,6 +3492,23 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       }
     }
     debugInfo(tn, "Ending test with success");
+  }
+
+  private void runModifyOperation(Entry entry, List<Modification> mods)
+      throws Exception
+  {
+    final ModifyOperation operation =
+        new ModifyOperationBasis(connection, 1, 1, null, entry.getDN(), mods);
+    operation.run();
+    waitOpResult(operation, ResultCode.SUCCESS);
+  }
+
+  private List<Modification> createMods(String attributeName, String valueString)
+  {
+    Attribute attr = Attributes.create(attributeName, valueString);
+    List<Modification> mods = new ArrayList<Modification>();
+    mods.add(new Modification(ModificationType.REPLACE, attr));
+    return mods;
   }
 
   private Entry parseIncludedAttributes(SearchResultEntry resultEntry,
