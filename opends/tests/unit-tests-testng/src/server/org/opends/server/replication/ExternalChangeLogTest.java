@@ -874,7 +874,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       assertEquals(searchOp.getSearchEntries().size(), 1);
 
       cookie="";
-      searchOp = searchOnCookieChangelog("(targetDN=*" + tn + "*,o=test)", tn, cookie, SUCCESS);
+      searchOp = searchOnCookieChangelog("(targetDN=*" + tn + "*,o=test)", cookie, tn, SUCCESS);
       cookie = getCookie(tn, ldifWriter, cookie, searchOp.getSearchEntries());
       // we expect msg1 + msg4 + msg5
       assertEquals(searchOp.getSearchEntries().size(), 3);
