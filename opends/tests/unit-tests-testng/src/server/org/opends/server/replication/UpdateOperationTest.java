@@ -23,33 +23,22 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
-
 package org.opends.server.replication;
 
-import static org.opends.server.loggers.ErrorLogger.logError;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertNull;
-import static org.testng.Assert.assertTrue;
-import static org.testng.Assert.fail;
+import static org.opends.server.TestCaseUtils.*;
+import static org.opends.server.loggers.ErrorLogger.*;
+import static org.testng.Assert.*;
 
-import java.net.ServerSocket;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.opends.server.TestCaseUtils;
-import org.opends.messages.Message;
 import org.opends.messages.Category;
+import org.opends.messages.Message;
 import org.opends.messages.Severity;
-import org.opends.server.core.AddOperationBasis;
-import org.opends.server.core.DeleteOperationBasis;
-import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.ModifyDNOperationBasis;
-import org.opends.server.core.ModifyOperation;
-import org.opends.server.core.ModifyOperationBasis;
+import org.opends.server.TestCaseUtils;
+import org.opends.server.core.*;
 import org.opends.server.extensions.DummyAlertHandler;
 import org.opends.server.plugins.ShortCircuitPlugin;
 import org.opends.server.protocols.internal.InternalClientConnection;
@@ -57,29 +46,22 @@ import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPModification;
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.common.ChangeNumberGenerator;
-import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.replication.plugin.LDAPReplicationDomain;
-import org.opends.server.replication.protocol.AddMsg;
-import org.opends.server.replication.protocol.DeleteMsg;
-import org.opends.server.replication.protocol.HeartbeatThread;
-import org.opends.server.replication.protocol.ModifyDNMsg;
-import org.opends.server.replication.protocol.ModifyMsg;
-import org.opends.server.replication.protocol.OperationContext;
-import org.opends.server.replication.protocol.ReplicationMsg;
+import org.opends.server.replication.protocol.*;
+import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.schema.DirectoryStringSyntax;
 import org.opends.server.types.*;
 import org.opends.server.util.StaticUtils;
+import org.opends.server.util.TimeThread;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-import static org.opends.server.TestCaseUtils.*;
-import org.opends.server.util.TimeThread;
-
 
 /**
  * Test synchronization of update operations on the directory server and through
  * the replication server broker interface.
  */
+@SuppressWarnings("javadoc")
 public class  UpdateOperationTest extends ReplicationTestCase
 {
   /**
@@ -95,9 +77,7 @@ public class  UpdateOperationTest extends ReplicationTestCase
   private String baseUUID;
 
   private String user1dn;
-
   private String user1entrysecondUUID;
-
   private String user1entryUUID;
 
   /**
@@ -115,7 +95,7 @@ public class  UpdateOperationTest extends ReplicationTestCase
   private Entry domain2;
   private Entry domain3;
 
-  int domainSid = 55;
+  private int domainSid = 55;
 
   /**
    * Set up the environment for performing the tests in this Class.
@@ -138,10 +118,7 @@ public class  UpdateOperationTest extends ReplicationTestCase
 
     baseUUID = getEntryUUID(DN.decode("ou=People," + TEST_ROOT_DN_STRING));
 
-    // find  a free port for the replicationServer
-    ServerSocket socket = TestCaseUtils.bindFreePort();
-    replServerPort = socket.getLocalPort();
-    socket.close();
+    replServerPort = TestCaseUtils.findFreePort();
 
     // replication server
     String replServerLdif =
@@ -1335,11 +1312,7 @@ public class  UpdateOperationTest extends ReplicationTestCase
   private boolean assertConflictAttribute(Entry entry)
   {
     List<Attribute> attrs = entry.getAttribute("ds-sync-confict");
-
-    if (attrs == null)
-      return false;
-    else
-      return true;
+    return attrs != null;
   }
 
   @DataProvider(name="assured")

@@ -23,40 +23,38 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
-import org.opends.server.util.StaticUtils;
-import org.opends.server.core.DirectoryServer;
+import static org.opends.server.TestCaseUtils.*;
+import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.util.StaticUtils.*;
+import static org.testng.Assert.*;
+
 import java.io.File;
 import java.io.IOException;
-import java.net.ServerSocket;
 import java.util.SortedSet;
 import java.util.TreeSet;
-
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.ErrorLogger.logError;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-import org.opends.server.types.DirectoryException;
-import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
 import org.opends.messages.Category;
 import org.opends.messages.Message;
 import org.opends.messages.Severity;
 import org.opends.server.TestCaseUtils;
+import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.util.StaticUtils;
 import org.testng.annotations.Test;
-import static org.testng.Assert.*;
-import static org.opends.server.TestCaseUtils.*;
 
 /**
  * Some real connections from clients that should end up with a server with
- * the right groupid if available.
+ * the right groupId if available.
  */
 public class GroupIdHandshakeTest extends ReplicationTestCase
 {
@@ -86,12 +84,7 @@ public class GroupIdHandshakeTest extends ReplicationTestCase
     }
   }
 
-  private void debugInfo(String message, Exception e)
-  {
-    debugInfo(message + stackTraceToSingleLineString(e));
-  }
-
-  private void initTest()
+  private void initTest() throws Exception
   {
     rs1Port = -1;
     rs2Port = -1;
@@ -127,34 +120,24 @@ public class GroupIdHandshakeTest extends ReplicationTestCase
       fail("Error deleting reference to domain: " + TEST_ROOT_DN_STRING);
     }
 
-    if (rs1 != null)
-    {
-      rs1.clearDb();
-      rs1.remove();
-      StaticUtils.recursiveDelete(new File(DirectoryServer.getInstanceRoot(),
-                 rs1.getDbDirName()));
-      rs1 = null;
-    }
-
-    if (rs2 != null)
-    {
-      rs2.clearDb();
-      rs2.remove();
-      StaticUtils.recursiveDelete(new File(DirectoryServer.getInstanceRoot(),
-                 rs2.getDbDirName()));
-     rs2 = null;
-    }
-    if (rs3 != null)
-    {
-      rs3.clearDb();
-      rs3.remove();
-      StaticUtils.recursiveDelete(new File(DirectoryServer.getInstanceRoot(),
-                 rs3.getDbDirName()));
-      rs3 = null;
-    }
+    rs1 = clear(rs1);
+    rs2 = clear(rs2);
+    rs3 = clear(rs3);
     rs1Port = -1;
     rs2Port = -1;
     rs3Port = -1;
+  }
+
+  private ReplicationServer clear(ReplicationServer rs)
+  {
+    if (rs != null)
+    {
+      rs.clearDb();
+      rs.remove();
+      StaticUtils.recursiveDelete(new File(DirectoryServer.getInstanceRoot(),
+          rs.getDbDirName()));
+    }
+    return null;
   }
 
 
@@ -254,24 +237,13 @@ public class GroupIdHandshakeTest extends ReplicationTestCase
   /**
    * Find needed free TCP ports.
    */
-  private void findFreePorts()
+  private void findFreePorts() throws IOException
   {
-    try
-    {
-      ServerSocket socket1 = TestCaseUtils.bindFreePort();
-      ServerSocket socket2 = TestCaseUtils.bindFreePort();
-      ServerSocket socket3 = TestCaseUtils.bindFreePort();
-      rs1Port = socket1.getLocalPort();
-      rs2Port = socket2.getLocalPort();
-      rs3Port = socket3.getLocalPort();
-      socket1.close();
-      socket2.close();
-      socket3.close();
-    } catch (IOException e)
-    {
-      fail("Unable to determinate some free ports " +
-        stackTraceToSingleLineString(e));
-    }
+    int[] ports = TestCaseUtils.findFreePorts(3);
+    int i = 0;
+    rs1Port = ports[i++];
+    rs2Port = ports[i++];
+    rs3Port = ports[i++];
   }
 
   /**
@@ -372,11 +344,9 @@ public class GroupIdHandshakeTest extends ReplicationTestCase
   private LDAPReplicationDomain createReplicationDomain(int serverId,
     int groupId, String testCase)
   {
-
-    SortedSet<String> replServers = null;
     try
     {
-      replServers = createRSListForTestCase(testCase);
+      SortedSet<String> replServers = createRSListForTestCase(testCase);
       DN baseDn = DN.decode(TEST_ROOT_DN_STRING);
       DomainFakeCfg domainConf =
         new DomainFakeCfg(baseDn, serverId, replServers, groupId);

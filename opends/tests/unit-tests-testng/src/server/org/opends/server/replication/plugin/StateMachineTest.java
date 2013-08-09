@@ -23,27 +23,23 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
-import org.opends.server.util.StaticUtils;
+import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.util.StaticUtils.*;
+import static org.testng.Assert.*;
+
 import java.io.File;
 import java.io.IOException;
-import java.net.ServerSocket;
-import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicBoolean;
-
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.ErrorLogger.logError;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-import org.opends.server.types.DirectoryException;
-import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
 import org.opends.messages.Category;
 import org.opends.messages.Message;
@@ -55,34 +51,29 @@ import org.opends.server.api.SynchronizationProvider;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.ReplicationTestCase;
-import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.replication.common.ChangeNumberGenerator;
 import org.opends.server.replication.common.DSInfo;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.common.ServerStatus;
-import org.opends.server.replication.protocol.AddMsg;
-import org.opends.server.replication.protocol.DoneMsg;
-import org.opends.server.replication.protocol.EntryMsg;
-import org.opends.server.replication.protocol.InitializeTargetMsg;
-import org.opends.server.replication.protocol.ReplSessionSecurity;
-import org.opends.server.replication.protocol.ReplicationMsg;
-import org.opends.server.replication.protocol.ResetGenerationIdMsg;
-import org.opends.server.replication.protocol.RoutableMsg;
+import org.opends.server.replication.protocol.*;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
+import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
+import org.opends.server.util.StaticUtils;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-import static org.testng.Assert.*;
 
 /**
  * Some tests to go through the DS state machine and validate we get the
  * expected status according to the actions we perform.
  */
+@SuppressWarnings("javadoc")
 public class StateMachineTest extends ReplicationTestCase
 {
 
@@ -97,7 +88,7 @@ public class StateMachineTest extends ReplicationTestCase
   private ReplicationBroker ds2 = null;
   private ReplicationBroker ds3 = null;
   private ReplicationServer rs1 = null;
-  // The tracer object for the debug logger
+  /** The tracer object for the debug logger */
   private static final DebugTracer TRACER = getTracer();
   private int initWindow = 100;
 
@@ -110,18 +101,13 @@ public class StateMachineTest extends ReplicationTestCase
     }
   }
 
-  private void debugInfo(String message, Exception e)
-  {
-    debugInfo(message + stackTraceToSingleLineString(e));
-  }
-
-  private void initTest()
+  private void initTest() throws IOException
   {
     rs1Port = -1;
     ds1 = null;
     ds2 = null;
     ds3 = null;
-    findFreePorts();
+    rs1Port = TestCaseUtils.findFreePort();
   }
 
   private void endTest()
@@ -165,15 +151,9 @@ public class StateMachineTest extends ReplicationTestCase
     rs1Port = -1;
   }
 
-  private void sleep(long time)
+  private void sleep(long time) throws InterruptedException
   {
-    try
-    {
-      Thread.sleep(time);
-    } catch (InterruptedException ex)
-    {
-      fail("Error sleeping " + stackTraceToSingleLineString(ex));
-    }
+    Thread.sleep(time);
   }
 
   /**
@@ -241,44 +221,18 @@ public class StateMachineTest extends ReplicationTestCase
   }
 
   /**
-   * Find needed free TCP ports.
-   */
-  private void findFreePorts()
-  {
-    try
-    {
-      ServerSocket socket1 = TestCaseUtils.bindFreePort();
-      rs1Port = socket1.getLocalPort();
-      socket1.close();
-    } catch (IOException e)
-    {
-      fail("Unable to determinate some free ports " +
-        stackTraceToSingleLineString(e));
-    }
-  }
-
-  /**
    * Creates a new ReplicationServer.
    */
   private ReplicationServer createReplicationServer(String testCase,
-    int degradedStatusThreshold)
+      int degradedStatusThreshold) throws Exception
   {
-    try
-    {
-      SortedSet<String> replServers = new TreeSet<String>();
+    SortedSet<String> replServers = new TreeSet<String>();
 
-      String dir = "stateMachineTest" + RS1_ID + testCase + "Db";
-      ReplServerFakeConfiguration conf =
+    String dir = "stateMachineTest" + RS1_ID + testCase + "Db";
+    ReplServerFakeConfiguration conf =
         new ReplServerFakeConfiguration(rs1Port, dir, 0, RS1_ID, 0, 100,
-        replServers, 1, 1000, degradedStatusThreshold);
-      ReplicationServer replicationServer = new ReplicationServer(conf);
-      return replicationServer;
-
-    } catch (Exception e)
-    {
-      fail("createReplicationServer " + stackTraceToSingleLineString(e));
-    }
-    return null;
+            replServers, 1, 1000, degradedStatusThreshold);
+    return new ReplicationServer(conf);
   }
 
   /**
@@ -287,64 +241,42 @@ public class StateMachineTest extends ReplicationTestCase
    */
   @SuppressWarnings("unchecked")
   private LDAPReplicationDomain createReplicationDomain(int dsId)
+      throws Exception
   {
-    try
-    {
-      SortedSet<String> replServers = new TreeSet<String>();
-      replServers.add("localhost:" + rs1Port);
+    SortedSet<String> replServers = new TreeSet<String>();
+    replServers.add("localhost:" + rs1Port);
 
-      DN baseDn = DN.decode(EXAMPLE_DN);
-      DomainFakeCfg domainConf =
-        new DomainFakeCfg(baseDn, dsId, replServers);
-      LDAPReplicationDomain replicationDomain =
-        MultimasterReplication.createNewDomain(domainConf);
-      replicationDomain.start();
-      SynchronizationProvider<SynchronizationProviderCfg> provider =
+    DN baseDn = DN.decode(EXAMPLE_DN);
+    DomainFakeCfg domainConf = new DomainFakeCfg(baseDn, dsId, replServers);
+    LDAPReplicationDomain replicationDomain = MultimasterReplication.createNewDomain(domainConf);
+    replicationDomain.start();
+    SynchronizationProvider<SynchronizationProviderCfg> provider =
         DirectoryServer.getSynchronizationProviders().get(0);
-      if (provider instanceof ConfigurationChangeListener)
-      {
-        ConfigurationChangeListener<MultimasterReplicationFakeConf> mmr =
-          (ConfigurationChangeListener<MultimasterReplicationFakeConf>) provider;
-        mmr.applyConfigurationChange(new MultimasterReplicationFakeConf());
-      }
-
-      return replicationDomain;
-
-    } catch (Exception e)
+    if (provider instanceof ConfigurationChangeListener)
     {
-      fail("createReplicationDomain " + stackTraceToSingleLineString(e));
+      ConfigurationChangeListener<MultimasterReplicationFakeConf> mmr =
+          (ConfigurationChangeListener<MultimasterReplicationFakeConf>) provider;
+      mmr.applyConfigurationChange(new MultimasterReplicationFakeConf());
     }
-    return null;
+
+    return replicationDomain;
   }
 
   /**
-   * Create and connect a replication broker to the replication server with
-   * the given state and generation id (uses passed window for received changes)
+   * Create and connect a replication broker to the replication server with the
+   * given state and generation id
    */
   private ReplicationBroker createReplicationBroker(int dsId,
-    ServerState state, long generationId, int window)
-    throws Exception, SocketException
+      ServerState state, long generationId) throws Exception
   {
     ReplicationBroker broker = new ReplicationBroker(null,
       state, EXAMPLE_DN, dsId, 100, generationId, 0,
       new ReplSessionSecurity(null, null, null, true), (byte) 1, 500);
-    ArrayList<String> servers = new ArrayList<String>(1);
+    List<String> servers = new ArrayList<String>(1);
     servers.add("localhost:" + rs1Port);
     broker.start(servers);
     checkConnection(30, broker, rs1Port);
-
     return broker;
-  }
-
-  /**
-   * Create and connect a replication broker to the replication server with
-   * the given state and generation id (uses 100 as window for received changes)
-   */
-  private ReplicationBroker createReplicationBroker(int dsId,
-    ServerState state, long generationId)
-    throws Exception, SocketException
-  {
-    return createReplicationBroker(dsId, state, generationId, 100);
   }
 
   /**
@@ -396,7 +328,7 @@ public class StateMachineTest extends ReplicationTestCase
     }
   }
 
-  // Returns various init values for test testStateMachineStatusAnalyzer
+  /** Returns various init values for test testStateMachineStatusAnalyzer */
   @DataProvider(name="stateMachineStatusAnalyzerTestProvider")
   public Object [][] stateMachineStatusAnalyzerTestProvider() throws Exception
   {
@@ -443,7 +375,7 @@ public class StateMachineTest extends ReplicationTestCase
        * changes sent to DS. (window value reached: a window msg needed by RS for
        * following sending changes to DS)
        */
-      ds2 = createReplicationBroker(DS2_ID, new ServerState(), EMPTY_DN_GENID, 10);
+      ds2 = createReplicationBroker(DS2_ID, new ServerState(), EMPTY_DN_GENID);
       checkConnection(30, DS2_ID);
 
       /**
@@ -898,14 +830,6 @@ public class StateMachineTest extends ReplicationTestCase
     private BrokerReader reader = null;
 
     /**
-     * Creates a broker initializer with a reader
-     */
-    public BrokerInitializer(ReplicationBroker rb, int serverId)
-    {
-      this(rb, serverId, true);
-    }
-
-    /**
      * Creates a broker initializer. Also creates a reader according to request
      */
     public BrokerInitializer(ReplicationBroker rb, int serverId,
@@ -974,10 +898,8 @@ public class StateMachineTest extends ReplicationTestCase
       // file so need \n\n to separate LDIF entries to conform to LDIF file format
 
       // Create an entry message
-      EntryMsg entryMsg = new EntryMsg(serverId, destId,
-        entryWithUUIDldif.getBytes(), (int)userId);
-
-      return entryMsg;
+      return new EntryMsg(serverId, destId, entryWithUUIDldif.getBytes(),
+          (int) userId);
     }
 
     /**
@@ -1019,14 +941,17 @@ public class StateMachineTest extends ReplicationTestCase
     private int serverId = -1;
     private long userId = 0;
     private AtomicBoolean shutdown = new AtomicBoolean(false);
-    // The writer starts suspended
+    /** The writer starts suspended */
     private AtomicBoolean suspended = new AtomicBoolean(true);
-    // Tells a sending session is finished
-    // A session is sending messages between the follow and the pause calls,
-    // or the time a followAndPause method runs.
+    /**
+     * Tells a sending session is finished. A session is sending messages
+     * between the follow and the pause calls, or the time a followAndPause
+     * method runs.
+     */
     private AtomicBoolean sessionDone = new AtomicBoolean(true);
     private boolean careAboutAmountOfChanges = false;
-    private int nChangesSent = 0; // Number of sent changes
+    /** Number of sent changes */
+    private int nChangesSent = 0;
     private int nChangesSentLimit = 0;
     ChangeNumberGenerator gen = null;
     private Object sleeper = new Object();
@@ -1039,13 +964,7 @@ public class StateMachineTest extends ReplicationTestCase
      */
     private BrokerReader reader = null;
 
-    /* Creates a broker writer with a reader */
-    public BrokerWriter(ReplicationBroker rb, int serverId)
-    {
-      this(rb, serverId, true);
-    }
-
-    /* Creates a broker writer. Also creates a reader according to request */
+    /** Creates a broker writer. Also creates a reader according to request */
     public BrokerWriter(ReplicationBroker rb, int serverId,
       boolean createReader)
     {
@@ -1070,6 +989,7 @@ public class StateMachineTest extends ReplicationTestCase
      * Loops sending changes: add operations creating users with different ids
      * This starts paused and has to be resumed calling a follow method.
      */
+    @Override
     public void run()
     {
       boolean dbg1Written = false, dbg2Written;
@@ -1118,7 +1038,10 @@ public class StateMachineTest extends ReplicationTestCase
         }
         // Mark session is finished
         if (startedNewSession)
+        {
           sessionDone.set(true);
+        }
+
         try
         {
           // Writer in pause, sleep a while to let other threads work
@@ -1186,7 +1109,7 @@ public class StateMachineTest extends ReplicationTestCase
      */
     public boolean isPaused()
     {
-      return (sessionDone.get());
+      return sessionDone.get();
     }
 
     /**
@@ -1196,28 +1119,6 @@ public class StateMachineTest extends ReplicationTestCase
     {
       sessionDone.set(false);
       suspended.set(false);
-    }
-
-    /**
-     * Resumes the writer and suspends it after a given amount of ms
-     * If the writer was working it will be paused anyway after the given amount
-     * of time.
-     * -> blocking call
-     */
-    public void followAndPause(long time)
-    {
-      debugInfo("Requested broker writer " + serverId + " to write for " + time + " ms.");
-      pause(); // If however we were already working
-      sessionDone.set(false);
-      suspended.set(false);
-      try
-      {
-        Thread.sleep(time);
-      } catch (InterruptedException ex)
-      {
-        /* Don't care */
-      }
-      pause();
     }
 
     /**
@@ -1285,14 +1186,12 @@ public class StateMachineTest extends ReplicationTestCase
       }
 
       // Create an update message to add an entry.
-      AddMsg addMsg = new AddMsg(gen.newChangeNumber(),
+      return new AddMsg(gen.newChangeNumber(),
         personWithUUIDEntry.getDN().toString(),
         userEntryUUID,
         null,
         personWithUUIDEntry.getObjectClassAttribute(),
         personWithUUIDEntry.getAttributes(), new ArrayList<Attribute>());
-
-      return addMsg;
     }
   }
 
@@ -1319,7 +1218,9 @@ public class StateMachineTest extends ReplicationTestCase
       this.serverId = serverId;
       start();
     }
-    // Loop reading and throwing update messages
+
+    /** Loop reading and throwing update messages */
+    @Override
     public void run()
     {
       while (!shutdown)
@@ -1340,8 +1241,10 @@ public class StateMachineTest extends ReplicationTestCase
       debugInfo("Broker " + serverId + " reader thread is dying");
     }
 
-    // Returns last received message from reader
-    // When read, last value is cleared
+    /**
+     * Returns last received message from reader When read, last value is
+     * cleared
+     */
     public ReplicationMsg getLastMsg()
     {
       ReplicationMsg toReturn = lastMsg;
@@ -1349,7 +1252,7 @@ public class StateMachineTest extends ReplicationTestCase
       return toReturn;
     }
 
-    // Stops reader thread
+    /** Stops reader thread */
     public void shutdown()
     {
       shutdown = true;
@@ -1391,7 +1294,7 @@ public class StateMachineTest extends ReplicationTestCase
   {
     int nSec = 0;
 
-    if ((testedValue == null) || (expectedValue == null))
+    if (testedValue == null || expectedValue == null)
       fail("sleepAssertStatusEquals: null parameters");
 
     // Go out of the loop only if equality is obtained or if timeout occurs
@@ -1418,9 +1321,8 @@ public class StateMachineTest extends ReplicationTestCase
       if (nSec == secTimeout)
       {
         // Timeout reached, end with error
-        fail("sleepAssertStatusEquals: got <" +
-          testedValue.getStatus().toString() + "> where expected <" +
-          expectedValue.toString() + ">");
+        fail("sleepAssertStatusEquals: got <" + testedValue.getStatus()
+          + "> where expected <" + expectedValue + ">");
       }
     }
   }

@@ -23,21 +23,18 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
-import org.opends.server.core.DirectoryServer;
-import org.opends.server.util.StaticUtils;
-import java.io.File;
-import java.io.IOException;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.ErrorLogger.logError;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
+import static org.opends.server.TestCaseUtils.*;
+import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.util.StaticUtils.*;
 import static org.testng.Assert.*;
 
-import java.net.ServerSocket;
+import java.io.File;
+import java.io.IOException;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -45,14 +42,15 @@ import org.opends.messages.Category;
 import org.opends.messages.Message;
 import org.opends.messages.Severity;
 import org.opends.server.TestCaseUtils;
+import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
+import org.opends.server.util.StaticUtils;
 import org.testng.annotations.Test;
-import static org.opends.server.TestCaseUtils.*;
 
 /**
  * Test if the replication domain is able to switch of replication server
@@ -72,7 +70,7 @@ public class ReplicationServerFailoverTest extends ReplicationTestCase
   private ReplicationServer rs1 = null;
   private ReplicationServer rs2 = null;
 
-  // The tracer object for the debug logger
+  /** The tracer object for the debug logger */
   private static final DebugTracer TRACER = getTracer();
 
   private void debugInfo(String s)
@@ -84,7 +82,7 @@ public class ReplicationServerFailoverTest extends ReplicationTestCase
     }
   }
 
-  private void initTest()
+  private void initTest() throws IOException
   {
     rs1Port = -1;
     rs2Port = -1;
@@ -118,27 +116,23 @@ public class ReplicationServerFailoverTest extends ReplicationTestCase
       fail("Error deleting reference to domain: " + TEST_ROOT_DN_STRING);
     }
 
-    if (rs1 != null)
-    {
-      rs1.clearDb();
-      rs1.remove();
-      StaticUtils.recursiveDelete
-              (new File(DirectoryServer.getInstanceRoot(),
-               rs1.getDbDirName()));
-      rs1 = null;
-    }
+    rs1 = clear(rs1);
+    rs2 = clear(rs2);
 
-    if (rs2 != null)
-    {
-      rs2.clearDb();
-      rs2.remove();
-      StaticUtils.recursiveDelete
-              (new File(DirectoryServer.getInstanceRoot(),
-               rs2.getDbDirName()));
-      rs2 = null;
-    }
     rs1Port = -1;
     rs2Port = -1;
+  }
+
+  private ReplicationServer clear(ReplicationServer rs)
+  {
+    if (rs != null)
+    {
+      rs.clearDb();
+      rs.remove();
+      StaticUtils.recursiveDelete(new File(DirectoryServer.getInstanceRoot(),
+          rs.getDbDirName()));
+    }
+    return null;
   }
 
   /**
@@ -392,21 +386,11 @@ public class ReplicationServerFailoverTest extends ReplicationTestCase
   /**
    * Find needed free TCP ports.
    */
-  private void findFreePorts()
+  private void findFreePorts() throws IOException
   {
-    try
-    {
-      ServerSocket socket1 = TestCaseUtils.bindFreePort();
-      ServerSocket socket2 = TestCaseUtils.bindFreePort();
-      rs1Port = socket1.getLocalPort();
-      rs2Port = socket2.getLocalPort();
-      socket1.close();
-      socket2.close();
-    } catch (IOException e)
-    {
-      fail("Unable to determinate some free ports " +
-        stackTraceToSingleLineString(e));
-    }
+    int[] ports = TestCaseUtils.findFreePorts(2);
+    rs1Port = ports[0];
+    rs2Port = ports[1];
   }
 
   /**

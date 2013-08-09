@@ -51,17 +51,14 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import java.io.File;
-import java.net.ServerSocket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.util.*;
 
-import static org.opends.server.TestCaseUtils.TEST_BACKEND_ID;
-import static org.opends.server.TestCaseUtils.TEST_ROOT_DN_STRING;
-import static org.opends.server.loggers.ErrorLogger.logError;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
+import static org.opends.server.TestCaseUtils.*;
+import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.util.StaticUtils.*;
 import static org.testng.Assert.*;
 
 /**
@@ -72,12 +69,11 @@ import static org.testng.Assert.*;
  *
  * - testMultiRS : tests generation ID propagation with more than one
  *   Replication server.
- *
  */
-
+@SuppressWarnings("javadoc")
 public class GenerationIdTest extends ReplicationTestCase
 {
-  // The tracer object for the debug logger
+  /** The tracer object for the debug logger */
   private static final DebugTracer TRACER = getTracer();
 
   private static final String baseDnStr = TEST_ROOT_DN_STRING;
@@ -188,7 +184,7 @@ public class GenerationIdTest extends ReplicationTestCase
         "ds-task-initialize-replica-server-id: " + server2ID);
   }
 
-  // Tests that entries have been written in the db
+  /** Tests that entries have been written in the db */
   private int testEntriesInDb()
   {
     debugInfo("TestEntriesInDb");
@@ -235,7 +231,7 @@ public class GenerationIdTest extends ReplicationTestCase
     return found;
   }
 
-  /*
+  /**
    * Creates entries necessary to the test.
    */
   private String[] newLDIFEntries()
@@ -291,7 +287,9 @@ public class GenerationIdTest extends ReplicationTestCase
         msg = broker.receive();
 
         if (msg == null)
+        {
           break;
+        }
 
         if (msg instanceof InitializeTargetMsg)
         {
@@ -312,8 +310,7 @@ public class GenerationIdTest extends ReplicationTestCase
         else if (msg instanceof ErrorMsg)
         {
           ErrorMsg em = (ErrorMsg)msg;
-          debugInfo("Broker " + serverID + " receives ERROR "
-              + em.toString());
+          debugInfo("Broker " + serverID + " receives ERROR " + em);
           break;
         }
         else
@@ -416,8 +413,10 @@ public class GenerationIdTest extends ReplicationTestCase
       {
         doToco =
           LDAPReplicationDomain.retrievesReplicationDomain(baseDn);
-        if ((doToco!=null) && (doToco.isConnected()))
+        if (doToco != null && doToco.isConnected())
+        {
           break;
+        }
         Thread.sleep(waitCo * 200);
         waitCo++;
       }
@@ -432,7 +431,7 @@ public class GenerationIdTest extends ReplicationTestCase
     }
   }
 
-  /*
+  /**
    * Disconnect DS from the replicationServer
    */
   private void disconnectFromReplServer(int changelogID)
@@ -487,22 +486,11 @@ public class GenerationIdTest extends ReplicationTestCase
     }
   }
 
-  private int getChangelogPort(int changelogID)
+  private int getChangelogPort(int changelogID) throws Exception
   {
     if (replServerPort[changelogID] == 0)
     {
-      try
-      {
-        // Find  a free port for the replicationServer
-        ServerSocket socket = TestCaseUtils.bindFreePort();
-        replServerPort[changelogID] = socket.getLocalPort();
-        socket.close();
-      }
-      catch(Exception e)
-      {
-        fail("Cannot retrieve a free port for replication server."
-            + e.getMessage());
-      }
+      replServerPort[changelogID] = TestCaseUtils.findFreePort();
     }
     return replServerPort[changelogID];
   }
@@ -648,9 +636,9 @@ public class GenerationIdTest extends ReplicationTestCase
         personWithUUIDEntry.getAttributes(), new ArrayList<Attribute>());
   }
 
-  /*
-   * Check that the expected number of changes are in the replication
-   * server database.
+  /**
+   * Check that the expected number of changes are in the replication server
+   * database.
    */
   private void checkChangelogSize(int expectedCount)
   {
@@ -676,7 +664,6 @@ public class GenerationIdTest extends ReplicationTestCase
     }
     catch(Exception e)
     {
-
     }
   }
 
@@ -734,7 +721,7 @@ public class GenerationIdTest extends ReplicationTestCase
       debugInfo(testCase + " ** TEST ** Non empty backend");
 
       debugInfo(testCase + " Adding test entries to DS");
-      this.addTestEntriesToDB(updatedEntries);
+      addTestEntriesToDB(updatedEntries);
 
       debugInfo(testCase + " Configuring DS1 to replicate to RS1(" + changelog1ID + ") on a non empty backend");
       connectServer1ToChangelog(changelog1ID);
@@ -795,7 +782,7 @@ public class GenerationIdTest extends ReplicationTestCase
 
       // Now create a change that must be replicated
       String ent1[] = { createEntry(UUID.randomUUID()) };
-      this.addTestEntriesToDB(ent1);
+      addTestEntriesToDB(ent1);
 
       // Verify that RS1 does contain the change related to this ADD.
       Thread.sleep(500);
@@ -943,7 +930,7 @@ public class GenerationIdTest extends ReplicationTestCase
 
       debugInfo("Add entries to DS1, update should not be sent to DS2 and DS3 that are in bad gen id");
       String[] ent3 = { createEntry(UUID.randomUUID()) };
-      this.addTestEntriesToDB(ent3);
+      addTestEntriesToDB(ent3);
 
       debugInfo("RS1 must have stored that update.");
       Thread.sleep(500);
@@ -990,7 +977,7 @@ public class GenerationIdTest extends ReplicationTestCase
       // Signal that we just entered the full update status
       broker2.signalStatusChange(ServerStatus.FULL_UPDATE_STATUS);
 
-      int receivedEntriesNb = this.receiveImport(broker2, server2ID, null);
+      int receivedEntriesNb = receiveImport(broker2, server2ID, null);
       debugInfo("broker2 has been initialized from DS with #entries=" + receivedEntriesNb);
 
       broker2.stop();
@@ -1168,7 +1155,7 @@ public class GenerationIdTest extends ReplicationTestCase
       assertEquals(replServer3.getGenerationId(baseDn.toNormalizedString()), -1);
 
       debugInfo("Add entries to DS");
-      this.addTestEntriesToDB(updatedEntries);
+      addTestEntriesToDB(updatedEntries);
 
       debugInfo("Connecting DS to replServer2");
       connectServer1ToChangelog(changelog2ID);
@@ -1407,7 +1394,7 @@ public class GenerationIdTest extends ReplicationTestCase
       genId = readGenIdFromSuffixRootEntry();
       assertEquals(genId,-1);
 
-      this.addTestEntriesToDB(updatedEntries);
+      addTestEntriesToDB(updatedEntries);
 
       debugInfo(testCase + " Expect genId attribute to be retrievable");
       genId = readGenIdFromSuffixRootEntry();

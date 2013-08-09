@@ -23,36 +23,33 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS
  */
 package org.opends.server.protocols.ldap ;
 
-import static org.opends.server.config.ConfigConstants.ATTR_LISTEN_PORT;
+import static org.opends.server.config.ConfigConstants.*;
 
-import org.opends.server.types.Attributes;
-import org.opends.server.types.Entry;
+import java.util.Iterator;
+import java.util.List;
+
 import org.opends.server.DirectoryServerTestCase;
+import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.server.AdminTestCaseUtils;
 import org.opends.server.admin.std.meta.LDAPConnectionHandlerCfgDefn;
 import org.opends.server.admin.std.server.LDAPConnectionHandlerCfg;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.Attribute;
+import org.opends.server.types.Attributes;
+import org.opends.server.types.Entry;
 import org.testng.annotations.Test;
-
-import java.net.InetSocketAddress;
-import java.net.ServerSocket;
-import java.util.LinkedList;
-import java.util.ListIterator;
 
 /**
  * An abstract class that all types  unit test should extend.
  */
-
 @Test(groups = { "precommit", "ldap" }, sequential = true)
 public abstract class LdapTestCase extends DirectoryServerTestCase
 {
-	
-	private static String localHost = "127.0.0.1";
-	
+
   /**
    * Determine whether one LDAPAttribute is equal to another.
    * The values of the attribute must be identical and in the same order.
@@ -62,11 +59,11 @@ public abstract class LdapTestCase extends DirectoryServerTestCase
    */
   static boolean testEqual(LDAPAttribute a1, LDAPAttribute a2)
   {
-    if (!a1.getAttributeType().equals(a2.getAttributeType()))
+    if (a1.getAttributeType().equals(a2.getAttributeType()))
     {
-      return false;
+      return a1.getValues().equals(a2.getValues());
     }
-    return a1.getValues().equals(a2.getValues());
+    return false;
   }
 
   /**
@@ -75,18 +72,17 @@ public abstract class LdapTestCase extends DirectoryServerTestCase
    * @param list2 The second list of LDAPAttribute.
    * @return true if the first list of LDAPAttribute is equal to the second.
    */
-  static boolean testEqual(LinkedList<LDAPAttribute> list1,
-                           LinkedList<LDAPAttribute> list2)
+  static boolean testEqual(List<LDAPAttribute> list1, List<LDAPAttribute> list2)
   {
-    ListIterator<LDAPAttribute> e1 = list1.listIterator();
-    ListIterator<LDAPAttribute> e2 = list2.listIterator();
+    Iterator<LDAPAttribute> e1 = list1.iterator();
+    Iterator<LDAPAttribute> e2 = list2.iterator();
     while(e1.hasNext() && e2.hasNext()) {
       LDAPAttribute o1 = e1.next();
       LDAPAttribute o2 = e2.next();
-      if (!(o1==null ? o2==null : testEqual(o1, o2)))
+      if (o1 == null ? o2 != null : !testEqual(o1, o2))
         return false;
     }
-    return !(e1.hasNext() || e2.hasNext());
+    return !e1.hasNext() && !e2.hasNext();
   }
 
   /**
@@ -94,41 +90,37 @@ public abstract class LdapTestCase extends DirectoryServerTestCase
    * @param op The op.
    * @throws Exception If the toString method fails.
    */
-  static void 
-  toString(ProtocolOp op) throws Exception {
+  static void toString(ProtocolOp op) throws Exception
+  {
 	  StringBuilder sb = new StringBuilder();
 	  op.toString(sb);
 	  op.toString(sb, 1);
   }
-  
+
   /**
    * Generate a LDAPConnectionHandler from a entry. The listen port is
    * determined automatically, so no ATTR_LISTEN_PORT should be in the
    * entry.
-   * 
+   *
    * @param handlerEntry The entry to be used to configure the handle.
    * @return Returns the new LDAP connection handler.
    * @throws Exception if the handler cannot be initialized.
    */
-  static LDAPConnectionHandler 
-  getLDAPHandlerInstance(Entry handlerEntry) throws Exception {
-	  ServerSocket serverLdapSocket = new ServerSocket();
-	  serverLdapSocket.setReuseAddress(true);
-	  serverLdapSocket.bind(new InetSocketAddress(localHost, 0));
-	  long serverLdapPort = serverLdapSocket.getLocalPort();
-    serverLdapSocket.close();
-	  Attribute a=Attributes.create(ATTR_LISTEN_PORT, String.valueOf(serverLdapPort));
-	  handlerEntry.addAttribute(a,null);
-    LDAPConnectionHandlerCfg config =
-      getConfiguration(handlerEntry);
+  static LDAPConnectionHandler getLDAPHandlerInstance(Entry handlerEntry)
+      throws Exception
+  {
+    long serverLdapPort = TestCaseUtils.findFreePort();
+    Attribute a = Attributes.create(ATTR_LISTEN_PORT, String.valueOf(serverLdapPort));
+    handlerEntry.addAttribute(a, null);
+    LDAPConnectionHandlerCfg config = getConfiguration(handlerEntry);
     LDAPConnectionHandler handler = new LDAPConnectionHandler();
     handler.initializeConnectionHandler(config);
-	  return handler;
+    return handler;
   }
 
   /**
    * Decode an LDAP connection handler configuration entry.
-   * 
+   *
    * @param handlerEntry
    *          The configuration entry.
    * @return Returns the decoded LDAP connection handler
@@ -139,20 +131,7 @@ public abstract class LdapTestCase extends DirectoryServerTestCase
   static LDAPConnectionHandlerCfg getConfiguration(
       Entry handlerEntry) throws ConfigException {
     return AdminTestCaseUtils.getConfiguration(
-        LDAPConnectionHandlerCfgDefn
-            .getInstance(), handlerEntry);
+        LDAPConnectionHandlerCfgDefn.getInstance(), handlerEntry);
   }
-  
-  /**
-   * @return A free port number.
-   * @throws Exception
-   *           if socket cannot be created or bound to.
-   */
-static long
-  getFreePort() throws Exception {
-	  ServerSocket serverLdapSocket = new ServerSocket();
-	  serverLdapSocket.setReuseAddress(true);
-	  serverLdapSocket.bind(new InetSocketAddress(localHost, 0));
-	  return serverLdapSocket.getLocalPort();
-  }
+
 }

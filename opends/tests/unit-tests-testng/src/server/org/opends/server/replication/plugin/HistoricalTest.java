@@ -25,9 +25,7 @@
  *      Copyright 2008-2010 Sun Microsystems, Inc.
  *      Portions Copyright 2011-2013 ForgeRock AS
  */
-
 package org.opends.server.replication.plugin;
-
 
 import static org.opends.server.TestCaseUtils.*;
 import static org.testng.Assert.*;
@@ -48,7 +46,6 @@ import org.opends.server.types.*;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import java.net.ServerSocket;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -76,10 +73,7 @@ public class HistoricalTest
     // Create an internal connection.
     connection = InternalClientConnection.getRootConnection();
 
-    // find  a free port for the replicationServer
-    ServerSocket socket = TestCaseUtils.bindFreePort();
-    replServerPort = socket.getLocalPort();
-    socket.close();
+    replServerPort = TestCaseUtils.findFreePort();
 
     // The replication server.
     String replServerStringDN = "cn=Replication Server, " + SYNCHRO_PLUGIN_DN;

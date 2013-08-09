@@ -23,17 +23,16 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.replication;
 
-import org.opends.server.util.StaticUtils;
-import java.io.File;
+import static org.opends.server.TestCaseUtils.*;
 import static org.testng.Assert.*;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.net.ServerSocket;
 import java.util.LinkedList;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -41,30 +40,27 @@ import java.util.TreeSet;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.backends.MemoryBackend;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.replication.common.ChangeNumberGenerator;
 import org.opends.server.replication.plugin.DomainFakeCfg;
-import org.opends.server.replication.plugin.MultimasterReplication;
 import org.opends.server.replication.plugin.LDAPReplicationDomain;
+import org.opends.server.replication.plugin.MultimasterReplication;
 import org.opends.server.replication.protocol.AddMsg;
 import org.opends.server.replication.protocol.DeleteMsg;
 import org.opends.server.replication.protocol.ModifyDNMsg;
 import org.opends.server.replication.protocol.ModifyMsg;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.Attributes;
-import org.opends.server.types.DN;
-import org.opends.server.types.Entry;
-import org.testng.annotations.*;
-import static org.opends.server.TestCaseUtils.*;
+import org.opends.server.replication.service.ReplicationBroker;
+import org.opends.server.types.*;
+import org.opends.server.util.StaticUtils;
+import org.testng.annotations.Test;
 
 /**
  * Test that the dependencies are computed correctly when replaying
  * sequences of operations that requires to follow a given order
  * such as : ADD an entry, ADD a children entry.
  */
+@SuppressWarnings("javadoc")
 public class DependencyTest extends ReplicationTestCase
 {
   /**
@@ -87,7 +83,6 @@ public class DependencyTest extends ReplicationTestCase
    * Then test that the sequence of Delete necessary to remove
    * all those entries is also correctly ordered.
    */
-  @SuppressWarnings("unchecked")
   @Test(enabled=true, groups="slow")
   public void addModDelDependencyTest() throws Exception
   {
@@ -123,10 +118,7 @@ public class DependencyTest extends ReplicationTestCase
       AttributeType uidType =
         DirectoryServer.getSchema().getAttributeType("entryuuid");
 
-      // find  a free port for the replicationServer
-      ServerSocket socket = TestCaseUtils.bindFreePort();
-      int replServerPort = socket.getLocalPort();
-      socket.close();
+      int replServerPort = TestCaseUtils.findFreePort();
 
       ReplServerFakeConfiguration conf =
         new ReplServerFakeConfiguration(replServerPort, "dependencyTestAddModDelDependencyTestDb",
@@ -248,7 +240,6 @@ public class DependencyTest extends ReplicationTestCase
    * when an entry is renamed to a new dn and then deleted.
    * Disabled: need investigations to fix random failures
    */
-  @SuppressWarnings("unchecked")
   @Test(enabled=false)
   public void moddnDelDependencyTest() throws Exception
   {
@@ -276,10 +267,7 @@ public class DependencyTest extends ReplicationTestCase
       ChangeNumberGenerator gen = new ChangeNumberGenerator(brokerId, 0L);
       int renamedEntryUuid = 100;
 
-      // find  a free port for the replicationServer
-      ServerSocket socket = TestCaseUtils.bindFreePort();
-      int replServerPort = socket.getLocalPort();
-      socket.close();
+      int replServerPort = TestCaseUtils.findFreePort();
 
       ReplServerFakeConfiguration conf =
         new ReplServerFakeConfiguration(replServerPort, "dependencyTestModdnDelDependencyTestDb",
@@ -363,7 +351,6 @@ public class DependencyTest extends ReplicationTestCase
       if (domain != null)
         MultimasterReplication.deleteDomain(baseDn);
     }
-
   }
 
 
@@ -403,7 +390,6 @@ public class DependencyTest extends ReplicationTestCase
    * has been added.
    * To increase the risks of failures a loop of add/del/add is done.
    */
-  @SuppressWarnings("unchecked")
   @Test(enabled=true, groups="slow")
   public void addDelAddDependencyTest() throws Exception
   {
@@ -426,10 +412,7 @@ public class DependencyTest extends ReplicationTestCase
       AttributeType uidType =
         DirectoryServer.getSchema().getAttributeType("entryuuid");
 
-      // find a free port for the replicationServer
-      ServerSocket socket = TestCaseUtils.bindFreePort();
-      int replServerPort = socket.getLocalPort();
-      socket.close();
+      int replServerPort = TestCaseUtils.findFreePort();
 
       ReplServerFakeConfiguration conf =
         new ReplServerFakeConfiguration(replServerPort, "dependencyTestAddDelAddDependencyTestDb", 0,
@@ -533,7 +516,6 @@ public class DependencyTest extends ReplicationTestCase
    * Check that the dependency of moddn operation are working by
    * issuing a set of Add operation followed by a modrdn of the added entry.
    */
-  @SuppressWarnings("unchecked")
   @Test(enabled=true, groups="slow")
   public void addModdnDependencyTest() throws Exception
   {
@@ -557,10 +539,7 @@ public class DependencyTest extends ReplicationTestCase
       AttributeType uidType =
         DirectoryServer.getSchema().getAttributeType("entryuuid");
 
-      // find a free port for the replicationServer
-      ServerSocket socket = TestCaseUtils.bindFreePort();
-      int replServerPort = socket.getLocalPort();
-      socket.close();
+      int replServerPort = TestCaseUtils.findFreePort();
 
       ReplServerFakeConfiguration conf =
         new ReplServerFakeConfiguration(replServerPort, "dependencyTestAddModdnDependencyTestDb", 0,

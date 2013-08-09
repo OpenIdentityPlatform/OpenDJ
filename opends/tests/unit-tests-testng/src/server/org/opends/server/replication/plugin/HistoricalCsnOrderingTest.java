@@ -23,20 +23,15 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2012 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
-import java.io.File;
-import static org.opends.server.TestCaseUtils.TEST_ROOT_DN_STRING;
-import static org.opends.server.loggers.ErrorLogger.logError;
-import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertTrue;
-import static org.testng.Assert.fail;
+import static org.opends.server.TestCaseUtils.*;
+import static org.opends.server.loggers.ErrorLogger.*;
+import static org.testng.Assert.*;
 
-import java.io.IOException;
-import java.net.ServerSocket;
+import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.SortedSet;
@@ -51,21 +46,11 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.ChangeNumber;
-import org.opends.server.replication.protocol.AddMsg;
-import org.opends.server.replication.protocol.DeleteMsg;
-import org.opends.server.replication.protocol.LDAPUpdateMsg;
-import org.opends.server.replication.protocol.ModifyMsg;
-import org.opends.server.replication.protocol.ReplicationMsg;
+import org.opends.server.replication.protocol.*;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.service.ReplicationBroker;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.DN;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.Entry;
+import org.opends.server.types.*;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.util.TimeThread;
 import org.testng.annotations.Test;
@@ -73,26 +58,28 @@ import org.testng.annotations.Test;
 /**
  * Test the usage of the historical data of the replication.
  */
-public class HistoricalCsnOrderingTest
-       extends ReplicationTestCase
+@SuppressWarnings("javadoc")
+public class HistoricalCsnOrderingTest extends ReplicationTestCase
 {
-  final int serverId = 123;
 
-  public class TestBroker extends ReplicationBroker
+  private final int serverId = 123;
+  private SortedSet<String> replServers = new TreeSet<String>();
+
+  public static class TestBroker extends ReplicationBroker
   {
-    LinkedList<ReplicationMsg> list = null;
+    List<ReplicationMsg> list = null;
 
     public TestBroker(LinkedList<ReplicationMsg> list)
     {
-      super(null, null, null, 0, 0, (long) 0, (long) 0, null, (byte) 0, (long) 0);
+      super(null, null, null, 0, 0, 0, 0, null, (byte) 0, 0);
       this.list = list;
     }
 
+    @Override
     public void publishRecovery(ReplicationMsg msg)
     {
       list.add(msg);
     }
-
 
   }
 
@@ -343,31 +330,17 @@ public class HistoricalCsnOrderingTest
     }
   }
 
-  SortedSet<String> replServers = new TreeSet<String>();
-  private ReplicationServer createReplicationServer() throws ConfigException
+  private ReplicationServer createReplicationServer() throws Exception
   {
-    int rsPort;
-    try
-    {
-      ServerSocket socket1 = TestCaseUtils.bindFreePort();
-      rsPort = socket1.getLocalPort();
-      socket1.close();
-      replServers.add("localhost:" + rsPort);
+    int rsPort = TestCaseUtils.findFreePort();
+    replServers.add("localhost:" + rsPort);
 
-
-      ReplServerFakeConfiguration conf =
-        new ReplServerFakeConfiguration(rsPort, "HistoricalCsnOrdering",
-            0, 1, 0, 100, replServers, 1, 1000, 5000);
-      ReplicationServer replicationServer = new ReplicationServer(conf);
-      replicationServer.clearDb();
-      return replicationServer;
-    }
-    catch (IOException e)
-    {
-      fail("Unable to determinate some free ports " +
-          stackTraceToSingleLineString(e));
-      return null;
-    }
+    ReplServerFakeConfiguration conf =
+        new ReplServerFakeConfiguration(rsPort, "HistoricalCsnOrdering", 0, 1,
+            0, 100, replServers, 1, 1000, 5000);
+    ReplicationServer replicationServer = new ReplicationServer(conf);
+    replicationServer.clearDb();
+    return replicationServer;
   }
 
   private LDAPReplicationDomain createReplicationDomain(int dsId)

@@ -240,10 +240,8 @@ public abstract class SNMPConnectionManager extends DirectoryServerTestCase
    */
   protected void enableSnmp() throws Exception
   {
-
-    // Get a free port
-    this.snmpPort = TestCaseUtils.bindFreePort().getLocalPort();
-    this.trapSnmpPort = TestCaseUtils.bindFreePort().getLocalPort();
+    this.snmpPort = TestCaseUtils.findFreePort();
+    this.trapSnmpPort = TestCaseUtils.findFreePort();
 
     ArrayList<Modification> mods = new ArrayList<Modification>();
 

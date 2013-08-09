@@ -50,27 +50,25 @@ import org.testng.annotations.Test;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.net.ServerSocket;
 import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.UUID;
 
-import static org.opends.server.TestCaseUtils.TEST_ROOT_DN_STRING;
-import static org.opends.server.loggers.ErrorLogger.logError;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
+import static org.opends.server.TestCaseUtils.*;
+import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.util.StaticUtils.*;
 import static org.testng.Assert.*;
 
 /**
  * Tests for the replicationServer code.
  */
-
+@SuppressWarnings("javadoc")
 public class MonitorTest extends ReplicationTestCase
 {
-  // The tracer object for the debug logger
+  /** The tracer object for the debug logger */
   private static final DebugTracer TRACER = getTracer();
 
   private static final String baseDnStr = TEST_ROOT_DN_STRING;
@@ -92,8 +90,8 @@ public class MonitorTest extends ReplicationTestCase
   private ReplicationServer replServer1 = null;
   private ReplicationServer replServer2 = null;
   private ReplicationServer replServer3 = null;
-  LDAPReplicationDomain replDomain = null;
-  protected String[] updatedEntries;
+  private LDAPReplicationDomain replDomain = null;
+  private String[] updatedEntries;
 
   private static int[] replServerPort = new int[30];
 
@@ -105,7 +103,8 @@ public class MonitorTest extends ReplicationTestCase
       TRACER.debugInfo("** TEST **" + s);
     }
   }
-  protected void debugInfo(String message, Exception e)
+
+  private void debugInfo(String message, Exception e)
   {
     debugInfo(message + stackTraceToSingleLineString(e));
   }
@@ -116,6 +115,7 @@ public class MonitorTest extends ReplicationTestCase
    * @throws Exception
    *           If the environment could not be set up.
    */
+  @Override
   @BeforeClass
   public void setUp() throws Exception
   {
@@ -126,12 +126,11 @@ public class MonitorTest extends ReplicationTestCase
     updatedEntries = newLDIFEntries();
   }
 
-  /*
+  /**
    * Creates entries necessary to the test.
    */
   private String[] newLDIFEntries()
   {
-
     return new String[]{
         "dn: " + baseDn + "\n"
             + "objectClass: top\n"
@@ -249,13 +248,11 @@ public class MonitorTest extends ReplicationTestCase
     }
   }
 
-  /*
+  /**
    * Disconnect DS from the replicationServer
    */
-  private void disconnectFromReplServer(int changelogID)
+  private void disconnectFromReplServer() throws Exception
   {
-    try
-    {
       // suffix synchronized
       String synchroServerStringDN = "cn=" + testName + ", cn=domains," +
       SYNCHRO_PLUGIN_DN;
@@ -265,30 +262,13 @@ public class MonitorTest extends ReplicationTestCase
       deleteEntry(synchroServerDN);
       synchroServerEntry = null;
       configEntryList.remove(configEntryList.indexOf(synchroServerDN));
-
-    }
-    catch(Exception e)
-    {
-      fail("disconnectFromReplServer", e);
-    }
   }
 
-  private int getChangelogPort(int changelogID)
+  private int getChangelogPort(int changelogID) throws Exception
   {
     if (replServerPort[changelogID] == 0)
     {
-      try
-      {
-        // Find  a free port for the replicationServer
-        ServerSocket socket = TestCaseUtils.bindFreePort();
-        replServerPort[changelogID] = socket.getLocalPort();
-        socket.close();
-      }
-      catch(Exception e)
-      {
-        fail("Cannot retrieve a free port for replication server."
-            + e.getMessage());
-      }
+      replServerPort[changelogID] = TestCaseUtils.findFreePort();
     }
     return replServerPort[changelogID];
   }
@@ -312,8 +292,7 @@ public class MonitorTest extends ReplicationTestCase
         + "userPassword: password\n" + "initials: AA\n";
   }
 
-  static protected ReplicationMsg createAddMsg(ChangeNumber cn,
-      int serverId)
+  static private ReplicationMsg createAddMsg(ChangeNumber cn)
   {
     Entry personWithUUIDEntry = null;
     String user1entryUUID;
@@ -433,14 +412,13 @@ public class MonitorTest extends ReplicationTestCase
 
       for (int i = 0; i < 10; i++)
       {
-        broker3.publish(createAddMsg(gen.newChangeNumber(), server3ID));
+        broker3.publish(createAddMsg(gen.newChangeNumber()));
       }
 
       searchMonitor();
 
-      debugInfo(
-        "Disconnect DS from replServer1 (required in order to DEL entries).");
-      disconnectFromReplServer(changelog1ID);
+      debugInfo("Disconnect DS from replServer1 (required in order to DEL entries).");
+      disconnectFromReplServer();
 
 
       debugInfo("Successfully ending " + testCase);
@@ -454,7 +432,7 @@ public class MonitorTest extends ReplicationTestCase
   /**
    * Disconnect broker and remove entries from the local DB
    */
-  protected void postTest()
+  private void postTest()
   {
     debugInfo("Post test cleaning.");
 

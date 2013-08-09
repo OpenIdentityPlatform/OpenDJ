@@ -23,24 +23,23 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS
  */
 package org.opends.server.replication.server;
 
-import static org.testng.Assert.assertTrue;
-
-import java.net.ServerSocket;
+import static org.opends.server.TestCaseUtils.*;
+import static org.testng.Assert.*;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.types.DN;
 import org.testng.annotations.Test;
-import static org.opends.server.TestCaseUtils.*;
 
 /**
  * Tests that we can dynamically modify the configuration of replicationServer
  */
-
+@SuppressWarnings("javadoc")
 public class ReplicationServerDynamicConfTest extends ReplicationTestCase
 {
   /**
@@ -55,13 +54,9 @@ public class ReplicationServerDynamicConfTest extends ReplicationTestCase
     TestCaseUtils.startServer();
 
     try {
-      // find two free ports for the replication Server port
-      ServerSocket socket1 = TestCaseUtils.bindFreePort();
-      int replicationServerPort = socket1.getLocalPort();
-      ServerSocket socket2 = TestCaseUtils.bindFreePort();
-      int newReplicationServerPort = socket2.getLocalPort();
-      socket1.close();
-      socket2.close();
+      int[] ports = TestCaseUtils.findFreePorts(2);
+      int replicationServerPort = ports[0];
+      int newReplicationServerPort = ports[1];
 
       // instantiate a Replication server using the first port number.
       ReplServerFakeConfiguration conf =

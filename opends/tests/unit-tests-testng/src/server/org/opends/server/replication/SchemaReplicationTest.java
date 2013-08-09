@@ -23,43 +23,34 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2013 ForgeRock AS.
  */
 package org.opends.server.replication;
 
-import static org.opends.server.loggers.ErrorLogger.logError;
-import static org.testng.Assert.assertTrue;
-import static org.testng.Assert.fail;
+import static org.opends.server.loggers.ErrorLogger.*;
+import static org.testng.Assert.*;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.net.ServerSocket;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.opends.server.TestCaseUtils;
-import org.opends.messages.Message;
 import org.opends.messages.Category;
+import org.opends.messages.Message;
 import org.opends.messages.Severity;
+import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.std.server.SynchronizationProviderCfg;
 import org.opends.server.api.SynchronizationProvider;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.replication.common.ChangeNumberGenerator;
 import org.opends.server.replication.plugin.EntryHistorical;
 import org.opends.server.replication.protocol.ModifyMsg;
 import org.opends.server.replication.protocol.ReplicationMsg;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.Attributes;
-import org.opends.server.types.DN;
-import org.opends.server.types.Modification;
-import org.opends.server.types.ModificationType;
-import org.opends.server.types.Operation;
-import org.opends.server.types.RawModification;
-import org.opends.server.types.ResultCode;
+import org.opends.server.replication.service.ReplicationBroker;
+import org.opends.server.types.*;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -79,17 +70,14 @@ public class SchemaReplicationTest extends ReplicationTestCase
    * @throws Exception
    *           If the environment could not be set up.
    */
+  @Override
   @BeforeClass
   public void setUp() throws Exception
   {
     super.setUp();
 
     // This test suite depends on having the schema available.
-
-    // find  a free port for the replicationServer
-    ServerSocket socket = TestCaseUtils.bindFreePort();
-    replServerPort = socket.getLocalPort();
-    socket.close();
+    replServerPort = TestCaseUtils.findFreePort();
 
     // Create an internal connection
     connection = InternalClientConnection.getRootConnection();

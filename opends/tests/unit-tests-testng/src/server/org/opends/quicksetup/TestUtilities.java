@@ -23,27 +23,24 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS
  */
-
 package org.opends.quicksetup;
-
-import org.opends.quicksetup.util.ZipExtractor;
-import org.opends.quicksetup.util.ServerController;
-import org.opends.quicksetup.util.FileManager;
-import org.opends.server.TestCaseUtils;
-import org.opends.server.types.OperatingSystem;
-import org.opends.server.types.ByteStringBuilder;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.net.ServerSocket;
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
 
-/**
- *
- */
+import org.opends.quicksetup.util.FileManager;
+import org.opends.quicksetup.util.ServerController;
+import org.opends.quicksetup.util.ZipExtractor;
+import org.opends.server.TestCaseUtils;
+import org.opends.server.types.ByteStringBuilder;
+import org.opends.server.types.OperatingSystem;
+
+@SuppressWarnings("javadoc")
 public class TestUtilities {
 
   /**
@@ -55,7 +52,6 @@ public class TestUtilities {
   public static final String DIRECTORY_MANAGER_PASSWORD = "password";
 
   public static Integer ldapPort;
-
   public static Integer jmxPort;
 
   private static boolean initialized;
@@ -80,13 +76,9 @@ public class TestUtilities {
   }
 
   static private void setupServer() throws IOException, InterruptedException {
-    ServerSocket ldapSocket = TestCaseUtils.bindFreePort();
-    ldapPort = ldapSocket.getLocalPort();
-    ldapSocket.close();
-
-    ServerSocket jmxSocket = TestCaseUtils.bindFreePort();
-    jmxPort = jmxSocket.getLocalPort();
-    jmxSocket.close();
+    int[] ports = TestCaseUtils.findFreePorts(2);
+    ldapPort = ports[0];
+    jmxPort = ports[1];
 
     List<String> args = new ArrayList<String>();
     File root = getQuickSetupTestServerRootDir();
@@ -107,7 +99,7 @@ public class TestUtilities {
     args.add("-O");
 
     ProcessBuilder pb = new ProcessBuilder(args);
-    
+
     Process p = pb.start();
     if (p.waitFor() != 0) {
       ByteStringBuilder stdOut = new ByteStringBuilder();

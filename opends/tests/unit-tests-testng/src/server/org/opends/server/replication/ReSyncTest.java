@@ -23,13 +23,15 @@
  *
  *
  *      Copyright 2007-2009 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS
  */
 package org.opends.server.replication;
 
-import static org.testng.Assert.fail;
+import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.testng.Assert.*;
 
 import java.io.File;
-import java.net.ServerSocket;
 import java.util.UUID;
 
 import org.opends.messages.Category;
@@ -46,9 +48,6 @@ import org.opends.server.types.ResultCode;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.ErrorLogger.logError;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 
 /**
  * Test re-synchronization after after backup/restore and LDIF import.
@@ -89,10 +88,7 @@ public class ReSyncTest extends ReplicationTestCase
     * - Do some changes.
     */
 
-    // find  a free port for the replicationServer
-    ServerSocket socket = TestCaseUtils.bindFreePort();
-    int replServerPort = socket.getLocalPort();
-    socket.close();
+    int replServerPort = TestCaseUtils.findFreePort();
 
     // This test uses restore task which does not work with memory backend
     // (like the test backend we use in every tests): backend is disabled then
