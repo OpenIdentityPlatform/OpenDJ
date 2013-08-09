@@ -79,6 +79,7 @@ import org.opends.server.util.LDIFReader;
  * This class defines some utility functions which can be used by test
  * cases.
  */
+@SuppressWarnings("javadoc")
 public final class TestCaseUtils {
   /**
    * The name of the system property that specifies the server build root.
@@ -456,40 +457,10 @@ public final class TestCaseUtils {
 
       // Find some free ports for the listeners and write them to the
       // config-chamges.ldif file.
-      ServerSocket serverLdapSocket  = null;
-      ServerSocket serverAdminSocket  = null;
-      ServerSocket serverJmxSocket   = null;
-      ServerSocket serverLdapsSocket = null;
-
-      String ldapPort = System.getProperty(PROPERTY_LDAP_PORT);
-      if (ldapPort == null)
-      {
-        serverLdapSocket = bindFreePort();
-        serverLdapPort = serverLdapSocket.getLocalPort();
-      }
-      else
-      {
-        serverLdapPort = Integer.valueOf(ldapPort);
-        serverLdapSocket = bindPort(serverLdapPort);
-      }
-
-      String adminPort = System.getProperty(PROPERTY_ADMIN_PORT);
-      if (adminPort == null)
-      {
-        serverAdminSocket = bindFreePort();
-        serverAdminPort = serverAdminSocket.getLocalPort();
-      }
-      else
-      {
-        serverAdminPort = Integer.valueOf(adminPort);
-        serverAdminSocket = bindPort(serverAdminPort);
-      }
-
-      serverJmxSocket = bindFreePort();
-      serverJmxPort = serverJmxSocket.getLocalPort();
-
-      serverLdapsSocket = bindFreePort();
-      serverLdapsPort = serverLdapsSocket.getLocalPort();
+      serverLdapPort = getFreePort(PROPERTY_LDAP_PORT);
+      serverAdminPort = getFreePort(PROPERTY_ADMIN_PORT);
+      serverJmxPort = findFreePort();
+      serverLdapsPort = findFreePort();
 
       String defaultConfigChangeFile = testResourceDir + File.separator
           + "config-changes.ldif";
@@ -502,7 +473,6 @@ public final class TestCaseUtils {
       PrintStream writer = new PrintStream(outFile);
 
       String line = reader.readLine();
-
       while(line != null)
       {
         line = line.replaceAll("#ldapport#", String.valueOf(serverLdapPort));
@@ -514,14 +484,7 @@ public final class TestCaseUtils {
         line = reader.readLine();
       }
 
-      writer.close();
-      outFile.close();
-      reader.close();
-
-      serverLdapSocket.close();
-      serverAdminSocket.close();
-      serverJmxSocket.close();
-      serverLdapsSocket.close();
+      close(writer, outFile, reader);
 
       // Create a configuration for the server.
       DirectoryEnvironmentConfig config = new DirectoryEnvironmentConfig();
@@ -579,6 +542,19 @@ public final class TestCaseUtils {
       e.printStackTrace(originalSystemErr);
       throw e;
     }
+  }
+
+  private static int getFreePort(String portPropertyName) throws IOException
+  {
+    String port = System.getProperty(portPropertyName);
+    if (port == null)
+    {
+      return findFreePort();
+    }
+    int portNb = Integer.parseInt(port);
+    // Check this port is free
+    bindPort(portNb).close();
+    return portNb;
   }
 
   /**
@@ -765,7 +741,7 @@ public final class TestCaseUtils {
 
   /**
    * Find a free port on the local host.
-   * 
+   *
    * @throws IOException
    *           in case of underlying exception.
    * @return the free port number found
@@ -1090,22 +1066,19 @@ public final class TestCaseUtils {
    *           If the file could not be copied.
    */
   public static void copyFile(File src, File dst) throws IOException {
-    InputStream in = new FileInputStream(src);
-    OutputStream out = new FileOutputStream(dst);
-
-    // Transfer bytes from in to out
-    byte[] buf = new byte[8192];
-    int len;
-    while ((len = in.read(buf)) > 0) {
-      out.write(buf, 0, len);
-    }
-    in.close();
-    out.close();
+    copyOrAppend(src, dst, false);
   }
 
-  public static void appendFile(File src, File dst) throws IOException {
+  public static void appendFile(File src, File dst) throws IOException
+  {
+    copyOrAppend(src, dst, true);
+  }
+
+  private static void copyOrAppend(File src, File dst, boolean append)
+      throws IOException
+  {
     InputStream in = new FileInputStream(src);
-    OutputStream out = new FileOutputStream(dst, true);
+    OutputStream out = new FileOutputStream(dst, append);
 
     // Transfer bytes from in to out
     byte[] buf = new byte[8192];
@@ -1113,8 +1086,7 @@ public final class TestCaseUtils {
     while ((len = in.read(buf)) > 0) {
       out.write(buf, 0, len);
     }
-    in.close();
-    out.close();
+    close(in, out);
   }
 
 
@@ -1414,9 +1386,7 @@ public final class TestCaseUtils {
     } catch (Exception t) {
       t.printStackTrace();
     } finally {
-      if (s != null) {
-        s.close();
-      }
+      close(s);
     }
     return false;
   }
@@ -1866,14 +1836,10 @@ public final class TestCaseUtils {
         bytes = bout.toByteArray();
       }
       finally {
-        if (close) {
-          try {
-            is.close();
-          }
-          catch (java.io.IOException ex) {
-            // ignore these
-          }
-        } // end of if (is != null)
+        if (close)
+        {
+          close(is);
+        }
       }
     }
     return bytes;
@@ -1906,12 +1872,7 @@ public final class TestCaseUtils {
       fos = new FileOutputStream(path);
       fos.write(contents);
     } finally {
-      try {
-        if (fos != null) fos.close();
-      }
-      catch (java.io.IOException e) {
-        // ignore these
-      }
+      close(fos);
     }
   }
 

@@ -33,7 +33,6 @@ import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.testng.Assert.*;
 
 import java.io.File;
-import java.net.ServerSocket;
 import java.util.*;
 
 import org.opends.messages.Category;
@@ -65,7 +64,7 @@ public class ReplicationServerLoadBalancingTest extends ReplicationTestCase
   private static final int NRS = 4;
   private final LDAPReplicationDomain rd[] = new LDAPReplicationDomain[NDS];
   private final ReplicationServer rs[] = new ReplicationServer[NRS];
-  private final int[] rsPort = new int[NRS];
+  private int[] rsPort;
 
   private static final int RS1_ID = 501;
   private static final int RS2_ID = 502;
@@ -87,27 +86,8 @@ public class ReplicationServerLoadBalancingTest extends ReplicationTestCase
   {
     Arrays.fill(rd, null);
     Arrays.fill(rs, null);
-    Arrays.fill(rsPort, -1);
 
-    findFreePorts();
-  }
-
-  /**
-   * Find needed free TCP ports.
-   */
-  private void findFreePorts() throws Exception
-  {
-    ServerSocket[] ss = new ServerSocket[NRS];
-
-    for (int i = 0; i < NRS; i++)
-    {
-      ss[i] = TestCaseUtils.bindFreePort();
-      rsPort[i] = ss[i].getLocalPort();
-    }
-    for (int i = 0; i < NRS; i++)
-    {
-      ss[i].close();
-    }
+    rsPort = TestCaseUtils.findFreePorts(NRS);
   }
 
   private void endTest()

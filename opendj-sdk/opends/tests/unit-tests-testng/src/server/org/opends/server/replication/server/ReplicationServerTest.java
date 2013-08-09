@@ -38,16 +38,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.SortedSet;
-import java.util.TreeSet;
-import java.util.UUID;
+import java.util.*;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.SynchronizationProvider;
@@ -60,14 +53,14 @@ import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.replication.ReplicationTestCase;
-import org.opends.server.replication.protocol.*;
-import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.common.ChangeNumberGenerator;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.common.ServerStatus;
 import org.opends.server.replication.plugin.MultimasterReplication;
 import org.opends.server.replication.plugin.ReplicationServerListener;
+import org.opends.server.replication.protocol.*;
+import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.tools.LDAPModify;
 import org.opends.server.tools.LDAPSearch;
 import org.opends.server.types.*;
@@ -81,9 +74,10 @@ import org.testng.annotations.Test;
 /**
  * Tests for the replicationServer code.
  */
+@SuppressWarnings("javadoc")
 public class ReplicationServerTest extends ReplicationTestCase
 {
-  // The tracer object for the debug logger
+  /** The tracer object for the debug logger */
   private static final DebugTracer TRACER = getTracer();
   /**
    * The replicationServer that will be used in this test.
@@ -126,10 +120,7 @@ public class ReplicationServerTest extends ReplicationTestCase
    */
   protected void configure() throws Exception
   {
-    //  find  a free port for the replicationServer
-    ServerSocket socket = TestCaseUtils.bindFreePort();
-    replicationServerPort = socket.getLocalPort();
-    socket.close();
+    replicationServerPort = TestCaseUtils.findFreePort();
 
     TestCaseUtils.dsconfig(
         "create-replication-server",
@@ -742,18 +733,13 @@ public class ReplicationServerTest extends ReplicationTestCase
       int[] changelogPorts = new int[2];
       int[] changelogIds = new int[2];
       int[] brokerIds = new int[2];
-      ServerSocket socket = null;
 
       // Find 2 free ports
       for (int i = 0; i <= 1; i++)
       {
-        // find  a free port
-        socket = TestCaseUtils.bindFreePort();
-        changelogPorts[i] = socket.getLocalPort();
+        changelogPorts[i] = TestCaseUtils.findFreePort();
         changelogIds[i] = i + 80;
         brokerIds[i] = 100 + i;
-        if ((itest==0) || (i ==0))
-          socket.close();
       }
 
       for (int i = 0; i <= ((itest == 0) ? 1 : 0); i++)
@@ -840,8 +826,6 @@ public class ReplicationServerTest extends ReplicationTestCase
 
         if (itest > 0)
         {
-          socket.close();
-
           SortedSet<String> servers = new TreeSet<String>();
           servers.add("localhost:"+changelogPorts[0]);
           ReplServerFakeConfiguration conf =
@@ -1713,17 +1697,13 @@ public class ReplicationServerTest extends ReplicationTestCase
        int[] changelogPorts = new int[2];
        int[] changelogIds = new int[2];
        int[] brokerIds = new int[2];
-       ServerSocket socket = null;
 
        // Find 2 free ports
        for (int i = 0; i <= 1; i++)
        {
-         // find  a free port
-         socket = TestCaseUtils.bindFreePort();
-         changelogPorts[i] = socket.getLocalPort();
+         changelogPorts[i] = TestCaseUtils.findFreePort();
          changelogIds[i] = i + 90;
          brokerIds[i] = 100+i;
-         socket.close();
        }
 
        for (int i = 0; i <= 1; i++)

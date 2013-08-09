@@ -36,7 +36,6 @@ import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
-import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.util.*;
@@ -201,19 +200,12 @@ public class AssuredReplicationServerTest
   {
     super.setUp();
 
-    // Find  a free port for the replication servers
-    ServerSocket socket1 = TestCaseUtils.bindFreePort();
-    ServerSocket socket2 = TestCaseUtils.bindFreePort();
-    ServerSocket socket3 = TestCaseUtils.bindFreePort();
-    ServerSocket socket4 = TestCaseUtils.bindFreePort();
-    rs1Port = socket1.getLocalPort();
-    rs2Port = socket2.getLocalPort();
-    rs3Port = socket3.getLocalPort();
-    rs4Port = socket4.getLocalPort();
-    socket1.close();
-    socket2.close();
-    socket3.close();
-    socket4.close();
+    int[] ports = TestCaseUtils.findFreePorts(4);
+    int i = 0;
+    rs1Port = ports[i++];
+    rs2Port = ports[i++];
+    rs3Port = ports[i++];
+    rs4Port = ports[i++];
   }
 
   private void initTest()

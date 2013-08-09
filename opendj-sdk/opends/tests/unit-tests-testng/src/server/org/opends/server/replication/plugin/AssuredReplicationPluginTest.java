@@ -53,10 +53,9 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import static org.opends.server.TestCaseUtils.TEST_ROOT_DN_STRING;
-import static org.opends.server.loggers.ErrorLogger.logError;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
+import static org.opends.server.TestCaseUtils.*;
+import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.testng.Assert.*;
 
 /**
@@ -65,6 +64,7 @@ import static org.testng.Assert.*;
  * DS (timeout, wait for acks, error handling...)
  * Also check for monitoring values for assured replication
  */
+@SuppressWarnings("javadoc")
 public class AssuredReplicationPluginTest extends ReplicationTestCase
 {
 
@@ -118,10 +118,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
   {
     super.setUp();
 
-    // Find  a free port for the replicationServer
-    ServerSocket socket = TestCaseUtils.bindFreePort();
-    replServerPort = socket.getLocalPort();
-    socket.close();
+    replServerPort = TestCaseUtils.findFreePort();
 
     // Create base dns for each tested modes
     String topEntry = "dn: " + SAFE_DATA_DN + "\n" + "objectClass: top\n" +

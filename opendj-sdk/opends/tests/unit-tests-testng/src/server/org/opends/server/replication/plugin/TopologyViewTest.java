@@ -27,27 +27,16 @@
  */
 package org.opends.server.replication.plugin;
 
-import java.net.UnknownHostException;
-import static org.opends.server.TestCaseUtils.TEST_ROOT_DN_STRING;
-import static org.opends.server.loggers.ErrorLogger.logError;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.fail;
+import static org.opends.server.TestCaseUtils.*;
+import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.util.StaticUtils.*;
+import static org.testng.Assert.*;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.InetAddress;
-import java.net.ServerSocket;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.net.UnknownHostException;
+import java.util.*;
 
 import org.opends.messages.Category;
 import org.opends.messages.Message;
@@ -167,7 +156,7 @@ public class TopologyViewTest extends ReplicationTestCase
     }
   }
 
-  private void initTest()
+  private void initTest() throws Exception
   {
     rs1Port = -1;
     rs2Port = -1;
@@ -380,24 +369,13 @@ public class TopologyViewTest extends ReplicationTestCase
   /**
    * Find needed free TCP ports.
    */
-  private void findFreePorts()
+  private void findFreePorts() throws Exception
   {
-    try
-    {
-      ServerSocket socket1 = TestCaseUtils.bindFreePort();
-      ServerSocket socket2 = TestCaseUtils.bindFreePort();
-      ServerSocket socket3 = TestCaseUtils.bindFreePort();
-      rs1Port = socket1.getLocalPort();
-      rs2Port = socket2.getLocalPort();
-      rs3Port = socket3.getLocalPort();
-      socket1.close();
-      socket2.close();
-      socket3.close();
-    } catch (IOException e)
-    {
-      fail("Unable to determinate some free ports " +
-        stackTraceToSingleLineString(e));
-    }
+    int[] ports = TestCaseUtils.findFreePorts(3);
+    int i = 0;
+    rs1Port = ports[i++];
+    rs2Port = ports[i++];
+    rs3Port = ports[i++];
   }
 
   /**
@@ -1169,6 +1147,7 @@ public class TopologyViewTest extends ReplicationTestCase
       this.rsList = rsList;
     }
 
+    @Override
     public boolean equals(Object obj)
     {
       assertNotNull(obj);
@@ -1217,6 +1196,7 @@ public class TopologyViewTest extends ReplicationTestCase
       return true;
     }
 
+    @Override
     public String toString()
     {
       String dsStr = "";

@@ -23,12 +23,10 @@
  *
  *
  *      Copyright 2007-2008 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS
  */
 package org.opends.server.admin.server;
 
-
-
-import java.net.ServerSocket;
 import java.util.Collection;
 import java.util.List;
 import java.util.SortedSet;
@@ -38,18 +36,7 @@ import javax.naming.ldap.LdapName;
 
 import org.opends.messages.Message;
 import org.opends.server.TestCaseUtils;
-import org.opends.server.admin.AdminTestCase;
-import org.opends.server.admin.AdministratorAction;
-import org.opends.server.admin.AggregationPropertyDefinition;
-import org.opends.server.admin.IllegalPropertyValueStringException;
-import org.opends.server.admin.ManagedObjectNotFoundException;
-import org.opends.server.admin.PropertyException;
-import org.opends.server.admin.PropertyOption;
-import org.opends.server.admin.TestCfg;
-import org.opends.server.admin.TestChildCfg;
-import org.opends.server.admin.TestChildCfgDefn;
-import org.opends.server.admin.TestParentCfg;
-import org.opends.server.admin.UndefinedDefaultBehaviorProvider;
+import org.opends.server.admin.*;
 import org.opends.server.admin.client.OperationRejectedException;
 import org.opends.server.admin.client.ldap.JNDIDirContextAdaptor;
 import org.opends.server.admin.condition.Conditions;
@@ -68,8 +55,6 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-
-
 /**
  * Test cases for aggregations on the server-side.
  */
@@ -86,6 +71,7 @@ public final class AggregationServerTest extends AdminTestCase {
     /**
      * {@inheritDoc}
      */
+    @Override
     public ConfigChangeResult applyConfigurationChange(
         TestChildCfg configuration) {
       return new ConfigChangeResult(ResultCode.SUCCESS, false);
@@ -96,6 +82,7 @@ public final class AggregationServerTest extends AdminTestCase {
     /**
      * {@inheritDoc}
      */
+    @Override
     public boolean isConfigurationChangeAcceptable(TestChildCfg configuration,
         List<Message> unacceptableReasons) {
       return true;
@@ -114,6 +101,7 @@ public final class AggregationServerTest extends AdminTestCase {
     /**
      * {@inheritDoc}
      */
+    @Override
     public ConfigChangeResult applyConfigurationDelete(
         TestChildCfg configuration) {
       return new ConfigChangeResult(ResultCode.SUCCESS, false);
@@ -124,6 +112,7 @@ public final class AggregationServerTest extends AdminTestCase {
     /**
      * {@inheritDoc}
      */
+    @Override
     public boolean isConfigurationDeleteAcceptable(TestChildCfg configuration,
         List<Message> unacceptableReasons) {
       return true;
@@ -134,10 +123,10 @@ public final class AggregationServerTest extends AdminTestCase {
 
   private static final String TEST_CHILD_6_DN = "cn=test child 6,cn=test children,cn=test parent 1,cn=test parents,cn=config";
 
-  // The name of the test connection handler.
+  /** The name of the test connection handler. */
   private static final String TEST_CONNECTION_HANDLER_NAME = "Test Connection Handler";
 
-  // Test child 1 LDIF.
+  /** Test child 1 LDIF. */
   private static final String[] TEST_CHILD_1 = new String[] {
       "dn: cn=test child 1,cn=test children,cn=test parent 1,cn=test parents,cn=config",
       "objectclass: top",
@@ -149,7 +138,7 @@ public final class AggregationServerTest extends AdminTestCase {
       "ds-cfg-conflict-behavior: virtual-overrides-real"
   };
 
-  // Test child 2 LDIF.
+  /** Test child 2 LDIF. */
   private static final String[] TEST_CHILD_2 = new String[] {
       "dn: cn=test child 2,cn=test children,cn=test parent 1,cn=test parents,cn=config",
       "objectclass: top",
@@ -162,7 +151,7 @@ public final class AggregationServerTest extends AdminTestCase {
       "ds-cfg-rotation-policy: cn=LDAP Connection Handler, cn=connection handlers, cn=config"
   };
 
-  // Test child 3 LDIF (invalid reference).
+  /** Test child 3 LDIF (invalid reference). */
   private static final String[] TEST_CHILD_3 = new String[] {
       "dn: cn=test child 3,cn=test children,cn=test parent 1,cn=test parents,cn=config",
       "objectclass: top",
@@ -175,7 +164,7 @@ public final class AggregationServerTest extends AdminTestCase {
       "ds-cfg-rotation-policy: cn=LDAP Connection Handler, cn=bad rdn, cn=config"
   };
 
-  // Test child 4 LDIF.
+  /** Test child 4 LDIF. */
   private static final String[] TEST_CHILD_4 = new String[] {
       "dn: cn=test child 4,cn=test children,cn=test parent 1,cn=test parents,cn=config",
       "objectclass: top",
@@ -189,7 +178,7 @@ public final class AggregationServerTest extends AdminTestCase {
       "ds-cfg-rotation-policy: cn=LDAPS Connection Handler, cn=connection handlers, cn=config"
   };
 
-  // Test child 5 LDIF.
+  /** Test child 5 LDIF. */
   private static final String[] TEST_CHILD_5 = new String[] {
       "dn: cn=test child 5,cn=test children,cn=test parent 1,cn=test parents,cn=config",
       "objectclass: top",
@@ -204,7 +193,7 @@ public final class AggregationServerTest extends AdminTestCase {
       "ds-cfg-rotation-policy: cn=LDAP Connection Handler, cn=connection handlers, cn=config"
   };
 
-  // Test child 6 LDIF.
+  /** Test child 6 LDIF. */
   private static final String[] TEST_CHILD_6 = new String[] {
       "dn: cn=test child 6,cn=test children,cn=test parent 1,cn=test parents,cn=config",
       "objectclass: top",
@@ -218,7 +207,7 @@ public final class AggregationServerTest extends AdminTestCase {
           + ", cn=connection handlers, cn=config"
   };
 
-  // Test child 7 LDIF.
+  /** Test child 7 LDIF. */
   private static final String[] TEST_CHILD_7 = new String[] {
       "dn: cn=test child 7,cn=test children,cn=test parent 1,cn=test parents,cn=config",
       "objectclass: top",
@@ -232,7 +221,7 @@ public final class AggregationServerTest extends AdminTestCase {
           + ", cn=connection handlers, cn=config"
   };
 
-  // Test LDIF.
+  /** Test LDIF. */
   private static final String[] TEST_LDIF = new String[] {
       // Base entries.
       "dn: cn=test parents,cn=config",
@@ -258,18 +247,21 @@ public final class AggregationServerTest extends AdminTestCase {
       ""
   };
 
-  // JNDI LDAP context.
+  /** JNDI LDAP context. */
   private JNDIDirContextAdaptor adaptor = null;
 
-  // The saved test child configuration "aggregation-property"
-  // property definition.
+  /**
+   * The saved test child configuration "aggregation-property" property
+   * definition.
+   */
   private AggregationPropertyDefinition<ConnectionHandlerCfgClient, ConnectionHandlerCfg> aggregationPropertyDefinitionDefault = null;
 
-  // An aggregation where the target must be enabled if the source is
-  // enabled.
+  /**
+   * An aggregation where the target must be enabled if the source is enabled.
+   */
   private AggregationPropertyDefinition<ConnectionHandlerCfgClient, ConnectionHandlerCfg> aggregationPropertyDefinitionTargetAndSourceMustBeEnabled = null;
 
-  // An aggregation where the target must be enabled.
+  /** An aggregation where the target must be enabled. */
   private AggregationPropertyDefinition<ConnectionHandlerCfgClient, ConnectionHandlerCfg> aggregationPropertyDefinitionTargetMustBeEnabled = null;
 
 
@@ -887,7 +879,7 @@ public final class AggregationServerTest extends AdminTestCase {
 
 
 
-  // Assert that the values of child 1 are correct.
+  /** Assert that the values of child 1 are correct. */
   private void assertChild1(TestChildCfg child) {
     Assert.assertEquals(child.getMandatoryClassProperty(),
         "org.opends.server.extensions.UserDefinedVirtualAttributeProvider");
@@ -898,7 +890,7 @@ public final class AggregationServerTest extends AdminTestCase {
 
 
 
-  // Assert that the values of child 2 are correct.
+  /** Assert that the values of child 2 are correct. */
   private void assertChild2(TestChildCfg child) {
     Assert.assertEquals(child.getMandatoryClassProperty(),
         "org.opends.server.extensions.UserDefinedVirtualAttributeProvider");
@@ -915,7 +907,7 @@ public final class AggregationServerTest extends AdminTestCase {
 
 
 
-  // Assert that the values of child 4 are correct.
+  /** Assert that the values of child 4 are correct. */
   private void assertChild4(TestChildCfg child) {
     Assert.assertEquals(child.getMandatoryClassProperty(),
         "org.opends.server.extensions.UserDefinedVirtualAttributeProvider");
@@ -927,7 +919,7 @@ public final class AggregationServerTest extends AdminTestCase {
 
 
 
-  // Asserts that the actual set of DNs contains the expected values.
+  /** Asserts that the actual set of DNs contains the expected values. */
   private void assertSetEquals(SortedSet<String> actual, String... expected) {
     SortedSet<String> values = new TreeSet<String>(TestChildCfgDefn
         .getInstance().getAggregationPropertyPropertyDefinition());
@@ -941,11 +933,9 @@ public final class AggregationServerTest extends AdminTestCase {
 
 
 
-  // Creates a test connection handler for testing.
+  /** Creates a test connection handler for testing. */
   private void createConnectionHandler(boolean enabled) throws Exception {
-    ServerSocket freeSocket = TestCaseUtils.bindFreePort();
-    int freePort = freeSocket.getLocalPort();
-    freeSocket.close();
+    int freePort = TestCaseUtils.findFreePort();
 
     RootCfgClient root = TestCaseUtils.getRootConfiguration();
     LDAPConnectionHandlerCfgClient client = root.createConnectionHandler(
@@ -958,7 +948,7 @@ public final class AggregationServerTest extends AdminTestCase {
 
 
 
-  // Deletes the test connection handler after testing.
+  /** Deletes the test connection handler after testing. */
   private void deleteConnectionHandler() throws Exception {
     RootCfgClient root = TestCaseUtils.getRootConfiguration();
     root.removeConnectionHandler(TEST_CONNECTION_HANDLER_NAME);
@@ -966,14 +956,14 @@ public final class AggregationServerTest extends AdminTestCase {
 
 
 
-  // Deletes the named sub-tree.
+  /** Deletes the named sub-tree. */
   private void deleteSubtree(String dn) throws Exception {
     getAdaptor().deleteSubtree(new LdapName(dn));
   }
 
 
 
-  // Gets the JNDI connection for the test server instance.
+  /** Gets the JNDI connection for the test server instance. */
   private synchronized JNDIDirContextAdaptor getAdaptor() throws Exception {
     if (adaptor == null) {
       adaptor = JNDIDirContextAdaptor.simpleSSLBind("127.0.0.1", TestCaseUtils
@@ -984,14 +974,12 @@ public final class AggregationServerTest extends AdminTestCase {
 
 
 
-  // Gets the named parent configuration.
+  /** Gets the named parent configuration. */
   private TestParentCfg getParent(String name) throws IllegalArgumentException,
       ConfigException {
     ServerManagementContext ctx = ServerManagementContext.getInstance();
     ServerManagedObject<RootCfg> root = ctx.getRootConfigurationManagedObject();
-    TestParentCfg parent = root.getChild(
-        TestCfg.getTestOneToManyParentRelationDefinition(), name)
-        .getConfiguration();
-    return parent;
+    return root.getChild(TestCfg.getTestOneToManyParentRelationDefinition(),
+        name).getConfiguration();
   }
 }

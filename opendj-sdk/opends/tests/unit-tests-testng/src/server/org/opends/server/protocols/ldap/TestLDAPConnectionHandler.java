@@ -284,7 +284,7 @@ public class TestLDAPConnectionHandler extends LdapTestCase {
     GoodHandlerEntry.removeAttribute(rAttr11, null);
     GoodHandlerEntry.removeAttribute(rAttr12, null);
     //Make new AttrTypes with different values
-    long newPort=getFreePort();
+    long newPort = TestCaseUtils.findFreePort();
     Attribute a2=Attributes.create(ATTR_LISTEN_PORT, String.valueOf(newPort));
     //uncomment if want to test listen address
 //    Attribute a3=new Attribute(ATTR_LISTEN_ADDRESS, "localhost");

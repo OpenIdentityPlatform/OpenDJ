@@ -23,16 +23,15 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
+import static org.opends.server.TestCaseUtils.*;
+import static org.testng.Assert.*;
 
-import java.net.ServerSocket;
 import java.util.SortedSet;
 import java.util.TreeSet;
-
-import static org.testng.Assert.*;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.std.meta.ReplicationDomainCfgDefn.IsolationPolicy;
@@ -42,7 +41,6 @@ import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.types.DN;
 import org.opends.server.types.ResultCode;
 import org.testng.annotations.Test;
-import static org.opends.server.TestCaseUtils.*;
 
 /**
  * Test behavior of an LDAP server that is not able to connect
@@ -69,12 +67,9 @@ public class IsolationTest extends ReplicationTestCase
       // configure and start replication of TEST_ROOT_DN_STRING on the server
       // using a replication server that is not started
 
-      // find  a free port for the replicationServer
-      ServerSocket socket = TestCaseUtils.bindFreePort();
-      int replServerPort = socket.getLocalPort();
-      socket.close();
+      int replServerPort = TestCaseUtils.findFreePort();
       SortedSet<String> replServers = new TreeSet<String>();
-          replServers.add("localhost:" + replServerPort);
+      replServers.add("localhost:" + replServerPort);
       DomainFakeCfg domainConf =
         new DomainFakeCfg(baseDn, serverId, replServers);
       domainConf.setHeartbeatInterval(100000);
@@ -91,7 +86,7 @@ public class IsolationTest extends ReplicationTestCase
       assertEquals(ResultCode.UNWILLING_TO_PERFORM, op.getResultCode());
 
       // now configure the domain to accept changes even though it is not
-      // connectetd to any replication server.
+      // connected to any replication server.
       domainConf.setIsolationPolicy(IsolationPolicy.ACCEPT_ALL_UPDATES);
       domain.applyConfigurationChange(domainConf);
 

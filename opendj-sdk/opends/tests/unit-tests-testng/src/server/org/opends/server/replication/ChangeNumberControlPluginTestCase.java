@@ -23,28 +23,29 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS
  */
 package org.opends.server.replication;
 
 import java.io.BufferedReader;
 import java.io.FileOutputStream;
 import java.io.FileReader;
-import java.net.ServerSocket;
+
 import org.opends.server.TestCaseUtils;
-import org.opends.server.replication.ReplicationTestCase;
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
 import org.opends.server.tools.LDAPModify;
 import org.opends.server.types.DN;
-import static org.opends.server.util.ServerConstants.*;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertTrue;
-import static org.opends.server.TestCaseUtils.*;
-import static org.opends.messages.ToolMessages.*;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
 
-public class ChangeNumberControlPluginTestCase
-    extends ReplicationTestCase {
+import static org.opends.messages.ToolMessages.*;
+import static org.opends.server.TestCaseUtils.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.testng.Assert.*;
+
+@SuppressWarnings("javadoc")
+public class ChangeNumberControlPluginTestCase extends ReplicationTestCase
+{
 
   /**
    * The port of the replicationServer.
@@ -61,16 +62,14 @@ public class ChangeNumberControlPluginTestCase
    * replicationServer.
    */
 
+  @Override
   @BeforeClass(alwaysRun=true)
   public void setUp() throws Exception {
     super.setUp();
 
     baseDn = DN.decode(TEST_ROOT_DN_STRING);
 
-    //  find  a free port for the replicationServer
-    ServerSocket socket = TestCaseUtils.bindFreePort();
-    replServerPort = socket.getLocalPort();
-    socket.close();
+    replServerPort = TestCaseUtils.findFreePort();
 
     // replication server
     String replServerLdif =

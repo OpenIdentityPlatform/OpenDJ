@@ -23,10 +23,11 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS
  */
 package org.opends.server.protocols.jmx;
 
-
+import static org.testng.Assert.*;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -37,17 +38,16 @@ import java.net.ServerSocket;
 import java.security.KeyStore;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Set;
+import java.util.Map;
 
 import javax.management.Attribute;
 import javax.management.AttributeNotFoundException;
 import javax.management.MBeanServerConnection;
 import javax.management.ObjectName;
-import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 
-import org.opends.server.TestCaseUtils;
 import org.opends.messages.Message;
+import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.server.AdminTestCaseUtils;
 import org.opends.server.admin.std.meta.JMXConnectionHandlerCfgDefn;
 import org.opends.server.admin.std.server.JMXConnectionHandlerCfg;
@@ -66,27 +66,25 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import static org.testng.Assert.*;
-
-
-
 /**
- * A simple test for : - JMX connection establishment withou using SSL -
+ * A simple test for : - JMX connection establishment without using SSL -
  * JMX get and set - configuration change
  */
+@SuppressWarnings("javadoc")
 public class JmxConnectTest extends JmxTestCase {
-  
+
   /**
    * Set up the environment for performing the tests in this suite.
-   * 
+   *
    * @throws Exception
    *           If the environment could not be set up.
    */
+  @Override
   @BeforeClass
   public void setUp() throws Exception
   {
     super.setUp();
-    
+
     TestCaseUtils.addEntries(
         "dn: cn=Privileged User,o=test",
         "objectClass: top",
@@ -138,11 +136,11 @@ public class JmxConnectTest extends JmxTestCase {
         "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
              "cn=Password Policies,cn=config");
   }
-  
-  
+
+
   /**
    * Clean up the environment after performing the tests in this suite.
-   * 
+   *
    * @throws Exception
    *           If the environment could not be set up.
    */
@@ -155,14 +153,13 @@ public class JmxConnectTest extends JmxTestCase {
     DeleteOperation deleteOperation = conn.processDelete(DN
         .decode("cn=Privileged User,o=test"));
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
-    
+
     deleteOperation = conn.processDelete(DN
         .decode("cn=Unprivileged JMX User,o=test"));
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
-    
   }
-  
-  
+
+
 
   /**
    * Build data for the simpleConnect test.
@@ -198,7 +195,7 @@ public class JmxConnectTest extends JmxTestCase {
       connector.close();
     }
   }
-  
+
   /**
    * Build some data for the simpleGet test.
    */
@@ -259,19 +256,16 @@ public class JmxConnectTest extends JmxTestCase {
     MBeanServerConnection jmxc = connector.getMBeanServerConnection();
     assertNotNull(jmxc);
 
-    Set names = jmxc.queryNames(null, null);
-    names.clear();
+    jmxc.queryNames(null, null).clear();
 
     final String dn = "cn=config";
     final String attribute = "ds-cfg-size-limit";
 
-    Long val = (Long) jmxGet(dn, attribute, jmxc);
-
+    long val = (Long) jmxGet(dn, attribute, jmxc);
     jmxSet(dn, attribute, val + 1, jmxc);
 
-    Long newVal = (Long) jmxGet(dn, attribute, jmxc);
-
-    assertEquals((long) newVal, (long) val + 1);
+    long newVal = (Long) jmxGet(dn, attribute, jmxc);
+    assertEquals(newVal, val + 1);
 
     jmxSet(dn, attribute, val + 1, jmxc);
 
@@ -333,18 +327,15 @@ public class JmxConnectTest extends JmxTestCase {
     assertNotNull(jmxc);
 
     // Disable the "new" connector
-    toggleEnableJmxConnector(connector, newJmxConnectionJmx.getDN(),
-        false);
+    toggleEnableJmxConnector(connector, newJmxConnectionJmx.getDN(), false);
     Thread.sleep(100);
     OpendsJmxConnector jmxcDisabled = connect("cn=Privileged User,o=test",
         "password", serverJmxPort);
     assertNull(jmxcDisabled);
 
-    toggleEnableJmxConnector(connector, newJmxConnectionJmx.getDN(),
-        true);
+    toggleEnableJmxConnector(connector, newJmxConnectionJmx.getDN(), true);
     Thread.sleep(100);
-    jmxcDisabled = connect("cn=Privileged User,o=test", "password",
-        serverJmxPort);
+    jmxcDisabled = connect("cn=Privileged User,o=test", "password", serverJmxPort);
     assertNotNull(jmxcDisabled);
 
     // cleanup client connection
@@ -361,8 +352,6 @@ public class JmxConnectTest extends JmxTestCase {
 
   /**
    * Test changing JMX port through LDAP
-   *
-   * @throws Exception
    */
   @Test(enabled = false)
   public void changePort() throws Exception {
@@ -380,10 +369,8 @@ public class JmxConnectTest extends JmxTestCase {
     connector.close();
     assertNotNull(initJmxPort);
 
-    // change the configuration of the connection handler to use
-    // a free port
-    ServerSocket serverJmxSocket = TestCaseUtils.bindFreePort();
-    int serverJmxPort = serverJmxSocket.getLocalPort();
+    // change the configuration of the connection handler to use a free port
+    int serverJmxPort = TestCaseUtils.findFreePort();
 
     Entry entry = TestCaseUtils
             .makeEntry(
@@ -396,16 +383,14 @@ public class JmxConnectTest extends JmxTestCase {
                 "ds-cfg-enabled: true",
                 "ds-cfg-use-ssl: false", "ds-cfg-listen-port: "
                     + serverJmxPort, "cn: JMX Connection Handler");
-    serverJmxSocket.close();
     configureJmx(entry);
 
     // connect the the JMX service using the new port
-    connector = connect("cn=Privileged User,o=test", "password",
-        serverJmxPort);
+    connector = connect("cn=Privileged User,o=test", "password", serverJmxPort);
     jmxc = connector.getMBeanServerConnection();
     assertNotNull(jmxc);
-    Long val = (Long) jmxGet(dn, attribute, jmxc);
-    assertEquals((long) val, (long) serverJmxPort);
+    long val = (Long) jmxGet(dn, attribute, jmxc);
+    assertEquals(val, serverJmxPort);
     connector.close();
 
     // re-establish the initial configuration of the JMX service
@@ -462,7 +447,7 @@ public class JmxConnectTest extends JmxTestCase {
     OpendsJmxConnector jmxc = sslConnect("cn=Privileged User,o=test",
         "password", initJmxPort);
     assertNotNull(jmxc,"OpendsJmxConnector shouldn't be null");
-    MBeanServerConnection mbsc = jmxc.getMBeanServerConnection();
+    jmxc.getMBeanServerConnection();
     jmxc.close();
 
     // Before returning the result,
@@ -521,9 +506,9 @@ public class JmxConnectTest extends JmxTestCase {
   /**
    * Connect to the JMX service.
    */
-  private OpendsJmxConnector connect(String user, String password,
-      long jmxPort) throws MalformedURLException, IOException{
-    HashMap<String, Object> env = new HashMap<String, Object>();
+  private OpendsJmxConnector connect(String user, String password, int jmxPort)
+        throws MalformedURLException, IOException {
+    Map<String, Object> env = new HashMap<String, Object>();
 
     // Provide the credentials required by the server to successfully
     // perform user authentication
@@ -542,8 +527,7 @@ public class JmxConnectTest extends JmxTestCase {
     //
     OpendsJmxConnector opendsConnector;
     try {
-      opendsConnector = new OpendsJmxConnector("localhost",
-          (int) jmxPort, env);
+      opendsConnector = new OpendsJmxConnector("localhost", jmxPort, env);
       opendsConnector.connect();
       return opendsConnector;
     } catch (SecurityException e) {
@@ -560,7 +544,7 @@ public class JmxConnectTest extends JmxTestCase {
    */
   private OpendsJmxConnector sslConnect(String user, String password,
       long jmxPort) throws Exception {
-    HashMap<String, Object> env = new HashMap<String, Object>();
+    Map<String, Object> env = new HashMap<String, Object>();
 
     // Provide the credentials required by the server to successfully
     // perform user authentication
@@ -572,18 +556,15 @@ public class JmxConnectTest extends JmxTestCase {
     env.put("jmx.remote.credentials", credentials);
 
     // Provide the Trust manager.
-    KeyStore ks = null;
-    ks = KeyStore.getInstance("JKS");
-    FileInputStream keyStoreFile = new FileInputStream(
-        getJmxKeystorePath());
+    KeyStore ks = KeyStore.getInstance("JKS");
+    FileInputStream keyStoreFile = new FileInputStream(getJmxKeystorePath());
     ks.load(keyStoreFile, "password".toCharArray());
     keyStoreFile.close();
 
     TrustManagerFactory tmf = TrustManagerFactory
         .getInstance(TrustManagerFactory.getDefaultAlgorithm());
     tmf.init(ks);
-    TrustManager tms[] = tmf.getTrustManagers();
-    env.put(JmxConnectionHandler.TRUST_MANAGER_ARRAY_KEY, tms);
+    env.put(JmxConnectionHandler.TRUST_MANAGER_ARRAY_KEY, tmf.getTrustManagers());
 
     // Create an RMI connector client and
     // connect it to the RMI connector server
@@ -594,17 +575,12 @@ public class JmxConnectTest extends JmxTestCase {
       opendsConnector.connect();
       return opendsConnector;
     } catch (Exception e) {
-
       return null;
     }
-
   }
 
 
 
-  /**
-   * @return
-   */
   private String getJmxKeystorePath() {
     return DirectoryServer.getInstanceRoot() + File.separator + "config"
         + File.separator + "server.keystore";
@@ -656,10 +632,11 @@ public class JmxConnectTest extends JmxTestCase {
     try
     {
       Attribute status = (Attribute) mbsc.getAttribute(name, attributeName);
-      if (status == null)
-        return null;
-      else
+      if (status != null)
+      {
         return status.getValue();
+      }
+      return null;
     }
     catch (AttributeNotFoundException anfe)
     {

@@ -23,23 +23,18 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.replication.service;
 
-import java.io.File;
 import static org.testng.Assert.*;
 
-import java.util.List;
-import java.util.Map;
-import java.util.TreeSet;
-
-import java.util.concurrent.LinkedBlockingQueue;
-
-import java.net.ServerSocket;
-import java.util.ArrayList;
+import java.io.File;
+import java.util.*;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
+
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.replication.ReplicationTestCase;
@@ -57,6 +52,7 @@ import org.testng.annotations.Test;
 /**
  * Test the Generic Replication Service.
  */
+@SuppressWarnings("javadoc")
 public class ReplicationDomainTest extends ReplicationTestCase
 {
   /**
@@ -92,19 +88,14 @@ public class ReplicationDomainTest extends ReplicationTestCase
 
     try
     {
-      // find  a free port for the replicationServer
-      ServerSocket socket = TestCaseUtils.bindFreePort();
-      int replServerPort1 = socket.getLocalPort();
-      socket.close();
+      int[] ports = TestCaseUtils.findFreePorts(2);
+      int replServerPort1 = ports[0];
+      int replServerPort2 = ports[1];
 
-      socket = TestCaseUtils.bindFreePort();
-      int replServerPort2 = socket.getLocalPort();
-      socket.close();
-
-      TreeSet<String> replserver1 = new TreeSet<String>();
+      SortedSet<String> replserver1 = new TreeSet<String>();
       replserver1.add("localhost:" + replServerPort1);
 
-      TreeSet<String> replserver2 = new TreeSet<String>();
+      SortedSet<String> replserver2 = new TreeSet<String>();
       replserver2.add("localhost:" + replServerPort2);
 
       ReplServerFakeConfiguration conf1 =
@@ -117,16 +108,16 @@ public class ReplicationDomainTest extends ReplicationTestCase
             replServerPort2, "ReplicationDomainTestDb2",
             0, replServerID2, 0, 100, replserver1);
 
-      replServer1 = new ReplicationServer(conf1);;
+      replServer1 = new ReplicationServer(conf1);
       replServer2 = new ReplicationServer(conf2);
-      ArrayList<String> servers = new ArrayList<String>(1);
+      List<String> servers = new ArrayList<String>(1);
       servers.add("localhost:" + replServerPort1);
 
       BlockingQueue<UpdateMsg> rcvQueue1 = new LinkedBlockingQueue<UpdateMsg>();
       domain1 = new FakeReplicationDomain(
           testService, domain1ServerId, servers, 100, 1000, rcvQueue1);
 
-      ArrayList<String> servers2 = new ArrayList<String>(1);
+      List<String> servers2 = new ArrayList<String>(1);
       servers2.add("localhost:" + replServerPort2);
 
       BlockingQueue<UpdateMsg> rcvQueue2 = new LinkedBlockingQueue<UpdateMsg>();
@@ -268,13 +259,9 @@ public class ReplicationDomainTest extends ReplicationTestCase
 
     try
     {
-      // find  a free port for the replicationServer
-      ServerSocket socket = TestCaseUtils.bindFreePort();
-      int replServerPort = socket.getLocalPort();
-      socket.close();
+      int replServerPort = TestCaseUtils.findFreePort();
 
-
-      TreeSet<String> replserver = new TreeSet<String>();
+      SortedSet<String> replserver = new TreeSet<String>();
       replserver.add("localhost:" + replServerPort);
 
       ReplServerFakeConfiguration conf1 =
@@ -282,8 +269,8 @@ public class ReplicationDomainTest extends ReplicationTestCase
             replServerPort, "ReplicationDomainTestDb",
             0, replServerID1, 0, 100000, replserver);
 
-      replServer1 = new ReplicationServer(conf1);;
-      ArrayList<String> servers = new ArrayList<String>(1);
+      replServer1 = new ReplicationServer(conf1);
+      List<String> servers = new ArrayList<String>(1);
       servers.add("localhost:" + replServerPort);
 
       BlockingQueue<UpdateMsg> rcvQueue1 = new LinkedBlockingQueue<UpdateMsg>();
@@ -361,10 +348,7 @@ public class ReplicationDomainTest extends ReplicationTestCase
 
     try
     {
-      // find  a free port for the replicationServer
-      ServerSocket socket = TestCaseUtils.bindFreePort();
-      int replServerPort = socket.getLocalPort();
-      socket.close();
+      int replServerPort = TestCaseUtils.findFreePort();
 
       ReplServerFakeConfiguration conf =
         new ReplServerFakeConfiguration(
@@ -372,7 +356,7 @@ public class ReplicationDomainTest extends ReplicationTestCase
             0, replServerID, 0, 100, null);
 
       replServer = new ReplicationServer(conf);
-      ArrayList<String> servers = new ArrayList<String>(1);
+      List<String> servers = new ArrayList<String>(1);
       servers.add("localhost:" + replServerPort);
 
       StringBuilder exportedDataBuilder = new StringBuilder();
@@ -451,19 +435,14 @@ public class ReplicationDomainTest extends ReplicationTestCase
 
     try
     {
-      // find  a free port for the replicationServer
-      ServerSocket socket = TestCaseUtils.bindFreePort();
-      int replServerPort1 = socket.getLocalPort();
-      socket.close();
+      int[] ports = TestCaseUtils.findFreePorts(2);
+      int replServerPort1 = ports[0];
+      int replServerPort2 = ports[1];
 
-      socket = TestCaseUtils.bindFreePort();
-      int replServerPort2 = socket.getLocalPort();
-      socket.close();
-
-      TreeSet<String> replserver1 = new TreeSet<String>();
+      SortedSet<String> replserver1 = new TreeSet<String>();
       replserver1.add("localhost:" + replServerPort1);
 
-      TreeSet<String> replserver2 = new TreeSet<String>();
+      SortedSet<String> replserver2 = new TreeSet<String>();
       replserver2.add("localhost:" + replServerPort2);
 
       ReplServerFakeConfiguration conf1 =
@@ -479,10 +458,10 @@ public class ReplicationDomainTest extends ReplicationTestCase
       replServer1 = new ReplicationServer(conf1);
       replServer2 = new ReplicationServer(conf2);
 
-      ArrayList<String> servers1 = new ArrayList<String>(1);
+      List<String> servers1 = new ArrayList<String>(1);
       servers1.add("localhost:" + replServerPort1);
 
-      ArrayList<String> servers2 = new ArrayList<String>(1);
+      List<String> servers2 = new ArrayList<String>(1);
       servers2.add("localhost:" + replServerPort2);
 
       StringBuilder exportedDataBuilder = new StringBuilder();
@@ -571,7 +550,7 @@ public class ReplicationDomainTest extends ReplicationTestCase
 
     try
     {
-      TreeSet<String> servers = new TreeSet<String>();
+      SortedSet<String> servers = new TreeSet<String>();
       servers.add(HOST1 + SENDERPORT);
       servers.add(HOST2 + RECEIVERPORT);
 
@@ -616,7 +595,7 @@ public class ReplicationDomainTest extends ReplicationTestCase
 
     try
     {
-      TreeSet<String> servers = new TreeSet<String>();
+      SortedSet<String> servers = new TreeSet<String>();
       servers.add(HOST1 + SENDERPORT);
       servers.add(HOST2 + RECEIVERPORT);
 

@@ -25,21 +25,17 @@
  *      Copyright 2006-2009 Sun Microsystems, Inc.
  *      Portions copyright 2013 ForgeRock AS.
  */
-
 package org.opends.server.replication;
 
-import static org.opends.server.loggers.ErrorLogger.logError;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertTrue;
+import static org.opends.server.TestCaseUtils.*;
+import static org.opends.server.loggers.ErrorLogger.*;
+import static org.testng.Assert.*;
 
-import org.opends.server.replication.service.ReplicationBroker;
-
-import java.net.ServerSocket;
 import java.net.SocketTimeoutException;
 import java.util.Iterator;
 import java.util.List;
-
 import java.util.NoSuchElementException;
+
 import org.opends.messages.Category;
 import org.opends.messages.Message;
 import org.opends.messages.Severity;
@@ -55,18 +51,17 @@ import org.opends.server.replication.protocol.AddMsg;
 import org.opends.server.replication.protocol.ReplicationMsg;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
+import org.opends.server.replication.service.ReplicationBroker;
+import org.opends.server.types.*;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
-import org.opends.server.types.*;
-
-import static org.opends.server.TestCaseUtils.*;
-import static org.testng.Assert.assertNotNull;
 
 /**
  * Test the constructors, encoders and decoders of the Replication AckMsg,
  * ModifyMsg, ModifyDnMsg, AddMsg and Delete MSG
  */
+@SuppressWarnings("javadoc")
 public class ProtocolWindowTest extends ReplicationTestCase
 {
   private static final int WINDOW_SIZE = 10;
@@ -79,7 +74,7 @@ public class ProtocolWindowTest extends ReplicationTestCase
   private int replServerPort;
 
 
-  // the base DN used for this test
+  /** the base DN used for this test */
   private DN baseDn;
   private ReplicationServer replicationServer;
 
@@ -298,10 +293,7 @@ public class ProtocolWindowTest extends ReplicationTestCase
 
     baseDn = DN.decode(TEST_ROOT_DN_STRING);
 
-    // find  a free port for the replicationServer
-    ServerSocket socket = TestCaseUtils.bindFreePort();
-    replServerPort = socket.getLocalPort();
-    socket.close();
+    replServerPort = TestCaseUtils.findFreePort();
 
     // configure the replication Server.
     replicationServer = new ReplicationServer(new ReplServerFakeConfiguration(

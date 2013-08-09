@@ -27,60 +27,36 @@
  */
 package org.opends.server.replication;
 
-import java.io.File;
-import static org.opends.server.config.ConfigConstants.ATTR_TASK_COMPLETION_TIME;
-import static org.opends.server.config.ConfigConstants.ATTR_TASK_INITIALIZE_DONE;
-import static org.opends.server.config.ConfigConstants.ATTR_TASK_INITIALIZE_LEFT;
-import static org.opends.server.config.ConfigConstants.ATTR_TASK_LOG_MESSAGES;
-import static org.opends.server.config.ConfigConstants.ATTR_TASK_STATE;
-import static org.opends.server.loggers.ErrorLogger.logError;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.messages.TaskMessages.*;
-import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertTrue;
-import static org.testng.Assert.fail;
+import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.util.StaticUtils.*;
+import static org.testng.Assert.*;
 
-import java.net.ServerSocket;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.SortedSet;
-import java.util.TreeSet;
-import java.util.UUID;
+import java.io.File;
 import java.net.SocketTimeoutException;
+import java.util.*;
 
+import org.opends.messages.Category;
+import org.opends.messages.Message;
+import org.opends.messages.Severity;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.backends.task.TaskState;
 import org.opends.server.core.AddOperationBasis;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.messages.Category;
-import org.opends.messages.Message;
-import org.opends.messages.Severity;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
-import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.replication.common.ServerStatus;
 import org.opends.server.replication.plugin.LDAPReplicationDomain;
-import org.opends.server.replication.protocol.DoneMsg;
-import org.opends.server.replication.protocol.EntryMsg;
-import org.opends.server.replication.protocol.ErrorMsg;
-import org.opends.server.replication.protocol.InitializeRequestMsg;
-import org.opends.server.replication.protocol.InitializeTargetMsg;
-import org.opends.server.replication.protocol.ReplicationMsg;
-import org.opends.server.replication.protocol.RoutableMsg;
+import org.opends.server.replication.protocol.*;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
+import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.schema.DirectoryStringSyntax;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.DN;
-import org.opends.server.types.Entry;
-import org.opends.server.types.ResultCode;
-import org.opends.server.types.SearchFilter;
-import org.opends.server.types.SearchScope;
+import org.opends.server.types.*;
 import org.opends.server.util.Base64;
 import org.opends.server.util.StaticUtils;
 import org.testng.annotations.AfterClass;
@@ -107,7 +83,7 @@ import org.testng.annotations.Test;
  * InitializeTargetConfigErrors : Tests configuration errors of the
  * InitializeTarget task
  */
-
+@SuppressWarnings("javadoc")
 public class InitOnLineTest extends ReplicationTestCase
  {
   /**
@@ -708,22 +684,11 @@ public class InitOnLineTest extends ReplicationTestCase
     }
   }
 
-  private int getChangelogPort(int changelogID)
+  private int getChangelogPort(int changelogID) throws Exception
   {
     if (replServerPort[changelogID] == 0)
     {
-      try
-      {
-        // Find  a free port for the replicationServer
-        ServerSocket socket = TestCaseUtils.bindFreePort();
-        replServerPort[changelogID] = socket.getLocalPort();
-        socket.close();
-      }
-      catch(Exception e)
-      {
-        fail("Cannot retrieve a free port for replication server."
-          + e.getMessage());
-      }
+      replServerPort[changelogID] = TestCaseUtils.findFreePort();
     }
     return replServerPort[changelogID];
   }

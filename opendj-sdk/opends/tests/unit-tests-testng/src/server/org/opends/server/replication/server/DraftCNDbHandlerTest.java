@@ -30,7 +30,6 @@ package org.opends.server.replication.server;
 import static org.testng.Assert.*;
 
 import java.io.File;
-import java.net.ServerSocket;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.server.replication.ReplicationTestCase;
@@ -68,10 +67,7 @@ public class DraftCNDbHandlerTest extends ReplicationTestCase
     {
       TestCaseUtils.startServer();
 
-      //  find  a free port for the replicationServer
-      ServerSocket socket = TestCaseUtils.bindFreePort();
-      int changelogPort = socket.getLocalPort();
-      socket.close();
+      int changelogPort = TestCaseUtils.findFreePort();
 
       // configure a ReplicationServer.
       ReplServerFakeConfiguration conf =
@@ -196,10 +192,7 @@ public class DraftCNDbHandlerTest extends ReplicationTestCase
     {
       TestCaseUtils.startServer();
 
-      //  find  a free port for the replicationServer
-      ServerSocket socket = TestCaseUtils.bindFreePort();
-      int changelogPort = socket.getLocalPort();
-      socket.close();
+      int changelogPort = TestCaseUtils.findFreePort();
 
       // configure a ReplicationServer.
       ReplServerFakeConfiguration conf =
