@@ -20,7 +20,7 @@
  *
  * CDDL HEADER END
  *
- *      Copyright 2012 ForgeRock AS
+ *      Copyright 2012-2013 ForgeRock AS
  *
  */
 
@@ -81,6 +81,7 @@ public final class ShortLife {
         String adminDN = "uid=kvaughan,ou=people,dc=example,dc=com";
         char[] adminPwd = "bribery".toCharArray();
 
+        // --- JCite add ---
         // An entry to add to the directory
         String entryDN = "cn=Bob,ou=People,dc=example,dc=com";
         Entry entry = new LinkedHashMapEntry(entryDN)
@@ -104,7 +105,9 @@ public final class ShortLife {
             writeToConsole(writer, entry);
             connection.add(entry);
             System.out.println("...done.");
+            // --- JCite add ---
 
+            // --- JCite modify ---
             System.out.println("Updating mail address, adding description...");
             Entry old = TreeMapEntry.deepCopyOfEntry(entry);
             entry = entry.replaceAttribute("mail", "spammer@example.com")
@@ -113,18 +116,23 @@ public final class ShortLife {
             ModifyRequest request = Entries.diffEntries(old, entry);
             connection.modify(request);
             System.out.println("...done.");
+            // --- JCite modify ---
 
+            // --- JCite rename ---
             System.out.println("Renaming the entry...");
             String newDN = "cn=Ted,ou=People,dc=example,dc=com";
             entry = entry.setName(newDN);
             writeToConsole(writer, entry);
             connection.modifyDN(entryDN, "cn=Ted");
             System.out.println("...done.");
+            // --- JCite rename ---
 
+            // --- JCite delete ---
             System.out.println("Deleting the entry...");
             writeToConsole(writer, entry);
             connection.delete(newDN);
             System.out.println("...done.");
+            // --- JCite delete ---
         } catch (final ErrorResultException e) {
             System.err.println(e.getMessage());
             System.exit(e.getResult().getResultCode().intValue());

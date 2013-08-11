@@ -20,7 +20,7 @@
  *
  * CDDL HEADER END
  *
- *      Copyright 2012 ForgeRock AS
+ *      Copyright 2012-2013 ForgeRock AS
  *
  */
 
@@ -65,6 +65,7 @@ public final class SearchBind {
         int port = Integer.parseInt(args[1]);
         String baseDN = args[2];
 
+        // --- JCite ---
         // Prompt for mail and password.
         Console c = System.console();
         if (c == null) {
@@ -97,6 +98,7 @@ public final class SearchBind {
                 connection.close();
             }
         }
+        // --- JCite ---
     }
 
     /**

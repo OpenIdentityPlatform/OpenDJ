@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2012 ForgeRock AS
+ *      Copyright 2012-2013 ForgeRock AS
  */
 package org.forgerock.opendj.examples;
 
@@ -62,6 +62,7 @@ public final class GetInfo {
      * Authenticate over LDAP.
      */
     private static void connect() {
+        // --- JCite ---
         final LDAPConnectionFactory factory = new LDAPConnectionFactory(host, port);
         Connection connection = null;
 
@@ -103,6 +104,7 @@ public final class GetInfo {
                 connection.close();
             }
         }
+        // --- JCite ---
     }
 
     private static void giveUp() {

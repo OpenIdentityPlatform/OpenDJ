@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2012 ForgeRock AS
+ *      Portions copyright 2011-2013 ForgeRock AS
  */
 
 package org.forgerock.opendj.examples;
@@ -97,6 +97,7 @@ public final class Search {
             return;
         }
 
+        // --- JCite ---
         // Create an LDIF writer which will write the search results to stdout.
         final LDIFEntryWriter writer = new LDIFEntryWriter(System.out);
 
@@ -114,13 +115,15 @@ public final class Search {
             while (reader.hasNext()) {
                 if (!reader.isReference()) {
                     final SearchResultEntry entry = reader.readEntry();
-                    writer.writeComment("Search result entry: " + entry.getName().toString());
+                    writer.writeComment("Search result entry: "
+                            + entry.getName().toString());
                     writer.writeEntry(entry);
                 } else {
                     final SearchResultReference ref = reader.readReference();
 
                     // Got a continuation reference.
-                    writer.writeComment("Search result reference: " + ref.getURIs().toString());
+                    writer.writeComment("Search result reference: "
+                            + ref.getURIs().toString());
                 }
             }
             writer.flush();
@@ -141,6 +144,7 @@ public final class Search {
                 connection.close();
             }
         }
+        // --- JCite ---
     }
 
     private Search() {

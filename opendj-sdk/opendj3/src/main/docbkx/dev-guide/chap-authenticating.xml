@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2012 ForgeRock AS
+  !      Copyright 2011-2013 ForgeRock AS
   !    
 -->
 <chapter xml:id='chap-authenticating'
@@ -69,33 +69,8 @@
   the directory determines authorization for operations on the connection
   based on the users identity.</para>
   
-  <programlisting language="java">
-/**
- * Authenticate over LDAP.
- */
-private static void connect()
-{
-  final LDAPConnectionFactory factory = new LDAPConnectionFactory(
-    host, port);
-  Connection connection = null;
-
-  try
-  {
-    connection = factory.getConnection();
-    connection.bind(bindDN, bindPassword.toCharArray());
-    System.out.println("Authenticated as " + bindDN + ".");
-  }
-  catch (final ErrorResultException e)
-  {
-    System.err.println(e.getMessage());
-    System.exit(e.getResult().getResultCode().intValue());
-    return;
-  }
-  finally
-  {
-    if (connection != null) connection.close();
-  }
-}</programlisting>
+  <programlisting language="java"
+  >[jcp:org.forgerock.opendj.examples.SimpleAuth:--- JCite basic auth ---]</programlisting>
   
   <para>If the password values do not match, a directory might nevertheless
   authenticate the client application. The LDAP specifications say that in this
@@ -133,19 +108,10 @@ private static void connect()
   set up a trust manager that trusts all certificates.</para>
   
   <para>The following example is an excerpt from the OpenDJ LDAP SDK example,
-  <filename>org.forgerock.opendj.examples.SimpleAuth.java</filename>.</para>
+  <filename>SimpleAuth.java</filename>.</para>
   
-  <programlisting language="java">
-private static LDAPOptions getTrustAllOptions()
-  throws GeneralSecurityException
-{
-  LDAPOptions lo = new LDAPOptions();
-  SSLContext sslContext = new SSLContextBuilder()
-    .setTrustManager(TrustManagers.trustAll()).getSSLContext();
-  lo.setSSLContext(sslContext);
-  lo.setUseStartTLS(useStartTLS);
-  return lo;
-}</programlisting>
+  <programlisting language="java"
+  >[jcp:org.forgerock.opendj.examples.SimpleAuth:--- JCite trust all ---]</programlisting>
   
   <para>A more secure and extensive SSL context would include a trust manager
   using a trust store and trust manager methods to check server certificates.
@@ -158,40 +124,8 @@ private static LDAPOptions getTrustAllOptions()
   to the LDAP connection factory, and that you handle the potential security
   exception involved in setting up the SSL context.</para>
   
-  <programlisting language="java">
-/**
- * Perform authentication over a secure connection, trusting all server
- * certificates.
- */
-private static void trustAllConnect()
-{
-  Connection connection = null;
-
-  try
-  {
-    final LDAPConnectionFactory factory =
-        new LDAPConnectionFactory(host, port, getTrustAllOptions());
-    connection = factory.getConnection();
-    connection.bind(bindDN, bindPassword.toCharArray());
-    System.out.println("Authenticated as " + bindDN + ".");
-  }
-  catch (final ErrorResultException e)
-  {
-    System.err.println(e.getMessage());
-    System.exit(e.getResult().getResultCode().intValue());
-    return;
-  }
-  catch (final GeneralSecurityException e)
-  {
-    System.err.println(e.getMessage());
-    System.exit(ResultCode.CLIENT_SIDE_CONNECT_ERROR.intValue());
-  }
-  finally
-  {
-    if (connection != null)
-      connection.close();
-  }
-}</programlisting>
+  <programlisting language="java"
+  >[jcp:org.forgerock.opendj.examples.SimpleAuth:--- JCite trust all connect ---]</programlisting>
 
   <para>For a complete example in context, see <link
   xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/xref/org/forgerock/opendj/examples/SimpleAuth.html"
@@ -239,21 +173,11 @@ supportedSASLMechanisms: CRAM-MD5</screen>
   ID as the authorization ID that identifies the user who performs operations.
   The SASL PLAIN mechanism itself does not secure the connection, so the
   example uses StartTLS. The example is provided with the OpenDJ LDAP SDK
-  examples in <filename>org.forgerock.opendj.examples.SASLAuth.java</filename>.
-  The following excerpt shows the core of the bind process.</para>
+  examples in <filename>SASLAuth.java</filename>. The following excerpt shows
+  the core of the bind process.</para>
   
-  <programlisting language="java">
-try
-{
-  final LDAPConnectionFactory factory =
-      new LDAPConnectionFactory(host, port, getTrustAllOptions());
-  connection = factory.getConnection();
-  PlainSASLBindRequest request =
-      Requests.newPlainSASLBindRequest(authcid, passwd.toCharArray())
-      .setAuthorizationID(authzid);
-  connection.bind(request);
-  System.out.println("Authenticated as " + authcid + ".");
-}</programlisting>
+  <programlisting language="java"
+  >[jcp:org.forgerock.opendj.examples.SASLAuth:--- JCite ---]</programlisting>
 
   <para>The implementation for <literal>getTrustAllOptions()</literal>, the
   same as in the example above, sets up Start TLS. When you run this example

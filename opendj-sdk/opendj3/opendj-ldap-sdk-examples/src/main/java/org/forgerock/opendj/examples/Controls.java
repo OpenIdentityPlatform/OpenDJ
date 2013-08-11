@@ -20,7 +20,7 @@
  *
  * CDDL HEADER END
  *
- *      Copyright 2012 ForgeRock AS
+ *      Copyright 2012-2013 ForgeRock AS
  *
  */
 
@@ -168,6 +168,7 @@ public final class Controls {
      *             Operation failed.
      */
     static void useAssertionControl(Connection connection) throws ErrorResultException {
+        // --- JCite assertion ---
         if (isSupported(AssertionRequestControl.OID)) {
             final String dn = "uid=bjensen,ou=People,dc=example,dc=com";
 
@@ -191,6 +192,7 @@ public final class Controls {
         } else {
             System.err.println("AssertionRequestControl not supported.");
         }
+        // --- JCite assertion ---
     }
 
     /**
@@ -204,6 +206,7 @@ public final class Controls {
      *             Operation failed.
      */
     static void useAuthorizationIdentityRequestControl(Connection connection) throws ErrorResultException {
+        // --- JCite authzid ---
         if (isSupported(AuthorizationIdentityRequestControl.OID)) {
             final String dn = "uid=bjensen,ou=People,dc=example,dc=com";
             final char[] pwd = "hifalutin".toCharArray();
@@ -227,6 +230,7 @@ public final class Controls {
         } else {
             System.err.println("AuthorizationIdentityRequestControl not supported.");
         }
+        // --- JCite authzid ---
     }
 
     /**
@@ -241,6 +245,7 @@ public final class Controls {
      *             Operation failed.
      */
     static void useGetEffectiveRightsRequestControl(Connection connection) throws ErrorResultException {
+        // --- JCite effective rights ---
         if (isSupported(GetEffectiveRightsRequestControl.OID)) {
             final String authDN = "uid=kvaughan,ou=People,dc=example,dc=com";
 
@@ -265,7 +270,8 @@ public final class Controls {
                 System.err.println(e.getMessage());
                 System.exit(e.getCause().getResult().getResultCode().intValue());
             } catch (final SearchResultReferenceIOException e) {
-                System.err.println("Got search reference(s): " + e.getReference().getURIs().toString());
+                System.err.println("Got search reference(s): " + e.getReference()
+                        .getURIs().toString());
             } catch (final IOException e) {
                 System.err.println(e.getMessage());
                 System.exit(ResultCode.CLIENT_SIDE_LOCAL_ERROR.intValue());
@@ -273,6 +279,7 @@ public final class Controls {
         } else {
             System.err.println("GetEffectiveRightsRequestControl not supported.");
         }
+        // --- JCite effective rights ---
     }
 
     /**
@@ -287,6 +294,7 @@ public final class Controls {
      *             Operation failed.
      */
     static void useManageDsaITRequestControl(Connection connection) throws ErrorResultException {
+        // --- JCite manage DsaIT ---
         if (isSupported(ManageDsaITRequestControl.OID)) {
             final String dn = "dc=ref,dc=com";
 
@@ -312,7 +320,8 @@ public final class Controls {
                 System.err.println(e.getMessage());
                 System.exit(e.getCause().getResult().getResultCode().intValue());
             } catch (final SearchResultReferenceIOException e) {
-                System.err.println("Got search reference(s): " + e.getReference().getURIs().toString());
+                System.err.println("Got search reference(s): " + e.getReference()
+                        .getURIs().toString());
             } catch (final IOException e) {
                 System.err.println(e.getMessage());
                 System.exit(ResultCode.CLIENT_SIDE_LOCAL_ERROR.intValue());
@@ -320,6 +329,7 @@ public final class Controls {
         } else {
             System.err.println("ManageDsaITRequestControl not supported.");
         }
+        // --- JCite manage DsaIT ---
     }
 
     /**
@@ -334,6 +344,7 @@ public final class Controls {
      *             Operation failed.
      */
     static void useMatchedValuesRequestControl(Connection connection) throws ErrorResultException {
+        // --- JCite matched values ---
         if (isSupported(MatchedValuesRequestControl.OID)) {
             final String dn = "uid=bjensen,ou=People,dc=example,dc=com";
             final SearchRequest request =
@@ -355,6 +366,7 @@ public final class Controls {
         } else {
             System.err.println("MatchedValuesRequestControl not supported.");
         }
+        // --- JCite matched values ---
     }
 
     /**
@@ -368,6 +380,7 @@ public final class Controls {
      *            >Example.ldif</a> content.
      */
     static void usePasswordExpiredResponseControl(Connection connection) {
+        // --- JCite password expired ---
         if (isSupported(PasswordExpiredResponseControl.OID)) {
             final String dn = "uid=bjensen,ou=People,dc=example,dc=com";
             final char[] pwd = "hifalutin".toCharArray();
@@ -391,6 +404,7 @@ public final class Controls {
         } else {
             System.err.println("PasswordExpiredResponseControl not supported.");
         }
+        // --- JCite password expired ---
     }
 
     /**
@@ -407,6 +421,7 @@ public final class Controls {
      *             Operation failed.
      */
     static void usePasswordExpiringResponseControl(Connection connection) throws ErrorResultException {
+        // --- JCite password expiring ---
         if (isSupported(PasswordExpiringResponseControl.OID)) {
             final String dn = "uid=bjensen,ou=People,dc=example,dc=com";
             final char[] pwd = "hifalutin".toCharArray();
@@ -427,6 +442,7 @@ public final class Controls {
         } else {
             System.err.println("PasswordExpiringResponseControl not supported");
         }
+        // --- JCite password expiring ---
     }
 
     /**
@@ -441,6 +457,7 @@ public final class Controls {
      *            >Example.ldif</a> content.
      */
     static void usePasswordPolicyRequestControl(Connection connection) {
+        // --- JCite password policy ---
         if (isSupported(PasswordPolicyRequestControl.OID)) {
             final String dn = "uid=bjensen,ou=People,dc=example,dc=com";
             final char[] pwd = "hifalutin".toCharArray();
@@ -480,6 +497,7 @@ public final class Controls {
         } else {
             System.err.println("PasswordPolicyRequestControl not supported");
         }
+        // --- JCite password policy ---
     }
 
     /**
@@ -494,6 +512,7 @@ public final class Controls {
      *             Operation failed.
      */
     static void usePermissiveModifyRequestControl(Connection connection) throws ErrorResultException {
+        // --- JCite permissive modify ---
         if (isSupported(PermissiveModifyRequestControl.OID)) {
             final String dn = "uid=bjensen,ou=People,dc=example,dc=com";
 
@@ -508,6 +527,7 @@ public final class Controls {
         } else {
             System.err.println("PermissiveModifyRequestControl not supported");
         }
+        // --- JCite permissive modify ---
     }
 
     /**
@@ -526,6 +546,7 @@ public final class Controls {
      *             Operation failed.
      */
     static void usePersistentSearchRequestControl(Connection connection) throws ErrorResultException {
+        // --- JCite psearch ---
         if (isSupported(PersistentSearchRequestControl.OID)) {
             final SearchRequest request =
                     Requests.newSearchRequest(
@@ -568,11 +589,13 @@ public final class Controls {
                 System.err.println(e.getMessage());
                 System.exit(e.getCause().getResult().getResultCode().intValue());
             } catch (final SearchResultReferenceIOException e) {
-                System.err.println("Got search reference(s): " + e.getReference().getURIs().toString());
+                System.err.println("Got search reference(s): " + e.getReference()
+                        .getURIs().toString());
             }
         } else {
             System.err.println("PersistentSearchRequestControl not supported.");
         }
+        // --- JCite psearch ---
     }
 
 
@@ -587,6 +610,7 @@ public final class Controls {
      *             Operation failed.
      */
     static void usePostReadRequestControl(Connection connection) throws ErrorResultException {
+        // --- JCite post read ---
         if (isSupported(PostReadRequestControl.OID)) {
             final String dn = "uid=bjensen,ou=People,dc=example,dc=com";
 
@@ -616,6 +640,7 @@ public final class Controls {
         } else {
             System.err.println("PostReadRequestControl not supported");
         }
+        // --- JCite post read ---
     }
 
     /**
@@ -629,6 +654,7 @@ public final class Controls {
      *             Operation failed.
      */
     static void usePreReadRequestControl(Connection connection) throws ErrorResultException {
+        // --- JCite pre read ---
         if (isSupported(PreReadRequestControl.OID)) {
             final String dn = "uid=bjensen,ou=People,dc=example,dc=com";
 
@@ -658,6 +684,7 @@ public final class Controls {
         } else {
             System.err.println("PreReadRequestControl not supported");
         }
+        // --- JCite pre read ---
     }
 
     /**
@@ -671,6 +698,7 @@ public final class Controls {
      *             Operation failed.
      */
     static void useProxiedAuthV2RequestControl(Connection connection) throws ErrorResultException {
+        // --- JCite proxied authzv2 ---
         if (isSupported(ProxiedAuthV2RequestControl.OID)) {
             final String bindDN = "cn=My App,ou=Apps,dc=example,dc=com";
             final String targetDn = "uid=bjensen,ou=People,dc=example,dc=com";
@@ -697,6 +725,7 @@ public final class Controls {
         } else {
             System.err.println("ProxiedAuthV2RequestControl not supported");
         }
+        // --- JCite proxied authzv2 ---
     }
 
     /**
@@ -709,7 +738,9 @@ public final class Controls {
      * @throws ErrorResultException
      *             Operation failed.
      */
-    static void useServerSideSortRequestControl(Connection connection) throws ErrorResultException {
+    // --- JCite server-side sort ---
+    static void useServerSideSortRequestControl(Connection connection)
+            throws ErrorResultException {
         if (isSupported(ServerSideSortRequestControl.OID)) {
             final SearchRequest request =
                     Requests.newSearchRequest("ou=People,dc=example,dc=com",
@@ -769,6 +800,7 @@ public final class Controls {
             return false;
         }
     }
+    // --- JCite server-side sort ---
 
     /**
      * Use the simple paged results mechanism.
@@ -781,6 +813,7 @@ public final class Controls {
      *             Operation failed.
      */
     static void useSimplePagedResultsControl(Connection connection) throws ErrorResultException {
+        // --- JCite simple paged results ---
         if (isSupported(SimplePagedResultsControl.OID)) {
             ByteString cookie = ByteString.empty();
             SearchRequest request;
@@ -813,6 +846,7 @@ public final class Controls {
         } else {
             System.err.println("SimplePagedResultsControl not supported");
         }
+        // --- JCite simple paged results ---
     }
 
     /**
@@ -826,6 +860,7 @@ public final class Controls {
      *             Operation failed.
      */
     static void useSubentriesRequestControl(Connection connection) throws ErrorResultException {
+        // --- JCite subentries ---
         if (isSupported(SubentriesRequestControl.OID)) {
             final SearchRequest request =
                     Requests.newSearchRequest("dc=example,dc=com",
@@ -848,7 +883,8 @@ public final class Controls {
                 System.err.println(e.getMessage());
                 System.exit(e.getCause().getResult().getResultCode().intValue());
             } catch (final SearchResultReferenceIOException e) {
-                System.err.println("Got search reference(s): " + e.getReference().getURIs().toString());
+                System.err.println("Got search reference(s): " + e.getReference()
+                        .getURIs().toString());
             } catch (final IOException e) {
                 System.err.println(e.getMessage());
                 System.exit(ResultCode.CLIENT_SIDE_LOCAL_ERROR.intValue());
@@ -856,6 +892,7 @@ public final class Controls {
         } else {
             System.err.println("SubentriesRequestControl not supported");
         }
+        // --- JCite subentries ---
     }
 
     /**
@@ -869,6 +906,7 @@ public final class Controls {
      *             Operation failed.
      */
     static void useSubtreeDeleteRequestControl(Connection connection) throws ErrorResultException {
+        // --- JCite tree delete ---
         if (isSupported(SubtreeDeleteRequestControl.OID)) {
 
             final String dn = "ou=Apps,dc=example,dc=com";
@@ -886,6 +924,7 @@ public final class Controls {
         } else {
             System.err.println("SubtreeDeleteRequestControl not supported");
         }
+        // --- JCite tree delete ---
     }
 
     /**
@@ -904,6 +943,7 @@ public final class Controls {
      *             Operation failed.
      */
     static void useVirtualListViewRequestControl(Connection connection) throws ErrorResultException {
+        // --- JCite vlv ---
         if (isSupported(VirtualListViewRequestControl.OID)) {
             ByteString contextID = ByteString.empty();
 
@@ -945,8 +985,10 @@ public final class Controls {
         } else {
             System.err.println("VirtualListViewRequestControl not supported");
         }
+        // --- JCite vlv ---
     }
 
+    // --- JCite check support ---
     /**
      * Controls supported by the LDAP server.
      */
@@ -960,7 +1002,8 @@ public final class Controls {
      * @throws ErrorResultException
      *             Failed to get list of controls.
      */
-    static void checkSupportedControls(Connection connection) throws ErrorResultException {
+    static void checkSupportedControls(Connection connection)
+            throws ErrorResultException {
         controls = RootDSE.readRootDSE(connection).getSupportedControls();
     }
 
@@ -978,6 +1021,7 @@ public final class Controls {
         }
         return false;
     }
+    // --- JCite check support ---
 
     /**
      * Constructor not used.

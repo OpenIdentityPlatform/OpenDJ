@@ -20,7 +20,7 @@
  *
  * CDDL HEADER END
  *
- *      Copyright 2012 ForgeRock AS
+ *      Copyright 2012-2013 ForgeRock AS
  *
  */
 
@@ -69,6 +69,7 @@ public final class ParseAttributes {
         final String host = args[0];
         final int port = Integer.parseInt(args[1]);
 
+        // --- JCite ---
         final LDAPConnectionFactory factory = new LDAPConnectionFactory(host, port);
         Connection connection = null;
         try {
@@ -130,6 +131,7 @@ public final class ParseAttributes {
                 connection.close();
             }
         }
+        // --- JCite ---
     }
 
     /**

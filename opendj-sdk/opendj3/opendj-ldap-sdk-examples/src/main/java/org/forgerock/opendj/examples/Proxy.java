@@ -445,6 +445,7 @@ public final class Proxy {
         final String proxyPassword = args[3];
 
         // Create load balancer.
+        // --- JCite pools ---
         final List<ConnectionFactory> factories = new LinkedList<ConnectionFactory>();
         final List<ConnectionFactory> bindFactories = new LinkedList<ConnectionFactory>();
         for (int i = 4; i < args.length; i += 2) {
@@ -453,25 +454,33 @@ public final class Proxy {
 
             factories.add(Connections.newFixedConnectionPool(Connections
                     .newAuthenticatedConnectionFactory(Connections
-                            .newHeartBeatConnectionFactory(new LDAPConnectionFactory(remoteAddress,
-                                    remotePort)), Requests.newSimpleBindRequest(proxyDN,
+                            .newHeartBeatConnectionFactory(new LDAPConnectionFactory(
+                                    remoteAddress, remotePort)),
+                            Requests.newSimpleBindRequest(proxyDN,
                             proxyPassword.toCharArray())), Integer.MAX_VALUE));
             bindFactories.add(Connections.newFixedConnectionPool(Connections
                     .newHeartBeatConnectionFactory(new LDAPConnectionFactory(remoteAddress,
                             remotePort)), Integer.MAX_VALUE));
         }
+        // --- JCite pools ---
+
+        // --- JCite load balancer ---
         final RoundRobinLoadBalancingAlgorithm algorithm =
                 new RoundRobinLoadBalancingAlgorithm(factories);
         final RoundRobinLoadBalancingAlgorithm bindAlgorithm =
                 new RoundRobinLoadBalancingAlgorithm(bindFactories);
         final ConnectionFactory factory = Connections.newLoadBalancer(algorithm);
         final ConnectionFactory bindFactory = Connections.newLoadBalancer(bindAlgorithm);
+        // --- JCite load balancer ---
 
+        // --- JCite backend ---
         // Create a server connection adapter.
         final ProxyBackend backend = new ProxyBackend(factory, bindFactory);
         final ServerConnectionFactory<LDAPClientContext, Integer> connectionHandler =
                 Connections.newServerConnectionFactory(backend);
+        // --- JCite backend ---
 
+        // --- JCite listener ---
         // Create listener.
         final LDAPListenerOptions options = new LDAPListenerOptions().setBacklog(4096);
         LDAPListener listener = null;
@@ -487,6 +496,7 @@ public final class Proxy {
                 listener.close();
             }
         }
+        // --- JCite listener ---
     }
 
     private Proxy() {

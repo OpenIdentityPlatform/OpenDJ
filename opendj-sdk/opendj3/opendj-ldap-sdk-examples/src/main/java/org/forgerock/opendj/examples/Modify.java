@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2012 ForgeRock AS
+ *      Portions copyright 2011-2013 ForgeRock AS
  */
 
 package org.forgerock.opendj.examples;
@@ -86,6 +86,7 @@ public final class Modify {
         } else {
             ldif = System.in;
         }
+        // --- JCite ---
         final LDIFChangeRecordReader reader = new LDIFChangeRecordReader(ldif);
 
         // Connect and bind to the server.
@@ -124,6 +125,7 @@ public final class Modify {
                 // Ignore.
             }
         }
+        // --- JCite ---
     }
 
     private Modify() {

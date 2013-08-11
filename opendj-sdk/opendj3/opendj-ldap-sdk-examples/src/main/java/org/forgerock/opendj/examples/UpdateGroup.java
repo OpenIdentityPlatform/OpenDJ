@@ -20,7 +20,7 @@
  *
  * CDDL HEADER END
  *
- *      Copyright 2012 ForgeRock AS
+ *      Copyright 2012-2013 ForgeRock AS
  *
  */
 
@@ -99,6 +99,7 @@ public final class UpdateGroup {
             final char[] password = "password".toCharArray();
             connection.bind(user, password);
 
+            // --- JCite permissive ---
             if (controls.contains(PermissiveModifyRequestControl.OID)) {
 
                 final ModifyRequest request = Requests.newModifyRequest(groupDN)
@@ -107,7 +108,9 @@ public final class UpdateGroup {
                 connection.modify(request);
 
             } else {
+                // --- JCite permissive ---
 
+                // --- JCite without permissive ---
                 System.out.println("Checking whether the entry with DN "
                         + memberDN + " belongs to the group with DN " + groupDN
                         + "...");
@@ -136,6 +139,7 @@ public final class UpdateGroup {
                         connection.modify(delMember);
                     }
                 }
+                // --- JCite without permissive ---
 
             }
 

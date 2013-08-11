@@ -110,40 +110,8 @@ supportedControl: 2.16.840.1.113730.3.4.9</screen>
   <para>The following excerpt shows couple of methods to check whether the
   directory server supports a control.</para>
 
-  <programlisting language="java">
-/**
- * Controls supported by the LDAP server.
- */
-private static Collection&lt;String> controls;
-
-/**
- * Populate the list of supported LDAP control OIDs.
- *
- * @param connection
- *            Active connection to the LDAP server.
- * @throws ErrorResultException
- *             Failed to get list of controls.
- */
-static void checkSupportedControls(Connection connection)
-        throws ErrorResultException {
-    controls = RootDSE.readRootDSE(connection).getSupportedControls();
-}
-
-/**
- * Check whether a control is supported. Call {@code checkSupportedControls}
- * first.
- *
- * @param control
- *            Check support for this control, provided by OID.
- * @return True if the control is supported.
- */
-static boolean isSupported(final String control) {
-    if (controls != null &amp;&amp; !controls.isEmpty()) {
-        return controls.contains(control);
-    }
-    return false;
-}
-</programlisting>
+  <programlisting language="java"
+  >[jcp:org.forgerock.opendj.examples.Controls:--- JCite check support ---]</programlisting>
  </section>
 
  <section xml:id="use-assertion-request-control">
@@ -162,28 +130,8 @@ static boolean isSupported(final String control) {
   normally. The following excerpt shows, for example, how you might check
   that no description exists on the entry before adding your description.</para>
 
-  <programlisting language="java">
-if (isSupported(AssertionRequestControl.OID)) {
-    final String dn = "uid=bjensen,ou=People,dc=example,dc=com";
-
-    final ModifyRequest request =
-            Requests.newModifyRequest(dn)
-                .addControl(AssertionRequestControl.newControl(
-                        true, Filter.valueOf("!(description=*)")))
-                .addModification(ModificationType.ADD, "description",
-                        "Created using LDAP assertion control");
-
-    connection.modify(request);
-
-    final LDIFEntryWriter writer = new LDIFEntryWriter(System.out);
-    try {
-        writer.writeEntry(connection.readEntry(dn, "description"));
-        writer.close();
-    } catch (final IOException e) {
-        // The writer could not write to System.out.
-    }
-}
-</programlisting>
+  <programlisting language="java"
+  >[jcp:org.forgerock.opendj.examples.Controls:--- JCite assertion ---]</programlisting>
 
   <para>OpenDJ directory server supports the LDAP assertion control:</para>
 
@@ -206,28 +154,8 @@ description: Created using LDAP assertion control</programlisting>
   authorization identity established when you bind to the directory server.
   The following excerpt shows simple use of the controls.</para>
 
-  <programlisting language="java">
-if (isSupported(AuthorizationIdentityRequestControl.OID)) {
-    final String dn = "uid=bjensen,ou=People,dc=example,dc=com";
-    final char[] pwd = "hifalutin".toCharArray();
-
-    System.out.println("Binding as " + dn);
-    final BindRequest request =
-            Requests.newSimpleBindRequest(dn, pwd)
-                .addControl(AuthorizationIdentityRequestControl.newControl(true));
-
-    final BindResult result = connection.bind(request);
-    try {
-        final AuthorizationIdentityResponseControl control =
-                result.getControl(AuthorizationIdentityResponseControl.DECODER,
-                        new DecodeOptions());
-        System.out.println("Authorization ID returned: "
-                        + control.getAuthorizationID());
-    } catch (final DecodeException e) {
-        // Failed to decode the response control.
-    }
-}
-</programlisting>
+  <programlisting language="java"
+  >[jcp:org.forgerock.opendj.examples.Controls:--- JCite authzid ---]</programlisting>
 
   <para>OpenDJ directory server supports the LDAP Authorization Identity
   Controls:</para>
@@ -256,53 +184,8 @@ Authorization ID returned: dn:uid=bjensen,ou=People,dc=example,dc=com</programli
   xlink:href="http://tools.ietf.org/html/draft-ietf-ldapext-psearch">persistent
   searches</link> for background information.</para>
 
-  <programlisting language="java">
-if (isSupported(PersistentSearchRequestControl.OID)) {
-    final SearchRequest request =
-            Requests.newSearchRequest(
-                    "dc=example,dc=com", SearchScope.WHOLE_SUBTREE,
-                    "(objectclass=inetOrgPerson)", "cn")
-                    .addControl(PersistentSearchRequestControl.newControl(
-                            true, true, true, // critical,changesOnly,returnECs
-                            PersistentSearchChangeType.ADD,
-                            PersistentSearchChangeType.DELETE,
-                            PersistentSearchChangeType.MODIFY,
-                            PersistentSearchChangeType.MODIFY_DN));
-
-    final ConnectionEntryReader reader = connection.search(request);
-
-    try {
-        while (reader.hasNext()) {
-            if (!reader.isReference()) {
-                final SearchResultEntry entry = reader.readEntry();
-                System.out.println("Entry changed: "
-                        + entry.getName().toString());
-
-                EntryChangeNotificationResponseControl control =
-                        entry.getControl(
-                                EntryChangeNotificationResponseControl.DECODER,
-                                new DecodeOptions());
-
-                PersistentSearchChangeType type = control.getChangeType();
-                System.out.println("Change type: " + type.toString());
-                if (type.equals(PersistentSearchChangeType.MODIFY_DN)) {
-                    System.out.println("Previous DN: "
-                            + control.getPreviousName().toString());
-                }
-                System.out.println("Change number: "
-                        + control.getChangeNumber());
-                System.out.println(); // Add a blank line.
-           }
-        }
-    } catch (final DecodeException e) {
-        // Failed to decode the response control.
-    } catch (final ErrorResultIOException e) {
-        // Request failed due to an IO problem.
-    } catch (final SearchResultReferenceIOException e) {
-        // Read a reference, rather than an entry.
-    }
-}
-</programlisting>
+  <programlisting language="java"
+  >[jcp:org.forgerock.opendj.examples.Controls:--- JCite psearch ---]</programlisting>
 
   <para>OpenDJ directory server supports persistent searches and the entry
   change notification response control. When another application renames
@@ -338,36 +221,8 @@ Change number: -1</programlisting>
   xlink:href="http://tools.ietf.org/html/draft-ietf-ldapext-acl-model">Access
   Control Model for LDAP</link> for background.</para>
 
-  <programlisting language="java">
-if (isSupported(GetEffectiveRightsRequestControl.OID)) {
-    final String authDN = "uid=kvaughan,ou=People,dc=example,dc=com";
-
-    final SearchRequest request =
-            Requests.newSearchRequest(
-                    "dc=example,dc=com", SearchScope.WHOLE_SUBTREE,
-                    "(uid=bjensen)", "cn", "aclRights", "aclRightsInfo")
-                    .addControl(GetEffectiveRightsRequestControl.newControl(
-                            true, authDN, "cn"));
-
-    final ConnectionEntryReader reader = connection.search(request);
-    final LDIFEntryWriter writer = new LDIFEntryWriter(System.out);
-    try {
-        while (reader.hasNext()) {
-            if (!reader.isReference()) {
-                final SearchResultEntry entry = reader.readEntry();
-                writer.writeEntry(entry);
-            }
-        }
-        writer.close();
-    } catch (final ErrorResultIOException e) {
-        // Request failed due to an IO problem.
-    } catch (final SearchResultReferenceIOException e) {
-        // Read a reference, rather than an entry.
-    } catch (final IOException e) {
-        // The writer could not write to System.out.
-    }
-}
-</programlisting>
+  <programlisting language="java"
+  >[jcp:org.forgerock.opendj.examples.Controls:--- JCite effective rights ---]</programlisting>
 
   <para>OpenDJ SDK currently implements the request control, but not the
   response control. The results are shown as values of the
@@ -449,43 +304,14 @@ aclRightsInfo;logs;entryLevel;delete: acl_summary(main): access allowed(
   Use it when you want to read from or write to reference or special
   entry.</para>
 
-  <programlisting language="java">
-if (isSupported(ManageDsaITRequestControl.OID)) {
-    final String dn = "dc=ref,dc=com";
-
-    final LDIFEntryWriter writer = new LDIFEntryWriter(System.out);
-    try {
-        System.out.println("Referral without the ManageDsaIT control.");
-        SearchRequest request = Requests.newSearchRequest(dn,
-                SearchScope.SUBORDINATES, "(objectclass=*)", "");
-        final ConnectionEntryReader reader = connection.search(request);
-        while (reader.hasNext()) {
-            if (reader.isReference()) {
-                final SearchResultReference ref = reader.readReference();
-                System.out.println("Reference: " + ref.getURIs().toString());
-            }
-        }
-
-        System.out.println("Referral with the ManageDsaIT control.");
-        request.addControl(ManageDsaITRequestControl.newControl(true));
-        final SearchResultEntry entry = connection.searchSingleEntry(request);
-        writer.writeEntry(entry);
-        writer.close();
-    } catch (final ErrorResultIOException e) {
-        // Request failed due to an IO problem.
-    } catch (final SearchResultReferenceIOException e) {
-        // Read a reference, rather than an entry.
-    } catch (final IOException e) {
-        // The writer could not write to System.out.
-    }
-}
-</programlisting>
+  <programlisting language="java"
+  >[jcp:org.forgerock.opendj.examples.Controls:--- JCite manage DsaIT ---]</programlisting>
 
   <para>OpenDJ directory server supports the ManageDsaIT Request Control. To use
   the example entry create a new base DN, <literal>dc=ref,dc=com</literal>
   before you import the data:</para>
 
-  <programlisting>Referral without the ManageDsaIT control.
+  <programlisting language="none">Referral without the ManageDsaIT control.
 Reference: [ldap:///dc=example,dc=com??sub?]
 Referral with the ManageDsaIT control.
 dn: dc=references,dc=ref,dc=com</programlisting>
@@ -512,26 +338,8 @@ dn: dc=references,dc=ref,dc=com</programlisting>
   <literal>Barbara Jensen</literal> and <literal>Babs Jensen</literal>. The
   following excerpt retrieves only the latter.</para>
 
-  <programlisting language="java">
-if (isSupported(MatchedValuesRequestControl.OID)) {
-    final String dn = "uid=bjensen,ou=People,dc=example,dc=com";
-    final SearchRequest request =
-            Requests.newSearchRequest(dn, SearchScope.BASE_OBJECT,
-                    "(objectclass=*)", "cn")
-                    .addControl(MatchedValuesRequestControl.newControl(
-                            true, "(cn=Babs Jensen)"));
-
-    final SearchResultEntry entry = connection.searchSingleEntry(request);
-    System.out.println("Reading entry with matched values request.");
-    final LDIFEntryWriter writer = new LDIFEntryWriter(System.out);
-    try {
-        writer.writeEntry(entry);
-        writer.close();
-    } catch (final IOException e) {
-        // The writer could not write to System.out.
-    }
-}
-</programlisting>
+  <programlisting language="java"
+  >[jcp:org.forgerock.opendj.examples.Controls:--- JCite matched values ---]</programlisting>
 
   <para>OpenDJ directory server supports the matched values request
   control.</para>
@@ -560,28 +368,8 @@ cn: Babs Jensen
   because the password has expired. In order to see this, you must configure
   the directory to expire Barbara Jensen's password.</para>
 
-  <programlisting language="java">
-if (isSupported(PasswordExpiredResponseControl.OID)) {
-    final String dn = "uid=bjensen,ou=People,dc=example,dc=com";
-    final char[] pwd = "hifalutin".toCharArray();
-
-    try {
-        connection.bind(dn, pwd);
-    } catch (final ErrorResultException e) {
-        final Result result = e.getResult();
-        try {
-            final PasswordExpiredResponseControl control =
-                    result.getControl(PasswordExpiredResponseControl.DECODER,
-                            new DecodeOptions());
-            if (!(control == null) &amp;&amp; control.hasValue()) {
-                System.out.println("Password expired for " + dn);
-            }
-        } catch (final DecodeException de) {
-            // Failed to decode the response control.
-        }
-    }
-}
-</programlisting>
+  <programlisting language="java"
+  >[jcp:org.forgerock.opendj.examples.Controls:--- JCite password expired ---]</programlisting>
 
   <para>OpenDJ directory server supports the Password Expired Response Control.
   To obtain the following output from the excerpt, you can change the default
@@ -592,7 +380,7 @@ if (isSupported(PasswordExpiredResponseControl.OID)) {
   ><citetitle>To Adjust the Default Password Policy</citetitle></link> for an
   example of how to adjust the maximum password age.</para>
 
-  <programlisting
+  <programlisting language="none"
   >Password expired for uid=bjensen,ou=People,dc=example,dc=com</programlisting>
  </section>
 
@@ -613,25 +401,8 @@ if (isSupported(PasswordExpiredResponseControl.OID)) {
   Directories</citetitle></link>, warns your application during a bind
   that the password used will soon expire.</para>
 
-  <programlisting language="java">
-if (isSupported(PasswordExpiringResponseControl.OID)) {
-    final String dn = "uid=bjensen,ou=People,dc=example,dc=com";
-    final char[] pwd = "hifalutin".toCharArray();
-
-    final BindResult result = connection.bind(dn, pwd);
-    try {
-        final PasswordExpiringResponseControl control =
-                result.getControl(PasswordExpiringResponseControl.DECODER,
-                        new DecodeOptions());
-        if (!(control == null) &amp;&amp; control.hasValue()) {
-            System.out.println("Password for " + dn + " expires in "
-                    + control.getSecondsUntilExpiration() + " seconds.");
-        }
-    } catch (final DecodeException de) {
-        // Failed to decode the response control.
-    }
-}
-</programlisting>
+  <programlisting language="java"
+  >[jcp:org.forgerock.opendj.examples.Controls:--- JCite password expiring ---]</programlisting>
 
   <para>OpenDJ directory server supports the Password Expiring Response Control.
   To obtain the following output from the excerpt, you can change the default
@@ -644,7 +415,7 @@ if (isSupported(PasswordExpiringResponseControl.OID)) {
   for an example of how to adjust the maximum password age. Also set a short
   <literal>password-expiration-warning-interval</literal> value.</para>
 
-  <programlisting>Password for uid=bjensen,ou=People,dc=example,dc=com
+  <programlisting language="none">Password for uid=bjensen,ou=People,dc=example,dc=com
  expires in 237 seconds.</programlisting>
  </section>
  
@@ -667,43 +438,8 @@ if (isSupported(PasswordExpiringResponseControl.OID)) {
   handle the response control. The directory server sends the response control
   on applicable operations to communicate warnings and errors.</para>
 
-  <programlisting language="java">
-if (isSupported(PasswordPolicyRequestControl.OID)) {
-    final String dn = "uid=bjensen,ou=People,dc=example,dc=com";
-    final char[] pwd = "hifalutin".toCharArray();
-
-    try {
-        final BindRequest request = Requests.newSimpleBindRequest(dn, pwd)
-                .addControl(PasswordPolicyRequestControl.newControl(true));
-
-        final BindResult result = connection.bind(request);
-
-        final PasswordPolicyResponseControl control =
-                result.getControl(PasswordPolicyResponseControl.DECODER,
-                        new DecodeOptions());
-        if (!(control == null) &amp;&amp; !(control.getWarningType() == null)) {
-            System.out.println("Password policy warning "
-                    + control.getWarningType().toString() + ", value "
-                    + control.getWarningValue() + " for " + dn);
-        }
-    } catch (final ErrorResultException e) {
-        final Result result = e.getResult();
-        try {
-            final PasswordPolicyResponseControl control =
-                    result.getControl(PasswordPolicyResponseControl.DECODER,
-                            new DecodeOptions());
-            if (!(control == null)) {
-                System.out.println("Password policy error "
-                        + control.getErrorType().toString() + " for " + dn);
-            }
-        } catch (final DecodeException de) {
-            // Failed to decode the response control.
-        }
-    } catch (final DecodeException e) {
-        // Failed to decode the response control.
-    }
-}
-</programlisting>
+  <programlisting language="java"
+  >[jcp:org.forgerock.opendj.examples.Controls:--- JCite password policy ---]</programlisting>
 
   <para>OpenDJ directory server supports the Password Policy Controls. To obtain
   the output from the excerpt, you can change the default password policy
@@ -717,11 +453,11 @@ if (isSupported(PasswordPolicyRequestControl.OID)) {
   <literal>password-expiration-warning-interval</literal> value.</para>
 
   <para>For a warning:</para>
-  <programlisting>Password policy warning timeBeforeExpiration, value 237 for
+  <programlisting language="none">Password policy warning timeBeforeExpiration, value 237 for
  uid=bjensen,ou=People,dc=example,dc=com</programlisting>
 
   <para>For an error:</para>
-  <programlisting>Password policy error passwordExpired for
+  <programlisting language="none">Password policy error passwordExpired for
  uid=bjensen,ou=People,dc=example,dc=com</programlisting>
  </section>
 
@@ -741,25 +477,13 @@ if (isSupported(PasswordPolicyRequestControl.OID)) {
   tries to <literal>add</literal> an attribute that already exists, or to
   <literal>delete</literal> an attribute that does not exist.</para>
 
-  <programlisting language="java">
-if (isSupported(PermissiveModifyRequestControl.OID)) {
-    final String dn = "uid=bjensen,ou=People,dc=example,dc=com";
-
-    final ModifyRequest request =
-            Requests.newModifyRequest(dn)
-                .addControl(PermissiveModifyRequestControl.newControl(true))
-                .addModification(ModificationType.ADD, "uid", "bjensen");
-
-    connection.modify(request);
-    System.out.println("Permissive modify did not complain about "
-            + "attempt to add uid: bjensen to " + dn + ".");
-}
-</programlisting>
+  <programlisting language="java"
+  >[jcp:org.forgerock.opendj.examples.Controls:--- JCite permissive modify ---]</programlisting>
 
   <para>OpenDJ directory server supports the Permissive Modify Request
   Control:</para>
 
-  <programlisting>Permissive modify did not complain about attempt to add
+  <programlisting language="none">Permissive modify did not complain about attempt to add
  uid: bjensen to uid=bjensen,ou=People,dc=example,dc=com.</programlisting>
  </section>
 
@@ -796,33 +520,8 @@ if (isSupported(PermissiveModifyRequestControl.OID)) {
   describes the post-read controls that let your application get the content
   of an entry immediately after modifications are applied.</para>
 
-  <programlisting language="java">
-if (isSupported(PostReadRequestControl.OID)) {
-    final String dn = "uid=bjensen,ou=People,dc=example,dc=com";
-
-    final ModifyRequest request =
-            Requests.newModifyRequest(dn)
-            .addControl(PostReadRequestControl.newControl(true, "description"))
-            .addModification(ModificationType.REPLACE,
-                    "description", "Using the PostReadRequestControl");
-
-    final Result result = connection.modify(request);
-    try {
-        final PostReadResponseControl control =
-                result.getControl(PostReadResponseControl.DECODER,
-                        new DecodeOptions());
-        final Entry entry = control.getEntry();
-
-        final LDIFEntryWriter writer = new LDIFEntryWriter(System.out);
-        writer.writeEntry(entry);
-        writer.close();
-    } catch (final DecodeException e) {
-        // Failed to decode the response control.
-    } catch (final IOException e) {
-        // The writer could not write to System.out.
-    }
-}
-</programlisting>
+  <programlisting language="java"
+  >[jcp:org.forgerock.opendj.examples.Controls:--- JCite post read ---]</programlisting>
 
   <para>OpenDJ directory server supports these controls:</para>
 
@@ -845,33 +544,8 @@ description: Using the PostReadRequestControl</programlisting>
   describes the pre-read controls that let your application get the content
   of an entry immediately before modifications are applied.</para>
 
-  <programlisting language="java">
-if (isSupported(PreReadRequestControl.OID)) {
-    final String dn = "uid=bjensen,ou=People,dc=example,dc=com";
-
-    final ModifyRequest request =
-            Requests.newModifyRequest(dn)
-            .addControl(PreReadRequestControl.newControl(true, "mail"))
-            .addModification(
-                    ModificationType.REPLACE, "mail", "modified@example.com");
-
-    final Result result = connection.modify(request);
-    try {
-        final PreReadResponseControl control =
-                result.getControl(PreReadResponseControl.DECODER,
-                        new DecodeOptions());
-        final Entry entry = control.getEntry();
-
-        final LDIFEntryWriter writer = new LDIFEntryWriter(System.out);
-        writer.writeEntry(entry);
-        writer.close();
-    } catch (final DecodeException e) {
-        // Failed to decode the response control.
-    } catch (final IOException e) {
-        // The writer could not write to System.out.
-    }
-}
-</programlisting>
+  <programlisting language="java"
+  >[jcp:org.forgerock.opendj.examples.Controls:--- JCite pre read ---]</programlisting>
 
   <para>OpenDJ directory server supports these controls:</para>
 
@@ -897,30 +571,8 @@ mail: bjensen@example.com</programlisting>
   application bind with its credentials, and then carry out operations as the
   users who login to the application.</para>
 
-  <programlisting language="java">
-if (isSupported(ProxiedAuthV2RequestControl.OID)) {
-    final String bindDN = "cn=My App,ou=Apps,dc=example,dc=com";
-    final String targetDn = "uid=bjensen,ou=People,dc=example,dc=com";
-    final String authzId = "dn:uid=kvaughan,ou=People,dc=example,dc=com";
-
-    final ModifyRequest request =
-            Requests.newModifyRequest(targetDn)
-            .addControl(ProxiedAuthV2RequestControl.newControl(authzId))
-            .addModification(ModificationType.REPLACE, "description",
-                    "Done with proxied authz");
-
-    connection.bind(bindDN, "password".toCharArray());
-    connection.modify(request);
-    final Entry entry = connection.readEntry(targetDn, "description");
-
-    final LDIFEntryWriter writer = new LDIFEntryWriter(System.out);
-    try {
-        writer.writeEntry(entry);
-        writer.close();
-    } catch (final IOException e) {
-        // The writer could not write to System.out.
-    }
-}</programlisting>
+  <programlisting language="java"
+  >[jcp:org.forgerock.opendj.examples.Controls:--- JCite proxied authzv2 ---]</programlisting>
 
   <para>OpenDJ supports proxied authorization, and the example works with the
   sample data:</para>
@@ -953,67 +605,8 @@ description: Done with proxied authz</programlisting>
   reduce load on the server. If not, then you can request a server-side
   sort.</para>
 
-  <programlisting language="java">
-static void useServerSideSortRequestControl(Connection connection)
-        throws ErrorResultException {
-    if (isSupported(ServerSideSortRequestControl.OID)) {
-        final SearchRequest request =
-                Requests.newSearchRequest("ou=People,dc=example,dc=com",
-                        SearchScope.WHOLE_SUBTREE, "(sn=Jensen)", "cn")
-                        .addControl(ServerSideSortRequestControl.newControl(
-                                        true, new SortKey("cn")));
-
-        final SearchResultHandler resultHandler = new MySearchResultHandler();
-        final Result result = connection.search(request, resultHandler);
-
-        try {
-            final ServerSideSortResponseControl control =
-                    result.getControl(ServerSideSortResponseControl.DECODER,
-                            new DecodeOptions());
-            if (control != null &amp;&amp; control.getResult() == ResultCode.SUCCESS) {
-                System.out.println("# Entries are sorted.");
-            } else {
-                System.out.println("# Entries not necessarily sorted");
-            }
-        } catch (final DecodeException e) {
-            // Failed to decode the response control.
-        }
-    } else {
-        System.out.println("ServerSideSortRequestControl not supported");
-    }
-}
-
-private static class MySearchResultHandler implements SearchResultHandler {
-
-    @Override
-    public void handleErrorResult(ErrorResultException error) {
-        // Ignore.
-    }
-
-    @Override
-    public void handleResult(Result result) {
-        // Ignore.
-    }
-
-    @Override
-    public boolean handleEntry(SearchResultEntry entry) {
-        final LDIFEntryWriter writer = new LDIFEntryWriter(System.out);
-        try {
-            writer.writeEntry(entry);
-            writer.flush();
-        } catch (final IOException e) {
-            // The writer could not write to System.out.
-        }
-        return true;
-    }
-
-    @Override
-    public boolean handleReference(SearchResultReference reference) {
-        System.out.println("Got a reference: " + reference.toString());
-        return false;
-    }
-}
-</programlisting>
+  <programlisting language="java"
+  >[jcp:org.forgerock.opendj.examples.Controls:--- JCite server-side sort ---]</programlisting>
 
   <para>OpenDJ directory server supports server-side sorting:</para>
 
@@ -1067,37 +660,8 @@ cn: Ted Jensen
   Manipulation</citetitle></link>, defines a control for simple paging of
   search results that works with a cookie mechanism.</para>
 
-  <programlisting language="java">
-if (isSupported(SimplePagedResultsControl.OID)) {
-    ByteString cookie = ByteString.empty();
-    SearchRequest request;
-    final SearchResultHandler resultHandler = new MySearchResultHandler();
-    Result result;
-
-    int page = 1;
-    do {
-        System.out.println("# Simple paged results: Page " + page);
-
-        request =
-                Requests.newSearchRequest("dc=example,dc=com",
-                        SearchScope.WHOLE_SUBTREE, "(sn=Jensen)", "cn")
-                        .addControl(SimplePagedResultsControl.newControl(
-                                true, 3, cookie));
-
-        result = connection.search(request, resultHandler);
-        try {
-            SimplePagedResultsControl control =
-                    result.getControl(SimplePagedResultsControl.DECODER,
-                            new DecodeOptions());
-            cookie = control.getCookie();
-        } catch (final DecodeException e) {
-            // Failed to decode the response control.
-        }
-
-        ++page;
-    } while (cookie.length() != 0);
-}
-</programlisting>
+  <programlisting language="java"
+  >[jcp:org.forgerock.opendj.examples.Controls:--- JCite simple paged results ---]</programlisting>
 
   <para>OpenDJ directory server supports getting simple paged results:</para>
 
@@ -1152,34 +716,8 @@ cn: Ted Jensen
   are only visible in searches with
   <literal>SearchScope.BASE_OBJECT</literal>.</para>
 
-  <programlisting language="java">
-if (isSupported(SubentriesRequestControl.OID)) {
-    final SearchRequest request =
-            Requests.newSearchRequest("dc=example,dc=com",
-                        SearchScope.WHOLE_SUBTREE,
-                        "cn=*Class of Service", "cn", "subtreeSpecification")
-                    .addControl(SubentriesRequestControl.newControl(
-                        true, true));
-
-    final ConnectionEntryReader reader = connection.search(request);
-    final LDIFEntryWriter writer = new LDIFEntryWriter(System.out);
-    try {
-        while (reader.hasNext()) {
-            if (reader.isEntry()) {
-                final SearchResultEntry entry = reader.readEntry();
-                writer.writeEntry(entry);
-            }
-        }
-        writer.close();
-    } catch (final ErrorResultIOException e) {
-        // Request failed due to an IO problem.
-    } catch (final SearchResultReferenceIOException e) {
-        // Read a reference, rather than an entry.
-    } catch (final IOException e) {
-        // The writer could not write to System.out.
-    }
-}
-</programlisting>
+  <programlisting language="java"
+  >[jcp:org.forgerock.opendj.examples.Controls:--- JCite subentries ---]</programlisting>
 
   <para>OpenDJ directory server supports the control.</para>
 
@@ -1217,27 +755,12 @@ subtreeSpecification: { base "ou=People", specificationFilter "(classOfService=
   your application delete an entire branch of entries starting with the entry
   you target for deletion.</para>
 
-  <programlisting language="java">
-if (isSupported(SubtreeDeleteRequestControl.OID)) {
-
-    final String dn = "ou=Apps,dc=example,dc=com";
-    final DeleteRequest request =
-            Requests.newDeleteRequest(dn)
-                    .addControl(SubtreeDeleteRequestControl.newControl(true));
-
-    final Result result = connection.delete(request);
-    if (result.isSuccess()) {
-        System.out.println("Successfully deleted " + dn
-                + " and all entries below.");
-    } else {
-        System.out.println("Result: " + result.getDiagnosticMessage());
-    }
-}
-</programlisting>
+  <programlisting language="java"
+  >[jcp:org.forgerock.opendj.examples.Controls:--- JCite tree delete ---]</programlisting>
 
   <para>OpenDJ directory server supports the subtree delete control:</para>
 
-  <programlisting
+  <programlisting language="none"
   >Successfully deleted ou=Apps,dc=example,dc=com and all entries below.</programlisting>
  </section>
 
@@ -1267,46 +790,8 @@ if (isSupported(SubtreeDeleteRequestControl.OID)) {
   control such that the subset of entries the directory server returns from
   a search are a window into the full sorted list.</para>
 
-  <programlisting language="java">
-if (isSupported(VirtualListViewRequestControl.OID)) {
-    ByteString contextID = ByteString.empty();
-
-    // Add a window of 2 entries on either side of the first sn=Jensen entry.
-    final SearchRequest request =
-            Requests.newSearchRequest("ou=People,dc=example,dc=com",
-                    SearchScope.WHOLE_SUBTREE, "(sn=*)", "sn", "givenName")
-                    .addControl(ServerSideSortRequestControl.newControl(
-                            true, new SortKey("sn")))
-                    .addControl(
-                            VirtualListViewRequestControl.newAssertionControl(
-                                    true,
-                                    ByteString.valueOf("Jensen"),
-                                    2, 2, contextID));
-
-    final SearchResultHandler resultHandler = new MySearchResultHandler();
-    final Result result = connection.search(request, resultHandler);
-
-    try {
-        final ServerSideSortResponseControl sssControl =
-                result.getControl(ServerSideSortResponseControl.DECODER,
-                        new DecodeOptions());
-        if (sssControl != null &amp;&amp; sssControl.getResult() == ResultCode.SUCCESS){
-            System.out.println("# Entries are sorted.");
-        } else {
-            System.out.println("# Entries not necessarily sorted");
-        }
-
-        final VirtualListViewResponseControl vlvControl =
-                result.getControl(VirtualListViewResponseControl.DECODER,
-                        new DecodeOptions());
-        System.out.println("# Position in list: "
-                + vlvControl.getTargetPosition() + "/"
-                + vlvControl.getContentCount());
-    } catch (final DecodeException e) {
-        // Failed to decode the response control.
-    }
-}
-</programlisting>
+  <programlisting language="java"
+  >[jcp:org.forgerock.opendj.examples.Controls:--- JCite vlv ---]</programlisting>
 
   <para>OpenDJ directory server supports the virtual list view controls.
   In order to set up OpenDJ directory server to produce the following output

@@ -108,40 +108,8 @@
   <para>The following code excerpt demonstrates how this might be done in a
   minimal command-line program.</para>
 
-  <programlisting language="java">// Prompt for mail and password.
-Console c = System.console();
-if (c == null) {
-    System.err.println("No console.");
-    System.exit(1);
-}
-
-String mail = c.readLine("Email address: ");
-char[] password = c.readPassword("Password: ");
-
-// Search using mail address, and then bind with the DN and password.
-final LDAPConnectionFactory factory = new LDAPConnectionFactory(host,
-        port);
-Connection connection = null;
-try {
-    connection = factory.getConnection();
-
-    // No explicit bind yet so we remain anonymous for now.
-    SearchResultEntry entry = connection.searchSingleEntry(baseDN,
-            SearchScope.WHOLE_SUBTREE, "(mail=" + mail + ")", "cn");
-    DN bindDN = entry.getName();
-    connection.bind(bindDN.toString(), password);
-
-    String cn = entry.getAttribute("cn").firstValueAsString();
-    System.out.println("Hello, " + cn + "!");
-} catch (final ErrorResultException e) {
-    System.err.println("Failed to bind.");
-    System.exit(e.getResult().getResultCode().intValue());
-    return;
-} finally {
-    if (connection != null) {
-        connection.close();
-    }
-}</programlisting>
+  <programlisting language="java"
+  >[jcp:org.forgerock.opendj.examples.SearchBind:--- JCite ---]</programlisting>
 
   <para>For a complete example in context, see <link
   xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/xref/org/forgerock/opendj/examples/SearchBind.html"
@@ -362,35 +330,8 @@ try {
     <para>You can get a <literal>ConnectionEntryReader</literal>, and iterate
     over the reader to access individual search results.</para>
 
-    <programlisting language="java">Connection connection = ...;
-ConnectionEntryReader reader = connection.search("dc=example,dc=com",
-    SearchScope.WHOLE_SUBTREE, "(objectClass=person)");
-try
-{
-  while (reader.hasNext())
-  {
-    if (reader.isEntry())
-    {
-      SearchResultEntry entry = reader.readEntry();
-
-      // Handle entry...
-    }
-    else
-    {
-      SearchResultReference ref = reader.readReference();
-
-      // Handle continuation reference...
-    }
-  }
-}
-catch (IOException e)
-{
-  // Handle exceptions...
-}
-finally
-{
-  reader.close();
-}</programlisting>
+    <programlisting language="java"
+    >[jcp:org.forgerock.opendj.examples.Search:--- JCite ---]</programlisting>
 
     <para>For a complete example in context, see <link
     xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/xref/org/forgerock/opendj/examples/Search.html"
@@ -433,38 +374,8 @@ finally
   value types. You can use these methods to get attribute values as
   objects.</para>
 
-  <programlisting language="java">
-// Use Kirsten Vaughan's credentials and her entry.
-String name = "uid=kvaughan,ou=People,dc=example,dc=com";
-char[] password = "bribery".toCharArray();
-connection.bind(name, password);
-
-// Make sure we have a timestamp to play with.
-updateEntry(connection, name, "description");
-
-// Read Kirsten's entry.
-final SearchResultEntry entry = connection.readEntry(name,
-        "cn", "objectClass", "hasSubordinates", "numSubordinates",
-        "isMemberOf", "modifyTimestamp");
-
-// Get the entry DN and some attribute values as objects.
-DN dn = entry.getName();
-
-Set&lt;String&gt; cn = entry.parseAttribute("cn").asSetOfString("");
-Set&lt;AttributeDescription&gt; objectClasses =
-        entry.parseAttribute("objectClass").asSetOfAttributeDescription();
-boolean hasChildren = entry.parseAttribute("hasSubordinates").asBoolean();
-int numChildren = entry.parseAttribute("numSubordinates").asInteger(0);
-Set&lt;DN&gt; groups = entry
-        .parseAttribute("isMemberOf")
-        .usingSchema(Schema.getDefaultSchema()).asSetOfDN();
-Calendar timestamp = entry
-        .parseAttribute("modifyTimestamp")
-        .asGeneralizedTime().toCalendar();
-
-// Do something with the objects.
-// ...
-</programlisting>
+  <programlisting language="java"
+  >[jcp:org.forgerock.opendj.examples.ParseAttributes:--- JCite ---]</programlisting>
 
   <para>For a complete example in context, see <link
   xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/xref/org/forgerock/opendj/examples/ParseAttributes.html"
