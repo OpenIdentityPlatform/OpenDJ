@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2012 ForgeRock AS
+  !      Copyright 2011-2013 ForgeRock AS
   !
 -->
 <chapter xml:id='chap-ldif'
@@ -180,32 +180,6 @@ final LDIFChangeRecordReader reader = new LDIFChangeRecordReader(ldif);</program
   directory server.</para>
 
   <programlisting language="java"
-  >final LDIFChangeRecordReader reader = new LDIFChangeRecordReader(ldif);
-final LDAPConnectionFactory factory = new LDAPConnectionFactory(host, port);
-Connection connection = null;
-
-try {
-    connection = factory.getConnection();
-    connection.bind(userDN, password.toCharArray());
-
-    final ConnectionChangeRecordWriter writer =
-            new ConnectionChangeRecordWriter(connection);
-    while (reader.hasNext()) {
-        ChangeRecord changeRecord = reader.readChangeRecord();
-        writer.writeChangeRecord(changeRecord);
-    }
-} catch (final ErrorResultException e) {
-    System.err.println(e.getMessage());
-    System.exit(e.getResult().getResultCode().intValue());
-    return;
-} catch (final IOException e) {
-    System.err.println(e.getMessage());
-    System.exit(ResultCode.CLIENT_SIDE_LOCAL_ERROR.intValue());
-    return;
-} finally {
-    if (connection != null) {
-        connection.close();
-    }
-}</programlisting>
+  >[jcp:org.forgerock.opendj.examples.Modify:--- JCite ---]</programlisting>
  </section>
 </chapter>

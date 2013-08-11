@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2011-2012 ForgeRock AS
+ *      Copyright 2011-2013 ForgeRock AS
  */
 
 /**
@@ -85,6 +85,7 @@ public final class SASLAuth {
         parseArgs(args);
         Connection connection = null;
 
+        // --- JCite ---
         try {
             final LDAPConnectionFactory factory =
                     new LDAPConnectionFactory(host, port, getTrustAllOptions());
@@ -106,6 +107,7 @@ public final class SASLAuth {
                 connection.close();
             }
         }
+        // --- JCite ---
     }
 
     /**

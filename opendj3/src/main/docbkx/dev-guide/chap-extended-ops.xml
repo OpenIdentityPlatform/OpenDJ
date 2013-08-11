@@ -88,41 +88,8 @@ supportedExtension: 1.3.6.1.4.1.1466.20037</screen>
   <para>The following excerpt shows code to check for supported extended
   operations.</para>
 
-  <programlisting language="java">
-/**
- * Controls supported by the LDAP server.
- */
-private static Collection&lt;String&gt; extendedOperations;
-
-/**
- * Populate the list of supported LDAP extended operation OIDs.
- * 
- * @param connection
- *            Active connection to the LDAP server.
- * @throws ErrorResultException
- *             Failed to get list of extended operations.
- */
-static void checkSupportedExtendedOperations(Connection connection)
-        throws ErrorResultException {
-    extendedOperations = RootDSE.readRootDSE(connection)
-            .getSupportedExtendedOperations();
-}
-
-/**
- * Check whether an extended operation is supported. Call
- * {@code checkSupportedExtendedOperations} first.
- * 
- * @param extendedOperation
- *            Check support for this extended operation, provided by OID.
- * @return True if the control is supported.
- */
-static boolean isSupported(final String extendedOperation) {
-    if (extendedOperations != null &amp;&amp; !extendedOperations.isEmpty()) {
-        return extendedOperations.contains(extendedOperation);
-    }
-    return false;
-}
-</programlisting>
+  <programlisting language="java"
+  >[jcp:org.forgerock.opendj.examples.ExtendedOperations:--- JCite check support ---]</programlisting>
  </section>
  
  <section xml:id="use-cancel-extended-operation">
@@ -152,65 +119,17 @@ static boolean isSupported(final String extendedOperation) {
   entries returned from a search if the directory server returns more entries
   than you want.</para>
 
-  <programlisting language="java">
-private static final CountDownLatch COMPLETION_LATCH = new CountDownLatch(1);
-private static final CountDownLatch CANCEL_LATCH = new CountDownLatch(1);
-private static final LDIFEntryWriter WRITER = new LDIFEntryWriter(System.out);
+  <programlisting language="java"
+  >[jcp:org.forgerock.opendj.examples.SearchAsync:--- JCite decl1 ---]</programlisting>
 
-static int requestID;
-static int entryCount = 0;
+  <programlisting language="java"
+  >[jcp:org.forgerock.opendj.examples.SearchAsync:--- JCite decl2 ---]</programlisting>
 
-// The requestID is obtained from the future result of the asynchronous search.
-// For more context see the example, SearchAsync.java.
+  <programlisting language="java"
+  >[jcp:org.forgerock.opendj.examples.SearchAsync:--- JCite search result handler ---]</programlisting>
 
-private static final class SearchResultHandlerImpl
-        implements SearchResultHandler {
-
-    @Override
-    public synchronized boolean handleEntry(final SearchResultEntry entry) {
-        try {
-            // Cancel the search if it returns too many results.
-            if (entryCount &lt; 10) {
-                WRITER.writeComment("Search result entry: "
-                        + entry.getName().toString());
-                WRITER.writeEntry(entry);
-                ++entryCount;
-            } else {
-                CancelExtendedRequest request =
-                        Requests.newCancelExtendedRequest(requestID);
-                connection.extendedRequestAsync(
-                        request, null, new CancelResultHandlerImpl());
-                return false;
-            }
-        } catch (final IOException e) {
-            System.err.println(e.getMessage());
-            resultCode = ResultCode.CLIENT_SIDE_LOCAL_ERROR.intValue();
-            COMPLETION_LATCH.countDown();
-            return false;
-        }
-        return true;
-    }
-    ...
-}
-
-private static final class CancelResultHandlerImpl
-        implements ResultHandler&lt;ExtendedResult&gt; {
-
-    @Override
-    public void handleErrorResult(final ErrorResultException error) {
-        System.err.println("Cancel request failed with result code: "
-                + error.getResult().getResultCode().intValue());
-        CANCEL_LATCH.countDown();
-    }
-
-    @Override
-    public void handleResult(final ExtendedResult result) {
-        System.err.println("Cancel request succeeded");
-        CANCEL_LATCH.countDown();
-    }
-
-}
-</programlisting>
+  <programlisting language="java"
+  >[jcp:org.forgerock.opendj.examples.SearchAsync:--- JCite cancel result handler ---]</programlisting>
 
   <para>OpenDJ directory server supports the cancel operation. If OpenDJ
   directory server manages to return all entries in
@@ -224,7 +143,7 @@ private static final class CancelResultHandlerImpl
   for scope, filter, and attributes respectively, then the example produces
   something like the following output:</para>
 
-  <programlisting>
+  <programlisting language="none">
 Canceled: Processing on this operation was terminated as a result of receiving
  a cancel request (message ID 3)
 # Search result entry: dc=example,dc=org
@@ -259,31 +178,12 @@ Cancel request succeeded</programlisting>
   user passwords that does not depend on the authentication identity, nor on
   the way passwords are stored.</para>
 
-  <programlisting language="java">
-if (isSupported(PasswordModifyExtendedRequest.OID)) {
-    final String userIdentity = "u:scarter";
-    final char[] oldPassword = "sprain".toCharArray();
-    final char[] newPassword = "secret12".toCharArray();
-
-    final PasswordModifyExtendedRequest request =
-            Requests.newPasswordModifyExtendedRequest()
-                .setUserIdentity(userIdentity)
-                .setOldPassword(oldPassword)
-                .setNewPassword(newPassword);
-
-    final PasswordModifyExtendedResult result =
-            connection.extendedRequest(request);
-    if (result.isSuccess()) {
-        System.out.println("Changed password for " + userIdentity);
-    } else {
-        System.err.println(result.getDiagnosticMessage());
-    }
-}
-</programlisting>
+  <programlisting language="java"
+  >[jcp:org.forgerock.opendj.examples.ExtendedOperations:--- JCite password modify ---]</programlisting>
 
   <para>OpenDJ directory server supports the password modify operation.</para>
 
-  <programlisting>Changed password for u:scarter</programlisting>
+  <programlisting language="none">Changed password for u:scarter</programlisting>
  </section>
 
  <section xml:id="use-starttls-extended-operation">
@@ -312,30 +212,12 @@ if (isSupported(PasswordModifyExtendedRequest.OID)) {
   defines an extended operation that lets your application determine the
   current authorization ID.</para>
 
-  <programlisting language="java">
-if (isSupported(WhoAmIExtendedRequest.OID)) {
-
-    final String name = "uid=bjensen,ou=People,dc=example,dc=com";
-    final char[] password = "hifalutin".toCharArray();
-
-    final Result result = connection.bind(name, password);
-    if (result.isSuccess()) {
-
-        final WhoAmIExtendedRequest request =
-                Requests.newWhoAmIExtendedRequest();
-        final WhoAmIExtendedResult extResult =
-                connection.extendedRequest(request);
-
-        if (extResult.isSuccess()) {
-            System.out.println("Authz ID: "  + extResult.getAuthorizationID());
-        }
-    }
-}
-</programlisting>
+  <programlisting language="java"
+  >[jcp:org.forgerock.opendj.examples.ExtendedOperations:--- JCite who am I ---]</programlisting>
 
   <para>OpenDJ directory server supports the "Who am I?" operation.</para>
 
-  <programlisting
+  <programlisting language="none"
   >Authz ID: dn:uid=bjensen,ou=People,dc=example,dc=com</programlisting>
  </section>
 </chapter>

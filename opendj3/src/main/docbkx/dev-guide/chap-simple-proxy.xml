@@ -76,15 +76,7 @@
   pool of the maximum size you specify.</para>
 
   <programlisting language="java"
->final List&lt;ConnectionFactory&gt; factories = new LinkedList&lt;~&gt;();
-
-factories.add(Connections.newFixedConnectionPool(Connections
-        .newAuthenticatedConnectionFactory(Connections
-                .newHeartBeatConnectionFactory(new LDAPConnectionFactory(
-                        remoteAddress, remotePort)),
-                        Requests.newSimpleBindRequest(proxyDN,
-                                proxyPassword.toCharArray())),
-                                Integer.MAX_VALUE));</programlisting>
+  >[jcp:org.forgerock.opendj.examples.Proxy:--- JCite pools ---]</programlisting>
 
   <para>Connections are returned to the pool when you <literal>close()</literal>
   them. Notice that <literal>Connections</literal> also provides methods to
@@ -126,15 +118,7 @@ factories.add(Connections.newFixedConnectionPool(Connections
   across directory servers.</para>
 
   <programlisting language="java"
-  >final List&lt;ConnectionFactory&gt; factories = new LinkedList&lt;ConnectionFactory&gt;();
-
-// Set up a ConnectionFactory for each directory server in the pool as shown in
-// the previous example, and then set up a load balancer.
-
-final RoundRobinLoadBalancingAlgorithm algorithm =
-        new RoundRobinLoadBalancingAlgorithm(factories);
-
-final ConnectionFactory factory = Connections.newLoadBalancer(algorithm);</programlisting>
+  >[jcp:org.forgerock.opendj.examples.Proxy:--- JCite load balancer ---]</programlisting>
 
   <para>With multiple pools of directory servers, for example in a deployment
   across multiple data centers, also use fail over load balancing. Fail over
@@ -173,23 +157,8 @@ final ConnectionFactory factory = Connections.newLoadBalancer(algorithm);</progr
   that deals with the connections, in this case connections back to the
   directory servers handling client requests.</para>
 
-  <programlisting language="java">
-final LDAPListenerOptions options = new LDAPListenerOptions().setBacklog(4096);
-LDAPListener listener = null;
-try {
-    listener = new LDAPListener(localAddress, localPort, connectionHandler,
-            options);
-    System.out.println("Press any key to stop the server...");
-    System.in.read();
-} catch (final IOException e) {
-    System.out.println("Error listening on " + localAddress + ":" + localPort);
-    e.printStackTrace();
-} finally {
-    if (listener != null) {
-        listener.close();
-    }
-}
-</programlisting>
+  <programlisting language="java"
+  >[jcp:org.forgerock.opendj.examples.Proxy:--- JCite listener ---]</programlisting>
 
   <para>You get a <literal>ServerConnectionFactory</literal> to handle requests
   coming from clients. The <literal>ServerConnectionFactory</literal> takes a
@@ -200,11 +169,8 @@ try {
   directory servers and routes the results returned back to client
   applications.</para>
 
-  <programlisting language="java">
-final ProxyBackend backend = new ProxyBackend(factory, bindFactory);
-final ServerConnectionFactory&lt;LDAPClientContext, Integer&gt; connectionHandler =
-        Connections.newServerConnectionFactory(backend);
-</programlisting>
+  <programlisting language="java"
+  >[jcp:org.forgerock.opendj.examples.Proxy:--- JCite backend ---]</programlisting>
 
   <para>See the Proxy example code for details about the
   <literal>ProxyBackend</literal> implementation.</para>

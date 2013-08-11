@@ -107,6 +107,7 @@ public final class ExtendedOperations {
      *             Operation failed.
      */
     static void usePasswordModifyExtendedRequest(Connection connection) throws ErrorResultException {
+        // --- JCite password modify ---
         if (isSupported(PasswordModifyExtendedRequest.OID)) {
             final String userIdentity = "u:scarter";
             final char[] oldPassword = "sprain".toCharArray();
@@ -128,6 +129,7 @@ public final class ExtendedOperations {
         } else {
             System.err.println("PasswordModifyExtendedRequest not supported");
         }
+        // --- JCite password modify ---
     }
 
     /**
@@ -140,6 +142,7 @@ public final class ExtendedOperations {
      *             Operation failed.
      */
     static void useWhoAmIExtendedRequest(Connection connection) throws ErrorResultException {
+        // --- JCite who am I ---
         if (isSupported(WhoAmIExtendedRequest.OID)) {
 
             final String name = "uid=bjensen,ou=People,dc=example,dc=com";
@@ -160,8 +163,10 @@ public final class ExtendedOperations {
         } else {
             System.err.println("WhoAmIExtendedRequest not supported");
         }
+        // --- JCite who am I ---
     }
 
+    // --- JCite check support ---
     /**
      * Controls supported by the LDAP server.
      */
@@ -175,8 +180,10 @@ public final class ExtendedOperations {
      * @throws ErrorResultException
      *             Failed to get list of extended operations.
      */
-    static void checkSupportedExtendedOperations(Connection connection) throws ErrorResultException {
-        extendedOperations = RootDSE.readRootDSE(connection).getSupportedExtendedOperations();
+    static void checkSupportedExtendedOperations(Connection connection)
+            throws ErrorResultException {
+        extendedOperations = RootDSE.readRootDSE(connection)
+                .getSupportedExtendedOperations();
     }
 
     /**
@@ -193,6 +200,7 @@ public final class ExtendedOperations {
         }
         return false;
     }
+    // --- JCite check support ---
 
     /**
      * Constructor not used.

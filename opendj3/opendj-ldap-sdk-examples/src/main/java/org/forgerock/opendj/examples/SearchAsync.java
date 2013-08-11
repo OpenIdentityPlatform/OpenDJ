@@ -114,6 +114,7 @@ public final class SearchAsync {
 
     }
 
+    // --- JCite search result handler ---
     private static final class SearchResultHandlerImpl implements SearchResultHandler {
 
         /**
@@ -123,12 +124,15 @@ public final class SearchAsync {
         public synchronized boolean handleEntry(final SearchResultEntry entry) {
             try {
                 if (entryCount < 10) {
-                    WRITER.writeComment("Search result entry: " + entry.getName().toString());
+                    WRITER.writeComment("Search result entry: "
+                            + entry.getName().toString());
                     WRITER.writeEntry(entry);
                     ++entryCount;
                 } else { // Cancel the search.
-                    CancelExtendedRequest request = Requests.newCancelExtendedRequest(requestID);
-                    connection.extendedRequestAsync(request, null, new CancelResultHandlerImpl());
+                    CancelExtendedRequest request =
+                            Requests.newCancelExtendedRequest(requestID);
+                    connection.extendedRequestAsync(request, null,
+                            new CancelResultHandlerImpl());
                     return false;
                 }
             } catch (final IOException e) {
@@ -154,9 +158,11 @@ public final class SearchAsync {
          * {@inheritDoc}
          */
         @Override
-        public synchronized boolean handleReference(final SearchResultReference reference) {
+        public synchronized boolean handleReference(
+                final SearchResultReference reference) {
             try {
-                WRITER.writeComment("Search result reference: " + reference.getURIs().toString());
+                WRITER.writeComment("Search result reference: "
+                        + reference.getURIs().toString());
             } catch (final IOException e) {
                 System.err.println(e.getMessage());
                 resultCode = ResultCode.CLIENT_SIDE_LOCAL_ERROR.intValue();
@@ -176,10 +182,13 @@ public final class SearchAsync {
         }
 
     }
+    // --- JCite search result handler ---
 
+    // --- JCite decl1 ---
     private static final CountDownLatch COMPLETION_LATCH = new CountDownLatch(1);
     private static final CountDownLatch CANCEL_LATCH = new CountDownLatch(1);
     private static final LDIFEntryWriter WRITER = new LDIFEntryWriter(System.out);
+    // --- JCite decl1 ---
     private static String userName;
     private static String password;
     private static String baseDN;
@@ -189,10 +198,14 @@ public final class SearchAsync {
     private static Connection connection = null;
     private static int resultCode = 0;
 
+    // --- JCite decl2 ---
     static int requestID;
     static int entryCount = 0;
+    // --- JCite decl2 ---
 
-    private static final class CancelResultHandlerImpl implements ResultHandler<ExtendedResult> {
+    // --- JCite cancel result handler ---
+    private static final class CancelResultHandlerImpl
+            implements ResultHandler<ExtendedResult> {
 
         @Override
         public void handleErrorResult(final ErrorResultException error) {
@@ -208,6 +221,7 @@ public final class SearchAsync {
         }
 
     }
+    // --- JCite cancel result handler ---
 
     /**
      * Main method.

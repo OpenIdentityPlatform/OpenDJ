@@ -84,7 +84,7 @@ public final class GetADChangeNotifications {
         final String baseDN = args[4];
 
         // See http://msdn.microsoft.com/en-us/library/windows/desktop/aa772153(v=vs.85).aspx
-        /* --- JCite --- */
+        // --- JCite ---
         final SearchScope scope = SearchScope.WHOLE_SUBTREE;
         final String filter = "(objectclass=*)";
         final String[] attributes = {
@@ -128,7 +128,7 @@ public final class GetADChangeNotifications {
                             + ref.getURIs().toString());
                 }
             }
-        } /* --- JCite --- */ catch (final ErrorResultException e) {
+        } catch (final ErrorResultException e) {
             System.err.println(e.getMessage());
             System.exit(e.getResult().getResultCode().intValue());
         } catch (final ErrorResultIOException e) {
@@ -142,6 +142,7 @@ public final class GetADChangeNotifications {
                 connection.close();
             }
         }
+        // --- JCite ---
     }
 
     private GetADChangeNotifications() {

@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2011-2012 ForgeRock AS
+ *      Copyright 2011-2013 ForgeRock AS
  */
 
 package org.forgerock.opendj.examples;
@@ -73,6 +73,7 @@ public final class SimpleAuth {
         }
     }
 
+    // --- JCite basic auth ---
     /**
      * Authenticate over LDAP.
      */
@@ -94,7 +95,9 @@ public final class SimpleAuth {
             }
         }
     }
+    // --- JCite basic auth ---
 
+    // --- JCite trust all ---
     /**
      * For StartTLS and SSL the connection factory needs SSL context options. In
      * the general case, a trust manager in the SSL context serves to check
@@ -108,12 +111,15 @@ public final class SimpleAuth {
     private static LDAPOptions getTrustAllOptions() throws GeneralSecurityException {
         LDAPOptions lo = new LDAPOptions();
         SSLContext sslContext =
-                new SSLContextBuilder().setTrustManager(TrustManagers.trustAll()).getSSLContext();
+                new SSLContextBuilder().setTrustManager(TrustManagers.trustAll())
+                        .getSSLContext();
         lo.setSSLContext(sslContext);
         lo.setUseStartTLS(useStartTLS);
         return lo;
     }
+    // --- JCite trust all ---
 
+    // --- JCite trust all connect ---
     /**
      * Perform authentication over a secure connection, trusting all server
      * certificates.
@@ -140,6 +146,7 @@ public final class SimpleAuth {
             }
         }
     }
+    // --- JCite trust all connect ---
 
     /**
      * Authenticate using StartTLS.

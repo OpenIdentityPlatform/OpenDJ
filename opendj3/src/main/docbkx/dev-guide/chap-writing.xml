@@ -137,34 +137,8 @@
   <para>The following excerpt demonstrates how to add a simple user entry under
   <literal>ou=People,dc=example,dc=com</literal>.</para>
 
-  <programlisting language="java">// An entry to add to the directory
-Entry entry = new LinkedHashMapEntry("cn=Bob,ou=People,dc=example,dc=com")
-    .addAttribute("cn", "Bob")
-    .addAttribute("objectclass", "top")
-    .addAttribute("objectclass", "person")
-    .addAttribute("objectclass", "organizationalPerson")
-    .addAttribute("objectclass", "inetOrgPerson")
-    .addAttribute("mail", "subgenius@example.com")
-    .addAttribute("sn", "Dobbs");
-
-final LDAPConnectionFactory factory = new LDAPConnectionFactory(host, port);
-Connection connection = null;
-try {
-    connection = factory.getConnection();
-    // Bind as a user who has the right to add entries.
-    connection.bind(adminDN, adminPwd);
-
-    connection.add(entry);
-
-} catch (final ErrorResultException e) {
-    System.err.println(e.getMessage());
-    System.exit(e.getResult().getResultCode().intValue());
-    return;
-} finally {
-    if (connection != null) {
-        connection.close();
-    }
-}</programlisting>
+  <programlisting language="java"
+  >[jcp:org.forgerock.opendj.examples.ShortLife:--- JCite add ---]</programlisting>
  </section>
 
  <section xml:id="modifying-attr-values">
@@ -183,30 +157,7 @@ try {
   it can be easy to use in some cases.</para>
 
   <programlisting language="java"
-  >final LDAPConnectionFactory factory = new LDAPConnectionFactory(host, port);
-Connection connection = null;
-try {
-    connection = factory.getConnection();
-    // Bind as a user who has the right to modify entries.
-    connection.bind(adminDN, adminPwd);
-
-    // Here, entry is a user entry with DN cn=Bob,ou=People,dc=example,dc=com.
-    Entry old = TreeMapEntry.deepCopyOfEntry(entry);
-    entry = entry.replaceAttribute("mail", "spammer@example.com")
-            .addAttribute("description", "I see the fnords.");
-    ModifyRequest request = Entries.diffEntries(old, entry);
-
-    connection.modify(request);
-
-} catch (final ErrorResultException e) {
-    System.err.println(e.getMessage());
-    System.exit(e.getResult().getResultCode().intValue());
-    return;
-} finally {
-    if (connection != null) {
-        connection.close();
-    }
-}</programlisting>
+  >[jcp:org.forgerock.opendj.examples.ShortLife:--- JCite modify ---]</programlisting>
 
   <para>Especially when working with large entries, a more efficient choice is
   to construct a <literal>ModifyRequest</literal> without copying the entire
@@ -231,26 +182,7 @@ try {
   <para>The following excerpt demonstrates how to rename an entry.</para>
 
   <programlisting language="java"
-  >final LDAPConnectionFactory factory = new LDAPConnectionFactory(host, port);
-Connection connection = null;
-try {
-    connection = factory.getConnection();
-    // Bind as a user who has the right to rename entries.
-    connection.bind(adminDN, adminPwd);
-
-    // Here, entryDN contains cn=Bob,ou=People,dc=example,dc=com.
-    // The second argument is the new relative distinguished name.
-    connection.modifyDN(entryDN, "cn=Ted");
-
-} catch (final ErrorResultException e) {
-    System.err.println(e.getMessage());
-    System.exit(e.getResult().getResultCode().intValue());
-    return;
-} finally {
-    if (connection != null) {
-        connection.close();
-    }
-}</programlisting>
+  >[jcp:org.forgerock.opendj.examples.ShortLife:--- JCite rename ---]</programlisting>
 
   <para>If you must move rather than rename entries, have a look at the methods
   for <literal>ModifyDNRequest</literal>. You can get a new request by using
@@ -267,24 +199,7 @@ try {
   <literal>cn=Ted,ou=People,dc=example,dc=com</literal>.</para>
 
   <programlisting language="java"
-  >final LDAPConnectionFactory factory = new LDAPConnectionFactory(host, port);
-Connection connection = null;
-try {
-    connection = factory.getConnection();
-    // Bind as a user who has the right to delete entries.
-    connection.bind(adminDN, adminPwd);
-
-    connection.delete("cn=Ted,ou=People,dc=example,dc=com");
-
-} catch (final ErrorResultException e) {
-    System.err.println(e.getMessage());
-    System.exit(e.getResult().getResultCode().intValue());
-    return;
-} finally {
-    if (connection != null) {
-        connection.close();
-    }
-}</programlisting>
+  >[jcp:org.forgerock.opendj.examples.ShortLife:--- JCite delete ---]</programlisting>
 
   <para>If you must delete an entire branch of entries instead of a single
   leaf entry, build a <literal>DeleteRequest</literal> that includes the
@@ -332,44 +247,7 @@ member: uid=user.10000,ou=People,dc=example,dc=com</programlisting>
   <example xml:id="update-group-with-permissive-modify"><?dbfo keep-together="auto"?>
    <title>Updating a Group With Permissive Modify</title>
    <programlisting language="java"
-   >final LDAPConnectionFactory factory = new LDAPConnectionFactory(host, port);
-Connection connection = null;
-try {
-    connection = factory.getConnection();
-
-    Collection&lt;String&gt; controls =
-            RootDSE.readRootDSE(connection).getSupportedControls();
-
-    final String user = "cn=Directory Manager";
-    final char[] password = "password".toCharArray();
-    connection.bind(user, password);
-
-    if (controls.contains(PermissiveModifyRequestControl.OID)) {
-
-        final ModifyRequest request = Requests.newModifyRequest(groupDN)
-                .addControl(PermissiveModifyRequestControl.newControl(true))
-                .addModification(modType, "member", memberDN);
-        connection.modify(request);
-
-    } else {
-
-        /* ... */
-
-    }
-
-    String op = (modType == ModificationType.ADD) ? "added to" : "deleted from";
-    System.out.println("The entry with DN " + memberDN + " has been "
-            + op + " the group with DN " + groupDN + ".");
-
-} catch (final ErrorResultException e) {
-    System.err.println(e.getMessage());
-    System.exit(e.getResult().getResultCode().intValue());
-    return;
-} finally {
-    if (connection != null) {
-        connection.close();
-    }
-}</programlisting>
+   >[jcp:org.forgerock.opendj.examples.UpdateGroup:--- JCite permissive ---]</programlisting>
   </example>
 
   <para>If the directory server does not support the Permissive Modify control,
@@ -381,68 +259,7 @@ try {
   <example xml:id="update-group-with-compare-and-modify"><?dbfo keep-together="auto"?>
    <title>Updating a Group With Compare &amp; Modify</title>
    <programlisting language="java"
-   >final LDAPConnectionFactory factory = new LDAPConnectionFactory(host, port);
-Connection connection = null;
-try {
-    connection = factory.getConnection();
-
-    Collection&lt;String&gt; controls =
-            RootDSE.readRootDSE(connection).getSupportedControls();
-
-    final String user = "cn=Directory Manager";
-    final char[] password = "password".toCharArray();
-    connection.bind(user, password);
-
-    if (controls.contains(PermissiveModifyRequestControl.OID)) {
-
-        /* ... */
-
-    } else {
-
-        System.out.println("Checking whether the entry with DN "
-                + memberDN + " belongs to the group with DN " + groupDN
-                + "...");
-        final CompareRequest request =
-                Requests.newCompareRequest(groupDN, "member", memberDN);
-        CompareResult result = connection.compare(request);
-
-        if (modType == ModificationType.ADD) {
-            if (result.getResultCode() == ResultCode.COMPARE_FALSE) {
-                System.out.println("Member does not yet belong to group."
-                        + " Adding it...");
-                final ModifyRequest addMember =
-                        Requests.newModifyRequest(groupDN)
-                            .addModification(modType, "member", memberDN);
-                connection.modify(addMember);
-            }
-        }
-
-        if (modType == ModificationType.DELETE) {
-            if (result.getResultCode() == ResultCode.COMPARE_TRUE) {
-                System.out.println("Member belongs to group."
-                        + " Removing it...");
-                final ModifyRequest delMember =
-                        Requests.newModifyRequest(groupDN)
-                            .addModification(modType, "member", memberDN);
-                connection.modify(delMember);
-            }
-        }
-
-    }
-
-    String op = (modType == ModificationType.ADD) ? "added to" : "deleted from";
-    System.out.println("The entry with DN " + memberDN + " has been "
-            + op + " the group with DN " + groupDN + ".");
-
-} catch (final ErrorResultException e) {
-    System.err.println(e.getMessage());
-    System.exit(e.getResult().getResultCode().intValue());
-    return;
-} finally {
-    if (connection != null) {
-        connection.close();
-    }
-}</programlisting>
+   >[jcp:org.forgerock.opendj.examples.UpdateGroup:--- JCite without permissive ---]</programlisting>
 
    <para>You can change multiple member values with a single modification. The
    final argument of this form of the

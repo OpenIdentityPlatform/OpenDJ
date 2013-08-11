@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2012 ForgeRock AS
+  !      Copyright 2011-2013 ForgeRock AS
   !    
 -->
 <chapter xml:id='chap-getting-directory-info'
@@ -64,27 +64,8 @@
   get all operational attributes from the root DSE entry as in the following
   excerpt.</para>
 
-  <programlisting language="java">
-final LDAPConnectionFactory factory = new LDAPConnectionFactory(
-  host, port);
-Connection connection = null;
-
-try
-{
-  connection = factory.getConnection();
-
-  // Perform an anonymous search on the root DSE.
-  final SearchResultEntry entry = connection.searchSingleEntry(
-      "",                         // DN is "" for root DSE.
-      SearchScope.BASE_OBJECT,    // Read only the root DSE.
-      "objectclass=*",            // Every object matches this filter.
-      "+");                       // Return all operational attributes.
-
-  final LDIFEntryWriter writer = new LDIFEntryWriter(System.out);
-  writer.writeComment("Root DSE for LDAP server at " + host + ":" + port);
-  if (entry != null) writer.writeEntry(entry);
-  writer.flush();
-}</programlisting>
+  <programlisting language="java"
+  >[jcp:org.forgerock.opendj.examples.GetInfo:--- JCite ---]</programlisting>
 
   <para>For a complete example in context, see <link
   xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/xref/org/forgerock/opendj/examples/GetInfo.html"
