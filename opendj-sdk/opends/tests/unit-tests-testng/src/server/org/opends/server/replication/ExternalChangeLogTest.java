@@ -27,14 +27,6 @@
  */
 package org.opends.server.replication;
 
-import static org.opends.messages.ReplicationMessages.*;
-import static org.opends.server.TestCaseUtils.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.replication.protocol.OperationContext.*;
-import static org.opends.server.types.ResultCode.*;
-import static org.opends.server.util.StaticUtils.*;
-import static org.testng.Assert.*;
-
 import java.io.*;
 import java.net.Socket;
 import java.util.*;
@@ -69,7 +61,10 @@ import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.tools.LDAPSearch;
 import org.opends.server.tools.LDAPWriter;
 import org.opends.server.types.*;
-import org.opends.server.util.*;
+import org.opends.server.util.LDIFWriter;
+import org.opends.server.util.ServerConstants;
+import org.opends.server.util.StaticUtils;
+import org.opends.server.util.TimeThread;
 import org.opends.server.workflowelement.externalchangelog.ECLSearchOperation;
 import org.opends.server.workflowelement.externalchangelog.ECLWorkflowElement;
 import org.opends.server.workflowelement.localbackend.LocalBackendModifyDNOperation;
@@ -77,6 +72,15 @@ import org.testng.Assert;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
+
+import static org.assertj.core.api.Assertions.*;
+import static org.opends.messages.ReplicationMessages.*;
+import static org.opends.server.TestCaseUtils.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.replication.protocol.OperationContext.*;
+import static org.opends.server.types.ResultCode.*;
+import static org.opends.server.util.StaticUtils.*;
+import static org.testng.Assert.*;
 
 /**
  * Tests for the replicationServer code.
@@ -114,8 +118,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
    * When used in a search operation, it includes all attributes (user and
    * operational)
    */
-  private final Set<String> ALL_ATTRIBUTES = new LinkedHashSet<String>(Arrays
-      .asList("+", "*"));
+  private final Set<String> ALL_ATTRIBUTES = newSet("+", "*");
 
   /**
    * Set up the environment for performing the tests in this Class.
@@ -412,78 +415,51 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     String tn = "ECLRemoteEmpty";
     debugInfo(tn, "Starting test\n\n");
 
-    ReplicationBroker server1 = null;
-    ReplicationBroker server2 = null;
-    ReplicationBroker server3 = null;
+    ReplicationBroker[] brokers = new ReplicationBroker[3];
 
     try
     {
       // Create 3 ECL broker
-      server1 = openReplicationSession(
+      brokers[0] = openReplicationSession(
           DN.decode("cn=changelog"), 1111,
           100, replicationServerPort, brokerSessionTimeout, false);
-      assertTrue(server1.isConnected());
-      server2 = openReplicationSession(
+      assertTrue(brokers[0].isConnected());
+      brokers[1] = openReplicationSession(
           DN.decode("cn=changelog"), 2222,
           100, replicationServerPort,brokerSessionTimeout, false);
-      assertTrue(server2.isConnected());
-      server3 = openReplicationSession(
+      assertTrue(brokers[1].isConnected());
+      brokers[2] = openReplicationSession(
           DN.decode("cn=changelog"), 3333,
           100, replicationServerPort,brokerSessionTimeout, false);
-      assertTrue(server3.isConnected());
+      assertTrue(brokers[2].isConnected());
 
-      // Test broker1 receives only Done
-      ReplicationMsg msg;
-      int msgc=0;
-      do
-      {
-        msg = server1.receive();
-        msgc++;
-      }
-      while(!(msg instanceof DoneMsg));
-      assertTrue(msgc==1,
-          "Ending " + tn + " with incorrect message number :" +
-          msg.getClass().getCanonicalName());
-      assertTrue(msg instanceof DoneMsg,
-      "Ending " + tn + " with incorrect message type :" +
-      msg.getClass().getCanonicalName());
-
-      // Test broker2 receives only Done
-      msgc=0;
-      do
-      {
-        msg = server2.receive();
-        msgc++;
-      }
-      while(!(msg instanceof DoneMsg));
-      assertTrue(msgc==1,
-          "Ending " + tn + " with incorrect message number :" +
-          msg.getClass().getCanonicalName());
-      assertTrue(msg instanceof DoneMsg,
-      "Ending " + tn + " with incorrect message type :" +
-      msg.getClass().getCanonicalName());
-
-      // Test broker3 receives only Done
-      msgc=0;
-      do
-      {
-        msg = server3.receive();
-        msgc++;
-      }
-      while(!(msg instanceof DoneMsg));
-      assertTrue(msgc==1,
-          "Ending " + tn + " with incorrect message number :" +
-          msg.getClass().getCanonicalName());
-      assertTrue(msg instanceof DoneMsg,
-      "Ending " + tn + " with incorrect message type :" +
-      msg.getClass().getCanonicalName());
+      assertOnlyDoneMsgReceived(tn, brokers[0]);
+      assertOnlyDoneMsgReceived(tn, brokers[1]);
+      assertOnlyDoneMsgReceived(tn, brokers[2]);
       debugInfo(tn, "Ending test successfully\n\n");
     }
     finally
     {
-      stop(server2, server3, server1);
+      stop(brokers);
       replicationServer.clearDb();
     }
+  }
+
+  private void assertOnlyDoneMsgReceived(String tn, ReplicationBroker server)
+      throws Exception
+  {
+    ReplicationMsg msg;
+    int msgc = 0;
+    do
+    {
+      msg = server.receive();
+      msgc++;
+    }
+    while (!(msg instanceof DoneMsg));
+    final String className = msg.getClass().getCanonicalName();
+    assertEquals(msgc, 1, "Ending " + tn + " with incorrect message number :" + className);
+    assertTrue(msg instanceof DoneMsg,
+        "Ending " + tn + " with incorrect message type :" + className);
   }
 
   /**
@@ -680,8 +656,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       backend2 = initializeTestBackend(false, TEST_ROOT_DN_STRING2,
           TEST_BACKEND_ID2);
       backend2.setPrivateBackend(true);
-      SortedSet<String> replServers = new TreeSet<String>();
-      replServers.add("localhost:"+replicationServerPort);
+      SortedSet<String> replServers = newSet("localhost:" + replicationServerPort);
 
       DomainFakeCfg domainConf =
         new DomainFakeCfg(baseDn2,  1602, replServers);
@@ -703,26 +678,10 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
       // Expect root entry returned
       List<SearchResultEntry> entries = searchOp.getSearchEntries();
-      assertEquals(entries.size(),2, "Entries number returned by search");
-      assertTrue(entries != null);
-      if (entries != null)
-      {
-        for (SearchResultEntry resultEntry : entries)
-        {
-          // Expect
-          debugInfo(tn, "Entry returned when test2 is public =" +
-              resultEntry.toLDIFString());
+      assertThat(entries).hasSize(2);
+      debugAndWriteEntries(null, entries, tn);
 
-          // Test entry attributes
-          //if (i==2)
-          //{
-          //  checkPossibleValues(resultEntry,"targetobjectclass","top","organization");
-          //}
-        }
-      }
-
-      eclCfg =
-        new ExternalChangelogDomainFakeCfg(false, null, null);
+      eclCfg = new ExternalChangelogDomainFakeCfg(false, null, null);
       domainConf.setExternalChangelogDomain(eclCfg);
       domain2.applyConfigurationChange(domainConf);
 
@@ -730,16 +689,9 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
       // Expect only entry from o=test returned
       entries = searchOp.getSearchEntries();
-      assertTrue(entries != null, "Entries returned when test2 is ECL disabled.");
-      assertTrue(entries.size()==1, "#Entry="+entries.size()+"when expected is 1");
-      if (entries != null)
-      {
-        for (SearchResultEntry resultEntry : entries)
-        {
-          debugInfo(tn, "Entry returned when test2 is private ="
-              + resultEntry.toLDIFString());
-        }
-      }
+      assertThat(entries).hasSize(1);
+      entries.get(0);
+      debugAndWriteEntries(null, entries, tn);
 
       // Test lastExternalChangelogCookie attribute of the ECL
       // (does only refer to non private backend)
@@ -751,7 +703,6 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       assertTrue(expectedLastCookie.equalsTo(new MultiDomainServerState(lastCookie)),
           " Expected last cookie attribute value:" + expectedLastCookie +
           " Read from server: " + lastCookie + " are equal :");
-
     }
     finally
     {
@@ -833,31 +784,25 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
       cookie="";
       List<SearchResultEntry> entries = searchOp.getSearchEntries();
-      if (entries != null)
+      assertThat(entries).hasSize(4);
+      debugAndWriteEntries(ldifWriter, entries, tn);
+      int i = 0;
+      for (SearchResultEntry entry : entries)
       {
-        int i=0;
-        for (SearchResultEntry entry : entries)
+        if (i++ == 2)
         {
-          debugInfo(tn, " RESULT entry returned:" + entry.toSingleLineString());
-          ldifWriter.writeEntry(entry);
-          if (i++==2)
-          {
-            // Store the cookie returned with the 3rd ECL entry returned to use
-            // it in the test below.
-            cookie =
-              entry.getAttribute("changelogcookie").get(0).iterator().next().toString();
-          }
+          // Store the cookie returned with the 3rd ECL entry returned to use
+          // it in the test below.
+          cookie = entry.getAttribute("changelogcookie").get(0).iterator().next().toString();
         }
       }
-      assertEquals(searchOp.getSearchEntries().size(), 4);
 
       // Now start from last cookie and expect to get ONLY the 4th change
       searchOp = searchOnCookieChangelog("(targetDN=*" + tn + "*)", cookie, tn, SUCCESS);
 
       // We expect the 4th change
       cookie = "";
-      cookie = getCookie(tn, ldifWriter, cookie, searchOp.getSearchEntries());
-      assertEquals(searchOp.getSearchEntries().size(), 1);
+      cookie = getCookie(searchOp.getSearchEntries(), 1, tn, ldifWriter, cookie);
 
       // Now publishes a new change and search from the previous cookie
       ChangeNumber cn5 = new ChangeNumber(time++, ts++, s1test.getServerId());
@@ -870,14 +815,12 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       // o=test2      msg3        msg2
 
       searchOp = searchOnCookieChangelog("(targetDN=*" + tn + "*)", cookie, tn, SUCCESS);
-      cookie = getCookie(tn, ldifWriter, cookie, searchOp.getSearchEntries());
-      assertEquals(searchOp.getSearchEntries().size(), 1);
+      cookie = getCookie(searchOp.getSearchEntries(), 1, tn, ldifWriter, cookie);
 
       cookie="";
       searchOp = searchOnCookieChangelog("(targetDN=*" + tn + "*,o=test)", cookie, tn, SUCCESS);
-      cookie = getCookie(tn, ldifWriter, cookie, searchOp.getSearchEntries());
       // we expect msg1 + msg4 + msg5
-      assertEquals(searchOp.getSearchEntries().size(), 3);
+      cookie = getCookie(searchOp.getSearchEntries(), 3, tn, ldifWriter, cookie);
 
       // Test startState ("first cookie") of the ECL
       // --
@@ -909,15 +852,14 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       ReplicationServerDomain rsd =
         replicationServer.getReplicationServerDomain(TEST_ROOT_DN_STRING, false);
       ServerState startState = rsd.getStartState();
-      assertTrue(startState.getChangeNumber(s1test.getServerId()).getSeqnum()==1);
+      assertEquals(startState.getChangeNumber(s1test.getServerId()).getSeqnum(), 1);
       assertTrue(startState.getChangeNumber(s2test.getServerId()) != null);
-      assertTrue(startState.getChangeNumber(s2test.getServerId()).getSeqnum()==7);
+      assertEquals(startState.getChangeNumber(s2test.getServerId()).getSeqnum(), 7);
 
-      rsd =
-        replicationServer.getReplicationServerDomain(TEST_ROOT_DN_STRING2, false);
+      rsd = replicationServer.getReplicationServerDomain(TEST_ROOT_DN_STRING2, false);
       startState = rsd.getStartState();
-      assertTrue(startState.getChangeNumber(s2test2.getServerId()).getSeqnum()==2);
-      assertTrue(startState.getChangeNumber(s1test2.getServerId()).getSeqnum()==6);
+      assertEquals(startState.getChangeNumber(s2test2.getServerId()).getSeqnum(), 2);
+      assertEquals(startState.getChangeNumber(s1test2.getServerId()).getSeqnum(), 6);
 
       // Test lastExternalChangelogCookie attribute of the ECL
       MultiDomainServerState expectedLastCookie =
@@ -932,8 +874,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       // Test invalid cookie
       cookie += ";o=test6:";
       debugInfo(tn, "Search with bad domain in cookie=" + cookie);
-      searchOp =
-          searchOnCookieChangelog("(targetDN=*" + tn + "*,o=test)", cookie, tn,
+      searchOp = searchOnCookieChangelog("(targetDN=*" + tn + "*,o=test)", cookie, tn,
               PROTOCOL_ERROR);
       assertEquals(searchOp.getSearchEntries().size(), 0);
       assertTrue(searchOp.getErrorMessage().toString().equals(
@@ -946,16 +887,14 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       // let's do a very quick test here.
       String newCookie = lastCookie + "o=test6:";
       debugInfo(tn, "Search with bad domain in cookie=" + cookie);
-      searchOp =
-          searchOnCookieChangelog("(targetDN=*" + tn + "*,o=test)", newCookie,
+      searchOp = searchOnCookieChangelog("(targetDN=*" + tn + "*,o=test)", newCookie,
               tn, UNWILLING_TO_PERFORM);
       assertEquals(searchOp.getSearchEntries().size(), 0);
 
       // Test missing domain in provided cookie
       newCookie = lastCookie.substring(lastCookie.indexOf(';')+1);
       debugInfo(tn, "Search with bad domain in cookie=" + cookie);
-      searchOp =
-          searchOnCookieChangelog("(targetDN=*" + tn + "*,o=test)", newCookie,
+      searchOp = searchOnCookieChangelog("(targetDN=*" + tn + "*,o=test)", newCookie,
               tn, UNWILLING_TO_PERFORM);
       assertEquals(searchOp.getSearchEntries().size(), 0);
       String expectedError = ERR_RESYNC_REQUIRED_MISSING_DOMAIN_IN_PROVIDED_COOKIE
@@ -972,24 +911,23 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     debugInfo(tn, "Ending test successfully");
   }
 
-  private String getCookie(String tn, LDIFWriter ldifWriter, String cookie,
-      List<SearchResultEntry> entries) throws Exception
+  private String getCookie(List<SearchResultEntry> entries,
+      int expectedNbEntries, String tn, LDIFWriter ldifWriter, String cookie)
+      throws Exception
   {
-    if (entries != null)
+    assertThat(entries).hasSize(expectedNbEntries);
+    debugAndWriteEntries(ldifWriter, entries, tn);
+
+    for (SearchResultEntry entry : entries)
     {
-      for (SearchResultEntry entry : entries)
+      try
       {
-        debugInfo(tn, "Result entry=\n" + entry.toLDIFString());
-        ldifWriter.writeEntry(entry);
-        try
-        {
-          // Store the cookie returned with the 4rd ECL entry returned to use
-          // it in the test below.
-          cookie =
-            entry.getAttribute("changelogcookie").get(0).iterator().next().toString();
-        }
-        catch(NullPointerException e)
-        {}
+        // Store the cookie returned with the 4rd ECL entry returned to use
+        // it in the test below.
+        cookie = entry.getAttribute("changelogcookie").get(0).iterator().next().toString();
+      }
+      catch (NullPointerException e)
+      {
       }
     }
     return cookie;
@@ -1074,11 +1012,9 @@ public class ExternalChangeLogTest extends ReplicationTestCase
           DN.decode(TEST_ROOT_DN_STRING),  1201,
           100, replicationServerPort,
           brokerSessionTimeout, true);
-      int ts = 1;
 
-
-      ChangeNumber cn1 = new ChangeNumber(TimeThread.getTime(), ts++, 1201);
-      publishDeleteMsgInOTest(server01, cn1, tn, 1);
+      final ChangeNumber[] cns = generateChangeNumbers(4, 1201);
+      publishDeleteMsgInOTest(server01, cns[0], tn, 1);
 
       Thread.sleep(1000);
 
@@ -1086,11 +1022,8 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       String cookieNotEmpty = readLastCookie();
       debugInfo(tn, "Store cookie not empty=\"" + cookieNotEmpty + "\"");
 
-      cn1 = new ChangeNumber(TimeThread.getTime(), ts++, 1201);
-      publishDeleteMsgInOTest(server01, cn1, tn, 2);
-
-      cn1 = new ChangeNumber(TimeThread.getTime(), ts++, 1201);
-      publishDeleteMsgInOTest(server01, cn1, tn, 3);
+      publishDeleteMsgInOTest(server01, cns[1], tn, 2);
+      publishDeleteMsgInOTest(server01, cns[2], tn, 3);
 
       // Sleep longer than this delay - the changelog will be trimmed
       Thread.sleep(1000);
@@ -1114,17 +1047,9 @@ public class ExternalChangeLogTest extends ReplicationTestCase
           searchOnCookieChangelog("(targetDN=*)", cookie, tn, SUCCESS);
 
       List<SearchResultEntry> entries = searchOp.getSearchEntries();
-      if (entries != null)
-      {
-        for (SearchResultEntry entry : entries)
-        {
-          debugInfo(tn, " RESULT entry returned:" + entry.toSingleLineString());
-          ldifWriter.writeEntry(entry);
-        }
-      }
-
       // Assert ECL is empty since replication changelog has been trimmed
-      assertEquals(searchOp.getSearchEntries().size(), 0);
+      assertThat(entries).hasSize(0);
+      debugAndWriteEntries(ldifWriter, entries, tn);
 
       // 4. Assert that a request with the current last cookie returns nothing
       cookie = readLastCookie();
@@ -1132,35 +1057,24 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       searchOp = searchOnCookieChangelog("(targetDN=*)", cookie, tn, SUCCESS);
 
       entries = searchOp.getSearchEntries();
-      if (entries != null)
-      {
-        for (SearchResultEntry entry : entries)
-        {
-          debugInfo(tn, " RESULT entry returned:" + entry.toSingleLineString());
-          ldifWriter.writeEntry(entry);
-        }
-      }
-
       // Assert ECL is empty since replication changelog has been trimmed
-      assertEquals(searchOp.getSearchEntries().size(), 0);
+      assertThat(entries).hasSize(0);
+      debugAndWriteEntries(ldifWriter, entries, tn);
+
 
       // ---
       // 5. Assert that a request with an "old" cookie - one that refers to
       //    changes that have been removed by the replication changelog trimming
       //    returns the appropriate error.
-
-      cn1 = new ChangeNumber(TimeThread.getTime(), ts++, 1201);
-      publishDeleteMsgInOTest(server01, cn1, tn, 1);
+      publishDeleteMsgInOTest(server01, cns[3], tn, 1);
 
       debugInfo(tn, "d1 trimdate" + d1.getStartState());
       debugInfo(tn, "d2 trimdate" + d2.getStartState());
       searchOp = searchOnCookieChangelog("(targetDN=*)", cookieNotEmpty, tn, UNWILLING_TO_PERFORM);
       assertEquals(searchOp.getSearchEntries().size(), 0);
       assertTrue(searchOp.getErrorMessage().toString().startsWith(
-          ERR_RESYNC_REQUIRED_TOO_OLD_DOMAIN_IN_PROVIDED_COOKIE.get("o=test")
-	  .toString()),
+          ERR_RESYNC_REQUIRED_TOO_OLD_DOMAIN_IN_PROVIDED_COOKIE.get("o=test").toString()),
           searchOp.getErrorMessage().toString());
-
     }
     finally
     {
@@ -1180,29 +1094,44 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     debugInfo(tn, "Ending test successfully");
   }
 
+  private void debugAndWriteEntries(LDIFWriter ldifWriter,
+      List<SearchResultEntry> entries, String tn) throws Exception
+  {
+    if (entries != null)
+    {
+      for (SearchResultEntry entry : entries)
+      {
+        // Can use entry.toSingleLineString()
+        debugInfo(tn, " RESULT entry returned:" + entry.toLDIFString());
+        if (ldifWriter != null)
+        {
+          ldifWriter.writeEntry(entry);
+        }
+      }
+    }
+  }
+
   private String readLastCookie() throws Exception
   {
     String cookie = "";
     LDIFWriter ldifWriter = getLDIFWriter();
 
-    Set<String> lastcookieattribute = new LinkedHashSet<String>();
-    lastcookieattribute.add("lastExternalChangelogCookie");
+    Set<String> lastcookieattribute = newSet("lastExternalChangelogCookie");
 
+    InternalSearchOperation searchOp = searchOnRootDSE(lastcookieattribute);
+    List<SearchResultEntry> entries = searchOp.getSearchEntries();
+    if (entries != null)
     {
-      InternalSearchOperation searchOp = searchOnRootDSE(lastcookieattribute);
-      List<SearchResultEntry> entries = searchOp.getSearchEntries();
-      if (entries != null)
+      for (SearchResultEntry resultEntry : entries)
       {
-        for (SearchResultEntry resultEntry : entries)
+        ldifWriter.writeEntry(resultEntry);
+        try
         {
-          ldifWriter.writeEntry(resultEntry);
-          try
-          {
-            List<Attribute> l = resultEntry.getAttribute("lastexternalchangelogcookie");
-            cookie = l.get(0).iterator().next().toString();
-          }
-          catch(NullPointerException e)
-          {}
+          List<Attribute> l = resultEntry.getAttribute("lastexternalchangelogcookie");
+          cookie = l.get(0).iterator().next().toString();
+        }
+        catch (NullPointerException e)
+        {
         }
       }
     }
@@ -1223,7 +1152,6 @@ public class ExternalChangeLogTest extends ReplicationTestCase
           DN.decode(TEST_ROOT_DN_STRING),  1201,
           100, replicationServerPort,
           brokerSessionTimeout, true);
-      int ts = 1;
 
       // Creates broker on o=test2
       ReplicationBroker server02 = openReplicationSession(
@@ -1234,19 +1162,20 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       String user1entryUUID = "11111111-1111-1111-1111-111111111111";
       String baseUUID       = "22222222-2222-2222-2222-222222222222";
 
+      ChangeNumber[] cns = generateChangeNumbers(4, 1201);
 
       // Publish DEL
-      ChangeNumber cn1 = new ChangeNumber(TimeThread.getTime(), ts++, 1201);
-      publishDeleteMsgInOTest(server01, cn1, tn, 1);
+      int cnCounter = 0;
+      publishDeleteMsgInOTest(server01, cns[cnCounter], tn, cnCounter + 1);
 
       // Publish ADD
-      ChangeNumber cn2 = new ChangeNumber(TimeThread.getTime(), ts++, 1201);
+      cnCounter++;
       String lentry = "dn: uid="+tn+"2," + TEST_ROOT_DN_STRING + "\n"
           + "objectClass: top\n" + "objectClass: domain\n"
           + "entryUUID: "+user1entryUUID+"\n";
       Entry entry = TestCaseUtils.entryFromLdifString(lentry);
       AddMsg addMsg = new AddMsg(
-          cn2,
+          cns[cnCounter],
           "uid="+tn+"2," + TEST_ROOT_DN_STRING,
           user1entryUUID,
           baseUUID,
@@ -1256,32 +1185,24 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       server01.publish(addMsg);
       debugInfo(tn, " publishes " + addMsg.getChangeNumber());
 
-      // Publish DEL
-      /*
-      ChangeNumber cn12 = new ChangeNumber(TimeThread.getTime(), ts++, 1202);
-      DeleteMsg delMsg2 =
-        new DeleteMsg("uid="+tn+"12," + TEST_ROOT_DN_STRING2, cn12, tn+"uuid12");
-      server02.publish(delMsg2);
-      debugInfo(tn, " publishes " + delMsg2.getChangeNumber());
-      */
-
       // Publish MOD
-      ChangeNumber cn3 = new ChangeNumber(TimeThread.getTime(), ts++, 1201);
+      cnCounter++;
+      DN baseDN = DN.decode("uid=" + tn + "3," + TEST_ROOT_DN_STRING);
       List<Modification> mods = createMods("description", "new value");
-      ModifyMsg modMsg = new ModifyMsg(cn3, DN
-          .decode("uid="+tn+"3," + TEST_ROOT_DN_STRING), mods, tn+"uuid3");
+      ModifyMsg modMsg = new ModifyMsg(cns[cnCounter], baseDN, mods, tn + "uuid3");
       server01.publish(modMsg);
       debugInfo(tn, " publishes " + modMsg.getChangeNumber());
 
       // Publish modDN
-      DN newSuperior = DN.decode(TEST_ROOT_DN_STRING2);
-      ChangeNumber cn4 = new ChangeNumber(TimeThread.getTime(), ts++, 1201);
+      cnCounter++;
+      final DN newSuperior = DN.decode(TEST_ROOT_DN_STRING2);
       ModifyDNOperation op = new ModifyDNOperationBasis(connection, 1, 1, null,
           DN.decode("uid="+tn+"4," + TEST_ROOT_DN_STRING), // entryDN
           RDN.decode("uid="+tn+"new4"), // new rdn
           true,  // deleteoldrdn
           newSuperior);
-      op.setAttachment(SYNCHROCONTEXT, new ModifyDnContext(cn4, tn+"uuid4", "newparentId"));
+      op.setAttachment(SYNCHROCONTEXT, new ModifyDnContext(cns[cnCounter],
+          tn + "uuid4", "newparentId"));
       LocalBackendModifyDNOperation localOp = new LocalBackendModifyDNOperation(op);
       ModifyDNMsg modDNMsg = new ModifyDNMsg(localOp);
       server01.publish(modDNMsg);
@@ -1293,75 +1214,53 @@ public class ExternalChangeLogTest extends ReplicationTestCase
           searchOnCookieChangelog("(targetdn=*" + tn + "*,o=test)", cookie, tn, SUCCESS);
 
       // test 4 entries returned
-      String cookie1 = "o=test:" + cn1 + ";";
-      String cookie2 = "o=test:" + cn2 + ";";
-      String cookie3 = "o=test:" + cn3 + ";";
-      String cookie4 = "o=test:" + cn4 + ";";
+      final String[] cookies = new String[4];
+      for (int j = 0; j < cookies.length; j++)
+      {
+        cookies[j] = "o=test:" + cns[j] + ";";
+      }
 
       assertEquals(searchOp.getSearchEntries().size(), 4);
       List<SearchResultEntry> entries = searchOp.getSearchEntries();
+      debugAndWriteEntries(ldifWriter, entries, tn);
+
       if (entries != null)
       {
         int i=0;
         for (SearchResultEntry resultEntry : entries)
         {
           i++;
-          debugInfo(tn, "Result entry returned:" + resultEntry.toLDIFString());
-          ldifWriter.writeEntry(resultEntry);
+          checkDn(cns[i - 1], resultEntry);
+          checkValue(resultEntry, "targetdn", "uid=" + tn + i + "," + TEST_ROOT_DN_STRING);
+          checkValue(resultEntry, "replicationcsn", cns[i - 1].toString());
+          checkValue(resultEntry, "replicaidentifier", "1201");
+          checkValue(resultEntry, "changelogcookie", cookies[i - 1]);
+          checkValue(resultEntry, "changenumber", "0");
+
           if (i==1)
           {
-            // check the DEL entry has the right content
-            assertTrue(resultEntry.getDN().toNormalizedString().equalsIgnoreCase(
-                "replicationcsn=" + cn1 + "," + TEST_ROOT_DN_STRING + ",cn=changelog"));
-            checkValue(resultEntry,"replicationcsn",cn1.toString());
-            checkValue(resultEntry,"replicaidentifier","1201");
-            checkValue(resultEntry,"targetdn","uid="+tn+"1," + TEST_ROOT_DN_STRING);
-            checkValue(resultEntry,"changetype","delete");
-            checkValue(resultEntry,"changelogcookie",cookie1);
+            checkValue(resultEntry, "changetype", "delete");
             checkValue(resultEntry,"targetentryuuid",tn+"uuid1");
-            checkValue(resultEntry,"changenumber","0");
           } else if (i==2)
           {
-            // check the ADD entry has the right content
-            assertTrue(resultEntry.getDN().toNormalizedString().equalsIgnoreCase(
-                "replicationcsn=" + cn2 + "," + TEST_ROOT_DN_STRING + ",cn=changelog"));
-            String expectedValue1 = "objectClass: domain\nobjectClass: top\n" +
-            "entryUUID: 11111111-1111-1111-1111-111111111111\n";
-            String expectedValue2 = "entryUUID: 11111111-1111-1111-1111-111111111111\n" +
-            "objectClass: domain\nobjectClass: top\n";
+            checkValue(resultEntry, "changetype", "add");
+            String expectedValue1 = "objectClass: domain\nobjectClass: top\n"
+                + "entryUUID: 11111111-1111-1111-1111-111111111111\n";
+            String expectedValue2 = "entryUUID: 11111111-1111-1111-1111-111111111111\n"
+                + "objectClass: domain\nobjectClass: top\n";
             checkPossibleValues(resultEntry,"changes",expectedValue1, expectedValue2);
-            checkValue(resultEntry,"replicationcsn",cn2.toString());
-            checkValue(resultEntry,"replicaidentifier","1201");
-            checkValue(resultEntry,"targetdn","uid="+tn+"2," + TEST_ROOT_DN_STRING);
-            checkValue(resultEntry,"changetype","add");
-            checkValue(resultEntry,"changelogcookie",cookie2);
             checkValue(resultEntry,"targetentryuuid",user1entryUUID);
-            checkValue(resultEntry,"changenumber","0");
           } else if (i==3)
           {
             // check the MOD entry has the right content
-            assertTrue(resultEntry.getDN().toNormalizedString().equalsIgnoreCase(
-                "replicationcsn=" + cn3 + "," + TEST_ROOT_DN_STRING + ",cn=changelog"));
-            String expectedValue = "replace: description\n" +
-            "description: new value\n-\n";
+            checkValue(resultEntry, "changetype", "modify");
+            String expectedValue =
+                "replace: description\n" + "description: new value\n-\n";
             checkValue(resultEntry,"changes",expectedValue);
-            checkValue(resultEntry,"replicationcsn",cn3.toString());
-            checkValue(resultEntry,"replicaidentifier","1201");
-            checkValue(resultEntry,"targetdn","uid="+tn+"3," + TEST_ROOT_DN_STRING);
-            checkValue(resultEntry,"changetype","modify");
-            checkValue(resultEntry,"changelogcookie",cookie3);
             checkValue(resultEntry,"targetentryuuid",tn+"uuid3");
-            checkValue(resultEntry,"changenumber","0");
           } else if (i==4)
           {
-            // check the MODDN entry has the right content
-            assertTrue(resultEntry.getDN().toNormalizedString().equalsIgnoreCase(
-                "replicationcsn=" + cn4 + "," + TEST_ROOT_DN_STRING + ",cn=changelog"));
-            checkValue(resultEntry,"replicationcsn",cn4.toString());
-            checkValue(resultEntry,"replicaidentifier","1201");
-            checkValue(resultEntry,"targetdn","uid="+tn+"4," + TEST_ROOT_DN_STRING);
             checkValue(resultEntry,"changetype","modrdn");
-            checkValue(resultEntry,"changelogcookie",cookie4);
             checkValue(resultEntry,"targetentryuuid",tn+"uuid4");
             checkValue(resultEntry,"newrdn","uid=ECLAllOpsnew4");
             if (newSuperior != null)
@@ -1369,7 +1268,6 @@ public class ExternalChangeLogTest extends ReplicationTestCase
               checkValue(resultEntry, "newsuperior", TEST_ROOT_DN_STRING2);
             }
             checkValue(resultEntry,"deleteoldrdn","true");
-            checkValue(resultEntry,"changenumber","0");
           }
         }
       }
@@ -1379,14 +1277,32 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       debugInfo(tn, "Entries:" + result);
 
       List<String> ctrlList = getControls(result);
-      assertTrue(ctrlList.get(0).equals(cookie1));
-      assertTrue(ctrlList.get(1).equals(cookie2));
-      assertTrue(ctrlList.get(2).equals(cookie3));
-      assertTrue(ctrlList.get(3).equals(cookie4));
+      assertThat(ctrlList).containsExactly(cookies);
 
       stop(server01, server02);
     }
     debugInfo(tn, "Ending test with success");
+  }
+
+  private ChangeNumber[] generateChangeNumbers(int nb, int serverId)
+  {
+    long startTime = TimeThread.getTime();
+
+    ChangeNumber[] cns = new ChangeNumber[nb];
+    for (int i = 0; i < nb; i++)
+    {
+      // seqNum must be greater than 0, so start at 1
+      cns[i] = new ChangeNumber(startTime + i, i + 1, serverId);
+    }
+    return cns;
+  }
+
+  private void checkDn(ChangeNumber cn, SearchResultEntry resultEntry)
+  {
+    String actualDN = resultEntry.getDN().toNormalizedString();
+    String expectedDN =
+        "replicationcsn=" + cn + "," + TEST_ROOT_DN_STRING + ",cn=changelog";
+    assertThat(actualDN).isEqualToIgnoringCase(expectedDN);
   }
 
   protected List<String> getControls(String resultString)
@@ -1510,26 +1426,15 @@ public class ExternalChangeLogTest extends ReplicationTestCase
   private static void checkValues(Entry entry, String attrName,
       Set<String> expectedValues)
   {
-    int i=0;
-    try
+    for (Attribute a : entry.getAttribute(attrName))
     {
-      List<Attribute> attrs = entry.getAttribute(attrName);
-      for (Attribute a : attrs)
+      for (AttributeValue av : a)
       {
-        for (AttributeValue av : a)
-        {
-          String encodedValue = av.toString();
-          assertTrue(
-              expectedValues.contains(encodedValue),
-              "In entry " + entry + " attr <" + attrName + "> equals " +
-              av + " instead of one of the expected values " + expectedValues);
-          i++;
-        }
+        String encodedValue = av.toString();
+        assertTrue(expectedValues.contains(encodedValue), "In entry " + entry
+            + " attr <" + attrName + "> equals " + av
+            + " instead of one of the expected values " + expectedValues);
       }
-    }
-    catch(NoSuchElementException e)
-    {
-      assertTrue(i==expectedValues.size());
     }
   }
 
@@ -1562,12 +1467,12 @@ public class ExternalChangeLogTest extends ReplicationTestCase
           DN.decode(TEST_ROOT_DN_STRING),  1201,
           100, replicationServerPort,
           brokerSessionTimeout, true);
-      int ts = 1;
+
+      ChangeNumber[] cns = generateChangeNumbers(2, 1201);
 
       // Produce update on this suffix
-      ChangeNumber cn = new ChangeNumber(TimeThread.getTime(), ts++, 1201);
       DeleteMsg delMsg =
-        new DeleteMsg("uid=" + tn + "1," + TEST_ROOT_DN_STRING, cn,
+          new DeleteMsg("uid=" + tn + "1," + TEST_ROOT_DN_STRING, cns[0],
             "11111111-1112-1113-1114-111111111114");
       debugInfo(tn, " publishing " + delMsg.getChangeNumber());
       server01.publish(delMsg);
@@ -1677,7 +1582,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       }
 
       // Produces change 2
-      cn = new ChangeNumber(TimeThread.getTime(), ts++, 1201);
+      final ChangeNumber cn = cns[1];
       String expectedDn = "uid=" + tn + "2," +  TEST_ROOT_DN_STRING;
       delMsg = new DeleteMsg(expectedDn, cn,
          "11111111-1112-1113-1114-111111111115");
@@ -1799,7 +1704,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
           }
         }
         // search should end with success
-        assertTrue(searchesDone==1);
+        assertEquals(searchesDone, 1);
         // but returning no entry
         assertEquals(searchEntries,0, "Bad search entry# in ACI test of " + tn);
       }
@@ -2521,24 +2426,20 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     String tn = "ECLCompatEmpty";
     debugInfo(tn, "Starting test\n\n");
 
-    {
-      // search on 'cn=changelog'
-      String filter = "(objectclass=*)";
-      debugInfo(tn, " Search: " + filter);
-      InternalSearchOperation op = connection.processSearch(
-          ByteString.valueOf("cn=changelog"),
-          SearchScope.WHOLE_SUBTREE,
-          LDAPFilter.decode(filter));
+    // search on 'cn=changelog'
+    String filter = "(objectclass=*)";
+    debugInfo(tn, " Search: " + filter);
+    InternalSearchOperation op = connection.processSearch(
+        ByteString.valueOf("cn=changelog"),
+        SearchScope.WHOLE_SUBTREE,
+        LDAPFilter.decode(filter));
 
-      // success
-      assertEquals(
-          op.getResultCode(), ResultCode.SUCCESS,
-          op.getErrorMessage().toString());
+    // success
+    assertEquals(op.getResultCode(), ResultCode.SUCCESS, op.getErrorMessage().toString());
 
-      // root entry returned
-      assertEquals(op.getEntriesSent(), 1);
-      debugInfo(tn, "Ending test successfully");
-    }
+    // root entry returned
+    assertEquals(op.getEntriesSent(), 1);
+    debugInfo(tn, "Ending test successfully");
   }
 
   private int ECLCompatWriteReadAllOps(int firstDraftChangeNumber)
@@ -2546,7 +2447,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
   {
     String tn = "ECLCompatWriteReadAllOps/" + firstDraftChangeNumber;
     debugInfo(tn, "Starting test\n\n");
-    int ts = 1;
+    final int nbChanges = 4;
 
     {
       LDIFWriter ldifWriter = getLDIFWriter();
@@ -2560,17 +2461,17 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       String user1entryUUID = "11111111-1112-1113-1114-111111111115";
       String baseUUID       = "22222222-2222-2222-2222-222222222222";
 
+      ChangeNumber[] cns = generateChangeNumbers(nbChanges, 1201);
+      gblCN = cns[1];
 
       // Publish DEL
-      ChangeNumber cn1 = new ChangeNumber(TimeThread.getTime(), ts++, 1201);
       DeleteMsg delMsg =
-        new DeleteMsg("uid="+tn+"1," + TEST_ROOT_DN_STRING, cn1,
+          new DeleteMsg("uid=" + tn + "1," + TEST_ROOT_DN_STRING, cns[0],
             user1entryUUID);
       server01.publish(delMsg);
       debugInfo(tn, " publishes " + delMsg.getChangeNumber());
 
       // Publish ADD
-      gblCN = new ChangeNumber(TimeThread.getTime(), ts++, 1201);
       String lentry =
           "dn: uid="+tn+"2," + TEST_ROOT_DN_STRING + "\n"
           + "objectClass: top\n"
@@ -2589,21 +2490,19 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       debugInfo(tn, " publishes " + addMsg.getChangeNumber());
 
       // Publish MOD
-      ChangeNumber cn3 = new ChangeNumber(TimeThread.getTime(), ts++, 1201);
+      DN baseDN = DN.decode("uid="+tn+"3," + TEST_ROOT_DN_STRING);
       List<Modification> mods = createMods("description", "new value");
-      ModifyMsg modMsg = new ModifyMsg(cn3, DN
-          .decode("uid="+tn+"3," + TEST_ROOT_DN_STRING), mods, user1entryUUID);
+      ModifyMsg modMsg = new ModifyMsg(cns[2], baseDN, mods, user1entryUUID);
       server01.publish(modMsg);
       debugInfo(tn, " publishes " + modMsg.getChangeNumber());
 
       // Publish modDN
-      ChangeNumber cn4 = new ChangeNumber(TimeThread.getTime(), ts++, 1201);
       ModifyDNOperation op = new ModifyDNOperationBasis(connection, 1, 1, null,
           DN.decode("uid="+tn+"4," + TEST_ROOT_DN_STRING), // entryDN
           RDN.decode("uid="+tn+"new4"), // new rdn
           true,  // deleteoldrdn
           DN.decode(TEST_ROOT_DN_STRING2)); // new superior
-      op.setAttachment(SYNCHROCONTEXT, new ModifyDnContext(cn4, user1entryUUID, "newparentId"));
+      op.setAttachment(SYNCHROCONTEXT, new ModifyDnContext(cns[3], user1entryUUID, "newparentId"));
       LocalBackendModifyDNOperation localOp = new LocalBackendModifyDNOperation(op);
       ModifyDNMsg modDNMsg = new ModifyDNMsg(localOp);
       server01.publish(modDNMsg);
@@ -2614,114 +2513,85 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       InternalSearchOperation searchOp = searchOnChangelog(filter, tn, SUCCESS);
 
       // test 4 entries returned
-      List<SearchResultEntry> entries = searchOp.getSearchEntries();
-      // 4 entries expected
-      assertEquals(searchOp.getSearchEntries().size(), 4);
-      if (entries != null)
-      {
-        assertEntries(firstDraftChangeNumber, tn, ldifWriter, user1entryUUID,
-            cn1, cn3, cn4, entries);
-      }
+      assertEntries(searchOp.getSearchEntries(), firstDraftChangeNumber, tn,
+          ldifWriter, user1entryUUID, cns[0], gblCN, cns[2], cns[3]);
       server01.stop();
 
       // Test with filter on draft changenumber
       filter = "(&(targetdn=*"+tn.toLowerCase()+"*,o=test)(&(changenumber>="+
-      firstDraftChangeNumber+")(changenumber<="+(firstDraftChangeNumber+3)+")))";
+          firstDraftChangeNumber+")(changenumber<="+(firstDraftChangeNumber+3)+")))";
       searchOp = searchOnChangelog(filter, tn, SUCCESS);
 
-      entries = searchOp.getSearchEntries();
-
-      if (entries != null)
-      {
-        assertEntries(firstDraftChangeNumber, tn, ldifWriter, user1entryUUID,
-            cn1, cn3, cn4, entries);
-      }
-      assertEquals(searchOp.getSearchEntries().size(), 4);
+      assertEntries(searchOp.getSearchEntries(), firstDraftChangeNumber, tn,
+          ldifWriter, user1entryUUID, cns[0], gblCN, cns[2], cns[3]);
+      assertEquals(searchOp.getSearchEntries().size(), nbChanges);
     }
     debugInfo(tn, "Ending test with success");
-    return ts;
+    return nbChanges;
   }
 
-  private void assertEntries(int firstDraftChangeNumber, String tn,
-      LDIFWriter ldifWriter, String user1entryUUID, ChangeNumber cn1,
-      ChangeNumber cn3, ChangeNumber cn4, List<SearchResultEntry> entries)
-      throws IOException, LDIFException
+  private void assertEntries(List<SearchResultEntry> entries,
+      int firstDraftChangeNumber, String tn, LDIFWriter ldifWriter,
+      String user1entryUUID, ChangeNumber... cns) throws Exception
   {
+    debugAndWriteEntries(ldifWriter, entries, tn);
+    assertEquals(entries.size(), 4);
+
     int i=0;
     for (SearchResultEntry resultEntry : entries)
     {
       i++;
-      debugInfo(tn, "Result entry returned:" + resultEntry.toLDIFString());
-      ldifWriter.writeEntry(resultEntry);
+
+      assertDnEquals(resultEntry, firstDraftChangeNumber, i - 1);
+      checkValue(resultEntry, "changenumber", String.valueOf(firstDraftChangeNumber + i - 1));
+      checkValue(resultEntry, "targetentryuuid", user1entryUUID);
+      checkValue(resultEntry, "replicaidentifier", "1201");
+      final ChangeNumber cn = cns[i - 1];
+      checkValue(resultEntry, "replicationcsn", cn.toString());
+      checkValue(resultEntry, "changelogcookie", "o=test:" + cn + ";");
+      checkValue(resultEntry, "targetdn", "uid=" + tn + i + "," + TEST_ROOT_DN_STRING);
+
       if (i==1)
       {
         // check the DEL entry has the right content
-        assertTrue(resultEntry.getDN().toNormalizedString().equalsIgnoreCase(
-            "changenumber="+String.valueOf(firstDraftChangeNumber+0)+",cn=changelog"),
-            "Result entry DN : actual=" + resultEntry.getDN().toNormalizedString() +
-            " expected=" + "changenumber="+String.valueOf(firstDraftChangeNumber+0)+",cn=changelog");
-        checkValue(resultEntry,"replicationcsn",cn1.toString());
-        checkValue(resultEntry,"replicaidentifier","1201");
-        checkValue(resultEntry,"targetdn","uid="+tn+"1," + TEST_ROOT_DN_STRING);
         checkValue(resultEntry,"changetype","delete");
-        checkValue(resultEntry, "changelogcookie", "o=test:" + cn1 + ";");
-        checkValue(resultEntry,"targetentryuuid",user1entryUUID);
-        checkValue(resultEntry,"changenumber",String.valueOf(firstDraftChangeNumber+0));
         checkValue(resultEntry,"targetuniqueid",user1entryUUID);
       } else if (i==2)
       {
         // check the ADD entry has the right content
-        assertTrue(resultEntry.getDN().toNormalizedString().equalsIgnoreCase(
-            "changenumber="+String.valueOf(firstDraftChangeNumber+1)+",cn=changelog"));
-        String expectedValue1 = "objectClass: domain\nobjectClass: top\n" +
-        "entryUUID: "+user1entryUUID+"\n";
-        String expectedValue2 = "entryUUID: "+user1entryUUID+"\n" +
-        "objectClass: domain\nobjectClass: top\n";
+        checkValue(resultEntry, "changetype", "add");
+        String expectedValue1 = "objectClass: domain\nobjectClass: top\n"
+            + "entryUUID: " + user1entryUUID + "\n";
+        String expectedValue2 = "entryUUID: " + user1entryUUID + "\n"
+            + "objectClass: domain\nobjectClass: top\n";
         checkPossibleValues(resultEntry,"changes",expectedValue1, expectedValue2);
-        checkValue(resultEntry,"replicationcsn",gblCN.toString());
-        checkValue(resultEntry,"replicaidentifier","1201");
-        checkValue(resultEntry,"targetdn","uid="+tn+"2," + TEST_ROOT_DN_STRING);
-        checkValue(resultEntry,"changetype","add");
-        checkValue(resultEntry, "changelogcookie", "o=test:" + gblCN + ";");
-        checkValue(resultEntry,"targetentryuuid",user1entryUUID);
-        checkValue(resultEntry,"changenumber",String.valueOf(firstDraftChangeNumber+1));
       } else if (i==3)
       {
         // check the MOD entry has the right content
-        assertTrue(resultEntry.getDN().toNormalizedString().equalsIgnoreCase(
-            "changenumber="+String.valueOf(firstDraftChangeNumber+2)+",cn=changelog"));
-        String expectedValue = "replace: description\n" +
-        "description: new value\n-\n";
+        checkValue(resultEntry, "changetype", "modify");
+        final String expectedValue = "replace: description\n" + "description: new value\n-\n";
         checkValue(resultEntry,"changes",expectedValue);
-        checkValue(resultEntry,"replicationcsn",cn3.toString());
-        checkValue(resultEntry,"replicaidentifier","1201");
-        checkValue(resultEntry,"targetdn","uid="+tn+"3," + TEST_ROOT_DN_STRING);
-        checkValue(resultEntry,"changetype","modify");
-        checkValue(resultEntry, "changelogcookie", "o=test:" + cn3 + ";");
-        checkValue(resultEntry,"targetentryuuid",user1entryUUID);
-        checkValue(resultEntry,"changenumber",String.valueOf(firstDraftChangeNumber+2));
       } else if (i==4)
       {
         // check the MODDN entry has the right content
-        assertTrue(resultEntry.getDN().toNormalizedString().equalsIgnoreCase(
-            "changenumber="+String.valueOf(firstDraftChangeNumber+3)+",cn=changelog"));
-        checkValue(resultEntry,"replicationcsn",cn4.toString());
-        checkValue(resultEntry,"replicaidentifier","1201");
-        checkValue(resultEntry,"targetdn","uid="+tn+"4," + TEST_ROOT_DN_STRING);
-        checkValue(resultEntry,"changetype","modrdn");
-        checkValue(resultEntry, "changelogcookie", "o=test:" + cn4 + ";");
-        checkValue(resultEntry,"targetentryuuid",user1entryUUID);
+        checkValue(resultEntry, "changetype", "modrdn");
         checkValue(resultEntry,"newrdn","uid="+tn+"new4");
         checkValue(resultEntry,"newsuperior",TEST_ROOT_DN_STRING2);
         checkValue(resultEntry,"deleteoldrdn","true");
-        checkValue(resultEntry,"changenumber",String.valueOf(firstDraftChangeNumber+3));
       }
     }
   }
 
+  private void assertDnEquals(SearchResultEntry resultEntry, int draftCN, int i)
+  {
+    String actualDN = resultEntry.getDN().toNormalizedString();
+    String expectedDN = "changenumber=" + (draftCN + i) + ",cn=changelog";
+    assertThat(actualDN).isEqualToIgnoringCase(expectedDN);
+  }
+
   private void ECLCompatReadFrom(int firstDraftChangeNumber) throws Exception
   {
-    String tn = "ECLCompatReadFrom/" + String.valueOf(firstDraftChangeNumber);
+    String tn = "ECLCompatReadFrom/" + firstDraftChangeNumber;
     debugInfo(tn, "Starting test\n\n");
 
     {
@@ -2739,24 +2609,19 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       InternalSearchOperation searchOp = searchOnChangelog(filter, tn, SUCCESS);
 
       List<SearchResultEntry> entries = searchOp.getSearchEntries();
-      assertEquals(searchOp.getSearchEntries().size(), 1);
-      if (entries != null)
-      {
-        for (SearchResultEntry resultEntry : entries)
-        {
-          debugInfo(tn, "Result entry returned:" + resultEntry.toLDIFString());
-          ldifWriter.writeEntry(resultEntry);
-          // check the entry has the right content
-          assertTrue("changenumber=6,cn=changelog".equalsIgnoreCase(resultEntry
-              .getDN().toNormalizedString()));
-          checkValue(resultEntry,"replicationcsn",gblCN.toString());
-          checkValue(resultEntry,"replicaidentifier","1201");
-          checkValue(resultEntry,"changetype","add");
-          checkValue(resultEntry,"changelogcookie","o=test:" + gblCN + ";");
-          checkValue(resultEntry,"targetentryuuid",user1entryUUID);
-          checkValue(resultEntry,"changenumber","6");
-        }
-      }
+      assertEquals(entries.size(), 1);
+      debugAndWriteEntries(ldifWriter, entries, tn);
+
+      // check the entry has the right content
+      SearchResultEntry resultEntry = entries.get(0);
+      assertTrue("changenumber=6,cn=changelog".equalsIgnoreCase(resultEntry.getDN().toNormalizedString()));
+      checkValue(resultEntry, "replicationcsn", gblCN.toString());
+      checkValue(resultEntry, "replicaidentifier", "1201");
+      checkValue(resultEntry, "changetype", "add");
+      checkValue(resultEntry, "changelogcookie", "o=test:" + gblCN + ";");
+      checkValue(resultEntry, "targetentryuuid", user1entryUUID);
+      checkValue(resultEntry, "changenumber", "6");
+
       server01.stop();
     }
     debugInfo(tn, "Ending test with success");
@@ -2771,29 +2636,22 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     String tn = "ECLCompatNoControl/" + firstDraftChangeNumber;
     debugInfo(tn, "Starting test\n\n");
 
-    {
-      // Creates broker on o=test
-      ReplicationBroker server01 = openReplicationSession(
-          DN.decode(TEST_ROOT_DN_STRING),  1201,
-          100, replicationServerPort,
-          brokerSessionTimeout, true);
+    // Creates broker on o=test
+    ReplicationBroker server01 =
+        openReplicationSession(DN.decode(TEST_ROOT_DN_STRING), 1201, 100,
+            replicationServerPort, brokerSessionTimeout, true);
 
-      String filter = "(changenumber="+firstDraftChangeNumber+")";
-      InternalSearchOperation searchOp = searchOnChangelog(filter, tn, SUCCESS);
+    String filter = "(changenumber=" + firstDraftChangeNumber + ")";
+    InternalSearchOperation searchOp = searchOnChangelog(filter, tn, SUCCESS);
 
-      List<SearchResultEntry> entries = searchOp.getSearchEntries();
-      assertEquals(searchOp.getSearchEntries().size(), 1);
-      if (entries != null)
-      {
-        for (SearchResultEntry resultEntry : entries)
-        {
-          // Just verify that no entry contains the ChangeLogCookie control
-          List<Control> controls = resultEntry.getControls();
-          assertTrue(controls.isEmpty());
-        }
-      }
-      server01.stop();
-    }
+    List<SearchResultEntry> entries = searchOp.getSearchEntries();
+    assertEquals(entries.size(), 1);
+    // Just verify that no entry contains the ChangeLogCookie control
+    List<Control> controls = entries.get(0).getControls();
+    assertTrue(controls.isEmpty());
+
+    server01.stop();
+
     debugInfo(tn, "Ending test with success");
   }
 
@@ -2807,23 +2665,16 @@ public class ExternalChangeLogTest extends ReplicationTestCase
   private void ECLCompatReadFromTo(int firstDraftChangeNumber,
       int lastDraftChangeNumber) throws Exception
   {
-    String tn = "ECLCompatReadFromTo/" + firstDraftChangeNumber + "/"
-            + lastDraftChangeNumber;
+    String tn = "ECLCompatReadFromTo/" + firstDraftChangeNumber + "/" + lastDraftChangeNumber;
     debugInfo(tn, "Starting test\n\n");
 
-    {
-      String filter = "(&(changenumber>="+firstDraftChangeNumber+")(changenumber<="+lastDraftChangeNumber+"))";
-      InternalSearchOperation searchOp = searchOnChangelog(filter, tn, SUCCESS);
-      assertEquals(searchOp.getSearchEntries().size(),
-          lastDraftChangeNumber-firstDraftChangeNumber+1);
-      if (searchOp.getSearchEntries() != null)
-      {
-        for (SearchResultEntry resultEntry : searchOp.getSearchEntries())
-        {
-          debugInfo(tn, "Result entry returned:" + resultEntry.toLDIFString());
-        }
-      }
-    }
+    String filter = "(&(changenumber>=" + firstDraftChangeNumber + ")" +
+        "(changenumber<="+ lastDraftChangeNumber + "))";
+    InternalSearchOperation searchOp = searchOnChangelog(filter, tn, SUCCESS);
+    assertEquals(searchOp.getSearchEntries().size(),
+        lastDraftChangeNumber - firstDraftChangeNumber + 1);
+    debugAndWriteEntries(null, searchOp.getSearchEntries(), tn);
+
     debugInfo(tn, "Ending test with success");
   }
 
@@ -2850,27 +2701,21 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     String tn = "ECLFilterOnReplicationCsn";
     debugInfo(tn, "Starting test\n\n");
 
-    {
-      LDIFWriter ldifWriter = getLDIFWriter();
+    LDIFWriter ldifWriter = getLDIFWriter();
 
-      String filter = "(replicationcsn="+this.gblCN+")";
-      InternalSearchOperation searchOp = searchOnChangelog(filter, tn, SUCCESS);
-      assertEquals(searchOp.getSearchEntries().size(), 1);
+    String filter = "(replicationcsn=" + this.gblCN + ")";
+    InternalSearchOperation searchOp = searchOnChangelog(filter, tn, SUCCESS);
+    assertEquals(searchOp.getSearchEntries().size(), 1);
 
-      List<SearchResultEntry> entries = searchOp.getSearchEntries();
-      assertEquals(searchOp.getSearchEntries().size(), 1);
-      if (entries != null)
-      {
-        for (SearchResultEntry resultEntry : entries)
-        {
-          debugInfo(tn, "Result entry returned:" + resultEntry.toLDIFString());
-          ldifWriter.writeEntry(resultEntry);
-          // check the DEL entry has the right content
-          checkValue(resultEntry,"replicationcsn",gblCN.toString());
-          // TODO:ECL check values of the other attributes
-        }
-      }
-    }
+    List<SearchResultEntry> entries = searchOp.getSearchEntries();
+    assertEquals(entries.size(), 1);
+    debugAndWriteEntries(ldifWriter, entries, tn);
+
+    // check the DEL entry has the right content
+    SearchResultEntry resultEntry = entries.get(0);
+    checkValue(resultEntry, "replicationcsn", gblCN.toString());
+    // TODO:ECL check values of the other attributes
+
     debugInfo(tn, "Ending test with success");
   }
 
@@ -2897,7 +2742,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
         final StartECLSessionMsg startCLmsg = new StartECLSessionMsg();
         ECLSearchOperation.evaluateSearchParameters(startCLmsg,
             baseDN, SearchFilter.createFilterFromString("(&(changenumber>=2)(changenumber<+5))"));
-        assertTrue(startCLmsg.getFirstDraftChangeNumber()==1);
+        assertEquals(startCLmsg.getFirstDraftChangeNumber(), 1);
       }
       catch (DirectoryException expected)
       {
@@ -2976,15 +2821,12 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     // The goal is to verify that the Changelog attributes are not
     // available in other entries. We u
     debugInfo(tn, "Starting test \n\n");
-    {
-      Set<String> attributes = new LinkedHashSet<String>();
-      attributes.add("firstchangenumber");
-      attributes.add("lastchangenumber");
-      attributes.add("changelog");
-      attributes.add("lastExternalChangelogCookie");
 
-      debugInfo(tn, " Search: "+ TEST_ROOT_DN_STRING);
-      InternalSearchOperation searchOp =
+    Set<String> attributes = newSet("firstchangenumber", "lastchangenumber",
+        "changelog", "lastExternalChangelogCookie");
+
+    debugInfo(tn, " Search: " + TEST_ROOT_DN_STRING);
+    InternalSearchOperation searchOp =
         connection.processSearch(
             ByteString.valueOf(TEST_ROOT_DN_STRING),
             SearchScope.BASE_OBJECT,
@@ -2996,22 +2838,21 @@ public class ExternalChangeLogTest extends ReplicationTestCase
             attributes,
             NO_CONTROL,
             null);
-      waitOpResult(searchOp, ResultCode.SUCCESS);
-      assertEquals(searchOp.getSearchEntries().size(), 1);
+    waitOpResult(searchOp, ResultCode.SUCCESS);
+    assertEquals(searchOp.getSearchEntries().size(), 1);
 
-      List<SearchResultEntry> entries = searchOp.getSearchEntries();
-      assertEquals(entries.size(), 1);
-      for (SearchResultEntry resultEntry : entries)
-      {
-        debugInfo(tn, "Result entry returned:" + resultEntry.toLDIFString());
-        assertEquals(getAttributeValue(resultEntry, "firstchangenumber"), null);
-        assertEquals(getAttributeValue(resultEntry, "lastchangenumber"), null);
-        assertEquals(getAttributeValue(resultEntry, "changelog"), null);
-        assertEquals(getAttributeValue(resultEntry, "lastExternalChangelogCookie"), null);
-      }
-
-      debugInfo(tn, "Ending test with success");
+    List<SearchResultEntry> entries = searchOp.getSearchEntries();
+    assertEquals(entries.size(), 1);
+    debugAndWriteEntries(null, entries, tn);
+    for (SearchResultEntry resultEntry : entries)
+    {
+      assertEquals(getAttributeValue(resultEntry, "firstchangenumber"), null);
+      assertEquals(getAttributeValue(resultEntry, "lastchangenumber"), null);
+      assertEquals(getAttributeValue(resultEntry, "changelog"), null);
+      assertEquals(getAttributeValue(resultEntry, "lastExternalChangelogCookie"), null);
     }
+
+    debugInfo(tn, "Ending test with success");
   }
 
   private void ECLCompatTestLimits(int expectedFirst, int expectedLast,
@@ -3033,29 +2874,24 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       debugInfo(tn, " Search: rootDSE");
       InternalSearchOperation searchOp = searchOnRootDSE(attributes);
       List<SearchResultEntry> entries = searchOp.getSearchEntries();
-      assertEquals(searchOp.getSearchEntries().size(), 1);
-      if (entries != null)
+      assertEquals(entries.size(), 1);
+      SearchResultEntry resultEntry = entries.get(0);
+      debugAndWriteEntries(ldifWriter, entries, tn);
+
+      if (eclEnabled)
       {
-        for (SearchResultEntry resultEntry : entries)
-        {
-          debugInfo(tn, "Result entry returned:" + resultEntry.toLDIFString());
-          ldifWriter.writeEntry(resultEntry);
-          if (eclEnabled)
-          {
-            if (expectedFirst>0)
-              checkValue(resultEntry,"firstchangenumber", String.valueOf(expectedFirst));
-            checkValue(resultEntry,"lastchangenumber", String.valueOf(expectedLast));
-            checkValue(resultEntry,"changelog", String.valueOf("cn=changelog"));
-          }
-          else
-          {
-            if (expectedFirst>0)
-              assertEquals(getAttributeValue(resultEntry, "firstchangenumber"), null);
-            assertEquals(getAttributeValue(resultEntry, "lastchangenumber"), null);
-            assertEquals(getAttributeValue(resultEntry, "changelog"), null);
-            assertEquals(getAttributeValue(resultEntry, "lastExternalChangelogCookie"), null);
-          }
-        }
+        if (expectedFirst > 0)
+          checkValue(resultEntry, "firstchangenumber", String.valueOf(expectedFirst));
+        checkValue(resultEntry, "lastchangenumber", String.valueOf(expectedLast));
+        checkValue(resultEntry, "changelog", String.valueOf("cn=changelog"));
+      }
+      else
+      {
+        if (expectedFirst > 0)
+          assertEquals(getAttributeValue(resultEntry, "firstchangenumber"), null);
+        assertEquals(getAttributeValue(resultEntry, "lastchangenumber"), null);
+        assertEquals(getAttributeValue(resultEntry, "changelog"), null);
+        assertEquals(getAttributeValue(resultEntry, "lastExternalChangelogCookie"), null);
       }
     }
     debugInfo(tn, "Ending test with success");
@@ -3084,29 +2920,27 @@ public class ExternalChangeLogTest extends ReplicationTestCase
   {
     String tn = "ECLCompatTestLimitsAndAdd";
     debugInfo(tn, "Starting test\n\n");
-    {
-      ECLCompatTestLimits(expectedFirst, expectedLast, true);
 
-      // Creates broker on o=test
-      ReplicationBroker server01 = openReplicationSession(
-          DN.decode(TEST_ROOT_DN_STRING),  1201,
-          100, replicationServerPort,
-          brokerSessionTimeout, true);
+    ECLCompatTestLimits(expectedFirst, expectedLast, true);
 
-      String user1entryUUID = "11111111-1112-1113-1114-111111111115";
+    // Creates broker on o=test
+    ReplicationBroker server01 =
+        openReplicationSession(DN.decode(TEST_ROOT_DN_STRING), 1201, 100,
+            replicationServerPort, brokerSessionTimeout, true);
 
-      // Publish DEL
-      ChangeNumber cn1 = new ChangeNumber(TimeThread.getTime(), ts++, 1201);
-      DeleteMsg delMsg =
-        new DeleteMsg("uid="+tn+"1," + TEST_ROOT_DN_STRING, cn1,
-            user1entryUUID);
-      server01.publish(delMsg);
-      debugInfo(tn, " publishes " + delMsg.getChangeNumber());
-      sleep(500);
-      server01.stop();
+    String user1entryUUID = "11111111-1112-1113-1114-111111111115";
 
-      ECLCompatTestLimits(expectedFirst, expectedLast+1, true);
-    }
+    // Publish DEL
+    ChangeNumber cn1 = new ChangeNumber(TimeThread.getTime(), ts++, 1201);
+    DeleteMsg delMsg = new DeleteMsg("uid=" + tn + "1," + TEST_ROOT_DN_STRING,
+        cn1, user1entryUUID);
+    server01.publish(delMsg);
+    debugInfo(tn, " publishes " + delMsg.getChangeNumber());
+    sleep(500);
+    server01.stop();
+
+    ECLCompatTestLimits(expectedFirst, expectedLast + 1, true);
+
     debugInfo(tn, "Ending test with success");
   }
 
@@ -3115,14 +2949,13 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     String tn = "ECLGetEligibleCountTest";
     debugInfo(tn, "Starting test\n\n");
     String user1entryUUID = "11111111-1112-1113-1114-111111111115";
+    ChangeNumber[] cns = generateChangeNumbers(4, 1201);
     {
       ReplicationServerDomain rsdtest =
         replicationServer.getReplicationServerDomain(TEST_ROOT_DN_STRING, false);
 
       // The replication changelog is empty
-      long count = rsdtest.getEligibleCount(
-          new ServerState(),
-          new ChangeNumber(TimeThread.getTime(), 1, 1201));
+      long count = rsdtest.getEligibleCount(new ServerState(), cns[0]);
       assertEquals(count, 0);
 
       // Creates broker on o=test
@@ -3132,7 +2965,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
           brokerSessionTimeout, true);
 
       // Publish one first message
-      ChangeNumber cn1 = new ChangeNumber(TimeThread.getTime(), 1, 1201);
+      ChangeNumber cn1 = cns[0];
       DeleteMsg delMsg =
         new DeleteMsg("uid="+tn+"1," + TEST_ROOT_DN_STRING, cn1,
             user1entryUUID);
@@ -3141,24 +2974,19 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       sleep(300);
 
       // From begin to now : 1 change
-      count = rsdtest.getEligibleCount(
-          new ServerState(),
-          new ChangeNumber(TimeThread.getTime(), 1, 1201));
+      count = rsdtest.getEligibleCount(new ServerState(), cns[0]);
       assertEquals(count, 1);
 
       // Publish one second message
-      ChangeNumber cn2 = new ChangeNumber(TimeThread.getTime(), 2, 1201);
-      delMsg =
-        new DeleteMsg("uid="+tn+"1," + TEST_ROOT_DN_STRING, cn2,
+      ChangeNumber cn2 = cns[1];
+      delMsg = new DeleteMsg("uid=" + tn + "1," + TEST_ROOT_DN_STRING, cn2,
             user1entryUUID);
       server01.publish(delMsg);
       debugInfo(tn, " publishes " + delMsg.getChangeNumber());
       sleep(300);
 
       // From begin to now : 2 changes
-      count = rsdtest.getEligibleCount(
-          new ServerState(),
-          new ChangeNumber(TimeThread.getTime(), 1, 1201));
+      count = rsdtest.getEligibleCount(new ServerState(), cns[0]);
       assertEquals(count, 2);
 
       // From begin to first change (inclusive) : 1 change = cn1
@@ -3179,14 +3007,12 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       ss.update(cn2);
 
       // From state/cn2(exclusive) to now (inclusive) : 0 change
-      count = rsdtest.getEligibleCount(ss,
-          new ChangeNumber(TimeThread.getTime(), 4, 1201));
+      count = rsdtest.getEligibleCount(ss, cns[3]);
       assertEquals(count, 0);
 
       // Publish one third message
-      ChangeNumber cn3 = new ChangeNumber(TimeThread.getTime(), 3, 1201);
-      delMsg =
-        new DeleteMsg("uid="+tn+"1," + TEST_ROOT_DN_STRING, cn3,
+      ChangeNumber cn3 = cns[2];
+      delMsg = new DeleteMsg("uid="+tn+"1," + TEST_ROOT_DN_STRING, cn3,
             user1entryUUID);
       server01.publish(delMsg);
       debugInfo(tn, " publishes " + delMsg.getChangeNumber());
@@ -3195,8 +3021,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       ss.update(cn2);
 
       // From state/cn2(exclusive) to now : 1 change = cn3
-      count = rsdtest.getEligibleCount(ss,
-          new ChangeNumber(TimeThread.getTime(), 4, 1201));
+      count = rsdtest.getEligibleCount(ss, cns[3]);
       assertEquals(count, 1);
 
       boolean perfs=false;
@@ -3212,8 +3037,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       for (int i=4; i<=maxMsg; i++)
       {
         ChangeNumber cnx = new ChangeNumber(TimeThread.getTime(), i, 1201);
-        delMsg =
-          new DeleteMsg("uid="+tn+i+"," + TEST_ROOT_DN_STRING, cnx,
+        delMsg = new DeleteMsg("uid="+tn+i+"," + TEST_ROOT_DN_STRING, cnx,
               user1entryUUID);
         server01.publish(delMsg);
       }
@@ -3251,13 +3075,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
         long t5 = TimeThread.getTime();
         assertEquals(searchOp.getSearchEntries().size(), 3);
         debugInfo(tn, "Perfs - last 3 changes searched in (ms):" + (t5 - t4));
-        if (searchOp.getSearchEntries() != null)
-        {
-          for (SearchResultEntry resultEntry : searchOp.getSearchEntries())
-          {
-            debugInfo(tn, "Result entry returned:" + resultEntry.toLDIFString());
-          }
-        }
+        debugAndWriteEntries(null, searchOp.getSearchEntries(), tn);
       }
       server01.stop();
     }
@@ -3273,7 +3091,6 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     debugInfo(tn, "Starting test\n\n");
     Backend backend2 = null;
     Backend backend3 = null;
-    DeleteOperation delOp = null;
     LDAPReplicationDomain domain2 = null;
     LDAPReplicationDomain domain3 = null;
     LDAPReplicationDomain domain21 = null;
@@ -3284,62 +3101,35 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       // Initialize a second test backend o=test2, in addtion to o=test
       // Configure replication on this backend
       // Add the root entry in the backend
-      backend2 = initializeTestBackend(false,
-          TEST_ROOT_DN_STRING2, TEST_BACKEND_ID2);
+      backend2 = initializeTestBackend(false, TEST_ROOT_DN_STRING2, TEST_BACKEND_ID2);
       baseDn2 = DN.decode(TEST_ROOT_DN_STRING2);
-      SortedSet<String> replServers = new TreeSet<String>();
-      replServers.add("localhost:"+replicationServerPort);
-      DomainFakeCfg domainConf =
-        new DomainFakeCfg(baseDn2, 1702, replServers);
+
+      SortedSet<String> replServers = newSet("localhost:" + replicationServerPort);
 
       // on o=test2,sid=1702 include attrs set to : 'sn'
-      SortedSet<String> eclInclude = new TreeSet<String>();
-      eclInclude.add("sn");
-      eclInclude.add("roomnumber");
-      ExternalChangelogDomainFakeCfg eclCfg =
-        new ExternalChangelogDomainFakeCfg(true, eclInclude, eclInclude);
-      domainConf.setExternalChangelogDomain(eclCfg);
-      // Set a Changetime heartbeat interval low enough (less than default
-      // value that is 1000 ms) for the test to be sure to consider all changes
-      // as eligible.
-      domainConf.setChangetimeHeartbeatInterval(10);
-      domain2 = MultimasterReplication.createNewDomain(domainConf);
+      SortedSet<String> eclInclude = newSet("sn", "roomnumber");
+
+      DomainFakeCfg domainConf = new DomainFakeCfg(baseDn2, 1702, replServers);
+      domain2 = createDomain(domainConf, eclInclude, eclInclude);
       domain2.start();
 
-      backend3 = initializeTestBackend(false,
-          TEST_ROOT_DN_STRING3, TEST_BACKEND_ID3);
+      backend3 = initializeTestBackend(false, TEST_ROOT_DN_STRING3, TEST_BACKEND_ID3);
       baseDn3 = DN.decode(TEST_ROOT_DN_STRING3);
-      domainConf =
-        new DomainFakeCfg(baseDn3, 1703, replServers);
 
       // on o=test3,sid=1703 include attrs set to : 'objectclass'
-      eclInclude = new TreeSet<String>();
-      eclInclude.add("objectclass");
+      eclInclude = newSet("objectclass");
 
-      SortedSet<String> eclIncludeForDeletes = new TreeSet<String>();
-      eclIncludeForDeletes.add("*");
+      SortedSet<String> eclIncludeForDeletes = newSet("*");
 
-      eclCfg = new ExternalChangelogDomainFakeCfg(true, eclInclude, eclIncludeForDeletes);
-      domainConf.setExternalChangelogDomain(eclCfg);
-      // Set a Changetime heartbeat interval low enough (less than default
-      // value that is 1000 ms) for the test to be sure to consider all changes
-      // as eligible.
-      domainConf.setChangetimeHeartbeatInterval(10);
-      domain3 = MultimasterReplication.createNewDomain(domainConf);
+      domainConf = new DomainFakeCfg(baseDn3, 1703, replServers);
+      domain3 = createDomain(domainConf, eclInclude, eclIncludeForDeletes);
       domain3.start();
 
       // on o=test2,sid=1704 include attrs set to : 'cn'
-      domainConf = new DomainFakeCfg(baseDn2, 1704, replServers);
-      eclInclude = new TreeSet<String>();
-      eclInclude.add("cn");
+      eclInclude = newSet("cn");
 
-      eclCfg = new ExternalChangelogDomainFakeCfg(true, eclInclude, eclInclude);
-      domainConf.setExternalChangelogDomain(eclCfg);
-      // Set a Changetime heartbeat interval low enough (less than default
-      // value that is 1000 ms) for the test to be sure to consider all changes
-      // as eligible.
-      domainConf.setChangetimeHeartbeatInterval(10);
-      domain21 = MultimasterReplication.createNewDomain(domainConf);
+      domainConf = new DomainFakeCfg(baseDn2, 1704, replServers);
+      domain21 = createDomain(domainConf, eclInclude, eclInclude);
       domain21.start();
 
       sleep(1000);
@@ -3392,12 +3182,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       waitOpResult(modDNOp, ResultCode.SUCCESS);
 
       // del robert (o=test3)
-      delOp = new DeleteOperationBasis(connection,
-          InternalClientConnection.nextOperationID(),
-          InternalClientConnection.nextMessageID(), null,
-          DN.decode("cn=Robert Hue2," + TEST_ROOT_DN_STRING3));
-      delOp.run();
-      waitOpResult(delOp, ResultCode.SUCCESS);
+      runDeleteOperation("cn=Robert Hue2," + TEST_ROOT_DN_STRING3);
 
       getEntry(DN.decode("cn=Robert Hue2," + TEST_ROOT_DN_STRING3),5000,false);
 
@@ -3407,84 +3192,57 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       String cookie = "";
       InternalSearchOperation searchOp =
           searchOnCookieChangelog("(targetDN=*)", cookie, tn, SUCCESS);
-      List<SearchResultEntry> entries = searchOp.getSearchEntries();
-      assertTrue(entries != null);
+      final List<SearchResultEntry> entries = searchOp.getSearchEntries();
+      assertThat(entries).hasSize(8);
+      debugAndWriteEntries(null, entries, tn);
 
       sleep(2000);
 
-      String s = tn + " entries returned= ";
-      if (entries != null)
+      for (SearchResultEntry resultEntry : entries)
       {
-        for (SearchResultEntry resultEntry : entries)
+        String targetdn = getAttributeValue(resultEntry, "targetdn");
+
+        if (targetdn.endsWith("cn=robert hue,o=test3")
+            || targetdn.endsWith("cn=robert hue2,o=test3"))
         {
-          // Expect
-          debugInfo(tn, "Entry returned =" +  resultEntry.toLDIFString());
-          s += "Entry:" + resultEntry.toLDIFString();
+          Entry targetEntry = parseIncludedAttributes(resultEntry, targetdn);
 
-          String targetdn = getAttributeValue(resultEntry, "targetdn");
+          Set<String> eoc = newSet("person", "inetOrgPerson", "organizationalPerson", "top");
+          checkValues(targetEntry, "objectclass", eoc);
 
-          if (targetdn.endsWith("cn=robert hue,o=test3")
-              || targetdn.endsWith("cn=robert hue2,o=test3"))
+          String changeType = getAttributeValue(resultEntry, "changetype");
+          if ("delete".equals(changeType))
           {
-            Entry targetEntry = parseIncludedAttributes(resultEntry, targetdn);
-
-            Set<String> eoc = new HashSet<String>();
-            eoc.add("person");
-            eoc.add("inetOrgPerson");
-            eoc.add("organizationalPerson");
-            eoc.add("top");
-            checkValues(targetEntry, "objectclass", eoc);
-
-            String changeType = getAttributeValue(resultEntry, "changetype");
-            if ("delete".equals(changeType))
-            {
-              // We are using "*" for deletes so should get back 4 attributes.
-              assertEquals(targetEntry.getAttributes().size(), 4);
-              checkValue(targetEntry, "uid", "robert");
-              checkValue(targetEntry, "cn", "Robert Hue2");
-              checkValue(targetEntry, "telephonenumber", "555555");
-              checkValue(targetEntry, "sn", "Robby");
-            }
-            else
-            {
-              assertEquals(targetEntry.getAttributes().size(), 0);
-            }
+            // We are using "*" for deletes so should get back 4 attributes.
+            assertEquals(targetEntry.getAttributes().size(), 4);
+            checkValue(targetEntry, "uid", "robert");
+            checkValue(targetEntry, "cn", "Robert Hue2");
+            checkValue(targetEntry, "telephonenumber", "555555");
+            checkValue(targetEntry, "sn", "Robby");
           }
-          if (targetdn.endsWith("cn=fiona jensen,o=test2"))
+          else
           {
-            Entry targetEntry = parseIncludedAttributes(resultEntry, targetdn);
-
-            assertEquals(targetEntry.getAttributes().size(), 2);
-            checkValue(targetEntry,"sn","jensen");
-            checkValue(targetEntry,"cn","Fiona Jensen");
+            assertEquals(targetEntry.getAttributes().size(), 0);
           }
-          checkValue(resultEntry,"changeinitiatorsname", "cn=Internal Client,cn=Root DNs,cn=config");
         }
+        if (targetdn.endsWith("cn=fiona jensen,o=test2"))
+        {
+          Entry targetEntry = parseIncludedAttributes(resultEntry, targetdn);
+
+          assertEquals(targetEntry.getAttributes().size(), 2);
+          checkValue(targetEntry,"sn","jensen");
+          checkValue(targetEntry,"cn","Fiona Jensen");
+        }
+        checkValue(resultEntry,"changeinitiatorsname", "cn=Internal Client,cn=Root DNs,cn=config");
       }
-      assertEquals(entries.size(),8, "Entries number returned by search" + s);
     }
     finally
     {
       try
       {
-        delOp = new DeleteOperationBasis(connection,
-            InternalClientConnection.nextOperationID(),
-            InternalClientConnection.nextMessageID(), null,
-            DN.decode("cn=Fiona Jensen," + TEST_ROOT_DN_STRING2));
-        delOp.run();
-        waitOpResult(delOp, ResultCode.SUCCESS);
-        delOp = new DeleteOperationBasis(connection,
-            InternalClientConnection.nextOperationID(),
-            InternalClientConnection.nextMessageID(), null,
-            DN.decode(TEST_ROOT_DN_STRING2));
-        delOp.run();
-        waitOpResult(delOp, ResultCode.SUCCESS);
-        delOp = new DeleteOperationBasis(connection,
-            InternalClientConnection.nextOperationID(),
-            InternalClientConnection.nextMessageID(), null,
-            DN.decode(TEST_ROOT_DN_STRING3));
-        delOp.run();
-        waitOpResult(delOp, ResultCode.SUCCESS);
+        runDeleteOperation("cn=Fiona Jensen," + TEST_ROOT_DN_STRING2);
+        runDeleteOperation(TEST_ROOT_DN_STRING2);
+        runDeleteOperation(TEST_ROOT_DN_STRING3);
 
         // Cleaning
         if (domain21 != null)
@@ -3512,6 +3270,23 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     debugInfo(tn, "Ending test with success");
   }
 
+  private SortedSet<String> newSet(String... values)
+  {
+    return new TreeSet<String>(Arrays.asList(values));
+  }
+
+  private LDAPReplicationDomain createDomain(DomainFakeCfg domainConf,
+      SortedSet<String> eclInclude, SortedSet<String> eclIncludeForDeletes)
+      throws Exception
+  {
+    domainConf.setExternalChangelogDomain(
+        new ExternalChangelogDomainFakeCfg(true, eclInclude, eclIncludeForDeletes));
+    // Set a Changetime heartbeat interval low enough (less than default value
+    // that is 1000 ms) for the test to be sure to consider all changes as eligible.
+    domainConf.setChangetimeHeartbeatInterval(10);
+    return MultimasterReplication.createNewDomain(domainConf);
+  }
+
   private void runModifyOperation(Entry entry, List<Modification> mods)
       throws Exception
   {
@@ -3519,6 +3294,16 @@ public class ExternalChangeLogTest extends ReplicationTestCase
         new ModifyOperationBasis(connection, 1, 1, null, entry.getDN(), mods);
     operation.run();
     waitOpResult(operation, ResultCode.SUCCESS);
+  }
+
+  private void runDeleteOperation(String dn) throws Exception
+  {
+    final DeleteOperation delOp = new DeleteOperationBasis(connection,
+        InternalClientConnection.nextOperationID(),
+        InternalClientConnection.nextMessageID(), null,
+        DN.decode(dn));
+    delOp.run();
+    waitOpResult(delOp, ResultCode.SUCCESS);
   }
 
   private List<Modification> createMods(String attributeName, String valueString)
