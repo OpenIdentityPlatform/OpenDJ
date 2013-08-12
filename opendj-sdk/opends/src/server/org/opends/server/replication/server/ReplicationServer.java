@@ -27,12 +27,6 @@
  */
 package org.opends.server.replication.server;
 
-import static org.opends.messages.ReplicationMessages.*;
-import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
@@ -58,13 +52,18 @@ import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.common.*;
 import org.opends.server.replication.plugin.MultimasterReplication;
 import org.opends.server.replication.protocol.*;
+import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.types.*;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.util.TimeThread;
 import org.opends.server.workflowelement.externalchangelog.ECLWorkflowElement;
 
-import com.sleepycat.je.DatabaseException;
+import static org.opends.messages.ReplicationMessages.*;
+import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
 
 /**
  * ReplicationServer Listener. This singleton is the main object of the
@@ -559,15 +558,11 @@ public final class ReplicationServer
         TRACER.debugInfo("RS " +getMonitorInstanceName()+
             " successfully initialized");
 
-    } catch (DatabaseException e)
+    } catch (ChangelogException e)
     {
-      Message message = ERR_COULD_NOT_INITIALIZE_DB.get(
-        getFileForPath(dbDirname).getAbsolutePath());
-      logError(message);
-    } catch (ReplicationDBException e)
-    {
-      Message message = ERR_COULD_NOT_READ_DB.get(dbDirname,
-          e.getLocalizedMessage());
+      Message message = ERR_COULD_NOT_READ_DB.get(
+              getFileForPath(dbDirname).getAbsolutePath(),
+              e.getLocalizedMessage());
       logError(message);
     } catch (UnknownHostException e)
     {
@@ -870,10 +865,10 @@ public final class ReplicationServer
    * @param baseDn The DN for which the dbHandler must be created.
    * @return The new DB handler for this ReplicationServer and the serverId and
    *         DN given in parameter.
-   * @throws DatabaseException in case of underlying database problem.
+   * @throws ChangelogException in case of underlying database problem.
    */
   public DbHandler newDbHandler(int id, String baseDn)
-  throws DatabaseException
+      throws ChangelogException
   {
     return new DbHandler(id, baseDn, this, dbEnv, queueSize);
   }
@@ -967,6 +962,7 @@ public final class ReplicationServer
       ServerSocket tmpSocket = new ServerSocket();
       tmpSocket.bind(new InetSocketAddress(port));
       tmpSocket.close();
+      return true;
     }
     catch (Exception e)
     {
@@ -974,8 +970,6 @@ public final class ReplicationServer
       unacceptableReasons.add(message);
       return false;
     }
-
-    return true;
   }
 
   /**
@@ -1262,7 +1256,6 @@ public final class ReplicationServer
       mb.append(e.getLocalizedMessage());
       Message msg = ERR_CHECK_CREATE_REPL_BACKEND_FAILED.get(mb.toString());
       throw new ConfigException(msg, e);
-
     }
   }
 
@@ -1941,7 +1934,7 @@ public final class ReplicationServer
    * @param e
    *          The unexpected database exception.
    */
-  void handleUnexpectedDatabaseException(DatabaseException e)
+  void handleUnexpectedChangelogException(ChangelogException e)
   {
     MessageBuilder mb = new MessageBuilder();
     mb.append(ERR_CHANGELOG_SHUTDOWN_DATABASE_ERROR.get());

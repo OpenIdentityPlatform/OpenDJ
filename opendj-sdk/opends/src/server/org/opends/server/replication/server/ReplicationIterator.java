@@ -27,11 +27,11 @@
  */
 package org.opends.server.replication.server;
 
+import org.opends.messages.Message;
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.ReplicationDB.ReplServerDBCursor;
-
-import com.sleepycat.je.DatabaseException;
+import org.opends.server.replication.server.changelog.api.ChangelogException;
 
 /**
  * This class allows to iterate through the changes received from a given
@@ -53,12 +53,10 @@ public class ReplicationIterator
    * @param db The db where the iterator must be created.
    * @param changeNumber The ChangeNumber after which the iterator must start.
    * @param dbHandler The associated DbHandler.
-   * @throws Exception If there is no other change to push after change
-   *         with changeNumber number.
-   * @throws DatabaseException if a database problem happened.
+   * @throws ChangelogException if a database problem happened.
    */
   public ReplicationIterator(ReplicationDB db, ChangeNumber changeNumber,
-      DbHandler dbHandler) throws Exception, DatabaseException
+      DbHandler dbHandler) throws ChangelogException
   {
     this.db = db;
     this.dbh = dbHandler;
@@ -83,7 +81,7 @@ public class ReplicationIterator
       cursor = db.openReadCursor(changeNumber);
       if (cursor == null)
       {
-        throw new Exception("no new change");
+        throw new ChangelogException(Message.raw("no new change"));
       }
     }
   }

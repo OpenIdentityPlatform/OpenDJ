@@ -27,11 +27,6 @@
  */
 package org.opends.server.replication.server;
 
-import static org.opends.messages.ReplicationMessages.*;
-import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.util.StaticUtils.*;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -48,11 +43,15 @@ import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.common.MultiDomainServerState;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.server.DraftCNDB.DraftCNDBCursor;
+import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.InitializationException;
 
-import com.sleepycat.je.DatabaseException;
+import static org.opends.messages.ReplicationMessages.*;
+import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class is used for managing the replicationServer database for each
@@ -60,10 +59,9 @@ import com.sleepycat.je.DatabaseException;
  * It is responsible for efficiently saving the updates that is received from
  * each master server into stable storage.
  * This class is also able to generate a ReplicationIterator that can be
- * used to read all changes from a given ChangeNUmber.
+ * used to read all changes from a given ChangeNumber.
  *
  * This class publish some monitoring information below cn=monitor.
- *
  */
 public class DraftCNDbHandler implements Runnable
 {
@@ -87,11 +85,12 @@ public class DraftCNDbHandler implements Runnable
    */
   private DirectoryThread thread;
   /**
-   * The trim age in milliseconds. Changes record in the change DB that
-   * are older than this age are removed.
+   * The trim age in milliseconds. Changes record in the change DB that are
+   * older than this age are removed.
+   * <p>
+   * FIXME it never gets updated even when the replication server purge delay is
+   * updated
    */
-  // FIXME it never gets updated even when the replication server purge delay
-  // is updated
   private long trimAge;
 
   private ReplicationServer replicationServer;
@@ -103,11 +102,10 @@ public class DraftCNDbHandler implements Runnable
    * @param replicationServer The ReplicationServer that creates this dbHandler.
    * @param dbenv the Database Env to use to create the ReplicationServer DB.
    * server for this domain.
-   * @throws DatabaseException If a database problem happened
+   * @throws ChangelogException If a database problem happened
    */
   public DraftCNDbHandler(ReplicationServer replicationServer,
-      ReplicationDbEnv dbenv)
-         throws DatabaseException
+      ReplicationDbEnv dbenv) throws ChangelogException
   {
     this.replicationServer = replicationServer;
     this.trimAge = replicationServer.getTrimAge();
@@ -181,9 +179,10 @@ public class DraftCNDbHandler implements Runnable
    * Returns whether this database is empty.
    * <p>
    * FIXME Find a way to implement this method in a more efficient manner.
-   * {@link Database#count()} javadoc mentions: <blockquote>Note that this
-   * method does scan a significant portion of the database and should be
-   * considered a fairly expensive operation.</blockquote>
+   * {@link com.sleepycat.je.Database#count()} javadoc mentions:
+   * <blockquote>Note that this method does scan a significant portion of the
+   * database and should be considered a fairly expensive
+   * operation.</blockquote>
    * <p>
    * It could be faster to:
    * <ul>
@@ -224,13 +223,7 @@ public class DraftCNDbHandler implements Runnable
    */
   public void releaseReadCursor(DraftCNDBCursor cursor)
   {
-    try
-    {
-      cursor.close();
-    }
-    catch(Exception e)
-    { /* do nothing */
-    }
+    close(cursor);
   }
 
   /**
@@ -244,12 +237,10 @@ public class DraftCNDbHandler implements Runnable
    *         managed by this dbHandler and starting at the position defined
    *         by a given changeNumber.
    *
-   * @throws DatabaseException if a database problem happened.
-   * @throws Exception  If there is no other change to push after change
-   *         with changeNumber number.
+   * @throws ChangelogException if a database problem happened.
    */
   public DraftCNDbIterator generateIterator(int startDraftCN)
-                           throws DatabaseException, Exception
+      throws ChangelogException
   {
     return new DraftCNDbIterator(db, startDraftCN);
   }
@@ -267,7 +258,7 @@ public class DraftCNDbHandler implements Runnable
     shutdown  = true;
     synchronized (this)
     {
-      this.notifyAll();
+      notifyAll();
     }
 
     synchronized (this)
@@ -276,8 +267,8 @@ public class DraftCNDbHandler implements Runnable
       {
         try
         {
-          this.wait();
-        } catch (Exception e)
+          wait();
+        } catch (InterruptedException e)
         { /* do nothing */ }
       }
     }
@@ -303,7 +294,7 @@ public class DraftCNDbHandler implements Runnable
         {
           try
           {
-            this.wait(1000);
+            wait(1000);
           } catch (InterruptedException e)
           {
             Thread.currentThread().interrupt();
@@ -324,16 +315,15 @@ public class DraftCNDbHandler implements Runnable
     synchronized (this)
     {
       trimDone = true;
-      this.notifyAll();
+      notifyAll();
     }
   }
 
   /**
    * Trim old changes from this database.
-   * @throws DatabaseException In case of database problem.
-   * @throws Exception In case of database problem.
+   * @throws ChangelogException In case of database problem.
    */
-  public void trim() throws DatabaseException, Exception
+  public void trim() throws ChangelogException
   {
     if (trimAge == 0)
       return;
@@ -346,21 +336,17 @@ public class DraftCNDbHandler implements Runnable
    * for the provided baseDN.
    * @param baseDNToClear The baseDN for which we want to remove
    *         all records from the DraftCNDb - null means all.
-   * @throws DatabaseException When an exception occurs while removing the
+   * @throws ChangelogException When an exception occurs while removing the
    * changes from the DB.
-   * @throws Exception When an exception occurs while accessing a resource
-   * from the DB.
    */
-  public void clear(String baseDNToClear)
-      throws DatabaseException, Exception
+  public void clear(String baseDNToClear) throws ChangelogException
   {
     if (isEmpty())
     {
       return;
     }
 
-    ChangeNumber crossDomainEligibleCN = replicationServer
-        .getEligibleCN();
+    ChangeNumber crossDomainEligibleCN = replicationServer.getEligibleCN();
 
     for (int i = 0; i < 100; i++)
     {
@@ -406,8 +392,7 @@ public class DraftCNDbHandler implements Runnable
           // reading
           domain.getEligibleState(crossDomainEligibleCN);
 
-          ChangeNumber fcn = startState.getChangeNumber(cn
-              .getServerId());
+          ChangeNumber fcn = startState.getChangeNumber(cn.getServerId());
 
           int currentKey = cursor.currentKey();
 
@@ -432,13 +417,12 @@ public class DraftCNDbHandler implements Runnable
           catch(Exception e)
           {
             // We couldn't parse the mdss from the DraftCNData Value
-            assert(false);
             cursor.delete();
             continue;
           }
 
           if ((cnVector == null)
-                  || ((cnVector.getChangeNumber(cn.getServerId()) != null)
+                  || (cnVector.getChangeNumber(cn.getServerId()) != null
                       && !cnVector.cover(startState)))
           {
             cursor.delete();
@@ -455,13 +439,21 @@ public class DraftCNDbHandler implements Runnable
 
         cursor.close();
       }
-      catch (Exception e)
+      catch (ChangelogException e)
       {
         // mark shutdown for this db so that we don't try again to
         // stop it from cursor.close() or methods called by cursor.close()
         cursor.abort();
         shutdown = true;
         throw e;
+      }
+      catch (Exception e)
+      {
+        // mark shutdown for this db so that we don't try again to
+        // stop it from cursor.close() or methods called by cursor.close()
+        cursor.abort();
+        shutdown = true;
+        throw new ChangelogException(e);
       }
     }
   }
@@ -528,12 +520,10 @@ public class DraftCNDbHandler implements Runnable
 
   /**
    * Clear the changes from this DB (from both memory cache and DB storage).
-   * @throws DatabaseException When an exception occurs while removing the
+   * @throws ChangelogException When an exception occurs while removing the
    * changes from the DB.
-   * @throws Exception When an exception occurs while accessing a resource
-   * from the DB.
    */
-  public void clear() throws DatabaseException, Exception
+  public void clear() throws ChangelogException
   {
     db.clear();
     firstkey = db.readFirstDraftCN();
@@ -575,12 +565,11 @@ public class DraftCNDbHandler implements Runnable
    */
   public String getValue(int key)
   {
-    String value = null;
     DraftCNDBCursor draftCNDBCursor = null;
     try
     {
       draftCNDBCursor = db.openReadCursor(key);
-      value = draftCNDBCursor.currentValue();
+      return draftCNDBCursor.currentValue();
     }
     catch(Exception e)
     {
@@ -597,7 +586,6 @@ public class DraftCNDbHandler implements Runnable
     {
       close(draftCNDBCursor);
     }
-    return value;
   }
 
   /**
@@ -607,12 +595,11 @@ public class DraftCNDbHandler implements Runnable
    */
   public ChangeNumber getChangeNumber(int key)
   {
-    ChangeNumber cn = null;
     DraftCNDBCursor draftCNDBCursor = null;
     try
     {
       draftCNDBCursor = db.openReadCursor(key);
-      cn = draftCNDBCursor.currentChangeNumber();
+      return draftCNDBCursor.currentChangeNumber();
     }
     catch(Exception e)
     {
@@ -627,10 +614,8 @@ public class DraftCNDbHandler implements Runnable
     }
     finally
     {
-      if (draftCNDBCursor != null)
-        draftCNDBCursor.close();
+      close(draftCNDBCursor);
     }
-    return cn;
   }
 
   /**
@@ -640,12 +625,11 @@ public class DraftCNDbHandler implements Runnable
    */
   public String getBaseDN(int key)
   {
-    String sid = null;
     DraftCNDBCursor draftCNDBCursor = null;
     try
     {
       draftCNDBCursor = db.openReadCursor(key);
-      sid = draftCNDBCursor.currentBaseDN();
+      return draftCNDBCursor.currentBaseDN();
     }
     catch(Exception e)
     {
@@ -660,9 +644,7 @@ public class DraftCNDbHandler implements Runnable
     }
     finally
     {
-      if (draftCNDBCursor != null)
-        draftCNDBCursor.close();
+      close(draftCNDBCursor);
     }
-    return sid;
   }
 }

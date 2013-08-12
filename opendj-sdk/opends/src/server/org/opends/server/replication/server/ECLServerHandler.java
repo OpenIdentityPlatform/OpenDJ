@@ -27,12 +27,6 @@
  */
 package org.opends.server.replication.server;
 
-import static org.opends.messages.ReplicationMessages.*;
-import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.replication.protocol.ProtocolVersion.*;
-import static org.opends.server.replication.protocol.StartECLSessionMsg.*;
-
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.Semaphore;
@@ -47,10 +41,15 @@ import org.opends.server.replication.common.MultiDomainServerState;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.common.ServerStatus;
 import org.opends.server.replication.protocol.*;
+import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.types.*;
 import org.opends.server.util.ServerConstants;
 
-import com.sleepycat.je.DatabaseException;
+import static org.opends.messages.ReplicationMessages.*;
+import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.replication.protocol.ProtocolVersion.*;
+import static org.opends.server.replication.protocol.StartECLSessionMsg.*;
 
 /**
  * This class defines a server handler, which handles all interaction with a
@@ -579,11 +578,11 @@ public final class ECLServerHandler extends ServerHandler
    *          the start draftCN coming from the request filter.
    * @return the cookie corresponding to the passed in startDraftCN.
    * @throws Exception
-   *           if a general problem occurred
+   *           if a database problem occurred
    * @throws DirectoryException
    *           if a database problem occurred
    */
-  private String findCookie(int startDraftCN) throws Exception,
+  private String findCookie(int startDraftCN) throws ChangelogException,
       DirectoryException
   {
     DraftCNDbHandler draftCNDb = replicationServer.getDraftCNDbHandler();
@@ -1454,7 +1453,7 @@ public final class ECLServerHandler extends ServerHandler
               + " cn=" + draftCNDbIter.getChangeNumber()
               + " End of draftCNDb ?" + isEndOfDraftCNReached);
       }
-      catch (DatabaseException e)
+      catch (ChangelogException e)
       {
         if (debugEnabled())
         {
