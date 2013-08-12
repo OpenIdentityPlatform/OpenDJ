@@ -27,11 +27,6 @@
  */
 package org.opends.server.replication.server;
 
-import static org.opends.messages.ReplicationMessages.*;
-import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.util.StaticUtils.*;
-
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.*;
@@ -51,10 +46,14 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.common.*;
 import org.opends.server.replication.protocol.*;
+import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.types.*;
 import org.opends.server.util.TimeThread;
 
-import com.sleepycat.je.DatabaseException;
+import static org.opends.messages.ReplicationMessages.*;
+import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class define an in-memory cache that will be used to store
@@ -319,7 +318,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
         {
           dbHandler = replicationServer.newDbHandler(id, baseDn);
           generationIdSavedStatus = true;
-        } catch (DatabaseException e)
+        } catch (ChangelogException e)
         {
           /*
            * Because of database problem we can't save any more changes
@@ -1452,10 +1451,10 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
    *                  associated the DbHandler.
    * @param dbHandler the dbHandler associated to the serverId.
    *
-   * @throws DatabaseException If a database error happened.
+   * @throws ChangelogException If a database error happened.
    */
   public void setDbHandler(int serverId, DbHandler dbHandler)
-    throws DatabaseException
+    throws ChangelogException
   {
     synchronized (sourceDbHandlers)
     {
@@ -1899,7 +1898,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
               }
             }
           }
-          try { Thread.sleep(100); } catch(Exception e) {}
+          sleep(100);
         }
       }
     }
@@ -1935,9 +1934,14 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
             }
           }
         }
-        try { Thread.sleep(100); } catch(Exception e) {}
+        sleep(100);
       }
     }
+  }
+
+  private void sleep(int millis)
+  {
+    try { Thread.sleep(millis); } catch (InterruptedException e) {}
   }
 
   /**
@@ -2172,7 +2176,6 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
 
       Message message = NOTE_RESET_GENERATION_ID.get(baseDn, newGenId);
       logError(message);
-
     }
     catch(Exception e)
     {
@@ -3114,7 +3117,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
                 ChangeNumber newCN = ri.getChange().getChangeNumber();
                 result.update(newCN);
               }
-            } catch (Exception e) {
+            } catch (ChangelogException e) {
               // there's no change older than eligibleCN (case of s3/cn31)
               result.update(new ChangeNumber(0, 0, serverId));
             } finally {

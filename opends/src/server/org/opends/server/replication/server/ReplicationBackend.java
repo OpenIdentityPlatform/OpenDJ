@@ -1473,10 +1473,10 @@ public class ReplicationBackend
      * Close the writer and get an LDIF reader for the LDIF content.
      *
      * @return Returns an LDIF Reader.
-     * @throws Exception
+     * @throws IOException
      *           If an error occurred closing the writer.
      */
-    public LDIFReader getLDIFReader() throws Exception {
+    public LDIFReader getLDIFReader() throws IOException {
       writer.close();
       String ldif = stream.toString("UTF-8");
       ldif = ldif.replace("\n-\n", "\n");

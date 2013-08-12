@@ -27,14 +27,14 @@
  */
 package org.opends.server.replication.server;
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
-
+import org.opends.messages.Message;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.server.DraftCNDB.DraftCNDBCursor;
+import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.types.DebugLogLevel;
 
-import com.sleepycat.je.DatabaseException;
+import static org.opends.server.loggers.debug.DebugLogger.*;
 
 /**
  * This class allows to iterate through the changes received from a given
@@ -53,17 +53,15 @@ public class DraftCNDbIterator
    * @param db           The db where the iterator must be created.
    * @param startDraftCN The draft CN  after which the iterator
    *                     must start.
-   * @throws Exception   If there is no other change to push after change
-   *                     with changeNumber number.
-   * @throws DatabaseException If a database problem happened.
+   * @throws ChangelogException If a database problem happened.
    */
   public DraftCNDbIterator(DraftCNDB db, int startDraftCN)
-  throws Exception, DatabaseException
+      throws ChangelogException
   {
     draftCNDbCursor = db.openReadCursor(startDraftCN);
     if (draftCNDbCursor == null)
     {
-      throw new Exception("no new change");
+      throw new ChangelogException(Message.raw("no new change"));
     }
   }
 
@@ -116,9 +114,9 @@ public class DraftCNDbIterator
   /**
    * Skip to the next record of the database.
    * @return true if has next, false elsewhere
-   * @throws DatabaseException When database exception raised.
+   * @throws ChangelogException When database exception raised.
    */
-  public boolean next() throws DatabaseException
+  public boolean next() throws ChangelogException
   {
     if (draftCNDbCursor != null)
     {

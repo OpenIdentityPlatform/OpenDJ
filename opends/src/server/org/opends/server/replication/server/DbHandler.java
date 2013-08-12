@@ -27,10 +27,6 @@
  */
 package org.opends.server.replication.server;
 
-import static org.opends.messages.ReplicationMessages.*;
-import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.util.StaticUtils.*;
-
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedList;
@@ -45,12 +41,15 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.ReplicationDB.ReplServerDBCursor;
+import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.InitializationException;
 import org.opends.server.util.TimeThread;
 
-import com.sleepycat.je.DatabaseException;
+import static org.opends.messages.ReplicationMessages.*;
+import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class is used for managing the replicationServer database for each
@@ -136,12 +135,12 @@ public class DbHandler implements Runnable
    * @param dbenv the Database Env to use to create the ReplicationServer DB.
    * server for this domain.
    * @param queueSize The queueSize to use when creating the dbHandler.
-   * @throws DatabaseException If a database problem happened
+   * @throws ChangelogException If a database problem happened
    */
   public DbHandler(
       int id, String baseDn, ReplicationServer replicationServer,
       ReplicationDbEnv dbenv, int queueSize)
-         throws DatabaseException
+         throws ChangelogException
   {
     this.replicationServer = replicationServer;
     serverId = id;
@@ -250,14 +249,11 @@ public class DbHandler implements Runnable
    */
   public long getChangesCount()
   {
-    try
+    if (lastChange != null && firstChange != null)
     {
       return lastChange.getSeqnum() - firstChange.getSeqnum() + 1;
     }
-    catch (Exception e)
-    {
-      return 0;
-    }
+    return 0;
   }
 
   /**
@@ -271,12 +267,10 @@ public class DbHandler implements Runnable
    *         managed by this dbHandler and starting at the position defined
    *         by a given changeNumber.
    *
-   * @throws DatabaseException if a database problem happened.
-   * @throws Exception  If there is no other change to push after change
-   *         with changeNumber number.
+   * @throws ChangelogException if a database problem happened.
    */
   public ReplicationIterator generateIterator(ChangeNumber changeNumber)
-                           throws DatabaseException, Exception
+      throws ChangelogException
   {
     if (changeNumber == null)
     {
@@ -332,7 +326,8 @@ public class DbHandler implements Runnable
         try
         {
           wait();
-        } catch (Exception e)
+        }
+        catch (InterruptedException e)
         { /* do nothing */}
       }
     }
@@ -418,9 +413,9 @@ public class DbHandler implements Runnable
 
   /**
    * Trim old changes from this replicationServer database.
-   * @throws DatabaseException In case of database problem.
+   * @throws ChangelogException In case of database problem.
    */
-  private void trim() throws DatabaseException, Exception
+  private void trim() throws ChangelogException
   {
     if (trimAge == 0)
     {
@@ -476,7 +471,7 @@ public class DbHandler implements Runnable
           }
           cursor.close();
         }
-        catch (Exception e)
+        catch (ChangelogException e)
         {
           // mark shutdown for this db so that we don't try again to
           // stop it from cursor.close() or methods called by cursor.close()
@@ -602,12 +597,10 @@ public class DbHandler implements Runnable
 
   /**
    * Clear the changes from this DB (from both memory cache and DB storage).
-   * @throws DatabaseException When an exception occurs while removing the
+   * @throws ChangelogException When an exception occurs while removing the
    * changes from the DB.
-   * @throws Exception When an exception occurs while accessing a resource
-   * from the DB.
    */
-  public void clear() throws DatabaseException, Exception
+  public void clear() throws ChangelogException
   {
     synchronized(flushLock)
     {

@@ -27,14 +27,15 @@
  */
 package org.opends.server.replication.server;
 
-import static org.opends.server.util.StaticUtils.*;
-
 import java.io.UnsupportedEncodingException;
 
 import org.opends.messages.Message;
 import org.opends.server.replication.common.ChangeNumber;
+import org.opends.server.replication.server.changelog.api.ChangelogException;
 
 import com.sleepycat.je.DatabaseEntry;
+
+import static org.opends.server.util.StaticUtils.*;
 
 /**
  * SuperClass of DatabaseEntry used for data stored in the DraftCNDB.
@@ -66,9 +67,9 @@ public class DraftCNData extends DatabaseEntry
   /**
    * Creates a record to be stored in the DraftCNDB from the provided byte[].
    * @param data the provided byte[].
-   * @throws Exception a.
+   * @throws ChangelogException a.
    */
-  public DraftCNData(byte[] data) throws Exception
+  public DraftCNData(byte[] data) throws ChangelogException
   {
     decodeData(data);
   }
@@ -76,10 +77,9 @@ public class DraftCNData extends DatabaseEntry
   /**
    * Decode a record into fields.
    * @param data the provided byte array.
-   * @throws Exception when a problem occurs.
+   * @throws ChangelogException when a problem occurs.
    */
-  public void decodeData(byte[] data)
-  throws Exception
+  public void decodeData(byte[] data) throws ChangelogException
   {
     try
     {
@@ -94,46 +94,46 @@ public class DraftCNData extends DatabaseEntry
     {
       // should never happens
       // TODO: i18n
-      throw new ReplicationDBException(Message.raw("need UTF-8 support"));
+      throw new ChangelogException(Message.raw("need UTF-8 support"));
     }
   }
 
   /**
    * Getter for the value.
+   *
    * @return the value.
-   * @throws Exception when a problem occurs.
+   * @throws ChangelogException when a problem occurs.
    */
-  public String getValue()
-  throws Exception
+  public String getValue() throws ChangelogException
   {
     if (value == null)
-      this.decodeData(this.getData());
+      decodeData(getData());
     return this.value;
   }
 
   /**
    * Getter for the service ID.
+   *
    * @return The baseDN
-   * @throws Exception when a problem occurs.
+   * @throws ChangelogException when a problem occurs.
    */
-  public String getBaseDN()
-  throws Exception
+  public String getBaseDN() throws ChangelogException
   {
     if (value == null)
-      this.decodeData(this.getData());
+      decodeData(getData());
     return this.baseDN;
   }
 
   /**
    * Getter for the replication change number.
+   *
    * @return the replication change number.
-   * @throws Exception when a problem occurs.
+   * @throws ChangelogException when a problem occurs.
    */
-  public ChangeNumber getChangeNumber()
-  throws Exception
+  public ChangeNumber getChangeNumber() throws ChangelogException
   {
     if (value == null)
-      this.decodeData(this.getData());
+      decodeData(getData());
     return this.changeNumber;
   }
 

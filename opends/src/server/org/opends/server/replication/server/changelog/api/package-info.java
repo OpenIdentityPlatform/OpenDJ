@@ -22,36 +22,23 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS
  */
-package org.opends.server.replication.server;
-import org.opends.messages.Message;
-
-
-
-import org.opends.server.types.IdentifiedException;
-
 
 /**
- * This class define an Exception that must be used when some error
- * condition was detected in the replicationServer database that cannot be
- * recovered automatically.
+ * This package contains the API for the changelog database. The changelog
+ * contains:
+ * <ul>
+ * <li>a changelog of all the changes that happened on each server in the
+ * replication domain / suffix,</li>
+ * <li>a draft changelog,</li>
+ * <li>a state database containing specific information about each serverId in
+ * the suffix, and in particular the generationId for each server.</li>
+ * </ul>
+ *
+ * The changelog must be purged at regular intervals to ensure it does not
+ * consume too much space on disk.
  */
-public class ReplicationDBException extends IdentifiedException
-{
-
-  private static final long serialVersionUID = -8812600147768060090L;
-
-  /**
-   * Creates a new ReplicationServer db exception with the provided message.
-   * This Exception must be used when the full replicationServer service is
-   * compromised by the exception
-   *
-   * @param  message    The message to use for this exception.
-   */
-  public ReplicationDBException(Message message)
-  {
-    super(message);
-  }
-
-}
+@org.opends.server.types.PublicAPI(
+    stability = org.opends.server.types.StabilityLevel.PRIVATE)
+package org.opends.server.replication.server.changelog.api;
