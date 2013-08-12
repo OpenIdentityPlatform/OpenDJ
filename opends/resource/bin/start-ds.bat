@@ -31,8 +31,10 @@ for %%i in (%~sf0) do set DIR_HOME=%%~dPsi..
 set INSTALL_ROOT=%DIR_HOME%
 
 set INSTANCE_DIR=
-for /f "delims=" %%a in (%DIR_HOME%\instance.loc) do (
-  set INSTANCE_DIR=%%a
+if exist "%INSTALL_ROOT%\instance.loc" (
+  set /p INSTANCE_DIR=<%INSTALL_ROOT%\instance.loc
+) else (
+set INSTANCE_DIR=.
 )
 set CUR_DIR=%CD%
 cd /d %INSTALL_ROOT%
