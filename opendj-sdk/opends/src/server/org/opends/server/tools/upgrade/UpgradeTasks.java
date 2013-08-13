@@ -60,7 +60,7 @@ public final class UpgradeTasks
   static int countErrors = 0;
 
   /**
-   * Logger for the upgrade
+   * Logger for the upgrade.
    */
   static private final Logger LOG = Logger
       .getLogger(UpgradeCli.class.getName());

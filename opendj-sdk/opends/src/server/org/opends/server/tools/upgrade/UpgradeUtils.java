@@ -53,8 +53,7 @@ import static org.opends.messages.ConfigMessages.INFO_CONFIG_FILE_HEADER;
 import static org.opends.messages.ToolMessages.ERR_UPGRADE_UNKNOWN_OC_ATT;
 import static org.opends.server.tools.upgrade.FileManager.deleteRecursively;
 import static org.opends.server.tools.upgrade.FileManager.rename;
-import static org.opends.server.tools.upgrade.Installation.CURRENT_CONFIG_FILE_NAME;
-import static org.opends.server.tools.upgrade.Installation.SVC_SCRIPT_FILE_NAME;
+import static org.opends.server.tools.upgrade.Installation.*;
 import static org.opends.server.util.ServerConstants.EOL;
 
 /**
@@ -683,9 +682,9 @@ final class UpgradeUtils
    *          The folder containing the schema files.
    * @param revision
    *          The revision number of the current binary version.
-   * @throws IOException
+   * @throws Exception
    *           If we cannot read the files contained in the folder where the
-   *           schema files are supposed to be.
+   *           schema files are supposed to be, or the file has errors.
    */
   static void updateConfigUpgradeSchemaFile(final File folder,
       final String revision) throws Exception
