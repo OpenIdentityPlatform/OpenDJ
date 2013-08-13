@@ -3335,11 +3335,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
 
     for (int serverId : getDbServerState())
     {
-      ChangeNumber startCN = null;
-      if (startState.getChangeNumber(serverId) != null)
-      {
-        startCN = startState.getChangeNumber(serverId);
-      }
+      ChangeNumber startCN = startState.getChangeNumber(serverId);
       long serverIdRes = getCount(serverId, startCN, endCN);
 
       // The startPoint is excluded when counting the ECL eligible changes
