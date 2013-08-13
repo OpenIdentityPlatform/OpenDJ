@@ -156,9 +156,9 @@ final class Installation
   static final String WINDOWS_UPGRADE_FILE_NAME = "upgrade.bat";
 
   /**
-   * The UNIX configure script file name.
+   * The UNIX service script file name (used to detect SVR4 pkg).
    */
-  static final String UNIX_CONFIGURE_FILE_NAME = "configure";
+  static final String SVC_SCRIPT_FILE_NAME = "_svc-opendj.sh";
 
   /**
    * The MacOS X Java application stub name.
