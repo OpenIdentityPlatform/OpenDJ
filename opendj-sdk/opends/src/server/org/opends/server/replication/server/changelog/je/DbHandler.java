@@ -25,7 +25,7 @@
  *      Copyright 2006-2010 Sun Microsystems, Inc.
  *      Portions copyright 2011-2013 ForgeRock AS
  */
-package org.opends.server.replication.server;
+package org.opends.server.replication.server.changelog.je;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -40,9 +40,11 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.protocol.UpdateMsg;
-import org.opends.server.replication.server.ReplicationDB.ReplServerDBCursor;
+import org.opends.server.replication.server.ReplicationServer;
+import org.opends.server.replication.server.ReplicationServerDomain;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.api.ReplicationIterator;
+import org.opends.server.replication.server.changelog.je.ReplicationDB.ReplServerDBCursor;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.InitializationException;

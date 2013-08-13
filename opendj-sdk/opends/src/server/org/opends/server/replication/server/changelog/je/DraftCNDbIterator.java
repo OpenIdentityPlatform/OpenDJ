@@ -25,13 +25,13 @@
  *      Copyright 2009 Sun Microsystems, Inc.
  *      Portions Copyright 2011-2013 ForgeRock AS
  */
-package org.opends.server.replication.server;
+package org.opends.server.replication.server.changelog.je;
 
 import org.opends.messages.Message;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.common.ChangeNumber;
-import org.opends.server.replication.server.DraftCNDB.DraftCNDBCursor;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
+import org.opends.server.replication.server.changelog.je.DraftCNDB.DraftCNDBCursor;
 import org.opends.server.types.DebugLogLevel;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;

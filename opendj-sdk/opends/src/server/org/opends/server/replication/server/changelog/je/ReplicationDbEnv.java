@@ -25,7 +25,7 @@
  *      Copyright 2006-2009 Sun Microsystems, Inc.
  *      Portions Copyright 2011-2013 ForgeRock AS
  */
-package org.opends.server.replication.server;
+package org.opends.server.replication.server.changelog.je;
 
 import java.io.File;
 import java.io.UnsupportedEncodingException;
@@ -34,6 +34,7 @@ import java.util.concurrent.TimeUnit;
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 import org.opends.server.loggers.debug.DebugTracer;
+import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 
 import com.sleepycat.je.*;
@@ -567,4 +568,43 @@ public class ReplicationDbEnv
         throw new ChangelogException(e);
       }
     }
+
+  /**
+   * Shuts down replication when an unexpected database exception occurs. Note
+   * that we do not expect lock timeouts or txn timeouts because the replication
+   * databases are deadlock free, thus all operations should complete
+   * eventually.
+   *
+   * @param e
+   *          The unexpected database exception.
+   */
+  void shutdownOnException(DatabaseException e)
+  {
+    innerShutdownOnException(e);
+  }
+
+  /**
+   * Shuts down replication when an unexpected changelog exception occurs. Note
+   * that we do not expect lock timeouts or txn timeouts because the replication
+   * databases are deadlock free, thus all operations should complete
+   * eventually.
+   *
+   * @param e
+   *          The unexpected changelog exception.
+   */
+  void shutdownOnException(ChangelogException e)
+  {
+    innerShutdownOnException(e);
+  }
+
+  private void innerShutdownOnException(Exception e)
+  {
+    MessageBuilder mb = new MessageBuilder();
+    mb.append(ERR_CHANGELOG_SHUTDOWN_DATABASE_ERROR.get());
+    mb.append(".   ");
+    mb.append(stackTraceToSingleLineString(e));
+    logError(mb.toMessage());
+    replicationServer.shutdown();
+  }
+
 }

@@ -25,7 +25,7 @@
  *      Copyright 2009-2010 Sun Microsystems, Inc.
  *      Portions Copyright 2011-2013 ForgeRock AS
  */
-package org.opends.server.replication.server;
+package org.opends.server.replication.server.changelog.je;
 
 import static org.testng.Assert.*;
 
@@ -35,7 +35,12 @@ import org.opends.server.TestCaseUtils;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.common.ChangeNumberGenerator;
-import org.opends.server.replication.server.DraftCNDB.DraftCNDBCursor;
+import org.opends.server.replication.server.ReplServerFakeConfiguration;
+import org.opends.server.replication.server.ReplicationServer;
+import org.opends.server.replication.server.changelog.je.DraftCNDbHandler;
+import org.opends.server.replication.server.changelog.je.DraftCNDbIterator;
+import org.opends.server.replication.server.changelog.je.ReplicationDbEnv;
+import org.opends.server.replication.server.changelog.je.DraftCNDB.DraftCNDBCursor;
 import org.testng.annotations.Test;
 
 /**
