@@ -42,6 +42,7 @@ import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.ReplicationDB.ReplServerDBCursor;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
+import org.opends.server.replication.server.changelog.api.ReplicationIterator;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.InitializationException;
@@ -276,7 +277,7 @@ public class DbHandler implements Runnable
     {
       flush();
     }
-    return new ReplicationIterator(db, changeNumber, this);
+    return new JEReplicationIterator(db, changeNumber, this);
   }
 
   /**

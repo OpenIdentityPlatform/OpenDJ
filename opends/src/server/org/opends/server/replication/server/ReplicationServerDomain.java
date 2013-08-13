@@ -47,6 +47,7 @@ import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.common.*;
 import org.opends.server.replication.protocol.*;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
+import org.opends.server.replication.server.changelog.api.ReplicationIterator;
 import org.opends.server.types.*;
 import org.opends.server.util.TimeThread;
 
