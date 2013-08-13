@@ -43,11 +43,11 @@ import java.util.logging.Logger;
 import javax.security.auth.callback.ConfirmationCallback;
 
 import org.opends.messages.Message;
-import org.opends.server.controls.PersistentSearchChangeType;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.tools.ClientException;
 import org.opends.server.tools.upgrade.UpgradeTask.TaskType;
 import org.opends.server.util.BuildVersion;
+import org.opends.server.util.ChangeOperationType;
 
 /**
  * Factory methods for create new upgrade tasks.
@@ -60,7 +60,7 @@ public final class UpgradeTasks
   static int countErrors = 0;
 
   /**
-   * Upgrade's logger.
+   * Logger for the upgrade
    */
   static private final Logger LOG = Logger
       .getLogger(UpgradeCli.class.getName());
@@ -580,16 +580,16 @@ public final class UpgradeTasks
           try
           {
             final File oldSnmpConfig =
-                new File(UpgradeUtils.configSnmpSecurityDirectory
-                    + File.separator + "opends-snmp.security");
+                new File(UpgradeUtils.configSnmpSecurityDirectory,
+                    "opends-snmp.security");
             if (oldSnmpConfig.exists())
             {
               context.notifyProgress(pnc.setProgress(20));
               LOG.log(Level.INFO, summary.toString());
 
               final File snmpConfig =
-                  new File(UpgradeUtils.configSnmpSecurityDirectory
-                      + File.separator + "opendj-snmp.security");
+                  new File(UpgradeUtils.configSnmpSecurityDirectory,
+                      "opendj-snmp.security");
 
               FileManager.rename(oldSnmpConfig, snmpConfig);
 
@@ -655,7 +655,7 @@ public final class UpgradeTasks
 
             final int changeCount =
                 updateConfigFile(configFile.getPath(), null,
-                    PersistentSearchChangeType.ADD, ldif);
+                    ChangeOperationType.ADD, ldif);
 
             displayChangeCount(configFile.getPath(), changeCount);
 
@@ -692,7 +692,7 @@ public final class UpgradeTasks
     LOG.log(Level.INFO, summary);
     if (filter != null)
     {
-      LOG.log(Level.INFO, filter.toString());
+      LOG.log(Level.INFO, filter);
     }
     if (ldif != null)
     {
@@ -760,7 +760,7 @@ public final class UpgradeTasks
 
             final int changeCount =
                 updateConfigFile(configFile.getPath(), LDAPFilter
-                    .decode(filter), PersistentSearchChangeType.MODIFY, ldif);
+                    .decode(filter), ChangeOperationType.MODIFY, ldif);
 
             displayChangeCount(configFile.getPath(), changeCount);
 

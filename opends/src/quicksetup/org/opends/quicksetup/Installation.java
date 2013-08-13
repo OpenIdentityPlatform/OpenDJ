@@ -194,11 +194,6 @@ public final class Installation
   public static final String UNIX_UPGRADE_FILE_NAME = "upgrade";
 
   /**
-   * The UNIX configure script file name.
-   */
-  public static final String UNIX_CONFIGURE_FILE_NAME = "configure";
-
-  /**
    * The UNIX start script file name.
    */
   public static final String UNIX_START_FILE_NAME = "start-ds";
