@@ -32,7 +32,8 @@ import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.api.ReplicationIterator;
-import org.opends.server.replication.server.changelog.je.ReplicationDB.ReplServerDBCursor;
+import org.opends.server.replication.server.changelog.je.ReplicationDB
+    .ReplServerDBCursor;
 
 /**
  * Berkeley DB JE implementation of IReplicationIterator.
