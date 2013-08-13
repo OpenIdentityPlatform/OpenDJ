@@ -27,10 +27,6 @@
  */
 package org.opends.server.util;
 
-
-
-import static org.opends.server.loggers.debug.DebugLogger.*;
-
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -50,7 +46,7 @@ import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.schema.GeneralizedTimeSyntax;
 import org.opends.server.types.DebugLogLevel;
 
-
+import static org.opends.server.loggers.debug.DebugLogger.*;
 
 /**
  * This class provides an application-wide timing service. It provides
@@ -71,45 +67,46 @@ public final class TimeThread
   private static final class TimeInfo implements Runnable
   {
 
-    // The calendar holding the current time.
+    /** The calendar holding the current time. */
     private GregorianCalendar calendar;
 
-    // The date for this time thread.
+    /** The date for this time thread. */
     private Date date;
 
-    // The timestamp for this time thread in the generalized time
-    // format.
+    /** The timestamp for this time thread in the generalized time format. */
     private String generalizedTime;
 
-    // The timestamp for this time thread in GMT.
+    /** The timestamp for this time thread in GMT. */
     private String gmtTimestamp;
 
-    // The date formatter that will be used to obtain the GMT
-    // timestamp.
+    /** The date formatter that will be used to obtain the GMT timestamp. */
     private final SimpleDateFormat gmtTimestampFormatter;
 
-    // The current time in HHmm form as an integer.
+    /** The current time in HHmm form as an integer. */
     private int hourAndMinute;
 
-    // The timestamp for this time thread in the local time zone.
+    /** The timestamp for this time thread in the local time zone. */
     private String localTimestamp;
 
-    // The date formatter that will be used to obtain the local
-    // timestamp.
+    /** The date formatter that will be used to obtain the local timestamp. */
     private final SimpleDateFormat localTimestampFormatter;
 
-    // The current time in nanoseconds.
+    /** The current time in nanoseconds. */
     private volatile long nanoTime;
 
-    // The current time in milliseconds since the epoch.
+    /** The current time in milliseconds since the epoch. */
     private volatile long time;
 
-    // A set of arbitrary formatters that should be maintained by this
-    // time thread.
+    /**
+     * A set of arbitrary formatters that should be maintained by this time
+     * thread.
+     */
     private final List<SimpleDateFormat> userDefinedFormatters;
 
-    // A set of abitrary formatted times, mapped from format string to
-    // the corresponding formatted time representation.
+    /**
+     * A set of arbitrary formatted times, mapped from format string to the
+     * corresponding formatted time representation.
+     */
     private final Map<String, String> userDefinedTimeStrings;
 
 
@@ -140,6 +137,7 @@ public final class TimeThread
     /**
      * {@inheritDoc}
      */
+    @Override
     public void run()
     {
       try
@@ -157,8 +155,7 @@ public final class TimeThread
 
         for (SimpleDateFormat format : userDefinedFormatters)
         {
-          userDefinedTimeStrings.put(format.toPattern(), format
-              .format(date));
+          userDefinedTimeStrings.put(format.toPattern(), format.format(date));
         }
       }
       catch (Exception e)
@@ -181,6 +178,7 @@ public final class TimeThread
     /**
      * {@inheritDoc}
      */
+    @Override
     public Thread newThread(Runnable r)
     {
       Thread t = new DirectoryThread(r, "Time Thread");
@@ -192,10 +190,10 @@ public final class TimeThread
 
 
 
-  // The singleton instance.
+  /** The singleton instance. */
   private static TimeThread INSTANCE = new TimeThread();
 
-  // The tracer object for the debug logger.
+  /** The tracer object for the debug logger. */
   private static final DebugTracer TRACER = getTracer();
 
 
@@ -303,9 +301,9 @@ public final class TimeThread
 
 
   /**
-   * Retrieves the time in nanoseconds from the most precise available
-   * system timer. The value retured represents nanoseconds since some
-   * fixed but arbitrary time.
+   * Retrieves the time in nanoseconds from the most precise available system
+   * timer. The value returned represents nanoseconds since some fixed but
+   * arbitrary time.
    *
    * @return The time in nanoseconds from some fixed but arbitrary time.
    * @throws IllegalStateException
@@ -426,7 +424,7 @@ public final class TimeThread
 
 
 
-  // Ensures that the time service has been started.
+  /** Ensures that the time service has been started. */
   private static void checkState() throws IllegalStateException
   {
     if (INSTANCE == null)
@@ -437,11 +435,11 @@ public final class TimeThread
 
 
 
-  // The scheduler.
+  /** The scheduler. */
   private final ScheduledExecutorService scheduler =
       Executors.newSingleThreadScheduledExecutor(new TimeThreadFactory());
 
-  // The current time information.
+  /** The current time information. */
   private final TimeInfo timeInfo = new TimeInfo();
 
 
