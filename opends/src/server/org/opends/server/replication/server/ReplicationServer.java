@@ -53,6 +53,9 @@ import org.opends.server.replication.common.*;
 import org.opends.server.replication.plugin.MultimasterReplication;
 import org.opends.server.replication.protocol.*;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
+import org.opends.server.replication.server.changelog.je.DbHandler;
+import org.opends.server.replication.server.changelog.je.DraftCNDbHandler;
+import org.opends.server.replication.server.changelog.je.ReplicationDbEnv;
 import org.opends.server.types.*;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.ServerConstants;
@@ -484,8 +487,8 @@ public final class ReplicationServer
     boolean sslEncryption =replSessionSecurity.isSslEncryption(remoteServerURL);
 
     if (debugEnabled())
-      TRACER.debugInfo("RS " + this.getMonitorInstanceName() +
-               " connects to " + remoteServerURL);
+      TRACER.debugInfo("RS " + getMonitorInstanceName() + " connects to "
+          + remoteServerURL);
 
     Socket socket = new Socket();
     Session session = null;
@@ -937,7 +940,7 @@ public final class ReplicationServer
    * @return  The time after which changes must be deleted from the
    *          persistent storage (in milliseconds).
    */
-  long getTrimAge()
+  public long getTrimAge()
   {
     return purgeDelay * 1000;
   }
@@ -1190,8 +1193,7 @@ public final class ReplicationServer
    */
   public long getGenerationId(String baseDN)
   {
-    ReplicationServerDomain rsd =
-            this.getReplicationServerDomain(baseDN, false);
+    ReplicationServerDomain rsd = getReplicationServerDomain(baseDN, false);
     if (rsd!=null)
       return rsd.getGenerationId();
     return -1;
@@ -1682,8 +1684,7 @@ public final class ReplicationServer
    * @throws DirectoryException
    *           when needed.
    */
-  public DraftCNDbHandler getDraftCNDbHandler()
-      throws DirectoryException
+  public DraftCNDbHandler getDraftCNDbHandler() throws DirectoryException
   {
     synchronized (draftCNLock)
     {
@@ -1786,7 +1787,7 @@ public final class ReplicationServer
     int lastDraftCN;
     Boolean dbEmpty = false;
     Long newestDate = 0L;
-    DraftCNDbHandler draftCNDbH = this.getDraftCNDbHandler();
+    DraftCNDbHandler draftCNDbH = getDraftCNDbHandler();
 
     // Get the first DraftCN from the DraftCNdb
     int firstDraftCN = draftCNDbH.getFirstKey();
@@ -1921,27 +1922,6 @@ public final class ReplicationServer
     {
       return new ArrayList<ReplicationServerDomain>(baseDNs.values());
     }
-  }
-
-
-
-  /**
-   * Shuts down replication when an unexpected database exception occurs. Note
-   * that we do not expect lock timeouts or txn timeouts because the replication
-   * databases are deadlock free, thus all operations should complete
-   * eventually.
-   *
-   * @param e
-   *          The unexpected database exception.
-   */
-  void handleUnexpectedChangelogException(ChangelogException e)
-  {
-    MessageBuilder mb = new MessageBuilder();
-    mb.append(ERR_CHANGELOG_SHUTDOWN_DATABASE_ERROR.get());
-    mb.append(".   ");
-    mb.append(stackTraceToSingleLineString(e));
-    logError(mb.toMessage());
-    shutdown();
   }
 
   /**

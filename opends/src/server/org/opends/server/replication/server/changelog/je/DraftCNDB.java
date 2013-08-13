@@ -25,7 +25,7 @@
  *      Copyright 2009 Sun Microsystems, Inc.
  *      Portions Copyright 2011-2013 ForgeRock AS
  */
-package org.opends.server.replication.server;
+package org.opends.server.replication.server.changelog.je;
 
 import java.io.Closeable;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -35,6 +35,7 @@ import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.common.ChangeNumber;
+import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.types.DebugLogLevel;
 
@@ -127,11 +128,11 @@ public class DraftCNDB
     }
     catch (DatabaseException e)
     {
-      handleUnexpectedDatabaseException(e);
+      dbenv.shutdownOnException(e);
     }
     catch (ChangelogException e)
     {
-      replicationServer.handleUnexpectedChangelogException(e);
+      dbenv.shutdownOnException(e);
     }
   }
 
@@ -255,7 +256,7 @@ public class DraftCNDB
     }
     catch (DatabaseException e)
     {
-      handleUnexpectedDatabaseException(e);
+      dbenv.shutdownOnException(e);
       return 0;
     }
   }
@@ -323,15 +324,9 @@ public class DraftCNDB
     }
     catch (DatabaseException e)
     {
-      handleUnexpectedDatabaseException(e);
+      dbenv.shutdownOnException(e);
       return 0;
     }
-  }
-
-  private void handleUnexpectedDatabaseException(DatabaseException e)
-  {
-    ChangelogException ex = new ChangelogException(e);
-    replicationServer.handleUnexpectedChangelogException(ex);
   }
 
   /**
@@ -514,7 +509,7 @@ public class DraftCNDB
         }
         catch (DatabaseException e)
         {
-          handleUnexpectedDatabaseException(e);
+          dbenv.shutdownOnException(e);
         }
       }
     }
@@ -547,7 +542,7 @@ public class DraftCNDB
         }
         catch (DatabaseException e)
         {
-          handleUnexpectedDatabaseException(e);
+          dbenv.shutdownOnException(e);
         }
       }
     }

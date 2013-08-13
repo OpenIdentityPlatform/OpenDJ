@@ -25,7 +25,7 @@
  *      Copyright 2006-2010 Sun Microsystems, Inc.
  *      Portions Copyright 2011-2013 ForgeRock AS
  */
-package org.opends.server.replication.server;
+package org.opends.server.replication.server.changelog.je;
 
 import java.io.Closeable;
 import java.io.UnsupportedEncodingException;
@@ -37,6 +37,8 @@ import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.protocol.UpdateMsg;
+import org.opends.server.replication.server.ReplicationServer;
+import org.opends.server.replication.server.ReplicationServerDomain;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.util.StaticUtils;
 
@@ -212,18 +214,12 @@ public class ReplicationDB
     }
     catch (DatabaseException e)
     {
-      handleUnexpectedDatabaseException(e);
+      dbenv.shutdownOnException(e);
     }
     finally
     {
       dbCloseLock.readLock().unlock();
     }
-  }
-
-  private void handleUnexpectedDatabaseException(DatabaseException e)
-  {
-    ChangelogException ex = new ChangelogException(e);
-    replicationServer.handleUnexpectedChangelogException(ex);
   }
 
   private void insertCounterRecordIfNeeded(ChangeNumber changeNumber)
@@ -373,7 +369,7 @@ public class ReplicationDB
     }
     catch (DatabaseException e)
     {
-      handleUnexpectedDatabaseException(e);
+      dbenv.shutdownOnException(e);
       return null;
     }
     finally
@@ -432,7 +428,7 @@ public class ReplicationDB
     }
     catch (DatabaseException e)
     {
-      handleUnexpectedDatabaseException(e);
+      dbenv.shutdownOnException(e);
       return null;
     }
     finally
@@ -493,7 +489,7 @@ public class ReplicationDB
     }
     catch (DatabaseException e)
     {
-      handleUnexpectedDatabaseException(e);
+      dbenv.shutdownOnException(e);
     }
     finally
     {
@@ -717,7 +713,7 @@ public class ReplicationDB
         }
         catch (DatabaseException e)
         {
-          handleUnexpectedDatabaseException(e);
+          dbenv.shutdownOnException(e);
         }
       }
     }
@@ -750,7 +746,7 @@ public class ReplicationDB
         }
         catch (DatabaseException e)
         {
-          handleUnexpectedDatabaseException(e);
+          dbenv.shutdownOnException(e);
         }
       }
     }
@@ -956,7 +952,7 @@ public class ReplicationDB
     }
     catch (DatabaseException e)
     {
-      handleUnexpectedDatabaseException(e);
+      dbenv.shutdownOnException(e);
     }
     finally
     {
