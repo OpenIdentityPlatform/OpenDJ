@@ -27,9 +27,6 @@
  */
 package org.opends.server.replication.server;
 
-import static org.opends.messages.ReplicationMessages.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.SortedSet;
@@ -45,7 +42,11 @@ import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.protocol.UpdateMsg;
+import org.opends.server.replication.server.changelog.api.*;
 import org.opends.server.types.*;
+
+import static org.opends.messages.ReplicationMessages.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
 
 /**
  * This class implements a buffering/producer/consumer mechanism of
@@ -281,17 +282,15 @@ public class MessageHandler extends MonitorProvider<MonitorProviderCfg>
            *   load this change on the delayList
            *
            */
-          ReplicationIteratorComparator comparator =
-            new ReplicationIteratorComparator();
           SortedSet<ReplicationIterator> iteratorSortedSet =
-            new TreeSet<ReplicationIterator>(comparator);
+              new TreeSet<ReplicationIterator>(
+                  new ReplicationIteratorComparator());
           try
           {
             /* fill the lateQueue */
             for (int serverId : replicationServerDomain.getServers())
             {
-              ChangeNumber lastCsn = serverState
-                  .getChangeNumber(serverId);
+              ChangeNumber lastCsn = serverState.getChangeNumber(serverId);
               ReplicationIterator iterator = replicationServerDomain
                   .getChangelogIterator(serverId, lastCsn);
               if (iterator != null)
@@ -318,8 +317,7 @@ public class MessageHandler extends MonitorProvider<MonitorProviderCfg>
                 && (lateQueue.count() < 100)
                 && (lateQueue.bytesCount() < 50000))
             {
-              ReplicationIterator iterator = iteratorSortedSet
-                  .first();
+              ReplicationIterator iterator = iteratorSortedSet.first();
               iteratorSortedSet.remove(iterator);
               lateQueue.add(iterator.getChange());
               if (iterator.next())
@@ -376,7 +374,7 @@ public class MessageHandler extends MonitorProvider<MonitorProviderCfg>
                 {
                   msg1 = msgQueue.removeFirst();
                 } while (!msg.getChangeNumber().equals(msg1.getChangeNumber()));
-                this.updateServerState(msg);
+                updateServerState(msg);
                 return msg1;
               }
             }
@@ -388,7 +386,7 @@ public class MessageHandler extends MonitorProvider<MonitorProviderCfg>
           {
             msg = lateQueue.removeFirst();
           }
-          this.updateServerState(msg);
+          updateServerState(msg);
           return msg;
         }
       }
@@ -412,7 +410,7 @@ public class MessageHandler extends MonitorProvider<MonitorProviderCfg>
           }
           msg = msgQueue.removeFirst();
 
-          if (this.updateServerState(msg))
+          if (updateServerState(msg))
           {
             /*
              * Only push the message if it has not yet been seen
@@ -462,10 +460,9 @@ public class MessageHandler extends MonitorProvider<MonitorProviderCfg>
           there. So let's take the last change not sent directly from
           the db.
           */
-          ReplicationIteratorComparator comparator =
-            new ReplicationIteratorComparator();
           SortedSet<ReplicationIterator> iteratorSortedSet =
-            new TreeSet<ReplicationIterator>(comparator);
+              new TreeSet<ReplicationIterator>(
+                  new ReplicationIteratorComparator());
           try
           {
             // Build a list of candidates iterator (i.e. db i.e. server)

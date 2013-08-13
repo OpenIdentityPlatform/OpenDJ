@@ -42,6 +42,7 @@ import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.common.ChangeNumberGenerator;
 import org.opends.server.replication.protocol.DeleteMsg;
+import org.opends.server.replication.server.changelog.api.ReplicationIterator;
 import org.testng.annotations.Test;
 
 /**

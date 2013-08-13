@@ -32,12 +32,12 @@ import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.ReplicationDB.ReplServerDBCursor;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
+import org.opends.server.replication.server.changelog.api.ReplicationIterator;
 
 /**
- * This class allows to iterate through the changes received from a given
- * LDAP Server Identifier.
+ * Berkeley DB JE implementation of IReplicationIterator.
  */
-public class ReplicationIterator
+public class JEReplicationIterator implements ReplicationIterator
 {
   private UpdateMsg currentChange = null;
   private ReplServerDBCursor cursor = null;
@@ -55,7 +55,7 @@ public class ReplicationIterator
    * @param dbHandler The associated DbHandler.
    * @throws ChangelogException if a database problem happened.
    */
-  public ReplicationIterator(ReplicationDB db, ChangeNumber changeNumber,
+  public JEReplicationIterator(ReplicationDB db, ChangeNumber changeNumber,
       DbHandler dbHandler) throws ChangelogException
   {
     this.db = db;
@@ -86,20 +86,15 @@ public class ReplicationIterator
     }
   }
 
-  /**
-   * Get the UpdateMsg where the iterator is currently set.
-   * @return The UpdateMsg where the iterator is currently set.
-   */
+  /** {@inheritDoc} */
+  @Override
   public UpdateMsg getChange()
   {
     return currentChange;
   }
 
-  /**
-   * Go to the next change in the ReplicationDB or in the server Queue.
-   * @return false if the iterator is already on the last change before
-   *         this call.
-   */
+  /** {@inheritDoc} */
+  @Override
   public boolean next()
   {
     currentChange = cursor.next();
@@ -136,11 +131,8 @@ public class ReplicationIterator
     return currentChange != null;
   }
 
-  /**
-   * Release the resources and locks used by this Iterator.
-   * This method must be called when the iterator is no longer used.
-   * Failure to do it could cause DB deadlock.
-   */
+  /** {@inheritDoc} */
+  @Override
   public void releaseCursor()
   {
     synchronized (this)
