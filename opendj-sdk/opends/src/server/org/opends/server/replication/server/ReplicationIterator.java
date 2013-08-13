@@ -41,7 +41,7 @@ public class ReplicationIterator
 {
   private UpdateMsg currentChange = null;
   private ReplServerDBCursor cursor = null;
-  private DbHandler dbh;
+  private DbHandler dbHandler;
   private ReplicationDB db;
   private ChangeNumber lastNonNullCurrentCN;
 
@@ -59,7 +59,7 @@ public class ReplicationIterator
       DbHandler dbHandler) throws ChangelogException
   {
     this.db = db;
-    this.dbh = dbHandler;
+    this.dbHandler = dbHandler;
     this.lastNonNullCurrentCN = changeNumber;
 
     try
@@ -102,14 +102,11 @@ public class ReplicationIterator
    */
   public boolean next()
   {
-    boolean hasNext;
-
-    currentChange = cursor.next(); // can return null
+    currentChange = cursor.next();
 
     if (currentChange != null)
     {
       lastNonNullCurrentCN = currentChange.getChangeNumber();
-      hasNext = true;
     }
     else
     {
@@ -120,7 +117,7 @@ public class ReplicationIterator
           cursor.close();
           cursor = null;
         }
-        dbh.flush();
+        dbHandler.flush();
         try
         {
           cursor = db.openReadCursor(lastNonNullCurrentCN);
@@ -128,21 +125,15 @@ public class ReplicationIterator
           if (currentChange != null)
           {
             lastNonNullCurrentCN = currentChange.getChangeNumber();
-            hasNext = true;
-          }
-          else
-          {
-            hasNext = false;
           }
         }
         catch(Exception e)
         {
           currentChange = null;
-          hasNext = false;
         }
       }
     }
-    return hasNext;
+    return currentChange != null;
   }
 
   /**
@@ -159,7 +150,7 @@ public class ReplicationIterator
         cursor.close();
         cursor = null;
       }
-      this.dbh = null;
+      this.dbHandler = null;
       this.db = null;
     }
   }
