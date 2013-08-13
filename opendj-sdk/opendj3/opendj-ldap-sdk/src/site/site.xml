@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2012 ForgeRock AS
+  !      Copyright 2011-2013 ForgeRock AS
   !
 -->
 <project name="${project.name}" xmlns="http://maven.apache.org/DECORATION/1.0.1"
@@ -33,7 +33,7 @@
       <item name="FAQ" href="../faq.html" />
       <item name="Mailing Lists" href="../mail-lists.html" />
       <item name="Wiki" href="https://wikis.forgerock.org/confluence/display/OPENDJ/Home" />
-      <item name="Join" href="https://idp.forgerock.org/openam/UI/Login?service=register" />
+      <item name="Join" href="https://sso.forgerock.com/openam/UI/Login" />
       <item name="Support" href="http://forgerock.com/what-we-offer/subscriptions/" />
       <item name="Partners" href="http://forgerock.com/partners/" />
       <item name="Builds" href="http://forgerock.org/opendj.html" />
@@ -58,8 +58,7 @@
     </menu>
 
     <menu name="OpenDJ Development">
-      <item name="Join"
-        href="https://idp.forgerock.org/openam/UI/Login?service=register" />
+      <item name="Join" href="https://sso.forgerock.com/openam/UI/Login" />
       <item name="Continuous Integration" href="integration.html" />
       <item name="Maven Repository" href="distribution-management.html" />
       <item name="Issue Tracking" href="issue-tracking.html" />
