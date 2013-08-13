@@ -87,6 +87,10 @@ public class RebuildIndex extends TaskTool
   private BooleanArgument rebuildDegraded = null;
   private BooleanArgument clearDegradedState = null;
 
+  private final LDAPConnectionArgumentParser argParser = createArgParser(
+      "org.opends.server.tools.RebuildIndex",
+      INFO_REBUILDINDEX_TOOL_DESCRIPTION.get());
+
   /**
    * Processes the command-line arguments and invokes the rebuild process.
    *
@@ -95,7 +99,8 @@ public class RebuildIndex extends TaskTool
    */
   public static void main(final String[] args)
   {
-    final int retCode = mainRebuildIndex(args, true, System.out, System.err);
+    final int retCode =
+        mainRebuildIndex(args, true, System.out, System.err);
 
     if (retCode != 0)
     {
@@ -127,77 +132,16 @@ public class RebuildIndex extends TaskTool
   }
 
   private int process(final String[] args, final boolean initializeServer,
-      final OutputStream outStream, final OutputStream errStream)
+      final OutputStream outStream, final OutputStream errStream )
   {
     final PrintStream out = NullOutputStream.wrapOrNullStream(outStream);
     final PrintStream err = NullOutputStream.wrapOrNullStream(errStream);
-
-    // Define the command-line arguments that may be used with this program.
-    BooleanArgument displayUsage;
-
-    // Create the command-line argument parser for use with this program.
-    final Message toolDescription = INFO_REBUILDINDEX_TOOL_DESCRIPTION.get();
-    final LDAPConnectionArgumentParser argParser =
-        createArgParser("org.opends.server.tools.RebuildIndex",
-            toolDescription);
 
     // Initialize all the command-line argument types and register them with the
     // parser.
     try
     {
-      configClass =
-          new StringArgument("configclass", 'C', "configClass", true, false,
-              true, INFO_CONFIGCLASS_PLACEHOLDER.get(), ConfigFileHandler.class
-                  .getName(), null, INFO_DESCRIPTION_CONFIG_CLASS.get());
-      configClass.setHidden(true);
-      argParser.addArgument(configClass);
-
-      configFile =
-          new StringArgument("configfile", 'f', "configFile", true, false,
-              true, INFO_CONFIGFILE_PLACEHOLDER.get(), null, null,
-              INFO_DESCRIPTION_CONFIG_FILE.get());
-      configFile.setHidden(true);
-      argParser.addArgument(configFile);
-
-      baseDNString =
-          new StringArgument("basedn", 'b', "baseDN", true, false, true,
-              INFO_BASEDN_PLACEHOLDER.get(), null, null,
-              INFO_REBUILDINDEX_DESCRIPTION_BASE_DN.get());
-      argParser.addArgument(baseDNString);
-
-      indexList =
-          new StringArgument("index", 'i', "index", false, true, true,
-              INFO_INDEX_PLACEHOLDER.get(), null, null,
-              INFO_REBUILDINDEX_DESCRIPTION_INDEX_NAME.get());
-      argParser.addArgument(indexList);
-
-      rebuildAll =
-          new BooleanArgument("rebuildAll", null, "rebuildAll",
-              INFO_REBUILDINDEX_DESCRIPTION_REBUILD_ALL.get());
-      argParser.addArgument(rebuildAll);
-
-      rebuildDegraded =
-          new BooleanArgument("rebuildDegraded", null, "rebuildDegraded",
-              INFO_REBUILDINDEX_DESCRIPTION_REBUILD_DEGRADED.get());
-      argParser.addArgument(rebuildDegraded);
-
-      clearDegradedState =
-          new BooleanArgument("clearDegradedState", null, "clearDegradedState",
-              INFO_REBUILDINDEX_DESCRIPTION_CLEAR_DEGRADED_STATE.get());
-      argParser.addArgument(clearDegradedState);
-
-      tmpDirectory =
-          new StringArgument("tmpdirectory", null, "tmpdirectory", false,
-              false, true, INFO_REBUILDINDEX_TEMP_DIR_PLACEHOLDER.get(),
-              "import-tmp", null, INFO_REBUILDINDEX_DESCRIPTION_TEMP_DIRECTORY
-                  .get());
-      argParser.addArgument(tmpDirectory);
-
-      displayUsage =
-          new BooleanArgument("help", 'H',
-              "help", INFO_DESCRIPTION_USAGE.get());
-      argParser.addArgument(displayUsage);
-      argParser.setUsageArgument(displayUsage);
+      initializeArguments(false);
     }
     catch (ArgumentException ae)
     {
@@ -284,8 +228,7 @@ public class RebuildIndex extends TaskTool
     if (rebuildAll.isPresent() && clearDegradedState.isPresent())
     {
       final Message msg =
-          ERR_REBUILDINDEX_REBUILD_ALL_DEGRADED_ERROR
-              .get("clearDegradedState");
+          ERR_REBUILDINDEX_REBUILD_ALL_DEGRADED_ERROR.get("clearDegradedState");
       err.println(wrapText(msg, MAX_LINE_WIDTH));
       out.println(argParser.getUsage());
       return 1;
@@ -301,8 +244,73 @@ public class RebuildIndex extends TaskTool
       err.println(wrapText(e.getMessage(), MAX_LINE_WIDTH));
       return 1;
     }
-
     return process(argParser, initializeServer, out, err);
+  }
+
+  /**
+   * Initializes the arguments for the rebuild index tool.
+   *
+   * @param isMultipleBackends
+   *          {@code true} if the tool is used as internal.
+   * @throws ArgumentException
+   *           If the initialization fails.
+   */
+  private void initializeArguments(final boolean isMultipleBackends)
+      throws ArgumentException
+  {
+    configClass =
+        new StringArgument("configclass", 'C', "configClass", true, false,
+            true, INFO_CONFIGCLASS_PLACEHOLDER.get(), ConfigFileHandler.class
+                .getName(), null, INFO_DESCRIPTION_CONFIG_CLASS.get());
+    configClass.setHidden(true);
+    argParser.addArgument(configClass);
+
+    configFile =
+        new StringArgument("configfile", 'f', "configFile", true, false, true,
+            INFO_CONFIGFILE_PLACEHOLDER.get(), null, null,
+            INFO_DESCRIPTION_CONFIG_FILE.get());
+    configFile.setHidden(true);
+    argParser.addArgument(configFile);
+
+
+    baseDNString =
+        new StringArgument("basedn", 'b', "baseDN", true, isMultipleBackends,
+            true, INFO_BASEDN_PLACEHOLDER.get(), null, null,
+            INFO_REBUILDINDEX_DESCRIPTION_BASE_DN.get());
+    argParser.addArgument(baseDNString);
+
+
+    indexList =
+        new StringArgument("index", 'i', "index", false, true, true,
+            INFO_INDEX_PLACEHOLDER.get(), null, null,
+            INFO_REBUILDINDEX_DESCRIPTION_INDEX_NAME.get());
+    argParser.addArgument(indexList);
+
+    rebuildAll =
+        new BooleanArgument("rebuildAll", null, "rebuildAll",
+            INFO_REBUILDINDEX_DESCRIPTION_REBUILD_ALL.get());
+    argParser.addArgument(rebuildAll);
+
+    rebuildDegraded =
+        new BooleanArgument("rebuildDegraded", null, "rebuildDegraded",
+            INFO_REBUILDINDEX_DESCRIPTION_REBUILD_DEGRADED.get());
+    argParser.addArgument(rebuildDegraded);
+
+    clearDegradedState =
+        new BooleanArgument("clearDegradedState", null, "clearDegradedState",
+            INFO_REBUILDINDEX_DESCRIPTION_CLEAR_DEGRADED_STATE.get());
+    argParser.addArgument(clearDegradedState);
+
+    tmpDirectory =
+        new StringArgument("tmpdirectory", null, "tmpdirectory", false, false,
+            true, INFO_REBUILDINDEX_TEMP_DIR_PLACEHOLDER.get(), "import-tmp",
+            null, INFO_REBUILDINDEX_DESCRIPTION_TEMP_DIRECTORY.get());
+    argParser.addArgument(tmpDirectory);
+
+    BooleanArgument displayUsage =
+        new BooleanArgument("help", 'H', "help", INFO_DESCRIPTION_USAGE.get());
+    argParser.addArgument(displayUsage);
+    argParser.setUsageArgument(displayUsage);
   }
 
   /**
@@ -314,153 +322,18 @@ public class RebuildIndex extends TaskTool
   {
     // Performs the initial bootstrap of the Directory Server and processes the
     // configuration.
-    DirectoryServer directoryServer = DirectoryServer.getInstance();
-
+    final DirectoryServer directoryServer = DirectoryServer.getInstance();
     if (initializeServer)
     {
-      try
-      {
-        DirectoryServer.bootstrapClient();
-        DirectoryServer.initializeJMX();
-      }
-      catch (Exception e)
-      {
-        final Message message =
-            ERR_SERVER_BOOTSTRAP_ERROR.get(getExceptionMessage(e));
-        err.println(wrapText(message, MAX_LINE_WIDTH));
-        return 1;
-      }
-
-      try
-      {
-        directoryServer.initializeConfiguration(configClass.getValue(),
-            configFile.getValue());
-      }
-      catch (InitializationException ie)
-      {
-        final Message message = ERR_CANNOT_LOAD_CONFIG.get(ie.getMessage());
-        err.println(wrapText(message, MAX_LINE_WIDTH));
-        return 1;
-      }
-      catch (Exception e)
-      {
-        final Message message =
-            ERR_CANNOT_LOAD_CONFIG.get(getExceptionMessage(e));
-        err.println(wrapText(message, MAX_LINE_WIDTH));
-        return 1;
-      }
-
-      // Initializes the Directory Server schema elements.
-      try
-      {
-        directoryServer.initializeSchema();
-      }
-      catch (ConfigException ce)
-      {
-        final Message message = ERR_CANNOT_LOAD_SCHEMA.get(ce.getMessage());
-        err.println(wrapText(message, MAX_LINE_WIDTH));
-        return 1;
-      }
-      catch (InitializationException ie)
-      {
-        final Message message = ERR_CANNOT_LOAD_SCHEMA.get(ie.getMessage());
-        err.println(wrapText(message, MAX_LINE_WIDTH));
-        return 1;
-      }
-      catch (Exception e)
-      {
-        final Message message =
-            ERR_CANNOT_LOAD_SCHEMA.get(getExceptionMessage(e));
-        err.println(wrapText(message, MAX_LINE_WIDTH));
-        return 1;
-      }
-
-      // Initializes the Directory Server core configuration.
-      try
-      {
-        final CoreConfigManager coreConfigManager = new CoreConfigManager();
-        coreConfigManager.initializeCoreConfig();
-      }
-      catch (ConfigException ce)
-      {
-        final Message message =
-            ERR_CANNOT_INITIALIZE_CORE_CONFIG.get(ce.getMessage());
-        err.println(wrapText(message, MAX_LINE_WIDTH));
-        return 1;
-      }
-      catch (InitializationException ie)
-      {
-        final Message message =
-            ERR_CANNOT_INITIALIZE_CORE_CONFIG.get(ie.getMessage());
-        err.println(wrapText(message, MAX_LINE_WIDTH));
-        return 1;
-      }
-      catch (Exception e)
-      {
-        final Message message =
-            ERR_CANNOT_INITIALIZE_CORE_CONFIG.get(getExceptionMessage(e));
-        err.println(wrapText(message, MAX_LINE_WIDTH));
-        return 1;
-      }
-
-      // Initializes the Directory Server crypto manager.
-      try
-      {
-        directoryServer.initializeCryptoManager();
-      }
-      catch (ConfigException ce)
-      {
-        final Message message =
-            ERR_CANNOT_INITIALIZE_CRYPTO_MANAGER.get(ce.getMessage());
-        err.println(wrapText(message, MAX_LINE_WIDTH));
-        return 1;
-      }
-      catch (InitializationException ie)
-      {
-        final Message message =
-            ERR_CANNOT_INITIALIZE_CRYPTO_MANAGER.get(ie.getMessage());
-        err.println(wrapText(message, MAX_LINE_WIDTH));
-        return 1;
-      }
-      catch (Exception e)
-      {
-        final Message message =
-            ERR_CANNOT_INITIALIZE_CRYPTO_MANAGER.get(getExceptionMessage(e));
-        err.println(wrapText(message, MAX_LINE_WIDTH));
-        return 1;
-      }
-
-      try
-      {
-        final ErrorLogPublisher<?> errorLogPublisher =
-            TextErrorLogPublisher
-                .getToolStartupTextErrorPublisher(new TextWriter.STREAM(out));
-        final DebugLogPublisher<?> debugLogPublisher =
-            TextDebugLogPublisher
-                .getStartupTextDebugPublisher(new TextWriter.STREAM(out));
-        ErrorLogger.addErrorLogPublisher(errorLogPublisher);
-        DebugLogger.addDebugLogPublisher(debugLogPublisher);
-      }
-      catch (Exception e)
-      {
-        err.println("Error installing the custom error logger: "
-            + stackTraceToSingleLineString(e));
-      }
+      initializeServer(directoryServer, out, err);
+      setErrorAndDebugLogPublisher(out, err);
     }
 
     // Decodes the base DN provided by the user.
-    DN rebuildBaseDN;
+    DN rebuildBaseDN = null;
     try
     {
       rebuildBaseDN = DN.decode(baseDNString.getValue());
-    }
-    catch (DirectoryException de)
-    {
-      final Message message =
-          ERR_CANNOT_DECODE_BASE_DN.get(baseDNString.getValue(), de
-              .getMessageObject());
-      logError(message);
-      return 1;
     }
     catch (Exception e)
     {
@@ -475,12 +348,7 @@ public class RebuildIndex extends TaskTool
     Backend backend = null;
     try
     {
-      backend = getBackend(rebuildBaseDN);
-    }
-    catch (ConfigException e)
-    {
-      logError(e.getMessageObject());
-      return 1;
+      backend = retrieveBackend(rebuildBaseDN);
     }
     catch (Exception e)
     {
@@ -488,12 +356,165 @@ public class RebuildIndex extends TaskTool
       return 1;
     }
 
-    // Initializes and sets the rebuild index configuration.
+    // Sets the rebuild index configuration.
     final RebuildConfig rebuildConfig =
         initializeRebuildIndexConfiguration(rebuildBaseDN);
 
-    // Launches the rebuild process.
-    return processRebuildIndex(backend, rebuildConfig);
+    return rebuildIndex(backend, rebuildConfig);
+  }
+
+  /**
+   * Defines the error and the debug log publisher used in this tool.
+   *
+   * @param out
+   *          The output stream to use for standard output, or {@code null} if
+   *          standard output is not needed.
+   * @param err
+   *          The output stream to use for standard error, or {@code null} if
+   *          standard error is not needed.
+   */
+  private void setErrorAndDebugLogPublisher(final PrintStream out,
+      final PrintStream err)
+  {
+    try
+    {
+      final ErrorLogPublisher<?> errorLogPublisher =
+          TextErrorLogPublisher
+              .getToolStartupTextErrorPublisher(new TextWriter.STREAM(out));
+      final DebugLogPublisher<?> debugLogPublisher =
+          TextDebugLogPublisher
+              .getStartupTextDebugPublisher(new TextWriter.STREAM(out));
+      ErrorLogger.addErrorLogPublisher(errorLogPublisher);
+      DebugLogger.addDebugLogPublisher(debugLogPublisher);
+    }
+    catch (Exception e)
+    {
+      err.println("Error installing the custom error logger: "
+          + stackTraceToSingleLineString(e));
+    }
+  }
+
+  /**
+   * Initializes the directory server.<br />
+   * - bootstrapClient
+   * - initializeJMX
+   * - initializeConfiguration
+   * - initializeSchema
+   * - coreConfigManager.initializeCoreConfig()
+   * - initializeCryptoManager
+   *
+   * @param directoryServer
+   *          The current instance.
+   * @param outStream
+   *          The output stream to use for standard output, or {@code null} if
+   *          standard output is not needed.
+   * @param errStream
+   *          The output stream to use for standard error, or {@code null} if
+   *          standard error is not needed.
+   * @return The error code.
+   */
+  private int initializeServer(final DirectoryServer directoryServer,
+      final PrintStream out, final PrintStream err)
+  {
+    try
+    {
+      DirectoryServer.bootstrapClient();
+      DirectoryServer.initializeJMX();
+    }
+    catch (Exception e)
+    {
+      final Message message =
+          ERR_SERVER_BOOTSTRAP_ERROR.get(getExceptionMessage(e));
+      err.println(wrapText(message, MAX_LINE_WIDTH));
+      return 1;
+    }
+
+    try
+    {
+      directoryServer.initializeConfiguration(configClass.getValue(),
+          configFile.getValue());
+    }
+    catch (Exception ex)
+    {
+      Message message = null;
+      if (ex instanceof InitializationException)
+      {
+        message = ERR_CANNOT_LOAD_CONFIG.get(ex.getMessage());
+      }
+      else
+      {
+        message = ERR_CANNOT_LOAD_CONFIG.get(getExceptionMessage(ex));
+      }
+      err.println(wrapText(message, MAX_LINE_WIDTH));
+      return 1;
+    }
+
+    // Initializes the Directory Server schema elements.
+    try
+    {
+      directoryServer.initializeSchema();
+    }
+    catch (Exception e)
+    {
+      Message message = null;
+      if (e instanceof ConfigException || e instanceof InitializationException)
+      {
+        message = ERR_CANNOT_LOAD_SCHEMA.get(e.getMessage());
+      }
+      else
+      {
+        message = ERR_CANNOT_LOAD_SCHEMA.get(getExceptionMessage(e));
+      }
+      err.println(wrapText(message, MAX_LINE_WIDTH));
+      return 1;
+    }
+
+    // Initializes the Directory Server core configuration.
+    try
+    {
+      final CoreConfigManager coreConfigManager = new CoreConfigManager();
+      coreConfigManager.initializeCoreConfig();
+    }
+    catch (Exception ex)
+    {
+      Message message = null;
+      if (ex instanceof ConfigException
+          || ex instanceof InitializationException)
+      {
+        message = ERR_CANNOT_INITIALIZE_CORE_CONFIG.get(ex.getMessage());
+      }
+      else
+      {
+        message =
+            ERR_CANNOT_INITIALIZE_CORE_CONFIG.get(getExceptionMessage(ex));
+      }
+      err.println(wrapText(message, MAX_LINE_WIDTH));
+      return 1;
+    }
+
+    // Initializes the Directory Server crypto manager.
+    try
+    {
+      directoryServer.initializeCryptoManager();
+    }
+    catch (Exception ex)
+    {
+      Message message = null;
+      if (ex instanceof ConfigException
+          || ex instanceof InitializationException)
+      {
+        message = ERR_CANNOT_INITIALIZE_CRYPTO_MANAGER.get(ex.getMessage());
+      }
+      else
+      {
+        message =
+            ERR_CANNOT_INITIALIZE_CRYPTO_MANAGER.get(getExceptionMessage(ex));
+      }
+      err.println(wrapText(message, MAX_LINE_WIDTH));
+      return 1;
+    }
+
+    return 0;
   }
 
   /**
@@ -544,7 +565,7 @@ public class RebuildIndex extends TaskTool
    *          process.
    * @return An integer representing the result of the process.
    */
-  private int processRebuildIndex(final Backend backend,
+  private int rebuildIndex(final Backend backend,
       final RebuildConfig rebuildConfig)
   {
     int returnCode = 0;
@@ -624,7 +645,7 @@ public class RebuildIndex extends TaskTool
    * @throws Exception
    *           If an exception occurred during the backend search.
    */
-  private Backend getBackend(final DN selectedDN) throws ConfigException,
+  private Backend retrieveBackend(final DN selectedDN) throws ConfigException,
       Exception
   {
     Backend backend = null;
