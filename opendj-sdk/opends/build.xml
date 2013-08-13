@@ -177,7 +177,7 @@
   <property name="snmp.src.dir"      location="src/snmp/src" />
   <property name="snmp.classes.dir"
             location="${classes.dir}/org/opends/server/snmp" />
- 
+
 
   <!-- Properties for license inclusion. -->
   <condition property="include.license.file">
@@ -975,7 +975,7 @@
 
     <!-- Regenerate example plugin. -->
     <antcall target="example-plugin" />
-    
+
     <!-- Copy license if required. -->
     <antcall target="copylicense" />
   </target>
@@ -1022,18 +1022,18 @@
       <jvmarg value="-DLdapMapping"/>
     </java>
   </target>
-  
+
   <!-- Create license file if requested.
-         
+
        This target should only be called from targets which have defined the
        pdir property, such as prepackage and rebuild.
-         
+
        The license file will be copied to ${pdir}/Legal/license_to_accept.txt.
        This file location is hard-coded in the following classes:
-         
+
        org.opends.server.tools.upgrade.LicenseFile
        org.opends.quicksetup.LicenseFile
-         
+
        Care must be taken to keep these filenames synchronized.
   -->
   <target name="copylicense" if="include.license.file" >
@@ -1154,10 +1154,6 @@
 
     <copy todir="${pdir}/lib">
       <fileset file="${lib.dir}/*.exe" />
-    </copy>
-
-    <copy todir="${pdir}">
-      <fileset file="${resource.dir}/instance.loc" />
     </copy>
 
     <antcall target="example-plugin" />
