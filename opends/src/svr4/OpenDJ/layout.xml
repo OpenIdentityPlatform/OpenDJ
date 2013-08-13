@@ -96,8 +96,6 @@
 	<delete includeemptydirs="true">
 	  <fileset dir="${svr4.layout.pkg.dir}" includes="**/*.app/" />
 	</delete>
-	<!-- Remove instance.loc file -->
-	<delete file="${svr4.layout.pkg.dir}/instance.loc" />
 	<!-- Remove uninstall file -->
 	<delete file="${svr4.layout.pkg.dir}/uninstall" />
     <!-- Add svc-opendj.sh wrapper -->
