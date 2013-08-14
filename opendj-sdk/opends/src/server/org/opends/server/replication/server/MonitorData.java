@@ -27,8 +27,6 @@
  */
 package org.opends.server.replication.server;
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
-
 import java.util.Iterator;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -37,6 +35,8 @@ import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.util.TimeThread;
+
+import static org.opends.server.loggers.debug.DebugLogger.*;
 
 /**
  * This class defines the Monitor Data that are consolidated across the
@@ -338,17 +338,16 @@ public class MonitorData
   /**
    * Set the state of the LDAP server with the provided serverId.
    * @param serverId The server ID.
-   * @param newFmd The first missing date.
+   * @param newFmd The new first missing date.
    */
-  public void setFirstMissingDate(int serverId, Long newFmd)
+  public void setFirstMissingDate(int serverId, long newFmd)
   {
-    if (newFmd==null) return;
-    Long currentfmd = fmd.get(serverId);
-    if (currentfmd==null)
+    Long currentFmd = fmd.get(serverId);
+    if (currentFmd == null)
     {
       fmd.put(serverId, newFmd);
     }
-    else if (newFmd != 0 && (newFmd < currentfmd || currentfmd == 0))
+    else if (newFmd != 0 && (newFmd < currentFmd || currentFmd == 0))
     {
       fmd.replace(serverId, newFmd);
     }

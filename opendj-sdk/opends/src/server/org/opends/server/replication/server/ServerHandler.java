@@ -27,10 +27,6 @@
  */
 package org.opends.server.replication.server;
 
-import static org.opends.messages.ReplicationMessages.*;
-import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-
 import java.io.IOException;
 import java.util.List;
 import java.util.Random;
@@ -47,26 +43,12 @@ import org.opends.server.replication.common.AssuredMode;
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.common.RSInfo;
 import org.opends.server.replication.common.ServerStatus;
-import org.opends.server.replication.protocol.AckMsg;
-import org.opends.server.replication.protocol.ChangeTimeHeartbeatMsg;
-import org.opends.server.replication.protocol.HeartbeatThread;
-import org.opends.server.replication.protocol.ProtocolVersion;
-import org.opends.server.replication.protocol.ReplicationMsg;
-import org.opends.server.replication.protocol.ResetGenerationIdMsg;
-import org.opends.server.replication.protocol.RoutableMsg;
-import org.opends.server.replication.protocol.Session;
-import org.opends.server.replication.protocol.StartECLSessionMsg;
-import org.opends.server.replication.protocol.StartMsg;
-import org.opends.server.replication.protocol.StartSessionMsg;
-import org.opends.server.replication.protocol.TopologyMsg;
-import org.opends.server.replication.protocol.UpdateMsg;
-import org.opends.server.replication.protocol.WindowMsg;
-import org.opends.server.replication.protocol.WindowProbeMsg;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.Attributes;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.ResultCode;
+import org.opends.server.replication.protocol.*;
+import org.opends.server.types.*;
+
+import static org.opends.messages.ReplicationMessages.*;
+import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
 
 /**
  * This class defines a server handler  :
@@ -408,15 +390,12 @@ public abstract class ServerHandler extends MessageHandler
    */
   public void send(ReplicationMsg msg) throws IOException
   {
-    /*
-     * Some unit tests include a null domain, so avoid logging anything in that
-     * case.
-     */
+    // avoid logging anything for unit tests that include a null domain.
     if (debugEnabled() && replicationServerDomain != null)
     {
       TRACER.debugInfo("In "
-          + replicationServerDomain.getReplicationServer()
-              .getMonitorInstanceName() + this + " publishes message:\n" + msg);
+          + replicationServerDomain.getLocalRSMonitorInstanceName() + " "
+          + this + " publishes message:\n" + msg);
     }
     session.publish(msg);
   }
@@ -427,19 +406,17 @@ public abstract class ServerHandler extends MessageHandler
    * @return The age if the older change has not yet been replicated
    *         to the server handled by this ServerHandler.
    */
-  public Long getApproxFirstMissingDate()
+  public long getApproxFirstMissingDate()
   {
-    Long result = (long) 0;
-
     // Get the older CN received
     ChangeNumber olderUpdateCN = getOlderUpdateCN();
     if (olderUpdateCN != null)
     {
       // If not present in the local RS db,
       // then approximate with the older update time
-      result = olderUpdateCN.getTime();
+      return olderUpdateCN.getTime();
     }
-    return result;
+    return 0;
   }
 
   /**
@@ -917,9 +894,9 @@ public abstract class ServerHandler extends MessageHandler
   public void process(RoutableMsg msg)
   {
     if (debugEnabled())
-      TRACER.debugInfo("In " + replicationServerDomain.getReplicationServer().
-          getMonitorInstanceName() + this +
-          " processes routable msg received:" + msg);
+      TRACER.debugInfo("In "
+          + replicationServerDomain.getLocalRSMonitorInstanceName() + " "
+          + this + " processes routable msg received:" + msg);
     replicationServerDomain.process(msg, this);
   }
 
@@ -931,9 +908,9 @@ public abstract class ServerHandler extends MessageHandler
   public void process(ChangeTimeHeartbeatMsg msg)
   {
     if (debugEnabled())
-      TRACER.debugInfo("In " + replicationServerDomain.getReplicationServer().
-          getMonitorInstanceName() + this +
-          " processes received msg:\n" + msg);
+      TRACER.debugInfo("In "
+          + replicationServerDomain.getLocalRSMonitorInstanceName() + " "
+          + this + " processes received msg:\n" + msg);
     replicationServerDomain.processChangeTimeHeartbeatMsg(this, msg);
   }
 

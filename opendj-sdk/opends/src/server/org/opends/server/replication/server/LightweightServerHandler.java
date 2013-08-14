@@ -137,14 +137,9 @@ public class LightweightServerHandler
     this.protocolVersion = protocolVersion;
 
     if (debugEnabled())
-      TRACER.debugInfo("In " + getLocalRSMonitorInstanceName()
+      TRACER.debugInfo("In " + rsDomain.getLocalRSMonitorInstanceName()
           + " LWSH for remote server " + this.serverId + " connected to:"
           + this.replServerHandler.getMonitorInstanceName() + " ()");
-  }
-
-  private String getLocalRSMonitorInstanceName()
-  {
-    return rsDomain.getReplicationServer().getMonitorInstanceName();
   }
 
   /**
@@ -173,7 +168,7 @@ public class LightweightServerHandler
   public void startHandler()
   {
     if (debugEnabled())
-      TRACER.debugInfo("In " + getLocalRSMonitorInstanceName()
+      TRACER.debugInfo("In " + rsDomain.getLocalRSMonitorInstanceName()
           + " LWSH for remote server " + this.serverId + " connected to:"
           + this.replServerHandler.getMonitorInstanceName() + " start");
     DirectoryServer.deregisterMonitorProvider(this);
@@ -186,7 +181,7 @@ public class LightweightServerHandler
   public void stopHandler()
   {
     if (debugEnabled())
-      TRACER.debugInfo("In " + getLocalRSMonitorInstanceName()
+      TRACER.debugInfo("In " + rsDomain.getLocalRSMonitorInstanceName()
           + " LWSH for remote server " + this.serverId + " connected to:"
           + this.replServerHandler.getMonitorInstanceName() + " stop");
     DirectoryServer.deregisterMonitorProvider(this);

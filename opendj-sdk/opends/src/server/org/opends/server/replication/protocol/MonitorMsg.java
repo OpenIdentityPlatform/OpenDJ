@@ -32,6 +32,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.zip.DataFormatException;
 
 import org.opends.server.protocols.asn1.ASN1;
@@ -60,7 +61,7 @@ public class MonitorMsg extends RoutableMsg
   static class ServerData
   {
     private ServerState state;
-    private Long approxFirstMissingDate;
+    private long approxFirstMissingDate;
   }
 
   /**
@@ -128,7 +129,7 @@ public class MonitorMsg extends RoutableMsg
    * @param isLDAP Specifies whether the server is a LS or a RS
    */
   public void setServerState(int serverId, ServerState state,
-      Long approxFirstMissingDate, boolean isLDAP)
+      long approxFirstMissingDate, boolean isLDAP)
   {
     ServerData sd = new ServerData();
     sd.state = state;
@@ -166,7 +167,7 @@ public class MonitorMsg extends RoutableMsg
    * @param serverId The provided serverId.
    * @return The approximated state.
    */
-  public Long getLDAPApproxFirstMissingDate(int serverId)
+  public long getLDAPApproxFirstMissingDate(int serverId)
   {
     return data.ldapStates.get(serverId).approxFirstMissingDate;
   }
@@ -177,7 +178,7 @@ public class MonitorMsg extends RoutableMsg
    * @param serverId The provided serverId.
    * @return The approximated state.
    */
-  public Long getRSApproxFirstMissingDate(int serverId)
+  public long getRSApproxFirstMissingDate(int serverId)
   {
     return data.rsStates.get(serverId).approxFirstMissingDate;
   }
@@ -261,7 +262,7 @@ public class MonitorMsg extends RoutableMsg
       {
         ServerState newState = new ServerState();
         int serverId = 0;
-        Long outime = (long)0;
+        long outime = 0;
         boolean isLDAPServer = false;
 
         asn1Reader.readStartSequence();
@@ -402,8 +403,9 @@ public class MonitorMsg extends RoutableMsg
   private void writeServerStates(short protocolVersion, ASN1Writer writer,
       boolean writeRSStates) throws IOException
   {
-    Map<Integer, ServerData> servers = writeRSStates ? data.rsStates
-        : data.ldapStates;
+    final Map<Integer, ServerData> servers =
+        writeRSStates ? data.rsStates : data.ldapStates;
+    final int seqNum = writeRSStates ? 0 : 1;
     for (Map.Entry<Integer, ServerData> server : servers.entrySet())
     {
       writer.writeStartSequence();
@@ -414,7 +416,7 @@ public class MonitorMsg extends RoutableMsg
          * RS (0).
          */
         ChangeNumber cn = new ChangeNumber(
-            server.getValue().approxFirstMissingDate, writeRSStates ? 0 : 1,
+            server.getValue().approxFirstMissingDate, seqNum,
             server.getKey());
         if (protocolVersion >= ProtocolVersion.REPLICATION_PROTOCOL_V7)
         {
@@ -465,24 +467,26 @@ public class MonitorMsg extends RoutableMsg
   @Override
   public String toString()
   {
-    String stateS = "\nRState:[";
-    stateS += data.replServerDbState.toString();
-    stateS += "]";
+    StringBuilder stateS = new StringBuilder("\nRState:[");
+    stateS.append(data.replServerDbState);
+    stateS.append("]");
 
-    stateS += "\nLDAPStates:[";
-    for (Integer sid : data.ldapStates.keySet())
+    stateS.append("\nLDAPStates:[");
+    for (Entry<Integer, ServerData> entry : data.ldapStates.entrySet())
     {
-      ServerData sd = data.ldapStates.get(sid);
-      stateS += "\n[LSstate("+ sid + ")=" + sd.state + "]" +
-                " afmd=" + sd.approxFirstMissingDate + "]";
+      ServerData sd = entry.getValue();
+      stateS.append("\n[LSstate(").append(entry.getKey()).append(")=")
+            .append(sd.state).append("]").append(" afmd=")
+            .append(sd.approxFirstMissingDate).append("]");
     }
 
-    stateS += "\nRSStates:[";
-    for (Integer sid : data.rsStates.keySet())
+    stateS.append("\nRSStates:[");
+    for (Entry<Integer, ServerData> entry : data.rsStates.entrySet())
     {
-      ServerData sd = data.rsStates.get(sid);
-      stateS += "\n[RSState("+ sid + ")=" + sd.state + "]" +
-                " afmd=" + sd.approxFirstMissingDate + "]";
+      ServerData sd = entry.getValue();
+      stateS.append("\n[RSState(").append(entry.getKey()).append(")=")
+            .append(sd.state).append("]").append(" afmd=")
+            .append(sd.approxFirstMissingDate + "]");
     }
     return getClass().getCanonicalName() +
     "[ sender=" + this.senderID +
