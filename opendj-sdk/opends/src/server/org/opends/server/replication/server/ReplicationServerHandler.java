@@ -27,11 +27,6 @@
  */
 package org.opends.server.replication.server;
 
-import static org.opends.messages.ReplicationMessages.*;
-import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.replication.protocol.ProtocolVersion.*;
-
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -45,6 +40,11 @@ import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.common.ServerStatus;
 import org.opends.server.replication.protocol.*;
 import org.opends.server.types.*;
+
+import static org.opends.messages.ReplicationMessages.*;
+import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.replication.protocol.ProtocolVersion.*;
 
 /**
  * This class defines a server handler, which handles all interaction with a
@@ -82,10 +82,8 @@ public class ReplicationServerHandler extends ServerHandler
       generationId = inReplServerStartMsg.getGenerationId();
       serverId = inReplServerStartMsg.getServerId();
       serverURL = inReplServerStartMsg.getServerURL();
-      int separator = serverURL.lastIndexOf(':');
-      serverAddressURL =
-        session.getRemoteAddress() + ":" + serverURL.substring(separator +
-            1);
+      final String port = serverURL.substring(serverURL.lastIndexOf(':') + 1);
+      serverAddressURL = session.getRemoteAddress() + ":" + port;
       setBaseDNAndDomain(inReplServerStartMsg.getBaseDn(), false);
       setInitialServerState(inReplServerStartMsg.getServerState());
       setSendWindowSize(inReplServerStartMsg.getWindowSize());
@@ -119,8 +117,7 @@ public class ReplicationServerHandler extends ServerHandler
         getReplicationServerId(), getReplicationServerURL(), getBaseDN(),
         maxRcvWindow, replicationServerDomain.getDbServerState(),
         localGenerationId, sslEncryption,
-        getLocalGroupId(), replicationServerDomain.getReplicationServer()
-            .getDegradedStatusThreshold());
+        getLocalGroupId(), replicationServer.getDegradedStatusThreshold());
     send(outReplServerStartMsg);
     return outReplServerStartMsg;
   }
@@ -296,7 +293,7 @@ public class ReplicationServerHandler extends ServerHandler
     finally
     {
       // Release domain
-      if ((replicationServerDomain != null) &&
+      if (replicationServerDomain != null &&
           replicationServerDomain.hasLock())
         replicationServerDomain.release();
     }
@@ -374,11 +371,9 @@ public class ReplicationServerHandler extends ServerHandler
         {
           if (debugEnabled())
           {
-            TRACER.debugInfo("In " +
-              replicationServerDomain.getReplicationServer().
-              getMonitorInstanceName() +
-              this + " RS V1 with serverID=" + serverId +
-              " is connected with the right generation ID");
+            TRACER.debugInfo("In " + replicationServer.getMonitorInstanceName()
+                + " " + this + " RS V1 with serverID=" + serverId
+                + " is connected with the right generation ID");
           }
         } else
         {
@@ -420,10 +415,9 @@ public class ReplicationServerHandler extends ServerHandler
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
-      Message errMessage = ERR_RS_DISCONNECTED_DURING_HANDSHAKE.get(Integer
-          .toString(inReplServerStartMsg.getServerId()), Integer
-          .toString(replicationServerDomain.getReplicationServer()
-              .getServerId()));
+      Message errMessage = ERR_RS_DISCONNECTED_DURING_HANDSHAKE.get(
+          Integer.toString(inReplServerStartMsg.getServerId()),
+          Integer.toString(replicationServer.getServerId()));
       abortStart(errMessage);
     }
     catch (DirectoryException e)
@@ -444,7 +438,7 @@ public class ReplicationServerHandler extends ServerHandler
     }
     finally
     {
-      if ((replicationServerDomain != null) &&
+      if (replicationServerDomain != null &&
           replicationServerDomain.hasLock())
         replicationServerDomain.release();
     }
@@ -489,12 +483,10 @@ public class ReplicationServerHandler extends ServerHandler
         // connection attempt.
         return null;
       }
-      else
-      {
-        Message message = ERR_REPLICATION_PROTOCOL_MESSAGE_TYPE.get(msg
-            .getClass().getCanonicalName(), "TopologyMsg");
-        throw new DirectoryException(ResultCode.OTHER, message);
-      }
+
+      Message message = ERR_REPLICATION_PROTOCOL_MESSAGE_TYPE.get(
+          msg.getClass().getCanonicalName(), "TopologyMsg");
+      throw new DirectoryException(ResultCode.OTHER, message);
     }
 
     // Remote RS sent his topo msg
@@ -518,10 +510,9 @@ public class ReplicationServerHandler extends ServerHandler
     {
       if (debugEnabled())
       {
-        TRACER.debugInfo("In " +
-            replicationServerDomain.getReplicationServer().
-            getMonitorInstanceName() + " RS with serverID=" + serverId +
-            " is connected with the right generation ID, same as local ="
+        TRACER.debugInfo("In " + replicationServer.getMonitorInstanceName()
+            + " RS with serverID=" + serverId
+            + " is connected with the right generation ID, same as local ="
             + generationId);
       }
     }
@@ -541,42 +532,40 @@ public class ReplicationServerHandler extends ServerHandler
   {
     if (localGenerationId > 0)
     { // the local RS is initialized
-      if (generationId > 0)
-      { // the remote RS is initialized.
-        // If not, there's nothing to do anyway.
-        if (generationId != localGenerationId)
-        {
-          /* Either:
-           *
-           * 1) The 2 RS have different generationID
-           * replicationServerDomain.getGenerationIdSavedStatus() == true
-           *
-           * if the present RS has received changes regarding its
-           * gen ID and so won't change without a reset
-           * then  we are just degrading the peer.
-           *
-           * 2) This RS has never received any changes for the current
-           * generation ID.
-           *
-           * Example case:
-           * - we are in RS1
-           * - RS2 has genId2 from LS2 (genId2 <=> no data in LS2)
-           * - RS1 has genId1 from LS1 /genId1 comes from data in suffix
-           * - we are in RS1 and we receive a START msg from RS2
-           * - Each RS keeps its genID / is degraded and when LS2
-           * will be populated from LS1 everything will become ok.
-           *
-           * Issue:
-           * FIXME : Would it be a good idea in some cases to just set the
-           * gen ID received from the peer RS specially if the peer has a
-           * non null state and we have a null state ?
-           * replicationServerDomain.setGenerationId(generationId, false);
-           */
-          Message message = WARN_BAD_GENERATION_ID_FROM_RS.get(
-                  serverId, session.getReadableRemoteAddress(), generationId,
-                  getBaseDN(), getReplicationServerId(), localGenerationId);
-          logError(message);
-        }
+      if (generationId > 0
+          // the remote RS is initialized. If not, there's nothing to do anyway.
+          && generationId != localGenerationId)
+      {
+        /* Either:
+         *
+         * 1) The 2 RS have different generationID
+         * replicationServerDomain.getGenerationIdSavedStatus() == true
+         *
+         * if the present RS has received changes regarding its
+         * gen ID and so won't change without a reset
+         * then  we are just degrading the peer.
+         *
+         * 2) This RS has never received any changes for the current
+         * generation ID.
+         *
+         * Example case:
+         * - we are in RS1
+         * - RS2 has genId2 from LS2 (genId2 <=> no data in LS2)
+         * - RS1 has genId1 from LS1 /genId1 comes from data in suffix
+         * - we are in RS1 and we receive a START msg from RS2
+         * - Each RS keeps its genID / is degraded and when LS2
+         * will be populated from LS1 everything will become ok.
+         *
+         * Issue:
+         * FIXME : Would it be a good idea in some cases to just set the
+         * gen ID received from the peer RS specially if the peer has a
+         * non null state and we have a null state ?
+         * replicationServerDomain.setGenerationId(generationId, false);
+         */
+        Message message = WARN_BAD_GENERATION_ID_FROM_RS.get(
+            serverId, session.getReadableRemoteAddress(), generationId,
+            getBaseDN(), getReplicationServerId(), localGenerationId);
+        logError(message);
       }
     }
     else
@@ -655,9 +644,7 @@ public class ReplicationServerHandler extends ServerHandler
     groupId = rsInfo.getGroupId();
     weight = rsInfo.getWeight();
 
-    /**
-     * Store info for DSs connected to the peer RS
-     */
+    // Store info for DSs connected to the peer RS
     List<DSInfo> dsInfos = topoMsg.getDsList();
 
     synchronized (remoteDirectoryServers)
@@ -688,18 +675,18 @@ public class ReplicationServerHandler extends ServerHandler
    * When this handler is connected to a replication server, specifies if
    * a wanted server is connected to this replication server.
    *
-   * @param wantedServer The server we want to know if it is connected
+   * @param serverId The server we want to know if it is connected
    * to the replication server represented by this handler.
    * @return boolean True is the wanted server is connected to the server
    * represented by this handler.
    */
-  public boolean isRemoteLDAPServer(int wantedServer)
+  public boolean isRemoteLDAPServer(int serverId)
   {
     synchronized (remoteDirectoryServers)
     {
       for (LightweightServerHandler server : remoteDirectoryServers.values())
       {
-        if (wantedServer == server.getServerId())
+        if (serverId == server.getServerId())
         {
           return true;
         }
@@ -765,9 +752,8 @@ public class ReplicationServerHandler extends ServerHandler
     MonitorData md = replicationServerDomain.getDomainMonitorData();
 
     // Missing changes
-    long missingChanges = md.getMissingChangesRS(serverId);
     attributes.add(Attributes.create("missing-changes",
-        String.valueOf(missingChanges)));
+        String.valueOf(md.getMissingChangesRS(serverId))));
 
     /* get the Server State */
     AttributeBuilder builder = new AttributeBuilder("server-state");
@@ -791,17 +777,10 @@ public class ReplicationServerHandler extends ServerHandler
   {
     if (serverId != 0)
     {
-      StringBuilder builder = new StringBuilder("Replication server RS(");
-      builder.append(serverId);
-      builder.append(") for domain \"");
-      builder.append(replicationServerDomain.getBaseDn());
-      builder.append("\"");
-      return builder.toString();
+      return "Replication server RS(" + serverId + ") for domain \""
+          + replicationServerDomain.getBaseDn() + "\"";
     }
-    else
-    {
-      return "Unknown server";
-    }
+    return "Unknown server";
   }
 
   /**

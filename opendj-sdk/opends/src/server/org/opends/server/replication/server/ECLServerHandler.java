@@ -365,20 +365,19 @@ public final class ECLServerHandler extends ServerHandler
     if (getProtocolVersion() < ProtocolVersion.REPLICATION_PROTOCOL_V4)
     {
       // Peer DS uses protocol < V4 : send it a ReplServerStartMsg
-      startMsg = new ReplServerStartMsg(getReplicationServerId(),
-              getReplicationServerURL(), getBaseDN(), maxRcvWindow,
-          replicationServerDomain.getDbServerState(),
-          localGenerationId, sslEncryption, getLocalGroupId(),
-          replicationServerDomain.getReplicationServer()
-              .getDegradedStatusThreshold());
+       startMsg = new ReplServerStartMsg(getReplicationServerId(),
+           getReplicationServerURL(), getBaseDN(), maxRcvWindow,
+           replicationServerDomain.getDbServerState(),
+           localGenerationId, sslEncryption, getLocalGroupId(),
+           replicationServer.getDegradedStatusThreshold());
     }
     else
     {
       // Peer DS uses protocol V4 : send it a ReplServerStartDSMsg
-      startMsg = new ReplServerStartDSMsg(getReplicationServerId(),
-              getReplicationServerURL(), getBaseDN(), maxRcvWindow,
-          new ServerState(), localGenerationId, sslEncryption,
-          getLocalGroupId(), 0, replicationServer.getWeight(), 0);
+       startMsg = new ReplServerStartDSMsg(getReplicationServerId(),
+           getReplicationServerURL(), getBaseDN(), maxRcvWindow,
+           new ServerState(), localGenerationId, sslEncryption,
+           getLocalGroupId(), 0, replicationServer.getWeight(), 0);
     }
 
     send(startMsg);
@@ -556,15 +555,13 @@ public final class ECLServerHandler extends ServerHandler
     catch(DirectoryException de)
     {
       TRACER.debugCaught(DebugLogLevel.ERROR, de);
-      if (draftCNDbIter != null)
-        draftCNDbIter.releaseCursor();
+      releaseIterator();
       throw de;
     }
     catch(Exception e)
     {
       TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      if (draftCNDbIter != null)
-        draftCNDbIter.releaseCursor();
+      releaseIterator();
       throw new DirectoryException(
           ResultCode.OPERATIONS_ERROR,
           Message.raw(Category.SYNC,
@@ -917,11 +914,7 @@ public final class ECLServerHandler extends ServerHandler
   {
     if (debugEnabled())
       TRACER.debugInfo(this + " shutdown()" + draftCNDbIter);
-    if (this.draftCNDbIter != null)
-    {
-      draftCNDbIter.releaseCursor();
-      draftCNDbIter = null;
-    }
+    releaseIterator();
     for (DomainContext domainCtxt : domainCtxts) {
       if (!domainCtxt.unRegisterHandler()) {
         logError(Message.raw(Category.SYNC, Severity.NOTICE,
@@ -932,6 +925,15 @@ public final class ECLServerHandler extends ServerHandler
     }
     super.shutdown();
     domainCtxts = null;
+  }
+
+  private void releaseIterator()
+  {
+    if (this.draftCNDbIter != null)
+    {
+      this.draftCNDbIter.releaseCursor();
+      this.draftCNDbIter = null;
+    }
   }
 
   /**
@@ -1112,7 +1114,7 @@ public final class ECLServerHandler extends ServerHandler
         {
           session.publish(
             new ErrorMsg(
-             replicationServerDomain.getReplicationServer().getServerId(),
+             replicationServer.getServerId(),
              serverId,
              Message.raw(Category.SYNC, Severity.INFORMATION,
                  "Exception raised: " + e.getMessage())));
@@ -1130,11 +1132,9 @@ public final class ECLServerHandler extends ServerHandler
     registerIntoDomain();
 
     if (debugEnabled())
-      TRACER.debugInfo(
-          this.getClass().getCanonicalName()+ " " + operationId +
-          " initialized: " +
-          " " + dumpState() + " " +
-          " " + clDomCtxtsToString(""));
+      TRACER.debugInfo(getClass().getCanonicalName() + " " + operationId
+          + " initialized: " + " " + dumpState() + " " + " "
+          + clDomCtxtsToString(""));
   }
 
   private void initializeChangelogSearch(StartECLSessionMsg msg)
@@ -1522,12 +1522,8 @@ public final class ECLServerHandler extends ServerHandler
       searchPhase = UNDEFINED_PHASE;
     }
 
-    if (draftCNDbIter!=null)
-    {
-      // End of INIT_PHASE => always release the iterator
-      draftCNDbIter.releaseCursor();
-      draftCNDbIter = null;
-    }
+    // End of INIT_PHASE => always release the iterator
+    releaseIterator();
   }
 
   /**
