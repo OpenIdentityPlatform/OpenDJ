@@ -115,15 +115,15 @@ public class ChangeNumber implements java.io.Serializable,
   /**
    * Create a new ChangeNumber.
    *
-   * @param time time for the ChangeNumber
-   * @param seq sequence number
-   * @param serverId2 identity of server
+   * @param timeStamp timeStamp for the ChangeNumber
+   * @param seqNum sequence number
+   * @param serverId identity of server
    */
-  public ChangeNumber(long time, int seq, int serverId2)
+  public ChangeNumber(long timeStamp, int seqNum, int serverId)
   {
-    serverId = serverId2;
-    timeStamp = time;
-    seqnum = seq;
+    this.serverId = serverId;
+    this.timeStamp = timeStamp;
+    this.seqnum = seqNum;
   }
 
   /**
@@ -176,8 +176,7 @@ public class ChangeNumber implements java.io.Serializable,
           this.serverId == cn.serverId &&
           this.timeStamp == cn.timeStamp;
     }
-    else
-      return false;
+    return false;
   }
 
   /**
@@ -263,8 +262,7 @@ public class ChangeNumber implements java.io.Serializable,
     {
       if (CN2 == null)
         return 0;
-      else
-        return -1;
+      return -1;
     }
     else if (CN2 == null)
       return 1;
@@ -327,14 +325,10 @@ public class ChangeNumber implements java.io.Serializable,
       if (seqnum2 <= seqnum1)
       {
         return seqnum1 - seqnum2;
-      } else
-      {
-        return Integer.MAX_VALUE - (seqnum2 - seqnum1) + 1;
       }
-    } else
-    {
-      return 0;
+      return Integer.MAX_VALUE - (seqnum2 - seqnum1) + 1;
     }
+    return 0;
   }
 
   /**
