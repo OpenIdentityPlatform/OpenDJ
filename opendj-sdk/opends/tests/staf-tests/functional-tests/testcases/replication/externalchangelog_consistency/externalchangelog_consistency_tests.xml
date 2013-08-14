@@ -2460,8 +2460,9 @@
 
             <!-- Compare lastChangeNumber -->
             <call function="'compareItems'">
-              { 'items' : cnsList + lcnsList,
-                'label' : 'changeNumbers'
+              { 'items'      : cnsList + lcnsList,
+                'label'      : 'changeNumbers',
+                'knownIssue' : 'OPENDJ-1051'
               }
             </call>
 
@@ -2681,6 +2682,10 @@
       <function-optional-arg name="label" default="''">
         Friendly label to aid description
       </function-optional-arg>
+      
+      <function-optional-arg name="knownIssue" default="None">
+        Issue id. Corresponds to an issue number.
+      </function-optional-arg>
     </function-map-args>
 
     <sequence>
@@ -2701,8 +2706,17 @@
           </sequence>
         <else>
           <sequence>
+            <if expr="knownIssue == None">
+              <tcstatus result="'fail'"/>
+              <else>
+                <sequence>
+                  <call function="'setKnownIssue'">
+                    { 'issueId' : knownIssue }
+                  </call>
+                </sequence>
+              </else>
+            </if>
             <message level="'error'">'%s Items do not match (%s)' % (label,items)</message>
-            <tcstatus result="'fail'"/>
           </sequence>
         </else>
       </if>
