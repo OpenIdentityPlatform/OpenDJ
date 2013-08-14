@@ -44,8 +44,7 @@ import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.server.ReplicationServerDomain;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.api.ReplicationIterator;
-import org.opends.server.replication.server.changelog.je.ReplicationDB
-    .ReplServerDBCursor;
+import org.opends.server.replication.server.changelog.je.ReplicationDB.*;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.InitializationException;
@@ -265,22 +264,20 @@ public class DbHandler implements Runnable
    * managed by this dbHandler and starting at the position defined
    * by a given changeNumber.
    *
-   * @param changeNumber The position where the iterator must start.
-   *
+   * @param startAfterCN The position where the iterator must start.
    * @return a new ReplicationIterator that allows to browse the db
    *         managed by this dbHandler and starting at the position defined
    *         by a given changeNumber.
-   *
    * @throws ChangelogException if a database problem happened.
    */
-  public ReplicationIterator generateIterator(ChangeNumber changeNumber)
+  public ReplicationIterator generateIterator(ChangeNumber startAfterCN)
       throws ChangelogException
   {
-    if (changeNumber == null)
+    if (startAfterCN == null)
     {
       flush();
     }
-    return new JEReplicationIterator(db, changeNumber, this);
+    return new JEReplicationIterator(db, startAfterCN, this);
   }
 
   /**

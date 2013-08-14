@@ -32,8 +32,7 @@ import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.api.ReplicationIterator;
-import org.opends.server.replication.server.changelog.je.ReplicationDB
-    .ReplServerDBCursor;
+import org.opends.server.replication.server.changelog.je.ReplicationDB.*;
 
 /**
  * Berkeley DB JE implementation of IReplicationIterator.
@@ -52,20 +51,20 @@ public class JEReplicationIterator implements ReplicationIterator
    * releaseCursor() method.
    *
    * @param db The db where the iterator must be created.
-   * @param changeNumber The ChangeNumber after which the iterator must start.
+   * @param startAfterCN The ChangeNumber after which the iterator must start.
    * @param dbHandler The associated DbHandler.
    * @throws ChangelogException if a database problem happened.
    */
-  public JEReplicationIterator(ReplicationDB db, ChangeNumber changeNumber,
+  public JEReplicationIterator(ReplicationDB db, ChangeNumber startAfterCN,
       DbHandler dbHandler) throws ChangelogException
   {
     this.db = db;
     this.dbHandler = dbHandler;
-    this.lastNonNullCurrentCN = changeNumber;
+    this.lastNonNullCurrentCN = startAfterCN;
 
     try
     {
-      cursor = db.openReadCursor(changeNumber);
+      cursor = db.openReadCursor(startAfterCN);
     }
     catch(Exception e)
     {
@@ -79,7 +78,7 @@ public class JEReplicationIterator implements ReplicationIterator
       dbHandler.flush();
 
       // look again in the db
-      cursor = db.openReadCursor(changeNumber);
+      cursor = db.openReadCursor(startAfterCN);
       if (cursor == null)
       {
         throw new ChangelogException(Message.raw("no new change"));

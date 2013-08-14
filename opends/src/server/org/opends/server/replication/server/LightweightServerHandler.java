@@ -27,14 +27,7 @@
  */
 package org.opends.server.replication.server;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.api.MonitorProvider;
@@ -49,6 +42,8 @@ import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.InitializationException;
+
+import static org.opends.server.loggers.debug.DebugLogger.*;
 
 /**
  * This class defines a server handler dedicated to the remote LDAP servers
@@ -142,13 +137,15 @@ public class LightweightServerHandler
     this.protocolVersion = protocolVersion;
 
     if (debugEnabled())
-      TRACER.debugInfo(
-        "In " +
-  replServerHandler.getDomain().getReplicationServer().getMonitorInstanceName()+
-        " LWSH for remote server " + this.serverId +
-        " connected to:" + this.replServerHandler.getMonitorInstanceName() +
-        " ()");
-}
+      TRACER.debugInfo("In " + getLocalRSMonitorInstanceName()
+          + " LWSH for remote server " + this.serverId + " connected to:"
+          + this.replServerHandler.getMonitorInstanceName() + " ()");
+  }
+
+  private String getLocalRSMonitorInstanceName()
+  {
+    return rsDomain.getReplicationServer().getMonitorInstanceName();
+  }
 
   /**
    * Creates a DSInfo structure representing this remote DS.
@@ -176,15 +173,11 @@ public class LightweightServerHandler
   public void startHandler()
   {
     if (debugEnabled())
-      TRACER.debugInfo(
-      "In " +
-replServerHandler.getDomain().getReplicationServer().getMonitorInstanceName() +
-      " LWSH for remote server " + this.serverId +
-      " connected to:" + this.replServerHandler.getMonitorInstanceName() +
-          " start");
+      TRACER.debugInfo("In " + getLocalRSMonitorInstanceName()
+          + " LWSH for remote server " + this.serverId + " connected to:"
+          + this.replServerHandler.getMonitorInstanceName() + " start");
     DirectoryServer.deregisterMonitorProvider(this);
     DirectoryServer.registerMonitorProvider(this);
-
   }
 
   /**
@@ -193,10 +186,8 @@ replServerHandler.getDomain().getReplicationServer().getMonitorInstanceName() +
   public void stopHandler()
   {
     if (debugEnabled())
-      TRACER.debugInfo("In "
-          + replServerHandler.getDomain().getReplicationServer()
-              .getMonitorInstanceName() + " LWSH for remote server "
-          + this.serverId + " connected to:"
+      TRACER.debugInfo("In " + getLocalRSMonitorInstanceName()
+          + " LWSH for remote server " + this.serverId + " connected to:"
           + this.replServerHandler.getMonitorInstanceName() + " stop");
     DirectoryServer.deregisterMonitorProvider(this);
   }
