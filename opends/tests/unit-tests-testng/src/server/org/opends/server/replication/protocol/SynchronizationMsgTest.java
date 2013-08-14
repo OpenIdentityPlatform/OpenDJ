@@ -27,11 +27,6 @@
  */
 package org.opends.server.replication.protocol;
 
-import static org.opends.server.TestCaseUtils.*;
-import static org.opends.server.replication.protocol.OperationContext.*;
-import static org.opends.server.replication.protocol.ProtocolVersion.*;
-import static org.testng.Assert.*;
-
 import java.util.*;
 import java.util.zip.DataFormatException;
 
@@ -50,6 +45,11 @@ import org.opends.server.workflowelement.localbackend.LocalBackendModifyOperatio
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+
+import static org.opends.server.TestCaseUtils.*;
+import static org.opends.server.replication.protocol.OperationContext.*;
+import static org.opends.server.replication.protocol.ProtocolVersion.*;
+import static org.testng.Assert.*;
 
 /**
  * Test the constructors, encoders and decoders of the replication protocol
@@ -84,14 +84,11 @@ public class SynchronizationMsgTest extends ReplicationTestCase
 
     Attribute attr1 = Attributes.create("description", "new value");
     Modification mod1 = new Modification(ModificationType.REPLACE, attr1);
-    List<Modification> mods1 = new ArrayList<Modification>();
-    mods1.add(mod1);
+    List<Modification> mods1 = newList(mod1);
 
     Attribute attr2 = Attributes.empty("description");
     Modification mod2 = new Modification(ModificationType.DELETE, attr2);
-    List<Modification> mods2 = new ArrayList<Modification>();
-    mods2.add(mod1);
-    mods2.add(mod2);
+    List<Modification> mods2 = newList(mod1, mod2);
 
     AttributeBuilder builder = new AttributeBuilder(type);
     builder.add("string");
@@ -99,8 +96,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     builder.add("again");
     Attribute attr3 = builder.toAttribute();
     Modification mod3 = new Modification(ModificationType.ADD, attr3);
-    List<Modification> mods3 = new ArrayList<Modification>();
-    mods3.add(mod3);
+    List<Modification> mods3 = newList(mod3);
 
     List<Modification> mods4 = new ArrayList<Modification>();
     for (int i = 0; i < 10; i++)
@@ -113,16 +109,9 @@ public class SynchronizationMsgTest extends ReplicationTestCase
 
     Attribute attr5 = Attributes.create("namingcontexts", TEST_ROOT_DN_STRING);
     Modification mod5 = new Modification(ModificationType.REPLACE, attr5);
-    List<Modification> mods5 = new ArrayList<Modification>();
-    mods5.add(mod5);
+    List<Modification> mods5 = newList(mod5);
 
-    // Entry attributes
-    Attribute eattr1 = Attributes.create("description", "eav description");
-    Attribute eattr2 = Attributes.create("namingcontexts", "eav naming contexts");
-    List<Attribute> eclIncludes = new ArrayList<Attribute>();
-    eclIncludes.add(eattr1);
-    eclIncludes.add(eattr2);
-
+    List<Attribute> eclIncludes = getEntryAttributes();
     return new Object[][] {
         { cn1, "dc=test", mods1, false, AssuredMode.SAFE_DATA_MODE, (byte)0, null},
         { cn2, "dc=cn2", mods1, true, AssuredMode.SAFE_READ_MODE, (byte)1, eclIncludes},
@@ -178,21 +167,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     assertEquals(msg.getChangeNumber(), generatedMsg.getChangeNumber());
 
     // Get ECL entry attributes
-    ArrayList<RawAttribute> genAttrList = generatedMsg.getEclIncludes();
-    if (entryAttrList==null)
-      assertTrue(genAttrList.size()==0);
-    else
-    {
-      assertTrue(genAttrList.size()==entryAttrList.size());
-      int i=0;
-      for (Attribute attr : entryAttrList)
-      {
-        assertTrue(attr.getName().equalsIgnoreCase(genAttrList.get(i).toAttribute().getName()));
-        assertTrue(attr.toString().equalsIgnoreCase(genAttrList.get(i).toAttribute().toString()),
-            "Comparing: " + attr.toString() + " and " + genAttrList.get(i).toAttribute().toString());
-        i++;
-      }
-    }
+    assertAttributesEqual(entryAttrList, generatedMsg.getEclIncludes());
 
     Operation op = msg.createOperation(connection);
     Operation generatedOperation = generatedMsg.createOperation(connection);
@@ -200,8 +175,8 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     assertEquals(op.getClass(), ModifyOperationBasis.class);
     assertEquals(generatedOperation.getClass(), ModifyOperationBasis.class);
 
-    ModifyOperationBasis mod1 = (ModifyOperationBasis) op;
-    ModifyOperationBasis mod2 = (ModifyOperationBasis) generatedOperation;
+    ModifyOperation mod1 = (ModifyOperation) op;
+    ModifyOperation mod2 = (ModifyOperation) generatedOperation;
 
     assertEquals(mod1.getRawEntryDN(), mod2.getRawEntryDN());
     assertEquals( mod1.getAttachment(SYNCHROCONTEXT),
@@ -237,9 +212,9 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     assertEquals(msg.getAssuredMode(), assuredMode);
 
     // Check safe data level
-    assertTrue(msg.getSafeDataLevel() == 1);
+    assertEquals(msg.getSafeDataLevel(), 1);
     msg.setSafeDataLevel(safeDataLevel);
-    assertTrue(msg.getSafeDataLevel() == safeDataLevel);
+    assertEquals(msg.getSafeDataLevel(), safeDataLevel);
 
     // Check equals
     ModifyMsg generatedMsg = (ModifyMsg) ReplicationMsg.generateMsg(
@@ -282,18 +257,18 @@ public class SynchronizationMsgTest extends ReplicationTestCase
   @DataProvider(name = "createDeleteData")
   public Object[][] createDeleteData()
   {
-
-    // Entry attributes
-    Attribute eattr1 = Attributes.create("description", "eav description");
-    Attribute eattr2 = Attributes.create("namingcontexts", "eav naming contexts");
-    List<Attribute> entryAttrList = new ArrayList<Attribute>();
-    entryAttrList.add(eattr1);
-    entryAttrList.add(eattr2);
-
+    List<Attribute> entryAttrList = getEntryAttributes();
     return new Object[][] {
         {"dc=com", entryAttrList, false},
         {"dc=delete,dc=an,dc=entry,dc=with,dc=a,dc=long dn", null, true},
         };
+  }
+
+  private List<Attribute> getEntryAttributes()
+  {
+    return newList(
+        Attributes.create("description", "eav description"),
+        Attributes.create("namingcontexts", "eav naming contexts"));
   }
 
   /**
@@ -309,17 +284,17 @@ public class SynchronizationMsgTest extends ReplicationTestCase
   {
     InternalClientConnection connection =
         InternalClientConnection.getRootConnection();
-    DeleteOperationBasis opBasis =
+    DeleteOperation deleteOp =
       new DeleteOperationBasis(connection, 1, 1,null, DN.decode(rawDN));
     if (subtree)
     {
-      opBasis.addRequestControl(new SubtreeDeleteControl(false));
+      deleteOp.addRequestControl(new SubtreeDeleteControl(false));
     }
-    LocalBackendDeleteOperation op = new LocalBackendDeleteOperation(opBasis);
+    LocalBackendDeleteOperation op = new LocalBackendDeleteOperation(deleteOp);
     ChangeNumber cn = new ChangeNumber(TimeThread.getTime(),123,  45);
     op.setAttachment(SYNCHROCONTEXT, new DeleteContext(cn, "uniqueid"));
     DeleteMsg msg = new DeleteMsg(op);
-    assertTrue((msg.isSubtreeDelete()==subtree));
+    assertEquals(msg.isSubtreeDelete(), subtree);
     // Set ECL entry attributes
     if (entryAttrList != null)
     {
@@ -335,21 +310,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     assertEquals(generatedMsg.isSubtreeDelete(), subtree);
 
     // Get ECL entry attributes
-    ArrayList<RawAttribute> genAttrList = generatedMsg.getEclIncludes();
-    if (entryAttrList==null)
-      assertTrue(genAttrList.size()==0);
-    else
-    {
-      assertTrue(genAttrList.size()==entryAttrList.size());
-      int i=0;
-      for (Attribute attr : entryAttrList)
-      {
-        assertTrue(attr.getName().equalsIgnoreCase(genAttrList.get(i).toAttribute().getName()));
-        assertTrue(attr.toString().equalsIgnoreCase(genAttrList.get(i).toAttribute().toString()),
-            "Comparing: " + attr.toString() + " and " + genAttrList.get(i).toAttribute().toString());
-        i++;
-      }
-    }
+    assertAttributesEqual(entryAttrList, generatedMsg.getEclIncludes());
 
     Operation generatedOperation = generatedMsg.createOperation(connection);
 
@@ -358,8 +319,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
         (subtree?(generatedOperation.getRequestControl(SubtreeDeleteControl.DECODER)!=null):
           (generatedOperation.getRequestControl(SubtreeDeleteControl.DECODER)==null)));
 
-    DeleteOperationBasis mod2 = (DeleteOperationBasis) generatedOperation;
-
+    DeleteOperation mod2 = (DeleteOperationBasis) generatedOperation;
     assertEquals(op.getRawEntryDN(), mod2.getRawEntryDN());
 
     // Create an update message from this op
@@ -375,23 +335,19 @@ public class SynchronizationMsgTest extends ReplicationTestCase
 
     Attribute attr1 = Attributes.create("description", "new value");
     Modification mod1 = new Modification(ModificationType.REPLACE, attr1);
-    List<Modification> mods1 = new ArrayList<Modification>();
-    mods1.add(mod1);
+    List<Modification> mods1 = newList(mod1);
 
     Attribute attr2 = Attributes.empty("description");
     Modification mod2 = new Modification(ModificationType.DELETE, attr2);
-    List<Modification> mods2 = new ArrayList<Modification>();
-    mods2.add(mod1);
-    mods2.add(mod2);
+    List<Modification> mods2 = newList(mod1, mod2);
 
     AttributeBuilder builder = new AttributeBuilder(type);
-    List<Modification> mods3 = new ArrayList<Modification>();
     builder.add("string");
     builder.add("value");
     builder.add("again");
     Attribute attr3 = builder.toAttribute();
     Modification mod3 = new Modification(ModificationType.ADD, attr3);
-    mods3.add(mod3);
+    List<Modification> mods3 = newList(mod3);
 
     List<Modification> mods4 = new ArrayList<Modification>();
     for (int i = 0; i < 10; i++)
@@ -402,19 +358,11 @@ public class SynchronizationMsgTest extends ReplicationTestCase
       mods4.add(mod);
     }
 
-    // Entry attributes
-    Attribute eattr1 = Attributes.create("description", "eav description");
-    Attribute eattr2 = Attributes.create("namingcontexts", "eav naming contexts");
-    List<Attribute> entryAttrList = new ArrayList<Attribute>();
-    entryAttrList.add(eattr1);
-    entryAttrList.add(eattr2);
-
-
+    List<Attribute> entryAttrList = getEntryAttributes();
     return new Object[][] {
         {"dc=test,dc=com", "dc=new", false, "dc=change", mods1, false, AssuredMode.SAFE_DATA_MODE, (byte)0, entryAttrList},
         {"dc=test,dc=com", "dc=new", true, "dc=change", mods2, true, AssuredMode.SAFE_READ_MODE, (byte)1, null},
-        // testNG does not like null argument so use "" for the newSuperior
-        // instead of null
+        // testNG does not like null argument so use "" for the newSuperior instead of null
         {"dc=test,dc=com", "dc=new", false, "", mods3, true, AssuredMode.SAFE_READ_MODE, (byte)3, entryAttrList},
         {"dc=delete,dc=an,dc=entry,dc=with,dc=a,dc=long dn",
                    "dc=new", true, "", mods4, true, AssuredMode.SAFE_DATA_MODE, (byte)99, null},
@@ -431,7 +379,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
   {
     InternalClientConnection connection =
       InternalClientConnection.getRootConnection();
-    ModifyDNOperationBasis op =
+    ModifyDNOperation op =
       new ModifyDNOperationBasis(connection, 1, 1, null,
                   DN.decode(rawDN), RDN.decode(newRdn), deleteOldRdn,
                   (newSuperior.length() != 0 ? DN.decode(newSuperior) : null));
@@ -464,21 +412,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     assertEquals(generatedMsg.getSafeDataLevel(), safeDataLevel);
 
     // Get ECL entry attributes
-    ArrayList<RawAttribute> genAttrList = generatedMsg.getEclIncludes();
-    if (entryAttrList==null)
-      assertTrue(genAttrList.size()==0);
-    else
-    {
-      assertTrue(genAttrList.size()==entryAttrList.size());
-      int i=0;
-      for (Attribute attr : entryAttrList)
-      {
-        assertTrue(attr.getName().equalsIgnoreCase(genAttrList.get(i).toAttribute().getName()));
-        assertTrue(attr.toString().equalsIgnoreCase(genAttrList.get(i).toAttribute().toString()),
-            "Comparing: " + attr.toString() + " and " + genAttrList.get(i).toAttribute().toString());
-        i++;
-      }
-    }
+    assertAttributesEqual(entryAttrList, generatedMsg.getEclIncludes());
 
     Operation oriOp = msg.createOperation(connection);
     Operation generatedOperation = generatedMsg.createOperation(connection);
@@ -486,8 +420,8 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     assertEquals(oriOp.getClass(), ModifyDNOperationBasis.class);
     assertEquals(generatedOperation.getClass(), ModifyDNOperationBasis.class);
 
-    ModifyDNOperationBasis moddn1 = (ModifyDNOperationBasis) oriOp;
-    ModifyDNOperationBasis moddn2 = (ModifyDNOperationBasis) generatedOperation;
+    ModifyDNOperation moddn1 = (ModifyDNOperation) oriOp;
+    ModifyDNOperation moddn2 = (ModifyDNOperation) generatedOperation;
 
     assertEquals(msg.getChangeNumber(), generatedMsg.getChangeNumber());
     assertEquals(moddn1.getRawEntryDN(), moddn2.getRawEntryDN());
@@ -504,13 +438,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
   @DataProvider(name = "createAddData")
   public Object[][] createAddData()
   {
-
-    // Entry attributes
-    Attribute eattr1 = Attributes.create("description", "eav description");
-    Attribute eattr2 = Attributes.create("namingcontexts", "eav naming contexts");
-    List<Attribute> entryAttrList = new ArrayList<Attribute>();
-    entryAttrList.add(eattr1);
-    entryAttrList.add(eattr2);
+    List<Attribute> entryAttrList = getEntryAttributes();
     return new Object[][] {
         {"dc=example,dc=com", false, AssuredMode.SAFE_DATA_MODE, (byte)0, entryAttrList},
         {"o=test", true, AssuredMode.SAFE_READ_MODE, (byte)1, null},
@@ -524,22 +452,22 @@ public class SynchronizationMsgTest extends ReplicationTestCase
   {
     Attribute objectClass = Attributes.create(DirectoryServer
         .getObjectClassAttributeType(), "organization");
-    HashMap<ObjectClass, String> objectClassList = new HashMap<ObjectClass, String>();
+    Map<ObjectClass, String> objectClassList =
+        new HashMap<ObjectClass, String>();
     objectClassList.put(DirectoryServer.getObjectClass("organization"),
         "organization");
 
-    ArrayList<Attribute> userAttributes = new ArrayList<Attribute>(1);
     Attribute attr = Attributes.create("o", "com");
-    userAttributes.add(attr);
-    HashMap<AttributeType, List<Attribute>> userAttList = new HashMap<AttributeType, List<Attribute>>();
+    List<Attribute> userAttributes = newList(attr);
+    Map<AttributeType, List<Attribute>> userAttList =
+        new HashMap<AttributeType, List<Attribute>>();
     userAttList.put(attr.getAttributeType(), userAttributes);
 
 
-    ArrayList<Attribute> operationalAttributes = new ArrayList<Attribute>(1);
     attr = Attributes.create("creatorsname", "dc=creator");
-    operationalAttributes.add(attr);
-    HashMap<AttributeType,List<Attribute>> opList=
-      new HashMap<AttributeType,List<Attribute>>();
+    List<Attribute> operationalAttributes = newList(attr);
+    Map<AttributeType, List<Attribute>> opList =
+        new HashMap<AttributeType, List<Attribute>>();
     opList.put(attr.getAttributeType(), operationalAttributes);
 
     ChangeNumber cn = new ChangeNumber(TimeThread.getTime(), 123,  45);
@@ -570,22 +498,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     assertEquals(generatedMsg.getSafeDataLevel(), safeDataLevel);
 
     // Get ECL entry attributes
-    ArrayList<RawAttribute> genAttrList = generatedMsg.getEclIncludes();
-    if (entryAttrList==null)
-      assertTrue(genAttrList.size()==0);
-    else
-    {
-      assertTrue(genAttrList.size()==entryAttrList.size());
-      int i=0;
-      for (Attribute eattr : entryAttrList)
-      {
-        assertTrue(eattr.getName().equalsIgnoreCase(genAttrList.get(i).toAttribute().getName()));
-        assertTrue(eattr.toString().equalsIgnoreCase(genAttrList.get(i).toAttribute().toString()),
-            "Comparing: " + eattr.toString() + " and " + genAttrList.get(i).toAttribute().toString());
-        i++;
-      }
-    }
-
+    assertAttributesEqual(entryAttrList, generatedMsg.getEclIncludes());
 
     // Create an new Add Operation from the current addMsg
     InternalClientConnection connection =
@@ -596,15 +509,14 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     assertEquals(op.getClass(), AddOperationBasis.class);
     assertEquals(generatedOperation.getClass(), AddOperationBasis.class);
 
-    AddOperationBasis addOpBasis = (AddOperationBasis) op;
-    AddOperationBasis genAddOpBasis = (AddOperationBasis) generatedOperation;
+    AddOperation addOp = (AddOperation) op;
+    AddOperation genAddOp = (AddOperation) generatedOperation;
 
-    assertEquals(addOpBasis.getRawEntryDN(), genAddOpBasis.getRawEntryDN());
-    assertEquals( addOpBasis.getAttachment(SYNCHROCONTEXT),
-                  genAddOpBasis.getAttachment(SYNCHROCONTEXT));
-    assertEquals(addOpBasis.getObjectClasses(), genAddOpBasis.getObjectClasses());
-    assertEquals(addOpBasis.getOperationalAttributes(), genAddOpBasis.getOperationalAttributes());
-    assertEquals(addOpBasis.getUserAttributes(), genAddOpBasis.getUserAttributes());
+    assertEquals(addOp.getRawEntryDN(), genAddOp.getRawEntryDN());
+    assertEquals(addOp.getAttachment(SYNCHROCONTEXT), genAddOp.getAttachment(SYNCHROCONTEXT));
+    assertEquals(addOp.getObjectClasses(), genAddOp.getObjectClasses());
+    assertEquals(addOp.getOperationalAttributes(), genAddOp.getOperationalAttributes());
+    assertEquals(addOp.getUserAttributes(), genAddOp.getUserAttributes());
 
     assertEquals(msg.getBytes(), generatedMsg.getBytes());
     assertEquals(msg.toString(), generatedMsg.toString());
@@ -614,12 +526,12 @@ public class SynchronizationMsgTest extends ReplicationTestCase
 
     AddOperation addOpB = new AddOperationBasis(connection,
         1, 1, null, dn, objectClassList, userAttList, opList);
-    LocalBackendAddOperation addOp = new LocalBackendAddOperation(addOpB);
+    LocalBackendAddOperation localAddOp = new LocalBackendAddOperation(addOpB);
     OperationContext opCtx = new AddContext(cn, "thisIsaUniqueID",
         "parentUniqueId");
-    addOp.setAttachment(SYNCHROCONTEXT, opCtx);
+    localAddOp.setAttachment(SYNCHROCONTEXT, opCtx);
 
-    generatedMsg = new AddMsg(addOp);
+    generatedMsg = new AddMsg(localAddOp);
 
     generatedMsg.setAssured(isAssured);
     generatedMsg.setAssuredMode(assuredMode);
@@ -636,8 +548,29 @@ public class SynchronizationMsgTest extends ReplicationTestCase
 
 
     // Create an update message from this op
-    AddMsg updateMsg = (AddMsg) LDAPUpdateMsg.generateMsg(addOp);
+    AddMsg updateMsg = (AddMsg) LDAPUpdateMsg.generateMsg(localAddOp);
     assertEquals(msg.getChangeNumber(), updateMsg.getChangeNumber());
+  }
+
+  private void assertAttributesEqual(List<Attribute> entryAttrList,
+      List<RawAttribute> genAttrList) throws LDAPException
+  {
+    if (entryAttrList == null)
+    {
+      assertEquals(genAttrList.size(), 0);
+      return;
+    }
+
+    assertEquals(genAttrList.size(), entryAttrList.size());
+    int i = 0;
+    for (Attribute eattr : entryAttrList)
+    {
+      final Attribute genAttr = genAttrList.get(i).toAttribute();
+      assertTrue(eattr.getName().equalsIgnoreCase(genAttr.getName()));
+      assertTrue(eattr.toString().equalsIgnoreCase(genAttr.toString()),
+          "Comparing: " + eattr + " and " + genAttr);
+      i++;
+    }
   }
 
   /**
@@ -649,22 +582,10 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     ChangeNumber cn2 = new ChangeNumber(TimeThread.getTime(), 123, 45);
     ChangeNumber cn3 = new ChangeNumber(TimeThread.getTime(), 1234567, 45678);
 
-    ArrayList<Integer> fservers1 = new ArrayList<Integer>();
-    fservers1.add(12345);
-    fservers1.add(-12345);
-    fservers1.add(31657);
-    fservers1.add(-28456);
-    fservers1.add(0);
-    ArrayList<Integer> fservers2 = new ArrayList<Integer>();
-    ArrayList<Integer> fservers3 = new ArrayList<Integer>();
-    fservers3.add(0);
-    ArrayList<Integer> fservers4 = new ArrayList<Integer>();
-    fservers4.add(100);
-    fservers4.add(2000);
-    fservers4.add(30000);
-    fservers4.add(-100);
-    fservers4.add(-2000);
-    fservers4.add(-30000);
+    List<Integer> fservers1 = newList(12345, -12345, 31657, -28456, 0);
+    List<Integer> fservers2 = newList();
+    List<Integer> fservers3 = newList(0);
+    List<Integer> fservers4 = newList(100, 2000, 30000, -100, -2000, -30000);
 
     return new Object[][] {
         {cn1, true, false, false, fservers1},
@@ -695,22 +616,22 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     assertFalse(msg1.hasTimeout());
     assertFalse(msg1.hasWrongStatus());
     assertFalse(msg1.hasReplayError());
-    assertTrue(msg1.getFailedServers().size() == 0);
+    assertEquals(msg1.getFailedServers().size(), 0);
 
     // Check constructor with error info
     msg1 = new  AckMsg(cn, hasTimeout, hasWrongStatus, hasReplayError, failedServers);
     assertEquals(msg1.getChangeNumber().compareTo(cn), 0);
-    assertTrue(msg1.hasTimeout() == hasTimeout);
-    assertTrue(msg1.hasWrongStatus() == hasWrongStatus);
-    assertTrue(msg1.hasReplayError() == hasReplayError);
+    assertEquals(msg1.hasTimeout(), hasTimeout);
+    assertEquals(msg1.hasWrongStatus(), hasWrongStatus);
+    assertEquals(msg1.hasReplayError(), hasReplayError);
     assertEquals(msg1.getFailedServers(), failedServers);
 
     // Constructor test (with byte[])
     msg2 = new  AckMsg(msg1.getBytes(getCurrentVersion()));
     assertEquals(msg2.getChangeNumber().compareTo(cn), 0);
-    assertTrue(msg1.hasTimeout() == msg2.hasTimeout());
-    assertTrue(msg1.hasWrongStatus() == msg2.hasWrongStatus());
-    assertTrue(msg1.hasReplayError() == msg2.hasReplayError());
+    assertEquals(msg1.hasTimeout(), msg2.hasTimeout());
+    assertEquals(msg1.hasWrongStatus(), msg2.hasWrongStatus());
+    assertEquals(msg1.hasReplayError(), msg2.hasReplayError());
     assertEquals(msg1.getFailedServers(), msg2.getFailedServers());
 
     // Check invalid bytes for constructor
@@ -739,9 +660,9 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     // create a msg to put in the eclupdatemsg
     InternalClientConnection connection =
       InternalClientConnection.getRootConnection();
-    DeleteOperationBasis opBasis =
+    DeleteOperation deleteOp =
       new DeleteOperationBasis(connection, 1, 1,null, DN.decode("cn=t1"));
-    LocalBackendDeleteOperation op = new LocalBackendDeleteOperation(opBasis);
+    LocalBackendDeleteOperation op = new LocalBackendDeleteOperation(deleteOp);
     ChangeNumber cn = new ChangeNumber(TimeThread.getTime(), 123,  45);
     op.setAttachment(SYNCHROCONTEXT, new DeleteContext(cn, "uniqueid"));
     DeleteMsg delmsg = new DeleteMsg(op);
@@ -819,7 +740,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
         newMsg.getServerState().getChangeNumber(1));
     assertEquals(newMsg.getVersion(), getCurrentVersion());
     assertEquals(msg.getGenerationId(), newMsg.getGenerationId());
-    assertTrue(msg.getGroupId() == newMsg.getGroupId());
+    assertEquals(msg.getGroupId(), newMsg.getGroupId());
   }
 
   @DataProvider(name="createReplServerStartData")
@@ -862,9 +783,9 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     assertEquals(newMsg.getVersion(), getCurrentVersion());
     assertEquals(msg.getGenerationId(), newMsg.getGenerationId());
     assertEquals(msg.getSSLEncryption(), newMsg.getSSLEncryption());
-    assertTrue(msg.getGroupId() == newMsg.getGroupId());
-    assertTrue(msg.getDegradedStatusThreshold() ==
-      newMsg.getDegradedStatusThreshold());
+    assertEquals(msg.getGroupId(), newMsg.getGroupId());
+    assertEquals(msg.getDegradedStatusThreshold(),
+                 newMsg.getDegradedStatusThreshold());
   }
 
   @DataProvider(name="createReplServerStartDSData")
@@ -908,9 +829,9 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     assertEquals(newMsg.getVersion(), getCurrentVersion());
     assertEquals(msg.getGenerationId(), newMsg.getGenerationId());
     assertEquals(msg.getSSLEncryption(), newMsg.getSSLEncryption());
-    assertTrue(msg.getGroupId() == newMsg.getGroupId());
-    assertTrue(msg.getDegradedStatusThreshold() ==
-      newMsg.getDegradedStatusThreshold());
+    assertEquals(msg.getGroupId(), newMsg.getGroupId());
+    assertEquals(msg.getDegradedStatusThreshold(),
+                 newMsg.getDegradedStatusThreshold());
     assertEquals(msg.getWeight(), newMsg.getWeight());
     assertEquals(msg.getConnectedDSNumber(), newMsg.getConnectedDSNumber());
   }
@@ -968,13 +889,10 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     urls4.add("ldaps://host:port/dc=foobar2??sub?(sn=Another Entry 2)");
 
 
-    Set<String> a1 = new HashSet<String>();
-    Set<String> a2 = new HashSet<String>();
-    a2.add("dc");
-    Set<String> a3 = new HashSet<String>();
-    a3.add("dc");
-    a3.add("uid");
-    Set<String> a4 = new HashSet<String>();
+    Set<String> a1 = newSet();
+    Set<String> a2 = newSet("dc");
+    Set<String> a3 = newSet("dc", "uid");
+    Set<String> a4 = newSet();
 
     DSInfo dsInfo1 = new DSInfo(13, "dsHost1:111", 26, 154631, ServerStatus.FULL_UPDATE_STATUS,
       false, AssuredMode.SAFE_DATA_MODE, (byte)12, (byte)132, urls1, a1, a1, (short)1);
@@ -990,37 +908,18 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     DSInfo dsInfo5 = new DSInfo(452436, "dsHost5:555", 45591, 0, ServerStatus.NORMAL_STATUS,
         false, AssuredMode.SAFE_READ_MODE, (byte)17, (byte)0, urls3, a1, a1, (short)5);
 
-    List<DSInfo> dsList1 = new ArrayList<DSInfo>();
-    dsList1.add(dsInfo1);
-
-    List<DSInfo> dsList2 = new ArrayList<DSInfo>();
-
-    List<DSInfo> dsList3 = new ArrayList<DSInfo>();
-    dsList3.add(dsInfo2);
-
-    List<DSInfo> dsList4 = new ArrayList<DSInfo>();
-    dsList4.add(dsInfo5);
-    dsList4.add(dsInfo4);
-    dsList4.add(dsInfo3);
-    dsList4.add(dsInfo2);
-    dsList4.add(dsInfo1);
+    List<DSInfo> dsList1 = newList(dsInfo1);
+    List<DSInfo> dsList2 = newList();
+    List<DSInfo> dsList3 = newList(dsInfo2);
+    List<DSInfo> dsList4 = newList(dsInfo5, dsInfo4, dsInfo3, dsInfo2, dsInfo1);
 
     RSInfo rsInfo1 = new RSInfo(4527, "rsHost1:123", 45316, (byte)103, 1);
-
     RSInfo rsInfo2 = new RSInfo(4527, "rsHost2:456", 0, (byte)0, 1);
-
     RSInfo rsInfo3 = new RSInfo(0, "rsHost3:789", -21113, (byte)98, 1);
-
     RSInfo rsInfo4 = new RSInfo(45678, "rsHost4:1011", -21113, (byte)98, 1);
 
-    List<RSInfo> rsList1 = new ArrayList<RSInfo>();
-    rsList1.add(rsInfo1);
-
-    List<RSInfo> rsList2 = new ArrayList<RSInfo>();
-    rsList2.add(rsInfo1);
-    rsList2.add(rsInfo2);
-    rsList2.add(rsInfo3);
-    rsList2.add(rsInfo4);
+    List<RSInfo> rsList1 = newList(rsInfo1);
+    List<RSInfo> rsList2 = newList(rsInfo1, rsInfo2, rsInfo3, rsInfo4);
 
     return new Object [][] {
       {dsList1, rsList1, a1},
@@ -1031,6 +930,16 @@ public class SynchronizationMsgTest extends ReplicationTestCase
       {null, null, a2},
       {dsList4, rsList2, a3}
     };
+  }
+
+  private <T> Set<T> newSet(T... elems)
+  {
+    return new HashSet<T>(Arrays.asList(elems));
+  }
+
+  private <T> List<T> newList(T... elems)
+  {
+    return Arrays.asList(elems);
   }
 
   /**
@@ -1080,12 +989,9 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     urls6.add("ldaps://host:port/dc=foo??sub?(sn=Fourth Entry)");
     urls6.add("ldaps://host:port/dc=foo??sub?(sn=Fifth Entry)");
 
-    Set<String> a1 = new HashSet<String>();
-    Set<String> a2 = new HashSet<String>();
-    a2.add("dc");
-    Set<String> a3 = new HashSet<String>();
-    a3.add("dc");
-    a3.add("uid");
+    Set<String> a1 = newSet();
+    Set<String> a2 = newSet("dc");
+    Set<String> a3 = newSet("dc", "uid");
 
     return new Object[][]{
       {ServerStatus.NORMAL_STATUS, urls1, true, AssuredMode.SAFE_DATA_MODE, (byte)1, a1},
@@ -1112,9 +1018,9 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     StartSessionMsg newMsg =
       new StartSessionMsg(msg.getBytes(getCurrentVersion()),getCurrentVersion());
     assertEquals(msg.getStatus(), newMsg.getStatus());
-    assertTrue(msg.isAssured() == newMsg.isAssured());
+    assertEquals(msg.isAssured(), newMsg.isAssured());
     assertEquals(msg.getAssuredMode(), newMsg.getAssuredMode());
-    assertTrue(msg.getSafeDataLevel() == newMsg.getSafeDataLevel());
+    assertEquals(msg.getSafeDataLevel(), newMsg.getSafeDataLevel());
     assertEquals(msg.getReferralsURLs(), newMsg.getReferralsURLs());
     assertTrue(attrs.equals(newMsg.getEclIncludes()));
     assertTrue(attrs.equals(newMsg.getEclIncludesForDeletes()));
@@ -1237,12 +1143,12 @@ public class SynchronizationMsgTest extends ReplicationTestCase
       if (sid == sid1)
       {
         assertEquals(s.toString(), s1.toString(), "");
-        assertEquals((Long)(now+1), newMsg.getLDAPApproxFirstMissingDate(sid), "");
+        assertEquals(now + 1, newMsg.getLDAPApproxFirstMissingDate(sid), "");
       }
       else if (sid == sid2)
       {
         assertEquals(s.toString(), s2.toString());
-        assertEquals((Long)(now+2), newMsg.getLDAPApproxFirstMissingDate(sid), "");
+        assertEquals(now + 2, newMsg.getLDAPApproxFirstMissingDate(sid), "");
       }
       else
       {
@@ -1258,7 +1164,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
       if (sid == sid3)
       {
         assertEquals(s.toString(), s3.toString(), "");
-        assertEquals((Long)(now+3), newMsg.getRSApproxFirstMissingDate(sid), "");
+        assertEquals(now + 3, newMsg.getRSApproxFirstMissingDate(sid), "");
       }
       else
       {
@@ -1374,10 +1280,8 @@ public class SynchronizationMsgTest extends ReplicationTestCase
   public void UpdateMsgTest() throws Exception
   {
     final String test = "string used for test";
-    UpdateMsg msg =
-      new UpdateMsg(
-          new ChangeNumber(1, 2 , 39123),
-          test.getBytes());
+    ChangeNumber cn = new ChangeNumber(1, 2 , 39123);
+    UpdateMsg msg = new UpdateMsg(cn, test.getBytes());
     UpdateMsg newMsg = new UpdateMsg(msg.getBytes());
     assertEquals(test.getBytes(), newMsg.getPayload());
   }
@@ -1406,7 +1310,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
         newMsg.getServerState().getChangeNumber(1));
     assertEquals(newMsg.getVersion(), getCurrentVersion());
     assertEquals(msg.getGenerationId(), newMsg.getGenerationId());
-    assertTrue(msg.getGroupId() == newMsg.getGroupId());
+    assertEquals(msg.getGroupId(), newMsg.getGroupId());
   }
 
   /**
@@ -1418,41 +1322,32 @@ public class SynchronizationMsgTest extends ReplicationTestCase
   {
     // data
     ChangeNumber changeNumber = new ChangeNumber(TimeThread.getTime(), 123,  45);
-    String generalizedState = "fakegenstate";
     ServerState state = new ServerState();
     assertTrue(state.update(new ChangeNumber(75, 5,263)));
-    short mode = 3;
-    int firstDraftChangeNumber = 13;
-    int lastDraftChangeNumber  = 14;
-    String myopid = "fakeopid";
+
     // create original
     StartECLSessionMsg msg = new StartECLSessionMsg();
     msg.setChangeNumber(changeNumber);
-    msg.setCrossDomainServerState(generalizedState);
+    msg.setCrossDomainServerState("fakegenstate");
     msg.setPersistent(StartECLSessionMsg.PERSISTENT);
-    msg.setFirstDraftChangeNumber(firstDraftChangeNumber);
-    msg.setLastDraftChangeNumber(lastDraftChangeNumber);
-    msg.setECLRequestType(mode);
-    msg.setOperationId(myopid);
+    msg.setFirstDraftChangeNumber(13);
+    msg.setLastDraftChangeNumber(14);
+    msg.setECLRequestType((short) 3);
+    msg.setOperationId("fakeopid");
     String dn1 = "cn=admin data";
     String dn2 = "cn=config";
-    Set<String> dns = new HashSet<String>();
-    dns.add(dn1);
-    dns.add(dn2);
-    msg.setExcludedDNs(dns);
+    msg.setExcludedDNs(newSet(dn1, dn2));
+
     // create copy
     StartECLSessionMsg newMsg = new StartECLSessionMsg(msg.getBytes(getCurrentVersion()));
     // test equality between the two copies
     assertEquals(msg.getChangeNumber(), newMsg.getChangeNumber());
     assertEquals(msg.isPersistent(), newMsg.isPersistent());
-    assertEquals(msg.getFirstDraftChangeNumber(), newMsg
-        .getFirstDraftChangeNumber());
+    assertEquals(msg.getFirstDraftChangeNumber(), newMsg.getFirstDraftChangeNumber());
     assertEquals(msg.getECLRequestType(), newMsg.getECLRequestType());
     assertEquals(msg.getLastDraftChangeNumber(), newMsg.getLastDraftChangeNumber());
-    assertTrue(
-        msg.getCrossDomainServerState().equalsIgnoreCase(newMsg.getCrossDomainServerState()));
-    assertTrue(
-        msg.getOperationId().equalsIgnoreCase(newMsg.getOperationId()));
+    assertTrue(msg.getCrossDomainServerState().equalsIgnoreCase(newMsg.getCrossDomainServerState()));
+    assertTrue(msg.getOperationId().equalsIgnoreCase(newMsg.getOperationId()));
     Set<String> dns2 = newMsg.getExcludedBaseDNs();
     assertEquals(dns2.size(), 2);
     boolean dn1found=false,dn2found=false;
@@ -1481,21 +1376,21 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     long buildnew = 0;
     long t1,t2,t3,t31,t4,t5,t6 = 0;
 
-    HashMap<ObjectClass, String> objectClassList = new HashMap<ObjectClass, String>();
+    Map<ObjectClass, String> objectClassList =
+        new HashMap<ObjectClass, String>();
     objectClassList.put(DirectoryServer.getObjectClass("organization"),
         "organization");
 
-    ArrayList<Attribute> userAttributes = new ArrayList<Attribute>(1);
     Attribute attr = Attributes.create("o", "com");
-    userAttributes.add(attr);
-    HashMap<AttributeType, List<Attribute>> userAttList = new HashMap<AttributeType, List<Attribute>>();
+    List<Attribute> userAttributes = newList(attr);
+    Map<AttributeType, List<Attribute>> userAttList =
+        new HashMap<AttributeType, List<Attribute>>();
     userAttList.put(attr.getAttributeType(), userAttributes);
 
 
-    ArrayList<Attribute> operationalAttributes = new ArrayList<Attribute>(1);
     attr = Attributes.create("creatorsname", "dc=creator");
-    operationalAttributes.add(attr);
-    HashMap<AttributeType,List<Attribute>> opList=
+    List<Attribute> operationalAttributes = newList(attr);
+    Map<AttributeType, List<Attribute>> opList =
       new HashMap<AttributeType,List<Attribute>>();
     opList.put(attr.getAttributeType(), operationalAttributes);
 
@@ -1658,9 +1553,10 @@ public class SynchronizationMsgTest extends ReplicationTestCase
       t1 = System.nanoTime();
 
       // create op
-      DeleteOperationBasis opBasis =
+      DeleteOperation deleteOp =
         new DeleteOperationBasis(connection, 1, 1,null, DN.decode(rawDN));
-      LocalBackendDeleteOperation op = new LocalBackendDeleteOperation(opBasis);
+      LocalBackendDeleteOperation op =
+          new LocalBackendDeleteOperation(deleteOp);
       ChangeNumber cn = new ChangeNumber(TimeThread.getTime(), 123, 45);
       op.setAttachment(SYNCHROCONTEXT, new DeleteContext(cn, "uniqueid"));
       t2 = System.nanoTime();

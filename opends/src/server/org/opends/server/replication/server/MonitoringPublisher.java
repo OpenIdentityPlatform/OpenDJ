@@ -28,12 +28,12 @@
 package org.opends.server.replication.server;
 
 import java.io.IOException;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.protocol.MonitorMsg;
+
+import static org.opends.server.loggers.debug.DebugLogger.*;
 
 /**
  * This thread regularly publishes monitoring information:
@@ -54,13 +54,13 @@ public class MonitoringPublisher extends DirectoryThread
    */
   private static final DebugTracer TRACER = getTracer();
 
-  // The domain we send monitoring for
+  /** The domain we send monitoring for. */
   private final ReplicationServerDomain replicationServerDomain;
 
-  // Sleep time (in ms) before sending new monitoring messages.
+  /** Sleep time (in ms) before sending new monitoring messages. */
   private volatile long period;
 
-  // Is the thread terminated ?
+  /** Whether the thread is terminated. */
   private volatile boolean done = false;
 
   private final Object shutdownLock = new Object();
@@ -75,8 +75,8 @@ public class MonitoringPublisher extends DirectoryThread
     long period)
   {
     super("Replication server RS("
-        + replicationServerDomain.getReplicationServer()
-            .getServerId() + ") monitor publisher for domain \""
+        + replicationServerDomain.getLocalRSServerId()
+        + ") monitor publisher for domain \""
         + replicationServerDomain.getBaseDn() + "\"");
 
     this.replicationServerDomain = replicationServerDomain;
@@ -114,8 +114,7 @@ public class MonitoringPublisher extends DirectoryThread
         MonitorMsg monitorMsg = replicationServerDomain
             .createGlobalTopologyMonitorMsg(0, 0, monitorData);
 
-        int localServerId = replicationServerDomain
-            .getReplicationServer().getServerId();
+        int localServerId = replicationServerDomain.getLocalRSServerId();
         for (ServerHandler serverHandler : replicationServerDomain
             .getConnectedDSs().values())
         {
@@ -137,20 +136,14 @@ public class MonitoringPublisher extends DirectoryThread
     {
       TRACER.debugInfo("Monitoring publisher for dn "
           + replicationServerDomain.getBaseDn()
-          + " in RS "
-          + replicationServerDomain.getReplicationServer()
-              .getServerId()
+          + " in RS " + replicationServerDomain.getLocalRSServerId()
           + " has been interrupted while sleeping.");
-
     }
 
     done = true;
     TRACER.debugInfo("Monitoring publisher for dn "
-        + replicationServerDomain.getBaseDn()
-        + " is terminated."
-        + " This is in RS "
-        + replicationServerDomain.getReplicationServer()
-            .getServerId());
+        + replicationServerDomain.getBaseDn() + " is terminated."
+        + " This is in RS " + replicationServerDomain.getLocalRSServerId());
   }
 
 
@@ -167,9 +160,9 @@ public class MonitoringPublisher extends DirectoryThread
 
       if (debugEnabled())
       {
-        TRACER.debugInfo("Shutting down monitoring publisher for dn " +
-          replicationServerDomain.getBaseDn() + " in RS " +
-          replicationServerDomain.getReplicationServer().getServerId());
+        TRACER.debugInfo("Shutting down monitoring publisher for dn "
+            + replicationServerDomain.getBaseDn()
+            + " in RS " + replicationServerDomain.getLocalRSServerId());
       }
     }
   }
@@ -184,7 +177,7 @@ public class MonitoringPublisher extends DirectoryThread
     {
       int FACTOR = 40; // Wait for 2 seconds before interrupting the thread
       int n = 0;
-      while ((!done) && (this.isAlive()))
+      while (!done && isAlive())
       {
         Thread.sleep(50);
         n++;
@@ -192,8 +185,8 @@ public class MonitoringPublisher extends DirectoryThread
         {
           TRACER.debugInfo("Interrupting monitoring publisher for dn " +
             replicationServerDomain.getBaseDn() + " in RS " +
-            replicationServerDomain.getReplicationServer().getServerId());
-          this.interrupt();
+            replicationServerDomain.getLocalRSServerId());
+          interrupt();
         }
       }
     } catch (InterruptedException e)

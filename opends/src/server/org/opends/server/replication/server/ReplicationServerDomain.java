@@ -91,9 +91,6 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
    * The following map contains one balanced tree for each replica ID to which
    * we are currently publishing the first update in the balanced tree is the
    * next change that we must push to this particular server.
-   * <p>
-   * We add new TreeSet in the HashMap when a new server register to this
-   * replication server.
    */
   private final Map<Integer, DataServerHandler> directoryServers =
     new ConcurrentHashMap<Integer, DataServerHandler>();
@@ -103,9 +100,6 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
    * we are connected (so normally all the replication servers) the first update
    * in the balanced tree is the next change that we must push to this
    * particular server.
-   * <p>
-   * We add new TreeSet in the HashMap when a new replication server register to
-   * this replication server.
    */
   private final Map<Integer, ReplicationServerHandler> replicationServers =
     new ConcurrentHashMap<Integer, ReplicationServerHandler>();
@@ -2223,7 +2217,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     if (debugEnabled())
     {
       TRACER.debugInfo(
-          "In RS " + getReplicationServer().getServerId() +
+          "In RS " + getLocalRSServerId() +
           " Receiving ChangeStatusMsg from " + senderHandler.getServerId() +
           " for baseDn " + baseDn + ":\n" + csMsg);
     }
@@ -2283,8 +2277,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
   {
     try
     {
-      // Acquire lock on domain (see more details in comment of start() method
-      // of ServerHandler)
+      // Acquire lock on domain (see ServerHandler#start() for more details)
       lock();
     }
     catch (InterruptedException ex)
@@ -2317,8 +2310,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
       ServerStatus oldStatus = serverHandler.getStatus();
       try
       {
-        newStatus = serverHandler
-            .changeStatusFromStatusAnalyzer(event);
+        newStatus = serverHandler.changeStatusFromStatusAnalyzer(event);
       }
       catch (IOException e)
       {
@@ -2429,15 +2421,6 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
   }
 
   /**
-   * Return the associated replication server.
-   * @return The replication server.
-   */
-  public ReplicationServer getReplicationServer()
-  {
-    return localReplicationServer;
-  }
-
-  /**
    * Process topology information received from a peer RS.
    * @param topoMsg The just received topo message from remote RS
    * @param handler The handler that received the message.
@@ -2453,10 +2436,9 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
   {
     if (debugEnabled())
     {
-      TRACER.debugInfo(
-        "In RS " + getReplicationServer().getServerId() +
-        " Receiving TopologyMsg from " + handler.getServerId() +
-        " for baseDn " + baseDn + ":\n" + topoMsg);
+      TRACER.debugInfo("In RS " + getLocalRSServerId()
+          + " Receiving TopologyMsg from " + handler.getServerId()
+          + " for baseDn " + baseDn + ":\n" + topoMsg);
     }
 
     try
@@ -2475,14 +2457,10 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
 
     try
     {
-      /*
-       * Store DS connected to remote RS & update information about the peer RS
-       */
+      // Store DS connected to remote RS & update information about the peer RS
       handler.processTopoInfoFromRS(topoMsg);
 
-      /*
-       * Handle generation id
-       */
+      // Handle generation id
       if (allowResetGenId)
       {
         // Check if generation id has to be reseted
@@ -2495,17 +2473,14 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
 
       if (isDifferentGenerationId(handler.getGenerationId()))
       {
-        Message message = WARN_BAD_GENERATION_ID_FROM_RS.get(handler
-            .getServerId(), handler.session
-            .getReadableRemoteAddress(), handler.getGenerationId(),
-            baseDn, getReplicationServer().getServerId(),
-            generationId);
+        Message message = WARN_BAD_GENERATION_ID_FROM_RS.get(
+            handler.getServerId(), handler.session.getReadableRemoteAddress(),
+            handler.getGenerationId(),
+            baseDn, getLocalRSServerId(), generationId);
         logError(message);
 
-        ErrorMsg errorMsg = new ErrorMsg(
-            getReplicationServer().getServerId(),
-            handler.getServerId(),
-            message);
+        ErrorMsg errorMsg =
+            new ErrorMsg(getLocalRSServerId(), handler.getServerId(), message);
         handler.send(errorMsg);
       }
 
@@ -3410,5 +3385,29 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
       }
     }
     return latest;
+  }
+
+  /**
+   * Return the monitor instance name of the ReplicationServer that created the
+   * current instance.
+   *
+   * @return the monitor instance name of the ReplicationServer that created the
+   *         current instance.
+   */
+  String getLocalRSMonitorInstanceName()
+  {
+    return this.localReplicationServer.getMonitorInstanceName();
+  }
+
+  /**
+   * Return the serverId of the ReplicationServer that created the current
+   * instance.
+   *
+   * @return the serverId of the ReplicationServer that created the current
+   *         instance.
+   */
+  int getLocalRSServerId()
+  {
+    return this.localReplicationServer.getServerId();
   }
 }

@@ -27,14 +27,13 @@
  */
 package org.opends.server.replication.server;
 
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.common.ServerStatus;
 import org.opends.server.replication.common.StatusMachineEvent;
 import org.opends.server.types.DebugLogLevel;
+
+import static org.opends.server.loggers.debug.DebugLogger.*;
 
 /**
  * This thread is in charge of periodically determining if the connected
@@ -59,7 +58,7 @@ public class StatusAnalyzer extends DirectoryThread
   private final ReplicationServerDomain replicationServerDomain;
   private volatile int degradedStatusThreshold = -1;
 
-  // Sleep time for the thread, in ms.
+  /** Sleep time for the thread, in ms. */
   private static final int STATUS_ANALYZER_SLEEP_TIME = 5000;
 
   private volatile boolean done = false;
@@ -77,9 +76,9 @@ public class StatusAnalyzer extends DirectoryThread
     int degradedStatusThreshold)
   {
     super("Replication server RS("
-        + replicationServerDomain.getReplicationServer()
-            .getServerId() + ") delay monitor for domain \""
-        + replicationServerDomain.getBaseDn() + "\"");
+        + replicationServerDomain.getLocalRSServerId()
+        + ") delay monitor for domain \"" + replicationServerDomain.getBaseDn()
+        + "\"");
 
     this.replicationServerDomain = replicationServerDomain;
     this.degradedStatusThreshold = degradedStatusThreshold;
@@ -98,6 +97,7 @@ public class StatusAnalyzer extends DirectoryThread
         replicationServerDomain.getBaseDn());
     }
 
+    final int localRsId = replicationServerDomain.getLocalRSServerId();
     boolean interrupted = false;
     while (!shutdown && !interrupted)
     {
@@ -132,11 +132,10 @@ public class StatusAnalyzer extends DirectoryThread
         int nChanges = serverHandler.getRcvMsgQueueSize();
         if (debugEnabled())
         {
-          TRACER.debugInfo("Status analyzer for dn " +
-              replicationServerDomain.getBaseDn() + " DS " +
-            Integer.toString(serverHandler.getServerId()) + " has " + nChanges +
-            " message(s) in writer queue. This is in RS " +
-            replicationServerDomain.getReplicationServer().getServerId());
+          TRACER.debugInfo("Status analyzer for dn "
+              + replicationServerDomain.getBaseDn() + " DS "
+              + serverHandler.getServerId() + " has " + nChanges
+              + " message(s) in writer queue. This is in RS " + localRsId);
         }
 
         // Check status to know if it is relevant to change the status. Do not
@@ -161,10 +160,10 @@ public class StatusAnalyzer extends DirectoryThread
               if (interrupted)
               {
                 // Finish job and let thread die
-                TRACER.debugInfo("Status analyzer for dn " +
-                    replicationServerDomain.getBaseDn() +
-                  " has been interrupted and will die. This is in RS " +
-                  replicationServerDomain.getReplicationServer().getServerId());
+                TRACER.debugInfo("Status analyzer for dn "
+                    + replicationServerDomain.getBaseDn()
+                    + " has been interrupted and will die. This is in RS "
+                    + localRsId);
                 break;
               }
             }
@@ -179,10 +178,10 @@ public class StatusAnalyzer extends DirectoryThread
               if (interrupted)
               {
                 // Finish job and let thread die
-                TRACER.debugInfo("Status analyzer for dn " +
-                    replicationServerDomain.getBaseDn() +
-                  " has been interrupted and will die. This is in RS " +
-                  replicationServerDomain.getReplicationServer().getServerId());
+                TRACER.debugInfo("Status analyzer for dn "
+                    + replicationServerDomain.getBaseDn()
+                    + " has been interrupted and will die. This is in RS "
+                    + localRsId);
                 break;
               }
             }
@@ -192,10 +191,9 @@ public class StatusAnalyzer extends DirectoryThread
     }
 
     done = true;
-    TRACER.debugInfo("Status analyzer for dn " +
-        replicationServerDomain.getBaseDn() + " is terminated." +
-      " This is in RS " +
-      replicationServerDomain.getReplicationServer().getServerId());
+    TRACER.debugInfo("Status analyzer for dn "
+        + replicationServerDomain.getBaseDn() + " is terminated."
+        + " This is in RS " + localRsId);
   }
 
   /**
@@ -211,8 +209,8 @@ public class StatusAnalyzer extends DirectoryThread
       if (debugEnabled())
       {
         TRACER.debugInfo("Shutting down status analyzer for dn "
-            + replicationServerDomain.getBaseDn() + " in RS "
-            + replicationServerDomain.getReplicationServer().getServerId());
+            + replicationServerDomain.getBaseDn()
+            + " in RS " + replicationServerDomain.getLocalRSServerId());
       }
     }
   }
@@ -234,9 +232,9 @@ public class StatusAnalyzer extends DirectoryThread
         if (n >= FACTOR)
         {
           TRACER.debugInfo("Interrupting status analyzer for dn " +
-            replicationServerDomain.getBaseDn() + " in RS " +
-            replicationServerDomain.getReplicationServer().getServerId());
-          this.interrupt();
+              replicationServerDomain.getBaseDn() + " in RS " +
+              replicationServerDomain.getLocalRSServerId());
+          interrupt();
         }
       }
     } catch (InterruptedException e)
