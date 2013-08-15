@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011 ForgeRock AS
+  !      Copyright 2011-2013 ForgeRock AS
   !
 -->
 <faqs
@@ -96,8 +96,7 @@
     <p>
       Sign up for the <a
       href="https://lists.forgerock.org/mailman/listinfo/opendj">OpenDJ
-      mailing list</a>. <a
-      href="https://idp.forgerock.org/openam/UI/Login?service=register">Join
+      mailing list</a>. <a href="https://sso.forgerock.com/openam/UI/Login">Join
       the project</a>.
       Visit the <a href="https://wikis.forgerock.org/confluence/display/OPENDJ/Home"
       >OpenDJ Wiki documentation</a>. Chat on irc.freenode.net #opendj.
@@ -123,8 +122,7 @@
     <p>
       Come discuss your work on the <a
       href="https://lists.forgerock.org/mailman/listinfo/opendj-dev">dev mailing
-      list</a>. <a
-      href="https://idp.forgerock.org/openam/UI/Login?service=register">Join
+      list</a>. <a href="https://sso.forgerock.com/openam/UI/Login">Join
       the project</a>, too.
     </p>
    </answer>
@@ -135,9 +133,8 @@
     <p>
       Start with the <a
       href="https://wikis.forgerock.org/confluence/display/OPENDJ/OpenDJ+QA+Documentation"
-      >QA documentation</a>. <a
-      href="https://idp.forgerock.org/openam/UI/Login?service=register">Join
-      the project</a>. Come discuss your work on the <a
+      >QA documentation</a>. <a href="https://sso.forgerock.com/openam/UI/Login"
+      >Join the project</a>. Come discuss your work on the <a
       href="https://lists.forgerock.org/mailman/listinfo/opendj-dev">dev mailing
       list</a>.
     </p>
