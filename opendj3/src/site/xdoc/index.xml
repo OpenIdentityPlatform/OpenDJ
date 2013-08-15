@@ -57,8 +57,7 @@
     href="https://lists.forgerock.org/mailman/listinfo/opendj">OpenDJ
     mailing list</a> to ask questions, make suggestions, and tell us what
     you think of OpenDJ.</li>
-    <li><a
-    href="https://idp.forgerock.org/openam/UI/Login?service=register">Register
+    <li><a href="https://sso.forgerock.com/openam/UI/Login">Register
     to join the community</a>.</li>
     <li>Read and edit <a
     href="https://wikis.forgerock.org/confluence/display/OPENDJ/Home">OpenDJ Wiki
@@ -76,7 +75,7 @@
     href="https://wikis.forgerock.org/confluence/display/OPENDJ/Guide+to+OpenDJ+Subversion"
     >Guide to OpenDJ Subversion</a>.</li>
     <li>Make sure you <a
-    href="https://idp.forgerock.org/openam/UI/Login?service=register">register
+    href="https://sso.forgerock.com/openam/UI/Login">register
     to join the community</a>, thus also registering to <a
     href="https://bugster.forgerock.org/jira/browse/OPENDJ">report issues, and
     describe requests for enhancements</a>, as well as to edit <a
@@ -103,4 +102,3 @@
   </section>
  </body>
 </document>
-
