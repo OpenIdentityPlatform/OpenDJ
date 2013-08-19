@@ -113,11 +113,7 @@ public class ReplicationServerHandler extends ServerHandler
    */
   private ReplServerStartMsg sendStartToRemote() throws IOException
   {
-    ReplServerStartMsg outReplServerStartMsg = new ReplServerStartMsg(
-        getReplicationServerId(), getReplicationServerURL(), getBaseDN(),
-        maxRcvWindow, replicationServerDomain.getDbServerState(),
-        localGenerationId, sslEncryption,
-        getLocalGroupId(), replicationServer.getDegradedStatusThreshold());
+    ReplServerStartMsg outReplServerStartMsg = createReplServerStartMsg();
     send(outReplServerStartMsg);
     return outReplServerStartMsg;
   }

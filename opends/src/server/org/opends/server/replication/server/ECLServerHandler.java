@@ -365,11 +365,7 @@ public final class ECLServerHandler extends ServerHandler
     if (getProtocolVersion() < ProtocolVersion.REPLICATION_PROTOCOL_V4)
     {
       // Peer DS uses protocol < V4 : send it a ReplServerStartMsg
-       startMsg = new ReplServerStartMsg(getReplicationServerId(),
-           getReplicationServerURL(), getBaseDN(), maxRcvWindow,
-           replicationServerDomain.getDbServerState(),
-           localGenerationId, sslEncryption, getLocalGroupId(),
-           replicationServer.getDegradedStatusThreshold());
+      startMsg = createReplServerStartMsg();
     }
     else
     {
