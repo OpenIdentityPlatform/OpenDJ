@@ -91,8 +91,7 @@ public class MonitoringPublisher extends DirectoryThread
   {
     if (debugEnabled())
     {
-      TRACER.debugInfo("Monitoring publisher starting for dn "
-          + replicationServerDomain.getBaseDn());
+      TRACER.debugInfo(getMessage("Monitoring publisher starting."));
     }
 
     try
@@ -134,16 +133,12 @@ public class MonitoringPublisher extends DirectoryThread
     }
     catch (InterruptedException e)
     {
-      TRACER.debugInfo("Monitoring publisher for dn "
-          + replicationServerDomain.getBaseDn()
-          + " in RS " + replicationServerDomain.getLocalRSServerId()
-          + " has been interrupted while sleeping.");
+      TRACER.debugInfo(getMessage(
+          "Monitoring publisher has been interrupted while sleeping."));
     }
 
     done = true;
-    TRACER.debugInfo("Monitoring publisher for dn "
-        + replicationServerDomain.getBaseDn() + " is terminated."
-        + " This is in RS " + replicationServerDomain.getLocalRSServerId());
+    TRACER.debugInfo(getMessage("Monitoring publisher is terminated."));
   }
 
 
@@ -160,9 +155,7 @@ public class MonitoringPublisher extends DirectoryThread
 
       if (debugEnabled())
       {
-        TRACER.debugInfo("Shutting down monitoring publisher for dn "
-            + replicationServerDomain.getBaseDn()
-            + " in RS " + replicationServerDomain.getLocalRSServerId());
+        TRACER.debugInfo(getMessage("Shutting down monitoring publisher."));
       }
     }
   }
@@ -183,9 +176,7 @@ public class MonitoringPublisher extends DirectoryThread
         n++;
         if (n >= FACTOR)
         {
-          TRACER.debugInfo("Interrupting monitoring publisher for dn " +
-            replicationServerDomain.getBaseDn() + " in RS " +
-            replicationServerDomain.getLocalRSServerId());
+          TRACER.debugInfo(getMessage("Interrupting monitoring publisher."));
           interrupt();
         }
       }
@@ -203,11 +194,17 @@ public class MonitoringPublisher extends DirectoryThread
   {
     if (debugEnabled())
     {
-      TRACER.debugInfo("Monitoring publisher for dn " +
-        replicationServerDomain.getBaseDn() +
-        " changing period value to " + period);
+      TRACER.debugInfo(getMessage(
+          "Monitoring publisher changing period value to " + period));
     }
 
     this.period = period;
+  }
+
+  private String getMessage(String message)
+  {
+    return "In RS " + replicationServerDomain.getLocalRSServerId()
+        + ", for base dn " + replicationServerDomain.getBaseDn() + ": "
+        + message;
   }
 }

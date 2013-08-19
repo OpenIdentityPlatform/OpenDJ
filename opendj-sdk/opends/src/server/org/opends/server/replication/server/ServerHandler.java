@@ -155,12 +155,12 @@ public abstract class ServerHandler extends MessageHandler
 
   // window
   private int rcvWindow;
-  private int rcvWindowSizeHalf;
+  private final int rcvWindowSizeHalf;
 
   /**
    * The size of the receiving window.
    */
-  protected int maxRcvWindow;
+  protected final int maxRcvWindow;
   /**
    * Semaphore that the writer uses to control the flow to the remote server.
    */
@@ -288,7 +288,7 @@ public abstract class ServerHandler extends MessageHandler
    *
    * @throws IOException when the session becomes unavailable.
    */
-  public synchronized void decAndCheckWindow() throws IOException
+  private synchronized void decAndCheckWindow() throws IOException
   {
     rcvWindow--;
     checkWindow();
@@ -318,8 +318,7 @@ public abstract class ServerHandler extends MessageHandler
    * and monitoring system.
    * @throws DirectoryException When an exception is raised.
    */
-  protected void finalizeStart()
-  throws DirectoryException
+  protected void finalizeStart() throws DirectoryException
   {
     // FIXME:ECL We should refactor so that a SH always have a session
     if (session != null)
@@ -906,11 +905,10 @@ public abstract class ServerHandler extends MessageHandler
   /**
    * Process the reception of a WindowProbeMsg message.
    *
-   * @param  windowProbeMsg The message to process.
-   *
-   * @throws IOException    When the session becomes unavailable.
+   * @throws IOException
+   *           When the session becomes unavailable.
    */
-  public void process(WindowProbeMsg windowProbeMsg) throws IOException
+  public void replyToWindowProbe() throws IOException
   {
     if (rcvWindow > 0)
     {
@@ -1250,6 +1248,7 @@ public abstract class ServerHandler extends MessageHandler
    */
   public void put(UpdateMsg update) throws IOException
   {
+    decAndCheckWindow();
     if (replicationServerDomain!=null)
       replicationServerDomain.put(update, this);
   }
@@ -1261,5 +1260,19 @@ public abstract class ServerHandler extends MessageHandler
   {
     if (replicationServerDomain!=null)
       replicationServerDomain.stopServer(this, false);
+  }
+
+  /**
+   * Creates a ReplServerStartMsg for the current ServerHandler.
+   *
+   * @return a new ReplServerStartMsg for the current ServerHandler.
+   */
+  protected ReplServerStartMsg createReplServerStartMsg()
+  {
+    return new ReplServerStartMsg(getReplicationServerId(),
+        getReplicationServerURL(), getBaseDN(), maxRcvWindow,
+        replicationServerDomain.getDbServerState(), localGenerationId,
+        sslEncryption, getLocalGroupId(),
+        replicationServer.getDegradedStatusThreshold());
   }
 }

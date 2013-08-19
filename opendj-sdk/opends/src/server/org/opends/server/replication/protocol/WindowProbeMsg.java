@@ -29,17 +29,16 @@ package org.opends.server.replication.protocol;
 
 import java.util.zip.DataFormatException;
 
-
 /**
- * This message is used by LDAP or Replication Server that have been
- * out of credit for a while and want to check that the remote servers.
- *
- * A sending entity that is blocked because its send window is closed
- * for a while should create such a message to check that the window
- * closure is valid.
- *
+ * This message is used by LDAP or Replication Server that have been out of
+ * credit for a while and want to check if the remote servers is able to accept
+ * more messages.
+ * <p>
+ * A sending entity that is blocked because its send window is closed for a
+ * while should create such a message to check that the window closure is valid.
+ * <p>
  * An entity that received such a message should respond with a
- * WindowUpdate message indicating the curent credit available.
+ * {@link WindowMsg} indicating the current credit available.
  */
 public class WindowProbeMsg extends ReplicationMsg
 {
@@ -72,10 +71,6 @@ public class WindowProbeMsg extends ReplicationMsg
   public byte[] getBytes(short protocolVersion)
   {
     // WindowProbeMsg Message only contains its type.
-
-    byte[] resultByteArray = new byte[1];
-    resultByteArray[0] = MSG_TYPE_WINDOW_PROBE;
-
-    return resultByteArray;
+    return new byte[] { MSG_TYPE_WINDOW_PROBE };
   }
 }
