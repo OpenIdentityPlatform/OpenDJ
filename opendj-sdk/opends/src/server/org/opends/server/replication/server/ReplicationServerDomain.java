@@ -940,14 +940,14 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
   /**
    * Stop operations with a list of replication servers.
    *
-   * @param replServers the replication servers for which
-   * we want to stop operations
+   * @param replServerURLs
+   *          the replication servers URLs for which we want to stop operations
    */
-  public void stopReplicationServers(Collection<String> replServers)
+  public void stopReplicationServers(Collection<String> replServerURLs)
   {
     for (ReplicationServerHandler handler : connectedRSs.values())
     {
-      if (replServers.contains(handler.getServerAddressURL()))
+      if (replServerURLs.contains(handler.getServerAddressURL()))
       {
         stopServer(handler, false);
       }
@@ -976,12 +976,13 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
   }
 
   /**
-   * Checks that a DS is not connected with same id.
+   * Checks whether it is already connected to a DS with same id.
    *
-   * @param handler the DS we want to check
-   * @return true if this is not a duplicate server
+   * @param handler
+   *          the DS we want to check
+   * @return true if this DS is already connected to the current server
    */
-  public boolean checkForDuplicateDS(DataServerHandler handler)
+  public boolean isAlreadyConnectedToDS(DataServerHandler handler)
   {
     if (connectedDSs.containsKey(handler.getServerId()))
     {
@@ -991,9 +992,9 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
           connectedDSs.get(handler.getServerId()).toString(),
           handler.toString(), handler.getServerId());
       logError(message);
-      return false;
+      return true;
     }
-    return true;
+    return false;
   }
 
   /**
@@ -1005,6 +1006,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
    */
   public void stopServer(ServerHandler handler, boolean shutdown)
   {
+    // TODO JNR merge with stopServer(MessageHandler)
     if (debugEnabled())
     {
       TRACER.debugInfo("In "
@@ -1055,22 +1057,9 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
           stopMonitoringPublisher();
         }
 
-        if (handler.isReplicationServer())
+        if (connectedRSs.containsKey(handler.getServerId()))
         {
-          if (connectedRSs.containsKey(handler.getServerId()))
-          {
-            unregisterServerHandler(handler);
-            handler.shutdown();
-
-            // Check if generation id has to be reset
-            mayResetGenerationId();
-            if (!shutdown)
-            {
-              // Warn our DSs that a RS or DS has quit (does not use this
-              // handler as already removed from list)
-              buildAndSendTopoInfoToDSs(null);
-            }
-          }
+          unregisterServerHandler(handler, shutdown, false);
         } else if (connectedDSs.containsKey(handler.getServerId()))
         {
           // If this is the last DS for the domain,
@@ -1086,25 +1075,10 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
             }
             stopStatusAnalyzer();
           }
-
-          unregisterServerHandler(handler);
-          handler.shutdown();
-
-          // Check if generation id has to be reset
-          mayResetGenerationId();
-          if (!shutdown)
-          {
-            // Update the remote replication servers with our list
-            // of connected LDAP servers
-            buildAndSendTopoInfoToRSs();
-            // Warn our DSs that a RS or DS has quit (does not use this
-            // handler as already removed from list)
-            buildAndSendTopoInfoToDSs(null);
-          }
+          unregisterServerHandler(handler, shutdown, true);
         } else if (otherHandlers.contains(handler))
         {
-          unRegisterHandler(handler);
-          handler.shutdown();
+          unregisterOtherHandler(handler);
         }
       }
       catch(Exception e)
@@ -1122,12 +1096,41 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     }
   }
 
+  private void unregisterOtherHandler(MessageHandler handler)
+  {
+    unRegisterHandler(handler);
+    handler.shutdown();
+  }
+
+  private void unregisterServerHandler(ServerHandler handler, boolean shutdown,
+      boolean isDirectoryServer)
+  {
+    unregisterServerHandler(handler);
+    handler.shutdown();
+
+    // Check if generation id has to be reset
+    mayResetGenerationId();
+    if (!shutdown)
+    {
+      if (isDirectoryServer)
+      {
+        // Update the remote replication servers with our list
+        // of connected LDAP servers
+        buildAndSendTopoInfoToRSs();
+      }
+      // Warn our DSs that a RS or DS has quit (does not use this
+      // handler as already removed from list)
+      buildAndSendTopoInfoToDSs(null);
+    }
+  }
+
   /**
    * Stop the handler.
    * @param handler The handler to stop.
    */
   public void stopServer(MessageHandler handler)
   {
+    // TODO JNR merge with stopServer(ServerHandler, boolean)
     if (debugEnabled())
     {
       TRACER.debugInfo("In "
@@ -1163,8 +1166,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
       {
         if (otherHandlers.contains(handler))
         {
-          unRegisterHandler(handler);
-          handler.shutdown();
+          unregisterOtherHandler(handler);
         }
       }
       catch(Exception e)
@@ -1269,39 +1271,40 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
   }
 
   /**
-   * Checks that a remote RS is not already connected to this hosting RS.
-   * @param handler The handler for the remote RS.
+   * Checks whether a remote RS is already connected to this hosting RS.
+   *
+   * @param handler
+   *          The handler for the remote RS.
    * @return flag specifying whether the remote RS is already connected.
-   * @throws DirectoryException when a problem occurs.
+   * @throws DirectoryException
+   *           when a problem occurs.
    */
-  public boolean checkForDuplicateRS(ReplicationServerHandler handler)
-  throws DirectoryException
+  public boolean isAlreadyConnectedToRS(ReplicationServerHandler handler)
+      throws DirectoryException
   {
     ReplicationServerHandler oldHandler =
-      connectedRSs.get(handler.getServerId());
-    if (oldHandler != null)
+        connectedRSs.get(handler.getServerId());
+    if (oldHandler == null)
     {
-      if (oldHandler.getServerAddressURL().equals(
-        handler.getServerAddressURL()))
-      {
-        // this is the same server, this means that our ServerStart messages
-        // have been sent at about the same time and 2 connections
-        // have been established.
-        // Silently drop this connection.
-        return false;
-      }
-      else
-      {
-        // looks like two replication servers have the same serverId
-        // log an error message and drop this connection.
-        Message message = ERR_DUPLICATE_REPLICATION_SERVER_ID.get(
-          localReplicationServer.getMonitorInstanceName(), oldHandler.
-          getServerAddressURL(), handler.getServerAddressURL(),
-          handler.getServerId());
-        throw new DirectoryException(ResultCode.OTHER, message);
-      }
+      return false;
     }
-    return true;
+
+    if (oldHandler.getServerAddressURL().equals(handler.getServerAddressURL()))
+    {
+      // this is the same server, this means that our ServerStart messages
+      // have been sent at about the same time and 2 connections
+      // have been established.
+      // Silently drop this connection.
+      return true;
+    }
+
+    // looks like two replication servers have the same serverId
+    // log an error message and drop this connection.
+    Message message = ERR_DUPLICATE_REPLICATION_SERVER_ID.get(
+        localReplicationServer.getMonitorInstanceName(),
+        oldHandler.getServerAddressURL(), handler.getServerAddressURL(),
+        handler.getServerId());
+    throw new DirectoryException(ResultCode.OTHER, message);
   }
 
   /**
@@ -1324,21 +1327,6 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
      * and update this replicaId RUV
      */
     return handler.take();
-  }
-
-  /**
-   * Return a Set of String containing the lists of Replication servers
-   * connected to this server.
-   * @return the set of connected servers
-   */
-  public Set<String> getChangelogs()
-  {
-    Set<String> results = new LinkedHashSet<String>();
-    for (ReplicationServerHandler handler : connectedRSs.values())
-    {
-      results.add(handler.getServerAddressURL());
-    }
-    return results;
   }
 
   /**
@@ -2861,11 +2849,11 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
   }
 
   /**
-   * Starts the status analyzer for the domain.
+   * Starts the status analyzer for the domain if not already started.
    */
   public void startStatusAnalyzer()
   {
-    if (statusAnalyzer == null)
+    if (!isRunningStatusAnalyzer())
     {
       int degradedStatusThreshold =
         localReplicationServer.getDegradedStatusThreshold();
@@ -2880,9 +2868,9 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
   /**
    * Stops the status analyzer for the domain.
    */
-  public void stopStatusAnalyzer()
+  private void stopStatusAnalyzer()
   {
-    if (statusAnalyzer != null)
+    if (isRunningStatusAnalyzer())
     {
       statusAnalyzer.shutdown();
       statusAnalyzer.waitForShutdown();
@@ -2894,32 +2882,19 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
    * Tests if the status analyzer for this domain is running.
    * @return True if the status analyzer is running, false otherwise.
    */
-  public boolean isRunningStatusAnalyzer()
+  private boolean isRunningStatusAnalyzer()
   {
     return statusAnalyzer != null;
   }
 
   /**
-   * Update the status analyzer with the new threshold value.
-   * @param degradedStatusThreshold The new threshold value.
-   */
-  public void updateStatusAnalyzer(int degradedStatusThreshold)
-  {
-    if (statusAnalyzer != null)
-    {
-      statusAnalyzer.setDegradedStatusThreshold(degradedStatusThreshold);
-    }
-  }
-
-  /**
-   * Starts the monitoring publisher for the domain.
+   * Starts the monitoring publisher for the domain if not already started.
    */
   public void startMonitoringPublisher()
   {
-    if (monitoringPublisher == null)
+    if (!isRunningMonitoringPublisher())
     {
-      long period =
-        localReplicationServer.getMonitoringPublisherPeriod();
+      long period = localReplicationServer.getMonitoringPublisherPeriod();
       if (period > 0) // 0 means no monitoring publisher
       {
         monitoringPublisher = new MonitoringPublisher(this, period);
@@ -2931,9 +2906,9 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
   /**
    * Stops the monitoring publisher for the domain.
    */
-  public void stopMonitoringPublisher()
+  private void stopMonitoringPublisher()
   {
-    if (monitoringPublisher != null)
+    if (isRunningMonitoringPublisher())
     {
       monitoringPublisher.shutdown();
       monitoringPublisher.waitForShutdown();
@@ -2945,21 +2920,9 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
    * Tests if the monitoring publisher for this domain is running.
    * @return True if the monitoring publisher is running, false otherwise.
    */
-  public boolean isRunningMonitoringPublisher()
+  private boolean isRunningMonitoringPublisher()
   {
     return monitoringPublisher != null;
-  }
-
-  /**
-   * Update the monitoring publisher with the new period value.
-   * @param period The new period value.
-   */
-  public void updateMonitoringPublisher(long period)
-  {
-    if (monitoringPublisher != null)
-    {
-      monitoringPublisher.setPeriod(period);
-    }
   }
 
   /**
@@ -3383,5 +3346,53 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
   int getLocalRSServerId()
   {
     return this.localReplicationServer.getServerId();
+  }
+
+  /**
+   * Update the status analyzer with the new threshold value.
+   *
+   * @param degradedStatusThreshold
+   *          The new threshold value.
+   */
+  void updateDegradedStatusThreshold(int degradedStatusThreshold)
+  {
+    if (degradedStatusThreshold == 0)
+    {
+      // Requested to stop analyzers
+      stopStatusAnalyzer();
+    }
+    else if (isRunningStatusAnalyzer())
+    {
+      statusAnalyzer.setDegradedStatusThreshold(degradedStatusThreshold);
+    }
+    else if (getConnectedDSs().size() > 0)
+    {
+      // Requested to start analyzers with provided threshold value
+      startStatusAnalyzer();
+    }
+  }
+
+  /**
+   * Update the monitoring publisher with the new period value.
+   *
+   * @param period
+   *          The new period value.
+   */
+  void updateMonitoringPeriod(long period)
+  {
+    if (period == 0)
+    {
+      // Requested to stop monitoring publishers
+      stopMonitoringPublisher();
+    }
+    else if (isRunningMonitoringPublisher())
+    {
+      monitoringPublisher.setPeriod(period);
+    }
+    else if (getConnectedDSs().size() > 0 || getConnectedRSs().size() > 0)
+    {
+      // Requested to start monitoring publishers with provided period value
+      startMonitoringPublisher();
+    }
   }
 }
