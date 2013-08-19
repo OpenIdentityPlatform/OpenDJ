@@ -533,14 +533,8 @@ public final class LDAPReplicationDomain extends ReplicationDomain
      * This has no negative impact because the changes on schema should
      * not produce conflicts.
      */
-    if (baseDn.compareTo(DirectoryServer.getSchemaDN()) == 0)
-    {
-      solveConflictFlag = false;
-    }
-    else
-    {
-      solveConflictFlag = configuration.isSolveConflicts();
-    }
+    solveConflictFlag = configuration.isSolveConflicts()
+        && !baseDn.equals(DirectoryServer.getSchemaDN());
 
     Backend backend = retrievesBackend(baseDn);
     if (backend == null)
@@ -2229,12 +2223,6 @@ public final class LDAPReplicationDomain extends ReplicationDomain
   public void synchronize(PostOperationOperation op)
   {
     ResultCode result = op.getResultCode();
-    if ((result == ResultCode.SUCCESS) && op.isSynchronizationOperation())
-    {
-      numReplayedPostOpCalled++;
-    }
-    LDAPUpdateMsg msg = null;
-
     // Note that a failed non-replication operation might not have a change
     // number.
     ChangeNumber curChangeNumber = OperationContext.getChangeNumber(op);
@@ -2244,64 +2232,83 @@ public final class LDAPReplicationDomain extends ReplicationDomain
           "replicationCN", curChangeNumber));
     }
 
-    if ((result == ResultCode.SUCCESS) && (!op.isSynchronizationOperation()))
-    {
-      // Generate a replication message for a successful non-replication
-      // operation.
-      msg = LDAPUpdateMsg.generateMsg(op);
-
-      if (msg == null)
-      {
-        /*
-         * This is an operation type that we do not know about
-         * It should never happen.
-         */
-        pendingChanges.remove(curChangeNumber);
-        Message message =
-            ERR_UNKNOWN_TYPE.get(op.getOperationType().toString());
-        logError(message);
-        return;
-      }
-    }
-
     if (result == ResultCode.SUCCESS)
     {
-      try
-      {
-        if (op.isSynchronizationOperation())
+      if (op.isSynchronizationOperation())
+      { // Replaying a sync operation
+        numReplayedPostOpCalled++;
+        try
         {
           remotePendingChanges.commit(curChangeNumber);
         }
-        else
+        catch  (NoSuchElementException e)
         {
-          try
-          {
-            addEntryAttributesForCL(msg,op);
-          }
-          catch(Exception e)
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
-          // If assured replication is configured, this will prepare blocking
-          // mechanism. If assured replication is disabled, this returns
-          // immediately
-          prepareWaitForAckIfAssuredEnabled(msg);
-          try
-          {
-            msg.encode();
-          } catch (UnsupportedEncodingException e)
-          {
-            // will be caught at publish time.
-          }
-          pendingChanges.commitAndPushCommittedChanges(curChangeNumber, msg);
+          Message message = ERR_OPERATION_NOT_FOUND_IN_PENDING.get(
+              op.toString(), curChangeNumber.toString());
+          logError(message);
+          return;
         }
       }
-      catch  (NoSuchElementException e)
+      else
       {
-        Message message = ERR_OPERATION_NOT_FOUND_IN_PENDING.get(
-            op.toString(), curChangeNumber.toString());
-        logError(message);
-        return;
+        // Generate a replication message for a successful non-replication
+        // operation.
+        LDAPUpdateMsg msg = LDAPUpdateMsg.generateMsg(op);
+
+        if (msg == null)
+        {
+          /*
+          * This is an operation type that we do not know about
+          * It should never happen.
+          */
+          pendingChanges.remove(curChangeNumber);
+          Message message =
+              ERR_UNKNOWN_TYPE.get(op.getOperationType().toString());
+          logError(message);
+          return;
+        }
+
+        try
+        {
+          addEntryAttributesForCL(msg,op);
+        }
+        catch(Exception e)
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        }
+        // If assured replication is configured, this will prepare blocking
+        // mechanism. If assured replication is disabled, this returns
+        // immediately
+        prepareWaitForAckIfAssuredEnabled(msg);
+        try
+        {
+          msg.encode();
+          pendingChanges.commitAndPushCommittedChanges(curChangeNumber, msg);
+        } catch (UnsupportedEncodingException e)
+        {
+          // will be caught at publish time.
+        }
+        catch  (NoSuchElementException e)
+        {
+          Message message = ERR_OPERATION_NOT_FOUND_IN_PENDING.get(
+              op.toString(), curChangeNumber.toString());
+          logError(message);
+          return;
+        }
+        // If assured replication is enabled, this will wait for the matching
+        // ack or time out. If assured replication is disabled, this returns
+        // immediately
+        try
+        {
+          waitForAckIfAssuredEnabled(msg);
+        } catch (TimeoutException ex)
+        {
+          // This exception may only be raised if assured replication is
+          // enabled
+          Message errorMsg = NOTE_DS_ACK_TIMEOUT.get(getBaseDNString(),
+              Long.toString(getAssuredTimeout()), msg.toString());
+          logError(errorMsg);
+        }
       }
 
       // If the operation is a DELETE on the base entry of the suffix
@@ -2315,26 +2322,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
 
       if (!generationIdSavedStatus)
       {
-        this.saveGenerationId(generationId);
-      }
-
-
-      if (!op.isSynchronizationOperation())
-      {
-        // If assured replication is enabled, this will wait for the matching
-        // ack or time out. If assured replication is disabled, this returns
-        // immediately
-        try
-        {
-          waitForAckIfAssuredEnabled(msg);
-        } catch (TimeoutException ex)
-        {
-          // This exception may only be raised if assured replication is
-          // enabled
-          Message errorMsg = NOTE_DS_ACK_TIMEOUT.get(getBaseDNString(),
-            Long.toString(getAssuredTimeout()), msg.toString());
-          logError(errorMsg);
-        }
+        saveGenerationId(generationId);
       }
     }
     else if (!op.isSynchronizationOperation())
