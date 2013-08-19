@@ -23,31 +23,35 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2012 ForgeRock AS
+ *      Portions Copyright 2012-2013 ForgeRock AS
  */
 package org.opends.server.replication.common;
 
 /**
  * This class holds information about a RS connected to the topology. This
- * information is to be exchanged through the replication protocol in
- * topology messages, to keep every member DS of the topology aware of
- * the RS topology.
+ * information is to be exchanged through the replication protocol in topology
+ * messages, to keep every member DS of the topology aware of the RS topology.
+ * <p>
+ * This class is immutable.
  */
-public class RSInfo
+public final class RSInfo
 {
-  // Server id of the RS
-  private int id = -1;
-  // Generation Id of the RS
-  private long generationId = -1;
-  // Group id of the RS
-  private byte groupId = (byte) -1;
-  // The weight of the RS
-  // It is important to keep the default value to 1 so that it is used as
-  // default value for a RS using protocol V3: this default value will be used
-  // in algorithms that use weight
-  private int weight = 1;
-  // The server URL of the RS
-  private String serverUrl = null;
+  /** Server id of the RS. */
+  private final int id;
+  /** Generation Id of the RS. */
+  private final long generationId;
+  /** Group id of the RS. */
+  private final byte groupId;
+  /**
+   * The weight of the RS.
+   * <p>
+   * It is important to keep the default value to 1 so that it is used as
+   * default value for a RS using protocol V3: this default value will be used
+   * in algorithms that use weight.
+   */
+  private final int weight;
+  /** The server URL of the RS. */
+  private final String serverUrl;
 
   /**
    * Creates a new instance of RSInfo with every given info.
@@ -113,24 +117,21 @@ public class RSInfo
   @Override
   public boolean equals(Object obj)
   {
-    if (obj != null)
-    {
-      if (obj.getClass() != this.getClass())
-      {
-        return false;
-      }
-      RSInfo rsInfo = (RSInfo) obj;
-      return ((id == rsInfo.getId()) &&
-        (generationId == rsInfo.getGenerationId()) &&
-        (groupId == rsInfo.getGroupId()) &&
-        (weight == rsInfo.getWeight()) &&
-        (((serverUrl == null) && (rsInfo.getServerUrl() == null)) ||
-        ((serverUrl != null) && (rsInfo.getServerUrl() != null) &&
-        (serverUrl.equals(rsInfo.getServerUrl())))));
-    } else
+    if (obj == null)
     {
       return false;
     }
+    if (obj.getClass() != getClass())
+    {
+      return false;
+    }
+    final RSInfo rsInfo = (RSInfo) obj;
+    return id == rsInfo.getId()
+        && generationId == rsInfo.getGenerationId()
+        && groupId == rsInfo.getGroupId()
+        && weight == rsInfo.getWeight()
+        && ((serverUrl == null && rsInfo.getServerUrl() == null)
+            || (serverUrl != null && serverUrl.equals(rsInfo.getServerUrl())));
   }
 
   /**

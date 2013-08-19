@@ -58,40 +58,19 @@ import static org.opends.server.loggers.debug.DebugLogger.*;
 public class LightweightServerHandler
   extends MonitorProvider<MonitorProviderCfg>
 {
-  // The tracer object for the debug logger.
+  /** The tracer object for the debug logger. */
   private static final DebugTracer TRACER = getTracer();
 
-  private ReplicationServerHandler replServerHandler;
-  private ReplicationServerDomain rsDomain;
-  // The id of the RS this DS is connected to
-  private int replicationServerId = -1;
+  private final ReplicationServerHandler replServerHandler;
+  private final ReplicationServerDomain rsDomain;
 
-  // Server id of this DS
-  private int serverId = -1;
-  // Server URL of this DS
-  private String serverUrl = null;
-  // Generation id of this DS
-  private long generationId = -1;
-  // Group id of the DS;
-  private byte groupId = (byte) -1;
-  // Status of this DS
-  private ServerStatus status = ServerStatus.INVALID_STATUS;
-  // Referrals URLs this DS is exporting
-  private List<String> refUrls = new ArrayList<String>();
-  // Assured replication enabled on DS or not
-  private boolean assuredFlag = false;
-  // DS assured mode (relevant if assured replication enabled)
-  private AssuredMode assuredMode = AssuredMode.SAFE_DATA_MODE;
-  // DS safe data level (relevant if assured mode is safe data)
-  private byte safeDataLevel = (byte) -1;
-  // The protocol version
-  private short protocolVersion = -1;
-
-  private Set<String> eclInclude = new HashSet<String>();
-  private Set<String> eclIncludeForDeletes = new HashSet<String>();
+  /** Server id of this DS. */
+  private final int serverId;
+  /** All the information for this DS. */
+  private final DSInfo dsInfo;
 
   /**
-   * Creates a new LightweightServerHandler with the provided serverid,
+   * Creates a new LightweightServerHandler with the provided serverId,
    * connected to the remote Replication Server represented by
    * replServerHandler.
    *
@@ -122,23 +101,16 @@ public class LightweightServerHandler
   {
     this.replServerHandler = replServerHandler;
     this.rsDomain = replServerHandler.getDomain();
-    this.replicationServerId = replicationServerId;
     this.serverId = serverId;
-    this.serverUrl = serverUrl;
-    this.generationId = generationId;
-    this.groupId = groupId;
-    this.status = status;
-    this.refUrls = refUrls;
-    this.assuredFlag = assuredFlag;
-    this.assuredMode = assuredMode;
-    this.safeDataLevel = safeDataLevel;
-    this.eclInclude = eclInclude;
-    this.eclIncludeForDeletes = eclIncludeForDeletes;
-    this.protocolVersion = protocolVersion;
+
+    this.dsInfo =
+        new DSInfo(serverId, serverUrl, replicationServerId, generationId,
+            status, assuredFlag, assuredMode, safeDataLevel, groupId, refUrls,
+            eclInclude, eclIncludeForDeletes, protocolVersion);
 
     if (debugEnabled())
       TRACER.debugInfo("In " + rsDomain.getLocalRSMonitorInstanceName()
-          + " LWSH for remote server " + this.serverId + " connected to:"
+          + " LWSH for remote server " + serverId + " connected to:"
           + this.replServerHandler.getMonitorInstanceName() + " ()");
   }
 
@@ -148,9 +120,7 @@ public class LightweightServerHandler
    */
   public DSInfo toDSInfo()
   {
-    return new DSInfo(serverId, serverUrl, replicationServerId, generationId,
-      status, assuredFlag, assuredMode, safeDataLevel, groupId, refUrls,
-      eclInclude, eclIncludeForDeletes, protocolVersion);
+    return dsInfo;
   }
 
   /**
@@ -163,7 +133,7 @@ public class LightweightServerHandler
   }
 
   /**
-   * Stop this server handler processing.
+   * Start this server handler processing.
    */
   public void startHandler()
   {
@@ -206,7 +176,8 @@ public class LightweightServerHandler
   @Override
   public String getMonitorInstanceName()
   {
-    return "Connected directory server DS(" + serverId + ") " + serverUrl
+    return "Connected directory server DS(" + serverId + ") "
+        + dsInfo.getDsUrl()
         + ",cn=" + replServerHandler.getMonitorInstanceName();
   }
 
@@ -219,14 +190,12 @@ public class LightweightServerHandler
    *          requested.
    */
   @Override
-  public ArrayList<Attribute> getMonitorData()
+  public List<Attribute> getMonitorData()
   {
-    ArrayList<Attribute> attributes = new ArrayList<Attribute>();
+    List<Attribute> attributes = new ArrayList<Attribute>();
 
-    attributes.add(Attributes.create("server-id",
-        String.valueOf(serverId)));
-    attributes.add(Attributes.create("domain-name",
-        rsDomain.getBaseDn()));
+    attributes.add(Attributes.create("server-id", String.valueOf(serverId)));
+    attributes.add(Attributes.create("domain-name", rsDomain.getBaseDn()));
     attributes.add(Attributes.create("connected-to",
         replServerHandler.getMonitorInstanceName()));
 
@@ -239,7 +208,7 @@ public class LightweightServerHandler
       remoteState = new ServerState();
     }
 
-    /* get the Server State */
+    // get the Server State
     AttributeBuilder builder = new AttributeBuilder("server-state");
     for (String str : remoteState.toStringSet())
     {
@@ -252,8 +221,8 @@ public class LightweightServerHandler
     attributes.add(builder.toAttribute());
 
     // Oldest missing update
-    Long approxFirstMissingDate=md.getApproxFirstMissingDate(serverId);
-    if ((approxFirstMissingDate != null) && (approxFirstMissingDate>0))
+    long approxFirstMissingDate = md.getApproxFirstMissingDate(serverId);
+    if (approxFirstMissingDate > 0)
     {
       Date date = new Date(approxFirstMissingDate);
       attributes.add(Attributes.create(

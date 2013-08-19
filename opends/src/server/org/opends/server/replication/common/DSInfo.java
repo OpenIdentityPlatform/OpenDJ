@@ -27,46 +27,46 @@
  */
 package org.opends.server.replication.common;
 
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 /**
  * This class holds information about a DS connected to the topology. This
- * information is to be exchanged through the replication protocol in
- * topology messages, to keep every member (RS or DS) of the topology aware of
- * the DS topology.
+ * information is to be exchanged through the replication protocol in topology
+ * messages, to keep every member (RS or DS) of the topology aware of the DS
+ * topology.
+ * <p>
+ * This class is almost immutable, because it does not copy the List and Set
+ * passed into the ctor.
  */
-public class DSInfo
+public final class DSInfo
 {
 
-  // DS server id
-  private int dsId = -1;
-  // DS server url
-  private String dsUrl;
-  // Server id of the RS the DS is connected to
-  private int rsId = -1;
-  // DS Generation Id
-  private long generationId = -1;
-  // DS Status
-  private ServerStatus status = ServerStatus.INVALID_STATUS;
-  // Assured replication enabled on DS or not
-  private boolean assuredFlag = false;
-  // DS assured mode (relevant if assured replication enabled)
-  private AssuredMode assuredMode = AssuredMode.SAFE_DATA_MODE;
-  // DS safe data level (relevant if assured mode is safe data)
-  private byte safeDataLevel = (byte) -1;
-  // List of referrals URLs exported by the DS
-  private List<String> refUrls = new ArrayList<String>(0);
-  // Group id
-  private byte groupId = (byte) -1;
-  // Protocol version
-  private short protocolVersion = -1;
+  /** DS server id. */
+  private final int dsId;
+  /** DS server url. */
+  private final String dsUrl;
+  /** Server id of the RS that the DS is connected to. */
+  private final int rsId;
+  /** DS Generation Id. */
+  private final long generationId;
+  /** DS Status. */
+  private final ServerStatus status;
+  /** Assured replication enabled on DS or not. */
+  private final boolean assuredFlag;
+  /** DS assured mode (relevant if assured replication enabled). */
+  private final AssuredMode assuredMode;
+  /** DS safe data level (relevant if assured mode is safe data). */
+  private final byte safeDataLevel;
+  /** List of referrals URLs exported by the DS. */
+  private final List<String> refUrls;
+  /** Group id. */
+  private final byte groupId;
+  /** Protocol version. */
+  private final short protocolVersion;
 
-  private Set<String> eclIncludes = new HashSet<String>();
-
-  private Set<String> eclIncludesForDeletes = new HashSet<String>();
+  private final Set<String> eclIncludes;
+  private final Set<String> eclIncludesForDeletes;
 
 
 
@@ -246,34 +246,32 @@ public class DSInfo
   @Override
   public boolean equals(Object obj)
   {
-    if (obj != null)
-    {
-      if (obj.getClass() != this.getClass())
-      {
-        return false;
-      }
-      DSInfo dsInfo = (DSInfo) obj;
-      return ((dsId == dsInfo.getDsId()) &&
-        (rsId == dsInfo.getRsId()) &&
-        (generationId == dsInfo.getGenerationId()) &&
-        (status == dsInfo.getStatus()) &&
-        (assuredFlag == dsInfo.isAssured()) &&
-        (assuredMode == dsInfo.getAssuredMode()) &&
-        (safeDataLevel == dsInfo.getSafeDataLevel()) &&
-        (groupId == dsInfo.getGroupId()) &&
-        (protocolVersion == dsInfo.getProtocolVersion()) &&
-        (refUrls.equals(dsInfo.getRefUrls())) &&
-        (((eclIncludes == null) && (dsInfo.getEclIncludes() == null)) ||
-          ((eclIncludes != null) &&
-            (eclIncludes.equals(dsInfo.getEclIncludes())))) &&
-        (((eclIncludesForDeletes == null)
-          && (dsInfo.getEclIncludesForDeletes() == null)) ||
-          ((eclIncludesForDeletes != null) &&
-           (eclIncludesForDeletes.equals(dsInfo.getEclIncludesForDeletes())))));
-    } else
+    if (obj == null)
     {
       return false;
     }
+    if (obj.getClass() != getClass())
+    {
+      return false;
+    }
+    final DSInfo dsInfo = (DSInfo) obj;
+    return dsId == dsInfo.getDsId()
+        && rsId == dsInfo.getRsId()
+        && generationId == dsInfo.getGenerationId()
+        && status == dsInfo.getStatus()
+        && assuredFlag == dsInfo.isAssured()
+        && assuredMode == dsInfo.getAssuredMode()
+        && safeDataLevel == dsInfo.getSafeDataLevel()
+        && groupId == dsInfo.getGroupId()
+        && protocolVersion == dsInfo.getProtocolVersion()
+        && refUrls.equals(dsInfo.getRefUrls())
+        && equals(eclIncludes, dsInfo.getEclIncludes())
+        && equals(eclIncludesForDeletes, dsInfo.getEclIncludesForDeletes());
+  }
+
+  private boolean equals(Set<String> o1, Set<String> o2)
+  {
+    return (o1 == null && o2 == null) || (o1 != null && o1.equals(o2));
   }
 
   /**
