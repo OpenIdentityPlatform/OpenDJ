@@ -229,14 +229,6 @@ public class DataServerHandler extends ServerHandler
     return newStatus;
   }
 
-  private void createStatusAnalyzer()
-  {
-    if (!replicationServerDomain.isRunningStatusAnalyzer())
-    {
-      replicationServerDomain.startStatusAnalyzer();
-    }
-  }
-
   /**
    * Retrieves a set of attributes containing monitor data that should be
    * returned to the client if the corresponding monitor entry is requested.
@@ -457,8 +449,7 @@ public class DataServerHandler extends ServerHandler
       localGenerationId = replicationServerDomain.getGenerationId();
       oldGenerationId = localGenerationId;
 
-      // Duplicate server ?
-      if (!replicationServerDomain.checkForDuplicateDS(this))
+      if (replicationServerDomain.isAlreadyConnectedToDS(this))
       {
         abortStart(null);
         return;
@@ -468,7 +459,6 @@ public class DataServerHandler extends ServerHandler
       {
         StartMsg outStartMsg = sendStartToRemote();
 
-        // log
         logStartHandshakeRCVandSND(inServerStartMsg, outStartMsg);
 
         // The session initiator decides whether to use SSL.
@@ -508,11 +498,8 @@ public class DataServerHandler extends ServerHandler
         throw new DirectoryException(ResultCode.OTHER, null, null);
       }
 
-      // Create the status analyzer for the domain if not already started
-      createStatusAnalyzer();
-
-      // Create the monitoring publisher for the domain if not already started
-      createMonitoringPublisher();
+      replicationServerDomain.startStatusAnalyzer();
+      replicationServerDomain.startMonitoringPublisher();
 
       registerIntoDomain();
 

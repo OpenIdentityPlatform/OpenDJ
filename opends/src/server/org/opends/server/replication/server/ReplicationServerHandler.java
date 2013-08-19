@@ -160,7 +160,6 @@ public class ReplicationServerHandler extends ServerHandler
     {
       lockDomain(false); // no timeout
 
-      // Send start
       ReplServerStartMsg outReplServerStartMsg = sendStartToRemote();
 
       // Wait answer
@@ -174,22 +173,19 @@ public class ReplicationServerHandler extends ServerHandler
           // Remote replication server is probably shutting down or simultaneous
           // cross-connect detected.
           abortStart(null);
-          return;
         }
         else
         {
           Message message = ERR_REPLICATION_PROTOCOL_MESSAGE_TYPE.get(msg
               .getClass().getCanonicalName(), "ReplServerStartMsg");
           abortStart(message);
-          return;
         }
+        return;
       }
 
-      // Process hello from remote.
-      processStartFromRemote((ReplServerStartMsg)msg);
+      processStartFromRemote((ReplServerStartMsg) msg);
 
-      // Duplicate server ?
-      if (!replicationServerDomain.checkForDuplicateRS(this))
+      if (replicationServerDomain.isAlreadyConnectedToRS(this))
       {
         // Simultaneous cross connect.
         abortStart(null);
@@ -207,10 +203,9 @@ public class ReplicationServerHandler extends ServerHandler
             generationId, false);
       }
 
-      // Log
       logStartHandshakeSNDandRCV(outReplServerStartMsg,(ReplServerStartMsg)msg);
 
-      // Until here session is encrypted then it depends on the negociation
+      // Until here session is encrypted then it depends on the negotiation
       // The session initiator decides whether to use SSL.
       if (!this.sslEncryption)
         session.stopEncryption();
@@ -239,8 +234,7 @@ public class ReplicationServerHandler extends ServerHandler
 
         logTopoHandshakeSNDandRCV(outTopoMsg, inTopoMsg);
 
-        // Create the monitoring publisher for the domain if not already started
-        createMonitoringPublisher();
+        replicationServerDomain.startMonitoringPublisher();
 
         /*
         FIXME: i think this should be done for all protocol version !!
@@ -292,7 +286,6 @@ public class ReplicationServerHandler extends ServerHandler
     }
     finally
     {
-      // Release domain
       if (replicationServerDomain != null &&
           replicationServerDomain.hasLock())
         replicationServerDomain.release();
@@ -316,8 +309,7 @@ public class ReplicationServerHandler extends ServerHandler
       // lock with timeout
       lockDomain(true);
 
-      // Duplicate server ?
-      if (!replicationServerDomain.checkForDuplicateRS(this))
+      if (replicationServerDomain.isAlreadyConnectedToRS(this))
       {
         abortStart(null);
         return;
@@ -326,7 +318,6 @@ public class ReplicationServerHandler extends ServerHandler
       this.localGenerationId = replicationServerDomain.getGenerationId();
       ReplServerStartMsg outReplServerStartMsg = sendStartToRemote();
 
-      // log
       logStartHandshakeRCVandSND(inReplServerStartMsg, outReplServerStartMsg);
 
       /*
@@ -358,7 +349,6 @@ public class ReplicationServerHandler extends ServerHandler
             .createTopologyMsgForRS();
         sendTopoInfo(outTopoMsg);
 
-        // log
         logTopoHandshakeRCVandSND(inTopoMsg, outTopoMsg);
       }
       else
@@ -390,9 +380,7 @@ public class ReplicationServerHandler extends ServerHandler
         */
       }
 
-
-      // Create the monitoring publisher for the domain if not already started
-      createMonitoringPublisher();
+      replicationServerDomain.startMonitoringPublisher();
 
       registerIntoDomain();
 
@@ -616,9 +604,7 @@ public class ReplicationServerHandler extends ServerHandler
   public void shutdown()
   {
     super.shutdown();
-    /*
-     * Stop the remote LSHandler
-     */
+    // Stop the remote LSHandler
     synchronized (remoteDirectoryServers)
     {
       for (LightweightServerHandler lsh : remoteDirectoryServers.values())
@@ -755,7 +741,7 @@ public class ReplicationServerHandler extends ServerHandler
     attributes.add(Attributes.create("missing-changes",
         String.valueOf(md.getMissingChangesRS(serverId))));
 
-    /* get the Server State */
+    // get the Server State
     AttributeBuilder builder = new AttributeBuilder("server-state");
     ServerState state = md.getRSStates(serverId);
     if (state != null)
@@ -769,6 +755,7 @@ public class ReplicationServerHandler extends ServerHandler
 
     return attributes;
   }
+
   /**
    * {@inheritDoc}
    */

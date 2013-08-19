@@ -399,11 +399,7 @@ public final class ReplicationServer
         for (ReplicationServerDomain domain : getReplicationServerDomains())
         {
           // Create a normalized set of server URLs.
-          final Set<String> connectedReplServers = new HashSet<String>();
-          for (String url : domain.getChangelogs())
-          {
-            connectedReplServers.add(normalizeServerURL(url));
-          }
+          final Set<String> connectedRSUrls = getConnectedRSUrls(domain);
 
           /*
            * check that all replication server in the config are in the
@@ -440,7 +436,7 @@ public final class ReplicationServer
 
             // Don't connect to a server if it is already connected.
             final String normalizedServerURL = normalizeServerURL(aServerURL);
-            if (connectedReplServers.contains(normalizedServerURL))
+            if (connectedRSUrls.contains(normalizedServerURL))
             {
               continue;
             }
@@ -470,6 +466,16 @@ public final class ReplicationServer
         }
       }
     }
+  }
+
+  private Set<String> getConnectedRSUrls(ReplicationServerDomain domain)
+  {
+    Set<String> results = new LinkedHashSet<String>();
+    for (ReplicationServerHandler handler : domain.getConnectedRSs().values())
+    {
+      results.add(normalizeServerURL(handler.getServerAddressURL()));
+    }
+    return results;
   }
 
   /**
@@ -1039,59 +1045,23 @@ public final class ReplicationServer
 
     // Update threshold value for status analyzers (stop them if requested
     // value is 0)
-    if (degradedStatusThreshold != configuration
-        .getDegradedStatusThreshold())
+    if (degradedStatusThreshold != configuration.getDegradedStatusThreshold())
     {
-      int oldThresholdValue = degradedStatusThreshold;
-      degradedStatusThreshold = configuration
-          .getDegradedStatusThreshold();
+      degradedStatusThreshold = configuration.getDegradedStatusThreshold();
       for (ReplicationServerDomain domain : getReplicationServerDomains())
       {
-        if (degradedStatusThreshold == 0)
-        {
-          // Requested to stop analyzers
-          domain.stopStatusAnalyzer();
-        }
-        else if (domain.isRunningStatusAnalyzer())
-        {
-          // Update the threshold value for this running analyzer
-          domain.updateStatusAnalyzer(degradedStatusThreshold);
-        }
-        else if (oldThresholdValue == 0)
-        {
-          // Requested to start analyzers with provided threshold value
-          if (domain.getConnectedDSs().size() > 0)
-            domain.startStatusAnalyzer();
-        }
+        domain.updateDegradedStatusThreshold(degradedStatusThreshold);
       }
     }
 
     // Update period value for monitoring publishers (stop them if requested
     // value is 0)
-    if (monitoringPublisherPeriod != configuration
-        .getMonitoringPeriod())
+    if (monitoringPublisherPeriod != configuration.getMonitoringPeriod())
     {
-      long oldMonitoringPeriod = monitoringPublisherPeriod;
       monitoringPublisherPeriod = configuration.getMonitoringPeriod();
       for (ReplicationServerDomain domain : getReplicationServerDomains())
       {
-        if (monitoringPublisherPeriod == 0L)
-        {
-          // Requested to stop monitoring publishers
-          domain.stopMonitoringPublisher();
-        }
-        else if (domain.isRunningMonitoringPublisher())
-        {
-          // Update the threshold value for this running monitoring publisher
-          domain.updateMonitoringPublisher(monitoringPublisherPeriod);
-        }
-        else if (oldMonitoringPeriod == 0L)
-        {
-          // Requested to start monitoring publishers with provided period value
-          if ((domain.getConnectedDSs().size() > 0)
-              || (domain.getConnectedRSs().size() > 0))
-            domain.startMonitoringPublisher();
-        }
+        domain.updateMonitoringPeriod(monitoringPublisherPeriod);
       }
     }
 
@@ -1126,7 +1096,7 @@ public final class ReplicationServer
     return new ConfigChangeResult(ResultCode.SUCCESS, false);
   }
 
-  /*
+  /**
    * Try and set a sensible URL for this replication server. Since we are
    * listening on all addresses there are a couple of potential candidates: 1) a
    * matching server url in the replication server's configuration, 2) hostname
@@ -1666,8 +1636,7 @@ public final class ReplicationServer
     }
 
     if (debugEnabled())
-      TRACER.debugInfo("In " + this +
-        " getEligibleCN() ends with " +
+      TRACER.debugInfo("In " + this + " getEligibleCN() ends with " +
         " the following domainEligibleCN for each domain :" + debugLog +
         " thus CrossDomainEligibleCN=" + eligibleCN +
         "  ts=" + new Date(eligibleCN.getTime()).toString());
