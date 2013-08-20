@@ -1512,10 +1512,9 @@
 
     <!--        Debian files for preinst/postinstall/preuninstall/postuninstall -->
 
-    <copy file="resource/debian/control/preinst" tofile="${build.dir}/deb/control" />
-    <copy file="resource/debian/control/postinst" tofile="${build.dir}/deb/control" />
-    <copy file="resource/debian/control/prerm" tofile="${build.dir}/deb/control" />
-    <copy file="resource/debian/control/postrm" tofile="${build.dir}/deb/control" />
+    <copy todir="${build.dir}/deb/control">
+        <fileset dir="resource/debian/control"/>
+    </copy>
 
     <replace dir="${build.dir}/deb/control/" token="@prefix@" value="${prefix}" />
 
@@ -1523,16 +1522,14 @@
          control="${build.dir}/deb/control" verbose="false">
       <tarfileset dir="${package.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}"
                   includes="**/*"
-	          excludes="**/bat/**, **/QuickSetup.app/**, **/Uninstall.app/**, **/bin/ControlPanel.app/**, *.bat, bin/*,template/**/*,lib/_client-script.sh,lib/_script-util.sh,lib/_server-script.sh,lib/_mixed-script.sh,setup,uninstall,upgrade"
+                  excludes="**/bat/**, **/QuickSetup.app/**, **/Uninstall.app/**, **/*ControlPanel.app*/**, **/*.bat*, **/*.exe*, bin/*, template/**/*,lib/_client-script.sh,lib/_script-util.sh,lib/_server-script.sh,lib/_mixed-script.sh,setup,uninstall,upgrade"
                   prefix="${prefix}" filemode="644" dirmode="755" />
       <tarfileset dir="${package.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}"
                   includes="lib/_client-script.sh,lib/_script-util.sh,lib/_server-script.sh,lib/_mixed-script.sh"
                   prefix="${prefix}" filemode="755" dirmode="755" />
       <tarfileset dir="${package.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}" includes="bin/*"
-                  excludes="bin/README_WINDOWS.txt"
+                  excludes="bin/README_WINDOWS.txt, **/bin/ControlPanel.app/"
                   prefix="${prefix}" filemode="755" dirmode="755" />
-      <tarfileset dir="${package.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}" includes="bin/README_WINDOWS.txt"
-                  prefix="${prefix}" filemode="644" dirmode="755" />
       <tarfileset dir="${package.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}" includes="setup,uninstall,upgrade"
                   prefix="${prefix}" filemode="755" dirmode="755" />
       <tarfileset dir="${package.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}" includes="template/**/*"
