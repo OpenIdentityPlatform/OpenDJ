@@ -51,6 +51,7 @@ import static org.opends.messages.UtilityMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.types.ResultCode.*;
 import static org.opends.server.util.LDIFWriter.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -86,10 +87,10 @@ public class Entry
    */
   private static final DebugTracer TRACER = getTracer();
 
-  // The set of operational attributes for this entry.
+  /** The set of operational attributes for this entry. */
   private Map<AttributeType,List<Attribute>> operationalAttributes;
 
-  // The set of user attributes for this entry.
+  /** The set of user attributes for this entry. */
   private Map<AttributeType,List<Attribute>> userAttributes;
 
   /**
@@ -99,19 +100,21 @@ public class Entry
   private final Map<AttributeType, List<Attribute>> suppressedAttributes =
       new LinkedHashMap<AttributeType, List<Attribute>>();
 
-  // The set of objectclasses for this entry.
+  /** The set of objectclasses for this entry. */
   private Map<ObjectClass,String> objectClasses;
 
   private Attribute objectClassAttribute;
 
-  // The DN for this entry.
+  /** The DN for this entry. */
   private DN dn;
 
-  // A generic attachment that may be used to associate this entry
-  // with some other object.
+  /**
+   * A generic attachment that may be used to associate this entry with some
+   * other object.
+   */
   private transient Object attachment;
 
-  // The schema used to govern this entry.
+  /** The schema used to govern this entry. */
   private final Schema schema;
 
 
@@ -136,49 +139,35 @@ public class Entry
    */
   public Entry(DN dn, Map<ObjectClass,String> objectClasses,
                Map<AttributeType,List<Attribute>> userAttributes,
-               Map<AttributeType,List<Attribute>>
-                    operationalAttributes)
+               Map<AttributeType,List<Attribute>> operationalAttributes)
   {
-    attachment                          = null;
-    schema                              = DirectoryServer.getSchema();
+    schema = DirectoryServer.getSchema();
 
-    if (dn == null)
-    {
-      this.dn = DN.nullDN();
-    }
-    else
-    {
-      this.dn = dn;
-    }
+    setDN(dn);
 
-    if (objectClasses == null)
-    {
-      this.objectClasses = new HashMap<ObjectClass,String>();
-    }
-    else
-    {
-      this.objectClasses = objectClasses;
-    }
+    this.objectClasses = newMapIfNull(objectClasses);
+    this.userAttributes = newMapIfNull(userAttributes);
+    this.operationalAttributes = newMapIfNull(operationalAttributes);
+  }
 
-    if (userAttributes == null)
+  /**
+   * Returns a new Map if the passed in Map is null.
+   *
+   * @param <K>
+   *          the type of the key
+   * @param <V>
+   *          the type of the value
+   * @param map
+   *          the map to test
+   * @return a new Map if the passed in Map is null.
+   */
+  private <K, V> Map<K, V> newMapIfNull(Map<K, V> map)
+  {
+    if (map != null)
     {
-      this.userAttributes =
-           new HashMap<AttributeType,List<Attribute>>();
+      return map;
     }
-    else
-    {
-      this.userAttributes = userAttributes;
-    }
-
-    if (operationalAttributes == null)
-    {
-      this.operationalAttributes =
-           new HashMap<AttributeType,List<Attribute>>();
-    }
-    else
-    {
-      this.operationalAttributes = operationalAttributes;
-    }
+    return new HashMap<K, V>();
   }
 
 
@@ -266,12 +255,9 @@ public class Entry
         {
           structuralClass = oc;
         }
-        else
+        else if (oc.isDescendantOf(structuralClass))
         {
-          if (oc.isDescendantOf(structuralClass))
-          {
-            structuralClass = oc;
-          }
+          structuralClass = oc;
         }
       }
     }
@@ -299,8 +285,7 @@ public class Entry
 
     // Iterate through all the provided objectclass names and make
     // sure that they are names of valid objectclasses.
-    LinkedHashMap<ObjectClass,String> ocMap =
-         new LinkedHashMap<ObjectClass,String>();
+    Map<ObjectClass, String> ocMap = new LinkedHashMap<ObjectClass, String>();
     for (AttributeValue v : objectClassNames)
     {
       String name = v.getValue().toString();
@@ -325,8 +310,7 @@ public class Entry
       {
         Message message =
             ERR_ENTRY_ADD_UNKNOWN_OC.get(name, String.valueOf(dn));
-        throw new DirectoryException(ResultCode.OBJECTCLASS_VIOLATION,
-                                     message);
+        throw new DirectoryException(OBJECTCLASS_VIOLATION, message);
       }
 
       ocMap.put(oc, name);
@@ -359,8 +343,7 @@ public class Entry
     {
       Message message = ERR_ENTRY_ADD_DUPLICATE_OC.get(
           oc.getNameOrOID(), String.valueOf(dn));
-      throw new DirectoryException(ResultCode.OBJECTCLASS_VIOLATION,
-                                   message);
+      throw new DirectoryException(OBJECTCLASS_VIOLATION, message);
     }
 
     objectClasses.put(oc, oc.getNameOrOID());
@@ -383,28 +366,18 @@ public class Entry
   {
     // Estimate the size.
     int size = userAttributes.size() + operationalAttributes.size();
-    ArrayList<Attribute> attributes = new ArrayList<Attribute>(size);
 
-    for (List<Attribute> list : userAttributes.values())
+    final List<Attribute> attributes = new ArrayList<Attribute>(size);
+    for (List<Attribute> attrs : userAttributes.values())
     {
-      for (Attribute a : list)
-      {
-        attributes.add(a);
-      }
+      attributes.addAll(attrs);
     }
-
-    for (List<Attribute> list : operationalAttributes.values())
+    for (List<Attribute> attrs : operationalAttributes.values())
     {
-      for (Attribute a : list)
-      {
-        attributes.add(a);
-      }
+      attributes.addAll(attrs);
     }
-
     return attributes;
   }
-
-
 
   /**
    * Retrieves the entire set of user (i.e., non-operational)
@@ -446,7 +419,7 @@ public class Entry
    */
   public Attribute getObjectClassAttribute()
   {
-    if ((objectClasses == null) || objectClasses.isEmpty())
+    if (objectClasses == null || objectClasses.isEmpty())
     {
       return null;
     }
@@ -555,12 +528,7 @@ public class Entry
     // Handle object class.
     if (attributeType.isObjectClassType())
     {
-      if (!objectClasses.isEmpty())
-      {
-        return (options == null || options.isEmpty());
-      }
-
-      return false;
+      return !objectClasses.isEmpty() && (options == null || options.isEmpty());
     }
 
     if (!includeSubordinates)
@@ -573,17 +541,7 @@ public class Entry
     }
 
     // Check all matching attributes.
-    List<Attribute> attributes;
-
-    if (attributeType.isOperational())
-    {
-      attributes = operationalAttributes.get(attributeType);
-    }
-    else
-    {
-      attributes = userAttributes.get(attributeType);
-    }
-
+    List<Attribute> attributes = getAttributes(attributeType);
     if (attributes != null)
     {
       for (Attribute attribute : attributes)
@@ -603,15 +561,7 @@ public class Entry
     {
       for (AttributeType subType : schema.getSubTypes(attributeType))
       {
-        if (subType.isOperational())
-        {
-          attributes = operationalAttributes.get(subType);
-        }
-        else
-        {
-          attributes = userAttributes.get(subType);
-        }
-
+        attributes = getAttributes(subType);
         if (attributes != null)
         {
           for (Attribute attribute : attributes)
@@ -619,8 +569,7 @@ public class Entry
             // It's possible that there could be an attribute without
             // any values, which we should treat as not having the
             // requested attribute.
-            if (!attribute.isEmpty()
-                && attribute.hasAllOptions(options))
+            if (!attribute.isEmpty() && attribute.hasAllOptions(options))
             {
               return true;
             }
@@ -632,7 +581,61 @@ public class Entry
     return false;
   }
 
+  /**
+   * Returns the attributes Map corresponding to the operational status of the
+   * supplied attribute type.
+   *
+   * @param attrType
+   *          the attribute type
+   * @return the user of operational attributes Map
+   */
+  private Map<AttributeType, List<Attribute>> getUserOrOperationalAttributes(
+      AttributeType attrType)
+  {
+    if (attrType.isOperational())
+    {
+      return operationalAttributes;
+    }
+    return userAttributes;
+  }
 
+  /**
+   * Return the List of attributes for the passed in attribute type.
+   *
+   * @param attrType
+   *          the attribute type
+   * @return the List of user or operational attributes
+   */
+  private List<Attribute> getAttributes(AttributeType attrType)
+  {
+    return getUserOrOperationalAttributes(attrType).get(attrType);
+  }
+
+  /**
+   * Puts the supplied List of attributes for the passed in attribute type into
+   * the map of attributes.
+   *
+   * @param attrType
+   *          the attribute type
+   * @param attributes
+   *          the List of user or operational attributes to put
+   */
+  private void putAttributes(AttributeType attrType, List<Attribute> attributes)
+  {
+    getUserOrOperationalAttributes(attrType).put(attrType, attributes);
+  }
+
+  /**
+   * Removes the List of attributes for the passed in attribute type from the
+   * map of attributes.
+   *
+   * @param attrType
+   *          the attribute type
+   */
+  private void removeAttributes(AttributeType attrType)
+  {
+    getUserOrOperationalAttributes(attrType).remove(attrType);
+  }
 
   /**
    * Retrieves the requested attribute element(s) for the specified
@@ -671,77 +674,55 @@ public class Entry
   public List<Attribute> getAttribute(AttributeType attributeType,
                                       boolean includeSubordinates)
   {
-    if (includeSubordinates &&
-        attributeType.mayHaveSubordinateTypes())
+    if (includeSubordinates && attributeType.mayHaveSubordinateTypes())
     {
       List<Attribute> attributes = new LinkedList<Attribute>();
-
-      List<Attribute> attrs = userAttributes.get(attributeType);
-      if (attrs != null)
-      {
-        attributes.addAll(attrs);
-      }
-
-      attrs = operationalAttributes.get(attributeType);
-      if (attrs != null)
-      {
-        attributes.addAll(attrs);
-      }
+      addAllIfNotNull(attributes, userAttributes.get(attributeType));
+      addAllIfNotNull(attributes, operationalAttributes.get(attributeType));
 
       for (AttributeType at : schema.getSubTypes(attributeType))
       {
-        attrs = userAttributes.get(at);
-        if (attrs != null)
-        {
-          attributes.addAll(attrs);
-        }
-
-        attrs = operationalAttributes.get(at);
-        if (attrs != null)
-        {
-          attributes.addAll(attrs);
-        }
+        addAllIfNotNull(attributes, userAttributes.get(at));
+        addAllIfNotNull(attributes, operationalAttributes.get(at));
       }
 
-      if (attributes.isEmpty())
-      {
-        return null;
-      }
-      else
+      if (!attributes.isEmpty())
       {
         return attributes;
       }
+      return null;
     }
-    else
-    {
-      List<Attribute> attributes = userAttributes.get(attributeType);
 
-      if (attributes == null)
-      {
-        attributes = operationalAttributes.get(attributeType);
-        if (attributes == null)
-        {
-          if (attributeType.isObjectClassType() &&
-              (! objectClasses.isEmpty()))
-          {
-            attributes = new ArrayList<Attribute>(1);
-            attributes.add(getObjectClassAttribute());
-            return attributes;
-          }
-          else
-          {
-            return null;
-          }
-        }
-        else
-        {
-          return attributes;
-        }
-      }
-      else
-      {
-        return attributes;
-      }
+    List<Attribute> attributes = userAttributes.get(attributeType);
+    if (attributes != null)
+    {
+      return attributes;
+    }
+    attributes = operationalAttributes.get(attributeType);
+    if (attributes != null)
+    {
+      return attributes;
+    }
+    if (attributeType.isObjectClassType() && !objectClasses.isEmpty())
+    {
+      return newList(getObjectClassAttribute());
+    }
+    return null;
+  }
+
+  /**
+   * Add to the destination all the elements from a non null source .
+   *
+   * @param dest
+   *          the destination where to add
+   * @param source
+   *          the source with the elements to be added
+   */
+  private void addAllIfNotNull(List<Attribute> dest, List<Attribute> source)
+  {
+    if (source != null)
+    {
+      dest.addAll(source);
     }
   }
 
@@ -789,11 +770,10 @@ public class Entry
     if (lowerName.equals(OBJECTCLASS_ATTRIBUTE_TYPE_NAME) &&
         (! objectClasses.isEmpty()))
     {
-      LinkedList<Attribute> attrList = new LinkedList<Attribute>();
+      List<Attribute> attrList = new LinkedList<Attribute>();
       attrList.add(getObjectClassAttribute());
       return attrList;
     }
-
     return null;
   }
 
@@ -842,34 +822,15 @@ public class Entry
                                       Set<String> options)
   {
     List<Attribute> attributes = new LinkedList<Attribute>();
-    if (includeSubordinates &&
-        attributeType.mayHaveSubordinateTypes())
+    if (includeSubordinates && attributeType.mayHaveSubordinateTypes())
     {
-      List<Attribute> attrs = userAttributes.get(attributeType);
-      if (attrs != null)
-      {
-        attributes.addAll(attrs);
-      }
-
-      attrs = operationalAttributes.get(attributeType);
-      if (attrs != null)
-      {
-        attributes.addAll(attrs);
-      }
+      addAllIfNotNull(attributes, userAttributes.get(attributeType));
+      addAllIfNotNull(attributes, operationalAttributes.get(attributeType));
 
       for (AttributeType at : schema.getSubTypes(attributeType))
       {
-        attrs = userAttributes.get(at);
-        if (attrs != null)
-        {
-          attributes.addAll(attrs);
-        }
-
-        attrs = operationalAttributes.get(at);
-        if (attrs != null)
-        {
-          attributes.addAll(attrs);
-        }
+        addAllIfNotNull(attributes, userAttributes.get(at));
+        addAllIfNotNull(attributes, operationalAttributes.get(at));
       }
     }
     else
@@ -880,48 +841,26 @@ public class Entry
         attrs = operationalAttributes.get(attributeType);
         if (attrs == null)
         {
-          if (attributeType.isObjectClassType() &&
-              (! objectClasses.isEmpty()) &&
-              ((options == null) || options.isEmpty()))
+          if (attributeType.isObjectClassType()
+              && !objectClasses.isEmpty()
+              && (options == null || options.isEmpty()))
           {
             attributes.add(getObjectClassAttribute());
             return attributes;
           }
-          else
-          {
-            return null;
-          }
-        }
-        else
-        {
-          attributes.addAll(attrs);
+          return null;
         }
       }
-      else
-      {
-        attributes.addAll(attrs);
-      }
+      attributes.addAll(attrs);
     }
 
+    onlyKeepAttributesWithAllOptions(attributes, options);
 
-    Iterator<Attribute> iterator = attributes.iterator();
-    while (iterator.hasNext())
-    {
-      Attribute a = iterator.next();
-      if (! a.hasAllOptions(options))
-      {
-        iterator.remove();
-      }
-    }
-
-    if (attributes.isEmpty())
-    {
-      return null;
-    }
-    else
+    if (!attributes.isEmpty())
     {
       return attributes;
     }
+    return null;
   }
 
 
@@ -970,14 +909,11 @@ public class Entry
     if (lowerName.equals(OBJECTCLASS_ATTRIBUTE_TYPE_NAME) &&
         ((options == null) || options.isEmpty()))
     {
-      LinkedList<Attribute> attributes = new LinkedList<Attribute>();
+      List<Attribute> attributes = new LinkedList<Attribute>();
       attributes.add(getObjectClassAttribute());
       return attributes;
     }
-    else
-    {
-      return null;
-    }
+    return null;
   }
 
 
@@ -1011,18 +947,13 @@ public class Entry
       AttributeValueDecoder<T> decoder) throws DirectoryException
   {
     List<Attribute> attributes = getAttribute(attributeType, true);
-    AttributeValueIterable values =
-         new AttributeValueIterable(attributes);
+    AttributeValueIterable values = new AttributeValueIterable(attributes);
     Iterator<AttributeValue> iterator = values.iterator();
-
     if (iterator.hasNext())
     {
       return decoder.decode(iterator.next());
     }
-    else
-    {
-      return null;
-    }
+    return null;
   }
 
 
@@ -1117,38 +1048,37 @@ public class Entry
    */
   public List<Attribute> getUserAttribute(AttributeType attributeType)
   {
+    return getAttribute(attributeType, userAttributes);
+  }
+
+  /**
+   * Returns the List of attributes for a given attribute type.
+   *
+   * @param attributeType
+   *          the attribute type to be looked for
+   * @param attrs
+   *          the attributes Map where to find the attributes
+   * @return the List of attributes
+   */
+  private List<Attribute> getAttribute(AttributeType attributeType,
+      Map<AttributeType, List<Attribute>> attrs)
+  {
     if (attributeType.mayHaveSubordinateTypes())
     {
-      LinkedList<Attribute> attributes = new LinkedList<Attribute>();
-
-      List<Attribute> attrs = userAttributes.get(attributeType);
-      if (attrs != null)
-      {
-        attributes.addAll(attrs);
-      }
-
+      List<Attribute> attributes = new LinkedList<Attribute>();
+      addAllIfNotNull(attributes, attrs.get(attributeType));
       for (AttributeType at : schema.getSubTypes(attributeType))
       {
-        attrs = userAttributes.get(at);
-        if (attrs != null)
-        {
-          attributes.addAll(attrs);
-        }
+        addAllIfNotNull(attributes, attrs.get(at));
       }
 
-      if (attributes.isEmpty())
-      {
-        return null;
-      }
-      else
+      if (!attributes.isEmpty())
       {
         return attributes;
       }
+      return null;
     }
-    else
-    {
-      return userAttributes.get(attributeType);
-    }
+    return attrs.get(attributeType);
   }
 
 
@@ -1170,46 +1100,65 @@ public class Entry
   public List<Attribute> getUserAttribute(AttributeType attributeType,
                                           Set<String> options)
   {
-    LinkedList<Attribute> attributes = new LinkedList<Attribute>();
-    List<Attribute> attrs = userAttributes.get(attributeType);
-    if (attrs != null)
-    {
-      attributes.addAll(attrs);
-    }
+    return getAttribute(attributeType, options, userAttributes);
+  }
+
+  /**
+   * Returns the List of attributes for a given attribute type having all the
+   * required options.
+   *
+   * @param attributeType
+   *          the attribute type to be looked for
+   * @param options
+   *          the options that must all be present
+   * @param attrs
+   *          the attributes Map where to find the attributes
+   * @return the filtered List of attributes
+   */
+  private List<Attribute> getAttribute(AttributeType attributeType,
+      Set<String> options, Map<AttributeType, List<Attribute>> attrs)
+  {
+    List<Attribute> attributes = new LinkedList<Attribute>();
+    addAllIfNotNull(attributes, attrs.get(attributeType));
 
     if (attributeType.mayHaveSubordinateTypes())
     {
       for (AttributeType at : schema.getSubTypes(attributeType))
       {
-        attrs = userAttributes.get(at);
-        if (attrs != null)
-        {
-          attributes.addAll(attrs);
-        }
+        addAllIfNotNull(attributes, attrs.get(at));
       }
     }
 
+    onlyKeepAttributesWithAllOptions(attributes, options);
+
+    if (!attributes.isEmpty())
+    {
+      return attributes;
+    }
+    return null;
+  }
+
+  /**
+   * Removes all the attributes that do not have all the supplied options.
+   *
+   * @param attributes
+   *          the attributes to filter.
+   * @param options
+   *          the options to look for
+   */
+  private void onlyKeepAttributesWithAllOptions(List<Attribute> attributes,
+      Set<String> options)
+  {
     Iterator<Attribute> iterator = attributes.iterator();
     while (iterator.hasNext())
     {
       Attribute a = iterator.next();
-      if (! a.hasAllOptions(options))
+      if (!a.hasAllOptions(options))
       {
         iterator.remove();
       }
     }
-
-    if (attributes.isEmpty())
-    {
-      return null;
-    }
-    else
-    {
-      return attributes;
-    }
   }
-
-
 
   /**
    * Indicates whether this entry contains the specified operational
@@ -1256,43 +1205,11 @@ public class Entry
    *          attribute type, or <CODE>null</CODE> if there is no such
    *          operational attribute.
    */
-  public List<Attribute> getOperationalAttribute(
-                              AttributeType attributeType)
+  public List<Attribute> getOperationalAttribute(AttributeType attributeType)
   {
-    if (attributeType.mayHaveSubordinateTypes())
-    {
-      LinkedList<Attribute> attributes = new LinkedList<Attribute>();
-
-      List<Attribute> attrs =
-           operationalAttributes.get(attributeType);
-      if (attrs != null)
-      {
-        attributes.addAll(attrs);
-      }
-
-      for (AttributeType at : schema.getSubTypes(attributeType))
-      {
-        attrs = operationalAttributes.get(at);
-        if (attrs != null)
-        {
-          attributes.addAll(attrs);
-        }
-      }
-
-      if (attributes.isEmpty())
-      {
-        return null;
-      }
-      else
-      {
-        return attributes;
-      }
-    }
-    else
-    {
-      return operationalAttributes.get(attributeType);
-    }
+    return getAttribute(attributeType, operationalAttributes);
   }
+
 
 
 
@@ -1314,43 +1231,7 @@ public class Entry
                               AttributeType attributeType,
                               Set<String> options)
   {
-    LinkedList<Attribute> attributes = new LinkedList<Attribute>();
-    List<Attribute> attrs = operationalAttributes.get(attributeType);
-    if (attrs != null)
-    {
-      attributes.addAll(attrs);
-    }
-
-    if (attributeType.mayHaveSubordinateTypes())
-    {
-      for (AttributeType at : schema.getSubTypes(attributeType))
-      {
-        attrs = operationalAttributes.get(at);
-        if (attrs != null)
-        {
-          attributes.addAll(attrs);
-        }
-      }
-    }
-
-    Iterator<Attribute> iterator = attributes.iterator();
-    while (iterator.hasNext())
-    {
-      Attribute a = iterator.next();
-      if (! a.hasAllOptions(options))
-      {
-        iterator.remove();
-      }
-    }
-
-    if (attributes.isEmpty())
-    {
-      return null;
-    }
-    else
-    {
-      return attributes;
-    }
+    return getAttribute(attributeType, options, operationalAttributes);
   }
 
 
@@ -1388,17 +1269,7 @@ public class Entry
       return;
     }
 
-
-    // This is a new attribute, so add it to the set of user or
-    // operational attributes as appropriate.
-    if (attributeType.isOperational())
-    {
-      operationalAttributes.put(attributeType, attributeList);
-    }
-    else
-    {
-      userAttributes.put(attributeType, attributeList);
-    }
+    putAttributes(attributeType, attributeList);
   }
 
 
@@ -1471,15 +1342,12 @@ public class Entry
   {
     // Get the attribute that is to be incremented.
     AttributeType attributeType = attribute.getAttributeType();
-    Attribute a =
-      getExactAttribute(attributeType, attribute.getOptions());
-
+    Attribute a = getExactAttribute(attributeType, attribute.getOptions());
     if (a == null)
     {
       Message message = ERR_ENTRY_INCREMENT_NO_SUCH_ATTRIBUTE.get(
             attribute.getName());
-      throw new DirectoryException(
-          ResultCode.NO_SUCH_ATTRIBUTE, message);
+      throw new DirectoryException(ResultCode.NO_SUCH_ATTRIBUTE, message);
     }
 
     // Decode the increment.
@@ -1488,8 +1356,7 @@ public class Entry
     {
       Message message = ERR_ENTRY_INCREMENT_INVALID_VALUE_COUNT.get(
           attribute.getName());
-      throw new DirectoryException(
-          ResultCode.CONSTRAINT_VIOLATION, message);
+      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
 
     String incrementValue = i.next().getValue().toString();
@@ -1502,16 +1369,14 @@ public class Entry
     {
       Message message = ERR_ENTRY_INCREMENT_CANNOT_PARSE_AS_INT.get(
           attribute.getName());
-      throw new DirectoryException(
-          ResultCode.CONSTRAINT_VIOLATION, message);
+      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
 
     if (i.hasNext())
     {
       Message message = ERR_ENTRY_INCREMENT_INVALID_VALUE_COUNT.get(
           attribute.getName());
-      throw new DirectoryException(
-          ResultCode.CONSTRAINT_VIOLATION, message);
+      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
 
     // Increment each attribute value by the specified amount.
@@ -1567,11 +1432,8 @@ public class Entry
       objectClasses.clear();
       return true;
     }
-    else
-    {
-      return ((userAttributes.remove(attributeType) != null) ||
-              (operationalAttributes.remove(attributeType) != null));
-    }
+    return userAttributes.remove(attributeType) != null
+        || operationalAttributes.remove(attributeType) != null;
   }
 
 
@@ -1655,17 +1517,7 @@ public class Entry
     }
 
     AttributeType attributeType = attribute.getAttributeType();
-    List<Attribute> attributes;
-
-    if (attributeType.isOperational())
-    {
-      attributes = operationalAttributes.get(attributeType);
-    }
-    else
-    {
-      attributes = userAttributes.get(attributeType);
-    }
-
+    List<Attribute> attributes = getAttributes(attributeType);
     if (attributes == null)
     {
       // There are no attributes with the same attribute type.
@@ -1714,14 +1566,7 @@ public class Entry
         // If the attribute list is now empty remove it.
         if (attributes.isEmpty())
         {
-          if (attributeType.isOperational())
-          {
-            operationalAttributes.remove(attributeType);
-          }
-          else
-          {
-            userAttributes.remove(attributeType);
-          }
+          removeAttributes(attributeType);
         }
 
         return true;
@@ -1749,22 +1594,18 @@ public class Entry
                           Set<String> options, AttributeValue value)
   {
     List<Attribute> attrList = getAttribute(attributeType, true);
-    if ((attrList == null) || attrList.isEmpty())
+    if (attrList == null || attrList.isEmpty())
     {
       return false;
     }
 
     for (Attribute a : attrList)
     {
-      if (a.optionsEqual(options))
+      if (a.optionsEqual(options) && a.contains(value))
       {
-        if (a.contains(value))
-        {
-          return true;
-        }
+        return true;
       }
     }
-
     return false;
   }
 
@@ -1778,18 +1619,15 @@ public class Entry
    * @param  relaxConstraints indicates if the modification
    *                          constraints are relaxed to match
    *                          the ones of a set (add existing
-   *                          value and delete absent value do not
-   *                          fail)
+   *                          value and delete absent value do not fail)
    *
    * @throws  DirectoryException  If a problem occurs while
    *                              attempting to apply the
    *                              modification. Note
    *                              that even if a problem occurs, then
-   *                              the entry may have been altered in
-   *                              some way.
+   *                              the entry may have been altered in some way.
    */
-  public void applyModification(Modification mod,
-                                boolean relaxConstraints)
+  public void applyModification(Modification mod, boolean relaxConstraints)
          throws DirectoryException
   {
     Attribute     a = mod.getAttribute();
@@ -1799,8 +1637,7 @@ public class Entry
     // special way.
     if (t.isObjectClassType())
     {
-      LinkedHashMap<ObjectClass,String> ocs = new
-             LinkedHashMap<ObjectClass,String>();
+      Map<ObjectClass, String> ocs = new LinkedHashMap<ObjectClass, String>();
       for (AttributeValue v : a)
       {
         String ocName    = v.getValue().toString();
@@ -1819,11 +1656,8 @@ public class Entry
             {
               if (!relaxConstraints)
               {
-                Message message =
-                  ERR_ENTRY_DUPLICATE_VALUES.get(a.getName());
-                throw new DirectoryException(
-                             ResultCode.ATTRIBUTE_OR_VALUE_EXISTS,
-                             message);
+                Message message = ERR_ENTRY_DUPLICATE_VALUES.get(a.getName());
+                throw new DirectoryException(ATTRIBUTE_OR_VALUE_EXISTS,message);
               }
             }
             else
@@ -1837,15 +1671,10 @@ public class Entry
         case DELETE:
           for (ObjectClass oc : ocs.keySet())
           {
-            if (objectClasses.remove(oc) == null)
+            if (objectClasses.remove(oc) == null && !relaxConstraints)
             {
-              if (! relaxConstraints)
-              {
-                Message message =
-                  ERR_ENTRY_NO_SUCH_VALUE.get(a.getName());
-                throw new DirectoryException(
-                             ResultCode.NO_SUCH_ATTRIBUTE, message);
-              }
+              Message message = ERR_ENTRY_NO_SUCH_VALUE.get(a.getName());
+              throw new DirectoryException(NO_SUCH_ATTRIBUTE, message);
             }
           }
           objectClassAttribute = null;
@@ -1857,16 +1686,13 @@ public class Entry
           break;
 
         case INCREMENT:
-          Message message =
-              ERR_ENTRY_OC_INCREMENT_NOT_SUPPORTED.get();
-          throw new DirectoryException(
-                         ResultCode.CONSTRAINT_VIOLATION, message);
+          Message message = ERR_ENTRY_OC_INCREMENT_NOT_SUPPORTED.get();
+          throw new DirectoryException(CONSTRAINT_VIOLATION, message);
 
         default:
           message = ERR_ENTRY_UNKNOWN_MODIFICATION_TYPE.get(
               String.valueOf(mod.getModificationType()));
-          throw new DirectoryException(
-                         ResultCode.UNWILLING_TO_PERFORM, message);
+          throw new DirectoryException(UNWILLING_TO_PERFORM, message);
       }
 
       return;
@@ -1875,28 +1701,22 @@ public class Entry
     switch (mod.getModificationType())
     {
       case ADD:
-        LinkedList<AttributeValue> duplicateValues =
-             new LinkedList<AttributeValue>();
+        List<AttributeValue> duplicateValues = new LinkedList<AttributeValue>();
         addAttribute(a, duplicateValues);
-        if ((! duplicateValues.isEmpty()) && (! relaxConstraints))
+        if (!duplicateValues.isEmpty() && !relaxConstraints)
         {
-          Message message =
-              ERR_ENTRY_DUPLICATE_VALUES.get(a.getName());
-          throw new DirectoryException(
-                         ResultCode.ATTRIBUTE_OR_VALUE_EXISTS,
-                         message);
+          Message message = ERR_ENTRY_DUPLICATE_VALUES.get(a.getName());
+          throw new DirectoryException(ATTRIBUTE_OR_VALUE_EXISTS, message);
         }
         break;
 
       case DELETE:
-        LinkedList<AttributeValue> missingValues =
-             new LinkedList<AttributeValue>();
+        List<AttributeValue> missingValues = new LinkedList<AttributeValue>();
         removeAttribute(a, missingValues);
-        if ((! missingValues.isEmpty()) && (! relaxConstraints))
+        if (!missingValues.isEmpty() && !relaxConstraints)
         {
           Message message = ERR_ENTRY_NO_SUCH_VALUE.get(a.getName());
-          throw new DirectoryException(ResultCode.NO_SUCH_ATTRIBUTE,
-                                       message);
+          throw new DirectoryException(NO_SUCH_ATTRIBUTE, message);
         }
         break;
 
@@ -1911,8 +1731,7 @@ public class Entry
       default:
         Message message = ERR_ENTRY_UNKNOWN_MODIFICATION_TYPE.get(
             String.valueOf(mod.getModificationType()));
-        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-                                     message);
+        throw new DirectoryException(UNWILLING_TO_PERFORM, message);
     }
   }
 
@@ -1925,13 +1744,11 @@ public class Entry
    * @throws  DirectoryException  If a problem occurs while attempting
    *                              to apply the modification.  Note
    *                              that even if a problem occurs, then
-   *                              the entry may have been altered in
-   *                              some way.
+   *                              the entry may have been altered in some way.
    */
-  public void applyModification(Modification mod)
-         throws DirectoryException
+  public void applyModification(Modification mod) throws DirectoryException
   {
-      applyModification(mod, false);
+    applyModification(mod, false);
   }
 
   /**
@@ -1942,8 +1759,7 @@ public class Entry
    * @throws  DirectoryException  If a problem occurs while attempting
    *                              to apply the modifications.  Note
    *                              that even if a problem occurs, then
-   *                              the entry may have been altered in
-   *                              some way.
+   *                              the entry may have been altered in some way.
    */
   public void applyModifications(List<Modification> mods)
          throws DirectoryException
@@ -2022,8 +1838,7 @@ public class Entry
     {
       if (oc.getObjectClassType() == ObjectClassType.STRUCTURAL)
       {
-        if ((structuralClass == null) ||
-            oc.isDescendantOf(structuralClass))
+        if (structuralClass == null || oc.isDescendantOf(structuralClass))
         {
           structuralClass = oc;
         }
@@ -2040,13 +1855,11 @@ public class Entry
             invalidReason.append(message);
             return false;
           }
-          else if (structuralPolicy == AcceptRejectWarn.WARN)
+          else if (structuralPolicy == AcceptRejectWarn.WARN
+              && !multipleOCErrorLogged)
           {
-            if (! multipleOCErrorLogged)
-            {
-              logError(message);
-              multipleOCErrorLogged = true;
-            }
+            logError(message);
+            multipleOCErrorLogged = true;
           }
         }
       }
@@ -2072,13 +1885,11 @@ public class Entry
     }
     else
     {
-      ditContentRule =
-           DirectoryServer.getDITContentRule(structuralClass);
+      ditContentRule = DirectoryServer.getDITContentRule(structuralClass);
       if ((ditContentRule != null) && ditContentRule.isObsolete())
       {
         ditContentRule = null;
       }
-
 
       if (! checkAttributesAndObjectClasses(ditContentRule,
                  structuralPolicy, invalidReason))
@@ -2097,8 +1908,7 @@ public class Entry
          * DITStructureRules corresponding to other non-acceptable
          * nameforms are not applied.
          */
-        List<NameForm> listForms =
-                DirectoryServer.getNameForm(structuralClass);
+        List<NameForm> listForms = DirectoryServer.getNameForm(structuralClass);
         if(listForms != null)
         {
           boolean matchFound = false;
@@ -2109,8 +1919,7 @@ public class Entry
             if(!nf.isObsolete())
             {
               obsolete = false;
-              matchFound = checkNameForm(nf,
-                      structuralPolicy, invalidReason);
+              matchFound = checkNameForm(nf, structuralPolicy, invalidReason);
 
               if(matchFound)
               {
@@ -2126,8 +1935,7 @@ public class Entry
           }
           if(! obsolete && !matchFound)
           {
-            //We couldn't match this entry against any of the
-            // nameforms.
+            // We couldn't match this entry against any of the nameforms.
             return false;
           }
         }
@@ -2135,10 +1943,8 @@ public class Entry
 
         if (validateStructureRules && (nameForm != null))
         {
-          ditStructureRule =
-               DirectoryServer.getDITStructureRule(nameForm);
-          if ((ditStructureRule != null) &&
-              ditStructureRule.isObsolete())
+          ditStructureRule = DirectoryServer.getDITStructureRule(nameForm);
+          if ((ditStructureRule != null) && ditStructureRule.isObsolete())
           {
             ditStructureRule = null;
           }
@@ -2149,26 +1955,15 @@ public class Entry
 
     // If there is a DIT content rule for this entry, then make sure
     // that the entry is in compliance with it.
-    if (ditContentRule != null)
-    {
-      if (! checkDITContentRule(ditContentRule, structuralPolicy,
-                                invalidReason))
-      {
-        return false;
-      }
-    }
-
-
-    if (! checkDITStructureRule(ditStructureRule, structuralClass,
-               parentEntry, parentProvided, validateStructureRules,
-               structuralPolicy, invalidReason))
+    if (ditContentRule != null
+       && !checkDITContentRule(ditContentRule, structuralPolicy, invalidReason))
     {
       return false;
     }
 
-
-    // If we've gotten here, then the entry is acceptable.
-    return true;
+    return checkDITStructureRule(ditStructureRule, structuralClass,
+        parentEntry, parentProvided, validateStructureRules, structuralPolicy,
+        invalidReason);
   }
 
 
@@ -2201,8 +1996,7 @@ public class Entry
       if (DirectoryServer.getObjectClass(o.getOID()) == null)
       {
         Message message = ERR_ENTRY_SCHEMA_UNKNOWN_OC.get(
-                String.valueOf(dn), o
-                .getNameOrOID());
+                String.valueOf(dn), o.getNameOrOID());
         invalidReason.append(message);
         return false;
       }
@@ -2260,12 +2054,10 @@ public class Entry
         }
       }
 
-      if ((! found) && (ditContentRule != null))
+      if (!found && ditContentRule != null
+          && ditContentRule.isRequiredOrOptional(t))
       {
-        if (ditContentRule.isRequiredOrOptional(t))
-        {
-          found = true;
-        }
+        found = true;
       }
 
       if (! found)
@@ -2372,15 +2164,15 @@ public class Entry
 
             if (structuralPolicy == AcceptRejectWarn.REJECT)
             {
-                invalidReason.append(message);
+              invalidReason.append(message);
               return false;
             }
             else if (structuralPolicy == AcceptRejectWarn.WARN)
             {
-                logError(message);
-              }
+              logError(message);
             }
           }
+        }
 
           // Make sure that all attributes in the RDN are allowed.
           int numAVAs = rdn.getNumValues();
@@ -2397,16 +2189,16 @@ public class Entry
 
               if (structuralPolicy == AcceptRejectWarn.REJECT)
               {
-                  invalidReason.append(message);
+                invalidReason.append(message);
                 return false;
               }
               else if (structuralPolicy == AcceptRejectWarn.WARN)
               {
-                  logError(message);
-                }
+                logError(message);
               }
             }
           }
+    }
 
     // If we've gotten here, then things are OK.
     return true;
@@ -2519,8 +2311,7 @@ public class Entry
   {
     // If there is a DIT structure rule for this entry, then make sure
     // that the entry is in compliance with it.
-    if ((ditStructureRule != null) &&
-        ditStructureRule.hasSuperiorRules())
+    if (ditStructureRule != null && ditStructureRule.hasSuperiorRules())
     {
       if (parentProvided)
       {
@@ -2638,8 +2429,7 @@ public class Entry
       if (parentEntry != null)
       {
         parentExists = true;
-        parentStructuralClass =
-             parentEntry.getStructuralObjectClass();
+        parentStructuralClass = parentEntry.getStructuralObjectClass();
       }
       else if (! parentProvided)
       {
@@ -2690,8 +2480,7 @@ public class Entry
               else
               {
                 parentExists = true;
-                parentStructuralClass =
-                     parentEntry.getStructuralObjectClass();
+                parentStructuralClass = parentEntry.getStructuralObjectClass();
               }
             }
             catch (Exception e)
@@ -2750,11 +2539,11 @@ public class Entry
           {
             for(NameForm parentNF : allNFs)
             {
-              if ((parentNF != null) && (! parentNF.isObsolete()))
+              if (parentNF != null && !parentNF.isObsolete())
               {
                 DITStructureRule parentDSR =
                      DirectoryServer.getDITStructureRule(parentNF);
-                if ((parentDSR != null) && (! parentDSR.isObsolete()))
+                if (parentDSR != null && !parentDSR.isObsolete())
                 {
                   Message message =
                        ERR_ENTRY_SCHEMA_VIOLATES_PARENT_DSR.get(
@@ -2901,16 +2690,16 @@ public class Entry
    */
   public Entry duplicate(boolean processVirtual)
   {
-    HashMap<ObjectClass,String> objectClassesCopy =
+    Map<ObjectClass, String> objectClassesCopy =
          new HashMap<ObjectClass,String>(objectClasses);
 
-    HashMap<AttributeType,List<Attribute>> userAttrsCopy =
+    Map<AttributeType, List<Attribute>> userAttrsCopy =
          new HashMap<AttributeType,List<Attribute>>(
               userAttributes.size());
     deepCopy(userAttributes, userAttrsCopy, false, false, false,
         true, false);
 
-    HashMap<AttributeType,List<Attribute>> operationalAttrsCopy =
+    Map<AttributeType, List<Attribute>> operationalAttrsCopy =
          new HashMap<AttributeType,List<Attribute>>(
                   operationalAttributes.size());
     deepCopy(operationalAttributes, operationalAttrsCopy, false,
@@ -2979,8 +2768,7 @@ public class Entry
     {
       AttributeType t = mapEntry.getKey();
       List<Attribute> sourceList = mapEntry.getValue();
-      ArrayList<Attribute> targetList =
-           new ArrayList<Attribute>(sourceList.size());
+      List<Attribute> targetList = new ArrayList<Attribute>(sourceList.size());
 
       for (Attribute a : sourceList)
       {
@@ -3048,55 +2836,77 @@ public class Entry
    */
   public boolean isReferral()
   {
-    ObjectClass referralOC =
-         DirectoryServer.getObjectClass(OC_REFERRAL);
-    if (referralOC == null)
+    return hasObjectClassOrAttribute(OC_REFERRAL, ATTR_REFERRAL_URL);
+  }
+
+  /**
+   * Returns whether the current entry has a specific object class or attribute.
+   *
+   * @param objectClassName
+   *          the name of the object class to look for
+   * @param attrTypeName
+   *          the attribute type name of the object class to look for
+   * @return true if the current entry has the object class or the attribute,
+   *         false otherwise
+   */
+  private boolean hasObjectClassOrAttribute(String objectClassName,
+      String attrTypeName)
+  {
+    ObjectClass oc = DirectoryServer.getObjectClass(objectClassName);
+    if (oc == null)
     {
-      // This should not happen -- The server doesn't have a referral
-      // objectclass defined.
+      // This should not happen
+      // The server doesn't have this objectclass defined.
       if (debugEnabled())
       {
         TRACER.debugWarning(
             "No %s objectclass is defined in the server schema.",
-                     OC_REFERRAL);
+            objectClassName);
       }
-
-      for (String ocName : objectClasses.values())
-      {
-        if (ocName.equalsIgnoreCase(OC_REFERRAL))
-        {
-          return true;
-        }
-      }
-
-      return false;
+      return containsObjectClassByName(objectClassName);
     }
-
-    if (! objectClasses.containsKey(referralOC))
+    if (!objectClasses.containsKey(oc))
     {
       return false;
     }
 
-    AttributeType referralType =
-         DirectoryServer.getAttributeType(ATTR_REFERRAL_URL);
-    if (referralType == null)
+
+    AttributeType attrType = DirectoryServer.getAttributeType(attrTypeName);
+    if (attrType == null)
     {
-      // This should not happen -- The server doesn't have a ref
-      // attribute type defined.
+      // This should not happen
+      // The server doesn't have this attribute type defined.
       if (debugEnabled())
       {
         TRACER.debugWarning(
             "No %s attribute type is defined in the server schema.",
-                     ATTR_REFERRAL_URL);
+            attrTypeName);
       }
       return false;
     }
-
-    return (userAttributes.containsKey(referralType) ||
-            operationalAttributes.containsKey(referralType));
+    return userAttributes.containsKey(attrType)
+        || operationalAttributes.containsKey(attrType);
   }
 
-
+  /**
+   * Whether the object class name exists in the objectClass of this entry.
+   *
+   * @param objectClassName
+   *          the name of the object class to look for
+   * @return true if the object class name exists in the objectClass of this
+   *         entry, false otherwise
+   */
+  private boolean containsObjectClassByName(String objectClassName)
+  {
+    for (String ocName : objectClasses.values())
+    {
+      if (objectClassName.equalsIgnoreCase(ocName))
+      {
+        return true;
+      }
+    }
+    return false;
+  }
 
   /**
    * Retrieves the set of referral URLs that are included in this
@@ -3107,7 +2917,7 @@ public class Entry
    *          if it is a referral, or <CODE>null</CODE> if it is not a
    *          referral.
    */
-  public LinkedHashSet<String> getReferralURLs()
+  public Set<String> getReferralURLs()
   {
     AttributeType referralType =
          DirectoryServer.getAttributeType(ATTR_REFERRAL_URL);
@@ -3134,7 +2944,7 @@ public class Entry
       }
     }
 
-    LinkedHashSet<String> referralURLs = new LinkedHashSet<String>();
+    Set<String> referralURLs = new LinkedHashSet<String>();
     for (Attribute a : refAttrs)
     {
       for (AttributeValue v : a)
@@ -3158,51 +2968,7 @@ public class Entry
    */
   public boolean isAlias()
   {
-    ObjectClass aliasOC = DirectoryServer.getObjectClass(OC_ALIAS);
-    if (aliasOC == null)
-    {
-      // This should not happen -- The server doesn't have an alias
-      // objectclass defined.
-      if (debugEnabled())
-      {
-        TRACER.debugWarning(
-            "No %s objectclass is defined in the server schema.",
-                     OC_ALIAS);
-      }
-
-      for (String ocName : objectClasses.values())
-      {
-        if (ocName.equalsIgnoreCase(OC_ALIAS))
-        {
-          return true;
-        }
-      }
-
-      return false;
-    }
-
-    if (! objectClasses.containsKey(aliasOC))
-    {
-      return false;
-    }
-
-    AttributeType aliasType =
-         DirectoryServer.getAttributeType(ATTR_ALIAS_DN);
-    if (aliasType == null)
-    {
-      // This should not happen -- The server doesn't have an
-      // aliasedObjectName attribute type defined.
-      if (debugEnabled())
-      {
-        TRACER.debugWarning(
-            "No %s attribute type is defined in the server schema.",
-                     ATTR_ALIAS_DN);
-      }
-      return false;
-    }
-
-    return (userAttributes.containsKey(aliasType) ||
-            operationalAttributes.containsKey(aliasType));
+    return hasObjectClassOrAttribute(OC_ALIAS, ATTR_ALIAS_DN);
   }
 
 
@@ -3219,8 +2985,7 @@ public class Entry
    *                              attribute but its value cannot be
    *                              parsed as a DN.
    */
-  public DN getAliasedDN()
-         throws DirectoryException
+  public DN getAliasedDN() throws DirectoryException
   {
     AttributeType aliasType =
          DirectoryServer.getAttributeType(ATTR_REFERRAL_URL);
@@ -3247,11 +3012,7 @@ public class Entry
       }
     }
 
-    if (aliasAttrs.isEmpty())
-    {
-      return null;
-    }
-    else
+    if (!aliasAttrs.isEmpty())
     {
       // There should only be a single alias attribute in an entry,
       // and we'll skip the check for others for performance reasons.
@@ -3259,16 +3020,12 @@ public class Entry
       // is true with the set of values, since it should be a
       // single-valued attribute.
       Attribute aliasAttr = aliasAttrs.get(0);
-      if (aliasAttr.isEmpty())
+      if (!aliasAttr.isEmpty())
       {
-        return null;
-      }
-      else
-      {
-        return DN.decode(
-            aliasAttr.iterator().next().getValue().toString());
+        return DN.decode(aliasAttr.iterator().next().getValue().toString());
       }
     }
+    return null;
   }
 
 
@@ -3283,34 +3040,34 @@ public class Entry
    */
   public boolean isLDAPSubentry()
   {
-    ObjectClass ldapSubentryOC =
-         DirectoryServer.getObjectClass(OC_LDAP_SUBENTRY_LC);
-    if (ldapSubentryOC == null)
+    return hasObjectClass(OC_LDAP_SUBENTRY_LC);
+  }
+
+  /**
+   * Returns whether the current entry has a specific object class.
+   *
+   * @param objectClassLowerCase
+   *          the lowercase name of the object class to look for
+   * @return true if the current entry has the object class, false otherwise
+   */
+  private boolean hasObjectClass(String objectClassLowerCase)
+  {
+    ObjectClass oc = DirectoryServer.getObjectClass(objectClassLowerCase);
+    if (oc == null)
     {
-      // This should not happen -- The server doesn't have an
-      // ldapsubentry objectclass defined.
+      // This should not happen
+      // The server doesn't have this object class defined.
       if (debugEnabled())
       {
         TRACER.debugWarning(
             "No %s objectclass is defined in the server schema.",
-                     OC_LDAP_SUBENTRY);
+            objectClassLowerCase);
       }
-
-      for (String ocName : objectClasses.values())
-      {
-        if (ocName.equalsIgnoreCase(OC_LDAP_SUBENTRY))
-        {
-          return true;
-        }
-      }
-
-      return false;
+      return containsObjectClassByName(objectClassLowerCase);
     }
 
-
-    // Make the determination based on whether this entry has the
-    // ldapSubentry objectclass.
-    return objectClasses.containsKey(ldapSubentryOC);
+    // Make the determination based on whether this entry has this objectclass.
+    return objectClasses.containsKey(oc);
   }
 
 
@@ -3326,34 +3083,7 @@ public class Entry
    */
   public boolean isSubentry()
   {
-    ObjectClass subentryOC =
-         DirectoryServer.getObjectClass(OC_SUBENTRY);
-    if (subentryOC == null)
-    {
-      // This should not happen -- The server doesn't
-      // have a subentry objectclass defined.
-      if (debugEnabled())
-      {
-        TRACER.debugWarning(
-            "No %s objectclass is defined in the server schema.",
-                     OC_SUBENTRY);
-      }
-
-      for (String ocName : objectClasses.values())
-      {
-        if (ocName.equalsIgnoreCase(OC_SUBENTRY))
-        {
-          return true;
-        }
-      }
-
-      return false;
-    }
-
-
-    // Make the determination based on whether this
-    // entry has the subentry objectclass.
-    return objectClasses.containsKey(subentryOC);
+    return hasObjectClass(OC_SUBENTRY);
   }
 
 
@@ -3369,35 +3099,7 @@ public class Entry
    */
   public boolean isCollectiveAttributeSubentry()
   {
-    ObjectClass collectiveAttributeSubentryOC =
-         DirectoryServer.getObjectClass(
-         OC_COLLECTIVE_ATTR_SUBENTRY_LC);
-    if (collectiveAttributeSubentryOC == null)
-    {
-      // This should not happen -- The server doesn't have
-      // a collectiveAttributeSubentry objectclass defined.
-      if (debugEnabled())
-      {
-        TRACER.debugWarning(
-            "No %s objectclass is defined in the server schema.",
-                     OC_COLLECTIVE_ATTR_SUBENTRY);
-      }
-
-      for (String ocName : objectClasses.values())
-      {
-        if (ocName.equalsIgnoreCase(OC_COLLECTIVE_ATTR_SUBENTRY))
-        {
-          return true;
-        }
-      }
-
-      return false;
-    }
-
-
-    // Make the determination based on whether this entry
-    // has the collectiveAttributeSubentry objectclass.
-    return objectClasses.containsKey(collectiveAttributeSubentryOC);
+    return hasObjectClass(OC_COLLECTIVE_ATTR_SUBENTRY_LC);
   }
 
 
@@ -3413,88 +3115,23 @@ public class Entry
    */
   public boolean isInheritedCollectiveAttributeSubentry()
   {
-    ObjectClass inheritedCollectiveAttributeSubentryOC =
-         DirectoryServer.getObjectClass(
-         OC_INHERITED_COLLECTIVE_ATTR_SUBENTRY_LC);
-    if (inheritedCollectiveAttributeSubentryOC == null)
-    {
-      // This should not happen -- The server doesn't have
-      // an inheritedCollectiveAttributeSubentry object
-      // class defined.
-      if (debugEnabled())
-      {
-        TRACER.debugWarning(
-            "No %s objectclass is defined in the server schema.",
-                     OC_INHERITED_COLLECTIVE_ATTR_SUBENTRY);
-      }
-
-      for (String ocName : objectClasses.values())
-      {
-        if (ocName.equalsIgnoreCase(
-                OC_INHERITED_COLLECTIVE_ATTR_SUBENTRY))
-        {
-          return true;
-        }
-      }
-
-      return false;
-    }
-
-
-    // Make the determination based on whether this entry
-    // has the inheritedCollectiveAttributeSubentry
-    // objectclass.
-    return objectClasses.containsKey(
-            inheritedCollectiveAttributeSubentryOC);
+    return hasObjectClass(OC_INHERITED_COLLECTIVE_ATTR_SUBENTRY_LC);
   }
 
 
 
   /**
-   * Indicates whether the entry meets the criteria to consider it
-   * an inherited from DN collective attributes subentry (i.e., it
-   * contains the "inheritedFromDNCollectiveAttributeSubentry"
-   * objectclass).
+   * Indicates whether the entry meets the criteria to consider it an inherited
+   * from DN collective attributes subentry (i.e., it contains the
+   * "inheritedFromDNCollectiveAttributeSubentry" objectclass).
    *
-   * @return  <CODE>true</CODE> if this entry meets the criteria to
-   *          consider it an inherited from DN collective attributes
-   *          subentry, or <CODE>false</CODE> if not.
+   * @return <CODE>true</CODE> if this entry meets the criteria to consider it
+   *         an inherited from DN collective attributes subentry, or
+   *         <CODE>false</CODE> if not.
    */
   public boolean isInheritedFromDNCollectiveAttributeSubentry()
   {
-    ObjectClass inheritedFromDNCollectiveAttributeSubentryOC =
-         DirectoryServer.getObjectClass(
-         OC_INHERITED_FROM_DN_COLLECTIVE_ATTR_SUBENTRY_LC);
-    if (inheritedFromDNCollectiveAttributeSubentryOC == null)
-    {
-      // This should not happen -- The server doesn't have
-      // an inheritedFromDNCollectiveAttributeSubentry
-      // object class defined.
-      if (debugEnabled())
-      {
-        TRACER.debugWarning(
-            "No %s objectclass is defined in the server schema.",
-            OC_INHERITED_FROM_DN_COLLECTIVE_ATTR_SUBENTRY);
-      }
-
-      for (String ocName : objectClasses.values())
-      {
-        if (ocName.equalsIgnoreCase(
-                OC_INHERITED_FROM_DN_COLLECTIVE_ATTR_SUBENTRY))
-        {
-          return true;
-        }
-      }
-
-      return false;
-    }
-
-
-    // Make the determination based on whether this entry
-    // has the inheritedCollectiveAttributeSubentry
-    // objectclass.
-    return objectClasses.containsKey(
-            inheritedFromDNCollectiveAttributeSubentryOC);
+    return hasObjectClass(OC_INHERITED_FROM_DN_COLLECTIVE_ATTR_SUBENTRY_LC);
   }
 
 
@@ -3511,39 +3148,7 @@ public class Entry
    */
   public boolean isInheritedFromRDNCollectiveAttributeSubentry()
   {
-    ObjectClass inheritedFromRDNCollectiveAttributeSubentryOC =
-         DirectoryServer.getObjectClass(
-         OC_INHERITED_FROM_RDN_COLLECTIVE_ATTR_SUBENTRY_LC);
-    if (inheritedFromRDNCollectiveAttributeSubentryOC == null)
-    {
-      // This should not happen -- The server doesn't have
-      // an inheritedFromRDNCollectiveAttributeSubentry
-      // object class defined.
-      if (debugEnabled())
-      {
-        TRACER.debugWarning(
-            "No %s objectclass is defined in the server schema.",
-            OC_INHERITED_FROM_RDN_COLLECTIVE_ATTR_SUBENTRY);
-      }
-
-      for (String ocName : objectClasses.values())
-      {
-        if (ocName.equalsIgnoreCase(
-                OC_INHERITED_FROM_RDN_COLLECTIVE_ATTR_SUBENTRY))
-        {
-          return true;
-        }
-      }
-
-      return false;
-    }
-
-
-    // Make the determination based on whether this entry
-    // has the inheritedCollectiveAttributeSubentry
-    // objectclass.
-    return objectClasses.containsKey(
-            inheritedFromRDNCollectiveAttributeSubentryOC);
+    return hasObjectClass(OC_INHERITED_FROM_RDN_COLLECTIVE_ATTR_SUBENTRY_LC);
   }
 
 
@@ -3559,34 +3164,7 @@ public class Entry
    */
   public boolean isPasswordPolicySubentry()
   {
-    ObjectClass passwordPolicySubentryOC =
-         DirectoryServer.getObjectClass(OC_PWD_POLICY_SUBENTRY_LC);
-    if (passwordPolicySubentryOC == null)
-    {
-      // This should not happen -- The server doesn't have
-      // a pwdPolicy objectclass defined.
-      if (debugEnabled())
-      {
-        TRACER.debugWarning(
-            "No %s objectclass is defined in the server schema.",
-                     OC_PWD_POLICY_SUBENTRY);
-      }
-
-      for (String ocName : objectClasses.values())
-      {
-        if (ocName.equalsIgnoreCase(OC_PWD_POLICY_SUBENTRY))
-        {
-          return true;
-        }
-      }
-
-      return false;
-    }
-
-
-    // Make the determination based on whether this entry
-    // has the pwdPolicy objectclass.
-    return objectClasses.containsKey(passwordPolicySubentryOC);
+    return hasObjectClass(OC_PWD_POLICY_SUBENTRY_LC);
   }
 
 
@@ -3633,8 +3211,7 @@ public class Entry
     List<SubEntry> collectiveAttrSubentries =
             manager.getCollectiveSubentries(this);
 
-    if ((collectiveAttrSubentries == null) ||
-         collectiveAttrSubentries.isEmpty())
+    if (collectiveAttrSubentries == null || collectiveAttrSubentries.isEmpty())
     {
       // Nothing to see here, move along.
       return;
@@ -3646,17 +3223,15 @@ public class Entry
     List<Attribute> exclusionsAttrList =
             operationalAttributes.get(exclusionsType);
     Set<String> exclusionsNameSet = new HashSet<String>();
-    if ((exclusionsAttrList != null) && !exclusionsAttrList.isEmpty())
+    if (exclusionsAttrList != null && !exclusionsAttrList.isEmpty())
     {
       for (Attribute attr : exclusionsAttrList)
       {
         for (AttributeValue attrValue : attr)
         {
           String exclusionsName = attrValue.toString().toLowerCase();
-          if (exclusionsName.equals(
-                  VALUE_COLLECTIVE_EXCLUSIONS_EXCLUDE_ALL_LC) ||
-                  exclusionsName.equals(
-                  OID_COLLECTIVE_EXCLUSIONS_EXCLUDE_ALL))
+          if (VALUE_COLLECTIVE_EXCLUSIONS_EXCLUDE_ALL_LC.equals(exclusionsName)
+              || OID_COLLECTIVE_EXCLUSIONS_EXCLUDE_ALL.equals(exclusionsName))
           {
             return;
           }
@@ -3684,8 +3259,7 @@ public class Entry
               {
                 for (AttributeValue value : attr)
                 {
-                  inheritFromDN = DN.decode(
-                          value.getNormalizedValue());
+                  inheritFromDN = DN.decode(value.getNormalizedValue());
                   // Respect subentry root scope.
                   if (!inheritFromDN.isDescendantOf(
                        subEntry.getDN().getParent()))
@@ -3701,8 +3275,7 @@ public class Entry
               }
 
               // TODO : ACI check; needs re-factoring to happen.
-              inheritFromEntry = DirectoryServer.getEntry(
-                    inheritFromDN);
+              inheritFromEntry = DirectoryServer.getEntry(inheritFromDN);
             }
             catch (DirectoryException de)
             {
@@ -3734,8 +3307,7 @@ public class Entry
                 }
 
                 // TODO : ACI check; needs re-factoring to happen.
-                inheritFromEntry = DirectoryServer.getEntry(
-                        inheritFromDN);
+                inheritFromEntry = DirectoryServer.getEntry(inheritFromDN);
               }
               catch (DirectoryException de)
               {
@@ -3751,12 +3323,10 @@ public class Entry
             }
           }
         }
-        List<Attribute> collectiveAttrList =
-                subEntry.getCollectiveAttributes();
+        List<Attribute> collectiveAttrList = subEntry.getCollectiveAttributes();
         for (Attribute collectiveAttr : collectiveAttrList)
         {
-          AttributeType attributeType =
-                  collectiveAttr.getAttributeType();
+          AttributeType attributeType = collectiveAttr.getAttributeType();
           if (exclusionsNameSet.contains(
                   attributeType.getNormalizedPrimaryNameOrOID()))
           {
@@ -3769,38 +3339,28 @@ public class Entry
               collectiveAttr = inheritFromEntry.getExactAttribute(
                       collectiveAttr.getAttributeType(),
                       collectiveAttr.getOptions());
-              if ((collectiveAttr == null) ||
-                  (collectiveAttr.isEmpty()))
+              if (collectiveAttr == null || collectiveAttr.isEmpty())
               {
                 continue;
               }
-              collectiveAttr = new CollectiveVirtualAttribute(
-                      collectiveAttr);
+              collectiveAttr = new CollectiveVirtualAttribute(collectiveAttr);
             }
             else
             {
               continue;
             }
           }
-          List<Attribute> attrList =
-                  userAttributes.get(attributeType);
-          if ((attrList == null) || attrList.isEmpty())
+          List<Attribute> attrList = userAttributes.get(attributeType);
+          if (attrList == null || attrList.isEmpty())
           {
             attrList = operationalAttributes.get(attributeType);
-            if ((attrList == null) || attrList.isEmpty())
+            if (attrList == null || attrList.isEmpty())
             {
               // There aren't any conflicts, so we can just add the
               // attribute to the entry.
               attrList = new LinkedList<Attribute>();
               attrList.add(collectiveAttr);
-              if (attributeType.isOperational())
-              {
-                operationalAttributes.put(attributeType, attrList);
-              }
-              else
-              {
-                userAttributes.put(attributeType, attrList);
-              }
+              putAttributes(attributeType, attrList);
             }
             else
             {
@@ -3892,29 +3452,20 @@ public class Entry
     {
       AttributeType attributeType = rule.getAttributeType();
       List<Attribute> attrList = userAttributes.get(attributeType);
-      if ((attrList == null) || attrList.isEmpty())
+      if (attrList == null || attrList.isEmpty())
       {
         attrList = operationalAttributes.get(attributeType);
-        if ((attrList == null) || attrList.isEmpty())
+        if (attrList == null || attrList.isEmpty())
         {
           // There aren't any conflicts, so we can just add the
           // attribute to the entry.
           attrList = new LinkedList<Attribute>();
-          attrList.add(new VirtualAttribute(attributeType, this,
-                                            rule));
-          if (attributeType.isOperational())
-          {
-            operationalAttributes.put(attributeType, attrList);
-          }
-          else
-          {
-            userAttributes.put(attributeType, attrList);
-          }
+          attrList.add(new VirtualAttribute(attributeType, this, rule));
+          putAttributes(attributeType, attrList);
         }
         else
         {
-          // There is a conflict with an existing operational
-          // attribute.
+          // There is a conflict with an existing operational attribute.
           resolveVirtualConflict(rule, attrList, operationalAttributes,
               attributeType);
         }
@@ -4018,7 +3569,7 @@ public class Entry
     // The version number will be one byte.
     buffer.append((byte)0x03);
 
-    // Get the encoded respresentation of the config.
+    // Get the encoded representation of the config.
     config.encode(buffer);
 
     // If we should include the DN, then it will be encoded as a
@@ -4036,8 +3587,7 @@ public class Entry
     // Encode the object classes in the appropriate manner.
     if (config.compressObjectClassSets())
     {
-      config.getCompressedSchema().encodeObjectClasses(buffer,
-          objectClasses);
+      config.getCompressedSchema().encodeObjectClasses(buffer, objectClasses);
     }
     else
     {
@@ -4236,21 +3786,15 @@ public class Entry
           decodeObjectClasses(version, entryBuffer, config);
 
 
-      // Now, we should iterate through the user attributes and decode
-      // each one.
-      LinkedHashMap<AttributeType,List<Attribute>> userAttributes =
-          decodeAttributes(version, entryBuffer, config);
-
-
-      // Now, we should iterate through the operational attributes and
+      // Now, we should iterate through the user and operational attributes and
       // decode each one.
-      LinkedHashMap<AttributeType,List<Attribute>>
-          operationalAttributes =
+      Map<AttributeType, List<Attribute>> userAttributes =
+          decodeAttributes(version, entryBuffer, config);
+      Map<AttributeType, List<Attribute>> operationalAttributes =
           decodeAttributes(version, entryBuffer, config);
 
 
-      // We've got everything that we need, so create and return the
-      // entry.
+      // We've got everything that we need, so create and return the entry.
       return new Entry(dn, objectClasses, userAttributes,
           operationalAttributes);
     }
@@ -4293,13 +3837,12 @@ public class Entry
   {
     // Next is the set of encoded object classes.  The encoding will
     // depend on the configuration.
-    Map<ObjectClass,String> objectClasses;
     if (config.compressObjectClassSets())
     {
-      objectClasses = config.getCompressedSchema().
-          decodeObjectClasses(entryBuffer);
+      return config.getCompressedSchema().decodeObjectClasses(entryBuffer);
     }
-    else
+
+    Map<ObjectClass, String> objectClasses;
     {
       if(ver < 0x03)
       {
@@ -4311,56 +3854,60 @@ public class Entry
         // string with the object class names separated by zeros.
         objectClasses = new LinkedHashMap<ObjectClass,String>();
         int startPos = entryBuffer.position();
-        int endPos;
         for (int i=0; i < ocLength; i++)
         {
           if (entryBuffer.get() == 0x00)
           {
-            endPos = entryBuffer.position()-1;
-            entryBuffer.position(startPos);
-            String name = entryBuffer.getString(endPos - startPos);
-            String lowerName = toLowerCase(name);
-            ObjectClass oc =
-                DirectoryServer.getObjectClass(lowerName, true);
-            objectClasses.put(oc, name);
+            int endPos = entryBuffer.position() - 1;
+            addObjectClass(objectClasses, entryBuffer, startPos, endPos);
 
             entryBuffer.skip(1);
             startPos = entryBuffer.position();
           }
         }
-        endPos = entryBuffer.position();
-        entryBuffer.position(startPos);
-        String name = entryBuffer.getString(endPos - startPos);
-        String lowerName = toLowerCase(name);
-        ObjectClass oc =
-            DirectoryServer.getObjectClass(lowerName, true);
-        objectClasses.put(oc, name);
+        int endPos = entryBuffer.position();
+        addObjectClass(objectClasses, entryBuffer, startPos, endPos);
       }
       else
       {
         // Next is the number of zero terminated object classes.
         int numOC = entryBuffer.getBERLength();
-        int startPos;
-        int endPos;
         objectClasses = new LinkedHashMap<ObjectClass,String>(numOC);
         for(int i = 0; i < numOC; i++)
         {
-          startPos = entryBuffer.position();
+          int startPos = entryBuffer.position();
           while(entryBuffer.get() != 0x00)
           {}
-          endPos = entryBuffer.position()-1;
-          entryBuffer.position(startPos);
-          String name = entryBuffer.getString(endPos - startPos);
-          String lowerName = toLowerCase(name);
-          ObjectClass oc =
-              DirectoryServer.getObjectClass(lowerName, true);
-          objectClasses.put(oc, name);
+          int endPos = entryBuffer.position() - 1;
+          addObjectClass(objectClasses, entryBuffer, startPos, endPos);
           entryBuffer.skip(1);
         }
       }
     }
 
     return objectClasses;
+  }
+
+  /**
+   * Adds the objectClass contained in the buffer to the map of object class.
+   *
+   * @param objectClasses
+   *          the Map where to add the objectClass
+   * @param entryBuffer
+   *          the buffer containing the objectClass name
+   * @param startPos
+   *          the starting position in the buffer
+   * @param endPos
+   *          the ending position in the buffer
+   */
+  private static void addObjectClass(Map<ObjectClass, String> objectClasses,
+      ByteSequenceReader entryBuffer, int startPos, int endPos)
+  {
+    entryBuffer.position(startPos);
+    final String ocName = entryBuffer.getString(endPos - startPos);
+    final String lowerName = toLowerCase(ocName);
+    final ObjectClass oc = DirectoryServer.getObjectClass(lowerName, true);
+    objectClasses.put(oc, ocName);
   }
 
   /**
@@ -4376,7 +3923,7 @@ public class Entry
    * @throws  DirectoryException  If a problem occurs while attempting
    *                              to encode the entry.
    */
-  private static LinkedHashMap<AttributeType,List<Attribute>>
+  private static Map<AttributeType, List<Attribute>>
   decodeAttributes(Byte ver, ByteSequenceReader entryBuffer,
                    EntryEncodeConfig config) throws DirectoryException
   {
@@ -4385,9 +3932,8 @@ public class Entry
     int attrs = entryBuffer.getBERLength();
 
 
-    // Now, we should iterate through the attributes and decode
-    // each one.
-    LinkedHashMap<AttributeType,List<Attribute>> attributes =
+    // Now, we should iterate through the attributes and decode each one.
+    Map<AttributeType, List<Attribute>> attributes =
         new LinkedHashMap<AttributeType,List<Attribute>>(attrs);
     if (config.compressAttributeDescriptions())
     {
@@ -4399,16 +3945,13 @@ public class Entry
           entryBuffer.getBERLength();
         }
         // Decode the attribute.
-        Attribute a = config.getCompressedSchema().decodeAttribute(
-            entryBuffer);
-        List<Attribute> attrList =
-            attributes.get(a.getAttributeType());
+        Attribute a = config.getCompressedSchema().decodeAttribute(entryBuffer);
+        List<Attribute> attrList = attributes.get(a.getAttributeType());
         if (attrList == null)
         {
           attrList = new ArrayList<Attribute>(1);
           attributes.put(a.getAttributeType(), attrList);
         }
-
         attrList.add(a);
       }
     }
@@ -4419,7 +3962,6 @@ public class Entry
       int endPos;
       for (int i=0; i < attrs; i++)
       {
-        AttributeType attributeType;
 
         // First, we have the zero-terminated attribute name.
         startPos = entryBuffer.position();
@@ -4430,6 +3972,7 @@ public class Entry
         String name = entryBuffer.getString(endPos - startPos);
         entryBuffer.skip(1);
 
+        AttributeType attributeType;
         int semicolonPos = name.indexOf(';');
         if (semicolonPos > 0)
         {
@@ -4473,26 +4016,19 @@ public class Entry
 
           ByteString valueBytes =
               entryBuffer.getByteSequence(valueLength).toByteString();
-          builder.add(AttributeValues.create(attributeType,
-              valueBytes));
+          builder.add(AttributeValues.create(attributeType, valueBytes));
         }
 
 
-        // Create the attribute and add it to the set of
-        // attributes.
+        // Create the attribute and add it to the set of attributes.
         Attribute a = builder.toAttribute();
-        List<Attribute> attrList =
-            attributes.get(attributeType);
+        List<Attribute> attrList = attributes.get(attributeType);
         if (attrList == null)
         {
           attrList = new ArrayList<Attribute>(1);
-          attrList.add(a);
           attributes.put(attributeType, attrList);
         }
-        else
-        {
-          attrList.add(a);
-        }
+        attrList.add(a);
       }
     }
 
@@ -4509,32 +4045,22 @@ public class Entry
    */
   public List<StringBuilder> toLDIF()
   {
-    LinkedList<StringBuilder> ldifLines =
-         new LinkedList<StringBuilder>();
-
+    List<StringBuilder> ldifLines = new LinkedList<StringBuilder>();
 
     // First, append the DN.
-    StringBuilder dnLine = new StringBuilder();
-    dnLine.append("dn");
-    appendLDIFSeparatorAndValue(dnLine,
-        ByteString.valueOf(dn.toString()));
+    StringBuilder dnLine = new StringBuilder("dn");
+    appendLDIFSeparatorAndValue(dnLine, ByteString.valueOf(dn.toString()));
     ldifLines.add(dnLine);
-
 
     // Next, add the set of objectclasses.
     for (String s : objectClasses.values())
     {
-      StringBuilder ocLine = new StringBuilder();
-      ocLine.append("objectClass: ");
-      ocLine.append(s);
+      StringBuilder ocLine = new StringBuilder("objectClass: ").append(s);
       ldifLines.add(ocLine);
     }
 
-
-    // Next, add the set of user attributes.
+    // Finally, add the set of user and operational attributes.
     addLinesForAttributes(ldifLines, userAttributes);
-
-    // Finally, add the set of operational attributes.
     addLinesForAttributes(ldifLines, operationalAttributes);
 
     return ldifLines;
@@ -4639,14 +4165,12 @@ public class Entry
     // Get the information necessary to write the LDIF.
     BufferedWriter writer     = exportConfig.getWriter();
     int            wrapColumn = exportConfig.getWrapColumn();
-    boolean        wrapLines  = (wrapColumn > 1);
+    boolean        wrapLines  = wrapColumn > 1;
 
 
     // First, write the DN.  It will always be included.
-    StringBuilder dnLine = new StringBuilder();
-    dnLine.append("dn");
-    appendLDIFSeparatorAndValue(dnLine,
-        ByteString.valueOf(dn.toString()));
+    StringBuilder dnLine = new StringBuilder("dn");
+    appendLDIFSeparatorAndValue(dnLine, ByteString.valueOf(dn.toString()));
     LDIFWriter.writeLDIFLine(dnLine, writer, wrapLines, wrapColumn);
 
 
@@ -4663,9 +4187,7 @@ public class Entry
       {
         for (String s : objectClasses.values())
         {
-          StringBuilder ocLine = new StringBuilder();
-          ocLine.append("objectClass: ");
-          ocLine.append(s);
+          StringBuilder ocLine = new StringBuilder("objectClass: ").append(s);
           LDIFWriter.writeLDIFLine(ocLine, writer, wrapLines, wrapColumn);
         }
       }
@@ -4765,8 +4287,7 @@ public class Entry
         List<Attribute> attrList = attributes.get(attrType);
         for (Attribute a : attrList)
         {
-          if (a.isVirtual() &&
-              (! exportConfig.includeVirtualAttributes()))
+          if (a.isVirtual() && !exportConfig.includeVirtualAttributes())
           {
             continue;
           }
@@ -4859,29 +4380,34 @@ public class Entry
   public int hashCode()
   {
     int hashCode = dn.hashCode();
-
     for (ObjectClass oc : objectClasses.keySet())
     {
       hashCode += oc.hashCode();
     }
 
-    for (List<Attribute> attrList : userAttributes.values())
-    {
-      for (Attribute a : attrList)
-      {
-        hashCode += a.hashCode();
-      }
-    }
-
-    for (List<Attribute> attrList : operationalAttributes.values())
-    {
-      for (Attribute a : attrList)
-      {
-        hashCode += a.hashCode();
-      }
-    }
-
+    hashCode += hashCode(userAttributes.values());
+    hashCode += hashCode(operationalAttributes.values());
     return hashCode;
+  }
+
+  /**
+   * Computes the hashCode for the list of attributes list.
+   *
+   * @param attributesLists
+   *          the attributes for which to commpute the hashCode
+   * @return the hashCode for the list of attributes list.
+   */
+  private int hashCode(Collection<List<Attribute>> attributesLists)
+  {
+    int result = 0;
+    for (List<Attribute> attributes : attributesLists)
+    {
+      for (Attribute a : attributes)
+      {
+        result += a.hashCode();
+      }
+    }
+    return result;
   }
 
 
@@ -4904,62 +4430,50 @@ public class Entry
     {
       return true;
     }
-
     if (o == null)
     {
       return false;
     }
-
     if (! (o instanceof Entry))
     {
       return false;
     }
 
     Entry e = (Entry) o;
-    if (! dn.equals(e.dn))
-    {
-      return false;
-    }
+    return dn.equals(e.dn)
+        && objectClasses.keySet().equals(e.objectClasses.keySet())
+        && equals(userAttributes, e.userAttributes)
+        && equals(operationalAttributes, e.operationalAttributes);
+  }
 
-    if (! objectClasses.keySet().equals(e.objectClasses.keySet()))
+  /**
+   * Returns whether the 2 Maps are equal.
+   *
+   * @param attributes1
+   *          the first Map of attributes
+   * @param attributes2
+   *          the second Map of attributes
+   * @return true if the 2 Maps are equal, false otherwise
+   */
+  private boolean equals(Map<AttributeType, List<Attribute>> attributes1,
+      Map<AttributeType, List<Attribute>> attributes2)
+  {
+    for (AttributeType at : attributes1.keySet())
     {
-      return false;
-    }
-
-    for (AttributeType at : userAttributes.keySet())
-    {
-      List<Attribute> list1 = userAttributes.get(at);
-      List<Attribute> list2 = e.userAttributes.get(at);
-      if ((list2 == null) || (list1.size() != list2.size()))
+      List<Attribute> list1 = attributes1.get(at);
+      List<Attribute> list2 = attributes2.get(at);
+      if (list2 == null || list1.size() != list2.size())
       {
         return false;
       }
       for (Attribute a : list1)
       {
-        if (! list2.contains(a))
+        if (!list2.contains(a))
         {
           return false;
         }
       }
     }
-
-    for (AttributeType at : operationalAttributes.keySet())
-    {
-      List<Attribute> list1 = operationalAttributes.get(at);
-      List<Attribute> list2 = e.operationalAttributes.get(at);
-      if ((list2 == null) || (list1.size() != list2.size()))
-      {
-        return false;
-      }
-      for (Attribute a : list1)
-      {
-        if (! list2.contains(a))
-        {
-          return false;
-        }
-      }
-    }
-
     return true;
   }
 
@@ -5081,53 +4595,27 @@ public class Entry
     }
 
     buffer.append("},userAttrs={");
-
-    boolean firstAttr = true;
-    for (List<Attribute> attrList : userAttributes.values())
-    {
-      for (Attribute a : attrList)
-      {
-        if (firstAttr)
-        {
-          firstAttr = false;
-        }
-        else
-        {
-          buffer.append(",");
-        }
-
-        buffer.append(a.getName());
-
-        if (a.hasOptions())
-        {
-          for (String optionString : a.getOptions())
-          {
-            buffer.append(";");
-            buffer.append(optionString);
-          }
-        }
-
-        buffer.append("={");
-        Iterator<AttributeValue> valueIterator = a.iterator();
-        if (valueIterator.hasNext())
-        {
-          buffer.append(valueIterator.next().getValue().toString());
-
-          while (valueIterator.hasNext())
-          {
-            buffer.append(",");
-            buffer.append(valueIterator.next().getValue().toString());
-          }
-        }
-
-        buffer.append("}");
-      }
-    }
-
+    appendAttributes(buffer, userAttributes.values());
     buffer.append("},operationalAttrs={");
-    for (List<Attribute> attrList : operationalAttributes.values())
+    appendAttributes(buffer, operationalAttributes.values());
+    buffer.append("})");
+  }
+
+  /**
+   * Appends the attributes to the StringBuilder.
+   *
+   * @param buffer
+   *          the StringBuilder where to append
+   * @param attributesLists
+   *          the attributesLists to append
+   */
+  private void appendAttributes(StringBuilder buffer,
+      Collection<List<Attribute>> attributesLists)
+  {
+    boolean firstAttr = true;
+    for (List<Attribute> attributes : attributesLists)
     {
-      for (Attribute a : attrList)
+      for (Attribute a : attributes)
       {
         if (firstAttr)
         {
@@ -5165,8 +4653,6 @@ public class Entry
         buffer.append("}");
       }
     }
-
-    buffer.append("})");
   }
 
 
@@ -5189,17 +4675,7 @@ public class Entry
   public Attribute getExactAttribute(AttributeType attributeType,
       Set<String> options)
   {
-    List<Attribute> attributes;
-
-    if (attributeType.isOperational())
-    {
-      attributes = operationalAttributes.get(attributeType);
-    }
-    else
-    {
-      attributes = userAttributes.get(attributeType);
-    }
-
+    List<Attribute> attributes = getAttributes(attributeType);
     if (attributes != null)
     {
       for (Attribute attribute : attributes)
@@ -5210,7 +4686,6 @@ public class Entry
         }
       }
     }
-
     return null;
   }
 
@@ -5289,17 +4764,7 @@ public class Entry
       return;
     }
 
-    List<Attribute> attributes;
-
-    if (attributeType.isOperational())
-    {
-      attributes = operationalAttributes.get(attributeType);
-    }
-    else
-    {
-      attributes = userAttributes.get(attributeType);
-    }
-
+    List<Attribute> attributes = getAttributes(attributeType);
     if (attributes == null)
     {
       // Do nothing if we are deleting a non-existing attribute.
@@ -5309,18 +4774,7 @@ public class Entry
       }
 
       // We are adding the first attribute with this attribute type.
-      attributes = new ArrayList<Attribute>(1);
-      attributes.add(attribute);
-
-      if (attributeType.isOperational())
-      {
-        operationalAttributes.put(attributeType, attributes);
-      }
-      else
-      {
-        userAttributes.put(attributeType, attributes);
-      }
-
+      putAttributes(attributeType, newList(attribute));
       return;
     }
 
@@ -5343,14 +4797,7 @@ public class Entry
 
             if (attributes.isEmpty())
             {
-              if (attributeType.isOperational())
-              {
-                operationalAttributes.remove(attributeType);
-              }
-              else
-              {
-                userAttributes.remove(attributeType);
-              }
+              removeAttributes(attributeType);
             }
           }
         }
@@ -5402,18 +4849,18 @@ public class Entry
   public Entry filterEntry(Set<String> attrNameList,
       boolean omitValues, boolean omitReal, boolean omitVirtual)
   {
-    HashMap<ObjectClass, String> objectClassesCopy;
-    HashMap<AttributeType, List<Attribute>> userAttrsCopy;
-    HashMap<AttributeType, List<Attribute>> operationalAttrsCopy;
+    final AttributeType ocType = DirectoryServer.getObjectClassAttributeType();
+
+    Map<ObjectClass, String> objectClassesCopy;
+    Map<AttributeType, List<Attribute>> userAttrsCopy;
+    Map<AttributeType, List<Attribute>> operationalAttrsCopy;
 
     if (attrNameList == null || attrNameList.isEmpty())
     {
       // Common case: return filtered user attributes.
       userAttrsCopy =
-          new HashMap<AttributeType, List<Attribute>>(userAttributes
-              .size());
-      operationalAttrsCopy =
-          new HashMap<AttributeType, List<Attribute>>(0);
+          new HashMap<AttributeType, List<Attribute>>(userAttributes.size());
+      operationalAttrsCopy = new HashMap<AttributeType, List<Attribute>>(0);
 
       if (omitReal)
       {
@@ -5424,26 +4871,17 @@ public class Entry
         objectClassesCopy = new HashMap<ObjectClass, String>(0);
 
         // Add empty object class attribute.
-        AttributeType ocType =
-            DirectoryServer.getObjectClassAttributeType();
-        ArrayList<Attribute> ocList = new ArrayList<Attribute>(1);
-        ocList.add(Attributes.empty(ocType));
-        userAttrsCopy.put(ocType, ocList);
+        userAttrsCopy.put(ocType, newList(Attributes.empty(ocType)));
       }
       else
       {
-        objectClassesCopy =
-            new HashMap<ObjectClass, String>(objectClasses);
+        objectClassesCopy = new HashMap<ObjectClass, String>(objectClasses);
 
         // First, add the objectclass attribute.
         Attribute ocAttr = getObjectClassAttribute();
         if (ocAttr != null)
         {
-          AttributeType ocType =
-              DirectoryServer.getObjectClassAttributeType();
-          ArrayList<Attribute> ocList = new ArrayList<Attribute>(1);
-          ocList.add(ocAttr);
-          userAttrsCopy.put(ocType, ocList);
+          userAttrsCopy.put(ocType, newList(ocAttr));
         }
       }
 
@@ -5465,15 +4903,14 @@ public class Entry
       }
 
       userAttrsCopy =
-          new HashMap<AttributeType, List<Attribute>>(userAttributes
-              .size());
+          new HashMap<AttributeType, List<Attribute>>(userAttributes.size());
       operationalAttrsCopy =
           new HashMap<AttributeType, List<Attribute>>(
               operationalAttributes.size());
 
       for (String attrName : attrNameList)
       {
-        if (attrName.equals("*"))
+        if ("*".equals(attrName))
         {
           // This is a special placeholder indicating that all user
           // attributes should be returned.
@@ -5482,12 +4919,7 @@ public class Entry
             if (omitValues)
             {
               // Add empty object class attribute.
-              AttributeType ocType =
-                  DirectoryServer.getObjectClassAttributeType();
-              ArrayList<Attribute> ocList =
-                new ArrayList<Attribute>(1);
-              ocList.add(Attributes.empty(ocType));
-              userAttrsCopy.put(ocType, ocList);
+              userAttrsCopy.put(ocType, newList(Attributes.empty(ocType)));
             }
             else
             {
@@ -5496,12 +4928,7 @@ public class Entry
               Attribute ocAttr = getObjectClassAttribute();
               if (ocAttr != null)
               {
-                AttributeType ocType =
-                    DirectoryServer.getObjectClassAttributeType();
-                ArrayList<Attribute> ocList =
-                  new ArrayList<Attribute>(1);
-                ocList.add(ocAttr);
-                userAttrsCopy.put(ocType, ocList);
+                userAttrsCopy.put(ocType, newList(ocAttr));
               }
             }
           }
@@ -5509,21 +4936,19 @@ public class Entry
           // Copy all user attributes.
           deepCopy(userAttributes, userAttrsCopy, omitValues, true,
               omitReal, omitVirtual, true);
-
           continue;
         }
-        else if (attrName.equals("+"))
+        else if ("+".equals(attrName))
         {
           // This is a special placeholder indicating that all
           // operational attributes should be returned.
           deepCopy(operationalAttributes, operationalAttrsCopy,
               omitValues, true, omitReal, omitVirtual, true);
-
           continue;
         }
 
         String lowerName;
-        HashSet<String> options;
+        Set<String> options;
         int semicolonPos = attrName.indexOf(';');
         if (semicolonPos > 0)
         {
@@ -5547,8 +4972,7 @@ public class Entry
           options = null;
         }
 
-        AttributeType attrType =
-          DirectoryServer.getAttributeType(lowerName);
+        AttributeType attrType = DirectoryServer.getAttributeType(lowerName);
         if (attrType == null)
         {
           // Unrecognized attribute type - do best effort search.
@@ -5559,8 +4983,7 @@ public class Entry
             if (t.hasNameOrOID(lowerName))
             {
               mergeAttributeLists(e.getValue(), userAttrsCopy, t,
-                  attrName, options, omitValues, omitReal,
-                  omitVirtual);
+                  attrName, options, omitValues, omitReal, omitVirtual);
               continue;
             }
           }
@@ -5572,8 +4995,7 @@ public class Entry
             if (t.hasNameOrOID(lowerName))
             {
               mergeAttributeLists(e.getValue(), operationalAttrsCopy,
-                  t, attrName, options, omitValues, omitReal,
-                  omitVirtual);
+                  t, attrName, options, omitValues, omitReal, omitVirtual);
               continue;
             }
           }
@@ -5586,34 +5008,23 @@ public class Entry
             {
               if (omitValues)
               {
-                AttributeType ocType =
-                    DirectoryServer.getObjectClassAttributeType();
-                List<Attribute> ocList = new ArrayList<Attribute>(1);
-                ocList.add(Attributes.empty(ocType, attrName));
-                userAttrsCopy.put(ocType, ocList);
+                userAttrsCopy.put(ocType, newList(Attributes.empty(ocType,
+                    attrName)));
               }
               else
               {
                 Attribute ocAttr = getObjectClassAttribute();
                 if (ocAttr != null)
                 {
-                  AttributeType ocType =
-                      DirectoryServer.getObjectClassAttributeType();
-
                   if (!attrName.equals(ocAttr.getName()))
                   {
-                    // User requested non-default object class type
-                    // name.
-                    AttributeBuilder builder =
-                        new AttributeBuilder(ocAttr);
+                    // User requested non-default object class type name.
+                    AttributeBuilder builder = new AttributeBuilder(ocAttr);
                     builder.setAttributeType(ocType, attrName);
                     ocAttr = builder.toAttribute();
                   }
 
-                  List<Attribute> ocList =
-                    new ArrayList<Attribute>(1);
-                  ocList.add(ocAttr);
-                  userAttrsCopy.put(ocType, ocList);
+                  userAttrsCopy.put(ocType, newList(ocAttr));
                 }
               }
             }
@@ -5624,8 +5035,7 @@ public class Entry
             if (attrList != null)
             {
               mergeAttributeLists(attrList, userAttrsCopy, attrType,
-                  attrName, options, omitValues, omitReal,
-                  omitVirtual);
+                  attrName, options, omitValues, omitReal, omitVirtual);
             }
             else
             {
@@ -5646,6 +5056,19 @@ public class Entry
                      operationalAttrsCopy);
   }
 
+  /**
+   * Returns a new List containing only the supplied element.
+   *
+   * @param elem
+   *          the element to add to the list
+   * @return a new List containing only the supplied element.
+   */
+  private List<Attribute> newList(Attribute elem)
+  {
+    List<Attribute> l = new ArrayList<Attribute>(1);
+    l.add(elem);
+    return l;
+  }
 
 
   /**
@@ -5670,10 +5093,9 @@ public class Entry
    *          Indicates whether to exclude virtual attributes.
    */
   private void mergeAttributeLists(List<Attribute> sourceList,
-      HashMap<AttributeType, List<Attribute>> destMap,
-      AttributeType attrType, String attrName,
-      HashSet<String> options, boolean omitValues, boolean omitReal,
-      boolean omitVirtual)
+      Map<AttributeType, List<Attribute>> destMap,
+      AttributeType attrType, String attrName, Set<String> options,
+      boolean omitValues, boolean omitReal, boolean omitVirtual)
   {
     if (sourceList == null)
     {
@@ -5702,21 +5124,18 @@ public class Entry
       {
         // If a non-default attribute name was provided or if the
         // attribute has options then we will need to rebuild the
-        // attribute so that it contains the user-requested names and
-        // options.
+        // attribute so that it contains the user-requested names and options.
         AttributeType subAttrType = attribute.getAttributeType();
 
-        if ((attrName != null
-            && !attrName.equals(attribute.getName()))
+        if ((attrName != null && !attrName.equals(attribute.getName()))
             || (options != null && !options.isEmpty()))
         {
           AttributeBuilder builder = new AttributeBuilder();
 
-          // We want to use the user-provided name only if this
-          // attribute has the same type as the requested type. This
-          // might not be the case for sub-types e.g. requesting
-          // "name" and getting back "cn" - we don't want to rename
-          // "name" to "cn".
+          // We want to use the user-provided name only if this attribute has
+          // the same type as the requested type. This might not be the case for
+          // sub-types e.g. requesting "name" and getting back "cn" - we don't
+          // want to rename "name" to "cn".
           if (attrName == null || !subAttrType.equals(attrType))
           {
             builder.setAttributeType(attribute.getAttributeType(),
@@ -5724,8 +5143,7 @@ public class Entry
           }
           else
           {
-            builder.setAttributeType(attribute.getAttributeType(),
-                attrName);
+            builder.setAttributeType(attribute.getAttributeType(), attrName);
           }
 
           if (options != null)
@@ -5784,8 +5202,7 @@ public class Entry
               // list with more specific attribute names afterwards:
               // let the attribute name and options from the later
               // attribute take preference.
-              attrList.set(i, Attributes.merge(attribute,
-                  otherAttribute));
+              attrList.set(i, Attributes.merge(attribute, otherAttribute));
               found = true;
             }
           }
