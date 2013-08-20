@@ -27,15 +27,6 @@
  */
 package org.opends.server.replication.plugin;
 
-import static org.opends.messages.ReplicationMessages.*;
-import static org.opends.messages.ToolMessages.*;
-import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.replication.plugin.EntryHistorical.*;
-import static org.opends.server.replication.protocol.OperationContext.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
-
 import java.io.*;
 import java.util.*;
 import java.util.concurrent.BlockingQueue;
@@ -74,7 +65,6 @@ import org.opends.server.replication.common.*;
 import org.opends.server.replication.protocol.*;
 import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.replication.service.ReplicationDomain;
-import org.opends.server.replication.service.ReplicationMonitor;
 import org.opends.server.tasks.PurgeConflictsHistoricalTask;
 import org.opends.server.tasks.TaskUtils;
 import org.opends.server.types.*;
@@ -83,6 +73,18 @@ import org.opends.server.util.LDIFReader;
 import org.opends.server.util.TimeThread;
 import org.opends.server.workflowelement.externalchangelog.ECLWorkflowElement;
 import org.opends.server.workflowelement.localbackend.*;
+
+import static org.opends.messages.ReplicationMessages.*;
+import static org.opends.messages.ToolMessages.*;
+import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.replication.common.AssuredMode.*;
+import static org.opends.server.replication.plugin.EntryHistorical.*;
+import static org.opends.server.replication.protocol.OperationContext.*;
+import static org.opends.server.replication.service.ReplicationMonitor.*;
+import static org.opends.server.types.ResultCode.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
 
 /**
  *  This class implements the bulk part of the Directory Server side
@@ -526,15 +528,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
 
     storeECLConfiguration(configuration);
 
-    /*
-     * Modify conflicts are solved for all suffixes but the schema suffix
-     * because we don't want to store extra information in the schema
-     * ldif files.
-     * This has no negative impact because the changes on schema should
-     * not produce conflicts.
-     */
-    solveConflictFlag = configuration.isSolveConflicts()
-        && !baseDn.equals(DirectoryServer.getSchemaDN());
+    solveConflictFlag = isSolveConflict(configuration);
 
     Backend backend = retrievesBackend(baseDn);
     if (backend == null)
@@ -586,6 +580,18 @@ public final class LDAPReplicationDomain extends ReplicationDomain
   }
 
   /**
+   * Modify conflicts are solved for all suffixes but the schema suffix because
+   * we don't want to store extra information in the schema ldif files. This has
+   * no negative impact because the changes on schema should not produce
+   * conflicts.
+   */
+  private boolean isSolveConflict(ReplicationDomainCfg cfg)
+  {
+    return !baseDn.equals(DirectoryServer.getSchemaDN())
+        && cfg.isSolveConflicts();
+  }
+
+  /**
    * Gets and stores the assured replication configuration parameters. Returns
    * a boolean indicating if the passed configuration has changed compared to
    * previous values and the changes require a reconnection.
@@ -596,37 +602,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
   private void readAssuredConfig(ReplicationDomainCfg configuration,
     boolean allowReconnection)
   {
-    boolean needReconnection = false;
-
-    byte newSdLevel = (byte) configuration.getAssuredSdLevel();
-    if (isAssured() && getAssuredMode() == AssuredMode.SAFE_DATA_MODE &&
-        newSdLevel != getAssuredSdLevel())
-    {
-      needReconnection = true;
-    }
-
-    AssuredType newAssuredType = configuration.getAssuredType();
-    switch (newAssuredType)
-    {
-      case NOT_ASSURED:
-        if (isAssured())
-        {
-          needReconnection = true;
-        }
-        break;
-      case SAFE_DATA:
-        if (!isAssured() || getAssuredMode() == AssuredMode.SAFE_READ_MODE)
-        {
-          needReconnection = true;
-        }
-        break;
-      case SAFE_READ:
-        if (!isAssured() || getAssuredMode() == AssuredMode.SAFE_DATA_MODE)
-        {
-          needReconnection = true;
-        }
-        break;
-    }
+    final boolean needReconnection = needReconnection(configuration);
 
     // Disconnect if required: changing configuration values before
     // disconnection would make assured replication used immediately and
@@ -634,26 +610,55 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     if (needReconnection && allowReconnection)
       disableService();
 
-    switch (newAssuredType)
+    switch (configuration.getAssuredType())
     {
-      case NOT_ASSURED:
-        setAssured(false);
-        break;
-      case SAFE_DATA:
-        setAssured(true);
-        setAssuredMode(AssuredMode.SAFE_DATA_MODE);
-        break;
-      case SAFE_READ:
-        setAssured(true);
-        setAssuredMode(AssuredMode.SAFE_READ_MODE);
-        break;
+    case NOT_ASSURED:
+      setAssured(false);
+      break;
+    case SAFE_DATA:
+      setAssured(true);
+      setAssuredMode(AssuredMode.SAFE_DATA_MODE);
+      break;
+    case SAFE_READ:
+      setAssured(true);
+      setAssuredMode(AssuredMode.SAFE_READ_MODE);
+      break;
     }
-    setAssuredSdLevel(newSdLevel);
+    setAssuredSdLevel((byte) configuration.getAssuredSdLevel());
     setAssuredTimeout(configuration.getAssuredTimeout());
 
     // Reconnect if required
     if (needReconnection && allowReconnection)
       enableService();
+  }
+
+  private boolean needReconnection(ReplicationDomainCfg cfg)
+  {
+    switch (cfg.getAssuredType())
+    {
+    case NOT_ASSURED:
+      if (isAssured())
+      {
+        return true;
+      }
+      break;
+    case SAFE_DATA:
+      if (!isAssured() || getAssuredMode() == SAFE_READ_MODE)
+      {
+        return true;
+      }
+      break;
+    case SAFE_READ:
+      if (!isAssured() || getAssuredMode() == SAFE_DATA_MODE)
+      {
+        return true;
+      }
+      break;
+    }
+
+    return isAssured()
+        && getAssuredMode() == SAFE_DATA_MODE
+        && cfg.getAssuredSdLevel() != getAssuredSdLevel();
   }
 
   /**
@@ -690,8 +695,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     FractionalConfig newFractionalConfig;
     try
     {
-      newFractionalConfig = FractionalConfig.toFractionalConfig(
-        configuration);
+      newFractionalConfig = FractionalConfig.toFractionalConfig(configuration);
     }
     catch(ConfigException e)
     {
@@ -764,17 +768,12 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    */
   private boolean isBackendFractionalConfigConsistent()
   {
-    /*
-     * Read config stored in domain root entry
-     */
-
+    // Read config stored in domain root entry
     if (debugEnabled())
       TRACER.debugInfo(
-        "Attempt to read the potential fractional config in domain root " +
-        "entry " + baseDn.toString());
+          "Attempt to read the potential fractional config in domain root "
+              + "entry " + baseDn);
 
-    ByteString asn1BaseDn = ByteString.valueOf(baseDn.toString());
-    boolean found = false;
     LDAPFilter filter;
     try
     {
@@ -788,7 +787,8 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     /*
      * Search the domain root entry that is used to save the generation id
      */
-    Set<String> attributes = new LinkedHashSet<String>(1);
+    ByteString asn1BaseDn = ByteString.valueOf(baseDn.toString());
+    Set<String> attributes = new LinkedHashSet<String>(3);
     attributes.add(REPLICATION_GENERATION_ID);
     attributes.add(REPLICATION_FRACTIONAL_EXCLUDE);
     attributes.add(REPLICATION_FRACTIONAL_INCLUDE);
@@ -796,8 +796,8 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       SearchScope.BASE_OBJECT,
       DereferencePolicy.DEREF_ALWAYS, 0, 0, false,
       filter, attributes);
-    if (((search.getResultCode() != ResultCode.SUCCESS)) &&
-      ((search.getResultCode() != ResultCode.NO_SUCH_OBJECT)))
+    if (search.getResultCode() != ResultCode.SUCCESS
+        && search.getResultCode() != ResultCode.NO_SUCH_OBJECT)
     {
       Message message = ERR_SEARCHING_GENERATION_ID.get(
         search.getResultCode().getResultCodeName() + " " +
@@ -807,79 +807,76 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       return false;
     }
 
-    SearchResultEntry resultEntry = null;
-    if (search.getResultCode() == ResultCode.SUCCESS)
-    {
-      List<SearchResultEntry> result = search.getSearchEntries();
-      resultEntry = result.get(0);
-      if (resultEntry != null)
-      {
-        AttributeType synchronizationGenIDType =
-          DirectoryServer.getAttributeType(REPLICATION_GENERATION_ID);
-        List<Attribute> attrs =
-          resultEntry.getAttribute(synchronizationGenIDType);
-        if (attrs != null)
-        {
-          Attribute attr = attrs.get(0);
-          if (attr.size() > 1)
-          {
-            Message message = ERR_LOADING_GENERATION_ID.get(
-              baseDn.toString(), "#Values=" + attr.size() +
-              " Must be exactly 1 in entry " +
-              resultEntry.toLDIFString());
-            logError(message);
-          } else if (attr.size() == 1)
-          {
-            found = true;
-          }
-        }
-      }
-    }
-
-    if (!found)
+    SearchResultEntry resultEntry = findReplicationSearchResultEntry(search);
+    if (resultEntry != null)
     {
       /*
-      The backend is probably empty: if there is some fractional
-      configuration in memory, we do not let the domain being connected,
-      otherwise, it's ok
-      */
+       * The backend is probably empty: if there is some fractional
+       * configuration in memory, we do not let the domain being connected,
+       * otherwise, it's ok
+       */
       return !fractionalConfig.isFractional();
     }
 
-    /*
-     * Now extract fractional configuration if any
-     */
+    // Now extract fractional configuration if any
+    Iterator<String> exclIt =
+        getAttributeValueIterator(resultEntry, REPLICATION_FRACTIONAL_EXCLUDE);
+    Iterator<String> inclIt =
+        getAttributeValueIterator(resultEntry, REPLICATION_FRACTIONAL_INCLUDE);
 
-    Iterator<String> exclIt = null;
-    AttributeType fractionalExcludeType =
-      DirectoryServer.getAttributeType(REPLICATION_FRACTIONAL_EXCLUDE);
-    List<Attribute> exclAttrs =
-      resultEntry.getAttribute(fractionalExcludeType);
+    // Compare backend and local fractional configuration
+    return isFractionalConfigConsistent(fractionalConfig, exclIt, inclIt);
+  }
+
+  private SearchResultEntry findReplicationSearchResultEntry(
+      InternalSearchOperation searchOperation)
+  {
+    if (searchOperation.getResultCode() != ResultCode.SUCCESS)
+    {
+      return null;
+    }
+
+    List<SearchResultEntry> result = searchOperation.getSearchEntries();
+    SearchResultEntry resultEntry = result.get(0);
+    if (resultEntry != null)
+    {
+      AttributeType synchronizationGenIDType =
+          DirectoryServer.getAttributeType(REPLICATION_GENERATION_ID);
+      List<Attribute> attrs =
+          resultEntry.getAttribute(synchronizationGenIDType);
+      if (attrs != null)
+      {
+        Attribute attr = attrs.get(0);
+        if (attr.size() == 1)
+        {
+          return resultEntry;
+        }
+        if (attr.size() > 1)
+        {
+          Message message = ERR_LOADING_GENERATION_ID.get(baseDn.toString(),
+              "#Values=" + attr.size() + " Must be exactly 1 in entry "
+              + resultEntry.toLDIFString());
+          logError(message);
+        }
+      }
+    }
+    return null;
+  }
+
+  private Iterator<String> getAttributeValueIterator(
+      SearchResultEntry resultEntry, String attrName)
+  {
+    AttributeType attrType = DirectoryServer.getAttributeType(attrName);
+    List<Attribute> exclAttrs = resultEntry.getAttribute(attrType);
     if (exclAttrs != null)
     {
       Attribute exclAttr = exclAttrs.get(0);
       if (exclAttr != null)
       {
-        exclIt = new AttributeValueStringIterator(exclAttr.iterator());
+        return new AttributeValueStringIterator(exclAttr.iterator());
       }
     }
-
-    Iterator<String> inclIt = null;
-    AttributeType fractionalIncludeType =
-      DirectoryServer.getAttributeType(REPLICATION_FRACTIONAL_INCLUDE);
-    List<Attribute> inclAttrs =
-      resultEntry.getAttribute(fractionalIncludeType);
-    if (inclAttrs != null)
-    {
-      Attribute inclAttr = inclAttrs.get(0);
-      if (inclAttr != null)
-      {
-        inclIt = new AttributeValueStringIterator(inclAttr.iterator());
-      }
-    }
-
-    // Compare backend and local fractional configuration
-    return isFractionalConfigConsistent(fractionalConfig, exclIt, inclIt);
+    return null;
   }
 
   /**
@@ -1028,25 +1025,24 @@ public final class LDAPReplicationDomain extends ReplicationDomain
      * For each attribute in attributes1, check there is the matching
      * one in attributes2.
      */
-    for (String attributName1 : attributes1)
+    for (String attrName1 : attributes1)
     {
       // Get attribute from attributes1
-      AttributeType attributeType1 = schema.getAttributeType(attributName1);
+      AttributeType attributeType1 = schema.getAttributeType(attrName1);
       if (attributeType1 == null)
       {
         throw new ConfigException(
-          NOTE_ERR_FRACTIONAL_CONFIG_UNKNOWN_ATTRIBUTE_TYPE.get(attributName1));
+          NOTE_ERR_FRACTIONAL_CONFIG_UNKNOWN_ATTRIBUTE_TYPE.get(attrName1));
       }
       // Look for matching one in attributes2
       boolean foundAttribute = false;
-      for (String attributName2 : attributes2)
+      for (String attrName2 : attributes2)
       {
-        AttributeType attributeType2 = schema.getAttributeType(attributName2);
+        AttributeType attributeType2 = schema.getAttributeType(attrName2);
         if (attributeType2 == null)
         {
           throw new ConfigException(
-            NOTE_ERR_FRACTIONAL_CONFIG_UNKNOWN_ATTRIBUTE_TYPE.get(
-            attributName2));
+            NOTE_ERR_FRACTIONAL_CONFIG_UNKNOWN_ATTRIBUTE_TYPE.get(attrName2));
         }
         if (attributeType1.equals(attributeType2))
         {
@@ -1359,114 +1355,81 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       AttributeType attributeType = attributeTypes.next();
 
       // Only optional attributes may be removed
-      boolean isMandatoryAttribute = false;
-      for (ObjectClass objectClass : entryClasses)
-      {
-        if (objectClass.isRequired(attributeType))
-        {
-          isMandatoryAttribute = true;
-          break;
-        }
-      }
-      if (isMandatoryAttribute)
-      {
-        continue;
-      }
-
-      String attributeName = attributeType.getPrimaryName();
-      String attributeOid = attributeType.getOID();
+      if (isMandatoryAttribute(entryClasses, attributeType)
       // Do not remove an attribute if it is a prohibited one
-      if (((attributeName != null) &&
-        isFractionalProhibitedAttr(attributeName)) ||
-        isFractionalProhibitedAttr(attributeOid))
+          || isFractionalProhibited(attributeType)
+          || !canRemoveAttribute(attributeType, fractionalExclusive,
+              fractionalConcernedAttributes))
       {
         continue;
       }
 
-      // Is the current attribute part of the established list ?
-      boolean foundAttribute =
-        fractionalConcernedAttributes.contains(attributeName.toLowerCase());
-      if (!foundAttribute)
+      if (!performFiltering)
       {
-        foundAttribute =
-          fractionalConcernedAttributes.contains(attributeOid);
+        // The call was just to check : at least one attribute to filter
+        // found, return immediately the answer;
+        return true;
       }
-      // Now remove the attribute if:
-      // - exclusive mode and attribute is in configuration
-      // - inclusive mode and attribute is not in configuration
-      if ((foundAttribute && fractionalExclusive) ||
-        (!foundAttribute && !fractionalExclusive))
+
+      // Do not remove an attribute/value that is part of the RDN of the
+      // entry as it is forbidden
+      if (entryRdn.hasAttributeType(attributeType))
       {
-        if (performFiltering)
+        /*
+        We must remove all values of the attributes map for this
+        attribute type but the one that has the value which is in the RDN
+        of the entry. In fact the (underlying )attribute list does not
+        support remove so we have to create a new list, keeping only the
+        attribute value which is the same as in the RDN
+        */
+        AttributeValue rdnAttributeValue =
+          entryRdn.getAttributeValue(attributeType);
+        List<Attribute> attrList = attributesMap.get(attributeType);
+        AttributeValue sameAttrValue = null;
+        // Locate the attribute value identical to the one in the RDN
+        for (Attribute attr : attrList)
         {
-          // Do not remove an attribute/value that is part of the RDN of the
-          // entry as it is forbidden
-          if (entryRdn.hasAttributeType(attributeType))
+          if (attr.contains(rdnAttributeValue))
           {
-            /*
-            We must remove all values of the attributes map for this
-            attribute type but the one that has the value which is in the RDN
-            of the entry. In fact the (underlying )attribute list does not
-            support remove so we have to create a new list, keeping only the
-            attribute value which is the same as in the RDN
-            */
-            AttributeValue rdnAttributeValue =
-              entryRdn.getAttributeValue(attributeType);
-            List<Attribute> attrList = attributesMap.get(attributeType);
-            AttributeValue sameAttrValue = null;
-            //    Locate the attribute value identical to the one in the RDN
-            for (Attribute attr : attrList)
-            {
-              if (attr.contains(rdnAttributeValue))
-              {
-                for (AttributeValue attrValue : attr) {
-                  if (rdnAttributeValue.equals(attrValue)) {
-                    // Keep the value we want
-                    sameAttrValue = attrValue;
-                  } else {
-                    hasSomeAttributesToFilter = true;
-                  }
-                }
-              }
-              else
-              {
+            for (AttributeValue attrValue : attr) {
+              if (rdnAttributeValue.equals(attrValue)) {
+                // Keep the value we want
+                sameAttrValue = attrValue;
+              } else {
                 hasSomeAttributesToFilter = true;
               }
-            }
-            //    Recreate the attribute list with only the RDN attribute value
-            if (sameAttrValue != null)
-              // Paranoia check: should never be the case as we should always
-              // find the attribute/value pair matching the pair in the RDN
-            {
-              // Construct and store new attribute list
-              List<Attribute> newRdnAttrList = new ArrayList<Attribute>();
-              AttributeBuilder attrBuilder =
-                new AttributeBuilder(attributeType);
-              attrBuilder.add(sameAttrValue);
-              newRdnAttrList.add(attrBuilder.toAttribute());
-              newRdnAttrLists.add(newRdnAttrList);
-              /*
-              Store matching attribute type
-              The mapping will be done using object from rdnAttrTypes as key
-              and object from newRdnAttrLists (at same index) as value in
-              the user attribute map to be modified
-              */
-              rdnAttrTypes.add(attributeType);
             }
           }
           else
           {
-            // Found an attribute to remove, remove it from the list.
-            attributeTypes.remove();
             hasSomeAttributesToFilter = true;
           }
         }
-        else
+        //    Recreate the attribute list with only the RDN attribute value
+        if (sameAttrValue != null)
+          // Paranoia check: should never be the case as we should always
+          // find the attribute/value pair matching the pair in the RDN
         {
-          // The call was just to check : at least one attribute to filter
-          // found, return immediately the answer;
-          return true;
+          // Construct and store new attribute list
+          AttributeBuilder attrBuilder = new AttributeBuilder(attributeType);
+          attrBuilder.add(sameAttrValue);
+          List<Attribute> newRdnAttrList = new ArrayList<Attribute>();
+          newRdnAttrList.add(attrBuilder.toAttribute());
+          newRdnAttrLists.add(newRdnAttrList);
+          /*
+          Store matching attribute type
+          The mapping will be done using object from rdnAttrTypes as key
+          and object from newRdnAttrLists (at same index) as value in
+          the user attribute map to be modified
+          */
+          rdnAttrTypes.add(attributeType);
         }
+      }
+      else
+      {
+        // Found an attribute to remove, remove it from the list.
+        attributeTypes.remove();
+        hasSomeAttributesToFilter = true;
       }
     }
     // Now overwrite the attribute values for the attribute types present in the
@@ -1476,6 +1439,53 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       attributesMap.put(rdnAttrTypes.get(index), newRdnAttrLists.get(index));
     }
     return hasSomeAttributesToFilter;
+  }
+
+   private static boolean isMandatoryAttribute(Set<ObjectClass> entryClasses,
+       AttributeType attributeType)
+   {
+     for (ObjectClass objectClass : entryClasses)
+     {
+       if (objectClass.isRequired(attributeType))
+       {
+         return true;
+       }
+     }
+     return false;
+   }
+
+   private static boolean isFractionalProhibited(AttributeType attrType)
+   {
+     String attributeName = attrType.getPrimaryName();
+     return (attributeName != null && isFractionalProhibitedAttr(attributeName))
+         || isFractionalProhibitedAttr(attrType.getOID());
+   }
+
+  private static boolean canRemoveAttribute(AttributeType attributeType,
+      boolean fractionalExclusive, List<String> fractionalConcernedAttributes)
+  {
+    String attributeName = attributeType.getPrimaryName();
+    String attributeOid = attributeType.getOID();
+
+    // Is the current attribute part of the established list ?
+    boolean foundAttribute =
+        contains(fractionalConcernedAttributes, attributeName, attributeOid);
+    // Now remove the attribute or modification if:
+    // - exclusive mode and attribute is in configuration
+    // - inclusive mode and attribute is not in configuration
+    return (foundAttribute && fractionalExclusive)
+        || (!foundAttribute && !fractionalExclusive);
+  }
+
+  private static boolean contains(List<String> fractionalConcernedAttributes,
+      String attributeName, String attributeOid)
+  {
+    final boolean foundAttribute =
+        attributeName != null
+            && fractionalConcernedAttributes.contains(attributeName
+                .toLowerCase());
+    return foundAttribute
+        || fractionalConcernedAttributes.contains(attributeOid);
   }
 
   /**
@@ -1557,7 +1567,6 @@ public final class LDAPReplicationDomain extends ReplicationDomain
   public int fractionalFilterOperation(PreOperationModifyOperation
     modifyOperation, boolean performFiltering)
   {
-    int result = FRACTIONAL_HAS_NO_FRACTIONAL_FILTERED_ATTRIBUTES;
     /*
      * Prepare a list of attributes to be included/excluded according to the
      * fractional replication configuration
@@ -1597,6 +1606,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
      * - modify attributes: remove them if regarding a filtered attribute
      */
 
+    int result = FRACTIONAL_HAS_NO_FRACTIONAL_FILTERED_ATTRIBUTES;
     List<Modification> mods = modifyOperation.getModifications();
     Iterator<Modification> modsIt = mods.iterator();
     while (modsIt.hasNext())
@@ -1605,65 +1615,30 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       Attribute attr = mod.getAttribute();
       AttributeType attrType = attr.getAttributeType();
       // Fractional replication ignores operational attributes
-      if (!attrType.isOperational())
+      if (attrType.isOperational()
+          || isMandatoryAttribute(entryClasses, attrType)
+          || isFractionalProhibited(attrType)
+          || !canRemoveAttribute(attrType, fractionalExclusive,
+              fractionalConcernedAttributes))
       {
-        // Only optional attributes may be removed
-        boolean isMandatoryAttribute = false;
-        for (ObjectClass objectClass : entryClasses)
-        {
-          if (objectClass.isRequired(attrType))
-          {
-            isMandatoryAttribute = true;
-            break;
-          }
-        }
-        if (isMandatoryAttribute)
-        {
-          continue;
-        }
+        continue;
+      }
 
-        String attributeName = attrType.getPrimaryName();
-        String attributeOid = attrType.getOID();
-        // Do not remove an attribute if it is a prohibited one
-        if (((attributeName != null) &&
-          isFractionalProhibitedAttr(attributeName)) ||
-          isFractionalProhibitedAttr(attributeOid))
+      if (!performFiltering)
+      {
+        // The call was just to check : at least one attribute to filter
+        // found, return immediately the answer;
+        return FRACTIONAL_HAS_FRACTIONAL_FILTERED_ATTRIBUTES;
+      }
+      else
+      {
+        // Found a modification to remove, remove it from the list.
+        modsIt.remove();
+        result = FRACTIONAL_HAS_FRACTIONAL_FILTERED_ATTRIBUTES;
+        if (mods.isEmpty())
         {
-          continue;
-        }
-        // Is the current attribute part of the established list ?
-        boolean foundAttribute = attributeName != null &&
-          fractionalConcernedAttributes.contains(attributeName.toLowerCase());
-        if (!foundAttribute)
-        {
-          foundAttribute =
-            fractionalConcernedAttributes.contains(attributeOid);
-        }
-
-        // Now remove the modification if:
-        // - exclusive mode and the concerned attribute is in configuration
-        // - inclusive mode and the concerned attribute is not in configuration
-        if ( (foundAttribute && fractionalExclusive) ||
-             (!foundAttribute && !fractionalExclusive) )
-        {
-          if (performFiltering)
-          {
-            // Found a modification to remove, remove it from the list.
-            modsIt.remove();
-            result = FRACTIONAL_HAS_FRACTIONAL_FILTERED_ATTRIBUTES;
-            if (mods.isEmpty())
-            {
-              // This operation must become a no-op as no more modification in
-              // it
-              return FRACTIONAL_BECOME_NO_OP;
-            }
-          }
-          else
-          {
-            // The call was just to check : at least one attribute to filter
-            // found, return immediately the answer;
-            return FRACTIONAL_HAS_FRACTIONAL_FILTERED_ATTRIBUTES;
-          }
+          // This operation must become a no-op as no more modification in it
+          return FRACTIONAL_BECOME_NO_OP;
         }
       }
     }
@@ -1684,30 +1659,27 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     {
       // Ok, next entry is allowed to be received
       return super.receiveEntryBytes();
-    } else
-    {
-      // Fractional ldif import plugin detected inconsistency between local
-      // and remote server fractional configuration and is stopping the import
-      // process:
-      // This is an error termination during the import
-      // The error is stored and the import is ended
-      // by returning null
-      Message msg = null;
-      switch (importErrorMessageId)
-      {
-        case IMPORT_ERROR_MESSAGE_BAD_REMOTE:
-          msg = NOTE_ERR_FULL_UPDATE_IMPORT_FRACTIONAL_BAD_REMOTE.get(
-            baseDn.toString(), Integer.toString(ieContext.getImportSource()));
-          break;
-        case IMPORT_ERROR_MESSAGE_REMOTE_IS_FRACTIONAL:
-          msg = NOTE_ERR_FULL_UPDATE_IMPORT_FRACTIONAL_REMOTE_IS_FRACTIONAL.get(
-            baseDn.toString(), Integer.toString(ieContext.getImportSource()));
-          break;
-      }
-      ieContext.setException(
-        new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, msg));
-      return null;
     }
+
+    // Fractional ldif import plugin detected inconsistency between local and
+    // remote server fractional configuration and is stopping the import
+    // process:
+    // This is an error termination during the import
+    // The error is stored and the import is ended by returning null
+    Message msg = null;
+    switch (importErrorMessageId)
+    {
+    case IMPORT_ERROR_MESSAGE_BAD_REMOTE:
+      msg = NOTE_ERR_FULL_UPDATE_IMPORT_FRACTIONAL_BAD_REMOTE.get(
+          baseDn.toString(), Integer.toString(ieContext.getImportSource()));
+      break;
+    case IMPORT_ERROR_MESSAGE_REMOTE_IS_FRACTIONAL:
+      msg = NOTE_ERR_FULL_UPDATE_IMPORT_FRACTIONAL_REMOTE_IS_FRACTIONAL.get(
+          baseDn.toString(), Integer.toString(ieContext.getImportSource()));
+      break;
+    }
+    ieContext.setException(new DirectoryException(UNWILLING_TO_PERFORM, msg));
+    return null;
   }
 
   /**
@@ -1727,10 +1699,9 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       Message msg = NOTE_ERR_FRACTIONAL_FORBIDDEN_FULL_UPDATE_FRACTIONAL.get(
             baseDn.toString(), Integer.toString(getServerId()));
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, msg);
-    } else
-    {
-      super.initializeRemote(target, requestorID, initTask, this.initWindow);
     }
+
+    super.initializeRemote(target, requestorID, initTask, this.initWindow);
   }
 
   /**
@@ -1829,8 +1800,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
   public SynchronizationProviderResult handleConflictResolution(
       PreOperationAddOperation addOperation)
   {
-    if ((!addOperation.isSynchronizationOperation())
-        && (!brokerIsConnected()))
+    if (!addOperation.isSynchronizationOperation() && !brokerIsConnected())
     {
       Message msg = ERR_REPLICATION_COULD_NOT_CONNECT.get(baseDn.toString());
       return new SynchronizationProviderResult.StopProcessing(
@@ -1889,14 +1859,12 @@ public final class LDAPReplicationDomain extends ReplicationDomain
        */
 
       String parentEntryUUID = ctx.getParentEntryUUID();
-      // root entry have no parent,
-      // there is no need to check for it.
+      // root entry have no parent, there is no need to check for it.
       if (parentEntryUUID != null)
       {
         // There is a potential of perfs improvement here
         // if we could avoid the following parent entry retrieval
         DN parentDnFromCtx = findEntryDN(ctx.getParentEntryUUID());
-
         if (parentDnFromCtx == null)
         {
           // The parent does not exist with the specified unique id
@@ -1965,8 +1933,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
   public SynchronizationProviderResult handleConflictResolution(
       PreOperationModifyDNOperation modifyDNOperation)
   {
-    if ((!modifyDNOperation.isSynchronizationOperation())
-        && (!brokerIsConnected()))
+    if (!modifyDNOperation.isSynchronizationOperation() && !brokerIsConnected())
     {
       Message msg = ERR_REPLICATION_COULD_NOT_CONNECT.get(baseDn.toString());
       return new SynchronizationProviderResult.StopProcessing(
@@ -2180,9 +2147,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
               ResultCode.NO_SUCH_OBJECT, null);
       }
 
-      /*
-       * Solve the conflicts between modify operations
-       */
+      // Solve the conflicts between modify operations
       EntryHistorical historicalInformation =
         EntryHistorical.newInstanceFromEntry(modifiedEntry);
       modifyOperation.setAttachment(EntryHistorical.HISTORICAL,
@@ -2192,7 +2157,6 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       {
         numResolvedModifyConflicts.incrementAndGet();
       }
-
     }
     return new SynchronizationProviderResult.ContinueProcessing();
   }
@@ -2408,7 +2372,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
      if (entryToRename != null)
      {
        DN entryDN = entryToRename.getDN();
-       ModifyDNOperationBasis newOp = renameEntry(
+       ModifyDNOperation newOp = renameEntry(
            entryDN, freedDN.getRDN(), freedDN.getParent(), false);
 
        ResultCode res = newOp.getResultCode();
@@ -2439,39 +2403,38 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    *
    * @return The operation that was run to rename the entry.
    */
-  private ModifyDNOperationBasis renameEntry(
-      DN targetDN, RDN newRDN, DN parentDN, boolean markConflict)
+  private ModifyDNOperation renameEntry(DN targetDN, RDN newRDN, DN parentDN,
+      boolean markConflict)
   {
-    ModifyDNOperationBasis newOp =
-        new ModifyDNOperationBasis(
+    ModifyDNOperation newOp = new ModifyDNOperationBasis(
         conn, InternalClientConnection.nextOperationID(),
         InternalClientConnection.nextMessageID(), new ArrayList<Control>(0),
-        targetDN, newRDN, false,
-        parentDN);
-    newOp.setInternalOperation(true);
-    newOp.setSynchronizationOperation(true);
-    newOp.setDontSynchronize(true);
+        targetDN, newRDN, false, parentDN);
 
+    AttributeType attrType =
+        DirectoryServer.getAttributeType(DS_SYNC_CONFLICT, true);
     if (markConflict)
     {
-      AttributeType attrType =
-          DirectoryServer.getAttributeType(DS_SYNC_CONFLICT, true);
-      Attribute attr = Attributes.create(attrType, AttributeValues.create(
-          attrType, targetDN.toNormalizedString()));
-      Modification mod = new Modification(ModificationType.REPLACE, attr);
-      newOp.addModification(mod);
+      Attribute attr =
+          Attributes.create(attrType, targetDN.toNormalizedString());
+      newOp.addModification(new Modification(ModificationType.REPLACE, attr));
     }
     else
     {
-      AttributeType attrType =
-          DirectoryServer.getAttributeType(DS_SYNC_CONFLICT, true);
       Attribute attr = Attributes.empty(attrType);
-      Modification mod = new Modification(ModificationType.DELETE, attr);
-      newOp.addModification(mod);
+      newOp.addModification(new Modification(ModificationType.DELETE, attr));
     }
 
-    newOp.run();
+    runAsSynchronizedOperation(newOp);
     return newOp;
+  }
+
+  private void runAsSynchronizedOperation(Operation op)
+  {
+    op.setInternalOperation(true);
+    op.setSynchronizationOperation(true);
+    op.setDontSynchronize(true);
+    op.run();
   }
 
   /**
@@ -2483,8 +2446,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
   {
     if (pendingChanges != null)
       return pendingChanges.size();
-    else
-      return 0;
+    return 0;
   }
 
   /**
@@ -2622,29 +2584,26 @@ public final class LDAPReplicationDomain extends ReplicationDomain
             else if (op instanceof ModifyOperation)
             {
               ModifyOperation newOp = (ModifyOperation) op;
-              dependency = remotePendingChanges
-                  .checkDependencies(newOp);
+              dependency = remotePendingChanges.checkDependencies(newOp);
               ModifyMsg modifyMsg = (ModifyMsg) msg;
               replayDone = solveNamingConflict(newOp, modifyMsg);
             }
             else if (op instanceof DeleteOperation)
             {
               DeleteOperation newOp = (DeleteOperation) op;
-              dependency = remotePendingChanges
-                  .checkDependencies(newOp);
+              dependency = remotePendingChanges.checkDependencies(newOp);
               replayDone = solveNamingConflict(newOp, msg);
             }
             else if (op instanceof AddOperation)
             {
               AddOperation newOp = (AddOperation) op;
               AddMsg addMsg = (AddMsg) msg;
-              dependency = remotePendingChanges
-                  .checkDependencies(newOp);
+              dependency = remotePendingChanges.checkDependencies(newOp);
               replayDone = solveNamingConflict(newOp, addMsg);
             }
-            else if (op instanceof ModifyDNOperationBasis)
+            else if (op instanceof ModifyDNOperation)
             {
-              ModifyDNOperationBasis newOp = (ModifyDNOperationBasis) op;
+              ModifyDNOperation newOp = (ModifyDNOperation) op;
               replayDone = solveNamingConflict(newOp, msg);
             }
             else
@@ -2766,8 +2725,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       // changes table.
       if (debugEnabled())
       {
-        TRACER
-            .debugInfo(
+        TRACER.debugInfo(
                 "LDAPReplicationDomain.updateError: Unable to find remote "
                     + "pending change for change number %s",
                 changeNumber);
@@ -3377,19 +3335,13 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     Attribute attr = Attributes.create(attrType, AttributeValues.create(
         attrType, conflictDN.toNormalizedString()));
     List<Modification> mods = new ArrayList<Modification>();
-    Modification mod = new Modification(ModificationType.REPLACE, attr);
-    mods.add(mod);
+    mods.add(new Modification(ModificationType.REPLACE, attr));
 
-    ModifyOperationBasis newOp =
-      new ModifyOperationBasis(
+    ModifyOperation newOp = new ModifyOperationBasis(
           conn, InternalClientConnection.nextOperationID(),
           InternalClientConnection.nextMessageID(), new ArrayList<Control>(0),
           currentDN, mods);
-    newOp.setInternalOperation(true);
-    newOp.setSynchronizationOperation(true);
-    newOp.setDontSynchronize(true);
-
-    newOp.run();
+    runAsSynchronizedOperation(newOp);
 
     if (newOp.getResultCode() != ResultCode.SUCCESS)
     {
@@ -3464,15 +3416,14 @@ private boolean solveNamingConflict(ModifyDNOperation op,
   private RDN generateDeleteConflictDn(String entryUUID, DN dn)
   {
     String newRDN =  "entryuuid=" + entryUUID + "+" + dn.getRDN();
-    RDN rdn = null;
     try
     {
-      rdn = RDN.decode(newRDN);
+      return RDN.decode(newRDN);
     } catch (DirectoryException e)
     {
       // cannot happen
+      return null;
     }
-    return rdn;
   }
 
   /**
@@ -3619,25 +3570,19 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     ByteString asn1BaseDn = ByteString.valueOf(entryDN.toString());
 
     ArrayList<ByteString> values = new ArrayList<ByteString>();
-    ByteString value = ByteString.valueOf(Long.toString(generationId));
-    values.add(value);
+    values.add(ByteString.valueOf(Long.toString(generationId)));
 
     LDAPAttribute attr =
       new LDAPAttribute(REPLICATION_GENERATION_ID, values);
-    LDAPModification mod = new LDAPModification(ModificationType.REPLACE, attr);
-    ArrayList<RawModification> mods = new ArrayList<RawModification>(1);
-    mods.add(mod);
+    List<RawModification> mods = new ArrayList<RawModification>(1);
+    mods.add(new LDAPModification(ModificationType.REPLACE, attr));
 
-    ModifyOperationBasis op =
-      new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
+    ModifyOperation op = new ModifyOperationBasis(
+          conn, InternalClientConnection.nextOperationID(),
           InternalClientConnection.nextMessageID(),
           new ArrayList<Control>(0), asn1BaseDn,
           mods);
-    op.setInternalOperation(true);
-    op.setSynchronizationOperation(true);
-    op.setDontSynchronize(true);
-
-    op.run();
+    runAsSynchronizedOperation(op);
 
     return op.getResultCode();
   }
@@ -4278,19 +4223,19 @@ private boolean solveNamingConflict(ModifyDNOperation op,
    */
   public void synchronizeModifications(List<Modification> modifications)
   {
-    ModifyOperation opBasis =
-      new ModifyOperationBasis(InternalClientConnection.getRootConnection(),
+    ModifyOperation op = new ModifyOperationBasis(
+                          InternalClientConnection.getRootConnection(),
                           InternalClientConnection.nextOperationID(),
                           InternalClientConnection.nextMessageID(),
                           null, DirectoryServer.getSchemaDN(),
                           modifications);
-    LocalBackendModifyOperation op = new LocalBackendModifyOperation(opBasis);
+    LocalBackendModifyOperation localOp = new LocalBackendModifyOperation(op);
 
-    ChangeNumber cn = generateChangeNumber(op);
+    ChangeNumber cn = generateChangeNumber(localOp);
     OperationContext ctx = new ModifyContext(cn, "schema");
-    op.setAttachment(SYNCHROCONTEXT, ctx);
-    op.setResultCode(ResultCode.SUCCESS);
-    synchronize(op);
+    localOp.setAttachment(SYNCHROCONTEXT, ctx);
+    localOp.setResultCode(ResultCode.SUCCESS);
+    synchronize(localOp);
   }
 
   /**
@@ -4361,15 +4306,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     // Read fractional configuration and reconnect if needed
     readFractionalConfig(configuration, true);
 
-    /*
-     * Modify conflicts are solved for all suffixes but the schema suffix
-     * because we don't want to store extra information in the schema
-     * ldif files.
-     * This has no negative impact because the changes on schema should
-     * not produce conflicts.
-     */
-    solveConflictFlag = baseDn.compareTo(DirectoryServer.getSchemaDN()) != 0 &&
-        configuration.isSolveConflicts();
+    solveConflictFlag = isSolveConflict(configuration);
 
     try
     {
@@ -4391,7 +4328,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
          ReplicationDomainCfg configuration, List<Message> unacceptableReasons)
   {
     // Check that a import/export is not in progress
-    if (this.importInProgress() || this.exportInProgress())
+    if (importInProgress() || exportInProgress())
     {
       unacceptableReasons.add(
           NOTE_ERR_CANNOT_CHANGE_CONFIG_DURING_TOTAL_UPDATE.get());
@@ -4402,22 +4339,22 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     try
     {
       isFractionalConfigAcceptable(configuration);
-    } catch (ConfigException e)
+      return true;
+    }
+    catch (ConfigException e)
     {
       unacceptableReasons.add(e.getMessageObject());
       return false;
     }
-
-    return true;
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public LinkedHashMap<String, String> getAlerts()
+  public Map<String, String> getAlerts()
   {
-    LinkedHashMap<String,String> alerts = new LinkedHashMap<String,String>();
+    Map<String, String> alerts = new LinkedHashMap<String, String>();
 
     alerts.put(ALERT_TYPE_REPLICATION_UNRESOLVED_CONFLICT,
                ALERT_DESCRIPTION_REPLICATION_UNRESOLVED_CONFLICT);
@@ -4633,8 +4570,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       if ((replServerMaxChangeNumber != null) &&
           (replServerMaxChangeNumber.getSeqnum()!=0))
       {
-        ChangeNumber ourMaxChangeNumber =
-          state.getMaxChangeNumber(serverId);
+        ChangeNumber ourMaxChangeNumber = state.getMaxChangeNumber(serverId);
 
         if ((ourMaxChangeNumber != null) &&
             (!ourMaxChangeNumber.olderOrEqual(replServerMaxChangeNumber)))
@@ -4651,7 +4587,6 @@ private boolean solveNamingConflict(ModifyDNOperation op,
           e.getLocalizedMessage() + stackTraceToSingleLineString(e));
       logError(message);
     }
-
   }
 
   /**
@@ -4691,7 +4626,6 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     }
 
     ChangeNumber lastRetrievedChange;
-    long missingChangesDelta;
     InternalSearchOperation op;
     ChangeNumber currentStartChangeNumber = startingChangeNumber;
     do
@@ -4703,7 +4637,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       // So we search by interval of 10 seconds
       // and store the results in the replayOperations list
       // so that they are sorted before sending them.
-      missingChangesDelta = currentStartChangeNumber.getTime() + 10000;
+      long missingChangesDelta = currentStartChangeNumber.getTime() + 10000;
       ChangeNumber endChangeNumber =
         new ChangeNumber(
             missingChangesDelta, 0xffffffff, serverId);
@@ -4738,7 +4672,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
 
       for (FakeOperation opToSend : opsToSend)
       {
-          session.publishRecovery(opToSend.generateMessage());
+        session.publishRecovery(opToSend.generateMessage());
       }
       opsToSend.clear();
       if (lastRetrievedChange != null)
@@ -4911,29 +4845,20 @@ private boolean solveNamingConflict(ModifyDNOperation op,
   @Override
   public Collection<Attribute> getAdditionalMonitoring()
   {
-    ArrayList<Attribute> attributes = new ArrayList<Attribute>();
+    List<Attribute> attributes = new ArrayList<Attribute>();
 
-    /* get number of changes in the pending list */
-    ReplicationMonitor.addMonitorData(
-        attributes, "pending-updates", getPendingUpdatesCount());
+    // get number of changes in the pending list
+    addMonitorData(attributes, "pending-updates", getPendingUpdatesCount());
 
-    /* get number of changes successfully */
-    ReplicationMonitor.addMonitorData(attributes, "replayed-updates-ok",
+    addMonitorData(attributes, "replayed-updates-ok",
         getNumReplayedPostOpCalled());
-
-    /* get number of modify conflicts */
-    ReplicationMonitor.addMonitorData(attributes, "resolved-modify-conflicts",
+    addMonitorData(attributes, "resolved-modify-conflicts",
         getNumResolvedModifyConflicts());
-
-    /* get number of naming conflicts */
-    ReplicationMonitor.addMonitorData(attributes, "resolved-naming-conflicts",
+    addMonitorData(attributes, "resolved-naming-conflicts",
         getNumResolvedNamingConflicts());
-
-    /* get number of unresolved naming conflicts */
-    ReplicationMonitor.addMonitorData(attributes, "unresolved-naming-conflicts",
+    addMonitorData(attributes, "unresolved-naming-conflicts",
         getNumUnresolvedNamingConflicts());
-
-    ReplicationMonitor.addMonitorData(attributes, "remote-pending-changes-size",
+    addMonitorData(attributes, "remote-pending-changes-size",
         remotePendingChanges.getQueueSize());
 
     return attributes;
@@ -4946,8 +4871,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
    * @return The source as a integer value
    * @throws DirectoryException if the string is not valid
    */
-  public int decodeSource(String sourceString)
-  throws DirectoryException
+  public int decodeSource(String sourceString) throws DirectoryException
   {
     int  source = 0;
     Throwable cause = null;
@@ -4973,17 +4897,12 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       Message message = ERR_INVALID_IMPORT_SOURCE.get(
           baseDn.toNormalizedString(), Integer.toString(serverId),
           Integer.toString(source),"Details:" + cause.getLocalizedMessage());
-      throw new DirectoryException(
-          resultCode, message, cause);
+      throw new DirectoryException(resultCode, message, cause);
     }
-    else
-    {
-      Message message = ERR_INVALID_IMPORT_SOURCE.get(
-          baseDn.toNormalizedString(), Integer.toString(serverId),
-          Integer.toString(source),"");
-      throw new DirectoryException(
-          resultCode, message);
-    }
+    Message message = ERR_INVALID_IMPORT_SOURCE.get(
+        baseDn.toNormalizedString(), Integer.toString(serverId),
+        Integer.toString(source),"");
+    throw new DirectoryException(resultCode, message);
   }
 
   /**
@@ -5089,13 +5008,11 @@ private boolean solveNamingConflict(ModifyDNOperation op,
                 .getObjectClass(toLowerCase(ocName));
             if (objectClass != null)
             {
-              for (AttributeType at : objectClass
-                  .getRequiredAttributeChain())
+              for (AttributeType at : objectClass.getRequiredAttributeChain())
               {
                 expandedNames.add(at.getNameOrOID());
               }
-              for (AttributeType at : objectClass
-                  .getOptionalAttributeChain())
+              for (AttributeType at : objectClass.getOptionalAttributeChain())
               {
                 expandedNames.add(at.getNameOrOID());
               }
@@ -5299,16 +5216,14 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     {
       // Prepare fractional configuration variables to parse
       Iterator<String> exclIt = null;
-      SortedSet<String> fractionalExclude =
-        configuration.getFractionalExclude();
+      Set<String> fractionalExclude = configuration.getFractionalExclude();
       if (fractionalExclude != null)
       {
         exclIt = fractionalExclude.iterator();
       }
 
       Iterator<String> inclIt = null;
-      SortedSet<String> fractionalInclude =
-        configuration.getFractionalInclude();
+      Set<String> fractionalInclude = configuration.getFractionalInclude();
       if (fractionalInclude != null)
       {
         inclIt = fractionalInclude.iterator();
@@ -5453,9 +5368,9 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     }
 
     // Return type of the parseFractionalConfig method
-    static final int NOT_FRACTIONAL = 0;
-    static final int EXCLUSIVE_FRACTIONAL = 1;
-    static final int INCLUSIVE_FRACTIONAL = 2;
+    private static final int NOT_FRACTIONAL = 0;
+    private static final int EXCLUSIVE_FRACTIONAL = 1;
+    private static final int INCLUSIVE_FRACTIONAL = 2;
 
     /**
      * Get an integer representation of the domain fractional configuration.
@@ -5463,61 +5378,48 @@ private boolean solveNamingConflict(ModifyDNOperation op,
      */
     int fractionalConfigToInt()
     {
-      int fractionalMode;
-      if (fractional)
-      {
-        if (fractionalExclusive)
-          fractionalMode = EXCLUSIVE_FRACTIONAL;
-        else
-          fractionalMode = INCLUSIVE_FRACTIONAL;
-      } else
-      {
-        fractionalMode = NOT_FRACTIONAL;
-      }
-      return fractionalMode;
+      if (!fractional)
+        return NOT_FRACTIONAL;
+      if (fractionalExclusive)
+        return EXCLUSIVE_FRACTIONAL;
+      return INCLUSIVE_FRACTIONAL;
     }
 
     /**
      * Compare 2 fractional replication configurations and returns true if they
      * are equivalent.
-     * @param fractionalConfig1 First fractional configuration
-     * @param fractionalConfig2 Second fractional configuration
+     * @param cfg1 First fractional configuration
+     * @param cfg2 Second fractional configuration
      * @return True if both configurations are equivalent.
      * @throws ConfigException If some classes or attributes could not be
      * retrieved from the schema.
      */
-     static boolean isFractionalConfigEquivalent(
-      FractionalConfig fractionalConfig1, FractionalConfig fractionalConfig2)
-      throws ConfigException
+    static boolean isFractionalConfigEquivalent(FractionalConfig cfg1,
+        FractionalConfig cfg2) throws ConfigException
     {
       // Compare base DNs just to be consistent
-      if (!fractionalConfig1.getBaseDn().equals(fractionalConfig2.getBaseDn()))
+      if (!cfg1.getBaseDn().equals(cfg2.getBaseDn()))
         return false;
 
       // Compare modes
-      if ( (fractionalConfig1.isFractional() !=
-        fractionalConfig2.isFractional()) ||
-        (fractionalConfig1.isFractionalExclusive() !=
-        fractionalConfig2.isFractionalExclusive()) )
+      if ((cfg1.isFractional() != cfg2.isFractional())
+          || (cfg1.isFractionalExclusive() != cfg2.isFractionalExclusive()))
         return false;
 
       // Compare all classes attributes
-      List<String> allClassesAttributes1 =
-        fractionalConfig1.getFractionalAllClassesAttributes();
-      List<String> allClassesAttributes2 =
-        fractionalConfig2.getFractionalAllClassesAttributes();
-      if (!isAttributeListEquivalent(allClassesAttributes1,
-        allClassesAttributes2))
-              return false;
+      List<String> allClassesAttrs1 = cfg1.getFractionalAllClassesAttributes();
+      List<String> allClassesAttrs2 = cfg2.getFractionalAllClassesAttributes();
+      if (!isAttributeListEquivalent(allClassesAttrs1, allClassesAttrs2))
+        return false;
 
       // Compare specific classes attributes
-      Map<String, List<String>> specificClassesAttributes1 =
-        fractionalConfig1.getFractionalSpecificClassesAttributes();
-      Map<String, List<String>> specificClassesAttributes2 =
-        fractionalConfig2.getFractionalSpecificClassesAttributes();
-      if (specificClassesAttributes1.size() !=
-        specificClassesAttributes2.size())
+      Map<String, List<String>> specificClassesAttrs1 =
+          cfg1.getFractionalSpecificClassesAttributes();
+      Map<String, List<String>> specificClassesAttrs2 =
+          cfg2.getFractionalSpecificClassesAttributes();
+      if (specificClassesAttrs1.size() != specificClassesAttrs2.size())
         return false;
+
       /*
        * Check consistency of specific classes attributes
        *
@@ -5525,7 +5427,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
        * list is equivalent to specificClassesAttributes2 attribute list
        */
       Schema schema = DirectoryServer.getSchema();
-      for (String className1 : specificClassesAttributes1.keySet())
+      for (String className1 : specificClassesAttrs1.keySet())
       {
         // Get class from specificClassesAttributes1
         ObjectClass objectClass1 = schema.getObjectClass(className1);
@@ -5537,7 +5439,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
 
         // Look for matching one in specificClassesAttributes2
         boolean foundClass = false;
-        for (String className2 : specificClassesAttributes2.keySet())
+        for (String className2 : specificClassesAttrs2.keySet())
         {
           ObjectClass objectClass2 = schema.getObjectClass(className2);
           if (objectClass2 == null)
@@ -5549,10 +5451,8 @@ private boolean solveNamingConflict(ModifyDNOperation op,
           {
             foundClass = true;
             // Now compare the 2 attribute lists
-            List<String> attributes1 =
-              specificClassesAttributes1.get(className1);
-            List<String> attributes2 =
-              specificClassesAttributes2.get(className2);
+            List<String> attributes1 = specificClassesAttrs1.get(className1);
+            List<String> attributes2 = specificClassesAttrs2.get(className2);
             if (!isAttributeListEquivalent(attributes1, attributes2))
               return false;
             break;
@@ -5609,10 +5509,9 @@ private boolean solveNamingConflict(ModifyDNOperation op,
    * @throws DirectoryException
    *           when an exception happens.
    */
-   public void purgeConflictsHistorical(PurgeConflictsHistoricalTask task,
-       long endDate)
-   throws DirectoryException
-   {
+  public void purgeConflictsHistorical(PurgeConflictsHistoricalTask task,
+      long endDate) throws DirectoryException
+  {
      TRACER.debugInfo("[PURGE] purgeConflictsHistorical "
          + "on domain: " + baseDn
          + "endDate:" + new Date(endDate)
@@ -5664,18 +5563,13 @@ private boolean solveNamingConflict(ModifyDNOperation op,
        List<Modification> mods = new LinkedList<Modification>();
        mods.add(new Modification(ModificationType.REPLACE, attr));
 
-       ModifyOperationBasis newOp =
-         new ModifyOperationBasis(
+       ModifyOperation newOp = new ModifyOperationBasis(
              conn, InternalClientConnection.nextOperationID(),
              InternalClientConnection.nextMessageID(),
              new ArrayList<Control>(0),
              entry.getDN(),
              mods);
-       newOp.setInternalOperation(true);
-       newOp.setSynchronizationOperation(true);
-       newOp.setDontSynchronize(true);
-
-       newOp.run();
+      runAsSynchronizedOperation(newOp);
 
        if (newOp.getResultCode() != ResultCode.SUCCESS)
        {
@@ -5687,11 +5581,10 @@ private boolean solveNamingConflict(ModifyDNOperation op,
          mb.append(String.valueOf(newOp.getResultCode()));
          logError(mb.toMessage());
        }
-       else
+       else if (task != null)
        {
-         if (task != null)
-           task.setProgressStats(lastChangeNumberPurgedFromHist, count);
+         task.setProgressStats(lastChangeNumberPurgedFromHist, count);
        }
      }
-   }
+  }
 }
