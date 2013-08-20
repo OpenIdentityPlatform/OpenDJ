@@ -65,7 +65,6 @@ import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.util.StaticUtils.*;
 import static org.testng.Assert.*;
 
 /**
@@ -80,7 +79,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
   private int replServerPort = -1;
   /** Represents the real domain to test (replays and filters) */
   private Entry fractionalDomainCfgEntry = null;
-  /** The domain used to send updates to the reald domain */
+  /** The domain used to send updates to the real domain */
   private FakeReplicationDomain replicationDomain = null;
 
   /** Ids of servers */
@@ -236,10 +235,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
 
     try
     {
-      // create replication server
       createReplicationServer(testcase);
-
-      // create fractional domain with the passed fractional configuration
       createFractionalDomain(true, EXCLUDE_FRAC_MODE, fractionalConf);
 
       // create fake domain to send operations
@@ -250,14 +246,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
 
       // check that entry has been created and that it does not contain
       // forbidden attributes
-      Entry newEntry = null;
-      try
-      {
-        newEntry = getEntry(DN.decode(ENTRY_DN), TIMEOUT, true);
-      } catch(Exception e)
-      {
-        fail("Entry has not been added: " + e.getMessage());
-      }
+      Entry newEntry = getEntry(DN.decode(ENTRY_DN), TIMEOUT, true);
       checkEntryFilteredAfterAdd(newEntry, EXCLUDE_FRAC_MODE, fractionalConf);
 
       // perform modify operation (modify forbidden attributes +
@@ -266,27 +255,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
 
       // Wait for modify operation being replayed and
       // check that entry does not contain forbidden attributes
-      Entry entry = null;
-      boolean synchroAttrFound = false;
-      int timeout = TIMEOUT;
-      while(timeout>0)
-      {
-        try
-        {
-          entry = getEntry(DN.decode(ENTRY_DN), TIMEOUT, true);
-          if (entry.hasAttribute(DirectoryServer.getAttributeType(SYNCHRO_OPTIONAL_ATTR.toLowerCase())))
-          {
-            synchroAttrFound = true;
-            break;
-          }
-          Thread.sleep(1000);
-          timeout--;
-        } catch (Exception e)
-        {
-          fail("Error waiting for modify operation being replayed : " + e.getMessage());
-        }
-      }
-      assertTrue(synchroAttrFound, "Modify operation not replayed");
+      Entry entry = waitTillEntryHasSynchroAttribute(ENTRY_DN);
       checkEntryFilteredAfterModify(entry, EXCLUDE_FRAC_MODE, fractionalConf);
     }
     finally
@@ -371,17 +340,13 @@ public class FractionalReplicationTest extends ReplicationTestCase {
   private void testInclude(int testProviderLineId,
     String... fractionalConf) throws Exception
   {
-
     String testcase = "testInclude" + testProviderLineId;
 
     initTest();
 
     try
     {
-      // create replication server
       createReplicationServer(testcase);
-
-      // create fractional domain with the passed fractional configuration
       createFractionalDomain(true, INCLUDE_FRAC_MODE, fractionalConf);
 
       // create fake domain to send operations
@@ -392,43 +357,14 @@ public class FractionalReplicationTest extends ReplicationTestCase {
 
       // check that entry has been created and that it does not contain
       // forbidden attributes
-      Entry newEntry = null;
-      try
-      {
-        newEntry = getEntry(DN.decode(ENTRY_DN), TIMEOUT, true);
-      } catch(Exception e)
-      {
-        fail("Entry has not been added: " + e.getMessage());
-      }
+      Entry newEntry = getEntry(DN.decode(ENTRY_DN), TIMEOUT, true);
       checkEntryFilteredAfterAdd(newEntry, INCLUDE_FRAC_MODE, fractionalConf);
 
       // perform modify operation (modify forbidden attributes +
       // modify authorized attribute (not a no op))
       sendModifyMsg(true, fractionalConf);
 
-      // Wait for modify operation being replayed and
-      // check that entry does not contain forbidden attributes
-      Entry entry = null;
-      boolean synchroAttrFound = false;
-      int timeout = TIMEOUT;
-      while(timeout>0)
-      {
-        try
-        {
-          entry = getEntry(DN.decode(ENTRY_DN), TIMEOUT, true);
-          if (entry.hasAttribute(DirectoryServer.getAttributeType(SYNCHRO_OPTIONAL_ATTR.toLowerCase())))
-          {
-            synchroAttrFound = true;
-            break;
-          }
-          Thread.sleep(1000);
-          timeout--;
-        } catch (Exception e)
-        {
-          fail("Error waiting for modify operation being replayed : " + e.getMessage());
-        }
-      }
-      assertTrue(synchroAttrFound, "Modify operation not replayed");
+      Entry entry = waitTillEntryHasSynchroAttribute(ENTRY_DN);
       checkEntryFilteredAfterModify(entry, INCLUDE_FRAC_MODE, fractionalConf);
     }
     finally
@@ -441,50 +377,36 @@ public class FractionalReplicationTest extends ReplicationTestCase {
    * Creates connects (to the RS) and starts the fake replication domain
    * Use the passed generation id.
    */
-  private void createFakeReplicationDomain(boolean firstBackend, long generationId)
+  private void createFakeReplicationDomain(boolean firstBackend,
+      long generationId) throws Exception
   {
-    try{
-      List<String> replicationServers = new ArrayList<String>();
-      replicationServers.add("localhost:" + replServerPort);
+    List<String> replicationServers = new ArrayList<String>();
+    replicationServers.add("localhost:" + replServerPort);
 
-      replicationDomain = new FakeReplicationDomain(
-            (firstBackend ? TEST_ROOT_DN_STRING : TEST2_ROOT_DN_STRING), DS2_ID, replicationServers, 100, 1000, generationId);
+    replicationDomain =
+        new FakeReplicationDomain((firstBackend ? TEST_ROOT_DN_STRING
+            : TEST2_ROOT_DN_STRING), DS2_ID, replicationServers, 100, 1000,
+            generationId);
 
-      // Test connection
-      assertTrue(replicationDomain.isConnected());
-      int rdPort = -1;
-      // Check connected server port
-      String serverStr = replicationDomain.getReplicationServer();
-      int index = serverStr.lastIndexOf(':');
-      if ((index == -1) || (index >= serverStr.length()))
-        fail("Enable to find port number in: " + serverStr);
-      String rdPortStr = serverStr.substring(index + 1);
-      try
-      {
-        rdPort = Integer.valueOf(rdPortStr);
-      } catch (Exception e)
-      {
-        fail("Enable to get an int from: " + rdPortStr);
-      }
-      assertEquals(rdPort, replServerPort);
-    } catch (Exception e)
-    {
-      fail("createreplicationDomain " + e.getMessage());
-    }
+    // Test connection
+    assertTrue(replicationDomain.isConnected());
+    // Check connected server port
+    String serverStr = replicationDomain.getReplicationServer();
+    int index = serverStr.lastIndexOf(':');
+    assertTrue(index > -1, "Unable to find port number in: " + serverStr);
+    String rdPortStr = serverStr.substring(index + 1);
+    int rdPort = Integer.valueOf(rdPortStr);
+    assertEquals(rdPort, replServerPort);
   }
 
-  private void initTest()
+  private void initTest() throws Exception
   {
     replicationDomain = null;
     fractionalDomainCfgEntry = null;
     replicationServer = null;
 
     // Initialize the test backend
-    try {
-      TestCaseUtils.initializeTestBackend(false);
-    } catch(Exception e) {
-      fail("Could not initialize backend : " + e.getMessage());
-    }
+    TestCaseUtils.initializeTestBackend(false);
 
     // initialize cn generator
     gen = new ChangeNumberGenerator(DS2_ID, 0L);
@@ -520,9 +442,8 @@ public class FractionalReplicationTest extends ReplicationTestCase {
    * with the correct fractional configuration in it
    */
   private void createFractionalDomain(boolean initializeDomain,
-    int fractionalMode, String... fractionalConf)
+      int fractionalMode, String... fractionalConf) throws Exception
   {
-    try
     {
       String fractModeAttrName = null;
       String opFractModeAttrName = null;
@@ -577,7 +498,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
             String endString = (addSynchroAttribute ? ("," + SYNCHRO_OPTIONAL_ATTR + "\n") : "\n");
             topEntryLdif += fracCfgValue + ( (i<size-1) ? "," : endString);
           }
-            i++;
+          i++;
         }
       }
       else
@@ -626,30 +547,20 @@ public class FractionalReplicationTest extends ReplicationTestCase {
       assertNotNull(DirectoryServer.getConfigEntry(fractionalDomainCfgEntry.getDN()),
         "Unable to add the domain config entry: " + configEntryLdif);
     }
-    catch(Exception e)
-    {
-      fail("createFractionalDomain error: " + e.getMessage());
-    }
   }
 
   /**
    * Creates a new ReplicationServer.
    */
-  private void createReplicationServer(String testCase)
+  private void createReplicationServer(String testCase) throws Exception
   {
-    try
-    {
-      SortedSet<String> replServers = new TreeSet<String>();
+    SortedSet<String> replServers = new TreeSet<String>();
 
-      String dir = testName + RS_ID + testCase + "Db";
-      ReplServerFakeConfiguration conf =
+    String dir = testName + RS_ID + testCase + "Db";
+    ReplServerFakeConfiguration conf =
         new ReplServerFakeConfiguration(replServerPort, dir, 0, RS_ID, 0, 100,
-        replServers);
-      replicationServer = new ReplicationServer(conf);
-    } catch (Exception e)
-    {
-      fail("createReplicationServer " + e.getMessage());
-    }
+            replServers);
+    replicationServer = new ReplicationServer(conf);
   }
 
   /**
@@ -659,17 +570,21 @@ public class FractionalReplicationTest extends ReplicationTestCase {
    */
   private class FakeReplicationDomain extends ReplicationDomain
   {
-    // A blocking queue that is used to receive updates from
-    // the Replication Service.
+    /**
+     * A blocking queue that is used to receive updates from the Replication
+     * Service.
+     */
+    private BlockingQueue<UpdateMsg> queue =
+        new LinkedBlockingQueue<UpdateMsg>();
 
-    BlockingQueue<UpdateMsg> queue = new LinkedBlockingQueue<UpdateMsg>();
+    /** A string that will be exported should exportBackend be called. */
+    private String exportString = null;
 
-    // A string that will be exported should exportBackend be called.
-    String exportString = null;
-
-    // A StringBuilder that will be used to build a new String should the
-    // import be called.
-    StringBuilder importString = null;
+    /**
+     * A StringBuilder that will be used to build a new String should the import
+     * be called.
+     */
+    private StringBuilder importString = null;
     private int exportedEntryCount;
     private long generationID = -1;
 
@@ -753,42 +668,32 @@ public class FractionalReplicationTest extends ReplicationTestCase {
   private static final String REPLICATION_GENERATION_ID =
     "ds-sync-generation-id";
 
-  private long readGenIdFromSuffixRootEntry(String rootDn)
+  private long readGenIdFromSuffixRootEntry(String rootDn) throws Exception
   {
-    long genId=-1;
-    try
+    DN baseDn = DN.decode(rootDn);
+    Entry resultEntry = getEntry(baseDn, 1000, true);
+    if (resultEntry == null)
     {
-      DN baseDn = DN.decode(rootDn);
-      Entry resultEntry = getEntry(baseDn, 1000, true);
-      if (resultEntry==null)
-      {
-        debugInfo("Entry not found <" + rootDn + ">");
-      }
-      else
-      {
-        debugInfo("Entry found <" + rootDn + ">");
+      debugInfo("Entry not found <" + rootDn + ">");
+    }
+    else
+    {
+      debugInfo("Entry found <" + rootDn + ">");
 
-        AttributeType synchronizationGenIDType =
+      AttributeType synchronizationGenIDType =
           DirectoryServer.getAttributeType(REPLICATION_GENERATION_ID);
-        List<Attribute> attrs =
+      List<Attribute> attrs =
           resultEntry.getAttribute(synchronizationGenIDType);
-        if (attrs != null)
+      if (attrs != null)
+      {
+        Attribute attr = attrs.get(0);
+        if (attr.size() == 1)
         {
-          Attribute attr = attrs.get(0);
-          if (attr.size() == 1)
-          {
-            genId =
-                Long.decode(attr.iterator().next().getValue().toString());
-          }
+          return Long.decode(attr.iterator().next().getValue().toString());
         }
-
       }
     }
-    catch(Exception e)
-    {
-      fail("Exception raised in readGenId", e);
-    }
-    return genId;
+    return -1;
   }
 
   /**
@@ -796,7 +701,8 @@ public class FractionalReplicationTest extends ReplicationTestCase {
    * containing the attributes defined in the passed fractional configuration
    */
   private void sendAddMsg(boolean firstBackend, String... fractionalConf)
-    {
+      throws Exception
+  {
       String entryLdif = "dn: " + (firstBackend ? ENTRY_DN : ENTRY_DN2) + "\n" + "objectClass: top\n" +
         "objectClass: person\n" + "objectClass: organizationalPerson\n";
         String classStr = "";
@@ -822,14 +728,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
         first = false;
       }
 
-      Entry entry = null;
-      try
-      {
-        entry = TestCaseUtils.entryFromLdifString(entryLdif);
-      } catch (Exception e)
-      {
-        fail(e.getMessage());
-      }
+    Entry entry = TestCaseUtils.entryFromLdifString(entryLdif);
 
       // Create an update message to add an entry.
       AddMsg addMsg = new AddMsg(gen.newChangeNumber(),
@@ -840,15 +739,15 @@ public class FractionalReplicationTest extends ReplicationTestCase {
         entry.getAttributes(), new ArrayList<Attribute>());
 
       replicationDomain.publish(addMsg);
-    }
+  }
 
   /**
    * Send (from the fake replication domain) a ModifyMsg for the passed entry
    * modifying attributes defined in the passed fractional configuration
    */
   private void sendModifyMsg(boolean firstBackend, String... fractionalConf)
-    {
-
+      throws Exception
+  {
       // Create modifications on the fractional attributes
       List<Modification> mods = new ArrayList<Modification>();
       boolean first = true;
@@ -877,19 +776,12 @@ public class FractionalReplicationTest extends ReplicationTestCase {
       mod = new Modification(ModificationType.ADD, attr);
       mods.add(mod);
 
-      DN entryDn = null;
-      try
-      {
-        entryDn = DN.decode((firstBackend ? ENTRY_DN : ENTRY_DN2));
-      } catch (Exception e)
-      {
-        fail("Cannot create dn entry: " + e.getMessage());
-      }
+      DN entryDn = DN.decode((firstBackend ? ENTRY_DN : ENTRY_DN2));
       ModifyMsg modifyMsg = new ModifyMsg(gen.newChangeNumber(), entryDn, mods,
         ENTRY_UUID);
 
       replicationDomain.publish(modifyMsg);
-    }
+  }
 
   /**
    * Utility method : Add an entry in the database
@@ -913,7 +805,6 @@ public class FractionalReplicationTest extends ReplicationTestCase {
   private void checkEntryFilteredAfterAdd(Entry newEntry,
     int fractionalMode, String... fractionalConf) throws Exception
   {
-    try
     {
       // Is the added entry of the expected object class ?
       String objectClassStr = fractionalConf[0];
@@ -961,13 +852,6 @@ public class FractionalReplicationTest extends ReplicationTestCase {
           fail("Unexpected fractional mode.");
       }
     }
-    catch(Exception e)
-    {
-      fail("checkEntryFilteredAfterAdd error: "  +
-        e.getClass().getName() + " :" + e.getMessage() +
-        " " + stackTraceToSingleLineString(e)
-        );
-    }
   }
 
   /**
@@ -978,7 +862,6 @@ public class FractionalReplicationTest extends ReplicationTestCase {
   private void checkEntryFilteredAfterModify(Entry entry,
     int fractionalMode, String... fractionalConf) throws Exception
   {
-    try
     {
       // Is the added entry of the expected object class ?
       String objectClassStr = fractionalConf[0];
@@ -1027,11 +910,6 @@ public class FractionalReplicationTest extends ReplicationTestCase {
       }
       // In both modes, SYNCHRO_OPTIONAL_ATTR attribute should have been added
       checkEntryAttributeValue(entry, SYNCHRO_OPTIONAL_ATTR, SYNCHRO_OPTIONAL_ATTR + "Value");
-    }
-    catch(Exception e)
-    {
-      fail("checkEntryFilteredAfterModify error: "  +
-        e.getClass().getName() + " :" + e.getMessage());
     }
   }
 
@@ -1131,7 +1009,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
     // the real domain will check for backend existence in cn=config. So we use
     // dc=example,dc=com for this particular test.
     // Clear the backend
-   LDAPReplicationDomain.clearJEBackend(false, "userRoot", TEST2_ROOT_DN_STRING);
+    LDAPReplicationDomain.clearJEBackend(false, "userRoot", TEST2_ROOT_DN_STRING);
 
     try
     {
@@ -1139,8 +1017,6 @@ public class FractionalReplicationTest extends ReplicationTestCase {
        * Create replication server and connect fractional domain to it then fake
        * domain
        */
-
-      // create replication server
       createReplicationServer(testcase);
 
       // create fractional domain with the passed fractional configuration
@@ -1233,14 +1109,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
 
       // check that entry has been created and that it does not contain
       // forbidden attributes
-      Entry newEntry = null;
-      try
-      {
-        newEntry = getEntry(DN.decode(ENTRY_DN2), TIMEOUT, true);
-      } catch(Exception e)
-      {
-        fail("Entry has not been created: " + e.getMessage());
-      }
+      Entry newEntry = getEntry(DN.decode(ENTRY_DN2), TIMEOUT, true);
       checkEntryFilteredAfterAdd(newEntry, EXCLUDE_FRAC_MODE, fractionalConf);
 
       // perform modify operation (modify forbidden attributes +
@@ -1249,33 +1118,37 @@ public class FractionalReplicationTest extends ReplicationTestCase {
 
       // Wait for modify operation being replayed and
       // check that entry does not contain forbidden attributes
-      Entry entry = null;
-      boolean synchroAttrFound = false;
-      int timeout = TIMEOUT;
-      while(timeout>0)
-      {
-        try
-        {
-          entry = getEntry(DN.decode(ENTRY_DN2), TIMEOUT, true);
-          if (entry.hasAttribute(DirectoryServer.getAttributeType(SYNCHRO_OPTIONAL_ATTR.toLowerCase())))
-          {
-            synchroAttrFound = true;
-            break;
-          }
-          Thread.sleep(1000);
-          timeout--;
-        } catch (Exception e)
-        {
-          fail("Error waiting for modify operation being replayed : " + e.getMessage());
-        }
-      }
-      assertTrue(synchroAttrFound, "Modify operation not replayed");
+      Entry entry = waitTillEntryHasSynchroAttribute(ENTRY_DN2);
       checkEntryFilteredAfterModify(entry, EXCLUDE_FRAC_MODE, fractionalConf);
     }
     finally
     {
       endTest();
     }
+  }
+
+  private Entry waitTillEntryHasSynchroAttribute(String entryDN)
+      throws Exception
+  {
+    AttributeType synchroAttrType = DirectoryServer.getAttributeType(SYNCHRO_OPTIONAL_ATTR.toLowerCase());
+    DN dn = DN.decode(entryDN);
+
+    Entry entry = null;
+    boolean synchroAttrFound = false;
+    int timeout = TIMEOUT;
+    while (timeout > 0)
+    {
+      entry = getEntry(dn, TIMEOUT, true);
+      if (entry.hasAttribute(synchroAttrType))
+      {
+        synchroAttrFound = true;
+        break;
+      }
+      Thread.sleep(1000);
+      timeout--;
+    }
+    assertTrue(synchroAttrFound, "Modify operation not replayed");
+    return entry;
   }
 
   /**
@@ -1383,8 +1256,6 @@ public class FractionalReplicationTest extends ReplicationTestCase {
        * Create replication server and connect fractional domain to it then fake
        * domain
        */
-
-      // create replication server
       createReplicationServer(testcase);
 
       // create fractional domain with the passed fractional configuration
@@ -1474,43 +1345,14 @@ public class FractionalReplicationTest extends ReplicationTestCase {
 
       // check that entry has been created and that it does not contain
       // forbidden attributes
-      Entry newEntry = null;
-      try
-      {
-        newEntry = getEntry(DN.decode(ENTRY_DN2), TIMEOUT, true);
-      } catch(Exception e)
-      {
-        fail("Entry has not been created: " + e.getMessage());
-      }
+      Entry newEntry = getEntry(DN.decode(ENTRY_DN2), TIMEOUT, true);
       checkEntryFilteredAfterAdd(newEntry, INCLUDE_FRAC_MODE, fractionalConf);
 
       // perform modify operation (modify forbidden attributes +
       // modify authorized attribute (not a no op))
       sendModifyMsg(false, fractionalConf);
 
-      // Wait for modify operation being replayed and
-      // check that entry does not contain forbidden attributes
-      Entry entry = null;
-      boolean synchroAttrFound = false;
-      int timeout = TIMEOUT;
-      while(timeout>0)
-      {
-        try
-        {
-          entry = getEntry(DN.decode(ENTRY_DN2), TIMEOUT, true);
-          if (entry.hasAttribute(DirectoryServer.getAttributeType(SYNCHRO_OPTIONAL_ATTR.toLowerCase())))
-          {
-            synchroAttrFound = true;
-            break;
-          }
-          Thread.sleep(1000);
-          timeout--;
-        } catch (Exception e)
-        {
-          fail("Error waiting for modify operation being replayed : " + e.getMessage());
-        }
-      }
-      assertTrue(synchroAttrFound, "Modify operation not replayed");
+      Entry entry = waitTillEntryHasSynchroAttribute(ENTRY_DN2);
       checkEntryFilteredAfterModify(entry, INCLUDE_FRAC_MODE, fractionalConf);
     }
     finally
@@ -1524,27 +1366,22 @@ public class FractionalReplicationTest extends ReplicationTestCase {
    * by fractional exclude configuration
    */
   @Test
-  public void testAddWithForbiddenAttrInRDNExclude()
+  public void testAddWithForbiddenAttrInRDNExclude() throws Exception
   {
-     String testcase = "testAddWithForbiddenAttrInRDNExclude";
+    String testcase = "testAddWithForbiddenAttrInRDNExclude";
 
     initTest();
 
     try
     {
-      // create replication server
       createReplicationServer(testcase);
-
-      // create fractional domain with the passed fractional configuration
-      createFractionalDomain(true, EXCLUDE_FRAC_MODE,
-        new String[] {"inetOrgPerson", "displayName", "description"});
+      createFractionalDomain(true, EXCLUDE_FRAC_MODE, "inetOrgPerson",
+          "displayName", "description");
 
       // create fake domain to send operations
       createFakeReplicationDomain(true, readGenIdFromSuffixRootEntry(TEST_ROOT_DN_STRING));
 
-      /*
-       * Perform add operation with forbidden attribute in RDN
-       */
+      // Perform add operation with forbidden attribute in RDN
       String entryLdif = "dn: displayName=ValueToBeKept," +
         TEST_ROOT_DN_STRING + "\n" + "objectClass: top\n" +
         "objectClass: person\n" + "objectClass: organizationalPerson\n" +
@@ -1552,14 +1389,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
         "entryUUID: " + ENTRY_UUID + "\n" +
         "displayName: ValueToBeKept\ndisplayName: displayNameValue\n";
 
-      Entry entry = null;
-      try
-      {
-        entry = TestCaseUtils.entryFromLdifString(entryLdif);
-      } catch (Exception e)
-      {
-        fail(e.getMessage());
-      }
+      Entry entry = TestCaseUtils.entryFromLdifString(entryLdif);
 
       // Create an update message to add an entry.
       AddMsg addMsg = new AddMsg(gen.newChangeNumber(),
@@ -1575,15 +1405,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
        * check that entry has been created and has attribute values from RDN
        * only
        */
-
-      Entry newEntry = null;
-      try
-      {
-        newEntry = getEntry(entry.getDN(), TIMEOUT, true);
-      } catch(Exception e)
-      {
-        fail("Entry has not been added: " + e.getMessage());
-      }
+      Entry newEntry = getEntry(entry.getDN(), TIMEOUT, true);
       assertNotNull(newEntry);
       assertEquals(entry.getDN(), newEntry.getDN());
       ObjectClass objectClass = DirectoryServer.getObjectClass("inetOrgPerson".toLowerCase());
@@ -1594,9 +1416,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
        * Now perform same test, but with 2 forbidden attributes in RDN, using '+'
        */
 
-      /*
-       * Perform add operation with forbidden attribute in RDN
-       */
+      // Perform add operation with forbidden attribute in RDN
       entryLdif = "dn: displayName=ValueToBeKept+description=ValueToBeKeptToo," +
         TEST_ROOT_DN_STRING + "\n" + "objectClass: top\n" +
         "objectClass: person\n" + "objectClass: organizationalPerson\n" +
@@ -1605,13 +1425,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
         "displayName: ValueToBeKept\ndisplayName: displayNameValue\n" +
         "description: descriptionValue\ndescription: ValueToBeKeptToo\n";
 
-      try
-      {
-        entry = TestCaseUtils.entryFromLdifString(entryLdif);
-      } catch (Exception e)
-      {
-        fail(e.getMessage());
-      }
+      entry = TestCaseUtils.entryFromLdifString(entryLdif);
 
       // Create an update message to add an entry.
       addMsg = new AddMsg(gen.newChangeNumber(),
@@ -1627,14 +1441,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
        * check that entry has been created and has attribute values from RDN
        * only
        */
-
-      try
-      {
-        newEntry = getEntry(entry.getDN(), TIMEOUT, true);
-      } catch(Exception e)
-      {
-        fail("Entry has not been added: " + e.getMessage());
-      }
+      newEntry = getEntry(entry.getDN(), TIMEOUT, true);
       assertNotNull(newEntry);
       assertEquals(entry.getDN(), newEntry.getDN());
       objectClass = DirectoryServer.getObjectClass("inetOrgPerson".toLowerCase());
@@ -1653,27 +1460,22 @@ public class FractionalReplicationTest extends ReplicationTestCase {
    * by fractional include configuration
    */
   @Test
-  public void testAddWithForbiddenAttrInRDNInclude()
+  public void testAddWithForbiddenAttrInRDNInclude() throws Exception
   {
-     String testcase = "testAddWithForbiddenAttrInRDNInclude";
+    String testcase = "testAddWithForbiddenAttrInRDNInclude";
 
     initTest();
 
     try
     {
-      // create replication server
       createReplicationServer(testcase);
-
-      // create fractional domain with the passed fractional configuration
-      createFractionalDomain(true, INCLUDE_FRAC_MODE,
-        new String[] {"inetOrgPerson", "carLicense"});
+      createFractionalDomain(true, INCLUDE_FRAC_MODE, "inetOrgPerson",
+          "carLicense");
 
       // create fake domain to send operations
       createFakeReplicationDomain(true, readGenIdFromSuffixRootEntry(TEST_ROOT_DN_STRING));
 
-      /*
-       * Perform add operation with forbidden attribute in RDN
-       */
+      // Perform add operation with forbidden attribute in RDN
       String entryLdif = "dn: displayName=ValueToBeKept," +
         TEST_ROOT_DN_STRING + "\n" + "objectClass: top\n" +
         "objectClass: person\n" + "objectClass: organizationalPerson\n" +
@@ -1683,14 +1485,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
         "carLicense: cirLicenseValue\n";
 
 
-      Entry entry = null;
-      try
-      {
-        entry = TestCaseUtils.entryFromLdifString(entryLdif);
-      } catch (Exception e)
-      {
-        fail(e.getMessage());
-      }
+      Entry entry = TestCaseUtils.entryFromLdifString(entryLdif);
 
       // Create an update message to add an entry.
       AddMsg addMsg = new AddMsg(gen.newChangeNumber(),
@@ -1706,15 +1501,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
        * check that entry has been created and has attribute values from RDN
        * only
        */
-
-      Entry newEntry = null;
-      try
-      {
-        newEntry = getEntry(entry.getDN(), TIMEOUT, true);
-      } catch(Exception e)
-      {
-        fail("Entry has not been added: " + e.getMessage());
-      }
+      Entry newEntry = getEntry(entry.getDN(), TIMEOUT, true);
       assertNotNull(newEntry);
       assertEquals(entry.getDN(), newEntry.getDN());
       ObjectClass objectClass = DirectoryServer.getObjectClass("inetOrgPerson".toLowerCase());
@@ -1726,9 +1513,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
        * Now perform same test, but with 2 forbidden attributes in RDN, using '+'
        */
 
-      /*
-       * Perform add operation with forbidden attribute in RDN
-       */
+      // Perform add operation with forbidden attribute in RDN
       entryLdif = "dn: displayName=ValueToBeKept+description=ValueToBeKeptToo," +
         TEST_ROOT_DN_STRING + "\n" + "objectClass: top\n" +
         "objectClass: person\n" + "objectClass: organizationalPerson\n" +
@@ -1738,13 +1523,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
         "description: descriptionValue\ndescription: ValueToBeKeptToo\n" +
         "carLicense: cirLicenseValue\n";
 
-      try
-      {
-        entry = TestCaseUtils.entryFromLdifString(entryLdif);
-      } catch (Exception e)
-      {
-        fail(e.getMessage());
-      }
+      entry = TestCaseUtils.entryFromLdifString(entryLdif);
 
       // Create an update message to add an entry.
       addMsg = new AddMsg(gen.newChangeNumber(),
@@ -1760,14 +1539,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
        * check that entry has been created and has attribute values from RDN
        * only
        */
-
-      try
-      {
-        newEntry = getEntry(entry.getDN(), TIMEOUT, true);
-      } catch(Exception e)
-      {
-        fail("Entry has not been added: " + e.getMessage());
-      }
+      newEntry = getEntry(entry.getDN(), TIMEOUT, true);
       assertNotNull(newEntry);
       assertEquals(entry.getDN(), newEntry.getDN());
       objectClass = DirectoryServer.getObjectClass("inetOrgPerson".toLowerCase());
@@ -1787,7 +1559,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
    * attribute by fractional exclude configuration
    */
   @Test
-  public void testModifyDnWithForbiddenAttrInRDNExclude()
+  public void testModifyDnWithForbiddenAttrInRDNExclude() throws Exception
   {
      String testcase = "testModifyDnWithForbiddenAttrInRDNExclude";
 
@@ -1795,19 +1567,14 @@ public class FractionalReplicationTest extends ReplicationTestCase {
 
     try
     {
-      // create replication server
       createReplicationServer(testcase);
-
-      // create fractional domain with the passed fractional configuration
-      createFractionalDomain(true, EXCLUDE_FRAC_MODE,
-        new String[] {"inetOrgPerson", "displayName", "description"});
+      createFractionalDomain(true, EXCLUDE_FRAC_MODE, "inetOrgPerson",
+          "displayName", "description");
 
       // create fake domain to send operations
       createFakeReplicationDomain(true, readGenIdFromSuffixRootEntry(TEST_ROOT_DN_STRING));
 
-      /*
-       * Perform add operation with forbidden attribute in RDN
-       */
+      // Perform add operation with forbidden attribute in RDN
       String entryName = "displayName=ValueToBeKept+description=ValueToBeRemoved," + TEST_ROOT_DN_STRING ;
       String entryLdif = "dn: " + entryName + "\n" + "objectClass: top\n" +
         "objectClass: person\n" + "objectClass: organizationalPerson\n" +
@@ -1815,14 +1582,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
         "entryUUID: " + ENTRY_UUID + "\n" +
         "displayName: ValueToBeKept\ndescription: ValueToBeRemoved\n";
 
-      Entry entry = null;
-      try
-      {
-        entry = TestCaseUtils.entryFromLdifString(entryLdif);
-      } catch (Exception e)
-      {
-        fail(e.getMessage());
-      }
+      Entry entry = TestCaseUtils.entryFromLdifString(entryLdif);
 
       // Create an update message to add an entry.
       AddMsg addMsg = new AddMsg(gen.newChangeNumber(),
@@ -1834,18 +1594,8 @@ public class FractionalReplicationTest extends ReplicationTestCase {
 
       replicationDomain.publish(addMsg);
 
-      /*
-       * check that entry has been created and has attribute values from RDN
-       */
-
-      Entry newEntry = null;
-      try
-      {
-        newEntry = getEntry(entry.getDN(), TIMEOUT, true);
-      } catch(Exception e)
-      {
-        fail("Entry has not been added: " + e.getMessage());
-      }
+      // check that entry has been created and has attribute values from RDN
+      Entry newEntry = getEntry(entry.getDN(), TIMEOUT, true);
       assertNotNull(newEntry);
       assertEquals(entry.getDN(), newEntry.getDN());
       ObjectClass objectClass = DirectoryServer.getObjectClass("inetOrgPerson".toLowerCase());
@@ -1857,16 +1607,8 @@ public class FractionalReplicationTest extends ReplicationTestCase {
        * Perform modify dn operation by renaming the entry keeping only one of
        * the forbidden attributes
        */
-
       String newEntryName = "displayName=ValueToBeKept," + TEST_ROOT_DN_STRING ;
-      DN newEntryDn = null;
-      try
-      {
-        newEntryDn = DN.decode(newEntryName);
-      } catch(DirectoryException e)
-      {
-        fail("Could not get DN from string: " + newEntryName);
-      }
+      DN newEntryDn = DN.decode(newEntryName);
 
       // Create modify dn message to modify the entry.
       ModifyDNMsg modDnMsg = new ModifyDNMsg(entryName, gen.newChangeNumber(),
@@ -1879,14 +1621,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
        * check that entry has been renamed  and has only attribute left in the
        * new RDN
        */
-
-      try
-      {
-        newEntry = getEntry(newEntryDn, TIMEOUT, true);
-      } catch(Exception e)
-      {
-        fail("Entry has not been added: " + e.getMessage());
-      }
+      newEntry = getEntry(newEntryDn, TIMEOUT, true);
       assertNotNull(newEntry);
       assertEquals(newEntryDn, newEntry.getDN());
       objectClass = DirectoryServer.getObjectClass("inetOrgPerson".toLowerCase());
@@ -1905,7 +1640,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
    * attribute by fractional include configuration
    */
   @Test
-  public void testModifyDnWithForbiddenAttrInRDNInclude()
+  public void testModifyDnWithForbiddenAttrInRDNInclude() throws Exception
   {
     String testcase = "testModifyDnWithForbiddenAttrInRDNInclude";
 
@@ -1913,19 +1648,14 @@ public class FractionalReplicationTest extends ReplicationTestCase {
 
     try
     {
-      // create replication server
       createReplicationServer(testcase);
-
-      // create fractional domain with the passed fractional configuration
-      createFractionalDomain(true, INCLUDE_FRAC_MODE,
-        new String[] {"inetOrgPerson", "carLicense"});
+      createFractionalDomain(true, INCLUDE_FRAC_MODE, "inetOrgPerson",
+          "carLicense");
 
       // create fake domain to send operations
       createFakeReplicationDomain(true, readGenIdFromSuffixRootEntry(TEST_ROOT_DN_STRING));
 
-      /*
-       * Perform add operation with forbidden attribute in RDN
-       */
+      // Perform add operation with forbidden attribute in RDN
       String entryName = "displayName=ValueToBeKept+description=ValueToBeRemoved," + TEST_ROOT_DN_STRING ;
       String entryLdif = "dn: " + entryName + "\n" + "objectClass: top\n" +
         "objectClass: person\n" + "objectClass: organizationalPerson\n" +
@@ -1933,14 +1663,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
         "entryUUID: " + ENTRY_UUID + "\n" +
         "displayName: ValueToBeKept\ndescription: ValueToBeRemoved\n";
 
-      Entry entry = null;
-      try
-      {
-        entry = TestCaseUtils.entryFromLdifString(entryLdif);
-      } catch (Exception e)
-      {
-        fail(e.getMessage());
-      }
+      Entry entry = TestCaseUtils.entryFromLdifString(entryLdif);
 
       // Create an update message to add an entry.
       AddMsg addMsg = new AddMsg(gen.newChangeNumber(),
@@ -1952,18 +1675,8 @@ public class FractionalReplicationTest extends ReplicationTestCase {
 
       replicationDomain.publish(addMsg);
 
-      /*
-       * check that entry has been created and has attribute values from RDN
-       */
-
-      Entry newEntry = null;
-      try
-      {
-        newEntry = getEntry(entry.getDN(), TIMEOUT, true);
-      } catch(Exception e)
-      {
-        fail("Entry has not been added: " + e.getMessage());
-      }
+      // check that entry has been created and has attribute values from RDN
+      Entry newEntry = getEntry(entry.getDN(), TIMEOUT, true);
       assertNotNull(newEntry);
       assertEquals(entry.getDN(), newEntry.getDN());
       ObjectClass objectClass = DirectoryServer.getObjectClass("inetOrgPerson".toLowerCase());
@@ -1975,16 +1688,8 @@ public class FractionalReplicationTest extends ReplicationTestCase {
        * Perform modify dn operation by renaming the entry keeping only one of
        * the forbidden attributes
        */
-
       String newEntryName = "displayName=ValueToBeKept," + TEST_ROOT_DN_STRING ;
-      DN newEntryDn = null;
-      try
-      {
-        newEntryDn = DN.decode(newEntryName);
-      } catch(DirectoryException e)
-      {
-        fail("Could not get DN from string: " + newEntryName);
-      }
+      DN newEntryDn = DN.decode(newEntryName);
 
       // Create modify dn message to modify the entry.
       ModifyDNMsg modDnMsg = new ModifyDNMsg(entryName, gen.newChangeNumber(),
@@ -1997,14 +1702,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
        * check that entry has been renamed  and has only attribute left in the
        * new RDN
        */
-
-      try
-      {
-        newEntry = getEntry(newEntryDn, TIMEOUT, true);
-      } catch(Exception e)
-      {
-        fail("Entry has not been added: " + e.getMessage());
-      }
+      newEntry = getEntry(newEntryDn, TIMEOUT, true);
       assertNotNull(newEntry);
       assertEquals(newEntryDn, newEntry.getDN());
       objectClass = DirectoryServer.getObjectClass("inetOrgPerson".toLowerCase());
