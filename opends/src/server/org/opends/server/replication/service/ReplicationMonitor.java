@@ -28,8 +28,9 @@
 package org.opends.server.replication.service;
 
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.api.MonitorProvider;
@@ -41,7 +42,7 @@ import org.opends.server.types.*;
  */
 public class ReplicationMonitor extends MonitorProvider<MonitorProviderCfg>
 {
-  private ReplicationDomain domain;  // the replication plugin
+  private ReplicationDomain domain;
 
   /**
    * Create a new replication monitor.
@@ -85,38 +86,25 @@ public class ReplicationMonitor extends MonitorProvider<MonitorProviderCfg>
    *          requested.
    */
   @Override
-  public ArrayList<Attribute> getMonitorData()
+  public List<Attribute> getMonitorData()
   {
-    ArrayList<Attribute> attributes = new ArrayList<Attribute>();
+    List<Attribute> attributes = new ArrayList<Attribute>();
 
-    /* get the base dn */
-    Attribute attr = Attributes.create("domain-name", domain.getBaseDNString());
-    attributes.add(attr);
-
-    /* get the base dn */
-    attr = Attributes.create("connected-to", domain
-        .getReplicationServer());
-    attributes.add(attr);
-
-    /* get number of lost connections */
+    attributes.add(Attributes.create("domain-name", domain.getBaseDNString()));
+    attributes.add(Attributes.create("connected-to", domain
+        .getReplicationServer()));
     addMonitorData(attributes, "lost-connections",
                    domain.getNumLostConnections());
-
-    /* get number of received updates */
     addMonitorData(attributes, "received-updates", domain.getNumRcvdUpdates());
-
-    /* get number of updates sent */
     addMonitorData(attributes, "sent-updates", domain.getNumSentUpdates());
 
-    /* get number of changes replayed */
+    // get number of changes replayed
     addMonitorData(attributes, "replayed-updates",
                    domain.getNumProcessedUpdates());
 
-    /* get server-id */
-    addMonitorData(attributes, "server-id",
-                   domain.getServerId());
+    addMonitorData(attributes, "server-id", domain.getServerId());
 
-    /* get window information */
+    // get window information
     addMonitorData(attributes, "max-rcv-window", domain.getMaxRcvWindow());
     addMonitorData(attributes, "current-rcv-window",
                                domain.getCurrentRcvWindow());
@@ -125,7 +113,7 @@ public class ReplicationMonitor extends MonitorProvider<MonitorProviderCfg>
     addMonitorData(attributes, "current-send-window",
                                domain.getCurrentSendWindow());
 
-    /* get the Server State */
+    // get the Server State
     final String ATTR_SERVER_STATE = "server-state";
     AttributeType type =
       DirectoryServer.getDefaultAttributeType(ATTR_SERVER_STATE);
@@ -142,9 +130,7 @@ public class ReplicationMonitor extends MonitorProvider<MonitorProviderCfg>
     attributes.add(Attributes.create("generation-id",
         String.valueOf(domain.getGenerationID())));
 
-    /*
-     * Add import/export monitoring attribute
-     */
+    // Add import/export monitoring attributes
     if (domain.importInProgress())
     {
       addMonitorData(attributes, "total-update", "import");
@@ -163,10 +149,8 @@ public class ReplicationMonitor extends MonitorProvider<MonitorProviderCfg>
     }
 
 
-    /* Add the concrete Domain attributes */
-    Collection<Attribute> additionalMonitoring =
-      domain.getAdditionalMonitoring();
-    attributes.addAll(additionalMonitoring);
+    // Add the concrete Domain attributes
+    attributes.addAll(domain.getAdditionalMonitoring());
 
     /*
      * Add assured replication related monitoring fields
@@ -175,81 +159,60 @@ public class ReplicationMonitor extends MonitorProvider<MonitorProviderCfg>
 
     addMonitorData(attributes, "assured-sr-sent-updates",
       domain.getAssuredSrSentUpdates());
-
     addMonitorData(attributes, "assured-sr-acknowledged-updates",
       domain.getAssuredSrAcknowledgedUpdates());
-
     addMonitorData(attributes, "assured-sr-not-acknowledged-updates",
       domain.getAssuredSrNotAcknowledgedUpdates());
-
     addMonitorData(attributes, "assured-sr-timeout-updates",
       domain.getAssuredSrTimeoutUpdates());
-
     addMonitorData(attributes, "assured-sr-wrong-status-updates",
       domain.getAssuredSrWrongStatusUpdates());
-
     addMonitorData(attributes, "assured-sr-replay-error-updates",
       domain.getAssuredSrReplayErrorUpdates());
 
-    final String ATTR_ASS_SR_SRV = "assured-sr-server-not-acknowledged-updates";
-    type = DirectoryServer.getDefaultAttributeType(ATTR_ASS_SR_SRV);
-    builder = new AttributeBuilder(type, ATTR_ASS_SR_SRV);
-    Map<Integer, Integer> srSrvNotAckUps =
-      domain.getAssuredSrServerNotAcknowledgedUpdates();
-    if (srSrvNotAckUps.size() > 0)
-    {
-      for (Integer serverId : srSrvNotAckUps.keySet())
-      {
-        String str = serverId + ":" + srSrvNotAckUps.get(serverId);
-        builder.add(AttributeValues.create(type, str));
-      }
-      attributes.add(builder.toAttribute());
-    }
+    addMonitorData(attributes, "assured-sr-server-not-acknowledged-updates",
+        domain.getAssuredSrServerNotAcknowledgedUpdates());
 
     addMonitorData(attributes, "assured-sr-received-updates",
       domain.getAssuredSrReceivedUpdates());
-
     addMonitorData(attributes, "assured-sr-received-updates-acked",
       domain.getAssuredSrReceivedUpdatesAcked());
-
     addMonitorData(attributes, "assured-sr-received-updates-not-acked",
       domain.getAssuredSrReceivedUpdatesNotAcked());
-
     addMonitorData(attributes, "assured-sd-sent-updates",
       domain.getAssuredSdSentUpdates());
-
     addMonitorData(attributes, "assured-sd-acknowledged-updates",
       domain.getAssuredSdAcknowledgedUpdates());
-
     addMonitorData(attributes, "assured-sd-timeout-updates",
       domain.getAssuredSdTimeoutUpdates());
 
-    final String ATTR_ASS_SD_SRV = "assured-sd-server-timeout-updates";
-    type = DirectoryServer.getDefaultAttributeType(ATTR_ASS_SD_SRV);
-    builder = new AttributeBuilder(type, ATTR_ASS_SD_SRV);
-    Map<Integer, Integer> sdSrvTimUps =
-      domain.getAssuredSdServerTimeoutUpdates();
-    if (sdSrvTimUps.size() > 0)
-    {
-      for (Integer serverId : sdSrvTimUps.keySet())
-      {
-        String str = serverId + ":" + sdSrvTimUps.get(serverId);
-        builder.add(AttributeValues.create(type, str));
-      }
-      attributes.add(builder.toAttribute());
-    }
+    addMonitorData(attributes, "assured-sd-server-timeout-updates",
+        domain.getAssuredSdServerTimeoutUpdates());
 
-    /*
-     * Status related monitoring fields
-     */
-
+    // Status related monitoring fields
     addMonitorData(attributes, "last-status-change-date",
       domain.getLastStatusChangeDate().toString());
 
     addMonitorData(attributes, "status", domain.getStatus().toString());
 
     return attributes;
+  }
 
+  private void addMonitorData(List<Attribute> attributes, String attrType,
+      Map<Integer, Integer> serverIdToNb)
+  {
+    if (serverIdToNb.size() > 0)
+    {
+      AttributeType type = DirectoryServer.getDefaultAttributeType(attrType);
+      final AttributeBuilder builder = new AttributeBuilder(type, attrType);
+      for (Entry<Integer, Integer> entry : serverIdToNb.entrySet())
+      {
+        final Integer serverId = entry.getKey();
+        final Integer nb = entry.getValue();
+        builder.add(AttributeValues.create(type, serverId + ":" + nb));
+      }
+      attributes.add(builder.toAttribute());
+    }
   }
 
   /**
@@ -260,9 +223,7 @@ public class ReplicationMonitor extends MonitorProvider<MonitorProviderCfg>
    * @param name the name of the attribute to add.
    * @param value The integer value of he attribute to add.
    */
-  public static void addMonitorData(
-      ArrayList<Attribute> attributes,
-      String name,
+  public static void addMonitorData(List<Attribute> attributes, String name,
       int value)
   {
     AttributeType type = DirectoryServer.getDefaultAttributeType(name);
@@ -278,9 +239,7 @@ public class ReplicationMonitor extends MonitorProvider<MonitorProviderCfg>
    * @param name the name of the attribute to add.
    * @param value The integer value of he attribute to add.
    */
-  public static void addMonitorData(
-      ArrayList<Attribute> attributes,
-      String name,
+  public static void addMonitorData(List<Attribute> attributes, String name,
       long value)
   {
     AttributeType type = DirectoryServer.getDefaultAttributeType(name);
@@ -296,9 +255,7 @@ public class ReplicationMonitor extends MonitorProvider<MonitorProviderCfg>
    * @param name the name of the attribute to add.
    * @param value The String value of he attribute to add.
    */
-  public static void addMonitorData(
-      ArrayList<Attribute> attributes,
-      String name,
+  public static void addMonitorData(List<Attribute> attributes, String name,
       String value)
   {
     AttributeType type = DirectoryServer.getDefaultAttributeType(name);
