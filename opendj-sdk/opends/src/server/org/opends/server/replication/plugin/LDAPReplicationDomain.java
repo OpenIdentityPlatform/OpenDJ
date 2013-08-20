@@ -808,7 +808,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     }
 
     SearchResultEntry resultEntry = findReplicationSearchResultEntry(search);
-    if (resultEntry != null)
+    if (resultEntry == null)
     {
       /*
        * The backend is probably empty: if there is some fractional
