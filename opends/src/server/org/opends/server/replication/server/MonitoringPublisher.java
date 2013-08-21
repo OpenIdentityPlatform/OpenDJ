@@ -54,8 +54,8 @@ public class MonitoringPublisher extends DirectoryThread
    */
   private static final DebugTracer TRACER = getTracer();
 
-  /** The domain we send monitoring for. */
-  private final ReplicationServerDomain replicationServerDomain;
+  /** The replication domain we send monitoring for. */
+  private final ReplicationServerDomain domain;
 
   /** Sleep time (in ms) before sending new monitoring messages. */
   private volatile long period;
@@ -79,7 +79,7 @@ public class MonitoringPublisher extends DirectoryThread
         + ") monitor publisher for domain \""
         + replicationServerDomain.getBaseDn() + "\"");
 
-    this.replicationServerDomain = replicationServerDomain;
+    this.domain = replicationServerDomain;
     this.period = period;
   }
 
@@ -107,15 +107,10 @@ public class MonitoringPublisher extends DirectoryThread
         }
 
         // Send global topology information to peer DSs
-        MonitorData monitorData = replicationServerDomain
-            .computeDomainMonitorData();
+        MonitorMsg monitorMsg = domain.createGlobalTopologyMonitorMsg(0, 0);
+        final int localServerId = domain.getLocalRSServerId();
 
-        MonitorMsg monitorMsg = replicationServerDomain
-            .createGlobalTopologyMonitorMsg(0, 0, monitorData);
-
-        int localServerId = replicationServerDomain.getLocalRSServerId();
-        for (ServerHandler serverHandler : replicationServerDomain
-            .getConnectedDSs().values())
+        for (ServerHandler serverHandler : domain.getConnectedDSs().values())
         {
           // Set the right sender and destination ids
           monitorMsg.setSenderID(localServerId);
@@ -203,8 +198,7 @@ public class MonitoringPublisher extends DirectoryThread
 
   private String getMessage(String message)
   {
-    return "In RS " + replicationServerDomain.getLocalRSServerId()
-        + ", for base dn " + replicationServerDomain.getBaseDn() + ": "
-        + message;
+    return "In RS " + domain.getLocalRSServerId() + ", for base dn "
+        + domain.getBaseDn() + ": " + message;
   }
 }
