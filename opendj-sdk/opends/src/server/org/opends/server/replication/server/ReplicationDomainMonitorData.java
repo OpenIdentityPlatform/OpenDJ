@@ -28,6 +28,7 @@
 package org.opends.server.replication.server;
 
 import java.util.Iterator;
+import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -39,10 +40,10 @@ import org.opends.server.util.TimeThread;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 
 /**
- * This class defines the Monitor Data that are consolidated across the
- * whole replication topology.
+ * This class defines the Monitor Data that are consolidated across a
+ * replication domain.
  */
-public class MonitorData
+class ReplicationDomainMonitorData
 {
   /**
    * The tracer object for the debug logger.
@@ -65,11 +66,11 @@ public class MonitorData
 
 
   /** For each LDAP server, its server state. */
-  private ConcurrentMap<Integer, ServerState> LDAPStates =
+  private ConcurrentMap<Integer, ServerState> ldapStates =
     new ConcurrentHashMap<Integer, ServerState>();
 
   /** A Map containing the ServerStates of each RS. */
-  private ConcurrentMap<Integer, ServerState> RSStates =
+  private ConcurrentMap<Integer, ServerState> rsStates =
     new ConcurrentHashMap<Integer, ServerState>();
 
   /** For each LDAP server, the last(max) CN it published. */
@@ -80,7 +81,7 @@ public class MonitorData
    * For each LDAP server, an approximation of the date of the first missing
    * change.
    */
-  private ConcurrentMap<Integer, Long> fmd =
+  private ConcurrentMap<Integer, Long> firstMissingDates =
     new ConcurrentHashMap<Integer, Long>();
 
   private ConcurrentMap<Integer, Long> missingChanges =
@@ -97,7 +98,7 @@ public class MonitorData
    */
   public long getApproxDelay(int serverId)
   {
-    Long afmd = fmd.get(serverId);
+    Long afmd = firstMissingDates.get(serverId);
     if (afmd != null && afmd > 0)
       return (TimeThread.getTime() - afmd) / 1000;
     return 0;
@@ -110,7 +111,7 @@ public class MonitorData
    */
   public long getApproxFirstMissingDate(int serverId)
   {
-    Long res = fmd.get(serverId);
+    Long res = firstMissingDates.get(serverId);
     if (res != null)
       return res;
     return 0;
@@ -124,9 +125,9 @@ public class MonitorData
   public long getMissingChanges(int serverId)
   {
     Long res = missingChanges.get(serverId);
-    if (res == null)
-      return 0;
-    return res;
+    if (res != null)
+      return res;
+    return 0;
   }
 
   /**
@@ -139,9 +140,9 @@ public class MonitorData
   public long getMissingChangesRS(int serverId)
   {
     Long res = missingChangesRS.get(serverId);
-    if (res == null)
-      return 0;
-    return res;
+    if (res != null)
+      return res;
+    return 0;
   }
 
   /**
@@ -156,13 +157,18 @@ public class MonitorData
     //   Regarding each other LSj
     //    Sum the difference : max(LSj) - state(LSi)
 
-    for (Integer lsiSid : this.LDAPStates.keySet()) {
-      ServerState lsiState = this.LDAPStates.get(lsiSid);
-      Long lsiMissingChanges = (long) 0;
+    for (Entry<Integer, ServerState> entry : ldapStates.entrySet())
+    {
+      final Integer lsiServerId = entry.getKey();
+      final ServerState lsiState = entry.getValue();
+
+      long lsiMissingChanges = 0;
       if (lsiState != null) {
-        for (Integer lsjSid : this.maxCNs.keySet()) {
-          ChangeNumber lsjMaxCN = this.maxCNs.get(lsjSid);
-          ChangeNumber lsiLastCN = lsiState.getChangeNumber(lsjSid);
+        for (Entry<Integer, ChangeNumber> entry2 : maxCNs.entrySet())
+        {
+          final Integer lsjServerId = entry2.getKey();
+          final ChangeNumber lsjMaxCN = entry2.getValue();
+          ChangeNumber lsiLastCN = lsiState.getChangeNumber(lsjServerId);
 
           int missingChangesLsiLsj =
               ChangeNumber.diffSeqNum(lsjMaxCN, lsiLastCN);
@@ -183,10 +189,12 @@ public class MonitorData
           when it is recovering from an old snapshot and the local RS is
           sending him the changes it is missing.
           */
-          if (lsjSid.equals(lsiSid) && missingChangesLsiLsj <= 50) {
+          if (lsjServerId.equals(lsiServerId) && missingChangesLsiLsj <= 50)
+          {
             missingChangesLsiLsj = 0;
             if (debugEnabled()) {
-              mds += " (diff replaced by 0 as for server id " + lsiSid + ")";
+              mds +=
+                  " (diff replaced by 0 as for server id " + lsiServerId + ")";
             }
           }
 
@@ -196,21 +204,25 @@ public class MonitorData
       if (debugEnabled()) {
         mds += "=" + lsiMissingChanges;
       }
-      this.missingChanges.put(lsiSid, lsiMissingChanges);
+      this.missingChanges.put(lsiServerId, lsiMissingChanges);
     }
 
     // Computes the missing changes counters for RS :
     // Sum the difference of sequence numbers for each element in the States.
 
-    for (int lsiSid : RSStates.keySet())
+    for (Entry<Integer, ServerState> entry : rsStates.entrySet())
     {
-      ServerState lsiState = this.RSStates.get(lsiSid);
-      Long lsiMissingChanges = (long)0;
+      final Integer lsiServerId = entry.getKey();
+      final ServerState lsiState = entry.getValue();
+
+      long lsiMissingChanges = 0;
       if (lsiState != null)
       {
-        for (Integer lsjSid : this.maxCNs.keySet()) {
-          ChangeNumber lsjMaxCN = this.maxCNs.get(lsjSid);
-          ChangeNumber lsiLastCN = lsiState.getChangeNumber(lsjSid);
+        for (Entry<Integer, ChangeNumber> entry2 : maxCNs.entrySet())
+        {
+          final Integer lsjServerId = entry2.getKey();
+          final ChangeNumber lsjMaxCN = entry2.getValue();
+          ChangeNumber lsiLastCN = lsiState.getChangeNumber(lsjServerId);
 
           int missingChangesLsiLsj =
               ChangeNumber.diffSeqNum(lsjMaxCN, lsiLastCN);
@@ -226,12 +238,12 @@ public class MonitorData
       {
         mds += "=" + lsiMissingChanges;
       }
-      this.missingChangesRS.put(lsiSid,lsiMissingChanges);
+      this.missingChangesRS.put(lsiServerId,lsiMissingChanges);
 
       if (debugEnabled())
       {
         TRACER.debugInfo(
-          "Complete monitor data : Missing changes ("+ lsiSid +")=" + mds);
+          "Complete monitor data : Missing changes ("+ lsiServerId +")=" + mds);
       }
     }
   }
@@ -247,25 +259,31 @@ public class MonitorData
     String mds = "Monitor data=\n";
 
     // maxCNs
-    for (Integer sid : maxCNs.keySet()) {
-      ChangeNumber cn = maxCNs.get(sid);
-      mds += "\nmaxCNs(" + sid + ")= " + cn.toStringUI();
+    for (Entry<Integer, ChangeNumber> entry : maxCNs.entrySet())
+    {
+      final Integer serverId = entry.getKey();
+      final ChangeNumber cn = entry.getValue();
+      mds += "\nmaxCNs(" + serverId + ")= " + cn.toStringUI();
     }
 
     // LDAP data
-    for (Integer sid : LDAPStates.keySet()) {
-      ServerState ss = LDAPStates.get(sid);
-      mds += "\nLSData(" + sid + ")=\t"
-          + "state=[" + ss + "] afmd=" + getApproxFirstMissingDate(sid)
-          + " missingDelay=" + getApproxDelay(sid)
-          + " missingCount=" + missingChanges.get(sid);
+    for (Entry<Integer, ServerState> entry : ldapStates.entrySet())
+    {
+      final Integer serverId = entry.getKey();
+      final ServerState ss = entry.getValue();
+      mds += "\nLSData(" + serverId + ")=\t"
+          + "state=[" + ss + "] afmd=" + getApproxFirstMissingDate(serverId)
+          + " missingDelay=" + getApproxDelay(serverId)
+          + " missingCount=" + missingChanges.get(serverId);
     }
 
     // RS data
-    for (Integer sid : RSStates.keySet()) {
-      ServerState ss = RSStates.get(sid);
-      mds += "\nRSData(" + sid + ")=\t" + "state=[" + ss
-          + "] missingCount=" + missingChangesRS.get(sid);
+    for (Entry<Integer, ServerState> entry : rsStates.entrySet())
+    {
+      final Integer serverId = entry.getKey();
+      final ServerState ss = entry.getValue();
+      mds += "\nRSData(" + serverId + ")=\t" + "state=[" + ss
+          + "] missingCount=" + missingChangesRS.get(serverId);
     }
 
     mds += "\n--";
@@ -278,9 +296,9 @@ public class MonitorData
    */
   public void setMaxCNs(ServerState state)
   {
-    for (Integer sid : state) {
-      ChangeNumber newCN = state.getChangeNumber(sid);
-      setMaxCN(sid, newCN);
+    for (Integer serverId : state) {
+      ChangeNumber newCN = state.getChangeNumber(serverId);
+      setMaxCN(serverId, newCN);
     }
   }
 
@@ -293,6 +311,7 @@ public class MonitorData
   public void setMaxCN(int serverId, ChangeNumber newCN)
   {
     if (newCN==null) return;
+
     ChangeNumber currentMaxCN = maxCNs.get(serverId);
     if (currentMaxCN == null)
     {
@@ -311,7 +330,7 @@ public class MonitorData
    */
   public ServerState getLDAPServerState(int serverId)
   {
-    return LDAPStates.get(serverId);
+    return ldapStates.get(serverId);
   }
 
   /**
@@ -321,7 +340,7 @@ public class MonitorData
    */
   public void setLDAPServerState(int serverId, ServerState state)
   {
-    LDAPStates.put(serverId, state);
+    ldapStates.put(serverId, state);
   }
 
   /**
@@ -332,7 +351,7 @@ public class MonitorData
    */
   public void setRSState(int serverId, ServerState state)
   {
-    RSStates.put(serverId, state);
+    rsStates.put(serverId, state);
   }
 
   /**
@@ -342,14 +361,14 @@ public class MonitorData
    */
   public void setFirstMissingDate(int serverId, long newFmd)
   {
-    Long currentFmd = fmd.get(serverId);
+    Long currentFmd = firstMissingDates.get(serverId);
     if (currentFmd == null)
     {
-      fmd.put(serverId, newFmd);
+      firstMissingDates.put(serverId, newFmd);
     }
     else if (newFmd != 0 && (newFmd < currentFmd || currentFmd == 0))
     {
-      fmd.replace(serverId, newFmd);
+      firstMissingDates.replace(serverId, newFmd);
     }
   }
 
@@ -361,7 +380,7 @@ public class MonitorData
    */
   public Iterator<Integer> ldapIterator()
   {
-    return LDAPStates.keySet().iterator();
+    return ldapStates.keySet().iterator();
   }
 
   /**
@@ -372,7 +391,7 @@ public class MonitorData
    */
   public Iterator<Integer> rsIterator()
   {
-    return RSStates.keySet().iterator();
+    return rsStates.keySet().iterator();
   }
 
   /**
@@ -383,7 +402,7 @@ public class MonitorData
    */
   public ServerState getRSStates(int serverId)
   {
-    return RSStates.get(serverId);
+    return rsStates.get(serverId);
   }
 
   /**

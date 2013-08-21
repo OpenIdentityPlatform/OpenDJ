@@ -715,7 +715,8 @@ public class ReplicationServerHandler extends ServerHandler
     // Add the specific RS ones
     attributes.add(Attributes.create("Replication-Server", serverURL));
 
-    MonitorData md = replicationServerDomain.getDomainMonitorData();
+    ReplicationDomainMonitorData md =
+        replicationServerDomain.getDomainMonitorData();
 
     // Missing changes
     attributes.add(Attributes.create("missing-changes",

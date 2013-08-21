@@ -53,7 +53,8 @@ class ReplicationDomainMonitor
   /**
    * The monitor data consolidated over the topology.
    */
-  private volatile MonitorData monitorData = new MonitorData();
+  private volatile ReplicationDomainMonitorData monitorData =
+      new ReplicationDomainMonitorData();
 
   /**
    * This lock guards against multiple concurrent monitor data recalculation.
@@ -79,7 +80,7 @@ class ReplicationDomainMonitor
    * <p>
    * Guarded by pendingMonitorDataLock.
    */
-  private MonitorData pendingMonitorData;
+  private ReplicationDomainMonitorData pendingMonitorData;
 
   /**
    * A set containing the IDs of servers from which we are currently expecting
@@ -129,7 +130,7 @@ class ReplicationDomainMonitor
    * @return The latest monitor data available for this replication server
    *         domain, which is never {@code null}.
    */
-  public MonitorData getMonitorData()
+  public ReplicationDomainMonitorData getMonitorData()
   {
     return monitorData;
   }
@@ -141,7 +142,8 @@ class ReplicationDomainMonitor
    * @throws InterruptedException
    *           If this thread is interrupted while waiting for a response.
    */
-  public MonitorData computeDomainMonitorData() throws InterruptedException
+  public ReplicationDomainMonitorData computeDomainMonitorData()
+      throws InterruptedException
   {
     // Only allow monitor recalculation at a time.
     synchronized (pendingMonitorLock)
@@ -157,7 +159,7 @@ class ReplicationDomainMonitor
           {
             // Clear the pending monitor data.
             pendingMonitorDataServerIDs.clear();
-            pendingMonitorData = new MonitorData();
+            pendingMonitorData = new ReplicationDomainMonitorData();
 
             initializePendingMonitorData();
 

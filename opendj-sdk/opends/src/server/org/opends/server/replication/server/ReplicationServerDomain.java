@@ -1655,7 +1655,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     returnMsg.setReplServerDbState(getDbServerState());
 
     // Add the server state for each DS and RS currently in the topology.
-    final MonitorData monitorData = getDomainMonitorData();
+    final ReplicationDomainMonitorData monitorData = getDomainMonitorData();
     for (int replicaId : toIterable(monitorData.ldapIterator()))
     {
       returnMsg.setServerState(replicaId,
@@ -2416,7 +2416,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
    * @return The latest monitor data available for this replication server
    *         domain, which is never {@code null}.
    */
-  MonitorData getDomainMonitorData()
+  ReplicationDomainMonitorData getDomainMonitorData()
   {
     return domainMonitor.getMonitorData();
   }
