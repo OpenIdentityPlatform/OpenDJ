@@ -180,8 +180,7 @@ public class StatusAnalyzer extends DirectoryThread
   private boolean isInterrupted(DataServerHandler serverHandler,
       StatusMachineEvent event)
   {
-    if (replicationServerDomain.changeStatusFromStatusAnalyzer(serverHandler,
-        event))
+    if (replicationServerDomain.changeStatus(serverHandler, event))
     {
       // Finish job and let thread die
       TRACER.debugInfo(

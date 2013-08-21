@@ -183,14 +183,15 @@ public class DataServerHandler extends ServerHandler
   }
 
   /**
-   * Change the status according to the event generated from the status
-   * analyzer.
-   * @param event The event to be used for new status computation
+   * Change the status according to the event.
+   *
+   * @param event
+   *          The event to be used for new status computation
    * @return The new status of the DS
-   * @throws IOException When raised by the underlying session
+   * @throws IOException
+   *           When raised by the underlying session
    */
-  public ServerStatus changeStatusFromStatusAnalyzer(StatusMachineEvent event)
-  throws IOException
+  public ServerStatus changeStatus(StatusMachineEvent event) throws IOException
   {
     return changeStatus(event, "from status analyzer");
   }
@@ -377,25 +378,6 @@ public class DataServerHandler extends ServerHandler
     return serverStartMsg.getSSLEncryption();
   }
 
-  /**
-   * Registers this handler into its related domain and notifies the domain
-   * about the new DS.
-   */
-  public void registerIntoDomain()
-  {
-    // All-right, connected with new DS: store handler.
-    Map<Integer, DataServerHandler> connectedDSs =
-      replicationServerDomain.getConnectedDSs();
-    connectedDSs.put(serverId, this);
-
-    // Tell peer DSs a new DS just connected to us
-    // No need to re-send TopologyMsg to this just new DS so not null
-    // argument
-    replicationServerDomain.buildAndSendTopoInfoToDSs(this);
-    // Tell peer RSs a new DS just connected to us
-    replicationServerDomain.buildAndSendTopoInfoToRSs();
-  }
-
   /** Send our own TopologyMsg to DS. */
   private TopologyMsg sendTopoToRemoteDS() throws IOException
   {
@@ -498,10 +480,7 @@ public class DataServerHandler extends ServerHandler
         throw new DirectoryException(ResultCode.OTHER, null, null);
       }
 
-      replicationServerDomain.startStatusAnalyzer();
-      replicationServerDomain.startMonitoringPublisher();
-
-      registerIntoDomain();
+      replicationServerDomain.register(this);
 
       Message message = INFO_REPLICATION_SERVER_CONNECTION_FROM_DS
           .get(getReplicationServerId(), getServerId(),

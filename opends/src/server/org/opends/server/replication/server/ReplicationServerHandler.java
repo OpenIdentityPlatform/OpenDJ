@@ -230,13 +230,11 @@ public class ReplicationServerHandler extends ServerHandler
 
         logTopoHandshakeSNDandRCV(outTopoMsg, inTopoMsg);
 
-        replicationServerDomain.startMonitoringPublisher();
-
         /*
         FIXME: i think this should be done for all protocol version !!
         not only those > V1
         */
-        registerIntoDomain();
+        replicationServerDomain.register(this);
 
         /*
         Process TopologyMsg sent by remote RS: store matching new info
@@ -376,9 +374,7 @@ public class ReplicationServerHandler extends ServerHandler
         */
       }
 
-      replicationServerDomain.startMonitoringPublisher();
-
-      registerIntoDomain();
+      replicationServerDomain.register(this);
 
       // Process TopologyMsg sent by remote RS: store matching new info
       // (this will also warn our connected DSs of the new received info)
@@ -426,18 +422,6 @@ public class ReplicationServerHandler extends ServerHandler
           replicationServerDomain.hasLock())
         replicationServerDomain.release();
     }
-  }
-
-  /**
-   * Registers this handler into its related domain and notifies the domain.
-   */
-  private void registerIntoDomain()
-  {
-    // Alright, connected with new RS (either outgoing or incoming
-    // connection): store handler.
-    Map<Integer, ReplicationServerHandler> connectedRSs =
-      replicationServerDomain.getConnectedRSs();
-    connectedRSs.put(serverId, this);
   }
 
   /**
