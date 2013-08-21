@@ -1511,7 +1511,8 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
       try
       {
         MonitorMsg monitorMsg = createGlobalTopologyMonitorMsg(
-            msg.getDestination(), msg.getSenderID());
+            msg.getDestination(), msg.getSenderID(),
+            domainMonitor.getMonitorData());
         msgEmitter.send(monitorMsg);
       }
       catch (IOException e)
@@ -1648,14 +1649,23 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
    *          The destination of this message.
    * @return The newly created and filled MonitorMsg. Null if a problem occurred
    *         during message creation.
+   * @throws InterruptedException
+   *           if this thread is interrupted while waiting for a response
    */
   public MonitorMsg createGlobalTopologyMonitorMsg(int sender, int destination)
+      throws InterruptedException
+  {
+    return createGlobalTopologyMonitorMsg(sender, destination,
+        domainMonitor.computeDomainMonitorData());
+  }
+
+  private MonitorMsg createGlobalTopologyMonitorMsg(int sender,
+      int destination, ReplicationDomainMonitorData monitorData)
   {
     final MonitorMsg returnMsg = new MonitorMsg(sender, destination);
     returnMsg.setReplServerDbState(getDbServerState());
 
     // Add the server state for each DS and RS currently in the topology.
-    final ReplicationDomainMonitorData monitorData = getDomainMonitorData();
     for (int replicaId : toIterable(monitorData.ldapIterator()))
     {
       returnMsg.setServerState(replicaId,
