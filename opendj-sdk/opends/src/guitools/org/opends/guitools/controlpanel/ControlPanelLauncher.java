@@ -103,21 +103,25 @@ public class ControlPanelLauncher
       System.exit(ErrorReturnCode.ERROR_PARSING_ARGS.getReturnCode());
     }
 
-    //  If we should just display usage or version information,
+    // If we should just display usage or version information,
     // then print it and exit.
-    if (argParser.usageOrVersionDisplayed()) {
+    if (argParser.usageOrVersionDisplayed())
+    {
       System.exit(ErrorReturnCode.SUCCESSFUL_NOP.getReturnCode());
     }
 
     // Checks the version - if upgrade required, the tool is unusable
-    try
+    if (!argParser.isRemote())
     {
-      BuildVersion.checkVersionMismatch();
-    }
-    catch (InitializationException e)
-    {
-      System.err.println(wrapText(e.getMessage(), MAX_LINE_WIDTH));
-      System.exit(ErrorReturnCode.ERROR_UNEXPECTED.getReturnCode());
+      try
+      {
+        BuildVersion.checkVersionMismatch();
+      }
+      catch (InitializationException e)
+      {
+        System.err.println(wrapText(e.getMessage(), MAX_LINE_WIDTH));
+        System.exit(ErrorReturnCode.ERROR_UNEXPECTED.getReturnCode());
+      }
     }
 
     if (!argParser.usageOrVersionDisplayed())
