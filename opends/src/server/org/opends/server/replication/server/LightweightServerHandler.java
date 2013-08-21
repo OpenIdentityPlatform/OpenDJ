@@ -200,7 +200,7 @@ public class LightweightServerHandler
         replServerHandler.getMonitorInstanceName()));
 
     // Retrieves the topology counters
-    MonitorData md = rsDomain.getDomainMonitorData();
+    ReplicationDomainMonitorData md = rsDomain.getDomainMonitorData();
 
     ServerState remoteState = md.getLDAPServerState(serverId);
     if (remoteState == null)

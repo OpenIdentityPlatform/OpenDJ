@@ -249,7 +249,8 @@ public class DataServerHandler extends ServerHandler
     attributes.add(Attributes.create("connected-to",
         this.replicationServer.getMonitorInstanceName()));
 
-    MonitorData md = replicationServerDomain.getDomainMonitorData();
+    ReplicationDomainMonitorData md =
+        replicationServerDomain.getDomainMonitorData();
 
     // Oldest missing update
     long approxFirstMissingDate = md.getApproxFirstMissingDate(serverId);
