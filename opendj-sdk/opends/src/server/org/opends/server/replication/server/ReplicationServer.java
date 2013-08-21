@@ -336,21 +336,21 @@ public final class ReplicationServer
 
         if (msg instanceof ServerStartMsg)
         {
-          DataServerHandler handler = new DataServerHandler(
+          DataServerHandler dsHandler = new DataServerHandler(
               session, queueSize, this, rcvWindow);
-          handler.startFromRemoteDS((ServerStartMsg)msg);
+          dsHandler.startFromRemoteDS((ServerStartMsg) msg);
         }
         else if (msg instanceof ReplServerStartMsg)
         {
-          ReplicationServerHandler handler = new ReplicationServerHandler(
+          ReplicationServerHandler rsHandler = new ReplicationServerHandler(
               session, queueSize, this, rcvWindow);
-          handler.startFromRemoteRS((ReplServerStartMsg)msg);
+          rsHandler.startFromRemoteRS((ReplServerStartMsg) msg);
         }
         else if (msg instanceof ServerStartECLMsg)
         {
-          ECLServerHandler handler = new ECLServerHandler(
+          ECLServerHandler eclHandler = new ECLServerHandler(
               session, queueSize, this, rcvWindow);
-          handler.startFromRemoteServer((ServerStartECLMsg)msg);
+          eclHandler.startFromRemoteServer((ServerStartECLMsg) msg);
         }
         else
         {
@@ -471,9 +471,9 @@ public final class ReplicationServer
   private Set<String> getConnectedRSUrls(ReplicationServerDomain domain)
   {
     Set<String> results = new LinkedHashSet<String>();
-    for (ReplicationServerHandler handler : domain.getConnectedRSs().values())
+    for (ReplicationServerHandler rsHandler : domain.getConnectedRSs().values())
     {
-      results.add(normalizeServerURL(handler.getServerAddressURL()));
+      results.add(normalizeServerURL(rsHandler.getServerAddressURL()));
     }
     return results;
   }
@@ -507,9 +507,9 @@ public final class ReplicationServer
       socket.connect(ServerAddr, timeoutMS);
       session = replSessionSecurity.createClientSession(socket, timeoutMS);
 
-      ReplicationServerHandler handler = new ReplicationServerHandler(
+      ReplicationServerHandler rsHandler = new ReplicationServerHandler(
           session, queueSize, this, rcvWindow);
-      handler.connect(baseDn, sslEncryption);
+      rsHandler.connect(baseDn, sslEncryption);
     }
     catch (Exception e)
     {
@@ -867,19 +867,22 @@ public final class ReplicationServer
 
 
   /**
-   * Creates a new DB handler for this ReplicationServer and the serverId and
-   * DN given in parameter.
+   * Creates a new DB handler for this ReplicationServer and the serverId and DN
+   * given in parameter.
    *
-   * @param id The serverId for which the dbHandler must be created.
-   * @param baseDn The DN for which the dbHandler must be created.
+   * @param serverId
+   *          The serverId for which the dbHandler must be created.
+   * @param baseDn
+   *          The DN for which the dbHandler must be created.
    * @return The new DB handler for this ReplicationServer and the serverId and
    *         DN given in parameter.
-   * @throws ChangelogException in case of underlying database problem.
+   * @throws ChangelogException
+   *           in case of underlying database problem.
    */
-  public DbHandler newDbHandler(int id, String baseDn)
+  public DbHandler newDbHandler(int serverId, String baseDn)
       throws ChangelogException
   {
-    return new DbHandler(id, baseDn, this, dbEnv, queueSize);
+    return new DbHandler(serverId, baseDn, this, dbEnv, queueSize);
   }
 
 
@@ -1139,8 +1142,7 @@ public final class ReplicationServer
   {
     for (ReplicationServerDomain domain : getReplicationServerDomains())
     {
-      domain.buildAndSendTopoInfoToDSs(null);
-      domain.buildAndSendTopoInfoToRSs();
+      domain.sendTopoInfoToAll();
     }
   }
 
