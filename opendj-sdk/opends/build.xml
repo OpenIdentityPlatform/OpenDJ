@@ -1492,8 +1492,9 @@
 
     <getversionnumber property="VERSION_NUMBER_STRING" />
 
-    <property name="prefix"    value="/opt/opendj"/>
-    <property name="release"   value="1"/>
+    <property name="prefix"      value="/opt/opendj"/>
+    <property name="release"     value="1"/>
+    <property name="docprefix"   value="/usr/share/doc/opendj"/>
 
     <mkdir dir="${build.dir}/deb/control" />
 
@@ -1511,21 +1512,21 @@
     </copy>
 
     <!--        Debian files for preinst/postinstall/preuninstall/postuninstall -->
-
+  	
     <copy todir="${build.dir}/deb/control">
         <fileset dir="resource/debian/control"/>
     </copy>
+    <copy file="resource/debian/copyright" tofile="${package.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}/copyright" />
 
     <replace dir="${build.dir}/deb/control/" token="@prefix@" value="${prefix}" />
 
     <deb destfile="${package.dir}/${PKG_NAME}_${pkg_version_string}-${release}${pkg_version_qualifier}_all.deb"
-         control="${build.dir}/deb/control" verbose="false">
+                  control="${build.dir}/deb/control" verbose="false">
       <tarfileset dir="${package.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}"
                   includes="**/*"
-                  excludes="**/bat/**, **/QuickSetup.app/**, **/Uninstall.app/**, **/*ControlPanel.app*/**, **/*.bat*, **/*.exe*, bin/*, template/**/*,lib/_client-script.sh,lib/_script-util.sh,lib/_server-script.sh,lib/_mixed-script.sh,setup,uninstall,upgrade"
+                  excludes="**/bat/**, **/*.app/**, **/*.bat*, **/*.exe*, bin/*, template/**/*, lib/*.sh, setup, uninstall, upgrade, legal-notices/**, copyright"
                   prefix="${prefix}" filemode="644" dirmode="755" />
-      <tarfileset dir="${package.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}"
-                  includes="lib/_client-script.sh,lib/_script-util.sh,lib/_server-script.sh,lib/_mixed-script.sh"
+      <tarfileset dir="${package.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}" includes="lib/*.sh"
                   prefix="${prefix}" filemode="755" dirmode="755" />
       <tarfileset dir="${package.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}" includes="bin/*"
                   excludes="bin/README_WINDOWS.txt, **/bin/ControlPanel.app/"
@@ -1533,7 +1534,9 @@
       <tarfileset dir="${package.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}" includes="setup,uninstall,upgrade"
                   prefix="${prefix}" filemode="755" dirmode="755" />
       <tarfileset dir="${package.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}" includes="template/**/*"
-                  prefix="${prefix}" filemode="444" dirmode="744" />
+                  prefix="${prefix}" filemode="444" dirmode="744" />      
+      <tarfileset dir="${package.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}" includes="legal-notices/**, copyright"
+                  prefix="${docprefix}" filemode="755" dirmode="744" />    	
     </deb>
   </target>
 
