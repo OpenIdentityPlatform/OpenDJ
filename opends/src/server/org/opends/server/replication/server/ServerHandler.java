@@ -238,9 +238,8 @@ public abstract class ServerHandler extends MessageHandler
    */
   protected void abortStart(Message reason)
   {
-    // We did not recognize the message, close session as what
-    // can happen after is undetermined and we do not want the server to
-    // be disturbed
+    // We did not recognize the message, close session as what can happen after
+    // is undetermined and we do not want the server to be disturbed
     Session localSession = session;
     if (localSession != null)
     {
@@ -250,10 +249,9 @@ public abstract class ServerHandler extends MessageHandler
     releaseDomainLock();
 
     // If generation id of domain was changed, set it back to old value
-    // We may have changed it as it was -1 and we received a value >0 from
-    // peer server and the last topo message sent may have failed being
-    // sent: in that case retrieve old value of generation id for
-    // replication server domain
+    // We may have changed it as it was -1 and we received a value >0 from peer
+    // server and the last topo message sent may have failed being sent: in that
+    // case retrieve old value of generation id for replication server domain
     if (oldGenerationId != -100 && replicationServerDomain != null)
     {
       replicationServerDomain.changeGenerationId(oldGenerationId, false);
@@ -882,9 +880,8 @@ public abstract class ServerHandler extends MessageHandler
   {
     if (rcvWindow > 0)
     {
-      // The LDAP server believes that its window is closed
-      // while it is not, this means that some problem happened in the
-      // window exchange procedure !
+      // The LDAP server believes that its window is closed while it is not,
+      // this means that some problem happened in the window exchange procedure!
       // lets update the LDAP server with out current window size and hope
       // that everything will work better in the future.
       // TODO also log an error message.
@@ -967,8 +964,6 @@ public abstract class ServerHandler extends MessageHandler
     {
       session.close();
     }
-
-    // Stop the heartbeat thread.
     if (heartbeatThread != null)
     {
       heartbeatThread.shutdown();

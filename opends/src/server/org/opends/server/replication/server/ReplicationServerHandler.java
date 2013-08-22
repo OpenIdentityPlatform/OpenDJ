@@ -500,6 +500,7 @@ public class ReplicationServerHandler extends ServerHandler
       // server as topo message must embed valid generation id for our server
       oldGenerationId =
           replicationServerDomain.changeGenerationId(generationId, false);
+      return;
     }
 
     // the local RS is initialized
