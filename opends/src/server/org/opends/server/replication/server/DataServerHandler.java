@@ -230,14 +230,7 @@ public class DataServerHandler extends ServerHandler
     return newStatus;
   }
 
-  /**
-   * Retrieves a set of attributes containing monitor data that should be
-   * returned to the client if the corresponding monitor entry is requested.
-   *
-   * @return  A set of attributes containing monitor data that should be
-   *          returned to the client if the corresponding monitor entry is
-   *          requested.
-   */
+  /** {@inheritDoc} */
   @Override
   public List<Attribute> getMonitorData()
   {
@@ -426,8 +419,7 @@ public class DataServerHandler extends ServerHandler
         }
       }
 
-      // lock with no timeout
-      lockDomain(false);
+      lockDomainNoTimeout();
 
       localGenerationId = replicationServerDomain.getGenerationId();
       oldGenerationId = localGenerationId;
@@ -501,9 +493,7 @@ public class DataServerHandler extends ServerHandler
     }
     finally
     {
-      if (replicationServerDomain != null &&
-          replicationServerDomain.hasLock())
-        replicationServerDomain.release();
+      releaseDomainLock();
     }
   }
 

@@ -154,7 +154,7 @@ public class ReplicationServerHandler extends ServerHandler
 
     try
     {
-      lockDomain(false); // no timeout
+      lockDomainNoTimeout();
 
       ReplServerStartMsg outReplServerStartMsg = sendStartToRemote();
 
@@ -210,7 +210,7 @@ public class ReplicationServerHandler extends ServerHandler
       {
         /*
         Only protocol version above V1 has a phase 2 handshake
-        NOW PROCEDE WITH SECOND PHASE OF HANDSHAKE:
+        NOW PROCEED WITH SECOND PHASE OF HANDSHAKE:
         TopologyMsg then TopologyMsg (with a RS)
 
         Send our own TopologyMsg to remote RS
@@ -280,9 +280,7 @@ public class ReplicationServerHandler extends ServerHandler
     }
     finally
     {
-      if (replicationServerDomain != null &&
-          replicationServerDomain.hasLock())
-        replicationServerDomain.release();
+      releaseDomainLock();
     }
   }
 
@@ -300,8 +298,7 @@ public class ReplicationServerHandler extends ServerHandler
       // The initiator decides if the session is encrypted
       sslEncryption = processStartFromRemote(inReplServerStartMsg);
 
-      // lock with timeout
-      lockDomain(true);
+      lockDomainWithTimeout();
 
       if (replicationServerDomain.isAlreadyConnectedToRS(this))
       {
@@ -418,9 +415,7 @@ public class ReplicationServerHandler extends ServerHandler
     }
     finally
     {
-      if (replicationServerDomain != null &&
-          replicationServerDomain.hasLock())
-        replicationServerDomain.release();
+      releaseDomainLock();
     }
   }
 
@@ -498,54 +493,48 @@ public class ReplicationServerHandler extends ServerHandler
    */
   private void checkGenerationId()
   {
-    if (localGenerationId > 0)
-    { // the local RS is initialized
-      if (generationId > 0
-          // the remote RS is initialized. If not, there's nothing to do anyway.
-          && generationId != localGenerationId)
-      {
-        /* Either:
-         *
-         * 1) The 2 RS have different generationID
-         * replicationServerDomain.getGenerationIdSavedStatus() == true
-         *
-         * if the present RS has received changes regarding its
-         * gen ID and so won't change without a reset
-         * then  we are just degrading the peer.
-         *
-         * 2) This RS has never received any changes for the current
-         * generation ID.
-         *
-         * Example case:
-         * - we are in RS1
-         * - RS2 has genId2 from LS2 (genId2 <=> no data in LS2)
-         * - RS1 has genId1 from LS1 /genId1 comes from data in suffix
-         * - we are in RS1 and we receive a START msg from RS2
-         * - Each RS keeps its genID / is degraded and when LS2
-         * will be populated from LS1 everything will become ok.
-         *
-         * Issue:
-         * FIXME : Would it be a good idea in some cases to just set the
-         * gen ID received from the peer RS specially if the peer has a
-         * non null state and we have a null state ?
-         * replicationServerDomain.setGenerationId(generationId, false);
-         */
-        Message message = WARN_BAD_GENERATION_ID_FROM_RS.get(
-            serverId, session.getReadableRemoteAddress(), generationId,
-            getBaseDN(), getReplicationServerId(), localGenerationId);
-        logError(message);
-      }
-    }
-    else
+    if (localGenerationId <= 0)
     {
-      /*
-      The local RS is not initialized - take the one received
-      WARNING: Must be done before computing topo message to send
-      to peer server as topo message must embed valid generation id
-      for our server
-      */
+      // The local RS is not initialized - take the one received
+      // WARNING: Must be done before computing topo message to send to peer
+      // server as topo message must embed valid generation id for our server
       oldGenerationId =
           replicationServerDomain.changeGenerationId(generationId, false);
+    }
+
+    // the local RS is initialized
+    if (generationId > 0
+        // the remote RS is initialized. If not, there's nothing to do anyway.
+        && generationId != localGenerationId)
+    {
+      /* Either:
+       *
+       * 1) The 2 RS have different generationID
+       * replicationServerDomain.getGenerationIdSavedStatus() == true
+       *
+       * if the present RS has received changes regarding its gen ID and so will
+       * not change without a reset then we are just degrading the peer.
+       *
+       * 2) This RS has never received any changes for the current gen ID.
+       *
+       * Example case:
+       * - we are in RS1
+       * - RS2 has genId2 from LS2 (genId2 <=> no data in LS2)
+       * - RS1 has genId1 from LS1 /genId1 comes from data in suffix
+       * - we are in RS1 and we receive a START msg from RS2
+       * - Each RS keeps its genID / is degraded and when LS2
+       * will be populated from LS1 everything will become ok.
+       *
+       * Issue:
+       * FIXME : Would it be a good idea in some cases to just set the gen ID
+       * received from the peer RS specially if the peer has a non null state
+       * and we have a null state ?
+       * replicationServerDomain.setGenerationId(generationId, false);
+       */
+      Message message = WARN_BAD_GENERATION_ID_FROM_RS.get(
+          serverId, session.getReadableRemoteAddress(), generationId,
+          getBaseDN(), getReplicationServerId(), localGenerationId);
+      logError(message);
     }
   }
 
@@ -584,7 +573,11 @@ public class ReplicationServerHandler extends ServerHandler
   public void shutdown()
   {
     super.shutdown();
-    // Stop the remote LSHandler
+    clearRemoteLSHandlers();
+  }
+
+  private void clearRemoteLSHandlers()
+  {
     synchronized (remoteDirectoryServers)
     {
       for (LightweightServerHandler lsh : remoteDirectoryServers.values())
@@ -594,6 +587,7 @@ public class ReplicationServerHandler extends ServerHandler
       remoteDirectoryServers.clear();
     }
   }
+
   /**
    * Stores topology information received from a peer RS and that must be kept
    * in RS handler.
@@ -602,29 +596,20 @@ public class ReplicationServerHandler extends ServerHandler
    */
   public void processTopoInfoFromRS(TopologyMsg topoMsg)
   {
-    // Store info for remote RS
-    List<RSInfo> rsInfos = topoMsg.getRsList();
     // List should only contain RS info for sender
-    RSInfo rsInfo = rsInfos.get(0);
+    final RSInfo rsInfo = topoMsg.getRsList().get(0);
     generationId = rsInfo.getGenerationId();
     groupId = rsInfo.getGroupId();
     weight = rsInfo.getWeight();
 
-    // Store info for DSs connected to the peer RS
-    List<DSInfo> dsInfos = topoMsg.getDsList();
-
     synchronized (remoteDirectoryServers)
     {
-      // Removes the existing structures
-      for (LightweightServerHandler lsh : remoteDirectoryServers.values())
-      {
-        lsh.stopHandler();
-      }
-      remoteDirectoryServers.clear();
+      clearRemoteLSHandlers();
 
       // Creates the new structure according to the message received.
-      for (DSInfo dsInfo : dsInfos)
+      for (DSInfo dsInfo : topoMsg.getDsList())
       {
+        // For each DS connected to the peer RS
         LightweightServerHandler lsh = new LightweightServerHandler(this,
             serverId, dsInfo.getDsId(), dsInfo.getDsUrl(),
             dsInfo.getGenerationId(), dsInfo.getGroupId(), dsInfo.getStatus(),
@@ -670,10 +655,7 @@ public class ReplicationServerHandler extends ServerHandler
    */
   public boolean hasRemoteLDAPServers()
   {
-    synchronized (remoteDirectoryServers)
-    {
-      return !remoteDirectoryServers.isEmpty();
-    }
+    return !remoteDirectoryServers.isEmpty();
   }
 
   /**
@@ -682,10 +664,7 @@ public class ReplicationServerHandler extends ServerHandler
    */
   public Set<Integer> getConnectedDirectoryServerIds()
   {
-    synchronized (remoteDirectoryServers)
-    {
-      return remoteDirectoryServers.keySet();
-    }
+    return remoteDirectoryServers.keySet();
   }
 
   /**
@@ -698,14 +677,7 @@ public class ReplicationServerHandler extends ServerHandler
         + ",cn=" + replicationServerDomain.getMonitorInstanceName();
   }
 
-  /**
-   * Retrieves a set of attributes containing monitor data that should be
-   * returned to the client if the corresponding monitor entry is requested.
-   *
-   * @return  A set of attributes containing monitor data that should be
-   *          returned to the client if the corresponding monitor entry is
-   *          requested.
-   */
+  /** {@inheritDoc} */
   @Override
   public List<Attribute> getMonitorData()
   {
