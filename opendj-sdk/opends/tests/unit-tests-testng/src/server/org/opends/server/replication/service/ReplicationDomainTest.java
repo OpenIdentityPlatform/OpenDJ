@@ -27,8 +27,6 @@
  */
 package org.opends.server.replication.service;
 
-import static org.testng.Assert.*;
-
 import java.io.File;
 import java.util.*;
 import java.util.concurrent.BlockingQueue;
@@ -48,6 +46,8 @@ import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.util.StaticUtils;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+
+import static org.testng.Assert.*;
 
 /**
  * Test the Generic Replication Service.
@@ -92,24 +92,11 @@ public class ReplicationDomainTest extends ReplicationTestCase
       int replServerPort1 = ports[0];
       int replServerPort2 = ports[1];
 
-      SortedSet<String> replserver1 = new TreeSet<String>();
-      replserver1.add("localhost:" + replServerPort1);
+      replServer1 = createReplicationServer(replServerID1, replServerPort1,
+          "ReplicationDomainTestDb1", 100, "localhost:" + replServerPort2);
+      replServer2 = createReplicationServer(replServerID2, replServerPort2,
+          "ReplicationDomainTestDb2", 100, "localhost:" + replServerPort1);
 
-      SortedSet<String> replserver2 = new TreeSet<String>();
-      replserver2.add("localhost:" + replServerPort2);
-
-      ReplServerFakeConfiguration conf1 =
-        new ReplServerFakeConfiguration(
-            replServerPort1, "ReplicationDomainTestDb1",
-            0, replServerID1, 0, 100, replserver2);
-
-      ReplServerFakeConfiguration conf2 =
-        new ReplServerFakeConfiguration(
-            replServerPort2, "ReplicationDomainTestDb2",
-            0, replServerID2, 0, 100, replserver1);
-
-      replServer1 = new ReplicationServer(conf1);
-      replServer2 = new ReplicationServer(conf2);
       List<String> servers = new ArrayList<String>(1);
       servers.add("localhost:" + replServerPort1);
 
@@ -137,17 +124,11 @@ public class ReplicationDomainTest extends ReplicationTestCase
       assertNotNull(rcvdMsg);
       assertEquals(test, rcvdMsg.getPayload());
 
-      /*
-       * Now test the resetReplicationLog() method.
-       */
-      List<RSInfo> replServers = domain1.getRsList();
-
-      for (RSInfo replServerInfo : replServers)
+      for (RSInfo replServerInfo : domain1.getRsList())
       {
         // The generation Id of the remote should be 1
         assertEquals(replServerInfo.getGenerationId(), 1,
-            "Unexpected value of generationId in RSInfo for RS="
-            + replServerInfo.toString());
+            "Unexpected value of generationId in RSInfo for RS=" + replServerInfo);
       }
 
       for (DSInfo serverInfo : domain1.getReplicasList())
@@ -158,14 +139,12 @@ public class ReplicationDomainTest extends ReplicationTestCase
       domain1.setGenerationID(2);
       domain1.resetReplicationLog();
       Thread.sleep(500);
-      replServers = domain1.getRsList();
 
-      for (RSInfo replServerInfo : replServers)
+      for (RSInfo replServerInfo : domain1.getRsList())
       {
         // The generation Id of the remote should now be 2
         assertEquals(replServerInfo.getGenerationId(), 2,
-            "Unexpected value of generationId in RSInfo for RS="
-            + replServerInfo.toString());
+            "Unexpected value of generationId in RSInfo for RS=" + replServerInfo);
       }
 
       int sleepTime = 50;
@@ -173,27 +152,10 @@ public class ReplicationDomainTest extends ReplicationTestCase
       {
         try
         {
-          for (DSInfo serverInfo : domain1.getReplicasList())
-          {
-            if (serverInfo.getDsId() == domain2ServerId)
-              assertEquals(serverInfo.getStatus(), ServerStatus.BAD_GEN_ID_STATUS);
-            else
-            {
-              assertTrue(serverInfo.getDsId() == domain1ServerId);
-              assertTrue(serverInfo.getStatus() == ServerStatus.NORMAL_STATUS);
-            }
-          }
-
-          for (DSInfo serverInfo : domain2.getReplicasList())
-          {
-            if (serverInfo.getDsId() == domain2ServerId)
-              assertTrue(serverInfo.getStatus() == ServerStatus.BAD_GEN_ID_STATUS);
-            else
-            {
-              assertTrue(serverInfo.getDsId() == domain1ServerId);
-              assertTrue(serverInfo.getStatus() == ServerStatus.NORMAL_STATUS);
-            }
-          }
+          assertExpectedServerStatuses(domain1.getReplicasList(),
+              domain1ServerId, domain2ServerId);
+          assertExpectedServerStatuses(domain2.getReplicasList(),
+              domain1ServerId, domain2ServerId);
 
           Map<Integer, ServerState> states1 = domain1.getReplicaStates();
           ServerState state2 = states1.get(domain2ServerId);
@@ -208,36 +170,33 @@ public class ReplicationDomainTest extends ReplicationTestCase
         }
         catch (AssertionError e)
         {
-          if (sleepTime < 30000)
+          if (sleepTime >= 30000)
           {
-            Thread.sleep(sleepTime);
-            sleepTime *=2;
-          }
-          else
             throw e;
+          }
+          Thread.sleep(sleepTime);
+          sleepTime *= 2;
         }
       }
-
     }
     finally
     {
-      if (domain1 != null)
-        domain1.stopDomain();
+      disable(domain1, domain2);
+      remove(replServer1, replServer2);
+    }
+  }
 
-      if (domain2 != null)
-        domain2.stopDomain();
-
-      if (replServer1 != null)
+  private void assertExpectedServerStatuses(List<DSInfo> dsInfos,
+      int domain1ServerId, int domain2ServerId)
+  {
+    for (DSInfo serverInfo : dsInfos)
+    {
+      if (serverInfo.getDsId() == domain2ServerId)
+        assertEquals(serverInfo.getStatus(), ServerStatus.BAD_GEN_ID_STATUS);
+      else
       {
-        replServer1.remove();
-        StaticUtils.recursiveDelete(new File(DirectoryServer.getInstanceRoot(),
-                 replServer1.getDbDirName()));
-      }
-      if (replServer2 != null)
-      {
-        replServer2.remove();
-        StaticUtils.recursiveDelete(new File(DirectoryServer.getInstanceRoot(),
-                 replServer2.getDbDirName()));
+        assertEquals(serverInfo.getDsId(), domain1ServerId);
+        assertEquals(serverInfo.getStatus(), ServerStatus.NORMAL_STATUS);
       }
     }
   }
@@ -261,15 +220,9 @@ public class ReplicationDomainTest extends ReplicationTestCase
     {
       int replServerPort = TestCaseUtils.findFreePort();
 
-      SortedSet<String> replserver = new TreeSet<String>();
-      replserver.add("localhost:" + replServerPort);
+      replServer1 = createReplicationServer(replServerID1, replServerPort,
+          "ReplicationDomainTestDb", 100000, "localhost:" + replServerPort);
 
-      ReplServerFakeConfiguration conf1 =
-        new ReplServerFakeConfiguration(
-            replServerPort, "ReplicationDomainTestDb",
-            0, replServerID1, 0, 100000, replserver);
-
-      replServer1 = new ReplicationServer(conf1);
       List<String> servers = new ArrayList<String>(1);
       servers.add("localhost:" + replServerPort);
 
@@ -307,18 +260,52 @@ public class ReplicationDomainTest extends ReplicationTestCase
         domain1.publish(test);
       timeNow = System.nanoTime();
       System.out.println(timeNow - timeStart);
-
     }
     finally
     {
-      if (domain1 != null)
-        domain1.disableService();
+      disable(domain1);
+      remove(replServer1);
+    }
+  }
 
-      if (replServer1 != null)
+  private ReplicationServer createReplicationServer(int serverId,
+      int replicationPort, String dirName, int windowSize,
+      String... replServers) throws Exception
+  {
+    return createReplicationServer(serverId, replicationPort, dirName,
+        windowSize, new TreeSet<String>(Arrays.asList(replServers)));
+  }
+
+  private ReplicationServer createReplicationServer(int serverId,
+      int replicationPort, String dirName, int windowSize,
+      SortedSet<String> replServers) throws Exception
+  {
+    ReplServerFakeConfiguration cfg =
+        new ReplServerFakeConfiguration(replicationPort, dirName, 0, serverId,
+            0, windowSize, replServers);
+    return new ReplicationServer(cfg);
+  }
+
+  private void disable(ReplicationDomain... domains)
+  {
+    for (ReplicationDomain domain : domains)
+    {
+      if (domain != null)
       {
-        replServer1.remove();
+        domain.disableService();
+      }
+    }
+  }
+
+  private void remove(ReplicationServer... replServers)
+  {
+    for (ReplicationServer replServer : replServers)
+    {
+      if (replServer != null)
+      {
+        replServer.remove();
         StaticUtils.recursiveDelete(new File(DirectoryServer.getInstanceRoot(),
-                 replServer1.getDbDirName()));
+            replServer.getDbDirName()));
       }
     }
   }
@@ -350,12 +337,8 @@ public class ReplicationDomainTest extends ReplicationTestCase
     {
       int replServerPort = TestCaseUtils.findFreePort();
 
-      ReplServerFakeConfiguration conf =
-        new ReplServerFakeConfiguration(
-            replServerPort, "exportAndImportData",
-            0, replServerID, 0, 100, null);
-
-      replServer = new ReplicationServer(conf);
+      replServer = createReplicationServer(replServerID, replServerPort,
+          "exportAndImportData", 100);
       List<String> servers = new ArrayList<String>(1);
       servers.add("localhost:" + replServerPort);
 
@@ -393,27 +376,17 @@ public class ReplicationDomainTest extends ReplicationTestCase
         count ++;
         Thread.sleep(100);
       }
-      assertTrue(domain2.getLeftEntryCount() == 0,
+      assertEquals(domain2.getLeftEntryCount(), 0,
           "LeftEntryCount for export is " + domain2.getLeftEntryCount());
-      assertTrue(domain1.getLeftEntryCount() == 0,
+      assertEquals(domain1.getLeftEntryCount(), 0,
           "LeftEntryCount for import is " + domain1.getLeftEntryCount());
       assertEquals(importedData.length(), exportedData.length());
       assertEquals(importedData.toString(), exportedData);
     }
     finally
     {
-      if (domain1 != null)
-        domain1.disableService();
-
-      if (domain2 != null)
-        domain2.disableService();
-
-      if (replServer != null)
-      {
-        replServer.remove();
-        StaticUtils.recursiveDelete(new File(DirectoryServer.getInstanceRoot(),
-                 replServer.getDbDirName()));
-      }
+      disable(domain1, domain2);
+      remove(replServer);
     }
   }
 
@@ -439,24 +412,10 @@ public class ReplicationDomainTest extends ReplicationTestCase
       int replServerPort1 = ports[0];
       int replServerPort2 = ports[1];
 
-      SortedSet<String> replserver1 = new TreeSet<String>();
-      replserver1.add("localhost:" + replServerPort1);
-
-      SortedSet<String> replserver2 = new TreeSet<String>();
-      replserver2.add("localhost:" + replServerPort2);
-
-      ReplServerFakeConfiguration conf1 =
-        new ReplServerFakeConfiguration(
-            replServerPort1, "exportAndImportservice1",
-            0, replServerID, 0, 100, null);
-
-      ReplServerFakeConfiguration conf2 =
-        new ReplServerFakeConfiguration(
-            replServerPort2, "exportAndImportservice2",
-            0, replServerID2, 0, 100, replserver1);
-
-      replServer1 = new ReplicationServer(conf1);
-      replServer2 = new ReplicationServer(conf2);
+      replServer1 = createReplicationServer(replServerID, replServerPort1,
+          "exportAndImportservice1", 100);
+      replServer2 = createReplicationServer(replServerID2, replServerPort2,
+          "exportAndImportservice2", 100, "localhost:" + replServerPort1);
 
       List<String> servers1 = new ArrayList<String>(1);
       servers1.add("localhost:" + replServerPort1);
@@ -487,33 +446,17 @@ public class ReplicationDomainTest extends ReplicationTestCase
         count ++;
         Thread.sleep(100);
       }
-      assertTrue(domain2.getLeftEntryCount() == 0,
+      assertEquals(domain2.getLeftEntryCount(), 0,
           "LeftEntryCount for export is " + domain2.getLeftEntryCount());
-      assertTrue(domain1.getLeftEntryCount() == 0,
+      assertEquals(domain1.getLeftEntryCount(), 0,
           "LeftEntryCount for import is " + domain1.getLeftEntryCount());
       assertEquals(importedData.length(), exportedData.length());
       assertEquals(importedData.toString(), exportedData);
     }
     finally
     {
-      if (domain1 != null)
-        domain1.disableService();
-
-      if (domain2 != null)
-        domain2.disableService();
-
-      if (replServer1 != null)
-      {
-        replServer1.remove();
-        StaticUtils.recursiveDelete(new File(DirectoryServer.getInstanceRoot(),
-                 replServer1.getDbDirName()));
-      }
-      if (replServer2 != null)
-      {
-        replServer2.remove();
-        StaticUtils.recursiveDelete(new File(DirectoryServer.getInstanceRoot(),
-                 replServer2.getDbDirName()));
-      }
+      disable(domain1, domain2);
+      remove(replServer1, replServer2);
     }
   }
 
@@ -554,12 +497,8 @@ public class ReplicationDomainTest extends ReplicationTestCase
       servers.add(HOST1 + SENDERPORT);
       servers.add(HOST2 + RECEIVERPORT);
 
-      ReplServerFakeConfiguration conf =
-        new ReplServerFakeConfiguration(
-            SENDERPORT, "ReplicationDomainTestDb",
-            0, replServerID, 0, 100, servers);
-
-      replServer = new ReplicationServer(conf);
+      replServer = createReplicationServer(replServerID, SENDERPORT,
+          "ReplicationDomainTestDb", 100, servers);
 
       BlockingQueue<UpdateMsg> rcvQueue1 = new LinkedBlockingQueue<UpdateMsg>();
       domain1 = new FakeStressReplicationDomain(
@@ -570,15 +509,8 @@ public class ReplicationDomainTest extends ReplicationTestCase
     }
     finally
     {
-      if (domain1 != null)
-        domain1.disableService();
-
-      if (replServer != null)
-      {
-        replServer.remove();
-        StaticUtils.recursiveDelete(new File(DirectoryServer.getInstanceRoot(),
-                 replServer.getDbDirName()));
-      }
+      disable(domain1);
+      remove(replServer);
     }
   }
 
@@ -599,12 +531,8 @@ public class ReplicationDomainTest extends ReplicationTestCase
       servers.add(HOST1 + SENDERPORT);
       servers.add(HOST2 + RECEIVERPORT);
 
-      ReplServerFakeConfiguration conf =
-        new ReplServerFakeConfiguration(
-            RECEIVERPORT, "ReplicationDomainTestDb",
-            0, replServerID, 0, 100, servers);
-
-      replServer = new ReplicationServer(conf);
+      replServer = createReplicationServer(replServerID, RECEIVERPORT,
+          "ReplicationDomainTestDb", 100, servers);
 
       BlockingQueue<UpdateMsg> rcvQueue1 = new LinkedBlockingQueue<UpdateMsg>();
       domain1 = new FakeStressReplicationDomain(
@@ -636,15 +564,9 @@ public class ReplicationDomainTest extends ReplicationTestCase
     }
     finally
     {
-      if (domain1 != null)
-        domain1.disableService();
-
-      if (replServer != null)
-      {
-        replServer.remove();
-        StaticUtils.recursiveDelete(new File(DirectoryServer.getInstanceRoot(),
-                 replServer.getDbDirName()));
-      }
+      disable(domain1);
+      remove(replServer);
     }
   }
+
 }

@@ -1474,7 +1474,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
         logError(ERR_ERROR_MSG_RECEIVED.get(errorMsg.getDetails()));
       } else if (msg instanceof MonitorRequestMsg)
       {
-        replyWithMonitorMsg(msg, msgEmitter);
+        replyWithTopologyMonitorMsg(msg, msgEmitter);
       } else if (msg instanceof MonitorMsg)
       {
         MonitorMsg monitorMsg = (MonitorMsg) msg;
@@ -1498,7 +1498,8 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     }
   }
 
-  private void replyWithMonitorMsg(RoutableMsg msg, ServerHandler msgEmitter)
+  private void replyWithTopologyMonitorMsg(RoutableMsg msg,
+      ServerHandler msgEmitter)
   {
     /*
      * If the request comes from a Directory Server we need to build the full
@@ -1656,7 +1657,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
       throws InterruptedException
   {
     return createGlobalTopologyMonitorMsg(sender, destination,
-        domainMonitor.computeDomainMonitorData());
+        domainMonitor.recomputeMonitorData());
   }
 
   private MonitorMsg createGlobalTopologyMonitorMsg(int sender,
