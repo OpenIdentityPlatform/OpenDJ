@@ -129,8 +129,8 @@ fi
 %post
 # Registers the service
 /sbin/chkconfig --add opendj
-# Symlink to process ID
-ln -s /opt/opendj/logs/server.pid /var/run/opendj.pid 
+# Symlinks to process ID
+test -h "/var/run/opendj.pid" || ln -s /opt/opendj/logs/server.pid /var/run/opendj.pid 
 if [ "$1" == "1" ] ; then
     echo "Post Install - initial install"
 else if [ "$1" == "2" ] ; then
@@ -177,7 +177,7 @@ if [ "$1" == "0" ] ; then
     /etc/init.d/opendj stop >/dev/null 2>&1
     /sbin/chkconfig --del opendj
     # Unlink the symlink to the process ID.
-    unlink /var/run/opendj.pid 
+    test -h "/var/run/opendj.pid" && unlink /var/run/opendj.pid 
 # Only if the instance has been configured    
     if [ -e "%{_prefix}"/config/buildinfo ] && [ "$(ls -A "%{_prefix}"/config/archived-configs)" ]
     then
@@ -221,3 +221,6 @@ fi
 - Added '%doc' section.
 - Added '%changelog' at the end of the file.
 - Added license to header's files.
+
+* Thu Aug 22 2013 ForgeRock
+- Modified init.d script.
