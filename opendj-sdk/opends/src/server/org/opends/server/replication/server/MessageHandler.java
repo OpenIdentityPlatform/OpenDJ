@@ -177,6 +177,15 @@ public class MessageHandler extends MonitorProvider<MonitorProviderCfg>
   }
 
   /**
+   * Returns the shutdown flag.
+   * @return The shutdown flag value.
+   */
+  public boolean shuttingDown()
+  {
+    return shuttingDown.get();
+  }
+
+  /**
    * Returns the Replication Server Domain to which belongs this handler.
    *
    * @param createIfNotExist    Creates the domain if it does not exist.
@@ -204,14 +213,7 @@ public class MessageHandler extends MonitorProvider<MonitorProviderCfg>
     return inCount;
   }
 
-  /**
-   * Retrieves a set of attributes containing monitor data that should be
-   * returned to the client if the corresponding monitor entry is requested.
-   *
-   * @return  A set of attributes containing monitor data that should be
-   *          returned to the client if the corresponding monitor entry is
-   *          requested.
-   */
+  /** {@inheritDoc} */
   @Override
   public List<Attribute> getMonitorData()
   {
@@ -571,7 +573,7 @@ public class MessageHandler extends MonitorProvider<MonitorProviderCfg>
   }
 
   /**
-   * Increase the counter of update received from the server.
+   * Increase the counter of updates received from the server.
    */
   public void incrementInCount()
   {

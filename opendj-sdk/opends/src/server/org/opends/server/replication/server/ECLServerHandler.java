@@ -427,22 +427,14 @@ public final class ECLServerHandler extends ServerHandler
   {
     try
     {
-      // Process start from remote
       boolean sessionInitiatorSSLEncryption =
         processStartFromRemote(inECLStartMsg);
 
-      // lock with timeout
-      if (replicationServerDomain != null)
-      {
-        lockDomain(true);
-      }
+      lockDomainWithTimeout();
 
       localGenerationId = -1;
 
-      // send start to remote
       StartMsg outStartMsg = sendStartToRemote();
-
-      // log
       logStartHandshakeRCVandSND(inECLStartMsg, outStartMsg);
 
       // until here session is encrypted then it depends on the negotiation
@@ -455,8 +447,7 @@ public final class ECLServerHandler extends ServerHandler
         waitAndProcessStartSessionECLFromRemoteServer();
       if (inStartECLSessionMsg == null)
       {
-        // client wants to properly close the connection (client sent a
-        // StopMsg)
+        // client wants to properly close the connection (client sent a StopMsg)
         logStopReceived();
         abortStart(null);
         return;
@@ -464,7 +455,6 @@ public final class ECLServerHandler extends ServerHandler
 
       logStartECLSessionHandshake(inStartECLSessionMsg);
 
-      // initialization
       initialize(inStartECLSessionMsg);
     }
     catch(DirectoryException de)
@@ -477,11 +467,7 @@ public final class ECLServerHandler extends ServerHandler
     }
     finally
     {
-      if ((replicationServerDomain != null) &&
-          replicationServerDomain.hasLock())
-      {
-        replicationServerDomain.release();
-      }
+      releaseDomainLock();
     }
   }
 
@@ -956,14 +942,7 @@ public final class ECLServerHandler extends ServerHandler
         + ServerConstants.DN_EXTERNAL_CHANGELOG_ROOT;
   }
 
-  /**
-   * Retrieves a set of attributes containing monitor data that should be
-   * returned to the client if the corresponding monitor entry is requested.
-   *
-   * @return  A set of attributes containing monitor data that should be
-   *          returned to the client if the corresponding monitor entry is
-   *          requested.
-   */
+  /** {@inheritDoc} */
   @Override
   public List<Attribute> getMonitorData()
   {

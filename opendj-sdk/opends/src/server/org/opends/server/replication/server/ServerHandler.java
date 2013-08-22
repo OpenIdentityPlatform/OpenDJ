@@ -32,7 +32,6 @@ import java.util.List;
 import java.util.Random;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.opends.messages.Message;
@@ -206,11 +205,6 @@ public abstract class ServerHandler extends MessageHandler
   protected boolean shutdownWriter = false;
 
   /**
-   * Set when ServerHandler is stopping.
-   */
-  private AtomicBoolean shuttingDown = new AtomicBoolean(false);
-
-  /**
    * Weight of this remote server.
    */
   protected int weight = 1;
@@ -253,8 +247,7 @@ public abstract class ServerHandler extends MessageHandler
       closeSession(localSession, reason, this);
     }
 
-    if (replicationServerDomain != null && replicationServerDomain.hasLock())
-      replicationServerDomain.release();
+    releaseDomainLock();
 
     // If generation id of domain was changed, set it back to old value
     // We may have changed it as it was -1 and we received a value >0 from
@@ -264,6 +257,17 @@ public abstract class ServerHandler extends MessageHandler
     if (oldGenerationId != -100 && replicationServerDomain != null)
     {
       replicationServerDomain.changeGenerationId(oldGenerationId, false);
+    }
+  }
+
+  /**
+   * Releases the lock on the replication server domain if it was held.
+   */
+  protected void releaseDomainLock()
+  {
+    if (replicationServerDomain != null && replicationServerDomain.hasLock())
+    {
+      replicationServerDomain.release();
     }
   }
 
@@ -292,25 +296,6 @@ public abstract class ServerHandler extends MessageHandler
   {
     rcvWindow--;
     checkWindow();
-  }
-
-  /**
-   * Set the shut down flag to true and returns the previous value of the flag.
-   * @return The previous value of the shut down flag
-   */
-  @Override
-  public boolean engageShutdown()
-  {
-    return shuttingDown.getAndSet(true);
-  }
-
-  /**
-   * Returns the shutdown flag.
-   * @return The shutdown flag value.
-   */
-  public boolean shuttingDown()
-  {
-    return shuttingDown.get();
   }
 
   /**
@@ -542,14 +527,7 @@ public abstract class ServerHandler extends MessageHandler
     return inCount;
   }
 
-  /**
-   * Retrieves a set of attributes containing monitor data that should be
-   * returned to the client if the corresponding monitor entry is requested.
-   *
-   * @return  A set of attributes containing monitor data that should be
-   *          returned to the client if the corresponding monitor entry is
-   *          requested.
-   */
+  /** {@inheritDoc} */
   @Override
   public List<Attribute> getMonitorData()
   {
@@ -739,24 +717,6 @@ public abstract class ServerHandler extends MessageHandler
   }
 
   /**
-   * Increase the counter of update received from the server.
-   */
-  @Override
-  public void incrementInCount()
-  {
-    inCount++;
-  }
-
-  /**
-   * Increase the counter of updates sent to the server.
-   */
-  @Override
-  public void incrementOutCount()
-  {
-    outCount++;
-  }
-
-  /**
    * {@inheritDoc}
    */
   @Override
@@ -783,81 +743,91 @@ public abstract class ServerHandler extends MessageHandler
     return !this.isDataServer();
   }
 
-
+  // The handshake phase must be done by blocking any access to structures
+  // keeping info on connected servers, so that one can safely check for
+  // pre-existence of a server, send a coherent snapshot of known topology to
+  // peers, update the local view of the topology...
+  //
+  // For instance a kind of problem could be that while we connect with a
+  // peer RS, a DS is connecting at the same time and we could publish the
+  // connected DSs to the peer RS forgetting this last DS in the TopologyMsg.
+  //
+  // This method and every others that need to read/make changes to the
+  // structures holding topology for the domain should:
+  // - call ReplicationServerDomain.lock()
+  // - read/modify structures
+  // - call ReplicationServerDomain.release()
+  //
+  // More information is provided in comment of ReplicationServerDomain.lock()
 
   /**
-   * Lock the domain potentially with a timeout.
+   * Lock the domain without a timeout.
+   * <p>
+   * If domain already exists, lock it until handshake is finished otherwise it
+   * will be created and locked later in the method
    *
-   * @param timedout
-   *          The provided timeout.
    * @throws DirectoryException
    *           When an exception occurs.
    * @throws InterruptedException
    *           If the current thread was interrupted while waiting for the lock.
    */
-  protected void lockDomain(boolean timedout)
-    throws DirectoryException, InterruptedException
+  public void lockDomainNoTimeout() throws DirectoryException,
+      InterruptedException
   {
-    // The handshake phase must be done by blocking any access to structures
-    // keeping info on connected servers, so that one can safely check for
-    // pre-existence of a server, send a coherent snapshot of known topology
-    // to peers, update the local view of the topology...
-    //
-    // For instance a kind of problem could be that while we connect with a
-    // peer RS, a DS is connecting at the same time and we could publish the
-    // connected DSs to the peer RS forgetting this last DS in the TopologyMsg.
-    //
-    // This method and every others that need to read/make changes to the
-    // structures holding topology for the domain should:
-    // - call ReplicationServerDomain.lock()
-    // - read/modify structures
-    // - call ReplicationServerDomain.release()
-    //
-    // More information is provided in comment of ReplicationServerDomain.lock()
-
-    // If domain already exists, lock it until handshake is finished otherwise
-    // it will be created and locked later in the method
-    if (!timedout)
+    if (!replicationServerDomain.hasLock())
     {
-      if (!replicationServerDomain.hasLock())
-        replicationServerDomain.lock();
+      replicationServerDomain.lock();
+    }
+  }
+
+  /**
+   * Lock the domain with a timeout.
+   * <p>
+   * Take the lock on the domain. WARNING: Here we try to acquire the lock with
+   * a timeout. This is for preventing a deadlock that may happen if there are
+   * cross connection attempts (for same domain) from this replication server
+   * and from a peer one.
+   * <p>
+   * Here is the scenario:
+   * <ol>
+   * <li>RS1 connect thread takes the domain lock and starts connection to RS2</li>
+   * <li>at the same time RS2 connect thread takes his domain lock and start
+   * connection to RS2</li>
+   * <li>RS2 listen thread starts processing received ReplServerStartMsg from
+   * RS1 and wants to acquire the lock on the domain (here) but cannot as RS2
+   * connect thread already has it</li>
+   * <li>RS1 listen thread starts processing received ReplServerStartMsg from
+   * RS2 and wants to acquire the lock on the domain (here) but cannot as RS1
+   * connect thread already has it</li>
+   * </ol>
+   * => Deadlock: 4 threads are locked.
+   * <p>
+   * To prevent threads locking in such situation, the listen threads here will
+   * both timeout trying to acquire the lock. The random time for the timeout
+   * should allow on connection attempt to be aborted whereas the other one
+   * should have time to finish in the same time.
+   * <p>
+   * Warning: the minimum time (3s) should be big enough to allow normal
+   * situation connections to terminate. The added random time should represent
+   * a big enough range so that the chance to have one listen thread timing out
+   * a lot before the peer one is great. When the first listen thread times out,
+   * the remote connect thread should release the lock and allow the peer listen
+   * thread to take the lock it was waiting for and process the connection
+   * attempt.
+   *
+   * @throws DirectoryException
+   *           When an exception occurs.
+   * @throws InterruptedException
+   *           If the current thread was interrupted while waiting for the lock.
+   */
+  public void lockDomainWithTimeout() throws DirectoryException,
+      InterruptedException
+  {
+    if (replicationServerDomain == null)
+    {
       return;
     }
 
-    /**
-     * Take the lock on the domain.
-     * WARNING: Here we try to acquire the lock with a timeout. This
-     * is for preventing a deadlock that may happen if there are cross
-     * connection attempts (for same domain) from this replication
-     * server and from a peer one:
-     * Here is the scenario:
-     * - RS1 connect thread takes the domain lock and starts
-     * connection to RS2
-     * - at the same time RS2 connect thread takes his domain lock and
-     * start connection to RS2
-     * - RS2 listen thread starts processing received
-     * ReplServerStartMsg from RS1 and wants to acquire the lock on
-     * the domain (here) but cannot as RS2 connect thread already has
-     * it
-     * - RS1 listen thread starts processing received
-     * ReplServerStartMsg from RS2 and wants to acquire the lock on
-     * the domain (here) but cannot as RS1 connect thread already has
-     * it
-     * => Deadlock: 4 threads are locked.
-     * So to prevent that in such situation, the listen threads here
-     * will both timeout trying to acquire the lock. The random time
-     * for the timeout should allow on connection attempt to be
-     * aborted whereas the other one should have time to finish in the
-     * same time.
-     * Warning: the minimum time (3s) should be big enough to allow
-     * normal situation connections to terminate. The added random
-     * time should represent a big enough range so that the chance to
-     * have one listen thread timing out a lot before the peer one is
-     * great. When the first listen thread times out, the remote
-     * connect thread should release the lock and allow the peer
-     * listen thread to take the lock it was waiting for and process
-     * the connection attempt.
-     */
     Random random = new Random();
     int randomTime = random.nextInt(6); // Random from 0 to 5
     // Wait at least 3 seconds + (0 to 5 seconds)
