@@ -1462,7 +1462,7 @@
     <copy file="resource/rpm/excludedFiles" tofile="${build.dir}/rpm/SOURCES/excludedFiles" />
     <replace file="${build.dir}/rpm/SOURCES/excludedFiles" token="# [[ excludedListFiles ]]" value="${excludedRPMFiles}" />
   	
-    <copy file="resource/rpm/opendj" tofile="${build.dir}/rpm/SOURCES/opendj" />
+    <copy file="resource/sysv/opendj" tofile="${build.dir}/rpm/SOURCES/opendj" />
   
     <rpm specfile="specFile"
          topdir="${build.dir}/rpm"
@@ -1492,9 +1492,10 @@
 
     <getversionnumber property="VERSION_NUMBER_STRING" />
 
-    <property name="prefix"      value="/opt/opendj"/>
-    <property name="release"     value="1"/>
-    <property name="docprefix"   value="/usr/share/doc/opendj"/>
+    <property name="prefix"          value="/opt/opendj"/>
+    <property name="release"         value="1"/>
+    <property name="docprefix"       value="/usr/share/doc/opendj"/>
+    <property name="build.deb.dir"   value="${build.dir}/deb/${SHORT_NAME}-${VERSION_NUMBER_STRING}"/>
 
     <mkdir dir="${build.dir}/deb/control" />
 
@@ -1510,33 +1511,34 @@
         <filter token="description" value="${PRODUCT_NAME}"/>
       </filterset>
     </copy>
-
-    <!--        Debian files for preinst/postinstall/preuninstall/postuninstall -->
   	
-    <copy todir="${build.dir}/deb/control">
-        <fileset dir="resource/debian/control"/>
+    <copy todir="${build.deb.dir}">
+        <fileset dir="${package.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}"/>
     </copy>
-    <copy file="resource/debian/copyright" tofile="${package.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}/copyright" />
+    <copy file="resource/debian/copyright" tofile="${build.deb.dir}/copyright" />
+    <copy file="resource/sysv/opendj" tofile="${build.deb.dir}/opendj" />
 
     <replace dir="${build.dir}/deb/control/" token="@prefix@" value="${prefix}" />
 
     <deb destfile="${package.dir}/${PKG_NAME}_${pkg_version_string}-${release}${pkg_version_qualifier}_all.deb"
                   control="${build.dir}/deb/control" verbose="false">
-      <tarfileset dir="${package.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}"
+      <tarfileset dir="${build.deb.dir}"
                   includes="**/*"
-                  excludes="**/bat/**, **/*.app/**, **/*.bat*, **/*.exe*, bin/*, template/**/*, lib/*.sh, setup, uninstall, upgrade, legal-notices/**, copyright"
+                  excludes="**/bat/**, **/*.app/**, **/*.bat*, **/*.exe*, bin/*, template/**/*, lib/*.sh, setup, uninstall, upgrade, legal-notices/**, copyright, README, bin/README_WINDOWS.txt, example-plugin.zip, opendj"
                   prefix="${prefix}" filemode="644" dirmode="755" />
-      <tarfileset dir="${package.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}" includes="lib/*.sh"
+      <tarfileset dir="${build.deb.dir}" includes="lib/*.sh"
                   prefix="${prefix}" filemode="755" dirmode="755" />
-      <tarfileset dir="${package.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}" includes="bin/*"
+      <tarfileset dir="${build.deb.dir}" includes="bin/*"
                   excludes="bin/README_WINDOWS.txt, **/bin/ControlPanel.app/"
                   prefix="${prefix}" filemode="755" dirmode="755" />
-      <tarfileset dir="${package.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}" includes="setup,uninstall,upgrade"
+      <tarfileset dir="${build.deb.dir}" includes="setup,uninstall,upgrade"
                   prefix="${prefix}" filemode="755" dirmode="755" />
-      <tarfileset dir="${package.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}" includes="template/**/*"
+      <tarfileset dir="${build.deb.dir}" includes="template/**/*"
                   prefix="${prefix}" filemode="444" dirmode="744" />      
-      <tarfileset dir="${package.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}" includes="legal-notices/**, copyright"
-                  prefix="${docprefix}" filemode="755" dirmode="744" />    	
+      <tarfileset dir="${build.deb.dir}" includes="legal-notices/**, copyright, README, example-plugin.zip"
+                  prefix="${docprefix}" filemode="644" dirmode="755" />
+      <tarfileset dir="${build.deb.dir}" includes="opendj"
+    	          prefix="/etc/init.d" filemode="755" dirmode="755" />    	
     </deb>
   </target>
 
