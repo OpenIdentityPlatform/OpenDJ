@@ -1415,8 +1415,8 @@
     <mkdir dir="${build.dir}/rpm/RPMS" />
     <mkdir dir="${build.dir}/rpm/SOURCES" />
     <mkdir dir="${build.dir}/rpm/SPECS" />
-    <mkdir dir="${build.dir}/rpm/SRPMS" />  
-  	 
+    <mkdir dir="${build.dir}/rpm/SRPMS" />
+
     <condition property="rpmRelease" value="${release}" else="${release}.${pkg_version_qualifier}">
         <or>
             <not>
@@ -1425,7 +1425,7 @@
             <equals arg1="${pkg_version_qualifier}" arg2="" />
         </or>
     </condition>
-  	
+
     <copy todir="${build.dir}/rpm/SPECS">
       <fileset file="resource/rpm/specFile"/>
       <filterset begintoken="[[ " endtoken=" ]]">
@@ -1438,7 +1438,7 @@
         <filter token="referenceURL" value="${DOC_REFERENCE_HOME}"/>
         <filter token="sourceDirName" value="${package.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}"/>
         <filter token="specFileName" value="${build.dir}/rpm/SPECS/specFile"/>
-        <filter token="version" value="${pkg_version_string}"/>      	
+        <filter token="version" value="${pkg_version_string}"/>
         <filter token="release" value="${rpmRelease}" />
       </filterset>
     </copy>
@@ -1451,25 +1451,25 @@
         </fileset>
       </classpath>
     </taskdef>
-    <processFilesForPackages sourceDirName="${package.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}" />           
+    <processFilesForPackages sourceDirName="${package.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}" />
     <copy file="resource/rpm/files" tofile="${build.dir}/rpm/SOURCES/files" />
     <copy file="resource/rpm/docFiles" tofile="${build.dir}/rpm/SOURCES/docFiles" />
-    
+
     <replace file="${build.dir}/rpm/SOURCES/files" token="# [[ listFiles ]]" value="${listRPMFiles}" />
-    <replace file="${build.dir}/rpm/SOURCES/docFiles" token="# [[ docsList ]]" value="${listRPMDocFiles}" />    
+    <replace file="${build.dir}/rpm/SOURCES/docFiles" token="# [[ docsList ]]" value="${listRPMDocFiles}" />
     <replace file="${build.dir}/rpm/SPECS/specFile" token="# [[ installRpmFiles ]]" value="${installRpmFiles}" />
-    
+
     <copy file="resource/rpm/excludedFiles" tofile="${build.dir}/rpm/SOURCES/excludedFiles" />
     <replace file="${build.dir}/rpm/SOURCES/excludedFiles" token="# [[ excludedListFiles ]]" value="${excludedRPMFiles}" />
-  	
+
     <copy file="resource/sysv/opendj" tofile="${build.dir}/rpm/SOURCES/opendj" />
-  
+
     <rpm specfile="specFile"
          topdir="${build.dir}/rpm"
          quiet="true"
          removeSpec="false">
     </rpm>
-  	
+
     <mkdir dir="${build.dir}/rpm/RPMS/noarch" />
     <copy todir="${package.dir}">
       <fileset dir="${build.dir}/rpm/RPMS/noarch">
@@ -1477,7 +1477,7 @@
       </fileset>
     </copy>
   </target>
-	
+
   <!-- Package the Directory Server for the DEB distribution. -->
   <target name="package-DEB"
           description="Package the Directory Server for DEB distribution.">
@@ -1511,7 +1511,7 @@
         <filter token="description" value="${PRODUCT_NAME}"/>
       </filterset>
     </copy>
-  	
+
     <copy todir="${build.deb.dir}">
         <fileset dir="${package.dir}/${SHORT_NAME}-${VERSION_NUMBER_STRING}"/>
     </copy>
@@ -1534,37 +1534,32 @@
       <tarfileset dir="${build.deb.dir}" includes="setup,uninstall,upgrade"
                   prefix="${prefix}" filemode="755" dirmode="755" />
       <tarfileset dir="${build.deb.dir}" includes="template/**/*"
-                  prefix="${prefix}" filemode="444" dirmode="744" />      
+                  prefix="${prefix}" filemode="444" dirmode="744" />
       <tarfileset dir="${build.deb.dir}" includes="legal-notices/**, copyright, README, example-plugin.zip"
                   prefix="${docprefix}" filemode="644" dirmode="755" />
       <tarfileset dir="${build.deb.dir}" includes="opendj"
-    	          prefix="/etc/init.d" filemode="755" dirmode="755" />    	
+    	          prefix="/etc/init.d" filemode="755" dirmode="755" />
     </deb>
   </target>
 
   <!-- Prepare the Directory Server DSML library. -->
   <target name="predsml" depends="prepackage"
        description="Prepare the Directory Server DSML library.">
-    <taskdef name="xjc" classname="com.sun.tools.xjc.XJCTask">
-      <classpath>
-        <fileset dir="${dsml.lib.dir}">
-          <include name="**/*.jar" />
-        </fileset>
-      </classpath>
-    </taskdef>
-
+    <delete dir="${dsml.gen.dir}/org/opends/dsml/protocol" />
     <mkdir dir="${dsml.gen.dir}/org/opends/dsml/protocol" />
-    <xjc destdir="${dsml.gen.dir}" schema="${dsml.dir}/schema/DSMLv2.xsd"
-         removeOldOutput="yes" package="org.opends.dsml.protocol"
-         binding="${dsml.dir}/schema/bindings.xjb" target="2.1">
-      <!-- Don't generate package-info.java as it conflicts with
-           the one in src/dsml -->
-      <arg value="-npa"/>
-      <arg value="-verbose"/>
-      <produces dir="${dsml.gen.dir}/org/opends/dsml/protocol"
-           includes="* impl/*" />
-    </xjc>
-
+    <exec executable="xjc">
+        <arg value="-d"/>
+        <arg value="${dsml.gen.dir}"/>
+        <arg value="-p"/>
+        <arg value="org.opends.dsml.protocol"/>
+        <arg value="-b"/>
+        <arg value="${dsml.dir}/schema/bindings.xjb"/>
+        <arg value="-target"/>
+        <arg value="2.1"/>
+        <arg value="-npa"/>
+        <arg value="-verbose"/>
+        <arg value="${dsml.dir}/schema/DSMLv2.xsd"/>
+    </exec>
     <mkdir dir="${dsml.classes.dir}" />
 
     <javac srcdir="${dsml.gen.dir}" destdir="${dsml.classes.dir}">
@@ -1600,15 +1595,6 @@
            excludes="web.xml, **/*.jar, **/*.properties" />
 
       <classes dir="${dsml.classes.dir}" />
-
-      <lib dir="${dsml.lib.dir}">
-        <include name="jaxb-api.jar" />
-        <include name="jaxb-impl.jar" />
-        <include name="jsr173_1.0_api.jar" />
-        <include name="saaj-1.3.jar" />
-        <include name="saaj-impl-1.3.jar" />
-      </lib>
-
       <lib dir="${pdir}/lib">
         <include name="${SHORT_NAME}.jar" />
         <include name="${SHORT_NAME}_fr.jar" />
