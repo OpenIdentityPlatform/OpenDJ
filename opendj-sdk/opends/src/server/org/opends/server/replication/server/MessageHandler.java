@@ -42,8 +42,7 @@ import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.protocol.UpdateMsg;
-import org.opends.server.replication.server.changelog.api.ReplicationIterator;
-import org.opends.server.replication.server.changelog.api.ReplicationIteratorComparator;
+import org.opends.server.replication.server.changelog.api.*;
 import org.opends.server.types.*;
 
 import static org.opends.messages.ReplicationMessages.*;
