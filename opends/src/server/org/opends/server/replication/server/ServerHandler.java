@@ -788,7 +788,8 @@ public abstract class ServerHandler extends MessageHandler
    * <p>
    * Here is the scenario:
    * <ol>
-   * <li>RS1 connect thread takes the domain lock and starts connection to RS2</li>
+   * <li>RS1 connect thread takes the domain lock and starts connection to RS2
+   * </li>
    * <li>at the same time RS2 connect thread takes his domain lock and start
    * connection to RS2</li>
    * <li>RS2 listen thread starts processing received ReplServerStartMsg from
