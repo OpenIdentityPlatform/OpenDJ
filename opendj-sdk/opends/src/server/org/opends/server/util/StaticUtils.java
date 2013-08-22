@@ -27,42 +27,16 @@
  */
 package org.opends.server.util;
 
-import java.io.BufferedReader;
-import java.io.Closeable;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.lang.reflect.InvocationTargetException;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.NetworkInterface;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.net.SocketException;
-import java.net.UnknownHostException;
+import java.net.*;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Date;
-import java.util.Enumeration;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.RandomAccess;
-import java.util.StringTokenizer;
-import java.util.TimeZone;
+import java.util.*;
 
 import javax.naming.NamingException;
 import javax.naming.ldap.InitialLdapContext;
@@ -74,19 +48,7 @@ import org.opends.messages.ToolMessages;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeBuilder;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.ByteSequence;
-import org.opends.server.types.DN;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.Entry;
-import org.opends.server.types.IdentifiedException;
-import org.opends.server.types.ObjectClass;
-import org.opends.server.types.RDN;
-import org.opends.server.types.ResultCode;
+import org.opends.server.types.*;
 import org.opends.server.util.args.Argument;
 import org.opends.server.util.args.ArgumentException;
 
@@ -4639,7 +4601,7 @@ public final class StaticUtils
    * @param closeables
    *          The closeables to be closed, which may be <code>null</code>.
    */
-  public static void close(Collection<Closeable> closeables)
+  public static void close(Collection<? extends Closeable> closeables)
   {
     if (closeables == null)
     {
@@ -4655,7 +4617,10 @@ public final class StaticUtils
         }
         catch (IOException ignored)
         {
-          // Ignore.
+          if (debugEnabled())
+          {
+            TRACER.debugCaught(DebugLogLevel.ERROR, ignored);
+          }
         }
       }
     }

@@ -41,6 +41,7 @@ import org.opends.server.replication.protocol.DeleteMsg;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.server.changelog.api.ReplicationIterator;
+import org.opends.server.util.StaticUtils;
 import org.testng.annotations.Test;
 
 import static org.opends.server.TestCaseUtils.*;
@@ -86,9 +87,7 @@ public class DbHandlerTest extends ReplicationTestCase
       testRoot = createDirectory(path);
 
       dbEnv = new ReplicationDbEnv(path, replicationServer);
-
-      handler = new DbHandler(1, TEST_ROOT_DN_STRING,
-        replicationServer, dbEnv, 5000);
+      handler = new DbHandler(1, TEST_ROOT_DN_STRING, replicationServer, dbEnv, 5000);
 
       ChangeNumberGenerator gen = new ChangeNumberGenerator( 1, 0);
       ChangeNumber changeNumber1 = gen.newChangeNumber();
@@ -182,8 +181,7 @@ public class DbHandlerTest extends ReplicationTestCase
   private String getReplicationDbPath()
   {
     String buildRoot = System.getProperty(TestCaseUtils.PROPERTY_BUILD_ROOT);
-    String path =
-        System.getProperty(TestCaseUtils.PROPERTY_BUILD_DIR, buildRoot
+    String path = System.getProperty(TestCaseUtils.PROPERTY_BUILD_DIR, buildRoot
             + File.separator + "build");
     return path + File.separator + "unit-tests" + File.separator + "dbHandler";
   }
@@ -199,42 +197,50 @@ public class DbHandlerTest extends ReplicationTestCase
     return testRoot;
   }
 
-  private ReplicationIterator assertFoundInOrder(DbHandler handler,
+  private void assertFoundInOrder(DbHandler handler,
       ChangeNumber... changeNumbers) throws Exception
   {
     if (changeNumbers.length == 0)
     {
-      return null;
+      return;
     }
 
     ReplicationIterator it = handler.generateIterator(changeNumbers[0]);
-    for (int i = 1; i < changeNumbers.length; i++)
+    try
     {
-      assertTrue(it.next());
-      final ChangeNumber cn = it.getChange().getChangeNumber();
-      final boolean equals = cn.compareTo(changeNumbers[i]) == 0;
-      assertTrue(equals, "Actual change number=" + cn
-          + ", Expected change number=" + changeNumbers[i]);
+      for (int i = 1; i < changeNumbers.length; i++)
+      {
+        assertTrue(it.next());
+        final ChangeNumber cn = it.getChange().getChangeNumber();
+        final boolean equals = cn.compareTo(changeNumbers[i]) == 0;
+        assertTrue(equals, "Actual change number=" + cn
+            + ", Expected change number=" + changeNumbers[i]);
+      }
+      assertFalse(it.next());
+      assertNull(it.getChange(), "Actual change number=" + it.getChange()
+          + ", Expected null");
     }
-    assertFalse(it.next());
-    assertNull(it.getChange(), "Actual change number=" + it.getChange()
-        + ", Expected null");
-
-    it.releaseCursor();
-    return it;
+    finally
+    {
+      StaticUtils.close(it);
+    }
   }
 
   private void assertNotFound(DbHandler handler, ChangeNumber changeNumber)
   {
+    ReplicationIterator iter = null;
     try
     {
-      ReplicationIterator iter = handler.generateIterator(changeNumber);
-      iter.releaseCursor();
+      iter = handler.generateIterator(changeNumber);
       fail("Expected exception");
     }
     catch (Exception e)
     {
       assertEquals(e.getLocalizedMessage(), "ChangeNumber not available");
+    }
+    finally
+    {
+      StaticUtils.close(iter);
     }
   }
 
@@ -261,10 +267,7 @@ public class DbHandlerTest extends ReplicationTestCase
       testRoot = createDirectory(path);
 
       dbEnv = new ReplicationDbEnv(path, replicationServer);
-
-      handler =
-        new DbHandler( 1, TEST_ROOT_DN_STRING,
-        replicationServer, dbEnv, 5000);
+      handler = new DbHandler(1, TEST_ROOT_DN_STRING, replicationServer, dbEnv, 5000);
 
       // Creates changes added to the dbHandler
       ChangeNumberGenerator gen = new ChangeNumberGenerator( 1, 0);
@@ -365,10 +368,7 @@ public class DbHandlerTest extends ReplicationTestCase
 
       dbEnv = new ReplicationDbEnv(path, replicationServer);
 
-      // Create the handler
-      handler =
-        new DbHandler( 1, TEST_ROOT_DN_STRING,
-            replicationServer, dbEnv, 10);
+      handler = new DbHandler(1, TEST_ROOT_DN_STRING, replicationServer, dbEnv, 10);
       handler.setCounterWindowSize(counterWindow);
 
       // Populate the db with 'max' msg
@@ -465,9 +465,7 @@ public class DbHandlerTest extends ReplicationTestCase
       debugInfo(tn,"SHUTDOWN handler and recreate");
       handler.shutdown();
 
-      handler =
-        new DbHandler( 1, TEST_ROOT_DN_STRING,
-            replicationServer, dbEnv, 10);
+      handler = new DbHandler(1, TEST_ROOT_DN_STRING, replicationServer, dbEnv, 10);
       handler.setCounterWindowSize(counterWindow);
 
       // Test first and last

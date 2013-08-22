@@ -1311,7 +1311,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
 
     if (!it.next())
     {
-      it.releaseCursor();
+      close(it);
       return null;
     }
 
@@ -1865,11 +1865,6 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
         sleep(100);
       }
     }
-  }
-
-  private void sleep(int millis)
-  {
-    try { Thread.sleep(millis); } catch (InterruptedException e) {}
   }
 
   /**
@@ -2717,9 +2712,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
               // there's no change older than eligibleCN (case of s3/cn31)
               result.update(new ChangeNumber(0, 0, serverId));
             } finally {
-              if (ri != null) {
-                ri.releaseCursor();
-              }
+              close(ri);
             }
           } else {
             // for this serverId, all changes in the ChangelogDb are holder

@@ -27,15 +27,6 @@
  */
 package org.opends.server.replication.server;
 
-import static org.opends.messages.BackendMessages.*;
-import static org.opends.messages.JebMessages.*;
-import static org.opends.messages.ReplicationMessages.*;
-import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -45,69 +36,31 @@ import java.util.*;
 import org.opends.messages.Message;
 import org.opends.server.admin.Configuration;
 import org.opends.server.admin.server.ServerManagementContext;
-import org.opends.server.admin.std.server.BackendCfg;
-import org.opends.server.admin.std.server.ReplicationServerCfg;
-import org.opends.server.admin.std.server.ReplicationSynchronizationProviderCfg;
-import org.opends.server.admin.std.server.RootCfg;
-import org.opends.server.admin.std.server.SynchronizationProviderCfg;
+import org.opends.server.admin.std.server.*;
 import org.opends.server.api.Backend;
 import org.opends.server.api.SynchronizationProvider;
 import org.opends.server.backends.jeb.BackupManager;
 import org.opends.server.config.ConfigException;
-import org.opends.server.core.AddOperation;
-import org.opends.server.core.DeleteOperation;
-import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.ModifyDNOperation;
-import org.opends.server.core.ModifyOperation;
-import org.opends.server.core.SearchOperation;
+import org.opends.server.core.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.plugin.MultimasterReplication;
 import org.opends.server.replication.plugin.ReplicationServerListener;
-import org.opends.server.replication.protocol.AddMsg;
-import org.opends.server.replication.protocol.DeleteMsg;
-import org.opends.server.replication.protocol.LDAPUpdateMsg;
-import org.opends.server.replication.protocol.ModifyDNMsg;
-import org.opends.server.replication.protocol.ModifyMsg;
-import org.opends.server.replication.protocol.UpdateMsg;
+import org.opends.server.replication.protocol.*;
 import org.opends.server.replication.server.changelog.api.ReplicationIterator;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeBuilder;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.Attributes;
-import org.opends.server.types.BackupConfig;
-import org.opends.server.types.BackupDirectory;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.CanceledOperationException;
-import org.opends.server.types.ConditionResult;
-import org.opends.server.types.Control;
-import org.opends.server.types.DN;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.DereferencePolicy;
-import org.opends.server.types.Entry;
-import org.opends.server.types.FilterType;
-import org.opends.server.types.IndexType;
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.LDIFExportConfig;
-import org.opends.server.types.LDIFImportConfig;
-import org.opends.server.types.LDIFImportResult;
-import org.opends.server.types.RawAttribute;
-import org.opends.server.types.RestoreConfig;
-import org.opends.server.types.ResultCode;
-import org.opends.server.types.SearchFilter;
-import org.opends.server.types.SearchScope;
-import org.opends.server.types.SearchResultEntry;
-import org.opends.server.types.ObjectClass;
-import org.opends.server.util.AddChangeRecordEntry;
-import org.opends.server.util.DeleteChangeRecordEntry;
-import org.opends.server.util.LDIFReader;
-import org.opends.server.util.LDIFWriter;
-import org.opends.server.util.ModifyChangeRecordEntry;
-import org.opends.server.util.ModifyDNChangeRecordEntry;
-import org.opends.server.util.Validator;
+import org.opends.server.types.*;
+import org.opends.server.util.*;
+
+import static org.opends.messages.BackendMessages.*;
+import static org.opends.messages.JebMessages.*;
+import static org.opends.messages.ReplicationMessages.*;
+import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class defines a backend that stores its information in an
@@ -370,35 +323,33 @@ public class ReplicationBackend
   @Override()
   public synchronized Entry getEntry(DN entryDN)
   {
-    Entry e = null;
     try {
-      if(baseDNSet.contains(entryDN)) {
+      if (baseDNSet.contains(entryDN)) {
            return new Entry(entryDN, rootObjectclasses, attributes,
                             operationalAttributes);
-      } else {
-        InternalClientConnection conn =
-                InternalClientConnection.getRootConnection();
-        SearchFilter filter=
-                SearchFilter.createFilterFromString("(changetype=*)");
-        InternalSearchOperation searchOperation =
-                new InternalSearchOperation(conn,
-                        InternalClientConnection.nextOperationID(),
-                        InternalClientConnection.nextMessageID(), null, entryDN,
-                        SearchScope.BASE_OBJECT,
-                        DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
-                        filter, null, null);
-        search(searchOperation);
-        LinkedList<SearchResultEntry> resultEntries =
-                searchOperation.getSearchEntries();
-        if(resultEntries.size() != 0) {
-          e=resultEntries.getFirst();
-        }
       }
-    } catch (DirectoryException ex) {
-      e=null;
-    }
-    return e;
 
+      InternalClientConnection conn =
+          InternalClientConnection.getRootConnection();
+      SearchFilter filter =
+          SearchFilter.createFilterFromString("(changetype=*)");
+      InternalSearchOperation searchOp = new InternalSearchOperation(conn,
+              InternalClientConnection.nextOperationID(),
+              InternalClientConnection.nextMessageID(),
+              null, entryDN, SearchScope.BASE_OBJECT,
+              DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
+              filter, null, null);
+      search(searchOp);
+      List<SearchResultEntry> resultEntries = searchOp.getSearchEntries();
+      if (resultEntries.size() != 0)
+      {
+        return resultEntries.get(0);
+      }
+    }
+    catch (DirectoryException ignored)
+    {
+    }
+    return null;
   }
 
 
@@ -547,9 +498,9 @@ public class ReplicationBackend
 
     exportRootChanges(exportContainers, exportConfig, ldifWriter);
 
-    // Iterate through the containers.
     try
     {
+      // Iterate through the containers.
       for (ReplicationServerDomain exportContainer : exportContainers)
       {
         if (exportConfig.isCancelled())
@@ -563,18 +514,7 @@ public class ReplicationBackend
     {
       timer.cancel();
 
-      // Close the LDIF writer
-      try
-      {
-        ldifWriter.close();
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-      }
+      close(ldifWriter);
     }
 
     long finishTime = System.currentTimeMillis();
@@ -628,7 +568,7 @@ public class ReplicationBackend
    * Exports the root changes of the export, and one entry by domain.
    */
   private void exportRootChanges(List<ReplicationServerDomain> exportContainers,
-      LDIFExportConfig exportConfig, LDIFWriter ldifWriter)
+      final LDIFExportConfig exportConfig, LDIFWriter ldifWriter)
   {
     AttributeType ocType = DirectoryServer.getObjectClassAttributeType();
     AttributeBuilder builder = new AttributeBuilder(ocType);
@@ -645,47 +585,49 @@ public class ReplicationBackend
 
     try
     {
-      AddChangeRecordEntry changeRecord =
-        new AddChangeRecordEntry(DN.decode(BASE_DN),
-                               attrs);
+      ChangeRecordEntry changeRecord =
+        new AddChangeRecordEntry(DN.decode(BASE_DN), attrs);
       ldifWriter.writeChangeRecord(changeRecord);
     }
     catch (Exception e) { /* do nothing */ }
 
+    if (exportConfig == null)
+    {
+      return;
+    }
+
     for (ReplicationServerDomain exportContainer : exportContainers)
     {
-      if (exportConfig != null && exportConfig.isCancelled())
+      if (exportConfig.isCancelled())
       {
         break;
       }
 
       attrs.clear();
 
+      // TODO JNR these multiple calls to clear() are more than suspect!
       ldapAttrList.clear();
       ldapAttrList.add(ocAttr);
       attrs.put(ocType, ldapAttrList);
 
       TRACER.debugInfo("State=" +
           exportContainer.getDbServerState());
-      Attribute stateAttr = Attributes.create("state", exportContainer
-          .getDbServerState().toString());
+      Attribute stateAttr = Attributes.create("state",
+          exportContainer.getDbServerState().toString());
       ldapAttrList.clear();
       ldapAttrList.add(stateAttr);
       attrs.put(stateAttr.getAttributeType(), ldapAttrList);
 
-      Attribute genidAttr = Attributes.create("generation-id", String
-          .valueOf(exportContainer.getGenerationId())
-          + exportContainer.getBaseDn());
+      Attribute genidAttr = Attributes.create("generation-id",
+          exportContainer.getGenerationId() + exportContainer.getBaseDn());
       ldapAttrList.clear();
       ldapAttrList.add(genidAttr);
       attrs.put(genidAttr.getAttributeType(), ldapAttrList);
 
       try
       {
-        AddChangeRecordEntry changeRecord =
-          new AddChangeRecordEntry(DN.decode(
-              exportContainer.getBaseDn() + "," + BASE_DN),
-              attrs);
+        ChangeRecordEntry changeRecord = new AddChangeRecordEntry(
+            DN.decode(exportContainer.getBaseDn() + "," + BASE_DN), attrs);
         ldifWriter.writeChangeRecord(changeRecord);
       }
       catch (Exception e)
@@ -709,7 +651,6 @@ public class ReplicationBackend
       LDIFExportConfig exportConfig, LDIFWriter ldifWriter,
       SearchOperation searchOperation)
   {
-    // Walk through the servers
     for (int serverId : rsd.getServers())
     {
       if (exportConfig != null && exportConfig.isCancelled())
@@ -742,7 +683,6 @@ public class ReplicationBackend
 
       ReplicationIterator ri = rsd.getChangelogIterator(serverId,
           previousChangeNumber);
-
       if (ri != null)
       {
         try
@@ -794,7 +734,7 @@ public class ReplicationBackend
         }
         finally
         {
-          ri.releaseCursor();
+          close(ri);
         }
       }
     }
@@ -815,7 +755,6 @@ public class ReplicationBackend
       DirectoryServer.getDefaultAttributeType(CHANGE_NUMBER);
 
     FilterType filterType = filter.getFilterType();
-
     if ( (filterType.equals(FilterType.GREATER_OR_EQUAL) ||
              filterType.equals(FilterType.EQUALITY) ) &&
              filter.getAttributeType().equals(changeNumberAttrType))
@@ -904,7 +843,7 @@ public class ReplicationBackend
 
           if (exportConfig != null)
           {
-            AddChangeRecordEntry changeRecord =
+            ChangeRecordEntry changeRecord =
               new AddChangeRecordEntry(dn, attrs);
             ldifWriter.writeChangeRecord(changeRecord);
           }
@@ -915,76 +854,31 @@ public class ReplicationBackend
         }
         else if (msg instanceof DeleteMsg)
         {
-          DeleteMsg delMsg = (DeleteMsg)msg;
+          dn = computeDN(msg);
 
-          dn = DN.decode("uuid=" + msg.getEntryUUID() + "," +
-              CHANGE_NUMBER + "=" + delMsg.getChangeNumber() + "," +
-              msg.getDn() +","+ BASE_DN);
-
-          DeleteChangeRecordEntry changeRecord =
-            new DeleteChangeRecordEntry(dn);
-          if (exportConfig != null)
-          {
-            ldifWriter.writeChangeRecord(changeRecord);
-          }
-          else
-          {
-            Writer writer = new Writer();
-            LDIFWriter ldifWriter2 = writer.getLDIFWriter();
-            ldifWriter2.writeChangeRecord(changeRecord);
-            LDIFReader reader = writer.getLDIFReader();
-            entry = reader.readEntry();
-          }
+          ChangeRecordEntry changeRecord = new DeleteChangeRecordEntry(dn);
+          entry = writeChangeRecord(exportConfig, ldifWriter, changeRecord);
         }
         else if (msg instanceof ModifyMsg)
         {
           ModifyOperation op = (ModifyOperation)msg.createOperation(conn);
-
-          dn = DN.decode("uuid=" + msg.getEntryUUID() + "," +
-              CHANGE_NUMBER + "=" + msg.getChangeNumber() + "," +
-              msg.getDn() +","+ BASE_DN);
           op.setInternalOperation(true);
 
-          ModifyChangeRecordEntry changeRecord =
+          dn = computeDN(msg);
+          ChangeRecordEntry changeRecord =
             new ModifyChangeRecordEntry(dn, op.getRawModifications());
-          if (exportConfig != null)
-          {
-            ldifWriter.writeChangeRecord(changeRecord);
-          }
-          else
-          {
-            Writer writer = new Writer();
-            LDIFWriter ldifWriter2 = writer.getLDIFWriter();
-            ldifWriter2.writeChangeRecord(changeRecord);
-            LDIFReader reader = writer.getLDIFReader();
-            entry = reader.readEntry();
-          }
+          entry = writeChangeRecord(exportConfig, ldifWriter, changeRecord);
         }
         else if (msg instanceof ModifyDNMsg)
         {
           ModifyDNOperation op = (ModifyDNOperation)msg.createOperation(conn);
-
-          dn = DN.decode("uuid=" + msg.getEntryUUID() + "," +
-              CHANGE_NUMBER + "=" + msg.getChangeNumber() + "," +
-              msg.getDn() +","+ BASE_DN);
           op.setInternalOperation(true);
 
-          ModifyDNChangeRecordEntry changeRecord =
+          dn = computeDN(msg);
+          ChangeRecordEntry changeRecord =
             new ModifyDNChangeRecordEntry(dn, op.getNewRDN(), op.deleteOldRDN(),
                 op.getNewSuperior());
-
-          if (exportConfig != null)
-          {
-            ldifWriter.writeChangeRecord(changeRecord);
-          }
-          else
-          {
-            Writer writer = new Writer();
-            LDIFWriter ldifWriter2 = writer.getLDIFWriter();
-            ldifWriter2.writeChangeRecord(changeRecord);
-            LDIFReader reader = writer.getLDIFReader();
-            entry = reader.readEntry();
-          }
+          entry = writeChangeRecord(exportConfig, ldifWriter, changeRecord);
         }
 
         if (exportConfig != null)
@@ -1009,9 +903,8 @@ public class ReplicationBackend
           SearchScope  scope  = searchOperation.getScope();
           SearchFilter filter = searchOperation.getFilter();
 
-          boolean ms = entry.matchesBaseAndScope(searchBaseDN, scope);
-          boolean mf = filter.matchesEntry(entry);
-          if ( ms && mf )
+          if (entry.matchesBaseAndScope(searchBaseDN, scope)
+              && filter.matchesEntry(entry))
           {
             searchOperation.returnEntry(entry, new LinkedList<Control>());
           }
@@ -1025,7 +918,6 @@ public class ReplicationBackend
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
-      Message message;
       String dnStr;
       if (dn == null)
       {
@@ -1035,6 +927,7 @@ public class ReplicationBackend
       {
         dnStr = dn.toNormalizedString();
       }
+      Message message;
       if (exportConfig != null)
       {
         message = ERR_BACKEND_EXPORT_ENTRY.get(
@@ -1047,6 +940,30 @@ public class ReplicationBackend
       }
       logError(message);
     }
+  }
+
+
+  private DN computeDN(LDAPUpdateMsg msg) throws DirectoryException
+  {
+    return DN.decode("uuid=" + msg.getEntryUUID() + "," + CHANGE_NUMBER + "="
+        + msg.getChangeNumber() + "," + msg.getDn() + "," + BASE_DN);
+  }
+
+  private Entry writeChangeRecord(LDIFExportConfig exportConfig,
+      LDIFWriter ldifWriter, ChangeRecordEntry changeRecord)
+      throws IOException, LDIFException
+  {
+    if (exportConfig != null)
+    {
+      ldifWriter.writeChangeRecord(changeRecord);
+      return null;
+    }
+
+    final Writer writer = new Writer();
+    final LDIFWriter ldifWriter2 = writer.getLDIFWriter();
+    ldifWriter2.writeChangeRecord(changeRecord);
+    final LDIFReader ldifReader = writer.getLDIFReader();
+    return ldifReader.readEntry();
   }
 
   /**
@@ -1326,20 +1243,16 @@ public class ReplicationBackend
     if (server==null)
     {
       server = getReplicationServer();
-
       if (server == null)
       {
-        if (baseDNSet.contains(searchBaseDN))
+        if (!baseDNSet.contains(searchBaseDN))
         {
-          return;
-        }
-        else
-        {
-          Message message = ERR_REPLICATIONBACKEND_ENTRY_DOESNT_EXIST.
-          get(String.valueOf(searchBaseDN));
+          Message message = ERR_REPLICATIONBACKEND_ENTRY_DOESNT_EXIST.get(
+              String.valueOf(searchBaseDN));
           throw new DirectoryException(
               ResultCode.NO_SUCH_OBJECT, message, null, null);
         }
+        return;
       }
     }
 
