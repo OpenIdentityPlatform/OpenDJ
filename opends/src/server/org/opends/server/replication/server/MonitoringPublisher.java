@@ -107,13 +107,12 @@ public class MonitoringPublisher extends DirectoryThread
         }
 
         // Send global topology information to peer DSs
-        MonitorMsg monitorMsg = domain.createGlobalTopologyMonitorMsg(0, 0);
-        final int localServerId = domain.getLocalRSServerId();
+        final int senderId = domain.getLocalRSServerId();
+        final MonitorMsg monitorMsg =
+            domain.createGlobalTopologyMonitorMsg(senderId, 0);
 
         for (ServerHandler serverHandler : domain.getConnectedDSs().values())
         {
-          // Set the right sender and destination ids
-          monitorMsg.setSenderID(localServerId);
           monitorMsg.setDestination(serverHandler.getServerId());
           try
           {

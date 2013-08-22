@@ -142,7 +142,7 @@ class ReplicationDomainMonitor
    * @throws InterruptedException
    *           If this thread is interrupted while waiting for a response.
    */
-  public ReplicationDomainMonitorData computeDomainMonitorData()
+  public ReplicationDomainMonitorData recomputeMonitorData()
       throws InterruptedException
   {
     // Only allow monitor recalculation at a time.
