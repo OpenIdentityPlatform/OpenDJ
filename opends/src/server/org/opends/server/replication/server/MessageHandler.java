@@ -42,11 +42,13 @@ import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.protocol.UpdateMsg;
-import org.opends.server.replication.server.changelog.api.*;
+import org.opends.server.replication.server.changelog.api.ReplicationIterator;
+import org.opends.server.replication.server.changelog.api.ReplicationIteratorComparator;
 import org.opends.server.types.*;
 
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class implements a buffering/producer/consumer mechanism of
@@ -308,7 +310,7 @@ public class MessageHandler extends MonitorProvider<MonitorProviderCfg>
           }
           finally
           {
-            releaseAllIterators(iteratorSortedSet);
+            close(iteratorSortedSet);
           }
 
           /*
@@ -411,7 +413,7 @@ public class MessageHandler extends MonitorProvider<MonitorProviderCfg>
     }
     else
     {
-      iter.releaseCursor();
+      close(iter);
     }
   }
 
@@ -461,7 +463,7 @@ public class MessageHandler extends MonitorProvider<MonitorProviderCfg>
             result = null;
           } finally
           {
-            releaseAllIterators(iteratorSortedSet);
+            close(iteratorSortedSet);
           }
         }
       }
@@ -495,22 +497,11 @@ public class MessageHandler extends MonitorProvider<MonitorProviderCfg>
         }
         else
         {
-          iter.releaseCursor();
+          close(iter);
         }
       }
     }
     return results;
-  }
-
-  private void releaseAllIterators(SortedSet<ReplicationIterator> iterators)
-  {
-    if (iterators != null)
-    {
-      for (ReplicationIterator iter : iterators)
-      {
-        iter.releaseCursor();
-      }
-    }
   }
 
   /**

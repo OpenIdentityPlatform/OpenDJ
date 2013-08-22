@@ -26,13 +26,15 @@
  */
 package org.opends.server.replication.server.changelog.api;
 
+import java.io.Closeable;
+
 import org.opends.server.replication.protocol.UpdateMsg;
 
 /**
  * This interface allows to iterate through the changes received from a given
  * LDAP Server Identifier.
  */
-public interface ReplicationIterator
+public interface ReplicationIterator extends Closeable
 {
 
   /**
@@ -55,6 +57,7 @@ public interface ReplicationIterator
    * called when the iterator is no longer used. Failure to do it could cause DB
    * deadlock.
    */
-  void releaseCursor();
+  @Override
+  void close();
 
 }

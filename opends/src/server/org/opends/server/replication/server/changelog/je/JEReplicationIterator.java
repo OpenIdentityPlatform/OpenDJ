@@ -133,7 +133,7 @@ public class JEReplicationIterator implements ReplicationIterator
 
   /** {@inheritDoc} */
   @Override
-  public void releaseCursor()
+  public void close()
   {
     synchronized (this)
     {
@@ -155,6 +155,6 @@ public class JEReplicationIterator implements ReplicationIterator
   @Override
   protected void finalize()
   {
-    releaseCursor();
+    close();
   }
 }
