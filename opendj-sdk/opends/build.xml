@@ -1518,13 +1518,14 @@
     <copy file="resource/debian/copyright" tofile="${build.deb.dir}/copyright" />
     <copy file="resource/sysv/opendj" tofile="${build.deb.dir}/opendj" />
 
+    <gzip src="resource/debian/changelog" destfile="${build.deb.dir}/changelog.Debian.gz" />
     <replace dir="${build.dir}/deb/control/" token="@prefix@" value="${prefix}" />
 
     <deb destfile="${package.dir}/${PKG_NAME}_${pkg_version_string}-${release}${pkg_version_qualifier}_all.deb"
                   control="${build.dir}/deb/control" verbose="false">
       <tarfileset dir="${build.deb.dir}"
                   includes="**/*"
-                  excludes="**/bat/**, **/*.app/**, **/*.bat*, **/*.exe*, bin/*, template/**/*, lib/*.sh, setup, uninstall, upgrade, legal-notices/**, copyright, README, bin/README_WINDOWS.txt, example-plugin.zip, opendj"
+                  excludes="**/bat/**, **/*.app/**, **/*.bat*, **/*.exe*, bin/*, template/**/*, lib/*.sh, setup, uninstall, upgrade, legal-notices/**, copyright, README, bin/README_WINDOWS.txt, example-plugin.zip, opendj, changelog.Debian.gz"
                   prefix="${prefix}" filemode="644" dirmode="755" />
       <tarfileset dir="${build.deb.dir}" includes="lib/*.sh"
                   prefix="${prefix}" filemode="755" dirmode="755" />
@@ -1535,7 +1536,7 @@
                   prefix="${prefix}" filemode="755" dirmode="755" />
       <tarfileset dir="${build.deb.dir}" includes="template/**/*"
                   prefix="${prefix}" filemode="444" dirmode="744" />
-      <tarfileset dir="${build.deb.dir}" includes="legal-notices/**, copyright, README, example-plugin.zip"
+      <tarfileset dir="${build.deb.dir}" includes="legal-notices/**, copyright, README, example-plugin.zip, changelog.Debian.gz"
                   prefix="${docprefix}" filemode="644" dirmode="755" />
       <tarfileset dir="${build.deb.dir}" includes="opendj"
     	          prefix="/etc/init.d" filemode="755" dirmode="755" />
