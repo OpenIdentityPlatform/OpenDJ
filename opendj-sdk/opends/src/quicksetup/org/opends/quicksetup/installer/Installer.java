@@ -122,13 +122,13 @@ public abstract class Installer extends GuiApplication {
    * If the user decides to import more than this number of entries, the import
    * process of automatically generated data will be verbose.
    */
-  private static final int THRESOLD_AUTOMATIC_DATA_VERBOSE = 20000;
+  private static final int THRESHOLD_AUTOMATIC_DATA_VERBOSE = 20000;
 
   /**
    * If the user decides to import a number of entries higher than this
    * threshold, the start process will be verbose.
    */
-  private static final int NENTRIES_THRESOLD_FOR_VERBOSE_START = 100000;
+  private static final int THRESHOLD_VERBOSE_START = 100000;
 
   /** Set of progress steps that have been completed. */
   protected Set<InstallProgressStep>
@@ -167,7 +167,7 @@ public abstract class Installer extends GuiApplication {
   /** The threshold in minutes used to know whether we must display a warning
    * informing that there is a server clock difference between two servers
    * whose contents are being replicated. */
-  public static final int WARNING_CLOCK_DIFFERENCE_THRESOLD_MINUTES = 5;
+  public static final int THRESHOLD_CLOCK_DIFFERENCE_WARNING = 5;
 
   /**
    * Creates a default instance.
@@ -292,51 +292,32 @@ public abstract class Installer extends GuiApplication {
   @Override
   public boolean isVisible(WizardStep step, UserData userData)
   {
-    boolean isVisible;
     if (step == CREATE_GLOBAL_ADMINISTRATOR)
     {
-       isVisible = userData.mustCreateAdministrator();
+       return userData.mustCreateAdministrator();
     }
     else if (step == NEW_SUFFIX_OPTIONS)
     {
       SuffixesToReplicateOptions suf =
         userData.getSuffixesToReplicateOptions();
-      if (suf != null)
-      {
-        isVisible = suf.getType() !=
+      return suf != null && suf.getType() !=
           SuffixesToReplicateOptions.Type.REPLICATE_WITH_EXISTING_SUFFIXES;
-      }
-      else
-      {
-        isVisible = false;
-      }
     }
     else if (step == SUFFIXES_OPTIONS)
     {
       DataReplicationOptions repl = userData.getReplicationOptions();
-      if (repl != null)
-      {
-        isVisible =
-          (repl.getType() != DataReplicationOptions.Type.STANDALONE) &&
-          (repl.getType() != DataReplicationOptions.Type.FIRST_IN_TOPOLOGY);
-      }
-      else
-      {
-        isVisible = false;
-      }
+      return repl != null
+          && (repl.getType() != DataReplicationOptions.Type.STANDALONE)
+          && (repl.getType() != DataReplicationOptions.Type.FIRST_IN_TOPOLOGY);
     }
     else if (step == REMOTE_REPLICATION_PORTS)
     {
-      isVisible = isVisible(SUFFIXES_OPTIONS, userData) &&
+      return isVisible(SUFFIXES_OPTIONS, userData) &&
       (userData.getRemoteWithNoReplicationPort().size() > 0) &&
       (userData.getSuffixesToReplicateOptions().getType() ==
         SuffixesToReplicateOptions.Type.REPLICATE_WITH_EXISTING_SUFFIXES);
     }
-    else
-    {
-      isVisible = true;
-    }
-    return isVisible;
+    return true;
   }
 
   /**
@@ -1464,7 +1445,7 @@ public abstract class Installer extends GuiApplication {
     File templatePath = createTemplateFile();
     int nEntries = getUserData().getNewSuffixOptions().getNumberEntries();
     MessageBuilder mb = new MessageBuilder();
-    if (isVerbose() || (nEntries > THRESOLD_AUTOMATIC_DATA_VERBOSE))
+    if (isVerbose() || (nEntries > THRESHOLD_AUTOMATIC_DATA_VERBOSE))
     {
       mb.append(getFormattedProgress(
             INFO_PROGRESS_IMPORT_AUTOMATICALLY_GENERATED.get(
@@ -1783,10 +1764,6 @@ public abstract class Installer extends GuiApplication {
         }
       }
     }
-    catch (ApplicationException ae)
-    {
-      throw ae;
-    }
     catch (NamingException ne)
     {
       Message failedMsg = getThrowableMsg(
@@ -1923,10 +1900,6 @@ public abstract class Installer extends GuiApplication {
       localTime = Utils.getServerClock(ctx);
       localServerDisplay = ConnectionUtils.getHostPort(ctx);
     }
-    catch (ApplicationException ae)
-    {
-      throw ae;
-    }
     catch (NamingException ne)
     {
       Message failedMsg = getThrowableMsg(
@@ -2041,13 +2014,13 @@ public abstract class Installer extends GuiApplication {
         {
           if (Math.abs(localTime - remoteTime - localTimeMeasureTime +
               remoteTimeMeasureTime) >
-          (WARNING_CLOCK_DIFFERENCE_THRESOLD_MINUTES * 60 * 1000))
+          (THRESHOLD_CLOCK_DIFFERENCE_WARNING * 60 * 1000))
           {
             notifyListeners(getFormattedWarning(
                 INFO_WARNING_SERVERS_CLOCK_DIFFERENCE.get(
                     localServerDisplay, ConnectionUtils.getHostPort(ctx),
                     String.valueOf(
-                        WARNING_CLOCK_DIFFERENCE_THRESOLD_MINUTES))));
+                        THRESHOLD_CLOCK_DIFFERENCE_WARNING))));
           }
         }
 
@@ -2079,7 +2052,7 @@ public abstract class Installer extends GuiApplication {
    * @param isCli a boolean to indicate if the install is using CLI or GUI
    */
   protected void initSummaryMap(
-      Map<InstallProgressStep, Message> hmSummary,
+      Map<ProgressStep, Message> hmSummary,
       boolean isCli)
   {
     hmSummary.put(InstallProgressStep.NOT_STARTED,
@@ -2153,7 +2126,7 @@ public abstract class Installer extends GuiApplication {
    * @param isCli a boolean to indicate if the install is using CLI or GUI
    */
   protected void updateSummaryWithServerState(
-      Map<InstallProgressStep, Message> hmSummary, Boolean isCli)
+      Map<ProgressStep, Message> hmSummary, Boolean isCli)
   {
    Installation installation = getInstallation();
    String cmd = getPath(installation.getControlPanelCommandFile());
@@ -2668,8 +2641,6 @@ public abstract class Installer extends GuiApplication {
         adsContext = new ADSContext(localCtx); // adsContext owns localCtx
         adsContext.createAdminData(null);
       }
-      assert null != adsContext ; // Bound either to local or remote ADS.
-
       /* Register new server in ADS. */
       TopologyCacheFilter filter = new TopologyCacheFilter();
       filter.setSearchMonitoringInformation(false);
@@ -2847,7 +2818,7 @@ public abstract class Installer extends GuiApplication {
         mbTotalSize += f.length();
       }
       // Assume entries of 1kb
-      if (mbTotalSize > NENTRIES_THRESOLD_FOR_VERBOSE_START * 1024)
+      if (mbTotalSize > THRESHOLD_VERBOSE_START * 1024)
       {
         manyEntriesToImport = true;
       }
@@ -2855,7 +2826,7 @@ public abstract class Installer extends GuiApplication {
     else if (type == NewSuffixOptions.Type.IMPORT_AUTOMATICALLY_GENERATED_DATA)
     {
       int nEntries = getUserData().getNewSuffixOptions().getNumberEntries();
-      if (nEntries > NENTRIES_THRESOLD_FOR_VERBOSE_START)
+      if (nEntries > THRESHOLD_VERBOSE_START)
       {
         manyEntriesToImport = true;
       }

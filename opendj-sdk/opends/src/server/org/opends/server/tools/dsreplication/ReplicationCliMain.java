@@ -30,75 +30,17 @@
 package org.opends.server.tools.dsreplication;
 
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.PrintStream;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import static org.opends.admin.ads.ServerDescriptor.*;
-import static org.opends.messages.AdminToolMessages.*;
-import static org.opends.messages.QuickSetupMessages.*;
-import static org.opends.messages.ToolMessages.*;
-import static org.opends.messages.UtilityMessages.*;
-import static org.opends.quicksetup.util.Utils.*;
-import static org.opends.server.tools.ToolConstants.*;
-import static org.opends.server.tools.dsreplication.ReplicationCliReturnCode.*;
-
-import javax.naming.NameAlreadyBoundException;
-import javax.naming.NameNotFoundException;
-import javax.naming.NamingEnumeration;
-import javax.naming.NamingException;
-import javax.naming.directory.Attribute;
-import javax.naming.directory.BasicAttribute;
-import javax.naming.directory.BasicAttributes;
-import javax.naming.directory.DirContext;
-import javax.naming.directory.SearchControls;
-import javax.naming.directory.SearchResult;
-import javax.naming.ldap.InitialLdapContext;
-import javax.net.ssl.TrustManager;
-
-import org.opends.admin.ads.ADSContext;
+import org.opends.admin.ads.*;
 import org.opends.admin.ads.ADSContext.ADSPropertySyntax;
 import org.opends.admin.ads.ADSContext.AdministratorProperty;
 import org.opends.admin.ads.ADSContext.ServerProperty;
-import org.opends.admin.ads.ADSContextException;
-import org.opends.admin.ads.ReplicaDescriptor;
-import org.opends.admin.ads.ServerDescriptor;
-import org.opends.admin.ads.SuffixDescriptor;
-import org.opends.admin.ads.TopologyCache;
-import org.opends.admin.ads.TopologyCacheException;
-import org.opends.admin.ads.TopologyCacheFilter;
 import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.admin.ads.util.PreferredConnection;
 import org.opends.admin.ads.util.ServerLoader;
 import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
 import org.opends.guitools.controlpanel.datamodel.BaseDNDescriptor;
-import org.opends.guitools.controlpanel.util.ConfigFromDirContext;
-import org.opends.guitools.controlpanel.util.ConfigFromFile;
-import org.opends.guitools.controlpanel.util.ControlPanelLog;
-import org.opends.guitools.controlpanel.util.ProcessReader;
-import org.opends.guitools.controlpanel.util.Utilities;
+import org.opends.guitools.controlpanel.util.*;
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 import org.opends.quicksetup.ApplicationException;
@@ -113,16 +55,15 @@ import org.opends.quicksetup.installer.PeerNotFoundException;
 import org.opends.quicksetup.installer.offline.OfflineInstaller;
 import org.opends.quicksetup.util.PlainTextProgressMessageFormatter;
 import org.opends.quicksetup.util.Utils;
-import org.opends.server.admin.AttributeTypePropertyDefinition;
-import org.opends.server.admin.ClassLoaderProvider;
-import org.opends.server.admin.ClassPropertyDefinition;
-import org.opends.server.admin.DefaultBehaviorException;
-import org.opends.server.admin.ManagedObjectNotFoundException;
+import org.opends.server.admin.*;
 import org.opends.server.admin.client.ManagementContext;
 import org.opends.server.admin.client.ldap.JNDIDirContextAdaptor;
 import org.opends.server.admin.client.ldap.LDAPManagementContext;
 import org.opends.server.admin.std.client.*;
-import org.opends.server.admin.std.meta.*;
+import org.opends.server.admin.std.meta.ReplicationDomainCfgDefn;
+import org.opends.server.admin.std.meta.ReplicationServerCfgDefn;
+import org.opends.server.admin.std.meta.
+    ReplicationSynchronizationProviderCfgDefn;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.tasks.PurgeConflictsHistoricalTask;
@@ -139,23 +80,35 @@ import org.opends.server.util.BuildVersion;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.util.SetupUtils;
 import org.opends.server.util.StaticUtils;
-import org.opends.server.util.args.Argument;
-import org.opends.server.util.args.ArgumentException;
-import org.opends.server.util.args.BooleanArgument;
-import org.opends.server.util.args.FileBasedArgument;
-import org.opends.server.util.args.IntegerArgument;
-import org.opends.server.util.args.StringArgument;
-import org.opends.server.util.cli.CLIException;
-import org.opends.server.util.cli.CommandBuilder;
-import org.opends.server.util.cli.ConsoleApplication;
-import org.opends.server.util.cli.LDAPConnectionConsoleInteraction;
-import org.opends.server.util.cli.MenuBuilder;
-import org.opends.server.util.cli.MenuResult;
-import org.opends.server.util.cli.PointAdder;
+import org.opends.server.util.args.*;
+import org.opends.server.util.cli.*;
 import org.opends.server.util.table.TabSeparatedTablePrinter;
 import org.opends.server.util.table.TableBuilder;
 import org.opends.server.util.table.TablePrinter;
 import org.opends.server.util.table.TextTablePrinter;
+
+import javax.naming.NameAlreadyBoundException;
+import javax.naming.NameNotFoundException;
+import javax.naming.NamingEnumeration;
+import javax.naming.NamingException;
+import javax.naming.directory.*;
+import javax.naming.ldap.InitialLdapContext;
+import java.io.*;
+import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import static org.opends.admin.ads.ServerDescriptor.*;
+import static org.opends.messages.AdminToolMessages.*;
+import static org.opends.messages.QuickSetupMessages.*;
+import static org.opends.messages.ToolMessages.*;
+import static org.opends.messages.UtilityMessages.
+    ERR_CONFIRMATION_TRIES_LIMIT_REACHED;
+import static org.opends.quicksetup.util.Utils.getFirstValue;
+import static org.opends.quicksetup.util.Utils.getThrowableMsg;
+import static org.opends.server.tools.ToolConstants.*;
+import static org.opends.server.tools.dsreplication.ReplicationCliReturnCode.*;
+import static org.opends.server.util.StaticUtils.close;
 
 /**
  * This class provides a tool that can be used to enable and disable replication
@@ -1077,16 +1030,7 @@ public class ReplicationCliMain extends ConsoleApplication
       returnValue = ERROR_CONNECTING;
     }
 
-    if (ctx != null)
-    {
-      try
-      {
-        ctx.close();
-      }
-      catch (Throwable t)
-      {
-      }
-    }
+    close(ctx);
     return returnValue;
   }
 
@@ -1152,8 +1096,13 @@ public class ReplicationCliMain extends ConsoleApplication
         LOG.log(Level.INFO, "created task entry: "+attrs);
         dirCtx.close();
       }
-      catch (NameAlreadyBoundException x)
+      catch (NameAlreadyBoundException ex)
       {
+        LOG.log(Level.SEVERE, "Error creating task "+attrs, ex);
+        Message msg = ERR_LAUNCHING_PURGE_HISTORICAL.get();
+        ReplicationCliReturnCode code = ERROR_LAUNCHING_PURGE_HISTORICAL;
+        throw new ReplicationCliException(
+            getThrowableMsg(msg, ex), code, ex);
       }
       catch (NamingException ne)
       {
@@ -1665,18 +1614,7 @@ public class ReplicationCliMain extends ConsoleApplication
         cancelled = true;
       }
     }
-
-    if (ctx != null)
-    {
-      try
-      {
-        ctx.close();
-      }
-      catch (Throwable t)
-      {
-      }
-    }
-
+    close(ctx);
     return !cancelled;
   }
 
@@ -1940,9 +1878,12 @@ public class ReplicationCliMain extends ConsoleApplication
       // enableReplication(EnableReplicationUserData) method.  Here we have
       // to load the ADS to ask the user to accept the certificates and
       // eventually admin authentication data.
-      InitialLdapContext[] aux = new InitialLdapContext[] {ctx1};
-      cancelled = !loadADSAndAcceptCertificates(aux, uData, true);
-      ctx1 = aux[0];
+      if (!cancelled)
+      {
+        InitialLdapContext[] aux = new InitialLdapContext[] {ctx1};
+        cancelled = !loadADSAndAcceptCertificates(aux, uData, true);
+        ctx1 = aux[0];
+      }
       if (!cancelled)
       {
         administratorDefined |= hasAdministrator(ctx1);
@@ -2241,9 +2182,12 @@ public class ReplicationCliMain extends ConsoleApplication
       // there are issues with the ADS they will be encountered in the
       // enableReplication(EnableReplicationUserData) method.  Here we have
       // to load the ADS to ask the user to accept the certificates.
-      InitialLdapContext[] aux = new InitialLdapContext[] {ctx2};
-      cancelled = !loadADSAndAcceptCertificates(aux, uData, false);
-      ctx2 = aux[0];
+      if (!cancelled)
+      {
+        InitialLdapContext[] aux = new InitialLdapContext[] {ctx2};
+        cancelled = !loadADSAndAcceptCertificates(aux, uData, false);
+        ctx2 = aux[0];
+      }
       if (!cancelled)
       {
         administratorDefined |= hasAdministrator(ctx2);
@@ -2333,28 +2277,7 @@ public class ReplicationCliMain extends ConsoleApplication
       uData.setBaseDNs(suffixes);
     }
 
-    if (ctx1 != null)
-    {
-      try
-      {
-        ctx1.close();
-      }
-      catch (Throwable t)
-      {
-      }
-    }
-
-    if (ctx2 != null)
-    {
-      try
-      {
-        ctx2.close();
-      }
-      catch (Throwable t)
-      {
-      }
-    }
-
+    close(ctx1, ctx2);
     uData.setReplicateSchema(!argParser.noSchemaReplication());
 
     return !cancelled;
@@ -2588,22 +2511,12 @@ public class ReplicationCliMain extends ConsoleApplication
         println();
         try
         {
-          if (uData.disableAll())
+          if (!uData.disableAll() &&
+              !uData.getBaseDNs().isEmpty())
           {
-            // Another confirmation is redundant: we already asked the user...
-          }
-          else
-          {
-            if (!uData.getBaseDNs().isEmpty())
-            {
-               cancelled = !askConfirmation(
-                INFO_REPLICATION_CONFIRM_DISABLE_GENERIC.get(), true,
-                LOG);
-            }
-            else
-            {
-              // Another confirmation for the replication server is redundant.
-            }
+            cancelled = !askConfirmation(
+              INFO_REPLICATION_CONFIRM_DISABLE_GENERIC.get(), true,
+              LOG);
           }
         }
         catch (CLIException ce)
@@ -2615,16 +2528,7 @@ public class ReplicationCliMain extends ConsoleApplication
       }
     }
 
-    if (ctx != null)
-    {
-      try
-      {
-        ctx.close();
-      }
-      catch (Throwable t)
-      {
-      }
-    }
+    close(ctx);
 
     return !cancelled;
   }
@@ -2753,17 +2657,7 @@ public class ReplicationCliMain extends ConsoleApplication
       }
     }
 
-    if (ctx != null)
-    {
-      try
-      {
-        ctx.close();
-      }
-      catch (Throwable t)
-      {
-      }
-    }
-
+    close(ctx);
     return !cancelled;
   }
 
@@ -2842,17 +2736,7 @@ public class ReplicationCliMain extends ConsoleApplication
       uData.setBaseDNs(suffixes);
     }
 
-    if (ctx != null)
-    {
-      try
-      {
-        ctx.close();
-      }
-      catch (Throwable t)
-      {
-      }
-    }
-
+    close(ctx);
     return !cancelled;
   }
 
@@ -2931,17 +2815,7 @@ public class ReplicationCliMain extends ConsoleApplication
       uData.setBaseDNs(suffixes);
     }
 
-    if (ctx != null)
-    {
-      try
-      {
-        ctx.close();
-      }
-      catch (Throwable t)
-      {
-      }
-    }
-
+    close(ctx);
     return !cancelled;
   }
 
@@ -3032,17 +2906,7 @@ public class ReplicationCliMain extends ConsoleApplication
       uData.setBaseDNs(suffixes);
     }
 
-    if (ctx != null)
-    {
-      try
-      {
-        ctx.close();
-      }
-      catch (Throwable t)
-      {
-      }
-    }
-
+    close(ctx);
     return !cancelled;
   }
 
@@ -3271,27 +3135,7 @@ public class ReplicationCliMain extends ConsoleApplication
       }
     }
 
-    if (ctxSource != null)
-    {
-      try
-      {
-        ctxSource.close();
-      }
-      catch (Throwable t)
-      {
-      }
-    }
-
-    if (ctxDestination != null)
-    {
-      try
-      {
-        ctxDestination.close();
-      }
-      catch (Throwable t)
-      {
-      }
-    }
+    close(ctxSource, ctxDestination);
     return !cancelled;
   }
 
@@ -3346,19 +3190,7 @@ public class ReplicationCliMain extends ConsoleApplication
     ApplicationTrustManager trust;
     if (isInteractive())
     {
-      TrustManager t = ci.getTrustManager();
-      if (t == null)
-      {
-        trust = null;
-      }
-      else if (t instanceof ApplicationTrustManager)
-      {
-        trust = (ApplicationTrustManager)t;
-      }
-      else
-      {
-        trust = new ApplicationTrustManager(ci.getKeyStore());
-      }
+      trust = ci.getTrustManager();
     }
     else
     {
@@ -3801,13 +3633,7 @@ public class ReplicationCliMain extends ConsoleApplication
                     adminPwd = askForAdministratorPwd(LOG);
                     println();
                   }
-                  try
-                  {
-                    ctx[0].close();
-                  }
-                  catch (Throwable t)
-                  {
-                  }
+                  close(ctx[0]);
                   try
                   {
                     ctx[0] = createAdministrativeContext(host, port, isSSL,
@@ -4368,13 +4194,13 @@ public class ReplicationCliMain extends ConsoleApplication
       if ((time1 != -1) && (time2 != -1))
       {
         if (Math.abs(time1 - time2) >
-        (Installer.WARNING_CLOCK_DIFFERENCE_THRESOLD_MINUTES * 60 * 1000))
+        (Installer.THRESHOLD_CLOCK_DIFFERENCE_WARNING * 60 * 1000))
         {
           println(INFO_WARNING_SERVERS_CLOCK_DIFFERENCE.get(
               ConnectionUtils.getHostPort(ctx1),
               ConnectionUtils.getHostPort(ctx2),
               String.valueOf(
-                  Installer.WARNING_CLOCK_DIFFERENCE_THRESOLD_MINUTES)));
+                  Installer.THRESHOLD_CLOCK_DIFFERENCE_WARNING)));
         }
       }
       printlnProgress();
@@ -4383,27 +4209,7 @@ public class ReplicationCliMain extends ConsoleApplication
       printlnProgress();
     }
 
-    if (ctx1 != null)
-    {
-      try
-      {
-        ctx1.close();
-      }
-      catch (Throwable t)
-      {
-      }
-    }
-
-    if (ctx2 != null)
-    {
-      try
-      {
-        ctx2.close();
-      }
-      catch (Throwable t)
-      {
-      }
-    }
+    close(ctx1, ctx2);
     return returnValue;
   }
 
@@ -4521,16 +4327,7 @@ public class ReplicationCliMain extends ConsoleApplication
       returnValue = ERROR_CONNECTING;
     }
 
-    if (ctx != null)
-    {
-      try
-      {
-        ctx.close();
-      }
-      catch (Throwable t)
-      {
-      }
-    }
+    close(ctx);
     return returnValue;
   }
 
@@ -4583,16 +4380,7 @@ public class ReplicationCliMain extends ConsoleApplication
       returnValue = ERROR_CONNECTING;
     }
 
-    if (ctx != null)
-    {
-      try
-      {
-        ctx.close();
-      }
-      catch (Throwable t)
-      {
-      }
-    }
+    close(ctx);
     return returnValue;
   }
 
@@ -4609,21 +4397,20 @@ public class ReplicationCliMain extends ConsoleApplication
       InitializeReplicationUserData uData)
   {
     ReplicationCliReturnCode returnValue = SUCCESSFUL_NOP;
-    InitialLdapContext ctxSource = null;
-    InitialLdapContext ctxDestination = null;
 
-     ctxSource = getAdministrativeContext(uData.getHostNameSource(),
-         uData.getPortSource(), useSSL,
-         useStartTLS,
-         ADSContext.getAdministratorDN(uData.getAdminUid()),
-         uData.getAdminPwd(), getConnectTimeout(), getTrustManager());
+    InitialLdapContext ctxSource = getAdministrativeContext(
+        uData.getHostNameSource(),
+        uData.getPortSource(), useSSL,
+        useStartTLS,
+        ADSContext.getAdministratorDN(uData.getAdminUid()),
+        uData.getAdminPwd(), getConnectTimeout(), getTrustManager());
 
-     ctxDestination = getAdministrativeContext(
-         uData.getHostNameDestination(),
-         uData.getPortDestination(), useSSL,
-         useStartTLS,
-         ADSContext.getAdministratorDN(uData.getAdminUid()),
-         uData.getAdminPwd(), getConnectTimeout(), getTrustManager());
+    InitialLdapContext ctxDestination = getAdministrativeContext(
+        uData.getHostNameDestination(),
+        uData.getPortDestination(), useSSL,
+        useStartTLS,
+        ADSContext.getAdministratorDN(uData.getAdminUid()),
+        uData.getAdminPwd(), getConnectTimeout(), getTrustManager());
 
     if ((ctxSource != null) && (ctxDestination != null))
     {
@@ -4681,27 +4468,7 @@ public class ReplicationCliMain extends ConsoleApplication
       returnValue = ERROR_CONNECTING;
     }
 
-    if (ctxSource != null)
-    {
-      try
-      {
-        ctxSource.close();
-      }
-      catch (Throwable t)
-      {
-      }
-    }
-
-    if (ctxDestination != null)
-    {
-      try
-      {
-        ctxDestination.close();
-      }
-      catch (Throwable t)
-      {
-      }
-    }
+    close(ctxDestination, ctxSource);
     return returnValue;
   }
 
@@ -4810,23 +4577,12 @@ public class ReplicationCliMain extends ConsoleApplication
       {
         returnValue = REPLICATION_CANNOT_BE_INITIALIZED_ON_BASEDN;
       }
+      close(ctx);
     }
     else
     {
       returnValue = ERROR_CONNECTING;
     }
-
-    if (ctx != null)
-    {
-      try
-      {
-        ctx.close();
-      }
-      catch (Throwable t)
-      {
-      }
-    }
-
     return returnValue;
   }
 
@@ -4843,7 +4599,7 @@ public class ReplicationCliMain extends ConsoleApplication
   private ReplicationCliReturnCode preExternalInitialization(
       PreExternalInitializationUserData uData)
   {
-    ReplicationCliReturnCode returnValue;
+    ReplicationCliReturnCode returnValue = ERROR_CONNECTING;
     InitialLdapContext ctx = null;
     try
     {
@@ -4914,23 +4670,8 @@ public class ReplicationCliMain extends ConsoleApplication
       {
         returnValue = REPLICATION_CANNOT_BE_INITIALIZED_ON_BASEDN;
       }
+      close(ctx);
     }
-    else
-    {
-      returnValue = ERROR_CONNECTING;
-    }
-
-    if (ctx != null)
-    {
-      try
-      {
-        ctx.close();
-      }
-      catch (Throwable t)
-      {
-      }
-    }
-
     return returnValue;
   }
 
@@ -4947,7 +4688,7 @@ public class ReplicationCliMain extends ConsoleApplication
   private ReplicationCliReturnCode postExternalInitialization(
       PostExternalInitializationUserData uData)
   {
-    ReplicationCliReturnCode returnValue;
+    ReplicationCliReturnCode returnValue = ERROR_CONNECTING;
     InitialLdapContext ctx = null;
     try
     {
@@ -5016,23 +4757,8 @@ public class ReplicationCliMain extends ConsoleApplication
       {
         returnValue = REPLICATION_CANNOT_BE_INITIALIZED_ON_BASEDN;
       }
+      close(ctx);
     }
-    else
-    {
-      returnValue = ERROR_CONNECTING;
-    }
-
-    if (ctx != null)
-    {
-      try
-      {
-        ctx.close();
-      }
-      catch (Throwable t)
-      {
-      }
-    }
-
     return returnValue;
   }
 
@@ -6297,7 +6023,7 @@ public class ReplicationCliMain extends ConsoleApplication
       }
       hmUsedReplicationDomainIds.put(baseDN, ids);
     }
-    for (LinkedHashSet<String> v : hmRepServers.values())
+    for (Set<String> v : hmRepServers.values())
     {
       allRepServers.addAll(v);
     }
@@ -6394,7 +6120,7 @@ public class ReplicationCliMain extends ConsoleApplication
 
     for (String baseDN : uData.getBaseDNs())
     {
-      LinkedHashSet<String> repServers = hmRepServers.get(baseDN);
+      Set<String> repServers = hmRepServers.get(baseDN);
       Set<Integer> usedIds = hmUsedReplicationDomainIds.get(baseDN);
       Set<String> alreadyConfiguredServers = new HashSet<String>();
 
@@ -7069,7 +6795,7 @@ public class ReplicationCliMain extends ConsoleApplication
     ADSContext adsCtx = new ADSContext(ctx);
 
     boolean somethingDisplayed = false;
-    TopologyCache cache = null;
+    TopologyCache cache;
     try
     {
       cache = new TopologyCache(adsCtx, getTrustManager(),
@@ -7107,10 +6833,7 @@ public class ReplicationCliMain extends ConsoleApplication
     {
       // Inform the user of the potential errors that we found.
       LinkedHashSet<Message> messages = new LinkedHashSet<Message>();
-      if (cache != null)
-      {
-        messages.addAll(cache.getErrorMessages());
-      }
+      messages.addAll(cache.getErrorMessages());
       if (!messages.isEmpty())
       {
         Message msg =
@@ -7121,8 +6844,8 @@ public class ReplicationCliMain extends ConsoleApplication
       }
     }
 
-    LinkedList<String> userBaseDNs = uData.getBaseDNs();
-    LinkedList<Set<ReplicaDescriptor>> replicaLists =
+    List<String> userBaseDNs = uData.getBaseDNs();
+    List<Set<ReplicaDescriptor>> replicaLists =
       new LinkedList<Set<ReplicaDescriptor>>();
 
     boolean oneReplicated = false;
@@ -7210,7 +6933,7 @@ public class ReplicationCliMain extends ConsoleApplication
 
     if (!replicaLists.isEmpty())
     {
-      LinkedList<Set<ReplicaDescriptor>> orderedReplicaLists =
+      List<Set<ReplicaDescriptor>> orderedReplicaLists =
         new LinkedList<Set<ReplicaDescriptor>>();
       for (Set<ReplicaDescriptor> replicas : replicaLists)
       {
@@ -7282,9 +7005,10 @@ public class ReplicationCliMain extends ConsoleApplication
    * all the replicas are replicated with each other.
    * Note: the code assumes that all the objects come from the same read of the
    * topology cache.  So comparisons in terms of pointers can be made.
-   * @param replicas the list of replicas that we are trying to display.
+   * @param orderedReplicaLists the list of replicas that we are trying to
+   * display.
+   * @param scriptFriendly whether to display it on script-friendly mode or not.
    * @param cnx the preferred connections used to connect to the server.
-   * @param scriptFriendly wheter to display it on script-friendly mode or not.
    * @param servers all the servers configured in the topology.
    * @param replicasWithNoReplicationServer the set of replicas that will be
    * updated with all the replicas that have no replication server.
@@ -7293,7 +7017,7 @@ public class ReplicationCliMain extends ConsoleApplication
    * no replica.
    */
   private void displayStatus(
-      LinkedList<Set<ReplicaDescriptor>> orderedReplicaLists,
+      List<Set<ReplicaDescriptor>> orderedReplicaLists,
       boolean scriptFriendly, LinkedHashSet<PreferredConnection> cnx,
       Set<ServerDescriptor> servers,
       Set<ReplicaDescriptor> replicasWithNoReplicationServer,
@@ -7615,7 +7339,7 @@ public class ReplicationCliMain extends ConsoleApplication
     }
 
     PrintStream out = getOutputStream();
-    TablePrinter printer = null;
+    TablePrinter printer;
 
     if (scriptFriendly)
     {
@@ -7659,10 +7383,10 @@ public class ReplicationCliMain extends ConsoleApplication
    * to replicate the baseDN defined in the server described by the
    * ServerDescriptor.
    */
-  private LinkedHashSet<String> getReplicationServers(String baseDN,
+  private Set<String> getReplicationServers(String baseDN,
       TopologyCache cache, ServerDescriptor server)
   {
-    LinkedHashSet<String> servers = new LinkedHashSet<String>();
+    Set<String> servers = new LinkedHashSet<String>();
     for (ReplicaDescriptor replica : server.getReplicas())
     {
       if (Utils.areDnsEqual(replica.getSuffix().getDN(), baseDN))
@@ -7683,7 +7407,7 @@ public class ReplicationCliMain extends ConsoleApplication
           // If we do: we are dealing with the same replication topology
           // (we must consider the case of disjoint replication topologies
           // replicating the same base DN).
-          HashSet<String> copy = new HashSet<String>(s);
+          Set<String> copy = new HashSet<String>(s);
           copy.retainAll(servers);
           if (!copy.isEmpty())
           {
@@ -7871,7 +7595,7 @@ public class ReplicationCliMain extends ConsoleApplication
     /*
      * Configure the replication server.
      */
-    ReplicationServerCfgClient replicationServer = null;
+    ReplicationServerCfgClient replicationServer;
 
     boolean mustCommit = false;
 
@@ -7929,7 +7653,7 @@ public class ReplicationCliMain extends ConsoleApplication
    * @throws OpenDsException if there is an error updating the configuration.
    */
   private void updateReplicationServer(InitialLdapContext ctx,
-      LinkedHashSet<String> replicationServers) throws OpenDsException
+      Set<String> replicationServers) throws OpenDsException
   {
     printProgress(formatter.getFormattedWithPoints(
         INFO_REPLICATION_ENABLE_UPDATING_REPLICATION_SERVER.get(
@@ -8000,11 +7724,11 @@ public class ReplicationCliMain extends ConsoleApplication
    */
   private void configureToReplicateBaseDN(InitialLdapContext ctx,
       String baseDN,
-      LinkedHashSet<String> replicationServers,
+      Set<String> replicationServers,
       Set<Integer> usedReplicationDomainIds) throws OpenDsException
   {
     boolean userSpecifiedAdminBaseDN = false;
-    LinkedList<String> l = argParser.getBaseDNs();
+    List<String> l = argParser.getBaseDNs();
     if (l != null)
     {
       for (String dn : l)
@@ -8118,9 +7842,9 @@ public class ReplicationCliMain extends ConsoleApplication
    * @throws ReplicationCliException if something goes wrong.
    */
   private void configureToReplicateBaseDN(String baseDN,
-      LinkedHashSet<String> repServers, Set<Integer> usedIds,
+      Set<String> repServers, Set<Integer> usedIds,
       TopologyCache cache, ServerDescriptor server,
-      Set<String> alreadyConfiguredServers, LinkedHashSet<String> allRepServers,
+      Set<String> alreadyConfiguredServers, Set<String> allRepServers,
       Set<String> alreadyConfiguredReplicationServers)
   throws ReplicationCliException
   {
@@ -8201,16 +7925,7 @@ public class ReplicationCliMain extends ConsoleApplication
       }
       finally
       {
-        if (ctx != null)
-        {
-          try
-          {
-            ctx.close();
-          }
-          catch (Throwable t)
-          {
-          }
-        }
+        close(ctx);
       }
       alreadyConfiguredServers.add(s.getId());
       alreadyConfiguredReplicationServers.add(s.getId());
@@ -8867,9 +8582,9 @@ public class ReplicationCliMain extends ConsoleApplication
    * @param pwd the password that must be used to log to the server.
    * @param baseDNs the list of base DNs where we want to remove the references
    * to the provided replication server.
-   * @param removeFromReplicationServers if references must be removed from
-   * the replication servers.
-   * @param preferredURLs the preferred LDAP URLs to be used to connect to the
+   * @param updateReplicationServers if references in the replication servers
+   * must be updated.
+   * @param cnx the preferred LDAP URLs to be used to connect to the
    * server.
    * @throws ReplicationCliException if there is an error updating the
    * configuration.
@@ -9017,16 +8732,7 @@ public class ReplicationCliMain extends ConsoleApplication
     }
     finally
     {
-      if (ctx != null)
-      {
-        try
-        {
-          ctx.close();
-        }
-        catch (Throwable t)
-        {
-        }
-      }
+      close(ctx);
     }
   }
 
@@ -9312,7 +9018,7 @@ public class ReplicationCliMain extends ConsoleApplication
       {
         s = c.toString();
       }
-      if (mb.toString().indexOf(s) == -1)
+      if (!mb.toString().contains(s))
       {
         mb.append(Constants.LINE_SEPARATOR);
         mb.append(INFO_REPLICATION_CRITICAL_ERROR_DETAILS.get(s));
@@ -9329,14 +9035,7 @@ public class ReplicationCliMain extends ConsoleApplication
     {
       String id1 = server1.getSchemaReplicationID();
       String id2 = server2.getSchemaReplicationID();
-      if (id1 != null)
-      {
-        mustInitializeSchema = !id1.equals(id2);
-      }
-      else
-      {
-        mustInitializeSchema = true;
-      }
+      mustInitializeSchema = id1 == null || !id1.equals(id2);
     }
     if (mustInitializeSchema)
     {
@@ -9352,7 +9051,7 @@ public class ReplicationCliMain extends ConsoleApplication
    * already registered it unregisters it and registers again (some properties
    * might have changed).
    * @param adsContext the ADS Context to be used.
-   * @param server the server to be registered.
+   * @param serverProperties the properties of the server to be registered.
    * @throws ADSContextException if an error occurs during the registration or
    * unregistration of the server.
    */
@@ -9396,14 +9095,7 @@ public class ReplicationCliMain extends ConsoleApplication
    */
   @Override
   public boolean isInteractive() {
-    if (forceNonInteractive)
-    {
-      return false;
-    }
-    else
-    {
-      return argParser.isInteractive();
-    }
+    return !forceNonInteractive && argParser.isInteractive();
   }
 
   /**
@@ -11169,10 +10861,7 @@ public class ReplicationCliMain extends ConsoleApplication
             }
             finally
             {
-              if (ctx != null)
-              {
-                ctx.close();
-              }
+              close(ctx);
             }
           }
         }
