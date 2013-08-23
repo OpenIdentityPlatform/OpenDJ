@@ -1362,7 +1362,9 @@ public class ReplicationServerTest extends ReplicationTestCase
      ReplicationBroker server1 = null;
     try
     {
-      assertSearchResult("cn=monitor", "(objectclass=*)", SUCCESS, 33);
+      InternalSearchOperation op =
+          connection.processSearch("cn=monitor", WHOLE_SUBTREE, "(objectclass=*)");
+      assertEquals(op.getResultCode(), SUCCESS, op.getErrorMessage().toString());
 
        replicationServer.clearDb();
 
@@ -1408,7 +1410,6 @@ public class ReplicationServerTest extends ReplicationTestCase
        assertEquals(internalSearch.getResultCode(), ResultCode.SUCCESS);
        assertTrue(internalSearch.getSearchEntries().isEmpty());
 
-       // General search
       assertSearchResult("dc=oops", "(changetype=*)", NO_SUCH_OBJECT, 0);
 
        // TODO:  testReplicationBackendACIs() is disabled because it
@@ -1419,9 +1420,7 @@ public class ReplicationServerTest extends ReplicationTestCase
        // this test.
        // testReplicationBackendACIs();
 
-       // General search
-      InternalSearchOperation op =
-          assertSearchResult("dc=replicationChanges", "(changetype=*)", SUCCESS, 5);
+      op = assertSearchResult("dc=replicationChanges", "(changetype=*)", SUCCESS, 5);
 
        debugInfo("Search result");
        List<SearchResultEntry> entries = op.getSearchEntries();
