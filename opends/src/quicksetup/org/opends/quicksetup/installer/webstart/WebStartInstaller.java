@@ -34,6 +34,8 @@ import java.io.InputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -80,11 +82,11 @@ import static org.opends.messages.QuickSetupMessages.*;
  *
  */
 public class WebStartInstaller extends Installer {
-  private final HashMap<InstallProgressStep, Integer> hmRatio =
-      new HashMap<InstallProgressStep, Integer>();
+  private final Map<ProgressStep, Integer> hmRatio =
+      new HashMap<ProgressStep, Integer>();
 
-  private final HashMap<InstallProgressStep, Message> hmSummary =
-      new HashMap<InstallProgressStep, Message>();
+  private final Map<ProgressStep, Message> hmSummary =
+      new HashMap<ProgressStep, Message>();
 
   private static final Logger LOG =
     Logger.getLogger(WebStartInstaller.class.getName());
@@ -371,9 +373,9 @@ public class WebStartInstaller extends Installer {
      * extracting, the value for downloading will be the double of the value for
      * extracting.
      */
-    HashMap<InstallProgressStep, Integer> hmTime =
-        new HashMap<InstallProgressStep, Integer>();
-    hmTime.put(InstallProgressStep.DOWNLOADING, 15);
+    Map<ProgressStep, Integer> hmTime =
+        new HashMap<ProgressStep, Integer>();
+    hmTime.put(InstallProgressStep.DOWNLOADING, 30);
     hmTime.put(InstallProgressStep.EXTRACTING, 15);
     hmTime.put(InstallProgressStep.CONFIGURING_SERVER, 5);
     hmTime.put(InstallProgressStep.CREATING_BASE_ENTRY, 10);
@@ -387,7 +389,7 @@ public class WebStartInstaller extends Installer {
     hmTime.put(InstallProgressStep.INITIALIZE_REPLICATED_SUFFIXES, 25);
 
     int totalTime = 0;
-    ArrayList<InstallProgressStep> steps =
+    List<InstallProgressStep> steps =
         new ArrayList<InstallProgressStep>();
     totalTime += hmTime.get(InstallProgressStep.DOWNLOADING);
     steps.add(InstallProgressStep.DOWNLOADING);
@@ -521,7 +523,7 @@ public class WebStartInstaller extends Installer {
 
   /**
    * This method extracts the zip file.
-   * @param is the inputstream with the contents of the zip file.
+   * @param is the input stream with the contents of the zip file.
    * @param minRatio the value of the ratio in the install that corresponds to
    * the moment where we start extracting the zip files.  Used to update
    * properly the install progress ratio.

@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 
 package org.opends.quicksetup.ui;
@@ -47,6 +47,7 @@ import javax.swing.*;
 
 import java.awt.Cursor;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Logger;
 import java.util.logging.Level;
 import java.util.logging.Handler;
@@ -137,7 +138,7 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
     }
 
     /* In the calls to setCurrentStep the dialog will be created */
-    setCurrentStep(application.getFirstWizardStep());
+      setCurrentStep(application.getFirstWizardStep());
   }
 
   /**
@@ -404,7 +405,7 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
           }
           ProcessBuilder pb;
           if (isMacOS()) {
-            ArrayList<String> cmd = new ArrayList<String>();
+            List<String> cmd = new ArrayList<String>();
             cmd.add(MAC_APPLICATIONS_OPENER);
             cmd.add(getScriptPath(
                 getPath(installation.getControlPanelCommandFile())));
@@ -433,7 +434,7 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
           {
             returnValue = process.exitValue();
           }
-          catch (IllegalThreadStateException ithse)
+          catch (IllegalThreadStateException e)
           {
             // The process has not exited: assume that the status panel could
             // be launched successfully.
@@ -684,10 +685,12 @@ public class QuickSetup implements ButtonActionListener, ProgressUpdateListener
     {
       progressDetails.append(additionalDetails);
     }
-    // Note: progressDetails might have a certain number of characters that
-    // break Message Formatter (for instance percentages).  When fix for
-    // issue 2142 was committed it broke this code.  So here
-    // we use Message.raw instead of calling directly progressDetails.toMessage
+    /*
+    Note: progressDetails might have a certain number of characters that
+    break Message Formatter (for instance percentages).  When fix for
+    issue 2142 was committed it broke this code.  So here
+    we use Message.raw instead of calling directly progressDetails.toMessage
+    */
     return new ProgressDescriptor(status, ratio, newProgressLabel,
         Message.raw(progressDetails.toString()));
   }

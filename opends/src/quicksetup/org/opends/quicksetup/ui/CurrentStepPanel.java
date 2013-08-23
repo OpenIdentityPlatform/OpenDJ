@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS.
  */
 
 package org.opends.quicksetup.ui;
@@ -32,6 +33,7 @@ import static org.opends.messages.QuickSetupMessages.*;
 import java.awt.*;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 import org.opends.quicksetup.event.ButtonActionListener;
@@ -58,7 +60,7 @@ public class CurrentStepPanel extends QuickSetupPanel
 
   private static final String LOADING_PANEL = "loading";
 
-  private HashMap<WizardStep, QuickSetupStepPanel> hmPanels =
+  private Map<WizardStep, QuickSetupStepPanel> hmPanels =
       new HashMap<WizardStep, QuickSetupStepPanel>();
 
   /**
@@ -94,7 +96,7 @@ public class CurrentStepPanel extends QuickSetupPanel
 
   /**
    * Marks as invalid (or valid depending on the value of the invalid parameter)
-   * a field corresponding to FieldName.  This basically implies udpating the
+   * a field corresponding to FieldName.  This basically implies updating the
    * style of the JLabel associated with fieldName (the association is done
    * using the LabelFieldDescriptor class).
    * @param fieldName the FieldName to be marked as valid or invalid.
@@ -108,15 +110,6 @@ public class CurrentStepPanel extends QuickSetupPanel
     }
   }
 
-  /**
-   * Returns the panel we use to display the progress.  This method is used
-   * to be able to retrieve the message formatter.
-   * @return the panel we use to display the progress.
-   */
-  ProgressPanel getProgressPanel()
-  {
-    return (ProgressPanel)hmPanels.get(Step.PROGRESS);
-  }
 
   /**
    * Create the layout of the panel.
@@ -156,7 +149,7 @@ public class CurrentStepPanel extends QuickSetupPanel
             new GridBagConstraints());
     add(loadingPanel, LOADING_PANEL);
 
-    // For aesthetical reasons we add a little bit of height
+    // For aesthetic reasons we add a little bit of height
     minHeight += getApplication().getExtraDialogHeight();
 
     setPreferredSize(new Dimension(minWidth, minHeight));
@@ -165,7 +158,7 @@ public class CurrentStepPanel extends QuickSetupPanel
 
   /**
    * Adds a button listener.  All the button listeners will be notified when
-   * the buttons are clicked (by the user or programatically).
+   * the buttons are clicked (by the user or programmatically).
    * @param l the ButtonActionListener to be added.
    */
   public void addButtonActionListener(ButtonActionListener l)
@@ -176,17 +169,6 @@ public class CurrentStepPanel extends QuickSetupPanel
     }
   }
 
-  /**
-   * Removes a button listener.
-   * @param l the ButtonActionListener to be removed.
-   */
-  public void removeButtonActionListener(ButtonActionListener l)
-  {
-    for (WizardStep s : hmPanels.keySet())
-    {
-      getPanel(s).removeButtonActionListener(l);
-    }
-  }
 
   /**
    * Displays the panel corresponding to the provided step.  The panel contents
