@@ -36,6 +36,8 @@ import java.io.PrintStream;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.security.KeyStoreException;
@@ -70,12 +72,12 @@ import org.opends.server.util.CertificateManager;
 public class OfflineInstaller extends Installer
 {
   /* This map contains the ratio associated with each step */
-  private final HashMap<InstallProgressStep, Integer> hmRatio =
-      new HashMap<InstallProgressStep, Integer>();
+  private final Map<ProgressStep, Integer> hmRatio =
+      new HashMap<ProgressStep, Integer>();
 
   /* This map contains the summary associated with each step */
-  private final HashMap<InstallProgressStep, Message> hmSummary =
-      new HashMap<InstallProgressStep, Message>();
+  private final Map<ProgressStep, Message> hmSummary =
+      new HashMap<ProgressStep, Message>();
 
   private ApplicationException runError;
 
@@ -454,7 +456,7 @@ public class OfflineInstaller extends Installer
      * extracting, the value for downloading will be the double of the value for
      * extracting.
      */
-    HashMap<ProgressStep, Integer> hmTime =
+    Map<ProgressStep, Integer> hmTime =
         new HashMap<ProgressStep, Integer>();
     hmTime.put(InstallProgressStep.CONFIGURING_SERVER, 5);
     hmTime.put(InstallProgressStep.CREATING_BASE_ENTRY, 10);
@@ -468,7 +470,7 @@ public class OfflineInstaller extends Installer
     hmTime.put(InstallProgressStep.INITIALIZE_REPLICATED_SUFFIXES, 25);
 
     int totalTime = 0;
-    ArrayList<InstallProgressStep> steps =
+    List<InstallProgressStep> steps =
         new ArrayList<InstallProgressStep>();
     totalTime += hmTime.get(InstallProgressStep.CONFIGURING_SERVER);
     steps.add(InstallProgressStep.CONFIGURING_SERVER);
