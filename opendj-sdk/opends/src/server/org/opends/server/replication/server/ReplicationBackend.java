@@ -652,6 +652,7 @@ public class ReplicationBackend
             lookthroughCount++;
             writeChange(ri.getChange(), ldifWriter, searchOperation,
                 rsd.getBaseDn(), exportConfig != null);
+            ri.next();
           }
         }
         finally

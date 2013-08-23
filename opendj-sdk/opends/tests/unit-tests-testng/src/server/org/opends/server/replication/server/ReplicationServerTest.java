@@ -27,13 +27,6 @@
  */
 package org.opends.server.replication.server;
 
-import static org.opends.server.TestCaseUtils.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.replication.protocol.OperationContext.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
-import static org.testng.Assert.*;
-
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.net.InetAddress;
@@ -48,10 +41,8 @@ import org.opends.server.backends.task.TaskState;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyDNOperationBasis;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPControl;
-import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.common.ChangeNumberGenerator;
@@ -70,6 +61,17 @@ import org.opends.server.workflowelement.localbackend.LocalBackendModifyDNOperat
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
+
+import static java.util.Collections.*;
+
+import static org.opends.server.TestCaseUtils.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.replication.protocol.OperationContext.*;
+import static org.opends.server.types.ResultCode.*;
+import static org.opends.server.types.SearchScope.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
+import static org.testng.Assert.*;
 
 /**
  * Tests for the replicationServer code.
@@ -292,24 +294,18 @@ public class ReplicationServerTest extends ReplicationTestCase
     }
     finally
     {
-      if (server1 != null)
-        server1.stop();
-      if (server2 != null)
-        server2.stop();
+      stop(server1, server2);
     }
   }
 
   private void assertDeleteMsgBodyEquals(DeleteMsg msg, ReplicationMsg msg2)
   {
-    if (msg2 instanceof DeleteMsg)
-    {
-      DeleteMsg del = (DeleteMsg) msg2;
-      assertEquals(del.toString(), msg.toString(),
-          "ReplicationServer basic : incorrect message body received.");
-    }
-    else
-      fail("ReplicationServer basic : incorrect message type received: " +
-        msg2.getClass().toString() + ": content: " + msg2.toString());
+    assertTrue(msg2 instanceof DeleteMsg,
+        "ReplicationServer basic : incorrect message type received: "
+            + msg2.getClass() + ": content: " + msg2);
+    DeleteMsg del = (DeleteMsg) msg2;
+    assertEquals(del.toString(), msg.toString(),
+        "ReplicationServer basic : incorrect message body received.");
   }
 
   /**
@@ -336,8 +332,7 @@ public class ReplicationServerTest extends ReplicationTestCase
     }
     finally
     {
-      if (broker != null)
-        broker.stop();
+      stop(broker);
     }
   }
 
@@ -366,8 +361,7 @@ public class ReplicationServerTest extends ReplicationTestCase
     }
     finally
     {
-      if (broker != null)
-        broker.stop();
+      stop(broker);
     }
   }
 
@@ -577,23 +571,9 @@ public class ReplicationServerTest extends ReplicationTestCase
       {
         reader.join(10000);
       }
-      if (server != null)
-      {
-        server.stop();
-      }
-      for (BrokerReader c : client)
-      {
-        if (c != null)
-        {
-          c.join(10000);
-          c.interrupt();
-        }
-      }
-      for (ReplicationBroker broker : clientBroker)
-      {
-        if (broker != null)
-          broker.stop();
-      }
+      stop(server);
+      join(client);
+      stop(clientBroker);
 
       assertNull(reader.errDetails, reader.exc + " " + reader.errDetails);
     }
@@ -658,31 +638,11 @@ public class ReplicationServerTest extends ReplicationTestCase
     finally
     {
       debugInfo("multipleWriterMultipleReader wait producers end");
-      for (BrokerWriter p : producer)
-      {
-        if (p != null)
-        {
-          p.join(10000);
-          // kill the thread in case it is not yet stopped.
-          p.interrupt();
-        }
-      }
+      join(producer);
       debugInfo("multipleWriterMultipleReader producers ended, now wait readers end");
-      for (BrokerReader r : reader)
-      {
-        if (r != null)
-        {
-          r.join(10000);
-          // kill the thread in case it is not yet stopped.
-          r.interrupt();
-        }
-      }
+      join(reader);
       debugInfo("multipleWriterMultipleReader reader's ended, now stop brokers");
-      for (ReplicationBroker b : broker)
-      {
-        if (b != null)
-          b.stop();
-      }
+      stop(broker);
       debugInfo("multipleWriterMultipleReader brokers stopped");
 
       for (BrokerReader r : reader)
@@ -694,6 +654,18 @@ public class ReplicationServerTest extends ReplicationTestCase
     debugInfo("Ending multipleWriterMultipleReader");
   }
 
+  private void join(Thread[] threads) throws InterruptedException
+  {
+    for (Thread t : threads)
+    {
+      if (t != null)
+      {
+        t.join(10000);
+        // kill the thread in case it is not yet stopped.
+        t.interrupt();
+      }
+    }
+  }
 
   /**
    * Chaining tests of the replication Server code with 2 replication servers involved
@@ -898,12 +870,8 @@ public class ReplicationServerTest extends ReplicationTestCase
       }
       finally
       {
-        removeRsAndChangeLog(changelogs[0]);
-        removeRsAndChangeLog(changelogs[1]);
-        if (broker1 != null)
-          broker1.stop();
-        if (broker2 != null)
-          broker2.stop();
+        removeRsAndChangeLog(changelogs);
+        stop(broker1, broker2);
       }
     }
   }
@@ -1231,10 +1199,7 @@ public class ReplicationServerTest extends ReplicationTestCase
           aFile.delete();
         }
       } finally {
-      if (server1 != null)
-        server1.stop();
-      if (server2 != null)
-        server2.stop();
+      stop(server1, server2);
       }
 
       debugInfo("Ending export");
@@ -1395,16 +1360,9 @@ public class ReplicationServerTest extends ReplicationTestCase
      debugInfo("Starting searchBackend");
 
      ReplicationBroker server1 = null;
-       try
-       {
-
-       // General search
-       InternalSearchOperation op2 = connection.processSearch(
-           ByteString.valueOf("cn=monitor"),
-           SearchScope.WHOLE_SUBTREE,
-           LDAPFilter.decode("(objectclass=*)"));
-       assertEquals(op2.getResultCode(), ResultCode.SUCCESS,
-           op2.getErrorMessage().toString());
+    try
+    {
+      assertSearchResult("cn=monitor", "(objectclass=*)", SUCCESS, 33);
 
        replicationServer.clearDb();
 
@@ -1437,31 +1395,21 @@ public class ReplicationServerTest extends ReplicationTestCase
        assertTrue(b.entryExists(DN.decode("dc=replicationChanges")));
        SearchFilter filter=SearchFilter.createFilterFromString("(objectclass=*)");
        assertTrue(b.isIndexed(filter));
-       InternalClientConnection conn =
-       InternalClientConnection.getRootConnection();
-       LinkedList<Control> requestControls = new LinkedList<Control>();
+
+       List<Control> requestControls = new LinkedList<Control>();
        requestControls.add(new LDAPControl(OID_INTERNAL_GROUP_MEMBERSHIP_UPDATE,
                                       false));
        DN baseDN=DN.decode("dc=replicationChanges");
        //Test the group membership control causes search to be skipped.
        InternalSearchOperation internalSearch =
-               new InternalSearchOperation(
-                   conn, InternalClientConnection.nextOperationID(),
-                   InternalClientConnection.nextMessageID(), requestControls,
-                   baseDN,
-                   SearchScope.WHOLE_SUBTREE,
-                   DereferencePolicy.NEVER_DEREF_ALIASES,
-                   0, 0, false, filter, null, null);
-       internalSearch.run();
+          connection.processSearch(baseDN, WHOLE_SUBTREE,
+              DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false, filter, null,
+              requestControls, null);
        assertEquals(internalSearch.getResultCode(), ResultCode.SUCCESS);
        assertTrue(internalSearch.getSearchEntries().isEmpty());
 
        // General search
-       InternalSearchOperation op = connection.processSearch(
-           ByteString.valueOf("dc=oops"),
-           SearchScope.WHOLE_SUBTREE,
-           LDAPFilter.decode("(changetype=*)"));
-       assertEquals(op.getResultCode(), ResultCode.NO_SUCH_OBJECT);
+      assertSearchResult("dc=oops", "(changetype=*)", NO_SUCH_OBJECT, 0);
 
        // TODO:  testReplicationBackendACIs() is disabled because it
        // is currently failing when run in the nightly target.
@@ -1472,13 +1420,11 @@ public class ReplicationServerTest extends ReplicationTestCase
        // testReplicationBackendACIs();
 
        // General search
-       op = connection.processSearch(
-           ByteString.valueOf("dc=replicationChanges"),
-           SearchScope.WHOLE_SUBTREE,
-           LDAPFilter.decode("(changetype=*)"));
+      InternalSearchOperation op =
+          assertSearchResult("dc=replicationChanges", "(changetype=*)", SUCCESS, 5);
 
        debugInfo("Search result");
-       LinkedList<SearchResultEntry> entries = op.getSearchEntries();
+       List<SearchResultEntry> entries = op.getSearchEntries();
        if (entries != null)
        {
          for (SearchResultEntry entry : entries)
@@ -1489,45 +1435,17 @@ public class ReplicationServerTest extends ReplicationTestCase
        }
        debugInfo("\n" + stream.toString());
 
-       assertEquals(op.getResultCode(), ResultCode.SUCCESS);
-       assertEquals(op.getSearchEntries().size(), 5);
 
        debugInfo("Query / filter based on changetype");
-       op = connection.processSearch(
-           ByteString.valueOf("dc=replicationChanges"),
-           SearchScope.WHOLE_SUBTREE,
-           LDAPFilter.decode("(changetype=add)"));
-       assertEquals(op.getResultCode(), ResultCode.SUCCESS);
-       assertEquals(op.getSearchEntries().size(), 2);
 
-       op = connection.processSearch(
-           ByteString.valueOf("dc=replicationChanges"),
-           SearchScope.WHOLE_SUBTREE,
-           LDAPFilter.decode("(changetype=modify)"));
-       assertEquals(op.getResultCode(), ResultCode.SUCCESS);
-       assertEquals(op.getSearchEntries().size(), 1);
-
-       op = connection.processSearch(
-           ByteString.valueOf("dc=replicationChanges"),
-           SearchScope.WHOLE_SUBTREE,
-           LDAPFilter.decode("(changetype=moddn)"));
-       assertEquals(op.getResultCode(), ResultCode.SUCCESS);
-       assertEquals(op.getSearchEntries().size(), 1);
-
-       op = connection.processSearch(
-           ByteString.valueOf("dc=replicationChanges"),
-           SearchScope.WHOLE_SUBTREE,
-           LDAPFilter.decode("(changetype=delete)"));
-       assertEquals(op.getResultCode(), ResultCode.SUCCESS);
-       assertEquals(op.getSearchEntries().size(), 1);
+      assertSearchResult("dc=replicationChanges", "(changetype=add)", SUCCESS, 2);
+      assertSearchResult("dc=replicationChanges", "(changetype=modify)", SUCCESS, 1);
+      assertSearchResult("dc=replicationChanges", "(changetype=moddn)", SUCCESS, 1);
+      assertSearchResult("dc=replicationChanges", "(changetype=delete)", SUCCESS, 1);
 
        debugInfo("Query / filter based on objectclass");
-       op = connection.processSearch(
-           ByteString.valueOf("dc=replicationChanges"),
-           SearchScope.WHOLE_SUBTREE,
-           LDAPFilter.decode("(objectclass=person)"));
-       assertEquals(op.getResultCode(), ResultCode.SUCCESS);
-       assertEquals(op.getSearchEntries().size(), 1);
+
+      assertSearchResult("dc=replicationChanges", "(objectclass=person)", SUCCESS, 1);
 
        /*
         * It would be nice to be have the abilities to search for
@@ -1547,15 +1465,9 @@ public class ReplicationServerTest extends ReplicationTestCase
 
        debugInfo("Query / 1 attrib");
 
-       LinkedHashSet<String> attrs = new LinkedHashSet<String>(1);
-       attrs.add("newrdn");
-       SearchFilter ALLMATCH;
-       ALLMATCH = SearchFilter.createFilterFromString("(changetype=moddn)");
-       op =
-         connection.processSearch(DN.decode("dc=replicationChanges"),
-             SearchScope.WHOLE_SUBTREE,
-             DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false, ALLMATCH,
-             attrs);
+      op = connection.processSearch("dc=replicationChanges",
+             WHOLE_SUBTREE, DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
+              "(changetype=moddn)", singleton("newrdn"));
        assertEquals(op.getResultCode(), ResultCode.SUCCESS);
        assertEquals(op.getSearchEntries().size(), 1);
        entries = op.getSearchEntries();
@@ -1569,24 +1481,32 @@ public class ReplicationServerTest extends ReplicationTestCase
        }
 
        debugInfo("Query / All attribs");
-       LinkedHashSet<String> attrs2 = new LinkedHashSet<String>(1);
-       attrs.add("*");
-       ALLMATCH = SearchFilter.createFilterFromString("(changetype=*)");
-       op =
-         connection.processSearch(DN.decode("dc=replicationChanges"),
-             SearchScope.WHOLE_SUBTREE,
-             DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false, ALLMATCH,
-             attrs2);
+
+      op = connection.processSearch("dc=replicationChanges",
+             WHOLE_SUBTREE, DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
+              "(changetype=*)", singleton("*"));
        assertEquals(op.getResultCode(), ResultCode.SUCCESS);
        assertEquals(op.getSearchEntries().size(), 5);
 
        debugInfo("Successfully ending searchBackend");
-
      } finally {
-         if (server1 != null)
-           server1.stop();
+      stop(server1);
      }
    }
+
+  private InternalSearchOperation assertSearchResult(String baseDN,
+      String filterString, ResultCode rc, int nbEntriesReturned)
+      throws Exception
+  {
+    InternalSearchOperation op =
+        connection.processSearch(baseDN, WHOLE_SUBTREE, filterString);
+    assertEquals(op.getResultCode(), rc, op.getErrorMessage().toString());
+    if (SUCCESS.equals(rc))
+    {
+      assertEquals(op.getSearchEntries().size(), nbEntriesReturned);
+    }
+    return op;
+  }
 
    private void testReplicationBackendACIs()
    {
@@ -1606,8 +1526,7 @@ public class ReplicationServerTest extends ReplicationTestCase
 
      oStream.reset();
      eStream.reset();
-     int retVal =
-       LDAPSearch.mainSearch(args, false, oStream, eStream);
+    int retVal = LDAPSearch.mainSearch(args, false, oStream, eStream);
      String entries = oStream.toString();
 
      debugInfo("Entries:" + entries);
@@ -1629,8 +1548,7 @@ public class ReplicationServerTest extends ReplicationTestCase
 
      oStream.reset();
      eStream.reset();
-     retVal =
-       LDAPSearch.mainSearch(args3, false, oStream, eStream);
+    retVal = LDAPSearch.mainSearch(args3, false, oStream, eStream);
      entries = oStream.toString();
 
      debugInfo("Entries:" + entries);
@@ -1657,8 +1575,7 @@ public class ReplicationServerTest extends ReplicationTestCase
            "-f", path
        };
 
-       retVal =
-         LDAPModify.mainModify(args4, false, oStream, eStream);
+      retVal = LDAPModify.mainModify(args4, false, oStream, eStream);
        assertEquals(retVal, 53, "Returned error: " + eStream);
      } catch(Exception e) {}
    }
@@ -1796,8 +1713,7 @@ public class ReplicationServerTest extends ReplicationTestCase
            }
            else
            {
-             fail("ReplicationServer transmission failed: no expected message" +
-               " class: " + msg2);
+          fail("ReplicationServer transmission failed: did not expect message of class: " + msg2);
              break;
            }
          }
@@ -1850,22 +1766,30 @@ public class ReplicationServerTest extends ReplicationTestCase
        }
        finally
        {
-      removeRsAndChangeLog(changelogs[0]);
-      removeRsAndChangeLog(changelogs[1]);
-         if (broker1 != null)
-           broker1.stop();
-         if (broker2 != null)
-           broker2.stop();
+      removeRsAndChangeLog(changelogs);
+      stop(broker1, broker2);
        }
   }
 
-  private void removeRsAndChangeLog(ReplicationServer replicationServer)
+  private void stop(ReplicationBroker... brokers)
   {
-    if (replicationServer != null)
+    for (ReplicationBroker broker : brokers)
     {
-      replicationServer.remove();
-      recursiveDelete(new File(DirectoryServer.getInstanceRoot(),
-          replicationServer.getDbDirName()));
+      if (broker != null)
+        broker.stop();
+    }
+  }
+
+  private void removeRsAndChangeLog(ReplicationServer... replicationServers)
+  {
+    for (ReplicationServer rs : replicationServers)
+    {
+      if (rs != null)
+      {
+        rs.remove();
+        recursiveDelete(new File(DirectoryServer.getInstanceRoot(), rs
+            .getDbDirName()));
+      }
     }
   }
 
