@@ -77,8 +77,16 @@ public class DraftCNDbHandler implements ChangelogDB
   private static int NO_KEY = 0;
 
   private DraftCNDB db;
-  private int firstkey = NO_KEY;
-  private int lastkey = NO_KEY;
+  /**
+   * FIXME Is this field that useful? {@link #getFirstDraftCN()} does not even
+   * use it!
+   */
+  private int firstDraftCN = NO_KEY;
+  /**
+   * FIXME Is this field that useful? {@link #getLastDraftCN()} does not even
+   * use it! It is not even updated.
+   */
+  private int lastDraftCN = NO_KEY;
   private DbMonitorProvider dbMonitor = new DbMonitorProvider();
   private boolean shutdown = false;
   private boolean trimDone = false;
@@ -117,8 +125,8 @@ public class DraftCNDbHandler implements ChangelogDB
 
     // DB initialization
     db = new DraftCNDB(dbenv);
-    firstkey = db.readFirstDraftCN();
-    lastkey = db.readLastDraftCN();
+    firstDraftCN = db.readFirstDraftCN();
+    lastDraftCN = db.readLastDraftCN();
 
     // Trimming thread
     thread = new DirectoryThread(this, "Replication DraftCN db");
@@ -147,14 +155,14 @@ public class DraftCNDbHandler implements ChangelogDB
 
   /** {@inheritDoc} */
   @Override
-  public int getFirstKey()
+  public int getFirstDraftCN()
   {
     return db.readFirstDraftCN();
   }
 
   /** {@inheritDoc} */
   @Override
-  public int getLastKey()
+  public int getLastDraftCN()
   {
     return db.readLastDraftCN();
   }
@@ -309,11 +317,18 @@ public class DraftCNDbHandler implements ChangelogDB
       return;
     }
 
+    // FIXME is this correct?
+    // This code is not setting the excludedBaseDNs of the RS which means it
+    // could take any value set by one of the other methods!
+    // In addition, this code is not thread safe, but I suspect it is used in a
+    // multi-threaded way.
+    // The call to RS.getEligibleCN() is not reliable in any way and could
+    // return very different values even if the DB content did not change!!
     ChangeNumber crossDomainEligibleCN = replicationServer.getEligibleCN();
 
     for (int i = 0; i < 100; i++)
     {
-      DraftCNDBCursor cursor = db.openDeleteCursor();
+      final DraftCNDBCursor cursor = db.openDeleteCursor();
       try
       {
         for (int j = 0; j < 50; j++)
@@ -326,16 +341,15 @@ public class DraftCNDbHandler implements ChangelogDB
           }
 
           // From the draftCNDb change record, get the domain and changeNumber
-          ChangeNumber cn = cursor.currentChangeNumber();
-          String baseDN = cursor.currentBaseDN();
-          if ((baseDNToClear != null)
-              && (baseDNToClear.equalsIgnoreCase(baseDN)))
+          final ChangeNumber cn = cursor.currentChangeNumber();
+          final String baseDN = cursor.currentBaseDN();
+          if (baseDNToClear != null && baseDNToClear.equalsIgnoreCase(baseDN))
           {
             cursor.delete();
             continue;
           }
 
-          ReplicationServerDomain domain = replicationServer
+          final ReplicationServerDomain domain = replicationServer
               .getReplicationServerDomain(baseDN, false);
           if (domain == null)
           {
@@ -346,14 +360,14 @@ public class DraftCNDbHandler implements ChangelogDB
             continue;
           }
 
-          ServerState startState = domain.getStartState();
+          final ServerState startState = domain.getStartState();
 
           // We don't use the returned endState but it's updating CN as reading
           domain.getEligibleState(crossDomainEligibleCN);
 
-          ChangeNumber fcn = startState.getChangeNumber(cn.getServerId());
+          final ChangeNumber fcn = startState.getChangeNumber(cn.getServerId());
 
-          int currentKey = cursor.currentKey();
+          final int currentDraftCN = cursor.currentKey();
 
           if (cn.older(fcn))
           {
@@ -391,7 +405,7 @@ public class DraftCNDbHandler implements ChangelogDB
             continue;
           }
 
-          firstkey = currentKey;
+          firstDraftCN = currentDraftCN;
           cursor.close();
           return;
         }
@@ -465,7 +479,7 @@ public class DraftCNDbHandler implements ChangelogDB
   @Override
   public String toString()
   {
-    return "draftCNdb:" + " " + firstkey + " " + lastkey;
+    return "draftCNdb:" + " " + firstDraftCN + " " + lastDraftCN;
   }
 
   /**
@@ -482,8 +496,8 @@ public class DraftCNDbHandler implements ChangelogDB
   public void clear() throws ChangelogException
   {
     db.clear();
-    firstkey = db.readFirstDraftCN();
-    lastkey = db.readLastDraftCN();
+    firstDraftCN = db.readFirstDraftCN();
+    lastDraftCN = db.readLastDraftCN();
   }
 
   private ReentrantLock lock = new ReentrantLock();
