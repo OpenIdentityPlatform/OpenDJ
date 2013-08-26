@@ -209,6 +209,9 @@ fi
 # Changelog
 # =========================
 %changelog
+* Thu Aug 22 2013 ForgeRock
+- Modified init.d script.
+
 * Tue Aug 6 2013 ForgeRock
 - Added init.d service script.
 
@@ -221,6 +224,3 @@ fi
 - Added '%doc' section.
 - Added '%changelog' at the end of the file.
 - Added license to header's files.
-
-* Thu Aug 22 2013 ForgeRock
-- Modified init.d script.
