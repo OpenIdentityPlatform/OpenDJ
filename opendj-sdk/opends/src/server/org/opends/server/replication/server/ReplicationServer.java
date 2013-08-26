@@ -89,8 +89,8 @@ public final class ReplicationServer
   private Thread listenThread;
   private Thread connectThread;
 
-  /** The list of replication servers configured by the administrator. */
-  private Collection<String> replicationServers;
+  /** The list of replication server URLs configured by the administrator. */
+  private Collection<String> replicationServerUrls;
 
   /**
    * This table is used to store the list of dn for which we are currently
@@ -219,9 +219,9 @@ public final class ReplicationServer
   {
     replicationPort = configuration.getReplicationPort();
     serverId = configuration.getReplicationServerId();
-    replicationServers = configuration.getReplicationServer();
-    if (replicationServers == null)
-      replicationServers = new ArrayList<String>();
+    replicationServerUrls = configuration.getReplicationServer();
+    if (replicationServerUrls == null)
+      replicationServerUrls = new ArrayList<String>();
     queueSize = configuration.getQueueSize();
     purgeDelay = configuration.getReplicationPurgeDelay();
     dbDirname = configuration.getReplicationDBDirectory();
@@ -259,8 +259,8 @@ public final class ReplicationServer
     configuration.addChangeListener(this);
     try
     {
-      backendConfigEntryDN = DN.decode(
-      "ds-cfg-backend-id=" + backendId + ",cn=Backends,cn=config");
+      backendConfigEntryDN =
+         DN.decode("ds-cfg-backend-id=" + backendId + ",cn=Backends,cn=config");
     } catch (Exception e) { /* do nothing */ }
 
     // Creates the backend associated to this ReplicationServer
@@ -404,14 +404,14 @@ public final class ReplicationServer
 
           /*
            * check that all replication server in the config are in the
-           * connected Set. If not create the connection
+           * connected Set. If not, create the connection
            */
-          for (String aServerURL : replicationServers)
+          for (String rsURL : replicationServerUrls)
           {
-            final int separator = aServerURL.lastIndexOf(':');
-            final String portString = aServerURL.substring(separator + 1);
-            final int port = Integer.parseInt(portString);
-            final String hostname = aServerURL.substring(0, separator);
+            final int separator = rsURL.lastIndexOf(':');
+            final String hostname = rsURL.substring(0, separator);
+            final int port = Integer.parseInt(rsURL.substring(separator + 1));
+
             final InetAddress inetAddress;
             try
             {
@@ -436,13 +436,13 @@ public final class ReplicationServer
             }
 
             // Don't connect to a server if it is already connected.
-            final String normalizedServerURL = normalizeServerURL(aServerURL);
+            final String normalizedServerURL = normalizeServerURL(rsURL);
             if (connectedRSUrls.contains(normalizedServerURL))
             {
               continue;
             }
 
-            connect(aServerURL, domain.getBaseDn());
+            connect(rsURL, domain.getBaseDn());
           }
         }
 
@@ -538,10 +538,7 @@ public final class ReplicationServer
       listenSocket = new ServerSocket();
       listenSocket.bind(new InetSocketAddress(replicationPort));
 
-      /*
-       * creates working threads
-       * We must first connect, then start to listen.
-       */
+      // creates working threads: we must first connect, then start to listen.
       if (debugEnabled())
         TRACER.debugInfo("RS " +getMonitorInstanceName()+
             " creates connect thread");
@@ -559,7 +556,7 @@ public final class ReplicationServer
       // can know me and really enableECL.
       if (WorkflowImpl.getWorkflow(externalChangeLogWorkflowID) != null)
       {
-        // Already done . Nothing to do
+        // Already done. Nothing to do
         return;
       }
       eclwe = new ECLWorkflowElement(this);
@@ -567,7 +564,6 @@ public final class ReplicationServer
       if (debugEnabled())
         TRACER.debugInfo("RS " +getMonitorInstanceName()+
             " successfully initialized");
-
     } catch (ChangelogException e)
     {
       Message message = ERR_COULD_NOT_READ_DB.get(
@@ -927,7 +923,7 @@ public final class ReplicationServer
 
         try
         {
-          lastGeneratedDraftCN = changelogDB.getLastKey();
+          lastGeneratedDraftCN = changelogDB.getLastDraftCN();
         }
         catch (Exception ignored)
         {
@@ -995,9 +991,9 @@ public final class ReplicationServer
 
     disconnectRemovedReplicationServers(configuration.getReplicationServer());
 
-    replicationServers = configuration.getReplicationServer();
-    if (replicationServers == null)
-      replicationServers = new ArrayList<String>();
+    replicationServerUrls = configuration.getReplicationServer();
+    if (replicationServerUrls == null)
+      replicationServerUrls = new ArrayList<String>();
 
     queueSize = configuration.getQueueSize();
     long newPurgeDelay = configuration.getReplicationPurgeDelay();
@@ -1088,8 +1084,8 @@ public final class ReplicationServer
       broadcastConfigChange();
     }
 
-    if ((configuration.getReplicationDBDirectory() != null) &&
-        (!dbDirname.equals(configuration.getReplicationDBDirectory())))
+    final String newDir = configuration.getReplicationDBDirectory();
+    if (newDir != null && !dbDirname.equals(newDir))
     {
       return new ConfigChangeResult(ResultCode.SUCCESS, true);
     }
@@ -1109,25 +1105,24 @@ public final class ReplicationServer
      * First try the set of configured replication servers to see if one of them
      * is this replication server (this should always be the case).
      */
-    for (String rs : replicationServers)
+    for (String rsUrl : replicationServerUrls)
     {
       /*
        * No need validate the string format because the admin framework has
        * already done it.
        */
-      final int index = rs.lastIndexOf(":");
-      final String hostname = rs.substring(0, index);
-      final int port = Integer.parseInt(rs.substring(index + 1));
+      final int index = rsUrl.lastIndexOf(":");
+      final String hostname = rsUrl.substring(0, index);
+      final int port = Integer.parseInt(rsUrl.substring(index + 1));
+
       if (port == replicationPort && isLocalAddress(hostname))
       {
-        serverURL = rs;
+        serverURL = rsUrl;
         return;
       }
     }
 
-    /*
-     * Fall-back to the machine hostname.
-     */
+    // Fall-back to the machine hostname.
     serverURL = InetAddress.getLocalHost().getHostName() + ":"
         + replicationPort;
   }
@@ -1249,8 +1244,7 @@ public final class ReplicationServer
   public void remove()
   {
     if (debugEnabled())
-      TRACER.debugInfo("RS " +getMonitorInstanceName()+
-          " starts removing");
+      TRACER.debugInfo("RS " + getMonitorInstanceName() + " starts removing");
 
     shutdown();
     removeBackend();
@@ -1471,23 +1465,20 @@ public final class ReplicationServer
   {
     Collection<String> serversToDisconnect = new ArrayList<String>();
 
-    for (String server: replicationServers)
+    for (String rsUrl : replicationServerUrls)
     {
-      if (!newReplServers.contains(server))
+      if (!newReplServers.contains(rsUrl))
       {
         try
         {
-          // translate the server name into IP address
-          // and keep the port number
-          String[] host = server.split(":");
+          // translate the server name into IP address and keep the port number
+          String[] host = rsUrl.split(":");
           serversToDisconnect.add(
-              (InetAddress.getByName(host[0])).getHostAddress()
-              + ":" + host[1]);
+              InetAddress.getByName(host[0]).getHostAddress() + ":" + host[1]);
         }
         catch (IOException e)
         {
-          Message message = ERR_COULD_NOT_SOLVE_HOSTNAME.get(server);
-          logError(message);
+          logError(ERR_COULD_NOT_SOLVE_HOSTNAME.get(rsUrl));
         }
       }
     }
@@ -1686,7 +1677,7 @@ public final class ReplicationServer
     {
       if (changelogDB != null)
       {
-        return changelogDB.getFirstKey();
+        return changelogDB.getFirstDraftCN();
       }
       return 0;
     }
@@ -1702,7 +1693,7 @@ public final class ReplicationServer
     {
       if (changelogDB != null)
       {
-        return changelogDB.getLastKey();
+        return changelogDB.getLastDraftCN();
       }
       return 0;
     }
@@ -1754,10 +1745,10 @@ public final class ReplicationServer
 
     int lastDraftCN;
     boolean dbEmpty = false;
-    long newestDate = 0L;
-    ChangelogDB changelogDB = getChangelogDB();
+    long newestDate = 0;
+    final ChangelogDB changelogDB = getChangelogDB();
 
-    int firstDraftCN = changelogDB.getFirstKey();
+    int firstDraftCN = changelogDB.getFirstDraftCN();
     Map<String,ServerState> domainsServerStateForLastSeqnum = null;
     ChangeNumber changeNumberForLastSeqnum = null;
     String domainForLastSeqnum = null;
@@ -1769,7 +1760,7 @@ public final class ReplicationServer
     }
     else
     {
-      lastDraftCN = changelogDB.getLastKey();
+      lastDraftCN = changelogDB.getLastDraftCN();
 
       // Get the generalized state associated with the current last DraftCN
       // and initializes from it the startStates table
@@ -1813,7 +1804,7 @@ public final class ReplicationServer
         //  (may be this domain was disabled when this record was returned).
         // In that case, are counted the changes from
         //  the date of the most recent change from this last draft record
-        if (newestDate == 0L)
+        if (newestDate == 0)
         {
           newestDate = changeNumberForLastSeqnum.getTime();
         }
@@ -1900,7 +1891,6 @@ public final class ReplicationServer
   }
 
 
-
   private String normalizeServerURL(final String url)
   {
     final int separator = url.lastIndexOf(':');
@@ -1909,16 +1899,12 @@ public final class ReplicationServer
     try
     {
       final InetAddress inetAddress = InetAddress.getByName(hostname);
-
       if (isLocalAddress(inetAddress))
       {
-        // It doesn't matter whether we use an IP or hostname here.
+        // It does not matter whether we use an IP or hostname here.
         return InetAddress.getLocalHost().getHostAddress() + ":" + portString;
       }
-      else
-      {
-        return inetAddress.getHostAddress() + ":" + portString;
-      }
+      return inetAddress.getHostAddress() + ":" + portString;
     }
     catch (UnknownHostException e)
     {

@@ -565,7 +565,7 @@ public final class ECLServerHandler extends ServerHandler
   private String findCookie(final int startDraftCN) throws ChangelogException,
       DirectoryException
   {
-    ChangelogDB changelogDB = replicationServer.getChangelogDB();
+    final ChangelogDB changelogDB = replicationServer.getChangelogDB();
 
     if (startDraftCN <= 1)
     {
@@ -580,9 +580,10 @@ public final class ECLServerHandler extends ServerHandler
         return null;
       }
 
-      final int firstKey = changelogDB.getFirstKey();
-      String crossDomainStartState = changelogDB.getPreviousCookie(firstKey);
-      changelogDBIter = changelogDB.generateIterator(firstKey);
+      final int firstDraftCN = changelogDB.getFirstDraftCN();
+      final String crossDomainStartState =
+          changelogDB.getPreviousCookie(firstDraftCN);
+      changelogDBIter = changelogDB.generateIterator(firstDraftCN);
       return crossDomainStartState;
     }
 
@@ -633,7 +634,7 @@ public final class ECLServerHandler extends ServerHandler
         return null;
       }
 
-      final int lastKey = changelogDB.getLastKey();
+      final int lastKey = changelogDB.getLastDraftCN();
       crossDomainStartState = changelogDB.getPreviousCookie(lastKey);
       changelogDBIter = changelogDB.generateIterator(lastKey);
       return crossDomainStartState;

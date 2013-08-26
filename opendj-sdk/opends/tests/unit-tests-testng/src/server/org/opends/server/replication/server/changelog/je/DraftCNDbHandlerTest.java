@@ -111,11 +111,11 @@ public class DraftCNDbHandlerTest extends ReplicationTestCase
       handler.add(sn3, value3, baseDN3, changeNumber3);
 
       // The ChangeNumber should not get purged
-      int firstkey = handler.getFirstKey();
-      assertEquals(firstkey, sn1);
-      assertEquals(handler.getLastKey(), sn3);
+      final int firstDraftCN = handler.getFirstDraftCN();
+      assertEquals(firstDraftCN, sn1);
+      assertEquals(handler.getLastDraftCN(), sn3);
 
-      DraftCNDBCursor dbc = handler.getReadCursor(firstkey);
+      DraftCNDBCursor dbc = handler.getReadCursor(firstDraftCN);
       try
       {
         assertEquals(dbc.currentChangeNumber(), changeNumber1);
@@ -149,8 +149,8 @@ public class DraftCNDbHandlerTest extends ReplicationTestCase
       {
         Thread.sleep(200);
       }
-      assertEquals(handler.getFirstKey(), 0);
-      assertEquals(handler.getLastKey(), 0);
+      assertEquals(handler.getFirstDraftCN(), 0);
+      assertEquals(handler.getLastDraftCN(), 0);
 
 
     } finally
@@ -239,8 +239,8 @@ public class DraftCNDbHandlerTest extends ReplicationTestCase
       Thread.sleep(500);
 
       // Checks
-      assertEquals(handler.getFirstKey(), sn1);
-      assertEquals(handler.getLastKey(), sn3);
+      assertEquals(handler.getFirstDraftCN(), sn1);
+      assertEquals(handler.getLastDraftCN(), sn3);
 
       assertEquals(handler.count(), 3, "Db count");
 
@@ -260,8 +260,8 @@ public class DraftCNDbHandlerTest extends ReplicationTestCase
       handler.clear();
 
       // Check the db is cleared.
-      assertEquals(handler.getFirstKey(), 0);
-      assertEquals(handler.getLastKey(), 0);
+      assertEquals(handler.getFirstDraftCN(), 0);
+      assertEquals(handler.getLastDraftCN(), 0);
       assertEquals(handler.count(), 0);
     } finally
     {

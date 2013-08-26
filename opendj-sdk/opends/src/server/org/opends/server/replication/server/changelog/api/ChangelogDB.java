@@ -70,14 +70,14 @@ public interface ChangelogDB extends Runnable
    *
    * @return Returns the first draftCN in the DB.
    */
-  int getFirstKey();
+  int getFirstDraftCN();
 
   /**
    * Get the lastChange.
    *
    * @return Returns the last draftCN in the DB
    */
-  int getLastKey();
+  int getLastDraftCN();
 
   /**
    * Add an update to the list of messages that must be saved to the db managed
