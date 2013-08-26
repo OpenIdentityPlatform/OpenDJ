@@ -27,9 +27,8 @@
  */
 package org.opends.server.replication.server.changelog.je;
 
-import static org.testng.Assert.*;
-
 import java.io.File;
+import java.io.IOException;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.server.replication.ReplicationTestCase;
@@ -37,11 +36,13 @@ import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.common.ChangeNumberGenerator;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
-import org.opends.server.replication.server.changelog.je.DraftCNDbHandler;
-import org.opends.server.replication.server.changelog.je.DraftCNDbIterator;
-import org.opends.server.replication.server.changelog.je.ReplicationDbEnv;
+import org.opends.server.replication.server.changelog.api.ChangelogException;
+import org.opends.server.replication.server.changelog.api.ChangelogDBIterator;
 import org.opends.server.replication.server.changelog.je.DraftCNDB.DraftCNDBCursor;
+import org.opends.server.util.StaticUtils;
 import org.testng.annotations.Test;
+
+import static org.testng.Assert.*;
 
 /**
  * Test the DraftCNDbHandler class with 2 kinds of cleaning of the db :
@@ -80,19 +81,8 @@ public class DraftCNDbHandlerTest extends ReplicationTestCase
         2, 0, 100, null);
       replicationServer = new ReplicationServer(conf);
 
-      // create or clean a directory for the DraftCNDbHandler
-      String buildRoot = System.getProperty(TestCaseUtils.PROPERTY_BUILD_ROOT);
-      String path = System.getProperty(TestCaseUtils.PROPERTY_BUILD_DIR,
-              buildRoot + File.separator + "build");
-      path = path + File.separator + "unit-tests" + File.separator + "DraftCNDbHandler";
-      testRoot = new File(path);
-      if (testRoot.exists())
-      {
-        TestCaseUtils.deleteDirectory(testRoot);
-      }
-      testRoot.mkdirs();
-
-      dbEnv = new ReplicationDbEnv(path, replicationServer);
+      testRoot = createCleanDir();
+      dbEnv = new ReplicationDbEnv(testRoot.getPath(), replicationServer);
 
       handler = new DraftCNDbHandler(replicationServer, dbEnv);
       handler.setPurgeDelay(0);
@@ -149,7 +139,7 @@ public class DraftCNDbHandlerTest extends ReplicationTestCase
       }
       finally
       {
-        handler.releaseReadCursor(dbc);
+        StaticUtils.close(dbc);
       }
 
       handler.setPurgeDelay(100);
@@ -170,14 +160,25 @@ public class DraftCNDbHandlerTest extends ReplicationTestCase
       if (dbEnv != null)
         dbEnv.shutdown();
       if (replicationServer != null)
-      replicationServer.remove();
-      if (testRoot != null)
-        TestCaseUtils.deleteDirectory(testRoot);
+        replicationServer.remove();
+      TestCaseUtils.deleteDirectory(testRoot);
     }
   }
 
+  private File createCleanDir() throws IOException
+  {
+    String buildRoot = System.getProperty(TestCaseUtils.PROPERTY_BUILD_ROOT);
+    String path = System.getProperty(TestCaseUtils.PROPERTY_BUILD_DIR, buildRoot
+            + File.separator + "build");
+    path = path + File.separator + "unit-tests" + File.separator + "DraftCNDbHandler";
+    final File testRoot = new File(path);
+    TestCaseUtils.deleteDirectory(testRoot);
+    testRoot.mkdirs();
+    return testRoot;
+  }
+
   /**
-   * This test makes basic operations of a DraftCNDb and explicitely call
+   * This test makes basic operations of a DraftCNDb and explicitly calls
    * the clear() method instead of waiting for the periodic trim to clear
    * it.
    * - create the db
@@ -205,25 +206,13 @@ public class DraftCNDbHandlerTest extends ReplicationTestCase
         2, 0, 100, null);
       replicationServer = new ReplicationServer(conf);
 
-      // create or clean a directory for the DraftCNDbHandler
-      String buildRoot = System.getProperty(TestCaseUtils.PROPERTY_BUILD_ROOT);
-      String path = System.getProperty(TestCaseUtils.PROPERTY_BUILD_DIR,
-              buildRoot + File.separator + "build");
-      path = path + File.separator + "unit-tests" + File.separator + "DraftCNDbHandler";
-      testRoot = new File(path);
-      if (testRoot.exists())
-      {
-        TestCaseUtils.deleteDirectory(testRoot);
-      }
-      testRoot.mkdirs();
-
-      dbEnv = new ReplicationDbEnv(path, replicationServer);
+      testRoot = createCleanDir();
+      dbEnv = new ReplicationDbEnv(testRoot.getAbsolutePath(), replicationServer);
 
       handler = new DraftCNDbHandler(replicationServer, dbEnv);
       handler.setPurgeDelay(0);
 
-      //
-      assertTrue(handler.count()==0);
+      assertTrue(handler.isEmpty());
 
       // Prepare data to be stored in the db
       int sn1 = 3;
@@ -255,57 +244,25 @@ public class DraftCNDbHandlerTest extends ReplicationTestCase
 
       assertEquals(handler.count(), 3, "Db count");
 
-      assertEquals(handler.getValue(sn1),value1);
-      assertEquals(handler.getValue(sn2),value2);
-      assertEquals(handler.getValue(sn3),value3);
+      assertEquals(handler.getPreviousCookie(sn1),value1);
+      assertEquals(handler.getPreviousCookie(sn2),value2);
+      assertEquals(handler.getPreviousCookie(sn3),value3);
 
-      DraftCNDbIterator it = handler.generateIterator(sn1);
-      try
-      {
-        assertEquals(it.getDraftCN(), sn1);
-        assertTrue(it.next());
-        assertEquals(it.getDraftCN(), sn2);
-        assertTrue(it.next());
-        assertEquals(it.getDraftCN(), sn3);
-        assertFalse(it.next());
-      }
-      finally
-      {
-        it.releaseCursor();
-      }
+      ChangelogDBIterator it = handler.generateIterator(sn1);
+      assertIteratorReadsInOrder(it, sn1, sn2, sn3);
 
       it = handler.generateIterator(sn2);
-      try
-      {
-        assertEquals(it.getDraftCN(), sn2);
-        assertTrue(it.next());
-        assertEquals(it.getDraftCN(), sn3);
-        assertFalse(it.next());
-      }
-      finally
-      {
-        it.releaseCursor();
-      }
+      assertIteratorReadsInOrder(it, sn2, sn3);
 
       it = handler.generateIterator(sn3);
-      try
-      {
-        assertEquals(it.getDraftCN(), sn3);
-        assertFalse(it.next());
-      }
-      finally
-      {
-        it.releaseCursor();
-      }
+      assertIteratorReadsInOrder(it, sn3);
 
-      // Clear ...
       handler.clear();
 
       // Check the db is cleared.
       assertEquals(handler.getFirstKey(), 0);
       assertEquals(handler.getLastKey(), 0);
       assertEquals(handler.count(), 0);
-
     } finally
     {
       if (handler != null)
@@ -314,8 +271,25 @@ public class DraftCNDbHandlerTest extends ReplicationTestCase
         dbEnv.shutdown();
       if (replicationServer != null)
         replicationServer.remove();
-      if (testRoot != null)
-        TestCaseUtils.deleteDirectory(testRoot);
+      TestCaseUtils.deleteDirectory(testRoot);
+    }
+  }
+
+  private void assertIteratorReadsInOrder(ChangelogDBIterator it, int... sns)
+      throws ChangelogException
+  {
+    try
+    {
+      for (int i = 0; i < sns.length; i++)
+      {
+        assertEquals(it.getDraftCN(), sns[i]);
+        final boolean isNotLast = i + 1 < sns.length;
+        assertEquals(it.next(), isNotLast);
+      }
+    }
+    finally
+    {
+      it.close();
     }
   }
 }

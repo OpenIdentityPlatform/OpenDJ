@@ -31,6 +31,7 @@ import org.opends.messages.Message;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
+import org.opends.server.replication.server.changelog.api.ChangelogDBIterator;
 import org.opends.server.replication.server.changelog.je.DraftCNDB
     .DraftCNDBCursor;
 import org.opends.server.types.DebugLogLevel;
@@ -41,7 +42,7 @@ import static org.opends.server.loggers.debug.DebugLogger.*;
  * This class allows to iterate through the changes received from a given
  * LDAP Server Identifier.
  */
-public class DraftCNDbIterator
+public class DraftCNDbIterator implements ChangelogDBIterator
 {
   private static final DebugTracer TRACER = getTracer();
   private DraftCNDBCursor draftCNDbCursor;
@@ -66,11 +67,8 @@ public class DraftCNDbIterator
     }
   }
 
-  /**
-   * Getter for the baseDN field.
-   *
-   * @return The service ID.
-   */
+  /** {@inheritDoc} */
+  @Override
   public String getBaseDN()
   {
     try
@@ -84,10 +82,8 @@ public class DraftCNDbIterator
     }
   }
 
-  /**
-   * Getter for the replication change number field.
-   * @return The replication change number field.
-   */
+  /** {@inheritDoc} */
+  @Override
   public ChangeNumber getChangeNumber()
   {
     try
@@ -101,10 +97,8 @@ public class DraftCNDbIterator
     }
   }
 
-  /**
-   * Getter for the draftCN field.
-   * @return The draft CN field.
-   */
+  /** {@inheritDoc} */
+  @Override
   public int getDraftCN()
   {
     ReplicationDraftCNKey sk = (ReplicationDraftCNKey) draftCNDbCursor.getKey();
@@ -112,11 +106,8 @@ public class DraftCNDbIterator
     return currentSeqnum;
   }
 
-  /**
-   * Skip to the next record of the database.
-   * @return true if has next, false elsewhere
-   * @throws ChangelogException When database exception raised.
-   */
+  /** {@inheritDoc} */
+  @Override
   public boolean next() throws ChangelogException
   {
     if (draftCNDbCursor != null)
@@ -126,12 +117,9 @@ public class DraftCNDbIterator
     return false;
   }
 
-  /**
-   * Release the resources and locks used by this Iterator.
-   * This method must be called when the iterator is no longer used.
-   * Failure to do it could cause DB deadlock.
-   */
-  public void releaseCursor()
+  /** {@inheritDoc} */
+  @Override
+  public void close()
   {
     synchronized (this)
     {
@@ -151,6 +139,6 @@ public class DraftCNDbIterator
   @Override
   protected void finalize()
   {
-    releaseCursor();
+    close();
   }
 }

@@ -45,8 +45,9 @@ import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.server.ReplicationServerDomain;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
-import org.opends.server.replication.server.changelog.je.DraftCNDB
-    .DraftCNDBCursor;
+import org.opends.server.replication.server.changelog.api.ChangelogDB;
+import org.opends.server.replication.server.changelog.api.ChangelogDBIterator;
+import org.opends.server.replication.server.changelog.je.DraftCNDB.*;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.InitializationException;
@@ -61,12 +62,13 @@ import static org.opends.server.util.StaticUtils.*;
  * server in the topology.
  * It is responsible for efficiently saving the updates that is received from
  * each master server into stable storage.
- * This class is also able to generate a ReplicationIterator that can be
+ * This class is also able to generate a ChangelogDBIterator that can be
  * used to read all changes from a given ChangeNumber.
- *
- * This class publish some monitoring information below cn=monitor.
+ * <p>
+ * This class publishes some monitoring information below <code>
+ * cn=monitor</code>.
  */
-public class DraftCNDbHandler implements Runnable
+public class DraftCNDbHandler implements ChangelogDB
 {
   /**
    * The tracer object for the debug logger.
@@ -114,7 +116,7 @@ public class DraftCNDbHandler implements Runnable
     this.trimAge = replicationServer.getTrimAge();
 
     // DB initialization
-    db = new DraftCNDB(replicationServer, dbenv);
+    db = new DraftCNDB(dbenv);
     firstkey = db.readFirstDraftCN();
     lastkey = db.readLastDraftCN();
 
@@ -127,43 +129,31 @@ public class DraftCNDbHandler implements Runnable
     DirectoryServer.registerMonitorProvider(dbMonitor);
   }
 
-  /**
-   * Add an update to the list of messages that must be saved to the db
-   * managed by this db handler.
-   * This method is blocking if the size of the list of message is larger
-   * than its maximum.
-   * @param key The key for this record in the db.
-   * @param value The associated value.
-   * @param baseDN The associated baseDN.
-   * @param cn The associated replication change number.
-   */
-  public synchronized void add(int key, String value, String baseDN,
+  /** {@inheritDoc} */
+  @Override
+  public synchronized void add(int draftCN, String value, String baseDN,
       ChangeNumber cn)
   {
-    db.addEntry(key, value, baseDN, cn);
+    db.addEntry(draftCN, value, baseDN, cn);
 
     if (debugEnabled())
       TRACER.debugInfo(
           "In DraftCNDbhandler.add, added: "
-        + " key=" + key
+        + " key=" + draftCN
         + " value=" + value
         + " baseDN=" + baseDN
         + " cn=" + cn);
   }
 
-  /**
-   * Get the firstChange.
-   * @return Returns the firstChange.
-   */
+  /** {@inheritDoc} */
+  @Override
   public int getFirstKey()
   {
     return db.readFirstDraftCN();
   }
 
-  /**
-   * Get the lastChange.
-   * @return Returns the lastChange.
-   */
+  /** {@inheritDoc} */
+  @Override
   public int getLastKey()
   {
     return db.readLastDraftCN();
@@ -179,7 +169,7 @@ public class DraftCNDbHandler implements Runnable
   }
 
   /**
-   * Returns whether this database is empty.
+   * {@inheritDoc}
    * <p>
    * FIXME Find a way to implement this method in a more efficient manner.
    * {@link com.sleepycat.je.Database#count()} javadoc mentions:
@@ -193,64 +183,40 @@ public class DraftCNDbHandler implements Runnable
    * </li>
    * <li>call <code>db.readFirstDraftCN() != 0</code></li>
    * </ul>
-   *
-   * @return <code>true</code> if this database is empty, <code>false</code>
-   *         otherwise
    */
+  @Override
   public boolean isEmpty()
   {
     return count() == 0;
   }
 
   /**
-   * Get a read cursor on the database from a provided key.
-   * The cursor MUST be released after use.
-   * @param key The provided key.
+   * Get a read cursor on the database from a provided key. The cursor MUST be
+   * closed after use.
+   * <p>
+   * This method is only used by unit tests.
+   *
+   * @param startingDraftCN
+   *          The draft change number from where to start.
    * @return the new cursor.
+   * @throws ChangelogException
+   *           if a database problem occurs.
    */
-  public DraftCNDBCursor getReadCursor(int key)
+  DraftCNDBCursor getReadCursor(int startingDraftCN) throws ChangelogException
   {
-    try
-    {
-      return db.openReadCursor(key);
-    }
-    catch(Exception e)
-    {
-      return null;
-    }
+    return db.openReadCursor(startingDraftCN);
   }
 
-  /**
-   * Release a provided read cursor.
-   * @param cursor The provided read cursor.
-   */
-  public void releaseReadCursor(DraftCNDBCursor cursor)
-  {
-    close(cursor);
-  }
-
-  /**
-   * Generate a new ReplicationIterator that allows to browse the db
-   * managed by this dbHandler and starting at the position defined
-   * by a given changeNumber.
-   *
-   * @param  startDraftCN The position where the iterator must start.
-   *
-   * @return a new ReplicationIterator that allows to browse the db
-   *         managed by this dbHandler and starting at the position defined
-   *         by a given changeNumber.
-   *
-   * @throws ChangelogException if a database problem happened.
-   */
-  public DraftCNDbIterator generateIterator(int startDraftCN)
+  /** {@inheritDoc} */
+  @Override
+  public ChangelogDBIterator generateIterator(int startDraftCN)
       throws ChangelogException
   {
     return new DraftCNDbIterator(db, startDraftCN);
   }
 
-  /**
-   * Shutdown this dbHandler.
-   */
+  /** {@inheritDoc} */
+  @Override
   public void shutdown()
   {
     if (shutdown)
@@ -258,7 +224,7 @@ public class DraftCNDbHandler implements Runnable
       return;
     }
 
-    shutdown  = true;
+    shutdown = true;
     synchronized (this)
     {
       notifyAll();
@@ -334,14 +300,8 @@ public class DraftCNDbHandler implements Runnable
     clear(null);
   }
 
-  /**
-   * Clear the changes from this DB (from both memory cache and DB storage)
-   * for the provided baseDN.
-   * @param baseDNToClear The baseDN for which we want to remove
-   *         all records from the DraftCNDb - null means all.
-   * @throws ChangelogException When an exception occurs while removing the
-   * changes from the DB.
-   */
+  /** {@inheritDoc} */
+  @Override
   public void clear(String baseDNToClear) throws ChangelogException
   {
     if (isEmpty())
@@ -365,11 +325,9 @@ public class DraftCNDbHandler implements Runnable
             return;
           }
 
-          ChangeNumber cn = cursor.currentChangeNumber();
-
           // From the draftCNDb change record, get the domain and changeNumber
+          ChangeNumber cn = cursor.currentChangeNumber();
           String baseDN = cursor.currentBaseDN();
-
           if ((baseDNToClear != null)
               && (baseDNToClear.equalsIgnoreCase(baseDN)))
           {
@@ -379,7 +337,6 @@ public class DraftCNDbHandler implements Runnable
 
           ReplicationServerDomain domain = replicationServer
               .getReplicationServerDomain(baseDN, false);
-
           if (domain == null)
           {
             // the domain has been removed since the record was written in the
@@ -391,8 +348,7 @@ public class DraftCNDbHandler implements Runnable
 
           ServerState startState = domain.getStartState();
 
-          // We don't use the returned endState but it's updating CN as
-          // reading
+          // We don't use the returned endState but it's updating CN as reading
           domain.getEligibleState(crossDomainEligibleCN);
 
           ChangeNumber fcn = startState.getChangeNumber(cn.getServerId());
@@ -521,11 +477,8 @@ public class DraftCNDbHandler implements Runnable
     trimAge = delay;
   }
 
-  /**
-   * Clear the changes from this DB (from both memory cache and DB storage).
-   * @throws ChangelogException When an exception occurs while removing the
-   * changes from the DB.
-   */
+  /** {@inheritDoc} */
+  @Override
   public void clear() throws ChangelogException
   {
     db.clear();
@@ -541,7 +494,7 @@ public class DraftCNDbHandler implements Runnable
    */
   public boolean hasLock()
   {
-    return (lock.getHoldCount() > 0);
+    return lock.getHoldCount() > 0;
   }
 
   /**
@@ -561,28 +514,19 @@ public class DraftCNDbHandler implements Runnable
     lock.unlock();
   }
 
-  /**
-   * Get the value associated to a provided key.
-   * @param key the provided key.
-   * @return the associated value, null when none.
-   */
-  public String getValue(int key)
+  /** {@inheritDoc} */
+  @Override
+  public String getPreviousCookie(int draftCN)
   {
     DraftCNDBCursor draftCNDBCursor = null;
     try
     {
-      draftCNDBCursor = db.openReadCursor(key);
+      draftCNDBCursor = db.openReadCursor(draftCN);
       return draftCNDBCursor.currentValue();
     }
     catch(Exception e)
     {
-      if (debugEnabled())
-        TRACER.debugInfo("In DraftCNDbHandler.getValue, read: " +
-          " key=" + key + " value returned is null" +
-          " first=" + db.readFirstDraftCN() +
-          " last=" + db.readLastDraftCN() +
-          " count=" + db.count() +
-          " exception " + e + " " + e.getMessage());
+      debugException("getValue", draftCN, e);
       return null;
     }
     finally
@@ -591,28 +535,19 @@ public class DraftCNDbHandler implements Runnable
     }
   }
 
-  /**
-   * Get the CN associated to a provided key.
-   * @param key the provided key.
-   * @return the associated CN, null when none.
-   */
-  public ChangeNumber getChangeNumber(int key)
+  /** {@inheritDoc} */
+  @Override
+  public ChangeNumber getChangeNumber(int draftCN)
   {
     DraftCNDBCursor draftCNDBCursor = null;
     try
     {
-      draftCNDBCursor = db.openReadCursor(key);
+      draftCNDBCursor = db.openReadCursor(draftCN);
       return draftCNDBCursor.currentChangeNumber();
     }
     catch(Exception e)
     {
-      if (debugEnabled())
-        TRACER.debugInfo("In DraftCNDbHandler.getChangeNumber, read: " +
-          " key=" + key + " changeNumber returned is null" +
-          " first=" + db.readFirstDraftCN() +
-          " last=" + db.readLastDraftCN() +
-          " count=" + db.count() +
-          " exception" + e + " " + e.getMessage());
+      debugException("getChangeNumber", draftCN, e);
       return null;
     }
     finally
@@ -621,33 +556,35 @@ public class DraftCNDbHandler implements Runnable
     }
   }
 
-  /**
-   * Get the baseDN associated to a provided key.
-   * @param key the provided key.
-   * @return the baseDN, null when none.
-   */
-  public String getBaseDN(int key)
+  /**{@inheritDoc}*/
+  @Override
+  public String getBaseDN(int draftCN)
   {
     DraftCNDBCursor draftCNDBCursor = null;
     try
     {
-      draftCNDBCursor = db.openReadCursor(key);
+      draftCNDBCursor = db.openReadCursor(draftCN);
       return draftCNDBCursor.currentBaseDN();
     }
     catch(Exception e)
     {
-      if (debugEnabled())
-        TRACER.debugInfo("In DraftCNDbHandler.getBaseDN(), read: " +
-          " key=" + key + " baseDN returned is null" +
-          " first=" + db.readFirstDraftCN() +
-          " last=" + db.readLastDraftCN() +
-          " count=" + db.count() +
-          " exception" + e + " " + e.getMessage());
+      debugException("getBaseDN", draftCN, e);
       return null;
     }
     finally
     {
       close(draftCNDBCursor);
     }
+  }
+
+  private void debugException(String methodName, int draftCN, Exception e)
+  {
+    if (debugEnabled())
+      TRACER.debugInfo("In DraftCNDbHandler." + methodName + "(), read: "
+          + " key=" + draftCN + " value returned is null"
+          + " first="+ db.readFirstDraftCN()
+          + " last=" + db.readLastDraftCN()
+          + " count=" + db.count()
+          + " exception " + e + " " + e.getMessage());
   }
 }

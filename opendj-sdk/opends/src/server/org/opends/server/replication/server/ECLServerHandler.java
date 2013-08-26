@@ -41,9 +41,9 @@ import org.opends.server.replication.common.MultiDomainServerState;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.common.ServerStatus;
 import org.opends.server.replication.protocol.*;
+import org.opends.server.replication.server.changelog.api.ChangelogDB;
+import org.opends.server.replication.server.changelog.api.ChangelogDBIterator;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
-import org.opends.server.replication.server.changelog.je.DraftCNDbHandler;
-import org.opends.server.replication.server.changelog.je.DraftCNDbIterator;
 import org.opends.server.types.*;
 import org.opends.server.util.ServerConstants;
 
@@ -66,8 +66,8 @@ public final class ECLServerHandler extends ServerHandler
    */
   private String operationId;
 
-  /** Iterator on the draftCN database. */
-  private DraftCNDbIterator draftCNDbIter = null;
+  /** Iterator on the changelogDB database. */
+  private ChangelogDBIterator changelogDBIter = null;
 
   private boolean draftCompat = false;
   /**
@@ -99,8 +99,7 @@ public final class ECLServerHandler extends ServerHandler
    * currently processed (thus becoming the "current" cookie just
    * before the change is returned.
    */
-  private MultiDomainServerState previousCookie =
-    new MultiDomainServerState();
+  private MultiDomainServerState previousCookie = new MultiDomainServerState();
   /**
    * Specifies the excluded DNs (like cn=admin, ...).
    */
@@ -563,16 +562,16 @@ public final class ECLServerHandler extends ServerHandler
    * @throws DirectoryException
    *           if a database problem occurred
    */
-  private String findCookie(int startDraftCN) throws ChangelogException,
+  private String findCookie(final int startDraftCN) throws ChangelogException,
       DirectoryException
   {
-    DraftCNDbHandler draftCNDb = replicationServer.getDraftCNDbHandler();
+    ChangelogDB changelogDB = replicationServer.getChangelogDB();
 
     if (startDraftCN <= 1)
     {
       // Request filter DOES NOT contain any firstDraftCN
       // So we'll generate from the first DraftCN in the DraftCNdb
-      if (draftCNDb.isEmpty())
+      if (changelogDB.isEmpty())
       {
         // FIXME JNR if we find a way to make draftCNDb.isEmpty() a non costly
         // operation, then I think we can move this check to the top of this
@@ -581,21 +580,20 @@ public final class ECLServerHandler extends ServerHandler
         return null;
       }
 
-      final int firstKey = draftCNDb.getFirstKey();
-      String crossDomainStartState = draftCNDb.getValue(firstKey);
-      draftCNDbIter = draftCNDb.generateIterator(firstKey);
+      final int firstKey = changelogDB.getFirstKey();
+      String crossDomainStartState = changelogDB.getPreviousCookie(firstKey);
+      changelogDBIter = changelogDB.generateIterator(firstKey);
       return crossDomainStartState;
     }
 
     // Request filter DOES contain a startDraftCN
 
     // Read the draftCNDb to see whether it contains startDraftCN
-    final int startDraftCNKey = startDraftCN;
-    String crossDomainStartState = draftCNDb.getValue(startDraftCNKey);
+    String crossDomainStartState = changelogDB.getPreviousCookie(startDraftCN);
     if (crossDomainStartState != null)
     {
       // found the provided startDraftCN, let's return it
-      draftCNDbIter = draftCNDb.generateIterator(startDraftCNKey);
+      changelogDBIter = changelogDB.generateIterator(startDraftCN);
       return crossDomainStartState;
     }
 
@@ -614,10 +612,10 @@ public final class ECLServerHandler extends ServerHandler
     // the DB, let's use the lower limit.
     if (startDraftCN < firstDraftCN)
     {
-      crossDomainStartState = draftCNDb.getValue(firstDraftCN);
+      crossDomainStartState = changelogDB.getPreviousCookie(firstDraftCN);
       if (crossDomainStartState != null)
       {
-        draftCNDbIter = draftCNDb.generateIterator(firstDraftCN);
+        changelogDBIter = changelogDB.generateIterator(firstDraftCN);
         return crossDomainStartState;
       }
 
@@ -629,15 +627,15 @@ public final class ECLServerHandler extends ServerHandler
     {
       // startDraftCN is between first and potential last and has never
       // been returned yet
-      if (draftCNDb.isEmpty())
+      if (changelogDB.isEmpty())
       {
         isEndOfDraftCNReached = true;
         return null;
       }
 
-      final int lastKey = draftCNDb.getLastKey();
-      crossDomainStartState = draftCNDb.getValue(lastKey);
-      draftCNDbIter = draftCNDb.generateIterator(lastKey);
+      final int lastKey = changelogDB.getLastKey();
+      crossDomainStartState = changelogDB.getPreviousCookie(lastKey);
+      changelogDBIter = changelogDB.generateIterator(lastKey);
       return crossDomainStartState;
 
       // TODO:ECL ... ok we'll start from the end of the draftCNDb BUT ...
@@ -895,7 +893,7 @@ public final class ECLServerHandler extends ServerHandler
   public void shutdown()
   {
     if (debugEnabled())
-      TRACER.debugInfo(this + " shutdown()" + draftCNDbIter);
+      TRACER.debugInfo(this + " shutdown()");
     releaseIterator();
     for (DomainContext domainCtxt : domainCtxts) {
       if (!domainCtxt.unRegisterHandler()) {
@@ -911,10 +909,10 @@ public final class ECLServerHandler extends ServerHandler
 
   private void releaseIterator()
   {
-    if (this.draftCNDbIter != null)
+    if (this.changelogDBIter != null)
     {
-      this.draftCNDbIter.releaseCursor();
-      this.draftCNDbIter = null;
+      this.changelogDBIter.close();
+      this.changelogDBIter = null;
     }
   }
 
@@ -1374,8 +1372,8 @@ public final class ECLServerHandler extends ServerHandler
 
 
       // the next change from the DraftCN db
-      ChangeNumber cnFromDraftCNDb = draftCNDbIter.getChangeNumber();
-      String dnFromDraftCNDb = draftCNDbIter.getBaseDN();
+      ChangeNumber cnFromDraftCNDb = changelogDBIter.getChangeNumber();
+      String dnFromDraftCNDb = changelogDBIter.getBaseDN();
 
       if (debugEnabled())
         TRACER.debugInfo("getNextECLUpdate generating draftCN "
@@ -1390,10 +1388,10 @@ public final class ECLServerHandler extends ServerHandler
       {
         if (debugEnabled())
           TRACER.debugInfo("getNextECLUpdate generating draftCN "
-              + " assigning draftCN=" + draftCNDbIter.getDraftCN()
+              + " assigning draftCN=" + changelogDBIter.getDraftCN()
               + " to change=" + oldestChange);
 
-        oldestChange.setDraftChangeNumber(draftCNDbIter.getDraftCN());
+        oldestChange.setDraftChangeNumber(changelogDBIter.getDraftCN());
         return true;
       }
 
@@ -1422,12 +1420,12 @@ public final class ECLServerHandler extends ServerHandler
               + " will skip " + cnFromDraftCNDb
               + " and read next change from the DraftCNDb.");
 
-        isEndOfDraftCNReached = !draftCNDbIter.next();
+        isEndOfDraftCNReached = !changelogDBIter.next();
 
         if (debugEnabled())
           TRACER.debugInfo("getNextECLUpdate generating draftCN "
-              + " has skipped to " + " sn=" + draftCNDbIter.getDraftCN()
-              + " cn=" + draftCNDbIter.getChangeNumber()
+              + " has skipped to " + " sn=" + changelogDBIter.getDraftCN()
+              + " cn=" + changelogDBIter.getChangeNumber()
               + " End of draftCNDb ?" + isEndOfDraftCNReached);
       }
       catch (ChangelogException e)
@@ -1456,10 +1454,10 @@ public final class ECLServerHandler extends ServerHandler
     // generate a new draftCN and assign to this change
     change.setDraftChangeNumber(replicationServer.getNewDraftCN());
 
-    // store in DraftCNdb the pair
+    // store in changelogDB the pair
     // (DraftCN of the current change, state before this change)
-    DraftCNDbHandler draftCNDb = replicationServer.getDraftCNDbHandler();
-    draftCNDb.add(
+    ChangelogDB changelogDB = replicationServer.getChangelogDB();
+    changelogDB.add(
         change.getDraftChangeNumber(),
         previousCookie.toString(),
         change.getBaseDN(),

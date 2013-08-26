@@ -2755,7 +2755,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     String tn = "ECLPurgeDraftCNDbAfterChangelogClear";
     debugInfo(tn, "Starting test\n\n");
     {
-      DraftCNDbHandler draftdb = replicationServer.getDraftCNDbHandler();
+      DraftCNDbHandler draftdb = (DraftCNDbHandler) replicationServer.getChangelogDB();
       assertEquals(draftdb.count(), 8);
       draftdb.setPurgeDelay(1000);
 
@@ -2764,7 +2764,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
       // Expect changes purged from the changelog db to be sometimes
       // also purged from the DraftCNDb.
-      while(draftdb.count()>0)
+      while (!draftdb.isEmpty())
       {
         debugInfo(tn, "draftdb.count="+draftdb.count());
         sleep(200);

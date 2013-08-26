@@ -28,10 +28,6 @@
  */
 package org.opends.server;
 
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
-import static org.testng.Assert.*;
-
 import java.io.*;
 import java.net.*;
 import java.util.*;
@@ -75,9 +71,12 @@ import org.opends.server.util.BuildVersion;
 import org.opends.server.util.EmbeddedUtils;
 import org.opends.server.util.LDIFReader;
 
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
+import static org.testng.Assert.*;
+
 /**
- * This class defines some utility functions which can be used by test
- * cases.
+ * This class defines some utility functions which can be used by test cases.
  */
 @SuppressWarnings("javadoc")
 public final class TestCaseUtils {
@@ -348,7 +347,7 @@ public final class TestCaseUtils {
       File resourceDir      = new File(buildRoot, "resource");
       File testResourceDir  = new File(testSrcRoot, "resource");
       // Set the class variable
-      testConfigDir    = new File(testInstanceRoot, "config");
+      testConfigDir         = new File(testInstanceRoot, "config");
       File testSchemaDir    = new File(testInstanceRoot, "config");
       File testClassesDir   = new File(testInstanceRoot, "classes");
       File testLibDir       = new File(testInstallRoot, "lib");
@@ -363,11 +362,8 @@ public final class TestCaseUtils {
       File   snmpResourceDir = new File(buildRoot + File.separator + "src" +
                                     File.separator + "snmp" + File.separator +
                                     "resource");
-
       File snmpConfigDir = new File(snmpResourceDir, "config");
-
-      File testSnmpResourceDir = new File (testConfigDir + File.separator +
-                                    "snmp");
+      File testSnmpResourceDir = new File (testConfigDir + File.separator + "snmp");
 
       if (Boolean.getBoolean(PROPERTY_COPY_CLASSES_TO_TEST_PKG))
       {
@@ -1045,6 +1041,11 @@ public final class TestCaseUtils {
    *           If the directory could not be deleted.
    */
   public static void deleteDirectory(File dir) throws IOException {
+    if (dir == null || !dir.exists())
+    {
+      return;
+    }
+
     if (dir.isDirectory()) {
       // Recursively delete sub-directories and files.
       for (String child : dir.list()) {
@@ -1548,14 +1549,9 @@ public final class TestCaseUtils {
 
     if (useAdminPort) {
       return LDAPModify.mainModify(adminArgs, false, null, null);
-    } else {
-      return LDAPModify.mainModify(args, false, null, null);
     }
+    return LDAPModify.mainModify(args, false, null, null);
   }
-
-
-
-
 
   /**
    * Creates a temporary text file with the specified contents.  It will be
@@ -1565,8 +1561,7 @@ public final class TestCaseUtils {
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  public static String createTempFile(String... lines)
-          throws Exception
+  public static String createTempFile(String... lines) throws Exception
   {
     File f = File.createTempFile("LDAPModifyTestCase", ".txt");
     f.deleteOnExit();
@@ -1576,7 +1571,6 @@ public final class TestCaseUtils {
     {
       w.write(s + System.getProperty("line.separator"));
     }
-
     w.close();
 
     return f.getAbsolutePath();
@@ -1594,8 +1588,9 @@ public final class TestCaseUtils {
   /**
    * Return a Map constructed via alternating key and value pairs.
    */
-  public static LinkedHashMap<String,String> makeMap(String... keyValuePairs) {
-    LinkedHashMap<String,String> map = new LinkedHashMap<String,String>();
+  public static Map<String, String> makeMap(String... keyValuePairs)
+  {
+    Map<String, String> map = new LinkedHashMap<String, String>();
     for (int i = 0; i < keyValuePairs.length; i += 2) {
       map.put(keyValuePairs[i], keyValuePairs[i+1]);
     }
