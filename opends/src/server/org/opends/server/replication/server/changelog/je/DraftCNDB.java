@@ -35,7 +35,6 @@ import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.common.ChangeNumber;
-import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.types.DebugLogLevel;
 
@@ -61,7 +60,6 @@ public class DraftCNDB
 
   private Database db = null;
   private ReplicationDbEnv dbenv = null;
-  private ReplicationServer replicationServer;
 
   /**
    * The lock used to provide exclusive access to the thread that close the db
@@ -72,15 +70,12 @@ public class DraftCNDB
   /**
    * Creates a new database or open existing database that will be used
    * to store and retrieve changes from an LDAP server.
-   * @param replicationServer The ReplicationServer that needs to be shutdown.
    * @param dbenv The Db environment to use to create the db.
    * @throws ChangelogException If a database problem happened.
    */
-  public DraftCNDB(ReplicationServer replicationServer, ReplicationDbEnv dbenv)
-      throws ChangelogException
+  public DraftCNDB(ReplicationDbEnv dbenv) throws ChangelogException
   {
     this.dbenv = dbenv;
-    this.replicationServer = replicationServer;
 
     // Get or create the associated ReplicationServerDomain and Db.
     db = dbenv.getOrCreateDraftCNDb();

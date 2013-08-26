@@ -83,10 +83,9 @@ public class DbHandlerTest extends ReplicationTestCase
       replicationServer = configureReplicationServer(100);
 
       // create or clean a directory for the dbHandler
-      String path = getReplicationDbPath();
-      testRoot = createDirectory(path);
+      testRoot = createCleanDir();
 
-      dbEnv = new ReplicationDbEnv(path, replicationServer);
+      dbEnv = new ReplicationDbEnv(testRoot.getPath(), replicationServer);
       handler = new DbHandler(1, TEST_ROOT_DN_STRING, replicationServer, dbEnv, 5000);
 
       ChangeNumberGenerator gen = new ChangeNumberGenerator( 1, 0);
@@ -163,9 +162,8 @@ public class DbHandlerTest extends ReplicationTestCase
       if (dbEnv != null)
         dbEnv.shutdown();
       if (replicationServer != null)
-      replicationServer.remove();
-      if (testRoot != null)
-        TestCaseUtils.deleteDirectory(testRoot);
+        replicationServer.remove();
+      TestCaseUtils.deleteDirectory(testRoot);
     }
   }
 
@@ -178,21 +176,14 @@ public class DbHandlerTest extends ReplicationTestCase
     return new ReplicationServer(conf);
   }
 
-  private String getReplicationDbPath()
+  private File createCleanDir() throws IOException
   {
     String buildRoot = System.getProperty(TestCaseUtils.PROPERTY_BUILD_ROOT);
     String path = System.getProperty(TestCaseUtils.PROPERTY_BUILD_DIR, buildRoot
             + File.separator + "build");
-    return path + File.separator + "unit-tests" + File.separator + "dbHandler";
-  }
-
-  private File createDirectory(String path) throws IOException
-  {
-    File testRoot = new File(path);
-    if (testRoot.exists())
-    {
-      TestCaseUtils.deleteDirectory(testRoot);
-    }
+    path = path + File.separator + "unit-tests" + File.separator + "dbHandler";
+    final File testRoot = new File(path);
+    TestCaseUtils.deleteDirectory(testRoot);
     testRoot.mkdirs();
     return testRoot;
   }
@@ -262,11 +253,8 @@ public class DbHandlerTest extends ReplicationTestCase
 
       replicationServer = configureReplicationServer(100);
 
-      // create or clean a directory for the dbHandler
-      String path = getReplicationDbPath();
-      testRoot = createDirectory(path);
-
-      dbEnv = new ReplicationDbEnv(path, replicationServer);
+      testRoot = createCleanDir();
+      dbEnv = new ReplicationDbEnv(testRoot.getPath(), replicationServer);
       handler = new DbHandler(1, TEST_ROOT_DN_STRING, replicationServer, dbEnv, 5000);
 
       // Creates changes added to the dbHandler
@@ -299,8 +287,7 @@ public class DbHandlerTest extends ReplicationTestCase
         dbEnv.shutdown();
       if (replicationServer != null)
         replicationServer.remove();
-      if (testRoot != null)
-        TestCaseUtils.deleteDirectory(testRoot);
+      TestCaseUtils.deleteDirectory(testRoot);
     }
   }
 
@@ -362,12 +349,8 @@ public class DbHandlerTest extends ReplicationTestCase
 
       replicationServer = configureReplicationServer(100000);
 
-      // create or clean a directory for the dbHandler
-      String path = getReplicationDbPath();
-      testRoot = createDirectory(path);
-
-      dbEnv = new ReplicationDbEnv(path, replicationServer);
-
+      testRoot = createCleanDir();
+      dbEnv = new ReplicationDbEnv(testRoot.getPath(), replicationServer);
       handler = new DbHandler(1, TEST_ROOT_DN_STRING, replicationServer, dbEnv, 10);
       handler.setCounterWindowSize(counterWindow);
 
@@ -543,8 +526,7 @@ public class DbHandlerTest extends ReplicationTestCase
         dbEnv.shutdown();
       if (replicationServer != null)
         replicationServer.remove();
-      if (testRoot != null)
-        TestCaseUtils.deleteDirectory(testRoot);
+      TestCaseUtils.deleteDirectory(testRoot);
     }
   }
 
