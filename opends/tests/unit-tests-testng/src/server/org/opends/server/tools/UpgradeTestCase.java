@@ -40,6 +40,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.tools.upgrade.UpgradeCli;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
+import org.opends.server.util.StaticUtils;
 import org.testng.annotations.Test;
 
 import static org.opends.messages.ToolMessages.*;
@@ -56,10 +57,13 @@ public class UpgradeTestCase extends ToolsTestCase
       + File.separator + "config" + File.separator + "config.ldif";
 
   /**
-   * Sets the args for the upgrade tools. The configFile parameter is
-   * configured by default.<pre>
+   * Sets the args for the upgrade tools. The configFile parameter is configured
+   * by default.
+   *
+   * <pre>
    * usage : {@code}setArgs("--force", "--no-prompt") {@code}
-   * corresponds to command line : ./upgrade --force -n</pre>
+   * corresponds to command line : ./upgrade --force -n
+   * </pre>
    *
    * @param args
    *          The argument you want for testing.
@@ -96,8 +100,7 @@ public class UpgradeTestCase extends ToolsTestCase
       final Message expectedMessage)
   {
     return (output.replaceAll("\n", " ").replaceAll("%s", " ").indexOf(
-        expectedMessage.toString().replaceAll("\n", " ")
-        .replaceAll("%s", " ")) != -1);
+        expectedMessage.toString().replaceAll("\n", " ").replaceAll("%s", " ")) != -1);
   }
 
   /**
@@ -119,7 +122,7 @@ public class UpgradeTestCase extends ToolsTestCase
     }
     finally
     {
-      ps.close();
+      StaticUtils.close(ps, baos);
     }
   }
 
@@ -142,7 +145,7 @@ public class UpgradeTestCase extends ToolsTestCase
     }
     finally
     {
-      ps.close();
+      StaticUtils.close(ps, baos);
     }
   }
 
@@ -165,7 +168,7 @@ public class UpgradeTestCase extends ToolsTestCase
     }
     finally
     {
-      ps.close();
+      StaticUtils.close(ps, baos);
     }
   }
 
@@ -188,7 +191,7 @@ public class UpgradeTestCase extends ToolsTestCase
     }
     finally
     {
-      ps.close();
+      StaticUtils.close(ps, baos);
     }
   }
 
@@ -211,7 +214,7 @@ public class UpgradeTestCase extends ToolsTestCase
     }
     finally
     {
-      ps.close();
+      StaticUtils.close(ps, baos);
     }
   }
 
@@ -238,7 +241,7 @@ public class UpgradeTestCase extends ToolsTestCase
     }
     finally
     {
-      ps.close();
+      StaticUtils.close(ps, baos);
     }
   }
 
@@ -273,7 +276,7 @@ public class UpgradeTestCase extends ToolsTestCase
     }
     finally
     {
-      ps.close();
+      StaticUtils.close(ps, baos);
       TestCaseUtils
           .shutdownServer("testUpgradeToolAllowsNonInteractiveAndForce");
     }
