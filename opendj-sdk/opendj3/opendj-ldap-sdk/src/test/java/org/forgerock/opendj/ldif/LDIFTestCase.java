@@ -175,7 +175,7 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
     }
 
     /**
-     * LDIF Search with null reader is allowed but throws null pointer
+     * LDIF Search with null reader is allowed but throws a null pointer
      * exception.
      *
      * @throws Exception
@@ -193,7 +193,7 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
     }
 
     /**
-     * Test the search request using a schema and no specifying attribute
+     * Tests the search request using a schema and no specifying attribute
      * description.
      *
      * @throws Exception
@@ -229,7 +229,7 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
     }
 
     /**
-     * Test the search request using a schema and no specifying attribute
+     * Tests the search request using a schema and no specifying attribute
      * description. TypesOnly = true.
      *
      * @throws Exception
@@ -267,7 +267,7 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
     }
 
     /**
-     * LDIF Search with Schema use : all attributes.
+     * LDIF search with schema use : all attributes.
      *
      * @throws Exception
      */
@@ -303,7 +303,7 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
     }
 
     /**
-     * LDIF Search with Schema use : all attributes. Types only.
+     * LDIF Search with schema use : all attributes. Types only.
      *
      * @throws Exception
      */
@@ -336,7 +336,8 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
             assertThat(entry.getAttribute("uid")).isNotNull();
             assertThat(entry.getAttribute("uid").getAttributeDescription()).isNotNull();
             assertThat(entry.getAttribute("uid")).isEmpty();
-            // The following assert throws an exception because no values contained in, only type.
+            // The following assert throws an exception because it contains only
+            // attribute descriptions (and not values) are to be returned.
             assertThat(entry.getAttribute("uid").firstValueAsString()).isNull();
         }
         resultReader.close();
@@ -429,7 +430,7 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
     }
 
     /**
-     * LDIF Search with Schema use filter on uid attribute.
+     * LDIF search with schema use filter on uid attribute.
      *
      * @throws Exception
      */
@@ -462,7 +463,7 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
     }
 
     /**
-     * LDIF Search with Schema use filter on uid attribute.
+     * LDIF search with schema use filter on uid attribute.
      *
      * @throws Exception
      */
@@ -500,7 +501,7 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
     }
 
     /**
-     * LDIF Search with Schema use with filter not contained in this entry.
+     * LDIF search with schema use with filter not contained in this entry.
      *
      * @throws Exception
      */
@@ -564,7 +565,7 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
     }
 
     /**
-     * Verifying LDIF Collection reader.
+     * Verifying LDIF collection reader.
      *
      * @throws Exception
      */
@@ -600,7 +601,7 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
     }
 
     /**
-     * The LDIF newEntryCollectionReader allows a null parameter.
+     * The LDIF entry collection reader allows a null parameter.
      *
      * @throws Exception
      */
@@ -617,7 +618,7 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
     }
 
     /**
-     * LDIF newEntryIteratorReader.
+     * Tests the LDIF entry iterator reader.
      *
      * @throws Exception
      */
@@ -655,7 +656,7 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
     }
 
     /**
-     * LDIF newEntryIteratorReader doesn't allow null.
+     * LDIF entry iterator reader doesn't allow null.
      *
      * @throws Exception
      */
@@ -672,7 +673,7 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
     }
 
     /**
-     * Verify LDIF CopyToChangeRecord is working.
+     * Tests the LDIF copy over a change record writer from an LDIF change record reader.
      *
      * @throws Exception
      */
@@ -703,7 +704,7 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
     }
 
     /**
-     * LDIF copyTo - ChangeRecord doesn't allow null parameters.
+     * The LDIF copy doesn't allow null parameters.
      *
      * @throws Exception
      */
@@ -714,7 +715,7 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
     }
 
     /**
-     * LDIF copyTo - ChangeRecord doesn't allow a null writer.
+     * LDIF copy doesn't allow a null writer.
      *
      * @throws Exception
      */
@@ -732,7 +733,7 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
     }
 
     /**
-     * LDIF copyTo - ChangeRecord doesn't allow a null reader.
+     * LDIF copy doesn't allow a null reader.
      *
      * @throws Exception
      */
@@ -746,7 +747,7 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
     }
 
     /**
-     * LDIF copyTo - EntryWriter doesn't allow null.
+     * Tests the LDIF copy from an entry reader to a entry writer.
      *
      * @throws Exception
      */
@@ -810,7 +811,7 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
     }
 
     /**
-     * Testing the diff function. Following example from the admin guide.
+     * Testing the diff function. The following example is extracted from the admin guide.
      *
      * @see <a
      *      href=http://opendj.forgerock.org/doc/admin-guide/index.html#ldif-diff
@@ -893,7 +894,7 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
     }
 
     /**
-     * Testing the diff : entry in source but not in target.
+     * Testing the diff : the entry is present in source but not in the target.
      *
      * @throws Exception
      */
@@ -940,7 +941,7 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
     }
 
     /**
-     * Testing the diff : entry in target not in source. The rdn of the
+     * Testing the diff : entry is in the target not in the source. The rdn of the
      * following example is completed by ou=People.
      *
      * @throws Exception
@@ -990,7 +991,7 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
     }
 
     /**
-     * Diff between two same entries : no modifications expected.
+     * Differences between two same entries : no modifications expected.
      *
      * @throws Exception
      */
@@ -1020,7 +1021,7 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
     }
 
     /**
-     * Differences between two short ldif examples.
+     * Differences between two short LDIF examples.
      *
      * @throws Exception
      */
@@ -1213,7 +1214,7 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
     }
 
     /**
-     * Diff between two same entries : no modifications expected.
+     * Differences between two same entries : no modifications expected.
      *
      * @throws Exception
      */
@@ -1304,7 +1305,7 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
     }
 
     /**
-     * The patch add successfully an attribute 'manager' to the entry.
+     * The patch adds successfully an attribute 'manager' to the entry.
      *
      * @throws Exception
      */
@@ -1341,7 +1342,7 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
     }
 
     /**
-     * The patch add two new entries to the original.
+     * The patch adds two new entries to the original.
      *
      * @throws Exception
      */
@@ -1394,7 +1395,7 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
     }
 
     /**
-     * Try to modify an nonexistent entry. The patch throw an error via the
+     * Tries to modify a nonexistent entry. The patch throws an error via the
      * listener which is in RejectedChangeRecordListener.OVERWRITE.
      *
      * @throws Exception
@@ -1428,7 +1429,7 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
     }
 
     /**
-     * Testing to delete in entry.
+     * Testing to delete an entry.
      *
      * @throws Exception
      */
@@ -1518,7 +1519,7 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
     }
 
     /**
-     * Testing to delete attributes in an entry.
+     * Testing to delete attributes in a selected entry.
      *
      * @throws Exception
      */
@@ -1646,7 +1647,7 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
     }
 
     /**
-     * Attemp to modify the entry adding uppercase in cn.
+     * Attempts to modify the entry adding upper case in cn.
      *
      * @throws Exception
      */
@@ -1806,7 +1807,7 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
     }
 
     /**
-     * Rename a branch : from ou=People,dc=example,dc=com to ou=Human
+     * Renames a branch : from ou=People,dc=example,dc=com to ou=Human
      * Resources,dc=example,dc=com.
      *
      * @throws Exception
@@ -1902,7 +1903,7 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
     }
 
     /**
-     * Rename a branch : from ou=People,dc=example,dc=com to ou=Human
+     * Renames a branch : from ou=People,dc=example,dc=com to ou=Human
      * Resources,dc=example,dc=com. In this example deleteoldrdn is set to 0.
      *
      * @throws Exception
@@ -2055,7 +2056,7 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
     }
 
     /**
-     * Apply simple patch to replace/add data to the input.
+     * Applies simple patch to replace/add data to the input.
      *
      * @throws Exception
      */
@@ -2094,7 +2095,7 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
     }
 
     /**
-     * Replace / add postalAdress.
+     * Replaces / adds postalAdress.
      *
      * @throws Exception
      */
@@ -2136,7 +2137,7 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
     }
 
     /**
-     * Test some changes : add/replace/delete...
+     * Tests some changes : add/replace/delete...
      *
      * @throws Exception
      */
@@ -2246,7 +2247,7 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
     }
 
     /**
-     * An example for illustrate an LDIFChangeRecordReader containing changes on
+     * An example to illustrate an LDIFChangeRecordReader containing changes on
      * previous ldif.
      *
      * @throws Exception
@@ -2355,7 +2356,7 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
     }
 
     /**
-     * Try to apply a patch which data are not valid. Exception expected.
+     * Tries to apply a patch which data are not valid. Exception expected.
      *
      * @throws Exception
      */
@@ -2392,8 +2393,280 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
     }
 
     /**
-     * LDIF patch - EntryReader/ChangeRecordReader doesn't allow null. Exception
-     * expected.
+     * The listener is in FAIL_FAST Mode. On this example,
+     * attaching the listener to the patch should throw a decode exception as a
+     * wrong DN is used in the modify request. (The entry does not exist).
+     *
+     * @throws Exception
+     */
+    @SuppressWarnings("resource")
+    @Test(expectedExceptions = DecodeException.class)
+    public final void testFailFastPatchOnModifyRequestFailsDueToWrongDN() throws Exception {
+
+        final RejectedChangeRecordListener listener = RejectedChangeRecordListener.FAIL_FAST;
+        // @formatter:off
+        final LDIFEntryReader input = new LDIFEntryReader(
+            "dn: uid=scarter,ou=People,dc=example,dc=com",
+            "objectClass: person",
+            "sn: new user",
+            "mail: mail@mailme.org"
+        );
+        // @formatter:on
+
+        // @formatter:off
+        final  LDIFChangeRecordReader patch = new LDIFChangeRecordReader(
+            "dn: uid=WRONGUID,ou=People,dc=example,dc=com",
+            "changetype: modify",
+            "add: work-phone",
+            "work-phone: 650/506-7000"
+        );
+        // @formatter:on
+        EntryReader reader = new LDIFEntryReader();
+        try {
+            reader = LDIF.patch(input, patch, listener);
+        } finally {
+            reader.close();
+        }
+    }
+
+    /**
+     * The listener is in OVERWRITE Mode. On this example,
+     * attaching the listener to the patch should throw a decode exception even
+     * if a wrong DN is used in the modify request. (The entry does not exist).
+     * No data impacted by the patch, no warning sent.
+     *
+     * @throws Exception
+     */
+    @SuppressWarnings("resource")
+    @Test()
+    public final void testOverwritePatchOnModifyRequestSucceedsEvenIfWrongDN() throws Exception {
+
+        final RejectedChangeRecordListener listener = RejectedChangeRecordListener.OVERWRITE;
+        // @formatter:off
+        final LDIFEntryReader input = new LDIFEntryReader(
+            "dn: uid=scarter,ou=People,dc=example,dc=com",
+            "objectClass: person",
+            "sn: new user",
+            "mail: mail@mailme.org"
+        );
+        // @formatter:on
+
+        // @formatter:off
+        final  LDIFChangeRecordReader patch = new LDIFChangeRecordReader(
+            "dn: uid=WRONGUID,ou=People,dc=example,dc=com",
+            "changetype: modify",
+            "add: work-phone",
+            "work-phone: 650/506-7000"
+        );
+        // @formatter:on
+        EntryReader reader = new LDIFEntryReader();
+        try {
+            reader = LDIF.patch(input, patch, listener);
+            Entry entry = reader.readEntry();
+            assertThat(entry.getName().toString()).isEqualTo("uid=scarter,ou=People,dc=example,dc=com");
+            assertThat(entry.getAttributeCount()).isEqualTo(3);
+            assertThat(entry.getAttribute("objectClass").firstValueAsString()).isEqualTo(
+                    "person");
+            assertThat(entry.getAttribute("sn").firstValueAsString()).isEqualTo(
+                    "new user");
+            assertThat(entry.getAttribute("mail").firstValueAsString()).isEqualTo(
+                    "mail@mailme.org");
+            assertThat(reader.hasNext()).isFalse();
+            assertThat(entry.getAttribute("work-phone")).isNull();
+        } finally {
+            reader.close();
+        }
+    }
+
+    /**
+     * The listener is in FAIL_FAST Mode. On this example,
+     * attaching the listener to the patch should throw a decode exception as a
+     * wrong DN is used in the modify DN request. (The entry does not exist).
+     *
+     * @throws Exception
+     */
+    @SuppressWarnings("resource")
+    @Test(expectedExceptions = DecodeException.class)
+    public final void testFailFastPatchOnModifyDNRequestFailsDueToWrongDN() throws Exception {
+        final RejectedChangeRecordListener listener = RejectedChangeRecordListener.FAIL_FAST;
+        // @formatter:off
+        final LDIFEntryReader input = new LDIFEntryReader(
+            "dn: uid=scarter,ou=People,dc=example,dc=com",
+            "objectClass: person",
+            "sn: new user",
+            "mail: mail@mailme.org"
+        );
+        // @formatter:on
+
+        // @formatter:off
+        final  LDIFChangeRecordReader patch = new LDIFChangeRecordReader(
+            "dn: ou=WRONGscarter, dc=example,dc=com",
+            "changetype: modrdn",
+            "newrdn: ou=Human Resources,dc=example,dc=com",
+            "deleteoldrdn: 1"
+        );
+        // @formatter:on
+        EntryReader reader = new LDIFEntryReader();
+        try {
+            reader = LDIF.patch(input, patch, listener);
+        } finally {
+            reader.close();
+        }
+    }
+
+    /**
+     * The listener is in OVERWRITE Mode. On this example,
+     * attaching the listener to the patch should not throw a decode exception
+     * even if a wrong DN is used in the modify DN request. (Even if the entry
+     * does not exist).
+     *
+     * @throws Exception
+     */
+    @SuppressWarnings("resource")
+    @Test()
+    public final void testOverwritePatchOnModifyDNRequestSucceedsEvenWithWrongDN() throws Exception {
+        final RejectedChangeRecordListener listener = RejectedChangeRecordListener.OVERWRITE;
+        // @formatter:off
+        final LDIFEntryReader input = new LDIFEntryReader(
+            "dn: uid=scarter,ou=People,dc=example,dc=com",
+            "objectClass: person",
+            "sn: new user",
+            "mail: mail@mailme.org"
+        );
+        // @formatter:on
+
+        // @formatter:off
+        final  LDIFChangeRecordReader patch = new LDIFChangeRecordReader(
+            "dn: ou=WRONGscarter, dc=example,dc=com",
+            "changetype: modrdn",
+            "newrdn: ou=Human Resources,dc=example,dc=com",
+            "deleteoldrdn: 1"
+        );
+        // @formatter:on
+        EntryReader reader = new LDIFEntryReader();
+        try {
+            reader = LDIF.patch(input, patch, listener);
+            Entry entry = reader.readEntry();
+            assertThat(entry.getName().toString()).isEqualTo("uid=scarter,ou=People,dc=example,dc=com");
+            assertThat(entry.getName().toString()).isNotEqualTo("uid=scarter,ou=Human Resources,dc=example,dc=com");
+            assertThat(entry.getAttributeCount()).isEqualTo(3);
+            assertThat(entry.getAttribute("objectClass").firstValueAsString()).isEqualTo(
+                    "person");
+            assertThat(entry.getAttribute("sn").firstValueAsString()).isEqualTo(
+                    "new user");
+            assertThat(entry.getAttribute("mail").firstValueAsString()).isEqualTo(
+                    "mail@mailme.org");
+            assertThat(reader.hasNext()).isFalse();
+        } finally {
+            reader.close();
+        }
+    }
+
+    /**
+     * The listener is in FAIL_FAST Mode. On this example,
+     * attaching the listener to the patch should throw a decode exeption as
+     * another entry containing the requested change DN already exists.
+     *
+     * @throws Exception
+     */
+    @SuppressWarnings("resource")
+    @Test(expectedExceptions = DecodeException.class)
+    public final void testFailFastPatchOnModifyDNRequestFailsDueToDuplicateEntry() throws Exception {
+        final RejectedChangeRecordListener listener = RejectedChangeRecordListener.FAIL_FAST;
+        // @formatter:off
+        final LDIFEntryReader input = new LDIFEntryReader(
+            "dn: uid=scarter,ou=People,dc=example,dc=com",
+            "objectClass: person",
+            "sn: new user",
+            "mail: mail@mailme.org",
+            "",
+            "dn: uid=user.2,ou=People,dc=example,dc=com",
+            "objectClass: top",
+            "objectClass: person",
+            "objectClass: organizationalperson",
+            "objectClass: inetorgperson",
+            "givenName: Eniko",
+            "sn: Eniko",
+            "cn: Eniko Atpco",
+            "uid: user.2"
+        );
+        // @formatter:on
+
+        // @formatter:off
+        final  LDIFChangeRecordReader patch = new LDIFChangeRecordReader(
+            "dn: uid=scarter,ou=People,dc=example,dc=com",
+            "changetype: moddn",
+            "newrdn: uid=user.2,ou=People,dc=example,dc=com",
+            "deleteoldrdn: 0"
+        );
+        // @formatter:on
+        EntryReader reader = new LDIFEntryReader();
+        try {
+            reader = LDIF.patch(input, patch, listener);
+        } finally {
+            reader.close();
+        }
+    }
+
+    /**
+     * The listener is in OVERWRITE Mode. On this example,
+     * attaching the listener to the patch should not throw a decode exeption
+     * even if another entry containing the requested change DN already exists.
+     * The DN is overwrited.
+     *
+     * @throws Exception
+     */
+    @SuppressWarnings("resource")
+    @Test()
+    public final void testOverwritePatchOnModifyDNRequestSucceedsEvenWithDuplicateEntry() throws Exception {
+        final RejectedChangeRecordListener listener = RejectedChangeRecordListener.OVERWRITE;
+        // @formatter:off
+        final LDIFEntryReader input = new LDIFEntryReader(
+            "dn: uid=scarter,ou=People,dc=example,dc=com",
+            "objectClass: person",
+            "sn: new user",
+            "mail: mail@mailme.org",
+            "",
+            "dn: uid=user.2,ou=People,dc=example,dc=com",
+            "objectClass: top",
+            "objectClass: person",
+            "objectClass: organizationalperson",
+            "objectClass: inetorgperson",
+            "givenName: Eniko",
+            "sn: Eniko",
+            "cn: Eniko Atpco",
+            "uid: user.2"
+        );
+        // @formatter:on
+
+        // @formatter:off
+        final  LDIFChangeRecordReader patch = new LDIFChangeRecordReader(
+            "dn: uid=scarter,ou=People,dc=example,dc=com",
+            "changetype: moddn",
+            "newrdn: uid=user.2,ou=People,dc=example,dc=com",
+            "deleteoldrdn: 0"
+        );
+        // @formatter:on
+        EntryReader reader = new LDIFEntryReader();
+        try {
+            reader = LDIF.patch(input, patch, listener);
+            Entry entry = reader.readEntry();
+            assertThat(entry.getName().toString()).isEqualTo("uid=user.2,ou=People,dc=example,dc=com");
+            assertThat(entry.getAttributeCount()).isEqualTo(4);
+            assertThat(entry.getAttribute("objectClass").firstValueAsString()).isEqualTo(
+                    "person");
+            assertThat(entry.getAttribute("sn").firstValueAsString()).isEqualTo(
+                    "new user");
+            assertThat(entry.getAttribute("mail").firstValueAsString()).isEqualTo(
+                    "mail@mailme.org");
+            assertThat(reader.hasNext()).isFalse();
+        } finally {
+            reader.close();
+        }
+    }
+
+    /**
+     * LDIF patch doesn't allow null. Exception expected.
      *
      * @throws Exception
      */
