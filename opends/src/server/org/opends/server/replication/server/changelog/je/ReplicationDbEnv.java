@@ -50,9 +50,9 @@ import static org.opends.server.util.StaticUtils.*;
  */
 public class ReplicationDbEnv
 {
-  private Environment dbEnvironment = null;
-  private Database stateDb = null;
-  private ReplicationServer replicationServer = null;
+  private Environment dbEnvironment;
+  private Database stateDb;
+  private ReplicationServer replicationServer;
   private static final String GENERATION_ID_TAG = "GENID";
   private static final String FIELD_SEPARATOR = " ";
   /**
@@ -141,17 +141,20 @@ public class ReplicationDbEnv
        * the topology. The database "changelogstate" is used to store the list
        * of all the servers that have been seen in the past.
        */
-      DatabaseConfig dbConfig = new DatabaseConfig();
-      dbConfig.setAllowCreate(true);
-      dbConfig.setTransactional(true);
-
-      stateDb = dbEnvironment.openDatabase(null, "changelogstate", dbConfig);
-      start();
+      stateDb = openDatabase("changelogstate");
     }
     catch (RuntimeException e)
     {
       throw new ChangelogException(e);
     }
+  }
+
+  private Database openDatabase(String databaseName) throws RuntimeException
+  {
+    final DatabaseConfig dbConfig = new DatabaseConfig();
+    dbConfig.setAllowCreate(true);
+    dbConfig.setTransactional(true);
+    return dbEnvironment.openDatabase(null, databaseName, dbConfig);
   }
 
   /**
@@ -160,7 +163,7 @@ public class ReplicationDbEnv
    *
    * @throws ChangelogException in case of underlying Exception
    */
-  private void start() throws ChangelogException, DatabaseException
+  public void start() throws ChangelogException
   {
     DatabaseEntry key = new DatabaseEntry();
     DatabaseEntry data = new DatabaseEntry();
@@ -168,77 +171,51 @@ public class ReplicationDbEnv
 
     try
     {
-      readDomainBaseDNGenerationIDRecords(key, data, cursor);
-      readServerIdDomainBaseDNRecords(key, data, cursor);
+      OperationStatus status = cursor.getFirst(key, data, LockMode.DEFAULT);
+      while (status == OperationStatus.SUCCESS)
+      {
+        String stringData = toString(data.getData());
+
+        if (debugEnabled())
+          TRACER.debugInfo("In " + replicationServer.getMonitorInstanceName()
+              + " Read (tag/baseDn/generationId) OR (serverId/baseDN): "
+              + stringData);
+
+        String[] str = stringData.split(FIELD_SEPARATOR, 3);
+        if (str[0].equals(GENERATION_ID_TAG))
+        {
+          long generationId = toLong(str[1]);
+          String baseDn = str[2];
+
+          if (debugEnabled())
+            TRACER.debugInfo("In " + replicationServer.getMonitorInstanceName()
+                + " Has read baseDn=" + baseDn + " generationId="
+                + generationId);
+
+          replicationServer.initDomainGenerationID(baseDn, generationId);
+        }
+        else
+        {
+          int serverId = toInt(str[0]);
+          String baseDn = str[1];
+
+          if (debugEnabled())
+            TRACER.debugInfo("In " + replicationServer.getMonitorInstanceName()
+                + " Has read: baseDn=" + baseDn + " serverId=" + serverId);
+
+          replicationServer.addServerIdToDomain(serverId, baseDn);
+        }
+
+        status = cursor.getNext(key, data, LockMode.DEFAULT);
+      }
+    }
+    catch (RuntimeException e)
+    {
+      throw new ChangelogException(e);
     }
     finally
     {
       close(cursor);
-    }
-  }
-
-  private void readDomainBaseDNGenerationIDRecords(DatabaseEntry key,
-      DatabaseEntry data, Cursor cursor) throws ChangelogException,
-      DatabaseException
-  {
-    // Get the domain base DN/ generationIDs records
-    OperationStatus status = cursor.getFirst(key, data, LockMode.DEFAULT);
-    while (status == OperationStatus.SUCCESS)
-    {
-      String stringData = toString(data.getData());
-
-      if (debugEnabled())
-        TRACER.debugInfo("In "
-            + this.replicationServer.getMonitorInstanceName()
-            + " Read tag baseDn generationId=" + stringData);
-
-      String[] str = stringData.split(FIELD_SEPARATOR, 3);
-      if (str[0].equals(GENERATION_ID_TAG))
-      {
-        long generationId = toLong(str[1]);
-        String baseDn = str[2];
-
-        if (debugEnabled())
-          TRACER.debugInfo("In "
-              + this.replicationServer.getMonitorInstanceName()
-              + " Has read baseDn=" + baseDn + " generationId=" + generationId);
-
-        replicationServer.initDomainGenerationID(baseDn, generationId);
-      }
-      status = cursor.getNext(key, data, LockMode.DEFAULT);
-    }
-  }
-
-  private void readServerIdDomainBaseDNRecords(DatabaseEntry key,
-      DatabaseEntry data, Cursor cursor) throws ChangelogException,
-      DatabaseException
-  {
-    // Get the server Id / domain base DN records
-    OperationStatus status = cursor.getFirst(key, data, LockMode.DEFAULT);
-    while (status == OperationStatus.SUCCESS)
-    {
-      String stringData = toString(data.getData());
-
-      if (debugEnabled())
-        TRACER.debugInfo("In "
-            + this.replicationServer.getMonitorInstanceName()
-            + " Read serverId BaseDN=" + stringData);
-
-      String[] str = stringData.split(FIELD_SEPARATOR, 2);
-      if (!str[0].equals(GENERATION_ID_TAG))
-      {
-        int serverId = toInt(str[0]);
-        String baseDn = str[1];
-
-        if (debugEnabled())
-          TRACER.debugInfo("In "
-              + this.replicationServer.getMonitorInstanceName()
-              + " Has read: baseDn=" + baseDn + " serverId=" + serverId);
-
-        replicationServer.addServerIdToDomain(serverId, baseDn);
-      }
-
-      status = cursor.getNext(key, data, LockMode.DEFAULT);
     }
   }
 
@@ -309,10 +286,7 @@ public class ReplicationDbEnv
 
         // Opens the database for the changes received from this server
         // on this domain. Create it if it does not already exist.
-        DatabaseConfig dbConfig = new DatabaseConfig();
-        dbConfig.setAllowCreate(true);
-        dbConfig.setTransactional(true);
-        Database db = dbEnvironment.openDatabase(null, serverIdKey, dbConfig);
+        Database db = openDatabase(serverIdKey);
 
         // Creates the record serverId/domain base Dn in the stateDb
         // if it does not already exist.
@@ -545,17 +519,11 @@ public class ReplicationDbEnv
      */
     public Database getOrCreateDraftCNDb() throws ChangelogException
     {
-      String stringId = "draftcndb";
-
-      // Opens the database for seqnum associated to this domain.
-      // Create it if it does not already exist.
-      DatabaseConfig dbConfig = new DatabaseConfig();
-      dbConfig.setAllowCreate(true);
-      dbConfig.setTransactional(true);
-
       try
       {
-        return dbEnvironment.openDatabase(null, stringId, dbConfig);
+        // Opens the database for seqnum associated to this domain.
+        // Create it if it does not already exist.
+        return openDatabase("draftcndb");
       }
       catch (RuntimeException e)
       {
