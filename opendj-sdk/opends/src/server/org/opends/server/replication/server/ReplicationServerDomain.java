@@ -120,7 +120,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
    * This map contains the List of updates received from each LDAP server.
    */
   private final Map<Integer, DbHandler> sourceDbHandlers =
-    new ConcurrentHashMap<Integer, DbHandler>();
+      new ConcurrentHashMap<Integer, DbHandler>();
   /** The ReplicationServer that created the current instance. */
   private ReplicationServer localReplicationServer;
 
@@ -1269,12 +1269,13 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
   }
 
   /**
-   * Return a set containing the server that produced update and known by
-   * this replicationServer from all over the topology,
-   * whatever directly connected of connected to another RS.
-   * @return a set containing the servers known by this replicationServer.
+   * Returns a set containing the serverIds that produced updates and known by
+   * this replicationServer from all over the topology, whether directly
+   * connected or connected to another RS.
+   *
+   * @return a set containing the serverIds known by this replicationServer.
    */
-  public Set<Integer> getServers()
+  public Set<Integer> getServerIds()
   {
     return sourceDbHandlers.keySet();
   }

@@ -830,14 +830,13 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       publishDeleteMsgInOTest(s2test, cn9, tn, 9);
       sleep(500);
 
-      ReplicationServerDomain rsd =
-        replicationServer.getReplicationServerDomain(TEST_ROOT_DN_STRING, false);
+      ReplicationServerDomain rsd = replicationServer.getReplicationServerDomain(TEST_ROOT_DN_STRING);
       ServerState startState = rsd.getStartState();
       assertEquals(startState.getChangeNumber(s1test.getServerId()).getSeqnum(), 1);
       assertTrue(startState.getChangeNumber(s2test.getServerId()) != null);
       assertEquals(startState.getChangeNumber(s2test.getServerId()).getSeqnum(), 7);
 
-      rsd = replicationServer.getReplicationServerDomain(TEST_ROOT_DN_STRING2, false);
+      rsd = replicationServer.getReplicationServerDomain(TEST_ROOT_DN_STRING2);
       startState = rsd.getStartState();
       assertEquals(startState.getChangeNumber(s2test2.getServerId()).getSeqnum(), 2);
       assertEquals(startState.getChangeNumber(s1test2.getServerId()).getSeqnum(), 6);
@@ -1012,8 +1011,8 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       // ---
       // 2. Now set up a very short purge delay on the replication changelogs
       // so that this test can play with a trimmed changelog.
-      d1 = replicationServer.getReplicationServerDomain("o=test", false);
-      d2 = replicationServer.getReplicationServerDomain("o=test2", false);
+      d1 = replicationServer.getReplicationServerDomain("o=test");
+      d2 = replicationServer.getReplicationServerDomain("o=test2");
       d1.setPurgeDelay(1);
       d2.setPurgeDelay(1);
 
@@ -2331,8 +2330,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       publishDeleteMsgInOTest(s2test, cn9, tn, 9);
       sleep(500);
 
-      ReplicationServerDomain rsd1 =
-        replicationServer.getReplicationServerDomain(TEST_ROOT_DN_STRING, false);
+      ReplicationServerDomain rsd1 = replicationServer.getReplicationServerDomain(TEST_ROOT_DN_STRING);
       rsd1.getDbServerState();
       rsd1.getChangeTimeHeartbeatState();
       debugInfo(tn, rsd1.getBaseDn()
@@ -2342,8 +2340,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
           + " rs eligibleCN=" + replicationServer.getEligibleCN());
       // FIXME:ECL Enable this test by adding an assert on the right value
 
-      ReplicationServerDomain rsd2 =
-        replicationServer.getReplicationServerDomain(TEST_ROOT_DN_STRING2, false);
+      ReplicationServerDomain rsd2 = replicationServer.getReplicationServerDomain(TEST_ROOT_DN_STRING2);
       rsd2.getDbServerState();
       rsd2.getChangeTimeHeartbeatState();
       debugInfo(tn, rsd2.getBaseDn()
@@ -2900,8 +2897,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     final ChangeNumber cn2 = cns[1];
     final ChangeNumber cn3 = cns[2];
 
-    ReplicationServerDomain rsdtest =
-        replicationServer.getReplicationServerDomain(TEST_ROOT_DN_STRING, false);
+    ReplicationServerDomain rsdtest = replicationServer.getReplicationServerDomain(TEST_ROOT_DN_STRING);
     // this empty state will force to count from the start of the DB
     final ServerState fromStart = new ServerState();
 

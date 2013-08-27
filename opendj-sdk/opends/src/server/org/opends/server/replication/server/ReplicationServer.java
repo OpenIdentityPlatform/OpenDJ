@@ -430,14 +430,9 @@ public final class ReplicationServer
 
             // FIXME: this will need changing if we ever support listening on
             // specific addresses.
-            if (isLocalAddress(inetAddress) && (port == replicationPort))
-            {
-              continue;
-            }
-
+            if ((isLocalAddress(inetAddress) && port == replicationPort)
             // Don't connect to a server if it is already connected.
-            final String normalizedServerURL = normalizeServerURL(rsURL);
-            if (connectedRSUrls.contains(normalizedServerURL))
+                || connectedRSUrls.contains(normalizeServerURL(rsURL)))
             {
               continue;
             }
@@ -726,15 +721,12 @@ public final class ReplicationServer
    *
    * @param baseDn The base Dn for which the ReplicationServerDomain must be
    * returned.
-   * @param create Specifies whether to create the ReplicationServerDomain if
-   *        it does not already exist.
    * @return The ReplicationServerDomain associated to the base DN given in
    *         parameter.
    */
-  public ReplicationServerDomain getReplicationServerDomain(String baseDn,
-          boolean create)
+  public ReplicationServerDomain getReplicationServerDomain(String baseDn)
   {
-    return getReplicationServerDomain(baseDn, create, false);
+    return getReplicationServerDomain(baseDn, false);
   }
 
   /**
@@ -745,68 +737,62 @@ public final class ReplicationServer
    * returned.
    * @param create Specifies whether to create the ReplicationServerDomain if
    *        it does not already exist.
-   * @param waitConnections     Waits for the Connections with other RS to
-   *                            be established before returning.
    * @return The ReplicationServerDomain associated to the base DN given in
    *         parameter.
    */
   public ReplicationServerDomain getReplicationServerDomain(String baseDn,
-          boolean create, boolean waitConnections)
+      boolean create)
   {
-    ReplicationServerDomain domain;
-
     synchronized (baseDNs)
     {
-      domain = baseDNs.get(baseDn);
-
-      if (domain != null ||!create) {
-        return domain;
+      ReplicationServerDomain domain = baseDNs.get(baseDn);
+      if (domain == null && create) {
+        domain = new ReplicationServerDomain(baseDn, this);
+        baseDNs.put(baseDn, domain);
       }
-
-      domain = new ReplicationServerDomain(baseDn, this);
-      baseDNs.put(baseDn, domain);
+      return domain;
     }
+  }
 
-    if (waitConnections)
+  /**
+   * Waits for connections to this ReplicationServer.
+   */
+  public void waitConnections()
+  {
+    // Acquire a domain ticket and wait for a complete cycle of the connect
+    // thread.
+    final long myDomainTicket;
+    synchronized (connectThreadLock)
     {
-      // Acquire a domain ticket and wait for a complete cycle of the connect
-      // thread.
-      final long myDomainTicket;
-      synchronized (connectThreadLock)
-      {
-        // Connect thread must be waiting.
-        synchronized (domainTicketLock)
-        {
-          // Determine the ticket which will be used in the next connect thread
-          // iteration.
-          myDomainTicket = domainTicket + 1;
-        }
-
-        // Wake up connect thread.
-        connectThreadLock.notify();
-      }
-
-      // Wait until the connect thread has processed next connect phase.
+      // Connect thread must be waiting.
       synchronized (domainTicketLock)
       {
-        // Condition.
-        while (myDomainTicket > domainTicket && !shutdown)
+        // Determine the ticket which will be used in the next connect thread
+        // iteration.
+        myDomainTicket = domainTicket + 1;
+      }
+
+      // Wake up connect thread.
+      connectThreadLock.notify();
+    }
+
+    // Wait until the connect thread has processed next connect phase.
+    synchronized (domainTicketLock)
+    {
+      while (myDomainTicket > domainTicket && !shutdown)
+      {
+        try
         {
-          try
-          {
-            // Wait with timeout so that we detect shutdown.
-            domainTicketLock.wait(500);
-          }
-          catch (InterruptedException e)
-          {
-            // Can't do anything with this.
-            Thread.currentThread().interrupt();
-          }
+          // Wait with timeout so that we detect shutdown.
+          domainTicketLock.wait(500);
+        }
+        catch (InterruptedException e)
+        {
+          // Can't do anything with this.
+          Thread.currentThread().interrupt();
         }
       }
     }
-
-    return domain;
   }
 
   /**
@@ -1158,7 +1144,7 @@ public final class ReplicationServer
    */
   public long getGenerationId(String baseDN)
   {
-    ReplicationServerDomain rsd = getReplicationServerDomain(baseDN, false);
+    ReplicationServerDomain rsd = getReplicationServerDomain(baseDN);
     if (rsd!=null)
       return rsd.getGenerationId();
     return -1;
@@ -1923,5 +1909,35 @@ public final class ReplicationServer
   {
     return "RS(" + serverId + ") on " + serverURL + ", domains="
         + baseDNs.keySet();
+  }
+
+  /**
+   * Initializes the generationId for the specified replication domain.
+   *
+   * @param baseDn
+   *          the replication domain
+   * @param generationId
+   *          the the generationId value for initialization
+   */
+  public void initDomainGenerationID(String baseDn, long generationId)
+  {
+    getReplicationServerDomain(baseDn, true).initGenerationID(generationId);
+  }
+
+  /**
+   * Adds the specified serverId to the specified replication domain.
+   *
+   * @param serverId
+   *          the server Id to add to the replication domain
+   * @param baseDn
+   *          the replication domain where to add the serverId
+   * @throws ChangelogException
+   *           If a database error happened.
+   */
+  public void addServerIdToDomain(int serverId, String baseDn)
+      throws ChangelogException
+  {
+    DbHandler dbHandler = newDbHandler(serverId, baseDn);
+    getReplicationServerDomain(baseDn, true).setDbHandler(serverId, dbHandler);
   }
 }

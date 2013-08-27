@@ -48,6 +48,7 @@ import org.opends.server.replication.plugin.LDAPReplicationDomain;
 import org.opends.server.replication.protocol.*;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
+import org.opends.server.replication.server.ReplicationServerDomain;
 import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.schema.DirectoryStringSyntax;
 import org.opends.server.types.*;
@@ -1072,34 +1073,21 @@ public class InitOnLineTest extends ReplicationTestCase
       broker3 = openReplicationSession(DN.decode(EXAMPLE_DN),
         server3ID, 100, getChangelogPort(changelog2ID), 1000, emptyOldChanges);
 
-      // Check that the list of connected LDAP servers is correct
-      // in each replication servers
-      Set<Integer> l1 = changelog1.getReplicationServerDomain(
-          baseDn.toNormalizedString(), false).getConnectedDSs().keySet();
-      Assertions.assertThat(l1).containsExactly(server1ID);
-
-      Set<Integer> l2 = changelog2.getReplicationServerDomain(
-          baseDn.toNormalizedString(), false).getConnectedDSs().keySet();
-      Assertions.assertThat(l2).containsExactly(server2ID, server3ID);
-
-      Set<Integer> l3 = changelog3.getReplicationServerDomain(
-          baseDn.toNormalizedString(), false).getConnectedDSs().keySet();
-      Assertions.assertThat(l3).isEmpty();
+      // Check that the list of connected LDAP servers is correct in each replication servers
+      Assertions.assertThat(getConnectedDSServerIds(changelog1)).containsExactly(server1ID);
+      Assertions.assertThat(getConnectedDSServerIds(changelog2)).containsExactly(server2ID, server3ID);
+      Assertions.assertThat(getConnectedDSServerIds(changelog3)).isEmpty();
 
       // Test updates
       broker3.stop();
       Thread.sleep(1000);
-      l2 = changelog2.getReplicationServerDomain(
-          baseDn.toNormalizedString(), false).getConnectedDSs().keySet();
-      Assertions.assertThat(l2).containsExactly(server2ID);
+      Assertions.assertThat(getConnectedDSServerIds(changelog2)).containsExactly(server2ID);
 
       broker3 = openReplicationSession(DN.decode(EXAMPLE_DN),
         server3ID, 100, getChangelogPort(changelog2ID), 1000, emptyOldChanges);
       broker2.stop();
       Thread.sleep(1000);
-      l2 = changelog2.getReplicationServerDomain(
-          baseDn.toNormalizedString(), false).getConnectedDSs().keySet();
-      Assertions.assertThat(l2).containsExactly(server3ID);
+      Assertions.assertThat(getConnectedDSServerIds(changelog2)).containsExactly(server3ID);
 
     // TODO Test ReplicationServerDomain.getDestinationServers method.
 
@@ -1113,6 +1101,12 @@ public class InitOnLineTest extends ReplicationTestCase
         broker3.stop();
       afterTest(testCase);
     }
+  }
+
+  private Set<Integer> getConnectedDSServerIds(ReplicationServer changelog)
+  {
+    ReplicationServerDomain domain = changelog.getReplicationServerDomain(baseDn.toNormalizedString());
+    return domain.getConnectedDSs().keySet();
   }
 
   @Test(enabled=true, groups="slow")
