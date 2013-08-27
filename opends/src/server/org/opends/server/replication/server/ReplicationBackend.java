@@ -624,7 +624,7 @@ public class ReplicationBackend
       final LDIFExportConfig exportConfig, LDIFWriter ldifWriter,
       SearchOperation searchOperation, final ChangeNumber previousCN)
   {
-    for (int serverId : rsd.getServers())
+    for (int serverId : rsd.getServerIds())
     {
       if (exportConfig != null && exportConfig.isCancelled())
       { // Abort if cancelled

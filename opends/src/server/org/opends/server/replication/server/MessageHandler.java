@@ -189,18 +189,19 @@ public class MessageHandler extends MonitorProvider<MonitorProviderCfg>
   /**
    * Returns the Replication Server Domain to which belongs this handler.
    *
-   * @param createIfNotExist    Creates the domain if it does not exist.
    * @param waitConnections     Waits for the Connections with other RS to
    *                            be established before returning.
    * @return The replication server domain.
    */
-  public ReplicationServerDomain getDomain(
-      boolean createIfNotExist, boolean waitConnections)
+  public ReplicationServerDomain getDomain(boolean waitConnections)
   {
-    if (replicationServerDomain==null)
+    if (replicationServerDomain == null)
     {
-      replicationServerDomain = replicationServer.getReplicationServerDomain(
-            baseDN, createIfNotExist, waitConnections);
+      replicationServerDomain =
+          replicationServer.getReplicationServerDomain(baseDN, true);
+      if (waitConnections) {
+        replicationServer.waitConnections();
+      }
     }
     return replicationServerDomain;
   }
@@ -476,7 +477,7 @@ public class MessageHandler extends MonitorProvider<MonitorProviderCfg>
         new TreeSet<ReplicationIterator>(new ReplicationIteratorComparator());
 
     // Build a list of candidates iterator (i.e. db i.e. server)
-    for (int serverId : replicationServerDomain.getServers())
+    for (int serverId : replicationServerDomain.getServerIds())
     {
       // get the last already sent CN from that server
       ChangeNumber lastCsn = serverState.getChangeNumber(serverId);
@@ -525,20 +526,19 @@ public class MessageHandler extends MonitorProvider<MonitorProviderCfg>
        * the number of updates to be sent is the size of the receive queue.
        */
       if (following)
-        return msgQueue.count();
-      else
       {
-        /*
-         * When the server  is not able to follow, the msgQueue
-         * may become too large and therefore won't contain all the
-         * changes. Some changes may only be stored in the backing DB
-         * of the servers.
-         * The total size of the receive queue is calculated by doing
-         * the sum of the number of missing changes for every dbHandler.
-         */
-        ServerState dbState = replicationServerDomain.getDbServerState();
-        return ServerState.diffChanges(dbState, serverState);
+        return msgQueue.count();
       }
+
+      /*
+       * When the server is not able to follow, the msgQueue may become too
+       * large and therefore won't contain all the changes. Some changes may
+       * only be stored in the backing DB of the servers.
+       * The total size of the receive queue is calculated by doing the sum of
+       * the number of missing changes for every dbHandler.
+       */
+      ServerState dbState = replicationServerDomain.getDbServerState();
+      return ServerState.diffChanges(dbState, serverState);
     }
   }
 
@@ -639,7 +639,7 @@ public class MessageHandler extends MonitorProvider<MonitorProviderCfg>
     {
       this.baseDN = baseDN;
       if (!baseDN.equalsIgnoreCase("cn=changelog"))
-        this.replicationServerDomain = getDomain(true, isDataServer);
+        this.replicationServerDomain = getDomain(isDataServer);
     }
   }
 

@@ -562,7 +562,7 @@ public class DbHandler implements Runnable
     public String getMonitorInstanceName()
     {
       ReplicationServerDomain domain = replicationServer
-          .getReplicationServerDomain(baseDn, false);
+          .getReplicationServerDomain(baseDn);
       return "Changelog for DS(" + serverId + "),cn="
           + domain.getMonitorInstanceName();
     }

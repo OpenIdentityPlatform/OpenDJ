@@ -27,6 +27,11 @@
  */
 package org.opends.server.replication;
 
+import java.io.File;
+import java.net.SocketException;
+import java.net.SocketTimeoutException;
+import java.util.*;
+
 import org.opends.messages.Category;
 import org.opends.messages.Message;
 import org.opends.messages.Severity;
@@ -43,17 +48,13 @@ import org.opends.server.replication.protocol.*;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationBackend;
 import org.opends.server.replication.server.ReplicationServer;
+import org.opends.server.replication.server.ReplicationServerDomain;
 import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.tasks.LdifFileWriter;
 import org.opends.server.types.*;
 import org.opends.server.util.StaticUtils;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
-
-import java.io.File;
-import java.net.SocketException;
-import java.net.SocketTimeoutException;
-import java.util.*;
 
 import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.loggers.ErrorLogger.*;
@@ -910,23 +911,17 @@ public class GenerationIdTest extends ReplicationTestCase
       debugInfo("RS1 must have been cleared since it has not the proper generation ID");
       checkChangelogSize(0);
 
-      assertTrue(!replServer1.getReplicationServerDomain(
-          baseDn.toNormalizedString(), false).
-          isDegradedDueToGenerationId(server1ID),
-      "Expecting that DS1 status in RS1 is : not in bad gen id.");
+      assertFalse(isDegradedDueToGenerationId(replServer1, server1ID),
+          "Expecting that DS1 status in RS1 is : not in bad gen id.");
 
       //===============================================================
       debugInfo(testCase + " ** TEST ** Previous test set a new gen ID on the "+
           "topology, verify degradation of DS2 and DS3");
 
-      assertTrue(replServer1.getReplicationServerDomain(
-          baseDn.toNormalizedString(), false).
-          isDegradedDueToGenerationId(server2ID),
-      "Expecting that DS2 with old gen ID is in bad gen id from RS1");
-      assertTrue(replServer1.getReplicationServerDomain(
-          baseDn.toNormalizedString(), false).
-          isDegradedDueToGenerationId(server3ID),
-      "Expecting that DS3 with old gen ID is in bad gen id from RS1");
+      assertTrue(isDegradedDueToGenerationId(replServer1, server2ID),
+          "Expecting that DS2 with old gen ID is in bad gen id from RS1");
+      assertTrue(isDegradedDueToGenerationId(replServer1, server3ID),
+          "Expecting that DS3 with old gen ID is in bad gen id from RS1");
 
       debugInfo("Add entries to DS1, update should not be sent to DS2 and DS3 that are in bad gen id");
       String[] ent3 = { createEntry(UUID.randomUUID()) };
@@ -1013,18 +1008,12 @@ public class GenerationIdTest extends ReplicationTestCase
       checkChangelogSize(1);
 
       debugInfo("Verifying that DS2 is not in bad gen id any more");
-
-      assertTrue(!replServer1.getReplicationServerDomain(
-          baseDn.toNormalizedString(), false).
-          isDegradedDueToGenerationId(server2ID),
-      "Expecting that DS2 is not in bad gen id from RS1");
+      assertFalse(isDegradedDueToGenerationId(replServer1, server2ID),
+          "Expecting that DS2 is not in bad gen id from RS1");
 
       debugInfo("Verifying that DS3 is not in bad gen id any more");
-
-      assertTrue(!replServer1.getReplicationServerDomain(
-          baseDn.toNormalizedString(), false).
-          isDegradedDueToGenerationId(server3ID),
-      "Expecting that DS3 is not in bad gen id from RS1");
+      assertFalse(isDegradedDueToGenerationId(replServer1, server3ID),
+          "Expecting that DS3 is not in bad gen id from RS1");
 
       debugInfo("Verify that DS2 receives the add message stored in RS1 DB");
       try
@@ -1190,10 +1179,8 @@ public class GenerationIdTest extends ReplicationTestCase
         fail("Broker connection is expected to be accepted.");
       }
 
-      debugInfo(
-        "Expecting that broker2 is not in bad gen id since it has a correct genId");
-      assertTrue(!replServer1.getReplicationServerDomain(baseDn.toNormalizedString(), false).
-        isDegradedDueToGenerationId(server2ID));
+      debugInfo("Expecting that broker2 is not in bad gen id since it has a correct genId");
+      assertFalse(isDegradedDueToGenerationId(replServer1, server2ID));
 
       debugInfo("Disconnecting DS from replServer1");
       disconnectFromReplServer(changelog1ID);
@@ -1229,10 +1216,8 @@ public class GenerationIdTest extends ReplicationTestCase
         fail("Broker connection is expected to be accepted.");
       }
 
-      debugInfo(
-        "Expecting that broker3 is in bad gen id since it has a bad genId");
-      assertTrue(replServer1.getReplicationServerDomain(baseDn.toNormalizedString(), false).
-        isDegradedDueToGenerationId(server3ID));
+      debugInfo("Expecting that broker3 is in bad gen id since it has a bad genId");
+      assertTrue(isDegradedDueToGenerationId(replServer1, server3ID));
 
       int found = testEntriesInDb();
       assertEquals(found, updatedEntries.length,
@@ -1300,6 +1285,12 @@ public class GenerationIdTest extends ReplicationTestCase
     {
       postTest();
     }
+  }
+
+  private boolean isDegradedDueToGenerationId(ReplicationServer rs, int serverId)
+  {
+    ReplicationServerDomain domain = rs.getReplicationServerDomain(baseDn.toNormalizedString());
+    return domain.isDegradedDueToGenerationId(serverId);
   }
 
   /**

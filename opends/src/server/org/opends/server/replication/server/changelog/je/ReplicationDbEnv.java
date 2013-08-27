@@ -203,8 +203,7 @@ public class ReplicationDbEnv
               + this.replicationServer.getMonitorInstanceName()
               + " Has read baseDn=" + baseDn + " generationId=" + generationId);
 
-        replicationServer.getReplicationServerDomain(baseDn, true)
-            .initGenerationID(generationId);
+        replicationServer.initDomainGenerationID(baseDn, generationId);
       }
       status = cursor.getNext(key, data, LockMode.DEFAULT);
     }
@@ -236,12 +235,7 @@ public class ReplicationDbEnv
               + this.replicationServer.getMonitorInstanceName()
               + " Has read: baseDn=" + baseDn + " serverId=" + serverId);
 
-        DbHandler dbHandler =
-            new DbHandler(serverId, baseDn, replicationServer, this,
-                replicationServer.getQueueSize());
-
-        replicationServer.getReplicationServerDomain(baseDn, true)
-            .setDbHandler(serverId, dbHandler);
+        replicationServer.addServerIdToDomain(serverId, baseDn);
       }
 
       status = cursor.getNext(key, data, LockMode.DEFAULT);

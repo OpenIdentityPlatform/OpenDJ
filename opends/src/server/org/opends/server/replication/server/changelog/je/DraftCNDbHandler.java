@@ -340,8 +340,8 @@ public class DraftCNDbHandler implements ChangelogDB
             continue;
           }
 
-          final ReplicationServerDomain domain = replicationServer
-              .getReplicationServerDomain(baseDN, false);
+          final ReplicationServerDomain domain =
+              replicationServer.getReplicationServerDomain(baseDN);
           if (domain == null)
           {
             // the domain has been removed since the record was written in the

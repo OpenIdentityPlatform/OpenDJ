@@ -800,7 +800,7 @@ public final class ECLServerHandler extends ServerHandler
       {
         if (allowUnknownDomains)
           for (String providedDomain : startStatesFromProvidedCookie.keySet())
-            if (rs.getReplicationServerDomain(providedDomain, false) == null)
+            if (rs.getReplicationServerDomain(providedDomain) == null)
               // the domain provided in the cookie is not replicated
               startStatesFromProvidedCookie.remove(providedDomain);
       }
