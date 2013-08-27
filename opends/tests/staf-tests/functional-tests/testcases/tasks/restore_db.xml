@@ -147,7 +147,7 @@
               <script>checkRC=9999</script>
               <loop from="1" to="10" var="loop" while="checkRC != 0">
                 <sequence>
-                  <message>'LOOP %s' % loop</message>
+                  <message>'MANAGE-TASKS LOOP %s' % loop</message>
                   <!-- manage-tasks -->
                   <call function="'manage-tasks'">
                     { 'location'       : STAF_REMOTE_HOSTNAME ,
@@ -297,48 +297,71 @@
                 returnString = STAXResult[0][1]
               </script>
   
-              <call function="'searchStringForSubstring'">
-                { 'returnString'	   : returnString,
-                'testString'	   : 'recurring-restore-1',
-                'expectedResult'	   : '1' }
+              <call function="'searchString'">
+                { 'expectedString' : 'recurring-restore-1',
+                  'returnString'   : returnString }
               </call>
-  
+                  
               <call function="'Sleep'">
                 { 'sleepForMilliSeconds'  :  120000 }
               </call>
   
-              <!-- manage-tasks -->
-              <call function="'manage-tasks'">
-                { 'location'     : STAF_REMOTE_HOSTNAME ,
-                'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
-                'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
-                'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
-                'dsQuiet'        : ' '
-                }
-              </call>
-  
-              <script>
-                returnString = STAXResult[0][1]
-              </script>
-  
-              <call function="'searchStringForSubstring'">
-                { 'returnString'	   : returnString,
-                'testString'	   : 'recurring-restore-1',
-                'expectedResult'	   : '1' }
-              </call>
-  
-              <call function="'searchStringForSubstring'">
-                { 'returnString'	   : returnString,
-                'testString'	   : 'Completed successfully',
-                'expectedResult'	   : '1' }
-              </call>
-  
-              <call function="'searchStringForSubstring'">
-                { 'returnString'	   : returnString,
-                'testString'	   : 'Waiting on start time',
-                'expectedResult'	   : '1' }
-              </call>
-  
+              <script>checkRC=9999</script>
+              <loop from="1" to="10" var="loop" while="checkRC != 0">
+                <sequence>
+                  <message>'MANAGE-TASKS LOOP %s' % loop</message>
+                  
+                  <!-- manage-tasks -->
+                  <call function="'manage-tasks'">
+                    { 'location'     : STAF_REMOTE_HOSTNAME ,
+                    'dsInstanceHost' : DIRECTORY_INSTANCE_HOST,
+                    'dsInstanceDn'   : DIRECTORY_INSTANCE_DN,
+                    'dsInstancePswd' : DIRECTORY_INSTANCE_PSWD,
+                    'dsQuiet'        : ' '
+                    }
+                  </call>
+
+                  <script>
+                    returnString = STAXResult[0][1]
+                  </script>
+      
+                  <call function="'searchString'">
+                    { 'expectedString' : 'recurring-restore-1',
+                      'returnString'   : returnString ,
+                      'expectedRC'     : 'noCheck' }
+                  </call>
+
+                  <script>
+                    checkRC = STAXResult[0]
+                  </script>
+                  
+                  <call function="'searchString'">
+                    { 'expectedString' : 'Completed successfully',
+                      'returnString'   : returnString ,
+                      'expectedRC'     : 'noCheck' }
+                  </call>
+
+                  <script>
+                    checkRC = checkRC + STAXResult[0]
+                  </script>
+                  
+                  <call function="'searchString'">
+                    { 'expectedString' : 'Waiting on start time',
+                      'returnString'   : returnString ,
+                      'expectedRC'     : 'noCheck' }
+                  </call>
+
+                  <script>
+                    checkRC = checkRC + STAXResult[0]
+                  </script>
+
+                  <call function="'Sleep'">
+                    { 'sleepForMilliSeconds'  : 2000 }
+                  </call>
+
+                </sequence>
+              </loop>
+
               <!-- cancel the recurring task recurring-restore-1 with manage-tasks -->
               <call function="'manage-tasks'">
                 { 'location'     : STAF_REMOTE_HOSTNAME ,
@@ -354,12 +377,11 @@
                 returnString = STAXResult[0][1]
               </script>
   
-              <call function="'searchStringForSubstring'">
-                { 'returnString'	   : returnString,
-                'testString'	   : 'Task recurring-restore-1 canceled',
-                'expectedResult'	   : '1' }
+              <call function="'searchString'">
+                { 'expectedString' : 'Task recurring-restore-1 canceled',
+                  'returnString'   : returnString }
               </call>
-  
+              
               <call function="'testCase_Postamble'"/>
             </sequence>
           </testcase>
