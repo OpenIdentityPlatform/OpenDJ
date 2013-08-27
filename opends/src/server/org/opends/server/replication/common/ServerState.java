@@ -48,7 +48,8 @@ public class ServerState implements Iterable<Integer>
 {
 
   /** Associates a serverId with a ChangeNumber. */
-  private final Map<Integer, ChangeNumber> serverIdToChangeNumber;
+  private final Map<Integer, ChangeNumber> serverIdToChangeNumber =
+      new HashMap<Integer, ChangeNumber>();
   /**
    * Whether the state has been saved to persistent storage. It starts at true,
    * and moves to false when an update is made to the current object.
@@ -60,7 +61,7 @@ public class ServerState implements Iterable<Integer>
    */
   public ServerState()
   {
-    serverIdToChangeNumber = new HashMap<Integer, ChangeNumber>();
+    super();
   }
 
   /**
@@ -92,10 +93,11 @@ public class ServerState implements Iterable<Integer>
   {
     try
     {
-      serverIdToChangeNumber = new HashMap<Integer, ChangeNumber>();
-
       while (endpos > pos)
       {
+        // FIXME JNR: why store the serverId separately from the changeNumber
+        // since the changeNumber already contains the serverId?
+
         // read the ServerId
         int length = getNextLength(in, pos);
         String serverIdString = new String(in, pos, length, "UTF-8");
@@ -108,10 +110,9 @@ public class ServerState implements Iterable<Integer>
         ChangeNumber cn = new ChangeNumber(cnString);
         pos += length +1;
 
-        // Add the serverid
+        // Add the serverId
         serverIdToChangeNumber.put(serverId, cn);
       }
-
     } catch (UnsupportedEncodingException e)
     {
       throw new DataFormatException("UTF-8 is not supported by this jvm.");
@@ -183,7 +184,6 @@ public class ServerState implements Iterable<Integer>
       return false;
 
     boolean updated = false;
-
     for (ChangeNumber cn : serverState.serverIdToChangeNumber.values())
     {
       if (update(cn))
@@ -191,7 +191,6 @@ public class ServerState implements Iterable<Integer>
         updated = true;
       }
     }
-
     return updated;
   }
 
@@ -207,22 +206,11 @@ public class ServerState implements Iterable<Integer>
       return false;
     }
 
-    boolean result = false;
-
     synchronized (serverIdToChangeNumber)
     {
       clear();
-      for (Integer serverId : serverState)
-      {
-        ChangeNumber maxChangeNumber = serverState.getChangeNumber(serverId);
-        if (update(maxChangeNumber))
-        {
-          result = true;
-        }
-      }
+      return update(serverState);
     }
-
-    return result;
   }
 
   /**
@@ -357,7 +345,7 @@ public class ServerState implements Iterable<Integer>
     {
       for (ChangeNumber tmpMax : serverIdToChangeNumber.values())
       {
-        if ((maxCN==null) || (tmpMax.newer(maxCN)))
+        if (maxCN == null || tmpMax.newer(maxCN))
           maxCN = tmpMax;
       }
     }
@@ -395,6 +383,7 @@ public class ServerState implements Iterable<Integer>
       for (Entry<Integer, ChangeNumber> entry : serverIdToChangeNumber
           .entrySet())
       {
+        // serverId is useless, see comment in ServerState ctor
         String serverIdStr = String.valueOf(entry.getKey());
         idList.add(serverIdStr);
         length += serverIdStr.length() + 1;
@@ -439,9 +428,7 @@ public class ServerState implements Iterable<Integer>
   {
     for (ChangeNumber coveredChange : covered.serverIdToChangeNumber.values())
     {
-      ChangeNumber change =
-          this.serverIdToChangeNumber.get(coveredChange.getServerId());
-      if ((change == null) || (change.older(coveredChange)))
+      if (!cover(coveredChange))
       {
         return false;
       }
@@ -460,7 +447,7 @@ public class ServerState implements Iterable<Integer>
   {
     ChangeNumber change =
         this.serverIdToChangeNumber.get(covered.getServerId());
-    return !((change == null) || (change.older(covered)));
+    return change != null && !change.older(covered);
   }
 
   /**
@@ -482,10 +469,7 @@ public class ServerState implements Iterable<Integer>
     ServerState newState = new ServerState();
     synchronized (serverIdToChangeNumber)
     {
-      for (ChangeNumber change : serverIdToChangeNumber.values())
-      {
-        newState.serverIdToChangeNumber.put(change.getServerId(), change);
-      }
+      newState.serverIdToChangeNumber.putAll(serverIdToChangeNumber);
     }
     return newState;
   }
@@ -502,7 +486,7 @@ public class ServerState implements Iterable<Integer>
   public static int diffChanges(ServerState ss1, ServerState ss2)
     throws  IllegalArgumentException
   {
-    if ((ss1 == null) || (ss2 == null))
+    if (ss1 == null || ss2 == null)
     {
       throw new IllegalArgumentException("Null server state(s)");
     }

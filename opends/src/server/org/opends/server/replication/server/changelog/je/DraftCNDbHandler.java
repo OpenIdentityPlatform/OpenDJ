@@ -44,9 +44,9 @@ import org.opends.server.replication.common.MultiDomainServerState;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.server.ReplicationServerDomain;
-import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.api.ChangelogDB;
 import org.opends.server.replication.server.changelog.api.ChangelogDBIterator;
+import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.je.DraftCNDB.*;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.Attributes;
@@ -317,15 +317,6 @@ public class DraftCNDbHandler implements ChangelogDB
       return;
     }
 
-    // FIXME is this correct?
-    // This code is not setting the excludedBaseDNs of the RS which means it
-    // could take any value set by one of the other methods!
-    // In addition, this code is not thread safe, but I suspect it is used in a
-    // multi-threaded way.
-    // The call to RS.getEligibleCN() is not reliable in any way and could
-    // return very different values even if the DB content did not change!!
-    ChangeNumber crossDomainEligibleCN = replicationServer.getEligibleCN();
-
     for (int i = 0; i < 100; i++)
     {
       final DraftCNDBCursor cursor = db.openDeleteCursor();
@@ -361,10 +352,6 @@ public class DraftCNDbHandler implements ChangelogDB
           }
 
           final ServerState startState = domain.getStartState();
-
-          // We don't use the returned endState but it's updating CN as reading
-          domain.getEligibleState(crossDomainEligibleCN);
-
           final ChangeNumber fcn = startState.getChangeNumber(cn.getServerId());
 
           final int currentDraftCN = cursor.currentKey();
