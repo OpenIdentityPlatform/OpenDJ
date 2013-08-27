@@ -523,11 +523,10 @@ public final class ReplicationServer
 
     try
     {
-      /*
-       * Initialize the replicationServer database.
-       */
+      // Initialize the replicationServer database.
       dbEnv = new ReplicationDbEnv(getFileForPath(dbDirname).getAbsolutePath(),
           this);
+      dbEnv.start();
 
       setServerURL();
       listenSocket = new ServerSocket();
