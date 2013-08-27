@@ -54,6 +54,7 @@ import org.opends.server.types.*;
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.replication.protocol.ProtocolVersion.*;
 import static org.opends.server.util.StaticUtils.*;
 
 /**
@@ -222,8 +223,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     if (assuredMessage)
     {
       // Assured feature is supported starting from replication protocol V2
-      if (sourceHandler.getProtocolVersion() >=
-        ProtocolVersion.REPLICATION_PROTOCOL_V2)
+      if (sourceHandler.getProtocolVersion() >= REPLICATION_PROTOCOL_V2)
       {
         // According to assured sub-mode, prepare structures to keep track of
         // the acks we are interested in.
@@ -319,15 +319,11 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
         {
           if (debugEnabled())
           {
-            TRACER.debugInfo("In Replication Server "
-                + localReplicationServer.getReplicationPort() + " " + baseDn
-                + " "
-                + localReplicationServer.getServerId() + " for dn " + baseDn
-                + ", update " + update.getChangeNumber()
+            TRACER.debugInfo(getMessage("update " + update.getChangeNumber()
                 + " will not be sent to replication server "
                 + rsHandler.getServerId() + " with generation id "
                 + rsHandler.getGenerationId() + " different from local "
-                + "generation id " + generationId);
+                + "generation id " + generationId));
           }
 
           continue;
@@ -951,10 +947,8 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     // TODO JNR merge with stopServer(MessageHandler)
     if (debugEnabled())
     {
-      TRACER.debugInfo("In "
-          + this.localReplicationServer.getMonitorInstanceName()
-          + " domain=" + this + " stopServer() on the server handler "
-          + sHandler.getMonitorInstanceName());
+      TRACER.debugInfo(getMessage("stopServer() on the server handler "
+          + sHandler.getMonitorInstanceName()));
     }
     /*
      * We must prevent deadlock on replication server domain lock, when for
@@ -990,11 +984,10 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
         {
           if (debugEnabled())
           {
-            TRACER.debugInfo("In "
-                + localReplicationServer.getMonitorInstanceName()
-                + " remote server " + sHandler.getMonitorInstanceName()
+            TRACER.debugInfo(getMessage("remote server "
+                + sHandler.getMonitorInstanceName()
                 + " is the last RS/DS to be stopped:"
-                + " stopping monitoring publisher");
+                + " stopping monitoring publisher"));
           }
           stopMonitoringPublisher();
         }
@@ -1010,10 +1003,9 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
           {
             if (debugEnabled())
             {
-              TRACER.debugInfo("In "
-                  + localReplicationServer.getMonitorInstanceName()
-                  + " remote server " + sHandler.getMonitorInstanceName()
-                  + " is the last DS to be stopped: stopping status analyzer");
+              TRACER.debugInfo(getMessage("remote server "
+                  + sHandler.getMonitorInstanceName()
+                  + " is the last DS to be stopped: stopping status analyzer"));
             }
             stopStatusAnalyzer();
           }
@@ -1074,10 +1066,8 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     // TODO JNR merge with stopServer(ServerHandler, boolean)
     if (debugEnabled())
     {
-      TRACER.debugInfo("In "
-          + this.localReplicationServer.getMonitorInstanceName()
-          + " domain=" + this + " stopServer() on the message handler "
-          + mHandler.getMonitorInstanceName());
+      TRACER.debugInfo(getMessage("stopServer() on the message handler "
+          + mHandler.getMonitorInstanceName()));
     }
     /*
      * We must prevent deadlock on replication server domain lock, when for
@@ -2306,10 +2296,8 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
   {
     if (debugEnabled())
     {
-      TRACER.debugInfo("In "
-          + this.localReplicationServer.getMonitorInstanceName()
-          + " baseDN=" + baseDn + " isDegraded serverId=" + serverId
-          + " given local generation Id=" + this.generationId);
+      TRACER.debugInfo(getMessage("isDegraded serverId=" + serverId
+          + " given local generation Id=" + this.generationId));
     }
 
     ServerHandler sHandler = connectedRSs.get(serverId);
@@ -2324,10 +2312,8 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
 
     if (debugEnabled())
     {
-      TRACER.debugInfo("In "
-          + this.localReplicationServer.getMonitorInstanceName()
-          + " baseDN=" + baseDn + " Compute degradation of serverId=" + serverId
-          + " LS server generation Id=" + sHandler.getGenerationId());
+      TRACER.debugInfo(getMessage("Compute degradation of serverId=" + serverId
+          + " LS server generation Id=" + sHandler.getGenerationId()));
     }
     return sHandler.getGenerationId() != this.generationId;
   }
@@ -2792,10 +2778,8 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
       {
         if (debugEnabled())
         {
-          TRACER.debugInfo("In " + "Replication Server "
-              + localReplicationServer.getReplicationPort() + " " + baseDn + " "
-              + localReplicationServer.getServerId() + " Server " + serverId
-              + " is not considered for eligibility ... potentially down");
+          TRACER.debugInfo(getMessage("Server " + serverId
+              + " is not considered for eligibility ... potentially down"));
         }
         continue;
       }
@@ -2815,10 +2799,8 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
 
     if (debugEnabled())
     {
-      TRACER.debugInfo("In Replication Server "
-          + localReplicationServer.getReplicationPort() + " " + baseDn + " "
-          + localReplicationServer.getServerId()
-          + " getEligibleCN() returns result =" + eligibleCN);
+      TRACER.debugInfo(getMessage("getEligibleCN() returns result ="
+          + eligibleCN));
     }
     return eligibleCN;
   }
@@ -2876,8 +2858,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
         {
           try
           {
-            if (rsHandler.getProtocolVersion() >=
-              ProtocolVersion.REPLICATION_PROTOCOL_V3)
+            if (rsHandler.getProtocolVersion() >= REPLICATION_PROTOCOL_V3)
             {
               rsHandler.send(msg);
             }
@@ -3091,7 +3072,8 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
 
   private String getMessage(String message)
   {
-    return "In RS " + localReplicationServer.getServerId() + " for " + baseDn
+    return "In RS " + localReplicationServer.getServerId()+ " for baseDn "
+        + baseDn + " and port " + localReplicationServer.getReplicationPort()
         + ": " + message;
   }
 }
