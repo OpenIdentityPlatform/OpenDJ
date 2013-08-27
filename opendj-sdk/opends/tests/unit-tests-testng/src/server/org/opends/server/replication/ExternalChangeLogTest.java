@@ -101,11 +101,11 @@ public class ExternalChangeLogTest extends ReplicationTestCase
   /** The port of the replicationServer. */
   private int replicationServerPort;
 
-  private static final String TEST_ROOT_DN_STRING2 = "o=test2";
   private static final String TEST_BACKEND_ID2 = "test2";
+  private static final String TEST_ROOT_DN_STRING2 = "o=" + TEST_BACKEND_ID2;
 
-  private static final String TEST_ROOT_DN_STRING3 = "o=test3";
   private static final String TEST_BACKEND_ID3 = "test3";
+  private static final String TEST_ROOT_DN_STRING3 = "o=" + TEST_BACKEND_ID3;
 
   /** The LDAPStatistics object associated with the LDAP connection handler. */
   private LDAPStatistics ldapStatistics;
@@ -648,18 +648,15 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       server01.publish(delMsg1);
       debugInfo(tn, "publishes:" + delMsg1);
 
-      // Initialize a second test backend o=test2, in addition to o=test
       // Configure replication on this backend
       // Add the root entry in the backend
-      backend2 = initializeTestBackend(false, TEST_ROOT_DN_STRING2,
-          TEST_BACKEND_ID2);
+      backend2 = initializeTestBackend(false, TEST_BACKEND_ID2);
       backend2.setPrivateBackend(true);
       SortedSet<String> replServers = newSet("localhost:" + replicationServerPort);
 
       DomainFakeCfg domainConf =
         new DomainFakeCfg(baseDn2,  1602, replServers);
-      domain2 = createDomain(domainConf, null,null);
-      domain2.start();
+      domain2 = startNewDomain(domainConf, null,null);
 
       sleep(1000);
       addEntry(createEntry(baseDn2));
@@ -706,11 +703,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       {
         domain2.shutdown();
       }
-      if (backend2 != null)
-      {
-        removeTestBackend2(backend2);
-      }
-
+      removeTestBackend(backend2);
       stop(server01);
       replicationServer.clearDb();
     }
@@ -730,10 +723,10 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     ReplicationBroker s2test = null;
     ReplicationBroker s2test2 = null;
 
+    Backend backend2 = null;
     try
     {
-      // Initialize a second test backend
-      initializeTestBackend(true, TEST_ROOT_DN_STRING2, TEST_BACKEND_ID2);
+      backend2 = initializeTestBackend(true, TEST_BACKEND_ID2);
 
       LDIFWriter ldifWriter = getLDIFWriter();
 
@@ -893,6 +886,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     }
     finally
     {
+      removeTestBackend(backend2);
       stop(s1test2, s2test, s1test, s2test2);
       replicationServer.clearDb();
     }
@@ -2229,14 +2223,10 @@ public class ExternalChangeLogTest extends ReplicationTestCase
   /**
    * Utility - create a second backend in order to test ECL with 2 suffixes.
    */
-  private static Backend initializeTestBackend(
-      boolean createBaseEntry,
-      String rootDN,
-      String backendId)
-  throws Exception
+  private static Backend initializeTestBackend(boolean createBaseEntry,
+      String backendId) throws Exception
   {
-
-    DN baseDN = DN.decode(rootDN);
+    DN baseDN = DN.decode("o=" + backendId);
 
     //  Retrieve backend. Warning: it is important to perform this each time,
     //  because a test may have disabled then enabled the backend (i.e a test
@@ -2265,12 +2255,15 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     return memoryBackend;
   }
 
-  private static void removeTestBackend2(Backend backend)
+  private static void removeTestBackend(Backend backend)
   {
-    MemoryBackend memoryBackend = (MemoryBackend)backend;
-    memoryBackend.clearMemoryBackend();
-    memoryBackend.finalizeBackend();
-    DirectoryServer.deregisterBackend(memoryBackend);
+    if (backend != null)
+    {
+      MemoryBackend memoryBackend = (MemoryBackend) backend;
+      memoryBackend.clearMemoryBackend();
+      memoryBackend.finalizeBackend();
+      DirectoryServer.deregisterBackend(memoryBackend);
+    }
   }
 
   private void ChangeTimeHeartbeatTest() throws Exception
@@ -2281,14 +2274,11 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     ReplicationBroker s2test = null;
     ReplicationBroker s1test2 = null;
     ReplicationBroker s2test2 = null;
-
-    // Initialize a second test backend
     Backend backend2 = null;
 
     try
     {
-      backend2 = initializeTestBackend(true, TEST_ROOT_DN_STRING2,
-          TEST_BACKEND_ID2);
+      backend2 = initializeTestBackend(true, TEST_BACKEND_ID2);
 
       // --
       s1test = openReplicationSession(
@@ -2366,12 +2356,8 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     finally
     {
       stop(s1test2, s2test2);
-      if (backend2 != null)
-      {
-        removeTestBackend2(backend2);
-      }
+      removeTestBackend(backend2);
       stop(s1test, s2test);
-
       replicationServer.clearDb();
     }
     debugInfo(tn, "Ending test successfully");
@@ -3052,10 +3038,9 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     LDAPReplicationDomain domain21 = null;
     try
     {
-      // Initialize a second test backend o=test2, in addtion to o=test
       // Configure replication on this backend
       // Add the root entry in the backend
-      backend2 = initializeTestBackend(false, TEST_ROOT_DN_STRING2, TEST_BACKEND_ID2);
+      backend2 = initializeTestBackend(false, TEST_BACKEND_ID2);
       DN baseDn2 = DN.decode(TEST_ROOT_DN_STRING2);
 
       SortedSet<String> replServers = newSet("localhost:" + replicationServerPort);
@@ -3064,10 +3049,9 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       SortedSet<String> eclInclude = newSet("sn", "roomnumber");
 
       DomainFakeCfg domainConf = new DomainFakeCfg(baseDn2, 1702, replServers);
-      domain2 = createDomain(domainConf, eclInclude, eclInclude);
-      domain2.start();
+      domain2 = startNewDomain(domainConf, eclInclude, eclInclude);
 
-      backend3 = initializeTestBackend(false, TEST_ROOT_DN_STRING3, TEST_BACKEND_ID3);
+      backend3 = initializeTestBackend(false, TEST_BACKEND_ID3);
       DN baseDn3 = DN.decode(TEST_ROOT_DN_STRING3);
 
       // on o=test3,sid=1703 include attrs set to : 'objectclass'
@@ -3076,15 +3060,13 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       SortedSet<String> eclIncludeForDeletes = newSet("*");
 
       domainConf = new DomainFakeCfg(baseDn3, 1703, replServers);
-      domain3 = createDomain(domainConf, eclInclude, eclIncludeForDeletes);
-      domain3.start();
+      domain3 = startNewDomain(domainConf, eclInclude, eclIncludeForDeletes);
 
       // on o=test2,sid=1704 include attrs set to : 'cn'
       eclInclude = newSet("cn");
 
       domainConf = new DomainFakeCfg(baseDn2, 1704, replServers);
-      domain21 = createDomain(domainConf, eclInclude, eclInclude);
-      domain21.start();
+      domain21 = startNewDomain(domainConf, eclInclude, eclInclude);
 
       sleep(1000);
 
@@ -3208,13 +3190,13 @@ public class ExternalChangeLogTest extends ReplicationTestCase
         {
           domain2.shutdown();
         }
-        removeTestBackend2(backend2);
+        removeTestBackend(backend2);
 
         if (domain3 != null)
         {
           domain3.shutdown();
         }
-        removeTestBackend2(backend3);
+        removeTestBackend(backend3);
       }
       finally
       {
@@ -3229,7 +3211,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     return new TreeSet<String>(Arrays.asList(values));
   }
 
-  private LDAPReplicationDomain createDomain(DomainFakeCfg domainConf,
+  private LDAPReplicationDomain startNewDomain(DomainFakeCfg domainConf,
       SortedSet<String> eclInclude, SortedSet<String> eclIncludeForDeletes)
       throws Exception
   {
@@ -3238,7 +3220,9 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     // Set a Changetime heartbeat interval low enough (less than default value
     // that is 1000 ms) for the test to be sure to consider all changes as eligible.
     domainConf.setChangetimeHeartbeatInterval(10);
-    return MultimasterReplication.createNewDomain(domainConf);
+    LDAPReplicationDomain newDomain = MultimasterReplication.createNewDomain(domainConf);
+    newDomain.start();
+    return newDomain;
   }
 
   private void runModifyOperation(Entry entry, List<Modification> mods)
