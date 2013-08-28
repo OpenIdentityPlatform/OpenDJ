@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2012 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -71,8 +71,6 @@ import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 
@@ -90,8 +88,7 @@ public class GSSAPISASLMechanismHandler extends
   // The tracer object for the debug logger.
   private static final DebugTracer TRACER = getTracer();
 
-  // The DN of the configuration entry for this SASL mechanism
-  // handler.
+  // The DN of the configuration entry for this SASL mechanism handler.
   private DN configEntryDN;
 
   // The current configuration for this SASL mechanism handler.
@@ -104,8 +101,7 @@ public class GSSAPISASLMechanismHandler extends
   // GSSAPI authentication.
   private HashMap<String, String> saslProps;
 
-  // The fully qualified domain name used when creating the SASL
-  // server.
+  // The fully qualified domain name used when creating the SASL server.
   private String serverFQDN;
 
   // The login context used to perform server-side authentication.
@@ -188,7 +184,7 @@ public class GSSAPISASLMechanismHandler extends
       Message message = ERR_SASLGSSAPI_KDC_REALM_NOT_DEFINED.get();
       throw new InitializationException(message);
     }
-    else if (kdcAddress != null && realm != null)
+    else if (kdcAddress != null)
     {
       System.setProperty(KRBV_PROPERTY_KDC, kdcAddress);
       System.setProperty(KRBV_PROPERTY_REALM, realm);
@@ -307,7 +303,7 @@ public class GSSAPISASLMechanismHandler extends
       GSSAPISASLMechanismHandlerCfg configuration)
   throws IOException, InitializationException {
     String configFileName;
-    File tempFile = File.createTempFile("login", "conf");
+    File tempFile = File.createTempFile("login", ".conf");
     configFileName = tempFile.getAbsolutePath();
     tempFile.deleteOnExit();
     BufferedWriter w = new BufferedWriter(new FileWriter(tempFile, false));
@@ -386,16 +382,15 @@ private void clearProperties() {
   @Override()
   public void processSASLBind(BindOperation bindOp)
   {
-    ClientConnection clientConnection = bindOp.getClientConnection();
-    if (clientConnection == null)
+    ClientConnection connection = bindOp.getClientConnection();
+    if (connection == null)
     {
       Message message = ERR_SASLGSSAPI_NO_CLIENT_CONNECTION.get();
       bindOp.setAuthFailureReason(message);
       bindOp.setResultCode(ResultCode.INVALID_CREDENTIALS);
       return;
     }
-    ClientConnection clientConn = bindOp.getClientConnection();
-    SASLContext saslContext = (SASLContext) clientConn.getSASLAuthStateInfo();
+    SASLContext saslContext = (SASLContext) connection.getSASLAuthStateInfo();
     if (saslContext == null) {
       try {
         saslContext = SASLContext.createSASLContext(saslProps, serverFQDN,
@@ -412,7 +407,7 @@ private void clearProperties() {
           msg = ERR_SASL_CONTEXT_CREATE_ERROR.get(SASL_MECHANISM_GSSAPI,
               getExceptionMessage(ex));
         }
-        clientConn.setSASLAuthStateInfo(null);
+        connection.setSASLAuthStateInfo(null);
         bindOp.setAuthFailureReason(msg);
         bindOp.setResultCode(ResultCode.INVALID_CREDENTIALS);
         return;
@@ -430,11 +425,9 @@ private void clearProperties() {
             .get(getExceptionMessage(ex));
       // Log a configuration error.
       logError(message);
-      clientConn.setSASLAuthStateInfo(null);
+      connection.setSASLAuthStateInfo(null);
       bindOp.setAuthFailureReason(message);
       bindOp.setResultCode(ResultCode.INVALID_CREDENTIALS);
-      return;
-
     }
   }
 
@@ -444,45 +437,20 @@ private void clearProperties() {
    * problem is. The major code is the GSS-API status and the minor is the
    * mechanism specific error.
    *
-   * @param gex The GSSExcption thrown.
+   * @param gex The GSSException thrown.
    *
    * @return The message containing the major and (optional) minor codes and
    *         strings.
    */
   public static Message getGSSExceptionMessage(GSSException gex) {
     MessageBuilder message = new MessageBuilder();
-    message.append("major code (" + Integer.valueOf(gex.getMajor()).toString()
-                  + ") " +  gex.getMajorString());
+    message.append("major code (").append(gex.getMajor()).append(") ")
+        .append(gex.getMajorString());
     if(gex.getMinor() != 0)
-      message.append(", minor code (" +
-                      Integer.valueOf(gex.getMinor()).toString()
-                       +  ") "  + gex.getMinorString());
+      message.append(", minor code (").append(gex.getMinor()).append(") ")
+          .append(gex.getMinorString());
     return message.toMessage();
   }
-
-  /**
-   * Retrieves the user account for the user associated with the
-   * provided authorization ID.
-   *
-   * @param bindOperation
-   *          The bind operation from which the provided authorization
-   *          ID was derived.
-   * @param authzID
-   *          The authorization ID for which to retrieve the
-   *          associated user.
-   * @return The user entry for the user with the specified
-   *         authorization ID, or {@code null} if none is identified.
-   * @throws DirectoryException
-   *           If a problem occurs while searching the directory for
-   *           the associated user, or if multiple matching entries
-   *           are found.
-   */
-  public Entry getUserForAuthzID(BindOperation bindOperation, String authzID)
-      throws DirectoryException
-  {
-    return identityMapper.getEntryForID(authzID);
-  }
-
 
 
   /**
@@ -494,7 +462,6 @@ private void clearProperties() {
     // This is not a password-based mechanism.
     return false;
   }
-
 
 
   /**
@@ -624,15 +591,16 @@ private void clearProperties() {
  *
  * @param config The configuration to use.
  *
- * @throws UnknownHostException If a host name does not resolve.
- * @throws IOException If there was a problem creating the login file.
- * @throws LoginException If the context could not login.
- * @throws InitializationException If the keytab file does not exist.
+ * @throws UnknownHostException
+ *      If a host name does not resolve.
+ * @throws IOException
+ *      If there was a problem creating the login file.
+ * @throws InitializationException
+ *      If the keytab file does not exist.
  */
 private void initialize(GSSAPISASLMechanismHandlerCfg config)
-throws UnknownHostException,
-       IOException,
-       InitializationException {
+throws UnknownHostException, IOException, InitializationException
+{
     configEntryDN = config.dn();
     DN identityMapperDN = config.getIdentityMapperDN();
     identityMapper = DirectoryServer.getIdentityMapper(identityMapperDN);
