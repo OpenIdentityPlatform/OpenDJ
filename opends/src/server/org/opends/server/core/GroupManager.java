@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.core;
 
@@ -202,16 +202,16 @@ public class GroupManager extends InternalDirectoryServerPlugin
 
       if (groupConfiguration.isEnabled())
       {
-        String className = groupConfiguration.getJavaClass();
         try
         {
-          Group group = loadGroup(className, groupConfiguration, true);
+          Group group = loadGroup(groupConfiguration.getJavaClass(),
+              groupConfiguration, true);
           groupImplementations.put(groupConfiguration.dn(), group);
         }
         catch (InitializationException ie)
         {
+          // Log error but keep going
           logError(ie.getMessageObject());
-          continue;
         }
       }
     }
@@ -228,12 +228,9 @@ public class GroupManager extends InternalDirectoryServerPlugin
   {
     if (configuration.isEnabled())
     {
-      // Get the name of the class and make sure we can instantiate it as a
-      // group implementation.
-      String className = configuration.getJavaClass();
       try
       {
-        loadGroup(className, configuration, false);
+        loadGroup(configuration.getJavaClass(), configuration, false);
       }
       catch (InitializationException ie)
       {
@@ -241,8 +238,6 @@ public class GroupManager extends InternalDirectoryServerPlugin
         return false;
       }
     }
-
-    // If we've gotten here, then it's fine.
     return true;
   }
 
@@ -254,33 +249,24 @@ public class GroupManager extends InternalDirectoryServerPlugin
   public ConfigChangeResult applyConfigurationAdd(
                                  GroupImplementationCfg configuration)
   {
-    ResultCode        resultCode          = ResultCode.SUCCESS;
-    boolean           adminActionRequired = false;
-    ArrayList<Message> messages            = new ArrayList<Message>();
+    ResultCode resultCode = ResultCode.SUCCESS;
+    List<Message> messages = new ArrayList<Message>();
 
     configuration.addChangeListener(this);
 
     if (! configuration.isEnabled())
     {
-      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+      return new ConfigChangeResult(resultCode, false, messages);
     }
 
     Group group = null;
-
-    // Get the name of the class and make sure we can instantiate it as a group
-    // implementation.
-    String className = configuration.getJavaClass();
     try
     {
-      group = loadGroup(className, configuration, true);
+      group = loadGroup(configuration.getJavaClass(), configuration, true);
     }
     catch (InitializationException ie)
     {
-      if (resultCode == ResultCode.SUCCESS)
-      {
-        resultCode = DirectoryServer.getServerErrorResultCode();
-      }
-
+      resultCode = DirectoryServer.getServerErrorResultCode();
       messages.add(ie.getMessageObject());
     }
 
@@ -291,8 +277,7 @@ public class GroupManager extends InternalDirectoryServerPlugin
 
     // FIXME -- We need to make sure to find all groups of this type in the
     // server before returning.
-
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return new ConfigChangeResult(resultCode, false, messages);
   }
 
 
@@ -317,9 +302,8 @@ public class GroupManager extends InternalDirectoryServerPlugin
   public ConfigChangeResult applyConfigurationDelete(
                                  GroupImplementationCfg configuration)
   {
-    ResultCode        resultCode          = ResultCode.SUCCESS;
-    boolean           adminActionRequired = false;
-    ArrayList<Message> messages            = new ArrayList<Message>();
+    ResultCode resultCode = ResultCode.SUCCESS;
+    List<Message> messages = new ArrayList<Message>();
 
     Group group = groupImplementations.remove(configuration.dn());
     if (group != null)
@@ -345,7 +329,7 @@ public class GroupManager extends InternalDirectoryServerPlugin
       group.finalizeGroupImplementation();
     }
 
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return new ConfigChangeResult(resultCode, false, messages);
   }
 
 
@@ -359,12 +343,9 @@ public class GroupManager extends InternalDirectoryServerPlugin
   {
     if (configuration.isEnabled())
     {
-      // Get the name of the class and make sure we can instantiate it as a
-      // group implementation.
-      String className = configuration.getJavaClass();
       try
       {
-        loadGroup(className, configuration, false);
+        loadGroup(configuration.getJavaClass(), configuration, false);
       }
       catch (InitializationException ie)
       {
@@ -372,8 +353,6 @@ public class GroupManager extends InternalDirectoryServerPlugin
         return false;
       }
     }
-
-    // If we've gotten here, then it's fine.
     return true;
   }
 
@@ -385,14 +364,11 @@ public class GroupManager extends InternalDirectoryServerPlugin
   public ConfigChangeResult applyConfigurationChange(
                                  GroupImplementationCfg configuration)
   {
-    ResultCode        resultCode          = ResultCode.SUCCESS;
-    boolean           adminActionRequired = false;
-    ArrayList<Message> messages            = new ArrayList<Message>();
-
-
+    ResultCode resultCode = ResultCode.SUCCESS;
+    boolean adminActionRequired = false;
+    List<Message> messages = new ArrayList<Message>();
     // Get the existing group implementation if it's already enabled.
     Group existingGroup = groupImplementations.get(configuration.dn());
-
 
     // If the new configuration has the group implementation disabled, then
     // disable it if it is enabled, or do nothing if it's already disabled.
@@ -452,11 +428,7 @@ public class GroupManager extends InternalDirectoryServerPlugin
     }
     catch (InitializationException ie)
     {
-      if (resultCode == ResultCode.SUCCESS)
-      {
-        resultCode = DirectoryServer.getServerErrorResultCode();
-      }
-
+      resultCode = DirectoryServer.getServerErrorResultCode();
       messages.add(ie.getMessageObject());
     }
 
@@ -624,25 +596,15 @@ public class GroupManager extends InternalDirectoryServerPlugin
    */
   public Group getGroupInstance(DN entryDN)
   {
-    Group group = null;
-
     lock.readLock().lock();
     try
     {
-      group = groupInstances.get(entryDN);
+      return groupInstances.get(entryDN);
     }
     finally
     {
       lock.readLock().unlock();
     }
-
-    if (group == null)
-    {
-      // FIXME -- Should we try to retrieve the corresponding entry and see if
-      // it is a group?
-    }
-
-    return group;
   }
 
 
@@ -679,8 +641,6 @@ public class GroupManager extends InternalDirectoryServerPlugin
         {
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
-
-        // FIXME -- Is there anything that we need to do here?
         continue;
       }
 
@@ -700,8 +660,6 @@ public class GroupManager extends InternalDirectoryServerPlugin
           {
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
-
-          // FIXME -- Is there anything that we need to do here?
           continue;
         }
 
@@ -741,15 +699,13 @@ public class GroupManager extends InternalDirectoryServerPlugin
               groupInstances.put(entry.getDN(), groupInstance);
               refreshToken++;
             }
-            catch (Exception e)
+            catch (DirectoryException e)
             {
               if (debugEnabled())
               {
                 TRACER.debugCaught(DebugLogLevel.ERROR, e);
               }
-
-              // FIXME -- Handle this.
-              continue;
+              // Nothing specific to do, as it's already logged.
             }
           }
         }
@@ -937,7 +893,7 @@ public class GroupManager extends InternalDirectoryServerPlugin
         builder.replace(oldDNIndex, builder.length(),
                 newDNString);
         String groupDNString = builder.toString();
-        DN groupDN = DN.NULL_DN;
+        DN groupDN;
         try
         {
           groupDN = DN.decode(groupDNString);
@@ -1129,14 +1085,12 @@ public class GroupManager extends InternalDirectoryServerPlugin
           }
         }
       }
-      catch (Exception e)
+      catch (DirectoryException e)
       {
         if (debugEnabled())
         {
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
-
-        // FIXME -- Do we need to do anything else?
       }
     }
   }
