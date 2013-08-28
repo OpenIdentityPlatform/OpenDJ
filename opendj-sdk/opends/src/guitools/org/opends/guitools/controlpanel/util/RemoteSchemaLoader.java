@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.util;
@@ -52,7 +53,6 @@ import org.opends.server.types.Schema;
 
 /**
  * Class used to retrieve the schema from the schema files.
- *
  */
 public class RemoteSchemaLoader extends SchemaLoader
 {
@@ -60,7 +60,6 @@ public class RemoteSchemaLoader extends SchemaLoader
 
   /**
    * Constructor.
-   *
    */
   public RemoteSchemaLoader()
   {
@@ -69,30 +68,32 @@ public class RemoteSchemaLoader extends SchemaLoader
 
   /**
    * Reads the schema.
-   * @param ctx the connection to be used to load the schema.
-   * @throws NamingException if an error occurs reading the schema.
-   * @throws DirectoryException if an error occurs parsing the schema.
-   * @throws InitializationException if an error occurs finding the base
-   * schema.
-   * @throws ConfigException if an error occurs loading the configuration
-   * required to use the schema classes.
+   *
+   * @param ctx
+   *          the connection to be used to load the schema.
+   * @throws NamingException
+   *           if an error occurs reading the schema.
+   * @throws DirectoryException
+   *           if an error occurs parsing the schema.
+   * @throws InitializationException
+   *           if an error occurs finding the base schema.
+   * @throws ConfigException
+   *           if an error occurs loading the configuration required to use the
+   *           schema classes.
    */
   public void readSchema(InitialLdapContext ctx) throws NamingException,
-  DirectoryException, InitializationException, ConfigException
+      DirectoryException, InitializationException, ConfigException
   {
     SearchControls searchControls = new SearchControls();
     searchControls.setSearchScope(SearchControls.OBJECT_SCOPE);
     String[] schemaAttrs =
-    {
-        ConfigConstants.ATTR_OBJECTCLASSES_LC,
-        ConfigConstants.ATTR_ATTRIBUTE_TYPES_LC
-    };
+        { ConfigConstants.ATTR_OBJECTCLASSES_LC,
+          ConfigConstants.ATTR_ATTRIBUTE_TYPES_LC };
     searchControls.setReturningAttributes(schemaAttrs);
     String filter = BrowserController.ALL_OBJECTS_FILTER;
     NamingEnumeration<SearchResult> srs =
-      ctx.search(ConfigConstants.DN_DEFAULT_SCHEMA_ROOT,
-          filter,
-          searchControls);
+        ctx.search(ConfigConstants.DN_DEFAULT_SCHEMA_ROOT, filter,
+            searchControls);
     SearchResult sr = null;
     try
     {
@@ -105,17 +106,17 @@ public class RemoteSchemaLoader extends SchemaLoader
     {
       srs.close();
     }
-    CustomSearchResult csr = new CustomSearchResult(sr,
-        ConfigConstants.DN_DEFAULT_SCHEMA_ROOT);
+    CustomSearchResult csr =
+        new CustomSearchResult(sr, ConfigConstants.DN_DEFAULT_SCHEMA_ROOT);
 
     schema = getBaseSchema();
 
     List<Object> attrs =
-      csr.getAttributeValues(ConfigConstants.ATTR_ATTRIBUTE_TYPES_LC);
+        csr.getAttributeValues(ConfigConstants.ATTR_ATTRIBUTE_TYPES_LC);
     Set<String> remainingAttrs = new HashSet<String>();
     for (Object o : attrs)
     {
-      remainingAttrs.add((String)o);
+      remainingAttrs.add((String) o);
     }
 
     while (!remainingAttrs.isEmpty())
@@ -130,7 +131,7 @@ public class RemoteSchemaLoader extends SchemaLoader
         try
         {
           AttributeType attrType =
-            AttributeTypeSyntax.decodeAttributeType(sb, schema, false);
+              AttributeTypeSyntax.decodeAttributeType(sb, schema, false);
           schema.registerAttributeType(attrType, true);
           oneRegistered = true;
           registeredAttrs.add(attrDefinition);
@@ -148,12 +149,12 @@ public class RemoteSchemaLoader extends SchemaLoader
     }
 
     List<Object> objectClasses =
-      csr.getAttributeValues(ConfigConstants.ATTR_OBJECTCLASSES_LC);
+        csr.getAttributeValues(ConfigConstants.ATTR_OBJECTCLASSES_LC);
 
     Set<String> remainingOcs = new HashSet<String>();
     for (Object o : objectClasses)
     {
-      remainingOcs.add((String)o);
+      remainingOcs.add((String) o);
     }
 
     while (!remainingOcs.isEmpty())
@@ -168,7 +169,7 @@ public class RemoteSchemaLoader extends SchemaLoader
         try
         {
           ObjectClass oc =
-            ObjectClassSyntax.decodeObjectClass(sb, schema, false);
+              ObjectClassSyntax.decodeObjectClass(sb, schema, false);
           schema.registerObjectClass(oc, true);
           oneRegistered = true;
           registeredOcs.add(ocDefinition);
@@ -188,6 +189,7 @@ public class RemoteSchemaLoader extends SchemaLoader
 
   /**
    * Returns the schema that was read.
+   *
    * @return the schema that was read.
    */
   @Override
