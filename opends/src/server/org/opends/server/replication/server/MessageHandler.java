@@ -696,4 +696,11 @@ public class MessageHandler extends MonitorProvider<MonitorProviderCfg>
   {
     return this.replicationServer.getServerURL();
   }
+
+  /** {@inheritDoc} */
+  @Override
+  public String toString()
+  {
+    return getMonitorInstanceName();
+  }
 }
