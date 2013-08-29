@@ -30,6 +30,7 @@ package org.opends.server.extensions;
 
 
 import static org.opends.messages.ExtensionMessages.*;
+import static org.opends.server.config.ConfigConstants.CONFIG_DIR_NAME;
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -302,9 +303,9 @@ public class GSSAPISASLMechanismHandler extends
   private String configureLoginConfFile(
       GSSAPISASLMechanismHandlerCfg configuration)
   throws IOException, InitializationException {
-    String configFileName;
-    File tempFile = File.createTempFile("login", ".conf");
-    configFileName = tempFile.getAbsolutePath();
+    File tempFile = File.createTempFile("login", ".conf",
+        getFileForPath(CONFIG_DIR_NAME));
+    String configFileName = tempFile.getAbsolutePath();
     tempFile.deleteOnExit();
     BufferedWriter w = new BufferedWriter(new FileWriter(tempFile, false));
     w.write(getClass().getName() + " {");
