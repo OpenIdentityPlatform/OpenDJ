@@ -297,8 +297,7 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements Con
         Validator.ensureNotNull(request);
 
         close(request, false, Responses.newResult(ResultCode.CLIENT_SIDE_USER_CANCELLED)
-                .setDiagnosticMessage(
-                        "Connection closed by client" + (reason != null ? ": " + reason : "")));
+                .setDiagnosticMessage(reason != null ? reason : "Connection closed by client"));
     }
 
     @Override
