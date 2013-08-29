@@ -170,8 +170,8 @@ abstract class AbstractLoadBalancingAlgorithm implements LoadBalancingAlgorithm 
                 synchronized (listenerLock) {
                     try {
                         listener.handleConnectionFactoryOffline(factory, error);
-                    } catch (Throwable t) {
-                        handleListenerException(t);
+                    } catch (RuntimeException e) {
+                        handleListenerException(e);
                     }
                 }
 
@@ -197,8 +197,8 @@ abstract class AbstractLoadBalancingAlgorithm implements LoadBalancingAlgorithm 
                 synchronized (listenerLock) {
                     try {
                         listener.handleConnectionFactoryOnline(factory);
-                    } catch (Throwable t) {
-                        handleListenerException(t);
+                    } catch (RuntimeException e) {
+                        handleListenerException(e);
                     }
                 }
 
@@ -216,10 +216,10 @@ abstract class AbstractLoadBalancingAlgorithm implements LoadBalancingAlgorithm 
             }
         }
 
-        private void handleListenerException(Throwable t) {
+        private void handleListenerException(RuntimeException e) {
             if (DEBUG_LOG.isLoggable(Level.SEVERE)) {
                 DEBUG_LOG.log(Level.SEVERE,
-                        "A run-time error occurred while processing a load-balancer event", t);
+                        "A run-time error occurred while processing a load-balancer event", e);
             }
         }
     }
