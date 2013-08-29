@@ -162,6 +162,9 @@ abstract class AbstractLoadBalancingAlgorithm implements LoadBalancingAlgorithm 
         }
 
         private void notifyOffline(final ErrorResultException error) {
+            // Save the error in case the load-balancer is exhausted.
+            lastFailure = error;
+
             if (isOperational.getAndSet(false)) {
                 // Transition from online to offline.
                 if (DEBUG_LOG.isLoggable(Level.WARNING)) {
@@ -225,6 +228,14 @@ abstract class AbstractLoadBalancingAlgorithm implements LoadBalancingAlgorithm 
     private final List<MonitoredConnectionFactory> monitoredFactories;
     private final ReferenceCountedObject<ScheduledExecutorService>.Reference scheduler;
     private final Object stateLock = new Object();
+
+    /**
+     * The last connection failure which caused a connection factory to be
+     * marked offline. This is used in order to help diagnose problems when the
+     * load-balancer has exhausted all of its factories.
+     */
+    private volatile ErrorResultException lastFailure = null;
+
     /**
      * Guarded by stateLock.
      */
@@ -335,6 +346,6 @@ abstract class AbstractLoadBalancingAlgorithm implements LoadBalancingAlgorithm 
          * timeout period.
          */
         throw newErrorResult(ResultCode.CLIENT_SIDE_CONNECT_ERROR,
-                "No operational connection factories available");
+                "No operational connection factories available", lastFailure);
     }
 }
