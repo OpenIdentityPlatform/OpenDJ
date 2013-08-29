@@ -526,7 +526,7 @@ public final class ReplicationServer
       // Initialize the replicationServer database.
       dbEnv = new ReplicationDbEnv(getFileForPath(dbDirname).getAbsolutePath(),
           this);
-      dbEnv.start();
+      dbEnv.initializeFromChangelogStateDB();
 
       setServerURL();
       listenSocket = new ServerSocket();
