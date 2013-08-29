@@ -167,10 +167,12 @@ abstract class AbstractLoadBalancingAlgorithm implements LoadBalancingAlgorithm 
 
             if (isOperational.getAndSet(false)) {
                 // Transition from online to offline.
-                if (DEBUG_LOG.isLoggable(Level.WARNING)) {
-                    DEBUG_LOG.warning(String.format(
-                            "Connection factory '%s' is no longer operational: %s", factory, error
-                                    .getMessage()));
+                synchronized (listenerLock) {
+                    try {
+                        listener.handleConnectionFactoryOffline(factory, error);
+                    } catch (Throwable t) {
+                        handleListenerException(t);
+                    }
                 }
 
                 synchronized (stateLock) {
@@ -192,9 +194,12 @@ abstract class AbstractLoadBalancingAlgorithm implements LoadBalancingAlgorithm 
         private void notifyOnline() {
             if (!isOperational.getAndSet(true)) {
                 // Transition from offline to online.
-                if (DEBUG_LOG.isLoggable(Level.INFO)) {
-                    DEBUG_LOG.info(String.format("Connection factory'%s' is now operational",
-                            factory));
+                synchronized (listenerLock) {
+                    try {
+                        listener.handleConnectionFactoryOnline(factory);
+                    } catch (Throwable t) {
+                        handleListenerException(t);
+                    }
                 }
 
                 synchronized (stateLock) {
@@ -208,6 +213,13 @@ abstract class AbstractLoadBalancingAlgorithm implements LoadBalancingAlgorithm 
                         monitoringFuture = null;
                     }
                 }
+            }
+        }
+
+        private void handleListenerException(Throwable t) {
+            if (DEBUG_LOG.isLoggable(Level.SEVERE)) {
+                DEBUG_LOG.log(Level.SEVERE,
+                        "A run-time error occurred while processing a load-balancer event", t);
             }
         }
     }
@@ -225,6 +237,32 @@ abstract class AbstractLoadBalancingAlgorithm implements LoadBalancingAlgorithm 
         }
     }
 
+    /**
+     * A default event listener which just logs the event.
+     */
+    private static final LoadBalancerEventListener DEFAULT_LISTENER =
+            new LoadBalancerEventListener() {
+
+                @Override
+                public void handleConnectionFactoryOnline(ConnectionFactory factory) {
+                    // Transition from offline to online.
+                    if (DEBUG_LOG.isLoggable(Level.INFO)) {
+                        DEBUG_LOG.info(String.format("Connection factory'%s' is now operational",
+                                factory));
+                    }
+                }
+
+                @Override
+                public void handleConnectionFactoryOffline(ConnectionFactory factory,
+                        ErrorResultException error) {
+                    if (DEBUG_LOG.isLoggable(Level.WARNING)) {
+                        DEBUG_LOG.warning(String.format(
+                                "Connection factory '%s' is no longer operational: %s", factory,
+                                error.getMessage()));
+                    }
+                }
+            };
+
     private final List<MonitoredConnectionFactory> monitoredFactories;
     private final ReferenceCountedObject<ScheduledExecutorService>.Reference scheduler;
     private final Object stateLock = new Object();
@@ -235,6 +273,17 @@ abstract class AbstractLoadBalancingAlgorithm implements LoadBalancingAlgorithm 
      * load-balancer has exhausted all of its factories.
      */
     private volatile ErrorResultException lastFailure = null;
+
+    /**
+     * The event listener which should be notified when connection factories go
+     * on or off-line.
+     */
+    private final LoadBalancerEventListener listener;
+
+    /**
+     * Ensures that events are notified one at a time.
+     */
+    private final Object listenerLock = new Object();
 
     /**
      * Guarded by stateLock.
@@ -269,6 +318,7 @@ abstract class AbstractLoadBalancingAlgorithm implements LoadBalancingAlgorithm 
         this.scheduler = DEFAULT_SCHEDULER.acquireIfNull(scheduler);
         this.monitoringInterval = interval;
         this.monitoringIntervalTimeUnit = unit;
+        this.listener = DEFAULT_LISTENER;
     }
 
     @Override
