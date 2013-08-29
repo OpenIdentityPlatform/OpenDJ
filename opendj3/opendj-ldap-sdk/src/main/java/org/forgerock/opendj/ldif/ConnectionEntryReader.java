@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2012 ForgeRock AS.
+ *      Portions copyright 2011-2013 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldif;
@@ -97,8 +97,16 @@ import com.forgerock.opendj.util.Validator;
  *   reader.close();
  * }
  * </pre>
+ *
+ * <b>NOTE:</b> although this class is non-final, sub-classing is not supported
+ * except when creating mock objects for unit tests. This class has been
+ * selected specifically because it is the only aspect of the {@code Connection}
+ * interface which is not mockable.
  */
-public final class ConnectionEntryReader implements EntryReader {
+public class ConnectionEntryReader implements EntryReader {
+    /*
+     * See OPENDJ-1124 for more discussion about why this class is non-final.
+     */
 
     /**
      * Result handler that places all responses in a queue.
