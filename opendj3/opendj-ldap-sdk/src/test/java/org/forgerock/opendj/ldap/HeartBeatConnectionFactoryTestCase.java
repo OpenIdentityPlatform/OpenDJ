@@ -43,18 +43,9 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.util.Collection;
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.Callable;
-import java.util.concurrent.Delayed;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.opendj.ldap.responses.Result;
@@ -87,174 +78,6 @@ public class HeartBeatConnectionFactoryTestCase extends SdkTestCase {
 
     // @formatter:on
 
-    private static final class MockScheduler implements ScheduledExecutorService {
-
-        private Runnable command;
-
-        private long delay;
-
-        private boolean isScheduled = false;
-
-        private TimeUnit unit;
-
-        @Override
-        public boolean awaitTermination(final long timeout, final TimeUnit unit)
-                throws InterruptedException {
-            // Unused.
-            return false;
-        }
-
-        @Override
-        public void execute(final Runnable command) {
-            // Unused.
-
-        }
-
-        @Override
-        public <T> List<Future<T>> invokeAll(final Collection<? extends Callable<T>> tasks)
-                throws InterruptedException {
-            // Unused.
-            return null;
-        }
-
-        @Override
-        public <T> List<Future<T>> invokeAll(final Collection<? extends Callable<T>> tasks,
-                final long timeout, final TimeUnit unit) throws InterruptedException {
-            // Unused.
-            return null;
-        }
-
-        @Override
-        public <T> T invokeAny(final Collection<? extends Callable<T>> tasks)
-                throws InterruptedException, ExecutionException {
-            // Unused.
-            return null;
-        }
-
-        @Override
-        public <T> T invokeAny(final Collection<? extends Callable<T>> tasks, final long timeout,
-                final TimeUnit unit) throws InterruptedException, ExecutionException,
-                TimeoutException {
-            // Unused.
-            return null;
-        }
-
-        @Override
-        public boolean isShutdown() {
-            // Unused.
-            return false;
-        }
-
-        @Override
-        public boolean isTerminated() {
-            // Unused.
-            return false;
-        }
-
-        @Override
-        public <V> ScheduledFuture<V> schedule(final Callable<V> callable, final long delay,
-                final TimeUnit unit) {
-            // Unused.
-            return null;
-        }
-
-        @Override
-        public ScheduledFuture<?> schedule(final Runnable command, final long delay,
-                final TimeUnit unit) {
-            // Unused.
-            return null;
-        }
-
-        @Override
-        public ScheduledFuture<?> scheduleAtFixedRate(final Runnable command,
-                final long initialDelay, final long period, final TimeUnit unit) {
-            // Unused.
-            return null;
-        }
-
-        @Override
-        public ScheduledFuture<?> scheduleWithFixedDelay(final Runnable command,
-                final long initialDelay, final long delay, final TimeUnit unit) {
-            this.command = command;
-            this.delay = delay;
-            this.unit = unit;
-            this.isScheduled = true;
-            return new ScheduledFuture<Object>() {
-                @Override
-                public boolean cancel(final boolean mayInterruptIfRunning) {
-                    isScheduled = false;
-                    return true;
-                }
-
-                @Override
-                public int compareTo(final Delayed o) {
-                    // Unused.
-                    return 0;
-                }
-
-                @Override
-                public Object get() throws InterruptedException, ExecutionException {
-                    // Unused.
-                    return null;
-                }
-
-                @Override
-                public Object get(final long timeout, final TimeUnit unit)
-                        throws InterruptedException, ExecutionException, TimeoutException {
-                    // Unused.
-                    return null;
-                }
-
-                @Override
-                public long getDelay(final TimeUnit unit) {
-                    // Unused.
-                    return 0;
-                }
-
-                @Override
-                public boolean isCancelled() {
-                    return !isScheduled;
-                }
-
-                @Override
-                public boolean isDone() {
-                    // Unused.
-                    return false;
-                }
-
-            };
-        }
-
-        @Override
-        public void shutdown() {
-            // Unused.
-        }
-
-        @Override
-        public List<Runnable> shutdownNow() {
-            // Unused.
-            return Collections.emptyList();
-        }
-
-        @Override
-        public <T> Future<T> submit(final Callable<T> task) {
-            // Unused.
-            return null;
-        }
-
-        @Override
-        public Future<?> submit(final Runnable task) {
-            // Unused.
-            return null;
-        }
-
-        @Override
-        public <T> Future<T> submit(final Runnable task, final T result) {
-            // Unused.
-            return null;
-        }
-    }
-
     @Test(enabled = false)
     public void testHeartBeatTimeout() throws Exception {
         // Mock connection which never responds to heartbeat.
@@ -273,10 +96,10 @@ public class HeartBeatConnectionFactoryTestCase extends SdkTestCase {
 
         // First connection should cause heart beat to be scheduled.
         final Connection hbc = hbcf.getConnection();
-        assertThat(scheduler.isScheduled).isTrue();
-        assertThat(scheduler.command).isNotNull();
-        assertThat(scheduler.delay).isEqualTo(0);
-        assertThat(scheduler.unit).isEqualTo(TimeUnit.MILLISECONDS);
+        assertThat(scheduler.isScheduled()).isTrue();
+        assertThat(scheduler.getCommand()).isNotNull();
+        assertThat(scheduler.getDelay()).isEqualTo(0);
+        assertThat(scheduler.getUnit()).isEqualTo(TimeUnit.MILLISECONDS);
         assertThat(listeners).hasSize(1);
 
         // The connection should be immediately invalid due to 0 timeout.
@@ -287,7 +110,7 @@ public class HeartBeatConnectionFactoryTestCase extends SdkTestCase {
          * Attempt to send heartbeat. This should trigger the connection to be
          * closed and all subsequent request attempts to fail.
          */
-        scheduler.command.run();
+        scheduler.getCommand().run();
 
         // The underlying connection should have been closed.
         verify(connection).close();
@@ -296,7 +119,7 @@ public class HeartBeatConnectionFactoryTestCase extends SdkTestCase {
          * ...and the scheduled heart beat stopped because there are no
          * remaining connections.
          */
-        assertThat(scheduler.isScheduled).isFalse();
+        assertThat(scheduler.isScheduled()).isFalse();
 
         // Attempt to send a new request: it should fail immediately.
         @SuppressWarnings("unchecked")
@@ -332,23 +155,23 @@ public class HeartBeatConnectionFactoryTestCase extends SdkTestCase {
                 newHeartBeatConnectionFactory(factory, 0, TimeUnit.MILLISECONDS, hb, scheduler);
 
         // Heart beat should not be scheduled yet.
-        assertThat(scheduler.isScheduled).isFalse();
+        assertThat(scheduler.isScheduled()).isFalse();
 
         // First connection should cause heart beat to be scheduled.
         hbcf.getConnection();
-        assertThat(scheduler.isScheduled).isTrue();
-        assertThat(scheduler.command).isNotNull();
-        assertThat(scheduler.delay).isEqualTo(0);
-        assertThat(scheduler.unit).isEqualTo(TimeUnit.MILLISECONDS);
+        assertThat(scheduler.isScheduled()).isTrue();
+        assertThat(scheduler.getCommand()).isNotNull();
+        assertThat(scheduler.getDelay()).isEqualTo(0);
+        assertThat(scheduler.getUnit()).isEqualTo(TimeUnit.MILLISECONDS);
         assertThat(listeners1).hasSize(1);
 
         // Second connection should not change anything.
         hbcf.getConnection();
-        assertThat(scheduler.isScheduled).isTrue();
+        assertThat(scheduler.isScheduled()).isTrue();
         assertThat(listeners2).hasSize(1);
 
         // Check heart-beat sent to both connections.
-        scheduler.command.run();
+        scheduler.getCommand().run();
         verify(connection1, times(1)).searchAsync(same(hb), any(IntermediateResponseHandler.class),
                 any(SearchResultHandler.class));
         verify(connection2, times(1)).searchAsync(same(hb), any(IntermediateResponseHandler.class),
@@ -358,11 +181,11 @@ public class HeartBeatConnectionFactoryTestCase extends SdkTestCase {
 
         // Close first connection: heart beat should still be scheduled.
         listeners1.get(0).handleConnectionClosed();
-        assertThat(scheduler.isScheduled).isTrue();
+        assertThat(scheduler.isScheduled()).isTrue();
         assertThat(listeners1).isEmpty();
 
         // Check heart-beat only sent to second connection.
-        scheduler.command.run();
+        scheduler.getCommand().run();
         verify(connection1, times(1)).searchAsync(same(hb), any(IntermediateResponseHandler.class),
                 any(SearchResultHandler.class));
         verify(connection2, times(2)).searchAsync(same(hb), any(IntermediateResponseHandler.class),
@@ -372,19 +195,19 @@ public class HeartBeatConnectionFactoryTestCase extends SdkTestCase {
 
         // Close second connection: heart beat should now be stopped.
         listeners2.get(0).handleConnectionClosed();
-        assertThat(scheduler.isScheduled).isFalse();
+        assertThat(scheduler.isScheduled()).isFalse();
         assertThat(listeners2).isEmpty();
 
         // Opening another connection should restart the heart beat.
         hbcf.getConnection();
-        assertThat(scheduler.isScheduled).isTrue();
-        assertThat(scheduler.command).isNotNull();
-        assertThat(scheduler.delay).isEqualTo(0);
-        assertThat(scheduler.unit).isEqualTo(TimeUnit.MILLISECONDS);
+        assertThat(scheduler.isScheduled()).isTrue();
+        assertThat(scheduler.getCommand()).isNotNull();
+        assertThat(scheduler.getDelay()).isEqualTo(0);
+        assertThat(scheduler.getUnit()).isEqualTo(TimeUnit.MILLISECONDS);
         assertThat(listeners3).hasSize(1);
 
         // Check heart-beat only sent to third connection.
-        scheduler.command.run();
+        scheduler.getCommand().run();
         verify(connection1, times(1)).searchAsync(same(hb), any(IntermediateResponseHandler.class),
                 any(SearchResultHandler.class));
         verify(connection2, times(2)).searchAsync(same(hb), any(IntermediateResponseHandler.class),
