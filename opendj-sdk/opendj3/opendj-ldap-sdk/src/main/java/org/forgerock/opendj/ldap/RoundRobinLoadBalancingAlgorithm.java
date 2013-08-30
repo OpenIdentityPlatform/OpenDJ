@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -55,7 +56,6 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public final class RoundRobinLoadBalancingAlgorithm extends AbstractLoadBalancingAlgorithm {
     private final int maxIndex;
-
     private final AtomicInteger nextIndex = new AtomicInteger(-1);
 
     /**
@@ -66,7 +66,70 @@ public final class RoundRobinLoadBalancingAlgorithm extends AbstractLoadBalancin
      *            The ordered collection of connection factories.
      */
     public RoundRobinLoadBalancingAlgorithm(final Collection<ConnectionFactory> factories) {
-        super(factories);
+        this(factories, null, 1, TimeUnit.SECONDS, null);
+    }
+
+    /**
+     * Creates a new round robin load balancing algorithm which will monitor
+     * offline connection factories every 1 second using the default scheduler.
+     *
+     * @param factories
+     *            The ordered collection of connection factories.
+     * @param listener
+     *            The event listener which should be notified whenever a
+     *            connection factory changes state from online to offline or
+     *            vice-versa.
+     */
+    public RoundRobinLoadBalancingAlgorithm(final Collection<ConnectionFactory> factories,
+            final LoadBalancerEventListener listener) {
+        this(factories, listener, 1, TimeUnit.SECONDS, null);
+    }
+
+    /**
+     * Creates a new round robin load balancing algorithm which will monitor
+     * offline connection factories using the specified frequency using the
+     * default scheduler.
+     *
+     * @param factories
+     *            The connection factories.
+     * @param listener
+     *            The event listener which should be notified whenever a
+     *            connection factory changes state from online to offline or
+     *            vice-versa.
+     * @param interval
+     *            The interval between attempts to poll offline factories.
+     * @param unit
+     *            The time unit for the interval between attempts to poll
+     *            offline factories.
+     */
+    public RoundRobinLoadBalancingAlgorithm(final Collection<ConnectionFactory> factories,
+            final LoadBalancerEventListener listener, final long interval, final TimeUnit unit) {
+        this(factories, null, interval, unit, null);
+    }
+
+    /**
+     * Creates a new round robin load balancing algorithm which will monitor
+     * offline connection factories using the specified frequency and scheduler.
+     *
+     * @param factories
+     *            The connection factories.
+     * @param listener
+     *            The event listener which should be notified whenever a
+     *            connection factory changes state from online to offline or
+     *            vice-versa.
+     * @param interval
+     *            The interval between attempts to poll offline factories.
+     * @param unit
+     *            The time unit for the interval between attempts to poll
+     *            offline factories.
+     * @param scheduler
+     *            The scheduler which should for periodically monitoring dead
+     *            connection factories to see if they are usable again.
+     */
+    public RoundRobinLoadBalancingAlgorithm(final Collection<ConnectionFactory> factories,
+            final LoadBalancerEventListener listener, final long interval, final TimeUnit unit,
+            final ScheduledExecutorService scheduler) {
+        super(factories, listener, interval, unit, scheduler);
         this.maxIndex = factories.size();
     }
 
@@ -85,8 +148,7 @@ public final class RoundRobinLoadBalancingAlgorithm extends AbstractLoadBalancin
      */
     public RoundRobinLoadBalancingAlgorithm(final Collection<ConnectionFactory> factories,
             final long interval, final TimeUnit unit) {
-        super(factories, interval, unit);
-        this.maxIndex = factories.size();
+        this(factories, null, interval, unit, null);
     }
 
     /**
@@ -106,8 +168,7 @@ public final class RoundRobinLoadBalancingAlgorithm extends AbstractLoadBalancin
      */
     public RoundRobinLoadBalancingAlgorithm(final Collection<ConnectionFactory> factories,
             final long interval, final TimeUnit unit, final ScheduledExecutorService scheduler) {
-        super(factories, interval, unit, scheduler);
-        this.maxIndex = factories.size();
+        this(factories, null, interval, unit, scheduler);
     }
 
     /**

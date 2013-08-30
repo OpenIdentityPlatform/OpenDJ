@@ -297,17 +297,9 @@ abstract class AbstractLoadBalancingAlgorithm implements LoadBalancingAlgorithm 
     private ScheduledFuture<?> monitoringFuture;
     private AtomicBoolean isClosed = new AtomicBoolean();
 
-    AbstractLoadBalancingAlgorithm(final Collection<ConnectionFactory> factories) {
-        this(factories, 1, TimeUnit.SECONDS, null);
-    }
-
     AbstractLoadBalancingAlgorithm(final Collection<ConnectionFactory> factories,
-            final long interval, final TimeUnit unit) {
-        this(factories, interval, unit, null);
-    }
-
-    AbstractLoadBalancingAlgorithm(final Collection<ConnectionFactory> factories,
-            final long interval, final TimeUnit unit, final ScheduledExecutorService scheduler) {
+            final LoadBalancerEventListener listener, final long interval, final TimeUnit unit,
+            final ScheduledExecutorService scheduler) {
         Validator.ensureNotNull(factories, unit);
 
         this.monitoredFactories = new ArrayList<MonitoredConnectionFactory>(factories.size());
@@ -318,7 +310,7 @@ abstract class AbstractLoadBalancingAlgorithm implements LoadBalancingAlgorithm 
         this.scheduler = DEFAULT_SCHEDULER.acquireIfNull(scheduler);
         this.monitoringInterval = interval;
         this.monitoringIntervalTimeUnit = unit;
-        this.listener = DEFAULT_LISTENER;
+        this.listener = listener != null ? listener : DEFAULT_LISTENER;
     }
 
     @Override
