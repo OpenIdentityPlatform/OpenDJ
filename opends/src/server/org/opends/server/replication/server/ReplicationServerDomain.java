@@ -49,7 +49,6 @@ import org.opends.server.replication.protocol.*;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.api.ReplicationDBCursor;
 import org.opends.server.replication.server.changelog.je.DbHandler;
-import org.opends.server.replication.server.changelog.je.ReplicationDB;
 import org.opends.server.types.*;
 
 import static org.opends.messages.ReplicationMessages.*;
@@ -1263,17 +1262,17 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
   }
 
   /**
-	 * Creates and returns a cursor. When the cursor is not used anymore, the
-	 * caller MUST call the {@link ReplicationDBCursor#close()} method to free the
-	 * resources and locks used by the cursor.
-	 * 
-	 * @param serverId
-	 *          Identifier of the server for which the cursor is created.
-	 * @param startAfterCN
-	 *          Starting point for the cursor.
-	 * @return the created {@link ReplicationDB}. Null when no DB is available or
-	 *         the DB is empty for the provided serverId .
-	 */
+   * Creates and returns a cursor. When the cursor is not used anymore, the
+   * caller MUST call the {@link ReplicationDBCursor#close()} method to free the
+   * resources and locks used by the cursor.
+   *
+   * @param serverId
+   *          Identifier of the server for which the cursor is created.
+   * @param startAfterCN
+   *          Starting point for the cursor.
+   * @return the created {@link ReplicationDBCursor}. Null when no DB is
+   *         available or the DB is empty for the provided serverId .
+   */
   public ReplicationDBCursor getCursorFrom(int serverId,
       ChangeNumber startAfterCN)
   {

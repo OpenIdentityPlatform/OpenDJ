@@ -44,7 +44,7 @@ import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.server.ReplicationServerDomain;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.api.ReplicationDBCursor;
-import org.opends.server.replication.server.changelog.je.ReplicationDB.ReplServerDBCursor;
+import org.opends.server.replication.server.changelog.je.ReplicationDB.*;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.InitializationException;
@@ -260,18 +260,18 @@ public class DbHandler implements Runnable
   }
 
   /**
-	 * Generate a new {@link ReplicationDBCursor} that allows to browse the db
-	 * managed by this dbHandler and starting at the position defined by a given
-	 * changeNumber.
-	 *
-	 * @param startAfterCN
-	 *          The position where the cursor must start.
-	 * @return a new {@link ReplicationDBCursor} that allows to browse the db
-	 *         managed by this dbHandler and starting at the position defined by a
-	 *         given changeNumber.
-	 * @throws ChangelogException
-	 *           if a database problem happened.
-	 */
+   * Generate a new {@link ReplicationDBCursor} that allows to browse the db
+   * managed by this dbHandler and starting at the position defined by a given
+   * changeNumber.
+   *
+   * @param startAfterCN
+   *          The position where the cursor must start.
+   * @return a new {@link ReplicationDBCursor} that allows to browse the db
+   *         managed by this dbHandler and starting at the position defined by a
+   *         given changeNumber.
+   * @throws ChangelogException
+   *           if a database problem happened.
+   */
   public ReplicationDBCursor generateCursorFrom(ChangeNumber startAfterCN)
       throws ChangelogException
   {
