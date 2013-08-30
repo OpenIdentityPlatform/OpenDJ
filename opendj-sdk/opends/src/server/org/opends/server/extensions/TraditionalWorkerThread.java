@@ -305,7 +305,7 @@ public class TraditionalWorkerThread
   }
 
   /**
-   * Retrieves any relevent debug information with which this tread is
+   * Retrieves any relevant debug information with which this tread is
    * associated so they can be included in debug messages.
    *
    * @return debug information about this thread as a string.
@@ -314,10 +314,9 @@ public class TraditionalWorkerThread
   public Map<String, String> getDebugProperties()
   {
     Map<String, String> properties = super.getDebugProperties();
-    properties.put("clientConnection",
-                   operation.getClientConnection().toString());
-    properties.put("operation", operation.toString());
-
+    properties.put("clientConnection", operation != null
+        ? String.valueOf(operation.getClientConnection()) : "none");
+    properties.put("operation", String.valueOf(operation));
     return properties;
   }
 }
