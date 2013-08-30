@@ -31,13 +31,13 @@ import org.opends.messages.Message;
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
-import org.opends.server.replication.server.changelog.api.ReplicationDBCursor;
+import org.opends.server.replication.server.changelog.api.ReplicaDBCursor;
 import org.opends.server.replication.server.changelog.je.ReplicationDB.*;
 
 /**
- * Berkeley DB JE implementation of {@link ReplicationDBCursor}.
+ * Berkeley DB JE implementation of {@link ReplicaDBCursor}.
  */
-public class JEReplicationDBCursor implements ReplicationDBCursor
+public class JEReplicaDBCursor implements ReplicaDBCursor
 {
   private UpdateMsg currentChange = null;
   private ReplServerDBCursor cursor = null;
@@ -46,8 +46,8 @@ public class JEReplicationDBCursor implements ReplicationDBCursor
   private ChangeNumber lastNonNullCurrentCN;
 
   /**
-   * Creates a new JEReplicationDBCursor. All created cursor must be released by
-   * the caller using the {@link #close()} method.
+   * Creates a new {@link JEReplicaDBCursor}. All created cursor must be
+   * released by the caller using the {@link #close()} method.
    *
    * @param db
    *          The db where the cursor must be created.
@@ -58,7 +58,7 @@ public class JEReplicationDBCursor implements ReplicationDBCursor
    * @throws ChangelogException
    *           if a database problem happened.
    */
-  public JEReplicationDBCursor(ReplicationDB db, ChangeNumber startAfterCN,
+  public JEReplicaDBCursor(ReplicationDB db, ChangeNumber startAfterCN,
       DbHandler dbHandler) throws ChangelogException
   {
     this.db = db;

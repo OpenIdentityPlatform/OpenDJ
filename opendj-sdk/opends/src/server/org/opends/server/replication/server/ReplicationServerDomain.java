@@ -47,7 +47,7 @@ import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.common.*;
 import org.opends.server.replication.protocol.*;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
-import org.opends.server.replication.server.changelog.api.ReplicationDBCursor;
+import org.opends.server.replication.server.changelog.api.ReplicaDBCursor;
 import org.opends.server.replication.server.changelog.je.DbHandler;
 import org.opends.server.types.*;
 
@@ -1263,17 +1263,17 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
 
   /**
    * Creates and returns a cursor. When the cursor is not used anymore, the
-   * caller MUST call the {@link ReplicationDBCursor#close()} method to free the
+   * caller MUST call the {@link ReplicaDBCursor#close()} method to free the
    * resources and locks used by the cursor.
    *
    * @param serverId
    *          Identifier of the server for which the cursor is created.
    * @param startAfterCN
    *          Starting point for the cursor.
-   * @return the created {@link ReplicationDBCursor}. Null when no DB is
+   * @return the created {@link ReplicaDBCursor}. Null when no DB is
    *         available or the DB is empty for the provided serverId .
    */
-  public ReplicationDBCursor getCursorFrom(int serverId,
+  public ReplicaDBCursor getCursorFrom(int serverId,
       ChangeNumber startAfterCN)
   {
     DbHandler dbHandler = sourceDbHandlers.get(serverId);
@@ -1282,7 +1282,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
       return null;
     }
 
-    ReplicationDBCursor cursor;
+    ReplicaDBCursor cursor;
     try
     {
       cursor = dbHandler.generateCursorFrom(startAfterCN);
@@ -2680,7 +2680,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
           // to the Db and look for the change older than  eligible CN (cn14)
           if (eligibleCN.olderOrEqual(mostRecentDbCN)) {
             // let's try to seek the first change <= eligibleCN
-            ReplicationDBCursor cursor = null;
+            ReplicaDBCursor cursor = null;
             try {
               cursor = h.generateCursorFrom(eligibleCN);
               if (cursor != null && cursor.getChange() != null) {
