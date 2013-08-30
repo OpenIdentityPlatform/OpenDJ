@@ -50,7 +50,7 @@ import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.plugin.MultimasterReplication;
 import org.opends.server.replication.plugin.ReplicationServerListener;
 import org.opends.server.replication.protocol.*;
-import org.opends.server.replication.server.changelog.api.ReplicationIterator;
+import org.opends.server.replication.server.changelog.api.ReplicationDBCursor;
 import org.opends.server.types.*;
 import org.opends.server.util.*;
 
@@ -631,15 +631,15 @@ public class ReplicationBackend
         return;
       }
 
-      ReplicationIterator ri = rsd.getChangelogIterator(serverId, previousCN);
-      if (ri != null)
+      ReplicationDBCursor cursor = rsd.getCursorFrom(serverId, previousCN);
+      if (cursor != null)
       {
         try
         {
           int lookthroughCount = 0;
 
           // Walk through the changes
-          while (ri.getChange() != null)
+          while (cursor.getChange() != null)
           {
             if (exportConfig != null && exportConfig.isCancelled())
             { // abort if cancelled
@@ -650,14 +650,14 @@ public class ReplicationBackend
               break;
             }
             lookthroughCount++;
-            writeChange(ri.getChange(), ldifWriter, searchOperation,
+            writeChange(cursor.getChange(), ldifWriter, searchOperation,
                 rsd.getBaseDn(), exportConfig != null);
-            ri.next();
+            cursor.next();
           }
         }
         finally
         {
-          close(ri);
+          close(cursor);
         }
       }
     }

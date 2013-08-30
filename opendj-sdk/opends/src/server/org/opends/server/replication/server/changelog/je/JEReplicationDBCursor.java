@@ -31,13 +31,13 @@ import org.opends.messages.Message;
 import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
-import org.opends.server.replication.server.changelog.api.ReplicationIterator;
-import org.opends.server.replication.server.changelog.je.ReplicationDB.*;
+import org.opends.server.replication.server.changelog.api.ReplicationDBCursor;
+import org.opends.server.replication.server.changelog.je.ReplicationDB.ReplServerDBCursor;
 
 /**
- * Berkeley DB JE implementation of IReplicationIterator.
+ * Berkeley DB JE implementation of {@link ReplicationDBCursor}.
  */
-public class JEReplicationIterator implements ReplicationIterator
+public class JEReplicationDBCursor implements ReplicationDBCursor
 {
   private UpdateMsg currentChange = null;
   private ReplServerDBCursor cursor = null;
@@ -46,16 +46,19 @@ public class JEReplicationIterator implements ReplicationIterator
   private ChangeNumber lastNonNullCurrentCN;
 
   /**
-   * Creates a new ReplicationIterator.
-   * All created iterator must be released by the caller using the
-   * releaseCursor() method.
-   *
-   * @param db The db where the iterator must be created.
-   * @param startAfterCN The ChangeNumber after which the iterator must start.
-   * @param dbHandler The associated DbHandler.
-   * @throws ChangelogException if a database problem happened.
-   */
-  public JEReplicationIterator(ReplicationDB db, ChangeNumber startAfterCN,
+	 * Creates a new JEReplicationDBCursor. All created cursor must be released by
+	 * the caller using the {@link #close()} method.
+	 *
+	 * @param db
+	 *          The db where the cursor must be created.
+	 * @param startAfterCN
+	 *          The ChangeNumber after which the cursor must start.
+	 * @param dbHandler
+	 *          The associated DbHandler.
+	 * @throws ChangelogException
+	 *           if a database problem happened.
+	 */
+  public JEReplicationDBCursor(ReplicationDB db, ChangeNumber startAfterCN,
       DbHandler dbHandler) throws ChangelogException
   {
     this.db = db;
@@ -148,10 +151,10 @@ public class JEReplicationIterator implements ReplicationIterator
   }
 
   /**
-   * Called by the Gc when the object is garbage collected
-   * Release the cursor in case the iterator was badly used and releaseCursor
-   * was never called.
-   */
+	 * Called by the Gc when the object is garbage collected Release the internal
+	 * cursor in case the cursor was badly used and {@link #close()} was never
+	 * called.
+	 */
   @Override
   protected void finalize()
   {

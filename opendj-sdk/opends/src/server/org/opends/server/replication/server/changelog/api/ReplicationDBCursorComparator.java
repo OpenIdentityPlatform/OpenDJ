@@ -30,24 +30,27 @@ package org.opends.server.replication.server.changelog.api;
 import java.util.Comparator;
 
 import org.opends.server.replication.common.ChangeNumber;
+import org.opends.server.replication.protocol.UpdateMsg;
 
 /**
- * This Class define a Comparator that allows to know which ReplicationIterator
- * contain the next UpdateMessage in the order defined by the ChangeNumber
- * of the UpdateMessage.
+ * This class defines a {@link Comparator} that allows to know which
+ * {@link ReplicationDBCursor} contain the next {@link UpdateMsg} in the order
+ * defined by the {@link ChangeNumber} of the {@link UpdateMsg}.
  */
-public class ReplicationIteratorComparator
-              implements Comparator<ReplicationIterator>
+public class ReplicationDBCursorComparator
+              implements Comparator<ReplicationDBCursor>
 {
   /**
-   * Compare the ChangeNumber of the ReplicationIterator.
-   *
-   * @param o1 first ReplicationIterator.
-   * @param o2 second ReplicationIterator.
-   * @return result of the comparison.
-   */
+	 * Compare the {@link ChangeNumber} of the {@link ReplicationDBCursor}.
+	 * 
+	 * @param o1
+	 *          first cursor.
+	 * @param o2
+	 *          second cursor.
+	 * @return result of the comparison.
+	 */
   @Override
-  public int compare(ReplicationIterator o1, ReplicationIterator o2)
+  public int compare(ReplicationDBCursor o1, ReplicationDBCursor o2)
   {
     ChangeNumber csn1 = o1.getChange().getChangeNumber();
     ChangeNumber csn2 = o2.getChange().getChangeNumber();

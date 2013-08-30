@@ -31,32 +31,31 @@ import java.io.Closeable;
 import org.opends.server.replication.protocol.UpdateMsg;
 
 /**
- * This interface allows to iterate through the changes received from a given
+ * This cursor allows to iterate through the changes received from a given
  * LDAP Server Identifier.
  */
-public interface ReplicationIterator extends Closeable
+public interface ReplicationDBCursor extends Closeable
 {
 
   /**
-   * Get the UpdateMsg where the iterator is currently set.
-   *
-   * @return The UpdateMsg where the iterator is currently set.
-   */
+	 * Get the UpdateMsg where the cursor is currently set.
+	 * 
+	 * @return The UpdateMsg where the cursor is currently set.
+	 */
   UpdateMsg getChange();
 
   /**
-   * Go to the next change in the ReplicationDB or in the server Queue.
-   *
-   * @return false if the iterator is already on the last change before this
-   *         call.
-   */
+	 * Go to the next change in the ReplicationDB or in the server Queue.
+	 * 
+	 * @return false if the cursor is already on the last change before this call.
+	 */
   boolean next();
 
   /**
-   * Release the resources and locks used by this Iterator. This method must be
-   * called when the iterator is no longer used. Failure to do it could cause DB
-   * deadlock.
-   */
+	 * Release the resources and locks used by this cursor. This method must be
+	 * called when the cursor is no longer used. Failure to do it could cause DB
+	 * deadlock.
+	 */
   @Override
   void close();
 
