@@ -23,23 +23,26 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS
  */
 package org.opends.server.replication.common;
 
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.Test;
-import static org.testng.Assert.*;
-
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
 
 import org.opends.server.replication.ReplicationTestCase;
-import org.opends.server.replication.common.ChangeNumber;
-import org.opends.server.replication.common.ChangeNumberGenerator;
 import org.opends.server.util.TimeThread;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
 
+import static org.testng.Assert.*;
 
 /**
  * Test ChangeNumber and ChangeNumberGenerator
  */
+@SuppressWarnings("javadoc")
 public class ChangeNumberTest extends ReplicationTestCase
 {
 
@@ -69,10 +72,10 @@ public class ChangeNumberTest extends ReplicationTestCase
     ChangeNumber cn = new ChangeNumber(time,seq,id);
     assertEquals(cn.toString(), str);
 
-    new ChangeNumber(time,seq,id);
-    new ChangeNumber(time+1,seq,id) ;
-    new ChangeNumber(time,seq+1,id) ;
-    new ChangeNumber(time,seq,id+1);
+    new ChangeNumber(time,   seq,   id);
+    new ChangeNumber(time+1, seq,   id);
+    new ChangeNumber(time,   seq+1, id);
+    new ChangeNumber(time,   seq,   id+1);
   }
 
   /**
@@ -98,18 +101,18 @@ public class ChangeNumberTest extends ReplicationTestCase
   @DataProvider(name = "createChangeNumber")
   public Object[][] createChangeNumberData() {
 
-    long time[] = {1, TimeThread.getTime()} ;
-    int seq[] = {0,  123} ;
-    int id [] = {1,  45} ;
+    long time[] = {1, TimeThread.getTime()};
+    int seq[] = {0,  123};
+    int id [] = {1,  45};
 
     Object[][] obj = new Object[time.length][5];
     for (int i=0; i<time.length; i++)
     {
-      obj[i][0] = new ChangeNumber(time[i],seq[i],id[i]);
-      obj[i][1] = new ChangeNumber(time[i],seq[i],id[i]);
-      obj[i][2] = new ChangeNumber(time[i]+1,seq[i],id[i]);
-      obj[i][3] = new ChangeNumber(time[i],seq[i]+1,id[i]);
-      obj[i][4] = new ChangeNumber(time[i],seq[i],id[i]+1);
+      obj[i][0] = new ChangeNumber(time[i],   seq[i],   id[i]);
+      obj[i][1] = new ChangeNumber(time[i],   seq[i],   id[i]);
+      obj[i][2] = new ChangeNumber(time[i]+1, seq[i],   id[i]);
+      obj[i][3] = new ChangeNumber(time[i],   seq[i]+1, id[i]);
+      obj[i][4] = new ChangeNumber(time[i],   seq[i],   id[i]+1);
     }
     return obj;
   }
@@ -122,9 +125,7 @@ public class ChangeNumberTest extends ReplicationTestCase
       ChangeNumber cn1, ChangeNumber cn2, ChangeNumber cn3, ChangeNumber cn4,
       ChangeNumber cn5) throws Exception
   {
-
-    // Check hashCode
-    assertTrue (cn1.hashCode() == cn2.hashCode());
+		assertEquals(cn1.hashCode(), cn2.hashCode());
   }
   /**
    * Test ChangeNumber equals method
@@ -134,8 +135,6 @@ public class ChangeNumberTest extends ReplicationTestCase
       ChangeNumber cn1, ChangeNumber cn2, ChangeNumber cn3, ChangeNumber cn4,
       ChangeNumber cn5) throws Exception
   {
-
-    // Check equals
     assertFalse(cn1.equals(new Object()));
     assertTrue (cn1.equals(cn1));
     assertTrue (cn1.equals(cn2));
@@ -148,48 +147,46 @@ public class ChangeNumberTest extends ReplicationTestCase
    * Test ChangeNumbergetTimeSec method
    */
   @Test(dataProvider = "createChangeNumber")
-  public void ChangeNumbergetTimeSec(
+	public void ChangeNumberGetTimeSec(
       ChangeNumber cn1, ChangeNumber cn2, ChangeNumber cn3, ChangeNumber cn4,
       ChangeNumber cn5) throws Exception
   {
     // Check time in sec
-    assertEquals(cn1.getTime()/1000, cn1.getTimeSec()) ;
-    assertEquals(cn2.getTime()/1000, cn2.getTimeSec()) ;
-    assertEquals(cn3.getTime()/1000, cn3.getTimeSec()) ;
-    assertEquals(cn4.getTime()/1000, cn4.getTimeSec()) ;
-    assertEquals(cn5.getTime()/1000, cn5.getTimeSec()) ;
+    assertEquals(cn1.getTime()/1000, cn1.getTimeSec());
+    assertEquals(cn2.getTime()/1000, cn2.getTimeSec());
+    assertEquals(cn3.getTime()/1000, cn3.getTimeSec());
+    assertEquals(cn4.getTime()/1000, cn4.getTimeSec());
+    assertEquals(cn5.getTime()/1000, cn5.getTimeSec());
   }
 
   /**
    * Test ChangeNumber compare method
    */
   @Test(dataProvider = "createChangeNumber")
-  public void ChangeNumbercompare(
+	public void ChangeNumberCompare(
       ChangeNumber cn1, ChangeNumber cn2, ChangeNumber cn3, ChangeNumber cn4,
       ChangeNumber cn5) throws Exception
   {
-    // Check compare
-    assertTrue((ChangeNumber.compare(null, null) == 0));
-    assertTrue((ChangeNumber.compare(null, cn2) < 0));
-    assertTrue((ChangeNumber.compare(cn1, null) > 0));
-    assertTrue((ChangeNumber.compare(cn1, cn2) == 0));
-    assertTrue((ChangeNumber.compare(cn1, cn3) < 0));
-    assertTrue((ChangeNumber.compare(cn3, cn1) > 0));
-    assertTrue((ChangeNumber.compare(cn1, cn4) < 0));
-    assertTrue((ChangeNumber.compare(cn4, cn1) > 0));
-    assertTrue((ChangeNumber.compare(cn1, cn5) < 0));
-    assertTrue((ChangeNumber.compare(cn5, cn1) > 0));
+    assertTrue(ChangeNumber.compare(null, null) == 0);
+    assertTrue(ChangeNumber.compare(null, cn2) < 0);
+    assertTrue(ChangeNumber.compare(cn1, null) > 0);
+    assertTrue(ChangeNumber.compare(cn1, cn2) == 0);
+    assertTrue(ChangeNumber.compare(cn1, cn3) < 0);
+    assertTrue(ChangeNumber.compare(cn3, cn1) > 0);
+    assertTrue(ChangeNumber.compare(cn1, cn4) < 0);
+    assertTrue(ChangeNumber.compare(cn4, cn1) > 0);
+    assertTrue(ChangeNumber.compare(cn1, cn5) < 0);
+    assertTrue(ChangeNumber.compare(cn5, cn1) > 0);
   }
 
   /**
    * Test ChangeNumber older method
    */
   @Test(dataProvider = "createChangeNumber")
-  public void ChangeNumberolder(
+	public void ChangeNumberOlder(
       ChangeNumber cn1, ChangeNumber cn2, ChangeNumber cn3, ChangeNumber cn4,
       ChangeNumber cn5) throws Exception
   {
-    // Check older
     assertFalse(cn1.older(null));
     assertFalse(cn1.older(cn1));
     assertTrue(cn1.older(cn3));
@@ -201,11 +198,10 @@ public class ChangeNumberTest extends ReplicationTestCase
    * Test ChangeNumber olderOrEqual method
    */
   @Test(dataProvider = "createChangeNumber")
-  public void ChangeNumberolderOrEqual(
+	public void ChangeNumberOlderOrEqual(
       ChangeNumber cn1, ChangeNumber cn2, ChangeNumber cn3, ChangeNumber cn4,
       ChangeNumber cn5) throws Exception
   {
-    // Check olderOrEqual
     assertFalse(cn1.olderOrEqual(null));
     assertTrue(cn1.olderOrEqual(cn1));
     assertTrue(cn1.olderOrEqual(cn3));
@@ -217,12 +213,10 @@ public class ChangeNumberTest extends ReplicationTestCase
    * Test ChangeNumber newer method
    */
   @Test(dataProvider = "createChangeNumber")
-  public void ChangeNumbernewer(
+	public void ChangeNumberNewer(
       ChangeNumber cn1, ChangeNumber cn2, ChangeNumber cn3, ChangeNumber cn4,
       ChangeNumber cn5) throws Exception
   {
-
-    // Check newer
     assertTrue(cn1.newer(null));
     assertFalse(cn1.newer(cn1));
     assertFalse(cn1.newer(cn3));
@@ -234,12 +228,10 @@ public class ChangeNumberTest extends ReplicationTestCase
    * Test ChangeNumber newerOrEquals method
    */
   @Test(dataProvider = "createChangeNumber")
-  public void ChangeNumbernewerOrEquals(
+	public void ChangeNumberNewerOrEquals(
       ChangeNumber cn1, ChangeNumber cn2, ChangeNumber cn3, ChangeNumber cn4,
       ChangeNumber cn5) throws Exception
   {
-
-    // Check newerOrEquals
     assertTrue(cn1.newerOrEquals(null));
     assertTrue(cn1.newerOrEquals(cn1));
     assertFalse(cn1.newerOrEquals(cn3));
@@ -249,11 +241,14 @@ public class ChangeNumberTest extends ReplicationTestCase
 
 
   /**
-   * Create a ChangeNumberGenerator The call NewChangeNumber() and adjust()
-   */
+	 * Create a ChangeNumberGenerator The call NewChangeNumber() and adjust()
+	 * <p>
+	 * FIXME these tests are calling Thread.sleep() which makes them slow. We
+	 * should really have a way to control time (make it go slower or faster) for
+	 * the unit tests to avoid such waits.
+	 */
   @Test
-  public void changeNumberGenerator()
-         throws Exception
+	public void changeNumberGenerator() throws Exception
   {
     ChangeNumber CN1;
     ChangeNumber CN2;
@@ -262,51 +257,49 @@ public class ChangeNumberTest extends ReplicationTestCase
     ChangeNumberGenerator cng =
       new ChangeNumberGenerator( 0, TimeThread.getTime());
 
-    // Generate 2 changeNumbers and check that they are differents
+		// Generate 2 changeNumbers and check that they are different
     CN1 = cng.newChangeNumber();
     CN2 = cng.newChangeNumber();
     assertTrue(CN1.compareTo(CN2) != 0);
 
-    // Generate a changeNumber separates by 10 milliseconds
-    // and check that they are differents
+		// Generate a changeNumber separated by 10 milliseconds
+		// and check that they are different
     Thread.sleep(10);
     CN2 = cng.newChangeNumber();
     assertTrue(CN1.compareTo(CN2) != 0);
 
-    // Generate a changeNumber separates by 300 milliseconds
-    // and check that they are differents
+		// Generate a changeNumber separated by 300 milliseconds
+		// and check that they are different
     Thread.sleep(300);
     CN2 = cng.newChangeNumber();
     assertTrue(CN1.compareTo(CN2) != 0);
 
     // Adjust with the oldest CN
-    cng.adjust(CN1) ;
+    cng.adjust(CN1);
     CN2 = cng.newChangeNumber();
     assertTrue(CN1.compareTo(CN2) != 0 );
 
     // Adjust with the newest generated
-    cng.adjust(CN2) ;
+    cng.adjust(CN2);
     CN1 = CN2;
     CN2 = cng.newChangeNumber();
     assertTrue(CN1.compareTo(CN2) != 0 );
 
     //  Adjust with the newest generated (time + 300)
-    CN1 = new ChangeNumber(CN2.getTime() +300 ,CN2.getSeqnum(),
-        CN2.getServerId()) ;
-    cng.adjust(CN1) ;
+    CN1 = new ChangeNumber(CN2.getTime() +300 ,CN2.getSeqnum(), CN2.getServerId());
+    cng.adjust(CN1);
     CN2 = cng.newChangeNumber();
     assertTrue(CN1.compareTo(CN2) != 0 );
 
     //  Adjust with the newest generated (seqmun + 10)
-    CN1 = new ChangeNumber(CN2.getTime() ,CN2.getSeqnum() +10,
-        CN2.getServerId()) ;
-    cng.adjust(CN1) ;
+    CN1 = new ChangeNumber(CN2.getTime() ,CN2.getSeqnum() +10, CN2.getServerId());
+    cng.adjust(CN1);
     CN2 = cng.newChangeNumber();
     assertTrue(CN1.compareTo(CN2) != 0 );
 
     //  Adjust with the newest generated (seqmun = 0XFFFF)
-    CN1 = new ChangeNumber(CN2.getTime() ,0XFFFF +10,CN2.getServerId()) ;
-    cng.adjust(CN1) ;
+    CN1 = new ChangeNumber(CN2.getTime() ,0XFFFF +10,CN2.getServerId());
+    cng.adjust(CN1);
     CN2 = cng.newChangeNumber();
     assertTrue(CN1.compareTo(CN2) != 0 );
   }
@@ -315,42 +308,41 @@ public class ChangeNumberTest extends ReplicationTestCase
    * Test the difference in seq num between 2 change numbers.
    */
   @Test
-  public void changeNumberDiffSeqNum()
-         throws Exception
+	public void changeNumberDiffSeqNum() throws Exception
   {
     ChangeNumber CN1;
     ChangeNumber CN2;
 
-    CN1 = new ChangeNumber((long)0, 3, 0);
+    CN1 = new ChangeNumber(0, 3, 0);
 
     // 3-0 = 3
-    CN2 = new ChangeNumber((long)0, 0, 0);
+    CN2 = new ChangeNumber(0, 0, 0);
     assertEquals(ChangeNumber.diffSeqNum(CN1, CN2), 3);
 
     // 3-1 = 2
-    CN2 = new ChangeNumber((long)0, 1, 0);
+    CN2 = new ChangeNumber(0, 1, 0);
     assertEquals(ChangeNumber.diffSeqNum(CN1, CN2), 2);
 
     // 3-3 = 0
-    CN2 = new ChangeNumber((long)0, 3, 0);
+    CN2 = new ChangeNumber(0, 3, 0);
     assertEquals(ChangeNumber.diffSeqNum(CN1, CN2), 0);
 
     // 3-4 = 0 (CN1 must be newer otherwise 0 should be returned)
-    CN2 = new ChangeNumber((long)0, 4, 0);
+    CN2 = new ChangeNumber(0, 4, 0);
     assertEquals(ChangeNumber.diffSeqNum(CN1, CN2), 0);
 
-    CN1 = new ChangeNumber((long)0, 0, 0);
+    CN1 = new ChangeNumber(0, 0, 0);
 
     // 0-0 = 0
-    CN2 = new ChangeNumber((long)0, 0, 0);
+    CN2 = new ChangeNumber(0, 0, 0);
     assertEquals(ChangeNumber.diffSeqNum(CN1, CN2), 0);
 
     // 0-1 = 0 (CN1 must be newer otherwise 0 should be returned)
-    CN2 = new ChangeNumber((long)0, 1, 0);
+    CN2 = new ChangeNumber(0, 1, 0);
     assertEquals(ChangeNumber.diffSeqNum(CN1, CN2), 0);
 
-    CN1 = new ChangeNumber((long)0, 5, 0);
-    CN2 = new ChangeNumber((long)0, 2, 0);
+    CN1 = new ChangeNumber(0, 5, 0);
+    CN2 = new ChangeNumber(0, 2, 0);
 
     // 5-null = 5
     assertEquals(ChangeNumber.diffSeqNum(CN1, null), 5);
@@ -361,16 +353,69 @@ public class ChangeNumberTest extends ReplicationTestCase
     // null-null = 0
     assertEquals(ChangeNumber.diffSeqNum(null, null), 0);
 
-    CN1 = new ChangeNumber((long)1111111, 2, 0);
-    CN2 = new ChangeNumber((long)3333333, 4, 0);
+    CN1 = new ChangeNumber(1111111, 2, 0);
+    CN2 = new ChangeNumber(3333333, 4, 0);
 
     // CN1 older than CN2 -> 0
     assertEquals(ChangeNumber.diffSeqNum(CN1, CN2), 0);
 
-    CN1 = new ChangeNumber((long)3333333, 1, 0);
-    CN2 = new ChangeNumber((long)1111111, Integer.MAX_VALUE-1, 0);
+    CN1 = new ChangeNumber(3333333, 1, 0);
+    CN2 = new ChangeNumber(1111111, Integer.MAX_VALUE-1, 0);
 
     // CN1 seqnum looped
     assertEquals(ChangeNumber.diffSeqNum(CN1, CN2), 3);
   }
+
+  @DataProvider
+	public Iterator<Object[]> createCNPairsToCompare()
+	{
+		final List<Object> allCNs = new ArrayList<Object>();
+		for (Object[] cnData : createChangeNumberData())
+		{
+			allCNs.addAll(Arrays.asList(cnData));
+		}
+
+		final List<Object[]> results = new ArrayList<Object[]>();
+		for (Object cn1 : allCNs)
+		{
+			for (Object cn2 : allCNs)
+			{
+				/*
+				 * it is ok to compare to the exact same CN to ensure operations are
+				 * reflexive, and it is also ok to compare cn1 to cn2, and cn2 to cn1 to
+				 * ensure operations are symmetric
+				 */
+				results.add(new Object[] { cn1, cn2 });
+			}
+		}
+		return results.iterator();
+	}
+
+	@Test(dataProvider = "createCNPairsToCompare")
+	public void compareToEquivalentToEquals(ChangeNumber cn1, ChangeNumber cn2)
+			throws Exception
+	{
+		assertEquals(cn1.compareTo(cn2) == 0, cn1.equals(cn2));
+	}
+
+	@Test(dataProvider = "createCNPairsToCompare")
+	public void hashCodesEqualWhenChangeNumbersEqual(ChangeNumber cn1,
+			ChangeNumber cn2) throws Exception
+	{
+		if (cn1.equals(cn2))
+		{
+			assertEquals(cn1.hashCode(), cn2.hashCode());
+		}
+	}
+
+	@Test(dataProvider = "createCNPairsToCompare")
+	public void hashCodesEqualWhenCompareToEqual(ChangeNumber cn1,
+			ChangeNumber cn2) throws Exception
+	{
+		if (cn1.compareTo(cn2) == 0)
+		{
+			assertEquals(cn1.hashCode(), cn2.hashCode());
+		}
+	}
+
 }
