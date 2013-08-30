@@ -40,7 +40,7 @@ import org.opends.server.replication.common.ChangeNumberGenerator;
 import org.opends.server.replication.protocol.DeleteMsg;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
-import org.opends.server.replication.server.changelog.api.ReplicationIterator;
+import org.opends.server.replication.server.changelog.api.ReplicationDBCursor;
 import org.opends.server.util.StaticUtils;
 import org.testng.annotations.Test;
 
@@ -124,7 +124,7 @@ public class DbHandlerTest extends ReplicationTestCase
       assertEquals(changeNumber3, handler.getLastChange());
 
       //--
-      // Iterator tests with db and memory queue populated
+			// Cursor tests with db and memory queue populated
       // all changes in the db - add one in the memory queue
       handler.add(update4);
 
@@ -132,7 +132,7 @@ public class DbHandlerTest extends ReplicationTestCase
       assertEquals(handler.getQueueSize(),1);
 
       assertFoundInOrder(handler, changeNumber1, changeNumber2, changeNumber3, changeNumber4);
-      // Test iterator from existing CN at the limit between queue and db
+			// Test cursor from existing CN at the limit between queue and db
       assertFoundInOrder(handler, changeNumber3, changeNumber4);
       assertFoundInOrder(handler, changeNumber4);
       assertNotFound(handler, changeNumber5);
@@ -196,33 +196,31 @@ public class DbHandlerTest extends ReplicationTestCase
       return;
     }
 
-    ReplicationIterator it = handler.generateIterator(changeNumbers[0]);
+		ReplicationDBCursor cursor = handler.generateCursorFrom(changeNumbers[0]);
     try
     {
       for (int i = 1; i < changeNumbers.length; i++)
       {
-        assertTrue(it.next());
-        final ChangeNumber cn = it.getChange().getChangeNumber();
-        final boolean equals = cn.compareTo(changeNumbers[i]) == 0;
-        assertTrue(equals, "Actual change number=" + cn
-            + ", Expected change number=" + changeNumbers[i]);
+				assertTrue(cursor.next());
+				final ChangeNumber cn = cursor.getChange().getChangeNumber();
+				assertEquals(cn, changeNumbers[i]);
       }
-      assertFalse(it.next());
-      assertNull(it.getChange(), "Actual change number=" + it.getChange()
-          + ", Expected null");
+			assertFalse(cursor.next());
+			assertNull(cursor.getChange(), "Actual change number="
+					+ cursor.getChange() + ", Expected null");
     }
     finally
     {
-      StaticUtils.close(it);
+			StaticUtils.close(cursor);
     }
   }
 
   private void assertNotFound(DbHandler handler, ChangeNumber changeNumber)
   {
-    ReplicationIterator iter = null;
+    ReplicationDBCursor cursor = null;
     try
     {
-      iter = handler.generateIterator(changeNumber);
+      cursor = handler.generateCursorFrom(changeNumber);
       fail("Expected exception");
     }
     catch (Exception e)
@@ -231,7 +229,7 @@ public class DbHandlerTest extends ReplicationTestCase
     }
     finally
     {
-      StaticUtils.close(iter);
+      StaticUtils.close(cursor);
     }
   }
 

@@ -47,8 +47,9 @@ import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.common.*;
 import org.opends.server.replication.protocol.*;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
-import org.opends.server.replication.server.changelog.api.ReplicationIterator;
+import org.opends.server.replication.server.changelog.api.ReplicationDBCursor;
 import org.opends.server.replication.server.changelog.je.DbHandler;
+import org.opends.server.replication.server.changelog.je.ReplicationDB;
 import org.opends.server.types.*;
 
 import static org.opends.messages.ReplicationMessages.*;
@@ -1262,17 +1263,18 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
   }
 
   /**
-   * Creates and returns an iterator.
-   * When the iterator is not used anymore, the caller MUST call the
-   * ReplicationIterator.releaseCursor() method to free the resources
-   * and locks used by the ReplicationIterator.
-   *
-   * @param serverId Identifier of the server for which the iterator is created.
-   * @param startAfterCN Starting point for the iterator.
-   * @return the created ReplicationIterator. Null when no DB is available
-   * for the provided server Id.
-   */
-  public ReplicationIterator getChangelogIterator(int serverId,
+	 * Creates and returns a cursor. When the cursor is not used anymore, the
+	 * caller MUST call the {@link ReplicationDBCursor#close()} method to free the
+	 * resources and locks used by the cursor.
+	 * 
+	 * @param serverId
+	 *          Identifier of the server for which the cursor is created.
+	 * @param startAfterCN
+	 *          Starting point for the cursor.
+	 * @return the created {@link ReplicationDB}. Null when no DB is available or
+	 *         the DB is empty for the provided serverId .
+	 */
+  public ReplicationDBCursor getCursorFrom(int serverId,
       ChangeNumber startAfterCN)
   {
     DbHandler dbHandler = sourceDbHandlers.get(serverId);
@@ -1281,29 +1283,29 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
       return null;
     }
 
-    ReplicationIterator it;
+    ReplicationDBCursor cursor;
     try
     {
-      it = dbHandler.generateIterator(startAfterCN);
+      cursor = dbHandler.generateCursorFrom(startAfterCN);
     }
     catch (Exception e)
     {
       return null;
     }
 
-    if (!it.next())
+    if (!cursor.next())
     {
-      close(it);
+      close(cursor);
       return null;
     }
 
-    return it;
+    return cursor;
   }
 
  /**
   * Count the number of changes in the replication changelog for the provided
   * serverID, between 2 provided changenumbers.
-  * @param serverId Identifier of the server for which the iterator is created.
+  * @param serverId Identifier of the server for which to compute the count.
   * @param from lower limit changenumber.
   * @param to   upper limit changenumber.
   * @return the number of changes.
@@ -2679,18 +2681,18 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
           // to the Db and look for the change older than  eligible CN (cn14)
           if (eligibleCN.olderOrEqual(mostRecentDbCN)) {
             // let's try to seek the first change <= eligibleCN
-            ReplicationIterator ri = null;
+            ReplicationDBCursor cursor = null;
             try {
-              ri = h.generateIterator(eligibleCN);
-              if (ri != null && ri.getChange() != null) {
-                ChangeNumber newCN = ri.getChange().getChangeNumber();
+              cursor = h.generateCursorFrom(eligibleCN);
+              if (cursor != null && cursor.getChange() != null) {
+                ChangeNumber newCN = cursor.getChange().getChangeNumber();
                 result.update(newCN);
               }
             } catch (ChangelogException e) {
               // there's no change older than eligibleCN (case of s3/cn31)
               result.update(new ChangeNumber(0, 0, serverId));
             } finally {
-              close(ri);
+              close(cursor);
             }
           } else {
             // for this serverId, all changes in the ChangelogDb are holder
