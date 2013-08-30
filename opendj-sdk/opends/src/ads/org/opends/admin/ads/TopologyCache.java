@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2012 ForgeRock AS
+ *      Portions copyright 2011-2013 ForgeRock AS
  */
 package org.opends.admin.ads;
 
@@ -77,10 +77,9 @@ public class TopologyCache
       new HashSet<ServerDescriptor>();
   private final Set<SuffixDescriptor> suffixes =
       new HashSet<SuffixDescriptor>();
-  private final LinkedHashSet<PreferredConnection> preferredConnections =
+  private final Set<PreferredConnection> preferredConnections =
       new LinkedHashSet<PreferredConnection>();
   private final TopologyCacheFilter filter = new TopologyCacheFilter();
-  private final boolean isMultiThreaded = true;
   private final static int MULTITHREAD_TIMEOUT = 90 * 1000;
   private static final Logger LOG =
       Logger.getLogger(TopologyCache.class.getName());
@@ -125,20 +124,10 @@ public class TopologyCache
       for (Map<ServerProperty, Object> serverProperties : adsServers)
       {
         ServerLoader t = getServerLoader(serverProperties);
-        if (isMultiThreaded)
-        {
-          t.start();
-          threadSet.add(t);
-        }
-        else
-        {
-          t.run();
-        }
+        t.start();
+        threadSet.add(t);
       }
-      if (isMultiThreaded)
-      {
-        joinThreadSet(threadSet);
-      }
+      joinThreadSet(threadSet);
       /*
        * Try to consolidate things (even if the data is not complete).
        */
@@ -229,9 +218,6 @@ public class TopologyCache
 
   /**
    * Reads the replication monitoring.
-   *
-   * @throws NamingException if an error occurs reading the replication
-   * monitoring.
    */
   private void readReplicationMonitoring()
   {
@@ -300,7 +286,7 @@ public class TopologyCache
    *
    * @param cnx the list of preferred connections.
    */
-  public void setPreferredConnections(LinkedHashSet<PreferredConnection> cnx)
+  public void setPreferredConnections(Set<PreferredConnection> cnx)
   {
     preferredConnections.clear();
     preferredConnections.addAll(cnx);
@@ -421,12 +407,12 @@ public class TopologyCache
    *
    * @return a set of error messages encountered in the TopologyCache.
    */
-  public LinkedHashSet<Message> getErrorMessages()
+  public Set<Message> getErrorMessages()
   {
     Set<TopologyCacheException> exceptions =
         new HashSet<TopologyCacheException>();
     Set<ServerDescriptor> theServers = getServers();
-    LinkedHashSet<Message> exceptionMsgs = new LinkedHashSet<Message>();
+    Set<Message> exceptionMsgs = new LinkedHashSet<Message>();
     for (ServerDescriptor server : theServers)
     {
       TopologyCacheException e = server.getLastException();

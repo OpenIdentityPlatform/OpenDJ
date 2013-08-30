@@ -846,7 +846,7 @@ public class ReplicationCliMain extends ConsoleApplication
       PurgeHistoricalUserData uData)
   {
     ReplicationCliReturnCode returnValue;
-    LinkedList<String> baseDNs = uData.getBaseDNs();
+    List<String> baseDNs = uData.getBaseDNs();
     checkSuffixesForLocalPurgeHistorical(baseDNs, false);
     if (!baseDNs.isEmpty())
     {
@@ -1001,7 +1001,7 @@ public class ReplicationCliMain extends ConsoleApplication
 
     if (ctx != null)
     {
-      LinkedList<String> baseDNs = uData.getBaseDNs();
+      List<String> baseDNs = uData.getBaseDNs();
       checkSuffixesForPurgeHistorical(baseDNs, ctx, false);
       if (!baseDNs.isEmpty())
       {
@@ -1663,7 +1663,7 @@ public class ReplicationCliMain extends ConsoleApplication
     String bindDn1 = argParser.getBindDn1();
     String pwd1 = argParser.getBindPassword1();
     String pwd = null;
-    LinkedHashMap<String, String> pwdFile = null;
+    Map<String, String> pwdFile = null;
     if (argParser.bindPassword1Arg.isPresent())
     {
       pwd = argParser.bindPassword1Arg.getValue();
@@ -2929,7 +2929,7 @@ public class ReplicationCliMain extends ConsoleApplication
     String hostSource = argParser.getHostNameSource();
     int portSource = argParser.getPortSource();
 
-    LinkedHashMap<String, String> pwdFile = null;
+    Map<String, String> pwdFile = null;
 
     if (argParser.getSecureArgsList().bindPasswordFileArg.isPresent())
     {
@@ -4118,7 +4118,7 @@ public class ReplicationCliMain extends ConsoleApplication
 
     if (errorMessages.isEmpty())
     {
-      LinkedList<String> suffixes = uData.getBaseDNs();
+      List<String> suffixes = uData.getBaseDNs();
       checkSuffixesForEnableReplication(suffixes, ctx1, ctx2, false, uData);
       if (!suffixes.isEmpty())
       {
@@ -4250,7 +4250,7 @@ public class ReplicationCliMain extends ConsoleApplication
       // This done is for the message informing that we are connecting.
       printProgress(formatter.getFormattedDone());
       printlnProgress();
-      LinkedList<String> suffixes = uData.getBaseDNs();
+      List<String> suffixes = uData.getBaseDNs();
       checkSuffixesForDisableReplication(suffixes, ctx, false,
           !uData.disableReplicationServer(), !uData.disableReplicationServer());
       if (!suffixes.isEmpty() || uData.disableReplicationServer() ||
@@ -4414,7 +4414,7 @@ public class ReplicationCliMain extends ConsoleApplication
 
     if ((ctxSource != null) && (ctxDestination != null))
     {
-      LinkedList<String> baseDNs = uData.getBaseDNs();
+      List<String> baseDNs = uData.getBaseDNs();
       checkSuffixesForInitializeReplication(baseDNs, ctxSource, ctxDestination,
           false);
       if (!baseDNs.isEmpty())
@@ -4531,7 +4531,7 @@ public class ReplicationCliMain extends ConsoleApplication
     }
     if (ctx != null)
     {
-      LinkedList<String> baseDNs = uData.getBaseDNs();
+      List<String> baseDNs = uData.getBaseDNs();
       checkSuffixesForInitializeReplication(baseDNs, ctx, false);
       if (!baseDNs.isEmpty())
       {
@@ -4618,7 +4618,7 @@ public class ReplicationCliMain extends ConsoleApplication
     }
     if (ctx != null)
     {
-      LinkedList<String> baseDNs = uData.getBaseDNs();
+      List<String> baseDNs = uData.getBaseDNs();
       checkSuffixesForInitializeReplication(baseDNs, ctx, false);
       if (!baseDNs.isEmpty())
       {
@@ -4707,7 +4707,7 @@ public class ReplicationCliMain extends ConsoleApplication
     }
     if (ctx != null)
     {
-      LinkedList<String> baseDNs = uData.getBaseDNs();
+      List<String> baseDNs = uData.getBaseDNs();
       checkSuffixesForInitializeReplication(baseDNs, ctx, false);
       if (!baseDNs.isEmpty())
       {
@@ -5509,12 +5509,12 @@ public class ReplicationCliMain extends ConsoleApplication
       InitialLdapContext ctx2, EnableReplicationUserData uData)
   throws ReplicationCliException
   {
-    LinkedHashSet<String> twoReplServers = new LinkedHashSet<String>();
-    LinkedHashSet<String> allRepServers = new LinkedHashSet<String>();
-    HashMap<String, LinkedHashSet<String>> hmRepServers =
-      new HashMap<String, LinkedHashSet<String>>();
-    Set<Integer> usedReplicationServerIds = new HashSet<Integer>();
-    HashMap<String, Set<Integer>> hmUsedReplicationDomainIds =
+    final Set<String> twoReplServers = new LinkedHashSet<String>();
+    final Set<String> allRepServers = new LinkedHashSet<String>();
+    final Map<String, Set<String>> hmRepServers =
+        new HashMap<String, Set<String>>();
+    final Set<Integer> usedReplicationServerIds = new HashSet<Integer>();
+    final Map<String, Set<Integer>> hmUsedReplicationDomainIds =
       new HashMap<String, Set<Integer>>();
 
     ServerDescriptor server1;
@@ -5555,10 +5555,10 @@ public class ReplicationCliMain extends ConsoleApplication
     {
       // Inform the user of the potential errors that we found in the already
       // registered servers.
-      LinkedHashSet<Message> messages = new LinkedHashSet<Message>();
+      final Set<Message> messages = new LinkedHashSet<Message>();
       try
       {
-        LinkedHashSet<PreferredConnection> cnx =
+        final Set<PreferredConnection> cnx =
           new LinkedHashSet<PreferredConnection>();
         cnx.addAll(PreferredConnection.getPreferredConnections(ctx1));
         cnx.addAll(PreferredConnection.getPreferredConnections(ctx2));
@@ -5898,7 +5898,7 @@ public class ReplicationCliMain extends ConsoleApplication
       printProgress(formatter.getFormattedDone());
       printlnProgress();
     }
-    LinkedList<String> baseDNs = uData.getBaseDNs();
+    List<String> baseDNs = uData.getBaseDNs();
     if (!adsAlreadyReplicated)
     {
       boolean found = false;
@@ -5928,7 +5928,7 @@ public class ReplicationCliMain extends ConsoleApplication
 
     try
     {
-      LinkedHashSet<PreferredConnection> cnx =
+      Set<PreferredConnection> cnx =
         new LinkedHashSet<PreferredConnection>();
       cnx.addAll(PreferredConnection.getPreferredConnections(ctx1));
       cnx.addAll(PreferredConnection.getPreferredConnections(ctx2));
@@ -5996,7 +5996,7 @@ public class ReplicationCliMain extends ConsoleApplication
 
     for (String baseDN : uData.getBaseDNs())
     {
-      LinkedHashSet<String> repServersForBaseDN = new LinkedHashSet<String>();
+      Set<String> repServersForBaseDN = new LinkedHashSet<String>();
       repServersForBaseDN.addAll(getReplicationServers(baseDN, cache1,
           server1));
       repServersForBaseDN.addAll(getReplicationServers(baseDN, cache2,
@@ -6327,7 +6327,7 @@ public class ReplicationCliMain extends ConsoleApplication
     if (!argParser.isInteractive())
     {
       // Inform the user of the potential errors that we found.
-      LinkedHashSet<Message> messages = new LinkedHashSet<Message>();
+      Set<Message> messages = new LinkedHashSet<Message>();
       if (cache != null)
       {
         messages.addAll(cache.getErrorMessages());
@@ -6400,7 +6400,7 @@ public class ReplicationCliMain extends ConsoleApplication
       // Inform the user
       if (beforeLastRepServer.size() > 0)
       {
-        LinkedHashSet<String> baseDNs = new LinkedHashSet<String>();
+        Set<String> baseDNs = new LinkedHashSet<String>();
         for (SuffixDescriptor suffix : beforeLastRepServer)
         {
           if (!Utils.areDnsEqual(suffix.getDN(),
@@ -6446,7 +6446,7 @@ public class ReplicationCliMain extends ConsoleApplication
       {
         // Check that there are other replicas and that this message, really
         // makes sense to be displayed.
-        LinkedHashSet<String> suffixArg = new LinkedHashSet<String>();
+        Set<String> suffixArg = new LinkedHashSet<String>();
         for (SuffixDescriptor suffix : lastRepServer)
         {
           boolean baseDNSpecified = false;
@@ -6832,7 +6832,7 @@ public class ReplicationCliMain extends ConsoleApplication
     if (!argParser.isInteractive())
     {
       // Inform the user of the potential errors that we found.
-      LinkedHashSet<Message> messages = new LinkedHashSet<Message>();
+      Set<Message> messages = new LinkedHashSet<Message>();
       messages.addAll(cache.getErrorMessages());
       if (!messages.isEmpty())
       {
@@ -7018,7 +7018,7 @@ public class ReplicationCliMain extends ConsoleApplication
    */
   private void displayStatus(
       List<Set<ReplicaDescriptor>> orderedReplicaLists,
-      boolean scriptFriendly, LinkedHashSet<PreferredConnection> cnx,
+      boolean scriptFriendly, Set<PreferredConnection> cnx,
       Set<ServerDescriptor> servers,
       Set<ReplicaDescriptor> replicasWithNoReplicationServer,
       Set<ServerDescriptor> serversWithNoReplica)
@@ -7309,7 +7309,7 @@ public class ReplicationCliMain extends ConsoleApplication
    * @param scriptFriendly wheter to display it on script-friendly mode or not.
    */
   private void displayStatus(Set<ServerDescriptor> servers,
-      boolean scriptFriendly, LinkedHashSet<PreferredConnection> cnx)
+      boolean scriptFriendly, Set<PreferredConnection> cnx)
   {
     TableBuilder tableBuilder = new TableBuilder();
     tableBuilder.appendHeading(INFO_REPLICATION_STATUS_HEADER_SERVERPORT.get());
@@ -7546,7 +7546,7 @@ public class ReplicationCliMain extends ConsoleApplication
    */
   private void configureAsReplicationServer(InitialLdapContext ctx,
       int replicationPort, boolean useSecureReplication,
-      LinkedHashSet<String> replicationServers,
+      Set<String> replicationServers,
       Set<Integer> usedReplicationServerIds) throws OpenDsException
   {
     printProgress(formatter.getFormattedWithPoints(
@@ -8592,7 +8592,7 @@ public class ReplicationCliMain extends ConsoleApplication
   private void removeReferencesInServer(ServerDescriptor server,
       String replicationServer, String bindDn, String pwd,
       Collection<String> baseDNs, boolean updateReplicationServers,
-      LinkedHashSet<PreferredConnection> cnx)
+      Set<PreferredConnection> cnx)
   throws ReplicationCliException
   {
     TopologyCacheFilter filter = new TopologyCacheFilter();
@@ -9570,7 +9570,7 @@ public class ReplicationCliMain extends ConsoleApplication
       ReplicationUserData uData)
   throws ArgumentException
   {
-    LinkedList<String> baseDNs = uData.getBaseDNs();
+    List<String> baseDNs = uData.getBaseDNs();
     StringArgument baseDNsArg = new StringArgument("baseDNs",
         OPTION_SHORT_BASEDN,
         OPTION_LONG_BASEDN, false, true, true, INFO_BASEDN_PLACEHOLDER.get(),
@@ -10570,7 +10570,7 @@ public class ReplicationCliMain extends ConsoleApplication
     PointAdder pointAdder = new PointAdder(this);
     try
     {
-      LinkedHashSet<PreferredConnection> cnx =
+      Set<PreferredConnection> cnx =
         new LinkedHashSet<PreferredConnection>();
       cnx.addAll(PreferredConnection.getPreferredConnections(
           adsCtx1.getDirContext()));
