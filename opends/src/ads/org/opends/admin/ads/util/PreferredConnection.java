@@ -23,11 +23,13 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS.
  */
 
 package org.opends.admin.ads.util;
 
 import java.util.LinkedHashSet;
+import java.util.Set;
 
 import javax.naming.ldap.InitialLdapContext;
 
@@ -123,7 +125,7 @@ public class PreferredConnection
   /**
    * Commodity method that returns a PreferredConnection object with the
    * information on a given InitialLdapContext.
-   * @param ctx the connection we retrieve the inforamtion from.
+   * @param ctx the connection we retrieve the information from.
    * @return a preferred connection object.
    */
   public static PreferredConnection getPreferredConnection(
@@ -143,8 +145,7 @@ public class PreferredConnection
     {
       type = PreferredConnection.Type.LDAP;
     }
-    PreferredConnection cnx = new PreferredConnection(ldapUrl, type);
-    return cnx;
+    return new PreferredConnection(ldapUrl, type);
   }
 
 
@@ -152,14 +153,14 @@ public class PreferredConnection
   /**
    * Commodity method that generates a list of preferred connection (of just
    * one) with the information on a given InitialLdapContext.
-   * @param ctx the connection we retrieve the inforamtion from.
+   * @param ctx the connection we retrieve the information from.
    * @return a list containing the preferred connection object.
    */
-  public static LinkedHashSet<PreferredConnection> getPreferredConnections(
+  public static Set<PreferredConnection> getPreferredConnections(
       InitialLdapContext ctx)
   {
     PreferredConnection cnx = PreferredConnection.getPreferredConnection(ctx);
-    LinkedHashSet<PreferredConnection> returnValue =
+    Set<PreferredConnection> returnValue =
       new LinkedHashSet<PreferredConnection>();
     returnValue.add(cnx);
     return returnValue;

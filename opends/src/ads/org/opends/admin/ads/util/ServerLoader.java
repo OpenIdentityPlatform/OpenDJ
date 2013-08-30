@@ -23,12 +23,14 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS.
  */
 
 package org.opends.admin.ads.util;
 
 import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -44,6 +46,8 @@ import org.opends.admin.ads.ServerDescriptor;
 import org.opends.admin.ads.TopologyCacheException;
 import org.opends.admin.ads.TopologyCacheFilter;
 import org.opends.admin.ads.ADSContext.ServerProperty;
+
+import static org.opends.server.util.StaticUtils.close;
 
 /**
  * Class used to load the configuration of a server.  Basically the code
@@ -63,7 +67,7 @@ public class ServerLoader extends Thread
   private int timeout;
   private String dn;
   private String pwd;
-  private LinkedHashSet<PreferredConnection> preferredLDAPURLs;
+  private final LinkedHashSet<PreferredConnection> preferredLDAPURLs;
   private TopologyCacheFilter filter;
 
   private static final Logger LOG =
@@ -88,7 +92,7 @@ public class ServerLoader extends Thread
   public ServerLoader(Map<ServerProperty,Object> serverProperties,
       String dn, String pwd, ApplicationTrustManager trustManager,
       int timeout,
-      LinkedHashSet<PreferredConnection> preferredLDAPURLs,
+      Set<PreferredConnection> preferredLDAPURLs,
       TopologyCacheFilter filter)
   {
     this.serverProperties = serverProperties;
@@ -235,16 +239,7 @@ public class ServerLoader extends Thread
     finally
     {
       isOver = true;
-      try
-      {
-        if (ctx != null)
-        {
-          ctx.close();
-        }
-      }
-      catch (Throwable t)
-      {
-      }
+      close(ctx);
     }
   }
 

@@ -23,11 +23,13 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS.
  */
 
 package org.opends.server.tools.dsreplication;
 
 import java.util.LinkedList;
+import java.util.List;
 
 /**
  * This class is used to store the information provided by the user in the
@@ -37,7 +39,7 @@ import java.util.LinkedList;
  */
 public abstract class ReplicationUserData
 {
-  private LinkedList<String> baseDNs = new LinkedList<String>();
+  private final LinkedList<String> baseDNs = new LinkedList<String>();
   private String adminUid;
   private String adminPwd;
 
@@ -81,7 +83,7 @@ public abstract class ReplicationUserData
    * Returns the Base DNs to replicate.
    * @return the Base DNs to replicate.
    */
-  public LinkedList<String> getBaseDNs()
+  public List<String> getBaseDNs()
   {
     return new LinkedList<String>(baseDNs);
   }
@@ -90,7 +92,7 @@ public abstract class ReplicationUserData
    * Sets the Base DNs to replicate.
    * @param baseDNs the Base DNs to replicate.
    */
-  public void setBaseDNs(LinkedList<String> baseDNs)
+  public void setBaseDNs(List<String> baseDNs)
   {
     this.baseDNs.clear();
     this.baseDNs.addAll(baseDNs);

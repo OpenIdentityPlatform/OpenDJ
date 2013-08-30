@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS.
  */
 
 package org.opends.admin.ads;
@@ -149,8 +150,7 @@ public class TopologyCacheException extends OpenDsException {
   public String getHostPort()
   {
     int index = ldapUrl.indexOf("//");
-    String hostPort = ldapUrl.substring(index + 2);
-    return hostPort;
+    return ldapUrl.substring(index + 2);
   }
 
   /**
