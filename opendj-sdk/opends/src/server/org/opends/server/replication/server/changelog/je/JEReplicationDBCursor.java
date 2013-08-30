@@ -32,7 +32,7 @@ import org.opends.server.replication.common.ChangeNumber;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.api.ReplicationDBCursor;
-import org.opends.server.replication.server.changelog.je.ReplicationDB.ReplServerDBCursor;
+import org.opends.server.replication.server.changelog.je.ReplicationDB.*;
 
 /**
  * Berkeley DB JE implementation of {@link ReplicationDBCursor}.
@@ -46,18 +46,18 @@ public class JEReplicationDBCursor implements ReplicationDBCursor
   private ChangeNumber lastNonNullCurrentCN;
 
   /**
-	 * Creates a new JEReplicationDBCursor. All created cursor must be released by
-	 * the caller using the {@link #close()} method.
-	 *
-	 * @param db
-	 *          The db where the cursor must be created.
-	 * @param startAfterCN
-	 *          The ChangeNumber after which the cursor must start.
-	 * @param dbHandler
-	 *          The associated DbHandler.
-	 * @throws ChangelogException
-	 *           if a database problem happened.
-	 */
+   * Creates a new JEReplicationDBCursor. All created cursor must be released by
+   * the caller using the {@link #close()} method.
+   *
+   * @param db
+   *          The db where the cursor must be created.
+   * @param startAfterCN
+   *          The ChangeNumber after which the cursor must start.
+   * @param dbHandler
+   *          The associated DbHandler.
+   * @throws ChangelogException
+   *           if a database problem happened.
+   */
   public JEReplicationDBCursor(ReplicationDB db, ChangeNumber startAfterCN,
       DbHandler dbHandler) throws ChangelogException
   {
@@ -151,10 +151,10 @@ public class JEReplicationDBCursor implements ReplicationDBCursor
   }
 
   /**
-	 * Called by the Gc when the object is garbage collected Release the internal
-	 * cursor in case the cursor was badly used and {@link #close()} was never
-	 * called.
-	 */
+   * Called by the Gc when the object is garbage collected Release the internal
+   * cursor in case the cursor was badly used and {@link #close()} was never
+   * called.
+   */
   @Override
   protected void finalize()
   {

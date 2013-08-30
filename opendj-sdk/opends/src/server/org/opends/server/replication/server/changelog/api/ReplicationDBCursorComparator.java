@@ -30,7 +30,6 @@ package org.opends.server.replication.server.changelog.api;
 import java.util.Comparator;
 
 import org.opends.server.replication.common.ChangeNumber;
-import org.opends.server.replication.protocol.UpdateMsg;
 
 /**
  * This class defines a {@link Comparator} that allows to know which
@@ -41,14 +40,14 @@ public class ReplicationDBCursorComparator
               implements Comparator<ReplicationDBCursor>
 {
   /**
-	 * Compare the {@link ChangeNumber} of the {@link ReplicationDBCursor}.
-	 * 
-	 * @param o1
-	 *          first cursor.
-	 * @param o2
-	 *          second cursor.
-	 * @return result of the comparison.
-	 */
+   * Compare the {@link ChangeNumber} of the {@link ReplicationDBCursor}.
+   *
+   * @param o1
+   *          first cursor.
+   * @param o2
+   *          second cursor.
+   * @return result of the comparison.
+   */
   @Override
   public int compare(ReplicationDBCursor o1, ReplicationDBCursor o2)
   {

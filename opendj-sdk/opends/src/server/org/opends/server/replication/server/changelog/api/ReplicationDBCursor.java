@@ -38,24 +38,24 @@ public interface ReplicationDBCursor extends Closeable
 {
 
   /**
-	 * Get the UpdateMsg where the cursor is currently set.
-	 * 
-	 * @return The UpdateMsg where the cursor is currently set.
-	 */
+   * Get the UpdateMsg where the cursor is currently set.
+   *
+   * @return The UpdateMsg where the cursor is currently set.
+   */
   UpdateMsg getChange();
 
   /**
-	 * Go to the next change in the ReplicationDB or in the server Queue.
-	 * 
-	 * @return false if the cursor is already on the last change before this call.
-	 */
+   * Go to the next change in the ReplicationDB or in the server Queue.
+   *
+   * @return false if the cursor is already on the last change before this call.
+   */
   boolean next();
 
   /**
-	 * Release the resources and locks used by this cursor. This method must be
-	 * called when the cursor is no longer used. Failure to do it could cause DB
-	 * deadlock.
-	 */
+   * Release the resources and locks used by this cursor. This method must be
+   * called when the cursor is no longer used. Failure to do it could cause DB
+   * deadlock.
+   */
   @Override
   void close();
 
