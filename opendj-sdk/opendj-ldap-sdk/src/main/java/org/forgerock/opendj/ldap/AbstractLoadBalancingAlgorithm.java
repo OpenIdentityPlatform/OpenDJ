@@ -162,12 +162,17 @@ abstract class AbstractLoadBalancingAlgorithm implements LoadBalancingAlgorithm 
         }
 
         private void notifyOffline(final ErrorResultException error) {
+            // Save the error in case the load-balancer is exhausted.
+            lastFailure = error;
+
             if (isOperational.getAndSet(false)) {
                 // Transition from online to offline.
-                if (DEBUG_LOG.isLoggable(Level.WARNING)) {
-                    DEBUG_LOG.warning(String.format(
-                            "Connection factory '%s' is no longer operational: %s", factory, error
-                                    .getMessage()));
+                synchronized (listenerLock) {
+                    try {
+                        listener.handleConnectionFactoryOffline(factory, error);
+                    } catch (RuntimeException e) {
+                        handleListenerException(e);
+                    }
                 }
 
                 synchronized (stateLock) {
@@ -189,9 +194,12 @@ abstract class AbstractLoadBalancingAlgorithm implements LoadBalancingAlgorithm 
         private void notifyOnline() {
             if (!isOperational.getAndSet(true)) {
                 // Transition from offline to online.
-                if (DEBUG_LOG.isLoggable(Level.INFO)) {
-                    DEBUG_LOG.info(String.format("Connection factory'%s' is now operational",
-                            factory));
+                synchronized (listenerLock) {
+                    try {
+                        listener.handleConnectionFactoryOnline(factory);
+                    } catch (RuntimeException e) {
+                        handleListenerException(e);
+                    }
                 }
 
                 synchronized (stateLock) {
@@ -205,6 +213,13 @@ abstract class AbstractLoadBalancingAlgorithm implements LoadBalancingAlgorithm 
                         monitoringFuture = null;
                     }
                 }
+            }
+        }
+
+        private void handleListenerException(RuntimeException e) {
+            if (DEBUG_LOG.isLoggable(Level.SEVERE)) {
+                DEBUG_LOG.log(Level.SEVERE,
+                        "A run-time error occurred while processing a load-balancer event", e);
             }
         }
     }
@@ -222,9 +237,54 @@ abstract class AbstractLoadBalancingAlgorithm implements LoadBalancingAlgorithm 
         }
     }
 
+    /**
+     * A default event listener which just logs the event.
+     */
+    private static final LoadBalancerEventListener DEFAULT_LISTENER =
+            new LoadBalancerEventListener() {
+
+                @Override
+                public void handleConnectionFactoryOnline(ConnectionFactory factory) {
+                    // Transition from offline to online.
+                    if (DEBUG_LOG.isLoggable(Level.INFO)) {
+                        DEBUG_LOG.info(String.format("Connection factory'%s' is now operational",
+                                factory));
+                    }
+                }
+
+                @Override
+                public void handleConnectionFactoryOffline(ConnectionFactory factory,
+                        ErrorResultException error) {
+                    if (DEBUG_LOG.isLoggable(Level.WARNING)) {
+                        DEBUG_LOG.warning(String.format(
+                                "Connection factory '%s' is no longer operational: %s", factory,
+                                error.getMessage()));
+                    }
+                }
+            };
+
     private final List<MonitoredConnectionFactory> monitoredFactories;
     private final ReferenceCountedObject<ScheduledExecutorService>.Reference scheduler;
     private final Object stateLock = new Object();
+
+    /**
+     * The last connection failure which caused a connection factory to be
+     * marked offline. This is used in order to help diagnose problems when the
+     * load-balancer has exhausted all of its factories.
+     */
+    private volatile ErrorResultException lastFailure = null;
+
+    /**
+     * The event listener which should be notified when connection factories go
+     * on or off-line.
+     */
+    private final LoadBalancerEventListener listener;
+
+    /**
+     * Ensures that events are notified one at a time.
+     */
+    private final Object listenerLock = new Object();
+
     /**
      * Guarded by stateLock.
      */
@@ -237,17 +297,9 @@ abstract class AbstractLoadBalancingAlgorithm implements LoadBalancingAlgorithm 
     private ScheduledFuture<?> monitoringFuture;
     private AtomicBoolean isClosed = new AtomicBoolean();
 
-    AbstractLoadBalancingAlgorithm(final Collection<ConnectionFactory> factories) {
-        this(factories, 1, TimeUnit.SECONDS, null);
-    }
-
     AbstractLoadBalancingAlgorithm(final Collection<ConnectionFactory> factories,
-            final long interval, final TimeUnit unit) {
-        this(factories, interval, unit, null);
-    }
-
-    AbstractLoadBalancingAlgorithm(final Collection<ConnectionFactory> factories,
-            final long interval, final TimeUnit unit, final ScheduledExecutorService scheduler) {
+            final LoadBalancerEventListener listener, final long interval, final TimeUnit unit,
+            final ScheduledExecutorService scheduler) {
         Validator.ensureNotNull(factories, unit);
 
         this.monitoredFactories = new ArrayList<MonitoredConnectionFactory>(factories.size());
@@ -258,6 +310,7 @@ abstract class AbstractLoadBalancingAlgorithm implements LoadBalancingAlgorithm 
         this.scheduler = DEFAULT_SCHEDULER.acquireIfNull(scheduler);
         this.monitoringInterval = interval;
         this.monitoringIntervalTimeUnit = unit;
+        this.listener = listener != null ? listener : DEFAULT_LISTENER;
     }
 
     @Override
@@ -335,6 +388,6 @@ abstract class AbstractLoadBalancingAlgorithm implements LoadBalancingAlgorithm 
          * timeout period.
          */
         throw newErrorResult(ResultCode.CLIENT_SIDE_CONNECT_ERROR,
-                "No operational connection factories available");
+                "No operational connection factories available", lastFailure);
     }
 }
