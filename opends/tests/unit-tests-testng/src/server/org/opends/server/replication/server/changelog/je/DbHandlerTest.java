@@ -40,7 +40,7 @@ import org.opends.server.replication.common.ChangeNumberGenerator;
 import org.opends.server.replication.protocol.DeleteMsg;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
-import org.opends.server.replication.server.changelog.api.ReplicationDBCursor;
+import org.opends.server.replication.server.changelog.api.ReplicaDBCursor;
 import org.opends.server.util.StaticUtils;
 import org.testng.annotations.Test;
 
@@ -196,7 +196,7 @@ public class DbHandlerTest extends ReplicationTestCase
       return;
     }
 
-		ReplicationDBCursor cursor = handler.generateCursorFrom(changeNumbers[0]);
+		ReplicaDBCursor cursor = handler.generateCursorFrom(changeNumbers[0]);
     try
     {
       for (int i = 1; i < changeNumbers.length; i++)
@@ -217,7 +217,7 @@ public class DbHandlerTest extends ReplicationTestCase
 
   private void assertNotFound(DbHandler handler, ChangeNumber changeNumber)
   {
-    ReplicationDBCursor cursor = null;
+    ReplicaDBCursor cursor = null;
     try
     {
       cursor = handler.generateCursorFrom(changeNumber);

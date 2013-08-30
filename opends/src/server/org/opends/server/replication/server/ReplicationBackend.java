@@ -50,7 +50,7 @@ import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.plugin.MultimasterReplication;
 import org.opends.server.replication.plugin.ReplicationServerListener;
 import org.opends.server.replication.protocol.*;
-import org.opends.server.replication.server.changelog.api.ReplicationDBCursor;
+import org.opends.server.replication.server.changelog.api.ReplicaDBCursor;
 import org.opends.server.types.*;
 import org.opends.server.util.*;
 
@@ -631,7 +631,7 @@ public class ReplicationBackend
         return;
       }
 
-      ReplicationDBCursor cursor = rsd.getCursorFrom(serverId, previousCN);
+      ReplicaDBCursor cursor = rsd.getCursorFrom(serverId, previousCN);
       if (cursor != null)
       {
         try

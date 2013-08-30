@@ -22,41 +22,37 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013 ForgeRock AS
+ *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS
  */
 package org.opends.server.replication.server.changelog.api;
 
-import java.io.Closeable;
+import java.util.Comparator;
 
-import org.opends.server.replication.protocol.UpdateMsg;
+import org.opends.server.replication.common.ChangeNumber;
 
 /**
- * This cursor allows to iterate through the changes received from a given
- * LDAP Server Identifier.
+ * This class defines a {@link Comparator} that allows to know which
+ * {@link ReplicaDBCursor} contain the next {@link UpdateMsg} in the order
+ * defined by the {@link ChangeNumber} of the {@link UpdateMsg}.
  */
-public interface ReplicationDBCursor extends Closeable
+public class ReplicaDBCursorComparator implements Comparator<ReplicaDBCursor>
 {
-
   /**
-   * Get the UpdateMsg where the cursor is currently set.
+   * Compare the {@link ChangeNumber} of the {@link ReplicaDBCursor}.
    *
-   * @return The UpdateMsg where the cursor is currently set.
-   */
-  UpdateMsg getChange();
-
-  /**
-   * Go to the next change in the ReplicationDB or in the server Queue.
-   *
-   * @return false if the cursor is already on the last change before this call.
-   */
-  boolean next();
-
-  /**
-   * Release the resources and locks used by this cursor. This method must be
-   * called when the cursor is no longer used. Failure to do it could cause DB
-   * deadlock.
+   * @param o1
+   *          first cursor.
+   * @param o2
+   *          second cursor.
+   * @return result of the comparison.
    */
   @Override
-  void close();
+  public int compare(ReplicaDBCursor o1, ReplicaDBCursor o2)
+  {
+    ChangeNumber csn1 = o1.getChange().getChangeNumber();
+    ChangeNumber csn2 = o2.getChange().getChangeNumber();
 
+    return ChangeNumber.compare(csn1, csn2);
+  }
 }
