@@ -23,30 +23,30 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.replication.common;
 
 import org.opends.server.util.TimeThread;
 
 /**
- * This class defines a structure that is used for storing the
- * last change numbers generated on this server or received from other servers
- * and generating new changenumbers that are guaranteed to be larger than
- * all the previously seen or generated change numbers.
+ * This class defines a structure that is used for storing the last {@link CSN}s
+ * generated on this server or received from other servers and generating new
+ * {@link CSN}s that are guaranteed to be larger than all the previously seen or
+ * generated CSNs.
  */
-public class ChangeNumberGenerator
+public class CSNGenerator
 {
   private long lastTime;
   private int seqnum;
   private int serverId;
 
   /**
-   * Create a new ChangeNumber Generator.
-   * @param serverID2 id to use when creating change numbers.
+   * Create a new {@link CSNGenerator}.
+   * @param serverID2 id to use when creating {@link CSN}s.
    * @param timestamp time to start with.
    */
-  public ChangeNumberGenerator(int serverID2, long timestamp)
+  public CSNGenerator(int serverID2, long timestamp)
   {
     this.lastTime = timestamp;
     this.serverId = serverID2;
@@ -54,33 +54,33 @@ public class ChangeNumberGenerator
   }
 
   /**
-  * Create a new ChangeNumber Generator.
+  * Create a new {@link CSNGenerator}.
   *
-  * @param id id to use when creating change numbers.
+  * @param id id to use when creating {@link CSN}s.
   * @param state This generator will be created in a way that makes sure that
-  *              all change numbers generated will be larger than all the
-  *              changenumbers currently in state.
+  *              all {@link CSN}s generated will be larger than all the
+  *              {@link CSN}s currently in state.
   */
- public ChangeNumberGenerator(int id, ServerState state)
+ public CSNGenerator(int id, ServerState state)
  {
    this.lastTime = TimeThread.getTime();
    for (int stateId : state)
    {
-     if (this.lastTime < state.getChangeNumber(stateId).getTime())
-       this.lastTime = state.getChangeNumber(stateId).getTime();
+     if (this.lastTime < state.getCSN(stateId).getTime())
+       this.lastTime = state.getCSN(stateId).getTime();
      if (stateId == id)
-       this.seqnum = state.getChangeNumber(id).getSeqnum();
+       this.seqnum = state.getCSN(id).getSeqnum();
    }
    this.serverId = id;
 
  }
 
   /**
-   * Generate a new ChangeNumber.
+   * Generate a new {@link CSN}.
    *
-   * @return the generated ChangeNUmber
+   * @return the generated {@link CSN}
    */
-  public ChangeNumber newChangeNumber()
+  public CSN newCSN()
   {
     long curTime = TimeThread.getTime();
     int mySeqnum;
@@ -102,20 +102,22 @@ public class ChangeNumberGenerator
       myTime = lastTime;
     }
 
-    return new ChangeNumber(myTime, mySeqnum, serverId);
+    return new CSN(myTime, mySeqnum, serverId);
 
   }
 
   /**
-   * Adjust the lastTime of this Changenumber generator with
-   * a ChangeNumber that we have received from another server.
-   * This is necessary because we need that the changenumber generated
-   * after processing an update received from other hosts to be larger
-   * than the received changenumber
+   * Adjust the lastTime of this {@link CSNGenerator} with a {@link CSN} that we
+   * have received from another server.
+   * <p>
+   * This is necessary because we need that the {@link CSN} generated after
+   * processing an update received from other hosts to be larger than the
+   * received {@link CSN}
    *
-   * @param number the ChangeNumber to adjust with
+   * @param number
+   *          the {@link CSN} to adjust with
    */
-  public void adjust(ChangeNumber number)
+  public void adjust(CSN number)
   {
     if (number==null)
     {
@@ -132,8 +134,9 @@ public class ChangeNumberGenerator
     int changeServerId = number.getServerId();
     int changeSeqNum = number.getSeqnum();
 
-    /* need to synchronize with NewChangeNumber method so that we
-     * protect writing lastTime fields
+    /*
+     * need to synchronize with newCSN method so that we protect writing
+     * lastTime fields
      */
     synchronized(this)
     {
@@ -157,7 +160,7 @@ public class ChangeNumberGenerator
   {
     for (int localServerId : state)
     {
-      adjust(state.getChangeNumber(localServerId));
+      adjust(state.getCSN(localServerId));
      }
   }
 }

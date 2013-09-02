@@ -27,20 +27,20 @@
  */
 package org.opends.server.tasks;
 
-import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.core.DirectoryServer.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-
 import java.util.List;
 
 import org.opends.messages.*;
 import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskState;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.replication.common.ChangeNumber;
+import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.plugin.LDAPReplicationDomain;
 import org.opends.server.types.*;
 import org.opends.server.util.TimeThread;
+
+import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.core.DirectoryServer.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
 
 /**
  * This class provides an implementation of a Directory Server task that can
@@ -59,8 +59,8 @@ public class PurgeConflictsHistoricalTask extends Task
    */
   private static final DebugTracer TRACER = getTracer();
 
-  private String  domainString = null;
-  private LDAPReplicationDomain domain = null;
+  private String domainString;
+  private LDAPReplicationDomain domain;
 
   /**
    *                 current historical purge delay
@@ -68,21 +68,18 @@ public class PurgeConflictsHistoricalTask extends Task
    * -----------------------------------------------------------------> t
    *               |                           |            |
    *           current                      task           task
-   *           CN being purged           start date    max end date
+   *           CSN being purged           start date    max end date
    *                                           <------------>
    *                                          config.purgeMaxDuration
    *
-   * The task will start purging the change with the oldest CN found.
+   * The task will start purging the change with the oldest CSN found.
    * The task run as long as :
    *  - the end date (computed from the configured max duration) is not reached
-   *  - the CN purged is oldest than the configured historical purge delay
-   *
-   *
+   *  - the CSN purged is oldest than the configured historical purge delay
    */
-
   private int purgeTaskMaxDurationInSec = DEFAULT_MAX_DURATION;
 
-  TaskState initState;
+  private TaskState initState;
 
 
   private static final void debugInfo(String s)
@@ -210,8 +207,8 @@ public class PurgeConflictsHistoricalTask extends Task
         // sets in the attributes the last stats values
         replaceAttributeValue(ATTR_TASK_CONFLICTS_HIST_PURGE_COUNT,
             String.valueOf(this.purgeCount));
-        replaceAttributeValue(ATTR_TASK_CONFLICTS_HIST_PURGE_LAST_CN,
-            this.lastCN.toStringUI());
+        replaceAttributeValue(ATTR_TASK_CONFLICTS_HIST_PURGE_LAST_CSN,
+            this.lastCSN.toStringUI());
         debugInfo("[PURGE] PurgeConflictsHistoricalTask write  attrs ");
       }
       catch(Exception e)
@@ -231,34 +228,37 @@ public class PurgeConflictsHistoricalTask extends Task
     return initState;
   }
 
-  int updateAttrPeriod = 0;
-  ChangeNumber lastCN;
-  int purgeCount;
+  private int updateAttrPeriod = 0;
+  private CSN lastCSN;
+  private int purgeCount;
 
   /**
-   * Set the last changenumber purged and the count of purged values in order
-   * to monitor the historical purge.
-   * @param lastCN the last changeNumber purged.
-   * @param purgeCount the count of purged values.
+   * Set the last CSN purged and the count of purged values in order to monitor
+   * the historical purge.
+   *
+   * @param lastCSN
+   *          the last CSN purged.
+   * @param purgeCount
+   *          the count of purged values.
    */
-  public void setProgressStats(ChangeNumber lastCN, int purgeCount)
+  public void setProgressStats(CSN lastCSN, int purgeCount)
   {
     try
     {
       if (purgeCount == 0)
-        replaceAttributeValue(ATTR_TASK_CONFLICTS_HIST_PURGE_FIRST_CN,
-            lastCN.toStringUI());
+        replaceAttributeValue(ATTR_TASK_CONFLICTS_HIST_PURGE_FIRST_CSN,
+            lastCSN.toStringUI());
 
       // we don't want the update of the task to overload too much task duration
       this.purgeCount = purgeCount;
-      this.lastCN = lastCN;
+      this.lastCSN = lastCSN;
       if (++updateAttrPeriod % 100 == 0)
       {
         replaceAttributeValue(ATTR_TASK_CONFLICTS_HIST_PURGE_COUNT,
             String.valueOf(purgeCount));
 
-        replaceAttributeValue(ATTR_TASK_CONFLICTS_HIST_PURGE_LAST_CN,
-            lastCN.toStringUI());
+        replaceAttributeValue(ATTR_TASK_CONFLICTS_HIST_PURGE_LAST_CSN,
+            lastCSN.toStringUI());
         debugInfo("[PURGE] PurgeConflictsHistoricalTask write  attrs "
             + purgeCount);
       }

@@ -1563,7 +1563,7 @@ public final class ReplicationServer
   /**
    * Excluded a list of domain from eligibility computation.
    * @param excludedBaseDNs the provided list of baseDNs excluded from
-   *                          the computation of eligibleCN.
+   *                          the computation of eligibleCSN.
    */
   public void disableEligibility(Set<String> excludedBaseDNs)
   {
@@ -1571,50 +1571,50 @@ public final class ReplicationServer
   }
 
   /**
-   * Returns the eligible CN cross domains - relies on the eligible CN from
+   * Returns the eligible CSN cross domains - relies on the eligible CSN from
    * each domain.
-   * @return the cross domain eligible CN.
+   * @return the cross domain eligible CSN.
    */
-  public ChangeNumber getEligibleCN()
+  public CSN getEligibleCSN()
   {
     String debugLog = "";
 
-    // traverse the domains and get the eligible CN from each domain
-    // store the oldest one as the cross domain eligible CN
-    ChangeNumber eligibleCN = null;
+    // traverse the domains and get the eligible CSN from each domain
+    // store the oldest one as the cross domain eligible CSN
+    CSN eligibleCSN = null;
     for (ReplicationServerDomain domain : getReplicationServerDomains())
     {
       if (contains(excludedBaseDNs, domain.getBaseDn()))
         continue;
 
-      final ChangeNumber domainEligibleCN = domain.getEligibleCN();
-      if (eligibleCN == null
-          || (domainEligibleCN != null && domainEligibleCN.older(eligibleCN)))
+      final CSN domainEligibleCSN = domain.getEligibleCSN();
+      if (eligibleCSN == null
+          ||(domainEligibleCSN != null && domainEligibleCSN.older(eligibleCSN)))
       {
-        eligibleCN = domainEligibleCN;
+        eligibleCSN = domainEligibleCSN;
       }
 
       if (debugEnabled())
       {
-        final String dates = domainEligibleCN == null ?
-            "" : new Date(domainEligibleCN.getTime()).toString();
+        final String dates = domainEligibleCSN == null ?
+            "" : new Date(domainEligibleCSN.getTime()).toString();
         debugLog += "[baseDN=" + domain.getBaseDn()
-            + "] [eligibleCN=" + domainEligibleCN + ", " + dates + "]";
+            + "] [eligibleCSN=" + domainEligibleCSN + ", " + dates + "]";
       }
     }
 
-    if (eligibleCN==null )
+    if (eligibleCSN==null )
     {
-      eligibleCN = new ChangeNumber(TimeThread.getTime(), 0, 0);
+      eligibleCSN = new CSN(TimeThread.getTime(), 0, 0);
     }
 
     if (debugEnabled()) {
-      TRACER.debugInfo("In " + this + " getEligibleCN() ends with " +
-        " the following domainEligibleCN for each domain :" + debugLog +
-        " thus CrossDomainEligibleCN=" + eligibleCN +
-        "  ts=" + new Date(eligibleCN.getTime()).toString());
+      TRACER.debugInfo("In " + this + " getEligibleCSN() ends with " +
+        " the following domainEligibleCSN for each domain :" + debugLog +
+        " thus CrossDomainEligibleCSN=" + eligibleCSN +
+        "  ts=" + new Date(eligibleCSN.getTime()).toString());
     }
-    return eligibleCN;
+    return eligibleCSN;
   }
 
   private boolean contains(Set<String> col, String elem)
@@ -1699,13 +1699,13 @@ public final class ReplicationServer
   /**
    * Get first and last DraftCN.
    *
-   * @param  crossDomainEligibleCN The provided crossDomainEligibleCN used as
+   * @param  crossDomainEligibleCSN The provided crossDomainEligibleCSN used as
    *                               the upper limit for the lastDraftCN
    * @param  excludedBaseDNs       The baseDNs that are excluded from the ECL.
    * @return                       The first and last draftCN.
    * @throws DirectoryException    When it happens.
    */
-  public int[] getECLDraftCNLimits(ChangeNumber crossDomainEligibleCN,
+  public int[] getECLDraftCNLimits(CSN crossDomainEligibleCSN,
       Set<String> excludedBaseDNs) throws DirectoryException
   {
     /* The content of the DraftCNdb depends on the SEARCH operations done before
@@ -1724,7 +1724,7 @@ public final class ReplicationServer
      *  - initialized with the last record from the DraftCNdb (0 if none)
      *    and consider the genState associated
      *  - to the last DraftCN, we add the count of updates in the replchangelog
-     *     FROM that genState TO the crossDomainEligibleCN
+     *     FROM that genState TO the crossDomainEligibleCSN
      *     (this diff is done domain by domain)
      */
 
@@ -1735,7 +1735,7 @@ public final class ReplicationServer
 
     int firstDraftCN = changelogDB.getFirstDraftCN();
     Map<String,ServerState> domainsServerStateForLastSeqnum = null;
-    ChangeNumber changeNumberForLastSeqnum = null;
+    CSN csnForLastSeqnum = null;
     String domainForLastSeqnum = null;
     if (firstDraftCN < 1)
     {
@@ -1756,8 +1756,8 @@ public final class ReplicationServer
           splitGenStateToServerStates(lastSeqnumGenState);
       }
 
-      // Get the changeNumber associated with the current last DraftCN
-      changeNumberForLastSeqnum = changelogDB.getChangeNumber(lastDraftCN);
+      // Get the CSN associated with the current last DraftCN
+      csnForLastSeqnum = changelogDB.getCSN(lastDraftCN);
 
       // Get the domain associated with the current last DraftCN
       domainForLastSeqnum = changelogDB.getBaseDN(lastDraftCN);
@@ -1775,11 +1775,10 @@ public final class ReplicationServer
       if (domainsServerStateForLastSeqnum == null)
       {
         // Count changes of this domain from the beginning of the changelog
-        ChangeNumber trimCN =
-            new ChangeNumber(rsd.getLatestDomainTrimDate(), 0,0);
+        CSN trimCSN = new CSN(rsd.getLatestDomainTrimDate(), 0, 0);
         ec = rsd.getEligibleCount(
-                  rsd.getStartState().duplicateOnlyOlderThan(trimCN),
-                  crossDomainEligibleCN);
+                  rsd.getStartState().duplicateOnlyOlderThan(trimCSN),
+                  crossDomainEligibleCSN);
       }
       else
       {
@@ -1791,14 +1790,13 @@ public final class ReplicationServer
         //  the date of the most recent change from this last draft record
         if (newestDate == 0)
         {
-          newestDate = changeNumberForLastSeqnum.getTime();
+          newestDate = csnForLastSeqnum.getTime();
         }
 
         // And count changes of this domain from the date of the
         // lastseqnum record (that does not refer to this domain)
-        ChangeNumber cnx = new ChangeNumber(newestDate,
-            changeNumberForLastSeqnum.getSeqnum(), 0);
-        ec = rsd.getEligibleCount(cnx, crossDomainEligibleCN);
+        CSN csnx = new CSN(newestDate, csnForLastSeqnum.getSeqnum(), 0);
+        ec = rsd.getEligibleCount(csnx, crossDomainEligibleCSN);
 
         if (domainForLastSeqnum.equalsIgnoreCase(rsd.getBaseDn()))
           ec--;
@@ -1839,7 +1837,7 @@ public final class ReplicationServer
           || rsd.getDbServerState().isEmpty())
         continue;
 
-      result.update(rsd.getBaseDn(), rsd.getEligibleState(getEligibleCN()));
+      result.update(rsd.getBaseDn(), rsd.getEligibleState(getEligibleCSN()));
     }
     return result;
   }

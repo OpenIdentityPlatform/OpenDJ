@@ -39,19 +39,9 @@ import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.replication.common.AssuredMode;
-import org.opends.server.replication.common.ChangeNumber;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.ByteSequenceReader;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.ByteStringBuilder;
-import org.opends.server.types.LDAPException;
-import org.opends.server.types.Operation;
-import org.opends.server.types.RawAttribute;
-import org.opends.server.types.operation.PostOperationAddOperation;
-import org.opends.server.types.operation.PostOperationDeleteOperation;
-import org.opends.server.types.operation.PostOperationModifyDNOperation;
-import org.opends.server.types.operation.PostOperationModifyOperation;
-import org.opends.server.types.operation.PostOperationOperation;
+import org.opends.server.replication.common.CSN;
+import org.opends.server.types.*;
+import org.opends.server.types.operation.*;
 
 /**
  * Abstract class that must be extended to define a message
@@ -62,7 +52,7 @@ public abstract class LDAPUpdateMsg extends UpdateMsg
   /**
    * The DN on which the update was originally done.
    */
-  protected String dn = null;
+  protected String dn;
 
   /**
    * The entryUUID of the entry that was updated.
@@ -72,7 +62,7 @@ public abstract class LDAPUpdateMsg extends UpdateMsg
   /**
    * Encoded form of the LDAPUpdateMsg.
    */
-  protected byte[] bytes = null;
+  protected byte[] bytes;
 
   /**
    * Encoded form of entry attributes.
@@ -97,7 +87,7 @@ public abstract class LDAPUpdateMsg extends UpdateMsg
   public LDAPUpdateMsg(OperationContext ctx, String dn)
   {
     this.protocolVersion = ProtocolVersion.getCurrentVersion();
-    this.changeNumber = ctx.getChangeNumber();
+    this.csn = ctx.getCSN();
     this.entryUUID = ctx.getEntryUUID();
     this.dn = dn;
   }
@@ -105,17 +95,17 @@ public abstract class LDAPUpdateMsg extends UpdateMsg
   /**
    * Creates a new UpdateMessage with the given information.
    *
-   * @param cn        The ChangeNumber of the operation for which the
+   * @param csn       The CSN of the operation for which the
    *                  UpdateMessage is created.
    * @param entryUUID The Unique identifier of the entry that is updated
    *                  by the operation for which the UpdateMessage is created.
    * @param dn        The DN of the entry on which the change
    *                  that caused the creation of this object happened
    */
-  public LDAPUpdateMsg(ChangeNumber cn, String entryUUID, String dn)
+  public LDAPUpdateMsg(CSN csn, String entryUUID, String dn)
   {
     this.protocolVersion = ProtocolVersion.getCurrentVersion();
-    this.changeNumber = cn;
+    this.csn = csn;
     this.entryUUID = entryUUID;
     this.dn = dn;
   }
@@ -248,45 +238,44 @@ public abstract class LDAPUpdateMsg extends UpdateMsg
     throws UnsupportedEncodingException
   {
     byte[] byteDn = dn.getBytes("UTF-8");
-    byte[] changeNumberByte =
-      this.getChangeNumber().toString().getBytes("UTF-8");
+    byte[] csnByte = getCSN().toString().getBytes("UTF-8");
     byte[] byteEntryuuid = getEntryUUID().getBytes("UTF-8");
 
     /* The message header is stored in the form :
-     * <operation type><protocol version><changenumber><dn><entryuuid><assured>
+     * <operation type><protocol version><CSN><dn><entryuuid><assured>
      * <assured mode> <safe data level>
      * the length of result byte array is therefore :
-     *   1 + 1 + change number length + 1 + dn length + 1 + uuid length + 1 + 1
+     *   1 + 1 + CSN length + 1 + dn length + 1 + uuid length + 1 + 1
      *   + 1 + 1 + additional_length
      */
-    int length = 8 + changeNumberByte.length + byteDn.length
+    int length = 8 + csnByte.length + byteDn.length
                  + byteEntryuuid.length + additionalLength;
 
     byte[] encodedMsg = new byte[length];
 
-    /* put the type of the operation */
+    // put the type of the operation
     encodedMsg[0] = type;
 
-    /* put the protocol version */
+    // put the protocol version
     encodedMsg[1] = (byte) version;
     int pos = 2;
 
-    /* Put the ChangeNumber */
-    pos = addByteArray(changeNumberByte, encodedMsg, pos);
+    // Put the CSN
+    pos = addByteArray(csnByte, encodedMsg, pos);
 
-    /* Put the DN and a terminating 0 */
+    // Put the DN and a terminating 0
     pos = addByteArray(byteDn, encodedMsg, pos);
 
-    /* Put the entry uuid and a terminating 0 */
+    // Put the entry uuid and a terminating 0
     pos = addByteArray(byteEntryuuid, encodedMsg, pos);
 
-    /* Put the assured flag */
+    // Put the assured flag
     encodedMsg[pos++] = (assuredFlag ? (byte) 1 : 0);
 
-    /* Put the assured mode */
+    // Put the assured mode
     encodedMsg[pos++] = assuredMode.getValue();
 
-    /* Put the safe data level */
+    // Put the safe data level
     encodedMsg[pos++] = safeDataLevel;
 
     return encodedMsg;
@@ -309,35 +298,34 @@ public abstract class LDAPUpdateMsg extends UpdateMsg
     throws UnsupportedEncodingException
   {
     byte[] byteDn = dn.getBytes("UTF-8");
-    byte[] changeNumberByte =
-      this.getChangeNumber().toString().getBytes("UTF-8");
+    byte[] csnByte = getCSN().toString().getBytes("UTF-8");
     byte[] byteEntryuuid = getEntryUUID().getBytes("UTF-8");
 
     /* The message header is stored in the form :
-     * <operation type><changenumber><dn><assured><entryuuid><change>
+     * <operation type><CSN><dn><assured><entryuuid><change>
      * the length of result byte array is therefore :
-     *   1 + change number length + 1 + dn length + 1  + 1 +
+     *   1 + CSN length + 1 + dn length + 1  + 1 +
      *   uuid length + 1 + additional_length
      */
-    int length = 5 + changeNumberByte.length + byteDn.length
+    int length = 5 + csnByte.length + byteDn.length
                  + byteEntryuuid.length + additionalLength;
 
     byte[] encodedMsg = new byte[length];
 
-    /* put the type of the operation */
+    // put the type of the operation
     encodedMsg[0] = type;
     int pos = 1;
 
-    /* put the ChangeNumber */
-    pos = addByteArray(changeNumberByte, encodedMsg, pos);
+    // put the CSN
+    pos = addByteArray(csnByte, encodedMsg, pos);
 
-    /* put the assured information */
+    // put the assured information
     encodedMsg[pos++] = (assuredFlag ? (byte) 1 : 0);
 
-    /* put the DN and a terminating 0 */
+    // put the DN and a terminating 0
     pos = addByteArray(byteDn, encodedMsg, pos);
 
-    /* put the entry uuid and a terminating 0 */
+    // put the entry uuid and a terminating 0
     pos = addByteArray(byteEntryuuid, encodedMsg, pos);
 
     return encodedMsg;
@@ -446,7 +434,7 @@ public abstract class LDAPUpdateMsg extends UpdateMsg
    public int decodeHeader(byte[] types, byte[] encodedMsg)
                           throws DataFormatException
    {
-     /* first byte is the type */
+     // first byte is the type
      boolean foundMatchingType = false;
      for (byte type : types)
      {
@@ -472,35 +460,35 @@ public abstract class LDAPUpdateMsg extends UpdateMsg
        return decodeHeader_V1(encodedMsg);
      }
 
-     /* read the protocol version */
+     // read the protocol version
      protocolVersion = encodedMsg[1];
 
      try
      {
-       /* Read the changeNumber */
+       // Read the CSN
        int pos = 2;
        int length = getNextLength(encodedMsg, pos);
-       String changeNumberStr = new String(encodedMsg, pos, length, "UTF-8");
+       String csnStr = new String(encodedMsg, pos, length, "UTF-8");
        pos += length + 1;
-       changeNumber = new ChangeNumber(changeNumberStr);
+       csn = new CSN(csnStr);
 
-       /* Read the dn */
+       // Read the dn
        length = getNextLength(encodedMsg, pos);
        dn = new String(encodedMsg, pos, length, "UTF-8");
        pos += length + 1;
 
-       /* Read the entryuuid */
+       // Read the entryuuid
        length = getNextLength(encodedMsg, pos);
        entryUUID = new String(encodedMsg, pos, length, "UTF-8");
        pos += length + 1;
 
-       /* Read the assured information */
+       // Read the assured information
        assuredFlag = encodedMsg[pos++] == 1;
 
-       /* Read the assured mode */
+       // Read the assured mode
        assuredMode = AssuredMode.valueOf(encodedMsg[pos++]);
 
-       /* Read the safe data level */
+       // Read the safe data level
        safeDataLevel = encodedMsg[pos++];
 
        return pos;
@@ -539,22 +527,22 @@ public abstract class LDAPUpdateMsg extends UpdateMsg
 
     try
     {
-      /* read the changeNumber */
+      // read the CSN
       int pos = 1;
       int length = getNextLength(encodedMsg, pos);
-      String changeNumberStr = new String(encodedMsg, pos, length, "UTF-8");
+      String csnStr = new String(encodedMsg, pos, length, "UTF-8");
       pos += length + 1;
-      changeNumber = new ChangeNumber(changeNumberStr);
+      csn = new CSN(csnStr);
 
-      /* read the assured information */
+      // read the assured information
       assuredFlag = encodedMsg[pos++] == 1;
 
-      /* read the dn */
+      // read the dn
       length = getNextLength(encodedMsg, pos);
       dn = new String(encodedMsg, pos, length, "UTF-8");
       pos += length + 1;
 
-      /* read the entryuuid */
+      // read the entryuuid
       length = getNextLength(encodedMsg, pos);
       entryUUID = new String(encodedMsg, pos, length, "UTF-8");
       pos += length + 1;

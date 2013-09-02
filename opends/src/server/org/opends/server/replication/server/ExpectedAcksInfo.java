@@ -31,8 +31,9 @@ package org.opends.server.replication.server;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import org.opends.server.replication.common.AssuredMode;
-import org.opends.server.replication.common.ChangeNumber;
+import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.protocol.AckMsg;
 
 /**
@@ -47,17 +48,17 @@ import org.opends.server.replication.protocol.AckMsg;
  */
 public abstract class ExpectedAcksInfo
 {
-  // The server handler of the server that sent the assured update message and
-  // to who we want to return the final ack
+  /**
+   * The server handler of the server that sent the assured update message and
+   * to who we want to return the final ack.
+   */
   private ServerHandler requesterServerHandler = null;
 
-  // The requested assured mode of matching update message
+  /** The requested assured mode of matching update message. */
   private AssuredMode assuredMode = null;
 
-  /**
-   * The change number of the assured update message we want acks for.
-   */
-  protected ChangeNumber changeNumber = null;
+  /** The CSN of the assured update message we want acks for. */
+  protected CSN csn = null;
 
   /**
    * Is the treatment of the acks for the update message completed or not ?
@@ -92,19 +93,18 @@ public abstract class ExpectedAcksInfo
 
   /**
    * Creates a new ExpectedAcksInfo.
-   * @param changeNumber The change number of the assured update message
+   * @param csn The CSN of the assured update message
    * @param requesterServerHandler The server handler of the server that sent
    * the assured update message
    * @param assuredMode The assured mode requested by the assured update message
    * @param expectedServers The list of servers we want an ack from
    */
-  protected ExpectedAcksInfo(ChangeNumber changeNumber,
-    ServerHandler requesterServerHandler, AssuredMode assuredMode,
-    List<Integer> expectedServers)
+  protected ExpectedAcksInfo(CSN csn, ServerHandler requesterServerHandler,
+      AssuredMode assuredMode, List<Integer> expectedServers)
   {
     this.requesterServerHandler = requesterServerHandler;
     this.assuredMode = assuredMode;
-    this.changeNumber = changeNumber;
+    this.csn = csn;
 
     // Initialize list of servers we expect acks from
     for (Integer serverId : expectedServers)

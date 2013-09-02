@@ -35,7 +35,7 @@ import java.util.zip.DataFormatException;
 import org.opends.server.controls.SubtreeDeleteControl;
 import org.opends.server.core.DeleteOperationBasis;
 import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.replication.common.ChangeNumber;
+import org.opends.server.replication.common.CSN;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.Operation;
 import org.opends.server.types.operation.PostOperationDeleteOperation;
@@ -72,13 +72,12 @@ public class DeleteMsg extends LDAPUpdateMsg
    * Creates a new delete message.
    *
    * @param dn           The dn with which the message must be created.
-   * @param changeNumber The change number with which the message must be
-   *                     created.
+   * @param csn          The CSN with which the message must be created.
    * @param entryUUID    The unique id with which the message must be created.
    */
-  public DeleteMsg(String dn, ChangeNumber changeNumber, String entryUUID)
+  public DeleteMsg(String dn, CSN csn, String entryUUID)
   {
-    super(new DeleteContext(changeNumber, entryUUID), dn);
+    super(new DeleteContext(csn, entryUUID), dn);
   }
 
   /**
@@ -123,7 +122,7 @@ public class DeleteMsg extends LDAPUpdateMsg
     if (isSubtreeDelete)
       del.addRequestControl(new SubtreeDeleteControl(false));
 
-    DeleteContext ctx = new DeleteContext(getChangeNumber(), getEntryUUID());
+    DeleteContext ctx = new DeleteContext(getCSN(), getEntryUUID());
     del.setAttachment(SYNCHROCONTEXT, ctx);
     return del;
   }
@@ -255,7 +254,7 @@ public class DeleteMsg extends LDAPUpdateMsg
       return "DeleteMsg content: " +
         " protocolVersion: " + protocolVersion +
         " dn: " + dn +
-        " changeNumber: " + changeNumber +
+        " changeNumber: " + csn +
         " uniqueId: " + entryUUID +
         " assuredFlag: " + assuredFlag;
     }
@@ -264,7 +263,7 @@ public class DeleteMsg extends LDAPUpdateMsg
       return "DeleteMsg content: " +
         " protocolVersion: " + protocolVersion +
         " dn: " + dn +
-        " changeNumber: " + changeNumber +
+        " changeNumber: " + csn +
         " uniqueId: " + entryUUID +
         " assuredFlag: " + assuredFlag +
         " assuredMode: " + assuredMode +

@@ -23,43 +23,45 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS
  */
 package org.opends.server.replication.common;
-
-import static org.testng.Assert.*;
 
 import java.util.Set;
 
 import org.opends.server.replication.ReplicationTestCase;
-import org.opends.server.replication.common.ChangeNumber;
+import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.util.TimeThread;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import static org.testng.Assert.*;
+
 /**
  * Test the ServerState
  */
+@SuppressWarnings("javadoc")
 public class ServerStateTest extends ReplicationTestCase
 {
 
   /**
-   * Create ChangeNumber Data
+   * Create CSN Data
    */
-  @DataProvider(name = "changeNumberData")
-  public Object[][] createChangeNumberData() {
+  @DataProvider(name = "csnData")
+  public Object[][] createCSNData()
+  {
     return new Object[][] {
-       {new ChangeNumber(1, 0, 1)},
-       {new ChangeNumber(TimeThread.getTime(),  123,  45)}
+       {new CSN(1, 0, 1)},
+       {new CSN(TimeThread.getTime(),  123,  45)}
     };
   }
 
   /**
    * Create a new ServerState object
    */
-  @Test(dataProvider = "changeNumberData")
-  public void serverStateTest(ChangeNumber cn)
-         throws Exception
+  @Test(dataProvider = "csnData")
+  public void serverStateTest(CSN csn) throws Exception
   {
     // Check constructor
     ServerState serverState = new ServerState() ;
@@ -69,57 +71,53 @@ public class ServerStateTest extends ReplicationTestCase
     // TODO Check result;
 
     // Check update
-    assertFalse(serverState.update((ChangeNumber)null));
-    assertTrue(serverState.update(cn));
-    assertFalse(serverState.update(cn));
-    ChangeNumber cn1, cn2, cn3;
-    cn1 = new ChangeNumber(cn.getTime()+1,cn.getSeqnum(),cn.getServerId());
-    cn2 = new ChangeNumber(cn1.getTime(),cn1.getSeqnum()+1,cn1.getServerId());
-    cn3 = new ChangeNumber(cn2.getTime(),cn2.getSeqnum(),(cn2.getServerId()+1));
+    assertFalse(serverState.update((CSN)null));
+    assertTrue(serverState.update(csn));
+    assertFalse(serverState.update(csn));
+    CSN csn1, csn2, csn3;
+    csn1 = new CSN(csn.getTime() + 1, csn.getSeqnum(), csn.getServerId());
+    csn2 = new CSN(csn1.getTime(), csn1.getSeqnum() + 1, csn1.getServerId());
+    csn3 = new CSN(csn2.getTime(), csn2.getSeqnum(), (csn2.getServerId() + 1));
 
-    assertTrue(serverState.update(cn1)) ;
-    assertTrue(serverState.update(cn2)) ;
-    assertTrue(serverState.update(cn3)) ;
+    assertTrue(serverState.update(csn1));
+    assertTrue(serverState.update(csn2));
+    assertTrue(serverState.update(csn3));
 
     // Check toStringSet
-    ChangeNumber[] cns = {cn2,cn3};
+    CSN[] csns = { csn2, csn3 };
     Set<String> stringSet = serverState.toStringSet();
-    assertEquals(cns.length, stringSet.size());
+    assertEquals(csns.length, stringSet.size());
     // TODO Check the value
 
-    // Check getMaxChangeNumber
-    assertEquals(cn2.compareTo(serverState.getChangeNumber(cn2.getServerId())),0);
-    assertEquals(cn3.compareTo(serverState.getChangeNumber(cn3.getServerId())),0);
+    // Check getMaxCSN
+    assertEquals(csn2.compareTo(serverState.getCSN(csn2.getServerId())), 0);
+    assertEquals(csn3.compareTo(serverState.getCSN(csn3.getServerId())), 0);
 
     // Check the toString
     String stringRep = serverState.toString();
-    assertTrue(stringRep.contains(cn2.toString()));
-    assertTrue(stringRep.contains(cn3.toString()));
+    assertTrue(stringRep.contains(csn2.toString()));
+    assertTrue(stringRep.contains(csn3.toString()));
 
     // Check getBytes
     byte[] b = serverState.getBytes();
     ServerState generatedServerState = new ServerState(b,0,b.length -1) ;
-
-
-
     assertEquals(b, generatedServerState.getBytes()) ;
-
   }
 
   /**
    * Create a new ServerState object
    */
-  @Test(dataProvider = "changeNumberData")
-  public void serverStateReloadTest(ChangeNumber cn)
+  @Test(dataProvider = "csnData")
+  public void serverStateReloadTest(CSN csn)
   throws Exception
   {
-    ChangeNumber cn1, cn3;
-    cn1 = new ChangeNumber(cn.getTime()+1,cn.getSeqnum(),cn.getServerId());
-    cn3 = new ChangeNumber(cn1.getTime(),cn1.getSeqnum(),(cn1.getServerId()+1));
+    CSN csn1, csn3;
+    csn1 = new CSN(csn.getTime() + 1, csn.getSeqnum(), csn.getServerId());
+    csn3 = new CSN(csn1.getTime(), csn1.getSeqnum(), (csn1.getServerId() + 1));
 
     ServerState state1 = new ServerState();
-    state1.update(cn1);
-    state1.update(cn3);
+    state1.update(csn1);
+    state1.update(csn3);
 
     ServerState state2 = new ServerState();
     state2.reload(state1);

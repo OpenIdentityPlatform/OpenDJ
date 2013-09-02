@@ -26,38 +26,25 @@
  *      Portions copyright 2012-2013 ForgeRock AS.
  */
 package org.opends.server.replication.plugin;
-import org.opends.messages.Message;
-
-import static org.opends.server.loggers.ErrorLogger.logError;
-import static org.opends.messages.ReplicationMessages.*;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.opends.messages.Message;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPModification;
-import org.opends.server.replication.common.ChangeNumber;
+import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.ServerState;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.Control;
-import org.opends.server.types.DN;
-import org.opends.server.types.DereferencePolicy;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.ModificationType;
-import org.opends.server.types.RawModification;
-import org.opends.server.types.ResultCode;
-import org.opends.server.types.SearchFilter;
-import org.opends.server.types.SearchResultEntry;
-import org.opends.server.types.SearchScope;
+import org.opends.server.types.*;
+
+import static org.opends.messages.ReplicationMessages.*;
+import static org.opends.server.loggers.ErrorLogger.*;
 
 /**
  * This class implements a ServerState that is stored in the backend
@@ -108,29 +95,28 @@ public class PersistentServerState
   }
 
   /**
-   * Checks that the ChangeNumber given as a parameter is in this ServerState.
+   * Checks that the CSN given as a parameter is in this ServerState.
    *
-   * @param   covered The ChangeNumber that should be checked.
-   * @return  A boolean indicating if this ServerState contains the ChangeNumber
+   * @param   covered The CSN that should be checked.
+   * @return  A boolean indicating if this ServerState contains the CSN
    *          given in parameter.
    */
-  public boolean cover(ChangeNumber covered)
+  public boolean cover(CSN covered)
   {
     return state.cover(covered);
   }
 
   /**
-   * Update the Server State with a ChangeNumber.
-   * All operations with smaller CSN and the same serverID must be committed
-   * before calling this method.
+   * Update the Server State with a CSN. All operations with smaller CSN and the
+   * same serverID must be committed before calling this method.
    *
-   * @param changeNumber    The committed ChangeNumber.
-   *
+   * @param csn
+   *          The committed CSN.
    * @return a boolean indicating if the update was meaningful.
    */
-  public boolean update(ChangeNumber changeNumber)
+  public boolean update(CSN csn)
   {
-    return state.update(changeNumber);
+    return state.update(csn);
   }
 
   /**
@@ -288,8 +274,7 @@ public class PersistentServerState
       Attribute attr = attrs.get(0);
       for (AttributeValue value : attr)
       {
-        ChangeNumber changeNumber = new ChangeNumber(value.toString());
-        update(changeNumber);
+        update(new CSN(value.toString()));
       }
     }
   }
@@ -396,23 +381,23 @@ public class PersistentServerState
   public final void checkAndUpdateServerState() {
     Message message;
     InternalSearchOperation op;
-    ChangeNumber serverStateMaxCn;
-    ChangeNumber dbMaxCn;
+    CSN serverStateMaxCsn;
+    CSN dbMaxCsn;
     final AttributeType histType = DirectoryServer.getAttributeType(
           EntryHistorical.HISTORICAL_ATTRIBUTE_NAME);
 
     // Retrieves the entries that have changed since the
-    // maxCn stored in the serverState
+    // maxCsn stored in the serverState
     synchronized (this)
     {
-      serverStateMaxCn = state.getChangeNumber(serverId);
+      serverStateMaxCsn = state.getCSN(serverId);
 
-      if (serverStateMaxCn == null)
+      if (serverStateMaxCsn == null)
         return;
 
       try {
         op = LDAPReplicationDomain.searchForChangedEntries(baseDn,
-            serverStateMaxCn, null);
+            serverStateMaxCsn, null);
       }
       catch (Exception  e)
       {
@@ -428,7 +413,7 @@ public class PersistentServerState
       }
       else
       {
-        dbMaxCn = serverStateMaxCn;
+        dbMaxCsn = serverStateMaxCsn;
         for (SearchResultEntry resEntry : op.getSearchEntries())
         {
           for (AttributeValue attrValue :
@@ -436,27 +421,26 @@ public class PersistentServerState
           {
             HistoricalAttributeValue histVal =
                 new HistoricalAttributeValue(attrValue.toString());
-            ChangeNumber cn = histVal.getCn();
-
-            if ((cn != null) && (cn.getServerId() == serverId))
+            CSN csn = histVal.getCSN();
+            if (csn != null && csn.getServerId() == serverId)
             {
-              // compare the csn regarding the maxCn we know and
+              // compare the csn regarding the maxCsn we know and
               // store the biggest
-              if (ChangeNumber.compare(dbMaxCn, cn) < 0)
+              if (CSN.compare(dbMaxCsn, csn) < 0)
               {
-                dbMaxCn = cn;
+                dbMaxCsn = csn;
               }
             }
           }
         }
 
-        if (ChangeNumber.compare(dbMaxCn, serverStateMaxCn) > 0)
+        if (CSN.compare(dbMaxCsn, serverStateMaxCsn) > 0)
         {
-          // Update the serverState with the new maxCn
+          // Update the serverState with the new maxCsn
           // present in the database
-          this.update(dbMaxCn);
+          this.update(dbMaxCsn);
           message = NOTE_SERVER_STATE_RECOVERY.get(
-              baseDn.toNormalizedString(), dbMaxCn.toString());
+              baseDn.toNormalizedString(), dbMaxCsn.toString());
           logError(message);
         }
       }
@@ -464,14 +448,14 @@ public class PersistentServerState
   }
 
   /**
-   * Get the largest ChangeNumber seen for a given LDAP server ID.
+   * Get the largest CSN seen for a given LDAP server ID.
    *
-   * @param serverID    The server ID.
-   *
-   * @return            The largest ChangeNumber seen.
+   * @param serverId
+   *          The serverId
+   * @return The largest CSN seen
    */
-  public ChangeNumber getMaxChangeNumber(int serverID)
+  public CSN getMaxCSN(int serverId)
   {
-    return state.getChangeNumber(serverID);
+    return state.getCSN(serverId);
   }
 }

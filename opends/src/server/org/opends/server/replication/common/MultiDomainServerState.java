@@ -88,29 +88,29 @@ public class MultiDomainServerState implements Iterable<String>
   }
 
   /**
-   * Update the ServerState of the provided baseDN with the
-   * replication change number provided.
+   * Update the ServerState of the provided baseDN with the replication
+   * {@link CSN} provided.
    *
    * @param baseDN       The provided baseDN.
-   * @param changeNumber The provided ChangeNumber.
+   * @param csn          The provided CSN.
    *
    * @return a boolean indicating if the update was meaningful.
    */
-  public boolean update(String baseDN, ChangeNumber changeNumber)
+  public boolean update(String baseDN, CSN csn)
   {
-    if (changeNumber == null)
+    if (csn == null)
       return false;
 
     synchronized(this)
     {
-      int serverId =  changeNumber.getServerId();
+      int serverId =  csn.getServerId();
       ServerState oldServerState = list.get(baseDN);
       if (oldServerState == null)
         oldServerState = new ServerState();
 
-      if (changeNumber.newer(oldServerState.getChangeNumber(serverId)))
+      if (csn.newer(oldServerState.getCSN(serverId)))
       {
-        oldServerState.update(changeNumber);
+        oldServerState.update(csn);
         list.put(baseDN, oldServerState);
         return true;
       }
@@ -229,7 +229,7 @@ public class MultiDomainServerState implements Iterable<String>
         String[] domains = multidomainserverstate.split(";");
         for (String domain : domains)
         {
-          // For each domain, split the changenumbers by server
+          // For each domain, split the CSNs by server
           // and build a server state (SHOULD BE OPTIMIZED)
           ServerState serverStateByDomain = new ServerState();
 
@@ -243,11 +243,11 @@ public class MultiDomainServerState implements Iterable<String>
           if (fields.length > 1)
           {
             String strState = fields[1];
-            String[] strCN = strState.split(" ");
-            for (String sr : strCN)
+            String[] strCSN = strState.split(" ");
+            for (String sr : strCSN)
             {
-              ChangeNumber fromChangeNumber = new ChangeNumber(sr);
-              serverStateByDomain.update(fromChangeNumber);
+              CSN fromCSN = new CSN(sr);
+              serverStateByDomain.update(fromCSN);
             }
           }
           startStates.put(domainBaseDN, serverStateByDomain);

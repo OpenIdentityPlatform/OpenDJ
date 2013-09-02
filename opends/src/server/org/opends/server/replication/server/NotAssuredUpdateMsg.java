@@ -29,11 +29,12 @@ package org.opends.server.replication.server;
 
 import java.io.UnsupportedEncodingException;
 import java.util.zip.DataFormatException;
+
 import org.opends.server.replication.common.AssuredMode;
-import org.opends.server.replication.common.ChangeNumber;
-import org.opends.server.replication.protocol.UpdateMsg;
+import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.protocol.LDAPUpdateMsg;
 import org.opends.server.replication.protocol.ProtocolVersion;
+import org.opends.server.replication.protocol.UpdateMsg;
 
 /**
  * This is a facility class that is in fact an hack to optimize replication
@@ -100,13 +101,13 @@ public class NotAssuredUpdateMsg extends UpdateMsg
 
       /* Look for assured flag position:
        * The message header is stored in the form :
-       * <operation type><changenumber><dn><assured><entryuuid><change>
+       * <operation type><CSN><dn><assured><entryuuid><change>
        * the length of result byte array is therefore :
-       *   1 + change number length + 1 + dn length + 1  + 1 +
+       *   1 + CSN length + 1 + dn length + 1  + 1 +
        *   uuid length + 1 + additional_length
        * See LDAPUpdateMsg.encodeHeader_V1() for more information
        */
-      // Find end of change number then end of dn
+      // Find end of CSN then end of dn
       for (pos = 1; pos < maxLen; pos++)
       {
         if (bytes[pos] == (byte) 0)
@@ -120,13 +121,12 @@ public class NotAssuredUpdateMsg extends UpdateMsg
         }
       }
       if (!found)
-        throw new UnsupportedEncodingException("Could not find end of " +
-          "change number.");
+        throw new UnsupportedEncodingException("Could not find end of CSN.");
       pos++;
       if (pos >= maxLen)
         throw new UnsupportedEncodingException("Reached end of packet.");
       // Force assured flag to false
-      bytes[pos] = (byte) 0;
+      bytes[pos] = 0;
 
       // Store computed V1 serialized form
       realUpdateMsgNotAssuredBytesV1 = bytes;
@@ -149,14 +149,14 @@ public class NotAssuredUpdateMsg extends UpdateMsg
 
       /* Look for assured flag position:
        * The message header is stored in the form :
-       * <operation type><protocol version><changenumber><dn><entryuuid>
+       * <operation type><protocol version><CSN><dn><entryuuid>
        * <assured> <assured mode> <safe data level>
        * the length of result byte array is therefore :
-       *   1 + 1 + change number length + 1 + dn length + 1 + uuid length +
+       *   1 + 1 + CSN length + 1 + dn length + 1 + uuid length +
        *   1 + 1 + 1 + 1 + additional_length
        * See LDAPUpdateMsg.encodeHeader() for more information
        */
-      // Find end of change number then end of dn then end of uuid
+      // Find end of CSN then end of dn then end of uuid
       for (pos = 2; pos < maxLen; pos++)
       {
         if (bytes[pos] == (byte) 0)
@@ -170,13 +170,12 @@ public class NotAssuredUpdateMsg extends UpdateMsg
         }
       }
       if (!found)
-        throw new UnsupportedEncodingException("Could not find end of " +
-          "change number.");
+        throw new UnsupportedEncodingException("Could not find end of CSN.");
       pos++;
       if (pos >= maxLen)
         throw new UnsupportedEncodingException("Reached end of packet.");
       // Force assured flag to false
-      bytes[pos] = (byte) 0;
+      bytes[pos] = 0;
 
       // Store computed VLATEST serialized form
       realUpdateMsgNotAssuredBytesVLatest = bytes;
@@ -204,14 +203,14 @@ public class NotAssuredUpdateMsg extends UpdateMsg
       // This is a generic update message
       /* Look for assured flag position:
        * The message header is stored in the form :
-       * <operation type><protocol version><changenumber><assured>
+       * <operation type><protocol version><CSN><assured>
        * <assured mode> <safe data level>
        * the length of result byte array is therefore :
-       *   1 + 1 + change number length + 1 + 1
+       *   1 + 1 + CSN length + 1 + 1
        *   + 1 + 1 + additional_length
        * See UpdateMsg.encodeHeader() for more  information
        */
-      // Find end of change number
+      // Find end of CSN
       for (pos = 2; pos < maxLen; pos++)
       {
         if (bytes[pos] == (byte) 0)
@@ -225,13 +224,12 @@ public class NotAssuredUpdateMsg extends UpdateMsg
         }
       }
       if (!found)
-        throw new UnsupportedEncodingException("Could not find end of " +
-          "change number.");
+        throw new UnsupportedEncodingException("Could not find end of CSN.");
       pos++;
       if (pos >= maxLen)
         throw new UnsupportedEncodingException("Reached end of packet.");
       // Force assured flag to false
-      bytes[pos] = (byte) 0;
+      bytes[pos] = 0;
 
       // Store computed VLatest serialized form
       realUpdateMsgNotAssuredBytesVLatest = bytes;
@@ -242,9 +240,9 @@ public class NotAssuredUpdateMsg extends UpdateMsg
    * {@inheritDoc}
    */
   @Override
-  public ChangeNumber getChangeNumber()
+  public CSN getCSN()
   {
-    return realUpdateMsg.getChangeNumber();
+    return realUpdateMsg.getCSN();
   }
 
   /**
@@ -278,8 +276,8 @@ public class NotAssuredUpdateMsg extends UpdateMsg
     {
       if (obj.getClass() != realUpdateMsg.getClass())
         return false;
-      return realUpdateMsg.getChangeNumber().
-        equals(((UpdateMsg)obj).getChangeNumber());
+      return realUpdateMsg.getCSN().
+        equals(((UpdateMsg)obj).getCSN());
     }
     else
     {

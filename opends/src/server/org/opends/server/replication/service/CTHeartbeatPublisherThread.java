@@ -25,20 +25,19 @@
  *      Copyright 2009 Sun Microsystems, Inc.
  *      Portions Copyright 2011-2013 ForgeRock AS
  */
-
 package org.opends.server.replication.service;
 
-import org.opends.server.api.DirectoryThread;
-import static org.opends.server.loggers.debug.DebugLogger.*;
+import java.io.IOException;
 
+import org.opends.server.api.DirectoryThread;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.replication.common.ChangeNumber;
+import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.protocol.ChangeTimeHeartbeatMsg;
 import org.opends.server.replication.protocol.Session;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.util.TimeThread;
 
-import java.io.IOException;
+import static org.opends.server.loggers.debug.DebugLogger.*;
 
 /**
  * This thread publishes a heartbeat message on a given protocol session at
@@ -105,7 +104,7 @@ public class CTHeartbeatPublisherThread extends DirectoryThread
         long now = System.currentTimeMillis();
         ChangeTimeHeartbeatMsg ctHeartbeatMsg =
          new ChangeTimeHeartbeatMsg(
-             new ChangeNumber(TimeThread.getTime(),0, serverId));
+             new CSN(TimeThread.getTime(),0, serverId));
 
         if (now > session.getLastPublishTime() + heartbeatInterval)
         {

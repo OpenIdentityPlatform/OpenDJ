@@ -227,7 +227,7 @@ public class ECLServerWriter extends ServerWriter
 
       try
       {
-        handler.refreshEligibleCN();
+        handler.refreshEligibleCSN();
         update = handler.takeECLUpdate();
       }
       catch(DirectoryException de)

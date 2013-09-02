@@ -142,7 +142,7 @@ public class ServerReader extends DirectoryThread
                 if (dsStatus == BAD_GEN_ID_STATUS)
                   logError(WARN_IGNORING_UPDATE_FROM_DS_BADGENID.get(
                       handler.getReplicationServerId(),
-                      updateMsg.getChangeNumber().toString(),
+                      updateMsg.getCSN().toString(),
                       handler.getBaseDN(), handler.getServerId(),
                       session.getReadableRemoteAddress(),
                       handler.getGenerationId(),
@@ -150,7 +150,7 @@ public class ServerReader extends DirectoryThread
                 if (dsStatus == FULL_UPDATE_STATUS)
                   logError(WARN_IGNORING_UPDATE_FROM_DS_FULLUP.get(
                       handler.getReplicationServerId(),
-                      updateMsg.getChangeNumber().toString(),
+                      updateMsg.getCSN().toString(),
                       handler.getBaseDN(), handler.getServerId(),
                       session.getReadableRemoteAddress()));
                 filtered = true;
@@ -168,7 +168,7 @@ public class ServerReader extends DirectoryThread
                 logError(
                     WARN_IGNORING_UPDATE_FROM_RS.get(
                         handler.getReplicationServerId(),
-                        updateMsg.getChangeNumber().toString(),
+                        updateMsg.getCSN().toString(),
                         handler.getBaseDN(),
                         handler.getServerId(),
                         session.getReadableRemoteAddress(),

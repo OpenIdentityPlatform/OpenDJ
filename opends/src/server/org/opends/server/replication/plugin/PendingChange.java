@@ -23,10 +23,11 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
-import org.opends.server.replication.common.ChangeNumber;
+import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.protocol.LDAPUpdateMsg;
 import org.opends.server.types.DN;
@@ -39,12 +40,12 @@ import org.opends.server.types.operation.PluginOperation;
  */
 public class PendingChange implements Comparable<PendingChange>
 {
-  private ChangeNumber changeNumber;
+  private CSN changeNumber;
   private boolean committed;
   private LDAPUpdateMsg msg;
   private PluginOperation op;
-  private ServerState dependencyState = null;
-  private DN targetDN = null;
+  private ServerState dependencyState;
+  private DN targetDN;
 
   /**
    * Construct a new PendingChange.
@@ -52,7 +53,7 @@ public class PendingChange implements Comparable<PendingChange>
    * @param op the operation to use
    * @param msg the message to use (can be null for local operations)
    */
-  public PendingChange(ChangeNumber changeNumber,
+  public PendingChange(CSN changeNumber,
                        PluginOperation op,
                        LDAPUpdateMsg msg)
   {
@@ -84,7 +85,7 @@ public class PendingChange implements Comparable<PendingChange>
    * Get the ChangeNumber associated to this PendingChange.
    * @return the ChangeNumber
    */
-  public ChangeNumber getChangeNumber()
+  public CSN getCSN()
   {
     return changeNumber;
   }
@@ -133,7 +134,7 @@ public class PendingChange implements Comparable<PendingChange>
    * @param changeNumber The ChangeNumber to add in the list of dependencies
    *                     of this PendingChange.
    */
-  public void addDependency(ChangeNumber changeNumber)
+  public void addDependency(CSN changeNumber)
   {
     if (dependencyState == null)
     {
@@ -184,8 +185,9 @@ public class PendingChange implements Comparable<PendingChange>
   /**
    * {@inheritDoc}
    */
+  @Override
   public int compareTo(PendingChange o)
   {
-    return this.getChangeNumber().compareTo(o.getChangeNumber());
+    return this.getCSN().compareTo(o.getCSN());
   }
 }

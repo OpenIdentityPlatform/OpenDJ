@@ -34,8 +34,8 @@ import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.ReplicationTestCase;
-import org.opends.server.replication.common.ChangeNumber;
-import org.opends.server.replication.common.ChangeNumberGenerator;
+import org.opends.server.replication.common.CSN;
+import org.opends.server.replication.common.CSNGenerator;
 import org.opends.server.replication.plugin.LDAPReplicationDomain;
 import org.opends.server.replication.protocol.AddMsg;
 import org.opends.server.replication.protocol.ReplicationMsg;
@@ -292,7 +292,7 @@ public class MonitorTest extends ReplicationTestCase
         + "userPassword: password\n" + "initials: AA\n";
   }
 
-  static private ReplicationMsg createAddMsg(ChangeNumber cn)
+  static private ReplicationMsg createAddMsg(CSN csn)
   {
     Entry personWithUUIDEntry = null;
     String user1entryUUID;
@@ -327,7 +327,7 @@ public class MonitorTest extends ReplicationTestCase
     }
 
     // Create and publish an update message to add an entry.
-    return new AddMsg(cn,
+    return new AddMsg(csn,
         personWithUUIDEntry.getDN().toString(),
         user1entryUUID,
         baseUUID,
@@ -405,14 +405,14 @@ public class MonitorTest extends ReplicationTestCase
       }
 
       /*
-       * Create a Change number generator to generate new changenumbers
+       * Create a CSN generator to generate new CSNs
        * when we need to send operation messages to the replicationServer.
        */
-      ChangeNumberGenerator gen = new ChangeNumberGenerator(server3ID, 0);
+      CSNGenerator gen = new CSNGenerator(server3ID, 0);
 
       for (int i = 0; i < 10; i++)
       {
-        broker3.publish(createAddMsg(gen.newChangeNumber()));
+        broker3.publish(createAddMsg(gen.newCSN()));
       }
 
       searchMonitor();

@@ -26,7 +26,7 @@
  */
 package org.opends.server.replication.server.changelog.api;
 
-import org.opends.server.replication.common.ChangeNumber;
+import org.opends.server.replication.common.CSN;
 
 /**
  * This class stores the changelog information into a database.
@@ -39,13 +39,13 @@ public interface ChangelogDB extends Runnable
 {
 
   /**
-   * Get the CN associated to a provided draft change number.
+   * Get the CSN associated to a provided draft change number.
    *
    * @param draftCN
    *          the provided draft change number.
-   * @return the associated CN, null when none.
+   * @return the associated CSN, null when none.
    */
-  public ChangeNumber getChangeNumber(int draftCN);
+  public CSN getCSN(int draftCN);
 
   /**
    * Get the baseDN associated to a provided draft change number.
@@ -92,11 +92,10 @@ public interface ChangelogDB extends Runnable
    *          The value of the previous cookie.
    * @param baseDN
    *          The associated baseDN.
-   * @param changeNumber
-   *          The associated replication change number.
+   * @param csn
+   *          The associated replication CSN.
    */
-  void add(int draftCN, String previousCookie, String baseDN,
-      ChangeNumber changeNumber);
+  void add(int draftCN, String previousCookie, String baseDN, CSN csn);
 
   /**
    * Generate a new {@link ChangelogDBIterator} that allows to browse the db

@@ -27,16 +27,12 @@
  */
 package org.opends.server.replication.protocol;
 
-
-
 import java.util.zip.DataFormatException;
 
-import org.opends.server.replication.common.ChangeNumber;
+import org.opends.server.replication.common.CSN;
 import org.opends.server.types.ByteSequenceReader;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ByteStringBuilder;
-
-
 
 /**
  * Class that define messages sent by a replication domain (DS) to the
@@ -45,34 +41,30 @@ import org.opends.server.types.ByteStringBuilder;
 public class ChangeTimeHeartbeatMsg extends ReplicationMsg
 {
   /**
-   * The ChangeNumber containing the change time.
+   * The CSN containing the change time.
    */
-  private final ChangeNumber changeNumber;
-
-
+  private final CSN csn;
 
   /**
    * Constructor of a Change Time Heartbeat message providing the change time
-   * value in a change number.
+   * value in a CSN.
    *
-   * @param cn
-   *          The provided change number.
+   * @param csn
+   *          The provided CSN.
    */
-  public ChangeTimeHeartbeatMsg(ChangeNumber cn)
+  public ChangeTimeHeartbeatMsg(CSN csn)
   {
-    this.changeNumber = cn;
+    this.csn = csn;
   }
 
-
-
   /**
-   * Get a change number with the transmitted change time.
+   * Get a CSN with the transmitted change time.
    *
-   * @return the ChangeNumber
+   * @return the CSN
    */
-  public ChangeNumber getChangeNumber()
+  public CSN getCSN()
   {
-    return changeNumber;
+    return csn;
   }
 
 
@@ -101,13 +93,11 @@ public class ChangeTimeHeartbeatMsg extends ReplicationMsg
 
       if (version >= ProtocolVersion.REPLICATION_PROTOCOL_V7)
       {
-        changeNumber = ChangeNumber.valueOf(reader
-            .getByteSequence(ChangeNumber.BYTE_ENCODING_LENGTH));
+        csn = CSN.valueOf(reader.getByteSequence(CSN.BYTE_ENCODING_LENGTH));
       }
       else
       {
-        changeNumber = ChangeNumber.valueOf(reader
-            .getString(ChangeNumber.STRING_ENCODING_LENGTH));
+        csn = CSN.valueOf(reader.getString(CSN.STRING_ENCODING_LENGTH));
         reader.get(); // Read trailing 0 byte.
       }
 
@@ -135,17 +125,17 @@ public class ChangeTimeHeartbeatMsg extends ReplicationMsg
     if (protocolVersion >= ProtocolVersion.REPLICATION_PROTOCOL_V7)
     {
       final ByteStringBuilder builder = new ByteStringBuilder(
-          ChangeNumber.BYTE_ENCODING_LENGTH + 1 /* type + csn */);
+          CSN.BYTE_ENCODING_LENGTH + 1 /* type + csn */);
       builder.append(MSG_TYPE_CT_HEARTBEAT);
-      changeNumber.toByteString(builder);
+      csn.toByteString(builder);
       return builder.toByteArray();
     }
     else
     {
       final ByteStringBuilder builder = new ByteStringBuilder(
-          ChangeNumber.STRING_ENCODING_LENGTH + 2 /* type + csn str + nul */);
+          CSN.STRING_ENCODING_LENGTH + 2 /* type + csn str + nul */);
       builder.append(MSG_TYPE_CT_HEARTBEAT);
-      builder.append(changeNumber.toString());
+      builder.append(csn.toString());
       builder.append((byte) 0); // For compatibility with earlier protocol
                                 // versions.
       return builder.toByteArray();

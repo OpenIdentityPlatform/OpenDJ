@@ -31,9 +31,8 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.replication.common.ChangeNumber;
+import org.opends.server.replication.common.CSN;
 import org.opends.server.types.*;
-
 
 /**
  * This class stores an internal usable representation of the value of
@@ -59,7 +58,7 @@ import org.opends.server.types.*;
  *
  *  so after split
  *  token[0] will contain the attribute name
- *  token[1] will contain the change number
+ *  token[1] will contain the CSN
  *  token[2] will contain the type of historical information
  *  token[3] will contain the attribute value
  *
@@ -72,8 +71,8 @@ public class HistoricalAttributeValue
   private AttributeType attrType;
   private String attrString;
   private AttributeValue attributeValue;
-  private ChangeNumber cn;
-  private LinkedHashSet<String> options;
+  private CSN csn;
+  private Set<String> options;
   private HistAttrModificationKey histKey;
   private String stringValue;
 
@@ -129,7 +128,7 @@ public class HistoricalAttributeValue
       }
     }
 
-    cn = new ChangeNumber(token[1]);
+    csn = new CSN(token[1]);
     histKey = HistAttrModificationKey.decodeKey(token[2]);
     stringValue = null;
     if (histKey != HistAttrModificationKey.DELATTR)
@@ -171,12 +170,12 @@ public class HistoricalAttributeValue
   }
 
   /**
-   * Get the ChangeNUmber of this HistVal.
-   * @return Returns the ChangeNumber of this HistVal.
+   * Get the CSN of this HistVal.
+   * @return Returns the CSN of this HistVal.
    */
-  public ChangeNumber getCn()
+  public CSN getCSN()
   {
-    return cn;
+    return csn;
   }
 
   /**

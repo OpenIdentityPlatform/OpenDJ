@@ -30,12 +30,11 @@ package org.opends.server.replication.plugin;
 import java.util.Iterator;
 import java.util.Map;
 
-import org.opends.server.replication.common.ChangeNumber;
+import org.opends.server.replication.common.CSN;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.Entry;
 import org.opends.server.types.Modification;
-
 
 /**
  * This class store historical information for a provided attribute.
@@ -49,14 +48,14 @@ public abstract class AttrHistorical
    *
    * @param modsIterator  The iterator on the mods from which the mod is
    *                      extracted.
-   * @param changeNumber  The changeNumber associated to the operation.
+   * @param csn  The CSN associated to the operation.
    * @param modifiedEntry The entry modified by this operation.
    * @param mod           The modification.
    *
    * @return a boolean indicating if a conflict was detected.
    */
   public abstract boolean replayOperation(
-      Iterator<Modification> modsIterator, ChangeNumber changeNumber,
+      Iterator<Modification> modsIterator, CSN csn,
       Entry modifiedEntry, Modification mod);
 
   /**
@@ -68,11 +67,11 @@ public abstract class AttrHistorical
    * It does not check if the operation to process is conflicting or not with
    * previous operations. The caller is responsible for this.
    *
-   * @param changeNumber The changeNumber of the operation to process
+   * @param csn The CSN of the operation to process
    * @param mod The modify operation to process.
    */
   public abstract void processLocalOrNonConflictModification(
-      ChangeNumber changeNumber, Modification mod);
+      CSN csn, Modification mod);
 
   /**
    * Create a new object from a provided attribute type. Historical is empty.
@@ -103,17 +102,17 @@ public abstract class AttrHistorical
    *
    * @return the last time when this attribute was deleted
    */
-  public abstract ChangeNumber getDeleteTime();
+  public abstract CSN getDeleteTime();
 
   /**
    * Assign the provided information to this object.
    *
    * @param histKey the key to assign.
    * @param value   the associated value or null if there is no value;
-   * @param cn      the associated ChangeNumber.
+   * @param csn     the associated CSN.
    */
   public abstract void assign(
-      HistAttrModificationKey histKey, AttributeValue value, ChangeNumber cn);
+      HistAttrModificationKey histKey, AttributeValue value, CSN csn);
 
 }
 

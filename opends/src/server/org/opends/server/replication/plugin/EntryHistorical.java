@@ -27,23 +27,23 @@
  */
 package org.opends.server.replication.plugin;
 
-import static org.opends.messages.ReplicationMessages.*;
-import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.util.StaticUtils.*;
-
 import java.util.*;
 
 import org.opends.messages.Message;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.replication.common.ChangeNumber;
+import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.protocol.OperationContext;
 import org.opends.server.types.*;
 import org.opends.server.types.operation.PreOperationAddOperation;
 import org.opends.server.types.operation.PreOperationModifyDNOperation;
 import org.opends.server.types.operation.PreOperationModifyOperation;
 import org.opends.server.util.TimeThread;
+
+import static org.opends.messages.ReplicationMessages.*;
+import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class is used to store historical information that is
@@ -87,24 +87,23 @@ public class EntryHistorical
 
   /**
    * The delay to purge the historical information.
-   * This delay indicates the time the domain keeps the historical
-   * information necessary to solve conflicts.When a change stored in the
-   * historical part of the user entry has a date (from its replication
-   * ChangeNumber) older than this delay, it is candidate to be purged.
-   * The purge is triggered on 2 events: modify of the entry, dedicated purge
-   * task.
-   *
-   * The purge is done when the historical is encoded.
+   * <p>
+   * This delay indicates the time the domain keeps the historical information
+   * necessary to solve conflicts. When a change stored in the historical part
+   * of the user entry has a date (from its replication CSN) older than this
+   * delay, it is candidate to be purged. The purge is triggered on 2 events:
+   * modify of the entry, dedicated purge task. The purge is done when the
+   * historical is encoded.
    */
   private long purgeDelayInMillisec = -1;
 
   /**
-   * The oldest ChangeNumber stored in this entry historical attribute.
+   * The oldest CSN stored in this entry historical attribute.
    * null when this historical object has been created from
    * an entry that has no historical attribute and after the last
    * historical has been purged.
    */
-  private ChangeNumber oldestChangeNumber = null;
+  private CSN oldestCSN = null;
 
   /**
    * For stats/monitoring purpose, the number of historical values
@@ -117,8 +116,8 @@ public class EntryHistorical
    * The in-memory historical information is made of.
    *
    * EntryHistorical ::= ADDDate MODDNDate attributesInfo
-   * ADDDate       ::= ChangeNumber  // the date the entry was added
-   * MODDNDate     ::= ChangeNumber  // the date the entry was last renamed
+   * ADDDate       ::= CSN  // the date the entry was added
+   * MODDNDate     ::= CSN  // the date the entry was last renamed
    *
    * attributesInfo      ::= (AttrInfoWithOptions)*
    *                         one AttrInfoWithOptions by attributeType
@@ -136,14 +135,14 @@ public class EntryHistorical
    *                         AttrValueHistorical is the historical of the
    *                         the modification of one value
    *
-   * AddTime             ::= ChangeNumber // last time the attribute was added
+   * AddTime             ::= CSN // last time the attribute was added
    *                                      // to the entry
-   * DeleteTime          ::= ChangeNumber // last time the attribute was deleted
+   * DeleteTime          ::= CSN // last time the attribute was deleted
    *                                      // from the entry
    *
    * AttrValueHistorical ::= AttributeValue valueDeleteTime valueUpdateTime
-   * valueDeleteTime     ::= ChangeNumber
-   * valueUpdateTime     ::= ChangeNumber
+   * valueDeleteTime     ::= CSN
+   * valueUpdateTime     ::= CSN
    *
    * - a list indexed on AttributeType of AttrInfoWithOptions :
    *     each value is the historical for this attribute
@@ -153,10 +152,10 @@ public class EntryHistorical
    */
 
   /** The date when the entry was added. */
-  private ChangeNumber entryADDDate = null;
+  private CSN entryADDDate = null;
 
   /** The date when the entry was last renamed. */
-  private ChangeNumber entryMODDNDate = null;
+  private CSN entryMODDNDate = null;
 
   /**
    * Contains Historical information for each attribute sorted by attribute
@@ -190,8 +189,7 @@ public class EntryHistorical
   {
     boolean bConflict = false;
     List<Modification> mods = modifyOperation.getModifications();
-    ChangeNumber modOpChangeNumber =
-      OperationContext.getChangeNumber(modifyOperation);
+    CSN modOpCSN = OperationContext.getCSN(modifyOperation);
 
     for (Iterator<Modification> modsIterator = mods.iterator();
          modsIterator.hasNext(); )
@@ -203,8 +201,7 @@ public class EntryHistorical
       // contained in the mod
       AttrHistorical attrHist = getOrCreateAttrHistorical(m);
 
-      if (attrHist.replayOperation(modsIterator, modOpChangeNumber,
-                                   modifiedEntry, m))
+      if (attrHist.replayOperation(modsIterator, modOpCSN, modifiedEntry, m))
       {
         bConflict = true;
       }
@@ -235,8 +232,7 @@ public class EntryHistorical
   {
     List<Modification> mods = modifyOperation.getModifications();
     Entry modifiedEntry = modifyOperation.getModifiedEntry();
-    ChangeNumber changeNumber =
-      OperationContext.getChangeNumber(modifyOperation);
+    CSN csn = OperationContext.getCSN(modifyOperation);
 
     /*
      * If this is a local operation we need :
@@ -254,7 +250,7 @@ public class EntryHistorical
         // (eventually read from the provided modification)
         AttrHistorical attrHist = getOrCreateAttrHistorical(mod);
         if (attrHist != null)
-          attrHist.processLocalOrNonConflictModification(changeNumber, mod);
+          attrHist.processLocalOrNonConflictModification(csn, mod);
       }
     }
 
@@ -280,8 +276,8 @@ public class EntryHistorical
   public void setHistoricalAttrToOperation(
       PreOperationModifyDNOperation modifyDNOperation)
   {
-    // Update this historical information with the operation ChangeNumber.
-    this.entryMODDNDate = OperationContext.getChangeNumber(modifyDNOperation);
+    // Update this historical information with the operation CSN.
+    this.entryMODDNDate = OperationContext.getCSN(modifyDNOperation);
 
     // Update the operations mods and the modified entry so that the
     // historical information gets stored in the DB and indexed accordingly.
@@ -305,7 +301,7 @@ public class EntryHistorical
    * from the replication context attached to the provided operation
    * and set this attribute in the operation.
    *
-   *   For ADD, the historical is made of the changeNumber read from the
+   *   For ADD, the historical is made of the CSN read from the
    *   synchronization context attached to the operation.
    *
    *   Called for both local and synchronization ADD preOperation.
@@ -328,10 +324,10 @@ public class EntryHistorical
     AttributeType historicalAttrType =
       DirectoryServer.getSchema().getAttributeType(HISTORICAL_ATTRIBUTE_NAME);
 
-    // Get the changeNumber from the attached synchronization context
+    // Get the CSN from the attached synchronization context
     // Create the attribute (encoded)
-    ChangeNumber addCn = OperationContext.getChangeNumber(addOperation);
-    AttributeValue attrValue = encodeHistorical(addCn, "add");
+    CSN addCSN = OperationContext.getCSN(addOperation);
+    AttributeValue attrValue = encodeHistorical(addCSN, "add");
     Attribute attr = Attributes.create(historicalAttrType, attrValue);
 
     // Set the created attribute to the operation
@@ -345,20 +341,19 @@ public class EntryHistorical
    * operation type . For ADD Operation : "dn:changeNumber:add", for MODDN
    * Operation : "dn:changeNumber:moddn", etc.
    *
-   * @param cn
+   * @param csn
    *          The date when the ADD Operation happened.
    * @param operationType
    *          the operation type to encode
    * @return The attribute value containing the historical information for the
    *         Operation type.
    */
-  private static AttributeValue encodeHistorical(ChangeNumber cn,
-      String operationType)
+  private static AttributeValue encodeHistorical(CSN csn, String operationType)
   {
     AttributeType historicalAttrType =
       DirectoryServer.getSchema().getAttributeType(HISTORICAL_ATTRIBUTE_NAME);
 
-    String strValue = "dn:" + cn + ":" + operationType;
+    String strValue = "dn:" + csn + ":" + operationType;
     return AttributeValues.create(historicalAttrType, strValue);
   }
 
@@ -470,7 +465,7 @@ public class EntryHistorical
           optionsString = optionsBuilder.toString();
         }
 
-        ChangeNumber deleteTime = attrHist.getDeleteTime();
+        CSN deleteTime = attrHist.getDeleteTime();
         /* generate the historical information for deleted attributes */
         boolean delAttr = deleteTime != null;
 
@@ -500,7 +495,7 @@ public class EntryHistorical
               continue;
             }
 
-            final ChangeNumber updateTime = attrValHist.getValueUpdateTime();
+            final CSN updateTime = attrValHist.getValueUpdateTime();
             // FIXME very suspicious use of == in the next if statement,
             // unit tests do not like changing it
             if (delAttr && updateTime == deleteTime && value != null)
@@ -553,9 +548,9 @@ public class EntryHistorical
     return builder.toAttribute();
   }
 
-  private boolean needsPurge(ChangeNumber cn, long purgeDate)
+  private boolean needsPurge(CSN csn, long purgeDate)
   {
-    boolean needsPurge = purgeDelayInMillisec > 0 && cn.getTime() <= purgeDate;
+    boolean needsPurge = purgeDelayInMillisec > 0 && csn.getTime() <= purgeDate;
     if (needsPurge)
     {
       // this hist must be purged now, because older than the purge delay
@@ -565,14 +560,14 @@ public class EntryHistorical
   }
 
   private String encode(String operation, AttributeType type,
-      String optionsString, ChangeNumber changeTime)
+      String optionsString, CSN changeTime)
   {
     return type.getNormalizedPrimaryName() + optionsString + ":" + changeTime
         + ":" + operation;
   }
 
   private String encode(String operation, AttributeType type,
-      String optionsString, ChangeNumber changeTime, AttributeValue value)
+      String optionsString, CSN changeTime, AttributeValue value)
   {
     return type.getNormalizedPrimaryName() + optionsString + ":" + changeTime
         + ":" + operation + ":" + value;
@@ -590,27 +585,26 @@ public class EntryHistorical
   }
 
   /**
-   * Indicates if the Entry was renamed or added after the ChangeNumber
-   * that is given as a parameter.
+   * Indicates if the Entry was renamed or added after the CSN that is given as
+   * a parameter.
    *
-   * @param cn The ChangeNumber with which the ADD or Rename date must be
-   *           compared.
-   *
-   * @return A boolean indicating if the Entry was renamed or added after
-   *                   the ChangeNumber that is given as a parameter.
+   * @param csn
+   *          The CSN with which the ADD or Rename date must be compared.
+   * @return A boolean indicating if the Entry was renamed or added after the
+   *         CSN that is given as a parameter.
    */
-  public boolean addedOrRenamedAfter(ChangeNumber cn)
+  public boolean addedOrRenamedAfter(CSN csn)
   {
-    return cn.older(entryADDDate) || cn.older(entryMODDNDate);
+    return csn.older(entryADDDate) || csn.older(entryMODDNDate);
   }
 
 
   /**
-   * Returns the lastChangeNumber when the entry DN was modified.
+   * Returns the lastCSN when the entry DN was modified.
    *
-   * @return The lastChangeNumber when the entry DN was modified.
+   * @return The lastCSN when the entry DN was modified.
    */
-  public ChangeNumber getDNDate()
+  public CSN getDNDate()
   {
     if (entryADDDate == null)
       return entryMODDNDate;
@@ -671,20 +665,20 @@ public class EntryHistorical
 
           AttributeType attrType = histVal.getAttrType();
           Set<String> options = histVal.getOptions();
-          ChangeNumber cn = histVal.getCn();
+          CSN csn = histVal.getCSN();
           AttributeValue value = histVal.getAttributeValue();
           HistAttrModificationKey histKey = histVal.getHistKey();
 
-          // update the oldest ChangeNumber stored in the new entry historical
-          newHistorical.updateOldestCN(cn);
+          // update the oldest CSN stored in the new entry historical
+          newHistorical.updateOldestCSN(csn);
 
           if (histVal.isADDOperation())
           {
-            newHistorical.entryADDDate = cn;
+            newHistorical.entryADDDate = csn;
           }
           else if (histVal.isMODDNOperation())
           {
-            newHistorical.entryMODDNDate = cn;
+            newHistorical.entryMODDNDate = csn;
           }
           else
           {
@@ -731,7 +725,7 @@ public class EntryHistorical
               lastOptions = options;
             }
 
-            attrInfo.assign(histKey, value, cn);
+            attrInfo.assign(histKey, value, csn);
           }
         }
       }
@@ -761,8 +755,8 @@ public class EntryHistorical
    */
   public static Iterable<FakeOperation> generateFakeOperations(Entry entry)
   {
-    TreeMap<ChangeNumber, FakeOperation> operations =
-            new TreeMap<ChangeNumber, FakeOperation>();
+    TreeMap<CSN, FakeOperation> operations =
+            new TreeMap<CSN, FakeOperation>();
     List<Attribute> attrs = getHistoricalAttr(entry);
     if (attrs != null)
     {
@@ -777,25 +771,25 @@ public class EntryHistorical
             // Found some historical information indicating that this
             // entry was just added.
             // Create the corresponding ADD operation.
-            operations.put(histVal.getCn(),
-                new FakeAddOperation(histVal.getCn(), entry));
+            operations.put(histVal.getCSN(),
+                new FakeAddOperation(histVal.getCSN(), entry));
           }
           else if (histVal.isMODDNOperation())
           {
             // Found some historical information indicating that this
             // entry was just renamed.
             // Create the corresponding ADD operation.
-            operations.put(histVal.getCn(),
-                new FakeModdnOperation(histVal.getCn(), entry));
+            operations.put(histVal.getCSN(),
+                new FakeModdnOperation(histVal.getCSN(), entry));
           }
           else
           {
             // Found some historical information for modify operation.
             // Generate the corresponding ModifyOperation or update
             // the already generated Operation if it can be found.
-            ChangeNumber cn = histVal.getCn();
+            CSN csn = histVal.getCSN();
             Modification mod = histVal.generateMod();
-            FakeOperation fakeOperation = operations.get(cn);
+            FakeOperation fakeOperation = operations.get(csn);
 
             if (fakeOperation instanceof FakeModifyOperation)
             {
@@ -807,9 +801,9 @@ public class EntryHistorical
             {
               String uuidString = getEntryUUID(entry);
               FakeModifyOperation modifyFakeOperation =
-                  new FakeModifyOperation(entry.getDN(), cn, uuidString);
+                  new FakeModifyOperation(entry.getDN(), csn, uuidString);
               modifyFakeOperation.addModification(mod);
-              operations.put(histVal.getCn(), modifyFakeOperation);
+              operations.put(histVal.getCSN(), modifyFakeOperation);
             }
           }
         }
@@ -883,30 +877,29 @@ public class EntryHistorical
   }
 
   /**
-   * Potentially update the oldest ChangeNumber stored in this entry historical
-   * with the provided ChangeNumber when its older than the current oldest.
+   * Potentially update the oldest CSN stored in this entry historical
+   * with the provided CSN when its older than the current oldest.
    *
-   * @param cn the provided ChangeNumber.
+   * @param csn the provided CSN.
    */
-  private void updateOldestCN(ChangeNumber cn)
+  private void updateOldestCSN(CSN csn)
   {
-    if (cn != null
-        && (this.oldestChangeNumber == null
-            || cn.older(this.oldestChangeNumber)))
-      this.oldestChangeNumber = cn;
+    if (csn != null
+        && (this.oldestCSN == null || csn.older(this.oldestCSN)))
+      this.oldestCSN = csn;
   }
 
   /**
-   * Returns the oldest ChangeNumber stored in this entry historical attribute.
+   * Returns the oldest CSN stored in this entry historical attribute.
    *
-   * @return the oldest ChangeNumber stored in this entry historical attribute.
+   * @return the oldest CSN stored in this entry historical attribute.
    *         Returns null when this historical object has been created from
    *         an entry that has no historical attribute and after the last
    *         historical has been purged.
    */
-  public ChangeNumber getOldestCN()
+  public CSN getOldestCSN()
   {
-    return this.oldestChangeNumber;
+    return this.oldestCSN;
   }
 
   /**

@@ -36,7 +36,7 @@ import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.replication.ReplicationTestCase;
-import org.opends.server.replication.common.ChangeNumber;
+import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.protocol.AddMsg;
 import org.opends.server.replication.protocol.LDAPUpdateMsg;
 import org.opends.server.replication.protocol.ModifyMsg;
@@ -55,9 +55,9 @@ import java.util.UUID;
  * Tests the Historical class.
  */
 @SuppressWarnings("javadoc")
-public class HistoricalTest
-     extends ReplicationTestCase
+public class HistoricalTest extends ReplicationTestCase
 {
+
   private int replServerPort;
   private String testName = "historicalTest";
 
@@ -288,10 +288,10 @@ public class HistoricalTest
 
     long now = System.currentTimeMillis();
     // A change on a first server.
-    ChangeNumber t1 = new ChangeNumber(now,  0,  3);
+    CSN t1 = new CSN(now,  0,  3);
 
     // A change on a second server.
-    ChangeNumber t2 = new ChangeNumber(now+1,  0,  4);
+    CSN t2 = new CSN(now+1,  0,  4);
 
     // Simulate the ordering t1:add:A followed by t2:add:B that would
     // happen on one server.
@@ -316,8 +316,8 @@ public class HistoricalTest
     // Simulate the reverse ordering t2:add:B followed by t1:add:A that
     // would happen on the other server.
 
-    t1 = new ChangeNumber(now+3,  0,  3);
-    t2 = new ChangeNumber(now+4,  0,  4);
+    t1 = new CSN(now+3,  0,  3);
+    t2 = new CSN(now+4,  0,  4);
 
     // Replay an add of a value B at time t2 on a second server.
     attr = Attributes.create(attrType.getNormalizedPrimaryName(), "B");
@@ -354,7 +354,7 @@ public class HistoricalTest
 }
 
   private static
-  void publishModify(ReplicationBroker broker, ChangeNumber changeNum,
+  void publishModify(ReplicationBroker broker, CSN changeNum,
                      DN dn, String entryuuid, Modification mod)
   {
     List<Modification> mods = new ArrayList<Modification>(1);
@@ -473,7 +473,7 @@ public class HistoricalTest
         // - the dn should be dn1,
         // - the entry id and the parent id should match the ids from the entry
         FakeAddOperation addOp = (FakeAddOperation) op;
-        assertTrue(addOp.getChangeNumber() != null);
+        assertTrue(addOp.getCSN() != null);
         AddMsg addmsg = addOp.generateMessage();
         assertTrue(dn1.equals(DN.decode(addmsg.getDn())));
         assertTrue(addmsg.getEntryUUID().equals(EntryHistorical.getEntryUUID(entry)));
@@ -503,7 +503,7 @@ public class HistoricalTest
    *
    * TODO: another test should be written that configures the task no NOT have
    * the time to purge everything in 1 run .. and thus to relauch it to finish
-   * the purge. And verify that the second run starts on the changeNumber where
+   * the purge. And verify that the second run starts on the CSN where
    * the previous task run had stopped.
    */
   @Test(enabled=true)

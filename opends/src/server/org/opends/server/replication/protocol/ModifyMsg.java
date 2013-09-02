@@ -27,8 +27,6 @@
  */
 package org.opends.server.replication.protocol;
 
-import static org.opends.server.replication.protocol.OperationContext.*;
-
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
@@ -37,14 +35,11 @@ import java.util.zip.DataFormatException;
 import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.protocols.asn1.ASN1Exception;
 import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.replication.common.ChangeNumber;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.DN;
-import org.opends.server.types.LDAPException;
-import org.opends.server.types.Modification;
-import org.opends.server.types.Operation;
-import org.opends.server.types.RawModification;
+import org.opends.server.replication.common.CSN;
+import org.opends.server.types.*;
 import org.opends.server.types.operation.PostOperationModifyOperation;
+
+import static org.opends.server.replication.protocol.OperationContext.*;
 
 /**
  * Message used to send Modify information.
@@ -66,16 +61,15 @@ public class ModifyMsg extends ModifyCommonMsg
   /**
    * Creates a new Modify message using the provided information.
    *
-   * @param changeNumber The ChangeNumber for the operation.
+   * @param csn The CSN for the operation.
    * @param dn           The baseDN of the operation.
    * @param mods         The mod of the operation.
    * @param entryUUID    The unique id of the entry on which the modification
    *                     needs to apply.
    */
-  public ModifyMsg(ChangeNumber changeNumber, DN dn, List<Modification> mods,
-                   String entryUUID)
+  public ModifyMsg(CSN csn, DN dn, List<Modification> mods, String entryUUID)
   {
-    super(new ModifyContext(changeNumber, entryUUID),
+    super(new ModifyContext(csn, entryUUID),
           dn.toNormalizedString());
     this.encodedMods = encodeMods(mods);
   }
@@ -145,7 +139,7 @@ public class ModifyMsg extends ModifyCommonMsg
         InternalClientConnection.nextOperationID(),
         InternalClientConnection.nextMessageID(), null,
         ByteString.valueOf(newDn), ldapmods);
-    ModifyContext ctx = new ModifyContext(getChangeNumber(), getEntryUUID());
+    ModifyContext ctx = new ModifyContext(getCSN(), getEntryUUID());
     mod.setAttachment(SYNCHROCONTEXT, ctx);
     return mod;
   }
@@ -162,7 +156,7 @@ public class ModifyMsg extends ModifyCommonMsg
       return "ModifyMsg content: " +
         " protocolVersion: " + protocolVersion +
         " dn: " + dn +
-        " changeNumber: " + changeNumber +
+        " changeNumber: " + csn +
         " uniqueId: " + entryUUID +
         " assuredFlag: " + assuredFlag;
     }
@@ -171,7 +165,7 @@ public class ModifyMsg extends ModifyCommonMsg
       return "ModifyMsg content: " +
         " protocolVersion: " + protocolVersion +
         " dn: " + dn +
-        " changeNumber: " + changeNumber +
+        " changeNumber: " + csn +
         " uniqueId: " + entryUUID +
         " assuredFlag: " + assuredFlag +
         " assuredMode: " + assuredMode +

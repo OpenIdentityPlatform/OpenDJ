@@ -27,9 +27,6 @@
  */
 package org.opends.server.replication;
 
-import static org.opends.server.loggers.ErrorLogger.*;
-import static org.testng.Assert.*;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.util.ArrayList;
@@ -45,7 +42,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.replication.common.ChangeNumberGenerator;
+import org.opends.server.replication.common.CSNGenerator;
 import org.opends.server.replication.plugin.EntryHistorical;
 import org.opends.server.replication.protocol.ModifyMsg;
 import org.opends.server.replication.protocol.ReplicationMsg;
@@ -54,13 +51,17 @@ import org.opends.server.types.*;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import static org.opends.server.loggers.ErrorLogger.*;
+import static org.testng.Assert.*;
+
 /**
  * Test for the schema replication.
  */
+@SuppressWarnings("javadoc")
 public class SchemaReplicationTest extends ReplicationTestCase
 {
 
-  private ArrayList<Modification> rcvdMods = null;
+  private List<Modification> rcvdMods;
 
   private int replServerPort;
 
@@ -217,9 +218,9 @@ public class SchemaReplicationTest extends ReplicationTestCase
 
     try
     {
-      ChangeNumberGenerator gen = new ChangeNumberGenerator( 2, 0);
+      CSNGenerator gen = new CSNGenerator( 2, 0);
 
-      ModifyMsg modMsg = new ModifyMsg(gen.newChangeNumber(), baseDn, rcvdMods,
+      ModifyMsg modMsg = new ModifyMsg(gen.newCSN(), baseDn, rcvdMods,
           EntryHistorical.getEntryUUID(DirectoryServer.getEntry(baseDn)));
       broker.publish(modMsg);
 
@@ -297,11 +298,11 @@ public class SchemaReplicationTest extends ReplicationTestCase
         "The received mod does not contain the original change");
 
       // check that the schema files were updated with the new ServerState.
-      // by checking that the ChangeNUmber of msg we just received has been
+      // by checking that the CSN of msg we just received has been
       // added to the user schema file.
 
       // build the string to find in the schema file
-      String stateStr = modMsg.getChangeNumber().toString();
+      String stateStr = modMsg.getCSN().toString();
 
       // open the schema file
       String buildRoot = System.getProperty(TestCaseUtils.PROPERTY_BUILD_ROOT);
@@ -325,15 +326,13 @@ public class SchemaReplicationTest extends ReplicationTestCase
         if (fileStr.indexOf(stateStr) != -1)
         {
           break;
-        } else
-        {
-          if (count++ > 50)
-          {
-            fail("The Schema persistentState (changenumber:" + stateStr +
-              ") has not been saved to " + path + " : " + fileStr);
-          } else
-            TestCaseUtils.sleep(100);
         }
+        if (count++ > 50)
+        {
+          fail("The Schema persistentState (CSN:" + stateStr
+              + ") has not been saved to " + path + " : " + fileStr);
+        }
+        TestCaseUtils.sleep(100);
       }
     } finally
     {

@@ -46,7 +46,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.replication.ReplicationTestCase;
-import org.opends.server.replication.common.ChangeNumberGenerator;
+import org.opends.server.replication.common.CSNGenerator;
 import org.opends.server.replication.common.ServerStatus;
 import org.opends.server.replication.protocol.AddMsg;
 import org.opends.server.replication.protocol.ModifyDNMsg;
@@ -94,7 +94,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
   private static final int INCLUDE_FRAC_MODE = 1;
 
   int initWindow = 100;
-  private ChangeNumberGenerator gen = null;
+  private CSNGenerator gen = null;
 
   /** The tracer object for the debug logger */
   private static final DebugTracer TRACER = getTracer();
@@ -405,11 +405,9 @@ public class FractionalReplicationTest extends ReplicationTestCase {
     fractionalDomainCfgEntry = null;
     replicationServer = null;
 
-    // Initialize the test backend
     TestCaseUtils.initializeTestBackend(false);
 
-    // initialize cn generator
-    gen = new ChangeNumberGenerator(DS2_ID, 0L);
+    gen = new CSNGenerator(DS2_ID, 0L);
   }
 
   private void endTest()
@@ -731,7 +729,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
     Entry entry = TestCaseUtils.entryFromLdifString(entryLdif);
 
       // Create an update message to add an entry.
-      AddMsg addMsg = new AddMsg(gen.newChangeNumber(),
+      AddMsg addMsg = new AddMsg(gen.newCSN(),
         entry.getDN().toString(),
         ENTRY_UUID,
         null,
@@ -777,7 +775,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
       mods.add(mod);
 
       DN entryDn = DN.decode((firstBackend ? ENTRY_DN : ENTRY_DN2));
-      ModifyMsg modifyMsg = new ModifyMsg(gen.newChangeNumber(), entryDn, mods,
+      ModifyMsg modifyMsg = new ModifyMsg(gen.newCSN(), entryDn, mods,
         ENTRY_UUID);
 
       replicationDomain.publish(modifyMsg);
@@ -1392,7 +1390,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
       Entry entry = TestCaseUtils.entryFromLdifString(entryLdif);
 
       // Create an update message to add an entry.
-      AddMsg addMsg = new AddMsg(gen.newChangeNumber(),
+      AddMsg addMsg = new AddMsg(gen.newCSN(),
         entry.getDN().toString(),
         ENTRY_UUID,
         null,
@@ -1428,7 +1426,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
       entry = TestCaseUtils.entryFromLdifString(entryLdif);
 
       // Create an update message to add an entry.
-      addMsg = new AddMsg(gen.newChangeNumber(),
+      addMsg = new AddMsg(gen.newCSN(),
         entry.getDN().toString(),
         ENTRY_UUID2,
         null,
@@ -1488,7 +1486,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
       Entry entry = TestCaseUtils.entryFromLdifString(entryLdif);
 
       // Create an update message to add an entry.
-      AddMsg addMsg = new AddMsg(gen.newChangeNumber(),
+      AddMsg addMsg = new AddMsg(gen.newCSN(),
         entry.getDN().toString(),
         ENTRY_UUID,
         null,
@@ -1526,7 +1524,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
       entry = TestCaseUtils.entryFromLdifString(entryLdif);
 
       // Create an update message to add an entry.
-      addMsg = new AddMsg(gen.newChangeNumber(),
+      addMsg = new AddMsg(gen.newCSN(),
         entry.getDN().toString(),
         ENTRY_UUID2,
         null,
@@ -1585,7 +1583,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
       Entry entry = TestCaseUtils.entryFromLdifString(entryLdif);
 
       // Create an update message to add an entry.
-      AddMsg addMsg = new AddMsg(gen.newChangeNumber(),
+      AddMsg addMsg = new AddMsg(gen.newCSN(),
         entry.getDN().toString(),
         ENTRY_UUID,
         null,
@@ -1611,7 +1609,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
       DN newEntryDn = DN.decode(newEntryName);
 
       // Create modify dn message to modify the entry.
-      ModifyDNMsg modDnMsg = new ModifyDNMsg(entryName, gen.newChangeNumber(),
+      ModifyDNMsg modDnMsg = new ModifyDNMsg(entryName, gen.newCSN(),
         ENTRY_UUID, ENTRY_UUID3, false, TEST_ROOT_DN_STRING,
         "displayName=ValueToBeKept", null);
 
@@ -1666,7 +1664,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
       Entry entry = TestCaseUtils.entryFromLdifString(entryLdif);
 
       // Create an update message to add an entry.
-      AddMsg addMsg = new AddMsg(gen.newChangeNumber(),
+      AddMsg addMsg = new AddMsg(gen.newCSN(),
         entry.getDN().toString(),
         ENTRY_UUID,
         null,
@@ -1692,7 +1690,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
       DN newEntryDn = DN.decode(newEntryName);
 
       // Create modify dn message to modify the entry.
-      ModifyDNMsg modDnMsg = new ModifyDNMsg(entryName, gen.newChangeNumber(),
+      ModifyDNMsg modDnMsg = new ModifyDNMsg(entryName, gen.newCSN(),
         ENTRY_UUID, ENTRY_UUID3, false, TEST_ROOT_DN_STRING,
         "displayName=ValueToBeKept", null);
 

@@ -27,14 +27,6 @@
  */
 package org.opends.server.workflowelement.externalchangelog;
 
-import static org.opends.messages.CoreMessages.*;
-import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.util.LDIFWriter.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
-
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -47,7 +39,7 @@ import org.opends.server.config.ConfigConstants;
 import org.opends.server.controls.*;
 import org.opends.server.core.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.replication.common.ChangeNumber;
+import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.ExternalChangeLogSession;
 import org.opends.server.replication.common.MultiDomainServerState;
 import org.opends.server.replication.plugin.MultimasterReplication;
@@ -59,6 +51,14 @@ import org.opends.server.types.operation.PreOperationSearchOperation;
 import org.opends.server.types.operation.SearchEntrySearchOperation;
 import org.opends.server.types.operation.SearchReferenceSearchOperation;
 import org.opends.server.util.ServerConstants;
+
+import static org.opends.messages.CoreMessages.*;
+import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.util.LDIFWriter.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class defines an operation used to search for entries in a local backend
@@ -791,7 +791,7 @@ public class ECLSearchOperation
 
       clEntry = createChangelogEntry(eclmsg.getBaseDN(), eclmsg
           .getCookie().toString(), DN.decode(addMsg.getDn()),
-          addMsg.getChangeNumber(), ldifChanges, // entry as created (in LDIF
+          addMsg.getCSN(), ldifChanges, // entry as created (in LDIF
                                                  // format)
           addMsg.getEntryUUID(),
           eclAttributes, // entry attributes
@@ -858,7 +858,7 @@ public class ECLSearchOperation
 
       clEntry = createChangelogEntry(eclmsg.getBaseDN(), eclmsg
           .getCookie().toString(), DN.decode(modifyMsg.getDn()),
-          modifyMsg.getChangeNumber(), ldifChanges,
+          modifyMsg.getCSN(), ldifChanges,
           modifyMsg.getEntryUUID(),
           modifyMsg.getEclIncludes(), // entry attributes
           eclmsg.getDraftChangeNumber(), changeType,
@@ -889,7 +889,7 @@ public class ECLSearchOperation
 
       clEntry = createChangelogEntry(eclmsg.getBaseDN(), eclmsg
           .getCookie().toString(), DN.decode(delMsg.getDn()),
-          delMsg.getChangeNumber(),
+          delMsg.getCSN(),
           null, // no changes
           delMsg.getEntryUUID(),
           delMsg.getEclIncludes(), // entry attributes
@@ -988,7 +988,7 @@ public class ECLSearchOperation
    * @param baseDN          The provided baseDN value.
    * @param cookie          The provided cookie value.
    * @param targetDN        The provided targetDN.
-   * @param changeNumber    The provided replication changeNumber.
+   * @param csn    The provided replication CSN.
    * @param clearLDIFchanges     The provided LDIF changes for ADD and MODIFY
    * @param targetUUID      The provided targetUUID.
    * @param includedAttributes The provided attributes to include
@@ -1003,7 +1003,7 @@ public class ECLSearchOperation
       String baseDN,
       String cookie,
       DN targetDN,
-      ChangeNumber changeNumber,
+      CSN csn,
       String clearLDIFchanges,
       String targetUUID,
       List<RawAttribute> includedAttributes,
@@ -1016,7 +1016,7 @@ public class ECLSearchOperation
     if (draftChangenumber == 0)
     {
       // Draft uncompat mode
-      dnString = "replicationCSN=" + changeNumber + "," + baseDN + ","
+      dnString = "replicationCSN=" + csn + "," + baseDN + ","
           + ServerConstants.DN_EXTERNAL_CHANGELOG_ROOT;
     }
     else
@@ -1056,7 +1056,7 @@ public class ECLSearchOperation
 
     SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT_GMT_TIME);
     dateFormat.setTimeZone(TimeZone.getTimeZone("UTC")); // ??
-    String format = dateFormat.format(new Date(changeNumber.getTime()));
+    String format = dateFormat.format(new Date(csn.getTime()));
     addAttributeByType("changetime", "changeTime", format, uAttrs,
         operationalAttrs);
 
@@ -1068,11 +1068,11 @@ public class ECLSearchOperation
 
     // NON REQUESTED attributes
 
-    addAttributeByType("replicationcsn", "replicationCSN", changeNumber
+    addAttributeByType("replicationcsn", "replicationCSN", csn
         .toString(), uAttrs, operationalAttrs);
 
     addAttributeByType("replicaidentifier", "replicaIdentifier", Integer
-        .toString(changeNumber.getServerId()), uAttrs, operationalAttrs);
+        .toString(csn.getServerId()), uAttrs, operationalAttrs);
 
     if (clearLDIFchanges != null)
     {
@@ -1205,7 +1205,7 @@ public class ECLSearchOperation
     StartECLSessionMsg msg = evaluateSearchParameters2(sf);
     startCLmsg.setFirstDraftChangeNumber(msg.getFirstDraftChangeNumber());
     startCLmsg.setLastDraftChangeNumber(msg.getLastDraftChangeNumber());
-    startCLmsg.setChangeNumber(msg.getChangeNumber());
+    startCLmsg.setCSN(msg.getCSN());
   }
 
   private static StartECLSessionMsg evaluateSearchParameters2(SearchFilter sf)
@@ -1214,7 +1214,7 @@ public class ECLSearchOperation
     StartECLSessionMsg startCLmsg = new StartECLSessionMsg();
     startCLmsg.setFirstDraftChangeNumber(-1);
     startCLmsg.setLastDraftChangeNumber(-1);
-    startCLmsg.setChangeNumber(new ChangeNumber(0,0,(short)0));
+    startCLmsg.setCSN(new CSN(0, 0, 0));
 
     // If there's no filter, just return
     if (sf == null)
@@ -1239,9 +1239,8 @@ public class ECLSearchOperation
     }
     else if (matches(sf, FilterType.EQUALITY, "replicationcsn"))
     {
-      // == exact changenumber
-      ChangeNumber cn = new ChangeNumber(sf.getAssertionValue().toString());
-      startCLmsg.setChangeNumber(cn);
+      // == exact CSN
+      startCLmsg.setCSN(new CSN(sf.getAssertionValue().toString()));
       return startCLmsg;
     }
     else if (matches(sf, FilterType.EQUALITY, "changenumber"))

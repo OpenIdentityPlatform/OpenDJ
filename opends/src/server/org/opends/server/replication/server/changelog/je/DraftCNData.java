@@ -30,7 +30,7 @@ package org.opends.server.replication.server.changelog.je;
 import java.io.UnsupportedEncodingException;
 
 import org.opends.messages.Message;
-import org.opends.server.replication.common.ChangeNumber;
+import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 
 import com.sleepycat.je.DatabaseEntry;
@@ -48,19 +48,17 @@ public class DraftCNData extends DatabaseEntry
 
   private String value;
   private String baseDN;
-  private ChangeNumber changeNumber;
+  private CSN csn;
 
   /**
    * Creates a record to be stored in the DraftCNDB.
    * @param value The value (cookie).
    * @param baseDN The baseDN (domain DN).
-   * @param changeNumber The replication change number.
+   * @param csn The replication CSN.
    */
-  public DraftCNData(String value, String baseDN, ChangeNumber changeNumber)
+  public DraftCNData(String value, String baseDN, CSN csn)
   {
-    String record = value
-                   + FIELD_SEPARATOR + baseDN
-                   + FIELD_SEPARATOR + changeNumber;
+    String record = value + FIELD_SEPARATOR + baseDN + FIELD_SEPARATOR + csn;
     setData(getBytes(record));
   }
 
@@ -88,7 +86,7 @@ public class DraftCNData extends DatabaseEntry
       String[] str = stringData.split(FIELD_SEPARATOR, 3);
       value = str[0];
       baseDN = str[1];
-      changeNumber = new ChangeNumber(str[2]);
+      csn = new CSN(str[2]);
     }
     catch (UnsupportedEncodingException e)
     {
@@ -125,16 +123,17 @@ public class DraftCNData extends DatabaseEntry
   }
 
   /**
-   * Getter for the replication change number.
+   * Getter for the replication CSN.
    *
-   * @return the replication change number.
-   * @throws ChangelogException when a problem occurs.
+   * @return the replication CSN.
+   * @throws ChangelogException
+   *           when a problem occurs.
    */
-  public ChangeNumber getChangeNumber() throws ChangelogException
+  public CSN getCSN() throws ChangelogException
   {
     if (value == null)
       decodeData(getData());
-    return this.changeNumber;
+    return this.csn;
   }
 
   /**
@@ -157,6 +156,6 @@ public class DraftCNData extends DatabaseEntry
   {
     buffer.append("DraftCNData : [value=").append(value);
     buffer.append("] [serviceID=").append(baseDN);
-    buffer.append("] [changeNumber=").append(changeNumber).append("]");
+    buffer.append("] [csn=").append(csn).append("]");
   }
 }

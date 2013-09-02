@@ -4404,14 +4404,14 @@ public final class ConfigConstants
    * The name of the attribute in a purge conflicts historical task definition
    * that specifies the maximum duration of the task.
    */
-  public static final String ATTR_TASK_CONFLICTS_HIST_PURGE_FIRST_CN =
+  public static final String ATTR_TASK_CONFLICTS_HIST_PURGE_FIRST_CSN =
      NAME_PREFIX_TASK + "purge-conflicts-historical-first-purged-changenumber";
 
   /**
    * The name of the attribute in a purge conflicts historical task definition
    * that specifies the maximum duration of the task.
    */
-  public static final String ATTR_TASK_CONFLICTS_HIST_PURGE_LAST_CN =
+  public static final String ATTR_TASK_CONFLICTS_HIST_PURGE_LAST_CSN =
        NAME_PREFIX_TASK + "purge-conflicts-historical-last-purged-changenumber";
 
   /**

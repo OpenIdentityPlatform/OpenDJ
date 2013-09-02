@@ -27,9 +27,6 @@
  */
 package org.opends.server.replication.plugin;
 
-import static org.opends.server.TestCaseUtils.*;
-import static org.testng.Assert.*;
-
 import java.util.ArrayList;
 import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -40,13 +37,16 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.replication.ReplicationTestCase;
-import org.opends.server.replication.common.ChangeNumber;
-import org.opends.server.replication.common.ChangeNumberGenerator;
+import org.opends.server.replication.common.CSN;
+import org.opends.server.replication.common.CSNGenerator;
 import org.opends.server.replication.protocol.AddMsg;
 import org.opends.server.replication.protocol.DeleteMsg;
 import org.opends.server.replication.protocol.ModifyDNMsg;
 import org.opends.server.types.*;
 import org.testng.annotations.Test;
+
+import static org.opends.server.TestCaseUtils.*;
+import static org.testng.Assert.*;
 
 /**
  * Test the naming conflict resolution code.
@@ -87,10 +87,10 @@ public class NamingConflictTest extends ReplicationTestCase
     try
     {
       /*
-       * Create a Change number generator to generate new ChangeNumbers
+       * Create a CSN generator to generate new CSNs
        * when we need to send operations messages to the replicationServer.
        */
-      ChangeNumberGenerator gen = new ChangeNumberGenerator(201, 0);
+      CSNGenerator gen = new CSNGenerator(201, 0);
 
       String parentUUID = getEntryUUID(DN.decode(TEST_ROOT_DN_STRING));
 
@@ -111,12 +111,12 @@ public class NamingConflictTest extends ReplicationTestCase
       TestCaseUtils.addEntry(entry);
       String entryUUID = getEntryUUID(entry.getDN());
 
-      // generate two consecutive ChangeNumber that will be used in backward order
-      ChangeNumber cn1 = gen.newChangeNumber();
-      ChangeNumber cn2 = gen.newChangeNumber();
+      // generate two consecutive CSN that will be used in backward order
+      CSN csn1 = gen.newCSN();
+      CSN csn2 = gen.newCSN();
 
       ModifyDNMsg  modDnMsg = new ModifyDNMsg(
-          entry.getDN().toNormalizedString(), cn2,
+          entry.getDN().toNormalizedString(), csn2,
           entryUUID, parentUUID, false,
           TEST_ROOT_DN_STRING,
       "uid=simultaneous2");
@@ -130,7 +130,7 @@ public class NamingConflictTest extends ReplicationTestCase
       // This MODIFY DN uses an older DN and should therefore be cancelled
       // at replay time.
       modDnMsg = new ModifyDNMsg(
-          entry.getDN().toNormalizedString(), cn1,
+          entry.getDN().toNormalizedString(), csn1,
           entryUUID, parentUUID, false,
           TEST_ROOT_DN_STRING,
       "uid=simulatneouswrong");
@@ -176,10 +176,10 @@ public class NamingConflictTest extends ReplicationTestCase
     try
     {
       /*
-       * Create a Change number generator to generate new ChangeNumbers
+       * Create a CSN generator to generate new CSNs
        * when we need to send operations messages to the replicationServer.
        */
-      ChangeNumberGenerator gen = new ChangeNumberGenerator(201, 0);
+      CSNGenerator gen = new CSNGenerator(201, 0);
 
       String entryldif =
         "dn: cn=conflictCleaningDelete, "+ TEST_ROOT_DN_STRING + "\n"
@@ -200,12 +200,11 @@ public class NamingConflictTest extends ReplicationTestCase
       TestCaseUtils.addEntry(entry);
       String parentUUID = getEntryUUID(DN.decode(TEST_ROOT_DN_STRING));
 
-      ChangeNumber cn1 = gen.newChangeNumber();
+      CSN csn1 = gen.newCSN();
 
       // Now try to add the same entry with same DN but a different
       // unique ID though the replication
-      AddMsg  addMsg =
-        new AddMsg(cn1,
+      AddMsg addMsg = new AddMsg(csn1,
             entry.getDN().toNormalizedString(),
             "c9cb8c3c-615a-4122-865d-50323aaaed48", parentUUID,
             entry.getObjectClasses(), entry.getUserAttributes(),
@@ -261,10 +260,10 @@ public class NamingConflictTest extends ReplicationTestCase
     try
     {
       /*
-       * Create a Change number generator to generate new ChangeNumbers
-       * when we need to send operations messages to the replicationServer.
+       * Create a CSN generator to generate new CSNs when we need to send
+       * operations messages to the replicationServer.
        */
-      ChangeNumberGenerator gen = new ChangeNumberGenerator(201, 0);
+      CSNGenerator gen = new CSNGenerator(201, 0);
 
       String entryldif =
         "dn: cn=conflictCleaningDelete, "+ TEST_ROOT_DN_STRING + "\n"
@@ -285,12 +284,11 @@ public class NamingConflictTest extends ReplicationTestCase
       TestCaseUtils.addEntry(entry);
       String parentUUID = getEntryUUID(DN.decode(TEST_ROOT_DN_STRING));
 
-      ChangeNumber cn1 = gen.newChangeNumber();
+      CSN csn1 = gen.newCSN();
 
       // Now try to add the same entry with same DN but a different
       // unique ID though the replication
-      AddMsg  addMsg =
-        new AddMsg(cn1,
+      AddMsg addMsg = new AddMsg(csn1,
             entry.getDN().toNormalizedString(),
             "c9cb8c3c-615a-4122-865d-50323aaaed48", parentUUID,
             entry.getObjectClasses(), entry.getUserAttributes(),
@@ -331,20 +329,20 @@ public class NamingConflictTest extends ReplicationTestCase
    *       ADD uid=xx,ou=parent,...          [SUBTREE] DEL ou=parent, ...
    *
    * 1/ removeParentConflict1 (on S1)
-   *    - t1(cn1) ADD uid=xx,ou=parent,...
-   *         - t2(cn2) replay SUBTREE DEL ou=parent, ....
+   *    - t1(csn1) ADD uid=xx,ou=parent,...
+   *         - t2(csn2) replay SUBTREE DEL ou=parent, ....
    *    => No conflict : expect the parent entry & subtree to be deleted
    *
    * 2/ removeParentConflict2 (on S1)
-   *    - t1(cn1) ADD uid=xx,ou=parent,...
-   *             - replay t2(cn2) DEL ou=parent, ....
+   *    - t1(csn1) ADD uid=xx,ou=parent,...
+   *             - replay t2(csn2) DEL ou=parent, ....
    *    => Conflict and no automatic resolution: expect
    *         - the child entry to be renamed under root entry
    *         - the parent entry to be deleted
    *
    * 3/ removeParentConflict3 (on S2)
-   *                         - t2(cn2) DEL or SUBTREE DEL ou=parent, ....
-   *                         - t1(cn1) replay ADD uid=xx,ou=parent,...
+   *                         - t2(csn2) DEL or SUBTREE DEL ou=parent, ....
+   *                         - t1(csn1) replay ADD uid=xx,ou=parent,...
    *                        => Conflict and no automatic resolution: expect
    *                           - the child entry to be renamed under root entry
    *
@@ -367,10 +365,10 @@ public class NamingConflictTest extends ReplicationTestCase
     try
     {
       /*
-       * Create a Change number generator to generate new ChangeNumbers
+       * Create a CSN generator to generate new CSNs
        * when we need to send operations messages to the replicationServer.
        */
-      ChangeNumberGenerator gen = new ChangeNumberGenerator(201, 0);
+      CSNGenerator gen = new CSNGenerator(201, 0);
 
       Entry parentEntry = TestCaseUtils.entryFromLdifString(
           "dn: ou=rpConflict, "+ TEST_ROOT_DN_STRING + "\n"
@@ -397,11 +395,11 @@ public class NamingConflictTest extends ReplicationTestCase
 
       String parentUUID = getEntryUUID(parentEntry.getDN());
 
-      ChangeNumber cn2 = gen.newChangeNumber();
+      CSN csn2 = gen.newCSN();
 
       DeleteMsg  delMsg = new DeleteMsg(
           parentEntry.getDN().toNormalizedString(),
-          cn2,
+          csn2,
           parentUUID);
       delMsg.setSubtreeDelete(true);
 
@@ -440,10 +438,10 @@ public class NamingConflictTest extends ReplicationTestCase
     try
     {
       /*
-       * Create a Change number generator to generate new ChangeNumbers
+       * Create a CSN generator to generate new CSNs
        * when we need to send operations messages to the replicationServer.
        */
-      ChangeNumberGenerator gen = new ChangeNumberGenerator(201, 0);
+      CSNGenerator gen = new CSNGenerator(201, 0);
 
       Entry parentEntry = TestCaseUtils.entryFromLdifString(
           "dn: ou=rpConflict, "+ TEST_ROOT_DN_STRING + "\n"
@@ -476,11 +474,11 @@ public class NamingConflictTest extends ReplicationTestCase
       String parentUUID = getEntryUUID(parentEntry.getDN());
       String childUUID = getEntryUUID(childEntry.getDN());
 
-      ChangeNumber cn2 = gen.newChangeNumber();
+      CSN csn2 = gen.newCSN();
 
       DeleteMsg  delMsg = new DeleteMsg(
           parentEntry.getDN().toNormalizedString(),
-          cn2,
+          csn2,
           parentUUID);
       // NOT SUBTREE
 
@@ -524,10 +522,10 @@ public class NamingConflictTest extends ReplicationTestCase
     try
     {
       /*
-       * Create a Change number generator to generate new ChangeNumbers
+       * Create a CSN generator to generate new CSNs
        * when we need to send operations messages to the replicationServer.
        */
-      ChangeNumberGenerator gen = new ChangeNumberGenerator(201, 0);
+      CSNGenerator gen = new CSNGenerator(201, 0);
 
       Entry parentEntry = TestCaseUtils.entryFromLdifString(
           "dn: ou=rpConflict, "+ TEST_ROOT_DN_STRING + "\n"
@@ -554,12 +552,12 @@ public class NamingConflictTest extends ReplicationTestCase
       String parentUUID = getEntryUUID(parentEntry.getDN());
       TestCaseUtils.deleteEntry(parentEntry);
 
-      ChangeNumber cn1 = gen.newChangeNumber();
+      CSN csn1 = gen.newCSN();
 
       // Create and publish an update message to add the child entry.
       String childUUID = "44444444-4444-4444-4444-444444444444";
       AddMsg addMsg = new AddMsg(
-          cn1,
+          csn1,
           childEntry.getDN().toString(),
           childUUID,
           parentUUID,

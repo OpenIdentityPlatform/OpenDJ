@@ -212,7 +212,6 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
    */
   private Entry createNotAssuredDomain() throws Exception
   {
-
     // Create a not assured config entry ldif
     String configEntryLdif = "dn: cn=" + testName + ", cn=domains, " +
       SYNCHRO_PLUGIN_DN + "\n" + "objectClass: top\n" +
@@ -252,36 +251,40 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
     // Parameters given at constructor time
     private final int port;
     private int serverId = -1;
-    boolean isAssured = false; // Default value for config
-    AssuredMode assuredMode = AssuredMode.SAFE_DATA_MODE; // Default value for config
-    byte safeDataLevel = (byte) 1; // Default value for config
+    private boolean isAssured = false;
+    private AssuredMode assuredMode = AssuredMode.SAFE_DATA_MODE;
+    private byte safeDataLevel = 1;
 
     // Predefined config parameters
     private final int degradedStatusThreshold = 5000;
 
     // Parameters set with received server start message
-    private String baseDn = null;
+    private String baseDn;
     private long generationId = -1L;
-    private ServerState serverState = null;
+    private ServerState serverState;
     private int windowSize = -1;
-    private byte groupId = (byte) -1;
+    private byte groupId = -1;
     private boolean sslEncryption = false;
-    // The scenario this RS is expecting
+    /** The scenario this RS is expecting */
     private int scenario = -1;
 
-    // parameters at handshake are ok
+    /** parameters at handshake are ok */
     private boolean handshakeOk = false;
-    // signal that the current scenario the RS must execute reached the point
-    // where the main code can perform test assertion
+    /** 
+     * signal that the current scenario the RS must execute reached the point
+     * where the main code can perform test assertion.
+     */
     private boolean scenarioExecuted = false;
 
-    private ChangeNumberGenerator gen = null;
+    private CSNGenerator gen;
     private String testcase;
 
-    // Constructor for RS receiving updates in SR assured mode or not assured
-    // The assured boolean means:
-    // - true: SR mode
-    // - false: not assured
+    /**
+     * Constructor for RS receiving updates in SR assured mode or not assured
+     * The assured boolean means:
+     * - true: SR mode
+     * - false: not assured
+     */
     public FakeReplicationServer(byte groupId, int port, int serverId, boolean assured,
         String testcase)
     {
@@ -322,8 +325,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
      */
     public void start(int scenario)
     {
-
-      gen = new ChangeNumberGenerator(3, 0L);
+      gen = new CSNGenerator(3, 0L);
 
       // Store expected test case
       this.scenario = scenario;
@@ -338,7 +340,6 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
     @Override
     public void run()
     {
-
       // Create server socket
       try
       {
@@ -424,7 +425,6 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
      */
     private boolean performHandshake()
     {
-
       try
       {
         // Receive server start
@@ -523,7 +523,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
     private void handleClientConnection()
     {
       debugInfo("handleClientConnection " + testcase + " " + scenario);
-      // Handle DS connexion
+      // Handle DS connection
       if (!performHandshake())
       {
         session.close();
@@ -580,9 +580,8 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
     {
       try
       {
-        // Create add message
         AddMsg addMsg =
-          new AddMsg(gen.newChangeNumber(), entry.getDN().toString(), UUID.randomUUID().toString(),
+          new AddMsg(gen.newCSN(), entry.getDN().toString(), UUID.randomUUID().toString(),
                      parentUid,
                      entry.getObjectClassAttribute(),
                      entry.getAttributes(), null );
@@ -656,7 +655,6 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
      */
     private void executeNoTimeoutScenario()
     {
-
       try
       {
         UpdateMsg updateMsg = (UpdateMsg) session.receive();
@@ -666,7 +664,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
         sleep(NO_TIMEOUT_RS_SLEEP_TIME);
 
         // Send the ack without errors
-        AckMsg ackMsg = new AckMsg(updateMsg.getChangeNumber());
+        AckMsg ackMsg = new AckMsg(updateMsg.getCSN());
         session.publish(ackMsg);
 
         scenarioExecuted = true;
@@ -685,7 +683,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
     {
       assertEquals(updateMsg.isAssured(), isAssured,
           "msg=" + ((updateMsg instanceof AddMsg)?
-              ((AddMsg)updateMsg).getDn():updateMsg.getChangeNumber()));
+              ((AddMsg)updateMsg).getDn():updateMsg.getCSN()));
       if (isAssured)
       {
         assertEquals(updateMsg.getAssuredMode(), assuredMode);
@@ -699,7 +697,6 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
      */
     private void executeSafeReadManyErrorsScenario()
     {
-
       try
       {
         // Read first update
@@ -715,7 +712,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
         List<Integer> serversInError = new ArrayList<Integer>();
         serversInError.add(10);
         serversInError.add(20);
-        AckMsg ackMsg = new AckMsg(updateMsg.getChangeNumber(), false, false, true, serversInError);
+        AckMsg ackMsg = new AckMsg(updateMsg.getCSN(), false, false, true, serversInError);
         session.publish(ackMsg);
 
         // Read second update
@@ -734,7 +731,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
         serversInError.add(10);
         serversInError.add(20);
         serversInError.add(30);
-        ackMsg = new AckMsg(updateMsg.getChangeNumber(), true, true, true, serversInError);
+        ackMsg = new AckMsg(updateMsg.getCSN(), true, true, true, serversInError);
         session.publish(ackMsg);
 
         // Read third update
@@ -757,7 +754,6 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
      */
     private void executeSafeDataManyErrorsScenario()
     {
-
       try
       {
         // Read first update
@@ -772,7 +768,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
         // - server 10 error
         List<Integer> serversInError = new ArrayList<Integer>();
         serversInError.add(10);
-        AckMsg ackMsg = new AckMsg(updateMsg.getChangeNumber(), true, false, false, serversInError);
+        AckMsg ackMsg = new AckMsg(updateMsg.getCSN(), true, false, false, serversInError);
         session.publish(ackMsg);
 
         // Read second update
@@ -788,7 +784,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
         serversInError = new ArrayList<Integer>();
         serversInError.add(10);
         serversInError.add(20);
-        ackMsg = new AckMsg(updateMsg.getChangeNumber(), true, false, false, serversInError);
+        ackMsg = new AckMsg(updateMsg.getCSN(), true, false, false, serversInError);
         session.publish(ackMsg);
 
         // Read third update
@@ -1790,9 +1786,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
   protected Map<Integer,Integer> getErrorsByServers(DN baseDn,
     AssuredMode assuredMode) throws Exception
   {
-    /*
-     * Find monitoring entry for requested base DN
-     */
+    // Find monitoring entry for requested base DN
     String monitorFilter =
          "(&(cn=Directory server*)(domain-name=" + baseDn + "))";
 

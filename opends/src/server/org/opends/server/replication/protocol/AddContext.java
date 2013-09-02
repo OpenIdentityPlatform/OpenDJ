@@ -23,15 +23,14 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2013 ForgeRock AS
  */
 package org.opends.server.replication.protocol;
 
-import org.opends.server.replication.common.ChangeNumber;
+import org.opends.server.replication.common.CSN;
 
 /**
- * This class describes the context that is attached to
- * Add Operation.
+ * This class describes the context that is attached to Add Operation.
  */
 public class AddContext extends OperationContext
 {
@@ -43,14 +42,13 @@ public class AddContext extends OperationContext
   /**
    * Creates a new AddContext with the provided information.
    *
-   * @param changeNumber The change number of the add operation.
+   * @param csn The CSN of the add operation.
    * @param entryUUID the Unique Id of the added entry.
    * @param parentEntryUUID The unique Id of the parent of the added entry.
    */
-  public AddContext(ChangeNumber changeNumber, String entryUUID,
-      String parentEntryUUID)
+  public AddContext(CSN csn, String entryUUID, String parentEntryUUID)
   {
-    super(changeNumber, entryUUID);
+    super(csn, entryUUID);
     this.parentEntryUUID = parentEntryUUID;
   }
 

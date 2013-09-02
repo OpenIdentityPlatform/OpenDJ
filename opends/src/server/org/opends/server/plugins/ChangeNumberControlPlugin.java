@@ -24,6 +24,7 @@
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
  *      Portions Copyright 2011-2012 ForgeRock AS
+ *      Portions Copyright 2013 ForgeRock AS
  */
 package org.opends.server.plugins;
 
@@ -43,7 +44,7 @@ import org.opends.server.api.plugin.PluginType;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.config.ConfigException;
 import org.opends.server.protocols.asn1.ASN1Writer;
-import org.opends.server.replication.common.ChangeNumber;
+import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.protocol.OperationContext;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.Control;
@@ -53,8 +54,10 @@ import org.opends.server.types.operation.PostOperationDeleteOperation;
 import org.opends.server.types.operation.PostOperationModifyDNOperation;
 import org.opends.server.types.operation.PostOperationModifyOperation;
 import org.opends.server.types.operation.PostOperationOperation;
+
 import static org.opends.messages.PluginMessages.*;
 import static org.opends.server.util.ServerConstants.*;
+
 /**
  * This class implements a Directory Server plugin that will add the
  * replication CSN to a response whenever the CSN control is received.
@@ -64,27 +67,25 @@ public final class ChangeNumberControlPlugin
        implements ConfigurationChangeListener<ChangeNumberControlPluginCfg>
 {
 
-  // The current configuration for this plugin.
+  /** The current configuration for this plugin. */
   private ChangeNumberControlPluginCfg currentConfig;
 
-  /**
-   * The control used by this plugin.
-   */
+  /** The control used by this plugin. */
   public static class ChangeNumberControl extends Control
   {
-    private ChangeNumber cn;
+    private CSN csn;
 
     /**
      * Constructs a new change number control.
      *
-     * @param  isCritical Indicates whether support for this control should be
-     *                    considered a critical part of the server processing.
-     * @param cn          The change number.
+     * @param isCritical Indicates whether support for this control should be
+     *                   considered a critical part of the server processing.
+     * @param csn        The CSN.
      */
-    public ChangeNumberControl(boolean isCritical, ChangeNumber cn)
+    public ChangeNumberControl(boolean isCritical, CSN csn)
     {
       super(OID_CSN_CONTROL, isCritical);
-      this.cn = cn;
+      this.csn = csn;
     }
 
     /**
@@ -95,17 +96,17 @@ public final class ChangeNumberControlPlugin
      * @throws IOException If a problem occurs while writing to the stream.
      */
     protected void writeValue(ASN1Writer writer) throws IOException {
-      writer.writeOctetString(cn.toString());
+      writer.writeOctetString(csn.toString());
     }
 
     /**
-     * Retrieves the change number.
+     * Retrieves the CSN.
      *
-     * @return The change number.
+     * @return The CSN.
      */
-    public ChangeNumber getChangeNumber()
+    public CSN getCSN()
     {
-      return cn;
+      return csn;
     }
   }
 
@@ -303,8 +304,8 @@ public final class ChangeNumberControlPlugin
   }
 
   /**
-   * Retrieves the Change number from the synchronization context
-   * and sets the control response in the operation.
+   * Retrieves the CSN from the synchronization context and sets the control
+   * response in the operation.
    *
    * @param operation the operation
    */
@@ -316,7 +317,7 @@ public final class ChangeNumberControlPlugin
           OperationContext ctx = (OperationContext)
             operation.getAttachment(OperationContext.SYNCHROCONTEXT);
           if (ctx != null) {
-            ChangeNumber cn = ctx.getChangeNumber();
+            CSN cn = ctx.getCSN();
             if (cn != null) {
               Control responseControl =
                   new ChangeNumberControl(c.isCritical(), cn);

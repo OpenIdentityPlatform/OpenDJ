@@ -31,13 +31,8 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map;
 
-import org.opends.server.replication.common.ChangeNumber;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.Entry;
-import org.opends.server.types.Modification;
-import org.opends.server.types.ModificationType;
+import org.opends.server.replication.common.CSN;
+import org.opends.server.types.*;
 
 /**
  * This class is used to store historical information for single valued
@@ -50,9 +45,9 @@ import org.opends.server.types.ModificationType;
 public class AttrHistoricalSingle extends AttrHistorical
 {
   /** Last time when the attribute was deleted. */
-  private ChangeNumber deleteTime = null;
+  private CSN deleteTime = null;
   /** Last time when a value was added. */
-  private ChangeNumber addTime = null;
+  private CSN addTime = null;
   /** Last added value. */
   private AttributeValue value = null;
 
@@ -66,7 +61,7 @@ public class AttrHistoricalSingle extends AttrHistorical
    * {@inheritDoc}
    */
   @Override
-  public ChangeNumber getDeleteTime()
+  public CSN getDeleteTime()
   {
     return this.deleteTime;
   }
@@ -92,8 +87,7 @@ public class AttrHistoricalSingle extends AttrHistorical
    * {@inheritDoc}
    */
   @Override
-  public void processLocalOrNonConflictModification(ChangeNumber changeNumber,
-      Modification mod)
+  public void processLocalOrNonConflictModification(CSN csn, Modification mod)
   {
     AttributeValue newValue = null;
     Attribute modAttr = mod.getAttribute();
@@ -106,13 +100,13 @@ public class AttrHistoricalSingle extends AttrHistorical
     {
     case DELETE:
       this.addTime = null;
-      this.deleteTime = changeNumber;
+      this.deleteTime = csn;
       this.value = newValue;
       lastMod = HistAttrModificationKey.DEL;
       break;
 
     case ADD:
-      this.addTime = changeNumber;
+      this.addTime = csn;
       this.value = newValue;
       lastMod = HistAttrModificationKey.ADD;
       break;
@@ -122,20 +116,20 @@ public class AttrHistoricalSingle extends AttrHistorical
       {
         // REPLACE with null value is actually a DELETE
         this.addTime = null;
-        this.deleteTime = changeNumber;
+        this.deleteTime = csn;
         this.value = null;
         lastMod = HistAttrModificationKey.DEL;
       }
       else
       {
-        this.deleteTime = addTime = changeNumber;
+        this.deleteTime = addTime = csn;
         lastMod = HistAttrModificationKey.REPL;
       }
       this.value = newValue;
       break;
 
     case INCREMENT:
-      /* FIXME : we should update ChangeNumber */
+      /* FIXME : we should update CSN */
       break;
     }
   }
@@ -144,8 +138,8 @@ public class AttrHistoricalSingle extends AttrHistorical
    * {@inheritDoc}
    */
   @Override
-  public boolean replayOperation(Iterator<Modification> modsIterator,
-      ChangeNumber changeNumber, Entry modifiedEntry, Modification mod)
+  public boolean replayOperation(Iterator<Modification> modsIterator, CSN csn,
+      Entry modifiedEntry, Modification mod)
   {
     boolean conflict = false;
 
@@ -159,13 +153,13 @@ public class AttrHistoricalSingle extends AttrHistorical
     switch (mod.getModificationType())
     {
     case DELETE:
-      if (changeNumber.newer(addTime))
+      if (csn.newer(addTime))
       {
         if (newValue == null || newValue.equals(value) || value == null)
         {
-          if (changeNumber.newer(deleteTime))
+          if (csn.newer(deleteTime))
           {
-            deleteTime = changeNumber;
+            deleteTime = csn;
           }
           AttributeType type = modAttr.getAttributeType();
           if (!modifiedEntry.hasAttribute(type))
@@ -192,14 +186,14 @@ public class AttrHistoricalSingle extends AttrHistorical
           modsIterator.remove();
         }
       }
-      else if (changeNumber.equals(addTime))
+      else if (csn.equals(addTime))
       {
         if ((lastMod == HistAttrModificationKey.ADD)
             || (lastMod == HistAttrModificationKey.REPL))
         {
-          if (changeNumber.newer(deleteTime))
+          if (csn.newer(deleteTime))
           {
-            deleteTime = changeNumber;
+            deleteTime = csn;
           }
           addTime = null;
           lastMod = HistAttrModificationKey.DEL;
@@ -219,29 +213,28 @@ public class AttrHistoricalSingle extends AttrHistorical
       break;
 
     case ADD:
-      if (changeNumber.newerOrEquals(deleteTime) && changeNumber.older(addTime))
+      if (csn.newerOrEquals(deleteTime) && csn.older(addTime))
       {
         conflict = true;
         mod.setModificationType(ModificationType.REPLACE);
-        addTime = changeNumber;
+        addTime = csn;
         value = newValue;
         lastMod = HistAttrModificationKey.REPL;
       }
       else
       {
-        if (changeNumber.newerOrEquals(deleteTime)
+        if (csn.newerOrEquals(deleteTime)
             && ((addTime == null ) || addTime.older(deleteTime)))
         {
           // no conflict : don't do anything beside setting the addTime
-          addTime = changeNumber;
+          addTime = csn;
           value = newValue;
           lastMod = HistAttrModificationKey.ADD;
         }
         else
         {
-          // Case where changeNumber = addTime = deleteTime
-          if (changeNumber.equals(deleteTime)
-              && changeNumber.equals(addTime)
+          // Case where CSN = addTime = deleteTime
+          if (csn.equals(deleteTime) && csn.equals(addTime)
               && (lastMod == HistAttrModificationKey.DEL))
           {
             // No conflict, record the new value.
@@ -259,7 +252,7 @@ public class AttrHistoricalSingle extends AttrHistorical
       break;
 
     case REPLACE:
-      if (changeNumber.older(deleteTime))
+      if (csn.older(deleteTime))
       {
         conflict = true;
         modsIterator.remove();
@@ -270,21 +263,21 @@ public class AttrHistoricalSingle extends AttrHistorical
         {
           addTime = null;
           value = newValue;
-          deleteTime = changeNumber;
+          deleteTime = csn;
           lastMod = HistAttrModificationKey.DEL;
         }
         else
         {
-          addTime = changeNumber;
+          addTime = csn;
           value = newValue;
-          deleteTime = changeNumber;
+          deleteTime = csn;
           lastMod = HistAttrModificationKey.REPL;
         }
       }
       break;
 
     case INCREMENT:
-      /* FIXME : we should update ChangeNumber */
+      /* FIXME : we should update CSN */
       break;
     }
     return conflict;
@@ -295,29 +288,29 @@ public class AttrHistoricalSingle extends AttrHistorical
    */
   @Override
   public void assign(HistAttrModificationKey histKey,
-      AttributeValue value, ChangeNumber cn)
+      AttributeValue value, CSN csn)
   {
     switch (histKey)
     {
     case ADD:
-      this.addTime = cn;
+      this.addTime = csn;
       this.value = value;
       break;
 
     case DEL:
-      this.deleteTime = cn;
+      this.deleteTime = csn;
       if (value != null)
         this.value = value;
       break;
 
     case REPL:
-      this.addTime = this.deleteTime = cn;
+      this.addTime = this.deleteTime = csn;
       if (value != null)
         this.value = value;
       break;
 
     case DELATTR:
-      this.deleteTime = cn;
+      this.deleteTime = csn;
       break;
     }
   }

@@ -31,12 +31,13 @@ package org.opends.server.replication.server;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.common.AssuredMode;
-import org.opends.server.replication.common.ChangeNumber;
+import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.protocol.AckMsg;
+
+import static org.opends.server.loggers.debug.DebugLogger.*;
 
 /**
  * This class holds every info needed about the expected acks for a received
@@ -51,27 +52,29 @@ public class SafeDataExpectedAcksInfo extends ExpectedAcksInfo
    */
   private static final DebugTracer TRACER = getTracer();
 
-  // Requested level of safe data when the update message was received.
-  private byte safeDataLevel = (byte)-1;
+  /** Requested level of safe data when the update message was received. */
+  private byte safeDataLevel = -1;
 
-  // Number of received acks for the matching update message, up to now
-  // Already set to 1 as the local RS receiving the message from a DS counts.
-  private byte numReceivedAcks = (byte)1;
+  /**
+   * Number of received acks for the matching update message, up to now Already
+   * set to 1 as the local RS receiving the message from a DS counts.
+   */
+  private byte numReceivedAcks = 1;
 
   /**
    * Creates a new SafeDataExpectedAcksInfo.
-   * @param changeNumber The change number of the assured update message
+   * @param csn The CSN of the assured update message
    * @param requesterServerHandler The server that sent the assured update
    * message
    * @param safeDataLevel The Safe Data level requested for the assured
    * update message
    * @param expectedServers The list of servers we want an ack from
    */
-  public SafeDataExpectedAcksInfo(ChangeNumber changeNumber,
+  public SafeDataExpectedAcksInfo(CSN csn,
     ServerHandler requesterServerHandler, byte safeDataLevel,
     List<Integer> expectedServers)
   {
-    super(changeNumber, requesterServerHandler, AssuredMode.SAFE_DATA_MODE,
+    super(csn, requesterServerHandler, AssuredMode.SAFE_DATA_MODE,
       expectedServers);
     this.safeDataLevel = safeDataLevel;
   }
@@ -79,7 +82,8 @@ public class SafeDataExpectedAcksInfo extends ExpectedAcksInfo
   /**
    * {@inheritDoc}
    */
-   public boolean processReceivedAck(ServerHandler ackingServer, AckMsg ackMsg)
+  @Override
+  public boolean processReceivedAck(ServerHandler ackingServer, AckMsg ackMsg)
   {
     /*
      * Security: although a DS should not respond to an update message sent to
@@ -117,9 +121,10 @@ public class SafeDataExpectedAcksInfo extends ExpectedAcksInfo
   /**
    * {@inheritDoc}
    */
+  @Override
   public AckMsg createAck(boolean timeout)
   {
-    AckMsg ack = new AckMsg(changeNumber);
+    AckMsg ack = new AckMsg(csn);
 
     if (timeout)
     {

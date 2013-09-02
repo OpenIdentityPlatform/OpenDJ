@@ -137,7 +137,7 @@ public class ServerWriter extends DirectoryThread
             if (dsStatus == ServerStatus.BAD_GEN_ID_STATUS)
               logError(WARN_IGNORING_UPDATE_TO_DS_BADGENID.get(
                   handler.getReplicationServerId(),
-                  update.getChangeNumber().toString(),
+                  update.getCSN().toString(),
                   handler.getBaseDN(), handler.getServerId(),
                   session.getReadableRemoteAddress(),
                   handler.getGenerationId(),
@@ -145,7 +145,7 @@ public class ServerWriter extends DirectoryThread
             if (dsStatus == ServerStatus.FULL_UPDATE_STATUS)
               logError(WARN_IGNORING_UPDATE_TO_DS_FULLUP.get(
                   handler.getReplicationServerId(),
-                  update.getChangeNumber().toString(),
+                  update.getCSN().toString(),
                   handler.getBaseDN(), handler.getServerId(),
                   session.getReadableRemoteAddress()));
             continue;
@@ -164,7 +164,7 @@ public class ServerWriter extends DirectoryThread
             logError(
                 WARN_IGNORING_UPDATE_TO_RS.get(
                     handler.getReplicationServerId(),
-                    update.getChangeNumber().toString(),
+                    update.getCSN().toString(),
                     handler.getBaseDN(),
                     handler.getServerId(),
                     session.getReadableRemoteAddress(),

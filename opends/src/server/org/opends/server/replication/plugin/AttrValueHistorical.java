@@ -27,7 +27,7 @@
  */
 package org.opends.server.replication.plugin;
 
-import org.opends.server.replication.common.ChangeNumber;
+import org.opends.server.replication.common.CSN;
 import org.opends.server.types.AttributeValue;
 
 /**
@@ -36,23 +36,23 @@ import org.opends.server.types.AttributeValue;
 public class AttrValueHistorical
 {
   private AttributeValue value;
-  private ChangeNumber valueDeleteTime;
-  private ChangeNumber valueUpdateTime;
+  private CSN valueDeleteTime;
+  private CSN valueUpdateTime;
 
   /**
    * Build an AttrValueHistorical for a provided AttributeValue, providing
    * the last time the provided value is either updated or deleted.
    * @param value    the provided attributeValue
-   * @param CNupdate last time when this value was updated
-   * @param CNdelete last time when this value for deleted
+   * @param csnUpdate last time when this value was updated
+   * @param csnDelete last time when this value for deleted
    */
   public AttrValueHistorical(AttributeValue value,
-                   ChangeNumber CNupdate,
-                   ChangeNumber CNdelete)
+                   CSN csnUpdate,
+                   CSN csnDelete)
   {
     this.value = value;
-    this.valueUpdateTime = CNupdate;
-    this.valueDeleteTime = CNdelete;
+    this.valueUpdateTime = csnUpdate;
+    this.valueDeleteTime = csnDelete;
   }
 
   /**
@@ -69,10 +69,7 @@ public class AttrValueHistorical
       AttrValueHistorical objVal = (AttrValueHistorical) obj;
       return (value.equals(objVal.getAttributeValue()));
     }
-    else
-    {
-      return false;
-    }
+    return false;
   }
 
   /**
@@ -90,7 +87,7 @@ public class AttrValueHistorical
    * Get the last time when the value was deleted.
    * @return the last time when the value was deleted
    */
-  public ChangeNumber getValueDeleteTime()
+  public CSN getValueDeleteTime()
   {
     return valueDeleteTime;
   }
@@ -99,7 +96,7 @@ public class AttrValueHistorical
    * Get the last time when the value was updated.
    * @return the last time when the value was updated
    */
-  public ChangeNumber getValueUpdateTime()
+  public CSN getValueUpdateTime()
   {
     return valueUpdateTime;
   }
