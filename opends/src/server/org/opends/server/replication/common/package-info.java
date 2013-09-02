@@ -34,8 +34,8 @@
  * The main classes of this core are :
  * <ul>
  * <li>
- * <A HREF="ChangeNumber.html"><B>ChangeNumber</B></A>
- * Define Change Numbers used to identify and to order the LDAP changes
+ * <A HREF="CSN.html"><B>CSN</B></A>
+ * Define CSNs used to identify and to order the LDAP changes
  * </li>
  * <li>
  * <A HREF="ServerState.html"><B>ServerState</B></A>

@@ -549,7 +549,7 @@ public class DraftCNDbHandler implements ChangelogDB
     }
     catch(Exception e)
     {
-      debugException("getChangeNumber", draftCN, e);
+      debugException("getCSN", draftCN, e);
       return null;
     }
     finally

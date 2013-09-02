@@ -40,7 +40,7 @@ import org.opends.server.types.operation.PluginOperation;
  */
 public class PendingChange implements Comparable<PendingChange>
 {
-  private CSN changeNumber;
+  private CSN csn;
   private boolean committed;
   private LDAPUpdateMsg msg;
   private PluginOperation op;
@@ -49,15 +49,13 @@ public class PendingChange implements Comparable<PendingChange>
 
   /**
    * Construct a new PendingChange.
-   * @param changeNumber the ChangeNumber of use
+   * @param csn the CSN of use
    * @param op the operation to use
    * @param msg the message to use (can be null for local operations)
    */
-  public PendingChange(CSN changeNumber,
-                       PluginOperation op,
-                       LDAPUpdateMsg msg)
+  public PendingChange(CSN csn, PluginOperation op, LDAPUpdateMsg msg)
   {
-    this.changeNumber = changeNumber;
+    this.csn = csn;
     this.committed = false;
     this.op = op;
     this.msg = msg;
@@ -82,12 +80,12 @@ public class PendingChange implements Comparable<PendingChange>
   }
 
   /**
-   * Get the ChangeNumber associated to this PendingChange.
-   * @return the ChangeNumber
+   * Get the CSN associated to this PendingChange.
+   * @return the CSN
    */
   public CSN getCSN()
   {
-    return changeNumber;
+    return csn;
   }
 
   /**
@@ -167,16 +165,15 @@ public class PendingChange implements Comparable<PendingChange>
     synchronized (this)
     {
       if (targetDN != null)
-        return targetDN;
-      else
       {
-        try
-        {
-          targetDN = DN.decode(msg.getDn());
-        }
-        catch (DirectoryException e)
-        {
-        }
+        return targetDN;
+      }
+      try
+      {
+        targetDN = DN.decode(msg.getDn());
+      }
+      catch (DirectoryException e)
+      {
       }
       return targetDN;
     }
@@ -188,6 +185,6 @@ public class PendingChange implements Comparable<PendingChange>
   @Override
   public int compareTo(PendingChange o)
   {
-    return this.getCSN().compareTo(o.getCSN());
+    return getCSN().compareTo(o.getCSN());
   }
 }

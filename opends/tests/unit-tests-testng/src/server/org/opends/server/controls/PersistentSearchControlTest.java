@@ -26,40 +26,39 @@
  */
 package org.opends.server.controls;
 
-import java.util.ArrayList;
-import static org.opends.server.util.ServerConstants.*;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+
 import org.opends.messages.Message;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.ModifyOperation;
-
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.Test;
-
-import static org.testng.Assert.*;
-
-import org.opends.server.types.*;
 import org.opends.server.protocols.asn1.ASN1;
 import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPAttribute;
-import org.opends.server.protocols.ldap.LDAPReader;
 import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.protocols.ldap.LDAPModification;
+import org.opends.server.protocols.ldap.LDAPReader;
 import org.opends.server.tools.LDAPSearch;
+import org.opends.server.types.*;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
 
-/**
- * Test ChangeNumber and ChangeNumberGenerator
- */
-public class PersistentSearchControlTest
-    extends ControlsTestCase
+import static org.assertj.core.api.Assertions.*;
+import static org.opends.server.controls.PersistentSearchChangeType.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.testng.Assert.*;
+
+@SuppressWarnings("javadoc")
+public class PersistentSearchControlTest extends ControlsTestCase
 {
+
+  private static final String CANNOT_DECODE_CHANGE_NOTIF_CONTROL_NO_VALUE =
+      "Cannot decode the provided entry change notification control because it "
+          + "does not have a value";
+
+  private static final String CANNOT_DECODE_PERSISTENT_SEARCH_CONTROL_NO_VALUE =
+      "Cannot decode the provided persistent search control because it does not have a value";
 
   /**
    * Create correct values
@@ -67,23 +66,20 @@ public class PersistentSearchControlTest
   @DataProvider(name = "persistentSearchChangeTypeData")
   public Object[][] createPersistentSearchChangeTypeData()
   {
-
-    HashMap<Integer, String> values = new HashMap<Integer, String>();
+    Map<Integer, String> values = new HashMap<Integer, String>();
     values.put(1, "add");
     values.put(2, "delete");
     values.put(4, "modify");
     values.put(8, "modDN");
-    return new Object[][]
-    {
-    { values } };
+    return new Object[][] { { values } };
   }
 
   /**
    * Test if int value are ok
    */
   @Test(dataProvider = "persistentSearchChangeTypeData")
-  public void checkIntValueTest(
-      HashMap<Integer, String> expectedValues) throws Exception
+  public void checkIntValueTest(Map<Integer, String> expectedValues)
+      throws Exception
   {
     for (Integer i : expectedValues.keySet())
     {
@@ -98,13 +94,13 @@ public class PersistentSearchControlTest
    * Test If we have only the required values
    */
   @Test(dataProvider = "persistentSearchChangeTypeData")
-  public void checkRequiredValuesTest(
-      HashMap<Integer, String> exceptedValues) throws Exception
+  public void checkRequiredValuesTest(Map<Integer, String> exceptedValues)
+      throws Exception
   {
     // Retrieve the values
     PersistentSearchChangeType[] vals = PersistentSearchChangeType.values();
 
-    // Check if we have the correct munber
+    // Check if we have the correct number
     assertEquals(vals.length, exceptedValues.size());
 
     // Check if we have the correct int value
@@ -118,8 +114,8 @@ public class PersistentSearchControlTest
    * Test invalid int values
    */
   @Test(dataProvider = "persistentSearchChangeTypeData")
-  public void checkInvalidIntTest(
-      HashMap<Integer, String> exceptedValues) throws Exception
+  public void checkInvalidIntTest(Map<Integer, String> exceptedValues)
+      throws Exception
   {
     Set<Integer> keys = exceptedValues.keySet() ;
     for (int i=-10 ; i< 10 ; i++)
@@ -128,11 +124,13 @@ public class PersistentSearchControlTest
       try
       {
         PersistentSearchChangeType.valueOf(i);
-        assertTrue(false,"the int '" + i + "' is not a set of type - exception expected");
+        fail();
       }
       catch (LDAPException e)
       {
-        assertTrue(true,"the int '" + i + "' is not a set of type - exception expected");
+        assertThat(e.getMessage()).contains(
+            "The provided integer value " + i
+                + " does not correspond to any persistent search change type");
       }
     }
   }
@@ -141,13 +139,13 @@ public class PersistentSearchControlTest
    * Test int to type
    */
   @Test(dataProvider = "persistentSearchChangeTypeData")
-  public void checkIntToTypeTest(
-      HashMap<Integer, String> exceptedValues) throws Exception
+  public void checkIntToTypeTest(Map<Integer, String> exceptedValues)
+      throws Exception
   {
     Set<Integer> keys = exceptedValues.keySet() ;
 
     Set<PersistentSearchChangeType> returnTypes;
-    HashSet<PersistentSearchChangeType> expectedTypes =
+    Set<PersistentSearchChangeType> expectedTypes =
       new HashSet<PersistentSearchChangeType>(4);
 
     for (int i = 1; i <= 15; i++)
@@ -168,27 +166,32 @@ public class PersistentSearchControlTest
       }
     }
 
-    // We should have and exception
+    // We should have an exception
     try
     {
       PersistentSearchChangeType.intToTypes(0);
-      assertTrue(false,"the int '" + 0 + "' is not a set of type - exception expected");
+      fail();
     }
-    catch (LDAPException e)
+    catch (LDAPException expected)
     {
-      assertTrue(true,"the int is not a set of type - exception expected");
+      assertEquals(
+          expected.getMessage(),
+          "The provided integer value indicated that there were no persistent search change types, which is not allowed");
     }
 
-    // We should have and exception
+    // We should have an exception
+    int i = 16;
     try
     {
-      int i = 16 ;
       PersistentSearchChangeType.intToTypes(i);
-      assertTrue(false,"the int '" + i + "' is not a set of type - exception expected");
+      fail();
     }
-    catch (LDAPException e)
+    catch (LDAPException expected)
     {
-      assertTrue(true,"the int is not a set of type - exception expected");
+      assertEquals(
+          expected.getMessage(),
+          "The provided integer value " + i
+              + " was outside the range of acceptable values for an encoded change type set");
     }
   }
 
@@ -196,8 +199,8 @@ public class PersistentSearchControlTest
    * Test type to int
    */
   @Test(dataProvider = "persistentSearchChangeTypeData", dependsOnMethods= {"checkIntToTypeTest"})
-  public void checkTypesToIntTest(
-      HashMap<Integer, String> exceptedValues) throws Exception
+  public void checkTypesToIntTest(Map<Integer, String> exceptedValues)
+      throws Exception
   {
     Set<PersistentSearchChangeType> returnTypes;
     for (int i = 1; i <= 15; i++)
@@ -209,8 +212,8 @@ public class PersistentSearchControlTest
   }
 
   @Test(dataProvider = "persistentSearchChangeTypeData", dependsOnMethods= {"checkIntToTypeTest"})
-  public void checkChangeTypesToStringTest(
-      HashMap<Integer, String> exceptedValues) throws Exception
+  public void checkChangeTypesToStringTest(Map<Integer, String> exceptedValues)
+      throws Exception
   {
     Set<PersistentSearchChangeType> returnTypes;
     for (int i = 1; i <= 15; i++)
@@ -254,7 +257,7 @@ public class PersistentSearchControlTest
       boolean isCritical, boolean changesOnly, boolean returnECs)
       throws Exception
   {
-    // Test contructor
+    // Test constructor
     // CheclPersistentSearchControlTest(Set<PersistentSearchChangeType>
     // changeTypes,
     // boolean changesOnly, boolean returnECs
@@ -271,7 +274,7 @@ public class PersistentSearchControlTest
       assertEquals(OID_PERSISTENT_SEARCH, psc.getOID());
     }
 
-    // Test contructor
+    // Test constructor
     // CString oid, boolean isCritical,
     // Set<PersistentSearchChangeType> changeTypes,
     //    boolean changesOnly, boolean returnECs
@@ -309,10 +312,12 @@ public class PersistentSearchControlTest
       assertEquals(returnTypes.size(), psc.getChangeTypes().size());
 
       // Check the toString
-      String toString = "PersistentSearchControl(changeTypes=\"" +
-      PersistentSearchChangeType.changeTypesToString(psc.getChangeTypes()) +
-      "\",changesOnly=" + psc.getChangesOnly() +
-      ",returnECs=" +psc.getReturnECs() +")" ;
+      String changeTypes =
+          PersistentSearchChangeType.changeTypesToString(psc.getChangeTypes());
+      String toString =
+          "PersistentSearchControl(changeTypes=\"" + changeTypes
+              + "\",changesOnly=" + psc.getChangesOnly() + ",returnECs="
+              + psc.getReturnECs() + ")";
       assertEquals(psc.toString(), toString);
 
 
@@ -321,12 +326,12 @@ public class PersistentSearchControlTest
       {
         control = new LDAPControl(OID_PERSISTENT_SEARCH, isCritical);
         psc = PersistentSearchControl.DECODER.decode(control.isCritical(), control.getValue());
-        assertTrue(false,"the control should have a value");
+        fail();
       }
-      catch (DirectoryException e)
+      catch (DirectoryException expected)
       {
-        // normal case
-        assertTrue(true,"the control should have a value");
+        assertEquals(expected.getMessage(),
+            CANNOT_DECODE_PERSISTENT_SEARCH_CONTROL_NO_VALUE);
       }
 
       // check invalid value for the control
@@ -335,14 +340,13 @@ public class PersistentSearchControlTest
         control = new LDAPControl(OID_PERSISTENT_SEARCH, isCritical,
             ByteString.valueOf("invalid value"));
         psc = PersistentSearchControl.DECODER.decode(control.isCritical(), control.getValue());
-        assertTrue(false, "the control should have a value");
+        fail();
       }
-      catch (DirectoryException e)
+      catch (DirectoryException expected)
       {
-        // normal case
-        assertTrue(true, "the control should have a value");
+        assertThat(expected.getMessage()).contains(
+            "Cannot decode the provided persistent search control");
       }
-
     }
   }
 
@@ -368,7 +372,7 @@ public class PersistentSearchControlTest
       boolean isCritical, long changeNumber, String dnString)
       throws Exception
   {
-    // Test contructor EntryChangeNotificationControl
+    // Test constructor EntryChangeNotificationControl
     // (PersistentSearchChangeType changeType,long changeNumber)
     PersistentSearchChangeType[] types = PersistentSearchChangeType.values();
     EntryChangeNotificationControl ecnc = null ;
@@ -402,20 +406,11 @@ public class PersistentSearchControlTest
       }
       catch (DirectoryException e)
       {
-        if (type.compareTo(PersistentSearchChangeType.MODIFY_DN) == 0)
-        {
-          assertTrue(true,"could decode a control with previousDN=null " +
-              "and type=modDN");
-        }
-        else
-        {
-          assertTrue(false,"could decode a control with previousDN=null " +
-          "and type=modDN");
-        }
+        fail();
       }
     }
 
-    // Test contructor EntryChangeNotificationControl
+    // Test constructor EntryChangeNotificationControl
     // (PersistentSearchChangeType changeType, DN previousDN, long
     // changeNumber)
     DN dn = DN.decode(dnString);
@@ -446,21 +441,14 @@ public class PersistentSearchControlTest
       }
       catch (DirectoryException e)
       {
-        if (type.compareTo(PersistentSearchChangeType.MODIFY_DN) == 0)
-        {
-          assertTrue(false,"couldn't decode a control with previousDN " +
-              "not null and type=modDN");
-        }
-        else
-        {
-          assertTrue(true,"couldn't decode a control with previousDN " +
-          "not null and type=modDN");
-        }
+        assertFalse(type.compareTo(MODIFY_DN) == 0,
+            "couldn't decode a control with previousDN "
+                + "not null and type=modDN");
       }
     }
 
 
-    // Test contructor EntryChangeNotificationControl(boolean
+    // Test constructor EntryChangeNotificationControl(boolean
     // isCritical, PersistentSearchChangeType changeType,
     // DN previousDN, long changeNumber)
     for (PersistentSearchChangeType type : types)
@@ -491,16 +479,9 @@ public class PersistentSearchControlTest
       }
       catch (DirectoryException e)
       {
-        if (type.compareTo(PersistentSearchChangeType.MODIFY_DN) == 0)
-        {
-          assertTrue(false,"couldn't decode a control with previousDN " +
-              "not null and type=modDN");
-        }
-        else
-        {
-          assertTrue(true,"couldn't decode a control with previousDN " +
-          "not null and type=modDN");
-        }
+        assertFalse(type.compareTo(PersistentSearchChangeType.MODIFY_DN) == 0,
+            "couldn't decode a control with previousDN "
+                + "not null and type=modDN");
       }
     }
 
@@ -510,24 +491,23 @@ public class PersistentSearchControlTest
       LDAPControl control =
           new LDAPControl(OID_ENTRY_CHANGE_NOTIFICATION, isCritical);
       newEcnc = EntryChangeNotificationControl.DECODER.decode(control.isCritical(), control.getValue());
-      assertTrue(false,"couldn't decode a control with null");
+      fail();
     }
-    catch (DirectoryException e)
+    catch (DirectoryException expected)
     {
-      assertTrue(true,"couldn't decode a control with null");
+      assertEquals(expected.getMessage(),
+          CANNOT_DECODE_CHANGE_NOTIF_CONTROL_NO_VALUE);
     }
   }
 
   private void checkEntryChangeNotificationControlToString(EntryChangeNotificationControl ecnc)
   {
-    String toString ="EntryChangeNotificationControl(changeType=";
-    toString = toString + ecnc.getChangeType();
-
+    String toString =
+        "EntryChangeNotificationControl(changeType=" + ecnc.getChangeType();
     if (ecnc.getPreviousDN() != null)
     {
       toString = toString + ",previousDN=\"" + ecnc.getPreviousDN() + "\"" ;
     }
-
     if (ecnc.getChangeNumber() > 0)
     {
       toString = toString + ",changeNumber=" + ecnc.getChangeNumber() ;
@@ -560,16 +540,12 @@ public class PersistentSearchControlTest
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
     //Create a persistent search request.
-    LinkedHashSet<String> attributes = new LinkedHashSet<String>();
+    Set<String> attributes = new LinkedHashSet<String>();
     attributes.add("cn");
     List<Control> controls = new LinkedList<Control>();
           // Creates psearch control
-    HashSet<PersistentSearchChangeType> changeTypes =
-      new HashSet<PersistentSearchChangeType>();
-    changeTypes.add(PersistentSearchChangeType.ADD);
-    changeTypes.add(PersistentSearchChangeType.DELETE);
-    changeTypes.add(PersistentSearchChangeType.MODIFY);
-    changeTypes.add(PersistentSearchChangeType.MODIFY_DN);
+    Set<PersistentSearchChangeType> changeTypes =
+        EnumSet.of(ADD, DELETE, MODIFY, MODIFY_DN);
     PersistentSearchControl persSearchControl = new PersistentSearchControl(
           changeTypes, true, true);
       controls.add(persSearchControl);
@@ -579,8 +555,9 @@ public class PersistentSearchControlTest
             0, // Time limit
             true, // Types only
             "(objectClass=*)", attributes, controls, null);
-  
+
     Thread t = new Thread(new Runnable() {
+      @Override
       public void run() {
         try {
           search.run();

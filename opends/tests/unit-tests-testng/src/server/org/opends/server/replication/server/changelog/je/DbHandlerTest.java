@@ -204,8 +204,8 @@ public class DbHandlerTest extends ReplicationTestCase
         assertEquals(csn, csns[i]);
       }
 			assertFalse(cursor.next());
-			assertNull(cursor.getChange(), "Actual change number="
-					+ cursor.getChange() + ", Expected null");
+      assertNull(cursor.getChange(), "Actual change=" + cursor.getChange()
+          + ", Expected null");
     }
     finally
     {
