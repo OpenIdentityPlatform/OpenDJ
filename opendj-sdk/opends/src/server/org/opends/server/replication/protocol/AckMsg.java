@@ -34,14 +34,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.zip.DataFormatException;
 
-import org.opends.server.replication.common.ChangeNumber;
+import org.opends.server.replication.common.CSN;
 
 /**
  * AckMsg messages are used for acknowledging an update that has been sent
  * requesting an ack: update sent in Assured Mode, either safe data or safe
  * read sub mode.
- * The change number refers to the update change number that was requested to be
- * acknowledged.
+ * The CSN refers to the update CSN that was requested to be acknowledged.
  * If some errors occurred during attempt to acknowledge the update in the path
  * to final servers, errors are marked with the following fields:
  * - hasTimeout:
@@ -61,49 +60,57 @@ import org.opends.server.replication.common.ChangeNumber;
  */
 public class AckMsg extends ReplicationMsg
 {
-  // ChangeNumber of the update that was acked.
-  private ChangeNumber changeNumber;
+  /** CSN of the update that was acked. */
+  private CSN csn;
 
-  // Did some servers go in timeout when the matching update (corresponding to
-  // change number) was sent ?
+  /**
+   * Did some servers go in timeout when the matching update (corresponding to
+   * CSN) was sent?.
+   */
   private boolean hasTimeout = false;
 
-  // Were some servers in wrong status when the matching
-  // update (correspondig to change number) was sent ?
+  /**
+   * Were some servers in wrong status when the matching update (corresponding
+   * to CSN) was sent?.
+   */
   private boolean hasWrongStatus = false;
 
-  // Did some servers make an error replaying the sent matching update
-  // (corresponding to change number) ?
+  /**
+   * Did some servers make an error replaying the sent matching update
+   * (corresponding to CSN)?.
+   */
   private boolean hasReplayError = false;
 
-  // The list of server ids that had errors for the sent matching update
-  // (corresponding to change number). Each server id of the list had one of the
-  // 3 possible errors (timeout/degraded or admin/replay error)
+  /**
+   * The list of server ids that had errors for the sent matching update
+   * (corresponding to CSN). Each server id of the list had one of the 3
+   * possible errors (timeout/degraded or admin/replay error).
+   */
   private List<Integer> failedServers = new ArrayList<Integer>();
 
   /**
-   * Creates a new AckMsg from a ChangeNumber (no errors).
+   * Creates a new AckMsg from a CSN (no errors).
    *
-   * @param changeNumber The ChangeNumber used to build the AckMsg.
+   * @param csn The CSN used to build the AckMsg.
    */
-  public AckMsg(ChangeNumber changeNumber)
+  public AckMsg(CSN csn)
   {
-    this.changeNumber = changeNumber;
+    this.csn = csn;
   }
 
   /**
-   * Creates a new AckMsg from a ChangeNumber (with specified error info).
+   * Creates a new AckMsg from a CSN (with specified error info).
    *
-   * @param changeNumber The ChangeNumber used to build the AckMsg.
+   * @param csn The CSN used to build the AckMsg.
    * @param hasTimeout The hasTimeout info
    * @param hasWrongStatus The hasWrongStatus info
    * @param hasReplayError The hasReplayError info
    * @param failedServers The list of failed servers
    */
-  public AckMsg(ChangeNumber changeNumber, boolean hasTimeout,
-    boolean hasWrongStatus, boolean hasReplayError, List<Integer> failedServers)
+  public AckMsg(CSN csn, boolean hasTimeout, boolean hasWrongStatus,
+      boolean hasReplayError, List<Integer> failedServers)
   {
-    this.changeNumber = changeNumber;
+    this.csn = csn;
     this.hasTimeout = hasTimeout;
     this.hasWrongStatus = hasWrongStatus;
     this.hasReplayError = hasReplayError;
@@ -159,33 +166,33 @@ public class AckMsg extends ReplicationMsg
     {
       /*
        * The message is stored in the form:
-       * <operation type><change number><has timeout><has degraded><has replay
+       * <operation type><CSN><has timeout><has degraded><has replay
        * error><failed server ids>
        */
 
-      /* First byte is the type */
+      // First byte is the type
       if (in[0] != MSG_TYPE_ACK)
       {
         throw new DataFormatException("byte[] is not a valid modify msg");
       }
       int pos = 1;
 
-      /* Read the changeNumber */
+      // Read the CSN
       int length = getNextLength(in, pos);
-      String changenumberStr = new String(in, pos, length, "UTF-8");
-      changeNumber = new ChangeNumber(changenumberStr);
+      String csnStr = new String(in, pos, length, "UTF-8");
+      csn = new CSN(csnStr);
       pos += length + 1;
 
-      /* Read the hasTimeout flag */
+      // Read the hasTimeout flag
       hasTimeout = in[pos++] == 1;
 
-      /* Read the hasWrongStatus flag */
+      // Read the hasWrongStatus flag
       hasWrongStatus = in[pos++] == 1;
 
-      /* Read the hasReplayError flag */
+      // Read the hasReplayError flag
       hasReplayError = in[pos++] == 1;
 
-      /* Read the list of failed server ids */
+      // Read the list of failed server ids
       while (pos < in.length)
       {
         length = getNextLength(in, pos);
@@ -201,13 +208,13 @@ public class AckMsg extends ReplicationMsg
   }
 
   /**
-   * Get the ChangeNumber from the message.
+   * Get the CSN from the message.
    *
-   * @return the ChangeNumber
+   * @return the CSN
    */
-  public ChangeNumber getChangeNumber()
+  public CSN getCSN()
   {
-    return changeNumber;
+    return csn;
   }
 
   /**
@@ -220,30 +227,30 @@ public class AckMsg extends ReplicationMsg
     {
       /*
        * The message is stored in the form:
-       * <operation type><change number><has timeout><has degraded><has replay
+       * <operation type><CSN><has timeout><has degraded><has replay
        * error><failed server ids>
        */
 
       ByteArrayOutputStream oStream = new ByteArrayOutputStream(200);
 
-      /* Put the type of the operation */
+      // Put the type of the operation
       oStream.write(MSG_TYPE_ACK);
 
-      /* Put the ChangeNumber */
-      byte[] changeNumberByte = changeNumber.toString().getBytes("UTF-8");
-      oStream.write(changeNumberByte);
+      // Put the CSN
+      byte[] csnByte = csn.toString().getBytes("UTF-8");
+      oStream.write(csnByte);
       oStream.write(0);
 
-      /* Put the hasTimeout flag */
-      oStream.write((hasTimeout ? (byte) 1 : (byte) 0));
+      // Put the hasTimeout flag
+      oStream.write(hasTimeout ? 1 : 0);
 
-      /* Put the hasWrongStatus flag */
-      oStream.write((hasWrongStatus ? (byte) 1 : (byte) 0));
+      // Put the hasWrongStatus flag
+      oStream.write(hasWrongStatus ? 1 : 0);
 
-      /* Put the hasReplayError flag */
-      oStream.write((hasReplayError ? (byte) 1 : (byte) 0));
+      // Put the hasReplayError flag
+      oStream.write(hasReplayError ? 1 : 0);
 
-      /* Put the list of server ids */
+      // Put the list of server ids
       for (Integer sid : failedServers)
       {
         byte[] byteServerId = String.valueOf(sid).getBytes("UTF-8");

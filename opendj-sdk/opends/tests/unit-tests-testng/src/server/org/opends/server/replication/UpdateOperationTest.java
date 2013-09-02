@@ -27,10 +27,6 @@
  */
 package org.opends.server.replication;
 
-import static org.opends.server.TestCaseUtils.*;
-import static org.opends.server.loggers.ErrorLogger.*;
-import static org.testng.Assert.*;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -44,8 +40,8 @@ import org.opends.server.plugins.ShortCircuitPlugin;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPModification;
-import org.opends.server.replication.common.ChangeNumber;
-import org.opends.server.replication.common.ChangeNumberGenerator;
+import org.opends.server.replication.common.CSN;
+import org.opends.server.replication.common.CSNGenerator;
 import org.opends.server.replication.plugin.LDAPReplicationDomain;
 import org.opends.server.replication.protocol.*;
 import org.opends.server.replication.service.ReplicationBroker;
@@ -56,6 +52,10 @@ import org.opends.server.util.TimeThread;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+
+import static org.opends.server.TestCaseUtils.*;
+import static org.opends.server.loggers.ErrorLogger.*;
+import static org.testng.Assert.*;
 
 /**
  * Test synchronization of update operations on the directory server and through
@@ -245,7 +245,7 @@ public class  UpdateOperationTest extends ReplicationTestCase
    * Add an entry in the database
    *
    */
-  private ChangeNumber addEntry(Entry entry) throws Exception
+  private CSN addEntry(Entry entry) throws Exception
   {
     AddOperationBasis addOp = new AddOperationBasis(connection,
         InternalClientConnection.nextOperationID(), InternalClientConnection
@@ -256,7 +256,7 @@ public class  UpdateOperationTest extends ReplicationTestCase
 
     assertEquals(addOp.getResultCode(), ResultCode.SUCCESS);
     assertNotNull(getEntry(entry.getDN(), 1000, true));
-    return OperationContext.getChangeNumber((Operation) addOp);
+    return OperationContext.getCSN((Operation) addOp);
   }
 
   /**
@@ -297,10 +297,10 @@ public class  UpdateOperationTest extends ReplicationTestCase
     try
     {
       /*
-       * Create a Change number generator to generate new changenumbers
-       * when we need to send operation messages to the replicationServer.
+       * Create a CSN generator to generate new CSNs when we need to send
+       * operation messages to the replicationServer.
        */
-      ChangeNumberGenerator gen = new ChangeNumberGenerator(2, 0);
+      CSNGenerator gen = new CSNGenerator(2, 0);
 
 
       // Disable the directory server receive status.
@@ -308,7 +308,7 @@ public class  UpdateOperationTest extends ReplicationTestCase
 
 
       // Create and publish an update message to add an entry.
-      AddMsg addMsg = new AddMsg(gen.newChangeNumber(),
+      AddMsg addMsg = new AddMsg(gen.newCSN(),
           personWithUUIDEntry.getDN().toString(),
           user1entryUUID,
           baseUUID,
@@ -328,7 +328,7 @@ public class  UpdateOperationTest extends ReplicationTestCase
       setReceiveStatus(synchroServerEntry.getDN().toString(), true);
 
       // Create and publish another update message to add an entry.
-      addMsg = new AddMsg(gen.newChangeNumber(),
+      addMsg = new AddMsg(gen.newCSN(),
           personWithUUIDEntry.getDN().toString(),
           user1entryUUID,
           baseUUID,
@@ -345,7 +345,7 @@ public class  UpdateOperationTest extends ReplicationTestCase
       // Delete the entries to clean the database.
       DeleteMsg delMsg =
           new DeleteMsg(personWithUUIDEntry.getDN().toString(),
-          gen.newChangeNumber(), user1entryUUID);
+          gen.newCSN(), user1entryUUID);
       broker.publish(delMsg);
       resultEntry = getEntry(personWithUUIDEntry.getDN(), 10000, false);
 
@@ -384,14 +384,14 @@ public class  UpdateOperationTest extends ReplicationTestCase
     try
     {
       /*
-       * Create a Change number generator to generate new changenumbers
-       * when we need to send operation messages to the replicationServer.
+       * Create a CSN generator to generate new CSNs when we need to send
+       * operation messages to the replicationServer.
        */
-      ChangeNumberGenerator gen = new ChangeNumberGenerator(2, 0);
+      CSNGenerator gen = new CSNGenerator(2, 0);
 
 
       // Create and publish an update message to add an entry.
-      AddMsg addMsg = new AddMsg(gen.newChangeNumber(),
+      AddMsg addMsg = new AddMsg(gen.newCSN(),
           personWithUUIDEntry.getDN().toString(),
           user1entryUUID,
           baseUUID,
@@ -408,7 +408,7 @@ public class  UpdateOperationTest extends ReplicationTestCase
 
       // Send a first modify operation message.
       List<Modification> mods = generatemods("telephonenumber", "01 02 45");
-      ModifyMsg modMsg = new ModifyMsg(gen.newChangeNumber(),
+      ModifyMsg modMsg = new ModifyMsg(gen.newCSN(),
           personWithUUIDEntry.getDN(), mods,
           user1entryUUID);
       broker.publish(modMsg);
@@ -428,7 +428,7 @@ public class  UpdateOperationTest extends ReplicationTestCase
 
       // Send a second modify operation message.
       mods = generatemods("description", "Description was changed");
-      modMsg = new ModifyMsg(gen.newChangeNumber(),
+      modMsg = new ModifyMsg(gen.newCSN(),
           personWithUUIDEntry.getDN(), mods,
           user1entryUUID);
       broker.publish(modMsg);
@@ -445,7 +445,7 @@ public class  UpdateOperationTest extends ReplicationTestCase
       // Delete the entries to clean the database.
       DeleteMsg delMsg =
           new DeleteMsg(personWithUUIDEntry.getDN().toString(),
-          gen.newChangeNumber(), user1entryUUID);
+          gen.newCSN(), user1entryUUID);
       broker.publish(delMsg);
       resultEntry = getEntry(personWithUUIDEntry.getDN(), 10000, false);
 
@@ -512,11 +512,11 @@ public class  UpdateOperationTest extends ReplicationTestCase
 
       // A change on a first server.
       long changeTime = TimeThread.getTime();
-      ChangeNumber t1 = new ChangeNumber(changeTime, 0, 3);
+      CSN t1 = new CSN(changeTime, 0, 3);
 
       // A change on a second server.
       changeTime++;
-      ChangeNumber t2 = new ChangeNumber(changeTime, 0, 4);
+      CSN t2 = new CSN(changeTime, 0, 4);
 
       // Simulate the ordering t2:replace:B followed by t1:add:A that
       updateMonitorCount(baseDn, monitorAttr);
@@ -555,11 +555,11 @@ public class  UpdateOperationTest extends ReplicationTestCase
       // t1:replace:displayname
       // A change on a first server.
       changeTime++;
-      t1 = new ChangeNumber(changeTime, 0, 3);
+      t1 = new CSN(changeTime, 0, 3);
 
       // A change on a second server.
       changeTime++;
-      t2 = new ChangeNumber(changeTime, 0, 4);
+      t2 = new CSN(changeTime, 0, 4);
 
       // Simulate the ordering t2:delete:displayname followed by t1:replace:A
       updateMonitorCount(baseDn, monitorAttr);
@@ -631,11 +631,11 @@ public class  UpdateOperationTest extends ReplicationTestCase
 
     try
     {
-    /*
-     * Create a Change number generator to generate new changenumbers
-     * when we need to send operations messages to the replicationServer.
-     */
-    ChangeNumberGenerator gen = new ChangeNumberGenerator( 2, 0);
+      /*
+       * Create a CSN generator to generate new CSNs when we need to send
+       * operations messages to the replicationServer.
+       */
+    CSNGenerator gen = new CSNGenerator( 2, 0);
 
     /*
      * Test that the conflict resolution code is able to find entries
@@ -645,7 +645,7 @@ public class  UpdateOperationTest extends ReplicationTestCase
      * Finally check that the modify operation has been applied.
      */
     // create the entry with a given DN
-    AddMsg addMsg = new AddMsg(gen.newChangeNumber(),
+    AddMsg addMsg = new AddMsg(gen.newCSN(),
         personWithUUIDEntry.getDN().toString(),
         user1entryUUID,
         baseUUID,
@@ -660,7 +660,7 @@ public class  UpdateOperationTest extends ReplicationTestCase
 
     // send a modify operation with the correct unique ID but another DN
     List<Modification> mods = generatemods("telephonenumber", "01 02 45");
-    ModifyMsg modMsg = new ModifyMsg(gen.newChangeNumber(),
+    ModifyMsg modMsg = new ModifyMsg(gen.newCSN(),
         DN.decode("cn=something,ou=People," + TEST_ROOT_DN_STRING), mods,
         user1entryUUID);
     updateMonitorCount(baseDn, resolvedMonitorAttr);
@@ -688,7 +688,7 @@ public class  UpdateOperationTest extends ReplicationTestCase
     // send a modify operation attempting to replace the RDN entry
     // with a new value
     mods = generatemods("uid", "AnotherUid");
-    modMsg = new ModifyMsg(gen.newChangeNumber(),
+    modMsg = new ModifyMsg(gen.newCSN(),
         personWithUUIDEntry.getDN(), mods,
         user1entryUUID);
 
@@ -715,7 +715,7 @@ public class  UpdateOperationTest extends ReplicationTestCase
      */
 
     //  create the entry with a given DN and unique ID
-    addMsg = new AddMsg(gen.newChangeNumber(),
+    addMsg = new AddMsg(gen.newCSN(),
         personWithUUIDEntry.getDN().toString(),
         user1entryUUID, baseUUID,
         personWithUUIDEntry.getObjectClassAttribute(),
@@ -729,7 +729,7 @@ public class  UpdateOperationTest extends ReplicationTestCase
 
     // send a modify operation with a wrong unique ID but the same DN
     mods = generatemods("telephonenumber", "02 01 03 05");
-    modMsg = new ModifyMsg(gen.newChangeNumber(),
+    modMsg = new ModifyMsg(gen.newCSN(),
         DN.decode(user1dn), mods, "10000000-9abc-def0-1234-1234567890ab");
     updateMonitorCount(baseDn, resolvedMonitorAttr);
     AlertCount = DummyAlertHandler.getAlertCount();
@@ -761,7 +761,7 @@ public class  UpdateOperationTest extends ReplicationTestCase
     // used above
     DeleteMsg delMsg =
       new DeleteMsg("cn=anotherdn,ou=People," + TEST_ROOT_DN_STRING,
-          gen.newChangeNumber(), user1entryUUID);
+          gen.newCSN(), user1entryUUID);
     updateMonitorCount(baseDn, resolvedMonitorAttr);
     AlertCount = DummyAlertHandler.getAlertCount();
     broker.publish(delMsg);
@@ -783,7 +783,7 @@ public class  UpdateOperationTest extends ReplicationTestCase
      */
 
     //  create an entry with a given DN and unique ID
-    addMsg = new AddMsg(gen.newChangeNumber(),
+    addMsg = new AddMsg(gen.newCSN(),
         personWithUUIDEntry.getDN().toString(),
         user1entryUUID, baseUUID,
         personWithUUIDEntry.getObjectClassAttribute(),
@@ -796,7 +796,7 @@ public class  UpdateOperationTest extends ReplicationTestCase
         "The ADD replication message was not applied");
 
     //  create an entry with the same DN and another unique ID
-    addMsg = new AddMsg(gen.newChangeNumber(),
+    addMsg = new AddMsg(gen.newCSN(),
         personWithSecondUniqueID.getDN().toString(),
         user1entrysecondUUID, baseUUID,
         personWithSecondUniqueID.getObjectClassAttribute(),
@@ -822,11 +822,11 @@ public class  UpdateOperationTest extends ReplicationTestCase
     //  delete the entries to clean the database.
     delMsg =
       new DeleteMsg(personWithUUIDEntry.getDN().toString(),
-          gen.newChangeNumber(), user1entryUUID);
+          gen.newCSN(), user1entryUUID);
     broker.publish(delMsg);
     delMsg =
       new DeleteMsg(personWithSecondUniqueID.getDN().toString(),
-          gen.newChangeNumber(), user1entrysecondUUID);
+          gen.newCSN(), user1entrysecondUUID);
     broker.publish(delMsg);
     resultEntry = getEntry(personWithUUIDEntry.getDN(), 10000, false);
     resultEntry = getEntry(personWithSecondUniqueID.getDN(), 10000, false);
@@ -841,7 +841,7 @@ public class  UpdateOperationTest extends ReplicationTestCase
      * Simulate this by trying to add an entry below a DN that does not
      * exist but with a parent ID that exist.
      */
-    addMsg = new AddMsg(gen.newChangeNumber(),
+    addMsg = new AddMsg(gen.newCSN(),
         "uid=new person,o=nothere,o=below,ou=People," + TEST_ROOT_DN_STRING,
         user1entryUUID,
         baseUUID,
@@ -874,7 +874,7 @@ public class  UpdateOperationTest extends ReplicationTestCase
 
     delMsg =
       new DeleteMsg("uid=new person,ou=People," + TEST_ROOT_DN_STRING,
-          gen.newChangeNumber(), "11111111-9abc-def0-1234-1234567890ab");
+          gen.newCSN(), "11111111-9abc-def0-1234-1234567890ab");
     updateMonitorCount(baseDn, resolvedMonitorAttr);
     AlertCount = DummyAlertHandler.getAlertCount();
     broker.publish(delMsg);
@@ -902,7 +902,7 @@ public class  UpdateOperationTest extends ReplicationTestCase
      */
 
     ModifyDNMsg  modDnMsg = new ModifyDNMsg(
-        "uid=new person,ou=People," + TEST_ROOT_DN_STRING, gen.newChangeNumber(),
+        "uid=new person,ou=People," + TEST_ROOT_DN_STRING, gen.newCSN(),
         user1entryUUID, baseUUID, false,
         "uid=wrong, ou=people," + TEST_ROOT_DN_STRING,
         "uid=newrdn");
@@ -929,7 +929,7 @@ public class  UpdateOperationTest extends ReplicationTestCase
      */
 
      modDnMsg = new ModifyDNMsg(
-        "uid=wrong,ou=People," + TEST_ROOT_DN_STRING, gen.newChangeNumber(),
+        "uid=wrong,ou=People," + TEST_ROOT_DN_STRING, gen.newCSN(),
         user1entryUUID, null, false, null, "uid=reallynewrdn");
     updateMonitorCount(baseDn, resolvedMonitorAttr);
     AlertCount = DummyAlertHandler.getAlertCount();
@@ -955,7 +955,7 @@ public class  UpdateOperationTest extends ReplicationTestCase
      */
 
     // add a second entry
-    addMsg = new AddMsg(gen.newChangeNumber(),
+    addMsg = new AddMsg(gen.newCSN(),
         user1dn,
         user1entrysecondUUID,
         baseUUID,
@@ -970,7 +970,7 @@ public class  UpdateOperationTest extends ReplicationTestCase
     assertNotNull(resultEntry, "The add operation was not replayed");
 
     // try to rename the first entry
-    modDnMsg = new ModifyDNMsg(user1dn, gen.newChangeNumber(),
+    modDnMsg = new ModifyDNMsg(user1dn, gen.newCSN(),
                                user1entrysecondUUID, baseUUID, false,
                                baseDn.toString(), "uid=reallynewrdn");
     updateMonitorCount(baseDn, unresolvedMonitorAttr);
@@ -996,7 +996,7 @@ public class  UpdateOperationTest extends ReplicationTestCase
       new DeleteMsg("entryUUID = " + user1entrysecondUUID + "+" +
           DN.decode(user1dn).getRDN().toString() +
           ",ou=People," + TEST_ROOT_DN_STRING,
-          gen.newChangeNumber(), user1entrysecondUUID);
+          gen.newCSN(), user1entrysecondUUID);
     broker.publish(delMsg);
     resultEntry = getEntry(
           DN.decode("entryUUID = " + user1entrysecondUUID + "+" +
@@ -1009,7 +1009,7 @@ public class  UpdateOperationTest extends ReplicationTestCase
 
     delMsg =
       new DeleteMsg("uid=reallynewrdn,ou=People," + TEST_ROOT_DN_STRING,
-          gen.newChangeNumber(), user1entryUUID);
+          gen.newCSN(), user1entryUUID);
     broker.publish(delMsg);
     resultEntry = getEntry(
         DN.decode("uid=reallynewrdn,ou=People," + TEST_ROOT_DN_STRING), 10000, false);
@@ -1057,7 +1057,7 @@ public class  UpdateOperationTest extends ReplicationTestCase
         "Entry not added: ou=baseDn1,"+baseDn);
 
     // - create Add Msg for user1 with parent entry 1 UUID
-    addMsg = new AddMsg(gen.newChangeNumber(),
+    addMsg = new AddMsg(gen.newCSN(),
         "uid=new person,ou=baseDn1,"+baseDn,
         user1entryUUID,
         getEntryUUID(DN.decode("ou=baseDn1,"+baseDn)),
@@ -1122,7 +1122,7 @@ public class  UpdateOperationTest extends ReplicationTestCase
 
     // add domain1 entry with 2 children : domain2 and domain3
     addEntry(domain1);
-    ChangeNumber olderCn = gen.newChangeNumber();
+    CSN olderCSN = gen.newCSN();
     Thread.sleep(1000);
     domain1uid = getEntryUUID(DN.decode(domain1dn));
     addEntry(domain2);
@@ -1138,7 +1138,7 @@ public class  UpdateOperationTest extends ReplicationTestCase
     AlertCount = DummyAlertHandler.getAlertCount();
 
     // delete domain1
-    delMsg = new DeleteMsg(domain1dn, olderCn, domain1uid);
+    delMsg = new DeleteMsg(domain1dn, olderCSN, domain1uid);
     broker.publish(delMsg);
 
     // check that the domain1 has correctly been deleted
@@ -1180,15 +1180,15 @@ public class  UpdateOperationTest extends ReplicationTestCase
     domain1uid = getEntryUUID(DN.decode(domain1dn));
     addEntry(domain2);
     domain2uid = getEntryUUID(DN.decode(domain2dn));
-    ChangeNumber addCn =  addEntry(domain3);
-    gen.adjust(addCn);
+    CSN addCSN = addEntry(domain3);
+    gen.adjust(addCSN);
     domain3uid = getEntryUUID(DN.decode(domain3dn));
 
     updateMonitorCount(baseDn, unresolvedMonitorAttr);
     AlertCount = DummyAlertHandler.getAlertCount();
 
     // delete domain1
-    delMsg = new DeleteMsg(domain1dn, gen.newChangeNumber(), domain1uid);
+    delMsg = new DeleteMsg(domain1dn, gen.newCSN(), domain1uid);
     broker.publish(delMsg);
 
     // check that the domain1 has correctly been deleted
@@ -1213,7 +1213,7 @@ public class  UpdateOperationTest extends ReplicationTestCase
     // that is currently deleted on another master, the replay of the
     // add on the second master cause the added entry to be renamed
     //
-    addMsg = new AddMsg(gen.newChangeNumber(), domain2dn, domain2uid,
+    addMsg = new AddMsg(gen.newCSN(), domain2dn, domain2uid,
         domain1uid,
         domain2.getObjectClassAttribute(),
         domain2.getAttributes(), new ArrayList<Attribute>());
@@ -1235,7 +1235,7 @@ public class  UpdateOperationTest extends ReplicationTestCase
     // this is correctly detected as a resolved conflict.
     // To simulate this simply try a modifyDN on a non existent uid.
     modDnMsg = new ModifyDNMsg(
-        "uid=new person,ou=People," + TEST_ROOT_DN_STRING, gen.newChangeNumber(),
+        "uid=new person,ou=People," + TEST_ROOT_DN_STRING, gen.newCSN(),
         "33343333-3533-3633-3373-333333833333", baseUUID, false,
         "uid=wrong, ou=people," + TEST_ROOT_DN_STRING,
         "uid=newrdn");
@@ -1270,7 +1270,7 @@ public class  UpdateOperationTest extends ReplicationTestCase
     updateMonitorCount(baseDn, unresolvedMonitorAttr);
     AlertCount = DummyAlertHandler.getAlertCount();
     modDnMsg = new ModifyDNMsg(
-        "uid=new person,ou=People," + TEST_ROOT_DN_STRING, gen.newChangeNumber(),
+        "uid=new person,ou=People," + TEST_ROOT_DN_STRING, gen.newCSN(),
         "33333333-3333-3333-3333-333333333333",
         "12343333-3533-3633-3333-333333833333" , false,
         "uid=wrong, ou=people," + TEST_ROOT_DN_STRING,
@@ -1352,7 +1352,7 @@ public class  UpdateOperationTest extends ReplicationTestCase
       openReplicationSession(baseDn,  27, 100, replServerPort, 2000, true);
 
     try {
-      ChangeNumberGenerator gen = new ChangeNumberGenerator( 27, 0);
+      CSNGenerator gen = new CSNGenerator( 27, 0);
 
       /*
        * Test that operations done on this server are sent to the
@@ -1453,7 +1453,7 @@ public class  UpdateOperationTest extends ReplicationTestCase
        *
        * Start by testing the Add message reception
        */
-      AddMsg addMsg = new AddMsg(gen.newChangeNumber(),
+      AddMsg addMsg = new AddMsg(gen.newCSN(),
           personWithUUIDEntry.getDN().toString(),
           user1entryUUID, baseUUID,
           personWithUUIDEntry.getObjectClassAttribute(),
@@ -1472,7 +1472,7 @@ public class  UpdateOperationTest extends ReplicationTestCase
       /*
        * Test the reception of Modify Msg
        */
-      modMsg = new ModifyMsg(gen.newChangeNumber(), personWithUUIDEntry.getDN(),
+      modMsg = new ModifyMsg(gen.newCSN(), personWithUUIDEntry.getDN(),
           mods, user1entryUUID);
       if (assured)
         modMsg.setAssured(true);
@@ -1487,7 +1487,7 @@ public class  UpdateOperationTest extends ReplicationTestCase
       // Test that replication is able to add attribute that do
       // not exist in the schema.
       List<Modification> invalidMods = generatemods("badattribute", "value");
-      modMsg = new ModifyMsg(gen.newChangeNumber(), personWithUUIDEntry.getDN(),
+      modMsg = new ModifyMsg(gen.newCSN(), personWithUUIDEntry.getDN(),
           invalidMods, user1entryUUID);
       if (assured)
         modMsg.setAssured(true);
@@ -1502,7 +1502,7 @@ public class  UpdateOperationTest extends ReplicationTestCase
        * Test the Reception of Modify Dn Msg
        */
       moddnMsg = new ModifyDNMsg(personWithUUIDEntry.getDN().toString(),
-          gen.newChangeNumber(),
+          gen.newCSN(),
           user1entryUUID, null,
           true, null, "uid= new person");
       if (assured)
@@ -1519,7 +1519,7 @@ public class  UpdateOperationTest extends ReplicationTestCase
        * Test the Reception of Delete Msg
        */
       delMsg = new DeleteMsg("uid= new person,ou=People," + TEST_ROOT_DN_STRING,
-          gen.newChangeNumber(), user1entryUUID);
+          gen.newCSN(), user1entryUUID);
       if (assured)
         delMsg.setAssured(true);
       broker.publish(delMsg);
@@ -1580,7 +1580,7 @@ public class  UpdateOperationTest extends ReplicationTestCase
       openReplicationSession(baseDn,  11, 100, replServerPort, 1000, true);
     try
     {
-      ChangeNumberGenerator gen = new ChangeNumberGenerator( 11, 0);
+      CSNGenerator gen = new CSNGenerator( 11, 0);
 
       // Create a test entry.
       String personLdif = "dn: uid=user.2,ou=People," + TEST_ROOT_DN_STRING + "\n"
@@ -1626,7 +1626,7 @@ public class  UpdateOperationTest extends ReplicationTestCase
       {
         // Publish a delete message for this test entry.
         DeleteMsg delMsg = new DeleteMsg(tmp.getDN().toString(),
-                                         gen.newChangeNumber(),
+                                         gen.newCSN(),
                                          uuid);
         broker.publish(delMsg);
 
@@ -1697,21 +1697,20 @@ public class  UpdateOperationTest extends ReplicationTestCase
   }
   /**
    * Test that the ReplicationDomain (plugin inside LDAP server) adjust
-   * its internal change number generator to the last change number
-   * received. Steps:
-   * - create a domain with the current date in the CN generator
-   * - make it receive an update with a CN in the future
+   * its internal CSN generator to the last CSN received. Steps:
+   * - create a domain with the current date in the CSN generator
+   * - make it receive an update with a CSN in the future
    * - do a local operation replicated on that domain
-   * - check that the update generated for that operation has a CN in the
+   * - check that the update generated for that operation has a CSN in the
    *   future.
    * @throws Exception
    */
   @Test(enabled=true)
-  public void CNGeneratorAdjust() throws Exception
+  public void csnGeneratorAdjust() throws Exception
   {
     int serverId = 88;
     logError(Message.raw(Category.SYNC, Severity.INFORMATION,
-        "Starting synchronization test : CNGeneratorAdjust"));
+        "Starting synchronization test : CSNGeneratorAdjust"));
 
     final DN baseDn = DN.decode("ou=People," + TEST_ROOT_DN_STRING);
 
@@ -1728,15 +1727,15 @@ public class  UpdateOperationTest extends ReplicationTestCase
     try
     {
       /*
-       * Create a Change number generator to generate new changenumbers
+       * Create a CSN generator to generate new CSNs
        * when we need to send operation messages to the replicationServer.
        */
       long inTheFutur = System.currentTimeMillis() + (3600 * 1000);
-      ChangeNumberGenerator gen = new ChangeNumberGenerator(serverId, inTheFutur);
+      CSNGenerator gen = new CSNGenerator(serverId, inTheFutur);
 
       // Create and publish an update message to add an entry.
       AddMsg addMsg = new AddMsg(
-          gen.newChangeNumber(),
+          gen.newCSN(),
           user3dn.toString(),
           user3UUID,
           baseUUID,
@@ -1768,15 +1767,15 @@ public class  UpdateOperationTest extends ReplicationTestCase
       assertTrue(msg instanceof ModifyMsg,
           "The received replication message is not a MODIFY msg");
       ModifyMsg modMsg = (ModifyMsg) msg;
-      assertEquals(addMsg.getChangeNumber().getTimeSec(),
-          modMsg.getChangeNumber().getTimeSec(),
+      assertEquals(addMsg.getCSN().getTimeSec(),
+          modMsg.getCSN().getTimeSec(),
           "The MOD timestamp should have been adjusted to the ADD one");
 
       // Delete the entries to clean the database.
       DeleteMsg delMsg =
           new DeleteMsg(
           user3Entry.getDN().toString(),
-          gen.newChangeNumber(),
+          gen.newCSN(),
           user3UUID);
       broker.publish(delMsg);
 

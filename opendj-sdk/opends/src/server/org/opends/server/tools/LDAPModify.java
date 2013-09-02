@@ -539,7 +539,7 @@ public class LDAPModify
             {
               out.println(INFO_CHANGE_NUMBER_CONTROL_RESULT.get(operationType,
                   ((ChangeNumberControlPlugin.ChangeNumberControl)c).
-                      getChangeNumber().toString()));
+                      getCSN().toString()));
             }
           }
         }

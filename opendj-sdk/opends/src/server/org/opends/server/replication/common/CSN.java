@@ -27,6 +27,7 @@
  */
 package org.opends.server.replication.common;
 
+import java.io.Serializable;
 import java.util.Date;
 
 import org.opends.server.types.ByteSequence;
@@ -35,10 +36,9 @@ import org.opends.server.types.ByteString;
 import org.opends.server.types.ByteStringBuilder;
 
 /**
- * Class used to represent Change Numbers.
+ * Class used to represent Change Sequence Numbers.
  */
-public class ChangeNumber implements java.io.Serializable,
-                                     java.lang.Comparable<ChangeNumber>
+public class CSN implements Serializable, Comparable<CSN>
 {
   /**
    * The number of bytes used by the byte string representation of a change
@@ -65,16 +65,16 @@ public class ChangeNumber implements java.io.Serializable,
   private final int serverId;
 
   /**
-   * Parses the provided {@link #toString()} representation of a change number.
+   * Parses the provided {@link #toString()} representation of a CSN.
    *
    * @param s
    *          The string to be parsed.
-   * @return The parsed change number.
+   * @return The parsed CSN.
    * @see #toString()
    */
-  public static ChangeNumber valueOf(String s)
+  public static CSN valueOf(String s)
   {
-    return new ChangeNumber(s);
+    return new CSN(s);
   }
 
   /**
@@ -83,24 +83,24 @@ public class ChangeNumber implements java.io.Serializable,
    *
    * @param bs
    *          The byte sequence to be parsed.
-   * @return The decoded change number.
+   * @return The decoded CSN.
    * @see #toByteString()
    */
-  public static ChangeNumber valueOf(ByteSequence bs)
+  public static CSN valueOf(ByteSequence bs)
   {
     ByteSequenceReader reader = bs.asReader();
     long timeStamp = reader.getLong();
     int serverId = reader.getShort() & 0xffff;
     int seqnum = reader.getInt();
-    return new ChangeNumber(timeStamp, seqnum, serverId);
+    return new CSN(timeStamp, seqnum, serverId);
   }
 
   /**
-   * Create a new ChangeNumber from a String.
+   * Create a new {@link CSN} from a String.
    *
-   * @param str the string from which to create a ChangeNumber
+   * @param str the string from which to create a {@link CSN}
    */
-  public ChangeNumber(String str)
+  public CSN(String str)
   {
     String temp = str.substring(0, 16);
     timeStamp = Long.parseLong(temp, 16);
@@ -113,13 +113,13 @@ public class ChangeNumber implements java.io.Serializable,
   }
 
   /**
-   * Create a new ChangeNumber.
+   * Create a new {@link CSN}.
    *
-   * @param timeStamp timeStamp for the ChangeNumber
+   * @param timeStamp timeStamp for the {@link CSN}
    * @param seqNum sequence number
    * @param serverId identity of server
    */
-  public ChangeNumber(long timeStamp, int seqNum, int serverId)
+  public CSN(long timeStamp, int seqNum, int serverId)
   {
     this.serverId = serverId;
     this.timeStamp = timeStamp;
@@ -136,8 +136,8 @@ public class ChangeNumber implements java.io.Serializable,
   }
 
   /**
-   * Get the timestamp associated to this ChangeNumber in seconds.
-   * @return timestamp associated to this ChangeNumber in seconds
+   * Get the timestamp associated to this {@link CSN} in seconds.
+   * @return timestamp associated to this {@link CSN} in seconds
    */
   public long getTimeSec()
   {
@@ -169,12 +169,12 @@ public class ChangeNumber implements java.io.Serializable,
   @Override
   public boolean equals(Object obj)
   {
-    if (obj instanceof ChangeNumber)
+    if (obj instanceof CSN)
     {
-      ChangeNumber cn = (ChangeNumber) obj;
-      return this.seqnum == cn.seqnum &&
-          this.serverId == cn.serverId &&
-          this.timeStamp == cn.timeStamp;
+      CSN csn = (CSN) obj;
+      return this.seqnum == csn.seqnum &&
+          this.serverId == csn.serverId &&
+          this.timeStamp == csn.timeStamp;
     }
     return false;
   }
@@ -189,12 +189,12 @@ public class ChangeNumber implements java.io.Serializable,
   }
 
   /**
-   * Encodes this change number as a byte string.
+   * Encodes this CSN as a byte string.
    * <p>
    * NOTE: this representation must not be modified otherwise interop with
    * earlier protocol versions will be broken.
    *
-   * @return The encoded representation of this change number.
+   * @return The encoded representation of this CSN.
    * @see #valueOf(ByteSequence)
    */
   public ByteString toByteString()
@@ -204,14 +204,14 @@ public class ChangeNumber implements java.io.Serializable,
   }
 
   /**
-   * Encodes this change number into the provided byte string builder.
+   * Encodes this CSN into the provided byte string builder.
    * <p>
    * NOTE: this representation must not be modified otherwise interop with
    * earlier protocol versions will be broken.
    *
    * @param builder
    *          The byte string builder.
-   * @return The byte string builder containing the encoded change number.
+   * @return The byte string builder containing the encoded CSN.
    * @see #valueOf(ByteSequence)
    */
   public ByteStringBuilder toByteString(ByteStringBuilder builder)
@@ -221,7 +221,7 @@ public class ChangeNumber implements java.io.Serializable,
   }
 
   /**
-   * Convert the ChangeNumber to a printable String.
+   * Convert the {@link CSN} to a printable String.
    * <p>
    * NOTE: this representation must not be modified otherwise interop with
    * earlier protocol versions will be broken.
@@ -235,7 +235,7 @@ public class ChangeNumber implements java.io.Serializable,
   }
 
   /**
-   * Convert the ChangeNumber to a printable String with a user friendly
+   * Convert the {@link CSN} to a printable String with a user friendly
    * format.
    *
    * @return the string
@@ -250,75 +250,78 @@ public class ChangeNumber implements java.io.Serializable,
   }
 
   /**
-   * Compares 2 ChangeNumber.
-   * @param CN1 the first ChangeNumber to compare
-   * @param CN2 the second ChangeNumber to compare
-   * @return value 0 if changeNumber matches, negative if first
-   * changeNumber is smaller, positive otherwise
+   * Compares 2 {@link CSN}.
+   * @param csn1 the first {@link CSN} to compare
+   * @param csn2 the second {@link CSN} to compare
+   * @return value 0 if CSN matches, negative if first
+   * CSN is smaller, positive otherwise
    */
-  public static int compare(ChangeNumber CN1, ChangeNumber CN2)
+  public static int compare(CSN csn1, CSN csn2)
   {
-    if (CN1 == null)
+    if (csn1 == null)
     {
-      if (CN2 == null)
+      if (csn2 == null)
         return 0;
       return -1;
     }
-    else if (CN2 == null)
+    else if (csn2 == null)
       return 1;
-    else if (CN1.timeStamp < CN2.timeStamp)
+    else if (csn1.timeStamp < csn2.timeStamp)
       return -1;
-    else if (CN2.timeStamp < CN1.timeStamp)
+    else if (csn2.timeStamp < csn1.timeStamp)
       return 1;
     else
     {
       // timestamps are equals compare seqnums
-      if (CN1.seqnum < CN2.seqnum)
+      if (csn1.seqnum < csn2.seqnum)
         return -1;
-      else if (CN2.seqnum < CN1.seqnum)
+      else if (csn2.seqnum < csn1.seqnum)
         return 1;
       else
       {
         // timestamp and seqnum are equals compare serverIds
-        if (CN1.serverId < CN2.serverId)
+        if (csn1.serverId < csn2.serverId)
           return -1;
-        else if (CN2.serverId < CN1.serverId)
+        else if (csn2.serverId < csn1.serverId)
           return 1;
 
-        // if we get here ChangeNumber are equals
+        // if we get here {@link CSN} are equals
         return 0;
       }
 
     }
   }
 
- /**
-  * Computes the difference in number of changes between 2
-  * change numbers. First one is expected to be newer than second one. If this
-  * is not the case, 0 will be returned.
-  * @param op1 the first ChangeNumber
-  * @param op2 the second ChangeNumber
-  * @return the difference
-  */
-  public static int diffSeqNum(ChangeNumber op1, ChangeNumber op2)
+  /**
+   * Computes the difference in number of changes between 2 CSNs. First one is
+   * expected to be newer than second one. If this is not the case, 0 will be
+   * returned.
+   *
+   * @param csn1
+   *          the first {@link CSN}
+   * @param csn2
+   *          the second {@link CSN}
+   * @return the difference
+   */
+  public static int diffSeqNum(CSN csn1, CSN csn2)
   {
-    if (op1 == null)
+    if (csn1 == null)
     {
       return 0;
     }
-    if (op2 == null)
+    if (csn2 == null)
     {
-      return op1.getSeqnum();
+      return csn1.getSeqnum();
     }
-    if (op2.newerOrEquals(op1))
+    if (csn2.newerOrEquals(csn1))
     {
       return 0;
     }
 
-    int seqnum1 = op1.getSeqnum();
-    long time1 = op1.getTime();
-    int seqnum2 = op2.getSeqnum();
-    long time2 = op2.getTime();
+    int seqnum1 = csn1.getSeqnum();
+    long time1 = csn1.getTime();
+    int seqnum2 = csn2.getSeqnum();
+    long time2 = csn2.getTime();
 
     if (time2 <= time1)
     {
@@ -332,56 +335,56 @@ public class ChangeNumber implements java.io.Serializable,
   }
 
   /**
-   * check if the current Object is strictly older than ChangeNumber
+   * check if the current Object is strictly older than {@link CSN}
    * given in parameter.
-   * @param CN the ChangeNumber to compare with
+   * @param csn the {@link CSN} to compare with
    * @return true if strictly older, false if younger or same
    */
-  public boolean older(ChangeNumber CN)
+  public boolean older(CSN csn)
   {
-    return compare(this, CN) < 0;
+    return compare(this, csn) < 0;
   }
 
   /**
-   * check if the current Object is older than ChangeNumber
+   * check if the current Object is older than {@link CSN}
    * given in parameter.
-   * @param CN the ChangeNumber to compare with
+   * @param csn the {@link CSN} to compare with
    * @return true if older or equal, false if younger
    */
-  public boolean olderOrEqual(ChangeNumber CN)
+  public boolean olderOrEqual(CSN csn)
   {
-    return compare(this, CN) <= 0;
+    return compare(this, csn) <= 0;
   }
 
   /**
-   * Check if the current Object is newer than ChangeNumber.
-   * @param CN the ChangeNumber to compare with
+   * Check if the current Object is newer than {@link CSN}.
+   * @param csn the {@link CSN} to compare with
    * @return true if newer
    */
-  public boolean newerOrEquals(ChangeNumber CN)
+  public boolean newerOrEquals(CSN csn)
   {
-    return compare(this, CN) >= 0;
+    return compare(this, csn) >= 0;
   }
 
   /**
-   * Check if the current Object is strictly newer than ChangeNumber.
-   * @param CN the ChangeNumber to compare with
+   * Check if the current Object is strictly newer than {@link CSN}.
+   * @param csn the {@link CSN} to compare with
    * @return true if strictly newer
    */
-  public boolean newer(ChangeNumber CN)
+  public boolean newer(CSN csn)
   {
-    return compare(this, CN) > 0;
+    return compare(this, csn) > 0;
   }
 
   /**
    * Compares this object with the specified object for order.
-   * @param cn the ChangeNumber to compare with.
+   * @param csn the {@link CSN} to compare with.
    * @return a negative integer, zero, or a positive integer as this object
    *         is less than, equal to, or greater than the specified object.
    */
   @Override
-  public int compareTo(ChangeNumber cn)
+  public int compareTo(CSN csn)
   {
-    return compare(this, cn);
+    return compare(this, csn);
   }
 }

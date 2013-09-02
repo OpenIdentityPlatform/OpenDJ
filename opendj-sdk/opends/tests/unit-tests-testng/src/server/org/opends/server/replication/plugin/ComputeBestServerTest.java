@@ -31,29 +31,31 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import static org.opends.server.replication.service.ReplicationBroker.*;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.ErrorLogger.logError;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-import static org.testng.Assert.*;
 
 import org.opends.messages.Category;
 import org.opends.messages.Message;
 import org.opends.messages.Severity;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.ReplicationTestCase;
-import org.opends.server.replication.common.ChangeNumber;
+import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.RSInfo;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.protocol.ReplServerStartMsg;
 import org.opends.server.replication.server.ReplicationServer;
+import org.opends.server.replication.service.ReplicationBroker.ReplicationServerInfo;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+
+import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.replication.service.ReplicationBroker.*;
+import static org.testng.Assert.*;
 
 /**
  * Test the algorithm for finding the best replication server among the
  * configured ones.
  */
+@SuppressWarnings("javadoc")
 public class ComputeBestServerTest extends ReplicationTestCase
 {
 
@@ -70,15 +72,13 @@ public class ComputeBestServerTest extends ReplicationTestCase
   }
 
   /**
-   * Test with one replication server, nobody has a change number (simulates)
-   * very first connection.
-   *
-   * @throws Exception If a problem occurred
+   * Test with one replication server, nobody has a CSN (simulates) very first
+   * connection.
    */
   @Test
-  public void testNullCNBoth() throws Exception
+  public void testNullCSNBoth() throws Exception
   {
-    String testCase = "testNullCNBoth";
+    String testCase = "testNullCSNBoth";
 
     debugInfo("Starting " + testCase);
 
@@ -92,21 +92,20 @@ public class ComputeBestServerTest extends ReplicationTestCase
 
     // Create my state
     ServerState mySt = new ServerState();
-    ChangeNumber cn = new ChangeNumber(2L, 0, myId2); // Should not be used inside algo
-    mySt.update(cn);
-    cn = new ChangeNumber(3L, 0, myId3); // Should not be used inside algo
-    mySt.update(cn);
+    CSN csn = new CSN(2L, 0, myId2); // Should not be used inside algo
+    mySt.update(csn);
+    csn = new CSN(3L, 0, myId3); // Should not be used inside algo
+    mySt.update(csn);
 
-    // Create replication servers info list
-    HashMap<Integer, ReplicationServerInfo> rsInfos =
+    Map<Integer, ReplicationServerInfo> rsInfos =
       new HashMap<Integer, ReplicationServerInfo>();
 
     // State for server 1
     ServerState aState = new ServerState();
-    cn = new ChangeNumber(0L, 0, myId2);
-    aState.update(cn);
-    cn = new ChangeNumber(0L, 0, myId3);
-    aState.update(cn);
+    csn = new CSN(0L, 0, myId2);
+    aState.update(csn);
+    csn = new CSN(0L, 0, myId3);
+    aState.update(csn);
     ReplServerStartMsg replServerStartMsg =
       new ReplServerStartMsg(11, WINNER, null, 0, aState, 0L,
       false, (byte)1, 0);
@@ -121,13 +120,12 @@ public class ComputeBestServerTest extends ReplicationTestCase
 
   /**
    * Test with one replication server, only replication server has a non null
-   * changenumber for ds server id
-   * @throws Exception If a problem occurred
+   * CSN for ds server id
    */
   @Test
-  public void testNullCNDS() throws Exception
+  public void testNullCSNDS() throws Exception
   {
-    String testCase = "testNullCNDS";
+    String testCase = "testNullCSNDS";
 
     debugInfo("Starting " + testCase);
 
@@ -140,23 +138,22 @@ public class ComputeBestServerTest extends ReplicationTestCase
 
     // Create my state
     ServerState mySt = new ServerState();
-    ChangeNumber cn = new ChangeNumber(2L, 0, myId2); // Should not be used inside algo
-    mySt.update(cn);
-    cn = new ChangeNumber(3L, 0, myId3); // Should not be used inside algo
-    mySt.update(cn);
+    CSN csn = new CSN(2L, 0, myId2); // Should not be used inside algo
+    mySt.update(csn);
+    csn = new CSN(3L, 0, myId3); // Should not be used inside algo
+    mySt.update(csn);
 
-    // Create replication servers info list
-    HashMap<Integer, ReplicationServerInfo> rsInfos =
+    Map<Integer, ReplicationServerInfo> rsInfos =
       new HashMap<Integer, ReplicationServerInfo>();
 
     // State for server 1
     ServerState aState = new ServerState();
-    cn = new ChangeNumber(0L, 0, myId1);
-    aState.update(cn);
-    cn = new ChangeNumber(0L, 0, myId2);
-    aState.update(cn);
-    cn = new ChangeNumber(0L, 0, myId3);
-    aState.update(cn);
+    csn = new CSN(0L, 0, myId1);
+    aState.update(csn);
+    csn = new CSN(0L, 0, myId2);
+    aState.update(csn);
+    csn = new CSN(0L, 0, myId3);
+    aState.update(csn);
     ReplServerStartMsg replServerStartMsg =
       new ReplServerStartMsg(11, WINNER, null, 0, aState, 0L,
       false, (byte)1, 0);
@@ -170,15 +167,13 @@ public class ComputeBestServerTest extends ReplicationTestCase
   }
 
   /**
-   * Test with one replication server, only ds server has a non null
-   * changenumber for ds server id but rs has a null one.
-   *
-   * @throws Exception If a problem occurred
+   * Test with one replication server, only ds server has a non null CSN for ds
+   * server id but rs has a null one.
    */
   @Test
-  public void testNullCNRS() throws Exception
+  public void testNullCSNRS() throws Exception
   {
-    String testCase = "testNullCNRS";
+    String testCase = "testNullCSNRS";
 
     debugInfo("Starting " + testCase);
 
@@ -192,23 +187,22 @@ public class ComputeBestServerTest extends ReplicationTestCase
 
     // Create my state
     ServerState mySt = new ServerState();
-    ChangeNumber cn = new ChangeNumber(1L, 0, myId1);
-    mySt.update(cn);
-    cn = new ChangeNumber(2L, 0, myId2); // Should not be used inside algo
-    mySt.update(cn);
-    cn = new ChangeNumber(3L, 0, myId3); // Should not be used inside algo
-    mySt.update(cn);
+    CSN csn = new CSN(1L, 0, myId1);
+    mySt.update(csn);
+    csn = new CSN(2L, 0, myId2); // Should not be used inside algo
+    mySt.update(csn);
+    csn = new CSN(3L, 0, myId3); // Should not be used inside algo
+    mySt.update(csn);
 
-    // Create replication servers info list
-    HashMap<Integer, ReplicationServerInfo> rsInfos =
+    Map<Integer, ReplicationServerInfo> rsInfos =
       new HashMap<Integer, ReplicationServerInfo>();
 
     // State for server 1
     ServerState aState = new ServerState();
-    cn = new ChangeNumber(0L, 0, myId2);
-    aState.update(cn);
-    cn = new ChangeNumber(0L, 0, myId3);
-    aState.update(cn);
+    csn = new CSN(0L, 0, myId2);
+    aState.update(csn);
+    csn = new CSN(0L, 0, myId3);
+    aState.update(csn);
     ReplServerStartMsg replServerStartMsg =
       new ReplServerStartMsg(11, WINNER, null, 0, aState, 0L,
       false, (byte)1, 0);
@@ -242,25 +236,24 @@ public class ComputeBestServerTest extends ReplicationTestCase
 
     // Create my state
     ServerState mySt = new ServerState();
-    ChangeNumber cn = new ChangeNumber(1L, 0, myId1);
-    mySt.update(cn);
-    cn = new ChangeNumber(2L, 0, myId2); // Should not be used inside algo
-    mySt.update(cn);
-    cn = new ChangeNumber(3L, 0, myId3); // Should not be used inside algo
-    mySt.update(cn);
+    CSN csn = new CSN(1L, 0, myId1);
+    mySt.update(csn);
+    csn = new CSN(2L, 0, myId2); // Should not be used inside algo
+    mySt.update(csn);
+    csn = new CSN(3L, 0, myId3); // Should not be used inside algo
+    mySt.update(csn);
 
-    // Create replication servers info list
-    HashMap<Integer, ReplicationServerInfo> rsInfos =
+    Map<Integer, ReplicationServerInfo> rsInfos =
       new HashMap<Integer, ReplicationServerInfo>();
 
     // State for server 1
     ServerState aState = new ServerState();
-    cn = new ChangeNumber(1L, 0, myId1);
-    aState.update(cn);
-    cn = new ChangeNumber(1L, 0, myId2);
-    aState.update(cn);
-    cn = new ChangeNumber(1L, 0, myId3);
-    aState.update(cn);
+    csn = new CSN(1L, 0, myId1);
+    aState.update(csn);
+    csn = new CSN(1L, 0, myId2);
+    aState.update(csn);
+    csn = new CSN(1L, 0, myId3);
+    aState.update(csn);
     ReplServerStartMsg replServerStartMsg =
       new ReplServerStartMsg(11, WINNER, null, 0, aState, 0L,
       false, (byte)1, 0);
@@ -295,25 +288,24 @@ public class ComputeBestServerTest extends ReplicationTestCase
 
     // Create my state
     ServerState mySt = new ServerState();
-    ChangeNumber cn = new ChangeNumber(1L, 0, myId1);
-    mySt.update(cn);
-    cn = new ChangeNumber(2L, 0, myId2); // Should not be used inside algo
-    mySt.update(cn);
-    cn = new ChangeNumber(3L, 0, myId3); // Should not be used inside algo
-    mySt.update(cn);
+    CSN csn = new CSN(1L, 0, myId1);
+    mySt.update(csn);
+    csn = new CSN(2L, 0, myId2); // Should not be used inside algo
+    mySt.update(csn);
+    csn = new CSN(3L, 0, myId3); // Should not be used inside algo
+    mySt.update(csn);
 
-    // Create replication servers info list
-    HashMap<Integer, ReplicationServerInfo> rsInfos =
+    Map<Integer, ReplicationServerInfo> rsInfos =
       new HashMap<Integer, ReplicationServerInfo>();
 
     // State for server 1
     ServerState aState = new ServerState();
-    cn = new ChangeNumber(1L, 0, myId1);
-    aState.update(cn);
-    cn = new ChangeNumber(1L, 0, myId2);
-    aState.update(cn);
-    cn = new ChangeNumber(1L, 0, myId3);
-    aState.update(cn);
+    csn = new CSN(1L, 0, myId1);
+    aState.update(csn);
+    csn = new CSN(1L, 0, myId2);
+    aState.update(csn);
+    csn = new CSN(1L, 0, myId3);
+    aState.update(csn);
     ReplServerStartMsg replServerStartMsg =
       new ReplServerStartMsg(11, LOOSER1, null, 0, aState, 0L,
       false, (byte)1, 0);
@@ -321,12 +313,12 @@ public class ComputeBestServerTest extends ReplicationTestCase
 
     // State for server 2
     aState = new ServerState();
-    cn = new ChangeNumber(2L, 0, myId1);
-    aState.update(cn);
-    cn = new ChangeNumber(1L, 0, myId2);
-    aState.update(cn);
-    cn = new ChangeNumber(1L, 0, myId3);
-    aState.update(cn);
+    csn = new CSN(2L, 0, myId1);
+    aState.update(csn);
+    csn = new CSN(1L, 0, myId2);
+    aState.update(csn);
+    csn = new CSN(1L, 0, myId3);
+    aState.update(csn);
     replServerStartMsg =
       new ReplServerStartMsg(12, WINNER, null, 0, aState, 0L,
       false, (byte)1, 0);
@@ -361,25 +353,24 @@ public class ComputeBestServerTest extends ReplicationTestCase
 
     // Create my state
     ServerState mySt = new ServerState();
-    ChangeNumber cn = new ChangeNumber(1L, 0, myId1);
-    mySt.update(cn);
-    cn = new ChangeNumber(2L, 0, myId2); // Should not be used inside algo
-    mySt.update(cn);
-    cn = new ChangeNumber(3L, 0, myId3); // Should not be used inside algo
-    mySt.update(cn);
+    CSN csn = new CSN(1L, 0, myId1);
+    mySt.update(csn);
+    csn = new CSN(2L, 0, myId2); // Should not be used inside algo
+    mySt.update(csn);
+    csn = new CSN(3L, 0, myId3); // Should not be used inside algo
+    mySt.update(csn);
 
-    // Create replication servers info list
-    HashMap<Integer, ReplicationServerInfo> rsInfos =
+    Map<Integer, ReplicationServerInfo> rsInfos =
       new HashMap<Integer, ReplicationServerInfo>();
 
     // State for server 1
     ServerState aState = new ServerState();
-    cn = new ChangeNumber(1L, 0, myId1);
-    aState.update(cn);
-    cn = new ChangeNumber(1L, 0, myId2);
-    aState.update(cn);
-    cn = new ChangeNumber(1L, 0, myId3);
-    aState.update(cn);
+    csn = new CSN(1L, 0, myId1);
+    aState.update(csn);
+    csn = new CSN(1L, 0, myId2);
+    aState.update(csn);
+    csn = new CSN(1L, 0, myId3);
+    aState.update(csn);
     // This server has less changes than the other one but it has the same
     // group id as us so he should be the winner
     ReplServerStartMsg replServerStartMsg =
@@ -389,12 +380,12 @@ public class ComputeBestServerTest extends ReplicationTestCase
 
     // State for server 2
     aState = new ServerState();
-    cn = new ChangeNumber(2L, 0, myId1);
-    aState.update(cn);
-    cn = new ChangeNumber(1L, 0, myId2);
-    aState.update(cn);
-    cn = new ChangeNumber(1L, 0, myId3);
-    aState.update(cn);
+    csn = new CSN(2L, 0, myId1);
+    aState.update(csn);
+    csn = new CSN(1L, 0, myId2);
+    aState.update(csn);
+    csn = new CSN(1L, 0, myId3);
+    aState.update(csn);
     replServerStartMsg =
       new ReplServerStartMsg(12, LOOSER1, null, 0, aState, 0L,
       false, (byte)2, 0);
@@ -429,25 +420,24 @@ public class ComputeBestServerTest extends ReplicationTestCase
 
     // Create my state
     ServerState mySt = new ServerState();
-    ChangeNumber cn = new ChangeNumber(1L, 0, myId1);
-    mySt.update(cn);
-    cn = new ChangeNumber(2L, 0, myId2); // Should not be used inside algo
-    mySt.update(cn);
-    cn = new ChangeNumber(3L, 0, myId3); // Should not be used inside algo
-    mySt.update(cn);
+    CSN csn = new CSN(1L, 0, myId1);
+    mySt.update(csn);
+    csn = new CSN(2L, 0, myId2); // Should not be used inside algo
+    mySt.update(csn);
+    csn = new CSN(3L, 0, myId3); // Should not be used inside algo
+    mySt.update(csn);
 
-    // Create replication servers info list
-    HashMap<Integer, ReplicationServerInfo> rsInfos =
+    Map<Integer, ReplicationServerInfo> rsInfos =
       new HashMap<Integer, ReplicationServerInfo>();
 
     // State for server 1
     ServerState aState = new ServerState();
-    cn = new ChangeNumber(1L, 0, myId1);
-    aState.update(cn);
-    cn = new ChangeNumber(1L, 0, myId2);
-    aState.update(cn);
-    cn = new ChangeNumber(1L, 0, myId3);
-    aState.update(cn);
+    csn = new CSN(1L, 0, myId1);
+    aState.update(csn);
+    csn = new CSN(1L, 0, myId2);
+    aState.update(csn);
+    csn = new CSN(1L, 0, myId3);
+    aState.update(csn);
     ReplServerStartMsg replServerStartMsg =
       new ReplServerStartMsg(11, LOOSER1, null, 0, aState, 0L,
       false, (byte)2, 0);
@@ -455,12 +445,12 @@ public class ComputeBestServerTest extends ReplicationTestCase
 
     // State for server 2
     aState = new ServerState();
-    cn = new ChangeNumber(2L, 0, myId1);
-    aState.update(cn);
-    cn = new ChangeNumber(2L, 0, myId2);
-    aState.update(cn);
-    cn = new ChangeNumber(2L, 0, myId3);
-    aState.update(cn);
+    csn = new CSN(2L, 0, myId1);
+    aState.update(csn);
+    csn = new CSN(2L, 0, myId2);
+    aState.update(csn);
+    csn = new CSN(2L, 0, myId3);
+    aState.update(csn);
     replServerStartMsg =
       new ReplServerStartMsg(12, WINNER, null, 0, aState, 0L,
       false, (byte)2, 0);
@@ -496,25 +486,24 @@ public class ComputeBestServerTest extends ReplicationTestCase
 
     // Create my state
     ServerState mySt = new ServerState();
-    ChangeNumber cn = new ChangeNumber(1L, 0, myId1);
-    mySt.update(cn);
-    cn = new ChangeNumber(2L, 0, myId2); // Should not be used inside algo
-    mySt.update(cn);
-    cn = new ChangeNumber(3L, 0, myId3); // Should not be used inside algo
-    mySt.update(cn);
+    CSN csn = new CSN(1L, 0, myId1);
+    mySt.update(csn);
+    csn = new CSN(2L, 0, myId2); // Should not be used inside algo
+    mySt.update(csn);
+    csn = new CSN(3L, 0, myId3); // Should not be used inside algo
+    mySt.update(csn);
 
-    // Create replication servers info list
-    HashMap<Integer, ReplicationServerInfo> rsInfos =
+    Map<Integer, ReplicationServerInfo> rsInfos =
       new HashMap<Integer, ReplicationServerInfo>();
 
     // State for server 1
     ServerState aState = new ServerState();
-    cn = new ChangeNumber(1L, 0, myId1);
-    aState.update(cn);
-    cn = new ChangeNumber(1L, 0, myId2);
-    aState.update(cn);
-    cn = new ChangeNumber(1L, 0, myId3);
-    aState.update(cn);
+    csn = new CSN(1L, 0, myId1);
+    aState.update(csn);
+    csn = new CSN(1L, 0, myId2);
+    aState.update(csn);
+    csn = new CSN(1L, 0, myId3);
+    aState.update(csn);
     ReplServerStartMsg replServerStartMsg =
       new ReplServerStartMsg(11, LOOSER1, null, 0, aState, 0L,
       false, (byte)1, 0);
@@ -522,12 +511,12 @@ public class ComputeBestServerTest extends ReplicationTestCase
 
     // State for server 2
     aState = new ServerState();
-    cn = new ChangeNumber(2L, 0, myId1);
-    aState.update(cn);
-    cn = new ChangeNumber(1L, 0, myId2);
-    aState.update(cn);
-    cn = new ChangeNumber(4L, 0, myId3);
-    aState.update(cn);
+    csn = new CSN(2L, 0, myId1);
+    aState.update(csn);
+    csn = new CSN(1L, 0, myId2);
+    aState.update(csn);
+    csn = new CSN(4L, 0, myId3);
+    aState.update(csn);
     replServerStartMsg =
       new ReplServerStartMsg(12, LOOSER2, null, 0, aState, 0L,
       false, (byte)1, 0);
@@ -535,12 +524,12 @@ public class ComputeBestServerTest extends ReplicationTestCase
 
     // State for server 3
     aState = new ServerState();
-    cn = new ChangeNumber(3L, 0, myId1);
-    aState.update(cn);
-    cn = new ChangeNumber(2L, 0, myId2);
-    aState.update(cn);
-    cn = new ChangeNumber(1L, 0, myId3);
-    aState.update(cn);
+    csn = new CSN(3L, 0, myId1);
+    aState.update(csn);
+    csn = new CSN(2L, 0, myId2);
+    aState.update(csn);
+    csn = new CSN(1L, 0, myId3);
+    aState.update(csn);
     replServerStartMsg =
       new ReplServerStartMsg(13, WINNER, null, 0, aState, 0L,
       false, (byte)1, 0);
@@ -576,25 +565,24 @@ public class ComputeBestServerTest extends ReplicationTestCase
 
     // Create my state
     ServerState mySt = new ServerState();
-    ChangeNumber cn = new ChangeNumber(1L, 0, myId1);
-    mySt.update(cn);
-    cn = new ChangeNumber(2L, 0, myId2); // Should not be used inside algo
-    mySt.update(cn);
-    cn = new ChangeNumber(3L, 0, myId3); // Should not be used inside algo
-    mySt.update(cn);
+    CSN csn = new CSN(1L, 0, myId1);
+    mySt.update(csn);
+    csn = new CSN(2L, 0, myId2); // Should not be used inside algo
+    mySt.update(csn);
+    csn = new CSN(3L, 0, myId3); // Should not be used inside algo
+    mySt.update(csn);
 
-    // Create replication servers info list
-    HashMap<Integer, ReplicationServerInfo> rsInfos =
+    Map<Integer, ReplicationServerInfo> rsInfos =
       new HashMap<Integer, ReplicationServerInfo>();
 
     // State for server 1
     ServerState aState = new ServerState();
-    cn = new ChangeNumber(1L, 0, myId1);
-    aState.update(cn);
-    cn = new ChangeNumber(1L, 0, myId2);
-    aState.update(cn);
-    cn = new ChangeNumber(1L, 0, myId3);
-    aState.update(cn);
+    csn = new CSN(1L, 0, myId1);
+    aState.update(csn);
+    csn = new CSN(1L, 0, myId2);
+    aState.update(csn);
+    csn = new CSN(1L, 0, myId3);
+    aState.update(csn);
     ReplServerStartMsg replServerStartMsg =
       new ReplServerStartMsg(11, LOOSER1, null, 0, aState, 0L,
       false, (byte)1, 0);
@@ -602,12 +590,12 @@ public class ComputeBestServerTest extends ReplicationTestCase
 
     // State for server 2
     aState = new ServerState();
-    cn = new ChangeNumber(2L, 0, myId1);
-    aState.update(cn);
-    cn = new ChangeNumber(1L, 0, myId2);
-    aState.update(cn);
-    cn = new ChangeNumber(3L, 0, myId3);
-    aState.update(cn);
+    csn = new CSN(2L, 0, myId1);
+    aState.update(csn);
+    csn = new CSN(1L, 0, myId2);
+    aState.update(csn);
+    csn = new CSN(3L, 0, myId3);
+    aState.update(csn);
     replServerStartMsg =
       new ReplServerStartMsg(12, LOOSER2, null, 0, aState, 0L,
       false, (byte)2, 0);
@@ -615,12 +603,12 @@ public class ComputeBestServerTest extends ReplicationTestCase
 
     // State for server 3
     aState = new ServerState();
-    cn = new ChangeNumber(3L, 0, myId1);
-    aState.update(cn);
-    cn = new ChangeNumber(2L, 0, myId2);
-    aState.update(cn);
-    cn = new ChangeNumber(1L, 0, myId3);
-    aState.update(cn);
+    csn = new CSN(3L, 0, myId1);
+    aState.update(csn);
+    csn = new CSN(2L, 0, myId2);
+    aState.update(csn);
+    csn = new CSN(1L, 0, myId3);
+    aState.update(csn);
     // This server has less changes than looser2 but it has the same
     // group id as us so he should be the winner
     replServerStartMsg =
@@ -656,25 +644,24 @@ public class ComputeBestServerTest extends ReplicationTestCase
 
     // Create my state
     ServerState mySt = new ServerState();
-    ChangeNumber cn = new ChangeNumber(1L, 0, myId1);
-    mySt.update(cn);
-    cn = new ChangeNumber(2L, 0, myId2); // Should not be used inside algo
-    mySt.update(cn);
-    cn = new ChangeNumber(3L, 0, myId3); // Should not be used inside algo
-    mySt.update(cn);
+    CSN csn = new CSN(1L, 0, myId1);
+    mySt.update(csn);
+    csn = new CSN(2L, 0, myId2); // Should not be used inside algo
+    mySt.update(csn);
+    csn = new CSN(3L, 0, myId3); // Should not be used inside algo
+    mySt.update(csn);
 
-    // Create replication servers info list
-    HashMap<Integer, ReplicationServerInfo> rsInfos =
+    Map<Integer, ReplicationServerInfo> rsInfos =
       new HashMap<Integer, ReplicationServerInfo>();
 
     // State for server 1
     ServerState aState = new ServerState();
-    cn = new ChangeNumber(0L, 0, myId1);
-    aState.update(cn);
-    cn = new ChangeNumber(1L, 0, myId2);
-    aState.update(cn);
-    cn = new ChangeNumber(1L, 0, myId3);
-    aState.update(cn);
+    csn = new CSN(0L, 0, myId1);
+    aState.update(csn);
+    csn = new CSN(1L, 0, myId2);
+    aState.update(csn);
+    csn = new CSN(1L, 0, myId3);
+    aState.update(csn);
     ReplServerStartMsg replServerStartMsg =
       new ReplServerStartMsg(11, WINNER, null, 0, aState, 0L,
       false, (byte)1, 0);
@@ -746,25 +733,24 @@ public class ComputeBestServerTest extends ReplicationTestCase
 
     // Create my state
     ServerState mySt = new ServerState();
-    ChangeNumber cn = new ChangeNumber(4L, 0, myId1);
-    mySt.update(cn);
-    cn = new ChangeNumber(2L, 0, myId2); // Should not be used inside algo
-    mySt.update(cn);
-    cn = new ChangeNumber(3L, 0, myId3); // Should not be used inside algo
-    mySt.update(cn);
+    CSN csn = new CSN(4L, 0, myId1);
+    mySt.update(csn);
+    csn = new CSN(2L, 0, myId2); // Should not be used inside algo
+    mySt.update(csn);
+    csn = new CSN(3L, 0, myId3); // Should not be used inside algo
+    mySt.update(csn);
 
-    // Create replication servers info list
-    HashMap<Integer, ReplicationServerInfo> rsInfos =
+    Map<Integer, ReplicationServerInfo> rsInfos =
       new HashMap<Integer, ReplicationServerInfo>();
 
     // State for server 1
     ServerState aState = new ServerState();
-    cn = new ChangeNumber(looser1T1, 0, myId1);
-    aState.update(cn);
-    cn = new ChangeNumber(looser1T2, 0, myId2);
-    aState.update(cn);
-    cn = new ChangeNumber(looser1T3, 0, myId3);
-    aState.update(cn);
+    csn = new CSN(looser1T1, 0, myId1);
+    aState.update(csn);
+    csn = new CSN(looser1T2, 0, myId2);
+    aState.update(csn);
+    csn = new CSN(looser1T3, 0, myId3);
+    aState.update(csn);
     ReplServerStartMsg replServerStartMsg =
       new ReplServerStartMsg(11, LOOSER1, null, 0, aState, 0L,
       false, (byte)1, 0);
@@ -774,12 +760,12 @@ public class ComputeBestServerTest extends ReplicationTestCase
 
     // State for server 2
     aState = new ServerState();
-    cn = new ChangeNumber(winnerT1, 0, myId1);
-    aState.update(cn);
-    cn = new ChangeNumber(winnerT2, 0, myId2);
-    aState.update(cn);
-    cn = new ChangeNumber(winnerT3, 0, myId3);
-    aState.update(cn);
+    csn = new CSN(winnerT1, 0, myId1);
+    aState.update(csn);
+    csn = new CSN(winnerT2, 0, myId2);
+    aState.update(csn);
+    csn = new CSN(winnerT3, 0, myId3);
+    aState.update(csn);
     replServerStartMsg =
       new ReplServerStartMsg(12, WINNER, null, 0, aState, 0L,
       false, (byte)1, 0);
@@ -789,12 +775,12 @@ public class ComputeBestServerTest extends ReplicationTestCase
 
     // State for server 3
     aState = new ServerState();
-    cn = new ChangeNumber(looser2T1, 0, myId1);
-    aState.update(cn);
-    cn = new ChangeNumber(looser2T2, 0, myId2);
-    aState.update(cn);
-    cn = new ChangeNumber(looser2T3, 0, myId3);
-    aState.update(cn);
+    csn = new CSN(looser2T1, 0, myId1);
+    aState.update(csn);
+    csn = new CSN(looser2T2, 0, myId2);
+    aState.update(csn);
+    csn = new CSN(looser2T3, 0, myId3);
+    aState.update(csn);
     replServerStartMsg =
       new ReplServerStartMsg(13, LOOSER2, null, 0, aState, 0L,
       false, (byte)1, 0);
@@ -845,9 +831,6 @@ public class ComputeBestServerTest extends ReplicationTestCase
 
     // definitions for server ids
     int myId1 = 1;
-    int myId2 = 2;
-    int myId3 = 3;
-
     // definitions for server names
     final String WINNER  = "localhost:123";
     final String LOOSER1 = "localhost:456";
@@ -855,17 +838,16 @@ public class ComputeBestServerTest extends ReplicationTestCase
 
     // Create my state
     ServerState mySt = new ServerState();
-    ChangeNumber cn = new ChangeNumber(4L, 0, myId1);
-    mySt.update(cn);
+    CSN csn = new CSN(4L, 0, myId1);
+    mySt.update(csn);
 
-    // Create replication servers info list
-    HashMap<Integer, ReplicationServerInfo> rsInfos =
+    Map<Integer, ReplicationServerInfo> rsInfos =
       new HashMap<Integer, ReplicationServerInfo>();
 
     // State for server 1
     ServerState aState = new ServerState();
-    cn = new ChangeNumber(looser1T1, 0, myId1);
-    aState.update(cn);
+    csn = new CSN(looser1T1, 0, myId1);
+    aState.update(csn);
     ReplServerStartMsg replServerStartMsg =
       new ReplServerStartMsg(11, LOOSER1, null, 0, aState, looser1GenId,
       false, looser1GroupId, 0);
@@ -875,8 +857,8 @@ public class ComputeBestServerTest extends ReplicationTestCase
 
     // State for server 2
     aState = new ServerState();
-    cn = new ChangeNumber(winnerT1, 0, myId1);
-    aState.update(cn);
+    csn = new CSN(winnerT1, 0, myId1);
+    aState.update(csn);
     replServerStartMsg =
       new ReplServerStartMsg(12, WINNER, null, 0, aState, winnerGenId,
       false, winnerGroupId, 0);
@@ -886,8 +868,8 @@ public class ComputeBestServerTest extends ReplicationTestCase
 
     // State for server 3
     aState = new ServerState();
-    cn = new ChangeNumber(looser2T1, 0, myId1);
-    aState.update(cn);
+    csn = new CSN(looser2T1, 0, myId1);
+    aState.update(csn);
     replServerStartMsg =
       new ReplServerStartMsg(13, LOOSER2, null, 0, aState, looser2GenId,
       false, looser2GroupId, 0);
@@ -910,7 +892,7 @@ public class ComputeBestServerTest extends ReplicationTestCase
 
     Object[][] testData = new Object[24][];
 
-    HashMap<Integer, ReplicationServerInfo> rsInfos = null;
+    Map<Integer, ReplicationServerInfo> rsInfos = null;
       new HashMap<Integer, ReplicationServerInfo>();
     RSInfo rsInfo = null;
     List<Integer> connectedDSs = null;

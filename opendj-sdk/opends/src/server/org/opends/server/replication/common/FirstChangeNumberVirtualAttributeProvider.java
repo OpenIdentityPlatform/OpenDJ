@@ -143,7 +143,7 @@ public class FirstChangeNumberVirtualAttributeProvider
         ReplicationServer rs = eclwe.getReplicationServer();
         rs.disableEligibility(excludedDomains);
         int[] limits = rs.getECLDraftCNLimits(
-            rs.getEligibleCN(), excludedDomains);
+            rs.getEligibleCSN(), excludedDomains);
 
         first = String.valueOf(limits[0]);
       }

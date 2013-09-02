@@ -27,9 +27,6 @@
  */
 package org.opends.server.replication.protocol;
 
-import org.opends.server.core.AddOperationBasis;
-import org.opends.server.core.DirectoryServer;
-
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -37,18 +34,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.zip.DataFormatException;
 
-import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.protocols.ldap.LDAPAttribute;
-import org.opends.server.protocols.asn1.ASN1Writer;
+import org.opends.server.core.AddOperationBasis;
+import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.asn1.ASN1;
 import org.opends.server.protocols.asn1.ASN1Exception;
-import org.opends.server.replication.common.ChangeNumber;
+import org.opends.server.protocols.asn1.ASN1Writer;
+import org.opends.server.protocols.internal.InternalClientConnection;
+import org.opends.server.protocols.ldap.LDAPAttribute;
+import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.plugin.EntryHistorical;
 import org.opends.server.types.*;
 import org.opends.server.types.operation.PostOperationAddOperation;
 
 import static org.opends.server.replication.protocol.OperationContext.*;
-import static org.opends.server.util.StaticUtils.toLowerCase;
+import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class is used to exchange Add operation between LDAP servers
@@ -56,10 +55,10 @@ import static org.opends.server.util.StaticUtils.toLowerCase;
  */
 public class AddMsg extends LDAPUpdateMsg
 {
-  // Attributes are managed encoded
+  /** Attributes are managed encoded. */
   private byte[] encodedAttributes;
 
-  // Parent is managed decoded
+  /** Parent is managed decoded. */
   private String parentEntryUUID;
 
   /**
@@ -84,7 +83,7 @@ public class AddMsg extends LDAPUpdateMsg
   /**
    * Creates a new AddMessage.
    *
-   * @param cn                    ChangeNumber of the add.
+   * @param csn                   CSN of the add.
    * @param dn                    DN of the added entry.
    * @param entryUUID             The Unique identifier of the added entry.
    * @param parentEntryUUID       The unique Id of the parent of the added
@@ -93,7 +92,7 @@ public class AddMsg extends LDAPUpdateMsg
    * @param userAttributes        user attributes of the added entry.
    * @param operationalAttributes operational attributes of the added entry.
    */
-  public AddMsg(ChangeNumber cn,
+  public AddMsg(CSN csn,
                 String dn,
                 String entryUUID,
                 String parentEntryUUID,
@@ -101,7 +100,7 @@ public class AddMsg extends LDAPUpdateMsg
                 Map<AttributeType,List<Attribute>> userAttributes,
                 Map<AttributeType,List<Attribute>> operationalAttributes)
   {
-    super (cn, entryUUID, dn);
+    super (csn, entryUUID, dn);
 
     // Stores parentUniqueID not encoded
     this.parentEntryUUID = parentEntryUUID;
@@ -115,7 +114,7 @@ public class AddMsg extends LDAPUpdateMsg
   /**
    * Creates a new AddMessage.
    *
-   * @param cn ChangeNumber of the add.
+   * @param csn CSN of the add.
    * @param dn DN of the added entry.
    * @param uniqueId The Unique identifier of the added entry.
    * @param parentId The unique Id of the parent of the added entry.
@@ -123,7 +122,7 @@ public class AddMsg extends LDAPUpdateMsg
    * @param userAttributes user attributes of the added entry.
    * @param operationalAttributes operational attributes of the added entry.
    */
-  public AddMsg(ChangeNumber cn,
+  public AddMsg(CSN csn,
                 String dn,
                 String uniqueId,
                 String parentId,
@@ -131,7 +130,7 @@ public class AddMsg extends LDAPUpdateMsg
                 Collection<Attribute> userAttributes,
                 Collection<Attribute> operationalAttributes)
   {
-    super (cn, uniqueId, dn);
+    super (csn, uniqueId, dn);
 
     // Stores parentUniqueID not encoded
     this.parentEntryUUID = parentId;
@@ -183,7 +182,7 @@ public class AddMsg extends LDAPUpdateMsg
         InternalClientConnection.nextOperationID(),
         InternalClientConnection.nextMessageID(), null,
         ByteString.valueOf(newDn), attr);
-    AddContext ctx = new AddContext(getChangeNumber(), getEntryUUID(),
+    AddContext ctx = new AddContext(getCSN(), getEntryUUID(),
         parentEntryUUID);
     add.setAttachment(SYNCHROCONTEXT, ctx);
     return add;
@@ -498,7 +497,7 @@ public class AddMsg extends LDAPUpdateMsg
       return "AddMsg content: " +
         " protocolVersion: " + protocolVersion +
         " dn: " + dn +
-        " changeNumber: " + changeNumber +
+        " changeNumber: " + csn +
         " uniqueId: " + entryUUID +
         " assuredFlag: " + assuredFlag;
     }
@@ -507,7 +506,7 @@ public class AddMsg extends LDAPUpdateMsg
       return "AddMsg content: " +
         " protocolVersion: " + protocolVersion +
         " dn: " + dn +
-        " changeNumber: " + changeNumber +
+        " changeNumber: " + csn +
         " uniqueId: " + entryUUID +
         " assuredFlag: " + assuredFlag +
         " assuredMode: " + assuredMode +

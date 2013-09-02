@@ -23,36 +23,33 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS
  */
 package org.opends.server.replication.server;
-
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.Test;
-
-import static org.opends.server.replication.protocol.OperationContext.SYNCHROCONTEXT;
-import static org.testng.Assert.*;
-
 
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DeleteOperationBasis;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.replication.ReplicationTestCase;
-import org.opends.server.replication.common.ChangeNumber;
+import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.protocol.DeleteContext;
 import org.opends.server.replication.protocol.DeleteMsg;
 import org.opends.server.replication.protocol.UpdateMsg;
-import org.opends.server.replication.server.UpdateComparator;
-import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.util.TimeThread;
 import org.opends.server.workflowelement.localbackend.LocalBackendDeleteOperation;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
+
 import static org.opends.server.TestCaseUtils.*;
-
-
+import static org.opends.server.replication.protocol.OperationContext.*;
+import static org.testng.Assert.*;
 
 /**
- * Test ChangeNumber and ChangeNumberGenerator
+ * Test CSN and CSNGenerator
  */
+@SuppressWarnings("javadoc")
 public class UpdateComparatorTest extends ReplicationTestCase
 {
 
@@ -61,11 +58,9 @@ public class UpdateComparatorTest extends ReplicationTestCase
    */
   @DataProvider(name = "updateMessageData")
   public Object[][] createUpdateMessageData() {
+    CSN csn1 = new CSN(1, 0, 1);
+    CSN csn2 = new CSN(TimeThread.getTime(), 123, 45);
 
-    ChangeNumber cn1 = new ChangeNumber(1,  0,  1);
-    ChangeNumber cn2 = new ChangeNumber(TimeThread.getTime(), 123,  45);
-
-    //
     // Create the update message
     InternalClientConnection connection =
         InternalClientConnection.getRootConnection();
@@ -81,11 +76,10 @@ public class UpdateComparatorTest extends ReplicationTestCase
       // TODO Auto-generated catch block
       e.printStackTrace();
     }
-    op.setAttachment(SYNCHROCONTEXT, new DeleteContext(cn1, "uniqueid 1"));
+    op.setAttachment(SYNCHROCONTEXT, new DeleteContext(csn1, "uniqueid 1"));
     DeleteMsg msg1 = new DeleteMsg(op);
-    op.setAttachment(SYNCHROCONTEXT, new DeleteContext(cn2, "uniqueid 2"));
+    op.setAttachment(SYNCHROCONTEXT, new DeleteContext(csn2, "uniqueid 2"));
     DeleteMsg msg2 = new DeleteMsg(op);
-
 
     return new Object[][] {
        {msg1, msg1, 0},

@@ -23,43 +23,42 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
-import org.opends.server.replication.common.ChangeNumber;
+import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.protocol.ReplicationMsg;
-
 
 /**
  * This class if used to build fake Operation from the historical
  * information that stay in the entry in the database.
  *
  * This is useful when a LDAP server can't find a LDAP server that
- * has already seen all its changes and therefore need to retransmit them
- *
+ * has already seen all its changes and therefore need to retransmit them.
  */
 public abstract class FakeOperation
 {
-  private ChangeNumber changeNumber;
+  private CSN csn;
 
   /**
-   * Creates a new FakeOperation using the provided ChangeNumber.
+   * Creates a new FakeOperation using the provided CSN.
    *
-   * @param changeNumber The ChangeNumber to use to build the FakeOperation.
+   * @param csn The CSN to use to build the FakeOperation.
    */
-  public FakeOperation(ChangeNumber changeNumber)
+  public FakeOperation(CSN csn)
   {
-    this.changeNumber = changeNumber;
+    this.csn = csn;
   }
 
   /**
-   * Get the ChangeNumber.
+   * Get the CSN.
    *
-   * @return Returns the changeNumber.
+   * @return Returns the CSN.
    */
-  public ChangeNumber getChangeNumber()
+  public CSN getCSN()
   {
-    return changeNumber;
+    return csn;
   }
 
   /**

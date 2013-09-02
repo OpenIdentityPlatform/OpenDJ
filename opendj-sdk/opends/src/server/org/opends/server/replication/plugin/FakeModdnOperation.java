@@ -23,16 +23,15 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2013 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
-import org.opends.server.replication.common.ChangeNumber;
+import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.protocol.ModifyDNMsg;
 import org.opends.server.replication.protocol.ReplicationMsg;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
-
 
 /**
  * This class if used to build fake MODDN Operation from the historical
@@ -40,7 +39,6 @@ import org.opends.server.types.Entry;
  *
  * This is useful when a LDAP server can't find a LDAP server that
  * has already seen all its changes and therefore need to retransmit them.
- *
  */
 public class FakeModdnOperation extends FakeOperation
 {
@@ -49,12 +47,12 @@ public class FakeModdnOperation extends FakeOperation
   /**
    * Creates a new FakeModdnOperation.
    *
-   * @param cn     The ChangeNumber when the entry was last renamed.
+   * @param csn     The CSN when the entry was last renamed.
    * @param entry   The entry that the MODDN operation will rename.
    */
-  public FakeModdnOperation(ChangeNumber cn, Entry entry)
+  public FakeModdnOperation(CSN csn, Entry entry)
   {
-    super(cn);
+    super(csn);
     this.entry = entry;
   }
 
@@ -65,7 +63,7 @@ public class FakeModdnOperation extends FakeOperation
   public ReplicationMsg generateMessage()
   {
     DN dn = entry.getDN();
-    return new ModifyDNMsg(dn.toString(), this.getChangeNumber(),
+    return new ModifyDNMsg(dn.toString(), getCSN(),
         EntryHistorical.getEntryUUID(entry),
         LDAPReplicationDomain.findEntryUUID(dn.getParent()),
         false, dn.getParent().toString(), dn.getRDN().toString());

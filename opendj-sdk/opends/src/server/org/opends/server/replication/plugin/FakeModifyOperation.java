@@ -23,13 +23,14 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2013 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
 import java.util.ArrayList;
+import java.util.List;
 
-import org.opends.server.replication.common.ChangeNumber;
+import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.protocol.ModifyMsg;
 import org.opends.server.replication.protocol.ReplicationMsg;
 import org.opends.server.types.DN;
@@ -40,12 +41,11 @@ import org.opends.server.types.Modification;
  * information that stay in the entry in the database.
  *
  * This is useful when a LDAP server can't find a LDAP server that
- * has already seen all its changes and therefore need to retransmit them
- *
+ * has already seen all its changes and therefore need to retransmit them.
  */
 public class FakeModifyOperation extends FakeOperation
 {
-  private ArrayList<Modification> mods = new ArrayList<Modification>();
+  private List<Modification> mods = new ArrayList<Modification>();
   private DN dn;
   private String entryuuid;
 
@@ -53,12 +53,12 @@ public class FakeModifyOperation extends FakeOperation
    * Creates a new ModifyFakeOperation with the provided information.
    *
    * @param dn The DN on which the Operation was applied.
-   * @param changenumber The ChangeNumber of the operation.
+   * @param csn The CSN of the operation.
    * @param entryuuid The unique ID of the entry on which the Operation applies.
    */
-  public FakeModifyOperation(DN dn, ChangeNumber changenumber, String entryuuid)
+  public FakeModifyOperation(DN dn, CSN csn, String entryuuid)
   {
-    super(changenumber);
+    super(csn);
     this.dn = dn;
     this.entryuuid = entryuuid;
   }
@@ -81,6 +81,6 @@ public class FakeModifyOperation extends FakeOperation
   @Override
   public ReplicationMsg generateMessage()
   {
-    return new ModifyMsg(super.getChangeNumber(), dn, mods, entryuuid);
+    return new ModifyMsg(getCSN(), dn, mods, entryuuid);
   }
 }

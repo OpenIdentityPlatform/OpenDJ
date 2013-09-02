@@ -38,7 +38,7 @@ import org.opends.server.api.DirectoryThread;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.replication.common.ChangeNumber;
+import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.server.ReplicationServerDomain;
@@ -60,7 +60,7 @@ import static org.opends.server.util.StaticUtils.*;
  * It is responsible for efficiently saving the updates that is received from
  * each master server into stable storage.
  * This class is also able to generate a {@link ReplicaDBCursor} that can be
- * used to read all changes from a given {@link ChangeNumber}.
+ * used to read all changes from a given {@link CSN}.
  *
  * This class publish some monitoring information below cn=monitor.
  */
@@ -110,8 +110,8 @@ public class DbHandler implements Runnable
   private int queueByteSize = 0;
 
   private ReplicationDB db;
-  private ChangeNumber firstChange = null;
-  private ChangeNumber lastChange = null;
+  private CSN firstChange = null;
+  private CSN lastChange = null;
   private int serverId;
   private String baseDn;
   private DbMonitorProvider dbMonitor = new DbMonitorProvider();
@@ -201,13 +201,13 @@ public class DbHandler implements Runnable
 
       queueByteSize += update.size();
       msgQueue.add(update);
-      if (lastChange == null || lastChange.older(update.getChangeNumber()))
+      if (lastChange == null || lastChange.older(update.getCSN()))
       {
-        lastChange = update.getChangeNumber();
+        lastChange = update.getCSN();
       }
       if (firstChange == null)
       {
-        firstChange = update.getChangeNumber();
+        firstChange = update.getCSN();
       }
     }
   }
@@ -231,7 +231,7 @@ public class DbHandler implements Runnable
    * Get the firstChange.
    * @return Returns the firstChange.
    */
-  public ChangeNumber getFirstChange()
+  public CSN getFirstChange()
   {
     return firstChange;
   }
@@ -240,7 +240,7 @@ public class DbHandler implements Runnable
    * Get the lastChange.
    * @return Returns the lastChange.
    */
-  public ChangeNumber getLastChange()
+  public CSN getLastChange()
   {
     return lastChange;
   }
@@ -260,26 +260,25 @@ public class DbHandler implements Runnable
   }
 
   /**
-   * Generate a new {@link ReplicaDBCursor} that allows to browse the db
-   * managed by this dbHandler and starting at the position defined by a given
-   * changeNumber.
+   * Generate a new {@link ReplicaDBCursor} that allows to browse the db managed
+   * by this dbHandler and starting at the position defined by a given CSN.
    *
-   * @param startAfterCN
+   * @param startAfterCSN
    *          The position where the cursor must start.
-   * @return a new {@link ReplicaDBCursor} that allows to browse the db
-   *         managed by this dbHandler and starting at the position defined by a
-   *         given changeNumber.
+   * @return a new {@link ReplicaDBCursor} that allows to browse the db managed
+   *         by this dbHandler and starting at the position defined by a given
+   *         CSN.
    * @throws ChangelogException
    *           if a database problem happened.
    */
-  public ReplicaDBCursor generateCursorFrom(ChangeNumber startAfterCN)
+  public ReplicaDBCursor generateCursorFrom(CSN startAfterCSN)
       throws ChangelogException
   {
-    if (startAfterCN == null)
+    if (startAfterCSN == null)
     {
       flush();
     }
-    return new JEReplicaDBCursor(db, startAfterCN, this);
+    return new JEReplicaDBCursor(db, startAfterCSN, this);
   }
 
   /**
@@ -427,11 +426,10 @@ public class DbHandler implements Runnable
 
     latestTrimDate = TimeThread.getTime() - trimAge;
 
-    ChangeNumber trimDate = new ChangeNumber(latestTrimDate, 0, 0);
+    CSN trimDate = new CSN(latestTrimDate, 0, 0);
 
-    // Find the last changeNumber before the trimDate, in the Database.
-    ChangeNumber lastBeforeTrimDate = db
-        .getPreviousChangeNumber(trimDate);
+    // Find the last CSN before the trimDate, in the Database.
+    CSN lastBeforeTrimDate = db.getPreviousCSN(trimDate);
     if (lastBeforeTrimDate != null)
     {
       // If we found it, we want to stop trimming when reaching it.
@@ -451,22 +449,21 @@ public class DbHandler implements Runnable
         {
           for (int j = 0; j < 50; j++)
           {
-            ChangeNumber changeNumber = cursor.nextChangeNumber();
-            if (changeNumber == null)
+            CSN csn = cursor.nextCSN();
+            if (csn == null)
             {
               cursor.close();
               done = true;
               return;
             }
 
-            if (!changeNumber.equals(lastChange)
-                && changeNumber.older(trimDate))
+            if (!csn.equals(lastChange) && csn.older(trimDate))
             {
               cursor.delete();
             }
             else
             {
-              firstChange = changeNumber;
+              firstChange = csn;
               cursor.close();
               done = true;
               return;
@@ -552,9 +549,9 @@ public class DbHandler implements Runnable
       return attributes;
     }
 
-    private String encode(ChangeNumber changeNumber)
+    private String encode(CSN csn)
     {
-      return changeNumber + " " + new Date(changeNumber.getTime());
+      return csn + " " + new Date(csn.getTime());
     }
 
     /**
@@ -646,19 +643,18 @@ public class DbHandler implements Runnable
   }
 
   /**
-   * Return the number of changes between 2 provided change numbers.
+   * Return the number of changes between 2 provided CSNs.
    * This a alternative to traverseAndCount, expected to be much more efficient
    * when there is a huge number of changes in the Db.
-   * @param from The lower (older) change number.
-   * @param to   The upper (newer) change number.
+   * @param from The lower (older) CSN.
+   * @param to   The upper (newer) CSN.
    * @return The computed number of changes.
    */
-  public long getCount(ChangeNumber from, ChangeNumber to)
+  public long getCount(CSN from, CSN to)
   {
-    // Now that we always keep the last ChangeNumber in the DB to avoid
-    // expiring cookies too quickly, we need to check if the "to"
-    // is older than the trim date.
-    if (to == null || !to.older(new ChangeNumber(latestTrimDate, 0, 0)))
+    // Now that we always keep the last CSN in the DB to avoid expiring cookies
+    // too quickly, we need to check if the "to" is older than the trim date.
+    if (to == null || !to.older(new CSN(latestTrimDate, 0, 0)))
     {
       flush();
       return db.count(from, to);

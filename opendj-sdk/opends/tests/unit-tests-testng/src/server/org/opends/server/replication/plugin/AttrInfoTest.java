@@ -27,14 +27,12 @@
  */
 package org.opends.server.replication.plugin;
 
-import static org.testng.Assert.*;
-
 import java.util.Collections;
 import java.util.Map;
 
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.replication.ReplicationTestCase;
-import org.opends.server.replication.common.ChangeNumber;
+import org.opends.server.replication.common.CSN;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.AttributeValues;
@@ -42,6 +40,8 @@ import org.opends.server.types.Attributes;
 import org.opends.server.util.TimeThread;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+
+import static org.testng.Assert.*;
 
 /**
  * Test AttrInfo and AttrInfoWithOptions
@@ -62,13 +62,13 @@ public class AttrInfoTest extends ReplicationTestCase
     AttributeValue att2 = AttributeValues.create(type, "value");
     AttributeValue att3 = AttributeValues.create(type, "again");
 
-    ChangeNumber del1 = new ChangeNumber(1,  0,  1);
-    ChangeNumber del2 = new ChangeNumber(1,  1,  1);
-    ChangeNumber del3 = new ChangeNumber(1,  0,  2);
+    CSN del1 = new CSN(1,  0,  1);
+    CSN del2 = new CSN(1,  1,  1);
+    CSN del3 = new CSN(1,  0,  2);
 
-    ChangeNumber upd1 = new ChangeNumber(TimeThread.getTime(), 123, 45);
-    ChangeNumber upd2 = new ChangeNumber(TimeThread.getTime() + 1000, 123,  45);
-    ChangeNumber upd3 = new ChangeNumber(TimeThread.getTime(), 321, 54);
+    CSN upd1 = new CSN(TimeThread.getTime(), 123, 45);
+    CSN upd2 = new CSN(TimeThread.getTime() + 1000, 123,  45);
+    CSN upd3 = new CSN(TimeThread.getTime(), 321, 54);
 
     return new Object[][]
     {
@@ -83,13 +83,13 @@ public class AttrInfoTest extends ReplicationTestCase
    */
   @Test(dataProvider = "attrInfo")
   public void attrInfo(
-      AttributeValue att, ChangeNumber deleteTime, ChangeNumber updateTime)
+      AttributeValue att, CSN deleteTime, CSN updateTime)
       throws Exception
   {
     // Create an empty AttrInfo
     AttrHistoricalMultiple attrInfo1 = new AttrHistoricalMultiple();
 
-    // Check add(AttributeValue val, ChangeNumber CN)
+    // Check
     attrInfo1.add(att, updateTime);
     Map<AttrValueHistorical,AttrValueHistorical> values1 = attrInfo1.getValuesHistorical();
     assertEquals(values1.size(), 1);
@@ -118,16 +118,16 @@ public class AttrInfoTest extends ReplicationTestCase
     assertEquals(attrInfo4.getDeleteTime().compareTo(attrInfo3.getDeleteTime()), 0);
     assertEquals(values4.size(), values3.size());
 
-    // Check delete(AttributeValue val, ChangeNumber CN)
+    // Check
     attrInfo4.delete(att, updateTime);
     assertEquals(attrInfo4.getValuesHistorical().size(), 1);
 
-    // Check delete(LinkedHashSet<AttributeValue> values, ChangeNumber CN)
+    // Check
     AttributeType type = DirectoryServer.getAttributeType("description");
     attrInfo3.delete(Attributes.create(type, att), updateTime) ;
     assertEquals(attrInfo3.getValuesHistorical().size(), 1);
 
-    // Check delete(ChangeNumber CN)
+    // Check
     attrInfo2.delete(updateTime) ;
     assertEquals(attrInfo2.getValuesHistorical().size(), 0);
   }

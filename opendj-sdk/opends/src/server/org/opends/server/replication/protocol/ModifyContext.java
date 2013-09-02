@@ -23,11 +23,11 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2013 ForgeRock AS
  */
 package org.opends.server.replication.protocol;
 
-import org.opends.server.replication.common.ChangeNumber;
+import org.opends.server.replication.common.CSN;
 
 /**
  * This class describe the replication context that is attached to
@@ -39,11 +39,11 @@ public class ModifyContext extends OperationContext
   /**
    * Creates a new Modify Context with the provided parameters.
    *
-   * @param changeNumber The change number of the operation.
+   * @param csn The CSN of the operation.
    * @param entryUUID the unique Id of the modified entry.
    */
-  public ModifyContext(ChangeNumber changeNumber, String entryUUID)
+  public ModifyContext(CSN csn, String entryUUID)
   {
-    super(changeNumber, entryUUID);
+    super(csn, entryUUID);
   }
 }

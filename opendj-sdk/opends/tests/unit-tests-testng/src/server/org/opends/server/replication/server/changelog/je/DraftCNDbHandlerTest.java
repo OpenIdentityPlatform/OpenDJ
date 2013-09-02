@@ -32,12 +32,12 @@ import java.io.IOException;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.server.replication.ReplicationTestCase;
-import org.opends.server.replication.common.ChangeNumber;
-import org.opends.server.replication.common.ChangeNumberGenerator;
+import org.opends.server.replication.common.CSN;
+import org.opends.server.replication.common.CSNGenerator;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
-import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.api.ChangelogDBIterator;
+import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.je.DraftCNDB.DraftCNDBCursor;
 import org.opends.server.util.StaticUtils;
 import org.testng.annotations.Test;
@@ -49,6 +49,7 @@ import static org.testng.Assert.*;
  * - periodic trim
  * - call to clear method()
  */
+@SuppressWarnings("javadoc")
 public class DraftCNDbHandlerTest extends ReplicationTestCase
 {
   /**
@@ -59,8 +60,6 @@ public class DraftCNDbHandlerTest extends ReplicationTestCase
    * - set a very short trim period
    * - wait for the db to be trimmed / here since the changes are not stored in
    *   the replication changelog, the draftCNDb will be cleared.
-   *
-   * @throws Exception
    */
   @Test()
   void testDraftCNDbHandlerTrim() throws Exception
@@ -100,15 +99,15 @@ public class DraftCNDbHandlerTest extends ReplicationTestCase
       String baseDN2 = "baseDN2";
       String baseDN3 = "baseDN3";
 
-      ChangeNumberGenerator gen = new ChangeNumberGenerator( 1, 0);
-      ChangeNumber changeNumber1 = gen.newChangeNumber();
-      ChangeNumber changeNumber2 = gen.newChangeNumber();
-      ChangeNumber changeNumber3 = gen.newChangeNumber();
+      CSNGenerator gen = new CSNGenerator( 1, 0);
+      CSN csn1 = gen.newCSN();
+      CSN csn2 = gen.newCSN();
+      CSN csn3 = gen.newCSN();
 
       // Add records
-      handler.add(sn1, value1, baseDN1, changeNumber1);
-      handler.add(sn2, value2, baseDN2, changeNumber2);
-      handler.add(sn3, value3, baseDN3, changeNumber3);
+      handler.add(sn1, value1, baseDN1, csn1);
+      handler.add(sn2, value2, baseDN2, csn2);
+      handler.add(sn3, value3, baseDN3, csn3);
 
       // The ChangeNumber should not get purged
       final int firstDraftCN = handler.getFirstDraftCN();
@@ -118,20 +117,20 @@ public class DraftCNDbHandlerTest extends ReplicationTestCase
       DraftCNDBCursor dbc = handler.getReadCursor(firstDraftCN);
       try
       {
-        assertEquals(dbc.currentChangeNumber(), changeNumber1);
+        assertEquals(dbc.currentCSN(), csn1);
         assertEquals(dbc.currentBaseDN(), baseDN1);
         assertEquals(dbc.currentValue(), value1);
         assertTrue(dbc.toString().length() != 0);
 
         assertTrue(dbc.next());
 
-        assertEquals(dbc.currentChangeNumber(), changeNumber2);
+        assertEquals(dbc.currentCSN(), csn2);
         assertEquals(dbc.currentBaseDN(), baseDN2);
         assertEquals(dbc.currentValue(), value2);
 
         assertTrue(dbc.next());
 
-        assertEquals(dbc.currentChangeNumber(), changeNumber3);
+        assertEquals(dbc.currentCSN(), csn3);
         assertEquals(dbc.currentBaseDN(), baseDN3);
         assertEquals(dbc.currentValue(), value3);
 
@@ -227,15 +226,15 @@ public class DraftCNDbHandlerTest extends ReplicationTestCase
       String baseDN2 = "baseDN2";
       String baseDN3 = "baseDN3";
 
-      ChangeNumberGenerator gen = new ChangeNumberGenerator( 1, 0);
-      ChangeNumber changeNumber1 = gen.newChangeNumber();
-      ChangeNumber changeNumber2 = gen.newChangeNumber();
-      ChangeNumber changeNumber3 = gen.newChangeNumber();
+      CSNGenerator gen = new CSNGenerator( 1, 0);
+      CSN csn1 = gen.newCSN();
+      CSN csn2 = gen.newCSN();
+      CSN csn3 = gen.newCSN();
 
       // Add records
-      handler.add(sn1, value1, baseDN1, changeNumber1);
-      handler.add(sn2, value2, baseDN2, changeNumber2);
-      handler.add(sn3, value3, baseDN3, changeNumber3);
+      handler.add(sn1, value1, baseDN1, csn1);
+      handler.add(sn2, value2, baseDN2, csn2);
+      handler.add(sn3, value3, baseDN3, csn3);
       Thread.sleep(500);
 
       // Checks

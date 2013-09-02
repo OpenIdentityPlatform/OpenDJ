@@ -34,7 +34,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import org.opends.messages.Message;
-import org.opends.server.replication.common.ChangeNumber;
+import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.protocol.MonitorMsg;
 import org.opends.server.replication.protocol.MonitorRequestMsg;
@@ -260,10 +260,10 @@ class ReplicationDomainMonitor
   {
     // Let's process our directly connected DS
     // - in the ServerHandler for a given DS1, the stored state contains :
-    // -- the max CN produced by DS1
-    // -- the last CN consumed by DS1 from DS2..n
+    // -- the max CSN produced by DS1
+    // -- the last CSN consumed by DS1 from DS2..n
     // - in the RSdomain/dbHandler, the built-in state contains :
-    // -- the max CN produced by each server
+    // -- the max CSN produced by each server
     // So for a given DS connected we can take the state and the max from
     // the DS/state.
 
@@ -272,27 +272,27 @@ class ReplicationDomainMonitor
       final int serverId = ds.getServerId();
       final ServerState dsState = ds.getServerState().duplicate();
 
-      ChangeNumber maxcn = dsState.getChangeNumber(serverId);
-      if (maxcn == null)
+      CSN maxCSN = dsState.getCSN(serverId);
+      if (maxCSN == null)
       {
         // This directly connected LS has never produced any change
-        maxcn = new ChangeNumber(0, 0, serverId);
+        maxCSN = new CSN(0, 0, serverId);
       }
-      pendingMonitorData.setMaxCN(serverId, maxcn);
+      pendingMonitorData.setMaxCSN(serverId, maxCSN);
       pendingMonitorData.setLDAPServerState(serverId, dsState);
       pendingMonitorData.setFirstMissingDate(serverId,
           ds.getApproxFirstMissingDate());
     }
 
-    // Then initialize the max CN for the LS that produced something
+    // Then initialize the max CSN for the LS that produced something
     // - from our own local db state
     // - whatever they are directly or indirectly connected
     final ServerState dbServerState = domain.getDbServerState();
     pendingMonitorData.setRSState(domain.getLocalRSServerId(), dbServerState);
     for (int serverId : dbServerState)
     {
-      ChangeNumber storedCN = dbServerState.getChangeNumber(serverId);
-      pendingMonitorData.setMaxCN(serverId, storedCN);
+      CSN storedCSN = dbServerState.getCSN(serverId);
+      pendingMonitorData.setMaxCSN(serverId, storedCSN);
     }
   }
 
@@ -320,10 +320,10 @@ class ReplicationDomainMonitor
 
       try
       {
-        // Here is the RS state : list <serverID, lastChangeNumber>
-        // For each LDAP Server, we keep the max CN across the RSes
+        // Here is the RS state : list <serverID, lastCSN>
+        // For each LDAP Server, we keep the max CSN across the RSes
         ServerState replServerState = msg.getReplServerDbState();
-        pendingMonitorData.setMaxCNs(replServerState);
+        pendingMonitorData.setMaxCSNs(replServerState);
 
         // store the remote RS states.
         pendingMonitorData.setRSState(msg.getSenderID(), replServerState);
@@ -332,7 +332,7 @@ class ReplicationDomainMonitor
         for (int dsServerId : toIterable(msg.ldapIterator()))
         {
           ServerState dsServerState = msg.getLDAPServerState(dsServerId);
-          pendingMonitorData.setMaxCNs(dsServerState);
+          pendingMonitorData.setMaxCSNs(dsServerState);
           pendingMonitorData.setLDAPServerState(dsServerId, dsServerState);
           pendingMonitorData.setFirstMissingDate(dsServerId,
               msg.getLDAPApproxFirstMissingDate(dsServerId));

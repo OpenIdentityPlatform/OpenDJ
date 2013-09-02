@@ -28,7 +28,7 @@
 package org.opends.server.replication.server.changelog.je;
 
 import org.opends.messages.Message;
-import org.opends.server.replication.common.ChangeNumber;
+import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.api.ReplicaDBCursor;
@@ -43,7 +43,7 @@ public class JEReplicaDBCursor implements ReplicaDBCursor
   private ReplServerDBCursor cursor = null;
   private DbHandler dbHandler;
   private ReplicationDB db;
-  private ChangeNumber lastNonNullCurrentCN;
+  private CSN lastNonNullCurrentCSN;
 
   /**
    * Creates a new {@link JEReplicaDBCursor}. All created cursor must be
@@ -51,23 +51,23 @@ public class JEReplicaDBCursor implements ReplicaDBCursor
    *
    * @param db
    *          The db where the cursor must be created.
-   * @param startAfterCN
-   *          The ChangeNumber after which the cursor must start.
+   * @param startAfterCSN
+   *          The CSN after which the cursor must start.
    * @param dbHandler
    *          The associated DbHandler.
    * @throws ChangelogException
    *           if a database problem happened.
    */
-  public JEReplicaDBCursor(ReplicationDB db, ChangeNumber startAfterCN,
+  public JEReplicaDBCursor(ReplicationDB db, CSN startAfterCSN,
       DbHandler dbHandler) throws ChangelogException
   {
     this.db = db;
     this.dbHandler = dbHandler;
-    this.lastNonNullCurrentCN = startAfterCN;
+    this.lastNonNullCurrentCSN = startAfterCSN;
 
     try
     {
-      cursor = db.openReadCursor(startAfterCN);
+      cursor = db.openReadCursor(startAfterCSN);
     }
     catch(Exception e)
     {
@@ -81,7 +81,7 @@ public class JEReplicaDBCursor implements ReplicaDBCursor
       dbHandler.flush();
 
       // look again in the db
-      cursor = db.openReadCursor(startAfterCN);
+      cursor = db.openReadCursor(startAfterCSN);
       if (cursor == null)
       {
         throw new ChangelogException(Message.raw("no new change"));
@@ -104,7 +104,7 @@ public class JEReplicaDBCursor implements ReplicaDBCursor
 
     if (currentChange != null)
     {
-      lastNonNullCurrentCN = currentChange.getChangeNumber();
+      lastNonNullCurrentCSN = currentChange.getCSN();
     }
     else
     {
@@ -118,11 +118,11 @@ public class JEReplicaDBCursor implements ReplicaDBCursor
         dbHandler.flush();
         try
         {
-          cursor = db.openReadCursor(lastNonNullCurrentCN);
+          cursor = db.openReadCursor(lastNonNullCurrentCSN);
           currentChange = cursor.next();
           if (currentChange != null)
           {
-            lastNonNullCurrentCN = currentChange.getChangeNumber();
+            lastNonNullCurrentCSN = currentChange.getCSN();
           }
         }
         catch(Exception e)

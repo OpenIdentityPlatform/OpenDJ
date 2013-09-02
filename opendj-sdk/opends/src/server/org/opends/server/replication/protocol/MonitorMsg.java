@@ -38,7 +38,7 @@ import java.util.zip.DataFormatException;
 import org.opends.server.protocols.asn1.ASN1;
 import org.opends.server.protocols.asn1.ASN1Reader;
 import org.opends.server.protocols.asn1.ASN1Writer;
-import org.opends.server.replication.common.ChangeNumber;
+import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.types.ByteSequenceReader;
 import org.opends.server.types.ByteString;
@@ -266,31 +266,31 @@ public class MonitorMsg extends RoutableMsg
         boolean isLDAPServer = false;
 
         asn1Reader.readStartSequence();
-        // loop on the list of CN of the state
+        // loop on the list of CSN of the state
         while(asn1Reader.hasNextElement())
         {
-          ChangeNumber cn;
+          CSN csn;
           if (version >= ProtocolVersion.REPLICATION_PROTOCOL_V7)
           {
-            cn = ChangeNumber.valueOf(asn1Reader.readOctetString());
+            csn = CSN.valueOf(asn1Reader.readOctetString());
           }
           else
           {
-            cn = ChangeNumber.valueOf(asn1Reader.readOctetStringAsString());
+            csn = CSN.valueOf(asn1Reader.readOctetStringAsString());
           }
 
-          if ((data.replServerDbState != null) && (serverId == 0))
+          if (data.replServerDbState != null && serverId == 0)
           {
-            // we are on the first CN that is a fake CN to store the serverId
+            // we are on the first CSN that is a fake CSN to store the serverId
             // and the older update time
-            serverId = cn.getServerId();
-            outime = cn.getTime();
-            isLDAPServer = (cn.getSeqnum()>0);
+            serverId = csn.getServerId();
+            outime = csn.getTime();
+            isLDAPServer = csn.getSeqnum() > 0;
           }
           else
           {
-            // we are on a normal CN
-            newState.update(cn);
+            // we are on a normal CSN
+            newState.update(csn);
           }
         }
         asn1Reader.readEndSequence();
@@ -411,23 +411,22 @@ public class MonitorMsg extends RoutableMsg
       writer.writeStartSequence();
       {
         /*
-         * A fake change number helps storing the LDAP server ID. The sequence
-         * number will be used to differentiate between an LDAP server (1) or an
-         * RS (0).
+         * A fake CSN helps storing the LDAP server ID. The sequence number will
+         * be used to differentiate between an LDAP server (1) or an RS (0).
          */
-        ChangeNumber cn = new ChangeNumber(
+        CSN csn = new CSN(
             server.getValue().approxFirstMissingDate, seqNum,
             server.getKey());
         if (protocolVersion >= ProtocolVersion.REPLICATION_PROTOCOL_V7)
         {
-          writer.writeOctetString(cn.toByteString());
+          writer.writeOctetString(csn.toByteString());
         }
         else
         {
-          writer.writeOctetString(cn.toString());
+          writer.writeOctetString(csn.toString());
         }
 
-        // the changenumbers that make the state
+        // the CSNs that make the state
         server.getValue().state.writeTo(writer, protocolVersion);
       }
       writer.writeEndSequence();

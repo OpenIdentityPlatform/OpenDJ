@@ -23,11 +23,11 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2013 ForgeRock AS
  */
 package org.opends.server.replication.protocol;
 
-import org.opends.server.replication.common.ChangeNumber;
+import org.opends.server.replication.common.CSN;
 
 /**
  * This class is used to describe the context attached to a Delete Operation.
@@ -37,11 +37,11 @@ public class DeleteContext extends OperationContext
   /**
    * Creates a new DeleteContext with the provided information.
    *
-   * @param changeNumber The change number of the Delete Operation.
+   * @param csn The CSN of the Delete Operation.
    * @param entryUUID The unique Id of the deleted entry.
    */
-  public DeleteContext(ChangeNumber changeNumber, String entryUUID)
+  public DeleteContext(CSN csn, String entryUUID)
   {
-    super(changeNumber, entryUUID);
+    super(csn, entryUUID);
   }
 }

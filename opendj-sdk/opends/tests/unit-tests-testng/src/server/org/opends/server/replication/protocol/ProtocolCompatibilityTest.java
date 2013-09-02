@@ -25,7 +25,6 @@
  *      Copyright 2009-2010 Sun Microsystems, Inc.
  *      Portions copyright 2011-2013 ForgeRock AS
  */
-
 package org.opends.server.replication.protocol;
 
 import java.io.UnsupportedEncodingException;
@@ -42,39 +41,24 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyDNOperationBasis;
 import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.replication.ReplicationTestCase;
-import org.opends.server.replication.common.AssuredMode;
-import org.opends.server.replication.common.ChangeNumber;
-import org.opends.server.replication.common.DSInfo;
-import org.opends.server.replication.common.RSInfo;
-import org.opends.server.replication.common.ServerState;
-import org.opends.server.replication.common.ServerStatus;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeBuilder;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.Attributes;
-import org.opends.server.types.DN;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.Modification;
-import org.opends.server.types.ModificationType;
-import org.opends.server.types.ObjectClass;
-import org.opends.server.types.Operation;
-import org.opends.server.types.RawAttribute;
+import org.opends.server.replication.common.*;
+import org.opends.server.types.*;
 import org.opends.server.util.TimeThread;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-import static org.opends.server.replication.protocol.OperationContext.SYNCHROCONTEXT;
-import static org.opends.server.replication.protocol.ProtocolVersion.getCurrentVersion;
-import static org.opends.server.util.StaticUtils.byteToHex;
-import static org.opends.messages.ReplicationMessages.*;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertTrue;
+import static org.opends.server.replication.protocol.OperationContext.*;
+import static org.opends.server.replication.protocol.ProtocolVersion.*;
+import static org.opends.server.util.StaticUtils.*;
+import static org.opends.messages.ReplicationMessages.*;
+import static org.testng.Assert.*;
 
 /**
  * Test the conversions between the various protocol versions.
  */
+@SuppressWarnings("javadoc")
 public class ProtocolCompatibilityTest extends ReplicationTestCase {
 
   short REPLICATION_PROTOCOL_VLAST = ProtocolVersion.getCurrentVersion();
@@ -109,12 +93,12 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
   {
     String baseDN = "o=test";
     ServerState state = new ServerState();
-    state.update(new ChangeNumber((long)0, 0,0));
+    state.update(new CSN(0, 0,0));
     Object[] set1 = new Object[] {1, baseDN, 0, "localhost:8989", state, 0L, (byte)0, 0};
 
     baseDN = "dc=example,dc=com";
     state = new ServerState();
-    state.update(new ChangeNumber((long)75, 5,263));
+    state.update(new CSN(75, 5,263));
     Object[] set2 = new Object[] {16, baseDN, 100, "anotherHost:1025", state, 1245L, (byte)25, 3456};
 
     return new Object [][] { set1, set2 };
@@ -154,8 +138,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     assertEquals(msg.getServerURL(), newMsg.getServerURL());
     assertEquals(msg.getBaseDn(), newMsg.getBaseDn());
     assertEquals(msg.getWindowSize(), newMsg.getWindowSize());
-    assertEquals(msg.getServerState().getChangeNumber(1),
-        newMsg.getServerState().getChangeNumber(1));
+    assertEquals(msg.getServerState().getCSN(1), newMsg.getServerState().getCSN(1));
     assertEquals(msg.getSSLEncryption(), newMsg.getSSLEncryption());
 
     // Check default value for only post V1 fields
@@ -178,8 +161,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     assertEquals(msg.getServerURL(), vlastMsg.getServerURL());
     assertEquals(msg.getBaseDn(), vlastMsg.getBaseDn());
     assertEquals(msg.getWindowSize(), vlastMsg.getWindowSize());
-    assertEquals(msg.getServerState().getChangeNumber(1),
-        vlastMsg.getServerState().getChangeNumber(1));
+    assertEquals(msg.getServerState().getCSN(1), vlastMsg.getServerState().getCSN(1));
     assertEquals(msg.getSSLEncryption(), vlastMsg.getSSLEncryption());
     assertEquals(msg.getGroupId(), vlastMsg.getGroupId());
     assertEquals(msg.getDegradedStatusThreshold(), vlastMsg.getDegradedStatusThreshold());
@@ -235,9 +217,9 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
       new HashMap<AttributeType,List<Attribute>>();
     opList.put(attr.getAttributeType(), operationalAttributes);
 
-    ChangeNumber cn = new ChangeNumber(TimeThread.getTime(), 123, 45);
+    CSN csn = new CSN(TimeThread.getTime(), 123, 45);
 
-    AddMsg msg = new AddMsg(cn, rawDN, "thisIsaUniqueID", "parentUniqueId",
+    AddMsg msg = new AddMsg(csn, rawDN, "thisIsaUniqueID", "parentUniqueId",
                             objectClass, userAttributes,
                             operationalAttributes);
 
@@ -266,7 +248,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     // Check fields common to both versions
     assertEquals(newMsg.getEntryUUID(), msg.getEntryUUID());
     assertEquals(newMsg.getDn(), msg.getDn());
-    assertEquals(newMsg.getChangeNumber(), msg.getChangeNumber());
+    assertEquals(newMsg.getCSN(), msg.getCSN());
     assertEquals(newMsg.isAssured(), msg.isAssured());
     assertEquals(newMsg.getParentEntryUUID(), msg.getParentEntryUUID());
 
@@ -309,7 +291,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     // Check we retrieve original VLAST message (VLAST fields)
     assertEquals(msg.getEntryUUID(), vlastMsg.getEntryUUID());
     assertEquals(msg.getDn(), vlastMsg.getDn());
-    assertEquals(msg.getChangeNumber(), vlastMsg.getChangeNumber());
+    assertEquals(msg.getCSN(), vlastMsg.getCSN());
     assertEquals(msg.getParentEntryUUID(), vlastMsg.getParentEntryUUID());
     assertEquals(msg.isAssured(), vlastMsg.isAssured());
     assertEquals(msg.getAssuredMode(), vlastMsg.getAssuredMode());
@@ -389,8 +371,8 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     byte safeDataLevel, List<Attribute> entryAttrList)
   throws Exception
   {
-    ChangeNumber cn = new ChangeNumber(TimeThread.getTime(), 123, 45);
-    DeleteMsg msg = new DeleteMsg(rawDN, cn, "thisIsaUniqueID");
+    CSN csn = new CSN(TimeThread.getTime(), 123, 45);
+    DeleteMsg msg = new DeleteMsg(rawDN, csn, "thisIsaUniqueID");
 
     msg.setAssured(isAssured);
     msg.setAssuredMode(assuredMode);
@@ -418,7 +400,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     // Check fields common to both versions
     assertEquals(newMsg.getEntryUUID(), msg.getEntryUUID());
     assertEquals(newMsg.getDn(), msg.getDn());
-    assertEquals(newMsg.getChangeNumber(), msg.getChangeNumber());
+    assertEquals(newMsg.getCSN(), msg.getCSN());
     assertEquals(newMsg.isAssured(), msg.isAssured());
 
     // Check default value for only VLAST fields
@@ -445,7 +427,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     // Check we retrieve original VLAST message (VLAST fields)
     assertEquals(msg.getEntryUUID(), vlastMsg.getEntryUUID());
     assertEquals(msg.getDn(), vlastMsg.getDn());
-    assertEquals(msg.getChangeNumber(), vlastMsg.getChangeNumber());
+    assertEquals(msg.getCSN(), vlastMsg.getCSN());
     assertEquals(msg.isAssured(), vlastMsg.isAssured());
     assertEquals(msg.getAssuredMode(), vlastMsg.getAssuredMode());
     assertEquals(msg.getSafeDataLevel(), vlastMsg.getSafeDataLevel());
@@ -473,8 +455,8 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
    */
   @DataProvider(name = "createModifyData")
   public Object[][] createModifyData() {
-    ChangeNumber cn1 = new ChangeNumber(1,  0,  1);
-    ChangeNumber cn2 = new ChangeNumber(TimeThread.getTime(), 123, 45);
+    CSN csn1 = new CSN(1, 0, 1);
+    CSN csn2 = new CSN(TimeThread.getTime(), 123, 45);
 
     AttributeType type = DirectoryServer.getAttributeType("description");
 
@@ -520,16 +502,16 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     entryAttrList.add(eattr2);
 
     return new Object[][] {
-        { cn1, "dc=test", mods1, false, AssuredMode.SAFE_DATA_MODE, (byte)0, null},
-        { cn2, "dc=cn2", mods1, true, AssuredMode.SAFE_READ_MODE, (byte)1, entryAttrList},
-        { cn2, "dc=test with a much longer dn in case this would "
+        { csn1, "dc=test", mods1, false, AssuredMode.SAFE_DATA_MODE, (byte) 0, null },
+        { csn2, "dc=cn2", mods1, true, AssuredMode.SAFE_READ_MODE, (byte) 1, entryAttrList },
+        { csn2, "dc=test with a much longer dn in case this would "
                + "make a difference", mods1, true, AssuredMode.SAFE_READ_MODE, (byte)3, null},
-        { cn2, "dc=test, cn=with a, o=more complex, ou=dn", mods1, false, AssuredMode.SAFE_READ_MODE, (byte)5, entryAttrList},
-        { cn2, "cn=use\\, backslash", mods1, true, AssuredMode.SAFE_READ_MODE, (byte)3, null},
-        { cn2, "dc=test with several mod", mods2, false, AssuredMode.SAFE_DATA_MODE, (byte)16, entryAttrList},
-        { cn2, "dc=test with several values", mods3, false, AssuredMode.SAFE_READ_MODE, (byte)3, null},
-        { cn2, "dc=test with long mod", mods4, true, AssuredMode.SAFE_READ_MODE, (byte)120, entryAttrList},
-        { cn2, "dc=testDsaOperation", mods5, true, AssuredMode.SAFE_DATA_MODE, (byte)99, null},
+        { csn2, "dc=test, cn=with a, o=more complex, ou=dn", mods1, false, AssuredMode.SAFE_READ_MODE, (byte) 5, entryAttrList },
+        { csn2, "cn=use\\, backslash", mods1, true, AssuredMode.SAFE_READ_MODE, (byte) 3, null },
+        { csn2, "dc=test with several mod", mods2, false, AssuredMode.SAFE_DATA_MODE, (byte) 16, entryAttrList },
+        { csn2, "dc=test with several values", mods3, false, AssuredMode.SAFE_READ_MODE, (byte) 3, null },
+        { csn2, "dc=test with long mod", mods4, true, AssuredMode.SAFE_READ_MODE, (byte) 120, entryAttrList },
+        { csn2, "dc=testDsaOperation", mods5, true, AssuredMode.SAFE_DATA_MODE, (byte) 99, null },
         };
   }
 
@@ -538,7 +520,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
    * using protocol V1 and V2 are working.
    */
   @Test(dataProvider = "createModifyData")
-  public void modifyMsgTestVLASTV2(ChangeNumber changeNumber,
+  public void modifyMsgTestVLASTV2(CSN csn,
                                String rawdn, List<Modification> mods,
                                boolean isAssured, AssuredMode assuredMode,
                                byte safeDataLevel,
@@ -553,7 +535,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
    * using protocol V1 and VLAST are working.
    */
   @Test(enabled=false,dataProvider = "createModifyData")
-  public void modifyMsgTestVLASTV1(ChangeNumber changeNumber,
+  public void modifyMsgTestVLASTV1(CSN csn,
                                String rawdn, List<Modification> mods,
                                boolean isAssured, AssuredMode assuredMode,
                                byte safeDataLevel,
@@ -562,7 +544,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
   {
     // Create VLAST message
     DN dn = DN.decode(rawdn);
-    ModifyMsg origVlastMsg = new ModifyMsg(changeNumber, dn, mods, "fakeuniqueid");
+    ModifyMsg origVlastMsg = new ModifyMsg(csn, dn, mods, "fakeuniqueid");
 
     origVlastMsg.setAssured(isAssured);
     origVlastMsg.setAssuredMode(assuredMode);
@@ -589,7 +571,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     // Check fields common to both versions
     assertEquals(newv1Msg.getEntryUUID(), origVlastMsg.getEntryUUID());
     assertEquals(newv1Msg.getDn(), origVlastMsg.getDn());
-    assertEquals(newv1Msg.getChangeNumber(), origVlastMsg.getChangeNumber());
+    assertEquals(newv1Msg.getCSN(), origVlastMsg.getCSN());
     assertEquals(newv1Msg.isAssured(), origVlastMsg.isAssured());
 
     // Create a modify operation from each message to compare mods (kept encoded in messages)
@@ -632,7 +614,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     // Check we retrieve original VLAST message (VLAST fields)
     assertEquals(origVlastMsg.getEntryUUID(), generatedVlastMsg.getEntryUUID());
     assertEquals(origVlastMsg.getDn(), generatedVlastMsg.getDn());
-    assertEquals(origVlastMsg.getChangeNumber(), generatedVlastMsg.getChangeNumber());
+    assertEquals(origVlastMsg.getCSN(), generatedVlastMsg.getCSN());
     assertEquals(origVlastMsg.isAssured(), generatedVlastMsg.isAssured());
     assertEquals(origVlastMsg.getAssuredMode(), generatedVlastMsg.getAssuredMode());
     assertEquals(origVlastMsg.getSafeDataLevel(), generatedVlastMsg.getSafeDataLevel());
@@ -750,8 +732,8 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
          throws Exception
   {
     // Create VLAST message
-    ChangeNumber cn = new ChangeNumber(TimeThread.getTime(), 596, 13);
-    ModifyDNMsg msg = new ModifyDNMsg(rawDN, cn, uid,
+    CSN csn = new CSN(TimeThread.getTime(), 596, 13);
+    ModifyDNMsg msg = new ModifyDNMsg(rawDN, csn, uid,
                      newParentUid, deleteOldRdn,
                      newSuperior, newRdn, mods);
 
@@ -781,7 +763,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     // Check fields common to both versions
     assertEquals(newMsg.getEntryUUID(), msg.getEntryUUID());
     assertEquals(newMsg.getDn(), msg.getDn());
-    assertEquals(newMsg.getChangeNumber(), msg.getChangeNumber());
+    assertEquals(newMsg.getCSN(), msg.getCSN());
     assertEquals(newMsg.isAssured(), msg.isAssured());
     assertEquals(newMsg.getNewRDN(), msg.getNewRDN());
     assertEquals(newMsg.getNewSuperior(), msg.getNewSuperior());
@@ -827,7 +809,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     // Check we retrieve original VLAST message (VLAST fields)
     assertEquals(msg.getEntryUUID(), vlastMsg.getEntryUUID());
     assertEquals(msg.getDn(), vlastMsg.getDn());
-    assertEquals(msg.getChangeNumber(), vlastMsg.getChangeNumber());
+    assertEquals(msg.getCSN(), vlastMsg.getCSN());
     assertEquals(msg.isAssured(), vlastMsg.isAssured());
     assertEquals(msg.getAssuredMode(), vlastMsg.getAssuredMode());
     assertEquals(msg.getSafeDataLevel(), vlastMsg.getSafeDataLevel());
@@ -888,26 +870,26 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
         {"1603303030303030303030303030303030313030303130303030303030300064633" +
          "d746573740066616b65756e69717565696400000200301f0a0102301a040b646573" +
          "6372697074696f6e310b04096e65772076616c756500",
-          ModifyMsg.class, new ChangeNumber(1, 0, 1), "dc=test" },
+          ModifyMsg.class, new CSN(1, 0, 1), "dc=test" },
         {"1803303030303031323366313238343132303030326430303030303037620064633" +
          "d636f6d00756e69717565696400000201",
-            DeleteMsg.class, new ChangeNumber(0x123f1284120L,123,45), "dc=com"},
+            DeleteMsg.class, new CSN(0x123f1284120L,123,45), "dc=com"},
         {"1803303030303031323366313238343132303030326430303030303037620064633" +
          "d64656c6574652c64633d616e2c64633d656e7472792c64633d776974682c64633d" +
          "612c64633d6c6f6e6720646e00756e69717565696400000201",
-            DeleteMsg.class, new ChangeNumber(0x123f1284120L,123,45),
+            DeleteMsg.class, new CSN(0x123f1284120L,123,45),
             "dc=delete,dc=an,dc=entry,dc=with,dc=a,dc=long dn"},
         {"1903303030303031323366313238613762333030326430303030303037620064633" +
          "d746573742c64633d636f6d00756e6971756569640000020164633d6e6577006463" +
          "3d6368616e6765006e6577706172656e7449640000301f0a0102301a040b6465736" +
          "372697074696f6e310b04096e65772076616c756500",
-            ModifyDNMsg.class, new ChangeNumber(0x123f128a7b3L,123,45), "dc=test,dc=com"},
+            ModifyDNMsg.class, new CSN(0x123f128a7b3L,123,45), "dc=test,dc=com"},
         {"1703303030303031323366313239333431323030326430303030303037620064633" +
          "d6578616d706c652c64633d636f6d0074686973497361556e697175654944000002" +
          "00706172656e74556e69717565496400301d040b6f626a656374436c617373310e0" +
          "40c6f7267616e697a6174696f6e300a04016f31050403636f6d301c040c63726561" +
          "746f72736e616d65310c040a64633d63726561746f72",
-            AddMsg.class, new ChangeNumber(0x123f1293412L,123,45), "dc=example,dc=com"}
+            AddMsg.class, new CSN(0x123f1293412L,123,45), "dc=example,dc=com"}
         };
   }
 
@@ -925,14 +907,14 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
    */
   @Test(dataProvider = "createOldUpdateData")
   public void createOldUpdate(
-      String encodedString, Class<?> msgType, ChangeNumber cn, String dn)
+      String encodedString, Class<?> msgType, CSN csn, String dn)
       throws UnsupportedEncodingException, DataFormatException,
       NotSupportedOldVersionPDUException, DirectoryException
   {
     LDAPUpdateMsg msg = (LDAPUpdateMsg) ReplicationMsg.generateMsg(
         hexStringToByteArray(encodedString), ProtocolVersion.REPLICATION_PROTOCOL_V3);
     assertEquals(msg.getDn(), dn);
-    assertEquals(msg.getChangeNumber(), cn);
+    assertEquals(msg.getCSN(), csn);
     assertEquals(msg.getClass(), msgType);
     BigInteger bi = new BigInteger(msg.getBytes(ProtocolVersion.REPLICATION_PROTOCOL_V3));
     assertEquals(bi.toString(16), encodedString);
@@ -1001,15 +983,15 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     return new Object[][] {
         {"05303030303031323366316535383832383030326430303030303037" +
           "6200010101313030003230303000333030303000",
-          new ChangeNumber(0x123f1e58828L, 123, 45), true, fservers4 }
+          new CSN(0x123f1e58828L, 123, 45), true, fservers4 }
     };
   }
   @Test(dataProvider = "createoldAckMsgData")
-  public void oldAckMsgPDUs(String oldPdu, ChangeNumber cn,
+  public void oldAckMsgPDUs(String oldPdu, CSN csn,
       boolean hasTimeout, ArrayList<Integer> failedServers) throws Exception
   {
     AckMsg msg = new AckMsg(hexStringToByteArray(oldPdu));
-    assertEquals(msg.getChangeNumber(), cn);
+    assertEquals(msg.getCSN(), csn);
     assertEquals(msg.hasTimeout(), hasTimeout);
     assertEquals(msg.getFailedServers(), failedServers);
     // We use V4 here because these PDU have not changed since 2.0.
@@ -1064,16 +1046,16 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     urls4.add("ldaps://host:port/dc=foobar1??sub?(sn=Another Entry 1)");
     urls4.add("ldaps://host:port/dc=foobar2??sub?(sn=Another Entry 2)");
 
-    DSInfo dsInfo1 = new DSInfo(13, "dsHost1:111", 26, (long)154631, ServerStatus.FULL_UPDATE_STATUS,
+    DSInfo dsInfo1 = new DSInfo(13, "dsHost1:111", 26, 154631, ServerStatus.FULL_UPDATE_STATUS,
       false, AssuredMode.SAFE_DATA_MODE, (byte)12, (byte)132, urls1, new HashSet<String>(), new HashSet<String>(), (short)-1);
 
-    DSInfo dsInfo2 = new DSInfo(-436, "dsHost2:222", 493, (long)-227896, ServerStatus.DEGRADED_STATUS,
+    DSInfo dsInfo2 = new DSInfo(-436, "dsHost2:222", 493, -227896, ServerStatus.DEGRADED_STATUS,
       true, AssuredMode.SAFE_READ_MODE, (byte)-7, (byte)-265, urls2, new HashSet<String>(), new HashSet<String>(), (short)-1);
 
-    DSInfo dsInfo3 = new DSInfo(2436, "dsHost3:333", 591, (long)0, ServerStatus.NORMAL_STATUS,
+    DSInfo dsInfo3 = new DSInfo(2436, "dsHost3:333", 591, 0, ServerStatus.NORMAL_STATUS,
       false, AssuredMode.SAFE_READ_MODE, (byte)17, (byte)0, urls3, new HashSet<String>(), new HashSet<String>(), (short)-1);
 
-    DSInfo dsInfo4 = new DSInfo(415, "dsHost4:444", 146, (long)0, ServerStatus.BAD_GEN_ID_STATUS,
+    DSInfo dsInfo4 = new DSInfo(415, "dsHost4:444", 146, 0, ServerStatus.BAD_GEN_ID_STATUS,
       true, AssuredMode.SAFE_DATA_MODE, (byte)2, (byte)15, urls4, new HashSet<String>(), new HashSet<String>(), (short)-1);
 
     List<DSInfo> dsList1 = new ArrayList<DSInfo>();
@@ -1090,11 +1072,9 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     dsList4.add(dsInfo2);
     dsList4.add(dsInfo1);
 
-    RSInfo rsInfo1 = new RSInfo(4527, null, (long)45316, (byte)103, 1);
-
-    RSInfo rsInfo2 = new RSInfo(4527, null, (long)0, (byte)0, 1);
-
-    RSInfo rsInfo3 = new RSInfo(0, null, (long)-21113, (byte)98, 1);
+    RSInfo rsInfo1 = new RSInfo(4527, null, 45316, (byte)103, 1);
+    RSInfo rsInfo2 = new RSInfo(4527, null, 0, (byte)0, 1);
+    RSInfo rsInfo3 = new RSInfo(0, null, -21113, (byte)98, 1);
 
     List<RSInfo> rsList1 = new ArrayList<RSInfo>();
     rsList1.add(rsInfo1);

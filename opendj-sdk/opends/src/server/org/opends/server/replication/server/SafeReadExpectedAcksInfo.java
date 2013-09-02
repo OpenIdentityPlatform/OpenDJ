@@ -23,19 +23,20 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS
  */
-
 package org.opends.server.replication.server;
 
 import java.util.ArrayList;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-
-import org.opends.server.loggers.debug.DebugTracer;
 import java.util.List;
 import java.util.Set;
+
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.common.AssuredMode;
-import org.opends.server.replication.common.ChangeNumber;
+import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.protocol.AckMsg;
+
+import static org.opends.server.loggers.debug.DebugLogger.*;
 
 /**
  * This class holds every info needed about the expected acks for a received
@@ -50,18 +51,20 @@ public class SafeReadExpectedAcksInfo extends ExpectedAcksInfo
    */
   private static final DebugTracer TRACER = getTracer();
 
-  // Did some servers go in timeout when the matching update was sent ?
+  /** Did some servers go in timeout when the matching update was sent ?. */
   private boolean hasTimeout = false;
 
-  // Were some servers in wrong status when the matching update was sent ?
+  /** Were some servers in wrong status when the matching update was sent ?. */
   private boolean hasWrongStatus = false;
 
-  // Did some servers make an error replaying the sent matching update ?
+  /** Did some servers make an error replaying the sent matching update ?. */
   private boolean hasReplayError = false;
 
-  // The list of server ids that had errors for the sent matching update
-  // Each server id of the list had one of the
-  // 3 possible errors (timeout, wrong status or replay error)
+  /**
+   * The list of server ids that had errors for the sent matching update Each
+   * server id of the list had one of the 3 possible errors (timeout, wrong
+   * status or replay error).
+   */
   private List<Integer> failedServers = new ArrayList<Integer>();
 
   /**
@@ -75,7 +78,7 @@ public class SafeReadExpectedAcksInfo extends ExpectedAcksInfo
 
   /**
    * Creates a new SafeReadExpectedAcksInfo.
-   * @param changeNumber The change number of the assured update message
+   * @param csn The CSN of the assured update message
    * @param requesterServerHandler The server that sent the assured update
    * message
    * @param expectedServers The list of servers we want an ack from (they are
@@ -84,11 +87,11 @@ public class SafeReadExpectedAcksInfo extends ExpectedAcksInfo
    * wrongStatus (degraded status) to keep trace of the error for the future
    * returning ack we gonna compute
    */
-  public SafeReadExpectedAcksInfo(ChangeNumber changeNumber,
+  public SafeReadExpectedAcksInfo(CSN csn,
     ServerHandler requesterServerHandler, List<Integer> expectedServers,
     List<Integer> wrongStatusServers)
   {
-    super(changeNumber, requesterServerHandler, AssuredMode.SAFE_READ_MODE,
+    super(csn, requesterServerHandler, AssuredMode.SAFE_READ_MODE,
       expectedServers);
 
     // Keep track of potential servers detected in wrong status
@@ -156,6 +159,7 @@ public class SafeReadExpectedAcksInfo extends ExpectedAcksInfo
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean processReceivedAck(ServerHandler ackingServer, AckMsg ackMsg)
   {
     // Get the ack status for the matching server
@@ -204,9 +208,10 @@ public class SafeReadExpectedAcksInfo extends ExpectedAcksInfo
   /**
    * {@inheritDoc}
    */
+  @Override
   public AckMsg createAck(boolean timeout)
   {
-    AckMsg ack = new AckMsg(changeNumber);
+    AckMsg ack = new AckMsg(csn);
 
     // Fill collected errors info
     ack.setHasTimeout(hasTimeout);

@@ -29,7 +29,7 @@ package org.opends.server.replication.server.changelog.je;
 
 import org.opends.messages.Message;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.replication.common.ChangeNumber;
+import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.api.ChangelogDBIterator;
 import org.opends.server.replication.server.changelog.je.DraftCNDB
@@ -84,11 +84,11 @@ public class DraftCNDbIterator implements ChangelogDBIterator
 
   /** {@inheritDoc} */
   @Override
-  public ChangeNumber getChangeNumber()
+  public CSN getCSN()
   {
     try
     {
-      return this.draftCNDbCursor.currentChangeNumber();
+      return this.draftCNDbCursor.currentCSN();
     }
     catch(Exception e)
     {

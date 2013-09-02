@@ -39,7 +39,7 @@ import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.replication.common.AssuredMode;
-import org.opends.server.replication.common.ChangeNumber;
+import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.RSInfo;
 import org.opends.server.replication.common.ServerStatus;
 import org.opends.server.replication.protocol.*;
@@ -383,13 +383,13 @@ public abstract class ServerHandler extends MessageHandler
    */
   public long getApproxFirstMissingDate()
   {
-    // Get the older CN received
-    ChangeNumber olderUpdateCN = getOlderUpdateCN();
-    if (olderUpdateCN != null)
+    // Get the older CSN received
+    CSN olderUpdateCSN = getOlderUpdateCSN();
+    if (olderUpdateCSN != null)
     {
       // If not present in the local RS db,
       // then approximate with the older update time
-      return olderUpdateCN.getTime();
+      return olderUpdateCSN.getTime();
     }
     return 0;
   }

@@ -23,11 +23,11 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
 import java.util.Comparator;
-
 
 /**
  * This Class implements a Comparator that can be used to build TreeSet
@@ -38,10 +38,11 @@ public class FakeOperationComparator implements Comparator<FakeOperation>
   /**
    * {@inheritDoc}
    */
+  @Override
   public int compare(FakeOperation op1, FakeOperation op2)
   {
     if (op1 == null)
       return -1;
-    return op1.getChangeNumber().compareTo(op2.getChangeNumber());
+    return op1.getCSN().compareTo(op2.getCSN());
   }
 }

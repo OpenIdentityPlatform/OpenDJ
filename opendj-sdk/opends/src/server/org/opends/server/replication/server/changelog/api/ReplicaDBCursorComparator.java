@@ -29,17 +29,17 @@ package org.opends.server.replication.server.changelog.api;
 
 import java.util.Comparator;
 
-import org.opends.server.replication.common.ChangeNumber;
+import org.opends.server.replication.common.CSN;
 
 /**
  * This class defines a {@link Comparator} that allows to know which
  * {@link ReplicaDBCursor} contain the next {@link UpdateMsg} in the order
- * defined by the {@link ChangeNumber} of the {@link UpdateMsg}.
+ * defined by the {@link CSN} of the {@link UpdateMsg}.
  */
 public class ReplicaDBCursorComparator implements Comparator<ReplicaDBCursor>
 {
   /**
-   * Compare the {@link ChangeNumber} of the {@link ReplicaDBCursor}.
+   * Compare the {@link CSN} of the {@link ReplicaDBCursor}.
    *
    * @param o1
    *          first cursor.
@@ -50,9 +50,9 @@ public class ReplicaDBCursorComparator implements Comparator<ReplicaDBCursor>
   @Override
   public int compare(ReplicaDBCursor o1, ReplicaDBCursor o2)
   {
-    ChangeNumber csn1 = o1.getChange().getChangeNumber();
-    ChangeNumber csn2 = o2.getChange().getChangeNumber();
+    CSN csn1 = o1.getChange().getCSN();
+    CSN csn2 = o2.getChange().getCSN();
 
-    return ChangeNumber.compare(csn1, csn2);
+    return CSN.compare(csn1, csn2);
   }
 }

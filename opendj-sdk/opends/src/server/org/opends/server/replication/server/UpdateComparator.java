@@ -23,12 +23,13 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS
  */
 package org.opends.server.replication.server;
 
 import java.util.Comparator;
 
-import org.opends.server.replication.common.ChangeNumber;
+import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.protocol.UpdateMsg;
 
 /**
@@ -58,8 +59,9 @@ public class UpdateComparator implements Comparator<UpdateMsg>
    *          0 if msg1 == msg2
    *          1 if msg1 > msg2
    */
+  @Override
   public int compare(UpdateMsg msg1, UpdateMsg msg2)
   {
-    return ChangeNumber.compare(msg1.getChangeNumber(), msg2.getChangeNumber());
+    return CSN.compare(msg1.getCSN(), msg2.getCSN());
   }
 }

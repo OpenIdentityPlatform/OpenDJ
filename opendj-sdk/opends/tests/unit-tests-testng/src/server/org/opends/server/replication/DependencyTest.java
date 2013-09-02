@@ -40,7 +40,7 @@ import java.util.TreeSet;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.backends.MemoryBackend;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.replication.common.ChangeNumberGenerator;
+import org.opends.server.replication.common.CSNGenerator;
 import org.opends.server.replication.plugin.DomainFakeCfg;
 import org.opends.server.replication.plugin.LDAPReplicationDomain;
 import org.opends.server.replication.plugin.MultimasterReplication;
@@ -134,7 +134,7 @@ public class DependencyTest extends ReplicationTestCase
       // send a sequence of add operation
 
       String addDn = TEST_ROOT_DN_STRING;
-      ChangeNumberGenerator gen = new ChangeNumberGenerator(brokerId, 0L);
+      CSNGenerator gen = new CSNGenerator(brokerId, 0L);
 
       int sequence;
       for (sequence = 1; sequence<=AddSequenceLength; sequence ++)
@@ -144,14 +144,14 @@ public class DependencyTest extends ReplicationTestCase
                            new LinkedList<AttributeValue>());
         addDn = "dc=dependency" + sequence + "," + addDn;
         AddMsg addMsg =
-          new AddMsg(gen.newChangeNumber(), addDn, stringUID(sequence+1),
+          new AddMsg(gen.newCSN(), addDn, stringUID(sequence+1),
                      stringUID(sequence),
                      entry.getObjectClassAttribute(),
                      entry.getAttributes(), null );
         broker.publish(addMsg);
 
         ModifyMsg modifyMsg =
-          new ModifyMsg(gen.newChangeNumber(), DN.decode(addDn),
+          new ModifyMsg(gen.newCSN(), DN.decode(addDn),
                         generatemods("description", "test"),
                         stringUID(sequence+1));
         broker.publish(modifyMsg);
@@ -207,7 +207,7 @@ public class DependencyTest extends ReplicationTestCase
       while (sequence-->1)
       {
         DeleteMsg delMsg = new DeleteMsg(deleteDN.toString(),
-                                         gen.newChangeNumber(),
+                                         gen.newCSN(),
                                          stringUID(sequence + 1));
         broker.publish(delMsg);
         deleteDN = deleteDN.getParent();
@@ -264,7 +264,7 @@ public class DependencyTest extends ReplicationTestCase
       Entry entry = TestCaseUtils.entryFromLdifString(entryldif);
       AttributeType uidType =
         DirectoryServer.getSchema().getAttributeType("entryuuid");
-      ChangeNumberGenerator gen = new ChangeNumberGenerator(brokerId, 0L);
+      CSNGenerator gen = new CSNGenerator(brokerId, 0L);
       int renamedEntryUuid = 100;
 
       int replServerPort = TestCaseUtils.findFreePort();
@@ -297,7 +297,7 @@ public class DependencyTest extends ReplicationTestCase
                          new LinkedList<AttributeValue>());
       String addDn = "dc=moddndel" + "," + TEST_ROOT_DN_STRING;
       AddMsg addMsg =
-        new AddMsg(gen.newChangeNumber(), addDn, stringUID(renamedEntryUuid),
+        new AddMsg(gen.newCSN(), addDn, stringUID(renamedEntryUuid),
                    stringUID(1),
                    entry.getObjectClassAttribute(),
                    entry.getAttributes(), null );
@@ -319,13 +319,13 @@ public class DependencyTest extends ReplicationTestCase
 
       // rename and delete the entry.
       ModifyDNMsg moddnMsg =
-        new ModifyDNMsg(addDn, gen.newChangeNumber(),
+        new ModifyDNMsg(addDn, gen.newCSN(),
                         stringUID(renamedEntryUuid),
                         stringUID(1), true, null, "dc=new_name");
       broker.publish(moddnMsg);
       DeleteMsg delMsg =
         new DeleteMsg("dc=new_name" + "," + TEST_ROOT_DN_STRING,
-                      gen.newChangeNumber(), stringUID(renamedEntryUuid));
+                      gen.newCSN(), stringUID(renamedEntryUuid));
       broker.publish(delMsg);
 
       // enable back the domain to trigger message replay.
@@ -425,7 +425,7 @@ public class DependencyTest extends ReplicationTestCase
                                false, CLEAN_DB_GENERATION_ID);
 
       // send a sequence of add/del/add operations
-      ChangeNumberGenerator gen = new ChangeNumberGenerator(brokerId, 0L);
+      CSNGenerator gen = new CSNGenerator(brokerId, 0L);
 
       int sequence;
       for (sequence = 1; sequence<=AddSequenceLength; sequence ++)
@@ -436,14 +436,14 @@ public class DependencyTest extends ReplicationTestCase
                            new LinkedList<AttributeValue>());
         String addDn = "dc=dependency" + sequence + "," + TEST_ROOT_DN_STRING;
         AddMsg addMsg =
-          new AddMsg(gen.newChangeNumber(), addDn, stringUID(sequence+1),
+          new AddMsg(gen.newCSN(), addDn, stringUID(sequence+1),
                      stringUID(1),
                      entry.getObjectClassAttribute(),
                      entry.getAttributes(), null );
         broker.publish(addMsg);
 
         // delete the entry
-        DeleteMsg delMsg = new DeleteMsg(addDn, gen.newChangeNumber(),
+        DeleteMsg delMsg = new DeleteMsg(addDn, gen.newCSN(),
                                          stringUID(sequence+1));
         broker.publish(delMsg);
 
@@ -452,7 +452,7 @@ public class DependencyTest extends ReplicationTestCase
         entry.addAttribute(Attributes.create("entryuuid", stringUID(sequence+1025)),
                            new LinkedList<AttributeValue>());
         addMsg =
-          new AddMsg(gen.newChangeNumber(), addDn, stringUID(sequence+1025),
+          new AddMsg(gen.newCSN(), addDn, stringUID(sequence+1025),
                      stringUID(1),
                      entry.getObjectClassAttribute(),
                      entry.getAttributes(), null );
@@ -488,7 +488,7 @@ public class DependencyTest extends ReplicationTestCase
       {
         String deleteDN = "dc=dependency" + sequence + "," + TEST_ROOT_DN_STRING;
         DeleteMsg delMsg = new DeleteMsg(deleteDN,
-                                         gen.newChangeNumber(),
+                                         gen.newCSN(),
                                          stringUID(sequence + 1025));
         broker.publish(delMsg);
       }
@@ -553,7 +553,7 @@ public class DependencyTest extends ReplicationTestCase
 
 
       String addDn = TEST_ROOT_DN_STRING;
-      ChangeNumberGenerator gen = new ChangeNumberGenerator(brokerId, 0L);
+      CSNGenerator gen = new CSNGenerator(brokerId, 0L);
 
       // send a sequence of add/modrdn operations
       int sequence;
@@ -565,7 +565,7 @@ public class DependencyTest extends ReplicationTestCase
                            new LinkedList<AttributeValue>());
         addDn = "dc=dependency" + sequence + "," + TEST_ROOT_DN_STRING;
         AddMsg addMsg =
-          new AddMsg(gen.newChangeNumber(), addDn, stringUID(sequence+1),
+          new AddMsg(gen.newCSN(), addDn, stringUID(sequence+1),
                      stringUID(1),
                      entry.getObjectClassAttribute(),
                      entry.getAttributes(), null );
@@ -573,7 +573,7 @@ public class DependencyTest extends ReplicationTestCase
 
         // rename the entry
         ModifyDNMsg moddnMsg =
-          new ModifyDNMsg(addDn, gen.newChangeNumber(), stringUID(sequence+1),
+          new ModifyDNMsg(addDn, gen.newCSN(), stringUID(sequence+1),
                           stringUID(1), true, null, "dc=new_dep" + sequence);
         broker.publish(moddnMsg);
       }
@@ -602,7 +602,7 @@ public class DependencyTest extends ReplicationTestCase
       {
         addDn = "dc=new_dep" + sequence + "," + TEST_ROOT_DN_STRING;
         DeleteMsg delMsg = new DeleteMsg(addDn.toString(),
-                                         gen.newChangeNumber(),
+                                         gen.newCSN(),
                                          stringUID(sequence + 1));
         broker.publish(delMsg);
       }

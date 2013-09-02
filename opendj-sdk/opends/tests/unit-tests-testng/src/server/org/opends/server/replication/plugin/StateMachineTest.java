@@ -27,11 +27,6 @@
  */
 package org.opends.server.replication.plugin;
 
-import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.util.StaticUtils.*;
-import static org.testng.Assert.*;
-
 import java.io.File;
 import java.io.IOException;
 import java.net.SocketTimeoutException;
@@ -51,7 +46,7 @@ import org.opends.server.api.SynchronizationProvider;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.ReplicationTestCase;
-import org.opends.server.replication.common.ChangeNumberGenerator;
+import org.opends.server.replication.common.CSNGenerator;
 import org.opends.server.replication.common.DSInfo;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.common.ServerStatus;
@@ -68,6 +63,11 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+
+import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.util.StaticUtils.*;
+import static org.testng.Assert.*;
 
 /**
  * Some tests to go through the DS state machine and validate we get the
@@ -953,7 +953,7 @@ public class StateMachineTest extends ReplicationTestCase
     /** Number of sent changes */
     private int nChangesSent = 0;
     private int nChangesSentLimit = 0;
-    ChangeNumberGenerator gen = null;
+    CSNGenerator gen = null;
     private Object sleeper = new Object();
     /**
      * If the BrokerWriter is to be used for a lot of changes to send (which is
@@ -971,9 +971,9 @@ public class StateMachineTest extends ReplicationTestCase
       super("BrokerWriter for broker " + serverId);
       this.rb = rb;
       this.serverId = serverId;
-      // Create a Change number generator to generate new change numbers
+      // Create a csn generator to generate new csns
       // when we need to send changes
-      gen = new ChangeNumberGenerator(serverId, 0);
+      gen = new CSNGenerator(serverId, 0);
 
       // Start thread (is paused by default so will have to call follow anyway)
       start();
@@ -1186,7 +1186,7 @@ public class StateMachineTest extends ReplicationTestCase
       }
 
       // Create an update message to add an entry.
-      return new AddMsg(gen.newChangeNumber(),
+      return new AddMsg(gen.newCSN(),
         personWithUUIDEntry.getDN().toString(),
         userEntryUUID,
         null,

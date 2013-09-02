@@ -45,7 +45,7 @@ import org.opends.server.core.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
-import org.opends.server.replication.common.ChangeNumber;
+import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.plugin.MultimasterReplication;
 import org.opends.server.replication.plugin.ReplicationServerListener;
@@ -494,8 +494,8 @@ public class ReplicationBackend
         {
           break;
         }
-        writeChangesAfterChangeNumber(exportContainer, exportConfig,
-            ldifWriter, null, null);
+        writeChangesAfterCSN(exportContainer, exportConfig, ldifWriter, null,
+            null);
       }
     }
     finally
@@ -618,11 +618,11 @@ public class ReplicationBackend
 
   /**
    * Exports or returns all the changes from a ReplicationServerDomain coming
-   * after the changeNumber specified in the searchOperation.
+   * after the CSN specified in the searchOperation.
    */
-  private void writeChangesAfterChangeNumber(ReplicationServerDomain rsd,
+  private void writeChangesAfterCSN(ReplicationServerDomain rsd,
       final LDIFExportConfig exportConfig, LDIFWriter ldifWriter,
-      SearchOperation searchOperation, final ChangeNumber previousCN)
+      SearchOperation searchOperation, final CSN previousCSN)
   {
     for (int serverId : rsd.getServerIds())
     {
@@ -631,7 +631,7 @@ public class ReplicationBackend
         return;
       }
 
-      ReplicaDBCursor cursor = rsd.getCursorFrom(serverId, previousCN);
+      ReplicaDBCursor cursor = rsd.getCursorFrom(serverId, previousCSN);
       if (cursor != null)
       {
         try
@@ -693,25 +693,24 @@ public class ReplicationBackend
     }
   }
 
-  private ChangeNumber extractChangeNumber(SearchOperation searchOperation)
+  private CSN extractCSN(SearchOperation searchOperation)
   {
     if (searchOperation != null)
     {
-      return extractChangeNumber(searchOperation.getFilter());
+      return extractCSN(searchOperation.getFilter());
     }
     return null;
   }
 
   /**
-   * Attempt to extract a ChangeNumber from searchFilter like
+   * Attempt to extract a CSN from searchFilter like
    * ReplicationChangeNumber=xxxx or ReplicationChangeNumber>=xxxx.
    *
-   * @param filter The filter to evaluate.
-   *
-   * @return       The extracted ChangeNumber or null if no ChangeNumber
-   *               was found.
+   * @param filter
+   *          The filter to evaluate.
+   * @return The extracted CSN or null if no CSN was found.
    */
-  private ChangeNumber extractChangeNumber(SearchFilter filter)
+  private CSN extractCSN(SearchFilter filter)
   {
     // Try to optimize for filters like replicationChangeNumber>=xxxxx
     // or replicationChangeNumber=xxxxx :
@@ -726,15 +725,15 @@ public class ReplicationBackend
       {
         try
         {
-          ChangeNumber startingCN =
-             new ChangeNumber(filter.getAssertionValue().getValue().toString());
-          return new ChangeNumber(startingCN.getTime(),
-              startingCN.getSeqnum() - 1, startingCN.getServerId());
+          CSN startingCSN =
+             new CSN(filter.getAssertionValue().getValue().toString());
+          return new CSN(startingCSN.getTime(),
+              startingCSN.getSeqnum() - 1, startingCSN.getServerId());
         }
         catch (Exception e)
         {
           // don't try to optimize the search if the ChangeNumber is
-          // not a valid replication ChangeNumber.
+          // not a valid replication CSN.
         }
       }
     }
@@ -742,12 +741,12 @@ public class ReplicationBackend
     {
       for (SearchFilter filterComponent : filter.getFilterComponents())
       {
-        // This code does not expect more than one CN in the search filter.
+        // This code does not expect more than one CSN in the search filter.
         // It is ok, since it is only used by developers/testers for debugging.
-        final ChangeNumber previousCN = extractChangeNumber(filterComponent);
-        if (previousCN != null)
+        final CSN previousCSN = extractCSN(filterComponent);
+        if (previousCSN != null)
         {
-          return previousCN;
+          return previousCSN;
         }
       }
     }
@@ -781,7 +780,7 @@ public class ReplicationBackend
           AddOperation addOperation = (AddOperation)msg.createOperation(conn);
 
           dn = DN.decode("puid=" + addMsg.getParentEntryUUID() + "+" +
-              CHANGE_NUMBER + "=" + msg.getChangeNumber() + "+" +
+              CHANGE_NUMBER + "=" + msg.getCSN() + "+" +
               msg.getDn() + "," + BASE_DN);
 
           Map<AttributeType,List<Attribute>> attrs =
@@ -862,7 +861,7 @@ public class ReplicationBackend
             entry.addObjectClass(extensibleObjectOC);
 
           addAttribute(entry.getUserAttributes(), CHANGE_NUMBER,
-              msg.getChangeNumber().toString());
+              msg.getCSN().toString());
           addAttribute(entry.getUserAttributes(), "replicationDomain", baseDN);
 
           // Get the base DN, scope, and filter for the search.
@@ -904,7 +903,7 @@ public class ReplicationBackend
   private DN computeDN(LDAPUpdateMsg msg) throws DirectoryException
   {
     return DN.decode("uuid=" + msg.getEntryUUID() + "," + CHANGE_NUMBER + "="
-        + msg.getChangeNumber() + "," + msg.getDn() + "," + BASE_DN);
+        + msg.getCSN() + "," + msg.getDn() + "," + BASE_DN);
   }
 
   private Entry writeChangeRecord(LDIFWriter ldifWriter,
@@ -1206,9 +1205,9 @@ public class ReplicationBackend
         findSearchContainers(searchBaseDN);
     for (ReplicationServerDomain exportContainer : searchContainers)
     {
-      final ChangeNumber previousCN = extractChangeNumber(searchOperation);
-      writeChangesAfterChangeNumber(exportContainer, null, null,
-          searchOperation, previousCN);
+      final CSN previousCSN = extractCSN(searchOperation);
+      writeChangesAfterCSN(exportContainer, null, null, searchOperation,
+          previousCSN);
     }
   }
 

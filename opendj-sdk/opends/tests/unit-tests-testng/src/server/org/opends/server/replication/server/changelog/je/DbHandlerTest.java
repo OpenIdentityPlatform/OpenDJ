@@ -35,8 +35,8 @@ import org.opends.server.admin.std.server.ReplicationServerCfg;
 import org.opends.server.config.ConfigException;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.ReplicationTestCase;
-import org.opends.server.replication.common.ChangeNumber;
-import org.opends.server.replication.common.ChangeNumberGenerator;
+import org.opends.server.replication.common.CSN;
+import org.opends.server.replication.common.CSNGenerator;
 import org.opends.server.replication.protocol.DeleteMsg;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
@@ -88,17 +88,17 @@ public class DbHandlerTest extends ReplicationTestCase
       dbEnv = new ReplicationDbEnv(testRoot.getPath(), replicationServer);
       handler = new DbHandler(1, TEST_ROOT_DN_STRING, replicationServer, dbEnv, 5000);
 
-      ChangeNumberGenerator gen = new ChangeNumberGenerator( 1, 0);
-      ChangeNumber changeNumber1 = gen.newChangeNumber();
-      ChangeNumber changeNumber2 = gen.newChangeNumber();
-      ChangeNumber changeNumber3 = gen.newChangeNumber();
-      ChangeNumber changeNumber4 = gen.newChangeNumber();
-      ChangeNumber changeNumber5 = gen.newChangeNumber();
+      CSNGenerator gen = new CSNGenerator( 1, 0);
+      CSN csn1 = gen.newCSN();
+      CSN csn2 = gen.newCSN();
+      CSN csn3 = gen.newCSN();
+      CSN csn4 = gen.newCSN();
+      CSN csn5 = gen.newCSN();
 
-      handler.add(new DeleteMsg(TEST_ROOT_DN_STRING, changeNumber1, "uid"));
-      handler.add(new DeleteMsg(TEST_ROOT_DN_STRING, changeNumber2, "uid"));
-      handler.add(new DeleteMsg(TEST_ROOT_DN_STRING, changeNumber3, "uid"));
-      DeleteMsg update4 = new DeleteMsg(TEST_ROOT_DN_STRING, changeNumber4, "uid");
+      handler.add(new DeleteMsg(TEST_ROOT_DN_STRING, csn1, "uid"));
+      handler.add(new DeleteMsg(TEST_ROOT_DN_STRING, csn2, "uid"));
+      handler.add(new DeleteMsg(TEST_ROOT_DN_STRING, csn3, "uid"));
+      DeleteMsg update4 = new DeleteMsg(TEST_ROOT_DN_STRING, csn4, "uid");
 
       //--
       // Iterator tests with memory queue only populated
@@ -106,8 +106,8 @@ public class DbHandlerTest extends ReplicationTestCase
       // verify that memory queue is populated
       assertEquals(handler.getQueueSize(),3);
 
-      assertFoundInOrder(handler, changeNumber1, changeNumber2, changeNumber3);
-      assertNotFound(handler, changeNumber5);
+      assertFoundInOrder(handler, csn1, csn2, csn3);
+      assertNotFound(handler, csn5);
 
       //--
       // Iterator tests with db only populated
@@ -116,12 +116,12 @@ public class DbHandlerTest extends ReplicationTestCase
       // verify that memory queue is empty (all changes flushed in the db)
       assertEquals(handler.getQueueSize(),0);
 
-      assertFoundInOrder(handler, changeNumber1, changeNumber2, changeNumber3);
-      assertNotFound(handler, changeNumber5);
+      assertFoundInOrder(handler, csn1, csn2, csn3);
+      assertNotFound(handler, csn5);
 
       // Test first and last
-      assertEquals(changeNumber1, handler.getFirstChange());
-      assertEquals(changeNumber3, handler.getLastChange());
+      assertEquals(csn1, handler.getFirstChange());
+      assertEquals(csn3, handler.getLastChange());
 
       //--
 			// Cursor tests with db and memory queue populated
@@ -131,11 +131,11 @@ public class DbHandlerTest extends ReplicationTestCase
       // verify memory queue contains this one
       assertEquals(handler.getQueueSize(),1);
 
-      assertFoundInOrder(handler, changeNumber1, changeNumber2, changeNumber3, changeNumber4);
-			// Test cursor from existing CN at the limit between queue and db
-      assertFoundInOrder(handler, changeNumber3, changeNumber4);
-      assertFoundInOrder(handler, changeNumber4);
-      assertNotFound(handler, changeNumber5);
+      assertFoundInOrder(handler, csn1, csn2, csn3, csn4);
+      // Test cursor from existing CSN at the limit between queue and db
+      assertFoundInOrder(handler, csn3, csn4);
+      assertFoundInOrder(handler, csn4);
+      assertNotFound(handler, csn5);
 
       handler.setPurgeDelay(1);
 
@@ -143,10 +143,9 @@ public class DbHandlerTest extends ReplicationTestCase
       int count = 300;  // wait at most 60 seconds
       while (!purged && (count > 0))
       {
-        ChangeNumber firstChange = handler.getFirstChange();
-        ChangeNumber lastChange = handler.getLastChange();
-        if ((!firstChange.equals(changeNumber4) ||
-          (!lastChange.equals(changeNumber4))))
+        CSN firstChange = handler.getFirstChange();
+        CSN lastChange = handler.getLastChange();
+        if (!firstChange.equals(csn4) || !lastChange.equals(csn4))
         {
           TestCaseUtils.sleep(100);
         } else
@@ -188,22 +187,21 @@ public class DbHandlerTest extends ReplicationTestCase
     return testRoot;
   }
 
-  private void assertFoundInOrder(DbHandler handler,
-      ChangeNumber... changeNumbers) throws Exception
+  private void assertFoundInOrder(DbHandler handler, CSN... csns) throws Exception
   {
-    if (changeNumbers.length == 0)
+    if (csns.length == 0)
     {
       return;
     }
 
-		ReplicaDBCursor cursor = handler.generateCursorFrom(changeNumbers[0]);
+    ReplicaDBCursor cursor = handler.generateCursorFrom(csns[0]);
     try
     {
-      for (int i = 1; i < changeNumbers.length; i++)
+      for (int i = 1; i < csns.length; i++)
       {
 				assertTrue(cursor.next());
-				final ChangeNumber cn = cursor.getChange().getChangeNumber();
-				assertEquals(cn, changeNumbers[i]);
+        final CSN csn = cursor.getChange().getCSN();
+        assertEquals(csn, csns[i]);
       }
 			assertFalse(cursor.next());
 			assertNull(cursor.getChange(), "Actual change number="
@@ -215,17 +213,17 @@ public class DbHandlerTest extends ReplicationTestCase
     }
   }
 
-  private void assertNotFound(DbHandler handler, ChangeNumber changeNumber)
+  private void assertNotFound(DbHandler handler, CSN csn)
   {
     ReplicaDBCursor cursor = null;
     try
     {
-      cursor = handler.generateCursorFrom(changeNumber);
+      cursor = handler.generateCursorFrom(csn);
       fail("Expected exception");
     }
     catch (Exception e)
     {
-      assertEquals(e.getLocalizedMessage(), "ChangeNumber not available");
+      assertEquals(e.getLocalizedMessage(), "CSN not available");
     }
     finally
     {
@@ -256,19 +254,19 @@ public class DbHandlerTest extends ReplicationTestCase
       handler = new DbHandler(1, TEST_ROOT_DN_STRING, replicationServer, dbEnv, 5000);
 
       // Creates changes added to the dbHandler
-      ChangeNumberGenerator gen = new ChangeNumberGenerator( 1, 0);
-      ChangeNumber changeNumber1 = gen.newChangeNumber();
-      ChangeNumber changeNumber2 = gen.newChangeNumber();
-      ChangeNumber changeNumber3 = gen.newChangeNumber();
+      CSNGenerator gen = new CSNGenerator( 1, 0);
+      CSN csn1 = gen.newCSN();
+      CSN csn2 = gen.newCSN();
+      CSN csn3 = gen.newCSN();
 
       // Add the changes
-      handler.add(new DeleteMsg(TEST_ROOT_DN_STRING, changeNumber1, "uid"));
-      handler.add(new DeleteMsg(TEST_ROOT_DN_STRING, changeNumber2, "uid"));
-      handler.add(new DeleteMsg(TEST_ROOT_DN_STRING, changeNumber3, "uid"));
+      handler.add(new DeleteMsg(TEST_ROOT_DN_STRING, csn1, "uid"));
+      handler.add(new DeleteMsg(TEST_ROOT_DN_STRING, csn2, "uid"));
+      handler.add(new DeleteMsg(TEST_ROOT_DN_STRING, csn3, "uid"));
 
       // Check they are here
-      assertEquals(changeNumber1, handler.getFirstChange());
-      assertEquals(changeNumber3, handler.getLastChange());
+      assertEquals(csn1, handler.getFirstChange());
+      assertEquals(csn3, handler.getLastChange());
 
       // Clear ...
       handler.clear();
@@ -354,84 +352,83 @@ public class DbHandlerTest extends ReplicationTestCase
 
       // Populate the db with 'max' msg
       int mySeqnum = 1;
-      ChangeNumber cnarray[] = new ChangeNumber[2*(max+1)];
+      CSN csnArray[] = new CSN[2 * (max + 1)];
       long now = System.currentTimeMillis();
       for (int i=1; i<=max; i++)
       {
-        cnarray[i] = new ChangeNumber(now+i, mySeqnum, 1);
+        csnArray[i] = new CSN(now + i, mySeqnum, 1);
         mySeqnum+=2;
-        DeleteMsg update1 = new DeleteMsg(TEST_ROOT_DN_STRING, cnarray[i], "uid");
+        DeleteMsg update1 = new DeleteMsg(TEST_ROOT_DN_STRING, csnArray[i], "uid");
         handler.add(update1);
       }
       handler.flush();
 
       // Test first and last
-      ChangeNumber cn1 = handler.getFirstChange();
-      assertEquals(cn1, cnarray[1], "First change");
-      ChangeNumber cnlast = handler.getLastChange();
-      assertEquals(cnlast, cnarray[max], "Last change");
+      CSN csn1 = handler.getFirstChange();
+      assertEquals(csn1, csnArray[1], "First change");
+      CSN csnLast = handler.getLastChange();
+      assertEquals(csnLast, csnArray[max], "Last change");
 
       // Test count in different subcases trying to handle all special cases
       // regarding the 'counter' record and 'count' algorithm
       testcase="FROM change1 TO change1 ";
-      actualCnt = handler.getCount(cnarray[1], cnarray[1]);
+      actualCnt = handler.getCount(csnArray[1], csnArray[1]);
       debugInfo(tn,testcase + " actualCnt=" + actualCnt);
       assertEquals(actualCnt, 1, testcase);
 
       testcase="FROM change1 TO change2 ";
-      actualCnt = handler.getCount(cnarray[1], cnarray[2]);
+      actualCnt = handler.getCount(csnArray[1], csnArray[2]);
       debugInfo(tn,testcase + " actualCnt=" + actualCnt);
       assertEquals(actualCnt, 2, testcase);
 
       testcase="FROM change1 TO counterWindow="+(counterWindow);
-      actualCnt = handler.getCount(cnarray[1], cnarray[counterWindow]);
+      actualCnt = handler.getCount(csnArray[1], csnArray[counterWindow]);
       debugInfo(tn,testcase + " actualCnt=" + actualCnt);
       assertEquals(actualCnt, counterWindow, testcase);
 
       testcase="FROM change1 TO counterWindow+1="+(counterWindow+1);
-      actualCnt = handler.getCount(cnarray[1], cnarray[counterWindow+1]);
+      actualCnt = handler.getCount(csnArray[1], csnArray[counterWindow+1]);
       debugInfo(tn,testcase + " actualCnt=" + actualCnt);
       assertEquals(actualCnt, counterWindow+1, testcase);
 
       testcase="FROM change1 TO 2*counterWindow="+(2*counterWindow);
-      actualCnt = handler.getCount(cnarray[1], cnarray[2*counterWindow]);
+      actualCnt = handler.getCount(csnArray[1], csnArray[2*counterWindow]);
       debugInfo(tn,testcase + " actualCnt=" + actualCnt);
       assertEquals(actualCnt, 2*counterWindow, testcase);
 
       testcase="FROM change1 TO 2*counterWindow+1="+((2*counterWindow)+1);
-      actualCnt = handler.getCount(cnarray[1], cnarray[(2*counterWindow)+1]);
+      actualCnt = handler.getCount(csnArray[1], csnArray[(2*counterWindow)+1]);
       debugInfo(tn,testcase + " actualCnt=" + actualCnt);
       assertEquals(actualCnt, (2*counterWindow)+1, testcase);
 
       testcase="FROM change2 TO change5 ";
-      actualCnt = handler.getCount(cnarray[2], cnarray[5]);
+      actualCnt = handler.getCount(csnArray[2], csnArray[5]);
       debugInfo(tn,testcase + " actualCnt=" + actualCnt);
       assertEquals(actualCnt, 4, testcase);
 
       testcase="FROM counterWindow+2 TO counterWindow+5 ";
-      actualCnt = handler.getCount(cnarray[(counterWindow+2)], cnarray[(counterWindow+5)]);
+      actualCnt = handler.getCount(csnArray[(counterWindow+2)], csnArray[(counterWindow+5)]);
       debugInfo(tn,testcase + " actualCnt=" + actualCnt);
       assertEquals(actualCnt, 4, testcase);
 
       testcase="FROM change2 TO counterWindow+5 ";
-      actualCnt = handler.getCount(cnarray[2], cnarray[(counterWindow+5)]);
+      actualCnt = handler.getCount(csnArray[2], csnArray[(counterWindow+5)]);
       debugInfo(tn,testcase + " actualCnt=" + actualCnt);
       assertEquals(actualCnt, counterWindow+4, testcase);
 
       testcase="FROM counterWindow+4 TO counterWindow+4 ";
-      actualCnt = handler.getCount(cnarray[(counterWindow+4)], cnarray[(counterWindow+4)]);
+      actualCnt = handler.getCount(csnArray[(counterWindow+4)], csnArray[(counterWindow+4)]);
       debugInfo(tn,testcase + " actualCnt=" + actualCnt);
       assertEquals(actualCnt, 1, testcase);
 
       // Now test with changes older than first or newer than last
-      ChangeNumber olderThanFirst = null;
-      ChangeNumber newerThanLast =
-        new ChangeNumber(System.currentTimeMillis() + (2*(max+1)), 100, 1);
+      CSN olderThanFirst = null;
+      CSN newerThanLast = new CSN(System.currentTimeMillis() + (2*(max+1)), 100, 1);
 
       // Now we want to test with start and stop outside of the db
 
       testcase="FROM our first generated change TO now (> newest change in the db)";
-      actualCnt = handler.getCount(cnarray[1], newerThanLast);
+      actualCnt = handler.getCount(csnArray[1], newerThanLast);
       debugInfo(tn,testcase + " actualCnt=" + actualCnt);
       assertEquals(actualCnt, max, testcase);
 
@@ -450,34 +447,34 @@ public class DbHandlerTest extends ReplicationTestCase
       handler.setCounterWindowSize(counterWindow);
 
       // Test first and last
-      cn1 = handler.getFirstChange();
-      assertEquals(cn1, cnarray[1], "First change");
-      cnlast = handler.getLastChange();
-      assertEquals(cnlast, cnarray[max], "Last change");
+      csn1 = handler.getFirstChange();
+      assertEquals(csn1, csnArray[1], "First change");
+      csnLast = handler.getLastChange();
+      assertEquals(csnLast, csnArray[max], "Last change");
 
       testcase="FROM our first generated change TO now (> newest change in the db)";
-      actualCnt = handler.getCount(cnarray[1], newerThanLast);
+      actualCnt = handler.getCount(csnArray[1], newerThanLast);
       debugInfo(tn,testcase + " actualCnt=" + actualCnt);
       assertEquals(actualCnt, max, testcase);
 
       // Populate the db with 'max' msg
       for (int i=max+1; i<=(2*max); i++)
       {
-        cnarray[i] = new ChangeNumber(now+i, mySeqnum, 1);
+        csnArray[i] = new CSN(now+i, mySeqnum, 1);
         mySeqnum+=2;
-        DeleteMsg update1 = new DeleteMsg(TEST_ROOT_DN_STRING, cnarray[i], "uid");
+        DeleteMsg update1 = new DeleteMsg(TEST_ROOT_DN_STRING, csnArray[i], "uid");
         handler.add(update1);
       }
       handler.flush();
 
       // Test first and last
-      cn1 = handler.getFirstChange();
-      assertEquals(cn1, cnarray[1], "First change");
-      cnlast = handler.getLastChange();
-      assertEquals(cnlast, cnarray[2*max], "Last change");
+      csn1 = handler.getFirstChange();
+      assertEquals(csn1, csnArray[1], "First change");
+      csnLast = handler.getLastChange();
+      assertEquals(csnLast, csnArray[2 * max], "Last change");
 
       testcase="FROM our first generated change TO now (> newest change in the db)";
-      actualCnt = handler.getCount(cnarray[1], newerThanLast);
+      actualCnt = handler.getCount(csnArray[1], newerThanLast);
       debugInfo(tn,testcase + " actualCnt=" + actualCnt);
       assertEquals(actualCnt, (2*max), testcase);
 
@@ -490,10 +487,10 @@ public class DbHandlerTest extends ReplicationTestCase
 
       testcase="AFTER PURGE (first, last)=";
       debugInfo(tn,testcase + handler.getFirstChange() + handler.getLastChange());
-      assertEquals(handler.getLastChange(), cnarray[2*max], "Last=");
+      assertEquals(handler.getLastChange(), csnArray[2*max], "Last=");
 
       testcase="AFTER PURGE ";
-      actualCnt = handler.getCount(cnarray[1], newerThanLast);
+      actualCnt = handler.getCount(csnArray[1], newerThanLast);
       int expectedCnt;
       if (totalCount>1)
       {

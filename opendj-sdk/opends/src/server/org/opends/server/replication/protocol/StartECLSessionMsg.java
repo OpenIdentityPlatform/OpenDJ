@@ -34,13 +34,12 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.zip.DataFormatException;
 
-import org.opends.server.replication.common.ChangeNumber;
+import org.opends.server.replication.common.CSN;
 import org.opends.server.util.StaticUtils;
 
 /**
  * This class specifies the parameters of a search request on the ECL.
  * It is used as an interface between the requestor (plugin part)
- * - either as an han
  */
 public class StartECLSessionMsg extends ReplicationMsg
 {
@@ -54,14 +53,14 @@ public class StartECLSessionMsg extends ReplicationMsg
   /**
    * This specifies that the ECL is requested from a provided interval
    * of change numbers (as defined by draft-good-ldap-changelog [CHANGELOG]
-   * and NOT replication change numbers).
+   * and NOT replication CSNs).
    * TODO: not yet implemented
    */
   public final static short REQUEST_TYPE_FROM_DRAFT_CHANGE_NUMBER = 1;
 
   /**
    * This specifies that the ECL is requested only for the entry that have
-   * a repl change number matching the provided one.
+   * a CSN matching the provided one.
    * TODO: not yet implemented
    */
   public final static short REQUEST_TYPE_EQUALS_REPL_CHANGE_NUMBER = 2;
@@ -100,9 +99,9 @@ public class StartECLSessionMsg extends ReplicationMsg
 
   /**
    * When eclRequestType = EQUALS_REPL_CHANGE_NUMBER, specifies the provided
-   * replication change number.
+   * replication CSN.
    */
-  private ChangeNumber changeNumber;
+  private CSN csn;
 
   /** Specifies whether the search is persistent and changesOnly. */
   private short  isPersistent = NON_PERSISTENT;
@@ -161,11 +160,11 @@ public class StartECLSessionMsg extends ReplicationMsg
         Integer.valueOf(new String(in, pos, length, "UTF-8"));
       pos += length +1;
 
-      // replication changeNumber
+      // replication CSN
       length = getNextLength(in, pos);
-      String changenumberStr = new String(in, pos, length, "UTF-8");
+      String csnStr = new String(in, pos, length, "UTF-8");
       pos += length + 1;
-      changeNumber = new ChangeNumber(changenumberStr);
+      csn = new CSN(csnStr);
 
       // persistentSearch mode
       length = getNextLength(in, pos);
@@ -210,7 +209,7 @@ public class StartECLSessionMsg extends ReplicationMsg
     crossDomainServerState = "";
     firstDraftChangeNumber = -1;
     lastDraftChangeNumber = -1;
-    changeNumber = new ChangeNumber(0,0,0);
+    csn = new CSN(0, 0, 0);
     isPersistent = NON_PERSISTENT;
     operationId = "-1";
     excludedBaseDNs = new HashSet<String>();
@@ -227,28 +226,20 @@ public class StartECLSessionMsg extends ReplicationMsg
 
     try
     {
-      byte[] byteMode =
-        Short.toString(eclRequestType).getBytes("UTF-8");
-      byte[] byteSequenceNumber =
-        String.valueOf(firstDraftChangeNumber).getBytes("UTF-8");
-      byte[] byteStopSequenceNumber =
-        String.valueOf(lastDraftChangeNumber).getBytes("UTF-8");
-      byte[] byteChangeNumber =
-        changeNumber.toString().getBytes("UTF-8");
-      byte[] bytePsearch =
-        Short.toString(isPersistent).getBytes();
-      byte[] byteGeneralizedState =
-        String.valueOf(crossDomainServerState).getBytes("UTF-8");
-      byte[] byteOperationId =
-        String.valueOf(operationId).getBytes("UTF-8");
-      byte[] byteExcludedDNs =
-        String.valueOf(excludedBaseDNsString).getBytes("UTF-8");
+      byte[] byteMode = toBytes(eclRequestType);
+      byte[] byteSequenceNumber = toBytes(firstDraftChangeNumber);
+      byte[] byteStopSequenceNumber = toBytes(lastDraftChangeNumber);
+      byte[] byteCSN = csn.toString().getBytes("UTF-8");
+      byte[] bytePsearch = toBytes(isPersistent);
+      byte[] byteGeneralizedState = toBytes(crossDomainServerState);
+      byte[] byteOperationId = toBytes(operationId);
+      byte[] byteExcludedDNs = toBytes(excludedBaseDNsString);
 
       int length =
         byteMode.length + 1 +
         byteSequenceNumber.length + 1 +
         byteStopSequenceNumber.length + 1 +
-        byteChangeNumber.length + 1 +
+        byteCSN.length + 1 +
         bytePsearch.length + 1 +
         byteGeneralizedState.length + 1 +
         byteOperationId.length + 1 +
@@ -261,13 +252,12 @@ public class StartECLSessionMsg extends ReplicationMsg
       pos = addByteArray(byteMode, resultByteArray, pos);
       pos = addByteArray(byteSequenceNumber, resultByteArray, pos);
       pos = addByteArray(byteStopSequenceNumber, resultByteArray, pos);
-      pos = addByteArray(byteChangeNumber, resultByteArray, pos);
+      pos = addByteArray(byteCSN, resultByteArray, pos);
       pos = addByteArray(bytePsearch, resultByteArray, pos);
       pos = addByteArray(byteGeneralizedState, resultByteArray, pos);
       pos = addByteArray(byteOperationId, resultByteArray, pos);
       pos = addByteArray(byteExcludedDNs, resultByteArray, pos);
       return resultByteArray;
-
     } catch (IOException e)
     {
       // never happens
@@ -275,6 +265,15 @@ public class StartECLSessionMsg extends ReplicationMsg
     }
   }
 
+  private byte[] toBytes(int i) throws UnsupportedEncodingException
+  {
+    return toBytes(String.valueOf(i));
+  }
+
+  private byte[] toBytes(String s) throws UnsupportedEncodingException
+  {
+    return String.valueOf(s).getBytes("UTF-8");
+  }
 
   /**
    * {@inheritDoc}
@@ -285,7 +284,7 @@ public class StartECLSessionMsg extends ReplicationMsg
     return getClass().getCanonicalName() + " [" +
             " requestType="+ eclRequestType +
             " persistentSearch="       + isPersistent +
-            " changeNumber="           + changeNumber +
+            " csn=" + csn +
             " firstDraftChangeNumber=" + firstDraftChangeNumber +
             " lastDraftChangeNumber="  + lastDraftChangeNumber +
             " generalizedState="       + crossDomainServerState +
@@ -330,21 +329,21 @@ public class StartECLSessionMsg extends ReplicationMsg
   }
 
   /**
-   * Getter on the replication change number.
-   * @return the replication change number.
+   * Getter on the replication CSN.
+   * @return the replication CSN.
    */
-  public ChangeNumber getChangeNumber()
+  public CSN getCSN()
   {
-    return changeNumber;
+    return csn;
   }
 
   /**
-   * Setter on the replication change number.
-   * @param changeNumber the provided replication change number.
+   * Setter on the replication CSN.
+   * @param csn the provided replication CSN.
    */
-  public void setChangeNumber(ChangeNumber changeNumber)
+  public void setCSN(CSN csn)
   {
-    this.changeNumber = changeNumber;
+    this.csn = csn;
   }
   /**
    * Getter on the type of request.

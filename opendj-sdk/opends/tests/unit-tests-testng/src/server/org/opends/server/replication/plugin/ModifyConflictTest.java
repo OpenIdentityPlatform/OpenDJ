@@ -43,7 +43,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.replication.ReplicationTestCase;
-import org.opends.server.replication.common.ChangeNumber;
+import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.protocol.LDAPUpdateMsg;
 import org.opends.server.replication.protocol.ModifyContext;
 import org.opends.server.replication.protocol.ReplicationMsg;
@@ -1329,7 +1329,7 @@ public class ModifyConflictTest extends ReplicationTestCase
   {
     InternalClientConnection aConnection =
       InternalClientConnection.getRootConnection();
-    ChangeNumber t = new ChangeNumber(date, 0, 0);
+    CSN t = new CSN(date, 0, 0);
 
     ModifyOperationBasis modOpBasis =
       new ModifyOperationBasis(aConnection, 1, 1, null, entry.getDN(), mods);
@@ -1349,7 +1349,7 @@ public class ModifyConflictTest extends ReplicationTestCase
 
     InternalClientConnection aConnection =
       InternalClientConnection.getRootConnection();
-    ChangeNumber t = new ChangeNumber(date, 0, 0);
+    CSN t = new CSN(date, 0, 0);
 
     List<Modification> mods = new ArrayList<Modification>();
     mods.add(mod);

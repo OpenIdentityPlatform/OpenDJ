@@ -36,7 +36,7 @@ import org.opends.server.api.MonitorProvider;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.replication.common.ChangeNumber;
+import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.changelog.api.*;
@@ -334,7 +334,7 @@ public class MessageHandler extends MonitorProvider<MonitorProviderCfg>
                 do
                 {
                   msg1 = msgQueue.removeFirst();
-                } while (!msg.getChangeNumber().equals(msg1.getChangeNumber()));
+                } while (!msg.getCSN().equals(msg1.getCSN()));
                 updateServerState(msg);
                 return msg1;
               }
@@ -432,9 +432,9 @@ public class MessageHandler extends MonitorProvider<MonitorProviderCfg>
    * Returns null when the queue is empty.
    * @return The older change number.
    */
-  public ChangeNumber getOlderUpdateCN()
+  public CSN getOlderUpdateCSN()
   {
-    ChangeNumber result = null;
+    CSN result = null;
     synchronized (msgQueue)
     {
       if (following)
@@ -442,7 +442,7 @@ public class MessageHandler extends MonitorProvider<MonitorProviderCfg>
         if (!msgQueue.isEmpty())
         {
           UpdateMsg msg = msgQueue.first();
-          result = msg.getChangeNumber();
+          result = msg.getCSN();
         }
       }
       else
@@ -450,7 +450,7 @@ public class MessageHandler extends MonitorProvider<MonitorProviderCfg>
         if (!lateQueue.isEmpty())
         {
           UpdateMsg msg = lateQueue.first();
-          result = msg.getChangeNumber();
+          result = msg.getCSN();
         }
         else
         {
@@ -468,14 +468,14 @@ public class MessageHandler extends MonitorProvider<MonitorProviderCfg>
     return result;
   }
 
-  private ChangeNumber findOldestChangeNumberFromReplicaDBs()
+  private CSN findOldestChangeNumberFromReplicaDBs()
   {
     SortedSet<ReplicaDBCursor> sortedCursors = null;
     try
     {
       sortedCursors = collectAllCursorsWithChanges();
       UpdateMsg msg = sortedCursors.first().getChange();
-      return msg.getChangeNumber();
+      return msg.getCSN();
     }
     catch (Exception e)
     {
@@ -489,9 +489,9 @@ public class MessageHandler extends MonitorProvider<MonitorProviderCfg>
 
   /**
    * Collects all the {@link ReplicaDBCursor}s that have changes and sort them
-   * with the oldest {@link ChangeNumber} first.
+   * with the oldest {@link CSN} first.
    *
-   * @return a List of cursors with changes sorted by their {@link ChangeNumber}
+   * @return a List of cursors with changes sorted by their {@link CSN}
    *         (oldest first)
    */
   private NavigableSet<ReplicaDBCursor> collectAllCursorsWithChanges()
@@ -501,7 +501,7 @@ public class MessageHandler extends MonitorProvider<MonitorProviderCfg>
     for (int serverId : replicationServerDomain.getServerIds())
     {
       // get the last already sent CN from that server to get a cursor
-      final ChangeNumber lastCsn = serverState.getChangeNumber(serverId);
+      final CSN lastCsn = serverState.getCSN(serverId);
       addCursorIfNotEmpty(results,
           replicationServerDomain.getCursorFrom(serverId, lastCsn));
     }
@@ -670,7 +670,7 @@ public class MessageHandler extends MonitorProvider<MonitorProviderCfg>
    */
   public boolean updateServerState(UpdateMsg msg)
   {
-    return serverState.update(msg.getChangeNumber());
+    return serverState.update(msg.getCSN());
   }
 
   /**

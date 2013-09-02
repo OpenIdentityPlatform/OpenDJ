@@ -23,11 +23,11 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2013 ForgeRock AS
  */
 package org.opends.server.replication.protocol;
 
-import org.opends.server.replication.common.ChangeNumber;
+import org.opends.server.replication.common.CSN;
 import org.opends.server.types.Operation;
 import org.opends.server.types.operation.PluginOperation;
 
@@ -43,9 +43,9 @@ public abstract class OperationContext
   public static final String SYNCHROCONTEXT = "replicationContext";
 
   /**
-   * The change Number of the Operation.
+   * The CSN of the Operation.
    */
-  private ChangeNumber changeNumber;
+  private CSN csn;
 
   /**
    * The unique Id of the entry that was modified in the original operation.
@@ -54,23 +54,23 @@ public abstract class OperationContext
 
   /**
    * Create a new OperationContext.
-   * @param changeNumber The change number of the operation.
+   * @param csn The CSN of the operation.
    * @param entryUUID The unique Identifier of the modified entry.
    */
-  protected OperationContext(ChangeNumber changeNumber, String entryUUID)
+  protected OperationContext(CSN csn, String entryUUID)
   {
-    this.changeNumber = changeNumber;
+    this.csn = csn;
     this.entryUUID = entryUUID;
   }
 
   /**
-   * Gets The change number of the Operation.
+   * Gets the CSN of the Operation.
    *
-   * @return The change number of the Operation.
+   * @return The CSN of the Operation.
    */
-  public ChangeNumber getChangeNumber()
+  public CSN getCSN()
   {
-    return changeNumber;
+    return csn;
   }
 
   /**
@@ -84,40 +84,40 @@ public abstract class OperationContext
   }
 
   /**
-   * Get the change number of an operation.
+   * Get the CSN of an operation.
    *
    * @param  op The operation.
    *
-   * @return The change number of the provided operation, or null if there is
-   *         no change number associated with the operation.
+   * @return The CSN of the provided operation, or null if there is
+   *         no CSN associated with the operation.
    */
-  public static ChangeNumber getChangeNumber(Operation op)
+  public static CSN getCSN(Operation op)
   {
     OperationContext ctx = (OperationContext)op.getAttachment(SYNCHROCONTEXT);
     if (ctx == null)
     {
       return null;
     }
-    return ctx.changeNumber;
+    return ctx.csn;
   }
 
   /**
-   * Get the change number of an operation from the synchronization context
+   * Get the CSN of an operation from the synchronization context
    * attached to the provided operation.
    *
    * @param  op The operation.
    *
-   * @return The change number of the provided operation, or null if there is
-   *         no change number associated with the operation.
+   * @return The CSN of the provided operation, or null if there is
+   *         no CSN associated with the operation.
    */
-  public static ChangeNumber getChangeNumber(PluginOperation op)
+  public static CSN getCSN(PluginOperation op)
   {
     OperationContext ctx = (OperationContext)op.getAttachment(SYNCHROCONTEXT);
     if (ctx == null)
     {
       return null;
     }
-    return ctx.changeNumber;
+    return ctx.csn;
   }
 
   /**
@@ -129,11 +129,10 @@ public abstract class OperationContext
     if (obj instanceof OperationContext)
     {
       OperationContext ctx = (OperationContext) obj;
-      return ((this.changeNumber.equals(ctx.getChangeNumber()) &&
-          (this.entryUUID.equals(ctx.getEntryUUID()))));
+      return this.csn.equals(ctx.getCSN())
+          && this.entryUUID.equals(ctx.getEntryUUID());
     }
-    else
-      return false;
+    return false;
   }
 
   /**
@@ -142,7 +141,7 @@ public abstract class OperationContext
   @Override
   public int hashCode()
   {
-    return changeNumber.hashCode() + entryUUID.hashCode();
+    return csn.hashCode() + entryUUID.hashCode();
   }
 
 

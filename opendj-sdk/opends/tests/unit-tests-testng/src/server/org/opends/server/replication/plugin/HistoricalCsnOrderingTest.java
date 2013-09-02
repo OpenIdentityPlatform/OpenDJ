@@ -27,10 +27,6 @@
  */
 package org.opends.server.replication.plugin;
 
-import static org.opends.server.TestCaseUtils.*;
-import static org.opends.server.loggers.ErrorLogger.*;
-import static org.testng.Assert.*;
-
 import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
@@ -45,7 +41,7 @@ import org.opends.server.admin.std.meta.ReplicationDomainCfgDefn.AssuredType;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.replication.ReplicationTestCase;
-import org.opends.server.replication.common.ChangeNumber;
+import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.protocol.*;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
@@ -54,6 +50,10 @@ import org.opends.server.types.*;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.util.TimeThread;
 import org.testng.annotations.Test;
+
+import static org.opends.server.TestCaseUtils.*;
+import static org.opends.server.loggers.ErrorLogger.*;
+import static org.testng.Assert.*;
 
 /**
  * Test the usage of the historical data of the replication.
@@ -69,7 +69,7 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
   {
     List<ReplicationMsg> list = null;
 
-    public TestBroker(LinkedList<ReplicationMsg> list)
+    public TestBroker(List<ReplicationMsg> list)
     {
       super(null, null, null, 0, 0, 0, 0, null, (byte) 0, 0);
       this.list = list;
@@ -94,8 +94,8 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
     HistoricalCsnOrderingMatchingRule r =
       new HistoricalCsnOrderingMatchingRule();
 
-    ChangeNumber del1 = new ChangeNumber(1,  0,  1);
-    ChangeNumber del2 = new ChangeNumber(1,  1,  1);
+    CSN del1 = new CSN(1,  0,  1);
+    CSN del2 = new CSN(1,  1,  1);
 
     ByteString v1 = ByteString.valueOf("a"+":"+del1.toString());
     ByteString v2 = ByteString.valueOf("a"+":"+del2.toString());
@@ -156,7 +156,7 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
     "description: foo");
     assertEquals(resultCode, 0);
 
-    // Read the entry back to get its historical and included changeNumber
+    // Read the entry back to get its historical and included CSN
     Entry entry = DirectoryServer.getEntry(dn1);
     List<Attribute> attrs1 = entry.getAttribute(histType);
 
@@ -194,25 +194,22 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
 
     boolean result =
       rd1.buildAndPublishMissingChanges(
-          new ChangeNumber(startTime, 0, serverId),
+          new CSN(startTime, 0, serverId),
           session);
     assertTrue(result, "buildAndPublishMissingChanges has failed");
     assertEquals(opList.size(), 3, "buildAndPublishMissingChanges should return 3 operations");
     assertTrue(opList.getFirst().getClass().equals(AddMsg.class));
 
 
-    // Build a change number from the first modification
+    // Build a CSN from the first modification
     String hv[] = histValue.split(":");
     logError(Message.raw(Category.SYNC, Severity.INFORMATION, hv[1]));
-    ChangeNumber fromChangeNumber = new ChangeNumber(hv[1]);
+    CSN fromCSN = new CSN(hv[1]);
 
     opList = new LinkedList<ReplicationMsg>();
     session = new TestBroker(opList);
 
-    result =
-      rd1.buildAndPublishMissingChanges(
-          fromChangeNumber,
-          session);
+      result = rd1.buildAndPublishMissingChanges(fromCSN, session);
     assertTrue(result, "buildAndPublishMissingChanges has failed");
     assertEquals(opList.size(), 1, "buildAndPublishMissingChanges should return 1 operation");
     assertTrue(opList.getFirst().getClass().equals(ModifyMsg.class));
@@ -303,7 +300,7 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
     // correctly generates the 4 operations in the correct order.
     boolean result =
       rd1.buildAndPublishMissingChanges(
-          new ChangeNumber(startTime, 0, serverId),
+          new CSN(startTime, 0, serverId),
           session);
     assertTrue(result, "buildAndPublishMissingChanges has failed");
     assertEquals(opList.size(), 5, "buildAndPublishMissingChanges should return 5 operations");

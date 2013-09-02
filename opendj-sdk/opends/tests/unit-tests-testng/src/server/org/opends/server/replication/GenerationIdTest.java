@@ -41,7 +41,7 @@ import org.opends.server.backends.task.TaskState;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.internal.InternalSearchOperation;
-import org.opends.server.replication.common.ChangeNumberGenerator;
+import org.opends.server.replication.common.CSNGenerator;
 import org.opends.server.replication.common.ServerStatus;
 import org.opends.server.replication.plugin.LDAPReplicationDomain;
 import org.opends.server.replication.protocol.*;
@@ -596,10 +596,10 @@ public class GenerationIdTest extends ReplicationTestCase
     String user1dn;
 
     /*
-     * Create a Change number generator to generate new changenumbers
-     * when we need to send operation messages to the replicationServer.
+     * Create a CSN generator to generate new CSNs when we need to send
+     * operation messages to the replicationServer.
      */
-    ChangeNumberGenerator gen = new ChangeNumberGenerator(2, 0);
+    CSNGenerator gen = new CSNGenerator(2, 0);
 
     user1entryUUID = "33333333-3333-3333-3333-333333333333";
     user1dn = "uid=user1,ou=People," + baseDnStr;
@@ -629,7 +629,7 @@ public class GenerationIdTest extends ReplicationTestCase
     }
 
     // Create and publish an update message to add an entry.
-    return new AddMsg(gen.newChangeNumber(),
+    return new AddMsg(gen.newCSN(),
         personWithUUIDEntry.getDN().toString(),
         user1entryUUID,
         baseUUID,
@@ -1050,7 +1050,7 @@ public class GenerationIdTest extends ReplicationTestCase
 
         /* expected */
         AddMsg rcvmsg = (AddMsg)msg;
-        assertEquals(rcvmsg.getChangeNumber(), emsg.getChangeNumber());
+        assertEquals(rcvmsg.getCSN(), emsg.getCSN());
       }
       catch(SocketTimeoutException e)
       {

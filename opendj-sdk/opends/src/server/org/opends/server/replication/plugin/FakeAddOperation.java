@@ -23,11 +23,11 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2013 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
-import org.opends.server.replication.common.ChangeNumber;
+import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.protocol.AddMsg;
 import org.opends.server.types.Entry;
 
@@ -46,12 +46,12 @@ public class FakeAddOperation extends FakeOperation
   /**
    * Creates a new AddFakeOperations.
    *
-   * @param cn     The ChangeNumber when the entry was created.
+   * @param csn     The CSN when the entry was created.
    * @param entry  The entry that the ADD operation will create.
    */
-  public FakeAddOperation(ChangeNumber cn, Entry entry)
+  public FakeAddOperation(CSN csn, Entry entry)
   {
-    super(cn);
+    super(csn);
     this.entry = entry;
   }
 
@@ -61,7 +61,7 @@ public class FakeAddOperation extends FakeOperation
   @Override
   public AddMsg generateMessage()
   {
-    return new AddMsg(getChangeNumber(), entry.getDN().toString(),
+    return new AddMsg(getCSN(), entry.getDN().toString(),
                EntryHistorical.getEntryUUID(entry),
                LDAPReplicationDomain.findEntryUUID(
                    entry.getDN().getParentDNInSuffix()),

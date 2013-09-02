@@ -23,39 +23,36 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2013 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
-import org.opends.server.replication.common.ChangeNumber;
+import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.protocol.DeleteMsg;
 import org.opends.server.replication.protocol.ReplicationMsg;
 
 /**
- *
  * This class if used to build pseudo DEL Operation from the historical
  * information that stay in the entry in the database.
  *
  * This is useful when a LDAP server can't find a LDAP server that
  * has already seen all its changes and therefore need to retransmit them.
- *
  */
 public class FakeDelOperation extends FakeOperation
 {
-  final private String dn;
+  private final String dn;
   private final String entryUUID;
 
   /**
    * Creates a new FakeDelOperation from the provided information.
    *
    * @param dn             The dn of the entry that was deleted.
-   * @param changeNumber   The ChangeNumber of the operation.
+   * @param csn   The CSN of the operation.
    * @param entryUUID      The Unique ID of the deleted entry.
    */
-  public FakeDelOperation(String dn, ChangeNumber changeNumber,
-      String entryUUID)
+  public FakeDelOperation(String dn, CSN csn, String entryUUID)
   {
-    super(changeNumber);
+    super(csn);
     this.dn = dn;
     this.entryUUID = entryUUID;
   }
@@ -67,7 +64,7 @@ public class FakeDelOperation extends FakeOperation
   @Override
   public ReplicationMsg generateMessage()
   {
-    return new DeleteMsg(dn, this.getChangeNumber(), entryUUID);
+    return new DeleteMsg(dn, getCSN(), entryUUID);
   }
 
   /**

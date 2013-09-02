@@ -23,8 +23,8 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS
  */
-
 package org.opends.server.replication.protocol;
 
 import java.util.ArrayList;
@@ -36,15 +36,9 @@ import org.opends.server.protocols.asn1.ASN1Reader;
 import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPModification;
-import org.opends.server.replication.common.ChangeNumber;
+import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.plugin.EntryHistorical;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeUsage;
-import org.opends.server.types.ByteStringBuilder;
-import org.opends.server.types.LDAPException;
-import org.opends.server.types.Modification;
-import org.opends.server.types.RawModification;
+import org.opends.server.types.*;
 
 /**
  * This class holds every common code for the modify messages (mod, moddn).
@@ -80,16 +74,16 @@ public abstract class ModifyCommonMsg extends LDAPUpdateMsg {
   /**
    * Creates a new ModifyCommonMsg with the given informations.
    *
-   * @param cn        The ChangeNumber of the operation for which the
+   * @param csn       The CSN of the operation for which the
    *                  UpdateMessage is created.
    * @param entryUUID The Unique identifier of the entry that is updated
    *                  by the operation for which the UpdateMessage is created.
    * @param dn        The DN of the entry on which the change
    *                  that caused the creation of this object happened
    */
-  public ModifyCommonMsg(ChangeNumber cn, String entryUUID, String dn)
+  public ModifyCommonMsg(CSN csn, String entryUUID, String dn)
   {
-    super(cn, entryUUID, dn);
+    super(csn, entryUUID, dn);
   }
 
   /**

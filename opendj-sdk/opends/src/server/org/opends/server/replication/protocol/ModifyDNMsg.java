@@ -27,8 +27,6 @@
  */
 package org.opends.server.replication.protocol;
 
-import static org.opends.server.replication.protocol.OperationContext.*;
-
 import java.io.UnsupportedEncodingException;
 import java.util.List;
 import java.util.zip.DataFormatException;
@@ -36,15 +34,11 @@ import java.util.zip.DataFormatException;
 import org.opends.server.core.ModifyDNOperationBasis;
 import org.opends.server.protocols.asn1.ASN1Exception;
 import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.replication.common.ChangeNumber;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.DN;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.LDAPException;
-import org.opends.server.types.Modification;
-import org.opends.server.types.Operation;
-import org.opends.server.types.RDN;
+import org.opends.server.replication.common.CSN;
+import org.opends.server.types.*;
 import org.opends.server.types.operation.PostOperationModifyDNOperation;
+
+import static org.opends.server.replication.protocol.OperationContext.*;
 
 /**
  * Message used to send Modify DN information.
@@ -86,7 +80,7 @@ public class ModifyDNMsg extends ModifyCommonMsg
    * using mods.
    *
    * @param dn The dn to use for building the message.
-   * @param changeNumber The changeNumberto use for building the message.
+   * @param csn The CSN to use for building the message.
    * @param entryUUID          The unique id to use for building the message.
    * @param newSuperiorEntryUUID The new parent unique id to use for building
    *                     the message.
@@ -95,12 +89,11 @@ public class ModifyDNMsg extends ModifyCommonMsg
    * @param newSuperior  The new Superior entry to use for building the message.
    * @param newRDN       The new Rdn to use for building the message.
    */
-  public ModifyDNMsg(String dn, ChangeNumber changeNumber, String entryUUID,
+  public ModifyDNMsg(String dn, CSN csn, String entryUUID,
                      String newSuperiorEntryUUID, boolean deleteOldRdn,
                      String newSuperior, String newRDN)
   {
-    super(new ModifyDnContext(changeNumber, entryUUID, newSuperiorEntryUUID),
-        dn);
+    super(new ModifyDnContext(csn, entryUUID, newSuperiorEntryUUID), dn);
 
     this.newSuperiorEntryUUID = newSuperiorEntryUUID;
     this.deleteOldRdn = deleteOldRdn;
@@ -112,7 +105,7 @@ public class ModifyDNMsg extends ModifyCommonMsg
    * Construct a new Modify DN message (with mods).
    *
    * @param dn The dn to use for building the message.
-   * @param changeNumber The changeNumberto use for building the message.
+   * @param csn The CSNto use for building the message.
    * @param entryUUID The unique id to use for building the message.
    * @param newSuperiorEntryUUID The new parent unique id to use for building
    *                     the message.
@@ -122,11 +115,11 @@ public class ModifyDNMsg extends ModifyCommonMsg
    * @param newRDN       The new Rdn to use for building the message.
    * @param mods         The mod of the operation.
    */
-  public ModifyDNMsg(String dn, ChangeNumber changeNumber, String entryUUID,
+  public ModifyDNMsg(String dn, CSN csn, String entryUUID,
       String newSuperiorEntryUUID, boolean deleteOldRdn, String newSuperior,
       String newRDN, List<Modification> mods)
   {
-    this(dn, changeNumber, entryUUID, newSuperiorEntryUUID, deleteOldRdn,
+    this(dn, csn, entryUUID, newSuperiorEntryUUID, deleteOldRdn,
         newSuperior, newRDN);
     this.encodedMods = encodeMods(mods);
   }
@@ -180,7 +173,7 @@ public class ModifyDNMsg extends ModifyCommonMsg
       moddn.addModification(mod);
     }
 
-    ModifyDnContext ctx = new ModifyDnContext(getChangeNumber(), getEntryUUID(),
+    ModifyDnContext ctx = new ModifyDnContext(getCSN(), getEntryUUID(),
         newSuperiorEntryUUID);
     moddn.setAttachment(SYNCHROCONTEXT, ctx);
     return moddn;
@@ -555,7 +548,7 @@ public class ModifyDNMsg extends ModifyCommonMsg
       return "ModifyDNMsg content: " +
         " protocolVersion: " + protocolVersion +
         " dn: " + dn +
-        " changeNumber: " + changeNumber +
+        " changeNumber: " + csn +
         " uniqueId: " + entryUUID +
         " assuredFlag: " + assuredFlag +
         " newRDN: " + newRDN +
@@ -567,7 +560,7 @@ public class ModifyDNMsg extends ModifyCommonMsg
       return "ModifyDNMsg content: " +
         " protocolVersion: " + protocolVersion +
         " dn: " + dn +
-        " changeNumber: " + changeNumber +
+        " changeNumber: " + csn +
         " uniqueId: " + entryUUID +
         " newRDN: " + newRDN +
         " newSuperior: " + newSuperior +

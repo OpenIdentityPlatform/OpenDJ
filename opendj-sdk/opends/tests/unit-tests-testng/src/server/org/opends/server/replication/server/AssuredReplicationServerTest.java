@@ -576,7 +576,7 @@ public class AssuredReplicationServerTest
     private int scenario = -1;
     private long generationId = -1;
 
-    private ChangeNumberGenerator gen = null;
+    private CSNGenerator gen = null;
 
     /** False if a received update had assured parameters not as expected */
     private boolean everyUpdatesAreOk = true;
@@ -620,7 +620,7 @@ public class AssuredReplicationServerTest
       setAssuredTimeout(assuredTimeout);
       this.scenario = scenario;
 
-      gen = new ChangeNumberGenerator(serverID, 0L);
+      gen = new CSNGenerator(serverID, 0L);
     }
 
     public boolean receivedUpdatesOk()
@@ -691,7 +691,7 @@ public class AssuredReplicationServerTest
           // be done when using asynchronous process update mechanism
           // (see processUpdate javadoc)
           processUpdateDone(updateMsg, null);
-          getServerState().update(updateMsg.getChangeNumber());
+          getServerState().update(updateMsg.getCSN());
           break;
         case TIMEOUT_DS_SCENARIO:
           // Let timeout occur
@@ -702,9 +702,8 @@ public class AssuredReplicationServerTest
           // be done when using asynchronous process update mechanism
           // (see processUpdate javadoc)
           processUpdateDone(updateMsg, "This is the replay error message generated from fake DS " +
-            getServerId() + " for update with change number " + updateMsg.
-            getChangeNumber());
-          getServerState().update(updateMsg.getChangeNumber());
+            getServerId() + " for update with CSN " + updateMsg.getCSN());
+          getServerState().update(updateMsg.getCSN());
           break;
         default:
           fail("Unknown scenario: " + scenario);
@@ -762,7 +761,7 @@ public class AssuredReplicationServerTest
     {
       // Create a new delete update message (the simplest to create)
       DeleteMsg delMsg =
-          new DeleteMsg(getBaseDNString(), gen.newChangeNumber(),
+          new DeleteMsg(getBaseDNString(), gen.newCSN(),
         UUID.randomUUID().toString());
 
       // Send it (this uses the defined assured conf at constructor time)
@@ -802,7 +801,7 @@ public class AssuredReplicationServerTest
     /** The scenario this RS is expecting */
     private int scenario = -1;
 
-    private ChangeNumberGenerator gen = null;
+    private CSNGenerator gen = null;
 
     /** False if a received update had assured parameters not as expected */
     private boolean everyUpdatesAreOk = true;
@@ -839,7 +838,7 @@ public class AssuredReplicationServerTest
       this.assuredMode = assuredMode;
       this.safeDataLevel = (byte) safeDataLevel;
 
-      gen = new ChangeNumberGenerator(serverId + 10, 0L);
+      gen = new CSNGenerator(serverId + 10, 0L);
     }
 
     /**
@@ -849,7 +848,7 @@ public class AssuredReplicationServerTest
     public AckMsg sendNewFakeUpdate() throws Exception
     {
         // Create a new delete update message (the simplest to create)
-        DeleteMsg delMsg = new DeleteMsg(baseDn, gen.newChangeNumber(),
+        DeleteMsg delMsg = new DeleteMsg(baseDn, gen.newCSN(),
         UUID.randomUUID().toString());
 
         // Send del message in assured mode
@@ -969,7 +968,7 @@ public class AssuredReplicationServerTest
                 if (updateMsg.isAssured())
                 {
                   // Send the ack without errors
-                  AckMsg ackMsg = new AckMsg(updateMsg.getChangeNumber());
+                  AckMsg ackMsg = new AckMsg(updateMsg.getCSN());
                   session.publish(ackMsg);
                   ackReplied = true;
                 }
@@ -983,7 +982,7 @@ public class AssuredReplicationServerTest
                   // Emulate RS waiting for virtual DS ack
                   sleep(MAX_SEND_UPDATE_TIME);
                   // Send the ack with timeout error from a virtual DS with id (ours + 10)
-                  AckMsg ackMsg = new AckMsg(updateMsg.getChangeNumber());
+                  AckMsg ackMsg = new AckMsg(updateMsg.getCSN());
                   ackMsg.setHasTimeout(true);
                   List<Integer> failedServers = new ArrayList<Integer>();
                   failedServers.add(serverId + 10);
@@ -996,7 +995,7 @@ public class AssuredReplicationServerTest
                 if (updateMsg.isAssured())
                 {
                   // Send the ack with wrong status error from a virtual DS with id (ours + 10)
-                  AckMsg ackMsg = new AckMsg(updateMsg.getChangeNumber());
+                  AckMsg ackMsg = new AckMsg(updateMsg.getCSN());
                   ackMsg.setHasWrongStatus(true);
                   List<Integer> failedServers = new ArrayList<Integer>();
                   failedServers.add((serverId + 10));
@@ -1009,7 +1008,7 @@ public class AssuredReplicationServerTest
                 if (updateMsg.isAssured())
                 {
                   // Send the ack with replay error from a virtual DS with id (ours + 10)
-                  AckMsg ackMsg = new AckMsg(updateMsg.getChangeNumber());
+                  AckMsg ackMsg = new AckMsg(updateMsg.getCSN());
                   ackMsg.setHasReplayError(true);
                   List<Integer> failedServers = new ArrayList<Integer>();
                   failedServers.add((serverId + 10));

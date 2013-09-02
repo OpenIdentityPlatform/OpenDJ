@@ -39,7 +39,7 @@ import org.opends.server.api.MonitorProvider;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.replication.common.ChangeNumber;
+import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.MultiDomainServerState;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.server.ReplicationServer;
@@ -62,8 +62,8 @@ import static org.opends.server.util.StaticUtils.*;
  * server in the topology.
  * It is responsible for efficiently saving the updates that is received from
  * each master server into stable storage.
- * This class is also able to generate a ChangelogDBIterator that can be
- * used to read all changes from a given ChangeNumber.
+ * This class is also able to generate a {@link ChangelogDBIterator} that can be
+ * used to read all changes from a given draft ChangeNumber.
  * <p>
  * This class publishes some monitoring information below <code>
  * cn=monitor</code>.
@@ -140,9 +140,9 @@ public class DraftCNDbHandler implements ChangelogDB
   /** {@inheritDoc} */
   @Override
   public synchronized void add(int draftCN, String value, String baseDN,
-      ChangeNumber cn)
+      CSN csn)
   {
-    db.addEntry(draftCN, value, baseDN, cn);
+    db.addEntry(draftCN, value, baseDN, csn);
 
     if (debugEnabled())
       TRACER.debugInfo(
@@ -150,7 +150,7 @@ public class DraftCNDbHandler implements ChangelogDB
         + " key=" + draftCN
         + " value=" + value
         + " baseDN=" + baseDN
-        + " cn=" + cn);
+        + " csn=" + csn);
   }
 
   /** {@inheritDoc} */
@@ -331,8 +331,8 @@ public class DraftCNDbHandler implements ChangelogDB
             return;
           }
 
-          // From the draftCNDb change record, get the domain and changeNumber
-          final ChangeNumber cn = cursor.currentChangeNumber();
+          // From the draftCNDb change record, get the domain and CSN
+          final CSN csn = cursor.currentCSN();
           final String baseDN = cursor.currentBaseDN();
           if (baseDNToClear != null && baseDNToClear.equalsIgnoreCase(baseDN))
           {
@@ -352,27 +352,27 @@ public class DraftCNDbHandler implements ChangelogDB
           }
 
           final ServerState startState = domain.getStartState();
-          final ChangeNumber fcn = startState.getChangeNumber(cn.getServerId());
+          final CSN fcsn = startState.getCSN(csn.getServerId());
 
           final int currentDraftCN = cursor.currentKey();
 
-          if (cn.older(fcn))
+          if (csn.older(fcsn))
           {
             cursor.delete();
             continue;
           }
 
-          ServerState cnVector;
+          ServerState csnVector;
           try
           {
-            Map<String,ServerState> cnStartStates =
+            Map<String, ServerState> csnStartStates =
                 MultiDomainServerState.splitGenStateToServerStates(
                         cursor.currentValue());
-            cnVector = cnStartStates.get(baseDN);
+            csnVector = csnStartStates.get(baseDN);
 
             if (debugEnabled())
-              TRACER.debugInfo("DraftCNDBHandler:clear() - ChangeVector:" +
-                      cnVector + " -- StartState:" + startState);
+              TRACER.debugInfo("DraftCNDBHandler:clear() - ChangeVector:"
+                  + csnVector + " -- StartState:" + startState);
           }
           catch(Exception e)
           {
@@ -381,14 +381,14 @@ public class DraftCNDbHandler implements ChangelogDB
             continue;
           }
 
-          if ((cnVector == null)
-                  || (cnVector.getChangeNumber(cn.getServerId()) != null
-                      && !cnVector.cover(startState)))
+          if ((csnVector == null)
+              || (csnVector.getCSN(csn.getServerId()) != null && !csnVector
+                  .cover(startState)))
           {
             cursor.delete();
             if (debugEnabled())
-              TRACER.debugInfo("DraftCNDBHandler:clear() - deleted " +
-                      cn + "Not covering startState");
+              TRACER.debugInfo("DraftCNDBHandler:clear() - deleted " + csn
+                  + "Not covering startState");
             continue;
           }
 
@@ -538,13 +538,13 @@ public class DraftCNDbHandler implements ChangelogDB
 
   /** {@inheritDoc} */
   @Override
-  public ChangeNumber getChangeNumber(int draftCN)
+  public CSN getCSN(int draftCN)
   {
     DraftCNDBCursor draftCNDBCursor = null;
     try
     {
       draftCNDBCursor = db.openReadCursor(draftCN);
-      return draftCNDBCursor.currentChangeNumber();
+      return draftCNDBCursor.currentCSN();
     }
     catch(Exception e)
     {

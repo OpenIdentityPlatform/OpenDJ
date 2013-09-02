@@ -34,7 +34,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.replication.common.ChangeNumber;
+import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.types.DebugLogLevel;
 
@@ -89,16 +89,16 @@ public class DraftCNDB
    *                     with this draftCN.
    * @param domainBaseDN the provided domainBaseDn to be stored associated
    *                     with this draftCN.
-   * @param changeNumber the provided replication change number to be
+   * @param csn the provided replication CSN to be
    *                     stored associated with this draftCN.
    */
   public void addEntry(int draftCN, String value, String domainBaseDN,
-      ChangeNumber changeNumber)
+      CSN csn)
   {
     try
     {
       DatabaseEntry key = new ReplicationDraftCNKey(draftCN);
-      DatabaseEntry data = new DraftCNData(value, domainBaseDN, changeNumber);
+      DatabaseEntry data = new DraftCNData(value, domainBaseDN, csn);
 
       // Use a transaction so that we can override durability.
       Transaction txn = null;
@@ -388,7 +388,7 @@ public class DraftCNDB
         {
           if (localCursor.getSearchKey(key, entry, LockMode.DEFAULT) != SUCCESS)
           {
-            // We could not move the cursor to the expected startingChangeNumber
+            // We could not move the cursor to the expected startingDraftCN
             if (localCursor.getSearchKeyRange(key, entry, DEFAULT) != SUCCESS)
             {
               // We could not even move the cursor closed to it => failure
@@ -618,10 +618,10 @@ public class DraftCNDB
     }
 
     /**
-     * Returns the replication changeNumber associated with the current key.
-     * @return the replication changeNumber
+     * Returns the replication CSN associated with the current key.
+     * @return the replication CSN
      */
-    public ChangeNumber currentChangeNumber()
+    public CSN currentCSN()
     {
       if (isClosed)
       {
@@ -632,7 +632,7 @@ public class DraftCNDB
       {
         if (seqnumData != null)
         {
-          return seqnumData.getChangeNumber();
+          return seqnumData.getCSN();
         }
       }
       catch(Exception e)
