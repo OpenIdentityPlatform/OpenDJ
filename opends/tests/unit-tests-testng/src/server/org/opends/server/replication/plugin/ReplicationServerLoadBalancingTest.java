@@ -27,11 +27,6 @@
  */
 package org.opends.server.replication.plugin;
 
-import static org.opends.server.TestCaseUtils.*;
-import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.testng.Assert.*;
-
 import java.io.File;
 import java.util.*;
 
@@ -47,9 +42,13 @@ import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.server.ReplicationServerDomain;
 import org.opends.server.types.DN;
-import org.opends.server.types.DirectoryException;
 import org.opends.server.util.StaticUtils;
 import org.testng.annotations.Test;
+
+import static org.opends.server.TestCaseUtils.*;
+import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.testng.Assert.*;
 
 /**
  * Test in real situations the algorithm for load balancing the DSs connections
@@ -90,7 +89,7 @@ public class ReplicationServerLoadBalancingTest extends ReplicationTestCase
     rsPort = TestCaseUtils.findFreePorts(NRS);
   }
 
-  private void endTest()
+  private void endTest() throws Exception
   {
     debugInfo("endTest");
     for (int i = 0 ; i < NDS; i++)
@@ -102,14 +101,8 @@ public class ReplicationServerLoadBalancingTest extends ReplicationTestCase
       }
     }
 
-    try
-    {
-      // Clear any reference to a domain in synchro plugin
-      MultimasterReplication.deleteDomain(DN.decode(TEST_ROOT_DN_STRING));
-    } catch (DirectoryException ex)
-    {
-      fail("Error deleting reference to domain: " + TEST_ROOT_DN_STRING);
-    }
+    // Clear any reference to a domain in synchro plugin
+    MultimasterReplication.deleteDomain(DN.decode(TEST_ROOT_DN_STRING));
 
     for (int i = 0; i < NRS; i++)
     {

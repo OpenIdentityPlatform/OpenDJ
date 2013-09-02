@@ -96,7 +96,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
   private static final DebugTracer TRACER = getTracer();
 
   /** The replicationServer that will be used in this test. */
-  private ReplicationServer replicationServer = null;
+  private ReplicationServer replicationServer;
 
   /** The port of the replicationServer. */
   private int replicationServerPort;
@@ -112,17 +112,15 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
   private CSN gblCSN;
 
-  private List<Control> NO_CONTROL = null;
-
   private int brokerSessionTimeout = 5000;
-
   private int maxWindow = 100;
 
   /**
    * When used in a search operation, it includes all attributes (user and
    * operational)
    */
-  private final Set<String> ALL_ATTRIBUTES = newSet("+", "*");
+  private static final Set<String> ALL_ATTRIBUTES = newSet("+", "*");
+  private static final List<Control> NO_CONTROL = null;
 
   /**
    * Set up the environment for performing the tests in this Class.
@@ -3196,7 +3194,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     debugInfo(tn, "Ending test with success");
   }
 
-  private SortedSet<String> newSet(String... values)
+  private static SortedSet<String> newSet(String... values)
   {
     return new TreeSet<String>(Arrays.asList(values));
   }

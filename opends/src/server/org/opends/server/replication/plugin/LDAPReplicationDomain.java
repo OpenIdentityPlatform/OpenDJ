@@ -268,7 +268,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    */
 
   /** Holds the fractional configuration for this domain, if any. */
-  private FractionalConfig fractionalConfig = null;
+  private FractionalConfig fractionalConfig;
 
   /**
    * The list of attributes that cannot be used in fractional replication
@@ -364,8 +364,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     protected ServerStateFlush()
     {
       super("Replica DS(" + serverId
-          + ") state checkpointer for domain \"" + baseDn.toString()
-          + "\"");
+          + ") state checkpointer for domain \"" + baseDn + "\"");
     }
 
     /**
@@ -412,8 +411,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     protected RSUpdater(CSN replServerMaxCSN)
     {
       super("Replica DS(" + serverId
-          + ") missing change publisher for domain \""
-          + baseDn.toString() + "\"");
+          + ") missing change publisher for domain \"" + baseDn + "\"");
       this.startCSN = replServerMaxCSN;
     }
 
@@ -958,7 +956,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    */
   public static class AttributeValueStringIterator implements Iterator<String>
   {
-    private Iterator<AttributeValue> attrValIt = null;
+    private Iterator<AttributeValue> attrValIt;
 
     /**
      * Creates a new AttributeValueStringIterator object.
@@ -1104,8 +1102,8 @@ public final class LDAPReplicationDomain extends ReplicationDomain
           NOTE_ERR_FRACTIONAL_CONFIG_UNKNOWN_OBJECT_CLASS.get(className));
       }
 
-      boolean isExtensibleObjectClass = className.
-        equalsIgnoreCase("extensibleObject");
+      boolean isExtensibleObjectClass =
+          "extensibleObject".equalsIgnoreCase(className);
 
       List<String> attributes =
         newFractionalSpecificClassesAttributes.get(className);
@@ -1124,18 +1122,14 @@ public final class LDAPReplicationDomain extends ReplicationDomain
         if (attributeType != null)
         {
           // No more checking for the extensibleObject class
-          if (!isExtensibleObjectClass)
-          {
-            if (fractionalMode == FractionalConfig.EXCLUSIVE_FRACTIONAL)
-            {
+          if (!isExtensibleObjectClass
+              && fractionalMode == FractionalConfig.EXCLUSIVE_FRACTIONAL
               // Exclusive mode : the attribute must be optional
-              if (!fractionalClass.isOptional(attributeType))
-              {
-                throw new ConfigException(
-                  NOTE_ERR_FRACTIONAL_CONFIG_NOT_OPTIONAL_ATTRIBUTE.
-                  get(attrName, className));
-              }
-            }
+              && !fractionalClass.isOptional(attributeType))
+          {
+            throw new ConfigException(
+                NOTE_ERR_FRACTIONAL_CONFIG_NOT_OPTIONAL_ATTRIBUTE.get(attrName,
+                    className));
           }
         }
         else
@@ -1144,8 +1138,8 @@ public final class LDAPReplicationDomain extends ReplicationDomain
             NOTE_ERR_FRACTIONAL_CONFIG_UNKNOWN_ATTRIBUTE_TYPE.get(attrName));
         }
       }
-
     }
+
 
     // Check consistency of all classes attributes
     for (String attrName : newFractionalAllClassesAttributes)
@@ -1221,30 +1215,22 @@ public final class LDAPReplicationDomain extends ReplicationDomain
   public boolean fractionalFilterOperation(
     PreOperationModifyDNOperation modifyDNOperation, boolean performFiltering)
   {
-    boolean inconsistentOperation = false;
-
     // Quick exit if not called for analyze and
-    if (performFiltering)
+    if (performFiltering && modifyDNOperation.deleteOldRDN())
     {
-      if (modifyDNOperation.deleteOldRDN())
-      {
-        // The core will remove any occurrence of attribute that was part
-        // of the old RDN, nothing more to do.
-        return true; // Will not be used as analyze was not requested
-      }
+      // The core will remove any occurrence of attribute that was part of the
+      // old RDN, nothing more to do.
+      return true; // Will not be used as analyze was not requested
     }
 
-    /*
-     * Create a list of filtered attributes for this entry
-     */
-
+    // Create a list of filtered attributes for this entry
     Entry concernedEntry = modifyDNOperation.getOriginalEntry();
     List<String> fractionalConcernedAttributes =
       createFractionalConcernedAttrList(fractionalConfig,
       concernedEntry.getObjectClasses().keySet());
 
     boolean fractionalExclusive = fractionalConfig.isFractionalExclusive();
-    if ( fractionalExclusive && (fractionalConcernedAttributes.isEmpty()) )
+    if (fractionalExclusive && fractionalConcernedAttributes.isEmpty())
       // No attributes to filter
       return false;
 
@@ -1258,6 +1244,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
      * putting a modification to delete the attribute.
      */
 
+    boolean inconsistentOperation = false;
     RDN rdn = modifyDNOperation.getEntryDN().getRDN();
     RDN newRdn = modifyDNOperation.getNewRDN();
 
@@ -1277,8 +1264,8 @@ public final class LDAPReplicationDomain extends ReplicationDomain
           break;
         }
       }
-      boolean attributeToBeFiltered = ( (fractionalExclusive && found) ||
-        (!fractionalExclusive && !found) );
+      boolean attributeToBeFiltered = (fractionalExclusive && found)
+          || (!fractionalExclusive && !found);
       if (attributeToBeFiltered &&
         !newRdn.hasAttributeType(attributeType) &&
         !modifyDNOperation.deleteOldRDN())
@@ -1329,7 +1316,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     List<String> fractionalConcernedAttributes =
       createFractionalConcernedAttrList(fractionalConfig, classes.keySet());
     boolean fractionalExclusive = fractionalConfig.isFractionalExclusive();
-    if ( fractionalExclusive && (fractionalConcernedAttributes.isEmpty()) )
+    if (fractionalExclusive && fractionalConcernedAttributes.isEmpty())
       return false; // No attributes to filter
 
     // Prepare list of object classes of the added entry
@@ -1572,7 +1559,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       createFractionalConcernedAttrList(fractionalConfig,
       modifiedEntry.getObjectClasses().keySet());
     boolean fractionalExclusive = fractionalConfig.isFractionalExclusive();
-    if ( fractionalExclusive && (fractionalConcernedAttributes.isEmpty()) )
+    if (fractionalExclusive && fractionalConcernedAttributes.isEmpty())
       // No attributes to filter
       return FRACTIONAL_HAS_NO_FRACTIONAL_FILTERED_ATTRIBUTES;
 
@@ -1689,7 +1676,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
   protected void initializeRemote(int target, int requestorID,
     Task initTask, int initWindow) throws DirectoryException
   {
-    if ((target == RoutableMsg.ALL_SERVERS) && fractionalConfig.isFractional())
+    if (target == RoutableMsg.ALL_SERVERS && fractionalConfig.isFractional())
     {
       Message msg = NOTE_ERR_FRACTIONAL_FORBIDDEN_FULL_UPDATE_FRACTIONAL.get(
             baseDn.toString(), Integer.toString(getServerId()));
@@ -1719,8 +1706,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
   public SynchronizationProviderResult handleConflictResolution(
          PreOperationDeleteOperation deleteOperation)
   {
-    if ((!deleteOperation.isSynchronizationOperation())
-        && (!brokerIsConnected()))
+    if (!deleteOperation.isSynchronizationOperation() && !brokerIsConnected())
     {
       Message msg = ERR_REPLICATION_COULD_NOT_CONNECT.get(baseDn.toString());
       return new SynchronizationProviderResult.StopProcessing(
@@ -1872,8 +1858,8 @@ public final class LDAPReplicationDomain extends ReplicationDomain
         {
           DN entryDN = addOperation.getEntryDN();
           DN parentDnFromEntryDn = entryDN.getParentDNInSuffix();
-          if ((parentDnFromEntryDn != null)
-              && (!parentDnFromCtx.equals(parentDnFromEntryDn)))
+          if (parentDnFromEntryDn != null
+              && !parentDnFromCtx.equals(parentDnFromEntryDn))
           {
             // parentEntry has been renamed
             // replication name conflict resolution is expected to fix that
@@ -1999,8 +1985,8 @@ public final class LDAPReplicationDomain extends ReplicationDomain
          * parent is the same as when the operation was performed.
          */
         String newParentId = findEntryUUID(modifyDNOperation.getNewSuperior());
-        if ((newParentId != null) && (ctx.getNewSuperiorEntryUUID() != null) &&
-            (!newParentId.equals(ctx.getNewSuperiorEntryUUID())))
+        if (newParentId != null && ctx.getNewSuperiorEntryUUID() != null
+            && !newParentId.equals(ctx.getNewSuperiorEntryUUID()))
         {
         return new SynchronizationProviderResult.StopProcessing(
             ResultCode.NO_SUCH_OBJECT, null);
@@ -2123,8 +2109,8 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       // - check for conflicts
       String modifiedEntryUUID = ctx.getEntryUUID();
       String currentEntryUUID = EntryHistorical.getEntryUUID(modifiedEntry);
-      if ((currentEntryUUID != null) &&
-          (!currentEntryUUID.equals(modifiedEntryUUID)))
+      if (currentEntryUUID != null
+          && !currentEntryUUID.equals(modifiedEntryUUID))
       {
         /*
          * The current modified entry is not the same entry as the one on
@@ -2272,8 +2258,8 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       // If the operation is a DELETE on the base entry of the suffix
       // that is replicated, the generation is now lost because the
       // DB is empty. We need to save it again the next time we add an entry.
-      if ((op.getOperationType().equals(OperationType.DELETE))
-          && (((PostOperationDeleteOperation) op).getEntryDN().equals(baseDn)))
+      if (op.getOperationType().equals(OperationType.DELETE)
+          && ((PostOperationDeleteOperation) op).getEntryDN().equals(baseDn))
       {
         generationIdSavedStatus = false;
       }
@@ -2283,15 +2269,12 @@ public final class LDAPReplicationDomain extends ReplicationDomain
         saveGenerationId(generationId);
       }
     }
-    else if (!op.isSynchronizationOperation())
+    else if (!op.isSynchronizationOperation() && curCSN != null)
     {
       // Remove an unsuccessful non-replication operation from the pending
       // changes list.
-      if (curCSN != null)
-      {
-        pendingChanges.remove(curCSN);
-        pendingChanges.pushCommittedChanges();
-      }
+      pendingChanges.remove(curCSN);
+      pendingChanges.pushCommittedChanges();
     }
 
     checkForClearedConflict(op);
@@ -2526,7 +2509,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
         op = msg.createOperation(conn);
         dependency = remotePendingChanges.checkDependencies(op, msg);
 
-        while ((!dependency) && (!replayDone) && (retryCount-- > 0))
+        while (!dependency && !replayDone && (retryCount-- > 0))
         {
           if (shutdown.get())
           {
@@ -2694,7 +2677,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
   private String logDecodingOperationError(LDAPUpdateMsg msg, Exception e)
   {
     Message message = ERR_EXCEPTION_DECODING_OPERATION.get(
-      String.valueOf(msg) + stackTraceToSingleLineString(e));
+        String.valueOf(msg) + " " + stackTraceToSingleLineString(e));
     logError(message);
     return message.toString();
   }
@@ -2877,8 +2860,9 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       for (Modification mod : mods)
       {
         AttributeType modAttrType = mod.getAttribute().getAttributeType();
-        if ((mod.getModificationType() == ModificationType.DELETE) ||
-            (mod.getModificationType() == ModificationType.REPLACE))
+        if ((mod.getModificationType() == ModificationType.DELETE
+            || mod.getModificationType() == ModificationType.REPLACE)
+            && currentRDN.hasAttributeType(modAttrType))
         {
           if (currentRDN.hasAttributeType(modAttrType))
           {
@@ -3061,9 +3045,9 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     return true;
   }
 
-  if ((result == ResultCode.NO_SUCH_OBJECT) ||
-      (result == ResultCode.UNWILLING_TO_PERFORM) ||
-      (result == ResultCode.OBJECTCLASS_VIOLATION))
+  if (result == ResultCode.NO_SUCH_OBJECT
+      || result == ResultCode.UNWILLING_TO_PERFORM
+      || result == ResultCode.OBJECTCLASS_VIOLATION)
   {
     /*
      * The entry or it's new parent has not been found
@@ -3156,15 +3140,14 @@ private boolean solveNamingConflict(ModifyDNOperation op,
         // handleConflict phase does not fail.
         msg.setParentEntryUUID(null);
         numUnresolvedNamingConflicts.incrementAndGet();
-        return false;
       }
       else
       {
         RDN entryRdn = DN.decode(msg.getDn()).getRDN();
         msg.setDn(entryRdn + "," + parentDn);
         numResolvedNamingConflicts.incrementAndGet();
-        return false;
       }
+      return false;
     }
     else if (result == ResultCode.ENTRY_ALREADY_EXISTS)
     {
@@ -3629,8 +3612,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     long aGenerationId=-1;
 
     if (debugEnabled())
-      TRACER.debugInfo(
-          "Attempt to read generation ID from DB " + baseDn.toString());
+      TRACER.debugInfo("Attempt to read generation ID from DB " + baseDn);
 
     ByteString asn1BaseDn = ByteString.valueOf(baseDn.toString());
     boolean found = false;
@@ -3721,17 +3703,15 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       saveGenerationId(aGenerationId);
 
       if (debugEnabled())
-        TRACER.debugInfo("Generation ID created for domain base DN=" +
-            baseDn.toString() +
-            " generationId=" + aGenerationId);
+        TRACER.debugInfo("Generation ID created for domain base DN="
+            + baseDn + " generationId=" + aGenerationId);
     }
     else
     {
       generationIdSavedStatus = true;
       if (debugEnabled())
-        TRACER.debugInfo(
-            "Generation ID successfully read from domain base DN=" + baseDn +
-            " generationId=" + aGenerationId);
+        TRACER.debugInfo("Generation ID successfully read from domain base DN="
+            + baseDn + " generationId=" + aGenerationId);
     }
     return aGenerationId;
   }
@@ -3843,7 +3823,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     long genID = 0;
     Backend backend = retrievesBackend(this.baseDn);
     long numberOfEntries = backend.numSubordinates(baseDn, true) + 1;
-    long entryCount = ( (numberOfEntries < 1000 )? numberOfEntries : 1000);
+    long entryCount = Math.min(numberOfEntries, 1000);
 
     //  Acquire a shared lock for the backend.
     try
@@ -3878,8 +3858,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       os = ros;
       try
       {
-        os.write((Long.toString(numberOfEntries)).
-            getBytes());
+        os.write(Long.toString(numberOfEntries).getBytes());
       }
       catch(Exception e)
       {
@@ -4246,7 +4225,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     // Check that there is not already a domain with the same DN
     DN dn = configuration.getBaseDN();
     LDAPReplicationDomain domain = MultimasterReplication.findDomain(dn, null);
-    if ((domain != null) && (domain.baseDn.equals(dn)))
+    if (domain != null && domain.baseDn.equals(dn))
     {
       Message message = ERR_SYNC_INVALID_DN.get();
       unacceptableReasons.add(message);
@@ -4442,7 +4421,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
                 "objectClass: top",
                 "objectClass: ds-cfg-external-changelog-domain",
                 "cn: external changelog",
-                "ds-cfg-enabled: " + (!getBackend().isPrivateBackend()));
+                "ds-cfg-enabled: " + !getBackend().isPrivateBackend());
             LDIFImportConfig ldifImportConfig = new LDIFImportConfig(
                 new StringReader(ldif));
             // No need to validate schema in replication
@@ -4568,9 +4547,8 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       }
     } catch (Exception e)
     {
-      Message message = ERR_PUBLISHING_FAKE_OPS.get(
-          baseDn.toNormalizedString(),
-          e.getLocalizedMessage() + stackTraceToSingleLineString(e));
+      Message message = ERR_PUBLISHING_FAKE_OPS.get(baseDn.toNormalizedString(),
+          e.getLocalizedMessage() + " " + stackTraceToSingleLineString(e));
       logError(message);
     }
   }
@@ -4635,7 +4613,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
         while (itOp.hasNext())
         {
           FakeOperation fakeOp = itOp.next();
-          if ((fakeOp.getCSN().olderOrEqual(endCSN))
+          if (fakeOp.getCSN().olderOrEqual(endCSN)
               && state.cover(fakeOp.getCSN()))
           {
             lastRetrievedChange = fakeOp.getCSN();
@@ -4663,8 +4641,8 @@ private boolean solveNamingConflict(ModifyDNOperation op,
         currentStartCSN = endCSN;
       }
 
-    } while (pendingChanges.recoveryUntil(lastRetrievedChange) &&
-             (op.getResultCode().equals(ResultCode.SUCCESS)));
+    } while (pendingChanges.recoveryUntil(lastRetrievedChange)
+          && op.getResultCode().equals(ResultCode.SUCCESS));
 
     return op.getResultCode().equals(ResultCode.SUCCESS);
   }
@@ -4857,7 +4835,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     try
     {
       source = Integer.decode(sourceString);
-      if ((source >= -1) && (source != serverId))
+      if (source >= -1 && source != serverId)
       {
         // TODO Verifies serverID is in the domain
         // We should check here that this is a server implied
@@ -5086,7 +5064,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     /**
      * Base DN the fractional configuration is for.
      */
-    private DN baseDn = null;
+    private DN baseDn;
 
     /**
      * Constructs a new fractional configuration object.
@@ -5267,9 +5245,9 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       Iterator<String> iterator;
 
       // Deduce the wished fractional mode
-      if ((exclIt != null) && exclIt.hasNext())
+      if (exclIt != null && exclIt.hasNext())
       {
-        if ((inclIt != null) && inclIt.hasNext())
+        if (inclIt != null && inclIt.hasNext())
         {
           throw new ConfigException(
             NOTE_ERR_FRACTIONAL_CONFIG_BOTH_MODES.get());
@@ -5282,7 +5260,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       }
       else
       {
-        if ((inclIt != null) && inclIt.hasNext())
+        if (inclIt != null && inclIt.hasNext())
         {
           fractionalMode = INCLUSIVE_FRACTIONAL;
           iterator = inclIt;
@@ -5307,7 +5285,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
         }
         // Get the class name
         String classNameLower = st.nextToken().toLowerCase();
-        boolean allClasses = classNameLower.equals("*");
+        boolean allClasses = "*".equals(classNameLower);
         // Get the attributes
         String attributes = st.nextToken();
         st = new StringTokenizer(attributes, ",");
@@ -5346,7 +5324,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       return fractionalMode;
     }
 
-    // Return type of the parseFractionalConfig method
+    /** Return type of the parseFractionalConfig method */
     private static final int NOT_FRACTIONAL = 0;
     private static final int EXCLUSIVE_FRACTIONAL = 1;
     private static final int INCLUSIVE_FRACTIONAL = 2;

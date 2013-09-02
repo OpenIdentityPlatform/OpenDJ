@@ -152,14 +152,14 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
    * The timer used to run the timeout code (timer tasks) for the assured update
    * messages we are waiting acks for.
    */
-  private Timer assuredTimeoutTimer = null;
+  private Timer assuredTimeoutTimer;
   /**
    * Counter used to purge the timer tasks references in assuredTimeoutTimer,
    * every n number of treated assured messages.
    */
   private int assuredTimeoutTimerPurgeCounter = 0;
 
-  private ServerState ctHeartbeatState = null;
+  private ServerState ctHeartbeatState;
 
   /**
    * Creates a new ReplicationServerDomain associated to the DN baseDn.
@@ -413,6 +413,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
            */
           MessageBuilder mb = new MessageBuilder();
           mb.append(ERR_CHANGELOG_SHUTDOWN_DATABASE_ERROR.get());
+          mb.append(" ");
           mb.append(stackTraceToSingleLineString(e));
           logError(mb.toMessage());
           localReplicationServer.shutdown();
@@ -472,13 +473,13 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
        * Servers that are not in this list are servers not eligible for an ack
        * request.
        */
-      public List<Integer> expectedServers = null;
+      public List<Integer> expectedServers;
 
       /**
        * The constructed ExpectedAcksInfo object to be used when acks will be
        * received. Null if expectedServers is null.
        */
-      public ExpectedAcksInfo expectedAcksInfo = null;
+      public ExpectedAcksInfo expectedAcksInfo;
   }
 
   /**
@@ -745,6 +746,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
               Integer.toString(localReplicationServer.getServerId()),
               Integer.toString(origServer.getServerId()),
               csn.toString(), baseDn));
+            mb.append(" ");
             mb.append(stackTraceToSingleLineString(e));
             logError(mb.toMessage());
             stopServer(origServer, false);
@@ -767,7 +769,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
    */
   private class AssuredTimeoutTask extends TimerTask
   {
-    private CSN csn = null;
+    private CSN csn;
 
     /**
      * Constructor for the timer task.
@@ -822,6 +824,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
                 Integer.toString(localReplicationServer.getServerId()),
                 Integer.toString(origServer.getServerId()),
                 csn.toString(), baseDn));
+            mb.append(" ");
             mb.append(stackTraceToSingleLineString(e));
             logError(mb.toMessage());
             stopServer(origServer, false);
@@ -850,10 +853,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
               if (safeRead)
               {
                 expectedDSInTimeout.incrementAssuredSrSentUpdatesTimeout();
-              } else
-              {
-                // No SD update sent to a DS (meaningless)
-              }
+              } // else no SD update sent to a DS (meaningless)
             } else if (expectedRSInTimeout != null)
             {
               if (safeRead)
@@ -1576,6 +1576,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
        */
       MessageBuilder mb2 = new MessageBuilder();
       mb2.append(ERR_CHANGELOG_ERROR_SENDING_ERROR.get(this.toString()));
+      mb2.append(" ");
       mb2.append(stackTraceToSingleLineString(ignored));
       logError(mb2.toMessage());
       stopServer(msgEmitter, false);

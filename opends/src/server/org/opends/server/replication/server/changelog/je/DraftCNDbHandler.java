@@ -281,6 +281,7 @@ public class DraftCNDbHandler implements ChangelogDB
       {
         MessageBuilder mb = new MessageBuilder();
         mb.append(ERR_EXCEPTION_CHANGELOG_TRIM_FLUSH.get());
+        mb.append(" ");
         mb.append(stackTraceToSingleLineString(end));
         logError(mb.toMessage());
         if (replicationServer != null)
@@ -381,9 +382,9 @@ public class DraftCNDbHandler implements ChangelogDB
             continue;
           }
 
-          if ((csnVector == null)
-              || (csnVector.getCSN(csn.getServerId()) != null && !csnVector
-                  .cover(startState)))
+          if (csnVector == null
+              || (csnVector.getCSN(csn.getServerId()) != null
+                    && !csnVector.cover(startState)))
           {
             cursor.delete();
             if (debugEnabled())

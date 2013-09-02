@@ -110,8 +110,8 @@ public class DbHandler implements Runnable
   private int queueByteSize = 0;
 
   private ReplicationDB db;
-  private CSN firstChange = null;
-  private CSN lastChange = null;
+  private CSN firstChange;
+  private CSN lastChange;
   private int serverId;
   private String baseDn;
   private DbMonitorProvider dbMonitor = new DbMonitorProvider();
@@ -376,6 +376,7 @@ public class DbHandler implements Runnable
       {
         MessageBuilder mb = new MessageBuilder();
         mb.append(ERR_EXCEPTION_CHANGELOG_TRIM_FLUSH.get());
+        mb.append(" ");
         mb.append(stackTraceToSingleLineString(end));
         logError(mb.toMessage());
         synchronized (this)
