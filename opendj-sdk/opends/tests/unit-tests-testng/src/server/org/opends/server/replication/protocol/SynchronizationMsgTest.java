@@ -607,8 +607,8 @@ public class SynchronizationMsgTest extends ReplicationTestCase
   {
     AckMsg msg1, msg2 ;
 
-    // Constructor test (with ChangeNumber)
-    // Check that retrieved CN is OK
+    // Constructor test (with CSN)
+    // Check that retrieved CSN is OK
     msg1 = new AckMsg(csn);
     assertEquals(msg1.getCSN().compareTo(csn), 0);
 
@@ -666,7 +666,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     CSN csn = new CSN(TimeThread.getTime(), 123, 45);
     op.setAttachment(SYNCHROCONTEXT, new DeleteContext(csn, "uniqueid"));
     DeleteMsg delmsg = new DeleteMsg(op);
-    int draftcn = 21;
+    int draftCN = 21;
 
     String baseDN = "dc=example,dc=com";
 
@@ -677,10 +677,10 @@ public class SynchronizationMsgTest extends ReplicationTestCase
           "o=test2:000001210b6f21e904b100000002 000001210b6f21e904b200000002;");
 
     // Constructor test
-    ECLUpdateMsg msg1 = new ECLUpdateMsg(delmsg, cookie, baseDN, draftcn);
+    ECLUpdateMsg msg1 = new ECLUpdateMsg(delmsg, cookie, baseDN, draftCN);
     assertTrue(msg1.getCookie().equalsTo(cookie));
     assertTrue(msg1.getBaseDN().equalsIgnoreCase(baseDN));
-    assertEquals(msg1.getDraftChangeNumber(), draftcn);
+    assertEquals(msg1.getDraftChangeNumber(), draftCN);
     DeleteMsg delmsg2 = (DeleteMsg)msg1.getUpdateMsg();
     assertEquals(delmsg.compareTo(delmsg2), 0);
 
@@ -691,7 +691,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     assertTrue(msg2.getBaseDN().equalsIgnoreCase(msg1.getBaseDN()));
     assertTrue(msg2.getBaseDN().equalsIgnoreCase(baseDN));
     assertEquals(msg2.getDraftChangeNumber(), msg1.getDraftChangeNumber());
-    assertEquals(msg2.getDraftChangeNumber(), draftcn);
+    assertEquals(msg2.getDraftChangeNumber(), draftCN);
 
     DeleteMsg delmsg1 = (DeleteMsg)msg1.getUpdateMsg();
     delmsg2 = (DeleteMsg)msg2.getUpdateMsg();

@@ -28,25 +28,25 @@ package org.opends.server.plugins;
 
 
 
-import java.util.Set;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.io.IOException;
+import java.util.Set;
 
+import org.opends.messages.Message;
 import org.opends.server.admin.std.server.PluginCfg;
 import org.opends.server.api.plugin.DirectoryServerPlugin;
-import org.opends.server.api.plugin.PluginType;
 import org.opends.server.api.plugin.PluginResult;
+import org.opends.server.api.plugin.PluginType;
 import org.opends.server.config.ConfigException;
-import org.opends.server.protocols.asn1.ASN1Writer;
-import org.opends.server.protocols.asn1.ASN1Reader;
+import org.opends.server.controls.ControlDecoder;
 import org.opends.server.protocols.asn1.ASN1;
-import static org.opends.server.protocols.asn1.ASN1Constants.UNIVERSAL_OCTET_STRING_TYPE;
+import org.opends.server.protocols.asn1.ASN1Reader;
+import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.server.types.*;
 import org.opends.server.types.operation.*;
-import org.opends.server.controls.ControlDecoder;
-import org.opends.messages.Message;
 
+import static org.opends.server.protocols.asn1.ASN1Constants.*;
 
 /**
  * This class defines a very simple pre-operation plugin that sleeps for up to
@@ -80,6 +80,7 @@ public class DelayPreOpPlugin
       /**
        * {@inheritDoc}
        */
+      @Override
       public DelayRequestControl decode(boolean isCritical, ByteString value)
           throws DirectoryException
       {
@@ -98,6 +99,7 @@ public class DelayPreOpPlugin
         }
       }
 
+      @Override
       public String getOID()
       {
         return OID_DELAY_REQUEST;
@@ -115,11 +117,13 @@ public class DelayPreOpPlugin
     private long delayDuration;
 
     /**
-     * Constructs a new change number control.
+     * Constructs a new control of this class.
      *
-     * @param  isCritical   Indicates whether support for this control should be
-     *                      considered a critical part of the server processing.
-     * @param delayDuration The requested delay duration.
+     * @param isCritical
+     *          Indicates whether support for this control should be considered
+     *          a critical part of the server processing.
+     * @param delayDuration
+     *          The requested delay duration.
      */
     public DelayRequestControl(boolean isCritical, long delayDuration)
     {

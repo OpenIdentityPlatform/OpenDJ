@@ -28,30 +28,27 @@ package org.opends.server.plugins;
 
 
 
-import java.util.Set;
-import java.util.Map;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.concurrent.ConcurrentHashMap;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
-import org.opends.server.admin.std.server.PluginCfg;
-import org.opends.server.api.plugin.*;
-import org.opends.server.config.ConfigException;
-import org.opends.server.protocols.asn1.ASN1;
-import org.opends.server.protocols.asn1.ASN1Writer;
-import org.opends.server.protocols.asn1.ASN1Reader;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.Control;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.ResultCode;
-import org.opends.server.types.OperationType;
-import org.opends.server.types.operation.*;
-import org.opends.server.controls.ControlDecoder;
 import org.opends.messages.Message;
+import org.opends.server.admin.std.server.PluginCfg;
+import org.opends.server.api.plugin.DirectoryServerPlugin;
+import org.opends.server.api.plugin.PluginResult;
+import org.opends.server.api.plugin.PluginType;
+import org.opends.server.config.ConfigException;
+import org.opends.server.controls.ControlDecoder;
+import org.opends.server.protocols.asn1.ASN1;
+import org.opends.server.protocols.asn1.ASN1Reader;
+import org.opends.server.protocols.asn1.ASN1Writer;
+import org.opends.server.types.*;
+import org.opends.server.types.operation.*;
 
-import static org.opends.server.protocols.asn1.ASN1Constants.
-    UNIVERSAL_OCTET_STRING_TYPE;
+import static org.opends.server.protocols.asn1.ASN1Constants.*;
 
 
 /**
@@ -85,6 +82,7 @@ public class ShortCircuitPlugin
       /**
        * {@inheritDoc}
        */
+      @Override
       public ShortCircuitRequestControl decode(boolean isCritical,
                                                ByteString value)
           throws DirectoryException
@@ -108,6 +106,7 @@ public class ShortCircuitPlugin
         }
       }
 
+      @Override
       public String getOID()
       {
         return OID_SHORT_CIRCUIT_REQUEST;
@@ -126,12 +125,15 @@ public class ShortCircuitPlugin
     private String section;
 
     /**
-     * Constructs a new change number control.
+     * Constructs a new control of this class.
      *
-     * @param  isCritical   Indicates whether support for this control should be
-     *                      considered a critical part of the server processing.
-   * @param  resultCode  The result code to return to the client.
-   * @param  section     The section to use to determine when to short circuit.
+     * @param isCritical
+     *          Indicates whether support for this control should be considered
+     *          a critical part of the server processing.
+     * @param resultCode
+     *          The result code to return to the client.
+     * @param section
+     *          The section to use to determine when to short circuit.
      */
     public ShortCircuitRequestControl(boolean isCritical, int resultCode,
                                       String section)
@@ -647,7 +649,6 @@ public class ShortCircuitPlugin
     {
       ShortCircuitRequestControl control =
           operation.getRequestControl(ShortCircuitRequestControl.DECODER);
-      
       if (control != null && section.equalsIgnoreCase(control.getSection()))
       {
         return control.resultCode;

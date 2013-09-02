@@ -428,9 +428,9 @@ public class MessageHandler extends MonitorProvider<MonitorProviderCfg>
   }
 
   /**
-   * Get the older Change Number for that server.
+   * Get the older CSN for that server.
    * Returns null when the queue is empty.
-   * @return The older change number.
+   * @return The older CSN.
    */
   public CSN getOlderUpdateCSN()
   {
@@ -461,14 +461,14 @@ public class MessageHandler extends MonitorProvider<MonitorProviderCfg>
           the lateQueue when it will send the next update but we are not yet
           there. So let's take the last change not sent directly from the db.
           */
-          result = findOldestChangeNumberFromReplicaDBs();
+          result = findOldestCSNFromReplicaDBs();
         }
       }
     }
     return result;
   }
 
-  private CSN findOldestChangeNumberFromReplicaDBs()
+  private CSN findOldestCSNFromReplicaDBs()
   {
     SortedSet<ReplicaDBCursor> sortedCursors = null;
     try

@@ -27,12 +27,6 @@
  */
 package org.opends.server.replication.plugin;
 
-import static org.opends.messages.ReplicationMessages.*;
-import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.replication.plugin.
-ReplicationRepairRequestControl.*;
-import static org.opends.server.util.StaticUtils.*;
-
 import java.util.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
@@ -49,6 +43,12 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.*;
 import org.opends.server.types.operation.*;
+
+import static org.opends.messages.ReplicationMessages.*;
+import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.replication.plugin.
+ReplicationRepairRequestControl.*;
+import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class is used to load the Replication code inside the JVM
@@ -119,14 +119,14 @@ public class MultimasterReplication
           return null;
 
         /*
-         * Check if the provided operation is a repair operation and set
-         * the synchronization flags if necessary.
-         * The repair operations are tagged as synchronization operations
-         * so that the core server let the operation modify the entryuuid
-         * and ds-sync-hist attributes.
-         * They are also tagged as dontSynchronize so that the replication
-         * code running later do not generate ChangeNumber, solve conflicts
-         * and forward the operation to the replication server.
+         * Check if the provided operation is a repair operation and set the
+         * synchronization flags if necessary.
+         * The repair operations are tagged as synchronization operations so
+         * that the core server let the operation modify the entryuuid and
+         * ds-sync-hist attributes.
+         * They are also tagged as dontSynchronize so that the replication code
+         * running later do not generate CSN, solve conflicts and forward the
+         * operation to the replication server.
          */
         for (Control c : op.getRequestControls())
         {
@@ -135,10 +135,9 @@ public class MultimasterReplication
             op.setSynchronizationOperation(true);
             op.setDontSynchronize(true);
             /*
-            remove this control from the list of controls since
-            it has now been processed and the local backend will
-            fail if it finds a control that it does not know about and
-            that is marked as critical.
+            remove this control from the list of controls since it has now been
+            processed and the local backend will fail if it finds a control that
+            it does not know about and that is marked as critical.
             */
             List<Control> controls = op.getRequestControls();
             controls.remove(c);
@@ -175,19 +174,18 @@ public class MultimasterReplication
       ReplicationDomainCfg configuration)
       throws ConfigException
   {
-    LDAPReplicationDomain domain = null;
     try
     {
-      domain = new LDAPReplicationDomain(configuration, updateToReplayQueue);
+      LDAPReplicationDomain domain =
+          new LDAPReplicationDomain(configuration, updateToReplayQueue);
       if (domains.size() == 0)
       {
-        /*
-         * Create the threads that will process incoming update messages
-         */
+        // Create the threads that will process incoming update messages
         createReplayThreads();
       }
 
       domains.put(domain.getBaseDN(), domain);
+      return domain;
     }
     catch (ConfigException e)
     {
@@ -195,7 +193,7 @@ public class MultimasterReplication
           configuration.dn().toString(), e.getLocalizedMessage()
           + " " + stackTraceToSingleLineString(e)));
     }
-    return domain;
+    return null;
   }
 
   /**
@@ -564,7 +562,7 @@ public class MultimasterReplication
     if (domain == null)
       return new SynchronizationProviderResult.ContinueProcessing();
 
-    // For LOCAL op only, generate ChangeNumber and attach Context
+    // For LOCAL op only, generate CSN and attach Context
     if (!addOperation.isSynchronizationOperation())
       domain.doPreOperation(addOperation);
 

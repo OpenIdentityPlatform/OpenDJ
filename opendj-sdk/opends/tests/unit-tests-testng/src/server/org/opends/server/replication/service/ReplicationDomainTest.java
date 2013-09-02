@@ -55,9 +55,6 @@ import static org.testng.Assert.*;
 @SuppressWarnings("javadoc")
 public class ReplicationDomainTest extends ReplicationTestCase
 {
-  /**
-   * Create ChangeNumber Data
-   */
   @DataProvider(name = "publishAndReceiveData")
   public Object[][] createpublishAndReceiveData()
   {

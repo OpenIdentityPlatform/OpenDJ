@@ -26,11 +26,6 @@
  */
 package org.opends.server.controls;
 
-import static org.opends.server.util.ServerConstants.OID_ECL_COOKIE_EXCHANGE_CONTROL;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertTrue;
-
 import org.opends.server.protocols.asn1.ASN1;
 import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.server.protocols.ldap.LDAPControl;
@@ -40,11 +35,11 @@ import org.opends.server.types.ByteStringBuilder;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-/**
- * Test ChangeNumber and ChangeNumberGenerator
- */
-public class ExternalChangelogControlTest
-    extends ControlsTestCase
+import static org.opends.server.util.ServerConstants.*;
+import static org.testng.Assert.*;
+
+@SuppressWarnings("javadoc")
+public class ExternalChangelogControlTest extends ControlsTestCase
 {
 
   /**
@@ -53,7 +48,6 @@ public class ExternalChangelogControlTest
   @DataProvider(name = "eclRequestControl")
   public Object[][] createECLRequestControlTest()
   {
-
     return new Object[][]
         {
         {true,  "" },
@@ -73,7 +67,7 @@ public class ExternalChangelogControlTest
   {
     // Test contructor
     MultiDomainServerState mdss = new MultiDomainServerState(value);
-    ExternalChangelogRequestControl eclrc 
+    ExternalChangelogRequestControl eclrc
       = new ExternalChangelogRequestControl(critical, mdss);
     assertNotNull(eclrc);
     assertEquals(critical, eclrc.isCritical());

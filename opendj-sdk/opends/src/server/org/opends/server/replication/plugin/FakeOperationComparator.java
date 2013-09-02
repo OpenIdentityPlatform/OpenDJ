@@ -31,7 +31,7 @@ import java.util.Comparator;
 
 /**
  * This Class implements a Comparator that can be used to build TreeSet
- * containing FakeOperations sorted by the ChangeNumber order.
+ * containing FakeOperations sorted by the CSN order.
  */
 public class FakeOperationComparator implements Comparator<FakeOperation>
 {
