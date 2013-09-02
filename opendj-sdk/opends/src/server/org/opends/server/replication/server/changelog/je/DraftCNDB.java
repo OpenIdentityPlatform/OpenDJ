@@ -58,8 +58,8 @@ public class DraftCNDB
   private static final DebugTracer TRACER = getTracer();
   private static final int DATABASE_EMPTY = 0;
 
-  private Database db = null;
-  private ReplicationDbEnv dbenv = null;
+  private Database db;
+  private ReplicationDbEnv dbenv;
 
   /**
    * The lock used to provide exclusive access to the thread that close the db
@@ -168,7 +168,8 @@ public class DraftCNDB
     catch (DatabaseException e)
     {
       MessageBuilder mb = new MessageBuilder();
-      mb.append(NOTE_EXCEPTION_CLOSING_DATABASE.get(this.toString()));
+      mb.append(NOTE_EXCEPTION_CLOSING_DATABASE.get(toString()));
+      mb.append(" ");
       mb.append(stackTraceToSingleLineString(e));
       logError(mb.toMessage());
     }
@@ -231,7 +232,7 @@ public class DraftCNDB
         // If the DB has been closed then return immediately.
         if (isDBClosed())
         {
-          return 0;
+          return DATABASE_EMPTY;
         }
 
         cursor = db.openCursor(null, null);
@@ -252,7 +253,7 @@ public class DraftCNDB
     catch (DatabaseException e)
     {
       dbenv.shutdownOnException(e);
-      return 0;
+      return DATABASE_EMPTY;
     }
   }
 
@@ -268,7 +269,7 @@ public class DraftCNDB
       // If the DB has been closed then return immediately.
       if (isDBClosed())
       {
-        return 0L;
+        return DATABASE_EMPTY;
       }
 
       return db.count();
@@ -281,7 +282,7 @@ public class DraftCNDB
     {
       dbCloseLock.readLock().unlock();
     }
-    return 0L;
+    return DATABASE_EMPTY;
   }
 
   /**
@@ -299,7 +300,7 @@ public class DraftCNDB
         // If the DB has been closed then return immediately.
         if (isDBClosed())
         {
-          return 0;
+          return DATABASE_EMPTY;
         }
 
         cursor = db.openCursor(null, null);
@@ -320,7 +321,7 @@ public class DraftCNDB
     catch (DatabaseException e)
     {
       dbenv.shutdownOnException(e);
-      return 0;
+      return DATABASE_EMPTY;
     }
   }
 
@@ -348,7 +349,7 @@ public class DraftCNDB
     private final Transaction txn;
     private final DatabaseEntry key;
     private final DatabaseEntry entry;
-    private DraftCNData seqnumData = null;
+    private DraftCNData seqnumData;
     private boolean isClosed = false;
 
 
@@ -740,9 +741,8 @@ public class DraftCNDB
     catch(Exception e)
     {
       MessageBuilder mb = new MessageBuilder();
-      mb.append(ERR_ERROR_CLEARING_DB.get(this.toString(),
-          e.getMessage() + " " +
-          stackTraceToSingleLineString(e)));
+      mb.append(ERR_ERROR_CLEARING_DB.get(toString(),
+          e.getMessage() + " " + stackTraceToSingleLineString(e)));
       logError(mb.toMessage());
     }
     finally

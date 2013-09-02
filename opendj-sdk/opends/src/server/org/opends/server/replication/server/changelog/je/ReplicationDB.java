@@ -270,7 +270,8 @@ public class ReplicationDB
     catch (DatabaseException e)
     {
       MessageBuilder mb = new MessageBuilder();
-      mb.append(NOTE_EXCEPTION_CLOSING_DATABASE.get(this.toString()));
+      mb.append(NOTE_EXCEPTION_CLOSING_DATABASE.get(toString()));
+      mb.append(" ");
       mb.append(stackTraceToSingleLineString(e));
       logError(mb.toMessage());
     }
@@ -589,26 +590,24 @@ public class ReplicationDB
         }
 
         localCursor = db.openCursor(txn, null);
-        if (startCSN != null)
+        if (startCSN != null
+            && localCursor.getSearchKey(key, data, LockMode.DEFAULT) != SUCCESS)
         {
-          if (localCursor.getSearchKey(key, data, LockMode.DEFAULT) != SUCCESS)
+          // We could not move the cursor to the expected startCSN
+          if (localCursor.getSearchKeyRange(key, data, DEFAULT) != SUCCESS)
           {
-            // We could not move the cursor to the expected startCSN
-            if (localCursor.getSearchKeyRange(key, data, DEFAULT) != SUCCESS)
-            {
-              // We could not even move the cursor close to it => failure
-              throw new ChangelogException(Message.raw("CSN not available"));
-            }
+            // We could not even move the cursor close to it => failure
+            throw new ChangelogException(Message.raw("CSN not available"));
+          }
 
-            // We can move close to the startCSN.
-            // Let's create a cursor from that point.
-            DatabaseEntry aKey = new DatabaseEntry();
-            DatabaseEntry aData = new DatabaseEntry();
-            if (localCursor.getPrev(aKey, aData, LockMode.DEFAULT) != SUCCESS)
-            {
-              localCursor.close();
-              localCursor = db.openCursor(txn, null);
-            }
+          // We can move close to the startCSN.
+          // Let's create a cursor from that point.
+          DatabaseEntry aKey = new DatabaseEntry();
+          DatabaseEntry aData = new DatabaseEntry();
+          if (localCursor.getPrev(aKey, aData, LockMode.DEFAULT) != SUCCESS)
+          {
+            localCursor.close();
+            localCursor = db.openCursor(txn, null);
           }
         }
         cursor = localCursor;
@@ -892,7 +891,7 @@ public class ReplicationDB
     catch(Exception e)
     {
       MessageBuilder mb = new MessageBuilder();
-      mb.append(ERR_ERROR_CLEARING_DB.get(this.toString(),
+      mb.append(ERR_ERROR_CLEARING_DB.get(toString(),
           e.getMessage() + " " +
           stackTraceToSingleLineString(e)));
       logError(mb.toMessage());

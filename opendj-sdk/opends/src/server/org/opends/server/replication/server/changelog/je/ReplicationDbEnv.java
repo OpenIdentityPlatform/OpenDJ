@@ -394,6 +394,7 @@ public class ReplicationDbEnv
       {
         MessageBuilder mb = new MessageBuilder();
         mb.append(ERR_ERROR_CLOSING_CHANGELOG_ENV.get());
+        mb.append(" ");
         mb.append(stackTraceToSingleLineString(e));
         logError(mb.toMessage());
       }
@@ -405,6 +406,7 @@ public class ReplicationDbEnv
       {
         MessageBuilder mb = new MessageBuilder();
         mb.append(ERR_ERROR_CLOSING_CHANGELOG_ENV.get());
+        mb.append(" ");
         mb.append(stackTraceToSingleLineString(e));
         logError(mb.toMessage());
       }

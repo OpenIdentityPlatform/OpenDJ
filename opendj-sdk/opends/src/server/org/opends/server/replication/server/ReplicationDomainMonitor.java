@@ -99,7 +99,7 @@ class ReplicationDomainMonitor
    * <p>
    * Guarded by pendingMonitorDataLock.
    */
-  private CountDownLatch pendingMonitorDataLatch = null;
+  private CountDownLatch pendingMonitorDataLatch;
 
   /**
    * TODO: Remote monitor data cache lifetime is 500ms/should be configurable.
@@ -372,8 +372,8 @@ class ReplicationDomainMonitor
       catch (RuntimeException e)
       {
         // FIXME: do we really expect these???
-        logError(ERR_PROCESSING_REMOTE_MONITOR_DATA.get(
-            e.getMessage() + stackTraceToSingleLineString(e)));
+        logError(ERR_PROCESSING_REMOTE_MONITOR_DATA.get(e.getMessage() + " "
+            + stackTraceToSingleLineString(e)));
       }
       finally
       {

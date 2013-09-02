@@ -85,37 +85,23 @@ public class ValueInfoTest extends ReplicationTestCase
             csnUpdate, csnUpdate);
 
     // Check equals
-    assertFalse(valInfo1.equals(new Object())) ;
-    assertTrue(valInfo1.equals(valInfo1)) ;
-    assertTrue(valInfo1.equals(valInfo2)) ;
-    assertFalse(valInfo1.equals(valInfo3)) ;
+    assertFalse(valInfo1.equals(new Object()));
+    assertEquals(valInfo1, valInfo1);
+    assertEquals(valInfo1, valInfo2);
+    assertFalse(valInfo1.equals(valInfo3));
 
-    // Check hashcode
-    assertTrue(valInfo1.hashCode() == valInfo2.hashCode()) ;
+    assertEquals(valInfo1.hashCode(), valInfo2.hashCode());
 
-    // Check getValueDeleteTime
     if (valInfo1.getValueDeleteTime() != null)
     {
-      assertTrue(valInfo1.getValueDeleteTime().compareTo(csnDelete) == 0);
+      assertEquals(valInfo1.getValueDeleteTime(), csnDelete);
     }
-
-    // Check getValueUpdateTime
     if (valInfo1.getValueUpdateTime() != null)
     {
-      assertTrue(valInfo1.getValueUpdateTime().compareTo(csnUpdate) == 0);
+      assertEquals(valInfo1.getValueUpdateTime(), csnUpdate);
     }
 
-    // Check getValue
-    assertTrue(valInfo1.getAttributeValue().equals(value)) ;
-
-    // Chek valueUpdateTime
-    if (csnUpdate == null)
-    {
-      assertFalse(valInfo1.isUpdate());
-    }
-    else
-    {
-      assertTrue(valInfo1.isUpdate());
-    }
+    assertEquals(valInfo1.getAttributeValue(), value);
+    assertEquals(valInfo1.isUpdate(), csnUpdate != null);
   }
 }

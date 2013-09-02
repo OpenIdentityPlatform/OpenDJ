@@ -84,22 +84,23 @@ public class ReplicationServerTest extends ReplicationTestCase
   /**
    * The replicationServer that will be used in this test.
    */
-  private ReplicationServer replicationServer = null;
+  private ReplicationServer replicationServer;
 
   /**
    * The port of the replicationServer.
    */
   private int replicationServerPort;
 
-  private CSN firstCSNServer1 = null;
-  private CSN secondCSNServer1 = null;
-  private CSN firstCSNServer2 = null;
-  private CSN secondCSNServer2 = null;
+  private CSN firstCSNServer1;
+  private CSN secondCSNServer1;
+  private CSN firstCSNServer2;
+  private CSN secondCSNServer2;
 
   private CSN unknownCSNServer1;
 
   private static final String exportLDIFAllFile = "exportLDIF.ldif";
-  private String exportLDIFDomainFile = null;
+  private String exportLDIFDomainFile;
+
   /**
    * Set up the environment for performing the tests in this Class.
    * Replication
@@ -564,7 +565,10 @@ public class ReplicationServerTest extends ReplicationTestCase
       join(client);
       stop(clientBroker);
 
-      assertNull(reader.errDetails, reader.exc + " " + reader.errDetails);
+      if (reader != null)
+      {
+        assertNull(reader.errDetails, reader.exc + " " + reader.errDetails);
+      }
     }
   }
 
@@ -675,7 +679,6 @@ public class ReplicationServerTest extends ReplicationTestCase
    * - Create replication server 2 connected with replication server 1
    * - Create and connect client 2 to replication server 2
    * - Check that client 2 receives the changes published by client 1
-   *
    */
   @Test(enabled=true, dependsOnMethods = { "searchBackend"})
   public void changelogChaining() throws Exception
@@ -1252,14 +1255,12 @@ public class ReplicationServerTest extends ReplicationTestCase
      "ds-task-export-include-branch: "+suffix+",dc=replicationChanges");
    }
 
-   private List<UpdateMsg> createChanges(String suffix, int serverId)
+   private List<UpdateMsg> createChanges(String suffix, int serverId) throws Exception
    {
      List<UpdateMsg> l = new ArrayList<UpdateMsg>();
      long time = TimeThread.getTime();
      int ts = 1;
-     CSN csn;
 
-     try
      {
        String user1entryUUID = "33333333-3333-3333-3333-333333333333";
        String baseUUID       = "22222222-2222-2222-2222-222222222222";
@@ -1270,7 +1271,7 @@ public class ReplicationServerTest extends ReplicationTestCase
            + "objectClass: domain\n"
            + "entryUUID: 11111111-1111-1111-1111-111111111111\n";
        Entry entry = TestCaseUtils.entryFromLdifString(lentry);
-       csn = new CSN(time, ts++, serverId);
+       CSN csn = new CSN(time, ts++, serverId);
        AddMsg addMsg = new AddMsg(csn, "o=example,"+suffix,
            user1entryUUID, baseUUID, entry.getObjectClassAttribute(), entry
            .getAttributes(), new ArrayList<Attribute>());
@@ -1334,7 +1335,6 @@ public class ReplicationServerTest extends ReplicationTestCase
        DeleteMsg delMsg = new DeleteMsg("o=example,"+suffix, csn, "uid");
        l.add(delMsg);
      }
-     catch(Exception ignored) {}
      return l;
    }
 
@@ -1496,8 +1496,8 @@ public class ReplicationServerTest extends ReplicationTestCase
     return op;
   }
 
-   private void testReplicationBackendACIs()
-   {
+  private void testReplicationBackendACIs() throws Exception
+  {
      ByteArrayOutputStream oStream = new ByteArrayOutputStream();
      ByteArrayOutputStream eStream = new ByteArrayOutputStream();
 
@@ -1543,30 +1543,27 @@ public class ReplicationServerTest extends ReplicationTestCase
      assertEquals(0, retVal,  "Returned error: " + eStream);
      assertTrue(!entries.equalsIgnoreCase(""), "Returned entries: " + entries);
 
-     // test write fails : unwilling to perform
-     try
-     {
-       String ldif =
-           "dn: dc=foo, dc=replicationchanges\n"
-           + "objectclass: top\n"
-           + "objectClass: domain\n"
-           + "dc:foo\n";
-       String path = TestCaseUtils.createTempFile(ldif);
-       String[] args4 =
-       {
-           "-h", "127.0.0.1",
-           "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-           "-D", "cn=Directory Manager",
-           "-w", "password",
-           "--noPropertiesFile",
-           "-a",
-           "-f", path
-       };
+    // test write fails : unwilling to perform
+    String ldif =
+        "dn: dc=foo, dc=replicationchanges\n"
+        + "objectclass: top\n"
+        + "objectClass: domain\n"
+        + "dc:foo\n";
+    String path = TestCaseUtils.createTempFile(ldif);
+    String[] args4 =
+    {
+        "-h", "127.0.0.1",
+        "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+        "-D", "cn=Directory Manager",
+        "-w", "password",
+        "--noPropertiesFile",
+        "-a",
+        "-f", path
+    };
 
-      retVal = LDAPModify.mainModify(args4, false, oStream, eStream);
-       assertEquals(retVal, 53, "Returned error: " + eStream);
-     } catch(Exception e) {}
-   }
+    retVal = LDAPModify.mainModify(args4, false, oStream, eStream);
+    assertEquals(retVal, 53, "Returned error: " + eStream);
+  }
 
    /**
     * Replication Server configuration test of the replication Server code with
