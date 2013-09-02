@@ -76,6 +76,7 @@ import org.testng.annotations.Test;
 import static org.assertj.core.api.Assertions.*;
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.TestCaseUtils.*;
+import static org.opends.server.controls.PersistentSearchChangeType.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.replication.protocol.OperationContext.*;
 import static org.opends.server.types.ResultCode.*;
@@ -699,11 +700,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     }
     finally
     {
-      // Cleaning
-      if (domain2 != null)
-      {
-        domain2.shutdown();
-      }
+      remove(domain2);
       removeTestBackend(backend2);
       stop(server01);
       replicationServer.clearDb();
@@ -1446,27 +1443,11 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
       // Creates psearch control
       Set<PersistentSearchChangeType> changeTypes =
-        new HashSet<PersistentSearchChangeType>();
-      changeTypes.add(PersistentSearchChangeType.ADD);
-      changeTypes.add(PersistentSearchChangeType.DELETE);
-      changeTypes.add(PersistentSearchChangeType.MODIFY);
-      changeTypes.add(PersistentSearchChangeType.MODIFY_DN);
-      boolean returnECs = true;
-      PersistentSearchControl persSearchControl = new PersistentSearchControl(
-          changeTypes, changesOnly, returnECs);
-      controls.add(persSearchControl);
+          EnumSet.of(ADD, DELETE, MODIFY, MODIFY_DN);
+      controls.add(new PersistentSearchControl(changeTypes, changesOnly, true));
 
-      // Creates request
       SearchRequestProtocolOp searchRequest =
-        new SearchRequestProtocolOp(
-            ByteString.valueOf("cn=changelog"),
-            SearchScope.WHOLE_SUBTREE,
-            DereferencePolicy.NEVER_DEREF_ALIASES,
-            Integer.MAX_VALUE,
-            Integer.MAX_VALUE,
-            false,
-            LDAPFilter.decode("(targetDN=*"+tn+"*,o=test)"),
-            null);
+          createSearchRequest("(targetDN=*" + tn + "*,o=test)", null);
 
       // Connects and bind
       debugInfo(tn, "Search with cookie=" + cookie + "\"");
@@ -1615,15 +1596,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
         bindAsWhoEver(w, r, "toto", "tutu", LDAPResultCode.OPERATIONS_ERROR);
 
         searchRequest =
-          new SearchRequestProtocolOp(
-              ByteString.valueOf("cn=changelog"),
-              SearchScope.WHOLE_SUBTREE,
-              DereferencePolicy.NEVER_DEREF_ALIASES,
-              Integer.MAX_VALUE,
-              Integer.MAX_VALUE,
-              false,
-              LDAPFilter.decode("(targetDN=*directpsearch*,o=test)"),
-              null);
+            createSearchRequest("(targetDN=*directpsearch*,o=test)", null);
 
         debugInfo(tn, "ACI test : sending search");
         message = new LDAPMessage(2, searchRequest, createControls(""));
@@ -1670,6 +1643,20 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     debugInfo(tn, "Ends test successfully");
   }
 
+  private SearchRequestProtocolOp createSearchRequest(String filterString,
+      final Set<String> attributes) throws LDAPException
+  {
+    return new SearchRequestProtocolOp(
+        ByteString.valueOf("cn=changelog"),
+        SearchScope.WHOLE_SUBTREE,
+        DereferencePolicy.NEVER_DEREF_ALIASES,
+        Integer.MAX_VALUE,
+        Integer.MAX_VALUE,
+        false,
+        LDAPFilter.decode(filterString),
+        attributes);
+  }
+  
   /**
    * Test parallel simultaneous psearch with different filters.
    */
@@ -1704,7 +1691,6 @@ public class ExternalChangeLogTest extends ReplicationTestCase
           DN.decode(TEST_ROOT_DN_STRING), SERVER_ID_1,
           100, replicationServerPort, brokerSessionTimeout, true);
       server01.setChangeTimeHeartbeatInterval(100); //ms
-      int ts = 1;
 
       // Create broker on o=test2
       server02 = openReplicationSession(
@@ -1712,9 +1698,9 @@ public class ExternalChangeLogTest extends ReplicationTestCase
           100, replicationServerPort, brokerSessionTimeout, true, EMPTY_DN_GENID);
       server02.setChangeTimeHeartbeatInterval(100); //ms
 
+      int ts = 1;
       // Produce update 1
-      CSN csn1 =
-        new CSN(TimeThread.getTime(), ts++, SERVER_ID_1);
+      CSN csn1 = new CSN(TimeThread.getTime(), ts++, SERVER_ID_1);
       DeleteMsg delMsg1 =
         new DeleteMsg("uid=" + tn + "1," + TEST_ROOT_DN_STRING, csn1,
             "11111111-1111-1111-1111-111111111111");
@@ -1723,8 +1709,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       sleep(500); // let's be sure the message is in the RS
 
       // Produce update 2
-      CSN csn2 =
-        new CSN(TimeThread.getTime(), ts++, SERVER_ID_2);
+      CSN csn2 = new CSN(TimeThread.getTime(), ts++, SERVER_ID_2);
       DeleteMsg delMsg2 =
         new DeleteMsg("uid=" + tn + "2," + TEST_ROOT_DN_STRING2, csn2,
             "22222222-2222-2222-2222-222222222222");
@@ -1733,8 +1718,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       sleep(500); // let's be sure the message is in the RS
 
       // Produce update 3
-      CSN csn3 =
-        new CSN(TimeThread.getTime(), ts++, SERVER_ID_2);
+      CSN csn3 = new CSN(TimeThread.getTime(), ts++, SERVER_ID_2);
       DeleteMsg delMsg3 =
         new DeleteMsg("uid=" + tn + "3," + TEST_ROOT_DN_STRING2, csn3,
             "33333333-3333-3333-3333-333333333333");
@@ -1753,53 +1737,13 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
       // Creates psearch control
       Set<PersistentSearchChangeType> changeTypes =
-        new HashSet<PersistentSearchChangeType>();
-      changeTypes.add(PersistentSearchChangeType.ADD);
-      changeTypes.add(PersistentSearchChangeType.DELETE);
-      changeTypes.add(PersistentSearchChangeType.MODIFY);
-      changeTypes.add(PersistentSearchChangeType.MODIFY_DN);
-      boolean returnECs = true;
-      PersistentSearchControl persSearchControl = new PersistentSearchControl(
-          changeTypes, changesOnly, returnECs);
-      controls.add(persSearchControl);
+          EnumSet.of(ADD, DELETE, MODIFY, MODIFY_DN);
+      controls.add(new PersistentSearchControl(changeTypes, changesOnly, true));
 
       final Set<String> attributes = ALL_ATTRIBUTES;
-
-      // Creates request 1
-      SearchRequestProtocolOp searchRequest1 =
-        new SearchRequestProtocolOp(
-            ByteString.valueOf("cn=changelog"),
-            SearchScope.WHOLE_SUBTREE,
-            DereferencePolicy.NEVER_DEREF_ALIASES,
-            Integer.MAX_VALUE,
-            Integer.MAX_VALUE,
-            false,
-            LDAPFilter.decode("(targetDN=*"+tn+"*,o=test)"),
-            attributes);
-
-      // Creates request 2
-      SearchRequestProtocolOp searchRequest2 =
-        new SearchRequestProtocolOp(
-            ByteString.valueOf("cn=changelog"),
-            SearchScope.WHOLE_SUBTREE,
-            DereferencePolicy.NEVER_DEREF_ALIASES,
-            Integer.MAX_VALUE,
-            Integer.MAX_VALUE,
-            false,
-            LDAPFilter.decode("(targetDN=*"+tn+"*,o=test2)"),
-            attributes);
-
-      // Creates request 3
-      SearchRequestProtocolOp searchRequest3 =
-        new SearchRequestProtocolOp(
-            ByteString.valueOf("cn=changelog"),
-            SearchScope.WHOLE_SUBTREE,
-            DereferencePolicy.NEVER_DEREF_ALIASES,
-            Integer.MAX_VALUE,
-            Integer.MAX_VALUE,
-            false,
-            LDAPFilter.decode("objectclass=*"),
-            attributes);
+      SearchRequestProtocolOp searchRequest1 = createSearchRequest("(targetDN=*"+tn+"*,o=test)", attributes);
+      SearchRequestProtocolOp searchRequest2 = createSearchRequest("(targetDN=*"+tn+"*,o=test2)", attributes);
+      SearchRequestProtocolOp searchRequest3 = createSearchRequest("objectclass=*", attributes);
 
       // Connects and bind
       s1 = new Socket("127.0.0.1", TestCaseUtils.getServerLdapPort());
@@ -2250,14 +2194,17 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     return memoryBackend;
   }
 
-  private static void removeTestBackend(Backend backend)
+  private static void removeTestBackend(Backend... backends)
   {
-    if (backend != null)
+    for (Backend backend : backends)
     {
-      MemoryBackend memoryBackend = (MemoryBackend) backend;
-      memoryBackend.clearMemoryBackend();
-      memoryBackend.finalizeBackend();
-      DirectoryServer.deregisterBackend(memoryBackend);
+      if (backend != null)
+      {
+        MemoryBackend memoryBackend = (MemoryBackend) backend;
+        memoryBackend.clearMemoryBackend();
+        memoryBackend.finalizeBackend();
+        DirectoryServer.deregisterBackend(memoryBackend);
+      }
     }
   }
 
@@ -2348,9 +2295,8 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     }
     finally
     {
-      stop(s1test2, s2test2);
+      stop(s1test2, s2test2, s1test, s2test);
       removeTestBackend(backend2);
-      stop(s1test, s2test);
       replicationServer.clearDb();
     }
     debugInfo(tn, "Ending test successfully");
@@ -3168,23 +3114,8 @@ public class ExternalChangeLogTest extends ReplicationTestCase
         runDeleteOperation(TEST_ROOT_DN_STRING2);
         runDeleteOperation(TEST_ROOT_DN_STRING3);
 
-        // Cleaning
-        if (domain21 != null)
-        {
-          domain21.shutdown();
-        }
-
-        if (domain2 != null)
-        {
-          domain2.shutdown();
-        }
-        removeTestBackend(backend2);
-
-        if (domain3 != null)
-        {
-          domain3.shutdown();
-        }
-        removeTestBackend(backend3);
+        remove(domain21, domain2, domain3);
+        removeTestBackend(backend2, backend3);
       }
       finally
       {
@@ -3192,6 +3123,18 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       }
     }
     debugInfo(tn, "Ending test with success");
+  }
+
+  private void remove(LDAPReplicationDomain... domains)
+  {
+    for (LDAPReplicationDomain domain : domains)
+    {
+      if (domain != null)
+      {
+        domain.shutdown();
+        MultimasterReplication.deleteDomain(domain.getBaseDN());
+      }
+    }
   }
 
   private static SortedSet<String> newSet(String... values)
