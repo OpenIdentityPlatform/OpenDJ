@@ -5324,7 +5324,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       return fractionalMode;
     }
 
-    /** Return type of the parseFractionalConfig method */
+    /** Return type of the parseFractionalConfig method. */
     private static final int NOT_FRACTIONAL = 0;
     private static final int EXCLUSIVE_FRACTIONAL = 1;
     private static final int INCLUSIVE_FRACTIONAL = 2;
