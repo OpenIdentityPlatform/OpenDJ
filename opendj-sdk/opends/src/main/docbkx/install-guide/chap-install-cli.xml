@@ -147,6 +147,14 @@
    directory, and does not ask you where to install OpenDJ. Therefore, if you
    want to install elsewhere on the file system, unzip the files in that
    location.</para>
+
+   <para>When you unzip <filename>OpenDJ-<?eval ${docTargetVersion}?>.zip</filename>,
+   a top-level <filename>opendj</filename> directory is created in the directory
+   where you unzip the file. On Windows systems if you unzip the file by
+   right-clicking <filename>OpenDJ-<?eval ${docTargetVersion}?>.zip</filename>,
+   and then selecting Extract All from the context menu, be sure to remove the
+   trailing <filename>OpenDJ-<?eval ${docTargetVersion}?></filename> directory
+   from the folder you specify.</para>
   </step>
   
   <step>
