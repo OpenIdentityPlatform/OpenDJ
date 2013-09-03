@@ -93,17 +93,16 @@ public class InitOnLineTest extends ReplicationTestCase
    * The tracer object for the debug logger
    */
   private static final DebugTracer TRACER = getTracer();
-
   private static final int WINDOW_SIZE = 10;
 
   /**
    * A "person" entry
    */
-  protected Entry taskInitFromS2;
-  protected Entry taskInitTargetS2;
-  protected Entry taskInitTargetAll;
+  private Entry taskInitFromS2;
+  private Entry taskInitTargetS2;
+  private Entry taskInitTargetAll;
 
-  protected String[] updatedEntries;
+  private String[] updatedEntries;
   private static final int server1ID = 1;
   private static final int server2ID = 2;
   private static final int server3ID = 3;
@@ -112,19 +111,17 @@ public class InitOnLineTest extends ReplicationTestCase
   private static final int changelog3ID = 10;
 
   private static final String EXAMPLE_DN = "dc=example,dc=com";
-
   private static int[] replServerPort = new int[20];
 
   private DN baseDn;
-  ReplicationBroker server2 = null;
-  ReplicationBroker server3 = null;
-  ReplicationServer changelog1 = null;
-  ReplicationServer changelog2 = null;
-  ReplicationServer changelog3 = null;
-  boolean emptyOldChanges = true;
-  LDAPReplicationDomain replDomain = null;
-
-  int initWindow = 100;
+  private ReplicationBroker server2;
+  private ReplicationBroker server3;
+  private ReplicationServer changelog1;
+  private ReplicationServer changelog2;
+  private ReplicationServer changelog3;
+  private boolean emptyOldChanges = true;
+  private LDAPReplicationDomain replDomain;
+  private int initWindow = 100;
 
   private void log(String s)
   {
@@ -135,7 +132,8 @@ public class InitOnLineTest extends ReplicationTestCase
       TRACER.debugInfo(s);
     }
   }
-  protected void log(String message, Exception e)
+
+  private void log(String message, Exception e)
   {
     log(message + stackTraceToSingleLineString(e));
   }
@@ -160,9 +158,8 @@ public class InitOnLineTest extends ReplicationTestCase
     // This test uses import tasks which do not work with memory backend
     // (like the test backend we use in every tests): backend is disabled then
     // re-enabled and this clears the backend reference and thus the underlying
-    // data. So for this particular test, we use a classical backend. Let's
-    // clear it.
-    LDAPReplicationDomain.clearJEBackend(false, "userRoot", EXAMPLE_DN);
+    // data. So for this particular test, we use a classical backend.
+    TestCaseUtils.clearJEBackend2(false, "userRoot", EXAMPLE_DN);
 
     // For most tests, a limited number of entries is enough
     updatedEntries = newLDIFEntries(2);
@@ -605,8 +602,7 @@ public class InitOnLineTest extends ReplicationTestCase
     + (heartbeat>0?"ds-cfg-heartbeat-interval: "+heartbeat+" ms\n":"")
     + "ds-cfg-window-size: " + WINDOW_SIZE;
 
-    // Clear the backend
-    LDAPReplicationDomain.clearJEBackend(false, "userRoot", EXAMPLE_DN);
+    TestCaseUtils.clearJEBackend2(false, "userRoot", EXAMPLE_DN);
 
     synchroServerEntry = TestCaseUtils.entryFromLdifString(synchroServerLdif);
     DirectoryServer.getConfigHandler().addEntry(synchroServerEntry, null);
@@ -1457,7 +1453,7 @@ public class InitOnLineTest extends ReplicationTestCase
    * Disconnect broker and remove entries from the local DB
    * @param testCase The name of the test case.
    */
-  protected void afterTest(String testCase)
+  private void afterTest(String testCase)
   {
 
     // Check that the domain has completed the import/export task.
@@ -1545,8 +1541,7 @@ public class InitOnLineTest extends ReplicationTestCase
     callParanoiaCheck = false;
     super.classCleanUp();
 
-    // Clear the backend
-    LDAPReplicationDomain.clearJEBackend(false, "userRoot", EXAMPLE_DN);
+    TestCaseUtils.clearJEBackend2(false, "userRoot", EXAMPLE_DN);
 
     paranoiaCheck();
   }

@@ -48,7 +48,6 @@ import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.Backend;
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.api.SynchronizationProvider;
-import org.opends.server.backends.jeb.BackendImpl;
 import org.opends.server.backends.task.Task;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.*;
@@ -450,8 +449,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
            * Log an error for the repair tool
            * that will need to re-synchronize the servers.
            */
-          message = ERR_CANNOT_RECOVER_CHANGES.get(
-              baseDn.toNormalizedString());
+          message = ERR_CANNOT_RECOVER_CHANGES.get(baseDn.toNormalizedString());
           logError(message);
         }
       } catch (Exception e)
@@ -463,8 +461,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
          * Log an error for the repair tool
          * that will need to re-synchronize the servers.
          */
-        message = ERR_CANNOT_RECOVER_CHANGES.get(
-            baseDn.toNormalizedString());
+        message = ERR_CANNOT_RECOVER_CHANGES.get(baseDn.toNormalizedString());
         logError(message);
       }
       finally
@@ -545,7 +542,6 @@ public final class LDAPReplicationDomain extends ReplicationDomain
      * the last CSN seen from all LDAP servers in the topology.
      */
     state = new PersistentServerState(baseDn, serverId, getServerState());
-
     flushThread = new ServerStateFlush();
 
     /*
@@ -557,9 +553,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
      */
     generator = getGenerator();
 
-    pendingChanges =
-      new PendingChanges(generator, this);
-
+    pendingChanges = new PendingChanges(generator, this);
     remotePendingChanges = new RemotePendingChanges(getServerState());
 
     // listen for changes on the configuration
@@ -777,9 +771,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       return false;
     }
 
-    /*
-     * Search the domain root entry that is used to save the generation id
-     */
+    // Search the domain root entry that is used to save the generation id
     ByteString asn1BaseDn = ByteString.valueOf(baseDn.toString());
     Set<String> attributes = new LinkedHashSet<String>(3);
     attributes.add(REPLICATION_GENERATION_ID);
@@ -933,7 +925,6 @@ public final class LDAPReplicationDomain extends ReplicationDomain
      * Compare configuration stored in passed fractional configuration
      * attributes with local variable one
      */
-
     try
     {
       return FractionalConfig.
@@ -1225,7 +1216,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
 
     // Create a list of filtered attributes for this entry
     Entry concernedEntry = modifyDNOperation.getOriginalEntry();
-    List<String> fractionalConcernedAttributes =
+    Set<String> fractionalConcernedAttributes =
       createFractionalConcernedAttrList(fractionalConfig,
       concernedEntry.getObjectClasses().keySet());
 
@@ -1266,9 +1257,9 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       }
       boolean attributeToBeFiltered = (fractionalExclusive && found)
           || (!fractionalExclusive && !found);
-      if (attributeToBeFiltered &&
-        !newRdn.hasAttributeType(attributeType) &&
-        !modifyDNOperation.deleteOldRDN())
+      if (attributeToBeFiltered
+          && !newRdn.hasAttributeType(attributeType)
+          && !modifyDNOperation.deleteOldRDN())
       {
         /*
          * A forbidden attribute is in the old RDN and no more in the new RDN,
@@ -1313,7 +1304,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
      * fractional replication configuration
      */
 
-    List<String> fractionalConcernedAttributes =
+    Set<String> fractionalConcernedAttributes =
       createFractionalConcernedAttrList(fractionalConfig, classes.keySet());
     boolean fractionalExclusive = fractionalConfig.isFractionalExclusive();
     if (fractionalExclusive && fractionalConcernedAttributes.isEmpty())
@@ -1444,7 +1435,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    }
 
   private static boolean canRemoveAttribute(AttributeType attributeType,
-      boolean fractionalExclusive, List<String> fractionalConcernedAttributes)
+      boolean fractionalExclusive, Set<String> fractionalConcernedAttributes)
   {
     String attributeName = attributeType.getPrimaryName();
     String attributeOid = attributeType.getOID();
@@ -1459,7 +1450,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
         || (!foundAttribute && !fractionalExclusive);
   }
 
-  private static boolean contains(List<String> fractionalConcernedAttributes,
+  private static boolean contains(Set<String> fractionalConcernedAttributes,
       String attributeName, String attributeOid)
   {
     final boolean foundAttribute =
@@ -1478,17 +1469,18 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    * @return The list of attributes of the entry to be excluded/included
    * when the operation will be performed.
    */
-  private static List<String> createFractionalConcernedAttrList(
+  private static Set<String> createFractionalConcernedAttrList(
     FractionalConfig fractionalConfig, Set<ObjectClass> entryObjectClasses)
   {
     /*
      * Is the concerned entry of a type concerned by fractional replication
-     * configuration ? If yes, add the matching attribute names to a list of
+     * configuration ? If yes, add the matching attribute names to a set of
      * attributes to take into account for filtering
-     * (inclusive or exclusive mode)
+     * (inclusive or exclusive mode).
+     * Using a Set to avoid duplicate attributes (from 2 inheriting classes for
+     * instance)
      */
-
-    List<String> fractionalConcernedAttributes = new ArrayList<String>();
+    Set<String> fractionalConcernedAttributes = new HashSet<String>();
 
     // Get object classes the entry matches
     List<String> fractionalAllClassesAttributes =
@@ -1504,31 +1496,14 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       {
         if (entryObjectClass.hasNameOrOID(fractionalClass.toLowerCase()))
         {
-          List<String> attrList =
-            fractionalSpecificClassesAttributes.get(fractionalClass);
-          for(String attr : attrList)
-          {
-            // Avoid duplicate attributes (from 2 inheriting classes for
-            // instance)
-            if (!fractionalConcernedAttributes.contains(attr))
-            {
-              fractionalConcernedAttributes.add(attr);
-            }
-          }
+          fractionalConcernedAttributes.addAll(
+              fractionalSpecificClassesAttributes.get(fractionalClass));
         }
       }
     }
 
-    /*
-     * Add to the list any attribute which is class independent
-     */
-    for (String attr : fractionalAllClassesAttributes)
-    {
-      if (!fractionalConcernedAttributes.contains(attr))
-      {
-        fractionalConcernedAttributes.add(attr);
-      }
-    }
+    // Add to the set any attribute which is class independent
+    fractionalConcernedAttributes.addAll(fractionalAllClassesAttributes);
 
     return fractionalConcernedAttributes;
   }
@@ -1555,7 +1530,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
      */
 
     Entry modifiedEntry = modifyOperation.getCurrentEntry();
-    List<String> fractionalConcernedAttributes =
+    Set<String> fractionalConcernedAttributes =
       createFractionalConcernedAttrList(fractionalConfig,
       modifiedEntry.getObjectClasses().keySet());
     boolean fractionalExclusive = fractionalConfig.isFractionalExclusive();
@@ -1612,16 +1587,14 @@ public final class LDAPReplicationDomain extends ReplicationDomain
         // found, return immediately the answer;
         return FRACTIONAL_HAS_FRACTIONAL_FILTERED_ATTRIBUTES;
       }
-      else
+
+      // Found a modification to remove, remove it from the list.
+      modsIt.remove();
+      result = FRACTIONAL_HAS_FRACTIONAL_FILTERED_ATTRIBUTES;
+      if (mods.isEmpty())
       {
-        // Found a modification to remove, remove it from the list.
-        modsIt.remove();
-        result = FRACTIONAL_HAS_FRACTIONAL_FILTERED_ATTRIBUTES;
-        if (mods.isEmpty())
-        {
-          // This operation must become a no-op as no more modification in it
-          return FRACTIONAL_BECOME_NO_OP;
-        }
+        // This operation must become a no-op as no more modification in it
+        return FRACTIONAL_BECOME_NO_OP;
       }
     }
 
@@ -1854,19 +1827,17 @@ public final class LDAPReplicationDomain extends ReplicationDomain
           return new SynchronizationProviderResult.StopProcessing(
               ResultCode.NO_SUCH_OBJECT, null);
         }
-        else
+
+        DN entryDN = addOperation.getEntryDN();
+        DN parentDnFromEntryDn = entryDN.getParentDNInSuffix();
+        if (parentDnFromEntryDn != null
+            && !parentDnFromCtx.equals(parentDnFromEntryDn))
         {
-          DN entryDN = addOperation.getEntryDN();
-          DN parentDnFromEntryDn = entryDN.getParentDNInSuffix();
-          if (parentDnFromEntryDn != null
-              && !parentDnFromCtx.equals(parentDnFromEntryDn))
-          {
-            // parentEntry has been renamed
-            // replication name conflict resolution is expected to fix that
-            // later in the flow
-            return new SynchronizationProviderResult.StopProcessing(
-                ResultCode.NO_SUCH_OBJECT, null);
-          }
+          // parentEntry has been renamed
+          // replication name conflict resolution is expected to fix that
+          // later in the flow
+          return new SynchronizationProviderResult.StopProcessing(
+              ResultCode.NO_SUCH_OBJECT, null);
         }
       }
     }
@@ -1971,13 +1942,13 @@ public final class LDAPReplicationDomain extends ReplicationDomain
          * another entry.
          * We must not let the change proceed, return a negative
          * result and set the result code to NO_SUCH_OBJECT.
-         * When the operation will return, the thread that started the
-         * operation will try to find the correct entry and restart a new
-         * operation.
+         * When the operation will return, the thread that started the operation
+         * will try to find the correct entry and restart a new operation.
          */
         return new SynchronizationProviderResult.StopProcessing(
             ResultCode.NO_SUCH_OBJECT, null);
       }
+
       if (modifyDNOperation.getNewSuperior() != null)
       {
         /*
@@ -1992,6 +1963,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
             ResultCode.NO_SUCH_OBJECT, null);
         }
       }
+
       /*
        * If the object has been renamed more recently than this
        * operation, cancel the operation.
@@ -2317,10 +2289,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     LDAPFilter filter = LDAPFilter.createEqualityFilter(DS_SYNC_CONFLICT,
         ByteString.valueOf(freedDN.toString()));
 
-     Set<String> attrs = new LinkedHashSet<String>(1);
-     attrs.add(EntryHistorical.HISTORICAL_ATTRIBUTE_NAME);
-     attrs.add(EntryHistorical.ENTRYUUID_ATTRIBUTE_NAME);
-     attrs.add("*");
+     Set<String> attrs = allOperationalAttributes();
      InternalSearchOperation searchOp =  conn.processSearch(
        ByteString.valueOf(baseDn.toString()),
        SearchScope.WHOLE_SUBTREE,
@@ -3606,16 +3575,11 @@ private boolean solveNamingConflict(ModifyDNOperation op,
    * @return generationId The retrieved value of generationId
    * @throws DirectoryException When an error occurs.
    */
-  private long loadGenerationId()
-  throws DirectoryException
+  private long loadGenerationId() throws DirectoryException
   {
-    long aGenerationId=-1;
-
     if (debugEnabled())
       TRACER.debugInfo("Attempt to read generation ID from DB " + baseDn);
 
-    ByteString asn1BaseDn = ByteString.valueOf(baseDn.toString());
-    boolean found = false;
     LDAPFilter filter;
     try
     {
@@ -3631,6 +3595,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
      * Search the database entry that is used to periodically
      * save the generation id
      */
+    ByteString asn1BaseDn = ByteString.valueOf(baseDn.toString());
     Set<String> attributes = new LinkedHashSet<String>(1);
     attributes.add(REPLICATION_GENERATION_ID);
     InternalSearchOperation search = conn.processSearch(asn1BaseDn,
@@ -3639,6 +3604,9 @@ private boolean solveNamingConflict(ModifyDNOperation op,
         filter,attributes);
     if (search.getResultCode() == ResultCode.NO_SUCH_OBJECT)
     {
+      // FIXME JNR Am I dreaming, or next code is doing exactly the same thing
+      // as code before if statement?
+
       // if the base entry does not exist look for the generationID
       // in the config entry.
       asn1BaseDn = ByteString.valueOf(baseDn.toString());
@@ -3647,6 +3615,9 @@ private boolean solveNamingConflict(ModifyDNOperation op,
           DereferencePolicy.DEREF_ALWAYS, 0, 0, false,
           filter,attributes);
     }
+
+    boolean found = false;
+    long aGenerationId = -1;
     if (search.getResultCode() != ResultCode.SUCCESS)
     {
       if (search.getResultCode() != ResultCode.NO_SUCH_OBJECT)
@@ -3737,60 +3708,6 @@ private boolean solveNamingConflict(ModifyDNOperation op,
    * Total Update >>
    */
 
-
-
-  /**
-   * Clears all the entries from the JE backend determined by the
-   * be id passed into the method.
-   *
-   * @param  createBaseEntry  Indicate whether to automatically create the base
-   *                          entry and add it to the backend.
-   * @param beID  The be id to clear.
-   * @param dn   The suffix of the backend to create if the the createBaseEntry
-   *             boolean is true.
-   * @throws Exception  If an unexpected problem occurs.
-   */
-  public static void clearJEBackend(boolean createBaseEntry, String beID,
-      String dn) throws Exception
-  {
-    BackendImpl backend = (BackendImpl)DirectoryServer.getBackend(beID);
-
-    // FIXME Should setBackendEnabled be part of TaskUtils ?
-    TaskUtils.disableBackend(beID);
-
-    try
-    {
-      String lockFile = LockFileManager.getBackendLockFileName(backend);
-      StringBuilder failureReason = new StringBuilder();
-
-      if (!LockFileManager.acquireExclusiveLock(lockFile, failureReason))
-      {
-        throw new RuntimeException(failureReason.toString());
-      }
-
-      try
-      {
-        backend.clearBackend();
-      }
-      finally
-      {
-        LockFileManager.releaseLock(lockFile, failureReason);
-      }
-    }
-    finally
-    {
-      TaskUtils.enableBackend(beID);
-    }
-
-    if (createBaseEntry)
-    {
-      DN baseDN = DN.decode(dn);
-      Entry e = createEntry(baseDN);
-      backend = (BackendImpl)DirectoryServer.getBackend(beID);
-      backend.addEntry(e, null);
-    }
-  }
-
   /**
    * This method trigger an export of the replicated data.
    *
@@ -3817,13 +3734,10 @@ private boolean solveNamingConflict(ModifyDNOperation op,
    *
    * @throws DirectoryException when an error occurred
    */
-  protected long exportBackend(OutputStream output, boolean checksumOutput)
-  throws DirectoryException
+  private long exportBackend(OutputStream output, boolean checksumOutput)
+      throws DirectoryException
   {
-    long genID = 0;
     Backend backend = retrievesBackend(this.baseDn);
-    long numberOfEntries = backend.numSubordinates(baseDn, true) + 1;
-    long entryCount = Math.min(numberOfEntries, 1000);
 
     //  Acquire a shared lock for the backend.
     try
@@ -3835,8 +3749,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
         Message message = ERR_LDIFEXPORT_CANNOT_LOCK_BACKEND.get(
             backend.getBackendID(), String.valueOf(failureReason));
         logError(message);
-        throw new DirectoryException(
-            ResultCode.OTHER, message, null);
+        throw new DirectoryException(ResultCode.OTHER, message, null);
       }
     }
     catch (Exception e)
@@ -3845,13 +3758,13 @@ private boolean solveNamingConflict(ModifyDNOperation op,
           ERR_LDIFEXPORT_CANNOT_LOCK_BACKEND.get(
                   backend.getBackendID(), e.getLocalizedMessage());
       logError(message);
-      throw new DirectoryException(
-          ResultCode.OTHER, message, null);
+      throw new DirectoryException(ResultCode.OTHER, message, null);
     }
 
+    long numberOfEntries = backend.numSubordinates(baseDn, true) + 1;
+    long entryCount = Math.min(numberOfEntries, 1000);
     OutputStream os;
     ReplLDIFOutputStream ros = null;
-
     if (checksumOutput)
     {
       ros = new ReplLDIFOutputStream(entryCount);
@@ -3869,11 +3782,11 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     {
       os = output;
     }
-    LDIFExportConfig exportConfig = new LDIFExportConfig(os);
 
     // baseDn branch is the only one included in the export
     List<DN> includeBranches = new ArrayList<DN>(1);
     includeBranches.add(this.baseDn);
+    LDIFExportConfig exportConfig = new LDIFExportConfig(os);
     exportConfig.setIncludeBranches(includeBranches);
 
     // For the checksum computing mode, only consider the 'stable' attributes
@@ -3895,6 +3808,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     }
 
     //  Launch the export.
+    long genID = 0;
     try
     {
       backend.exportLDIF(exportConfig);
@@ -3907,8 +3821,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
         Message message =
             ERR_LDIFEXPORT_ERROR_DURING_EXPORT.get(de.getMessageObject());
         logError(message);
-        throw new DirectoryException(
-            ResultCode.OTHER, message, null);
+        throw new DirectoryException(ResultCode.OTHER, message, null);
       }
     }
     catch (Exception e)
@@ -3916,8 +3829,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       Message message = ERR_LDIFEXPORT_ERROR_DURING_EXPORT.get(
           stackTraceToSingleLineString(e));
       logError(message);
-      throw new DirectoryException(
-          ResultCode.OTHER, message, null);
+      throw new DirectoryException(ResultCode.OTHER, message, null);
     }
     finally
     {
@@ -3940,8 +3852,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
           Message message = WARN_LDIFEXPORT_CANNOT_UNLOCK_BACKEND.get(
               backend.getBackendID(), String.valueOf(failureReason));
           logError(message);
-          throw new DirectoryException(
-              ResultCode.OTHER, message, null);
+          throw new DirectoryException(ResultCode.OTHER, message, null);
         }
       }
       catch (Exception e)
@@ -3949,8 +3860,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
         Message message = WARN_LDIFEXPORT_CANNOT_UNLOCK_BACKEND.get(
             backend.getBackendID(), stackTraceToSingleLineString(e));
         logError(message);
-        throw new DirectoryException(
-            ResultCode.OTHER, message, null);
+        throw new DirectoryException(ResultCode.OTHER, message, null);
       }
     }
     return genID;
@@ -3973,8 +3883,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
    * @param backend The backend.
    * @throws Exception
    */
-  private void preBackendImport(Backend backend)
-  throws Exception
+  private void preBackendImport(Backend backend) throws Exception
   {
     // Stop saving state
     stateSavingDisabled = true;
@@ -4015,8 +3924,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
         Message message = ERR_INIT_IMPORT_NOT_SUPPORTED.get(
             backend.getBackendID());
         if (ieContext.getException() == null)
-          ieContext.setException(new DirectoryException(ResultCode.OTHER,
-              message));
+          ieContext.setException(new DirectoryException(OTHER, message));
       }
       else
       {
@@ -4133,15 +4041,13 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     LDAPReplicationDomain replicationDomain = null;
 
     // Retrieves the domain
-    DirectoryServer.getSynchronizationProviders();
     for (SynchronizationProvider<?> provider :
       DirectoryServer.getSynchronizationProviders())
     {
       if (!( provider instanceof MultimasterReplication))
       {
         Message message = ERR_INVALID_PROVIDER.get();
-        throw new DirectoryException(ResultCode.OTHER,
-            message);
+        throw new DirectoryException(ResultCode.OTHER, message);
       }
 
       // From the domainDN retrieves the replication domain
@@ -4155,8 +4061,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       {
         // Should never happen
         Message message = ERR_MULTIPLE_MATCHING_DOMAIN.get();
-        throw new DirectoryException(ResultCode.OTHER,
-            message);
+        throw new DirectoryException(ResultCode.OTHER, message);
       }
       replicationDomain = domain;
     }
@@ -4271,10 +4176,8 @@ private boolean solveNamingConflict(ModifyDNOperation op,
         configuration.getHeartbeatInterval(),
         (byte)configuration.getGroupId());
 
-    // Read assured configuration and reconnect if needed
+    // Read assured + fractional configuration and each time reconnect if needed
     readAssuredConfig(configuration, true);
-
-    // Read fractional configuration and reconnect if needed
     readFractionalConfig(configuration, true);
 
     solveConflictFlag = isSolveConflict(configuration);
@@ -4574,14 +4477,11 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       Iterator<CSN> it = replayOperations.keySet().iterator();
       while (it.hasNext())
       {
-        if (it.next().olderOrEqual(startCSN))
-        {
-          it.remove();
-        }
-        else
+        if (it.next().newer(startCSN))
         {
           break;
         }
+        it.remove();
       }
     }
 
@@ -4591,12 +4491,11 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     do
     {
       lastRetrievedChange = null;
-      // We can't do the search in one go because we need to
-      // store the results so that we are sure we send the operations
-      // in order and because the list might be large
-      // So we search by interval of 10 seconds
-      // and store the results in the replayOperations list
-      // so that they are sorted before sending them.
+      // We can't do the search in one go because we need to store the results
+      // so that we are sure we send the operations in order and because the
+      // list might be large.
+      // So we search by interval of 10 seconds and store the results in the
+      // replayOperations list so that they are sorted before sending them.
       long missingChangesDelta = currentStartCSN.getTime() + 10000;
       CSN endCSN = new CSN(missingChangesDelta, 0xffffffff, serverId);
 
@@ -4613,17 +4512,15 @@ private boolean solveNamingConflict(ModifyDNOperation op,
         while (itOp.hasNext())
         {
           FakeOperation fakeOp = itOp.next();
-          if (fakeOp.getCSN().olderOrEqual(endCSN)
-              && state.cover(fakeOp.getCSN()))
-          {
-            lastRetrievedChange = fakeOp.getCSN();
-            opsToSend.add(fakeOp);
-            itOp.remove();
-          }
-          else
+          if (fakeOp.getCSN().newer(endCSN) // sanity check
+              || !state.cover(fakeOp.getCSN()))
           {
             break;
           }
+
+          lastRetrievedChange = fakeOp.getCSN();
+          opsToSend.add(fakeOp);
+          itOp.remove();
         }
       }
 
@@ -4665,7 +4562,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
    * @throws Exception
    *           when raised.
    */
-  public static InternalSearchOperation searchForChangedEntries(DN baseDn,
+  private static InternalSearchOperation searchForChangedEntries(DN baseDn,
       CSN fromCSN, CSN lastCSN, InternalSearchListener resultListener)
       throws Exception
   {
@@ -4688,10 +4585,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
         "(&(" + HISTORICAL_ATTRIBUTE_NAME + ">=dummy:" + fromCSN + ")" +
           "(" + HISTORICAL_ATTRIBUTE_NAME + "<=dummy:" + maxValueForId + "))");
 
-    Set<String> attrs = new LinkedHashSet<String>(3);
-    attrs.add(HISTORICAL_ATTRIBUTE_NAME);
-    attrs.add(ENTRYUUID_ATTRIBUTE_NAME);
-    attrs.add("*");
+    Set<String> attrs = allOperationalAttributes();
     return conn.processSearch(
       ByteString.valueOf(baseDn.toString()),
       SearchScope.WHOLE_SUBTREE,
@@ -4699,6 +4593,15 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       0, 0, false, filter,
       attrs,
       resultListener);
+  }
+
+  private static Set<String> allOperationalAttributes()
+  {
+    Set<String> attrs = new LinkedHashSet<String>(3);
+    attrs.add(HISTORICAL_ATTRIBUTE_NAME);
+    attrs.add(ENTRYUUID_ATTRIBUTE_NAME);
+    attrs.add("*");
+    return attrs;
   }
 
   /**
@@ -5252,11 +5155,9 @@ private boolean solveNamingConflict(ModifyDNOperation op,
           throw new ConfigException(
             NOTE_ERR_FRACTIONAL_CONFIG_BOTH_MODES.get());
         }
-        else
-        {
-          fractionalMode = EXCLUSIVE_FRACTIONAL;
-          iterator = exclIt;
-        }
+
+        fractionalMode = EXCLUSIVE_FRACTIONAL;
+        iterator = exclIt;
       }
       else
       {
@@ -5487,10 +5388,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
        // Not possible. We know the filter just above is correct.
      }
 
-     Set<String> attrs = new LinkedHashSet<String>(3);
-     attrs.add(HISTORICAL_ATTRIBUTE_NAME);
-     attrs.add(ENTRYUUID_ATTRIBUTE_NAME);
-     attrs.add("*");
+     Set<String> attrs = allOperationalAttributes();
      InternalSearchOperation searchOp =  conn.processSearch(
          ByteString.valueOf(baseDn.toString()),
          SearchScope.WHOLE_SUBTREE,
