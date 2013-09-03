@@ -56,7 +56,6 @@ import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.DN;
-import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.util.StaticUtils;
 import org.testng.annotations.AfterClass;
@@ -66,7 +65,6 @@ import org.testng.annotations.Test;
 
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.util.StaticUtils.*;
 import static org.testng.Assert.*;
 
 /**
@@ -84,10 +82,10 @@ public class StateMachineTest extends ReplicationTestCase
   private static final int DS3_ID = 3;
   private static final int RS1_ID = 41;
   private int rs1Port = -1;
-  private LDAPReplicationDomain ds1 = null;
-  private ReplicationBroker ds2 = null;
-  private ReplicationBroker ds3 = null;
-  private ReplicationServer rs1 = null;
+  private LDAPReplicationDomain ds1;
+  private ReplicationBroker ds2;
+  private ReplicationBroker ds3;
+  private ReplicationServer rs1;
   /** The tracer object for the debug logger */
   private static final DebugTracer TRACER = getTracer();
   private int initWindow = 100;
@@ -110,7 +108,7 @@ public class StateMachineTest extends ReplicationTestCase
     rs1Port = TestCaseUtils.findFreePort();
   }
 
-  private void endTest()
+  private void endTest() throws Exception
   {
     if (ds1 != null)
     {
@@ -118,14 +116,8 @@ public class StateMachineTest extends ReplicationTestCase
       ds1 = null;
     }
 
-    try
-    {
-      // Clear any reference to a domain in synchro plugin
-      MultimasterReplication.deleteDomain(DN.decode(EXAMPLE_DN));
-    } catch (DirectoryException ex)
-    {
-      fail("Error deleting reference to domain: " + EXAMPLE_DN);
-    }
+    // Clear any reference to a domain in synchro plugin
+    MultimasterReplication.deleteDomain(DN.decode(EXAMPLE_DN));
 
     if (ds2 != null)
     {
@@ -151,19 +143,13 @@ public class StateMachineTest extends ReplicationTestCase
     rs1Port = -1;
   }
 
-  private void sleep(long time) throws InterruptedException
-  {
-    Thread.sleep(time);
-  }
-
   /**
    * Check connection of the provided ds to the
    * replication server. Waits for connection to be ok up to secTimeout seconds
    * before failing.
    */
-  private void checkConnection(int secTimeout, int dsId)
+  private void checkConnection(int secTimeout, int dsId) throws Exception
   {
-
     ReplicationBroker rb = null;
     LDAPReplicationDomain rd = null;
     switch (dsId)
@@ -201,22 +187,13 @@ public class StateMachineTest extends ReplicationTestCase
         return;
       }
 
-      // Sleep 1 second
-      try
-      {
-        Thread.sleep(100);
-      } catch (InterruptedException ex)
-      {
-        fail("Error sleeping " + stackTraceToSingleLineString(ex));
-      }
+      Thread.sleep(100);
       nSec++;
 
-      if (nSec > secTimeout*10)
-      {
-        // Timeout reached, end with error
-        fail("checkConnection: DS " + dsId + " is not connected to the RS after "
+      // Timeout reached, end with error
+      assertFalse(nSec > secTimeout * 10,
+          "checkConnection: DS " + dsId + " is not connected to the RS after "
           + secTimeout + " seconds.");
-      }
     }
   }
 
@@ -390,7 +367,6 @@ public class StateMachineTest extends ReplicationTestCase
       // having sent them to TCP receive queue of DS2.
       bw = new BrokerWriter(ds3, DS3_ID, false);
       bw.followAndPause(11);
-      // sleep(1000);
 
       /**
        * DS3 sends changes (less than threshold): DS2 should still be in normal
@@ -402,7 +378,7 @@ public class StateMachineTest extends ReplicationTestCase
       {
         nChangesSent = thresholdValue - 1;
         bw.followAndPause(nChangesSent);
-        sleep(1000); // Be sure status analyzer has time to test
+        Thread.sleep(1000); // Be sure status analyzer has time to test
         ReplicationMsg msg = br3.getLastMsg();
         debugInfo(testCase + " Step 1: last message from writer: " + msg);
         assertTrue(msg == null, (msg != null) ? msg.toString() : "null" );
@@ -414,28 +390,7 @@ public class StateMachineTest extends ReplicationTestCase
        */
       bw.followAndPause(thresholdValue - nChangesSent);
       // wait for a status MSG status analyzer to broker 3
-      ReplicationMsg lastMsg = null;
-      for (int count = 0; count< 50; count++)
-      {
-        List<DSInfo> dsList = ds3.getDsList();
-        DSInfo ds3Info = null;
-        if (dsList.size() > 0)
-        {
-          ds3Info = dsList.get(0);
-        }
-        if ((ds3Info != null) && (ds3Info.getDsId() == DS2_ID) &&
-            (ds3Info.getStatus()== ServerStatus.DEGRADED_STATUS) )
-        {
-          break;
-        }
-        else
-        {
-          if (count < 50)
-            sleep(200); // Be sure status analyzer has time to test
-          else
-            fail("DS2 did not get degraded : " + ds3Info);
-        }
-      }
+      waitForDegradedStatusOnBroker3();
 
       /**
        * DS3 sends 10 additional changes after threshold value, DS2 should still be
@@ -443,8 +398,8 @@ public class StateMachineTest extends ReplicationTestCase
        */
       bw.followAndPause(10);
       bw.shutdown();
-      sleep(1000); // Be sure status analyzer has time to test
-      lastMsg = br3.getLastMsg();
+      Thread.sleep(1000); // Be sure status analyzer has time to test
+      ReplicationMsg lastMsg = br3.getLastMsg();
       ReplicationMsg msg = br3.getLastMsg();
       debugInfo(testCase + " Step 3: last message from writer: " + msg);
       assertTrue(lastMsg == null);
@@ -455,27 +410,7 @@ public class StateMachineTest extends ReplicationTestCase
        */
       br2 = new BrokerReader(ds2, DS2_ID);
       // wait for a status MSG status analyzer to broker 3
-      for (int count = 0; count< 50; count++)
-      {
-        List<DSInfo> dsList = ds3.getDsList();
-        DSInfo ds3Info = null;
-        if (dsList.size() > 0)
-        {
-          ds3Info = dsList.get(0);
-        }
-        if ((ds3Info != null) && (ds3Info.getDsId() == DS2_ID) &&
-            (ds3Info.getStatus()== ServerStatus.DEGRADED_STATUS) )
-        {
-          break;
-        }
-        else
-        {
-          if (count < 50)
-            sleep(200); // Be sure status analyzer has time to test
-          else
-            fail("DS2 did not get degraded.");
-        }
-      }
+      waitForDegradedStatusOnBroker3();
 
     } finally
     {
@@ -483,6 +418,28 @@ public class StateMachineTest extends ReplicationTestCase
       if (bw != null) bw.shutdown();
       if (br3 != null) br3.shutdown();
       if (br2 != null) br2.shutdown();
+    }
+  }
+
+  private void waitForDegradedStatusOnBroker3() throws InterruptedException
+  {
+    for (int count = 0; count< 50; count++)
+    {
+      List<DSInfo> dsList = ds3.getDsList();
+      DSInfo ds3Info = null;
+      if (dsList.size() > 0)
+      {
+        ds3Info = dsList.get(0);
+      }
+      if (ds3Info != null
+          && ds3Info.getDsId() == DS2_ID
+          && ds3Info.getStatus() == ServerStatus.DEGRADED_STATUS)
+      {
+        break;
+      }
+
+      assertTrue(count < 50, "DS2 did not get degraded : " + ds3Info);
+      Thread.sleep(200); // Be sure status analyzer has time to test
     }
   }
 
@@ -515,24 +472,18 @@ public class StateMachineTest extends ReplicationTestCase
 
       int DEGRADED_STATUS_THRESHOLD = 1;
 
-      /**
-       * RS1 starts with 1 message as degraded status threshold value
-       */
+      // RS1 starts with 1 message as degraded status threshold value
       rs1 = createReplicationServer(testCase, DEGRADED_STATUS_THRESHOLD);
 
-      /**
-       * DS2 starts and connects to RS1
-       */
+      // DS2 starts and connects to RS1
       ds2 = createReplicationBroker(DS2_ID, new ServerState(), EMPTY_DN_GENID);
       br = new BrokerReader(ds2, DS2_ID);
       checkConnection(30, DS2_ID);
 
-      /**
-       * DS2 starts sending a lot of changes
-       */
+      // DS2 starts sending a lot of changes
       bw = new BrokerWriter(ds2, DS2_ID, false);
       bw.follow();
-      sleep(1000); // Let some messages being queued in RS
+      Thread.sleep(1000); // Let some messages being queued in RS
 
       /**
        * DS1 starts and connects to RS1, server state exchange should lead to
@@ -581,7 +532,7 @@ public class StateMachineTest extends ReplicationTestCase
        */
       bw = new BrokerWriter(ds2, DS2_ID, false);
       bw.follow();
-      sleep(8000); // Let some messages being queued in RS, and analyzer see the change
+      Thread.sleep(8000); // Let some messages being queued in RS, and analyzer see the change
       sleepAssertStatusEquals(30, ds1, ServerStatus.DEGRADED_STATUS);
 
       /**
@@ -646,7 +597,7 @@ public class StateMachineTest extends ReplicationTestCase
       bw = new BrokerWriter(ds2, DS2_ID, false);
       br = new BrokerReader(ds2, DS2_ID);
       bw.follow();
-      sleep(8000); // Let some messages being queued in RS, and analyzer see the change
+      Thread.sleep(8000); // Let some messages being queued in RS, and analyzer see the change
       sleepAssertStatusEquals(30, ds1, ServerStatus.DEGRADED_STATUS);
 
       /**
@@ -685,7 +636,7 @@ public class StateMachineTest extends ReplicationTestCase
       bw = new BrokerWriter(ds2, DS2_ID, false);
       br = new BrokerReader(ds2, DS2_ID);
       bw.follow();
-      sleep(8000); // Let some messages being queued in RS, and analyzer see the change
+      Thread.sleep(8000); // Let some messages being queued in RS, and analyzer see the change
       sleepAssertStatusEquals(30, ds1, ServerStatus.DEGRADED_STATUS);
 
       /**
@@ -769,9 +720,7 @@ public class StateMachineTest extends ReplicationTestCase
     // going into degraded status, we need to send a lot of updates. This makes
     // the memory test backend crash with OutOfMemoryError. So we prefer here
     // a backend backed up with a file
-
-    // Clear the backend
-    LDAPReplicationDomain.clearJEBackend(false, "userRoot", EXAMPLE_DN);
+    TestCaseUtils.clearJEBackend2(false, "userRoot", EXAMPLE_DN);
 
   }
 
@@ -787,8 +736,7 @@ public class StateMachineTest extends ReplicationTestCase
     callParanoiaCheck = false;
     super.classCleanUp();
 
-    // Clear the backend
-    LDAPReplicationDomain.clearJEBackend(false, "userRoot", EXAMPLE_DN);
+    TestCaseUtils.clearJEBackend2(false, "userRoot", EXAMPLE_DN);
 
     paranoiaCheck();
   }
@@ -1094,13 +1042,7 @@ public class StateMachineTest extends ReplicationTestCase
       // Wait for all messages sent
       while (!sessionDone.get())
       {
-        try
-        {
-          Thread.sleep(200);
-        } catch (InterruptedException ex)
-        {
-          /* Don't care */
-        }
+        TestCaseUtils.sleep(200);
       }
     }
 
@@ -1144,13 +1086,7 @@ public class StateMachineTest extends ReplicationTestCase
       // Wait for all messages sent
       while (!sessionDone.get())
       {
-        try
-        {
-          Thread.sleep(1000);
-        } catch (InterruptedException ex)
-        {
-          /* Don't care */
-        }
+        TestCaseUtils.sleep(1000);
       }
       careAboutAmountOfChanges = false;
     }
@@ -1182,7 +1118,7 @@ public class StateMachineTest extends ReplicationTestCase
           entryWithUUIDldif);
       } catch (Exception e)
       {
-        fail(e.getMessage());
+        throw new RuntimeException(e);
       }
 
       // Create an update message to add an entry.
@@ -1206,10 +1142,10 @@ public class StateMachineTest extends ReplicationTestCase
   private class BrokerReader extends Thread
   {
 
-    private ReplicationBroker rb = null;
+    private ReplicationBroker rb;
     private int serverId = -1;
-    private boolean shutdown = false;
-    private ReplicationMsg lastMsg = null;
+    private boolean shutdown;
+    private ReplicationMsg lastMsg;
 
     public BrokerReader(ReplicationBroker rb, int serverId)
     {
@@ -1290,24 +1226,15 @@ public class StateMachineTest extends ReplicationTestCase
    * @param expectedValue The value the tested value should be equal to
    */
   private void sleepAssertStatusEquals(int secTimeout, LDAPReplicationDomain testedValue,
-    ServerStatus expectedValue)
+    ServerStatus expectedValue) throws Exception
   {
-    int nSec = 0;
-
-    if (testedValue == null || expectedValue == null)
-      fail("sleepAssertStatusEquals: null parameters");
+    assertTrue(testedValue != null && expectedValue != null, "sleepAssertStatusEquals: null parameters");
 
     // Go out of the loop only if equality is obtained or if timeout occurs
+    int nSec = 0;
     while (true)
     {
-      // Sleep 1 second
-      try
-      {
-        Thread.sleep(1000);
-      } catch (InterruptedException ex)
-      {
-        fail("Error sleeping " + stackTraceToSingleLineString(ex));
-      }
+      Thread.sleep(1000);
       nSec++;
 
       // Test equality of values
@@ -1318,12 +1245,10 @@ public class StateMachineTest extends ReplicationTestCase
         return;
       }
 
-      if (nSec == secTimeout)
-      {
-        // Timeout reached, end with error
-        fail("sleepAssertStatusEquals: got <" + testedValue.getStatus()
-          + "> where expected <" + expectedValue + ">");
-      }
+      // Timeout reached, end with error
+      assertTrue(nSec < secTimeout, "sleepAssertStatusEquals: got <"
+          + testedValue.getStatus() + "> where expected <" + expectedValue
+          + ">");
     }
   }
 }

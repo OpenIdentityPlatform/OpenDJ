@@ -27,10 +27,6 @@
  */
 package org.opends.server.replication;
 
-import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.testng.Assert.*;
-
 import java.io.File;
 import java.util.UUID;
 
@@ -41,7 +37,6 @@ import org.opends.server.TestCaseUtils;
 import org.opends.server.core.AddOperationBasis;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.replication.plugin.LDAPReplicationDomain;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.ResultCode;
@@ -49,12 +44,16 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.testng.Assert.*;
+
 /**
  * Test re-synchronization after after backup/restore and LDIF import.
  */
 public class ReSyncTest extends ReplicationTestCase
 {
-  // The tracer object for the debug logger
+  /** The tracer object for the debug logger */
   private static final DebugTracer TRACER = getTracer();
 
   private void debugInfo(String s)
@@ -66,8 +65,7 @@ public class ReSyncTest extends ReplicationTestCase
     }
   }
 
-  protected static final String EXAMPLE_DN = "dc=example,dc=com";
-
+  private static final String EXAMPLE_DN = "dc=example,dc=com";
   private File reSyncTempDir;
 
  /**
@@ -95,8 +93,7 @@ public class ReSyncTest extends ReplicationTestCase
     // re-enabled and this clears the backend reference and thus the underlying
     // data. So for this particular test, we use a classical backend. Let's
     // clear it and create the root entry
-
-    LDAPReplicationDomain.clearJEBackend(false, "userRoot", EXAMPLE_DN);
+    TestCaseUtils.clearJEBackend2(false, "userRoot", EXAMPLE_DN);
     addEntry("dn: dc=example,dc=com\n" + "objectClass: top\n"
         + "objectClass: domain\n");
 
@@ -268,9 +265,7 @@ public class ReSyncTest extends ReplicationTestCase
     callParanoiaCheck = false;
     super.classCleanUp();
 
-    // Clear the backend
-    LDAPReplicationDomain.clearJEBackend(false, "userRoot", EXAMPLE_DN);
-
+    TestCaseUtils.clearJEBackend2(false, "userRoot", EXAMPLE_DN);
     TestCaseUtils.deleteDirectory(reSyncTempDir);
 
     paranoiaCheck();

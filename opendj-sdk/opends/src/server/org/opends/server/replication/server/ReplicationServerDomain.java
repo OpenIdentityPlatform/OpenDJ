@@ -164,9 +164,10 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
   /**
    * Creates a new ReplicationServerDomain associated to the DN baseDn.
    *
-   * @param baseDn The baseDn associated to the ReplicationServerDomain.
-   * @param localReplicationServer the ReplicationServer that created this
-   *                          replicationServer cache.
+   * @param baseDn
+   *          The baseDn associated to the ReplicationServerDomain.
+   * @param localReplicationServer
+   *          the ReplicationServer that created this instance.
    */
   public ReplicationServerDomain(String baseDn,
       ReplicationServer localReplicationServer)
@@ -1126,12 +1127,14 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
 
   /**
    * This method resets the generationId for this domain if there is no LDAP
-   * server currently connected in the whole topology on this domain and
-   * if the generationId has never been saved.
-   *
-   * - test emptiness of directoryServers list
-   * - traverse replicationServers list and test for each if DS are connected
-   * So it strongly relies on the directoryServers list
+   * server currently connected in the whole topology on this domain and if the
+   * generationId has never been saved.
+   * <ul>
+   * <li>test emptiness of {@link #connectedDSs} list</li>
+   * <li>traverse {@link #connectedRSs} list and test for each if DS are
+   * connected</li>
+   * </ul>
+   * So it strongly relies on the {@link #connectedDSs} list
    */
   private void resetGenerationIdIfPossible()
   {
@@ -2442,21 +2445,25 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
   /**
    * A synchronization mechanism is created to insure exclusive access to the
    * domain. The goal is to have a consistent view of the topology by locking
-   * the structures holding the topology view of the domain: directoryServers
-   * and replicationServers. When a connection is established with a peer DS or
-   * RS, the lock should be taken before updating these structures, then
-   * released. The same mechanism should be used when updating any data related
-   * to the view of the topology: for instance if the status of a DS is changed,
-   * the lock should be taken before updating the matching server handler and
-   * sending the topology messages to peers and released after.... This allows
-   * every member of the topology to have a consistent view of the topology and
-   * to be sure it will not miss some information.
+   * the structures holding the topology view of the domain:
+   * {@link #connectedDSs} and {@link #connectedRSs}. When a connection is
+   * established with a peer DS or RS, the lock should be taken before updating
+   * these structures, then released. The same mechanism should be used when
+   * updating any data related to the view of the topology: for instance if the
+   * status of a DS is changed, the lock should be taken before updating the
+   * matching server handler and sending the topology messages to peers and
+   * released after.... This allows every member of the topology to have a
+   * consistent view of the topology and to be sure it will not miss some
+   * information.
+   * <p>
    * So the locking system must be called (not exhaustive list):
-   * - when connection established with a DS or RS
-   * - when connection ended with a DS or RS
-   * - when receiving a TopologyMsg and updating structures
-   * - when creating and sending a TopologyMsg
-   * - when a DS status is changing (ChangeStatusMsg received or sent)...
+   * <ul>
+   * <li>when connection established with a DS or RS</li>
+   * <li>when connection ended with a DS or RS</li>
+   * <li>when receiving a TopologyMsg and updating structures</li>
+   * <li>when creating and sending a TopologyMsg</li>
+   * <li>when a DS status is changing (ChangeStatusMsg received or sent)...</li>
+   * </ul>
    */
   private final ReentrantLock lock = new ReentrantLock();
 

@@ -1006,8 +1006,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
     // We need a backend with a real configuration in cn=config as at import time
     // the real domain will check for backend existence in cn=config. So we use
     // dc=example,dc=com for this particular test.
-    // Clear the backend
-    LDAPReplicationDomain.clearJEBackend(false, "userRoot", TEST2_ROOT_DN_STRING);
+    clearJEBackend2(false, "userRoot", TEST2_ROOT_DN_STRING);
 
     try
     {
@@ -1245,8 +1244,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
     // We need a backend with a real configuration in cn=config as at import time
     // the real domain will check for backend existence in cn=config. So we use
     // dc=example,dc=com for this particular test.
-    // Clear the backend
-    LDAPReplicationDomain.clearJEBackend(false, "userRoot", TEST2_ROOT_DN_STRING);
+    clearJEBackend2(false, "userRoot", TEST2_ROOT_DN_STRING);
 
     try
     {
