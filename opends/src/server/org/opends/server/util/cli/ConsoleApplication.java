@@ -129,6 +129,10 @@ public abstract class ConsoleApplication
      * Defines a breakline.
      */
     BREAKLINE,
+    /**
+     * Defines a warning.
+     */
+    WARNING
   }
 
   // The error stream which this application should use.
@@ -447,6 +451,9 @@ public abstract class ConsoleApplication
         break;
       case BREAKLINE:
         out.println();
+        break;
+      case WARNING:
+        out.println(wrapText("[!] " + msg, MAX_LINE_WIDTH, indent));
         break;
       default:
         out.println(wrapText(msg, MAX_LINE_WIDTH, indent));

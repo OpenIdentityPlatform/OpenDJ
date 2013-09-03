@@ -32,6 +32,7 @@ package org.opends.server.tools.upgrade;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.tools.upgrade.FormattedNotificationCallback.*;
 import static org.opends.server.tools.upgrade.UpgradeTasks.*;
+import static org.opends.server.tools.upgrade.LicenseFile.*;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -87,6 +88,11 @@ public final class Upgrade
    * intervention.
    */
   static final int EXIT_CODE_MANUAL_INTERVENTION = 2;
+
+  /**
+   * If the upgrade contains some post upgrade tasks to do.
+   */
+  static boolean hasPostUpgradeTask = false;
 
   /**
    * Developers should register upgrade tasks below.
@@ -292,7 +298,8 @@ public final class Upgrade
     /* See OPENDJ-992 */
     register("2.5.0.9013",
         regressionInVersion("2.5.0.7640",
-            rebuildSingleIndex(INFO_UPGRADE_TASK_9013_DESCRIPTION.get())));
+            rebuildSingleIndex(INFO_UPGRADE_TASK_9013_DESCRIPTION.get(),
+                "ds-sync-hist")));
 
     /*
      * All upgrades will refresh the server configuration schema and generate
@@ -300,11 +307,8 @@ public final class Upgrade
      */
     registerLast(
         copySchemaFile("02-config.ldif"),
-        updateConfigUpgradeFolder());
-
-    // TODO for tests.
-    /*register("2.5.0.8657",
-       rebuildAllIndexes(Message.raw("This is fake Rebuild Task")));*/
+        updateConfigUpgradeFolder(),
+        postUpgradeRebuildIndexes());
 
     // @formatter:on
   }
@@ -322,7 +326,7 @@ public final class Upgrade
    * @return A list containing all the tasks which are required in order to
    *         upgrade from {@code fromVersion} to {@code toVersion}.
    */
- private static List<UpgradeTask> getUpgradeTasks(
+  private static List<UpgradeTask> getUpgradeTasks(
       final BuildVersion fromVersion, final BuildVersion toVersion)
   {
     final List<UpgradeTask> tasks = new LinkedList<UpgradeTask>();
@@ -347,12 +351,10 @@ public final class Upgrade
   public static void upgrade(final UpgradeContext context)
       throws ClientException
   {
-
-
-    // Checks and validate the version number.
+    // Checks and validates the version number.
     isVersionCanBeUpdated(context);
 
-    // Server offline ?
+    // Server must be offline.
     checkIfServerIsRunning();
 
     context.notify( INFO_UPGRADE_TITLE.get(), TITLE_CALLBACK);
@@ -378,7 +380,7 @@ public final class Upgrade
 
     /*
      * Verify tasks requirements.
-     * Eg. if a task requires mandatory user interaction, like rebuild index,
+     * E.g. if a task requires mandatory user interaction
      * and the application is non-interactive then, the process
      * may abort immediately.
      */
@@ -407,20 +409,48 @@ public final class Upgrade
       context.notify(INFO_UPGRADE_PERFORMING_TASKS.get(),
           TITLE_CALLBACK);
 
-      perform(context, tasks);
+      /*
+       * Notify each task that the upgrade is about to be started.
+       */
+      for (final UpgradeTask task : tasks)
+      {
+        task.start(context);
+      }
+
+      /*
+       * Perform each task.
+       */
+      for (final UpgradeTask task : tasks)
+      {
+        task.perform(context);
+      }
+
       if (UpgradeTasks.countErrors == 0)
       {
-        // At the end, and if only if succeed, we need to change the buildInfo
-        // file with the version number updated.
+        /*
+         * The end of a successful upgrade is marked up with the build info
+         * file update and the license, if present, requires the creation of
+         * an approval file.
+         */
         changeBuildInfoVersion(context);
 
-        // Writes the license if needed.
-        LicenseFile.createFileLicenseApproved();
+        createFileLicenseApproved();
       }
       else
       {
         context.notify(
             ERR_UPGRADE_FAILS.get(UpgradeTasks.countErrors), TITLE_CALLBACK);
+      }
+
+      /*
+       * Performs the post upgrade tasks.
+       */
+      if (hasPostUpgradeTask && (UpgradeTasks.countErrors == 0))
+      {
+        context
+            .notify(INFO_UPGRADE_PERFORMING_POST_TASKS.get(), TITLE_CALLBACK);
+        performPostUpgradeTasks(context, tasks);
+        context.notify(INFO_UPGRADE_POST_TASKS_COMPLETE.get(), TITLE_CALLBACK);
       }
     }
     catch (final ClientException e)
@@ -443,35 +473,29 @@ public final class Upgrade
     }
   }
 
-
-
-  private static void perform(final UpgradeContext context,
+  private static void performPostUpgradeTasks(final UpgradeContext context,
       final List<UpgradeTask> tasks)
       throws ClientException
   {
-    /*
-     * Notify each task that the upgrade is about to be started.
-     */
+    boolean isOk = true;
     for (final UpgradeTask task : tasks)
     {
-      task.start(context);
-    }
-
-    /*
-     * Perform each task.
-     */
-    for (final UpgradeTask task : tasks)
-    {
-      task.perform(context);
-    }
-
-    /*
-     * Notify each task that the upgrade has completed. Tasks may do cleanup
-     * work here, such as removing files.
-     */
-    for (final UpgradeTask task : tasks)
-    {
-      task.end(context);
+      if (isOk)
+      {
+        try
+        {
+          task.postUpgrade(context);
+        }
+        catch (ClientException e)
+        {
+          LOG.log(Level.SEVERE, e.getMessage());
+          isOk = false;
+        }
+      }
+      else
+      {
+        task.postponePostUpgrade(context);
+      }
     }
   }
 
@@ -671,6 +695,27 @@ public final class Upgrade
         }
       }
     }
+  }
+
+  /**
+   * Returns {@code true} if the current upgrade contains post upgrade tasks.
+   *
+   * @return {@code true} if the current upgrade contains post upgrade tasks.
+   */
+  static boolean hasPostUpgradeTask()
+  {
+    return hasPostUpgradeTask;
+  }
+
+  /**
+   * Sets {@code true} if the current upgrade contains post upgrade tasks.
+   *
+   * @param hasPostUpgradeTask
+   *          {@code true} if the current upgrade contains post upgrade tasks.
+   */
+  static void setHasPostUpgradeTask(boolean hasPostUpgradeTask)
+  {
+    Upgrade.hasPostUpgradeTask = hasPostUpgradeTask;
   }
 
   // Prevent instantiation.
