@@ -32,8 +32,14 @@
  <title>Removing OpenDJ Servers</title>
  <indexterm><primary>Uninstalling</primary></indexterm>
  
- <para>Remove OpenDJ directory server software with the
- <command>/path/to/opendj/uninstall</command> command.</para>
+ <itemizedlist>
+  <para>This chapter includes the following procedures.</para>
+
+  <listitem><para><xref linkend="uninstall-gui" /></para></listitem>
+  <listitem><para><xref linkend="uninstall-cli" /></para></listitem>
+  <listitem><para><xref linkend="uninstall-deb" /></para></listitem>
+  <listitem><para><xref linkend="uninstall-rpm" /></para></listitem>
+ </itemizedlist>
  
  <procedure xml:id="uninstall-gui">
   <title>To Uninstall OpenDJ From the Graphical Uninstaller</title>
