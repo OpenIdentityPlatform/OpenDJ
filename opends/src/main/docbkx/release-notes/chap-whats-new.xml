@@ -41,6 +41,17 @@
     </listitem>
 
     <listitem>
+     <para>Debian and RPM packages now provide service management scripts so
+     that you can manage the server with the <command>service</command>, and
+     include documentation files under <filename>/usr/share/doc/opendj*</filename>
+     (<link xlink:show="new"
+     xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1068"
+     >OPENDJ-1068</link>, <link xlink:show="new"
+     xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1114"
+     >OPENDJ-1114</link>).</para>
+    </listitem>
+
+    <listitem>
      <para>OpenDJ REST LDAP gateway now supports SSL and StartTLS connections
      to directory servers (<link xlink:show="new"
      xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1033"

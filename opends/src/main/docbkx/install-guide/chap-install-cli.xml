@@ -446,10 +446,22 @@ Selecting previously unselected package opendj.
 Unpacking opendj (from opendj_<?eval ${docTargetVersion}?>-1_all.deb) ...
 
 Setting up opendj (<?eval ${docTargetVersion}?>) ...
+ Adding system startup for /etc/init.d/opendj ...
+   /etc/rc0.d/K20opendj -> ../init.d/opendj
+   /etc/rc1.d/K20opendj -> ../init.d/opendj
+   /etc/rc6.d/K20opendj -> ../init.d/opendj
+   /etc/rc2.d/S20opendj -> ../init.d/opendj
+   /etc/rc3.d/S20opendj -> ../init.d/opendj
+   /etc/rc4.d/S20opendj -> ../init.d/opendj
+   /etc/rc5.d/S20opendj -> ../init.d/opendj
+
+Processing triggers for ureadahead ...
+ureadahead will be reprofiled on next reboot
 $</screen>
 
    <para>The .deb installs OpenDJ directory server in the directory
-   <filename>/opt/opendj</filename>.</para>
+   <filename>/opt/opendj</filename>, generates service management scripts, and
+   adds documentation files under <filename>/usr/share/doc/opendj</filename>.</para>
 
    <para>The files are owned by root by default, making it easier to have OpenDJ
    listen on ports 389 and 636.</para>
@@ -468,7 +480,9 @@ To see basic server configuration status and configuration you can launch
   <step performance="optional">
    <para>Check OpenDJ directory server status.</para>
 
-   <screen>$ sudo /opt/opendj/bin/status
+   <screen>$ service opendj status
+$opendj status: > Running.
+$ sudo /opt/opendj/bin/status
 
 
 >>>> Specify OpenDJ LDAP connection parameters
@@ -504,12 +518,6 @@ Base DN:     dc=example,dc=com
 Backend ID:  userRoot
 Entries:     2002
 Replication: </screen>
-  </step>
-
-  <step performance="optional">
-   <para>If you want to run OpenDJ when the system starts, see <link
-   xlink:show="new" xlink:role="http://docbook.org/xlink/role/olink"
-   xlink:href="admin-guide#create-rc-script-1">create-rc-script</link>.</para>
   </step>
  </procedure>
 
@@ -549,7 +557,9 @@ Post Install - initial install
 #</screen>
 
    <para>The .rpm installs OpenDJ directory server in the directory
-   <filename>/opt/opendj</filename>.</para>
+   <filename>/opt/opendj</filename>, generates service management scripts, and
+   adds documentation files under <filename>/usr/share/doc/opendj-<replaceable
+   >version</replaceable></filename>.</para>
 
    <para>The files are owned by root by default, making it easier to have OpenDJ
    listen on ports 389 and 636.</para>
@@ -568,7 +578,9 @@ To see basic server configuration status and configuration you can launch
   <step performance="optional">
    <para>Check OpenDJ directory server status.</para>
 
-   <screen># /opt/opendj/bin/status
+   <screen># service opendj status
+opendj status: > Running.
+# /opt/opendj/bin/status
 
 
 >>>> Specify OpenDJ LDAP connection parameters
@@ -604,12 +616,12 @@ Base DN:     dc=example,dc=com
 Backend ID:  userRoot
 Entries:     2002
 Replication: </screen>
-  </step>
 
-  <step performance="optional">
-   <para>If you want to run OpenDJ when the system starts, see <link
-   xlink:show="new" xlink:role="http://docbook.org/xlink/role/olink"
-   xlink:href="admin-guide#create-rc-script-1">create-rc-script</link>.</para>
+   <para>By default OpenDJ starts in run levels 2, 3, 4, and 5.</para>
+
+   <screen># chkconfig --list | grep opendj
+...
+opendj         0:off    1:off    2:on    3:on    4:on    5:on    6:off</screen>
   </step>
  </procedure>
 
