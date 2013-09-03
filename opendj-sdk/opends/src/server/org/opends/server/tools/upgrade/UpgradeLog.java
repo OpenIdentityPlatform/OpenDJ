@@ -28,7 +28,10 @@
 package org.opends.server.tools.upgrade;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.text.SimpleDateFormat;
 import java.util.logging.FileHandler;
 import java.util.logging.Formatter;
@@ -37,6 +40,9 @@ import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 
 import org.opends.messages.RuntimeMessages;
+import org.opends.server.tools.ClientException;
+
+import static org.opends.messages.ToolMessages.ERR_UPGRADE_INVALID_LOG_FILE;
 
 /**
  * Creates a historical log about the upgrade. If file does not exist an attempt
@@ -103,5 +109,25 @@ class UpgradeLog
         UpgradeUtils.getInstallationPath()).toString());
     logger.log(Level.CONFIG, RuntimeMessages.NOTE_INSTANCE_DIRECTORY.get(
         UpgradeUtils.getInstancePath()).toString());
+  }
+
+  /**
+   * Returns the print stream of the current logger.
+   *
+   * @return the print stream of the current logger.
+   * @throws ClientException
+   *           If the file defined by the logger is not found or invalid.
+   */
+  static PrintStream getPrintStream() throws ClientException
+  {
+    try
+    {
+      return new PrintStream(new FileOutputStream(logFile, true));
+    }
+    catch (FileNotFoundException e)
+    {
+      throw new ClientException(1, ERR_UPGRADE_INVALID_LOG_FILE.get(e
+          .getMessage()));
+    }
   }
 }

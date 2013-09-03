@@ -28,8 +28,7 @@ package org.opends.server.tools.upgrade;
 
 import java.io.*;
 import java.util.LinkedList;
-import java.util.SortedMap;
-import java.util.TreeMap;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -386,21 +385,21 @@ final class UpgradeUtils
     return installationPath;
   }
 
-  // This function is not in use actually but may be useful later
-  // eg. for rebuild index task.
-  @SuppressWarnings("unused")
-  private static SortedMap<String, LinkedList<String>> getLocalBackends()
+  /**
+   * Retrieves the backends from the current configuration file.
+   *
+   * @return A backend list.
+   */
+  static List<String> getLocalBackendsFromConfig()
   {
-    // Config.ldif path
-    final File configLdif = new File(configDirectory,
-        CURRENT_CONFIG_FILE_NAME);
-    SortedMap<String, LinkedList<String>> result =
-        new TreeMap<String, LinkedList<String>>();
-
+    final List<String> listBackends = new LinkedList<String>();
     LDIFEntryReader entryReader = null;
     try
     {
-      entryReader = new LDIFEntryReader(new FileInputStream(configLdif));
+      entryReader =
+          new LDIFEntryReader(new FileInputStream(new File(configDirectory,
+              CURRENT_CONFIG_FILE_NAME)));
+
       final Filter filter =
           Filter.equality("objectclass", "ds-cfg-local-db-backend");
       final Matcher includeFilter = filter.matcher();
@@ -408,21 +407,9 @@ final class UpgradeUtils
 
       while (entryReader.hasNext())
       {
-        LinkedList<String> dataRelativesToBck = new LinkedList<String>();
-        Entry entry = entryReader.readEntry();
-        // Backend dn
-        dataRelativesToBck.add(entry.getAttribute("ds-cfg-base-dn")
+        final Entry entry = entryReader.readEntry();
+        listBackends.add(entry.getAttribute("ds-cfg-base-dn")
             .firstValueAsString());
-        // db path
-        dataRelativesToBck.add(entry.getAttribute("ds-cfg-db-directory")
-            .firstValueAsString());
-        // enabled ?
-        dataRelativesToBck.add(entry.getAttribute("ds-cfg-enabled")
-            .firstValueAsString());
-        // backend name
-        result.put(
-            entry.getAttribute("ds-cfg-backend-id").firstValueAsString(),
-            dataRelativesToBck);
       }
     }
     catch (Exception ex)
@@ -434,7 +421,7 @@ final class UpgradeUtils
       StaticUtils.close(entryReader);
     }
 
-    return result;
+    return listBackends;
   }
 
   /**

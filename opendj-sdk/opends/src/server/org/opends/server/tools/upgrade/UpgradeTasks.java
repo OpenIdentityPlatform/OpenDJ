@@ -31,20 +31,28 @@ import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.tools.ToolConstants.OPTION_LONG_FORCE_UPGRADE;
 import static org.opends.server.tools.ToolConstants.OPTION_LONG_NO_PROMPT;
 import static org.opends.server.tools.upgrade.FileManager.copy;
+import static org.opends.server.tools.upgrade.Installation
+.CURRENT_CONFIG_FILE_NAME;
 import static org.opends.server.tools.upgrade.Upgrade.*;
 import static org.opends.server.tools.upgrade.UpgradeUtils.*;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.security.auth.callback.ConfirmationCallback;
+import javax.security.auth.callback.TextOutputCallback;
 
 import org.opends.messages.Message;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.tools.ClientException;
+import org.opends.server.tools.RebuildIndex;
 import org.opends.server.tools.upgrade.UpgradeTask.TaskType;
 import org.opends.server.util.BuildVersion;
 import org.opends.server.util.ChangeOperationType;
@@ -64,6 +72,16 @@ public final class UpgradeTasks
    */
   static private final Logger LOG = Logger
       .getLogger(UpgradeCli.class.getName());
+
+  /**
+   * The indexes list to rebuild are united here.
+   */
+  static Set<String> indexesListToRebuild = new HashSet<String>();
+
+  /**
+   * A flag to avoid rebuild indexes if all already selected.
+   */
+  static boolean isRebuildAllIndexes = false;
 
   /**
    * Returns a new upgrade task which applies an LDIF record to all
@@ -412,17 +430,32 @@ public final class UpgradeTasks
       }
 
       @Override
-      public void end(UpgradeContext context) throws ClientException
+      public void postUpgrade(UpgradeContext context) throws ClientException
       {
         if (currentVersionEqualToOrMoreRecentThan(context, version))
         {
-          for (UpgradeTask task : tasks)
+          boolean isOk = true;
+          for (final UpgradeTask task : tasks)
           {
-            task.end(context);
+            if (isOk)
+            {
+              try
+              {
+                task.postUpgrade(context);
+              }
+              catch (ClientException e)
+              {
+                LOG.log(Level.SEVERE, e.getMessage());
+                isOk = false;
+              }
+            }
+            else
+            {
+              task.postponePostUpgrade(context);
+            }
           }
         }
       }
-
 
 
       private boolean currentVersionEqualToOrMoreRecentThan(
@@ -447,7 +480,7 @@ public final class UpgradeTasks
       @Override
       public void perform(final UpgradeContext context) throws ClientException
       {
-        // TODO
+        // NYI.
       }
 
       @Override
@@ -467,48 +500,136 @@ public final class UpgradeTasks
 
 
   /**
-   * Creates a rebuild index task for a single index. At the moment this is
-   * implemented as a simple stub which displays a message which should prompt
-   * the user to rebuild the index manually once the upgrade has completed.
-   * <p>
-   * In future this task should register the index to be rebuilt in a table. A
-   * subsequent task executed at the end of the upgrade process will then obtain
-   * the set of indexes to be rebuilt, optimize it (e.g. removing duplicates),
-   * and perform the rebuild.
+   * Creates a rebuild index task for a given single index. As this task is
+   * possibly lengthy, it's considered as a post upgrade task. This task is not
+   * mandatory; e.g not require user interaction, but could be required to get a
+   * fully functional server. <br />
+   * The post upgrade task just register the task. The rebuild indexes tasks are
+   * completed at the end of the upgrade process.
    *
    * @param summary
    *          A message describing why the index needs to be rebuilt and asking
-   *          them whether or not they wish to continue.
+   *          them whether or not they wish to perform this task after the
+   *          upgrade.
+   * @param index
+   *          The index to rebuild.
    * @return The rebuild index task.
    */
-  public static UpgradeTask rebuildSingleIndex(final Message summary)
+  public static UpgradeTask rebuildSingleIndex(final Message summary,
+      final String index)
   {
     return new AbstractUpgradeTask()
     {
-      @Override
-      public void verify(final UpgradeContext context) throws ClientException
-      {
-        verifyTaskType(TaskType.MANDATORY_USER_INTERACTION, context);
-      }
+      private boolean isATaskToPerform = false;
 
       @Override
       public void interact(UpgradeContext context) throws ClientException
       {
-        // Require acknowledgment from the user.
+        Upgrade.setHasPostUpgradeTask(true);
+        // Requires answer from the user.
         final int answer = context.confirmYN(summary, ConfirmationCallback.NO);
+        isATaskToPerform = (answer == ConfirmationCallback.YES);
+      }
 
-        // The user refused to perform this task.
-        if (answer == ConfirmationCallback.NO)
+      @Override
+      public void postUpgrade(final UpgradeContext context)
+          throws ClientException
+      {
+        if (isATaskToPerform)
         {
-          throw new ClientException(EXIT_CODE_MANUAL_INTERVENTION,
-              INFO_UPGRADE_ABORTED_BY_USER.get());
+          indexesListToRebuild.add(index);
+        }
+        else
+        {
+          postponePostUpgrade(context);
         }
       }
 
       @Override
-      public void perform(final UpgradeContext context) throws ClientException
+      public void postponePostUpgrade(UpgradeContext context)
+          throws ClientException
       {
-        // TODO: automatic rebuild is not supported yet.
+        context.notify(INFO_UPGRADE_REBUILD_INDEX_DECLINED.get(index),
+            TextOutputCallback.WARNING);
+      }
+    };
+  }
+
+  /**
+   * This task is processed at the end of the upgrade, rebuilding indexes. If a
+   * rebuild all indexes has been registered before, it takes the flag
+   * relatively to single rebuild index.
+   *
+   * @return The post upgrade rebuild indexes task.
+   */
+  public static UpgradeTask postUpgradeRebuildIndexes()
+  {
+    return new AbstractUpgradeTask()
+    {
+      @Override
+      public void postUpgrade(final UpgradeContext context)
+          throws ClientException
+      {
+        if (isRebuildAllIndexes)
+        {
+          // TODO To implement
+        }
+        else if (!indexesListToRebuild.isEmpty())
+        {
+          final Message message = INFO_UPGRADE_REBUILD_INDEX_STARTS.get(Arrays
+              .toString(indexesListToRebuild.toArray()));
+          final ProgressNotificationCallback pnc =
+              new ProgressNotificationCallback(0, message, 25);
+          LOG.log(Level.INFO, message.toString());
+          context.notifyProgress(pnc);
+
+          // Sets the arguments like the rebuild index command line.
+          final List<String> args = new LinkedList<String>();
+          args.addAll(Arrays.asList(
+              "-f",
+              new File(configDirectory, CURRENT_CONFIG_FILE_NAME)
+                .getAbsolutePath()));
+
+          // Adding all requested indexes.
+          for (final String indexToRebuild : indexesListToRebuild)
+          {
+            args.add("-i");
+            args.add(indexToRebuild);
+          }
+
+          // Index(es) could be contained in several backends.
+          for (final String be : UpgradeUtils.getLocalBackendsFromConfig())
+          {
+            args.add("-b");
+            args.add(be);
+          }
+
+          final String[] commandLineArgs =
+              args.toArray(new String[args.size()]);
+          // Displays info about command line args for log only.
+          LOG.log(Level.INFO, INFO_UPGRADE_REBUILD_INDEX_ARGUMENTS.get(Arrays
+              .toString(commandLineArgs)).toString());
+          /*
+           * The rebuild-index process just display a status ok / fails. The
+           * logger stream contains all the log linked to this process. The
+           * complete process is not displayed in the upgrade console.
+           */
+          final int result =
+              new RebuildIndex().rebuildIndexesWithinMultipleBackends(true,
+                  UpgradeLog.getPrintStream(), commandLineArgs);
+          if (result == 0)
+          {
+            LOG.log(Level.INFO, INFO_UPGRADE_REBUILD_INDEX_ENDS.get()
+                .toString());
+            context.notifyProgress(pnc.setProgress(100));
+          }
+          else
+          {
+            LOG.log(Level.SEVERE, ERR_UPGRADE_PERFORMING_POST_TASKS_FAIL.get()
+                .toString());
+            context.notifyProgress(pnc.setProgress(-100));
+          }
+        }
       }
     };
   }

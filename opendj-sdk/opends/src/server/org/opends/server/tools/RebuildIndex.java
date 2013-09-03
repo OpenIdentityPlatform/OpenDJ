@@ -36,6 +36,7 @@ import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
 import org.opends.server.util.BuildVersion;
+import org.opends.server.util.StaticUtils;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.BooleanArgument;
 import org.opends.server.util.args.LDAPConnectionArgumentParser;
@@ -90,6 +91,11 @@ public class RebuildIndex extends TaskTool
   private final LDAPConnectionArgumentParser argParser = createArgParser(
       "org.opends.server.tools.RebuildIndex",
       INFO_REBUILDINDEX_TOOL_DESCRIPTION.get());
+
+  private RebuildConfig rebuildConfig = new RebuildConfig();
+  private Backend currentBackend = null;
+
+
 
   /**
    * Processes the command-line arguments and invokes the rebuild process.
@@ -329,38 +335,52 @@ public class RebuildIndex extends TaskTool
       setErrorAndDebugLogPublisher(out, err);
     }
 
+    if (!configureRebuildProcess(baseDNString.getValue()))
+    {
+      return 1;
+    }
+
+    return rebuildIndex(currentBackend, rebuildConfig);
+  }
+
+  /**
+   * Configures the rebuild index process. i.e.: decodes the selected DN and
+   * retrieves the backend which holds it. Finally, initializes and sets the
+   * rebuild configuration.
+   *
+   * @param dn
+   *          User selected base DN.
+   * @return A boolean representing the result of the process.
+   */
+  private boolean configureRebuildProcess(final String dn) {
     // Decodes the base DN provided by the user.
     DN rebuildBaseDN = null;
     try
     {
-      rebuildBaseDN = DN.decode(baseDNString.getValue());
+      rebuildBaseDN = DN.decode(dn);
     }
     catch (Exception e)
     {
       final Message message =
-          ERR_CANNOT_DECODE_BASE_DN.get(baseDNString.getValue(),
+          ERR_CANNOT_DECODE_BASE_DN.get(dn,
               getExceptionMessage(e));
       logError(message);
-      return 1;
+      return false;
     }
 
     // Retrieves the backend which holds the selected base DN.
-    Backend backend = null;
     try
     {
-      backend = retrieveBackend(rebuildBaseDN);
+      setCurrentBackend(retrieveBackend(rebuildBaseDN));
     }
     catch (Exception e)
     {
       logError(Message.raw(e.getMessage()));
-      return 1;
+      return false;
     }
 
-    // Sets the rebuild index configuration.
-    final RebuildConfig rebuildConfig =
-        initializeRebuildIndexConfiguration(rebuildBaseDN);
-
-    return rebuildIndex(backend, rebuildConfig);
+    setRebuildConfig(initializeRebuildIndexConfiguration(rebuildBaseDN));
+    return true;
   }
 
   /**
@@ -396,6 +416,7 @@ public class RebuildIndex extends TaskTool
 
   /**
    * Initializes the directory server.<br />
+   * Processes to :
    * - bootstrapClient
    * - initializeJMX
    * - initializeConfiguration
@@ -405,10 +426,10 @@ public class RebuildIndex extends TaskTool
    *
    * @param directoryServer
    *          The current instance.
-   * @param outStream
+   * @param out
    *          The output stream to use for standard output, or {@code null} if
    *          standard output is not needed.
-   * @param errStream
+   * @param err
    *          The output stream to use for standard error, or {@code null} if
    *          standard error is not needed.
    * @return The error code.
@@ -527,32 +548,32 @@ public class RebuildIndex extends TaskTool
   private RebuildConfig initializeRebuildIndexConfiguration(
       final DN rebuildBaseDN)
   {
-    final RebuildConfig rebuildConfig = new RebuildConfig();
-    rebuildConfig.setBaseDN(rebuildBaseDN);
+    final RebuildConfig config = new RebuildConfig();
+    config.setBaseDN(rebuildBaseDN);
     for (final String s : indexList.getValues())
     {
-      rebuildConfig.addRebuildIndex(s);
+      config.addRebuildIndex(s);
     }
 
     if (rebuildAll.isPresent())
     {
-      rebuildConfig.setRebuildMode(RebuildMode.ALL);
+      config.setRebuildMode(RebuildMode.ALL);
     }
     else if (rebuildDegraded.isPresent())
     {
-      rebuildConfig.setRebuildMode(RebuildMode.DEGRADED);
+      config.setRebuildMode(RebuildMode.DEGRADED);
     }
     else
     {
       if (clearDegradedState.isPresent())
       {
-        rebuildConfig.isClearDegradedState(true);
+        config.isClearDegradedState(true);
       }
-      rebuildConfig.setRebuildMode(RebuildMode.USER_DEFINED);
+      config.setRebuildMode(RebuildMode.USER_DEFINED);
     }
 
-    rebuildConfig.setTmpDirectory(tmpDirectory.getValue());
-    return rebuildConfig;
+    config.setTmpDirectory(tmpDirectory.getValue());
+    return config;
   }
 
   /**
@@ -635,7 +656,7 @@ public class RebuildIndex extends TaskTool
 
   /**
    * Gets information about the backends defined in the server. Iterates through
-   * them, finding the one backend to be verified.
+   * them, finding the one that holds the base DN.
    *
    * @param selectedDN
    *          The user selected DN.
@@ -696,6 +717,82 @@ public class RebuildIndex extends TaskTool
       throw new ConfigException(message);
     }
     return backend;
+  }
+
+  /**
+   * This function allow internal use of the rebuild index tools. This function
+   * rebuilds indexes shared by multiple backends.
+   *
+   * @param initializeServer
+   *          Indicates whether to initialize the server.
+   * @param out
+   *          The print stream which is used to display errors/debug lines.
+   *          Usually redirected into a logger if the tool is used as external.
+   * @param args
+   *          The arguments used to launch the rebuild index process.
+   * @return An integer indicating the result of this action.
+   */
+  public int rebuildIndexesWithinMultipleBackends(
+      final boolean initializeServer, final PrintStream out,
+      final String... args)
+  {
+    try
+    {
+      setErrorAndDebugLogPublisher(out, out);
+
+      try
+      {
+        initializeArguments(true);
+      }
+      catch (ArgumentException ae)
+      {
+        final Message message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
+        out.println(wrapText(message, MAX_LINE_WIDTH));
+        return 1;
+      }
+
+      try
+      {
+        argParser.parseArguments(args);
+      }
+      catch (ArgumentException ae)
+      {
+        final Message message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
+        out.println(wrapText(message, MAX_LINE_WIDTH));
+        return 1;
+      }
+
+      final DirectoryServer directoryServer = DirectoryServer.getInstance();
+      if (initializeServer)
+      {
+        initializeServer(directoryServer, out, out);
+      }
+
+      for (final String dn : baseDNString.getValues())
+      {
+        if (!configureRebuildProcess(dn))
+        {
+          return 1;
+        }
+
+        final int result =
+            rebuildIndex(getCurrentBackend(), getRebuildConfig());
+        // If the rebuild index is going bad, process is stopped.
+        if (result != 0)
+        {
+          out.println(String.format(
+                  "An error occurs during the rebuild index process" +
+                  " in %s, rebuild index(es) aborted.",
+                  dn));
+          return 1;
+        }
+      }
+    }
+    finally
+    {
+      StaticUtils.close(out);
+    }
+    return 0;
   }
 
   /**
@@ -780,5 +877,47 @@ public class RebuildIndex extends TaskTool
   public Class<?> getTaskClass()
   {
     return RebuildTask.class;
+  }
+
+  /**
+   * Returns the rebuild configuration.
+   *
+   * @return The rebuild configuration.
+   */
+  public RebuildConfig getRebuildConfig()
+  {
+    return rebuildConfig;
+  }
+
+  /**
+   * Sets the rebuild configuration.
+   *
+   * @param rebuildConfig
+   *          The rebuild configuration to set.
+   */
+  public void setRebuildConfig(RebuildConfig rebuildConfig)
+  {
+    this.rebuildConfig = rebuildConfig;
+  }
+
+  /**
+   * Returns the current backend.
+   *
+   * @return The current backend.
+   */
+  public Backend getCurrentBackend()
+  {
+    return currentBackend;
+  }
+
+  /**
+   * Sets the current backend.
+   *
+   * @param currentBackend
+   *          The current backend to set.
+   */
+  public void setCurrentBackend(Backend currentBackend)
+  {
+    this.currentBackend = currentBackend;
   }
 }

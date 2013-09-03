@@ -41,6 +41,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.security.auth.callback.Callback;
@@ -405,24 +406,31 @@ public final class UpgradeCli extends ConsoleApplication implements
         // Displays formatted notifications.
         final FormattedNotificationCallback fnc =
             (FormattedNotificationCallback) c;
-        LOG.log(INFO, fnc.getMessage());
         switch (fnc.getMessageSubType())
         {
         case TITLE_CALLBACK:
           println(Style.TITLE, Message.raw(fnc.getMessage()), 0);
+          LOG.log(INFO, fnc.getMessage());
           break;
         case SUBTITLE_CALLBACK:
           println(Style.SUBTITLE, Message.raw(fnc.getMessage()),
               4);
+          LOG.log(INFO, fnc.getMessage());
           break;
         case NOTICE_CALLBACK:
           println(Style.NOTICE, Message.raw(fnc.getMessage()), 1);
+          LOG.log(INFO, fnc.getMessage());
           break;
         case ERROR_CALLBACK:
           println(Style.ERROR, Message.raw(fnc.getMessage()), 1);
+          LOG.log(Level.SEVERE, fnc.getMessage());
           break;
         case BREAKLINE:
           println(Style.BREAKLINE, Message.raw(fnc.getMessage()), 1);
+          break;
+        case WARNING:
+          println(Style.WARNING, Message.raw(fnc.getMessage()), 2);
+          LOG.log(Level.WARNING, fnc.getMessage());
           break;
         default:
           LOG.log(SEVERE, "Unsupported message type: "

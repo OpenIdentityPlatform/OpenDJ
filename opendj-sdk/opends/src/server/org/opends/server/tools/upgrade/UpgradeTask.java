@@ -62,20 +62,6 @@ public interface UpgradeTask
   }
 
   /**
-   * Notifies this task that the upgrade has completed. This method will be
-   * invoked after all upgrade tasks have completed successfully. Most task
-   * implementation will not need to do anything.
-   *
-   * @param context
-   *          Context through which tasks can interact with the server
-   *          installation.
-   * @throws ClientException
-   *           If an error occurred while performing the task.
-   */
-  void end(UpgradeContext context)
-      throws ClientException;
-
-  /**
    * Performs this upgrade task.
    *
    * @param context
@@ -126,4 +112,29 @@ public interface UpgradeTask
    */
   void interact(UpgradeContext context)
       throws ClientException;
+
+  /**
+   * This method will be invoked after all upgrade tasks have completed
+   * successfully The post upgrade tasks are processes which should be launched
+   * after a successful upgrade.
+   *
+   * @param context
+   *          Context through which tasks can interact with the server
+   *          installation.
+   * @throws ClientException
+   *           If the task cannot proceed.
+   */
+  void postUpgrade(UpgradeContext context) throws ClientException;
+
+  /**
+   * This method will be invoked only if one of the previous post upgrade task
+   * has failed.
+   *
+   * @param context
+   *          Context through which tasks can interact with the server
+   *          installation.
+   * @throws ClientException
+   *           If the task cannot proceed.
+   */
+  void postponePostUpgrade(UpgradeContext context) throws ClientException;
 }
