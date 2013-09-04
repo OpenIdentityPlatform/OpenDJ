@@ -97,6 +97,10 @@ public final class LDAPReplicationDomain extends ReplicationDomain
        implements ConfigurationChangeListener<ReplicationDomainCfg>,
                   AlertGenerator
 {
+
+  private static final Set<String> ALL_OPERATIONAL_ATTRS = new HashSet<String>(
+      Arrays.asList(HISTORICAL_ATTRIBUTE_NAME, "*"));
+
   /**
    * This class is used in the session establishment phase
    * when no Replication Server with all the local changes has been found
@@ -738,9 +742,8 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       // Reset default values
       fractionalConfig.setFractionalExclusive(true);
       fractionalConfig.setFractionalSpecificClassesAttributes(
-        new HashMap<String, List<String>>());
-      fractionalConfig.setFractionalAllClassesAttributes(
-        new ArrayList<String>());
+        new HashMap<String, Set<String>>());
+      fractionalConfig.setFractionalAllClassesAttributes(new HashSet<String>());
     }
 
     // Reconnect if required
@@ -764,7 +767,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     LDAPFilter filter;
     try
     {
-      filter = LDAPFilter.decode("objectclass=*");
+      filter = LDAPFilter.decode("(objectclass=*)");
     } catch (LDAPException e)
     {
       // Can not happen
@@ -877,18 +880,18 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    * configuration attribute values is equivalent to the fractional
    * configuration stored in the local variables.
    */
-   static boolean isFractionalConfigConsistent(
-    FractionalConfig fractionalConfig, Iterator<String> exclIt,
-    Iterator<String> inclIt)
+  static boolean isFractionalConfigConsistent(
+      FractionalConfig fractionalConfig, Iterator<String> exclIt,
+      Iterator<String> inclIt)
   {
     /*
      * Parse fractional configuration stored in passed fractional configuration
      * attributes values
      */
 
-    Map<String, List<String>> storedFractionalSpecificClassesAttributes =
-      new HashMap<String, List<String>>();
-    List<String> storedFractionalAllClassesAttributes = new ArrayList<String>();
+    Map<String, Set<String>> storedFractionalSpecificClassesAttributes =
+        new HashMap<String, Set<String>>();
+    Set<String> storedFractionalAllClassesAttributes = new HashSet<String>();
 
     int storedFractionalMode;
     try
@@ -989,15 +992,19 @@ public final class LDAPReplicationDomain extends ReplicationDomain
   }
 
   /**
-   * Compare 2 attribute lists and returns true if they are equivalent.
-   * @param attributes1 First attribute list to compare.
-   * @param attributes2 Second attribute list to compare.
-   * @return True if both attribute lists are equivalent.
-   * @throws ConfigException If some attributes could not be retrieved from the
-   * schema.
+   * Compare 2 attribute collections and returns true if they are equivalent.
+   *
+   * @param attributes1
+   *          First attribute collection to compare.
+   * @param attributes2
+   *          Second attribute collection to compare.
+   * @return True if both attribute collection are equivalent.
+   * @throws ConfigException
+   *           If some attributes could not be retrieved from the schema.
    */
-  private static boolean isAttributeListEquivalent(
-    List<String> attributes1, List<String> attributes2) throws ConfigException
+  private static boolean areAttributesEquivalent(
+      Collection<String> attributes1, Collection<String> attributes2)
+      throws ConfigException
   {
     // Compare all classes attributes
     if (attributes1.size() != attributes2.size())
@@ -1068,9 +1075,9 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     }
 
     // Prepare variables to be filled with config
-    Map<String, List<String>> newFractionalSpecificClassesAttributes =
+    Map<String, Set<String>> newFractionalSpecificClassesAttributes =
       newFractionalConfig.getFractionalSpecificClassesAttributes();
-    List<String> newFractionalAllClassesAttributes =
+    Set<String> newFractionalAllClassesAttributes =
       newFractionalConfig.getFractionalAllClassesAttributes();
 
     /*
@@ -1096,7 +1103,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       boolean isExtensibleObjectClass =
           "extensibleObject".equalsIgnoreCase(className);
 
-      List<String> attributes =
+      Set<String> attributes =
         newFractionalSpecificClassesAttributes.get(className);
 
       for (String attrName : attributes)
@@ -1483,9 +1490,9 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     Set<String> fractionalConcernedAttributes = new HashSet<String>();
 
     // Get object classes the entry matches
-    List<String> fractionalAllClassesAttributes =
+    Set<String> fractionalAllClassesAttributes =
       fractionalConfig.getFractionalAllClassesAttributes();
-    Map<String, List<String>> fractionalSpecificClassesAttributes =
+    Map<String, Set<String>> fractionalSpecificClassesAttributes =
       fractionalConfig.getFractionalSpecificClassesAttributes();
 
     Set<String> fractionalClasses =
@@ -2289,13 +2296,12 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     LDAPFilter filter = LDAPFilter.createEqualityFilter(DS_SYNC_CONFLICT,
         ByteString.valueOf(freedDN.toString()));
 
-     Set<String> attrs = allOperationalAttributes();
      InternalSearchOperation searchOp =  conn.processSearch(
        ByteString.valueOf(baseDn.toString()),
        SearchScope.WHOLE_SUBTREE,
        DereferencePolicy.NEVER_DEREF_ALIASES,
        0, 0, false, filter,
-       attrs, null);
+       ALL_OPERATIONAL_ATTRS, null);
 
      Entry entryToRename = null;
      CSN entryToRenameCSN = null;
@@ -2712,7 +2718,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       InternalSearchOperation search = conn.processSearch(dn,
             SearchScope.BASE_OBJECT, DereferencePolicy.NEVER_DEREF_ALIASES,
             0, 0, false,
-            SearchFilter.createFilterFromString("objectclass=*"),
+            SearchFilter.createFilterFromString("(objectclass=*)"),
             attrs);
 
       if (search.getResultCode() == ResultCode.SUCCESS)
@@ -3580,37 +3586,22 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     if (debugEnabled())
       TRACER.debugInfo("Attempt to read generation ID from DB " + baseDn);
 
-    LDAPFilter filter;
-    try
-    {
-      filter = LDAPFilter.decode("objectclass=*");
-    }
-    catch (LDAPException e)
-    {
-      // can not happen
-      return -1;
-    }
-
     /*
      * Search the database entry that is used to periodically
      * save the generation id
      */
-    ByteString asn1BaseDn = ByteString.valueOf(baseDn.toString());
-    Set<String> attributes = new LinkedHashSet<String>(1);
+    final Set<String> attributes = new LinkedHashSet<String>(1);
     attributes.add(REPLICATION_GENERATION_ID);
-    InternalSearchOperation search = conn.processSearch(asn1BaseDn,
+    final String filter = "(objectclass=*)";
+    InternalSearchOperation search = conn.processSearch(baseDn.toString(),
         SearchScope.BASE_OBJECT,
         DereferencePolicy.DEREF_ALWAYS, 0, 0, false,
         filter,attributes);
     if (search.getResultCode() == ResultCode.NO_SUCH_OBJECT)
     {
-      // FIXME JNR Am I dreaming, or next code is doing exactly the same thing
-      // as code before if statement?
-
       // if the base entry does not exist look for the generationID
       // in the config entry.
-      asn1BaseDn = ByteString.valueOf(baseDn.toString());
-      search = conn.processSearch(asn1BaseDn,
+      search = conn.processSearch(configDn.toString(),
           SearchScope.BASE_OBJECT,
           DereferencePolicy.DEREF_ALWAYS, 0, 0, false,
           filter,attributes);
@@ -4585,23 +4576,13 @@ private boolean solveNamingConflict(ModifyDNOperation op,
         "(&(" + HISTORICAL_ATTRIBUTE_NAME + ">=dummy:" + fromCSN + ")" +
           "(" + HISTORICAL_ATTRIBUTE_NAME + "<=dummy:" + maxValueForId + "))");
 
-    Set<String> attrs = allOperationalAttributes();
     return conn.processSearch(
       ByteString.valueOf(baseDn.toString()),
       SearchScope.WHOLE_SUBTREE,
       DereferencePolicy.NEVER_DEREF_ALIASES,
       0, 0, false, filter,
-      attrs,
+      ALL_OPERATIONAL_ATTRS,
       resultListener);
-  }
-
-  private static Set<String> allOperationalAttributes()
-  {
-    Set<String> attrs = new LinkedHashSet<String>(3);
-    attrs.add(HISTORICAL_ATTRIBUTE_NAME);
-    attrs.add(ENTRYUUID_ATTRIBUTE_NAME);
-    attrs.add("*");
-    return attrs;
   }
 
   /**
@@ -4949,8 +4930,8 @@ private boolean solveNamingConflict(ModifyDNOperation op,
      * - exclusive mode: the attributes in 'value' will not be added/deleted/
      * modified
      */
-    private Map<String, List<String>> fractionalSpecificClassesAttributes =
-      new HashMap<String, List<String>>();
+    private Map<String, Set<String>> fractionalSpecificClassesAttributes =
+        new HashMap<String, Set<String>>();
 
     /**
      * Used in fractional replication: holds attributes of any object class.
@@ -4961,8 +4942,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
      * fractionalAllClassesAttributes will not be added/deleted/modified
      * The attributes may be in human readable form of OID form.
      */
-    private List<String> fractionalAllClassesAttributes =
-      new ArrayList<String>();
+    private Set<String> fractionalAllClassesAttributes = new HashSet<String>();
 
     /**
      * Base DN the fractional configuration is for.
@@ -5018,7 +4998,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
      * Getter for fractionalSpecificClassesAttributes attribute.
      * @return The fractionalSpecificClassesAttributes attribute.
      */
-    Map<String, List<String>> getFractionalSpecificClassesAttributes()
+    Map<String, Set<String>> getFractionalSpecificClassesAttributes()
     {
       return fractionalSpecificClassesAttributes;
     }
@@ -5028,8 +5008,8 @@ private boolean solveNamingConflict(ModifyDNOperation op,
      * @param fractionalSpecificClassesAttributes The
      * fractionalSpecificClassesAttributes parameter to set.
      */
-    void setFractionalSpecificClassesAttributes(Map<String,
-      List<String>> fractionalSpecificClassesAttributes)
+    void setFractionalSpecificClassesAttributes(
+        Map<String, Set<String>> fractionalSpecificClassesAttributes)
     {
       this.fractionalSpecificClassesAttributes =
         fractionalSpecificClassesAttributes;
@@ -5039,7 +5019,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
      * Getter for fractionalSpecificClassesAttributes attribute.
      * @return The fractionalSpecificClassesAttributes attribute.
      */
-    List<String> getFractionalAllClassesAttributes()
+    Set<String> getFractionalAllClassesAttributes()
     {
       return fractionalAllClassesAttributes;
     }
@@ -5050,7 +5030,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
      * fractionalSpecificClassesAttributes parameter to set.
      */
     void setFractionalAllClassesAttributes(
-      List<String> fractionalAllClassesAttributes)
+        Set<String> fractionalAllClassesAttributes)
     {
       this.fractionalAllClassesAttributes = fractionalAllClassesAttributes;
     }
@@ -5090,9 +5070,9 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       }
 
       // Get potentially new fractional configuration
-      Map<String, List<String>> newFractionalSpecificClassesAttributes =
-        new HashMap<String, List<String>>();
-      List<String> newFractionalAllClassesAttributes = new ArrayList<String>();
+      Map<String, Set<String>> newFractionalSpecificClassesAttributes =
+          new HashMap<String, Set<String>>();
+      Set<String> newFractionalAllClassesAttributes = new HashSet<String>();
 
       int newFractionalMode = parseFractionalConfig(exclIt, inclIt,
         newFractionalSpecificClassesAttributes,
@@ -5136,10 +5116,10 @@ private boolean solveNamingConflict(ModifyDNOperation op,
      *         not fractional, exclusive fractional or inclusive fractional
      *         modes
      */
-     private static int parseFractionalConfig (
+    private static int parseFractionalConfig (
       Iterator<String> exclIt, Iterator<String> inclIt,
-      Map<String, List<String>> fractionalSpecificClassesAttributes,
-      List<String> fractionalAllClassesAttributes) throws ConfigException
+      Map<String, Set<String>> fractionalSpecificClassesAttributes,
+      Set<String> fractionalAllClassesAttributes) throws ConfigException
     {
       int fractionalMode;
 
@@ -5196,29 +5176,18 @@ private boolean solveNamingConflict(ModifyDNOperation op,
           // Store attribute in the appropriate variable
           if (allClasses)
           {
-            // Avoid duplicate attributes
-            if (!fractionalAllClassesAttributes.contains(attrNameLower))
-            {
-              fractionalAllClassesAttributes.add(attrNameLower);
-            }
+            fractionalAllClassesAttributes.add(attrNameLower);
           }
           else
           {
-            List<String> attrList =
-              fractionalSpecificClassesAttributes.get(classNameLower);
-            if (attrList != null)
+            Set<String> attrList =
+                fractionalSpecificClassesAttributes.get(classNameLower);
+            if (attrList == null)
             {
-              // Avoid duplicate attributes
-              if (!attrList.contains(attrNameLower))
-              {
-                attrList.add(attrNameLower);
-              }
-            } else
-            {
-              attrList = new ArrayList<String>();
-              attrList.add(attrNameLower);
+              attrList = new LinkedHashSet<String>();
               fractionalSpecificClassesAttributes.put(classNameLower, attrList);
             }
+            attrList.add(attrNameLower);
           }
         }
       }
@@ -5265,15 +5234,15 @@ private boolean solveNamingConflict(ModifyDNOperation op,
         return false;
 
       // Compare all classes attributes
-      List<String> allClassesAttrs1 = cfg1.getFractionalAllClassesAttributes();
-      List<String> allClassesAttrs2 = cfg2.getFractionalAllClassesAttributes();
-      if (!isAttributeListEquivalent(allClassesAttrs1, allClassesAttrs2))
+      Set<String> allClassesAttrs1 = cfg1.getFractionalAllClassesAttributes();
+      Set<String> allClassesAttrs2 = cfg2.getFractionalAllClassesAttributes();
+      if (!areAttributesEquivalent(allClassesAttrs1, allClassesAttrs2))
         return false;
 
       // Compare specific classes attributes
-      Map<String, List<String>> specificClassesAttrs1 =
+      Map<String, Set<String>> specificClassesAttrs1 =
           cfg1.getFractionalSpecificClassesAttributes();
-      Map<String, List<String>> specificClassesAttrs2 =
+      Map<String, Set<String>> specificClassesAttrs2 =
           cfg2.getFractionalSpecificClassesAttributes();
       if (specificClassesAttrs1.size() != specificClassesAttrs2.size())
         return false;
@@ -5309,9 +5278,9 @@ private boolean solveNamingConflict(ModifyDNOperation op,
           {
             foundClass = true;
             // Now compare the 2 attribute lists
-            List<String> attributes1 = specificClassesAttrs1.get(className1);
-            List<String> attributes2 = specificClassesAttrs2.get(className2);
-            if (!isAttributeListEquivalent(attributes1, attributes2))
+            Set<String> attributes1 = specificClassesAttrs1.get(className1);
+            Set<String> attributes2 = specificClassesAttrs2.get(className2);
+            if (!areAttributesEquivalent(attributes1, attributes2))
               return false;
             break;
           }
@@ -5388,13 +5357,12 @@ private boolean solveNamingConflict(ModifyDNOperation op,
        // Not possible. We know the filter just above is correct.
      }
 
-     Set<String> attrs = allOperationalAttributes();
-     InternalSearchOperation searchOp =  conn.processSearch(
+     InternalSearchOperation searchOp = conn.processSearch(
          ByteString.valueOf(baseDn.toString()),
          SearchScope.WHOLE_SUBTREE,
          DereferencePolicy.NEVER_DEREF_ALIASES,
          0, 0, false, filter,
-         attrs, null);
+         ALL_OPERATIONAL_ATTRS, null);
 
      int count = 0;
 
