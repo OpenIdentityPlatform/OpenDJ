@@ -164,6 +164,27 @@
   entry, but instead by specifying individual changes. See a demonstration
   of this technique in <xref linkend="updating-static-groups" />.</para>
 
+  <indexterm>
+   <primary>Passwords</primary>
+  </indexterm>
+
+  <para>You can also construct a <literal>ModifyRequest</literal> for example
+  to change a user password in Active Directory, as demonstrated in the
+  following excerpt. When working with OpenDJ directory server, consider using
+  the LDAP Password Modify extended operation instead as shown in the section,
+  <link xlink:show="new" xlink:href="dev-guide#use-password-modify-extended-operation"
+  xlink:role="http://docbook.org/xlink/role/olink"><citetitle>Password Modify
+  Extended Operation</citetitle></link>.</para>
+
+  <programlisting language="java"
+  >[jcp:org.forgerock.opendj.examples.PasswordResetForAD:--- JCite main ---]</programlisting>
+
+  <para>To make the modification, the example connects to Active Directory over
+  LDAPS, and provides the password value in UTF-16LE format.</para>
+
+  <programlisting language="java"
+  >[jcp:org.forgerock.opendj.examples.PasswordResetForAD:--- JCite encodePassword ---]</programlisting>
+
   <para>If the modifications are easier to construct in LDIF, you can write the
   LDIF to the directory server as shown in the chapter, <link xlink:show="new"
   xlink:href="dev-guide#chap-ldif" xlink:role="http://docbook.org/xlink/role/olink"
