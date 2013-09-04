@@ -87,9 +87,9 @@ public class DraftCNDbHandlerTest extends ReplicationTestCase
       handler.setPurgeDelay(0);
 
       // Prepare data to be stored in the db
-      int sn1 = 3;
-      int sn2 = 4;
-      int sn3 = 5;
+      int cn1 = 3;
+      int cn2 = 4;
+      int cn3 = 5;
 
       String value1 = "value1";
       String value2 = "value2";
@@ -105,16 +105,16 @@ public class DraftCNDbHandlerTest extends ReplicationTestCase
       CSN csn3 = gen.newCSN();
 
       // Add records
-      handler.add(sn1, value1, baseDN1, csn1);
-      handler.add(sn2, value2, baseDN2, csn2);
-      handler.add(sn3, value3, baseDN3, csn3);
+      handler.add(cn1, value1, baseDN1, csn1);
+      handler.add(cn2, value2, baseDN2, csn2);
+      handler.add(cn3, value3, baseDN3, csn3);
 
       // The ChangeNumber should not get purged
-      final int firstDraftCN = handler.getFirstDraftCN();
-      assertEquals(firstDraftCN, sn1);
-      assertEquals(handler.getLastDraftCN(), sn3);
+      final int firstChangeNumber = handler.getFirstChangeNumber();
+      assertEquals(firstChangeNumber, cn1);
+      assertEquals(handler.getLastChangeNumber(), cn3);
 
-      DraftCNDBCursor dbc = handler.getReadCursor(firstDraftCN);
+      DraftCNDBCursor dbc = handler.getReadCursor(firstChangeNumber);
       try
       {
         assertEquals(dbc.currentCSN(), csn1);
@@ -148,11 +148,10 @@ public class DraftCNDbHandlerTest extends ReplicationTestCase
       {
         Thread.sleep(200);
       }
-      assertEquals(handler.getFirstDraftCN(), 0);
-      assertEquals(handler.getLastDraftCN(), 0);
-
-
-    } finally
+      assertEquals(handler.getFirstChangeNumber(), 0);
+      assertEquals(handler.getLastChangeNumber(), 0);
+    }
+    finally
     {
       if (handler != null)
         handler.shutdown();
@@ -214,9 +213,9 @@ public class DraftCNDbHandlerTest extends ReplicationTestCase
       assertTrue(handler.isEmpty());
 
       // Prepare data to be stored in the db
-      int sn1 = 3;
-      int sn2 = 4;
-      int sn3 = 5;
+      int cn1 = 3;
+      int cn2 = 4;
+      int cn3 = 5;
 
       String value1 = "value1";
       String value2 = "value2";
@@ -232,37 +231,38 @@ public class DraftCNDbHandlerTest extends ReplicationTestCase
       CSN csn3 = gen.newCSN();
 
       // Add records
-      handler.add(sn1, value1, baseDN1, csn1);
-      handler.add(sn2, value2, baseDN2, csn2);
-      handler.add(sn3, value3, baseDN3, csn3);
+      handler.add(cn1, value1, baseDN1, csn1);
+      handler.add(cn2, value2, baseDN2, csn2);
+      handler.add(cn3, value3, baseDN3, csn3);
       Thread.sleep(500);
 
       // Checks
-      assertEquals(handler.getFirstDraftCN(), sn1);
-      assertEquals(handler.getLastDraftCN(), sn3);
+      assertEquals(handler.getFirstChangeNumber(), cn1);
+      assertEquals(handler.getLastChangeNumber(), cn3);
 
       assertEquals(handler.count(), 3, "Db count");
 
-      assertEquals(handler.getPreviousCookie(sn1),value1);
-      assertEquals(handler.getPreviousCookie(sn2),value2);
-      assertEquals(handler.getPreviousCookie(sn3),value3);
+      assertEquals(handler.getPreviousCookie(cn1), value1);
+      assertEquals(handler.getPreviousCookie(cn2), value2);
+      assertEquals(handler.getPreviousCookie(cn3), value3);
 
-      ChangeNumberIndexDBCursor cursor = handler.getCursorFrom(sn1);
-      assertCursorReadsInOrder(cursor, sn1, sn2, sn3);
+      ChangeNumberIndexDBCursor cursor = handler.getCursorFrom(cn1);
+      assertCursorReadsInOrder(cursor, cn1, cn2, cn3);
 
-      cursor = handler.getCursorFrom(sn2);
-      assertCursorReadsInOrder(cursor, sn2, sn3);
+      cursor = handler.getCursorFrom(cn2);
+      assertCursorReadsInOrder(cursor, cn2, cn3);
 
-      cursor = handler.getCursorFrom(sn3);
-      assertCursorReadsInOrder(cursor, sn3);
+      cursor = handler.getCursorFrom(cn3);
+      assertCursorReadsInOrder(cursor, cn3);
 
       handler.clear();
 
       // Check the db is cleared.
-      assertEquals(handler.getFirstDraftCN(), 0);
-      assertEquals(handler.getLastDraftCN(), 0);
+      assertEquals(handler.getFirstChangeNumber(), 0);
+      assertEquals(handler.getLastChangeNumber(), 0);
       assertEquals(handler.count(), 0);
-    } finally
+    }
+    finally
     {
       if (handler != null)
         handler.shutdown();
@@ -281,7 +281,7 @@ public class DraftCNDbHandlerTest extends ReplicationTestCase
     {
       for (int i = 0; i < sns.length; i++)
       {
-        assertEquals(cursor.getDraftCN(), sns[i]);
+        assertEquals(cursor.getChangeNumber(), sns[i]);
         final boolean isNotLast = i + 1 < sns.length;
         assertEquals(cursor.next(), isNotLast);
       }

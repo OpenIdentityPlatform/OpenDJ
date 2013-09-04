@@ -53,11 +53,11 @@ public interface ChangeNumberIndexDBCursor extends Closeable
   String getBaseDN();
 
   /**
-   * Getter for the draftCN field.
+   * Getter for the change number field.
    *
-   * @return The draft CN field.
+   * @return The change number field.
    */
-  int getDraftCN();
+  int getChangeNumber();
 
   /**
    * Skip to the next record of the database.

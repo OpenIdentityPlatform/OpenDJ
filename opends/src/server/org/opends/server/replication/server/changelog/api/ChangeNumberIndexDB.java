@@ -44,55 +44,55 @@ public interface ChangeNumberIndexDB extends Runnable
 {
 
   /**
-   * Get the CSN associated to a provided draft change number.
+   * Get the CSN associated to a provided change number.
    *
-   * @param draftCN
-   *          the provided draft change number.
+   * @param changeNumber
+   *          the provided change number.
    * @return the associated CSN, null when none.
    */
-  public CSN getCSN(int draftCN);
+  public CSN getCSN(int changeNumber);
 
   /**
-   * Get the baseDN associated to a provided draft change number.
+   * Get the baseDN associated to a provided change number.
    *
-   * @param draftCN
-   *          the provided draft change number.
+   * @param changeNumber
+   *          the provided change number.
    * @return the baseDN, null when none.
    */
-  public String getBaseDN(int draftCN);
+  public String getBaseDN(int changeNumber);
 
   /**
-   * Get the previous cookie associated to a provided draft change number.
+   * Get the previous cookie associated to a provided change number.
    *
-   * @param draftCN
-   *          the provided draft change number.
+   * @param changeNumber
+   *          the provided change number.
    * @return the previous cookie, null when none.
    */
-  String getPreviousCookie(int draftCN);
+  String getPreviousCookie(int changeNumber);
 
   /**
-   * Get the firstChange.
+   * Get the first change number stored in this DB.
    *
-   * @return Returns the first draftCN in the DB.
+   * @return Returns the first change number in this DB.
    */
-  int getFirstDraftCN();
+  int getFirstChangeNumber();
 
   /**
-   * Get the lastChange.
+   * Get the last change number stored in this DB.
    *
-   * @return Returns the last draftCN in the DB
+   * @return Returns the last change number in this DB
    */
-  int getLastDraftCN();
+  int getLastChangeNumber();
 
   /**
-   * Add an update to the list of messages that must be saved to the db managed
-   * by this db handler.
+   * Add an update to the list of messages that must be saved to this DB managed
+   * by this DB.
    * <p>
    * This method is blocking if the size of the list of message is larger than
    * its maximum.
    *
-   * @param draftCN
-   *          The draft change number for this record in the db.
+   * @param changeNumber
+   *          The change number for this record in this DB.
    * @param previousCookie
    *          The value of the previous cookie.
    * @param baseDN
@@ -100,22 +100,22 @@ public interface ChangeNumberIndexDB extends Runnable
    * @param csn
    *          The associated replication CSN.
    */
-  void add(int draftCN, String previousCookie, String baseDN, CSN csn);
+  void add(int changeNumber, String previousCookie, String baseDN, CSN csn);
 
   /**
    * Generate a new {@link ChangeNumberIndexDBCursor} that allows to browse the
-   * db managed by this dbHandler and starting at the position defined by a
+   * db managed by this DBHandler and starting at the position defined by a
    * given changeNumber.
    *
-   * @param startDraftCN
+   * @param startChangeNumber
    *          The position where the iterator must start.
-   * @return a new ReplicationIterator that allows to browse the db managed by
-   *         this dbHandler and starting at the position defined by a given
+   * @return a new ReplicationIterator that allows to browse this DB managed by
+   *         this DBHandler and starting at the position defined by a given
    *         changeNumber.
    * @throws ChangelogException
    *           if a database problem happened.
    */
-  ChangeNumberIndexDBCursor getCursorFrom(int startDraftCN)
+  ChangeNumberIndexDBCursor getCursorFrom(int startChangeNumber)
       throws ChangelogException;
 
   /**
@@ -130,7 +130,7 @@ public interface ChangeNumberIndexDB extends Runnable
    * Clear the changes from this DB (from both memory cache and DB storage).
    *
    * @throws ChangelogException
-   *           When an exception occurs while removing the changes from the DB.
+   *           When an exception occurs while removing the changes from this DB.
    */
   void clear() throws ChangelogException;
 
@@ -139,15 +139,15 @@ public interface ChangeNumberIndexDB extends Runnable
    * the provided baseDN.
    *
    * @param baseDNToClear
-   *          The baseDN for which we want to remove all records from the
-   *          DraftCNDb - null means all.
+   *          The baseDN for which we want to remove all records from this DB,
+   *          null means all.
    * @throws ChangelogException
-   *           When an exception occurs while removing the changes from the DB.
+   *           When an exception occurs while removing the changes from this DB.
    */
   void clear(String baseDNToClear) throws ChangelogException;
 
   /**
-   * Shutdown this dbHandler.
+   * Shutdown this DB.
    */
   void shutdown();
 

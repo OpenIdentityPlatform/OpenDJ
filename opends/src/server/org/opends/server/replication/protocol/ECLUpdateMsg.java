@@ -49,22 +49,22 @@ public class ECLUpdateMsg extends ReplicationMsg
   private MultiDomainServerState cookie;
 
   /** The changeNumber as specified by draft-good-ldap-changelog. */
-  private int draftChangeNumber;
+  private int changeNumber;
 
   /**
    * Creates a new message.
    * @param updateMsg The provided update message.
    * @param cookie    The provided cookie value
    * @param baseDN    The provided baseDN.
-   * @param draftChangeNumber The provided draft change number.
+   * @param changeNumber The provided change number.
    */
   public ECLUpdateMsg(LDAPUpdateMsg updateMsg, MultiDomainServerState cookie,
-      String baseDN, int draftChangeNumber)
+      String baseDN, int changeNumber)
   {
     this.cookie = cookie;
     this.baseDN = baseDN;
     this.updateMsg = updateMsg;
-    this.draftChangeNumber = draftChangeNumber;
+    this.changeNumber = changeNumber;
   }
 
   /**
@@ -101,10 +101,9 @@ public class ECLUpdateMsg extends ReplicationMsg
       this.baseDN = new String(in, pos, length, "UTF-8");
       pos += length + 1;
 
-      // Decode the draft changeNumber
+      // Decode the changeNumber
       length = getNextLength(in, pos);
-      this.draftChangeNumber = Integer.valueOf(
-          new String(in, pos, length, "UTF-8"));
+      this.changeNumber = Integer.valueOf(new String(in, pos, length, "UTF-8"));
       pos += length + 1;
 
       // Decode the msg
@@ -112,8 +111,7 @@ public class ECLUpdateMsg extends ReplicationMsg
       length = in.length - pos - 1;
       byte[] encodedMsg = new byte[length];
       System.arraycopy(in, pos, encodedMsg, 0, length);
-      ReplicationMsg rmsg =
-        ReplicationMsg.generateMsg(
+      ReplicationMsg rmsg = ReplicationMsg.generateMsg(
             encodedMsg, ProtocolVersion.getCurrentVersion());
       this.updateMsg = (LDAPUpdateMsg)rmsg;
     }
@@ -173,7 +171,7 @@ public class ECLUpdateMsg extends ReplicationMsg
     return "ECLUpdateMsg:[" +
     " updateMsg: " + updateMsg +
     " cookie: " + cookie +
-    " draftChangeNumber: " + draftChangeNumber +
+    " changeNumber: " + changeNumber +
     " serviceId: " + baseDN + "]";
   }
 
@@ -186,13 +184,12 @@ public class ECLUpdateMsg extends ReplicationMsg
   {
     byte[] byteCookie = String.valueOf(cookie).getBytes("UTF-8");
     byte[] byteBaseDN = String.valueOf(baseDN).getBytes("UTF-8");
-    byte[] byteDraftChangeNumber =
-      Integer.toString(draftChangeNumber).getBytes("UTF-8");
+    byte[] byteChangeNumber = Integer.toString(changeNumber).getBytes("UTF-8");
     byte[] byteUpdateMsg = updateMsg.getBytes(protocolVersion);
 
     int length = 1 + byteCookie.length +
                  1 + byteBaseDN.length +
-                 1 + byteDraftChangeNumber.length +
+                 1 + byteChangeNumber.length +
                  1 + byteUpdateMsg.length + 1;
 
     byte[] resultByteArray = new byte[length];
@@ -204,28 +201,28 @@ public class ECLUpdateMsg extends ReplicationMsg
     // Encode all fields
     pos = addByteArray(byteCookie, resultByteArray, pos);
     pos = addByteArray(byteBaseDN, resultByteArray, pos);
-    pos = addByteArray(byteDraftChangeNumber, resultByteArray, pos);
+    pos = addByteArray(byteChangeNumber, resultByteArray, pos);
     pos = addByteArray(byteUpdateMsg, resultByteArray, pos);
 
     return resultByteArray;
   }
 
   /**
-   * Setter for the draftChangeNumber of this change.
-   * @param draftChangeNumber the provided draftChangeNumber for this change.
+   * Setter for the changeNumber of this change.
+   * @param changeNumber the provided changeNumber for this change.
    */
-  public void setDraftChangeNumber(int draftChangeNumber)
+  public void setChangeNumber(int changeNumber)
   {
-    this.draftChangeNumber = draftChangeNumber;
+    this.changeNumber = changeNumber;
   }
 
   /**
-   * Getter for the draftChangeNumber of this change.
-   * @return the draftChangeNumber of this change.
+   * Getter for the changeNumber of this change.
+   * @return the changeNumber of this change.
    */
-  public int getDraftChangeNumber()
+  public int getChangeNumber()
   {
-    return this.draftChangeNumber;
+    return this.changeNumber;
   }
 
 }

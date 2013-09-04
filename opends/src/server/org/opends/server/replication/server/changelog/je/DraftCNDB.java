@@ -83,21 +83,21 @@ public class DraftCNDB
 
   /**
    * Add an entry to the database.
-   * @param draftCN      the provided draftCN.
+   * @param changeNumber the provided change number.
    *
    * @param value        the provided value to be stored associated
-   *                     with this draftCN.
+   *                     with this change number.
    * @param domainBaseDN the provided domainBaseDn to be stored associated
-   *                     with this draftCN.
+   *                     with this change number.
    * @param csn the provided replication CSN to be
-   *                     stored associated with this draftCN.
+   *                     stored associated with this change number.
    */
-  public void addEntry(int draftCN, String value, String domainBaseDN,
+  public void addEntry(int changeNumber, String value, String domainBaseDN,
       CSN csn)
   {
     try
     {
-      DatabaseEntry key = new ReplicationDraftCNKey(draftCN);
+      DatabaseEntry key = new ReplicationDraftCNKey(changeNumber);
       DatabaseEntry data = new DraftCNData(value, domainBaseDN, csn);
 
       // Use a transaction so that we can override durability.
@@ -182,14 +182,15 @@ public class DraftCNDB
   /**
    * Create a cursor that can be used to search or iterate on this DB.
    *
-   * @param draftCN The draftCN from which the cursor must start.
+   * @param changeNumber The change number from which the cursor must start.
    * @throws ChangelogException If a database error prevented the cursor
    *                           creation.
    * @return The ReplServerDBCursor.
    */
-  public DraftCNDBCursor openReadCursor(int draftCN) throws ChangelogException
+  public DraftCNDBCursor openReadCursor(int changeNumber)
+      throws ChangelogException
   {
-    return new DraftCNDBCursor(draftCN);
+    return new DraftCNDBCursor(changeNumber);
   }
 
   /**
@@ -219,9 +220,9 @@ public class DraftCNDB
 
   /**
    * Read the first Change from the database, 0 when none.
-   * @return the first draftCN.
+   * @return the first change number.
    */
-  public int readFirstDraftCN()
+  public int readFirstChangeNumber()
   {
     try
     {
@@ -286,10 +287,10 @@ public class DraftCNDB
   }
 
   /**
-   * Read the last draftCN from the database.
-   * @return the last draftCN.
+   * Read the last change number from the database.
+   * @return the last change number.
    */
-  public int readLastDraftCN()
+  public int readLastChangeNumber()
   {
     try
     {
@@ -349,22 +350,21 @@ public class DraftCNDB
     private final Transaction txn;
     private final DatabaseEntry key;
     private final DatabaseEntry entry;
-    private DraftCNData seqnumData;
+    private DraftCNData cnData;
     private boolean isClosed = false;
-
 
 
     /**
      * Creates a cursor that can be used for browsing the db.
      *
-     * @param startingDraftCN
-     *          the draftCN from which the cursor must start.
+     * @param startChangeNumber
+     *          the change number from which the cursor must start.
      * @throws ChangelogException
-     *           when the startingDraftCN does not exist.
+     *           when the startChangeNumber does not exist.
      */
-    private DraftCNDBCursor(int startingDraftCN) throws ChangelogException
+    private DraftCNDBCursor(int startChangeNumber) throws ChangelogException
     {
-      this.key = new ReplicationDraftCNKey(startingDraftCN);
+      this.key = new ReplicationDraftCNKey(startChangeNumber);
       this.entry = new DatabaseEntry();
 
       // Take the lock. From now on, whatever error that happen in the life
@@ -385,16 +385,16 @@ public class DraftCNDB
         }
 
         localCursor = db.openCursor(null, null);
-        if (startingDraftCN >= 0)
+        if (startChangeNumber >= 0)
         {
           if (localCursor.getSearchKey(key, entry, LockMode.DEFAULT) != SUCCESS)
           {
-            // We could not move the cursor to the expected startingDraftCN
+            // We could not move the cursor to the expected startChangeNumber
             if (localCursor.getSearchKeyRange(key, entry, DEFAULT) != SUCCESS)
             {
               // We could not even move the cursor closed to it => failure
               throw new ChangelogException(
-                  Message.raw("ChangeLog Draft Change Number " + startingDraftCN
+                  Message.raw("ChangeLog Change Number " + startChangeNumber
                       + " is not available"));
             }
 
@@ -405,12 +405,12 @@ public class DraftCNDB
             }
             else
             {
-              seqnumData = new DraftCNData(entry.getData());
+              cnData = new DraftCNData(entry.getData());
             }
           }
           else
           {
-            seqnumData = new DraftCNData(entry.getData());
+            cnData = new DraftCNData(entry.getData());
           }
         }
 
@@ -556,9 +556,9 @@ public class DraftCNDB
 
       try
       {
-        if (seqnumData != null)
+        if (cnData != null)
         {
-          return seqnumData.getValue();
+          return cnData.getValue();
         }
       }
       catch(Exception e)
@@ -581,9 +581,9 @@ public class DraftCNDB
 
       try
       {
-        if (seqnumData != null)
+        if (cnData != null)
         {
-          return seqnumData.getBaseDN();
+          return cnData.getBaseDN();
         }
       }
       catch(Exception e)
@@ -595,9 +595,9 @@ public class DraftCNDB
 
     /**
      * Getter for the integer value of the current cursor, representing
-     * the current DraftChangeNumber being processed.
+     * the current change number being processed.
      *
-     * @return the current DraftCN as an integer.
+     * @return the current change number as an integer.
      */
     public int currentKey()
     {
@@ -631,9 +631,9 @@ public class DraftCNDB
 
       try
       {
-        if (seqnumData != null)
+        if (cnData != null)
         {
-          return seqnumData.getCSN();
+          return cnData.getCSN();
         }
       }
       catch(Exception e)
@@ -659,10 +659,10 @@ public class DraftCNDB
         OperationStatus status = cursor.getNext(key, entry, LockMode.DEFAULT);
         if (status != OperationStatus.SUCCESS)
         {
-          seqnumData = null;
+          cnData = null;
           return false;
         }
-        seqnumData = new DraftCNData(entry.getData());
+        cnData = new DraftCNData(entry.getData());
       }
       catch(Exception e)
       {

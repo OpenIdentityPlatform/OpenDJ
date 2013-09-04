@@ -39,18 +39,18 @@ public class ReplicationDraftCNKey extends DatabaseEntry
   private static final long serialVersionUID = 1L;
 
   /**
-   * Creates a new ReplicationKey from the given draft ChangeNumber.
-   * @param draftCN The draft change number to use.
+   * Creates a new ReplicationKey from the given change number.
+   * @param changeNumber The change number to use.
    */
-  public ReplicationDraftCNKey(int draftCN)
+  public ReplicationDraftCNKey(int changeNumber)
   {
     try
     {
-      String s = String.valueOf(draftCN);
+      String s = String.valueOf(changeNumber);
       int a = 16-s.length();
       String sscn = "0000000000000000".substring(0, a) + s;
       // Should it use StaticUtils.getBytes() to increase performances?
-      this.setData(sscn.getBytes("UTF-8"));
+      setData(sscn.getBytes("UTF-8"));
     } catch (UnsupportedEncodingException e)
     {
       // Should never happens, UTF-8 is always supported
@@ -59,12 +59,11 @@ public class ReplicationDraftCNKey extends DatabaseEntry
   }
 
   /**
-   * Getter for the draft change number associated with this key.
-   * @return the draft change number associated with this key.
+   * Getter for the change number associated with this key.
+   * @return the change number associated with this key.
    */
-  public int getDraftCN()
+  public int getChangeNumber()
   {
-    String s = new String(this.getData());
-    return Integer.valueOf(s);
+    return Integer.valueOf(new String(getData()));
   }
 }

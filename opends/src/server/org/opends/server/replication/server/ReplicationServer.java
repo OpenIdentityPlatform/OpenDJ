@@ -153,11 +153,11 @@ public final class ReplicationServer
   private ChangeNumberIndexDB cnIndexDB;
 
   /**
-   * The last value generated of the draft change number.
+   * The last value generated of the change number.
    * <p>
    * Guarded by cnIndexDBLock
    **/
-  private int lastGeneratedDraftCN = 0;
+  private int lastGeneratedChangeNumber = 0;
 
   /** Used for protecting {@link ChangeNumberIndexDB} related state. */
   private final Object cnIndexDBLock = new Object();
@@ -908,7 +908,7 @@ public final class ReplicationServer
 
         try
         {
-          lastGeneratedDraftCN = cnIndexDB.getLastDraftCN();
+          lastGeneratedChangeNumber = cnIndexDB.getLastChangeNumber();
         }
         catch (Exception ignored)
         {
@@ -1397,7 +1397,7 @@ public final class ReplicationServer
           }
         }
 
-        lastGeneratedDraftCN = 0;
+        lastGeneratedChangeNumber = 0;
         cnIndexDB = null;
       }
     }
@@ -1639,7 +1639,7 @@ public final class ReplicationServer
         if (cnIndexDB == null)
         {
           cnIndexDB = new DraftCNDbHandler(this, this.dbEnv);
-          lastGeneratedDraftCN = getLastDraftChangeNumber();
+          lastGeneratedChangeNumber = getLastChangeNumber();
         }
         return cnIndexDB;
       }
@@ -1654,113 +1654,116 @@ public final class ReplicationServer
   }
 
   /**
-   * Get the value of the first draft change number, 0 when db is empty.
+   * Get the value of the first change number, 0 when db is empty.
+   *
    * @return the first value.
    */
-  public int getFirstDraftChangeNumber()
+  public int getFirstChangeNumber()
   {
     synchronized (cnIndexDBLock)
     {
       if (cnIndexDB != null)
       {
-        return cnIndexDB.getFirstDraftCN();
+        return cnIndexDB.getFirstChangeNumber();
       }
       return 0;
     }
   }
 
   /**
-   * Get the value of the last draft change number, 0 when db is empty.
+   * Get the value of the last change number, 0 when db is empty.
+   *
    * @return the last value.
    */
-  public int getLastDraftChangeNumber()
+  public int getLastChangeNumber()
   {
     synchronized (cnIndexDBLock)
     {
       if (cnIndexDB != null)
       {
-        return cnIndexDB.getLastDraftCN();
+        return cnIndexDB.getLastChangeNumber();
       }
       return 0;
     }
   }
 
   /**
-   * Generate a new Draft ChangeNumber.
-   * @return The generated Draft ChangeNUmber
+   * Generate a new change number.
+   *
+   * @return The generated change number
    */
-  public int getNewDraftCN()
+  public int getNewChangeNumber()
   {
     synchronized (cnIndexDBLock)
     {
-      return ++lastGeneratedDraftCN;
+      return ++lastGeneratedChangeNumber;
     }
   }
 
   /**
-   * Get first and last DraftCN.
+   * Get first and last change number.
    *
-   * @param  crossDomainEligibleCSN The provided crossDomainEligibleCSN used as
-   *                               the upper limit for the lastDraftCN
-   * @param  excludedBaseDNs       The baseDNs that are excluded from the ECL.
-   * @return                       The first and last draftCN.
-   * @throws DirectoryException    When it happens.
+   * @param crossDomainEligibleCSN
+   *          The provided crossDomainEligibleCSN used as the upper limit for
+   *          the last change number
+   * @param excludedBaseDNs
+   *          The baseDNs that are excluded from the ECL.
+   * @return The first and last change numbers.
+   * @throws DirectoryException
+   *           When it happens.
    */
-  public int[] getECLDraftCNLimits(CSN crossDomainEligibleCSN,
+  public int[] getECLChangeNumberLimits(CSN crossDomainEligibleCSN,
       Set<String> excludedBaseDNs) throws DirectoryException
   {
     /* The content of the DraftCNdb depends on the SEARCH operations done before
-     * requesting the DraftCN. If no operations, DraftCNdb is empty.
+     * requesting the change number. If no operations, DraftCNdb is empty.
      * The limits we want to get are the "potential" limits if a request was
      * done, the DraftCNdb is probably not complete to do that.
      *
-     * The first DraftCN is :
+     * The first change number is :
      *  - the first record from the DraftCNdb
      *  - if none because DraftCNdb empty,
      *      then
      *        if no change in replchangelog then return 0
-     *        else return 1 (DraftCN that WILL be returned to next search)
+     *        else return 1 (change number that WILL be returned to next search)
      *
-     * The last DraftCN is :
+     * The last change number is :
      *  - initialized with the last record from the DraftCNdb (0 if none)
      *    and consider the genState associated
-     *  - to the last DraftCN, we add the count of updates in the replchangelog
-     *     FROM that genState TO the crossDomainEligibleCSN
+     *  - to the last change number, we add the count of updates in the
+     *     replchangelog FROM that genState TO the crossDomainEligibleCSN
      *     (this diff is done domain by domain)
      */
 
-    int lastDraftCN;
+    int lastChangeNumber;
     boolean dbEmpty = false;
     final ChangeNumberIndexDB cnIndexDB = getChangeNumberIndexDB();
 
-    int firstDraftCN = cnIndexDB.getFirstDraftCN();
-    Map<String,ServerState> domainsServerStateForLastSeqnum = null;
-    CSN csnForLastSeqnum = null;
-    String domainForLastSeqnum = null;
-    if (firstDraftCN < 1)
+    int firstChangeNumber = cnIndexDB.getFirstChangeNumber();
+    Map<String, ServerState> domainsServerStateForLastCN = null;
+    CSN csnForLastCN = null;
+    String domainForLastCN = null;
+    if (firstChangeNumber < 1)
     {
       dbEmpty = true;
-      firstDraftCN = 0;
-      lastDraftCN = 0;
+      firstChangeNumber = 0;
+      lastChangeNumber = 0;
     }
     else
     {
-      lastDraftCN = cnIndexDB.getLastDraftCN();
+      lastChangeNumber = cnIndexDB.getLastChangeNumber();
 
-      // Get the generalized state associated with the current last DraftCN
-      // and initializes from it the startStates table
-      String lastSeqnumGenState = cnIndexDB.getPreviousCookie(lastDraftCN);
-      if ((lastSeqnumGenState != null) && (lastSeqnumGenState.length()>0))
+      // Get the generalized state associated with the current last change
+      // number and initializes from it the startStates table
+      String lastCNGenState = cnIndexDB.getPreviousCookie(lastChangeNumber);
+      if (lastCNGenState != null && lastCNGenState.length() > 0)
       {
-        domainsServerStateForLastSeqnum = MultiDomainServerState.
-          splitGenStateToServerStates(lastSeqnumGenState);
+        domainsServerStateForLastCN =
+            MultiDomainServerState.splitGenStateToServerStates(lastCNGenState);
       }
 
-      // Get the CSN associated with the current last DraftCN
-      csnForLastSeqnum = cnIndexDB.getCSN(lastDraftCN);
-
-      // Get the domain associated with the current last DraftCN
-      domainForLastSeqnum = cnIndexDB.getBaseDN(lastDraftCN);
+      csnForLastCN = cnIndexDB.getCSN(lastChangeNumber);
+      domainForLastCN = cnIndexDB.getBaseDN(lastChangeNumber);
     }
 
     long newestDate = 0;
@@ -1770,9 +1773,9 @@ public final class ReplicationServer
         continue;
 
       // for this domain, have the state in the replchangelog
-      // where the last DraftCN update is
+      // where the last change number update is
       long ec;
-      if (domainsServerStateForLastSeqnum == null)
+      if (domainsServerStateForLastCN == null)
       {
         // Count changes of this domain from the beginning of the changelog
         CSN trimCSN = new CSN(rsd.getLatestDomainTrimDate(), 0, 0);
@@ -1790,35 +1793,35 @@ public final class ReplicationServer
         //  the date of the most recent change from this last draft record
         if (newestDate == 0)
         {
-          newestDate = csnForLastSeqnum.getTime();
+          newestDate = csnForLastCN.getTime();
         }
 
         // And count changes of this domain from the date of the
         // lastseqnum record (that does not refer to this domain)
-        CSN csnx = new CSN(newestDate, csnForLastSeqnum.getSeqnum(), 0);
+        CSN csnx = new CSN(newestDate, csnForLastCN.getSeqnum(), 0);
         ec = rsd.getEligibleCount(csnx, crossDomainEligibleCSN);
 
-        if (domainForLastSeqnum.equalsIgnoreCase(rsd.getBaseDn()))
+        if (domainForLastCN.equalsIgnoreCase(rsd.getBaseDn()))
           ec--;
       }
 
       // cumulates on domains
-      lastDraftCN += ec;
+      lastChangeNumber += ec;
 
-      // DraftCN Db is empty and there are eligible updates in the replication
-      // changelog then init first DraftCN
-      if ((ec>0) && (firstDraftCN==0))
-        firstDraftCN = 1;
+      // CNIndexDB is empty and there are eligible updates in the replication
+      // changelog then init first change number
+      if (ec > 0 && firstChangeNumber == 0)
+        firstChangeNumber = 1;
     }
 
     if (dbEmpty)
     {
       // The database was empty, just keep increasing numbers since last time
-      // we generated one DraftCN.
-      firstDraftCN += lastGeneratedDraftCN;
-      lastDraftCN += lastGeneratedDraftCN;
+      // we generated one change number.
+      firstChangeNumber += lastGeneratedChangeNumber;
+      lastChangeNumber += lastGeneratedChangeNumber;
     }
-    return new int[]{firstDraftCN, lastDraftCN};
+    return new int[]{firstChangeNumber, lastChangeNumber};
   }
 
   /**
