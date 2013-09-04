@@ -720,7 +720,7 @@ public class StateMachineTest extends ReplicationTestCase
     // going into degraded status, we need to send a lot of updates. This makes
     // the memory test backend crash with OutOfMemoryError. So we prefer here
     // a backend backed up with a file
-    TestCaseUtils.clearJEBackend2(false, "userRoot", EXAMPLE_DN);
+    TestCaseUtils.clearJEBackend(false, "userRoot", EXAMPLE_DN);
 
   }
 
@@ -736,7 +736,7 @@ public class StateMachineTest extends ReplicationTestCase
     callParanoiaCheck = false;
     super.classCleanUp();
 
-    TestCaseUtils.clearJEBackend2(false, "userRoot", EXAMPLE_DN);
+    TestCaseUtils.clearJEBackend(false, "userRoot", EXAMPLE_DN);
 
     paranoiaCheck();
   }
