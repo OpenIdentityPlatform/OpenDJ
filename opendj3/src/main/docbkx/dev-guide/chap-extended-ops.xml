@@ -171,6 +171,9 @@ Cancel request succeeded</programlisting>
    <primary>Modifications</primary>
    <secondary>Password modify</secondary>
   </indexterm>
+  <indexterm>
+   <primary>Passwords</primary>
+  </indexterm>
 
   <para>RFC 3062, <link xlink:href="http://tools.ietf.org/html/rfc3062"
   xlink:show="new"><citetitle>LDAP Password Modify Extended
