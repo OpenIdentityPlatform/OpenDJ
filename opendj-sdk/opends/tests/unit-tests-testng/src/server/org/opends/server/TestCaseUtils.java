@@ -50,7 +50,6 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.LockFileManager;
 import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.loggers.*;
 import org.opends.server.loggers.debug.DebugLogger;
@@ -64,7 +63,6 @@ import org.opends.server.protocols.ldap.BindRequestProtocolOp;
 import org.opends.server.protocols.ldap.BindResponseProtocolOp;
 import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.protocols.ldap.LDAPReader;
-import org.opends.server.tasks.TaskUtils;
 import org.opends.server.tools.LDAPModify;
 import org.opends.server.tools.dsconfig.DSConfig;
 import org.opends.server.types.*;
@@ -949,62 +947,6 @@ public final class TestCaseUtils {
         backend = (BackendImpl)DirectoryServer.getBackend(beID);
         backend.addEntry(e, null);
       }
-    }
-  }
-
-  /**
-   * Clears all the entries from the JE backend determined by the be id passed
-   * into the method.
-   * 
-   * @param createBaseEntry
-   *          Indicate whether to automatically create the base entry and add it
-   *          to the backend.
-   * @param beID
-   *          The be id to clear.
-   * @param dn
-   *          The suffix of the backend to create if the the createBaseEntry
-   *          boolean is true.
-   * @throws Exception
-   *           If an unexpected problem occurs.
-   */
-  public static void clearJEBackend2(boolean createBaseEntry, String beID, String dn)
-      throws Exception
-  {
-    BackendImpl backend = (BackendImpl) DirectoryServer.getBackend(beID);
-
-    // FIXME Should setBackendEnabled be part of TaskUtils ?
-    TaskUtils.disableBackend(beID);
-
-    try
-    {
-      String lockFile = LockFileManager.getBackendLockFileName(backend);
-      StringBuilder failureReason = new StringBuilder();
-
-      if (!LockFileManager.acquireExclusiveLock(lockFile, failureReason))
-      {
-        throw new RuntimeException(failureReason.toString());
-      }
-
-      try
-      {
-        backend.clearBackend();
-      }
-      finally
-      {
-        LockFileManager.releaseLock(lockFile, failureReason);
-      }
-    }
-    finally
-    {
-      TaskUtils.enableBackend(beID);
-    }
-
-    if (createBaseEntry)
-    {
-      DN baseDN = DN.decode(dn);
-      Entry e = createEntry(baseDN);
-      backend = (BackendImpl) DirectoryServer.getBackend(beID);
-      backend.addEntry(e, null);
     }
   }
 

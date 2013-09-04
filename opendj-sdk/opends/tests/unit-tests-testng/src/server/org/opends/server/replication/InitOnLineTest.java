@@ -159,7 +159,7 @@ public class InitOnLineTest extends ReplicationTestCase
     // (like the test backend we use in every tests): backend is disabled then
     // re-enabled and this clears the backend reference and thus the underlying
     // data. So for this particular test, we use a classical backend.
-    TestCaseUtils.clearJEBackend2(false, "userRoot", EXAMPLE_DN);
+    TestCaseUtils.clearJEBackend(false, "userRoot", EXAMPLE_DN);
 
     // For most tests, a limited number of entries is enough
     updatedEntries = newLDIFEntries(2);
@@ -602,7 +602,7 @@ public class InitOnLineTest extends ReplicationTestCase
     + (heartbeat>0?"ds-cfg-heartbeat-interval: "+heartbeat+" ms\n":"")
     + "ds-cfg-window-size: " + WINDOW_SIZE;
 
-    TestCaseUtils.clearJEBackend2(false, "userRoot", EXAMPLE_DN);
+    TestCaseUtils.clearJEBackend(false, "userRoot", EXAMPLE_DN);
 
     synchroServerEntry = TestCaseUtils.entryFromLdifString(synchroServerLdif);
     DirectoryServer.getConfigHandler().addEntry(synchroServerEntry, null);
@@ -1541,7 +1541,7 @@ public class InitOnLineTest extends ReplicationTestCase
     callParanoiaCheck = false;
     super.classCleanUp();
 
-    TestCaseUtils.clearJEBackend2(false, "userRoot", EXAMPLE_DN);
+    TestCaseUtils.clearJEBackend(false, "userRoot", EXAMPLE_DN);
 
     paranoiaCheck();
   }
