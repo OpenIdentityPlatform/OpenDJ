@@ -157,7 +157,7 @@ public final class ReplicationServer
    * <p>
    * Guarded by cnIndexDBLock
    **/
-  private int lastGeneratedChangeNumber = 0;
+  private long lastGeneratedChangeNumber = 0;
 
   /** Used for protecting {@link ChangeNumberIndexDB} related state. */
   private final Object cnIndexDBLock = new Object();
@@ -1658,7 +1658,7 @@ public final class ReplicationServer
    *
    * @return the first value.
    */
-  public int getFirstChangeNumber()
+  public long getFirstChangeNumber()
   {
     synchronized (cnIndexDBLock)
     {
@@ -1675,7 +1675,7 @@ public final class ReplicationServer
    *
    * @return the last value.
    */
-  public int getLastChangeNumber()
+  public long getLastChangeNumber()
   {
     synchronized (cnIndexDBLock)
     {
@@ -1692,7 +1692,7 @@ public final class ReplicationServer
    *
    * @return The generated change number
    */
-  public int getNewChangeNumber()
+  public long getNewChangeNumber()
   {
     synchronized (cnIndexDBLock)
     {
@@ -1712,7 +1712,7 @@ public final class ReplicationServer
    * @throws DirectoryException
    *           When it happens.
    */
-  public int[] getECLChangeNumberLimits(CSN crossDomainEligibleCSN,
+  public long[] getECLChangeNumberLimits(CSN crossDomainEligibleCSN,
       Set<String> excludedBaseDNs) throws DirectoryException
   {
     /* The content of the DraftCNdb depends on the SEARCH operations done before
@@ -1735,11 +1735,11 @@ public final class ReplicationServer
      *     (this diff is done domain by domain)
      */
 
-    int lastChangeNumber;
+    long lastChangeNumber;
     boolean dbEmpty = false;
     final ChangeNumberIndexDB cnIndexDB = getChangeNumberIndexDB();
 
-    int firstChangeNumber = cnIndexDB.getFirstChangeNumber();
+    long firstChangeNumber = cnIndexDB.getFirstChangeNumber();
     Map<String, ServerState> domainsServerStateForLastCN = null;
     CSN csnForLastCN = null;
     String domainForLastCN = null;
@@ -1821,7 +1821,7 @@ public final class ReplicationServer
       firstChangeNumber += lastGeneratedChangeNumber;
       lastChangeNumber += lastGeneratedChangeNumber;
     }
-    return new int[]{firstChangeNumber, lastChangeNumber};
+    return new long[] { firstChangeNumber, lastChangeNumber };
   }
 
   /**

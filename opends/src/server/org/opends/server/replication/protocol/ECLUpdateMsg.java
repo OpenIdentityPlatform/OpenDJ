@@ -49,7 +49,7 @@ public class ECLUpdateMsg extends ReplicationMsg
   private MultiDomainServerState cookie;
 
   /** The changeNumber as specified by draft-good-ldap-changelog. */
-  private int changeNumber;
+  private long changeNumber;
 
   /**
    * Creates a new message.
@@ -184,7 +184,10 @@ public class ECLUpdateMsg extends ReplicationMsg
   {
     byte[] byteCookie = String.valueOf(cookie).getBytes("UTF-8");
     byte[] byteBaseDN = String.valueOf(baseDN).getBytes("UTF-8");
-    byte[] byteChangeNumber = Integer.toString(changeNumber).getBytes("UTF-8");
+    // FIXME JNR Changing line below to use long would require a protocol
+    // version change. Leave it like this for now until the need arises.
+    byte[] byteChangeNumber =
+        Integer.toString((int) changeNumber).getBytes("UTF-8");
     byte[] byteUpdateMsg = updateMsg.getBytes(protocolVersion);
 
     int length = 1 + byteCookie.length +
@@ -211,7 +214,7 @@ public class ECLUpdateMsg extends ReplicationMsg
    * Setter for the changeNumber of this change.
    * @param changeNumber the provided changeNumber for this change.
    */
-  public void setChangeNumber(int changeNumber)
+  public void setChangeNumber(long changeNumber)
   {
     this.changeNumber = changeNumber;
   }
@@ -220,7 +223,7 @@ public class ECLUpdateMsg extends ReplicationMsg
    * Getter for the changeNumber of this change.
    * @return the changeNumber of this change.
    */
-  public int getChangeNumber()
+  public long getChangeNumber()
   {
     return this.changeNumber;
   }

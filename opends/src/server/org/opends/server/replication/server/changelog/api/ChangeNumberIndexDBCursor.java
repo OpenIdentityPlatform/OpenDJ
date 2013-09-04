@@ -57,7 +57,7 @@ public interface ChangeNumberIndexDBCursor extends Closeable
    *
    * @return The change number field.
    */
-  int getChangeNumber();
+  long getChangeNumber();
 
   /**
    * Skip to the next record of the database.

@@ -2924,7 +2924,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       ReplicationServer rs = eclwe.getReplicationServer();
       rs.disableEligibility(excludedDomains);
       long t1 = TimeThread.getTime();
-      int[] limits = replicationServer.getECLChangeNumberLimits(
+      long[] limits = replicationServer.getECLChangeNumberLimits(
           replicationServer.getEligibleCSN(), excludedDomains);
       assertEquals(limits[1], maxMsg);
       long t2 = TimeThread.getTime();

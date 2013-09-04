@@ -110,7 +110,7 @@ public class DraftCNDbHandlerTest extends ReplicationTestCase
       handler.add(cn3, value3, baseDN3, csn3);
 
       // The ChangeNumber should not get purged
-      final int firstChangeNumber = handler.getFirstChangeNumber();
+      final long firstChangeNumber = handler.getFirstChangeNumber();
       assertEquals(firstChangeNumber, cn1);
       assertEquals(handler.getLastChangeNumber(), cn3);
 

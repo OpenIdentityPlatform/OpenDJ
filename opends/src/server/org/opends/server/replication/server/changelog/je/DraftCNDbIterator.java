@@ -56,7 +56,7 @@ public class DraftCNDbIterator implements ChangeNumberIndexDBCursor
    * @throws ChangelogException
    *           If a database problem happened.
    */
-  public DraftCNDbIterator(DraftCNDB db, int startChangeNumber)
+  public DraftCNDbIterator(DraftCNDB db, long startChangeNumber)
       throws ChangelogException
   {
     draftCNDbCursor = db.openReadCursor(startChangeNumber);
@@ -98,7 +98,7 @@ public class DraftCNDbIterator implements ChangeNumberIndexDBCursor
 
   /** {@inheritDoc} */
   @Override
-  public int getChangeNumber()
+  public long getChangeNumber()
   {
     return ((ReplicationDraftCNKey) draftCNDbCursor.getKey()).getChangeNumber();
   }
