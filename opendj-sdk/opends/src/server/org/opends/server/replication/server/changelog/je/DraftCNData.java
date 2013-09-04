@@ -52,13 +52,14 @@ public class DraftCNData extends DatabaseEntry
 
   /**
    * Creates a record to be stored in the DraftCNDB.
-   * @param value The value (cookie).
+   * @param previousCookie The previous cookie.
    * @param baseDN The baseDN (domain DN).
    * @param csn The replication CSN.
    */
-  public DraftCNData(String value, String baseDN, CSN csn)
+  public DraftCNData(String previousCookie, String baseDN, CSN csn)
   {
-    String record = value + FIELD_SEPARATOR + baseDN + FIELD_SEPARATOR + csn;
+    String record =
+        previousCookie + FIELD_SEPARATOR + baseDN + FIELD_SEPARATOR + csn;
     setData(getBytes(record));
   }
 

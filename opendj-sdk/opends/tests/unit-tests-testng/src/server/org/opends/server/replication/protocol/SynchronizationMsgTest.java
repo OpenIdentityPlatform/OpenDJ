@@ -666,7 +666,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     CSN csn = new CSN(TimeThread.getTime(), 123, 45);
     op.setAttachment(SYNCHROCONTEXT, new DeleteContext(csn, "uniqueid"));
     DeleteMsg delmsg = new DeleteMsg(op);
-    int draftCN = 21;
+    int changeNumber = 21;
 
     String baseDN = "dc=example,dc=com";
 
@@ -677,10 +677,10 @@ public class SynchronizationMsgTest extends ReplicationTestCase
           "o=test2:000001210b6f21e904b100000002 000001210b6f21e904b200000002;");
 
     // Constructor test
-    ECLUpdateMsg msg1 = new ECLUpdateMsg(delmsg, cookie, baseDN, draftCN);
+    ECLUpdateMsg msg1 = new ECLUpdateMsg(delmsg, cookie, baseDN, changeNumber);
     assertTrue(msg1.getCookie().equalsTo(cookie));
     assertTrue(msg1.getBaseDN().equalsIgnoreCase(baseDN));
-    assertEquals(msg1.getDraftChangeNumber(), draftCN);
+    assertEquals(msg1.getChangeNumber(), changeNumber);
     DeleteMsg delmsg2 = (DeleteMsg)msg1.getUpdateMsg();
     assertEquals(delmsg.compareTo(delmsg2), 0);
 
@@ -690,8 +690,8 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     assertTrue(msg2.getCookie().equalsTo(cookie));
     assertTrue(msg2.getBaseDN().equalsIgnoreCase(msg1.getBaseDN()));
     assertTrue(msg2.getBaseDN().equalsIgnoreCase(baseDN));
-    assertEquals(msg2.getDraftChangeNumber(), msg1.getDraftChangeNumber());
-    assertEquals(msg2.getDraftChangeNumber(), draftCN);
+    assertEquals(msg2.getChangeNumber(), msg1.getChangeNumber());
+    assertEquals(msg2.getChangeNumber(), changeNumber);
 
     DeleteMsg delmsg1 = (DeleteMsg)msg1.getUpdateMsg();
     delmsg2 = (DeleteMsg)msg2.getUpdateMsg();
@@ -1330,8 +1330,8 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     msg.setCSN(csn);
     msg.setCrossDomainServerState("fakegenstate");
     msg.setPersistent(StartECLSessionMsg.PERSISTENT);
-    msg.setFirstDraftChangeNumber(13);
-    msg.setLastDraftChangeNumber(14);
+    msg.setFirstChangeNumber(13);
+    msg.setLastChangeNumber(14);
     msg.setECLRequestType((short) 3);
     msg.setOperationId("fakeopid");
     String dn1 = "cn=admin data";
@@ -1343,9 +1343,9 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     // test equality between the two copies
     assertEquals(msg.getCSN(), newMsg.getCSN());
     assertEquals(msg.isPersistent(), newMsg.isPersistent());
-    assertEquals(msg.getFirstDraftChangeNumber(), newMsg.getFirstDraftChangeNumber());
+    assertEquals(msg.getFirstChangeNumber(), newMsg.getFirstChangeNumber());
     assertEquals(msg.getECLRequestType(), newMsg.getECLRequestType());
-    assertEquals(msg.getLastDraftChangeNumber(), newMsg.getLastDraftChangeNumber());
+    assertEquals(msg.getLastChangeNumber(), newMsg.getLastChangeNumber());
     assertTrue(msg.getCrossDomainServerState().equalsIgnoreCase(newMsg.getCrossDomainServerState()));
     assertTrue(msg.getOperationId().equalsIgnoreCase(newMsg.getOperationId()));
     Set<String> dns2 = newMsg.getExcludedBaseDNs();

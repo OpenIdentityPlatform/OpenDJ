@@ -46,19 +46,20 @@ public class DraftCNDbIterator implements ChangeNumberIndexDBCursor
   private DraftCNDBCursor draftCNDbCursor;
 
   /**
-   * Creates a new ReplicationIterator.
-   * All created iterator must be released by the caller using the
-   * releaseCursor() method.
+   * Creates a new ReplicationIterator. All created iterator must be released by
+   * the caller using the {@link #close()} method.
    *
-   * @param db           The db where the iterator must be created.
-   * @param startDraftCN The draft CN  after which the iterator
-   *                     must start.
-   * @throws ChangelogException If a database problem happened.
+   * @param db
+   *          The db where the iterator must be created.
+   * @param startChangeNumber
+   *          The change number after which the iterator must start.
+   * @throws ChangelogException
+   *           If a database problem happened.
    */
-  public DraftCNDbIterator(DraftCNDB db, int startDraftCN)
+  public DraftCNDbIterator(DraftCNDB db, int startChangeNumber)
       throws ChangelogException
   {
-    draftCNDbCursor = db.openReadCursor(startDraftCN);
+    draftCNDbCursor = db.openReadCursor(startChangeNumber);
     if (draftCNDbCursor == null)
     {
       throw new ChangelogException(Message.raw("no new change"));
@@ -97,11 +98,9 @@ public class DraftCNDbIterator implements ChangeNumberIndexDBCursor
 
   /** {@inheritDoc} */
   @Override
-  public int getDraftCN()
+  public int getChangeNumber()
   {
-    ReplicationDraftCNKey sk = (ReplicationDraftCNKey) draftCNDbCursor.getKey();
-    int currentSeqnum = sk.getDraftCN();
-    return currentSeqnum;
+    return ((ReplicationDraftCNKey) draftCNDbCursor.getKey()).getChangeNumber();
   }
 
   /** {@inheritDoc} */

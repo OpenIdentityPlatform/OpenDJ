@@ -529,7 +529,7 @@ public class ReplicationDbEnv
     {
       try
       {
-        // Opens the database for seqnum associated to this domain.
+        // Opens the database for change number associated to this domain.
         // Create it if it does not already exist.
         return openDatabase("draftcndb");
       }

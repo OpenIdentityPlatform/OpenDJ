@@ -142,7 +142,7 @@ public class LastChangeNumberVirtualAttributeProvider
 
         ReplicationServer rs = eclwe.getReplicationServer();
         rs.disableEligibility(excludedDomains);
-        int[] limits = rs.getECLDraftCNLimits(
+        int[] limits = rs.getECLChangeNumberLimits(
             rs.getEligibleCSN(), excludedDomains);
 
         last = String.valueOf(limits[1]);

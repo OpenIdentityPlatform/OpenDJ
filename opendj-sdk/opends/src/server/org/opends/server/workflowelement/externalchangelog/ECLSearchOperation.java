@@ -209,10 +209,10 @@ public class ECLSearchOperation
       clientConnection   = getClientConnection();
       startECLSessionMsg = new StartECLSessionMsg();
 
-      // Set default behavior as "from draft change number".
+      // Set default behavior as "from change number".
       // "from cookie" is set only when cookie is provided.
       startECLSessionMsg.setECLRequestType(
-          StartECLSessionMsg.REQUEST_TYPE_FROM_DRAFT_CHANGE_NUMBER);
+          StartECLSessionMsg.REQUEST_TYPE_FROM_CHANGE_NUMBER);
 
       // Set a string operationid that will help correlate any error message
       // logged for this operation with the 'real' client operation.
@@ -795,7 +795,7 @@ public class ECLSearchOperation
                                                  // format)
           addMsg.getEntryUUID(),
           eclAttributes, // entry attributes
-          eclmsg.getDraftChangeNumber(), "add", changeInitiatorsName);
+          eclmsg.getChangeNumber(), "add", changeInitiatorsName);
     }
     else if (msg instanceof ModifyCommonMsg)
     {
@@ -861,7 +861,7 @@ public class ECLSearchOperation
           modifyMsg.getCSN(), ldifChanges,
           modifyMsg.getEntryUUID(),
           modifyMsg.getEclIncludes(), // entry attributes
-          eclmsg.getDraftChangeNumber(), changeType,
+          eclmsg.getChangeNumber(), changeType,
           changeInitiatorsName);
 
       if (modifyMsg instanceof ModifyDNMsg)
@@ -893,7 +893,7 @@ public class ECLSearchOperation
           null, // no changes
           delMsg.getEntryUUID(),
           delMsg.getEclIncludes(), // entry attributes
-          eclmsg.getDraftChangeNumber(), "delete",
+          eclmsg.getChangeNumber(), "delete",
           delMsg.getInitiatorsName());
     }
 
@@ -992,7 +992,7 @@ public class ECLSearchOperation
    * @param clearLDIFchanges     The provided LDIF changes for ADD and MODIFY
    * @param targetUUID      The provided targetUUID.
    * @param includedAttributes The provided attributes to include
-   * @param draftChangenumber The provided draft change number (integer)
+   * @param changenumber    The provided change number (integer)
    * @param changetype      The provided change type (add, ...)
    * @param changeInitiatorsName The provided initiators name
    * @return                The created ECL entry.
@@ -1007,13 +1007,13 @@ public class ECLSearchOperation
       String clearLDIFchanges,
       String targetUUID,
       List<RawAttribute> includedAttributes,
-      int draftChangenumber,
+      int changenumber,
       String changetype,
       String changeInitiatorsName)
   throws DirectoryException
   {
     String dnString;
-    if (draftChangenumber == 0)
+    if (changenumber == 0)
     {
       // Draft uncompat mode
       dnString = "replicationCSN=" + csn + "," + baseDN + ","
@@ -1022,7 +1022,7 @@ public class ECLSearchOperation
     else
     {
       // Draft compat mode
-      dnString = "changeNumber=" + draftChangenumber + ","
+      dnString = "changeNumber=" + changenumber + ","
           + ServerConstants.DN_EXTERNAL_CHANGELOG_ROOT;
     }
 
@@ -1050,9 +1050,9 @@ public class ECLSearchOperation
 
     // REQUIRED attributes
 
-    // ECL Changelog draft change number
+    // ECL Changelog change number
     addAttributeByType("changenumber", "changeNumber", String
-        .valueOf(draftChangenumber), uAttrs, operationalAttrs);
+        .valueOf(changenumber), uAttrs, operationalAttrs);
 
     SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT_GMT_TIME);
     dateFormat.setTimeZone(TimeZone.getTimeZone("UTC")); // ??
@@ -1203,8 +1203,8 @@ public class ECLSearchOperation
     }
 
     StartECLSessionMsg msg = evaluateSearchParameters2(sf);
-    startCLmsg.setFirstDraftChangeNumber(msg.getFirstDraftChangeNumber());
-    startCLmsg.setLastDraftChangeNumber(msg.getLastDraftChangeNumber());
+    startCLmsg.setFirstChangeNumber(msg.getFirstChangeNumber());
+    startCLmsg.setLastChangeNumber(msg.getLastChangeNumber());
     startCLmsg.setCSN(msg.getCSN());
   }
 
@@ -1212,8 +1212,8 @@ public class ECLSearchOperation
   throws DirectoryException
   {
     StartECLSessionMsg startCLmsg = new StartECLSessionMsg();
-    startCLmsg.setFirstDraftChangeNumber(-1);
-    startCLmsg.setLastDraftChangeNumber(-1);
+    startCLmsg.setFirstChangeNumber(-1);
+    startCLmsg.setLastChangeNumber(-1);
     startCLmsg.setCSN(new CSN(0, 0, 0));
 
     // If there's no filter, just return
@@ -1227,14 +1227,14 @@ public class ECLSearchOperation
     {
       int sn = Integer.decode(
           sf.getAssertionValue().getNormalizedValue().toString());
-      startCLmsg.setFirstDraftChangeNumber(sn);
+      startCLmsg.setFirstChangeNumber(sn);
       return startCLmsg;
     }
     else if (matches(sf, FilterType.LESS_OR_EQUAL, "changeNumber"))
     {
       int sn = Integer.decode(
           sf.getAssertionValue().getNormalizedValue().toString());
-      startCLmsg.setLastDraftChangeNumber(sn);
+      startCLmsg.setLastChangeNumber(sn);
       return startCLmsg;
     }
     else if (matches(sf, FilterType.EQUALITY, "replicationcsn"))
@@ -1247,8 +1247,8 @@ public class ECLSearchOperation
     {
       int sn = Integer.decode(
           sf.getAssertionValue().getNormalizedValue().toString());
-      startCLmsg.setFirstDraftChangeNumber(sn);
-      startCLmsg.setLastDraftChangeNumber(sn);
+      startCLmsg.setFirstChangeNumber(sn);
+      startCLmsg.setLastChangeNumber(sn);
       return startCLmsg;
     }
     else if (sf.getFilterType() == FilterType.AND)
@@ -1265,23 +1265,23 @@ public class ECLSearchOperation
       if (sfs.length > 0)
       {
         m1 = evaluateSearchParameters2(sfs[0]);
-        l1 = m1.getLastDraftChangeNumber();
-        f1 = m1.getFirstDraftChangeNumber();
+        l1 = m1.getLastChangeNumber();
+        f1 = m1.getFirstChangeNumber();
       }
       if (sfs.length > 1)
       {
         m2 = evaluateSearchParameters2(sfs[1]);
-        l2 = m2.getLastDraftChangeNumber();
-        f2 = m2.getFirstDraftChangeNumber();
+        l2 = m2.getLastChangeNumber();
+        f2 = m2.getFirstChangeNumber();
       }
       if (l1 == -1)
-        startCLmsg.setLastDraftChangeNumber(l2);
+        startCLmsg.setLastChangeNumber(l2);
       else if (l2 == -1)
-        startCLmsg.setLastDraftChangeNumber(l1);
+        startCLmsg.setLastChangeNumber(l1);
       else
-        startCLmsg.setLastDraftChangeNumber(Math.min(l1, l2));
+        startCLmsg.setLastChangeNumber(Math.min(l1, l2));
 
-      startCLmsg.setFirstDraftChangeNumber(Math.max(f1,f2));
+      startCLmsg.setFirstChangeNumber(Math.max(f1,f2));
       return startCLmsg;
     }
     else

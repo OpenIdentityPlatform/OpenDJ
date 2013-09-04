@@ -56,7 +56,7 @@ public class StartECLSessionMsg extends ReplicationMsg
    * and NOT replication CSNs).
    * TODO: not yet implemented
    */
-  public final static short REQUEST_TYPE_FROM_DRAFT_CHANGE_NUMBER = 1;
+  public final static short REQUEST_TYPE_FROM_CHANGE_NUMBER = 1;
 
   /**
    * This specifies that the ECL is requested only for the entry that have
@@ -94,8 +94,8 @@ public class StartECLSessionMsg extends ReplicationMsg
    * When eclRequestType = FROM_CHANGE_NUMBER, specifies the provided change
    * number first and last - [CHANGELOG].
    */
-  private int    firstDraftChangeNumber = -1;
-  private int    lastDraftChangeNumber = -1;
+  private int firstChangeNumber = -1;
+  private int lastChangeNumber = -1;
 
   /**
    * When eclRequestType = EQUALS_REPL_CHANGE_NUMBER, specifies the provided
@@ -133,10 +133,10 @@ public class StartECLSessionMsg extends ReplicationMsg
 
     try
     {
-      /* first bytes are the header */
+      // first bytes are the header
       int pos = 0;
 
-      /* first byte is the type */
+      // first byte is the type
       if (in.length < 1 || in[pos++] != MSG_TYPE_START_ECL_SESSION)
       {
         throw new DataFormatException(
@@ -150,14 +150,12 @@ public class StartECLSessionMsg extends ReplicationMsg
 
       // sequenceNumber
       length = getNextLength(in, pos);
-      firstDraftChangeNumber =
-        Integer.valueOf(new String(in, pos, length, "UTF-8"));
+      firstChangeNumber = Integer.valueOf(new String(in, pos, length, "UTF-8"));
       pos += length +1;
 
       // stopSequenceNumber
       length = getNextLength(in, pos);
-      lastDraftChangeNumber =
-        Integer.valueOf(new String(in, pos, length, "UTF-8"));
+      lastChangeNumber = Integer.valueOf(new String(in, pos, length, "UTF-8"));
       pos += length +1;
 
       // replication CSN
@@ -207,8 +205,8 @@ public class StartECLSessionMsg extends ReplicationMsg
   {
     eclRequestType = REQUEST_TYPE_FROM_COOKIE;
     crossDomainServerState = "";
-    firstDraftChangeNumber = -1;
-    lastDraftChangeNumber = -1;
+    firstChangeNumber = -1;
+    lastChangeNumber = -1;
     csn = new CSN(0, 0, 0);
     isPersistent = NON_PERSISTENT;
     operationId = "-1";
@@ -227,8 +225,8 @@ public class StartECLSessionMsg extends ReplicationMsg
     try
     {
       byte[] byteMode = toBytes(eclRequestType);
-      byte[] byteSequenceNumber = toBytes(firstDraftChangeNumber);
-      byte[] byteStopSequenceNumber = toBytes(lastDraftChangeNumber);
+      byte[] byteChangeNumber = toBytes(firstChangeNumber);
+      byte[] byteStopChangeNumber = toBytes(lastChangeNumber);
       byte[] byteCSN = csn.toString().getBytes("UTF-8");
       byte[] bytePsearch = toBytes(isPersistent);
       byte[] byteGeneralizedState = toBytes(crossDomainServerState);
@@ -237,8 +235,8 @@ public class StartECLSessionMsg extends ReplicationMsg
 
       int length =
         byteMode.length + 1 +
-        byteSequenceNumber.length + 1 +
-        byteStopSequenceNumber.length + 1 +
+        byteChangeNumber.length + 1 +
+        byteStopChangeNumber.length + 1 +
         byteCSN.length + 1 +
         bytePsearch.length + 1 +
         byteGeneralizedState.length + 1 +
@@ -250,8 +248,8 @@ public class StartECLSessionMsg extends ReplicationMsg
       int pos = 0;
       resultByteArray[pos++] = MSG_TYPE_START_ECL_SESSION;
       pos = addByteArray(byteMode, resultByteArray, pos);
-      pos = addByteArray(byteSequenceNumber, resultByteArray, pos);
-      pos = addByteArray(byteStopSequenceNumber, resultByteArray, pos);
+      pos = addByteArray(byteChangeNumber, resultByteArray, pos);
+      pos = addByteArray(byteStopChangeNumber, resultByteArray, pos);
       pos = addByteArray(byteCSN, resultByteArray, pos);
       pos = addByteArray(bytePsearch, resultByteArray, pos);
       pos = addByteArray(byteGeneralizedState, resultByteArray, pos);
@@ -284,9 +282,9 @@ public class StartECLSessionMsg extends ReplicationMsg
     return getClass().getCanonicalName() + " [" +
             " requestType="+ eclRequestType +
             " persistentSearch="       + isPersistent +
-            " csn=" + csn +
-            " firstDraftChangeNumber=" + firstDraftChangeNumber +
-            " lastDraftChangeNumber="  + lastDraftChangeNumber +
+            " csn="                    + csn +
+            " firstChangeNumber="      + firstChangeNumber +
+            " lastChangeNumber="       + lastChangeNumber +
             " generalizedState="       + crossDomainServerState +
             " operationId="            + operationId +
             " excludedDNs="            + excludedBaseDNs + "]";
@@ -296,36 +294,36 @@ public class StartECLSessionMsg extends ReplicationMsg
    * Getter on the changer number start.
    * @return the changer number start.
    */
-  public int getFirstDraftChangeNumber()
+  public int getFirstChangeNumber()
   {
-    return firstDraftChangeNumber;
+    return firstChangeNumber;
   }
 
   /**
    * Getter on the changer number stop.
    * @return the change number stop.
    */
-  public int getLastDraftChangeNumber()
+  public int getLastChangeNumber()
   {
-    return lastDraftChangeNumber;
+    return lastChangeNumber;
   }
 
   /**
    * Setter on the first changer number (as defined by [CHANGELOG]).
-   * @param firstDraftChangeNumber the provided first change number.
+   * @param firstChangeNumber the provided first change number.
    */
-  public void setFirstDraftChangeNumber(int firstDraftChangeNumber)
+  public void setFirstChangeNumber(int firstChangeNumber)
   {
-    this.firstDraftChangeNumber = firstDraftChangeNumber;
+    this.firstChangeNumber = firstChangeNumber;
   }
 
   /**
    * Setter on the last changer number (as defined by [CHANGELOG]).
-   * @param lastDraftChangeNumber the provided last change number.
+   * @param lastChangeNumber the provided last change number.
    */
-  public void setLastDraftChangeNumber(int lastDraftChangeNumber)
+  public void setLastChangeNumber(int lastChangeNumber)
   {
-    this.lastDraftChangeNumber = lastDraftChangeNumber;
+    this.lastChangeNumber = lastChangeNumber;
   }
 
   /**

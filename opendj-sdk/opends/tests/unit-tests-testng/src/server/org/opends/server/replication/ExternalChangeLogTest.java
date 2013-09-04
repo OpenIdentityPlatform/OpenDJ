@@ -211,7 +211,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
     ECLCompatNoControl(1);
 
-    // Write additional changes and read ECL from a provided draft change number
+    // Write additional changes and read ECL from a provided change number
     ECLCompatWriteReadAllOps(5);
     replicationServer.clearDb();
   }
@@ -352,7 +352,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
   @Test(enabled=true, groups="slow", dependsOnMethods = { "ECLReplicationServerTest"})
   public void ECLReplicationServerFullTest14() throws Exception
   {
-    // Request from an invalid draft change number
+    // Request from an invalid change number
     ECLCompatBadSeqnum();
   }
 
@@ -362,7 +362,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     // Write 4 changes and read ECL from start
     ECLCompatWriteReadAllOps(1);
 
-    // Write 4 additional changes and read ECL from a provided draft change number
+    // Write 4 additional changes and read ECL from a provided change number
     int ts = ECLCompatWriteReadAllOps(5);
 
     // Test request from a provided change number - read 6
@@ -371,10 +371,10 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     // Test request from a provided change number interval - read 5-7
     ECLCompatReadFromTo(5,7);
 
-    // Test first and last draft changenumber
+    // Test first and last change number
     ECLCompatTestLimits(1,8, true);
 
-    // Test first and last draft changenumber, a dd a new change, do not
+    // Test first and last change number, a dd a new change, do not
     // search again the ECL, but search for first and last
     ECLCompatTestLimitsAndAdd(1,8, ts);
 
@@ -2327,10 +2327,10 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     debugInfo(tn, "Ending test successfully");
   }
 
-  private int ECLCompatWriteReadAllOps(int firstDraftChangeNumber)
+  private int ECLCompatWriteReadAllOps(int firstChangeNumber)
       throws Exception
   {
-    String tn = "ECLCompatWriteReadAllOps/" + firstDraftChangeNumber;
+    String tn = "ECLCompatWriteReadAllOps/" + firstChangeNumber;
     debugInfo(tn, "Starting test\n\n");
     final int nbChanges = 4;
 
@@ -2397,17 +2397,19 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       InternalSearchOperation searchOp = searchOnChangelog(filter, tn, SUCCESS);
 
       // test 4 entries returned
-      assertEntries(searchOp.getSearchEntries(), firstDraftChangeNumber, tn,
+      assertEntries(searchOp.getSearchEntries(), firstChangeNumber, tn,
           ldifWriter, user1entryUUID, csns[0], gblCSN, csns[2], csns[3]);
 
       stop(server01);
 
-      // Test with filter on draft changenumber
-      filter = "(&(targetdn=*"+tn.toLowerCase()+"*,o=test)(&(changenumber>="+
-          firstDraftChangeNumber+")(changenumber<="+(firstDraftChangeNumber+3)+")))";
+      // Test with filter on change number
+      filter =
+          "(&(targetdn=*" + tn.toLowerCase() + "*,o=test)" +
+          		"(&(changenumber>=" + firstChangeNumber + ")" +
+          				"(changenumber<=" + (firstChangeNumber + 3) + ")))";
       searchOp = searchOnChangelog(filter, tn, SUCCESS);
 
-      assertEntries(searchOp.getSearchEntries(), firstDraftChangeNumber, tn,
+      assertEntries(searchOp.getSearchEntries(), firstChangeNumber, tn,
           ldifWriter, user1entryUUID, csns[0], gblCSN, csns[2], csns[3]);
       assertEquals(searchOp.getSearchEntries().size(), nbChanges);
     }
@@ -2416,7 +2418,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
   }
 
   private void assertEntries(List<SearchResultEntry> entries,
-      int firstDraftChangeNumber, String tn, LDIFWriter ldifWriter,
+      int firstChangeNumber, String tn, LDIFWriter ldifWriter,
       String user1entryUUID, CSN... csns) throws Exception
   {
     debugAndWriteEntries(ldifWriter, entries, tn);
@@ -2427,8 +2429,8 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     {
       i++;
 
-      assertDnEquals(resultEntry, firstDraftChangeNumber, i - 1);
-      checkValue(resultEntry, "changenumber", String.valueOf(firstDraftChangeNumber + i - 1));
+      assertDnEquals(resultEntry, firstChangeNumber, i - 1);
+      checkValue(resultEntry, "changenumber", String.valueOf(firstChangeNumber + i - 1));
       checkValue(resultEntry, "targetentryuuid", user1entryUUID);
       checkValue(resultEntry, "replicaidentifier", String.valueOf(SERVER_ID_1));
       final CSN csn = csns[i - 1];
@@ -2467,16 +2469,16 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     }
   }
 
-  private void assertDnEquals(SearchResultEntry resultEntry, int draftCN, int i)
+  private void assertDnEquals(SearchResultEntry resultEntry, int changeNumber, int i)
   {
     String actualDN = resultEntry.getDN().toNormalizedString();
-    String expectedDN = "changenumber=" + (draftCN + i) + ",cn=changelog";
+    String expectedDN = "changenumber=" + (changeNumber + i) + ",cn=changelog";
     assertThat(actualDN).isEqualToIgnoringCase(expectedDN);
   }
 
-  private void ECLCompatReadFrom(int firstDraftChangeNumber) throws Exception
+  private void ECLCompatReadFrom(int firstChangeNumber) throws Exception
   {
-    String tn = "ECLCompatReadFrom/" + firstDraftChangeNumber;
+    String tn = "ECLCompatReadFrom/" + firstChangeNumber;
     debugInfo(tn, "Starting test\n\n");
 
     LDIFWriter ldifWriter = getLDIFWriter();
@@ -2488,7 +2490,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
     String user1entryUUID = "11111111-1112-1113-1114-111111111115";
 
-    String filter = "(changenumber=" + firstDraftChangeNumber + ")";
+    String filter = "(changenumber=" + firstChangeNumber + ")";
     InternalSearchOperation searchOp = searchOnChangelog(filter, tn, SUCCESS);
 
     List<SearchResultEntry> entries = searchOp.getSearchEntries();
@@ -2514,9 +2516,9 @@ public class ExternalChangeLogTest extends ReplicationTestCase
    * Process similar search as but only check that there's no control returned
    * as part of the entry.
    */
-  private void ECLCompatNoControl(int firstDraftChangeNumber) throws Exception
+  private void ECLCompatNoControl(int firstChangeNumber) throws Exception
   {
-    String tn = "ECLCompatNoControl/" + firstDraftChangeNumber;
+    String tn = "ECLCompatNoControl/" + firstChangeNumber;
     debugInfo(tn, "Starting test\n\n");
 
     // Creates broker on o=test
@@ -2524,7 +2526,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
         openReplicationSession(DN.decode(TEST_ROOT_DN_STRING), SERVER_ID_1, 100,
             replicationServerPort, brokerSessionTimeout, true);
 
-    String filter = "(changenumber=" + firstDraftChangeNumber + ")";
+    String filter = "(changenumber=" + firstChangeNumber + ")";
     InternalSearchOperation searchOp = searchOnChangelog(filter, tn, SUCCESS);
 
     List<SearchResultEntry> entries = searchOp.getSearchEntries();
@@ -2539,30 +2541,29 @@ public class ExternalChangeLogTest extends ReplicationTestCase
   }
 
   /**
-   * Read the ECL in compat mode from firstDraftChangeNumber and to
-   * lastDraftChangeNumber.
+   * Read the ECL in compat mode from firstChangeNumber and to lastChangeNumber.
    *
-   * @param firstDraftChangeNumber the lower limit
-   * @param lastDraftChangeNumber  the higher limit
+   * @param firstChangeNumber
+   *          the lower limit
+   * @param lastChangeNumber
+   *          the higher limit
    */
-  private void ECLCompatReadFromTo(int firstDraftChangeNumber,
-      int lastDraftChangeNumber) throws Exception
+  private void ECLCompatReadFromTo(int firstChangeNumber, int lastChangeNumber) throws Exception
   {
-    String tn = "ECLCompatReadFromTo/" + firstDraftChangeNumber + "/" + lastDraftChangeNumber;
+    String tn = "ECLCompatReadFromTo/" + firstChangeNumber + "/" + lastChangeNumber;
     debugInfo(tn, "Starting test\n\n");
 
-    String filter = "(&(changenumber>=" + firstDraftChangeNumber + ")" +
-        "(changenumber<="+ lastDraftChangeNumber + "))";
+    String filter =
+        "(&(changenumber>=" + firstChangeNumber + ")" + "(changenumber<=" + lastChangeNumber + "))";
     InternalSearchOperation searchOp = searchOnChangelog(filter, tn, SUCCESS);
-    assertEquals(searchOp.getSearchEntries().size(),
-        lastDraftChangeNumber - firstDraftChangeNumber + 1);
+    assertEquals(searchOp.getSearchEntries().size(), lastChangeNumber - firstChangeNumber + 1);
     debugAndWriteEntries(null, searchOp.getSearchEntries(), tn);
 
     debugInfo(tn, "Ending test with success");
   }
 
   /**
-   * Read the ECL in compat mode providing an unknown draft changenumber.
+   * Read the ECL in compat mode providing an unknown change number.
    */
   private void ECLCompatBadSeqnum() throws Exception
   {
@@ -2577,7 +2578,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
   }
 
   /**
-   * Read the ECL in compat mode providing an unknown draft changenumber.
+   * Read the ECL in compat mode providing an unknown change number.
    */
   private void ECLFilterOnReplicationCsn() throws Exception
   {
@@ -2603,9 +2604,8 @@ public class ExternalChangeLogTest extends ReplicationTestCase
   }
 
   /**
-   * Test that different values of filter are correctly decoded
-   * to find if the search op on the ECL can be optimized
-   * regarding the Draft changenumbers.
+   * Test that different values of filter are correctly decoded to find if the
+   * search op on the ECL can be optimized regarding the change numbers.
    */
   private void ECLFilterTest() throws Exception
   {
@@ -2624,7 +2624,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
         final StartECLSessionMsg startCLmsg = new StartECLSessionMsg();
         ECLSearchOperation.evaluateSearchParameters(startCLmsg,
             baseDN, SearchFilter.createFilterFromString("(&(changenumber>=2)(changenumber<+5))"));
-        assertEquals(startCLmsg.getFirstDraftChangeNumber(), 1);
+        assertEquals(startCLmsg.getFirstChangeNumber(), 1);
       }
       catch (DirectoryException expected)
       {
@@ -2659,13 +2659,13 @@ public class ExternalChangeLogTest extends ReplicationTestCase
   }
 
   private StartECLSessionMsg evaluateSearchParameters(DN baseDN,
-      int firstDraftCN, int lastDraftCN, String filterString) throws Exception
+      int firstChangeNumber, int lastChangeNumber, String filterString) throws Exception
   {
     final StartECLSessionMsg startCLmsg = new StartECLSessionMsg();
     ECLSearchOperation.evaluateSearchParameters(startCLmsg, baseDN,
         SearchFilter.createFilterFromString(filterString));
-    assertEquals(startCLmsg.getFirstDraftChangeNumber(), firstDraftCN);
-    assertEquals(startCLmsg.getLastDraftChangeNumber(), lastDraftCN);
+    assertEquals(startCLmsg.getFirstChangeNumber(), firstChangeNumber);
+    assertEquals(startCLmsg.getLastChangeNumber(), lastChangeNumber);
     return startCLmsg;
   }
 
@@ -2924,9 +2924,9 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       ReplicationServer rs = eclwe.getReplicationServer();
       rs.disableEligibility(excludedDomains);
       long t1 = TimeThread.getTime();
-      int[] limitss = replicationServer.getECLDraftCNLimits(
+      int[] limits = replicationServer.getECLChangeNumberLimits(
           replicationServer.getEligibleCSN(), excludedDomains);
-      assertEquals(limitss[1], maxMsg);
+      assertEquals(limits[1], maxMsg);
       long t2 = TimeThread.getTime();
       debugInfo(tn, "Perfs - " + maxMsg + " counted in (ms):" + (t2 - t1));
 
