@@ -52,7 +52,7 @@ import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.common.*;
 import org.opends.server.replication.plugin.MultimasterReplication;
 import org.opends.server.replication.protocol.*;
-import org.opends.server.replication.server.changelog.api.ChangelogDB;
+import org.opends.server.replication.server.changelog.api.ChangeNumberIndexDB;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.je.DbHandler;
 import org.opends.server.replication.server.changelog.je.DraftCNDbHandler;
@@ -146,21 +146,21 @@ public final class ReplicationServer
 
   /**
    * The handler of the changelog database, the database stores the relation
-   * between a draft change number ('seqnum') and the associated cookie.
+   * between a change number and the associated cookie.
    * <p>
-   * Guarded by changelogDBLock
+   * Guarded by cnIndexDBLock
    */
-  private ChangelogDB changelogDB;
+  private ChangeNumberIndexDB cnIndexDB;
 
   /**
    * The last value generated of the draft change number.
    * <p>
-   * Guarded by changelogDBLock
+   * Guarded by cnIndexDBLock
    **/
   private int lastGeneratedDraftCN = 0;
 
-  /** Used for protecting changelogDB related state. */
-  private final Object changelogDBLock = new Object();
+  /** Used for protecting {@link ChangeNumberIndexDB} related state. */
+  private final Object cnIndexDBLock = new Object();
 
   /**
    * The tracer object for the debug logger.
@@ -705,11 +705,11 @@ public final class ReplicationServer
       eclwe.finalizeWorkflowElement();
     }
 
-    synchronized (changelogDBLock)
+    synchronized (cnIndexDBLock)
     {
-      if (changelogDB != null)
+      if (cnIndexDB != null)
       {
-        changelogDB.shutdown();
+        cnIndexDB.shutdown();
       }
     }
   }
@@ -830,7 +830,7 @@ public final class ReplicationServer
       listenThread.interrupt();
     }
 
-    // shutdown all the ChangelogCaches
+    // shutdown all the replication domains
     for (ReplicationServerDomain domain : getReplicationServerDomains())
     {
       domain.shutdown();
@@ -890,13 +890,13 @@ public final class ReplicationServer
       }
     }
 
-    synchronized (changelogDBLock)
+    synchronized (cnIndexDBLock)
     {
-      if (changelogDB != null)
+      if (cnIndexDB != null)
       {
         try
         {
-          changelogDB.clear(baseDn);
+          cnIndexDB.clear(baseDn);
         }
         catch (Exception ignored)
         {
@@ -908,7 +908,7 @@ public final class ReplicationServer
 
         try
         {
-          lastGeneratedDraftCN = changelogDB.getLastDraftCN();
+          lastGeneratedDraftCN = cnIndexDB.getLastDraftCN();
         }
         catch (Exception ignored)
         {
@@ -1369,13 +1369,13 @@ public final class ReplicationServer
       rsd.clearDbs();
     }
 
-    synchronized (changelogDBLock)
+    synchronized (cnIndexDBLock)
     {
-      if (changelogDB != null)
+      if (cnIndexDB != null)
       {
         try
         {
-          changelogDB.clear();
+          cnIndexDB.clear();
         }
         catch (Exception ignored)
         {
@@ -1387,7 +1387,7 @@ public final class ReplicationServer
 
         try
         {
-          changelogDB.shutdown();
+          cnIndexDB.shutdown();
         }
         catch (Exception ignored)
         {
@@ -1398,7 +1398,7 @@ public final class ReplicationServer
         }
 
         lastGeneratedDraftCN = 0;
-        changelogDB = null;
+        cnIndexDB = null;
       }
     }
   }
@@ -1623,24 +1623,25 @@ public final class ReplicationServer
   }
 
   /**
-   * Get (or create) a handler on the ChangelogDB for external changelog.
+   * Get (or create) a handler on the {@link ChangeNumberIndexDB} for external
+   * changelog.
    *
    * @return the handler.
    * @throws DirectoryException
    *           when needed.
    */
-  public ChangelogDB getChangelogDB() throws DirectoryException
+  public ChangeNumberIndexDB getChangeNumberIndexDB() throws DirectoryException
   {
-    synchronized (changelogDBLock)
+    synchronized (cnIndexDBLock)
     {
       try
       {
-        if (changelogDB == null)
+        if (cnIndexDB == null)
         {
-          changelogDB = new DraftCNDbHandler(this, this.dbEnv);
+          cnIndexDB = new DraftCNDbHandler(this, this.dbEnv);
           lastGeneratedDraftCN = getLastDraftChangeNumber();
         }
-        return changelogDB;
+        return cnIndexDB;
       }
       catch (Exception e)
       {
@@ -1658,11 +1659,11 @@ public final class ReplicationServer
    */
   public int getFirstDraftChangeNumber()
   {
-    synchronized (changelogDBLock)
+    synchronized (cnIndexDBLock)
     {
-      if (changelogDB != null)
+      if (cnIndexDB != null)
       {
-        return changelogDB.getFirstDraftCN();
+        return cnIndexDB.getFirstDraftCN();
       }
       return 0;
     }
@@ -1674,11 +1675,11 @@ public final class ReplicationServer
    */
   public int getLastDraftChangeNumber()
   {
-    synchronized (changelogDBLock)
+    synchronized (cnIndexDBLock)
     {
-      if (changelogDB != null)
+      if (cnIndexDB != null)
       {
-        return changelogDB.getLastDraftCN();
+        return cnIndexDB.getLastDraftCN();
       }
       return 0;
     }
@@ -1690,7 +1691,7 @@ public final class ReplicationServer
    */
   public int getNewDraftCN()
   {
-    synchronized (changelogDBLock)
+    synchronized (cnIndexDBLock)
     {
       return ++lastGeneratedDraftCN;
     }
@@ -1730,10 +1731,9 @@ public final class ReplicationServer
 
     int lastDraftCN;
     boolean dbEmpty = false;
-    long newestDate = 0;
-    final ChangelogDB changelogDB = getChangelogDB();
+    final ChangeNumberIndexDB cnIndexDB = getChangeNumberIndexDB();
 
-    int firstDraftCN = changelogDB.getFirstDraftCN();
+    int firstDraftCN = cnIndexDB.getFirstDraftCN();
     Map<String,ServerState> domainsServerStateForLastSeqnum = null;
     CSN csnForLastSeqnum = null;
     String domainForLastSeqnum = null;
@@ -1745,11 +1745,11 @@ public final class ReplicationServer
     }
     else
     {
-      lastDraftCN = changelogDB.getLastDraftCN();
+      lastDraftCN = cnIndexDB.getLastDraftCN();
 
       // Get the generalized state associated with the current last DraftCN
       // and initializes from it the startStates table
-      String lastSeqnumGenState = changelogDB.getPreviousCookie(lastDraftCN);
+      String lastSeqnumGenState = cnIndexDB.getPreviousCookie(lastDraftCN);
       if ((lastSeqnumGenState != null) && (lastSeqnumGenState.length()>0))
       {
         domainsServerStateForLastSeqnum = MultiDomainServerState.
@@ -1757,13 +1757,13 @@ public final class ReplicationServer
       }
 
       // Get the CSN associated with the current last DraftCN
-      csnForLastSeqnum = changelogDB.getCSN(lastDraftCN);
+      csnForLastSeqnum = cnIndexDB.getCSN(lastDraftCN);
 
       // Get the domain associated with the current last DraftCN
-      domainForLastSeqnum = changelogDB.getBaseDN(lastDraftCN);
+      domainForLastSeqnum = cnIndexDB.getBaseDN(lastDraftCN);
     }
 
-    // Domain by domain
+    long newestDate = 0;
     for (ReplicationServerDomain rsd : getReplicationServerDomains())
     {
       if (contains(excludedBaseDNs, rsd.getBaseDn()))
@@ -1810,6 +1810,7 @@ public final class ReplicationServer
       if ((ec>0) && (firstDraftCN==0))
         firstDraftCN = 1;
     }
+
     if (dbEmpty)
     {
       // The database was empty, just keep increasing numbers since last time

@@ -44,9 +44,7 @@ import org.opends.server.replication.common.MultiDomainServerState;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.server.ReplicationServerDomain;
-import org.opends.server.replication.server.changelog.api.ChangelogDB;
-import org.opends.server.replication.server.changelog.api.ChangelogDBIterator;
-import org.opends.server.replication.server.changelog.api.ChangelogException;
+import org.opends.server.replication.server.changelog.api.*;
 import org.opends.server.replication.server.changelog.je.DraftCNDB.*;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.Attributes;
@@ -62,13 +60,13 @@ import static org.opends.server.util.StaticUtils.*;
  * server in the topology.
  * It is responsible for efficiently saving the updates that is received from
  * each master server into stable storage.
- * This class is also able to generate a {@link ChangelogDBIterator} that can be
- * used to read all changes from a given draft ChangeNumber.
+ * This class is also able to generate a {@link ChangeNumberIndexDBCursor} that
+ * can be used to read all changes from a given draft ChangeNumber.
  * <p>
  * This class publishes some monitoring information below <code>
  * cn=monitor</code>.
  */
-public class DraftCNDbHandler implements ChangelogDB
+public class DraftCNDbHandler implements ChangeNumberIndexDB
 {
   /**
    * The tracer object for the debug logger.
@@ -217,7 +215,7 @@ public class DraftCNDbHandler implements ChangelogDB
 
   /** {@inheritDoc} */
   @Override
-  public ChangelogDBIterator generateIterator(int startDraftCN)
+  public ChangeNumberIndexDBCursor getCursorFrom(int startDraftCN)
       throws ChangelogException
   {
     return new DraftCNDbIterator(db, startDraftCN);

@@ -35,7 +35,7 @@ import org.opends.server.replication.common.CSN;
  * ChangelogDBIterator must be closed to release all the resources into the
  * database.
  */
-public interface ChangelogDBIterator extends Closeable
+public interface ChangeNumberIndexDBCursor extends Closeable
 {
 
   /**

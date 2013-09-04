@@ -29,13 +29,18 @@ package org.opends.server.replication.server.changelog.api;
 import org.opends.server.replication.common.CSN;
 
 /**
- * This class stores the changelog information into a database.
+ * This class stores an index of all the changes seen by this server. The index
+ * is sorted by a global ordering as defined in the CSN class. The index links a
+ * <code>changeNumber</code> to the corresponding {@link CSN}. The {@link CSN}
+ * then links to a corresponding change in one of the {@link ReplicaDB}s.
  *
  * @see <a href=
  * "https://wikis.forgerock.org/confluence/display/OPENDJ/OpenDJ+Domain+Names"
  * >OpenDJ Domain Names</a> for more information about the changelog.
+ * @see <a href= "http://tools.ietf.org/html/draft-good-ldap-changelog-04"
+ * >OpenDJ Domain Names</a> for more information about the changeNumber.
  */
-public interface ChangelogDB extends Runnable
+public interface ChangeNumberIndexDB extends Runnable
 {
 
   /**
@@ -98,9 +103,9 @@ public interface ChangelogDB extends Runnable
   void add(int draftCN, String previousCookie, String baseDN, CSN csn);
 
   /**
-   * Generate a new {@link ChangelogDBIterator} that allows to browse the db
-   * managed by this dbHandler and starting at the position defined by a given
-   * changeNumber.
+   * Generate a new {@link ChangeNumberIndexDBCursor} that allows to browse the
+   * db managed by this dbHandler and starting at the position defined by a
+   * given changeNumber.
    *
    * @param startDraftCN
    *          The position where the iterator must start.
@@ -110,7 +115,7 @@ public interface ChangelogDB extends Runnable
    * @throws ChangelogException
    *           if a database problem happened.
    */
-  ChangelogDBIterator generateIterator(int startDraftCN)
+  ChangeNumberIndexDBCursor getCursorFrom(int startDraftCN)
       throws ChangelogException;
 
   /**
