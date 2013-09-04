@@ -33,6 +33,9 @@ import org.opends.server.replication.protocol.UpdateMsg;
 /**
  * This cursor allows to iterate through the changes received from a given
  * replica (Directory Server) in the topology.
+ * <p>
+ * Instances of this class are sorted in the order defined by the CSN of the
+ * current {@link UpdateMsg}, i.e. the cursor with the oldest CSN comes first.
  */
 public interface ReplicaDBCursor extends Closeable, Comparable<ReplicaDBCursor>
 {

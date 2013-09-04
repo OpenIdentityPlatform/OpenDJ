@@ -516,18 +516,13 @@ public class DraftCNDbHandler implements ChangeNumberIndexDB, Runnable
 
   /** {@inheritDoc} */
   @Override
-  public String getPreviousCookie(long changeNumber)
+  public String getPreviousCookie(long changeNumber) throws ChangelogException
   {
     DraftCNDBCursor cursor = null;
     try
     {
       cursor = db.openReadCursor(changeNumber);
       return cursor.currentValue();
-    }
-    catch(Exception e)
-    {
-      debugException("getValue", changeNumber, e);
-      return null;
     }
     finally
     {
@@ -537,7 +532,7 @@ public class DraftCNDbHandler implements ChangeNumberIndexDB, Runnable
 
   /** {@inheritDoc} */
   @Override
-  public CSN getCSN(long changeNumber)
+  public CSN getCSN(long changeNumber) throws ChangelogException
   {
     DraftCNDBCursor cursor = null;
     try
@@ -545,20 +540,15 @@ public class DraftCNDbHandler implements ChangeNumberIndexDB, Runnable
       cursor = db.openReadCursor(changeNumber);
       return cursor.currentCSN();
     }
-    catch(Exception e)
-    {
-      debugException("getCSN", changeNumber, e);
-      return null;
-    }
     finally
     {
       close(cursor);
     }
   }
 
-  /**{@inheritDoc}*/
+  /** {@inheritDoc} */
   @Override
-  public String getBaseDN(long changeNumber)
+  public String getBaseDN(long changeNumber) throws ChangelogException
   {
     DraftCNDBCursor cursor = null;
     try
@@ -566,25 +556,9 @@ public class DraftCNDbHandler implements ChangeNumberIndexDB, Runnable
       cursor = db.openReadCursor(changeNumber);
       return cursor.currentBaseDN();
     }
-    catch(Exception e)
-    {
-      debugException("getBaseDN", changeNumber, e);
-      return null;
-    }
     finally
     {
       close(cursor);
     }
-  }
-
-  private void debugException(String methodName, long changeNumber, Exception e)
-  {
-    if (debugEnabled())
-      TRACER.debugInfo("In DraftCNDbHandler." + methodName + "(), read: "
-          + " key=" + changeNumber + " value returned is null"
-          + " first="+ db.readFirstChangeNumber()
-          + " last=" + db.readLastChangeNumber()
-          + " count=" + db.count()
-          + " exception " + e + " " + e.getMessage());
   }
 }
