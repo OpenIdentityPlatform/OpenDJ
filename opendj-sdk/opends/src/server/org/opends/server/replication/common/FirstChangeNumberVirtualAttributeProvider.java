@@ -27,9 +27,6 @@
  */
 package org.opends.server.replication.common;
 
-import static org.opends.messages.ExtensionMessages.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -48,7 +45,8 @@ import org.opends.server.types.*;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.workflowelement.externalchangelog.ECLWorkflowElement;
 
-
+import static org.opends.messages.ExtensionMessages.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
 
 /**
  * This class implements a virtual attribute provider that allows administrators
@@ -61,7 +59,7 @@ public class FirstChangeNumberVirtualAttributeProvider
        extends VirtualAttributeProvider<UserDefinedVirtualAttributeCfg>
        implements ConfigurationChangeListener<UserDefinedVirtualAttributeCfg>
 {
-  // The tracer object for the debug logger.
+  /** The tracer object for the debug logger. */
   private static final DebugTracer TRACER = getTracer();
 
   /**
@@ -128,7 +126,7 @@ public class FirstChangeNumberVirtualAttributeProvider
   @Override()
   public Set<AttributeValue> getValues(Entry entry,VirtualAttributeRule rule)
   {
-    String first="0";
+    String first = "0";
     try
     {
       ECLWorkflowElement eclwe = (ECLWorkflowElement)
@@ -142,7 +140,7 @@ public class FirstChangeNumberVirtualAttributeProvider
 
         ReplicationServer rs = eclwe.getReplicationServer();
         rs.disableEligibility(excludedDomains);
-        int[] limits = rs.getECLChangeNumberLimits(
+        long[] limits = rs.getECLChangeNumberLimits(
             rs.getEligibleCSN(), excludedDomains);
 
         first = String.valueOf(limits[0]);

@@ -42,16 +42,14 @@ public class ReplicationDraftCNKey extends DatabaseEntry
    * Creates a new ReplicationKey from the given change number.
    * @param changeNumber The change number to use.
    */
-  public ReplicationDraftCNKey(int changeNumber)
+  public ReplicationDraftCNKey(long changeNumber)
   {
     try
     {
-      String s = String.valueOf(changeNumber);
-      int a = 16-s.length();
-      String sscn = "0000000000000000".substring(0, a) + s;
       // Should it use StaticUtils.getBytes() to increase performances?
-      setData(sscn.getBytes("UTF-8"));
-    } catch (UnsupportedEncodingException e)
+      setData(String.format("%016d", changeNumber).getBytes("UTF-8"));
+    }
+    catch (UnsupportedEncodingException e)
     {
       // Should never happens, UTF-8 is always supported
       // TODO : add better logging
@@ -60,10 +58,11 @@ public class ReplicationDraftCNKey extends DatabaseEntry
 
   /**
    * Getter for the change number associated with this key.
+   *
    * @return the change number associated with this key.
    */
-  public int getChangeNumber()
+  public long getChangeNumber()
   {
-    return Integer.valueOf(new String(getData()));
+    return Long.valueOf(new String(getData()));
   }
 }

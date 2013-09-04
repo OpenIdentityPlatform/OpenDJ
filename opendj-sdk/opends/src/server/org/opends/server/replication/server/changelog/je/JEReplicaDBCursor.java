@@ -160,4 +160,14 @@ public class JEReplicaDBCursor implements ReplicaDBCursor
   {
     close();
   }
+
+  /** {@inheritDoc} */
+  @Override
+  public int compareTo(ReplicaDBCursor o)
+  {
+    final CSN csn1 = getChange().getCSN();
+    final CSN csn2 = o.getChange().getCSN();
+
+    return CSN.compare(csn1, csn2);
+  }
 }

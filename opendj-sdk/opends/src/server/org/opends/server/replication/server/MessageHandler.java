@@ -39,7 +39,7 @@ import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.protocol.UpdateMsg;
-import org.opends.server.replication.server.changelog.api.*;
+import org.opends.server.replication.server.changelog.api.ReplicaDBCursor;
 import org.opends.server.types.*;
 
 import static org.opends.messages.ReplicationMessages.*;
@@ -497,7 +497,7 @@ public class MessageHandler extends MonitorProvider<MonitorProviderCfg>
   private NavigableSet<ReplicaDBCursor> collectAllCursorsWithChanges()
   {
     final NavigableSet<ReplicaDBCursor> results =
-        new TreeSet<ReplicaDBCursor>(new ReplicaDBCursorComparator());
+        new TreeSet<ReplicaDBCursor>();
     for (int serverId : replicationServerDomain.getServerIds())
     {
       // get the last already sent CN from that server to get a cursor

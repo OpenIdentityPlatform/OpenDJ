@@ -40,7 +40,7 @@ import org.opends.server.replication.common.CSN;
  * @see <a href= "http://tools.ietf.org/html/draft-good-ldap-changelog-04"
  * >OpenDJ Domain Names</a> for more information about the changeNumber.
  */
-public interface ChangeNumberIndexDB extends Runnable
+public interface ChangeNumberIndexDB
 {
 
   /**
@@ -50,7 +50,7 @@ public interface ChangeNumberIndexDB extends Runnable
    *          the provided change number.
    * @return the associated CSN, null when none.
    */
-  public CSN getCSN(int changeNumber);
+  public CSN getCSN(long changeNumber);
 
   /**
    * Get the baseDN associated to a provided change number.
@@ -59,7 +59,7 @@ public interface ChangeNumberIndexDB extends Runnable
    *          the provided change number.
    * @return the baseDN, null when none.
    */
-  public String getBaseDN(int changeNumber);
+  public String getBaseDN(long changeNumber);
 
   /**
    * Get the previous cookie associated to a provided change number.
@@ -68,21 +68,21 @@ public interface ChangeNumberIndexDB extends Runnable
    *          the provided change number.
    * @return the previous cookie, null when none.
    */
-  String getPreviousCookie(int changeNumber);
+  String getPreviousCookie(long changeNumber);
 
   /**
    * Get the first change number stored in this DB.
    *
    * @return Returns the first change number in this DB.
    */
-  int getFirstChangeNumber();
+  long getFirstChangeNumber();
 
   /**
    * Get the last change number stored in this DB.
    *
    * @return Returns the last change number in this DB
    */
-  int getLastChangeNumber();
+  long getLastChangeNumber();
 
   /**
    * Add an update to the list of messages that must be saved to this DB managed
@@ -100,7 +100,7 @@ public interface ChangeNumberIndexDB extends Runnable
    * @param csn
    *          The associated replication CSN.
    */
-  void add(int changeNumber, String previousCookie, String baseDN, CSN csn);
+  void add(long changeNumber, String previousCookie, String baseDN, CSN csn);
 
   /**
    * Generate a new {@link ChangeNumberIndexDBCursor} that allows to browse the
@@ -115,7 +115,7 @@ public interface ChangeNumberIndexDB extends Runnable
    * @throws ChangelogException
    *           if a database problem happened.
    */
-  ChangeNumberIndexDBCursor getCursorFrom(int startChangeNumber)
+  ChangeNumberIndexDBCursor getCursorFrom(long startChangeNumber)
       throws ChangelogException;
 
   /**

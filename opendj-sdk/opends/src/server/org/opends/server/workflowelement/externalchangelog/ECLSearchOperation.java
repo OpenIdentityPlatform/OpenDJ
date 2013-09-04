@@ -1007,7 +1007,7 @@ public class ECLSearchOperation
       String clearLDIFchanges,
       String targetUUID,
       List<RawAttribute> includedAttributes,
-      int changenumber,
+      long changenumber,
       String changetype,
       String changeInitiatorsName)
   throws DirectoryException

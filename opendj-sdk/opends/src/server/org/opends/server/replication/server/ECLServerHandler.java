@@ -581,7 +581,7 @@ public final class ECLServerHandler extends ServerHandler
         return null;
       }
 
-      final int firstChangeNumber = cnIndexDB.getFirstChangeNumber();
+      final long firstChangeNumber = cnIndexDB.getFirstChangeNumber();
       final String crossDomainStartState =
           cnIndexDB.getPreviousCookie(firstChangeNumber);
       cnIndexDBCursor = cnIndexDB.getCursorFrom(firstChangeNumber);
@@ -606,10 +606,10 @@ public final class ECLServerHandler extends ServerHandler
      * Get the draftLimits (from the eligibleCSN got at the beginning of the
      * operation) in order to have the first and possible last change number.
      */
-    final int[] limits = replicationServer.getECLChangeNumberLimits(
+    final long[] limits = replicationServer.getECLChangeNumberLimits(
         eligibleCSN, excludedBaseDNs);
-    final int firstChangeNumber = limits[0];
-    final int lastChangeNumber = limits[1];
+    final long firstChangeNumber = limits[0];
+    final long lastChangeNumber = limits[1];
 
     // If the startChangeNumber provided is lower than the firstChangeNumber in
     // the DB, let's use the lower limit.
@@ -636,7 +636,7 @@ public final class ECLServerHandler extends ServerHandler
         return null;
       }
 
-      final int lastKey = cnIndexDB.getLastChangeNumber();
+      final long lastKey = cnIndexDB.getLastChangeNumber();
       crossDomainStartState = cnIndexDB.getPreviousCookie(lastKey);
       cnIndexDBCursor = cnIndexDB.getCursorFrom(lastKey);
       return crossDomainStartState;

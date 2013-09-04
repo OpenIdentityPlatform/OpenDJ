@@ -65,7 +65,7 @@ import static org.opends.server.util.StaticUtils.*;
  * This class publishes some monitoring information below <code>
  * cn=monitor</code>.
  */
-public class DraftCNDbHandler implements ChangeNumberIndexDB
+public class DraftCNDbHandler implements ChangeNumberIndexDB, Runnable
 {
   /**
    * The tracer object for the debug logger.
@@ -136,7 +136,7 @@ public class DraftCNDbHandler implements ChangeNumberIndexDB
 
   /** {@inheritDoc} */
   @Override
-  public synchronized void add(int changeNumber, String previousCookie,
+  public synchronized void add(long changeNumber, String previousCookie,
       String baseDN, CSN csn)
   {
     db.addEntry(changeNumber, previousCookie, baseDN, csn);
@@ -152,14 +152,14 @@ public class DraftCNDbHandler implements ChangeNumberIndexDB
 
   /** {@inheritDoc} */
   @Override
-  public int getFirstChangeNumber()
+  public long getFirstChangeNumber()
   {
     return db.readFirstChangeNumber();
   }
 
   /** {@inheritDoc} */
   @Override
-  public int getLastChangeNumber()
+  public long getLastChangeNumber()
   {
     return db.readLastChangeNumber();
   }
@@ -207,7 +207,7 @@ public class DraftCNDbHandler implements ChangeNumberIndexDB
    * @throws ChangelogException
    *           if a database problem occurs.
    */
-  DraftCNDBCursor getReadCursor(int startChangeNumber)
+  DraftCNDBCursor getReadCursor(long startChangeNumber)
       throws ChangelogException
   {
     return db.openReadCursor(startChangeNumber);
@@ -215,7 +215,7 @@ public class DraftCNDbHandler implements ChangeNumberIndexDB
 
   /** {@inheritDoc} */
   @Override
-  public ChangeNumberIndexDBCursor getCursorFrom(int startChangeNumber)
+  public ChangeNumberIndexDBCursor getCursorFrom(long startChangeNumber)
       throws ChangelogException
   {
     return new DraftCNDbIterator(db, startChangeNumber);
@@ -516,7 +516,7 @@ public class DraftCNDbHandler implements ChangeNumberIndexDB
 
   /** {@inheritDoc} */
   @Override
-  public String getPreviousCookie(int changeNumber)
+  public String getPreviousCookie(long changeNumber)
   {
     DraftCNDBCursor cursor = null;
     try
@@ -537,7 +537,7 @@ public class DraftCNDbHandler implements ChangeNumberIndexDB
 
   /** {@inheritDoc} */
   @Override
-  public CSN getCSN(int changeNumber)
+  public CSN getCSN(long changeNumber)
   {
     DraftCNDBCursor cursor = null;
     try
@@ -558,7 +558,7 @@ public class DraftCNDbHandler implements ChangeNumberIndexDB
 
   /**{@inheritDoc}*/
   @Override
-  public String getBaseDN(int changeNumber)
+  public String getBaseDN(long changeNumber)
   {
     DraftCNDBCursor cursor = null;
     try
@@ -577,7 +577,7 @@ public class DraftCNDbHandler implements ChangeNumberIndexDB
     }
   }
 
-  private void debugException(String methodName, int changeNumber, Exception e)
+  private void debugException(String methodName, long changeNumber, Exception e)
   {
     if (debugEnabled())
       TRACER.debugInfo("In DraftCNDbHandler." + methodName + "(), read: "

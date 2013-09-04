@@ -92,7 +92,7 @@ public class DraftCNDB
    * @param csn the provided replication CSN to be
    *                     stored associated with this change number.
    */
-  public void addEntry(int changeNumber, String value, String domainBaseDN,
+  public void addEntry(long changeNumber, String value, String domainBaseDN,
       CSN csn)
   {
     try
@@ -187,7 +187,7 @@ public class DraftCNDB
    *                           creation.
    * @return The ReplServerDBCursor.
    */
-  public DraftCNDBCursor openReadCursor(int changeNumber)
+  public DraftCNDBCursor openReadCursor(long changeNumber)
       throws ChangelogException
   {
     return new DraftCNDBCursor(changeNumber);
@@ -362,7 +362,7 @@ public class DraftCNDB
      * @throws ChangelogException
      *           when the startChangeNumber does not exist.
      */
-    private DraftCNDBCursor(int startChangeNumber) throws ChangelogException
+    private DraftCNDBCursor(long startChangeNumber) throws ChangelogException
     {
       this.key = new ReplicationDraftCNKey(startChangeNumber);
       this.entry = new DatabaseEntry();
@@ -392,7 +392,7 @@ public class DraftCNDB
             // We could not move the cursor to the expected startChangeNumber
             if (localCursor.getSearchKeyRange(key, entry, DEFAULT) != SUCCESS)
             {
-              // We could not even move the cursor closed to it => failure
+              // We could not even move the cursor close to it => failure
               throw new ChangelogException(
                   Message.raw("ChangeLog Change Number " + startChangeNumber
                       + " is not available"));

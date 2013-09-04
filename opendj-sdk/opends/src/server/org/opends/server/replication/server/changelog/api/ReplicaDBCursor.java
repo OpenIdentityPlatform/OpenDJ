@@ -34,7 +34,7 @@ import org.opends.server.replication.protocol.UpdateMsg;
  * This cursor allows to iterate through the changes received from a given
  * replica (Directory Server) in the topology.
  */
-public interface ReplicaDBCursor extends Closeable
+public interface ReplicaDBCursor extends Closeable, Comparable<ReplicaDBCursor>
 {
 
   /**
