@@ -124,7 +124,7 @@ update-rc.d: see &lt;http://wiki.debian.org/LSBInitScripts&gt;
     <para>(Linux) If OpenDJ directory server was installed from a .deb or .rpm
     package, then service management scripts were created at setup time.</para>
 
-    <para>Use the <command>service opendj start</command> command.</para>
+    <para>Use the <command>service opendj stop</command> command.</para>
 
     <screen>centos# service opendj stop
 Stopping opendj (via systemctl):                           [  OK  ]</screen>
@@ -164,7 +164,7 @@ $ sudo /etc/init.d/opendj stop</screen>
     <para>(Linux) If OpenDJ directory server was installed from a .deb or .rpm
     package, then service management scripts were created at setup time.</para>
 
-    <para>Use the <command>service opendj start</command> command.</para>
+    <para>Use the <command>service opendj restart</command> command.</para>
 
     <screen>centos# service opendj restart
 Restarting opendj (via systemctl):                         [  OK  ]</screen>
