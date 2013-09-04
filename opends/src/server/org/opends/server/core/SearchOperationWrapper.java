@@ -27,13 +27,11 @@
  */
 package org.opends.server.core;
 
-
 import java.util.List;
 import java.util.Set;
 
 import org.opends.server.controls.MatchedValuesControl;
 import org.opends.server.types.*;
-
 
 /**
  * This abstract class wraps/decorates a given search operation.
@@ -303,7 +301,7 @@ public abstract class SearchOperationWrapper extends
    * {@inheritDoc}
    */
   @Override
-  public void setTimeLimitExpiration(Long timeLimitExpiration)
+  public void setTimeLimitExpiration(long timeLimitExpiration)
   {
     getOperation().setTimeLimitExpiration(timeLimitExpiration);
   }
@@ -366,7 +364,7 @@ public abstract class SearchOperationWrapper extends
    * {@inheritDoc}
    */
   @Override
-  public Long getTimeLimitExpiration()
+  public long getTimeLimitExpiration()
   {
     return getOperation().getTimeLimitExpiration();
   }
@@ -445,7 +443,8 @@ public abstract class SearchOperationWrapper extends
    * {@inheritDoc}
    */
   @Override
-  public boolean isVirtualAttributesOnly(){
+  public boolean isVirtualAttributesOnly()
+  {
     return getOperation().isVirtualAttributesOnly();
   }
 
@@ -462,8 +461,8 @@ public abstract class SearchOperationWrapper extends
    */
   @Override
   public void sendSearchEntry(SearchResultEntry entry)
-    throws DirectoryException
-    {
+      throws DirectoryException
+  {
     getOperation().sendSearchEntry(entry);
   }
 
@@ -472,8 +471,8 @@ public abstract class SearchOperationWrapper extends
    */
   @Override
   public boolean sendSearchReference(SearchResultReference reference)
-    throws DirectoryException
-    {
+      throws DirectoryException
+  {
     return getOperation().sendSearchReference(reference);
   }
 

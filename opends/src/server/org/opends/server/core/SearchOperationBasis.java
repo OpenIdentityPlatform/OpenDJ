@@ -27,12 +27,6 @@
  */
 package org.opends.server.core;
 
-import static org.opends.messages.CoreMessages.*;
-import static org.opends.server.loggers.AccessLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
-
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -52,6 +46,12 @@ import org.opends.server.types.operation.PreParseSearchOperation;
 import org.opends.server.types.operation.SearchEntrySearchOperation;
 import org.opends.server.types.operation.SearchReferenceSearchOperation;
 import org.opends.server.util.TimeThread;
+
+import static org.opends.messages.CoreMessages.*;
+import static org.opends.server.loggers.AccessLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class defines an operation that may be used to locate entries in the
@@ -214,40 +214,8 @@ public class SearchOperationBasis
       this.attributes  = attributes;
     }
 
-
-    if (clientConnection.getSizeLimit() <= 0)
-    {
-      this.sizeLimit = sizeLimit;
-    }
-    else
-    {
-      if (sizeLimit <= 0)
-      {
-        this.sizeLimit = clientConnection.getSizeLimit();
-      }
-      else
-      {
-        this.sizeLimit = Math.min(sizeLimit, clientConnection.getSizeLimit());
-      }
-    }
-
-
-    if (clientConnection.getTimeLimit() <= 0)
-    {
-      this.timeLimit = timeLimit;
-    }
-    else
-    {
-      if (timeLimit <= 0)
-      {
-        this.timeLimit = clientConnection.getTimeLimit();
-      }
-      else
-      {
-        this.timeLimit = Math.min(timeLimit, clientConnection.getTimeLimit());
-      }
-    }
-
+    this.sizeLimit = getSizeLimit(sizeLimit, clientConnection);
+    this.timeLimit = getTimeLimit(timeLimit, clientConnection);
 
     baseDN                 = null;
     filter                 = null;
@@ -263,8 +231,6 @@ public class SearchOperationBasis
     realAttributesOnly     = false;
     virtualAttributesOnly  = false;
   }
-
-
 
   /**
    * Creates a new search operation with the provided information.
@@ -316,40 +282,8 @@ public class SearchOperationBasis
     rawBaseDN = ByteString.valueOf(baseDN.toString());
     rawFilter = new LDAPFilter(filter);
 
-
-    if (clientConnection.getSizeLimit() <= 0)
-    {
-      this.sizeLimit = sizeLimit;
-    }
-    else
-    {
-      if (sizeLimit <= 0)
-      {
-        this.sizeLimit = clientConnection.getSizeLimit();
-      }
-      else
-      {
-        this.sizeLimit = Math.min(sizeLimit, clientConnection.getSizeLimit());
-      }
-    }
-
-
-    if (clientConnection.getTimeLimit() <= 0)
-    {
-      this.timeLimit = timeLimit;
-    }
-    else
-    {
-      if (timeLimit <= 0)
-      {
-        this.timeLimit = clientConnection.getTimeLimit();
-      }
-      else
-      {
-        this.timeLimit = Math.min(timeLimit, clientConnection.getTimeLimit());
-      }
-    }
-
+    this.sizeLimit = getSizeLimit(sizeLimit, clientConnection);
+    this.timeLimit = getTimeLimit(timeLimit, clientConnection);
 
     entriesSent            = 0;
     referencesSent         = 0;
@@ -362,6 +296,32 @@ public class SearchOperationBasis
     matchedValuesControl   = null;
   }
 
+
+  private int getSizeLimit(int sizeLimit, ClientConnection clientConnection)
+  {
+    if (clientConnection.getSizeLimit() <= 0)
+    {
+      return sizeLimit;
+    }
+    else if (sizeLimit <= 0)
+    {
+      return clientConnection.getSizeLimit();
+    }
+    return Math.min(sizeLimit, clientConnection.getSizeLimit());
+  }
+
+  private int getTimeLimit(int timeLimit, ClientConnection clientConnection)
+  {
+    if (clientConnection.getTimeLimit() <= 0)
+    {
+      return timeLimit;
+    }
+    else if (timeLimit <= 0)
+    {
+      return clientConnection.getTimeLimit();
+    }
+    return Math.min(timeLimit, clientConnection.getTimeLimit());
+  }
 
 
   /**
@@ -1078,7 +1038,8 @@ public class SearchOperationBasis
    * {@inheritDoc}
    */
   @Override
-  public void setTimeLimitExpiration(Long timeLimitExpiration){
+  public void setTimeLimitExpiration(long timeLimitExpiration)
+  {
     this.timeLimitExpiration = timeLimitExpiration;
   }
 
@@ -1140,7 +1101,7 @@ public class SearchOperationBasis
    * {@inheritDoc}
    */
   @Override
-  public Long getTimeLimitExpiration()
+  public long getTimeLimitExpiration()
   {
     return timeLimitExpiration;
   }
@@ -1285,7 +1246,7 @@ public class SearchOperationBasis
         DirectoryServer.getPluginConfigManager();
 
     int timeLimit = getTimeLimit();
-    Long timeLimitExpiration;
+    long timeLimitExpiration;
     if (timeLimit <= 0)
     {
       timeLimitExpiration = Long.MAX_VALUE;
@@ -1293,8 +1254,7 @@ public class SearchOperationBasis
     else
     {
       // FIXME -- Factor in the user's effective time limit.
-      timeLimitExpiration =
-          getProcessingStartTime() + (1000L * timeLimit);
+      timeLimitExpiration = getProcessingStartTime() + (1000L * timeLimit);
     }
     setTimeLimitExpiration(timeLimitExpiration);
 

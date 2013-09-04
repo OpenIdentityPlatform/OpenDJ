@@ -957,16 +957,16 @@ public class ExternalChangeLogTest extends ReplicationTestCase
   }
 
   private InternalSearchOperation searchOnChangelog(String filterString,
-      Set<String> attributes, List<Control> controls) throws LDAPException
+      Set<String> attributes, List<Control> controls) throws Exception
   {
     return connection.processSearch(
-        ByteString.valueOf("cn=changelog"),
+        "cn=changelog",
         SearchScope.WHOLE_SUBTREE,
         DereferencePolicy.NEVER_DEREF_ALIASES,
         0, // Size limit
         0, // Time limit
         false, // Types only
-        LDAPFilter.decode(filterString),
+        filterString,
         attributes,
         controls,
         null);
@@ -2315,9 +2315,9 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     String filter = "(objectclass=*)";
     debugInfo(tn, " Search: " + filter);
     InternalSearchOperation op = connection.processSearch(
-        ByteString.valueOf("cn=changelog"),
+        "cn=changelog",
         SearchScope.WHOLE_SUBTREE,
-        LDAPFilter.decode(filter));
+        filter);
 
     // success
     assertEquals(op.getResultCode(), ResultCode.SUCCESS, op.getErrorMessage().toString());
@@ -2708,15 +2708,14 @@ public class ExternalChangeLogTest extends ReplicationTestCase
         "changelog", "lastExternalChangelogCookie");
 
     debugInfo(tn, " Search: " + TEST_ROOT_DN_STRING);
-    InternalSearchOperation searchOp =
-        connection.processSearch(
-            ByteString.valueOf(TEST_ROOT_DN_STRING),
+    InternalSearchOperation searchOp = connection.processSearch(
+            TEST_ROOT_DN_STRING,
             SearchScope.BASE_OBJECT,
             DereferencePolicy.NEVER_DEREF_ALIASES,
             0, // Size limit
             0, // Time limit
             false, // Types only
-            LDAPFilter.decode("(objectclass=*)"),
+            "(objectclass=*)",
             attributes,
             NO_CONTROL,
             null);
@@ -2783,13 +2782,13 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       throws Exception
   {
     final InternalSearchOperation searchOp = connection.processSearch(
-        ByteString.valueOf(""),
+        "",
         SearchScope.BASE_OBJECT,
         DereferencePolicy.NEVER_DEREF_ALIASES,
         0, // Size limit
         0, // Time limit
         false, // Types only
-        LDAPFilter.decode("(objectclass=*)"),
+        "(objectclass=*)",
         attributes,
         NO_CONTROL,
         null);
@@ -3198,16 +3197,16 @@ public class ExternalChangeLogTest extends ReplicationTestCase
   private void waitOpResult(Operation operation, ResultCode expectedResult)
       throws Exception
   {
-    int ii=0;
+    int i = 0;
     while (operation.getResultCode() == ResultCode.UNDEFINED
         || operation.getResultCode() != expectedResult)
     {
       sleep(50);
-      ii++;
-      if (ii>10)
+      i++;
+      if (i > 10)
       {
-        assertEquals(operation.getResultCode(), expectedResult, operation
-            .getErrorMessage().toString());
+        assertEquals(operation.getResultCode(), expectedResult,
+            operation.getErrorMessage().toString());
       }
     }
   }
