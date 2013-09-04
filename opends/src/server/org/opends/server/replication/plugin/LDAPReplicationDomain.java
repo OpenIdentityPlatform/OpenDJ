@@ -98,8 +98,13 @@ public final class LDAPReplicationDomain extends ReplicationDomain
                   AlertGenerator
 {
 
-  private static final Set<String> ALL_OPERATIONAL_ATTRS = new HashSet<String>(
-      Arrays.asList(HISTORICAL_ATTRIBUTE_NAME, "*"));
+  /**
+   * Set of attributes that will return all the user attributes and the
+   * replication related operational attributes when used in a search operation.
+   */
+  private static final Set<String> USER_AND_REPL_OPERATIONAL_ATTRS =
+      new HashSet<String>(Arrays.asList(
+          HISTORICAL_ATTRIBUTE_NAME, ENTRYUUID_ATTRIBUTE_NAME, "*"));
 
   /**
    * This class is used in the session establishment phase
@@ -2301,7 +2306,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
        SearchScope.WHOLE_SUBTREE,
        DereferencePolicy.NEVER_DEREF_ALIASES,
        0, 0, false, filter,
-       ALL_OPERATIONAL_ATTRS, null);
+       USER_AND_REPL_OPERATIONAL_ATTRS, null);
 
      Entry entryToRename = null;
      CSN entryToRenameCSN = null;
@@ -4581,7 +4586,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       SearchScope.WHOLE_SUBTREE,
       DereferencePolicy.NEVER_DEREF_ALIASES,
       0, 0, false, filter,
-      ALL_OPERATIONAL_ATTRS,
+      USER_AND_REPL_OPERATIONAL_ATTRS,
       resultListener);
   }
 
@@ -5362,7 +5367,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
          SearchScope.WHOLE_SUBTREE,
          DereferencePolicy.NEVER_DEREF_ALIASES,
          0, 0, false, filter,
-         ALL_OPERATIONAL_ATTRS, null);
+         USER_AND_REPL_OPERATIONAL_ATTRS, null);
 
      int count = 0;
 

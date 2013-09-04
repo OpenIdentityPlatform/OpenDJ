@@ -120,7 +120,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
    * When used in a search operation, it includes all attributes (user and
    * operational)
    */
-  private static final Set<String> ALL_ATTRIBUTES = newSet("+", "*");
+  private static final Set<String> ALL_ATTRIBUTES = newSet("*", "+");
   private static final List<Control> NO_CONTROL = null;
 
   /**
@@ -2619,7 +2619,6 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       evaluateSearchParameters(baseDN, 2, -1, "(changenumber>=2)");
       evaluateSearchParameters(baseDN, 2, 5, "(&(changenumber>=2)(changenumber<=5))");
 
-      //
       try
       {
         final StartECLSessionMsg startCLmsg = new StartECLSessionMsg();
