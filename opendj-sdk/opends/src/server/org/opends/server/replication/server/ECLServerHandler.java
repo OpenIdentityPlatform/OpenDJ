@@ -1347,9 +1347,11 @@ public final class ECLServerHandler extends ServerHandler
    *         provided oldestChange, <code>false</code> otherwise
    * @throws DirectoryException
    *           if any problem occur
+   * @throws ChangelogException
+   *           if a database problem occurs.
    */
   private boolean assignChangeNumber(final ECLUpdateMsg oldestChange)
-      throws DirectoryException
+      throws DirectoryException, ChangelogException
   {
     // We also need to check if the draftCNdb is consistent with
     // the changelogdb.
@@ -1451,7 +1453,7 @@ public final class ECLServerHandler extends ServerHandler
   }
 
   private void assignNewDraftCNAndStore(ECLUpdateMsg change)
-      throws DirectoryException
+      throws DirectoryException, ChangelogException
   {
     // generate a new change number and assign to this change
     change.setChangeNumber(replicationServer.getNewChangeNumber());

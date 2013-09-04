@@ -49,8 +49,10 @@ public interface ChangeNumberIndexDB
    * @param changeNumber
    *          the provided change number.
    * @return the associated CSN, null when none.
+   * @throws ChangelogException
+   *           if a database problem occurs.
    */
-  public CSN getCSN(long changeNumber);
+  public CSN getCSN(long changeNumber) throws ChangelogException;
 
   /**
    * Get the baseDN associated to a provided change number.
@@ -58,8 +60,10 @@ public interface ChangeNumberIndexDB
    * @param changeNumber
    *          the provided change number.
    * @return the baseDN, null when none.
+   * @throws ChangelogException
+   *           if a database problem occurs.
    */
-  public String getBaseDN(long changeNumber);
+  public String getBaseDN(long changeNumber) throws ChangelogException;
 
   /**
    * Get the previous cookie associated to a provided change number.
@@ -67,22 +71,28 @@ public interface ChangeNumberIndexDB
    * @param changeNumber
    *          the provided change number.
    * @return the previous cookie, null when none.
+   * @throws ChangelogException
+   *           if a database problem occurs.
    */
-  String getPreviousCookie(long changeNumber);
+  String getPreviousCookie(long changeNumber) throws ChangelogException;
 
   /**
    * Get the first change number stored in this DB.
    *
    * @return Returns the first change number in this DB.
+   * @throws ChangelogException
+   *           if a database problem occurs.
    */
-  long getFirstChangeNumber();
+  long getFirstChangeNumber() throws ChangelogException;
 
   /**
    * Get the last change number stored in this DB.
    *
    * @return Returns the last change number in this DB
+   * @throws ChangelogException
+   *           if a database problem occurs.
    */
-  long getLastChangeNumber();
+  long getLastChangeNumber() throws ChangelogException;
 
   /**
    * Add an update to the list of messages that must be saved to this DB managed
@@ -99,8 +109,11 @@ public interface ChangeNumberIndexDB
    *          The associated baseDN.
    * @param csn
    *          The associated replication CSN.
+   * @throws ChangelogException
+   *           if a database problem occurs.
    */
-  void add(long changeNumber, String previousCookie, String baseDN, CSN csn);
+  void add(long changeNumber, String previousCookie, String baseDN, CSN csn)
+      throws ChangelogException;
 
   /**
    * Generate a new {@link ChangeNumberIndexDBCursor} that allows to browse the
@@ -113,7 +126,7 @@ public interface ChangeNumberIndexDB
    *         this DBHandler and starting at the position defined by a given
    *         changeNumber.
    * @throws ChangelogException
-   *           if a database problem happened.
+   *           if a database problem occurs.
    */
   ChangeNumberIndexDBCursor getCursorFrom(long startChangeNumber)
       throws ChangelogException;
@@ -123,14 +136,16 @@ public interface ChangeNumberIndexDB
    *
    * @return <code>true</code> if this database is empty, <code>false</code>
    *         otherwise
+   * @throws ChangelogException
+   *           if a database problem occurs.
    */
-  boolean isEmpty();
+  boolean isEmpty() throws ChangelogException;
 
   /**
    * Clear the changes from this DB (from both memory cache and DB storage).
    *
    * @throws ChangelogException
-   *           When an exception occurs while removing the changes from this DB.
+   *           if a database problem occurs.
    */
   void clear() throws ChangelogException;
 
@@ -142,13 +157,16 @@ public interface ChangeNumberIndexDB
    *          The baseDN for which we want to remove all records from this DB,
    *          null means all.
    * @throws ChangelogException
-   *           When an exception occurs while removing the changes from this DB.
+   *           if a database problem occurs.
    */
   void clear(String baseDNToClear) throws ChangelogException;
 
   /**
    * Shutdown this DB.
+   *
+   * @throws ChangelogException
+   *           if a database problem occurs.
    */
-  void shutdown();
+  void shutdown() throws ChangelogException;
 
 }

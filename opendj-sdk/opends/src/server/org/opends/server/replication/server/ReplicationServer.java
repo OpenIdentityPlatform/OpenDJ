@@ -586,8 +586,7 @@ public final class ReplicationServer
    * Enable the ECL access by creating a dedicated workflow element.
    * @throws DirectoryException when an error occurs.
    */
-  public void enableECL()
-  throws DirectoryException
+  public void enableECL() throws DirectoryException
   {
     if (externalChangeLogWorkflowImpl!=null)
     {
@@ -661,8 +660,7 @@ public final class ReplicationServer
     {
       Message message =
         NOTE_ERR_UNABLE_TO_ENABLE_ECL_VIRTUAL_ATTR.get(attrName, e.toString());
-      throw new DirectoryException(ResultCode.OPERATIONS_ERROR,
-          message, e);
+      throw new DirectoryException(ResultCode.OPERATIONS_ERROR, message, e);
     }
   }
 
@@ -679,19 +677,14 @@ public final class ReplicationServer
       // internalNetworkGroup?
       NetworkGroup internalNetworkGroup = NetworkGroup
           .getInternalNetworkGroup();
-      internalNetworkGroup
-          .deregisterWorkflow(externalChangeLogWorkflowID);
+      internalNetworkGroup.deregisterWorkflow(externalChangeLogWorkflowID);
 
       // FIXME:ECL should the ECL Workflow be registered in adminNetworkGroup?
-      NetworkGroup adminNetworkGroup = NetworkGroup
-          .getAdminNetworkGroup();
-      adminNetworkGroup
-          .deregisterWorkflow(externalChangeLogWorkflowID);
+      NetworkGroup adminNetworkGroup = NetworkGroup.getAdminNetworkGroup();
+      adminNetworkGroup.deregisterWorkflow(externalChangeLogWorkflowID);
 
-      NetworkGroup defaultNetworkGroup = NetworkGroup
-          .getDefaultNetworkGroup();
-      defaultNetworkGroup
-          .deregisterWorkflow(externalChangeLogWorkflowID);
+      NetworkGroup defaultNetworkGroup = NetworkGroup.getDefaultNetworkGroup();
+      defaultNetworkGroup.deregisterWorkflow(externalChangeLogWorkflowID);
 
       eclwf.deregister();
       eclwf.finalizeWorkflow();
@@ -705,11 +698,26 @@ public final class ReplicationServer
       eclwe.finalizeWorkflowElement();
     }
 
+    shutdownCNIndexDB();
+  }
+
+  private void shutdownCNIndexDB()
+  {
     synchronized (cnIndexDBLock)
     {
       if (cnIndexDB != null)
       {
-        cnIndexDB.shutdown();
+        try
+        {
+          cnIndexDB.shutdown();
+        }
+        catch (ChangelogException ignored)
+        {
+          if (debugEnabled())
+          {
+            TRACER.debugCaught(DebugLogLevel.WARNING, ignored);
+          }
+        }
       }
     }
   }
@@ -1385,17 +1393,7 @@ public final class ReplicationServer
           }
         }
 
-        try
-        {
-          cnIndexDB.shutdown();
-        }
-        catch (Exception ignored)
-        {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.WARNING, ignored);
-          }
-        }
+        shutdownCNIndexDB();
 
         lastGeneratedChangeNumber = 0;
         cnIndexDB = null;
@@ -1639,7 +1637,7 @@ public final class ReplicationServer
         if (cnIndexDB == null)
         {
           cnIndexDB = new DraftCNDbHandler(this, this.dbEnv);
-          lastGeneratedChangeNumber = getLastChangeNumber();
+          lastGeneratedChangeNumber = cnIndexDB.getLastChangeNumber();
         }
         return cnIndexDB;
       }
@@ -1650,40 +1648,6 @@ public final class ReplicationServer
         mb.append(ERR_DRAFT_CHANGENUMBER_DATABASE.get(""));
         throw new DirectoryException(OPERATIONS_ERROR, mb.toMessage(), e);
       }
-    }
-  }
-
-  /**
-   * Get the value of the first change number, 0 when db is empty.
-   *
-   * @return the first value.
-   */
-  public long getFirstChangeNumber()
-  {
-    synchronized (cnIndexDBLock)
-    {
-      if (cnIndexDB != null)
-      {
-        return cnIndexDB.getFirstChangeNumber();
-      }
-      return 0;
-    }
-  }
-
-  /**
-   * Get the value of the last change number, 0 when db is empty.
-   *
-   * @return the last value.
-   */
-  public long getLastChangeNumber()
-  {
-    synchronized (cnIndexDBLock)
-    {
-      if (cnIndexDB != null)
-      {
-        return cnIndexDB.getLastChangeNumber();
-      }
-      return 0;
     }
   }
 
@@ -1739,89 +1703,96 @@ public final class ReplicationServer
     boolean dbEmpty = false;
     final ChangeNumberIndexDB cnIndexDB = getChangeNumberIndexDB();
 
-    long firstChangeNumber = cnIndexDB.getFirstChangeNumber();
-    Map<String, ServerState> domainsServerStateForLastCN = null;
-    CSN csnForLastCN = null;
-    String domainForLastCN = null;
-    if (firstChangeNumber < 1)
+    try
     {
-      dbEmpty = true;
-      firstChangeNumber = 0;
-      lastChangeNumber = 0;
-    }
-    else
-    {
-      lastChangeNumber = cnIndexDB.getLastChangeNumber();
-
-      // Get the generalized state associated with the current last change
-      // number and initializes from it the startStates table
-      String lastCNGenState = cnIndexDB.getPreviousCookie(lastChangeNumber);
-      if (lastCNGenState != null && lastCNGenState.length() > 0)
+      long firstChangeNumber = cnIndexDB.getFirstChangeNumber();
+      Map<String, ServerState> domainsServerStateForLastCN = null;
+      CSN csnForLastCN = null;
+      String domainForLastCN = null;
+      if (firstChangeNumber < 1)
       {
-        domainsServerStateForLastCN =
-            MultiDomainServerState.splitGenStateToServerStates(lastCNGenState);
-      }
-
-      csnForLastCN = cnIndexDB.getCSN(lastChangeNumber);
-      domainForLastCN = cnIndexDB.getBaseDN(lastChangeNumber);
-    }
-
-    long newestDate = 0;
-    for (ReplicationServerDomain rsd : getReplicationServerDomains())
-    {
-      if (contains(excludedBaseDNs, rsd.getBaseDn()))
-        continue;
-
-      // for this domain, have the state in the replchangelog
-      // where the last change number update is
-      long ec;
-      if (domainsServerStateForLastCN == null)
-      {
-        // Count changes of this domain from the beginning of the changelog
-        CSN trimCSN = new CSN(rsd.getLatestDomainTrimDate(), 0, 0);
-        ec = rsd.getEligibleCount(
-                  rsd.getStartState().duplicateOnlyOlderThan(trimCSN),
-                  crossDomainEligibleCSN);
+        dbEmpty = true;
+        firstChangeNumber = 0;
+        lastChangeNumber = 0;
       }
       else
       {
-        // There are records in the draftDB (so already returned to clients)
-        // BUT
-        //  There is nothing related to this domain in the last draft record
-        //  (may be this domain was disabled when this record was returned).
-        // In that case, are counted the changes from
-        //  the date of the most recent change from this last draft record
-        if (newestDate == 0)
+        lastChangeNumber = cnIndexDB.getLastChangeNumber();
+
+        // Get the generalized state associated with the current last change
+        // number and initializes from it the startStates table
+        String lastCNGenState = cnIndexDB.getPreviousCookie(lastChangeNumber);
+        if (lastCNGenState != null && lastCNGenState.length() > 0)
         {
-          newestDate = csnForLastCN.getTime();
+          domainsServerStateForLastCN = MultiDomainServerState
+              .splitGenStateToServerStates(lastCNGenState);
         }
 
-        // And count changes of this domain from the date of the
-        // lastseqnum record (that does not refer to this domain)
-        CSN csnx = new CSN(newestDate, csnForLastCN.getSeqnum(), 0);
-        ec = rsd.getEligibleCount(csnx, crossDomainEligibleCSN);
-
-        if (domainForLastCN.equalsIgnoreCase(rsd.getBaseDn()))
-          ec--;
+        csnForLastCN = cnIndexDB.getCSN(lastChangeNumber);
+        domainForLastCN = cnIndexDB.getBaseDN(lastChangeNumber);
       }
 
-      // cumulates on domains
-      lastChangeNumber += ec;
+      long newestDate = 0;
+      for (ReplicationServerDomain rsd : getReplicationServerDomains())
+      {
+        if (contains(excludedBaseDNs, rsd.getBaseDn()))
+          continue;
 
-      // CNIndexDB is empty and there are eligible updates in the replication
-      // changelog then init first change number
-      if (ec > 0 && firstChangeNumber == 0)
-        firstChangeNumber = 1;
+        // for this domain, have the state in the replchangelog
+        // where the last change number update is
+        long ec;
+        if (domainsServerStateForLastCN == null)
+        {
+          // Count changes of this domain from the beginning of the changelog
+          CSN trimCSN = new CSN(rsd.getLatestDomainTrimDate(), 0, 0);
+          ec = rsd.getEligibleCount(
+              rsd.getStartState().duplicateOnlyOlderThan(trimCSN),
+              crossDomainEligibleCSN);
+        }
+        else
+        {
+          // There are records in the draftDB (so already returned to clients)
+          // BUT
+          // There is nothing related to this domain in the last draft record
+          // (may be this domain was disabled when this record was returned).
+          // In that case, are counted the changes from
+          // the date of the most recent change from this last draft record
+          if (newestDate == 0)
+          {
+            newestDate = csnForLastCN.getTime();
+          }
+
+          // And count changes of this domain from the date of the
+          // lastseqnum record (that does not refer to this domain)
+          CSN csnx = new CSN(newestDate, csnForLastCN.getSeqnum(), 0);
+          ec = rsd.getEligibleCount(csnx, crossDomainEligibleCSN);
+
+          if (domainForLastCN.equalsIgnoreCase(rsd.getBaseDn()))
+            ec--;
+        }
+
+        // cumulates on domains
+        lastChangeNumber += ec;
+
+        // CNIndexDB is empty and there are eligible updates in the replication
+        // changelog then init first change number
+        if (ec > 0 && firstChangeNumber == 0)
+          firstChangeNumber = 1;
+      }
+
+      if (dbEmpty)
+      {
+        // The database was empty, just keep increasing numbers since last time
+        // we generated one change number.
+        firstChangeNumber += lastGeneratedChangeNumber;
+        lastChangeNumber += lastGeneratedChangeNumber;
+      }
+      return new long[] { firstChangeNumber, lastChangeNumber };
     }
-
-    if (dbEmpty)
+    catch (ChangelogException e)
     {
-      // The database was empty, just keep increasing numbers since last time
-      // we generated one change number.
-      firstChangeNumber += lastGeneratedChangeNumber;
-      lastChangeNumber += lastGeneratedChangeNumber;
+      throw new DirectoryException(ResultCode.OPERATIONS_ERROR, e);
     }
-    return new long[] { firstChangeNumber, lastChangeNumber };
   }
 
   /**
