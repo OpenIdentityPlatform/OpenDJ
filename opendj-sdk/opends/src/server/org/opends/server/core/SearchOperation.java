@@ -135,7 +135,7 @@ public interface SearchOperation extends Operation
    *
    * @return the timeLimitExpiration
    */
-  public abstract Long getTimeLimitExpiration();
+  public abstract long getTimeLimitExpiration();
 
   /**
    * Specifies the time limit for this search operation.  This should only be
@@ -312,7 +312,7 @@ public interface SearchOperation extends Operation
    *
    * @param timeLimitExpiration - Time after which the search has expired
    */
-  public abstract void setTimeLimitExpiration(Long timeLimitExpiration);
+  public abstract void setTimeLimitExpiration(long timeLimitExpiration);
 
   /**
    * Indicates whether LDAP subentries should be returned or not.
