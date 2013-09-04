@@ -1656,7 +1656,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
         LDAPFilter.decode(filterString),
         attributes);
   }
-  
+
   /**
    * Test parallel simultaneous psearch with different filters.
    */
@@ -2678,22 +2678,23 @@ public class ExternalChangeLogTest extends ReplicationTestCase
   {
     String tn = "ECLPurgeDraftCNDbAfterChangelogClear";
     debugInfo(tn, "Starting test\n\n");
+
+    DraftCNDbHandler draftdb =
+        (DraftCNDbHandler) replicationServer.getChangeNumberIndexDB();
+    assertEquals(draftdb.count(), 8);
+    draftdb.setPurgeDelay(1000);
+
+    // Now clear the changelog db
+    this.replicationServer.clearDb();
+
+    // Expect changes purged from the changelog db to be sometimes
+    // also purged from the DraftCNDb.
+    while (!draftdb.isEmpty())
     {
-      DraftCNDbHandler draftdb = (DraftCNDbHandler) replicationServer.getChangelogDB();
-      assertEquals(draftdb.count(), 8);
-      draftdb.setPurgeDelay(1000);
-
-      // Now Purge the changelog db
-      this.replicationServer.clearDb();
-
-      // Expect changes purged from the changelog db to be sometimes
-      // also purged from the DraftCNDb.
-      while (!draftdb.isEmpty())
-      {
-        debugInfo(tn, "draftdb.count="+draftdb.count());
-        sleep(200);
-      }
+      debugInfo(tn, "draftdb.count=" + draftdb.count());
+      sleep(200);
     }
+
     debugInfo(tn, "Ending test with success");
   }
 

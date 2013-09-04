@@ -36,7 +36,7 @@ import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.CSNGenerator;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
-import org.opends.server.replication.server.changelog.api.ChangelogDBIterator;
+import org.opends.server.replication.server.changelog.api.ChangeNumberIndexDBCursor;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.je.DraftCNDB.DraftCNDBCursor;
 import org.opends.server.util.StaticUtils;
@@ -247,14 +247,14 @@ public class DraftCNDbHandlerTest extends ReplicationTestCase
       assertEquals(handler.getPreviousCookie(sn2),value2);
       assertEquals(handler.getPreviousCookie(sn3),value3);
 
-      ChangelogDBIterator it = handler.generateIterator(sn1);
-      assertIteratorReadsInOrder(it, sn1, sn2, sn3);
+      ChangeNumberIndexDBCursor cursor = handler.getCursorFrom(sn1);
+      assertCursorReadsInOrder(cursor, sn1, sn2, sn3);
 
-      it = handler.generateIterator(sn2);
-      assertIteratorReadsInOrder(it, sn2, sn3);
+      cursor = handler.getCursorFrom(sn2);
+      assertCursorReadsInOrder(cursor, sn2, sn3);
 
-      it = handler.generateIterator(sn3);
-      assertIteratorReadsInOrder(it, sn3);
+      cursor = handler.getCursorFrom(sn3);
+      assertCursorReadsInOrder(cursor, sn3);
 
       handler.clear();
 
@@ -274,21 +274,21 @@ public class DraftCNDbHandlerTest extends ReplicationTestCase
     }
   }
 
-  private void assertIteratorReadsInOrder(ChangelogDBIterator it, int... sns)
-      throws ChangelogException
+  private void assertCursorReadsInOrder(ChangeNumberIndexDBCursor cursor,
+      int... sns) throws ChangelogException
   {
     try
     {
       for (int i = 0; i < sns.length; i++)
       {
-        assertEquals(it.getDraftCN(), sns[i]);
+        assertEquals(cursor.getDraftCN(), sns[i]);
         final boolean isNotLast = i + 1 < sns.length;
-        assertEquals(it.next(), isNotLast);
+        assertEquals(cursor.next(), isNotLast);
       }
     }
     finally
     {
-      it.close();
+      cursor.close();
     }
   }
 }

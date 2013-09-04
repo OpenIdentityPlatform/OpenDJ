@@ -30,10 +30,8 @@ package org.opends.server.replication.server.changelog.je;
 import org.opends.messages.Message;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.common.CSN;
-import org.opends.server.replication.server.changelog.api.ChangelogException;
-import org.opends.server.replication.server.changelog.api.ChangelogDBIterator;
-import org.opends.server.replication.server.changelog.je.DraftCNDB
-    .DraftCNDBCursor;
+import org.opends.server.replication.server.changelog.api.*;
+import org.opends.server.replication.server.changelog.je.DraftCNDB.*;
 import org.opends.server.types.DebugLogLevel;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
@@ -42,7 +40,7 @@ import static org.opends.server.loggers.debug.DebugLogger.*;
  * This class allows to iterate through the changes received from a given
  * LDAP Server Identifier.
  */
-public class DraftCNDbIterator implements ChangelogDBIterator
+public class DraftCNDbIterator implements ChangeNumberIndexDBCursor
 {
   private static final DebugTracer TRACER = getTracer();
   private DraftCNDBCursor draftCNDbCursor;
