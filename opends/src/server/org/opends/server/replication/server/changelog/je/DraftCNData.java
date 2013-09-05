@@ -31,6 +31,7 @@ import java.io.UnsupportedEncodingException;
 
 import org.opends.messages.Message;
 import org.opends.server.replication.common.CSN;
+import org.opends.server.replication.server.changelog.api.CNIndexData;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 
 import com.sleepycat.je.DatabaseEntry;
@@ -46,18 +47,25 @@ public class DraftCNData extends DatabaseEntry
 
   private static final long serialVersionUID = 1L;
 
-  private String value;
-  private String baseDN;
-  private CSN csn;
+  private long changeNumber;
+  private CNIndexData cnIndexData;
 
   /**
    * Creates a record to be stored in the DraftCNDB.
-   * @param previousCookie The previous cookie.
-   * @param baseDN The baseDN (domain DN).
-   * @param csn The replication CSN.
+   *
+   * @param changeNumber
+   *          the change number
+   * @param previousCookie
+   *          The previous cookie
+   * @param baseDN
+   *          The baseDN (domain DN)
+   * @param csn
+   *          The replication CSN
    */
-  public DraftCNData(String previousCookie, String baseDN, CSN csn)
+  public DraftCNData(long changeNumber, String previousCookie, String baseDN,
+      CSN csn)
   {
+    this.changeNumber = changeNumber;
     String record =
         previousCookie + FIELD_SEPARATOR + baseDN + FIELD_SEPARATOR + csn;
     setData(getBytes(record));
@@ -65,29 +73,38 @@ public class DraftCNData extends DatabaseEntry
 
   /**
    * Creates a record to be stored in the DraftCNDB from the provided byte[].
-   * @param data the provided byte[].
-   * @throws ChangelogException a.
+   *
+   * @param changeNumber
+   *          the change number
+   * @param data
+   *          the provided byte[]
+   * @throws ChangelogException
+   *           if a database problem occurred
    */
-  public DraftCNData(byte[] data) throws ChangelogException
+  public DraftCNData(long changeNumber, byte[] data) throws ChangelogException
   {
-    decodeData(data);
+    this.changeNumber = changeNumber;
+    this.cnIndexData = decodeData(changeNumber, data);
   }
 
   /**
-   * Decode a record into fields.
-   * @param data the provided byte array.
-   * @throws ChangelogException when a problem occurs.
+   * Decode and returns a {@link CNIndexData} record.
+   *
+   * @param changeNumber
+   * @param data
+   *          the provided byte array.
+   * @return the decoded {@link CNIndexData} record
+   * @throws ChangelogException
+   *           when a problem occurs.
    */
-  public void decodeData(byte[] data) throws ChangelogException
+  private CNIndexData decodeData(long changeNumber, byte[] data)
+      throws ChangelogException
   {
     try
     {
       String stringData = new String(data, "UTF-8");
-
       String[] str = stringData.split(FIELD_SEPARATOR, 3);
-      value = str[0];
-      baseDN = str[1];
-      csn = new CSN(str[2]);
+      return new CNIndexData(changeNumber, str[0], str[1], new CSN(str[2]));
     }
     catch (UnsupportedEncodingException e)
     {
@@ -98,43 +115,17 @@ public class DraftCNData extends DatabaseEntry
   }
 
   /**
-   * Getter for the value.
+   * Getter for the decoded {@link CNIndexData} record.
    *
-   * @return the value.
-   * @throws ChangelogException when a problem occurs.
-   */
-  public String getValue() throws ChangelogException
-  {
-    if (value == null)
-      decodeData(getData());
-    return this.value;
-  }
-
-  /**
-   * Getter for the service ID.
-   *
-   * @return The baseDN
-   * @throws ChangelogException when a problem occurs.
-   */
-  public String getBaseDN() throws ChangelogException
-  {
-    if (value == null)
-      decodeData(getData());
-    return this.baseDN;
-  }
-
-  /**
-   * Getter for the replication CSN.
-   *
-   * @return the replication CSN.
+   * @return the CNIndexData record.
    * @throws ChangelogException
    *           when a problem occurs.
    */
-  public CSN getCSN() throws ChangelogException
+  public CNIndexData getCNIndexData() throws ChangelogException
   {
-    if (value == null)
-      decodeData(getData());
-    return this.csn;
+    if (cnIndexData == null)
+      cnIndexData = decodeData(changeNumber, getData());
+    return cnIndexData;
   }
 
   /**
@@ -144,19 +135,7 @@ public class DraftCNData extends DatabaseEntry
   @Override
   public String toString()
   {
-    StringBuilder buffer = new StringBuilder();
-    toString(buffer);
-    return buffer.toString();
+    return "DraftCNData : [" + cnIndexData + "]";
   }
 
-  /**
-   * Dump a string representation of these data into the provided buffer.
-   * @param buffer the provided buffer.
-   */
-  public void toString(StringBuilder buffer)
-  {
-    buffer.append("DraftCNData : [value=").append(value);
-    buffer.append("] [serviceID=").append(baseDN);
-    buffer.append("] [csn=").append(csn).append("]");
-  }
 }

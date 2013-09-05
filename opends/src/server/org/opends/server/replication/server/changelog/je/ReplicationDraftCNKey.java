@@ -31,6 +31,8 @@ import java.io.UnsupportedEncodingException;
 
 import com.sleepycat.je.DatabaseEntry;
 
+import static org.opends.server.util.StaticUtils.*;
+
 /**
  * Useful to create ReplicationServer keys from sequence numbers.
  */
@@ -39,8 +41,18 @@ public class ReplicationDraftCNKey extends DatabaseEntry
   private static final long serialVersionUID = 1L;
 
   /**
+   * Creates a ReplicationDraftCNKey that can start anywhere in the DB.
+   */
+  public ReplicationDraftCNKey()
+  {
+    super();
+  }
+
+  /**
    * Creates a new ReplicationKey from the given change number.
-   * @param changeNumber The change number to use.
+   *
+   * @param changeNumber
+   *          The change number to use.
    */
   public ReplicationDraftCNKey(long changeNumber)
   {
@@ -63,6 +75,6 @@ public class ReplicationDraftCNKey extends DatabaseEntry
    */
   public long getChangeNumber()
   {
-    return Long.valueOf(new String(getData()));
+    return Long.valueOf(decodeUTF8(getData()));
   }
 }

@@ -52,6 +52,7 @@ import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.common.*;
 import org.opends.server.replication.plugin.MultimasterReplication;
 import org.opends.server.replication.protocol.*;
+import org.opends.server.replication.server.changelog.api.CNIndexData;
 import org.opends.server.replication.server.changelog.api.ChangeNumberIndexDB;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.je.DbHandler;
@@ -1699,37 +1700,36 @@ public final class ReplicationServer
      *     (this diff is done domain by domain)
      */
 
-    long lastChangeNumber;
-    boolean dbEmpty = false;
     final ChangeNumberIndexDB cnIndexDB = getChangeNumberIndexDB();
-
     try
     {
-      long firstChangeNumber = cnIndexDB.getFirstChangeNumber();
+      boolean dbEmpty = true;
+      long firstChangeNumber = 0;
+      long lastChangeNumber = 0;
+
+      final CNIndexData firstCNData = cnIndexDB.getFirstCNIndexData();
+      final CNIndexData lastCNData = cnIndexDB.getLastCNIndexData();
+
       Map<String, ServerState> domainsServerStateForLastCN = null;
       CSN csnForLastCN = null;
       String domainForLastCN = null;
-      if (firstChangeNumber < 1)
+      if (firstCNData != null)
       {
-        dbEmpty = true;
-        firstChangeNumber = 0;
-        lastChangeNumber = 0;
-      }
-      else
-      {
-        lastChangeNumber = cnIndexDB.getLastChangeNumber();
+        dbEmpty = false;
+        firstChangeNumber = firstCNData.getChangeNumber();
+        lastChangeNumber = lastCNData.getChangeNumber();
 
         // Get the generalized state associated with the current last change
         // number and initializes from it the startStates table
-        String lastCNGenState = cnIndexDB.getPreviousCookie(lastChangeNumber);
+        String lastCNGenState = lastCNData.getPreviousCookie();
         if (lastCNGenState != null && lastCNGenState.length() > 0)
         {
           domainsServerStateForLastCN = MultiDomainServerState
               .splitGenStateToServerStates(lastCNGenState);
         }
 
-        csnForLastCN = cnIndexDB.getCSN(lastChangeNumber);
-        domainForLastCN = cnIndexDB.getBaseDN(lastChangeNumber);
+        csnForLastCN = lastCNData.getCSN();
+        domainForLastCN = lastCNData.getBaseDN();
       }
 
       long newestDate = 0;

@@ -29,7 +29,6 @@ package org.opends.server.replication.server.changelog.je;
 
 import org.opends.messages.Message;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.server.changelog.api.*;
 import org.opends.server.replication.server.changelog.je.DraftCNDB.*;
 import org.opends.server.types.DebugLogLevel;
@@ -68,39 +67,17 @@ public class DraftCNDbIterator implements ChangeNumberIndexDBCursor
 
   /** {@inheritDoc} */
   @Override
-  public String getBaseDN()
+  public CNIndexData getCNIndexData()
   {
     try
     {
-      return this.draftCNDbCursor.currentBaseDN();
+      return this.draftCNDbCursor.currentData();
     }
-    catch(Exception e)
+    catch (Exception e)
     {
       TRACER.debugCaught(DebugLogLevel.ERROR, e);
       return null;
     }
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public CSN getCSN()
-  {
-    try
-    {
-      return this.draftCNDbCursor.currentCSN();
-    }
-    catch(Exception e)
-    {
-      TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      return null;
-    }
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public long getChangeNumber()
-  {
-    return ((ReplicationDraftCNKey) draftCNDbCursor.getKey()).getChangeNumber();
   }
 
   /** {@inheritDoc} */

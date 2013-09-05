@@ -48,6 +48,7 @@ import org.opends.server.replication.server.changelog.api.*;
 import org.opends.server.replication.server.changelog.je.DraftCNDB.*;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.Attributes;
+import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.InitializationException;
 
 import static org.opends.messages.ReplicationMessages.*;
@@ -78,12 +79,12 @@ public class DraftCNDbHandler implements ChangeNumberIndexDB, Runnable
    * FIXME Is this field that useful? {@link #getFirstChangeNumber()} does not
    * even use it!
    */
-  private int firstChangeNumber = NO_KEY;
+  private long firstChangeNumber = NO_KEY;
   /**
    * FIXME Is this field that useful? {@link #getLastChangeNumber()} does not
    * even use it!
    */
-  private int lastChangeNumber = NO_KEY;
+  private long lastChangeNumber = NO_KEY;
   private DbMonitorProvider dbMonitor = new DbMonitorProvider();
   private boolean shutdown = false;
   private boolean trimDone = false;
@@ -122,8 +123,8 @@ public class DraftCNDbHandler implements ChangeNumberIndexDB, Runnable
 
     // DB initialization
     db = new DraftCNDB(dbenv);
-    firstChangeNumber = db.readFirstChangeNumber();
-    lastChangeNumber = db.readLastChangeNumber();
+    firstChangeNumber = getChangeNumber(db.readFirstCNIndexData());
+    lastChangeNumber = getChangeNumber(db.readLastCNIndexData());
 
     // Trimming thread
     thread = new DirectoryThread(this, "Replication DraftCN db");
@@ -134,34 +135,50 @@ public class DraftCNDbHandler implements ChangeNumberIndexDB, Runnable
     DirectoryServer.registerMonitorProvider(dbMonitor);
   }
 
+  private long getChangeNumber(CNIndexData cnIndexData)
+      throws ChangelogException
+  {
+    if (cnIndexData != null)
+    {
+      return cnIndexData.getChangeNumber();
+    }
+    return 0;
+  }
+
   /** {@inheritDoc} */
   @Override
-  public synchronized void add(long changeNumber, String previousCookie,
-      String baseDN, CSN csn)
+  public void add(CNIndexData cnIndexData) throws ChangelogException
   {
-    db.addEntry(changeNumber, previousCookie, baseDN, csn);
+    db.addEntry(cnIndexData);
 
     if (debugEnabled())
-      TRACER.debugInfo(
-          "In DraftCNDbhandler.add, added: "
-        + " key=" + changeNumber
-        + " previousCookie=" + previousCookie
-        + " baseDN=" + baseDN
-        + " csn=" + csn);
+      TRACER.debugInfo("In DraftCNDbhandler.add, added: " + cnIndexData);
   }
 
   /** {@inheritDoc} */
   @Override
-  public long getFirstChangeNumber()
+  public CNIndexData getFirstCNIndexData() throws ChangelogException
   {
-    return db.readFirstChangeNumber();
+    return db.readFirstCNIndexData();
   }
 
   /** {@inheritDoc} */
   @Override
-  public long getLastChangeNumber()
+  public CNIndexData getLastCNIndexData() throws ChangelogException
   {
-    return db.readLastChangeNumber();
+    return db.readLastCNIndexData();
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public long getLastChangeNumber() throws ChangelogException
+  {
+    final CNIndexData data = getLastCNIndexData();
+    if (data != null)
+    {
+      return data.getChangeNumber();
+    }
+    return 0;
   }
 
   /**
@@ -331,8 +348,8 @@ public class DraftCNDbHandler implements ChangeNumberIndexDB, Runnable
           }
 
           // From the draftCNDb change record, get the domain and CSN
-          final CSN csn = cursor.currentCSN();
-          final String baseDN = cursor.currentBaseDN();
+          final CNIndexData data = cursor.currentData();
+          final String baseDN = data.getBaseDN();
           if (baseDNToClear != null && baseDNToClear.equalsIgnoreCase(baseDN))
           {
             cursor.delete();
@@ -350,10 +367,11 @@ public class DraftCNDbHandler implements ChangeNumberIndexDB, Runnable
             continue;
           }
 
+          final CSN csn = data.getCSN();
           final ServerState startState = domain.getStartState();
           final CSN fcsn = startState.getCSN(csn.getServerId());
 
-          final int currentChangeNumber = cursor.currentKey();
+          final long currentChangeNumber = data.getChangeNumber();
 
           if (csn.older(fcsn))
           {
@@ -366,7 +384,7 @@ public class DraftCNDbHandler implements ChangeNumberIndexDB, Runnable
           {
             Map<String, ServerState> csnStartStates =
                 MultiDomainServerState.splitGenStateToServerStates(
-                        cursor.currentValue());
+                        data.getPreviousCookie());
             csnVector = csnStartStates.get(baseDN);
 
             if (debugEnabled())
@@ -430,12 +448,37 @@ public class DraftCNDbHandler implements ChangeNumberIndexDB, Runnable
     public List<Attribute> getMonitorData()
     {
       List<Attribute> attributes = new ArrayList<Attribute>();
-      attributes.add(Attributes.create("first-draft-changenumber",
-          Integer.toString(db.readFirstChangeNumber())));
-      attributes.add(Attributes.create("last-draft-changenumber",
-          Integer.toString(db.readLastChangeNumber())));
-      attributes.add(Attributes.create("count",
-          Long.toString(count())));
+
+      try
+      {
+        CNIndexData firstCNData = db.readFirstCNIndexData();
+        String firstCN = String.valueOf(firstCNData.getChangeNumber());
+        attributes.add(Attributes.create("first-draft-changenumber", firstCN));
+      }
+      catch (ChangelogException e)
+      {
+        if (debugEnabled())
+          TRACER.debugCaught(DebugLogLevel.WARNING, e);
+        attributes.add(Attributes.create("first-draft-changenumber", "0"));
+      }
+
+      try
+      {
+        CNIndexData lastCNData = db.readLastCNIndexData();
+        if (lastCNData != null)
+        {
+          String lastCN = String.valueOf(lastCNData.getChangeNumber());
+          attributes.add(Attributes.create("last-draft-changenumber", lastCN));
+        }
+      }
+      catch (ChangelogException e)
+      {
+        if (debugEnabled())
+          TRACER.debugCaught(DebugLogLevel.WARNING, e);
+        attributes.add(Attributes.create("last-draft-changenumber", "0"));
+      }
+
+      attributes.add(Attributes.create("count", Long.toString(count())));
       return attributes;
     }
 
@@ -482,8 +525,8 @@ public class DraftCNDbHandler implements ChangeNumberIndexDB, Runnable
   public void clear() throws ChangelogException
   {
     db.clear();
-    firstChangeNumber = db.readFirstChangeNumber();
-    lastChangeNumber = db.readLastChangeNumber();
+    firstChangeNumber = getChangeNumber(db.readFirstCNIndexData());
+    lastChangeNumber = getChangeNumber(db.readLastCNIndexData());
   }
 
   private ReentrantLock lock = new ReentrantLock();
@@ -516,13 +559,14 @@ public class DraftCNDbHandler implements ChangeNumberIndexDB, Runnable
 
   /** {@inheritDoc} */
   @Override
-  public String getPreviousCookie(long changeNumber) throws ChangelogException
+  public CNIndexData getCNIndexData(long changeNumber)
+      throws ChangelogException
   {
     DraftCNDBCursor cursor = null;
     try
     {
       cursor = db.openReadCursor(changeNumber);
-      return cursor.currentValue();
+      return cursor.currentData();
     }
     finally
     {
@@ -530,35 +574,4 @@ public class DraftCNDbHandler implements ChangeNumberIndexDB, Runnable
     }
   }
 
-  /** {@inheritDoc} */
-  @Override
-  public CSN getCSN(long changeNumber) throws ChangelogException
-  {
-    DraftCNDBCursor cursor = null;
-    try
-    {
-      cursor = db.openReadCursor(changeNumber);
-      return cursor.currentCSN();
-    }
-    finally
-    {
-      close(cursor);
-    }
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public String getBaseDN(long changeNumber) throws ChangelogException
-  {
-    DraftCNDBCursor cursor = null;
-    try
-    {
-      cursor = db.openReadCursor(changeNumber);
-      return cursor.currentBaseDN();
-    }
-    finally
-    {
-      close(cursor);
-    }
-  }
 }
