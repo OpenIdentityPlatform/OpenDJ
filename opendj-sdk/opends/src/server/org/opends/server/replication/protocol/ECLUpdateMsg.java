@@ -59,7 +59,7 @@ public class ECLUpdateMsg extends ReplicationMsg
    * @param changeNumber The provided change number.
    */
   public ECLUpdateMsg(LDAPUpdateMsg updateMsg, MultiDomainServerState cookie,
-      String baseDN, int changeNumber)
+      String baseDN, long changeNumber)
   {
     this.cookie = cookie;
     this.baseDN = baseDN;
@@ -184,7 +184,7 @@ public class ECLUpdateMsg extends ReplicationMsg
   {
     byte[] byteCookie = String.valueOf(cookie).getBytes("UTF-8");
     byte[] byteBaseDN = String.valueOf(baseDN).getBytes("UTF-8");
-    // FIXME JNR Changing line below to use long would require a protocol
+    // FIXME JNR Changing the line below to use long would require a protocol
     // version change. Leave it like this for now until the need arises.
     byte[] byteChangeNumber =
         Integer.toString((int) changeNumber).getBytes("UTF-8");

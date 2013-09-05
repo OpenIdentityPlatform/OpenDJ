@@ -2327,8 +2327,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     debugInfo(tn, "Ending test successfully");
   }
 
-  private int ECLCompatWriteReadAllOps(int firstChangeNumber)
-      throws Exception
+  private int ECLCompatWriteReadAllOps(long firstChangeNumber) throws Exception
   {
     String tn = "ECLCompatWriteReadAllOps/" + firstChangeNumber;
     debugInfo(tn, "Starting test\n\n");
@@ -2418,7 +2417,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
   }
 
   private void assertEntries(List<SearchResultEntry> entries,
-      int firstChangeNumber, String tn, LDIFWriter ldifWriter,
+      long firstChangeNumber, String tn, LDIFWriter ldifWriter,
       String user1entryUUID, CSN... csns) throws Exception
   {
     debugAndWriteEntries(ldifWriter, entries, tn);
@@ -2469,14 +2468,14 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     }
   }
 
-  private void assertDnEquals(SearchResultEntry resultEntry, int changeNumber, int i)
+  private void assertDnEquals(SearchResultEntry resultEntry, long changeNumber, int i)
   {
     String actualDN = resultEntry.getDN().toNormalizedString();
     String expectedDN = "changenumber=" + (changeNumber + i) + ",cn=changelog";
     assertThat(actualDN).isEqualToIgnoringCase(expectedDN);
   }
 
-  private void ECLCompatReadFrom(int firstChangeNumber) throws Exception
+  private void ECLCompatReadFrom(long firstChangeNumber) throws Exception
   {
     String tn = "ECLCompatReadFrom/" + firstChangeNumber;
     debugInfo(tn, "Starting test\n\n");
@@ -2516,7 +2515,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
    * Process similar search as but only check that there's no control returned
    * as part of the entry.
    */
-  private void ECLCompatNoControl(int firstChangeNumber) throws Exception
+  private void ECLCompatNoControl(long firstChangeNumber) throws Exception
   {
     String tn = "ECLCompatNoControl/" + firstChangeNumber;
     debugInfo(tn, "Starting test\n\n");
@@ -2548,7 +2547,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
    * @param lastChangeNumber
    *          the higher limit
    */
-  private void ECLCompatReadFromTo(int firstChangeNumber, int lastChangeNumber) throws Exception
+  private void ECLCompatReadFromTo(long firstChangeNumber, long lastChangeNumber) throws Exception
   {
     String tn = "ECLCompatReadFromTo/" + firstChangeNumber + "/" + lastChangeNumber;
     debugInfo(tn, "Starting test\n\n");
@@ -2659,7 +2658,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
   }
 
   private StartECLSessionMsg evaluateSearchParameters(DN baseDN,
-      int firstChangeNumber, int lastChangeNumber, String filterString) throws Exception
+      long firstChangeNumber, long lastChangeNumber, String filterString) throws Exception
   {
     final StartECLSessionMsg startCLmsg = new StartECLSessionMsg();
     ECLSearchOperation.evaluateSearchParameters(startCLmsg, baseDN,

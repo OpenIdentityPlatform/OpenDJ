@@ -94,8 +94,8 @@ public class StartECLSessionMsg extends ReplicationMsg
    * When eclRequestType = FROM_CHANGE_NUMBER, specifies the provided change
    * number first and last - [CHANGELOG].
    */
-  private int firstChangeNumber = -1;
-  private int lastChangeNumber = -1;
+  private long firstChangeNumber = -1;
+  private long lastChangeNumber = -1;
 
   /**
    * When eclRequestType = EQUALS_REPL_CHANGE_NUMBER, specifies the provided
@@ -148,21 +148,17 @@ public class StartECLSessionMsg extends ReplicationMsg
       eclRequestType = Short.valueOf(new String(in, pos, length, "UTF-8"));
       pos += length +1;
 
-      // sequenceNumber
       length = getNextLength(in, pos);
       firstChangeNumber = Integer.valueOf(new String(in, pos, length, "UTF-8"));
       pos += length +1;
 
-      // stopSequenceNumber
       length = getNextLength(in, pos);
       lastChangeNumber = Integer.valueOf(new String(in, pos, length, "UTF-8"));
       pos += length +1;
 
-      // replication CSN
       length = getNextLength(in, pos);
-      String csnStr = new String(in, pos, length, "UTF-8");
+      csn = new CSN(new String(in, pos, length, "UTF-8"));
       pos += length + 1;
-      csn = new CSN(csnStr);
 
       // persistentSearch mode
       length = getNextLength(in, pos);
@@ -174,7 +170,6 @@ public class StartECLSessionMsg extends ReplicationMsg
       crossDomainServerState = new String(in, pos, length, "UTF-8");
       pos += length + 1;
 
-      // operation id
       length = getNextLength(in, pos);
       operationId = new String(in, pos, length, "UTF-8");
       pos += length + 1;
@@ -225,8 +220,10 @@ public class StartECLSessionMsg extends ReplicationMsg
     try
     {
       byte[] byteMode = toBytes(eclRequestType);
-      byte[] byteChangeNumber = toBytes(firstChangeNumber);
-      byte[] byteStopChangeNumber = toBytes(lastChangeNumber);
+      // FIXME JNR Changing the lines below to use long would require a protocol
+      // version change. Leave it like this for now until the need arises.
+      byte[] byteChangeNumber = toBytes((int) firstChangeNumber);
+      byte[] byteStopChangeNumber = toBytes((int) lastChangeNumber);
       byte[] byteCSN = csn.toString().getBytes("UTF-8");
       byte[] bytePsearch = toBytes(isPersistent);
       byte[] byteGeneralizedState = toBytes(crossDomainServerState);
@@ -294,7 +291,7 @@ public class StartECLSessionMsg extends ReplicationMsg
    * Getter on the changer number start.
    * @return the changer number start.
    */
-  public int getFirstChangeNumber()
+  public long getFirstChangeNumber()
   {
     return firstChangeNumber;
   }
@@ -303,7 +300,7 @@ public class StartECLSessionMsg extends ReplicationMsg
    * Getter on the changer number stop.
    * @return the change number stop.
    */
-  public int getLastChangeNumber()
+  public long getLastChangeNumber()
   {
     return lastChangeNumber;
   }
@@ -312,7 +309,7 @@ public class StartECLSessionMsg extends ReplicationMsg
    * Setter on the first changer number (as defined by [CHANGELOG]).
    * @param firstChangeNumber the provided first change number.
    */
-  public void setFirstChangeNumber(int firstChangeNumber)
+  public void setFirstChangeNumber(long firstChangeNumber)
   {
     this.firstChangeNumber = firstChangeNumber;
   }
@@ -321,7 +318,7 @@ public class StartECLSessionMsg extends ReplicationMsg
    * Setter on the last changer number (as defined by [CHANGELOG]).
    * @param lastChangeNumber the provided last change number.
    */
-  public void setLastChangeNumber(int lastChangeNumber)
+  public void setLastChangeNumber(long lastChangeNumber)
   {
     this.lastChangeNumber = lastChangeNumber;
   }
