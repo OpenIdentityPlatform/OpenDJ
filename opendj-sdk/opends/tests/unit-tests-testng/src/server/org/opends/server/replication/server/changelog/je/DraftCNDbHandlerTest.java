@@ -37,7 +37,6 @@ import org.opends.server.replication.common.CSNGenerator;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.server.changelog.api.CNIndexData;
-import org.opends.server.replication.server.changelog.api.ChangeNumberIndexDB;
 import org.opends.server.replication.server.changelog.api.ChangeNumberIndexDBCursor;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.je.DraftCNDB.DraftCNDBCursor;
@@ -108,9 +107,9 @@ public class DraftCNDbHandlerTest extends ReplicationTestCase
       handler.add(new CNIndexData(cn3, value3, baseDN3, csn3));
 
       // The ChangeNumber should not get purged
-      final long firstChangeNumber = getFirstChangeNumber(handler);
+      final long firstChangeNumber = handler.getFirstCNIndexData().getChangeNumber();
       assertEquals(firstChangeNumber, cn1);
-      assertEquals(getLastChangeNumber(handler), cn3);
+      assertEquals(handler.getLastCNIndexData().getChangeNumber(), cn3);
 
       DraftCNDBCursor dbc = handler.getReadCursor(firstChangeNumber);
       try
@@ -134,12 +133,13 @@ public class DraftCNDbHandlerTest extends ReplicationTestCase
       handler.setPurgeDelay(100);
 
       // Check the db is cleared.
-      while (handler.count() != 0)
+      while (!handler.isEmpty())
       {
         Thread.sleep(200);
       }
-      assertEquals(getFirstChangeNumber(handler), 0);
-      assertEquals(getLastChangeNumber(handler), 0);
+      assertNull(handler.getFirstCNIndexData());
+      assertNull(handler.getLastCNIndexData());
+      assertEquals(handler.count(), 0);
     }
     finally
     {
@@ -235,10 +235,11 @@ public class DraftCNDbHandlerTest extends ReplicationTestCase
       Thread.sleep(500);
 
       // Checks
-      assertEquals(getFirstChangeNumber(handler), cn1);
-      assertEquals(getLastChangeNumber(handler), cn3);
+      assertEquals(handler.getFirstCNIndexData().getChangeNumber(), cn1);
+      assertEquals(handler.getLastCNIndexData().getChangeNumber(), cn3);
 
       assertEquals(handler.count(), 3, "Db count");
+      assertFalse(handler.isEmpty());
 
       assertEquals(getPreviousCookie(handler, cn1), value1);
       assertEquals(getPreviousCookie(handler, cn2), value2);
@@ -256,9 +257,10 @@ public class DraftCNDbHandlerTest extends ReplicationTestCase
       handler.clear();
 
       // Check the db is cleared.
-      assertEquals(getFirstChangeNumber(handler), 0);
-      assertEquals(getLastChangeNumber(handler), 0);
+      assertNull(handler.getFirstCNIndexData());
+      assertNull(handler.getLastCNIndexData());
       assertEquals(handler.count(), 0);
+      assertTrue(handler.isEmpty());
     }
     finally
     {
@@ -270,16 +272,6 @@ public class DraftCNDbHandlerTest extends ReplicationTestCase
         replicationServer.remove();
       TestCaseUtils.deleteDirectory(testRoot);
     }
-  }
-
-  private long getFirstChangeNumber(ChangeNumberIndexDB handler) throws Exception
-  {
-    return handler.getFirstCNIndexData().getChangeNumber();
-  }
-
-  private long getLastChangeNumber(ChangeNumberIndexDB handler) throws Exception
-  {
-    return handler.getLastCNIndexData().getChangeNumber();
   }
 
   private String getPreviousCookie(DraftCNDbHandler handler, long changeNumber) throws Exception

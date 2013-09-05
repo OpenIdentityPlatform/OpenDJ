@@ -72,15 +72,6 @@ public interface ChangeNumberIndexDB
   CNIndexData getLastCNIndexData() throws ChangelogException;
 
   /**
-   * Get the last change number stored in this DB.
-   *
-   * @return Returns the last change number in this DB
-   * @throws ChangelogException
-   *           if a database problem occurs.
-   */
-  long getLastChangeNumber() throws ChangelogException;
-
-  /**
    * Add an update to the list of messages that must be saved to this DB managed
    * by this DB.
    * <p>
