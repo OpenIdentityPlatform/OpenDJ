@@ -388,12 +388,9 @@ public class ECLSearchOperation
                 ResultCode.UNAVAILABLE_CRITICAL_EXTENSION,
                 ERR_CONTROL_INSUFFICIENT_ACCESS_RIGHTS.get(oid));
           }
-          else
-          {
-            // We don't want to process this non-critical control, so remove it.
-            removeRequestControl(c);
-            continue;
-          }
+          // We don't want to process this non-critical control, so remove it.
+          removeRequestControl(c);
+          continue;
         }
 
         if (oid.equals(OID_ECL_COOKIE_EXCHANGE_CONTROL))
@@ -715,13 +712,8 @@ public class ECLSearchOperation
     {
       return getFilter().matchesEntry(entry);
     }
-    else
-    {
-      return false;
-    }
+    return false;
   }
-
-
 
   /**
    * Create an ECL entry from a provided ECL msg.
@@ -1036,15 +1028,10 @@ public class ECLSearchOperation
     addAttributeByType(ATTR_SUBSCHEMA_SUBENTRY_LC, ATTR_SUBSCHEMA_SUBENTRY_LC,
         ConfigConstants.DN_DEFAULT_SCHEMA_ROOT, uAttrs, operationalAttrs);
 
-    // numSubordinates
     addAttributeByType("numsubordinates", "numSubordinates", "0", uAttrs,
         operationalAttrs);
-
-    // hasSubordinates
     addAttributeByType("hassubordinates", "hasSubordinates", "false", uAttrs,
         operationalAttrs);
-
-    // entryDN
     addAttributeByType("entrydn", "entryDN", dnString, uAttrs,
         operationalAttrs);
 
@@ -1059,10 +1046,8 @@ public class ECLSearchOperation
     String format = dateFormat.format(new Date(csn.getTime()));
     addAttributeByType("changetime", "changeTime", format, uAttrs,
         operationalAttrs);
-
     addAttributeByType("changetype", "changeType", changetype, uAttrs,
         operationalAttrs);
-
     addAttributeByType("targetdn", "targetDN", targetDN.toNormalizedString(),
         uAttrs, operationalAttrs);
 
@@ -1070,7 +1055,6 @@ public class ECLSearchOperation
 
     addAttributeByType("replicationcsn", "replicationCSN", csn
         .toString(), uAttrs, operationalAttrs);
-
     addAttributeByType("replicaidentifier", "replicaIdentifier", Integer
         .toString(csn.getServerId()), uAttrs, operationalAttrs);
 
@@ -1256,10 +1240,10 @@ public class ECLSearchOperation
       // Here is the only binary operation we know how to optimize
       Collection<SearchFilter> comps = sf.getFilterComponents();
       SearchFilter sfs[] = comps.toArray(new SearchFilter[0]);
-      int l1 = -1;
-      int f1 = -1;
-      int l2 = -1;
-      int f2 = -1;
+      long l1 = -1;
+      long f1 = -1;
+      long l2 = -1;
+      long f2 = -1;
       StartECLSessionMsg m1;
       StartECLSessionMsg m2;
       if (sfs.length > 0)

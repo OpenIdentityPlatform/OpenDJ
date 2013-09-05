@@ -666,7 +666,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     CSN csn = new CSN(TimeThread.getTime(), 123, 45);
     op.setAttachment(SYNCHROCONTEXT, new DeleteContext(csn, "uniqueid"));
     DeleteMsg delmsg = new DeleteMsg(op);
-    int changeNumber = 21;
+    long changeNumber = 21;
 
     String baseDN = "dc=example,dc=com";
 
@@ -946,8 +946,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
    * Test TopologyMsg encoding and decoding.
    */
   @Test(enabled=true,dataProvider = "createTopologyData")
-  public void topologyMsgTest(List<DSInfo> dsList, List<RSInfo> rsList,
-      Set<String> attrs)
+  public void topologyMsgTest(List<DSInfo> dsList, List<RSInfo> rsList, Set<String> attrs)
     throws Exception
   {
     TopologyMsg msg = new TopologyMsg(dsList, rsList);
@@ -1317,8 +1316,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
    * Test StartSessionMsg encoding and decoding.
    */
   @Test()
-  public void startECLSessionMsgTest()
-    throws Exception
+  public void startECLSessionMsgTest() throws Exception
   {
     // data
     CSN csn = new CSN(TimeThread.getTime(), 123, 45);
@@ -1365,9 +1363,23 @@ public class SynchronizationMsgTest extends ReplicationTestCase
 
   @Test(enabled=false,dataProvider = "createAddData")
   public void addMsgPerfs(String rawDN, boolean isAssured, AssuredMode assuredMode,
-      byte safeDataLevel, List<Attribute> entryAttrList)
-  throws Exception
+      byte safeDataLevel, List<Attribute> entryAttrList) throws Exception
   {
+    Map<ObjectClass, String> objectClassList = new HashMap<ObjectClass, String>();
+    objectClassList.put(DirectoryServer.getObjectClass("organization"), "organization");
+
+    Attribute attr = Attributes.create("o", "com");
+    Map<AttributeType, List<Attribute>> userAttList = new HashMap<AttributeType, List<Attribute>>();
+    userAttList.put(attr.getAttributeType(), newList(attr));
+
+
+    attr = Attributes.create("creatorsname", "dc=creator");
+    Map<AttributeType, List<Attribute>> opList = new HashMap<AttributeType,List<Attribute>>();
+    opList.put(attr.getAttributeType(), newList(attr));
+
+    CSN csn = new CSN(TimeThread.getTime(), 123, 45);
+    DN dn = DN.decode(rawDN);
+
     long createop = 0;
     long createmsgfromop = 0;
     long encodemsg = 0;
@@ -1375,27 +1387,6 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     long setentryattr = 0;
     long buildnew = 0;
     long t1,t2,t3,t31,t4,t5,t6 = 0;
-
-    Map<ObjectClass, String> objectClassList =
-        new HashMap<ObjectClass, String>();
-    objectClassList.put(DirectoryServer.getObjectClass("organization"),
-        "organization");
-
-    Attribute attr = Attributes.create("o", "com");
-    List<Attribute> userAttributes = newList(attr);
-    Map<AttributeType, List<Attribute>> userAttList =
-        new HashMap<AttributeType, List<Attribute>>();
-    userAttList.put(attr.getAttributeType(), userAttributes);
-
-
-    attr = Attributes.create("creatorsname", "dc=creator");
-    List<Attribute> operationalAttributes = newList(attr);
-    Map<AttributeType, List<Attribute>> opList =
-      new HashMap<AttributeType,List<Attribute>>();
-    opList.put(attr.getAttributeType(), operationalAttributes);
-
-    CSN csn = new CSN(TimeThread.getTime(), 123, 45);
-    DN dn = DN.decode(rawDN);
 
     for (int i=1;i<perfRep;i++)
     {
@@ -1457,12 +1448,13 @@ public class SynchronizationMsgTest extends ReplicationTestCase
   }
 
   @Test(enabled=false,dataProvider = "createModifyData")
-  public void modMsgPerfs(CSN csn,
-      String rawdn, List<Modification> mods,
-      boolean isAssured, AssuredMode assuredMode,
-      byte safeDataLevel, List<Attribute> entryAttrList)
-  throws Exception
+  public void modMsgPerfs(CSN csn, String rawdn, List<Modification> mods,
+      boolean isAssured, AssuredMode assuredMode, byte safeDataLevel,
+      List<Attribute> entryAttrList) throws Exception
   {
+    CSN csn2 = new CSN(TimeThread.getTime(), 123, 45);
+    DN dn = DN.decode(rawdn);
+
     long createop = 0;
     long createmsgfromop = 0;
     long encodemsg = 0;
@@ -1470,9 +1462,6 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     long setentryattr = 0;
     long buildnew = 0;
     long t1,t2,t3,t31,t4,t5,t6 = 0;
-
-    CSN csn2 = new CSN(TimeThread.getTime(), 123, 45);
-    DN dn = DN.decode(rawdn);
 
     for (int i=1;i<perfRep;i++)
     {
