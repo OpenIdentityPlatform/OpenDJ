@@ -28,8 +28,6 @@ package org.opends.server.replication.server.changelog.api;
 
 import java.io.Closeable;
 
-import org.opends.server.replication.common.CSN;
-
 /**
  * Iterator into the changelog database. Once it is not used anymore, a
  * ChangelogDBIterator must be closed to release all the resources into the
@@ -39,25 +37,11 @@ public interface ChangeNumberIndexDBCursor extends Closeable
 {
 
   /**
-   * Getter for the replication CSN field.
+   * Getter for the {@link CNIndexData} record.
    *
-   * @return The replication CSN field.
+   * @return The replication CNIndexData record.
    */
-  CSN getCSN();
-
-  /**
-   * Getter for the baseDN field.
-   *
-   * @return The service ID.
-   */
-  String getBaseDN();
-
-  /**
-   * Getter for the change number field.
-   *
-   * @return The change number field.
-   */
-  long getChangeNumber();
+  CNIndexData getCNIndexData();
 
   /**
    * Skip to the next record of the database.

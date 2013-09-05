@@ -36,6 +36,8 @@ import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.CSNGenerator;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
+import org.opends.server.replication.server.changelog.api.CNIndexData;
+import org.opends.server.replication.server.changelog.api.ChangeNumberIndexDB;
 import org.opends.server.replication.server.changelog.api.ChangeNumberIndexDBCursor;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.je.DraftCNDB.DraftCNDBCursor;
@@ -45,21 +47,17 @@ import org.testng.annotations.Test;
 import static org.testng.Assert.*;
 
 /**
- * Test the DraftCNDbHandler class with 2 kinds of cleaning of the db :
- * - periodic trim
- * - call to clear method()
+ * Test the DraftCNDbHandler class with 2 kinds of cleaning of the db : -
+ * periodic trim - call to clear method()
  */
 @SuppressWarnings("javadoc")
 public class DraftCNDbHandlerTest extends ReplicationTestCase
 {
   /**
-   * This test makes basic operations of a DraftCNDb :
-   * - create the db
-   * - add records
-   * - read them with a cursor
-   * - set a very short trim period
-   * - wait for the db to be trimmed / here since the changes are not stored in
-   *   the replication changelog, the draftCNDb will be cleared.
+   * This test makes basic operations of a DraftCNDb : - create the db - add
+   * records - read them with a cursor - set a very short trim period - wait for
+   * the db to be trimmed / here since the changes are not stored in the
+   * replication changelog, the draftCNDb will be cleared.
    */
   @Test()
   void testDraftCNDbHandlerTrim() throws Exception
@@ -99,40 +97,32 @@ public class DraftCNDbHandlerTest extends ReplicationTestCase
       String baseDN2 = "baseDN2";
       String baseDN3 = "baseDN3";
 
-      CSNGenerator gen = new CSNGenerator( 1, 0);
+      CSNGenerator gen = new CSNGenerator(1, 0);
       CSN csn1 = gen.newCSN();
       CSN csn2 = gen.newCSN();
       CSN csn3 = gen.newCSN();
 
       // Add records
-      handler.add(cn1, value1, baseDN1, csn1);
-      handler.add(cn2, value2, baseDN2, csn2);
-      handler.add(cn3, value3, baseDN3, csn3);
+      handler.add(new CNIndexData(cn1, value1, baseDN1, csn1));
+      handler.add(new CNIndexData(cn2, value2, baseDN2, csn2));
+      handler.add(new CNIndexData(cn3, value3, baseDN3, csn3));
 
       // The ChangeNumber should not get purged
-      final long firstChangeNumber = handler.getFirstChangeNumber();
+      final long firstChangeNumber = getFirstChangeNumber(handler);
       assertEquals(firstChangeNumber, cn1);
-      assertEquals(handler.getLastChangeNumber(), cn3);
+      assertEquals(getLastChangeNumber(handler), cn3);
 
       DraftCNDBCursor dbc = handler.getReadCursor(firstChangeNumber);
       try
       {
-        assertEquals(dbc.currentCSN(), csn1);
-        assertEquals(dbc.currentBaseDN(), baseDN1);
-        assertEquals(dbc.currentValue(), value1);
+        assertEqualTo(dbc.currentData(), csn1, baseDN1, value1);
         assertTrue(dbc.toString().length() != 0);
 
         assertTrue(dbc.next());
-
-        assertEquals(dbc.currentCSN(), csn2);
-        assertEquals(dbc.currentBaseDN(), baseDN2);
-        assertEquals(dbc.currentValue(), value2);
+        assertEqualTo(dbc.currentData(), csn2, baseDN2, value2);
 
         assertTrue(dbc.next());
-
-        assertEquals(dbc.currentCSN(), csn3);
-        assertEquals(dbc.currentBaseDN(), baseDN3);
-        assertEquals(dbc.currentValue(), value3);
+        assertEqualTo(dbc.currentData(), csn3, baseDN3, value3);
 
         assertFalse(dbc.next());
       }
@@ -144,12 +134,12 @@ public class DraftCNDbHandlerTest extends ReplicationTestCase
       handler.setPurgeDelay(100);
 
       // Check the db is cleared.
-      while(handler.count()!=0)
+      while (handler.count() != 0)
       {
         Thread.sleep(200);
       }
-      assertEquals(handler.getFirstChangeNumber(), 0);
-      assertEquals(handler.getLastChangeNumber(), 0);
+      assertEquals(getFirstChangeNumber(handler), 0);
+      assertEquals(getLastChangeNumber(handler), 0);
     }
     finally
     {
@@ -161,6 +151,14 @@ public class DraftCNDbHandlerTest extends ReplicationTestCase
         replicationServer.remove();
       TestCaseUtils.deleteDirectory(testRoot);
     }
+  }
+
+  private void assertEqualTo(CNIndexData data, CSN csn, String baseDN,
+      String cookie)
+  {
+    assertEquals(data.getCSN(), csn);
+    assertEquals(data.getBaseDN(), baseDN);
+    assertEquals(data.getPreviousCookie(), cookie);
   }
 
   private File createCleanDir() throws IOException
@@ -225,26 +223,26 @@ public class DraftCNDbHandlerTest extends ReplicationTestCase
       String baseDN2 = "baseDN2";
       String baseDN3 = "baseDN3";
 
-      CSNGenerator gen = new CSNGenerator( 1, 0);
+      CSNGenerator gen = new CSNGenerator(1, 0);
       CSN csn1 = gen.newCSN();
       CSN csn2 = gen.newCSN();
       CSN csn3 = gen.newCSN();
 
       // Add records
-      handler.add(cn1, value1, baseDN1, csn1);
-      handler.add(cn2, value2, baseDN2, csn2);
-      handler.add(cn3, value3, baseDN3, csn3);
+      handler.add(new CNIndexData(cn1, value1, baseDN1, csn1));
+      handler.add(new CNIndexData(cn2, value2, baseDN2, csn2));
+      handler.add(new CNIndexData(cn3, value3, baseDN3, csn3));
       Thread.sleep(500);
 
       // Checks
-      assertEquals(handler.getFirstChangeNumber(), cn1);
-      assertEquals(handler.getLastChangeNumber(), cn3);
+      assertEquals(getFirstChangeNumber(handler), cn1);
+      assertEquals(getLastChangeNumber(handler), cn3);
 
       assertEquals(handler.count(), 3, "Db count");
 
-      assertEquals(handler.getPreviousCookie(cn1), value1);
-      assertEquals(handler.getPreviousCookie(cn2), value2);
-      assertEquals(handler.getPreviousCookie(cn3), value3);
+      assertEquals(getPreviousCookie(handler, cn1), value1);
+      assertEquals(getPreviousCookie(handler, cn2), value2);
+      assertEquals(getPreviousCookie(handler, cn3), value3);
 
       ChangeNumberIndexDBCursor cursor = handler.getCursorFrom(cn1);
       assertCursorReadsInOrder(cursor, cn1, cn2, cn3);
@@ -258,8 +256,8 @@ public class DraftCNDbHandlerTest extends ReplicationTestCase
       handler.clear();
 
       // Check the db is cleared.
-      assertEquals(handler.getFirstChangeNumber(), 0);
-      assertEquals(handler.getLastChangeNumber(), 0);
+      assertEquals(getFirstChangeNumber(handler), 0);
+      assertEquals(getLastChangeNumber(handler), 0);
       assertEquals(handler.count(), 0);
     }
     finally
@@ -274,6 +272,29 @@ public class DraftCNDbHandlerTest extends ReplicationTestCase
     }
   }
 
+  private long getFirstChangeNumber(ChangeNumberIndexDB handler) throws Exception
+  {
+    return handler.getFirstCNIndexData().getChangeNumber();
+  }
+
+  private long getLastChangeNumber(ChangeNumberIndexDB handler) throws Exception
+  {
+    return handler.getLastCNIndexData().getChangeNumber();
+  }
+
+  private String getPreviousCookie(DraftCNDbHandler handler, long changeNumber) throws Exception
+  {
+    ChangeNumberIndexDBCursor cursor = handler.getCursorFrom(changeNumber);
+    try
+    {
+      return cursor.getCNIndexData().getPreviousCookie();
+    }
+    finally
+    {
+      StaticUtils.close(cursor);
+    }
+  }
+
   private void assertCursorReadsInOrder(ChangeNumberIndexDBCursor cursor,
       int... sns) throws ChangelogException
   {
@@ -281,7 +302,7 @@ public class DraftCNDbHandlerTest extends ReplicationTestCase
     {
       for (int i = 0; i < sns.length; i++)
       {
-        assertEquals(cursor.getChangeNumber(), sns[i]);
+        assertEquals(cursor.getCNIndexData().getChangeNumber(), sns[i]);
         final boolean isNotLast = i + 1 < sns.length;
         assertEquals(cursor.next(), isNotLast);
       }

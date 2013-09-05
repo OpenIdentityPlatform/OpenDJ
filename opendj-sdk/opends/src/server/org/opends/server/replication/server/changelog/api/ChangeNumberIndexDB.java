@@ -26,13 +26,12 @@
  */
 package org.opends.server.replication.server.changelog.api;
 
-import org.opends.server.replication.common.CSN;
-
 /**
- * This class stores an index of all the changes seen by this server. The index
- * is sorted by a global ordering as defined in the CSN class. The index links a
- * <code>changeNumber</code> to the corresponding {@link CSN}. The {@link CSN}
- * then links to a corresponding change in one of the {@link ReplicaDB}s.
+ * This class stores an index of all the changes seen by this server in the form
+ * of {@link CNIndexData}. The index is sorted by a global ordering as defined
+ * in the CSN class. The index links a <code>changeNumber</code> to the
+ * corresponding CSN. The CSN then links to a corresponding change in one of the
+ * ReplicaDBs.
  *
  * @see <a href=
  * "https://wikis.forgerock.org/confluence/display/OPENDJ/OpenDJ+Domain+Names"
@@ -44,46 +43,33 @@ public interface ChangeNumberIndexDB
 {
 
   /**
-   * Get the CSN associated to a provided change number.
+   * Get the {@link CNIndexData} record associated to a provided change number.
    *
    * @param changeNumber
    *          the provided change number.
-   * @return the associated CSN, null when none.
+   * @return the {@link CNIndexData} record, null when none.
    * @throws ChangelogException
    *           if a database problem occurs.
    */
-  public CSN getCSN(long changeNumber) throws ChangelogException;
+  CNIndexData getCNIndexData(long changeNumber) throws ChangelogException;
 
   /**
-   * Get the baseDN associated to a provided change number.
+   * Get the first {@link CNIndexData} record stored in this DB.
    *
-   * @param changeNumber
-   *          the provided change number.
-   * @return the baseDN, null when none.
+   * @return Returns the first {@link CNIndexData} record in this DB.
    * @throws ChangelogException
    *           if a database problem occurs.
    */
-  public String getBaseDN(long changeNumber) throws ChangelogException;
+  CNIndexData getFirstCNIndexData() throws ChangelogException;
 
   /**
-   * Get the previous cookie associated to a provided change number.
+   * Get the last {@link CNIndexData} record stored in this DB.
    *
-   * @param changeNumber
-   *          the provided change number.
-   * @return the previous cookie, null when none.
+   * @return Returns the last {@link CNIndexData} record in this DB
    * @throws ChangelogException
    *           if a database problem occurs.
    */
-  String getPreviousCookie(long changeNumber) throws ChangelogException;
-
-  /**
-   * Get the first change number stored in this DB.
-   *
-   * @return Returns the first change number in this DB.
-   * @throws ChangelogException
-   *           if a database problem occurs.
-   */
-  long getFirstChangeNumber() throws ChangelogException;
+  CNIndexData getLastCNIndexData() throws ChangelogException;
 
   /**
    * Get the last change number stored in this DB.
@@ -101,19 +87,12 @@ public interface ChangeNumberIndexDB
    * This method is blocking if the size of the list of message is larger than
    * its maximum.
    *
-   * @param changeNumber
-   *          The change number for this record in this DB.
-   * @param previousCookie
-   *          The value of the previous cookie.
-   * @param baseDN
-   *          The associated baseDN.
-   * @param csn
-   *          The associated replication CSN.
+   * @param cnIndexData
+   *          The {@link CNIndexData} record to add to this DB.
    * @throws ChangelogException
    *           if a database problem occurs.
    */
-  void add(long changeNumber, String previousCookie, String baseDN, CSN csn)
-      throws ChangelogException;
+  void add(CNIndexData cnIndexData) throws ChangelogException;
 
   /**
    * Generate a new {@link ChangeNumberIndexDBCursor} that allows to browse the

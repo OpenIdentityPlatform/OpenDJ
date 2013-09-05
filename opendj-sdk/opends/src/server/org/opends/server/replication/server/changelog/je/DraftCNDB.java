@@ -34,7 +34,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.replication.common.CSN;
+import org.opends.server.replication.server.changelog.api.CNIndexData;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.types.DebugLogLevel;
 
@@ -56,7 +56,6 @@ import static org.opends.server.util.StaticUtils.*;
 public class DraftCNDB
 {
   private static final DebugTracer TRACER = getTracer();
-  private static final int DATABASE_EMPTY = 0;
 
   private Database db;
   private ReplicationDbEnv dbenv;
@@ -83,22 +82,19 @@ public class DraftCNDB
 
   /**
    * Add an entry to the database.
-   * @param changeNumber the provided change number.
    *
-   * @param value        the provided value to be stored associated
-   *                     with this change number.
-   * @param domainBaseDN the provided domainBaseDn to be stored associated
-   *                     with this change number.
-   * @param csn the provided replication CSN to be
-   *                     stored associated with this change number.
+   * @param cnIndexData
+   *          the provided {@link CNIndexData} to be stored.
    */
-  public void addEntry(long changeNumber, String value, String domainBaseDN,
-      CSN csn)
+  public void addEntry(CNIndexData cnIndexData)
   {
     try
     {
+      final long changeNumber = cnIndexData.getChangeNumber();
       DatabaseEntry key = new ReplicationDraftCNKey(changeNumber);
-      DatabaseEntry data = new DraftCNData(value, domainBaseDN, csn);
+      DatabaseEntry data =
+          new DraftCNData(changeNumber, cnIndexData.getPreviousCookie(),
+              cnIndexData.getBaseDN(), cnIndexData.getCSN());
 
       // Use a transaction so that we can override durability.
       Transaction txn = null;
@@ -220,9 +216,12 @@ public class DraftCNDB
 
   /**
    * Read the first Change from the database, 0 when none.
+   *
    * @return the first change number.
+   * @throws ChangelogException
+   *           if a database problem occurred
    */
-  public int readFirstChangeNumber()
+  public CNIndexData readFirstCNIndexData() throws ChangelogException
   {
     try
     {
@@ -233,18 +232,18 @@ public class DraftCNDB
         // If the DB has been closed then return immediately.
         if (isDBClosed())
         {
-          return DATABASE_EMPTY;
+          return null;
         }
 
         cursor = db.openCursor(null, null);
-        DatabaseEntry key = new DatabaseEntry();
+        ReplicationDraftCNKey key = new ReplicationDraftCNKey();
         DatabaseEntry entry = new DatabaseEntry();
         if (cursor.getFirst(key, entry, LockMode.DEFAULT) != SUCCESS)
         {
-          return DATABASE_EMPTY;
+          return null;
         }
 
-        return Integer.parseInt(decodeUTF8(key.getData()));
+        return newCNIndexData(key, entry);
       }
       finally
       {
@@ -254,8 +253,15 @@ public class DraftCNDB
     catch (DatabaseException e)
     {
       dbenv.shutdownOnException(e);
-      return DATABASE_EMPTY;
+      return null;
     }
+  }
+
+  private CNIndexData newCNIndexData(ReplicationDraftCNKey key,
+      DatabaseEntry data) throws ChangelogException
+  {
+    return new DraftCNData(key.getChangeNumber(), data.getData())
+        .getCNIndexData();
   }
 
   /**
@@ -270,7 +276,7 @@ public class DraftCNDB
       // If the DB has been closed then return immediately.
       if (isDBClosed())
       {
-        return DATABASE_EMPTY;
+        return 0;
       }
 
       return db.count();
@@ -283,14 +289,17 @@ public class DraftCNDB
     {
       dbCloseLock.readLock().unlock();
     }
-    return DATABASE_EMPTY;
+    return 0;
   }
 
   /**
    * Read the last change number from the database.
+   *
    * @return the last change number.
+   * @throws ChangelogException
+   *           if a database problem occurred
    */
-  public int readLastChangeNumber()
+  public CNIndexData readLastCNIndexData() throws ChangelogException
   {
     try
     {
@@ -301,18 +310,18 @@ public class DraftCNDB
         // If the DB has been closed then return immediately.
         if (isDBClosed())
         {
-          return DATABASE_EMPTY;
+          return null;
         }
 
         cursor = db.openCursor(null, null);
-        DatabaseEntry key = new DatabaseEntry();
+        ReplicationDraftCNKey key = new ReplicationDraftCNKey();
         DatabaseEntry entry = new DatabaseEntry();
         if (cursor.getLast(key, entry, LockMode.DEFAULT) != SUCCESS)
         {
-          return DATABASE_EMPTY;
+          return null;
         }
 
-        return Integer.parseInt(decodeUTF8(key.getData()));
+        return newCNIndexData(key, entry);
       }
       finally
       {
@@ -322,7 +331,7 @@ public class DraftCNDB
     catch (DatabaseException e)
     {
       dbenv.shutdownOnException(e);
-      return DATABASE_EMPTY;
+      return null;
     }
   }
 
@@ -348,9 +357,9 @@ public class DraftCNDB
      * Will be set non null for a write cursor.
      */
     private final Transaction txn;
-    private final DatabaseEntry key;
-    private final DatabaseEntry entry;
-    private DraftCNData cnData;
+    private final ReplicationDraftCNKey key;
+    private final DatabaseEntry entry = new DatabaseEntry();
+    private CNIndexData cnIndexData;
     private boolean isClosed = false;
 
 
@@ -365,7 +374,6 @@ public class DraftCNDB
     private DraftCNDBCursor(long startChangeNumber) throws ChangelogException
     {
       this.key = new ReplicationDraftCNKey(startChangeNumber);
-      this.entry = new DatabaseEntry();
 
       // Take the lock. From now on, whatever error that happen in the life
       // of this cursor should end by unlocking that lock. We must also
@@ -405,12 +413,12 @@ public class DraftCNDB
             }
             else
             {
-              cnData = new DraftCNData(entry.getData());
+              cnIndexData = newCNIndexData(this.key, entry);
             }
           }
           else
           {
-            cnData = new DraftCNData(entry.getData());
+            cnIndexData = newCNIndexData(this.key, entry);
           }
         }
 
@@ -431,15 +439,12 @@ public class DraftCNDB
       }
     }
 
-
-
     private DraftCNDBCursor() throws ChangelogException
     {
       Transaction localTxn = null;
       Cursor localCursor = null;
 
-      this.key = new DatabaseEntry();
-      this.entry = new DatabaseEntry();
+      this.key = new ReplicationDraftCNKey();
 
       // We'll go on only if no close or no clear is running
       dbCloseLock.readLock().lock();
@@ -544,104 +549,28 @@ public class DraftCNDB
     }
 
     /**
-     * Getter for the value field of the current cursor.
-     * @return The current value field.
-     */
-    public String currentValue()
-    {
-      if (isClosed)
-      {
-        return null;
-      }
-
-      try
-      {
-        if (cnData != null)
-        {
-          return cnData.getValue();
-        }
-      }
-      catch(Exception e)
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-      return null;
-    }
-
-    /**
-     * Getter for the baseDN field of the current cursor.
-     * @return The current baseDN.
-     */
-    public String currentBaseDN()
-    {
-      if (isClosed)
-      {
-        return null;
-      }
-
-      try
-      {
-        if (cnData != null)
-        {
-          return cnData.getBaseDN();
-        }
-      }
-      catch(Exception e)
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-      return null;
-    }
-
-    /**
-     * Getter for the integer value of the current cursor, representing
-     * the current change number being processed.
+     * Returns the {@link CNIndexData} at the current position of the cursor.
      *
-     * @return the current change number as an integer.
+     * @return The current {@link CNIndexData}.
      */
-    public int currentKey()
+    public CNIndexData currentData()
     {
       if (isClosed)
       {
-        return -1;
+        return null;
       }
 
       try
       {
-        String str = decodeUTF8(key.getData());
-        return Integer.parseInt(str);
+        return cnIndexData;
       }
       catch (Exception e)
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-      return -1;
-    }
-
-    /**
-     * Returns the replication CSN associated with the current key.
-     * @return the replication CSN
-     */
-    public CSN currentCSN()
-    {
-      if (isClosed)
-      {
         return null;
       }
-
-      try
-      {
-        if (cnData != null)
-        {
-          return cnData.getCSN();
-        }
-      }
-      catch(Exception e)
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-      return null;
     }
+
 
     /**
      * Go to the next record on the cursor.
@@ -659,10 +588,10 @@ public class DraftCNDB
         OperationStatus status = cursor.getNext(key, entry, LockMode.DEFAULT);
         if (status != OperationStatus.SUCCESS)
         {
-          cnData = null;
+          cnIndexData = null;
           return false;
         }
-        cnData = new DraftCNData(entry.getData());
+        cnIndexData = newCNIndexData(this.key, entry);
       }
       catch(Exception e)
       {
@@ -693,20 +622,6 @@ public class DraftCNDB
       }
     }
 
-    /**
-     * Returns the current key associated with this cursor.
-     *
-     * @return The current key associated with this cursor.
-     */
-    public DatabaseEntry getKey()
-    {
-      if (isClosed)
-      {
-        return null;
-      }
-
-      return key;
-    }
   }
 
   /**
