@@ -571,16 +571,13 @@ public final class ECLServerHandler extends ServerHandler
     {
       // Request filter DOES NOT contain any first change number
       // So we'll generate from the first change number in the DraftCNdb
-      if (cnIndexDB.isEmpty())
-      {
-        // FIXME JNR if we find a way to make draftCNDb.isEmpty() a non costly
-        // operation, then I think we can move this check to the top of this
-        // method
+      final CNIndexData firstCNData = cnIndexDB.getFirstCNIndexData();
+      if (firstCNData == null)
+      { // DB is empty or closed
         isEndOfCNIndexDBReached = true;
         return null;
       }
 
-      final CNIndexData firstCNData = cnIndexDB.getFirstCNIndexData();
       final long firstChangeNumber = firstCNData.getChangeNumber();
       final String crossDomainStartState = firstCNData.getPreviousCookie();
       cnIndexDBCursor = cnIndexDB.getCursorFrom(firstChangeNumber);
@@ -630,13 +627,13 @@ public final class ECLServerHandler extends ServerHandler
     {
       // startChangeNumber is between first and potential last and has never
       // been returned yet
-      if (cnIndexDB.isEmpty())
+      final CNIndexData lastCNData = cnIndexDB.getLastCNIndexData();
+      if (lastCNData == null)
       {
         isEndOfCNIndexDBReached = true;
         return null;
       }
 
-      final CNIndexData lastCNData = cnIndexDB.getLastCNIndexData();
       final long lastKey = lastCNData.getChangeNumber();
       final String crossDomainStartState = lastCNData.getPreviousCookie();
       cnIndexDBCursor = cnIndexDB.getCursorFrom(lastKey);

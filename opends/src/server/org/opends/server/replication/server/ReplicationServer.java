@@ -914,18 +914,6 @@ public final class ReplicationServer
             TRACER.debugCaught(DebugLogLevel.WARNING, ignored);
           }
         }
-
-        try
-        {
-          lastGeneratedChangeNumber = cnIndexDB.getLastChangeNumber();
-        }
-        catch (Exception ignored)
-        {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.WARNING, ignored);
-          }
-        }
       }
     }
   }
@@ -1638,16 +1626,19 @@ public final class ReplicationServer
         if (cnIndexDB == null)
         {
           cnIndexDB = new DraftCNDbHandler(this, this.dbEnv);
-          lastGeneratedChangeNumber = cnIndexDB.getLastChangeNumber();
+          final CNIndexData lastCNData = cnIndexDB.getLastCNIndexData();
+          // initialization of the lastGeneratedChangeNumebr from the DB content
+          // if DB is empty => lastCNData is null => Default to 0
+          lastGeneratedChangeNumber =
+              (lastCNData != null) ? lastCNData.getChangeNumber() : 0;
         }
         return cnIndexDB;
       }
       catch (Exception e)
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        MessageBuilder mb = new MessageBuilder();
-        mb.append(ERR_DRAFT_CHANGENUMBER_DATABASE.get(""));
-        throw new DirectoryException(OPERATIONS_ERROR, mb.toMessage(), e);
+        Message message = ERR_CHANGENUMBER_DATABASE.get(e.getMessage());
+        throw new DirectoryException(OPERATIONS_ERROR, message, e);
       }
     }
   }
@@ -1715,6 +1706,14 @@ public final class ReplicationServer
       String domainForLastCN = null;
       if (firstCNData != null)
       {
+        if (lastCNData == null)
+        {
+          // Edge case: DB was cleaned or closed in between call to getFirst*()
+          // and getLast*(). The only remaining solution is to fail fast.
+          throw new ChangelogException(
+              ERR_READING_FIRST_THEN_LAST_IN_CHANGENUMBER_DATABASE.get());
+        }
+
         dbEmpty = false;
         firstChangeNumber = firstCNData.getChangeNumber();
         lastChangeNumber = lastCNData.getChangeNumber();

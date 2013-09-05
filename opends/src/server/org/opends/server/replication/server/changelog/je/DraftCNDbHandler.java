@@ -169,18 +169,6 @@ public class DraftCNDbHandler implements ChangeNumberIndexDB, Runnable
     return db.readLastCNIndexData();
   }
 
-  /** {@inheritDoc} */
-  @Override
-  public long getLastChangeNumber() throws ChangelogException
-  {
-    final CNIndexData data = getLastCNIndexData();
-    if (data != null)
-    {
-      return data.getChangeNumber();
-    }
-    return 0;
-  }
-
   /**
    * Get the number of changes.
    * @return Returns the number of changes.
@@ -190,26 +178,11 @@ public class DraftCNDbHandler implements ChangeNumberIndexDB, Runnable
     return db.count();
   }
 
-  /**
-   * {@inheritDoc}
-   * <p>
-   * FIXME Find a way to implement this method in a more efficient manner.
-   * {@link com.sleepycat.je.Database#count()} javadoc mentions:
-   * <blockquote>Note that this method does scan a significant portion of the
-   * database and should be considered a fairly expensive
-   * operation.</blockquote>
-   * <p>
-   * It could be faster to:
-   * <ul>
-   * <li>open a cursor, check if the next entry exits, then close the cursor
-   * </li>
-   * <li>call <code>db.readFirstChangeNumber() != 0</code></li>
-   * </ul>
-   */
+  /** {@inheritDoc} */
   @Override
-  public boolean isEmpty()
+  public boolean isEmpty() throws ChangelogException
   {
-    return count() == 0;
+    return getLastCNIndexData() == null;
   }
 
   /**
