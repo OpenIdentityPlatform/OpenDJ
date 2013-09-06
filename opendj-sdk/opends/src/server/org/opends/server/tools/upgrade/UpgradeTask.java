@@ -74,20 +74,6 @@ public interface UpgradeTask
       throws ClientException;
 
   /**
-   * Notifies this task that the upgrade is about to start. This method will be
-   * invoked before any upgrade tasks have been performed. Most task
-   * implementation will not need to do anything.
-   *
-   * @param context
-   *          Context through which tasks can interact with the server
-   *          installation.
-   * @throws ClientException
-   *           If an error occurred while starting the task.
-   */
-  void start(UpgradeContext context)
-      throws ClientException;
-
-  /**
    * Verifies that this upgrade task can be completed or not.
    *
    * @param context

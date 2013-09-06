@@ -301,6 +301,8 @@ public final class Upgrade
             rebuildSingleIndex(INFO_UPGRADE_TASK_9013_DESCRIPTION.get(),
                 "ds-sync-hist")));
 
+
+
     /*
      * All upgrades will refresh the server configuration schema and generate
      * a new upgrade folder.
@@ -384,15 +386,21 @@ public final class Upgrade
      * and the application is non-interactive then, the process
      * may abort immediately.
      */
-    verify(context, tasks);
+    for (final UpgradeTask task : tasks)
+    {
+      task.verify(context);
+    }
 
     /*
-     * Asking upgrade requirements if needed to user.
+     * Let tasks interact with the user in order to obtain user's selection.
      */
     context.notify(INFO_UPGRADE_REQUIREMENTS.get(), TITLE_CALLBACK);
-    interact(context, tasks);
+    for (final UpgradeTask task : tasks)
+    {
+      task.interact(context);
+    }
 
-    // Starts upgrade.
+    // Starts upgrade
     final int userResponse = context.confirmYN(
         INFO_UPGRADE_DISPLAY_CONFIRM_START.get(), ConfirmationCallback.YES);
     if (userResponse == ConfirmationCallback.NO)
@@ -408,18 +416,6 @@ public final class Upgrade
        */
       context.notify(INFO_UPGRADE_PERFORMING_TASKS.get(),
           TITLE_CALLBACK);
-
-      /*
-       * Notify each task that the upgrade is about to be started.
-       */
-      for (final UpgradeTask task : tasks)
-      {
-        task.start(context);
-      }
-
-      /*
-       * Perform each task.
-       */
       for (final UpgradeTask task : tasks)
       {
         task.perform(context);
@@ -515,36 +511,6 @@ public final class Upgrade
   {
     MANDATORY_TASKS.addAll(Arrays.asList(tasks));
   }
-
-  private static void interact(final UpgradeContext context,
-      final List<UpgradeTask> tasks)
-      throws ClientException
-  {
-    /*
-     * Let tasks interact with the user in order to obtain user's selection.
-     */
-    for (final UpgradeTask task : tasks)
-    {
-      task.interact(context);
-    }
-  }
-
-
-
-  private static void verify(final UpgradeContext context,
-      final List<UpgradeTask> tasks)
-      throws ClientException
-  {
-    /*
-     * Let tasks interact with CLI to check if command line is correct.
-     */
-    for (final UpgradeTask task : tasks)
-    {
-      task.verify(context);
-    }
-  }
-
-
 
   /**
    * The server must be offline during the upgrade.
