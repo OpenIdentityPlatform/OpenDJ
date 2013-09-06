@@ -1856,6 +1856,8 @@ public final class ReplicationServer
     }
   }
 
+
+
   private InetAddress getLocalAddress()
   {
     try
@@ -1864,7 +1866,16 @@ public final class ReplicationServer
     }
     catch (UnknownHostException e)
     {
-      return InetAddress.getLoopbackAddress();
+      try
+      {
+        return InetAddress.getByAddress("localhost", new byte[] { 0x7f, 0x00,
+            0x00, 0x01 });
+      }
+      catch (UnknownHostException never)
+      {
+        // Illegal address length.
+        throw new RuntimeException(never);
+      }
     }
   }
 
