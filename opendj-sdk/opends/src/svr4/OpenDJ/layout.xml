@@ -89,8 +89,6 @@
 	   <fileset dir="${svr4.layout.pkg.dir}" includes="**/*.exe"/>
 	   <fileset dir="${svr4.layout.pkg.dir}" includes="**/*.bat"/>
 	   <fileset dir="${svr4.layout.pkg.dir}" includes="**/bat/"/>
-	   <fileset dir="${svr4.layout.pkg.dir}"
-               includes="**/README_WINDOWS.txt"/>
 	</delete>
 	<!-- Remove MacOS specific files  -->
 	<delete includeemptydirs="true">

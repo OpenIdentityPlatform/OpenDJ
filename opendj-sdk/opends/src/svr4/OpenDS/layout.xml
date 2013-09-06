@@ -23,6 +23,7 @@
  !
  !
  !      Copyright 2006-2009 Sun Microsystems, Inc.
+ !      Portions Copyright 2013 ForgeRock AS.
  ! -->
 
 <project name="OpenDS SVR4 layout" basedir=".">
@@ -87,8 +88,6 @@
 	   <fileset dir="${svr4.layout.pkg.dir}" includes="**/*.exe"/>
 	   <fileset dir="${svr4.layout.pkg.dir}" includes="**/*.bat"/>
 	   <fileset dir="${svr4.layout.pkg.dir}" includes="**/bat/"/>
-	   <fileset dir="${svr4.layout.pkg.dir}"
-               includes="**/README_WINDOWS.txt"/>
 	</delete>
 	<!-- Remove MacOS specific files  -->
 	<delete includeemptydirs="true">
