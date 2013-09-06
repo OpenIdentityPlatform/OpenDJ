@@ -4544,39 +4544,45 @@ public final class StaticUtils
    */
   public static boolean isLocalAddress(InetAddress address)
   {
-    if (address.isLoopbackAddress())
+    return address.isLoopbackAddress() || getLocalAddresses().contains(address);
+  }
+
+  // Time-stamp acts as memory barrier for networkInterfaces.
+  private static final long CACHED_LOCAL_ADDRESSES_TIMEOUT_MS = 30 * 1000;
+  private static volatile long localAddressesTimeStamp = 0;
+  private static Set<InetAddress> localAddresses = new HashSet<InetAddress>();
+
+  private static Set<InetAddress> getLocalAddresses()
+  {
+    final long currentTimeStamp = System.currentTimeMillis();
+    if (localAddressesTimeStamp
+        < (currentTimeStamp - CACHED_LOCAL_ADDRESSES_TIMEOUT_MS))
     {
-      return true;
-    }
-    else
-    {
-      Enumeration<NetworkInterface> i;
+      // Refresh the cache.
       try
       {
-        i = NetworkInterface.getNetworkInterfaces();
+        final Enumeration<NetworkInterface> i = NetworkInterface
+            .getNetworkInterfaces();
+        final Set<InetAddress> newLocalAddresses = new HashSet<InetAddress>();
+        while (i.hasMoreElements())
+        {
+          NetworkInterface n = i.nextElement();
+          Enumeration<InetAddress> j = n.getInetAddresses();
+          while (j.hasMoreElements())
+          {
+            newLocalAddresses.add(j.nextElement());
+          }
+        }
+        localAddresses = newLocalAddresses;
       }
       catch (SocketException e)
       {
-        // Unable to determine whether the address is local.
+        // Ignore and keep the old set.
         TRACER.debugCaught(DebugLogLevel.WARNING, e);
-        return false;
       }
-
-      while (i.hasMoreElements())
-      {
-        NetworkInterface n = i.nextElement();
-        Enumeration<InetAddress> j = n.getInetAddresses();
-        while (j.hasMoreElements())
-        {
-          InetAddress localAddress = j.nextElement();
-          if (localAddress.equals(address))
-          {
-            return true;
-          }
-        }
-      }
-      return false;
+      localAddressesTimeStamp = currentTimeStamp; // Publishes.
     }
+    return localAddresses;
   }
 
   /**
