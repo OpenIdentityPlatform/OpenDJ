@@ -593,6 +593,7 @@ public class DataServerHandler extends ServerHandler
           Integer.toString(serverId));
       throw new DirectoryException(ResultCode.OTHER, message);
     }
+
     this.refUrls = startSessionMsg.getReferralsURLs();
     this.assuredFlag = startSessionMsg.isAssured();
     this.assuredMode = startSessionMsg.getAssuredMode();
@@ -642,7 +643,7 @@ public class DataServerHandler extends ServerHandler
         // to peer server as topo message must embed valid generation id
         // for our server
         oldGenerationId =
-          replicationServerDomain.changeGenerationId(generationId, false);
+            replicationServerDomain.changeGenerationId(generationId);
       }
     }
     return startSessionMsg;

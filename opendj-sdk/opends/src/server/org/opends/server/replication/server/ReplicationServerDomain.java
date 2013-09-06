@@ -1188,7 +1188,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
         && !generationIdSavedStatus
         && generationId != -1)
     {
-      changeGenerationId(-1, false);
+      changeGenerationId(-1);
     }
   }
 
@@ -1931,17 +1931,6 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
   }
 
   /**
-   * Get the generationId saved status.
-   *
-   * @return The generationId saved status.
-   */
-  public boolean getGenerationIdSavedStatus()
-  {
-    return generationIdSavedStatus;
-  }
-
-
-  /**
    * Initialize the value of the generationID for this ReplicationServerDomain.
    * This method is intended to be used for initialization at startup and
    * simply stores the new value without any additional processing.
@@ -1963,10 +1952,9 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
    * Also clear the changelog databases.
    *
    * @param generationId The new value of generationId.
-   * @param savedStatus  The saved status of the generationId.
    * @return The old generation id
    */
-  public long changeGenerationId(long generationId, boolean savedStatus)
+  public long changeGenerationId(long generationId)
   {
     synchronized (generationIDLock)
     {
@@ -1977,7 +1965,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
         clearDbs();
 
         this.generationId = generationId;
-        this.generationIdSavedStatus = savedStatus;
+        this.generationIdSavedStatus = false;
       }
       return oldGenerationId;
     }
@@ -2016,11 +2004,10 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
 
     try
     {
-      long newGenId = genIdMsg.getGenerationId();
-
+      final long newGenId = genIdMsg.getGenerationId();
       if (newGenId != this.generationId)
       {
-        changeGenerationId(newGenId, false);
+        changeGenerationId(newGenId);
       }
       else
       {

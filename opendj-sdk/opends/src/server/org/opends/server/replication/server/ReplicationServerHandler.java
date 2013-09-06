@@ -195,8 +195,8 @@ public class ReplicationServerHandler extends ServerHandler
       */
       if (localGenerationId < 0 && generationId > 0)
       {
-        oldGenerationId = replicationServerDomain.changeGenerationId(
-            generationId, false);
+        oldGenerationId =
+            replicationServerDomain.changeGenerationId(generationId);
       }
 
       logStartHandshakeSNDandRCV(outReplServerStartMsg,(ReplServerStartMsg)msg);
@@ -499,7 +499,7 @@ public class ReplicationServerHandler extends ServerHandler
       // WARNING: Must be done before computing topo message to send to peer
       // server as topo message must embed valid generation id for our server
       oldGenerationId =
-          replicationServerDomain.changeGenerationId(generationId, false);
+          replicationServerDomain.changeGenerationId(generationId);
       return;
     }
 
