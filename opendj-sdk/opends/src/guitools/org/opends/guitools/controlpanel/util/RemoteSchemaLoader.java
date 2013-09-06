@@ -154,7 +154,6 @@ public class RemoteSchemaLoader extends SchemaLoader
         }
         catch (DirectoryException de)
         {
-          System.out.println(de.getMessage());
           lastException = de;
         }
       }
