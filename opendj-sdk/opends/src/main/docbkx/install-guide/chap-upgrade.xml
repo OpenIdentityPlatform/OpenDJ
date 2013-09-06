@@ -113,8 +113,13 @@
    script files that you copied over the current server files.</para>
 
    <para>By default, the <command>upgrade</command> command requests
-   confirmation before making important configuration changes. You can use
-   the <option>--no-prompt</option> option to run the command
+   confirmation before making important configuration changes. For some
+   potentially long-duration tasks, such as rebuilding indexes, the default
+   choice is to defer the tasks until after upgrade. Tasks that are not
+   performed during upgrade must generally be performed after upgrade but
+   before you restart the server.</para>
+
+   <para>You can use the <option>--no-prompt</option> option to run the command
    non-interactively, with the <option>--acceptLicense</option> option to
    accept the license terms non-interactively.</para>
 
