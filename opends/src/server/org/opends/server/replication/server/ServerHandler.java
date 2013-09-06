@@ -254,7 +254,7 @@ public abstract class ServerHandler extends MessageHandler
     // case retrieve old value of generation id for replication server domain
     if (oldGenerationId != -100 && replicationServerDomain != null)
     {
-      replicationServerDomain.changeGenerationId(oldGenerationId, false);
+      replicationServerDomain.changeGenerationId(oldGenerationId);
     }
   }
 
