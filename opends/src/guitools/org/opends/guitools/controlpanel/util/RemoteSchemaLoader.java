@@ -84,14 +84,16 @@ public class RemoteSchemaLoader extends SchemaLoader
   public void readSchema(InitialLdapContext ctx) throws NamingException,
       DirectoryException, InitializationException, ConfigException
   {
-    SearchControls searchControls = new SearchControls();
+    final String[] schemaAttrs =
+        { ConfigConstants.ATTR_ATTRIBUTE_TYPES_LC,
+          ConfigConstants.ATTR_OBJECTCLASSES_LC };
+
+    final SearchControls searchControls = new SearchControls();
     searchControls.setSearchScope(SearchControls.OBJECT_SCOPE);
-    String[] schemaAttrs =
-        { ConfigConstants.ATTR_OBJECTCLASSES_LC,
-          ConfigConstants.ATTR_ATTRIBUTE_TYPES_LC };
     searchControls.setReturningAttributes(schemaAttrs);
-    String filter = BrowserController.ALL_OBJECTS_FILTER;
-    NamingEnumeration<SearchResult> srs =
+
+    final String filter = BrowserController.ALL_OBJECTS_FILTER;
+    final NamingEnumeration<SearchResult> srs =
         ctx.search(ConfigConstants.DN_DEFAULT_SCHEMA_ROOT, filter,
             searchControls);
     SearchResult sr = null;
@@ -106,38 +108,53 @@ public class RemoteSchemaLoader extends SchemaLoader
     {
       srs.close();
     }
-    CustomSearchResult csr =
+    final CustomSearchResult csr =
         new CustomSearchResult(sr, ConfigConstants.DN_DEFAULT_SCHEMA_ROOT);
 
     schema = getBaseSchema();
 
-    List<Object> attrs =
-        csr.getAttributeValues(ConfigConstants.ATTR_ATTRIBUTE_TYPES_LC);
-    Set<String> remainingAttrs = new HashSet<String>();
-    for (Object o : attrs)
+    for (final String str : schemaAttrs)
     {
-      remainingAttrs.add((String) o);
+      registerSchemaAttr(csr, str);
     }
+  }
+
+  private void registerSchemaAttr(final CustomSearchResult csr,
+      final String schemaAttr) throws DirectoryException
+  {
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    final Set<String> remainingAttrs =
+        new HashSet<String>((List) csr.getAttributeValues(schemaAttr));
 
     while (!remainingAttrs.isEmpty())
     {
       DirectoryException lastException = null;
       boolean oneRegistered = false;
-      Set<String> registeredAttrs = new HashSet<String>();
-      for (String attrDefinition : remainingAttrs)
+      Set<String> registered = new HashSet<String>();
+      for (final String definition : remainingAttrs)
       {
-        ByteStringBuilder sb = new ByteStringBuilder();
-        sb.append(attrDefinition);
+        final ByteStringBuilder sb = new ByteStringBuilder();
+        sb.append(definition);
         try
         {
-          AttributeType attrType =
-              AttributeTypeSyntax.decodeAttributeType(sb, schema, false);
-          schema.registerAttributeType(attrType, true);
+          if (schemaAttr.equals(ConfigConstants.ATTR_ATTRIBUTE_TYPES_LC))
+          {
+            final AttributeType attrType =
+                AttributeTypeSyntax.decodeAttributeType(sb, schema, false);
+            schema.registerAttributeType(attrType, true);
+          }
+          else if (schemaAttr.equals(ConfigConstants.ATTR_OBJECTCLASSES_LC))
+          {
+            final ObjectClass oc =
+                ObjectClassSyntax.decodeObjectClass(sb, schema, false);
+            schema.registerObjectClass(oc, true);
+          }
           oneRegistered = true;
-          registeredAttrs.add(attrDefinition);
+          registered.add(definition);
         }
         catch (DirectoryException de)
         {
+          System.out.println(de.getMessage());
           lastException = de;
         }
       }
@@ -145,45 +162,7 @@ public class RemoteSchemaLoader extends SchemaLoader
       {
         throw lastException;
       }
-      remainingAttrs.removeAll(registeredAttrs);
-    }
-
-    List<Object> objectClasses =
-        csr.getAttributeValues(ConfigConstants.ATTR_OBJECTCLASSES_LC);
-
-    Set<String> remainingOcs = new HashSet<String>();
-    for (Object o : objectClasses)
-    {
-      remainingOcs.add((String) o);
-    }
-
-    while (!remainingOcs.isEmpty())
-    {
-      DirectoryException lastException = null;
-      boolean oneRegistered = false;
-      Set<String> registeredOcs = new HashSet<String>();
-      for (String ocDefinition : remainingOcs)
-      {
-        ByteStringBuilder sb = new ByteStringBuilder();
-        sb.append(ocDefinition);
-        try
-        {
-          ObjectClass oc =
-              ObjectClassSyntax.decodeObjectClass(sb, schema, false);
-          schema.registerObjectClass(oc, true);
-          oneRegistered = true;
-          registeredOcs.add(ocDefinition);
-        }
-        catch (DirectoryException de)
-        {
-          lastException = de;
-        }
-      }
-      if (!oneRegistered)
-      {
-        throw lastException;
-      }
-      remainingOcs.removeAll(registeredOcs);
+      remainingAttrs.removeAll(registered);
     }
   }
 
