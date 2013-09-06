@@ -394,48 +394,28 @@ public final class ReplicationServer
     {
       while (!shutdown)
       {
-        /*
-         * Periodically check that we are connected to all other replication
-         * servers and if not establish the connection
-         */
+        final String normalizedLocalURL = getNormalizedLocalURL();
         for (ReplicationServerDomain domain : getReplicationServerDomains())
         {
-          // Create a normalized set of server URLs.
-          final Set<String> connectedRSUrls = getConnectedRSUrls(domain);
-
           /*
-           * check that all replication server in the config are in the
-           * connected Set. If not, create the connection
+           * If there are N RSs configured then we will usually be connected to
+           * N-1 of them, since one of them is usually this RS. However, we
+           * cannot guarantee this since the configuration may not contain this
+           * RS.
            */
+          final Set<String> connectedRSUrls = getConnectedRSUrls(domain);
           for (String rsURL : replicationServerUrls)
           {
-            final int separator = rsURL.lastIndexOf(':');
-            final String hostname = rsURL.substring(0, separator);
-            final int port = Integer.parseInt(rsURL.substring(separator + 1));
-
-            final InetAddress inetAddress;
-            try
+            final String normalizedServerURL = normalizeServerURL(rsURL);
+            if (connectedRSUrls.contains(normalizedServerURL))
             {
-              inetAddress = InetAddress.getByName(hostname);
+              continue; // Skip: already connected.
             }
-            catch (UnknownHostException e)
-            {
-              // If the host name cannot be resolved then no chance of
-              // connecting anyway.
-              Message message = ERR_COULD_NOT_SOLVE_HOSTNAME.get(hostname);
-              logError(message);
-              continue;
-            }
-
-            // Avoid connecting to self.
 
             // FIXME: this will need changing if we ever support listening on
             // specific addresses.
-            if ((isLocalAddress(inetAddress) && port == replicationPort)
-            // Don't connect to a server if it is already connected.
-                || connectedRSUrls.contains(normalizeServerURL(rsURL)))
-            {
-              continue;
+            if (normalizedServerURL.equals(normalizedLocalURL)) {
+              continue; // Skip: avoid connecting to self.
             }
 
             connect(rsURL, domain.getBaseDn());
@@ -1847,7 +1827,11 @@ public final class ReplicationServer
     return dbDirname;
   }
 
-
+  /*
+   * Normalize a URL so that this host's local address is used if the provided
+   * host name corresponds to a local interface. This method is design to work
+   * with getNormalizedLocalURL().
+   */
   private String normalizeServerURL(final String url)
   {
     final int separator = url.lastIndexOf(':');
@@ -1855,11 +1839,10 @@ public final class ReplicationServer
     final String hostname = url.substring(0, separator);
     try
     {
-      final InetAddress inetAddress = InetAddress.getByName(hostname);
+      InetAddress inetAddress = InetAddress.getByName(hostname);
       if (isLocalAddress(inetAddress))
       {
-        // It does not matter whether we use an IP or hostname here.
-        return InetAddress.getLocalHost().getHostAddress() + ":" + portString;
+        inetAddress = getLocalAddress();
       }
       return inetAddress.getHostAddress() + ":" + portString;
     }
@@ -1869,9 +1852,29 @@ public final class ReplicationServer
       // original URL.
       Message message = ERR_COULD_NOT_SOLVE_HOSTNAME.get(hostname);
       logError(message);
-
       return url;
     }
+  }
+
+  private InetAddress getLocalAddress()
+  {
+    try
+    {
+      return InetAddress.getLocalHost();
+    }
+    catch (UnknownHostException e)
+    {
+      return InetAddress.getLoopbackAddress();
+    }
+  }
+
+  /*
+   * Return normalized local url suitable for comparison against result returned
+   * by normalizeServerURL().
+   */
+  private String getNormalizedLocalURL()
+  {
+    return getLocalAddress().getHostAddress() + ":" + replicationPort;
   }
 
   /** {@inheritDoc} */
