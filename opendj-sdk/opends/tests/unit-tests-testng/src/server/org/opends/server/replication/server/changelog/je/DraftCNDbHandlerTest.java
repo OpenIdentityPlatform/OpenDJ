@@ -36,7 +36,7 @@ import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.CSNGenerator;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
-import org.opends.server.replication.server.changelog.api.CNIndexData;
+import org.opends.server.replication.server.changelog.api.CNIndexRecord;
 import org.opends.server.replication.server.changelog.api.ChangeNumberIndexDBCursor;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.je.DraftCNDB.DraftCNDBCursor;
@@ -102,26 +102,26 @@ public class DraftCNDbHandlerTest extends ReplicationTestCase
       CSN csn3 = gen.newCSN();
 
       // Add records
-      handler.add(new CNIndexData(cn1, value1, baseDN1, csn1));
-      handler.add(new CNIndexData(cn2, value2, baseDN2, csn2));
-      handler.add(new CNIndexData(cn3, value3, baseDN3, csn3));
+      handler.addRecord(new CNIndexRecord(cn1, value1, baseDN1, csn1));
+      handler.addRecord(new CNIndexRecord(cn2, value2, baseDN2, csn2));
+      handler.addRecord(new CNIndexRecord(cn3, value3, baseDN3, csn3));
 
       // The ChangeNumber should not get purged
-      final long firstChangeNumber = handler.getFirstCNIndexData().getChangeNumber();
+      final long firstChangeNumber = handler.getFirstRecord().getChangeNumber();
       assertEquals(firstChangeNumber, cn1);
-      assertEquals(handler.getLastCNIndexData().getChangeNumber(), cn3);
+      assertEquals(handler.getLastRecord().getChangeNumber(), cn3);
 
       DraftCNDBCursor dbc = handler.getReadCursor(firstChangeNumber);
       try
       {
-        assertEqualTo(dbc.currentData(), csn1, baseDN1, value1);
+        assertEqualTo(dbc.currentRecord(), csn1, baseDN1, value1);
         assertTrue(dbc.toString().length() != 0);
 
         assertTrue(dbc.next());
-        assertEqualTo(dbc.currentData(), csn2, baseDN2, value2);
+        assertEqualTo(dbc.currentRecord(), csn2, baseDN2, value2);
 
         assertTrue(dbc.next());
-        assertEqualTo(dbc.currentData(), csn3, baseDN3, value3);
+        assertEqualTo(dbc.currentRecord(), csn3, baseDN3, value3);
 
         assertFalse(dbc.next());
       }
@@ -137,8 +137,8 @@ public class DraftCNDbHandlerTest extends ReplicationTestCase
       {
         Thread.sleep(200);
       }
-      assertNull(handler.getFirstCNIndexData());
-      assertNull(handler.getLastCNIndexData());
+      assertNull(handler.getFirstRecord());
+      assertNull(handler.getLastRecord());
       assertEquals(handler.count(), 0);
     }
     finally
@@ -153,7 +153,7 @@ public class DraftCNDbHandlerTest extends ReplicationTestCase
     }
   }
 
-  private void assertEqualTo(CNIndexData data, CSN csn, String baseDN,
+  private void assertEqualTo(CNIndexRecord data, CSN csn, String baseDN,
       String cookie)
   {
     assertEquals(data.getCSN(), csn);
@@ -229,14 +229,14 @@ public class DraftCNDbHandlerTest extends ReplicationTestCase
       CSN csn3 = gen.newCSN();
 
       // Add records
-      handler.add(new CNIndexData(cn1, value1, baseDN1, csn1));
-      handler.add(new CNIndexData(cn2, value2, baseDN2, csn2));
-      handler.add(new CNIndexData(cn3, value3, baseDN3, csn3));
+      handler.addRecord(new CNIndexRecord(cn1, value1, baseDN1, csn1));
+      handler.addRecord(new CNIndexRecord(cn2, value2, baseDN2, csn2));
+      handler.addRecord(new CNIndexRecord(cn3, value3, baseDN3, csn3));
       Thread.sleep(500);
 
       // Checks
-      assertEquals(handler.getFirstCNIndexData().getChangeNumber(), cn1);
-      assertEquals(handler.getLastCNIndexData().getChangeNumber(), cn3);
+      assertEquals(handler.getFirstRecord().getChangeNumber(), cn1);
+      assertEquals(handler.getLastRecord().getChangeNumber(), cn3);
 
       assertEquals(handler.count(), 3, "Db count");
       assertFalse(handler.isEmpty());
@@ -257,8 +257,8 @@ public class DraftCNDbHandlerTest extends ReplicationTestCase
       handler.clear();
 
       // Check the db is cleared.
-      assertNull(handler.getFirstCNIndexData());
-      assertNull(handler.getLastCNIndexData());
+      assertNull(handler.getFirstRecord());
+      assertNull(handler.getLastRecord());
       assertEquals(handler.count(), 0);
       assertTrue(handler.isEmpty());
     }
@@ -279,7 +279,7 @@ public class DraftCNDbHandlerTest extends ReplicationTestCase
     ChangeNumberIndexDBCursor cursor = handler.getCursorFrom(changeNumber);
     try
     {
-      return cursor.getCNIndexData().getPreviousCookie();
+      return cursor.getRecord().getPreviousCookie();
     }
     finally
     {
@@ -294,7 +294,7 @@ public class DraftCNDbHandlerTest extends ReplicationTestCase
     {
       for (int i = 0; i < sns.length; i++)
       {
-        assertEquals(cursor.getCNIndexData().getChangeNumber(), sns[i]);
+        assertEquals(cursor.getRecord().getChangeNumber(), sns[i]);
         final boolean isNotLast = i + 1 < sns.length;
         assertEquals(cursor.next(), isNotLast);
       }

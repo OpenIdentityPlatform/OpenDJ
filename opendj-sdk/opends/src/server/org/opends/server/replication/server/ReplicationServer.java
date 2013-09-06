@@ -52,7 +52,7 @@ import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.common.*;
 import org.opends.server.replication.plugin.MultimasterReplication;
 import org.opends.server.replication.protocol.*;
-import org.opends.server.replication.server.changelog.api.CNIndexData;
+import org.opends.server.replication.server.changelog.api.CNIndexRecord;
 import org.opends.server.replication.server.changelog.api.ChangeNumberIndexDB;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.je.DbHandler;
@@ -1626,11 +1626,11 @@ public final class ReplicationServer
         if (cnIndexDB == null)
         {
           cnIndexDB = new DraftCNDbHandler(this, this.dbEnv);
-          final CNIndexData lastCNData = cnIndexDB.getLastCNIndexData();
+          final CNIndexRecord lastCNRecord = cnIndexDB.getLastRecord();
           // initialization of the lastGeneratedChangeNumebr from the DB content
-          // if DB is empty => lastCNData is null => Default to 0
+          // if DB is empty => last record does not exist => default to 0
           lastGeneratedChangeNumber =
-              (lastCNData != null) ? lastCNData.getChangeNumber() : 0;
+              (lastCNRecord != null) ? lastCNRecord.getChangeNumber() : 0;
         }
         return cnIndexDB;
       }
@@ -1698,15 +1698,15 @@ public final class ReplicationServer
       long firstChangeNumber = 0;
       long lastChangeNumber = 0;
 
-      final CNIndexData firstCNData = cnIndexDB.getFirstCNIndexData();
-      final CNIndexData lastCNData = cnIndexDB.getLastCNIndexData();
+      final CNIndexRecord firstCNRecord = cnIndexDB.getFirstRecord();
+      final CNIndexRecord lastCNRecord = cnIndexDB.getLastRecord();
 
       Map<String, ServerState> domainsServerStateForLastCN = null;
       CSN csnForLastCN = null;
       String domainForLastCN = null;
-      if (firstCNData != null)
+      if (firstCNRecord != null)
       {
-        if (lastCNData == null)
+        if (lastCNRecord == null)
         {
           // Edge case: DB was cleaned or closed in between call to getFirst*()
           // and getLast*(). The only remaining solution is to fail fast.
@@ -1715,20 +1715,20 @@ public final class ReplicationServer
         }
 
         dbEmpty = false;
-        firstChangeNumber = firstCNData.getChangeNumber();
-        lastChangeNumber = lastCNData.getChangeNumber();
+        firstChangeNumber = firstCNRecord.getChangeNumber();
+        lastChangeNumber = lastCNRecord.getChangeNumber();
 
         // Get the generalized state associated with the current last change
         // number and initializes from it the startStates table
-        String lastCNGenState = lastCNData.getPreviousCookie();
+        String lastCNGenState = lastCNRecord.getPreviousCookie();
         if (lastCNGenState != null && lastCNGenState.length() > 0)
         {
           domainsServerStateForLastCN = MultiDomainServerState
               .splitGenStateToServerStates(lastCNGenState);
         }
 
-        csnForLastCN = lastCNData.getCSN();
-        domainForLastCN = lastCNData.getBaseDN();
+        csnForLastCN = lastCNRecord.getCSN();
+        domainForLastCN = lastCNRecord.getBaseDN();
       }
 
       long newestDate = 0;

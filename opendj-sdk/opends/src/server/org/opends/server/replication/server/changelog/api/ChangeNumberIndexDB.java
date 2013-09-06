@@ -28,8 +28,8 @@ package org.opends.server.replication.server.changelog.api;
 
 /**
  * This class stores an index of all the changes seen by this server in the form
- * of {@link CNIndexData}. The index is sorted by a global ordering as defined
- * in the CSN class. The index links a <code>changeNumber</code> to the
+ * of {@link CNIndexRecord}s. The records are sorted by a global ordering as
+ * defined in the CSN class. The index links a <code>changeNumber</code> to the
  * corresponding CSN. The CSN then links to a corresponding change in one of the
  * ReplicaDBs.
  *
@@ -43,33 +43,35 @@ public interface ChangeNumberIndexDB
 {
 
   /**
-   * Get the {@link CNIndexData} record associated to a provided change number.
+   * Get the record associated to a provided change number.
    *
    * @param changeNumber
    *          the provided change number.
-   * @return the {@link CNIndexData} record, null when none.
+   * @return the {@link CNIndexRecord}, null when none.
    * @throws ChangelogException
    *           if a database problem occurs.
    */
-  CNIndexData getCNIndexData(long changeNumber) throws ChangelogException;
+  CNIndexRecord getRecord(long changeNumber) throws ChangelogException;
 
   /**
-   * Get the first {@link CNIndexData} record stored in this DB.
+   * Get the first record stored in this DB.
    *
-   * @return Returns the first {@link CNIndexData} record in this DB.
+   * @return Returns the first {@link CNIndexRecord} in this DB, null when the
+   *         DB is empty or closed
    * @throws ChangelogException
    *           if a database problem occurs.
    */
-  CNIndexData getFirstCNIndexData() throws ChangelogException;
+  CNIndexRecord getFirstRecord() throws ChangelogException;
 
   /**
-   * Get the last {@link CNIndexData} record stored in this DB.
+   * Get the last record stored in this DB.
    *
-   * @return Returns the last {@link CNIndexData} record in this DB
+   * @return Returns the last {@link CNIndexRecord} in this DB, null when the DB
+   *         is empty or closed
    * @throws ChangelogException
    *           if a database problem occurs.
    */
-  CNIndexData getLastCNIndexData() throws ChangelogException;
+  CNIndexRecord getLastRecord() throws ChangelogException;
 
   /**
    * Add an update to the list of messages that must be saved to this DB managed
@@ -78,12 +80,12 @@ public interface ChangeNumberIndexDB
    * This method is blocking if the size of the list of message is larger than
    * its maximum.
    *
-   * @param cnIndexData
-   *          The {@link CNIndexData} record to add to this DB.
+   * @param record
+   *          The {@link CNIndexRecord} to add to this DB.
    * @throws ChangelogException
    *           if a database problem occurs.
    */
-  void add(CNIndexData cnIndexData) throws ChangelogException;
+  void addRecord(CNIndexRecord record) throws ChangelogException;
 
   /**
    * Generate a new {@link ChangeNumberIndexDBCursor} that allows to browse the

@@ -571,15 +571,15 @@ public final class ECLServerHandler extends ServerHandler
     {
       // Request filter DOES NOT contain any first change number
       // So we'll generate from the first change number in the DraftCNdb
-      final CNIndexData firstCNData = cnIndexDB.getFirstCNIndexData();
-      if (firstCNData == null)
+      final CNIndexRecord firstCNRecord = cnIndexDB.getFirstRecord();
+      if (firstCNRecord == null)
       { // DB is empty or closed
         isEndOfCNIndexDBReached = true;
         return null;
       }
 
-      final long firstChangeNumber = firstCNData.getChangeNumber();
-      final String crossDomainStartState = firstCNData.getPreviousCookie();
+      final long firstChangeNumber = firstCNRecord.getChangeNumber();
+      final String crossDomainStartState = firstCNRecord.getPreviousCookie();
       cnIndexDBCursor = cnIndexDB.getCursorFrom(firstChangeNumber);
       return crossDomainStartState;
     }
@@ -587,11 +587,11 @@ public final class ECLServerHandler extends ServerHandler
     // Request filter DOES contain a startChangeNumber
 
     // Read the draftCNDb to see whether it contains startChangeNumber
-    CNIndexData startCNData = cnIndexDB.getCNIndexData(startChangeNumber);
-    if (startCNData != null)
+    CNIndexRecord startCNRecord = cnIndexDB.getRecord(startChangeNumber);
+    if (startCNRecord != null)
     {
       // found the provided startChangeNumber, let's return it
-      final String crossDomainStartState = startCNData.getPreviousCookie();
+      final String crossDomainStartState = startCNRecord.getPreviousCookie();
       cnIndexDBCursor = cnIndexDB.getCursorFrom(startChangeNumber);
       return crossDomainStartState;
     }
@@ -611,10 +611,10 @@ public final class ECLServerHandler extends ServerHandler
     // the DB, let's use the lower limit.
     if (startChangeNumber < firstChangeNumber)
     {
-      CNIndexData firstCNData = cnIndexDB.getCNIndexData(firstChangeNumber);
-      if (firstCNData != null)
+      CNIndexRecord firstCNRecord = cnIndexDB.getRecord(firstChangeNumber);
+      if (firstCNRecord != null)
       {
-        final String crossDomainStartState = firstCNData.getPreviousCookie();
+        final String crossDomainStartState = firstCNRecord.getPreviousCookie();
         cnIndexDBCursor = cnIndexDB.getCursorFrom(firstChangeNumber);
         return crossDomainStartState;
       }
@@ -627,15 +627,15 @@ public final class ECLServerHandler extends ServerHandler
     {
       // startChangeNumber is between first and potential last and has never
       // been returned yet
-      final CNIndexData lastCNData = cnIndexDB.getLastCNIndexData();
-      if (lastCNData == null)
+      final CNIndexRecord lastCNRecord = cnIndexDB.getLastRecord();
+      if (lastCNRecord == null)
       {
         isEndOfCNIndexDBReached = true;
         return null;
       }
 
-      final long lastKey = lastCNData.getChangeNumber();
-      final String crossDomainStartState = lastCNData.getPreviousCookie();
+      final long lastKey = lastCNRecord.getChangeNumber();
+      final String crossDomainStartState = lastCNRecord.getPreviousCookie();
       cnIndexDBCursor = cnIndexDB.getCursorFrom(lastKey);
       return crossDomainStartState;
 
@@ -1370,9 +1370,9 @@ public final class ECLServerHandler extends ServerHandler
 
 
       // the next change from the CNIndexDB
-      final CNIndexData cnIndexData = cnIndexDBCursor.getCNIndexData();
-      final CSN csnFromDraftCNDb = cnIndexData.getCSN();
-      final String dnFromDraftCNDb = cnIndexData.getBaseDN();
+      final CNIndexRecord currentRecord = cnIndexDBCursor.getRecord();
+      final CSN csnFromDraftCNDb = currentRecord.getCSN();
+      final String dnFromDraftCNDb = currentRecord.getBaseDN();
 
       if (debugEnabled())
         TRACER.debugInfo("assignChangeNumber() generating change number "
@@ -1387,10 +1387,10 @@ public final class ECLServerHandler extends ServerHandler
       {
         if (debugEnabled())
           TRACER.debugInfo("assignChangeNumber() generating change number "
-              + " assigning changeNumber=" + cnIndexData.getChangeNumber()
+              + " assigning changeNumber=" + currentRecord.getChangeNumber()
               + " to change=" + oldestChange);
 
-        oldestChange.setChangeNumber(cnIndexData.getChangeNumber());
+        oldestChange.setChangeNumber(currentRecord.getChangeNumber());
         return true;
       }
 
@@ -1424,8 +1424,8 @@ public final class ECLServerHandler extends ServerHandler
 
         if (debugEnabled())
           TRACER.debugInfo("assignChangeNumber() generating change number has"
-              + "skipped to  changeNumber=" + cnIndexData.getChangeNumber()
-              + " csn=" + cnIndexData.getCSN() + " End of CNIndexDB ?"
+              + "skipped to  changeNumber=" + currentRecord.getChangeNumber()
+              + " csn=" + currentRecord.getCSN() + " End of CNIndexDB ?"
               + isEndOfCNIndexDBReached);
       }
       catch (ChangelogException e)
@@ -1455,7 +1455,7 @@ public final class ECLServerHandler extends ServerHandler
 
     // store in CNIndexDB the pair
     // (change number of the current change, state before this change)
-    replicationServer.getChangeNumberIndexDB().add(new CNIndexData(
+    replicationServer.getChangeNumberIndexDB().addRecord(new CNIndexRecord(
         change.getChangeNumber(),
         previousCookie.toString(),
         change.getBaseDN(),

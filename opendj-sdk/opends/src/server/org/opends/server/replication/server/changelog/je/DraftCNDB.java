@@ -34,7 +34,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.replication.server.changelog.api.CNIndexData;
+import org.opends.server.replication.server.changelog.api.CNIndexRecord;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.types.DebugLogLevel;
 
@@ -81,20 +81,19 @@ public class DraftCNDB
   }
 
   /**
-   * Add an entry to the database.
+   * Add a record to the database.
    *
-   * @param cnIndexData
-   *          the provided {@link CNIndexData} to be stored.
+   * @param record
+   *          the provided {@link CNIndexRecord} to be stored.
    */
-  public void addEntry(CNIndexData cnIndexData)
+  public void addRecord(CNIndexRecord record)
   {
     try
     {
-      final long changeNumber = cnIndexData.getChangeNumber();
+      final long changeNumber = record.getChangeNumber();
       DatabaseEntry key = new ReplicationDraftCNKey(changeNumber);
-      DatabaseEntry data =
-          new DraftCNData(changeNumber, cnIndexData.getPreviousCookie(),
-              cnIndexData.getBaseDN(), cnIndexData.getCSN());
+      DatabaseEntry data = new DraftCNData(changeNumber,
+          record.getPreviousCookie(), record.getBaseDN(), record.getCSN());
 
       // Use a transaction so that we can override durability.
       Transaction txn = null;
@@ -221,7 +220,7 @@ public class DraftCNDB
    * @throws ChangelogException
    *           if a database problem occurred
    */
-  public CNIndexData readFirstCNIndexData() throws ChangelogException
+  public CNIndexRecord readFirstRecord() throws ChangelogException
   {
     try
     {
@@ -243,7 +242,7 @@ public class DraftCNDB
           return null;
         }
 
-        return newCNIndexData(key, entry);
+        return newCNIndexRecord(key, entry);
       }
       finally
       {
@@ -257,11 +256,10 @@ public class DraftCNDB
     }
   }
 
-  private CNIndexData newCNIndexData(ReplicationDraftCNKey key,
+  private CNIndexRecord newCNIndexRecord(ReplicationDraftCNKey key,
       DatabaseEntry data) throws ChangelogException
   {
-    return new DraftCNData(key.getChangeNumber(), data.getData())
-        .getCNIndexData();
+    return new DraftCNData(key.getChangeNumber(), data.getData()).getRecord();
   }
 
   /**
@@ -299,7 +297,7 @@ public class DraftCNDB
    * @throws ChangelogException
    *           if a database problem occurred
    */
-  public CNIndexData readLastCNIndexData() throws ChangelogException
+  public CNIndexRecord readLastRecord() throws ChangelogException
   {
     try
     {
@@ -321,7 +319,7 @@ public class DraftCNDB
           return null;
         }
 
-        return newCNIndexData(key, entry);
+        return newCNIndexRecord(key, entry);
       }
       finally
       {
@@ -359,7 +357,7 @@ public class DraftCNDB
     private final Transaction txn;
     private final ReplicationDraftCNKey key;
     private final DatabaseEntry entry = new DatabaseEntry();
-    private CNIndexData cnIndexData;
+    private CNIndexRecord record;
     private boolean isClosed = false;
 
 
@@ -413,12 +411,12 @@ public class DraftCNDB
             }
             else
             {
-              cnIndexData = newCNIndexData(this.key, entry);
+              record = newCNIndexRecord(this.key, entry);
             }
           }
           else
           {
-            cnIndexData = newCNIndexData(this.key, entry);
+            record = newCNIndexRecord(this.key, entry);
           }
         }
 
@@ -549,11 +547,11 @@ public class DraftCNDB
     }
 
     /**
-     * Returns the {@link CNIndexData} at the current position of the cursor.
+     * Returns the {@link CNIndexRecord} at the current position of the cursor.
      *
-     * @return The current {@link CNIndexData}.
+     * @return The current {@link CNIndexRecord}.
      */
-    public CNIndexData currentData()
+    public CNIndexRecord currentRecord()
     {
       if (isClosed)
       {
@@ -562,7 +560,7 @@ public class DraftCNDB
 
       try
       {
-        return cnIndexData;
+        return record;
       }
       catch (Exception e)
       {
@@ -588,10 +586,10 @@ public class DraftCNDB
         OperationStatus status = cursor.getNext(key, entry, LockMode.DEFAULT);
         if (status != OperationStatus.SUCCESS)
         {
-          cnIndexData = null;
+          record = null;
           return false;
         }
-        cnIndexData = newCNIndexData(this.key, entry);
+        record = newCNIndexRecord(this.key, entry);
       }
       catch(Exception e)
       {
