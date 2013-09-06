@@ -25,7 +25,7 @@
  *      Copyright 2006-2010 Sun Microsystems, Inc.
  *      Portions copyright 2011-2013 ForgeRock AS
  */
-package org.opends.server.replication;
+package org.opends.server.replication.server;
 
 import java.io.*;
 import java.net.Socket;
@@ -44,6 +44,7 @@ import org.opends.server.plugins.InvocationCounterPlugin;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.*;
+import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.CSNGenerator;
 import org.opends.server.replication.common.MultiDomainServerState;
@@ -53,7 +54,6 @@ import org.opends.server.replication.plugin.ExternalChangelogDomainFakeCfg;
 import org.opends.server.replication.plugin.LDAPReplicationDomain;
 import org.opends.server.replication.plugin.MultimasterReplication;
 import org.opends.server.replication.protocol.*;
-import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.server.ReplicationServerDomain;
 import org.opends.server.replication.server.changelog.je.DraftCNDbHandler;
@@ -828,14 +828,12 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       publishDeleteMsgInOTest(s2test, csn9, tn, 9);
       sleep(500);
 
-      ReplicationServerDomain rsd = replicationServer.getReplicationServerDomain(TEST_ROOT_DN_STRING);
-      ServerState startState = rsd.getStartState();
+      ServerState startState = getReplicationDomainStartState(TEST_ROOT_DN_STRING);
       assertEquals(startState.getCSN(s1test.getServerId()).getSeqnum(), 1);
       assertTrue(startState.getCSN(s2test.getServerId()) != null);
       assertEquals(startState.getCSN(s2test.getServerId()).getSeqnum(), 7);
 
-      rsd = replicationServer.getReplicationServerDomain(TEST_ROOT_DN_STRING2);
-      startState = rsd.getStartState();
+      startState = getReplicationDomainStartState(TEST_ROOT_DN_STRING2);
       assertEquals(startState.getCSN(s2test2.getServerId()).getSeqnum(), 2);
       assertEquals(startState.getCSN(s1test2.getServerId()).getSeqnum(), 6);
 
@@ -889,6 +887,11 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       replicationServer.clearDb();
     }
     debugInfo(tn, "Ending test successfully");
+  }
+
+  private ServerState getReplicationDomainStartState(String baseDn)
+  {
+    return replicationServer.getReplicationServerDomain(baseDn).getStartState();
   }
 
   private String getCookie(List<SearchResultEntry> entries,
@@ -979,8 +982,6 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     debugInfo(tn, "Starting test");
 
     ReplicationBroker server01 = null;
-    ReplicationServerDomain d1 = null;
-    ReplicationServerDomain d2 = null;
 
     try
     {
@@ -1010,10 +1011,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       // ---
       // 2. Now set up a very short purge delay on the replication changelogs
       // so that this test can play with a trimmed changelog.
-      d1 = replicationServer.getReplicationServerDomain("o=test");
-      d2 = replicationServer.getReplicationServerDomain("o=test2");
-      d1.setPurgeDelay(1);
-      d2.setPurgeDelay(1);
+      replicationServer.getChangelogDB().setPurgeDelay(1);
 
       // Sleep longer than this delay - so that the changelog is trimmed
       Thread.sleep(1000);
@@ -1047,8 +1045,8 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       //    returns the appropriate error.
       publishDeleteMsgInOTest(server01, csns[3], tn, 1);
 
-      debugInfo(tn, "d1 trimdate" + d1.getStartState());
-      debugInfo(tn, "d2 trimdate" + d2.getStartState());
+      debugInfo(tn, "d1 trimdate" + getReplicationDomainStartState("o=test"));
+      debugInfo(tn, "d2 trimdate" + getReplicationDomainStartState("o=test2"));
       searchOp = searchOnCookieChangelog("(targetDN=*)", cookieNotEmpty, tn, UNWILLING_TO_PERFORM);
       assertEquals(searchOp.getSearchEntries().size(), 0);
       assertTrue(searchOp.getErrorMessage().toString().startsWith(
@@ -1059,15 +1057,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     {
       stop(server01);
       // And reset changelog purge delay for the other tests.
-      if (d1 != null)
-      {
-        d1.setPurgeDelay(15 * 1000);
-      }
-      if (d2 != null)
-      {
-        d2.setPurgeDelay(15 * 1000);
-      }
-
+      replicationServer.getChangelogDB().setPurgeDelay(15 * 1000);
       replicationServer.clearDb();
     }
     debugInfo(tn, "Ending test successfully");
