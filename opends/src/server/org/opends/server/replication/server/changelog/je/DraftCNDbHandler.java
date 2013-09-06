@@ -123,8 +123,8 @@ public class DraftCNDbHandler implements ChangeNumberIndexDB, Runnable
 
     // DB initialization
     db = new DraftCNDB(dbenv);
-    firstChangeNumber = getChangeNumber(db.readFirstCNIndexData());
-    lastChangeNumber = getChangeNumber(db.readLastCNIndexData());
+    firstChangeNumber = getChangeNumber(db.readFirstRecord());
+    lastChangeNumber = getChangeNumber(db.readLastRecord());
 
     // Trimming thread
     thread = new DirectoryThread(this, "Replication DraftCN db");
@@ -135,38 +135,37 @@ public class DraftCNDbHandler implements ChangeNumberIndexDB, Runnable
     DirectoryServer.registerMonitorProvider(dbMonitor);
   }
 
-  private long getChangeNumber(CNIndexData cnIndexData)
-      throws ChangelogException
+  private long getChangeNumber(CNIndexRecord record) throws ChangelogException
   {
-    if (cnIndexData != null)
+    if (record != null)
     {
-      return cnIndexData.getChangeNumber();
+      return record.getChangeNumber();
     }
     return 0;
   }
 
   /** {@inheritDoc} */
   @Override
-  public void add(CNIndexData cnIndexData) throws ChangelogException
+  public void addRecord(CNIndexRecord record) throws ChangelogException
   {
-    db.addEntry(cnIndexData);
+    db.addRecord(record);
 
     if (debugEnabled())
-      TRACER.debugInfo("In DraftCNDbhandler.add, added: " + cnIndexData);
+      TRACER.debugInfo("In DraftCNDbhandler.add, added: " + record);
   }
 
   /** {@inheritDoc} */
   @Override
-  public CNIndexData getFirstCNIndexData() throws ChangelogException
+  public CNIndexRecord getFirstRecord() throws ChangelogException
   {
-    return db.readFirstCNIndexData();
+    return db.readFirstRecord();
   }
 
   /** {@inheritDoc} */
   @Override
-  public CNIndexData getLastCNIndexData() throws ChangelogException
+  public CNIndexRecord getLastRecord() throws ChangelogException
   {
-    return db.readLastCNIndexData();
+    return db.readLastRecord();
   }
 
   /**
@@ -182,7 +181,7 @@ public class DraftCNDbHandler implements ChangeNumberIndexDB, Runnable
   @Override
   public boolean isEmpty() throws ChangelogException
   {
-    return getLastCNIndexData() == null;
+    return getLastRecord() == null;
   }
 
   /**
@@ -321,8 +320,8 @@ public class DraftCNDbHandler implements ChangeNumberIndexDB, Runnable
           }
 
           // From the draftCNDb change record, get the domain and CSN
-          final CNIndexData data = cursor.currentData();
-          final String baseDN = data.getBaseDN();
+          final CNIndexRecord record = cursor.currentRecord();
+          final String baseDN = record.getBaseDN();
           if (baseDNToClear != null && baseDNToClear.equalsIgnoreCase(baseDN))
           {
             cursor.delete();
@@ -340,11 +339,11 @@ public class DraftCNDbHandler implements ChangeNumberIndexDB, Runnable
             continue;
           }
 
-          final CSN csn = data.getCSN();
+          final CSN csn = record.getCSN();
           final ServerState startState = domain.getStartState();
           final CSN fcsn = startState.getCSN(csn.getServerId());
 
-          final long currentChangeNumber = data.getChangeNumber();
+          final long currentChangeNumber = record.getChangeNumber();
 
           if (csn.older(fcsn))
           {
@@ -357,7 +356,7 @@ public class DraftCNDbHandler implements ChangeNumberIndexDB, Runnable
           {
             Map<String, ServerState> csnStartStates =
                 MultiDomainServerState.splitGenStateToServerStates(
-                        data.getPreviousCookie());
+                        record.getPreviousCookie());
             csnVector = csnStartStates.get(baseDN);
 
             if (debugEnabled())
@@ -424,8 +423,8 @@ public class DraftCNDbHandler implements ChangeNumberIndexDB, Runnable
 
       try
       {
-        CNIndexData firstCNData = db.readFirstCNIndexData();
-        String firstCN = String.valueOf(firstCNData.getChangeNumber());
+        CNIndexRecord firstCNRecord = db.readFirstRecord();
+        String firstCN = String.valueOf(firstCNRecord.getChangeNumber());
         attributes.add(Attributes.create("first-draft-changenumber", firstCN));
       }
       catch (ChangelogException e)
@@ -437,10 +436,10 @@ public class DraftCNDbHandler implements ChangeNumberIndexDB, Runnable
 
       try
       {
-        CNIndexData lastCNData = db.readLastCNIndexData();
-        if (lastCNData != null)
+        CNIndexRecord lastCNRecord = db.readLastRecord();
+        if (lastCNRecord != null)
         {
-          String lastCN = String.valueOf(lastCNData.getChangeNumber());
+          String lastCN = String.valueOf(lastCNRecord.getChangeNumber());
           attributes.add(Attributes.create("last-draft-changenumber", lastCN));
         }
       }
@@ -498,8 +497,8 @@ public class DraftCNDbHandler implements ChangeNumberIndexDB, Runnable
   public void clear() throws ChangelogException
   {
     db.clear();
-    firstChangeNumber = getChangeNumber(db.readFirstCNIndexData());
-    lastChangeNumber = getChangeNumber(db.readLastCNIndexData());
+    firstChangeNumber = getChangeNumber(db.readFirstRecord());
+    lastChangeNumber = getChangeNumber(db.readLastRecord());
   }
 
   private ReentrantLock lock = new ReentrantLock();
@@ -532,14 +531,14 @@ public class DraftCNDbHandler implements ChangeNumberIndexDB, Runnable
 
   /** {@inheritDoc} */
   @Override
-  public CNIndexData getCNIndexData(long changeNumber)
+  public CNIndexRecord getRecord(long changeNumber)
       throws ChangelogException
   {
     DraftCNDBCursor cursor = null;
     try
     {
       cursor = db.openReadCursor(changeNumber);
-      return cursor.currentData();
+      return cursor.currentRecord();
     }
     finally
     {

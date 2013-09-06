@@ -31,7 +31,7 @@ import java.io.UnsupportedEncodingException;
 
 import org.opends.messages.Message;
 import org.opends.server.replication.common.CSN;
-import org.opends.server.replication.server.changelog.api.CNIndexData;
+import org.opends.server.replication.server.changelog.api.CNIndexRecord;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 
 import com.sleepycat.je.DatabaseEntry;
@@ -48,7 +48,7 @@ public class DraftCNData extends DatabaseEntry
   private static final long serialVersionUID = 1L;
 
   private long changeNumber;
-  private CNIndexData cnIndexData;
+  private CNIndexRecord record;
 
   /**
    * Creates a record to be stored in the DraftCNDB.
@@ -84,27 +84,27 @@ public class DraftCNData extends DatabaseEntry
   public DraftCNData(long changeNumber, byte[] data) throws ChangelogException
   {
     this.changeNumber = changeNumber;
-    this.cnIndexData = decodeData(changeNumber, data);
+    this.record = decodeData(changeNumber, data);
   }
 
   /**
-   * Decode and returns a {@link CNIndexData} record.
+   * Decode and returns a {@link CNIndexRecord}.
    *
    * @param changeNumber
    * @param data
    *          the provided byte array.
-   * @return the decoded {@link CNIndexData} record
+   * @return the decoded {@link CNIndexRecord}
    * @throws ChangelogException
    *           when a problem occurs.
    */
-  private CNIndexData decodeData(long changeNumber, byte[] data)
+  private CNIndexRecord decodeData(long changeNumber, byte[] data)
       throws ChangelogException
   {
     try
     {
       String stringData = new String(data, "UTF-8");
       String[] str = stringData.split(FIELD_SEPARATOR, 3);
-      return new CNIndexData(changeNumber, str[0], str[1], new CSN(str[2]));
+      return new CNIndexRecord(changeNumber, str[0], str[1], new CSN(str[2]));
     }
     catch (UnsupportedEncodingException e)
     {
@@ -115,17 +115,17 @@ public class DraftCNData extends DatabaseEntry
   }
 
   /**
-   * Getter for the decoded {@link CNIndexData} record.
+   * Getter for the decoded record.
    *
-   * @return the CNIndexData record.
+   * @return the {@link CNIndexRecord} record.
    * @throws ChangelogException
    *           when a problem occurs.
    */
-  public CNIndexData getCNIndexData() throws ChangelogException
+  public CNIndexRecord getRecord() throws ChangelogException
   {
-    if (cnIndexData == null)
-      cnIndexData = decodeData(changeNumber, getData());
-    return cnIndexData;
+    if (record == null)
+      record = decodeData(changeNumber, getData());
+    return record;
   }
 
   /**
@@ -135,7 +135,7 @@ public class DraftCNData extends DatabaseEntry
   @Override
   public String toString()
   {
-    return "DraftCNData : [" + cnIndexData + "]";
+    return "DraftCNData : [" + record + "]";
   }
 
 }

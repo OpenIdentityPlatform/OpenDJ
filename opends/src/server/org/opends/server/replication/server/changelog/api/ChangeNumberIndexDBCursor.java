@@ -37,11 +37,11 @@ public interface ChangeNumberIndexDBCursor extends Closeable
 {
 
   /**
-   * Getter for the {@link CNIndexData} record.
+   * Getter for the record.
    *
-   * @return The replication CNIndexData record.
+   * @return The current {@link CNIndexRecord}.
    */
-  CNIndexData getCNIndexData();
+  CNIndexRecord getRecord();
 
   /**
    * Skip to the next record of the database.

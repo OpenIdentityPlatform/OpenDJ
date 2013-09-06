@@ -67,11 +67,11 @@ public class DraftCNDbIterator implements ChangeNumberIndexDBCursor
 
   /** {@inheritDoc} */
   @Override
-  public CNIndexData getCNIndexData()
+  public CNIndexRecord getRecord()
   {
     try
     {
-      return this.draftCNDbCursor.currentData();
+      return this.draftCNDbCursor.currentRecord();
     }
     catch (Exception e)
     {
