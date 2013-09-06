@@ -34,6 +34,7 @@ import java.util.concurrent.TimeUnit;
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 import org.opends.server.loggers.debug.DebugTracer;
+import org.opends.server.replication.server.ChangelogState;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 
@@ -166,12 +167,14 @@ public class ReplicationDbEnv
   }
 
   /**
-   * Read the list of known servers from the database and start dbHandler
-   * for each of them.
+   * Read the list of known servers from the database and start dbHandler for
+   * each of them.
    *
-   * @throws ChangelogException in case of underlying Exception
+   * @return the {@link ChangelogState} read from the changelogState DB
+   * @throws ChangelogException
+   *           if a database problem occurs
    */
-  public void initializeFromChangelogStateDB() throws ChangelogException
+  public ChangelogState readChangelogState() throws ChangelogException
   {
     DatabaseEntry key = new DatabaseEntry();
     DatabaseEntry data = new DatabaseEntry();
@@ -179,6 +182,8 @@ public class ReplicationDbEnv
 
     try
     {
+      final ChangelogState result = new ChangelogState();
+
       OperationStatus status = cursor.getFirst(key, data, LockMode.DEFAULT);
       while (status == OperationStatus.SUCCESS)
       {
@@ -197,7 +202,7 @@ public class ReplicationDbEnv
           if (debugEnabled())
             debug("has read baseDn=" + baseDn + " generationId=" +generationId);
 
-          replicationServer.initDomainGenerationID(baseDn, generationId);
+          result.setDomainGenerationId(baseDn, generationId);
         }
         else
         {
@@ -207,11 +212,13 @@ public class ReplicationDbEnv
           if (debugEnabled())
             debug("has read: baseDn=" + baseDn + " serverId=" + serverId);
 
-          replicationServer.addServerIdToDomain(serverId, baseDn);
+          result.addServerIdToDomain(serverId, baseDn);
         }
 
         status = cursor.getNext(key, data, LockMode.DEFAULT);
       }
+
+      return result;
     }
     catch (RuntimeException e)
     {

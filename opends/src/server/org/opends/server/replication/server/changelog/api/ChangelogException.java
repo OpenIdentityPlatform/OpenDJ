@@ -70,7 +70,7 @@ public class ChangelogException extends OpenDsException
    * @param cause
    *          The underlying cause that triggered this exception.
    */
-  protected ChangelogException(Message message, Throwable cause)
+  public ChangelogException(Message message, Throwable cause)
   {
     super(message, cause);
   }
