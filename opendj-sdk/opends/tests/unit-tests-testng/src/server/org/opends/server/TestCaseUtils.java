@@ -295,23 +295,14 @@ public final class TestCaseUtils {
       File   testSrcRoot = new File(buildRoot + File.separator + "tests" +
                                     File.separator + "unit-tests-testng");
 
-      boolean cleanupRequired = true;
       String cleanupRequiredString =
               System.getProperty(PROPERTY_CLEANUP_REQUIRED, "true");
-      if (cleanupRequiredString.equalsIgnoreCase("false"))
-      {
-        cleanupRequired = false;
-      }
+      boolean cleanupRequired =
+          !cleanupRequiredString.equalsIgnoreCase("false");
 
       if (cleanupRequired) {
-        if (testInstallRoot.exists())
-        {
-          deleteDirectory(testInstallRoot);
-        }
-        if (testInstanceRoot.exists())
-        {
-          deleteDirectory(testInstanceRoot);
-        }
+        deleteDirectory(testInstallRoot);
+        deleteDirectory(testInstanceRoot);
         testInstallRoot.mkdirs();
         testInstanceRoot.mkdirs();
       }
@@ -616,15 +607,6 @@ public final class TestCaseUtils {
     return Collections.unmodifiableList(restartTimesMs);
   }
 
-  private static void outputLogContentsIfError(String prefix) {
-    StringBuilder logContents = new StringBuilder(prefix + EOL);
-    appendLogsContents(logContents);
-
-    if (logContents.indexOf("ERROR") != -1) {
-      originalSystemErr.println(logContents);
-    }
-  }
-
   private static void clearJEBackends() throws Exception
   {
     for (Backend backend: DirectoryServer.getBackends().values()) {
@@ -637,10 +619,7 @@ public final class TestCaseUtils {
   public static void clearDataBackends() throws Exception
   {
     clearJEBackends();
-    MemoryBackend memoryBackend =
-      (MemoryBackend) DirectoryServer.getBackend(TEST_BACKEND_ID);
-    if (memoryBackend != null)
-      memoryBackend.clearMemoryBackend();
+    clearMemoryBackend(TEST_BACKEND_ID);
   }
 
   private static File getTestConfigDir()
@@ -909,6 +888,8 @@ public final class TestCaseUtils {
   {
     MemoryBackend memoryBackend =
       (MemoryBackend) DirectoryServer.getBackend(backendID);
+    // FIXME JNR I suspect we could call finalizeBackend() here (but also in other
+    // places in this class), because finalizeBackend() calls clearMemoryBackend().
     if (memoryBackend != null)
       memoryBackend.clearMemoryBackend();
   }
@@ -1699,55 +1680,36 @@ public final class TestCaseUtils {
    */
   public static void appendLogsContents(StringBuilder logsContents)
   {
-    List<String> messages = TestCaseUtils.ACCESS_TEXT_WRITER.getMessages();
-    if (! messages.isEmpty())
+    appendMessages(logsContents, TestCaseUtils.ACCESS_TEXT_WRITER, "Access Log Messages:");
+    appendMessages(logsContents, TestCaseUtils.ERROR_TEXT_WRITER, "Error Log Messages:");
+    appendMessages(logsContents, TestCaseUtils.DEBUG_TEXT_WRITER, "Debug Log Messages:");
+
+    appendStreamContent(logsContents, TestCaseUtils.getSystemOutContents(), "System.out");
+    appendStreamContent(logsContents, TestCaseUtils.getSystemErrContents(), "System.err");
+  }
+
+  private static void appendStreamContent(StringBuilder out, String content, String name)
+  {
+    if (content.length() > 0)
     {
-      logsContents.append(EOL);
-      logsContents.append("Access Log Messages:");
-      logsContents.append(EOL);
+      out.append(EOL).append(name).append(" contents:").append(EOL).append(content);
+    }
+  }
+
+  private static void appendMessages(StringBuilder out,
+      TestTextWriter textWriter, String loggerType)
+  {
+    List<String> messages = textWriter.getMessages();
+    if (!messages.isEmpty())
+    {
+      out.append(EOL);
+      out.append(loggerType);
+      out.append(EOL);
       for (String message : messages)
       {
-        logsContents.append(message);
-        logsContents.append(EOL);
+        out.append(message);
+        out.append(EOL);
       }
-    }
-
-    messages = TestCaseUtils.ERROR_TEXT_WRITER.getMessages();
-    if (! messages.isEmpty())
-    {
-      logsContents.append(EOL);
-      logsContents.append("Error Log Messages:");
-      logsContents.append(EOL);
-      for (String message : messages)
-      {
-        logsContents.append(message);
-        logsContents.append(EOL);
-      }
-    }
-
-    messages = TestCaseUtils.DEBUG_TEXT_WRITER.getMessages();
-    if(! messages.isEmpty())
-    {
-      logsContents.append(EOL);
-      logsContents.append("Debug Log Messages:");
-      logsContents.append(EOL);
-      for (String message : messages)
-      {
-        logsContents.append(message);
-        logsContents.append(EOL);
-      }
-    }
-
-    String systemOut = TestCaseUtils.getSystemOutContents();
-    if (systemOut.length() > 0) {
-      logsContents.append(EOL).append("System.out contents:")
-          .append(EOL).append(systemOut);
-    }
-
-    String systemErr = TestCaseUtils.getSystemErrContents();
-    if (systemErr.length() > 0) {
-      logsContents.append(EOL).append("System.err contents:")
-          .append(EOL).append(systemErr);
     }
   }
 
@@ -1959,7 +1921,7 @@ public final class TestCaseUtils {
 
     // Re-arrange all of the elements by thread ID so that there is some logical
     // order.
-    TreeMap<Long,Map.Entry<Thread,StackTraceElement[]>> orderedStacks =
+    Map<Long, Map.Entry<Thread, StackTraceElement[]>> orderedStacks =
          new TreeMap<Long,Map.Entry<Thread,StackTraceElement[]>>();
     for (Map.Entry<Thread,StackTraceElement[]> e : threadStacks.entrySet())
     {
@@ -2010,13 +1972,17 @@ public final class TestCaseUtils {
 
   public static void enableBackend(String backendID)
   {
-    dsconfig("set-backend-prop", "--backend-name", backendID,
-             "--set", "enabled:true");
+    setBackendEnabled(backendID, true);
   }
 
   public static void disableBackend(String backendID)
   {
+    setBackendEnabled(backendID, false);
+  }
+
+  private static void setBackendEnabled(String backendID, boolean enabled)
+  {
     dsconfig("set-backend-prop", "--backend-name", backendID,
-             "--set", "enabled:false");
+             "--set", "enabled:" + enabled);
   }
 }
