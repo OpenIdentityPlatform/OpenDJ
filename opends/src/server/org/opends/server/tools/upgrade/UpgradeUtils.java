@@ -36,10 +36,13 @@ import org.forgerock.opendj.ldap.*;
 import org.forgerock.opendj.ldap.requests.AddRequest;
 import org.forgerock.opendj.ldap.requests.ModifyRequest;
 import org.forgerock.opendj.ldap.requests.Requests;
+import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldap.schema.SchemaBuilder;
 import org.forgerock.opendj.ldap.schema.SchemaValidationPolicy;
 import org.forgerock.opendj.ldap.schema.UnknownSchemaElementException;
+import org.forgerock.opendj.ldif.EntryReader;
+import org.forgerock.opendj.ldif.LDIF;
 import org.forgerock.opendj.ldif.LDIFEntryReader;
 import org.forgerock.opendj.ldif.LDIFEntryWriter;
 import org.opends.server.core.DirectoryServer;
@@ -386,7 +389,9 @@ final class UpgradeUtils
   }
 
   /**
-   * Retrieves the backends from the current configuration file.
+   * Retrieves the backends from the current configuration file. The backends
+   * must be enabled to be listed. No operations should be done within a
+   * disabled backend.
    *
    * @return A backend list.
    */
@@ -400,14 +405,16 @@ final class UpgradeUtils
           new LDIFEntryReader(new FileInputStream(new File(configDirectory,
               CURRENT_CONFIG_FILE_NAME)));
 
-      final Filter filter =
-          Filter.equality("objectclass", "ds-cfg-local-db-backend");
-      final Matcher includeFilter = filter.matcher();
-      entryReader.setIncludeFilter(includeFilter);
+      final SearchRequest sr =
+          Requests.newSearchRequest("", SearchScope.WHOLE_SUBTREE,
+              "(&(objectclass=ds-cfg-local-db-backend)(ds-cfg-enabled=true))",
+              "ds-cfg-base-dn");
 
-      while (entryReader.hasNext())
+      final EntryReader resultReader = LDIF.search(entryReader, sr);
+
+      while (resultReader.hasNext())
       {
-        final Entry entry = entryReader.readEntry();
+        final Entry entry = resultReader.readEntry();
         listBackends.add(entry.getAttribute("ds-cfg-base-dn")
             .firstValueAsString());
       }

@@ -55,16 +55,6 @@ abstract class AbstractUpgradeTask implements UpgradeTask
    * {@inheritDoc}
    */
   @Override
-  public void start(UpgradeContext context)
-      throws ClientException
-  {
-    // Nothing to do.
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
   public void perform(UpgradeContext context) throws ClientException
   {
     // Must be implemented.
