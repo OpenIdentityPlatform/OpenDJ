@@ -665,15 +665,14 @@ public final class RewriterProxy {
 
         // Create connection factories.
         final ConnectionFactory factory =
-                Connections.newFixedConnectionPool(
+                Connections.newCachedConnectionPool(
                         Connections.newAuthenticatedConnectionFactory(
                                 new LDAPConnectionFactory(remoteAddress, remotePort),
                                 Requests.newSimpleBindRequest(
-                                        proxyDN, proxyPassword.toCharArray())),
-                        Integer.MAX_VALUE);
+                                        proxyDN, proxyPassword.toCharArray())));
         final ConnectionFactory bindFactory =
-                Connections.newFixedConnectionPool(new LDAPConnectionFactory(
-                        remoteAddress, remotePort), Integer.MAX_VALUE);
+                Connections.newCachedConnectionPool(new LDAPConnectionFactory(
+                        remoteAddress, remotePort));
 
         // Create a server connection adapter.
         final ProxyBackend backend = new ProxyBackend(factory, bindFactory);

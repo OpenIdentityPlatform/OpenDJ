@@ -73,8 +73,149 @@ public final class Connections {
     }
 
     /**
+     * Creates a new connection pool which creates new connections as needed
+     * using the provided connection factory, but will reuse previously
+     * allocated connections when they are available.
+     * <p>
+     * Connections which have not been used for sixty seconds are closed and
+     * removed from the pool. Thus, a pool that remains idle for long enough
+     * will not contain any cached connections.
+     * <p>
+     * Connections obtained from the connection pool are guaranteed to be valid
+     * immediately before being returned to the calling application. More
+     * specifically, connections which have remained idle in the connection pool
+     * for a long time and which have been remotely closed due to a time out
+     * will never be returned. However, once a pooled connection has been
+     * obtained it is the responsibility of the calling application to handle
+     * subsequent connection failures, these being signaled via a
+     * {@link ConnectionException}.
+     *
+     * @param factory
+     *            The connection factory to use for creating new connections.
+     * @return The new connection pool.
+     * @throws NullPointerException
+     *             If {@code factory} was {@code null}.
+     */
+    public static ConnectionPool newCachedConnectionPool(final ConnectionFactory factory) {
+        return new CachedConnectionPool(factory, 0, Integer.MAX_VALUE, 60L, TimeUnit.SECONDS, null);
+    }
+
+    /**
+     * Creates a new connection pool which creates new connections as needed
+     * using the provided connection factory, but will reuse previously
+     * allocated connections when they are available.
+     * <p>
+     * Attempts to use more than {@code maximumPoolSize} connections at once
+     * will block until a connection is released back to the pool. In other
+     * words, this pool will prevent applications from using more than
+     * {@code maximumPoolSize} connections at the same time.
+     * <p>
+     * Connections which have not been used for the provided {@code idleTimeout}
+     * period are closed and removed from the pool, until there are only
+     * {@code corePoolSize} connections remaining.
+     * <p>
+     * Connections obtained from the connection pool are guaranteed to be valid
+     * immediately before being returned to the calling application. More
+     * specifically, connections which have remained idle in the connection pool
+     * for a long time and which have been remotely closed due to a time out
+     * will never be returned. However, once a pooled connection has been
+     * obtained it is the responsibility of the calling application to handle
+     * subsequent connection failures, these being signaled via a
+     * {@link ConnectionException}.
+     *
+     * @param factory
+     *            The connection factory to use for creating new connections.
+     * @param corePoolSize
+     *            The minimum number of connections to keep in the pool, even if
+     *            they are idle.
+     * @param maximumPoolSize
+     *            The maximum number of connections to allow in the pool.
+     * @param idleTimeout
+     *            The time out period, after which unused non-core connections
+     *            will be closed.
+     * @param unit
+     *            The time unit for the {@code keepAliveTime} argument.
+     * @return The new connection pool.
+     * @throws IllegalArgumentException
+     *             If {@code corePoolSize}, {@code maximumPoolSize} are less
+     *             than or equal to zero, or if {@code idleTimeout} is negative,
+     *             or if {@code corePoolSize} is greater than
+     *             {@code maximumPoolSize}, or if {@code idleTimeout} is
+     *             non-zero and {@code unit} is {@code null}.
+     * @throws NullPointerException
+     *             If {@code factory} was {@code null}.
+     */
+    public static ConnectionPool newCachedConnectionPool(final ConnectionFactory factory,
+            final int corePoolSize, final int maximumPoolSize, final long idleTimeout,
+            final TimeUnit unit) {
+        return new CachedConnectionPool(factory, corePoolSize, maximumPoolSize, idleTimeout, unit,
+                null);
+    }
+
+    /**
+     * Creates a new connection pool which creates new connections as needed
+     * using the provided connection factory, but will reuse previously
+     * allocated connections when they are available.
+     * <p>
+     * Attempts to use more than {@code maximumPoolSize} connections at once
+     * will block until a connection is released back to the pool. In other
+     * words, this pool will prevent applications from using more than
+     * {@code maximumPoolSize} connections at the same time.
+     * <p>
+     * Connections which have not been used for the provided {@code idleTimeout}
+     * period are closed and removed from the pool, until there are only
+     * {@code corePoolSize} connections remaining.
+     * <p>
+     * Connections obtained from the connection pool are guaranteed to be valid
+     * immediately before being returned to the calling application. More
+     * specifically, connections which have remained idle in the connection pool
+     * for a long time and which have been remotely closed due to a time out
+     * will never be returned. However, once a pooled connection has been
+     * obtained it is the responsibility of the calling application to handle
+     * subsequent connection failures, these being signaled via a
+     * {@link ConnectionException}.
+     *
+     * @param factory
+     *            The connection factory to use for creating new connections.
+     * @param corePoolSize
+     *            The minimum number of connections to keep in the pool, even if
+     *            they are idle.
+     * @param maximumPoolSize
+     *            The maximum number of connections to allow in the pool.
+     * @param idleTimeout
+     *            The time out period, after which unused non-core connections
+     *            will be closed.
+     * @param unit
+     *            The time unit for the {@code keepAliveTime} argument.
+     * @param scheduler
+     *            The scheduler which should be used for periodically checking
+     *            for idle connections, or {@code null} if the default scheduler
+     *            should be used.
+     * @return The new connection pool.
+     * @throws IllegalArgumentException
+     *             If {@code corePoolSize}, {@code maximumPoolSize} are less
+     *             than or equal to zero, or if {@code idleTimeout} is negative,
+     *             or if {@code corePoolSize} is greater than
+     *             {@code maximumPoolSize}, or if {@code idleTimeout} is
+     *             non-zero and {@code unit} is {@code null}.
+     * @throws NullPointerException
+     *             If {@code factory} was {@code null}.
+     */
+    public static ConnectionPool newCachedConnectionPool(final ConnectionFactory factory,
+            final int corePoolSize, final int maximumPoolSize, final long idleTimeout,
+            final TimeUnit unit, final ScheduledExecutorService scheduler) {
+        return new CachedConnectionPool(factory, corePoolSize, maximumPoolSize, idleTimeout, unit,
+                scheduler);
+    }
+
+    /**
      * Creates a new connection pool which will maintain {@code poolSize}
      * connections created using the provided connection factory.
+     * <p>
+     * Attempts to use more than {@code poolSize} connections at once will block
+     * until a connection is released back to the pool. In other words, this
+     * pool will prevent applications from using more than {@code poolSize}
+     * connections at the same time.
      * <p>
      * Connections obtained from the connection pool are guaranteed to be valid
      * immediately before being returned to the calling application. More
@@ -97,9 +238,7 @@ public final class Connections {
      */
     public static ConnectionPool newFixedConnectionPool(final ConnectionFactory factory,
             final int poolSize) {
-        Validator.ensureNotNull(factory);
-        Validator.ensureTrue(poolSize >= 0, "negative pool size");
-        return new FixedConnectionPool(factory, poolSize);
+        return new CachedConnectionPool(factory, poolSize, poolSize, 0L, null, null);
     }
 
     /**
