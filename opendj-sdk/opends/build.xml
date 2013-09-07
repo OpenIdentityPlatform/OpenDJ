@@ -1948,11 +1948,11 @@
     <fail message="No unit tests failed in the previous run."
           unless="testng-failed.xml.exists"/>
 
-    <!-- We replace the 'Failed suite [OpenDS]' with 'OpenDS' so we
-         don't end up with 'Failed suite [Failed suite [OpenDS]]]' etc. -->
+    <!-- We replace the 'Failed suite [OpenDJ]' with 'OpenDJ' so we
+         don't end up with 'Failed suite [Failed suite [OpenDJ]]]' etc. -->
     <replace file="${unittest.report.dir}/testng-failed.xml"
-             token="Failed suite [OpenDS]"
-             value="OpenDS"/>
+             token="Failed suite [OpenDJ]"
+             value="OpenDJ"/>
     <replace file="${unittest.report.dir}/testng-failed.xml"
              token="default(failed)"
              value="default"/>
