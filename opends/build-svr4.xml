@@ -23,7 +23,7 @@
  !
  !
  !      Copyright 2006-2009 Sun Microsystems, Inc.
- !      Portions Copyright 2011 ForgeRock AS
+ !      Portions Copyright 2011-2013 ForgeRock AS
  ! -->
 
 <project name="SVR4 Packaging" basedir="." default="package-svr4">
@@ -52,7 +52,7 @@
   <property name="svr4.fullname"   value="${svr4.name}" />
   <property name="svr4.arch"       value="all" />
   <property name="svr4.desc"       value="${product}" />
-  <property name="svr4.vendor"     value="Sun Microsystems, Inc." />
+  <property name="svr4.vendor"     value="ForgeRock AS." />
   <property name="svr4.basedir"    value="/usr" />
 
   <!-- Some others general properties -->
