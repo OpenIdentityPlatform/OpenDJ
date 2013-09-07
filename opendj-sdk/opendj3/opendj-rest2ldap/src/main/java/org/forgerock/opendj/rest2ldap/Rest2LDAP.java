@@ -1106,7 +1106,9 @@ public final class Rest2LDAP {
                 factory =
                         Connections.newHeartBeatConnectionFactory(factory,
                                 heartBeatIntervalSeconds, TimeUnit.SECONDS);
-                factory = Connections.newFixedConnectionPool(factory, connectionPoolSize);
+                factory =
+                        Connections.newCachedConnectionPool(factory, 0, connectionPoolSize, 60L,
+                                TimeUnit.SECONDS);
             }
             servers.add(factory);
         }
