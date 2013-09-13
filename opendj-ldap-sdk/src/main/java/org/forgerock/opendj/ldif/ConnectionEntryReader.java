@@ -87,6 +87,9 @@ import com.forgerock.opendj.util.Validator;
  *       // Handle continuation reference...
  *     }
  *   }
+ *
+ *   Result result = reader.readResult();
+ *   // Handle controls included with the search result...
  * }
  * catch (IOException e)
  * {
@@ -356,6 +359,40 @@ public class ConnectionEntryReader implements EntryReader {
             return reference;
         } else {
             return null;
+        }
+    }
+
+    /**
+     * Waits for the next search response to become available and returns it if
+     * it is a search result indicating that the search completed successfully.
+     * If the search result indicates that the search failed then an
+     * {@link ErrorResultIOException} is thrown. Otherwise, if the search
+     * response represents an entry or reference then an
+     * {@code IllegalStateException} is thrown.
+     * <p>
+     * This method should only be called if {@link #hasNext()} has, or will,
+     * return {@code false}.
+     * <p>
+     * It is not necessary to call this method once all search result entries
+     * have been processed, but it may be useful to do so in order to inspect
+     * any controls which were included with the result. For example, this
+     * method may be called in order to obtain the next paged results cookie
+     * once the current page of results has been processed.
+     *
+     * @return The search result indicating success.
+     * @throws ErrorResultIOException
+     *             If the search result indicates that the search operation
+     *             failed for some reason.
+     * @throws IllegalStateException
+     *             If there are remaining search result entries or references to
+     *             be processed. In other words, if {@link #hasNext()} would
+     *             return {@code true}.
+     */
+    public Result readResult() throws ErrorResultIOException {
+        if (hasNext()) {
+            throw new IllegalStateException();
+        } else {
+            return (Result) nextResponse;
         }
     }
 

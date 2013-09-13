@@ -28,17 +28,20 @@
 package org.forgerock.opendj.ldif;
 
 import static org.fest.assertions.Assertions.assertThat;
-import static org.mockito.Matchers.*;
+import static org.fest.assertions.Fail.fail;
+import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
+import static org.forgerock.opendj.ldap.responses.Responses.newResult;
+import static org.forgerock.opendj.ldap.responses.Responses.newSearchResultEntry;
+import static org.forgerock.opendj.ldap.responses.Responses.newSearchResultReference;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.isNull;
+import static org.mockito.Matchers.same;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.NoSuchElementException;
 
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
-import org.testng.annotations.Test;
 import org.forgerock.opendj.ldap.Connection;
-import org.forgerock.opendj.ldap.ErrorResultException;
 import org.forgerock.opendj.ldap.ErrorResultIOException;
 import org.forgerock.opendj.ldap.FutureResult;
 import org.forgerock.opendj.ldap.IntermediateResponseHandler;
@@ -48,10 +51,12 @@ import org.forgerock.opendj.ldap.SearchResultReferenceIOException;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
-import org.forgerock.opendj.ldap.responses.Responses;
 import org.forgerock.opendj.ldap.responses.Result;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldap.responses.SearchResultReference;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
+import org.testng.annotations.Test;
 
 import com.forgerock.opendj.util.CompletedFutureResult;
 
@@ -61,68 +66,197 @@ import com.forgerock.opendj.util.CompletedFutureResult;
 @SuppressWarnings("javadoc")
 public class ConnectionEntryReaderTestCase extends AbstractLDIFTestCase {
 
-    /**
-     * Test a ConnectionEntryReader. Searching and finding entry.
-     *
-     * @throws Exception
-     */
-    @Test()
-    public final void testConnectionEntryReaderHandlesEntry() throws Exception {
-        final Connection connection = mock(Connection.class);
-        final SearchRequest sr =
-                Requests.newSearchRequest("cn=test", SearchScope.BASE_OBJECT, "(objectClass=*)");
+    private static final SearchResultEntry ENTRY1 = newSearchResultEntry("cn=entry1");
+    private static final SearchResultEntry ENTRY2 = newSearchResultEntry("cn=entry2");
+    private static final SearchResultEntry ENTRY3 = newSearchResultEntry("cn=entry3");
+    private static final Result ERROR = newResult(ResultCode.BUSY);
+    private static final SearchResultReference REF =
+            newSearchResultReference("http://www.forgerock.com/");
+    private static final SearchRequest SEARCH = Requests.newSearchRequest("",
+            SearchScope.WHOLE_SUBTREE, "(objectClass=*)");
+    private static final Result SUCCESS = newResult(ResultCode.SUCCESS);
 
-        // @formatter:off
-        when(
-            connection.searchAsync(same(sr), (IntermediateResponseHandler) isNull(),
-                any(SearchResultHandler.class))).thenAnswer(
-                new Answer<FutureResult<Result>>() {
-                        @Override
-                        public FutureResult<Result> answer(final InvocationOnMock invocation)
-                                throws Throwable {
-                            // Execute handler and return future.
-                            final SearchResultHandler handler =
-                                    (SearchResultHandler) invocation.getArguments()[2];
-                            if (handler != null) {
-                                handler.handleEntry(Responses.newSearchResultEntry("cn=test"));
-                                handler.handleResult(Responses.newResult(ResultCode.SUCCESS));
-                            }
-                            return new CompletedFutureResult<Result>(Responses
-                                    .newResult(ResultCode.SUCCESS));
-                        }
-                    }
-            );
-        // @formatter:on
-
-        ConnectionEntryReader reader = null;
+    @Test
+    public final void testHasNextWhenError() throws Exception {
+        final ConnectionEntryReader reader = newReader(ERROR);
         try {
-            reader = new ConnectionEntryReader(connection, sr);
-            assertThat(reader.hasNext()).isTrue();
-            final SearchResultEntry entry = reader.readEntry();
-            assertThat(entry).isNotNull();
-            assertThat(entry.getName().toString()).isEqualTo("cn=test");
-            assertThat(reader.hasNext()).isFalse();
+            reader.hasNext();
+            fail();
+        } catch (final ErrorResultIOException e) {
+            assertThat(e.getCause().getResult()).isSameAs(ERROR);
         } finally {
             reader.close();
         }
     }
 
-    /**
-     * Test a ConnectionEntryReader. Searching and finding reference.
-     *
-     * @throws Exception
-     */
     @Test()
-    public final void testConnectionEntryReaderHandlesReference() throws Exception {
-        final Connection connection = mock(Connection.class);
-        final SearchRequest sr =
-                Requests.newSearchRequest("cn=test", SearchScope.BASE_OBJECT, "(objectClass=*)");
+    public final void testReadEntry() throws Exception {
+        final ConnectionEntryReader reader = newReader(ENTRY1, SUCCESS);
+        try {
+            assertThat(reader.hasNext()).isTrue();
+            assertThat(reader.isEntry()).isTrue();
+            assertThat(reader.isReference()).isFalse();
+            assertThat(reader.readEntry()).isSameAs(ENTRY1);
+            assertThat(reader.hasNext()).isFalse();
+            assertThat(reader.readResult()).isSameAs(SUCCESS);
+        } finally {
+            reader.close();
+        }
+    }
 
+    @Test
+    public final void testReadEntryWhenError() throws Exception {
+        final ConnectionEntryReader reader = newReader(ERROR);
+        try {
+            reader.readEntry();
+            fail();
+        } catch (final ErrorResultIOException e) {
+            assertThat(e.getCause().getResult()).isSameAs(ERROR);
+        } finally {
+            reader.close();
+        }
+    }
+
+    @Test(expectedExceptions = NoSuchElementException.class)
+    public final void testReadEntryWhenNoMore() throws Exception {
+        final ConnectionEntryReader reader = newReader(SUCCESS);
+        try {
+            assertThat(reader.hasNext()).isFalse();
+            reader.readEntry();
+        } finally {
+            reader.close();
+        }
+    }
+
+    @Test
+    public final void testReadEntryWhenReference() throws Exception {
+        final ConnectionEntryReader reader = newReader(REF, SUCCESS);
+        try {
+            assertThat(reader.hasNext()).isTrue();
+            try {
+                reader.readEntry();
+                fail();
+            } catch (final SearchResultReferenceIOException e) {
+                assertThat(e.getReference()).isSameAs(REF);
+            }
+            assertThat(reader.hasNext()).isFalse();
+            assertThat(reader.readResult()).isSameAs(SUCCESS);
+        } finally {
+            reader.close();
+        }
+    }
+
+    @Test()
+    public final void testReadMultipleResults() throws Exception {
+        final ConnectionEntryReader reader = newReader(ENTRY1, ENTRY2, REF, ENTRY3, SUCCESS);
+        try {
+            assertThat(reader.hasNext()).isTrue();
+            assertThat(reader.readEntry()).isSameAs(ENTRY1);
+            assertThat(reader.hasNext()).isTrue();
+            assertThat(reader.readEntry()).isSameAs(ENTRY2);
+            assertThat(reader.hasNext()).isTrue();
+            assertThat(reader.readReference()).isSameAs(REF);
+            assertThat(reader.hasNext()).isTrue();
+            assertThat(reader.readEntry()).isSameAs(ENTRY3);
+            assertThat(reader.hasNext()).isFalse();
+            assertThat(reader.readResult()).isSameAs(SUCCESS);
+        } finally {
+            reader.close();
+        }
+    }
+
+    @Test()
+    public final void testReadReference() throws Exception {
+        final ConnectionEntryReader reader = newReader(REF, SUCCESS);
+        try {
+            assertThat(reader.hasNext()).isTrue();
+            assertThat(reader.isEntry()).isFalse();
+            assertThat(reader.isReference()).isTrue();
+            assertThat(reader.readReference()).isSameAs(REF);
+            assertThat(reader.hasNext()).isFalse();
+            assertThat(reader.readResult()).isSameAs(SUCCESS);
+        } finally {
+            reader.close();
+        }
+    }
+
+    @Test()
+    public final void testReadReferenceWhenEntry() throws Exception {
+        final ConnectionEntryReader reader = newReader(ENTRY1, SUCCESS);
+        try {
+            assertThat(reader.hasNext()).isTrue();
+            assertThat(reader.readReference()).isNull();
+            assertThat(reader.readEntry()).isSameAs(ENTRY1);
+            assertThat(reader.hasNext()).isFalse();
+            assertThat(reader.readResult()).isSameAs(SUCCESS);
+        } finally {
+            reader.close();
+        }
+    }
+
+    @Test
+    public final void testReadReferenceWhenError() throws Exception {
+        final ConnectionEntryReader reader = newReader(ERROR);
+        try {
+            reader.readReference();
+            fail();
+        } catch (final ErrorResultIOException e) {
+            assertThat(e.getCause().getResult()).isSameAs(ERROR);
+        } finally {
+            reader.close();
+        }
+    }
+
+    @Test(expectedExceptions = NoSuchElementException.class)
+    public final void testReadReferenceWhenNoMore() throws Exception {
+        final ConnectionEntryReader reader = newReader(SUCCESS);
+        try {
+            assertThat(reader.hasNext()).isFalse();
+            reader.readReference();
+        } finally {
+            reader.close();
+        }
+    }
+
+    @Test
+    public final void testReadResult() throws Exception {
+        final ConnectionEntryReader reader = newReader(SUCCESS);
+        try {
+            assertThat(reader.readResult()).isSameAs(SUCCESS);
+        } finally {
+            reader.close();
+        }
+    }
+
+    @Test
+    public final void testReadResultWhenError() throws Exception {
+        final ConnectionEntryReader reader = newReader(ERROR);
+        try {
+            reader.readResult();
+            fail();
+        } catch (final ErrorResultIOException e) {
+            assertThat(e.getCause().getResult()).isSameAs(ERROR);
+        } finally {
+            reader.close();
+        }
+    }
+
+    @Test(expectedExceptions = IllegalStateException.class)
+    public final void testReadResultWhenEntry() throws Exception {
+        final ConnectionEntryReader reader = newReader(ENTRY1, SUCCESS);
+        try {
+            reader.readResult();
+        } finally {
+            reader.close();
+        }
+    }
+
+    private ConnectionEntryReader newReader(final Object... responses) {
+        final Connection connection = mock(Connection.class);
         // @formatter:off
-        when(
-            connection.searchAsync(same(sr), (IntermediateResponseHandler) isNull(),
+        when(connection.searchAsync(same(SEARCH), (IntermediateResponseHandler) isNull(),
                 any(SearchResultHandler.class))).thenAnswer(
-                new Answer<FutureResult<Result>>() {
+                        new Answer<FutureResult<Result>>() {
                             @Override
                             public FutureResult<Result> answer(final InvocationOnMock invocation)
                                     throws Throwable {
@@ -130,321 +264,29 @@ public class ConnectionEntryReaderTestCase extends AbstractLDIFTestCase {
                                 final SearchResultHandler handler =
                                         (SearchResultHandler) invocation.getArguments()[2];
                                 if (handler != null) {
-                                    handler.handleReference(Responses
-                                            .newSearchResultReference("http://www.forgerock.com/"));
-                                    handler.handleResult(Responses.newResult(ResultCode.SUCCESS));
-                                }
-                                return new CompletedFutureResult<Result>(Responses
-                                        .newResult(ResultCode.SUCCESS));
-                            }
-                        }
-            );
-        // @formatter:on
-
-        ConnectionEntryReader reader = null;
-        try {
-            reader = new ConnectionEntryReader(connection, sr);
-            assertThat(reader.hasNext()).isTrue();
-            final SearchResultReference reference = reader.readReference();
-            assertThat(reference).isNotNull();
-            assertThat(reference.getURIs().get(0).toString())
-                    .isEqualTo("http://www.forgerock.com/");
-        } finally {
-            reader.close();
-        }
-    }
-
-    /**
-     * The ConnectionEntryReader try to read an entry but it is a reference. The
-     * readEntry provokes an SearchResultReferenceIOException.
-     *
-     * @throws Exception
-     */
-    @Test(expectedExceptions = SearchResultReferenceIOException.class)
-    public final void testConnectionEntryReaderReadEntryThrowsSearchResultReferenceIOException()
-            throws Exception {
-        final Connection connection = mock(Connection.class);
-        final SearchRequest sr =
-                Requests.newSearchRequest("cn=test", SearchScope.BASE_OBJECT, "(objectClass=*)");
-
-        // @formatter:off
-        when(
-                connection.searchAsync(same(sr), (IntermediateResponseHandler) isNull(),
-                    any(SearchResultHandler.class))).thenAnswer(
-                    new Answer<FutureResult<Result>>() {
-                                @Override
-                                public FutureResult<Result> answer(final InvocationOnMock invocation)
-                                        throws Throwable {
-                                    // Execute handler and return future.
-                                    final SearchResultHandler handler =
-                                            (SearchResultHandler) invocation.getArguments()[2];
-
-                                    if (handler != null) {
-                                        handler.handleReference(Responses
-                                                .newSearchResultReference("http://www.forgerock.com/"));
-                                        handler.handleResult(Responses.newResult(ResultCode.SUCCESS));
+                                    for (int i = 0; i < responses.length; i++) {
+                                        final Object response = responses[i];
+                                        if (response instanceof SearchResultEntry) {
+                                            handler.handleEntry((SearchResultEntry) response);
+                                        } else if (response instanceof SearchResultReference) {
+                                            handler.handleReference((SearchResultReference) response);
+                                        } else if (((Result) response).isSuccess()) {
+                                            handler.handleResult((Result) response);
+                                        } else {
+                                            handler.handleErrorResult(newErrorResult((Result) response));
+                                        }
                                     }
-                                    return new CompletedFutureResult<Result>(Responses
-                                            .newResult(ResultCode.SUCCESS));
+                                }
+                                final Result result = (Result) responses[responses.length - 1];
+                                if (result.isSuccess()) {
+                                    return new CompletedFutureResult<Result>(result);
+                                } else {
+                                    return new CompletedFutureResult<Result>(newErrorResult(result));
                                 }
                             }
-            );
+                        });
         // @formatter:on
-
-        ConnectionEntryReader reader = null;
-        try {
-            reader = new ConnectionEntryReader(connection, sr);
-            reader.readEntry();
-        } finally {
-            reader.close();
-        }
-    }
-
-    /**
-     * Try to read a reference instead of an entry. Do nothing.
-     *
-     * @throws Exception
-     */
-    @Test()
-    public final void testConnectionEntryReaderReadReferenceInsteadOfEntry() throws Exception {
-        final Connection connection = mock(Connection.class);
-        final SearchRequest sr =
-                Requests.newSearchRequest("cn=test", SearchScope.BASE_OBJECT, "(objectClass=*)");
-
-        // @formatter:off
-        when(
-                connection.searchAsync(same(sr), (IntermediateResponseHandler) isNull(),
-                    any(SearchResultHandler.class))).thenAnswer(
-                    new Answer<FutureResult<Result>>() {
-                                @Override
-                                public FutureResult<Result> answer(final InvocationOnMock invocation)
-                                        throws Throwable {
-                                    // Execute handler and return future.
-                                    final SearchResultHandler handler =
-                                            (SearchResultHandler) invocation.getArguments()[2];
-                                    if (handler != null) {
-                                        handler.handleEntry(Responses.newSearchResultEntry("cn=test"));
-                                        handler.handleResult(Responses.newResult(ResultCode.SUCCESS));
-                                    }
-                                    return new CompletedFutureResult<Result>(Responses
-                                            .newResult(ResultCode.SUCCESS));
-                                }
-                            }
-            );
-        // @formatter:on
-        ConnectionEntryReader reader = null;
-        try {
-            reader = new ConnectionEntryReader(connection, sr);
-            final SearchResultReference ref = reader.readReference();
-            assertThat(ref).isNull();
-        } finally {
-            reader.close();
-        }
-    }
-
-    /**
-     * Connection Entry Reader is able to read multiple result from search.
-     *
-     * @throws Exception
-     */
-    @Test()
-    public final void testConnectionEntryReaderMultipleResults() throws Exception {
-        final Connection connection = mock(Connection.class);
-        final SearchRequest sr =
-                Requests.newSearchRequest("cn=test", SearchScope.BASE_OBJECT, "(objectClass=*)");
-
-        // @formatter:off
-        when(
-                connection.searchAsync(same(sr), (IntermediateResponseHandler) isNull(),
-                    any(SearchResultHandler.class))).thenAnswer(
-                    new Answer<FutureResult<Result>>() {
-                                @Override
-                                public FutureResult<Result> answer(final InvocationOnMock invocation)
-                                        throws Throwable {
-                                    // Execute handler and return future.
-                                    final SearchResultHandler handler =
-                                            (SearchResultHandler) invocation.getArguments()[2];
-                                    if (handler != null) {
-                                        handler.handleEntry(Responses.newSearchResultEntry("cn=Jensen"));
-                                        handler.handleEntry(Responses.newSearchResultEntry("cn=Carter"));
-                                        handler.handleEntry(Responses.newSearchResultEntry("cn=Aaccf Amar"));
-                                        handler.handleReference(Responses
-                                                .newSearchResultReference("http://www.forgerock.com/"));
-                                        // ResultCode need to be present.
-                                        handler.handleResult(Responses.newResult(ResultCode.SUCCESS));
-                                    }
-                                    return new CompletedFutureResult<Result>(Responses
-                                            .newResult(ResultCode.SUCCESS));
-                                }
-                            }
-            );
-        // @formatter:on
-
-        ConnectionEntryReader reader = null;
-        try {
-            reader = new ConnectionEntryReader(connection, sr);
-            SearchResultEntry entry = null;
-            SearchResultReference ref = null;
-            entry = reader.readEntry();
-            assertThat(entry.getName().toString()).isEqualTo("cn=Jensen");
-            assertThat(reader.hasNext()).isTrue();
-            entry = reader.readEntry();
-            assertThat(entry.getName().toString()).isEqualTo("cn=Carter");
-            assertThat(reader.hasNext()).isTrue();
-            entry = reader.readEntry();
-            assertThat(entry.getName().toString()).isEqualTo("cn=Aaccf Amar");
-            assertThat(reader.hasNext()).isTrue();
-            ref = reader.readReference();
-            assertThat(ref.getURIs().get(0)).isEqualTo("http://www.forgerock.com/");
-            assertThat(reader.hasNext()).isFalse();
-
-        } finally {
-            reader.close();
-        }
-    }
-
-    /**
-     * The SearchResultHandler contains no entry / no reference, only a negative
-     * resultCode. ErrorResultIOException expected.
-     *
-     * @throws Exception
-     */
-    @Test(expectedExceptions = ErrorResultIOException.class)
-    public final void testConnectionEntryReaderHandlerResultIsBusy() throws Exception {
-        final Connection connection = mock(Connection.class);
-        final SearchRequest sr =
-                Requests.newSearchRequest("cn=test", SearchScope.BASE_OBJECT, "(objectClass=*)");
-
-        // @formatter:off
-        when(
-                connection.searchAsync(same(sr), (IntermediateResponseHandler) isNull(),
-                    any(SearchResultHandler.class))).thenAnswer(
-                    new Answer<FutureResult<Result>>() {
-                                @Override
-                                public FutureResult<Result> answer(final InvocationOnMock invocation)
-                                        throws Throwable {
-                                    // Execute handler and return future.
-                                    final SearchResultHandler handler =
-                                            (SearchResultHandler) invocation.getArguments()[2];
-                                    if (handler != null) {
-                                        handler.handleResult(Responses.newResult(ResultCode.BUSY));
-                                    }
-                                    return new CompletedFutureResult<Result>(Responses
-                                            .newResult(ResultCode.SUCCESS));
-                                }
-                            }
-            );
-        // @formatter:on
-
-        ConnectionEntryReader reader = null;
-        try {
-            reader = new ConnectionEntryReader(connection, sr);
-            reader.readEntry();
-        } finally {
-            reader.close();
-        }
-    }
-
-    /**
-     * Handler contains a successful code. NoSuchElementException expected.
-     *
-     * @throws Exception
-     */
-    @Test(expectedExceptions = NoSuchElementException.class)
-    public final void testConnectionEntryReaderHandlerResultIsSucess() throws Exception {
-        final Connection connection = mock(Connection.class);
-        final SearchRequest sr =
-                Requests.newSearchRequest("cn=test", SearchScope.BASE_OBJECT, "(objectClass=*)");
-
-        // @formatter:off
-        when(
-                connection.searchAsync(same(sr), (IntermediateResponseHandler) isNull(),
-                    any(SearchResultHandler.class))).thenAnswer(
-                    new Answer<FutureResult<Result>>() {
-                                @Override
-                                public FutureResult<Result> answer(final InvocationOnMock invocation)
-                                        throws Throwable {
-                                    // Execute handler and return future.
-                                    final SearchResultHandler handler =
-                                            (SearchResultHandler) invocation.getArguments()[2];
-                                    if (handler != null) {
-                                        handler.handleResult(Responses.newResult(ResultCode.SUCCESS));
-                                    }
-                                    return new CompletedFutureResult<Result>(Responses
-                                            .newResult(ResultCode.SUCCESS));
-                                }
-                            }
-            );
-        // @formatter:on
-
-        ConnectionEntryReader reader = null;
-        try {
-            reader = new ConnectionEntryReader(connection, sr);
-            reader.readEntry();
-        } finally {
-            reader.close();
-        }
-    }
-
-    /**
-     * ConnectionEntryReader encounters an error. Handler handles an error
-     * result.
-     *
-     * @throws Exception
-     */
-    @Test(expectedExceptions = ErrorResultIOException.class)
-    public final void testConnectionEntryReaderHandlerErrorResult() throws Exception {
-        final Connection connection = mock(Connection.class);
-        final SearchRequest sr =
-                Requests.newSearchRequest("cn=test", SearchScope.BASE_OBJECT, "(objectClass=*)");
-
-        // @formatter:off
-        when(
-                connection.searchAsync(same(sr), (IntermediateResponseHandler) isNull(),
-                    any(SearchResultHandler.class))).thenAnswer(
-                    new Answer<FutureResult<Result>>() {
-                                @Override
-                                public FutureResult<Result> answer(final InvocationOnMock invocation)
-                                        throws Throwable {
-                                    // Execute handler and return future.
-                                    final SearchResultHandler handler =
-                                            (SearchResultHandler) invocation.getArguments()[2];
-                                    if (handler != null) {
-                                        handler.handleErrorResult(ErrorResultException.newErrorResult(
-                                                Responses.newResult(ResultCode.CLIENT_SIDE_PARAM_ERROR)));
-                                    }
-                                    return new CompletedFutureResult<Result>(Responses
-                                            .newResult(ResultCode.SUCCESS));
-                                }
-                            }
-            );
-        // @formatter:on
-
-        ConnectionEntryReader reader = null;
-        try {
-            reader = new ConnectionEntryReader(connection, sr);
-            reader.readEntry();
-        } finally {
-            reader.close();
-        }
-    }
-
-    /**
-     * The ConnectionEntryReader doesn't allow a null connection.
-     *
-     * @throws Exception
-     */
-    @Test(expectedExceptions = NullPointerException.class)
-    public final void testConnectionEntryReaderDoesntAllowNull() throws Exception {
-        ConnectionEntryReader reader = null;
-        try {
-            reader =
-                    new ConnectionEntryReader(null, Requests.newSearchRequest("dc=example,dc=com",
-                            SearchScope.WHOLE_SUBTREE, "(sn=Jensen)", "cn"));
-        } finally {
-            reader.close();
-        }
-
+        return new ConnectionEntryReader(connection, SEARCH);
     }
 
 }
