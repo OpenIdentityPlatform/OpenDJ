@@ -253,38 +253,39 @@ public class ConnectionEntryReaderTestCase extends AbstractLDIFTestCase {
 
     private ConnectionEntryReader newReader(final Object... responses) {
         final Connection connection = mock(Connection.class);
-        when(
-                connection.searchAsync(same(SEARCH), (IntermediateResponseHandler) isNull(),
-                        any(SearchResultHandler.class))).thenAnswer(
-                new Answer<FutureResult<Result>>() {
-                    @Override
-                    public FutureResult<Result> answer(final InvocationOnMock invocation)
-                            throws Throwable {
-                        // Execute handler and return future.
-                        final SearchResultHandler handler =
-                                (SearchResultHandler) invocation.getArguments()[2];
-                        if (handler != null) {
-                            for (int i = 0; i < responses.length; i++) {
-                                final Object response = responses[i];
-                                if (response instanceof SearchResultEntry) {
-                                    handler.handleEntry((SearchResultEntry) response);
-                                } else if (response instanceof SearchResultReference) {
-                                    handler.handleReference((SearchResultReference) response);
-                                } else if (((Result) response).isSuccess()) {
-                                    handler.handleResult((Result) response);
+        // @formatter:off
+        when(connection.searchAsync(same(SEARCH), (IntermediateResponseHandler) isNull(),
+                any(SearchResultHandler.class))).thenAnswer(
+                        new Answer<FutureResult<Result>>() {
+                            @Override
+                            public FutureResult<Result> answer(final InvocationOnMock invocation)
+                                    throws Throwable {
+                                // Execute handler and return future.
+                                final SearchResultHandler handler =
+                                        (SearchResultHandler) invocation.getArguments()[2];
+                                if (handler != null) {
+                                    for (int i = 0; i < responses.length; i++) {
+                                        final Object response = responses[i];
+                                        if (response instanceof SearchResultEntry) {
+                                            handler.handleEntry((SearchResultEntry) response);
+                                        } else if (response instanceof SearchResultReference) {
+                                            handler.handleReference((SearchResultReference) response);
+                                        } else if (((Result) response).isSuccess()) {
+                                            handler.handleResult((Result) response);
+                                        } else {
+                                            handler.handleErrorResult(newErrorResult((Result) response));
+                                        }
+                                    }
+                                }
+                                final Result result = (Result) responses[responses.length - 1];
+                                if (result.isSuccess()) {
+                                    return new CompletedFutureResult<Result>(result);
                                 } else {
-                                    handler.handleErrorResult(newErrorResult((Result) response));
+                                    return new CompletedFutureResult<Result>(newErrorResult(result));
                                 }
                             }
-                        }
-                        final Result result = (Result) responses[responses.length - 1];
-                        if (result.isSuccess()) {
-                            return new CompletedFutureResult<Result>(result);
-                        } else {
-                            return new CompletedFutureResult<Result>(newErrorResult(result));
-                        }
-                    }
-                });
+                        });
+        // @formatter:on
         return new ConnectionEntryReader(connection, SEARCH);
     }
 
