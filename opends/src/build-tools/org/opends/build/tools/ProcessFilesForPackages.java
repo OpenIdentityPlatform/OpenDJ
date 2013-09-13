@@ -249,6 +249,7 @@ public class ProcessFilesForPackages extends Task
           || fileName.endsWith(".app")
           || fileName.endsWith(".bat")
           || fileName.endsWith(".exe")
+          || fileName.equals("readme")
           || file.getAbsolutePath().contains(".app"));
     }
   }
@@ -269,10 +270,10 @@ public class ProcessFilesForPackages extends Task
       return (
           !file.getAbsolutePath().contains("/template/")
           && !file.getAbsolutePath().contains("/legals/")
+          && !file.getAbsolutePath().contains("/snmp/")
           && (fileName.endsWith(".doc")
           || fileName.endsWith(".txt")
           || fileName.contains("example-plugin")
-          || fileName.equals("readme")
           || fileName.equals("opends.license")));
     }
   }
