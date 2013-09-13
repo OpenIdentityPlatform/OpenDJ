@@ -451,14 +451,14 @@ public final class Proxy {
             final String remoteAddress = args[i];
             final int remotePort = Integer.parseInt(args[i + 1]);
 
-            factories.add(Connections.newFixedConnectionPool(Connections
+            factories.add(Connections.newCachedConnectionPool(Connections
                     .newAuthenticatedConnectionFactory(Connections
                             .newHeartBeatConnectionFactory(new LDAPConnectionFactory(remoteAddress,
                                     remotePort)), Requests.newSimpleBindRequest(proxyDN,
-                            proxyPassword.toCharArray())), Integer.MAX_VALUE));
-            bindFactories.add(Connections.newFixedConnectionPool(Connections
+                            proxyPassword.toCharArray()))));
+            bindFactories.add(Connections.newCachedConnectionPool(Connections
                     .newHeartBeatConnectionFactory(new LDAPConnectionFactory(remoteAddress,
-                            remotePort)), Integer.MAX_VALUE));
+                            remotePort))));
         }
         final RoundRobinLoadBalancingAlgorithm algorithm =
                 new RoundRobinLoadBalancingAlgorithm(factories);

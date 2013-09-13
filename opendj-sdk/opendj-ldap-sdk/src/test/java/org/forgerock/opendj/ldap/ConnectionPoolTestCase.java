@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2012 ForgeRock AS.
+ *      Portions copyright 2011-2013 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -44,6 +44,8 @@ import static org.mockito.Mockito.when;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.TimeUnit;
 
 import org.forgerock.opendj.ldap.requests.BindRequest;
 import org.forgerock.opendj.ldap.requests.Requests;
@@ -412,6 +414,104 @@ public class ConnectionPoolTestCase extends SdkTestCase {
 
         pc3.close();
         pool.close();
+    }
+
+    /**
+     * Verifies that a pool with connection keep alive correctly purges idle
+     * connections after the keepalive period has expired.
+     *
+     * @throws Exception
+     *             If an unexpected error occurred.
+     */
+    @Test
+    public void testConnectionKeepAliveExpiration() throws Exception {
+        final Connection pooledConnection1 = mock(Connection.class, "pooledConnection1");
+        final Connection pooledConnection2 = mock(Connection.class, "pooledConnection2");
+        final Connection pooledConnection3 = mock(Connection.class, "pooledConnection3");
+        final Connection pooledConnection4 = mock(Connection.class, "pooledConnection4");
+        final Connection pooledConnection5 = mock(Connection.class, "pooledConnection5");
+        final Connection pooledConnection6 = mock(Connection.class, "pooledConnection6");
+
+        when(pooledConnection1.isValid()).thenReturn(true);
+        when(pooledConnection2.isValid()).thenReturn(true);
+        when(pooledConnection3.isValid()).thenReturn(true);
+        when(pooledConnection4.isValid()).thenReturn(true);
+        when(pooledConnection5.isValid()).thenReturn(true);
+        when(pooledConnection6.isValid()).thenReturn(true);
+
+        final ConnectionFactory factory =
+                mockConnectionFactory(pooledConnection1, pooledConnection2, pooledConnection3,
+                        pooledConnection4, pooledConnection5, pooledConnection6);
+        final MockScheduler scheduler = new MockScheduler();
+        final CachedConnectionPool pool =
+                new CachedConnectionPool(factory, 2, 4, 100, TimeUnit.MILLISECONDS, scheduler);
+        assertThat(scheduler.isScheduled()).isTrue();
+
+        // First populate the pool with idle connections at time 0.
+        @SuppressWarnings("unchecked")
+        final Callable<Long> timeSource = mock(Callable.class);
+        when(timeSource.call()).thenReturn(0L);
+        pool.testTimeSource = timeSource;
+
+        assertThat(pool.currentPoolSize()).isEqualTo(0);
+        Connection c1 = pool.getConnection();
+        Connection c2 = pool.getConnection();
+        Connection c3 = pool.getConnection();
+        Connection c4 = pool.getConnection();
+        assertThat(pool.currentPoolSize()).isEqualTo(4);
+        c1.close();
+        c2.close();
+        c3.close();
+        c4.close();
+        assertThat(pool.currentPoolSize()).isEqualTo(4);
+
+        // First purge at time 50 is no-op because no connections have expired.
+        when(timeSource.call()).thenReturn(50L);
+        scheduler.getCommand().run();
+        assertThat(pool.currentPoolSize()).isEqualTo(4);
+
+        // Second purge at time 150 should remove 2 non-core connections.
+        when(timeSource.call()).thenReturn(150L);
+        scheduler.getCommand().run();
+        assertThat(pool.currentPoolSize()).isEqualTo(2);
+
+        verify(pooledConnection1, times(1)).close();
+        verify(pooledConnection2, times(1)).close();
+        verify(pooledConnection3, times(0)).close();
+        verify(pooledConnection4, times(0)).close();
+
+        // Regrow the pool at time 200.
+        when(timeSource.call()).thenReturn(200L);
+        Connection c5 = pool.getConnection(); // pooledConnection3
+        Connection c6 = pool.getConnection(); // pooledConnection4
+        Connection c7 = pool.getConnection(); // pooledConnection5
+        Connection c8 = pool.getConnection(); // pooledConnection6
+        assertThat(pool.currentPoolSize()).isEqualTo(4);
+        c5.close();
+        c6.close();
+        c7.close();
+        c8.close();
+        assertThat(pool.currentPoolSize()).isEqualTo(4);
+
+        // Third purge at time 250 should not remove any connections.
+        when(timeSource.call()).thenReturn(250L);
+        scheduler.getCommand().run();
+        assertThat(pool.currentPoolSize()).isEqualTo(4);
+
+        // Fourth purge at time 350 should remove 2 non-core connections.
+        when(timeSource.call()).thenReturn(350L);
+        scheduler.getCommand().run();
+        assertThat(pool.currentPoolSize()).isEqualTo(2);
+
+        verify(pooledConnection3, times(1)).close();
+        verify(pooledConnection4, times(1)).close();
+        verify(pooledConnection5, times(0)).close();
+        verify(pooledConnection6, times(0)).close();
+
+        pool.close();
+        verify(pooledConnection5, times(1)).close();
+        verify(pooledConnection6, times(1)).close();
+        assertThat(scheduler.isScheduled()).isFalse();
     }
 
 }
