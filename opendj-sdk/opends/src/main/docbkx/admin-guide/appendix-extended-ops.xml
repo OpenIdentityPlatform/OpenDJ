@@ -73,7 +73,7 @@
      <secondary>Password modify</secondary>
     </indexterm>
     <para>Object Identifier: 1.3.6.1.4.1.4203.1.11.1</para>
-    <para>RFC: <link xlink:href='http://tools.ietf.org/html/rfc3909'>RFC 3062
+    <para>RFC: <link xlink:href='http://tools.ietf.org/html/rfc3062'>RFC 3062
     - LDAP Password Modify Extended Operation</link></para>
    </listitem>
   </varlistentry>
