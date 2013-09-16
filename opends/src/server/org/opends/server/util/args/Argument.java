@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS
  */
 package org.opends.server.util.args;
 import org.opends.messages.Message;
@@ -490,7 +491,7 @@ public abstract class Argument
 
 
   /**
-   * Retrieves the string vale for this argument.  If it has multiple values,
+   * Retrieves the string value for this argument.  If it has multiple values,
    * then the first will be returned.  If it does not have any values, then the
    * default value will be returned.
    *
