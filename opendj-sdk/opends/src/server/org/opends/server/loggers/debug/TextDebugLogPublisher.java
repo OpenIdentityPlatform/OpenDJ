@@ -27,17 +27,9 @@
  */
 package org.opends.server.loggers.debug;
 
-import static org.opends.messages.ConfigMessages.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
-
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import org.opends.messages.Message;
 import org.opends.server.admin.server.ConfigurationAddListener;
@@ -57,6 +49,10 @@ import org.opends.server.util.StaticUtils;
 import org.opends.server.util.TimeThread;
 
 import com.sleepycat.je.*;
+
+import static org.opends.messages.ConfigMessages.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
 
 /**
  * The debug log publisher implementation that writes debug messages to files
@@ -282,7 +278,7 @@ public class TextDebugLogPublisher
     // Default result code.
     ResultCode resultCode = ResultCode.SUCCESS;
     boolean adminActionRequired = false;
-    ArrayList<Message> messages = new ArrayList<Message>();
+    List<Message> messages = new ArrayList<Message>();
 
     //Get the default/global settings
     LogLevel logLevel =
@@ -322,8 +318,8 @@ public class TextDebugLogPublisher
           config.isAutoFlush() && !config.isAsynchronous();
 
       TextWriter currentWriter;
-      // Determine the writer we are using. If we were writing asyncronously,
-      // we need to modify the underlaying writer.
+      // Determine the writer we are using. If we were writing asynchronously,
+      // we need to modify the underlying writer.
       if(writer instanceof AsynchronousTextWriter)
       {
         currentWriter = ((AsynchronousTextWriter)writer).getWrappedWriter();
@@ -428,7 +424,7 @@ public class TextDebugLogPublisher
     // Default result code.
     ResultCode resultCode = ResultCode.SUCCESS;
     boolean adminActionRequired = false;
-    ArrayList<Message> messages = new ArrayList<Message>();
+    List<Message> messages = new ArrayList<Message>();
 
     addTraceSettings(config.getDebugScope(), new TraceSettings(config));
 
@@ -446,7 +442,7 @@ public class TextDebugLogPublisher
     // Default result code.
     ResultCode resultCode = ResultCode.SUCCESS;
     boolean adminActionRequired = false;
-    ArrayList<Message> messages = new ArrayList<Message>();
+    List<Message> messages = new ArrayList<Message>();
 
     removeTraceSettings(config.getDebugScope());
 
@@ -882,9 +878,6 @@ public class TextDebugLogPublisher
     {
       return currentConfig.dn();
     }
-    else
-    {
-      return null;
-    }
+    return null;
   }
 }

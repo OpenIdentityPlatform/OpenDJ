@@ -26,10 +26,6 @@
  *      Portions copyright 2012-2013 ForgeRock AS.
  */
 package org.opends.server.loggers;
-import static org.opends.messages.ConfigMessages.*;
-import static org.opends.messages.LoggerMessages.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -47,6 +43,10 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.*;
 import org.opends.server.util.TimeThread;
 
+import static org.opends.messages.ConfigMessages.*;
+import static org.opends.messages.LoggerMessages.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class provides an implementation of an error log publisher.
@@ -224,7 +224,6 @@ public class TextErrorLogPublisher
           Message msg =
               WARN_ERROR_LOGGER_INVALID_OVERRIDE_SEVERITY.get(overrideSeverity);
           throw new ConfigException(msg);
-
         } else
         {
           String categoryName = overrideSeverity.substring(0, equalPos);
@@ -233,8 +232,7 @@ public class TextErrorLogPublisher
           {
             Category category = Category.valueOf(categoryName);
 
-            HashSet<Severity> severities =
-                new HashSet<Severity>();
+            Set<Severity> severities = new HashSet<Severity>();
             StringTokenizer sevTokenizer =
               new StringTokenizer(overrideSeverity.substring(equalPos+1), ",");
             while (sevTokenizer.hasMoreElements())
@@ -255,9 +253,7 @@ public class TextErrorLogPublisher
               {
                 try
                 {
-                  Severity severity =
-                      Severity.parseString(severityName);
-
+                  Severity severity = Severity.parseString(severityName);
                   severities.add(severity);
                 }
                 catch(Exception e)
@@ -387,7 +383,7 @@ public class TextErrorLogPublisher
     // Default result code.
     ResultCode resultCode = ResultCode.SUCCESS;
     boolean adminActionRequired = false;
-    ArrayList<Message> messages = new ArrayList<Message>();
+    List<Message> messages = new ArrayList<Message>();
 
     Set<ErrorLogPublisherCfgDefn.DefaultSeverity> defSevs =
         config.getDefaultSeverity();
@@ -417,8 +413,7 @@ public class TextErrorLogPublisher
         }
         else
         {
-          Severity errorSeverity =
-              Severity.parseString(defSev.name());
+          Severity errorSeverity = Severity.parseString(defSev.name());
           if(errorSeverity != null)
           {
             defaultSeverities.add(errorSeverity);
@@ -447,8 +442,7 @@ public class TextErrorLogPublisher
           {
             Category category = Category.valueOf(categoryName);
 
-            HashSet<Severity> severities =
-                new HashSet<Severity>();
+            Set<Severity> severities = new HashSet<Severity>();
             StringTokenizer sevTokenizer =
               new StringTokenizer(overrideSeverity.substring(equalPos+1), ",");
             while (sevTokenizer.hasMoreElements())
@@ -469,9 +463,7 @@ public class TextErrorLogPublisher
               {
                 try
                 {
-                  Severity severity =
-                      Severity.parseString(severityName);
-
+                  Severity severity = Severity.parseString(severityName);
                   severities.add(severity);
                 }
                 catch(Exception e)
@@ -506,8 +498,8 @@ public class TextErrorLogPublisher
           config.isAutoFlush() && !config.isAsynchronous();
 
       TextWriter currentWriter;
-      // Determine the writer we are using. If we were writing asyncronously,
-      // we need to modify the underlaying writer.
+      // Determine the writer we are using. If we were writing asynchronously,
+      // we need to modify the underlying writer.
       if(writer instanceof AsynchronousTextWriter)
       {
         currentWriter = ((AsynchronousTextWriter)writer).getWrappedWriter();
@@ -559,8 +551,9 @@ public class TextErrorLogPublisher
                                                 mfWriter);
         }
 
-        if((currentConfig.isAsynchronous() && config.isAsynchronous()) &&
-            (currentConfig.getQueueSize() != config.getQueueSize()))
+        if (currentConfig.isAsynchronous()
+            && config.isAsynchronous()
+            && currentConfig.getQueueSize() != config.getQueueSize())
         {
           adminActionRequired = true;
         }
@@ -575,7 +568,6 @@ public class TextErrorLogPublisher
               stackTraceToSingleLineString(e));
       resultCode = DirectoryServer.getServerErrorResultCode();
       messages.add(message);
-
     }
 
     return new ConfigChangeResult(resultCode, adminActionRequired, messages);
@@ -615,7 +607,6 @@ public class TextErrorLogPublisher
 
     if(severities.contains(severity))
     {
-
       StringBuilder sb = new StringBuilder();
       sb.append("[");
       sb.append(TimeThread.getLocalTime());
@@ -638,10 +629,7 @@ public class TextErrorLogPublisher
     {
       return currentConfig.dn();
     }
-    else
-    {
-      return null;
-    }
+    return null;
   }
 }
 
