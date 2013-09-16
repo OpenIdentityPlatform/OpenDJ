@@ -27,8 +27,6 @@
 
 package org.forgerock.opendj.examples;
 
-import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
-
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
@@ -37,7 +35,6 @@ import java.util.Set;
 import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.Attributes;
-import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.ConnectionFactory;
 import org.forgerock.opendj.ldap.Connections;
 import org.forgerock.opendj.ldap.DN;
@@ -51,24 +48,20 @@ import org.forgerock.opendj.ldap.LDAPListenerOptions;
 import org.forgerock.opendj.ldap.Modification;
 import org.forgerock.opendj.ldap.RequestContext;
 import org.forgerock.opendj.ldap.RequestHandler;
-import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.RequestHandlerFactory;
 import org.forgerock.opendj.ldap.ResultHandler;
 import org.forgerock.opendj.ldap.SearchResultHandler;
 import org.forgerock.opendj.ldap.ServerConnectionFactory;
 import org.forgerock.opendj.ldap.controls.Control;
-import org.forgerock.opendj.ldap.controls.ProxiedAuthV2RequestControl;
 import org.forgerock.opendj.ldap.requests.AddRequest;
 import org.forgerock.opendj.ldap.requests.BindRequest;
-import org.forgerock.opendj.ldap.requests.CancelExtendedRequest;
 import org.forgerock.opendj.ldap.requests.CompareRequest;
 import org.forgerock.opendj.ldap.requests.DeleteRequest;
 import org.forgerock.opendj.ldap.requests.ExtendedRequest;
 import org.forgerock.opendj.ldap.requests.ModifyDNRequest;
 import org.forgerock.opendj.ldap.requests.ModifyRequest;
-import org.forgerock.opendj.ldap.requests.Request;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
-import org.forgerock.opendj.ldap.requests.StartTLSExtendedRequest;
 import org.forgerock.opendj.ldap.responses.BindResult;
 import org.forgerock.opendj.ldap.responses.CompareResult;
 import org.forgerock.opendj.ldap.responses.ExtendedResult;
@@ -114,529 +107,280 @@ import org.forgerock.opendj.ldap.schema.AttributeType;
  * and {@code proxyUserPassword} to {@code password}.
  */
 public final class RewriterProxy {
-    private static final class ProxyBackend implements RequestHandler<RequestContext> {
+    private static final class Rewriter implements RequestHandler<RequestContext> {
 
         // This example hard codes the attribute...
         private final String clientAttributeTypeName = "fullname";
         private final String serverAttributeTypeName = "cn";
-        private final AttributeDescription clientAttributeDescription =
-                AttributeDescription.valueOf(clientAttributeTypeName);
-        private final AttributeDescription serverAttributeDescription =
-                AttributeDescription.valueOf(serverAttributeTypeName);
 
         // ...and DN rewriting configuration.
         private final CharSequence clientSuffix = "o=example";
         private final CharSequence serverSuffix = "dc=example,dc=com";
 
-        private final ConnectionFactory factory;
-        private final ConnectionFactory bindFactory;
+        private final AttributeDescription clientAttributeDescription = AttributeDescription
+                .valueOf(clientAttributeTypeName);
+        private final AttributeDescription serverAttributeDescription = AttributeDescription
+                .valueOf(serverAttributeTypeName);
 
-        private ProxyBackend(final ConnectionFactory factory, final ConnectionFactory bindFactory) {
-            this.factory = factory;
-            this.bindFactory = bindFactory;
+        // Next request handler in the chain.
+        private final RequestHandler<RequestContext> nextHandler;
+
+        private Rewriter(final RequestHandler<RequestContext> nextHandler) {
+            this.nextHandler = nextHandler;
         }
 
-        private abstract class AbstractRequestCompletionHandler
-                <R extends Result, H extends ResultHandler<R>>
-                implements ResultHandler<R> {
-            final H resultHandler;
-            final Connection connection;
-
-            AbstractRequestCompletionHandler(final Connection connection, final H resultHandler) {
-                this.connection = connection;
-                this.resultHandler = resultHandler;
-            }
-
-            @Override
-            public final void handleErrorResult(final ErrorResultException error) {
-                connection.close();
-                resultHandler.handleErrorResult(error);
-            }
-
-            @Override
-            public final void handleResult(final R result) {
-                connection.close();
-                resultHandler.handleResult(result);
-            }
-
-        }
-
-        private abstract class ConnectionCompletionHandler<R extends Result> implements
-                ResultHandler<Connection> {
-            private final ResultHandler<R> resultHandler;
-
-            ConnectionCompletionHandler(final ResultHandler<R> resultHandler) {
-                this.resultHandler = resultHandler;
-            }
-
-            @Override
-            public final void handleErrorResult(final ErrorResultException error) {
-                resultHandler.handleErrorResult(error);
-            }
-
-            @Override
-            public abstract void handleResult(Connection connection);
-
-        }
-
-        private final class RequestCompletionHandler<R extends Result> extends
-                AbstractRequestCompletionHandler<R, ResultHandler<R>> {
-            RequestCompletionHandler(final Connection connection,
-                    final ResultHandler<R> resultHandler) {
-                super(connection, resultHandler);
-            }
-        }
-
-        private final class SearchRequestCompletionHandler extends
-                AbstractRequestCompletionHandler<Result, SearchResultHandler> implements
-                SearchResultHandler {
-
-            SearchRequestCompletionHandler(final Connection connection,
-                    final SearchResultHandler resultHandler) {
-                super(connection, resultHandler);
-            }
-
-            /**
-             * {@inheritDoc}
-             */
-            @Override
-            public final boolean handleEntry(SearchResultEntry entry) {
-                return resultHandler.handleEntry(rewrite(entry));
-            }
-
-            private SearchResultEntry rewrite(SearchResultEntry entry) {
-
-                // Replace server attributes with client attributes.
-                Set<Attribute> attrsToAdd = new HashSet<Attribute>();
-                Set<AttributeDescription> attrsToRemove = new HashSet<AttributeDescription>();
-
-                for (Attribute a : entry.getAllAttributes(serverAttributeDescription)) {
-                    AttributeDescription ad = a.getAttributeDescription();
-                    AttributeType at = ad.getAttributeType();
-                    if (at.equals(serverAttributeDescription.getAttributeType())) {
-                        AttributeDescription clientAttrDesc =
-                                AttributeDescription.valueOf(ad.toString()
-                                        .replaceFirst(
-                                                serverAttributeTypeName,
-                                                clientAttributeTypeName));
-                        attrsToAdd.add(Attributes.renameAttribute(a, clientAttrDesc));
-                        attrsToRemove.add(ad);
-                    }
-                }
-
-                if (!attrsToAdd.isEmpty() && !attrsToRemove.isEmpty()) {
-                    for (Attribute a : attrsToAdd) {
-                        entry.addAttribute(a);
-                    }
-                    for (AttributeDescription ad : attrsToRemove) {
-                        entry.removeAttribute(ad);
-                    }
-                }
-
-                // Transform the server DN suffix into a client DN suffix.
-                return entry.setName(entry.getName().toString()
-                        .replace(serverSuffix, clientSuffix));
-
-            }
-
-            /**
-             * {@inheritDoc}
-             */
-            @Override
-            public final boolean handleReference(final SearchResultReference reference) {
-                return resultHandler.handleReference(reference);
-            }
-
-        }
-
-        private volatile ProxiedAuthV2RequestControl proxiedAuthControl = null;
-
-        /**
-         * {@inheritDoc}
-         */
         @Override
         public void handleAdd(final RequestContext requestContext, final AddRequest request,
                 final IntermediateResponseHandler intermediateResponseHandler,
                 final ResultHandler<Result> resultHandler) {
-            addProxiedAuthControl(request);
-            final ConnectionCompletionHandler<Result> outerHandler =
-                    new ConnectionCompletionHandler<Result>(resultHandler) {
-
-                        @Override
-                        public void handleResult(final Connection connection) {
-                            final RequestCompletionHandler<Result> innerHandler =
-                                    new RequestCompletionHandler<Result>(connection, resultHandler);
-                            connection.addAsync(rewrite(request), intermediateResponseHandler, innerHandler);
-                        }
-
-                        private AddRequest rewrite(final AddRequest request) {
-
-                            // Transform the client DN into a server DN.
-                            AddRequest rewrittenRequest =
-                                    Requests.copyOfAddRequest(request);
-                            rewrittenRequest.setName(request.getName().toString()
-                                    .replace(clientSuffix, serverSuffix));
-
-                            // Transform the client attribute names into server
-                            // attribute names, fullname;lang-fr ==> cn;lang-fr.
-                            for (Attribute a
-                                    : request.getAllAttributes(clientAttributeDescription)) {
-                                if (a != null) {
-                                    String ad = a
-                                            .getAttributeDescriptionAsString()
-                                            .replaceFirst(clientAttributeTypeName,
-                                                          serverAttributeTypeName);
-                                    Attribute serverAttr =
-                                            Attributes.renameAttribute(a,
-                                                    AttributeDescription.valueOf(ad));
-                                    rewrittenRequest.addAttribute(serverAttr);
-                                    rewrittenRequest.removeAttribute(
-                                            a.getAttributeDescription());
-                                }
-                            }
-
-                            return rewrittenRequest;
-                        }
-
-                    };
-
-            factory.getConnectionAsync(outerHandler);
+            nextHandler.handleAdd(requestContext, rewrite(request), intermediateResponseHandler,
+                    resultHandler);
         }
 
-        /**
-         * {@inheritDoc}
-         */
         @Override
         public void handleBind(final RequestContext requestContext, final int version,
                 final BindRequest request,
                 final IntermediateResponseHandler intermediateResponseHandler,
                 final ResultHandler<BindResult> resultHandler) {
-
-            if (request.getAuthenticationType() != ((byte) 0x80)) {
-                // TODO: SASL authentication not implemented.
-                resultHandler.handleErrorResult(newErrorResult(ResultCode.PROTOCOL_ERROR,
-                        "non-SIMPLE authentication not supported: "
-                                + request.getAuthenticationType()));
-            } else {
-                // Authenticate using a separate bind connection pool, because
-                // we don't want to change the state of the pooled connection.
-                final ConnectionCompletionHandler<BindResult> outerHandler =
-                        new ConnectionCompletionHandler<BindResult>(resultHandler) {
-
-                            @Override
-                            public void handleResult(final Connection connection) {
-                                final ResultHandler<BindResult> innerHandler =
-                                        new ResultHandler<BindResult>() {
-
-                                            @Override
-                                            public final void handleErrorResult(
-                                                    final ErrorResultException error) {
-                                                connection.close();
-                                                resultHandler.handleErrorResult(error);
-                                            }
-
-                                            @Override
-                                            public final void handleResult(final BindResult result) {
-                                                connection.close();
-                                                proxiedAuthControl =
-                                                        ProxiedAuthV2RequestControl
-                                                                .newControl("dn:"
-                                                                        + request.getName());
-                                                resultHandler.handleResult(result);
-                                            }
-                                        };
-                                connection.bindAsync(rewrite(request), intermediateResponseHandler,
-                                        innerHandler);
-                            }
-
-                            private BindRequest rewrite(final BindRequest request) {
-                                // TODO: Transform client DN into server DN.
-                                return request;
-                            }
-
-                        };
-
-                proxiedAuthControl = null;
-                bindFactory.getConnectionAsync(outerHandler);
-            }
+            nextHandler.handleBind(requestContext, version, rewrite(request),
+                    intermediateResponseHandler, resultHandler);
         }
 
-        /**
-         * {@inheritDoc}
-         */
         @Override
         public void handleCompare(final RequestContext requestContext,
                 final CompareRequest request,
                 final IntermediateResponseHandler intermediateResponseHandler,
                 final ResultHandler<CompareResult> resultHandler) {
-            addProxiedAuthControl(request);
-            final ConnectionCompletionHandler<CompareResult> outerHandler =
-                    new ConnectionCompletionHandler<CompareResult>(resultHandler) {
-
-                        @Override
-                        public void handleResult(final Connection connection) {
-                            final RequestCompletionHandler<CompareResult> innerHandler =
-                                    new RequestCompletionHandler<CompareResult>(connection,
-                                            resultHandler);
-                            connection.compareAsync(rewrite(request), intermediateResponseHandler,
-                                    innerHandler);
-                        }
-
-                        private CompareRequest rewrite(CompareRequest request) {
-
-                            // Transform the client attribute name into a server
-                            // attribute name, fullname;lang-fr ==> cn;lang-fr.
-                            String ad = request.getAttributeDescription().toString();
-                            if (ad.toLowerCase().startsWith(
-                                    clientAttributeTypeName.toLowerCase())) {
-                                String serverAttrDesc = ad
-                                        .replaceFirst(clientAttributeTypeName,
-                                                      serverAttributeTypeName);
-                                request.setAttributeDescription(
-                                        AttributeDescription.valueOf(
-                                                serverAttrDesc));
-                            }
-
-                            // Transform the client DN into a server DN.
-                            return request.setName(request.getName().toString()
-                                    .replace(clientSuffix, serverSuffix));
-                        }
-
-                    };
-
-            factory.getConnectionAsync(outerHandler);
+            nextHandler.handleCompare(requestContext, rewrite(request),
+                    intermediateResponseHandler, resultHandler);
         }
 
-        /**
-         * {@inheritDoc}
-         */
         @Override
         public void handleDelete(final RequestContext requestContext, final DeleteRequest request,
                 final IntermediateResponseHandler intermediateResponseHandler,
                 final ResultHandler<Result> resultHandler) {
-            addProxiedAuthControl(request);
-            final ConnectionCompletionHandler<Result> outerHandler =
-                    new ConnectionCompletionHandler<Result>(resultHandler) {
-
-                        @Override
-                        public void handleResult(final Connection connection) {
-                            final RequestCompletionHandler<Result> innerHandler =
-                                    new RequestCompletionHandler<Result>(connection, resultHandler);
-                            connection.deleteAsync(rewrite(request), intermediateResponseHandler,
-                                    innerHandler);
-                        }
-
-                        private DeleteRequest rewrite(DeleteRequest request) {
-                            // Transform the client DN into a server DN.
-                            return request.setName(request.getName().toString()
-                                    .replace(clientSuffix, serverSuffix));
-                        }
-
-                    };
-
-            factory.getConnectionAsync(outerHandler);
+            nextHandler.handleDelete(requestContext, rewrite(request), intermediateResponseHandler,
+                    resultHandler);
         }
 
-        /**
-         * {@inheritDoc}
-         */
         @Override
         public <R extends ExtendedResult> void handleExtendedRequest(
                 final RequestContext requestContext, final ExtendedRequest<R> request,
                 final IntermediateResponseHandler intermediateResponseHandler,
                 final ResultHandler<R> resultHandler) {
-            if (request.getOID().equals(CancelExtendedRequest.OID)) {
-                // TODO: not implemented.
-                resultHandler.handleErrorResult(newErrorResult(ResultCode.PROTOCOL_ERROR,
-                        "Cancel extended request operation not supported"));
-            } else if (request.getOID().equals(StartTLSExtendedRequest.OID)) {
-                // TODO: not implemented.
-                resultHandler.handleErrorResult(newErrorResult(ResultCode.PROTOCOL_ERROR,
-                        "StartTLS extended request operation not supported"));
-            } else {
-                // Forward all other extended operations.
-                addProxiedAuthControl(request);
-
-                final ConnectionCompletionHandler<R> outerHandler =
-                        new ConnectionCompletionHandler<R>(resultHandler) {
-
-                            @Override
-                            public void handleResult(final Connection connection) {
-                                final RequestCompletionHandler<R> innerHandler =
-                                        new RequestCompletionHandler<R>(connection, resultHandler);
-                                connection.extendedRequestAsync(request,
-                                        intermediateResponseHandler, innerHandler);
-                            }
-
-                            // TODO: Rewrite PasswordModifyExtendedRequest,
-                            //       WhoAmIExtendedResult
-
-                        };
-
-                factory.getConnectionAsync(outerHandler);
-            }
+            nextHandler.handleExtendedRequest(requestContext, rewrite(request),
+                    intermediateResponseHandler, resultHandler);
         }
 
-        /**
-         * {@inheritDoc}
-         */
         @Override
         public void handleModify(final RequestContext requestContext, final ModifyRequest request,
                 final IntermediateResponseHandler intermediateResponseHandler,
                 final ResultHandler<Result> resultHandler) {
-            addProxiedAuthControl(request);
-            final ConnectionCompletionHandler<Result> outerHandler =
-                    new ConnectionCompletionHandler<Result>(resultHandler) {
-
-                        @Override
-                        public void handleResult(final Connection connection) {
-                            final RequestCompletionHandler<Result> innerHandler =
-                                    new RequestCompletionHandler<Result>(connection, resultHandler);
-                            connection.modifyAsync(rewrite(request), intermediateResponseHandler,
-                                    innerHandler);
-                        }
-
-                        private ModifyRequest rewrite(final ModifyRequest request) {
-
-                            // Transform the client DN into a server DN.
-                            ModifyRequest rewrittenRequest =
-                                    Requests.newModifyRequest(request.getName().toString()
-                                            .replace(clientSuffix, serverSuffix));
-
-                            // Transform the client attribute names into server
-                            // attribute names, fullname;lang-fr ==> cn;lang-fr.
-                            List<Modification> mods = request.getModifications();
-                            for (Modification mod : mods) {
-                                Attribute a = mod.getAttribute();
-                                AttributeDescription ad = a.getAttributeDescription();
-                                AttributeType at = ad.getAttributeType();
-
-                                if (at.equals(clientAttributeDescription.getAttributeType())) {
-                                    AttributeDescription serverAttrDesc =
-                                            AttributeDescription.valueOf(ad.toString()
-                                                    .replaceFirst(
-                                                            clientAttributeTypeName,
-                                                            serverAttributeTypeName));
-                                    rewrittenRequest.addModification(new Modification(
-                                            mod.getModificationType(),
-                                            Attributes.renameAttribute(a, serverAttrDesc)));
-                                } else {
-                                    rewrittenRequest.addModification(mod);
-                                }
-                            }
-                            for (Control control : request.getControls()) {
-                                rewrittenRequest.addControl(control);
-                            }
-
-                            return rewrittenRequest;
-                        }
-
-                    };
-
-            factory.getConnectionAsync(outerHandler);
+            nextHandler.handleModify(requestContext, rewrite(request), intermediateResponseHandler,
+                    resultHandler);
         }
 
-        /**
-         * {@inheritDoc}
-         */
         @Override
         public void handleModifyDN(final RequestContext requestContext,
                 final ModifyDNRequest request,
                 final IntermediateResponseHandler intermediateResponseHandler,
                 final ResultHandler<Result> resultHandler) {
-            addProxiedAuthControl(request);
-            final ConnectionCompletionHandler<Result> outerHandler =
-                    new ConnectionCompletionHandler<Result>(resultHandler) {
-
-                        @Override
-                        public void handleResult(final Connection connection) {
-                            final RequestCompletionHandler<Result> innerHandler =
-                                    new RequestCompletionHandler<Result>(connection, resultHandler);
-                            connection.modifyDNAsync(rewrite(request), intermediateResponseHandler,
-                                    innerHandler);
-                        }
-
-                        private ModifyDNRequest rewrite(ModifyDNRequest request) {
-                            // Transform the client DNs into server DNs.
-                            if (request.getNewSuperior() != null) {
-                                return request
-                                        .setName(request.getName().toString()
-                                                .replace(clientSuffix, serverSuffix))
-                                        .setNewSuperior(request.getNewSuperior().toString()
-                                                .replace(clientSuffix, serverSuffix));
-                            } else {
-                                return request
-                                        .setName(request.getName().toString()
-                                                .replace(clientSuffix, serverSuffix));
-                            }
-                        }
-
-                    };
-
-            factory.getConnectionAsync(outerHandler);
+            nextHandler.handleModifyDN(requestContext, rewrite(request),
+                    intermediateResponseHandler, resultHandler);
         }
 
-        /**
-         * {@inheritDoc}
-         */
         @Override
         public void handleSearch(final RequestContext requestContext, final SearchRequest request,
                 final IntermediateResponseHandler intermediateResponseHandler,
                 final SearchResultHandler resultHandler) {
-            addProxiedAuthControl(request);
-            final ConnectionCompletionHandler<Result> outerHandler =
-                    new ConnectionCompletionHandler<Result>(resultHandler) {
+            nextHandler.handleSearch(requestContext, rewrite(request), intermediateResponseHandler,
+                    new SearchResultHandler() {
 
                         @Override
-                        public void handleResult(final Connection connection) {
-                            final SearchRequestCompletionHandler innerHandler =
-                                    new SearchRequestCompletionHandler(connection, resultHandler);
-                            connection.searchAsync(rewrite(request), intermediateResponseHandler,
-                                    innerHandler);
+                        public boolean handleEntry(final SearchResultEntry entry) {
+                            return resultHandler.handleEntry(rewrite(entry));
                         }
 
-                        private SearchRequest rewrite(final SearchRequest request) {
-                            // Transform the client attribute names to a server
-                            // attribute names, fullname;lang-fr ==> cn;lang-fr.
-                            String[] a = new String[request.getAttributes().size()];
-                            int count = 0;
-                            for (String attrName : request.getAttributes()) {
-                                if (attrName.toLowerCase().startsWith(
-                                        clientAttributeTypeName.toLowerCase())) {
-                                    a[count] = attrName.replaceFirst(
-                                            clientAttributeTypeName,
-                                            serverAttributeTypeName);
-                                } else {
-                                    a[count] = attrName;
-                                }
-                                ++count;
-                            }
-
-                            // Rewrite the baseDN, and rewrite the Filter in
-                            // dangerously lazy fashion. All the filter rewrite
-                            // does is a string replace, so if the client
-                            // attribute name appears in the value part of the
-                            // AVA, this implementation will not work.
-                            return Requests.newSearchRequest(
-                                    DN.valueOf(request.getName().toString()
-                                            .replace(clientSuffix, serverSuffix)),
-                                    request.getScope(),
-                                    Filter.valueOf(request.getFilter().toString()
-                                            .replace(clientAttributeTypeName,
-                                                     serverAttributeTypeName)),
-                                    a);
+                        @Override
+                        public void handleErrorResult(final ErrorResultException error) {
+                            resultHandler.handleErrorResult(error);
                         }
 
-                    };
+                        @Override
+                        public boolean handleReference(final SearchResultReference reference) {
+                            return resultHandler.handleReference(reference);
+                        }
 
-            factory.getConnectionAsync(outerHandler);
+                        @Override
+                        public void handleResult(final Result result) {
+                            resultHandler.handleResult(result);
+                        }
+
+                    });
         }
 
-        private void addProxiedAuthControl(final Request request) {
-            final ProxiedAuthV2RequestControl control = proxiedAuthControl;
-            if (control != null) {
-                request.addControl(control);
+        private AddRequest rewrite(final AddRequest request) {
+            // Transform the client DN into a server DN.
+            final AddRequest rewrittenRequest = Requests.copyOfAddRequest(request);
+            rewrittenRequest.setName(request.getName().toString().replace(clientSuffix,
+                    serverSuffix));
+            /*
+             * Transform the client attribute names into server attribute names,
+             * fullname;lang-fr ==> cn;lang-fr.
+             */
+            for (final Attribute a : request.getAllAttributes(clientAttributeDescription)) {
+                if (a != null) {
+                    final String ad =
+                            a.getAttributeDescriptionAsString().replaceFirst(
+                                    clientAttributeTypeName, serverAttributeTypeName);
+                    final Attribute serverAttr =
+                            Attributes.renameAttribute(a, AttributeDescription.valueOf(ad));
+                    rewrittenRequest.addAttribute(serverAttr);
+                    rewrittenRequest.removeAttribute(a.getAttributeDescription());
+                }
             }
+            return rewrittenRequest;
+        }
+
+        private BindRequest rewrite(final BindRequest request) {
+            // TODO: Transform client DN into server DN.
+            return request;
+        }
+
+        private CompareRequest rewrite(final CompareRequest request) {
+            /*
+             * Transform the client attribute name into a server attribute name,
+             * fullname;lang-fr ==> cn;lang-fr.
+             */
+            final String ad = request.getAttributeDescription().toString();
+            if (ad.toLowerCase().startsWith(clientAttributeTypeName.toLowerCase())) {
+                final String serverAttrDesc =
+                        ad.replaceFirst(clientAttributeTypeName, serverAttributeTypeName);
+                request.setAttributeDescription(AttributeDescription.valueOf(serverAttrDesc));
+            }
+
+            // Transform the client DN into a server DN.
+            return request
+                    .setName(request.getName().toString().replace(clientSuffix, serverSuffix));
+        }
+
+        private DeleteRequest rewrite(final DeleteRequest request) {
+            // Transform the client DN into a server DN.
+            return request
+                    .setName(request.getName().toString().replace(clientSuffix, serverSuffix));
+        }
+
+        private <S extends ExtendedResult> ExtendedRequest<S> rewrite(
+                final ExtendedRequest<S> request) {
+            // TODO: Transform password modify, etc.
+            return request;
+        }
+
+        private ModifyDNRequest rewrite(final ModifyDNRequest request) {
+            // Transform the client DNs into server DNs.
+            if (request.getNewSuperior() != null) {
+                return request.setName(
+                        request.getName().toString().replace(clientSuffix, serverSuffix))
+                        .setNewSuperior(
+                                request.getNewSuperior().toString().replace(clientSuffix,
+                                        serverSuffix));
+            } else {
+                return request.setName(request.getName().toString().replace(clientSuffix,
+                        serverSuffix));
+            }
+        }
+
+        private ModifyRequest rewrite(final ModifyRequest request) {
+            // Transform the client DN into a server DN.
+            final ModifyRequest rewrittenRequest =
+                    Requests.newModifyRequest(request.getName().toString().replace(clientSuffix,
+                            serverSuffix));
+
+            /*
+             * Transform the client attribute names into server attribute names,
+             * fullname;lang-fr ==> cn;lang-fr.
+             */
+            final List<Modification> mods = request.getModifications();
+            for (final Modification mod : mods) {
+                final Attribute a = mod.getAttribute();
+                final AttributeDescription ad = a.getAttributeDescription();
+                final AttributeType at = ad.getAttributeType();
+
+                if (at.equals(clientAttributeDescription.getAttributeType())) {
+                    final AttributeDescription serverAttrDesc =
+                            AttributeDescription.valueOf(ad.toString().replaceFirst(
+                                    clientAttributeTypeName, serverAttributeTypeName));
+                    rewrittenRequest.addModification(new Modification(mod.getModificationType(),
+                            Attributes.renameAttribute(a, serverAttrDesc)));
+                } else {
+                    rewrittenRequest.addModification(mod);
+                }
+            }
+            for (final Control control : request.getControls()) {
+                rewrittenRequest.addControl(control);
+            }
+
+            return rewrittenRequest;
+        }
+
+        private SearchRequest rewrite(final SearchRequest request) {
+            /*
+             * Transform the client attribute names to a server attribute names,
+             * fullname;lang-fr ==> cn;lang-fr.
+             */
+            final String[] a = new String[request.getAttributes().size()];
+            int count = 0;
+            for (final String attrName : request.getAttributes()) {
+                if (attrName.toLowerCase().startsWith(clientAttributeTypeName.toLowerCase())) {
+                    a[count] =
+                            attrName.replaceFirst(clientAttributeTypeName, serverAttributeTypeName);
+                } else {
+                    a[count] = attrName;
+                }
+                ++count;
+            }
+
+            /*
+             * Rewrite the baseDN, and rewrite the Filter in dangerously lazy
+             * fashion. All the filter rewrite does is a string replace, so if
+             * the client attribute name appears in the value part of the AVA,
+             * this implementation will not work.
+             */
+            return Requests.newSearchRequest(DN.valueOf(request.getName().toString().replace(
+                    clientSuffix, serverSuffix)), request.getScope(), Filter.valueOf(request
+                    .getFilter().toString().replace(clientAttributeTypeName,
+                            serverAttributeTypeName)), a);
+        }
+
+        private SearchResultEntry rewrite(final SearchResultEntry entry) {
+            // Replace server attributes with client attributes.
+            final Set<Attribute> attrsToAdd = new HashSet<Attribute>();
+            final Set<AttributeDescription> attrsToRemove = new HashSet<AttributeDescription>();
+
+            for (final Attribute a : entry.getAllAttributes(serverAttributeDescription)) {
+                final AttributeDescription ad = a.getAttributeDescription();
+                final AttributeType at = ad.getAttributeType();
+                if (at.equals(serverAttributeDescription.getAttributeType())) {
+                    final AttributeDescription clientAttrDesc =
+                            AttributeDescription.valueOf(ad.toString().replaceFirst(
+                                    serverAttributeTypeName, clientAttributeTypeName));
+                    attrsToAdd.add(Attributes.renameAttribute(a, clientAttrDesc));
+                    attrsToRemove.add(ad);
+                }
+            }
+
+            if (!attrsToAdd.isEmpty() && !attrsToRemove.isEmpty()) {
+                for (final Attribute a : attrsToAdd) {
+                    entry.addAttribute(a);
+                }
+                for (final AttributeDescription ad : attrsToRemove) {
+                    entry.removeAttribute(ad);
+                }
+            }
+
+            // Transform the server DN suffix into a client DN suffix.
+            return entry.setName(entry.getName().toString().replace(serverSuffix, clientSuffix));
+
         }
 
     }
@@ -650,8 +394,7 @@ public final class RewriterProxy {
      */
     public static void main(final String[] args) {
         if (args.length != 6) {
-            System.err.println("Usage:"
-                    + "\tlocalAddress localPort proxyDN proxyPassword "
+            System.err.println("Usage:" + "\tlocalAddress localPort proxyDN proxyPassword "
                     + "serverAddress serverPort");
             System.exit(1);
         }
@@ -665,19 +408,30 @@ public final class RewriterProxy {
 
         // Create connection factories.
         final ConnectionFactory factory =
-                Connections.newCachedConnectionPool(
-                        Connections.newAuthenticatedConnectionFactory(
-                                new LDAPConnectionFactory(remoteAddress, remotePort),
-                                Requests.newSimpleBindRequest(
-                                        proxyDN, proxyPassword.toCharArray())));
+                Connections.newCachedConnectionPool(Connections.newAuthenticatedConnectionFactory(
+                        new LDAPConnectionFactory(remoteAddress, remotePort), Requests
+                                .newSimpleBindRequest(proxyDN, proxyPassword.toCharArray())));
         final ConnectionFactory bindFactory =
-                Connections.newCachedConnectionPool(new LDAPConnectionFactory(
-                        remoteAddress, remotePort));
+                Connections.newCachedConnectionPool(new LDAPConnectionFactory(remoteAddress,
+                        remotePort));
 
-        // Create a server connection adapter.
-        final ProxyBackend backend = new ProxyBackend(factory, bindFactory);
+        /*
+         * Create a server connection adapter which will create a new proxy
+         * backend for each inbound client connection. This is required because
+         * we need to maintain authorization state between client requests. The
+         * proxy bound will be wrapped in a rewriter in order to transform
+         * inbound requests and their responses.
+         */
+        final RequestHandlerFactory<LDAPClientContext, RequestContext> proxyFactory =
+                new RequestHandlerFactory<LDAPClientContext, RequestContext>() {
+                    @Override
+                    public Rewriter handleAccept(final LDAPClientContext clientContext)
+                            throws ErrorResultException {
+                        return new Rewriter(new ProxyBackend(factory, bindFactory));
+                    }
+                };
         final ServerConnectionFactory<LDAPClientContext, Integer> connectionHandler =
-                Connections.newServerConnectionFactory(backend);
+                Connections.newServerConnectionFactory(proxyFactory);
 
         // Create listener.
         final LDAPListenerOptions options = new LDAPListenerOptions().setBacklog(4096);
