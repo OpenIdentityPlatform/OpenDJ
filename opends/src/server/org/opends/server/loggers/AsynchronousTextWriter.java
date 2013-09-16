@@ -27,8 +27,6 @@
  */
 package org.opends.server.loggers;
 
-
-
 import java.util.ArrayList;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -38,8 +36,6 @@ import org.opends.messages.Message;
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.api.ServerShutdownListener;
 import org.opends.server.core.DirectoryServer;
-
-
 
 /**
  * A Text Writer which writes log records asynchronously to
@@ -102,10 +98,12 @@ public class AsynchronousTextWriter
     {
       super(name);
     }
+
     /**
      * the run method of the writerThread. Run until queue is empty
      * AND we've been asked to terminate
      */
+    @Override
     public void run()
     {
       ArrayList<String> drainList = new ArrayList<String>(capacity);
@@ -156,10 +154,11 @@ public class AsynchronousTextWriter
   }
 
   /**
-   * Write the log record asyncronously.
+   * Write the log record asynchronously.
    *
    * @param record the log record to write.
    */
+  @Override
   public void writeRecord(String record)
   {
     // No writer?  Off to the bit bucket.
@@ -184,6 +183,7 @@ public class AsynchronousTextWriter
   /**
    * {@inheritDoc}
    */
+  @Override
   public void flush()
   {
     writer.flush();
@@ -192,6 +192,7 @@ public class AsynchronousTextWriter
   /**
    * {@inheritDoc}
    */
+  @Override
   public long getBytesWritten()
   {
     return writer.getBytesWritten();
@@ -210,6 +211,7 @@ public class AsynchronousTextWriter
   /**
    * {@inheritDoc}
    */
+  @Override
   public String getShutdownListenerName()
   {
     return "AsynchronousTextWriter Thread " + name;
@@ -218,6 +220,7 @@ public class AsynchronousTextWriter
   /**
    * {@inheritDoc}
    */
+  @Override
   public void processServerShutdown(Message reason)
   {
     // Don't shutdown the wrapped writer on server shutdown as it
@@ -229,6 +232,7 @@ public class AsynchronousTextWriter
   /**
    * {@inheritDoc}
    */
+  @Override
   public void shutdown()
   {
     shutdown(true);

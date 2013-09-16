@@ -27,11 +27,6 @@
  */
 package org.opends.server.loggers;
 
-
-
-import static org.opends.messages.ConfigMessages.*;
-import static org.opends.server.util.StaticUtils.*;
-
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -48,32 +43,12 @@ import org.opends.server.admin.std.server.FileBasedAccessLogPublisherCfg;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ExtendedOperationHandler;
 import org.opends.server.config.ConfigException;
-import org.opends.server.core.AbandonOperation;
-import org.opends.server.core.AddOperation;
-import org.opends.server.core.BindOperation;
-import org.opends.server.core.CompareOperation;
-import org.opends.server.core.DeleteOperation;
-import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.ExtendedOperation;
-import org.opends.server.core.ModifyDNOperation;
-import org.opends.server.core.ModifyOperation;
-import org.opends.server.core.SearchOperation;
-import org.opends.server.core.UnbindOperation;
-import org.opends.server.types.AdditionalLogItem;
-import org.opends.server.types.AuthenticationInfo;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.ConfigChangeResult;
-import org.opends.server.types.Control;
-import org.opends.server.types.DN;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.DisconnectReason;
-import org.opends.server.types.FilePermission;
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.Operation;
-import org.opends.server.types.ResultCode;
+import org.opends.server.core.*;
+import org.opends.server.types.*;
 import org.opends.server.util.TimeThread;
 
-
+import static org.opends.messages.ConfigMessages.*;
+import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class provides the implementation of the access logger used by the
@@ -138,7 +113,7 @@ public final class TextAccessLogPublisher extends
     // Default result code.
     ResultCode resultCode = ResultCode.SUCCESS;
     boolean adminActionRequired = false;
-    final ArrayList<Message> messages = new ArrayList<Message>();
+    final List<Message> messages = new ArrayList<Message>();
 
     final File logFile = getFileForPath(config.getLogFile());
     final FileNamingPolicy fnPolicy = new TimeStampNaming(logFile);
@@ -214,7 +189,7 @@ public final class TextAccessLogPublisher extends
         {
           // The asynchronous setting is being turned on.
           writer = new AsynchronousTextWriter(
-          "Asyncronous Text Writer for " + config.dn().toNormalizedString(),
+          "Asynchronous Text Writer for " + config.dn().toNormalizedString(),
           config.getQueueSize(), config.isAutoFlush(), mfWriter);
         }
 
@@ -299,7 +274,7 @@ public final class TextAccessLogPublisher extends
         if (cfg.getQueueSize() > 0)
         {
           this.writer = new AsynchronousTextWriter(
-              "Asyncronous Text Writer for " + cfg.dn().toNormalizedString(),
+              "Asynchronous Text Writer for " + cfg.dn().toNormalizedString(),
               cfg.getQueueSize(), cfg.isAutoFlush(), theWriter);
         }
         else
@@ -711,7 +686,6 @@ public final class TextAccessLogPublisher extends
     buffer.append(clientConnection.getProtocol());
 
     writer.writeRecord(buffer.toString());
-
   }
 
 
