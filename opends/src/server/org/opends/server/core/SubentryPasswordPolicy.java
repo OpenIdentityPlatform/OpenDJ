@@ -249,7 +249,7 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
       catch (NumberFormatException ne)
       {
         throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-            ERR_CONFIG_ATTR_INVALID_INT_VALUE.get(PWD_ATTR_MINAGE,
+            ERR_CONFIG_ATTR_INVALID_INT_VALUE.get(PWD_ATTR_MAXAGE,
                 value.toString(), ne.getLocalizedMessage()));
       }
     }
@@ -270,7 +270,7 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
       catch (NumberFormatException ne)
       {
         throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-            ERR_CONFIG_ATTR_INVALID_INT_VALUE.get(PWD_ATTR_MINAGE,
+            ERR_CONFIG_ATTR_INVALID_INT_VALUE.get(PWD_ATTR_INHISTORY,
                 value.toString(), ne.getLocalizedMessage()));
       }
     }
@@ -292,7 +292,7 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
       catch (NumberFormatException ne)
       {
         throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-            ERR_CONFIG_ATTR_INVALID_INT_VALUE.get(PWD_ATTR_MINAGE,
+            ERR_CONFIG_ATTR_INVALID_INT_VALUE.get(PWD_ATTR_CHECKQUALITY,
                 value.toString(), ne.getLocalizedMessage()));
       }
     }
@@ -310,7 +310,7 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
       catch (NumberFormatException ne)
       {
         throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-            ERR_CONFIG_ATTR_INVALID_INT_VALUE.get(PWD_ATTR_MINAGE,
+            ERR_CONFIG_ATTR_INVALID_INT_VALUE.get(PWD_ATTR_MINLENGTH,
                 value.toString(), ne.getLocalizedMessage()));
       }
     }
@@ -328,7 +328,7 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
       else
       {
         throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-            ERR_CONFIG_ATTR_INVALID_BOOLEAN_VALUE.get(PWD_ATTR_MUSTCHANGE,
+            ERR_CONFIG_ATTR_INVALID_BOOLEAN_VALUE.get(PWD_ATTR_LOCKOUT,
                 value.toString()));
       }
     }
@@ -346,7 +346,7 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
       catch (NumberFormatException ne)
       {
         throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-            ERR_CONFIG_ATTR_INVALID_INT_VALUE.get(PWD_ATTR_MINAGE,
+            ERR_CONFIG_ATTR_INVALID_INT_VALUE.get(PWD_ATTR_EXPIREWARNING,
                 value.toString(), ne.getLocalizedMessage()));
       }
     }
@@ -367,7 +367,7 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
       catch (NumberFormatException ne)
       {
         throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-            ERR_CONFIG_ATTR_INVALID_INT_VALUE.get(PWD_ATTR_MINAGE,
+            ERR_CONFIG_ATTR_INVALID_INT_VALUE.get(PWD_ATTR_GRACEAUTHNLIMIT,
                 value.toString(), ne.getLocalizedMessage()));
       }
     }
@@ -388,7 +388,7 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
       catch (NumberFormatException ne)
       {
         throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-            ERR_CONFIG_ATTR_INVALID_INT_VALUE.get(PWD_ATTR_MINAGE,
+            ERR_CONFIG_ATTR_INVALID_INT_VALUE.get(PWD_ATTR_LOCKOUTDURATION,
                 value.toString(), ne.getLocalizedMessage()));
       }
     }
@@ -409,7 +409,7 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
       catch (NumberFormatException ne)
       {
         throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-            ERR_CONFIG_ATTR_INVALID_INT_VALUE.get(PWD_ATTR_MINAGE,
+            ERR_CONFIG_ATTR_INVALID_INT_VALUE.get(PWD_ATTR_MAXFAILURE,
                 value.toString(), ne.getLocalizedMessage()));
       }
     }
