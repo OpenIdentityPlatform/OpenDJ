@@ -377,6 +377,7 @@ public class DraftCNDB
       // unlock it when throwing an exception.
       dbCloseLock.readLock().lock();
 
+      boolean cursorHeld = false;
       Cursor localCursor = null;
       try
       {
@@ -423,18 +424,21 @@ public class DraftCNDB
 
         this.txn = null;
         this.cursor = localCursor;
+        cursorHeld = true;
       }
       catch (DatabaseException e)
       {
-        // Unlocking is required before throwing any exception
-        closeLockedCursor(localCursor);
         throw new ChangelogException(e);
       }
-      catch (ChangelogException e)
+      finally
       {
-        // Unlocking is required before throwing any exception
-        closeLockedCursor(localCursor);
-        throw e;
+        if (!cursorHeld)
+        {
+          // Do not keep a readLock on the DB when this class does not hold a DB
+          // cursor. Either an exception was thrown or no cursor could be opened
+          // for some reason.
+          closeLockedCursor(localCursor);
+        }
       }
     }
 
@@ -446,6 +450,7 @@ public class DraftCNDB
       this.key = new ReplicationDraftCNKey();
 
       // We'll go on only if no close or no clear is running
+      boolean cursorHeld = false;
       dbCloseLock.readLock().lock();
       try
       {
@@ -465,22 +470,29 @@ public class DraftCNDB
 
         this.txn = localTxn;
         this.cursor = localCursor;
+        cursorHeld = true;
       }
       catch (DatabaseException e)
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
-
-        closeLockedCursor(localCursor);
         DraftCNDB.abort(localTxn);
         throw new ChangelogException(e);
       }
       catch (ChangelogException e)
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
-
-        closeLockedCursor(localCursor);
         DraftCNDB.abort(localTxn);
         throw e;
+      }
+      finally
+      {
+        if (!cursorHeld)
+        {
+          // Do not keep a readLock on the DB when this class does not hold a DB
+          // cursor. Either an exception was thrown or no cursor could be opened
+          // for some reason.
+          closeLockedCursor(localCursor);
+        }
       }
     }
 
