@@ -67,10 +67,7 @@ import org.opends.server.workflowelement.externalchangelog.ECLSearchOperation;
 import org.opends.server.workflowelement.externalchangelog.ECLWorkflowElement;
 import org.opends.server.workflowelement.localbackend.LocalBackendModifyDNOperation;
 import org.testng.Assert;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
+import org.testng.annotations.*;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.opends.messages.ReplicationMessages.*;
@@ -86,6 +83,9 @@ import static org.testng.Assert.*;
  * Tests for the replicationServer code.
  */
 @SuppressWarnings("javadoc")
+// repeating the @Test annotation here to try to ensure the tests are run
+// singleThreaded and avoid random failures in continuous integration
+@Test(groups = { "precommit", "replication" }, sequential = true)
 public class ExternalChangeLogTest extends ReplicationTestCase
 {
 
@@ -197,7 +197,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
   @Test(enabled=true, dependsOnMethods = { "ECLReplicationServerTest"})
   public void ECLReplicationServerTest2() throws Exception
   {
-    // Test ECL after changelog triming
+    // Test ECL after changelog trimming
     ECLAfterChangelogTrim();
   }
 
@@ -666,7 +666,6 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       // Expect only entry from o=test returned
       entries = searchOp.getSearchEntries();
       assertThat(entries).hasSize(1);
-      entries.get(0);
       debugAndWriteEntries(null, entries, tn);
 
       // Test lastExternalChangelogCookie attribute of the ECL
@@ -675,7 +674,6 @@ public class ExternalChangeLogTest extends ReplicationTestCase
           new MultiDomainServerState("o=test:" + csn1 + ";");
 
       String lastCookie = readLastCookie();
-
       assertTrue(expectedLastCookie.equalsTo(new MultiDomainServerState(lastCookie)),
           " Expected last cookie attribute value:" + expectedLastCookie +
           " Read from server: " + lastCookie + " are equal :");
@@ -956,7 +954,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
         null);
   }
 
-  /** Test ECL content after replication changelogdb triming */
+  /** Test ECL content after replication changelogDB trimming */
   private void ECLAfterChangelogTrim() throws Exception
   {
     String tn = "ECLAfterChangelogTrim";
