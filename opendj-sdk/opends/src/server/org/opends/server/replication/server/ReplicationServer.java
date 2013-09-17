@@ -468,6 +468,8 @@ public final class ReplicationServer
     }
     catch (Exception e)
     {
+      if (debugEnabled())
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       close(session);
       close(socket);
     }
@@ -1506,7 +1508,7 @@ public final class ReplicationServer
       TRACER.debugInfo("In " + this + " getEligibleCSN() ends with " +
         " the following domainEligibleCSN for each domain :" + debugLog +
         " thus CrossDomainEligibleCSN=" + eligibleCSN +
-        "  ts=" + new Date(eligibleCSN.getTime()).toString());
+        "  ts=" + new Date(eligibleCSN.getTime()));
     }
     return eligibleCSN;
   }
@@ -1765,7 +1767,7 @@ public final class ReplicationServer
     return this.changelogDB.getDBDirName();
   }
 
-  /*
+  /**
    * Normalize a URL so that this host's local address is used if the provided
    * host name corresponds to a local interface. This method is design to work
    * with getNormalizedLocalURL().
@@ -1817,7 +1819,7 @@ public final class ReplicationServer
     }
   }
 
-  /*
+  /**
    * Return normalized local url suitable for comparison against result returned
    * by normalizeServerURL().
    */
