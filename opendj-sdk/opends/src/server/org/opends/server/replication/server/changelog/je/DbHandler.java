@@ -115,8 +115,6 @@ public class DbHandler implements Runnable
   private int serverId;
   private String baseDn;
   private DbMonitorProvider dbMonitor = new DbMonitorProvider();
-  private boolean shutdown = false;
-  private boolean done = false;
   private DirectoryThread thread;
   private final Object flushLock = new Object();
   private ReplicationServer replicationServer;
@@ -310,28 +308,16 @@ public class DbHandler implements Runnable
    */
   public void shutdown()
   {
-    if (shutdown)
+    if (thread.isShutdownInitiated())
     {
       return;
     }
 
-    shutdown  = true;
+    thread.initiateShutdown();
+
     synchronized (msgQueue)
     {
       msgQueue.notifyAll();
-    }
-
-    synchronized (this)
-    { /* Can this be replaced with thread.join() ? */
-      while (!done)
-      {
-        try
-        {
-          wait();
-        }
-        catch (InterruptedException e)
-        { /* do nothing */}
-      }
     }
 
     while (msgQueue.size() != 0)
@@ -351,55 +337,62 @@ public class DbHandler implements Runnable
   @Override
   public void run()
   {
-    while (!shutdown)
-    {
-      try
-      {
-        flush();
-        trim();
+    thread.startWork();
 
-        synchronized (msgQueue)
+    try
+    {
+      while (!thread.isShutdownInitiated())
+      {
+        try
         {
-          if (msgQueue.size() < queueLowmark
-              && queueByteSize < queueLowmarkBytes)
+          flush();
+          trim();
+
+          synchronized (msgQueue)
           {
-            try
+            if (msgQueue.size() < queueLowmark
+                && queueByteSize < queueLowmarkBytes)
             {
-              msgQueue.wait(1000);
-            } catch (InterruptedException e)
-            {
-              Thread.currentThread().interrupt();
+              try
+              {
+                msgQueue.wait(1000);
+              }
+              catch (InterruptedException e)
+              {
+                Thread.currentThread().interrupt();
+              }
             }
           }
         }
-      } catch (Exception end)
-      {
-        MessageBuilder mb = new MessageBuilder();
-        mb.append(ERR_EXCEPTION_CHANGELOG_TRIM_FLUSH.get());
-        mb.append(" ");
-        mb.append(stackTraceToSingleLineString(end));
-        logError(mb.toMessage());
-        synchronized (this)
+        catch (Exception end)
         {
-          // set the done variable to true so that this thread don't
-          // get stuck in this dbHandler.shutdown() when it get called
-          // by replicationServer.shutdown();
-          done = true;
+          MessageBuilder mb = new MessageBuilder();
+          mb.append(ERR_EXCEPTION_CHANGELOG_TRIM_FLUSH.get());
+          mb.append(" ");
+          mb.append(stackTraceToSingleLineString(end));
+          logError(mb.toMessage());
+
+          thread.initiateShutdown();
+
+          if (replicationServer != null)
+          {
+            replicationServer.shutdown();
+          }
+          break;
         }
-        if (replicationServer != null)
-        {
-          replicationServer.shutdown();
-        }
-        break;
       }
+
+      // call flush a last time before exiting to make sure that
+      // no change was forgotten in the msgQueue
+      flush();
     }
-    // call flush a last time before exiting to make sure that
-    // no change was forgotten in the msgQueue
-    flush();
+    finally
+    {
+      thread.stopWork();
+    }
 
     synchronized (this)
     {
-      done = true;
       notifyAll();
     }
   }
@@ -450,11 +443,14 @@ public class DbHandler implements Runnable
         {
           for (int j = 0; j < 50; j++)
           {
+            if (thread.isShutdownInitiated())
+            {
+              return;
+            }
+
             CSN csn = cursor.nextCSN();
             if (csn == null)
             {
-              cursor.close();
-              done = true;
               return;
             }
 
@@ -465,20 +461,21 @@ public class DbHandler implements Runnable
             else
             {
               firstChange = csn;
-              cursor.close();
-              done = true;
               return;
             }
           }
-          cursor.close();
         }
         catch (ChangelogException e)
         {
           // mark shutdown for this db so that we don't try again to
           // stop it from cursor.close() or methods called by cursor.close()
           cursor.abort();
-          shutdown = true;
+          thread.initiateShutdown();
           throw e;
+        }
+        finally
+        {
+          cursor.close();
         }
       }
     }
