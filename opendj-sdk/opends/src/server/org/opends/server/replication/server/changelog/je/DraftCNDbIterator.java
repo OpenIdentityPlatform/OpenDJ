@@ -29,8 +29,10 @@ package org.opends.server.replication.server.changelog.je;
 
 import org.opends.messages.Message;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.replication.server.changelog.api.*;
-import org.opends.server.replication.server.changelog.je.DraftCNDB.*;
+import org.opends.server.replication.server.changelog.api.CNIndexRecord;
+import org.opends.server.replication.server.changelog.api.ChangeNumberIndexDBCursor;
+import org.opends.server.replication.server.changelog.api.ChangelogException;
+import org.opends.server.replication.server.changelog.je.DraftCNDB.DraftCNDBCursor;
 import org.opends.server.types.DebugLogLevel;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
@@ -59,9 +61,10 @@ public class DraftCNDbIterator implements ChangeNumberIndexDBCursor
       throws ChangelogException
   {
     draftCNDbCursor = db.openReadCursor(startChangeNumber);
-    if (draftCNDbCursor == null)
+    if (draftCNDbCursor.currentRecord() == null)
     {
-      throw new ChangelogException(Message.raw("no new change"));
+      throw new ChangelogException(Message.raw("Change Number "
+          + startChangeNumber + " is not available in the Changelog"));
     }
   }
 

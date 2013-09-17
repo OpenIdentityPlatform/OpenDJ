@@ -31,7 +31,6 @@ import java.io.Closeable;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.server.changelog.api.CNIndexRecord;
@@ -398,10 +397,12 @@ public class DraftCNDB
             // We could not move the cursor to the expected startChangeNumber
             if (localCursor.getSearchKeyRange(key, entry, DEFAULT) != SUCCESS)
             {
-              // We could not even move the cursor close to it => failure
-              throw new ChangelogException(
-                  Message.raw("ChangeLog Change Number " + startChangeNumber
-                      + " is not available"));
+              // We could not even move the cursor close to it
+              // => return an empty cursor
+              isClosed = true;
+              txn = null;
+              cursor = null;
+              return;
             }
 
             if (localCursor.getPrev(key, entry, LockMode.DEFAULT) != SUCCESS)
