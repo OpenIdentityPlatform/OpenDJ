@@ -139,9 +139,8 @@ public class FirstChangeNumberVirtualAttributeProvider
         excludedDomains.add(ServerConstants.DN_EXTERNAL_CHANGELOG_ROOT);
 
         ReplicationServer rs = eclwe.getReplicationServer();
-        rs.disableEligibility(excludedDomains);
         long[] limits = rs.getECLChangeNumberLimits(
-            rs.getEligibleCSN(), excludedDomains);
+            rs.getEligibleCSN(excludedDomains), excludedDomains);
 
         first = String.valueOf(limits[0]);
       }

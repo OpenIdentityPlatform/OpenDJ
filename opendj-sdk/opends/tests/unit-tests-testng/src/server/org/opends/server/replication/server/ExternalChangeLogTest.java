@@ -2238,7 +2238,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
           + " DbServerState=" + rsd1.getDbServerState()
           + " ChangeTimeHeartBeatState=" + rsd1.getChangeTimeHeartbeatState()
           + " eligibleCSN=" + rsd1.getEligibleCSN()
-          + " rs eligibleCSN=" + replicationServer.getEligibleCSN());
+          + " rs eligibleCSN=" + replicationServer.getEligibleCSN(null));
       // FIXME:ECL Enable this test by adding an assert on the right value
 
       ReplicationServerDomain rsd2 = replicationServer.getReplicationServerDomain(TEST_ROOT_DN2);
@@ -2248,7 +2248,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
           + " DbServerState=" + rsd2.getDbServerState()
           + " ChangeTimeHeartBeatState=" + rsd2.getChangeTimeHeartbeatState()
           + " eligibleCSN=" + rsd2.getEligibleCSN()
-          + " rs eligibleCSN=" + replicationServer.getEligibleCSN());
+          + " rs eligibleCSN=" + replicationServer.getEligibleCSN(null));
       // FIXME:ECL Enable this test by adding an assert on the right value
     }
     finally
@@ -2869,13 +2869,9 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       Set<String> excludedDomains = MultimasterReplication.getECLDisabledDomains();
       excludedDomains.add(ServerConstants.DN_EXTERNAL_CHANGELOG_ROOT);
 
-      ECLWorkflowElement eclwe = (ECLWorkflowElement)
-      DirectoryServer.getWorkflowElement("EXTERNAL CHANGE LOG");
-      ReplicationServer rs = eclwe.getReplicationServer();
-      rs.disableEligibility(excludedDomains);
       long t1 = TimeThread.getTime();
       long[] limits = replicationServer.getECLChangeNumberLimits(
-          replicationServer.getEligibleCSN(), excludedDomains);
+          replicationServer.getEligibleCSN(excludedDomains), excludedDomains);
       assertEquals(limits[1], maxMsg);
       long t2 = TimeThread.getTime();
       debugInfo(tn, "Perfs - " + maxMsg + " counted in (ms):" + (t2 - t1));
