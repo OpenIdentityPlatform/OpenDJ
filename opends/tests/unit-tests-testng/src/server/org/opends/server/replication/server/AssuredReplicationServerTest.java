@@ -54,6 +54,7 @@ import org.opends.server.replication.common.*;
 import org.opends.server.replication.plugin.MultimasterReplication;
 import org.opends.server.replication.protocol.*;
 import org.opends.server.replication.service.ReplicationDomain;
+import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.util.StaticUtils;
 import org.testng.annotations.BeforeClass;
@@ -457,7 +458,7 @@ public class AssuredReplicationServerTest
       int rsPort = getRsPort(rsId);
 
       FakeReplicationDomain fakeReplicationDomain = new FakeReplicationDomain(
-        TEST_ROOT_DN_STRING, serverId, generationId,
+        DN.decode(TEST_ROOT_DN_STRING), serverId, generationId,
         (byte)groupId, assured, assuredMode, (byte)safeDataLevel, assuredTimeout,
         scenario, serverState);
 
@@ -600,7 +601,7 @@ public class AssuredReplicationServerTest
      * @throws org.opends.server.config.ConfigException
      */
     public FakeReplicationDomain(
-      String baseDN,
+      DN baseDN,
       int serverID,
       long generationId,
       byte groupId,

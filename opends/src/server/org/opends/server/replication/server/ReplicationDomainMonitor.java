@@ -153,6 +153,8 @@ class ReplicationDomainMonitor
       {
         try
         {
+          String baseDN = domain.getBaseDN().toNormalizedString();
+
           // Prevent out of band monitor responses from updating our pending
           // table until we are ready.
           synchronized (pendingMonitorDataLock)
@@ -182,7 +184,7 @@ class ReplicationDomainMonitor
               {
                 // Log a message and do a best effort from here.
                 Message message = ERR_SENDING_REMOTE_MONITOR_DATA_REQUEST.get(
-                    domain.getBaseDn(), serverId, e.getMessage());
+                    baseDN, serverId, e.getMessage());
                 logError(message);
               }
             }
@@ -206,8 +208,7 @@ class ReplicationDomainMonitor
               // error log with repeated messages.
               if (!pendingMonitorDataServerIDs.contains(serverId))
               {
-                logError(NOTE_MONITOR_DATA_RECEIVED.get(
-                    domain.getBaseDn(), serverId));
+                logError(NOTE_MONITOR_DATA_RECEIVED.get(baseDN, serverId));
               }
             }
 
@@ -219,7 +220,7 @@ class ReplicationDomainMonitor
               if (!monitorDataLateServers.contains(serverId))
               {
                 logError(WARN_MISSING_REMOTE_MONITOR_DATA.get(
-                    domain.getBaseDn(), serverId));
+                    baseDN, serverId));
               }
             }
 
@@ -313,8 +314,8 @@ class ReplicationDomainMonitor
       {
         // This is a response for an earlier request whose computing is
         // already complete.
-        logError(INFO_IGNORING_REMOTE_MONITOR_DATA.get(domain.getBaseDn(),
-            msg.getSenderID()));
+        logError(INFO_IGNORING_REMOTE_MONITOR_DATA.get(
+            domain.getBaseDN().toNormalizedString(), msg.getSenderID()));
         return;
       }
 

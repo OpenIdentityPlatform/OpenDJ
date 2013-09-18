@@ -537,7 +537,7 @@ public class ReplicationBackend
       }
       else
       {
-        DN baseDN = DN.decode(rsd.getBaseDn() + "," + BASE_DN);
+        DN baseDN = DN.decode(rsd.getBaseDN() + "," + BASE_DN);
         for (DN includeBranch : includeBranches)
         {
           if (includeBranch.isDescendantOf(baseDN)
@@ -591,14 +591,14 @@ public class ReplicationBackend
       TRACER.debugInfo("State=" + serverState);
       Attribute stateAttr = Attributes.create("state", serverState.toString());
       Attribute genidAttr = Attributes.create("generation-id",
-          exportContainer.getGenerationId() + exportContainer.getBaseDn());
+          "" + exportContainer.getGenerationId() + exportContainer.getBaseDN());
 
       attrs.clear();
       attrs.put(ocType, singletonList(ocAttr));
       attrs.put(stateAttr.getAttributeType(), singletonList(stateAttr));
       attrs.put(genidAttr.getAttributeType(), singletonList(genidAttr));
 
-      final String dnString = exportContainer.getBaseDn() + "," + BASE_DN;
+      final String dnString = exportContainer.getBaseDN() + "," + BASE_DN;
       try
       {
         DN dn = DN.decode(dnString);
@@ -651,7 +651,7 @@ public class ReplicationBackend
             }
             lookthroughCount++;
             writeChange(cursor.getChange(), ldifWriter, searchOperation,
-                rsd.getBaseDn(), exportConfig != null);
+                rsd.getBaseDN(), exportConfig != null);
             cursor.next();
           }
         }
@@ -758,7 +758,7 @@ public class ReplicationBackend
    * Exports one change.
    */
   private void writeChange(UpdateMsg updateMsg, LDIFWriter ldifWriter,
-      SearchOperation searchOperation, String baseDN, boolean isExport)
+      SearchOperation searchOperation, DN baseDN, boolean isExport)
   {
     InternalClientConnection conn =
       InternalClientConnection.getRootConnection();
@@ -862,7 +862,8 @@ public class ReplicationBackend
 
           addAttribute(entry.getUserAttributes(), CHANGE_NUMBER,
               msg.getCSN().toString());
-          addAttribute(entry.getUserAttributes(), "replicationDomain", baseDN);
+          addAttribute(entry.getUserAttributes(), "replicationDomain",
+              baseDN.toNormalizedString());
 
           // Get the base DN, scope, and filter for the search.
           DN     searchBaseDN = searchOperation.getBaseDN();
@@ -1222,7 +1223,7 @@ public class ReplicationBackend
       ReplicationServerDomain rsd = iter.next();
 
       // Skip containers that are not covered by the include branches.
-      DN baseDN = DN.decode(rsd.getBaseDn() + "," + BASE_DN);
+      DN baseDN = DN.decode(rsd.getBaseDN() + "," + BASE_DN);
       if (searchBaseDN.isDescendantOf(baseDN)
           || searchBaseDN.isAncestorOf(baseDN))
       {

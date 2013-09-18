@@ -40,6 +40,7 @@ import org.opends.server.replication.server.changelog.api.CNIndexRecord;
 import org.opends.server.replication.server.changelog.api.ChangeNumberIndexDBCursor;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.je.DraftCNDB.DraftCNDBCursor;
+import org.opends.server.types.DN;
 import org.opends.server.util.StaticUtils;
 import org.testng.annotations.Test;
 
@@ -92,9 +93,9 @@ public class DraftCNDbHandlerTest extends ReplicationTestCase
       String value2 = "value2";
       String value3 = "value3";
 
-      String baseDN1 = "baseDN1";
-      String baseDN2 = "baseDN2";
-      String baseDN3 = "baseDN3";
+      DN baseDN1 = DN.decode("o=baseDN1");
+      DN baseDN2 = DN.decode("o=baseDN2");
+      DN baseDN3 = DN.decode("o=baseDN3");
 
       CSNGenerator gen = new CSNGenerator(1, 0);
       CSN csn1 = gen.newCSN();
@@ -153,8 +154,7 @@ public class DraftCNDbHandlerTest extends ReplicationTestCase
     }
   }
 
-  private void assertEqualTo(CNIndexRecord data, CSN csn, String baseDN,
-      String cookie)
+  private void assertEqualTo(CNIndexRecord data, CSN csn, DN baseDN, String cookie)
   {
     assertEquals(data.getCSN(), csn);
     assertEquals(data.getBaseDN(), baseDN);
@@ -219,9 +219,9 @@ public class DraftCNDbHandlerTest extends ReplicationTestCase
       String value2 = "value2";
       String value3 = "value3";
 
-      String baseDN1 = "baseDN1";
-      String baseDN2 = "baseDN2";
-      String baseDN3 = "baseDN3";
+      DN baseDN1 = DN.decode("o=baseDN1");
+      DN baseDN2 = DN.decode("o=baseDN2");
+      DN baseDN3 = DN.decode("o=baseDN3");
 
       CSNGenerator gen = new CSNGenerator(1, 0);
       CSN csn1 = gen.newCSN();

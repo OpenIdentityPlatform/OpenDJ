@@ -391,7 +391,8 @@ public final class ECLServerHandler extends ServerHandler
     super(session, queueSize, replicationServer, rcvWindowSize);
     try
     {
-      setBaseDNAndDomain(ServerConstants.DN_EXTERNAL_CHANGELOG_ROOT, true);
+      DN baseDN = DN.decode(ServerConstants.DN_EXTERNAL_CHANGELOG_ROOT);
+      setBaseDNAndDomain(baseDN, true);
     }
     catch(DirectoryException de)
     {
@@ -665,8 +666,8 @@ public final class ECLServerHandler extends ServerHandler
     Depending on allowUnknownDomains provided flag, a non empty map will
     be considered as an error when allowUnknownDomains is false.
     */
-    Map<String,ServerState> startStatesFromProvidedCookie =
-      new HashMap<String,ServerState>();
+    Map<DN, ServerState> startStatesFromProvidedCookie =
+        new HashMap<DN, ServerState>();
 
     ReplicationServer rs = this.replicationServer;
 
@@ -691,11 +692,11 @@ public final class ECLServerHandler extends ServerHandler
           continue;
 
         // skip the excluded domains
-        if (excludedBaseDNs.contains(rsd.getBaseDn()))
+        if (excludedBaseDNs.contains(rsd.getBaseDN().toNormalizedString()))
         {
           // this is an excluded domain
           if (allowUnknownDomains)
-            startStatesFromProvidedCookie.remove(rsd.getBaseDn());
+            startStatesFromProvidedCookie.remove(rsd.getBaseDN());
           continue;
         }
 
@@ -713,14 +714,14 @@ public final class ECLServerHandler extends ServerHandler
         if (isPersistent == PERSISTENT_CHANGES_ONLY)
         {
           newDomainCtxt.startState = rsd.getEligibleState(eligibleCSN);
-          startStatesFromProvidedCookie.remove(rsd.getBaseDn());
+          startStatesFromProvidedCookie.remove(rsd.getBaseDN());
         }
         else
         {
           // let's take the start state for this domain from the provided
           // cookie
           newDomainCtxt.startState =
-              startStatesFromProvidedCookie.remove(rsd.getBaseDn());
+              startStatesFromProvidedCookie.remove(rsd.getBaseDN());
 
           if (providedCookie == null
               || providedCookie.length() == 0
@@ -742,7 +743,7 @@ public final class ECLServerHandler extends ServerHandler
             // when there is a cookie provided in the request,
             if (newDomainCtxt.startState == null)
             {
-              missingDomains += (rsd.getBaseDn() + ":;");
+              missingDomains += (rsd.getBaseDN() + ":;");
               continue;
             }
             else if (!newDomainCtxt.startState.isEmpty())
@@ -750,8 +751,8 @@ public final class ECLServerHandler extends ServerHandler
               if (hasCookieBeenTrimmedFromDB(rsd, newDomainCtxt.startState))
               {
                 throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-                    ERR_RESYNC_REQUIRED_TOO_OLD_DOMAIN_IN_PROVIDED_COOKIE
-                        .get(newDomainCtxt.rsd.getBaseDn()));
+                    ERR_RESYNC_REQUIRED_TOO_OLD_DOMAIN_IN_PROVIDED_COOKIE.get(
+                        newDomainCtxt.rsd.getBaseDN().toNormalizedString()));
               }
             }
           }
@@ -764,12 +765,12 @@ public final class ECLServerHandler extends ServerHandler
         // Creates an unconnected SH for the domain
         MessageHandler mh = new MessageHandler(maxQueueSize, replicationServer);
         mh.setInitialServerState(newDomainCtxt.startState);
-        mh.setBaseDNAndDomain(rsd.getBaseDn(), false);
+        mh.setBaseDNAndDomain(rsd.getBaseDN(), false);
         // register the unconnected into the domain
         rsd.registerHandler(mh);
         newDomainCtxt.mh = mh;
 
-        previousCookie.update(newDomainCtxt.rsd.getBaseDn(),
+        previousCookie.update(newDomainCtxt.rsd.getBaseDN(),
                               newDomainCtxt.startState);
 
         // store the new context
@@ -799,7 +800,7 @@ public final class ECLServerHandler extends ServerHandler
       if (!startStatesFromProvidedCookie.isEmpty())
       {
         if (allowUnknownDomains)
-          for (String providedDomain : startStatesFromProvidedCookie.keySet())
+          for (DN providedDomain : startStatesFromProvidedCookie.keySet())
             if (rs.getReplicationServerDomain(providedDomain) == null)
               // the domain provided in the cookie is not replicated
               startStatesFromProvidedCookie.remove(providedDomain);
@@ -816,7 +817,7 @@ public final class ECLServerHandler extends ServerHandler
         */
         StringBuilder sb = new StringBuilder();
         for (DomainContext domainCtxt : domainCtxts) {
-          sb.append(domainCtxt.rsd.getBaseDn()).append(":")
+          sb.append(domainCtxt.rsd.getBaseDN()).append(":")
             .append(domainCtxt.startState).append(";");
         }
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
@@ -1235,7 +1236,7 @@ public final class ECLServerHandler extends ServerHandler
         final ECLUpdateMsg change = new ECLUpdateMsg(
             (LDAPUpdateMsg) oldestContext.nextMsg,
             null, // cookie will be set later
-            oldestContext.rsd.getBaseDn(),
+            oldestContext.rsd.getBaseDN().toNormalizedString(),
             0); // changeNumber may be set later
         oldestContext.nextMsg = null;
 
@@ -1287,7 +1288,7 @@ public final class ECLServerHandler extends ServerHandler
           final ECLUpdateMsg change = new ECLUpdateMsg(
               (LDAPUpdateMsg) oldestContext.nextMsg,
               null, // set later
-              oldestContext.rsd.getBaseDn(),
+              oldestContext.rsd.getBaseDN().toNormalizedString(),
               0);
           oldestContext.nextMsg = null; // clean
 
@@ -1318,7 +1319,7 @@ public final class ECLServerHandler extends ServerHandler
         TRACER.debugInfo("getNextECLUpdate updates previousCookie:" + csn);
 
       // Update the current state
-      previousCookie.update(oldestChange.getBaseDN(), csn);
+      previousCookie.update(DN.decode(oldestChange.getBaseDN()), csn);
 
       // Set the current value of global state in the returned message
       oldestChange.setCookie(previousCookie);
@@ -1357,7 +1358,7 @@ public final class ECLServerHandler extends ServerHandler
 
     // replogCSN : the oldest change from the changelog db
     CSN csnFromChangelogDb = oldestChange.getUpdateMsg().getCSN();
-    String dnFromChangelogDb = oldestChange.getBaseDN();
+    DN dnFromChangelogDb = DN.decode(oldestChange.getBaseDN());
 
     while (true)
     {
@@ -1372,7 +1373,7 @@ public final class ECLServerHandler extends ServerHandler
       // the next change from the CNIndexDB
       final CNIndexRecord currentRecord = cnIndexDBCursor.getRecord();
       final CSN csnFromDraftCNDb = currentRecord.getCSN();
-      final String dnFromDraftCNDb = currentRecord.getBaseDN();
+      final DN dnFromDraftCNDb = currentRecord.getBaseDN();
 
       if (debugEnabled())
         TRACER.debugInfo("assignChangeNumber() generating change number "
@@ -1440,7 +1441,7 @@ public final class ECLServerHandler extends ServerHandler
     }
   }
 
-  private boolean areSameChange(CSN csn1, String dn1, CSN csn2, String dn2)
+  private boolean areSameChange(CSN csn1, DN dn1, CSN csn2, DN dn2)
   {
     boolean sameDN = dn1.compareTo(dn2) == 0;
     boolean sameCSN = csn1.compareTo(csn2) == 0;
@@ -1458,7 +1459,7 @@ public final class ECLServerHandler extends ServerHandler
     replicationServer.getChangeNumberIndexDB().addRecord(new CNIndexRecord(
         change.getChangeNumber(),
         previousCookie.toString(),
-        change.getBaseDN(),
+        DN.decode(change.getBaseDN()),
         change.getUpdateMsg().getCSN()));
   }
 

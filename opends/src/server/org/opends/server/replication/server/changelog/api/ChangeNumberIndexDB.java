@@ -26,6 +26,8 @@
  */
 package org.opends.server.replication.server.changelog.api;
 
+import org.opends.server.types.DN;
+
 /**
  * This class stores an index of all the changes seen by this server in the form
  * of {@link CNIndexRecord}s. The records are sorted by a global ordering as
@@ -131,7 +133,7 @@ public interface ChangeNumberIndexDB
    * @throws ChangelogException
    *           if a database problem occurs.
    */
-  void clear(String baseDNToClear) throws ChangelogException;
+  void clear(DN baseDNToClear) throws ChangelogException;
 
   /**
    * Shutdown this DB.

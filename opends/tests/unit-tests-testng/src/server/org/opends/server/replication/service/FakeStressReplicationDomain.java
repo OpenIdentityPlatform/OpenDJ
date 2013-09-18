@@ -38,6 +38,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.opends.server.config.ConfigException;
 import org.opends.server.replication.protocol.UpdateMsg;
+import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.ResultCode;
 
@@ -55,7 +56,7 @@ public class FakeStressReplicationDomain extends ReplicationDomain
   private BlockingQueue<UpdateMsg> queue = null;
 
   public FakeStressReplicationDomain(
-      String baseDN,
+      DN baseDN,
       int serverID,
       Collection<String> replicationServers,
       int window,

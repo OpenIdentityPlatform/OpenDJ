@@ -27,8 +27,6 @@
  */
 package org.opends.server.replication.common;
 
-import static org.opends.messages.ReplicationMessages.*;
-
 import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
@@ -36,8 +34,11 @@ import java.util.TreeMap;
 import org.opends.messages.Category;
 import org.opends.messages.Message;
 import org.opends.messages.Severity;
+import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.ResultCode;
+
+import static org.opends.messages.ReplicationMessages.*;
 
 /**
  * This object is used to store a list of ServerState object, one by replication
@@ -47,19 +48,19 @@ import org.opends.server.types.ResultCode;
  * MultiDomainServerState is also known as "cookie" and is used with the
  * cookie-based changelog.
  */
-public class MultiDomainServerState implements Iterable<String>
+public class MultiDomainServerState implements Iterable<DN>
 {
   /**
    * The list of (domain service id, ServerState).
    */
-  private Map<String, ServerState> list;
+  private Map<DN, ServerState> list;
 
   /**
    * Creates a new empty object.
    */
   public MultiDomainServerState()
   {
-    list = new TreeMap<String, ServerState>();
+    list = new TreeMap<DN, ServerState>();
   }
 
   /**
@@ -96,7 +97,7 @@ public class MultiDomainServerState implements Iterable<String>
    *
    * @return a boolean indicating if the update was meaningful.
    */
-  public boolean update(String baseDN, CSN csn)
+  public boolean update(DN baseDN, CSN csn)
   {
     if (csn == null)
       return false;
@@ -125,9 +126,9 @@ public class MultiDomainServerState implements Iterable<String>
    * @param baseDN       The provided baseDN.
    * @param serverState  The provided serverState.
    */
-  public void update(String baseDN, ServerState serverState)
+  public void update(DN baseDN, ServerState serverState)
   {
-    list.put(baseDN,serverState.duplicate());
+    list.put(baseDN, serverState.duplicate());
   }
 
   /**
@@ -140,7 +141,7 @@ public class MultiDomainServerState implements Iterable<String>
     String res = "";
     if ((list != null) && (!list.isEmpty()))
     {
-      for (String baseDN  : list.keySet())
+      for (DN baseDN : list.keySet())
       {
         ServerState ss = list.get(baseDN);
         res += baseDN + ":" + ss + ";";
@@ -173,7 +174,7 @@ public class MultiDomainServerState implements Iterable<String>
    * {@inheritDoc}
    */
   @Override
-  public Iterator<String> iterator()
+  public Iterator<DN> iterator()
   {
     return list.keySet().iterator();
   }
@@ -195,7 +196,7 @@ public class MultiDomainServerState implements Iterable<String>
    */
   public boolean cover(MultiDomainServerState covered)
   {
-    for (String baseDN : covered.list.keySet())
+    for (DN baseDN : covered.list.keySet())
     {
       ServerState state = list.get(baseDN);
       ServerState coveredState = covered.list.get(baseDN);
@@ -215,11 +216,10 @@ public class MultiDomainServerState implements Iterable<String>
    * @exception DirectoryException when an error occurs
    * @return the split state.
    */
-  public static Map<String,ServerState> splitGenStateToServerStates(
-      String multidomainserverstate)
-      throws DirectoryException
+  public static Map<DN, ServerState> splitGenStateToServerStates(
+      String multidomainserverstate) throws DirectoryException
   {
-    Map<String, ServerState> startStates = new TreeMap<String, ServerState>();
+    Map<DN, ServerState> startStates = new TreeMap<DN, ServerState>();
     if ((multidomainserverstate != null)
         && (multidomainserverstate.length() > 0))
     {
@@ -250,7 +250,7 @@ public class MultiDomainServerState implements Iterable<String>
               serverStateByDomain.update(fromCSN);
             }
           }
-          startStates.put(domainBaseDN, serverStateByDomain);
+          startStates.put(DN.decode(domainBaseDN), serverStateByDomain);
         }
       }
       catch (DirectoryException de)

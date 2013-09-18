@@ -32,6 +32,7 @@ import java.util.Set;
 import org.opends.server.config.ConfigException;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.protocol.UpdateMsg;
+import org.opends.server.types.DN;
 
 /**
  * The changelogDB stores the replication data on persistent storage.
@@ -102,65 +103,65 @@ public interface ChangelogDB
    * Returns the serverIds for the servers that are or have been part of the
    * provided replication domain.
    *
-   * @param baseDn
-   *          the replication domain baseDn
+   * @param baseDN
+   *          the replication domain baseDN
    * @return a set of integers holding the serverIds
    */
-  Set<Integer> getDomainServerIds(String baseDn);
+  Set<Integer> getDomainServerIds(DN baseDN);
 
   /**
    * Get the number of changes for the specified replication domain.
    *
-   * @param baseDn
-   *          the replication domain baseDn
+   * @param baseDN
+   *          the replication domain baseDN
    * @return the number of changes.
    */
-  long getDomainChangesCount(String baseDn);
+  long getDomainChangesCount(DN baseDN);
 
   /**
    * Returns the FIRST {@link CSN}s of each serverId for the specified
    * replication domain.
    *
-   * @param baseDn
-   *          the replication domain baseDn
+   * @param baseDN
+   *          the replication domain baseDN
    * @return a {serverId => FIRST CSN} Map
    */
-  Map<Integer, CSN> getDomainFirstCSNs(String baseDn);
+  Map<Integer, CSN> getDomainFirstCSNs(DN baseDN);
 
   /**
    * Returns the LAST {@link CSN}s of each serverId for the specified
    * replication domain.
    *
-   * @param baseDn
-   *          the replication domain baseDn
+   * @param baseDN
+   *          the replication domain baseDN
    * @return a {serverId => LAST CSN} Map
    */
-  Map<Integer, CSN> getDomainLastCSNs(String baseDn);
+  Map<Integer, CSN> getDomainLastCSNs(DN baseDN);
 
   /**
    * Retrieves the latest trim date for the specified replication domain.
    *
-   * @param baseDn
-   *          the replication domain baseDn
+   * @param baseDN
+   *          the replication domain baseDN
    * @return the domain latest trim date
    */
-  long getDomainLatestTrimDate(String baseDn);
+  long getDomainLatestTrimDate(DN baseDN);
 
   /**
    * Shutdown the specified replication domain.
    *
-   * @param baseDn
-   *          the replication domain baseDn
+   * @param baseDN
+   *          the replication domain baseDN
    */
-  void shutdownDomain(String baseDn);
+  void shutdownDomain(DN baseDN);
 
   /**
    * Clear DB and shutdown for the specified replication domain.
    *
-   * @param baseDn
-   *          the replication domain baseDn
+   * @param baseDN
+   *          the replication domain baseDN
    */
-  void clearDomain(String baseDn);
+  void clearDomain(DN baseDN);
 
   // serverId methods
 
@@ -168,8 +169,8 @@ public interface ChangelogDB
    * Return the number of changes between 2 provided {@link CSN}s for the
    * specified serverId and replication domain.
    *
-   * @param baseDn
-   *          the replication domain baseDn
+   * @param baseDN
+   *          the replication domain baseDN
    * @param serverId
    *          the serverId on which to act
    * @param from
@@ -178,14 +179,14 @@ public interface ChangelogDB
    *          The upper (newer) CSN
    * @return The computed number of changes
    */
-  long getCount(String baseDn, int serverId, CSN from, CSN to);
+  long getCount(DN baseDN, int serverId, CSN from, CSN to);
 
   /**
    * Returns the {@link CSN} situated immediately after the specified
    * {@link CSN} for the specified serverId and replication domain.
    *
-   * @param baseDn
-   *          the replication domain baseDn
+   * @param baseDN
+   *          the replication domain baseDN
    * @param serverId
    *          the serverId for which we want the information
    * @param startAfterCSN
@@ -193,14 +194,14 @@ public interface ChangelogDB
    * @return a new ReplicationIterator that allows to browse the db managed by
    *         this dbHandler and starting at the position defined by a given CSN.
    */
-  CSN getCSNAfter(String baseDn, int serverId, CSN startAfterCSN);
+  CSN getCSNAfter(DN baseDN, int serverId, CSN startAfterCSN);
 
   /**
    * Generates a non empty {@link ReplicaDBCursor} for the specified serverId
    * and replication domain.
    *
-   * @param baseDn
-   *          the replication domain baseDn
+   * @param baseDN
+   *          the replication domain baseDN
    * @param serverId
    *          the serverId on which to act
    * @param startAfterCSN
@@ -208,13 +209,13 @@ public interface ChangelogDB
    * @return a {@link ReplicaDBCursor} if the ReplicaDB is not empty, null
    *         otherwise
    */
-  ReplicaDBCursor getCursorFrom(String baseDn, int serverId, CSN startAfterCSN);
+  ReplicaDBCursor getCursorFrom(DN baseDN, int serverId, CSN startAfterCSN);
 
   /**
    * for the specified serverId and replication domain.
    *
-   * @param baseDn
-   *          the replication domain baseDn
+   * @param baseDN
+   *          the replication domain baseDN
    * @param serverId
    *          the serverId on which to act
    * @param updateMsg
@@ -223,7 +224,7 @@ public interface ChangelogDB
    * @throws ChangelogException
    *           If a database problem happened
    */
-  boolean publishUpdateMsg(String baseDn, int serverId, UpdateMsg updateMsg)
+  boolean publishUpdateMsg(DN baseDN, int serverId, UpdateMsg updateMsg)
       throws ChangelogException;
 
 }

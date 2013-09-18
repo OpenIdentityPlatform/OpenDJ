@@ -84,7 +84,8 @@ public class ReplicationServerHandler extends ServerHandler
       serverURL = inReplServerStartMsg.getServerURL();
       final String port = serverURL.substring(serverURL.lastIndexOf(':') + 1);
       serverAddressURL = session.getRemoteAddress() + ":" + port;
-      setBaseDNAndDomain(inReplServerStartMsg.getBaseDn(), false);
+      DN baseDN = DN.decode(inReplServerStartMsg.getBaseDn());
+      setBaseDNAndDomain(baseDN, false);
       setInitialServerState(inReplServerStartMsg.getServerState());
       setSendWindowSize(inReplServerStartMsg.getWindowSize());
       if (protocolVersion > ProtocolVersion.REPLICATION_PROTOCOL_V1)
@@ -141,8 +142,8 @@ public class ReplicationServerHandler extends ServerHandler
    * @param sslEncryption The sslEncryption requested to the remote RS.
    * @throws DirectoryException when an error occurs.
    */
-  public void connect(String baseDN, boolean sslEncryption)
-  throws DirectoryException
+  public void connect(DN baseDN, boolean sslEncryption)
+      throws DirectoryException
   {
     // we are the initiator and decides of the encryption
     this.sslEncryption = sslEncryption;
@@ -245,7 +246,7 @@ public class ReplicationServerHandler extends ServerHandler
 
       Message message = INFO_REPLICATION_SERVER_CONNECTION_TO_RS
           .get(getReplicationServerId(), getServerId(),
-              replicationServerDomain.getBaseDn(),
+              replicationServerDomain.getBaseDN().toNormalizedString(),
               session.getReadableRemoteAddress());
       logError(message);
 
@@ -380,7 +381,7 @@ public class ReplicationServerHandler extends ServerHandler
 
       Message message = INFO_REPLICATION_SERVER_CONNECTION_FROM_RS
           .get(getReplicationServerId(), getServerId(),
-              replicationServerDomain.getBaseDn(),
+              replicationServerDomain.getBaseDN().toNormalizedString(),
               session.getReadableRemoteAddress());
       logError(message);
 
@@ -719,7 +720,7 @@ public class ReplicationServerHandler extends ServerHandler
     if (serverId != 0)
     {
       return "Replication server RS(" + serverId + ") for domain \""
-          + replicationServerDomain.getBaseDn() + "\"";
+          + replicationServerDomain.getBaseDN() + "\"";
     }
     return "Unknown server";
   }
@@ -757,4 +758,5 @@ public class ReplicationServerHandler extends ServerHandler
     if (replicationServerDomain != null)
       replicationServerDomain.receiveTopoInfoFromRS(topoMsg, this, true);
   }
+
 }

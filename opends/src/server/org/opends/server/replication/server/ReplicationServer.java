@@ -95,8 +95,8 @@ public final class ReplicationServer
    * This table is used to store the list of dn for which we are currently
    * handling servers.
    */
-  private final Map<String, ReplicationServerDomain> baseDNs =
-          new HashMap<String, ReplicationServerDomain>();
+  private final Map<DN, ReplicationServerDomain> baseDNs =
+      new HashMap<DN, ReplicationServerDomain>();
 
   private volatile boolean shutdown = false;
   private int rcvWindow;
@@ -396,7 +396,7 @@ public final class ReplicationServer
               continue; // Skip: avoid connecting to self.
             }
 
-            connect(rsURL, domain.getBaseDn());
+            connect(rsURL, domain.getBaseDN());
           }
         }
 
@@ -436,11 +436,12 @@ public final class ReplicationServer
   /**
    * Establish a connection to the server with the address and port.
    *
-   * @param remoteServerURL  The address and port for the server, separated by a
-   *                    colon.
-   * @param baseDn     The baseDn of the connection
+   * @param remoteServerURL
+   *          The address and port for the server, separated by a colon.
+   * @param baseDN
+   *          The baseDN of the connection
    */
-  private void connect(String remoteServerURL, String baseDn)
+  private void connect(String remoteServerURL, DN baseDN)
   {
     int separator = remoteServerURL.lastIndexOf(':');
     String port = remoteServerURL.substring(separator + 1);
@@ -464,7 +465,7 @@ public final class ReplicationServer
 
       ReplicationServerHandler rsHandler = new ReplicationServerHandler(
           session, queueSize, this, rcvWindow);
-      rsHandler.connect(baseDn, sslEncryption);
+      rsHandler.connect(baseDN, sslEncryption);
     }
     catch (Exception e)
     {
@@ -677,36 +678,37 @@ public final class ReplicationServer
    * Get the ReplicationServerDomain associated to the base DN given in
    * parameter.
    *
-   * @param baseDn The base Dn for which the ReplicationServerDomain must be
-   * returned.
+   * @param baseDN
+   *          The base Dn for which the ReplicationServerDomain must be
+   *          returned.
    * @return The ReplicationServerDomain associated to the base DN given in
    *         parameter.
    */
-  public ReplicationServerDomain getReplicationServerDomain(String baseDn)
+  public ReplicationServerDomain getReplicationServerDomain(DN baseDN)
   {
-    return getReplicationServerDomain(baseDn, false);
+    return getReplicationServerDomain(baseDN, false);
   }
 
   /**
    * Get the ReplicationServerDomain associated to the base DN given in
    * parameter.
    *
-   * @param baseDn The base Dn for which the ReplicationServerDomain must be
+   * @param baseDN The base Dn for which the ReplicationServerDomain must be
    * returned.
    * @param create Specifies whether to create the ReplicationServerDomain if
    *        it does not already exist.
    * @return The ReplicationServerDomain associated to the base DN given in
    *         parameter.
    */
-  public ReplicationServerDomain getReplicationServerDomain(String baseDn,
+  public ReplicationServerDomain getReplicationServerDomain(DN baseDN,
       boolean create)
   {
     synchronized (baseDNs)
     {
-      ReplicationServerDomain domain = baseDNs.get(baseDn);
+      ReplicationServerDomain domain = baseDNs.get(baseDN);
       if (domain == null && create) {
-        domain = new ReplicationServerDomain(baseDn, this);
-        baseDNs.put(baseDn, domain);
+        domain = new ReplicationServerDomain(baseDN, this);
+        baseDNs.put(baseDN, domain);
       }
       return domain;
     }
@@ -805,12 +807,12 @@ public final class ReplicationServer
 
   /**
    * Clears the generationId for the replicationServerDomain related to the
-   * provided baseDn.
+   * provided baseDN.
    *
-   * @param baseDn
-   *          The baseDn for which to delete the generationId.
+   * @param baseDN
+   *          The baseDN for which to delete the generationId.
    */
-  public void clearGenerationId(String baseDn)
+  public void clearGenerationId(DN baseDN)
   {
     synchronized (cnIndexDBLock)
     {
@@ -818,7 +820,7 @@ public final class ReplicationServer
       {
         try
         {
-          cnIndexDB.clear(baseDn);
+          cnIndexDB.clear(baseDN);
         }
         catch (Exception ignored)
         {
@@ -1047,7 +1049,7 @@ public final class ReplicationServer
    * @param baseDN The baseDN of the replicationServerDomain.
    * @return The value of the generationID.
    */
-  public long getGenerationId(String baseDN)
+  public long getGenerationId(DN baseDN)
   {
     ReplicationServerDomain rsd = getReplicationServerDomain(baseDN);
     if (rsd!=null)
@@ -1480,7 +1482,7 @@ public final class ReplicationServer
     CSN eligibleCSN = null;
     for (ReplicationServerDomain domain : getReplicationServerDomains())
     {
-      if (contains(excludedBaseDNs, domain.getBaseDn()))
+      if (contains(excludedBaseDNs, domain.getBaseDN().toNormalizedString()))
         continue;
 
       final CSN domainEligibleCSN = domain.getEligibleCSN();
@@ -1494,7 +1496,7 @@ public final class ReplicationServer
       {
         final String dates = domainEligibleCSN == null ?
             "" : new Date(domainEligibleCSN.getTime()).toString();
-        debugLog += "[baseDN=" + domain.getBaseDn()
+        debugLog += "[baseDN=" + domain.getBaseDN()
             + "] [eligibleCSN=" + domainEligibleCSN + ", " + dates + "]";
       }
     }
@@ -1611,9 +1613,9 @@ public final class ReplicationServer
       final CNIndexRecord firstCNRecord = cnIndexDB.getFirstRecord();
       final CNIndexRecord lastCNRecord = cnIndexDB.getLastRecord();
 
-      Map<String, ServerState> domainsServerStateForLastCN = null;
+      boolean noCookieForLastCN = true;
       CSN csnForLastCN = null;
-      String domainForLastCN = null;
+      DN domainForLastCN = null;
       if (firstCNRecord != null)
       {
         if (lastCNRecord == null)
@@ -1631,11 +1633,8 @@ public final class ReplicationServer
         // Get the generalized state associated with the current last change
         // number and initializes from it the startStates table
         String lastCNGenState = lastCNRecord.getPreviousCookie();
-        if (lastCNGenState != null && lastCNGenState.length() > 0)
-        {
-          domainsServerStateForLastCN = MultiDomainServerState
-              .splitGenStateToServerStates(lastCNGenState);
-        }
+        noCookieForLastCN = lastCNGenState == null
+            || lastCNGenState.length() == 0;
 
         csnForLastCN = lastCNRecord.getCSN();
         domainForLastCN = lastCNRecord.getBaseDN();
@@ -1644,13 +1643,13 @@ public final class ReplicationServer
       long newestDate = 0;
       for (ReplicationServerDomain rsd : getReplicationServerDomains())
       {
-        if (contains(excludedBaseDNs, rsd.getBaseDn()))
+        if (contains(excludedBaseDNs, rsd.getBaseDN().toNormalizedString()))
           continue;
 
         // for this domain, have the state in the replchangelog
         // where the last change number update is
         long ec;
-        if (domainsServerStateForLastCN == null)
+        if (noCookieForLastCN)
         {
           // Count changes of this domain from the beginning of the changelog
           CSN trimCSN = new CSN(rsd.getLatestDomainTrimDate(), 0, 0);
@@ -1676,7 +1675,7 @@ public final class ReplicationServer
           CSN csnx = new CSN(newestDate, csnForLastCN.getSeqnum(), 0);
           ec = rsd.getEligibleCount(csnx, crossDomainEligibleCSN);
 
-          if (domainForLastCN.equalsIgnoreCase(rsd.getBaseDn()))
+          if (domainForLastCN.equals(rsd.getBaseDN()))
             ec--;
         }
 
@@ -1717,11 +1716,11 @@ public final class ReplicationServer
     MultiDomainServerState result = new MultiDomainServerState();
     for (ReplicationServerDomain rsd : getReplicationServerDomains())
     {
-      if (contains(excludedBaseDNs, rsd.getBaseDn())
+      if (contains(excludedBaseDNs, rsd.getBaseDN().toNormalizedString())
           || rsd.getDbServerState().isEmpty())
         continue;
 
-      result.update(rsd.getBaseDn(), rsd.getEligibleState(getEligibleCSN()));
+      result.update(rsd.getBaseDN(), rsd.getEligibleState(getEligibleCSN()));
     }
     return result;
   }

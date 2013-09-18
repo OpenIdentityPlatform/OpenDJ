@@ -37,6 +37,8 @@ import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.server.ChangelogState;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
 
 import com.sleepycat.je.*;
 
@@ -190,29 +192,29 @@ public class ReplicationDbEnv
         final String stringData = toString(data.getData());
 
         if (debugEnabled())
-          debug("read (" + GENERATION_ID_TAG + " generationId baseDn) OR "
+          debug("read (" + GENERATION_ID_TAG + " generationId baseDN) OR "
               + "(serverId baseDN): " + stringData);
 
         final String[] str = stringData.split(FIELD_SEPARATOR, 3);
         if (str[0].equals(GENERATION_ID_TAG))
         {
           long generationId = toLong(str[1]);
-          String baseDn = str[2];
+          DN baseDN = DN.decode(str[2]);
 
           if (debugEnabled())
-            debug("has read baseDn=" + baseDn + " generationId=" +generationId);
+            debug("has read baseDN=" + baseDN + " generationId=" +generationId);
 
-          result.setDomainGenerationId(baseDn, generationId);
+          result.setDomainGenerationId(baseDN, generationId);
         }
         else
         {
           int serverId = toInt(str[0]);
-          String baseDn = str[1];
+          DN baseDN = DN.decode(str[1]);
 
           if (debugEnabled())
-            debug("has read: baseDn=" + baseDn + " serverId=" + serverId);
+            debug("has read: baseDN=" + baseDN + " serverId=" + serverId);
 
-          result.addServerIdToDomain(serverId, baseDn);
+          result.addServerIdToDomain(serverId, baseDN);
         }
 
         status = cursor.getNext(key, data, LockMode.DEFAULT);
@@ -221,6 +223,10 @@ public class ReplicationDbEnv
       return result;
     }
     catch (RuntimeException e)
+    {
+      throw new ChangelogException(e);
+    }
+    catch (DirectoryException e)
     {
       throw new ChangelogException(e);
     }
@@ -290,37 +296,37 @@ public class ReplicationDbEnv
 
   /**
    * Finds or creates the database used to store changes from the server with
-   * the given serverId and the given baseDn.
+   * the given serverId and the given baseDN.
    *
    * @param serverId
    *          The server id that identifies the server.
-   * @param baseDn
-   *          The baseDn that identifies the domain.
+   * @param baseDN
+   *          The baseDN that identifies the domain.
    * @param generationId
    *          The generationId associated to this domain.
    * @return the Database.
    * @throws ChangelogException
    *           in case of underlying Exception.
    */
-  public Database getOrAddDb(int serverId, String baseDn, long generationId)
+  public Database getOrAddDb(int serverId, DN baseDN, long generationId)
       throws ChangelogException
   {
     if (debugEnabled())
-      debug("ReplicationDbEnv.getOrAddDb(" + serverId + ", " + baseDn + ", "
+      debug("ReplicationDbEnv.getOrAddDb(" + serverId + ", " + baseDN + ", "
           + generationId + ")");
     try
     {
       // JNR: redundant info is stored between the key and data down below.
       // It is probably ok since "changelogstate" DB does not receive a high
       // volume of inserts.
-      final String serverIdToBaseDn = buildServerIdKey(baseDn, serverId);
+      final String serverIdToBaseDn = buildServerIdKey(baseDN, serverId);
 
       // Opens the DB for the changes received from this server on this domain.
       Database db = openDatabase(serverIdToBaseDn);
 
       putInChangelogStateDBIfNotExist(serverIdToBaseDn, serverIdToBaseDn);
-      putInChangelogStateDBIfNotExist(buildGenIdKey(baseDn),
-                                      buildGenIdData(baseDn, generationId));
+      putInChangelogStateDBIfNotExist(buildGenIdKey(baseDN),
+                                      buildGenIdData(baseDN, generationId));
       return db;
     }
     catch (RuntimeException e)
@@ -329,20 +335,20 @@ public class ReplicationDbEnv
     }
   }
 
-  private String buildGenIdKey(String baseDn)
+  private String buildGenIdKey(DN baseDN)
   {
-    return GENERATION_ID_TAG + FIELD_SEPARATOR + baseDn;
+    return GENERATION_ID_TAG + FIELD_SEPARATOR + baseDN.toNormalizedString();
   }
 
-  private String buildServerIdKey(String baseDn, int serverId)
+  private String buildServerIdKey(DN baseDN, int serverId)
   {
-    return serverId + FIELD_SEPARATOR + baseDn;
+    return serverId + FIELD_SEPARATOR + baseDN.toNormalizedString();
   }
 
-  private String buildGenIdData(String baseDn, long generationId)
+  private String buildGenIdData(DN baseDN, long generationId)
   {
     return GENERATION_ID_TAG + FIELD_SEPARATOR + generationId + FIELD_SEPARATOR
-        + baseDn;
+        + baseDN.toNormalizedString();
   }
 
   private void putInChangelogStateDBIfNotExist(String keyString,
@@ -420,31 +426,31 @@ public class ReplicationDbEnv
     }
 
   /**
-   * Clears the provided generationId associated to the provided baseDn from the
+   * Clears the provided generationId associated to the provided baseDN from the
    * state Db.
    *
-   * @param baseDn
-   *          The baseDn for which the generationID must be cleared.
+   * @param baseDN
+   *          The baseDN for which the generationID must be cleared.
    */
-  public void clearGenerationId(String baseDn)
+  public void clearGenerationId(DN baseDN)
   {
-    deleteFromChangelogStateDB(buildGenIdKey(baseDn),
-        "clearGenerationId(baseDN=" + baseDn + ")");
+    deleteFromChangelogStateDB(buildGenIdKey(baseDN),
+        "clearGenerationId(baseDN=" + baseDN + ")");
   }
 
   /**
-   * Clears the provided serverId associated to the provided baseDn from the
+   * Clears the provided serverId associated to the provided baseDN from the
    * state Db.
    *
-   * @param baseDn
-   *          The baseDn for which the generationID must be cleared.
+   * @param baseDN
+   *          The baseDN for which the serverId must be cleared.
    * @param serverId
    *          The serverId to remove from the Db.
    */
-  public void clearServerId(String baseDn, int serverId)
+  public void clearServerId(DN baseDN, int serverId)
   {
-    deleteFromChangelogStateDB(buildServerIdKey(baseDn, serverId),
-        "clearServerId(baseDN=" + baseDn + " , serverId=" + serverId + ")");
+    deleteFromChangelogStateDB(buildServerIdKey(baseDN, serverId),
+        "clearServerId(baseDN=" + baseDN + " , serverId=" + serverId + ")");
   }
 
   private void deleteFromChangelogStateDB(String keyString,

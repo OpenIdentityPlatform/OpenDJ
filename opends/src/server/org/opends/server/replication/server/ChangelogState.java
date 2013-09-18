@@ -31,6 +31,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import org.opends.server.types.DN;
+
 /**
  * This is the changelog state stored in the changelogStateDB. For each
  * replication domain, it contains:
@@ -45,22 +47,21 @@ import java.util.Map;
 public class ChangelogState
 {
 
-  private final Map<String, Long> domainToGenerationId =
-      new HashMap<String, Long>();
-  private final Map<String, List<Integer>> domainToServerIds =
-      new HashMap<String, List<Integer>>();
+  private final Map<DN, Long> domainToGenerationId = new HashMap<DN, Long>();
+  private final Map<DN, List<Integer>> domainToServerIds =
+      new HashMap<DN, List<Integer>>();
 
   /**
    * Sets the generationId for the supplied replication domain.
    *
-   * @param baseDn
+   * @param baseDN
    *          the targeted replication domain baseDN
    * @param generationId
    *          the generation Id to set
    */
-  public void setDomainGenerationId(String baseDn, long generationId)
+  public void setDomainGenerationId(DN baseDN, long generationId)
   {
-    domainToGenerationId.put(baseDn, generationId);
+    domainToGenerationId.put(baseDN, generationId);
   }
 
   /**
@@ -68,16 +69,16 @@ public class ChangelogState
    *
    * @param serverId
    *          the serverId to add
-   * @param baseDn
+   * @param baseDN
    *          the targeted replication domain baseDN
    */
-  public void addServerIdToDomain(int serverId, String baseDn)
+  public void addServerIdToDomain(int serverId, DN baseDN)
   {
-    List<Integer> serverIds = domainToServerIds.get(baseDn);
+    List<Integer> serverIds = domainToServerIds.get(baseDN);
     if (serverIds == null)
     {
       serverIds = new LinkedList<Integer>();
-      domainToServerIds.put(baseDn, serverIds);
+      domainToServerIds.put(baseDN, serverIds);
     }
     serverIds.add(serverId);
   }
@@ -87,7 +88,7 @@ public class ChangelogState
    *
    * @return a Map of domainBaseDN => generationId
    */
-  public Map<String, Long> getDomainToGenerationId()
+  public Map<DN, Long> getDomainToGenerationId()
   {
     return domainToGenerationId;
   }
@@ -97,7 +98,7 @@ public class ChangelogState
    *
    * @return a Map of domainBaseDN => List&lt;serverId&gt;.
    */
-  public Map<String, List<Integer>> getDomainToServerIds()
+  public Map<DN, List<Integer>> getDomainToServerIds()
   {
     return domainToServerIds;
   }

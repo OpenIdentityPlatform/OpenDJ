@@ -195,7 +195,8 @@ public class LightweightServerHandler
     List<Attribute> attributes = new ArrayList<Attribute>();
 
     attributes.add(Attributes.create("server-id", String.valueOf(serverId)));
-    attributes.add(Attributes.create("domain-name", rsDomain.getBaseDn()));
+    attributes.add(Attributes.create("domain-name",
+        rsDomain.getBaseDN().toNormalizedString()));
     attributes.add(Attributes.create("connected-to",
         replServerHandler.getMonitorInstanceName()));
 

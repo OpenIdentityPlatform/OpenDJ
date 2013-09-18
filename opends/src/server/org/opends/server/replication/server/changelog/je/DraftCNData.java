@@ -33,6 +33,8 @@ import org.opends.messages.Message;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.server.changelog.api.CNIndexRecord;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
 
 import com.sleepycat.je.DatabaseEntry;
 
@@ -104,13 +106,18 @@ public class DraftCNData extends DatabaseEntry
     {
       String stringData = new String(data, "UTF-8");
       String[] str = stringData.split(FIELD_SEPARATOR, 3);
-      return new CNIndexRecord(changeNumber, str[0], str[1], new CSN(str[2]));
+      final DN baseDN = DN.decode(str[1]);
+      return new CNIndexRecord(changeNumber, str[0], baseDN, new CSN(str[2]));
     }
     catch (UnsupportedEncodingException e)
     {
       // should never happens
       // TODO: i18n
       throw new ChangelogException(Message.raw("need UTF-8 support"));
+    }
+    catch (DirectoryException e)
+    {
+      throw new ChangelogException(e);
     }
   }
 

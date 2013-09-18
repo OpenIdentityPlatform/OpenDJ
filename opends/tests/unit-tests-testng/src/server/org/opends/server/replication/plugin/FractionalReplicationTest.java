@@ -383,10 +383,8 @@ public class FractionalReplicationTest extends ReplicationTestCase {
     List<String> replicationServers = new ArrayList<String>();
     replicationServers.add("localhost:" + replServerPort);
 
-    replicationDomain =
-        new FakeReplicationDomain((firstBackend ? TEST_ROOT_DN_STRING
-            : TEST2_ROOT_DN_STRING), DS2_ID, replicationServers, 100, 1000,
-            generationId);
+    DN baseDN = DN.decode(firstBackend ? TEST_ROOT_DN_STRING : TEST2_ROOT_DN_STRING);
+    replicationDomain = new FakeReplicationDomain(baseDN, DS2_ID, replicationServers, 100, 1000, generationId);
 
     // Test connection
     assertTrue(replicationDomain.isConnected());
@@ -587,14 +585,14 @@ public class FractionalReplicationTest extends ReplicationTestCase {
     private long generationID = -1;
 
     public FakeReplicationDomain(
-      String serviceID,
+      DN baseDN,
       int serverID,
       Collection<String> replicationServers,
       int window,
       long heartbeatInterval,
       long generationId) throws ConfigException
     {
-      super(serviceID, serverID, 100);
+      super(baseDN, serverID, 100);
       generationID = generationId;
       startPublishService(replicationServers, window, heartbeatInterval, 500);
       startListenService();
