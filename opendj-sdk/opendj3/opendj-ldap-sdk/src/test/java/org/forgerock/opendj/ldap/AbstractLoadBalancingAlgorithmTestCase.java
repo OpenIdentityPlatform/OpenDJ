@@ -181,7 +181,7 @@ public class AbstractLoadBalancingAlgorithmTestCase extends SdkTestCase {
             assertThat(scheduler.isScheduled()).isTrue();
 
             // Forcefully run the monitor task and check that the first factory is online.
-            scheduler.getCommand().run();
+            scheduler.runFirstTask();
             verify(listener).handleConnectionFactoryOnline(firstAsync);
             verifyNoMoreInteractions(listener);
         } finally {

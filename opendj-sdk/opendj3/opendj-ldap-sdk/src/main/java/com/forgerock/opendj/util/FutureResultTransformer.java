@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS.
  */
 
 package com.forgerock.opendj.util;
@@ -44,15 +45,12 @@ import org.forgerock.opendj.ldap.ResultHandler;
  *            The type of the outer result.
  */
 public abstract class FutureResultTransformer<M, N> implements FutureResult<N>, ResultHandler<M> {
-
     private final ResultHandler<? super N> handler;
-
     private volatile FutureResult<? extends M> future = null;
 
     // These do not need to be volatile since the future acts as a memory
     // barrier.
     private N transformedResult = null;
-
     private ErrorResultException transformedErrorResult = null;
 
     /**
@@ -77,8 +75,11 @@ public abstract class FutureResultTransformer<M, N> implements FutureResult<N>, 
      * {@inheritDoc}
      */
     public final N get() throws ErrorResultException, InterruptedException {
-        future.get();
-
+        try {
+            future.get();
+        } catch (ErrorResultException ignored) {
+            // Ignore untransformed error.
+        }
         // The handlers are guaranteed to have been invoked at this point.
         return get0();
     }
@@ -88,8 +89,11 @@ public abstract class FutureResultTransformer<M, N> implements FutureResult<N>, 
      */
     public final N get(final long timeout, final TimeUnit unit) throws ErrorResultException,
             TimeoutException, InterruptedException {
-        future.get(timeout, unit);
-
+        try {
+            future.get(timeout, unit);
+        } catch (ErrorResultException ignored) {
+            // Ignore untransformed error.
+        }
         // The handlers are guaranteed to have been invoked at this point.
         return get0();
     }

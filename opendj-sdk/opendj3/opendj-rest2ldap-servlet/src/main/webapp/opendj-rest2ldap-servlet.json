@@ -35,8 +35,10 @@
             // Re-usable pool of 24 connections per server.
             "connectionPoolSize"       : 24,
 
-            // Check pooled connections are alive every 30 seconds.
-            "heartBeatIntervalSeconds" : 30,
+            // Check pooled connections are alive every 30 seconds with a 500ms
+            // heart beat timeout.
+            "heartBeatIntervalSeconds"    : 30,
+            "heartBeatTimeoutMilliSeconds" : 500,
 
             // The preferred load-balancing pool.
             "primaryLDAPServers"       : [

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2012 ForgeRock AS
+ *      Portions copyright 2011-2013 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap;
@@ -138,8 +138,8 @@ public class ConnectionFactoryTestCase extends SdkTestCase {
                         "objectclass=*", "cn");
 
         factories[0][0] =
-                new HeartBeatConnectionFactory(new LDAPConnectionFactory(getServerSocketAddress()),
-                        1000, TimeUnit.MILLISECONDS, request);
+                Connections.newHeartBeatConnectionFactory(new LDAPConnectionFactory(
+                        getServerSocketAddress()), 1000, 500, TimeUnit.MILLISECONDS, request);
 
         // InternalConnectionFactory
         factories[1][0] = Connections.newInternalConnectionFactory(LDAPServer.getInstance(), null);

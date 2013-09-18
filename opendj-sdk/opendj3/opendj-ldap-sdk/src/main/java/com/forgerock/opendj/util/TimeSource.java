@@ -21,18 +21,32 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Copyright 2013 ForgeRock AS.
  */
-package org.forgerock.opendj.ldap;
 
-import org.forgerock.testng.ForgeRockTestCase;
-import org.testng.annotations.Test;
+package com.forgerock.opendj.util;
 
 /**
- * An abstract class that all types unit tests should extend. A type represents
- * the classes found directly under the package org.forgerock.opendj.ldap.
+ * An interface which is used by various components in order to obtain the
+ * current time.
  */
-@Test(groups = { "precommit", "types", "sdk" })
-public abstract class SdkTestCase extends ForgeRockTestCase {
+public interface TimeSource {
+    /**
+     * Default implementation which delegates to
+     * {@link System#currentTimeMillis()}.
+     */
+    public static final TimeSource DEFAULT = new TimeSource() {
+
+        @Override
+        public long currentTimeMillis() {
+            return System.currentTimeMillis();
+        }
+    };
+
+    /**
+     * Returns the current time in milli-seconds.
+     *
+     * @return The current time in milli-seconds.
+     */
+    long currentTimeMillis();
 }
