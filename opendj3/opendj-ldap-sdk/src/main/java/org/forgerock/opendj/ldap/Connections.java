@@ -245,7 +245,8 @@ public final class Connections {
      * Creates a new heart-beat connection factory which will create connections
      * using the provided connection factory and periodically ping any created
      * connections in order to detect that they are still alive every 10 seconds
-     * using the default scheduler.
+     * using the default scheduler. Connections will be marked as having failed
+     * if a heart-beat takes longer than 500ms.
      *
      * @param factory
      *            The connection factory to use for creating connections.
@@ -254,7 +255,8 @@ public final class Connections {
      *             If {@code factory} was {@code null}.
      */
     public static ConnectionFactory newHeartBeatConnectionFactory(final ConnectionFactory factory) {
-        return new HeartBeatConnectionFactory(factory);
+        return new HeartBeatConnectionFactory(factory, 10000, 500, TimeUnit.MILLISECONDS, null,
+                null);
     }
 
     /**
@@ -267,6 +269,9 @@ public final class Connections {
      *            The connection factory to use for creating connections.
      * @param interval
      *            The interval between keepalive pings.
+     * @param timeout
+     *            The heart-beat timeout after which a connection will be marked
+     *            as failed.
      * @param unit
      *            The time unit for the interval between keepalive pings.
      * @return The new heart-beat connection factory.
@@ -276,8 +281,8 @@ public final class Connections {
      *             If {@code factory} or {@code unit} was {@code null}.
      */
     public static ConnectionFactory newHeartBeatConnectionFactory(final ConnectionFactory factory,
-            final long interval, final TimeUnit unit) {
-        return new HeartBeatConnectionFactory(factory, interval, unit);
+            final long interval, final long timeout, final TimeUnit unit) {
+        return new HeartBeatConnectionFactory(factory, interval, timeout, unit, null, null);
     }
 
     /**
@@ -290,6 +295,9 @@ public final class Connections {
      *            The connection factory to use for creating connections.
      * @param interval
      *            The interval between keepalive pings.
+     * @param timeout
+     *            The heart-beat timeout after which a connection will be marked
+     *            as failed.
      * @param unit
      *            The time unit for the interval between keepalive pings.
      * @param heartBeat
@@ -302,8 +310,9 @@ public final class Connections {
      *             {@code null}.
      */
     public static ConnectionFactory newHeartBeatConnectionFactory(final ConnectionFactory factory,
-            final long interval, final TimeUnit unit, final SearchRequest heartBeat) {
-        return new HeartBeatConnectionFactory(factory, interval, unit, heartBeat);
+            final long interval, final long timeout, final TimeUnit unit,
+            final SearchRequest heartBeat) {
+        return new HeartBeatConnectionFactory(factory, interval, timeout, unit, heartBeat, null);
     }
 
     /**
@@ -316,6 +325,9 @@ public final class Connections {
      *            The connection factory to use for creating connections.
      * @param interval
      *            The interval between keepalive pings.
+     * @param timeout
+     *            The heart-beat timeout after which a connection will be marked
+     *            as failed.
      * @param unit
      *            The time unit for the interval between keepalive pings.
      * @param heartBeat
@@ -331,9 +343,10 @@ public final class Connections {
      *             {@code null}.
      */
     public static ConnectionFactory newHeartBeatConnectionFactory(final ConnectionFactory factory,
-            final long interval, final TimeUnit unit, final SearchRequest heartBeat,
-            final ScheduledExecutorService scheduler) {
-        return new HeartBeatConnectionFactory(factory, interval, unit, heartBeat, scheduler);
+            final long interval, final long timeout, final TimeUnit unit,
+            final SearchRequest heartBeat, final ScheduledExecutorService scheduler) {
+        return new HeartBeatConnectionFactory(factory, interval, timeout, unit, heartBeat,
+                scheduler);
     }
 
     /**

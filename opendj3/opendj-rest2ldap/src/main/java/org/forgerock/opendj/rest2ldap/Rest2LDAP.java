@@ -970,6 +970,9 @@ public final class Rest2LDAP {
                 Math.max(configuration.get("connectionPoolSize").defaultTo(10).asInteger(), 1);
         final int heartBeatIntervalSeconds =
                 Math.max(configuration.get("heartBeatIntervalSeconds").defaultTo(30).asInteger(), 1);
+        final int heartBeatTimeoutMilliSeconds =
+                Math.max(configuration.get("heartBeatTimeoutMilliSeconds").defaultTo(500)
+                        .asInteger(), 100);
 
         // Parse authentication parameters.
         final BindRequest bindRequest;
@@ -1036,7 +1039,7 @@ public final class Rest2LDAP {
         }
         final ConnectionFactory primary =
                 parseLDAPServers(primaryLDAPServers, bindRequest, connectionPoolSize,
-                        heartBeatIntervalSeconds, options);
+                        heartBeatIntervalSeconds, heartBeatTimeoutMilliSeconds, options);
 
         // Parse secondary data center(s).
         final JsonValue secondaryLDAPServers = configuration.get("secondaryLDAPServers");
@@ -1045,7 +1048,7 @@ public final class Rest2LDAP {
             if (secondaryLDAPServers.size() > 0) {
                 secondary =
                         parseLDAPServers(secondaryLDAPServers, bindRequest, connectionPoolSize,
-                                heartBeatIntervalSeconds, options);
+                                heartBeatIntervalSeconds, heartBeatTimeoutMilliSeconds, options);
             } else {
                 secondary = null;
             }
@@ -1093,19 +1096,21 @@ public final class Rest2LDAP {
 
     private static ConnectionFactory parseLDAPServers(final JsonValue config,
             final BindRequest bindRequest, final int connectionPoolSize,
-            final int heartBeatIntervalSeconds, final LDAPOptions options) {
+            final int heartBeatIntervalSeconds, final int heartBeatTimeoutMilliSeconds,
+            final LDAPOptions options) {
         final List<ConnectionFactory> servers = new ArrayList<ConnectionFactory>(config.size());
         for (final JsonValue server : config) {
             final String host = server.get("hostname").required().asString();
             final int port = server.get("port").required().asInteger();
             ConnectionFactory factory = new LDAPConnectionFactory(host, port, options);
+            factory =
+                    Connections.newHeartBeatConnectionFactory(factory,
+                            heartBeatIntervalSeconds * 1000, heartBeatTimeoutMilliSeconds,
+                            TimeUnit.MILLISECONDS);
             if (bindRequest != null) {
                 factory = Connections.newAuthenticatedConnectionFactory(factory, bindRequest);
             }
             if (connectionPoolSize > 1) {
-                factory =
-                        Connections.newHeartBeatConnectionFactory(factory,
-                                heartBeatIntervalSeconds, TimeUnit.SECONDS);
                 factory =
                         Connections.newCachedConnectionPool(factory, 0, connectionPoolSize, 60L,
                                 TimeUnit.SECONDS);

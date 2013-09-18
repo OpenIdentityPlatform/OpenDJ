@@ -21,18 +21,33 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Copyright 2013 ForgeRock AS
  */
 package org.forgerock.opendj.ldap;
 
-import org.forgerock.testng.ForgeRockTestCase;
+import static org.fest.assertions.Assertions.assertThat;
+import static org.forgerock.opendj.ldap.TestCaseUtils.mockTimeSource;
+
 import org.testng.annotations.Test;
 
-/**
- * An abstract class that all types unit tests should extend. A type represents
- * the classes found directly under the package org.forgerock.opendj.ldap.
- */
-@Test(groups = { "precommit", "types", "sdk" })
-public abstract class SdkTestCase extends ForgeRockTestCase {
+import com.forgerock.opendj.util.TimeSource;
+
+@SuppressWarnings("javadoc")
+public class TestCaseUtilsTestCase extends SdkTestCase {
+
+    /**
+     * Test for {@link #mockTimeSource(long...)}.
+     */
+    @Test
+    public void testMockTimeSource() {
+        final TimeSource mock1 = mockTimeSource(10);
+        assertThat(mock1.currentTimeMillis()).isEqualTo(10);
+        assertThat(mock1.currentTimeMillis()).isEqualTo(10);
+
+        final TimeSource mock2 = mockTimeSource(10, 20, 30);
+        assertThat(mock2.currentTimeMillis()).isEqualTo(10);
+        assertThat(mock2.currentTimeMillis()).isEqualTo(20);
+        assertThat(mock2.currentTimeMillis()).isEqualTo(30);
+        assertThat(mock2.currentTimeMillis()).isEqualTo(30);
+    }
 }

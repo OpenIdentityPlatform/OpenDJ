@@ -72,7 +72,7 @@ public class ErrorResultException extends ExecutionException {
      *             If {@code resultCode} was {@code null}.
      */
     public static ErrorResultException newErrorResult(ResultCode resultCode,
-            String diagnosticMessage) {
+            CharSequence diagnosticMessage) {
         return newErrorResult(resultCode, diagnosticMessage, null);
     }
 
@@ -114,10 +114,10 @@ public class ErrorResultException extends ExecutionException {
      *             If {@code resultCode} was {@code null}.
      */
     public static ErrorResultException newErrorResult(ResultCode resultCode,
-            String diagnosticMessage, Throwable cause) {
+            CharSequence diagnosticMessage, Throwable cause) {
         final Result result = Responses.newResult(resultCode);
         if (diagnosticMessage != null) {
-            result.setDiagnosticMessage(diagnosticMessage);
+            result.setDiagnosticMessage(diagnosticMessage.toString());
         } else if (cause != null) {
             result.setDiagnosticMessage(cause.getLocalizedMessage());
         }

@@ -35,7 +35,6 @@ import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.Callable;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -67,6 +66,7 @@ import org.forgerock.opendj.ldif.ConnectionEntryReader;
 import com.forgerock.opendj.util.AsynchronousFutureResult;
 import com.forgerock.opendj.util.CompletedFutureResult;
 import com.forgerock.opendj.util.ReferenceCountedObject;
+import com.forgerock.opendj.util.TimeSource;
 import com.forgerock.opendj.util.Validator;
 
 /**
@@ -552,7 +552,7 @@ final class CachedConnectionPool implements ConnectionPool {
                  * since we don't want to hold the lock too long.
                  */
                 idleConnections = new LinkedList<Connection>();
-                final long timeoutMillis = currentTimeMillis() - idleTimeoutMillis;
+                final long timeoutMillis = timeSource.currentTimeMillis() - idleTimeoutMillis;
                 int nonCoreConnectionCount = currentPoolSize() - corePoolSize;
                 for (QueueElement holder = queue.peek(); nonCoreConnectionCount > 0
                         && isTimedOutQueuedConnection(holder, timeoutMillis); holder = queue.peek()) {
@@ -631,10 +631,10 @@ final class CachedConnectionPool implements ConnectionPool {
     }
 
     /**
-     * This is intended for unit testing only in order to inject fake time
-     * stamps. Use System.currentTimeMillis() when null.
+     * This is package private in order to allow unit tests to inject fake time
+     * stamps.
      */
-    Callable<Long> testTimeSource = null;
+    TimeSource timeSource = TimeSource.DEFAULT;
 
     private final Semaphore availableConnections;
     private final ResultHandler<Connection> connectionResultHandler = new ConnectionResultHandler();
@@ -740,7 +740,7 @@ final class CachedConnectionPool implements ConnectionPool {
                 } else if (hasWaitingConnections()) {
                     holder = queue.removeFirst();
                 } else {
-                    holder = new QueueElement(handler, currentTimeMillis());
+                    holder = new QueueElement(handler, timeSource.currentTimeMillis());
                     queue.add(holder);
                 }
             }
@@ -802,23 +802,6 @@ final class CachedConnectionPool implements ConnectionPool {
         return maxPoolSize - availableConnections.availablePermits();
     }
 
-    /*
-     * This method delegates to System.currentTimeMillis() except in unit tests
-     * where we use injected times.
-     */
-    private long currentTimeMillis() {
-        if (testTimeSource == null) {
-            return System.currentTimeMillis();
-        } else {
-            try {
-                return testTimeSource.call();
-            } catch (final Exception e) {
-                // Should not happen.
-                throw new RuntimeException(e);
-            }
-        }
-    }
-
     private boolean hasWaitingConnections() {
         return !queue.isEmpty() && !queue.getFirst().isWaitingFuture();
     }
@@ -839,7 +822,7 @@ final class CachedConnectionPool implements ConnectionPool {
                 connectionPoolIsClosing = true;
                 holder = null;
             } else {
-                holder = new QueueElement(connection, currentTimeMillis());
+                holder = new QueueElement(connection, timeSource.currentTimeMillis());
                 queue.add(holder);
                 return;
             }

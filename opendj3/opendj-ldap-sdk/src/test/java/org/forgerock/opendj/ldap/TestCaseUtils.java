@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2013 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -42,8 +42,10 @@ import java.util.List;
 
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+import org.mockito.stubbing.OngoingStubbing;
 
 import com.forgerock.opendj.util.CompletedFutureResult;
+import com.forgerock.opendj.util.TimeSource;
 
 /**
  * This class defines some utility functions which can be used by test cases.
@@ -201,5 +203,23 @@ public final class TestCaseUtils {
         }).when(mockConnection).removeConnectionEventListener(any(ConnectionEventListener.class));
 
         return mockConnection;
+    }
+
+    /**
+     * Returns a mock {@link TimeSource} which can be used for injecting fake
+     * time stamps into components.
+     *
+     * @param times
+     *            The times in milli-seconds which should be returned by the
+     *            time source.
+     * @return The mock time source.
+     */
+    public static TimeSource mockTimeSource(final long... times) {
+        final TimeSource mock = mock(TimeSource.class);
+        OngoingStubbing<Long> stubbing = when(mock.currentTimeMillis());
+        for (long t : times) {
+            stubbing = stubbing.thenReturn(t);
+        }
+        return mock;
     }
 }
