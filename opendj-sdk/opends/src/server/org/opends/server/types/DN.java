@@ -51,8 +51,7 @@ import static org.opends.server.util.Validator.*;
      mayInstantiate=true,
      mayExtend=false,
      mayInvoke=true)
-public final class DN
-       implements Comparable<DN>, Serializable
+public final class DN implements Comparable<DN>, Serializable
 {
 /*
  * NOTE:  Any changes to the set of non-static public methods defined
@@ -2804,7 +2803,8 @@ public final class DN
    * <ol>
    * <li>sorting AVAs (e.g. "sn=swift+cn=matt" is greater than
    * "cn=matt+sn=swift")</li>
-   * <li>normalizing attribute names (e.g. "commonName" is converted to "cn")</li>
+   * <li>normalizing attribute names (e.g. "commonName" is converted to "cn")
+   * </li>
    * <li>normalizing attribute values (e.g. converting to lowercase)</li>
    * </ol>
    * Where AVA stands for "Attribute Value Assertion".
@@ -2815,7 +2815,7 @@ public final class DN
    * <li>an RDN is made of one or several AVA</li>
    * <li>an AVA is a attribute type and an attribute value</li>
    * </ul>
-   * 
+   *
    * @return A normalized string representation of this DN.
    */
   public String toNormalizedString()
