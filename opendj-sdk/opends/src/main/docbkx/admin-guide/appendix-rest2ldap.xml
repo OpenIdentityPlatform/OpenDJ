@@ -134,12 +134,26 @@
           <term>"heartBeatIntervalSeconds" (optional)</term>
           <listitem>
            <para>The gateway tests its connections every
-           <literal>heartBeatIntervalSeconds</literal> seconds to detect whether
-           the connection is still alive.</para>
+           <literal>heartBeatIntervalSeconds</literal> to detect whether
+           the connection is still alive. The first test is performed
+           immediately when the gateway gets a connection. Subsequent tests
+           follow every <literal>heartBeatIntervalSeconds</literal>.</para>
 
            <para>Default: 30 (seconds)</para>
 
            <programlisting language="javascript">"heartBeatIntervalSeconds": 30</programlisting>
+          </listitem>
+         </varlistentry>
+
+         <varlistentry>
+          <term>"heartBeatTimeoutMilliSeconds" (optional)</term>
+          <listitem>
+          <para>When the gateway tests a connection, if the heartbeat does not come back after 
+          <literal>heartBeatTimeoutMilliSeconds</literal> the connection is marked as closed.</para>
+
+           <para>Default: 500 (milliseconds)</para>
+
+           <programlisting language="javascript">"heartBeatTimeoutMilliSeconds": 500</programlisting>
           </listitem>
          </varlistentry>
 
