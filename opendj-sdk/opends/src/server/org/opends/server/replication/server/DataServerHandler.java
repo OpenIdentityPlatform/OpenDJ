@@ -136,7 +136,7 @@ public class DataServerHandler extends ServerHandler
       if (debugEnabled())
       {
         TRACER.debugInfo("In RS " + replicationServer.getServerId()
-            + ", DS " + getServerId() + " for baseDn " + getBaseDN()
+            + ", DS " + getServerId() + " for baseDN=" + getBaseDN()
             + " has already generation id " + newGenId
             + " so no ChangeStatusMsg sent to him.");
       }
@@ -150,7 +150,7 @@ public class DataServerHandler extends ServerHandler
     if (debugEnabled())
     {
       TRACER.debugInfo("In RS " + replicationServer.getServerId()
-          + ", closing connection to DS " + getServerId() + " for baseDn "
+          + ", closing connection to DS " + getServerId() + " for baseDN="
           + getBaseDN() + " to force reconnection as new local"
           + " generationId and remote one match and DS is in bad gen id: "
           + newGenId);
@@ -220,7 +220,7 @@ public class DataServerHandler extends ServerHandler
     {
       TRACER.debugInfo("In RS " + replicationServer.getServerId()
           + " Sending change status " + origin + " to " + getServerId()
-          + " for baseDn " + getBaseDN() + ":\n" + csMsg);
+          + " for baseDN=" + getBaseDN() + ":\n" + csMsg);
     }
 
     session.publish(csMsg);
@@ -361,7 +361,8 @@ public class DataServerHandler extends ServerHandler
     heartbeatInterval = serverStartMsg.getHeartbeatInterval();
 
     // generic stuff
-    setBaseDNAndDomain(serverStartMsg.getBaseDn(), true);
+    DN baseDN = DN.decode(serverStartMsg.getBaseDn());
+    setBaseDNAndDomain(baseDN, true);
     setInitialServerState(serverStartMsg.getServerState());
     setSendWindowSize(serverStartMsg.getWindowSize());
 
@@ -477,7 +478,7 @@ public class DataServerHandler extends ServerHandler
 
       Message message = INFO_REPLICATION_SERVER_CONNECTION_FROM_DS
           .get(getReplicationServerId(), getServerId(),
-              replicationServerDomain.getBaseDn(),
+              replicationServerDomain.getBaseDN().toNormalizedString(),
               session.getReadableRemoteAddress());
       logError(message);
 
@@ -550,7 +551,7 @@ public class DataServerHandler extends ServerHandler
     if (serverId != 0)
     {
       return "Replica DS(" + serverId + ") for domain \""
-          + replicationServerDomain.getBaseDn() + "\"";
+          + replicationServerDomain.getBaseDN() + "\"";
     }
     return "Unknown server";
   }

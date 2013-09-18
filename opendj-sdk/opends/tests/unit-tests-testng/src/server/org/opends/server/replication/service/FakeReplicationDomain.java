@@ -27,8 +27,6 @@
  */
 package org.opends.server.replication.service;
 
-import static org.opends.messages.ReplicationMessages.*;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -38,8 +36,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.opends.server.config.ConfigException;
 import org.opends.server.replication.protocol.UpdateMsg;
+import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.ResultCode;
+
+import static org.opends.messages.ReplicationMessages.*;
 
 /**
  * This class is the minimum implementation of a Concrete ReplicationDomain
@@ -52,23 +53,23 @@ public class FakeReplicationDomain extends ReplicationDomain
    * A blocking queue that is used to send the UpdateMsg received from the
    * Replication Service.
    */
-  private BlockingQueue<UpdateMsg> queue = null;
+  private BlockingQueue<UpdateMsg> queue;
 
   /** A string that will be exported should exportBackend be called. */
-  private String exportString = null;
+  private String exportString;
 
   /**
    * A StringBuilder that will be used to build a build a new String should the
    * import be called.
    */
-  private StringBuilder importString = null;
+  private StringBuilder importString;
 
   private int exportedEntryCount;
 
   private long generationID = 1;
 
   public FakeReplicationDomain(
-      String baseDN,
+      DN baseDN,
       int serverID,
       Collection<String> replicationServers,
       int window,
@@ -82,7 +83,7 @@ public class FakeReplicationDomain extends ReplicationDomain
   }
 
   public FakeReplicationDomain(
-      String baseDN,
+      DN baseDN,
       int serverID,
       Collection<String> replicationServers,
       int window,

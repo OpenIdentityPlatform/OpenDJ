@@ -92,7 +92,8 @@ public class DraftCNDB
       final long changeNumber = record.getChangeNumber();
       DatabaseEntry key = new ReplicationDraftCNKey(changeNumber);
       DatabaseEntry data = new DraftCNData(changeNumber,
-          record.getPreviousCookie(), record.getBaseDN(), record.getCSN());
+          record.getPreviousCookie(), record.getBaseDN().toNormalizedString(),
+          record.getCSN());
 
       // Use a transaction so that we can override durability.
       Transaction txn = null;

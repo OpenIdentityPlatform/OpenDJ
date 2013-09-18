@@ -76,6 +76,7 @@ public class StateMachineTest extends ReplicationTestCase
 {
 
   private static final String EXAMPLE_DN = "dc=example,dc=com";  // Server id definitions
+  private static DN EXAMPLE_DN_;
 
   private static final int DS1_ID = 1;
   private static final int DS2_ID = 2;
@@ -117,7 +118,7 @@ public class StateMachineTest extends ReplicationTestCase
     }
 
     // Clear any reference to a domain in synchro plugin
-    MultimasterReplication.deleteDomain(DN.decode(EXAMPLE_DN));
+    MultimasterReplication.deleteDomain(EXAMPLE_DN_);
 
     if (ds2 != null)
     {
@@ -223,8 +224,7 @@ public class StateMachineTest extends ReplicationTestCase
     SortedSet<String> replServers = new TreeSet<String>();
     replServers.add("localhost:" + rs1Port);
 
-    DN baseDn = DN.decode(EXAMPLE_DN);
-    DomainFakeCfg domainConf = new DomainFakeCfg(baseDn, dsId, replServers);
+    DomainFakeCfg domainConf = new DomainFakeCfg(EXAMPLE_DN_, dsId, replServers);
     LDAPReplicationDomain replicationDomain = MultimasterReplication.createNewDomain(domainConf);
     replicationDomain.start();
     SynchronizationProvider<SynchronizationProviderCfg> provider =
@@ -246,9 +246,9 @@ public class StateMachineTest extends ReplicationTestCase
   private ReplicationBroker createReplicationBroker(int dsId,
       ServerState state, long generationId) throws Exception
   {
-    ReplicationBroker broker = new ReplicationBroker(null,
-      state, EXAMPLE_DN, dsId, 100, generationId, 0,
-      new ReplSessionSecurity(null, null, null, true), (byte) 1, 500);
+    ReplSessionSecurity security = new ReplSessionSecurity(null, null, null, true);
+    ReplicationBroker broker = new ReplicationBroker(null, state, EXAMPLE_DN_,
+        dsId, 100, generationId, 0, security, (byte) 1, 500);
     List<String> servers = new ArrayList<String>(1);
     servers.add("localhost:" + rs1Port);
     broker.start(servers);
@@ -715,13 +715,13 @@ public class StateMachineTest extends ReplicationTestCase
   public void setUp() throws Exception
   {
     super.setUp();
+    EXAMPLE_DN_ = DN.decode(EXAMPLE_DN);
 
     // Note: this test does not use the memory test backend as for having a DS
     // going into degraded status, we need to send a lot of updates. This makes
     // the memory test backend crash with OutOfMemoryError. So we prefer here
     // a backend backed up with a file
     TestCaseUtils.clearJEBackend(false, "userRoot", EXAMPLE_DN);
-
   }
 
   /**

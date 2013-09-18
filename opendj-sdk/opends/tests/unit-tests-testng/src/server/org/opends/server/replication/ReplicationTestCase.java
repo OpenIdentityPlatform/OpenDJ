@@ -27,6 +27,14 @@
  */
 package org.opends.server.replication;
 
+import java.io.File;
+import java.net.SocketException;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.concurrent.locks.Lock;
+
 import org.opends.messages.Category;
 import org.opends.messages.Message;
 import org.opends.messages.Severity;
@@ -60,14 +68,6 @@ import org.opends.server.util.StaticUtils;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
-
-import java.io.File;
-import java.net.SocketException;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.concurrent.locks.Lock;
 
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.ErrorLogger.*;
@@ -117,7 +117,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
   /**
    * Replication monitor stats
    */
-  private DN monitorDn;
+  private DN monitorDN;
   private String monitorAttr;
   private long lastCount;
 
@@ -172,22 +172,22 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
   }
 
   /**
-   * Retrieves the domain associated to the baseDn, and the value of the generationId
+   * Retrieves the domain associated to the baseDN, and the value of the generationId
    * of this domain. If the domain does not exist, returns the default hard-coded\
    * value of the generationId corresponding to test backend with its default
    * initial o=test root root entry.
    *
-   * @param baseDn The baseDn for which we want the generationId
+   * @param baseDN The baseDN for which we want the generationId
    * @return The value of the generationId.
    */
-  static protected long getGenerationId(DN baseDn)
+  static protected long getGenerationId(DN baseDN)
   {
     // This is the value of the generationId computed by the server when the
     // test suffix (o=test) has only the root entry created.
     long genId = TEST_DN_WITH_ROOT_ENTRY_GENID;
     try
     {
-      LDAPReplicationDomain replDomain = LDAPReplicationDomain.retrievesReplicationDomain(baseDn);
+      LDAPReplicationDomain replDomain = LDAPReplicationDomain.retrievesReplicationDomain(baseDN);
       genId = replDomain.getGenerationID();
     }
     catch(Exception e) {}
@@ -200,12 +200,12 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
    * does not exist, take the 'empty backend' generationID.
    */
   protected ReplicationBroker openReplicationSession(
-      final DN baseDn, int serverId, int window_size,
+      final DN baseDN, int serverId, int window_size,
       int port, int timeout, boolean emptyOldChanges)
           throws Exception, SocketException
   {
-    return openReplicationSession(baseDn, serverId, window_size,
-        port, timeout, emptyOldChanges, getGenerationId(baseDn), null);
+    return openReplicationSession(baseDN, serverId, window_size,
+        port, timeout, emptyOldChanges, getGenerationId(baseDN), null);
   }
 
   /**
@@ -213,12 +213,12 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
    * providing the generationId.
    */
   protected ReplicationBroker openReplicationSession(
-        final DN baseDn, int serverId, int window_size,
+        final DN baseDN, int serverId, int window_size,
         int port, int timeout, boolean emptyOldChanges,
         long generationId)
   throws Exception, SocketException
   {
-    return openReplicationSession(baseDn, serverId, window_size,
+    return openReplicationSession(baseDN, serverId, window_size,
         port, timeout, emptyOldChanges, generationId, null);
   }
 
@@ -227,7 +227,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
    * providing the generationId.
    */
   protected ReplicationBroker openReplicationSession(
-        final DN baseDn, int serverId, int window_size,
+        final DN baseDN, int serverId, int window_size,
         int port, int timeout, boolean emptyOldChanges,
         long generationId, ReplicationDomain replicationDomain)
   throws Exception, SocketException
@@ -235,12 +235,12 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
     ServerState state = new ServerState();
 
     if (emptyOldChanges)
-       new PersistentServerState(baseDn, serverId, new ServerState());
+       new PersistentServerState(baseDN, serverId, new ServerState());
 
     ReplicationBroker broker = new ReplicationBroker(replicationDomain,
-        state, baseDn.toNormalizedString(), serverId, window_size,
+        state, baseDN, serverId, window_size,
         generationId, 100000, getReplSessionSecurity(), (byte)1, 500);
-    ArrayList<String> servers = new ArrayList<String>(1);
+    List<String> servers = new ArrayList<String>(1);
     servers.add("localhost:" + port);
     broker.start(servers);
     if (timeout != 0)
@@ -297,15 +297,14 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
   /**
    * Open a replicationServer session to the local ReplicationServer
    * with a default value generationId.
-   *
    */
   protected ReplicationBroker openReplicationSession(
-      final DN baseDn, int serverId, int window_size,
+      final DN baseDN, int serverId, int window_size,
       int port, int timeout, ServerState state)
     throws Exception, SocketException
   {
-    return openReplicationSession(baseDn, serverId, window_size,
-        port, timeout, state, getGenerationId(baseDn));
+    return openReplicationSession(baseDN, serverId, window_size,
+        port, timeout, state, getGenerationId(baseDN));
   }
 
   /**
@@ -313,14 +312,14 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
    * starting with a given ServerState.
    */
   protected ReplicationBroker openReplicationSession(
-      final DN baseDn, int serverId, int window_size,
+      final DN baseDN, int serverId, int window_size,
       int port, int timeout, ServerState state, long generationId)
           throws Exception, SocketException
   {
     ReplicationBroker broker = new ReplicationBroker(null,
-        state, baseDn.toNormalizedString(), serverId, window_size, generationId,
+        state, baseDN, serverId, window_size, generationId,
         100000, getReplSessionSecurity(), (byte)1, 500);
-    ArrayList<String> servers = new ArrayList<String>(1);
+    List<String> servers = new ArrayList<String>(1);
     servers.add("localhost:" + port);
     broker.start(servers);
     checkConnection(30, broker, port);
@@ -333,10 +332,9 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
   /**
    * Open a replicationServer session with flow control to the local
    * ReplicationServer.
-   *
    */
   protected ReplicationBroker openReplicationSession(
-      final DN baseDn, int serverId, int window_size,
+      final DN baseDN, int serverId, int window_size,
       int port, int timeout, int maxSendQueue, int maxRcvQueue,
       boolean emptyOldChanges)
       throws Exception, SocketException
@@ -344,12 +342,12 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
     ServerState state = new ServerState();
 
     if (emptyOldChanges)
-       new PersistentServerState(baseDn, serverId, new ServerState());
+       new PersistentServerState(baseDN, serverId, new ServerState());
 
     ReplicationBroker broker = new ReplicationBroker(null,
-        state, baseDn.toNormalizedString(), serverId, window_size,
-        getGenerationId(baseDn), 0, getReplSessionSecurity(), (byte)1, 500);
-    ArrayList<String> servers = new ArrayList<String>(1);
+        state, baseDN, serverId, window_size,
+        getGenerationId(baseDN), 0, getReplSessionSecurity(), (byte)1, 500);
+    List<String> servers = new ArrayList<String>(1);
     servers.add("localhost:" + port);
     broker.start(servers);
     checkConnection(30, broker, port);
@@ -584,10 +582,9 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
    * @return The monitor value
    * @throws Exception If an error occurs.
    */
-  protected long getMonitorAttrValue(DN baseDn, String attr) throws Exception
+  protected long getMonitorAttrValue(DN baseDN, String attr) throws Exception
   {
-    String monitorFilter =
-         "(&(cn=Directory server*)(domain-name=" + baseDn + "))";
+    String monitorFilter = "(&(cn=Directory server*)(domain-name=" + baseDN + "))";
 
     InternalSearchOperation op;
     int count = 0;
@@ -685,10 +682,9 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
     try
     {
       Entry entry = DirectoryServer.getEntry(dn);
-      if (entry == null)
-        return null;
-      else
+      if (entry != null)
         return entry.duplicate(true);
+      return null;
     }
     finally
     {
@@ -699,18 +695,11 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
   /**
    * Update the monitor count for the specified monitor attribute.
    */
-  protected void updateMonitorCount(DN baseDn, String attr) {
-    monitorDn = baseDn;
+  protected void updateMonitorCount(DN baseDN, String attr) throws Exception
+  {
+    monitorDN = baseDN;
     monitorAttr = attr;
-    try
-    {
-      lastCount = getMonitorAttrValue(baseDn, attr);
-    }
-    catch (Exception ex)
-    {
-      ex.printStackTrace();
-      assertTrue(false);
-    }
+    lastCount = getMonitorAttrValue(baseDN, attr);
   }
 
   /**
@@ -720,7 +709,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
   protected long getMonitorDelta() {
     long delta = 0;
     try {
-      long currentCount = getMonitorAttrValue(monitorDn, monitorAttr);
+      long currentCount = getMonitorAttrValue(monitorDN, monitorAttr);
       delta = (currentCount - lastCount);
       lastCount = currentCount;
     } catch (Exception ex) {
@@ -937,7 +926,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
       // Check that the task contains some log messages.
       AttributeType logMessagesType = DirectoryServer.getAttributeType(
           ATTR_TASK_LOG_MESSAGES.toLowerCase());
-      ArrayList<String> logMessages = new ArrayList<String>();
+      List<String> logMessages = new ArrayList<String>();
       resultEntry.getAttributeValues(logMessagesType,
           DirectoryStringSyntax.DECODER,
           logMessages);

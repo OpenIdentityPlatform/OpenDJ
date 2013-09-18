@@ -41,6 +41,7 @@ import org.opends.server.replication.protocol.DeleteMsg;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.server.changelog.api.ReplicaDBCursor;
+import org.opends.server.types.DN;
 import org.opends.server.util.StaticUtils;
 import org.testng.annotations.Test;
 
@@ -86,7 +87,7 @@ public class DbHandlerTest extends ReplicationTestCase
       testRoot = createCleanDir();
 
       dbEnv = new ReplicationDbEnv(testRoot.getPath(), replicationServer);
-      handler = new DbHandler(1, TEST_ROOT_DN_STRING, replicationServer, dbEnv, 5000);
+      handler = new DbHandler(1, DN.decode(TEST_ROOT_DN_STRING), replicationServer, dbEnv, 5000);
 
       CSNGenerator gen = new CSNGenerator( 1, 0);
       CSN csn1 = gen.newCSN();
@@ -251,7 +252,7 @@ public class DbHandlerTest extends ReplicationTestCase
 
       testRoot = createCleanDir();
       dbEnv = new ReplicationDbEnv(testRoot.getPath(), replicationServer);
-      handler = new DbHandler(1, TEST_ROOT_DN_STRING, replicationServer, dbEnv, 5000);
+      handler = new DbHandler(1, DN.decode(TEST_ROOT_DN_STRING), replicationServer, dbEnv, 5000);
 
       // Creates changes added to the dbHandler
       CSNGenerator gen = new CSNGenerator( 1, 0);
@@ -347,7 +348,7 @@ public class DbHandlerTest extends ReplicationTestCase
 
       testRoot = createCleanDir();
       dbEnv = new ReplicationDbEnv(testRoot.getPath(), replicationServer);
-      handler = new DbHandler(1, TEST_ROOT_DN_STRING, replicationServer, dbEnv, 10);
+      handler = new DbHandler(1, DN.decode(TEST_ROOT_DN_STRING), replicationServer, dbEnv, 10);
       handler.setCounterWindowSize(counterWindow);
 
       // Populate the db with 'max' msg
@@ -443,7 +444,7 @@ public class DbHandlerTest extends ReplicationTestCase
       debugInfo(tn,"SHUTDOWN handler and recreate");
       handler.shutdown();
 
-      handler = new DbHandler(1, TEST_ROOT_DN_STRING, replicationServer, dbEnv, 10);
+      handler = new DbHandler(1, DN.decode(TEST_ROOT_DN_STRING), replicationServer, dbEnv, 10);
       handler.setCounterWindowSize(counterWindow);
 
       // Test first and last

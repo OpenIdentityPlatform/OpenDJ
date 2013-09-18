@@ -47,6 +47,7 @@ import org.opends.server.replication.server.changelog.api.ReplicaDBCursor;
 import org.opends.server.replication.server.changelog.je.ReplicationDB.*;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.Attributes;
+import org.opends.server.types.DN;
 import org.opends.server.types.InitializationException;
 import org.opends.server.util.TimeThread;
 
@@ -113,7 +114,7 @@ public class DbHandler implements Runnable
   private CSN firstChange;
   private CSN lastChange;
   private int serverId;
-  private String baseDn;
+  private DN baseDN;
   private DbMonitorProvider dbMonitor = new DbMonitorProvider();
   private DirectoryThread thread;
   private final Object flushLock = new Object();
@@ -131,21 +132,19 @@ public class DbHandler implements Runnable
    * Creates a new dbHandler associated to a given LDAP server.
    *
    * @param id Identifier of the DB.
-   * @param baseDn the baseDn for which this DB was created.
+   * @param baseDN the baseDN for which this DB was created.
    * @param replicationServer The ReplicationServer that creates this dbHandler.
    * @param dbenv the Database Env to use to create the ReplicationServer DB.
    * server for this domain.
    * @param queueSize The queueSize to use when creating the dbHandler.
    * @throws ChangelogException If a database problem happened
    */
-  public DbHandler(
-      int id, String baseDn, ReplicationServer replicationServer,
-      ReplicationDbEnv dbenv, int queueSize)
-         throws ChangelogException
+  public DbHandler(int id, DN baseDN, ReplicationServer replicationServer,
+      ReplicationDbEnv dbenv, int queueSize) throws ChangelogException
   {
     this.replicationServer = replicationServer;
     serverId = id;
-    this.baseDn = baseDn;
+    this.baseDN = baseDN;
     trimAge = replicationServer.getTrimAge();
     queueMaxSize = queueSize;
     queueLowmark = queueSize / 5;
@@ -153,13 +152,13 @@ public class DbHandler implements Runnable
     queueMaxBytes = 200 * queueMaxSize;
     queueLowmarkBytes = 200 * queueLowmark;
     queueHimarkBytes = 200 * queueLowmark;
-    db = new ReplicationDB(id, baseDn, replicationServer, dbenv);
+    db = new ReplicationDB(id, baseDN, replicationServer, dbenv);
     firstChange = db.readFirstChange();
     lastChange = db.readLastChange();
     thread = new DirectoryThread(this, "Replication server RS("
         + replicationServer.getServerId()
         + ") changelog checkpointer for Replica DS(" + id
-        + ") for domain \"" + baseDn + "\"");
+        + ") for domain \"" + baseDN + "\"");
     thread.start();
 
     DirectoryServer.deregisterMonitorProvider(dbMonitor);
@@ -531,7 +530,8 @@ public class DbHandler implements Runnable
       List<Attribute> attributes = new ArrayList<Attribute>();
       attributes.add(Attributes.create("replicationServer-database",
           String.valueOf(serverId)));
-      attributes.add(Attributes.create("domain-name", baseDn));
+      attributes.add(Attributes.create("domain-name",
+          baseDN.toNormalizedString()));
       if (firstChange != null)
       {
         attributes.add(Attributes.create("first-change", encode(firstChange)));
@@ -559,7 +559,7 @@ public class DbHandler implements Runnable
     public String getMonitorInstanceName()
     {
       ReplicationServerDomain domain = replicationServer
-          .getReplicationServerDomain(baseDn);
+          .getReplicationServerDomain(baseDN);
       return "Changelog for DS(" + serverId + "),cn="
           + domain.getMonitorInstanceName();
     }
@@ -581,7 +581,7 @@ public class DbHandler implements Runnable
   @Override
   public String toString()
   {
-    return baseDn + " " + serverId + " " + firstChange + " " + lastChange;
+    return baseDN + " " + serverId + " " + firstChange + " " + lastChange;
   }
 
   /**

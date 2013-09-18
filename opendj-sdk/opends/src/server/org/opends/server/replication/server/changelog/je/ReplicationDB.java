@@ -40,6 +40,7 @@ import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.server.ReplicationServerDomain;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
+import org.opends.server.types.DN;
 import org.opends.server.util.StaticUtils;
 
 import com.sleepycat.je.*;
@@ -65,7 +66,7 @@ public class ReplicationDB
   private ReplicationDbEnv dbenv;
   private ReplicationServer replicationServer;
   private int serverId;
-  private String baseDn;
+  private DN baseDN;
 
   /**
    * The lock used to provide exclusive access to the thread that close the db
@@ -117,25 +118,24 @@ public class ReplicationDB
    * Creates a new database or open existing database that will be used
    * to store and retrieve changes from an LDAP server.
    * @param serverId The identifier of the LDAP server.
-   * @param baseDn The baseDn of the replication domain.
+   * @param baseDN The baseDN of the replication domain.
    * @param replicationServer The ReplicationServer that needs to be shutdown.
    * @param dbenv The Db environment to use to create the db.
    * @throws ChangelogException If a database problem happened.
    */
-  public ReplicationDB(int serverId, String baseDn,
-                     ReplicationServer replicationServer,
-                     ReplicationDbEnv dbenv)
-                     throws ChangelogException
+  public ReplicationDB(int serverId, DN baseDN,
+      ReplicationServer replicationServer, ReplicationDbEnv dbenv)
+      throws ChangelogException
   {
     this.serverId = serverId;
-    this.baseDn = baseDn;
+    this.baseDN = baseDN;
     this.dbenv = dbenv;
     this.replicationServer = replicationServer;
 
     // Get or create the associated ReplicationServerDomain and Db.
     final ReplicationServerDomain domain =
-        replicationServer.getReplicationServerDomain(baseDn, true);
-    db = dbenv.getOrAddDb(serverId, baseDn, domain.getGenerationId());
+        replicationServer.getReplicationServerDomain(baseDN, true);
+    db = dbenv.getOrAddDb(serverId, baseDN, domain.getGenerationId());
 
 
     intializeCounters();
@@ -527,7 +527,7 @@ public class ReplicationDB
   @Override
   public String toString()
   {
-    return serverId + baseDn;
+    return serverId + " " + baseDN.toNormalizedString();
   }
 
   /**
@@ -876,7 +876,7 @@ public class ReplicationDB
       String dbName = db.getDatabaseName();
 
       // Clears the reference to this serverID
-      dbenv.clearServerId(baseDn, serverId);
+      dbenv.clearServerId(baseDN, serverId);
 
       // Closing is requested by the Berkeley DB before truncate
       db.close();
@@ -886,7 +886,7 @@ public class ReplicationDB
       dbenv.clearDb(dbName);
 
       // RE-create the db
-      db = dbenv.getOrAddDb(serverId, baseDn, -1);
+      db = dbenv.getOrAddDb(serverId, baseDN, -1);
     }
     catch(Exception e)
     {

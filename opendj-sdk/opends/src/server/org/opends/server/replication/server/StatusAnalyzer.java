@@ -78,7 +78,7 @@ public class StatusAnalyzer extends DirectoryThread
   {
     super("Replication server RS("
         + replicationServerDomain.getLocalRSServerId()
-        + ") delay monitor for domain \"" + replicationServerDomain.getBaseDn()
+        + ") delay monitor for domain \"" + replicationServerDomain.getBaseDN()
         + "\"");
 
     this.replicationServerDomain = replicationServerDomain;
@@ -173,7 +173,7 @@ public class StatusAnalyzer extends DirectoryThread
   private String getMessage(String message)
   {
     return "In RS " + replicationServerDomain.getLocalRSServerId()
-        + ", for base dn " + replicationServerDomain.getBaseDn() + ": "
+        + ", for baseDN=" + replicationServerDomain.getBaseDN() + ": "
         + message;
   }
 

@@ -43,6 +43,7 @@ import org.opends.server.replication.common.ServerStatus;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
+import org.opends.server.types.DN;
 import org.opends.server.util.StaticUtils;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -77,7 +78,7 @@ public class ReplicationDomainTest extends ReplicationTestCase
       int domain1ServerId, int domain2ServerId)
       throws Exception
   {
-    String testService = "test";
+    DN testService = DN.decode("o=test");
     ReplicationServer replServer1 = null;
     ReplicationServer replServer2 = null;
     FakeReplicationDomain domain1 = null;
@@ -207,7 +208,7 @@ public class ReplicationDomainTest extends ReplicationTestCase
   @Test(enabled=false)
   public void publishPerf() throws Exception
   {
-    String testService = "test";
+    DN testService = DN.decode("o=test");
     ReplicationServer replServer1 = null;
     int replServerID1 = 10;
     FakeReplicationDomain domain1 = null;
@@ -324,7 +325,7 @@ public class ReplicationDomainTest extends ReplicationTestCase
   public void exportAndImport(int serverId1, int serverId2) throws Exception
   {
     final int ENTRYCOUNT=5000;
-    String testService = "test";
+    DN testService = DN.decode("o=test");
     ReplicationServer replServer = null;
     int replServerID = 11;
     FakeReplicationDomain domain1 = null;
@@ -395,7 +396,7 @@ public class ReplicationDomainTest extends ReplicationTestCase
   public void exportAndImportAcross2ReplServers() throws Exception
   {
     final int ENTRYCOUNT=5000;
-    String testService = "test";
+    DN testService = DN.decode("o=test");
     ReplicationServer replServer2 = null;
     ReplicationServer replServer1 = null;
     int replServerID = 11;
@@ -483,7 +484,7 @@ public class ReplicationDomainTest extends ReplicationTestCase
   @Test(enabled=false)
   public void senderInitialize() throws Exception
   {
-    String testService = "test";
+    DN testService = DN.decode("o=test");
     ReplicationServer replServer = null;
     int replServerID = 12;
     FakeStressReplicationDomain domain1 = null;
@@ -517,7 +518,7 @@ public class ReplicationDomainTest extends ReplicationTestCase
   @Test(enabled=false)
   public void receiverInitialize() throws Exception
   {
-    String testService = "test";
+    DN testService = DN.decode("o=test");
     ReplicationServer replServer = null;
     int replServerID = 11;
     FakeStressReplicationDomain domain1 = null;

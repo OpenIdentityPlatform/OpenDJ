@@ -113,7 +113,7 @@ public class InitOnLineTest extends ReplicationTestCase
   private static final String EXAMPLE_DN = "dc=example,dc=com";
   private static int[] replServerPort = new int[20];
 
-  private DN baseDn;
+  private DN baseDN;
   private ReplicationBroker server2;
   private ReplicationBroker server3;
   private ReplicationServer changelog1;
@@ -153,7 +153,7 @@ public class InitOnLineTest extends ReplicationTestCase
     log("Setup: debugEnabled:" + debugEnabled());
 
     // This test suite depends on having the schema available.
-    baseDn = DN.decode(EXAMPLE_DN);
+    baseDN = DN.decode(EXAMPLE_DN);
 
     // This test uses import tasks which do not work with memory backend
     // (like the test backend we use in every tests): backend is disabled then
@@ -610,7 +610,7 @@ public class InitOnLineTest extends ReplicationTestCase
         "Unable to add the synchronized server");
     configEntryList.add(synchroServerEntry.getDN());
 
-    replDomain = LDAPReplicationDomain.retrievesReplicationDomain(baseDn);
+    replDomain = LDAPReplicationDomain.retrievesReplicationDomain(baseDN);
 
     assertTrue(!replDomain.ieRunning(),
         "ReplicationDomain: Import/Export is not expected to be running");
@@ -1004,10 +1004,10 @@ public class InitOnLineTest extends ReplicationTestCase
           "objectclass: ds-task",
           "objectclass: ds-task-initialize-from-remote-replica",
           "ds-task-class-name: org.opends.server.tasks.InitializeTask",
-          "ds-task-initialize-domain-dn: " + baseDn,
+          "ds-task-initialize-domain-dn: " + baseDN,
           "ds-task-initialize-replica-server-id: -3");
       addTask(taskInit, ResultCode.OTHER,
-          ERR_INVALID_IMPORT_SOURCE.get(baseDn.toNormalizedString(),
+          ERR_INVALID_IMPORT_SOURCE.get(baseDN.toNormalizedString(),
               Integer.toString(server1ID),"-3",""));
 
       // Scope containing a serverID absent from the domain
@@ -1101,7 +1101,7 @@ public class InitOnLineTest extends ReplicationTestCase
 
   private Set<Integer> getConnectedDSServerIds(ReplicationServer changelog)
   {
-    ReplicationServerDomain domain = changelog.getReplicationServerDomain(baseDn.toNormalizedString());
+    ReplicationServerDomain domain = changelog.getReplicationServerDomain(baseDN);
     return domain.getConnectedDSs().keySet();
   }
 
@@ -1197,8 +1197,7 @@ public class InitOnLineTest extends ReplicationTestCase
         log(testCase + " Will connect server 2 to " + changelog2ID);
         server2 = openReplicationSession(DN.decode(EXAMPLE_DN),
           server2ID, 100, getChangelogPort(changelog2ID),
-          1000, emptyOldChanges,
-          changelog1.getGenerationId(baseDn.toNormalizedString()));
+          1000, emptyOldChanges, changelog1.getGenerationId(baseDN));
       }
 
       // Connect a broker acting as server 3 to Repl Server 3
@@ -1210,8 +1209,7 @@ public class InitOnLineTest extends ReplicationTestCase
         log(testCase + " Will connect server 3 to " + changelog3ID);
         server3 = openReplicationSession(DN.decode(EXAMPLE_DN),
           server3ID, 100, getChangelogPort(changelog3ID),
-          1000, emptyOldChanges,
-          changelog1.getGenerationId(baseDn.toNormalizedString()));
+          1000, emptyOldChanges, changelog1.getGenerationId(baseDN));
       }
 
       // Thread.sleep(500);
@@ -1271,14 +1269,14 @@ public class InitOnLineTest extends ReplicationTestCase
         "objectclass: ds-task",
         "objectclass: ds-task-initialize-from-remote-replica",
         "ds-task-class-name: org.opends.server.tasks.InitializeTask",
-        "ds-task-initialize-domain-dn: " + baseDn,
+        "ds-task-initialize-domain-dn: " + baseDN,
         "ds-task-initialize-replica-server-id: " + 20);
 
       addTask(taskInit, ResultCode.SUCCESS, null);
 
       waitTaskState(taskInit, TaskState.STOPPED_BY_ERROR,
         ERR_NO_REACHABLE_PEER_IN_THE_DOMAIN.get(
-            baseDn.toString(), "20"));
+            baseDN.toString(), "20"));
 
       // Test 2
       taskInit = TestCaseUtils.makeEntry(
@@ -1288,12 +1286,11 @@ public class InitOnLineTest extends ReplicationTestCase
         "objectclass: ds-task",
         "objectclass: ds-task-initialize-from-remote-replica",
         "ds-task-class-name: org.opends.server.tasks.InitializeTask",
-        "ds-task-initialize-domain-dn: " + baseDn,
+        "ds-task-initialize-domain-dn: " + baseDN,
         "ds-task-initialize-replica-server-id: " + server1ID);
 
       addTask(taskInit, ResultCode.OTHER, ERR_INVALID_IMPORT_SOURCE.get(
-          baseDn.toNormalizedString(),
-          Integer.toString(server1ID),"20",""));
+          baseDN.toNormalizedString(), Integer.toString(server1ID),"20",""));
 
       if (replDomain != null)
       {
@@ -1311,7 +1308,7 @@ public class InitOnLineTest extends ReplicationTestCase
   @Test(enabled=false)
   public void initializeTargetNoTarget() throws Exception
   {
-    String testCase = "initializeTargetNoTarget"  + baseDn;
+    String testCase = "initializeTargetNoTarget"  + baseDN;
     log("Starting "+testCase);
 
     try
@@ -1332,13 +1329,13 @@ public class InitOnLineTest extends ReplicationTestCase
         "objectclass: ds-task",
         "objectclass: ds-task-initialize-remote-replica",
         "ds-task-class-name: org.opends.server.tasks.InitializeTargetTask",
-        "ds-task-initialize-domain-dn: " + baseDn,
+        "ds-task-initialize-domain-dn: " + baseDN,
         "ds-task-initialize-replica-server-id: " + 0);
 
       addTask(taskInit, ResultCode.SUCCESS, null);
 
       waitTaskState(taskInit, TaskState.STOPPED_BY_ERROR,
-        ERR_NO_REACHABLE_PEER_IN_THE_DOMAIN.get(baseDn.toString(), "0"));
+        ERR_NO_REACHABLE_PEER_IN_THE_DOMAIN.get(baseDN.toString(), "0"));
 
       if (replDomain != null)
       {
@@ -1406,7 +1403,7 @@ public class InitOnLineTest extends ReplicationTestCase
         "objectclass: ds-task",
         "objectclass: ds-task-initialize-from-remote-replica",
         "ds-task-class-name: org.opends.server.tasks.InitializeTask",
-        "ds-task-initialize-domain-dn: " + baseDn,
+        "ds-task-initialize-domain-dn: " + baseDN,
         "ds-task-initialize-replica-server-id: " + server2ID);
 
       addTask(taskInit, ResultCode.SUCCESS, null);
@@ -1420,7 +1417,7 @@ public class InitOnLineTest extends ReplicationTestCase
         "objectclass: ds-task",
         "objectclass: ds-task-initialize-from-remote-replica",
         "ds-task-class-name: org.opends.server.tasks.InitializeTask",
-        "ds-task-initialize-domain-dn: " + baseDn,
+        "ds-task-initialize-domain-dn: " + baseDN,
         "ds-task-initialize-replica-server-id: " + server2ID);
 
       // Second task is expected to be rejected

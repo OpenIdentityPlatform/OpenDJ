@@ -32,6 +32,7 @@ import java.net.Socket;
 import java.util.*;
 
 import org.opends.server.TestCaseUtils;
+import org.opends.server.admin.std.server.ExternalChangelogDomainCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.ConnectionHandler;
 import org.opends.server.backends.MemoryBackend;
@@ -101,6 +102,11 @@ public class ExternalChangeLogTest extends ReplicationTestCase
   /** The port of the replicationServer. */
   private int replicationServerPort;
 
+  /** base DN for "o=test" */
+  private static DN TEST_ROOT_DN;
+  /** base DN for "o=test2" */
+  private static DN TEST_ROOT_DN2;
+
   private static final String TEST_BACKEND_ID2 = "test2";
   private static final String TEST_ROOT_DN_STRING2 = "o=" + TEST_BACKEND_ID2;
 
@@ -134,6 +140,8 @@ public class ExternalChangeLogTest extends ReplicationTestCase
   public void setUp() throws Exception
   {
     super.setUp();
+    TEST_ROOT_DN = DN.decode(TEST_ROOT_DN_STRING);
+    TEST_ROOT_DN2 = DN.decode(TEST_ROOT_DN_STRING2);
 
     // This test suite depends on having the schema available.
     configure();
@@ -367,7 +375,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     // Test first and last change number
     ECLCompatTestLimits(1,8, true);
 
-    // Test first and last change number, a dd a new change, do not
+    // Test first and last change number, add a new change, do not
     // search again the ECL, but search for first and last
     ECLCompatTestLimitsAndAdd(1,8, ts);
 
@@ -472,12 +480,10 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     try
     {
       // create 2 regular brokers on the 2 suffixes
-      server01 = openReplicationSession(
-          DN.decode(TEST_ROOT_DN_STRING), SERVER_ID_1,
+      server01 = openReplicationSession(TEST_ROOT_DN, SERVER_ID_1,
           100, replicationServerPort, brokerSessionTimeout, true);
 
-      server02 = openReplicationSession(
-          DN.decode(TEST_ROOT_DN_STRING2), SERVER_ID_2,
+      server02 = openReplicationSession(TEST_ROOT_DN2, SERVER_ID_2,
           100, replicationServerPort, brokerSessionTimeout, true, EMPTY_DN_GENID);
 
       // create and publish 1 change on each suffix
@@ -616,19 +622,14 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
     try
     {
-      DN baseDn2 = DN.decode(TEST_ROOT_DN_STRING2);
-
-      server01 = openReplicationSession(
-          DN.decode(TEST_ROOT_DN_STRING), SERVER_ID_1,
+      server01 = openReplicationSession(TEST_ROOT_DN, SERVER_ID_1,
           100, replicationServerPort, brokerSessionTimeout, true);
 
       // create and publish 1 change on each suffix
       long time = TimeThread.getTime();
 
       CSN csn1 = new CSN(time, 1, SERVER_ID_1);
-      DeleteMsg delMsg1 =
-          new DeleteMsg("o=" + tn + "1," + TEST_ROOT_DN_STRING, csn1,
-              "ECLBasicMsg1uid");
+      DeleteMsg delMsg1 = new DeleteMsg("o=" + tn + "1," + TEST_ROOT_DN_STRING, csn1, "ECLBasicMsg1uid");
       server01.publish(delMsg1);
       debugInfo(tn, "publishes:" + delMsg1);
 
@@ -638,12 +639,11 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       backend2.setPrivateBackend(true);
       SortedSet<String> replServers = newSet("localhost:" + replicationServerPort);
 
-      DomainFakeCfg domainConf =
-        new DomainFakeCfg(baseDn2,  1602, replServers);
+      DomainFakeCfg domainConf = new DomainFakeCfg(TEST_ROOT_DN2,  1602, replServers);
       domain2 = startNewDomain(domainConf, null,null);
 
       sleep(1000);
-      addEntry(createEntry(baseDn2));
+      addEntry(createEntry(TEST_ROOT_DN2));
       sleep(2000);
 
       // Search on ECL from start on all suffixes
@@ -656,8 +656,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       assertThat(entries).hasSize(2);
       debugAndWriteEntries(null, entries, tn);
 
-      ExternalChangelogDomainFakeCfg eclCfg =
-          new ExternalChangelogDomainFakeCfg(false, null, null);
+      ExternalChangelogDomainCfg eclCfg = new ExternalChangelogDomainFakeCfg(false, null, null);
       domainConf.setExternalChangelogDomain(eclCfg);
       domain2.applyConfigurationChange(domainConf);
 
@@ -707,12 +706,10 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
       LDIFWriter ldifWriter = getLDIFWriter();
 
-      s1test = openReplicationSession(
-          DN.decode(TEST_ROOT_DN_STRING), SERVER_ID_1,
+      s1test = openReplicationSession(TEST_ROOT_DN, SERVER_ID_1,
           100, replicationServerPort, brokerSessionTimeout, true);
 
-      s2test2 = openReplicationSession(
-          DN.decode(TEST_ROOT_DN_STRING2), SERVER_ID_2,
+      s2test2 = openReplicationSession(TEST_ROOT_DN2, SERVER_ID_2,
           100, replicationServerPort, brokerSessionTimeout, true, EMPTY_DN_GENID);
       sleep(500);
 
@@ -784,12 +781,10 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
       // Test startState ("first cookie") of the ECL
       // --
-      s1test2 = openReplicationSession(
-          DN.decode(TEST_ROOT_DN_STRING2),  1203,
+      s1test2 = openReplicationSession(TEST_ROOT_DN2,  1203,
           100, replicationServerPort, brokerSessionTimeout, true, EMPTY_DN_GENID);
 
-      s2test = openReplicationSession(
-          DN.decode(TEST_ROOT_DN_STRING),  1204,
+      s2test = openReplicationSession(TEST_ROOT_DN,  1204,
           100, replicationServerPort, brokerSessionTimeout, true);
       sleep(500);
 
@@ -807,12 +802,12 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       publishDeleteMsgInOTest(s2test, csn9, tn, 9);
       sleep(500);
 
-      ServerState startState = getReplicationDomainStartState(TEST_ROOT_DN_STRING);
+      ServerState startState = getReplicationDomainStartState(TEST_ROOT_DN);
       assertEquals(startState.getCSN(s1test.getServerId()).getSeqnum(), 1);
       assertTrue(startState.getCSN(s2test.getServerId()) != null);
       assertEquals(startState.getCSN(s2test.getServerId()).getSeqnum(), 7);
 
-      startState = getReplicationDomainStartState(TEST_ROOT_DN_STRING2);
+      startState = getReplicationDomainStartState(TEST_ROOT_DN2);
       assertEquals(startState.getCSN(s2test2.getServerId()).getSeqnum(), 2);
       assertEquals(startState.getCSN(s1test2.getServerId()).getSeqnum(), 6);
 
@@ -867,9 +862,9 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     debugInfo(tn, "Ending test successfully");
   }
 
-  private ServerState getReplicationDomainStartState(String baseDn)
+  private ServerState getReplicationDomainStartState(DN baseDN)
   {
-    return replicationServer.getReplicationServerDomain(baseDn).getStartState();
+    return replicationServer.getReplicationServerDomain(baseDN).getStartState();
   }
 
   private String getCookie(List<SearchResultEntry> entries,
@@ -968,8 +963,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       // 1. Populate the changelog and read the cookie
 
       // Creates broker on o=test
-      server01 = openReplicationSession(
-          DN.decode(TEST_ROOT_DN_STRING), SERVER_ID_1,
+      server01 = openReplicationSession(TEST_ROOT_DN, SERVER_ID_1,
           100, replicationServerPort, brokerSessionTimeout, true);
 
       final CSN[] csns = generateCSNs(4, SERVER_ID_1);
@@ -1024,12 +1018,12 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       //    returns the appropriate error.
       publishDeleteMsgInOTest(server01, csns[3], tn, 1);
 
-      debugInfo(tn, "d1 trimdate" + getReplicationDomainStartState("o=test"));
-      debugInfo(tn, "d2 trimdate" + getReplicationDomainStartState("o=test2"));
+      debugInfo(tn, "d1 trimdate" + getReplicationDomainStartState(TEST_ROOT_DN));
+      debugInfo(tn, "d2 trimdate" + getReplicationDomainStartState(TEST_ROOT_DN2));
       searchOp = searchOnCookieChangelog("(targetDN=*)", cookieNotEmpty, tn, UNWILLING_TO_PERFORM);
       assertEquals(searchOp.getSearchEntries().size(), 0);
       assertTrue(searchOp.getErrorMessage().toString().startsWith(
-          ERR_RESYNC_REQUIRED_TOO_OLD_DOMAIN_IN_PROVIDED_COOKIE.get("o=test").toString()),
+          ERR_RESYNC_REQUIRED_TOO_OLD_DOMAIN_IN_PROVIDED_COOKIE.get(TEST_ROOT_DN_STRING).toString()),
           searchOp.getErrorMessage().toString());
     }
     finally
@@ -1097,13 +1091,11 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       LDIFWriter ldifWriter = getLDIFWriter();
 
       // Creates broker on o=test
-      server01 = openReplicationSession(
-          DN.decode(TEST_ROOT_DN_STRING), SERVER_ID_1,
+      server01 = openReplicationSession(TEST_ROOT_DN, SERVER_ID_1,
           100, replicationServerPort, brokerSessionTimeout, true);
 
       // Creates broker on o=test2
-      server02 = openReplicationSession(
-          DN.decode(TEST_ROOT_DN_STRING2), SERVER_ID_2,
+      server02 = openReplicationSession(TEST_ROOT_DN2, SERVER_ID_2,
           100, replicationServerPort, brokerSessionTimeout, true);
 
       String user1entryUUID = "11111111-1111-1111-1111-111111111111";
@@ -1142,7 +1134,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
       // Publish modDN
       csnCounter++;
-      final DN newSuperior = DN.decode(TEST_ROOT_DN_STRING2);
+      final DN newSuperior = TEST_ROOT_DN2;
       ModifyDNOperation op = new ModifyDNOperationBasis(connection, 1, 1, null,
           DN.decode("uid="+tn+"4," + TEST_ROOT_DN_STRING), // entryDN
           RDN.decode("uid="+tn+"new4"), // new rdn
@@ -1386,8 +1378,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
     {
       // Create broker on suffix
-      ReplicationBroker server01 = openReplicationSession(
-          DN.decode(TEST_ROOT_DN_STRING), SERVER_ID_1,
+      ReplicationBroker server01 = openReplicationSession(TEST_ROOT_DN, SERVER_ID_1,
           100, replicationServerPort, brokerSessionTimeout, true);
 
       CSN[] csns = generateCSNs(2, SERVER_ID_1);
@@ -1655,14 +1646,12 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     try
     {
       // Create broker on o=test
-      server01 = openReplicationSession(
-          DN.decode(TEST_ROOT_DN_STRING), SERVER_ID_1,
+      server01 = openReplicationSession(TEST_ROOT_DN, SERVER_ID_1,
           100, replicationServerPort, brokerSessionTimeout, true);
       server01.setChangeTimeHeartbeatInterval(100); //ms
 
       // Create broker on o=test2
-      server02 = openReplicationSession(
-          DN.decode(TEST_ROOT_DN_STRING2), SERVER_ID_2,
+      server02 = openReplicationSession(TEST_ROOT_DN2, SERVER_ID_2,
           100, replicationServerPort, brokerSessionTimeout, true, EMPTY_DN_GENID);
       server02.setChangeTimeHeartbeatInterval(100); //ms
 
@@ -2196,12 +2185,10 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       backend2 = initializeTestBackend(true, TEST_BACKEND_ID2);
 
       // --
-      s1test = openReplicationSession(
-          DN.decode(TEST_ROOT_DN_STRING), SERVER_ID_1,
+      s1test = openReplicationSession(TEST_ROOT_DN, SERVER_ID_1,
           100, replicationServerPort, brokerSessionTimeout, true);
 
-      s2test2 = openReplicationSession(
-          DN.decode(TEST_ROOT_DN_STRING2), SERVER_ID_2,
+      s2test2 = openReplicationSession(TEST_ROOT_DN2, SERVER_ID_2,
           100, replicationServerPort, brokerSessionTimeout, true, EMPTY_DN_GENID);
       sleep(500);
 
@@ -2222,12 +2209,10 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       sleep(500);
 
       // --
-      s1test2 = openReplicationSession(
-          DN.decode(TEST_ROOT_DN_STRING2),  1203,
+      s1test2 = openReplicationSession(TEST_ROOT_DN2,  1203,
           100, replicationServerPort, brokerSessionTimeout, true, EMPTY_DN_GENID);
 
-      s2test = openReplicationSession(
-          DN.decode(TEST_ROOT_DN_STRING),  1204,
+      s2test = openReplicationSession(TEST_ROOT_DN,  1204,
           100, replicationServerPort, brokerSessionTimeout, true);
       sleep(500);
 
@@ -2246,20 +2231,20 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       publishDeleteMsgInOTest(s2test, csn9, tn, 9);
       sleep(500);
 
-      ReplicationServerDomain rsd1 = replicationServer.getReplicationServerDomain(TEST_ROOT_DN_STRING);
+      ReplicationServerDomain rsd1 = replicationServer.getReplicationServerDomain(TEST_ROOT_DN);
       rsd1.getDbServerState();
       rsd1.getChangeTimeHeartbeatState();
-      debugInfo(tn, rsd1.getBaseDn()
+      debugInfo(tn, rsd1.getBaseDN()
           + " DbServerState=" + rsd1.getDbServerState()
           + " ChangeTimeHeartBeatState=" + rsd1.getChangeTimeHeartbeatState()
           + " eligibleCSN=" + rsd1.getEligibleCSN()
           + " rs eligibleCSN=" + replicationServer.getEligibleCSN());
       // FIXME:ECL Enable this test by adding an assert on the right value
 
-      ReplicationServerDomain rsd2 = replicationServer.getReplicationServerDomain(TEST_ROOT_DN_STRING2);
+      ReplicationServerDomain rsd2 = replicationServer.getReplicationServerDomain(TEST_ROOT_DN2);
       rsd2.getDbServerState();
       rsd2.getChangeTimeHeartbeatState();
-      debugInfo(tn, rsd2.getBaseDn()
+      debugInfo(tn, rsd2.getBaseDN()
           + " DbServerState=" + rsd2.getDbServerState()
           + " ChangeTimeHeartBeatState=" + rsd2.getChangeTimeHeartbeatState()
           + " eligibleCSN=" + rsd2.getEligibleCSN()
@@ -2309,8 +2294,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       LDIFWriter ldifWriter = getLDIFWriter();
 
       // Creates broker on o=test
-      ReplicationBroker server01 = openReplicationSession(
-          DN.decode(TEST_ROOT_DN_STRING), SERVER_ID_1,
+      ReplicationBroker server01 = openReplicationSession(TEST_ROOT_DN, SERVER_ID_1,
           100, replicationServerPort, brokerSessionTimeout, true);
 
       String user1entryUUID = "11111111-1112-1113-1114-111111111115";
@@ -2356,7 +2340,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
           DN.decode("uid="+tn+"4," + TEST_ROOT_DN_STRING), // entryDN
           RDN.decode("uid="+tn+"new4"), // new rdn
           true,  // deleteoldrdn
-          DN.decode(TEST_ROOT_DN_STRING2)); // new superior
+          TEST_ROOT_DN2); // new superior
       op.setAttachment(SYNCHROCONTEXT, new ModifyDnContext(csns[3], user1entryUUID, "newparentId"));
       LocalBackendModifyDNOperation localOp = new LocalBackendModifyDNOperation(op);
       ModifyDNMsg modDNMsg = new ModifyDNMsg(localOp);
@@ -2455,8 +2439,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     LDIFWriter ldifWriter = getLDIFWriter();
 
     // Creates broker on o=test
-    ReplicationBroker server01 =
-        openReplicationSession(DN.decode(TEST_ROOT_DN_STRING), SERVER_ID_1,
+    ReplicationBroker server01 = openReplicationSession(TEST_ROOT_DN, SERVER_ID_1,
             100, replicationServerPort, brokerSessionTimeout, true);
 
     String user1entryUUID = "11111111-1112-1113-1114-111111111115";
@@ -2493,8 +2476,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     debugInfo(tn, "Starting test\n\n");
 
     // Creates broker on o=test
-    ReplicationBroker server01 =
-        openReplicationSession(DN.decode(TEST_ROOT_DN_STRING), SERVER_ID_1, 100,
+    ReplicationBroker server01 = openReplicationSession(TEST_ROOT_DN, SERVER_ID_1, 100,
             replicationServerPort, brokerSessionTimeout, true);
 
     String filter = "(changenumber=" + firstChangeNumber + ")";
@@ -2776,8 +2758,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     ECLCompatTestLimits(expectedFirst, expectedLast, true);
 
     // Creates broker on o=test
-    ReplicationBroker server01 =
-        openReplicationSession(DN.decode(TEST_ROOT_DN_STRING), SERVER_ID_1, 100,
+    ReplicationBroker server01 = openReplicationSession(TEST_ROOT_DN, SERVER_ID_1, 100,
             replicationServerPort, brokerSessionTimeout, true);
 
     String user1entryUUID = "11111111-1112-1113-1114-111111111115";
@@ -2808,7 +2789,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     final CSN csn2 = csns[1];
     final CSN csn3 = csns[2];
 
-    ReplicationServerDomain rsdtest = replicationServer.getReplicationServerDomain(TEST_ROOT_DN_STRING);
+    ReplicationServerDomain rsdtest = replicationServer.getReplicationServerDomain(TEST_ROOT_DN);
     // this empty state will force to count from the start of the DB
     final ServerState fromStart = new ServerState();
 
@@ -2816,8 +2797,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     assertEquals(rsdtest.getEligibleCount(fromStart, csns[0]), 0);
 
     // Creates broker on o=test
-    ReplicationBroker server01 = openReplicationSession(
-        DN.decode(TEST_ROOT_DN_STRING), SERVER_ID_1,
+    ReplicationBroker server01 = openReplicationSession(TEST_ROOT_DN, SERVER_ID_1,
         1000, replicationServerPort, brokerSessionTimeout, true);
 
     // Publish one first message
@@ -2945,14 +2925,13 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       // Configure replication on this backend
       // Add the root entry in the backend
       backend2 = initializeTestBackend(false, TEST_BACKEND_ID2);
-      DN baseDn2 = DN.decode(TEST_ROOT_DN_STRING2);
 
       SortedSet<String> replServers = newSet("localhost:" + replicationServerPort);
 
       // on o=test2,sid=1702 include attrs set to : 'sn'
       SortedSet<String> eclInclude = newSet("sn", "roomnumber");
 
-      DomainFakeCfg domainConf = new DomainFakeCfg(baseDn2, 1702, replServers);
+      DomainFakeCfg domainConf = new DomainFakeCfg(TEST_ROOT_DN2, 1702, replServers);
       domain2 = startNewDomain(domainConf, eclInclude, eclInclude);
 
       backend3 = initializeTestBackend(false, TEST_BACKEND_ID3);
@@ -2969,12 +2948,12 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       // on o=test2,sid=1704 include attrs set to : 'cn'
       eclInclude = newSet("cn");
 
-      domainConf = new DomainFakeCfg(baseDn2, 1704, replServers);
+      domainConf = new DomainFakeCfg(TEST_ROOT_DN2, 1704, replServers);
       domain21 = startNewDomain(domainConf, eclInclude, eclInclude);
 
       sleep(1000);
 
-      addEntry(createEntry(baseDn2));
+      addEntry(createEntry(TEST_ROOT_DN2));
       addEntry(createEntry(baseDn3));
 
       String lentry =

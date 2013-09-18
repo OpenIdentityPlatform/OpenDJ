@@ -46,10 +46,7 @@ import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.server.ReplicationServerDomain;
 import org.opends.server.replication.server.changelog.api.*;
 import org.opends.server.replication.server.changelog.je.DraftCNDB.*;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.Attributes;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.InitializationException;
+import org.opends.server.types.*;
 
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.loggers.ErrorLogger.*;
@@ -298,7 +295,7 @@ public class DraftCNDbHandler implements ChangeNumberIndexDB, Runnable
 
   /** {@inheritDoc} */
   @Override
-  public void clear(String baseDNToClear) throws ChangelogException
+  public void clear(DN baseDNToClear) throws ChangelogException
   {
     if (isEmpty())
     {
@@ -321,15 +318,14 @@ public class DraftCNDbHandler implements ChangeNumberIndexDB, Runnable
 
           // From the draftCNDb change record, get the domain and CSN
           final CNIndexRecord record = cursor.currentRecord();
-          final String baseDN = record.getBaseDN();
-          if (baseDNToClear != null && baseDNToClear.equalsIgnoreCase(baseDN))
+          if (baseDNToClear != null && baseDNToClear.equals(record.getBaseDN()))
           {
             cursor.delete();
             continue;
           }
 
           final ReplicationServerDomain domain =
-              replicationServer.getReplicationServerDomain(baseDN);
+              replicationServer.getReplicationServerDomain(record.getBaseDN());
           if (domain == null)
           {
             // the domain has been removed since the record was written in the
@@ -354,10 +350,10 @@ public class DraftCNDbHandler implements ChangeNumberIndexDB, Runnable
           ServerState csnVector;
           try
           {
-            Map<String, ServerState> csnStartStates =
+            Map<DN, ServerState> csnStartStates =
                 MultiDomainServerState.splitGenStateToServerStates(
                         record.getPreviousCookie());
-            csnVector = csnStartStates.get(baseDN);
+            csnVector = csnStartStates.get(record.getBaseDN());
 
             if (debugEnabled())
               TRACER.debugInfo("DraftCNDBHandler:clear() - ChangeVector:"
@@ -516,7 +512,7 @@ public class DraftCNDbHandler implements ChangeNumberIndexDB, Runnable
    * Takes the lock on this object (blocking until lock can be acquired).
    * @throws InterruptedException If interrupted.
    */
-   public void lock() throws InterruptedException
+  public void lock() throws InterruptedException
   {
     lock.lockInterruptibly();
   }

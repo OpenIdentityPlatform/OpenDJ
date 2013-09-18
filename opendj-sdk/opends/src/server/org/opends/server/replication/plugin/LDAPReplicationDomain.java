@@ -159,8 +159,8 @@ public final class LDAPReplicationDomain extends ReplicationDomain
   /**
    * The fully-qualified name of this class.
    */
-  private static final String CLASS_NAME =
-       "org.opends.server.replication.plugin.LDAPReplicationDomain";
+  private static final String CLASS_NAME = LDAPReplicationDomain.class
+      .getName();
 
   /**
    * The attribute used to mark conflicting entries.
@@ -209,17 +209,12 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    */
   private final RemotePendingChanges remotePendingChanges;
 
-  private final int serverId;
-
-  private final DN baseDn;
-
-  private volatile boolean shutdown = false;
-
   private final InternalClientConnection conn =
       InternalClientConnection.getRootConnection();
 
   private boolean solveConflictFlag = true;
 
+  private volatile boolean shutdown = false;
   private volatile boolean disabled = false;
   private volatile boolean stateSavingDisabled = false;
 
@@ -371,8 +366,8 @@ public final class LDAPReplicationDomain extends ReplicationDomain
   {
     protected ServerStateFlush()
     {
-      super("Replica DS(" + serverId
-          + ") state checkpointer for domain \"" + baseDn + "\"");
+      super("Replica DS(" + getServerId()
+          + ") state checkpointer for domain \"" + getBaseDN() + "\"");
     }
 
     /**
@@ -418,8 +413,8 @@ public final class LDAPReplicationDomain extends ReplicationDomain
 
     protected RSUpdater(CSN replServerMaxCSN)
     {
-      super("Replica DS(" + serverId
-          + ") missing change publisher for domain \"" + baseDn + "\"");
+      super("Replica DS(" + getServerId()
+          + ") missing change publisher for domain \"" + getBaseDN() + "\"");
       this.startCSN = replServerMaxCSN;
     }
 
@@ -458,7 +453,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
            * Log an error for the repair tool
            * that will need to re-synchronize the servers.
            */
-          message = ERR_CANNOT_RECOVER_CHANGES.get(baseDn.toNormalizedString());
+          message = ERR_CANNOT_RECOVER_CHANGES.get(getBaseDNString());
           logError(message);
         }
       } catch (Exception e)
@@ -470,7 +465,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
          * Log an error for the repair tool
          * that will need to re-synchronize the servers.
          */
-        message = ERR_CANNOT_RECOVER_CHANGES.get(baseDn.toNormalizedString());
+        message = ERR_CANNOT_RECOVER_CHANGES.get(getBaseDNString());
         logError(message);
       }
       finally
@@ -492,15 +487,13 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     BlockingQueue<UpdateToReplay> updateToReplayQueue)
     throws ConfigException
   {
-    super(configuration.getBaseDN().toNormalizedString(),
+    super(configuration.getBaseDN(),
           configuration.getServerId(),
           configuration.getInitializationWindowSize());
 
     // Read the configuration parameters.
     Set<String> replicationServers = configuration.getReplicationServer();
 
-    this.serverId = configuration.getServerId();
-    this.baseDn = configuration.getBaseDN();
     int window  = configuration.getWindowSize();
     /**
      * The time in milliseconds between heartbeats from the replication
@@ -519,7 +512,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     readAssuredConfig(configuration, false);
 
     // Get fractional configuration
-    fractionalConfig = new FractionalConfig(baseDn);
+    fractionalConfig = new FractionalConfig(getBaseDN());
     readFractionalConfig(configuration, false);
 
     setGroupId((byte)configuration.getGroupId());
@@ -529,11 +522,11 @@ public final class LDAPReplicationDomain extends ReplicationDomain
 
     solveConflictFlag = isSolveConflict(configuration);
 
-    Backend backend = retrievesBackend(baseDn);
+    Backend backend = retrievesBackend(getBaseDN());
     if (backend == null)
     {
       throw new ConfigException(ERR_SEARCHING_DOMAIN_BACKEND.get(
-                                  baseDn.toNormalizedString()));
+                                  getBaseDNString()));
     }
 
     try
@@ -543,14 +536,15 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     catch (DirectoryException e)
     {
       logError(ERR_LOADING_GENERATION_ID.get(
-          baseDn.toNormalizedString(), e.getLocalizedMessage()));
+          getBaseDNString(), e.getLocalizedMessage()));
     }
 
     /*
      * Create a new Persistent Server State that will be used to store
      * the last CSN seen from all LDAP servers in the topology.
      */
-    state = new PersistentServerState(baseDn, serverId, getServerState());
+    state = new PersistentServerState(getBaseDN(), getServerId(),
+        getServerState());
     flushThread = new ServerStateFlush();
 
     /*
@@ -583,7 +577,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    */
   private boolean isSolveConflict(ReplicationDomainCfg cfg)
   {
-    return !baseDn.equals(DirectoryServer.getSchemaDN())
+    return !getBaseDN().equals(DirectoryServer.getSchemaDN())
         && cfg.isSolveConflicts();
   }
 
@@ -698,7 +692,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       // Should not happen as normally already called without problem in
       // isConfigurationChangeAcceptable or isConfigurationAcceptable
       // if we come up to this method
-      Message message = NOTE_ERR_FRACTIONAL.get(baseDn.toString(),
+      Message message = NOTE_ERR_FRACTIONAL.get(getBaseDNString(),
         e.getLocalizedMessage());
       logError(message);
       return;
@@ -718,7 +712,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     catch  (ConfigException e)
     {
       // Should not happen
-      Message message = NOTE_ERR_FRACTIONAL.get(baseDn.toString(),
+      Message message = NOTE_ERR_FRACTIONAL.get(getBaseDNString(),
         e.getLocalizedMessage());
       logError(message);
       return;
@@ -767,7 +761,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     if (debugEnabled())
       TRACER.debugInfo(
           "Attempt to read the potential fractional config in domain root "
-              + "entry " + baseDn);
+              + "entry " + getBaseDN());
 
     LDAPFilter filter;
     try
@@ -780,7 +774,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     }
 
     // Search the domain root entry that is used to save the generation id
-    ByteString asn1BaseDn = ByteString.valueOf(baseDn.toString());
+    ByteString asn1BaseDn = ByteString.valueOf(getBaseDNString());
     Set<String> attributes = new LinkedHashSet<String>(3);
     attributes.add(REPLICATION_GENERATION_ID);
     attributes.add(REPLICATION_FRACTIONAL_EXCLUDE);
@@ -795,7 +789,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       Message message = ERR_SEARCHING_GENERATION_ID.get(
         search.getResultCode().getResultCodeName() + " " +
         search.getErrorMessage(),
-        baseDn.toString());
+        getBaseDNString());
       logError(message);
       return false;
     }
@@ -846,7 +840,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
         }
         if (attr.size() > 1)
         {
-          Message message = ERR_LOADING_GENERATION_ID.get(baseDn.toString(),
+          Message message = ERR_LOADING_GENERATION_ID.get(getBaseDNString(),
               "#Values=" + attr.size() + " Must be exactly 1 in entry "
               + resultEntry.toLDIFString());
           logError(message);
@@ -1559,7 +1553,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     }
     catch(DirectoryException e)
     {
-      Message message = NOTE_ERR_FRACTIONAL.get(baseDn.toString(),
+      Message message = NOTE_ERR_FRACTIONAL.get(getBaseDNString(),
         e.getLocalizedMessage());
       logError(message);
       return FRACTIONAL_HAS_NO_FRACTIONAL_FILTERED_ATTRIBUTES;
@@ -1638,11 +1632,11 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     {
     case IMPORT_ERROR_MESSAGE_BAD_REMOTE:
       msg = NOTE_ERR_FULL_UPDATE_IMPORT_FRACTIONAL_BAD_REMOTE.get(
-          baseDn.toString(), Integer.toString(ieContext.getImportSource()));
+          getBaseDNString(), Integer.toString(ieContext.getImportSource()));
       break;
     case IMPORT_ERROR_MESSAGE_REMOTE_IS_FRACTIONAL:
       msg = NOTE_ERR_FULL_UPDATE_IMPORT_FRACTIONAL_REMOTE_IS_FRACTIONAL.get(
-          baseDn.toString(), Integer.toString(ieContext.getImportSource()));
+          getBaseDNString(), Integer.toString(ieContext.getImportSource()));
       break;
     }
     ieContext.setException(new DirectoryException(UNWILLING_TO_PERFORM, msg));
@@ -1664,21 +1658,11 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     if (target == RoutableMsg.ALL_SERVERS && fractionalConfig.isFractional())
     {
       Message msg = NOTE_ERR_FRACTIONAL_FORBIDDEN_FULL_UPDATE_FRACTIONAL.get(
-            baseDn.toString(), Integer.toString(getServerId()));
+            getBaseDNString(), Integer.toString(getServerId()));
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, msg);
     }
 
     super.initializeRemote(target, requestorID, initTask, this.initWindow);
-  }
-
-  /**
-   * Returns the base DN of this ReplicationDomain.
-   *
-   * @return The base DN of this ReplicationDomain
-   */
-  public DN getBaseDN()
-  {
-    return baseDn;
   }
 
   /**
@@ -1693,7 +1677,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
   {
     if (!deleteOperation.isSynchronizationOperation() && !brokerIsConnected())
     {
-      Message msg = ERR_REPLICATION_COULD_NOT_CONNECT.get(baseDn.toString());
+      Message msg = ERR_REPLICATION_COULD_NOT_CONNECT.get(getBaseDNString());
       return new SynchronizationProviderResult.StopProcessing(
           ResultCode.UNWILLING_TO_PERFORM, msg);
     }
@@ -1768,7 +1752,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
   {
     if (!addOperation.isSynchronizationOperation() && !brokerIsConnected())
     {
-      Message msg = ERR_REPLICATION_COULD_NOT_CONNECT.get(baseDn.toString());
+      Message msg = ERR_REPLICATION_COULD_NOT_CONNECT.get(getBaseDNString());
       return new SynchronizationProviderResult.StopProcessing(
           ResultCode.UNWILLING_TO_PERFORM, msg);
     }
@@ -1798,7 +1782,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
           StringBuilder sb = new StringBuilder();
           addOperation.toString(sb);
           Message msg = NOTE_ERR_FRACTIONAL_FORBIDDEN_OPERATION.get(
-            baseDn.toString(), sb.toString());
+            getBaseDNString(), sb.toString());
           return new SynchronizationProviderResult.StopProcessing(
             ResultCode.UNWILLING_TO_PERFORM, msg);
         }
@@ -1899,7 +1883,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
   {
     if (!modifyDNOperation.isSynchronizationOperation() && !brokerIsConnected())
     {
-      Message msg = ERR_REPLICATION_COULD_NOT_CONNECT.get(baseDn.toString());
+      Message msg = ERR_REPLICATION_COULD_NOT_CONNECT.get(getBaseDNString());
       return new SynchronizationProviderResult.StopProcessing(
           ResultCode.UNWILLING_TO_PERFORM, msg);
     }
@@ -1927,7 +1911,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
           StringBuilder sb = new StringBuilder();
           modifyDNOperation.toString(sb);
           Message msg = NOTE_ERR_FRACTIONAL_FORBIDDEN_OPERATION.get(
-            baseDn.toString(), sb.toString());
+            getBaseDNString(), sb.toString());
           return new SynchronizationProviderResult.StopProcessing(
             ResultCode.UNWILLING_TO_PERFORM, msg);
         }
@@ -2019,7 +2003,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
   {
     if (!modifyOperation.isSynchronizationOperation() && !brokerIsConnected())
     {
-      Message msg = ERR_REPLICATION_COULD_NOT_CONNECT.get(baseDn.toString());
+      Message msg = ERR_REPLICATION_COULD_NOT_CONNECT.get(getBaseDNString());
       return new SynchronizationProviderResult.StopProcessing(
           ResultCode.UNWILLING_TO_PERFORM, msg);
     }
@@ -2062,7 +2046,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
             StringBuilder sb = new StringBuilder();
             modifyOperation.toString(sb);
             Message msg = NOTE_ERR_FRACTIONAL_FORBIDDEN_OPERATION.get(
-              baseDn.toString(), sb.toString());
+              getBaseDNString(), sb.toString());
             return new SynchronizationProviderResult.StopProcessing(
               ResultCode.UNWILLING_TO_PERFORM, msg);
         }
@@ -2243,7 +2227,8 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       // that is replicated, the generation is now lost because the
       // DB is empty. We need to save it again the next time we add an entry.
       if (op.getOperationType().equals(OperationType.DELETE)
-          && ((PostOperationDeleteOperation) op).getEntryDN().equals(baseDn))
+          && ((PostOperationDeleteOperation) op)
+                .getEntryDN().equals(getBaseDN()))
       {
         generationIdSavedStatus = false;
       }
@@ -2302,7 +2287,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
         ByteString.valueOf(freedDN.toString()));
 
      InternalSearchOperation searchOp =  conn.processSearch(
-       ByteString.valueOf(baseDn.toString()),
+       ByteString.valueOf(getBaseDNString()),
        SearchScope.WHOLE_SUBTREE,
        DereferencePolicy.NEVER_DEREF_ALIASES,
        0, 0, false, filter,
@@ -2756,7 +2741,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
   {
     try
     {
-      InternalSearchOperation search = conn.processSearch(baseDn,
+      InternalSearchOperation search = conn.processSearch(getBaseDN(),
             SearchScope.WHOLE_SUBTREE,
             SearchFilter.createFilterFromString("entryuuid="+uuid));
       if (search.getResultCode() == ResultCode.SUCCESS)
@@ -3114,8 +3099,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
         addConflict(msg);
 
         msg.setDn(generateConflictRDN(entryUUID,
-                    op.getEntryDN().getRDN().toString()) + ","
-                    + baseDn);
+                    op.getEntryDN().getRDN().toString()) + "," + getBaseDN());
         // reset the parent entryUUID so that the check done is the
         // handleConflict phase does not fail.
         msg.setParentEntryUUID(null);
@@ -3257,8 +3241,8 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     DirectoryServer.sendAlertNotification(this,
         ALERT_TYPE_REPLICATION_UNRESOLVED_CONFLICT, alertMessage);
 
-    ModifyDNOperation newOp =
-      renameEntry(dn, generateDeleteConflictDn(entryUUID, dn), baseDn, true);
+    RDN newRDN = generateDeleteConflictDn(entryUUID, dn);
+    ModifyDNOperation newOp = renameEntry(dn, newRDN, getBaseDN(), true);
 
     if (newOp.getResultCode() != ResultCode.SUCCESS)
     {
@@ -3449,7 +3433,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     state.clearInMemory();
     state.loadState();
 
-    generator.adjust(state.getMaxCSN(serverId));
+    generator.adjust(state.getMaxCSN(getServerId()));
     // Retrieves the generation ID associated with the data imported
 
     generationId = loadGenerationId();
@@ -3476,7 +3460,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
        * should we stop the modifications ?
        */
       logError(ERR_LOADING_GENERATION_ID.get(
-          baseDn.toNormalizedString(), e.getLocalizedMessage()));
+          getBaseDNString(), e.getLocalizedMessage()));
       return;
     }
 
@@ -3550,7 +3534,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
    */
   public ResultCode saveGenerationId(long generationId)
   {
-    ResultCode result = runSaveGenerationId(baseDn, generationId);
+    ResultCode result = runSaveGenerationId(getBaseDN(), generationId);
 
     if (result != ResultCode.SUCCESS)
     {
@@ -3565,8 +3549,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       if (result != ResultCode.SUCCESS)
       {
         Message message = ERR_UPDATING_GENERATION_ID.get(
-            result.getResultCodeName() + " " ,
-            baseDn.toString());
+            result.getResultCodeName() + " " , getBaseDNString());
         logError(message);
       }
     }
@@ -3589,7 +3572,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
   private long loadGenerationId() throws DirectoryException
   {
     if (debugEnabled())
-      TRACER.debugInfo("Attempt to read generation ID from DB " + baseDn);
+      TRACER.debugInfo("Attempt to read generation ID from DB " + getBaseDN());
 
     /*
      * Search the database entry that is used to periodically
@@ -3598,7 +3581,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     final Set<String> attributes = new LinkedHashSet<String>(1);
     attributes.add(REPLICATION_GENERATION_ID);
     final String filter = "(objectclass=*)";
-    InternalSearchOperation search = conn.processSearch(baseDn.toString(),
+    InternalSearchOperation search = conn.processSearch(getBaseDNString(),
         SearchScope.BASE_OBJECT,
         DereferencePolicy.DEREF_ALWAYS, 0, 0, false,
         filter,attributes);
@@ -3621,7 +3604,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
         Message message = ERR_SEARCHING_GENERATION_ID.get(
             search.getResultCode().getResultCodeName() + " " +
             search.getErrorMessage(),
-            baseDn.toString());
+            getBaseDNString());
         logError(message);
       }
     }
@@ -3641,9 +3624,8 @@ private boolean solveNamingConflict(ModifyDNOperation op,
           if (attr.size()>1)
           {
             Message message = ERR_LOADING_GENERATION_ID.get(
-                baseDn.toString(), "#Values=" + attr.size() +
-                " Must be exactly 1 in entry " +
-                resultEntry.toLDIFString());
+                getBaseDNString(), "#Values=" + attr.size() +
+                " Must be exactly 1 in entry " + resultEntry.toLDIFString());
             logError(message);
           }
           else if (attr.size() == 1)
@@ -3656,7 +3638,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
             catch(Exception e)
             {
               Message message = ERR_LOADING_GENERATION_ID.get(
-                baseDn.toString(), e.getLocalizedMessage());
+                getBaseDNString(), e.getLocalizedMessage());
               logError(message);
             }
           }
@@ -3670,15 +3652,15 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       saveGenerationId(aGenerationId);
 
       if (debugEnabled())
-        TRACER.debugInfo("Generation ID created for domain base DN="
-            + baseDn + " generationId=" + aGenerationId);
+        TRACER.debugInfo("Generation ID created for domain baseDN="
+            + getBaseDN() + " generationId=" + aGenerationId);
     }
     else
     {
       generationIdSavedStatus = true;
       if (debugEnabled())
-        TRACER.debugInfo("Generation ID successfully read from domain base DN="
-            + baseDn + " generationId=" + aGenerationId);
+        TRACER.debugInfo("Generation ID successfully read from domain baseDN="
+            + getBaseDN() + " generationId=" + aGenerationId);
     }
     return aGenerationId;
   }
@@ -3733,7 +3715,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
   private long exportBackend(OutputStream output, boolean checksumOutput)
       throws DirectoryException
   {
-    Backend backend = retrievesBackend(this.baseDn);
+    Backend backend = retrievesBackend(getBaseDN());
 
     //  Acquire a shared lock for the backend.
     try
@@ -3757,7 +3739,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       throw new DirectoryException(ResultCode.OTHER, message, null);
     }
 
-    long numberOfEntries = backend.numSubordinates(baseDn, true) + 1;
+    long numberOfEntries = backend.numSubordinates(getBaseDN(), true) + 1;
     long entryCount = Math.min(numberOfEntries, 1000);
     OutputStream os;
     ReplLDIFOutputStream ros = null;
@@ -3781,7 +3763,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
 
     // baseDn branch is the only one included in the export
     List<DN> includeBranches = new ArrayList<DN>(1);
-    includeBranches.add(this.baseDn);
+    includeBranches.add(getBaseDN());
     LDIFExportConfig exportConfig = new LDIFExportConfig(os);
     exportConfig.setIncludeBranches(includeBranches);
 
@@ -3866,12 +3848,12 @@ private boolean solveNamingConflict(ModifyDNOperation op,
    * Retrieves the backend related to the domain.
    *
    * @return The backend of that domain.
-   * @param baseDn The baseDn to retrieve the backend
+   * @param baseDN The baseDN to retrieve the backend
    */
-  protected static Backend retrievesBackend(DN baseDn)
+  protected static Backend retrievesBackend(DN baseDN)
   {
     // Retrieves the backend related to this domain
-    return DirectoryServer.getBackend(baseDn);
+    return DirectoryServer.getBackend(baseDN);
   }
 
   /**
@@ -3911,7 +3893,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
   {
     LDIFImportConfig importConfig = null;
 
-    Backend backend = retrievesBackend(baseDn);
+    Backend backend = retrievesBackend(getBaseDN());
 
     try
     {
@@ -3924,10 +3906,9 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       }
       else
       {
-        importConfig =
-          new LDIFImportConfig(input);
+        importConfig = new LDIFImportConfig(input);
         List<DN> includeBranches = new ArrayList<DN>();
-        includeBranches.add(this.baseDn);
+        includeBranches.add(getBaseDN());
         importConfig.setIncludeBranches(includeBranches);
         importConfig.setAppendToExistingData(false);
         importConfig.setSkipDNValidation(true);
@@ -3968,7 +3949,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
         {
           importConfig.close();
           closeBackendImport(backend); // Re-enable backend
-          backend = retrievesBackend(baseDn);
+          backend = retrievesBackend(getBaseDN());
         }
 
         loadDataState();
@@ -4076,7 +4057,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
    */
   public Backend getBackend()
   {
-    return retrievesBackend(baseDn);
+    return retrievesBackend(getBaseDN());
   }
 
   /*
@@ -4124,9 +4105,9 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       ReplicationDomainCfg configuration, List<Message> unacceptableReasons)
   {
     // Check that there is not already a domain with the same DN
-    DN dn = configuration.getBaseDN();
+    final DN dn = configuration.getBaseDN();
     LDAPReplicationDomain domain = MultimasterReplication.findDomain(dn, null);
-    if (domain != null && domain.baseDn.equals(dn))
+    if (domain != null && domain.getBaseDN().equals(dn))
     {
       Message message = ERR_SYNC_INVALID_DN.get();
       unacceptableReasons.add(message);
@@ -4348,7 +4329,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     {
       throw new ConfigException(
             NOTE_ERR_UNABLE_TO_ENABLE_ECL.get(
-                "Replication Domain on" + baseDn,
+                "Replication Domain on" + getBaseDN(),
                 de.getMessage() + " " + de.getCause().getMessage()), de);
     }
   }
@@ -4398,7 +4379,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       {
         Message message =
           NOTE_ERR_UNABLE_TO_ENABLE_ECL.get(
-              "Replication Domain on" + baseDn,
+              "Replication Domain on" + getBaseDN(),
               de.getMessage() + " " + de.getCause().getMessage());
         logError(message);
         // and go on
@@ -4412,7 +4393,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       setNewStatus(StatusMachineEvent.TO_BAD_GEN_ID_STATUS_EVENT);
       broker.signalStatusChange(status);
       Message message = NOTE_FRACTIONAL_BAD_DATA_SET_NEED_RESYNC.get(
-        baseDn.toString());
+        getBaseDNString());
       logError(message);
       return; // Do not send changes to the replication server
     }
@@ -4426,7 +4407,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
        * Check that the ReplicationServer has seen all our previous
        * changes.
        */
-      CSN replServerMaxCSN = replicationServerState.getCSN(serverId);
+      CSN replServerMaxCSN = replicationServerState.getCSN(getServerId());
 
       // we don't want to update from here (a DS) an empty RS because
       // normally the RS should have been updated by other RSes except for
@@ -4436,7 +4417,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       // and we don't want to update it with our changes that could be huge.
       if (replServerMaxCSN != null && replServerMaxCSN.getSeqnum() != 0)
       {
-        CSN ourMaxCSN = state.getMaxCSN(serverId);
+        CSN ourMaxCSN = state.getMaxCSN(getServerId());
         if (ourMaxCSN != null && !ourMaxCSN.olderOrEqual(replServerMaxCSN))
         {
           pendingChanges.setRecovering(true);
@@ -4446,7 +4427,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       }
     } catch (Exception e)
     {
-      Message message = ERR_PUBLISHING_FAKE_OPS.get(baseDn.toNormalizedString(),
+      Message message = ERR_PUBLISHING_FAKE_OPS.get(getBaseDNString(),
           e.getLocalizedMessage() + " " + stackTraceToSingleLineString(e));
       logError(message);
     }
@@ -4493,11 +4474,12 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       // So we search by interval of 10 seconds and store the results in the
       // replayOperations list so that they are sorted before sending them.
       long missingChangesDelta = currentStartCSN.getTime() + 10000;
-      CSN endCSN = new CSN(missingChangesDelta, 0xffffffff, serverId);
+      CSN endCSN = new CSN(missingChangesDelta, 0xffffffff, getServerId());
 
       ScanSearchListener listener =
         new ScanSearchListener(currentStartCSN, endCSN);
-      op = searchForChangedEntries(baseDn, currentStartCSN, endCSN, listener);
+      op = searchForChangedEntries(getBaseDN(), currentStartCSN, endCSN,
+              listener);
 
       // Publish and remove all the changes from the replayOperations list
       // that are older than the endCSN.
@@ -4624,7 +4606,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
   @Override
   public long countEntries() throws DirectoryException
   {
-    Backend backend = retrievesBackend(baseDn);
+    Backend backend = retrievesBackend(getBaseDN());
     if (!backend.supportsLDIFExport())
     {
       Message message = ERR_INIT_EXPORT_NOT_SUPPORTED.get(
@@ -4633,7 +4615,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       throw new DirectoryException(ResultCode.OTHER, message);
     }
 
-    return backend.numSubordinates(baseDn, true) + 1;
+    return backend.numSubordinates(getBaseDN(), true) + 1;
   }
 
   /**
@@ -4724,7 +4706,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     try
     {
       source = Integer.decode(sourceString);
-      if (source >= -1 && source != serverId)
+      if (source >= -1 && source != getServerId())
       {
         // TODO Verifies serverID is in the domain
         // We should check here that this is a server implied
@@ -4741,13 +4723,12 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     if (cause != null)
     {
       Message message = ERR_INVALID_IMPORT_SOURCE.get(
-          baseDn.toNormalizedString(), Integer.toString(serverId),
+          getBaseDNString(), Integer.toString(getServerId()),
           Integer.toString(source),"Details:" + cause.getLocalizedMessage());
       throw new DirectoryException(resultCode, message, cause);
     }
-    Message message = ERR_INVALID_IMPORT_SOURCE.get(
-        baseDn.toNormalizedString(), Integer.toString(serverId),
-        Integer.toString(source),"");
+    Message message = ERR_INVALID_IMPORT_SOURCE.get(getBaseDNString(),
+        Integer.toString(getServerId()), Integer.toString(source), "");
     throw new DirectoryException(resultCode, message);
   }
 
@@ -5345,7 +5326,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       long endDate) throws DirectoryException
   {
      TRACER.debugInfo("[PURGE] purgeConflictsHistorical "
-         + "on domain: " + baseDn
+         + "on domain: " + getBaseDN()
          + "endDate:" + new Date(endDate)
          + "lastCSNPurgedFromHist: "
          + lastCSNPurgedFromHist.toStringUI());
@@ -5363,7 +5344,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
      }
 
      InternalSearchOperation searchOp = conn.processSearch(
-         ByteString.valueOf(baseDn.toString()),
+         ByteString.valueOf(getBaseDNString()),
          SearchScope.WHOLE_SUBTREE,
          DereferencePolicy.NEVER_DEREF_ALIASES,
          0, 0, false, filter,
@@ -5415,4 +5396,5 @@ private boolean solveNamingConflict(ModifyDNOperation op,
        }
      }
   }
+
 }

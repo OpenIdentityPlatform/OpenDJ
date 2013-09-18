@@ -77,7 +77,7 @@ public class MonitoringPublisher extends DirectoryThread
     super("Replication server RS("
         + replicationServerDomain.getLocalRSServerId()
         + ") monitor publisher for domain \""
-        + replicationServerDomain.getBaseDn() + "\"");
+        + replicationServerDomain.getBaseDN() + "\"");
 
     this.domain = replicationServerDomain;
     this.period = period;
@@ -198,6 +198,6 @@ public class MonitoringPublisher extends DirectoryThread
   private String getMessage(String message)
   {
     return "In RS " + domain.getLocalRSServerId() + ", for base dn "
-        + domain.getBaseDn() + ": " + message;
+        + domain.getBaseDN() + ": " + message;
   }
 }

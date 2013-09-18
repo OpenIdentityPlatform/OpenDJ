@@ -42,6 +42,7 @@ import org.opends.server.replication.server.changelog.api.ChangeNumberIndexDB;
 import org.opends.server.replication.server.changelog.api.ChangelogDB;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.api.ReplicaDBCursor;
+import org.opends.server.types.DN;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.util.Pair;
 
@@ -62,8 +63,8 @@ public class JEChangelogDB implements ChangelogDB
   /**
    * This map contains the List of updates received from each LDAP server.
    */
-  private final Map<String, Map<Integer, DbHandler>> sourceDbHandlers =
-      new ConcurrentHashMap<String, Map<Integer, DbHandler>>();
+  private final Map<DN, Map<Integer, DbHandler>> sourceDbHandlers =
+      new ConcurrentHashMap<DN, Map<Integer, DbHandler>>();
   private ReplicationDbEnv dbEnv;
   private String dbDirName = null;
   private File dbDirectory;
@@ -82,9 +83,9 @@ public class JEChangelogDB implements ChangelogDB
     this.replicationServer = replicationServer;
   }
 
-  private Map<Integer, DbHandler> getDomainMap(String baseDn)
+  private Map<Integer, DbHandler> getDomainMap(DN baseDN)
   {
-    final Map<Integer, DbHandler> domainMap = sourceDbHandlers.get(baseDn);
+    final Map<Integer, DbHandler> domainMap = sourceDbHandlers.get(baseDN);
     if (domainMap != null)
     {
       return domainMap;
@@ -92,45 +93,45 @@ public class JEChangelogDB implements ChangelogDB
     return Collections.emptyMap();
   }
 
-  private DbHandler getDbHandler(String baseDn, int serverId)
+  private DbHandler getDbHandler(DN baseDN, int serverId)
   {
-    return getDomainMap(baseDn).get(serverId);
+    return getDomainMap(baseDN).get(serverId);
   }
 
   /**
    * Provision resources for the specified serverId in the specified replication
    * domain.
    *
-   * @param baseDn
+   * @param baseDN
    *          the replication domain where to add the serverId
    * @param serverId
    *          the server Id to add to the replication domain
    * @throws ChangelogException
    *           If a database error happened.
    */
-  private void commission(String baseDn, int serverId, ReplicationServer rs)
+  private void commission(DN baseDN, int serverId, ReplicationServer rs)
       throws ChangelogException
   {
-    getOrCreateDbHandler(baseDn, serverId, rs);
+    getOrCreateDbHandler(baseDN, serverId, rs);
   }
 
-  private Pair<DbHandler, Boolean> getOrCreateDbHandler(String baseDn,
+  private Pair<DbHandler, Boolean> getOrCreateDbHandler(DN baseDN,
       int serverId, ReplicationServer rs) throws ChangelogException
   {
     synchronized (sourceDbHandlers)
     {
-      Map<Integer, DbHandler> domainMap = sourceDbHandlers.get(baseDn);
+      Map<Integer, DbHandler> domainMap = sourceDbHandlers.get(baseDN);
       if (domainMap == null)
       {
         domainMap = new ConcurrentHashMap<Integer, DbHandler>();
-        sourceDbHandlers.put(baseDn, domainMap);
+        sourceDbHandlers.put(baseDN, domainMap);
       }
 
       DbHandler dbHandler = domainMap.get(serverId);
       if (dbHandler == null)
       {
         dbHandler =
-            new DbHandler(serverId, baseDn, rs, dbEnv, rs.getQueueSize());
+            new DbHandler(serverId, baseDN, rs, dbEnv, rs.getQueueSize());
         domainMap.put(serverId, dbHandler);
         return Pair.of(dbHandler, true);
       }
@@ -161,19 +162,18 @@ public class JEChangelogDB implements ChangelogDB
   private void initializeChangelogState(final ChangelogState changelogState)
       throws ChangelogException
   {
-    for (Map.Entry<String, Long> entry :
+    for (Map.Entry<DN, Long> entry :
       changelogState.getDomainToGenerationId().entrySet())
     {
       replicationServer.getReplicationServerDomain(entry.getKey(), true)
           .initGenerationID(entry.getValue());
     }
-    for (Map.Entry<String, List<Integer>> entry : changelogState
-        .getDomainToServerIds().entrySet())
+    for (Map.Entry<DN, List<Integer>> entry :
+      changelogState.getDomainToServerIds().entrySet())
     {
-      final String baseDn = entry.getKey();
       for (int serverId : entry.getValue())
       {
-        commission(baseDn, serverId, replicationServer);
+        commission(entry.getKey(), serverId, replicationServer);
       }
     }
   }
@@ -190,16 +190,16 @@ public class JEChangelogDB implements ChangelogDB
 
   /** {@inheritDoc} */
   @Override
-  public Set<Integer> getDomainServerIds(String baseDn)
+  public Set<Integer> getDomainServerIds(DN baseDN)
   {
-    return getDomainMap(baseDn).keySet();
+    return getDomainMap(baseDN).keySet();
   }
 
   /** {@inheritDoc} */
   @Override
-  public long getCount(String baseDn, int serverId, CSN from, CSN to)
+  public long getCount(DN baseDN, int serverId, CSN from, CSN to)
   {
-    DbHandler dbHandler = getDbHandler(baseDn, serverId);
+    DbHandler dbHandler = getDbHandler(baseDN, serverId);
     if (dbHandler != null)
     {
       return dbHandler.getCount(from, to);
@@ -209,10 +209,10 @@ public class JEChangelogDB implements ChangelogDB
 
   /** {@inheritDoc} */
   @Override
-  public long getDomainChangesCount(String baseDn)
+  public long getDomainChangesCount(DN baseDN)
   {
     long entryCount = 0;
-    for (DbHandler dbHandler : getDomainMap(baseDn).values())
+    for (DbHandler dbHandler : getDomainMap(baseDN).values())
     {
       entryCount += dbHandler.getChangesCount();
     }
@@ -221,9 +221,9 @@ public class JEChangelogDB implements ChangelogDB
 
   /** {@inheritDoc} */
   @Override
-  public void shutdownDomain(String baseDn)
+  public void shutdownDomain(DN baseDN)
   {
-    shutdownDbHandlers(getDomainMap(baseDn));
+    shutdownDbHandlers(getDomainMap(baseDN));
   }
 
   private void shutdownDbHandlers(Map<Integer, DbHandler> domainMap)
@@ -240,9 +240,9 @@ public class JEChangelogDB implements ChangelogDB
 
   /** {@inheritDoc} */
   @Override
-  public Map<Integer, CSN> getDomainFirstCSNs(String baseDn)
+  public Map<Integer, CSN> getDomainFirstCSNs(DN baseDN)
   {
-    final Map<Integer, DbHandler> domainMap = getDomainMap(baseDn);
+    final Map<Integer, DbHandler> domainMap = getDomainMap(baseDN);
     final Map<Integer, CSN> results =
         new HashMap<Integer, CSN>(domainMap.size());
     for (DbHandler dbHandler : domainMap.values())
@@ -254,9 +254,9 @@ public class JEChangelogDB implements ChangelogDB
 
   /** {@inheritDoc} */
   @Override
-  public Map<Integer, CSN> getDomainLastCSNs(String baseDn)
+  public Map<Integer, CSN> getDomainLastCSNs(DN baseDN)
   {
-    final Map<Integer, DbHandler> domainMap = getDomainMap(baseDn);
+    final Map<Integer, DbHandler> domainMap = getDomainMap(baseDN);
     final Map<Integer, CSN> results =
         new HashMap<Integer, CSN>(domainMap.size());
     for (DbHandler dbHandler : domainMap.values())
@@ -268,9 +268,9 @@ public class JEChangelogDB implements ChangelogDB
 
   /** {@inheritDoc} */
   @Override
-  public void clearDomain(String baseDn)
+  public void clearDomain(DN baseDN)
   {
-    final Map<Integer, DbHandler> domainMap = getDomainMap(baseDn);
+    final Map<Integer, DbHandler> domainMap = getDomainMap(baseDN);
     synchronized (domainMap)
     {
       for (DbHandler dbHandler : domainMap.values())
@@ -294,7 +294,7 @@ public class JEChangelogDB implements ChangelogDB
 
     try
     {
-      dbEnv.clearGenerationId(baseDn);
+      dbEnv.clearGenerationId(baseDN);
     }
     catch (Exception ignored)
     {
@@ -320,10 +320,10 @@ public class JEChangelogDB implements ChangelogDB
 
   /** {@inheritDoc} */
   @Override
-  public long getDomainLatestTrimDate(String baseDn)
+  public long getDomainLatestTrimDate(DN baseDN)
   {
     long latest = 0;
-    for (DbHandler dbHandler : getDomainMap(baseDn).values())
+    for (DbHandler dbHandler : getDomainMap(baseDN).values())
     {
       if (latest == 0 || latest < dbHandler.getLatestTrimDate())
       {
@@ -335,9 +335,9 @@ public class JEChangelogDB implements ChangelogDB
 
   /** {@inheritDoc} */
   @Override
-  public CSN getCSNAfter(String baseDn, int serverId, CSN startAfterCSN)
+  public CSN getCSNAfter(DN baseDN, int serverId, CSN startAfterCSN)
   {
-    final DbHandler dbHandler = getDbHandler(baseDn, serverId);
+    final DbHandler dbHandler = getDbHandler(baseDN, serverId);
 
     ReplicaDBCursor cursor = null;
     try
@@ -407,10 +407,10 @@ public class JEChangelogDB implements ChangelogDB
 
   /** {@inheritDoc} */
   @Override
-  public ReplicaDBCursor getCursorFrom(String baseDn, int serverId,
+  public ReplicaDBCursor getCursorFrom(DN baseDN, int serverId,
       CSN startAfterCSN)
   {
-    DbHandler dbHandler = getDbHandler(baseDn, serverId);
+    DbHandler dbHandler = getDbHandler(baseDN, serverId);
     if (dbHandler == null)
     {
       return null;
@@ -437,11 +437,11 @@ public class JEChangelogDB implements ChangelogDB
 
   /** {@inheritDoc} */
   @Override
-  public boolean publishUpdateMsg(String baseDn, int serverId,
+  public boolean publishUpdateMsg(DN baseDN, int serverId,
       UpdateMsg updateMsg) throws ChangelogException
   {
     final Pair<DbHandler, Boolean> pair =
-        getOrCreateDbHandler(baseDn, serverId, replicationServer);
+        getOrCreateDbHandler(baseDN, serverId, replicationServer);
     final DbHandler dbHandler = pair.getFirst();
     final boolean wasCreated = pair.getSecond();
 

@@ -76,11 +76,11 @@ public class MessageHandler extends MonitorProvider<MonitorProviderCfg>
   /**
    * Local hosting RS.
    */
-  protected ReplicationServer replicationServer = null;
+  protected ReplicationServer replicationServer;
   /**
-   * Specifies the related replication server domain based on baseDn.
+   * Specifies the related replication server domain based on baseDN.
    */
-  protected ReplicationServerDomain replicationServerDomain = null;
+  protected ReplicationServerDomain replicationServerDomain;
   /**
    * Number of update sent to the server.
    */
@@ -106,9 +106,9 @@ public class MessageHandler extends MonitorProvider<MonitorProviderCfg>
    */
   private ServerState serverState;
   /**
-   * Specifies the baseDn of the domain.
+   * Specifies the baseDN of the domain.
    */
-  private String baseDN = null;
+  private DN baseDN;
   /**
    * Specifies whether the consumer is still active or not.
    * If not active, the handler will not return any message.
@@ -563,7 +563,7 @@ public class MessageHandler extends MonitorProvider<MonitorProviderCfg>
    */
   protected String getBaseDN()
   {
-    return baseDN;
+    return baseDN.toNormalizedString();
   }
 
   /**
@@ -628,21 +628,22 @@ public class MessageHandler extends MonitorProvider<MonitorProviderCfg>
    * @exception DirectoryException
    *              raised when a problem occurs.
    */
-  protected void setBaseDNAndDomain(String baseDN, boolean isDataServer)
-  throws DirectoryException
+  protected void setBaseDNAndDomain(DN baseDN, boolean isDataServer)
+      throws DirectoryException
   {
     if (this.baseDN != null)
     {
-      if (!this.baseDN.equalsIgnoreCase(baseDN))
+      if (!this.baseDN.equals(baseDN))
       {
-        Message message = ERR_RS_DN_DOES_NOT_MATCH.get(this.baseDN, baseDN);
+        Message message = ERR_RS_DN_DOES_NOT_MATCH.get(
+            this.baseDN.toNormalizedString(), baseDN.toNormalizedString());
         throw new DirectoryException(ResultCode.OTHER, message, null);
       }
     }
     else
     {
       this.baseDN = baseDN;
-      if (!baseDN.equalsIgnoreCase("cn=changelog"))
+      if (!baseDN.toNormalizedString().equals("cn=changelog"))
         this.replicationServerDomain = getDomain(isDataServer);
     }
   }

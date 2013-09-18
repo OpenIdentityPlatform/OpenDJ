@@ -27,6 +27,7 @@
 package org.opends.server.replication.server.changelog.api;
 
 import org.opends.server.replication.common.CSN;
+import org.opends.server.types.DN;
 
 /**
  * The Change Number Index Data class represents records stored in the
@@ -38,7 +39,7 @@ public class CNIndexRecord
   /** This is the key used to store the rest of the . */
   private long changeNumber;
   private String previousCookie;
-  private String baseDN;
+  private DN baseDN;
   private CSN csn;
 
   /**
@@ -53,7 +54,7 @@ public class CNIndexRecord
    * @param csn
    *          the replication CSN field
    */
-  public CNIndexRecord(long changeNumber, String previousCookie, String baseDN,
+  public CNIndexRecord(long changeNumber, String previousCookie, DN baseDN,
       CSN csn)
   {
     super();
@@ -68,7 +69,7 @@ public class CNIndexRecord
    *
    * @return the baseDN
    */
-  public String getBaseDN()
+  public DN getBaseDN()
   {
     return baseDN;
   }
