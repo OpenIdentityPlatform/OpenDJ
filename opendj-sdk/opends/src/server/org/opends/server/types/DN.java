@@ -23,11 +23,9 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2012 ForgeRock AS
+ *      Portions Copyright 2012-2013 ForgeRock AS
  */
 package org.opends.server.types;
-
-
 
 import java.io.Serializable;
 import java.util.LinkedList;
@@ -42,7 +40,6 @@ import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.opends.server.util.Validator.*;
-
 
 /**
  * This class defines a data structure for storing and interacting
@@ -90,17 +87,19 @@ public final class DN
 
 
 
-  // The number of RDN components that comprise this DN.
+  /** The number of RDN components that comprise this DN. */
   private final int numComponents;
 
-  // The set of RDN components that comprise this DN, arranged with
-  // the suffix as the last element.
+  /**
+   * The set of RDN components that comprise this DN, arranged with the suffix
+   * as the last element.
+   */
   private final RDN[] rdnComponents;
 
-  // The string representation of this DN.
+  /** The string representation of this DN. */
   private String dnString;
 
-  // The normalized string representation of this DN.
+  /** The normalized string representation of this DN. */
   private String normalizedDN;
 
 
@@ -2797,9 +2796,27 @@ public final class DN
 
 
   /**
-   * Retrieves a normalized string representation of this DN.
-   *
-   * @return  A normalized string representation of this DN.
+   * Retrieves a normalized string representation of this DN. This method should
+   * be used over {@link #toString()} when the resulting String is to be used as
+   * a key in a Map.
+   * <p>
+   * Normalization involves:
+   * <ol>
+   * <li>sorting AVAs (e.g. "sn=swift+cn=matt" is greater than
+   * "cn=matt+sn=swift")</li>
+   * <li>normalizing attribute names (e.g. "commonName" is converted to "cn")</li>
+   * <li>normalizing attribute values (e.g. converting to lowercase)</li>
+   * </ol>
+   * Where AVA stands for "Attribute Value Assertion".
+   * <p>
+   * Remember that:
+   * <ul>
+   * <li>a DN is made of one or several RDNs</li>
+   * <li>an RDN is made of one or several AVA</li>
+   * <li>an AVA is a attribute type and an attribute value</li>
+   * </ul>
+   * 
+   * @return A normalized string representation of this DN.
    */
   public String toNormalizedString()
   {
