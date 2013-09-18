@@ -77,15 +77,21 @@
     <listitem><para><literal>org.forgerock.opendj.ldap.schema.SyntaxImpl</literal></para></listitem>
    </itemizedlist>
 
+  </listitem>
+
+  <listitem>
    <para>The following methods are Deprecated.</para>
 
    <itemizedlist>
+    <listitem><para><literal>org.forgerock.opendj.ldap.Connections#newHeartBeatConnectionFactory</literal></para></listitem>
     <listitem><para><literal>org.forgerock.opendj.ldap.LDAPListenerOptions#getTCPNIOTransport</literal></para></listitem>
     <listitem><para><literal>org.forgerock.opendj.ldap.LDAPListenerOptions#setTCPNIOTransport</literal></para></listitem>
     <listitem><para><literal>org.forgerock.opendj.ldap.LDAPOptions#getTCPNIOTransport</literal></para></listitem>
     <listitem><para><literal>org.forgerock.opendj.ldap.LDAPOptions#setTCPNIOTransport</literal></para></listitem>
    </itemizedlist>
+  </listitem>
 
+  <listitem>
    <para>The class <literal>org.forgerock.opendj.ldap.CoreMessages</literal> is
    Internal.</para>
   </listitem>
