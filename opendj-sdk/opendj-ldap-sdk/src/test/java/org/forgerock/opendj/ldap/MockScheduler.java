@@ -25,10 +25,14 @@
  */
 package org.forgerock.opendj.ldap;
 
+import static java.util.concurrent.Executors.callable;
+
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -43,11 +47,74 @@ import java.util.concurrent.TimeoutException;
  */
 final class MockScheduler implements ScheduledExecutorService {
 
-    // Saved scheduled task.
-    private Runnable command;
-    private long delay;
-    private boolean isScheduled = false;
-    private TimeUnit unit;
+    private final class ScheduledCallableFuture<T> implements ScheduledFuture<T>, Callable<T> {
+        private final Callable<T> callable;
+        private final CountDownLatch isDone = new CountDownLatch(1);
+        private final boolean removeAfterCall;
+        private T result = null;
+
+        private ScheduledCallableFuture(final Callable<T> callable, final boolean removeAfterCall) {
+            this.callable = callable;
+            this.removeAfterCall = removeAfterCall;
+        }
+
+        @Override
+        public T call() throws Exception {
+            result = callable.call();
+            isDone.countDown();
+            if (removeAfterCall) {
+                tasks.remove(this);
+            }
+            return result;
+        }
+
+        @Override
+        public boolean cancel(final boolean mayInterruptIfRunning) {
+            return tasks.remove(this);
+        }
+
+        @Override
+        public int compareTo(final Delayed o) {
+            // Unused.
+            return 0;
+        }
+
+        @Override
+        public T get() throws InterruptedException, ExecutionException {
+            isDone.await();
+            return result;
+        }
+
+        @Override
+        public T get(final long timeout, final TimeUnit unit) throws InterruptedException,
+                ExecutionException, TimeoutException {
+            if (isDone.await(timeout, unit)) {
+                return result;
+            } else {
+                throw new TimeoutException();
+            }
+        }
+
+        @Override
+        public long getDelay(final TimeUnit unit) {
+            // Unused.
+            return 0;
+        }
+
+        @Override
+        public boolean isCancelled() {
+            return tasks.contains(this);
+        }
+
+        @Override
+        public boolean isDone() {
+            return isDone.getCount() == 0;
+        }
+
+    }
+
+    // Saved scheduled tasks.
+    private final List<Callable<?>> tasks = new CopyOnWriteArrayList<Callable<?>>();
 
     MockScheduler() {
         // Nothing to do.
@@ -109,74 +176,24 @@ final class MockScheduler implements ScheduledExecutorService {
     @Override
     public <V> ScheduledFuture<V> schedule(final Callable<V> callable, final long delay,
             final TimeUnit unit) {
-        // Unused.
-        return null;
+        return onceOnly(callable);
     }
 
     @Override
     public ScheduledFuture<?> schedule(final Runnable command, final long delay, final TimeUnit unit) {
-        // Unused.
-        return null;
+        return onceOnly(callable(command));
     }
 
     @Override
     public ScheduledFuture<?> scheduleAtFixedRate(final Runnable command, final long initialDelay,
             final long period, final TimeUnit unit) {
-        // Unused.
-        return null;
+        return repeated(callable(command));
     }
 
     @Override
     public ScheduledFuture<?> scheduleWithFixedDelay(final Runnable command,
             final long initialDelay, final long delay, final TimeUnit unit) {
-        this.command = command;
-        this.delay = delay;
-        this.unit = unit;
-        this.isScheduled = true;
-        return new ScheduledFuture<Object>() {
-            @Override
-            public boolean cancel(final boolean mayInterruptIfRunning) {
-                isScheduled = false;
-                return true;
-            }
-
-            @Override
-            public int compareTo(final Delayed o) {
-                // Unused.
-                return 0;
-            }
-
-            @Override
-            public Object get() throws InterruptedException, ExecutionException {
-                // Unused.
-                return null;
-            }
-
-            @Override
-            public Object get(final long timeout, final TimeUnit unit) throws InterruptedException,
-                    ExecutionException, TimeoutException {
-                // Unused.
-                return null;
-            }
-
-            @Override
-            public long getDelay(final TimeUnit unit) {
-                // Unused.
-                return 0;
-            }
-
-            @Override
-            public boolean isCancelled() {
-                return !isScheduled;
-            }
-
-            @Override
-            public boolean isDone() {
-                // Unused.
-                return false;
-            }
-
-        };
+        return repeated(callable(command));
     }
 
     @Override
@@ -192,35 +209,62 @@ final class MockScheduler implements ScheduledExecutorService {
 
     @Override
     public <T> Future<T> submit(final Callable<T> task) {
-        // Unused.
-        return null;
+        return onceOnly(task);
     }
 
     @Override
     public Future<?> submit(final Runnable task) {
-        // Unused.
-        return null;
+        return onceOnly(callable(task));
     }
 
     @Override
     public <T> Future<T> submit(final Runnable task, final T result) {
-        // Unused.
-        return null;
+        return onceOnly(callable(task, result));
     }
 
-    Runnable getCommand() {
-        return command;
+    List<Callable<?>> getAllTasks() {
+        return tasks;
     }
 
-    long getDelay() {
-        return delay;
-    }
-
-    TimeUnit getUnit() {
-        return unit;
+    Callable<?> getFirstTask() {
+        return tasks.get(0);
     }
 
     boolean isScheduled() {
-        return isScheduled;
+        return !tasks.isEmpty();
+    }
+
+    void runAllTasks() {
+        for (final Callable<?> task : tasks) {
+            runTask0(task);
+        }
+    }
+
+    void runFirstTask() {
+        runTask(0);
+    }
+
+    void runTask(final int i) {
+        runTask0(tasks.get(i));
+    }
+
+    private <T> ScheduledCallableFuture<T> onceOnly(final Callable<T> callable) {
+        final ScheduledCallableFuture<T> wrapped = new ScheduledCallableFuture<T>(callable, true);
+        tasks.add(wrapped);
+        return wrapped;
+    }
+
+    private <T> ScheduledCallableFuture<T> repeated(final Callable<T> callable) {
+        final ScheduledCallableFuture<T> wrapped = new ScheduledCallableFuture<T>(callable, false);
+        tasks.add(wrapped);
+        return wrapped;
+    }
+
+    private void runTask0(final Callable<?> task) {
+        try {
+            task.call();
+        } catch (final Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 }
