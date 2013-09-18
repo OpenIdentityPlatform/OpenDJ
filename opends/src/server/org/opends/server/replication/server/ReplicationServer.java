@@ -181,9 +181,6 @@ public final class ReplicationServer
   private final Object connectThreadLock = new Object();
   private long domainTicket = 0L;
 
-  /** BaseDNs excluded for ECL. */
-  private Set<String> excludedBaseDNs = new HashSet<String>();
-
   /**
    * The weight affected to the replication server.
    * Each replication server of the topology has a weight. When combined
@@ -1459,21 +1456,14 @@ public final class ReplicationServer
   }
 
   /**
-   * Excluded a list of domain from eligibility computation.
-   * @param excludedBaseDNs the provided list of baseDNs excluded from
-   *                          the computation of eligibleCSN.
-   */
-  public void disableEligibility(Set<String> excludedBaseDNs)
-  {
-    this.excludedBaseDNs = excludedBaseDNs;
-  }
-
-  /**
    * Returns the eligible CSN cross domains - relies on the eligible CSN from
    * each domain.
+   *
+   * @param excludedBaseDNs
+   *          the list of baseDNs excluded from the computation of eligibleCSN
    * @return the cross domain eligible CSN.
    */
-  public CSN getEligibleCSN()
+  public CSN getEligibleCSN(Set<String> excludedBaseDNs)
   {
     String debugLog = "";
 
@@ -1710,8 +1700,6 @@ public final class ReplicationServer
    */
   public MultiDomainServerState getLastECLCookie(Set<String> excludedBaseDNs)
   {
-    disableEligibility(excludedBaseDNs);
-
     // Initialize start state for all running domains with empty state
     MultiDomainServerState result = new MultiDomainServerState();
     for (ReplicationServerDomain rsd : getReplicationServerDomains())
@@ -1720,7 +1708,8 @@ public final class ReplicationServer
           || rsd.getDbServerState().isEmpty())
         continue;
 
-      result.update(rsd.getBaseDN(), rsd.getEligibleState(getEligibleCSN()));
+      final CSN eligibleCSN = getEligibleCSN(excludedBaseDNs);
+      result.update(rsd.getBaseDN(), rsd.getEligibleState(eligibleCSN));
     }
     return result;
   }

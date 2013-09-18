@@ -1018,8 +1018,7 @@ public final class ECLServerHandler extends ServerHandler
     }
 
     excludedBaseDNs = startECLSessionMsg.getExcludedBaseDNs();
-    replicationServer.disableEligibility(excludedBaseDNs);
-    eligibleCSN = replicationServer.getEligibleCSN();
+    refreshEligibleCSN();
 
     initializeChangelogSearch(startECLSessionMsg);
 
@@ -1558,7 +1557,7 @@ public final class ECLServerHandler extends ServerHandler
    */
   public void refreshEligibleCSN()
   {
-    eligibleCSN = replicationServer.getEligibleCSN();
+    eligibleCSN = replicationServer.getEligibleCSN(excludedBaseDNs);
   }
 
 }

@@ -139,9 +139,8 @@ public class LastChangeNumberVirtualAttributeProvider
         excludedDomains.add(ServerConstants.DN_EXTERNAL_CHANGELOG_ROOT);
 
         ReplicationServer rs = eclwe.getReplicationServer();
-        rs.disableEligibility(excludedDomains);
         long[] limits = rs.getECLChangeNumberLimits(
-            rs.getEligibleCSN(), excludedDomains);
+            rs.getEligibleCSN(excludedDomains), excludedDomains);
 
         last = String.valueOf(limits[1]);
       }
