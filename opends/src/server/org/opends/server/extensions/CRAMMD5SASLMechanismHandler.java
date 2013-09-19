@@ -480,12 +480,9 @@ public class CRAMMD5SASLMechanismHandler
     // If we've gotten here, then the authentication was successful.
     bindOperation.setResultCode(ResultCode.SUCCESS);
 
-    AuthenticationInfo authInfo =
-         new AuthenticationInfo(userEntry, SASL_MECHANISM_CRAM_MD5,
-                                clientCredentials,
-                                DirectoryServer.isRootDN(userEntry.getDN()));
+    AuthenticationInfo authInfo = new AuthenticationInfo(userEntry,
+        SASL_MECHANISM_CRAM_MD5, DirectoryServer.isRootDN(userEntry.getDN()));
     bindOperation.setAuthenticationInfo(authInfo);
-    return;
   }
 
 
