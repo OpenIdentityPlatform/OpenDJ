@@ -416,23 +416,23 @@ public class JEChangelogDB implements ChangelogDB
       return null;
     }
 
-    ReplicaDBCursor it;
+    ReplicaDBCursor cursor;
     try
     {
-      it = dbHandler.generateCursorFrom(startAfterCSN);
+      cursor = dbHandler.generateCursorFrom(startAfterCSN);
     }
     catch (Exception e)
     {
       return null;
     }
 
-    if (!it.next())
+    if (!cursor.next())
     {
-      close(it);
+      close(cursor);
       return null;
     }
 
-    return it;
+    return cursor;
   }
 
   /** {@inheritDoc} */
