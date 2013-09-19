@@ -27,6 +27,8 @@ package com.forgerock.opendj.ldap.tools;
 
 import static org.fest.assertions.Assertions.*;
 
+import java.io.File;
+
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.opendj.ldap.ConnectionFactory;
 import org.mockito.Mock;
@@ -54,7 +56,8 @@ public class ConnectionFactoryProviderTest extends ToolsTestCase {
     /** Issue OPENDJ-734 */
     public void getConnectionFactoryShouldAllowNullTrustStorePassword() throws Exception {
         // provide a trustStorePath but no password
-        String trustStorePath = getClass().getClassLoader().getResource("dummy-truststore").getFile();
+        String trustStorePath = new File(getClass().getClassLoader().getResource("dummy-truststore").toURI())
+                .getCanonicalPath();
         argParser.parseArguments(new String[] { "--useStartTLS", "--trustStorePath", trustStorePath });
 
         ConnectionFactory factory = connectionFactoryProvider.getConnectionFactory();

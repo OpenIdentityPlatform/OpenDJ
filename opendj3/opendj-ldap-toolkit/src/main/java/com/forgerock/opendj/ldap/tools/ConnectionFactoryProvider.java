@@ -378,7 +378,7 @@ final class ConnectionFactoryProvider {
             if (trustStorePathArg.isPresent()) {
                 // Check that the path exists and is readable
                 final String value = trustStorePathArg.getValue();
-                if (!canRead(trustStorePathArg.getValue())) {
+                if (!canReadPath(value)) {
                     final LocalizableMessage message = ERR_CANNOT_READ_TRUSTSTORE.get(value);
                     throw new ArgumentException(message);
                 }
@@ -387,7 +387,7 @@ final class ConnectionFactoryProvider {
             if (keyStorePathArg.isPresent()) {
                 // Check that the path exists and is readable
                 final String value = keyStorePathArg.getValue();
-                if (!canRead(keyStorePathArg.getValue())) {
+                if (!canReadPath(value)) {
                     final LocalizableMessage message = ERR_CANNOT_READ_KEYSTORE.get(value);
                     throw new ArgumentException(message);
                 }
@@ -464,7 +464,7 @@ final class ConnectionFactoryProvider {
      * @return <CODE>true</CODE> if we can read on the provided path and
      *         <CODE>false</CODE> otherwise.
      */
-    private boolean canRead(final String path) {
+    private boolean canReadPath(final String path) {
         boolean canRead;
         final File file = new File(path);
         canRead = file.exists() && file.canRead();
