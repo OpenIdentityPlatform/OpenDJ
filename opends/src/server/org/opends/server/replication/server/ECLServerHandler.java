@@ -613,16 +613,16 @@ public final class ECLServerHandler extends ServerHandler
     if (startChangeNumber < firstChangeNumber)
     {
       CNIndexRecord firstCNRecord = cnIndexDB.getRecord(firstChangeNumber);
-      if (firstCNRecord != null)
+      if (firstCNRecord == null)
       {
-        final String crossDomainStartState = firstCNRecord.getPreviousCookie();
-        cnIndexDBCursor = cnIndexDB.getCursorFrom(firstChangeNumber);
-        return crossDomainStartState;
+        // This should not happen
+        isEndOfCNIndexDBReached = true;
+        return null;
       }
 
-      // This should not happen
-      isEndOfCNIndexDBReached = true;
-      return null;
+      final String crossDomainStartState = firstCNRecord.getPreviousCookie();
+      cnIndexDBCursor = cnIndexDB.getCursorFrom(firstChangeNumber);
+      return crossDomainStartState;
     }
     else if (startChangeNumber <= lastChangeNumber)
     {
