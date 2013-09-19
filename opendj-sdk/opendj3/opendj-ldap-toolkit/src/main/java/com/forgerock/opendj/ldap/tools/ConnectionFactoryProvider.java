@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2012 ForgeRock AS
+ *      Portions copyright 2011-2013 ForgeRock AS
  */
 
 package com.forgerock.opendj.ldap.tools;
@@ -387,7 +387,7 @@ final class ConnectionFactoryProvider {
             if (keyStorePathArg.isPresent()) {
                 // Check that the path exists and is readable
                 final String value = keyStorePathArg.getValue();
-                if (!canRead(trustStorePathArg.getValue())) {
+                if (!canRead(keyStorePathArg.getValue())) {
                     final LocalizableMessage message = ERR_CANNOT_READ_KEYSTORE.get(value);
                     throw new ArgumentException(message);
                 }
@@ -594,6 +594,7 @@ final class ConnectionFactoryProvider {
     /**
      * {@inheritDoc}
      */
+    @Override
     public String toString() {
         return connFactory.toString();
     }
@@ -728,15 +729,11 @@ final class ConnectionFactoryProvider {
 
         X509TrustManager tm = null;
         if (trustStorePathArg.isPresent() && trustStorePathArg.getValue().length() > 0) {
-            tm =
-                    TrustManagers.checkValidityDates(TrustManagers.checkHostName(hostNameArg
-                            .getValue(), TrustManagers.checkUsingTrustStore(trustStorePathArg
-                            .getValue(), getTrustStorePIN().toCharArray(), null)));
+            tm = TrustManagers.checkValidityDates(TrustManagers.checkHostName(hostNameArg.getValue(),
+                    TrustManagers.checkUsingTrustStore(trustStorePathArg.getValue(), getTrustStorePIN(), null)));
         } else if (getTrustStore() != null) {
-            tm =
-                    TrustManagers.checkValidityDates(TrustManagers.checkHostName(hostNameArg
-                            .getValue(), TrustManagers.checkUsingTrustStore(getTrustStore(),
-                            getTrustStorePIN().toCharArray(), null)));
+            tm = TrustManagers.checkValidityDates(TrustManagers.checkHostName(hostNameArg.getValue(),
+                    TrustManagers.checkUsingTrustStore(getTrustStore(), getTrustStorePIN(), null)));
         }
 
         if (app != null && !app.isQuiet()) {
@@ -759,10 +756,10 @@ final class ConnectionFactoryProvider {
     /**
      * Read the TrustStore PIN from the JSSE system property.
      *
-     * @return The PIN that should be used to access the trust store.
+     * @return The PIN that should be used to access the trust store, can be null.
      */
 
-    private String getTrustStorePIN() {
+    private char[] getTrustStorePIN() {
         String pwd;
         if (trustStorePasswordArg.isPresent()) {
             pwd = trustStorePasswordArg.getValue();
@@ -771,7 +768,7 @@ final class ConnectionFactoryProvider {
         } else {
             pwd = System.getProperty("javax.net.ssl.trustStorePassword");
         }
-        return pwd;
+        return pwd == null ? null : pwd.toCharArray();
     }
 
     private String parseSASLOptionValue(final String option) throws ArgumentException {
