@@ -192,7 +192,7 @@
             <!-- Verify the synchronization of the trees among the servers in
               the topology -->          
             <call function="'verifyTrees'">
-              [ clientHost, clientPath, master, resyncConsumerList, synchroSuffix ]
+              [ clientHost, clientPath, master, resyncConsumerList, synchroSuffix, 'OPENDJ-1135' ]
             </call>
 
           </sequence>
