@@ -367,7 +367,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     protected ServerStateFlush()
     {
       super("Replica DS(" + getServerId()
-          + ") state checkpointer for domain \"" + getBaseDN() + "\"");
+          + ") state checkpointer for domain \"" + getBaseDNString() + "\"");
     }
 
     /**
@@ -414,7 +414,8 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     protected RSUpdater(CSN replServerMaxCSN)
     {
       super("Replica DS(" + getServerId()
-          + ") missing change publisher for domain \"" + getBaseDN() + "\"");
+          + ") missing change publisher for domain \"" + getBaseDNString()
+          + "\"");
       this.startCSN = replServerMaxCSN;
     }
 
@@ -761,7 +762,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     if (debugEnabled())
       TRACER.debugInfo(
           "Attempt to read the potential fractional config in domain root "
-              + "entry " + getBaseDN());
+              + "entry " + getBaseDNString());
 
     LDAPFilter filter;
     try
@@ -3099,7 +3100,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
         addConflict(msg);
 
         msg.setDn(generateConflictRDN(entryUUID,
-                    op.getEntryDN().getRDN().toString()) + "," + getBaseDN());
+            op.getEntryDN().getRDN().toString()) + "," + getBaseDNString());
         // reset the parent entryUUID so that the check done is the
         // handleConflict phase does not fail.
         msg.setParentEntryUUID(null);
@@ -3572,7 +3573,8 @@ private boolean solveNamingConflict(ModifyDNOperation op,
   private long loadGenerationId() throws DirectoryException
   {
     if (debugEnabled())
-      TRACER.debugInfo("Attempt to read generation ID from DB " + getBaseDN());
+      TRACER.debugInfo("Attempt to read generation ID from DB "
+          + getBaseDNString());
 
     /*
      * Search the database entry that is used to periodically
@@ -3653,14 +3655,14 @@ private boolean solveNamingConflict(ModifyDNOperation op,
 
       if (debugEnabled())
         TRACER.debugInfo("Generation ID created for domain baseDN="
-            + getBaseDN() + " generationId=" + aGenerationId);
+            + getBaseDNString() + " generationId=" + aGenerationId);
     }
     else
     {
       generationIdSavedStatus = true;
       if (debugEnabled())
         TRACER.debugInfo("Generation ID successfully read from domain baseDN="
-            + getBaseDN() + " generationId=" + aGenerationId);
+            + getBaseDNString() + " generationId=" + aGenerationId);
     }
     return aGenerationId;
   }
@@ -4327,10 +4329,9 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     }
     catch(Exception de)
     {
-      throw new ConfigException(
-            NOTE_ERR_UNABLE_TO_ENABLE_ECL.get(
-                "Replication Domain on" + getBaseDN(),
-                de.getMessage() + " " + de.getCause().getMessage()), de);
+      throw new ConfigException(NOTE_ERR_UNABLE_TO_ENABLE_ECL.get(
+          "Replication Domain on" + getBaseDNString(),
+          de.getMessage() + " " + de.getCause().getMessage()), de);
     }
   }
 
@@ -4377,10 +4378,9 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       }
       catch(DirectoryException de)
       {
-        Message message =
-          NOTE_ERR_UNABLE_TO_ENABLE_ECL.get(
-              "Replication Domain on" + getBaseDN(),
-              de.getMessage() + " " + de.getCause().getMessage());
+        Message message = NOTE_ERR_UNABLE_TO_ENABLE_ECL.get(
+            "Replication Domain on" + getBaseDNString(),
+            de.getMessage() + " " + de.getCause().getMessage());
         logError(message);
         // and go on
       }
@@ -5326,7 +5326,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       long endDate) throws DirectoryException
   {
      TRACER.debugInfo("[PURGE] purgeConflictsHistorical "
-         + "on domain: " + getBaseDN()
+         + "on domain: " + getBaseDNString()
          + "endDate:" + new Date(endDate)
          + "lastCSNPurgedFromHist: "
          + lastCSNPurgedFromHist.toStringUI());
