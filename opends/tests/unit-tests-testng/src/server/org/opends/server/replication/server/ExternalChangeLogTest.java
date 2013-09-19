@@ -84,9 +84,6 @@ import static org.testng.Assert.*;
  * Tests for the replicationServer code.
  */
 @SuppressWarnings("javadoc")
-// repeating the @Test annotation here to try to ensure the tests are run
-// singleThreaded and avoid random failures in continuous integration
-@Test(groups = { "precommit", "replication" }, sequential = true)
 public class ExternalChangeLogTest extends ReplicationTestCase
 {
 
@@ -109,9 +106,6 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
   private static final String TEST_BACKEND_ID2 = "test2";
   private static final String TEST_ROOT_DN_STRING2 = "o=" + TEST_BACKEND_ID2;
-
-  private static final String TEST_BACKEND_ID3 = "test3";
-  private static final String TEST_ROOT_DN_STRING3 = "o=" + TEST_BACKEND_ID3;
 
   /** The LDAPStatistics object associated with the LDAP connection handler. */
   private LDAPStatistics ldapStatistics;
@@ -620,6 +614,9 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     LDAPReplicationDomain domain2 = null;
     Backend backend2 = null;
 
+    // Use different values than other tests to avoid test interactions in concurrent test runs
+    final String backendId2 = tn + 2;
+    final DN baseDN2 = DN.decode("o=" + backendId2);
     try
     {
       server01 = openReplicationSession(TEST_ROOT_DN, SERVER_ID_1,
@@ -635,15 +632,15 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
       // Configure replication on this backend
       // Add the root entry in the backend
-      backend2 = initializeTestBackend(false, TEST_BACKEND_ID2);
+      backend2 = initializeTestBackend(false, backendId2);
       backend2.setPrivateBackend(true);
       SortedSet<String> replServers = newSet("localhost:" + replicationServerPort);
 
-      DomainFakeCfg domainConf = new DomainFakeCfg(TEST_ROOT_DN2,  1602, replServers);
+      DomainFakeCfg domainConf = new DomainFakeCfg(baseDN2, 1602, replServers);
       domain2 = startNewDomain(domainConf, null,null);
 
       sleep(1000);
-      addEntry(createEntry(TEST_ROOT_DN2));
+      addEntry(createEntry(baseDN2));
       sleep(2000);
 
       // Search on ECL from start on all suffixes
@@ -2911,6 +2908,9 @@ public class ExternalChangeLogTest extends ReplicationTestCase
   {
     String tn = "ECLIncludeAttributes";
     debugInfo(tn, "Starting test\n\n");
+
+    final String backendId3 = "test3";
+    final DN baseDN3 = DN.decode("o=" + backendId3);
     Backend backend2 = null;
     Backend backend3 = null;
     LDAPReplicationDomain domain2 = null;
@@ -2930,15 +2930,14 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       DomainFakeCfg domainConf = new DomainFakeCfg(TEST_ROOT_DN2, 1702, replServers);
       domain2 = startNewDomain(domainConf, eclInclude, eclInclude);
 
-      backend3 = initializeTestBackend(false, TEST_BACKEND_ID3);
-      DN baseDn3 = DN.decode(TEST_ROOT_DN_STRING3);
+      backend3 = initializeTestBackend(false, backendId3);
 
       // on o=test3,sid=1703 include attrs set to : 'objectclass'
       eclInclude = newSet("objectclass");
 
       SortedSet<String> eclIncludeForDeletes = newSet("*");
 
-      domainConf = new DomainFakeCfg(baseDn3, 1703, replServers);
+      domainConf = new DomainFakeCfg(baseDN3, 1703, replServers);
       domain3 = startNewDomain(domainConf, eclInclude, eclIncludeForDeletes);
 
       // on o=test2,sid=1704 include attrs set to : 'cn'
@@ -2950,7 +2949,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       sleep(1000);
 
       addEntry(createEntry(TEST_ROOT_DN2));
-      addEntry(createEntry(baseDn3));
+      addEntry(createEntry(baseDN3));
 
       String lentry =
           "dn: cn=Fiona Jensen," + TEST_ROOT_DN_STRING2 + "\n"
@@ -2967,7 +2966,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       addEntry(uentry1); // add fiona in o=test2
 
       lentry =
-          "dn: cn=Robert Hue," + TEST_ROOT_DN_STRING3 + "\n"
+          "dn: cn=Robert Hue," + baseDN3 + "\n"
           + "objectclass: top\n"
           + "objectclass: person\n"
           + "objectclass: organizationalPerson\n"
@@ -2990,17 +2989,14 @@ public class ExternalChangeLogTest extends ReplicationTestCase
           InternalClientConnection.nextOperationID(),
           InternalClientConnection.nextMessageID(),
           null,
-          DN.decode("cn=Robert Hue," + TEST_ROOT_DN_STRING3),
+          DN.decode("cn=Robert Hue," + baseDN3),
           RDN.decode("cn=Robert Hue2"), true,
-          DN.decode(TEST_ROOT_DN_STRING3));
+          baseDN3);
       modDNOp.run();
       waitOpResult(modDNOp, ResultCode.SUCCESS);
 
       // del robert (o=test3)
-      runDeleteOperation("cn=Robert Hue2," + TEST_ROOT_DN_STRING3);
-
-      getEntry(DN.decode("cn=Robert Hue2," + TEST_ROOT_DN_STRING3),5000,false);
-
+      runDeleteOperation("cn=Robert Hue2," + baseDN3);
       sleep(1000);
 
       // Search on ECL from start on all suffixes
@@ -3055,7 +3051,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     {
       runDeleteOperation("cn=Fiona Jensen," + TEST_ROOT_DN_STRING2);
       runDeleteOperation(TEST_ROOT_DN_STRING2);
-      runDeleteOperation(TEST_ROOT_DN_STRING3);
+      runDeleteOperation(baseDN3.toString());
 
       remove(domain21, domain2, domain3);
       removeTestBackend(backend2, backend3);
