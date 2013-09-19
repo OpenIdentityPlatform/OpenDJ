@@ -23,12 +23,11 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS
  */
 package org.opends.server.types;
 
 import static org.opends.server.util.Validator.*;
-
-
 
 /**
  * This class defines a data structure that may be used to store
@@ -44,40 +43,36 @@ import static org.opends.server.util.Validator.*;
      mayInvoke=true)
 public final class AuthenticationInfo
 {
-  // The password used to authenticate using simple authentication.
-  private ByteString simplePassword;
 
-  // Indicates whether this connection is currently authenticated.
+  /** Indicates whether this connection is currently authenticated. */
   private boolean isAuthenticated;
 
-  // Indicates whether this connection is authenticated as a root
-  // user.
+  /** Indicates whether this connection is authenticated as a root user. */
   private boolean isRoot;
 
-  // Indicates whether the user's password must be changed before any
-  // other operation will be allowed.
+  /**
+   * Indicates whether the user's password must be changed before any other
+   * operation will be allowed.
+   */
   private boolean mustChangePassword;
 
-  // The entry of the user that is currently authenticated.
+  /** The entry of the user that is currently authenticated. */
   private Entry authenticationEntry;
 
-  // The entry of the user that will be used as the default
-  // authorization identity.
+  /**
+   * The entry of the user that will be used as the default authorization
+   * identity.
+   */
   private Entry authorizationEntry;
 
-  // The type of authentication performed on this connection.
+  /** The type of authentication performed on this connection. */
   private AuthenticationType authenticationType;
 
-  // The SASL mechanism used to authenticate.
+  /** The SASL mechanism used to authenticate. */
   private String saslMechanism;
 
-  // The bind DN used to authenticate using simple authentication.
+  /** The bind DN used to authenticate using simple authentication. */
   private DN simpleBindDN;
-
-  // The SASL credentials used to authenticate.
-  private ByteString saslCredentials;
-
-
 
   /**
    * Creates a new set of authentication information to be used for
@@ -88,12 +83,10 @@ public final class AuthenticationInfo
     isAuthenticated     = false;
     isRoot              = false;
     mustChangePassword  = false;
-    simplePassword      = null;
     authenticationType  = null;
     authenticationEntry = null;
     authorizationEntry  = null;
     simpleBindDN        = null;
-    saslCredentials     = null;
     saslMechanism       = null;
   }
 
@@ -118,10 +111,8 @@ public final class AuthenticationInfo
     mustChangePassword  = false;
     simpleBindDN        = authenticationEntry != null ?
         authenticationEntry.getDN() : null;
-    simplePassword      = null;
     authorizationEntry  = authenticationEntry;
     saslMechanism       = null;
-    saslCredentials     = null;
     authenticationType  = AuthenticationType.INTERNAL;
   }
 
@@ -134,27 +125,21 @@ public final class AuthenticationInfo
    *                              {@code null}.
    * @param  simpleBindDN         The bind DN that was used to
    *                              perform the simple authentication.
-   * @param  simplePassword       The password that was used to
- *                                perform the simple authentication.
- *                                It must not be {@code null}.
    * @param  isRoot               Indicates whether the authenticated
    */
-  public AuthenticationInfo(Entry authenticationEntry,
-                            DN simpleBindDN,
-                            ByteString simplePassword, boolean isRoot)
+  public AuthenticationInfo(Entry authenticationEntry, DN simpleBindDN,
+      boolean isRoot)
   {
-    ensureNotNull(authenticationEntry, simplePassword);
+    ensureNotNull(authenticationEntry);
 
     this.authenticationEntry = authenticationEntry;
     this.simpleBindDN        = simpleBindDN;
-    this.simplePassword      = simplePassword;
     this.isRoot              = isRoot;
 
     this.isAuthenticated     = true;
     this.mustChangePassword  = false;
     this.authorizationEntry  = authenticationEntry;
     this.saslMechanism       = null;
-    this.saslCredentials     = null;
     this.authenticationType  = AuthenticationType.SIMPLE;
   }
 
@@ -171,15 +156,11 @@ public final class AuthenticationInfo
    *                              authenticate.  This must be provided
    *                              in all-uppercase characters and must
    *                              not be {@code null}.
-   * @param  saslCredentials      The SASL credentials used to
-   *                              authenticate.
-   *                              It must not be {@code null}.
    * @param  isRoot               Indicates whether the authenticated
    *                              user is a root user.
    */
   public AuthenticationInfo(Entry authenticationEntry,
                             String saslMechanism,
-                            ByteString saslCredentials,
                             boolean isRoot)
   {
     ensureNotNull(authenticationEntry, saslMechanism);
@@ -191,13 +172,8 @@ public final class AuthenticationInfo
     this.mustChangePassword = false;
     this.authorizationEntry = authenticationEntry;
     this.simpleBindDN       = null;
-    this.simplePassword     = null;
-
     this.authenticationType = AuthenticationType.SASL;
-
     this.saslMechanism      = saslMechanism;
-    this.saslCredentials    = saslCredentials;
-
   }
 
 
@@ -240,12 +216,8 @@ public final class AuthenticationInfo
     this.isAuthenticated    = true;
     this.mustChangePassword = false;
     this.simpleBindDN       = null;
-    this.simplePassword     = null;
-
     this.authenticationType = AuthenticationType.SASL;
-
     this.saslMechanism      = saslMechanism;
-    this.saslCredentials    = saslCredentials;
   }
 
 
@@ -349,14 +321,11 @@ public final class AuthenticationInfo
    */
   public DN getAuthenticationDN()
   {
-    if (authenticationEntry == null)
-    {
-      return null;
-    }
-    else
+    if (authenticationEntry != null)
     {
       return authenticationEntry.getDN();
     }
+    return null;
   }
 
 
@@ -369,11 +338,7 @@ public final class AuthenticationInfo
    */
   public void setAuthenticationDN(DN dn)
   {
-    if (authenticationEntry == null)
-    {
-      return;
-    }
-    else
+    if (authenticationEntry != null)
     {
       authenticationEntry.setDN(dn);
     }
@@ -408,14 +373,11 @@ public final class AuthenticationInfo
    */
   public DN getAuthorizationDN()
   {
-    if (authorizationEntry == null)
-    {
-      return null;
-    }
-    else
+    if (authorizationEntry != null)
     {
       return authorizationEntry.getDN();
     }
+    return null;
   }
 
 
@@ -429,11 +391,7 @@ public final class AuthenticationInfo
    */
   public void setAuthorizationDN(DN dn)
   {
-    if (authorizationEntry == null)
-    {
-      return;
-    }
-    else
+    if (authorizationEntry != null)
     {
       authorizationEntry.setDN(dn);
     }
@@ -457,21 +415,6 @@ public final class AuthenticationInfo
 
 
   /**
-   * Retrieves the password that the client used for simple
-   * authentication.
-   *
-   * @return  The password that the client used for simple
-   *          authentication, or {@code null} if the client is not
-   *          authenticated using simple authentication.
-   */
-  public ByteString getSimplePassword()
-  {
-    return simplePassword;
-  }
-
-
-
-  /**
    * Indicates whether the client is currently authenticated using the
    * specified SASL mechanism.
    *
@@ -486,23 +429,6 @@ public final class AuthenticationInfo
   {
     return this.saslMechanism.equals(saslMechanism);
   }
-
-
-
-  /**
-   * Retrieves the SASL credentials that the client used for SASL
-   * authentication.
-   *
-   * @return  The SASL credentials that the client used for SASL
-   *          authentication, or {@code null} if the client is not
-   *          authenticated using SASL authentication.
-   */
-  public ByteString getSASLCredentials()
-  {
-    return saslCredentials;
-  }
-
-
 
   /**
    * Retrieves a string representation of this authentication info
@@ -592,7 +518,6 @@ public final class AuthenticationInfo
   {
     AuthenticationInfo authInfo = new AuthenticationInfo();
 
-    authInfo.simplePassword      = simplePassword;
     authInfo.isAuthenticated     = isAuthenticated;
     authInfo.isRoot              = isRoot;
     authInfo.mustChangePassword  = mustChangePassword;

@@ -26,13 +26,6 @@
  */
 package org.opends.server.protocols.http;
 
-import static org.forgerock.opendj.adapter.server2x.Converters.*;
-import static org.opends.messages.ProtocolMessages.*;
-import static org.opends.server.loggers.AccessLogger.*;
-import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.util.StaticUtils.*;
-
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -40,23 +33,14 @@ import java.nio.charset.Charset;
 import java.text.ParseException;
 import java.util.Collection;
 
-import javax.servlet.AsyncContext;
-import javax.servlet.FilterChain;
-import javax.servlet.FilterConfig;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
+import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpServletResponseWrapper;
 
 import org.forgerock.json.resource.ResourceException;
-import org.forgerock.opendj.ldap.Connection;
-import org.forgerock.opendj.ldap.DN;
-import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.*;
 import org.forgerock.opendj.ldap.Filter;
-import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.ResultHandler;
 import org.forgerock.opendj.ldap.requests.BindRequest;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
@@ -70,10 +54,16 @@ import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.schema.SchemaConstants;
 import org.opends.server.types.AddressMask;
 import org.opends.server.types.AuthenticationInfo;
-import org.opends.server.types.ByteString;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DisconnectReason;
 import org.opends.server.util.Base64;
+
+import static org.forgerock.opendj.adapter.server2x.Converters.*;
+import static org.opends.messages.ProtocolMessages.*;
+import static org.opends.server.loggers.AccessLogger.*;
+import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.util.StaticUtils.*;
 
 /**
  * Servlet {@link Filter} that collects information about client connections.
@@ -96,7 +86,11 @@ final class CollectClientConnectionsFilter implements javax.servlet.Filter
     private boolean prettyPrint;
     /** Used for the bind request when credentials are specified. */
     private String userName;
-    /** Used for the bind request when credentials are specified. */
+    /**
+     * Used for the bind request when credentials are specified. For security
+     * reasons, the password must be discarded as soon as possible after it's
+     * been used.
+     */
     private String password;
   }
 
@@ -144,6 +138,9 @@ final class CollectClientConnectionsFilter implements javax.servlet.Filter
         final BindRequest bindRequest =
             Requests.newSimpleBindRequest(bindDN.toString(), ctx.password
                 .getBytes(Charset.forName("UTF-8")));
+        // We are done with the password at this stage,
+        // wipe it from memory for security reasons
+        ctx.password = null;
         ctx.connection.bindAsync(bindRequest, null,
             new CallDoFilterResultHandler(ctx, resultEntry));
       }
@@ -180,9 +177,8 @@ final class CollectClientConnectionsFilter implements javax.servlet.Filter
     {
       ctx.clientConnection.setAuthUser(ctx.userName);
 
-      final AuthenticationInfo authInfo =
-          new AuthenticationInfo(to(resultEntry), to(resultEntry.getName()),
-              ByteString.valueOf(ctx.password), false);
+      final AuthenticationInfo authInfo = new AuthenticationInfo(
+          to(resultEntry), to(resultEntry.getName()), false);
       try
       {
         doFilter(ctx, authInfo);
@@ -455,6 +451,7 @@ final class CollectClientConnectionsFilter implements javax.servlet.Filter
     // TODO Use session to reduce hits with search + bind?
     // Use proxied authorization control for session.
 
+    // Security: How can we remove the password held in the request headers?
     if (authConfig.isCustomHeadersAuthenticationSupported())
     {
       final String userName =

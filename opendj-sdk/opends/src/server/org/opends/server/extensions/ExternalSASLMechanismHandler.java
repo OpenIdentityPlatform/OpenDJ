@@ -23,16 +23,15 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS
  */
 package org.opends.server.extensions;
-import org.opends.messages.Message;
-
-
 
 import java.security.cert.Certificate;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.opends.messages.Message;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.ExternalSASLMechanismHandlerCfg;
 import org.opends.server.admin.std.server.SASLMechanismHandlerCfg;
@@ -42,18 +41,15 @@ import org.opends.server.api.SASLMechanismHandler;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.BindOperation;
 import org.opends.server.core.DirectoryServer;
-
-import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.ldap.LDAPClientConnection;
 import org.opends.server.types.*;
-import static org.opends.messages.ExtensionMessages.*;
 
+import static org.opends.messages.ExtensionMessages.*;
+import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-
-
 
 /**
  * This class provides an implementation of a SASL mechanism that relies on some
@@ -347,10 +343,8 @@ public class ExternalSASLMechanismHandler
     }
 
 
-    AuthenticationInfo authInfo =
-         new AuthenticationInfo(userEntry, SASL_MECHANISM_EXTERNAL,
-             bindOperation.getSASLCredentials(),
-             DirectoryServer.isRootDN(userEntry.getDN()));
+    AuthenticationInfo authInfo = new AuthenticationInfo(userEntry,
+        SASL_MECHANISM_EXTERNAL, DirectoryServer.isRootDN(userEntry.getDN()));
     bindOperation.setAuthenticationInfo(authInfo);
     bindOperation.setResultCode(ResultCode.SUCCESS);
   }

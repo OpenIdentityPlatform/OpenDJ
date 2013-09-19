@@ -27,8 +27,6 @@
  */
 package org.opends.server.core.networkgroups;
 
-
-
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Collection;
@@ -39,20 +37,7 @@ import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ConnectionHandler;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SearchOperation;
-import org.opends.server.types.AuthenticationInfo;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.CancelRequest;
-import org.opends.server.types.CancelResult;
-import org.opends.server.types.DN;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.DisconnectReason;
-import org.opends.server.types.Entry;
-import org.opends.server.types.IntermediateResponse;
-import org.opends.server.types.Operation;
-import org.opends.server.types.SearchResultEntry;
-import org.opends.server.types.SearchResultReference;
-
-
+import org.opends.server.types.*;
 
 /**
  * A mock connection for connection criteria testing.
@@ -61,16 +46,12 @@ import org.opends.server.types.SearchResultReference;
 public final class MockClientConnection extends ClientConnection
 {
   private final int clientPort;
-
   private final boolean isSecure;
-
   private final AuthenticationInfo authInfo;
-
-
 
   /**
    * Creates a new mock client connection.
-   * 
+   *
    * @param clientPort
    *          The client port.
    * @param isSecure
@@ -95,15 +76,11 @@ public final class MockClientConnection extends ClientConnection
       break;
     case SIMPLE:
       Entry simpleUser = DirectoryServer.getEntry(bindDN);
-      ByteString password = ByteString.valueOf("password");
-      this.authInfo =
-          new AuthenticationInfo(simpleUser, bindDN, password, true);
+      this.authInfo = new AuthenticationInfo(simpleUser, bindDN, true);
       break;
     default: // SASL
       Entry saslUser = DirectoryServer.getEntry(bindDN);
-      this.authInfo =
-          new AuthenticationInfo(saslUser, "external",
-              ByteString.valueOf(bindDN.toNormalizedString()), true);
+      this.authInfo = new AuthenticationInfo(saslUser, "external", true);
       break;
     }
   }
