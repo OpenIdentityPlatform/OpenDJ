@@ -642,6 +642,7 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements Con
         }
         factory.getTimeoutChecker().removeConnection(this);
         connection.closeSilently();
+        factory.releaseTransportAndTimeoutChecker();
 
         // Notify listeners.
         if (tmpListeners != null) {

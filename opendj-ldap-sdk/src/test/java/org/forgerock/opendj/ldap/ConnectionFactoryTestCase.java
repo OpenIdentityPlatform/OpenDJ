@@ -27,7 +27,11 @@
 
 package org.forgerock.opendj.ldap;
 
+import static java.util.Arrays.asList;
 import static org.fest.assertions.Assertions.assertThat;
+import static org.forgerock.opendj.ldap.Connections.newFixedConnectionPool;
+import static org.forgerock.opendj.ldap.Connections.newHeartBeatConnectionFactory;
+import static org.forgerock.opendj.ldap.Connections.newLoadBalancer;
 import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
 import static org.forgerock.opendj.ldap.TestCaseUtils.findFreeSocketAddress;
 import static org.forgerock.opendj.ldap.TestCaseUtils.getServerSocketAddress;
@@ -647,6 +651,24 @@ public class ConnectionFactoryTestCase extends SdkTestCase {
             }
         } finally {
             listener.close();
+        }
+    }
+
+    @Test(description = "Test for OPENDJ-1121: Closing a connection after "
+            + "closing the connection factory causes NPE")
+    public void testFactoryCloseBeforeConnectionClose() throws Exception {
+        final ConnectionFactory factory =
+                newLoadBalancer(new FailoverLoadBalancingAlgorithm(asList(newFixedConnectionPool(
+                        newHeartBeatConnectionFactory(new LDAPConnectionFactory(
+                                getServerSocketAddress())), 2))));
+        Connection conn = null;
+        try {
+            conn = factory.getConnection();
+        } finally {
+            factory.close();
+            if (conn != null) {
+                conn.close();
+            }
         }
     }
 
