@@ -2190,11 +2190,11 @@ public final class StaticUtils {
             final StringBuilder builder = new StringBuilder("OPENDJ SDK: ");
             builder.append(msg);
             if (stackTrace != null) {
-                builder.append(System.lineSeparator());
+                builder.append(EOL);
                 for (StackTraceElement e : stackTrace) {
                     builder.append("\tat ");
                     builder.append(String.valueOf(e));
-                    builder.append(System.lineSeparator());
+                    builder.append(EOL);
                 }
             }
             if (DEBUG_TO_STDERR) {
