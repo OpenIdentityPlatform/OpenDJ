@@ -27,8 +27,11 @@
 
 package org.forgerock.opendj.ldap;
 
+import static com.forgerock.opendj.util.StaticUtils.DEBUG_ENABLED;
 import static com.forgerock.opendj.util.StaticUtils.DEBUG_LOG;
 import static com.forgerock.opendj.util.StaticUtils.DEFAULT_SCHEDULER;
+import static com.forgerock.opendj.util.StaticUtils.getStackTraceIfDebugEnabled;
+import static com.forgerock.opendj.util.StaticUtils.logIfDebugEnabled;
 import static org.forgerock.opendj.ldap.CoreMessages.ERR_CONNECTION_POOL_CLOSING;
 import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
 
@@ -124,7 +127,7 @@ final class CachedConnectionPool implements ConnectionPool {
      * the client application closes this connection. More specifically, pooled
      * connections are not actually stored in the internal queue.
      */
-    private final class PooledConnection implements Connection, ConnectionEventListener {
+    class PooledConnection implements Connection, ConnectionEventListener {
         private final Connection connection;
         private ErrorResultException error = null;
         private final AtomicBoolean isClosed = new AtomicBoolean(false);
@@ -132,7 +135,7 @@ final class CachedConnectionPool implements ConnectionPool {
         private List<ConnectionEventListener> listeners = null;
         private final Object stateLock = new Object();
 
-        private PooledConnection(final Connection connection) {
+        PooledConnection(final Connection connection) {
             this.connection = connection;
         }
 
@@ -582,6 +585,24 @@ final class CachedConnectionPool implements ConnectionPool {
         }
     }
 
+    private final class DebugEnabledPooledConnection extends PooledConnection {
+        private final StackTraceElement[] stackTrace;
+
+        private DebugEnabledPooledConnection(final Connection connection,
+                final StackTraceElement[] stackTrace) {
+            super(connection);
+            this.stackTrace = stackTrace;
+        }
+
+        @Override
+        protected void finalize() throws Throwable {
+            if (!isClosed()) {
+                logIfDebugEnabled("CONNECTION POOL: connection leaked! It was allocated here: ",
+                        stackTrace);
+            }
+        }
+    }
+
     /**
      * A queue element is either a pending connection request future awaiting an
      * {@code Connection} or it is an unused {@code Connection} awaiting a
@@ -590,22 +611,30 @@ final class CachedConnectionPool implements ConnectionPool {
     private static final class QueueElement {
         private final long timestampMillis;
         private final Object value;
+        private final StackTraceElement[] stack;
 
         QueueElement(final Connection connection, final long timestampMillis) {
             this.value = connection;
             this.timestampMillis = timestampMillis;
+            this.stack = null;
         }
 
-        QueueElement(final ResultHandler<? super Connection> handler, final long timestampMillis) {
+        QueueElement(final ResultHandler<? super Connection> handler, final long timestampMillis,
+                final StackTraceElement[] stack) {
             this.value =
                     new AsynchronousFutureResult<Connection, ResultHandler<? super Connection>>(
                             handler);
             this.timestampMillis = timestampMillis;
+            this.stack = stack;
         }
 
         @Override
         public String toString() {
             return String.valueOf(value);
+        }
+
+        StackTraceElement[] getStackTrace() {
+            return stack;
         }
 
         Connection getWaitingConnection() {
@@ -740,7 +769,9 @@ final class CachedConnectionPool implements ConnectionPool {
                 } else if (hasWaitingConnections()) {
                     holder = queue.removeFirst();
                 } else {
-                    holder = new QueueElement(handler, timeSource.currentTimeMillis());
+                    holder =
+                            new QueueElement(handler, timeSource.currentTimeMillis(),
+                                    getStackTraceIfDebugEnabled());
                     queue.add(holder);
                 }
             }
@@ -749,7 +780,8 @@ final class CachedConnectionPool implements ConnectionPool {
                 // There was a completed connection attempt.
                 final Connection connection = holder.getWaitingConnection();
                 if (connection.isValid()) {
-                    final PooledConnection pooledConnection = new PooledConnection(connection);
+                    final PooledConnection pooledConnection =
+                            newPooledConnection(connection, getStackTraceIfDebugEnabled());
                     if (handler != null) {
                         handler.handleResult(pooledConnection);
                     }
@@ -854,7 +886,17 @@ final class CachedConnectionPool implements ConnectionPool {
                 }
             }
         } else {
-            holder.getWaitingFuture().handleResult(new PooledConnection(connection));
+            holder.getWaitingFuture().handleResult(
+                    newPooledConnection(connection, holder.getStackTrace()));
+        }
+    }
+
+    private PooledConnection newPooledConnection(final Connection connection,
+            final StackTraceElement[] stack) {
+        if (!DEBUG_ENABLED) {
+            return new PooledConnection(connection);
+        } else {
+            return new DebugEnabledPooledConnection(connection, stack);
         }
     }
 

@@ -72,6 +72,21 @@ public final class StaticUtils {
     public static final Logger DEBUG_LOG = Logger.getLogger("org.forgerock.opendj.ldap");
 
     /**
+     * Indicates whether the SDK is being used in debug mode. In debug mode
+     * components may enable certain instrumentation in order to help debug
+     * applications.
+     */
+    public static final boolean DEBUG_ENABLED =
+            System.getProperty("org.forgerock.opendj.debug") != null;
+
+    private static final boolean DEBUG_TO_STDERR = System
+            .getProperty("org.forgerock.opendj.debug.stderr") != null;
+
+    static {
+        logIfDebugEnabled("debugging enabled", null);
+    }
+
+    /**
      * The end-of-line character for this platform.
      */
     public static final String EOL = System.getProperty("line.separator");
@@ -2143,6 +2158,51 @@ public final class StaticUtils {
      */
     public static byte[] copyOfBytes(final byte[] bytes) {
         return Arrays.copyOf(bytes, bytes.length);
+    }
+
+    /**
+     * Returns the stack trace for the calling method, but only if SDK debugging
+     * is enabled.
+     *
+     * @return The stack trace for the calling method, but only if SDK debugging
+     *         is enabled, otherwise {@code null}..
+     */
+    public static StackTraceElement[] getStackTraceIfDebugEnabled() {
+        if (!DEBUG_ENABLED) {
+            return null;
+        } else {
+            final StackTraceElement[] stack = Thread.currentThread().getStackTrace();
+            return Arrays.copyOfRange(stack, 2, stack.length);
+        }
+    }
+
+    /**
+     * Logs the provided message and stack trace if SDK debugging is enabled to
+     * either stderr or the debug logger.
+     *
+     * @param msg
+     *            The message to be logged.
+     * @param stackTrace
+     *            The stack trace, which may be {@code null}.
+     */
+    public static void logIfDebugEnabled(final String msg, final StackTraceElement[] stackTrace) {
+        if (DEBUG_ENABLED) {
+            final StringBuilder builder = new StringBuilder("OPENDJ SDK: ");
+            builder.append(msg);
+            if (stackTrace != null) {
+                builder.append(System.lineSeparator());
+                for (StackTraceElement e : stackTrace) {
+                    builder.append("\tat ");
+                    builder.append(String.valueOf(e));
+                    builder.append(System.lineSeparator());
+                }
+            }
+            if (DEBUG_TO_STDERR) {
+                System.err.println(builder.toString());
+            } else if (DEBUG_LOG.isLoggable(Level.SEVERE)) {
+                DEBUG_LOG.severe(builder.toString());
+            }
+        }
     }
 
     /**
