@@ -297,7 +297,7 @@ abstract class AbstractLoadBalancingAlgorithm implements LoadBalancingAlgorithm 
     private ScheduledFuture<?> monitoringFuture;
     private AtomicBoolean isClosed = new AtomicBoolean();
 
-    AbstractLoadBalancingAlgorithm(final Collection<ConnectionFactory> factories,
+    AbstractLoadBalancingAlgorithm(final Collection<? extends ConnectionFactory> factories,
             final LoadBalancerEventListener listener, final long interval, final TimeUnit unit,
             final ScheduledExecutorService scheduler) {
         Validator.ensureNotNull(factories, unit);
