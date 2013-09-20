@@ -28,6 +28,7 @@
 package org.forgerock.opendj.ldap;
 
 import static org.fest.assertions.Assertions.assertThat;
+import static org.forgerock.opendj.ldap.Connections.newFixedConnectionPool;
 import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
 import static org.forgerock.opendj.ldap.TestCaseUtils.findFreeSocketAddress;
 import static org.forgerock.opendj.ldap.TestCaseUtils.getServerSocketAddress;
@@ -647,6 +648,21 @@ public class ConnectionFactoryTestCase extends SdkTestCase {
             }
         } finally {
             listener.close();
+        }
+    }
+
+    @Test(description = "Test for OPENDJ-1121", enabled = false)
+    public void testFactoryCloseBeforeConnectionClose() throws Exception {
+        final ConnectionFactory factory =
+                newFixedConnectionPool(new LDAPConnectionFactory(getServerSocketAddress()), 2);
+        Connection conn = null;
+        try {
+            conn = factory.getConnection();
+            factory.close();
+        } finally {
+            if (conn != null) {
+                conn.close();
+            }
         }
     }
 
