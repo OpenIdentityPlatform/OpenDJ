@@ -24,6 +24,7 @@
   !
   !
   !      Copyright 2007-2009 Sun Microsystems, Inc.
+  !      Portions copyright 2013 ForgeRock AS.
   ! -->
 <adm:managed-object name="network-group"
   plural-name="network-groups"
@@ -44,7 +45,8 @@
     </ldap:object-class>
   </adm:profile>
   <adm:relation name="network-group-qos-policy"
-                managed-object-name="qos-policy">
+                managed-object-name="qos-policy"
+                hidden="true">
     <adm:synopsis>
       Specifies the set of quality of service (QoS) policies enforced by
       the
