@@ -35,6 +35,7 @@ import java.io.IOException;
 import java.net.SocketAddress;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.net.ssl.SSLEngine;
 
@@ -100,6 +101,7 @@ public final class LDAPConnectionFactoryImpl implements ConnectionFactory {
             // Give up immediately if the future has been cancelled.
             if (future.isCancelled()) {
                 connection.close();
+                releaseTransportAndTimeoutChecker();
                 return;
             }
 
@@ -138,7 +140,6 @@ public final class LDAPConnectionFactoryImpl implements ConnectionFactory {
                                 public void failed(final Throwable throwable) {
                                     onFailure(connection, throwable);
                                 }
-
                             });
                 } catch (final IOException e) {
                     onFailure(connection, e);
@@ -150,6 +151,7 @@ public final class LDAPConnectionFactoryImpl implements ConnectionFactory {
         public void failed(final Throwable throwable) {
             // Adapt and forward.
             future.handleErrorResult(adaptConnectionException(throwable));
+            releaseTransportAndTimeoutChecker();
         }
 
         @Override
@@ -186,6 +188,7 @@ public final class LDAPConnectionFactoryImpl implements ConnectionFactory {
             // Abort connection attempt due to error.
             connection.close();
             future.handleErrorResult(adaptConnectionException(t));
+            releaseTransportAndTimeoutChecker();
         }
 
         private void onSuccess(final LDAPConnection connection) {
@@ -194,6 +197,7 @@ public final class LDAPConnectionFactoryImpl implements ConnectionFactory {
             // Close the connection if the future was cancelled.
             if (future.isCancelled()) {
                 connection.close();
+                releaseTransportAndTimeoutChecker();
             }
         }
     }
@@ -202,8 +206,20 @@ public final class LDAPConnectionFactoryImpl implements ConnectionFactory {
     private final FilterChain defaultFilterChain;
     private final LDAPOptions options;
     private final SocketAddress socketAddress;
-    private final ReferenceCountedObject<TCPNIOTransport>.Reference transport;
+
+    /**
+     * Prevents the transport and timeoutChecker being released when there are
+     * remaining references (this factory or any connections). It is initially
+     * set to 1 because this factory has a reference.
+     */
+    private final AtomicInteger referenceCount = new AtomicInteger(1);
+
+    /**
+     * Indicates whether this factory has been closed or not.
+     */
     private final AtomicBoolean isClosed = new AtomicBoolean();
+
+    private final ReferenceCountedObject<TCPNIOTransport>.Reference transport;
     private final ReferenceCountedObject<TimeoutChecker>.Reference timeoutChecker = TIMEOUT_CHECKER
             .acquire();
 
@@ -230,8 +246,7 @@ public final class LDAPConnectionFactoryImpl implements ConnectionFactory {
     @Override
     public void close() {
         if (isClosed.compareAndSet(false, true)) {
-            transport.release();
-            timeoutChecker.release();
+            releaseTransportAndTimeoutChecker();
         }
     }
 
@@ -247,6 +262,7 @@ public final class LDAPConnectionFactoryImpl implements ConnectionFactory {
     @Override
     public FutureResult<Connection> getConnectionAsync(
             final ResultHandler<? super Connection> handler) {
+        acquireTransportAndTimeoutChecker(); // Protect resources.
         final SocketConnectorHandler connectorHandler =
                 TCPNIOConnectorHandler.builder(transport.get()).processor(defaultFilterChain)
                         .build();
@@ -266,6 +282,15 @@ public final class LDAPConnectionFactoryImpl implements ConnectionFactory {
         return socketAddress;
     }
 
+    @Override
+    public String toString() {
+        final StringBuilder builder = new StringBuilder();
+        builder.append("LDAPConnectionFactory(");
+        builder.append(getSocketAddress().toString());
+        builder.append(')');
+        return builder.toString();
+    }
+
     TimeoutChecker getTimeoutChecker() {
         return timeoutChecker.get();
     }
@@ -274,12 +299,23 @@ public final class LDAPConnectionFactoryImpl implements ConnectionFactory {
         return options;
     }
 
-    @Override
-    public String toString() {
-        final StringBuilder builder = new StringBuilder();
-        builder.append("LDAPConnectionFactory(");
-        builder.append(getSocketAddress().toString());
-        builder.append(')');
-        return builder.toString();
+    void releaseTransportAndTimeoutChecker() {
+        if (referenceCount.decrementAndGet() == 0) {
+            transport.release();
+            timeoutChecker.release();
+        }
+    }
+
+    private void acquireTransportAndTimeoutChecker() {
+        /*
+         * If the factory is not closed then we need to prevent the resources
+         * (transport, timeout checker) from being released while the connection
+         * attempt is in progress.
+         */
+        referenceCount.incrementAndGet();
+        if (isClosed.get()) {
+            releaseTransportAndTimeoutChecker();
+            throw new IllegalStateException("Attempted to get a connection after factory close");
+        }
     }
 }
