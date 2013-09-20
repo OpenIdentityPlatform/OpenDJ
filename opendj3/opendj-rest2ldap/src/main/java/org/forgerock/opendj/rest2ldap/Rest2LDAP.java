@@ -708,7 +708,7 @@ public final class Rest2LDAP {
         private AttributeNameStrategy(final AttributeType dnAttribute,
                 final AttributeDescription idAttribute, final boolean isServerProvided) {
             this.dnAttribute = AttributeDescription.create(dnAttribute);
-            if (dnAttribute.equals(idAttribute)) {
+            if (this.dnAttribute.equals(idAttribute)) {
                 throw new IllegalArgumentException("DN and ID attributes must be different");
             }
             this.idAttribute = ensureNotNull(idAttribute);

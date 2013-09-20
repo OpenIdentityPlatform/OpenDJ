@@ -540,7 +540,7 @@ public class ConvertersTestCase extends ForgeRockTestCase {
     }
 
     @DataProvider(name = "operation result type")
-    private Object[][] getOperationResultTypes() {
+    public Object[][] getOperationResultTypes() {
         return new Object[][] {
             { BindOperation.class, BindResult.class },
             { CompareOperation.class, CompareResult.class },

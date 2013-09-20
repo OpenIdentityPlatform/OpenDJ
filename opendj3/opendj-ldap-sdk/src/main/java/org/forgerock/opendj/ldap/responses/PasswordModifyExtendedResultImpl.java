@@ -122,7 +122,7 @@ final class PasswordModifyExtendedResultImpl extends
         builder.append(getReferralURIs());
         if (password != null) {
             builder.append(", genPassword=");
-            builder.append(password);
+            builder.append(ByteString.valueOf(password));
         }
         builder.append(", controls=");
         builder.append(getControls());

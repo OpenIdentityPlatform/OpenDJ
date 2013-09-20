@@ -94,7 +94,7 @@ public class AdaptersTestCase extends ForgeRockTestCase {
      * @return Anonymous connection factories.
      */
     @DataProvider
-    private Object[][] anonymousConnectionFactories() {
+    public Object[][] anonymousConnectionFactories() {
         return new Object[][] {
             { new LDAPConnectionFactory("localhost", Integer.valueOf(CONFIG_PROPERTIES
                     .getProperty("listen-port"))) }, { Adapters.newAnonymousConnectionFactory() } };
@@ -106,7 +106,7 @@ public class AdaptersTestCase extends ForgeRockTestCase {
      * @return Root connection factories.
      */
     @DataProvider
-    private Object[][] rootConnectionFactories() {
+    public Object[][] rootConnectionFactories() {
         return new Object[][] {
             { Connections.newAuthenticatedConnectionFactory(new LDAPConnectionFactory("localhost",
                     Integer.valueOf(CONFIG_PROPERTIES.getProperty("listen-port"))), Requests
@@ -224,7 +224,9 @@ public class AdaptersTestCase extends ForgeRockTestCase {
             assertThat(connection.isValid()).isTrue();
             assertThat(connection.isClosed()).isFalse();
         } finally {
-            connection.close();
+            if (connection != null) {
+                connection.close();
+            }
         }
     }
 

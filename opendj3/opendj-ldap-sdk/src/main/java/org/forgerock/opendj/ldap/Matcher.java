@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2013 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -350,19 +350,20 @@ public final class Matcher {
                 } else {
                     try {
                         ruleUse = schema.getMatchingRuleUse(rule);
+                        if (!ruleUse.hasAttribute(ad.getAttributeType())) {
+                            if (DEBUG_LOG.isLoggable(Level.WARNING)) {
+                                DEBUG_LOG.warning("The matching rule " + matchingRule
+                                        + " is not valid for attribute type "
+                                        + attributeDescription);
+                            }
+                            return UNDEFINED;
+                        }
                     } catch (final UnknownSchemaElementException e) {
                         if (DEBUG_LOG.isLoggable(Level.WARNING)) {
                             DEBUG_LOG.warning("No matching rule use is defined for "
                                     + "matching rule " + matchingRule);
                             return UNDEFINED;
                         }
-                    }
-                    if (!ruleUse.hasAttribute(ad.getAttributeType())) {
-                        if (DEBUG_LOG.isLoggable(Level.WARNING)) {
-                            DEBUG_LOG.warning("The matching rule " + matchingRule
-                                    + " is not valid for attribute type " + attributeDescription);
-                        }
-                        return UNDEFINED;
                     }
                 }
             } else {
