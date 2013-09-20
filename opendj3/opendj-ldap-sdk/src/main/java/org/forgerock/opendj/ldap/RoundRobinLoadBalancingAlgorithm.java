@@ -65,7 +65,7 @@ public final class RoundRobinLoadBalancingAlgorithm extends AbstractLoadBalancin
      * @param factories
      *            The ordered collection of connection factories.
      */
-    public RoundRobinLoadBalancingAlgorithm(final Collection<ConnectionFactory> factories) {
+    public RoundRobinLoadBalancingAlgorithm(final Collection<? extends ConnectionFactory> factories) {
         this(factories, null, 1, TimeUnit.SECONDS, null);
     }
 
@@ -80,7 +80,8 @@ public final class RoundRobinLoadBalancingAlgorithm extends AbstractLoadBalancin
      *            connection factory changes state from online to offline or
      *            vice-versa.
      */
-    public RoundRobinLoadBalancingAlgorithm(final Collection<ConnectionFactory> factories,
+    public RoundRobinLoadBalancingAlgorithm(
+            final Collection<? extends ConnectionFactory> factories,
             final LoadBalancerEventListener listener) {
         this(factories, listener, 1, TimeUnit.SECONDS, null);
     }
@@ -102,7 +103,8 @@ public final class RoundRobinLoadBalancingAlgorithm extends AbstractLoadBalancin
      *            The time unit for the interval between attempts to poll
      *            offline factories.
      */
-    public RoundRobinLoadBalancingAlgorithm(final Collection<ConnectionFactory> factories,
+    public RoundRobinLoadBalancingAlgorithm(
+            final Collection<? extends ConnectionFactory> factories,
             final LoadBalancerEventListener listener, final long interval, final TimeUnit unit) {
         this(factories, null, interval, unit, null);
     }
@@ -126,7 +128,8 @@ public final class RoundRobinLoadBalancingAlgorithm extends AbstractLoadBalancin
      *            The scheduler which should for periodically monitoring dead
      *            connection factories to see if they are usable again.
      */
-    public RoundRobinLoadBalancingAlgorithm(final Collection<ConnectionFactory> factories,
+    public RoundRobinLoadBalancingAlgorithm(
+            final Collection<? extends ConnectionFactory> factories,
             final LoadBalancerEventListener listener, final long interval, final TimeUnit unit,
             final ScheduledExecutorService scheduler) {
         super(factories, listener, interval, unit, scheduler);
@@ -146,8 +149,9 @@ public final class RoundRobinLoadBalancingAlgorithm extends AbstractLoadBalancin
      *            The time unit for the interval between attempts to poll
      *            offline factories.
      */
-    public RoundRobinLoadBalancingAlgorithm(final Collection<ConnectionFactory> factories,
-            final long interval, final TimeUnit unit) {
+    public RoundRobinLoadBalancingAlgorithm(
+            final Collection<? extends ConnectionFactory> factories, final long interval,
+            final TimeUnit unit) {
         this(factories, null, interval, unit, null);
     }
 
@@ -166,8 +170,9 @@ public final class RoundRobinLoadBalancingAlgorithm extends AbstractLoadBalancin
      *            The scheduler which should for periodically monitoring dead
      *            connection factories to see if they are usable again.
      */
-    public RoundRobinLoadBalancingAlgorithm(final Collection<ConnectionFactory> factories,
-            final long interval, final TimeUnit unit, final ScheduledExecutorService scheduler) {
+    public RoundRobinLoadBalancingAlgorithm(
+            final Collection<? extends ConnectionFactory> factories, final long interval,
+            final TimeUnit unit, final ScheduledExecutorService scheduler) {
         this(factories, null, interval, unit, scheduler);
     }
 
