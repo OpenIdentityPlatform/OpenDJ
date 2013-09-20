@@ -264,6 +264,7 @@ public class ConnectionPoolTestCase extends SdkTestCase {
 
         pc1.close();
         pc2.close();
+        pc3.close();
         pool.close();
     }
 

@@ -95,7 +95,7 @@ public class ConnectionFactoryTestCase extends SdkTestCase {
         }
 
         public void handleResult(final Connection con) {
-            //
+            con.close();
             latch.countDown();
         }
     }
