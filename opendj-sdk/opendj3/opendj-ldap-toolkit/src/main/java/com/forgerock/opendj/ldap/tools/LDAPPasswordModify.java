@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2012 ForgeRock AS
+ *      Portions copyright 2011-2013 ForgeRock AS
  */
 
 package com.forgerock.opendj.ldap.tools;
@@ -32,6 +32,7 @@ import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
 import static com.forgerock.opendj.ldap.tools.Utils.filterExitCode;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.ConnectionFactory;
 import org.forgerock.opendj.ldap.DecodeException;
@@ -300,7 +301,8 @@ public final class LDAPPasswordModify extends ConsoleApplication {
 
         if (result.getGeneratedPassword() != null) {
             message =
-                    INFO_LDAPPWMOD_GENERATED_PASSWORD.get(result.getGeneratedPassword().toString());
+                    INFO_LDAPPWMOD_GENERATED_PASSWORD.get(ByteString.valueOf(
+                            result.getGeneratedPassword()).toString());
             println(message);
         }
 

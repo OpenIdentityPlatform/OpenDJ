@@ -353,10 +353,9 @@ abstract class AbstractLDIFWriter extends AbstractLDIFStream {
          * If the value contains a null, newline, or return character, then it
          * needs to be base64 encoded.
          */
-        byte b;
         for (int i = 0; i < bytes.length(); i++) {
-            b = bytes.byteAt(i);
-            if (b > 127 || b < 0) {
+            final byte b = bytes.byteAt(i);
+            if (b < 0) {
                 return true;
             }
 
