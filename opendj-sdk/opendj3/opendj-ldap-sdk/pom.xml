@@ -75,7 +75,7 @@
             </goals>
             <configuration>
               <messageFiles>
-                <messageFile>org/forgerock/opendj/ldap/core.properties</messageFile>
+                <messageFile>com/forgerock/opendj/ldap/core.properties</messageFile>
               </messageFiles>
             </configuration>
           </execution>
