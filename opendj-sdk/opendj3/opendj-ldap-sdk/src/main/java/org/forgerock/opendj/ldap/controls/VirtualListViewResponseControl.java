@@ -27,9 +27,9 @@
 package org.forgerock.opendj.ldap.controls;
 
 import static com.forgerock.opendj.util.StaticUtils.getExceptionMessage;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_VLVRES_CONTROL_BAD_OID;
-import static org.forgerock.opendj.ldap.CoreMessages.INFO_VLVRES_CONTROL_CANNOT_DECODE_VALUE;
-import static org.forgerock.opendj.ldap.CoreMessages.INFO_VLVRES_CONTROL_NO_VALUE;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_VLVRES_CONTROL_BAD_OID;
+import static com.forgerock.opendj.ldap.CoreMessages.INFO_VLVRES_CONTROL_CANNOT_DECODE_VALUE;
+import static com.forgerock.opendj.ldap.CoreMessages.INFO_VLVRES_CONTROL_NO_VALUE;
 
 import java.io.IOException;
 

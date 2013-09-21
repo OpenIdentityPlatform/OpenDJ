@@ -26,7 +26,7 @@
 
 package org.forgerock.opendj.ldap.schema;
 
-import static org.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_ILLEGAL_BOOLEAN;
+import static com.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_ILLEGAL_BOOLEAN;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.EMR_BOOLEAN_OID;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.SYNTAX_BOOLEAN_NAME;
 

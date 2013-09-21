@@ -32,7 +32,7 @@ import static com.forgerock.opendj.util.StaticUtils.DEBUG_LOG;
 import static com.forgerock.opendj.util.StaticUtils.DEFAULT_SCHEDULER;
 import static com.forgerock.opendj.util.StaticUtils.getStackTraceIfDebugEnabled;
 import static com.forgerock.opendj.util.StaticUtils.logIfDebugEnabled;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_CONNECTION_POOL_CLOSING;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_CONNECTION_POOL_CLOSING;
 import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
 
 import java.util.Collection;

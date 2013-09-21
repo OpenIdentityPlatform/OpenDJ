@@ -26,10 +26,10 @@
 
 package org.forgerock.opendj.ldap.schema;
 
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_TELEX_ILLEGAL_CHAR;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_TELEX_NOT_PRINTABLE;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_TELEX_TOO_SHORT;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_TELEX_TRUNCATED;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_TELEX_ILLEGAL_CHAR;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_TELEX_NOT_PRINTABLE;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_TELEX_TOO_SHORT;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_TELEX_TRUNCATED;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.EMR_CASE_IGNORE_OID;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.OMR_CASE_IGNORE_OID;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.SMR_CASE_IGNORE_OID;

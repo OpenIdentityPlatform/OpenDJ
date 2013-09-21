@@ -27,10 +27,10 @@
 
 package org.forgerock.opendj.ldap.schema;
 
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_DCR_EMPTY_VALUE1;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_DCR_EXPECTED_OPEN_PARENTHESIS;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_DCR_ILLEGAL_TOKEN1;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_DCR_INVALID1;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_DCR_EMPTY_VALUE1;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_DCR_EXPECTED_OPEN_PARENTHESIS;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_DCR_ILLEGAL_TOKEN1;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_DCR_INVALID1;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.EMR_OID_FIRST_COMPONENT_OID;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.SYNTAX_DIT_CONTENT_RULE_NAME;
 

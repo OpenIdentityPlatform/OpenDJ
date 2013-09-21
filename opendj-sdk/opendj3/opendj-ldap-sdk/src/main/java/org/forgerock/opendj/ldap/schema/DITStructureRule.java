@@ -26,9 +26,9 @@
 
 package org.forgerock.opendj.ldap.schema;
 
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_DSR_UNKNOWN_NAME_FORM;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_DSR_UNKNOWN_RULE_ID;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_DSR_VALIDATION_FAIL;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_DSR_UNKNOWN_NAME_FORM;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_DSR_UNKNOWN_RULE_ID;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_DSR_VALIDATION_FAIL;
 
 import java.util.Collections;
 import java.util.HashSet;

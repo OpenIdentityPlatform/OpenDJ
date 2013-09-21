@@ -26,8 +26,8 @@
 
 package org.forgerock.opendj.ldap.schema;
 
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_MRUSE_UNKNOWN_ATTR1;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_MRUSE_UNKNOWN_MATCHING_RULE1;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_MRUSE_UNKNOWN_ATTR1;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_MRUSE_UNKNOWN_MATCHING_RULE1;
 
 import java.util.Collections;
 import java.util.HashSet;

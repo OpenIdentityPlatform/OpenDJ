@@ -27,9 +27,9 @@
 
 package org.forgerock.opendj.ldap;
 
-import static org.forgerock.opendj.ldap.CoreMessages.FUNCTIONS_TO_INTEGER_FAIL;
-import static org.forgerock.opendj.ldap.CoreMessages.FUNCTIONS_TO_LONG_FAIL;
-import static org.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_ILLEGAL_BOOLEAN;
+import static com.forgerock.opendj.ldap.CoreMessages.FUNCTIONS_TO_INTEGER_FAIL;
+import static com.forgerock.opendj.ldap.CoreMessages.FUNCTIONS_TO_LONG_FAIL;
+import static com.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_ILLEGAL_BOOLEAN;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;

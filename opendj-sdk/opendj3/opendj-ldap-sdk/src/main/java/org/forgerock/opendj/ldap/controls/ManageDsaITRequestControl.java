@@ -25,8 +25,8 @@
  */
 package org.forgerock.opendj.ldap.controls;
 
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_MANAGEDSAIT_CONTROL_BAD_OID;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_MANAGEDSAIT_INVALID_CONTROL_VALUE;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_MANAGEDSAIT_CONTROL_BAD_OID;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_MANAGEDSAIT_INVALID_CONTROL_VALUE;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ByteString;

@@ -25,8 +25,8 @@
 
 package org.forgerock.opendj.ldif;
 
-import static org.forgerock.opendj.ldap.CoreMessages.REJECTED_CHANGE_FAIL_ADD_DUPE;
-import static org.forgerock.opendj.ldap.CoreMessages.REJECTED_CHANGE_FAIL_MODIFYDN_DUPE;
+import static com.forgerock.opendj.ldap.CoreMessages.REJECTED_CHANGE_FAIL_ADD_DUPE;
+import static com.forgerock.opendj.ldap.CoreMessages.REJECTED_CHANGE_FAIL_MODIFYDN_DUPE;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.DecodeException;

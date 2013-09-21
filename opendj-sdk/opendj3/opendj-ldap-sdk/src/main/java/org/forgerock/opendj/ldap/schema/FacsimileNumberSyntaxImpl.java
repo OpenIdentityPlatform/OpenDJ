@@ -27,10 +27,10 @@
 package org.forgerock.opendj.ldap.schema;
 
 import static com.forgerock.opendj.util.StaticUtils.toLowerCase;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_FAXNUMBER_EMPTY;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_FAXNUMBER_END_WITH_DOLLAR;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_FAXNUMBER_ILLEGAL_PARAMETER;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_FAXNUMBER_NOT_PRINTABLE;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_FAXNUMBER_EMPTY;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_FAXNUMBER_END_WITH_DOLLAR;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_FAXNUMBER_ILLEGAL_PARAMETER;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_FAXNUMBER_NOT_PRINTABLE;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.EMR_CASE_IGNORE_OID;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.OMR_CASE_IGNORE_OID;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.SMR_CASE_IGNORE_OID;

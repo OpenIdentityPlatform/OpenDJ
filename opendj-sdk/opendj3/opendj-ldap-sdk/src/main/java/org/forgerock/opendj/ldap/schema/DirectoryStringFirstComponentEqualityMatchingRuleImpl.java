@@ -28,8 +28,8 @@ package org.forgerock.opendj.ldap.schema;
 import static com.forgerock.opendj.util.StringPrepProfile.CASE_FOLD;
 import static com.forgerock.opendj.util.StringPrepProfile.TRIM;
 import static com.forgerock.opendj.util.StringPrepProfile.prepareUnicode;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_EMPTY_VALUE;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_EXPECTED_OPEN_PARENTHESIS;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_EMPTY_VALUE;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_EXPECTED_OPEN_PARENTHESIS;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.Assertion;

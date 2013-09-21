@@ -25,8 +25,8 @@
  */
 package com.forgerock.opendj.ldap.controls;
 
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_VIRTUAL_ATTRS_ONLY_CONTROL_BAD_OID;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_VIRTUAL_ATTRS_ONLY_INVALID_CONTROL_VALUE;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_VIRTUAL_ATTRS_ONLY_CONTROL_BAD_OID;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_VIRTUAL_ATTRS_ONLY_INVALID_CONTROL_VALUE;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ByteString;

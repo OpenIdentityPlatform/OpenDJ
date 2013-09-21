@@ -26,8 +26,8 @@
 
 package org.forgerock.opendj.ldap.schema;
 
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_NAMEANDUID_ILLEGAL_BINARY_DIGIT;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_NAMEANDUID_INVALID_DN;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_NAMEANDUID_ILLEGAL_BINARY_DIGIT;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_NAMEANDUID_INVALID_DN;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.EMR_UNIQUE_MEMBER_OID;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.SMR_CASE_IGNORE_OID;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.SYNTAX_NAME_AND_OPTIONAL_UID_NAME;

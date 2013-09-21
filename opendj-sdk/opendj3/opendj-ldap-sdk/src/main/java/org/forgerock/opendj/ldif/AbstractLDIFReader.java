@@ -28,19 +28,19 @@
 package org.forgerock.opendj.ldif;
 
 import static com.forgerock.opendj.util.StaticUtils.toLowerCase;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_LDIF_COULD_NOT_BASE64_DECODE_ATTR;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_LDIF_COULD_NOT_BASE64_DECODE_DN;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_LDIF_INVALID_DN;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_LDIF_INVALID_LEADING_SPACE;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_LDIF_INVALID_URL;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_LDIF_MALFORMED_ATTRIBUTE_NAME;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_LDIF_MULTI_VALUED_SINGLE_VALUED_ATTRIBUTE;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_LDIF_NO_ATTR_NAME;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_LDIF_NO_DN;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_LDIF_UNEXPECTED_BINARY_OPTION;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_LDIF_UNKNOWN_ATTRIBUTE_TYPE;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_LDIF_URL_IO_ERROR;
-import static org.forgerock.opendj.ldap.CoreMessages.WARN_LDIF_DUPLICATE_ATTRIBUTE_VALUE;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_LDIF_COULD_NOT_BASE64_DECODE_ATTR;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_LDIF_COULD_NOT_BASE64_DECODE_DN;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_LDIF_INVALID_DN;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_LDIF_INVALID_LEADING_SPACE;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_LDIF_INVALID_URL;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_LDIF_MALFORMED_ATTRIBUTE_NAME;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_LDIF_MULTI_VALUED_SINGLE_VALUED_ATTRIBUTE;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_LDIF_NO_ATTR_NAME;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_LDIF_NO_DN;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_LDIF_UNEXPECTED_BINARY_OPTION;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_LDIF_UNKNOWN_ATTRIBUTE_TYPE;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_LDIF_URL_IO_ERROR;
+import static com.forgerock.opendj.ldap.CoreMessages.WARN_LDIF_DUPLICATE_ATTRIBUTE_VALUE;
 
 import java.io.BufferedReader;
 import java.io.IOException;

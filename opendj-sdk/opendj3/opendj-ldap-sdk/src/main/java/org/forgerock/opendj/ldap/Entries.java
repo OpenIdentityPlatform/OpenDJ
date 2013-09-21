@@ -28,12 +28,12 @@
 package org.forgerock.opendj.ldap;
 
 import static org.forgerock.opendj.ldap.AttributeDescription.objectClass;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_ENTRY_DUPLICATE_VALUES;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_ENTRY_INCREMENT_CANNOT_PARSE_AS_INT;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_ENTRY_INCREMENT_INVALID_VALUE_COUNT;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_ENTRY_INCREMENT_NO_SUCH_ATTRIBUTE;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_ENTRY_NO_SUCH_VALUE;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_ENTRY_UNKNOWN_MODIFICATION_TYPE;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_ENTRY_DUPLICATE_VALUES;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_ENTRY_INCREMENT_CANNOT_PARSE_AS_INT;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_ENTRY_INCREMENT_INVALID_VALUE_COUNT;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_ENTRY_INCREMENT_NO_SUCH_ATTRIBUTE;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_ENTRY_NO_SUCH_VALUE;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_ENTRY_UNKNOWN_MODIFICATION_TYPE;
 import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
 
 import java.util.ArrayList;

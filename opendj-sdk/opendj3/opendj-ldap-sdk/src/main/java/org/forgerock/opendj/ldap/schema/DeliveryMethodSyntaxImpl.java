@@ -27,8 +27,8 @@
 package org.forgerock.opendj.ldap.schema;
 
 import static com.forgerock.opendj.util.StaticUtils.toLowerCase;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_DELIVERY_METHOD_INVALID_ELEMENT;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_DELIVERY_METHOD_NO_ELEMENTS;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_DELIVERY_METHOD_INVALID_ELEMENT;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_DELIVERY_METHOD_NO_ELEMENTS;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.*;
 
 import java.util.HashSet;

@@ -27,7 +27,7 @@
 
 package org.forgerock.opendj.asn1;
 
-import static org.forgerock.opendj.ldap.CoreMessages.*;
+import static com.forgerock.opendj.ldap.CoreMessages.*;
 
 import java.io.IOException;
 import java.util.LinkedList;

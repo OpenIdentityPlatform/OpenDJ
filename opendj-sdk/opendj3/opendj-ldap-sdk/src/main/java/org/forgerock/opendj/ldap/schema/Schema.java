@@ -27,7 +27,7 @@
 package org.forgerock.opendj.ldap.schema;
 
 import static org.forgerock.opendj.ldap.AttributeDescription.objectClass;
-import static org.forgerock.opendj.ldap.CoreMessages.*;
+import static com.forgerock.opendj.ldap.CoreMessages.*;
 
 import java.util.Collection;
 import java.util.Collections;

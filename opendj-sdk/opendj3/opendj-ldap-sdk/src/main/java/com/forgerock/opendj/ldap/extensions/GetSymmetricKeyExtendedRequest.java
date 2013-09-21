@@ -26,8 +26,8 @@
 
 package com.forgerock.opendj.ldap.extensions;
 
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_GET_SYMMETRIC_KEY_ASN1_DECODE_EXCEPTION;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_GET_SYMMETRIC_KEY_NO_VALUE;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_GET_SYMMETRIC_KEY_ASN1_DECODE_EXCEPTION;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_GET_SYMMETRIC_KEY_NO_VALUE;
 
 import java.io.IOException;
 

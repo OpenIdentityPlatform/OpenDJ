@@ -26,7 +26,7 @@
 
 package org.forgerock.opendj.ldap.schema;
 
-import static org.forgerock.opendj.ldap.CoreMessages.*;
+import static com.forgerock.opendj.ldap.CoreMessages.*;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.EXTENSIBLE_OBJECT_OBJECTCLASS_NAME;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.EXTENSIBLE_OBJECT_OBJECTCLASS_OID;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.TOP_OBJECTCLASS_NAME;

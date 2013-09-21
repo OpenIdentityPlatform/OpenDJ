@@ -28,10 +28,10 @@
 package org.forgerock.opendj.ldap.schema;
 
 import static com.forgerock.opendj.util.StaticUtils.isDigit;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_TELEPHONE_EMPTY;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_TELEPHONE_ILLEGAL_CHAR;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_TELEPHONE_NO_DIGITS;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_TELEPHONE_NO_PLUS;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_TELEPHONE_EMPTY;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_TELEPHONE_ILLEGAL_CHAR;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_TELEPHONE_NO_DIGITS;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_TELEPHONE_NO_PLUS;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.EMR_TELEPHONE_OID;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.SMR_TELEPHONE_OID;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.SYNTAX_TELEPHONE_NAME;

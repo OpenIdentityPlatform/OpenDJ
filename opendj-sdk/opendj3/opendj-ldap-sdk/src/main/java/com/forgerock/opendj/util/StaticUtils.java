@@ -27,8 +27,8 @@
 
 package com.forgerock.opendj.util;
 
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_HEX_DECODE_INVALID_CHARACTER;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_HEX_DECODE_INVALID_LENGTH;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_HEX_DECODE_INVALID_CHARACTER;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_HEX_DECODE_INVALID_LENGTH;
 
 import java.io.Closeable;
 import java.io.IOException;

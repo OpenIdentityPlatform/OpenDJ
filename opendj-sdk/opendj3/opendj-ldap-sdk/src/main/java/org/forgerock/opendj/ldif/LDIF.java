@@ -25,9 +25,9 @@
 
 package org.forgerock.opendj.ldif;
 
-import static org.forgerock.opendj.ldap.CoreMessages.REJECTED_CHANGE_FAIL_DELETE;
-import static org.forgerock.opendj.ldap.CoreMessages.REJECTED_CHANGE_FAIL_MODIFY;
-import static org.forgerock.opendj.ldap.CoreMessages.REJECTED_CHANGE_FAIL_MODIFYDN;
+import static com.forgerock.opendj.ldap.CoreMessages.REJECTED_CHANGE_FAIL_DELETE;
+import static com.forgerock.opendj.ldap.CoreMessages.REJECTED_CHANGE_FAIL_MODIFY;
+import static com.forgerock.opendj.ldap.CoreMessages.REJECTED_CHANGE_FAIL_MODIFYDN;
 import static com.forgerock.opendj.util.StaticUtils.getBytes;
 
 import java.io.IOException;
