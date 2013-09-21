@@ -27,7 +27,7 @@
 
 package org.forgerock.opendj.ldap.responses;
 
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_WHOAMI_INVALID_AUTHZID_TYPE;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_WHOAMI_INVALID_AUTHZID_TYPE;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;

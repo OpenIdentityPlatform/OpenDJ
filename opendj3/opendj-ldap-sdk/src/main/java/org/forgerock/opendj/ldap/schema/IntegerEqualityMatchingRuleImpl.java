@@ -25,7 +25,7 @@
  */
 package org.forgerock.opendj.ldap.schema;
 
-import static org.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_ILLEGAL_INTEGER;
+import static com.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_ILLEGAL_INTEGER;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ByteSequence;

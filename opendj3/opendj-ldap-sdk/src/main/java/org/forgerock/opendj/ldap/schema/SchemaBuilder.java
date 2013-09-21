@@ -28,7 +28,7 @@
 package org.forgerock.opendj.ldap.schema;
 
 import static com.forgerock.opendj.util.StaticUtils.toLowerCase;
-import static org.forgerock.opendj.ldap.CoreMessages.*;
+import static com.forgerock.opendj.ldap.CoreMessages.*;
 import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
 import static org.forgerock.opendj.ldap.schema.Schema.*;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.EXTENSIBLE_OBJECT_OBJECTCLASS_OID;

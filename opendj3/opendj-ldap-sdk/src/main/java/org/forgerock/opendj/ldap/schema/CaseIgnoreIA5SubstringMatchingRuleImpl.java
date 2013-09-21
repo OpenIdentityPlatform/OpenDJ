@@ -28,7 +28,7 @@ package org.forgerock.opendj.ldap.schema;
 import static com.forgerock.opendj.util.StringPrepProfile.CASE_FOLD;
 import static com.forgerock.opendj.util.StringPrepProfile.TRIM;
 import static com.forgerock.opendj.util.StringPrepProfile.prepareUnicode;
-import static org.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_IA5_ILLEGAL_CHARACTER;
+import static com.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_IA5_ILLEGAL_CHARACTER;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ByteSequence;

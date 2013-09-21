@@ -31,7 +31,7 @@ import static com.forgerock.opendj.ldap.LDAPConstants.ELEMENT_READ_STATE_NEED_AD
 import static com.forgerock.opendj.ldap.LDAPConstants.ELEMENT_READ_STATE_NEED_FIRST_LENGTH_BYTE;
 import static com.forgerock.opendj.ldap.LDAPConstants.ELEMENT_READ_STATE_NEED_TYPE;
 import static com.forgerock.opendj.ldap.LDAPConstants.ELEMENT_READ_STATE_NEED_VALUE_BYTES;
-import static org.forgerock.opendj.ldap.CoreMessages.*;
+import static com.forgerock.opendj.ldap.CoreMessages.*;
 
 import java.io.IOException;
 import java.util.logging.Level;

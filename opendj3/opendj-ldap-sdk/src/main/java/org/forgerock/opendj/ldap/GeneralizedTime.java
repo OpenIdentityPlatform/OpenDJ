@@ -25,19 +25,19 @@
  */
 package org.forgerock.opendj.ldap;
 
-import static org.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_GENERALIZED_TIME_EMPTY_FRACTION;
-import static org.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_GENERALIZED_TIME_ILLEGAL_FRACTION_CHAR;
-import static org.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_GENERALIZED_TIME_ILLEGAL_TIME;
-import static org.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR;
-import static org.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_DAY;
-import static org.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_HOUR;
-import static org.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_MINUTE;
-import static org.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_MONTH;
-import static org.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_OFFSET;
-import static org.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_SECOND;
-import static org.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_YEAR;
-import static org.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_GENERALIZED_TIME_NO_TIME_ZONE_INFO;
-import static org.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_GENERALIZED_TIME_TOO_SHORT;
+import static com.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_GENERALIZED_TIME_EMPTY_FRACTION;
+import static com.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_GENERALIZED_TIME_ILLEGAL_FRACTION_CHAR;
+import static com.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_GENERALIZED_TIME_ILLEGAL_TIME;
+import static com.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR;
+import static com.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_DAY;
+import static com.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_HOUR;
+import static com.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_MINUTE;
+import static com.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_MONTH;
+import static com.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_OFFSET;
+import static com.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_SECOND;
+import static com.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_YEAR;
+import static com.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_GENERALIZED_TIME_NO_TIME_ZONE_INFO;
+import static com.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_GENERALIZED_TIME_TOO_SHORT;
 
 import java.util.Calendar;
 import java.util.Date;

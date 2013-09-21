@@ -29,7 +29,7 @@ package org.forgerock.opendj.ldap.requests;
 
 import static com.forgerock.opendj.util.StaticUtils.EMPTY_BYTES;
 import static com.forgerock.opendj.util.StaticUtils.getBytes;
-import static org.forgerock.opendj.ldap.CoreMessages.WARN_READ_LDIF_RECORD_CHANGE_RECORD_WRONG_TYPE;
+import static com.forgerock.opendj.ldap.CoreMessages.WARN_READ_LDIF_RECORD_CHANGE_RECORD_WRONG_TYPE;
 
 import javax.net.ssl.SSLContext;
 import javax.security.auth.Subject;

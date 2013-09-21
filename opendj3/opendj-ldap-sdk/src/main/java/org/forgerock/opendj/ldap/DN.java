@@ -28,7 +28,7 @@
 package org.forgerock.opendj.ldap;
 
 import static com.forgerock.opendj.util.StaticUtils.getBytes;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_DN_TYPE_NOT_FOUND;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_DN_TYPE_NOT_FOUND;
 
 import java.util.Iterator;
 import java.util.LinkedHashMap;

@@ -27,10 +27,10 @@
 package org.forgerock.opendj.ldap.controls;
 
 import static com.forgerock.opendj.util.StaticUtils.getExceptionMessage;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_PSEARCH_BAD_CHANGE_TYPES;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_PSEARCH_CANNOT_DECODE_VALUE;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_PSEARCH_CONTROL_BAD_OID;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_PSEARCH_NO_CONTROL_VALUE;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_PSEARCH_BAD_CHANGE_TYPES;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_PSEARCH_CANNOT_DECODE_VALUE;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_PSEARCH_CONTROL_BAD_OID;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_PSEARCH_NO_CONTROL_VALUE;
 
 import java.io.IOException;
 import java.util.Arrays;

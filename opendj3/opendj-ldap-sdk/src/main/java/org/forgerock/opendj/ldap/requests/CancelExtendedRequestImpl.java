@@ -28,8 +28,8 @@
 package org.forgerock.opendj.ldap.requests;
 
 import static com.forgerock.opendj.util.StaticUtils.getExceptionMessage;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_EXTOP_CANCEL_CANNOT_DECODE_REQUEST_VALUE;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_EXTOP_CANCEL_NO_REQUEST_VALUE;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_EXTOP_CANCEL_CANNOT_DECODE_REQUEST_VALUE;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_EXTOP_CANCEL_NO_REQUEST_VALUE;
 
 import java.io.IOException;
 

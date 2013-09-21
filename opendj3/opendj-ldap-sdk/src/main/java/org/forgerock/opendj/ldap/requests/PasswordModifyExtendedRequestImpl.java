@@ -28,7 +28,7 @@
 package org.forgerock.opendj.ldap.requests;
 
 import static com.forgerock.opendj.util.StaticUtils.getExceptionMessage;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_EXTOP_PASSMOD_CANNOT_DECODE_REQUEST;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_EXTOP_PASSMOD_CANNOT_DECODE_REQUEST;
 
 import java.io.IOException;
 

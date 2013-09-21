@@ -27,7 +27,7 @@
 
 package org.forgerock.opendj.ldap;
 
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_RDN_TYPE_NOT_FOUND;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_RDN_TYPE_NOT_FOUND;
 
 import java.util.ArrayList;
 import java.util.Arrays;

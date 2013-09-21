@@ -26,8 +26,8 @@
 
 package org.forgerock.opendj.ldap.schema;
 
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_MR_UNKNOWN_SYNTAX1;
-import static org.forgerock.opendj.ldap.CoreMessages.WARN_MATCHING_RULE_NOT_IMPLEMENTED1;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_MR_UNKNOWN_SYNTAX1;
+import static com.forgerock.opendj.ldap.CoreMessages.WARN_MATCHING_RULE_NOT_IMPLEMENTED1;
 
 import java.util.Comparator;
 import java.util.Iterator;

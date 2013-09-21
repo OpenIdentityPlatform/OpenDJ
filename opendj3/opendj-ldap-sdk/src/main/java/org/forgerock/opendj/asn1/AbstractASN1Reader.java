@@ -27,7 +27,7 @@
 
 package org.forgerock.opendj.asn1;
 
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_ASN1_UNEXPECTED_TAG;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_ASN1_UNEXPECTED_TAG;
 
 import java.io.IOException;
 

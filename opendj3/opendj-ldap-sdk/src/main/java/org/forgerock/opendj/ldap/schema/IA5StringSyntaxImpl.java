@@ -26,7 +26,7 @@
 
 package org.forgerock.opendj.ldap.schema;
 
-import static org.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_IA5_ILLEGAL_CHARACTER;
+import static com.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_IA5_ILLEGAL_CHARACTER;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.*;
 
 import org.forgerock.i18n.LocalizableMessage;

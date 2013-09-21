@@ -33,7 +33,7 @@ import static org.forgerock.opendj.ldap.schema.SchemaConstants.SYNTAX_SUBSTRING_
 
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.opendj.ldap.ByteSequence;
-import org.forgerock.opendj.ldap.CoreMessages;
+import com.forgerock.opendj.ldap.CoreMessages;
 
 /**
  * This class defines the substring assertion attribute syntax, which contains

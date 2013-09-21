@@ -27,10 +27,10 @@
 
 package org.forgerock.opendj.ldap.schema;
 
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_OBJECTCLASS_EMPTY_VALUE1;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_OBJECTCLASS_EXPECTED_OPEN_PARENTHESIS1;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_OBJECTCLASS_ILLEGAL_TOKEN1;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_OBJECTCLASS_INVALID1;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_OBJECTCLASS_EMPTY_VALUE1;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_OBJECTCLASS_EXPECTED_OPEN_PARENTHESIS1;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_OBJECTCLASS_ILLEGAL_TOKEN1;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_OBJECTCLASS_INVALID1;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.EMR_OID_FIRST_COMPONENT_OID;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.SYNTAX_OBJECTCLASS_NAME;
 

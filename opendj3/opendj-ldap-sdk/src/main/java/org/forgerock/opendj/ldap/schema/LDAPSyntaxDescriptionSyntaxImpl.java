@@ -27,7 +27,7 @@
 
 package org.forgerock.opendj.ldap.schema;
 
-import static org.forgerock.opendj.ldap.CoreMessages.*;
+import static com.forgerock.opendj.ldap.CoreMessages.*;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.EMR_OID_FIRST_COMPONENT_OID;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.SYNTAX_LDAP_SYNTAX_NAME;
 

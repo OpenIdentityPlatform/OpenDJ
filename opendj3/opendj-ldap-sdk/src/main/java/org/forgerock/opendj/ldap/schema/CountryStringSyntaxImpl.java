@@ -27,8 +27,8 @@
 
 package org.forgerock.opendj.ldap.schema;
 
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_COUNTRY_STRING_INVALID_LENGTH;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_COUNTRY_STRING_NO_VALID_ISO_CODE;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_COUNTRY_STRING_INVALID_LENGTH;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_COUNTRY_STRING_NO_VALID_ISO_CODE;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.*;
 
 import org.forgerock.i18n.LocalizableMessageBuilder;

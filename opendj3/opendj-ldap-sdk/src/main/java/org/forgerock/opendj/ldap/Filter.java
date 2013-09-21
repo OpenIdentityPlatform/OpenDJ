@@ -30,7 +30,7 @@ package org.forgerock.opendj.ldap;
 import static com.forgerock.opendj.util.StaticUtils.byteToHex;
 import static com.forgerock.opendj.util.StaticUtils.getBytes;
 import static com.forgerock.opendj.util.StaticUtils.toLowerCase;
-import static org.forgerock.opendj.ldap.CoreMessages.*;
+import static com.forgerock.opendj.ldap.CoreMessages.*;
 
 import java.util.ArrayList;
 import java.util.Collection;

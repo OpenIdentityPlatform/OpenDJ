@@ -27,10 +27,10 @@ package com.forgerock.opendj.ldap.controls;
 
 import static com.forgerock.opendj.util.StaticUtils.byteToHex;
 import static com.forgerock.opendj.util.StaticUtils.getExceptionMessage;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_ACCTUSABLERES_CONTROL_BAD_OID;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_ACCTUSABLERES_DECODE_ERROR;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_ACCTUSABLERES_NO_CONTROL_VALUE;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_ACCTUSABLERES_UNKNOWN_VALUE_ELEMENT_TYPE;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_ACCTUSABLERES_CONTROL_BAD_OID;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_ACCTUSABLERES_DECODE_ERROR;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_ACCTUSABLERES_NO_CONTROL_VALUE;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_ACCTUSABLERES_UNKNOWN_VALUE_ELEMENT_TYPE;
 
 import java.io.IOException;
 

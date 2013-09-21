@@ -27,8 +27,8 @@
 package org.forgerock.opendj.ldap;
 
 import static com.forgerock.opendj.util.Validator.ensureNotNull;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_BASE64_DECODE_INVALID_CHARACTER;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_BASE64_DECODE_INVALID_LENGTH;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_BASE64_DECODE_INVALID_CHARACTER;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_BASE64_DECODE_INVALID_LENGTH;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;

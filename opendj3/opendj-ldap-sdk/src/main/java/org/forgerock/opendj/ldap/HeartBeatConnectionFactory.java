@@ -29,9 +29,9 @@ package org.forgerock.opendj.ldap;
 
 import static com.forgerock.opendj.util.StaticUtils.DEBUG_LOG;
 import static com.forgerock.opendj.util.StaticUtils.DEFAULT_SCHEDULER;
-import static org.forgerock.opendj.ldap.CoreMessages.HBCF_CONNECTION_CLOSED_BY_CLIENT;
-import static org.forgerock.opendj.ldap.CoreMessages.HBCF_HEARTBEAT_FAILED;
-import static org.forgerock.opendj.ldap.CoreMessages.HBCF_HEARTBEAT_TIMEOUT;
+import static com.forgerock.opendj.ldap.CoreMessages.HBCF_CONNECTION_CLOSED_BY_CLIENT;
+import static com.forgerock.opendj.ldap.CoreMessages.HBCF_HEARTBEAT_FAILED;
+import static com.forgerock.opendj.ldap.CoreMessages.HBCF_HEARTBEAT_TIMEOUT;
 import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
 
 import java.util.LinkedList;

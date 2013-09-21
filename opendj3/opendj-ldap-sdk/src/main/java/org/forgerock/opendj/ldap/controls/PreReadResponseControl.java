@@ -27,9 +27,9 @@
 
 package org.forgerock.opendj.ldap.controls;
 
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_PREREADRESP_CANNOT_DECODE_VALUE;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_PREREADRESP_NO_CONTROL_VALUE;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_PREREAD_CONTROL_BAD_OID;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_PREREADRESP_CANNOT_DECODE_VALUE;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_PREREADRESP_NO_CONTROL_VALUE;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_PREREAD_CONTROL_BAD_OID;
 
 import java.io.IOException;
 

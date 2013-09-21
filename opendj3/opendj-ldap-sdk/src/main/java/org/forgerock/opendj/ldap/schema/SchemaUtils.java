@@ -29,7 +29,7 @@ package org.forgerock.opendj.ldap.schema;
 import static com.forgerock.opendj.util.StaticUtils.isAlpha;
 import static com.forgerock.opendj.util.StaticUtils.isDigit;
 import static com.forgerock.opendj.util.StaticUtils.isKeyChar;
-import static org.forgerock.opendj.ldap.CoreMessages.*;
+import static com.forgerock.opendj.ldap.CoreMessages.*;
 
 import java.util.ArrayList;
 import java.util.Collections;

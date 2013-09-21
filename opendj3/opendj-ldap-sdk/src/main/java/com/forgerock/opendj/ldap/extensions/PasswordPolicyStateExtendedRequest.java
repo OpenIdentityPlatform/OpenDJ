@@ -29,9 +29,9 @@ package com.forgerock.opendj.ldap.extensions;
 
 import static com.forgerock.opendj.util.StaticUtils.formatAsGeneralizedTime;
 import static com.forgerock.opendj.util.StaticUtils.getExceptionMessage;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_PWPSTATE_EXTOP_DECODE_FAILURE;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_PWPSTATE_EXTOP_NO_REQUEST_VALUE;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_PWPSTATE_EXTOP_UNKNOWN_OP_TYPE;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_PWPSTATE_EXTOP_DECODE_FAILURE;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_PWPSTATE_EXTOP_NO_REQUEST_VALUE;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_PWPSTATE_EXTOP_UNKNOWN_OP_TYPE;
 
 import java.io.IOException;
 import java.util.ArrayList;

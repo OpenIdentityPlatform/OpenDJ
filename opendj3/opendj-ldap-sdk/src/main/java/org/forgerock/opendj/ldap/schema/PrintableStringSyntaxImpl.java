@@ -26,8 +26,8 @@
 
 package org.forgerock.opendj.ldap.schema;
 
-import static org.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_PRINTABLE_STRING_EMPTY_VALUE;
-import static org.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_PRINTABLE_STRING_ILLEGAL_CHARACTER;
+import static com.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_PRINTABLE_STRING_EMPTY_VALUE;
+import static com.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_PRINTABLE_STRING_ILLEGAL_CHARACTER;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.*;
 
 import org.forgerock.i18n.LocalizableMessageBuilder;

@@ -28,9 +28,9 @@
 package org.forgerock.opendj.ldap.controls;
 
 import static com.forgerock.opendj.util.StaticUtils.getExceptionMessage;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_LDAPASSERT_CONTROL_BAD_OID;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_LDAPASSERT_INVALID_CONTROL_VALUE;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_LDAPASSERT_NO_CONTROL_VALUE;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_LDAPASSERT_CONTROL_BAD_OID;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_LDAPASSERT_INVALID_CONTROL_VALUE;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_LDAPASSERT_NO_CONTROL_VALUE;
 
 import java.io.IOException;
 

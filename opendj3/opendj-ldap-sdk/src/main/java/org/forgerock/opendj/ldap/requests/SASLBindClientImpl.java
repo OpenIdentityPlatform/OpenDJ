@@ -27,7 +27,7 @@
 
 package org.forgerock.opendj.ldap.requests;
 
-import static org.forgerock.opendj.ldap.CoreMessages.INFO_SASL_UNSUPPORTED_CALLBACK;
+import static com.forgerock.opendj.ldap.CoreMessages.INFO_SASL_UNSUPPORTED_CALLBACK;
 
 import java.io.IOException;
 

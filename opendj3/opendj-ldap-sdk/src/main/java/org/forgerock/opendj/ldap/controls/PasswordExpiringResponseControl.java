@@ -26,9 +26,9 @@
 package org.forgerock.opendj.ldap.controls;
 
 import static com.forgerock.opendj.util.StaticUtils.getExceptionMessage;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_PWEXPIRING_CANNOT_DECODE_SECONDS_UNTIL_EXPIRATION;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_PWEXPIRING_CONTROL_BAD_OID;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_PWEXPIRING_NO_CONTROL_VALUE;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_PWEXPIRING_CANNOT_DECODE_SECONDS_UNTIL_EXPIRATION;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_PWEXPIRING_CONTROL_BAD_OID;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_PWEXPIRING_NO_CONTROL_VALUE;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ByteString;

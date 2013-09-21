@@ -27,10 +27,10 @@
 package org.forgerock.opendj.ldap.schema;
 
 import static com.forgerock.opendj.util.StaticUtils.toLowerCase;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_USERPW_NO_CLOSING_BRACE;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_USERPW_NO_OPENING_BRACE;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_USERPW_NO_SCHEME;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_USERPW_NO_VALUE;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_USERPW_NO_CLOSING_BRACE;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_USERPW_NO_OPENING_BRACE;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_USERPW_NO_SCHEME;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_USERPW_NO_VALUE;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.EMR_USER_PASSWORD_EXACT_OID;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.SYNTAX_USER_PASSWORD_NAME;
 

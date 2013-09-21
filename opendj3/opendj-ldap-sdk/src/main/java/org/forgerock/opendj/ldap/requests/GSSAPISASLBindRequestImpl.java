@@ -30,9 +30,9 @@ package org.forgerock.opendj.ldap.requests;
 import static com.forgerock.opendj.util.StaticUtils.copyOfBytes;
 import static com.forgerock.opendj.util.StaticUtils.getExceptionMessage;
 import static com.forgerock.opendj.util.StaticUtils.joinCollection;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_LDAPAUTH_GSSAPI_LOCAL_AUTHENTICATION_FAILED;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_SASL_CONTEXT_CREATE_ERROR;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_SASL_PROTOCOL_ERROR;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_LDAPAUTH_GSSAPI_LOCAL_AUTHENTICATION_FAILED;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_SASL_CONTEXT_CREATE_ERROR;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_SASL_PROTOCOL_ERROR;
 import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
 
 import java.security.PrivilegedActionException;

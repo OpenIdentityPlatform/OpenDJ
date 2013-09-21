@@ -26,7 +26,7 @@
 
 package org.forgerock.opendj.ldap.schema;
 
-import static org.forgerock.opendj.ldap.CoreMessages.*;
+import static com.forgerock.opendj.ldap.CoreMessages.*;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.EMR_CASE_IGNORE_LIST_OID;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.SMR_CASE_IGNORE_LIST_OID;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.SYNTAX_OTHER_MAILBOX_NAME;

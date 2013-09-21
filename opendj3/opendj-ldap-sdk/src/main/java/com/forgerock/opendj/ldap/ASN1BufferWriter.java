@@ -26,7 +26,7 @@
  */
 package com.forgerock.opendj.ldap;
 
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_ASN1_SEQUENCE_WRITE_NOT_STARTED;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_ASN1_SEQUENCE_WRITE_NOT_STARTED;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;

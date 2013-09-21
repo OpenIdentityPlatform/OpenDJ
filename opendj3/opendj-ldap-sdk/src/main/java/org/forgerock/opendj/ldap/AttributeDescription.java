@@ -28,7 +28,7 @@
 package org.forgerock.opendj.ldap;
 
 import static com.forgerock.opendj.util.StaticUtils.toLowerCase;
-import static org.forgerock.opendj.ldap.CoreMessages.*;
+import static com.forgerock.opendj.ldap.CoreMessages.*;
 
 import java.util.Arrays;
 import java.util.Iterator;

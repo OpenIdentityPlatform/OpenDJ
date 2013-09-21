@@ -26,10 +26,10 @@
 
 package org.forgerock.opendj.ldap.schema;
 
-import static org.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_INTEGER_DASH_NEEDS_VALUE;
-import static org.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_INTEGER_EMPTY_VALUE;
-import static org.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_INTEGER_INITIAL_ZERO;
-import static org.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_INTEGER_INVALID_CHARACTER;
+import static com.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_INTEGER_DASH_NEEDS_VALUE;
+import static com.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_INTEGER_EMPTY_VALUE;
+import static com.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_INTEGER_INITIAL_ZERO;
+import static com.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_INTEGER_INVALID_CHARACTER;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.EMR_INTEGER_OID;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.OMR_INTEGER_OID;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.SMR_CASE_EXACT_OID;

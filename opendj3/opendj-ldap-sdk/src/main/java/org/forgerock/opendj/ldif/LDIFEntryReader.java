@@ -28,11 +28,11 @@
 package org.forgerock.opendj.ldif;
 
 import static com.forgerock.opendj.util.StaticUtils.closeSilently;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_LDIF_ENTRY_EXCLUDED_BY_DN;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_LDIF_ENTRY_EXCLUDED_BY_FILTER;
-import static org.forgerock.opendj.ldap.CoreMessages.WARN_READ_LDIF_RECORD_MULTIPLE_CHANGE_RECORDS_FOUND;
-import static org.forgerock.opendj.ldap.CoreMessages.WARN_READ_LDIF_RECORD_NO_CHANGE_RECORD_FOUND;
-import static org.forgerock.opendj.ldap.CoreMessages.WARN_READ_LDIF_RECORD_UNEXPECTED_IO_ERROR;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_LDIF_ENTRY_EXCLUDED_BY_DN;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_LDIF_ENTRY_EXCLUDED_BY_FILTER;
+import static com.forgerock.opendj.ldap.CoreMessages.WARN_READ_LDIF_RECORD_MULTIPLE_CHANGE_RECORDS_FOUND;
+import static com.forgerock.opendj.ldap.CoreMessages.WARN_READ_LDIF_RECORD_NO_CHANGE_RECORD_FOUND;
+import static com.forgerock.opendj.ldap.CoreMessages.WARN_READ_LDIF_RECORD_UNEXPECTED_IO_ERROR;
 
 import java.io.IOException;
 import java.io.InputStream;

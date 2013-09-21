@@ -26,7 +26,7 @@
  */
 package org.forgerock.opendj.ldap.controls;
 
-import static org.forgerock.opendj.ldap.CoreMessages.*;
+import static com.forgerock.opendj.ldap.CoreMessages.*;
 
 import java.io.IOException;
 

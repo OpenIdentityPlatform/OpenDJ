@@ -28,7 +28,7 @@
 package org.forgerock.opendj.ldap.schema;
 
 import static com.forgerock.opendj.util.StaticUtils.toLowerCase;
-import static org.forgerock.opendj.ldap.CoreMessages.*;
+import static com.forgerock.opendj.ldap.CoreMessages.*;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.EMR_OCTET_STRING_OID;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.OMR_OCTET_STRING_OID;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.SYNTAX_GUIDE_NAME;

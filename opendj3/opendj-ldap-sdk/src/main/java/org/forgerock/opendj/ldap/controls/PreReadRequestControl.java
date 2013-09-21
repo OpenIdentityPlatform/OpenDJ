@@ -31,9 +31,9 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.Collections.unmodifiableList;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_PREREADREQ_CANNOT_DECODE_VALUE;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_PREREADREQ_NO_CONTROL_VALUE;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_PREREAD_CONTROL_BAD_OID;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_PREREADREQ_CANNOT_DECODE_VALUE;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_PREREADREQ_NO_CONTROL_VALUE;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_PREREAD_CONTROL_BAD_OID;
 
 import java.io.IOException;
 import java.util.ArrayList;
