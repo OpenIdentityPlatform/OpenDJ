@@ -30,7 +30,7 @@ import org.testng.annotations.Test;
 
 import static org.assertj.core.api.Assertions.*;
 
-@Test(groups = { "precommit", "types" })
+@Test(groups = { "precommit", "types" }, sequential = true)
 @SuppressWarnings("javadoc")
 public class HostPortTest extends TypesTestCase
 {
