@@ -23,9 +23,18 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS
  */
 package org.opends.server.types;
 
+import java.net.*;
+import java.util.Enumeration;
+import java.util.HashSet;
+import java.util.Set;
+
+import org.opends.server.loggers.debug.DebugTracer;
+
+import static org.opends.server.loggers.debug.DebugLogger.*;
 
 /**
  * This class defines a data structure that combines an address and
@@ -39,24 +48,146 @@ package org.opends.server.types;
      mayInvoke=true)
 public final class HostPort
 {
-  // The host for this object.
+  /** The tracer object for the debug logger. */
+  private static final DebugTracer TRACER = getTracer();
+
+  /**
+   * The wildcard address allows to instruct a server to
+   * "listen to all addresses".
+   *
+   * @see InetSocketAddress#InetSocketAddress(int) InetSocketAddress javadoc
+   */
+  public static final String WILDCARD_ADDRESS = "0.0.0.0";
+
+
+
+
+  /** The supplied host for this object. */
   private final String host;
 
-  // The port for this object;
+  /**
+   * The normalized host for this object.
+   * <p>
+   * Normalization consists of converting local addresses to "localhost".
+   */
+  private final String normalizedHost;
+
+  /** The port for this object. */
   private final int port;
 
 
 
+
+  // Time-stamp acts as memory barrier for networkInterfaces.
+  private static final long CACHED_LOCAL_ADDRESSES_TIMEOUT_MS = 30 * 1000;
+  private static volatile long localAddressesTimeStamp = 0;
+  private static Set<InetAddress> localAddresses = new HashSet<InetAddress>();
+
   /**
-   * Creates a new {@code HostPort} object with the specified port
-   * number but no host.
+   * Returns {@code true} if the provided IPv4 or IPv6 address or host name
+   * represents the address of one of the interfaces on the current host
+   * machine.
    *
-   * @param  port  The port number for this {@code HostPort} object.
+   * @param addressString
+   *          The IPv4 or IPv6 address or host name.
+   * @return {@code true} if the provided IPv4 or IPv6 address or host name
+   *         represents the address of one of the interfaces on the current host
+   *         machine.
    */
-  public HostPort(int port)
+  public static boolean isLocalAddress(String addressString)
+  {
+    try
+    {
+      return isLocalAddress(InetAddress.getByName(addressString));
+    }
+    catch (UnknownHostException e)
+    {
+      return false;
+    }
+  }
+
+  /**
+   * Returns {@code true} if the provided {@code InetAddress} represents the
+   * address of one of the interfaces on the current host machine.
+   *
+   * @param address
+   *          The network address.
+   * @return {@code true} if the provided {@code InetAddress} represents the
+   *         address of one of the interfaces on the current host machine.
+   */
+  public static boolean isLocalAddress(InetAddress address)
+  {
+    return address.isLoopbackAddress() || getLocalAddresses().contains(address);
+  }
+
+  /**
+   * Returns a Set of all the local addresses as detected by the Java
+   * environment from the operating system configuration.
+   * <p>
+   * The local addresses are temporarily cached to balance the cost of this
+   * expensive computation vs. refreshing the data that can be changed while the
+   * system is running.
+   *
+   * @return a Set containing all the local addresses
+   */
+  private static Set<InetAddress> getLocalAddresses()
+  {
+    final long currentTimeStamp = System.currentTimeMillis();
+    if (localAddressesTimeStamp
+        < (currentTimeStamp - CACHED_LOCAL_ADDRESSES_TIMEOUT_MS))
+    {
+      // Refresh the cache.
+      try
+      {
+        final Enumeration<NetworkInterface> i =
+            NetworkInterface.getNetworkInterfaces();
+        final Set<InetAddress> newLocalAddresses = new HashSet<InetAddress>();
+        while (i.hasMoreElements())
+        {
+          NetworkInterface n = i.nextElement();
+          Enumeration<InetAddress> j = n.getInetAddresses();
+          while (j.hasMoreElements())
+          {
+            newLocalAddresses.add(j.nextElement());
+          }
+        }
+        localAddresses = newLocalAddresses;
+      }
+      catch (SocketException e)
+      {
+        // Ignore and keep the old set.
+        TRACER.debugCaught(DebugLogLevel.WARNING, e);
+      }
+      localAddressesTimeStamp = currentTimeStamp; // Publishes.
+    }
+    return localAddresses;
+  }
+
+  /**
+   * Returns a a new HostPort for all addresses, also known as a wildcard
+   * address.
+   *
+   * @param port
+   *          The port number for the new {@code HostPort} object.
+   * @return a newly constructed HostPort object
+   */
+  public static HostPort allAddresses(int port)
+  {
+    return new HostPort(port);
+  }
+
+  /**
+   * Creates a new {@code HostPort} object with the specified port number but no
+   * host.
+   *
+   * @param port
+   *          The port number for this {@code HostPort} object.
+   */
+  private HostPort(int port)
   {
     this.host = null;
-    this.port = port;
+    this.normalizedHost = null;
+    this.port = normalizePort(port);
   }
 
 
@@ -71,11 +202,101 @@ public final class HostPort
    */
   public HostPort(String host, int port)
   {
-    this.host = host;
-    this.port = port;
+    this.host = removeExtraChars(host);
+    this.normalizedHost = normalizedHost(this.host);
+    this.port = normalizePort(port);
   }
 
 
+
+  /**
+   * Creates a new {@code HostPort} object by parsing the supplied
+   * "hostName:port" String URL. This method also accepts IPV6 style
+   * "[hostAddress]:port" String URLs.
+   *
+   * @param hostPort
+   *          a String representing the URL made of a host and a port.
+   * @return a new {@link HostPort} built from the supplied string.
+   * @throws NumberFormatException
+   *           If the "port" in the supplied string cannot be converted to an
+   *           int
+   * @throws IllegalArgumentException
+   *           if no port could be found in the supplied string, or if the port
+   *           is not a valid port number
+   */
+  public static HostPort valueOf(String hostPort) throws NumberFormatException,
+      IllegalArgumentException
+  {
+    final int sepIndex = hostPort.lastIndexOf(':');
+    if (sepIndex == -1)
+    {
+      throw new IllegalArgumentException(
+          "Invalid host/port string: no network port was provided in '"
+              + hostPort + "'");
+    }
+    if (sepIndex == 0)
+    {
+      throw new IllegalArgumentException(
+          "Invalid host/port string: no host name was provided in '" + hostPort
+              + "'");
+    }
+    String host = sepIndex != -1 ? hostPort.substring(0, sepIndex) : hostPort;
+    int port = Integer.parseInt(hostPort.substring(sepIndex + 1).trim());
+    return new HostPort(host, port);
+  }
+
+  /**
+   * Removes extra characters from the host name: leading and trailing white
+   * spaces, and surrounding square brackets for IPv6 addresses.
+   *
+   * @param host
+   *          the host name to clean
+   * @return the cleaned up host name
+   */
+  private String removeExtraChars(String host)
+  {
+    host = host.trim();
+    final int startsWith = host.indexOf("[");
+    if (startsWith == -1)
+    {
+      return host;
+    }
+    return host.substring(1, host.length() - 1);
+  }
+
+  /**
+   * Returns a normalized String representation of the supplied host.
+   *
+   * @param host
+   *          the host address to normalize
+   * @return a normalized String representation of the supplied host.
+   * @see #normalizedHost what host normalization covers
+   */
+  private String normalizedHost(String host)
+  {
+    if (isLocalAddress(host))
+    {
+      return "localhost";
+    }
+    return host;
+  }
+
+  /**
+   * Ensures the supplied port number is valid.
+   *
+   * @param port
+   *          the port number to validate
+   * @return the port number if valid
+   */
+  private int normalizePort(int port)
+  {
+    if (1 <= port && port <= 65535)
+    {
+      return port;
+    }
+    throw new IllegalArgumentException("Invalid network port provided: " + port
+        + " is not included in the [1, 65535] range.");
+  }
 
   /**
    * Retrieves the host for this {@code HostPort} object.
@@ -93,66 +314,162 @@ public final class HostPort
   /**
    * Retrieves the port number for this {@code HostPort} object.
    *
-   * @return  The port number for this {@code HostPort} object.
+   * @return The valid port number in the [1, 65535] range for this
+   *         {@code HostPort} object.
    */
   public int getPort()
   {
     return port;
   }
 
-
+  /**
+   * Whether the current object represents a local address.
+   *
+   * @return true if this represents a local address, false otherwise.
+   */
+  public boolean isLocalAddress()
+  {
+    return isLocalAddress(getHost());
+  }
 
   /**
-   * Retrieves a string representation of this {@code HostPort}
-   * object.  It will be the host element (or nothing if no host was
-   * given) followed by a colon and the port number.
+   * Returns a string representation of this {@code HostPort} object. It will be
+   * the host element (or nothing if no host was given) followed by a colon and
+   * the port number.
    *
-   * @return  A string representation of this {@code HostPort} object.
+   * @return A string representation of this {@code HostPort} object.
    */
+  @Override
   public String toString()
   {
-    if (host ==  null)
+    return toString(host);
+  }
+
+  /**
+   * Returns a normalized string representation of this {@code HostPort} object.
+   *
+   * @return A string representation of this {@code HostPort} object.
+   * @see #normalizedHost what host normalization covers
+   */
+  private String toNormalizedString()
+  {
+    return toString(normalizedHost);
+  }
+
+  /**
+   * Inner computation for #toString() and {@link #toNormalizedString()}.
+   *
+   * @param hostName
+   *          the hostName to use for this computation
+   * @return the String representation fo4r this object
+   */
+  private String toString(String hostName)
+  {
+    if (hostName != null)
     {
-      return ":" + port;
+      if (hostName.contains(":"))
+      {
+        return "[" + hostName + "]:" + port;
+      }
+      return hostName + ":" + port;
     }
-    else
+    return ":" + port;
+  }
+
+  /**
+   * Checks whether the supplied HostPort is an equivalent to the current
+   * HostPort.
+   *
+   * @param other
+   *          the HostPort to compare to "this"
+   * @return true if the HostPorts are equivalent, false otherwise. False is
+   *         also return if calling {@link InetAddress#getAllByName(String)}
+   *         throws an UnknownHostException.
+   */
+  public boolean isEquivalentTo(final HostPort other)
+  {
+    try
     {
-      return host + ":" + port;
+      // Get and compare ports of RS1 and RS2
+      if (getPort() != other.getPort())
+      {
+        return false;
+      }
+
+      // Get and compare addresses of RS1 and RS2
+      // Normalize local addresses to null for fast comparison.
+      final InetAddress[] thisAddresses =
+          isLocalAddress() ? null : InetAddress.getAllByName(getHost());
+      final InetAddress[] otherAddresses =
+          other.isLocalAddress() ? null : InetAddress.getAllByName(other
+              .getHost());
+
+      // Now compare addresses, if at least one match, this is the same server.
+      if (thisAddresses == null && otherAddresses == null)
+      {
+        // Both local addresses.
+        return true;
+      }
+      else if (thisAddresses == null || otherAddresses == null)
+      {
+        // One local address and one non-local.
+        return false;
+      }
+
+      // Both non-local addresses: check for overlap.
+      for (InetAddress thisAddress : thisAddresses)
+      {
+        for (InetAddress otherAddress : otherAddresses)
+        {
+          if (thisAddress.equals(otherAddress))
+          {
+            return true;
+          }
+        }
+      }
+      return false;
+    }
+    catch (UnknownHostException ex)
+    {
+      // Unknown RS: should not happen
+      return false;
     }
   }
 
   /**
-   * Returns {@code true} if the provided Object is a HostPort object
-   * with the same host name and port than this HostPort object.
-   * @param obj the reference object with which to compare.
-   * @return  {@code true} if this object is the same as the obj
-   * argument; {@code false} otherwise.
+   * Returns {@code true} if the provided Object is a HostPort object with the
+   * same host name and port than this HostPort object.
+   *
+   * @param obj
+   *          the reference object with which to compare.
+   * @return {@code true} if this object is the same as the obj argument;
+   *         {@code false} otherwise.
    */
+  @Override
   public boolean equals(Object obj)
   {
-    boolean equals = false;
-    if (obj != null)
+    if (obj == null)
+      return false;
+    if (obj == this)
+      return true;
+    if (obj instanceof HostPort)
     {
-      if (obj == this)
-      {
-        equals = true;
-      }
-      else if (obj instanceof HostPort)
-      {
-        equals = toString().equals(obj.toString());
-      }
+      final HostPort other = (HostPort) obj;
+      return toNormalizedString().equals(other.toNormalizedString());
     }
-    return equals;
+    return false;
   }
 
   /**
    * Retrieves a hash code for this HostPort object.
    *
-   * @return  A hash code for this HostPort object.
+   * @return A hash code for this HostPort object.
    */
+  @Override
   public int hashCode()
   {
-    return toString().hashCode();
+    return toNormalizedString().hashCode();
   }
+
 }
 

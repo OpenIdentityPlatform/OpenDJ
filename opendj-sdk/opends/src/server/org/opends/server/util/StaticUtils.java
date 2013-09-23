@@ -29,7 +29,10 @@ package org.opends.server.util;
 
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
-import java.net.*;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
@@ -4506,84 +4509,6 @@ public final class StaticUtils
     }
   }
 
-
-
-  /**
-   * Returns {@code true} if the provided IPv4 or IPv6 address or host name
-   * represents the address of one of the interfaces on the current host
-   * machine.
-   *
-   * @param addressString
-   *          The IPv4 or IPv6 address or host name.
-   * @return {@code true} if the provided IPv4 or IPv6 address or host name
-   *         represents the address of one of the interfaces on the current host
-   *         machine.
-   */
-  public static boolean isLocalAddress(String addressString)
-  {
-    try
-    {
-      return isLocalAddress(InetAddress.getByName(addressString));
-    }
-    catch (UnknownHostException e)
-    {
-      return false;
-    }
-  }
-
-
-
-  /**
-   * Returns {@code true} if the provided {@code InetAddress} represents the
-   * address of one of the interfaces on the current host machine.
-   *
-   * @param address
-   *          The network address.
-   * @return {@code true} if the provided {@code InetAddress} represents the
-   *         address of one of the interfaces on the current host machine.
-   */
-  public static boolean isLocalAddress(InetAddress address)
-  {
-    return address.isLoopbackAddress() || getLocalAddresses().contains(address);
-  }
-
-  // Time-stamp acts as memory barrier for networkInterfaces.
-  private static final long CACHED_LOCAL_ADDRESSES_TIMEOUT_MS = 30 * 1000;
-  private static volatile long localAddressesTimeStamp = 0;
-  private static Set<InetAddress> localAddresses = new HashSet<InetAddress>();
-
-  private static Set<InetAddress> getLocalAddresses()
-  {
-    final long currentTimeStamp = System.currentTimeMillis();
-    if (localAddressesTimeStamp
-        < (currentTimeStamp - CACHED_LOCAL_ADDRESSES_TIMEOUT_MS))
-    {
-      // Refresh the cache.
-      try
-      {
-        final Enumeration<NetworkInterface> i = NetworkInterface
-            .getNetworkInterfaces();
-        final Set<InetAddress> newLocalAddresses = new HashSet<InetAddress>();
-        while (i.hasMoreElements())
-        {
-          NetworkInterface n = i.nextElement();
-          Enumeration<InetAddress> j = n.getInetAddresses();
-          while (j.hasMoreElements())
-          {
-            newLocalAddresses.add(j.nextElement());
-          }
-        }
-        localAddresses = newLocalAddresses;
-      }
-      catch (SocketException e)
-      {
-        // Ignore and keep the old set.
-        TRACER.debugCaught(DebugLogLevel.WARNING, e);
-      }
-      localAddressesTimeStamp = currentTimeStamp; // Publishes.
-    }
-    return localAddresses;
-  }
 
   /**
    * Closes the provided {@link Closeable}'s ignoring any errors which

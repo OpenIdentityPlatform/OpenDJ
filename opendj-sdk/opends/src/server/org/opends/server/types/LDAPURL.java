@@ -23,26 +23,22 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2013 ForgeRock AS.
  */
 package org.opends.server.types;
-import org.opends.messages.Message;
-
-
-
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.StringTokenizer;
 
+import org.opends.messages.Message;
 import org.opends.server.core.DirectoryServer;
-
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
+
 import static org.opends.messages.UtilityMessages.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.types.ResultCode.*;
 import static org.opends.server.util.StaticUtils.*;
-
-
 
 /**
  * This class defines a data structure that represents the components
@@ -343,19 +339,17 @@ public final class LDAPURL
     {
       Message message =
           ERR_LDAPURL_NO_COLON_SLASH_SLASH.get(String.valueOf(url));
-      throw new DirectoryException(
-                     ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
+      throw new DirectoryException(INVALID_ATTRIBUTE_SYNTAX, message);
     }
     else if (schemeEndPos == 0)
     {
-      Message message =
-          ERR_LDAPURL_NO_SCHEME.get(String.valueOf(url));
-      throw new DirectoryException(
-                     ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
+      Message message = ERR_LDAPURL_NO_SCHEME.get(String.valueOf(url));
+      throw new DirectoryException(INVALID_ATTRIBUTE_SYNTAX, message);
     }
     else
     {
       scheme = urlDecode(url.substring(0, schemeEndPos));
+      // FIXME also need to check that the scheme is actually ldap/ldaps!!
     }
 
 
@@ -382,61 +376,46 @@ public final class LDAPURL
       {
         break;
       }
-      else
-      {
-        pos++;
-      }
+      pos++;
     }
 
     if (pos > startPos)
     {
       String hostPort = url.substring(startPos, pos);
-      int colonPos = hostPort.indexOf(':');
+      int colonPos = hostPort.lastIndexOf(':');
       if (colonPos < 0)
       {
         host = urlDecode(hostPort);
       }
       else if (colonPos == 0)
       {
-        Message message =
-            ERR_LDAPURL_NO_HOST.get(String.valueOf(url));
-        throw new DirectoryException(
-                       ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
+        Message message = ERR_LDAPURL_NO_HOST.get(String.valueOf(url));
+        throw new DirectoryException(INVALID_ATTRIBUTE_SYNTAX, message);
       }
       else if (colonPos == (hostPort.length() - 1))
       {
-        Message message =
-            ERR_LDAPURL_NO_PORT.get(String.valueOf(url));
-        throw new DirectoryException(
-                       ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
+        Message message = ERR_LDAPURL_NO_PORT.get(String.valueOf(url));
+        throw new DirectoryException(INVALID_ATTRIBUTE_SYNTAX, message);
       }
       else
       {
-        host = urlDecode(hostPort.substring(0, colonPos));
-
         try
         {
-          port = Integer.parseInt(hostPort.substring(colonPos+1));
+          final HostPort hp = HostPort.valueOf(hostPort);
+          host = urlDecode(hp.getHost());
+          port = hp.getPort();
         }
-        catch (Exception e)
+        catch (NumberFormatException e)
         {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
-
           Message message = ERR_LDAPURL_CANNOT_DECODE_PORT.get(
               String.valueOf(url), hostPort.substring(colonPos+1));
-          throw new DirectoryException(
-                        ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
+          throw new DirectoryException(INVALID_ATTRIBUTE_SYNTAX, message);
         }
-
-        if ((port <= 0) || (port > 65535))
+        catch (IllegalArgumentException e)
         {
           Message message =
               ERR_LDAPURL_INVALID_PORT.get(String.valueOf(url), port);
-          throw new DirectoryException(
-                        ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
+          throw new DirectoryException(INVALID_ATTRIBUTE_SYNTAX, message);
         }
       }
     }
@@ -1309,6 +1288,7 @@ public final class LDAPURL
    * @return  <CODE>true</CODE> if the object is equal to this LDAP
    *          URL, or <CODE>false</CODE> if not.
    */
+  @Override
   public boolean equals(Object o)
   {
     if (o == null)
@@ -1481,6 +1461,7 @@ outerExtLoop:
    *
    * @return  The hash code for this LDAP URL.
    */
+  @Override
   public int hashCode()
   {
     int hashCode = 0;
@@ -1550,6 +1531,7 @@ outerExtLoop:
    *
    * @return  A string representation of this LDAP URL.
    */
+  @Override
   public String toString()
   {
     StringBuilder buffer = new StringBuilder();

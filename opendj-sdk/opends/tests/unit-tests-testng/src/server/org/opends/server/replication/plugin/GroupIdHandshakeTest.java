@@ -27,12 +27,6 @@
  */
 package org.opends.server.replication.plugin;
 
-import static org.opends.server.TestCaseUtils.*;
-import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.util.StaticUtils.*;
-import static org.testng.Assert.*;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.SortedSet;
@@ -48,9 +42,14 @@ import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.types.DN;
-import org.opends.server.types.DirectoryException;
+import org.opends.server.types.HostPort;
 import org.opends.server.util.StaticUtils;
 import org.testng.annotations.Test;
+
+import static org.opends.server.TestCaseUtils.*;
+import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.testng.Assert.*;
 
 /**
  * Some real connections from clients that should end up with a server with
@@ -97,7 +96,7 @@ public class GroupIdHandshakeTest extends ReplicationTestCase
     findFreePorts();
   }
 
-  private void endTest()
+  private void endTest() throws Exception
   {
     if (rd1 != null)
     {
@@ -111,14 +110,8 @@ public class GroupIdHandshakeTest extends ReplicationTestCase
       rd2 = null;
     }
 
-    try
-    {
-      // Clear any reference to a domain in synchro plugin
-      MultimasterReplication.deleteDomain(DN.decode(TEST_ROOT_DN_STRING));
-    } catch (DirectoryException ex)
-    {
-      fail("Error deleting reference to domain: " + TEST_ROOT_DN_STRING);
-    }
+    // Clear any reference to a domain in synchro plugin
+    MultimasterReplication.deleteDomain(DN.decode(TEST_ROOT_DN_STRING));
 
     rs1 = clear(rs1);
     rs2 = clear(rs2);
@@ -147,6 +140,7 @@ public class GroupIdHandshakeTest extends ReplicationTestCase
    * before failing.
    */
   private void checkConnection(int secTimeout, int dsId, int rsId, String msg)
+      throws Exception
   {
 
     int rsPort = -1;
@@ -190,17 +184,7 @@ public class GroupIdHandshakeTest extends ReplicationTestCase
       if (connected)
       {
         String serverStr = rd.getReplicationServer();
-        int index = serverStr.lastIndexOf(':');
-        if ((index == -1) || (index >= serverStr.length()))
-          fail("Enable to find port number in: " + serverStr);
-        String rdPortStr = serverStr.substring(index + 1);
-        try
-        {
-          rdPort = (new Integer(rdPortStr)).intValue();
-        } catch (Exception e)
-        {
-          fail("Enable to get an int from: " + rdPortStr);
-        }
+        rdPort = HostPort.valueOf(serverStr).getPort();
         if (rdPort == rsPort)
           rightPort = true;
       }
@@ -214,13 +198,7 @@ public class GroupIdHandshakeTest extends ReplicationTestCase
       }
 
       // Sleep 1 second
-      try
-      {
-        Thread.sleep(1000);
-      } catch (InterruptedException ex)
-      {
-        fail("Error sleeping " + stackTraceToSingleLineString(ex));
-      }
+      Thread.sleep(1000);
       nSec++;
 
       if (nSec > secTimeout)
@@ -274,92 +252,82 @@ public class GroupIdHandshakeTest extends ReplicationTestCase
   /**
    * Creates a new ReplicationServer.
    */
-  private ReplicationServer createReplicationServer(int serverId,
-    int groupId, String testCase)
+  private ReplicationServer createReplicationServer(int serverId, int groupId,
+      String testCase) throws Exception
   {
     SortedSet<String> replServers = new TreeSet<String>();
-    try
+    int port = -1;
+    if (serverId == RS1_ID)
     {
-      int port = -1;
-      if (serverId == RS1_ID)
+      port = rs1Port;
+      if (testCase.equals("testRSWithSameGroupIds"))
       {
-        port = rs1Port;
-        if (testCase.equals("testRSWithSameGroupIds"))
-        {
-          // 2 servers used for this test case.
-          replServers.add("localhost:" + rs2Port);
-        } else if (testCase.equals("testRSWithManyGroupIds"))
-        {
-          // 3 servers used for this test case.
-          replServers.add("localhost:" + rs2Port);
-          replServers.add("localhost:" + rs3Port);
-        } else
-          fail("Unknown test case: " + testCase);
-      } else if (serverId == RS2_ID)
-      {
-        port = rs2Port;
-        if (testCase.equals("testRSWithSameGroupIds"))
-        {
-          // 2 servers used for this test case.
-          replServers.add("localhost:" + rs1Port);
-        } else if (testCase.equals("testRSWithManyGroupIds"))
-        {
-          // 3 servers used for this test case.
-          replServers.add("localhost:" + rs1Port);
-          replServers.add("localhost:" + rs3Port);
-        } else
-          fail("Unknown test case: " + testCase);
-      } else if (serverId == RS3_ID)
-      {
-        port = rs3Port;
-        if (testCase.equals("testRSWithManyGroupIds"))
-        {
-          // 3 servers used for this test case.
-          replServers.add("localhost:" + rs2Port);
-          replServers.add("localhost:" + rs3Port);
-        } else
-          fail("Invalid test case: " + testCase);
-      } else
-      {
-        fail("Unknown replication server id.");
+        // 2 servers used for this test case.
+        replServers.add("localhost:" + rs2Port);
       }
-
-      String dir = "groupIdHandshakeTest" + serverId + testCase + "Db";
-      ReplServerFakeConfiguration conf =
-        new ReplServerFakeConfiguration(port, dir, 0, serverId, 0, 100,
-        replServers, groupId, 1000, 5000);
-      ReplicationServer replicationServer = new ReplicationServer(conf);
-      return replicationServer;
-
-    } catch (Exception e)
-    {
-      fail("createReplicationServer " + stackTraceToSingleLineString(e));
+      else if (testCase.equals("testRSWithManyGroupIds"))
+      {
+        // 3 servers used for this test case.
+        replServers.add("localhost:" + rs2Port);
+        replServers.add("localhost:" + rs3Port);
+      }
+      else
+        fail("Unknown test case: " + testCase);
     }
-    return null;
+    else if (serverId == RS2_ID)
+    {
+      port = rs2Port;
+      if (testCase.equals("testRSWithSameGroupIds"))
+      {
+        // 2 servers used for this test case.
+        replServers.add("localhost:" + rs1Port);
+      }
+      else if (testCase.equals("testRSWithManyGroupIds"))
+      {
+        // 3 servers used for this test case.
+        replServers.add("localhost:" + rs1Port);
+        replServers.add("localhost:" + rs3Port);
+      } else
+        fail("Unknown test case: " + testCase);
+    }
+    else if (serverId == RS3_ID)
+    {
+      port = rs3Port;
+      if (testCase.equals("testRSWithManyGroupIds"))
+      {
+        // 3 servers used for this test case.
+        replServers.add("localhost:" + rs2Port);
+        replServers.add("localhost:" + rs3Port);
+      }
+      else
+        fail("Invalid test case: " + testCase);
+    }
+    else
+    {
+      fail("Unknown replication server id.");
+    }
+
+    String dir = "groupIdHandshakeTest" + serverId + testCase + "Db";
+    ReplServerFakeConfiguration conf =
+        new ReplServerFakeConfiguration(port, dir, 0, serverId, 0, 100,
+            replServers, groupId, 1000, 5000);
+    return new ReplicationServer(conf);
   }
 
   /**
    * Creates a new ReplicationDomain.
    */
   private LDAPReplicationDomain createReplicationDomain(int serverId,
-    int groupId, String testCase)
+      int groupId, String testCase) throws Exception
   {
-    try
-    {
-      SortedSet<String> replServers = createRSListForTestCase(testCase);
-      DN baseDn = DN.decode(TEST_ROOT_DN_STRING);
-      DomainFakeCfg domainConf =
+    SortedSet<String> replServers = createRSListForTestCase(testCase);
+    DN baseDn = DN.decode(TEST_ROOT_DN_STRING);
+    DomainFakeCfg domainConf =
         new DomainFakeCfg(baseDn, serverId, replServers, groupId);
-      LDAPReplicationDomain replicationDomain =
+    LDAPReplicationDomain replicationDomain =
         MultimasterReplication.createNewDomain(domainConf);
-      replicationDomain.start();
-      return replicationDomain;
-
-    } catch (Exception e)
-    {
-      fail("createReplicationDomain " + stackTraceToSingleLineString(e));
-    }
-    return null;
+    replicationDomain.start();
+    return replicationDomain;
   }
 
   /**

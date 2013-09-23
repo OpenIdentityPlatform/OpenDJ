@@ -27,18 +27,9 @@
  */
 package org.opends.server.protocols.jmx;
 
-import static org.opends.messages.ProtocolMessages.*;
-import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.util.StaticUtils.*;
-
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import org.opends.messages.Message;
 import org.opends.server.admin.server.ConfigurationChangeListener;
@@ -50,14 +41,13 @@ import org.opends.server.api.ConnectionHandler;
 import org.opends.server.api.ServerShutdownListener;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.ConfigChangeResult;
-import org.opends.server.types.DN;
-import org.opends.server.types.HostPort;
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.ResultCode;
+import org.opends.server.types.*;
 import org.opends.server.util.StaticUtils;
 
-
+import static org.opends.messages.ProtocolMessages.*;
+import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.types.HostPort.*;
+import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class defines a connection handler that will be used for
@@ -70,8 +60,6 @@ public final class JmxConnectionHandler extends
     ConnectionHandler<JMXConnectionHandlerCfg> implements
     ServerShutdownListener, AlertGenerator,
     ConfigurationChangeListener<JMXConnectionHandlerCfg> {
-
-  private static final String WILDCARD_ADDRESS = "0.0.0.0";
 
   /**
    * Key that may be placed into a JMX connection environment map to
@@ -159,7 +147,7 @@ public final class JmxConnectionHandler extends
       }
 
       listeners.clear();
-      listeners.add(new HostPort(config.getListenPort()));
+      listeners.add(HostPort.allAddresses(config.getListenPort()));
 
       rmiConnector.finalizeConnectionHandler(portChanged);
       try
@@ -365,7 +353,7 @@ public final class JmxConnectionHandler extends
     }
 
     listeners.clear();
-    listeners.add(new HostPort(WILDCARD_ADDRESS, config.getListenPort()));
+    listeners.add(HostPort.allAddresses(config.getListenPort()));
     connectionHandlerName = "JMX Connection Handler " + config.getListenPort();
 
     // Create a system property to store the JMX port the server is

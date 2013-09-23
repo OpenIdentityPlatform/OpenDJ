@@ -27,11 +27,6 @@
  */
 package org.opends.server.replication.server;
 
-import static org.opends.server.TestCaseUtils.*;
-import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.testng.Assert.*;
-
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -56,10 +51,16 @@ import org.opends.server.replication.protocol.*;
 import org.opends.server.replication.service.ReplicationDomain;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
+import org.opends.server.types.HostPort;
 import org.opends.server.util.StaticUtils;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+
+import static org.opends.server.TestCaseUtils.*;
+import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.testng.Assert.*;
 
 /**
  * Test Server part of the assured feature in both safe data and
@@ -471,12 +472,9 @@ public class AssuredReplicationServerTest
       // Test connection
       assertTrue(fakeReplicationDomain.isConnected());
       // Check connected server port
-      String serverStr = fakeReplicationDomain.getReplicationServer();
-      int index = serverStr.lastIndexOf(':');
-      assertFalse(index == -1, "Enable to find port number in: " + serverStr);
-      String rdPortStr = serverStr.substring(index + 1);
-      int rdPort = Integer.parseInt(rdPortStr);// fail the test if not an int
-      assertEquals(rdPort, rsPort);
+    HostPort rd =
+        HostPort.valueOf(fakeReplicationDomain.getReplicationServer());
+      assertEquals(rd.getPort(), rsPort);
 
       return fakeReplicationDomain;
   }
@@ -999,7 +997,7 @@ public class AssuredReplicationServerTest
                   AckMsg ackMsg = new AckMsg(updateMsg.getCSN());
                   ackMsg.setHasWrongStatus(true);
                   List<Integer> failedServers = new ArrayList<Integer>();
-                  failedServers.add((serverId + 10));
+                  failedServers.add(serverId + 10);
                   ackMsg.setFailedServers(failedServers);
                   session.publish(ackMsg);
                   ackReplied = true;
@@ -1012,7 +1010,7 @@ public class AssuredReplicationServerTest
                   AckMsg ackMsg = new AckMsg(updateMsg.getCSN());
                   ackMsg.setHasReplayError(true);
                   List<Integer> failedServers = new ArrayList<Integer>();
-                  failedServers.add((serverId + 10));
+                  failedServers.add(serverId + 10);
                   ackMsg.setFailedServers(failedServers);
                   session.publish(ackMsg);
                   ackReplied = true;
@@ -1116,20 +1114,6 @@ public class AssuredReplicationServerTest
       // reset ack replied status
       ackReplied = false;
       return result;
-    }
-  }
-
-  /**
-   * Sleep a while
-   */
-  private void sleep(long time)
-  {
-    try
-    {
-      Thread.sleep(time);
-    } catch (InterruptedException ex)
-    {
-      fail("Error sleeping " + ex);
     }
   }
 
@@ -1275,7 +1259,7 @@ public class AssuredReplicationServerTest
       long sendUpdateTime = System.currentTimeMillis() - startTime;
       assertTrue(sendUpdateTime < MAX_SEND_UPDATE_TIME);
 
-      sleep(500); // Sleep a while as counters are updated just after sending thread is unblocked
+      Thread.sleep(500); // Sleep a while as counters are updated just after sending thread is unblocked
       if (mainDsGid == DEFAULT_GID)
       {
         // Check monitoring values (check that ack has been correctly received)
@@ -1294,7 +1278,7 @@ public class AssuredReplicationServerTest
       }
 
       // Sanity check
-      sleep(500);           // Let time to update to reach other servers
+      Thread.sleep(500);           // Let time to update to reach other servers
       assertEquals(fakeRd1.getReceivedUpdates(), 0);
       assertTrue(fakeRd1.receivedUpdatesOk());
       if (otherFakeDS)
@@ -1637,7 +1621,7 @@ public class AssuredReplicationServerTest
       long sendUpdateTime = System.currentTimeMillis() - startTime;
 
       // Check
-      sleep(500); // Sleep a while as counters are updated just after sending thread is unblocked and let time the update to reach other servers
+      Thread.sleep(500); // Sleep a while as counters are updated just after sending thread is unblocked and let time the update to reach other servers
       checkTimeAndMonitoringSafeData(1, acknowledgedUpdates, timeoutUpdates, serverErrors, sendUpdateTime, nWishedServers, eligibleServers, expectedServers);
       checkWhatHasBeenReceivedSafeData(1, otherFakeDS, otherFakeDsGenId, fakeRs1GenId, fakeRs2GenId, fakeRs3GenId, expectedServers);
 
@@ -1668,7 +1652,7 @@ public class AssuredReplicationServerTest
       sendUpdateTime = System.currentTimeMillis() - startTime;
 
       // Check
-      sleep(500); // Sleep a while as counters are updated just after sending thread is unblocked and let time the update to reach other servers
+      Thread.sleep(500); // Sleep a while as counters are updated just after sending thread is unblocked and let time the update to reach other servers
       checkTimeAndMonitoringSafeData(2, acknowledgedUpdates, timeoutUpdates, serverErrors, sendUpdateTime, nWishedServers, eligibleServers, expectedServers);
       checkWhatHasBeenReceivedSafeData(2, otherFakeDS, otherFakeDsGenId, fakeRs1GenId, fakeRs2GenId, -1L, expectedServers);
 
@@ -1699,7 +1683,7 @@ public class AssuredReplicationServerTest
       sendUpdateTime = System.currentTimeMillis() - startTime;
 
       // Check
-      sleep(500); // Sleep a while as counters are updated just after sending thread is unblocked and let time the update to reach other servers
+      Thread.sleep(500); // Sleep a while as counters are updated just after sending thread is unblocked and let time the update to reach other servers
       checkTimeAndMonitoringSafeData(3, acknowledgedUpdates, timeoutUpdates, serverErrors, sendUpdateTime, nWishedServers, eligibleServers, expectedServers);
       checkWhatHasBeenReceivedSafeData(3, otherFakeDS, otherFakeDsGenId, fakeRs1GenId, -1L, -1L, expectedServers);
 
@@ -1730,7 +1714,7 @@ public class AssuredReplicationServerTest
       sendUpdateTime = System.currentTimeMillis() - startTime;
 
       // Check
-      sleep(500); // Sleep a while as counters are updated just after sending thread is unblocked and let time the update to reach other servers
+      Thread.sleep(500); // Sleep a while as counters are updated just after sending thread is unblocked and let time the update to reach other servers
       checkTimeAndMonitoringSafeData(4, acknowledgedUpdates, timeoutUpdates, serverErrors, sendUpdateTime, nWishedServers, eligibleServers, expectedServers);
       checkWhatHasBeenReceivedSafeData(4, otherFakeDS, otherFakeDsGenId, -1L, -1L, -1L, expectedServers);
     } finally
@@ -1937,7 +1921,8 @@ public class AssuredReplicationServerTest
    * Wait until number of fake DSs and fake RSs are available in the topo view of the passed
    * fake DS or throw an assertion if timeout waiting.
    */
-  private void waitForStableTopo(FakeReplicationDomain fakeRd, int expectedDs, int expectedRs)
+  private void waitForStableTopo(FakeReplicationDomain fakeRd, int expectedDs,
+      int expectedRs) throws Exception
   {
     List<DSInfo> dsInfo = null;
     List<RSInfo> rsInfo = null;
@@ -1952,7 +1937,7 @@ public class AssuredReplicationServerTest
         debugInfo("waitForStableTopo: expected topo obtained after " + nSec + " second(s).");
         return;
       }
-      sleep(100);
+      Thread.sleep(100);
       nSec = (System.currentTimeMillis() - startTime) / 1000;
     }
     while (nSec < 30);
@@ -2223,7 +2208,7 @@ public class AssuredReplicationServerTest
       assertTrue(sendUpdateTime < MAX_SEND_UPDATE_TIME);
 
       // Check monitoring values (check that ack has been correctly received)
-      sleep(500); // Sleep a while as counters are updated just after sending thread is unblocked
+      Thread.sleep(500); // Sleep a while as counters are updated just after sending thread is unblocked
       assertEquals(fakeRd1.getAssuredSdSentUpdates(), 1);
       assertEquals(fakeRd1.getAssuredSdAcknowledgedUpdates(), 1);
       assertEquals(fakeRd1.getAssuredSdTimeoutUpdates(), 0);
@@ -2281,7 +2266,7 @@ public class AssuredReplicationServerTest
       assertTrue(sendUpdateTime < MAX_SEND_UPDATE_TIME);
 
       // Check monitoring values (check that ack has been correctly received)
-      sleep(500); // Sleep a while as counters are updated just after sending thread is unblocked
+      Thread.sleep(500); // Sleep a while as counters are updated just after sending thread is unblocked
       assertEquals(fakeRd1.getAssuredSrSentUpdates(), 1);
       assertEquals(fakeRd1.getAssuredSrAcknowledgedUpdates(), 1);
       assertEquals(fakeRd1.getAssuredSrNotAcknowledgedUpdates(), 0);
@@ -2323,7 +2308,7 @@ public class AssuredReplicationServerTest
       assertTrue(sendUpdateTime < MAX_SEND_UPDATE_TIME);
 
       // Check monitoring values (check that ack has been correctly received)
-      sleep(500); // Sleep a while as counters are updated just after sending thread is unblocked
+      Thread.sleep(500); // Sleep a while as counters are updated just after sending thread is unblocked
       assertEquals(fakeRd1.getAssuredSrSentUpdates(), 2);
       assertEquals(fakeRd1.getAssuredSrAcknowledgedUpdates(), 2);
       assertEquals(fakeRd1.getAssuredSrNotAcknowledgedUpdates(), 0);
@@ -2376,7 +2361,7 @@ public class AssuredReplicationServerTest
       assertTrue(sendUpdateTime < MAX_SEND_UPDATE_TIME);
 
       // Check monitoring values (check that ack has been correctly received)
-      sleep(500); // Sleep a while as counters are updated just after sending thread is unblocked
+      Thread.sleep(500); // Sleep a while as counters are updated just after sending thread is unblocked
       assertEquals(fakeRd1.getAssuredSrSentUpdates(), 3);
       assertEquals(fakeRd1.getAssuredSrAcknowledgedUpdates(), 3);
       assertEquals(fakeRd1.getAssuredSrNotAcknowledgedUpdates(), 0);
@@ -2431,7 +2416,7 @@ public class AssuredReplicationServerTest
       assertTrue(sendUpdateTime < MAX_SEND_UPDATE_TIME);
 
       // Check monitoring values (check that ack has been correctly received)
-      sleep(500); // Sleep a while as counters are updated just after sending thread is unblocked
+      Thread.sleep(500); // Sleep a while as counters are updated just after sending thread is unblocked
       assertEquals(fakeRd1.getAssuredSrSentUpdates(), 4);
       assertEquals(fakeRd1.getAssuredSrAcknowledgedUpdates(), 4);
       assertEquals(fakeRd1.getAssuredSrNotAcknowledgedUpdates(), 0);
@@ -2472,7 +2457,7 @@ public class AssuredReplicationServerTest
       assertTrue(sendUpdateTime < MAX_SEND_UPDATE_TIME);
 
       // Check monitoring values (check that ack has been correctly received)
-      sleep(500); // Sleep a while as counters are updated just after sending thread is unblocked
+      Thread.sleep(500); // Sleep a while as counters are updated just after sending thread is unblocked
       assertEquals(fakeRd1.getAssuredSrSentUpdates(), 5);
       assertEquals(fakeRd1.getAssuredSrAcknowledgedUpdates(), 5);
       assertEquals(fakeRd1.getAssuredSrNotAcknowledgedUpdates(), 0);
@@ -2726,7 +2711,7 @@ public class AssuredReplicationServerTest
       }
 
       // Sleep a while as counters are updated just after sending thread is unblocked
-      sleep(500);
+      Thread.sleep(500);
 
       // Check monitoring values in DS 1
       //
@@ -3054,7 +3039,7 @@ public class AssuredReplicationServerTest
       assertTrue(sendUpdateTime < MAX_SEND_UPDATE_TIME);
 
       // Check monitoring values (check that ack has been correctly received)
-      sleep(1000); // Sleep a while as counters are updated just after sending thread is unblocked
+      Thread.sleep(1000); // Sleep a while as counters are updated just after sending thread is unblocked
 
       checkDSSentAndAcked(fakeRd1, 1);
 
@@ -3126,7 +3111,7 @@ public class AssuredReplicationServerTest
       assertTrue(sendUpdateTime < MAX_SEND_UPDATE_TIME, "Exceeded max send time: " + sendUpdateTime);
 
       // Check monitoring values (check that ack has been correctly received)
-      sleep(1000); // Sleep a while as counters are updated just after sending thread is unblocked
+      Thread.sleep(1000); // Sleep a while as counters are updated just after sending thread is unblocked
 
       checkDSSentAndAcked(fakeRd1, 2);
 
@@ -3302,7 +3287,7 @@ public class AssuredReplicationServerTest
       assertTrue(sendUpdateTime < MAX_SEND_UPDATE_TIME);
 
       // Check monitoring values (check that ack has been correctly received)
-      sleep(500); // Sleep a while as counters are updated just after sending thread is unblocked
+      Thread.sleep(500); // Sleep a while as counters are updated just after sending thread is unblocked
 
       checkDSSentAndAcked(fakeRd1, 1);
 
@@ -3430,7 +3415,7 @@ public class AssuredReplicationServerTest
         assertTrue(sendUpdateTime < MAX_SEND_UPDATE_TIME);
 
       // Check monitoring values (check that ack has been correctly received)
-      sleep(500); // Sleep a while as counters are updated just after sending thread is unblocked
+      Thread.sleep(500); // Sleep a while as counters are updated just after sending thread is unblocked
 
       if (fakeDsIsEligible)
       {
@@ -3602,12 +3587,12 @@ public class AssuredReplicationServerTest
         }
         else
         {
-          sleep(1000);
+          Thread.sleep(1000);
         }
       }
       assertFalse(error, "DS2 not in degraded status");
 
-      sleep(500); // Sleep a while as counters are updated just after sending thread is unblocked
+      Thread.sleep(500); // Sleep a while as counters are updated just after sending thread is unblocked
       assertEquals(fakeRd1.getAssuredSrSentUpdates(), 4);
       assertEquals(fakeRd1.getAssuredSrAcknowledgedUpdates(), 0);
       assertEquals(fakeRd1.getAssuredSrNotAcknowledgedUpdates(), 4);
@@ -3651,7 +3636,7 @@ public class AssuredReplicationServerTest
       // RS should ack quickly as DS2 degraded and not eligible for assured
       assertTrue(sendUpdateTime < MAX_SEND_UPDATE_TIME);
 
-      sleep(500); // Sleep a while as counters are updated just after sending thread is unblocked
+      Thread.sleep(500); // Sleep a while as counters are updated just after sending thread is unblocked
       assertEquals(fakeRd1.getAssuredSrSentUpdates(), 5);
       assertEquals(fakeRd1.getAssuredSrAcknowledgedUpdates(), 1);
       assertEquals(fakeRd1.getAssuredSrNotAcknowledgedUpdates(), 4);
@@ -3709,7 +3694,7 @@ public class AssuredReplicationServerTest
         }
         else
         {
-          sleep(1000);
+          Thread.sleep(1000);
         }
       }
       assertFalse(error, "DS2 not back to normal status");
@@ -3758,7 +3743,7 @@ public class AssuredReplicationServerTest
       // RS should ack quickly as DS2 degraded and not eligible for assured
       assertTrue(sendUpdateTime < MAX_SEND_UPDATE_TIME);
 
-      sleep(500); // Sleep a while as counters are updated just after sending thread is unblocked
+      Thread.sleep(500); // Sleep a while as counters are updated just after sending thread is unblocked
       assertEquals(fakeRd1.getAssuredSrSentUpdates(), 6);
       assertEquals(fakeRd1.getAssuredSrAcknowledgedUpdates(), 2);
       assertEquals(fakeRd1.getAssuredSrNotAcknowledgedUpdates(), 4);

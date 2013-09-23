@@ -23,34 +23,25 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2012 ForgeRock AS.
+ *      Portions copyright 2011-2013 ForgeRock AS.
  */
 package org.opends.server.core;
+
+import java.util.*;
+
 import org.opends.messages.Message;
-
-
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Properties;
-import java.util.Set;
-
 import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.admin.server.ServerManagementContext;
 import org.opends.server.admin.std.meta.GlobalCfgDefn;
 import org.opends.server.admin.std.meta.GlobalCfgDefn.WorkflowConfigurationMode;
 import org.opends.server.admin.std.server.GlobalCfg;
 import org.opends.server.admin.std.server.RootCfg;
-import org.opends.server.admin.server.ServerManagementContext;
 import org.opends.server.api.AuthenticationPolicy;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.*;
 
 import static org.opends.messages.ConfigMessages.*;
-
 import static org.opends.server.util.ServerConstants.*;
-
-
 
 /**
  * This class defines a utility that will be used to manage the set of core
@@ -104,28 +95,15 @@ public class CoreConfigManager
     {
       for (String server : smtpServers)
       {
-        int colonPos = server.indexOf(':');
-        if ((colonPos == 0) || (colonPos == (server.length()-1)))
+        try
+        {
+          // validate provided string
+          HostPort.valueOf(server);
+        }
+        catch (RuntimeException e)
         {
           Message message = ERR_CONFIG_CORE_INVALID_SMTP_SERVER.get(server);
-          throw new ConfigException(message);
-        }
-        else if (colonPos > 0)
-        {
-          try
-          {
-            int port = Integer.parseInt(server.substring(colonPos+1));
-            if ((port < 1) || (port > 65535))
-            {
-              Message message = ERR_CONFIG_CORE_INVALID_SMTP_SERVER.get(server);
-              throw new ConfigException(message);
-            }
-          }
-          catch (Exception e)
-          {
-            Message message = ERR_CONFIG_CORE_INVALID_SMTP_SERVER.get(server);
-            throw new ConfigException(message, e);
-          }
+          throw new ConfigException(message, e);
         }
       }
     }
@@ -222,33 +200,31 @@ public class CoreConfigManager
     DirectoryServer.setLookthroughLimit(globalConfig.getLookthroughLimit());
 
 
-    ArrayList<Properties> mailServerProperties = new ArrayList<Properties>();
+    List<Properties> mailServerProperties = new ArrayList<Properties>();
     Set<String> smtpServers = globalConfig.getSMTPServer();
     if ((smtpServers != null) && (! smtpServers.isEmpty()))
     {
       for (String smtpServer : smtpServers)
       {
-        int colonPos = smtpServer.indexOf(':');
-        if (colonPos > 0)
+        final Properties properties = new Properties();
+        try
         {
-          String smtpHost = smtpServer.substring(0, colonPos);
-          String smtpPort = smtpServer.substring(colonPos+1);
+          final HostPort hp = HostPort.valueOf(smtpServer);
 
-          Properties properties = new Properties();
-          properties.setProperty(SMTP_PROPERTY_HOST, smtpHost);
-          properties.setProperty(SMTP_PROPERTY_PORT, smtpPort);
+          properties.setProperty(SMTP_PROPERTY_HOST, hp.getHost());
+          properties.setProperty(SMTP_PROPERTY_PORT,
+              String.valueOf(hp.getPort()));
           properties.setProperty(SMTP_PROPERTY_CONNECTION_TIMEOUT,
-                    SMTP_DEFAULT_TIMEOUT_VALUE);
+              SMTP_DEFAULT_TIMEOUT_VALUE);
           properties.setProperty(SMTP_PROPERTY_IO_TIMEOUT,
-                  SMTP_DEFAULT_TIMEOUT_VALUE);
-          mailServerProperties.add(properties);
+              SMTP_DEFAULT_TIMEOUT_VALUE);
         }
-        else
+        catch (RuntimeException e)
         {
-          Properties properties = new Properties();
+          // no valid port provided
           properties.setProperty(SMTP_PROPERTY_HOST, smtpServer);
-          mailServerProperties.add(properties);
         }
+        mailServerProperties.add(properties);
       }
     }
     DirectoryServer.setMailServerPropertySets(mailServerProperties);
@@ -379,6 +355,7 @@ public class CoreConfigManager
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationChangeAcceptable(GlobalCfg configuration,
                       List<Message> unacceptableReasons)
   {
@@ -389,31 +366,16 @@ public class CoreConfigManager
     {
       for (String server : smtpServers)
       {
-        int colonPos = server.indexOf(':');
-        if ((colonPos == 0) || (colonPos == (server.length()-1)))
+        try
+        {
+          // validate provided string
+          HostPort.valueOf(server);
+        }
+        catch (RuntimeException e)
         {
           Message message = ERR_CONFIG_CORE_INVALID_SMTP_SERVER.get(server);
           unacceptableReasons.add(message);
           configAcceptable = false;
-        }
-        else if (colonPos > 0)
-        {
-          try
-          {
-            int port = Integer.parseInt(server.substring(colonPos+1));
-            if ((port < 1) || (port > 65535))
-            {
-              Message message = ERR_CONFIG_CORE_INVALID_SMTP_SERVER.get(server);
-              unacceptableReasons.add(message);
-              configAcceptable = false;
-            }
-          }
-          catch (Exception e)
-          {
-            Message message = ERR_CONFIG_CORE_INVALID_SMTP_SERVER.get(server);
-            unacceptableReasons.add(message);
-            configAcceptable = false;
-          }
         }
       }
     }
@@ -440,11 +402,12 @@ public class CoreConfigManager
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationChange(GlobalCfg configuration)
   {
     ResultCode         resultCode          = ResultCode.SUCCESS;
     boolean            adminActionRequired = false;
-    ArrayList<Message> messages            = new ArrayList<Message>();
+    List<Message>      messages            = new ArrayList<Message>();
 
     applyGlobalConfiguration(configuration);
 

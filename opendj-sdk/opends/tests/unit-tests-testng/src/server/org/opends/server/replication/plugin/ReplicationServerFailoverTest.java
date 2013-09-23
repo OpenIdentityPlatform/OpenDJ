@@ -27,12 +27,6 @@
  */
 package org.opends.server.replication.plugin;
 
-import static org.opends.server.TestCaseUtils.*;
-import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.util.StaticUtils.*;
-import static org.testng.Assert.*;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.SortedSet;
@@ -42,15 +36,21 @@ import org.opends.messages.Category;
 import org.opends.messages.Message;
 import org.opends.messages.Severity;
 import org.opends.server.TestCaseUtils;
+import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.types.DN;
-import org.opends.server.types.DirectoryException;
+import org.opends.server.types.HostPort;
 import org.opends.server.util.StaticUtils;
 import org.testng.annotations.Test;
+
+import static org.opends.server.TestCaseUtils.*;
+import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.testng.Assert.*;
 
 /**
  * Test if the replication domain is able to switch of replication server
@@ -93,7 +93,7 @@ public class ReplicationServerFailoverTest extends ReplicationTestCase
     findFreePorts();
   }
 
-  private void endTest()
+  private void endTest() throws Exception
   {
     if (rd1 != null)
     {
@@ -107,14 +107,8 @@ public class ReplicationServerFailoverTest extends ReplicationTestCase
       rd2 = null;
     }
 
-    try
-    {
-      // Clear any reference to a domain in synchro plugin
-      MultimasterReplication.deleteDomain(DN.decode(TEST_ROOT_DN_STRING));
-    } catch (DirectoryException ex)
-    {
-      fail("Error deleting reference to domain: " + TEST_ROOT_DN_STRING);
-    }
+    // Clear any reference to a domain in synchro plugin
+    MultimasterReplication.deleteDomain(DN.decode(TEST_ROOT_DN_STRING));
 
     rs1 = clear(rs1);
     rs2 = clear(rs2);
@@ -166,7 +160,7 @@ public class ReplicationServerFailoverTest extends ReplicationTestCase
       rd1 = createReplicationDomain(baseDn, DS1_ID);
 
       // Wait a bit so that connections are performed
-      sleep(2000);
+      Thread.sleep(2000);
 
       // DS1 connected to RS1 ?
       // Check which replication server is connected to this LDAP server
@@ -237,7 +231,7 @@ public class ReplicationServerFailoverTest extends ReplicationTestCase
       rd2 = createReplicationDomain(baseDn, DS2_ID);
 
       // Wait a bit so that connections are performed
-      sleep(3000);
+      Thread.sleep(3000);
 
       // Simulate RS1 failure
       rs1.remove();
@@ -282,26 +276,14 @@ public class ReplicationServerFailoverTest extends ReplicationTestCase
     }
   }
 
-  private void sleep(long time)
-  {
-    try
-    {
-      Thread.sleep(time);
-    } catch (InterruptedException ex)
-    {
-      fail("Error sleeping " + stackTraceToSingleLineString(ex));
-    }
-  }
-
   /**
    * Check connection of the provided replication domain to the provided
    * replication server. Waits for connection to be ok up to secTimeout seconds
    * before failing.
    */
   private void checkConnection(int secTimeout, int dsId, int rsId, String msg)
+      throws Exception
   {
-
-    int rsPort = -1;
     LDAPReplicationDomain rd = null;
     switch (dsId)
     {
@@ -315,6 +297,7 @@ public class ReplicationServerFailoverTest extends ReplicationTestCase
         fail("Unknown replication domain server id.");
     }
 
+    int rsPort = -1;
     switch (rsId)
     {
       case RS1_ID:
@@ -339,17 +322,7 @@ public class ReplicationServerFailoverTest extends ReplicationTestCase
       if (connected)
       {
         String serverStr = rd.getReplicationServer();
-        int index = serverStr.lastIndexOf(':');
-        if ((index == -1) || (index >= serverStr.length()))
-          fail("Enable to find port number in: " + serverStr);
-        String rdPortStr = serverStr.substring(index + 1);
-        try
-        {
-          rdPort = (new Integer(rdPortStr)).intValue();
-        } catch (Exception e)
-        {
-          fail("Enable to get an int from: " + rdPortStr);
-        }
+        rdPort = HostPort.valueOf(serverStr).getPort();
         if (rdPort == rsPort)
           rightPort = true;
       }
@@ -363,13 +336,7 @@ public class ReplicationServerFailoverTest extends ReplicationTestCase
       }
 
       // Sleep 1 second
-      try
-      {
-        Thread.sleep(1000);
-      } catch (InterruptedException ex)
-      {
-        fail("Error sleeping " + stackTraceToSingleLineString(ex));
-      }
+      Thread.sleep(1000);
       nSec++;
 
       if (nSec > secTimeout)
@@ -396,83 +363,61 @@ public class ReplicationServerFailoverTest extends ReplicationTestCase
   /**
    * Creates a new ReplicationServer.
    */
-  private ReplicationServer createReplicationServer(int serverId,
-    String suffix)
+  private ReplicationServer createReplicationServer(int serverId, String suffix)
+      throws ConfigException
   {
     SortedSet<String> replServers = new TreeSet<String>();
-    try
+    int port = -1;
+    if (serverId == RS1_ID)
     {
-      int port = -1;
-      if (serverId == RS1_ID)
-      {
-        port = rs1Port;
-        replServers.add("localhost:" + rs2Port);
-      } else if (serverId == RS2_ID)
-      {
-        port = rs2Port;
-        replServers.add("localhost:" + rs1Port);
-      } else
-      {
-        fail("Unknown replication server id.");
-      }
-
-      String dir = "replicationServerFailoverTest" + serverId + suffix + "Db";
-      ReplServerFakeConfiguration conf =
-        new ReplServerFakeConfiguration(port, dir, 0, serverId, 0, 100,
-        replServers);
-      ReplicationServer replicationServer = new ReplicationServer(conf);
-      return replicationServer;
-
-    } catch (Exception e)
-    {
-      fail("createReplicationServer " + stackTraceToSingleLineString(e));
+      port = rs1Port;
+      replServers.add("localhost:" + rs2Port);
     }
-    return null;
+    else if (serverId == RS2_ID)
+    {
+      port = rs2Port;
+      replServers.add("localhost:" + rs1Port);
+    }
+    else
+    {
+      fail("Unknown replication server id.");
+    }
+
+    String dir = "replicationServerFailoverTest" + serverId + suffix + "Db";
+    ReplServerFakeConfiguration conf =
+        new ReplServerFakeConfiguration(port, dir, 0, serverId, 0, 100,
+            replServers);
+    return new ReplicationServer(conf);
   }
 
   /**
    * Creates a new ReplicationDomain.
    */
   private LDAPReplicationDomain createReplicationDomain(DN baseDn, int serverId)
+      throws Exception
   {
-
     SortedSet<String> replServers = new TreeSet<String>();
-    try
-    {
-      // Create a domain with two replication servers
-      replServers.add("localhost:" + rs1Port);
-      replServers.add("localhost:" + rs2Port);
 
-      DomainFakeCfg domainConf =
-        new DomainFakeCfg(baseDn, serverId, replServers);
-      //domainConf.setHeartbeatInterval(500);
-      LDAPReplicationDomain replicationDomain =
+    // Create a domain with two replication servers
+    replServers.add("localhost:" + rs1Port);
+    replServers.add("localhost:" + rs2Port);
+
+    DomainFakeCfg domainConf = new DomainFakeCfg(baseDn, serverId, replServers);
+    // domainConf.setHeartbeatInterval(500);
+    LDAPReplicationDomain replicationDomain =
         MultimasterReplication.createNewDomain(domainConf);
-      replicationDomain.start();
+    replicationDomain.start();
 
-      return replicationDomain;
-
-    } catch (Exception e)
-    {
-      fail("createReplicationDomain " + stackTraceToSingleLineString(e));
-    }
-    return null;
+    return replicationDomain;
   }
 
   private int findReplServerConnected(LDAPReplicationDomain rd)
   {
-    int rsPort = -1;
-
     // First check that the Replication domain is connected
     if (!rd.isConnected())
-      return rsPort;
+      return -1;
 
     String serverStr = rd.getReplicationServer();
-    int index = serverStr.lastIndexOf(':');
-    if ((index == -1) || (index >= serverStr.length()))
-      fail("Enable to find port number in: " + serverStr);
-    rsPort = (new Integer(serverStr.substring(index + 1)));
-
-      return rsPort;
+    return HostPort.valueOf(serverStr).getPort();
   }
 }
