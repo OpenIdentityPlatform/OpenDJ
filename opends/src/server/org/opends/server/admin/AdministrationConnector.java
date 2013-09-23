@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2012 ForgeRock AS
+ *      Portions copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.admin;
 
@@ -618,10 +618,9 @@ public final class AdministrationConnector implements
       TrustManagerProviderCfg trustMgrConfig = root
           .getTrustManagerProvider(config.getTrustManagerProvider());
 
-      if (!(keyMgrConfig instanceof FileBasedKeyManagerProviderCfg)
-          || !(trustMgrConfig instanceof FileBasedTrustManagerProviderCfg))
+      if (hasDefaultConfigChanged(keyMgrConfig, trustMgrConfig))
       {
-        // The default config has been changed, nothing to do
+        // nothing to do
         return;
       }
 
@@ -762,7 +761,35 @@ public final class AdministrationConnector implements
     }
   }
 
-
+  /**
+   * Check if default configuration for administrator's key manager and trust
+   * manager provider has changed.
+   *
+   * @param keyConfig
+   *          key manager provider configuration
+   * @param trustConfig
+   *          trust manager provider configuration
+   * @return true if default configuration has changed, false otherwise
+   */
+  private static boolean hasDefaultConfigChanged(
+      KeyManagerProviderCfg keyConfig, TrustManagerProviderCfg trustConfig)
+  {
+    if (keyConfig.isEnabled()
+        && (keyConfig instanceof FileBasedKeyManagerProviderCfg)
+        && trustConfig.isEnabled()
+        && (trustConfig instanceof FileBasedTrustManagerProviderCfg))
+    {
+      FileBasedKeyManagerProviderCfg fileKeyConfig =
+          (FileBasedKeyManagerProviderCfg) keyConfig;
+      boolean pinIsProvidedByFileOnly =
+          (fileKeyConfig.getKeyStorePinFile() != null)
+              && (fileKeyConfig.getKeyStorePin() == null)
+              && (fileKeyConfig.getKeyStorePinEnvironmentVariable() == null)
+              && (fileKeyConfig.getKeyStorePinProperty() == null);
+      return !pinIsProvidedByFileOnly;
+    }
+    return true;
+  }
 
   private static String getFullPath(String path)
   {
