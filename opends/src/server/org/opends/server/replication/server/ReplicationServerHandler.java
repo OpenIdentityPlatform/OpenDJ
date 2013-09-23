@@ -82,7 +82,7 @@ public class ReplicationServerHandler extends ServerHandler
       generationId = inReplServerStartMsg.getGenerationId();
       serverId = inReplServerStartMsg.getServerId();
       serverURL = inReplServerStartMsg.getServerURL();
-      final String port = serverURL.substring(serverURL.lastIndexOf(':') + 1);
+      final int port = HostPort.valueOf(serverURL).getPort();
       serverAddressURL = session.getRemoteAddress() + ":" + port;
       DN baseDN = DN.decode(inReplServerStartMsg.getBaseDn());
       setBaseDNAndDomain(baseDN, false);

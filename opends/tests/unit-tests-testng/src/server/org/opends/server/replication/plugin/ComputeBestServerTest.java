@@ -70,9 +70,9 @@ public class ComputeBestServerTest extends ReplicationTestCase
   private static final int myId3 = 3;
 
   // definitions for server names
-  private static final String WINNER = "winner";
-  private static final String LOOSER1 = "looser1";
-  private static final String LOOSER2 = "looser2";
+  private static final String WINNER = "winner:389";
+  private static final String LOOSER1 = "looser1:389";
+  private static final String LOOSER2 = "looser2:389";
 
   private void debugInfo(String s)
   {

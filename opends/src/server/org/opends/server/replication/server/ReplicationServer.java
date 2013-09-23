@@ -440,9 +440,6 @@ public final class ReplicationServer
    */
   private void connect(String remoteServerURL, DN baseDN)
   {
-    int separator = remoteServerURL.lastIndexOf(':');
-    String port = remoteServerURL.substring(separator + 1);
-    String hostname = remoteServerURL.substring(0, separator);
     boolean sslEncryption =replSessionSecurity.isSslEncryption(remoteServerURL);
 
     if (debugEnabled())
@@ -453,11 +450,12 @@ public final class ReplicationServer
     Session session = null;
     try
     {
-      InetSocketAddress ServerAddr = new InetSocketAddress(
-          InetAddress.getByName(hostname), Integer.parseInt(port));
+      final HostPort hp = HostPort.valueOf(remoteServerURL);
+      final InetSocketAddress serverAddr = new InetSocketAddress(
+          InetAddress.getByName(hp.getHost()), hp.getPort());
       socket.setTcpNoDelay(true);
       int timeoutMS = MultimasterReplication.getConnectionTimeoutMS();
-      socket.connect(ServerAddr, timeoutMS);
+      socket.connect(serverAddr, timeoutMS);
       session = replSessionSecurity.createClientSession(socket, timeoutMS);
 
       ReplicationServerHandler rsHandler = new ReplicationServerHandler(
@@ -1001,11 +999,8 @@ public final class ReplicationServer
        * No need validate the string format because the admin framework has
        * already done it.
        */
-      final int index = rsUrl.lastIndexOf(":");
-      final String hostname = rsUrl.substring(0, index);
-      final int port = Integer.parseInt(rsUrl.substring(index + 1));
-
-      if (port == replicationPort && isLocalAddress(hostname))
+      final HostPort hp = HostPort.valueOf(rsUrl);
+      if (hp.getPort() == replicationPort && hp.isLocalAddress())
       {
         serverURL = rsUrl;
         return;
@@ -1352,9 +1347,10 @@ public final class ReplicationServer
         try
         {
           // translate the server name into IP address and keep the port number
-          String[] host = rsUrl.split(":");
-          serversToDisconnect.add(
-              InetAddress.getByName(host[0]).getHostAddress() + ":" + host[1]);
+          final HostPort hp = HostPort.valueOf(rsUrl);
+          final String hostAddress =
+              InetAddress.getByName(hp.getHost()).getHostAddress();
+          serversToDisconnect.add(hostAddress + ":" + hp.getPort());
         }
         catch (IOException e)
         {
@@ -1423,11 +1419,7 @@ public final class ReplicationServer
    */
   public static void onlyForTestsAddlocalReplicationServer(String server)
   {
-    int separator = server.lastIndexOf(':');
-    if (separator == -1)
-      return ;
-    int port = Integer.parseInt(server.substring(separator + 1));
-    localPorts.add(port);
+    localPorts.add(HostPort.valueOf(server).getPort());
   }
 
   /**
@@ -1762,23 +1754,21 @@ public final class ReplicationServer
    */
   private String normalizeServerURL(final String url)
   {
-    final int separator = url.lastIndexOf(':');
-    final String portString = url.substring(separator + 1);
-    final String hostname = url.substring(0, separator);
+    final HostPort hp = HostPort.valueOf(url);
     try
     {
-      InetAddress inetAddress = InetAddress.getByName(hostname);
-      if (isLocalAddress(inetAddress))
+      InetAddress inetAddress = InetAddress.getByName(hp.getHost());
+      if (HostPort.isLocalAddress(inetAddress))
       {
         inetAddress = getLocalAddress();
       }
-      return inetAddress.getHostAddress() + ":" + portString;
+      return inetAddress.getHostAddress() + ":" + hp.getPort();
     }
     catch (UnknownHostException e)
     {
       // This should not happen, but if it does then just default to the
       // original URL.
-      Message message = ERR_COULD_NOT_SOLVE_HOSTNAME.get(hostname);
+      Message message = ERR_COULD_NOT_SOLVE_HOSTNAME.get(hp.getHost());
       logError(message);
       return url;
     }

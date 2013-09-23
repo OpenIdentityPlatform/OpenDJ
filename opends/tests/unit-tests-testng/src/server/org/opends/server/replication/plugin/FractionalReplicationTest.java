@@ -390,11 +390,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
     assertTrue(replicationDomain.isConnected());
     // Check connected server port
     String serverStr = replicationDomain.getReplicationServer();
-    int index = serverStr.lastIndexOf(':');
-    assertTrue(index > -1, "Unable to find port number in: " + serverStr);
-    String rdPortStr = serverStr.substring(index + 1);
-    int rdPort = Integer.valueOf(rdPortStr);
-    assertEquals(rdPort, replServerPort);
+    assertEquals(HostPort.valueOf(serverStr).getPort(), replServerPort);
   }
 
   private void initTest() throws Exception

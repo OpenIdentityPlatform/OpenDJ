@@ -27,12 +27,6 @@
  */
 package org.opends.server.replication.plugin;
 
-import static org.opends.server.TestCaseUtils.*;
-import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.util.StaticUtils.*;
-import static org.testng.Assert.*;
-
 import java.io.File;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -43,6 +37,7 @@ import org.opends.messages.Message;
 import org.opends.messages.Severity;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.std.meta.ReplicationDomainCfgDefn.AssuredType;
+import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.ReplicationTestCase;
@@ -54,9 +49,14 @@ import org.opends.server.replication.protocol.ProtocolVersion;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.types.DN;
-import org.opends.server.types.DirectoryException;
+import org.opends.server.types.HostPort;
 import org.opends.server.util.StaticUtils;
 import org.testng.annotations.Test;
+
+import static org.opends.server.TestCaseUtils.*;
+import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.testng.Assert.*;
 
 /**
  * Some tests to know if at any time the view DSs and RSs have of the current
@@ -173,7 +173,7 @@ public class TopologyViewTest extends ReplicationTestCase
     findFreePorts();
   }
 
-  private void endTest()
+  private void endTest() throws Exception
   {
     if (rd1 != null)
     {
@@ -211,14 +211,8 @@ public class TopologyViewTest extends ReplicationTestCase
       rd6 = null;
     }
 
-    try
-    {
-      // Clear any reference to a domain in synchro plugin
-      MultimasterReplication.deleteDomain(DN.decode(TEST_ROOT_DN_STRING));
-    } catch (DirectoryException ex)
-    {
-      fail("Error deleting reference to domain: " + TEST_ROOT_DN_STRING);
-    }
+    // Clear any reference to a domain in synchro plugin
+    MultimasterReplication.deleteDomain(DN.decode(TEST_ROOT_DN_STRING));
 
     if (rs1 != null)
     {
@@ -251,23 +245,13 @@ public class TopologyViewTest extends ReplicationTestCase
     rs3Port = -1;
   }
 
-  private void sleep(long time)
-  {
-    try
-    {
-      Thread.sleep(time);
-    } catch (InterruptedException ex)
-    {
-      fail("Error sleeping " + stackTraceToSingleLineString(ex));
-    }
-  }
-
   /**
    * Check connection of the provided replication domain to the provided
    * replication server. Waits for connection to be ok up to secTimeout seconds
    * before failing.
    */
   private void checkConnection(int secTimeout, int dsId, int rsId)
+      throws Exception
   {
     int rsPort = -1;
     LDAPReplicationDomain rd = null;
@@ -322,17 +306,7 @@ public class TopologyViewTest extends ReplicationTestCase
       if (connected)
       {
         String serverStr = rd.getReplicationServer();
-        int index = serverStr.lastIndexOf(':');
-        if ((index == -1) || (index >= serverStr.length()))
-          fail("Enable to find port number in: " + serverStr);
-        String rdPortStr = serverStr.substring(index + 1);
-        try
-        {
-          rdPort = (new Integer(rdPortStr)).intValue();
-        } catch (Exception e)
-        {
-          fail("Enable to get an int from: " + rdPortStr);
-        }
+        rdPort = HostPort.valueOf(serverStr).getPort();
         if (rdPort == rsPort)
           rightPort = true;
       }
@@ -346,13 +320,7 @@ public class TopologyViewTest extends ReplicationTestCase
       }
 
       // Sleep 1 second
-      try
-      {
-        Thread.sleep(1000);
-      } catch (InterruptedException ex)
-      {
-        fail("Error sleeping " + stackTraceToSingleLineString(ex));
-      }
+      Thread.sleep(1000);
       nSec++;
 
       if (nSec > secTimeout)
@@ -406,43 +374,35 @@ public class TopologyViewTest extends ReplicationTestCase
    * Creates a new ReplicationServer.
    */
   private ReplicationServer createReplicationServer(int rsId, String testCase)
+      throws ConfigException
   {
-    try
+    SortedSet<String> replServers = createRSListExceptOne(rsId);
+
+    int rsPort = -1;
+    int groupId = -1;
+    switch (rsId)
     {
-      SortedSet<String> replServers = createRSListExceptOne(rsId);
-
-      int rsPort = -1;
-      int groupId = -1;
-      switch (rsId)
-      {
-        case RS1_ID:
-          rsPort = rs1Port;
-          groupId = RS1_GID;
-          break;
-        case RS2_ID:
-          rsPort = rs2Port;
-          groupId = RS2_GID;
-          break;
-        case RS3_ID:
-          rsPort = rs3Port;
-          groupId = RS3_GID;
-          break;
-        default:
-          fail("Unknown replication server id.");
-      }
-
-      String dir = "topologyViewTest" + rsId + testCase + "Db";
-      ReplServerFakeConfiguration conf =
-        new ReplServerFakeConfiguration(rsPort, dir, 0, rsId, 0, 100,
-        replServers, groupId, 1000, 5000);
-      ReplicationServer replicationServer = new ReplicationServer(conf);
-      return replicationServer;
-
-    } catch (Exception e)
-    {
-      fail("createReplicationServer " + stackTraceToSingleLineString(e));
+    case RS1_ID:
+      rsPort = rs1Port;
+      groupId = RS1_GID;
+      break;
+    case RS2_ID:
+      rsPort = rs2Port;
+      groupId = RS2_GID;
+      break;
+    case RS3_ID:
+      rsPort = rs3Port;
+      groupId = RS3_GID;
+      break;
+    default:
+      fail("Unknown replication server id.");
     }
-    return null;
+
+    String dir = "topologyViewTest" + rsId + testCase + "Db";
+    ReplServerFakeConfiguration conf =
+        new ReplServerFakeConfiguration(rsPort, dir, 0, rsId, 0, 100,
+            replServers, groupId, 1000, 5000);
+    return new ReplicationServer(conf);
   }
 
   /**
@@ -450,92 +410,85 @@ public class TopologyViewTest extends ReplicationTestCase
    * know RSs according to DS id
    */
   private LDAPReplicationDomain createReplicationDomain(int dsId)
+      throws Exception
   {
-    try
+    SortedSet<String> replServers = new TreeSet<String>();
+    int groupId = -1;
+    AssuredType assuredType = null;
+    int assuredSdLevel = -100;
+    SortedSet<String> refUrls = null;
+
+    // Fill rs list according to defined scenario (see testTopologyChanges
+    // comment)
+    switch (dsId)
     {
-      SortedSet<String> replServers = new TreeSet<String>();
-      int groupId = -1;
-      AssuredType assuredType = null;
-      int assuredSdLevel = -100;
-      SortedSet<String> refUrls = null;
+    case DS1_ID:
+      replServers.add(getHostPort(rs1Port));
+      replServers.add(getHostPort(rs2Port));
+      replServers.add(getHostPort(rs3Port));
 
-      // Fill rs list according to defined scenario (see testTopologyChanges
-      // comment)
-      switch (dsId)
-      {
-        case DS1_ID:
-          replServers.add(getHostPort(rs1Port));
-          replServers.add(getHostPort(rs2Port));
-          replServers.add(getHostPort(rs3Port));
+      groupId = DS1_GID;
+      assuredType = DS1_AT;
+      assuredSdLevel = DS1_SDL;
+      refUrls = DS1_RU;
+      break;
+    case DS2_ID:
+      replServers.add(getHostPort(rs1Port));
+      replServers.add(getHostPort(rs2Port));
+      replServers.add(getHostPort(rs3Port));
 
-          groupId = DS1_GID;
-          assuredType = DS1_AT;
-          assuredSdLevel = DS1_SDL;
-          refUrls = DS1_RU;
-          break;
-        case DS2_ID:
-          replServers.add(getHostPort(rs1Port));
-          replServers.add(getHostPort(rs2Port));
-          replServers.add(getHostPort(rs3Port));
+      groupId = DS2_GID;
+      assuredType = DS2_AT;
+      assuredSdLevel = DS2_SDL;
+      refUrls = DS2_RU;
+      break;
+    case DS3_ID:
+      replServers.add(getHostPort(rs2Port));
 
-          groupId = DS2_GID;
-          assuredType = DS2_AT;
-          assuredSdLevel = DS2_SDL;
-          refUrls = DS2_RU;
-          break;
-        case DS3_ID:
-          replServers.add(getHostPort(rs2Port));
+      groupId = DS3_GID;
+      assuredType = DS3_AT;
+      assuredSdLevel = DS3_SDL;
+      refUrls = DS3_RU;
+      break;
+    case DS4_ID:
+      replServers.add(getHostPort(rs2Port));
 
-          groupId = DS3_GID;
-          assuredType = DS3_AT;
-          assuredSdLevel = DS3_SDL;
-          refUrls = DS3_RU;
-          break;
-        case DS4_ID:
-          replServers.add(getHostPort(rs2Port));
+      groupId = DS4_GID;
+      assuredType = DS4_AT;
+      assuredSdLevel = DS4_SDL;
+      refUrls = DS4_RU;
+      break;
+    case DS5_ID:
+      replServers.add(getHostPort(rs2Port));
+      replServers.add(getHostPort(rs3Port));
 
-          groupId = DS4_GID;
-          assuredType = DS4_AT;
-          assuredSdLevel = DS4_SDL;
-          refUrls = DS4_RU;
-          break;
-        case DS5_ID:
-          replServers.add(getHostPort(rs2Port));
-          replServers.add(getHostPort(rs3Port));
+      groupId = DS5_GID;
+      assuredType = DS5_AT;
+      assuredSdLevel = DS5_SDL;
+      refUrls = DS5_RU;
+      break;
+    case DS6_ID:
+      replServers.add(getHostPort(rs2Port));
+      replServers.add(getHostPort(rs3Port));
 
-          groupId = DS5_GID;
-          assuredType = DS5_AT;
-          assuredSdLevel = DS5_SDL;
-          refUrls = DS5_RU;
-          break;
-        case DS6_ID:
-          replServers.add(getHostPort(rs2Port));
-          replServers.add(getHostPort(rs3Port));
-
-          groupId = DS6_GID;
-          assuredType = DS6_AT;
-          assuredSdLevel = DS6_SDL;
-          refUrls = DS6_RU;
-          break;
-        default:
-          fail("Unknown replication domain server id.");
-      }
-
-      DN baseDn = DN.decode(TEST_ROOT_DN_STRING);
-      DomainFakeCfg domainConf =
-        new DomainFakeCfg(baseDn, dsId, replServers, assuredType,
-        assuredSdLevel, groupId, 0, refUrls);
-      LDAPReplicationDomain replicationDomain =
-        MultimasterReplication.createNewDomain(domainConf);
-      replicationDomain.start();
-
-      return replicationDomain;
-
-    } catch (Exception e)
-    {
-      fail("createReplicationDomain " + stackTraceToSingleLineString(e));
+      groupId = DS6_GID;
+      assuredType = DS6_AT;
+      assuredSdLevel = DS6_SDL;
+      refUrls = DS6_RU;
+      break;
+    default:
+      fail("Unknown replication domain server id.");
     }
-    return null;
+
+    DN baseDn = DN.decode(TEST_ROOT_DN_STRING);
+    DomainFakeCfg domainConf =
+        new DomainFakeCfg(baseDn, dsId, replServers, assuredType,
+            assuredSdLevel, groupId, 0, refUrls);
+    LDAPReplicationDomain replicationDomain =
+        MultimasterReplication.createNewDomain(domainConf);
+    replicationDomain.start();
+
+    return replicationDomain;
   }
 
   // Definitions of steps for the test case
@@ -631,7 +584,7 @@ public class TopologyViewTest extends ReplicationTestCase
        */
       debugInfo("*** STEP 2 ***");
       rd2 = createReplicationDomain(DS2_ID);
-      sleep(500); // Let time to topo msgs being propagated through the network
+      Thread.sleep(500); // Let time to topo msgs being propagated through the network
       checkConnection(30, DS1_ID, RS1_ID);
       checkConnection(30, DS2_ID, RS1_ID);
       theoricalTopoView = createTheoreticalTopoViewForStep(STEP_2);
@@ -642,7 +595,7 @@ public class TopologyViewTest extends ReplicationTestCase
        */
       debugInfo("*** STEP 3 ***");
       rs2 = createReplicationServer(RS2_ID, testCase);
-      sleep(1000); // Let time to topo msgs being propagated through the network
+      Thread.sleep(1000); // Let time to topo msgs being propagated through the network
       checkConnection(30, DS1_ID, RS1_ID);
       checkConnection(30, DS2_ID, RS1_ID);
       theoricalTopoView = createTheoreticalTopoViewForStep(STEP_3);
@@ -653,7 +606,7 @@ public class TopologyViewTest extends ReplicationTestCase
        */
       debugInfo("*** STEP 4 ***");
       rd3 = createReplicationDomain(DS3_ID);
-      sleep(500); // Let time to topo msgs being propagated through the network
+      Thread.sleep(500); // Let time to topo msgs being propagated through the network
       checkConnection(30, DS1_ID, RS1_ID);
       checkConnection(30, DS2_ID, RS1_ID);
       checkConnection(30, DS3_ID, RS2_ID);
@@ -665,7 +618,7 @@ public class TopologyViewTest extends ReplicationTestCase
        */
       debugInfo("*** STEP 5 ***");
       rd4 = createReplicationDomain(DS4_ID);
-      sleep(500); // Let time to topo msgs being propagated through the network
+      Thread.sleep(500); // Let time to topo msgs being propagated through the network
       checkConnection(30, DS1_ID, RS1_ID);
       checkConnection(30, DS2_ID, RS1_ID);
       checkConnection(30, DS3_ID, RS2_ID);
@@ -679,7 +632,7 @@ public class TopologyViewTest extends ReplicationTestCase
        */
       debugInfo("*** STEP 6 ***");
       rd5 = createReplicationDomain(DS5_ID);
-      sleep(500); // Let time to topo msgs being propagated through the network
+      Thread.sleep(500); // Let time to topo msgs being propagated through the network
       checkConnection(30, DS1_ID, RS1_ID);
       checkConnection(30, DS2_ID, RS1_ID);
       checkConnection(30, DS3_ID, RS2_ID);
@@ -695,7 +648,7 @@ public class TopologyViewTest extends ReplicationTestCase
        */
       debugInfo("*** STEP 7 ***");
       rs3 = createReplicationServer(RS3_ID, testCase);
-      sleep(500); // Let time to topo msgs being propagated through the network
+      Thread.sleep(500); // Let time to topo msgs being propagated through the network
       checkConnection(30, DS1_ID, RS1_ID);
       checkConnection(30, DS2_ID, RS1_ID);
       checkConnection(30, DS3_ID, RS2_ID);
@@ -712,7 +665,7 @@ public class TopologyViewTest extends ReplicationTestCase
        */
       debugInfo("*** STEP 8 ***");
       rd6 = createReplicationDomain(DS6_ID);
-      sleep(500); // Let time to topo msgs being propagated through the network
+      Thread.sleep(500); // Let time to topo msgs being propagated through the network
       checkConnection(30, DS1_ID, RS1_ID);
       checkConnection(30, DS2_ID, RS1_ID);
       checkConnection(30, DS3_ID, RS2_ID);
@@ -729,7 +682,7 @@ public class TopologyViewTest extends ReplicationTestCase
        */
       debugInfo("*** STEP 9 ***");
       rd6.disable();
-      sleep(500); // Let time to topo msgs being propagated through the network
+      Thread.sleep(500); // Let time to topo msgs being propagated through the network
       checkConnection(30, DS1_ID, RS1_ID);
       checkConnection(30, DS2_ID, RS1_ID);
       checkConnection(30, DS3_ID, RS2_ID);
@@ -747,7 +700,7 @@ public class TopologyViewTest extends ReplicationTestCase
        */
       debugInfo("*** STEP 10 ***");
       rd6.enable();
-      sleep(500); // Let time to topo msgs being propagated through the network
+      Thread.sleep(500); // Let time to topo msgs being propagated through the network
       checkConnection(30, DS1_ID, RS1_ID);
       checkConnection(30, DS2_ID, RS1_ID);
       checkConnection(30, DS3_ID, RS2_ID);
@@ -765,7 +718,7 @@ public class TopologyViewTest extends ReplicationTestCase
        */
       debugInfo("*** STEP 11 ***");
       rs3.remove();
-      sleep(500); // Let time to topo msgs being propagated through the network
+      Thread.sleep(500); // Let time to topo msgs being propagated through the network
       checkConnection(30, DS1_ID, RS1_ID);
       checkConnection(30, DS2_ID, RS1_ID);
       checkConnection(30, DS3_ID, RS2_ID);
@@ -783,7 +736,7 @@ public class TopologyViewTest extends ReplicationTestCase
        */
       debugInfo("*** STEP 12 ***");
       rs3 = createReplicationServer(RS3_ID, testCase);
-      sleep(500); // Let time to topo msgs being propagated through the network
+      Thread.sleep(500); // Let time to topo msgs being propagated through the network
       checkConnection(30, DS1_ID, RS1_ID);
       checkConnection(30, DS2_ID, RS1_ID);
       checkConnection(30, DS3_ID, RS2_ID);
@@ -802,7 +755,7 @@ public class TopologyViewTest extends ReplicationTestCase
        */
       debugInfo("*** STEP 13 ***");
       rs2.remove();
-      sleep(500); // Let time to topo msgs being propagated through the network
+      Thread.sleep(500); // Let time to topo msgs being propagated through the network
       checkConnection(30, DS1_ID, RS1_ID);
       checkConnection(30, DS2_ID, RS1_ID);
       checkConnection(30, DS5_ID, RS3_ID);
@@ -1062,8 +1015,9 @@ public class TopologyViewTest extends ReplicationTestCase
    * this method is called.
    */
   private void checkTopoView(int[] dsIdList, TopoView theoricalTopoView)
+      throws Exception
   {
-   sleep(500);
+   Thread.sleep(500);
    for(int currentDsId : dsIdList)
    {
      LDAPReplicationDomain rd = null;

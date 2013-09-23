@@ -47,6 +47,7 @@ import org.opends.server.replication.plugin.MultimasterReplication;
 import org.opends.server.replication.protocol.*;
 import org.opends.server.types.DN;
 import org.opends.server.types.DebugLogLevel;
+import org.opends.server.types.HostPort;
 import org.opends.server.util.ServerConstants;
 
 import static org.opends.messages.ReplicationMessages.*;
@@ -376,81 +377,17 @@ public class ReplicationBroker
   private static boolean isSameReplicationServerUrl(String rs1Url,
       String rs2Url)
   {
-    // Get and compare ports of RS1 and RS2
-    int separator1 = rs1Url.lastIndexOf(':');
-    if (separator1 < 0)
-    {
-      // Not a RS url: should not happen
-      return false;
-    }
-    int rs1Port = Integer.parseInt(rs1Url.substring(separator1 + 1));
-
-    int separator2 = rs2Url.lastIndexOf(':');
-    if (separator2 < 0)
-    {
-      // Not a RS url: should not happen
-      return false;
-    }
-    int rs2Port = Integer.parseInt(rs2Url.substring(separator2 + 1));
-
-    if (rs1Port != rs2Port)
-    {
-      return false;
-    }
-
-    // Get and compare addresses of RS1 and RS2
-    final String rs1 = rs1Url.substring(0, separator1);
-    final InetAddress[] rs1Addresses;
     try
     {
-      // Normalize local address to null.
-      rs1Addresses = isLocalAddress(rs1) ? null : InetAddress.getAllByName(rs1);
+      final HostPort hp1 = HostPort.valueOf(rs1Url);
+      final HostPort hp2 = HostPort.valueOf(rs2Url);
+      return hp1.isEquivalentTo(hp2);
     }
-    catch (UnknownHostException ex)
+    catch (RuntimeException ex)
     {
-      // Unknown RS: should not happen
+      // Not a RS url or not a valid port number: should not happen
       return false;
     }
-
-    final String rs2 = rs2Url.substring(0, separator2);
-    final InetAddress[] rs2Addresses;
-    try
-    {
-      // Normalize local address to null.
-      rs2Addresses = isLocalAddress(rs2) ? null : InetAddress.getAllByName(rs2);
-    }
-    catch (UnknownHostException ex)
-    {
-      // Unknown RS: should not happen
-      return false;
-    }
-
-    // Now compare addresses, if at least one match, this is the same server.
-    if (rs1Addresses == null && rs2Addresses == null)
-    {
-      // Both local addresses.
-      return true;
-    }
-    else if (rs1Addresses == null || rs2Addresses == null)
-    {
-      // One local address and one non-local.
-      return false;
-    }
-    else
-    {
-      // Both non-local addresses: check for overlap.
-      for (InetAddress inetAddress1 : rs1Addresses)
-      {
-        for (InetAddress inetAddress2 : rs2Addresses)
-        {
-          if (inetAddress2.equals(inetAddress1))
-          {
-            return true;
-          }
-        }
-      }
-    }
-    return false;
   }
 
   /**
@@ -1205,10 +1142,6 @@ public class ReplicationBroker
   private ReplicationServerInfo performPhaseOneHandshake(
       String server, boolean keepConnection, boolean isECL)
   {
-    int separator = server.lastIndexOf(':');
-    String port = server.substring(separator + 1);
-    String hostname = server.substring(0, separator);
-
     final String baseDn = this.baseDN.toNormalizedString();
 
     Session localSession = null;
@@ -1219,9 +1152,9 @@ public class ReplicationBroker
     try
     {
       // Open a socket connection to the next candidate.
-      int intPort = Integer.parseInt(port);
+      final HostPort hp = HostPort.valueOf(server);
       InetSocketAddress serverAddr = new InetSocketAddress(
-          InetAddress.getByName(hostname), intPort);
+          InetAddress.getByName(hp.getHost()), hp.getPort());
       socket = new Socket();
       socket.setReceiveBufferSize(1000000);
       socket.setTcpNoDelay(true);
@@ -1783,33 +1716,28 @@ public class ReplicationBroker
     for (Integer rsId : bestServers.keySet())
     {
       ReplicationServerInfo replicationServerInfo = bestServers.get(rsId);
-      String server = replicationServerInfo.getServerURL();
-      int separator = server.lastIndexOf(':');
-      if (separator > 0)
+      final HostPort hp =
+          HostPort.valueOf(replicationServerInfo.getServerURL());
+      if (hp.isLocalAddress())
       {
-        String hostname = server.substring(0, separator);
-        if (isLocalAddress(hostname))
+        if (isLocalReplicationServerPort(hp.getPort()))
         {
-          int port = Integer.parseInt(server.substring(separator + 1));
-          if (isLocalReplicationServerPort(port))
+          // An RS in the same VM will always have priority.
+          if (!filterServersInSameVM)
           {
-            // An RS in the same VM will always have priority.
-            if (!filterServersInSameVM)
-            {
-              // Narrow the search to only include servers in this VM.
-              result.clear();
-              filterServersInSameVM = true;
-            }
-            result.put(rsId, replicationServerInfo);
+            // Narrow the search to only include servers in this VM.
+            result.clear();
+            filterServersInSameVM = true;
           }
-          else if (!filterServersInSameVM)
-          {
-            result.put(rsId, replicationServerInfo);
-          }
-          else
-          {
-            // Skip: we have found some RSs in the same VM, but this RS is not.
-          }
+          result.put(rsId, replicationServerInfo);
+        }
+        else if (!filterServersInSameVM)
+        {
+          result.put(rsId, replicationServerInfo);
+        }
+        else
+        {
+          // Skip: we have found some RSs in the same VM, but this RS is not.
         }
       }
     }

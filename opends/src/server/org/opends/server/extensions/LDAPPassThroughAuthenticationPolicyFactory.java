@@ -26,15 +26,6 @@
  */
 package org.opends.server.extensions;
 
-
-
-import static org.opends.messages.ExtensionMessages.*;
-import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.protocols.ldap.LDAPConstants.*;
-import static org.opends.server.util.StaticUtils.getExceptionMessage;
-import static org.opends.server.util.StaticUtils.getFileForPath;
-
 import java.io.*;
 import java.net.*;
 import java.util.*;
@@ -68,7 +59,11 @@ import org.opends.server.tools.LDAPWriter;
 import org.opends.server.types.*;
 import org.opends.server.util.TimeThread;
 
-
+import static org.opends.messages.ExtensionMessages.*;
+import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.protocols.ldap.LDAPConstants.*;
+import static org.opends.server.util.StaticUtils.*;
 
 /**
  * LDAP pass through authentication policy implementation.
@@ -2266,10 +2261,8 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
     private ConnectionFactory newLDAPConnectionFactory(final String hostPort)
     {
       // Validation already performed by admin framework.
-      final int colonIndex = hostPort.lastIndexOf(":");
-      final String hostname = hostPort.substring(0, colonIndex);
-      final int port = Integer.parseInt(hostPort.substring(colonIndex + 1));
-      return provider.getLDAPConnectionFactory(hostname, port, cfg);
+      final HostPort hp = HostPort.valueOf(hostPort);
+      return provider.getLDAPConnectionFactory(hp.getHost(), hp.getPort(), cfg);
     }
 
   }
@@ -2331,15 +2324,13 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
       return scheduler;
     }
 
-
-
+    @Override
     public String getCurrentTime()
     {
       return TimeThread.getGMTTime();
     }
 
-
-
+    @Override
     public long getCurrentTimeMS()
     {
       return TimeThread.getTime();
@@ -2484,9 +2475,13 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
       final LDAPPassThroughAuthenticationPolicyCfg configuration,
       final List<Message> unacceptableReasons, final String hostPort)
   {
-    final int colonIndex = hostPort.lastIndexOf(":");
-    final int port = Integer.parseInt(hostPort.substring(colonIndex + 1));
-    if (port < 1 || port > 65535)
+    try
+    {
+      // validate provided string
+      HostPort.valueOf(hostPort);
+      return true;
+    }
+    catch (RuntimeException e)
     {
       if (unacceptableReasons != null)
       {
@@ -2496,7 +2491,6 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
       }
       return false;
     }
-    return true;
   }
 
 
