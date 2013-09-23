@@ -27,7 +27,7 @@
  */
 package org.opends.server.replication.plugin;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -46,6 +46,8 @@ import org.opends.server.replication.service.ReplicationBroker.ReplicationServer
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import static java.util.Collections.*;
+
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.replication.service.ReplicationBroker.*;
@@ -59,8 +61,18 @@ import static org.testng.Assert.*;
 public class ComputeBestServerTest extends ReplicationTestCase
 {
 
-  // The tracer object for the debug logger
+  /** The tracer object for the debug logger. */
   private static final DebugTracer TRACER = getTracer();
+
+  // definitions for server ids
+  private static final int myId1 = 1;
+  private static final int myId2 = 2;
+  private static final int myId3 = 3;
+
+  // definitions for server names
+  private static final String WINNER = "winner";
+  private static final String LOOSER1 = "looser1";
+  private static final String LOOSER2 = "looser2";
 
   private void debugInfo(String s)
   {
@@ -82,40 +94,42 @@ public class ComputeBestServerTest extends ReplicationTestCase
 
     debugInfo("Starting " + testCase);
 
-    // definitions for server ids
-    int myId1 = 1;
-    int myId2 = 2;
-    int myId3 = 3;
-
-    // definitions for server names
-    final String WINNER = "winner";
-
     // Create my state
     ServerState mySt = new ServerState();
-    CSN csn = new CSN(2L, 0, myId2); // Should not be used inside algo
-    mySt.update(csn);
-    csn = new CSN(3L, 0, myId3); // Should not be used inside algo
-    mySt.update(csn);
-
-    Map<Integer, ReplicationServerInfo> rsInfos =
-      new HashMap<Integer, ReplicationServerInfo>();
+    mySt.update(new CSN(2, 0, myId2)); // Should not be used inside algo
+    mySt.update(new CSN(3, 0, myId3)); // Should not be used inside algo
 
     // State for server 1
     ServerState aState = new ServerState();
-    csn = new CSN(0L, 0, myId2);
-    aState.update(csn);
-    csn = new CSN(0L, 0, myId3);
-    aState.update(csn);
-    ReplServerStartMsg replServerStartMsg =
-      new ReplServerStartMsg(11, WINNER, null, 0, aState, 0L,
-      false, (byte)1, 0);
-    rsInfos.put(11, ReplicationServerInfo.newInstance(replServerStartMsg));
+    aState.update(new CSN(0, 0, myId2));
+    aState.update(new CSN(0, 0, myId3));
 
+    Map<Integer, ReplicationServerInfo> rsInfos =
+        newRSInfos(newRSInfo(11, WINNER, aState, 0, 1));
     ReplicationServerInfo bestServer =
-      computeBestReplicationServer(true, -1, mySt, rsInfos, myId1, (byte)1, 0L);
+      computeBestReplicationServer(true, -1, mySt, rsInfos, myId1, (byte)1, 0);
 
     assertEquals(bestServer.getServerURL(),
       WINNER, "Wrong best replication server.");
+  }
+
+  private Map<Integer, ReplicationServerInfo> newRSInfos(
+      ReplicationServerInfo... rsInfos)
+  {
+    Map<Integer, ReplicationServerInfo> results =
+        new HashMap<Integer, ReplicationServerInfo>();
+    for (ReplicationServerInfo rsInfo : rsInfos)
+    {
+      results.put(rsInfo.getServerId(), rsInfo);
+    }
+    return results;
+  }
+
+  private ReplicationServerInfo newRSInfo(int serverId, String serverURL,
+      ServerState state, long genId, int groupId)
+  {
+    return ReplicationServerInfo.newInstance(new ReplServerStartMsg(serverId,
+        serverURL, null, 0, state, genId, false, (byte) groupId, 0));
   }
 
   /**
@@ -129,38 +143,21 @@ public class ComputeBestServerTest extends ReplicationTestCase
 
     debugInfo("Starting " + testCase);
 
-    // definitions for server ids
-    int myId1 = 1;
-    int myId2 = 2;
-    int myId3 = 3;
-    // definitions for server names
-    final String WINNER = "winner";
-
     // Create my state
     ServerState mySt = new ServerState();
-    CSN csn = new CSN(2L, 0, myId2); // Should not be used inside algo
-    mySt.update(csn);
-    csn = new CSN(3L, 0, myId3); // Should not be used inside algo
-    mySt.update(csn);
-
-    Map<Integer, ReplicationServerInfo> rsInfos =
-      new HashMap<Integer, ReplicationServerInfo>();
+    mySt.update(new CSN(2, 0, myId2));// Should not be used inside algo
+    mySt.update(new CSN(3, 0, myId3));// Should not be used inside algo
 
     // State for server 1
     ServerState aState = new ServerState();
-    csn = new CSN(0L, 0, myId1);
-    aState.update(csn);
-    csn = new CSN(0L, 0, myId2);
-    aState.update(csn);
-    csn = new CSN(0L, 0, myId3);
-    aState.update(csn);
-    ReplServerStartMsg replServerStartMsg =
-      new ReplServerStartMsg(11, WINNER, null, 0, aState, 0L,
-      false, (byte)1, 0);
-    rsInfos.put(11, ReplicationServerInfo.newInstance(replServerStartMsg));
+    aState.update(new CSN(0, 0, myId1));
+    aState.update(new CSN(0, 0, myId2));
+    aState.update(new CSN(0, 0, myId3));
 
+    Map<Integer, ReplicationServerInfo> rsInfos =
+        newRSInfos(newRSInfo(11, WINNER, aState, 0, 1));
     ReplicationServerInfo bestServer =
-      computeBestReplicationServer(true, -1, mySt, rsInfos, myId1, (byte)1, 0L);
+      computeBestReplicationServer(true, -1, mySt, rsInfos, myId1, (byte)1, 0);
 
     assertEquals(bestServer.getServerURL(),
       WINNER, "Wrong best replication server.");
@@ -177,39 +174,21 @@ public class ComputeBestServerTest extends ReplicationTestCase
 
     debugInfo("Starting " + testCase);
 
-    // definitions for server ids
-    int myId1 = 1;
-    int myId2 = 2;
-    int myId3 = 3;
-
-    // definitions for server names
-    final String WINNER = "winner";
-
     // Create my state
     ServerState mySt = new ServerState();
-    CSN csn = new CSN(1L, 0, myId1);
-    mySt.update(csn);
-    csn = new CSN(2L, 0, myId2); // Should not be used inside algo
-    mySt.update(csn);
-    csn = new CSN(3L, 0, myId3); // Should not be used inside algo
-    mySt.update(csn);
-
-    Map<Integer, ReplicationServerInfo> rsInfos =
-      new HashMap<Integer, ReplicationServerInfo>();
+    mySt.update(new CSN(1, 0, myId1));
+    mySt.update(new CSN(2, 0, myId2)); // Should not be used inside algo
+    mySt.update(new CSN(3, 0, myId3)); // Should not be used inside algo
 
     // State for server 1
     ServerState aState = new ServerState();
-    csn = new CSN(0L, 0, myId2);
-    aState.update(csn);
-    csn = new CSN(0L, 0, myId3);
-    aState.update(csn);
-    ReplServerStartMsg replServerStartMsg =
-      new ReplServerStartMsg(11, WINNER, null, 0, aState, 0L,
-      false, (byte)1, 0);
-    rsInfos.put(11, ReplicationServerInfo.newInstance(replServerStartMsg));
+    aState.update(new CSN(0, 0, myId2));
+    aState.update(new CSN(0, 0, myId3));
 
+    Map<Integer, ReplicationServerInfo> rsInfos =
+        newRSInfos(newRSInfo(11, WINNER, aState, 0, 1));
     ReplicationServerInfo bestServer =
-      computeBestReplicationServer(true, -1, mySt, rsInfos, myId1, (byte)1, 0L);
+      computeBestReplicationServer(true, -1, mySt, rsInfos, myId1, (byte)1, 0);
 
     assertEquals(bestServer.getServerURL(),
       WINNER, "Wrong best replication server.");
@@ -227,40 +206,22 @@ public class ComputeBestServerTest extends ReplicationTestCase
 
     debugInfo("Starting " + testCase);
 
-    // definitions for server ids
-    int myId1 = 1;
-    int myId2 = 2;
-    int myId3 = 3;
-    // definitions for server names
-    final String WINNER = "winner";
-
     // Create my state
     ServerState mySt = new ServerState();
-    CSN csn = new CSN(1L, 0, myId1);
-    mySt.update(csn);
-    csn = new CSN(2L, 0, myId2); // Should not be used inside algo
-    mySt.update(csn);
-    csn = new CSN(3L, 0, myId3); // Should not be used inside algo
-    mySt.update(csn);
-
-    Map<Integer, ReplicationServerInfo> rsInfos =
-      new HashMap<Integer, ReplicationServerInfo>();
+    mySt.update(new CSN(1, 0, myId1));
+    mySt.update(new CSN(2, 0, myId2)); // Should not be used inside algo
+    mySt.update(new CSN(3, 0, myId3)); // Should not be used inside algo
 
     // State for server 1
     ServerState aState = new ServerState();
-    csn = new CSN(1L, 0, myId1);
-    aState.update(csn);
-    csn = new CSN(1L, 0, myId2);
-    aState.update(csn);
-    csn = new CSN(1L, 0, myId3);
-    aState.update(csn);
-    ReplServerStartMsg replServerStartMsg =
-      new ReplServerStartMsg(11, WINNER, null, 0, aState, 0L,
-      false, (byte)1, 0);
-    rsInfos.put(11, ReplicationServerInfo.newInstance(replServerStartMsg));
+    aState.update(new CSN(1, 0, myId1));
+    aState.update(new CSN(1, 0, myId2));
+    aState.update(new CSN(1, 0, myId3));
 
+    Map<Integer, ReplicationServerInfo> rsInfos =
+        newRSInfos(newRSInfo(11, WINNER, aState, 0, 1));
     ReplicationServerInfo bestServer =
-      computeBestReplicationServer(true, -1, mySt, rsInfos, myId1, (byte)1, 0L);
+      computeBestReplicationServer(true, -1, mySt, rsInfos, myId1, (byte)1, 0);
 
     assertEquals(bestServer.getServerURL(),
       WINNER, "Wrong best replication server.");
@@ -278,54 +239,29 @@ public class ComputeBestServerTest extends ReplicationTestCase
 
     debugInfo("Starting " + testCase);
 
-    // definitions for server ids
-    int myId1 = 1;
-    int myId2 = 2;
-    int myId3 = 3;
-    // definitions for server names
-    final String WINNER = "winner";
-    final String LOOSER1 = "looser1";
-
     // Create my state
     ServerState mySt = new ServerState();
-    CSN csn = new CSN(1L, 0, myId1);
-    mySt.update(csn);
-    csn = new CSN(2L, 0, myId2); // Should not be used inside algo
-    mySt.update(csn);
-    csn = new CSN(3L, 0, myId3); // Should not be used inside algo
-    mySt.update(csn);
-
-    Map<Integer, ReplicationServerInfo> rsInfos =
-      new HashMap<Integer, ReplicationServerInfo>();
+    mySt.update(new CSN(1, 0, myId1));
+    mySt.update(new CSN(2, 0, myId2)); // Should not be used inside algo
+    mySt.update(new CSN(3, 0, myId3)); // Should not be used inside algo
 
     // State for server 1
-    ServerState aState = new ServerState();
-    csn = new CSN(1L, 0, myId1);
-    aState.update(csn);
-    csn = new CSN(1L, 0, myId2);
-    aState.update(csn);
-    csn = new CSN(1L, 0, myId3);
-    aState.update(csn);
-    ReplServerStartMsg replServerStartMsg =
-      new ReplServerStartMsg(11, LOOSER1, null, 0, aState, 0L,
-      false, (byte)1, 0);
-    rsInfos.put(11, ReplicationServerInfo.newInstance(replServerStartMsg));
+    ServerState aState1 = new ServerState();
+    aState1.update(new CSN(1, 0, myId1));
+    aState1.update(new CSN(1, 0, myId2));
+    aState1.update(new CSN(1, 0, myId3));
 
     // State for server 2
-    aState = new ServerState();
-    csn = new CSN(2L, 0, myId1);
-    aState.update(csn);
-    csn = new CSN(1L, 0, myId2);
-    aState.update(csn);
-    csn = new CSN(1L, 0, myId3);
-    aState.update(csn);
-    replServerStartMsg =
-      new ReplServerStartMsg(12, WINNER, null, 0, aState, 0L,
-      false, (byte)1, 0);
-    rsInfos.put(12, ReplicationServerInfo.newInstance(replServerStartMsg));
+    ServerState aState2 = new ServerState();
+    aState2.update(new CSN(2, 0, myId1));
+    aState2.update(new CSN(1, 0, myId2));
+    aState2.update(new CSN(1, 0, myId3));
 
+    Map<Integer, ReplicationServerInfo> rsInfos = newRSInfos(
+        newRSInfo(11, LOOSER1, aState1, 0, 1),
+        newRSInfo(12, WINNER, aState2, 0, 1));
     ReplicationServerInfo bestServer =
-      computeBestReplicationServer(true, -1, mySt, rsInfos, myId1, (byte)1, 0L);
+      computeBestReplicationServer(true, -1, mySt, rsInfos, myId1, (byte)1, 0);
 
     assertEquals(bestServer.getServerURL(),
       WINNER, "Wrong best replication server.");
@@ -343,56 +279,31 @@ public class ComputeBestServerTest extends ReplicationTestCase
 
     debugInfo("Starting " + testCase);
 
-    // definitions for server ids
-    int myId1 = 1;
-    int myId2 = 2;
-    int myId3 = 3;
-    // definitions for server names
-    final String WINNER = "winner";
-    final String LOOSER1 = "looser1";
-
     // Create my state
     ServerState mySt = new ServerState();
-    CSN csn = new CSN(1L, 0, myId1);
-    mySt.update(csn);
-    csn = new CSN(2L, 0, myId2); // Should not be used inside algo
-    mySt.update(csn);
-    csn = new CSN(3L, 0, myId3); // Should not be used inside algo
-    mySt.update(csn);
-
-    Map<Integer, ReplicationServerInfo> rsInfos =
-      new HashMap<Integer, ReplicationServerInfo>();
+    mySt.update(new CSN(1, 0, myId1));
+    mySt.update(new CSN(2, 0, myId2)); // Should not be used inside algo
+    mySt.update(new CSN(3, 0, myId3)); // Should not be used inside algo
 
     // State for server 1
-    ServerState aState = new ServerState();
-    csn = new CSN(1L, 0, myId1);
-    aState.update(csn);
-    csn = new CSN(1L, 0, myId2);
-    aState.update(csn);
-    csn = new CSN(1L, 0, myId3);
-    aState.update(csn);
+    ServerState aState1 = new ServerState();
+    aState1.update(new CSN(1, 0, myId1));
+    aState1.update(new CSN(1, 0, myId2));
+    aState1.update(new CSN(1, 0, myId3));
     // This server has less changes than the other one but it has the same
     // group id as us so he should be the winner
-    ReplServerStartMsg replServerStartMsg =
-      new ReplServerStartMsg(11, WINNER, null, 0, aState, 0L,
-      false, (byte)1, 0);
-    rsInfos.put(11, ReplicationServerInfo.newInstance(replServerStartMsg));
 
     // State for server 2
-    aState = new ServerState();
-    csn = new CSN(2L, 0, myId1);
-    aState.update(csn);
-    csn = new CSN(1L, 0, myId2);
-    aState.update(csn);
-    csn = new CSN(1L, 0, myId3);
-    aState.update(csn);
-    replServerStartMsg =
-      new ReplServerStartMsg(12, LOOSER1, null, 0, aState, 0L,
-      false, (byte)2, 0);
-    rsInfos.put(12, ReplicationServerInfo.newInstance(replServerStartMsg));
+    ServerState aState2 = new ServerState();
+    aState2.update(new CSN(2, 0, myId1));
+    aState2.update(new CSN(1, 0, myId2));
+    aState2.update(new CSN(1, 0, myId3));
 
+    Map<Integer, ReplicationServerInfo> rsInfos = newRSInfos(
+        newRSInfo(11, WINNER, aState1, 0, 1),
+        newRSInfo(12, LOOSER1, aState2, 0, 2));
     ReplicationServerInfo bestServer =
-      computeBestReplicationServer(true, -1, mySt, rsInfos, myId1, (byte)1, 0L);
+      computeBestReplicationServer(true, -1, mySt, rsInfos, myId1, (byte)1, 0);
 
     assertEquals(bestServer.getServerURL(),
       WINNER, "Wrong best replication server.");
@@ -410,54 +321,29 @@ public class ComputeBestServerTest extends ReplicationTestCase
 
     debugInfo("Starting " + testCase);
 
-    // definitions for server ids
-    int myId1 = 1;
-    int myId2 = 2;
-    int myId3 = 3;
-    // definitions for server names
-    final String WINNER = "winner";
-    final String LOOSER1 = "looser1";
-
     // Create my state
     ServerState mySt = new ServerState();
-    CSN csn = new CSN(1L, 0, myId1);
-    mySt.update(csn);
-    csn = new CSN(2L, 0, myId2); // Should not be used inside algo
-    mySt.update(csn);
-    csn = new CSN(3L, 0, myId3); // Should not be used inside algo
-    mySt.update(csn);
-
-    Map<Integer, ReplicationServerInfo> rsInfos =
-      new HashMap<Integer, ReplicationServerInfo>();
+    mySt.update(new CSN(1, 0, myId1));
+    mySt.update(new CSN(2, 0, myId2)); // Should not be used inside algo
+    mySt.update(new CSN(3, 0, myId3)); // Should not be used inside algo
 
     // State for server 1
-    ServerState aState = new ServerState();
-    csn = new CSN(1L, 0, myId1);
-    aState.update(csn);
-    csn = new CSN(1L, 0, myId2);
-    aState.update(csn);
-    csn = new CSN(1L, 0, myId3);
-    aState.update(csn);
-    ReplServerStartMsg replServerStartMsg =
-      new ReplServerStartMsg(11, LOOSER1, null, 0, aState, 0L,
-      false, (byte)2, 0);
-    rsInfos.put(11, ReplicationServerInfo.newInstance(replServerStartMsg));
+    ServerState aState1 = new ServerState();
+    aState1.update(new CSN(1, 0, myId1));
+    aState1.update(new CSN(1, 0, myId2));
+    aState1.update(new CSN(1, 0, myId3));
 
     // State for server 2
-    aState = new ServerState();
-    csn = new CSN(2L, 0, myId1);
-    aState.update(csn);
-    csn = new CSN(2L, 0, myId2);
-    aState.update(csn);
-    csn = new CSN(2L, 0, myId3);
-    aState.update(csn);
-    replServerStartMsg =
-      new ReplServerStartMsg(12, WINNER, null, 0, aState, 0L,
-      false, (byte)2, 0);
-    rsInfos.put(12, ReplicationServerInfo.newInstance(replServerStartMsg));
+    ServerState aState2 = new ServerState();
+    aState2.update(new CSN(2, 0, myId1));
+    aState2.update(new CSN(2, 0, myId2));
+    aState2.update(new CSN(2, 0, myId3));
 
+    Map<Integer, ReplicationServerInfo> rsInfos = newRSInfos(
+        newRSInfo(11, LOOSER1, aState1, 0, 2),
+        newRSInfo(12, WINNER, aState2, 0, 2));
     ReplicationServerInfo bestServer =
-      computeBestReplicationServer(true, -1, mySt, rsInfos, myId1, (byte)1, 0L);
+      computeBestReplicationServer(true, -1, mySt, rsInfos, myId1, (byte)1, 0);
 
     assertEquals(bestServer.getServerURL(),
       WINNER, "Wrong best replication server.");
@@ -475,68 +361,36 @@ public class ComputeBestServerTest extends ReplicationTestCase
 
     debugInfo("Starting " + testCase);
 
-    // definitions for server ids
-    int myId1 = 1;
-    int myId2 = 2;
-    int myId3 = 3;
-    // definitions for server names
-    final String WINNER = "winner";
-    final String LOOSER1 = "looser1";
-    final String LOOSER2 = "looser2";
-
     // Create my state
     ServerState mySt = new ServerState();
-    CSN csn = new CSN(1L, 0, myId1);
-    mySt.update(csn);
-    csn = new CSN(2L, 0, myId2); // Should not be used inside algo
-    mySt.update(csn);
-    csn = new CSN(3L, 0, myId3); // Should not be used inside algo
-    mySt.update(csn);
-
-    Map<Integer, ReplicationServerInfo> rsInfos =
-      new HashMap<Integer, ReplicationServerInfo>();
+    mySt.update(new CSN(1, 0, myId1));
+    mySt.update(new CSN(2, 0, myId2)); // Should not be used inside algo
+    mySt.update(new CSN(3, 0, myId3)); // Should not be used inside algo
 
     // State for server 1
-    ServerState aState = new ServerState();
-    csn = new CSN(1L, 0, myId1);
-    aState.update(csn);
-    csn = new CSN(1L, 0, myId2);
-    aState.update(csn);
-    csn = new CSN(1L, 0, myId3);
-    aState.update(csn);
-    ReplServerStartMsg replServerStartMsg =
-      new ReplServerStartMsg(11, LOOSER1, null, 0, aState, 0L,
-      false, (byte)1, 0);
-    rsInfos.put(11, ReplicationServerInfo.newInstance(replServerStartMsg));
+    ServerState aState1 = new ServerState();
+    aState1.update(new CSN(1, 0, myId1));
+    aState1.update(new CSN(1, 0, myId2));
+    aState1.update(new CSN(1, 0, myId3));
 
     // State for server 2
-    aState = new ServerState();
-    csn = new CSN(2L, 0, myId1);
-    aState.update(csn);
-    csn = new CSN(1L, 0, myId2);
-    aState.update(csn);
-    csn = new CSN(4L, 0, myId3);
-    aState.update(csn);
-    replServerStartMsg =
-      new ReplServerStartMsg(12, LOOSER2, null, 0, aState, 0L,
-      false, (byte)1, 0);
-    rsInfos.put(12, ReplicationServerInfo.newInstance(replServerStartMsg));
+    ServerState aState2 = new ServerState();
+    aState2.update(new CSN(2, 0, myId1));
+    aState2.update(new CSN(1, 0, myId2));
+    aState2.update(new CSN(4, 0, myId3));
 
     // State for server 3
-    aState = new ServerState();
-    csn = new CSN(3L, 0, myId1);
-    aState.update(csn);
-    csn = new CSN(2L, 0, myId2);
-    aState.update(csn);
-    csn = new CSN(1L, 0, myId3);
-    aState.update(csn);
-    replServerStartMsg =
-      new ReplServerStartMsg(13, WINNER, null, 0, aState, 0L,
-      false, (byte)1, 0);
-    rsInfos.put(13, ReplicationServerInfo.newInstance(replServerStartMsg));
+    ServerState aState3 = new ServerState();
+    aState3.update(new CSN(3, 0, myId1));
+    aState3.update(new CSN(2, 0, myId2));
+    aState3.update(new CSN(1, 0, myId3));
 
+    Map<Integer, ReplicationServerInfo> rsInfos = newRSInfos(
+        newRSInfo(11, LOOSER1, aState1, 0, 1),
+        newRSInfo(12, LOOSER2, aState2, 0, 1),
+        newRSInfo(13, WINNER, aState3, 0, 1));
     ReplicationServerInfo bestServer =
-      computeBestReplicationServer(true, -1, mySt, rsInfos, myId1, (byte)1, 0L);
+      computeBestReplicationServer(true, -1, mySt, rsInfos, myId1, (byte)1, 0);
 
     assertEquals(bestServer.getServerURL(),
       WINNER, "Wrong best replication server.");
@@ -554,70 +408,38 @@ public class ComputeBestServerTest extends ReplicationTestCase
 
     debugInfo("Starting " + testCase);
 
-    // definitions for server ids
-    int myId1 = 1;
-    int myId2 = 2;
-    int myId3 = 3;
-    // definitions for server names
-    final String WINNER = "winner";
-    final String LOOSER1 = "looser1";
-    final String LOOSER2 = "looser2";
-
     // Create my state
     ServerState mySt = new ServerState();
-    CSN csn = new CSN(1L, 0, myId1);
-    mySt.update(csn);
-    csn = new CSN(2L, 0, myId2); // Should not be used inside algo
-    mySt.update(csn);
-    csn = new CSN(3L, 0, myId3); // Should not be used inside algo
-    mySt.update(csn);
-
-    Map<Integer, ReplicationServerInfo> rsInfos =
-      new HashMap<Integer, ReplicationServerInfo>();
+    mySt.update(new CSN(1, 0, myId1));
+    mySt.update(new CSN(2, 0, myId2)); // Should not be used inside algo
+    mySt.update(new CSN(3, 0, myId3)); // Should not be used inside algo
 
     // State for server 1
-    ServerState aState = new ServerState();
-    csn = new CSN(1L, 0, myId1);
-    aState.update(csn);
-    csn = new CSN(1L, 0, myId2);
-    aState.update(csn);
-    csn = new CSN(1L, 0, myId3);
-    aState.update(csn);
-    ReplServerStartMsg replServerStartMsg =
-      new ReplServerStartMsg(11, LOOSER1, null, 0, aState, 0L,
-      false, (byte)1, 0);
-    rsInfos.put(11, ReplicationServerInfo.newInstance(replServerStartMsg));
+    ServerState aState1 = new ServerState();
+    aState1.update(new CSN(1, 0, myId1));
+    aState1.update(new CSN(1, 0, myId2));
+    aState1.update(new CSN(1, 0, myId3));
 
     // State for server 2
-    aState = new ServerState();
-    csn = new CSN(2L, 0, myId1);
-    aState.update(csn);
-    csn = new CSN(1L, 0, myId2);
-    aState.update(csn);
-    csn = new CSN(3L, 0, myId3);
-    aState.update(csn);
-    replServerStartMsg =
-      new ReplServerStartMsg(12, LOOSER2, null, 0, aState, 0L,
-      false, (byte)2, 0);
-    rsInfos.put(12, ReplicationServerInfo.newInstance(replServerStartMsg));
+    ServerState aState2 = new ServerState();
+    aState2.update(new CSN(2, 0, myId1));
+    aState2.update(new CSN(1, 0, myId2));
+    aState2.update(new CSN(3, 0, myId3));
 
     // State for server 3
-    aState = new ServerState();
-    csn = new CSN(3L, 0, myId1);
-    aState.update(csn);
-    csn = new CSN(2L, 0, myId2);
-    aState.update(csn);
-    csn = new CSN(1L, 0, myId3);
-    aState.update(csn);
-    // This server has less changes than looser2 but it has the same
-    // group id as us so he should be the winner
-    replServerStartMsg =
-      new ReplServerStartMsg(13, WINNER, null, 0, aState, 0L,
-      false, (byte)1, 0);
-    rsInfos.put(13, ReplicationServerInfo.newInstance(replServerStartMsg));
+    ServerState aState3 = new ServerState();
+    aState3.update(new CSN(3, 0, myId1));
+    aState3.update(new CSN(2, 0, myId2));
+    aState3.update(new CSN(1, 0, myId3));
 
+    Map<Integer, ReplicationServerInfo> rsInfos = newRSInfos(
+        newRSInfo(11, LOOSER1, aState1, 0, 1),
+        newRSInfo(12, LOOSER2, aState2, 0, 2),
+        // This server has less changes than looser2 but it has the same
+        // group id as us so he should be the winner
+        newRSInfo(13, WINNER, aState3, 0, 1));
     ReplicationServerInfo bestServer =
-      computeBestReplicationServer(true, -1, mySt, rsInfos, myId1, (byte)1, 0L);
+      computeBestReplicationServer(true, -1, mySt, rsInfos, myId1, (byte)1, 0);
 
     assertEquals(bestServer.getServerURL(),
       WINNER, "Wrong best replication server.");
@@ -635,40 +457,22 @@ public class ComputeBestServerTest extends ReplicationTestCase
 
     debugInfo("Starting " + testCase);
 
-    // definitions for server ids
-    int myId1 = 1;
-    int myId2 = 2;
-    int myId3 = 3;
-    // definitions for server names
-    final String WINNER = "winner";
-
     // Create my state
     ServerState mySt = new ServerState();
-    CSN csn = new CSN(1L, 0, myId1);
-    mySt.update(csn);
-    csn = new CSN(2L, 0, myId2); // Should not be used inside algo
-    mySt.update(csn);
-    csn = new CSN(3L, 0, myId3); // Should not be used inside algo
-    mySt.update(csn);
-
-    Map<Integer, ReplicationServerInfo> rsInfos =
-      new HashMap<Integer, ReplicationServerInfo>();
+    mySt.update(new CSN(1, 0, myId1));
+    mySt.update(new CSN(2, 0, myId2));// Should not be used inside algo
+    mySt.update(new CSN(3, 0, myId3));// Should not be used inside algo
 
     // State for server 1
     ServerState aState = new ServerState();
-    csn = new CSN(0L, 0, myId1);
-    aState.update(csn);
-    csn = new CSN(1L, 0, myId2);
-    aState.update(csn);
-    csn = new CSN(1L, 0, myId3);
-    aState.update(csn);
-    ReplServerStartMsg replServerStartMsg =
-      new ReplServerStartMsg(11, WINNER, null, 0, aState, 0L,
-      false, (byte)1, 0);
-    rsInfos.put(11, ReplicationServerInfo.newInstance(replServerStartMsg));
+    aState.update(new CSN(0, 0, myId1));
+    aState.update(new CSN(1, 0, myId2));
+    aState.update(new CSN(1, 0, myId3));
 
+    Map<Integer, ReplicationServerInfo> rsInfos =
+        newRSInfos(newRSInfo(11, WINNER, aState, 0, 1));
     ReplicationServerInfo bestServer =
-      computeBestReplicationServer(true, -1, mySt, rsInfos, myId1, (byte)1, 0L);
+      computeBestReplicationServer(true, -1, mySt, rsInfos, myId1, (byte) 1, 0);
 
     assertEquals(bestServer.getServerURL(),
       WINNER, "Wrong best replication server.");
@@ -721,11 +525,6 @@ public class ComputeBestServerTest extends ReplicationTestCase
 
     debugInfo("Starting " + testCase);
 
-    // definitions for server ids
-    int myId1 = 1;
-    int myId2 = 2;
-    int myId3 = 3;
-
     // definitions for server names
     final String WINNER  = "localhost:123";
     final String LOOSER1 = "localhost:456";
@@ -733,64 +532,40 @@ public class ComputeBestServerTest extends ReplicationTestCase
 
     // Create my state
     ServerState mySt = new ServerState();
-    CSN csn = new CSN(4L, 0, myId1);
-    mySt.update(csn);
-    csn = new CSN(2L, 0, myId2); // Should not be used inside algo
-    mySt.update(csn);
-    csn = new CSN(3L, 0, myId3); // Should not be used inside algo
-    mySt.update(csn);
-
-    Map<Integer, ReplicationServerInfo> rsInfos =
-      new HashMap<Integer, ReplicationServerInfo>();
+    mySt.update(new CSN(4, 0, myId1));
+    mySt.update(new CSN(2, 0, myId2));// Should not be used inside algo
+    mySt.update(new CSN(3, 0, myId3));// Should not be used inside algo
 
     // State for server 1
-    ServerState aState = new ServerState();
-    csn = new CSN(looser1T1, 0, myId1);
-    aState.update(csn);
-    csn = new CSN(looser1T2, 0, myId2);
-    aState.update(csn);
-    csn = new CSN(looser1T3, 0, myId3);
-    aState.update(csn);
-    ReplServerStartMsg replServerStartMsg =
-      new ReplServerStartMsg(11, LOOSER1, null, 0, aState, 0L,
-      false, (byte)1, 0);
-    rsInfos.put(11, ReplicationServerInfo.newInstance(replServerStartMsg));
+    ServerState aState1 = new ServerState();
+    aState1.update(new CSN(looser1T1, 0, myId1));
+    aState1.update(new CSN(looser1T2, 0, myId2));
+    aState1.update(new CSN(looser1T3, 0, myId3));
     if (looser1IsLocal)
       ReplicationServer.onlyForTestsAddlocalReplicationServer(LOOSER1);
 
     // State for server 2
-    aState = new ServerState();
-    csn = new CSN(winnerT1, 0, myId1);
-    aState.update(csn);
-    csn = new CSN(winnerT2, 0, myId2);
-    aState.update(csn);
-    csn = new CSN(winnerT3, 0, myId3);
-    aState.update(csn);
-    replServerStartMsg =
-      new ReplServerStartMsg(12, WINNER, null, 0, aState, 0L,
-      false, (byte)1, 0);
-    rsInfos.put(12, ReplicationServerInfo.newInstance(replServerStartMsg));
+    ServerState aState2 = new ServerState();
+    aState2.update(new CSN(winnerT1, 0, myId1));
+    aState2.update(new CSN(winnerT2, 0, myId2));
+    aState2.update(new CSN(winnerT3, 0, myId3));
     if (winnerIsLocal)
       ReplicationServer.onlyForTestsAddlocalReplicationServer(WINNER);
 
     // State for server 3
-    aState = new ServerState();
-    csn = new CSN(looser2T1, 0, myId1);
-    aState.update(csn);
-    csn = new CSN(looser2T2, 0, myId2);
-    aState.update(csn);
-    csn = new CSN(looser2T3, 0, myId3);
-    aState.update(csn);
-    replServerStartMsg =
-      new ReplServerStartMsg(13, LOOSER2, null, 0, aState, 0L,
-      false, (byte)1, 0);
-    rsInfos.put(13, ReplicationServerInfo.newInstance(replServerStartMsg));
+    ServerState aState3 = new ServerState();
+    aState3.update(new CSN(looser2T1, 0, myId1));
+    aState3.update(new CSN(looser2T2, 0, myId2));
+    aState3.update(new CSN(looser2T3, 0, myId3));
     if (looser2IsLocal)
       ReplicationServer.onlyForTestsAddlocalReplicationServer(LOOSER2);
 
+    Map<Integer, ReplicationServerInfo> rsInfos = newRSInfos(
+        newRSInfo(11, LOOSER1, aState1, 0, 1),
+        newRSInfo(12, WINNER, aState2, 0, 1),
+        newRSInfo(13, LOOSER2, aState3, 0, 1));
     ReplicationServerInfo bestServer =
-      computeBestReplicationServer(true, -1, mySt, rsInfos, myId1, (byte) 1,
-      0L);
+      computeBestReplicationServer(true, -1, mySt, rsInfos, myId1, (byte) 1, 0);
 
     ReplicationServer.onlyForTestsClearLocalReplicationServerList();
 
@@ -829,8 +604,6 @@ public class ComputeBestServerTest extends ReplicationTestCase
 
     debugInfo("Starting " + testCase);
 
-    // definitions for server ids
-    int myId1 = 1;
     // definitions for server names
     final String WINNER  = "localhost:123";
     final String LOOSER1 = "localhost:456";
@@ -838,48 +611,32 @@ public class ComputeBestServerTest extends ReplicationTestCase
 
     // Create my state
     ServerState mySt = new ServerState();
-    CSN csn = new CSN(4L, 0, myId1);
-    mySt.update(csn);
-
-    Map<Integer, ReplicationServerInfo> rsInfos =
-      new HashMap<Integer, ReplicationServerInfo>();
+    mySt.update(new CSN(4, 0, myId1));
 
     // State for server 1
-    ServerState aState = new ServerState();
-    csn = new CSN(looser1T1, 0, myId1);
-    aState.update(csn);
-    ReplServerStartMsg replServerStartMsg =
-      new ReplServerStartMsg(11, LOOSER1, null, 0, aState, looser1GenId,
-      false, looser1GroupId, 0);
-    rsInfos.put(11, ReplicationServerInfo.newInstance(replServerStartMsg));
+    ServerState aState1 = new ServerState();
+    aState1.update(new CSN(looser1T1, 0, myId1));
     if (looser1IsLocal)
       ReplicationServer.onlyForTestsAddlocalReplicationServer(LOOSER1);
 
     // State for server 2
-    aState = new ServerState();
-    csn = new CSN(winnerT1, 0, myId1);
-    aState.update(csn);
-    replServerStartMsg =
-      new ReplServerStartMsg(12, WINNER, null, 0, aState, winnerGenId,
-      false, winnerGroupId, 0);
-    rsInfos.put(12, ReplicationServerInfo.newInstance(replServerStartMsg));
+    ServerState aState2 = new ServerState();
+    aState2.update(new CSN(winnerT1, 0, myId1));
     if (winnerIsLocal)
       ReplicationServer.onlyForTestsAddlocalReplicationServer(WINNER);
 
     // State for server 3
-    aState = new ServerState();
-    csn = new CSN(looser2T1, 0, myId1);
-    aState.update(csn);
-    replServerStartMsg =
-      new ReplServerStartMsg(13, LOOSER2, null, 0, aState, looser2GenId,
-      false, looser2GroupId, 0);
-    rsInfos.put(13, ReplicationServerInfo.newInstance(replServerStartMsg));
+    ServerState aState3 = new ServerState();
+    aState3.update(new CSN(looser2T1, 0, myId1));
     if (looser2IsLocal)
       ReplicationServer.onlyForTestsAddlocalReplicationServer(LOOSER2);
 
+    Map<Integer, ReplicationServerInfo> rsInfos = newRSInfos(
+        newRSInfo(11, LOOSER1, aState1, looser1GenId, looser1GroupId),
+        newRSInfo(12, WINNER, aState2, winnerGenId, winnerGroupId),
+        newRSInfo(13, LOOSER2, aState3, looser2GenId, looser2GroupId));
     ReplicationServerInfo bestServer =
-      computeBestReplicationServer(true, -1, mySt, rsInfos, myId1, (byte) 1,
-      0L);
+      computeBestReplicationServer(true, -1, mySt, rsInfos, myId1, (byte) 1, 0);
 
     ReplicationServer.onlyForTestsClearLocalReplicationServerList();
 
@@ -887,16 +644,14 @@ public class ComputeBestServerTest extends ReplicationTestCase
       WINNER, "Wrong best replication server.");
   }
 
+  @SuppressWarnings("unchecked")
   @DataProvider(name = "testComputeBestServerForWeightProvider")
   public Object[][] testComputeBestServerForWeightProvider() {
 
     Object[][] testData = new Object[24][];
+    int idx = 0;
 
     Map<Integer, ReplicationServerInfo> rsInfos = null;
-      new HashMap<Integer, ReplicationServerInfo>();
-    RSInfo rsInfo = null;
-    List<Integer> connectedDSs = null;
-    Object[] params = null;
 
     /************************
      * First connection tests
@@ -908,17 +663,16 @@ public class ComputeBestServerTest extends ReplicationTestCase
      */
 
     rsInfos = new HashMap<Integer, ReplicationServerInfo>();
+    put(rsInfos,
+        new RSInfo(11, "AwinnerHost:123", 0L, (byte)1, 1),
+        EMPTY_LIST);
 
-    rsInfo = new RSInfo(11, "AwinnerHost:123", 0L, (byte)1, 1);
-    connectedDSs = new ArrayList<Integer>();
-    rsInfos.put(11, new ReplicationServerInfo(rsInfo, connectedDSs));
-
-    params = new Object[4];
-    params[0] = rsInfos;
-    params[1] = -1; // current RS id
-    params[2] = -1; // local DS id
-    params[3] = "AwinnerHost:123"; // winner url
-    testData[0] = params;
+    testData[idx++] = new Object[] {
+      rsInfos,
+      -1, // current RS id
+      -1, // local DS id
+      "AwinnerHost:123", // winner url
+    };
 
     /**
      * 2 RSs with TL=0.5, no connected DSs
@@ -926,21 +680,19 @@ public class ComputeBestServerTest extends ReplicationTestCase
      */
 
     rsInfos = new HashMap<Integer, ReplicationServerInfo>();
+    put(rsInfos,
+        new RSInfo(11, "BwinnerHost:123", 0L, (byte)1, 1),
+        EMPTY_LIST);
+    put(rsInfos,
+        new RSInfo(12, "looserHost:456", 0L, (byte)1, 1),
+        EMPTY_LIST);
 
-    rsInfo = new RSInfo(11, "BwinnerHost:123", 0L, (byte)1, 1);
-    connectedDSs = new ArrayList<Integer>();
-    rsInfos.put(11, new ReplicationServerInfo(rsInfo, connectedDSs));
-
-    rsInfo = new RSInfo(12, "looserHost:456", 0L, (byte)1, 1);
-    connectedDSs = new ArrayList<Integer>();
-    rsInfos.put(12, new ReplicationServerInfo(rsInfo, connectedDSs));
-
-    params = new Object[4];
-    params[0] = rsInfos;
-    params[1] = -1; // current RS id
-    params[2] = -1; // local DS id
-    params[3] = rsInfos.values().iterator().next().getServerURL(); // winner url
-    testData[1] = params;
+    testData[idx++] = new Object[] {
+      rsInfos,
+      -1, // current RS id
+      -1, // local DS id
+      rsInfos.values().iterator().next().getServerURL(), // winner url
+    };
 
     /**
      * TL = target load
@@ -951,22 +703,19 @@ public class ComputeBestServerTest extends ReplicationTestCase
      */
 
     rsInfos = new HashMap<Integer, ReplicationServerInfo>();
+    put(rsInfos,
+        new RSInfo(11, "looserHost:123", 0L, (byte)1, 1),
+        Arrays.asList(1));
+    put(rsInfos,
+        new RSInfo(12, "CwinnerHost:456", 0L, (byte)1, 1),
+        EMPTY_LIST);
 
-    rsInfo = new RSInfo(11, "looserHost:123", 0L, (byte)1, 1);
-    connectedDSs = new ArrayList<Integer>();
-    connectedDSs.add(1);
-    rsInfos.put(11, new ReplicationServerInfo(rsInfo, connectedDSs));
-
-    rsInfo = new RSInfo(12, "CwinnerHost:456", 0L, (byte)1, 1);
-    connectedDSs = new ArrayList<Integer>();
-    rsInfos.put(12, new ReplicationServerInfo(rsInfo, connectedDSs));
-
-    params = new Object[4];
-    params[0] = rsInfos;
-    params[1] = -1; // current RS id
-    params[2] = -1; // local DS id
-    params[3] = "CwinnerHost:456"; // winner url
-    testData[2] = params;
+    testData[idx++] = new Object[] {
+      rsInfos,
+      -1, // current RS id
+      -1, // local DS id
+      "CwinnerHost:456", // winner url
+    };
 
     /**
      * TL = target load
@@ -978,23 +727,19 @@ public class ComputeBestServerTest extends ReplicationTestCase
      */
 
     rsInfos = new HashMap<Integer, ReplicationServerInfo>();
+    put(rsInfos,
+        new RSInfo(11, "DwinnerHost:123", 0L, (byte)1, 1),
+        Arrays.asList(1));
+    put(rsInfos,
+        new RSInfo(12, "looserHost:456", 0L, (byte)1, 1),
+        Arrays.asList(101));
 
-    rsInfo = new RSInfo(11, "DwinnerHost:123", 0L, (byte)1, 1);
-    connectedDSs = new ArrayList<Integer>();
-    connectedDSs.add(1);
-    rsInfos.put(11, new ReplicationServerInfo(rsInfo, connectedDSs));
-
-    rsInfo = new RSInfo(12, "looserHost:456", 0L, (byte)1, 1);
-    connectedDSs = new ArrayList<Integer>();
-    connectedDSs.add(101);
-    rsInfos.put(12, new ReplicationServerInfo(rsInfo, connectedDSs));
-
-    params = new Object[4];
-    params[0] = rsInfos;
-    params[1] = -1; // current RS id
-    params[2] = -1; // local DS id
-    params[3] = rsInfos.values().iterator().next().getServerURL(); // winner url
-    testData[3] = params;
+    testData[idx++] = new Object[] {
+      rsInfos,
+      -1, // current RS id
+      -1, // local DS id
+      rsInfos.values().iterator().next().getServerURL(), // winner url
+    };
 
     /**
      * TL = target load
@@ -1005,24 +750,19 @@ public class ComputeBestServerTest extends ReplicationTestCase
      */
 
     rsInfos = new HashMap<Integer, ReplicationServerInfo>();
+    put(rsInfos,
+        new RSInfo(11, "looserHost:123", 0L, (byte)1, 1),
+        Arrays.asList(1, 2));
+    put(rsInfos,
+        new RSInfo(12, "EwinnerHost:456", 0L, (byte)1, 1),
+        Arrays.asList(101));
 
-    rsInfo = new RSInfo(11, "looserHost:123", 0L, (byte)1, 1);
-    connectedDSs = new ArrayList<Integer>();
-    connectedDSs.add(1);
-    connectedDSs.add(2);
-    rsInfos.put(11, new ReplicationServerInfo(rsInfo, connectedDSs));
-
-    rsInfo = new RSInfo(12, "EwinnerHost:456", 0L, (byte)1, 1);
-    connectedDSs = new ArrayList<Integer>();
-    connectedDSs.add(101);
-    rsInfos.put(12, new ReplicationServerInfo(rsInfo, connectedDSs));
-
-    params = new Object[4];
-    params[0] = rsInfos;
-    params[1] = -1; // current RS id
-    params[2] = -1; // local DS id
-    params[3] = "EwinnerHost:456"; // winner url
-    testData[4] = params;
+    testData[idx++] = new Object[] {
+      rsInfos,
+      -1, // current RS id
+      -1, // local DS id
+      "EwinnerHost:456", // winner url
+    };
 
     /**
      * TL = target load
@@ -1033,23 +773,19 @@ public class ComputeBestServerTest extends ReplicationTestCase
      */
 
     rsInfos = new HashMap<Integer, ReplicationServerInfo>();
+    put(rsInfos,
+        new RSInfo(11, "looserHost:123", 0L, (byte)1, 1),
+        Arrays.asList(1));
+    put(rsInfos,
+        new RSInfo(12, "FwinnerHost:456", 0L, (byte)1, 2),
+        Arrays.asList(101));
 
-    rsInfo = new RSInfo(11, "looserHost:123", 0L, (byte)1, 1);
-    connectedDSs = new ArrayList<Integer>();
-    connectedDSs.add(1);
-    rsInfos.put(11, new ReplicationServerInfo(rsInfo, connectedDSs));
-
-    rsInfo = new RSInfo(12, "FwinnerHost:456", 0L, (byte)1, 2);
-    connectedDSs = new ArrayList<Integer>();
-    connectedDSs.add(101);
-    rsInfos.put(12, new ReplicationServerInfo(rsInfo, connectedDSs));
-
-    params = new Object[4];
-    params[0] = rsInfos;
-    params[1] = -1; // current RS id
-    params[2] = -1; // local DS id
-    params[3] = "FwinnerHost:456"; // winner url
-    testData[5] = params;
+    testData[idx++] = new Object[] {
+      rsInfos,
+      -1, // current RS id
+      -1, // local DS id
+      "FwinnerHost:456", // winner url
+    };
 
     /**
      * TL = target load
@@ -1061,24 +797,19 @@ public class ComputeBestServerTest extends ReplicationTestCase
      */
 
     rsInfos = new HashMap<Integer, ReplicationServerInfo>();
+    put(rsInfos,
+        new RSInfo(11, "looserHost:123", 0L, (byte)1, 1),
+        Arrays.asList(1));
+    put(rsInfos,
+        new RSInfo(12, "GwinnerHost:456", 0L, (byte)1, 2),
+        Arrays.asList(101, 102));
 
-    rsInfo = new RSInfo(11, "looserHost:123", 0L, (byte)1, 1);
-    connectedDSs = new ArrayList<Integer>();
-    connectedDSs.add(1);
-    rsInfos.put(11, new ReplicationServerInfo(rsInfo, connectedDSs));
-
-    rsInfo = new RSInfo(12, "GwinnerHost:456", 0L, (byte)1, 2);
-    connectedDSs = new ArrayList<Integer>();
-    connectedDSs.add(101);
-    connectedDSs.add(102);
-    rsInfos.put(12, new ReplicationServerInfo(rsInfo, connectedDSs));
-
-    params = new Object[4];
-    params[0] = rsInfos;
-    params[1] = -1; // current RS id
-    params[2] = -1; // local DS id
-    params[3] = "GwinnerHost:456"; // winner url
-    testData[6] = params;
+    testData[idx++] = new Object[] {
+      rsInfos,
+      -1, // current RS id
+      -1, // local DS id
+      "GwinnerHost:456", // winner url
+    };
 
     /**
      * TL = target load
@@ -1090,27 +821,19 @@ public class ComputeBestServerTest extends ReplicationTestCase
      */
 
     rsInfos = new HashMap<Integer, ReplicationServerInfo>();
+    put(rsInfos,
+        new RSInfo(11, "looserHost:123", 0L, (byte)1, 1),
+        Arrays.asList(1, 2));
+    put(rsInfos,
+        new RSInfo(12, "HwinnerHost:456", 0L, (byte)1, 2),
+        Arrays.asList(101, 102, 103, 104));
 
-    rsInfo = new RSInfo(11, "looserHost:123", 0L, (byte)1, 1);
-    connectedDSs = new ArrayList<Integer>();
-    connectedDSs.add(1);
-    connectedDSs.add(2);
-    rsInfos.put(11, new ReplicationServerInfo(rsInfo, connectedDSs));
-
-    rsInfo = new RSInfo(12, "HwinnerHost:456", 0L, (byte)1, 2);
-    connectedDSs = new ArrayList<Integer>();
-    connectedDSs.add(101);
-    connectedDSs.add(102);
-    connectedDSs.add(103);
-    connectedDSs.add(104);
-    rsInfos.put(12, new ReplicationServerInfo(rsInfo, connectedDSs));
-
-    params = new Object[4];
-    params[0] = rsInfos;
-    params[1] = -1; // current RS id
-    params[2] = -1; // local DS id
-    params[3] = "HwinnerHost:456"; // winner url
-    testData[7] = params;
+    testData[idx++] = new Object[] {
+      rsInfos,
+      -1, // current RS id
+      -1, // local DS id
+      "HwinnerHost:456", // winner url
+    };
 
     /**
      * TL = target load
@@ -1122,31 +845,22 @@ public class ComputeBestServerTest extends ReplicationTestCase
      */
 
     rsInfos = new HashMap<Integer, ReplicationServerInfo>();
+    put(rsInfos,
+        new RSInfo(11, "looserHost:123", 0L, (byte)1, 1),
+        Arrays.asList(1));
+    put(rsInfos,
+        new RSInfo(12, "looserHost:456", 0L, (byte)1, 2),
+        Arrays.asList(101, 102));
+    put(rsInfos,
+        new RSInfo(13, "IwinnerHost:789", 0L, (byte)1, 3),
+        Arrays.asList(201, 202, 203));
 
-    rsInfo = new RSInfo(11, "looserHost:123", 0L, (byte)1, 1);
-    connectedDSs = new ArrayList<Integer>();
-    connectedDSs.add(1);
-    rsInfos.put(11, new ReplicationServerInfo(rsInfo, connectedDSs));
-
-    rsInfo = new RSInfo(12, "looserHost:456", 0L, (byte)1, 2);
-    connectedDSs = new ArrayList<Integer>();
-    connectedDSs.add(101);
-    connectedDSs.add(102);
-    rsInfos.put(12, new ReplicationServerInfo(rsInfo, connectedDSs));
-
-    rsInfo = new RSInfo(13, "IwinnerHost:789", 0L, (byte)1, 3);
-    connectedDSs = new ArrayList<Integer>();
-    connectedDSs.add(201);
-    connectedDSs.add(202);
-    connectedDSs.add(203);
-    rsInfos.put(13, new ReplicationServerInfo(rsInfo, connectedDSs));
-
-    params = new Object[4];
-    params[0] = rsInfos;
-    params[1] = -1; // current RS id
-    params[2] = -1; // local DS id
-    params[3] = "IwinnerHost:789"; // winner url
-    testData[8] = params;
+    testData[idx++] = new Object[] {
+      rsInfos,
+      -1, // current RS id
+      -1, // local DS id
+      "IwinnerHost:789", // winner url
+    };
 
     /**
      * TL = target load
@@ -1157,34 +871,22 @@ public class ComputeBestServerTest extends ReplicationTestCase
      */
 
     rsInfos = new HashMap<Integer, ReplicationServerInfo>();
+    put(rsInfos,
+        new RSInfo(11, "JwinnerHost:123", 0L, (byte)1, 5),
+        Arrays.asList(1, 2, 3));
+    put(rsInfos,
+        new RSInfo(12, "looserHost:456", 0L, (byte)1, 3),
+        Arrays.asList(101, 102, 103, 104, 105));
+    put(rsInfos,
+        new RSInfo(13, "looserHost:789", 0L, (byte)1, 2),
+        Arrays.asList(201));
 
-    rsInfo = new RSInfo(11, "JwinnerHost:123", 0L, (byte)1, 5);
-    connectedDSs = new ArrayList<Integer>();
-    connectedDSs.add(1);
-    connectedDSs.add(2);
-    connectedDSs.add(3);
-    rsInfos.put(11, new ReplicationServerInfo(rsInfo, connectedDSs));
-
-    rsInfo = new RSInfo(12, "looserHost:456", 0L, (byte)1, 3);
-    connectedDSs = new ArrayList<Integer>();
-    connectedDSs.add(101);
-    connectedDSs.add(102);
-    connectedDSs.add(103);
-    connectedDSs.add(104);
-    connectedDSs.add(105);
-    rsInfos.put(12, new ReplicationServerInfo(rsInfo, connectedDSs));
-
-    rsInfo = new RSInfo(13, "looserHost:789", 0L, (byte)1, 2);
-    connectedDSs = new ArrayList<Integer>();
-    connectedDSs.add(201);
-    rsInfos.put(13, new ReplicationServerInfo(rsInfo, connectedDSs));
-
-    params = new Object[4];
-    params[0] = rsInfos;
-    params[1] = -1; // current RS id
-    params[2] = -1; // local DS id
-    params[3] = "JwinnerHost:123"; // winner url
-    testData[9] = params;
+    testData[idx++] = new Object[] {
+      rsInfos,
+      -1, // current RS id
+      -1, // local DS id
+      "JwinnerHost:123", // winner url
+    };
 
     /*************************
      * Already connected tests
@@ -1199,23 +901,19 @@ public class ComputeBestServerTest extends ReplicationTestCase
      */
 
     rsInfos = new HashMap<Integer, ReplicationServerInfo>();
+    put(rsInfos,
+        new RSInfo(11, "looserHost:123", 0L, (byte)1, 1),
+        Arrays.asList(1));
+    put(rsInfos,
+        new RSInfo(12, "KwinnerHost:456", 0L, (byte)1, 1),
+        Arrays.asList(101));
 
-    rsInfo = new RSInfo(11, "looserHost:123", 0L, (byte)1, 1);
-    connectedDSs = new ArrayList<Integer>();
-    connectedDSs.add(1);
-    rsInfos.put(11, new ReplicationServerInfo(rsInfo, connectedDSs));
-
-    rsInfo = new RSInfo(12, "KwinnerHost:456", 0L, (byte)1, 1);
-    connectedDSs = new ArrayList<Integer>();
-    connectedDSs.add(101);
-    rsInfos.put(12, new ReplicationServerInfo(rsInfo, connectedDSs));
-
-    params = new Object[4];
-    params[0] = rsInfos;
-    params[1] = 12; // current RS id
-    params[2] = 101; // local DS id
-    params[3] = "KwinnerHost:456"; // winner url
-    testData[10] = params;
+    testData[idx++] = new Object[] {
+      rsInfos,
+      12, // current RS id
+      101, // local DS id
+      "KwinnerHost:456", // winner url
+    };
 
     /**
      * TL = target load
@@ -1226,23 +924,19 @@ public class ComputeBestServerTest extends ReplicationTestCase
      */
 
     rsInfos = new HashMap<Integer, ReplicationServerInfo>();
+    put(rsInfos,
+        new RSInfo(11, "looserHost:123", 0L, (byte)1, 1),
+        Arrays.asList(1, 2));
+    put(rsInfos,
+        new RSInfo(12, "LwinnerHost:456", 0L, (byte)1, 1),
+        EMPTY_LIST);
 
-    rsInfo = new RSInfo(11, "looserHost:123", 0L, (byte)1, 1);
-    connectedDSs = new ArrayList<Integer>();
-    connectedDSs.add(1);
-    connectedDSs.add(2);
-    rsInfos.put(11, new ReplicationServerInfo(rsInfo, connectedDSs));
-
-    rsInfo = new RSInfo(12, "LwinnerHost:456", 0L, (byte)1, 1);
-    connectedDSs = new ArrayList<Integer>();
-    rsInfos.put(12, new ReplicationServerInfo(rsInfo, connectedDSs));
-
-    params = new Object[4];
-    params[0] = rsInfos;
-    params[1] = 11; // current RS id
-    params[2] = 1; // local DS id
-    params[3] = null; // winner url
-    testData[11] = params;
+    testData[idx++] = new Object[] {
+      rsInfos,
+      11, // current RS id
+      1, // local DS id
+      null, // winner url
+    };
 
     /**
      * TL = target load
@@ -1254,23 +948,19 @@ public class ComputeBestServerTest extends ReplicationTestCase
      */
 
     rsInfos = new HashMap<Integer, ReplicationServerInfo>();
+    put(rsInfos,
+        new RSInfo(11, "MwinnerHost:123", 0L, (byte)1, 1),
+        Arrays.asList(1, 2));
+    put(rsInfos,
+        new RSInfo(12, "looserHost:456", 0L, (byte)1, 1),
+        EMPTY_LIST);
 
-    rsInfo = new RSInfo(11, "MwinnerHost:123", 0L, (byte)1, 1);
-    connectedDSs = new ArrayList<Integer>();
-    connectedDSs.add(1);
-    connectedDSs.add(2);
-    rsInfos.put(11, new ReplicationServerInfo(rsInfo, connectedDSs));
-
-    rsInfo = new RSInfo(12, "looserHost:456", 0L, (byte)1, 1);
-    connectedDSs = new ArrayList<Integer>();
-    rsInfos.put(12, new ReplicationServerInfo(rsInfo, connectedDSs));
-
-    params = new Object[4];
-    params[0] = rsInfos;
-    params[1] = 11; // current RS id
-    params[2] = 2; // local DS id
-    params[3] = "MwinnerHost:123"; // winner url
-    testData[12] = params;
+    testData[idx++] = new Object[] {
+      rsInfos,
+      11, // current RS id
+      2, // local DS id
+      "MwinnerHost:123", // winner url
+    };
 
     /**
      * TL = target load
@@ -1282,50 +972,25 @@ public class ComputeBestServerTest extends ReplicationTestCase
      */
 
     rsInfos = new HashMap<Integer, ReplicationServerInfo>();
+    put(rsInfos,
+        new RSInfo(11, "looserHost:123", 0L, (byte)1, 3),
+        Arrays.asList(1, 2, 3, 4, 5, 6));
+    put(rsInfos,
+        new RSInfo(12, "NwinnerHost:456", 0L, (byte)1, 4),
+        Arrays.asList(101, 102, 103, 104, 105, 106, 107, 108));
+    put(rsInfos,
+        new RSInfo(13, "looserHost:789", 0L, (byte)1, 1),
+        Arrays.asList(201, 202));
+    put(rsInfos,
+        new RSInfo(14, "looserHost:1011", 0L, (byte)1, 2),
+        Arrays.asList(301, 302, 303, 304));
 
-    rsInfo = new RSInfo(11, "looserHost:123", 0L, (byte)1, 3);
-    connectedDSs = new ArrayList<Integer>();
-    connectedDSs.add(1);
-    connectedDSs.add(2);
-    connectedDSs.add(3);
-    connectedDSs.add(4);
-    connectedDSs.add(5);
-    connectedDSs.add(6);
-
-    rsInfos.put(11, new ReplicationServerInfo(rsInfo, connectedDSs));
-
-    rsInfo = new RSInfo(12, "NwinnerHost:456", 0L, (byte)1, 4);
-    connectedDSs = new ArrayList<Integer>();
-    connectedDSs.add(101);
-    connectedDSs.add(102);
-    connectedDSs.add(103);
-    connectedDSs.add(104);
-    connectedDSs.add(105);
-    connectedDSs.add(106);
-    connectedDSs.add(107);
-    connectedDSs.add(108);
-    rsInfos.put(12, new ReplicationServerInfo(rsInfo, connectedDSs));
-
-    rsInfo = new RSInfo(13, "looserHost:789", 0L, (byte)1, 1);
-    connectedDSs = new ArrayList<Integer>();
-    connectedDSs.add(201);
-    connectedDSs.add(202);
-    rsInfos.put(13, new ReplicationServerInfo(rsInfo, connectedDSs));
-
-    rsInfo = new RSInfo(14, "looserHost:1011", 0L, (byte)1, 2);
-    connectedDSs = new ArrayList<Integer>();
-    connectedDSs.add(301);
-    connectedDSs.add(302);
-    connectedDSs.add(303);
-    connectedDSs.add(304);
-    rsInfos.put(14, new ReplicationServerInfo(rsInfo, connectedDSs));
-
-    params = new Object[4];
-    params[0] = rsInfos;
-    params[1] = 12; // current RS id
-    params[2] = 101; // local DS id
-    params[3] = "NwinnerHost:456"; // winner url
-    testData[13] = params;
+    testData[idx++] = new Object[] {
+      rsInfos,
+      12, // current RS id
+      101, // local DS id
+      "NwinnerHost:456", // winner url
+    };
 
     /**
      * TL = target load
@@ -1340,50 +1005,25 @@ public class ComputeBestServerTest extends ReplicationTestCase
      */
 
     rsInfos = new HashMap<Integer, ReplicationServerInfo>();
+    put(rsInfos,
+        new RSInfo(11, "looserHost:123", 0L, (byte)1, 3),
+        Arrays.asList(1, 2, 3, 4));
+    put(rsInfos,
+        new RSInfo(12, "OwinnerHost:456", 0L, (byte)1, 4),
+        Arrays.asList(101, 102, 103, 104, 105, 106, 107, 108));
+    put(rsInfos,
+        new RSInfo(13, "looserHost:789", 0L, (byte)1, 1),
+        Arrays.asList(201, 202));
+    put(rsInfos,
+        new RSInfo(14, "looserHost:1011", 0L, (byte)1, 2),
+        Arrays.asList(301, 302, 303, 304, 305, 306));
 
-    rsInfo = new RSInfo(11, "looserHost:123", 0L, (byte)1, 3);
-    connectedDSs = new ArrayList<Integer>();
-    connectedDSs.add(1);
-    connectedDSs.add(2);
-    connectedDSs.add(3);
-    connectedDSs.add(4);
-
-    rsInfos.put(11, new ReplicationServerInfo(rsInfo, connectedDSs));
-
-    rsInfo = new RSInfo(12, "OwinnerHost:456", 0L, (byte)1, 4);
-    connectedDSs = new ArrayList<Integer>();
-    connectedDSs.add(101);
-    connectedDSs.add(102);
-    connectedDSs.add(103);
-    connectedDSs.add(104);
-    connectedDSs.add(105);
-    connectedDSs.add(106);
-    connectedDSs.add(107);
-    connectedDSs.add(108);
-    rsInfos.put(12, new ReplicationServerInfo(rsInfo, connectedDSs));
-
-    rsInfo = new RSInfo(13, "looserHost:789", 0L, (byte)1, 1);
-    connectedDSs = new ArrayList<Integer>();
-    connectedDSs.add(201);
-    connectedDSs.add(202);
-    rsInfos.put(13, new ReplicationServerInfo(rsInfo, connectedDSs));
-
-    rsInfo = new RSInfo(14, "looserHost:1011", 0L, (byte)1, 2);
-    connectedDSs = new ArrayList<Integer>();
-    connectedDSs.add(301);
-    connectedDSs.add(302);
-    connectedDSs.add(303);
-    connectedDSs.add(304);
-    connectedDSs.add(305);
-    connectedDSs.add(306);
-    rsInfos.put(14, new ReplicationServerInfo(rsInfo, connectedDSs));
-
-    params = new Object[4];
-    params[0] = rsInfos;
-    params[1] = 12; // current RS id
-    params[2] = 101; // local DS id
-    params[3] = "OwinnerHost:456"; // winner url
-    testData[14] = params;
+    testData[idx++] = new Object[] {
+      rsInfos,
+      12, // current RS id
+      101, // local DS id
+      "OwinnerHost:456", // winner url
+    };
 
     /**
      * TL = target load
@@ -1396,51 +1036,25 @@ public class ComputeBestServerTest extends ReplicationTestCase
      */
 
     rsInfos = new HashMap<Integer, ReplicationServerInfo>();
+    put(rsInfos,
+        new RSInfo(11, "PwinnerHost:123", 0L, (byte)1, 3),
+        Arrays.asList(1, 2, 3, 4));
+    put(rsInfos,
+        new RSInfo(12, "looserHost:456", 0L, (byte)1, 4),
+        Arrays.asList(101, 102, 103, 104, 105, 106, 107, 108));
+    put(rsInfos,
+        new RSInfo(13, "looserHost:789", 0L, (byte)1, 1),
+        Arrays.asList(201, 202));
+    put(rsInfos,
+        new RSInfo(14, "looserHost:1011", 0L, (byte)1, 2),
+        Arrays.asList(306, 305, 304, 303, 302, 301));
 
-    rsInfo = new RSInfo(11, "PwinnerHost:123", 0L, (byte)1, 3);
-    connectedDSs = new ArrayList<Integer>();
-    connectedDSs.add(1);
-    connectedDSs.add(2);
-    connectedDSs.add(3);
-    connectedDSs.add(4);
-
-    rsInfos.put(11, new ReplicationServerInfo(rsInfo, connectedDSs));
-
-    rsInfo = new RSInfo(12, "looserHost:456", 0L, (byte)1, 4);
-    connectedDSs = new ArrayList<Integer>();
-    connectedDSs.add(101);
-    connectedDSs.add(102);
-    connectedDSs.add(103);
-    connectedDSs.add(104);
-    connectedDSs.add(105);
-    connectedDSs.add(106);
-    connectedDSs.add(107);
-    connectedDSs.add(108);
-    rsInfos.put(12, new ReplicationServerInfo(rsInfo, connectedDSs));
-
-    rsInfo = new RSInfo(13, "looserHost:789", 0L, (byte)1, 1);
-    connectedDSs = new ArrayList<Integer>();
-    connectedDSs.add(201);
-    connectedDSs.add(202);
-    rsInfos.put(13, new ReplicationServerInfo(rsInfo, connectedDSs));
-
-    rsInfo = new RSInfo(14, "looserHost:1011", 0L, (byte)1, 2);
-    connectedDSs = new ArrayList<Integer>();
-    connectedDSs.add(306);
-    connectedDSs.add(305);
-    connectedDSs.add(304);
-    connectedDSs.add(303);
-    connectedDSs.add(302);
-    connectedDSs.add(301);
-
-    rsInfos.put(14, new ReplicationServerInfo(rsInfo, connectedDSs));
-
-    params = new Object[4];
-    params[0] = rsInfos;
-    params[1] = 14; // current RS id
-    params[2] = 302; // local DS id
-    params[3] = null; // winner url
-    testData[15] = params;
+    testData[idx++] = new Object[] {
+      rsInfos,
+      14, // current RS id
+      302, // local DS id
+      null, // winner url
+    };
 
     /**
      * TL = target load
@@ -1453,51 +1067,25 @@ public class ComputeBestServerTest extends ReplicationTestCase
      */
 
     rsInfos = new HashMap<Integer, ReplicationServerInfo>();
+    put(rsInfos,
+        new RSInfo(11, "looserHost:123", 0L, (byte)1, 3),
+        Arrays.asList(1, 2, 3, 4));
+    put(rsInfos,
+        new RSInfo(12, "looserHost:456", 0L, (byte)1, 4),
+        Arrays.asList(101, 102, 103, 104, 105, 106, 107, 108));
+    put(rsInfos,
+        new RSInfo(13, "looserHost:789", 0L, (byte)1, 1),
+        Arrays.asList(201, 202));
+    put(rsInfos,
+        new RSInfo(14, "QwinnerHost:1011", 0L, (byte)1, 2),
+        Arrays.asList(306, 305, 304, 303, 302, 301));
 
-    rsInfo = new RSInfo(11, "looserHost:123", 0L, (byte)1, 3);
-    connectedDSs = new ArrayList<Integer>();
-    connectedDSs.add(1);
-    connectedDSs.add(2);
-    connectedDSs.add(3);
-    connectedDSs.add(4);
-
-    rsInfos.put(11, new ReplicationServerInfo(rsInfo, connectedDSs));
-
-    rsInfo = new RSInfo(12, "looserHost:456", 0L, (byte)1, 4);
-    connectedDSs = new ArrayList<Integer>();
-    connectedDSs.add(101);
-    connectedDSs.add(102);
-    connectedDSs.add(103);
-    connectedDSs.add(104);
-    connectedDSs.add(105);
-    connectedDSs.add(106);
-    connectedDSs.add(107);
-    connectedDSs.add(108);
-    rsInfos.put(12, new ReplicationServerInfo(rsInfo, connectedDSs));
-
-    rsInfo = new RSInfo(13, "looserHost:789", 0L, (byte)1, 1);
-    connectedDSs = new ArrayList<Integer>();
-    connectedDSs.add(201);
-    connectedDSs.add(202);
-    rsInfos.put(13, new ReplicationServerInfo(rsInfo, connectedDSs));
-
-    rsInfo = new RSInfo(14, "QwinnerHost:1011", 0L, (byte)1, 2);
-    connectedDSs = new ArrayList<Integer>();
-    connectedDSs.add(306);
-    connectedDSs.add(305);
-    connectedDSs.add(304);
-    connectedDSs.add(303);
-    connectedDSs.add(302);
-    connectedDSs.add(301);
-
-    rsInfos.put(14, new ReplicationServerInfo(rsInfo, connectedDSs));
-
-    params = new Object[4];
-    params[0] = rsInfos;
-    params[1] = 14; // current RS id
-    params[2] = 303; // local DS id
-    params[3] = "QwinnerHost:1011"; // winner url
-    testData[16] = params;
+    testData[idx++] = new Object[] {
+      rsInfos,
+      14, // current RS id
+      303, // local DS id
+      "QwinnerHost:1011", // winner url
+    };
 
     /**
      * TL = target load
@@ -1512,51 +1100,25 @@ public class ComputeBestServerTest extends ReplicationTestCase
      */
 
     rsInfos = new HashMap<Integer, ReplicationServerInfo>();
+    put(rsInfos,
+        new RSInfo(11, "looserHost:123", 0L, (byte) 1, 3),
+        Arrays.asList(1, 2, 3, 4));
+    put(rsInfos,
+        new RSInfo(12, "looserHost:456", 0L, (byte)1, 4),
+        Arrays.asList(113, 112, 111, 110, 109, 108, 107, 106, 105, 104, 103, 102, 101));
+    put(rsInfos,
+        new RSInfo(13, "looserHost:789", 0L, (byte)1, 1),
+        Arrays.asList(201, 202));
+    put(rsInfos,
+        new RSInfo(14, "looserHost:1011", 0L, (byte)1, 2),
+        Arrays.asList(301));
 
-    rsInfo = new RSInfo(11, "looserHost:123", 0L, (byte)1, 3);
-    connectedDSs = new ArrayList<Integer>();
-    connectedDSs.add(1);
-    connectedDSs.add(2);
-    connectedDSs.add(3);
-    connectedDSs.add(4);
-
-    rsInfos.put(11, new ReplicationServerInfo(rsInfo, connectedDSs));
-
-    rsInfo = new RSInfo(12, "looserHost:456", 0L, (byte)1, 4);
-    connectedDSs = new ArrayList<Integer>();
-    connectedDSs.add(113);
-    connectedDSs.add(112);
-    connectedDSs.add(111);
-    connectedDSs.add(110);
-    connectedDSs.add(109);
-    connectedDSs.add(108);
-    connectedDSs.add(107);
-    connectedDSs.add(106);
-    connectedDSs.add(105);
-    connectedDSs.add(104);
-    connectedDSs.add(103);
-    connectedDSs.add(102);
-    connectedDSs.add(101);
-    rsInfos.put(12, new ReplicationServerInfo(rsInfo, connectedDSs));
-
-    rsInfo = new RSInfo(13, "looserHost:789", 0L, (byte)1, 1);
-    connectedDSs = new ArrayList<Integer>();
-    connectedDSs.add(201);
-    connectedDSs.add(202);
-    rsInfos.put(13, new ReplicationServerInfo(rsInfo, connectedDSs));
-
-    rsInfo = new RSInfo(14, "looserHost:1011", 0L, (byte)1, 2);
-    connectedDSs = new ArrayList<Integer>();
-    connectedDSs.add(301);
-
-    rsInfos.put(14, new ReplicationServerInfo(rsInfo, connectedDSs));
-
-    params = new Object[4];
-    params[0] = rsInfos;
-    params[1] = 12; // current RS id
-    params[2] = 105; // local DS id
-    params[3] = null; // winner url
-    testData[17] = params;
+    testData[idx++] = new Object[] {
+      rsInfos,
+      12, // current RS id
+      105, // local DS id
+      null, // winner url
+    };
 
     /**
      * TL = target load
@@ -1571,24 +1133,19 @@ public class ComputeBestServerTest extends ReplicationTestCase
      */
 
     rsInfos = new HashMap<Integer, ReplicationServerInfo>();
+    put(rsInfos,
+        new RSInfo(11, "RwinnerHost:123", 0L, (byte)1, 1),
+        Arrays.asList(1, 2));
+    put(rsInfos,
+        new RSInfo(12, "looserHost:456", 0L, (byte)1, 1),
+        Arrays.asList(3));
 
-    rsInfo = new RSInfo(11, "RwinnerHost:123", 0L, (byte)1, 1);
-    connectedDSs = new ArrayList<Integer>();
-    connectedDSs.add(1);
-    connectedDSs.add(2);
-    rsInfos.put(11, new ReplicationServerInfo(rsInfo, connectedDSs));
-
-    rsInfo = new RSInfo(12, "looserHost:456", 0L, (byte)1, 1);
-    connectedDSs = new ArrayList<Integer>();
-    connectedDSs.add(3);
-    rsInfos.put(12, new ReplicationServerInfo(rsInfo, connectedDSs));
-
-    params = new Object[4];
-    params[0] = rsInfos;
-    params[1] = 11; // current RS id
-    params[2] = 1; // local DS id
-    params[3] = "RwinnerHost:123"; // winner url
-    testData[18] = params;
+    testData[idx++] = new Object[] {
+      rsInfos,
+      11, // current RS id
+      1, // local DS id
+      "RwinnerHost:123", // winner url
+    };
 
     /**
      * TL = target load
@@ -1604,24 +1161,19 @@ public class ComputeBestServerTest extends ReplicationTestCase
      */
 
     rsInfos = new HashMap<Integer, ReplicationServerInfo>();
+    put(rsInfos,
+        new RSInfo(11, "SwinnerHost:123", 0L, (byte)1, 1),
+        Arrays.asList(1, 2));
+    put(rsInfos,
+        new RSInfo(12, "looserHost:456", 0L, (byte)1, 1),
+        Arrays.asList(3));
 
-    rsInfo = new RSInfo(11, "SwinnerHost:123", 0L, (byte)1, 1);
-    connectedDSs = new ArrayList<Integer>();
-    connectedDSs.add(1);
-    connectedDSs.add(2);
-    rsInfos.put(11, new ReplicationServerInfo(rsInfo, connectedDSs));
-
-    rsInfo = new RSInfo(12, "looserHost:456", 0L, (byte)1, 1);
-    connectedDSs = new ArrayList<Integer>();
-    connectedDSs.add(3);
-    rsInfos.put(12, new ReplicationServerInfo(rsInfo, connectedDSs));
-
-    params = new Object[4];
-    params[0] = rsInfos;
-    params[1] = 11; // current RS id
-    params[2] = 2; // local DS id
-    params[3] = "SwinnerHost:123"; // winner url
-    testData[19] = params;
+    testData[idx++] = new Object[] {
+      rsInfos,
+      11, // current RS id
+      2, // local DS id
+      "SwinnerHost:123", // winner url
+    };
 
     /**
      * TL = target load
@@ -1635,29 +1187,22 @@ public class ComputeBestServerTest extends ReplicationTestCase
      */
 
     rsInfos = new HashMap<Integer, ReplicationServerInfo>();
+    put(rsInfos,
+        new RSInfo(11, "TwinnerHost:123", 0L, (byte)1, 1),
+        Arrays.asList(1, 2));
+    put(rsInfos,
+        new RSInfo(12, "looserHost:456", 0L, (byte)1, 1),
+        Arrays.asList(3));
+    put(rsInfos,
+        new RSInfo(13, "looserHost:789", 0L, (byte)1, 1),
+        Arrays.asList(4));
 
-    rsInfo = new RSInfo(11, "TwinnerHost:123", 0L, (byte)1, 1);
-    connectedDSs = new ArrayList<Integer>();
-    connectedDSs.add(1);
-    connectedDSs.add(2);
-    rsInfos.put(11, new ReplicationServerInfo(rsInfo, connectedDSs));
-
-    rsInfo = new RSInfo(12, "looserHost:456", 0L, (byte)1, 1);
-    connectedDSs = new ArrayList<Integer>();
-    connectedDSs.add(3);
-    rsInfos.put(12, new ReplicationServerInfo(rsInfo, connectedDSs));
-
-    rsInfo = new RSInfo(13, "looserHost:789", 0L, (byte)1, 1);
-    connectedDSs = new ArrayList<Integer>();
-    connectedDSs.add(4);
-    rsInfos.put(13, new ReplicationServerInfo(rsInfo, connectedDSs));
-
-    params = new Object[4];
-    params[0] = rsInfos;
-    params[1] = 11; // current RS id
-    params[2] = 1; // local DS id
-    params[3] = "TwinnerHost:123"; // winner url
-    testData[20] = params;
+    testData[idx++] = new Object[] {
+      rsInfos,
+      11, // current RS id
+      1, // local DS id
+      "TwinnerHost:123", // winner url
+    };
 
     /**
      * TL = target load
@@ -1671,32 +1216,22 @@ public class ComputeBestServerTest extends ReplicationTestCase
      */
 
     rsInfos = new HashMap<Integer, ReplicationServerInfo>();
+    put(rsInfos,
+        new RSInfo(11, "UwinnerHost:123", 0L, (byte)1, 1),
+        Arrays.asList(1, 2, 3));
+    put(rsInfos,
+        new RSInfo(12, "looserHost:456", 0L, (byte)1, 1),
+        Arrays.asList(4, 5));
+    put(rsInfos,
+        new RSInfo(13, "looserHost:789", 0L, (byte)1, 1),
+        Arrays.asList(6, 7));
 
-    rsInfo = new RSInfo(11, "UwinnerHost:123", 0L, (byte)1, 1);
-    connectedDSs = new ArrayList<Integer>();
-    connectedDSs.add(1);
-    connectedDSs.add(2);
-    connectedDSs.add(3);
-    rsInfos.put(11, new ReplicationServerInfo(rsInfo, connectedDSs));
-
-    rsInfo = new RSInfo(12, "looserHost:456", 0L, (byte)1, 1);
-    connectedDSs = new ArrayList<Integer>();
-    connectedDSs.add(4);
-    connectedDSs.add(5);
-    rsInfos.put(12, new ReplicationServerInfo(rsInfo, connectedDSs));
-
-    rsInfo = new RSInfo(13, "looserHost:789", 0L, (byte)1, 1);
-    connectedDSs = new ArrayList<Integer>();
-    connectedDSs.add(6);
-    connectedDSs.add(7);
-    rsInfos.put(13, new ReplicationServerInfo(rsInfo, connectedDSs));
-
-    params = new Object[4];
-    params[0] = rsInfos;
-    params[1] = 11; // current RS id
-    params[2] = 1; // local DS id
-    params[3] = "UwinnerHost:123"; // winner url
-    testData[21] = params;
+    testData[idx++] = new Object[] {
+      rsInfos,
+      11, // current RS id
+      1, // local DS id
+      "UwinnerHost:123", // winner url
+    };
 
     /**
      * TL = target load
@@ -1708,28 +1243,22 @@ public class ComputeBestServerTest extends ReplicationTestCase
      */
 
     rsInfos = new HashMap<Integer, ReplicationServerInfo>();
+    put(rsInfos,
+        new RSInfo(11, "looserHost:123", 0L, (byte)1, 1),
+        Arrays.asList(1, 2));
+    put(rsInfos,
+        new RSInfo(12, "looserHost:456", 0L, (byte)1, 1),
+        Arrays.asList(3));
+    put(rsInfos,
+        new RSInfo(13, "VwinnerHost:789", 0L, (byte)1, 1),
+        EMPTY_LIST);
 
-    rsInfo = new RSInfo(11, "looserHost:123", 0L, (byte)1, 1);
-    connectedDSs = new ArrayList<Integer>();
-    connectedDSs.add(1);
-    connectedDSs.add(2);
-    rsInfos.put(11, new ReplicationServerInfo(rsInfo, connectedDSs));
-
-    rsInfo = new RSInfo(12, "looserHost:456", 0L, (byte)1, 1);
-    connectedDSs = new ArrayList<Integer>();
-    connectedDSs.add(3);
-    rsInfos.put(12, new ReplicationServerInfo(rsInfo, connectedDSs));
-
-    rsInfo = new RSInfo(13, "VwinnerHost:789", 0L, (byte)1, 1);
-    connectedDSs = new ArrayList<Integer>();
-    rsInfos.put(13, new ReplicationServerInfo(rsInfo, connectedDSs));
-
-    params = new Object[4];
-    params[0] = rsInfos;
-    params[1] = 11; // current RS id
-    params[2] = 1; // local DS id
-    params[3] = null; // winner url
-    testData[22] = params;
+    testData[idx++] = new Object[] {
+      rsInfos,
+      11, // current RS id
+      1, // local DS id
+      null, // winner url
+    };
 
     /**
      * TL = target load
@@ -1741,30 +1270,32 @@ public class ComputeBestServerTest extends ReplicationTestCase
      */
 
     rsInfos = new HashMap<Integer, ReplicationServerInfo>();
+    put(rsInfos,
+        new RSInfo(11, "WwinnerHost:123", 0L, (byte)1, 1),
+        Arrays.asList(1, 2));
+    put(rsInfos,
+        new RSInfo(12, "looserHost:456", 0L, (byte)1, 1),
+        Arrays.asList(3));
+    put(rsInfos,
+        new RSInfo(13, "looserHost:789", 0L, (byte)1, 1),
+        EMPTY_LIST);
 
-    rsInfo = new RSInfo(11, "WwinnerHost:123", 0L, (byte)1, 1);
-    connectedDSs = new ArrayList<Integer>();
-    connectedDSs.add(1);
-    connectedDSs.add(2);
-    rsInfos.put(11, new ReplicationServerInfo(rsInfo, connectedDSs));
-
-    rsInfo = new RSInfo(12, "looserHost:456", 0L, (byte)1, 1);
-    connectedDSs = new ArrayList<Integer>();
-    connectedDSs.add(3);
-    rsInfos.put(12, new ReplicationServerInfo(rsInfo, connectedDSs));
-
-    rsInfo = new RSInfo(13, "looserHost:789", 0L, (byte)1, 1);
-    connectedDSs = new ArrayList<Integer>();
-    rsInfos.put(13, new ReplicationServerInfo(rsInfo, connectedDSs));
-
-    params = new Object[4];
-    params[0] = rsInfos;
-    params[1] = 11; // current RS id
-    params[2] = 2; // local DS id
-    params[3] = "WwinnerHost:123"; // winner url
-    testData[23] = params;
+    testData[idx++] = new Object[] {
+      rsInfos,
+      11, // current RS id
+      2, // local DS id
+      "WwinnerHost:123", // winner url
+    };
 
     return testData;
+  }
+
+  private void put(Map<Integer, ReplicationServerInfo> rsInfos, RSInfo rsInfo,
+      List<Integer> connectedDSs)
+  {
+    ReplicationServerInfo info =
+        new ReplicationServerInfo(rsInfo, connectedDSs);
+    rsInfos.put(info.getServerId(), info);
   }
 
   /**
