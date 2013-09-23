@@ -661,8 +661,7 @@ public final class LDAPURL
    *                              to decode the contents of the
    *                              provided string.
    */
-  private static String urlDecode(String s)
-          throws DirectoryException
+  static String urlDecode(String s) throws DirectoryException
   {
     if (s == null)
     {
