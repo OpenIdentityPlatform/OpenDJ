@@ -27,7 +27,6 @@
  */
 package org.opends.server.replication;
 
-import java.io.File;
 import java.net.SocketTimeoutException;
 import java.util.*;
 
@@ -53,7 +52,6 @@ import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.schema.DirectoryStringSyntax;
 import org.opends.server.types.*;
 import org.opends.server.util.Base64;
-import org.opends.server.util.StaticUtils;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -1091,10 +1089,7 @@ public class InitOnLineTest extends ReplicationTestCase
 
     } finally
     {
-      if (broker2 != null)
-        broker2.stop();
-      if (broker3 != null)
-        broker3.stop();
+      stop(broker2, broker3);
       afterTest(testCase);
     }
   }
@@ -1452,7 +1447,6 @@ public class InitOnLineTest extends ReplicationTestCase
    */
   private void afterTest(String testCase)
   {
-
     // Check that the domain has completed the import/export task.
     if (replDomain != null)
     {
@@ -1474,55 +1468,16 @@ public class InitOnLineTest extends ReplicationTestCase
     super.cleanConfigEntries();
     replDomain = null;
 
-    // Clean brokers
-    if (server2 != null)
-    {
-      server2.stop();
-      sleep(100); // give some time to the broker to disconnect
-      // from the replicationServer.
-      server2 = null;
-    }
-    if (server3 != null)
-    {
-      server3.stop();
-      sleep(100); // give some time to the broker to disconnect
-      // from the replicationServer.
-      server3 = null;
-    }
+    stop(server2, server3);
+    sleep(100); // give some time to the brokers to disconnect from the replicationServer.
+    server2 = server3 = null;
+
     super.cleanRealEntries();
 
-    if (changelog1 != null)
-    {
-        changelog1.clearDb();
-        changelog1.remove();
-        StaticUtils.recursiveDelete(new File(DirectoryServer.getInstanceRoot(),
-             changelog1.getDbDirName()));
-        changelog1 = null;
-    }
+    remove(changelog1, changelog2, changelog3);
+    changelog1 = changelog2 = changelog3 = null;
 
-    if (changelog2 != null)
-    {
-        changelog2.clearDb();
-        changelog2.remove();
-        StaticUtils.recursiveDelete(new File(DirectoryServer.getInstanceRoot(),
-             changelog2.getDbDirName()));
-        changelog2 = null;
-    }
-
-    if (changelog3 != null)
-    {
-        changelog3.clearDb();
-        changelog3.remove();
-        StaticUtils.recursiveDelete(new File(DirectoryServer.getInstanceRoot(),
-             changelog3.getDbDirName()));
-        changelog3 = null;
-    }
-
-    // Clean replication server ports
-    for (int i = 0; i < replServerPort.length; i++)
-    {
-      replServerPort[i] = 0;
-    }
+    Arrays.fill(replServerPort, 0);
     log("Successfully cleaned " + testCase);
   }
 

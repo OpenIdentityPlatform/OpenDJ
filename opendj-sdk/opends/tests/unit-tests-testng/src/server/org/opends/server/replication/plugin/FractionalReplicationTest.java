@@ -27,7 +27,6 @@
  */
 package org.opends.server.replication.plugin;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -56,7 +55,6 @@ import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.service.ReplicationDomain;
 import org.opends.server.types.*;
-import org.opends.server.util.StaticUtils;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -418,14 +416,8 @@ public class FractionalReplicationTest extends ReplicationTestCase {
       fractionalDomainCfgEntry = null;
     }
 
-    if (replicationServer != null)
-    {
-      replicationServer.clearDb();
-      replicationServer.remove();
-      StaticUtils.recursiveDelete(new File(DirectoryServer.getInstanceRoot(),
-                 replicationServer.getDbDirName()));
-      replicationServer = null;
-    }
+    remove(replicationServer);
+    replicationServer = null;
   }
 
   /**

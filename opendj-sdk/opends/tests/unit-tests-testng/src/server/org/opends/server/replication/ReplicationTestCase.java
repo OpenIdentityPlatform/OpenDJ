@@ -64,7 +64,6 @@ import org.opends.server.replication.service.ReplicationDomain;
 import org.opends.server.schema.DirectoryStringSyntax;
 import org.opends.server.schema.IntegerSyntax;
 import org.opends.server.types.*;
-import org.opends.server.util.StaticUtils;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -510,8 +509,31 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
    */
   protected void removeReplicationServerDB() {
     for (ReplicationServer rs : ReplicationServer.getAllInstances()) {
-      StaticUtils.recursiveDelete(new File(DirectoryServer.getInstanceRoot(),
-               rs.getDbDirName()));
+      recursiveDelete(new File(DirectoryServer.getInstanceRoot(), rs.getDbDirName()));
+    }
+  }
+
+  protected void remove(ReplicationServer... replicationServers)
+  {
+    for (ReplicationServer rs : replicationServers)
+    {
+      if (rs != null)
+      {
+        rs.clearDb();
+        rs.remove();
+        recursiveDelete(new File(DirectoryServer.getInstanceRoot(), rs.getDbDirName()));
+      }
+    }
+  }
+
+  protected void stop(ReplicationBroker... brokers)
+  {
+    for (ReplicationBroker broker : brokers)
+    {
+      if (broker != null)
+      {
+        broker.stop();
+      }
     }
   }
 

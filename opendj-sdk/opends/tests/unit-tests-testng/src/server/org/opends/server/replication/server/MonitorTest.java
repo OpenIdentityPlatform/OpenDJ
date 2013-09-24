@@ -27,6 +27,10 @@
  */
 package org.opends.server.replication.server;
 
+import java.io.ByteArrayOutputStream;
+import java.net.SocketException;
+import java.util.*;
+
 import org.opends.messages.Category;
 import org.opends.messages.Message;
 import org.opends.messages.Severity;
@@ -44,17 +48,8 @@ import org.opends.server.tools.LDAPSearch;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
-import org.opends.server.util.StaticUtils;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
-
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.net.SocketException;
-import java.util.ArrayList;
-import java.util.SortedSet;
-import java.util.TreeSet;
-import java.util.UUID;
 
 import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.loggers.ErrorLogger.*;
@@ -436,49 +431,14 @@ public class MonitorTest extends ReplicationTestCase
   {
     debugInfo("Post test cleaning.");
 
-    // Clean brokers
-    if (broker2 != null)
-      broker2.stop();
-    broker2 = null;
-    if (broker3 != null)
-      broker3.stop();
-    broker3 = null;
-    if (broker4 != null)
-      broker4.stop();
-    broker4 = null;
-
-    if (replServer1 != null)
-    {
-      replServer1.clearDb();
-      replServer1.remove();
-      StaticUtils.recursiveDelete(new File(DirectoryServer.getInstanceRoot(),
-                 replServer1.getDbDirName()));
-      replServer1 = null;
-    }
-    if (replServer2 != null)
-    {
-      replServer2.clearDb();
-      replServer2.remove();
-      StaticUtils.recursiveDelete(new File(DirectoryServer.getInstanceRoot(),
-                 replServer2.getDbDirName()));
-      replServer2 = null;
-    }
-    if (replServer3 != null)
-    {
-      replServer3.clearDb();
-      replServer3.remove();
-      StaticUtils.recursiveDelete(new File(DirectoryServer.getInstanceRoot(),
-                 replServer3.getDbDirName()));
-     replServer3 = null;
-    }
+    stop(broker2, broker3, broker4);
+    broker2 = broker3 = broker4 = null;
+    remove(replServer1, replServer2, replServer3);
+    replServer1 = replServer2 = replServer3 = null;
 
     super.cleanRealEntries();
 
-    // Clean replication server ports
-    for (int i = 0; i < replServerPort.length; i++)
-    {
-      replServerPort[i] = 0;
-    }
+    Arrays.fill(replServerPort, 0);
 
     try
     {

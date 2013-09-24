@@ -862,7 +862,7 @@ public class ReplicationServerTest extends ReplicationTestCase
       }
       finally
       {
-        removeRsAndChangeLog(changelogs);
+        remove(changelogs);
         stop(broker1, broker2);
       }
     }
@@ -1751,31 +1751,9 @@ public class ReplicationServerTest extends ReplicationTestCase
        }
        finally
        {
-      removeRsAndChangeLog(changelogs);
+      remove(changelogs);
       stop(broker1, broker2);
        }
-  }
-
-  private void stop(ReplicationBroker... brokers)
-  {
-    for (ReplicationBroker broker : brokers)
-    {
-      if (broker != null)
-        broker.stop();
-    }
-  }
-
-  private void removeRsAndChangeLog(ReplicationServer... replicationServers)
-  {
-    for (ReplicationServer rs : replicationServers)
-    {
-      if (rs != null)
-      {
-        rs.remove();
-        recursiveDelete(new File(DirectoryServer.getInstanceRoot(), rs
-            .getDbDirName()));
-      }
-    }
   }
 
 }

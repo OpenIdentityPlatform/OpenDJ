@@ -27,7 +27,6 @@
  */
 package org.opends.server.replication.plugin;
 
-import java.io.File;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.*;
@@ -38,7 +37,6 @@ import org.opends.messages.Severity;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.std.meta.ReplicationDomainCfgDefn.AssuredType;
 import org.opends.server.config.ConfigException;
-import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.AssuredMode;
@@ -50,7 +48,6 @@ import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.types.DN;
 import org.opends.server.types.HostPort;
-import org.opends.server.util.StaticUtils;
 import org.testng.annotations.Test;
 
 import static org.opends.server.TestCaseUtils.*;
@@ -213,36 +210,9 @@ public class TopologyViewTest extends ReplicationTestCase
 
     // Clear any reference to a domain in synchro plugin
     MultimasterReplication.deleteDomain(DN.decode(TEST_ROOT_DN_STRING));
-
-    if (rs1 != null)
-    {
-      rs1.clearDb();
-      rs1.remove();
-      StaticUtils.recursiveDelete(new File(DirectoryServer.getInstanceRoot(),
-            rs1.getDbDirName()));
-      rs1 = null;
-    }
-
-    if (rs2 != null)
-    {
-      rs2.clearDb();
-      rs2.remove();
-      StaticUtils.recursiveDelete(new File(DirectoryServer.getInstanceRoot(),
-            rs2.getDbDirName()));
-      rs2 = null;
-    }
-
-    if (rs3 != null)
-    {
-      rs3.clearDb();
-      rs3.remove();
-      StaticUtils.recursiveDelete(new File(DirectoryServer.getInstanceRoot(),
-            rs3.getDbDirName()));
-      rs3 = null;
-    }
-    rs1Port = -1;
-    rs2Port = -1;
-    rs3Port = -1;
+    remove(rs1, rs2, rs3);
+    rs1 = rs2 = rs3 = null;
+    rs1Port = rs2Port = rs3Port = -1;
   }
 
   /**
