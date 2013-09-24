@@ -27,7 +27,6 @@
  */
 package org.opends.server.replication.plugin;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.SocketTimeoutException;
 import java.util.ArrayList;
@@ -57,7 +56,6 @@ import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
-import org.opends.server.util.StaticUtils;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
@@ -119,28 +117,10 @@ public class StateMachineTest extends ReplicationTestCase
 
     // Clear any reference to a domain in synchro plugin
     MultimasterReplication.deleteDomain(EXAMPLE_DN_);
-
-    if (ds2 != null)
-    {
-      ds2.stop();
-      ds2 = null;
-    }
-
-     if (ds3 != null)
-    {
-      ds3.stop();
-      ds3 = null;
-    }
-
-    if (rs1 != null)
-    {
-      rs1.clearDb();
-      rs1.remove();
-      StaticUtils.recursiveDelete(new File(DirectoryServer.getInstanceRoot(),
-                 rs1.getDbDirName()));
-      rs1 = null;
-    }
-
+    stop(ds2, ds3);
+    ds2 = ds3 = null;
+    remove(rs1);
+    rs1 = null;
     rs1Port = -1;
   }
 

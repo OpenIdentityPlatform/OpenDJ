@@ -27,7 +27,6 @@
  */
 package org.opends.server.replication.plugin;
 
-import java.io.File;
 import java.util.*;
 
 import org.opends.messages.Category;
@@ -35,14 +34,12 @@ import org.opends.messages.Message;
 import org.opends.messages.Severity;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.std.server.ReplicationServerCfg;
-import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.server.ReplicationServerDomain;
 import org.opends.server.types.DN;
-import org.opends.server.util.StaticUtils;
 import org.testng.annotations.Test;
 
 import static org.opends.server.TestCaseUtils.*;
@@ -103,18 +100,9 @@ public class ReplicationServerLoadBalancingTest extends ReplicationTestCase
 
     // Clear any reference to a domain in synchro plugin
     MultimasterReplication.deleteDomain(DN.decode(TEST_ROOT_DN_STRING));
-
-    for (int i = 0; i < NRS; i++)
-    {
-      if (rs[i] != null)
-      {
-        stopRs(i);
-        StaticUtils.recursiveDelete(new File(DirectoryServer.getInstanceRoot(),
-                 rs[i].getDbDirName()));
-        rs[i] = null;
-      }
-      rsPort[i] = -1;
-    }
+    remove(rs);
+    Arrays.fill(rs, null);
+    Arrays.fill(rsPort, -1);
     debugInfo("endTest done");
   }
 

@@ -51,7 +51,6 @@ import org.opends.server.replication.server.ReplicationServerDomain;
 import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.tasks.LdifFileWriter;
 import org.opends.server.types.*;
-import org.opends.server.util.StaticUtils;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -735,11 +734,9 @@ public class GenerationIdTest extends ReplicationTestCase
       long genIdBeforeShut = replServer1.getGenerationId(baseDN);
 
       debugInfo("Shutdown replServer1");
-      broker2.stop();
-      broker2 = null;
-      broker3.stop();
-      broker3 = null;
-      replServer1.remove();
+      stop(broker2, broker3);
+      broker2 = broker3 = null;
+      remove(replServer1);
       replServer1 = null;
 
       debugInfo("Create again replServer1");
@@ -1176,46 +1173,14 @@ public class GenerationIdTest extends ReplicationTestCase
   {
     debugInfo("Post test cleaning.");
 
-    // Clean brokers
-    if (broker2 != null)
-      broker2.stop();
-    broker2 = null;
-    if (broker3 != null)
-      broker3.stop();
-    broker3 = null;
-
-    if (replServer1 != null)
-    {
-      replServer1.clearDb();
-      replServer1.remove();
-      StaticUtils.recursiveDelete(new File(DirectoryServer.getInstanceRoot(),
-               replServer1.getDbDirName()));
-      replServer1 = null;
-    }
-    if (replServer2 != null)
-    {
-      replServer2.clearDb();
-      replServer2.remove();
-      StaticUtils.recursiveDelete(new File(DirectoryServer.getInstanceRoot(),
-            replServer2.getDbDirName()));
-      replServer2 = null;
-    }
-    if (replServer3 != null)
-    {
-      replServer3.clearDb();
-      replServer3.remove();
-      StaticUtils.recursiveDelete(new File(DirectoryServer.getInstanceRoot(),
-             replServer3.getDbDirName()));
-      replServer3 = null;
-    }
+    stop(broker2, broker3);
+    broker2 = broker3 = null;
+    remove(replServer1, replServer2, replServer3);
+    replServer1 = replServer2 = replServer3 = null;
 
     super.cleanRealEntries();
 
-    // Clean replication server ports
-    for (int i = 0; i < replServerPort.length; i++)
-    {
-      replServerPort[i] = 0;
-    }
+    Arrays.fill(replServerPort, 0);
 
     debugInfo("Clearing DS backend");
     try
@@ -1312,8 +1277,7 @@ public class GenerationIdTest extends ReplicationTestCase
       }
     } finally
     {
-      if (broker != null)
-        broker.stop();
+      stop(broker);
       postTest();
     }
   }

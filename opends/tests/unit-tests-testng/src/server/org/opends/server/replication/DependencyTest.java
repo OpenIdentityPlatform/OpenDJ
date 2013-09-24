@@ -27,10 +27,6 @@
  */
 package org.opends.server.replication;
 
-import static org.opends.server.TestCaseUtils.*;
-import static org.testng.Assert.*;
-
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.LinkedList;
@@ -52,8 +48,10 @@ import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.types.*;
-import org.opends.server.util.StaticUtils;
 import org.testng.annotations.Test;
+
+import static org.opends.server.TestCaseUtils.*;
+import static org.testng.Assert.*;
 
 /**
  * Test that the dependencies are computed correctly when replaying
@@ -225,11 +223,7 @@ public class DependencyTest extends ReplicationTestCase
     }
     finally
     {
-      if (replServer != null) {
-        replServer.remove();
-        StaticUtils.recursiveDelete(new File(DirectoryServer.getInstanceRoot(),
-            replServer.getDbDirName()));
-      }
+      remove(replServer);
       if (domain != null)
         MultimasterReplication.deleteDomain(baseDn);
     }
@@ -342,12 +336,7 @@ public class DependencyTest extends ReplicationTestCase
     }
     finally
     {
-      if (replServer != null) {
-        replServer.remove();
-        StaticUtils.recursiveDelete(new File(DirectoryServer.getInstanceRoot(),
-            replServer.getDbDirName()));
-      }
-
+      remove(replServer);
       if (domain != null)
         MultimasterReplication.deleteDomain(baseDn);
     }
@@ -501,12 +490,7 @@ public class DependencyTest extends ReplicationTestCase
     }
     finally
     {
-      if (replServer != null) {
-        replServer.remove();
-        StaticUtils.recursiveDelete(new File(DirectoryServer.getInstanceRoot(),
-            replServer.getDbDirName()));
-      }
-
+      remove(replServer);
       if (domain != null)
         MultimasterReplication.deleteDomain(baseDn);
     }
@@ -609,12 +593,7 @@ public class DependencyTest extends ReplicationTestCase
     }
     finally
     {
-      if (replServer != null) {
-        replServer.remove();
-        StaticUtils.recursiveDelete(new File(DirectoryServer.getInstanceRoot(),
-            replServer.getDbDirName()));
-      }
-
+      remove(replServer);
       if (domain != null)
         MultimasterReplication.deleteDomain(baseDn);
     }

@@ -62,7 +62,6 @@ import org.opends.server.tools.LDAPWriter;
 import org.opends.server.types.*;
 import org.opends.server.util.LDIFWriter;
 import org.opends.server.util.ServerConstants;
-import org.opends.server.util.StaticUtils;
 import org.opends.server.util.TimeThread;
 import org.opends.server.workflowelement.externalchangelog.ECLSearchOperation;
 import org.opends.server.workflowelement.externalchangelog.ECLWorkflowElement;
@@ -536,17 +535,6 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     finally
     {
       stop(serverECL, server01, server02);
-    }
-  }
-
-  private void stop(ReplicationBroker... brokers)
-  {
-    for (ReplicationBroker broker : brokers)
-    {
-      if (broker != null)
-      {
-        broker.stop();
-      }
     }
   }
 
@@ -2090,11 +2078,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
    */
   private void shutdown() throws Exception
   {
-    if (replicationServer != null) {
-      replicationServer.remove();
-      StaticUtils.recursiveDelete(new File(DirectoryServer.getInstanceRoot(),
-            replicationServer.getDbDirName()));
-    }
+    remove(replicationServer);
     replicationServer = null;
   }
 

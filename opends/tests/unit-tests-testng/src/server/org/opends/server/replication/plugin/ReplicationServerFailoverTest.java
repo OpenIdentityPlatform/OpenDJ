@@ -27,7 +27,6 @@
  */
 package org.opends.server.replication.plugin;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -37,14 +36,12 @@ import org.opends.messages.Message;
 import org.opends.messages.Severity;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.config.ConfigException;
-import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.types.DN;
 import org.opends.server.types.HostPort;
-import org.opends.server.util.StaticUtils;
 import org.testng.annotations.Test;
 
 import static org.opends.server.TestCaseUtils.*;
@@ -84,12 +81,9 @@ public class ReplicationServerFailoverTest extends ReplicationTestCase
 
   private void initTest() throws IOException
   {
-    rs1Port = -1;
-    rs2Port = -1;
-    rd1 = null;
-    rd2 = null;
-    rs1 = null;
-    rs2 = null;
+    rs1Port = rs2Port = -1;
+    rd1 = rd2 = null;
+    rs1 = rs2 = null;
     findFreePorts();
   }
 
@@ -109,24 +103,9 @@ public class ReplicationServerFailoverTest extends ReplicationTestCase
 
     // Clear any reference to a domain in synchro plugin
     MultimasterReplication.deleteDomain(DN.decode(TEST_ROOT_DN_STRING));
-
-    rs1 = clear(rs1);
-    rs2 = clear(rs2);
-
-    rs1Port = -1;
-    rs2Port = -1;
-  }
-
-  private ReplicationServer clear(ReplicationServer rs)
-  {
-    if (rs != null)
-    {
-      rs.clearDb();
-      rs.remove();
-      StaticUtils.recursiveDelete(new File(DirectoryServer.getInstanceRoot(),
-          rs.getDbDirName()));
-    }
-    return null;
+    remove(rs1, rs2);
+    rs1 = rs2 = null;
+    rs1Port = rs2Port = -1;
   }
 
   /**
