@@ -1706,16 +1706,16 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
   }
 
   /**
-   * Returns the ServerState describing the last change from this replica.
+   * Returns the ServerState describing the newest CSNs from this domain.
    *
-   * @return The ServerState describing the last change from this replica.
+   * @return The ServerState describing the newest CSNs from this domain.
    */
   public ServerState getDbServerState()
   {
     ServerState serverState = new ServerState();
-    for (CSN lastCSN : changelogDB.getDomainLastCSNs(baseDN).values())
+    for (CSN newestCSN : changelogDB.getDomainNewestCSNs(baseDN).values())
     {
-      serverState.update(lastCSN);
+      serverState.update(newestCSN);
     }
     return serverState;
   }
@@ -2623,19 +2623,20 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
   }
 
   /**
-   * Returns the start state of the domain, made of the first (oldest)
-   * change stored for each serverId.
-   * Note: Because the replication changelogdb trimming always keep one change
-   * whatever its date, the change contained in the returned state can be very
-   * old.
+   * Returns the start state of the domain, made of the oldest CSN stored for
+   * each serverId.
+   * <p>
+   * Note: Because the replication changelogDB trimming always keep one change
+   * whatever its date, the CSN contained in the returned state can be very old.
+   *
    * @return the start state of the domain.
    */
   public ServerState getStartState()
   {
     ServerState domainStartState = new ServerState();
-    for (CSN firstCSN : changelogDB.getDomainFirstCSNs(baseDN).values())
+    for (CSN oldestCSN : changelogDB.getDomainOldestCSNs(baseDN).values())
     {
-      domainStartState.update(firstCSN);
+      domainStartState.update(oldestCSN);
     }
     return domainStartState;
   }
@@ -2654,11 +2655,11 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     CSN eligibleCSN = null;
 
     for (Entry<Integer, CSN> entry :
-      changelogDB.getDomainLastCSNs(baseDN).entrySet())
+      changelogDB.getDomainNewestCSNs(baseDN).entrySet())
     {
       // Consider this producer (DS/db).
       final int serverId = entry.getKey();
-      final CSN changelogLastCSN = entry.getValue();
+      final CSN changelogNewestCSN = entry.getValue();
 
       // Should it be considered for eligibility ?
       CSN heartbeatLastCSN =
@@ -2688,10 +2689,10 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
         continue;
       }
 
-      if (changelogLastCSN != null
-          && (eligibleCSN == null || changelogLastCSN.newer(eligibleCSN)))
+      if (changelogNewestCSN != null
+          && (eligibleCSN == null || changelogNewestCSN.newer(eligibleCSN)))
       {
-        eligibleCSN = changelogLastCSN;
+        eligibleCSN = changelogNewestCSN;
       }
       if (heartbeatLastCSN != null
           && (eligibleCSN == null || heartbeatLastCSN.newer(eligibleCSN)))
