@@ -32,14 +32,20 @@ import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.opends.messages.Message;
 import org.opends.server.loggers.debug.DebugTracer;
 
+import static org.opends.messages.ReplicationMessages.*;
+import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 
 /**
- * This class defines a data structure that combines an address and
- * port number, as may be used to accept a connection from or initiate
- * a connection to a remote system.
+ * This class defines a data structure that combines an address and port number,
+ * as may be used to accept a connection from or initiate a connection to a
+ * remote system.
+ * <p>
+ * Due to the possibility of live network configuration changes, instances of
+ * this class are not intended for caching and should be rebuilt on demand.
  */
 @org.opends.server.types.PublicAPI(
      stability=org.opends.server.types.StabilityLevel.UNCOMMITTED,
@@ -48,8 +54,12 @@ import static org.opends.server.loggers.debug.DebugLogger.*;
      mayInvoke=true)
 public final class HostPort
 {
+
   /** The tracer object for the debug logger. */
   private static final DebugTracer TRACER = getTracer();
+
+  /** Constant that represents the local host. */
+  private static final String LOCALHOST = "localhost";
 
   /**
    * The wildcard address allows to instruct a server to
@@ -61,14 +71,22 @@ public final class HostPort
 
 
 
-
-  /** The supplied host for this object. */
+  /**
+   * The supplied host for this object.
+   * <p>
+   * Keeping the supplied host name allows to rebuild the HostPort object in
+   * case the network configuration changed on the current machine.
+   */
   private final String host;
 
   /**
    * The normalized host for this object.
    * <p>
-   * Normalization consists of converting local addresses to "localhost".
+   * Normalization consists of:
+   * <ul>
+   * <li>convert all local addresses to "localhost"</li>
+   * <li>convert remote host name / addresses to the equivalent IP address</li>
+   * </ul>
    */
   private final String normalizedHost;
 
@@ -203,7 +221,7 @@ public final class HostPort
   public HostPort(String host, int port)
   {
     this.host = removeExtraChars(host);
-    this.normalizedHost = normalizedHost(this.host);
+    this.normalizedHost = normalizeHost(this.host);
     this.port = normalizePort(port);
   }
 
@@ -228,26 +246,36 @@ public final class HostPort
       IllegalArgumentException
   {
     final int sepIndex = hostPort.lastIndexOf(':');
-    if (sepIndex == -1)
+    if ((hostPort.charAt(0) == '['
+        && hostPort.charAt(hostPort.length() - 1) == ']')
+        || sepIndex == -1)
     {
       throw new IllegalArgumentException(
           "Invalid host/port string: no network port was provided in '"
               + hostPort + "'");
     }
-    if (sepIndex == 0)
+    else if (sepIndex == 0)
     {
       throw new IllegalArgumentException(
           "Invalid host/port string: no host name was provided in '" + hostPort
               + "'");
     }
+    else if (hostPort.lastIndexOf(':', sepIndex - 1) != -1
+        && (hostPort.charAt(0) != '[' || hostPort.charAt(sepIndex - 1) != ']'))
+    {
+      throw new IllegalArgumentException(
+          "Invalid host/port string: Suspected IPv6 address provided in '"
+              + hostPort + "'. The only allowed format for providing IPv6 "
+              + "addresses is '[IPv6 address]:port'");
+    }
     String host = sepIndex != -1 ? hostPort.substring(0, sepIndex) : hostPort;
-    int port = Integer.parseInt(hostPort.substring(sepIndex + 1).trim());
+    int port = Integer.parseInt(hostPort.substring(sepIndex + 1));
     return new HostPort(host, port);
   }
 
   /**
-   * Removes extra characters from the host name: leading and trailing white
-   * spaces, and surrounding square brackets for IPv6 addresses.
+   * Removes extra characters from the host name: surrounding square brackets
+   * for IPv6 addresses.
    *
    * @param host
    *          the host name to clean
@@ -255,7 +283,6 @@ public final class HostPort
    */
   private String removeExtraChars(String host)
   {
-    host = host.trim();
     final int startsWith = host.indexOf("[");
     if (startsWith == -1)
     {
@@ -272,13 +299,33 @@ public final class HostPort
    * @return a normalized String representation of the supplied host.
    * @see #normalizedHost what host normalization covers
    */
-  private String normalizedHost(String host)
+  private String normalizeHost(String host)
   {
-    if (isLocalAddress(host))
-    {
-      return "localhost";
+    if (LOCALHOST.equals(host))
+    { // it is already normalized
+      return LOCALHOST;
     }
-    return host;
+
+    try
+    {
+      final InetAddress inetAddress = InetAddress.getByName(host);
+      if (isLocalAddress(inetAddress))
+      {
+        // normalize to localhost for easier identification.
+        return LOCALHOST;
+      }
+      // else normalize to IP address for easier identification.
+      // FIXME, this does not fix the multi homing issue where a single machine
+      // has several IP addresses
+      return inetAddress.getHostAddress();
+    }
+    catch (UnknownHostException e)
+    {
+      // We could not resolve this host name, default to the provided host name
+      Message message = ERR_COULD_NOT_SOLVE_HOSTNAME.get(host);
+      logError(message);
+      return host;
+    }
   }
 
   /**
@@ -329,7 +376,7 @@ public final class HostPort
    */
   public boolean isLocalAddress()
   {
-    return isLocalAddress(getHost());
+    return LOCALHOST.equals(this.normalizedHost);
   }
 
   /**
@@ -452,12 +499,17 @@ public final class HostPort
       return false;
     if (obj == this)
       return true;
-    if (obj instanceof HostPort)
-    {
-      final HostPort other = (HostPort) obj;
-      return toNormalizedString().equals(other.toNormalizedString());
-    }
-    return false;
+    if (getClass() != obj.getClass())
+      return false;
+
+    HostPort other = (HostPort) obj;
+    if (normalizedHost == null)
+      if (other.normalizedHost != null)
+        return false;
+    else if (!normalizedHost.equals(other.normalizedHost))
+      return false;
+
+    return port == other.port;
   }
 
   /**
@@ -468,8 +520,12 @@ public final class HostPort
   @Override
   public int hashCode()
   {
-    return toNormalizedString().hashCode();
+    final int prime = 31;
+    int result = 1;
+    result = prime * result
+            + ((normalizedHost == null) ? 0 : normalizedHost.hashCode());
+    result = prime * result + port;
+    return result;
   }
 
 }
-
