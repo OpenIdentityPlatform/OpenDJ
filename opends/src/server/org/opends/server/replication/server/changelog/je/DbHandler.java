@@ -111,8 +111,8 @@ public class DbHandler implements Runnable
   private int queueByteSize = 0;
 
   private ReplicationDB db;
-  private CSN firstChange;
-  private CSN lastChange;
+  private CSN oldestCSN;
+  private CSN newestCSN;
   private int serverId;
   private DN baseDN;
   private DbMonitorProvider dbMonitor = new DbMonitorProvider();
@@ -153,8 +153,8 @@ public class DbHandler implements Runnable
     queueLowmarkBytes = 200 * queueLowmark;
     queueHimarkBytes = 200 * queueLowmark;
     db = new ReplicationDB(id, baseDN, replicationServer, dbenv);
-    firstChange = db.readFirstChange();
-    lastChange = db.readLastChange();
+    oldestCSN = db.readOldestCSN();
+    newestCSN = db.readNewestCSN();
     thread = new DirectoryThread(this, "Replication server RS("
         + replicationServer.getServerId()
         + ") changelog checkpointer for Replica DS(" + id
@@ -198,13 +198,13 @@ public class DbHandler implements Runnable
 
       queueByteSize += update.size();
       msgQueue.add(update);
-      if (lastChange == null || lastChange.older(update.getCSN()))
+      if (newestCSN == null || newestCSN.older(update.getCSN()))
       {
-        lastChange = update.getCSN();
+        newestCSN = update.getCSN();
       }
-      if (firstChange == null)
+      if (oldestCSN == null)
       {
-        firstChange = update.getCSN();
+        oldestCSN = update.getCSN();
       }
     }
   }
@@ -225,21 +225,23 @@ public class DbHandler implements Runnable
   }
 
   /**
-   * Get the firstChange.
-   * @return Returns the firstChange.
+   * Get the oldest CSN that has not been purged yet.
+   *
+   * @return the oldest CSN that has not been purged yet.
    */
-  public CSN getFirstChange()
+  public CSN getOldestCSN()
   {
-    return firstChange;
+    return oldestCSN;
   }
 
   /**
-   * Get the lastChange.
-   * @return Returns the lastChange.
+   * Get the newest CSN that has not been purged yet.
+   *
+   * @return the newest CSN that has not been purged yet.
    */
-  public CSN getLastChange()
+  public CSN getNewestCSN()
   {
-    return lastChange;
+    return newestCSN;
   }
 
   /**
@@ -249,9 +251,9 @@ public class DbHandler implements Runnable
    */
   public long getChangesCount()
   {
-    if (lastChange != null && firstChange != null)
+    if (newestCSN != null && oldestCSN != null)
     {
-      return lastChange.getSeqnum() - firstChange.getSeqnum() + 1;
+      return newestCSN.getSeqnum() - oldestCSN.getSeqnum() + 1;
     }
     return 0;
   }
@@ -453,13 +455,13 @@ public class DbHandler implements Runnable
               return;
             }
 
-            if (!csn.equals(lastChange) && csn.older(trimDate))
+            if (!csn.equals(newestCSN) && csn.older(trimDate))
             {
               cursor.delete();
             }
             else
             {
-              firstChange = csn;
+              oldestCSN = csn;
               return;
             }
           }
@@ -532,13 +534,13 @@ public class DbHandler implements Runnable
           String.valueOf(serverId)));
       attributes.add(Attributes.create("domain-name",
           baseDN.toNormalizedString()));
-      if (firstChange != null)
+      if (oldestCSN != null)
       {
-        attributes.add(Attributes.create("first-change", encode(firstChange)));
+        attributes.add(Attributes.create("first-change", encode(oldestCSN)));
       }
-      if (lastChange != null)
+      if (newestCSN != null)
       {
-        attributes.add(Attributes.create("last-change", encode(lastChange)));
+        attributes.add(Attributes.create("last-change", encode(newestCSN)));
       }
       attributes.add(
           Attributes.create("queue-size", String.valueOf(msgQueue.size())));
@@ -581,7 +583,7 @@ public class DbHandler implements Runnable
   @Override
   public String toString()
   {
-    return baseDN + " " + serverId + " " + firstChange + " " + lastChange;
+    return baseDN + " " + serverId + " " + oldestCSN + " " + newestCSN;
   }
 
   /**
@@ -606,8 +608,8 @@ public class DbHandler implements Runnable
       queueByteSize = 0;
 
       db.clear();
-      firstChange = db.readFirstChange();
-      lastChange = db.readLastChange();
+      oldestCSN = db.readOldestCSN();
+      newestCSN = db.readNewestCSN();
     }
   }
 

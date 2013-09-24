@@ -326,11 +326,11 @@ public class ReplicationDB
   }
 
   /**
-   * Read the first Change from the database.
+   * Read the oldest CSN present in the database.
    *
-   * @return the first CSN.
+   * @return the oldest CSN in the DB, null if the DB is empty or closed
    */
-  public CSN readFirstChange()
+  public CSN readOldestCSN()
   {
     dbCloseLock.readLock().lock();
 
@@ -383,11 +383,11 @@ public class ReplicationDB
 
 
   /**
-   * Read the last Change from the database.
+   * Read the newest CSN present in the database.
    *
-   * @return the last CSN.
+   * @return the newest CSN in the DB, null if the DB is empty or closed
    */
-  public CSN readLastChange()
+  public CSN readNewestCSN()
   {
     dbCloseLock.readLock().lock();
 
