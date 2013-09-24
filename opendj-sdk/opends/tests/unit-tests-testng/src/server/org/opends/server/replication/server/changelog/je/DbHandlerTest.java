@@ -121,8 +121,8 @@ public class DbHandlerTest extends ReplicationTestCase
       assertNotFound(handler, csn5);
 
       // Test first and last
-      assertEquals(csn1, handler.getFirstChange());
-      assertEquals(csn3, handler.getLastChange());
+      assertEquals(csn1, handler.getOldestCSN());
+      assertEquals(csn3, handler.getNewestCSN());
 
       //--
 			// Cursor tests with db and memory queue populated
@@ -144,9 +144,9 @@ public class DbHandlerTest extends ReplicationTestCase
       int count = 300;  // wait at most 60 seconds
       while (!purged && (count > 0))
       {
-        CSN firstChange = handler.getFirstChange();
-        CSN lastChange = handler.getLastChange();
-        if (!firstChange.equals(csn4) || !lastChange.equals(csn4))
+        CSN oldestCSN = handler.getOldestCSN();
+        CSN newestCSN = handler.getNewestCSN();
+        if (!oldestCSN.equals(csn4) || !newestCSN.equals(csn4))
         {
           TestCaseUtils.sleep(100);
         } else
@@ -266,15 +266,15 @@ public class DbHandlerTest extends ReplicationTestCase
       handler.add(new DeleteMsg(TEST_ROOT_DN_STRING, csn3, "uid"));
 
       // Check they are here
-      assertEquals(csn1, handler.getFirstChange());
-      assertEquals(csn3, handler.getLastChange());
+      assertEquals(csn1, handler.getOldestCSN());
+      assertEquals(csn3, handler.getNewestCSN());
 
       // Clear ...
       handler.clear();
 
       // Check the db is cleared.
-      assertEquals(null, handler.getFirstChange());
-      assertEquals(null, handler.getLastChange());
+      assertEquals(null, handler.getOldestCSN());
+      assertEquals(null, handler.getNewestCSN());
 
     } finally
     {
@@ -365,10 +365,10 @@ public class DbHandlerTest extends ReplicationTestCase
       handler.flush();
 
       // Test first and last
-      CSN csn1 = handler.getFirstChange();
-      assertEquals(csn1, csnArray[1], "First change");
-      CSN csnLast = handler.getLastChange();
-      assertEquals(csnLast, csnArray[max], "Last change");
+      CSN csn1 = handler.getOldestCSN();
+      assertEquals(csn1, csnArray[1], "Wrong oldest CSN");
+      CSN csnLast = handler.getNewestCSN();
+      assertEquals(csnLast, csnArray[max], "Wrong newest CSN");
 
       // Test count in different subcases trying to handle all special cases
       // regarding the 'counter' record and 'count' algorithm
@@ -448,10 +448,10 @@ public class DbHandlerTest extends ReplicationTestCase
       handler.setCounterWindowSize(counterWindow);
 
       // Test first and last
-      csn1 = handler.getFirstChange();
-      assertEquals(csn1, csnArray[1], "First change");
-      csnLast = handler.getLastChange();
-      assertEquals(csnLast, csnArray[max], "Last change");
+      csn1 = handler.getOldestCSN();
+      assertEquals(csn1, csnArray[1], "Wrong oldest CSN");
+      csnLast = handler.getNewestCSN();
+      assertEquals(csnLast, csnArray[max], "Wrong newest CSN");
 
       testcase="FROM our first generated change TO now (> newest change in the db)";
       actualCnt = handler.getCount(csnArray[1], newerThanLast);
@@ -469,10 +469,10 @@ public class DbHandlerTest extends ReplicationTestCase
       handler.flush();
 
       // Test first and last
-      csn1 = handler.getFirstChange();
-      assertEquals(csn1, csnArray[1], "First change");
-      csnLast = handler.getLastChange();
-      assertEquals(csnLast, csnArray[2 * max], "Last change");
+      csn1 = handler.getOldestCSN();
+      assertEquals(csn1, csnArray[1], "Wrong oldest CSN");
+      csnLast = handler.getNewestCSN();
+      assertEquals(csnLast, csnArray[2 * max], "Wrong newest CSN");
 
       testcase="FROM our first generated change TO now (> newest change in the db)";
       actualCnt = handler.getCount(csnArray[1], newerThanLast);
@@ -487,16 +487,17 @@ public class DbHandlerTest extends ReplicationTestCase
       debugInfo(tn,testcase + " After purge, total count=" + totalCount);
 
       testcase="AFTER PURGE (first, last)=";
-      debugInfo(tn,testcase + handler.getFirstChange() + handler.getLastChange());
-      assertEquals(handler.getLastChange(), csnArray[2*max], "Last=");
+      debugInfo(tn, testcase + handler.getOldestCSN() + handler.getNewestCSN());
+      assertEquals(handler.getNewestCSN(), csnArray[2*max], "Newest=");
 
       testcase="AFTER PURGE ";
       actualCnt = handler.getCount(csnArray[1], newerThanLast);
       int expectedCnt;
       if (totalCount>1)
       {
-        expectedCnt = ((handler.getLastChange().getSeqnum()
-                    - handler.getFirstChange().getSeqnum() + 1)/2)+1;
+        final int newestSeqnum = handler.getNewestCSN().getSeqnum();
+        final int oldestSeqnum = handler.getOldestCSN().getSeqnum();
+        expectedCnt = ((newestSeqnum - oldestSeqnum + 1)/2) + 1;
       }
       else
       {
@@ -510,8 +511,8 @@ public class DbHandlerTest extends ReplicationTestCase
       handler.clear();
 
       // Check the db is cleared.
-      assertEquals(null, handler.getFirstChange());
-      assertEquals(null, handler.getLastChange());
+      assertEquals(null, handler.getOldestCSN());
+      assertEquals(null, handler.getNewestCSN());
       debugInfo(tn,"Success");
     }
     finally

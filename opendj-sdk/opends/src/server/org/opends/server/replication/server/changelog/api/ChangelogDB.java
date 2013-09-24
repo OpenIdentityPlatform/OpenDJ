@@ -114,24 +114,26 @@ public interface ChangelogDB
   long getDomainChangesCount(DN baseDN);
 
   /**
-   * Returns the FIRST {@link CSN}s of each serverId for the specified
+   * Returns the oldest {@link CSN}s of each serverId for the specified
    * replication domain.
    *
    * @param baseDN
    *          the replication domain baseDN
-   * @return a {serverId => FIRST CSN} Map
+   * @return a {serverId => oldest CSN} Map. If a replica DB is empty or closed,
+   *         the oldest CSN will be null for that replica.
    */
-  Map<Integer, CSN> getDomainFirstCSNs(DN baseDN);
+  Map<Integer, CSN> getDomainOldestCSNs(DN baseDN);
 
   /**
-   * Returns the LAST {@link CSN}s of each serverId for the specified
+   * Returns the newest {@link CSN}s of each serverId for the specified
    * replication domain.
    *
    * @param baseDN
    *          the replication domain baseDN
-   * @return a {serverId => LAST CSN} Map
+   * @return a {serverId => newest CSN} Map. If a replica DB is empty or closed,
+   *         the newest CSN will be null for that replica.
    */
-  Map<Integer, CSN> getDomainLastCSNs(DN baseDN);
+  Map<Integer, CSN> getDomainNewestCSNs(DN baseDN);
 
   /**
    * Retrieves the latest trim date for the specified replication domain.

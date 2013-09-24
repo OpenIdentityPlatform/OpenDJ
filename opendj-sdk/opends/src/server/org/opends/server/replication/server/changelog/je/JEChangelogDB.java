@@ -270,28 +270,28 @@ public class JEChangelogDB implements ChangelogDB
 
   /** {@inheritDoc} */
   @Override
-  public Map<Integer, CSN> getDomainFirstCSNs(DN baseDN)
+  public Map<Integer, CSN> getDomainOldestCSNs(DN baseDN)
   {
     final Map<Integer, DbHandler> domainMap = getDomainMap(baseDN);
     final Map<Integer, CSN> results =
         new HashMap<Integer, CSN>(domainMap.size());
     for (DbHandler dbHandler : domainMap.values())
     {
-      results.put(dbHandler.getServerId(), dbHandler.getFirstChange());
+      results.put(dbHandler.getServerId(), dbHandler.getOldestCSN());
     }
     return results;
   }
 
   /** {@inheritDoc} */
   @Override
-  public Map<Integer, CSN> getDomainLastCSNs(DN baseDN)
+  public Map<Integer, CSN> getDomainNewestCSNs(DN baseDN)
   {
     final Map<Integer, DbHandler> domainMap = getDomainMap(baseDN);
     final Map<Integer, CSN> results =
         new HashMap<Integer, CSN>(domainMap.size());
     for (DbHandler dbHandler : domainMap.values())
     {
-      results.put(dbHandler.getServerId(), dbHandler.getLastChange());
+      results.put(dbHandler.getServerId(), dbHandler.getNewestCSN());
     }
     return results;
   }
