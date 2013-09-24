@@ -83,6 +83,7 @@ public class LDAPURLTest extends TypesTestCase
     LDAPURL.decode(sample, true);
   }
 
+  @Test
   public void decodeSampleLDAP() throws Exception
   {
     final String sample = "ldap://";
@@ -93,6 +94,7 @@ public class LDAPURLTest extends TypesTestCase
     assertThat(ldapURL.toString()).isEqualTo(sample + "/" + DEFAULT_END_URL);
   }
 
+  @Test
   public void decodeSampleLDAPS() throws Exception
   {
     final String sample = "ldaps://";
@@ -103,6 +105,7 @@ public class LDAPURLTest extends TypesTestCase
     assertThat(ldapURL.toString()).isEqualTo(sample + "/" + DEFAULT_END_URL);
   }
 
+  @Test
   public void decodeSampleLDAPWithUselessSlash() throws Exception
   {
     final String sample = "ldap:///";
@@ -147,6 +150,7 @@ public class LDAPURLTest extends TypesTestCase
     assertThat(ldapURL.getExtensions()).isEmpty();
   }
 
+  @Test
   public void decodeSampleLDAPWithAttributes() throws Exception
   {
     final String sample = "ldap://localhost/?cn,tel,mail";
@@ -162,6 +166,7 @@ public class LDAPURLTest extends TypesTestCase
     assertThat(ldapURL.toString()).isEqualTo("ldap://localhost:389/?cn,tel,mail?base?" + DEFAULT_SEARCH_FILTER);
   }
 
+  @Test
   public void decodeSampleLDAPWithExtensions() throws Exception
   {
     final String sample = "ldap://localhost/????ext1,ext2,ext3";
@@ -227,6 +232,7 @@ public class LDAPURLTest extends TypesTestCase
     LDAPURL.decode(sample, true);
   }
 
+  @Test
   public void decodeComplexSample() throws Exception
   {
     final String sample =
@@ -243,6 +249,7 @@ public class LDAPURLTest extends TypesTestCase
     assertThat(ldapURL.toString()).isEqualToIgnoringCase(sample);
   }
 
+  @Test
   public void decodeComplexSampleWithUrlDecode() throws Exception
   {
     final String sample =
@@ -262,7 +269,7 @@ public class LDAPURLTest extends TypesTestCase
         sample.replaceAll("%2F", "/"));
   }
 
-
+  @Test
   public void urlDecodeNull() throws Exception
   {
     assertEquals(LDAPURL.urlDecode(null), "");
@@ -286,6 +293,7 @@ public class LDAPURLTest extends TypesTestCase
     assertNull(LDAPURL.urlDecode("%1z"));
   }
 
+  @Test
   public void urlDecodeAllPercentSigns() throws Exception
   {
     String decoded1 = LDAPURL.urlDecode("%21%23%24%26%27%28%29%2A%2B%2C%2F%3A%3B%3D%3F%40%5B%5D");
