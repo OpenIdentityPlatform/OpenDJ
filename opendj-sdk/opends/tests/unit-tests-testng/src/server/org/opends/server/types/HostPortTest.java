@@ -26,6 +26,7 @@
  */
 package org.opends.server.types;
 
+import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import static org.assertj.core.api.Assertions.*;
@@ -35,7 +36,9 @@ import static org.assertj.core.api.Assertions.*;
 public class HostPortTest extends TypesTestCase
 {
 
-  public void valueOfIPv4NoSpaces()
+  private static final String IPV6_ADDRESS = "2001:0db8:85a3:0000:0000:8a2e:0370:7334";
+
+  public void valueOfHostName()
   {
     final String serverURL = "home:1";
     final HostPort hp = HostPort.valueOf(serverURL);
@@ -44,11 +47,11 @@ public class HostPortTest extends TypesTestCase
     assertThat(hp.toString()).isEqualTo(serverURL);
   }
 
-  public void valueOfIPv4Spaces()
+  public void valueOfIPv4()
   {
-    final String serverURL = "home:1";
-    final HostPort hp = HostPort.valueOf("  " + serverURL + "  ");
-    assertThat(hp.getHost()).isEqualTo("home");
+    final String serverURL = "192.168.1.1:1";
+    final HostPort hp = HostPort.valueOf(serverURL);
+    assertThat(hp.getHost()).isEqualTo("192.168.1.1");
     assertThat(hp.getPort()).isEqualTo(1);
     assertThat(hp.toString()).isEqualTo(serverURL);
   }
@@ -56,14 +59,14 @@ public class HostPortTest extends TypesTestCase
   public void valueOfEqualsHashCodeIPv4()
   {
     final HostPort hp1 = HostPort.valueOf("home:1");
-    final HostPort hp2 = HostPort.valueOf(" home:1 ");
+    final HostPort hp2 = new HostPort("home", 1);
     assertThat(hp1).isEqualTo(hp2);
     assertThat(hp1.hashCode()).isEqualTo(hp2.hashCode());
   }
 
   public void valueOfIPv6Brackets()
   {
-    final String hostName = "2001:0db8:85a3:0000:0000:8a2e:0370:7334";
+    final String hostName = IPV6_ADDRESS;
     final String serverURL = "[" + hostName + "]:389";
     final HostPort hp = HostPort.valueOf(serverURL);
     assertThat(hp.getHost()).isEqualTo(hostName);
@@ -71,9 +74,10 @@ public class HostPortTest extends TypesTestCase
     assertThat(hp.toString()).isEqualTo(serverURL);
   }
 
+  @Test(expectedExceptions = IllegalArgumentException.class)
   public void valueOfIPv6NoBrackets()
   {
-    final String hostName = "2001:0db8:85a3:0000:0000:8a2e:0370:7334";
+    final String hostName = IPV6_ADDRESS;
     final HostPort hp = HostPort.valueOf(hostName + ":389");
     assertThat(hp.getHost()).isEqualTo(hostName);
     assertThat(hp.getPort()).isEqualTo(389);
@@ -82,9 +86,9 @@ public class HostPortTest extends TypesTestCase
 
   public void valueOfEqualsHashCodeIPv6()
   {
-    final String hostName = "2001:0db8:85a3:0000:0000:8a2e:0370:7334";
+    final String hostName = IPV6_ADDRESS;
     final HostPort hp1 = HostPort.valueOf("[" + hostName + "]:389");
-    final HostPort hp2 = HostPort.valueOf(" " + hostName + " : 389 ");
+    final HostPort hp2 = new HostPort(hostName, 389);
     assertThat(hp1).isEqualTo(hp2);
     assertThat(hp1.hashCode()).isEqualTo(hp2.hashCode());
   }
@@ -117,6 +121,20 @@ public class HostPortTest extends TypesTestCase
   public void valueOfPortNumberTooBig()
   {
     HostPort.valueOf("host:99999999");
+  }
+
+  public void valueOfIPv6NoPort()
+  {
+    try
+    {
+      final String hostName = "[2001:0db8:85a3:0000:0000:8a2e:0370:7334]";
+      HostPort hp = HostPort.valueOf(hostName);
+      assertThat(hp.getHost()).isEqualTo(hostName);
+    }
+    catch (IllegalArgumentException e)
+    {
+      Assert.assertEquals(e.getClass(), IllegalArgumentException.class);
+    }
   }
 
 }
