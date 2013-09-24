@@ -38,6 +38,7 @@ public class HostPortTest extends TypesTestCase
 
   private static final String IPV6_ADDRESS = "2001:0db8:85a3:0000:0000:8a2e:0370:7334";
 
+  @Test
   public void valueOfHostName()
   {
     final String serverURL = "home:1";
@@ -47,6 +48,7 @@ public class HostPortTest extends TypesTestCase
     assertThat(hp.toString()).isEqualTo(serverURL);
   }
 
+  @Test
   public void valueOfIPv4()
   {
     final String serverURL = "192.168.1.1:1";
@@ -56,6 +58,7 @@ public class HostPortTest extends TypesTestCase
     assertThat(hp.toString()).isEqualTo(serverURL);
   }
 
+  @Test
   public void valueOfEqualsHashCodeIPv4()
   {
     final HostPort hp1 = HostPort.valueOf("home:1");
@@ -64,6 +67,7 @@ public class HostPortTest extends TypesTestCase
     assertThat(hp1.hashCode()).isEqualTo(hp2.hashCode());
   }
 
+  @Test
   public void valueOfIPv6Brackets()
   {
     final String hostName = IPV6_ADDRESS;
@@ -84,6 +88,7 @@ public class HostPortTest extends TypesTestCase
     assertThat(hp.toString()).isEqualTo("[" + hostName + "]:389");
   }
 
+  @Test
   public void valueOfEqualsHashCodeIPv6()
   {
     final String hostName = IPV6_ADDRESS;
@@ -123,6 +128,7 @@ public class HostPortTest extends TypesTestCase
     HostPort.valueOf("host:99999999");
   }
 
+  @Test
   public void valueOfIPv6NoPort()
   {
     try
