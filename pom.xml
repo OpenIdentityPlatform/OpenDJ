@@ -392,7 +392,7 @@
             <suppressCommitBeforeTag>false</suppressCommitBeforeTag>
             <goals>deploy</goals>
             <arguments>-Penforce</arguments>
-          <tagNameFormat>@{project.version}</tagNameFormat>
+            <tagNameFormat>@{project.version}-sdk</tagNameFormat>
           </configuration>
         </plugin>
       </plugins>
