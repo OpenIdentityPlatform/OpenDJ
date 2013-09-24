@@ -101,7 +101,7 @@ public final class ReplicationServer
   private volatile boolean shutdown = false;
   private int rcvWindow;
   private int queueSize;
-  private final ChangelogDB changelogDB = new JEChangelogDB(this);
+  private final ChangelogDB changelogDB;
 
   /**
    * The delay (in sec) after which the changes must be deleted from the
@@ -221,8 +221,8 @@ public final class ReplicationServer
     purgeDelay = configuration.getReplicationPurgeDelay();
     rcvWindow = configuration.getWindowSize();
 
-    this.changelogDB.setReplicationDBDirectory(configuration
-        .getReplicationDBDirectory());
+    this.changelogDB =
+        new JEChangelogDB(this, configuration.getReplicationDBDirectory());
 
     groupId = (byte)configuration.getGroupId();
     weight = configuration.getWeight();
@@ -973,7 +973,7 @@ public final class ReplicationServer
     }
 
     final String newDir = configuration.getReplicationDBDirectory();
-    if (newDir != null && !this.changelogDB.getDBDirName().equals(newDir))
+    if (newDir != null && !this.changelogDB.getDBDirectoryName().equals(newDir))
     {
       return new ConfigChangeResult(ResultCode.SUCCESS, true);
     }
@@ -1744,7 +1744,7 @@ public final class ReplicationServer
    */
   public String getDbDirName()
   {
-    return this.changelogDB.getDBDirName();
+    return this.changelogDB.getDBDirectoryName();
   }
 
   /**

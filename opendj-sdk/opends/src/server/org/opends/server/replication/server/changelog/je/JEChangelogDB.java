@@ -66,8 +66,8 @@ public class JEChangelogDB implements ChangelogDB
   private final Map<DN, Map<Integer, DbHandler>> sourceDbHandlers =
       new ConcurrentHashMap<DN, Map<Integer, DbHandler>>();
   private ReplicationDbEnv dbEnv;
-  private String dbDirName = null;
-  private File dbDirectory;
+  private final String dbDirectoryName;
+  private final File dbDirectory;
 
   /** The local replication server. */
   private final ReplicationServer replicationServer;
@@ -77,10 +77,40 @@ public class JEChangelogDB implements ChangelogDB
    *
    * @param replicationServer
    *          the local replication server.
+   * @param dbDirName
+   *          the directory for use by the replication database
+   * @throws ConfigException
+   *           if a problem occurs opening the supplied directory
    */
-  public JEChangelogDB(ReplicationServer replicationServer)
+  public JEChangelogDB(ReplicationServer replicationServer, String dbDirName)
+      throws ConfigException
   {
     this.replicationServer = replicationServer;
+    this.dbDirectoryName = dbDirName != null ? dbDirName : "changelogDb";
+    this.dbDirectory = makeDir(this.dbDirectoryName);
+  }
+
+  private File makeDir(String dbDirName) throws ConfigException
+  {
+    // Check that this path exists or create it.
+    File dbDirectory = getFileForPath(dbDirName);
+    try
+    {
+      if (!dbDirectory.exists())
+      {
+        dbDirectory.mkdir();
+      }
+      return dbDirectory;
+    }
+    catch (Exception e)
+    {
+      MessageBuilder mb = new MessageBuilder();
+      mb.append(e.getLocalizedMessage());
+      mb.append(" ");
+      mb.append(String.valueOf(dbDirectory));
+      Message msg = ERR_FILE_CHECK_CREATE_FAILED.get(mb.toString());
+      throw new ConfigException(msg, e);
+    }
   }
 
   private Map<Integer, DbHandler> getDomainMap(DN baseDN)
@@ -146,8 +176,8 @@ public class JEChangelogDB implements ChangelogDB
   {
     try
     {
-      dbEnv = new ReplicationDbEnv(getFileForPath(dbDirName).getAbsolutePath(),
-          replicationServer);
+      dbEnv = new ReplicationDbEnv(
+          getFileForPath(dbDirectoryName).getAbsolutePath(), replicationServer);
       initializeChangelogState(dbEnv.readChangelogState());
     }
     catch (ChangelogException e)
@@ -369,40 +399,9 @@ public class JEChangelogDB implements ChangelogDB
 
   /** {@inheritDoc} */
   @Override
-  public void setReplicationDBDirectory(String dbDirName)
-      throws ConfigException
+  public String getDBDirectoryName()
   {
-    if (dbDirName == null)
-    {
-      dbDirName = "changelogDb";
-    }
-    this.dbDirName = dbDirName;
-
-    // Check that this path exists or create it.
-    dbDirectory = getFileForPath(this.dbDirName);
-    try
-    {
-      if (!dbDirectory.exists())
-      {
-        dbDirectory.mkdir();
-      }
-    }
-    catch (Exception e)
-    {
-      MessageBuilder mb = new MessageBuilder();
-      mb.append(e.getLocalizedMessage());
-      mb.append(" ");
-      mb.append(String.valueOf(dbDirectory));
-      Message msg = ERR_FILE_CHECK_CREATE_FAILED.get(mb.toString());
-      throw new ConfigException(msg, e);
-    }
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public String getDBDirName()
-  {
-    return this.dbDirName;
+    return this.dbDirectoryName;
   }
 
   /** {@inheritDoc} */

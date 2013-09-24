@@ -29,7 +29,6 @@ package org.opends.server.replication.server.changelog.api;
 import java.util.Map;
 import java.util.Set;
 
-import org.opends.server.config.ConfigException;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.types.DN;
@@ -52,31 +51,27 @@ public interface ChangelogDB
   // DB control methods
 
   /**
-   * Set the directory to be used by the replication database.
-   *
-   * @param dbDirName
-   *          the directory for use by the replication database
-   * @throws ConfigException
-   *           if a problem occurs opening the directory
-   */
-  void setReplicationDBDirectory(String dbDirName) throws ConfigException;
-
-  /**
    * Get the replication server database directory. This is used by tests to do
    * some cleanup.
    *
    * @return the database directory name
    */
-  String getDBDirName();
+  String getDBDirectoryName();
 
   /**
-   * Initializes the replication database.
+   * Initializes the replication database by reading its previous state and
+   * building the relevant ReplicaDBs according to the previous state. This
+   * method must be called once before using the ChangelogDB.
    */
   void initializeDB();
 
   /**
-   * Sets the purge delay for the replication database. This purge delay is a
-   * best effort.
+   * Sets the purge delay for the replication database. Can be called while the
+   * database is running.
+   * <p>
+   * Purging happens on a best effort basis, i.e. the purge delay is used by the
+   * replication database to know which data can be purged, but there are no
+   * guarantees on when the purging will actually happen.
    *
    * @param delayInMillis
    *          the purge delay in milliseconds
