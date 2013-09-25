@@ -27,14 +27,14 @@
  */
 package org.opends.server.replication.server;
 
-import static org.opends.server.TestCaseUtils.*;
-import static org.testng.Assert.*;
-
 import org.opends.server.TestCaseUtils;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.types.DN;
 import org.testng.annotations.Test;
+
+import static org.opends.server.TestCaseUtils.*;
+import static org.testng.Assert.*;
 
 /**
  * Tests that we can dynamically modify the configuration of replicationServer
@@ -49,19 +49,16 @@ public class ReplicationServerDynamicConfTest extends ReplicationTestCase
   @Test()
   public void replServerApplyChangeTest() throws Exception
   {
-    ReplicationServer replicationServer = null;
-
     TestCaseUtils.startServer();
 
+    ReplicationServer replicationServer = null;
     try {
       int[] ports = TestCaseUtils.findFreePorts(2);
-      int replicationServerPort = ports[0];
-      int newReplicationServerPort = ports[1];
 
       // instantiate a Replication server using the first port number.
       ReplServerFakeConfiguration conf =
         new ReplServerFakeConfiguration(
-            replicationServerPort, null, 0, 1, 0, 0, null);
+            ports[0], null, 0, 1, 0, 0, null);
       replicationServer = new ReplicationServer(conf);
 
       // Most of the configuration change are trivial to apply.
@@ -71,12 +68,12 @@ public class ReplicationServerDynamicConfTest extends ReplicationTestCase
       // connect to this new portnumber.
       ReplServerFakeConfiguration newconf =
         new ReplServerFakeConfiguration(
-            newReplicationServerPort, null, 0, 1, 0, 0, null);
+            ports[1], null, 0, 1, 0, 0, null);
 
       replicationServer.applyConfigurationChange(newconf);
 
       ReplicationBroker broker = openReplicationSession(
-          DN.decode(TEST_ROOT_DN_STRING), 1, 10, newReplicationServerPort,
+          DN.decode(TEST_ROOT_DN_STRING), 1, 10, ports[1],
           1000, false);
 
       // check that the sendWindow is not null to make sure that the
@@ -85,7 +82,7 @@ public class ReplicationServerDynamicConfTest extends ReplicationTestCase
     }
     finally
     {
-      replicationServer.remove();
+      remove(replicationServer);
     }
   }
 }

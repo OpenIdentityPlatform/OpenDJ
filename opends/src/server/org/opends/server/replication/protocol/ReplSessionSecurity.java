@@ -25,13 +25,7 @@
  *      Copyright 2008 Sun Microsystems, Inc.
  *      Portions copyright 2011-2013 ForgeRock AS
  */
-
 package org.opends.server.replication.protocol;
-
-
-
-import static org.opends.messages.ReplicationMessages.*;
-import static org.opends.server.loggers.ErrorLogger.logError;
 
 import java.io.IOException;
 import java.net.Socket;
@@ -47,7 +41,9 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.types.CryptoManager;
 import org.opends.server.types.DirectoryConfig;
 
-
+import static org.opends.messages.ReplicationMessages.*;
+import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class represents the security configuration for replication protocol
@@ -171,12 +167,10 @@ public final class ReplSessionSecurity
     {
       // Create a new SSL context every time to make sure we pick up the
       // latest contents of the trust store.
-      final CryptoManager cryptoManager = DirectoryConfig
-          .getCryptoManager();
+      final CryptoManager cryptoManager = DirectoryConfig.getCryptoManager();
       final SSLContext sslContext = cryptoManager
           .getSslContext(sslCertNickname);
-      final SSLSocketFactory sslSocketFactory = sslContext
-          .getSocketFactory();
+      final SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
 
       secureSocket = (SSLSocket) sslSocketFactory.createSocket(
           socket, socket.getInetAddress().getHostName(),
@@ -203,26 +197,8 @@ public final class ReplSessionSecurity
     {
       if (!hasCompleted)
       {
-        try
-        {
-          socket.close();
-        }
-        catch (final Exception ignored)
-        {
-          // Ignore.
-        }
-
-        if (secureSocket != null)
-        {
-          try
-          {
-            secureSocket.close();
-          }
-          catch (final Exception ignored)
-          {
-            // Ignore.
-          }
-        }
+        close(socket);
+        close(secureSocket);
       }
     }
   }
@@ -254,12 +230,10 @@ public final class ReplSessionSecurity
     {
       // Create a new SSL context every time to make sure we pick up the
       // latest contents of the trust store.
-      final CryptoManager cryptoManager = DirectoryConfig
-          .getCryptoManager();
+      final CryptoManager cryptoManager = DirectoryConfig.getCryptoManager();
       final SSLContext sslContext = cryptoManager
           .getSslContext(sslCertNickname);
-      final SSLSocketFactory sslSocketFactory = sslContext
-          .getSocketFactory();
+      final SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
 
       secureSocket = (SSLSocket) sslSocketFactory.createSocket(
           socket, socket.getInetAddress().getHostName(),
@@ -298,26 +272,8 @@ public final class ReplSessionSecurity
     {
       if (!hasCompleted)
       {
-        try
-        {
-          socket.close();
-        }
-        catch (final Exception ignored)
-        {
-          // Ignore.
-        }
-
-        if (secureSocket != null)
-        {
-          try
-          {
-            secureSocket.close();
-          }
-          catch (final Exception ignored)
-          {
-            // Ignore.
-          }
-        }
+        close(socket);
+        close(secureSocket);
       }
     }
   }
@@ -328,12 +284,10 @@ public final class ReplSessionSecurity
    * Determine whether sessions to a given replication server should be
    * encrypted.
    *
-   * @param serverURL
-   *          The replication server URL.
    * @return true if sessions to the given replication server should be
    *         encrypted, or false if they should not be encrypted.
    */
-  public boolean isSslEncryption(final String serverURL)
+  public boolean isSslEncryption()
   {
     // Currently use global settings from the crypto manager.
     return sslEncryption;

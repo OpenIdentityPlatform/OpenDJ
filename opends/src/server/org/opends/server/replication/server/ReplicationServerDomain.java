@@ -896,14 +896,16 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
   /**
    * Stop operations with a list of replication servers.
    *
-   * @param replServerURLs
-   *          the replication servers URLs for which we want to stop operations
+   * @param serversToDisconnect
+   *          the replication servers addresses for which we want to stop
+   *          operations
    */
-  public void stopReplicationServers(Collection<String> replServerURLs)
+  public void stopReplicationServers(Collection<HostPort> serversToDisconnect)
   {
     for (ReplicationServerHandler rsHandler : connectedRSs.values())
     {
-      if (replServerURLs.contains(rsHandler.getServerAddressURL()))
+      if (serversToDisconnect.contains(
+            HostPort.valueOf(rsHandler.getServerAddressURL())))
       {
         stopServer(rsHandler, false);
       }

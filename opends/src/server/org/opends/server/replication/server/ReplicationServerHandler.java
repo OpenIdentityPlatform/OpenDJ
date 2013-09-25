@@ -82,8 +82,7 @@ public class ReplicationServerHandler extends ServerHandler
       generationId = inReplServerStartMsg.getGenerationId();
       serverId = inReplServerStartMsg.getServerId();
       serverURL = inReplServerStartMsg.getServerURL();
-      final int port = HostPort.valueOf(serverURL).getPort();
-      serverAddressURL = session.getRemoteAddress() + ":" + port;
+      serverAddressURL = toServerAddressURL(serverURL);
       DN baseDN = DN.decode(inReplServerStartMsg.getBaseDn());
       setBaseDNAndDomain(baseDN, false);
       setInitialServerState(inReplServerStartMsg.getServerState());
@@ -103,6 +102,13 @@ public class ReplicationServerHandler extends ServerHandler
       throw new DirectoryException(ResultCode.OTHER, message);
     }
     return inReplServerStartMsg.getSSLEncryption();
+  }
+
+  private String toServerAddressURL(String serverURL)
+  {
+    final int port = HostPort.valueOf(serverURL).getPort();
+    // Ensure correct formatting of IPv6 addresses by using a HostPort instance.
+    return new HostPort(session.getRemoteAddress(), port).toString();
   }
 
   /**

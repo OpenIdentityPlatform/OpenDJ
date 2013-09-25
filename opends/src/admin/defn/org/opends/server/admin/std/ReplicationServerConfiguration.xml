@@ -52,7 +52,9 @@
       tries to connect at startup time.
     </adm:synopsis>
     <adm:description>
-      Addresses must be specified using the syntax: hostname:port
+      Addresses must be specified using the syntax: "hostname:port". If IPv6
+      addresses are used as the hostname, they must be specified using the
+      syntax "[IPv6Address]:port".
     </adm:description>
     <adm:default-behavior>
       <adm:undefined />
