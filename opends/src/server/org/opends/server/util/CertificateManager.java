@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS
  */
 
 package org.opends.server.util;
@@ -81,7 +82,6 @@ public final class CertificateManager {
   //Error message strings.
   private static final String KEYSTORE_PATH_MSG = "key store path";
   private static final String KEYSTORE_TYPE_MSG = "key store type";
-  private static final String KEYSTORE_PWD_MSG = "key store password";
   private static final String SUBJECT_DN_MSG = "subject DN";
   private static final String CERT_ALIAS_MSG = "certificate alias";
   private static final String CERT_REQUEST_FILE_MSG =
@@ -136,7 +136,6 @@ public final class CertificateManager {
   throws IllegalArgumentException {
     ensureValid(keyStorePath, KEYSTORE_PATH_MSG);
     ensureValid(keyStoreType, KEYSTORE_TYPE_MSG);
-    ensureValid(keyStorePassword, KEYSTORE_PWD_MSG);
     if (keyStoreType.equals(KEY_STORE_TYPE_PKCS11)) {
       if (! keyStorePath.equals(KEY_STORE_PATH_PKCS11)) {
         Message msg =
@@ -168,7 +167,8 @@ public final class CertificateManager {
     }
     this.keyStorePath = keyStorePath;
     this.keyStoreType = keyStoreType;
-    this.password  = keyStorePassword.toCharArray();
+    this.password =
+        keyStorePassword == null ? null : keyStorePassword.toCharArray();
     keyStore = null;
   }
 

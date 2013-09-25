@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.extensions;
 import org.opends.messages.Message;
@@ -192,11 +192,6 @@ public class PKCS11KeyManagerProvider
       keyStorePIN = pinStr.toCharArray();
     } else if (configuration.getKeyStorePin() != null) {
       keyStorePIN = configuration.getKeyStorePin().toCharArray();
-    } else {
-      // Pin wasn't defined anywhere.
-      Message message =
-          ERR_PKCS11_KEYMANAGER_NO_PIN.get(String.valueOf(configEntryDN));
-      throw new ConfigException(message);
     }
   }
 
@@ -305,6 +300,8 @@ public class PKCS11KeyManagerProvider
     // - As the value of a configuration attribute.
     //
     // In any case, the PIN must be in the clear.
+    //
+    // It is acceptable to have no PIN (OPENDJ-18)
     if (configuration.getKeyStorePinProperty() != null)
     {
       String propertyName = configuration.getKeyStorePinProperty();
@@ -390,13 +387,6 @@ public class PKCS11KeyManagerProvider
               "null"));
         configAcceptable = false;
       }
-    }
-    else
-    {
-      // Pin wasn't defined anywhere.
-      unacceptableReasons.add(ERR_PKCS11_KEYMANAGER_NO_PIN.get(
-              String.valueOf(cfgEntryDN)));
-      configAcceptable = false;
     }
 
     return configAcceptable;
@@ -520,16 +510,6 @@ public class PKCS11KeyManagerProvider
     {
       newPIN = configuration.getKeyStorePin().toCharArray();
     }
-    else
-    {
-      // Pin wasn't defined anywhere.
-      resultCode = DirectoryServer.getServerErrorResultCode();
-
-
-      messages.add(ERR_PKCS11_KEYMANAGER_NO_PIN.get(
-              String.valueOf(configEntryDN)));
-    }
-
 
     if (resultCode == ResultCode.SUCCESS)
     {

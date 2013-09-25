@@ -23,10 +23,9 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS
  */
 package org.opends.server.extensions;
-
-
 
 import java.io.File;
 import java.io.FileWriter;
@@ -45,8 +44,6 @@ import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
 
 import static org.opends.server.util.ServerConstants.*;
-
-
 
 /**
  * A set of test cases for the file-based key manager provider.
@@ -146,7 +143,17 @@ public class FileBasedKeyManagerProviderTestCase
          "ds-cfg-enabled: true",
          "ds-cfg-key-store-file: config/server-cert.p12",
          "ds-cfg-key-store-pin: password",
-         "ds-cfg-key-store-type: PKCS12");
+         "ds-cfg-key-store-type: PKCS12",
+         "",
+         "dn: cn=No Key Store PIN,cn=SSL,cn=config",
+         "objectClass: top",
+         "objectClass: ds-cfg-key-manager-provider",
+         "objectClass: ds-cfg-file-based-key-manager-provider",
+         "cn: Key Manager Provider",
+         "ds-cfg-java-class: org.opends.server.extensions." +
+              "FileBasedKeyManagerProvider",
+         "ds-cfg-enabled: true",
+         "ds-cfg-key-store-file: config/server.keystore");
 
 
     Object[][] configEntries = new Object[entries.size()][1];
@@ -214,16 +221,6 @@ public class FileBasedKeyManagerProviderTestCase
          "ds-cfg-enabled: true",
          "ds-cfg-key-store-file: config/nosuchfile",
          "ds-cfg-key-store-pin: password",
-         "",
-         "dn: cn=No Key Store PIN,cn=SSL,cn=config",
-         "objectClass: top",
-         "objectClass: ds-cfg-key-manager-provider",
-         "objectClass: ds-cfg-file-based-key-manager-provider",
-         "cn: Key Manager Provider",
-         "ds-cfg-java-class: org.opends.server.extensions." +
-              "FileBasedKeyManagerProvider",
-         "ds-cfg-enabled: true",
-         "ds-cfg-key-store-file: config/server.keystore",
          "",
          "dn: cn=Nonexistent Key Store PIN File,cn=SSL,cn=config",
          "objectClass: top",

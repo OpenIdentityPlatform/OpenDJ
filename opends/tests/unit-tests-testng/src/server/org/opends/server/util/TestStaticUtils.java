@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2013 ForgeRock AS
  */
 package org.opends.server.util;
 
@@ -1193,5 +1193,18 @@ public final class TestStaticUtils extends UtilTestCase {
   public void testListsAreEqual(List<?> list1, List<?> list2, boolean result)
       throws Exception {
     Assert.assertEquals(StaticUtils.listsAreEqual(list1, list2), result);
+  }
+
+  @Test
+  public void testStackTraceHasCause() throws Exception
+  {
+    boolean hasCause = StaticUtils.stackTraceContainsCause(new RuntimeException(new ArithmeticException()), ArithmeticException.class);
+    Assert.assertTrue(hasCause, "First case : ArithmeticException should be detected as a cause");
+
+    hasCause = StaticUtils.stackTraceContainsCause(new RuntimeException(new RuntimeException()), ArithmeticException.class);
+    Assert.assertFalse(hasCause, "Second case : ArithmeticException should not be detected as a cause");
+
+    hasCause = StaticUtils.stackTraceContainsCause(new RuntimeException(new IllegalThreadStateException()), IllegalArgumentException.class);
+    Assert.assertTrue(hasCause, "Third case : IllegalThreadStateException should be detected as a cause");
   }
 }

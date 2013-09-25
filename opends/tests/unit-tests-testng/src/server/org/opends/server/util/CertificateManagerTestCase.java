@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS
  */
 package org.opends.server.util;
 
@@ -58,10 +59,10 @@ public class CertificateManagerTestCase
 
 
   // Get the build root and use it to create a test package directory.
-  public static final String BUILD_ROOT = 
+  public static final String BUILD_ROOT =
           System.getProperty(TestCaseUtils.PROPERTY_BUILD_ROOT);
 
-      
+
   /**
    * The path to a JKS key store file.
    */
@@ -239,11 +240,11 @@ public class CertificateManagerTestCase
    *
    * @throws  Exception  If a problem occurs.
    */
-  @Test(expectedExceptions = { NullPointerException.class })
+  @Test
   public void testConstructorNullPIN()
          throws Exception
   {
-    new CertificateManager(JKS_KEY_STORE_PATH, "JKS", null);
+    assertNotNull(new CertificateManager(JKS_KEY_STORE_PATH, "JKS", null));
   }
 
 
@@ -254,11 +255,11 @@ public class CertificateManagerTestCase
    *
    * @throws  Exception  If a problem occurs.
    */
-  @Test(expectedExceptions = { NullPointerException.class })
+  @Test
   public void testConstructorEmptyPIN()
          throws Exception
   {
-    new CertificateManager(JKS_KEY_STORE_PATH, "JKS", "");
+    assertNotNull(new CertificateManager(JKS_KEY_STORE_PATH, "JKS", ""));
   }
 
 

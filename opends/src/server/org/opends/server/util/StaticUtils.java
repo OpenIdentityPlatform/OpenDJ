@@ -60,7 +60,6 @@ import static org.opends.messages.UtilityMessages.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 
-
 /**
  * This class defines a number of static utility methods that may be used
  * throughout the server.  Note that because of the frequency with which these
@@ -1746,7 +1745,30 @@ public final class StaticUtils
     return buffer.toString();
   }
 
+  /**
+   * Check if the stack trace of provided exception contains a given cause.
+   *
+   * @param throwable
+   *          exception that may contain the cause
+   * @param searchedCause
+   *          class of the cause to look for. Any subclass will match.
+   * @return true if and only if the given cause is found as a cause of any
+   *         level in the provided exception.
+   */
+  public static boolean stackTraceContainsCause(
+      Throwable throwable, Class<? extends Throwable> searchedCause)
+  {
+    Throwable t = throwable;
+    while ((t = t.getCause()) != null)
+    {
+      if (searchedCause.isAssignableFrom(t.getClass()))
+      {
+        return true;
+      }
 
+    }
+    return false;
+  }
 
   /**
    * Appends a string representation of the stack trace for the provided
