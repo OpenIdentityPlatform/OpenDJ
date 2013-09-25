@@ -701,7 +701,7 @@ public final class ECLServerHandler extends ServerHandler
         }
 
         // skip unused domains
-        if (rsd.getDbServerState().isEmpty())
+        if (rsd.getLatestServerState().isEmpty())
           continue;
 
         // Creates the new domain context

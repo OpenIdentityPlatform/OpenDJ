@@ -1237,7 +1237,7 @@ public abstract class ServerHandler extends MessageHandler
   {
     return new ReplServerStartMsg(getReplicationServerId(),
         getReplicationServerURL(), getBaseDN(), maxRcvWindow,
-        replicationServerDomain.getDbServerState(), localGenerationId,
+        replicationServerDomain.getLatestServerState(), localGenerationId,
         sslEncryption, getLocalGroupId(),
         replicationServer.getDegradedStatusThreshold());
   }

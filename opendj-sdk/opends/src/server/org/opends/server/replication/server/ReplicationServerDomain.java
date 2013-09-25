@@ -1620,7 +1620,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
       int destination, ReplicationDomainMonitorData monitorData)
   {
     final MonitorMsg returnMsg = new MonitorMsg(sender, destination);
-    returnMsg.setReplServerDbState(getDbServerState());
+    returnMsg.setReplServerDbState(getLatestServerState());
 
     // Add the server state for each DS and RS currently in the topology.
     for (int replicaId : toIterable(monitorData.ldapIterator()))
@@ -1669,7 +1669,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     try
     {
       final MonitorMsg monitorMsg = new MonitorMsg(sender, destination);
-      monitorMsg.setReplServerDbState(getDbServerState());
+      monitorMsg.setReplServerDbState(getLatestServerState());
 
       // Add the server state for each connected DS and RS.
       for (DataServerHandler dsHandler : this.connectedDSs.values())
@@ -1708,16 +1708,23 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
   }
 
   /**
-   * Returns the ServerState describing the newest CSNs from this domain.
+   * Returns the latest most current ServerState describing the newest CSNs for
+   * each server in this domain.
    *
-   * @return The ServerState describing the newest CSNs from this domain.
+   * @return The ServerState describing the newest CSNs for each server in in
+   *         this domain.
    */
-  public ServerState getDbServerState()
+  public ServerState getLatestServerState()
+  {
+    return toServerState(changelogDB.getDomainNewestCSNs(baseDN).values());
+  }
+
+  private ServerState toServerState(Collection<CSN> csns)
   {
     ServerState serverState = new ServerState();
-    for (CSN newestCSN : changelogDB.getDomainNewestCSNs(baseDN).values())
+    for (CSN csn : csns)
     {
-      serverState.update(newestCSN);
+      serverState.update(csn);
     }
     return serverState;
   }
@@ -2556,7 +2563,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
   {
     if (ctHeartbeatState == null)
     {
-      ctHeartbeatState = getDbServerState().duplicate();
+      ctHeartbeatState = getLatestServerState().duplicate();
     }
     return ctHeartbeatState;
   }
@@ -2584,17 +2591,17 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
    */
   public ServerState getEligibleState(CSN eligibleCSN)
   {
-    ServerState dbState = getDbServerState();
+    ServerState latestState = getLatestServerState();
 
     // The result is initialized from the dbState.
     // From it, we don't want to keep the changes newer than eligibleCSN.
-    ServerState result = dbState.duplicate();
+    ServerState result = latestState.duplicate();
 
     if (eligibleCSN != null)
     {
-      for (int serverId : dbState)
+      for (int serverId : latestState)
       {
-        CSN mostRecentDbCSN = dbState.getCSN(serverId);
+        CSN mostRecentDbCSN = latestState.getCSN(serverId);
         try {
           // Is the most recent change in the Db newer than eligible CSN ?
           // if yes (like csn15 in the example above, then we have to go back
@@ -2635,12 +2642,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
    */
   public ServerState getStartState()
   {
-    ServerState domainStartState = new ServerState();
-    for (CSN oldestCSN : changelogDB.getDomainOldestCSNs(baseDN).values())
-    {
-      domainStartState.update(oldestCSN);
-    }
-    return domainStartState;
+    return toServerState(changelogDB.getDomainOldestCSNs(baseDN).values());
   }
 
   /**
@@ -2809,7 +2811,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
   {
     long res = 0;
 
-    for (int serverId : getDbServerState())
+    for (int serverId : getLatestServerState())
     {
       CSN startCSN = startState.getCSN(serverId);
       long serverIdRes = getCount(serverId, startCSN, endCSN);
@@ -2836,7 +2838,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
   public long getEligibleCount(CSN startCSN, CSN endCSN)
   {
     long res = 0;
-    for (int serverId : getDbServerState()) {
+    for (int serverId : getLatestServerState()) {
       CSN lStartCSN =
           new CSN(startCSN.getTime(), startCSN.getSeqnum(), serverId);
       res += getCount(serverId, lStartCSN, endCSN);

@@ -587,7 +587,7 @@ public class ReplicationBackend
         break;
       }
 
-      final ServerState serverState = exportContainer.getDbServerState();
+      final ServerState serverState = exportContainer.getLatestServerState();
       TRACER.debugInfo("State=" + serverState);
       Attribute stateAttr = Attributes.create("state", serverState.toString());
       Attribute genidAttr = Attributes.create("generation-id",
