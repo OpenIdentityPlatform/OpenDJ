@@ -403,35 +403,37 @@ public class ReplicationBroker
     private long generationId;
     private byte groupId = -1;
     private int serverId;
-    // Received server URL
+    /** Received server URL. */
     private String serverURL;
     private String baseDn = null;
     private int windowSize;
     private ServerState serverState = null;
     private boolean sslEncryption;
     private int degradedStatusThreshold = -1;
-    // Keeps the 1 value if created with a ReplServerStartMsg
+    /** Keeps the 1 value if created with a ReplServerStartMsg. */
     private int weight = 1;
-    // Keeps the 0 value if created with a ReplServerStartMsg
+    /** Keeps the 0 value if created with a ReplServerStartMsg. */
     private int connectedDSNumber = 0;
     private List<Integer> connectedDSs = null;
-    // Is this RS locally configured ? (the RS is recognized as a usable server)
+    /**
+     * Is this RS locally configured? (the RS is recognized as a usable server).
+     */
     private boolean locallyConfigured = true;
 
     /**
      * Create a new instance of ReplicationServerInfo wrapping the passed
      * message.
      * @param msg Message to wrap.
-     * @param server Override serverURL.
+     * @param newServerURL Override serverURL.
      * @return The new instance wrapping the passed message.
      * @throws IllegalArgumentException If the passed message has an unexpected
      *                                  type.
      */
     public static ReplicationServerInfo newInstance(
-      ReplicationMsg msg, String server) throws IllegalArgumentException
+      ReplicationMsg msg, String newServerURL) throws IllegalArgumentException
     {
       ReplicationServerInfo rsInfo = newInstance(msg);
-      rsInfo.serverURL = server;
+      rsInfo.serverURL = newServerURL;
       return rsInfo;
     }
 
@@ -1152,17 +1154,13 @@ public class ReplicationBroker
     try
     {
       // Open a socket connection to the next candidate.
-      final HostPort hp = HostPort.valueOf(server);
-      InetSocketAddress serverAddr = new InetSocketAddress(
-          InetAddress.getByName(hp.getHost()), hp.getPort());
       socket = new Socket();
       socket.setReceiveBufferSize(1000000);
       socket.setTcpNoDelay(true);
       int timeoutMS = MultimasterReplication.getConnectionTimeoutMS();
-      socket.connect(serverAddr, timeoutMS);
+      socket.connect(HostPort.valueOf(server).toInetSocketAddress(), timeoutMS);
       localSession = replSessionSecurity.createClientSession(socket, timeoutMS);
-      boolean isSslEncryption = replSessionSecurity
-          .isSslEncryption(server);
+      boolean isSslEncryption = replSessionSecurity.isSslEncryption();
 
       // Send our ServerStartMsg.
       String url = socket.getLocalAddress().getHostName() + ":"

@@ -23,10 +23,12 @@
  *
  *
  *      Copyright 2007-2009 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS
  */
 package org.opends.server.replication.server;
 
 import java.util.SortedSet;
+import java.util.TreeSet;
 
 import org.opends.server.admin.Configuration;
 import org.opends.server.admin.server.ConfigurationChangeListener;
@@ -40,30 +42,30 @@ import org.opends.server.types.DN;
  */
 public class ReplServerFakeConfiguration implements ReplicationServerCfg
 {
-  int port;
-  String dirName;
-  int purgeDelay;
-  int serverId;
-  int queueSize;
-  int windowSize;
+  private int port;
+  private String dirName;
+  private int purgeDelay;
+  private int serverId;
+  private int queueSize;
+  private int windowSize;
   private SortedSet<String> servers;
 
   /*
    * Assured mode properties
    */
-  // Timeout (in milliseconds) when waiting for acknowledgments
+  /** Timeout (in milliseconds) when waiting for acknowledgments. */
   private long assuredTimeout = 1000;
 
-  // Group id
+  /** Group id. */
   private int groupId = 1;
 
-  // Threshold for status analyzers
+  /** Threshold for status analyzers. */
   private int degradedStatusThreshold = 5000;
 
-  // The weight of the server
+  /** The weight of the server. */
   private int weight = 1;
 
-  // The monitoring publisher period
+  /** The monitoring publisher period. */
   private long monitoringPeriod = 3000;
 
   /**
@@ -86,7 +88,7 @@ public class ReplServerFakeConfiguration implements ReplicationServerCfg
     }
 
     this.serverId = serverId;
-    
+
     if (queueSize == 0)
     {
       this.queueSize = 10000;
@@ -105,9 +107,9 @@ public class ReplServerFakeConfiguration implements ReplicationServerCfg
       this.windowSize = windowSize;
     }
 
-    this.servers = servers;
+    this.servers = servers != null ? servers : new TreeSet<String>();
   }
-  
+
   /**
    * Constructor with group id and assured info
    */
@@ -241,12 +243,12 @@ public class ReplServerFakeConfiguration implements ReplicationServerCfg
   {
     return assuredTimeout;
   }
-  
+
   public int getDegradedStatusThreshold()
   {
     return degradedStatusThreshold;
   }
-  
+
   public void setDegradedStatusThreshold(int degradedStatusThreshold)
   {
     this.degradedStatusThreshold = degradedStatusThreshold;

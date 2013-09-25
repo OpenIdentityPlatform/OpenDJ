@@ -102,29 +102,6 @@ public final class HostPort
   private static Set<InetAddress> localAddresses = new HashSet<InetAddress>();
 
   /**
-   * Returns {@code true} if the provided IPv4 or IPv6 address or host name
-   * represents the address of one of the interfaces on the current host
-   * machine.
-   *
-   * @param addressString
-   *          The IPv4 or IPv6 address or host name.
-   * @return {@code true} if the provided IPv4 or IPv6 address or host name
-   *         represents the address of one of the interfaces on the current host
-   *         machine.
-   */
-  public static boolean isLocalAddress(String addressString)
-  {
-    try
-    {
-      return isLocalAddress(InetAddress.getByName(addressString));
-    }
-    catch (UnknownHostException e)
-    {
-      return false;
-    }
-  }
-
-  /**
    * Returns {@code true} if the provided {@code InetAddress} represents the
    * address of one of the interfaces on the current host machine.
    *
@@ -192,6 +169,20 @@ public final class HostPort
   public static HostPort allAddresses(int port)
   {
     return new HostPort(port);
+  }
+
+  /**
+   * Builds a new instance of {@link HostPort} representing the local machine
+   * with the supplied port.
+   *
+   * @param port
+   *          the port to use when building the new {@link HostPort} object
+   * @return a new {@link HostPort} instance representing the local machine with
+   *         the supplied port.
+   */
+  public static HostPort localAddress(int port)
+  {
+    return new HostPort(LOCALHOST, port);
   }
 
   /**
@@ -377,6 +368,20 @@ public final class HostPort
   public boolean isLocalAddress()
   {
     return LOCALHOST.equals(this.normalizedHost);
+  }
+
+  /**
+   * Converts the current object to an equivalent {@link InetSocketAddress}
+   * object.
+   *
+   * @return a {@link InetSocketAddress} equivalent of the current object.
+   * @throws UnknownHostException
+   *           If the current host name cannot be resolved to an
+   *           {@link InetAddress}
+   */
+  public InetSocketAddress toInetSocketAddress() throws UnknownHostException
+  {
+    return new InetSocketAddress(InetAddress.getByName(getHost()), getPort());
   }
 
   /**
