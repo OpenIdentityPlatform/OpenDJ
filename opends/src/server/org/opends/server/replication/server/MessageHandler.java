@@ -541,8 +541,8 @@ public class MessageHandler extends MonitorProvider<MonitorProviderCfg>
        * The total size of the receive queue is calculated by doing the sum of
        * the number of missing changes for every dbHandler.
        */
-      ServerState dbState = replicationServerDomain.getDbServerState();
-      return ServerState.diffChanges(dbState, serverState);
+      ServerState latestState = replicationServerDomain.getLatestServerState();
+      return ServerState.diffChanges(latestState, serverState);
     }
   }
 

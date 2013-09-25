@@ -520,7 +520,7 @@ public class DataServerHandler extends ServerHandler
       // Peer DS uses protocol V4 : send it a ReplServerStartDSMsg
       startMsg = new ReplServerStartDSMsg(getReplicationServerId(),
           getReplicationServerURL(), getBaseDN(), maxRcvWindow,
-          replicationServerDomain.getDbServerState(),
+          replicationServerDomain.getLatestServerState(),
           localGenerationId, sslEncryption, getLocalGroupId(),
           replicationServer.getDegradedStatusThreshold(),
           replicationServer.getWeight(),

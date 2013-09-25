@@ -1697,7 +1697,7 @@ public final class ReplicationServer
     for (ReplicationServerDomain rsd : getReplicationServerDomains())
     {
       if (contains(excludedBaseDNs, rsd.getBaseDN().toNormalizedString())
-          || rsd.getDbServerState().isEmpty())
+          || rsd.getLatestServerState().isEmpty())
         continue;
 
       final CSN eligibleCSN = getEligibleCSN(excludedBaseDNs);

@@ -288,7 +288,7 @@ class ReplicationDomainMonitor
     // Then initialize the max CSN for the LS that produced something
     // - from our own local db state
     // - whatever they are directly or indirectly connected
-    final ServerState dbServerState = domain.getDbServerState();
+    final ServerState dbServerState = domain.getLatestServerState();
     pendingMonitorData.setRSState(domain.getLocalRSServerId(), dbServerState);
     for (int serverId : dbServerState)
     {
