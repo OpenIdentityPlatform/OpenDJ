@@ -23,6 +23,8 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS
+
  */
 
 package org.opends.quicksetup.installer.ui;
@@ -63,7 +65,9 @@ import org.opends.quicksetup.ui.Utilities;
 import org.opends.quicksetup.util.BackgroundTask;
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.util.CertificateManager;
+import org.opends.server.util.StaticUtils;
 import org.opends.messages.Message;
+
 import static org.opends.messages.QuickSetupMessages.*;
 
 /**
@@ -981,15 +985,8 @@ public class SecurityOptionsDialog extends JDialog
         pathValid = errorMsgs.size() == 0;
       }
 
-      /* Check the password */
       String pwd = String.valueOf(tfKeystorePwd.getPassword());
-      if ((pwd == null) || (pwd.length() == 0))
-      {
-        errorMsgs.add(INFO_KEYSTORE_PWD_EMPTY.get());
-        pwdValid = false;
-      }
-
-      if (pathValid && pwdValid)
+      if (pathValid)
       {
         try
         {
@@ -1058,32 +1055,41 @@ public class SecurityOptionsDialog extends JDialog
         }
         catch (KeyStoreException ke)
         {
-          pwdValid = false;
-          if (!rbPKCS11.isSelected())
+          // issue OPENDJ-18, related to JDK bug
+          if (StaticUtils
+              .stackTraceContainsCause(ke, ArithmeticException.class))
           {
-            pathValid = false;
-          }
-          // Could not access to the keystore: because the password is no good,
-          // because the provided file is not a valid keystore, etc.
-          if (rbPKCS11.isSelected())
-          {
-            errorMsgs.add(INFO_ERROR_ACCESSING_PKCS11_KEYSTORE.get());
+            errorMsgs.add(INFO_ERROR_ACCESSING_KEYSTORE_JDK_BUG.get());
           }
           else
           {
-            if (rbJKS.isSelected())
+            pwdValid = false;
+            if (!rbPKCS11.isSelected())
             {
-              errorMsgs.add(INFO_ERROR_ACCESSING_JKS_KEYSTORE.get());
+              pathValid = false;
             }
-            else if (rbJCEKS.isSelected())
+            // Could not access to the keystore: because the password is
+            // no good, because the provided file is not a valid keystore, etc.
+            if (rbPKCS11.isSelected())
             {
-              errorMsgs.add(INFO_ERROR_ACCESSING_JCEKS_KEYSTORE.get());
+              errorMsgs.add(INFO_ERROR_ACCESSING_PKCS11_KEYSTORE.get());
             }
             else
             {
-              errorMsgs.add(INFO_ERROR_ACCESSING_PKCS12_KEYSTORE.get());
+              if (rbJKS.isSelected())
+              {
+                errorMsgs.add(INFO_ERROR_ACCESSING_JKS_KEYSTORE.get());
+              }
+              else if (rbJCEKS.isSelected())
+              {
+                errorMsgs.add(INFO_ERROR_ACCESSING_JCEKS_KEYSTORE.get());
+              }
+              else
+              {
+                errorMsgs.add(INFO_ERROR_ACCESSING_PKCS12_KEYSTORE.get());
+              }
+              pathValid = false;
             }
-            pathValid = false;
           }
         }
       }

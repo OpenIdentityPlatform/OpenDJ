@@ -69,6 +69,7 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.NullOutputStream;
 import org.opends.server.util.CertificateManager;
 import org.opends.server.util.SetupUtils;
+import org.opends.server.util.StaticUtils;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.IntegerArgument;
 import org.opends.server.util.args.StringArgument;
@@ -1884,18 +1885,7 @@ public class InstallDS extends ConsoleApplication
         errorWithPath = true;
       }
     }
-    boolean pwdProvided = true;
-    if (pwd == null)
-    {
-      pwdProvided = false;
-      errorMessages.add(INFO_ERROR_NO_KEYSTORE_PASSWORD.get());
-    }
-    else if (pwd.length() == 0)
-    {
-      pwdProvided = false;
-      errorMessages.add(INFO_ERROR_EMPTY_KEYSTORE_PASSWORD.get());
-    }
-    if (!errorWithPath && pwdProvided)
+    if (!errorWithPath)
     {
       try
       {
@@ -1983,24 +1973,32 @@ public class InstallDS extends ConsoleApplication
       }
       catch (KeyStoreException ke)
       {
-        // Could not access to the key store: because the password is no good,
-        // because the provided file is not a valid key store, etc.
-        switch (type)
+        // issue OPENDJ-18, related to JDK bug
+        if (StaticUtils.stackTraceContainsCause(ke, ArithmeticException.class))
         {
-        case JKS:
-          errorMessages.add(INFO_ERROR_ACCESSING_JKS_KEYSTORE.get());
-          break;
-        case JCEKS:
-          errorMessages.add(INFO_ERROR_ACCESSING_JCEKS_KEYSTORE.get());
-          break;
-        case PKCS12:
-          errorMessages.add(INFO_ERROR_ACCESSING_PKCS12_KEYSTORE.get());
-          break;
-        case PKCS11:
-          errorMessages.add(INFO_ERROR_ACCESSING_PKCS11_KEYSTORE.get());
-          break;
-        default:
-          throw new IllegalArgumentException("Invalid type: "+type);
+          errorMessages.add(INFO_ERROR_ACCESSING_KEYSTORE_JDK_BUG.get());
+        }
+        else
+        {
+          // Could not access to the key store: because the password is no good,
+          // because the provided file is not a valid key store, etc.
+          switch (type)
+          {
+          case JKS:
+            errorMessages.add(INFO_ERROR_ACCESSING_JKS_KEYSTORE.get());
+            break;
+          case JCEKS:
+            errorMessages.add(INFO_ERROR_ACCESSING_JCEKS_KEYSTORE.get());
+            break;
+          case PKCS12:
+            errorMessages.add(INFO_ERROR_ACCESSING_PKCS12_KEYSTORE.get());
+            break;
+          case PKCS11:
+            errorMessages.add(INFO_ERROR_ACCESSING_PKCS11_KEYSTORE.get());
+            break;
+          default:
+            throw new IllegalArgumentException("Invalid type: " + type);
+          }
         }
       }
     }
@@ -2236,8 +2234,7 @@ public class InstallDS extends ConsoleApplication
           msg.getDescriptor().equals(INFO_ERROR_ACCESSING_JCEKS_KEYSTORE) ||
           msg.getDescriptor().equals(INFO_ERROR_ACCESSING_PKCS12_KEYSTORE) ||
           msg.getDescriptor().equals(INFO_ERROR_ACCESSING_PKCS11_KEYSTORE) ||
-          msg.getDescriptor().equals(INFO_ERROR_NO_KEYSTORE_PASSWORD) ||
-          msg.getDescriptor().equals(INFO_ERROR_EMPTY_KEYSTORE_PASSWORD))
+          msg.getDescriptor().equals(INFO_ERROR_ACCESSING_KEYSTORE_JDK_BUG))
       {
         found = true;
         break;

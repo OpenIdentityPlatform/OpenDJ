@@ -24,6 +24,7 @@
   !
   !
   !      Copyright 2007-2008 Sun Microsystems, Inc.
+  !      Portions Copyright 2013 ForgeRock AS
   ! -->
 <adm:managed-object name="pkcs11-key-manager-provider"
   plural-name="pkcs11-key-manager-providers"
@@ -40,25 +41,6 @@
     This standard interface is used by cryptographic accelerators and
     hardware security modules.
   </adm:description>
-  <adm:constraint>
-    <adm:synopsis>
-      The key store pin must be specified using one of the key-store-pin
-      properties when the
-      <adm:user-friendly-name />
-      is enabled.
-    </adm:synopsis>
-    <adm:condition>
-      <adm:implies>
-        <adm:contains property="enabled" value="true" />
-        <adm:or>
-          <adm:is-present property="key-store-pin-property" />
-          <adm:is-present property="key-store-pin-environment-variable" />
-          <adm:is-present property="key-store-pin-file" />
-          <adm:is-present property="key-store-pin" />
-        </adm:or>
-      </adm:implies>
-    </adm:condition>
-  </adm:constraint>
   <adm:profile name="ldap">
     <ldap:object-class>
       <ldap:name>ds-cfg-pkcs11-key-manager-provider</ldap:name>
