@@ -46,7 +46,6 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
-import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.*;
 import org.opends.server.replication.protocol.*;
@@ -462,9 +461,8 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
      * Handle the handshake processing with the connecting DS
      * returns true if handshake was performed without errors
      */
-    private boolean performHandshake()
+    private boolean performHandshake() throws Exception
     {
-      try
       {
         // Receive server start
         ServerStartMsg serverStartMsg = (ServerStartMsg) session.receive();
@@ -520,17 +518,6 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
         TopologyMsg topologyMsg = new TopologyMsg(new ArrayList<DSInfo>(),
           rsList);
         session.publish(topologyMsg);
-
-      } catch (IOException e)
-      {
-        fail("Unexpected io exception in fake replication server handshake " +
-          "processing: " + e);
-        return false;
-      } catch (Exception e)
-      {
-        fail("Unexpected exception in fake replication server handshake " +
-          "processing: " + e);
-        return false;
       }
       return true;
     }
@@ -558,7 +545,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
     /**
      * Handle client connection then call code specific to configured test
      */
-    private void handleClientConnection()
+    private void handleClientConnection() throws Exception
     {
       debugInfo("handleClientConnection " + testcase + " " + scenario);
       // Handle DS connection
@@ -610,13 +597,12 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
       debugInfo("handleClientConnection " + testcase + " " + scenario + " done");
     }
 
-    /*
+    /**
      * Make the RS send an add message with the passed entry and return the ack
      * message it receives from the DS
      */
-    private AckMsg sendAssuredAddMsg(Entry entry, String parentUid) throws SocketTimeoutException
+    private AckMsg sendAssuredAddMsg(Entry entry, String parentUid) throws Exception
     {
-      try
       {
         AddMsg addMsg =
           new AddMsg(gen.newCSN(), entry.getDN(), UUID.randomUUID().toString(),
@@ -632,86 +618,51 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
 
         // Read and return matching ack
         return (AckMsg)session.receive();
-
-      } catch(SocketTimeoutException e)
-      {
-        throw e;
-      } catch (Throwable t)
-      {
-        fail("Unexpected exception in fake replication server sendAddUpdate " +
-          "processing: " + t);
-        return null;
       }
     }
 
     /**
      * Read the coming update and check parameters are not assured
      */
-    private void executeNotAssuredScenario()
+    private void executeNotAssuredScenario() throws Exception
     {
+      UpdateMsg updateMsg = (UpdateMsg) session.receive();
+      checkUpdateAssuredParameters(updateMsg);
 
-      try
-      {
-        UpdateMsg updateMsg = (UpdateMsg) session.receive();
-        checkUpdateAssuredParameters(updateMsg);
-
-        scenarioExecuted = true;
-      } catch (Exception e)
-      {
-        fail("Unexpected exception in fake replication server executeNotAssuredScenario " +
-          "processing: " + e);
-      }
+      scenarioExecuted = true;
     }
 
     /**
      * Read the coming update and make the client time out by not sending back
      * the ack
      */
-    private void executeTimeoutScenario()
+    private void executeTimeoutScenario() throws Exception
     {
+      UpdateMsg updateMsg = (UpdateMsg) session.receive();
+      checkUpdateAssuredParameters(updateMsg);
 
-      try
-      {
-        UpdateMsg updateMsg = (UpdateMsg) session.receive();
-        checkUpdateAssuredParameters(updateMsg);
+      scenarioExecuted = true;
 
-        scenarioExecuted = true;
-
-        // We do not send back an ack and the client code is expected to be
-        // blocked at least for the programmed timeout time.
-
-      } catch (Exception e)
-      {
-        fail("Unexpected exception in fake replication server executeTimeoutScenario " +
-          "processing: " + e + " testcase= " + testcase +
-          " groupId=" + groupId);
-      }
+      // We do not send back an ack and the client code is expected to be
+      // blocked at least for the programmed timeout time.
     }
 
     /**
      * Read the coming update, sleep some time then send back an ack
      */
-    private void executeNoTimeoutScenario()
+    private void executeNoTimeoutScenario() throws Exception
     {
-      try
-      {
-        UpdateMsg updateMsg = (UpdateMsg) session.receive();
-        checkUpdateAssuredParameters(updateMsg);
+      UpdateMsg updateMsg = (UpdateMsg) session.receive();
+      checkUpdateAssuredParameters(updateMsg);
 
-        // Sleep before sending back the ack
-        sleep(NO_TIMEOUT_RS_SLEEP_TIME);
+      // Sleep before sending back the ack
+      sleep(NO_TIMEOUT_RS_SLEEP_TIME);
 
-        // Send the ack without errors
-        AckMsg ackMsg = new AckMsg(updateMsg.getCSN());
-        session.publish(ackMsg);
+      // Send the ack without errors
+      AckMsg ackMsg = new AckMsg(updateMsg.getCSN());
+      session.publish(ackMsg);
 
-        scenarioExecuted = true;
-
-      } catch (Exception e)
-      {
-        fail("Unexpected exception in fake replication server executeNoTimeoutScenario " +
-          "processing: " + e);
-      }
+      scenarioExecuted = true;
     }
 
     /**
@@ -733,9 +684,8 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
     /**
      * Read the coming safe read mode updates and send back acks with errors
      */
-    private void executeSafeReadManyErrorsScenario()
+    private void executeSafeReadManyErrorsScenario() throws Exception
     {
-      try
       {
         // Read first update
         UpdateMsg updateMsg = (UpdateMsg) session.receive();
@@ -779,20 +729,14 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
         // let timeout occur
 
         scenarioExecuted = true;
-
-      } catch (Exception e)
-      {
-        fail("Unexpected exception in fake replication server executeSafeReadManyErrorsScenario " +
-          "processing: " + e);
       }
     }
 
     /**
-     * Read the coming seaf data mode updates and send back acks with errors
+     * Read the coming safe data mode updates and send back acks with errors
      */
-    private void executeSafeDataManyErrorsScenario()
+    private void executeSafeDataManyErrorsScenario() throws Exception
     {
-      try
       {
         // Read first update
         UpdateMsg updateMsg = (UpdateMsg) session.receive();
@@ -830,28 +774,8 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
         checkUpdateAssuredParameters(updateMsg);
 
         // let timeout occur
-
         scenarioExecuted = true;
-
-      } catch (Exception e)
-      {
-        fail("Unexpected exception in fake replication server executeSafeDataManyErrorsScenario " +
-          "processing: " + e);
       }
-    }
-  }
-
-  /**
-   * Sleep a while
-   */
-  private void sleep(long time)
-  {
-    try
-    {
-      Thread.sleep(time);
-    } catch (InterruptedException ex)
-    {
-      fail("Error sleeping " + ex);
     }
   }
 
@@ -877,7 +801,6 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
   @Test(dataProvider = "rsGroupIdProvider")
   public void testSafeDataModeTimeout(byte rsGroupId) throws Exception
   {
-
     int TIMEOUT = 5000;
     String testcase = "testSafeDataModeTimeout" + rsGroupId;
     try
@@ -894,8 +817,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
       // Create a safe data assured domain
       if (rsGroupId == (byte)1)
       {
-        safeDataDomainCfgEntry = createAssuredDomain(AssuredMode.SAFE_DATA_MODE, 1,
-        TIMEOUT);
+        safeDataDomainCfgEntry = createAssuredDomain(AssuredMode.SAFE_DATA_MODE, 1, TIMEOUT);
         // Wait for connection of domain to RS
         waitForConnectionToRs(testcase, replicationServer);
 
@@ -926,15 +848,11 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
       if (rsGroupId == (byte)1)
       {
         // RS has same group id as DS
-        // In this scenario, the fake RS will not send back an ack so we expect
-        // the add entry code (LDAP client code emulation) to be blocked for the
-        // timeout value at least. If the time we have slept is lower, timeout
-        // handling code is not working...
-        assertTrue((endTime - startTime) >= TIMEOUT);
+        assertBlockedLongerThanTimeout(startTime, endTime, TIMEOUT);
         assertTrue(replicationServer.isScenarioExecuted());
 
         // Check monitoring values
-        sleep(1000); // Sleep a while as counters are updated just after sending thread is unblocked
+        Thread.sleep(1000); // Sleep a while as counters are updated just after sending thread is unblocked
         DN baseDN = DN.decode(SAFE_DATA_DN);
         new MonitorAssertions(baseDN)
           .assertValue("assured-sd-sent-updates", 1)
@@ -948,7 +866,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
 
         // No error should be seen in monitoring and update should have not been
         // sent in assured mode
-        sleep(1000); // Sleep a while as counters are updated just after sending thread is unblocked
+        Thread.sleep(1000); // Sleep a while as counters are updated just after sending thread is unblocked
         DN baseDN = DN.decode(NOT_ASSURED_DN);
         new MonitorAssertions(baseDN).assertRemainingValuesAreZero();
         assertNoServerErrors(baseDN);
@@ -992,7 +910,6 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
   @Test(dataProvider = "rsGroupIdProvider")
   public void testSafeReadModeTimeout(byte rsGroupId) throws Exception
   {
-
     int TIMEOUT = 5000;
     String testcase = "testSafeReadModeTimeout" + rsGroupId;
     try
@@ -1010,8 +927,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
       if (rsGroupId == (byte)1)
       {
         // Create a safe read assured domain
-        safeReadDomainCfgEntry = createAssuredDomain(AssuredMode.SAFE_READ_MODE, 0,
-            TIMEOUT);
+        safeReadDomainCfgEntry = createAssuredDomain(AssuredMode.SAFE_READ_MODE, 0, TIMEOUT);
         // Wait for connection of domain to RS
         waitForConnectionToRs(testcase, replicationServer);
 
@@ -1041,16 +957,11 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
 
       if (rsGroupId == (byte)1)
       {
-        // RS has same group id as DS
-        // In this scenario, the fake RS will not send back an ack so we expect
-        // the add entry code (LDAP client code emulation) to be blocked for the
-        // timeout value at least. If the time we have slept is lower, timeout
-        // handling code is not working...
-        assertTrue((endTime - startTime) >= TIMEOUT);
+        assertBlockedLongerThanTimeout(startTime, endTime, TIMEOUT);
         assertTrue(replicationServer.isScenarioExecuted());
 
         // Check monitoring values
-        sleep(1000); // Sleep a while as counters are updated just after sending thread is unblocked
+        Thread.sleep(1000); // Sleep a while as counters are updated just after sending thread is unblocked
         DN baseDN = DN.decode(SAFE_READ_DN);
         new MonitorAssertions(baseDN)
           .assertValue("assured-sr-sent-updates", 1)
@@ -1065,7 +976,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
 
         // No error should be seen in monitoring and update should have not been
         // sent in assured mode
-        sleep(1000); // Sleep a while as counters are updated just after sending thread is unblocked
+        Thread.sleep(1000); // Sleep a while as counters are updated just after sending thread is unblocked
         DN baseDN = DN.decode(NOT_ASSURED_DN);
         new MonitorAssertions(baseDN).assertRemainingValuesAreZero();
         assertNoServerErrors(baseDN);
@@ -1117,7 +1028,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
    * Wait for connection to the fake replication server or times out with error
    * after some seconds
    */
-  private void waitForConnectionToRs(String testCase, FakeReplicationServer rs)
+  private void waitForConnectionToRs(String testCase, FakeReplicationServer rs) throws Exception
   {
     int nsec = -1;
     do
@@ -1125,7 +1036,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
       nsec++;
       if (nsec == 10) // 10 seconds timeout
         fail(testCase + ": timeout waiting for domain connection to fake RS after " + nsec + " seconds.");
-      sleep(1000);
+      Thread.sleep(1000);
     } while (!rs.isHandshakeOk());
   }
 
@@ -1133,7 +1044,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
    * Wait for the scenario to be executed by the fake replication server or
    * times out with error after some seconds
    */
-  private void waitForScenarioExecutedOnRs(String testCase, FakeReplicationServer rs)
+  private void waitForScenarioExecutedOnRs(String testCase, FakeReplicationServer rs) throws Exception
   {
     int nsec = -1;
     do
@@ -1141,7 +1052,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
       nsec++;
       if (nsec == 10) // 10 seconds timeout
         fail(testCase + ": timeout waiting for scenario to be exectued on fake RS after " + nsec + " seconds.");
-      sleep(1000);
+      Thread.sleep(1000);
     } while (!rs.isScenarioExecuted());
   }
 
@@ -1163,7 +1074,6 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
   @Test
   public void testSafeDataModeAck() throws Exception
   {
-
     int TIMEOUT = 5000;
     String testcase = "testSafeDataModeAck";
     try
@@ -1175,8 +1085,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
       replicationServer.start(NO_TIMEOUT_SCENARIO);
 
       // Create a safe data assured domain
-      safeDataDomainCfgEntry = createAssuredDomain(AssuredMode.SAFE_DATA_MODE, 2,
-        TIMEOUT);
+      safeDataDomainCfgEntry = createAssuredDomain(AssuredMode.SAFE_DATA_MODE, 2, TIMEOUT);
       // Wait for connection of domain to RS
       waitForConnectionToRs(testcase, replicationServer);
 
@@ -1187,16 +1096,11 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
         "objectClass: organizationalUnit\n";
       addEntry(TestCaseUtils.entryFromLdifString(entry));
 
-      // In this scenario, the fake RS will send back an ack after NO_TIMEOUT_RS_SLEEP_TIME
-      // seconds, so we expect the add entry code (LDAP client code emulation) to be blocked
-      // for more than NO_TIMEOUT_RS_SLEEP_TIME seconds but no more than the timeout value.
-      long endTime = System.currentTimeMillis();
-      long callTime = endTime - startTime;
-      assertTrue( (callTime >= NO_TIMEOUT_RS_SLEEP_TIME) && (callTime <= TIMEOUT));
+      assertBlockedForLessThanTimeout(startTime, TIMEOUT);
       assertTrue(replicationServer.isScenarioExecuted());
 
       // Check monitoring values
-      sleep(1000); // Sleep a while as counters are updated just after sending thread is unblocked
+      Thread.sleep(1000); // Sleep a while as counters are updated just after sending thread is unblocked
       DN baseDN = DN.decode(SAFE_DATA_DN);
       new MonitorAssertions(baseDN)
         .assertValue("assured-sd-sent-updates", 1)
@@ -1216,7 +1120,6 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
   @Test
   public void testSafeReadModeAck() throws Exception
   {
-
     int TIMEOUT = 5000;
     String testcase = "testSafeReadModeAck";
     try
@@ -1227,8 +1130,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
       replicationServer.start(NO_TIMEOUT_SCENARIO);
 
       // Create a safe read assured domain
-      safeReadDomainCfgEntry = createAssuredDomain(AssuredMode.SAFE_READ_MODE, 0,
-        TIMEOUT);
+      safeReadDomainCfgEntry = createAssuredDomain(AssuredMode.SAFE_READ_MODE, 0, TIMEOUT);
       // Wait for connection of domain to RS
       waitForConnectionToRs(testcase, replicationServer);
 
@@ -1239,16 +1141,11 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
         "objectClass: organizationalUnit\n";
       addEntry(TestCaseUtils.entryFromLdifString(entry));
 
-      // In this scenario, the fake RS will send back an ack after NO_TIMEOUT_RS_SLEEP_TIME
-      // seconds, so we expect the add entry code (LDAP client code emulation) to be blocked
-      // for more than NO_TIMEOUT_RS_SLEEP_TIME seconds but no more than the timeout value.
-      long endTime = System.currentTimeMillis();
-      long callTime = endTime - startTime;
-      assertTrue( (callTime >= NO_TIMEOUT_RS_SLEEP_TIME) && (callTime <= TIMEOUT));
+      assertBlockedForLessThanTimeout(startTime, TIMEOUT);
       assertTrue(replicationServer.isScenarioExecuted());
 
       // Check monitoring values
-      sleep(1000); // Sleep a while as counters are updated just after sending thread is unblocked
+      Thread.sleep(1000); // Sleep a while as counters are updated just after sending thread is unblocked
       DN baseDN = DN.decode(SAFE_READ_DN);
       new MonitorAssertions(baseDN)
         .assertValue("assured-sr-sent-updates", 1)
@@ -1268,7 +1165,6 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
   @Test(dataProvider = "rsGroupIdProvider", groups = "slow")
   public void testSafeReadModeReply(byte rsGroupId) throws Exception
   {
-
     int TIMEOUT = 5000;
     String testcase = "testSafeReadModeReply";
     try
@@ -1279,8 +1175,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
       replicationServer.start(NO_READ);
 
       // Create a safe read assured domain
-      safeReadDomainCfgEntry = createAssuredDomain(AssuredMode.SAFE_READ_MODE, 0,
-        TIMEOUT);
+      safeReadDomainCfgEntry = createAssuredDomain(AssuredMode.SAFE_READ_MODE, 0, TIMEOUT);
       // Wait for connection of domain to RS
       waitForConnectionToRs(testcase, replicationServer);
 
@@ -1356,7 +1251,6 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
   @Test(dataProvider = "rsGroupIdProvider", groups = "slow")
   public void testSafeDataModeReply(byte rsGroupId) throws Exception
   {
-
     int TIMEOUT = 5000;
     String testcase = "testSafeDataModeReply";
     try
@@ -1367,8 +1261,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
       replicationServer.start(NO_READ);
 
       // Create a safe data assured domain
-      safeDataDomainCfgEntry = createAssuredDomain(AssuredMode.SAFE_DATA_MODE, 4,
-        TIMEOUT);
+      safeDataDomainCfgEntry = createAssuredDomain(AssuredMode.SAFE_DATA_MODE, 4, TIMEOUT);
       // Wait for connection of domain to RS
       waitForConnectionToRs(testcase, replicationServer);
 
@@ -1380,19 +1273,14 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
       Entry entry = TestCaseUtils.entryFromLdifString(entryStr);
       String parentUid = getEntryUUID(DN.decode(SAFE_DATA_DN));
 
-      AckMsg ackMsg;
-      try
-      {
-        ackMsg = replicationServer.sendAssuredAddMsg(entry, parentUid);
-      } catch (SocketTimeoutException e)
-      {
-        // Expected
-        return;
-      }
-
-      fail("DS should not reply an ack in safe data mode, however, it replied: " +
-        ackMsg);
-    } finally
+      AckMsg ackMsg = replicationServer.sendAssuredAddMsg(entry, parentUid);
+      fail("DS should not reply an ack in safe data mode, however, it replied: " + ackMsg);
+    }
+    catch (SocketTimeoutException expected)
+    {
+      return;
+    }
+    finally
     {
       endTest(testcase);
     }
@@ -1405,7 +1293,6 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
   @Test(groups = "slow")
   public void testSafeDataManyErrors() throws Exception
   {
-
     int TIMEOUT = 5000;
     String testcase = "testSafeDataManyErrors";
     try
@@ -1417,8 +1304,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
       replicationServer.start(SAFE_DATA_MANY_ERRORS);
 
       // Create a safe data assured domain
-      safeDataDomainCfgEntry = createAssuredDomain(AssuredMode.SAFE_DATA_MODE, 3,
-        TIMEOUT);
+      safeDataDomainCfgEntry = createAssuredDomain(AssuredMode.SAFE_DATA_MODE, 3, TIMEOUT);
       // Wait for connection of domain to RS
       waitForConnectionToRs(testcase, replicationServer);
 
@@ -1430,18 +1316,13 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
         "objectClass: organizationalUnit\n";
       addEntry(TestCaseUtils.entryFromLdifString(entry));
 
-      // In this scenario, the fake RS will send back an ack after NO_TIMEOUT_RS_SLEEP_TIME
-      // seconds, so we expect the add entry code (LDAP client code emulation) to be blocked
-      // for more than NO_TIMEOUT_RS_SLEEP_TIME seconds but no more than the timeout value.
-      long endTime = System.currentTimeMillis();
-      long callTime = endTime - startTime;
-      assertTrue( (callTime >= NO_TIMEOUT_RS_SLEEP_TIME) && (callTime <= TIMEOUT));
+      assertBlockedForLessThanTimeout(startTime, TIMEOUT);
 
       // Check monitoring values
       // The expected ack for the first update is:
       // - timeout error
       // - server 10 error
-      sleep(1000); // Sleep a while as counters are updated just after sending thread is unblocked
+      Thread.sleep(1000); // Sleep a while as counters are updated just after sending thread is unblocked
       DN baseDN = DN.decode(SAFE_DATA_DN);
       new MonitorAssertions(baseDN)
         .assertValue("assured-sd-sent-updates", 1)
@@ -1453,18 +1334,13 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
       startTime = System.currentTimeMillis(); // Time the update has been initiated
       deleteEntry(entryDn);
 
-      // In this scenario, the fake RS will send back an ack after NO_TIMEOUT_RS_SLEEP_TIME
-      // seconds, so we expect the delete entry code (LDAP client code emulation) to be blocked
-      // for more than NO_TIMEOUT_RS_SLEEP_TIME seconds but no more than the timeout value.
-      endTime = System.currentTimeMillis();
-      callTime = endTime - startTime;
-      assertTrue( (callTime >= NO_TIMEOUT_RS_SLEEP_TIME) && (callTime <= TIMEOUT));
+      assertBlockedForLessThanTimeout(startTime, TIMEOUT);
 
       // Check monitoring values
       // The expected ack for the second update is:
       // - timeout error
       // - server 10 error, server 20 error
-      sleep(1000); // Sleep a while as counters are updated just after sending thread is unblocked
+      Thread.sleep(1000); // Sleep a while as counters are updated just after sending thread is unblocked
       baseDN = DN.decode(SAFE_DATA_DN);
       new MonitorAssertions(baseDN)
         .assertValue("assured-sd-sent-updates", 2)
@@ -1476,17 +1352,12 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
       startTime = System.currentTimeMillis(); // Time the update has been initiated
       addEntry(TestCaseUtils.entryFromLdifString(entry));
 
-      // In this scenario, the fake RS will not send back an ack so we expect
-      // the add entry code (LDAP client code emulation) to be blocked for the
-      // timeout value at least. If the time we have slept is lower, timeout
-      // handling code is not working...
-      endTime = System.currentTimeMillis();
-      assertTrue((endTime - startTime) >= TIMEOUT);
+      assertBlockedLongerThanTimeout(startTime, System.currentTimeMillis(), TIMEOUT);
       assertTrue(replicationServer.isScenarioExecuted());
 
       // Check monitoring values
       // No ack should have comen back, so timeout incremented (flag and error for rs)
-      sleep(1000); // Sleep a while as counters are updated just after sending thread is unblocked
+      Thread.sleep(1000); // Sleep a while as counters are updated just after sending thread is unblocked
       baseDN = DN.decode(SAFE_DATA_DN);
       new MonitorAssertions(baseDN)
         .assertValue("assured-sd-sent-updates", 3)
@@ -1494,11 +1365,34 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
         .assertRemainingValuesAreZero();
       assertServerErrorsSafeDataMode(baseDN,
           entry(10, 2), entry(20, 1), entry(RS_SERVER_ID, 1));
-
     } finally
     {
       endTest(testcase);
     }
+  }
+
+  /**
+   * In this scenario, the fake RS will not send back an ack so we expect the
+   * add entry code (LDAP client code emulation) to be blocked for the timeout
+   * value at least. If the time we have slept is lower, timeout handling code
+   * is not working...
+   */
+  private void assertBlockedLongerThanTimeout(long startTime, long endTime, int TIMEOUT)
+  {
+    assertTrue((endTime - startTime) >= TIMEOUT);
+  }
+
+  /**
+   * In this scenario, the fake RS will send back an ack after
+   * NO_TIMEOUT_RS_SLEEP_TIME seconds, so we expect the add/delete entry code
+   * (LDAP client code emulation) to be blocked for more than
+   * NO_TIMEOUT_RS_SLEEP_TIME seconds but no more than the timeout value.
+   */
+  private void assertBlockedForLessThanTimeout(long startTime, int TIMEOUT)
+  {
+    long endTime = System.currentTimeMillis();
+    long callTime = endTime - startTime;
+    assertTrue(NO_TIMEOUT_RS_SLEEP_TIME <= callTime && callTime <= TIMEOUT);
   }
 
   /**
@@ -1508,7 +1402,6 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
   @Test(groups = "slow")
   public void testSafeReadManyErrors() throws Exception
   {
-
     int TIMEOUT = 5000;
     String testcase = "testSafeReadManyErrors";
     try
@@ -1519,8 +1412,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
       replicationServer.start(SAFE_READ_MANY_ERRORS);
 
       // Create a safe read assured domain
-      safeReadDomainCfgEntry = createAssuredDomain(AssuredMode.SAFE_READ_MODE, 0,
-        TIMEOUT);
+      safeReadDomainCfgEntry = createAssuredDomain(AssuredMode.SAFE_READ_MODE, 0, TIMEOUT);
       // Wait for connection of domain to RS
       waitForConnectionToRs(testcase, replicationServer);
 
@@ -1532,18 +1424,13 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
         "objectClass: organizationalUnit\n";
       addEntry(TestCaseUtils.entryFromLdifString(entry));
 
-      // In this scenario, the fake RS will send back an ack after NO_TIMEOUT_RS_SLEEP_TIME
-      // seconds, so we expect the add entry code (LDAP client code emulation) to be blocked
-      // for more than NO_TIMEOUT_RS_SLEEP_TIME seconds but no more than the timeout value.
-      long endTime = System.currentTimeMillis();
-      long callTime = endTime - startTime;
-      assertTrue( (callTime >= NO_TIMEOUT_RS_SLEEP_TIME) && (callTime <= TIMEOUT));
+      assertBlockedForLessThanTimeout(startTime, TIMEOUT);
 
       // Check monitoring values
       // The expected ack for the first update is:
       // - replay error
       // - server 10 error, server 20 error
-      sleep(1000); // Sleep a while as counters are updated just after sending thread is unblocked
+      Thread.sleep(1000); // Sleep a while as counters are updated just after sending thread is unblocked
       DN baseDN = DN.decode(SAFE_READ_DN);
       new MonitorAssertions(baseDN)
         .assertValue("assured-sr-sent-updates", 1)
@@ -1556,12 +1443,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
       startTime = System.currentTimeMillis(); // Time the update has been initiated
       deleteEntry(entryDn);
 
-      // In this scenario, the fake RS will send back an ack after NO_TIMEOUT_RS_SLEEP_TIME
-      // seconds, so we expect the delete entry code (LDAP client code emulation) to be blocked
-      // for more than NO_TIMEOUT_RS_SLEEP_TIME seconds but no more than the timeout value.
-      endTime = System.currentTimeMillis();
-      callTime = endTime - startTime;
-      assertTrue( (callTime >= NO_TIMEOUT_RS_SLEEP_TIME) && (callTime <= TIMEOUT));
+      assertBlockedForLessThanTimeout(startTime, TIMEOUT);
 
       // Check monitoring values
       // The expected ack for the second update is:
@@ -1569,7 +1451,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
       // - wrong status error
       // - replay error
       // - server 10 error, server 20 error, server 30 error
-      sleep(1000); // Sleep a while as counters are updated just after sending thread is unblocked
+      Thread.sleep(1000); // Sleep a while as counters are updated just after sending thread is unblocked
       new MonitorAssertions(baseDN)
         .assertValue("assured-sr-sent-updates", 2)
         .assertValue("assured-sr-not-acknowledged-updates", 2)
@@ -1584,17 +1466,12 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
       startTime = System.currentTimeMillis(); // Time the update has been initiated
       addEntry(TestCaseUtils.entryFromLdifString(entry));
 
-      // In this scenario, the fake RS will not send back an ack so we expect
-      // the add entry code (LDAP client code emulation) to be blocked for the
-      // timeout value at least. If the time we have slept is lower, timeout
-      // handling code is not working...
-      endTime = System.currentTimeMillis();
-      assertTrue((endTime - startTime) >= TIMEOUT);
+      assertBlockedLongerThanTimeout(startTime, System.currentTimeMillis(), TIMEOUT);
       assertTrue(replicationServer.isScenarioExecuted());
 
       // Check monitoring values
       // No ack should have comen back, so timeout incremented (flag and error for rs)
-      sleep(1000); // Sleep a while as counters are updated just after sending thread is unblocked
+      Thread.sleep(1000); // Sleep a while as counters are updated just after sending thread is unblocked
       new MonitorAssertions(baseDN)
         .assertValue("assured-sr-sent-updates", 3)
         .assertValue("assured-sr-not-acknowledged-updates", 3)
@@ -1615,14 +1492,14 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
    */
   private void deleteEntry(String dn) throws Exception
   {
-    DN realDn = DN.decode(dn);
+    DN realDN = DN.decode(dn);
     DeleteOperationBasis delOp = new DeleteOperationBasis(connection,
-      InternalClientConnection.nextOperationID(), InternalClientConnection.
-      nextMessageID(), null, realDn);
+      InternalClientConnection.nextOperationID(),
+      InternalClientConnection.nextMessageID(), null, realDN);
     delOp.setInternalOperation(true);
     delOp.run();
     waitOpResult(delOp, ResultCode.SUCCESS);
-    assertNull(DirectoryServer.getEntry(realDn));
+    assertNull(DirectoryServer.getEntry(realDN));
   }
 
   /**
@@ -1636,8 +1513,9 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
     AssuredMode assuredMode) throws Exception
   {
     // Find monitoring entry for requested base DN
-    String monitorFilter =
-         "(&(cn=Directory server*)(domain-name=" + baseDN + "))";
+    SearchFilter monitorFilter = SearchFilter.createFilterFromString(
+        "(&(cn=Directory server*)(domain-name=" + baseDN + "))");
+    DN dn = DN.decode("cn=replication,cn=monitor");
 
     InternalSearchOperation op;
     int count = 0;
@@ -1645,19 +1523,14 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
     {
       if (count++>0)
         Thread.sleep(100);
-      op = connection.processSearch(
-                                    ByteString.valueOf("cn=replication,cn=monitor"),
-                                    SearchScope.WHOLE_SUBTREE,
-                                    LDAPFilter.decode(monitorFilter));
+      op = connection.processSearch(dn, SearchScope.WHOLE_SUBTREE, monitorFilter);
     }
-    while (op.getSearchEntries().isEmpty() && (count<100));
-    if (op.getSearchEntries().isEmpty())
-      throw new Exception("Could not read monitoring information");
+    while (op.getSearchEntries().isEmpty() && count < 100);
+
+    Assertions.assertThat(op.getSearchEntries()).isNotEmpty();
 
     SearchResultEntry entry = op.getSearchEntries().getFirst();
-
-    if (entry == null)
-      throw new Exception("Could not find monitoring entry");
+    assertNotNull(entry);
 
     /*
      * Find the multi valued attribute matching the requested assured mode
@@ -1676,37 +1549,33 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
     }
 
     List<Attribute> attrs = entry.getAttribute(assuredAttr);
+    if (attrs == null || attrs.isEmpty())
+      return Collections.emptyMap();
 
-    Map<Integer,Integer> resultMap = new HashMap<Integer,Integer>();
-    if ( (attrs == null) || (attrs.isEmpty()) )
-      return resultMap; // Empty map
-
-    Attribute attr = attrs.get(0);
     // Parse and store values
-    for (AttributeValue val : attr) {
-      String srvStr = val.toString();
-      StringTokenizer strtok = new StringTokenizer(srvStr, ":");
-      String token = strtok.nextToken();
-      if (token != null) {
-        int serverId = Integer.valueOf(token);
-        token = strtok.nextToken();
-        if (token != null) {
-          Integer nerrors = Integer.valueOf(token);
-          resultMap.put(serverId, nerrors);
+    Map<Integer,Integer> resultMap = new HashMap<Integer,Integer>();
+    for (AttributeValue val : attrs.get(0))
+    {
+      StringTokenizer strtok = new StringTokenizer(val.toString(), ":");
+
+      String serverId = strtok.nextToken();
+      if (serverId != null) {
+        String nbErrors = strtok.nextToken();
+        if (nbErrors != null) {
+          resultMap.put(Integer.valueOf(serverId), Integer.valueOf(nbErrors));
         }
       }
     }
-
     return resultMap;
   }
 
-  private void waitOpResult(Operation operation, ResultCode expectedResult)
+  private void waitOpResult(Operation operation, ResultCode expectedResult) throws Exception
   {
     int ii=0;
     while((operation.getResultCode()==ResultCode.UNDEFINED) ||
         (operation.getResultCode()!=expectedResult))
     {
-      sleep(50);
+      Thread.sleep(50);
       ii++;
       if (ii>10)
         assertEquals(operation.getResultCode(), expectedResult,
@@ -1714,4 +1583,3 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
     }
   }
 }
-

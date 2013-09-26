@@ -23,11 +23,13 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS
  */
 package org.opends.server.core.networkgroups;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import org.opends.messages.Message;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
@@ -35,18 +37,18 @@ import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.types.DN;
+import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchScope;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.*;
 
-
-/*
+/**
  * This set of tests test the resource limits.
  */
+@SuppressWarnings("javadoc")
 public class ResourceLimitsPolicyTest extends DirectoryServerTestCase {
   //===========================================================================
   //
@@ -60,8 +62,7 @@ public class ResourceLimitsPolicyTest extends DirectoryServerTestCase {
    * @throws Exception if the environment could not be set up.
    */
   @BeforeClass
-  public void setUp()
-    throws Exception
+  public void setUp() throws Exception
   {
     // This test suite depends on having the schema available,
     // so we'll start the server.
@@ -119,13 +120,11 @@ public class ResourceLimitsPolicyTest extends DirectoryServerTestCase {
   public void testMaxNumberOfConnections()
           throws Exception
   {
-    ArrayList<Message> messages = new ArrayList<Message>();
+    List<Message> messages = new ArrayList<Message>();
 
-    ResourceLimitsPolicyFactory factory =
-        new ResourceLimitsPolicyFactory();
+    ResourceLimitsPolicyFactory factory = new ResourceLimitsPolicyFactory();
     ResourceLimitsPolicy limits =
-        factory
-            .createQOSPolicy(new MockResourceLimitsQOSPolicyCfg()
+        factory.createQOSPolicy(new MockResourceLimitsQOSPolicyCfg()
               {
 
                 @Override
@@ -139,17 +138,14 @@ public class ResourceLimitsPolicyTest extends DirectoryServerTestCase {
     InternalClientConnection conn1 = new InternalClientConnection(DN.NULL_DN);
     limits.addConnection(conn1);
 
-    boolean check = limits.isAllowed(conn1, null, true, messages);
-    assertTrue(check);
+    assertTrue(limits.isAllowed(conn1, null, true, messages));
 
     InternalClientConnection conn2 = new InternalClientConnection(DN.NULL_DN);
     limits.addConnection(conn2);
-    check = limits.isAllowed(conn2, null, true, messages);
-    assertFalse(check);
+    assertFalse(limits.isAllowed(conn2, null, true, messages));
 
     limits.removeConnection(conn1);
-    check = limits.isAllowed(conn2, null, true, messages);
-    assertTrue(check);
+    assertTrue(limits.isAllowed(conn2, null, true, messages));
 
     limits.removeConnection(conn2);
   }
@@ -162,13 +158,11 @@ public class ResourceLimitsPolicyTest extends DirectoryServerTestCase {
   public void testMaxNumberOfConnectionsFromSameIp()
           throws Exception
   {
-    ArrayList<Message> messages = new ArrayList<Message>();
+    List<Message> messages = new ArrayList<Message>();
 
-    ResourceLimitsPolicyFactory factory =
-        new ResourceLimitsPolicyFactory();
+    ResourceLimitsPolicyFactory factory = new ResourceLimitsPolicyFactory();
     ResourceLimitsPolicy limits =
-        factory
-            .createQOSPolicy(new MockResourceLimitsQOSPolicyCfg()
+        factory.createQOSPolicy(new MockResourceLimitsQOSPolicyCfg()
               {
 
                 @Override
@@ -182,17 +176,14 @@ public class ResourceLimitsPolicyTest extends DirectoryServerTestCase {
     InternalClientConnection conn1 = new InternalClientConnection(DN.NULL_DN);
     limits.addConnection(conn1);
 
-    boolean check = limits.isAllowed(conn1, null, true, messages);
-    assertTrue(check);
+    assertTrue(limits.isAllowed(conn1, null, true, messages));
 
     InternalClientConnection conn2 = new InternalClientConnection(DN.NULL_DN);
     limits.addConnection(conn2);
-    check = limits.isAllowed(conn2, null, true, messages);
-    assertFalse(check);
+    assertFalse(limits.isAllowed(conn2, null, true, messages));
 
     limits.removeConnection(conn1);
-    check = limits.isAllowed(conn2, null, true, messages);
-    assertTrue(check);
+    assertTrue(limits.isAllowed(conn2, null, true, messages));
 
     limits.removeConnection(conn2);
   }
@@ -213,11 +204,9 @@ public class ResourceLimitsPolicyTest extends DirectoryServerTestCase {
   {
     List<Message> messages = new ArrayList<Message>();
 
-    ResourceLimitsPolicyFactory factory =
-        new ResourceLimitsPolicyFactory();
+    ResourceLimitsPolicyFactory factory = new ResourceLimitsPolicyFactory();
     ResourceLimitsPolicy limits =
-        factory
-            .createQOSPolicy(new MockResourceLimitsQOSPolicyCfg()
+        factory.createQOSPolicy(new MockResourceLimitsQOSPolicyCfg()
               {
 
                 @Override
@@ -236,12 +225,7 @@ public class ResourceLimitsPolicyTest extends DirectoryServerTestCase {
         SearchScope.BASE_OBJECT,
         LDAPFilter.decode(searchFilter).toSearchFilter());
 
-    boolean check = limits.isAllowed(conn1, search, true, messages);
-    if (success) {
-      assertTrue(check);
-    } else {
-      assertFalse(check);
-    }
+    assertEquals(limits.isAllowed(conn1, search, true, messages), success);
     limits.removeConnection(conn1);
   }
 
@@ -254,7 +238,7 @@ public class ResourceLimitsPolicyTest extends DirectoryServerTestCase {
   public void testMaxThroughput()
           throws Exception
   {
-    ArrayList<Message> messages = new ArrayList<Message>();
+    List<Message> messages = new ArrayList<Message>();
     final long interval = 1000; // Unit is milliseconds
 
     ResourceLimitsPolicyFactory factory = new ResourceLimitsPolicyFactory();
@@ -276,35 +260,26 @@ public class ResourceLimitsPolicyTest extends DirectoryServerTestCase {
     InternalClientConnection conn = new InternalClientConnection(DN.NULL_DN);
     limits.addConnection(conn);
 
-    InternalSearchOperation search1 = conn.processSearch(
-      DN.decode("dc=example,dc=com"),
-      SearchScope.BASE_OBJECT,
-      LDAPFilter.decode("(objectclass=*)").toSearchFilter());
+    final DN dn = DN.decode("dc=example,dc=com");
+    final SearchFilter all = SearchFilter.createFilterFromString("(objectclass=*)");
 
     // First operation is allowed
-    boolean check = limits.isAllowed(conn, search1, true, messages);
-    assertTrue(check);
-
-    InternalSearchOperation search2 = conn.processSearch(
-      DN.decode("dc=example,dc=com"),
-      SearchScope.BASE_OBJECT,
-      LDAPFilter.decode("(objectclass=*)").toSearchFilter());
+    InternalSearchOperation search1 =
+        conn.processSearch(dn, SearchScope.BASE_OBJECT, all);
+    assertTrue(limits.isAllowed(conn, search1, true, messages));
 
     // Second operation in the same interval is refused
-    check = limits.isAllowed(conn, search2, true, messages);
-    assertFalse(check);
+    InternalSearchOperation search2 =
+        conn.processSearch(dn, SearchScope.BASE_OBJECT, all);
+    assertFalse(limits.isAllowed(conn, search2, true, messages));
 
     // Wait for the end of the interval => counters are reset
     Thread.sleep(interval);
 
-    InternalSearchOperation search3 = conn.processSearch(
-      DN.decode("dc=example,dc=com"),
-      SearchScope.BASE_OBJECT,
-      LDAPFilter.decode("(objectclass=*)").toSearchFilter());
-
     // The operation is allowed
-    check = limits.isAllowed(conn, search3, true, messages);
-    assertTrue(check);
+    InternalSearchOperation search3 =
+        conn.processSearch(dn, SearchScope.BASE_OBJECT, all);
+    assertTrue(limits.isAllowed(conn, search3, true, messages));
   }
 
 }
