@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS.
  */
 
 package org.opends.server.util;
@@ -57,7 +58,7 @@ public final class Platform
 {
 
   // Prefix that determines which security package to use.
-  private static String pkgPrefix;
+  private static final String pkgPrefix;
 
   // The two security package prefixes (IBM and SUN).
   private static final String IBM_SEC = "com.ibm.security";
@@ -103,7 +104,7 @@ public final class Platform
       "getSelfCertificate";
 
     // Classes needed to manage certificates.
-    private static Class<?> certKeyGenClass, X500NameClass;
+    private static final Class<?> certKeyGenClass, X500NameClass;
 
     // Constructors for each of the above classes.
     private static Constructor<?> certKeyGenCons, X500NameCons;
@@ -111,7 +112,16 @@ public final class Platform
     static
     {
       String x509pkg = pkgPrefix + ".x509";
-      String certAndKeyGen = x509pkg + ".CertAndKeyGen";
+      String certAndKeyGen;
+      if (pkgPrefix.equals(IBM_SEC)
+          || System.getProperty("java.version").matches("^1\\.[67]\\..*"))
+      {
+        certAndKeyGen = x509pkg + ".CertAndKeyGen";
+      }
+      else
+      { // Java 8 moved the CertAndKeyGen class to sun.security.tools.keytool
+        certAndKeyGen = pkgPrefix + ".tools.keytool" + ".CertAndKeyGen";
+      }
       String X500Name = x509pkg + ".X500Name";
       try
       {
