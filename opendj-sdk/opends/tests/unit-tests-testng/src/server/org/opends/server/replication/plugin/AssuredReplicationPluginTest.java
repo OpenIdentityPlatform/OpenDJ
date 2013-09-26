@@ -99,9 +99,10 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
 
     public void assertRemainingValuesAreZero()
     {
-      for (String attribute : attributeValues.keySet())
+      Set<String> keySet;
+      while (!(keySet = attributeValues.keySet()).isEmpty())
       {
-        assertValue(attribute, 0L);
+        assertValue(keySet.iterator().next(), 0L);
       }
     }
   }
@@ -1549,7 +1550,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
         .assertValue("assured-sr-not-acknowledged-updates", 1)
         .assertValue("assured-sr-replay-error-updates", 1)
         .assertRemainingValuesAreZero();
-      assertServerErrorsSafeReadMode(baseDN, entry(10, 2), entry(20, 1));
+      assertServerErrorsSafeReadMode(baseDN, entry(10, 1), entry(20, 1));
 
       // Make a second LDAP update (delete the entry)
       startTime = System.currentTimeMillis(); // Time the update has been initiated
