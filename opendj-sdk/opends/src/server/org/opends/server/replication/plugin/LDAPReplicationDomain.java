@@ -41,7 +41,7 @@ import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 import org.opends.messages.Severity;
 import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.admin.std.meta.ReplicationDomainCfgDefn.IsolationPolicy;
+import org.opends.server.admin.std.meta.ReplicationDomainCfgDefn.*;
 import org.opends.server.admin.std.server.ExternalChangelogDomainCfg;
 import org.opends.server.admin.std.server.ReplicationDomainCfg;
 import org.opends.server.api.AlertGenerator;
@@ -62,6 +62,7 @@ import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.protocols.ldap.LDAPModification;
 import org.opends.server.replication.common.*;
 import org.opends.server.replication.protocol.*;
+import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.replication.service.ReplicationDomain;
 import org.opends.server.tasks.PurgeConflictsHistoricalTask;
 import org.opends.server.tasks.TaskUtils;
@@ -70,7 +71,7 @@ import org.opends.server.types.operation.*;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.TimeThread;
 import org.opends.server.workflowelement.externalchangelog.ECLWorkflowElement;
-import org.opends.server.workflowelement.localbackend.LocalBackendModifyOperation;
+import org.opends.server.workflowelement.localbackend.*;
 
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.messages.ToolMessages.*;
@@ -435,7 +436,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
        */
       try
       {
-        if (buildAndPublishMissingChanges(startCSN))
+        if (buildAndPublishMissingChanges(startCSN, broker))
         {
           message = DEBUG_CHANGES_SENT.get();
           logError(message);
@@ -1261,8 +1262,8 @@ public final class LDAPReplicationDomain extends ReplicationDomain
           break;
         }
       }
-      boolean attributeToBeFiltered = fractionalExclusive && found
-          || !fractionalExclusive && !found;
+      boolean attributeToBeFiltered = (fractionalExclusive && found)
+          || (!fractionalExclusive && !found);
       if (attributeToBeFiltered
           && !newRdn.hasAttributeType(attributeType)
           && !modifyDNOperation.deleteOldRDN())
@@ -1436,7 +1437,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    private static boolean isFractionalProhibited(AttributeType attrType)
    {
      String attributeName = attrType.getPrimaryName();
-     return attributeName != null && isFractionalProhibitedAttr(attributeName)
+     return (attributeName != null && isFractionalProhibitedAttr(attributeName))
          || isFractionalProhibitedAttr(attrType.getOID());
    }
 
@@ -1452,8 +1453,8 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     // Now remove the attribute or modification if:
     // - exclusive mode and attribute is in configuration
     // - inclusive mode and attribute is not in configuration
-    return foundAttribute && fractionalExclusive
-        || !foundAttribute && !fractionalExclusive;
+    return (foundAttribute && fractionalExclusive)
+        || (!foundAttribute && !fractionalExclusive);
   }
 
   private static boolean contains(Set<String> fractionalConcernedAttributes,
@@ -1856,8 +1857,16 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       // this policy imply that we always accept updates.
       return true;
     }
-    return !isolationPolicy.equals(IsolationPolicy.REJECT_ALL_UPDATES)
-        || !hasConnectionError();
+    if (isolationPolicy.equals(IsolationPolicy.REJECT_ALL_UPDATES))
+    {
+      // this isolation policy specifies that the updates are denied
+      // when the broker had problems during the connection phase
+      // Updates are still accepted if the broker is currently connecting..
+      return !hasConnectionError();
+    }
+    // we should never get there as the only possible policies are
+    // ACCEPT_ALL_UPDATES and REJECT_ALL_UPDATES
+    return true;
   }
 
 
@@ -2464,7 +2473,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
         op = msg.createOperation(conn);
         dependency = remotePendingChanges.checkDependencies(op, msg);
 
-        while (!dependency && !replayDone && retryCount-- > 0)
+        while (!dependency && !replayDone && (retryCount-- > 0))
         {
           if (shutdown.get())
           {
@@ -2815,8 +2824,8 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       for (Modification mod : mods)
       {
         AttributeType modAttrType = mod.getAttribute().getAttributeType();
-        if (mod.getModificationType() == ModificationType.DELETE
-            || mod.getModificationType() == ModificationType.REPLACE
+        if ((mod.getModificationType() == ModificationType.DELETE
+            || mod.getModificationType() == ModificationType.REPLACE)
             && currentRDN.hasAttributeType(modAttrType))
         {
           if (currentRDN.hasAttributeType(modAttrType))
@@ -4420,11 +4429,14 @@ private boolean solveNamingConflict(ModifyDNOperation op,
    *
    * @param startCSN
    *          The CSN where we need to start the search
+   * @param session
+   *          The session to use to publish the changes
    * @return A boolean indicating he success of the operation.
    * @throws Exception
    *           if an Exception happens during the search.
    */
-  public boolean buildAndPublishMissingChanges(CSN startCSN) throws Exception
+  public boolean buildAndPublishMissingChanges(CSN startCSN,
+      ReplicationBroker session) throws Exception
   {
     // Trim the changes in replayOperations that are older than the startCSN.
     synchronized (replayOperations)
@@ -4482,7 +4494,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
 
       for (FakeOperation opToSend : opsToSend)
       {
-        broker.publishRecovery(opToSend.generateMessage());
+        session.publishRecovery(opToSend.generateMessage());
       }
       opsToSend.clear();
       if (lastRetrievedChange != null)
@@ -5193,8 +5205,8 @@ private boolean solveNamingConflict(ModifyDNOperation op,
         return false;
 
       // Compare modes
-      if (cfg1.isFractional() != cfg2.isFractional()
-          || cfg1.isFractionalExclusive() != cfg2.isFractionalExclusive())
+      if ((cfg1.isFractional() != cfg2.isFractional())
+          || (cfg1.isFractionalExclusive() != cfg2.isFractionalExclusive()))
         return false;
 
       // Compare all classes attributes
