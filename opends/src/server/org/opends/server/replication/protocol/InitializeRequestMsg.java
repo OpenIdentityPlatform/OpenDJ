@@ -41,22 +41,22 @@ import org.opends.server.types.DirectoryException;
  */
 public class InitializeRequestMsg extends RoutableMsg
 {
-  private String baseDn = null;
+  private DN baseDN;
   private int initWindow = 0;
 
   /**
    * Creates a InitializeRequestMsg message.
    *
-   * @param baseDn      the base DN of the replication domain.
+   * @param baseDN      the base DN of the replication domain.
    * @param destination destination of this message
    * @param serverID    serverID of the server that will send this message
    * @param initWindow  initialization window for flow control
    */
-  public InitializeRequestMsg(String baseDn, int serverID, int destination,
+  public InitializeRequestMsg(DN baseDN, int serverID, int destination,
       int initWindow)
   {
     super(serverID, destination);
-    this.baseDn = baseDn;
+    this.baseDN = baseDN;
     this.initWindow = initWindow; // V4
   }
 
@@ -79,9 +79,9 @@ public class InitializeRequestMsg extends RoutableMsg
             "input is not a valid InitializeRequestMessage");
       int pos = 1;
 
-      // baseDn
+      // baseDN
       int length = getNextLength(in, pos);
-      baseDn = new String(in, pos, length, "UTF-8");
+      baseDN = DN.decode(new String(in, pos, length, "UTF-8"));
       pos += length +1;
 
       // sender
@@ -104,9 +104,14 @@ public class InitializeRequestMsg extends RoutableMsg
         initWindow = Integer.valueOf(initWindowString);
         pos += length +1;
       }
-    } catch (UnsupportedEncodingException e)
+    }
+    catch (UnsupportedEncodingException e)
     {
       throw new DataFormatException("UTF-8 is not supported by this jvm.");
+    }
+    catch (DirectoryException e)
+    {
+      throw new DataFormatException(e.getLocalizedMessage());
     }
   }
 
@@ -115,17 +120,9 @@ public class InitializeRequestMsg extends RoutableMsg
    *
    * @return the base DN from this InitializeRequestMsg.
    */
-  public DN getBaseDn()
+  public DN getBaseDN()
   {
-    if (baseDn == null)
-      return null;
-    try
-    {
-      return DN.decode(baseDn);
-    } catch (DirectoryException e)
-    {
-      return null;
-    }
+    return baseDN;
   }
 
   // ============
@@ -139,7 +136,7 @@ public class InitializeRequestMsg extends RoutableMsg
   public byte[] getBytes(short version)
   {
     try {
-      byte[] baseDNBytes = baseDn.getBytes("UTF-8");
+      byte[] baseDNBytes = baseDN.toString().getBytes("UTF-8");
       byte[] senderBytes = String.valueOf(senderID).getBytes("UTF-8");
       byte[] destinationBytes = String.valueOf(destination).getBytes("UTF-8");
       byte[] initWindowBytes = null;
@@ -186,10 +183,11 @@ public class InitializeRequestMsg extends RoutableMsg
    * Get a string representation of this object.
    * @return A string representation of this object.
    */
+  @Override
   public String toString()
   {
-    return "InitializeRequestMessage: baseDn="+baseDn+" senderId="+senderID +
-    " destination=" + destination + " initWindow=" + initWindow;
+    return "InitializeRequestMessage: baseDN=" + baseDN + " senderId="
+       + senderID + " destination=" + destination + " initWindow=" + initWindow;
   }
 
   /**

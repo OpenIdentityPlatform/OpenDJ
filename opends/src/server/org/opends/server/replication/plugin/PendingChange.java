@@ -31,7 +31,6 @@ import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.protocol.LDAPUpdateMsg;
 import org.opends.server.types.DN;
-import org.opends.server.types.DirectoryException;
 import org.opends.server.types.operation.PluginOperation;
 
 /**
@@ -164,16 +163,9 @@ public class PendingChange implements Comparable<PendingChange>
   {
     synchronized (this)
     {
-      if (targetDN != null)
+      if (targetDN == null)
       {
-        return targetDN;
-      }
-      try
-      {
-        targetDN = DN.decode(msg.getDn());
-      }
-      catch (DirectoryException e)
-      {
+        targetDN = msg.getDN();
       }
       return targetDN;
     }

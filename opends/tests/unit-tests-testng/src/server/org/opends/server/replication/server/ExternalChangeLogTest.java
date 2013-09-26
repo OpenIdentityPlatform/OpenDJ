@@ -483,16 +483,12 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       long time = TimeThread.getTime();
       int ts = 1;
       CSN csn1 = new CSN(time, ts++, SERVER_ID_1);
-      DeleteMsg delMsg1 =
-          new DeleteMsg("o=" + tn + "1," + TEST_ROOT_DN_STRING, csn1,
-              "ECLBasicMsg1uid");
+      DeleteMsg delMsg1 = newDeleteMsg("o=" + tn + "1," + TEST_ROOT_DN_STRING, csn1, "ECLBasicMsg1uid");
       server01.publish(delMsg1);
       debugInfo(tn, "publishes:" + delMsg1);
 
       CSN csn2 = new CSN(time, ts++, SERVER_ID_2);
-      DeleteMsg delMsg2 =
-          new DeleteMsg("o=" + tn + "2," + TEST_ROOT_DN_STRING2, csn2,
-              "ECLBasicMsg2uid");
+      DeleteMsg delMsg2 = newDeleteMsg("o=" + tn + "2," + TEST_ROOT_DN_STRING2, csn2, "ECLBasicMsg2uid");
       server02.publish(delMsg2);
       debugInfo(tn, "publishes:" + delMsg2);
 
@@ -614,7 +610,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       long time = TimeThread.getTime();
 
       CSN csn1 = new CSN(time, 1, SERVER_ID_1);
-      DeleteMsg delMsg1 = new DeleteMsg("o=" + tn + "1," + TEST_ROOT_DN_STRING, csn1, "ECLBasicMsg1uid");
+      DeleteMsg delMsg1 = newDeleteMsg("o=" + tn + "1," + TEST_ROOT_DN_STRING, csn1, "ECLBasicMsg1uid");
       server01.publish(delMsg1);
       debugInfo(tn, "publishes:" + delMsg1);
 
@@ -876,24 +872,29 @@ public class ExternalChangeLogTest extends ReplicationTestCase
   }
 
   private void publishDeleteMsgInOTest(ReplicationBroker broker, CSN csn,
-      String tn, int i)
+      String tn, int i) throws DirectoryException
   {
     publishDeleteMsg(broker, csn, tn, i, TEST_ROOT_DN_STRING);
   }
 
   private void publishDeleteMsgInOTest2(ReplicationBroker broker, CSN csn,
-      String tn, int i)
+      String tn, int i) throws DirectoryException
   {
     publishDeleteMsg(broker, csn, tn, i, TEST_ROOT_DN_STRING2);
   }
 
   private void publishDeleteMsg(ReplicationBroker broker, CSN csn, String tn,
-      int i, String baseDn)
+      int i, String baseDn) throws DirectoryException
   {
     String dn = "uid=" + tn + i + "," + baseDn;
-    DeleteMsg delMsg = new DeleteMsg(dn, csn, tn + "uuid" + i);
+    DeleteMsg delMsg = newDeleteMsg(dn, csn, tn + "uuid" + i);
     broker.publish(delMsg);
     debugInfo(tn, " publishes " + delMsg.getCSN());
+  }
+
+  private DeleteMsg newDeleteMsg(String dn, CSN csn, String entryUUID) throws DirectoryException
+  {
+    return new DeleteMsg(DN.decode(dn), csn, entryUUID);
   }
 
   private InternalSearchOperation searchOnCookieChangelog(String filterString,
@@ -1100,7 +1101,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       Entry entry = TestCaseUtils.entryFromLdifString(lentry);
       AddMsg addMsg = new AddMsg(
           csns[csnCounter],
-          "uid="+tn+"2," + TEST_ROOT_DN_STRING,
+          DN.decode("uid="+tn+"2," + TEST_ROOT_DN_STRING),
           user1entryUUID,
           baseUUID,
           entry.getObjectClassAttribute(),
@@ -1370,7 +1371,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
       // Produce update on this suffix
       DeleteMsg delMsg =
-          new DeleteMsg("uid=" + tn + "1," + TEST_ROOT_DN_STRING, csns[0],
+          newDeleteMsg("uid=" + tn + "1," + TEST_ROOT_DN_STRING, csns[0],
             "11111111-1112-1113-1114-111111111114");
       debugInfo(tn, " publishing " + delMsg.getCSN());
       server01.publish(delMsg);
@@ -1464,7 +1465,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       // Produces change 2
       final CSN csn = csns[1];
       String expectedDn = "uid=" + tn + "2," +  TEST_ROOT_DN_STRING;
-      delMsg = new DeleteMsg(expectedDn, csn,
+      delMsg = newDeleteMsg(expectedDn, csn,
          "11111111-1112-1113-1114-111111111115");
       debugInfo(tn, " publishing " + delMsg.getCSN());
       server01.publish(delMsg);
@@ -1644,7 +1645,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       // Produce update 1
       CSN csn1 = new CSN(TimeThread.getTime(), ts++, SERVER_ID_1);
       DeleteMsg delMsg1 =
-        new DeleteMsg("uid=" + tn + "1," + TEST_ROOT_DN_STRING, csn1,
+        newDeleteMsg("uid=" + tn + "1," + TEST_ROOT_DN_STRING, csn1,
             "11111111-1111-1111-1111-111111111111");
       debugInfo(tn, " publishing " + delMsg1);
       server01.publish(delMsg1);
@@ -1653,7 +1654,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       // Produce update 2
       CSN csn2 = new CSN(TimeThread.getTime(), ts++, SERVER_ID_2);
       DeleteMsg delMsg2 =
-        new DeleteMsg("uid=" + tn + "2," + TEST_ROOT_DN_STRING2, csn2,
+        newDeleteMsg("uid=" + tn + "2," + TEST_ROOT_DN_STRING2, csn2,
             "22222222-2222-2222-2222-222222222222");
       debugInfo(tn, " publishing " + delMsg2);
       server02.publish(delMsg2);
@@ -1662,7 +1663,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       // Produce update 3
       CSN csn3 = new CSN(TimeThread.getTime(), ts++, SERVER_ID_2);
       DeleteMsg delMsg3 =
-        new DeleteMsg("uid=" + tn + "3," + TEST_ROOT_DN_STRING2, csn3,
+        newDeleteMsg("uid=" + tn + "3," + TEST_ROOT_DN_STRING2, csn3,
             "33333333-3333-3333-3333-333333333333");
       debugInfo(tn, " publishing " + delMsg3);
       server02.publish(delMsg3);
@@ -1854,7 +1855,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       // Produces additional change
       CSN csn11 = new CSN(TimeThread.getTime(), 11, SERVER_ID_1);
       String expectedDn11 = "uid=" + tn + "11," +  TEST_ROOT_DN_STRING;
-      DeleteMsg delMsg11 = new DeleteMsg(expectedDn11, csn11,
+      DeleteMsg delMsg11 = newDeleteMsg(expectedDn11, csn11,
          "44444444-4444-4444-4444-444444444444");
       debugInfo(tn, " publishing " + delMsg11);
       server01.publish(delMsg11);
@@ -1864,7 +1865,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       // Produces additional change
       CSN csn12 = new CSN(TimeThread.getTime(), 12, SERVER_ID_2);
       String expectedDn12 = "uid=" + tn + "12," +  TEST_ROOT_DN_STRING2;
-      DeleteMsg delMsg12 = new DeleteMsg(expectedDn12, csn12,
+      DeleteMsg delMsg12 = newDeleteMsg(expectedDn12, csn12,
          "55555555-5555-5555-5555-555555555555");
       debugInfo(tn, " publishing " + delMsg12 );
       server02.publish(delMsg12);
@@ -1874,7 +1875,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       // Produces additional change
       CSN csn13 = new CSN(TimeThread.getTime(), 13, SERVER_ID_2);
       String expectedDn13 = "uid=" + tn + "13," +  TEST_ROOT_DN_STRING2;
-      DeleteMsg delMsg13 = new DeleteMsg(expectedDn13, csn13,
+      DeleteMsg delMsg13 = newDeleteMsg(expectedDn13, csn13,
          "66666666-6666-6666-6666-666666666666");
       debugInfo(tn, " publishing " + delMsg13);
       server02.publish(delMsg13);
@@ -2285,9 +2286,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       gblCSN = csns[1];
 
       // Publish DEL
-      DeleteMsg delMsg =
-          new DeleteMsg("uid=" + tn + "1," + TEST_ROOT_DN_STRING, csns[0],
-            user1entryUUID);
+      DeleteMsg delMsg = newDeleteMsg("uid=" + tn + "1," + TEST_ROOT_DN_STRING, csns[0], user1entryUUID);
       server01.publish(delMsg);
       debugInfo(tn, " publishes " + delMsg.getCSN());
 
@@ -2300,7 +2299,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       Entry entry = TestCaseUtils.entryFromLdifString(lentry);
       AddMsg addMsg = new AddMsg(
           gblCSN,
-          "uid="+tn+"2," + TEST_ROOT_DN_STRING,
+          DN.decode("uid="+tn+"2," + TEST_ROOT_DN_STRING),
           user1entryUUID,
           baseUUID,
           entry.getObjectClassAttribute(),
@@ -2746,7 +2745,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
     // Publish DEL
     CSN csn1 = new CSN(TimeThread.getTime(), ts++, SERVER_ID_1);
-    DeleteMsg delMsg = new DeleteMsg("uid=" + tn + "1," + TEST_ROOT_DN_STRING,
+    DeleteMsg delMsg = newDeleteMsg("uid=" + tn + "1," + TEST_ROOT_DN_STRING,
         csn1, user1entryUUID);
     server01.publish(delMsg);
     debugInfo(tn, " publishes " + delMsg.getCSN());
@@ -2782,8 +2781,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
         1000, replicationServerPort, brokerSessionTimeout, true);
 
     // Publish one first message
-    DeleteMsg delMsg = new DeleteMsg("uid=" + tn + "1," + TEST_ROOT_DN_STRING, csn1,
-            user1entryUUID);
+    DeleteMsg delMsg = newDeleteMsg("uid=" + tn + "1," + TEST_ROOT_DN_STRING, csn1, user1entryUUID);
     server01.publish(delMsg);
     debugInfo(tn, " publishes " + delMsg.getCSN());
     sleep(300);
@@ -2792,7 +2790,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     assertEquals(rsdtest.getEligibleCount(fromStart, now()), 1);
 
     // Publish one second message
-    delMsg = new DeleteMsg("uid=" + tn + "1," + TEST_ROOT_DN_STRING, csn2, user1entryUUID);
+    delMsg = newDeleteMsg("uid=" + tn + "1," + TEST_ROOT_DN_STRING, csn2, user1entryUUID);
     server01.publish(delMsg);
     debugInfo(tn, " publishes " + delMsg.getCSN());
     sleep(300);
@@ -2819,7 +2817,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     assertEquals(rsdtest.getEligibleCount(fromStateBeforeCSN2, now()), 0);
 
     // Publish one third message
-    delMsg = new DeleteMsg("uid="+tn+"1," + TEST_ROOT_DN_STRING, csn3, user1entryUUID);
+    delMsg = newDeleteMsg("uid="+tn+"1," + TEST_ROOT_DN_STRING, csn3, user1entryUUID);
     server01.publish(delMsg);
     debugInfo(tn, " publishes " + delMsg.getCSN());
     sleep(300);
@@ -2842,7 +2840,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       for (int i=4; i<=maxMsg; i++)
       {
         CSN csnx = new CSN(TimeThread.getTime(), i, SERVER_ID_1);
-        delMsg = new DeleteMsg("uid="+tn+i+"," + TEST_ROOT_DN_STRING, csnx, user1entryUUID);
+        delMsg = newDeleteMsg("uid="+tn+i+"," + TEST_ROOT_DN_STRING, csnx, user1entryUUID);
         server01.publish(delMsg);
       }
       sleep(1000);

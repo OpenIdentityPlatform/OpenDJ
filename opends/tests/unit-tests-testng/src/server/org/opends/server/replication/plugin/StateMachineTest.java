@@ -785,12 +785,8 @@ public class StateMachineTest extends ReplicationTestCase
       this.nEntries = nEntries;
 
       // Send init msg to warn dest server it is going do be initialized
-      RoutableMsg initTargetMsg = null;
-
-      initTargetMsg =
-          new InitializeTargetMsg(EXAMPLE_DN, serverId, destId,
-          serverId, nEntries, initWindow);
-
+      RoutableMsg initTargetMsg = new InitializeTargetMsg(
+          EXAMPLE_DN_, serverId, destId, serverId, nEntries, initWindow);
       rb.publish(initTargetMsg);
 
       // Send top entry for the domain
@@ -1103,7 +1099,7 @@ public class StateMachineTest extends ReplicationTestCase
 
       // Create an update message to add an entry.
       return new AddMsg(gen.newCSN(),
-        personWithUUIDEntry.getDN().toString(),
+        personWithUUIDEntry.getDN(),
         userEntryUUID,
         null,
         personWithUUIDEntry.getObjectClassAttribute(),

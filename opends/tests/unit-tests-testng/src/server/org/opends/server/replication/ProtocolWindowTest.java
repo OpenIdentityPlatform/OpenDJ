@@ -27,10 +27,6 @@
  */
 package org.opends.server.replication;
 
-import static org.opends.server.TestCaseUtils.*;
-import static org.opends.server.loggers.ErrorLogger.*;
-import static org.testng.Assert.*;
-
 import java.net.SocketTimeoutException;
 import java.util.Iterator;
 import java.util.List;
@@ -57,6 +53,10 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import static org.opends.server.TestCaseUtils.*;
+import static org.opends.server.loggers.ErrorLogger.*;
+import static org.testng.Assert.*;
+
 /**
  * Test the constructors, encoders and decoders of the Replication AckMsg,
  * ModifyMsg, ModifyDnMsg, AddMsg and Delete MSG
@@ -75,7 +75,7 @@ public class ProtocolWindowTest extends ReplicationTestCase
 
 
   /** the base DN used for this test */
-  private DN baseDn;
+  private DN baseDN;
   private ReplicationServer replicationServer;
 
   /**
@@ -114,7 +114,7 @@ public class ProtocolWindowTest extends ReplicationTestCase
           "Unable to add the synchronized server");
     configEntryList.add(repDomainEntry.getDN());
 
-    ReplicationBroker broker = openReplicationSession(baseDn, 12,
+    ReplicationBroker broker = openReplicationSession(baseDN, 12,
         WINDOW_SIZE, replServerPort, 1000, true);
 
     try {
@@ -150,7 +150,7 @@ public class ProtocolWindowTest extends ReplicationTestCase
       assertTrue(OperationType.ADD.compareTo(receivedOp.getOperationType()) == 0,
         "The received Replication message is not an ADD msg");
 
-      assertEquals(DN.decode(addMsg.getDn()),personEntry.getDN(),
+      assertEquals(addMsg.getDN(), personEntry.getDN(),
         "The received ADD Replication message is not for the excepted DN");
 
       // send (2 * window + replicationServer queue) modify operations
@@ -291,7 +291,7 @@ public class ProtocolWindowTest extends ReplicationTestCase
     // This test suite depends on having the schema available.
     super.setUp();
 
-    baseDn = DN.decode(TEST_ROOT_DN_STRING);
+    baseDN = DN.decode(TEST_ROOT_DN_STRING);
 
     replServerPort = TestCaseUtils.findFreePort();
 

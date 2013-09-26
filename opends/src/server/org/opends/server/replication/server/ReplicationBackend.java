@@ -781,7 +781,7 @@ public class ReplicationBackend
 
           dn = DN.decode("puid=" + addMsg.getParentEntryUUID() + "+" +
               CHANGE_NUMBER + "=" + msg.getCSN() + "+" +
-              msg.getDn() + "," + BASE_DN);
+              msg.getDN() + "," + BASE_DN);
 
           Map<AttributeType,List<Attribute>> attrs =
             new HashMap<AttributeType,List<Attribute>>();
@@ -904,7 +904,7 @@ public class ReplicationBackend
   private DN computeDN(LDAPUpdateMsg msg) throws DirectoryException
   {
     return DN.decode("uuid=" + msg.getEntryUUID() + "," + CHANGE_NUMBER + "="
-        + msg.getCSN() + "," + msg.getDn() + "," + BASE_DN);
+        + msg.getCSN() + "," + msg.getDN() + "," + BASE_DN);
   }
 
   private Entry writeChangeRecord(LDIFWriter ldifWriter,

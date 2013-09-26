@@ -30,6 +30,7 @@ package org.opends.server.replication.protocol;
 import java.util.*;
 import java.util.zip.DataFormatException;
 
+import org.assertj.core.api.Assertions;
 import org.opends.messages.Message;
 import org.opends.server.controls.SubtreeDeleteControl;
 import org.opends.server.core.*;
@@ -58,6 +59,9 @@ import static org.testng.Assert.*;
 @SuppressWarnings("javadoc")
 public class SynchronizationMsgTest extends ReplicationTestCase
 {
+
+  private DN TEST_ROOT_DN;
+
   /**
    * Set up the environment for performing the tests in this Class.
    *
@@ -69,6 +73,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
   public void setUp() throws Exception
   {
     super.setUp();
+    TEST_ROOT_DN = DN.decode(TEST_ROOT_DN_STRING);
   }
 
   /**
@@ -169,18 +174,12 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     // Get ECL entry attributes
     assertAttributesEqual(entryAttrList, generatedMsg.getEclIncludes());
 
-    Operation op = msg.createOperation(connection);
-    Operation generatedOperation = generatedMsg.createOperation(connection);
-
-    assertEquals(op.getClass(), ModifyOperationBasis.class);
-    assertEquals(generatedOperation.getClass(), ModifyOperationBasis.class);
-
-    ModifyOperation mod1 = (ModifyOperation) op;
-    ModifyOperation mod2 = (ModifyOperation) generatedOperation;
+    ModifyOperation mod1 = (ModifyOperation) msg.createOperation(connection);
+    ModifyOperation mod2 = (ModifyOperation) generatedMsg.createOperation(connection);
 
     assertEquals(mod1.getRawEntryDN(), mod2.getRawEntryDN());
-    assertEquals( mod1.getAttachment(SYNCHROCONTEXT),
-                  mod2.getAttachment(SYNCHROCONTEXT));
+    assertEquals(mod1.getAttachment(SYNCHROCONTEXT),
+                 mod2.getAttachment(SYNCHROCONTEXT));
     assertEquals(mod1.getModifications(), mod2.getModifications());
   }
 
@@ -223,7 +222,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     assertFalse(msg.equals(new Object()));
 
     // Check CSN
-    assertTrue(msg.equals(generatedMsg));
+    assertEquals(msg, generatedMsg);
 
     // Check hashCode
     assertEquals(msg.hashCode(), generatedMsg.hashCode());
@@ -232,11 +231,11 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     assertEquals(msg.compareTo(generatedMsg), 0);
 
     // Check Get / Set DN
-    assertTrue(DN.decode(msg.getDn()).equals(DN.decode(generatedMsg.getDn())));
+    assertEquals(msg.getDN(), generatedMsg.getDN());
 
-    String fakeDN = "cn=fake cn";
-    msg.setDn(fakeDN) ;
-    assertEquals(msg.getDn(), fakeDN) ;
+    DN fakeDN = DN.decode("cn=fake cn");
+    msg.setDN(fakeDN) ;
+    assertEquals(msg.getDN(), fakeDN) ;
 
     // Check uuid
     assertEquals(msg.getEntryUUID(), generatedMsg.getEntryUUID());
@@ -312,14 +311,8 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     // Get ECL entry attributes
     assertAttributesEqual(entryAttrList, generatedMsg.getEclIncludes());
 
-    Operation generatedOperation = generatedMsg.createOperation(connection);
-
-    assertEquals(generatedOperation.getClass(), DeleteOperationBasis.class);
-    assertTrue(
-        (subtree?(generatedOperation.getRequestControl(SubtreeDeleteControl.DECODER)!=null):
-          (generatedOperation.getRequestControl(SubtreeDeleteControl.DECODER)==null)));
-
-    DeleteOperation mod2 = (DeleteOperationBasis) generatedOperation;
+    DeleteOperation mod2 = (DeleteOperation) generatedMsg.createOperation(connection);
+    assertEquals(mod2.getRequestControl(SubtreeDeleteControl.DECODER) != null, subtree);
     assertEquals(op.getRawEntryDN(), mod2.getRawEntryDN());
 
     // Create an update message from this op
@@ -414,14 +407,8 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     // Get ECL entry attributes
     assertAttributesEqual(entryAttrList, generatedMsg.getEclIncludes());
 
-    Operation oriOp = msg.createOperation(connection);
-    Operation generatedOperation = generatedMsg.createOperation(connection);
-
-    assertEquals(oriOp.getClass(), ModifyDNOperationBasis.class);
-    assertEquals(generatedOperation.getClass(), ModifyDNOperationBasis.class);
-
-    ModifyDNOperation moddn1 = (ModifyDNOperation) oriOp;
-    ModifyDNOperation moddn2 = (ModifyDNOperation) generatedOperation;
+    ModifyDNOperation moddn1 = (ModifyDNOperation) msg.createOperation(connection);
+    ModifyDNOperation moddn2 = (ModifyDNOperation) generatedMsg.createOperation(connection);
 
     assertEquals(msg.getCSN(), generatedMsg.getCSN());
     assertEquals(moddn1.getRawEntryDN(), moddn2.getRawEntryDN());
@@ -450,6 +437,8 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     byte safeDataLevel, List<Attribute> entryAttrList)
          throws Exception
   {
+    final DN dn = DN.decode(rawDN);
+
     Attribute objectClass = Attributes.create(DirectoryServer
         .getObjectClassAttributeType(), "organization");
     Map<ObjectClass, String> objectClassList =
@@ -472,7 +461,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
 
     CSN csn = new CSN(TimeThread.getTime(), 123,  45);
 
-    AddMsg msg = new AddMsg(csn, rawDN, "thisIsaUniqueID", "parentUniqueId",
+    AddMsg msg = new AddMsg(csn, dn, "thisIsaUniqueID", "parentUniqueId",
                             objectClass, userAttributes,
                             operationalAttributes);
 
@@ -503,14 +492,8 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     // Create an new Add Operation from the current addMsg
     InternalClientConnection connection =
         InternalClientConnection.getRootConnection();
-    Operation op = msg.createOperation(connection, rawDN);
-    Operation generatedOperation = generatedMsg.createOperation(connection, rawDN);
-
-    assertEquals(op.getClass(), AddOperationBasis.class);
-    assertEquals(generatedOperation.getClass(), AddOperationBasis.class);
-
-    AddOperation addOp = (AddOperation) op;
-    AddOperation genAddOp = (AddOperation) generatedOperation;
+    AddOperation addOp = msg.createOperation(connection, dn);
+    AddOperation genAddOp = generatedMsg.createOperation(connection, dn);
 
     assertEquals(addOp.getRawEntryDN(), genAddOp.getRawEntryDN());
     assertEquals(addOp.getAttachment(SYNCHROCONTEXT), genAddOp.getAttachment(SYNCHROCONTEXT));
@@ -522,8 +505,6 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     assertEquals(msg.toString(), generatedMsg.toString());
 
     //Create an Add operation and generate and Add msg from it
-    DN dn = DN.decode(rawDN);
-
     AddOperation addOpB = new AddOperationBasis(connection,
         1, 1, null, dn, objectClassList, userAttList, opList);
     LocalBackendAddOperation localAddOp = new LocalBackendAddOperation(addOpB);
@@ -668,7 +649,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     DeleteMsg delmsg = new DeleteMsg(op);
     long changeNumber = 21;
 
-    String baseDN = "dc=example,dc=com";
+    DN baseDN = DN.decode("dc=example,dc=com");
 
     // create a cookie
     MultiDomainServerState cookie =
@@ -679,7 +660,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     // Constructor test
     ECLUpdateMsg msg1 = new ECLUpdateMsg(delmsg, cookie, baseDN, changeNumber);
     assertTrue(msg1.getCookie().equalsTo(cookie));
-    assertTrue(msg1.getBaseDN().equalsIgnoreCase(baseDN));
+    assertEquals(msg1.getBaseDN(), baseDN);
     assertEquals(msg1.getChangeNumber(), changeNumber);
     DeleteMsg delmsg2 = (DeleteMsg)msg1.getUpdateMsg();
     assertEquals(delmsg.compareTo(delmsg2), 0);
@@ -688,8 +669,8 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     ECLUpdateMsg msg2 = new ECLUpdateMsg(msg1.getBytes(getCurrentVersion()));
     assertTrue(msg2.getCookie().equalsTo(msg2.getCookie()));
     assertTrue(msg2.getCookie().equalsTo(cookie));
-    assertTrue(msg2.getBaseDN().equalsIgnoreCase(msg1.getBaseDN()));
-    assertTrue(msg2.getBaseDN().equalsIgnoreCase(baseDN));
+    assertEquals(msg2.getBaseDN(), msg1.getBaseDN());
+    assertEquals(msg2.getBaseDN(), baseDN);
     assertEquals(msg2.getChangeNumber(), msg1.getChangeNumber());
     assertEquals(msg2.getChangeNumber(), changeNumber);
 
@@ -702,7 +683,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
   @DataProvider(name="createServerStartData")
   public Object [][] createServerStartData() throws Exception
   {
-    String baseDN = TEST_ROOT_DN_STRING;
+    DN baseDN = TEST_ROOT_DN;
     ServerState state = new ServerState();
     state.update(new CSN(0, 0,0));
     Object[] set1 = new Object[] {1, baseDN, 0, state, 0L, false, (byte)0};
@@ -723,7 +704,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
    * by checking that : msg == new ServerStartMsg(msg.getBytes()).
    */
   @Test(enabled=true,dataProvider="createServerStartData")
-  public void serverStartMsgTest(int serverId, String baseDN, int window,
+  public void serverStartMsgTest(int serverId, DN baseDN, int window,
          ServerState state, long genId, boolean sslEncryption, byte groupId) throws Exception
   {
     ServerStartMsg msg = new ServerStartMsg(
@@ -732,7 +713,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     ServerStartMsg newMsg = new ServerStartMsg(msg.getBytes(getCurrentVersion()));
     assertEquals(msg.getServerId(), newMsg.getServerId());
     assertEquals(msg.getServerURL(), newMsg.getServerURL());
-    assertEquals(msg.getBaseDn(), newMsg.getBaseDn());
+    assertEquals(msg.getBaseDN(), newMsg.getBaseDN());
     assertEquals(msg.getWindowSize(), newMsg.getWindowSize());
     assertEquals(msg.getHeartbeatInterval(), newMsg.getHeartbeatInterval());
     assertEquals(msg.getSSLEncryption(), newMsg.getSSLEncryption());
@@ -746,7 +727,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
   @DataProvider(name="createReplServerStartData")
   public Object [][] createReplServerStartData() throws Exception
   {
-    String baseDN = TEST_ROOT_DN_STRING;
+    DN baseDN = TEST_ROOT_DN;
     ServerState state = new ServerState();
     state.update(new CSN(0, 0,0));
     Object[] set1 = new Object[] {1, baseDN, 0, "localhost:8989", state, 0L, (byte)0, 0};
@@ -767,16 +748,15 @@ public class SynchronizationMsgTest extends ReplicationTestCase
    * by checking that : msg == new ReplServerStartMsg(msg.getBytes()).
    */
   @Test(enabled=true,dataProvider="createReplServerStartData")
-  public void replServerStartMsgTest(int serverId, String baseDN, int window,
+  public void replServerStartMsgTest(int serverId, DN baseDN, int window,
          String url, ServerState state, long genId, byte groupId, int degTh) throws Exception
   {
     ReplServerStartMsg msg = new ReplServerStartMsg(serverId,
-        url, baseDN, window, state, genId,
-        true, groupId, degTh);
+        url, baseDN, window, state, genId, true, groupId, degTh);
     ReplServerStartMsg newMsg = new ReplServerStartMsg(msg.getBytes(getCurrentVersion()));
     assertEquals(msg.getServerId(), newMsg.getServerId());
     assertEquals(msg.getServerURL(), newMsg.getServerURL());
-    assertEquals(msg.getBaseDn(), newMsg.getBaseDn());
+    assertEquals(msg.getBaseDN(), newMsg.getBaseDN());
     assertEquals(msg.getWindowSize(), newMsg.getWindowSize());
     assertEquals(msg.getServerState().getCSN(1),
         newMsg.getServerState().getCSN(1));
@@ -791,7 +771,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
   @DataProvider(name="createReplServerStartDSData")
   public Object [][] createReplServerStartDSData() throws Exception
   {
-    String baseDN = TEST_ROOT_DN_STRING;
+    DN baseDN = TEST_ROOT_DN;
     ServerState state = new ServerState();
     state.update(new CSN(0, 0, 0));
     Object[] set1 = new Object[] {1, baseDN, 0, "localhost:8989", state, 0L, (byte)0, 0, 0, 0};
@@ -812,7 +792,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
    * by checking that : msg == new ReplServerStartMsg(msg.getBytes()).
    */
   @Test(dataProvider="createReplServerStartDSData")
-  public void replServerStartDSMsgTest(int serverId, String baseDN, int window,
+  public void replServerStartDSMsgTest(int serverId, DN baseDN, int window,
          String url, ServerState state, long genId, byte groupId, int degTh,
          int weight, int connectedDSNumber) throws Exception
   {
@@ -822,7 +802,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     ReplServerStartDSMsg newMsg = new ReplServerStartDSMsg(msg.getBytes(getCurrentVersion()));
     assertEquals(msg.getServerId(), newMsg.getServerId());
     assertEquals(msg.getServerURL(), newMsg.getServerURL());
-    assertEquals(msg.getBaseDn(), newMsg.getBaseDn());
+    assertEquals(msg.getBaseDN(), newMsg.getBaseDN());
     assertEquals(msg.getWindowSize(), newMsg.getWindowSize());
     assertEquals(msg.getServerState().getCSN(1),
         newMsg.getServerState().getCSN(1));
@@ -874,20 +854,15 @@ public class SynchronizationMsgTest extends ReplicationTestCase
   @DataProvider(name="createTopologyData")
   public Object [][] createTopologyData() throws Exception
   {
-    List<String> urls1 = new ArrayList<String>();
-    urls1.add("ldap://ldap.iplanet.com/" + TEST_ROOT_DN_STRING + "??sub?(sn=Jensen)");
-    urls1.add("ldaps://ldap.iplanet.com:4041/uid=bjensen,ou=People," +
-      TEST_ROOT_DN_STRING + "?cn,mail,telephoneNumber");
-
-    List<String> urls2 = new ArrayList<String>();
-
-    List<String> urls3 = new ArrayList<String>();
-    urls3.add("ldaps://host:port/dc=foo??sub?(sn=One Entry)");
-
-    List<String> urls4 = new ArrayList<String>();
-    urls4.add("ldaps://host:port/dc=foobar1??sub?(sn=Another Entry 1)");
-    urls4.add("ldaps://host:port/dc=foobar2??sub?(sn=Another Entry 2)");
-
+    List<String> urls1 = newList(
+        "ldap://ldap.iplanet.com/" + TEST_ROOT_DN_STRING + "??sub?(sn=Jensen)",
+        "ldaps://ldap.iplanet.com:4041/uid=bjensen,ou=People,"
+            + TEST_ROOT_DN_STRING + "?cn,mail,telephoneNumber");
+    List<String> urls2 = newList();
+    List<String> urls3 = newList("ldaps://host:port/dc=foo??sub?(sn=One Entry)");
+    List<String> urls4 = newList(
+        "ldaps://host:port/dc=foobar1??sub?(sn=Another Entry 1)",
+        "ldaps://host:port/dc=foobar2??sub?(sn=Another Entry 2)");
 
     Set<String> a1 = newSet();
     Set<String> a2 = newSet("dc");
@@ -896,17 +871,14 @@ public class SynchronizationMsgTest extends ReplicationTestCase
 
     DSInfo dsInfo1 = new DSInfo(13, "dsHost1:111", 26, 154631, ServerStatus.FULL_UPDATE_STATUS,
       false, AssuredMode.SAFE_DATA_MODE, (byte)12, (byte)132, urls1, a1, a1, (short)1);
-
     DSInfo dsInfo2 = new DSInfo(-436, "dsHost2:222", 493, -227896, ServerStatus.DEGRADED_STATUS,
       true, AssuredMode.SAFE_READ_MODE, (byte)-7, (byte)-265, urls2, a2, a2, (short)2);
-
     DSInfo dsInfo3 = new DSInfo(2436, "dsHost3:333", 591, 0, ServerStatus.NORMAL_STATUS,
       false, AssuredMode.SAFE_READ_MODE, (byte)17, (byte)0, urls3, a3, a3, (short)3);
     DSInfo dsInfo4 = new DSInfo(415, "dsHost4:444", 146, 0, ServerStatus.BAD_GEN_ID_STATUS,
       true, AssuredMode.SAFE_DATA_MODE, (byte)2, (byte)15, urls4, a4, a4, (short)4);
-
     DSInfo dsInfo5 = new DSInfo(452436, "dsHost5:555", 45591, 0, ServerStatus.NORMAL_STATUS,
-        false, AssuredMode.SAFE_READ_MODE, (byte)17, (byte)0, urls3, a1, a1, (short)5);
+      false, AssuredMode.SAFE_READ_MODE, (byte)17, (byte)0, urls3, a1, a1, (short)5);
 
     List<DSInfo> dsList1 = newList(dsInfo1);
     List<DSInfo> dsList2 = newList();
@@ -1021,8 +993,8 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     assertEquals(msg.getAssuredMode(), newMsg.getAssuredMode());
     assertEquals(msg.getSafeDataLevel(), newMsg.getSafeDataLevel());
     assertEquals(msg.getReferralsURLs(), newMsg.getReferralsURLs());
-    assertTrue(attrs.equals(newMsg.getEclIncludes()));
-    assertTrue(attrs.equals(newMsg.getEclIncludesForDeletes()));
+    Assertions.assertThat(attrs).isEqualTo(newMsg.getEclIncludes());
+    Assertions.assertThat(attrs).isEqualTo(newMsg.getEclIncludesForDeletes());
   }
 
   /**
@@ -1210,11 +1182,11 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     int sender = 1;
     int target = 56789;
     InitializeRequestMsg msg = new InitializeRequestMsg(
-        TEST_ROOT_DN_STRING, sender, target, 100);
+        TEST_ROOT_DN, sender, target, 100);
     InitializeRequestMsg newMsg = new InitializeRequestMsg(msg.getBytes(getCurrentVersion()),getCurrentVersion());
     assertEquals(msg.getSenderID(), newMsg.getSenderID());
     assertEquals(msg.getDestination(), newMsg.getDestination());
-    assertTrue(msg.getBaseDn().equals(newMsg.getBaseDn()));
+    assertEquals(msg.getBaseDN(), newMsg.getBaseDN());
   }
 
   /**
@@ -1230,20 +1202,19 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     int initWindow = 100;
 
     InitializeTargetMsg msg = new InitializeTargetMsg(
-        TEST_ROOT_DN_STRING, senderID, targetID, requestorID, entryCount, initWindow);
+        TEST_ROOT_DN, senderID, targetID, requestorID, entryCount, initWindow);
     InitializeTargetMsg newMsg = new InitializeTargetMsg(msg.getBytes(getCurrentVersion()),getCurrentVersion());
     assertEquals(msg.getSenderID(), newMsg.getSenderID());
     assertEquals(msg.getDestination(), newMsg.getDestination());
     assertEquals(msg.getInitiatorID(), newMsg.getInitiatorID());
     assertEquals(msg.getEntryCount(), newMsg.getEntryCount());
-    assertTrue(msg.getBaseDN().equals(newMsg.getBaseDN())) ;
+    assertEquals(msg.getBaseDN(), newMsg.getBaseDN());
 
     assertEquals(senderID, newMsg.getSenderID());
     assertEquals(targetID, newMsg.getDestination());
     assertEquals(requestorID, newMsg.getInitiatorID());
     assertEquals(entryCount, newMsg.getEntryCount());
-    assertTrue(TEST_ROOT_DN_STRING.equals(newMsg.getBaseDN())) ;
-
+    assertEquals(TEST_ROOT_DN, newMsg.getBaseDN());
   }
 
   /**
@@ -1290,7 +1261,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
    * by checking that : msg == new ServerStartMsg(msg.getBytes()).
    */
   @Test(enabled=true,dataProvider="createServerStartData")
-  public void startECLMsgTest(int serverId, String baseDN, int window,
+  public void startECLMsgTest(int serverId, DN baseDN, int window,
          ServerState state, long genId, boolean sslEncryption, byte groupId) throws Exception
   {
     ServerStartECLMsg msg = new ServerStartECLMsg(

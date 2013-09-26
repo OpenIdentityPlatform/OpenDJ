@@ -61,7 +61,7 @@ public class FakeAddOperation extends FakeOperation
   @Override
   public AddMsg generateMessage()
   {
-    return new AddMsg(getCSN(), entry.getDN().toString(),
+    return new AddMsg(getCSN(), entry.getDN(),
                EntryHistorical.getEntryUUID(entry),
                LDAPReplicationDomain.findEntryUUID(
                    entry.getDN().getParentDNInSuffix()),

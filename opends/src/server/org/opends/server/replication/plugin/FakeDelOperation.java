@@ -30,6 +30,7 @@ package org.opends.server.replication.plugin;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.protocol.DeleteMsg;
 import org.opends.server.replication.protocol.ReplicationMsg;
+import org.opends.server.types.DN;
 
 /**
  * This class if used to build pseudo DEL Operation from the historical
@@ -40,7 +41,7 @@ import org.opends.server.replication.protocol.ReplicationMsg;
  */
 public class FakeDelOperation extends FakeOperation
 {
-  private final String dn;
+  private final DN dn;
   private final String entryUUID;
 
   /**
@@ -50,7 +51,7 @@ public class FakeDelOperation extends FakeOperation
    * @param csn   The CSN of the operation.
    * @param entryUUID      The Unique ID of the deleted entry.
    */
-  public FakeDelOperation(String dn, CSN csn, String entryUUID)
+  public FakeDelOperation(DN dn, CSN csn, String entryUUID)
   {
     super(csn);
     this.dn = dn;

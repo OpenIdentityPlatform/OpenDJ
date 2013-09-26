@@ -121,10 +121,10 @@ public class SchemaReplicationTest extends ReplicationTestCase
 
     cleanUpReplicationServersDB();
 
-    final DN baseDn = DN.decode("cn=schema");
+    final DN baseDN = DN.decode("cn=schema");
 
     ReplicationBroker broker =
-      openReplicationSession(baseDn,  2, 100, replServerPort, 5000, true);
+      openReplicationSession(baseDN, 2, 100, replServerPort, 5000, true);
 
     try
     {
@@ -136,7 +136,7 @@ public class SchemaReplicationTest extends ReplicationTestCase
       mods.add(mod);
       ModifyOperationBasis modOp = new ModifyOperationBasis(connection,
           InternalClientConnection.nextOperationID(), InternalClientConnection
-          .nextMessageID(), null, baseDn, mods);
+          .nextMessageID(), null, baseDN, mods);
       modOp.setInternalOperation(true);
       modOp.run();
 
@@ -152,7 +152,7 @@ public class SchemaReplicationTest extends ReplicationTestCase
       ModifyMsg modMsg = (ModifyMsg) msg;
 
       Operation receivedOp = modMsg.createOperation(connection);
-      assertTrue(DN.decode(modMsg.getDn()).compareTo(baseDn) == 0,
+      assertEquals(modMsg.getDN(), baseDN,
                  "The received message is not for cn=schema");
 
       assertTrue(receivedOp instanceof ModifyOperation,
@@ -179,7 +179,7 @@ public class SchemaReplicationTest extends ReplicationTestCase
       mods.add(mod);
       modOp = new ModifyOperationBasis(connection,
           InternalClientConnection.nextOperationID(), InternalClientConnection
-          .nextMessageID(), null, baseDn, mods);
+          .nextMessageID(), null, baseDN, mods);
       modOp.setInternalOperation(true);
       modOp.run();
 
@@ -211,20 +211,20 @@ public class SchemaReplicationTest extends ReplicationTestCase
 
     cleanUpReplicationServersDB();
 
-    final DN baseDn = DN.decode("cn=schema");
+    final DN baseDN = DN.decode("cn=schema");
 
     ReplicationBroker broker =
-      openReplicationSession(baseDn,  2, 100, replServerPort, 5000, true);
+      openReplicationSession(baseDN,  2, 100, replServerPort, 5000, true);
 
     try
     {
       CSNGenerator gen = new CSNGenerator( 2, 0);
 
-      ModifyMsg modMsg = new ModifyMsg(gen.newCSN(), baseDn, rcvdMods,
-          EntryHistorical.getEntryUUID(DirectoryServer.getEntry(baseDn)));
+      ModifyMsg modMsg = new ModifyMsg(gen.newCSN(), baseDN, rcvdMods,
+          EntryHistorical.getEntryUUID(DirectoryServer.getEntry(baseDN)));
       broker.publish(modMsg);
 
-      boolean found = checkEntryHasAttribute(baseDn, "attributetypes",
+      boolean found = checkEntryHasAttribute(baseDN, "attributetypes",
         "( 2.5.44.77.33 NAME 'dummy' )",
         10000, true);
 
@@ -250,10 +250,10 @@ public class SchemaReplicationTest extends ReplicationTestCase
 
     cleanUpReplicationServersDB();
 
-    final DN baseDn = DN.decode("cn=schema");
+    final DN baseDN = DN.decode("cn=schema");
 
     ReplicationBroker broker =
-      openReplicationSession(baseDn,  3, 100, replServerPort, 5000, true);
+      openReplicationSession(baseDN,  3, 100, replServerPort, 5000, true);
 
     try
     {
@@ -278,7 +278,7 @@ public class SchemaReplicationTest extends ReplicationTestCase
       ModifyMsg modMsg = (ModifyMsg) msg;
 
       Operation receivedOp = modMsg.createOperation(connection);
-      assertTrue(DN.decode(modMsg.getDn()).compareTo(baseDn) == 0,
+      assertEquals(modMsg.getDN(), baseDN,
         "The received message is not for cn=schema");
 
       assertTrue(receivedOp instanceof ModifyOperation,

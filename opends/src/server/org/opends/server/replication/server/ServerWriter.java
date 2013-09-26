@@ -138,7 +138,7 @@ public class ServerWriter extends DirectoryThread
               logError(WARN_IGNORING_UPDATE_TO_DS_BADGENID.get(
                   handler.getReplicationServerId(),
                   update.getCSN().toString(),
-                  handler.getBaseDN(), handler.getServerId(),
+                  handler.getBaseDNString(), handler.getServerId(),
                   session.getReadableRemoteAddress(),
                   handler.getGenerationId(),
                   referenceGenerationId));
@@ -146,7 +146,7 @@ public class ServerWriter extends DirectoryThread
               logError(WARN_IGNORING_UPDATE_TO_DS_FULLUP.get(
                   handler.getReplicationServerId(),
                   update.getCSN().toString(),
-                  handler.getBaseDN(), handler.getServerId(),
+                  handler.getBaseDNString(), handler.getServerId(),
                   session.getReadableRemoteAddress()));
             continue;
           }
@@ -165,7 +165,7 @@ public class ServerWriter extends DirectoryThread
                 WARN_IGNORING_UPDATE_TO_RS.get(
                     handler.getReplicationServerId(),
                     update.getCSN().toString(),
-                    handler.getBaseDN(),
+                    handler.getBaseDNString(),
                     handler.getServerId(),
                     session.getReadableRemoteAddress(),
                     handler.getGenerationId(),
@@ -204,13 +204,13 @@ public class ServerWriter extends DirectoryThread
       {
         errMessage = ERR_DS_BADLY_DISCONNECTED.get(
             handler.getReplicationServerId(), handler.getServerId(),
-            session.getReadableRemoteAddress(), handler.getBaseDN());
+            session.getReadableRemoteAddress(), handler.getBaseDNString());
       }
       else
       {
         errMessage = ERR_RS_BADLY_DISCONNECTED.get(
             handler.getReplicationServerId(), handler.getServerId(),
-            session.getReadableRemoteAddress(), handler.getBaseDN());
+            session.getReadableRemoteAddress(), handler.getBaseDNString());
       }
 
       logError(errMessage);
@@ -225,13 +225,13 @@ public class ServerWriter extends DirectoryThread
       {
         errMessage = ERR_DS_BADLY_DISCONNECTED.get(
             handler.getReplicationServerId(), handler.getServerId(),
-            session.getReadableRemoteAddress(), handler.getBaseDN());
+            session.getReadableRemoteAddress(), handler.getBaseDNString());
       }
       else
       {
         errMessage = ERR_RS_BADLY_DISCONNECTED.get(
             handler.getReplicationServerId(), handler.getServerId(),
-            session.getReadableRemoteAddress(), handler.getBaseDN());
+            session.getReadableRemoteAddress(), handler.getBaseDNString());
       }
       logError(errMessage);
     }

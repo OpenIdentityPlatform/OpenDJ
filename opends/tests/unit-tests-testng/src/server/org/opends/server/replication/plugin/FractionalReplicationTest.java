@@ -72,27 +72,26 @@ import static org.testng.Assert.*;
 public class FractionalReplicationTest extends ReplicationTestCase {
 
   /** The RS */
-  private ReplicationServer replicationServer = null;
+  private ReplicationServer replicationServer;
   /** RS port */
   private int replServerPort = -1;
   /** Represents the real domain to test (replays and filters) */
-  private Entry fractionalDomainCfgEntry = null;
+  private Entry fractionalDomainCfgEntry;
   /** The domain used to send updates to the real domain */
-  private FakeReplicationDomain replicationDomain = null;
+  private FakeReplicationDomain replicationDomain;
 
   /** Ids of servers */
   private static final int DS1_ID = 1; // fractional domain
   private static final int DS2_ID = 2; // fake domain
   private static final int RS_ID = 91; // replication server
 
-  private final String testName = this.getClass().getSimpleName();
+  private final String testName = getClass().getSimpleName();
 
   /** Fractional mode */
   private static final int EXCLUDE_FRAC_MODE = 0;
   private static final int INCLUDE_FRAC_MODE = 1;
 
-  int initWindow = 100;
-  private CSNGenerator gen = null;
+  private CSNGenerator gen;
 
   /** The tracer object for the debug logger */
   private static final DebugTracer TRACER = getTracer();
@@ -410,11 +409,8 @@ public class FractionalReplicationTest extends ReplicationTestCase {
       replicationDomain = null;
     }
 
-    if (fractionalDomainCfgEntry != null)
-    {
-      removeDomain(fractionalDomainCfgEntry);
-      fractionalDomainCfgEntry = null;
-    }
+    removeDomain(fractionalDomainCfgEntry);
+    fractionalDomainCfgEntry = null;
 
     remove(replicationServer);
     replicationServer = null;
@@ -654,8 +650,8 @@ public class FractionalReplicationTest extends ReplicationTestCase {
 
   private long readGenIdFromSuffixRootEntry(String rootDn) throws Exception
   {
-    DN baseDn = DN.decode(rootDn);
-    Entry resultEntry = getEntry(baseDn, 1000, true);
+    DN baseDN = DN.decode(rootDn);
+    Entry resultEntry = getEntry(baseDN, 1000, true);
     if (resultEntry == null)
     {
       debugInfo("Entry not found <" + rootDn + ">");
@@ -716,7 +712,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
 
       // Create an update message to add an entry.
       AddMsg addMsg = new AddMsg(gen.newCSN(),
-        entry.getDN().toString(),
+        entry.getDN(),
         ENTRY_UUID,
         null,
         entry.getObjectClassAttribute(),
@@ -755,15 +751,12 @@ public class FractionalReplicationTest extends ReplicationTestCase {
       mods.add(mod);
 
       // Add modification for the synchro attribute (added attribute)
-      attr =
-        Attributes.create(SYNCHRO_OPTIONAL_ATTR.toLowerCase(), SYNCHRO_OPTIONAL_ATTR + "Value");
+      attr = Attributes.create(SYNCHRO_OPTIONAL_ATTR.toLowerCase(), SYNCHRO_OPTIONAL_ATTR + "Value");
       mod = new Modification(ModificationType.ADD, attr);
       mods.add(mod);
 
-      DN entryDn = DN.decode((firstBackend ? ENTRY_DN : ENTRY_DN2));
-      ModifyMsg modifyMsg = new ModifyMsg(gen.newCSN(), entryDn, mods,
-        ENTRY_UUID);
-
+      DN entryDn = DN.decode(firstBackend ? ENTRY_DN : ENTRY_DN2);
+      ModifyMsg modifyMsg = new ModifyMsg(gen.newCSN(), entryDn, mods, ENTRY_UUID);
       replicationDomain.publish(modifyMsg);
   }
 
@@ -1375,7 +1368,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
 
       // Create an update message to add an entry.
       AddMsg addMsg = new AddMsg(gen.newCSN(),
-        entry.getDN().toString(),
+        entry.getDN(),
         ENTRY_UUID,
         null,
         entry.getObjectClassAttribute(),
@@ -1411,7 +1404,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
 
       // Create an update message to add an entry.
       addMsg = new AddMsg(gen.newCSN(),
-        entry.getDN().toString(),
+        entry.getDN(),
         ENTRY_UUID2,
         null,
         entry.getObjectClassAttribute(),
@@ -1471,7 +1464,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
 
       // Create an update message to add an entry.
       AddMsg addMsg = new AddMsg(gen.newCSN(),
-        entry.getDN().toString(),
+        entry.getDN(),
         ENTRY_UUID,
         null,
         entry.getObjectClassAttribute(),
@@ -1509,7 +1502,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
 
       // Create an update message to add an entry.
       addMsg = new AddMsg(gen.newCSN(),
-        entry.getDN().toString(),
+        entry.getDN(),
         ENTRY_UUID2,
         null,
         entry.getObjectClassAttribute(),
@@ -1568,7 +1561,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
 
       // Create an update message to add an entry.
       AddMsg addMsg = new AddMsg(gen.newCSN(),
-        entry.getDN().toString(),
+        entry.getDN(),
         ENTRY_UUID,
         null,
         entry.getObjectClassAttribute(),
@@ -1593,7 +1586,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
       DN newEntryDn = DN.decode(newEntryName);
 
       // Create modify dn message to modify the entry.
-      ModifyDNMsg modDnMsg = new ModifyDNMsg(entryName, gen.newCSN(),
+      ModifyDNMsg modDnMsg = new ModifyDNMsg(DN.decode(entryName), gen.newCSN(),
         ENTRY_UUID, ENTRY_UUID3, false, TEST_ROOT_DN_STRING,
         "displayName=ValueToBeKept", null);
 
@@ -1649,7 +1642,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
 
       // Create an update message to add an entry.
       AddMsg addMsg = new AddMsg(gen.newCSN(),
-        entry.getDN().toString(),
+        entry.getDN(),
         ENTRY_UUID,
         null,
         entry.getObjectClassAttribute(),
@@ -1674,7 +1667,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
       DN newEntryDn = DN.decode(newEntryName);
 
       // Create modify dn message to modify the entry.
-      ModifyDNMsg modDnMsg = new ModifyDNMsg(entryName, gen.newCSN(),
+      ModifyDNMsg modDnMsg = new ModifyDNMsg(DN.decode(entryName), gen.newCSN(),
         ENTRY_UUID, ENTRY_UUID3, false, TEST_ROOT_DN_STRING,
         "displayName=ValueToBeKept", null);
 

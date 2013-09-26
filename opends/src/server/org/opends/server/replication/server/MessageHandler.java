@@ -559,9 +559,19 @@ public class MessageHandler extends MonitorProvider<MonitorProviderCfg>
   /**
    * Get the baseDN for this handler.
    *
+   * @return The baseDN.
+   */
+  protected DN getBaseDN()
+  {
+    return baseDN;
+  }
+
+  /**
+   * Get the baseDN for this handler as a String.
+   *
    * @return The name of the baseDN.
    */
-  protected String getBaseDN()
+  protected String getBaseDNString()
   {
     return baseDN.toNormalizedString();
   }

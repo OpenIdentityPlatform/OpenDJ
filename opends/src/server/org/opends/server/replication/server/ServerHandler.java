@@ -533,7 +533,7 @@ public abstract class ServerHandler extends MessageHandler
     List<Attribute> attributes = super.getMonitorData();
 
     attributes.add(Attributes.create("server-id", String.valueOf(serverId)));
-    attributes.add(Attributes.create("domain-name", getBaseDN()));
+    attributes.add(Attributes.create("domain-name", getBaseDNString()));
 
     // Deprecated
     attributes.add(Attributes.create("max-waiting-changes", String
@@ -835,7 +835,7 @@ public abstract class ServerHandler extends MessageHandler
     if (!lockAcquired)
     {
       Message message = WARN_TIMEOUT_WHEN_CROSS_CONNECTION.get(
-          getBaseDN(),
+          getBaseDNString(),
           serverId,
           session.getReadableRemoteAddress(),
           getReplicationServerId());

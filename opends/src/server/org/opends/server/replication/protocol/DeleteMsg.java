@@ -27,18 +27,18 @@
  */
 package org.opends.server.replication.protocol;
 
-import static org.opends.server.replication.protocol.OperationContext.*;
-
 import java.io.UnsupportedEncodingException;
 import java.util.zip.DataFormatException;
 
 import org.opends.server.controls.SubtreeDeleteControl;
+import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DeleteOperationBasis;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.replication.common.CSN;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.Operation;
+import org.opends.server.types.DN;
 import org.opends.server.types.operation.PostOperationDeleteOperation;
+
+import static org.opends.server.replication.protocol.OperationContext.*;
 
 /**
  * Object used when sending delete information to replication servers.
@@ -58,7 +58,7 @@ public class DeleteMsg extends LDAPUpdateMsg
   public DeleteMsg(PostOperationDeleteOperation operation)
   {
     super((OperationContext) operation.getAttachment(SYNCHROCONTEXT),
-           operation.getRawEntryDN().toString());
+           operation.getEntryDN());
     try
     {
       if (operation.getRequestControl(SubtreeDeleteControl.DECODER) != null)
@@ -75,7 +75,7 @@ public class DeleteMsg extends LDAPUpdateMsg
    * @param csn          The CSN with which the message must be created.
    * @param entryUUID    The unique id with which the message must be created.
    */
-  public DeleteMsg(String dn, CSN csn, String entryUUID)
+  public DeleteMsg(DN dn, CSN csn, String entryUUID)
   {
     super(new DeleteContext(csn, entryUUID), dn);
   }
@@ -111,13 +111,12 @@ public class DeleteMsg extends LDAPUpdateMsg
    * {@inheritDoc}
    */
   @Override
-  public Operation createOperation(InternalClientConnection connection,
-      String newDn)
+  public DeleteOperation createOperation(InternalClientConnection connection,
+      DN newDN)
   {
-    DeleteOperationBasis del =  new DeleteOperationBasis(connection,
+    DeleteOperation del =  new DeleteOperationBasis(connection,
         InternalClientConnection.nextOperationID(),
-        InternalClientConnection.nextMessageID(), null,
-        ByteString.valueOf(newDn));
+        InternalClientConnection.nextMessageID(), null, newDN);
 
     if (isSubtreeDelete)
       del.addRequestControl(new SubtreeDeleteControl(false));

@@ -28,12 +28,12 @@
 package org.opends.server.replication.protocol;
 
 import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.zip.DataFormatException;
 
+import org.opends.server.core.AddOperation;
 import org.opends.server.core.AddOperationBasis;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.asn1.ASN1;
@@ -67,8 +67,7 @@ public class AddMsg extends LDAPUpdateMsg
    */
   public AddMsg(PostOperationAddOperation op)
   {
-    super((AddContext) op.getAttachment(SYNCHROCONTEXT),
-          op.getRawEntryDN().toString());
+    super((AddContext) op.getAttachment(SYNCHROCONTEXT), op.getEntryDN());
 
     AddContext ctx = (AddContext) op.getAttachment(SYNCHROCONTEXT);
 
@@ -93,7 +92,7 @@ public class AddMsg extends LDAPUpdateMsg
    * @param operationalAttributes operational attributes of the added entry.
    */
   public AddMsg(CSN csn,
-                String dn,
+                DN dn,
                 String entryUUID,
                 String parentEntryUUID,
                 Map<ObjectClass, String> objectClasses,
@@ -123,7 +122,7 @@ public class AddMsg extends LDAPUpdateMsg
    * @param operationalAttributes operational attributes of the added entry.
    */
   public AddMsg(CSN csn,
-                String dn,
+                DN dn,
                 String uniqueId,
                 String parentId,
                 Attribute objectClass,
@@ -172,16 +171,16 @@ public class AddMsg extends LDAPUpdateMsg
    * {@inheritDoc}
    */
   @Override
-  public AddOperationBasis createOperation(
-      InternalClientConnection connection, String newDn)
+  public AddOperation createOperation(
+      InternalClientConnection connection, DN newDN)
   throws LDAPException, ASN1Exception
   {
-    ArrayList<RawAttribute> attr = decodeRawAttributes(encodedAttributes);
+    List<RawAttribute> attr = decodeRawAttributes(encodedAttributes);
 
-    AddOperationBasis add =  new AddOperationBasis(connection,
+    AddOperation add =  new AddOperationBasis(connection,
         InternalClientConnection.nextOperationID(),
         InternalClientConnection.nextMessageID(), null,
-        ByteString.valueOf(newDn), attr);
+        ByteString.valueOf(newDN.toString()), attr);
     AddContext ctx = new AddContext(getCSN(), getEntryUUID(),
         parentEntryUUID);
     add.setAttachment(SYNCHROCONTEXT, ctx);
@@ -579,8 +578,7 @@ public class AddMsg extends LDAPUpdateMsg
   @Override
   public int size()
   {
-    return encodedAttributes.length + + encodedEclIncludes.length
-      + headerSize();
+    return encodedAttributes.length + encodedEclIncludes.length + headerSize();
   }
 
 }

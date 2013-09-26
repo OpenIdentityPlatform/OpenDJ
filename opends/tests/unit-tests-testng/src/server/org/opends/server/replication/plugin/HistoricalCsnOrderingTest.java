@@ -118,7 +118,7 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
   throws Exception
   {
     final int serverId = 123;
-    final DN baseDn = DN.decode(TEST_ROOT_DN_STRING);
+    final DN baseDN = DN.decode(TEST_ROOT_DN_STRING);
     TestCaseUtils.initializeTestBackend(true);
     ReplicationServer rs = createReplicationServer();
     // Create Replication Server and Domain
@@ -127,7 +127,7 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
     try
     {
       long startTime = TimeThread.getTime();
-    final DN dn1 = DN.decode("cn=test1," + baseDn.toString());
+      final DN dn1 = DN.decode("cn=test1," + baseDN.toString());
     final AttributeType histType =
       DirectoryServer.getAttributeType(EntryHistorical.HISTORICAL_ATTRIBUTE_NAME);
 
@@ -136,7 +136,7 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
 
     // Add the first test entry.
     TestCaseUtils.addEntry(
-        "dn: cn=test1," + baseDn.toString(),
+        "dn: cn=test1," + baseDN.toString(),
         "displayname: Test1",
         "objectClass: top",
         "objectClass: person",
@@ -148,7 +148,7 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
 
     // Perform a first modification to update the historical attribute
     int resultCode = TestCaseUtils.applyModifications(false,
-        "dn: cn=test1," + baseDn.toString(),
+        "dn: cn=test1," + baseDN.toString(),
         "changetype: modify",
         "add: description",
     "description: foo");
@@ -170,7 +170,7 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
     // Perform a 2nd modification to update the hist attribute with
     // a second value
     resultCode = TestCaseUtils.applyModifications(false,
-        "dn: cn=test1," + baseDn.toString(),
+        "dn: cn=test1," + baseDN.toString(),
         "changetype: modify",
         "add: description",
     "description: bar");
@@ -214,7 +214,7 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
     }
     finally
     {
-      MultimasterReplication.deleteDomain(baseDn);
+      MultimasterReplication.deleteDomain(baseDN);
       remove(rs);
     }
   }
@@ -228,7 +228,7 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
   public void buildAndPublishMissingChangesSeveralEntriesTest()
   throws Exception
   {
-    final DN baseDn = DN.decode(TEST_ROOT_DN_STRING);
+    final DN baseDN = DN.decode(TEST_ROOT_DN_STRING);
     TestCaseUtils.initializeTestBackend(true);
     ReplicationServer rs = createReplicationServer();
     // Create Replication Server and Domain
@@ -241,9 +241,9 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
     "Starting replication test : changesCmpTest"));
 
     // Add 3 entries.
-    String dnTest1 = "cn=test1," + baseDn.toString();
-    String dnTest2 = "cn=test2," + baseDn.toString();
-    String dnTest3 = "cn=test3," + baseDn.toString();
+    DN dnTest1 = DN.decode("cn=test1," + baseDN.toString());
+    DN dnTest2 = DN.decode("cn=test2," + baseDN.toString());
+    DN dnTest3 = DN.decode("cn=test3," + baseDN.toString());
     TestCaseUtils.addEntry(
         "dn: " + dnTest3,
         "displayname: Test1",
@@ -264,7 +264,7 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
         "cn: test1",
         "sn: test"
     );
-    TestCaseUtils.deleteEntry(DN.decode(dnTest3));
+    TestCaseUtils.deleteEntry(dnTest3);
     TestCaseUtils.addEntry(
         "dn: " + dnTest2,
         "displayname: Test1",
@@ -278,12 +278,12 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
 
     // Perform modifications on the 2 entries
     int resultCode = TestCaseUtils.applyModifications(false,
-        "dn: cn=test2," + baseDn.toString(),
+        "dn: cn=test2," + baseDN,
         "changetype: modify",
         "add: description",
     "description: foo");
     resultCode = TestCaseUtils.applyModifications(false,
-        "dn: cn=test1," + baseDn.toString(),
+        "dn: cn=test1," + baseDN,
         "changetype: modify",
         "add: description",
     "description: foo");
@@ -302,23 +302,23 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
     assertEquals(opList.size(), 5, "buildAndPublishMissingChanges should return 5 operations");
     ReplicationMsg msg = opList.removeFirst();
     assertTrue(msg.getClass().equals(AddMsg.class));
-    assertEquals(((LDAPUpdateMsg) msg).getDn(), dnTest1);
+    assertEquals(((LDAPUpdateMsg) msg).getDN(), dnTest1);
     msg = opList.removeFirst();
     assertTrue(msg.getClass().equals(DeleteMsg.class));
-    assertEquals(((LDAPUpdateMsg) msg).getDn(), dnTest3);
+    assertEquals(((LDAPUpdateMsg) msg).getDN(), dnTest3);
     msg = opList.removeFirst();
     assertTrue(msg.getClass().equals(AddMsg.class));
-    assertEquals(((LDAPUpdateMsg) msg).getDn(), dnTest2);
+    assertEquals(((LDAPUpdateMsg) msg).getDN(), dnTest2);
     msg = opList.removeFirst();
     assertTrue(msg.getClass().equals(ModifyMsg.class));
-    assertEquals(((LDAPUpdateMsg) msg).getDn(), dnTest2);
+    assertEquals(((LDAPUpdateMsg) msg).getDN(), dnTest2);
     msg = opList.removeFirst();
     assertTrue(msg.getClass().equals(ModifyMsg.class));
-    assertEquals(((LDAPUpdateMsg) msg).getDn(), dnTest1);
+    assertEquals(((LDAPUpdateMsg) msg).getDN(), dnTest1);
     }
     finally
     {
-      MultimasterReplication.deleteDomain(baseDn);
+      MultimasterReplication.deleteDomain(baseDN);
       rs.remove();
     }
   }
@@ -339,9 +339,9 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
   private LDAPReplicationDomain createReplicationDomain(int dsId)
           throws DirectoryException, ConfigException
   {
-    DN baseDn = DN.decode(TEST_ROOT_DN_STRING);
+    DN baseDN = DN.decode(TEST_ROOT_DN_STRING);
     DomainFakeCfg domainConf =
-      new DomainFakeCfg(baseDn, dsId, replServers, AssuredType.NOT_ASSURED,
+      new DomainFakeCfg(baseDN, dsId, replServers, AssuredType.NOT_ASSURED,
       2, 1, 0, null);
     LDAPReplicationDomain replicationDomain =
       MultimasterReplication.createNewDomain(domainConf);

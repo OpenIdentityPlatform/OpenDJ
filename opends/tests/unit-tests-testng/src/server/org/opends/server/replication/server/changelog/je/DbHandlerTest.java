@@ -43,6 +43,7 @@ import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.server.changelog.api.ReplicaDBCursor;
 import org.opends.server.types.DN;
 import org.opends.server.util.StaticUtils;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import static org.opends.server.TestCaseUtils.*;
@@ -57,6 +58,7 @@ public class DbHandlerTest extends ReplicationTestCase
 {
   /** The tracer object for the debug logger */
   private static final DebugTracer TRACER = getTracer();
+  private DN TEST_ROOT_DN;
 
   /**
    * Utility - log debug message - highlight it is from the test and not
@@ -68,6 +70,12 @@ public class DbHandlerTest extends ReplicationTestCase
     {
       TRACER.debugInfo("** TEST " + tn + " ** " + s);
     }
+  }
+
+  @BeforeClass
+  public void setup() throws Exception
+  {
+    TEST_ROOT_DN = DN.decode(TEST_ROOT_DN_STRING);
   }
 
   @Test(enabled=true)
@@ -87,7 +95,7 @@ public class DbHandlerTest extends ReplicationTestCase
       testRoot = createCleanDir();
 
       dbEnv = new ReplicationDbEnv(testRoot.getPath(), replicationServer);
-      handler = new DbHandler(1, DN.decode(TEST_ROOT_DN_STRING), replicationServer, dbEnv, 5000);
+      handler = new DbHandler(1, TEST_ROOT_DN, replicationServer, dbEnv, 5000);
 
       CSNGenerator gen = new CSNGenerator( 1, 0);
       CSN csn1 = gen.newCSN();
@@ -96,10 +104,10 @@ public class DbHandlerTest extends ReplicationTestCase
       CSN csn4 = gen.newCSN();
       CSN csn5 = gen.newCSN();
 
-      handler.add(new DeleteMsg(TEST_ROOT_DN_STRING, csn1, "uid"));
-      handler.add(new DeleteMsg(TEST_ROOT_DN_STRING, csn2, "uid"));
-      handler.add(new DeleteMsg(TEST_ROOT_DN_STRING, csn3, "uid"));
-      DeleteMsg update4 = new DeleteMsg(TEST_ROOT_DN_STRING, csn4, "uid");
+      handler.add(new DeleteMsg(TEST_ROOT_DN, csn1, "uid"));
+      handler.add(new DeleteMsg(TEST_ROOT_DN, csn2, "uid"));
+      handler.add(new DeleteMsg(TEST_ROOT_DN, csn3, "uid"));
+      DeleteMsg update4 = new DeleteMsg(TEST_ROOT_DN, csn4, "uid");
 
       //--
       // Iterator tests with memory queue only populated
@@ -252,7 +260,7 @@ public class DbHandlerTest extends ReplicationTestCase
 
       testRoot = createCleanDir();
       dbEnv = new ReplicationDbEnv(testRoot.getPath(), replicationServer);
-      handler = new DbHandler(1, DN.decode(TEST_ROOT_DN_STRING), replicationServer, dbEnv, 5000);
+      handler = new DbHandler(1, TEST_ROOT_DN, replicationServer, dbEnv, 5000);
 
       // Creates changes added to the dbHandler
       CSNGenerator gen = new CSNGenerator( 1, 0);
@@ -261,9 +269,9 @@ public class DbHandlerTest extends ReplicationTestCase
       CSN csn3 = gen.newCSN();
 
       // Add the changes
-      handler.add(new DeleteMsg(TEST_ROOT_DN_STRING, csn1, "uid"));
-      handler.add(new DeleteMsg(TEST_ROOT_DN_STRING, csn2, "uid"));
-      handler.add(new DeleteMsg(TEST_ROOT_DN_STRING, csn3, "uid"));
+      handler.add(new DeleteMsg(TEST_ROOT_DN, csn1, "uid"));
+      handler.add(new DeleteMsg(TEST_ROOT_DN, csn2, "uid"));
+      handler.add(new DeleteMsg(TEST_ROOT_DN, csn3, "uid"));
 
       // Check they are here
       assertEquals(csn1, handler.getOldestCSN());
@@ -348,7 +356,7 @@ public class DbHandlerTest extends ReplicationTestCase
 
       testRoot = createCleanDir();
       dbEnv = new ReplicationDbEnv(testRoot.getPath(), replicationServer);
-      handler = new DbHandler(1, DN.decode(TEST_ROOT_DN_STRING), replicationServer, dbEnv, 10);
+      handler = new DbHandler(1, TEST_ROOT_DN, replicationServer, dbEnv, 10);
       handler.setCounterWindowSize(counterWindow);
 
       // Populate the db with 'max' msg
@@ -359,7 +367,7 @@ public class DbHandlerTest extends ReplicationTestCase
       {
         csnArray[i] = new CSN(now + i, mySeqnum, 1);
         mySeqnum+=2;
-        DeleteMsg update1 = new DeleteMsg(TEST_ROOT_DN_STRING, csnArray[i], "uid");
+        DeleteMsg update1 = new DeleteMsg(TEST_ROOT_DN, csnArray[i], "uid");
         handler.add(update1);
       }
       handler.flush();
@@ -444,7 +452,7 @@ public class DbHandlerTest extends ReplicationTestCase
       debugInfo(tn,"SHUTDOWN handler and recreate");
       handler.shutdown();
 
-      handler = new DbHandler(1, DN.decode(TEST_ROOT_DN_STRING), replicationServer, dbEnv, 10);
+      handler = new DbHandler(1, TEST_ROOT_DN, replicationServer, dbEnv, 10);
       handler.setCounterWindowSize(counterWindow);
 
       // Test first and last
@@ -463,7 +471,7 @@ public class DbHandlerTest extends ReplicationTestCase
       {
         csnArray[i] = new CSN(now+i, mySeqnum, 1);
         mySeqnum+=2;
-        DeleteMsg update1 = new DeleteMsg(TEST_ROOT_DN_STRING, csnArray[i], "uid");
+        DeleteMsg update1 = new DeleteMsg(TEST_ROOT_DN, csnArray[i], "uid");
         handler.add(update1);
       }
       handler.flush();

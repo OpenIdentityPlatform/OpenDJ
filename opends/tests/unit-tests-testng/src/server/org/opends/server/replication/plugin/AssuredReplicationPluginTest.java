@@ -259,7 +259,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
     private final int degradedStatusThreshold = 5000;
 
     // Parameters set with received server start message
-    private String baseDn;
+    private DN baseDN;
     private long generationId = -1L;
     private ServerState serverState;
     private int windowSize = -1;
@@ -270,7 +270,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
 
     /** parameters at handshake are ok */
     private boolean handshakeOk = false;
-    /** 
+    /**
      * signal that the current scenario the RS must execute reached the point
      * where the main code can perform test assertion.
      */
@@ -430,7 +430,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
         // Receive server start
         ServerStartMsg serverStartMsg = (ServerStartMsg) session.receive();
 
-        baseDn = serverStartMsg.getBaseDn();
+        baseDN = serverStartMsg.getBaseDN();
         serverState = serverStartMsg.getServerState();
         generationId = serverStartMsg.getGenerationId();
         windowSize = serverStartMsg.getWindowSize();
@@ -439,8 +439,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
         // Send replication server start
         String serverURL = ("localhost:" + port);
         ReplServerStartMsg replServerStartMsg = new ReplServerStartMsg(serverId,
-          serverURL, baseDn, windowSize, serverState,
-          generationId, sslEncryption,
+          serverURL, baseDN, windowSize, serverState, generationId, sslEncryption,
           groupId, degradedStatusThreshold);
         session.publish(replServerStartMsg);
 
@@ -581,7 +580,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
       try
       {
         AddMsg addMsg =
-          new AddMsg(gen.newCSN(), entry.getDN().toString(), UUID.randomUUID().toString(),
+          new AddMsg(gen.newCSN(), entry.getDN(), UUID.randomUUID().toString(),
                      parentUid,
                      entry.getObjectClassAttribute(),
                      entry.getAttributes(), null );
@@ -683,7 +682,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
     {
       assertEquals(updateMsg.isAssured(), isAssured,
           "msg=" + ((updateMsg instanceof AddMsg)?
-              ((AddMsg)updateMsg).getDn():updateMsg.getCSN()));
+              ((AddMsg)updateMsg).getDN():updateMsg.getCSN()));
       if (isAssured)
       {
         assertEquals(updateMsg.getAssuredMode(), assuredMode);
@@ -1148,20 +1147,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
       replicationServer.shutdown();
     }
 
-    if (safeDataDomainCfgEntry != null)
-    {
-      removeDomain(safeDataDomainCfgEntry);
-    }
-
-    if (safeReadDomainCfgEntry != null)
-    {
-      removeDomain(safeReadDomainCfgEntry);
-    }
-
-    if (notAssuredDomainCfgEntry != null)
-    {
-      removeDomain(notAssuredDomainCfgEntry);
-    }
+    removeDomain(safeDataDomainCfgEntry, safeReadDomainCfgEntry, notAssuredDomainCfgEntry);
   }
 
   /**
@@ -1783,12 +1769,12 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
    * - assured-sr-server-not-acknowledged-updates in SR mode
    * - assured-sd-server-timeout-updates in SD mode
    */
-  protected Map<Integer,Integer> getErrorsByServers(DN baseDn,
+  protected Map<Integer,Integer> getErrorsByServers(DN baseDN,
     AssuredMode assuredMode) throws Exception
   {
     // Find monitoring entry for requested base DN
     String monitorFilter =
-         "(&(cn=Directory server*)(domain-name=" + baseDn + "))";
+         "(&(cn=Directory server*)(domain-name=" + baseDN + "))";
 
     InternalSearchOperation op;
     int count = 0;

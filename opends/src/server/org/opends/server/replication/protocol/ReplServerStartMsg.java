@@ -31,6 +31,8 @@ import java.io.UnsupportedEncodingException;
 import java.util.zip.DataFormatException;
 
 import org.opends.server.replication.common.ServerState;
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
 
 /**
  * Message sent by a replication server to another replication server
@@ -40,7 +42,7 @@ public class ReplServerStartMsg extends StartMsg
 {
   private Integer serverId;
   private String serverURL;
-  private String baseDn = null;
+  private DN baseDN;
   private int windowSize;
   private ServerState serverState;
 
@@ -70,16 +72,16 @@ public class ReplServerStartMsg extends StartMsg
    *
    * @param serverId replication server id
    * @param serverURL replication server URL
-   * @param baseDn base DN for which the ReplServerStartMsg is created.
+   * @param baseDN base DN for which the ReplServerStartMsg is created.
    * @param windowSize The window size.
-   * @param serverState our ServerState for this baseDn.
+   * @param serverState our ServerState for this baseDN.
    * @param generationId The generationId for this server.
    * @param sslEncryption Whether to continue using SSL to encrypt messages
    *                      after the start messages have been exchanged.
    * @param groupId The group id of the RS
    * @param degradedStatusThreshold The degraded status threshold
    */
-  public ReplServerStartMsg(int serverId, String serverURL, String baseDn,
+  public ReplServerStartMsg(int serverId, String serverURL, DN baseDN,
                                int windowSize,
                                ServerState serverState,
                                long generationId,
@@ -90,10 +92,7 @@ public class ReplServerStartMsg extends StartMsg
     super((short) -1 /* version set when sending */, generationId);
     this.serverId = serverId;
     this.serverURL = serverURL;
-    if (baseDn != null)
-      this.baseDn = baseDn;
-    else
-      this.baseDn = null;
+    this.baseDN = baseDN;
     this.windowSize = windowSize;
     this.serverState = serverState;
     this.sslEncryption = sslEncryption;
@@ -127,7 +126,7 @@ public class ReplServerStartMsg extends StartMsg
     try
     {
       /* The ReplServerStartMsg payload is stored in the form :
-       * <baseDn><serverId><serverURL><windowSize><sslEncryption>
+       * <baseDN><serverId><serverURL><windowSize><sslEncryption>
        * <degradedStatusThreshold><serverState>
        */
 
@@ -138,7 +137,7 @@ public class ReplServerStartMsg extends StartMsg
        * first calculate the length then construct the string
        */
       int length = getNextLength(in, pos);
-      baseDn = new String(in, pos, length, "UTF-8");
+      baseDN = DN.decode(new String(in, pos, length, "UTF-8"));
       pos += length +1;
 
       /*
@@ -186,9 +185,14 @@ public class ReplServerStartMsg extends StartMsg
       // the ServerState to be the last. This should be changed and we want to
       // have more than one ServerState field.
       serverState = new ServerState(in, pos, in.length - 1);
-    } catch (UnsupportedEncodingException e)
+    }
+    catch (UnsupportedEncodingException e)
     {
       throw new DataFormatException("UTF-8 is not supported by this jvm.");
+    }
+    catch (DirectoryException e)
+    {
+      throw new DataFormatException(e.getLocalizedMessage());
     }
   }
 
@@ -206,7 +210,7 @@ public class ReplServerStartMsg extends StartMsg
     try
     {
       /* The ReplServerStartMsg payload is stored in the form :
-       * <baseDn><serverId><serverURL><windowSize><sslEncryption>
+       * <baseDN><serverId><serverURL><windowSize><sslEncryption>
        * <serverState>
        */
 
@@ -214,7 +218,7 @@ public class ReplServerStartMsg extends StartMsg
        * first calculate the length then construct the string
        */
       int length = getNextLength(in, pos);
-      baseDn = new String(in, pos, length, "UTF-8");
+      baseDN = DN.decode(new String(in, pos, length, "UTF-8"));
       pos += length +1;
 
       /*
@@ -254,9 +258,14 @@ public class ReplServerStartMsg extends StartMsg
       // the ServerState to be the last. This should be changed and we want to
       // have more than one ServerState field.
       serverState = new ServerState(in, pos, in.length - 1);
-    } catch (UnsupportedEncodingException e)
+    }
+    catch (UnsupportedEncodingException e)
     {
       throw new DataFormatException("UTF-8 is not supported by this jvm.");
+    }
+    catch (DirectoryException e)
+    {
+      throw new DataFormatException(e.getLocalizedMessage());
     }
   }
 
@@ -283,9 +292,9 @@ public class ReplServerStartMsg extends StartMsg
    *
    * @return the base DN from this ReplServerStartMsg.
    */
-  public String getBaseDn()
+  public DN getBaseDN()
   {
-    return baseDn;
+    return baseDN;
   }
 
   /**
@@ -312,11 +321,11 @@ public class ReplServerStartMsg extends StartMsg
     }
 
     /* The ReplServerStartMsg is stored in the form :
-     * <operation type><baseDn><serverId><serverURL><windowSize><sslEncryption>
+     * <operation type><baseDN><serverId><serverURL><windowSize><sslEncryption>
      * <degradedStatusThreshold><serverState>
      */
 
-    byte[] byteDn = baseDn.getBytes("UTF-8");
+    byte[] byteDn = baseDN.toString().getBytes("UTF-8");
     byte[] byteServerId = String.valueOf(serverId).getBytes("UTF-8");
     byte[] byteServerUrl = serverURL.getBytes("UTF-8");
     byte[] byteServerState = serverState.getBytes();
@@ -411,7 +420,7 @@ public class ReplServerStartMsg extends StartMsg
     return "ReplServerStartMsg content: " +
       "\nprotocolVersion: " + protocolVersion +
       "\ngenerationId: " + generationId +
-      "\nbaseDn: " + baseDn +
+      "\nbaseDN: " + baseDN +
       "\ngroupId: " + groupId +
       "\nserverId: " + serverId +
       "\nserverState: " + serverState +
@@ -437,7 +446,7 @@ public class ReplServerStartMsg extends StartMsg
      * <operation type><basedn><serverid><serverURL><windowsize><serverState>
      */
     try {
-      byte[] byteDn = baseDn.getBytes("UTF-8");
+      byte[] byteDn = baseDN.toString().getBytes("UTF-8");
       byte[] byteServerId = String.valueOf(serverId).getBytes("UTF-8");
       byte[] byteServerUrl = serverURL.getBytes("UTF-8");
       byte[] byteServerState = serverState.getBytes();

@@ -31,6 +31,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.zip.DataFormatException;
 
 import org.opends.server.replication.common.MultiDomainServerState;
+import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 
 /**
@@ -43,7 +44,7 @@ public class ECLUpdateMsg extends ReplicationMsg
   private final LDAPUpdateMsg updateMsg;
 
   /** The baseDN of the domain to which applies the change. */
-  private final String baseDN;
+  private final DN baseDN;
 
   /** The value of the cookie updated with the current change. */
   private MultiDomainServerState cookie;
@@ -59,7 +60,7 @@ public class ECLUpdateMsg extends ReplicationMsg
    * @param changeNumber The provided change number.
    */
   public ECLUpdateMsg(LDAPUpdateMsg updateMsg, MultiDomainServerState cookie,
-      String baseDN, long changeNumber)
+      DN baseDN, long changeNumber)
   {
     this.cookie = cookie;
     this.baseDN = baseDN;
@@ -98,7 +99,7 @@ public class ECLUpdateMsg extends ReplicationMsg
 
       // Decode the baseDN
       length = getNextLength(in, pos);
-      this.baseDN = new String(in, pos, length, "UTF-8");
+      this.baseDN = DN.decode(new String(in, pos, length, "UTF-8"));
       pos += length + 1;
 
       // Decode the changeNumber
@@ -148,7 +149,7 @@ public class ECLUpdateMsg extends ReplicationMsg
    *
    * @return The baseDN.
    */
-  public String getBaseDN()
+  public DN getBaseDN()
   {
     return baseDN;
   }

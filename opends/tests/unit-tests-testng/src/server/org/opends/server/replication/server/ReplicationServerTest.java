@@ -81,9 +81,9 @@ public class ReplicationServerTest extends ReplicationTestCase
 {
   /** The tracer object for the debug logger */
   private static final DebugTracer TRACER = getTracer();
-  /**
-   * The replicationServer that will be used in this test.
-   */
+  private DN TEST_ROOT_DN;
+  private DN EXAMPLE_DN;
+  /** The replicationServer that will be used in this test. */
   private ReplicationServer replicationServer;
 
   /**
@@ -113,6 +113,8 @@ public class ReplicationServerTest extends ReplicationTestCase
   public void setUp() throws Exception
   {
     super.setUp();
+    TEST_ROOT_DN = DN.decode(TEST_ROOT_DN_STRING);
+    EXAMPLE_DN = DN.decode("o=example," + TEST_ROOT_DN_STRING);
 
     // This test suite depends on having the schema available.
     configure();
@@ -216,12 +218,10 @@ public class ReplicationServerTest extends ReplicationTestCase
       /*
        * Open a sender session and a receiver session to the replicationServer
        */
-      server1 = openReplicationSession(
-          DN.decode(TEST_ROOT_DN_STRING),  1, 100, replicationServerPort,
-          1000, false);
-      server2 = openReplicationSession(
-          DN.decode(TEST_ROOT_DN_STRING),  2, 100, replicationServerPort,
-          1000, false);
+      server1 = openReplicationSession(TEST_ROOT_DN,
+          1, 100, replicationServerPort, 1000, false);
+      server2 = openReplicationSession(TEST_ROOT_DN,
+          2, 100, replicationServerPort, 1000, false);
 
       assertTrue(server1.isConnected());
       assertTrue(server2.isConnected());
@@ -253,9 +253,7 @@ public class ReplicationServerTest extends ReplicationTestCase
       /*
        * Send and receive a Delete Msg from server 1 to server 2
        */
-      DeleteMsg msg =
-          new DeleteMsg("o=example," + TEST_ROOT_DN_STRING, firstCSNServer1,
-                      "uid");
+      DeleteMsg msg = new DeleteMsg(EXAMPLE_DN, firstCSNServer1, "uid");
       server1.publish(msg);
       ReplicationMsg msg2 = server2.receive();
       server2.updateWindowAfterReplay();
@@ -264,7 +262,7 @@ public class ReplicationServerTest extends ReplicationTestCase
       /*
        * Send and receive a second Delete Msg
        */
-      msg = new DeleteMsg(TEST_ROOT_DN_STRING, secondCSNServer1, "uid");
+      msg = new DeleteMsg(TEST_ROOT_DN, secondCSNServer1, "uid");
       server1.publish(msg);
       msg2 = server2.receive();
       server2.updateWindowAfterReplay();
@@ -273,9 +271,7 @@ public class ReplicationServerTest extends ReplicationTestCase
       /*
        * Send and receive a Delete Msg from server 2 to server 1
        */
-      msg =
-          new DeleteMsg("o=example," + TEST_ROOT_DN_STRING, firstCSNServer2,
-                      "other-uid");
+      msg = new DeleteMsg(EXAMPLE_DN, firstCSNServer2, "other-uid");
       server2.publish(msg);
       msg2 = server1.receive();
       server1.updateWindowAfterReplay();
@@ -284,7 +280,7 @@ public class ReplicationServerTest extends ReplicationTestCase
       /*
        * Send and receive a second Delete Msg
        */
-      msg = new DeleteMsg(TEST_ROOT_DN_STRING, secondCSNServer2, "uid");
+      msg = new DeleteMsg(TEST_ROOT_DN, secondCSNServer2, "uid");
       server2.publish(msg);
       msg2 = server1.receive();
       server1.updateWindowAfterReplay();
@@ -318,10 +314,8 @@ public class ReplicationServerTest extends ReplicationTestCase
     ReplicationBroker broker = null;
 
     try {
-      broker =
-        openReplicationSession(DN.decode(TEST_ROOT_DN_STRING),  3,
-                             100, replicationServerPort, 1000, false);
-
+      broker = openReplicationSession(TEST_ROOT_DN,
+          3, 100, replicationServerPort, 1000, false);
       assertTrue(broker.isConnected());
 
       ReplicationMsg msg2 = broker.receive();
@@ -347,9 +341,8 @@ public class ReplicationServerTest extends ReplicationTestCase
 
     // Connect to the replicationServer using the state created above.
     try {
-      broker =
-        openReplicationSession(DN.decode(TEST_ROOT_DN_STRING),  3,
-                             100, replicationServerPort, 5000, state);
+      broker = openReplicationSession(TEST_ROOT_DN,
+          3, 100, replicationServerPort, 5000, state);
 
       ReplicationMsg msg2 = broker.receive();
       broker.updateWindowAfterReplay();
@@ -516,10 +509,8 @@ public class ReplicationServerTest extends ReplicationTestCase
       /*
        * Open a sender session
        */
-      server = openReplicationSession(
-          DN.decode(TEST_ROOT_DN_STRING),  5, 100, replicationServerPort,
-          100000, 1000, 0, false);
-
+      server = openReplicationSession(TEST_ROOT_DN,
+          5, 100, replicationServerPort, 100000, 1000, 0, false);
       assertTrue(server.isConnected());
 
       reader = new BrokerReader(server, TOTAL_MSG);
@@ -529,9 +520,8 @@ public class ReplicationServerTest extends ReplicationTestCase
        */
       for (int i =0; i< CLIENT_THREADS; i++)
       {
-        clientBroker[i] = openReplicationSession(
-            DN.decode(TEST_ROOT_DN_STRING),  (100+i), 100, replicationServerPort,
-            1000, true);
+        clientBroker[i] = openReplicationSession(TEST_ROOT_DN,
+            (100+i), 100, replicationServerPort, 1000, true);
         assertTrue(clientBroker[i].isConnected());
         client[i] = new BrokerReader(clientBroker[i], TOTAL_MSG);
       }
@@ -548,10 +538,7 @@ public class ReplicationServerTest extends ReplicationTestCase
        */
       for (int i = 0; i< TOTAL_MSG; i++)
       {
-        DeleteMsg msg =
-          new DeleteMsg("o=example," + TEST_ROOT_DN_STRING, gen.newCSN(),
-          "uid");
-        server.publish(msg);
+        server.publish(new DeleteMsg(EXAMPLE_DN, gen.newCSN(), "uid"));
       }
       debugInfo("Ending oneWriterMultipleReader");
     }
@@ -607,10 +594,8 @@ public class ReplicationServerTest extends ReplicationTestCase
       {
         int serverId = 10 + i;
         CSNGenerator gen = new CSNGenerator(serverId , 0);
-        broker[i] =
-          openReplicationSession( DN.decode(TEST_ROOT_DN_STRING), serverId,
-              100, replicationServerPort, 3000, 1000, 0, true);
-
+        broker[i] = openReplicationSession(TEST_ROOT_DN,
+            serverId, 100, replicationServerPort, 3000, 1000, 0, true);
         assertTrue(broker[i].isConnected());
 
         producer[i] = new BrokerWriter(broker[i], gen, TOTAL_MSG/THREADS);
@@ -694,19 +679,11 @@ public class ReplicationServerTest extends ReplicationTestCase
 
       // - Create 2 connected replicationServer
       ReplicationServer[] changelogs = new ReplicationServer[2];
-      int[] changelogPorts = new int[2];
-      int[] changelogIds = new int[2];
-      int[] brokerIds = new int[2];
+      int[] changelogPorts = TestCaseUtils.findFreePorts(2);
+      int[] changelogIds = new int[] { 80, 81 };
+      int[] brokerIds = new int[] { 100, 101 };
 
-      // Find 2 free ports
-      for (int i = 0; i <= 1; i++)
-      {
-        changelogPorts[i] = TestCaseUtils.findFreePort();
-        changelogIds[i] = i + 80;
-        brokerIds[i] = 100 + i;
-      }
-
-      for (int i = 0; i <= ((itest == 0) ? 1 : 0); i++)
+      for (int i = 0; i < ((itest == 0) ? 2 : 1); i++)
       {
         changelogs[i] = null;
 
@@ -730,14 +707,13 @@ public class ReplicationServerTest extends ReplicationTestCase
         //              and client2 to changelog2
         // For itest=1, only create and connect client1 to changelog1
         //              client2 will be created later
-        broker1 = openReplicationSession(DN.decode(TEST_ROOT_DN_STRING),
+        broker1 = openReplicationSession(TEST_ROOT_DN,
              brokerIds[0], 100, changelogPorts[0], 1000, !emptyOldChanges);
-
         assertTrue(broker1.isConnected());
 
         if (itest == 0)
         {
-          broker2 = openReplicationSession(DN.decode(TEST_ROOT_DN_STRING),
+          broker2 = openReplicationSession(TEST_ROOT_DN,
              brokerIds[1], 100, changelogPorts[0], 1000, !emptyOldChanges);
           assertTrue(broker2.isConnected());
         }
@@ -749,7 +725,8 @@ public class ReplicationServerTest extends ReplicationTestCase
         int ts = 1;
         CSN csn = new CSN(time, ts++, brokerIds[0]);
 
-        DeleteMsg delMsg = new DeleteMsg("o=example" + itest + "," + TEST_ROOT_DN_STRING, csn, "uid");
+        DN dn = DN.decode("o=example" + itest + "," + TEST_ROOT_DN_STRING);
+        DeleteMsg delMsg = new DeleteMsg(dn, csn, "uid");
         broker1.publish(delMsg);
 
         String user1entryUUID = "33333333-3333-3333-3333-333333333333";
@@ -761,9 +738,9 @@ public class ReplicationServerTest extends ReplicationTestCase
             + "entryUUID: 11111111-1111-1111-1111-111111111111\n";
         Entry entry = TestCaseUtils.entryFromLdifString(lentry);
         csn = new CSN(time, ts++, brokerIds[0]);
-        AddMsg addMsg = new AddMsg(csn, "o=example," + TEST_ROOT_DN_STRING,
-            user1entryUUID, baseUUID, entry.getObjectClassAttribute(), entry
-            .getAttributes(), new ArrayList<Attribute>());
+        AddMsg addMsg = new AddMsg(csn, EXAMPLE_DN,
+            user1entryUUID, baseUUID, entry.getObjectClassAttribute(),
+            entry.getAttributes(), new ArrayList<Attribute>());
         broker1.publish(addMsg);
 
         // - Modify
@@ -772,15 +749,13 @@ public class ReplicationServerTest extends ReplicationTestCase
         List<Modification> mods = new ArrayList<Modification>();
         mods.add(mod1);
         csn = new CSN(time, ts++, brokerIds[0]);
-        ModifyMsg modMsg = new ModifyMsg(csn, DN
-            .decode("o=example," + TEST_ROOT_DN_STRING), mods, "fakeuniqueid");
+        ModifyMsg modMsg = new ModifyMsg(csn, EXAMPLE_DN, mods, "fakeuniqueid");
         broker1.publish(modMsg);
 
         // - ModifyDN
         csn = new CSN(time, ts++, brokerIds[0]);
-        ModifyDNOperationBasis op = new ModifyDNOperationBasis(connection, 1, 1, null, DN
-            .decode("o=example," + TEST_ROOT_DN_STRING), RDN.decode("o=example2"), true,
-            null);
+        ModifyDNOperationBasis op = new ModifyDNOperationBasis(connection, 1, 1, null,
+            EXAMPLE_DN, RDN.decode("o=example2"), true, null);
         op.setAttachment(SYNCHROCONTEXT, new ModifyDnContext(csn, "uniqueid",
         "newparentId"));
         LocalBackendModifyDNOperation localOp =
@@ -798,7 +773,7 @@ public class ReplicationServerTest extends ReplicationTestCase
           changelogs[1] = new ReplicationServer(conf);
 
           // Connect broker 2 to changelog2
-          broker2 = openReplicationSession(DN.decode(TEST_ROOT_DN_STRING),
+          broker2 = openReplicationSession(TEST_ROOT_DN,
               brokerIds[1], 100, changelogPorts[1], 2000, !emptyOldChanges);
           assertTrue(broker2.isConnected());
         }
@@ -822,26 +797,22 @@ public class ReplicationServerTest extends ReplicationTestCase
 
           if (msg2 instanceof DeleteMsg)
           {
-            DeleteMsg delMsg2 = (DeleteMsg) msg2;
-            if (delMsg2.toString().equals(delMsg.toString()))
+            if (delMsg.equals(msg2))
               ts--;
           }
           else if (msg2 instanceof AddMsg)
           {
-            AddMsg addMsg2 = (AddMsg) msg2;
-            if (addMsg2.toString().equals(addMsg.toString()))
+            if (addMsg.equals(msg2))
               ts--;
           }
           else if (msg2 instanceof ModifyMsg)
           {
-            ModifyMsg modMsg2 = (ModifyMsg) msg2;
-            if (modMsg.equals(modMsg2))
+            if (modMsg.equals(msg2))
               ts--;
           }
           else if (msg2 instanceof ModifyDNMsg)
           {
-            ModifyDNMsg modDNMsg2 = (ModifyDNMsg) msg2;
-            if (modDNMsg.equals(modDNMsg2))
+            if (modDNMsg.equals(msg2))
               ts--;
           }
           else if (msg2 instanceof TopologyMsg)
@@ -905,29 +876,23 @@ public class ReplicationServerTest extends ReplicationTestCase
     int timeoutMS = MultimasterReplication.getConnectionTimeoutMS();
     socket.connect(ServerAddr, timeoutMS);
     ReplSessionSecurity replSessionSecurity = getReplSessionSecurity();
-    Session session = replSessionSecurity.createClientSession(socket,
-        timeoutMS);
+    Session session = replSessionSecurity.createClientSession(socket, timeoutMS);
 
-    boolean sslEncryption =
-         DirectoryConfig.getCryptoManager().isSslEncryption();
+    boolean sslEncryption = DirectoryConfig.getCryptoManager().isSslEncryption();
 
     try
     {
       // send a ServerStartMsg with an empty ServerState.
       String url = socket.getLocalAddress().getCanonicalHostName() + ":"
           + socket.getLocalPort();
-      ServerStartMsg msg =
-        new ServerStartMsg( 1723, url, TEST_ROOT_DN_STRING,
-            WINDOW, 5000, new ServerState(),
-            0, sslEncryption, (byte)-1);
+      ServerStartMsg msg = new ServerStartMsg(1723, url, TEST_ROOT_DN,
+            WINDOW, 5000, new ServerState(), 0, sslEncryption, (byte)-1);
       session.publish(msg);
 
       // Read the Replication Server state from the ReplServerStartDSMsg that
       // comes back.
-      ReplServerStartDSMsg replStartDSMsg =
-        (ReplServerStartDSMsg) session.receive();
+      ReplServerStartDSMsg replStartDSMsg = (ReplServerStartDSMsg) session.receive();
       int serverwindow = replStartDSMsg.getWindowSize();
-
       if (!sslEncryption)
       {
         session.stopEncryption();
@@ -1006,8 +971,8 @@ public class ReplicationServerTest extends ReplicationTestCase
     private ReplicationBroker broker;
     private int numMsgRcv = 0;
     private final int numMsgExpected;
-    public Exception exc;
-    public String errDetails = null;
+    private Exception exc;
+    private String errDetails;
 
     /**
      * Creates a new Stress Test Reader
@@ -1071,12 +1036,11 @@ public class ReplicationServerTest extends ReplicationTestCase
    */
   private class BrokerWriter extends Thread
   {
-    int count;
+    private int count;
     private ReplicationBroker broker;
-    CSNGenerator gen;
+    private CSNGenerator gen;
 
-    public BrokerWriter(ReplicationBroker broker, CSNGenerator gen,
-        int count)
+    public BrokerWriter(ReplicationBroker broker, CSNGenerator gen, int count)
     {
       this.broker = broker;
       this.count = count;
@@ -1099,9 +1063,7 @@ public class ReplicationServerTest extends ReplicationTestCase
       {
         count--;
 
-        DeleteMsg msg =
-          new DeleteMsg("o=example," + TEST_ROOT_DN_STRING, gen.newCSN(),
-              "uid");
+        DeleteMsg msg = new DeleteMsg(EXAMPLE_DN, gen.newCSN(), "uid");
         broker.publish(msg);
 
         if ((count % 10) == 0)
@@ -1111,9 +1073,8 @@ public class ReplicationServerTest extends ReplicationTestCase
     }
   }
 
-
-  /*
-   * Test backup and restore of the Replication server backend
+  /**
+   * Test backup and restore of the Replication server backend.
    */
    private void backupRestore() throws Exception
    {
@@ -1147,29 +1108,17 @@ public class ReplicationServerTest extends ReplicationTestCase
 
       try
       {
-        server1 = openReplicationSession(
-          DN.decode(TEST_ROOT_DN_STRING),  1, 100,
-          replicationServerPort,
-          1000, true);
-        server2 = openReplicationSession(
-          DN.decode("dc=domain2,dc=com"),  2, 100,
-          replicationServerPort,
-          1000, true);
+        server1 = openReplicationSession(TEST_ROOT_DN,
+            1, 100, replicationServerPort, 1000, true);
+        server2 = openReplicationSession(DN.decode("dc=domain2,dc=com"),
+            2, 100, replicationServerPort, 1000, true);
 
         assertTrue(server1.isConnected());
         assertTrue(server2.isConnected());
 
         debugInfo("Publish changes");
-        List<UpdateMsg> msgs = createChanges(TEST_ROOT_DN_STRING,  1);
-        for (UpdateMsg msg : msgs)
-        {
-          server1.publish(msg);
-        }
-        List<UpdateMsg> msgs2 = createChanges("dc=domain2,dc=com",  2);
-        for (UpdateMsg msg : msgs2)
-        {
-          server2.publish(msg);
-        }
+        publishAll(server1, createChanges(TEST_ROOT_DN_STRING,  1));
+        publishAll(server2, createChanges("dc=domain2,dc=com",  2));
 
         debugInfo("Export all");
         Entry exportTask = createExportAllTask();
@@ -1272,9 +1221,10 @@ public class ReplicationServerTest extends ReplicationTestCase
            + "entryUUID: 11111111-1111-1111-1111-111111111111\n";
        Entry entry = TestCaseUtils.entryFromLdifString(lentry);
        CSN csn = new CSN(time, ts++, serverId);
-       AddMsg addMsg = new AddMsg(csn, "o=example,"+suffix,
-           user1entryUUID, baseUUID, entry.getObjectClassAttribute(), entry
-           .getAttributes(), new ArrayList<Attribute>());
+       DN exampleSuffixDN = DN.decode("o=example," + suffix);
+       AddMsg addMsg = new AddMsg(csn, exampleSuffixDN,
+           user1entryUUID, baseUUID, entry.getObjectClassAttribute(),
+           entry.getAttributes(), new ArrayList<Attribute>());
        l.add(addMsg);
 
        // - Add
@@ -1292,9 +1242,10 @@ public class ReplicationServerTest extends ReplicationTestCase
            + "userpassword: fjen$$en" + "\n";
        Entry uentry = TestCaseUtils.entryFromLdifString(luentry);
        csn = new CSN(time, ts++, serverId);
+       DN newPersonDN = DN.decode("uid=new person,ou=People,"+suffix);
        AddMsg addMsg2 = new AddMsg(
            csn,
-           "uid=new person,ou=People,"+suffix,
+           newPersonDN,
            user1entryUUID,
            baseUUID,
            uentry.getObjectClassAttribute(),
@@ -1309,30 +1260,25 @@ public class ReplicationServerTest extends ReplicationTestCase
        Modification mod2 = new Modification(ModificationType.REPLACE, attr2);
        Attribute attr3 = Attributes.create("modifyTimestamp", "20070917172420Z");
        Modification mod3 = new Modification(ModificationType.REPLACE, attr3);
-       List<Modification> mods = new ArrayList<Modification>();
 
-       mods.add(mod1);
-       mods.add(mod2);
-       mods.add(mod3);
+       List<Modification> mods = Arrays.asList(mod1, mod2, mod3);
 
        csn = new CSN(time, ts++, serverId);
-       DN dn = DN.decode("o=example,"+suffix);
+       DN dn = exampleSuffixDN;
        ModifyMsg modMsg = new ModifyMsg(csn, dn,
            mods, "fakeuniqueid");
        l.add(modMsg);
 
        // Modify DN
        csn = new CSN(time, ts++, serverId);
-       ModifyDNMsg  modDnMsg = new ModifyDNMsg(
-           "uid=new person,ou=People,"+suffix, csn,
+       ModifyDNMsg  modDnMsg = new ModifyDNMsg(newPersonDN, csn,
            user1entryUUID, baseUUID, false,
-           "uid=wrong, ou=people,"+suffix,
-       "uid=newrdn");
+           "uid=wrong, ou=people,"+suffix, "uid=newrdn");
        l.add(modDnMsg);
 
        // Del
        csn = new CSN(time, ts++, serverId);
-       DeleteMsg delMsg = new DeleteMsg("o=example,"+suffix, csn, "uid");
+       DeleteMsg delMsg = new DeleteMsg(exampleSuffixDN, csn, "uid");
        l.add(delMsg);
      }
      return l;
@@ -1363,18 +1309,14 @@ public class ReplicationServerTest extends ReplicationTestCase
 
        debugInfo("Create broker");
 
-       server1 = openReplicationSession(
-         DN.decode(TEST_ROOT_DN_STRING),  1, 100, replicationServerPort,
-         1000, true);
+       server1 = openReplicationSession(TEST_ROOT_DN,
+           1, 100, replicationServerPort, 1000, true);
 
        assertTrue(server1.isConnected());
 
        debugInfo("Publish changes");
        List<UpdateMsg> msgs = createChanges(TEST_ROOT_DN_STRING, 1);
-       for(UpdateMsg msg : msgs )
-       {
-         server1.publish(msg);
-       }
+       publishAll(server1, msgs);
        Thread.sleep(500);
 
        // Sets manually the association backend-replication server since
@@ -1481,6 +1423,14 @@ public class ReplicationServerTest extends ReplicationTestCase
       stop(server1);
      }
    }
+
+  private void publishAll(ReplicationBroker broker, List<UpdateMsg> msgs)
+  {
+    for (UpdateMsg msg : msgs)
+    {
+      broker.publish(msg);
+    }
+  }
 
   private InternalSearchOperation assertSearchResult(String baseDN,
       String filterString, ResultCode rc, int nbEntriesReturned)
@@ -1596,19 +1546,11 @@ public class ReplicationServerTest extends ReplicationTestCase
 
        // - Create 2 connected replicationServer
        ReplicationServer[] changelogs = new ReplicationServer[2];
-       int[] changelogPorts = new int[2];
-       int[] changelogIds = new int[2];
-       int[] brokerIds = new int[2];
+       int[] changelogPorts = TestCaseUtils.findFreePorts(2);
+       int[] changelogIds = new int[] { 90, 91 };
+       int[] brokerIds = new int[] { 100, 101 };
 
-       // Find 2 free ports
-       for (int i = 0; i <= 1; i++)
-       {
-         changelogPorts[i] = TestCaseUtils.findFreePort();
-         changelogIds[i] = i + 90;
-         brokerIds[i] = 100+i;
-       }
-
-       for (int i = 0; i <= 1; i++)
+       for (int i = 0; i < 2; i++)
        {
          changelogs[i] = null;
          // create the 2 replicationServer
@@ -1629,10 +1571,9 @@ public class ReplicationServerTest extends ReplicationTestCase
        {
          // Create and connect client1 to changelog1
          // and client2 to changelog2
-         broker1 = openReplicationSession(DN.decode(TEST_ROOT_DN_STRING),
+         broker1 = openReplicationSession(TEST_ROOT_DN,
               brokerIds[0], 100, changelogPorts[0], 1000, emptyOldChanges);
-
-         broker2 = openReplicationSession(DN.decode(TEST_ROOT_DN_STRING),
+         broker2 = openReplicationSession(TEST_ROOT_DN,
               brokerIds[1], 100, changelogPorts[1], 1000, emptyOldChanges);
 
          assertTrue(broker1.isConnected());
@@ -1651,7 +1592,7 @@ public class ReplicationServerTest extends ReplicationTestCase
              + "entryUUID: " + user1entryUUID + "\n";
          Entry entry = TestCaseUtils.entryFromLdifString(lentry);
          csn = new CSN(time, ts++, brokerIds[0]);
-         AddMsg addMsg = new AddMsg(csn, "o=example," + TEST_ROOT_DN_STRING,
+         AddMsg addMsg = new AddMsg(csn, EXAMPLE_DN,
              user1entryUUID, baseUUID, entry.getObjectClassAttribute(), entry
              .getAttributes(), new ArrayList<Attribute>());
          broker1.publish(addMsg);
@@ -1662,8 +1603,7 @@ public class ReplicationServerTest extends ReplicationTestCase
          List<Modification> mods = new ArrayList<Modification>();
          mods.add(mod1);
          csn = new CSN(time, ts++, brokerIds[0]);
-         ModifyMsg modMsg = new ModifyMsg(csn, DN
-             .decode("o=example," + TEST_ROOT_DN_STRING), mods, "fakeuniqueid");
+         ModifyMsg modMsg = new ModifyMsg(csn, EXAMPLE_DN, mods, "fakeuniqueid");
          broker1.publish(modMsg);
 
          // - Check msg received by broker, through changeLog2
@@ -1686,14 +1626,12 @@ public class ReplicationServerTest extends ReplicationTestCase
 
            if (msg2 instanceof AddMsg)
            {
-             AddMsg addMsg2 = (AddMsg) msg2;
-             if (addMsg2.toString().equals(addMsg.toString()))
+             if (addMsg.equals(msg2))
                ts--;
            }
            else if (msg2 instanceof ModifyMsg)
            {
-             ModifyMsg modMsg2 = (ModifyMsg) msg2;
-             if (modMsg.equals(modMsg2))
+             if (modMsg.equals(msg2))
                ts--;
            }
            else
@@ -1723,7 +1661,7 @@ public class ReplicationServerTest extends ReplicationTestCase
          {
            // - Del
            csn = new CSN(time, ts++, brokerIds[0]);
-           DeleteMsg delMsg = new DeleteMsg("o=example," + TEST_ROOT_DN_STRING, csn, user1entryUUID);
+           DeleteMsg delMsg = new DeleteMsg(EXAMPLE_DN, csn, user1entryUUID);
            broker1.publish(delMsg);
            // Should receive some TopologyMsg messages for disconnection
            // between the 2 RSs

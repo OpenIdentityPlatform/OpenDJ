@@ -105,7 +105,7 @@ public class DataServerHandler extends ServerHandler
       // gen status)
       Message message = NOTE_BAD_GEN_ID_IN_FULL_UPDATE.get(
               Integer.toString(replicationServer.getServerId()),
-              getBaseDN(),
+              getBaseDNString(),
               Integer.toString(serverId),
               Long.toString(generationId),
               Long.toString(newGenId));
@@ -136,7 +136,7 @@ public class DataServerHandler extends ServerHandler
       if (debugEnabled())
       {
         TRACER.debugInfo("In RS " + replicationServer.getServerId()
-            + ", DS " + getServerId() + " for baseDN=" + getBaseDN()
+            + ", DS " + getServerId() + " for baseDN=" + getBaseDNString()
             + " has already generation id " + newGenId
             + " so no ChangeStatusMsg sent to him.");
       }
@@ -151,7 +151,7 @@ public class DataServerHandler extends ServerHandler
     {
       TRACER.debugInfo("In RS " + replicationServer.getServerId()
           + ", closing connection to DS " + getServerId() + " for baseDN="
-          + getBaseDN() + " to force reconnection as new local"
+          + getBaseDNString() + " to force reconnection as new local"
           + " generationId and remote one match and DS is in bad gen id: "
           + newGenId);
     }
@@ -203,7 +203,7 @@ public class DataServerHandler extends ServerHandler
     ServerStatus newStatus = StatusMachine.computeNewStatus(status, event);
     if (newStatus == ServerStatus.INVALID_STATUS)
     {
-      Message msg = ERR_RS_CANNOT_CHANGE_STATUS.get(getBaseDN(),
+      Message msg = ERR_RS_CANNOT_CHANGE_STATUS.get(getBaseDNString(),
           Integer.toString(serverId), status.toString(), event.toString());
       logError(msg);
       // Only change allowed is from NORMAL_STATUS to DEGRADED_STATUS and vice
@@ -220,7 +220,7 @@ public class DataServerHandler extends ServerHandler
     {
       TRACER.debugInfo("In RS " + replicationServer.getServerId()
           + " Sending change status " + origin + " to " + getServerId()
-          + " for baseDN=" + getBaseDN() + ":\n" + csMsg);
+          + " for baseDN=" + getBaseDNString() + ":\n" + csMsg);
     }
 
     session.publish(csMsg);
@@ -323,7 +323,7 @@ public class DataServerHandler extends ServerHandler
     if (event == StatusMachineEvent.INVALID_EVENT)
     {
       Message msg = ERR_RS_INVALID_NEW_STATUS.get(reqStatus.toString(),
-          getBaseDN(), Integer.toString(serverId));
+          getBaseDNString(), Integer.toString(serverId));
       logError(msg);
       return ServerStatus.INVALID_STATUS;
     }
@@ -332,7 +332,7 @@ public class DataServerHandler extends ServerHandler
     ServerStatus newStatus = StatusMachine.computeNewStatus(status, event);
     if (newStatus == ServerStatus.INVALID_STATUS)
     {
-      Message msg = ERR_RS_CANNOT_CHANGE_STATUS.get(getBaseDN(),
+      Message msg = ERR_RS_CANNOT_CHANGE_STATUS.get(getBaseDNString(),
           Integer.toString(serverId), status.toString(), event.toString());
       logError(msg);
       return ServerStatus.INVALID_STATUS;
@@ -361,8 +361,7 @@ public class DataServerHandler extends ServerHandler
     heartbeatInterval = serverStartMsg.getHeartbeatInterval();
 
     // generic stuff
-    DN baseDN = DN.decode(serverStartMsg.getBaseDn());
-    setBaseDNAndDomain(baseDN, true);
+    setBaseDNAndDomain(serverStartMsg.getBaseDN(), true);
     setInitialServerState(serverStartMsg.getServerState());
     setSendWindowSize(serverStartMsg.getWindowSize());
 
@@ -590,7 +589,7 @@ public class DataServerHandler extends ServerHandler
     {
       Message message = ERR_RS_INVALID_INIT_STATUS.get(
           this.status.toString(),
-          getBaseDN(),
+          getBaseDNString(),
           Integer.toString(serverId));
       throw new DirectoryException(ResultCode.OTHER, message);
     }
@@ -619,7 +618,7 @@ public class DataServerHandler extends ServerHandler
       {
         Message message = WARN_BAD_GENERATION_ID_FROM_DS.get(
             serverId, session.getReadableRemoteAddress(),
-            generationId, getBaseDN(),
+            generationId, getBaseDNString(),
             getReplicationServerId(), localGenerationId);
         logError(message);
       }
@@ -633,7 +632,7 @@ public class DataServerHandler extends ServerHandler
         // it is not expected to connect to an empty RS
         Message message = WARN_BAD_GENERATION_ID_FROM_DS.get(
             serverId, session.getReadableRemoteAddress(),
-            generationId, getBaseDN(),
+            generationId, getBaseDNString(),
             getReplicationServerId(), localGenerationId);
         logError(message);
       }

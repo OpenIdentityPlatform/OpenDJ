@@ -433,7 +433,7 @@ public class InitOnLineTest extends ReplicationTestCase
       int senderID, int destinationServerID, int requestorID)
   {
     RoutableMsg initTargetMessage =
-        new InitializeTargetMsg(EXAMPLE_DN, server2ID, destinationServerID,
+        new InitializeTargetMsg(baseDN, server2ID, destinationServerID,
             requestorID, updatedEntries.length, initWindow);
     broker.publish(initTargetMessage);
 
@@ -715,8 +715,7 @@ public class InitOnLineTest extends ReplicationTestCase
       // checks for session establishment ?
       // Thread.sleep(3000);
 
-      InitializeRequestMsg initMsg = new InitializeRequestMsg(EXAMPLE_DN,
-        server2ID, server1ID, 100);
+      InitializeRequestMsg initMsg = new InitializeRequestMsg(baseDN, server2ID, server1ID, 100);
       server2.publish(initMsg);
 
       // Signal RS we just entered the full update status
@@ -1211,8 +1210,7 @@ public class InitOnLineTest extends ReplicationTestCase
 
       // S3 sends init request
       log(testCase + " server 3 Will send reqinit to " + server1ID);
-      InitializeRequestMsg initMsg =
-        new InitializeRequestMsg(EXAMPLE_DN, server3ID, server1ID, 100);
+      InitializeRequestMsg initMsg = new InitializeRequestMsg(baseDN, server3ID, server1ID, 100);
       server3.publish(initMsg);
 
       // S3 should receive target, entries & done

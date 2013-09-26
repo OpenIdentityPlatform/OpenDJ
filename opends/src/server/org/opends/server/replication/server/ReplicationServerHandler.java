@@ -83,8 +83,7 @@ public class ReplicationServerHandler extends ServerHandler
       serverId = inReplServerStartMsg.getServerId();
       serverURL = inReplServerStartMsg.getServerURL();
       serverAddressURL = toServerAddressURL(serverURL);
-      DN baseDN = DN.decode(inReplServerStartMsg.getBaseDn());
-      setBaseDNAndDomain(baseDN, false);
+      setBaseDNAndDomain(inReplServerStartMsg.getBaseDN(), false);
       setInitialServerState(inReplServerStartMsg.getServerState());
       setSendWindowSize(inReplServerStartMsg.getWindowSize());
       if (protocolVersion > ProtocolVersion.REPLICATION_PROTOCOL_V1)
@@ -541,7 +540,7 @@ public class ReplicationServerHandler extends ServerHandler
        */
       Message message = WARN_BAD_GENERATION_ID_FROM_RS.get(
           serverId, session.getReadableRemoteAddress(), generationId,
-          getBaseDN(), getReplicationServerId(), localGenerationId);
+          getBaseDNString(), getReplicationServerId(), localGenerationId);
       logError(message);
     }
   }
