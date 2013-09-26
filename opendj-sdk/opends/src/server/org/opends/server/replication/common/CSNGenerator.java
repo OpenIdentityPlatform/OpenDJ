@@ -43,13 +43,16 @@ public class CSNGenerator
 
   /**
    * Create a new {@link CSNGenerator}.
-   * @param serverID2 id to use when creating {@link CSN}s.
-   * @param timestamp time to start with.
+   *
+   * @param serverId
+   *          id to use when creating {@link CSN}s.
+   * @param timestamp
+   *          time to start with.
    */
-  public CSNGenerator(int serverID2, long timestamp)
+  public CSNGenerator(int serverId, long timestamp)
   {
     this.lastTime = timestamp;
-    this.serverId = serverID2;
+    this.serverId = serverId;
     this.seqnum = 0;
   }
 
@@ -161,6 +164,6 @@ public class CSNGenerator
     for (int localServerId : state)
     {
       adjust(state.getCSN(localServerId));
-     }
+    }
   }
 }

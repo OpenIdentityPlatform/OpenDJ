@@ -27,7 +27,6 @@
  */
 package org.opends.server.replication.server.changelog.je;
 
-import org.opends.messages.Message;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
@@ -39,8 +38,8 @@ import org.opends.server.replication.server.changelog.je.ReplicationDB.*;
  */
 public class JEReplicaDBCursor implements ReplicaDBCursor
 {
-  private UpdateMsg currentChange = null;
-  private ReplServerDBCursor cursor = null;
+  private UpdateMsg currentChange;
+  private ReplServerDBCursor cursor;
   private DbHandler dbHandler;
   private ReplicationDB db;
   private CSN lastNonNullCurrentCSN;
@@ -52,7 +51,8 @@ public class JEReplicaDBCursor implements ReplicaDBCursor
    * @param db
    *          The db where the cursor must be created.
    * @param startAfterCSN
-   *          The CSN after which the cursor must start.
+   *          The CSN after which the cursor must start.If null, start from the
+   *          oldest CSN
    * @param dbHandler
    *          The associated DbHandler.
    * @throws ChangelogException
@@ -82,10 +82,6 @@ public class JEReplicaDBCursor implements ReplicaDBCursor
 
       // look again in the db
       cursor = db.openReadCursor(startAfterCSN);
-      if (cursor == null)
-      {
-        throw new ChangelogException(Message.raw("no new change"));
-      }
     }
   }
 

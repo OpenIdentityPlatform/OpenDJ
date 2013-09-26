@@ -45,6 +45,7 @@ import org.opends.server.replication.server.changelog.api.ReplicaDBCursor;
 import org.opends.server.types.DN;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.util.Pair;
+import org.opends.server.util.StaticUtils;
 
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.loggers.ErrorLogger.*;
@@ -71,6 +72,37 @@ public class JEChangelogDB implements ChangelogDB
 
   /** The local replication server. */
   private final ReplicationServer replicationServer;
+
+  private static final ReplicaDBCursor EMPTY_CURSOR = new ReplicaDBCursor()
+  {
+
+    @Override
+    public int compareTo(ReplicaDBCursor o)
+    {
+      if (o == null)
+      {
+        throw new NullPointerException(); // as per javadoc
+      }
+      return o == this ? 0 : -1; // equal to self, but less than all the rest
+    }
+
+    @Override
+    public boolean next()
+    {
+      return false;
+    }
+
+    @Override
+    public UpdateMsg getChange()
+    {
+      return null;
+    }
+
+    @Override
+    public void close()
+    {
+    }
+  };
 
   /**
    * Builds an instance of this class.
@@ -220,6 +252,13 @@ public class JEChangelogDB implements ChangelogDB
 
   /** {@inheritDoc} */
   @Override
+  public void removeDB()
+  {
+    StaticUtils.recursiveDelete(dbDirectory);
+  }
+
+  /** {@inheritDoc} */
+  @Override
   public Set<Integer> getDomainServerIds(DN baseDN)
   {
     return getDomainMap(baseDN).keySet();
@@ -298,7 +337,7 @@ public class JEChangelogDB implements ChangelogDB
 
   /** {@inheritDoc} */
   @Override
-  public void clearDomain(DN baseDN)
+  public void removeDomain(DN baseDN)
   {
     final Map<Integer, DbHandler> domainMap = getDomainMap(baseDN);
     synchronized (domainMap)
@@ -410,28 +449,20 @@ public class JEChangelogDB implements ChangelogDB
       CSN startAfterCSN)
   {
     DbHandler dbHandler = getDbHandler(baseDN, serverId);
-    if (dbHandler == null)
+    if (dbHandler != null)
     {
-      return null;
+      try
+      {
+        ReplicaDBCursor cursor = dbHandler.generateCursorFrom(startAfterCSN);
+        cursor.next();
+        return cursor;
+      }
+      catch (ChangelogException e)
+      {
+        // ignored
+      }
     }
-
-    ReplicaDBCursor cursor;
-    try
-    {
-      cursor = dbHandler.generateCursorFrom(startAfterCSN);
-    }
-    catch (Exception e)
-    {
-      return null;
-    }
-
-    if (!cursor.next())
-    {
-      close(cursor);
-      return null;
-    }
-
-    return cursor;
+    return EMPTY_CURSOR;
   }
 
   /** {@inheritDoc} */

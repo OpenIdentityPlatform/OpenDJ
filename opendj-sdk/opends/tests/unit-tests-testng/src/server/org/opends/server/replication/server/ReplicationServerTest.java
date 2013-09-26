@@ -984,11 +984,9 @@ public class ReplicationServerTest extends ReplicationTestCase
   {
     callParanoiaCheck = false;
     super.classCleanUp();
-    String dirName = replicationServer.getDbDirName();
 
+    replicationServer.getChangelogDB().removeDB();
     shutdown();
-
-    recursiveDelete(new File(DirectoryServer.getInstanceRoot(), dirName));
 
     paranoiaCheck();
   }
@@ -1366,8 +1364,7 @@ public class ReplicationServerTest extends ReplicationTestCase
        assertTrue(b.isIndexed(filter));
 
        List<Control> requestControls = new LinkedList<Control>();
-       requestControls.add(new LDAPControl(OID_INTERNAL_GROUP_MEMBERSHIP_UPDATE,
-                                      false));
+       requestControls.add(new LDAPControl(OID_INTERNAL_GROUP_MEMBERSHIP_UPDATE, false));
        DN baseDN=DN.decode("dc=replicationChanges");
        //Test the group membership control causes search to be skipped.
        InternalSearchOperation internalSearch =
@@ -1383,7 +1380,7 @@ public class ReplicationServerTest extends ReplicationTestCase
        // is currently failing when run in the nightly target.
        // anonymous search returns entries from replication backend whereas it
        // should not. Probably a previous test in the nightlytests suite is
-       // removing/modifying some ACIs...When problem foound, we have to re-enable
+       // removing/modifying some ACIs...When problem found, we have to re-enable
        // this test.
        // testReplicationBackendACIs();
 

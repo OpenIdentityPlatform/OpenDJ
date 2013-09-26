@@ -27,7 +27,6 @@
  */
 package org.opends.server.replication;
 
-import java.io.File;
 import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -446,7 +445,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
     entryList = new LinkedList<DN>();
 
     // Clear the test backend (TestCaseUtils.TEST_ROOT_DN_STRING)
-    // (in case our test created some emtries in it)
+    // (in case our test created some entries in it)
     TestCaseUtils.initializeTestBackend(true);
 
     // Check for unexpected replication config/objects left
@@ -509,7 +508,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
    */
   protected void removeReplicationServerDB() {
     for (ReplicationServer rs : ReplicationServer.getAllInstances()) {
-      recursiveDelete(new File(DirectoryServer.getInstanceRoot(), rs.getDbDirName()));
+      rs.removeDb();
     }
   }
 
@@ -519,9 +518,8 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
     {
       if (rs != null)
       {
-        rs.clearDb();
         rs.remove();
-        recursiveDelete(new File(DirectoryServer.getInstanceRoot(), rs.getDbDirName()));
+        rs.removeDb();
       }
     }
   }

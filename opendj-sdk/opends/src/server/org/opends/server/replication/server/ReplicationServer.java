@@ -1174,6 +1174,15 @@ public final class ReplicationServer
       logError(msg);
     }
   }
+
+  /**
+   * Removes the changelog database directory.
+   */
+  public void removeDb()
+  {
+    this.changelogDB.removeDB();
+  }
+
   /**
    * {@inheritDoc}
    */
@@ -1733,18 +1742,6 @@ public final class ReplicationServer
   ChangelogDB getChangelogDB()
   {
     return this.changelogDB;
-  }
-
-  /**
-   * Get the replication server DB directory.
-   * This is useful for tests to be able to do some cleanup. Might even be
-   * useful for the server some day.
-   *
-   * @return the Database directory name
-   */
-  public String getDbDirName()
-  {
-    return this.changelogDB.getDBDirectoryName();
   }
 
   /** {@inheritDoc} */
