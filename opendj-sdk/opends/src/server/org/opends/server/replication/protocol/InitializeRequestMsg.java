@@ -136,7 +136,7 @@ public class InitializeRequestMsg extends RoutableMsg
   public byte[] getBytes(short version)
   {
     try {
-      byte[] baseDNBytes = baseDN.toString().getBytes("UTF-8");
+      byte[] baseDNBytes = baseDN.toNormalizedString().getBytes("UTF-8");
       byte[] senderBytes = String.valueOf(senderID).getBytes("UTF-8");
       byte[] destinationBytes = String.valueOf(destination).getBytes("UTF-8");
       byte[] initWindowBytes = null;

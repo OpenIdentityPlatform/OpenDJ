@@ -325,7 +325,7 @@ public class ReplServerStartMsg extends StartMsg
      * <degradedStatusThreshold><serverState>
      */
 
-    byte[] byteDn = baseDN.toString().getBytes("UTF-8");
+    byte[] byteDn = baseDN.toNormalizedString().getBytes("UTF-8");
     byte[] byteServerId = String.valueOf(serverId).getBytes("UTF-8");
     byte[] byteServerUrl = serverURL.getBytes("UTF-8");
     byte[] byteServerState = serverState.getBytes();
@@ -446,7 +446,7 @@ public class ReplServerStartMsg extends StartMsg
      * <operation type><basedn><serverid><serverURL><windowsize><serverState>
      */
     try {
-      byte[] byteDn = baseDN.toString().getBytes("UTF-8");
+      byte[] byteDn = baseDN.toNormalizedString().getBytes("UTF-8");
       byte[] byteServerId = String.valueOf(serverId).getBytes("UTF-8");
       byte[] byteServerUrl = serverURL.getBytes("UTF-8");
       byte[] byteServerState = serverState.getBytes();

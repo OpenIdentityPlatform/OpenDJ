@@ -237,7 +237,7 @@ public abstract class LDAPUpdateMsg extends UpdateMsg
   public byte[] encodeHeader(byte type, int additionalLength, short version)
     throws UnsupportedEncodingException
   {
-    byte[] byteDn = dn.toString().getBytes("UTF-8");
+    byte[] byteDn = dn.toNormalizedString().getBytes("UTF-8");
     byte[] csnByte = getCSN().toString().getBytes("UTF-8");
     byte[] byteEntryuuid = getEntryUUID().getBytes("UTF-8");
 
@@ -297,7 +297,7 @@ public abstract class LDAPUpdateMsg extends UpdateMsg
   public byte[] encodeHeader_V1(byte type, int additionalLength)
     throws UnsupportedEncodingException
   {
-    byte[] byteDn = dn.toString().getBytes("UTF-8");
+    byte[] byteDn = dn.toNormalizedString().getBytes("UTF-8");
     byte[] csnByte = getCSN().toString().getBytes("UTF-8");
     byte[] byteEntryuuid = getEntryUUID().getBytes("UTF-8");
 
