@@ -196,7 +196,7 @@ public class InitializeTargetMsg extends RoutableMsg
     try
     {
       byte[] byteDestination = String.valueOf(destination).getBytes("UTF-8");
-      byte[] byteDn = baseDN.toString().getBytes("UTF-8");
+      byte[] byteDn = baseDN.toNormalizedString().getBytes("UTF-8");
       byte[] byteSender = String.valueOf(senderID).getBytes("UTF-8");
       byte[] byteRequestor = String.valueOf(requestorID).getBytes("UTF-8");
       byte[] byteEntryCount = String.valueOf(entryCount).getBytes("UTF-8");

@@ -165,7 +165,7 @@ public class ModifyDNMsg extends ModifyCommonMsg
     ModifyDNOperation moddn =  new ModifyDNOperationBasis(connection,
         InternalClientConnection.nextOperationID(),
         InternalClientConnection.nextMessageID(), null,
-        ByteString.valueOf(newDN.toString()),
+        ByteString.valueOf(newDN.toNormalizedString()),
         ByteString.valueOf(newRDN),
         deleteOldRdn,
         (newSuperior == null ? null : ByteString.valueOf(newSuperior)));

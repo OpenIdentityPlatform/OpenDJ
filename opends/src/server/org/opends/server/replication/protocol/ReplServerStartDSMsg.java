@@ -261,7 +261,7 @@ public class ReplServerStartDSMsg extends StartMsg
      * <degradedStatusThreshold><weight><connectedDSNumber>
      * <serverState>
      */
-    byte[] byteDn = baseDN.toString().getBytes("UTF-8");
+    byte[] byteDn = baseDN.toNormalizedString().getBytes("UTF-8");
     byte[] byteServerId = String.valueOf(serverId).getBytes("UTF-8");
     byte[] byteServerUrl = serverURL.getBytes("UTF-8");
     byte[] byteServerState = serverState.getBytes();
