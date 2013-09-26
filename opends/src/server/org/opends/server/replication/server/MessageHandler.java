@@ -414,16 +414,13 @@ public class MessageHandler extends MonitorProvider<MonitorProviderCfg>
   private void addCursorIfNotEmpty(Collection<ReplicaDBCursor> cursors,
       ReplicaDBCursor cursor)
   {
-    if (cursor != null)
+    if (cursor.getChange() != null)
     {
-      if (cursor.getChange() != null)
-      {
-        cursors.add(cursor);
-      }
-      else
-      {
-        close(cursor);
-      }
+      cursors.add(cursor);
+    }
+    else
+    {
+      close(cursor);
     }
   }
 

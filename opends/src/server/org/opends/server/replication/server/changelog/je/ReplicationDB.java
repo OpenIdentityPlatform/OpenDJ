@@ -286,7 +286,8 @@ public class ReplicationDB
    * ReplicationServer DB.
    *
    * @param startCSN
-   *          The CSN from which the cursor must start.
+   *          The CSN from which the cursor must start.If null, start from the
+   *          oldest CSN
    * @throws ChangelogException
    *           When a problem occurs or the startCSN does not exist.
    * @return The ReplServerDBCursor.
@@ -1178,7 +1179,7 @@ public class ReplicationDB
    * Set the counter writing window size (public method for unit tests only).
    * @param size Size in number of record.
    */
-  public void setCounterWindowSize(int size)
+  public void setCounterRecordWindowSize(int size)
   {
     this.counterWindowSize = size;
   }

@@ -84,6 +84,11 @@ public interface ChangelogDB
   void shutdownDB();
 
   /**
+   * Removes the changelog database directory.
+   */
+  void removeDB();
+
+  /**
    * Returns a new {@link ChangeNumberIndexDB} object.
    *
    * @return a new {@link ChangeNumberIndexDB} object
@@ -145,7 +150,7 @@ public interface ChangelogDB
   long getDomainLatestTrimDate(DN baseDN);
 
   /**
-   * Shutdown the specified replication domain.
+   * Shutdown all the replica databases for the specified replication domain.
    *
    * @param baseDN
    *          the replication domain baseDN
@@ -153,27 +158,69 @@ public interface ChangelogDB
   void shutdownDomain(DN baseDN);
 
   /**
-   * Clear DB and shutdown for the specified replication domain.
+   * Removes all the data relating to the specified replication domain and
+   * shutdown all its replica databases. In particular, it will:
+   * <ol>
+   * <li>remove all the changes from the replica databases</li>
+   * <li>remove all knowledge of the serverIds in this domain</li>
+   * <li>remove any knowledge of the current generationId for this domain</li>
+   * </ol>
    *
    * @param baseDN
    *          the replication domain baseDN
    */
-  void clearDomain(DN baseDN);
+  void removeDomain(DN baseDN);
 
   // serverId methods
 
   /**
-   * Return the number of changes between 2 provided {@link CSN}s for the
-   * specified serverId and replication domain.
+   * Return the number of changes inclusive between 2 provided {@link CSN}s for
+   * the specified serverId and replication domain. i.e. the <code>from</code>
+   * and <code>to</code> CSNs are included in the count.
+   * <p>
+   * Note that:
+   * <ol>
+   * <li>If <code>from</code> is null, the count starts at the oldest CSN in the
+   * database.</li>
+   * <li>If <code>to</code> is null, the count is 0.</li>
+   * <li>If both from and to are present, then the count includes them both
+   * <code>to</code> is null, the count ends at the newest CSN in the database.
+   * </li>
+   * <li>incidentally, if both <code>from</code> and <code>to</code> are null,
+   * the total count of entries in the replica database is returned.</li>
+   * </ol>
+   * <h6>Example</h6>
+   * <p>
+   * Given the following replica database for baseDN "dc=example,dc=com" and
+   * serverId 1:
+   *
+   * <pre>
+   * CSN1  <=  Oldest
+   * CSN2
+   * CSN3
+   * CSN4
+   * CSN5  <=  Newest
+   * </pre>
+   *
+   * Then:
+   *
+   * <pre>
+   * assertEquals(getCount(&quot;dc=example,dc=com&quot;, 1, CSN1, CSN1), 1);
+   * assertEquals(getCount(&quot;dc=example,dc=com&quot;, 1, CSN1, CSN2), 2);
+   * assertEquals(getCount(&quot;dc=example,dc=com&quot;, 1, CSN1, CSN5), 5);
+   * assertEquals(getCount(&quot;dc=example,dc=com&quot;, 1, null, CSN5), 5);
+   * assertEquals(getCount(&quot;dc=example,dc=com&quot;, 1, CSN1, null), 0);
+   * assertEquals(getCount(&quot;dc=example,dc=com&quot;, 1, null, null), 5);
+   * </pre>
    *
    * @param baseDN
    *          the replication domain baseDN
    * @param serverId
    *          the serverId on which to act
    * @param from
-   *          The lower (older) CSN
+   *          The older CSN where to start the count
    * @param to
-   *          The upper (newer) CSN
+   *          The newer CSN where to end the count
    * @return The computed number of changes
    */
   long getCount(DN baseDN, int serverId, CSN from, CSN to);
@@ -188,23 +235,28 @@ public interface ChangelogDB
    *          the serverId for which we want the information
    * @param startAfterCSN
    *          The position where the iterator must start
-   * @return a new ReplicationIterator that allows to browse the db managed by
-   *         this dbHandler and starting at the position defined by a given CSN.
+   * @return the CSN immediately after startAfterCSN, or null if no CSN exist
+   *         after startAfterCSN
    */
   CSN getCSNAfter(DN baseDN, int serverId, CSN startAfterCSN);
 
   /**
-   * Generates a non empty {@link ReplicaDBCursor} for the specified serverId
-   * and replication domain.
+   * Generates a {@link ReplicaDBCursor} for the specified serverId and
+   * replication domain starting after the provided CSN.
+   * <p>
+   * The cursor is already advanced to the record after startAfterCSN.
+   * <p>
+   * When the cursor is not used anymore, client code MUST call the
+   * {@link ReplicaDBCursor#close()} method to free the resources and locks used
+   * by the cursor.
    *
    * @param baseDN
    *          the replication domain baseDN
    * @param serverId
-   *          the serverId on which to act
+   *          Identifier of the server for which the cursor is created
    * @param startAfterCSN
-   *          The position where the iterator must start
-   * @return a {@link ReplicaDBCursor} if the ReplicaDB is not empty, null
-   *         otherwise
+   *          Starting point for the cursor. If null, start from the oldest CSN
+   * @return a non null {@link ReplicaDBCursor}
    */
   ReplicaDBCursor getCursorFrom(DN baseDN, int serverId, CSN startAfterCSN);
 

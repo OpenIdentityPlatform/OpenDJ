@@ -263,7 +263,8 @@ public class DbHandler implements Runnable
    * by this dbHandler and starting at the position defined by a given CSN.
    *
    * @param startAfterCSN
-   *          The position where the cursor must start.
+   *          The position where the cursor must start. If null, start from the
+   *          oldest CSN
    * @return a new {@link ReplicaDBCursor} that allows to browse the db managed
    *         by this dbHandler and starting at the position defined by a given
    *         CSN.
@@ -634,12 +635,16 @@ public class DbHandler implements Runnable
   }
 
   /**
-   * Set the counter writing window size (public for unit tests only).
-   * @param size Size in number of record.
+   * Set the window size for writing counter records in the DB.
+   * <p>
+   * for unit tests only!!
+   *
+   * @param size
+   *          window size in number of records.
    */
-  public void setCounterWindowSize(int size)
+  void setCounterRecordWindowSize(int size)
   {
-    db.setCounterWindowSize(size);
+    db.setCounterRecordWindowSize(size);
   }
 
   /**

@@ -632,33 +632,30 @@ public class ReplicationBackend
       }
 
       ReplicaDBCursor cursor = rsd.getCursorFrom(serverId, previousCSN);
-      if (cursor != null)
+      try
       {
-        try
-        {
-          int lookthroughCount = 0;
+        int lookthroughCount = 0;
 
-          // Walk through the changes
-          while (cursor.getChange() != null)
-          {
-            if (exportConfig != null && exportConfig.isCancelled())
-            { // abort if cancelled
-              return;
-            }
-            if (!canContinue(searchOperation, lookthroughCount))
-            {
-              break;
-            }
-            lookthroughCount++;
-            writeChange(cursor.getChange(), ldifWriter, searchOperation,
-                rsd.getBaseDN(), exportConfig != null);
-            cursor.next();
-          }
-        }
-        finally
+        // Walk through the changes
+        while (cursor.getChange() != null)
         {
-          close(cursor);
+          if (exportConfig != null && exportConfig.isCancelled())
+          { // abort if cancelled
+            return;
+          }
+          if (!canContinue(searchOperation, lookthroughCount))
+          {
+            break;
+          }
+          lookthroughCount++;
+          writeChange(cursor.getChange(), ldifWriter, searchOperation,
+              rsd.getBaseDN(), exportConfig != null);
+          cursor.next();
         }
+      }
+      finally
+      {
+        close(cursor);
       }
     }
   }

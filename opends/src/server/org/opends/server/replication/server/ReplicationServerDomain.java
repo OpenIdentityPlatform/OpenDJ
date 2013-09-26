@@ -1283,16 +1283,21 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
   }
 
   /**
-   * Creates and returns a cursor. When the cursor is not used anymore, the
-   * caller MUST call the {@link ReplicaDBCursor#close()} method to free the
-   * resources and locks used by the cursor.
+   * Creates and returns a cursor.
+   * <p>
+   * Client code must call {@link ReplicaDBCursor#next()} to advance the cursor
+   * to the next available record.
+   * <p>
+   * When the cursor is not used anymore, client code MUST call the
+   * {@link ReplicaDBCursor#close()} method to free the resources and locks used
+   * by the cursor.
    *
    * @param serverId
-   *          Identifier of the server for which the cursor is created.
+   *          Identifier of the server for which the cursor is created
    * @param startAfterCSN
-   *          Starting point for the cursor.
-   * @return the created {@link ReplicaDBCursor}. Null when no DB is available
-   *         or the DB is empty for the provided serverId .
+   *          Starting point for the cursor. If null, start from the oldest CSN
+   * @return a non null {@link ReplicaDBCursor}
+   * @see ChangelogDB#getCursorFrom(DN, int, CSN)
    */
   public ReplicaDBCursor getCursorFrom(int serverId, CSN startAfterCSN)
   {
@@ -2198,7 +2203,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
   public void clearDbs()
   {
     // Reset the localchange and state db for the current domain
-    changelogDB.clearDomain(baseDN);
+    changelogDB.removeDomain(baseDN);
     try
     {
       localReplicationServer.clearGenerationId(baseDN);
