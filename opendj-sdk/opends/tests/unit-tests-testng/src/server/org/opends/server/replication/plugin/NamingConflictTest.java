@@ -74,10 +74,10 @@ public class NamingConflictTest extends ReplicationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    final DN baseDn = DN.decode(TEST_ROOT_DN_STRING);
+    final DN baseDN = DN.decode(TEST_ROOT_DN_STRING);
 
     TestSynchronousReplayQueue queue = new TestSynchronousReplayQueue();
-    DomainFakeCfg conf = new DomainFakeCfg(baseDn, 1, new TreeSet<String>());
+    DomainFakeCfg conf = new DomainFakeCfg(baseDN, 1, new TreeSet<String>());
     conf.setIsolationPolicy(IsolationPolicy.ACCEPT_ALL_UPDATES);
 
     LDAPReplicationDomain domain =
@@ -116,7 +116,7 @@ public class NamingConflictTest extends ReplicationTestCase
       CSN csn2 = gen.newCSN();
 
       ModifyDNMsg  modDnMsg = new ModifyDNMsg(
-          entry.getDN().toNormalizedString(), csn2,
+          entry.getDN(), csn2,
           entryUUID, parentUUID, false,
           TEST_ROOT_DN_STRING,
       "uid=simultaneous2");
@@ -130,7 +130,7 @@ public class NamingConflictTest extends ReplicationTestCase
       // This MODIFY DN uses an older DN and should therefore be cancelled
       // at replay time.
       modDnMsg = new ModifyDNMsg(
-          entry.getDN().toNormalizedString(), csn1,
+          entry.getDN(), csn1,
           entryUUID, parentUUID, false,
           TEST_ROOT_DN_STRING,
       "uid=simulatneouswrong");
@@ -148,7 +148,7 @@ public class NamingConflictTest extends ReplicationTestCase
     }
     finally
     {
-      MultimasterReplication.deleteDomain(baseDn);
+      MultimasterReplication.deleteDomain(baseDN);
     }
   }
 
@@ -163,10 +163,10 @@ public class NamingConflictTest extends ReplicationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    final DN baseDn = DN.decode(TEST_ROOT_DN_STRING);
+    final DN baseDN = DN.decode(TEST_ROOT_DN_STRING);
 
     TestSynchronousReplayQueue queue = new TestSynchronousReplayQueue();
-    DomainFakeCfg conf = new DomainFakeCfg(baseDn, 1, new TreeSet<String>());
+    DomainFakeCfg conf = new DomainFakeCfg(baseDN, 1, new TreeSet<String>());
     conf.setIsolationPolicy(IsolationPolicy.ACCEPT_ALL_UPDATES);
 
     LDAPReplicationDomain domain =
@@ -205,7 +205,7 @@ public class NamingConflictTest extends ReplicationTestCase
       // Now try to add the same entry with same DN but a different
       // unique ID though the replication
       AddMsg addMsg = new AddMsg(csn1,
-            entry.getDN().toNormalizedString(),
+            entry.getDN(),
             "c9cb8c3c-615a-4122-865d-50323aaaed48", parentUUID,
             entry.getObjectClasses(), entry.getUserAttributes(),
             null);
@@ -230,7 +230,7 @@ public class NamingConflictTest extends ReplicationTestCase
     }
     finally
     {
-      MultimasterReplication.deleteDomain(baseDn);
+      MultimasterReplication.deleteDomain(baseDN);
     }
   }
 
@@ -247,10 +247,10 @@ public class NamingConflictTest extends ReplicationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    final DN baseDn = DN.decode(TEST_ROOT_DN_STRING);
+    final DN baseDN = DN.decode(TEST_ROOT_DN_STRING);
 
     TestSynchronousReplayQueue queue = new TestSynchronousReplayQueue();
-    DomainFakeCfg conf = new DomainFakeCfg(baseDn, 1, new TreeSet<String>());
+    DomainFakeCfg conf = new DomainFakeCfg(baseDN, 1, new TreeSet<String>());
     conf.setIsolationPolicy(IsolationPolicy.ACCEPT_ALL_UPDATES);
 
     LDAPReplicationDomain domain =
@@ -289,7 +289,7 @@ public class NamingConflictTest extends ReplicationTestCase
       // Now try to add the same entry with same DN but a different
       // unique ID though the replication
       AddMsg addMsg = new AddMsg(csn1,
-            entry.getDN().toNormalizedString(),
+            entry.getDN(),
             "c9cb8c3c-615a-4122-865d-50323aaaed48", parentUUID,
             entry.getObjectClasses(), entry.getUserAttributes(),
             null);
@@ -319,7 +319,7 @@ public class NamingConflictTest extends ReplicationTestCase
     }
     finally
     {
-      MultimasterReplication.deleteDomain(baseDn);
+      MultimasterReplication.deleteDomain(baseDN);
     }
   }
 
@@ -352,10 +352,10 @@ public class NamingConflictTest extends ReplicationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    final DN baseDn = DN.decode(TEST_ROOT_DN_STRING);
+    final DN baseDN = DN.decode(TEST_ROOT_DN_STRING);
 
     TestSynchronousReplayQueue queue = new TestSynchronousReplayQueue();
-    DomainFakeCfg conf = new DomainFakeCfg(baseDn, 1, new TreeSet<String>());
+    DomainFakeCfg conf = new DomainFakeCfg(baseDN, 1, new TreeSet<String>());
     conf.setIsolationPolicy(IsolationPolicy.ACCEPT_ALL_UPDATES);
 
     LDAPReplicationDomain domain =
@@ -396,11 +396,7 @@ public class NamingConflictTest extends ReplicationTestCase
       String parentUUID = getEntryUUID(parentEntry.getDN());
 
       CSN csn2 = gen.newCSN();
-
-      DeleteMsg  delMsg = new DeleteMsg(
-          parentEntry.getDN().toNormalizedString(),
-          csn2,
-          parentUUID);
+      DeleteMsg  delMsg = new DeleteMsg(parentEntry.getDN(), csn2, parentUUID);
       delMsg.setSubtreeDelete(true);
 
       // Put the message in the replay queue
@@ -416,7 +412,7 @@ public class NamingConflictTest extends ReplicationTestCase
     }
     finally
     {
-      MultimasterReplication.deleteDomain(baseDn);
+      MultimasterReplication.deleteDomain(baseDN);
     }
   }
 
@@ -425,10 +421,10 @@ public class NamingConflictTest extends ReplicationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    final DN baseDn = DN.decode(TEST_ROOT_DN_STRING);
+    final DN baseDN = DN.decode(TEST_ROOT_DN_STRING);
 
     TestSynchronousReplayQueue queue = new TestSynchronousReplayQueue();
-    DomainFakeCfg conf = new DomainFakeCfg(baseDn, 1, new TreeSet<String>());
+    DomainFakeCfg conf = new DomainFakeCfg(baseDN, 1, new TreeSet<String>());
     conf.setIsolationPolicy(IsolationPolicy.ACCEPT_ALL_UPDATES);
 
     LDAPReplicationDomain domain =
@@ -475,11 +471,7 @@ public class NamingConflictTest extends ReplicationTestCase
       String childUUID = getEntryUUID(childEntry.getDN());
 
       CSN csn2 = gen.newCSN();
-
-      DeleteMsg  delMsg = new DeleteMsg(
-          parentEntry.getDN().toNormalizedString(),
-          csn2,
-          parentUUID);
+      DeleteMsg  delMsg = new DeleteMsg(parentEntry.getDN(), csn2, parentUUID);
       // NOT SUBTREE
 
       // Put the message in the replay queue
@@ -500,7 +492,7 @@ public class NamingConflictTest extends ReplicationTestCase
     }
     finally
     {
-      MultimasterReplication.deleteDomain(baseDn);
+      MultimasterReplication.deleteDomain(baseDN);
     }
   }
 
@@ -509,10 +501,10 @@ public class NamingConflictTest extends ReplicationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    final DN baseDn = DN.decode(TEST_ROOT_DN_STRING);
+    final DN baseDN = DN.decode(TEST_ROOT_DN_STRING);
 
     TestSynchronousReplayQueue queue = new TestSynchronousReplayQueue();
-    DomainFakeCfg conf = new DomainFakeCfg(baseDn, 1, new TreeSet<String>());
+    DomainFakeCfg conf = new DomainFakeCfg(baseDN, 1, new TreeSet<String>());
     conf.setIsolationPolicy(IsolationPolicy.ACCEPT_ALL_UPDATES);
 
     LDAPReplicationDomain domain =
@@ -558,7 +550,7 @@ public class NamingConflictTest extends ReplicationTestCase
       String childUUID = "44444444-4444-4444-4444-444444444444";
       AddMsg addMsg = new AddMsg(
           csn1,
-          childEntry.getDN().toString(),
+          childEntry.getDN(),
           childUUID,
           parentUUID,
           childEntry.getObjectClassAttribute(),
@@ -583,7 +575,7 @@ public class NamingConflictTest extends ReplicationTestCase
     }
     finally
     {
-      MultimasterReplication.deleteDomain(baseDn);
+      MultimasterReplication.deleteDomain(baseDN);
     }
   }
 }

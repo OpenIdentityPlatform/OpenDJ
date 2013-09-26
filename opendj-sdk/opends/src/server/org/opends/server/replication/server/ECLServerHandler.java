@@ -190,7 +190,7 @@ public final class ECLServerHandler extends ServerHandler
     private void getNextEligibleMessageForDomain(String opid)
     {
       if (debugEnabled())
-        TRACER.debugInfo(" In ECLServerHandler, for " + mh.getBaseDN() +
+        TRACER.debugInfo(" In ECLServerHandler, for " + mh.getBaseDNString() +
           " getNextEligibleMessageForDomain(" + opid+ ") "
           + "ctxt=" + toString());
 
@@ -207,8 +207,9 @@ public final class ECLServerHandler extends ServerHandler
                 <= eligibleCSN.getTime());
 
           if (debugEnabled())
-            TRACER.debugInfo(" In ECLServerHandler, for " + mh.getBaseDN() +
-                " getNextEligibleMessageForDomain(" + opid+ ") "
+            TRACER.debugInfo(" In ECLServerHandler, for "
+              + mh.getBaseDNString()
+              + " getNextEligibleMessageForDomain(" + opid + ") "
               + " stored nonEligibleMsg " + nextNonEligibleMsg
               + " has now become eligible regarding "
               + " the eligibleCSN ("+ eligibleCSN
@@ -237,10 +238,11 @@ public final class ECLServerHandler extends ServerHandler
               (newMsg.getCSN().getTime() < domainLatestTrimDate));
 
           if (debugEnabled())
-            TRACER.debugInfo(" In ECLServerHandler, for " + mh.getBaseDN() +
-                " getNextEligibleMessageForDomain(" + opid+ ") "
+            TRACER.debugInfo(" In ECLServerHandler, for "
+                + mh.getBaseDNString()
+                + " getNextEligibleMessageForDomain(" + opid + ") "
                 + " got new message : "
-                +  " baseDN=[" + mh.getBaseDN()
+                +  " baseDN=[" + mh.getBaseDNString()
                 + "] [newMsg=" + newMsg + "]" + dumpState());
 
           // in non blocking mode, return null when no more msg
@@ -250,7 +252,8 @@ public final class ECLServerHandler extends ServerHandler
                 <= eligibleCSN.getTime());
 
           if (debugEnabled())
-              TRACER.debugInfo(" In ECLServerHandler, for " + mh.getBaseDN()
+              TRACER.debugInfo(" In ECLServerHandler, for "
+                + mh.getBaseDNString()
                 + " getNextEligibleMessageForDomain(" + opid+ ") "
                 + "newMsg isEligible=" + isEligible + " since "
                 + "newMsg=[" + newMsg.getCSN()
@@ -965,8 +968,8 @@ public final class ECLServerHandler extends ServerHandler
     final String eclServer = "External changelog Server ";
     if (this.serverId != 0)
     {
-      return eclServer + serverId + " " + serverURL + " " + getBaseDN() + " "
-          + operationId;
+      return eclServer + serverId + " " + serverURL + " "
+          + getBaseDNString() + " " + operationId;
     }
     return eclServer + getClass().getCanonicalName() + " " + operationId;
   }
@@ -1235,7 +1238,7 @@ public final class ECLServerHandler extends ServerHandler
         final ECLUpdateMsg change = new ECLUpdateMsg(
             (LDAPUpdateMsg) oldestContext.nextMsg,
             null, // cookie will be set later
-            oldestContext.rsd.getBaseDN().toNormalizedString(),
+            oldestContext.rsd.getBaseDN(),
             0); // changeNumber may be set later
         oldestContext.nextMsg = null;
 
@@ -1287,7 +1290,7 @@ public final class ECLServerHandler extends ServerHandler
           final ECLUpdateMsg change = new ECLUpdateMsg(
               (LDAPUpdateMsg) oldestContext.nextMsg,
               null, // set later
-              oldestContext.rsd.getBaseDN().toNormalizedString(),
+              oldestContext.rsd.getBaseDN(),
               0);
           oldestContext.nextMsg = null; // clean
 
@@ -1318,7 +1321,7 @@ public final class ECLServerHandler extends ServerHandler
         TRACER.debugInfo("getNextECLUpdate updates previousCookie:" + csn);
 
       // Update the current state
-      previousCookie.update(DN.decode(oldestChange.getBaseDN()), csn);
+      previousCookie.update(oldestChange.getBaseDN(), csn);
 
       // Set the current value of global state in the returned message
       oldestChange.setCookie(previousCookie);
@@ -1357,7 +1360,7 @@ public final class ECLServerHandler extends ServerHandler
 
     // replogCSN : the oldest change from the changelog db
     CSN csnFromChangelogDb = oldestChange.getUpdateMsg().getCSN();
-    DN dnFromChangelogDb = DN.decode(oldestChange.getBaseDN());
+    DN dnFromChangelogDb = oldestChange.getBaseDN();
 
     while (true)
     {
@@ -1458,7 +1461,7 @@ public final class ECLServerHandler extends ServerHandler
     replicationServer.getChangeNumberIndexDB().addRecord(new CNIndexRecord(
         change.getChangeNumber(),
         previousCookie.toString(),
-        DN.decode(change.getBaseDN()),
+        change.getBaseDN(),
         change.getUpdateMsg().getCSN()));
   }
 

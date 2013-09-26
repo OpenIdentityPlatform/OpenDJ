@@ -52,7 +52,7 @@ public abstract class LDAPUpdateMsg extends UpdateMsg
   /**
    * The DN on which the update was originally done.
    */
-  protected String dn;
+  protected DN dn;
 
   /**
    * The entryUUID of the entry that was updated.
@@ -84,7 +84,7 @@ public abstract class LDAPUpdateMsg extends UpdateMsg
    * @param dn The DN of the entry on which the change
    *           that caused the creation of this object happened
    */
-  public LDAPUpdateMsg(OperationContext ctx, String dn)
+  public LDAPUpdateMsg(OperationContext ctx, DN dn)
   {
     this.protocolVersion = ProtocolVersion.getCurrentVersion();
     this.csn = ctx.getCSN();
@@ -102,7 +102,7 @@ public abstract class LDAPUpdateMsg extends UpdateMsg
    * @param dn        The DN of the entry on which the change
    *                  that caused the creation of this object happened
    */
-  public LDAPUpdateMsg(CSN csn, String entryUUID, String dn)
+  public LDAPUpdateMsg(CSN csn, String entryUUID, DN dn)
   {
     this.protocolVersion = ProtocolVersion.getCurrentVersion();
     this.csn = csn;
@@ -146,7 +146,7 @@ public abstract class LDAPUpdateMsg extends UpdateMsg
    *
    * @return The DN on which the operations happened.
    */
-  public String getDn()
+  public DN getDN()
   {
     return dn;
   }
@@ -155,7 +155,7 @@ public abstract class LDAPUpdateMsg extends UpdateMsg
    * Set the DN.
    * @param dn The dn that must now be used for this message.
    */
-  public void setDn(String dn)
+  public void setDN(DN dn)
   {
     this.dn = dn;
   }
@@ -190,14 +190,14 @@ public abstract class LDAPUpdateMsg extends UpdateMsg
    * Create and Operation from the message using the provided DN.
    *
    * @param   conn connection to use when creating the message.
-   * @param   newDn the DN to use when creating the operation.
+   * @param   newDN the DN to use when creating the operation.
    * @return  the created Operation.
    * @throws  LDAPException In case of LDAP decoding exception.
    * @throws  ASN1Exception In case of ASN1 decoding exception.
    * @throws DataFormatException In case of bad msg format.
    */
   public abstract Operation createOperation(InternalClientConnection conn,
-      String newDn) throws LDAPException, ASN1Exception, DataFormatException;
+      DN newDN) throws LDAPException, ASN1Exception, DataFormatException;
 
 
   // ============
@@ -237,7 +237,7 @@ public abstract class LDAPUpdateMsg extends UpdateMsg
   public byte[] encodeHeader(byte type, int additionalLength, short version)
     throws UnsupportedEncodingException
   {
-    byte[] byteDn = dn.getBytes("UTF-8");
+    byte[] byteDn = dn.toString().getBytes("UTF-8");
     byte[] csnByte = getCSN().toString().getBytes("UTF-8");
     byte[] byteEntryuuid = getEntryUUID().getBytes("UTF-8");
 
@@ -297,7 +297,7 @@ public abstract class LDAPUpdateMsg extends UpdateMsg
   public byte[] encodeHeader_V1(byte type, int additionalLength)
     throws UnsupportedEncodingException
   {
-    byte[] byteDn = dn.getBytes("UTF-8");
+    byte[] byteDn = dn.toString().getBytes("UTF-8");
     byte[] csnByte = getCSN().toString().getBytes("UTF-8");
     byte[] byteEntryuuid = getEntryUUID().getBytes("UTF-8");
 
@@ -474,7 +474,7 @@ public abstract class LDAPUpdateMsg extends UpdateMsg
 
        // Read the dn
        length = getNextLength(encodedMsg, pos);
-       dn = new String(encodedMsg, pos, length, "UTF-8");
+       dn = DN.decode(new String(encodedMsg, pos, length, "UTF-8"));
        pos += length + 1;
 
        // Read the entryuuid
@@ -492,12 +492,18 @@ public abstract class LDAPUpdateMsg extends UpdateMsg
        safeDataLevel = encodedMsg[pos++];
 
        return pos;
-     } catch (UnsupportedEncodingException e)
+     }
+     catch (UnsupportedEncodingException e)
      {
        throw new DataFormatException("UTF-8 is not supported by this jvm.");
-     } catch (IllegalArgumentException e)
+     }
+     catch (IllegalArgumentException e)
      {
-       throw new DataFormatException(e.getMessage());
+       throw new DataFormatException(e.getLocalizedMessage());
+     }
+     catch (DirectoryException e)
+     {
+       throw new DataFormatException(e.getLocalizedMessage());
      }
   }
 
@@ -539,7 +545,7 @@ public abstract class LDAPUpdateMsg extends UpdateMsg
 
       // read the dn
       length = getNextLength(encodedMsg, pos);
-      dn = new String(encodedMsg, pos, length, "UTF-8");
+      dn = DN.decode(new String(encodedMsg, pos, length, "UTF-8"));
       pos += length + 1;
 
       // read the entryuuid
@@ -548,9 +554,14 @@ public abstract class LDAPUpdateMsg extends UpdateMsg
       pos += length + 1;
 
       return pos;
-    } catch (UnsupportedEncodingException e)
+    }
+    catch (UnsupportedEncodingException e)
     {
       throw new DataFormatException("UTF-8 is not supported by this jvm.");
+    }
+    catch (DirectoryException e)
+    {
+      throw new DataFormatException(e.getLocalizedMessage());
     }
   }
 

@@ -667,17 +667,17 @@ public class ECLSearchOperation
 
   /**
    * Build an ECL entry from a provided ECL msg and return it.
-   * @param eclmsg The provided ECL msg.
+   * @param eclMsg The provided ECL msg.
    * @return  <CODE>true</CODE> if the caller should continue processing the
    *          search request and sending additional entries and references, or
    *          <CODE>false</CODE> if not for some reason (e.g., the size limit
    *          has been reached or the search has been abandoned).
    * @throws DirectoryException When an errors occurs.
    */
-  private boolean buildAndReturnEntry(ECLUpdateMsg eclmsg)
+  private boolean buildAndReturnEntry(ECLUpdateMsg eclMsg)
       throws DirectoryException
   {
-    final Entry entry = createEntryFromMsg(eclmsg);
+    final Entry entry = createEntryFromMsg(eclMsg);
     if (matchScopeAndFilter(entry))
     {
       List<Control> controls = null;
@@ -687,7 +687,7 @@ public class ECLSearchOperation
 
         EntryChangelogNotificationControl clrc =
             new EntryChangelogNotificationControl(
-                true, eclmsg.getCookie().toString());
+                true, eclMsg.getCookie().toString());
         controls.add(clrc);
       }
       return returnEntry(entry, controls);
@@ -718,19 +718,19 @@ public class ECLSearchOperation
   /**
    * Create an ECL entry from a provided ECL msg.
    *
-   * @param eclmsg
+   * @param eclMsg
    *          the provided ECL msg.
    * @return the created ECL entry.
    * @throws DirectoryException
    *           When an error occurs.
    */
-  public static Entry createEntryFromMsg(ECLUpdateMsg eclmsg)
+  public static Entry createEntryFromMsg(ECLUpdateMsg eclMsg)
       throws DirectoryException
   {
     Entry clEntry = null;
 
     // Get the meat from the ecl msg
-    UpdateMsg msg = eclmsg.getUpdateMsg();
+    UpdateMsg msg = eclMsg.getUpdateMsg();
 
     if (msg instanceof AddMsg)
     {
@@ -774,20 +774,19 @@ public class ECLSearchOperation
             Severity.MILD_ERROR,
             "An exception was encountered while try to encode a "
                 + "replication add message for entry \""
-                + addMsg.getDn()
+                + addMsg.getDN()
                 + "\" into an External Change Log entry: "
                 + e.getMessage()));
       }
 
       List<RawAttribute> eclAttributes = addMsg.getEclIncludes();
 
-      clEntry = createChangelogEntry(eclmsg.getBaseDN(), eclmsg
-          .getCookie().toString(), DN.decode(addMsg.getDn()),
-          addMsg.getCSN(), ldifChanges, // entry as created (in LDIF
-                                                 // format)
+      clEntry = createChangelogEntry(eclMsg.getBaseDN(),
+          eclMsg.getCookie().toString(), addMsg.getDN(),
+          addMsg.getCSN(), ldifChanges, // entry as created (in LDIF format)
           addMsg.getEntryUUID(),
           eclAttributes, // entry attributes
-          eclmsg.getChangeNumber(), "add", changeInitiatorsName);
+          eclMsg.getChangeNumber(), "add", changeInitiatorsName);
     }
     else if (msg instanceof ModifyCommonMsg)
     {
@@ -840,7 +839,7 @@ public class ECLSearchOperation
             Severity.MILD_ERROR,
             "An exception was encountered while try to encode a "
                 + "replication modify message for entry \""
-                + modifyMsg.getDn()
+                + modifyMsg.getDN()
                 + "\" into an External Change Log entry: "
                 + e.getMessage()));
       }
@@ -848,12 +847,12 @@ public class ECLSearchOperation
       String changeType = (modifyMsg instanceof ModifyDNMsg) ? "modrdn"
           : "modify";
 
-      clEntry = createChangelogEntry(eclmsg.getBaseDN(), eclmsg
-          .getCookie().toString(), DN.decode(modifyMsg.getDn()),
+      clEntry = createChangelogEntry(eclMsg.getBaseDN(),
+          eclMsg.getCookie().toString(), modifyMsg.getDN(),
           modifyMsg.getCSN(), ldifChanges,
           modifyMsg.getEntryUUID(),
           modifyMsg.getEclIncludes(), // entry attributes
-          eclmsg.getChangeNumber(), changeType,
+          eclMsg.getChangeNumber(), changeType,
           changeInitiatorsName);
 
       if (modifyMsg instanceof ModifyDNMsg)
@@ -879,13 +878,13 @@ public class ECLSearchOperation
     {
       DeleteMsg delMsg = (DeleteMsg) msg;
 
-      clEntry = createChangelogEntry(eclmsg.getBaseDN(), eclmsg
-          .getCookie().toString(), DN.decode(delMsg.getDn()),
+      clEntry = createChangelogEntry(eclMsg.getBaseDN(),
+          eclMsg.getCookie().toString(), delMsg.getDN(),
           delMsg.getCSN(),
           null, // no changes
           delMsg.getEntryUUID(),
           delMsg.getEclIncludes(), // entry attributes
-          eclmsg.getChangeNumber(), "delete",
+          eclMsg.getChangeNumber(), "delete",
           delMsg.getInitiatorsName());
     }
 
@@ -992,7 +991,7 @@ public class ECLSearchOperation
    *         When any error occurs.
    */
   private static Entry createChangelogEntry(
-      String baseDN,
+      DN baseDN,
       String cookie,
       DN targetDN,
       CSN csn,
@@ -1008,8 +1007,8 @@ public class ECLSearchOperation
     if (changenumber == 0)
     {
       // Draft uncompat mode
-      dnString = "replicationCSN=" + csn + "," + baseDN + ","
-          + ServerConstants.DN_EXTERNAL_CHANGELOG_ROOT;
+      dnString = "replicationCSN=" + csn + "," + baseDN.toNormalizedString()
+          + "," + ServerConstants.DN_EXTERNAL_CHANGELOG_ROOT;
     }
     else
     {

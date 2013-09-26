@@ -31,6 +31,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.List;
 import java.util.zip.DataFormatException;
 
+import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyDNOperationBasis;
 import org.opends.server.protocols.asn1.ASN1Exception;
 import org.opends.server.protocols.internal.InternalClientConnection;
@@ -58,7 +59,7 @@ public class ModifyDNMsg extends ModifyCommonMsg
   public ModifyDNMsg(PostOperationModifyDNOperation operation)
   {
     super((OperationContext) operation.getAttachment(SYNCHROCONTEXT),
-        operation.getRawEntryDN().toString());
+        operation.getEntryDN());
 
     encodedMods = encodeMods(operation.getModifications());
 
@@ -89,7 +90,7 @@ public class ModifyDNMsg extends ModifyCommonMsg
    * @param newSuperior  The new Superior entry to use for building the message.
    * @param newRDN       The new Rdn to use for building the message.
    */
-  public ModifyDNMsg(String dn, CSN csn, String entryUUID,
+  public ModifyDNMsg(DN dn, CSN csn, String entryUUID,
                      String newSuperiorEntryUUID, boolean deleteOldRdn,
                      String newSuperior, String newRDN)
   {
@@ -115,7 +116,7 @@ public class ModifyDNMsg extends ModifyCommonMsg
    * @param newRDN       The new Rdn to use for building the message.
    * @param mods         The mod of the operation.
    */
-  public ModifyDNMsg(String dn, CSN csn, String entryUUID,
+  public ModifyDNMsg(DN dn, CSN csn, String entryUUID,
       String newSuperiorEntryUUID, boolean deleteOldRdn, String newSuperior,
       String newRDN, List<Modification> mods)
   {
@@ -158,13 +159,14 @@ public class ModifyDNMsg extends ModifyCommonMsg
    * {@inheritDoc}
    */
   @Override
-  public Operation createOperation(InternalClientConnection connection,
-      String newDn) throws LDAPException, ASN1Exception
+  public ModifyDNOperation createOperation(InternalClientConnection connection,
+      DN newDN) throws LDAPException, ASN1Exception
   {
-    ModifyDNOperationBasis moddn =  new ModifyDNOperationBasis(connection,
+    ModifyDNOperation moddn =  new ModifyDNOperationBasis(connection,
         InternalClientConnection.nextOperationID(),
         InternalClientConnection.nextMessageID(), null,
-        ByteString.valueOf(newDn), ByteString.valueOf(newRDN),
+        ByteString.valueOf(newDN.toString()),
+        ByteString.valueOf(newRDN),
         deleteOldRdn,
         (newSuperior == null ? null : ByteString.valueOf(newSuperior)));
 
@@ -670,7 +672,7 @@ public class ModifyDNMsg extends ModifyCommonMsg
   {
     if (newSuperior == null)
     {
-      DN parentDn = DN.decode(this.getDn()).getParent();
+      DN parentDn = getDN().getParent();
       return parentDn.concat(RDN.decode(newRDN));
     }
     else

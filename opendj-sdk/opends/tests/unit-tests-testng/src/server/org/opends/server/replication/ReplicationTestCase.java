@@ -1087,10 +1087,15 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
   /**
    * Utility method : removes a domain deleting the passed config entry
    */
-  protected void removeDomain(Entry domainCfgEntry)
+  protected void removeDomain(Entry... domainCfgEntries)
   {
-    DN dn = domainCfgEntry.getDN();
-    deleteEntry(dn);
+    for (Entry entry : domainCfgEntries)
+    {
+      if (entry != null)
+      {
+        deleteEntry(entry.getDN());
+      }
+    }
   }
 
   /**

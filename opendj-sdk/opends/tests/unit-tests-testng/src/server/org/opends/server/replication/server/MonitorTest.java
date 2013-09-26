@@ -54,7 +54,6 @@ import org.testng.annotations.Test;
 import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.util.StaticUtils.*;
 import static org.testng.Assert.*;
 
 /**
@@ -78,15 +77,14 @@ public class MonitorTest extends ReplicationTestCase
   private static final int changelog2ID = 22;
   private static final int changelog3ID = 23;
 
-  private DN baseDn;
-  private ReplicationBroker broker2 = null;
-  private ReplicationBroker broker3 = null;
-  private ReplicationBroker broker4 = null;
-  private ReplicationServer replServer1 = null;
-  private ReplicationServer replServer2 = null;
-  private ReplicationServer replServer3 = null;
-  private LDAPReplicationDomain replDomain = null;
-  private String[] updatedEntries;
+  private DN baseDN;
+  private ReplicationBroker broker2;
+  private ReplicationBroker broker3;
+  private ReplicationBroker broker4;
+  private ReplicationServer replServer1;
+  private ReplicationServer replServer2;
+  private ReplicationServer replServer3;
+  private LDAPReplicationDomain replDomain;
 
   private static int[] replServerPort = new int[30];
 
@@ -97,11 +95,6 @@ public class MonitorTest extends ReplicationTestCase
     {
       TRACER.debugInfo("** TEST **" + s);
     }
-  }
-
-  private void debugInfo(String message, Exception e)
-  {
-    debugInfo(message + stackTraceToSingleLineString(e));
   }
 
   /**
@@ -116,9 +109,7 @@ public class MonitorTest extends ReplicationTestCase
   {
     super.setUp();
 
-    baseDn = DN.decode(baseDnStr);
-
-    updatedEntries = newLDIFEntries();
+    baseDN = DN.decode(baseDnStr);
   }
 
   /**
@@ -127,17 +118,17 @@ public class MonitorTest extends ReplicationTestCase
   private String[] newLDIFEntries()
   {
     return new String[]{
-        "dn: " + baseDn + "\n"
+        "dn: " + baseDN + "\n"
             + "objectClass: top\n"
             + "objectClass: organization\n"
             + "entryUUID: 21111111-1111-1111-1111-111111111111\n"
             + "\n",
-        "dn: ou=People," + baseDn + "\n"
+        "dn: ou=People," + baseDN + "\n"
             + "objectClass: top\n"
             + "objectClass: organizationalUnit\n"
             + "entryUUID: 21111111-1111-1111-1111-111111111112\n"
             + "\n",
-        "dn: cn=Fiona Jensen,ou=people," + baseDn + "\n"
+        "dn: cn=Fiona Jensen,ou=people," + baseDN + "\n"
             + "objectclass: top\n"
             + "objectclass: person\n"
             + "objectclass: organizationalPerson\n"
@@ -148,7 +139,7 @@ public class MonitorTest extends ReplicationTestCase
             + "telephonenumber: +1 408 555 1212\n"
             + "entryUUID: 21111111-1111-1111-1111-111111111113\n"
             + "\n",
-        "dn: cn=Robert Langman,ou=people," + baseDn + "\n"
+        "dn: cn=Robert Langman,ou=people," + baseDN + "\n"
             + "objectclass: top\n"
             + "objectclass: person\n"
             + "objectclass: organizationalPerson\n"
@@ -170,33 +161,25 @@ public class MonitorTest extends ReplicationTestCase
    * @return The new created replication server.
    */
   private ReplicationServer createReplicationServer(int changelogId,
-      boolean all, String suffix)
+      boolean all, String suffix) throws Exception
   {
     SortedSet<String> servers = new TreeSet<String>();
-    try
+    if (all)
     {
-      if (all)
-      {
-        if (changelogId != changelog1ID)
-          servers.add("localhost:" + getChangelogPort(changelog1ID));
-        if (changelogId != changelog2ID)
-          servers.add("localhost:" + getChangelogPort(changelog2ID));
-      }
-      int chPort = getChangelogPort(changelogId);
-      String chDir = "monitorTest"+changelogId+suffix+"Db";
-      ReplServerFakeConfiguration conf =
+      if (changelogId != changelog1ID)
+        servers.add("localhost:" + getChangelogPort(changelog1ID));
+      if (changelogId != changelog2ID)
+        servers.add("localhost:" + getChangelogPort(changelog2ID));
+    }
+    int chPort = getChangelogPort(changelogId);
+    String chDir = "monitorTest" + changelogId + suffix + "Db";
+    ReplServerFakeConfiguration conf =
         new ReplServerFakeConfiguration(chPort, chDir, 0, changelogId, 0, 100,
             servers);
-      ReplicationServer replicationServer = new ReplicationServer(conf);
-      Thread.sleep(1000);
+    ReplicationServer replicationServer = new ReplicationServer(conf);
+    Thread.sleep(1000);
 
-      return replicationServer;
-    }
-    catch (Exception e)
-    {
-      fail("createChangelog" + stackTraceToSingleLineString(e));
-    }
-    return null;
+    return replicationServer;
   }
 
   /**
@@ -204,10 +187,9 @@ public class MonitorTest extends ReplicationTestCase
    * replication Server ID.
    * @param changelogID the replication server ID.
    */
-  private void connectServer1ToChangelog(int changelogID)
+  private void connectServer1ToChangelog(int changelogID) throws Exception
   {
     // Connect DS to the replicationServer
-    try
     {
       // suffix synchronized
       String synchroServerLdif =
@@ -228,18 +210,13 @@ public class MonitorTest extends ReplicationTestCase
         "Unable to add the synchronized server");
       configEntryList.add(synchroServerEntry.getDN());
 
-      replDomain = LDAPReplicationDomain.retrievesReplicationDomain(baseDn);
+      replDomain = LDAPReplicationDomain.retrievesReplicationDomain(baseDN);
 
       if (replDomain != null)
       {
         debugInfo("ReplicationDomain: Import/Export is running ? " +
           replDomain.ieRunning());
       }
-    }
-    catch(Exception e)
-    {
-      debugInfo("connectToReplServer", e);
-      fail("connectToReplServer: " + e.getMessage() + " : " + e.getStackTrace(), e);
     }
   }
 
@@ -287,7 +264,7 @@ public class MonitorTest extends ReplicationTestCase
         + "userPassword: password\n" + "initials: AA\n";
   }
 
-  static private ReplicationMsg createAddMsg(CSN csn)
+  static private ReplicationMsg createAddMsg(CSN csn) throws Exception
   {
     Entry personWithUUIDEntry = null;
     String user1entryUUID;
@@ -312,18 +289,11 @@ public class MonitorTest extends ReplicationTestCase
     + "userPassword: password\n" + "initials: AA\n"
     + "entryUUID: " + user1entryUUID + "\n";
 
-    try
-    {
-      personWithUUIDEntry = TestCaseUtils.entryFromLdifString(entryWithUUIDldif);
-    }
-    catch(Exception e)
-    {
-      fail(e.getMessage());
-    }
+    personWithUUIDEntry = TestCaseUtils.entryFromLdifString(entryWithUUIDldif);
 
     // Create and publish an update message to add an entry.
     return new AddMsg(csn,
-        personWithUUIDEntry.getDN().toString(),
+        personWithUUIDEntry.getDN(),
         user1entryUUID,
         baseUUID,
         personWithUUIDEntry.getObjectClassAttribute(),
@@ -353,7 +323,7 @@ public class MonitorTest extends ReplicationTestCase
       try
       {
         debugInfo("Connecting broker2 to replServer1");
-        broker2 = openReplicationSession(baseDn,
+        broker2 = openReplicationSession(baseDN,
           server2ID, 100, getChangelogPort(changelog1ID),
           1000, !emptyOldChanges);
         Thread.sleep(1000);
@@ -365,7 +335,7 @@ public class MonitorTest extends ReplicationTestCase
       try
       {
         debugInfo("Connecting broker3 to replServer2");
-        broker3 = openReplicationSession(baseDn,
+        broker3 = openReplicationSession(baseDN,
           server3ID, 100, getChangelogPort(changelog2ID),
           1000, !emptyOldChanges);
         Thread.sleep(1000);
@@ -377,7 +347,7 @@ public class MonitorTest extends ReplicationTestCase
       try
       {
         debugInfo("Connecting broker4 to replServer2");
-        broker4 = openReplicationSession(baseDn,
+        broker4 = openReplicationSession(baseDN,
           server4ID, 100, getChangelogPort(changelog2ID),
           1000, !emptyOldChanges);
         Thread.sleep(1000);
@@ -387,16 +357,14 @@ public class MonitorTest extends ReplicationTestCase
       }
 
       // Do a bunch of change
-      updatedEntries = newLDIFEntries();
-      this.addTestEntriesToDB(updatedEntries);
+      addTestEntriesToDB(newLDIFEntries());
 
       for (int i = 0; i < 200; i++)
       {
-        String ent1[] =
-        {
+        String ent1[] = {
           createEntry(UUID.randomUUID())
         };
-        this.addTestEntriesToDB(ent1);
+        addTestEntriesToDB(ent1);
       }
 
       /*
@@ -427,7 +395,7 @@ public class MonitorTest extends ReplicationTestCase
   /**
    * Disconnect broker and remove entries from the local DB
    */
-  private void postTest()
+  private void postTest() throws Exception
   {
     debugInfo("Post test cleaning.");
 
@@ -439,12 +407,7 @@ public class MonitorTest extends ReplicationTestCase
     super.cleanRealEntries();
 
     Arrays.fill(replServerPort, 0);
-
-    try
-    {
-      TestCaseUtils.initializeTestBackend(false);
-    }
-    catch (Exception e) {}
+    TestCaseUtils.initializeTestBackend(false);
   }
 
   private static final ByteArrayOutputStream oStream =
@@ -473,17 +436,7 @@ public class MonitorTest extends ReplicationTestCase
       LDAPSearch.mainSearch(args3, false, oStream, eStream);
     String entries = oStream.toString();
     debugInfo("Entries:" + entries);
-    try
-    {
-      assertEquals(retVal, 0, "Returned error: " + eStream);
-      assertTrue(!entries.equalsIgnoreCase(""), "Returned entries: " + entries);
-    }
-    catch(Exception e)
-    {
-      if (debugEnabled())
-        TRACER.debugInfo(
-          stackTraceToSingleLineString(new Exception()));
-      fail(e.getMessage());
-    }
+    assertEquals(retVal, 0, "Returned error: " + eStream);
+    assertTrue(!entries.equalsIgnoreCase(""), "Returned entries: " + entries);
   }
 }

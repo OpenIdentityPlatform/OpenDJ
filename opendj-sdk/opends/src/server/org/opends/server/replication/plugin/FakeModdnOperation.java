@@ -63,7 +63,7 @@ public class FakeModdnOperation extends FakeOperation
   public ReplicationMsg generateMessage()
   {
     DN dn = entry.getDN();
-    return new ModifyDNMsg(dn.toString(), getCSN(),
+    return new ModifyDNMsg(dn, getCSN(),
         EntryHistorical.getEntryUUID(entry),
         LDAPReplicationDomain.findEntryUUID(dn.getParent()),
         false, dn.getParent().toString(), dn.getRDN().toString());

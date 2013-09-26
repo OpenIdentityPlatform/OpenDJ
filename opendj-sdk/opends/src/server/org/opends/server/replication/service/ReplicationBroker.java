@@ -405,16 +405,16 @@ public class ReplicationBroker
     private int serverId;
     /** Received server URL. */
     private String serverURL;
-    private String baseDn = null;
+    private DN baseDN;
     private int windowSize;
-    private ServerState serverState = null;
+    private ServerState serverState;
     private boolean sslEncryption;
     private int degradedStatusThreshold = -1;
     /** Keeps the 1 value if created with a ReplServerStartMsg. */
     private int weight = 1;
     /** Keeps the 0 value if created with a ReplServerStartMsg. */
     private int connectedDSNumber = 0;
-    private List<Integer> connectedDSs = null;
+    private List<Integer> connectedDSs;
     /**
      * Is this RS locally configured? (the RS is recognized as a usable server).
      */
@@ -479,7 +479,7 @@ public class ReplicationBroker
       this.groupId = replServerStartMsg.getGroupId();
       this.serverId = replServerStartMsg.getServerId();
       this.serverURL = replServerStartMsg.getServerURL();
-      this.baseDn = replServerStartMsg.getBaseDn();
+      this.baseDN = replServerStartMsg.getBaseDN();
       this.windowSize = replServerStartMsg.getWindowSize();
       this.serverState = replServerStartMsg.getServerState();
       this.sslEncryption = replServerStartMsg.getSSLEncryption();
@@ -501,7 +501,7 @@ public class ReplicationBroker
       this.groupId = replServerStartDSMsg.getGroupId();
       this.serverId = replServerStartDSMsg.getServerId();
       this.serverURL = replServerStartDSMsg.getServerURL();
-      this.baseDn = replServerStartDSMsg.getBaseDn();
+      this.baseDN = replServerStartDSMsg.getBaseDN();
       this.windowSize = replServerStartDSMsg.getWindowSize();
       this.serverState = replServerStartDSMsg.getServerState();
       this.sslEncryption = replServerStartDSMsg.getSSLEncryption();
@@ -566,12 +566,13 @@ public class ReplicationBroker
     }
 
     /**
-     * Get the base dn.
-     * @return the baseDn
+     * Get the base DN.
+     *
+     * @return the base DN
      */
-    public String getBaseDn()
+    public DN getBaseDN()
     {
-      return baseDn;
+      return baseDN;
     }
 
     /**
@@ -1144,8 +1145,6 @@ public class ReplicationBroker
   private ReplicationServerInfo performPhaseOneHandshake(
       String server, boolean keepConnection, boolean isECL)
   {
-    final String baseDn = this.baseDN.toNormalizedString();
-
     Session localSession = null;
     Socket socket = null;
     boolean hasConnected = false;
@@ -1169,7 +1168,7 @@ public class ReplicationBroker
       if (!isECL)
       {
         serverStartMsg = new ServerStartMsg(serverId, url,
-            baseDN.toNormalizedString(), maxRcvWindow, heartbeatInterval, state,
+            baseDN, maxRcvWindow, heartbeatInterval, state,
             getGenerationID(), isSslEncryption, groupId);
       }
       else
@@ -1194,10 +1193,11 @@ public class ReplicationBroker
           .newInstance(msg, server);
 
       // Sanity check
-      String repDn = replServerInfo.getBaseDn();
-      if (!baseDn.equals(repDn))
+      DN repDN = replServerInfo.getBaseDN();
+      if (!baseDN.equals(repDN))
       {
-        errorMessage = ERR_DS_DN_DOES_NOT_MATCH.get(repDn, baseDn);
+        errorMessage = ERR_DS_DN_DOES_NOT_MATCH.get(
+            repDN.toNormalizedString(), baseDN.toNormalizedString());
         return null;
       }
 
@@ -1233,19 +1233,19 @@ public class ReplicationBroker
     catch (ConnectException e)
     {
       errorMessage = WARN_NO_CHANGELOG_SERVER_LISTENING.get(serverId,
-          server, baseDn);
+          server, baseDN.toNormalizedString());
       return null;
     }
     catch (SocketTimeoutException e)
     {
       errorMessage = WARN_TIMEOUT_CONNECTING_TO_RS.get(serverId,
-          server, baseDn);
+          server, baseDN.toNormalizedString());
       return null;
     }
     catch (Exception e)
     {
       errorMessage = WARN_EXCEPTION_STARTING_SESSION_PHASE.get(serverId,
-          server, baseDn, stackTraceToSingleLineString(e));
+          server, baseDN.toNormalizedString(), stackTraceToSingleLineString(e));
       return null;
     }
     finally

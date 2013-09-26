@@ -66,7 +66,7 @@ public abstract class ModifyCommonMsg extends LDAPUpdateMsg {
    * @param dn The DN of the entry on which the change
    *           that caused the creation of this object happened
    */
-  public ModifyCommonMsg(OperationContext ctx, String dn)
+  public ModifyCommonMsg(OperationContext ctx, DN dn)
   {
    super(ctx, dn);
   }
@@ -81,7 +81,7 @@ public abstract class ModifyCommonMsg extends LDAPUpdateMsg {
    * @param dn        The DN of the entry on which the change
    *                  that caused the creation of this object happened
    */
-  public ModifyCommonMsg(CSN csn, String entryUUID, String dn)
+  public ModifyCommonMsg(CSN csn, String entryUUID, DN dn)
   {
     super(csn, entryUUID, dn);
   }
@@ -104,14 +104,7 @@ public abstract class ModifyCommonMsg extends LDAPUpdateMsg {
    */
   public List<Modification> getMods() throws ASN1Exception, LDAPException
   {
-    List<Modification> mods = new ArrayList<Modification>();
-
-    ASN1Reader reader = ASN1.getReader(encodedMods);
-
-    while (reader.hasNextElement())
-      mods.add((LDAPModification.decode(reader)).toModification());
-
-    return mods;
+    return decodeMods(encodedMods);
   }
 
   // ============
@@ -175,8 +168,8 @@ public abstract class ModifyCommonMsg extends LDAPUpdateMsg {
    * @throws LDAPException when occurs.
    * @return The decoded mods.
    */
-  protected List<Modification> decodeMods(byte[] in)
-  throws ASN1Exception, LDAPException
+  protected List<Modification> decodeMods(byte[] in) throws ASN1Exception,
+      LDAPException
   {
     List<Modification> mods = new ArrayList<Modification>();
     ASN1Reader reader = ASN1.getReader(in);
@@ -194,10 +187,10 @@ public abstract class ModifyCommonMsg extends LDAPUpdateMsg {
    * @throws ASN1Exception when occurs.
    * @throws LDAPException when occurs.
    */
-  protected ArrayList<RawModification> decodeRawMods(byte[] in)
-  throws LDAPException, ASN1Exception
+  protected List<RawModification> decodeRawMods(byte[] in)
+      throws LDAPException, ASN1Exception
   {
-    ArrayList<RawModification> ldapmods = new ArrayList<RawModification>();
+    List<RawModification> ldapmods = new ArrayList<RawModification>();
     ASN1Reader asn1Reader = ASN1.getReader(in);
     while(asn1Reader.hasNextElement())
     {

@@ -176,7 +176,7 @@ public class ECLServerWriter extends ServerWriter
               handler.getReplicationServerId(),
               handler.getServerId(),
               session.getReadableRemoteAddress(),
-              handler.getBaseDN());
+              handler.getBaseDNString());
         }
         else
         {
@@ -184,7 +184,7 @@ public class ECLServerWriter extends ServerWriter
               handler.getReplicationServerId(),
               handler.getServerId(),
               session.getReadableRemoteAddress(),
-              handler.getBaseDN());
+              handler.getBaseDNString());
         }
         logError(errMessage);
       }

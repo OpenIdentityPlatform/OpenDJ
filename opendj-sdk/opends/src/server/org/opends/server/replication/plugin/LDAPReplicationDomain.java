@@ -1729,11 +1729,9 @@ public final class LDAPReplicationDomain extends ReplicationDomain
         {
           replayOperations.remove(replayOperations.firstKey());
         }
-        replayOperations.put(
-            csn,
-            new FakeDelOperation(
-                deleteOperation.getEntryDN().toString(),
-                csn, modifiedEntryUUID));
+        FakeOperation op = new FakeDelOperation(
+            deleteOperation.getEntryDN(), csn, modifiedEntryUUID);
+        replayOperations.put(csn, op);
       }
 
     }
@@ -2791,7 +2789,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       {
         // There is an entry with the same unique id as this modify operation
         // replay the modify using the current dn of this entry.
-        msg.setDn(newDN.toString());
+        msg.setDN(newDN);
         numResolvedNamingConflicts.incrementAndGet();
         return false;
       }
@@ -2878,8 +2876,8 @@ public final class LDAPReplicationDomain extends ReplicationDomain
      /*
       * Find if the entry is still in the database.
       */
-     DN currentDn = findEntryDN(entryUUID);
-     if (currentDn == null)
+     DN currentDN = findEntryDN(entryUUID);
+     if (currentDN == null)
      {
        /*
         * The entry has already been deleted, either because this delete
@@ -2892,10 +2890,8 @@ public final class LDAPReplicationDomain extends ReplicationDomain
      }
      else
      {
-       /*
-        * This entry has been renamed, replay the delete using its new DN.
-        */
-       msg.setDn(currentDn.toString());
+       // This entry has been renamed, replay the delete using its new DN.
+       msg.setDN(currentDN);
        numResolvedNamingConflicts.incrementAndGet();
        return false;
      }
@@ -2911,7 +2907,6 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       * The action taken here must be consistent with the actions
       * done in the solveNamingConflict(AddOperation) method
       * when we are adding an entry whose parent entry has already been deleted.
-      *
       */
      if (findAndRenameChild(op.getEntryDN(), op))
      {
@@ -3020,7 +3015,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
      * reconstruct the operation with the DN we just built
      */
     ModifyDNMsg modifyDnMsg = (ModifyDNMsg) msg;
-    msg.setDn(currentDN.toString());
+    modifyDnMsg.setDN(currentDN);
     modifyDnMsg.setNewSuperior(newSuperior.toString());
     numResolvedNamingConflicts.incrementAndGet();
     return false;
@@ -3099,8 +3094,9 @@ private boolean solveNamingConflict(ModifyDNOperation op,
          */
         addConflict(msg);
 
-        msg.setDn(generateConflictRDN(entryUUID,
-            op.getEntryDN().getRDN().toString()) + "," + getBaseDNString());
+        String conflictRDN =
+            generateConflictRDN(entryUUID, op.getEntryDN().getRDN().toString());
+        msg.setDN(DN.decode(conflictRDN + "," + getBaseDNString()));
         // reset the parent entryUUID so that the check done is the
         // handleConflict phase does not fail.
         msg.setParentEntryUUID(null);
@@ -3108,8 +3104,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       }
       else
       {
-        RDN entryRdn = DN.decode(msg.getDn()).getRDN();
-        msg.setDn(entryRdn + "," + parentDn);
+        msg.setDN(DN.decode(msg.getDN().getRDN() + "," + parentDn));
         numResolvedNamingConflicts.incrementAndGet();
       }
       return false;
@@ -3133,7 +3128,9 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       else
       {
         addConflict(msg);
-        msg.setDn(generateConflictRDN(entryUUID, msg.getDn()));
+        String conflictRDN =
+            generateConflictRDN(entryUUID, msg.getDN().toNormalizedString());
+        msg.setDN(DN.decode(conflictRDN));
         numUnresolvedNamingConflicts.incrementAndGet();
         return false;
       }
@@ -3152,7 +3149,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
 
   /**
    * Find all the entries below the provided DN and rename them
-   * so that they stay below the baseDn of this replicationDomain and
+   * so that they stay below the baseDN of this replicationDomain and
    * use the conflicting name and attribute.
    *
    * @param entryDN    The DN of the entry whose child must be renamed.
@@ -3229,7 +3226,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
 
   /**
    * Rename an entry that was conflicting so that it stays below the
-   * baseDn of the replicationDomain.
+   * baseDN of the replicationDomain.
    *
    * @param conflictOp The Operation that caused the conflict.
    * @param dn         The DN of the entry to be renamed.
@@ -3313,14 +3310,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
    */
   private void addConflict(AddMsg msg) throws ASN1Exception
   {
-    String normalizedDN;
-    try
-    {
-      normalizedDN = DN.decode(msg.getDn()).toNormalizedString();
-    } catch (DirectoryException e)
-    {
-      normalizedDN = msg.getDn();
-    }
+    String normalizedDN = msg.getDN().toNormalizedString();
 
     // Generate an alert to let the administrator know that some
     // conflict could not be solved.
@@ -3763,7 +3753,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       os = output;
     }
 
-    // baseDn branch is the only one included in the export
+    // baseDN branch is the only one included in the export
     List<DN> includeBranches = new ArrayList<DN>(1);
     includeBranches.add(getBaseDN());
     LDIFExportConfig exportConfig = new LDIFExportConfig(os);
@@ -4007,15 +3997,15 @@ private boolean solveNamingConflict(ModifyDNOperation op,
   }
 
   /**
-   * Retrieves a replication domain based on the baseDn.
+   * Retrieves a replication domain based on the baseDN.
    *
-   * @param baseDn The baseDn of the domain to retrieve
+   * @param baseDN The baseDN of the domain to retrieve
    * @return The domain retrieved
    * @throws DirectoryException When an error occurred or no domain
-   * match the provided baseDn.
+   * match the provided baseDN.
    */
-  public static LDAPReplicationDomain retrievesReplicationDomain(DN baseDn)
-  throws DirectoryException
+  public static LDAPReplicationDomain retrievesReplicationDomain(DN baseDN)
+      throws DirectoryException
   {
     LDAPReplicationDomain replicationDomain = null;
 
@@ -4031,7 +4021,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
 
       // From the domainDN retrieves the replication domain
       LDAPReplicationDomain domain =
-        MultimasterReplication.findDomain(baseDn, null);
+        MultimasterReplication.findDomain(baseDN, null);
       if (domain == null)
       {
         break;
@@ -4048,7 +4038,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     if (replicationDomain == null)
     {
       throw new DirectoryException(ResultCode.OTHER,
-          ERR_NO_MATCHING_DOMAIN.get(String.valueOf(baseDn)));
+          ERR_NO_MATCHING_DOMAIN.get(String.valueOf(baseDN)));
     }
     return replicationDomain;
   }
@@ -4528,7 +4518,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
    * attribute. The only changes that will be send will be the one generated on
    * the serverId provided in fromCSN.
    *
-   * @param baseDn
+   * @param baseDN
    *          the base DN
    * @param fromCSN
    *          The CSN from which we want the changes
@@ -4540,7 +4530,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
    * @throws Exception
    *           when raised.
    */
-  private static InternalSearchOperation searchForChangedEntries(DN baseDn,
+  private static InternalSearchOperation searchForChangedEntries(DN baseDN,
       CSN fromCSN, CSN lastCSN, InternalSearchListener resultListener)
       throws Exception
   {
@@ -4564,7 +4554,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
           "(" + HISTORICAL_ATTRIBUTE_NAME + "<=dummy:" + maxValueForId + "))");
 
     return conn.processSearch(
-      ByteString.valueOf(baseDn.toString()),
+      ByteString.valueOf(baseDN.toString()),
       SearchScope.WHOLE_SUBTREE,
       DereferencePolicy.NEVER_DEREF_ALIASES,
       0, 0, false, filter,
@@ -4577,7 +4567,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
    * attribute. The only changes that will be send will be the one generated on
    * the serverId provided in fromCSN.
    *
-   * @param baseDn
+   * @param baseDN
    *          the base DN
    * @param fromCSN
    *          The CSN from which we want the changes
@@ -4587,10 +4577,10 @@ private boolean solveNamingConflict(ModifyDNOperation op,
    * @throws Exception
    *           when raised.
    */
-  public static InternalSearchOperation searchForChangedEntries(DN baseDn,
+  public static InternalSearchOperation searchForChangedEntries(DN baseDN,
       CSN fromCSN, InternalSearchListener resultListener) throws Exception
   {
-    return searchForChangedEntries(baseDn, fromCSN, null, resultListener);
+    return searchForChangedEntries(baseDN, fromCSN, null, resultListener);
   }
 
 
@@ -4933,15 +4923,15 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     /**
      * Base DN the fractional configuration is for.
      */
-    private DN baseDn;
+    private DN baseDN;
 
     /**
      * Constructs a new fractional configuration object.
-     * @param baseDn The base dn the object is for.
+     * @param baseDN The base DN the object is for.
      */
-    FractionalConfig(DN baseDn)
+    FractionalConfig(DN baseDN)
     {
-      this.baseDn = baseDn;
+      this.baseDN = baseDN;
     }
 
     /**
@@ -5022,12 +5012,12 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     }
 
     /**
-     * Getter for the base baseDn.
-     * @return The baseDn attribute.
+     * Getter for the base baseDN.
+     * @return The baseDN attribute.
      */
     DN getBaseDn()
     {
-      return baseDn;
+      return baseDN;
     }
 
     /**

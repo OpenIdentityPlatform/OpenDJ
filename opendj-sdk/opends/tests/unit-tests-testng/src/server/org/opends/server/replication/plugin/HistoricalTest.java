@@ -27,8 +27,10 @@
  */
 package org.opends.server.replication.plugin;
 
-import static org.opends.server.TestCaseUtils.*;
-import static org.testng.Assert.*;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.UUID;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
@@ -46,10 +48,8 @@ import org.opends.server.types.*;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.UUID;
+import static org.opends.server.TestCaseUtils.*;
+import static org.testng.Assert.*;
 
 /**
  * Tests the Historical class.
@@ -234,7 +234,7 @@ public class HistoricalTest extends ReplicationTestCase
   {
     final DN dn1 = DN.decode("cn=test1," + TEST_ROOT_DN_STRING);
     final DN dn2 = DN.decode("cn=test2," + TEST_ROOT_DN_STRING);
-    final DN baseDn = DN.decode(TEST_ROOT_DN_STRING);
+    final DN baseDN = DN.decode(TEST_ROOT_DN_STRING);
     final AttributeType attrType =
          DirectoryServer.getAttributeType("displayname");
     final AttributeType entryuuidType =
@@ -245,7 +245,7 @@ public class HistoricalTest extends ReplicationTestCase
      * This must use a different serverId to that of the directory server.
      */
     ReplicationBroker broker =
-      openReplicationSession(baseDn, 2, 100, replServerPort, 1000, true);
+      openReplicationSession(baseDN, 2, 100, replServerPort, 1000, true);
 
 
     // Clear the backend and create top entrye
@@ -475,10 +475,10 @@ public class HistoricalTest extends ReplicationTestCase
         FakeAddOperation addOp = (FakeAddOperation) op;
         assertTrue(addOp.getCSN() != null);
         AddMsg addmsg = addOp.generateMessage();
-        assertTrue(dn1.equals(DN.decode(addmsg.getDn())));
-        assertTrue(addmsg.getEntryUUID().equals(EntryHistorical.getEntryUUID(entry)));
+        assertEquals(dn1, addmsg.getDN());
+        assertEquals(addmsg.getEntryUUID(), EntryHistorical.getEntryUUID(entry));
         String parentId = LDAPReplicationDomain.findEntryUUID(dn1.getParent());
-        assertTrue(addmsg.getParentEntryUUID().equals(parentId));
+        assertEquals(addmsg.getParentEntryUUID(), parentId);
         addmsg.createOperation(InternalClientConnection.getRootConnection());
       }
       else if (count == 1)

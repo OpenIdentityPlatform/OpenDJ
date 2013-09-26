@@ -30,6 +30,9 @@ package org.opends.server.replication.protocol;
 import java.io.UnsupportedEncodingException;
 import java.util.zip.DataFormatException;
 
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
+
 /**
  * This message is part of the replication protocol.
  * This message is sent by a server to one or several servers as the
@@ -37,15 +40,16 @@ import java.util.zip.DataFormatException;
  */
 public class InitializeTargetMsg extends RoutableMsg
 {
-  private String baseDN = null;
+  private DN baseDN;
 
-  // Specifies the number of entries expected to be exported.
+  /** Specifies the number of entries expected to be exported. */
   private long entryCount;
 
-  // Specifies the serverID of the server that requested this export
-  // to happen. It allows a server that previously sent an
-  // InitializeRequestMessage to know that the current message
-  // is related to its own request.
+  /**
+   * Specifies the serverID of the server that requested this export to happen.
+   * It allows a server that previously sent an InitializeRequestMessage to know
+   * that the current message is related to its own request.
+   */
   private int requestorID;
 
   private int initWindow;
@@ -55,16 +59,16 @@ public class InitializeTargetMsg extends RoutableMsg
    *
    * @param baseDN     The base DN for which the InitializeMessage is created.
    * @param serverID   The serverID of the server that sends this message.
-   * @param target     The destination of this message.
-   * @param target2    The server that initiates this export.
+   * @param destination     The destination of this message.
+   * @param requestorID    The server that initiates this export.
    * @param entryCount The count of entries that will be sent.
    * @param initWindow the initialization window.
    */
-  public InitializeTargetMsg(String baseDN, int serverID,
-      int target, int target2, long entryCount, int initWindow)
+  public InitializeTargetMsg(DN baseDN, int serverID,
+      int destination, int requestorID, long entryCount, int initWindow)
   {
-    super(serverID, target);
-    this.requestorID = target2;
+    super(serverID, destination);
+    this.requestorID = requestorID;
     this.baseDN = baseDN;
     this.entryCount = entryCount;
     this.initWindow = initWindow; // V4
@@ -95,9 +99,9 @@ public class InitializeTargetMsg extends RoutableMsg
       this.destination = Integer.valueOf(destinationString);
       pos += length +1;
 
-      // baseDn
+      // baseDN
       length = getNextLength(in, pos);
-      baseDN = new String(in, pos, length, "UTF-8");
+      baseDN = DN.decode(new String(in, pos, length, "UTF-8"));
       pos += length +1;
 
       // sender
@@ -131,6 +135,10 @@ public class InitializeTargetMsg extends RoutableMsg
     {
       throw new DataFormatException("UTF-8 is not supported by this jvm.");
     }
+    catch (DirectoryException e)
+    {
+      throw new DataFormatException(e.getLocalizedMessage());
+    }
   }
 
   /**
@@ -159,7 +167,7 @@ public class InitializeTargetMsg extends RoutableMsg
    *
    * @return the base DN
    */
-  public String getBaseDN()
+  public DN getBaseDN()
   {
     return this.baseDN;
   }
@@ -188,7 +196,7 @@ public class InitializeTargetMsg extends RoutableMsg
     try
     {
       byte[] byteDestination = String.valueOf(destination).getBytes("UTF-8");
-      byte[] byteDn = baseDN.getBytes("UTF-8");
+      byte[] byteDn = baseDN.toString().getBytes("UTF-8");
       byte[] byteSender = String.valueOf(senderID).getBytes("UTF-8");
       byte[] byteRequestor = String.valueOf(requestorID).getBytes("UTF-8");
       byte[] byteEntryCount = String.valueOf(entryCount).getBytes("UTF-8");

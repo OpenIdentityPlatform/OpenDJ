@@ -49,10 +49,10 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.replication.protocol.OperationContext.*;
 import static org.opends.server.replication.protocol.ProtocolVersion.*;
 import static org.opends.server.util.StaticUtils.*;
-import static org.opends.messages.ReplicationMessages.*;
 import static org.testng.Assert.*;
 
 /**
@@ -91,12 +91,12 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
   @DataProvider(name="createReplServerStartData")
   public Object [][] createReplServerStartData() throws Exception
   {
-    String baseDN = "o=test";
+    DN baseDN = DN.decode("o=test");
     ServerState state = new ServerState();
     state.update(new CSN(0, 0,0));
     Object[] set1 = new Object[] {1, baseDN, 0, "localhost:8989", state, 0L, (byte)0, 0};
 
-    baseDN = "dc=example,dc=com";
+    baseDN = DN.decode("dc=example,dc=com");
     state = new ServerState();
     state.update(new CSN(75, 5,263));
     Object[] set2 = new Object[] {16, baseDN, 100, "anotherHost:1025", state, 1245L, (byte)25, 3456};
@@ -109,14 +109,14 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
    * using protocol VLAST and V2 are working.
    */
   @Test(dataProvider="createReplServerStartData")
-  public void replServerStartMsgTestVLASTV2(int serverId, String baseDN, int window,
+  public void replServerStartMsgTestVLASTV2(int serverId, DN baseDN, int window,
          String url, ServerState state, long genId, byte groupId, int degTh) throws Exception
   {
     // TODO: replServerStartMsgTestV3V2 as soon as V3 will have any incompatibility with V2
   }
 
   @Test(dataProvider="createReplServerStartData")
-  public void replServerStartMsgTestVLASTV1(int serverId, String baseDN, int window,
+  public void replServerStartMsgTestVLASTV1(int serverId, DN baseDN, int window,
         String url, ServerState state, long genId, byte groupId, int degTh) throws Exception
   {
     // Create message with no version.
@@ -136,7 +136,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     assertEquals(msg.getGenerationId(), newMsg.getGenerationId());
     assertEquals(msg.getServerId(), newMsg.getServerId());
     assertEquals(msg.getServerURL(), newMsg.getServerURL());
-    assertEquals(msg.getBaseDn(), newMsg.getBaseDn());
+    assertEquals(msg.getBaseDN(), newMsg.getBaseDN());
     assertEquals(msg.getWindowSize(), newMsg.getWindowSize());
     assertEquals(msg.getServerState().getCSN(1), newMsg.getServerState().getCSN(1));
     assertEquals(msg.getSSLEncryption(), newMsg.getSSLEncryption());
@@ -159,7 +159,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     assertEquals(msg.getGenerationId(), vlastMsg.getGenerationId());
     assertEquals(msg.getServerId(), vlastMsg.getServerId());
     assertEquals(msg.getServerURL(), vlastMsg.getServerURL());
-    assertEquals(msg.getBaseDn(), vlastMsg.getBaseDn());
+    assertEquals(msg.getBaseDN(), vlastMsg.getBaseDN());
     assertEquals(msg.getWindowSize(), vlastMsg.getWindowSize());
     assertEquals(msg.getServerState().getCSN(1), vlastMsg.getServerState().getCSN(1));
     assertEquals(msg.getSSLEncryption(), vlastMsg.getSSLEncryption());
@@ -196,6 +196,8 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     byte safeDataLevel, List<Attribute> entryAttrList)
   throws Exception
   {
+    final DN dn = DN.decode(rawDN);
+
     // Create VLAST message
     Attribute objectClass = Attributes.create(DirectoryServer
         .getObjectClassAttributeType(), "organization");
@@ -219,7 +221,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
 
     CSN csn = new CSN(TimeThread.getTime(), 123, 45);
 
-    AddMsg msg = new AddMsg(csn, rawDN, "thisIsaUniqueID", "parentUniqueId",
+    AddMsg msg = new AddMsg(csn, dn, "thisIsaUniqueID", "parentUniqueId",
                             objectClass, userAttributes,
                             operationalAttributes);
 
@@ -247,14 +249,14 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
 
     // Check fields common to both versions
     assertEquals(newMsg.getEntryUUID(), msg.getEntryUUID());
-    assertEquals(newMsg.getDn(), msg.getDn());
+    assertEquals(newMsg.getDN(), msg.getDN());
     assertEquals(newMsg.getCSN(), msg.getCSN());
     assertEquals(newMsg.isAssured(), msg.isAssured());
     assertEquals(newMsg.getParentEntryUUID(), msg.getParentEntryUUID());
 
     // Create an add operation from each message to compare attributes (kept encoded in messages)
-    Operation op = msg.createOperation(connection, rawDN);
-    Operation generatedOperation = newMsg.createOperation(connection, rawDN);
+    Operation op = msg.createOperation(connection, dn);
+    Operation generatedOperation = newMsg.createOperation(connection, dn);
 
     assertEquals(op.getClass(), AddOperationBasis.class);
     assertEquals(generatedOperation.getClass(), AddOperationBasis.class);
@@ -290,7 +292,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
 
     // Check we retrieve original VLAST message (VLAST fields)
     assertEquals(msg.getEntryUUID(), vlastMsg.getEntryUUID());
-    assertEquals(msg.getDn(), vlastMsg.getDn());
+    assertEquals(msg.getDN(), vlastMsg.getDN());
     assertEquals(msg.getCSN(), vlastMsg.getCSN());
     assertEquals(msg.getParentEntryUUID(), vlastMsg.getParentEntryUUID());
     assertEquals(msg.isAssured(), vlastMsg.isAssured());
@@ -315,8 +317,8 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     }
 
     //        Create an add operation from each message to compare attributes (kept encoded in messages)
-    op = msg.createOperation(connection, rawDN);
-    generatedOperation = vlastMsg.createOperation(connection, rawDN);
+    op = msg.createOperation(connection, dn);
+    generatedOperation = vlastMsg.createOperation(connection, dn);
 
     assertEquals(op.getClass(), AddOperationBasis.class);
     assertEquals(generatedOperation.getClass(), AddOperationBasis.class);
@@ -371,8 +373,10 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     byte safeDataLevel, List<Attribute> entryAttrList)
   throws Exception
   {
+    final DN dn = DN.decode(rawDN);
+
     CSN csn = new CSN(TimeThread.getTime(), 123, 45);
-    DeleteMsg msg = new DeleteMsg(rawDN, csn, "thisIsaUniqueID");
+    DeleteMsg msg = new DeleteMsg(dn, csn, "thisIsaUniqueID");
 
     msg.setAssured(isAssured);
     msg.setAssuredMode(assuredMode);
@@ -399,7 +403,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
 
     // Check fields common to both versions
     assertEquals(newMsg.getEntryUUID(), msg.getEntryUUID());
-    assertEquals(newMsg.getDn(), msg.getDn());
+    assertEquals(newMsg.getDN(), msg.getDN());
     assertEquals(newMsg.getCSN(), msg.getCSN());
     assertEquals(newMsg.isAssured(), msg.isAssured());
 
@@ -426,7 +430,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
 
     // Check we retrieve original VLAST message (VLAST fields)
     assertEquals(msg.getEntryUUID(), vlastMsg.getEntryUUID());
-    assertEquals(msg.getDn(), vlastMsg.getDn());
+    assertEquals(msg.getDN(), vlastMsg.getDN());
     assertEquals(msg.getCSN(), vlastMsg.getCSN());
     assertEquals(msg.isAssured(), vlastMsg.isAssured());
     assertEquals(msg.getAssuredMode(), vlastMsg.getAssuredMode());
@@ -570,7 +574,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
 
     // Check fields common to both versions
     assertEquals(newv1Msg.getEntryUUID(), origVlastMsg.getEntryUUID());
-    assertEquals(newv1Msg.getDn(), origVlastMsg.getDn());
+    assertEquals(newv1Msg.getDN(), origVlastMsg.getDN());
     assertEquals(newv1Msg.getCSN(), origVlastMsg.getCSN());
     assertEquals(newv1Msg.isAssured(), origVlastMsg.isAssured());
 
@@ -613,7 +617,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
 
     // Check we retrieve original VLAST message (VLAST fields)
     assertEquals(origVlastMsg.getEntryUUID(), generatedVlastMsg.getEntryUUID());
-    assertEquals(origVlastMsg.getDn(), generatedVlastMsg.getDn());
+    assertEquals(origVlastMsg.getDN(), generatedVlastMsg.getDN());
     assertEquals(origVlastMsg.getCSN(), generatedVlastMsg.getCSN());
     assertEquals(origVlastMsg.isAssured(), generatedVlastMsg.isAssured());
     assertEquals(origVlastMsg.getAssuredMode(), generatedVlastMsg.getAssuredMode());
@@ -731,9 +735,11 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
                                    List<Attribute> entryAttrList)
          throws Exception
   {
+    final DN dn = DN.decode(rawDN);
+
     // Create VLAST message
     CSN csn = new CSN(TimeThread.getTime(), 596, 13);
-    ModifyDNMsg msg = new ModifyDNMsg(rawDN, csn, uid,
+    ModifyDNMsg msg = new ModifyDNMsg(dn, csn, uid,
                      newParentUid, deleteOldRdn,
                      newSuperior, newRdn, mods);
 
@@ -762,7 +768,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
 
     // Check fields common to both versions
     assertEquals(newMsg.getEntryUUID(), msg.getEntryUUID());
-    assertEquals(newMsg.getDn(), msg.getDn());
+    assertEquals(newMsg.getDN(), msg.getDN());
     assertEquals(newMsg.getCSN(), msg.getCSN());
     assertEquals(newMsg.isAssured(), msg.isAssured());
     assertEquals(newMsg.getNewRDN(), msg.getNewRDN());
@@ -808,7 +814,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
 
     // Check we retrieve original VLAST message (VLAST fields)
     assertEquals(msg.getEntryUUID(), vlastMsg.getEntryUUID());
-    assertEquals(msg.getDn(), vlastMsg.getDn());
+    assertEquals(msg.getDN(), vlastMsg.getDN());
     assertEquals(msg.getCSN(), vlastMsg.getCSN());
     assertEquals(msg.isAssured(), vlastMsg.isAssured());
     assertEquals(msg.getAssuredMode(), vlastMsg.getAssuredMode());
@@ -913,7 +919,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
   {
     LDAPUpdateMsg msg = (LDAPUpdateMsg) ReplicationMsg.generateMsg(
         hexStringToByteArray(encodedString), ProtocolVersion.REPLICATION_PROTOCOL_V3);
-    assertEquals(msg.getDn(), dn);
+    assertEquals(msg.getDN(), DN.decode(dn));
     assertEquals(msg.getCSN(), csn);
     assertEquals(msg.getClass(), msgType);
     BigInteger bi = new BigInteger(msg.getBytes(ProtocolVersion.REPLICATION_PROTOCOL_V3));
@@ -940,7 +946,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     // parameters
     ServerStartMsg msg = new ServerStartMsg(hexStringToByteArray(oldPdu));
     assertEquals(msg.getServerId(), serverId);
-    assertEquals(msg.getBaseDn(), dn);
+    assertEquals(msg.getBaseDN(), DN.decode(dn));
     assertEquals(msg.getGroupId(), groupId);
     BigInteger bi = new BigInteger(msg.getBytes(getCurrentVersion()));
     assertEquals(bi.toString(16), oldPdu);
@@ -960,13 +966,13 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
   public void oldReplServerStartPDUs(
       String oldPdu, int serverId, String dn, byte groupId) throws Exception
   {
-    // This is a ServerStartMSg with ServerId=16, baseDn=o=test and groupID=31
+    // This is a ServerStartMSg with ServerId=16, baseDN=o=test and groupID=31
     // For now this test only checks those parameters.
     // It would be nice to complete it with checks for ServerState and other
     // parameters.
     ReplServerStartMsg msg = new ReplServerStartMsg(hexStringToByteArray(oldPdu));
     assertEquals(msg.getServerId(), serverId);
-    assertEquals(msg.getBaseDn(), dn);
+    assertEquals(msg.getBaseDN(), DN.decode(dn));
     assertEquals(msg.getGroupId(), groupId);
     BigInteger bi = new BigInteger(msg.getBytes(ProtocolVersion.REPLICATION_PROTOCOL_V3));
     assertEquals(bi.toString(16), oldPdu);
@@ -1226,9 +1232,9 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
   {
     int sender = 1;
     int dest = 2;
-    String baseDn = "dc=whatever";
+    DN baseDN = DN.decode("dc=whatever");
     int initWindow = 22;
-    Object[] set1 = new Object[] {sender, dest, baseDn, initWindow };
+    Object[] set1 = new Object[] { sender, dest, baseDN, initWindow };
     return new Object [][] { set1};
   }
 
@@ -1238,11 +1244,10 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
    */
   @Test(enabled=true, dataProvider="createInitializationRequestMsgData")
   public void initializationRequestMsgTestVLASTV3(int sender, int dest,
-      String baseDn, int initWindow)
-  throws Exception
+      DN baseDN, int initWindow) throws Exception
   {
     // Create VLAST message
-    InitializeRequestMsg msg = new InitializeRequestMsg(baseDn, sender, dest, initWindow);
+    InitializeRequestMsg msg = new InitializeRequestMsg(baseDN, sender, dest, initWindow);
 
     // Serialize in V3
     byte[] v3MsgBytes = msg.getBytes(ProtocolVersion.REPLICATION_PROTOCOL_V3);
@@ -1253,7 +1258,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     // Check fields common to both versions
     assertEquals(msg.getSenderID(), newMsg.getSenderID());
     assertEquals(msg.getDestination(), newMsg.getDestination());
-    assertEquals(msg.getBaseDn(), newMsg.getBaseDn());
+    assertEquals(msg.getBaseDN(), newMsg.getBaseDN());
 
     // Check default value for only post V3 fields
     assertEquals(newMsg.getInitWindow(), 0);
@@ -1268,7 +1273,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     // Check we retrieve original VLAST message (VLAST fields)
     assertEquals(msg.getSenderID(), vlastMsg.getSenderID());
     assertEquals(msg.getDestination(), vlastMsg.getDestination());
-    assertEquals(msg.getBaseDn(), vlastMsg.getBaseDn());
+    assertEquals(msg.getBaseDN(), vlastMsg.getBaseDN());
     assertEquals(msg.getInitWindow(), vlastMsg.getInitWindow());
   }
 
@@ -1278,11 +1283,10 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     int sender = 1;
     int dest = 2;
     int initiator = 3;
-    String baseDn = "dc=whatever";
+    DN baseDN = DN.decode("dc=whatever");
     int entryCount = 56;
     int initWindow = 22;
-    Object[] set1 = new Object[] {sender, dest, initiator, baseDn,
-        entryCount, initWindow };
+    Object[] set1 = new Object[] {sender, dest, initiator, baseDN, entryCount, initWindow };
     return new Object [][] { set1};
   }
 
@@ -1292,11 +1296,11 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
    */
   @Test(enabled=true, dataProvider="createInitializeTargetMsgData")
   public void initializeTargetMsgTestVLASTV3(int sender, int dest,
-      int initiator, String baseDn, int entryCount, int initWindow)
+      int initiator, DN baseDN, int entryCount, int initWindow)
   throws Exception
   {
     // Create VLAST message
-    InitializeTargetMsg msg = new InitializeTargetMsg(baseDn, sender, dest,
+    InitializeTargetMsg msg = new InitializeTargetMsg(baseDN, sender, dest,
         initiator, entryCount, initWindow);
 
     // Serialize in V3
@@ -1410,6 +1414,6 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
         ProtocolVersion.REPLICATION_PROTOCOL_V3);
     assertEquals(msg.getDestination(), dest);
     assertEquals(msg.getSenderID(), sender);
-    assertEquals(msg.getBaseDn().toString(), baseDN);
+    assertEquals(msg.getBaseDN().toString(), baseDN);
   }
 }

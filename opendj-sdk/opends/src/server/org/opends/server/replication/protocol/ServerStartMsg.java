@@ -31,6 +31,8 @@ import java.io.UnsupportedEncodingException;
 import java.util.zip.DataFormatException;
 
 import org.opends.server.replication.common.ServerState;
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
 
 /**
  * This message is used by LDAP server when they first connect.
@@ -41,7 +43,7 @@ public class ServerStartMsg extends StartMsg
 {
   private int serverId; // Id of the LDAP server that sent this message
   private String serverURL;
-  private String baseDn;
+  private DN baseDN;
   private int maxReceiveQueue;
   private int maxSendQueue;
   private int maxReceiveDelay;
@@ -69,7 +71,7 @@ public class ServerStartMsg extends StartMsg
    * @param serverId2 The serverId of the server for which the ServerStartMsg
    *                 is created.
    * @param serverURL directory server URL
-   * @param baseDn   The base DN.
+   * @param baseDN   The base DN.
    * @param windowSize   The window size used by this server.
    * @param heartbeatInterval The requested heartbeat interval.
    * @param serverState  The state of this server.
@@ -78,7 +80,7 @@ public class ServerStartMsg extends StartMsg
    *                      after the start messages have been exchanged.
    * @param groupId The group id of the DS for this DN
    */
-  public ServerStartMsg(int serverId2, String serverURL, String baseDn,
+  public ServerStartMsg(int serverId2, String serverURL, DN baseDN,
       int windowSize, long heartbeatInterval, ServerState serverState,
       long generationId, boolean sslEncryption,
       byte groupId)
@@ -87,7 +89,7 @@ public class ServerStartMsg extends StartMsg
 
     this.serverId = serverId2;
     this.serverURL = serverURL;
-    this.baseDn = baseDn;
+    this.baseDN = baseDN;
     this.maxReceiveDelay = 0;
     this.maxReceiveQueue = 0;
     this.maxSendDelay = 0;
@@ -123,7 +125,7 @@ public class ServerStartMsg extends StartMsg
        * first calculate the length then construct the string
        */
       int length = getNextLength(in, pos);
-      baseDn = new String(in, pos, length, "UTF-8");
+      baseDN = DN.decode(new String(in, pos, length, "UTF-8"));
       pos += length +1;
 
       /*
@@ -199,9 +201,14 @@ public class ServerStartMsg extends StartMsg
       // have more than one ServerState field.
       serverState = new ServerState(in, pos, in.length - 1);
 
-    } catch (UnsupportedEncodingException e)
+    }
+    catch (UnsupportedEncodingException e)
     {
       throw new DataFormatException("UTF-8 is not supported by this jvm.");
+    }
+    catch (DirectoryException e)
+    {
+      throw new DataFormatException(e.getLocalizedMessage());
     }
   }
 
@@ -224,12 +231,13 @@ public class ServerStartMsg extends StartMsg
   }
 
   /**
-   * Get the baseDn.
-   * @return Returns the baseDn.
+   * Get the baseDN.
+   *
+   * @return Returns the baseDN.
    */
-  public String getBaseDn()
+  public DN getBaseDN()
   {
-    return baseDn;
+    return baseDN;
   }
 
   /**
@@ -284,7 +292,7 @@ public class ServerStartMsg extends StartMsg
   public byte[] getBytes(short sessionProtocolVersion)
   {
     try {
-      byte[] byteDn = baseDn.getBytes("UTF-8");
+      byte[] byteDn = baseDN.toString().getBytes("UTF-8");
       byte[] byteServerId = String.valueOf(serverId).getBytes("UTF-8");
       byte[] byteServerUrl = serverURL.getBytes("UTF-8");
       byte[] byteMaxRecvDelay =
@@ -393,7 +401,7 @@ public class ServerStartMsg extends StartMsg
       "\nprotocolVersion: " + protocolVersion +
       "\ngenerationId: " + generationId +
       "\ngroupId: " + groupId +
-      "\nbaseDn: " + baseDn +
+      "\nbaseDN: " + baseDN +
       "\nheartbeatInterval: " + heartbeatInterval +
       "\nmaxReceiveDelay: " + maxReceiveDelay +
       "\nmaxReceiveQueue: " + maxReceiveQueue +
@@ -405,4 +413,4 @@ public class ServerStartMsg extends StartMsg
       "\nsslEncryption: " + sslEncryption +
       "\nwindowSize: " + windowSize;
   }
-  }
+}

@@ -1444,7 +1444,7 @@ public abstract class ReplicationDomain
 
         // Send start message to the peer
         InitializeTargetMsg initTargetMsg = new InitializeTargetMsg(
-            getBaseDNString(), serverID, serverToInitialize,
+            getBaseDN(), serverID, serverToInitialize,
             serverRunningTheTask, ieContext.entryCount, initWindow);
 
         broker.publish(initTargetMsg);
@@ -2209,7 +2209,7 @@ public abstract class ReplicationDomain
       ieContext.initializeTask = initTask;
       ieContext.attemptCnt = 0;
       ieContext.initReqMsgSent = new InitializeRequestMsg(
-          getBaseDNString(), serverID, source, this.initWindow);
+          getBaseDN(), serverID, source, this.initWindow);
 
       // Publish Init request msg
       broker.publish(ieContext.initReqMsgSent);

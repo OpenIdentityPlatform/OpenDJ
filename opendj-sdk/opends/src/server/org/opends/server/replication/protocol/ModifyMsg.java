@@ -28,10 +28,10 @@
 package org.opends.server.replication.protocol;
 
 import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.zip.DataFormatException;
 
+import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.protocols.asn1.ASN1Exception;
 import org.opends.server.protocols.internal.InternalClientConnection;
@@ -54,7 +54,7 @@ public class ModifyMsg extends ModifyCommonMsg
   public ModifyMsg(PostOperationModifyOperation op)
   {
     super((OperationContext) op.getAttachment(OperationContext.SYNCHROCONTEXT),
-          op.getRawEntryDN().toString());
+          op.getEntryDN());
     encodedMods = encodeMods(op.getModifications());
   }
 
@@ -69,8 +69,7 @@ public class ModifyMsg extends ModifyCommonMsg
    */
   public ModifyMsg(CSN csn, DN dn, List<Modification> mods, String entryUUID)
   {
-    super(new ModifyContext(csn, entryUUID),
-          dn.toNormalizedString());
+    super(new ModifyContext(csn, entryUUID), dn);
     this.encodedMods = encodeMods(mods);
   }
 
@@ -127,18 +126,18 @@ public class ModifyMsg extends ModifyCommonMsg
    * {@inheritDoc}
    */
   @Override
-  public Operation createOperation(InternalClientConnection connection,
-      String newDn) throws LDAPException, ASN1Exception, DataFormatException
+  public ModifyOperation createOperation(InternalClientConnection connection,
+      DN newDN) throws LDAPException, ASN1Exception, DataFormatException
   {
-    if (newDn == null)
-      newDn = getDn();
+    if (newDN == null)
+      newDN = getDN();
 
-    ArrayList<RawModification> ldapmods = decodeRawMods(encodedMods);
+    List<RawModification> ldapmods = decodeRawMods(encodedMods);
 
-    ModifyOperationBasis mod = new ModifyOperationBasis(connection,
+    ModifyOperation mod = new ModifyOperationBasis(connection,
         InternalClientConnection.nextOperationID(),
         InternalClientConnection.nextMessageID(), null,
-        ByteString.valueOf(newDn), ldapmods);
+        ByteString.valueOf(newDN.toString()), ldapmods);
     ModifyContext ctx = new ModifyContext(getCSN(), getEntryUUID());
     mod.setAttachment(SYNCHROCONTEXT, ctx);
     return mod;

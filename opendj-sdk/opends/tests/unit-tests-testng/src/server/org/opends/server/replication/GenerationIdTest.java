@@ -580,7 +580,7 @@ public class GenerationIdTest extends ReplicationTestCase
 
     // Create and publish an update message to add an entry.
     return new AddMsg(gen.newCSN(),
-        personWithUUIDEntry.getDN().toString(),
+        personWithUUIDEntry.getDN(),
         user1entryUUID,
         baseUUID,
         personWithUUIDEntry.getObjectClassAttribute(),

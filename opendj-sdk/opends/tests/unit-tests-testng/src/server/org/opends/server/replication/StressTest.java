@@ -27,10 +27,6 @@
  */
 package org.opends.server.replication;
 
-import static org.opends.server.TestCaseUtils.*;
-import static org.opends.server.loggers.ErrorLogger.*;
-import static org.testng.Assert.*;
-
 import java.util.LinkedList;
 import java.util.List;
 
@@ -51,6 +47,10 @@ import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.types.*;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
+
+import static org.opends.server.TestCaseUtils.*;
+import static org.opends.server.loggers.ErrorLogger.*;
+import static org.testng.Assert.*;
 
 /**
  * Stress test for the synchronization code using the ReplicationBroker API.
@@ -80,11 +80,11 @@ public class StressTest extends ReplicationTestCase
     logError(Message.raw(Category.SYNC, Severity.NOTICE,
         "Starting replication StressTest : fromServertoBroker"));
 
-    final DN baseDn = DN.decode("ou=People," + TEST_ROOT_DN_STRING);
+    final DN baseDN = DN.decode("ou=People," + TEST_ROOT_DN_STRING);
     final int TOTAL_MESSAGES = 1000;
 
     ReplicationBroker broker =
-      openReplicationSession(baseDn, 18, 100, replServerPort, 5000, true);
+      openReplicationSession(baseDN, 18, 100, replServerPort, 5000, true);
     Monitor monitor = new Monitor();
     DirectoryServer.registerMonitorProvider(monitor);
 
@@ -117,7 +117,7 @@ public class StressTest extends ReplicationTestCase
         assertTrue(OperationType.ADD.compareTo(receivedOp.getOperationType()) == 0,
         "The received replication message is not an ADD msg");
 
-        assertEquals(DN.decode(addMsg.getDn()),personEntry.getDN(),
+        assertEquals(addMsg.getDN(), personEntry.getDN(),
         "The received ADD replication message is not for the excepted DN");
       }
 

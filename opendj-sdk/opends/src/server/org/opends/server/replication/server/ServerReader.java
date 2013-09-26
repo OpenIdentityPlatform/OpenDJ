@@ -143,7 +143,7 @@ public class ServerReader extends DirectoryThread
                   logError(WARN_IGNORING_UPDATE_FROM_DS_BADGENID.get(
                       handler.getReplicationServerId(),
                       updateMsg.getCSN().toString(),
-                      handler.getBaseDN(), handler.getServerId(),
+                      handler.getBaseDNString(), handler.getServerId(),
                       session.getReadableRemoteAddress(),
                       handler.getGenerationId(),
                       referenceGenerationId));
@@ -151,7 +151,7 @@ public class ServerReader extends DirectoryThread
                   logError(WARN_IGNORING_UPDATE_FROM_DS_FULLUP.get(
                       handler.getReplicationServerId(),
                       updateMsg.getCSN().toString(),
-                      handler.getBaseDN(), handler.getServerId(),
+                      handler.getBaseDNString(), handler.getServerId(),
                       session.getReadableRemoteAddress()));
                 filtered = true;
               }
@@ -169,7 +169,7 @@ public class ServerReader extends DirectoryThread
                     WARN_IGNORING_UPDATE_FROM_RS.get(
                         handler.getReplicationServerId(),
                         updateMsg.getCSN().toString(),
-                        handler.getBaseDN(),
+                        handler.getBaseDNString(),
                         handler.getServerId(),
                         session.getReadableRemoteAddress(),
                         handler.getGenerationId(),
@@ -210,7 +210,7 @@ public class ServerReader extends DirectoryThread
             {
               errMessage =
                 ERR_RECEIVED_CHANGE_STATUS_NOT_FROM_DS.get(
-                    handler.getBaseDN(),
+                    handler.getBaseDNString(),
                     Integer.toString(handler.getServerId()),
                     csMsg.toString());
               logError(errMessage);
@@ -262,13 +262,13 @@ public class ServerReader extends DirectoryThread
         {
           errMessage = ERR_DS_BADLY_DISCONNECTED.get(
               handler.getReplicationServerId(), handler.getServerId(),
-              remoteAddress, handler.getBaseDN());
+              remoteAddress, handler.getBaseDNString());
         }
         else
         {
           errMessage = ERR_RS_BADLY_DISCONNECTED.get(
               handler.getReplicationServerId(), handler.getServerId(),
-              remoteAddress, handler.getBaseDN());
+              remoteAddress, handler.getBaseDNString());
         }
         logError(errMessage);
       }

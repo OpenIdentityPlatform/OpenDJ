@@ -329,7 +329,7 @@ public class AssuredReplicationServerTest
 
       FakeReplicationServer fakeReplicationServer = new FakeReplicationServer(
         rsPort, serverId, assured, assuredMode, (byte)safeDataLevel, (byte)groupId,
-        TEST_ROOT_DN_STRING, generationId);
+        DN.decode(TEST_ROOT_DN_STRING), generationId);
 
       // Connect fake RS to the real RS
       fakeReplicationServer.connect(serverState);
@@ -596,9 +596,7 @@ public class AssuredReplicationServerTest
     public void sendNewFakeUpdate(boolean useAssured) throws TimeoutException
     {
       // Create a new delete update message (the simplest to create)
-      DeleteMsg delMsg =
-          new DeleteMsg(getBaseDNString(), gen.newCSN(),
-        UUID.randomUUID().toString());
+      DeleteMsg delMsg = new DeleteMsg(getBaseDN(), gen.newCSN(), UUID.randomUUID().toString());
 
       // Send it (this uses the defined assured conf at constructor time)
       if (useAssured)
@@ -622,22 +620,22 @@ public class AssuredReplicationServerTest
   {
 
     private boolean shutdown = false;
-    private Session session = null;
+    private Session session;
 
     /** Parameters given at constructor time */
     private int port;
     private int serverId = -1;
-    boolean isAssured = false; // Default value for config
-    AssuredMode assuredMode = AssuredMode.SAFE_DATA_MODE; // Default value for config
-    byte safeDataLevel = (byte) 1; // Default value for config
-    private String baseDn = null;
+    private boolean isAssured = false; // Default value for config
+    private AssuredMode assuredMode = AssuredMode.SAFE_DATA_MODE; // Default value for config
+    private byte safeDataLevel = 1; // Default value for config
+    private DN baseDN;
     private long generationId = -1L;
-    private byte groupId = (byte) -1;
+    private byte groupId = -1;
     private boolean sslEncryption = false;
     /** The scenario this RS is expecting */
     private int scenario = -1;
 
-    private CSNGenerator gen = null;
+    private CSNGenerator gen;
 
     /** False if a received update had assured parameters not as expected */
     private boolean everyUpdatesAreOk = true;
@@ -658,16 +656,16 @@ public class AssuredReplicationServerTest
      * @param assuredMode the expected assured mode of the incoming updates (also used for outgoing updates)
      * @param safeDataLevel the expected safe data level of the incoming updates (also used for outgoing updates)
      * @param groupId our group id
-     * @param baseDn the basedn we connect with, to the real RS
+     * @param baseDN the basedn we connect with, to the real RS
      * @param generationId the generation id we use at connection to real RS
      */
     public FakeReplicationServer(int port, int serverId, boolean assured,
       AssuredMode assuredMode, int safeDataLevel,
-      byte groupId, String baseDn, long generationId)
+      byte groupId, DN baseDN, long generationId)
     {
       this.port = port;
       this.serverId = serverId;
-      this.baseDn = baseDn;
+      this.baseDN = baseDN;
       this.generationId = generationId;
       this.groupId = groupId;
       this.isAssured = assured;
@@ -684,7 +682,7 @@ public class AssuredReplicationServerTest
     public AckMsg sendNewFakeUpdate() throws Exception
     {
         // Create a new delete update message (the simplest to create)
-        DeleteMsg delMsg = new DeleteMsg(baseDn, gen.newCSN(),
+        DeleteMsg delMsg = new DeleteMsg(baseDN, gen.newCSN(),
         UUID.randomUUID().toString());
 
         // Send del message in assured mode
@@ -725,9 +723,8 @@ public class AssuredReplicationServerTest
 
         // Send our repl server start msg
         ReplServerStartMsg replServerStartMsg = new ReplServerStartMsg(serverId,
-          fakeUrl, baseDn, 100, serverState,
-          generationId, sslEncryption,
-          groupId, 5000);
+          fakeUrl, baseDN, 100, serverState,
+          generationId, sslEncryption, groupId, 5000);
         session.publish(replServerStartMsg);
 
         // Read repl server start msg
