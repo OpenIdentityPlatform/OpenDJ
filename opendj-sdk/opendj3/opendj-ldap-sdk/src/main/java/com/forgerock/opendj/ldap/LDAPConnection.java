@@ -623,20 +623,22 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements Con
             }
         }
 
-        // Now try cleanly closing the connection if possible.
-        // Only send unbind if specified.
+        /*
+         * Now try cleanly closing the connection if possible. Only send unbind
+         * if specified.
+         */
         if (unbindRequest != null) {
+            final ASN1BufferWriter asn1Writer = ASN1BufferWriter.getWriter();
             try {
-                final ASN1BufferWriter asn1Writer = ASN1BufferWriter.getWriter();
-                try {
-                    ldapWriter
-                            .unbindRequest(asn1Writer, nextMsgID.getAndIncrement(), unbindRequest);
-                    connection.write(asn1Writer.getBuffer(), null);
-                } finally {
-                    asn1Writer.recycle();
-                }
-            } catch (final IOException e) {
-                // Underlying channel prob blown up. Just ignore.
+                ldapWriter.unbindRequest(asn1Writer, nextMsgID.getAndIncrement(), unbindRequest);
+                connection.write(asn1Writer.getBuffer(), null);
+            } catch (final Exception ignore) {
+                /*
+                 * Underlying channel probably blown up. Ignore all errors,
+                 * including possibly runtime exceptions (see OPENDJ-672).
+                 */
+            } finally {
+                asn1Writer.recycle();
             }
         }
         factory.getTimeoutChecker().removeConnection(this);
