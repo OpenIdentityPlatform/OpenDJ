@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2013 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -145,6 +145,19 @@ public interface SearchRequest extends Request {
      *         maximum number of entries returned by the search.
      */
     int getSizeLimit();
+
+    /**
+     * Indicates whether search result is expected to be limited to a single entry.
+     * <p>
+     * It is the case if size limit is equal to 1 or if scope is equal to <code>SearchScope.BASE_OBJECT</code>.
+     * <p>
+     * If search results contain more than one entry, the search operation will throw
+     * a <code>MultipleEntriesFoundException</code>.
+     *
+     * @return {@code true} if the search is limited to a single entry result,
+     *         or {@code false} (the default) otherwise.
+     */
+    boolean isSingleEntrySearch();
 
     /**
      * Returns the time limit that should be used in order to restrict the
@@ -270,6 +283,8 @@ public interface SearchRequest extends Request {
      * A value of zero (the default) in this field indicates that no
      * client-requested size limit restrictions are in effect. Servers may also
      * enforce a maximum number of entries to return.
+     * <p>
+     * This method overrides the size limit set using a previous call to {@link #setSingleEntrySearch()}.
      *
      * @param limit
      *            The size limit that should be used in order to restrict the

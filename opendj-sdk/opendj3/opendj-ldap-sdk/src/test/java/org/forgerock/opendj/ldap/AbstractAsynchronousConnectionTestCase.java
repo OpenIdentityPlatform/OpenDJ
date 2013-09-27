@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS.
+ *      Portions copyright 2011-2013 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -30,6 +30,7 @@ package org.forgerock.opendj.ldap;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.assertions.Fail.fail;
 import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
+import static org.mockito.Mockito.*;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -65,15 +66,11 @@ public class AbstractAsynchronousConnectionTestCase extends SdkTestCase {
 
     private final class MockConnection extends AbstractAsynchronousConnection {
         private final ResultCode resultCode;
-        private final SearchResultEntry entry;
+        private final SearchResultEntry[] entries;
 
-        private MockConnection(ResultCode resultCode) {
-            this(resultCode, null);
-        }
-
-        private MockConnection(ResultCode resultCode, SearchResultEntry entry) {
+        private MockConnection(ResultCode resultCode, SearchResultEntry...entries) {
             this.resultCode = resultCode;
-            this.entry = entry;
+            this.entries = entries;
         }
 
         /**
@@ -222,14 +219,17 @@ public class AbstractAsynchronousConnectionTestCase extends SdkTestCase {
         public FutureResult<Result> searchAsync(SearchRequest request,
                 IntermediateResponseHandler intermediateResponseHandler,
                 SearchResultHandler resultHandler) {
-            if (entry != null) {
+            for (SearchResultEntry entry : entries) {
                 resultHandler.handleEntry(entry);
             }
-
-            if (!resultCode.isExceptional()) {
-                return new CompletedFutureResult<Result>(Responses.newResult(resultCode));
+            if (resultCode.isExceptional()) {
+                ErrorResultException errorResult = newErrorResult(resultCode);
+                resultHandler.handleErrorResult(errorResult);
+                return new CompletedFutureResult<Result>(errorResult);
             } else {
-                return new CompletedFutureResult<Result>(newErrorResult(resultCode));
+                Result result = Responses.newResult(resultCode);
+                resultHandler.handleResult(result);
+                return new CompletedFutureResult<Result>(result);
             }
         }
 
@@ -401,10 +401,144 @@ public class AbstractAsynchronousConnectionTestCase extends SdkTestCase {
         List<SearchResultEntry> entries = new LinkedList<SearchResultEntry>();
         try {
             mockConnection.search(searchRequest, entries);
-            fail();
+            failWasExpected(ErrorResultException.class);
         } catch (ErrorResultException e) {
             assertThat(e.getResult().getResultCode()).isEqualTo(ResultCode.UNWILLING_TO_PERFORM);
             assertThat(entries.isEmpty());
         }
     }
+
+    @Test()
+    public void testSingleEntrySearchRequestSuccess() throws Exception {
+        final SearchResultEntry entry = Responses.newSearchResultEntry("cn=test");
+        final Connection mockConnection = new MockConnection(ResultCode.SUCCESS, entry);
+        final SearchRequest request =
+                Requests.newSingleEntrySearchRequest("cn=test", SearchScope.BASE_OBJECT, "(objectClass=*)");
+        assertThat(mockConnection.searchSingleEntry(request)).isEqualTo(entry);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test()
+    public void testSingleEntrySearchAsyncRequestSuccess() throws Exception {
+        final SearchResultEntry entry = Responses.newSearchResultEntry("cn=test");
+        final Connection mockConnection = new MockConnection(ResultCode.SUCCESS, entry);
+        final SearchRequest request =
+                Requests.newSingleEntrySearchRequest("cn=test", SearchScope.BASE_OBJECT, "(objectClass=*)");
+        ResultHandler<SearchResultEntry> handler = mock(ResultHandler.class);
+
+        FutureResult<SearchResultEntry> futureResult = mockConnection.searchSingleEntryAsync(request, handler);
+
+        assertThat(futureResult.get()).isEqualTo(entry);
+        verify(handler).handleResult(any(SearchResultEntry.class));
+    }
+
+    @Test()
+    public void testSingleEntrySearchRequestNoEntryReturned() throws Exception {
+        final Connection mockConnection = new MockConnection(ResultCode.SUCCESS);
+        final SearchRequest request =
+                Requests.newSingleEntrySearchRequest("cn=test", SearchScope.BASE_OBJECT, "(objectClass=*)");
+        try {
+            mockConnection.searchSingleEntry(request);
+            failWasExpected(EntryNotFoundException.class);
+        } catch (EntryNotFoundException e) {
+            assertThat(e.getResult().getResultCode()).isEqualTo(ResultCode.CLIENT_SIDE_NO_RESULTS_RETURNED);
+        }
+    }
+
+    @Test()
+    public void testSingleEntrySearchRequestMultipleEntriesToReturn() throws Exception {
+        final Connection mockConnection = new MockConnection(ResultCode.SIZE_LIMIT_EXCEEDED,
+                Responses.newSearchResultEntry("cn=test"));
+        final SearchRequest request =
+                Requests.newSingleEntrySearchRequest("cn=test", SearchScope.BASE_OBJECT, "(objectClass=*)");
+        try {
+            mockConnection.searchSingleEntry(request);
+            failWasExpected(MultipleEntriesFoundException.class);
+        } catch (MultipleEntriesFoundException e) {
+            assertThat(e.getResult().getResultCode()).isEqualTo(ResultCode.CLIENT_SIDE_UNEXPECTED_RESULTS_RETURNED);
+        }
+    }
+
+    @Test()
+    public void testSingleEntrySearchRequestMultipleEntriesReturnedByServer() throws Exception {
+        // could happen if server does not enforce size limit
+        final Connection mockConnection = new MockConnection(ResultCode.SUCCESS,
+                Responses.newSearchResultEntry("cn=test"),
+                Responses.newSearchResultEntry("cn=test,ou=org"));
+        final SearchRequest request =
+                Requests.newSingleEntrySearchRequest("cn=test", SearchScope.WHOLE_SUBTREE, "(objectClass=*)");
+        try {
+            mockConnection.searchSingleEntry(request);
+            failWasExpected(MultipleEntriesFoundException.class);
+        } catch (MultipleEntriesFoundException e) {
+            assertThat(e.getResult().getResultCode()).isEqualTo(ResultCode.CLIENT_SIDE_UNEXPECTED_RESULTS_RETURNED);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test()
+    public void testSingleEntrySearchAsyncRequestMultipleEntriesToReturn() throws Exception {
+        final Connection mockConnection = new MockConnection(ResultCode.SIZE_LIMIT_EXCEEDED,
+                Responses.newSearchResultEntry("cn=test"));
+        final SearchRequest request =
+                Requests.newSingleEntrySearchRequest("cn=test", SearchScope.BASE_OBJECT, "(objectClass=*)");
+        ResultHandler<SearchResultEntry> handler = mock(ResultHandler.class);
+
+        try {
+            mockConnection.searchSingleEntryAsync(request, handler).get();
+            failWasExpected(MultipleEntriesFoundException.class);
+        } catch (MultipleEntriesFoundException e) {
+            assertThat(e.getResult().getResultCode()).isEqualTo(ResultCode.CLIENT_SIDE_UNEXPECTED_RESULTS_RETURNED);
+            verify(handler).handleErrorResult(any(ErrorResultException.class));
+        }
+    }
+
+    @Test()
+    public void testSingleEntrySearchAsyncRequestMultipleEntriesReturnedByServer() throws Exception {
+        // could happen if server does not enfore size limit
+        final Connection mockConnection = new MockConnection(ResultCode.SUCCESS,
+                Responses.newSearchResultEntry("cn=test"),
+                Responses.newSearchResultEntry("cn=test,ou=org"));
+        final SearchRequest request = Requests.newSingleEntrySearchRequest("cn=test", SearchScope.BASE_OBJECT,
+                "(objectClass=*)");
+        ResultHandler<SearchResultEntry> handler = mock(ResultHandler.class);
+
+        try {
+            mockConnection.searchSingleEntryAsync(request, handler).get();
+            failWasExpected(MultipleEntriesFoundException.class);
+        } catch (MultipleEntriesFoundException e) {
+            assertThat(e.getResult().getResultCode()).isEqualTo(ResultCode.CLIENT_SIDE_UNEXPECTED_RESULTS_RETURNED);
+            verify(handler).handleErrorResult(any(ErrorResultException.class));
+        }
+    }
+
+    @Test()
+    public void testSingleEntrySearchRequestFail() throws Exception {
+        final Connection mockConnection = new MockConnection(ResultCode.UNWILLING_TO_PERFORM);
+        final SearchRequest request =
+                Requests.newSingleEntrySearchRequest("cn=test", SearchScope.BASE_OBJECT, "(objectClass=*)");
+        try {
+            mockConnection.searchSingleEntry(request);
+            failWasExpected(ErrorResultException.class);
+        } catch (ErrorResultException e) {
+            assertThat(e.getResult().getResultCode()).isEqualTo(ResultCode.UNWILLING_TO_PERFORM);
+        }
+    }
+
+    @Test()
+    public void testSingleEntrySearchAsyncRequestFail() throws Exception {
+        final Connection mockConnection = new MockConnection(ResultCode.UNWILLING_TO_PERFORM);
+        final SearchRequest request =
+                Requests.newSingleEntrySearchRequest("cn=test", SearchScope.BASE_OBJECT, "(objectClass=*)");
+        ResultHandler<SearchResultEntry> handler = mock(ResultHandler.class);
+
+        try {
+            mockConnection.searchSingleEntryAsync(request, handler).get();
+            failWasExpected(ErrorResultException.class);
+        } catch (ErrorResultException e) {
+            assertThat(e.getResult().getResultCode()).isEqualTo(ResultCode.UNWILLING_TO_PERFORM);
+            verify(handler).handleErrorResult(any(ErrorResultException.class));
+        }
+    }
+
 }

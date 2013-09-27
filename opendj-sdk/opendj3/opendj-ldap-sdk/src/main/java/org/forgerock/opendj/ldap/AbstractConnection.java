@@ -29,7 +29,9 @@ package org.forgerock.opendj.ldap;
 
 import static com.forgerock.opendj.ldap.CoreMessages.ERR_NO_SEARCH_RESULT_ENTRIES;
 import static com.forgerock.opendj.ldap.CoreMessages.ERR_UNEXPECTED_SEARCH_RESULT_ENTRIES;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_UNEXPECTED_SEARCH_RESULT_ENTRIES_NO_COUNT;
 import static com.forgerock.opendj.ldap.CoreMessages.ERR_UNEXPECTED_SEARCH_RESULT_REFERENCES;
+
 import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
 
 import java.util.Collection;
@@ -67,11 +69,7 @@ public abstract class AbstractConnection implements Connection {
             SearchResultHandler {
         private final ResultHandler<? super SearchResultEntry> handler;
 
-        private volatile SearchResultEntry firstEntry = null;
-
-        private volatile SearchResultReference firstReference = null;
-
-        private volatile int entryCount = 0;
+        private final SingleEntryHandler singleEntryHandler = new SingleEntryHandler();
 
         private volatile FutureResult<Result> future = null;
 
@@ -86,14 +84,22 @@ public abstract class AbstractConnection implements Connection {
 
         @Override
         public SearchResultEntry get() throws ErrorResultException, InterruptedException {
-            future.get();
+            try {
+                future.get();
+            } catch (ErrorResultException e) {
+                throw singleEntryHandler.filterError(e);
+            }
             return get0();
         }
 
         @Override
-        public SearchResultEntry get(final long timeout, final TimeUnit unit)
-                throws ErrorResultException, TimeoutException, InterruptedException {
-            future.get(timeout, unit);
+        public SearchResultEntry get(final long timeout, final TimeUnit unit) throws ErrorResultException,
+                TimeoutException, InterruptedException {
+            try {
+                future.get(timeout, unit);
+            } catch (ErrorResultException e) {
+                throw singleEntryHandler.filterError(e);
+            }
             return get0();
         }
 
@@ -104,26 +110,20 @@ public abstract class AbstractConnection implements Connection {
 
         @Override
         public boolean handleEntry(final SearchResultEntry entry) {
-            if (firstEntry == null) {
-                firstEntry = entry;
-            }
-            entryCount++;
-            return true;
+            return singleEntryHandler.handleEntry(entry);
         }
 
         @Override
         public void handleErrorResult(final ErrorResultException error) {
             if (handler != null) {
-                handler.handleErrorResult(error);
+                ErrorResultException finalError = singleEntryHandler.filterError(error);
+                handler.handleErrorResult(finalError);
             }
         }
 
         @Override
         public boolean handleReference(final SearchResultReference reference) {
-            if (firstReference == null) {
-                firstReference = reference;
-            }
-            return true;
+            return singleEntryHandler.handleReference(reference);
         }
 
         @Override
@@ -148,21 +148,11 @@ public abstract class AbstractConnection implements Connection {
         }
 
         private SearchResultEntry get0() throws ErrorResultException {
-            if (entryCount == 0) {
-                // Did not find any entries.
-                throw newErrorResult(ResultCode.CLIENT_SIDE_NO_RESULTS_RETURNED,
-                        ERR_NO_SEARCH_RESULT_ENTRIES.get().toString());
-            } else if (entryCount > 1) {
-                // Got more entries than expected.
-                throw newErrorResult(ResultCode.CLIENT_SIDE_UNEXPECTED_RESULTS_RETURNED,
-                        ERR_UNEXPECTED_SEARCH_RESULT_ENTRIES.get(entryCount).toString());
-            } else if (firstReference != null) {
-                // Got an unexpected search result reference.
-                throw newErrorResult(ResultCode.CLIENT_SIDE_UNEXPECTED_RESULTS_RETURNED,
-                        ERR_UNEXPECTED_SEARCH_RESULT_REFERENCES.get(
-                                firstReference.getURIs().iterator().next()).toString());
+            ErrorResultException exception = singleEntryHandler.checkForClientSideError();
+            if (exception == null) {
+                return singleEntryHandler.firstEntry;
             } else {
-                return firstEntry;
+                throw exception;
             }
         }
 
@@ -192,7 +182,7 @@ public abstract class AbstractConnection implements Connection {
          */
         @Override
         public void handleErrorResult(final ErrorResultException error) {
-            // Ignore.
+            // Ignore
         }
 
         @Override
@@ -209,6 +199,50 @@ public abstract class AbstractConnection implements Connection {
         @Override
         public void handleResult(final Result result) {
             // Ignore.
+        }
+
+        /**
+         * Filter the provided error in order to transform size limit exceeded error to a client side error,
+         * or leave it as is for any other error.
+         *
+         * @param error to filter
+         * @return provided error in most case, or <code>ResultCode.CLIENT_SIDE_UNEXPECTED_RESULTS_RETURNED</code>
+         * error if provided error is <code>ResultCode.SIZE_LIMIT_EXCEEDED</code>
+         */
+        public ErrorResultException filterError(final ErrorResultException error) {
+            if (error.getResult().getResultCode().equals(ResultCode.SIZE_LIMIT_EXCEEDED)) {
+                return newErrorResult(ResultCode.CLIENT_SIDE_UNEXPECTED_RESULTS_RETURNED,
+                        ERR_UNEXPECTED_SEARCH_RESULT_ENTRIES_NO_COUNT.get().toString());
+            } else {
+                return error;
+            }
+        }
+
+        /**
+         * Check for any error related to number of search result at client-side level: no result,
+         * too many result, search result reference.
+         *
+         * This method should be called only after search operation is finished.
+         *
+         * @return an <code>ErrorResultException</code> if an error is detected, <code>null</code> otherwise
+         */
+        public ErrorResultException checkForClientSideError() {
+            ErrorResultException exception = null;
+            if (entryCount == 0) {
+                // Did not find any entries.
+                exception = newErrorResult(ResultCode.CLIENT_SIDE_NO_RESULTS_RETURNED, ERR_NO_SEARCH_RESULT_ENTRIES
+                        .get().toString());
+            } else if (entryCount > 1) {
+                // Got more entries than expected.
+                exception = newErrorResult(ResultCode.CLIENT_SIDE_UNEXPECTED_RESULTS_RETURNED,
+                        ERR_UNEXPECTED_SEARCH_RESULT_ENTRIES.get(entryCount).toString());
+            } else if (firstReference != null) {
+                // Got an unexpected search result reference.
+                exception = newErrorResult(ResultCode.CLIENT_SIDE_UNEXPECTED_RESULTS_RETURNED,
+                        ERR_UNEXPECTED_SEARCH_RESULT_REFERENCES.get(firstReference.getURIs().iterator().next())
+                                .toString());
+            }
+            return exception;
         }
 
     }
@@ -410,7 +444,7 @@ public abstract class AbstractConnection implements Connection {
     public SearchResultEntry readEntry(final DN baseObject, final String... attributeDescriptions)
             throws ErrorResultException {
         final SearchRequest request =
-                Requests.newSearchRequest(baseObject, SearchScope.BASE_OBJECT, Filter
+                Requests.newSingleEntrySearchRequest(baseObject, SearchScope.BASE_OBJECT, Filter
                         .objectClassPresent(), attributeDescriptions);
         return searchSingleEntry(request);
     }
@@ -432,8 +466,9 @@ public abstract class AbstractConnection implements Connection {
             final Collection<String> attributeDescriptions,
             final ResultHandler<? super SearchResultEntry> handler) {
         final SearchRequest request =
-                Requests.newSearchRequest(name, SearchScope.BASE_OBJECT, Filter
-                        .objectClassPresent());
+                Requests.newSingleEntrySearchRequest(
+                        name, SearchScope.BASE_OBJECT,
+                        Filter.objectClassPresent());
         if (attributeDescriptions != null) {
             request.getAttributes().addAll(attributeDescriptions);
         }
@@ -521,23 +556,16 @@ public abstract class AbstractConnection implements Connection {
     public SearchResultEntry searchSingleEntry(final SearchRequest request)
             throws ErrorResultException {
         final SingleEntryHandler handler = new SingleEntryHandler();
-        search(request, handler);
-
-        if (handler.entryCount == 0) {
-            // Did not find any entries.
-            throw newErrorResult(ResultCode.CLIENT_SIDE_NO_RESULTS_RETURNED,
-                    ERR_NO_SEARCH_RESULT_ENTRIES.get().toString());
-        } else if (handler.entryCount > 1) {
-            // Got more entries than expected.
-            throw newErrorResult(ResultCode.CLIENT_SIDE_UNEXPECTED_RESULTS_RETURNED,
-                    ERR_UNEXPECTED_SEARCH_RESULT_ENTRIES.get(handler.entryCount).toString());
-        } else if (handler.firstReference != null) {
-            // Got an unexpected search result reference.
-            throw newErrorResult(ResultCode.CLIENT_SIDE_UNEXPECTED_RESULTS_RETURNED,
-                    ERR_UNEXPECTED_SEARCH_RESULT_REFERENCES.get(
-                            handler.firstReference.getURIs().iterator().next()).toString());
-        } else {
+        try {
+            search(enforceSingleEntrySearchRequest(request), handler);
+        } catch (ErrorResultException e) {
+            throw handler.filterError(e);
+        }
+        ErrorResultException error = handler.checkForClientSideError();
+        if (error == null) {
             return handler.firstEntry;
+        } else {
+            throw error;
         }
     }
 
@@ -548,7 +576,7 @@ public abstract class AbstractConnection implements Connection {
     public SearchResultEntry searchSingleEntry(final String baseObject, final SearchScope scope,
             final String filter, final String... attributeDescriptions) throws ErrorResultException {
         final SearchRequest request =
-                Requests.newSearchRequest(baseObject, scope, filter, attributeDescriptions);
+                Requests.newSingleEntrySearchRequest(baseObject, scope, filter, attributeDescriptions);
         return searchSingleEntry(request);
     }
 
@@ -559,9 +587,25 @@ public abstract class AbstractConnection implements Connection {
     public FutureResult<SearchResultEntry> searchSingleEntryAsync(final SearchRequest request,
             final ResultHandler<? super SearchResultEntry> handler) {
         final SingleEntryFuture innerFuture = new SingleEntryFuture(handler);
-        final FutureResult<Result> future = searchAsync(request, null, innerFuture);
+        final FutureResult<Result> future =
+                searchAsync(enforceSingleEntrySearchRequest(request), null, innerFuture);
         innerFuture.setResultFuture(future);
         return innerFuture;
+    }
+
+    /**
+     * Ensure that a single entry search request is returned, based on provided request.
+     *
+     * @param request
+     *            to be checked
+     * @return a single entry search request, equal to or based on the provided request
+     */
+    private SearchRequest enforceSingleEntrySearchRequest(final SearchRequest request) {
+        if (request.isSingleEntrySearch()) {
+            return request;
+        } else {
+            return Requests.copyOfSearchRequest(request).setSizeLimit(1);
+        }
     }
 
     /**
