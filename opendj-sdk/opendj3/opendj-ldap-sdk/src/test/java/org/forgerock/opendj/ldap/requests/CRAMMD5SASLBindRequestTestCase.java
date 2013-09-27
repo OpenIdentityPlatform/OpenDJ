@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2013 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -39,24 +39,14 @@ import org.testng.annotations.DataProvider;
 public class CRAMMD5SASLBindRequestTestCase extends BindRequestTestCase {
     @DataProvider(name = "CRAMMD5SASLBindRequests")
     public Object[][] getCRAMMD5SASLBindRequests() throws Exception {
-        final CRAMMD5SASLBindRequest[] requests = {
-                Requests.newCRAMMD5SASLBindRequest("id1", EMPTY_BYTES),
-                Requests.newCRAMMD5SASLBindRequest("id2", getBytes("test"))
-        };
-        final Object[][] objArray = new Object[requests.length][1];
-        for (int i = 0; i < requests.length; i++) {
-            objArray[i][0] = requests[i];
-        }
-        return objArray;
+        return getTestRequests();
     }
 
     @Override
     protected CRAMMD5SASLBindRequest[] createTestRequests() throws Exception {
-        final Object[][] objs = getCRAMMD5SASLBindRequests();
-        final CRAMMD5SASLBindRequest[] ops = new CRAMMD5SASLBindRequest[objs.length];
-        for (int i = 0; i < objs.length; i++) {
-            ops[i] = (CRAMMD5SASLBindRequest) objs[i][0];
-        }
-        return ops;
+        return new CRAMMD5SASLBindRequest[] {
+                Requests.newCRAMMD5SASLBindRequest("id1", EMPTY_BYTES),
+                Requests.newCRAMMD5SASLBindRequest("id2", getBytes("test"))
+        };
     }
 }
