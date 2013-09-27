@@ -29,6 +29,7 @@ import static org.fest.assertions.Assertions.assertThat;
 import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
 import static org.forgerock.opendj.ldap.responses.Responses.newGenericExtendedResult;
 import static org.mockito.Matchers.same;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -37,6 +38,8 @@ import org.forgerock.opendj.ldap.ConnectionEventListener;
 import org.forgerock.opendj.ldap.ErrorResultException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.responses.ExtendedResult;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 import org.testng.annotations.Test;
 
 /**
@@ -246,5 +249,29 @@ public class ConnectionStateTest extends LDAPTestCase {
         assertThat(state.isValid()).isTrue();
         assertThat(state.isClosed()).isFalse();
         assertThat(state.getConnectionError()).isNull();
+    }
+
+    /**
+     * Tests that reentrant close from error listener is handled.
+     */
+    @Test
+    public void testReentrantClose() {
+        final ConnectionState state = new ConnectionState();
+        final ConnectionEventListener listener1 = mock(ConnectionEventListener.class);
+        doAnswer(new Answer<Void>() {
+            public Void answer(InvocationOnMock invocation) {
+                state.notifyConnectionClosed();
+                return null;
+            }
+        }).when(listener1).handleConnectionError(false, ERROR);
+
+        state.addConnectionEventListener(listener1);
+        state.notifyConnectionError(false, ERROR);
+
+        assertThat(state.isValid()).isFalse();
+        assertThat(state.isClosed()).isTrue();
+        assertThat(state.getConnectionError()).isSameAs(ERROR);
+        verify(listener1).handleConnectionError(false, ERROR);
+        verify(listener1).handleConnectionClosed();
     }
 }

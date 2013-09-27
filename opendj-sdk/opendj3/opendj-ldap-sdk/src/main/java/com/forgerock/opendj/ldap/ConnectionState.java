@@ -98,10 +98,10 @@ public final class ConnectionState {
 
             @Override
             boolean notifyConnectionClosed(final ConnectionState cs) {
+                cs.state = CLOSED;
                 for (final ConnectionEventListener listener : cs.listeners) {
                     listener.handleConnectionClosed();
                 }
-                cs.state = CLOSED;
                 return true;
             }
 
@@ -111,11 +111,15 @@ public final class ConnectionState {
                 // Transition from valid to error state.
                 cs.failedDueToDisconnect = isDisconnectNotification;
                 cs.connectionError = error;
+                cs.state = ERROR;
+                /*
+                 * FIXME: a re-entrant close will invoke close listeners before
+                 * error notification has completed.
+                 */
                 for (final ConnectionEventListener listener : cs.listeners) {
                     // Use the reason provided in the disconnect notification.
                     listener.handleConnectionError(isDisconnectNotification, error);
                 }
-                cs.state = ERROR;
                 return true;
             }
 
@@ -156,10 +160,10 @@ public final class ConnectionState {
 
             @Override
             boolean notifyConnectionClosed(final ConnectionState cs) {
+                cs.state = ERROR_CLOSED;
                 for (final ConnectionEventListener listener : cs.listeners) {
                     listener.handleConnectionClosed();
                 }
-                cs.state = ERROR_CLOSED;
                 return true;
             }
         },
