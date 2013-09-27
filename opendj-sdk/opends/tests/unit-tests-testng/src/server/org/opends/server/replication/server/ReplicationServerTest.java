@@ -251,41 +251,16 @@ public class ReplicationServerTest extends ReplicationTestCase
        */
       unknownCSNServer1 = new CSN(time + 1, 1, 1);
 
-      /*
-       * Send and receive a Delete Msg from server 1 to server 2
-       */
-      DeleteMsg msg = new DeleteMsg(EXAMPLE_DN, firstCSNServer1, "uid");
-      server1.publish(msg);
-      ReplicationMsg msg2 = server2.receive();
-      server2.updateWindowAfterReplay();
-      assertDeleteMsgBodyEquals(msg, msg2);
+      sendAndReceiveDeleteMsg(server1, server2, EXAMPLE_DN, firstCSNServer1, "uid");
 
-      /*
-       * Send and receive a second Delete Msg
-       */
-      msg = new DeleteMsg(TEST_ROOT_DN, secondCSNServer1, "uid");
-      server1.publish(msg);
-      msg2 = server2.receive();
-      server2.updateWindowAfterReplay();
-      assertDeleteMsgBodyEquals(msg, msg2);
+      // Send and receive a second Delete Msg
+      sendAndReceiveDeleteMsg(server1, server2, TEST_ROOT_DN, secondCSNServer1, "uid");
 
-      /*
-       * Send and receive a Delete Msg from server 2 to server 1
-       */
-      msg = new DeleteMsg(EXAMPLE_DN, firstCSNServer2, "other-uid");
-      server2.publish(msg);
-      msg2 = server1.receive();
-      server1.updateWindowAfterReplay();
-      assertDeleteMsgBodyEquals(msg, msg2);
+      // Send and receive a Delete Msg from server 2 to server 1
+      sendAndReceiveDeleteMsg(server2, server1, EXAMPLE_DN, firstCSNServer2, "other-uid");
 
-      /*
-       * Send and receive a second Delete Msg
-       */
-      msg = new DeleteMsg(TEST_ROOT_DN, secondCSNServer2, "uid");
-      server2.publish(msg);
-      msg2 = server1.receive();
-      server1.updateWindowAfterReplay();
-      assertDeleteMsgBodyEquals(msg, msg2);
+      // Send and receive a second Delete Msg
+      sendAndReceiveDeleteMsg(server2, server1, TEST_ROOT_DN, secondCSNServer2, "uid");
 
       debugInfo("Ending changelogBasic");
     }
@@ -293,6 +268,16 @@ public class ReplicationServerTest extends ReplicationTestCase
     {
       stop(server1, server2);
     }
+  }
+
+  private void sendAndReceiveDeleteMsg(ReplicationBroker sender, ReplicationBroker receiver,
+      DN dn, CSN csn, String entryUUID) throws Exception
+  {
+    DeleteMsg sentMsg = new DeleteMsg(dn, csn, entryUUID);
+    sender.publish(sentMsg);
+    ReplicationMsg receivedMsg = receiver.receive();
+    receiver.updateWindowAfterReplay();
+    assertDeleteMsgBodyEquals(sentMsg, receivedMsg);
   }
 
   private void assertDeleteMsgBodyEquals(DeleteMsg msg, ReplicationMsg msg2)
@@ -303,6 +288,16 @@ public class ReplicationServerTest extends ReplicationTestCase
     DeleteMsg del = (DeleteMsg) msg2;
     assertEquals(del.toString(), msg.toString(),
         "ReplicationServer basic : incorrect message body received.");
+  }
+
+  private ServerState newServerState(CSN... csns)
+  {
+    ServerState state = new ServerState();
+    for (CSN csn : csns)
+    {
+      state.update(csn);
+    }
+    return state;
   }
 
   /**
@@ -319,9 +314,9 @@ public class ReplicationServerTest extends ReplicationTestCase
           3, 100, replicationServerPort, 1000, false);
       assertTrue(broker.isConnected());
 
-      ReplicationMsg msg2 = broker.receive();
+      ReplicationMsg receivedMsg = broker.receive();
       broker.updateWindowAfterReplay();
-      assertDeleteMsgCSNEquals(msg2, firstCSNServer1, "first");
+      assertDeleteMsgCSNEquals(receivedMsg, firstCSNServer1, "first");
       debugInfo("Ending newClient");
     }
     finally
@@ -329,8 +324,6 @@ public class ReplicationServerTest extends ReplicationTestCase
       stop(broker);
     }
   }
-
-
 
   /**
    * Test that a client that has already seen some changes now receive
@@ -345,9 +338,9 @@ public class ReplicationServerTest extends ReplicationTestCase
       broker = openReplicationSession(TEST_ROOT_DN,
           3, 100, replicationServerPort, 5000, state);
 
-      ReplicationMsg msg2 = broker.receive();
+      ReplicationMsg receivedMsg = broker.receive();
       broker.updateWindowAfterReplay();
-      assertDeleteMsgCSNEquals(msg2, nextCSN, "second");
+      assertDeleteMsgCSNEquals(receivedMsg, nextCSN, "second");
     }
     finally
     {
@@ -383,10 +376,7 @@ public class ReplicationServerTest extends ReplicationTestCase
      * Create a ServerState updated with the first changes from both servers
      * done in test changelogBasic.
      */
-    ServerState state = new ServerState();
-    state.update(firstCSNServer1);
-    state.update(firstCSNServer2);
-
+    ServerState state = newServerState(firstCSNServer1, firstCSNServer2);
     newClientWithChanges(state, secondCSNServer1);
     debugInfo("Ending newClientWithFirstChanges");
   }
@@ -398,13 +388,7 @@ public class ReplicationServerTest extends ReplicationTestCase
   private void newClientWithUnknownChanges() throws Exception
   {
     debugInfo("Starting newClientWithUnknownChanges");
-    /*
-     * Create a ServerState with wrongCSNServer1
-     */
-    ServerState state = new ServerState();
-    state.update(unknownCSNServer1);
-    state.update(secondCSNServer2);
-
+    ServerState state = newServerState(unknownCSNServer1, secondCSNServer2);
     newClientWithChanges(state, secondCSNServer1);
     debugInfo("Ending newClientWithUnknownChanges");
   }
@@ -416,12 +400,7 @@ public class ReplicationServerTest extends ReplicationTestCase
   private void newClientWithChangefromServer1() throws Exception
   {
     debugInfo("Starting newClientWithChangefromServer1");
-    /*
-     * Create a ServerState updated with the first change from server 1
-     */
-    ServerState state = new ServerState();
-    state.update(firstCSNServer1);
-
+    ServerState state = newServerState(firstCSNServer1);
     newClientWithChanges(state, firstCSNServer2);
     debugInfo("Ending newClientWithChangefromServer1");
   }
@@ -433,12 +412,7 @@ public class ReplicationServerTest extends ReplicationTestCase
   private void newClientWithChangefromServer2() throws Exception
   {
     debugInfo("Starting newClientWithChangefromServer2");
-    /*
-     * Create a ServerState updated with the first change from server 1
-     */
-    ServerState state = new ServerState();
-    state.update(firstCSNServer2);
-
+    ServerState state = newServerState(firstCSNServer2);
     newClientWithChanges(state, firstCSNServer1);
     debugInfo("Ending newClientWithChangefromServer2");
   }
@@ -450,13 +424,7 @@ public class ReplicationServerTest extends ReplicationTestCase
   private void newClientLateServer1() throws Exception
   {
     debugInfo("Starting newClientLateServer1");
-    /*
-     * Create a ServerState updated with the first change from server 1
-     */
-    ServerState state = new ServerState();
-    state.update(secondCSNServer2);
-    state.update(firstCSNServer1);
-
+    ServerState state = newServerState(secondCSNServer2, firstCSNServer1);
     newClientWithChanges(state, secondCSNServer1);
     debugInfo("Ending newClientLateServer1");
   }
@@ -511,7 +479,7 @@ public class ReplicationServerTest extends ReplicationTestCase
        * Open a sender session
        */
       server = openReplicationSession(TEST_ROOT_DN,
-          5, 100, replicationServerPort, 100000, 1000, 0, false);
+          5, 100, replicationServerPort, 100000, false);
       assertTrue(server.isConnected());
 
       reader = new BrokerReader(server, TOTAL_MSG);
@@ -596,7 +564,7 @@ public class ReplicationServerTest extends ReplicationTestCase
         int serverId = 10 + i;
         CSNGenerator gen = new CSNGenerator(serverId , 0);
         broker[i] = openReplicationSession(TEST_ROOT_DN,
-            serverId, 100, replicationServerPort, 3000, 1000, 0, true);
+            serverId, 100, replicationServerPort, 3000, true);
         assertTrue(broker[i].isConnected());
 
         producer[i] = new BrokerWriter(broker[i], gen, TOTAL_MSG/THREADS);
@@ -723,9 +691,8 @@ public class ReplicationServerTest extends ReplicationTestCase
 
         // - Modify
         Attribute attr1 = Attributes.create("description", "new value");
-        Modification mod1 = new Modification(ModificationType.REPLACE, attr1);
-        List<Modification> mods = new ArrayList<Modification>();
-        mods.add(mod1);
+        List<Modification> mods =
+            Arrays.asList(new Modification(ModificationType.REPLACE, attr1));
         ModifyMsg modMsg = new ModifyMsg(csnGen.newCSN(), EXAMPLE_DN, mods, "fakeuniqueid");
         broker1.publish(modMsg);
 
@@ -821,9 +788,8 @@ public class ReplicationServerTest extends ReplicationTestCase
 
         // - Modify
         Attribute attr1 = Attributes.create("description", "new value");
-        Modification mod1 = new Modification(ModificationType.REPLACE, attr1);
-        List<Modification> mods = new ArrayList<Modification>();
-        mods.add(mod1);
+        List<Modification> mods =
+            Arrays.asList(new Modification(ModificationType.REPLACE, attr1));
         ModifyMsg modMsg = new ModifyMsg(csnGen.newCSN(), EXAMPLE_DN, mods, "fakeuniqueid");
         broker1.publish(modMsg);
 
@@ -1188,9 +1154,8 @@ public class ReplicationServerTest extends ReplicationTestCase
       debugInfo("Ending export");
     }
 
-   private Entry createBackupTask()
-   throws Exception
-   {
+  private Entry createBackupTask() throws Exception
+  {
      return TestCaseUtils.makeEntry(
      "dn: ds-task-id=" + UUID.randomUUID() + ",cn=Scheduled Tasks,cn=Tasks",
      "objectclass: top",
@@ -1200,12 +1165,10 @@ public class ReplicationServerTest extends ReplicationTestCase
      "ds-backup-directory-path: bak" + File.separator +
                         "replicationChanges",
      "ds-task-backup-backend-id: replicationChanges");
+  }
 
-   }
-
-   private Entry createRestoreTask()
-   throws Exception
-   {
+  private Entry createRestoreTask() throws Exception
+  {
      return TestCaseUtils.makeEntry(
      "dn: ds-task-id=" + UUID.randomUUID() + ",cn=Scheduled Tasks,cn=Tasks",
      "objectclass: top",
@@ -1214,11 +1177,10 @@ public class ReplicationServerTest extends ReplicationTestCase
      "ds-task-class-name: org.opends.server.tasks.RestoreTask",
      "ds-backup-directory-path: bak" + File.separator +
                         "replicationChanges");
-   }
+  }
 
-   private Entry createExportAllTask()
-   throws Exception
-   {
+  private Entry createExportAllTask() throws Exception
+  {
      return TestCaseUtils.makeEntry(
      "dn: ds-task-id=" + UUID.randomUUID() + ",cn=Scheduled Tasks,cn=Tasks",
      "objectclass: top",
@@ -1228,11 +1190,10 @@ public class ReplicationServerTest extends ReplicationTestCase
      "ds-task-export-ldif-file: " + exportLDIFAllFile,
      "ds-task-export-backend-id: replicationChanges",
      "ds-task-export-include-branch: dc=replicationChanges");
-   }
+  }
 
-   private Entry createExportDomainTask(String suffix)
-   throws Exception
-   {
+  private Entry createExportDomainTask(String suffix) throws Exception
+  {
      String root = suffix.substring(suffix.indexOf('=')+1, suffix.indexOf(','));
      exportLDIFDomainFile = "exportLDIF" + root +".ldif";
      return TestCaseUtils.makeEntry(
@@ -1244,7 +1205,7 @@ public class ReplicationServerTest extends ReplicationTestCase
      "ds-task-export-ldif-file: " + exportLDIFDomainFile,
      "ds-task-export-backend-id: replicationChanges",
      "ds-task-export-include-branch: "+suffix+",dc=replicationChanges");
-   }
+  }
 
    private List<UpdateMsg> createChanges(String suffix, int serverId) throws Exception
    {
@@ -1293,13 +1254,13 @@ public class ReplicationServerTest extends ReplicationTestCase
 
        // - Modify
        Attribute attr1 = Attributes.create("description", "new value");
-       Modification mod1 = new Modification(ModificationType.REPLACE, attr1);
        Attribute attr2 = Attributes.create("modifiersName", "cn=Directory Manager,cn=Root DNs,cn=config");
-       Modification mod2 = new Modification(ModificationType.REPLACE, attr2);
        Attribute attr3 = Attributes.create("modifyTimestamp", "20070917172420Z");
-       Modification mod3 = new Modification(ModificationType.REPLACE, attr3);
 
-       List<Modification> mods = Arrays.asList(mod1, mod2, mod3);
+       List<Modification> mods = Arrays.asList(
+           new Modification(ModificationType.REPLACE, attr1),
+           new Modification(ModificationType.REPLACE, attr2),
+           new Modification(ModificationType.REPLACE, attr3));
 
        DN dn = exampleSuffixDN;
        ModifyMsg modMsg = new ModifyMsg(csnGen.newCSN(), dn, mods, "fakeuniqueid");
@@ -1629,9 +1590,8 @@ public class ReplicationServerTest extends ReplicationTestCase
 
          // - Modify
          Attribute attr1 = Attributes.create("description", "new value");
-         Modification mod1 = new Modification(ModificationType.REPLACE, attr1);
-         List<Modification> mods = new ArrayList<Modification>();
-         mods.add(mod1);
+      List<Modification> mods =
+          Arrays.asList(new Modification(ModificationType.REPLACE, attr1));
          ModifyMsg modMsg = new ModifyMsg(csnGen.newCSN(), EXAMPLE_DN, mods, "fakeuniqueid");
          broker1.publish(modMsg);
 
