@@ -295,7 +295,6 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements Con
     public void close(final UnbindRequest request, final String reason) {
         // FIXME: I18N need to internationalize this message.
         Validator.ensureNotNull(request);
-
         close(request, false, Responses.newResult(ResultCode.CLIENT_SIDE_USER_CANCELLED)
                 .setDiagnosticMessage(
                         "Connection closed by client" + (reason != null ? ": " + reason : "")));
@@ -624,25 +623,27 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements Con
             }
         }
 
-        // Now try cleanly closing the connection if possible.
-        // Only send unbind if specified.
-        if (unbindRequest != null) {
+        /*
+         * If this is the final client initiated close then release close the
+         * connection and release resources.
+         */
+        if (notifyClose) {
+            final ASN1BufferWriter asn1Writer = ASN1BufferWriter.getWriter();
             try {
-                final ASN1BufferWriter asn1Writer = ASN1BufferWriter.getWriter();
-                try {
-                    ldapWriter
-                            .unbindRequest(asn1Writer, nextMsgID.getAndIncrement(), unbindRequest);
-                    connection.write(asn1Writer.getBuffer(), null);
-                } finally {
-                    asn1Writer.recycle();
-                }
-            } catch (final IOException e) {
-                // Underlying channel prob blown up. Just ignore.
+                ldapWriter.unbindRequest(asn1Writer, nextMsgID.getAndIncrement(), unbindRequest);
+                connection.write(asn1Writer.getBuffer(), null);
+            } catch (final Exception ignore) {
+                /*
+                 * Underlying channel probably blown up. Ignore all errors,
+                 * including possibly runtime exceptions (see OPENDJ-672).
+                 */
+            } finally {
+                asn1Writer.recycle();
             }
+            factory.getTimeoutChecker().removeConnection(this);
+            connection.closeSilently();
+            factory.releaseTransportAndTimeoutChecker();
         }
-        factory.getTimeoutChecker().removeConnection(this);
-        connection.closeSilently();
-        factory.releaseTransportAndTimeoutChecker();
 
         // Notify listeners.
         if (tmpListeners != null) {
