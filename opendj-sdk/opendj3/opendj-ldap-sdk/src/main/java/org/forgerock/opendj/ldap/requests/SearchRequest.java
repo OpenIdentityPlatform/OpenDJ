@@ -283,8 +283,6 @@ public interface SearchRequest extends Request {
      * A value of zero (the default) in this field indicates that no
      * client-requested size limit restrictions are in effect. Servers may also
      * enforce a maximum number of entries to return.
-     * <p>
-     * This method overrides the size limit set using a previous call to {@link #setSingleEntrySearch()}.
      *
      * @param limit
      *            The size limit that should be used in order to restrict the
