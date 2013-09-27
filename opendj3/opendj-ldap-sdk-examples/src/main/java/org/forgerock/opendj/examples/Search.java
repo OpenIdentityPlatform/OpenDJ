@@ -50,7 +50,6 @@ import org.forgerock.opendj.ldif.LDIFEntryWriter;
  *      &lt;baseDN> &lt;scope> &lt;filter> [&lt;attibute> &lt;attribute> ...]
  * </pre>
  */
-@SuppressWarnings("resource")
 public final class Search {
     /**
      * Main method.

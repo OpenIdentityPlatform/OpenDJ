@@ -61,7 +61,7 @@ import com.forgerock.opendj.util.CompletedFutureResult;
  * Unit test for AbstractAsynchronousConnection. The tests verify that all
  * synchronous operation methods delegate to the equivalent asynchronous method.
  */
-@SuppressWarnings({ "javadoc", "resource" })
+@SuppressWarnings("javadoc")
 public class AbstractAsynchronousConnectionTestCase extends SdkTestCase {
 
     private final class MockConnection extends AbstractAsynchronousConnection {
@@ -501,8 +501,8 @@ public class AbstractAsynchronousConnectionTestCase extends SdkTestCase {
                 Responses.newSearchResultEntry("cn=test,ou=org"));
         final SearchRequest request = Requests.newSingleEntrySearchRequest("cn=test", SearchScope.BASE_OBJECT,
                 "(objectClass=*)");
+        @SuppressWarnings("unchecked")
         ResultHandler<SearchResultEntry> handler = mock(ResultHandler.class);
-
         try {
             mockConnection.searchSingleEntryAsync(request, handler).get();
             failWasExpected(MultipleEntriesFoundException.class);
@@ -530,8 +530,8 @@ public class AbstractAsynchronousConnectionTestCase extends SdkTestCase {
         final Connection mockConnection = new MockConnection(ResultCode.UNWILLING_TO_PERFORM);
         final SearchRequest request =
                 Requests.newSingleEntrySearchRequest("cn=test", SearchScope.BASE_OBJECT, "(objectClass=*)");
+        @SuppressWarnings("unchecked")
         ResultHandler<SearchResultEntry> handler = mock(ResultHandler.class);
-
         try {
             mockConnection.searchSingleEntryAsync(request, handler).get();
             failWasExpected(ErrorResultException.class);

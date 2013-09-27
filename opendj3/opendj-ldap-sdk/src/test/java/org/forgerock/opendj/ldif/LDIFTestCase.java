@@ -2360,7 +2360,6 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @SuppressWarnings("resource")
     @Test(expectedExceptions = DecodeException.class)
     public final void testLdifPatchInvalidChangeRecord() throws Exception {
         // @formatter:off
@@ -2399,7 +2398,6 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @SuppressWarnings("resource")
     @Test(expectedExceptions = DecodeException.class)
     public final void testFailFastPatchOnModifyRequestFailsDueToWrongDN() throws Exception {
 
@@ -2437,7 +2435,6 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @SuppressWarnings("resource")
     @Test()
     public final void testOverwritePatchOnModifyRequestSucceedsEvenIfWrongDN() throws Exception {
 
@@ -2485,7 +2482,6 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @SuppressWarnings("resource")
     @Test(expectedExceptions = DecodeException.class)
     public final void testFailFastPatchOnModifyDNRequestFailsDueToWrongDN() throws Exception {
         final RejectedChangeRecordListener listener = RejectedChangeRecordListener.FAIL_FAST;
@@ -2522,7 +2518,6 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @SuppressWarnings("resource")
     @Test()
     public final void testOverwritePatchOnModifyDNRequestSucceedsEvenWithWrongDN() throws Exception {
         final RejectedChangeRecordListener listener = RejectedChangeRecordListener.OVERWRITE;
@@ -2569,7 +2564,6 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @SuppressWarnings("resource")
     @Test(expectedExceptions = DecodeException.class)
     public final void testFailFastPatchOnModifyDNRequestFailsDueToDuplicateEntry() throws Exception {
         final RejectedChangeRecordListener listener = RejectedChangeRecordListener.FAIL_FAST;
@@ -2616,7 +2610,6 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
      *
      * @throws Exception
      */
-    @SuppressWarnings("resource")
     @Test()
     public final void testOverwritePatchOnModifyDNRequestSucceedsEvenWithDuplicateEntry() throws Exception {
         final RejectedChangeRecordListener listener = RejectedChangeRecordListener.OVERWRITE;
