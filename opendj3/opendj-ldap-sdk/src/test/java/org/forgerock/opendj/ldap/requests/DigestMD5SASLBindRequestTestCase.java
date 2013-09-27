@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2013 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -43,25 +43,15 @@ import org.testng.annotations.Test;
 public class DigestMD5SASLBindRequestTestCase extends BindRequestTestCase {
     @DataProvider(name = "DigestMD5SASLBindRequests")
     public Object[][] getDigestMD5SASLBindRequests() throws Exception {
-        final DigestMD5SASLBindRequest[] requests = {
-                Requests.newDigestMD5SASLBindRequest("id1", EMPTY_BYTES),
-                Requests.newDigestMD5SASLBindRequest("id2", getBytes("password"))
-        };
-        final Object[][] objArray = new Object[requests.length][1];
-        for (int i = 0; i < requests.length; i++) {
-            objArray[i][0] = requests[i];
-        }
-        return objArray;
+        return getTestRequests();
     }
 
     @Override
     protected DigestMD5SASLBindRequest[] createTestRequests() throws Exception {
-        final Object[][] objs = getDigestMD5SASLBindRequests();
-        final DigestMD5SASLBindRequest[] ops = new DigestMD5SASLBindRequest[objs.length];
-        for (int i = 0; i < objs.length; i++) {
-            ops[i] = (DigestMD5SASLBindRequest) objs[i][0];
-        }
-        return ops;
+        return new DigestMD5SASLBindRequest[] {
+                Requests.newDigestMD5SASLBindRequest("id1", EMPTY_BYTES),
+                Requests.newDigestMD5SASLBindRequest("id2", getBytes("password"))
+        };
     }
 
     @Test(dataProvider = "DigestMD5SASLBindRequests")

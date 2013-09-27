@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -35,24 +36,14 @@ import org.testng.annotations.DataProvider;
 public class ModifyDNRequestTestCase extends RequestTestCase {
     @DataProvider(name = "ModifyDNRequests")
     public Object[][] getModifyDNRequests() throws Exception {
-        final ModifyDNRequest[] requests = {
-                Requests.newModifyDNRequest("uid=user.100,ou=people,o=test", "uid=100.user,ou=people,o=testl"),
-                Requests.newModifyDNRequest("cn=ModifyDNrequesttestcase", "cn=xyz"),
-        };
-        final Object[][] objArray = new Object[requests.length][1];
-        for (int i = 0; i < requests.length; i++) {
-            objArray[i][0] = requests[i];
-        }
-        return objArray;
+        return getTestRequests();
     }
 
     @Override
     protected ModifyDNRequest[] createTestRequests() throws Exception {
-        final Object[][] objs = getModifyDNRequests();
-        final ModifyDNRequest[] ops = new ModifyDNRequest[objs.length];
-        for (int i = 0; i < objs.length; i++) {
-            ops[i] = (ModifyDNRequest) objs[i][0];
-        }
-        return ops;
+        return new ModifyDNRequest[] {
+                Requests.newModifyDNRequest("uid=user.100,ou=people,o=test", "uid=100.user,ou=people,o=testl"),
+                Requests.newModifyDNRequest("cn=ModifyDNrequesttestcase", "cn=xyz"),
+        };
     }
 }

@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -37,7 +38,12 @@ import org.testng.annotations.DataProvider;
 public class ModifyRequestTestCase extends RequestTestCase {
     @DataProvider(name = "ModifyRequests")
     public Object[][] getModifyRequests() throws Exception {
-        final ModifyRequest[] requests = {
+        return getTestRequests();
+    }
+
+    @Override
+    protected ModifyRequest[] createTestRequests() throws Exception {
+        return new ModifyRequest[] {
                 Requests.newModifyRequest(DN.valueOf("uid=Modifyrequest1")).addModification(
                         ModificationType.ADD, "userpassword", "password"),
                 Requests.newModifyRequest("cn=Modifyrequesttestcase").addModification(
@@ -45,21 +51,6 @@ public class ModifyRequestTestCase extends RequestTestCase {
                 Requests.newModifyRequest("dn: ou=People,o=test", "changetype: modify",
                         "add: userpassword", "userpassword: password")
         };
-        final Object[][] objArray = new Object[requests.length][1];
-        for (int i = 0; i < requests.length; i++) {
-            objArray[i][0] = requests[i];
-        }
-        return objArray;
-    }
-
-    @Override
-    protected ModifyRequest[] createTestRequests() throws Exception {
-        final Object[][] objs = getModifyRequests();
-        final ModifyRequest[] ops = new ModifyRequest[objs.length];
-        for (int i = 0; i < objs.length; i++) {
-            ops[i] = (ModifyRequest) objs[i][0];
-        }
-        return ops;
     }
 
 }

@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -36,26 +37,16 @@ import org.testng.annotations.DataProvider;
 public class AddRequestTestCase extends RequestTestCase {
     @DataProvider(name = "addRequests")
     public Object[][] getAddRequests() throws Exception {
-        final AddRequest[] requests = {
+        return getTestRequests();
+    }
+
+    @Override
+    protected AddRequest[] createTestRequests() throws Exception {
+        return new AddRequest[] {
                     Requests.newAddRequest(DN.valueOf("uid=addrequest1")),
                     Requests.newAddRequest("cn=addrequesttestcase"),
                     Requests.newAddRequest("dn: ou=People,o=test", "objectClass: top",
                             "objectClass: organizationalUnit", "ou: People")
         };
-        final Object[][] objArray = new Object[requests.length][1];
-        for (int i = 0; i < requests.length; i++) {
-            objArray[i][0] = requests[i];
-        }
-        return objArray;
-    }
-
-    @Override
-    protected AddRequest[] createTestRequests() throws Exception {
-        final Object[][] objs = getAddRequests();
-        final AddRequest[] ops = new AddRequest[objs.length];
-        for (int i = 0; i < objs.length; i++) {
-            ops[i] = (AddRequest) objs[i][0];
-        }
-        return ops;
     }
 }

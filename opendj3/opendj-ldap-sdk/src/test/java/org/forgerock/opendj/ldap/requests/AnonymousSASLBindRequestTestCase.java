@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -35,24 +36,14 @@ import org.testng.annotations.DataProvider;
 public class AnonymousSASLBindRequestTestCase extends BindRequestTestCase {
     @DataProvider(name = "anonymousSASLBindRequests")
     public Object[][] getAnonymousSASLBindRequests() throws Exception {
-        final AnonymousSASLBindRequest[] requests = {
-                Requests.newAnonymousSASLBindRequest(""),
-                 Requests.newAnonymousSASLBindRequest("test")
-        };
-        final Object[][] objArray = new Object[requests.length][1];
-        for (int i = 0; i < requests.length; i++) {
-            objArray[i][0] = requests[i];
-        }
-        return objArray;
+        return getTestRequests();
     }
 
     @Override
     protected AnonymousSASLBindRequest[] createTestRequests() throws Exception {
-        final Object[][] objs = getAnonymousSASLBindRequests();
-        final AnonymousSASLBindRequest[] ops = new AnonymousSASLBindRequest[objs.length];
-        for (int i = 0; i < objs.length; i++) {
-            ops[i] = (AnonymousSASLBindRequest) objs[i][0];
-        }
-        return ops;
+        return new AnonymousSASLBindRequest[] {
+                Requests.newAnonymousSASLBindRequest(""),
+                Requests.newAnonymousSASLBindRequest("test")
+        };
     }
 }

@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -35,23 +36,15 @@ import org.testng.annotations.DataProvider;
 public class SimpleBindRequestTestCase extends BindRequestTestCase {
     @DataProvider(name = "simpleBindRequests")
     public Object[][] getSimpleBindRequests() throws Exception {
-        final SimpleBindRequest[] requests = { Requests.newSimpleBindRequest(), // anonymous;
-            Requests.newSimpleBindRequest("username", "password".toCharArray()) };
-        final Object[][] objArray = new Object[requests.length][1];
-        for (int i = 0; i < requests.length; i++) {
-            objArray[i][0] = requests[i];
-        }
-        return objArray;
+        return getTestRequests();
     }
 
     @Override
     protected SimpleBindRequest[] createTestRequests() throws Exception {
-        final Object[][] objs = getSimpleBindRequests();
-        final SimpleBindRequest[] ops = new SimpleBindRequest[objs.length];
-        for (int i = 0; i < objs.length; i++) {
-            ops[i] = (SimpleBindRequest) objs[i][0];
-        }
-        return ops;
+        return new SimpleBindRequest[] {
+            Requests.newSimpleBindRequest(), // anonymous;
+            Requests.newSimpleBindRequest("username", "password".toCharArray())
+        };
     }
 
 }

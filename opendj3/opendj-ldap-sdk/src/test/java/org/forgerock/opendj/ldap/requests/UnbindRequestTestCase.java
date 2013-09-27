@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -35,21 +36,11 @@ import org.testng.annotations.DataProvider;
 public class UnbindRequestTestCase extends RequestTestCase {
     @DataProvider(name = "UnbindRequests")
     public Object[][] getUnbindRequests() throws Exception {
-        final UnbindRequest[] requests = { Requests.newUnbindRequest(), };
-        final Object[][] objArray = new Object[requests.length][1];
-        for (int i = 0; i < requests.length; i++) {
-            objArray[i][0] = requests[i];
-        }
-        return objArray;
+        return getTestRequests();
     }
 
     @Override
     protected UnbindRequest[] createTestRequests() throws Exception {
-        final Object[][] objs = getUnbindRequests();
-        final UnbindRequest[] ops = new UnbindRequest[objs.length];
-        for (int i = 0; i < objs.length; i++) {
-            ops[i] = (UnbindRequest) objs[i][0];
-        }
-        return ops;
+        return new UnbindRequest[] { Requests.newUnbindRequest(), };
     }
 }

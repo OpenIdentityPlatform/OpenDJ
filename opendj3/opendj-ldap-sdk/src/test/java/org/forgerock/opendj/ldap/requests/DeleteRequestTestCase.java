@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -36,25 +37,15 @@ import org.testng.annotations.DataProvider;
 public class DeleteRequestTestCase extends RequestTestCase {
     @DataProvider(name = "DeleteRequests")
     public Object[][] getDeleteRequests() throws Exception {
-        final DeleteRequest[] requests = {
-                Requests.newDeleteRequest(DN.valueOf("uid=Deleterequest1")),
-                Requests.newDeleteRequest("cn=Deleterequesttestcase"),
-                Requests.newDeleteRequest("uid=user.999,ou=people,o=test")
-        };
-        final Object[][] objArray = new Object[requests.length][1];
-        for (int i = 0; i < requests.length; i++) {
-            objArray[i][0] = requests[i];
-        }
-        return objArray;
+        return getTestRequests();
     }
 
     @Override
     protected DeleteRequest[] createTestRequests() throws Exception {
-        final Object[][] objs = getDeleteRequests();
-        final DeleteRequest[] ops = new DeleteRequest[objs.length];
-        for (int i = 0; i < objs.length; i++) {
-            ops[i] = (DeleteRequest) objs[i][0];
-        }
-        return ops;
+        return new DeleteRequest[] {
+                Requests.newDeleteRequest(DN.valueOf("uid=Deleterequest1")),
+                Requests.newDeleteRequest("cn=Deleterequesttestcase"),
+                Requests.newDeleteRequest("uid=user.999,ou=people,o=test")
+        };
     }
 }

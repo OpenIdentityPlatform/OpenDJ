@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -35,25 +36,15 @@ import org.testng.annotations.DataProvider;
 public class CompareRequestTestCase extends RequestTestCase {
     @DataProvider(name = "CompareRequests")
     public Object[][] getCompareRequests() throws Exception {
-        final CompareRequest[] requests = {
-                Requests.newCompareRequest("uid=user.0,ou=people,o=test", "cn", "user.0"),
-                Requests.newCompareRequest("uid=user.0,ou=people,o=test", "uid", "user.0")
-        };
-        final Object[][] objArray = new Object[requests.length][1];
-        for (int i = 0; i < requests.length; i++) {
-            objArray[i][0] = requests[i];
-        }
-        return objArray;
+        return getTestRequests();
     }
 
     @Override
     protected CompareRequest[] createTestRequests() throws Exception {
-        final Object[][] objs = getCompareRequests();
-        final CompareRequest[] ops = new CompareRequest[objs.length];
-        for (int i = 0; i < objs.length; i++) {
-            ops[i] = (CompareRequest) objs[i][0];
-        }
-        return ops;
+        return new CompareRequest[] {
+                Requests.newCompareRequest("uid=user.0,ou=people,o=test", "cn", "user.0"),
+                Requests.newCompareRequest("uid=user.0,ou=people,o=test", "uid", "user.0")
+        };
     }
 
 }
