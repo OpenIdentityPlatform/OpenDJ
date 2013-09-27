@@ -327,33 +327,6 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
     return broker;
   }
 
-  /**
-   * Open a replicationServer session with flow control to the local
-   * ReplicationServer.
-   */
-  protected ReplicationBroker openReplicationSession(
-      final DN baseDN, int serverId, int window_size,
-      int port, int timeout, int maxSendQueue, int maxRcvQueue,
-      boolean emptyOldChanges)
-      throws Exception, SocketException
-  {
-    ServerState state = new ServerState();
-
-    if (emptyOldChanges)
-       new PersistentServerState(baseDN, serverId, new ServerState());
-
-    ReplicationBroker broker = new ReplicationBroker(null,
-        state, baseDN, serverId, window_size,
-        getGenerationId(baseDN), 0, getReplSessionSecurity(), (byte)1, 500);
-    List<String> servers = new ArrayList<String>(1);
-    servers.add("localhost:" + port);
-    broker.start(servers);
-    checkConnection(30, broker, port);
-    if (timeout != 0)
-      broker.setSoTimeout(timeout);
-    return broker;
-  }
-
   protected void deleteEntry(DN dn)
   {
     try
@@ -364,10 +337,9 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
     catch(Exception e)
     {}
 
-    DeleteOperationBasis op;
-    op = new DeleteOperationBasis(connection, InternalClientConnection
-        .nextOperationID(), InternalClientConnection.nextMessageID(), null,
-        dn);
+    DeleteOperationBasis op = new DeleteOperationBasis(connection,
+        InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
+        null, dn);
     op.run();
     if ((op.getResultCode() != ResultCode.SUCCESS) &&
         (op.getResultCode() != ResultCode.NO_SUCH_OBJECT))
@@ -897,102 +869,76 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
   }
 
   protected void waitTaskState(Entry taskEntry, TaskState expectedTaskState,
-      Message expectedMessage)
+      Message expectedMessage) throws Exception
   {
     TaskState taskState = null;
     int cpt=40;
-    try
+
+    SearchFilter filter = SearchFilter.createFilterFromString("(objectclass=*)");
+    Entry resultEntry = null;
+    do
     {
-      SearchFilter filter =
-        SearchFilter.createFilterFromString("(objectclass=*)");
-      Entry resultEntry = null;
-      do
-      {
-        InternalSearchOperation searchOperation =
-          connection.processSearch(taskEntry.getDN(),
-              SearchScope.BASE_OBJECT,
-              filter);
-        try
-        {
-          resultEntry = searchOperation.getSearchEntries().getFirst();
-        } catch (Exception e)
-        {
-          fail("Task entry was not returned from the search.");
-          continue;
-        }
+      InternalSearchOperation searchOperation =
+          connection.processSearch(taskEntry.getDN(), SearchScope.BASE_OBJECT, filter);
+      resultEntry = searchOperation.getSearchEntries().getFirst();
 
-        try
-        {
-          // Check that the task state is as expected.
-          AttributeType taskStateType =
-            DirectoryServer.getAttributeType(ATTR_TASK_STATE.toLowerCase());
-          String stateString =
-            resultEntry.getAttributeValue(taskStateType,
-                DirectoryStringSyntax.DECODER);
-          taskState = TaskState.fromString(stateString);
-        }
-        catch(Exception e)
-        {
-          fail("Exception"+ e.getMessage()+e.getStackTrace());
-        }
-        Thread.sleep(500);
-        cpt--;
-      }
-      while ((taskState != expectedTaskState) &&
-             (taskState != TaskState.STOPPED_BY_ERROR) &&
-             (taskState != TaskState.COMPLETED_SUCCESSFULLY) &&
-             (cpt > 0));
+      // Check that the task state is as expected.
+      AttributeType taskStateType =
+          DirectoryServer.getAttributeType(ATTR_TASK_STATE.toLowerCase());
+      String stateString =
+          resultEntry.getAttributeValue(taskStateType, DirectoryStringSyntax.DECODER);
+      taskState = TaskState.fromString(stateString);
 
-      // Check that the task contains some log messages.
-      AttributeType logMessagesType = DirectoryServer.getAttributeType(
-          ATTR_TASK_LOG_MESSAGES.toLowerCase());
-      List<String> logMessages = new ArrayList<String>();
-      resultEntry.getAttributeValues(logMessagesType,
-          DirectoryStringSyntax.DECODER,
-          logMessages);
+      Thread.sleep(500);
+      cpt--;
+    }
+    while ((taskState != expectedTaskState)
+        && (taskState != TaskState.STOPPED_BY_ERROR)
+        && (taskState != TaskState.COMPLETED_SUCCESSFULLY) && (cpt > 0));
 
-      if ((taskState != TaskState.COMPLETED_SUCCESSFULLY)
-          && (taskState != TaskState.RUNNING))
-      {
-        if (logMessages.size() == 0)
-        {
-          fail("No log messages were written to the task entry on a failed task");
-        }
-      }
-      if (logMessages.size() != 0)
-      {
-          TRACER.debugInfo(logMessages.get(0));
-          if (expectedMessage != null)
-          {
-            TRACER.debugInfo(expectedMessage.toString());
-            assertTrue(logMessages.get(0).indexOf(
-                expectedMessage.toString())>0);
-          }
-      }
+    // Check that the task contains some log messages.
+    AttributeType logMessagesType =
+        DirectoryServer.getAttributeType(ATTR_TASK_LOG_MESSAGES.toLowerCase());
+    List<String> logMessages = new ArrayList<String>();
+    resultEntry.getAttributeValues(logMessagesType,
+        DirectoryStringSyntax.DECODER, logMessages);
 
-      if ((expectedTaskState == TaskState.RUNNING)
-          && (taskState == TaskState.COMPLETED_SUCCESSFULLY))
+    if ((taskState != TaskState.COMPLETED_SUCCESSFULLY)
+        && (taskState != TaskState.RUNNING))
+    {
+      if (logMessages.size() == 0)
       {
-        // We usually wait the running state after adding the task
-        // and if the task is fast enough then it may be already done
-        // and we can go on.
-      }
-      else
-      {
-        assertEquals(taskState, expectedTaskState, "Task State:" + taskState +
-          " Expected task state:" + expectedTaskState);
+        fail("No log messages were written to the task entry on a failed task");
       }
     }
-    catch(Exception e)
+    if (logMessages.size() != 0)
     {
-      fail("waitTaskState Exception:"+ e.getMessage() + " " + stackTraceToSingleLineString(e));
+      TRACER.debugInfo(logMessages.get(0));
+      if (expectedMessage != null)
+      {
+        TRACER.debugInfo(expectedMessage.toString());
+        assertTrue(logMessages.get(0).indexOf(expectedMessage.toString()) > 0);
+      }
+    }
+
+    if ((expectedTaskState == TaskState.RUNNING)
+        && (taskState == TaskState.COMPLETED_SUCCESSFULLY))
+    {
+      // We usually wait the running state after adding the task
+      // and if the task is fast enough then it may be already done
+      // and we can go on.
+    }
+    else
+    {
+      assertEquals(taskState, expectedTaskState, "Task State:" + taskState
+          + " Expected task state:" + expectedTaskState);
     }
   }
 
   /**
    * Add to the current DB the entries necessary to the test
    */
-  protected void addTestEntriesToDB(String[] ldifEntries)
+  protected void addTestEntriesToDB(String... ldifEntries)
   {
     try
     {
@@ -1040,10 +986,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
    */
   protected String getEntryUUID(DN dn) throws Exception
   {
-    Entry newEntry;
     int count = 10;
-    if (count<1)
-      count=1;
     String found = null;
     while ((count> 0) && (found == null))
     {
@@ -1057,14 +1000,11 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
 
       try
       {
-        newEntry = DirectoryServer.getEntry(dn);
-
+        Entry newEntry = DirectoryServer.getEntry(dn);
         if (newEntry != null)
         {
           List<Attribute> tmpAttrList = newEntry.getAttribute("entryuuid");
-          Attribute tmpAttr = tmpAttrList.get(0);
-
-          for (AttributeValue val : tmpAttr)
+          for (AttributeValue val : tmpAttrList.get(0))
           {
             found = val.getValue().toString();
             break;
@@ -1104,15 +1044,13 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
    * @return The expected message if it comes in time or fails (assertion).
    */
   protected static ReplicationMsg waitForSpecificMsg(Session session, String msgType) {
-
-    ReplicationMsg replMsg = null;
-
     int timeOut = 5000; // 5 seconds max to wait for the desired message
     long startTime = System.currentTimeMillis();
     long curTime = startTime;
     int nMsg = 0;
     while ((curTime - startTime) <= timeOut)
     {
+      ReplicationMsg replMsg = null;
       try
       {
         replMsg = session.receive();
@@ -1147,15 +1085,13 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
    * @return The expected message if it comes in time or fails (assertion).
    */
   protected static ReplicationMsg waitForSpecificMsg(ReplicationBroker broker, String msgType) {
-
-    ReplicationMsg replMsg = null;
-
     int timeOut = 5000; // 5 seconds max to wait for the desired message
     long startTime = System.currentTimeMillis();
     long curTime = startTime;
     int nMsg = 0;
     while ((curTime - startTime) <= timeOut)
     {
+      ReplicationMsg replMsg = null;
       try
       {
         replMsg = broker.receive();
