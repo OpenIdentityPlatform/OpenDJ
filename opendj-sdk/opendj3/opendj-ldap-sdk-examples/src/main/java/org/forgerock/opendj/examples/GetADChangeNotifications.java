@@ -61,7 +61,6 @@ import org.forgerock.opendj.ldif.LDIFEntryWriter;
  *
  * <p>The {@code baseDN} must be the root of a naming context in this example.
  */
-@SuppressWarnings("resource")
 public final class GetADChangeNotifications {
     /**
      * Main method.

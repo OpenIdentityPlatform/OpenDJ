@@ -232,7 +232,6 @@ public final class LDAPModify extends ConsoleApplication {
         return verbose.isPresent();
     }
 
-    @SuppressWarnings("resource")
     private int run(final String[] args) {
         // Create the command-line argument parser for use with this
         // program.

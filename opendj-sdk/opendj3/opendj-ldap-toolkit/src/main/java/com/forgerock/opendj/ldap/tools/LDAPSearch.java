@@ -221,7 +221,6 @@ public final class LDAPSearch extends ConsoleApplication {
         return verbose.isPresent();
     }
 
-    @SuppressWarnings("resource")
     private int run(final String[] args, final boolean returnMatchingEntries) {
         // Create the command-line argument parser for use with this
         // program.
