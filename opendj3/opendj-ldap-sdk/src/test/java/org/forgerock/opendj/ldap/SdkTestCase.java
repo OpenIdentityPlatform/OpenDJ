@@ -22,9 +22,11 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2013 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap;
+
+import static org.fest.assertions.Fail.*;
 
 import org.forgerock.testng.ForgeRockTestCase;
 import org.testng.annotations.Test;
@@ -35,4 +37,13 @@ import org.testng.annotations.Test;
  */
 @Test(groups = { "precommit", "types", "sdk" })
 public abstract class SdkTestCase extends ForgeRockTestCase {
+
+    /**
+     * Fail with precise message giving the exception that was expected.
+     *
+     * @param exceptionClass expected exception
+     */
+    void failWasExpected(Class<? extends Throwable> exceptionClass) {
+        fail("should throw an exception " + exceptionClass.getSimpleName());
+    }
 }

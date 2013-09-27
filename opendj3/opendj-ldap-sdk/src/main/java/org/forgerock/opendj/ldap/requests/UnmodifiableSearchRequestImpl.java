@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2013 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -77,6 +77,11 @@ final class UnmodifiableSearchRequestImpl extends AbstractUnmodifiableRequest<Se
     @Override
     public int getSizeLimit() {
         return impl.getSizeLimit();
+    }
+
+    @Override
+    public boolean isSingleEntrySearch() {
+        return impl.isSingleEntrySearch();
     }
 
     @Override

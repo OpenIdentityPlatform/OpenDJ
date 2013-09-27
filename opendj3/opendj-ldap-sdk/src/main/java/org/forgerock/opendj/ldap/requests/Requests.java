@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2012 ForgeRock AS
+ *      Portions copyright 2011-2013 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -1017,7 +1017,7 @@ public final class Requests {
 
     /**
      * Creates a new search request using the provided distinguished name,
-     * scope, and filter, decoded using the default schema.
+     * scope, and filter.
      *
      * @param name
      *            The distinguished name of the base entry relative to which the
@@ -1076,6 +1076,58 @@ public final class Requests {
             request.addAttribute(attributeDescription);
         }
         return request;
+    }
+
+    /**
+     * Creates a new search request for a single entry, using the provided distinguished name,
+     * scope, and filter.
+     *
+     * @param name
+     *            The distinguished name of the base entry relative to which the
+     *            search is to be performed.
+     * @param scope
+     *            The scope of the search.
+     * @param filter
+     *            The filter that defines the conditions that must be fulfilled
+     *            in order for an entry to be returned.
+     * @param attributeDescriptions
+     *            The names of the attributes to be included with each entry.
+     * @return The new search request.
+     * @throws NullPointerException
+     *             If the {@code name}, {@code scope}, or {@code filter} were
+     *             {@code null}.
+     */
+    public static SearchRequest newSingleEntrySearchRequest(final DN name, final SearchScope scope,
+            final Filter filter, final String... attributeDescriptions) {
+        return newSearchRequest(name, scope, filter, attributeDescriptions).setSizeLimit(1);
+    }
+
+    /**
+     * Creates a new search request for a single entry, using the provided distinguished name,
+     * scope, and filter, decoded using the default schema.
+     *
+     * @param name
+     *            The distinguished name of the base entry relative to which the
+     *            search is to be performed.
+     * @param scope
+     *            The scope of the search.
+     * @param filter
+     *            The filter that defines the conditions that must be fulfilled
+     *            in order for an entry to be returned.
+     * @param attributeDescriptions
+     *            The names of the attributes to be included with each entry.
+     * @return The new search request.
+     * @throws LocalizedIllegalArgumentException
+     *             If {@code name} could not be decoded using the default
+     *             schema, or if {@code filter} is not a valid LDAP string
+     *             representation of a filter.
+     * @throws NullPointerException
+     *             If the {@code name}, {@code scope}, or {@code filter} were
+     *             {@code null}.
+     */
+    public static SearchRequest newSingleEntrySearchRequest(final String name, final SearchScope scope,
+            final String filter, final String... attributeDescriptions) {
+        return newSearchRequest(name, scope, filter, attributeDescriptions).setSizeLimit(1);
     }
 
     /**

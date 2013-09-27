@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2013 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -104,6 +104,11 @@ final class SearchRequestImpl extends AbstractRequestImpl<SearchRequest> impleme
     @Override
     public int getSizeLimit() {
         return sizeLimit;
+    }
+
+    @Override
+    public boolean isSingleEntrySearch() {
+        return sizeLimit == 1 || SearchScope.BASE_OBJECT.equals(scope);
     }
 
     @Override
