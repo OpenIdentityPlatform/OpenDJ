@@ -2572,12 +2572,10 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       evaluateSearchParameters(baseDN, 8, 8, "(changenumber=8)");
 
       //
-      CSNGenerator gen = new CSNGenerator( 1, 0);
-      CSN changeNumber1 = gen.newCSN();
+      CSN csn = new CSNGenerator(1, 0).newCSN();
       final StartECLSessionMsg startCLmsg =
-          evaluateSearchParameters(baseDN, -1, -1,
-              "(replicationcsn=" + changeNumber1 + ")");
-      assertEquals(startCLmsg.getCSN(), changeNumber1);
+          evaluateSearchParameters(baseDN, -1, -1, "(replicationcsn=" + csn + ")");
+      assertEquals(startCLmsg.getCSN(), csn);
 
       // Use change number as base object.
       baseDN = DN.decode("changeNumber=8,cn=changelog");

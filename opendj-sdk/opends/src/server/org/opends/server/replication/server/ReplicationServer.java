@@ -1739,7 +1739,7 @@ public final class ReplicationServer
    *
    * @return the changelogDB.
    */
-  ChangelogDB getChangelogDB()
+  public ChangelogDB getChangelogDB()
   {
     return this.changelogDB;
   }

@@ -227,7 +227,10 @@ public interface ChangelogDB
 
   /**
    * Returns the {@link CSN} situated immediately after the specified
-   * {@link CSN} for the specified serverId and replication domain.
+   * {@link CSN} for the specified serverId and replication domain according to
+   * the order specified by {@link CSN#compareTo(CSN)}. If an Exception occurs
+   * in this method, then it returns the oldest possible CSN for the provided
+   * serverId.
    *
    * @param baseDN
    *          the replication domain baseDN

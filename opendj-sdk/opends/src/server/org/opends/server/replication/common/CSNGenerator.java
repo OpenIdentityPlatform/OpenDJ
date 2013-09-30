@@ -106,7 +106,23 @@ public class CSNGenerator
     }
 
     return new CSN(myTime, mySeqnum, serverId);
+  }
 
+  /**
+   * Generate an array of new {@link CSN}s.
+   *
+   * @param number
+   *          the total number of {@link CSN}s to generate
+   * @return the array of generated {@link CSN}s
+   */
+  public CSN[] newCSNs(int number)
+  {
+    final CSN[] csns = new CSN[number];
+    for (int i = 0; i < number; i++)
+    {
+      csns[i] = newCSN();
+    }
+    return csns;
   }
 
   /**
