@@ -34,7 +34,7 @@ import static org.forgerock.opendj.ldap.responses.Responses.newSearchResultEntry
 
 import java.io.IOException;
 import java.util.Collection;
-import java.util.NavigableMap;
+import java.util.Map;
 import java.util.concurrent.ConcurrentSkipListMap;
 
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
@@ -385,7 +385,6 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
             final SearchResultHandler resultHandler) {
         try {
             final DN dn = request.getName();
-            final Entry baseEntry = getRequiredEntry(request, dn);
             final SearchScope scope = request.getScope();
             final Filter filter = request.getFilter();
             final Matcher matcher = filter.matcher(schema);
@@ -393,36 +392,14 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
                     new AttributeFilter(request.getAttributes(), schema).typesOnly(request
                             .isTypesOnly());
             if (scope.equals(SearchScope.BASE_OBJECT)) {
+                final Entry baseEntry = getRequiredEntry(request, dn);
                 if (matcher.matches(baseEntry).toBoolean()) {
                     sendEntry(attributeFilter, resultHandler, baseEntry);
                 }
-            } else if (scope.equals(SearchScope.SINGLE_LEVEL)) {
-                final NavigableMap<DN, Entry> subtree =
-                        entries.subMap(dn, dn.child(RDN.maxValue()));
-                for (final Entry entry : subtree.values()) {
-                    // Check for cancellation.
-                    requestContext.checkIfCancelled(false);
-                    final DN childDN = entry.getName();
-                    if (childDN.isChildOf(dn)) {
-                        if (matcher.matches(entry).toBoolean()
-                                && !sendEntry(attributeFilter, resultHandler, entry)) {
-                            // Caller has asked to stop sending results.
-                            break;
-                        }
-                    }
-                }
-            } else if (scope.equals(SearchScope.WHOLE_SUBTREE)) {
-                final NavigableMap<DN, Entry> subtree =
-                        entries.subMap(dn, dn.child(RDN.maxValue()));
-                for (final Entry entry : subtree.values()) {
-                    // Check for cancellation.
-                    requestContext.checkIfCancelled(false);
-                    if (matcher.matches(entry).toBoolean()
-                            && !sendEntry(attributeFilter, resultHandler, entry)) {
-                        // Caller has asked to stop sending results.
-                        break;
-                    }
-                }
+            } else if (scope.equals(SearchScope.SINGLE_LEVEL) || scope.equals(SearchScope.WHOLE_SUBTREE)) {
+                searchWithSubordinates(
+                        requestContext, resultHandler, dn, matcher,
+                        attributeFilter, request.getSizeLimit(), scope);
             } else {
                 throw newErrorResult(ResultCode.PROTOCOL_ERROR,
                         "Search request contains an unsupported search scope");
@@ -488,6 +465,46 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
      */
     public int size() {
         return entries.size();
+    }
+
+    /**
+     * Perform a search for scope that includes subordinates, i.e., either
+     * <code>SearchScope.SINGLE_LEVEL</code> or <code>SearchScope.WHOLE_SUBTREE</code>.
+     *
+     * @param requestContext context of this request
+     * @param resultHandler handler which should be used to send back the search results to the client.
+     * @param dn distinguished name of the base entry used for this request
+     * @param matcher to filter entries that matches this request
+     * @param attributeFilter to select attributes to return in search results
+     * @param sizeLimit maximum number of entries to return. A value of zero indicates no restriction
+     *          on number of entries.
+     * @throws CancelledResultException
+     *           If a cancellation request has been received and processing of
+     *           the request should be aborted if possible.
+     * @throws ErrorResultException
+     *           If the request is unsuccessful.
+     */
+    private void searchWithSubordinates(final RequestContext requestContext, final SearchResultHandler resultHandler,
+            final DN dn, final Matcher matcher, final AttributeFilter attributeFilter, final int sizeLimit,
+            SearchScope scope) throws CancelledResultException, ErrorResultException {
+
+        final Map<DN, Entry> subtree = entries.subMap(dn, dn.child(RDN.maxValue()));
+        int numberOfResults = 0;
+        for (final Entry entry : subtree.values()) {
+            requestContext.checkIfCancelled(false);
+            if (scope.equals(SearchScope.WHOLE_SUBTREE) || entry.getName().isChildOf(dn)) {
+                if (matcher.matches(entry).toBoolean()) {
+                    if (sizeLimit > 0 && numberOfResults >= sizeLimit) {
+                        throw newErrorResult(newResult(ResultCode.SIZE_LIMIT_EXCEEDED));
+                    }
+                    numberOfResults++;
+                    boolean acceptMoreResults = sendEntry(attributeFilter, resultHandler, entry);
+                    if (!acceptMoreResults) {
+                        break;
+                    }
+                }
+            }
+        }
     }
 
     private <R extends Result> R addResultControls(final Request request, final Entry before,

@@ -34,7 +34,9 @@ import static org.forgerock.opendj.ldap.requests.Requests.newSimpleBindRequest;
 import static org.forgerock.opendj.ldif.LDIFEntryReader.valueOfLDIFEntry;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 
 import org.forgerock.opendj.ldap.controls.AssertionRequestControl;
 import org.forgerock.opendj.ldap.controls.PermissiveModifyRequestControl;
@@ -43,6 +45,7 @@ import org.forgerock.opendj.ldap.controls.PostReadResponseControl;
 import org.forgerock.opendj.ldap.controls.PreReadRequestControl;
 import org.forgerock.opendj.ldap.controls.PreReadResponseControl;
 import org.forgerock.opendj.ldap.requests.Requests;
+import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldif.ConnectionEntryReader;
 import org.forgerock.opendj.ldif.LDIFEntryReader;
 import org.testng.annotations.Test;
@@ -52,6 +55,8 @@ import org.testng.annotations.Test;
  */
 @SuppressWarnings("javadoc")
 public class MemoryBackendTestCase extends SdkTestCase {
+
+    int numberOfEntriesInBackend;
 
     @Test
     public void testAdd() throws Exception {
@@ -410,11 +415,50 @@ public class MemoryBackendTestCase extends SdkTestCase {
     }
 
     @Test
+    public void testSearchOneLevelWithSizeLimit() throws Exception {
+        final Connection connection = getConnection();
+        final ConnectionEntryReader reader =
+                connection.search(Requests.newSearchRequest("dc=com", SearchScope.SINGLE_LEVEL, "(objectClass=*)").
+                        setSizeLimit(1));
+        assertThat(reader.readEntry()).isEqualTo(
+                valueOfLDIFEntry("dn: dc=example,dc=com", "objectClass: domain",
+                        "objectClass: top", "dc: example"));
+        try {
+            reader.hasNext();
+            failWasExpected(ErrorResultIOException.class);
+        } catch (ErrorResultIOException e) {
+            assertThat(e.getCause().getResult().getResultCode()).isEqualTo(ResultCode.SIZE_LIMIT_EXCEEDED);
+        }
+    }
+
+    @Test
     public void testSearchSubtree() throws Exception {
         final Connection connection = getConnection();
-        assertThat(
-                connection.searchSingleEntry("dc=example,dc=com", SearchScope.WHOLE_SUBTREE,
-                        "(uid=test1)")).isEqualTo(getUser1Entry());
+        assertThat(connection.searchSingleEntry("dc=example,dc=com", SearchScope.WHOLE_SUBTREE, "(uid=test1)")).
+                isEqualTo(getUser1Entry());
+    }
+
+    @Test
+    public void testSearchSubtreeReturnsAllEntries() throws Exception {
+        final Connection connection = getConnection();
+        Collection<SearchResultEntry> entries = new ArrayList<SearchResultEntry>();
+        connection.search(Requests.newSearchRequest("dc=com", SearchScope.WHOLE_SUBTREE, "(objectclass=*)"), entries);
+        assertThat(entries).hasSize(numberOfEntriesInBackend);
+    }
+
+    @Test
+    public void testSearchSubtreeWithSizeLimit() throws Exception {
+        final Connection connection = getConnection();
+        Collection<SearchResultEntry> entries = new ArrayList<SearchResultEntry>();
+        try {
+            connection.search(
+                    Requests.newSearchRequest("dc=example,dc=com", SearchScope.WHOLE_SUBTREE, "(objectClass=*)").
+                    setSizeLimit(2), entries);
+            failWasExpected(ErrorResultException.class);
+        } catch (ErrorResultException e) {
+            assertThat(e.getResult().getResultCode()).isEqualTo(ResultCode.SIZE_LIMIT_EXCEEDED);
+            assertThat(entries).hasSize(2);
+        }
     }
 
     @Test(expectedExceptions = EntryNotFoundException.class)
@@ -468,51 +512,61 @@ public class MemoryBackendTestCase extends SdkTestCase {
 
     private Connection getConnection() throws IOException {
         // @formatter:off
-        final MemoryBackend backend =
-                new MemoryBackend(new LDIFEntryReader(
-                        "dn: dc=com",
-                        "objectClass: domain",
-                        "objectClass: top",
-                        "dc: com",
-                        "",
-                        "dn: dc=example,dc=com",
-                        "objectClass: domain",
-                        "objectClass: top",
-                        "dc: example",
-                        "entryDN: dc=example,dc=com",
-                        "entryUUID: fc252fd9-b982-3ed6-b42a-c76d2546312c",
-                        "",
-                        "dn: ou=People,dc=example,dc=com",
-                        "objectClass: organizationalunit",
-                        "objectClass: top",
-                        "ou: People",
-                        "",
-                        "dn: uid=test1,ou=People,dc=example,dc=com",
-                        "objectClass: top",
-                        "objectClass: person",
-                        "uid: test1",
-                        "userpassword: password",
-                        "cn: test user 1",
-                        "sn: user 1",
-                        "entryDN: uid=test1,ou=people,dc=example,dc=com",
-                        "entryUUID: fc252fd9-b982-3ed6-b42a-c76d2546312c",
-                        "",
-                        "dn: uid=test2,ou=People,dc=example,dc=com",
-                        "objectClass: top",
-                        "objectClass: person",
-                        "uid: test2",
-                        "userpassword: password",
-                        "cn: test user 2",
-                        "sn: user 2",
-                        "",
-                        "dn: dc=xxx,dc=com",
-                        "objectClass: domain",
-                        "objectClass: top",
-                        "dc: xxx"
-                ));
+        String[] ldifEntries = new String[] {
+            "dn: dc=com",
+            "objectClass: domain",
+            "objectClass: top",
+            "dc: com",
+            "",
+            "dn: dc=example,dc=com",
+            "objectClass: domain",
+            "objectClass: top",
+            "dc: example",
+            "entryDN: dc=example,dc=com",
+            "entryUUID: fc252fd9-b982-3ed6-b42a-c76d2546312c",
+            "",
+            "dn: ou=People,dc=example,dc=com",
+            "objectClass: organizationalunit",
+            "objectClass: top",
+            "ou: People",
+            "",
+            "dn: uid=test1,ou=People,dc=example,dc=com",
+            "objectClass: top",
+            "objectClass: person",
+            "uid: test1",
+            "userpassword: password",
+            "cn: test user 1",
+            "sn: user 1",
+            "entryDN: uid=test1,ou=people,dc=example,dc=com",
+            "entryUUID: fc252fd9-b982-3ed6-b42a-c76d2546312c",
+            "",
+            "dn: uid=test2,ou=People,dc=example,dc=com",
+            "objectClass: top",
+            "objectClass: person",
+            "uid: test2",
+            "userpassword: password",
+            "cn: test user 2",
+            "sn: user 2",
+            "",
+            "dn: dc=xxx,dc=com",
+            "objectClass: domain",
+            "objectClass: top",
+            "dc: xxx"
+        };
         // @formatter:on
-
+        numberOfEntriesInBackend = getNumberOfEntries(ldifEntries);
+        final MemoryBackend backend = new MemoryBackend(new LDIFEntryReader(ldifEntries));
         return newInternalConnection(backend);
+    }
+
+    private int getNumberOfEntries(String[] ldifEntries) {
+        int entries = 0;
+        for (int i = 0; i < ldifEntries.length; i++) {
+            if (ldifEntries[i].startsWith("dn: ")) {
+                entries++;
+            }
+        }
+        return entries;
     }
 
     private Entry getUser1Entry() {
