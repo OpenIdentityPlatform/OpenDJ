@@ -86,10 +86,16 @@ public class CSNGeneratorTest extends ReplicationTestCase
   }
 
   @Test
-  public void newCSNs()
+  public void newCSN()
   {
     CSNGenerator generator = new CSNGenerator(5, TimeThread.getTime());
-    CSN[] csns = generator.newCSNs(5);
+    CSN[] csns = new CSN[] {
+      generator.newCSN(),
+      generator.newCSN(),
+      generator.newCSN(),
+      generator.newCSN(),
+      generator.newCSN()
+    };
     assertNotNull(csns);
     for (int i = 0; i + 1 < csns.length; i++)
     {
