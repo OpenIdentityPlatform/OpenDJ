@@ -43,6 +43,19 @@ import org.opends.server.types.DN;
  */
 public interface ChangeNumberIndexDB
 {
+  /**
+   * Generates the next change number.
+   *
+   * @return The newly generated change number
+   */
+  long nextChangeNumber();
+
+  /**
+   * Returns the last generated change number.
+   *
+   * @return the lastGeneratedChangeNumber
+   */
+  long getLastGeneratedChangeNumber();
 
   /**
    * Get the record associated to a provided change number.

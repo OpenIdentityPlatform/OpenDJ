@@ -1453,12 +1453,13 @@ public final class ECLServerHandler extends ServerHandler
   private void assignNewChangeNumberAndStore(ECLUpdateMsg change)
       throws DirectoryException, ChangelogException
   {
-    // generate a new change number and assign to this change
-    change.setChangeNumber(replicationServer.getNewChangeNumber());
+    ChangeNumberIndexDB cnIndexDB = replicationServer.getChangeNumberIndexDB();
+
+    change.setChangeNumber(cnIndexDB.nextChangeNumber());
 
     // store in CNIndexDB the pair
     // (change number of the current change, state before this change)
-    replicationServer.getChangeNumberIndexDB().addRecord(new CNIndexRecord(
+    cnIndexDB.addRecord(new CNIndexRecord(
         change.getChangeNumber(),
         previousCookie.toString(),
         change.getBaseDN(),
