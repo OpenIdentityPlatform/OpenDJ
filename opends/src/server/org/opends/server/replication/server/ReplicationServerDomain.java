@@ -2202,18 +2202,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
    */
   public void clearDbs()
   {
-    // Reset the localchange and state db for the current domain
     changelogDB.removeDomain(baseDN);
-    try
-    {
-      localReplicationServer.clearGenerationId(baseDN);
-    }
-    catch (Exception e)
-    {
-      // TODO: i18n
-      logError(Message.raw("Exception caught while clearing generationId:"
-          + e.getLocalizedMessage()));
-    }
   }
 
   /**

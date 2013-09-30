@@ -84,18 +84,21 @@ public interface ChangelogDB
   void shutdownDB();
 
   /**
+   * Temporary method added here until I (JNR) can find a way to get rid of it.
+   */
+  void clearCNIndexDB();
+
+  /**
    * Removes the changelog database directory.
    */
   void removeDB();
 
   /**
-   * Returns a new {@link ChangeNumberIndexDB} object.
+   * Returns the {@link ChangeNumberIndexDB} object.
    *
-   * @return a new {@link ChangeNumberIndexDB} object
-   * @throws ChangelogException
-   *           If a database problem happened
+   * @return the {@link ChangeNumberIndexDB} object
    */
-  ChangeNumberIndexDB newChangeNumberIndexDB() throws ChangelogException;
+  ChangeNumberIndexDB getChangeNumberIndexDB();
 
   // Domain methods
 

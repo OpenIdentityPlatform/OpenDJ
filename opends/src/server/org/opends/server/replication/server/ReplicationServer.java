@@ -65,7 +65,6 @@ import org.opends.server.workflowelement.externalchangelog.ECLWorkflowElement;
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.types.ResultCode.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -141,17 +140,6 @@ public final class ReplicationServer
    * value is 0, monitoring publisher is disabled.
    */
   private long monitoringPublisherPeriod = 3000;
-
-  /**
-   * The handler of the changelog database, the database stores the relation
-   * between a change number and the associated cookie.
-   * <p>
-   * Guarded by cnIndexDBLock
-   */
-  private ChangeNumberIndexDB cnIndexDB;
-
-  /** Used for protecting {@link ChangeNumberIndexDB} related state. */
-  private final Object cnIndexDBLock = new Object();
 
   /**
    * The tracer object for the debug logger.
@@ -645,29 +633,6 @@ public final class ReplicationServer
       DirectoryServer.deregisterWorkflowElement(eclwe);
       eclwe.finalizeWorkflowElement();
     }
-
-    shutdownCNIndexDB();
-  }
-
-  private void shutdownCNIndexDB()
-  {
-    synchronized (cnIndexDBLock)
-    {
-      if (cnIndexDB != null)
-      {
-        try
-        {
-          cnIndexDB.shutdown();
-        }
-        catch (ChangelogException ignored)
-        {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.WARNING, ignored);
-          }
-        }
-      }
-    }
   }
 
   /**
@@ -799,34 +764,6 @@ public final class ReplicationServer
 
     // Remove this instance from the global instance list
     allInstances.remove(this);
-  }
-
-  /**
-   * Clears the generationId for the replicationServerDomain related to the
-   * provided baseDN.
-   *
-   * @param baseDN
-   *          The baseDN for which to delete the generationId.
-   */
-  public void clearGenerationId(DN baseDN)
-  {
-    synchronized (cnIndexDBLock)
-    {
-      if (cnIndexDB != null)
-      {
-        try
-        {
-          cnIndexDB.clear(baseDN);
-        }
-        catch (Exception ignored)
-        {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.WARNING, ignored);
-          }
-        }
-      }
-    }
   }
 
   /**
@@ -1282,27 +1219,7 @@ public final class ReplicationServer
       rsd.clearDbs();
     }
 
-    synchronized (cnIndexDBLock)
-    {
-      if (cnIndexDB != null)
-      {
-        try
-        {
-          cnIndexDB.clear();
-        }
-        catch (Exception ignored)
-        {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.WARNING, ignored);
-          }
-        }
-
-        shutdownCNIndexDB();
-
-        cnIndexDB = null;
-      }
-    }
+    this.changelogDB.clearCNIndexDB();
   }
 
   /**
@@ -1508,29 +1425,10 @@ public final class ReplicationServer
    * changelog.
    *
    * @return the handler.
-   * @throws DirectoryException
-   *           when needed.
    */
-  ChangeNumberIndexDB getChangeNumberIndexDB() throws DirectoryException
+  ChangeNumberIndexDB getChangeNumberIndexDB()
   {
-    synchronized (cnIndexDBLock)
-    {
-      try
-      {
-        if (cnIndexDB == null)
-        {
-          cnIndexDB = this.changelogDB.newChangeNumberIndexDB();
-        }
-        return cnIndexDB;
-      }
-      catch (Exception e)
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        Message message =
-            ERR_CHANGENUMBER_DATABASE.get(e.getLocalizedMessage());
-        throw new DirectoryException(OPERATIONS_ERROR, message, e);
-      }
-    }
+    return this.changelogDB.getChangeNumberIndexDB();
   }
 
   /**
@@ -1567,14 +1465,13 @@ public final class ReplicationServer
      *     replchangelog FROM that genState TO the crossDomainEligibleCSN
      *     (this diff is done domain by domain)
      */
-
-    final ChangeNumberIndexDB cnIndexDB = getChangeNumberIndexDB();
     try
     {
       boolean dbEmpty = true;
       long firstChangeNumber = 0;
       long lastChangeNumber = 0;
 
+      final ChangeNumberIndexDB cnIndexDB = getChangeNumberIndexDB();
       final CNIndexRecord firstCNRecord = cnIndexDB.getFirstRecord();
       final CNIndexRecord lastCNRecord = cnIndexDB.getLastRecord();
 
@@ -1657,7 +1554,7 @@ public final class ReplicationServer
       {
         // The database was empty, just keep increasing numbers since last time
         // we generated one change number.
-        long lastGeneratedCN = this.cnIndexDB.getLastGeneratedChangeNumber();
+        long lastGeneratedCN = cnIndexDB.getLastGeneratedChangeNumber();
         firstChangeNumber += lastGeneratedCN;
         lastChangeNumber += lastGeneratedCN;
       }
