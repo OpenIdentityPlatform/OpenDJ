@@ -26,25 +26,10 @@
  */
 package org.opends.server.protocols.http;
 
-import static org.opends.messages.ConfigMessages.*;
-import static org.opends.messages.ProtocolMessages.*;
-import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
-
 import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.EnumSet;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
@@ -85,12 +70,7 @@ import org.opends.messages.Message;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.ConnectionHandlerCfg;
 import org.opends.server.admin.std.server.HTTPConnectionHandlerCfg;
-import org.opends.server.api.AlertGenerator;
-import org.opends.server.api.ClientConnection;
-import org.opends.server.api.ConnectionHandler;
-import org.opends.server.api.KeyManagerProvider;
-import org.opends.server.api.ServerShutdownListener;
-import org.opends.server.api.TrustManagerProvider;
+import org.opends.server.api.*;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.extensions.NullKeyManagerProvider;
@@ -98,15 +78,16 @@ import org.opends.server.extensions.NullTrustManagerProvider;
 import org.opends.server.loggers.HTTPAccessLogger;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.monitors.ClientConnectionMonitorProvider;
-import org.opends.server.types.ConfigChangeResult;
-import org.opends.server.types.DN;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.HostPort;
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.ResultCode;
+import org.opends.server.types.*;
 import org.opends.server.util.SelectableCertificateKeyManager;
 import org.opends.server.util.StaticUtils;
+
+import static org.opends.messages.ConfigMessages.*;
+import static org.opends.messages.ProtocolMessages.*;
+import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class defines a connection handler that will be used for communicating
@@ -953,10 +934,6 @@ public class HTTPConnectionHandler extends
       throw new ServletException("Servlet configuration file '" + configFile
           + "' does not contain a valid JSON configuration");
     }
-
-    // TODO JNR should we restrict the possible configurations in this file?
-    // Should we remove any config that does not make any sense to the
-    // HTTP Connection Handler?
     return new JsonValue(content);
   }
 
