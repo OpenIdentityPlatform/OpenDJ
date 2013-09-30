@@ -25,6 +25,8 @@
  */
 package org.forgerock.opendj.ldap;
 
+import static org.fest.assertions.Assertions.assertThat;
+
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -100,7 +102,7 @@ final class MockConnectionEventListener implements ConnectionEventListener {
 
     private void await(CountDownLatch latch, long timeout, TimeUnit unit) {
         try {
-            latch.await(timeout, unit);
+            assertThat(latch.await(timeout, unit)).isTrue();
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
