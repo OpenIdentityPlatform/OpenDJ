@@ -89,7 +89,7 @@ public class DbHandlerTest extends ReplicationTestCase
       replicationServer = configureReplicationServer(100, 5000);
       DbHandler handler = newDbHandler(replicationServer);
 
-      CSN[] csns = new CSNGenerator(1, 0).newCSNs(5);
+      CSN[] csns = newCSNs(1, 0, 5);
 
       handler.add(new DeleteMsg(TEST_ROOT_DN, csns[0], "uid"));
       handler.add(new DeleteMsg(TEST_ROOT_DN, csns[1], "uid"));
@@ -154,6 +154,17 @@ public class DbHandlerTest extends ReplicationTestCase
     {
       remove(replicationServer);
     }
+  }
+
+  static CSN[] newCSNs(int serverId, long timestamp, int number)
+  {
+    CSNGenerator gen = new CSNGenerator(serverId, timestamp);
+    CSN[] csns = new CSN[number];
+    for (int i = 0; i < csns.length; i++)
+    {
+      csns[i] = gen.newCSN();
+    }
+    return csns;
   }
 
   private ReplicationServer configureReplicationServer(int windowSize, int queueSize)
@@ -242,7 +253,7 @@ public class DbHandlerTest extends ReplicationTestCase
       replicationServer = configureReplicationServer(100, 5000);
       DbHandler handler = newDbHandler(replicationServer);
 
-      CSN[] csns = new CSNGenerator(1, 0).newCSNs(3);
+      CSN[] csns = newCSNs(1, 0, 3);
 
       // Add the changes
       handler.add(new DeleteMsg(TEST_ROOT_DN, csns[0], "uid"));
@@ -278,7 +289,7 @@ public class DbHandlerTest extends ReplicationTestCase
       replicationServer = configureReplicationServer(100000, 10);
       DbHandler handler = newDbHandler(replicationServer);
 
-      CSN[] csns = new CSNGenerator(1, System.currentTimeMillis()).newCSNs(6);
+      CSN[] csns = newCSNs(1, System.currentTimeMillis(), 6);
       for (int i = 0; i < 5; i++)
       {
         if (i != 3)
@@ -319,7 +330,7 @@ public class DbHandlerTest extends ReplicationTestCase
       replicationServer = configureReplicationServer(100000, 10);
       DbHandler handler = newDbHandler(replicationServer);
 
-      CSN[] csns = new CSNGenerator(1, System.currentTimeMillis()).newCSNs(5);
+      CSN[] csns = newCSNs(1, System.currentTimeMillis(), 5);
       for (CSN csn : csns)
       {
         handler.add(new DeleteMsg(TEST_ROOT_DN, csn, "uid"));

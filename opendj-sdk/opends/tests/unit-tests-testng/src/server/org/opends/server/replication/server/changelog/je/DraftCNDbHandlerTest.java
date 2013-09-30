@@ -33,7 +33,6 @@ import java.io.IOException;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.CSN;
-import org.opends.server.replication.common.CSNGenerator;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.server.changelog.api.CNIndexRecord;
@@ -44,6 +43,7 @@ import org.opends.server.types.DN;
 import org.opends.server.util.StaticUtils;
 import org.testng.annotations.Test;
 
+import static org.opends.server.replication.server.changelog.je.DbHandlerTest.*;
 import static org.testng.Assert.*;
 
 /**
@@ -92,7 +92,7 @@ public class DraftCNDbHandlerTest extends ReplicationTestCase
       DN baseDN2 = DN.decode("o=baseDN2");
       DN baseDN3 = DN.decode("o=baseDN3");
 
-      CSN[] csns = new CSNGenerator(1, 0).newCSNs(3);
+      CSN[] csns = newCSNs(1, 0, 3);
 
       // Add records
       handler.addRecord(new CNIndexRecord(cn1, value1, baseDN1, csns[0]));
@@ -213,7 +213,7 @@ public class DraftCNDbHandlerTest extends ReplicationTestCase
       DN baseDN2 = DN.decode("o=baseDN2");
       DN baseDN3 = DN.decode("o=baseDN3");
 
-      CSN[] csns = new CSNGenerator(1, 0).newCSNs(3);
+      CSN[] csns = newCSNs(1, 0, 3);
 
       // Add records
       handler.addRecord(new CNIndexRecord(cn1, value1, baseDN1, csns[0]));

@@ -109,23 +109,6 @@ public class CSNGenerator
   }
 
   /**
-   * Generate an array of new {@link CSN}s.
-   *
-   * @param number
-   *          the total number of {@link CSN}s to generate
-   * @return the array of generated {@link CSN}s
-   */
-  public CSN[] newCSNs(int number)
-  {
-    final CSN[] csns = new CSN[number];
-    for (int i = 0; i < number; i++)
-    {
-      csns[i] = newCSN();
-    }
-    return csns;
-  }
-
-  /**
    * Adjust the lastTime of this {@link CSNGenerator} with a {@link CSN} that we
    * have received from another server.
    * <p>
