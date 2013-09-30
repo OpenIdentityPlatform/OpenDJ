@@ -150,13 +150,6 @@ public final class ReplicationServer
    */
   private ChangeNumberIndexDB cnIndexDB;
 
-  /**
-   * The last value generated of the change number.
-   * <p>
-   * Guarded by cnIndexDBLock
-   **/
-  private long lastGeneratedChangeNumber = 0;
-
   /** Used for protecting {@link ChangeNumberIndexDB} related state. */
   private final Object cnIndexDBLock = new Object();
 
@@ -1307,7 +1300,6 @@ public final class ReplicationServer
 
         shutdownCNIndexDB();
 
-        lastGeneratedChangeNumber = 0;
         cnIndexDB = null;
       }
     }
@@ -1528,11 +1520,6 @@ public final class ReplicationServer
         if (cnIndexDB == null)
         {
           cnIndexDB = this.changelogDB.newChangeNumberIndexDB();
-          final CNIndexRecord lastCNRecord = cnIndexDB.getLastRecord();
-          // initialization of the lastGeneratedChangeNumber from the DB content
-          // if DB is empty => last record does not exist => default to 0
-          lastGeneratedChangeNumber =
-              (lastCNRecord != null) ? lastCNRecord.getChangeNumber() : 0;
         }
         return cnIndexDB;
       }
@@ -1543,19 +1530,6 @@ public final class ReplicationServer
             ERR_CHANGENUMBER_DATABASE.get(e.getLocalizedMessage());
         throw new DirectoryException(OPERATIONS_ERROR, message, e);
       }
-    }
-  }
-
-  /**
-   * Generate a new change number.
-   *
-   * @return The generated change number
-   */
-  public long getNewChangeNumber()
-  {
-    synchronized (cnIndexDBLock)
-    {
-      return ++lastGeneratedChangeNumber;
     }
   }
 
@@ -1683,8 +1657,9 @@ public final class ReplicationServer
       {
         // The database was empty, just keep increasing numbers since last time
         // we generated one change number.
-        firstChangeNumber += lastGeneratedChangeNumber;
-        lastChangeNumber += lastGeneratedChangeNumber;
+        long lastGeneratedCN = this.cnIndexDB.getLastGeneratedChangeNumber();
+        firstChangeNumber += lastGeneratedCN;
+        lastChangeNumber += lastGeneratedCN;
       }
       return new long[] { firstChangeNumber, lastChangeNumber };
     }

@@ -30,6 +30,7 @@ package org.opends.server.replication.server.changelog.je;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.opends.messages.MessageBuilder;
@@ -82,6 +83,8 @@ public class DraftCNDbHandler implements ChangeNumberIndexDB, Runnable
    * even use it!
    */
   private long lastChangeNumber = NO_KEY;
+  /** The last generated value for the change number. */
+  private final AtomicLong lastGeneratedChangeNumber;
   private DbMonitorProvider dbMonitor = new DbMonitorProvider();
   private boolean shutdown = false;
   private boolean trimDone = false;
@@ -120,8 +123,14 @@ public class DraftCNDbHandler implements ChangeNumberIndexDB, Runnable
 
     // DB initialization
     db = new DraftCNDB(dbenv);
-    firstChangeNumber = getChangeNumber(db.readFirstRecord());
-    lastChangeNumber = getChangeNumber(db.readLastRecord());
+    final CNIndexRecord firstRecord = db.readFirstRecord();
+    final CNIndexRecord lastRecord = db.readLastRecord();
+    firstChangeNumber = getChangeNumber(firstRecord);
+    lastChangeNumber = getChangeNumber(lastRecord);
+    // initialization of the lastGeneratedChangeNumber from the DB content
+    // if DB is empty => last record does not exist => default to 0
+    lastGeneratedChangeNumber =
+        new AtomicLong((lastRecord != null) ? lastRecord.getChangeNumber() : 0);
 
     // Trimming thread
     thread = new DirectoryThread(this, "Replication DraftCN db");
@@ -163,6 +172,20 @@ public class DraftCNDbHandler implements ChangeNumberIndexDB, Runnable
   public CNIndexRecord getLastRecord() throws ChangelogException
   {
     return db.readLastRecord();
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public long nextChangeNumber()
+  {
+    return lastGeneratedChangeNumber.incrementAndGet();
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public long getLastGeneratedChangeNumber()
+  {
+    return lastGeneratedChangeNumber.get();
   }
 
   /**
@@ -416,38 +439,37 @@ public class DraftCNDbHandler implements ChangeNumberIndexDB, Runnable
     public List<Attribute> getMonitorData()
     {
       List<Attribute> attributes = new ArrayList<Attribute>();
+      attributes.add(createChangeNumberAttribute(true));
+      attributes.add(createChangeNumberAttribute(false));
+      attributes.add(Attributes.create("count", Long.toString(count())));
+      return attributes;
+    }
 
+    private Attribute createChangeNumberAttribute(boolean isFirst)
+    {
+      final String attributeName =
+          isFirst ? "first-draft-changenumber" : "last-draft-changenumber";
+      final String changeNumber = String.valueOf(getChangeNumber(isFirst));
+      return Attributes.create(attributeName, changeNumber);
+    }
+
+    private long getChangeNumber(boolean isFirst)
+    {
       try
       {
-        CNIndexRecord firstCNRecord = db.readFirstRecord();
-        String firstCN = String.valueOf(firstCNRecord.getChangeNumber());
-        attributes.add(Attributes.create("first-draft-changenumber", firstCN));
-      }
-      catch (ChangelogException e)
-      {
-        if (debugEnabled())
-          TRACER.debugCaught(DebugLogLevel.WARNING, e);
-        attributes.add(Attributes.create("first-draft-changenumber", "0"));
-      }
-
-      try
-      {
-        CNIndexRecord lastCNRecord = db.readLastRecord();
-        if (lastCNRecord != null)
+        CNIndexRecord record =
+            isFirst ? db.readFirstRecord() : db.readLastRecord();
+        if (record != null)
         {
-          String lastCN = String.valueOf(lastCNRecord.getChangeNumber());
-          attributes.add(Attributes.create("last-draft-changenumber", lastCN));
+          return record.getChangeNumber();
         }
       }
       catch (ChangelogException e)
       {
         if (debugEnabled())
           TRACER.debugCaught(DebugLogLevel.WARNING, e);
-        attributes.add(Attributes.create("last-draft-changenumber", "0"));
       }
-
-      attributes.add(Attributes.create("count", Long.toString(count())));
-      return attributes;
+      return 0;
     }
 
     /**
