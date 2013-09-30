@@ -70,6 +70,17 @@ public class JEChangelogDB implements ChangelogDB
   private final String dbDirectoryName;
   private final File dbDirectory;
 
+  /**
+   * The handler of the changelog database, the database stores the relation
+   * between a change number and the associated cookie.
+   * <p>
+   * Guarded by cnIndexDBLock
+   */
+  private ChangeNumberIndexDB cnIndexDB;
+
+  /** Used for protecting {@link ChangeNumberIndexDB} related state. */
+  private final Object cnIndexDBLock = new Object();
+
   /** The local replication server. */
   private final ReplicationServer replicationServer;
 
@@ -229,10 +240,8 @@ public class JEChangelogDB implements ChangelogDB
     }
     catch (ChangelogException e)
     {
-      Message message =
-          ERR_COULD_NOT_READ_DB.get(this.dbDirectory.getAbsolutePath(), e
-              .getLocalizedMessage());
-      logError(message);
+      logError(ERR_COULD_NOT_READ_DB.get(this.dbDirectory.getAbsolutePath(),
+          e.getLocalizedMessage()));
     }
   }
 
@@ -255,13 +264,63 @@ public class JEChangelogDB implements ChangelogDB
     }
   }
 
+  private void shutdownCNIndexDB()
+  {
+    synchronized (cnIndexDBLock)
+    {
+      if (cnIndexDB != null)
+      {
+        try
+        {
+          cnIndexDB.shutdown();
+        }
+        catch (ChangelogException ignored)
+        {
+          if (debugEnabled())
+          {
+            TRACER.debugCaught(DebugLogLevel.WARNING, ignored);
+          }
+        }
+      }
+    }
+  }
+
   /** {@inheritDoc} */
   @Override
   public void shutdownDB()
   {
+    shutdownCNIndexDB();
+
     if (dbEnv != null)
     {
       dbEnv.shutdown();
+    }
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public void clearCNIndexDB()
+  {
+    synchronized (cnIndexDBLock)
+    {
+      if (cnIndexDB != null)
+      {
+        try
+        {
+          cnIndexDB.clear();
+        }
+        catch (Exception ignored)
+        {
+          if (debugEnabled())
+          {
+            TRACER.debugCaught(DebugLogLevel.WARNING, ignored);
+          }
+        }
+
+        shutdownCNIndexDB();
+
+        cnIndexDB = null;
+      }
     }
   }
 
@@ -354,6 +413,7 @@ public class JEChangelogDB implements ChangelogDB
   @Override
   public void removeDomain(DN baseDN)
   {
+    // 1- clear the replica DBs
     final Map<Integer, DbHandler> domainMap = getDomainMap(baseDN);
     synchronized (domainMap)
     {
@@ -376,6 +436,26 @@ public class JEChangelogDB implements ChangelogDB
       shutdownDbHandlers(domainMap);
     }
 
+    // 2- clear the ChangeNumber index DB
+    synchronized (cnIndexDBLock)
+    {
+      if (cnIndexDB != null)
+      {
+        try
+        {
+          cnIndexDB.clear(baseDN);
+        }
+        catch (Exception ignored)
+        {
+          if (debugEnabled())
+          {
+            TRACER.debugCaught(DebugLogLevel.WARNING, ignored);
+          }
+        }
+      }
+    }
+
+    // 3- clear the changelogstate DB
     try
     {
       dbEnv.clearGenerationId(baseDN);
@@ -446,9 +526,23 @@ public class JEChangelogDB implements ChangelogDB
 
   /** {@inheritDoc} */
   @Override
-  public ChangeNumberIndexDB newChangeNumberIndexDB() throws ChangelogException
+  public ChangeNumberIndexDB getChangeNumberIndexDB()
   {
-    return new DraftCNDbHandler(replicationServer, this.dbEnv);
+    synchronized (cnIndexDBLock)
+    {
+      if (cnIndexDB == null)
+      {
+        try
+        {
+          cnIndexDB = new DraftCNDbHandler(replicationServer, this.dbEnv);
+        }
+        catch (Exception e)
+        {
+          logError(ERR_CHANGENUMBER_DATABASE.get(e.getLocalizedMessage()));
+        }
+      }
+      return cnIndexDB;
+    }
   }
 
   /** {@inheritDoc} */
