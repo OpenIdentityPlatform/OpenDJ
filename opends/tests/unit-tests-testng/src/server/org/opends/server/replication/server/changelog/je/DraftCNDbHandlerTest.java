@@ -62,9 +62,7 @@ public class DraftCNDbHandlerTest extends ReplicationTestCase
   @Test()
   void testDraftCNDbHandlerTrim() throws Exception
   {
-    File testRoot = null;
     ReplicationServer replicationServer = null;
-    ReplicationDbEnv dbEnv = null;
     DraftCNDbHandler handler = null;
     try
     {
@@ -78,10 +76,7 @@ public class DraftCNDbHandlerTest extends ReplicationTestCase
         2, 0, 100, null);
       replicationServer = new ReplicationServer(conf);
 
-      testRoot = createCleanDir();
-      dbEnv = new ReplicationDbEnv(testRoot.getPath(), replicationServer);
-
-      handler = new DraftCNDbHandler(replicationServer, dbEnv);
+      handler = newDraftCNDbHandler(replicationServer);
       handler.setPurgeDelay(0);
 
       // Prepare data to be stored in the db
@@ -97,15 +92,12 @@ public class DraftCNDbHandlerTest extends ReplicationTestCase
       DN baseDN2 = DN.decode("o=baseDN2");
       DN baseDN3 = DN.decode("o=baseDN3");
 
-      CSNGenerator gen = new CSNGenerator(1, 0);
-      CSN csn1 = gen.newCSN();
-      CSN csn2 = gen.newCSN();
-      CSN csn3 = gen.newCSN();
+      CSN[] csns = new CSNGenerator(1, 0).newCSNs(3);
 
       // Add records
-      handler.addRecord(new CNIndexRecord(cn1, value1, baseDN1, csn1));
-      handler.addRecord(new CNIndexRecord(cn2, value2, baseDN2, csn2));
-      handler.addRecord(new CNIndexRecord(cn3, value3, baseDN3, csn3));
+      handler.addRecord(new CNIndexRecord(cn1, value1, baseDN1, csns[0]));
+      handler.addRecord(new CNIndexRecord(cn2, value2, baseDN2, csns[1]));
+      handler.addRecord(new CNIndexRecord(cn3, value3, baseDN3, csns[2]));
 
       // The ChangeNumber should not get purged
       final long firstChangeNumber = handler.getFirstRecord().getChangeNumber();
@@ -115,14 +107,14 @@ public class DraftCNDbHandlerTest extends ReplicationTestCase
       DraftCNDBCursor dbc = handler.getReadCursor(firstChangeNumber);
       try
       {
-        assertEqualTo(dbc.currentRecord(), csn1, baseDN1, value1);
+        assertEqualTo(dbc.currentRecord(), csns[0], baseDN1, value1);
         assertTrue(dbc.toString().length() != 0);
 
         assertTrue(dbc.next());
-        assertEqualTo(dbc.currentRecord(), csn2, baseDN2, value2);
+        assertEqualTo(dbc.currentRecord(), csns[1], baseDN2, value2);
 
         assertTrue(dbc.next());
-        assertEqualTo(dbc.currentRecord(), csn3, baseDN3, value3);
+        assertEqualTo(dbc.currentRecord(), csns[2], baseDN3, value3);
 
         assertFalse(dbc.next());
       }
@@ -146,11 +138,7 @@ public class DraftCNDbHandlerTest extends ReplicationTestCase
     {
       if (handler != null)
         handler.shutdown();
-      if (dbEnv != null)
-        dbEnv.shutdown();
-      if (replicationServer != null)
-        replicationServer.remove();
-      TestCaseUtils.deleteDirectory(testRoot);
+      remove(replicationServer);
     }
   }
 
@@ -159,6 +147,13 @@ public class DraftCNDbHandlerTest extends ReplicationTestCase
     assertEquals(data.getCSN(), csn);
     assertEquals(data.getBaseDN(), baseDN);
     assertEquals(data.getPreviousCookie(), cookie);
+  }
+
+  private DraftCNDbHandler newDraftCNDbHandler(ReplicationServer rs) throws Exception
+  {
+    File testRoot = createCleanDir();
+    ReplicationDbEnv dbEnv = new ReplicationDbEnv(testRoot.getPath(), rs);
+    return new DraftCNDbHandler(rs, dbEnv);
   }
 
   private File createCleanDir() throws IOException
@@ -186,9 +181,7 @@ public class DraftCNDbHandlerTest extends ReplicationTestCase
   @Test()
   void testDraftCNDbHandlerClear() throws Exception
   {
-    File testRoot = null;
     ReplicationServer replicationServer = null;
-    ReplicationDbEnv dbEnv = null;
     DraftCNDbHandler handler = null;
     try
     {
@@ -202,10 +195,7 @@ public class DraftCNDbHandlerTest extends ReplicationTestCase
         2, 0, 100, null);
       replicationServer = new ReplicationServer(conf);
 
-      testRoot = createCleanDir();
-      dbEnv = new ReplicationDbEnv(testRoot.getAbsolutePath(), replicationServer);
-
-      handler = new DraftCNDbHandler(replicationServer, dbEnv);
+      handler = newDraftCNDbHandler(replicationServer);
       handler.setPurgeDelay(0);
 
       assertTrue(handler.isEmpty());
@@ -223,15 +213,12 @@ public class DraftCNDbHandlerTest extends ReplicationTestCase
       DN baseDN2 = DN.decode("o=baseDN2");
       DN baseDN3 = DN.decode("o=baseDN3");
 
-      CSNGenerator gen = new CSNGenerator(1, 0);
-      CSN csn1 = gen.newCSN();
-      CSN csn2 = gen.newCSN();
-      CSN csn3 = gen.newCSN();
+      CSN[] csns = new CSNGenerator(1, 0).newCSNs(3);
 
       // Add records
-      handler.addRecord(new CNIndexRecord(cn1, value1, baseDN1, csn1));
-      handler.addRecord(new CNIndexRecord(cn2, value2, baseDN2, csn2));
-      handler.addRecord(new CNIndexRecord(cn3, value3, baseDN3, csn3));
+      handler.addRecord(new CNIndexRecord(cn1, value1, baseDN1, csns[0]));
+      handler.addRecord(new CNIndexRecord(cn2, value2, baseDN2, csns[1]));
+      handler.addRecord(new CNIndexRecord(cn3, value3, baseDN3, csns[2]));
       Thread.sleep(500);
 
       // Checks
@@ -266,11 +253,7 @@ public class DraftCNDbHandlerTest extends ReplicationTestCase
     {
       if (handler != null)
         handler.shutdown();
-      if (dbEnv != null)
-        dbEnv.shutdown();
-      if (replicationServer != null)
-        replicationServer.remove();
-      TestCaseUtils.deleteDirectory(testRoot);
+      remove(replicationServer);
     }
   }
 

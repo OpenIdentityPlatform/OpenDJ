@@ -101,6 +101,7 @@ public class JEChangelogDB implements ChangelogDB
     @Override
     public void close()
     {
+      // empty
     }
   };
 
@@ -177,7 +178,21 @@ public class JEChangelogDB implements ChangelogDB
     getOrCreateDbHandler(baseDN, serverId, rs);
   }
 
-  private Pair<DbHandler, Boolean> getOrCreateDbHandler(DN baseDN,
+  /**
+   * Returns a DbHandler, possibly creating it.
+   *
+   * @param baseDN
+   *          the baseDN for which to create a DbHandler
+   * @param serverId
+   *          the baseserverId for which to create a DbHandler
+   * @param rs
+   *          the ReplicationServer
+   * @return a Pair with the DbHandler and a a boolean indicating if it has been
+   *         created
+   * @throws ChangelogException
+   *           if a problem occurred with the database
+   */
+  Pair<DbHandler, Boolean> getOrCreateDbHandler(DN baseDN,
       int serverId, ReplicationServer rs) throws ChangelogException
   {
     synchronized (sourceDbHandlers)

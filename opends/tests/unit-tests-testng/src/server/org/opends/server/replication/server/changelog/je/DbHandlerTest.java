@@ -82,33 +82,19 @@ public class DbHandlerTest extends ReplicationTestCase
   @Test(enabled=true)
   void testDbHandlerTrim() throws Exception
   {
-    File testRoot = null;
     ReplicationServer replicationServer = null;
-    ReplicationDbEnv dbEnv = null;
-    DbHandler handler = null;
     try
     {
       TestCaseUtils.startServer();
+      replicationServer = configureReplicationServer(100, 5000);
+      DbHandler handler = newDbHandler(replicationServer);
 
-      replicationServer = configureReplicationServer(100);
+      CSN[] csns = new CSNGenerator(1, 0).newCSNs(5);
 
-      // create or clean a directory for the dbHandler
-      testRoot = createCleanDir();
-
-      dbEnv = new ReplicationDbEnv(testRoot.getPath(), replicationServer);
-      handler = new DbHandler(1, TEST_ROOT_DN, replicationServer, dbEnv, 5000);
-
-      CSNGenerator gen = new CSNGenerator( 1, 0);
-      CSN csn1 = gen.newCSN();
-      CSN csn2 = gen.newCSN();
-      CSN csn3 = gen.newCSN();
-      CSN csn4 = gen.newCSN();
-      CSN csn5 = gen.newCSN();
-
-      handler.add(new DeleteMsg(TEST_ROOT_DN, csn1, "uid"));
-      handler.add(new DeleteMsg(TEST_ROOT_DN, csn2, "uid"));
-      handler.add(new DeleteMsg(TEST_ROOT_DN, csn3, "uid"));
-      DeleteMsg update4 = new DeleteMsg(TEST_ROOT_DN, csn4, "uid");
+      handler.add(new DeleteMsg(TEST_ROOT_DN, csns[0], "uid"));
+      handler.add(new DeleteMsg(TEST_ROOT_DN, csns[1], "uid"));
+      handler.add(new DeleteMsg(TEST_ROOT_DN, csns[2], "uid"));
+      DeleteMsg update4 = new DeleteMsg(TEST_ROOT_DN, csns[3], "uid");
 
       //--
       // Iterator tests with memory queue only populated
@@ -116,8 +102,8 @@ public class DbHandlerTest extends ReplicationTestCase
       // verify that memory queue is populated
       assertEquals(handler.getQueueSize(),3);
 
-      assertFoundInOrder(handler, csn1, csn2, csn3);
-      assertNotFound(handler, csn5);
+      assertFoundInOrder(handler, csns[0], csns[1], csns[2]);
+      assertNotFound(handler, csns[4]);
 
       //--
       // Iterator tests with db only populated
@@ -126,26 +112,25 @@ public class DbHandlerTest extends ReplicationTestCase
       // verify that memory queue is empty (all changes flushed in the db)
       assertEquals(handler.getQueueSize(),0);
 
-      assertFoundInOrder(handler, csn1, csn2, csn3);
-      assertNotFound(handler, csn5);
+      assertFoundInOrder(handler, csns[0], csns[1], csns[2]);
+      assertNotFound(handler, csns[4]);
 
-      // Test first and last
-      assertEquals(csn1, handler.getOldestCSN());
-      assertEquals(csn3, handler.getNewestCSN());
+      assertEquals(handler.getOldestCSN(), csns[0]);
+      assertEquals(handler.getNewestCSN(), csns[2]);
 
       //--
-			// Cursor tests with db and memory queue populated
+      // Cursor tests with db and memory queue populated
       // all changes in the db - add one in the memory queue
       handler.add(update4);
 
       // verify memory queue contains this one
       assertEquals(handler.getQueueSize(),1);
 
-      assertFoundInOrder(handler, csn1, csn2, csn3, csn4);
+      assertFoundInOrder(handler, csns[0], csns[1], csns[2], csns[3]);
       // Test cursor from existing CSN at the limit between queue and db
-      assertFoundInOrder(handler, csn3, csn4);
-      assertFoundInOrder(handler, csn4);
-      assertNotFound(handler, csn5);
+      assertFoundInOrder(handler, csns[2], csns[3]);
+      assertFoundInOrder(handler, csns[3]);
+      assertNotFound(handler, csns[4]);
 
       handler.setPurgeDelay(1);
 
@@ -155,7 +140,7 @@ public class DbHandlerTest extends ReplicationTestCase
       {
         CSN oldestCSN = handler.getOldestCSN();
         CSN newestCSN = handler.getNewestCSN();
-        if (!oldestCSN.equals(csn4) || !newestCSN.equals(csn4))
+        if (!oldestCSN.equals(csns[3]) || !newestCSN.equals(csns[3]))
         {
           TestCaseUtils.sleep(100);
         } else
@@ -164,25 +149,26 @@ public class DbHandlerTest extends ReplicationTestCase
         }
       }
       // FIXME should add an assert here
-    } finally
+    }
+    finally
     {
-      if (handler != null)
-        handler.shutdown();
-      if (dbEnv != null)
-        dbEnv.shutdown();
-      if (replicationServer != null)
-        replicationServer.remove();
-      TestCaseUtils.deleteDirectory(testRoot);
+      remove(replicationServer);
     }
   }
 
-  private ReplicationServer configureReplicationServer(int windowSize)
+  private ReplicationServer configureReplicationServer(int windowSize, int queueSize)
       throws IOException, ConfigException
   {
     final int changelogPort = findFreePort();
     final ReplicationServerCfg conf =
-        new ReplServerFakeConfiguration(changelogPort, null, 0, 2, 0, windowSize, null);
+        new ReplServerFakeConfiguration(changelogPort, null, 0, 2, queueSize, windowSize, null);
     return new ReplicationServer(conf);
+  }
+
+  private DbHandler newDbHandler(ReplicationServer replicationServer) throws Exception
+  {
+    JEChangelogDB changelogDB = (JEChangelogDB) replicationServer.getChangelogDB();
+    return changelogDB.getOrCreateDbHandler(TEST_ROOT_DN, 1, replicationServer).getFirst();
   }
 
   private File createCleanDir() throws IOException
@@ -210,16 +196,16 @@ public class DbHandlerTest extends ReplicationTestCase
       assertNull(cursor.getChange());
       for (int i = 1; i < csns.length; i++)
       {
-				assertTrue(cursor.next());
+        assertTrue(cursor.next());
         assertEquals(cursor.getChange().getCSN(), csns[i]);
       }
-			assertFalse(cursor.next());
+      assertFalse(cursor.next());
       assertNull(cursor.getChange(), "Actual change=" + cursor.getChange()
           + ", Expected null");
     }
     finally
     {
-			StaticUtils.close(cursor);
+      StaticUtils.close(cursor);
     }
   }
 
@@ -249,34 +235,23 @@ public class DbHandlerTest extends ReplicationTestCase
   @Test(enabled=true)
   void testDbHandlerClear() throws Exception
   {
-    File testRoot = null;
     ReplicationServer replicationServer = null;
-    ReplicationDbEnv dbEnv = null;
-    DbHandler handler = null;
     try
     {
       TestCaseUtils.startServer();
+      replicationServer = configureReplicationServer(100, 5000);
+      DbHandler handler = newDbHandler(replicationServer);
 
-      replicationServer = configureReplicationServer(100);
-
-      testRoot = createCleanDir();
-      dbEnv = new ReplicationDbEnv(testRoot.getPath(), replicationServer);
-      handler = new DbHandler(1, TEST_ROOT_DN, replicationServer, dbEnv, 5000);
-
-      // Creates changes added to the dbHandler
-      CSNGenerator gen = new CSNGenerator( 1, 0);
-      CSN csn1 = gen.newCSN();
-      CSN csn2 = gen.newCSN();
-      CSN csn3 = gen.newCSN();
+      CSN[] csns = new CSNGenerator(1, 0).newCSNs(3);
 
       // Add the changes
-      handler.add(new DeleteMsg(TEST_ROOT_DN, csn1, "uid"));
-      handler.add(new DeleteMsg(TEST_ROOT_DN, csn2, "uid"));
-      handler.add(new DeleteMsg(TEST_ROOT_DN, csn3, "uid"));
+      handler.add(new DeleteMsg(TEST_ROOT_DN, csns[0], "uid"));
+      handler.add(new DeleteMsg(TEST_ROOT_DN, csns[1], "uid"));
+      handler.add(new DeleteMsg(TEST_ROOT_DN, csns[2], "uid"));
 
       // Check they are here
-      assertEquals(csn1, handler.getOldestCSN());
-      assertEquals(csn3, handler.getNewestCSN());
+      assertEquals(csns[0], handler.getOldestCSN());
+      assertEquals(csns[2], handler.getNewestCSN());
 
       // Clear ...
       handler.clear();
@@ -285,40 +260,69 @@ public class DbHandlerTest extends ReplicationTestCase
       assertEquals(null, handler.getOldestCSN());
       assertEquals(null, handler.getNewestCSN());
 
-    } finally
+    }
+    finally
     {
-      if (handler != null)
-        handler.shutdown();
-      if (dbEnv != null)
-        dbEnv.shutdown();
-      if (replicationServer != null)
-        replicationServer.remove();
-      TestCaseUtils.deleteDirectory(testRoot);
+      remove(replicationServer);
+    }
+  }
+
+  @Test
+  public void testGenerateCursorFrom() throws Exception
+  {
+    ReplicationServer replicationServer = null;
+    ReplicaDBCursor cursor = null;
+    try
+    {
+      TestCaseUtils.startServer();
+      replicationServer = configureReplicationServer(100000, 10);
+      DbHandler handler = newDbHandler(replicationServer);
+
+      CSN[] csns = new CSNGenerator(1, System.currentTimeMillis()).newCSNs(6);
+      for (int i = 0; i < 5; i++)
+      {
+        if (i != 3)
+        {
+          handler.add(new DeleteMsg(TEST_ROOT_DN, csns[i], "uid"));
+        }
+      }
+      handler.flush();
+
+      cursor = handler.generateCursorFrom(csns[0]);
+      assertTrue(cursor.next());
+      assertEquals(cursor.getChange().getCSN(), csns[1]);
+      StaticUtils.close(cursor);
+
+      cursor = handler.generateCursorFrom(csns[3]);
+      assertTrue(cursor.next());
+      assertEquals(cursor.getChange().getCSN(), csns[4]);
+      StaticUtils.close(cursor);
+
+      cursor = handler.generateCursorFrom(csns[4]);
+      assertFalse(cursor.next());
+      assertNull(cursor.getChange());
+    }
+    finally
+    {
+      StaticUtils.close(cursor);
+      remove(replicationServer);
     }
   }
 
   @Test
   public void testGetCountNoCounterRecords() throws Exception
   {
-    File testRoot = null;
     ReplicationServer replicationServer = null;
-    ReplicationDbEnv dbEnv = null;
-    DbHandler handler = null;
     try
     {
       TestCaseUtils.startServer();
-      replicationServer = configureReplicationServer(100000);
+      replicationServer = configureReplicationServer(100000, 10);
+      DbHandler handler = newDbHandler(replicationServer);
 
-      testRoot = createCleanDir();
-      dbEnv = new ReplicationDbEnv(testRoot.getPath(), replicationServer);
-      handler = new DbHandler(1, TEST_ROOT_DN, replicationServer, dbEnv, 10);
-
-      CSNGenerator csnGen = new CSNGenerator(1, System.currentTimeMillis());
-      CSN[] csns = new CSN[5];
-      for (int i = 0; i < 5; i++)
+      CSN[] csns = new CSNGenerator(1, System.currentTimeMillis()).newCSNs(5);
+      for (CSN csn : csns)
       {
-        csns[i] = csnGen.newCSN();
-        handler.add(new DeleteMsg(TEST_ROOT_DN, csns[i], "uid"));
+        handler.add(new DeleteMsg(TEST_ROOT_DN, csn, "uid"));
       }
       handler.flush();
 
@@ -331,13 +335,7 @@ public class DbHandlerTest extends ReplicationTestCase
     }
     finally
     {
-      if (handler != null)
-        handler.shutdown();
-      if (dbEnv != null)
-        dbEnv.shutdown();
-      if (replicationServer != null)
-        replicationServer.remove();
-      TestCaseUtils.deleteDirectory(testRoot);
+      remove(replicationServer);
     }
   }
 
@@ -394,7 +392,7 @@ public class DbHandlerTest extends ReplicationTestCase
     try
     {
       TestCaseUtils.startServer();
-      replicationServer = configureReplicationServer(100000);
+      replicationServer = configureReplicationServer(100000, 10);
 
       testRoot = createCleanDir();
       dbEnv = new ReplicationDbEnv(testRoot.getPath(), replicationServer);
@@ -408,17 +406,13 @@ public class DbHandlerTest extends ReplicationTestCase
       for (int i=1; i<=max; i++)
       {
         csns[i] = new CSN(now + i, mySeqnum, 1);
+        handler.add(new DeleteMsg(TEST_ROOT_DN, csns[i], "uid"));
         mySeqnum+=2;
-        DeleteMsg update1 = new DeleteMsg(TEST_ROOT_DN, csns[i], "uid");
-        handler.add(update1);
       }
       handler.flush();
 
-      // Test first and last
-      CSN oldestCSN = handler.getOldestCSN();
-      assertEquals(oldestCSN, csns[1], "Wrong oldest CSN");
-      CSN newestCSN = handler.getNewestCSN();
-      assertEquals(newestCSN, csns[max], "Wrong newest CSN");
+      assertEquals(handler.getOldestCSN(), csns[1], "Wrong oldest CSN");
+      assertEquals(handler.getNewestCSN(), csns[max], "Wrong newest CSN");
 
       // Test count in different subcases trying to handle all special cases
       // regarding the 'counter' record and 'count' algorithm
@@ -445,15 +439,14 @@ public class DbHandlerTest extends ReplicationTestCase
       assertCount(tn, handler, csns[(counterWindow + 4)], csns[(counterWindow + 4)], 1,
           "FROM counterWindow+4 TO counterWindow+4 ");
 
-      // Now test with changes older than first or newer than last
-      CSN olderThanFirst = null;
-      CSN newerThanLast = new CSN(System.currentTimeMillis() + (2*(max+1)), 100, 1);
+      CSN olderThanOldest = null;
+      CSN newerThanNewest = new CSN(System.currentTimeMillis() + (2*(max+1)), 100, 1);
 
       // Now we want to test with start and stop outside of the db
 
-      assertCount(tn, handler, csns[1], newerThanLast, max,
+      assertCount(tn, handler, csns[1], newerThanNewest, max,
           "FROM our first generated change TO now (> newest change in the db)");
-      assertCount(tn, handler, olderThanFirst, newerThanLast, max,
+      assertCount(tn, handler, olderThanOldest, newerThanNewest, max,
           "FROM null (start of time) TO now (> newest change in the db)");
 
       // Now we want to test that after closing and reopening the db, the
@@ -465,32 +458,25 @@ public class DbHandlerTest extends ReplicationTestCase
       handler = new DbHandler(1, TEST_ROOT_DN, replicationServer, dbEnv, 10);
       handler.setCounterRecordWindowSize(counterWindow);
 
-      // Test first and last
-      oldestCSN = handler.getOldestCSN();
-      assertEquals(oldestCSN, csns[1], "Wrong oldest CSN");
-      newestCSN = handler.getNewestCSN();
-      assertEquals(newestCSN, csns[max], "Wrong newest CSN");
+      assertEquals(handler.getOldestCSN(), csns[1], "Wrong oldest CSN");
+      assertEquals(handler.getNewestCSN(), csns[max], "Wrong newest CSN");
 
-      assertCount(tn, handler, csns[1], newerThanLast, max,
+      assertCount(tn, handler, csns[1], newerThanNewest, max,
           "FROM our first generated change TO now (> newest change in the db)");
 
       // Populate the db with 'max' msg
       for (int i=max+1; i<=(2*max); i++)
       {
         csns[i] = new CSN(now + i, mySeqnum, 1);
+        handler.add(new DeleteMsg(TEST_ROOT_DN, csns[i], "uid"));
         mySeqnum+=2;
-        DeleteMsg update1 = new DeleteMsg(TEST_ROOT_DN, csns[i], "uid");
-        handler.add(update1);
       }
       handler.flush();
 
-      // Test first and last
-      oldestCSN = handler.getOldestCSN();
-      assertEquals(oldestCSN, csns[1], "Wrong oldest CSN");
-      newestCSN = handler.getNewestCSN();
-      assertEquals(newestCSN, csns[2 * max], "Wrong newest CSN");
+      assertEquals(handler.getOldestCSN(), csns[1], "Wrong oldest CSN");
+      assertEquals(handler.getNewestCSN(), csns[2 * max], "Wrong newest CSN");
 
-      assertCount(tn, handler, csns[1], newerThanLast, 2 * max,
+      assertCount(tn, handler, csns[1], newerThanNewest, 2 * max,
           "FROM our first generated change TO now (> newest change in the db)");
 
       //
@@ -500,7 +486,7 @@ public class DbHandlerTest extends ReplicationTestCase
       long totalCount = handler.getCount(null, null);
       debugInfo(tn, "FROM our first generated change TO now (> newest change in the db)" + " After purge, total count=" + totalCount);
 
-      String testcase = "AFTER PURGE (first, last)=";
+      String testcase = "AFTER PURGE (oldest, newest)=";
       debugInfo(tn, testcase + handler.getOldestCSN() + handler.getNewestCSN());
       assertEquals(handler.getNewestCSN(), csns[2 * max], "Newest=");
 
@@ -515,7 +501,7 @@ public class DbHandlerTest extends ReplicationTestCase
       {
         expectedCnt = 0;
       }
-      assertCount(tn, handler, csns[1], newerThanLast, expectedCnt, "AFTER PURGE");
+      assertCount(tn, handler, csns[1], newerThanNewest, expectedCnt, "AFTER PURGE");
 
       // Clear ...
       debugInfo(tn,"clear:");
@@ -532,8 +518,7 @@ public class DbHandlerTest extends ReplicationTestCase
         handler.shutdown();
       if (dbEnv != null)
         dbEnv.shutdown();
-      if (replicationServer != null)
-        replicationServer.remove();
+      remove(replicationServer);
       TestCaseUtils.deleteDirectory(testRoot);
     }
   }

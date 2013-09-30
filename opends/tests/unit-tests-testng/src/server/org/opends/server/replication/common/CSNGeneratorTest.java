@@ -43,14 +43,12 @@ public class CSNGeneratorTest extends ReplicationTestCase
   public void adjustTest()
   {
     CSNGenerator generator = new CSNGenerator(5, TimeThread.getTime());
-
     CSN csn = generator.newCSN();
 
     CSN csn1 = new CSN(csn.getTime() + 5000, csn.getSeqnum(), 6);
     generator.adjust(csn1);
 
     CSN csn2 = generator.newCSN();
-
     assertTrue(csn2.compareTo(csn1) > 0,
         "CSNGenerator generated an earlier CSN after calling the adjust method.");
   }
@@ -59,14 +57,12 @@ public class CSNGeneratorTest extends ReplicationTestCase
   public void adjustSameMilliTest()
   {
     CSNGenerator generator = new CSNGenerator(5, TimeThread.getTime());
-
     CSN csn = generator.newCSN();
 
     CSN csn1 = new CSN(csn.getTime(), csn.getSeqnum() + 10, 6);
     generator.adjust(csn1);
 
     CSN csn2 = generator.newCSN();
-
     assertTrue(csn2.compareTo(csn1) > 0,
         "CSNGenerator generated an earlier CSN after calling the adjust method.");
   }
@@ -85,7 +81,22 @@ public class CSNGeneratorTest extends ReplicationTestCase
     CSNGenerator generator = new CSNGenerator(5, state);
     CSN csn2 = generator.newCSN();
 
-    assertTrue(csn2.getSeqnum() == 0);
+    assertEquals(csn2.getSeqnum(), 0);
     assertTrue(csn2.getTime() > csn1.getTime());
+  }
+
+  @Test
+  public void newCSNs()
+  {
+    CSNGenerator generator = new CSNGenerator(5, TimeThread.getTime());
+    CSN[] csns = generator.newCSNs(5);
+    assertNotNull(csns);
+    for (int i = 0; i + 1 < csns.length; i++)
+    {
+      assertEquals(csns[i + 1].getTime(), csns[i].getTime());
+      assertEquals(csns[i + 1].getSeqnum(), csns[i].getSeqnum() + 1);
+      assertEquals(csns[i + 1].getServerId(), csns[i].getServerId());
+      assertTrue(csns[i + 1].compareTo(csns[0]) > 0);
+    }
   }
 }

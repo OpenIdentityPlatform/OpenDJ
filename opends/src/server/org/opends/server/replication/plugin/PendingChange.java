@@ -125,19 +125,18 @@ public class PendingChange implements Comparable<PendingChange>
   }
 
   /**
-   * Add the given ChangeNumber in the list of dependencies of this
-   * PendingChange.
+   * Add the given CSN to the list of dependencies of this PendingChange.
    *
-   * @param changeNumber The ChangeNumber to add in the list of dependencies
-   *                     of this PendingChange.
+   * @param csn
+   *          The CSN to add to the list of dependencies of this PendingChange.
    */
-  public void addDependency(CSN changeNumber)
+  public void addDependency(CSN csn)
   {
     if (dependencyState == null)
     {
       dependencyState = new ServerState();
     }
-    dependencyState.update(changeNumber);
+    dependencyState.update(csn);
   }
 
   /**
