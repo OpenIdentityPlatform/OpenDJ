@@ -546,7 +546,7 @@ public final class Converters {
             final org.opends.server.types.Attribute attribute) {
         Attribute sdkAttribute = new LinkedAttribute(attribute.getNameWithOptions());
         for (AttributeValue value : attribute) {
-            sdkAttribute.add(value);
+            sdkAttribute.add(from(value.getValue()));
         }
         return sdkAttribute;
     }
