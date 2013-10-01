@@ -115,7 +115,7 @@ public class ReplicationServerTest extends ReplicationTestCase
   {
     super.setUp();
     TEST_ROOT_DN = DN.decode(TEST_ROOT_DN_STRING);
-    EXAMPLE_DN = DN.decode("o=example," + TEST_ROOT_DN_STRING);
+    EXAMPLE_DN = DN.decode("ou=example," + TEST_ROOT_DN_STRING);
 
     // This test suite depends on having the schema available.
     configure();
@@ -280,13 +280,12 @@ public class ReplicationServerTest extends ReplicationTestCase
     assertDeleteMsgBodyEquals(sentMsg, receivedMsg);
   }
 
-  private void assertDeleteMsgBodyEquals(DeleteMsg msg, ReplicationMsg msg2)
+  private void assertDeleteMsgBodyEquals(DeleteMsg sentMsg, ReplicationMsg receivedMsg)
   {
-    assertTrue(msg2 instanceof DeleteMsg,
+    assertTrue(receivedMsg instanceof DeleteMsg,
         "ReplicationServer basic : incorrect message type received: "
-            + msg2.getClass() + ": content: " + msg2);
-    DeleteMsg del = (DeleteMsg) msg2;
-    assertEquals(del.toString(), msg.toString(),
+            + receivedMsg.getClass() + ": content: " + receivedMsg);
+    assertEquals(receivedMsg.toString(), sentMsg.toString(),
         "ReplicationServer basic : incorrect message body received.");
   }
 
