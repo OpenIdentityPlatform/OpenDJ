@@ -2069,7 +2069,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
   }
 
   @AfterMethod
-  public void clearReplicationDb()
+  public void clearReplicationDb() throws Exception
   {
     clearChangelogDB(replicationServer);
   }

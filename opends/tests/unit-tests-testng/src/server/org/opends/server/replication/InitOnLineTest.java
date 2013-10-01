@@ -1443,7 +1443,7 @@ public class InitOnLineTest extends ReplicationTestCase
    * Disconnect broker and remove entries from the local DB
    * @param testCase The name of the test case.
    */
-  private void afterTest(String testCase)
+  private void afterTest(String testCase) throws Exception
   {
     // Check that the domain has completed the import/export task.
     if (replDomain != null)

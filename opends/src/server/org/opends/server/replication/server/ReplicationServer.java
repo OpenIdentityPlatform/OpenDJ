@@ -760,7 +760,17 @@ public final class ReplicationServer
 
     shutdownECL();
 
-    this.changelogDB.shutdownDB();
+    try
+    {
+      this.changelogDB.shutdownDB();
+    }
+    catch (ChangelogException ignored)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.WARNING, ignored);
+      }
+    }
 
     // Remove this instance from the global instance list
     allInstances.remove(this);
@@ -1103,14 +1113,6 @@ public final class ReplicationServer
       Message msg = ERR_DELETE_REPL_BACKEND_FAILED.get(mb.toString());
       logError(msg);
     }
-  }
-
-  /**
-   * Removes the changelog database directory.
-   */
-  public void removeDb()
-  {
-    this.changelogDB.removeDB();
   }
 
   /**

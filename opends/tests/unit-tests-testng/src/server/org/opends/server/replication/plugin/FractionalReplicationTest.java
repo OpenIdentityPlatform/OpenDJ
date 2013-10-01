@@ -401,7 +401,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
     gen = new CSNGenerator(DS2_ID, 0L);
   }
 
-  private void endTest()
+  private void endTest() throws Exception
   {
     if (replicationDomain != null)
     {
