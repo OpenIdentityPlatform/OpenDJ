@@ -202,7 +202,7 @@ public class ProtocolWindowTest extends ReplicationTestCase
         logError(Message.raw(Category.SYNC, Severity.NOTICE,
           "saturateQueueAndRestart: error cleaning config entry: " + dn));
       }
-      replicationServer.clearDb();
+      clearChangelogDB(replicationServer);
     }
   }
 

@@ -58,6 +58,7 @@ import org.opends.server.replication.protocol.ReplSessionSecurity;
 import org.opends.server.replication.protocol.ReplicationMsg;
 import org.opends.server.replication.protocol.Session;
 import org.opends.server.replication.server.ReplicationServer;
+import org.opends.server.replication.server.changelog.je.JEChangelogDB;
 import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.replication.service.ReplicationDomain;
 import org.opends.server.schema.DirectoryStringSyntax;
@@ -463,14 +464,18 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
     assertEquals(DirectoryServer.getBackend("replicationChanges"), null, "Replication changes backend object has been left");
   }
 
+  protected void clearChangelogDB(ReplicationServer rs)
+  {
+    ((JEChangelogDB) rs.getChangelogDB()).clearDB();
+  }
+
   /**
    * Cleanup databases of the currently instantiated replication servers in the
    * VM
    */
   protected void cleanUpReplicationServersDB() {
-
     for (ReplicationServer rs : ReplicationServer.getAllInstances()) {
-      rs.clearDb();
+      clearChangelogDB(rs);
     }
   }
 
@@ -480,6 +485,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
    */
   protected void removeReplicationServerDB() {
     for (ReplicationServer rs : ReplicationServer.getAllInstances()) {
+      clearChangelogDB(rs);
       rs.removeDb();
     }
   }

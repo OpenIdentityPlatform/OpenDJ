@@ -168,7 +168,7 @@ public class ReplicationServerTest extends ReplicationTestCase
   @Test(enabled=true, dependsOnMethods = { "searchBackend"})
   public void replicationServerTest() throws Exception
   {
-    replicationServer.clearDb();
+    clearChangelogDB(replicationServer);
     changelogBasic();
     newClientLateServer1();
     newClient();
@@ -192,7 +192,7 @@ public class ReplicationServerTest extends ReplicationTestCase
   @Test(enabled=false, dependsOnMethods = { "searchBackend"})
   public void replicationServerTestLoop() throws Exception
   {
-    replicationServer.clearDb();
+    clearChangelogDB(replicationServer);
     changelogBasic();
     while (true)
     {
@@ -210,7 +210,7 @@ public class ReplicationServerTest extends ReplicationTestCase
    */
   private void changelogBasic() throws Exception
   {
-    replicationServer.clearDb();
+    clearChangelogDB(replicationServer);
     debugInfo("Starting changelogBasic");
     ReplicationBroker server1 = null;
     ReplicationBroker server2 = null;
@@ -460,7 +460,7 @@ public class ReplicationServerTest extends ReplicationTestCase
   {
     debugInfo("Starting oneWriterMultipleReader");
 
-    replicationServer.clearDb();
+    clearChangelogDB(replicationServer);
     TestCaseUtils.initializeTestBackend(true);
 
     ReplicationBroker server = null;
@@ -551,7 +551,7 @@ public class ReplicationServerTest extends ReplicationTestCase
     BrokerReader reader[] = new BrokerReader[THREADS];
     ReplicationBroker broker[] = new ReplicationBroker[THREADS];
 
-    replicationServer.clearDb();
+    clearChangelogDB(replicationServer);
     TestCaseUtils.initializeTestBackend(true);
 
     try
@@ -629,7 +629,7 @@ public class ReplicationServerTest extends ReplicationTestCase
   {
     final String tn = "changelogChaining0";
     debugInfo("Starting " + tn);
-    replicationServer.clearDb();
+    clearChangelogDB(replicationServer);
     TestCaseUtils.initializeTestBackend(true);
 
     {
@@ -732,7 +732,7 @@ public class ReplicationServerTest extends ReplicationTestCase
   {
     final String tn = "changelogChaining1";
     debugInfo("Starting " + tn);
-    replicationServer.clearDb();
+    clearChangelogDB(replicationServer);
     TestCaseUtils.initializeTestBackend(true);
 
     {
@@ -860,7 +860,7 @@ public class ReplicationServerTest extends ReplicationTestCase
     debugInfo("Starting windowProbeTest");
     final int WINDOW = 10;
 
-    replicationServer.clearDb();
+    clearChangelogDB(replicationServer);
     TestCaseUtils.initializeTestBackend(true);
 
     /*
@@ -1296,7 +1296,7 @@ public class ReplicationServerTest extends ReplicationTestCase
           connection.processSearch("cn=monitor", WHOLE_SUBTREE, "(objectclass=*)");
       assertEquals(op.getResultCode(), SUCCESS, op.getErrorMessage().toString());
 
-       replicationServer.clearDb();
+      clearChangelogDB(replicationServer);
 
        ByteArrayOutputStream stream = new ByteArrayOutputStream();
        LDIFExportConfig exportConfig = new LDIFExportConfig(stream);
@@ -1530,7 +1530,7 @@ public class ReplicationServerTest extends ReplicationTestCase
   @Test(enabled=true, dependsOnMethods = { "searchBackend"}, groups = "opendj-256")
   public void replicationServerConnected() throws Exception
   {
-      replicationServer.clearDb();
+     clearChangelogDB(replicationServer);
       TestCaseUtils.initializeTestBackend(true);
 
       debugInfo("Starting replicationServerConnected");
