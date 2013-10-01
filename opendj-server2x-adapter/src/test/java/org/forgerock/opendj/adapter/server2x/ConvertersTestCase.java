@@ -59,11 +59,15 @@ import org.forgerock.opendj.ldap.responses.Result;
 import org.forgerock.testng.ForgeRockTestCase;
 import org.opends.server.core.BindOperation;
 import org.opends.server.core.CompareOperation;
+import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ExtendedOperation;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.protocols.ldap.LDAPFilter;
+import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeValue;
+import org.opends.server.types.AttributeValues;
+import org.opends.server.types.Attributes;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.FilterType;
 import org.opends.server.types.LDAPException;
@@ -436,6 +440,34 @@ public class ConvertersTestCase extends ForgeRockTestCase {
                 to(sdkSearchResultReference);
         assertThat(srvResultReference.getReferralURLString()).isEqualTo(
                 srvResultReference2.getReferralURLString());
+    }
+
+    /**
+     * Converts an LDAP attribute to an SDK attribute.
+     */
+    @Test(groups = { "needRunningServer" })
+    public final void testFromAttribute() throws DirectoryException {
+
+        final org.opends.server.types.Attribute srvAttribute = Attributes.create("CN", "JOHN DOE");
+        final org.forgerock.opendj.ldap.Attribute sdkAttribute = from(srvAttribute);
+
+        assertThat(sdkAttribute.getAttributeDescriptionAsString()).isEqualTo("CN");
+        assertThat(sdkAttribute.size()).isEqualTo(1);
+        assertThat(sdkAttribute.firstValueAsString()).isEqualTo("JOHN DOE");
+    }
+
+    /**
+     * Converts an LDAP attribute to an SDK attribute using binary attribute value.
+     */
+    @Test(groups = { "needRunningServer" })
+    public final void testFromAttributeUsingBinary() throws DirectoryException {
+
+        byte[] data = { 0x00, 0x01, 0x02, (byte) 0xff };
+
+        AttributeValue value = AttributeValues.create(org.opends.server.types.ByteString.wrap(data),
+                org.opends.server.types.ByteString.wrap(data));
+        Attribute attribute = Attributes.create(DirectoryServer.getAttributeType("cn"), value);
+        assertThat(from(attribute).firstValue().toByteArray()).isEqualTo(data);
     }
 
     /**
