@@ -124,8 +124,7 @@ public class GroupManager extends InternalDirectoryServerPlugin
 
   // A mapping between the DNs of all group entries and the corresponding
   // group instances.
-  private DITCacheMap<Group>
-      groupInstances;
+  private DITCacheMap<Group> groupInstances;
 
   // Lock to protect internal data structures.
   private final ReentrantReadWriteLock lock;
