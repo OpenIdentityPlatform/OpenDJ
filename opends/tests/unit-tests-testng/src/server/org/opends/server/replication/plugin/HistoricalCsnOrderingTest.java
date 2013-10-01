@@ -332,7 +332,7 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
         new ReplServerFakeConfiguration(rsPort, "HistoricalCsnOrdering", 0, 1,
             0, 100, replServers, 1, 1000, 5000);
     ReplicationServer replicationServer = new ReplicationServer(conf);
-    replicationServer.clearDb();
+    clearChangelogDB(replicationServer);
     return replicationServer;
   }
 

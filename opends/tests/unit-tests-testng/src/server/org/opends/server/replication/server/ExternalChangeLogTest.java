@@ -2071,7 +2071,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
   @AfterMethod
   public void clearReplicationDb()
   {
-    replicationServer.clearDb();
+    clearChangelogDB(replicationServer);
   }
 
   /**
@@ -2614,8 +2614,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     assertEquals(draftdb.count(), 8);
     draftdb.setPurgeDelay(1000);
 
-    // Now clear the changelog db
-    this.replicationServer.clearDb();
+    clearChangelogDB(replicationServer);
 
     // Expect changes purged from the changelog db to be sometimes
     // also purged from the DraftCNDb.

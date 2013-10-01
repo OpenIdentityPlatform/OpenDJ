@@ -297,10 +297,17 @@ public class JEChangelogDB implements ChangelogDB
     }
   }
 
-  /** {@inheritDoc} */
-  @Override
-  public void clearCNIndexDB()
+  /**
+   * Clears all content from the changelog database, but leaves its directory on
+   * the filesystem.
+   */
+  public void clearDB()
   {
+    for (DN baseDN : this.sourceDbHandlers.keySet())
+    {
+      removeDomain(baseDN);
+    }
+
     synchronized (cnIndexDBLock)
     {
       if (cnIndexDB != null)

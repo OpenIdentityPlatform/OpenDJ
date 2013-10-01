@@ -1160,7 +1160,7 @@ public class GenerationIdTest extends ReplicationTestCase
     TestCaseUtils.initializeTestBackend(false);
 
     replServer1 = createReplicationServer(changelog1ID, false, testCase);
-    replServer1.clearDb();
+    clearChangelogDB(replServer1);
 
     ReplicationBroker broker = null;
     try

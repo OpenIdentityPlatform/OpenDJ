@@ -84,11 +84,6 @@ public interface ChangelogDB
   void shutdownDB();
 
   /**
-   * Temporary method added here until I (JNR) can find a way to get rid of it.
-   */
-  void clearCNIndexDB();
-
-  /**
    * Removes the changelog database directory.
    */
   void removeDB();

@@ -1210,19 +1210,6 @@ public final class ReplicationServer
   }
 
   /**
-   * Clears the Db associated with that server.
-   */
-  public void clearDb()
-  {
-    for (ReplicationServerDomain rsd : getReplicationServerDomains())
-    {
-      rsd.clearDbs();
-    }
-
-    this.changelogDB.clearCNIndexDB();
-  }
-
-  /**
    * Get the assured mode timeout.
    * @return The assured mode timeout.
    */

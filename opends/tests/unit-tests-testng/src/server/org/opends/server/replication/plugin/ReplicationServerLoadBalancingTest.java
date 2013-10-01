@@ -772,7 +772,7 @@ public class ReplicationServerLoadBalancingTest extends ReplicationTestCase
     {
       if (rs[rsIndex] != null)
       {
-        rs[rsIndex].clearDb();
+        clearChangelogDB(rs[rsIndex]);
         rs[rsIndex].remove();
       }
     }
