@@ -42,7 +42,6 @@
             <groupId>org.forgerock.commons</groupId>
             <artifactId>json-resource-servlet</artifactId>
             <version>${forgerockRestVersion}</version>
-            <scope>provided</scope>
         </dependency>
         <dependency>
             <!-- Required for runtime via WAR overlay -->
@@ -100,6 +99,9 @@
                                     <groupId>org.forgerock.commons</groupId>
                                     <artifactId>json-resource-servlet</artifactId>
                                     <classifier>servlet</classifier>
+                                    <includes>
+                                        <include>WEB-INF/*.xml</include>
+                                    </includes>
                                 </overlay>
                             </overlays>
                         </configuration>
