@@ -264,45 +264,60 @@ public class JEChangelogDB implements ChangelogDB
     }
   }
 
-  private void shutdownCNIndexDB()
+  private void shutdownCNIndexDB() throws ChangelogException
   {
     synchronized (cnIndexDBLock)
     {
       if (cnIndexDB != null)
       {
-        try
-        {
-          cnIndexDB.shutdown();
-        }
-        catch (ChangelogException ignored)
-        {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.WARNING, ignored);
-          }
-        }
+        cnIndexDB.shutdown();
       }
     }
   }
 
   /** {@inheritDoc} */
   @Override
-  public void shutdownDB()
+  public void shutdownDB() throws ChangelogException
   {
-    shutdownCNIndexDB();
+    // Remember the first exception because :
+    // - we want to try to remove everything we want to remove
+    // - then throw the first encountered exception
+    ChangelogException firstException = null;
+
+    try
+    {
+      shutdownCNIndexDB();
+    }
+    catch (ChangelogException e)
+    {
+      firstException = e;
+    }
 
     if (dbEnv != null)
     {
       dbEnv.shutdown();
+    }
+
+    if (firstException != null)
+    {
+      throw firstException;
     }
   }
 
   /**
    * Clears all content from the changelog database, but leaves its directory on
    * the filesystem.
+   *
+   * @throws ChangelogException
+   *           If a database problem happened
    */
-  public void clearDB()
+  public void clearDB() throws ChangelogException
   {
+    // Remember the first exception because :
+    // - we want to try to remove everything we want to remove
+    // - then throw the first encountered exception
+    ChangelogException firstException = null;
+
     for (DN baseDN : this.sourceDbHandlers.keySet())
     {
       removeDomain(baseDN);
@@ -316,26 +331,40 @@ public class JEChangelogDB implements ChangelogDB
         {
           cnIndexDB.clear();
         }
-        catch (Exception ignored)
+        catch (ChangelogException e)
         {
-          if (debugEnabled())
+          firstException = e;
+        }
+
+        try
+        {
+          shutdownCNIndexDB();
+        }
+        catch (ChangelogException e)
+        {
+          if (firstException == null)
           {
-            TRACER.debugCaught(DebugLogLevel.WARNING, ignored);
+            firstException = e;
           }
         }
 
-        shutdownCNIndexDB();
-
         cnIndexDB = null;
       }
+    }
+
+    if (firstException != null)
+    {
+      throw firstException;
     }
   }
 
   /** {@inheritDoc} */
   @Override
-  public void removeDB()
+  public void removeDB() throws ChangelogException
   {
     StaticUtils.recursiveDelete(dbDirectory);
+    // there is no point in keeping the DB open after it has been removed
+    shutdownDB();
   }
 
   /** {@inheritDoc} */

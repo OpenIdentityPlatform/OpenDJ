@@ -464,7 +464,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
     assertEquals(DirectoryServer.getBackend("replicationChanges"), null, "Replication changes backend object has been left");
   }
 
-  protected void clearChangelogDB(ReplicationServer rs)
+  protected void clearChangelogDB(ReplicationServer rs) throws Exception
   {
     ((JEChangelogDB) rs.getChangelogDB()).clearDB();
   }
@@ -473,8 +473,10 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
    * Cleanup databases of the currently instantiated replication servers in the
    * VM
    */
-  protected void cleanUpReplicationServersDB() {
-    for (ReplicationServer rs : ReplicationServer.getAllInstances()) {
+  protected void cleanUpReplicationServersDB() throws Exception
+  {
+    for (ReplicationServer rs : ReplicationServer.getAllInstances())
+    {
       clearChangelogDB(rs);
     }
   }
@@ -483,21 +485,23 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
    * Remove trailing directories and databases of the currently instantiated
    * replication servers.
    */
-  protected void removeReplicationServerDB() {
-    for (ReplicationServer rs : ReplicationServer.getAllInstances()) {
+  protected void removeReplicationServerDB() throws Exception
+  {
+    for (ReplicationServer rs : ReplicationServer.getAllInstances())
+    {
       clearChangelogDB(rs);
-      rs.removeDb();
+      rs.getChangelogDB().removeDB();
     }
   }
 
-  protected void remove(ReplicationServer... replicationServers)
+  protected void remove(ReplicationServer... replicationServers) throws Exception
   {
     for (ReplicationServer rs : replicationServers)
     {
       if (rs != null)
       {
         rs.remove();
-        rs.removeDb();
+        rs.getChangelogDB().removeDB();
       }
     }
   }

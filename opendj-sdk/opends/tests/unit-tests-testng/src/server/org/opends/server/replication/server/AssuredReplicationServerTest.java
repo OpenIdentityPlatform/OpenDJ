@@ -201,7 +201,7 @@ public class AssuredReplicationServerTest
     rs1 = rs2 = rs3 = rs4 = null;
   }
 
-  private void endTest()
+  private void endTest() throws Exception
   {
     disableService(fakeRDs);
     Arrays.fill(fakeRDs, null);

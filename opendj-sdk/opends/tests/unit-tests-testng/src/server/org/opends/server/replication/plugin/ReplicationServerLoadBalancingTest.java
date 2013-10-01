@@ -766,7 +766,7 @@ public class ReplicationServerLoadBalancingTest extends ReplicationTestCase
     }
   }
 
-  private void stopRs(int... rsIndexes)
+  private void stopRs(int... rsIndexes) throws Exception
   {
     for (int rsIndex : rsIndexes)
     {

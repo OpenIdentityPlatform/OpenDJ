@@ -80,13 +80,19 @@ public interface ChangelogDB
 
   /**
    * Shutdown the replication database.
+   *
+   * @throws ChangelogException
+   *           If a database problem happened
    */
-  void shutdownDB();
+  void shutdownDB() throws ChangelogException;
 
   /**
    * Removes the changelog database directory.
+   *
+   * @throws ChangelogException
+   *           If a database problem happened
    */
-  void removeDB();
+  void removeDB() throws ChangelogException;
 
   /**
    * Returns the {@link ChangeNumberIndexDB} object.
