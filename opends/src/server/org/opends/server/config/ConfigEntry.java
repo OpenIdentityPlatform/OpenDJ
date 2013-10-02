@@ -26,11 +26,10 @@
  */
 package org.opends.server.config;
 
-
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.opends.messages.Message;
@@ -39,20 +38,12 @@ import org.opends.server.api.ConfigChangeListener;
 import org.opends.server.api.ConfigDeleteListener;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeBuilder;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.DN;
-import org.opends.server.types.Entry;
-import org.opends.server.types.ObjectClass;
-import org.opends.server.types.DebugLogLevel;
+import org.opends.server.types.*;
 
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.StaticUtils.*;
-
-
 
 /**
  * This class defines a configuration entry, which can hold zero or more
@@ -74,25 +65,25 @@ public final class ConfigEntry
 
 
 
-  // The set of immediate children for this configuration entry.
-  private ConcurrentHashMap<DN,ConfigEntry> children;
+  /** The set of immediate children for this configuration entry. */
+  private final ConcurrentMap<DN,ConfigEntry> children;
 
-  // The immediate parent for this configuration entry.
+  /** The immediate parent for this configuration entry. */
   private ConfigEntry parent;
 
-  // The set of add listeners that have been registered with this entry.
-  private CopyOnWriteArrayList<ConfigAddListener> addListeners;
+  /** The set of add listeners that have been registered with this entry. */
+  private final CopyOnWriteArrayList<ConfigAddListener> addListeners;
 
-  // The set of change listeners that have been registered with this entry.
-  private CopyOnWriteArrayList<ConfigChangeListener> changeListeners;
+  /** The set of change listeners that have been registered with this entry. */
+  private final CopyOnWriteArrayList<ConfigChangeListener> changeListeners;
 
-  // The set of delete listeners that have been registered with this entry.
-  private CopyOnWriteArrayList<ConfigDeleteListener> deleteListeners;
+  /** The set of delete listeners that have been registered with this entry. */
+  private final CopyOnWriteArrayList<ConfigDeleteListener> deleteListeners;
 
-  // The actual entry wrapped by this configuration entry.
+  /** The actual entry wrapped by this configuration entry. */
   private Entry entry;
 
-  // The lock used to provide threadsafe access to this configuration entry.
+  /** The lock used to provide threadsafe access to this configuration entry. */
   private Object entryLock;
 
 
@@ -213,12 +204,11 @@ public final class ConfigEntry
     }
 
     List<Attribute> attrList = entry.getAttribute(attrType);
-    if ((attrList == null) || (attrList.isEmpty()))
+    if (attrList != null && !attrList.isEmpty())
     {
-      return null;
+      return stub.getConfigAttribute(attrList);
     }
-
-    return stub.getConfigAttribute(attrList);
+    return null;
   }
 
 
@@ -242,7 +232,7 @@ public final class ConfigEntry
            DirectoryServer.getDefaultAttributeType(name, attribute.getSyntax());
     }
 
-    ArrayList<Attribute> attrs = new ArrayList<Attribute>(2);
+    List<Attribute> attrs = new ArrayList<Attribute>(2);
     AttributeBuilder builder = new AttributeBuilder(attrType, name);
     builder.addAll(attribute.getActiveValues());
     attrs.add(builder.toAttribute());
@@ -315,7 +305,7 @@ public final class ConfigEntry
    *
    * @return  The set of children associated with this configuration entry.
    */
-  public ConcurrentHashMap<DN,ConfigEntry> getChildren()
+  public ConcurrentMap<DN, ConfigEntry> getChildren()
   {
     return children;
   }
@@ -330,7 +320,7 @@ public final class ConfigEntry
    */
   public boolean hasChildren()
   {
-    return (! children.isEmpty());
+    return !children.isEmpty();
   }
 
 
@@ -568,5 +558,11 @@ public final class ConfigEntry
   {
     deleteListeners.remove(listener);
   }
-}
 
+  /** {@inheritDoc} */
+  @Override
+  public String toString()
+  {
+    return entry.toString();
+  }
+}
