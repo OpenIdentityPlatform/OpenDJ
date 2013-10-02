@@ -28,10 +28,7 @@
 package org.opends.server.replication;
 
 import java.net.SocketException;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.NoSuchElementException;
+import java.util.*;
 import java.util.concurrent.locks.Lock;
 
 import org.opends.messages.Category;
@@ -406,9 +403,6 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
     logError(Message.raw(Category.SYNC, Severity.NOTICE,
       " ##### Calling ReplicationTestCase.classCleanUp ##### "));
 
-    // Clean RS databases
-    cleanUpReplicationServersDB();
-
     removeReplicationServerDB();
 
     cleanConfigEntries();
@@ -487,14 +481,17 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
    */
   protected void removeReplicationServerDB() throws Exception
   {
-    for (ReplicationServer rs : ReplicationServer.getAllInstances())
-    {
-      clearChangelogDB(rs);
-      rs.getChangelogDB().removeDB();
-    }
+    // avoid ConcurrentModificationException
+    remove(new ArrayList<ReplicationServer>(ReplicationServer.getAllInstances()));
   }
 
   protected void remove(ReplicationServer... replicationServers) throws Exception
+  {
+    remove(Arrays.asList(replicationServers));
+  }
+
+  protected void remove(Collection<ReplicationServer> replicationServers)
+      throws Exception
   {
     for (ReplicationServer rs : replicationServers)
     {

@@ -874,17 +874,12 @@ public class ReplicationDB
         return;
       }
 
-      String dbName = db.getDatabaseName();
-
       // Clears the reference to this serverID
       dbenv.clearServerId(baseDN, serverId);
 
-      // Closing is requested by the Berkeley DB before truncate
-      db.close();
+      final Database oldDb = db;
       db = null; // In case there's a failure between here and recreation.
-
-      // Clears the changes
-      dbenv.clearDb(dbName);
+      dbenv.clearDb(oldDb);
 
       // RE-create the db
       db = dbenv.getOrAddDb(serverId, baseDN, -1);
@@ -1190,7 +1185,7 @@ public class ReplicationDB
    */
   private boolean isDBClosed()
   {
-    return db == null;
+    return db == null || !db.getEnvironment().isValid();
   }
 
 }
