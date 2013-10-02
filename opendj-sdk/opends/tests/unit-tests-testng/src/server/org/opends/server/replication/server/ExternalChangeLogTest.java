@@ -1015,6 +1015,9 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     finally
     {
       stop(server01);
+      // lets clear the last "changeType: delete" from the changelogDB
+      // it is failing to do it on slower machines
+      clearChangelogDB(replicationServer);
       // And reset changelog purge delay for the other tests.
       replicationServer.getChangelogDB().setPurgeDelay(15 * 1000);
     }
