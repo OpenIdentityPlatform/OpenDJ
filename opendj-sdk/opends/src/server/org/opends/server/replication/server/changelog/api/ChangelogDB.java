@@ -172,8 +172,10 @@ public interface ChangelogDB
    *
    * @param baseDN
    *          the replication domain baseDN
+   * @throws ChangelogException
+   *           If a database problem happened
    */
-  void removeDomain(DN baseDN);
+  void removeDomain(DN baseDN) throws ChangelogException;
 
   // serverId methods
 

@@ -29,7 +29,6 @@ package org.opends.server.replication.server;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
@@ -168,7 +167,6 @@ public class ReplicationServerTest extends ReplicationTestCase
   @Test(enabled=true, dependsOnMethods = { "searchBackend"})
   public void replicationServerTest() throws Exception
   {
-    clearChangelogDB(replicationServer);
     changelogBasic();
     newClientLateServer1();
     newClient();
@@ -192,7 +190,6 @@ public class ReplicationServerTest extends ReplicationTestCase
   @Test(enabled=false, dependsOnMethods = { "searchBackend"})
   public void replicationServerTestLoop() throws Exception
   {
-    clearChangelogDB(replicationServer);
     changelogBasic();
     while (true)
     {
@@ -286,7 +283,36 @@ public class ReplicationServerTest extends ReplicationTestCase
         "ReplicationServer basic : incorrect message type received: "
             + receivedMsg.getClass() + ": content: " + receivedMsg);
     assertEquals(receivedMsg.toString(), sentMsg.toString(),
-        "ReplicationServer basic : incorrect message body received.");
+        "ReplicationServer basic : incorrect message body received. CSN is same as \""
+            + getCSNFieldName(((DeleteMsg) receivedMsg).getCSN()) + "\" field.");
+  }
+
+  private String getCSNFieldName(CSN csn)
+  {
+    if (csn == null) {
+      return "";
+    }
+    if (csn.equals(firstCSNServer1))
+    {
+      return "firstCSNServer1";
+    }
+    else if (csn.equals(secondCSNServer1))
+    {
+      return "secondCSNServer1";
+    }
+    else if (csn.equals(firstCSNServer2))
+    {
+      return "firstCSNServer2";
+    }
+    else if (csn.equals(secondCSNServer2))
+    {
+      return "secondCSNServer2";
+    }
+    else if (csn.equals(unknownCSNServer1))
+    {
+      return "unknownCSNServer1";
+    }
+    return null;
   }
 
   private ServerState newServerState(CSN... csns)
@@ -855,7 +881,6 @@ public class ReplicationServerTest extends ReplicationTestCase
   @Test(enabled=true, dependsOnMethods = { "searchBackend"})
   public void windowProbeTest() throws Exception
   {
-
     debugInfo("Starting windowProbeTest");
     final int WINDOW = 10;
 
@@ -877,13 +902,13 @@ public class ReplicationServerTest extends ReplicationTestCase
      */
 
     // open the first session to the replication server
-    InetSocketAddress ServerAddr = new InetSocketAddress(
-        InetAddress.getByName("localhost"), replicationServerPort);
+    InetSocketAddress serverAddr =
+        new HostPort("localhost", replicationServerPort).toInetSocketAddress();
     Socket socket = new Socket();
     socket.setReceiveBufferSize(1000000);
     socket.setTcpNoDelay(true);
     int timeoutMS = MultimasterReplication.getConnectionTimeoutMS();
-    socket.connect(ServerAddr, timeoutMS);
+    socket.connect(serverAddr, timeoutMS);
     ReplSessionSecurity replSessionSecurity = getReplSessionSecurity();
     Session session = replSessionSecurity.createClientSession(socket, timeoutMS);
 

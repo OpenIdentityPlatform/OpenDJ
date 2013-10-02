@@ -653,14 +653,9 @@ public class DraftCNDB
         return;
       }
 
-      String dbName = db.getDatabaseName();
-
-      // Closing is requested by the Berkeley DB before truncate
-      db.close();
+      final Database oldDb = db;
       db = null; // In case there's a failure between here and recreation.
-
-      // Clears the changes
-      dbenv.clearDb(dbName);
+      dbenv.clearDb(oldDb);
 
       // RE-create the db
       db = dbenv.getOrCreateDraftCNDb();
@@ -687,6 +682,6 @@ public class DraftCNDB
    */
   private boolean isDBClosed()
   {
-    return db == null;
+    return db == null || !db.getEnvironment().isValid();
   }
 }

@@ -2202,7 +2202,17 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
    */
   public void clearDbs()
   {
-    changelogDB.removeDomain(baseDN);
+    try
+    {
+      changelogDB.removeDomain(baseDN);
+    }
+    catch (ChangelogException e)
+    {
+      MessageBuilder mb = new MessageBuilder();
+      mb.append(ERR_ERROR_CLEARING_DB.get(baseDN.toString(), e.getMessage()
+          + " " + stackTraceToSingleLineString(e)));
+      logError(mb.toMessage());
+    }
   }
 
   /**

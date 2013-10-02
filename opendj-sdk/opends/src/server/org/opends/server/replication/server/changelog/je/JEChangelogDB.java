@@ -33,7 +33,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 import org.opends.server.config.ConfigException;
-import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.ChangelogState;
@@ -43,13 +42,11 @@ import org.opends.server.replication.server.changelog.api.ChangelogDB;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.api.ReplicaDBCursor;
 import org.opends.server.types.DN;
-import org.opends.server.types.DebugLogLevel;
 import org.opends.server.util.Pair;
 import org.opends.server.util.StaticUtils;
 
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.StaticUtils.*;
 
 /**
@@ -57,9 +54,6 @@ import static org.opends.server.util.StaticUtils.*;
  */
 public class JEChangelogDB implements ChangelogDB
 {
-
-  /** The tracer object for the debug logger. */
-  private static final DebugTracer TRACER = getTracer();
 
   /**
    * This map contains the List of updates received from each LDAP server.
@@ -313,6 +307,11 @@ public class JEChangelogDB implements ChangelogDB
    */
   public void clearDB() throws ChangelogException
   {
+    if (!dbDirectory.exists())
+    {
+      return;
+    }
+
     // Remember the first exception because :
     // - we want to try to remove everything we want to remove
     // - then throw the first encountered exception
@@ -402,6 +401,7 @@ public class JEChangelogDB implements ChangelogDB
   public void shutdownDomain(DN baseDN)
   {
     shutdownDbHandlers(getDomainMap(baseDN));
+    sourceDbHandlers.remove(baseDN);
   }
 
   private void shutdownDbHandlers(Map<Integer, DbHandler> domainMap)
@@ -446,8 +446,13 @@ public class JEChangelogDB implements ChangelogDB
 
   /** {@inheritDoc} */
   @Override
-  public void removeDomain(DN baseDN)
+  public void removeDomain(DN baseDN) throws ChangelogException
   {
+    // Remember the first exception because :
+    // - we want to try to remove everything we want to remove
+    // - then throw the first encountered exception
+    ChangelogException firstException = null;
+
     // 1- clear the replica DBs
     final Map<Integer, DbHandler> domainMap = getDomainMap(baseDN);
     synchronized (domainMap)
@@ -458,17 +463,13 @@ public class JEChangelogDB implements ChangelogDB
         {
           dbHandler.clear();
         }
-        catch (Exception e)
+        catch (ChangelogException e)
         {
-          // TODO: i18n
-          MessageBuilder mb = new MessageBuilder();
-          mb.append(ERR_ERROR_CLEARING_DB.get(dbHandler.toString(), e
-              .getMessage()
-              + " " + stackTraceToSingleLineString(e)));
-          logError(mb.toMessage());
+          firstException = e;
         }
       }
       shutdownDbHandlers(domainMap);
+      sourceDbHandlers.remove(baseDN);
     }
 
     // 2- clear the ChangeNumber index DB
@@ -480,11 +481,11 @@ public class JEChangelogDB implements ChangelogDB
         {
           cnIndexDB.clear(baseDN);
         }
-        catch (Exception ignored)
+        catch (ChangelogException e)
         {
-          if (debugEnabled())
+          if (firstException == null)
           {
-            TRACER.debugCaught(DebugLogLevel.WARNING, ignored);
+            firstException = e;
           }
         }
       }
@@ -495,12 +496,17 @@ public class JEChangelogDB implements ChangelogDB
     {
       dbEnv.clearGenerationId(baseDN);
     }
-    catch (Exception ignored)
+    catch (ChangelogException e)
     {
-      if (debugEnabled())
+      if (firstException == null)
       {
-        TRACER.debugCaught(DebugLogLevel.WARNING, ignored);
+        firstException = e;
       }
+    }
+
+    if (firstException != null)
+    {
+      throw firstException;
     }
   }
 
