@@ -27,7 +27,7 @@
 
 package org.forgerock.opendj.ldap;
 
-import static com.forgerock.opendj.util.StaticUtils.DEBUG_LOG;
+import static com.forgerock.opendj.util.StaticUtils.DEFAULT_LOG;
 import static com.forgerock.opendj.util.StaticUtils.DEFAULT_SCHEDULER;
 import static org.forgerock.opendj.ldap.ErrorResultException.*;
 
@@ -38,8 +38,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.logging.Level;
-
 import com.forgerock.opendj.util.AsynchronousFutureResult;
 import com.forgerock.opendj.util.ReferenceCountedObject;
 import com.forgerock.opendj.util.Validator;
@@ -153,10 +151,7 @@ abstract class AbstractLoadBalancingAlgorithm implements LoadBalancingAlgorithm 
         private synchronized void checkIfAvailable() {
             if (!isOperational.get()
                     && (pendingConnectFuture == null || pendingConnectFuture.isDone())) {
-                if (DEBUG_LOG.isLoggable(Level.FINE)) {
-                    DEBUG_LOG.fine(String.format("Attempting reconnect to offline factory '%s'",
-                            this));
-                }
+                DEFAULT_LOG.debug("Attempting reconnect to offline factory '{}'", this);
                 pendingConnectFuture = factory.getConnectionAsync(this);
             }
         }
@@ -178,11 +173,7 @@ abstract class AbstractLoadBalancingAlgorithm implements LoadBalancingAlgorithm 
                 synchronized (stateLock) {
                     offlineFactoriesCount++;
                     if (offlineFactoriesCount == 1) {
-                        // Enable monitoring.
-                        if (DEBUG_LOG.isLoggable(Level.FINE)) {
-                            DEBUG_LOG.fine(String.format("Starting monitoring thread"));
-                        }
-
+                        DEFAULT_LOG.debug("Starting monitoring thread");
                         monitoringFuture =
                                 scheduler.get().scheduleWithFixedDelay(new MonitorRunnable(), 0,
                                         monitoringInterval, monitoringIntervalTimeUnit);
@@ -205,9 +196,7 @@ abstract class AbstractLoadBalancingAlgorithm implements LoadBalancingAlgorithm 
                 synchronized (stateLock) {
                     offlineFactoriesCount--;
                     if (offlineFactoriesCount == 0) {
-                        if (DEBUG_LOG.isLoggable(Level.FINE)) {
-                            DEBUG_LOG.fine(String.format("Stopping monitoring thread"));
-                        }
+                        DEFAULT_LOG.debug("Stopping monitoring thread");
 
                         monitoringFuture.cancel(false);
                         monitoringFuture = null;
@@ -217,10 +206,8 @@ abstract class AbstractLoadBalancingAlgorithm implements LoadBalancingAlgorithm 
         }
 
         private void handleListenerException(RuntimeException e) {
-            if (DEBUG_LOG.isLoggable(Level.SEVERE)) {
-                DEBUG_LOG.log(Level.SEVERE,
-                        "A run-time error occurred while processing a load-balancer event", e);
-            }
+            // TODO: I18N
+            DEFAULT_LOG.error("A run-time error occurred while processing a load-balancer event", e);
         }
     }
 
@@ -240,28 +227,21 @@ abstract class AbstractLoadBalancingAlgorithm implements LoadBalancingAlgorithm 
     /**
      * A default event listener which just logs the event.
      */
-    private static final LoadBalancerEventListener DEFAULT_LISTENER =
-            new LoadBalancerEventListener() {
+    private static final LoadBalancerEventListener DEFAULT_LISTENER = new LoadBalancerEventListener() {
 
-                @Override
-                public void handleConnectionFactoryOnline(ConnectionFactory factory) {
-                    // Transition from offline to online.
-                    if (DEBUG_LOG.isLoggable(Level.INFO)) {
-                        DEBUG_LOG.info(String.format("Connection factory'%s' is now operational",
-                                factory));
-                    }
-                }
+        @Override
+        public void handleConnectionFactoryOnline(ConnectionFactory factory) {
+            // Transition from offline to online.
+            // TODO: I18N
+            DEFAULT_LOG.info("Connection factory '{}' is now operational", factory);
+        }
 
-                @Override
-                public void handleConnectionFactoryOffline(ConnectionFactory factory,
-                        ErrorResultException error) {
-                    if (DEBUG_LOG.isLoggable(Level.WARNING)) {
-                        DEBUG_LOG.warning(String.format(
-                                "Connection factory '%s' is no longer operational: %s", factory,
-                                error.getMessage()));
-                    }
-                }
-            };
+        @Override
+        public void handleConnectionFactoryOffline(ConnectionFactory factory, ErrorResultException error) {
+            // TODO: I18N
+            DEFAULT_LOG.warn("Connection factory '{}' is no longer operational: {}", factory, error.getMessage());
+        }
+    };
 
     private final List<MonitoredConnectionFactory> monitoredFactories;
     private final ReferenceCountedObject<ScheduledExecutorService>.Reference scheduler;

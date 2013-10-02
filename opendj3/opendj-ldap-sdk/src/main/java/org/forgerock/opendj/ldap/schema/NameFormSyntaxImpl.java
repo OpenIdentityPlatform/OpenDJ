@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2013 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.schema;
@@ -30,6 +30,7 @@ package org.forgerock.opendj.ldap.schema;
 import static com.forgerock.opendj.ldap.CoreMessages.*;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.EMR_OID_FIRST_COMPONENT_OID;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.SYNTAX_NAME_FORM_NAME;
+import static com.forgerock.opendj.util.StaticUtils.SCHEMA_LOG;
 
 import java.util.Set;
 
@@ -38,7 +39,6 @@ import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.DecodeException;
 
-import com.forgerock.opendj.util.StaticUtils;
 import com.forgerock.opendj.util.SubstringReader;
 
 /**
@@ -79,7 +79,7 @@ final class NameFormSyntaxImpl extends AbstractSyntaxImpl {
                 final LocalizableMessage message =
                         ERR_ATTR_SYNTAX_NAME_FORM_EMPTY_VALUE1.get(definition);
                 final DecodeException e = DecodeException.error(message);
-                StaticUtils.DEBUG_LOG.throwing("NameFormSyntax", "valueIsAcceptable", e);
+                SCHEMA_LOG.debug("", e);
                 throw e;
             }
 
@@ -91,7 +91,7 @@ final class NameFormSyntaxImpl extends AbstractSyntaxImpl {
                         ERR_ATTR_SYNTAX_NAME_FORM_EXPECTED_OPEN_PARENTHESIS.get(definition, (reader
                                 .pos() - 1), c);
                 final DecodeException e = DecodeException.error(message);
-                StaticUtils.DEBUG_LOG.throwing("NameFormSyntax", "valueIsAcceptable", e);
+                SCHEMA_LOG.debug("", e);
                 throw e;
             }
 
@@ -151,7 +151,7 @@ final class NameFormSyntaxImpl extends AbstractSyntaxImpl {
                     final LocalizableMessage message =
                             ERR_ATTR_SYNTAX_NAME_FORM_ILLEGAL_TOKEN1.get(definition, tokenName);
                     final DecodeException e = DecodeException.error(message);
-                    StaticUtils.DEBUG_LOG.throwing("NameFormSyntax", "valueIsAcceptable", e);
+                    SCHEMA_LOG.debug("", e);
                     throw e;
                 }
             }
@@ -162,7 +162,7 @@ final class NameFormSyntaxImpl extends AbstractSyntaxImpl {
                 final LocalizableMessage message =
                         ERR_ATTR_SYNTAX_NAME_FORM_NO_STRUCTURAL_CLASS1.get(definition);
                 final DecodeException e = DecodeException.error(message);
-                StaticUtils.DEBUG_LOG.throwing("NameFormSyntax", "valueIsAcceptable", e);
+                SCHEMA_LOG.debug("", e);
                 throw e;
             }
 
@@ -170,7 +170,7 @@ final class NameFormSyntaxImpl extends AbstractSyntaxImpl {
                 final LocalizableMessage message =
                         ERR_ATTR_SYNTAX_NAME_FORM_NO_REQUIRED_ATTR.get(definition);
                 final DecodeException e = DecodeException.error(message);
-                StaticUtils.DEBUG_LOG.throwing("NameFormSyntax", "valueIsAcceptable", e);
+                SCHEMA_LOG.debug("", e);
                 throw e;
             }
             return true;

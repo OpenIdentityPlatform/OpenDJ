@@ -147,13 +147,12 @@ public final class PreReadRequestControl implements Control {
                             attributes = emptyList();
                         }
                         reader.readEndSequence();
-                    } catch (final Exception ae) {
-                        StaticUtils.DEBUG_LOG
-                                .throwing("PreReadRequestControl", "decodeControl", ae);
+                    } catch (final Exception ex) {
+                        StaticUtils.CONTROLS_LOG.debug("Unable to read sequence", ex);
 
                         final LocalizableMessage message =
-                                ERR_PREREADREQ_CANNOT_DECODE_VALUE.get(ae.getMessage());
-                        throw DecodeException.error(message, ae);
+                                ERR_PREREADREQ_CANNOT_DECODE_VALUE.get(ex.getMessage());
+                        throw DecodeException.error(message, ex);
                     }
 
                     if (attributes.isEmpty()) {

@@ -27,7 +27,7 @@
 
 package org.forgerock.opendj.ldap;
 
-import static com.forgerock.opendj.util.StaticUtils.DEBUG_LOG;
+import static com.forgerock.opendj.util.StaticUtils.DEFAULT_LOG;
 import static com.forgerock.opendj.util.StaticUtils.DEFAULT_SCHEDULER;
 import static com.forgerock.opendj.ldap.CoreMessages.HBCF_CONNECTION_CLOSED_BY_CLIENT;
 import static com.forgerock.opendj.ldap.CoreMessages.HBCF_HEARTBEAT_FAILED;
@@ -46,8 +46,6 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.AbstractQueuedSynchronizer;
-import java.util.logging.Level;
-
 import org.forgerock.opendj.ldap.requests.AbandonRequest;
 import org.forgerock.opendj.ldap.requests.AddRequest;
 import org.forgerock.opendj.ldap.requests.BindRequest;
@@ -493,11 +491,7 @@ final class HeartBeatConnectionFactory implements ConnectionFactory {
                  * that the heart beat was aborted by a client-side close.
                  */
                 if (!(error instanceof CancelledResultException)) {
-                    if (DEBUG_LOG.isLoggable(Level.WARNING)) {
-                        DEBUG_LOG.warning(String.format(
-                                "Heartbeat failed for connection factory '%s': %s", factory, error
-                                        .getMessage()));
-                    }
+                    DEFAULT_LOG.warn("Heartbeat failed for connection factory '{}'", factory, error);
                     timestamp(error);
                 }
                 releaseHeartBeatLock();
@@ -804,10 +798,7 @@ final class HeartBeatConnectionFactory implements ConnectionFactory {
                  */
                 final long currentTimeMillis = timeSource.currentTimeMillis();
                 if (lastResponseTimestamp < (currentTimeMillis - timeoutMS)) {
-                    if (DEBUG_LOG.isLoggable(Level.WARNING)) {
-                        DEBUG_LOG.warning(String.format(
-                                "No heartbeat detected for connection '%s'", connection));
-                    }
+                    DEFAULT_LOG.warn("No heartbeat detected for connection '{}'", connection);
                     handleConnectionError(false, newHeartBeatTimeoutError());
                 }
             }
@@ -1194,11 +1185,10 @@ final class HeartBeatConnectionFactory implements ConnectionFactory {
         if (isClosed.compareAndSet(false, true)) {
             synchronized (validConnections) {
                 if (!validConnections.isEmpty()) {
-                    if (DEBUG_LOG.isLoggable(Level.FINE)) {
-                        DEBUG_LOG.fine(String.format(
-                                "HeartbeatConnectionFactory '%s' is closing while %d "
-                                        + "active connections remain", toString(), validConnections
-                                        .size()));
+                    if (DEFAULT_LOG.isDebugEnabled()) {
+                        DEFAULT_LOG.debug(
+                                "HeartbeatConnectionFactory '{}' is closing while {} active connections remain",
+                                toString(), validConnections.size());
                     }
                 }
             }

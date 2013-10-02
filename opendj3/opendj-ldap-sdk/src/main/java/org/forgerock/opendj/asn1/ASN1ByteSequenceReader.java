@@ -22,24 +22,21 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2013 ForgeRock AS.
  */
 
 package org.forgerock.opendj.asn1;
 
 import static com.forgerock.opendj.ldap.CoreMessages.*;
+import static com.forgerock.opendj.util.StaticUtils.IO_LOG;
 
 import java.io.IOException;
 import java.util.LinkedList;
-import java.util.logging.Level;
-
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ByteSequenceReader;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.DecodeException;
-
-import com.forgerock.opendj.util.StaticUtils;
 
 /**
  * An ASN.1 reader that reads from a {@link ByteSequenceReader}.
@@ -166,9 +163,9 @@ final class ASN1ByteSequenceReader extends AbstractASN1Reader implements ASN1Rea
             throw new IllegalStateException(message.toString());
         }
 
-        if ((reader.remaining() > 0) && StaticUtils.DEBUG_LOG.isLoggable(Level.FINE)) {
-            StaticUtils.DEBUG_LOG.fine("Ignoring " + reader.remaining()
-                    + " unused trailing bytes in " + "ASN.1 SEQUENCE");
+        if (reader.remaining() > 0) {
+            IO_LOG.debug("Ignoring {} unused trailing bytes in ASN.1 SEQUENCE",
+                    reader.remaining());
         }
 
         reader = readerStack.removeFirst();

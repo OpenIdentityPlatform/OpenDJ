@@ -22,16 +22,16 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2013 ForgeRock AS.
  */
 package com.forgerock.opendj.ldap;
 
 import static com.forgerock.opendj.ldap.CoreMessages.ERR_ASN1_SEQUENCE_WRITE_NOT_STARTED;
+import static com.forgerock.opendj.util.StaticUtils.IO_LOG;
+import static com.forgerock.opendj.util.StaticUtils.byteToHex;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.logging.Level;
-
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.asn1.ASN1;
 import org.forgerock.opendj.asn1.ASN1Writer;
@@ -60,10 +60,7 @@ final class ASN1BufferWriter extends AbstractASN1Writer implements ASN1Writer, C
             writeLength(parent, buffer.length());
             parent.writeByteArray(buffer.getBackingArray(), 0, buffer.length());
 
-            if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINEST)) {
-                StaticUtils.DEBUG_LOG.finest(String.format("WRITE ASN.1 END SEQUENCE(length=%d)",
-                        buffer.length()));
-            }
+            IO_LOG.trace("WRITE ASN.1 END SEQUENCE(length={})", buffer.length());
 
             return parent;
         }
@@ -230,11 +227,9 @@ final class ASN1BufferWriter extends AbstractASN1Writer implements ASN1Writer, C
         writeLength(sequenceBuffer, 1);
         sequenceBuffer.writeByte(booleanValue ? ASN1.BOOLEAN_VALUE_TRUE : ASN1.BOOLEAN_VALUE_FALSE);
 
-        if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINEST)) {
-            StaticUtils.DEBUG_LOG.finest(String.format(
-                    "WRITE ASN.1 BOOLEAN(type=0x%x, length=%d, value=%s)", type, 1, String
-                            .valueOf(booleanValue)));
-        }
+        IO_LOG.trace("WRITE ASN.1 BOOLEAN(type=0x{}, length={}, value={})",
+                byteToHex(type), 1, String.valueOf(booleanValue));
+
         return this;
     }
 
@@ -270,39 +265,27 @@ final class ASN1BufferWriter extends AbstractASN1Writer implements ASN1Writer, C
                 || ((intValue & 0x0000007F) == intValue)) {
             writeLength(sequenceBuffer, 1);
             sequenceBuffer.writeByte((byte) (intValue & 0xFF));
-            if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINEST)) {
-                StaticUtils.DEBUG_LOG.finest(String.format(
-                        "WRITE ASN.1 INTEGER(type=0x%x, length=%d, value=%d)", type, 1, intValue));
-            }
+            IO_LOG.trace("WRITE ASN.1 INTEGER(type=0x{}, length={}, value={})", byteToHex(type), 1, intValue);
         } else if (((intValue < 0) && ((intValue & 0xFFFF8000) == 0xFFFF8000))
                 || ((intValue & 0x00007FFF) == intValue)) {
             writeLength(sequenceBuffer, 2);
             sequenceBuffer.writeByte((byte) ((intValue >> 8) & 0xFF));
             sequenceBuffer.writeByte((byte) (intValue & 0xFF));
-            if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINEST)) {
-                StaticUtils.DEBUG_LOG.finest(String.format(
-                        "WRITE ASN.1 INTEGER(type=0x%x, length=%d, value=%d)", type, 2, intValue));
-            }
+            IO_LOG.trace("WRITE ASN.1 INTEGER(type=0x{}, length={}, value={})", byteToHex(type), 2, intValue);
         } else if (((intValue < 0) && ((intValue & 0xFF800000) == 0xFF800000))
                 || ((intValue & 0x007FFFFF) == intValue)) {
             writeLength(sequenceBuffer, 3);
             sequenceBuffer.writeByte((byte) ((intValue >> 16) & 0xFF));
             sequenceBuffer.writeByte((byte) ((intValue >> 8) & 0xFF));
             sequenceBuffer.writeByte((byte) (intValue & 0xFF));
-            if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINEST)) {
-                StaticUtils.DEBUG_LOG.finest(String.format(
-                        "WRITE ASN.1 INTEGER(type=0x%x, length=%d, value=%d)", type, 3, intValue));
-            }
+            IO_LOG.trace("WRITE ASN.1 INTEGER(type=0x{}, length={}, value={})", byteToHex(type), 3, intValue);
         } else {
             writeLength(sequenceBuffer, 4);
             sequenceBuffer.writeByte((byte) ((intValue >> 24) & 0xFF));
             sequenceBuffer.writeByte((byte) ((intValue >> 16) & 0xFF));
             sequenceBuffer.writeByte((byte) ((intValue >> 8) & 0xFF));
             sequenceBuffer.writeByte((byte) (intValue & 0xFF));
-            if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINEST)) {
-                StaticUtils.DEBUG_LOG.finest(String.format(
-                        "WRITE ASN.1 INTEGER(type=0x%x, length=%d, value=%d)", type, 4, intValue));
-            }
+            IO_LOG.trace("WRITE ASN.1 INTEGER(type=0x{}, length={}, value={})", byteToHex(type), 4, intValue);
         }
         return this;
     }
@@ -316,29 +299,20 @@ final class ASN1BufferWriter extends AbstractASN1Writer implements ASN1Writer, C
                 || ((longValue & 0x000000000000007FL) == longValue)) {
             writeLength(sequenceBuffer, 1);
             sequenceBuffer.writeByte((byte) (longValue & 0xFF));
-            if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINEST)) {
-                StaticUtils.DEBUG_LOG.finest(String.format(
-                        "WRITE ASN.1 INTEGER(type=0x%x, length=%d, value=%d)", type, 1, longValue));
-            }
+            IO_LOG.trace("WRITE ASN.1 INTEGER(type=0x{}, length={}, value={})", byteToHex(type), 1, longValue);
         } else if (((longValue < 0) && ((longValue & 0xFFFFFFFFFFFF8000L) == 0xFFFFFFFFFFFF8000L))
                 || ((longValue & 0x0000000000007FFFL) == longValue)) {
             writeLength(sequenceBuffer, 2);
             sequenceBuffer.writeByte((byte) ((longValue >> 8) & 0xFF));
             sequenceBuffer.writeByte((byte) (longValue & 0xFF));
-            if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINEST)) {
-                StaticUtils.DEBUG_LOG.finest(String.format(
-                        "WRITE ASN.1 INTEGER(type=0x%x, length=%d, value=%d)", type, 2, longValue));
-            }
+            IO_LOG.trace("WRITE ASN.1 INTEGER(type=0x{}, length={}, value={})", byteToHex(type), 2, longValue);
         } else if (((longValue < 0) && ((longValue & 0xFFFFFFFFFF800000L) == 0xFFFFFFFFFF800000L))
                 || ((longValue & 0x00000000007FFFFFL) == longValue)) {
             writeLength(sequenceBuffer, 3);
             sequenceBuffer.writeByte((byte) ((longValue >> 16) & 0xFF));
             sequenceBuffer.writeByte((byte) ((longValue >> 8) & 0xFF));
             sequenceBuffer.writeByte((byte) (longValue & 0xFF));
-            if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINEST)) {
-                StaticUtils.DEBUG_LOG.finest(String.format(
-                        "WRITE ASN.1 INTEGER(type=0x%x, length=%d, value=%d)", type, 3, longValue));
-            }
+            IO_LOG.trace("WRITE ASN.1 INTEGER(type=0x{}, length={}, value={})", byteToHex(type), 3, longValue);
         } else if (((longValue < 0) && ((longValue & 0xFFFFFFFF80000000L) == 0xFFFFFFFF80000000L))
                 || ((longValue & 0x000000007FFFFFFFL) == longValue)) {
             writeLength(sequenceBuffer, 4);
@@ -346,10 +320,7 @@ final class ASN1BufferWriter extends AbstractASN1Writer implements ASN1Writer, C
             sequenceBuffer.writeByte((byte) ((longValue >> 16) & 0xFF));
             sequenceBuffer.writeByte((byte) ((longValue >> 8) & 0xFF));
             sequenceBuffer.writeByte((byte) (longValue & 0xFF));
-            if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINEST)) {
-                StaticUtils.DEBUG_LOG.finest(String.format(
-                        "WRITE ASN.1 INTEGER(type=0x%x, length=%d, value=%d)", type, 4, longValue));
-            }
+            IO_LOG.trace("WRITE ASN.1 INTEGER(type=0x{}, length={}, value={})", byteToHex(type), 4, longValue);
         } else if (((longValue < 0) && ((longValue & 0xFFFFFF8000000000L) == 0xFFFFFF8000000000L))
                 || ((longValue & 0x0000007FFFFFFFFFL) == longValue)) {
             writeLength(sequenceBuffer, 5);
@@ -358,10 +329,7 @@ final class ASN1BufferWriter extends AbstractASN1Writer implements ASN1Writer, C
             sequenceBuffer.writeByte((byte) ((longValue >> 16) & 0xFF));
             sequenceBuffer.writeByte((byte) ((longValue >> 8) & 0xFF));
             sequenceBuffer.writeByte((byte) (longValue & 0xFF));
-            if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINEST)) {
-                StaticUtils.DEBUG_LOG.finest(String.format(
-                        "WRITE ASN.1 INTEGER(type=0x%x, length=%d, value=%d)", type, 5, longValue));
-            }
+            IO_LOG.trace("WRITE ASN.1 INTEGER(type=0x{}, length={}, value={})", byteToHex(type), 5, longValue);
         } else if (((longValue < 0) && ((longValue & 0xFFFF800000000000L) == 0xFFFF800000000000L))
                 || ((longValue & 0x00007FFFFFFFFFFFL) == longValue)) {
             writeLength(sequenceBuffer, 6);
@@ -371,10 +339,7 @@ final class ASN1BufferWriter extends AbstractASN1Writer implements ASN1Writer, C
             sequenceBuffer.writeByte((byte) ((longValue >> 16) & 0xFF));
             sequenceBuffer.writeByte((byte) ((longValue >> 8) & 0xFF));
             sequenceBuffer.writeByte((byte) (longValue & 0xFF));
-            if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINEST)) {
-                StaticUtils.DEBUG_LOG.finest(String.format(
-                        "WRITE ASN.1 INTEGER(type=0x%x, length=%d, value=%d)", type, 6, longValue));
-            }
+            IO_LOG.trace("WRITE ASN.1 INTEGER(type=0x{}, length={}, value={})", byteToHex(type), 6, longValue);
         } else if (((longValue < 0) && ((longValue & 0xFF80000000000000L) == 0xFF80000000000000L))
                 || ((longValue & 0x007FFFFFFFFFFFFFL) == longValue)) {
             writeLength(sequenceBuffer, 7);
@@ -385,10 +350,7 @@ final class ASN1BufferWriter extends AbstractASN1Writer implements ASN1Writer, C
             sequenceBuffer.writeByte((byte) ((longValue >> 16) & 0xFF));
             sequenceBuffer.writeByte((byte) ((longValue >> 8) & 0xFF));
             sequenceBuffer.writeByte((byte) (longValue & 0xFF));
-            if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINEST)) {
-                StaticUtils.DEBUG_LOG.finest(String.format(
-                        "WRITE ASN.1 INTEGER(type=0x%x, length=%d, value=%d)", type, 7, longValue));
-            }
+            IO_LOG.trace("WRITE ASN.1 INTEGER(type=0x{}, length={}, value={})", byteToHex(type), 7, longValue);
         } else {
             writeLength(sequenceBuffer, 8);
             sequenceBuffer.writeByte((byte) ((longValue >> 56) & 0xFF));
@@ -399,10 +361,7 @@ final class ASN1BufferWriter extends AbstractASN1Writer implements ASN1Writer, C
             sequenceBuffer.writeByte((byte) ((longValue >> 16) & 0xFF));
             sequenceBuffer.writeByte((byte) ((longValue >> 8) & 0xFF));
             sequenceBuffer.writeByte((byte) (longValue & 0xFF));
-            if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINEST)) {
-                StaticUtils.DEBUG_LOG.finest(String.format(
-                        "WRITE ASN.1 INTEGER(type=0x%x, length=%d, value=%d)", type, 8, longValue));
-            }
+            IO_LOG.trace("WRITE ASN.1 INTEGER(type=0x{}, length={}, value={})", byteToHex(type), 8, longValue);
         }
         return this;
     }
@@ -414,10 +373,8 @@ final class ASN1BufferWriter extends AbstractASN1Writer implements ASN1Writer, C
         sequenceBuffer.writeByte(type);
         writeLength(sequenceBuffer, 0);
 
-        if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINEST)) {
-            StaticUtils.DEBUG_LOG.finest(String.format("WRITE ASN.1 NULL(type=0x%x, length=%d)",
-                    type, 0));
-        }
+        IO_LOG.trace("WRITE ASN.1 NULL(type=0x{}, length={})", byteToHex(type), 0);
+
         return this;
     }
 
@@ -430,10 +387,7 @@ final class ASN1BufferWriter extends AbstractASN1Writer implements ASN1Writer, C
         writeLength(sequenceBuffer, length);
         sequenceBuffer.writeByteArray(value, offset, length);
 
-        if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINEST)) {
-            StaticUtils.DEBUG_LOG.finest(String.format(
-                    "WRITE ASN.1 OCTETSTRING(type=0x%x, length=%d)", type, length));
-        }
+        IO_LOG.trace("WRITE ASN.1 OCTETSTRING(type=0x{}, length={})", byteToHex(type), length);
         return this;
     }
 
@@ -449,10 +403,7 @@ final class ASN1BufferWriter extends AbstractASN1Writer implements ASN1Writer, C
             sequenceBuffer.writeByte(value.byteAt(i));
         }
 
-        if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINEST)) {
-            StaticUtils.DEBUG_LOG.finest(String.format(
-                    "WRITE ASN.1 OCTETSTRING(type=0x%x, length=%d)", type, value.length()));
-        }
+        IO_LOG.trace("WRITE ASN.1 OCTETSTRING(type=0x{}, length={})", byteToHex(type), value.length());
         return this;
     }
 
@@ -471,11 +422,8 @@ final class ASN1BufferWriter extends AbstractASN1Writer implements ASN1Writer, C
         writeLength(sequenceBuffer, bytes.length);
         sequenceBuffer.writeByteArray(bytes, 0, bytes.length);
 
-        if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINEST)) {
-            StaticUtils.DEBUG_LOG.finest(String.format(
-                    "WRITE ASN.1 OCTETSTRING(type=0x%x, length=%d, " + "value=%s)", type,
-                    bytes.length, value));
-        }
+        IO_LOG.trace("WRITE ASN.1 OCTETSTRING(type=0x{}, length={}, value={})", byteToHex(type),
+                    bytes.length, value);
         return this;
     }
 
@@ -486,10 +434,7 @@ final class ASN1BufferWriter extends AbstractASN1Writer implements ASN1Writer, C
         // Get a child sequence buffer
         sequenceBuffer = sequenceBuffer.startSequence(type);
 
-        if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINEST)) {
-            StaticUtils.DEBUG_LOG.finest(String.format("WRITE ASN.1 START SEQUENCE(type=0x%x)",
-                    type));
-        }
+        IO_LOG.trace("WRITE ASN.1 START SEQUENCE(type=0x{})", byteToHex(type));
         return this;
     }
 

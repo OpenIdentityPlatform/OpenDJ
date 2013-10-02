@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS
+ *      Portions copyright 2012-2013 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.schema;
@@ -148,7 +148,7 @@ final class UTCTimeSyntaxImpl extends AbstractSyntaxImpl {
             final LocalizableMessage message =
                     ERR_ATTR_SYNTAX_UTC_TIME_CANNOT_PARSE.get(valueString, String.valueOf(e));
             final DecodeException de = DecodeException.error(message, e);
-            StaticUtils.DEBUG_LOG.throwing("UTCTimeSyntax", "decodeUTCTimeValue", de);
+            StaticUtils.SCHEMA_LOG.debug("", de);
             throw de;
         }
     }

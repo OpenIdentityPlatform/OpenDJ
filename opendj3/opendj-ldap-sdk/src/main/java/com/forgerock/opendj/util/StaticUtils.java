@@ -32,6 +32,7 @@ import static com.forgerock.opendj.ldap.CoreMessages.ERR_HEX_DECODE_INVALID_LENG
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
@@ -50,8 +51,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.zip.DataFormatException;
 import java.util.zip.Deflater;
 import java.util.zip.Inflater;
@@ -61,15 +60,35 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Common utility methods.
  */
 public final class StaticUtils {
+
+    private static final String DEFAULT_LOGGER_NAME = "org.forgerock.opendj.ldap";
+
     /**
-     * The debug logger which should be used by the SDK.
+     * The default logger used by the SDK if there is no appropriate specific logger.
      */
-    public static final Logger DEBUG_LOG = Logger.getLogger("org.forgerock.opendj.ldap");
+    public static final Logger DEFAULT_LOG = LoggerFactory.getLogger(DEFAULT_LOGGER_NAME);
+
+    /**
+     * The logger used by the SDK for controls related features.
+     */
+    public static final Logger CONTROLS_LOG = LoggerFactory.getLogger(DEFAULT_LOGGER_NAME + ".controls");
+
+    /**
+     * The logger used by the SDK for schema related features.
+     */
+    public static final Logger SCHEMA_LOG = LoggerFactory.getLogger(DEFAULT_LOGGER_NAME + ".schema");
+
+    /**
+     * The logger used by the SDK for IO related features (buffers, readers, writers).
+     */
+    public static final Logger IO_LOG = LoggerFactory.getLogger(DEFAULT_LOGGER_NAME + ".io");
 
     /**
      * Indicates whether the SDK is being used in debug mode. In debug mode
@@ -1278,11 +1297,7 @@ public final class StaticUtils {
                 compress(inputBytes, 0, inputBytes.length, outputBytes, 0, outputBytes.length);
 
         if (compressedSize != -1) {
-            if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINE)) {
-                StaticUtils.DEBUG_LOG.fine(String.format("Compression %d/%d%n", compressedSize,
-                        inputBytes.length));
-            }
-
+            DEFAULT_LOG.debug("Compression {}/{}", compressedSize, inputBytes.length);
             output.append(outputBytes, 0, compressedSize);
             return true;
         }
@@ -1331,9 +1346,7 @@ public final class StaticUtils {
         // Format the year yyyy.
         int n = calendar.get(Calendar.YEAR);
         if (n < 0) {
-            final IllegalArgumentException e =
-                    new IllegalArgumentException("Year cannot be < 0:" + n);
-            StaticUtils.DEBUG_LOG.throwing("GeneralizedTimeSyntax", "format", e);
+            final IllegalArgumentException e = new IllegalArgumentException("Year cannot be < 0:" + n);
             throw e;
         } else if (n < 10) {
             sb.append("000");
@@ -1440,10 +1453,9 @@ public final class StaticUtils {
             }
 
             return returnArray;
-        } catch (final Exception e) {
-            DEBUG_LOG.warning("Unable to encode UTF-8 string " + s);
-
-            return s.getBytes();
+        } catch (final UnsupportedEncodingException e) {
+            // TODO: I18N
+            throw new RuntimeException("Unable to encode UTF-8 string " + s, e);
         }
     }
 
@@ -2215,8 +2227,9 @@ public final class StaticUtils {
             }
             if (DEBUG_TO_STDERR) {
                 System.err.println(builder.toString());
-            } else if (DEBUG_LOG.isLoggable(Level.SEVERE)) {
-                DEBUG_LOG.severe(builder.toString());
+            } else if (DEFAULT_LOG.isErrorEnabled()) {
+                // TODO: I18N
+                DEFAULT_LOG.error(builder.toString());
             }
         }
     }

@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2011-2013 ForgeRock AS
  */
 package com.forgerock.opendj.ldap.controls;
 
@@ -148,8 +149,7 @@ public final class AccountUsabilityResponseControl implements Control {
                             throw DecodeException.error(message);
                         }
                     } catch (final IOException e) {
-                        StaticUtils.DEBUG_LOG.throwing(
-                                "AccountUsabilityResponseControl.decodeControl", "decode", e);
+                        StaticUtils.CONTROLS_LOG.debug("", e);
 
                         final LocalizableMessage message =
                                 ERR_ACCTUSABLERES_DECODE_ERROR.get(getExceptionMessage(e));

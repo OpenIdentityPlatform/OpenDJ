@@ -71,7 +71,6 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import com.forgerock.opendj.util.CompletedFutureResult;
-import com.forgerock.opendj.util.StaticUtils;
 
 /**
  * Tests the {@code ConnectionFactory} classes.
@@ -120,7 +119,7 @@ public class ConnectionFactoryTestCase extends SdkTestCase {
      */
     @BeforeClass()
     public void disableLogging() {
-        StaticUtils.DEBUG_LOG.setLevel(Level.SEVERE);
+        setDefaultLogLevel(Level.SEVERE);
     }
 
     /**
@@ -128,7 +127,7 @@ public class ConnectionFactoryTestCase extends SdkTestCase {
      */
     @AfterClass()
     public void enableLogging() {
-        StaticUtils.DEBUG_LOG.setLevel(Level.INFO);
+        setDefaultLogLevel(Level.INFO);
     }
 
     @DataProvider

@@ -43,7 +43,6 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import com.forgerock.opendj.util.CompletedFutureResult;
-import com.forgerock.opendj.util.StaticUtils;
 
 @SuppressWarnings("javadoc")
 public class AbstractLoadBalancingAlgorithmTestCase extends SdkTestCase {
@@ -88,7 +87,7 @@ public class AbstractLoadBalancingAlgorithmTestCase extends SdkTestCase {
      */
     @BeforeClass()
     public void disableLogging() {
-        StaticUtils.DEBUG_LOG.setLevel(Level.SEVERE);
+        setDefaultLogLevel(Level.SEVERE);
     }
 
     /**
@@ -96,7 +95,7 @@ public class AbstractLoadBalancingAlgorithmTestCase extends SdkTestCase {
      */
     @AfterClass()
     public void enableLogging() {
-        StaticUtils.DEBUG_LOG.setLevel(Level.INFO);
+        setDefaultLogLevel(Level.INFO);
     }
 
     /**

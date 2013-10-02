@@ -27,7 +27,7 @@
 
 package com.forgerock.opendj.ldap;
 
-import static com.forgerock.opendj.util.StaticUtils.DEBUG_LOG;
+import static com.forgerock.opendj.util.StaticUtils.DEFAULT_LOG;
 import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
 
 import java.io.IOException;
@@ -556,7 +556,7 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements Con
                 if (future != null && future.checkForTimeout()) {
                     final long diff = (future.getTimestamp() + timeout) - currentTime;
                     if (diff <= 0 && pendingRequests.remove(requestID) != null) {
-                        DEBUG_LOG.fine("Cancelling expired future result: " + future);
+                        DEFAULT_LOG.debug("Cancelling expired future result: {}", future);
                         final Result result = Responses.newResult(ResultCode.CLIENT_SIDE_TIMEOUT);
                         future.adaptErrorResult(result);
                         abandonAsync(Requests.newAbandonRequest(future.getRequestID()));

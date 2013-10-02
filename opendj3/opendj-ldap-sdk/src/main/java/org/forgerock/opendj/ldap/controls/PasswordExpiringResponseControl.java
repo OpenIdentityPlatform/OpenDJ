@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS
  */
 package org.forgerock.opendj.ldap.controls;
 
@@ -103,8 +104,7 @@ public final class PasswordExpiringResponseControl implements Control {
                     try {
                         secondsUntilExpiration = Integer.parseInt(control.getValue().toString());
                     } catch (final Exception e) {
-                        StaticUtils.DEBUG_LOG.throwing("PasswordExpiringControl.Decoder", "decode",
-                                e);
+                        StaticUtils.CONTROLS_LOG.debug("", e);
 
                         final LocalizableMessage message =
                                 ERR_PWEXPIRING_CANNOT_DECODE_SECONDS_UNTIL_EXPIRATION

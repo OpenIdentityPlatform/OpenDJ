@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2012 ForgeRock AS
+ *      Portions copyright 2011-2013 ForgeRock AS
  */
 package org.forgerock.opendj.ldap.controls;
 
@@ -138,8 +138,7 @@ public final class SubentriesRequestControl implements Control {
                     try {
                         visibility = reader.readBoolean();
                     } catch (final IOException e) {
-                        StaticUtils.DEBUG_LOG.throwing("SubentriesRequestControl.Decoder",
-                                "decode", e);
+                        StaticUtils.CONTROLS_LOG.debug("Unable to read visbility", e);
                         final LocalizableMessage message =
                                 ERR_SUBENTRIES_CANNOT_DECODE_VALUE.get(getExceptionMessage(e));
                         throw DecodeException.error(message);
