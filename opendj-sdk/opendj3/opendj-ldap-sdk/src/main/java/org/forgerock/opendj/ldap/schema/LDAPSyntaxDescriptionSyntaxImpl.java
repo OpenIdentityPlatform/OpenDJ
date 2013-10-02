@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2013 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.schema;
@@ -30,6 +30,7 @@ package org.forgerock.opendj.ldap.schema;
 import static com.forgerock.opendj.ldap.CoreMessages.*;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.EMR_OID_FIRST_COMPONENT_OID;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.SYNTAX_LDAP_SYNTAX_NAME;
+import static com.forgerock.opendj.util.StaticUtils.SCHEMA_LOG;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -43,7 +44,6 @@ import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.DecodeException;
 
-import com.forgerock.opendj.util.StaticUtils;
 import com.forgerock.opendj.util.SubstringReader;
 
 /**
@@ -84,8 +84,7 @@ final class LDAPSyntaxDescriptionSyntaxImpl extends AbstractSyntaxImpl {
                 final LocalizableMessage message =
                         ERR_ATTR_SYNTAX_ATTRSYNTAX_EMPTY_VALUE1.get(definition);
                 final DecodeException e = DecodeException.error(message);
-                StaticUtils.DEBUG_LOG.throwing("LDAPSyntaxDescriptionSyntax", "valueIsAcceptable",
-                        e);
+                SCHEMA_LOG.debug("", e);
                 throw e;
             }
 
@@ -97,8 +96,7 @@ final class LDAPSyntaxDescriptionSyntaxImpl extends AbstractSyntaxImpl {
                         ERR_ATTR_SYNTAX_ATTRSYNTAX_EXPECTED_OPEN_PARENTHESIS.get(definition,
                                 (reader.pos() - 1), String.valueOf(c));
                 final DecodeException e = DecodeException.error(message);
-                StaticUtils.DEBUG_LOG.throwing("LDAPSyntaxDescriptionSyntax", "valueIsAcceptable",
-                        e);
+                SCHEMA_LOG.debug("", e);
                 throw e;
             }
 
@@ -143,8 +141,7 @@ final class LDAPSyntaxDescriptionSyntaxImpl extends AbstractSyntaxImpl {
                     final LocalizableMessage message =
                             ERR_ATTR_SYNTAX_ATTRSYNTAX_ILLEGAL_TOKEN1.get(definition, tokenName);
                     final DecodeException e = DecodeException.error(message);
-                    StaticUtils.DEBUG_LOG.throwing("LDAPSyntaxDescriptionSyntax",
-                            "valueIsAcceptable", e);
+                    SCHEMA_LOG.debug("", e);
                     throw e;
                 }
             }
@@ -161,8 +158,7 @@ final class LDAPSyntaxDescriptionSyntaxImpl extends AbstractSyntaxImpl {
                                     WARN_ATTR_SYNTAX_LDAPSYNTAX_REGEX_INVALID_PATTERN.get(oid,
                                             pattern);
                             final DecodeException de = DecodeException.error(message, e);
-                            StaticUtils.DEBUG_LOG.throwing("LDAPSyntaxDescriptionSyntax",
-                                    "valueIsAcceptable", de);
+                            SCHEMA_LOG.debug("", de);
                             throw de;
                         }
                         break;
@@ -177,8 +173,7 @@ final class LDAPSyntaxDescriptionSyntaxImpl extends AbstractSyntaxImpl {
                                         WARN_ATTR_SYNTAX_LDAPSYNTAX_ENUM_DUPLICATE_VALUE.get(oid,
                                                 entry, j);
                                 final DecodeException e = DecodeException.error(message);
-                                StaticUtils.DEBUG_LOG.throwing("LDAPSyntaxDescriptionSyntax",
-                                        "valueIsAcceptable", e);
+                                SCHEMA_LOG.debug("", e);
                                 throw e;
                             }
                         }

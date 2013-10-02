@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2013 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.schema;
@@ -33,13 +33,13 @@ import static com.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_DCR_ILLEGAL
 import static com.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_DCR_INVALID1;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.EMR_OID_FIRST_COMPONENT_OID;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.SYNTAX_DIT_CONTENT_RULE_NAME;
+import static com.forgerock.opendj.util.StaticUtils.SCHEMA_LOG;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.DecodeException;
 
-import com.forgerock.opendj.util.StaticUtils;
 import com.forgerock.opendj.util.SubstringReader;
 
 /**
@@ -82,7 +82,7 @@ final class DITContentRuleSyntaxImpl extends AbstractSyntaxImpl {
                 // whitespace. That is illegal.
                 final LocalizableMessage message = ERR_ATTR_SYNTAX_DCR_EMPTY_VALUE1.get(definition);
                 final DecodeException e = DecodeException.error(message);
-                StaticUtils.DEBUG_LOG.throwing("DITConentRuleSyntax", "valueIsAcceptable", e);
+                SCHEMA_LOG.debug("", e);
                 throw e;
             }
 
@@ -94,7 +94,7 @@ final class DITContentRuleSyntaxImpl extends AbstractSyntaxImpl {
                         ERR_ATTR_SYNTAX_DCR_EXPECTED_OPEN_PARENTHESIS.get(definition,
                                 (reader.pos() - 1), String.valueOf(c));
                 final DecodeException e = DecodeException.error(message);
-                StaticUtils.DEBUG_LOG.throwing("DITContentRuleSyntax", "valueIsAcceptable", e);
+                SCHEMA_LOG.debug("", e);
                 throw e;
             }
 
@@ -151,7 +151,7 @@ final class DITContentRuleSyntaxImpl extends AbstractSyntaxImpl {
                     final LocalizableMessage message =
                             ERR_ATTR_SYNTAX_DCR_ILLEGAL_TOKEN1.get(definition, tokenName);
                     final DecodeException e = DecodeException.error(message);
-                    StaticUtils.DEBUG_LOG.throwing("DITContentRuleSyntax", "valueIsAcceptable", e);
+                    SCHEMA_LOG.debug("", e);
                     throw e;
                 }
             }

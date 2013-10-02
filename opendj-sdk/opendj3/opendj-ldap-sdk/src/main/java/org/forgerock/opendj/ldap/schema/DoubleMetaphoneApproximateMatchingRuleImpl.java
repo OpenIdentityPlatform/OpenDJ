@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -890,8 +891,10 @@ final class DoubleMetaphoneApproximateMatchingRuleImpl extends AbstractMatchingR
 
             return true;
         } catch (final Exception e) {
-            StaticUtils.DEBUG_LOG.throwing("DoubleMetaphoneApproximateMatchingRule",
-                    "hasSubstring", e);
+            if (StaticUtils.SCHEMA_LOG.isDebugEnabled()) {
+                StaticUtils.SCHEMA_LOG.debug("Unable to check that '" + value + "' has substring '" + substring
+                        + "' at position " + start, e);
+            }
 
             return false;
         }

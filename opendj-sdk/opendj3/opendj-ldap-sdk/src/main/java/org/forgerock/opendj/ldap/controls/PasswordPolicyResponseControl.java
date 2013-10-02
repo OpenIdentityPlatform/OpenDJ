@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2013 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.controls;
 
@@ -182,8 +182,7 @@ public final class PasswordPolicyResponseControl implements Control {
                         return new PasswordPolicyResponseControl(control.isCritical(), warningType,
                                 warningValue, errorType);
                     } catch (final IOException e) {
-                        StaticUtils.DEBUG_LOG.throwing("PasswordPolicyControl.ResponseDecoder",
-                                "decode", e);
+                        StaticUtils.CONTROLS_LOG.debug("", e);
 
                         final LocalizableMessage message =
                                 ERR_PWPOLICYRES_DECODE_ERROR.get(getExceptionMessage(e));

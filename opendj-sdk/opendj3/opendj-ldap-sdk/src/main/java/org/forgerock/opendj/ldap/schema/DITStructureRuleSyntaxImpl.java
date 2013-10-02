@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2013 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.schema;
@@ -76,7 +76,7 @@ final class DITStructureRuleSyntaxImpl extends AbstractSyntaxImpl {
                 // whitespace. That is illegal.
                 final LocalizableMessage message = ERR_ATTR_SYNTAX_DSR_EMPTY_VALUE1.get(definition);
                 final DecodeException e = DecodeException.error(message);
-                StaticUtils.DEBUG_LOG.throwing("DITStructureRuleSyntax", "valueIsAcceptable", e);
+                StaticUtils.SCHEMA_LOG.debug("", e);
                 throw e;
             }
 
@@ -88,7 +88,7 @@ final class DITStructureRuleSyntaxImpl extends AbstractSyntaxImpl {
                         ERR_ATTR_SYNTAX_DSR_EXPECTED_OPEN_PARENTHESIS.get(definition,
                                 (reader.pos() - 1), String.valueOf(c));
                 final DecodeException e = DecodeException.error(message);
-                StaticUtils.DEBUG_LOG.throwing("DITStructureRuleSyntax", "valueIsAcceptable", e);
+                StaticUtils.SCHEMA_LOG.debug("", e);
                 throw e;
             }
 
@@ -143,8 +143,7 @@ final class DITStructureRuleSyntaxImpl extends AbstractSyntaxImpl {
                     final LocalizableMessage message =
                             ERR_ATTR_SYNTAX_DSR_ILLEGAL_TOKEN1.get(definition, tokenName);
                     final DecodeException e = DecodeException.error(message);
-                    StaticUtils.DEBUG_LOG
-                            .throwing("DITStructureRuleSyntax", "valueIsAcceptable", e);
+                    StaticUtils.SCHEMA_LOG.debug("", e);
                     throw e;
                 }
             }
@@ -152,7 +151,7 @@ final class DITStructureRuleSyntaxImpl extends AbstractSyntaxImpl {
             if (nameForm == null) {
                 final LocalizableMessage message = ERR_ATTR_SYNTAX_DSR_NO_NAME_FORM.get(definition);
                 final DecodeException e = DecodeException.error(message);
-                StaticUtils.DEBUG_LOG.throwing("DITStructureRuleSyntax", "valueIsAcceptable", e);
+                StaticUtils.SCHEMA_LOG.debug("", e);
                 throw e;
             }
             return true;

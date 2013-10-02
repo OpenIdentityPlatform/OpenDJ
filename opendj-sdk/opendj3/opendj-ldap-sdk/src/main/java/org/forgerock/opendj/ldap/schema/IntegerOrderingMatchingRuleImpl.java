@@ -45,8 +45,7 @@ final class IntegerOrderingMatchingRuleImpl extends AbstractOrderingMatchingRule
         try {
             return ByteString.valueOf(Integer.parseInt(value.toString()));
         } catch (final Exception e) {
-            StaticUtils.DEBUG_LOG.throwing("IntegerOrderingMatchingRule",
-                    "normalizeAttributeValue", e);
+            StaticUtils.SCHEMA_LOG.debug("", e);
 
             final LocalizableMessage message =
                     WARN_ATTR_SYNTAX_ILLEGAL_INTEGER.get(value.toString());

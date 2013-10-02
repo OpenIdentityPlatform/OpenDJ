@@ -28,7 +28,7 @@
 package org.forgerock.opendj.ldap;
 
 import static com.forgerock.opendj.util.StaticUtils.DEBUG_ENABLED;
-import static com.forgerock.opendj.util.StaticUtils.DEBUG_LOG;
+import static com.forgerock.opendj.util.StaticUtils.DEFAULT_LOG;
 import static com.forgerock.opendj.util.StaticUtils.DEFAULT_SCHEDULER;
 import static com.forgerock.opendj.util.StaticUtils.getStackTraceIfDebugEnabled;
 import static com.forgerock.opendj.util.StaticUtils.logIfDebugEnabled;
@@ -44,8 +44,6 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.logging.Level;
-
 import org.forgerock.opendj.ldap.requests.AbandonRequest;
 import org.forgerock.opendj.ldap.requests.AddRequest;
 import org.forgerock.opendj.ldap.requests.BindRequest;
@@ -90,11 +88,8 @@ final class CachedConnectionPool implements ConnectionPool {
             // Connection attempt failed, so decrease the pool size.
             availableConnections.release();
 
-            if (DEBUG_LOG.isLoggable(Level.FINE)) {
-                DEBUG_LOG.fine(String.format(
-                        "Connection attempt failed: %s, availableConnections=%d, maxPoolSize=%d",
-                        error.getMessage(), currentPoolSize(), maxPoolSize));
-            }
+            DEFAULT_LOG.debug("Connection attempt failed: availableConnections={}, maxPoolSize={}",
+                    currentPoolSize(), maxPoolSize, error);
 
             QueueElement holder;
             synchronized (queue) {
@@ -112,11 +107,8 @@ final class CachedConnectionPool implements ConnectionPool {
 
         @Override
         public void handleResult(final Connection connection) {
-            if (DEBUG_LOG.isLoggable(Level.FINE)) {
-                DEBUG_LOG.fine(String.format(
-                        "Connection attempt succeeded:  availableConnections=%d, maxPoolSize=%d",
-                        currentPoolSize(), maxPoolSize));
-            }
+            DEFAULT_LOG.debug("Connection attempt succeeded:  availableConnections={}, maxPoolSize={}",
+                    currentPoolSize(), maxPoolSize);
             publishConnection(connection);
         }
     }
@@ -262,11 +254,8 @@ final class CachedConnectionPool implements ConnectionPool {
                 connection.close();
                 factory.getConnectionAsync(connectionResultHandler);
 
-                if (DEBUG_LOG.isLoggable(Level.FINE)) {
-                    DEBUG_LOG.fine(String.format(
-                            "Connection no longer valid: availableConnections=%d, maxPoolSize=%d",
-                            currentPoolSize(), maxPoolSize));
-                }
+                DEFAULT_LOG.debug("Connection no longer valid: availableConnections={}, maxPoolSize={}",
+                        currentPoolSize(), maxPoolSize);
             }
 
             // Invoke listeners.
@@ -568,11 +557,8 @@ final class CachedConnectionPool implements ConnectionPool {
 
             // Close the idle connections.
             if (!idleConnections.isEmpty()) {
-                if (DEBUG_LOG.isLoggable(Level.FINE)) {
-                    DEBUG_LOG.fine(String.format("Closing %d idle pooled connections: "
-                            + "availableConnections=%d, maxPoolSize=%d", idleConnections.size(),
-                            currentPoolSize(), maxPoolSize));
-                }
+                DEFAULT_LOG.debug("Closing {} idle pooled connections: availableConnections={}, maxPoolSize={}",
+                        idleConnections.size(), currentPoolSize(), maxPoolSize);
                 for (final Connection connection : idleConnections) {
                     connection.close();
                 }
@@ -728,11 +714,8 @@ final class CachedConnectionPool implements ConnectionPool {
             }
         }
 
-        if (DEBUG_LOG.isLoggable(Level.FINE)) {
-            DEBUG_LOG.fine(String.format(
-                    "Connection pool is closing: availableConnections=%d, maxPoolSize=%d",
-                    currentPoolSize(), maxPoolSize));
-        }
+        DEFAULT_LOG.debug("Connection pool is closing: availableConnections={}, maxPoolSize={}",
+                currentPoolSize(), maxPoolSize);
 
         if (idleTimeoutFuture != null) {
             idleTimeoutFuture.cancel(false);
@@ -791,11 +774,8 @@ final class CachedConnectionPool implements ConnectionPool {
                     connection.close();
                     availableConnections.release();
 
-                    if (DEBUG_LOG.isLoggable(Level.FINE)) {
-                        DEBUG_LOG.fine(String.format(
-                                "Connection no longer valid: availableConnections=%d, poolSize=%d",
-                                currentPoolSize(), maxPoolSize));
-                    }
+                    DEFAULT_LOG.debug("Connection no longer valid: availableConnections={}, poolSize={}",
+                            currentPoolSize(), maxPoolSize);
                 }
             } else {
                 // Grow the pool if needed.
@@ -866,12 +846,9 @@ final class CachedConnectionPool implements ConnectionPool {
             availableConnections.release();
             connection.close();
 
-            if (DEBUG_LOG.isLoggable(Level.FINE)) {
-                DEBUG_LOG.fine(String.format(
-                        "Closing connection because connection pool is closing: "
-                                + "availableConnections=%d, maxPoolSize=%d", currentPoolSize(),
-                        maxPoolSize));
-            }
+            DEFAULT_LOG.debug(
+                    "Closing connection because connection pool is closing: availableConnections={}, maxPoolSize={}",
+                    currentPoolSize(), maxPoolSize);
 
             if (holder != null) {
                 final ErrorResultException e =
@@ -879,11 +856,8 @@ final class CachedConnectionPool implements ConnectionPool {
                                 ERR_CONNECTION_POOL_CLOSING.get(toString()).toString());
                 holder.getWaitingFuture().handleErrorResult(e);
 
-                if (DEBUG_LOG.isLoggable(Level.FINE)) {
-                    DEBUG_LOG.fine(String.format(
-                            "Connection attempt failed: %s, availableConnections=%d, poolSize=%d",
-                            e.getMessage(), currentPoolSize(), maxPoolSize));
-                }
+                DEFAULT_LOG.debug("Connection attempt failed: availableConnections={}, poolSize={}",
+                        currentPoolSize(), maxPoolSize, e);
             }
         } else {
             holder.getWaitingFuture().handleResult(

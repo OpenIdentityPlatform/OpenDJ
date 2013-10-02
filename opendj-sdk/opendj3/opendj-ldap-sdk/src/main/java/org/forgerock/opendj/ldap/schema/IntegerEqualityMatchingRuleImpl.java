@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -45,8 +46,7 @@ final class IntegerEqualityMatchingRuleImpl extends AbstractMatchingRuleImpl {
         try {
             return ByteString.valueOf(Integer.parseInt(value.toString()));
         } catch (final Exception e) {
-            StaticUtils.DEBUG_LOG.throwing("IntegerEqualityMatchingRule",
-                    "normalizeAttributeValue", e);
+            StaticUtils.SCHEMA_LOG.debug("", e);
 
             final LocalizableMessage message =
                     WARN_ATTR_SYNTAX_ILLEGAL_INTEGER.get(value.toString());

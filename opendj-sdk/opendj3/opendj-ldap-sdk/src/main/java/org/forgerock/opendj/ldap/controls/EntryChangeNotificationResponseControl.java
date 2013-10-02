@@ -167,8 +167,7 @@ public final class EntryChangeNotificationResponseControl implements Control {
                             changeNumber = reader.readInteger();
                         }
                     } catch (final IOException e) {
-                        StaticUtils.DEBUG_LOG.throwing("EntryChangeNotificationControl.Decoder",
-                                "decode", e);
+                        StaticUtils.CONTROLS_LOG.debug("", e);
 
                         final LocalizableMessage message =
                                 ERR_ECN_CANNOT_DECODE_VALUE.get(getExceptionMessage(e));

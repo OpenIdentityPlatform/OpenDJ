@@ -28,14 +28,12 @@
 package com.forgerock.opendj.ldap;
 
 import static com.forgerock.opendj.ldap.DefaultTCPNIOTransport.DEFAULT_TRANSPORT;
-import static com.forgerock.opendj.util.StaticUtils.DEBUG_LOG;
+import static com.forgerock.opendj.util.StaticUtils.DEFAULT_LOG;
 
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.SocketAddress;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.logging.Level;
-
 import org.forgerock.opendj.ldap.DecodeOptions;
 import org.forgerock.opendj.ldap.LDAPClientContext;
 import org.forgerock.opendj.ldap.LDAPListenerOptions;
@@ -99,7 +97,8 @@ public final class LDAPListenerImpl implements Closeable {
                 // Cannot handle here.
                 Thread.currentThread().interrupt();
             } catch (final Exception e) {
-                DEBUG_LOG.log(Level.WARNING, "Exception occurred while closing listener", e);
+                // TODO: I18N
+                DEFAULT_LOG.warn("Exception occurred while closing listener", e);
             }
             transport.release();
         }

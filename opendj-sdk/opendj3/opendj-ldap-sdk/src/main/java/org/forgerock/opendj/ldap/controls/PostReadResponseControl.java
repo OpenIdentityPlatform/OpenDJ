@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2013 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.controls;
@@ -120,8 +120,7 @@ public final class PostReadResponseControl implements Control {
                     try {
                         searchEntry = LDAPUtils.decodeSearchResultEntry(reader, options);
                     } catch (final IOException le) {
-                        StaticUtils.DEBUG_LOG.throwing("PostReadResponseControl", "decodeControl",
-                                le);
+                        StaticUtils.CONTROLS_LOG.debug("Unable to read result entry ", le);
 
                         final LocalizableMessage message =
                                 ERR_POSTREADRESP_CANNOT_DECODE_VALUE.get(le.getMessage());

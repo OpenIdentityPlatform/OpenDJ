@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2013 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.controls;
 
@@ -109,8 +109,7 @@ public final class ProxiedAuthV1RequestControl implements Control {
                         authorizationDNString = reader.readOctetStringAsString();
                         reader.readEndSequence();
                     } catch (final IOException e) {
-                        StaticUtils.DEBUG_LOG.throwing("ProxiedAuthV1RequestControl",
-                                "decodeControl", e);
+                        StaticUtils.CONTROLS_LOG.debug("Unable to read sequence", e);
 
                         final LocalizableMessage message =
                                 ERR_PROXYAUTH1_CANNOT_DECODE_VALUE.get(getExceptionMessage(e));

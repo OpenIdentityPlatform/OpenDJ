@@ -22,11 +22,12 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2013 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.controls;
 
 import static com.forgerock.opendj.ldap.CoreMessages.*;
+import static com.forgerock.opendj.util.StaticUtils.CONTROLS_LOG;
 
 import java.io.IOException;
 
@@ -39,7 +40,6 @@ import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.DecodeOptions;
 
-import com.forgerock.opendj.util.StaticUtils;
 import com.forgerock.opendj.util.Validator;
 
 /**
@@ -169,7 +169,7 @@ public final class SimplePagedResultsControl implements Control {
                     try {
                         reader.readStartSequence();
                     } catch (final Exception e) {
-                        StaticUtils.DEBUG_LOG.throwing("PagedResultsControl.Decoder", "decode", e);
+                        CONTROLS_LOG.debug("Unable to read start sequence", e);
 
                         final LocalizableMessage message =
                                 ERR_LDAP_PAGED_RESULTS_DECODE_SEQUENCE.get(String.valueOf(e));
@@ -180,7 +180,7 @@ public final class SimplePagedResultsControl implements Control {
                     try {
                         size = (int) reader.readInteger();
                     } catch (final Exception e) {
-                        StaticUtils.DEBUG_LOG.throwing("PagedResultsControl.Decoder", "decode", e);
+                        CONTROLS_LOG.debug("Unable to read size", e);
 
                         final LocalizableMessage message =
                                 ERR_LDAP_PAGED_RESULTS_DECODE_SIZE.get(String.valueOf(e));
@@ -191,7 +191,7 @@ public final class SimplePagedResultsControl implements Control {
                     try {
                         cookie = reader.readOctetString();
                     } catch (final Exception e) {
-                        StaticUtils.DEBUG_LOG.throwing("PagedResultsControl.Decoder", "decode", e);
+                        CONTROLS_LOG.debug("Unable to read cookie", e);
 
                         final LocalizableMessage message =
                                 ERR_LDAP_PAGED_RESULTS_DECODE_COOKIE.get(String.valueOf(e));
@@ -201,7 +201,7 @@ public final class SimplePagedResultsControl implements Control {
                     try {
                         reader.readEndSequence();
                     } catch (final Exception e) {
-                        StaticUtils.DEBUG_LOG.throwing("PagedResultsControl.Decoder", "decode", e);
+                        CONTROLS_LOG.debug("Unable to read end sequence", e);
 
                         final LocalizableMessage message =
                                 ERR_LDAP_PAGED_RESULTS_DECODE_SEQUENCE.get(String.valueOf(e));

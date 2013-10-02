@@ -62,7 +62,6 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import com.forgerock.opendj.util.CompletedFutureResult;
-import com.forgerock.opendj.util.StaticUtils;
 
 /**
  * Tests the connection pool implementation..
@@ -103,7 +102,7 @@ public class HeartBeatConnectionFactoryTestCase extends SdkTestCase {
      */
     @BeforeClass()
     public void disableLogging() {
-        StaticUtils.DEBUG_LOG.setLevel(Level.SEVERE);
+        setDefaultLogLevel(Level.SEVERE);
     }
 
     /**
@@ -111,7 +110,7 @@ public class HeartBeatConnectionFactoryTestCase extends SdkTestCase {
      */
     @AfterClass()
     public void enableLogging() {
-        StaticUtils.DEBUG_LOG.setLevel(Level.INFO);
+        setDefaultLogLevel(Level.INFO);
     }
 
     @AfterMethod(alwaysRun = true)

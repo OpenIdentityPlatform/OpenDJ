@@ -22,19 +22,17 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2011-2012 ForgeRock AS
+ *      Portions copyright 2011-2013 ForgeRock AS
  */
 package org.forgerock.opendj.ldap;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.Charset;
-import java.util.logging.Level;
-
-import com.forgerock.opendj.util.StaticUtils;
 
 /**
  * A mutable sequence of bytes backed by a byte array.
@@ -596,13 +594,9 @@ public final class ByteStringBuilder implements ByteSequence {
                 // There is a multi-byte char. Defer to JDK
                 try {
                     return append(s.getBytes("UTF-8"));
-                } catch (final Exception e) {
-                    if (StaticUtils.DEBUG_LOG.isLoggable(Level.WARNING)) {
-                        StaticUtils.DEBUG_LOG.warning("Unable to encode String "
-                                + "to UTF-8 bytes: " + e.toString());
-                    }
-
-                    return append(s.getBytes());
+                } catch (final UnsupportedEncodingException e) {
+                    // TODO: I18N
+                    throw new RuntimeException("Unable to encode String '" + s + "' to UTF-8 bytes", e);
                 }
             }
         }

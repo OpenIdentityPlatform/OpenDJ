@@ -22,17 +22,17 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2013 ForgeRock AS
  */
 
 package com.forgerock.opendj.ldap;
 
 import static com.forgerock.opendj.ldap.LDAPConstants.*;
+import static com.forgerock.opendj.util.StaticUtils.IO_LOG;
+import static com.forgerock.opendj.util.StaticUtils.byteToHex;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.logging.Level;
-
 import org.forgerock.opendj.asn1.ASN1Writer;
 import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.ByteString;
@@ -170,10 +170,7 @@ final class LDAPWriter implements LDAPMessageHandler<ASN1Writer> {
 
     public void abandonRequest(final ASN1Writer writer, final int messageID,
             final AbandonRequest request) throws IOException {
-        if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINER)) {
-            StaticUtils.DEBUG_LOG.finer(String.format(
-                    "ENCODE LDAP ABANDON REQUEST(messageID=%d, request=%s)", messageID, request));
-        }
+        IO_LOG.trace("ENCODE LDAP ABANDON REQUEST(messageID={}, request={})", messageID, request);
         encodeMessageHeader(writer, messageID);
         writer.writeInteger(OP_TYPE_ABANDON_REQUEST, request.getRequestID());
         encodeMessageFooter(writer, request);
@@ -181,10 +178,7 @@ final class LDAPWriter implements LDAPMessageHandler<ASN1Writer> {
 
     public void addRequest(final ASN1Writer writer, final int messageID, final AddRequest request)
             throws IOException {
-        if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINER)) {
-            StaticUtils.DEBUG_LOG.finer(String.format(
-                    "ENCODE LDAP ADD REQUEST(messageID=%d, request=%s)", messageID, request));
-        }
+        IO_LOG.trace("ENCODE LDAP ADD REQUEST(messageID={}, request={})", messageID, request);
         encodeMessageHeader(writer, messageID);
         writer.writeStartSequence(OP_TYPE_ADD_REQUEST);
         writer.writeOctetString(request.getName().toString());
@@ -202,10 +196,7 @@ final class LDAPWriter implements LDAPMessageHandler<ASN1Writer> {
 
     public void addResult(final ASN1Writer writer, final int messageID, final Result result)
             throws IOException {
-        if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINER)) {
-            StaticUtils.DEBUG_LOG.finer(String.format(
-                    "ENCODE LDAP ADD RESULT(messageID=%d, result=%s)", messageID, result));
-        }
+        IO_LOG.trace("ENCODE LDAP ADD RESULT(messageID={}, result={})", messageID, result);
         encodeMessageHeader(writer, messageID);
         encodeResultHeader(writer, OP_TYPE_ADD_RESPONSE, result);
         encodeResultFooter(writer);
@@ -214,11 +205,8 @@ final class LDAPWriter implements LDAPMessageHandler<ASN1Writer> {
 
     public void bindRequest(final ASN1Writer writer, final int messageID, final int version,
             final GenericBindRequest request) throws IOException {
-        if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINER)) {
-            StaticUtils.DEBUG_LOG.finer(String.format(
-                    "ENCODE LDAP BIND REQUEST(messageID=%d, auth=0x%x, request=%s)", messageID,
-                    request.getAuthenticationType(), request));
-        }
+        IO_LOG.trace("ENCODE LDAP BIND REQUEST(messageID={}, auth=0x{}, request={})",
+                messageID, byteToHex(request.getAuthenticationType()), request);
         encodeMessageHeader(writer, messageID);
         writer.writeStartSequence(OP_TYPE_BIND_REQUEST);
 
@@ -232,10 +220,7 @@ final class LDAPWriter implements LDAPMessageHandler<ASN1Writer> {
 
     public void bindResult(final ASN1Writer writer, final int messageID, final BindResult result)
             throws IOException {
-        if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINER)) {
-            StaticUtils.DEBUG_LOG.finer(String.format(
-                    "ENCODE LDAP BIND RESULT(messageID=%d, result=%s)", messageID, result));
-        }
+        IO_LOG.trace("ENCODE LDAP BIND RESULT(messageID={}, result={})", messageID, result);
         encodeMessageHeader(writer, messageID);
         encodeResultHeader(writer, OP_TYPE_BIND_RESPONSE, result);
 
@@ -250,10 +235,7 @@ final class LDAPWriter implements LDAPMessageHandler<ASN1Writer> {
 
     public void compareRequest(final ASN1Writer writer, final int messageID,
             final CompareRequest request) throws IOException {
-        if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINER)) {
-            StaticUtils.DEBUG_LOG.finer(String.format(
-                    "ENCODE LDAP COMPARE REQUEST(messageID=%d, request=%s)", messageID, request));
-        }
+        IO_LOG.trace("ENCODE LDAP COMPARE REQUEST(messageID={}, request={})", messageID, request);
         encodeMessageHeader(writer, messageID);
         writer.writeStartSequence(OP_TYPE_COMPARE_REQUEST);
         writer.writeOctetString(request.getName().toString());
@@ -269,10 +251,7 @@ final class LDAPWriter implements LDAPMessageHandler<ASN1Writer> {
 
     public void compareResult(final ASN1Writer writer, final int messageID,
             final CompareResult result) throws IOException {
-        if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINER)) {
-            StaticUtils.DEBUG_LOG.finer(String.format(
-                    "ENCODE LDAP COMPARE RESULT(messageID=%d, result=%s)", messageID, result));
-        }
+        IO_LOG.trace("ENCODE LDAP COMPARE RESULT(messageID={}, result={})", messageID, result);
         encodeMessageHeader(writer, messageID);
         encodeResultHeader(writer, OP_TYPE_COMPARE_RESPONSE, result);
         encodeResultFooter(writer);
@@ -281,10 +260,7 @@ final class LDAPWriter implements LDAPMessageHandler<ASN1Writer> {
 
     public void deleteRequest(final ASN1Writer writer, final int messageID,
             final DeleteRequest request) throws IOException {
-        if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINER)) {
-            StaticUtils.DEBUG_LOG.finer(String.format(
-                    "ENCODE LDAP DELETE REQUEST(messageID=%d, request=%s)", messageID, request));
-        }
+        IO_LOG.trace("ENCODE LDAP DELETE REQUEST(messageID={}, request={})", messageID, request);
         encodeMessageHeader(writer, messageID);
         writer.writeOctetString(OP_TYPE_DELETE_REQUEST, request.getName().toString());
         encodeMessageFooter(writer, request);
@@ -292,10 +268,7 @@ final class LDAPWriter implements LDAPMessageHandler<ASN1Writer> {
 
     public void deleteResult(final ASN1Writer writer, final int messageID, final Result result)
             throws IOException {
-        if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINER)) {
-            StaticUtils.DEBUG_LOG.finer(String.format(
-                    "ENCODE LDAP DELETE RESULT(messageID=%d, result=%s)", messageID, result));
-        }
+        IO_LOG.trace("ENCODE LDAP DELETE RESULT(messageID={}, result={})", messageID, result);
         encodeMessageHeader(writer, messageID);
         encodeResultHeader(writer, OP_TYPE_DELETE_RESPONSE, result);
         encodeResultFooter(writer);
@@ -304,10 +277,7 @@ final class LDAPWriter implements LDAPMessageHandler<ASN1Writer> {
 
     public <R extends ExtendedResult> void extendedRequest(final ASN1Writer writer,
             final int messageID, final ExtendedRequest<R> request) throws IOException {
-        if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINER)) {
-            StaticUtils.DEBUG_LOG.finer(String.format(
-                    "ENCODE LDAP EXTENDED REQUEST(messageID=%d, request=%s)", messageID, request));
-        }
+        IO_LOG.trace("ENCODE LDAP EXTENDED REQUEST(messageID={}, request={})", messageID, request);
         encodeMessageHeader(writer, messageID);
         writer.writeStartSequence(OP_TYPE_EXTENDED_REQUEST);
         writer.writeOctetString(TYPE_EXTENDED_REQUEST_OID, request.getOID());
@@ -323,10 +293,7 @@ final class LDAPWriter implements LDAPMessageHandler<ASN1Writer> {
 
     public void extendedResult(final ASN1Writer writer, final int messageID,
             final ExtendedResult result) throws IOException {
-        if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINER)) {
-            StaticUtils.DEBUG_LOG.finer(String.format(
-                    "ENCODE LDAP EXTENDED RESULT(messageID=%d, result=%s)", messageID, result));
-        }
+        IO_LOG.trace("ENCODE LDAP EXTENDED RESULT(messageID={}, result={})", messageID, result);
         encodeMessageHeader(writer, messageID);
         encodeResultHeader(writer, OP_TYPE_EXTENDED_RESPONSE, result);
 
@@ -347,11 +314,7 @@ final class LDAPWriter implements LDAPMessageHandler<ASN1Writer> {
 
     public void intermediateResponse(final ASN1Writer writer, final int messageID,
             final IntermediateResponse response) throws IOException {
-        if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINER)) {
-            StaticUtils.DEBUG_LOG.finer(String.format(
-                    "ENCODE LDAP INTERMEDIATE RESPONSE(messageID=%d, response=%s)", messageID,
-                    response));
-        }
+        IO_LOG.trace("ENCODE LDAP INTERMEDIATE RESPONSE(messageID={}, response={})", messageID, response);
         encodeMessageHeader(writer, messageID);
         writer.writeStartSequence(OP_TYPE_INTERMEDIATE_RESPONSE);
 
@@ -372,10 +335,7 @@ final class LDAPWriter implements LDAPMessageHandler<ASN1Writer> {
 
     public void modifyDNRequest(final ASN1Writer writer, final int messageID,
             final ModifyDNRequest request) throws IOException {
-        if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINER)) {
-            StaticUtils.DEBUG_LOG.finer(String.format(
-                    "ENCODE LDAP MODIFY DN REQUEST(messageID=%d, request=%s)", messageID, request));
-        }
+        IO_LOG.trace("ENCODE LDAP MODIFY DN REQUEST(messageID={}, request={})", messageID, request);
         encodeMessageHeader(writer, messageID);
         writer.writeStartSequence(OP_TYPE_MODIFY_DN_REQUEST);
         writer.writeOctetString(request.getName().toString());
@@ -393,10 +353,7 @@ final class LDAPWriter implements LDAPMessageHandler<ASN1Writer> {
 
     public void modifyDNResult(final ASN1Writer writer, final int messageID, final Result result)
             throws IOException {
-        if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINER)) {
-            StaticUtils.DEBUG_LOG.finer(String.format(
-                    "ENCODE LDAP MODIFY DN RESULT(messageID=%d, result=%s)", messageID, result));
-        }
+        IO_LOG.trace("ENCODE LDAP MODIFY DN RESULT(messageID={}, result={})", messageID, result);
         encodeMessageHeader(writer, messageID);
         encodeResultHeader(writer, OP_TYPE_MODIFY_DN_RESPONSE, result);
         encodeResultFooter(writer);
@@ -405,10 +362,7 @@ final class LDAPWriter implements LDAPMessageHandler<ASN1Writer> {
 
     public void modifyRequest(final ASN1Writer writer, final int messageID,
             final ModifyRequest request) throws IOException {
-        if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINER)) {
-            StaticUtils.DEBUG_LOG.finer(String.format(
-                    "ENCODE LDAP MODIFY REQUEST(messageID=%d, request=%s)", messageID, request));
-        }
+        IO_LOG.trace("ENCODE LDAP MODIFY REQUEST(messageID={}, request={})", messageID, request);
         encodeMessageHeader(writer, messageID);
         writer.writeStartSequence(OP_TYPE_MODIFY_REQUEST);
         writer.writeOctetString(request.getName().toString());
@@ -425,10 +379,7 @@ final class LDAPWriter implements LDAPMessageHandler<ASN1Writer> {
 
     public void modifyResult(final ASN1Writer writer, final int messageID, final Result result)
             throws IOException {
-        if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINER)) {
-            StaticUtils.DEBUG_LOG.finer(String.format(
-                    "ENCODE LDAP MODIFY RESULT(messageID=%d, result=%s)", messageID, result));
-        }
+        IO_LOG.trace("ENCODE LDAP MODIFY RESULT(messageID={}, result={})", messageID, result);
         encodeMessageHeader(writer, messageID);
         encodeResultHeader(writer, OP_TYPE_MODIFY_RESPONSE, result);
         encodeResultFooter(writer);
@@ -437,10 +388,7 @@ final class LDAPWriter implements LDAPMessageHandler<ASN1Writer> {
 
     public void searchRequest(final ASN1Writer writer, final int messageID,
             final SearchRequest request) throws IOException {
-        if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINER)) {
-            StaticUtils.DEBUG_LOG.finer(String.format(
-                    "ENCODE LDAP SEARCH REQUEST(messageID=%d, request=%s)", messageID, request));
-        }
+        IO_LOG.trace("ENCODE LDAP SEARCH REQUEST(messageID={}, request={})", messageID, request);
         encodeMessageHeader(writer, messageID);
         writer.writeStartSequence(OP_TYPE_SEARCH_REQUEST);
         writer.writeOctetString(request.getName().toString());
@@ -463,10 +411,7 @@ final class LDAPWriter implements LDAPMessageHandler<ASN1Writer> {
 
     public void searchResult(final ASN1Writer writer, final int messageID, final Result result)
             throws IOException {
-        if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINER)) {
-            StaticUtils.DEBUG_LOG.finer(String.format(
-                    "ENCODE LDAP SEARCH RESULT(messageID=%d, result=%s)", messageID, result));
-        }
+        IO_LOG.trace("ENCODE LDAP SEARCH RESULT(messageID={}, result={})", messageID, result);
         encodeMessageHeader(writer, messageID);
         encodeResultHeader(writer, OP_TYPE_SEARCH_RESULT_DONE, result);
         encodeResultFooter(writer);
@@ -475,10 +420,7 @@ final class LDAPWriter implements LDAPMessageHandler<ASN1Writer> {
 
     public void searchResultEntry(final ASN1Writer writer, final int messageID,
             final SearchResultEntry entry) throws IOException {
-        if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINER)) {
-            StaticUtils.DEBUG_LOG.finer(String.format(
-                    "ENCODE LDAP SEARCH RESULT ENTRY(messageID=%d, entry=%s)", messageID, entry));
-        }
+        IO_LOG.trace("ENCODE LDAP SEARCH RESULT ENTRY(messageID={}, entry={})", messageID, entry);
         encodeMessageHeader(writer, messageID);
         encodeEntry(writer, entry);
         encodeMessageFooter(writer, entry);
@@ -486,11 +428,7 @@ final class LDAPWriter implements LDAPMessageHandler<ASN1Writer> {
 
     public void searchResultReference(final ASN1Writer writer, final int messageID,
             final SearchResultReference reference) throws IOException {
-        if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINER)) {
-            StaticUtils.DEBUG_LOG.finer(String.format(
-                    "ENCODE LDAP SEARCH RESULT REFERENCE(messageID=%d, reference=%s)", messageID,
-                    reference));
-        }
+        IO_LOG.trace("ENCODE LDAP SEARCH RESULT REFERENCE(messageID={}, reference={})", messageID, reference);
         encodeMessageHeader(writer, messageID);
         writer.writeStartSequence(OP_TYPE_SEARCH_RESULT_REFERENCE);
         for (final String url : reference.getURIs()) {
@@ -502,10 +440,7 @@ final class LDAPWriter implements LDAPMessageHandler<ASN1Writer> {
 
     public void unbindRequest(final ASN1Writer writer, final int messageID,
             final UnbindRequest request) throws IOException {
-        if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINER)) {
-            StaticUtils.DEBUG_LOG.finer(String.format(
-                    "ENCODE LDAP UNBIND REQUEST(messageID=%d, request=%s)", messageID, request));
-        }
+        IO_LOG.trace("ENCODE LDAP UNBIND REQUEST(messageID={}, request={})", messageID, request);
         encodeMessageHeader(writer, messageID);
         writer.writeNull(OP_TYPE_UNBIND_REQUEST);
         encodeMessageFooter(writer, request);
@@ -513,12 +448,8 @@ final class LDAPWriter implements LDAPMessageHandler<ASN1Writer> {
 
     public void unrecognizedMessage(final ASN1Writer writer, final int messageID,
             final byte messageTag, final ByteString messageBytes) throws IOException {
-        if (StaticUtils.DEBUG_LOG.isLoggable(Level.FINER)) {
-            StaticUtils.DEBUG_LOG.finer(String.format(
-                    "ENCODE LDAP UNKNOWN MESSAGE(messageID=%d, messageTag=%s, "
-                            + "messageBytes=%s)", messageID, StaticUtils.byteToHex(messageTag),
-                    messageBytes.toString()));
-        }
+        IO_LOG.trace("ENCODE LDAP UNKNOWN MESSAGE(messageID={}, messageTag={}, messageBytes={})",
+                messageID, StaticUtils.byteToHex(messageTag), messageBytes.toString());
         encodeMessageHeader(writer, messageID);
         writer.writeOctetString(messageTag, messageBytes);
         writer.writeEndSequence();

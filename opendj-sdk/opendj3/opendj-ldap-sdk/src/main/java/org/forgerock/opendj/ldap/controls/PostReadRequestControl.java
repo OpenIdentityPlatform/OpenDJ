@@ -149,8 +149,7 @@ public final class PostReadRequestControl implements Control {
                         }
                         reader.readEndSequence();
                     } catch (final Exception ae) {
-                        StaticUtils.DEBUG_LOG.throwing("PostReadRequestControl", "decodeControl",
-                                ae);
+                        StaticUtils.CONTROLS_LOG.debug("Unable to read sequence", ae);
 
                         final LocalizableMessage message =
                                 ERR_POSTREADREQ_CANNOT_DECODE_VALUE.get(ae.getMessage());

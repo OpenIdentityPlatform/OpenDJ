@@ -56,7 +56,6 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import com.forgerock.opendj.util.AsynchronousFutureResult;
-import com.forgerock.opendj.util.StaticUtils;
 
 /**
  * Tests the LDAPListener class.
@@ -220,7 +219,7 @@ public class LDAPListenerTestCase extends SdkTestCase {
      */
     @BeforeClass()
     public void disableLogging() {
-        StaticUtils.DEBUG_LOG.setLevel(Level.SEVERE);
+        setDefaultLogLevel(Level.SEVERE);
     }
 
     /**
@@ -228,7 +227,7 @@ public class LDAPListenerTestCase extends SdkTestCase {
      */
     @AfterClass()
     public void enableLogging() {
-        StaticUtils.DEBUG_LOG.setLevel(Level.INFO);
+        setDefaultLogLevel(Level.INFO);
     }
 
     /**

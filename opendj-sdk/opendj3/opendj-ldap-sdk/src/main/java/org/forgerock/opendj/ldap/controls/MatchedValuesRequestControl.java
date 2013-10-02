@@ -207,7 +207,7 @@ public final class MatchedValuesRequestControl implements Control {
                         return new MatchedValuesRequestControl(control.isCritical(), Collections
                                 .unmodifiableList(filters));
                     } catch (final IOException e) {
-                        StaticUtils.DEBUG_LOG.throwing("MatchedValuesControl.Decoder", "decode", e);
+                        StaticUtils.CONTROLS_LOG.debug("", e);
 
                         final LocalizableMessage message =
                                 ERR_MATCHEDVALUES_CANNOT_DECODE_VALUE_AS_SEQUENCE

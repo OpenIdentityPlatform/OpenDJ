@@ -27,13 +27,11 @@
 
 package com.forgerock.opendj.ldap;
 
-import static com.forgerock.opendj.util.StaticUtils.DEBUG_LOG;
+import static com.forgerock.opendj.util.StaticUtils.DEFAULT_LOG;
 import static java.util.Collections.newSetFromMap;
 
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.logging.Level;
-
 import com.forgerock.opendj.util.ReferenceCountedObject;
 
 /**
@@ -77,16 +75,13 @@ final class TimeoutChecker {
         final Thread checkerThread = new Thread("OpenDJ LDAP SDK Connection Timeout Checker") {
             @Override
             public void run() {
-                DEBUG_LOG.fine("Timeout Checker Starting");
+                DEFAULT_LOG.debug("Timeout Checker Starting");
                 while (!shutdownRequested) {
                     final long currentTime = System.currentTimeMillis();
                     long delay = 0;
 
                     for (final LDAPConnection connection : connections) {
-                        if (DEBUG_LOG.isLoggable(Level.FINER)) {
-                            DEBUG_LOG.finer("Checking connection " + connection + " delay = "
-                                    + delay);
-                        }
+                        DEFAULT_LOG.trace("Checking connection {} delay = {}", connection, delay);
 
                         // May update the connections set.
                         final long newDelay = connection.cancelExpiredRequests(currentTime);

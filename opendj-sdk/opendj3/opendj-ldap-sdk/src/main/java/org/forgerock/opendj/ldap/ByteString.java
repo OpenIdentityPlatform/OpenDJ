@@ -22,17 +22,17 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2012 ForgeRock AS
+ *      Portions copyright 2011-2013 ForgeRock AS
  */
 package org.forgerock.opendj.ldap;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.Charset;
 import java.util.Arrays;
-import java.util.logging.Level;
 
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 
@@ -365,13 +365,9 @@ public final class ByteString implements ByteSequence {
         String stringValue;
         try {
             stringValue = new String(b, offset, length, "UTF-8");
-        } catch (final Exception e) {
-            if (StaticUtils.DEBUG_LOG.isLoggable(Level.WARNING)) {
-                StaticUtils.DEBUG_LOG.warning("Unable to decode ByteString "
-                        + "bytes as UTF-8 string: " + e.toString());
-            }
-
-            stringValue = new String(b, offset, length);
+        } catch (final UnsupportedEncodingException e) {
+            // TODO: I18N
+            throw new RuntimeException("Unable to decode bytes as UTF-8 string", e);
         }
 
         return stringValue;
@@ -467,8 +463,7 @@ public final class ByteString implements ByteSequence {
         if (offset < 0) {
             throw new IndexOutOfBoundsException();
         }
-        System.arraycopy(buffer, this.offset, bytes, offset, Math
-                .min(length, bytes.length - offset));
+        System.arraycopy(buffer, this.offset, bytes, offset, Math.min(length, bytes.length - offset));
         return bytes;
     }
 

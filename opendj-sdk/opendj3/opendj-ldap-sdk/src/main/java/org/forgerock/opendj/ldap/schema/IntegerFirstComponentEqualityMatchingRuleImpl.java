@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -65,8 +66,7 @@ final class IntegerFirstComponentEqualityMatchingRuleImpl extends AbstractMatchi
                 }
             };
         } catch (final Exception e) {
-            StaticUtils.DEBUG_LOG.throwing("IntegerFirstComponentEqualityMatchingRule",
-                    "getAssertion", e);
+            StaticUtils.SCHEMA_LOG.debug("", e);
 
             final LocalizableMessage message =
                     ERR_EMR_INTFIRSTCOMP_FIRST_COMPONENT_NOT_INT.get(value.toString());

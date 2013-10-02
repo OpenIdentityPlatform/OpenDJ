@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2013 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.schema;
@@ -30,13 +30,13 @@ package org.forgerock.opendj.ldap.schema;
 import static com.forgerock.opendj.ldap.CoreMessages.*;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.EMR_OID_FIRST_COMPONENT_OID;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.SYNTAX_ATTRIBUTE_TYPE_NAME;
+import static com.forgerock.opendj.util.StaticUtils.SCHEMA_LOG;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.DecodeException;
 
-import com.forgerock.opendj.util.StaticUtils;
 import com.forgerock.opendj.util.SubstringReader;
 
 /**
@@ -75,7 +75,7 @@ final class AttributeTypeSyntaxImpl extends AbstractSyntaxImpl {
                 final LocalizableMessage message =
                         ERR_ATTR_SYNTAX_ATTRTYPE_EMPTY_VALUE1.get(definition);
                 final DecodeException e = DecodeException.error(message);
-                StaticUtils.DEBUG_LOG.throwing("AttributeTypeSyntax", "valueIsAcceptable", e);
+                SCHEMA_LOG.debug("", e);
                 throw e;
             }
 
@@ -87,7 +87,7 @@ final class AttributeTypeSyntaxImpl extends AbstractSyntaxImpl {
                         ERR_ATTR_SYNTAX_ATTRTYPE_EXPECTED_OPEN_PARENTHESIS.get(definition, (reader
                                 .pos() - 1), String.valueOf(c));
                 final DecodeException e = DecodeException.error(message);
-                StaticUtils.DEBUG_LOG.throwing("AttributeTypeSyntax", "valueIsAcceptable", e);
+                SCHEMA_LOG.debug("", e);
                 throw e;
             }
 
@@ -198,8 +198,7 @@ final class AttributeTypeSyntaxImpl extends AbstractSyntaxImpl {
                                 WARN_ATTR_SYNTAX_ATTRTYPE_INVALID_ATTRIBUTE_USAGE1.get(definition,
                                         usageStr);
                         final DecodeException e = DecodeException.error(message);
-                        StaticUtils.DEBUG_LOG.throwing("AttributeTypeSyntax", "valueIsAcceptable",
-                                e);
+                        SCHEMA_LOG.debug("", e);
                         throw e;
                     }
                 } else if (tokenName.matches("^X-[A-Za-z_-]+$")) {
@@ -214,7 +213,7 @@ final class AttributeTypeSyntaxImpl extends AbstractSyntaxImpl {
                     final LocalizableMessage message =
                             ERR_ATTR_SYNTAX_ATTRTYPE_ILLEGAL_TOKEN1.get(definition, tokenName);
                     final DecodeException e = DecodeException.error(message);
-                    StaticUtils.DEBUG_LOG.throwing("AttributeTypeSyntax", "valueIsAcceptable", e);
+                    SCHEMA_LOG.debug("", e);
                     throw e;
                 }
             }

@@ -92,13 +92,12 @@ public final class GetSymmetricKeyExtendedRequest extends
                 }
 
                 return newRequest;
-            } catch (final IOException ae) {
-                StaticUtils.DEBUG_LOG.throwing("GetSymmetricKeyRequest.Operation", "decodeRequest",
-                        ae);
+            } catch (final IOException ioe) {
+                StaticUtils.DEFAULT_LOG.debug("", ioe);
 
                 final LocalizableMessage message =
-                        ERR_GET_SYMMETRIC_KEY_ASN1_DECODE_EXCEPTION.get(ae.getMessage());
-                throw DecodeException.error(message, ae);
+                        ERR_GET_SYMMETRIC_KEY_ASN1_DECODE_EXCEPTION.get(ioe.getMessage());
+                throw DecodeException.error(message, ioe);
             }
         }
     }

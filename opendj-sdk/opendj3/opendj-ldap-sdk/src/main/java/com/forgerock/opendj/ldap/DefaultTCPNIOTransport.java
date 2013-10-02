@@ -27,11 +27,9 @@
 
 package com.forgerock.opendj.ldap;
 
-import static com.forgerock.opendj.util.StaticUtils.DEBUG_LOG;
+import static com.forgerock.opendj.util.StaticUtils.DEFAULT_LOG;
 
 import java.io.IOException;
-import java.util.logging.Level;
-
 import org.glassfish.grizzly.nio.transport.TCPNIOTransport;
 import org.glassfish.grizzly.nio.transport.TCPNIOTransportBuilder;
 import org.glassfish.grizzly.strategies.SameThreadIOStrategy;
@@ -57,8 +55,8 @@ final class DefaultTCPNIOTransport extends ReferenceCountedObject<TCPNIOTranspor
         try {
             instance.shutdownNow();
         } catch (final IOException e) {
-            DEBUG_LOG.log(Level.WARNING,
-                    "An error occurred while shutting down the Grizzly transport", e.getMessage());
+            // TODO: I18N
+            DEFAULT_LOG.warn("An error occurred while shutting down the Grizzly transport", e);
         }
     }
 
