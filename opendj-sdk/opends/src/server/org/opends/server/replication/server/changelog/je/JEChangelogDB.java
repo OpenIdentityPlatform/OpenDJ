@@ -362,9 +362,8 @@ public class JEChangelogDB implements ChangelogDB
   @Override
   public void removeDB() throws ChangelogException
   {
-    StaticUtils.recursiveDelete(dbDirectory);
-    // there is no point in keeping the DB open after it has been removed
     shutdownDB();
+    StaticUtils.recursiveDelete(dbDirectory);
   }
 
   /** {@inheritDoc} */
