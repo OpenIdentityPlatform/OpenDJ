@@ -563,6 +563,6 @@ public final class ConfigEntry
   @Override
   public String toString()
   {
-    return entry.toString();
+    return entry.getDN().toNormalizedString();
   }
 }
