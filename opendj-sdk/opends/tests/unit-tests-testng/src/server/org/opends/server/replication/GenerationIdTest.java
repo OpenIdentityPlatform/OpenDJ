@@ -37,7 +37,6 @@ import org.opends.messages.Message;
 import org.opends.messages.Severity;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.backends.MemoryBackend;
-import org.opends.server.backends.task.TaskState;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.internal.InternalSearchOperation;
@@ -551,11 +550,8 @@ public class GenerationIdTest extends ReplicationTestCase
    */
   private void checkChangelogSize(int expectedCount) throws Exception
   {
-    SearchFilter filter = SearchFilter.createFilterFromString("(objectclass=*)");
-    InternalSearchOperation searchOperation =
-      connection.processSearch(DN.decode("dc=replicationchanges"),
-          SearchScope.SUBORDINATE_SUBTREE,
-          filter);
+    InternalSearchOperation searchOperation = connection.processSearch(
+        "dc=replicationchanges", SearchScope.SUBORDINATE_SUBTREE, "(objectclass=*)");
     if (debugEnabled())
     {
       if (searchOperation.getSearchEntries().size() != expectedCount)
@@ -652,17 +648,8 @@ public class GenerationIdTest extends ReplicationTestCase
       debugInfo(testCase + " ** TEST ** DS2 (bad genID) changes must be ignored.");
 
       broker2.publish(createAddMsg());
-      try
-      {
-        broker3.receive();
-        fail("No update message is supposed to be received here.");
-      }
-      catch (SocketTimeoutException expected)
-      {
-        // This is the expected result
-        // Note that timeout should be lower than RS monitoring publisher period
-        // so that timeout occurs
-      }
+      assertNoMessageReceived(broker3, "broker3",
+          "Note that timeout should be lower than RS monitoring publisher period so that timeout occurs");
 
       //===========================================================
       debugInfo(testCase + " ** TEST ** The part of the topology with the right gen ID should work well");
@@ -742,8 +729,7 @@ public class GenerationIdTest extends ReplicationTestCase
           "objectclass: ds-task-reset-generation-id",
           "ds-task-class-name: org.opends.server.tasks.SetGenerationIdTask",
           "ds-task-reset-generation-id-domain-base-dn: " + baseDnStr);
-      addTask(taskReset, ResultCode.SUCCESS, null);
-      waitTaskState(taskReset, TaskState.COMPLETED_SUCCESSFULLY, null);
+      executeTask(taskReset);
 
       // Broker 2 and 3 should receive 1 change status message to order them
       // to enter the bad gen id status
@@ -789,8 +775,8 @@ public class GenerationIdTest extends ReplicationTestCase
       Thread.sleep(500);
       checkChangelogSize(1);
 
-      assertNoMessageReceivedBadGenId(broker2, "broker2");
-      assertNoMessageReceivedBadGenId(broker3, "broker3");
+      assertNoMessageReceived(broker2, "broker2", "bad gen id");
+      assertNoMessageReceived(broker3, "broker3", "bad gen id");
 
       debugInfo("DS2 is publishing a change and RS1 must ignore this change, DS3 must not receive it.");
       AddMsg emsg = createAddMsg();
@@ -800,7 +786,7 @@ public class GenerationIdTest extends ReplicationTestCase
       Thread.sleep(500);
       checkChangelogSize(1);
 
-      assertNoMessageReceivedBadGenId(broker3, "broker3");
+      assertNoMessageReceived(broker3, "broker3", "bad gen id");
 
 
       //===============================================================
@@ -840,9 +826,7 @@ public class GenerationIdTest extends ReplicationTestCase
           "objectclass: ds-task-reset-generation-id",
           "ds-task-class-name: org.opends.server.tasks.SetGenerationIdTask",
           "ds-task-reset-generation-id-domain-base-dn: " + baseDnStr);
-
-      addTask(taskReset, ResultCode.SUCCESS, null);
-      waitTaskState(taskReset, TaskState.COMPLETED_SUCCESSFULLY, null);
+      executeTask(taskReset);
 
       debugInfo("Verify that RS1 has still the right genID");
       assertEquals(replServer1.getGenerationId(baseDN), rgenId);
@@ -893,13 +877,14 @@ public class GenerationIdTest extends ReplicationTestCase
     }
   }
 
-  private void assertNoMessageReceivedBadGenId(ReplicationBroker broker, String brokerName)
+  private void assertNoMessageReceived(ReplicationBroker broker,
+      String brokerName, String reason)
   {
     try
     {
       ReplicationMsg msg = broker.receive();
       fail("No update message is supposed to be received by " + brokerName
-          + " with bad gen id. " + msg);
+          + " reason='" + reason + "'. msg=" + msg);
     }
     catch (SocketTimeoutException expected)
     { /* expected */
@@ -999,8 +984,7 @@ public class GenerationIdTest extends ReplicationTestCase
         "objectclass: ds-task-reset-generation-id",
         "ds-task-class-name: org.opends.server.tasks.SetGenerationIdTask",
         "ds-task-reset-generation-id-domain-base-dn: " + baseDnStr);
-      addTask(taskReset, ResultCode.SUCCESS, null);
-      waitTaskState(taskReset, TaskState.COMPLETED_SUCCESSFULLY, null);
+      executeTask(taskReset);
       Thread.sleep(500);
 
       debugInfo("Verifying that all replservers genIds have been reset.");
@@ -1019,8 +1003,7 @@ public class GenerationIdTest extends ReplicationTestCase
         "ds-task-class-name: org.opends.server.tasks.SetGenerationIdTask",
         "ds-task-reset-generation-id-domain-base-dn: " + baseDnStr,
         "ds-task-reset-generation-id-new-value: -1");
-      addTask(taskReset, ResultCode.SUCCESS, null);
-      waitTaskState(taskReset, TaskState.COMPLETED_SUCCESSFULLY, null);
+      executeTask(taskReset);
 
       debugInfo("Verifying that all replservers genIds have been reset.");
       int waitRes = 0;

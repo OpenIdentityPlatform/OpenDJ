@@ -37,7 +37,6 @@ import java.util.*;
 import org.assertj.core.api.Assertions;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.SynchronizationProvider;
-import org.opends.server.backends.task.TaskState;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyDNOperationBasis;
 import org.opends.server.loggers.debug.DebugTracer;
@@ -279,9 +278,7 @@ public class ReplicationServerTest extends ReplicationTestCase
 
   private void assertDeleteMsgBodyEquals(DeleteMsg sentMsg, ReplicationMsg receivedMsg)
   {
-    assertTrue(receivedMsg instanceof DeleteMsg,
-        "ReplicationServer basic : incorrect message type received: "
-            + receivedMsg.getClass() + ": content: " + receivedMsg);
+    Assertions.assertThat(receivedMsg).isInstanceOf(DeleteMsg.class);
     assertEquals(receivedMsg.toString(), sentMsg.toString(),
         "ReplicationServer basic : incorrect message body received. CSN is same as \""
             + getCSNFieldName(((DeleteMsg) receivedMsg).getCSN()) + "\" field.");
@@ -378,16 +375,10 @@ public class ReplicationServerTest extends ReplicationTestCase
    */
   private void assertDeleteMsgCSNEquals(ReplicationMsg msg, CSN nextCSN, String msgNumber)
   {
-    if (msg instanceof DeleteMsg)
-    {
-      DeleteMsg del = (DeleteMsg) msg;
-      assertEquals(del.getCSN(), nextCSN, "The " + msgNumber
-          + " message received by a new client was the wrong one.");
-    }
-    else
-    {
-      fail("ReplicationServer basic transmission failed:" + msg);
-    }
+    Assertions.assertThat(msg).isInstanceOf(DeleteMsg.class);
+    DeleteMsg del = (DeleteMsg) msg;
+    assertEquals(del.getCSN(), nextCSN, "The " + msgNumber
+        + " message received by a new client was the wrong one.");
   }
 
   /**
@@ -940,7 +931,7 @@ public class ReplicationServerTest extends ReplicationTestCase
 
       // Read the TopologyMsg that should come back.
       ReplicationMsg repMsg = session.receive();
-      assertTrue(repMsg instanceof TopologyMsg);
+      Assertions.assertThat(repMsg).isInstanceOf(TopologyMsg.class);
 
       // Now comes the real test : check that the Replication Server
       // answers correctly to a WindowProbeMsg Message.
@@ -1115,31 +1106,28 @@ public class ReplicationServerTest extends ReplicationTestCase
      Entry backupTask = createBackupTask();
      Entry restoreTask = createRestoreTask();
 
-     addTask(backupTask, ResultCode.SUCCESS, null);
-     waitTaskState(backupTask, TaskState.COMPLETED_SUCCESSFULLY, null);
-
-     addTask(restoreTask, ResultCode.SUCCESS, null);
-     waitTaskState(restoreTask, TaskState.COMPLETED_SUCCESSFULLY, null);
+    executeTask(backupTask);
+    executeTask(restoreTask);
 
      debugInfo("Ending backupRestore");
    }
 
-   /*
+   /**
     * Test export of the Replication server backend
-    * - Creates 2 brokers connecting to the replication for 2 differents baseDN
+    * - Creates 2 brokers connecting to the replication for 2 different baseDN
     * - Make these brokers publish changes to the replication server
     * - Launch a full export
     * - Launch a partial export on one of the 2 domains
     */
-    private void exportBackend() throws Exception
-    {
+  private void exportBackend() throws Exception
+  {
       debugInfo("Starting exportBackend");
 
       ReplicationBroker server1 = null;
       ReplicationBroker server2 = null;
 
-      try
-      {
+    try
+    {
         server1 = openReplicationSession(TEST_ROOT_DN,
             1, 100, replicationServerPort, 1000, true);
         server2 = openReplicationSession(DN.decode("dc=domain2,dc=com"),
@@ -1153,30 +1141,25 @@ public class ReplicationServerTest extends ReplicationTestCase
         publishAll(server2, createChanges("dc=domain2,dc=com",  2));
 
         debugInfo("Export all");
-        Entry exportTask = createExportAllTask();
-        addTask(exportTask, ResultCode.SUCCESS, null);
-        waitTaskState(exportTask, TaskState.COMPLETED_SUCCESSFULLY, null);
-        // Not doing anything with the export file, let's delete it
-        File f = new File(DirectoryServer.getInstanceRoot(),exportLDIFAllFile);
-        f.delete();
+      executeTask(createExportAllTask());
+      // Not doing anything with the export file, let's delete it
+      new File(DirectoryServer.getInstanceRoot(), exportLDIFAllFile).delete();
 
         debugInfo("Export domain");
-        exportTask = createExportDomainTask("dc=domain2,dc=com");
-        addTask(exportTask, ResultCode.SUCCESS, null);
-        waitTaskState(exportTask, TaskState.COMPLETED_SUCCESSFULLY, null);
+      executeTask(createExportDomainTask("dc=domain2,dc=com"));
+      if (exportLDIFDomainFile != null)
+      {
         // Not doing anything with the export file, let's delete it
-        if (exportLDIFDomainFile != null)
-        {
-          File aFile = new File(DirectoryServer.getInstanceRoot(),
-                  exportLDIFDomainFile);
-          aFile.delete();
-        }
-      } finally {
-      stop(server1, server2);
+        new File(DirectoryServer.getInstanceRoot(), exportLDIFDomainFile).delete();
       }
-
-      debugInfo("Ending export");
     }
+    finally
+    {
+      stop(server1, server2);
+    }
+
+    debugInfo("Ending export");
+  }
 
   private Entry createBackupTask() throws Exception
   {

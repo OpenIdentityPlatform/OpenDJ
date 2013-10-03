@@ -39,8 +39,7 @@ import org.opends.server.TestCaseUtils;
 import org.opends.server.backends.task.TaskState;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.AddOperation;
-import org.opends.server.core.AddOperationBasis;
-import org.opends.server.core.DeleteOperationBasis;
+import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.internal.InternalClientConnection;
@@ -314,10 +313,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
     if (dn.getParent().getRDN().toString().equalsIgnoreCase("cn=domains"))
       deleteEntry(DN.decode("cn=external changelog," + dn));
 
-    DeleteOperationBasis op = new DeleteOperationBasis(connection,
-        InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
-        null, dn);
-    op.run();
+    DeleteOperation op = connection.processDelete(dn);
     assertTrue(op.getResultCode() == SUCCESS || op.getResultCode() == NO_SUCH_OBJECT,
         "Delete entry " + dn + " failed: " + op.getResultCode().getResultCodeName());
   }
@@ -755,6 +751,12 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
     return new ReplSessionSecurity(null, null, null, true);
   }
 
+  protected void executeTask(Entry taskEntry) throws Exception
+  {
+    addTask(taskEntry, ResultCode.SUCCESS, null);
+    waitTaskState(taskEntry, TaskState.COMPLETED_SUCCESSFULLY, null);
+  }
+
   /**
    * Add a task to the configuration of the current running DS.
    * @param taskEntry The task to add.
@@ -875,17 +877,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
       for (String ldifEntry : ldifEntries)
       {
         Entry entry = TestCaseUtils.entryFromLdifString(ldifEntry);
-        AddOperationBasis addOp = new AddOperationBasis(
-            connection,
-            InternalClientConnection.nextOperationID(),
-            InternalClientConnection.nextMessageID(),
-            null,
-            entry.getDN(),
-            entry.getObjectClasses(),
-            entry.getUserAttributes(),
-            entry.getOperationalAttributes());
-        addOp.setInternalOperation(true);
-        addOp.run();
+        AddOperation addOp = connection.processAdd(entry);
         if (addOp.getResultCode() != ResultCode.SUCCESS)
         {
           TRACER.debugInfo("Failed to add entry " + entry.getDN() +
@@ -985,11 +977,11 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
     assertTrue(session != null || broker != null, "One of Session or ReplicationBroker parameter must not be null");
     assertTrue(session == null || broker == null, "Only one of Session or ReplicationBroker parameter must not be null");
 
-    int timeOut = 5000; // 5 seconds max to wait for the desired message
-    long startTime = System.currentTimeMillis();
-    long curTime = startTime;
-    int nMsg = 0;
-    while ((curTime - startTime) <= timeOut)
+    final int timeOut = 5000; // 5 seconds max to wait for the desired message
+    final long startTime = System.currentTimeMillis();
+    final List<ReplicationMsg> msgs = new ArrayList<ReplicationMsg>();
+    boolean timedOut = false;
+    while (!timedOut)
     {
       ReplicationMsg replMsg = null;
       try
@@ -1015,13 +1007,12 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
         return (T) replMsg;
       }
       TRACER.debugInfo("waitForSpecificMsg received : " + replMsg);
-      nMsg++;
-      curTime = System.currentTimeMillis();
+      msgs.add(replMsg);
+      timedOut = (System.currentTimeMillis() - startTime) > timeOut;
     }
     // Timeout
-    fail("Failed to receive an expected " + msgType
-        + " message after 5 seconds : also received " + nMsg
-        + " other messages during wait time.");
+    fail("Failed to receive an expected " + msgType + " message after 5 seconds."
+        + " Also received the following messages during wait time: " + msgs);
     return null;
   }
 }
