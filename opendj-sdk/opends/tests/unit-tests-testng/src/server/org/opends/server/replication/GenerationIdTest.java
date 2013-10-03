@@ -31,6 +31,7 @@ import java.io.File;
 import java.net.SocketTimeoutException;
 import java.util.*;
 
+import org.assertj.core.api.Assertions;
 import org.opends.messages.Category;
 import org.opends.messages.Message;
 import org.opends.messages.Severity;
@@ -368,11 +369,7 @@ public class GenerationIdTest extends ReplicationTestCase
       // have been called
       assertNull(synchroServerEntry);
 
-      synchroServerEntry = TestCaseUtils.entryFromLdifString(synchroServerLdif);
-      DirectoryServer.getConfigHandler().addEntry(synchroServerEntry, null);
-      assertNotNull(DirectoryServer.getConfigEntry(synchroServerEntry.getDN()),
-        "Unable to add the synchronized server");
-      configEntryList.add(synchroServerEntry.getDN());
+      addSynchroServerEntry(synchroServerLdif);
 
       int waitCo=0;
       LDAPReplicationDomain doToco=null;
@@ -399,8 +396,7 @@ public class GenerationIdTest extends ReplicationTestCase
   {
     {
       // suffix synchronized
-      String synchroServerStringDN = "cn=" + testName + ", cn=domains," +
-      SYNCHRO_PLUGIN_DN;
+      String synchroServerStringDN = "cn=" + testName + ", cn=domains," + SYNCHRO_PLUGIN_DN;
       // Must have called connectServer1ToChangelog previously
       assertNotNull(synchroServerEntry);
 
@@ -417,7 +413,7 @@ public class GenerationIdTest extends ReplicationTestCase
         "Unable to delete the synchronized domain");
       synchroServerEntry = null;
 
-      configEntryList.remove(configEntryList.indexOf(synchroServerDN));
+      configEntriesToCleanup.remove(synchroServerDN);
 
       LDAPReplicationDomain replDomainToDis = null;
       try
@@ -751,13 +747,11 @@ public class GenerationIdTest extends ReplicationTestCase
 
       // Broker 2 and 3 should receive 1 change status message to order them
       // to enter the bad gen id status
-      ChangeStatusMsg csMsg = (ChangeStatusMsg)waitForSpecificMsg(broker2,
-        ChangeStatusMsg.class.getName());
+      ChangeStatusMsg csMsg = waitForSpecificMsg(broker2, ChangeStatusMsg.class);
       assertEquals(csMsg.getRequestedStatus(), ServerStatus.BAD_GEN_ID_STATUS,
           "Broker 2 connection is expected to receive 1 ChangeStatusMsg"
               + " to enter the bad gen id status" + csMsg);
-      csMsg = (ChangeStatusMsg)waitForSpecificMsg(broker3,
-        ChangeStatusMsg.class.getName());
+      csMsg = waitForSpecificMsg(broker3, ChangeStatusMsg.class);
       assertEquals(csMsg.getRequestedStatus(), ServerStatus.BAD_GEN_ID_STATUS,
           "Broker 2 connection is expected to receive 1 ChangeStatusMsg"
               + " to enter the bad gen id status" + csMsg);
@@ -867,11 +861,11 @@ public class GenerationIdTest extends ReplicationTestCase
 
       debugInfo("Verify that DS2 receives the add message stored in RS1 DB");
       msg = broker2.receive();
-      assertTrue(msg instanceof AddMsg, "Expected to receive an AddMsg but received: " + msg);
+      Assertions.assertThat(msg).isInstanceOf(AddMsg.class);
 
       debugInfo("Verify that DS3 receives the add message stored in RS1 DB");
       msg = broker3.receive();
-      assertTrue(msg instanceof AddMsg, "Expected to receive an AddMsg but received: " + msg);
+      Assertions.assertThat(msg).isInstanceOf(AddMsg.class);
 
       debugInfo("DS2 is publishing a change and RS1 must store this change, DS3 must receive it.");
       emsg = createAddMsg();
@@ -882,6 +876,7 @@ public class GenerationIdTest extends ReplicationTestCase
 
       /* expected */
       msg = broker3.receive();
+      Assertions.assertThat(msg).isInstanceOf(AddMsg.class);
       AddMsg rcvmsg = (AddMsg)msg;
       assertEquals(rcvmsg.getCSN(), emsg.getCSN());
 

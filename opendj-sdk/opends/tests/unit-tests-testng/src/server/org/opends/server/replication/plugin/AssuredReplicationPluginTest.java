@@ -1056,7 +1056,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
     } while (!rs.isScenarioExecuted());
   }
 
-  private void endTest(String testcase)
+  private void endTest(String testcase) throws Exception
   {
     debugInfo("Ending test " + testcase);
     if (replicationServer != null)
@@ -1509,8 +1509,8 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
    * - assured-sr-server-not-acknowledged-updates in SR mode
    * - assured-sd-server-timeout-updates in SD mode
    */
-  protected Map<Integer,Integer> getErrorsByServers(DN baseDN,
-    AssuredMode assuredMode) throws Exception
+  private Map<Integer, Integer> getErrorsByServers(DN baseDN,
+      AssuredMode assuredMode) throws Exception
   {
     // Find monitoring entry for requested base DN
     SearchFilter monitorFilter = SearchFilter.createFilterFromString(

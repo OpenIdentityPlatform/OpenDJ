@@ -34,6 +34,7 @@ import java.io.FileReader;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.tools.LDAPModify;
 import org.opends.server.types.DN;
+import org.opends.server.util.StaticUtils;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -80,7 +81,6 @@ public class ChangeNumberControlPluginTestCase extends ReplicationTestCase
         + "ds-cfg-replication-port: " + replServerPort + "\n"
         + "ds-cfg-replication-db-directory: ChangeNumberControlDbTest\n"
         + "ds-cfg-replication-server-id: 103\n";
-    replServerEntry = TestCaseUtils.entryFromLdifString(replServerLdif);
 
     // suffix synchronized
     String testName = "changeNumberControlPluginTestCase";
@@ -93,9 +93,8 @@ public class ChangeNumberControlPluginTestCase extends ReplicationTestCase
         + "ds-cfg-replication-server: localhost:" + replServerPort + "\n"
         + "ds-cfg-server-id: 1\n"
         + "ds-cfg-receive-status: true\n";
-    synchroServerEntry = TestCaseUtils.entryFromLdifString(synchroServerLdif);
 
-    configureReplication();
+    configureReplication(replServerLdif, synchroServerLdif);
   }
 
   @DataProvider(name = "operations")
@@ -152,16 +151,25 @@ public class ChangeNumberControlPluginTestCase extends ReplicationTestCase
 
   private boolean isCsnLinePresent(String file) throws Exception {
     FileReader fr = new FileReader(file);
-    BufferedReader br = new BufferedReader(fr);
-    String line = null;
-    boolean found = false;
-    while ((line = br.readLine()) != null) {
-      if (line.contains(INFO_CHANGE_NUMBER_CONTROL_RESULT.get("%s","%s")
-                            .toString().split("%s")[1])) {
-        found = true;
+    try
+    {
+      BufferedReader br = new BufferedReader(fr);
+      String line = null;
+      boolean found = false;
+      while ((line = br.readLine()) != null)
+      {
+        if (line.contains(INFO_CHANGE_NUMBER_CONTROL_RESULT.get("%s", "%s")
+            .toString().split("%s")[1]))
+        {
+          found = true;
+        }
       }
+      return found;
     }
-    return (found);
+    finally
+    {
+      StaticUtils.close(fr);
+    }
   }
 
 }

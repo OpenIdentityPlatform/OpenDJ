@@ -51,6 +51,7 @@ import static org.testng.Assert.*;
 /**
  * Test re-synchronization after after backup/restore and LDIF import.
  */
+@SuppressWarnings("javadoc")
 public class ReSyncTest extends ReplicationTestCase
 {
   /** The tracer object for the debug logger */
@@ -106,7 +107,6 @@ public class ReSyncTest extends ReplicationTestCase
         + "ds-cfg-replication-port:" + replServerPort + "\n"
         + "ds-cfg-replication-db-directory: ReSyncTest\n"
         + "ds-cfg-replication-server-id: 104\n";
-    replServerEntry = TestCaseUtils.entryFromLdifString(replServerLdif);
 
     // suffix synchronized
     String reSyncTest = "reSyncTest";
@@ -118,9 +118,8 @@ public class ReSyncTest extends ReplicationTestCase
         + "ds-cfg-base-dn: " + EXAMPLE_DN + "\n"
         + "ds-cfg-replication-server: localhost:"+ replServerPort + "\n"
         + "ds-cfg-server-id: 123\n";
-    synchroServerEntry = TestCaseUtils.entryFromLdifString(domainLdif);
 
-    configureReplication();
+    configureReplication(replServerLdif, domainLdif);
 
     // Give some time to the replication to setup
     Thread.sleep(1000);
@@ -140,17 +139,15 @@ public class ReSyncTest extends ReplicationTestCase
    */
   private ResultCode addEntry(String entryString) throws Exception
   {
-    Entry entry;
-    AddOperationBasis addOp;
-    entry = TestCaseUtils.entryFromLdifString(entryString);
-    addOp = new AddOperationBasis(connection,
+    Entry entry = TestCaseUtils.entryFromLdifString(entryString);
+    AddOperationBasis addOp = new AddOperationBasis(connection,
        InternalClientConnection.nextOperationID(), InternalClientConnection
        .nextMessageID(), null, entry.getDN(), entry.getObjectClasses(),
        entry.getUserAttributes(), entry.getOperationalAttributes());
     addOp.setInternalOperation(true);
     addOp.run();
 
-    entryList.add(entry.getDN());
+    entriesToCleanup.add(entry.getDN());
     return addOp.getResultCode();
   }
 
@@ -170,7 +167,8 @@ public class ReSyncTest extends ReplicationTestCase
     // Delete the entry we are going to use to make sure that
     // we do test something.
 
-    connection.processDelete(DN.decode("dc=fooUniqueName1," + EXAMPLE_DN));
+    DN entryDN = DN.decode("dc=fooUniqueName1," + EXAMPLE_DN);
+    connection.processDelete(entryDN);
 
     task("dn: ds-task-id=" + UUID.randomUUID()
         +  ",cn=Scheduled Tasks,cn=Tasks\n"
@@ -197,10 +195,10 @@ public class ReSyncTest extends ReplicationTestCase
 
     debugInfo("testResyncAfterRestore: restore done");
 
-   if (getEntry(DN.decode("dc=fooUniqueName1," + EXAMPLE_DN), 30000, true) == null)
-     fail("The Directory has not been resynchronized after the restore.");
+    assertNotNull(getEntry(entryDN, 30000, true),
+        "The Directory has not been resynchronized after the restore.");
 
-   connection.processDelete(DN.decode("dc=fooUniqueName1," + EXAMPLE_DN));
+    connection.processDelete(entryDN);
   }
 
   /**
@@ -218,7 +216,8 @@ public class ReSyncTest extends ReplicationTestCase
 
     // delete the entry we are going to use to make sure that
     // we do test something.
-    connection.processDelete(DN.decode("dc=fooUniqueName2," + EXAMPLE_DN));
+    DN entryDN = DN.decode("dc=fooUniqueName2," + EXAMPLE_DN);
+    connection.processDelete(entryDN);
 
     String path = reSyncTempDir.getAbsolutePath() + File.pathSeparator +
             "ReSynchTest";
@@ -249,14 +248,12 @@ public class ReSyncTest extends ReplicationTestCase
 
     debugInfo("testResyncAfterImport: import done");
 
-   if (getEntry(DN.decode("dc=fooUniqueName2," + EXAMPLE_DN), 30000, true) == null)
-     fail("The Directory has not been resynchronized after the restore.");
+    assertNotNull(getEntry(entryDN, 30000, true),
+        "The Directory has not been resynchronized after the restore.");
   }
 
   /**
    * Clean up the environment.
-   *
-   * @throws Exception If the environment could not be set up.
    */
   @AfterClass
   @Override

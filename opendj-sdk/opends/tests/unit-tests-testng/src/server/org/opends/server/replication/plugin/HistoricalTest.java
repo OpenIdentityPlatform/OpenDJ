@@ -84,7 +84,6 @@ public class HistoricalTest extends ReplicationTestCase
          + "ds-cfg-replication-port: " + replServerPort + "\n"
          + "ds-cfg-replication-db-directory: HistoricalTest\n"
          + "ds-cfg-replication-server-id: 102\n";
-    replServerEntry = TestCaseUtils.entryFromLdifString(replServerLdif);
 
     // The suffix to be synchronized.
     String synchroServerStringDN = "cn=" + testName + ", cn=domains, " +
@@ -97,9 +96,8 @@ public class HistoricalTest extends ReplicationTestCase
          + "ds-cfg-replication-server: localhost:" + replServerPort + "\n"
          + "ds-cfg-server-id: 1\n"
          + "ds-cfg-receive-status: true\n";
-    synchroServerEntry = TestCaseUtils.entryFromLdifString(synchroServerLdif);
 
-    configureReplication();
+    configureReplication(replServerLdif, synchroServerLdif);
   }
 
   /**

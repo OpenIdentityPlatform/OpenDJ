@@ -35,7 +35,6 @@ import org.opends.messages.Category;
 import org.opends.messages.Message;
 import org.opends.messages.Severity;
 import org.opends.server.TestCaseUtils;
-import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.CSN;
@@ -204,14 +203,9 @@ public class MonitorTest extends ReplicationTestCase
         + "ds-cfg-receive-status: true\n"
         + "ds-cfg-window-size: " + WINDOW_SIZE;
 
-      synchroServerEntry = TestCaseUtils.entryFromLdifString(synchroServerLdif);
-      DirectoryServer.getConfigHandler().addEntry(synchroServerEntry, null);
-      assertNotNull(DirectoryServer.getConfigEntry(synchroServerEntry.getDN()),
-        "Unable to add the synchronized server");
-      configEntryList.add(synchroServerEntry.getDN());
+      addSynchroServerEntry(synchroServerLdif);
 
       replDomain = LDAPReplicationDomain.retrievesReplicationDomain(baseDN);
-
       if (replDomain != null)
       {
         debugInfo("ReplicationDomain: Import/Export is running ? " +
@@ -233,7 +227,7 @@ public class MonitorTest extends ReplicationTestCase
       DN synchroServerDN = DN.decode(synchroServerStringDN);
       deleteEntry(synchroServerDN);
       synchroServerEntry = null;
-      configEntryList.remove(configEntryList.indexOf(synchroServerDN));
+    configEntriesToCleanup.remove(synchroServerDN);
   }
 
   private int getChangelogPort(int changelogID) throws Exception
