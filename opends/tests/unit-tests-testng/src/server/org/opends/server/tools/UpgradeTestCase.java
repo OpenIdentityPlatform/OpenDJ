@@ -28,32 +28,29 @@ package org.opends.server.tools;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.IOException;
 import java.io.PrintStream;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.assertj.core.api.Assertions;
 import org.opends.messages.Message;
 import org.opends.server.TestCaseUtils;
-import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.tools.upgrade.UpgradeCli;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.InitializationException;
 import org.opends.server.util.StaticUtils;
 import org.testng.annotations.Test;
 
 import static org.opends.messages.ToolMessages.*;
-import static org.opends.server.tools.ToolConstants.OPTION_LONG_FORCE_UPGRADE;
+import static org.opends.server.tools.ToolConstants.*;
 import static org.testng.Assert.*;
 
 /**
  * A set of test cases for the Upgrade tool.
  */
+@SuppressWarnings("javadoc")
 public class UpgradeTestCase extends ToolsTestCase
 {
-  private final static String configFilePath = DirectoryServer
-      .getInstanceRoot()
+  private final static String configFilePath = DirectoryServer.getInstanceRoot()
       + File.separator + "config" + File.separator + "config.ldif";
 
   /**
@@ -83,7 +80,6 @@ public class UpgradeTestCase extends ToolsTestCase
     }
     final String[] mainArgs = new String[argsList.size()];
     argsList.toArray(mainArgs);
-
     return mainArgs;
   }
 
@@ -94,13 +90,12 @@ public class UpgradeTestCase extends ToolsTestCase
    *          The upgrade's output.
    * @param expectedMessage
    *          The expected message.
-   * @return {@code true} if the output contains the expected message.
    */
-  private boolean isOutputContainsExpectedMessage(final String output,
-      final Message expectedMessage)
+  private void assertContainsMessage(String output, Message expectedMessage)
   {
-    return (output.replaceAll("\n", " ").replaceAll("%s", " ").indexOf(
-        expectedMessage.toString().replaceAll("\n", " ").replaceAll("%s", " ")) != -1);
+    String out = output.replaceAll("\n", " ").replaceAll("%s", " ");
+    String expected = expectedMessage.toString().replaceAll("\n", " ").replaceAll("%s", " ");
+    Assertions.assertThat(out).contains(expected);
   }
 
   /**
@@ -116,9 +111,7 @@ public class UpgradeTestCase extends ToolsTestCase
     {
       // The 'main' should exit with success code.
       assertEquals(UpgradeCli.main(setArgs("--help"), true, ps, ps), 0);
-
-      assertTrue(isOutputContainsExpectedMessage(baos.toString(),
-          INFO_UPGRADE_DESCRIPTION_CLI.get()));
+      assertContainsMessage(baos.toString(), INFO_UPGRADE_DESCRIPTION_CLI.get());
     }
     finally
     {
@@ -139,9 +132,7 @@ public class UpgradeTestCase extends ToolsTestCase
     {
       // The 'main' should exit with success code.
       assertEquals(UpgradeCli.main(setArgs("-H"), true, ps, ps), 0);
-
-      assertTrue(isOutputContainsExpectedMessage(baos.toString(),
-          INFO_UPGRADE_DESCRIPTION_CLI.get()));
+      assertContainsMessage(baos.toString(), INFO_UPGRADE_DESCRIPTION_CLI.get());
     }
     finally
     {
@@ -162,9 +153,7 @@ public class UpgradeTestCase extends ToolsTestCase
     {
       // The 'main' should exit with success code.
       assertEquals(UpgradeCli.main(setArgs("-?"), true, ps, ps), 0);
-
-      assertTrue(isOutputContainsExpectedMessage(baos.toString(),
-          INFO_UPGRADE_DESCRIPTION_CLI.get()));
+      assertContainsMessage(baos.toString(), INFO_UPGRADE_DESCRIPTION_CLI.get());
     }
     finally
     {
@@ -185,9 +174,7 @@ public class UpgradeTestCase extends ToolsTestCase
     {
       // The 'main' should exit with an error code.
       assertEquals(UpgradeCli.main(setArgs("-- wrong"), true, ps, ps), 1);
-
-      assertTrue(isOutputContainsExpectedMessage(baos.toString(),
-          ERR_ERROR_PARSING_ARGS.get("")));
+      assertContainsMessage(baos.toString(), ERR_ERROR_PARSING_ARGS.get(""));
     }
     finally
     {
@@ -208,9 +195,7 @@ public class UpgradeTestCase extends ToolsTestCase
     {
       // The 'main' should exit with an error code.
       assertEquals(UpgradeCli.main(setArgs("--wrong"), true, ps, ps), 1);
-
-      assertTrue(isOutputContainsExpectedMessage(baos.toString(),
-          ERR_ERROR_PARSING_ARGS.get("")));
+      assertContainsMessage(baos.toString(), ERR_ERROR_PARSING_ARGS.get(""));
     }
     finally
     {
@@ -233,11 +218,8 @@ public class UpgradeTestCase extends ToolsTestCase
       assertEquals(UpgradeCli.main(setArgs("--force"), true, ps, ps), 1);
 
       // Because interactive mode is not compatible with force upgrade mode.
-      final Message message =
-          ERR_UPGRADE_INCOMPATIBLE_ARGS.get(OPTION_LONG_FORCE_UPGRADE,
-              "interactive mode");
-
-      assertTrue(isOutputContainsExpectedMessage(baos.toString(), message));
+      assertContainsMessage(baos.toString(), ERR_UPGRADE_INCOMPATIBLE_ARGS.get(
+          OPTION_LONG_FORCE_UPGRADE, "interactive mode"));
     }
     finally
     {
@@ -247,16 +229,9 @@ public class UpgradeTestCase extends ToolsTestCase
 
   /**
    * Upgrade tool allows use of force and no-prompt sub-commands.
-   *
-   * @throws IOException
-   * @throws DirectoryException
-   * @throws ConfigException
-   * @throws InitializationException
    */
   @Test()
-  public void testUpgradeToolAllowsNonInteractiveAndForce()
-      throws InitializationException, ConfigException, DirectoryException,
-      IOException
+  public void testUpgradeToolAllowsNonInteractiveAndForce() throws Exception
   {
     TestCaseUtils.startServer();
 
@@ -265,20 +240,17 @@ public class UpgradeTestCase extends ToolsTestCase
     try
     {
       // The 'main' should exit with success code.
-      assertEquals(UpgradeCli.main(setArgs("--force", "--no-prompt"), true, ps,
-          ps), 0);
+      int rc = UpgradeCli.main(setArgs("--force", "--no-prompt"), true, ps, ps);
+      assertEquals(rc, 0);
 
       // The sub-commands have been checked ok but upgrade must exist on
       // version's verification.
-      assertTrue(isOutputContainsExpectedMessage(baos.toString(),
-          ERR_UPGRADE_VERSION_UP_TO_DATE.get("")));
-
+      assertContainsMessage(baos.toString(), ERR_UPGRADE_VERSION_UP_TO_DATE.get(""));
     }
     finally
     {
       StaticUtils.close(ps, baos);
-      TestCaseUtils
-          .shutdownServer("testUpgradeToolAllowsNonInteractiveAndForce");
+      TestCaseUtils.shutdownServer("testUpgradeToolAllowsNonInteractiveAndForce");
     }
   }
 }

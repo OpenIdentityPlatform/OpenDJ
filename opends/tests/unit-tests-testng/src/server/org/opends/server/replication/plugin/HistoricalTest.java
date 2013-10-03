@@ -28,15 +28,14 @@
 package org.opends.server.replication.plugin;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
 
+import org.assertj.core.api.Assertions;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
-import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.protocol.AddMsg;
@@ -176,10 +175,8 @@ public class HistoricalTest extends ReplicationTestCase
 
     // Check that encoding and decoding preserves the history information.
     EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
-    Attribute after = hist.encodeAndPurge();
-
     assertEquals(hist.getLastPurgedValuesCount(),0);
-    assertEquals(after, before);
+    assertEquals(hist.encodeAndPurge(), before);
 
     Thread.sleep(1000);
 
@@ -198,10 +195,9 @@ public class HistoricalTest extends ReplicationTestCase
     entry = DirectoryServer.getEntry(dn);
     hist = EntryHistorical.newInstanceFromEntry(entry);
     hist.setPurgeDelay(testPurgeDelayInMillisec);
-    after = hist.encodeAndPurge();
 
     // The purge time is not done so the hist attribute should be not empty
-    assertTrue(!after.isEmpty());
+    assertFalse(hist.encodeAndPurge().isEmpty());
 
     // Now wait for the purge time to be done
     Thread.sleep(testPurgeDelayInMillisec + 200);
@@ -211,8 +207,7 @@ public class HistoricalTest extends ReplicationTestCase
     entry = DirectoryServer.getEntry(dn);
     hist = EntryHistorical.newInstanceFromEntry(entry);
     hist.setPurgeDelay(testPurgeDelayInMillisec);
-    after = hist.encodeAndPurge();
-    assertTrue(after.isEmpty());
+    assertTrue(hist.encodeAndPurge().isEmpty());
     assertEquals(hist.getLastPurgedValuesCount(),11);
   }
 
@@ -261,10 +256,7 @@ public class HistoricalTest extends ReplicationTestCase
        );
 
     // Read the entry back to get its UUID.
-    Entry entry = DirectoryServer.getEntry(dn1);
-    List<Attribute> attrs = entry.getAttribute(entryuuidType);
-    String entryuuid =
-         attrs.get(0).iterator().next().getValue().toString();
+    String entryuuid = getEntryValue(dn1, entryuuidType);
 
     // Add the second test entry.
     TestCaseUtils.addEntry(
@@ -279,10 +271,7 @@ public class HistoricalTest extends ReplicationTestCase
        );
 
     // Read the entry back to get its UUID.
-    entry = DirectoryServer.getEntry(dn2);
-    attrs = entry.getAttribute(entryuuidType);
-    String entryuuid2 =
-         attrs.get(0).iterator().next().getValue().toString();
+    String entryuuid2 = getEntryValue(dn2, entryuuidType);
 
     long now = System.currentTimeMillis();
     // A change on a first server.
@@ -295,9 +284,7 @@ public class HistoricalTest extends ReplicationTestCase
     // happen on one server.
 
     // Replay an add of a value A at time t1 on a first server.
-    Attribute attr = Attributes.create(attrType.getNormalizedPrimaryName(), "A");
-    Modification mod = new Modification(ModificationType.ADD, attr);
-    publishModify(broker, t1, dn1, entryuuid, mod);
+    publishModify(broker, t1, dn1, entryuuid, attrType, "A");
 
     // It would be nice to avoid these sleeps.
     // We need to preserve the replay order but the order could be changed
@@ -307,9 +294,7 @@ public class HistoricalTest extends ReplicationTestCase
     Thread.sleep(2000);
 
     // Replay an add of a value B at time t2 on a second server.
-    attr = Attributes.create(attrType.getNormalizedPrimaryName(), "B");
-    mod = new Modification(ModificationType.ADD, attr);
-    publishModify(broker, t2, dn1, entryuuid, mod);
+    publishModify(broker, t2, dn1, entryuuid, attrType, "B");
 
     // Simulate the reverse ordering t2:add:B followed by t1:add:A that
     // would happen on the other server.
@@ -317,51 +302,44 @@ public class HistoricalTest extends ReplicationTestCase
     t1 = new CSN(now+3,  0,  3);
     t2 = new CSN(now+4,  0,  4);
 
-    // Replay an add of a value B at time t2 on a second server.
-    attr = Attributes.create(attrType.getNormalizedPrimaryName(), "B");
-    mod = new Modification(ModificationType.ADD, attr);
-    publishModify(broker, t2, dn2, entryuuid2, mod);
+    publishModify(broker, t2, dn2, entryuuid2, attrType, "B");
 
     Thread.sleep(2000);
 
     // Replay an add of a value A at time t1 on a first server.
-    attr = Attributes.create(attrType.getNormalizedPrimaryName(), "A");
-    mod = new Modification(ModificationType.ADD, attr);
-    publishModify(broker, t1, dn2, entryuuid2, mod);
+    publishModify(broker, t1, dn2, entryuuid2, attrType, "A");
 
     Thread.sleep(2000);
 
-    // Read the first entry to see how the conflict was resolved.
-    entry = DirectoryServer.getEntry(dn1);
-    attrs = entry.getAttribute(attrType);
-    String attrValue1 =
-         attrs.get(0).iterator().next().getValue().toString();
-
-    // Read the second entry to see how the conflict was resolved.
-    entry = DirectoryServer.getEntry(dn2);
-    attrs = entry.getAttribute(attrType);
-    String attrValue2 =
-         attrs.get(0).iterator().next().getValue().toString();
-
+    // See how the conflicts were resolved.
     // The two values should be the first value added.
-    assertEquals(attrValue1, "A");
-    assertEquals(attrValue2, "A");
+    assertEquals(getEntryValue(dn1, attrType), "A");
+    assertEquals(getEntryValue(dn2, attrType), "A");
 
-    TestCaseUtils.deleteEntry(DN.decode("cn=test1," + TEST_ROOT_DN_STRING));
-    TestCaseUtils.deleteEntry(DN.decode("cn=test2," + TEST_ROOT_DN_STRING));
-}
+    TestCaseUtils.deleteEntry(dn1);
+    TestCaseUtils.deleteEntry(dn2);
+  }
 
-  private static
-  void publishModify(ReplicationBroker broker, CSN changeNum,
-                     DN dn, String entryuuid, Modification mod)
+  private String getEntryValue(final DN dn, final AttributeType attrType)
+      throws Exception
   {
+    Entry entry = DirectoryServer.getEntry(dn);
+    List<Attribute> attrs = entry.getAttribute(attrType);
+    return attrs.get(0).iterator().next().getValue().toString();
+  }
+
+  private static void publishModify(ReplicationBroker broker, CSN changeNum,
+      DN dn, String entryuuid, AttributeType attrType, String newValue)
+  {
+    Attribute attr = Attributes.create(attrType.getNormalizedPrimaryName(), newValue);
+    Modification mod = new Modification(ModificationType.ADD, attr);
     List<Modification> mods = new ArrayList<Modification>(1);
     mods.add(mod);
     broker.publish(new ModifyMsg(changeNum, dn, mods, entryuuid));
   }
 
   /**
-   * Test that historical information is correctly added when performaing ADD,
+   * Test that historical information is correctly added when performing ADD,
    * MOD and MODDN operations.
    */
   @Test()
@@ -471,19 +449,20 @@ public class HistoricalTest extends ReplicationTestCase
         // - the dn should be dn1,
         // - the entry id and the parent id should match the ids from the entry
         FakeAddOperation addOp = (FakeAddOperation) op;
-        assertTrue(addOp.getCSN() != null);
+        assertNotNull(addOp.getCSN());
         AddMsg addmsg = addOp.generateMessage();
         assertEquals(dn1, addmsg.getDN());
         assertEquals(addmsg.getEntryUUID(), EntryHistorical.getEntryUUID(entry));
         String parentId = LDAPReplicationDomain.findEntryUUID(dn1.getParent());
         assertEquals(addmsg.getParentEntryUUID(), parentId);
+
         addmsg.createOperation(InternalClientConnection.getRootConnection());
       }
-      else if (count == 1)
+      else
       {
-          // The first operation should be an ADD operation.
-          fail("FakeAddOperation was not correctly generated"
-              + " from historical information");
+        // The first operation should be an ADD operation.
+        assertTrue(count != 1,
+            "FakeAddOperation was not correctly generated from historical information");
       }
     }
 
@@ -495,8 +474,8 @@ public class HistoricalTest extends ReplicationTestCase
    * entry.
    * Steps :
    * - creates entry containing historical
-   * - wait for the pruge delay
-   * - lauch the purge task
+   * - wait for the purge delay
+   * - launch the purge task
    * - verify that all historical has been purged
    *
    * TODO: another test should be written that configures the task no NOT have
@@ -534,21 +513,14 @@ public class HistoricalTest extends ReplicationTestCase
         "ds-task-purge-conflicts-historical-domain-dn: "+TEST_ROOT_DN_STRING,
     "ds-task-purge-conflicts-historical-maximum-duration: 120"); // 120 sec
 
-    addTask(taskInit, ResultCode.SUCCESS, null);
+    executeTask(taskInit);
 
     // every entry should be purged from its hist
       // Search for matching entries in config backend
-      InternalSearchOperation op = connection.processSearch(
-          ByteString.valueOf(TEST_ROOT_DN_STRING),
-          SearchScope.WHOLE_SUBTREE,
-          LDAPFilter.decode("(ds-sync-hist=*)"));
-      assertEquals(op.getResultCode(), ResultCode.SUCCESS,
-          op.getErrorMessage().toString());
-
-      // Check that no entries have been found
-      LinkedList<SearchResultEntry> entries = op.getSearchEntries();
-      assertTrue(entries != null);
-      assertEquals(entries.size(), 0);
+    InternalSearchOperation op = connection.processSearch(
+        TEST_ROOT_DN_STRING, SearchScope.WHOLE_SUBTREE, "(ds-sync-hist=*)");
+    assertEquals(op.getResultCode(), ResultCode.SUCCESS, op.getErrorMessage().toString());
+    Assertions.assertThat(op.getSearchEntries()).isEmpty();
   }
 
   /**
@@ -556,8 +528,7 @@ public class HistoricalTest extends ReplicationTestCase
    * @param dnSuffix A suffix to be added to the dn
    * @param entryCnt The number of entries to create
    */
-  private void addEntriesWithHistorical(int dnSuffix, int entryCnt)
-  throws Exception
+  private void addEntriesWithHistorical(int dnSuffix, int entryCnt) throws Exception
   {
     for (int i=0; i<entryCnt;i++)
     {

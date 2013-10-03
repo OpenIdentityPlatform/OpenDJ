@@ -58,7 +58,6 @@ import org.opends.server.plugins.InvocationCounterPlugin;
 import org.opends.server.protocols.asn1.ASN1;
 import org.opends.server.protocols.asn1.ASN1Reader;
 import org.opends.server.protocols.asn1.ASN1Writer;
-import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.ldap.BindRequestProtocolOp;
 import org.opends.server.protocols.ldap.BindResponseProtocolOp;
 import org.opends.server.protocols.ldap.LDAPMessage;
@@ -71,6 +70,7 @@ import org.opends.server.util.BuildVersion;
 import org.opends.server.util.EmbeddedUtils;
 import org.opends.server.util.LDIFReader;
 
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.testng.Assert.*;
@@ -222,27 +222,19 @@ public final class TestCaseUtils {
    * @see #shutdownFakeServer() Matching method that must be called in the test
    *      tear down.
    */
-  public static void startFakeServer()
+  public static void startFakeServer() throws Exception
   {
     schemaBeforeStartingFakeServer = DirectoryServer.getSchema();
     DirectoryServer.setSchema(initializeInMemory(new Schema()));
   }
 
-  private static Schema initializeInMemory(final Schema schema)
+  private static Schema initializeInMemory(final Schema schema) throws Exception
   {
-    try
+    for (AttributeType attributeType : AttributeTypeConstants.ALL)
     {
-      for (AttributeType attributeType : AttributeTypeConstants.ALL)
-      {
-        schema.registerAttributeType(attributeType, true);
-      }
-      return schema;
+      schema.registerAttributeType(attributeType, true);
     }
-    catch (DirectoryException e)
-    {
-      // rethrow this to fail the current test
-      throw new RuntimeException(e);
-    }
+    return schema;
   }
 
   /**
@@ -251,18 +243,9 @@ public final class TestCaseUtils {
    * subsequent attempts to start it will be ignored because it will already be
    * available.
    *
-   * @throws  IOException  If a problem occurs while interacting with the
-   *                       filesystem to prepare the test package root.
-   *
-   * @throws  InitializationException  If a problem occurs while starting the
-   *                                   server.
-   *
-   * @throws  ConfigException  If there is a problem with the server
-   *                           configuration.
+   * @throws  Exception  If an unexpected problem occurs.
    */
-  public static void startServer()
-         throws IOException, InitializationException, ConfigException,
-                DirectoryException
+  public static void startServer() throws Exception
   {
     try {
       if (SERVER_STARTED)
@@ -513,19 +496,7 @@ public final class TestCaseUtils {
       SERVER_STARTED = true;
 
       initializeTestBackend(true);
-    } catch (IOException e) {
-      e.printStackTrace(originalSystemErr);
-      throw e;
-    } catch (NumberFormatException e) {
-      e.printStackTrace(originalSystemErr);
-      throw e;
-    } catch (InitializationException e) {
-      e.printStackTrace(originalSystemErr);
-      throw e;
-    } catch (ConfigException e) {
-      e.printStackTrace(originalSystemErr);
-      throw e;
-    } catch (DirectoryException e) {
+    } catch (Exception e) {
       e.printStackTrace(originalSystemErr);
       throw e;
     }
@@ -823,12 +794,9 @@ public final class TestCaseUtils {
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  public static void initializeTestBackend(boolean createBaseEntry)
-         throws IOException, InitializationException, ConfigException,
-                DirectoryException
+  public static void initializeTestBackend(boolean createBaseEntry) throws Exception
   {
-    initializeMemoryBackend(
-        TEST_BACKEND_ID, TEST_ROOT_DN_STRING, createBaseEntry);
+    initializeMemoryBackend(TEST_BACKEND_ID, TEST_ROOT_DN_STRING, createBaseEntry);
   }
 
   /**
@@ -847,8 +815,7 @@ public final class TestCaseUtils {
       String backendID,
       String namingContext,
       boolean createBaseEntry
-      ) throws IOException, InitializationException, ConfigException,
-                DirectoryException
+      ) throws Exception
   {
     startServer();
 
@@ -1293,16 +1260,9 @@ public final class TestCaseUtils {
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  public static void addEntry(Entry entry)
-         throws Exception
+  public static void addEntry(Entry entry) throws Exception
   {
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
-    AddOperation addOperation = conn.processAdd(entry.getDN(),
-                                     entry.getObjectClasses(),
-                                     entry.getUserAttributes(),
-                                     entry.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(entry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -1316,8 +1276,7 @@ public final class TestCaseUtils {
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  public static void deleteEntry(Entry entry)
-         throws Exception
+  public static void deleteEntry(Entry entry) throws Exception
   {
     deleteEntry(entry.getDN());
   }
@@ -1330,13 +1289,9 @@ public final class TestCaseUtils {
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  public static void deleteEntry(DN dn)
-         throws Exception
+  public static void deleteEntry(DN dn) throws Exception
   {
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
-    DeleteOperation deleteOperation = conn.processDelete(dn);
+    DeleteOperation deleteOperation = getRootConnection().processDelete(dn);
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -1399,20 +1354,12 @@ public final class TestCaseUtils {
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  public static void addEntry(String... lines)
-         throws Exception
+  public static void addEntry(String... lines) throws Exception
   {
     Entry entry = makeEntry(lines);
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
-    AddOperation addOperation = conn.processAdd(entry.getDN(),
-                                     entry.getObjectClasses(),
-                                     entry.getUserAttributes(),
-                                     entry.getOperationalAttributes());
-    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS, addOperation
-        .getErrorMessage().toString());
+    AddOperation addOperation = getRootConnection().processAdd(entry);
+    assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS,
+        addOperation.getErrorMessage().toString());
   }
 
 
@@ -1427,18 +1374,10 @@ public final class TestCaseUtils {
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  public static ResultCode addEntryOperation(String... lines)
-         throws Exception
+  public static ResultCode addEntryOperation(String... lines) throws Exception
   {
     Entry entry = makeEntry(lines);
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
-    AddOperation addOperation = conn.processAdd(entry.getDN(),
-                                     entry.getObjectClasses(),
-                                     entry.getUserAttributes(),
-                                     entry.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(entry);
     return addOperation.getResultCode();
   }
 
@@ -1452,8 +1391,7 @@ public final class TestCaseUtils {
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  public static void addEntries(List<Entry> entries)
-         throws Exception
+  public static void addEntries(List<Entry> entries) throws Exception
   {
     for (Entry entry : entries)
     {
@@ -1473,8 +1411,7 @@ public final class TestCaseUtils {
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  public static void addEntries(String... lines)
-         throws Exception
+  public static void addEntries(String... lines) throws Exception
   {
     for (Entry entry : makeEntries(lines))
     {

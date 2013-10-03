@@ -26,8 +26,6 @@
  */
 package org.opends.server.authorization.dseecompat;
 
-import static org.assertj.core.api.Assertions.*;
-
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
 import org.testng.annotations.AfterClass;
@@ -35,12 +33,14 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import static org.assertj.core.api.Assertions.*;
+
 @SuppressWarnings("javadoc")
 public class AciBodyTest extends DirectoryServerTestCase
 {
 
   @BeforeClass
-  public void setUp()
+  public void setUp() throws Exception
   {
     TestCaseUtils.startFakeServer();
   }
