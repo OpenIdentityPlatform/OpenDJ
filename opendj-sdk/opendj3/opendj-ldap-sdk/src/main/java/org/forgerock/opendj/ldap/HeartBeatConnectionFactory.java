@@ -491,7 +491,13 @@ final class HeartBeatConnectionFactory implements ConnectionFactory {
                  * that the heart beat was aborted by a client-side close.
                  */
                 if (!(error instanceof CancelledResultException)) {
-                    DEFAULT_LOG.warn("Heartbeat failed for connection factory '{}'", factory, error);
+                    /*
+                     * Log at debug level to avoid polluting the logs with
+                     * benign password policy related errors. See OPENDJ-1168
+                     * and OPENDJ-1167.
+                     */
+                    DEFAULT_LOG.debug("Heartbeat failed for connection factory '{}'", factory,
+                            error);
                     timestamp(error);
                 }
                 releaseHeartBeatLock();
