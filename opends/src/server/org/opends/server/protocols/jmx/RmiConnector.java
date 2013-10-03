@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS.
  */
 package org.opends.server.protocols.jmx;
 
@@ -127,7 +128,7 @@ public class RmiConnector
   private OpendsRmiServerSocketFactory rmiSsf;
 
   /**
-   * The RMI protocol verison used by this connector.
+   * The RMI protocol version used by this connector.
    */
   private String rmiVersion;
 
@@ -271,7 +272,7 @@ public class RmiConnector
 
   /**
    * Starts a secure RMI connector, with a client that doesn't have to
-   * present a certificate, on the local mbean server.
+   * present a certificate, on the local MBean server.
    * This method assumes that the common registry was successfully
    * started.
    * <p>
@@ -386,8 +387,8 @@ public class RmiConnector
         TRACER.debugVerbose("Create and start the JMX RMI connector");
       }
       OpendsRMIJRMPServerImpl opendsRmiConnectorServer =
-          new OpendsRMIJRMPServerImpl(
-              0, rmiClientSockeyFactory, rmiServerSockeyFactory, env);
+          new OpendsRMIJRMPServerImpl(jmxConnectionHandler.getRmiPort(),
+              rmiClientSockeyFactory, rmiServerSockeyFactory, env);
       jmxRmiConnectorNoClientCertificate = new RMIConnectorServer(url, env,
           opendsRmiConnectorServer, mbs);
       jmxRmiConnectorNoClientCertificate.start();

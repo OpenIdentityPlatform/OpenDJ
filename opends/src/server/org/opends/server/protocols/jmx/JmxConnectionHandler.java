@@ -122,6 +122,10 @@ public final class JmxConnectionHandler extends
       portChanged = true;
     }
 
+    if (currentConfig.getRmiPort() != config.getRmiPort())
+    {
+      rmiConnectorRestart = true;
+    }
     if (currentConfig.isUseSSL() != config.isUseSSL()) {
       rmiConnectorRestart = true;
     }
@@ -205,9 +209,7 @@ public final class JmxConnectionHandler extends
   @Override
   public Map<String, String> getAlerts()
   {
-    Map<String, String> alerts = new LinkedHashMap<String, String>();
-
-    return alerts;
+    return new LinkedHashMap<String, String>();
   }
 
 
@@ -280,6 +282,14 @@ public final class JmxConnectionHandler extends
     return currentConfig.getListenPort();
   }
 
+  /**
+   * Get the JMX connection handler's rmi port.
+   *
+   * @return Returns the JMX connection handler's rmi port.
+   */
+  public int getRmiPort() {
+    return currentConfig.getRmiPort();
+  }
 
 
   /**
@@ -326,22 +336,11 @@ public final class JmxConnectionHandler extends
     // Configuration is ok.
     currentConfig = config;
 
-    // Attempt to bind to the listen port to verify whether the connection
-    // handler will be able to start.
-    try
+    List<Message> reasons = new LinkedList<Message>();
+    if (!isPortConfigurationAcceptable(String.valueOf(config.dn()),
+        config.getListenPort(), reasons))
     {
-      if (StaticUtils.isAddressInUse(
-        new InetSocketAddress(config.getListenPort()).getAddress(),
-        config.getListenPort(), true)) {
-        throw new IOException(
-          ERR_CONNHANDLER_ADDRESS_INUSE.get().toString());
-      }
-    }
-    catch (Exception e)
-    {
-      Message message =
-          ERR_CONNHANDLER_CANNOT_BIND.get("JMX", String.valueOf(config.dn()),
-              WILDCARD_ADDRESS, config.getListenPort(), getExceptionMessage(e));
+      Message message = reasons.get(0);
       logError(message);
       throw new InitializationException(message);
     }
@@ -399,7 +398,6 @@ public final class JmxConnectionHandler extends
   }
 
 
-
   /**
    * {@inheritDoc}
    */
@@ -409,32 +407,48 @@ public final class JmxConnectionHandler extends
   {
     JMXConnectionHandlerCfg config = (JMXConnectionHandlerCfg) configuration;
 
-    if ((currentConfig == null) ||
+    if (currentConfig == null ||
         (!currentConfig.isEnabled() && config.isEnabled()) ||
-        (currentConfig.getListenPort() != config.getListenPort())) {
-      // Attempt to bind to the listen port to verify whether the connection
-      // handler will be able to start.
-      try {
-        if (StaticUtils.isAddressInUse(
-          new InetSocketAddress(config.getListenPort()).getAddress(),
-          config.getListenPort(), true)) {
-          throw new IOException(
-            ERR_CONNHANDLER_ADDRESS_INUSE.get().toString());
-        }
-      } catch (Exception e) {
-        Message message =
-            ERR_CONNHANDLER_CANNOT_BIND.get("JMX", String.valueOf(config.dn()),
-                WILDCARD_ADDRESS, config.getListenPort(),
-                getExceptionMessage(e));
-        unacceptableReasons.add(message);
-        return false;
-      }
+        currentConfig.getListenPort() != config.getListenPort() &&
+        !isPortConfigurationAcceptable(String.valueOf(config.dn()),
+          config.getListenPort(), unacceptableReasons))
+    {
+      return false;
+    }
+
+    if (config.getRmiPort() != 0 &&
+        (currentConfig == null ||
+        (!currentConfig.isEnabled() && config.isEnabled()) ||
+        currentConfig.getRmiPort() != config.getRmiPort()) &&
+        !isPortConfigurationAcceptable(String.valueOf(config.dn()),
+          config.getRmiPort(), unacceptableReasons))
+    {
+      return false;
     }
 
     return isConfigurationChangeAcceptable(config, unacceptableReasons);
   }
 
-
+  /**
+   * Attempt to bind to the port to verify whether the connection
+   * handler will be able to start.
+   * @return true is the port is free to use, false otherwise.
+   */
+  private boolean isPortConfigurationAcceptable(String configDN,
+                      int newPort, List<Message> unacceptableReasons) {
+    try {
+      if (StaticUtils.isAddressInUse(
+          new InetSocketAddress(newPort).getAddress(), newPort, true)) {
+        throw new IOException(ERR_CONNHANDLER_ADDRESS_INUSE.get().toString());
+      }
+    } catch (Exception e) {
+      Message message = ERR_CONNHANDLER_CANNOT_BIND.get("JMX", configDN,
+              WILDCARD_ADDRESS, newPort, getExceptionMessage(e));
+      unacceptableReasons.add(message);
+      return false;
+    }
+    return true;
+  }
 
   /**
    * {@inheritDoc}
@@ -453,7 +467,7 @@ public final class JmxConnectionHandler extends
    * Determines whether or not clients are allowed to connect over JMX
    * using SSL.
    *
-   * @return Returns <code>true</code> if clients are allowed to
+   * @return Returns {@code true} if clients are allowed to
    *         connect over JMX using SSL.
    */
   public boolean isUseSSL() {
@@ -494,8 +508,9 @@ public final class JmxConnectionHandler extends
     {
       rmiConnector.initialize();
     }
-    catch (RuntimeException e)
+    catch (RuntimeException ignore)
     {
+      // Already caught and logged
     }
   }
 
