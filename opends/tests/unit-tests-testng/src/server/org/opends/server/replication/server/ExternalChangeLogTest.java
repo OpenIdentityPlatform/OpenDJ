@@ -831,9 +831,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       assertEquals(searchOp.getSearchEntries().size(), 0);
       String expectedError = ERR_RESYNC_REQUIRED_MISSING_DOMAIN_IN_PROVIDED_COOKIE
           .get("o=test:;","<"+ newCookie + "o=test:;>").toString();
-      assertTrue(searchOp.getErrorMessage().toString().equalsIgnoreCase(expectedError),
-          "Expected: " + expectedError + "Server output:" +
-          searchOp.getErrorMessage());
+      assertThat(searchOp.getErrorMessage().toString()).isEqualToIgnoringCase(expectedError);
     }
     finally
     {
@@ -942,7 +940,6 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     debugInfo(tn, "Starting test");
 
     ReplicationBroker server01 = null;
-
     try
     {
       // ---
@@ -952,7 +949,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       server01 = openReplicationSession(TEST_ROOT_DN, SERVER_ID_1,
           100, replicationServerPort, brokerSessionTimeout, true);
 
-      final CSN[] csns = generateCSNs(4, SERVER_ID_1);
+      final CSN[] csns = generateCSNs(3, SERVER_ID_1);
       publishDeleteMsgInOTest(server01, csns[0], tn, 1);
 
       Thread.sleep(1000);
@@ -963,9 +960,6 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
       publishDeleteMsgInOTest(server01, csns[1], tn, 2);
       publishDeleteMsgInOTest(server01, csns[2], tn, 3);
-
-      // Sleep longer than this delay - the changelog will be trimmed
-      Thread.sleep(1000);
 
       // ---
       // 2. Now set up a very short purge delay on the replication changelogs
@@ -987,6 +981,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       assertThat(entries).hasSize(0);
       debugAndWriteEntries(ldifWriter, entries, tn);
 
+      // ---
       // 4. Assert that a request with the current last cookie returns nothing
       cookie = readLastCookie();
       debugInfo(tn, "2. Search with last cookie=" + cookie + "\"");
@@ -997,13 +992,10 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       assertThat(entries).hasSize(0);
       debugAndWriteEntries(ldifWriter, entries, tn);
 
-
       // ---
       // 5. Assert that a request with an "old" cookie - one that refers to
       //    changes that have been removed by the replication changelog trimming
       //    returns the appropriate error.
-      publishDeleteMsgInOTest(server01, csns[3], tn, 1);
-
       debugInfo(tn, "d1 trimdate" + getReplicationDomainStartState(TEST_ROOT_DN));
       debugInfo(tn, "d2 trimdate" + getReplicationDomainStartState(TEST_ROOT_DN2));
       searchOp = searchOnCookieChangelog("(targetDN=*)", cookieNotEmpty, tn, UNWILLING_TO_PERFORM);
@@ -1015,9 +1007,6 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     finally
     {
       stop(server01);
-      // lets clear the last "changeType: delete" from the changelogDB
-      // it is failing to do it on slower machines
-      clearChangelogDB(replicationServer);
       // And reset changelog purge delay for the other tests.
       replicationServer.getChangelogDB().setPurgeDelay(15 * 1000);
     }
