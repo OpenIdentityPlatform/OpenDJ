@@ -58,15 +58,16 @@ import static org.testng.Assert.*;
 @SuppressWarnings("javadoc")
 public class StressTest extends ReplicationTestCase
 {
+
   private static final String REPLICATION_STRESS_TEST =
     "Replication Stress Test";
 
-  private BrokerReader reader = null;
+  private BrokerReader reader;
 
   /**
    * A "person" entry
    */
-  protected Entry personEntry;
+  private Entry personEntry;
 
   private int replServerPort;
 
@@ -143,14 +144,7 @@ public class StressTest extends ReplicationTestCase
         thread.join();
       }
 
-      int rcvCount = reader.getCount();
-
-      if (rcvCount != TOTAL_MESSAGES)
-      {
-        fail("some messages were lost : expected : " +TOTAL_MESSAGES +
-            " received : " + rcvCount);
-      }
-
+      assertEquals(reader.getCount(), TOTAL_MESSAGES, "some messages were lost");
     }
     finally {
       DirectoryServer.deregisterMonitorProvider(monitor);
@@ -193,7 +187,6 @@ public class StressTest extends ReplicationTestCase
         + "ds-cfg-replication-port: " + replServerPort + "\n"
         + "ds-cfg-replication-db-directory: StressTest\n"
         + "ds-cfg-replication-server-id: 106\n";
-    replServerEntry = TestCaseUtils.entryFromLdifString(replServerLdif);
 
     // suffix synchronized
     String testName = "stressTest";
@@ -205,7 +198,6 @@ public class StressTest extends ReplicationTestCase
         + "ds-cfg-base-dn: ou=People," + TEST_ROOT_DN_STRING + "\n"
         + "ds-cfg-replication-server: localhost:" + replServerPort + "\n"
         + "ds-cfg-server-id: 1\n" + "ds-cfg-receive-status: true\n";
-    synchroServerEntry = TestCaseUtils.entryFromLdifString(synchroServerLdif);
 
     String personLdif = "dn: uid=user.1,ou=People," + TEST_ROOT_DN_STRING + "\n"
         + "objectClass: top\n" + "objectClass: person\n"
@@ -223,7 +215,7 @@ public class StressTest extends ReplicationTestCase
         + "userPassword: password\n" + "initials: AA\n";
     personEntry = TestCaseUtils.entryFromLdifString(personLdif);
 
-    configureReplication();
+    configureReplication(replServerLdif, synchroServerLdif);
   }
 
   private class BrokerWriter extends Thread

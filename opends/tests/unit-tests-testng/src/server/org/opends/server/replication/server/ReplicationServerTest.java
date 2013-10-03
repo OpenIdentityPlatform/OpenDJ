@@ -123,7 +123,7 @@ public class ReplicationServerTest extends ReplicationTestCase
   /**
    * Start the server and configure a replicationServer.
    */
-  protected void configure() throws Exception
+  private void configure() throws Exception
   {
     replicationServerPort = TestCaseUtils.findFreePort();
 
@@ -953,7 +953,7 @@ public class ReplicationServerTest extends ReplicationTestCase
       session.publish(new WindowProbeMsg());
 
       // We may receive some MonitoringMsg so use filter method
-      windowMsg = (WindowMsg)waitForSpecificMsg(session, WindowMsg.class.getName());
+      windowMsg = waitForSpecificMsg(session, WindowMsg.class);
       assertEquals(serverwindow, windowMsg.getNumAck());
       debugInfo("Ending windowProbeTest");
     }
@@ -984,7 +984,7 @@ public class ReplicationServerTest extends ReplicationTestCase
   /**
    * After the tests stop the replicationServer.
    */
-  protected void shutdown() throws Exception
+  private void shutdown() throws Exception
   {
     TestCaseUtils.dsconfig(
         "delete-replication-server",

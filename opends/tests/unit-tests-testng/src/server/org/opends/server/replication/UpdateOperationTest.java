@@ -47,7 +47,6 @@ import org.opends.server.replication.protocol.*;
 import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.schema.DirectoryStringSyntax;
 import org.opends.server.types.*;
-import org.opends.server.util.StaticUtils;
 import org.opends.server.util.TimeThread;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
@@ -62,7 +61,7 @@ import static org.testng.Assert.*;
  * the replication server broker interface.
  */
 @SuppressWarnings("javadoc")
-public class  UpdateOperationTest extends ReplicationTestCase
+public class UpdateOperationTest extends ReplicationTestCase
 {
   /**
    * An entry with a entryUUID
@@ -83,7 +82,7 @@ public class  UpdateOperationTest extends ReplicationTestCase
   /**
    * A "person" entry
    */
-  protected Entry personEntry;
+  private Entry personEntry;
   private int replServerPort;
   private String domain1uid;
   private String domain2uid;
@@ -129,7 +128,6 @@ public class  UpdateOperationTest extends ReplicationTestCase
         + "ds-cfg-replication-port: " + replServerPort + "\n"
         + "ds-cfg-replication-db-directory: UpdateOperationTest\n"
         + "ds-cfg-replication-server-id: 107\n";
-    replServerEntry = TestCaseUtils.entryFromLdifString(replServerLdif);
 
     // suffix synchronized
     String testName = "updateOperationTest";
@@ -142,7 +140,6 @@ public class  UpdateOperationTest extends ReplicationTestCase
         + "ds-cfg-replication-server: localhost:" + replServerPort + "\n"
         + "ds-cfg-server-id: "+ domainSid +"\n"
         + "ds-cfg-receive-status: true\n";
-    synchroServerEntry = TestCaseUtils.entryFromLdifString(synchroServerLdif);
 
     String personLdif = "dn: uid=user.1,ou=People," + TEST_ROOT_DN_STRING + "\n"
         + "objectClass: top\n" + "objectClass: person\n"
@@ -238,7 +235,7 @@ public class  UpdateOperationTest extends ReplicationTestCase
         + "objectClass:domain\n"
         + "dc:domain3");
 
-    configureReplication();
+    configureReplication(replServerLdif, synchroServerLdif);
   }
 
   /**
@@ -415,10 +412,7 @@ public class  UpdateOperationTest extends ReplicationTestCase
       // Check that the modify has been replayed.
       boolean found = checkEntryHasAttribute(personWithUUIDEntry.getDN(),
           "telephonenumber", "01 02 45", 10000, true);
-      if (!found)
-      {
-        fail("The first modification was not replayed.");
-      }
+      assertTrue(found, "The first modification was not replayed.");
 
       // Simulate loss of heartbeats.
       HeartbeatThread.setHeartbeatsDisabled(true);
@@ -436,10 +430,7 @@ public class  UpdateOperationTest extends ReplicationTestCase
       found = checkEntryHasAttribute(personWithUUIDEntry.getDN(),
           "description", "Description was changed",
           10000, true);
-      if (!found)
-      {
-        fail("The second modification was not replayed.");
-      }
+      assertTrue(found, "The second modification was not replayed.");
 
       // Delete the entries to clean the database.
       DeleteMsg delMsg = new DeleteMsg(personWithUUIDEntry.getDN(), gen.newCSN(), user1entryUUID);
@@ -667,8 +658,7 @@ public class  UpdateOperationTest extends ReplicationTestCase
     // check that the modify has been applied as if the entry had been renamed.
     boolean found = checkEntryHasAttribute(personWithUUIDEntry.getDN(),
                            "telephonenumber", "01 02 45", 10000, true);
-    if (found == false)
-     fail("The modification has not been correctly replayed.");
+      assertTrue(found, "The modification has not been correctly replayed.");
     assertEquals(getMonitorDelta(), 1);
 
     // check that there was no administrative alert generated
@@ -696,9 +686,7 @@ public class  UpdateOperationTest extends ReplicationTestCase
     // check that the modify has been applied.
     found = checkEntryHasAttribute(personWithUUIDEntry.getDN(),
                            "uid", "AnotherUid", 10000, true);
-
-    if (found == false)
-      fail("The modification has not been correctly replayed.");
+      assertTrue(found, "The modification has not been correctly replayed.");
     assertEquals(getMonitorDelta(), 1);
 
     /*
@@ -736,8 +724,8 @@ public class  UpdateOperationTest extends ReplicationTestCase
     Thread.sleep(2000);
     found = checkEntryHasAttribute(personWithUUIDEntry.getDN(),
                            "telephonenumber", "02 01 03 05", 10000, false);
-    if (found == true)
-     fail("The modification has been replayed while it should not.");
+      assertFalse(found,
+          "The modification has been replayed while it should not.");
     assertEquals(getMonitorDelta(), 1);
 
     // Check that there was no administrative alert generated
@@ -1295,16 +1283,10 @@ public class  UpdateOperationTest extends ReplicationTestCase
     return new Object[][] { { false }, {true} };
   }
 
-  private void cleanupTest() {
-    try
-    {
-      classCleanUp();
-      setUp();
-    } catch (Exception e)
-    {
-      fail("Test cleanup failed: " + e.getClass().getName() + " : " +
-        e.getMessage() + " : " + StaticUtils.stackTraceToSingleLineString(e));
-    }
+  private void cleanupTest() throws Exception
+  {
+    classCleanUp();
+    setUp();
   }
 
   /**
@@ -1452,9 +1434,7 @@ public class  UpdateOperationTest extends ReplicationTestCase
 
       boolean found = checkEntryHasAttribute(personWithUUIDEntry.getDN(),
           "telephonenumber", "01 02 45", 10000, true);
-
-      if (found == false)
-        fail("The modification has not been correctly replayed.");
+      assertTrue(found, "The modification has not been correctly replayed.");
 
       // Test that replication is able to add attribute that do
       // not exist in the schema.
@@ -1467,8 +1447,7 @@ public class  UpdateOperationTest extends ReplicationTestCase
 
       found = checkEntryHasAttribute(
           personWithUUIDEntry.getDN(), "badattribute", "value", 10000, true);
-      if (found == false)
-        fail("The modification has not been correctly replayed.");
+      assertTrue(found, "The modification has not been correctly replayed.");
 
       /*
        * Test the Reception of Modify Dn Msg
@@ -1482,9 +1461,7 @@ public class  UpdateOperationTest extends ReplicationTestCase
       broker.publish(moddnMsg);
 
       resultEntry = getEntry(newDN, 10000, true);
-
-      assertNotNull(resultEntry,
-      "The modify DN replication message was not applied");
+      assertNotNull(resultEntry, "The modify DN replication message was not applied");
 
       /*
        * Test the Reception of Delete Msg

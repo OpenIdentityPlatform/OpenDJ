@@ -200,8 +200,8 @@ public class InitOnLineTest extends ReplicationTestCase
         "ds-task-initialize-replica-server-id: all");
   }
 
-  /** Tests that entries have been written in the db */
-  private void testEntriesInDb()
+  /** Tests that entries have been written in the db. */
+  private void testEntriesInDb() throws Exception
   {
     log("TestEntriesInDb");
     short found = 0;
@@ -215,15 +215,7 @@ public class InitOnLineTest extends ReplicationTestCase
 
       log("Search Entry: " + dn);
 
-      DN entryDN = null;
-      try
-      {
-        entryDN = DN.decode(dn);
-      }
-      catch(Exception e)
-      {
-        log("TestEntriesInDb/" + e);
-      }
+      DN entryDN = DN.decode(dn);
 
       try
       {
@@ -348,16 +340,13 @@ public class InitOnLineTest extends ReplicationTestCase
   {
     for (String ldifEntry : updatedEntries)
     {
-      Entry entry = TestCaseUtils.entryFromLdifString(ldifEntry);
-      addTestEntryToDB(entry);
-      // They will be removed at the end of the test
-      entryList.addLast(entry.getDN());
+      addTestEntryToDB(TestCaseUtils.entryFromLdifString(ldifEntry));
     }
     log("addTestEntriesToDB : " + updatedEntries.length
         + " successfully added to DB");
   }
 
-  private void addTestEntryToDB(Entry entry)
+  private void addTestEntryToDB(final Entry entry)
   {
     AddOperation addOp =
         new AddOperationBasis(connection, InternalClientConnection
@@ -371,8 +360,7 @@ public class InitOnLineTest extends ReplicationTestCase
       log("addEntry: Failed" + addOp.getResultCode());
     }
 
-    // They will be removed at the end of the test
-    entryList.addLast(entry.getDN());
+    entriesToCleanup.add(entry.getDN());
   }
 
   /**
@@ -602,14 +590,9 @@ public class InitOnLineTest extends ReplicationTestCase
 
     TestCaseUtils.clearJEBackend(false, "userRoot", EXAMPLE_DN);
 
-    synchroServerEntry = TestCaseUtils.entryFromLdifString(synchroServerLdif);
-    DirectoryServer.getConfigHandler().addEntry(synchroServerEntry, null);
-    assertNotNull(DirectoryServer.getConfigEntry(synchroServerEntry.getDN()),
-        "Unable to add the synchronized server");
-    configEntryList.add(synchroServerEntry.getDN());
+    addSynchroServerEntry(synchroServerLdif);
 
     replDomain = LDAPReplicationDomain.retrievesReplicationDomain(baseDN);
-
     assertTrue(!replDomain.ieRunning(),
         "ReplicationDomain: Import/Export is not expected to be running");
   }
@@ -1268,8 +1251,7 @@ public class InitOnLineTest extends ReplicationTestCase
       addTask(taskInit, ResultCode.SUCCESS, null);
 
       waitTaskState(taskInit, TaskState.STOPPED_BY_ERROR,
-        ERR_NO_REACHABLE_PEER_IN_THE_DOMAIN.get(
-            baseDN.toString(), "20"));
+          ERR_NO_REACHABLE_PEER_IN_THE_DOMAIN.get(baseDN.toString(), "20"));
 
       // Test 2
       taskInit = TestCaseUtils.makeEntry(
@@ -1349,18 +1331,21 @@ public class InitOnLineTest extends ReplicationTestCase
     String testCase = "InitializeStopped";
     fail(testCase + " NYI");
   }
+
   @Test(enabled=false)
   public void initializeTargetStopped() throws Exception
   {
     String testCase = "InitializeTargetStopped";
     fail(testCase + " NYI");
   }
+
   @Test(enabled=false)
   public void initializeCompressed() throws Exception
   {
     String testCase = "InitializeStopped";
     fail(testCase + " NYI");
   }
+
   @Test(enabled=false)
   public void initializeTargetEncrypted() throws Exception
   {
@@ -1429,8 +1414,7 @@ public class InitOnLineTest extends ReplicationTestCase
       ErrorMsg msg = new ErrorMsg(server1ID, 1, Message.EMPTY);
       server2.publish(msg);
 
-      waitTaskState(taskInit, TaskState.STOPPED_BY_ERROR,
-        null);
+      waitTaskState(taskInit, TaskState.STOPPED_BY_ERROR, null);
 
       log("Successfully ending " + testCase);
     } finally
@@ -1481,8 +1465,6 @@ public class InitOnLineTest extends ReplicationTestCase
 
   /**
    * Clean up the environment.
-   *
-   * @throws Exception If the environment could not be set up.
    */
   @AfterClass
   @Override

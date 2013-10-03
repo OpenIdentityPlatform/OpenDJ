@@ -32,6 +32,7 @@ import java.io.FileInputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.assertj.core.api.Assertions;
 import org.opends.messages.Category;
 import org.opends.messages.Message;
 import org.opends.messages.Severity;
@@ -92,7 +93,6 @@ public class SchemaReplicationTest extends ReplicationTestCase
         + "ds-cfg-replication-port: " + replServerPort + "\n"
         + "ds-cfg-replication-db-directory: SchemaReplicationTest\n"
         + "ds-cfg-replication-server-id: 105\n";
-    replServerEntry = TestCaseUtils.entryFromLdifString(replServerLdif);
 
     // suffix synchronized
     String testName = "schemaReplicationTest";
@@ -104,9 +104,8 @@ public class SchemaReplicationTest extends ReplicationTestCase
         + "ds-cfg-base-dn: cn=schema\n"
         + "ds-cfg-replication-server: localhost:" + replServerPort + "\n"
         + "ds-cfg-server-id: 1\n";
-    synchroServerEntry = TestCaseUtils.entryFromLdifString(domainLdif);
 
-    configureReplication();
+    configureReplication(replServerLdif, domainLdif);
   }
 
   /**
@@ -140,30 +139,21 @@ public class SchemaReplicationTest extends ReplicationTestCase
       modOp.setInternalOperation(true);
       modOp.run();
 
-      ResultCode code = modOp.getResultCode();
-      assertTrue(code.equals(ResultCode.SUCCESS),
-                 "The original operation failed: " + code.getResultCodeName());
+      assertEquals(modOp.getResultCode(), ResultCode.SUCCESS,
+          "The original operation failed");
 
       // See if the client has received the msg
       ReplicationMsg msg = broker.receive();
-
-      assertTrue(msg instanceof ModifyMsg,
-                 "The received replication message is not a MODIFY msg");
+      Assertions.assertThat(msg).isInstanceOf(ModifyMsg.class);
       ModifyMsg modMsg = (ModifyMsg) msg;
 
       Operation receivedOp = modMsg.createOperation(connection);
-      assertEquals(modMsg.getDN(), baseDN,
-                 "The received message is not for cn=schema");
-
-      assertTrue(receivedOp instanceof ModifyOperation,
-                 "The received replication message is not a MODIFY msg");
+      assertEquals(modMsg.getDN(), baseDN, "The received message is not for cn=schema");
+      Assertions.assertThat(receivedOp).isInstanceOf(ModifyOperation.class);
       ModifyOperation receivedModifyOperation = (ModifyOperation) receivedOp;
 
-      List<RawModification> rcvdRawMods =
-        receivedModifyOperation.getRawModifications();
-
       this.rcvdMods = new ArrayList<Modification>();
-      for (RawModification m : rcvdRawMods)
+      for (RawModification m : receivedModifyOperation.getRawModifications())
       {
         this.rcvdMods.add(m.toModification());
       }
@@ -183,15 +173,12 @@ public class SchemaReplicationTest extends ReplicationTestCase
       modOp.setInternalOperation(true);
       modOp.run();
 
-      code = modOp.getResultCode();
-      assertTrue(code.equals(ResultCode.SUCCESS),
-                 "The original operation failed" + code.getResultCodeName());
+      assertEquals(modOp.getResultCode(), ResultCode.SUCCESS,
+          "The original operation failed");
 
       // See if the client has received the msg
       msg = broker.receive();
-
-      assertTrue(msg instanceof ModifyMsg,
-                 "The received replication message is not a MODIFY msg");
+      Assertions.assertThat(msg).isInstanceOf(ModifyMsg.class);
     }
     finally
     {
@@ -227,9 +214,7 @@ public class SchemaReplicationTest extends ReplicationTestCase
       boolean found = checkEntryHasAttribute(baseDN, "attributetypes",
         "( 2.5.44.77.33 NAME 'dummy' )",
         10000, true);
-
-      if (found == false)
-        fail("The modification has not been correctly replayed.");
+      assertTrue(found, "The modification has not been correctly replayed.");
     }
     finally
     {
@@ -272,24 +257,16 @@ public class SchemaReplicationTest extends ReplicationTestCase
 
       // receive the message on the broker side.
       ReplicationMsg msg = broker.receive();
-
-      assertTrue(msg instanceof ModifyMsg,
-        "The received replication message is not a MODIFY msg");
+      Assertions.assertThat(msg).isInstanceOf(ModifyMsg.class);
       ModifyMsg modMsg = (ModifyMsg) msg;
 
       Operation receivedOp = modMsg.createOperation(connection);
-      assertEquals(modMsg.getDN(), baseDN,
-        "The received message is not for cn=schema");
-
-      assertTrue(receivedOp instanceof ModifyOperation,
-        "The received replication message is not a MODIFY msg");
+      assertEquals(modMsg.getDN(), baseDN, "The received message is not for cn=schema");
+      Assertions.assertThat(receivedOp).isInstanceOf(ModifyOperation.class);
       ModifyOperation receivedModifyOperation = (ModifyOperation) receivedOp;
 
-      List<RawModification> rcvdRawMods =
-        receivedModifyOperation.getRawModifications();
-
       this.rcvdMods = new ArrayList<Modification>();
-      for (RawModification m : rcvdRawMods)
+      for (RawModification m : receivedModifyOperation.getRawModifications())
       {
         this.rcvdMods.add(m.toModification());
       }
@@ -327,11 +304,8 @@ public class SchemaReplicationTest extends ReplicationTestCase
         {
           break;
         }
-        if (count++ > 50)
-        {
-          fail("The Schema persistentState (CSN:" + stateStr
-              + ") has not been saved to " + path + " : " + fileStr);
-        }
+        assertTrue(count++ <= 50, "The Schema persistentState (CSN:" + stateStr
+            + ") has not been saved to " + path + " : " + fileStr);
         TestCaseUtils.sleep(100);
       }
     } finally
