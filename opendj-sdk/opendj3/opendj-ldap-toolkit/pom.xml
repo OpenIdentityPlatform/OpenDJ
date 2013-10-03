@@ -42,17 +42,24 @@
       <groupId>org.forgerock.opendj</groupId>
       <artifactId>opendj-ldap-sdk</artifactId>
       <version>${project.version}</version>
-      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-jdk14</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.forgerock.commons</groupId>
+      <artifactId>i18n-core</artifactId>
     </dependency>
     <dependency>
       <groupId>org.forgerock</groupId>
       <artifactId>forgerock-build-tools</artifactId>
       <version>${forgerockBuildToolsVersion}</version>
       <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.forgerock.commons</groupId>
-      <artifactId>i18n-core</artifactId>
     </dependency>
   </dependencies>
   <build>

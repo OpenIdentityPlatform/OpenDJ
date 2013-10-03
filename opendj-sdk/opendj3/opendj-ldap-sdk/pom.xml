@@ -47,24 +47,16 @@
       <groupId>org.glassfish.grizzly</groupId>
       <artifactId>grizzly-framework</artifactId>
       <version>${grizzlyFrameworkVersion}</version>
-      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
     </dependency>
     <dependency>
       <groupId>org.forgerock</groupId>
       <artifactId>forgerock-build-tools</artifactId>
       <version>${forgerockBuildToolsVersion}</version>
       <scope>test</scope>
-    </dependency>
-    <dependency>
-    	<groupId>org.slf4j</groupId>
-    	<artifactId>slf4j-api</artifactId>
-    	<version>1.7.5</version>
-    </dependency>
-    <dependency>
-    	<groupId>org.slf4j</groupId>
-    	<artifactId>slf4j-jdk14</artifactId>
-    	<version>1.7.5</version>
-    	<scope>test</scope>
     </dependency>
   </dependencies>
   <properties>
