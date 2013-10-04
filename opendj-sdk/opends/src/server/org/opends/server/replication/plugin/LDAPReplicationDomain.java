@@ -2457,22 +2457,26 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    */
   public void replay(LDAPUpdateMsg msg, AtomicBoolean shutdown)
   {
-    Operation op = null;
-    boolean replayDone = false;
-    boolean dependency = false;
-    CSN csn = null;
-    int retryCount = 10;
-
     // Try replay the operation, then flush (replaying) any pending operation
     // whose dependency has been replayed until no more left.
     do
     {
+      Operation op = null; // the last operation on which replay was attempted
+      boolean dependency = false;
       String replayErrorMsg = null;
+      CSN csn = null;
       try
       {
-        op = msg.createOperation(conn);
+        // The next operation for which to attempt replay.
+        // This local variable allow to keep error messages in the "op" local
+        // variable until the next loop iteration starts.
+        // "op" is already initialized to the next Operation because of the
+        // error handling paths.
+        Operation nextOp = op = msg.createOperation(conn);
         dependency = remotePendingChanges.checkDependencies(op, msg);
 
+        boolean replayDone = false;
+        int retryCount = 10;
         while (!dependency && !replayDone && (retryCount-- > 0))
         {
           if (shutdown.get())
@@ -2481,6 +2485,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
             return;
           }
           // Try replay the operation
+          op = nextOp;
           op.setInternalOperation(true);
           op.setSynchronizationOperation(true);
 
@@ -2524,28 +2529,28 @@ public final class LDAPReplicationDomain extends ReplicationDomain
             }
             else if (op instanceof ModifyOperation)
             {
-              ModifyOperation newOp = (ModifyOperation) op;
-              dependency = remotePendingChanges.checkDependencies(newOp);
+              ModifyOperation castOp = (ModifyOperation) op;
+              dependency = remotePendingChanges.checkDependencies(castOp);
               ModifyMsg modifyMsg = (ModifyMsg) msg;
-              replayDone = solveNamingConflict(newOp, modifyMsg);
+              replayDone = solveNamingConflict(castOp, modifyMsg);
             }
             else if (op instanceof DeleteOperation)
             {
-              DeleteOperation newOp = (DeleteOperation) op;
-              dependency = remotePendingChanges.checkDependencies(newOp);
-              replayDone = solveNamingConflict(newOp, msg);
+              DeleteOperation castOp = (DeleteOperation) op;
+              dependency = remotePendingChanges.checkDependencies(castOp);
+              replayDone = solveNamingConflict(castOp, msg);
             }
             else if (op instanceof AddOperation)
             {
-              AddOperation newOp = (AddOperation) op;
+              AddOperation castOp = (AddOperation) op;
               AddMsg addMsg = (AddMsg) msg;
-              dependency = remotePendingChanges.checkDependencies(newOp);
-              replayDone = solveNamingConflict(newOp, addMsg);
+              dependency = remotePendingChanges.checkDependencies(castOp);
+              replayDone = solveNamingConflict(castOp, addMsg);
             }
             else if (op instanceof ModifyDNOperation)
             {
-              ModifyDNOperation newOp = (ModifyDNOperation) op;
-              replayDone = solveNamingConflict(newOp, msg);
+              ModifyDNOperation castOp = (ModifyDNOperation) op;
+              replayDone = solveNamingConflict(castOp, msg);
             }
             else
             {
@@ -2562,12 +2567,12 @@ public final class LDAPReplicationDomain extends ReplicationDomain
             else
             {
               /*
-               * Create a new operation as the ConflictResolution
-               * different operation.
+               * Create a new operation reflecting the new state of the
+               * UpdateMsg after conflict resolution modified it.
                *  Note: When msg is a DeleteMsg, the DeleteOperation is properly
                *  created with subtreeDelete request control when needed.
                */
-              op = msg.createOperation(conn);
+              nextOp = msg.createOperation(conn);
             }
           }
           else
@@ -2628,13 +2633,6 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       // dependency has been replayed, do that until no more updates of that
       // type left...
       msg = remotePendingChanges.getNextUpdate();
-
-      // Prepare restart of loop
-      replayDone = false;
-      dependency = false;
-      csn = null;
-      retryCount = 10;
-
     } while (msg != null);
   }
 
