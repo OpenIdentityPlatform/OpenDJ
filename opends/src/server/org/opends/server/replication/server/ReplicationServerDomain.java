@@ -1313,7 +1313,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
   */
   public long getCount(CSN from, CSN to)
   {
-    return domainDB.getCount(baseDN, from.getServerId(), from, to);
+    return domainDB.getCount(baseDN, from, to);
   }
 
   /**

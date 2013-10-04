@@ -136,8 +136,7 @@ public interface ReplicationDomainDB
    * </ol>
    * <h6>Example</h6>
    * <p>
-   * Given the following replica database for baseDN "dc=example,dc=com" and
-   * serverId 1:
+   * Given the following replica database for baseDN "dc=example,dc=com":
    *
    * <pre>
    * CSN1  <=  Oldest
@@ -150,25 +149,23 @@ public interface ReplicationDomainDB
    * Then:
    *
    * <pre>
-   * assertEquals(getCount(&quot;dc=example,dc=com&quot;, 1, CSN1, CSN1), 1);
-   * assertEquals(getCount(&quot;dc=example,dc=com&quot;, 1, CSN1, CSN2), 2);
-   * assertEquals(getCount(&quot;dc=example,dc=com&quot;, 1, CSN1, CSN5), 5);
-   * assertEquals(getCount(&quot;dc=example,dc=com&quot;, 1, null, CSN5), 5);
-   * assertEquals(getCount(&quot;dc=example,dc=com&quot;, 1, CSN1, null), 0);
-   * assertEquals(getCount(&quot;dc=example,dc=com&quot;, 1, null, null), 5);
+   * assertEquals(getCount(&quot;dc=example,dc=com&quot;, CSN1, CSN1), 1);
+   * assertEquals(getCount(&quot;dc=example,dc=com&quot;, CSN1, CSN2), 2);
+   * assertEquals(getCount(&quot;dc=example,dc=com&quot;, CSN1, CSN5), 5);
+   * assertEquals(getCount(&quot;dc=example,dc=com&quot;, null, CSN5), 5);
+   * assertEquals(getCount(&quot;dc=example,dc=com&quot;, CSN1, null), 0);
+   * assertEquals(getCount(&quot;dc=example,dc=com&quot;, null, null), 5);
    * </pre>
    *
    * @param baseDN
    *          the replication domain baseDN
-   * @param serverId
-   *          the serverId on which to act
    * @param from
    *          The older CSN where to start the count
    * @param to
    *          The newer CSN where to end the count
    * @return The computed number of changes
    */
-  long getCount(DN baseDN, int serverId, CSN from, CSN to);
+  long getCount(DN baseDN, CSN from, CSN to);
 
   /**
    * Returns the {@link CSN} situated immediately after the specified
