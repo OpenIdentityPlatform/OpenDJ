@@ -279,7 +279,7 @@ class ReplicationDomainMonitor
         // This directly connected LS has never produced any change
         maxCSN = new CSN(0, 0, serverId);
       }
-      pendingMonitorData.setMaxCSN(serverId, maxCSN);
+      pendingMonitorData.setMaxCSN(maxCSN);
       pendingMonitorData.setLDAPServerState(serverId, dsState);
       pendingMonitorData.setFirstMissingDate(serverId,
           ds.getApproxFirstMissingDate());
@@ -290,10 +290,9 @@ class ReplicationDomainMonitor
     // - whatever they are directly or indirectly connected
     final ServerState dbServerState = domain.getLatestServerState();
     pendingMonitorData.setRSState(domain.getLocalRSServerId(), dbServerState);
-    for (int serverId : dbServerState)
+    for (CSN storedCSN : dbServerState)
     {
-      CSN storedCSN = dbServerState.getCSN(serverId);
-      pendingMonitorData.setMaxCSN(serverId, storedCSN);
+      pendingMonitorData.setMaxCSN(storedCSN);
     }
   }
 

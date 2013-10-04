@@ -868,13 +868,10 @@ public final class ECLServerHandler extends ServerHandler
     changelog db has been trimmed and the cookie is not valid
     anymore.
     */
-    for (int serverId : rsDomain.getStartState())
+    for (CSN dbOldestChange : rsDomain.getStartState())
     {
-      CSN dbOldestChange =
-          rsDomain.getStartState().getCSN(serverId);
-      CSN providedChange = cookie.getCSN(serverId);
-      if (providedChange != null
-          && providedChange.older(dbOldestChange))
+      CSN providedChange = cookie.getCSN(dbOldestChange.getServerId());
+      if (providedChange != null && providedChange.older(dbOldestChange))
       {
         return true;
       }

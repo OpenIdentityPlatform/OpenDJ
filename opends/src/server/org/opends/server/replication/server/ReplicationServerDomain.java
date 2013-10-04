@@ -1307,14 +1307,13 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
  /**
   * Count the number of changes in the replication changelog for the provided
   * serverID, between 2 provided CSNs.
-  * @param serverId Identifier of the server for which to compute the count.
   * @param from lower limit CSN.
   * @param to   upper limit CSN.
   * @return the number of changes.
   */
-  public long getCount(int serverId, CSN from, CSN to)
+  public long getCount(CSN from, CSN to)
   {
-    return domainDB.getCount(baseDN, serverId, from, to);
+    return domainDB.getCount(baseDN, from.getServerId(), from, to);
   }
 
   /**
@@ -2593,9 +2592,8 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
 
     if (eligibleCSN != null)
     {
-      for (int serverId : latestState)
+      for (CSN mostRecentDbCSN : latestState)
       {
-        CSN mostRecentDbCSN = latestState.getCSN(serverId);
         try {
           // Is the most recent change in the Db newer than eligible CSN ?
           // if yes (like csn15 in the example above, then we have to go back
@@ -2603,9 +2601,12 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
           if (eligibleCSN.olderOrEqual(mostRecentDbCSN))
           {
             // let's try to seek the first change <= eligibleCSN
-            CSN newCSN = domainDB.getCSNAfter(baseDN, serverId, eligibleCSN);
+            CSN newCSN = domainDB.getCSNAfter(baseDN,
+                mostRecentDbCSN.getServerId(), eligibleCSN);
             result.update(newCSN);
-          } else {
+          }
+          else
+          {
             // for this serverId, all changes in the ChangelogDb are holder
             // than eligibleCSN, the most recent in the db is our guy.
             result.update(mostRecentDbCSN);
@@ -2653,14 +2654,11 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     CSN eligibleCSN = null;
 
     final ServerState newestCSNs = domainDB.getDomainNewestCSNs(baseDN);
-    for (final int serverId : newestCSNs)
+    for (final CSN changelogNewestCSN : newestCSNs)
     {
-      // Consider this producer (DS/db).
-      final CSN changelogNewestCSN = newestCSNs.getCSN(serverId);
-
       // Should it be considered for eligibility ?
-      CSN heartbeatLastCSN =
-        getChangeTimeHeartbeatState().getCSN(serverId);
+      int serverId = changelogNewestCSN.getServerId();
+      CSN heartbeatLastCSN = getChangeTimeHeartbeatState().getCSN(serverId);
 
       // If the most recent UpdateMsg or CLHeartbeatMsg received is very old
       // then the domain is considered down and not considered for eligibility
@@ -2804,10 +2802,9 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
   {
     long res = 0;
 
-    for (int serverId : getLatestServerState())
+    for (CSN startCSN : getLatestServerState())
     {
-      CSN startCSN = startState.getCSN(serverId);
-      long serverIdRes = getCount(serverId, startCSN, endCSN);
+      long serverIdRes = getCount(startCSN, endCSN);
 
       // The startPoint is excluded when counting the ECL eligible changes
       if (startCSN != null && serverIdRes > 0)
@@ -2831,10 +2828,12 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
   public long getEligibleCount(CSN startCSN, CSN endCSN)
   {
     long res = 0;
-    for (int serverId : getLatestServerState()) {
-      CSN lStartCSN =
-          new CSN(startCSN.getTime(), startCSN.getSeqnum(), serverId);
-      res += getCount(serverId, lStartCSN, endCSN);
+    for (CSN csn : getLatestServerState())
+    {
+      int serverId = csn.getServerId();
+      CSN lStartCSN = new CSN(startCSN.getTime(), startCSN.getSeqnum(),
+          serverId);
+      res += getCount(lStartCSN, endCSN);
     }
     return res;
   }
