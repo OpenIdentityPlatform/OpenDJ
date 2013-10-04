@@ -263,7 +263,7 @@ class ReplicationDomainMonitor
     // - in the ServerHandler for a given DS1, the stored state contains :
     // -- the max CSN produced by DS1
     // -- the last CSN consumed by DS1 from DS2..n
-    // - in the RSdomain/dbHandler, the built-in state contains :
+    // - in the ReplicationDomainDB/ReplicaDB, the built-in state contains:
     // -- the max CSN produced by each server
     // So for a given DS connected we can take the state and the max from
     // the DS/state.

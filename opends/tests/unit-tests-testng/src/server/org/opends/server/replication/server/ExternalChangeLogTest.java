@@ -27,7 +27,10 @@
  */
 package org.opends.server.replication.server;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.StringReader;
 import java.net.Socket;
 import java.util.*;
 
@@ -55,7 +58,7 @@ import org.opends.server.replication.plugin.ExternalChangelogDomainFakeCfg;
 import org.opends.server.replication.plugin.LDAPReplicationDomain;
 import org.opends.server.replication.plugin.MultimasterReplication;
 import org.opends.server.replication.protocol.*;
-import org.opends.server.replication.server.changelog.je.DraftCNDbHandler;
+import org.opends.server.replication.server.changelog.je.JEChangeNumberIndexDB;
 import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.tools.LDAPSearch;
 import org.opends.server.tools.LDAPWriter;
@@ -67,7 +70,10 @@ import org.opends.server.workflowelement.externalchangelog.ECLSearchOperation;
 import org.opends.server.workflowelement.externalchangelog.ECLWorkflowElement;
 import org.opends.server.workflowelement.localbackend.LocalBackendModifyDNOperation;
 import org.testng.Assert;
-import org.testng.annotations.*;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.opends.messages.ReplicationMessages.*;
@@ -372,8 +378,8 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     // search again the ECL, but search for first and last
     ECLCompatTestLimitsAndAdd(1,8, ts);
 
-    // Test DraftCNDb is purged when replication change log is purged
-    ECLPurgeDraftCNDbAfterChangelogClear();
+    // Test CNIndexDB is purged when replication change log is purged
+    ECLPurgeCNIndexDBAfterChangelogClear();
 
     // Test first and last are updated
     ECLCompatTestLimits(0,0, true);
@@ -2593,26 +2599,26 @@ public class ExternalChangeLogTest extends ReplicationTestCase
   }
 
   /**
-   * Put a short purge delay to the draftCNDB, clear the changelogDB,
-   * expect the draftCNDb to be purged accordingly.
+   * Put a short purge delay to the CNIndexDB, clear the changelogDB, expect the
+   * CNIndexDB to be purged accordingly.
    */
-  private void ECLPurgeDraftCNDbAfterChangelogClear() throws Exception
+  private void ECLPurgeCNIndexDBAfterChangelogClear() throws Exception
   {
-    String tn = "ECLPurgeDraftCNDbAfterChangelogClear";
+    String tn = "ECLPurgeCNIndexDBAfterChangelogClear";
     debugInfo(tn, "Starting test\n\n");
 
-    DraftCNDbHandler draftdb =
-        (DraftCNDbHandler) replicationServer.getChangeNumberIndexDB();
-    assertEquals(draftdb.count(), 8);
-    draftdb.setPurgeDelay(1000);
+    JEChangeNumberIndexDB cnIndexDB =
+        (JEChangeNumberIndexDB) replicationServer.getChangeNumberIndexDB();
+    assertEquals(cnIndexDB.count(), 8);
+    cnIndexDB.setPurgeDelay(1000);
 
     clearChangelogDB(replicationServer);
 
     // Expect changes purged from the changelog db to be sometimes
-    // also purged from the DraftCNDb.
-    while (!draftdb.isEmpty())
+    // also purged from the CNIndexDB.
+    while (!cnIndexDB.isEmpty())
     {
-      debugInfo(tn, "draftdb.count=" + draftdb.count());
+      debugInfo(tn, "cnIndexDB.count=" + cnIndexDB.count());
       sleep(200);
     }
 

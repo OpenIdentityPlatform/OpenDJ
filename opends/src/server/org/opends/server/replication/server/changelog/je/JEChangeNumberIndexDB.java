@@ -64,7 +64,7 @@ import static org.opends.server.util.StaticUtils.*;
  * This class publishes some monitoring information below <code>
  * cn=monitor</code>.
  */
-public class DraftCNDbHandler implements ChangeNumberIndexDB, Runnable
+public class JEChangeNumberIndexDB implements ChangeNumberIndexDB, Runnable
 {
   /**
    * The tracer object for the debug logger.
@@ -108,14 +108,14 @@ public class DraftCNDbHandler implements ChangeNumberIndexDB, Runnable
 
 
   /**
-   * Creates a new dbHandler associated to a given LDAP server.
+   * Creates a new JEChangeNumberIndexDB associated to a given LDAP server.
    *
-   * @param replicationServer The ReplicationServer that creates this dbHandler.
+   * @param replicationServer The ReplicationServer that creates this instance.
    * @param dbenv the Database Env to use to create the ReplicationServer DB.
    * server for this domain.
    * @throws ChangelogException If a database problem happened
    */
-  public DraftCNDbHandler(ReplicationServer replicationServer,
+  public JEChangeNumberIndexDB(ReplicationServer replicationServer,
       ReplicationDbEnv dbenv) throws ChangelogException
   {
     this.replicationServer = replicationServer;
@@ -133,7 +133,8 @@ public class DraftCNDbHandler implements ChangeNumberIndexDB, Runnable
         new AtomicLong((lastRecord != null) ? lastRecord.getChangeNumber() : 0);
 
     // Trimming thread
-    thread = new DirectoryThread(this, "Replication DraftCN db");
+    thread =
+        new DirectoryThread(this, "Replication ChangeNumberIndexDB Trimmer");
     thread.start();
 
     // Monitoring registration
@@ -157,7 +158,7 @@ public class DraftCNDbHandler implements ChangeNumberIndexDB, Runnable
     db.addRecord(record);
 
     if (debugEnabled())
-      TRACER.debugInfo("In DraftCNDbhandler.add, added: " + record);
+      TRACER.debugInfo("In JEChangeNumberIndexDB.add, added: " + record);
   }
 
   /** {@inheritDoc} */
@@ -227,7 +228,7 @@ public class DraftCNDbHandler implements ChangeNumberIndexDB, Runnable
   public ChangeNumberIndexDBCursor getCursorFrom(long startChangeNumber)
       throws ChangelogException
   {
-    return new DraftCNDbIterator(db, startChangeNumber);
+    return new JEChangeNumberIndexDBCursor(db, startChangeNumber);
   }
 
   /** {@inheritDoc} */
@@ -332,14 +333,13 @@ public class DraftCNDbHandler implements ChangeNumberIndexDB, Runnable
       {
         for (int j = 0; j < 50; j++)
         {
-          // let's traverse the DraftCNDb
+          // let's traverse the CNIndexDB
           if (!cursor.next())
           {
             cursor.close();
             return;
           }
 
-          // From the draftCNDb change record, get the domain and CSN
           final CNIndexRecord record = cursor.currentRecord();
           if (baseDNToClear != null && baseDNToClear.equals(record.getBaseDN()))
           {
@@ -352,8 +352,7 @@ public class DraftCNDbHandler implements ChangeNumberIndexDB, Runnable
           if (domain == null)
           {
             // the domain has been removed since the record was written in the
-            // draftCNDb, thus it makes no sense to keep the record in the
-            // draftCNDb.
+            // CNIndexDB, thus it makes no sense to keep this record in the DB.
             cursor.delete();
             continue;
           }
@@ -379,12 +378,12 @@ public class DraftCNDbHandler implements ChangeNumberIndexDB, Runnable
             csnVector = csnStartStates.get(record.getBaseDN());
 
             if (debugEnabled())
-              TRACER.debugInfo("DraftCNDBHandler:clear() - ChangeVector:"
+              TRACER.debugInfo("JEChangeNumberIndexDB:clear() - ChangeVector:"
                   + csnVector + " -- StartState:" + startState);
           }
           catch(Exception e)
           {
-            // We couldn't parse the mdss from the DraftCNData Value
+            // We could not parse the MultiDomainServerState from the record
             cursor.delete();
             continue;
           }
@@ -395,7 +394,7 @@ public class DraftCNDbHandler implements ChangeNumberIndexDB, Runnable
           {
             cursor.delete();
             if (debugEnabled())
-              TRACER.debugInfo("DraftCNDBHandler:clear() - deleted " + csn
+              TRACER.debugInfo("JEChangeNumberIndexDB:clear() - deleted " + csn
                   + "Not covering startState");
             continue;
           }
@@ -427,8 +426,8 @@ public class DraftCNDbHandler implements ChangeNumberIndexDB, Runnable
   }
 
   /**
-   * This internal class is used to implement the Monitoring capabilities
-   * of the dbHandler.
+   * This internal class is used to implement the Monitoring capabilities of the
+   * JEChangeNumberIndexDB.
    */
   private class DbMonitorProvider extends MonitorProvider<MonitorProviderCfg>
   {
@@ -498,7 +497,8 @@ public class DraftCNDbHandler implements ChangeNumberIndexDB, Runnable
   @Override
   public String toString()
   {
-    return "draftCNdb:" + " " + firstChangeNumber + " " + lastChangeNumber;
+    return "JEChangeNumberIndexDB: " + firstChangeNumber + " "
+        + lastChangeNumber;
   }
 
   /**

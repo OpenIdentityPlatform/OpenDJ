@@ -190,8 +190,7 @@ public class ReplicationDbEnv
   }
 
   /**
-   * Read the list of known servers from the database and start dbHandler for
-   * each of them.
+   * Read and return the list of known servers from the database.
    *
    * @return the {@link ChangelogState} read from the changelogState DB
    * @throws ChangelogException
@@ -591,7 +590,7 @@ public class ReplicationDbEnv
      * @return the retrieved or created db.
      * @throws ChangelogException when a problem occurs.
      */
-    public Database getOrCreateDraftCNDb() throws ChangelogException
+    public Database getOrCreateCNIndexDB() throws ChangelogException
     {
       try
       {

@@ -31,7 +31,7 @@
  * <ul>
  * <li>a changelog of all the changes that happened on each server in the
  * replication domain / suffix,</li>
- * <li>a draft changelog,</li>
+ * <li>a changelog as defined by draft-good-ldap-changelog,</li>
  * <li>a state database containing specific information about each serverId in
  * the suffix, and in particular the generationId for each server.</li>
  * </ul>

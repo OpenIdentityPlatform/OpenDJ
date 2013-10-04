@@ -104,13 +104,13 @@ public interface ChangeNumberIndexDB
 
   /**
    * Generate a new {@link ChangeNumberIndexDBCursor} that allows to browse the
-   * db managed by this DBHandler and starting at the position defined by a
-   * given changeNumber.
+   * db managed by this object and starting at the position defined by a given
+   * changeNumber.
    *
    * @param startChangeNumber
    *          The position where the iterator must start.
    * @return a new ReplicationIterator that allows to browse this DB managed by
-   *         this DBHandler and starting at the position defined by a given
+   *         this object and starting at the position defined by a given
    *         changeNumber.
    * @throws ChangelogException
    *           if a database problem occurs.

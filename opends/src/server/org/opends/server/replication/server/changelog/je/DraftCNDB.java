@@ -49,7 +49,7 @@ import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class implements the interface between the underlying database
- * and the dbHandler class.
+ * and the {@link JEChangeNumberIndexDB} class.
  * This is the only class that should have code using the BDB interfaces.
  */
 public class DraftCNDB
@@ -76,7 +76,7 @@ public class DraftCNDB
     this.dbenv = dbenv;
 
     // Get or create the associated ReplicationServerDomain and Db.
-    db = dbenv.getOrCreateDraftCNDb();
+    db = dbenv.getOrCreateCNIndexDB();
   }
 
   /**
@@ -658,7 +658,7 @@ public class DraftCNDB
       dbenv.clearDb(oldDb);
 
       // RE-create the db
-      db = dbenv.getOrCreateDraftCNDb();
+      db = dbenv.getOrCreateCNIndexDB();
     }
     catch(Exception e)
     {

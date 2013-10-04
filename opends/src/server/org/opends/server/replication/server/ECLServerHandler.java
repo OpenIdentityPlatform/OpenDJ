@@ -118,7 +118,7 @@ public final class ECLServerHandler extends ServerHandler
            "[draftCompat=" + draftCompat +
            "] [persistent=" + isPersistent +
            "] [startChangeNumber=" + lastChangeNumber +
-           "] [isEndOfDraftCNReached=" + isEndOfCNIndexDBReached +
+           "] [isEndOfCNIndexDBReached=" + isEndOfCNIndexDBReached +
            "] [searchPhase=" + searchPhase +
            "] [startCookie=" + startCookie +
            "] [previousCookie=" + previousCookie +
@@ -574,7 +574,7 @@ public final class ECLServerHandler extends ServerHandler
     if (startChangeNumber <= 1)
     {
       // Request filter DOES NOT contain any first change number
-      // So we'll generate from the first change number in the DraftCNdb
+      // So we'll generate from the first change number in the CNIndexDB
       final CNIndexRecord firstCNRecord = cnIndexDB.getFirstRecord();
       if (firstCNRecord == null)
       { // DB is empty or closed
@@ -590,7 +590,7 @@ public final class ECLServerHandler extends ServerHandler
 
     // Request filter DOES contain a startChangeNumber
 
-    // Read the draftCNDb to see whether it contains startChangeNumber
+    // Read the CNIndexDB to see whether it contains startChangeNumber
     CNIndexRecord startCNRecord = cnIndexDB.getRecord(startChangeNumber);
     if (startCNRecord != null)
     {
@@ -600,11 +600,11 @@ public final class ECLServerHandler extends ServerHandler
       return crossDomainStartState;
     }
 
-    // startChangeNumber provided in the request IS NOT in the DraftCNDb
+    // startChangeNumber provided in the request IS NOT in the CNIndexDB
 
     /*
-     * Get the draftLimits (from the eligibleCSN got at the beginning of the
-     * operation) in order to have the first and possible last change number.
+     * Get the changeNumberLimits (from the eligibleCSN obtained at the start of
+     * this method) in order to have the first and last change numbers.
      */
     final long[] limits = replicationServer.getECLChangeNumberLimits(
         eligibleCSN, excludedBaseDNs);
@@ -643,7 +643,7 @@ public final class ECLServerHandler extends ServerHandler
       cnIndexDBCursor = cnIndexDB.getCursorFrom(lastKey);
       return crossDomainStartState;
 
-      // TODO:ECL ... ok we'll start from the end of the draftCNDb BUT ...
+      // TODO:ECL ... ok we'll start from the end of the CNIndexDB BUT ...
       // this may be very long. Work on perf improvement here.
     }
 
@@ -828,7 +828,7 @@ public final class ECLServerHandler extends ServerHandler
                 startStatesFromProvidedCookie.toString() ,sb.toString()));
       }
 
-      // the next record from the DraftCNdb should be the one
+      // the next record from the CNIndexDB should be the one
       startCookie = providedCookie;
 
       // Initializes each and every domain with the next(first) eligible message
@@ -1347,10 +1347,10 @@ public final class ECLServerHandler extends ServerHandler
   private boolean assignChangeNumber(final ECLUpdateMsg oldestChange)
       throws ChangelogException
   {
-    // We also need to check if the draftCNdb is consistent with
+    // We also need to check if the CNIndexDB is consistent with
     // the changelogdb.
     // if not, 2 potential reasons
-    // a/ : changelog has been purged (trim)let's traverse the draftCNDb
+    // a/ : changelog has been purged (trim)let's traverse the CNIndexDB
     // b/ : changelog is late .. let's traverse the changelogDb
     // The following loop allows to loop until being on the same cn
     // in the 2 dbs
@@ -1363,7 +1363,7 @@ public final class ECLServerHandler extends ServerHandler
     {
       if (isEndOfCNIndexDBReached)
       {
-        // we are at the end of the DraftCNdb in the append mode
+        // we are at the end of the CNIndexDB in the append mode
         assignNewChangeNumberAndStore(oldestChange);
         return true;
       }
@@ -1371,19 +1371,19 @@ public final class ECLServerHandler extends ServerHandler
 
       // the next change from the CNIndexDB
       final CNIndexRecord currentRecord = cnIndexDBCursor.getRecord();
-      final CSN csnFromDraftCNDb = currentRecord.getCSN();
-      final DN dnFromDraftCNDb = currentRecord.getBaseDN();
+      final CSN csnFromCNIndexDB = currentRecord.getCSN();
+      final DN dnFromCNIndexDB = currentRecord.getBaseDN();
 
       if (debugEnabled())
         TRACER.debugInfo("assignChangeNumber() generating change number "
             + " comparing the 2 db DNs :" + dnFromChangelogDb + "?="
             + csnFromChangelogDb + " timestamps:"
             + new Date(csnFromChangelogDb.getTime()) + " ?older"
-            + new Date(csnFromDraftCNDb.getTime()));
+            + new Date(csnFromCNIndexDB.getTime()));
 
 
       if (areSameChange(csnFromChangelogDb, dnFromChangelogDb,
-          csnFromDraftCNDb, dnFromDraftCNDb))
+          csnFromCNIndexDB, dnFromCNIndexDB))
       {
         if (debugEnabled())
           TRACER.debugInfo("assignChangeNumber() generating change number "
@@ -1395,7 +1395,7 @@ public final class ECLServerHandler extends ServerHandler
       }
 
 
-      if (!csnFromDraftCNDb.older(csnFromChangelogDb))
+      if (!csnFromCNIndexDB.older(csnFromChangelogDb))
       {
         // the change from the changelogDb is older
         // it should have been stored lately
@@ -1408,16 +1408,16 @@ public final class ECLServerHandler extends ServerHandler
       }
 
 
-      // the change from the DraftCNDb is older
+      // the change from the CNIndexDB is older
       // that means that the change has been purged from the
-      // changelogDb (and DraftCNdb not yet been trimmed)
+      // changelogDb (and CNIndexDB not yet been trimmed)
       try
       {
-        // let's traverse the DraftCNdb searching for the change
+        // let's traverse the CNIndexDB searching for the change
         // found in the changelogDb.
         if (debugEnabled())
           TRACER.debugInfo("assignChangeNumber() generating change number "
-              + " will skip " + csnFromDraftCNDb
+              + " will skip " + csnFromCNIndexDB
               + " and read next change from the CNIndexDB.");
 
         isEndOfCNIndexDBReached = !cnIndexDBCursor.next();

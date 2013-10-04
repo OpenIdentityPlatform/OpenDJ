@@ -2830,9 +2830,8 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     long res = 0;
     for (CSN csn : getLatestServerState())
     {
-      int serverId = csn.getServerId();
-      CSN lStartCSN = new CSN(startCSN.getTime(), startCSN.getSeqnum(),
-          serverId);
+      CSN lStartCSN =
+          new CSN(startCSN.getTime(), startCSN.getSeqnum(), csn.getServerId());
       res += getCount(lStartCSN, endCSN);
     }
     return res;

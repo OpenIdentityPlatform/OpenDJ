@@ -40,7 +40,7 @@ public class JEReplicaDBCursor implements ReplicaDBCursor
 {
   private UpdateMsg currentChange;
   private ReplServerDBCursor cursor;
-  private DbHandler dbHandler;
+  private JEReplicaDB replicaDB;
   private ReplicationDB db;
   private CSN lastNonNullCurrentCSN;
 
@@ -53,16 +53,16 @@ public class JEReplicaDBCursor implements ReplicaDBCursor
    * @param startAfterCSN
    *          The CSN after which the cursor must start.If null, start from the
    *          oldest CSN
-   * @param dbHandler
-   *          The associated DbHandler.
+   * @param replicaDB
+   *          The associated JEReplicaDB.
    * @throws ChangelogException
    *           if a database problem happened.
    */
   public JEReplicaDBCursor(ReplicationDB db, CSN startAfterCSN,
-      DbHandler dbHandler) throws ChangelogException
+      JEReplicaDB replicaDB) throws ChangelogException
   {
     this.db = db;
-    this.dbHandler = dbHandler;
+    this.replicaDB = replicaDB;
     this.lastNonNullCurrentCSN = startAfterCSN;
 
     try
@@ -78,7 +78,7 @@ public class JEReplicaDBCursor implements ReplicaDBCursor
     if (cursor == null)
     {
       // flush the queue into the db
-      dbHandler.flush();
+      replicaDB.flush();
 
       // look again in the db
       cursor = db.openReadCursor(startAfterCSN);
@@ -111,7 +111,7 @@ public class JEReplicaDBCursor implements ReplicaDBCursor
           cursor.close();
           cursor = null;
         }
-        dbHandler.flush();
+        replicaDB.flush();
         try
         {
           cursor = db.openReadCursor(lastNonNullCurrentCSN);
@@ -141,7 +141,7 @@ public class JEReplicaDBCursor implements ReplicaDBCursor
         cursor.close();
         cursor = null;
       }
-      this.dbHandler = null;
+      this.replicaDB = null;
       this.db = null;
     }
   }

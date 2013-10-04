@@ -1376,20 +1376,20 @@ public final class ReplicationServer
   public long[] getECLChangeNumberLimits(CSN crossDomainEligibleCSN,
       Set<String> excludedBaseDNs) throws DirectoryException
   {
-    /* The content of the DraftCNdb depends on the SEARCH operations done before
-     * requesting the change number. If no operations, DraftCNdb is empty.
+    /* The content of the CNIndexDB depends on the SEARCH operations done before
+     * requesting the change number. If no operations, CNIndexDB is empty.
      * The limits we want to get are the "potential" limits if a request was
-     * done, the DraftCNdb is probably not complete to do that.
+     * done, the CNIndexDB is probably not complete to do that.
      *
      * The first change number is :
-     *  - the first record from the DraftCNdb
-     *  - if none because DraftCNdb empty,
+     *  - the first record from the CNIndexDB
+     *  - if none because CNIndexDB empty,
      *      then
      *        if no change in replchangelog then return 0
      *        else return 1 (change number that WILL be returned to next search)
      *
      * The last change number is :
-     *  - initialized with the last record from the DraftCNdb (0 if none)
+     *  - initialized with the last record from the CNIndexDB (0 if none)
      *    and consider the genState associated
      *  - to the last change number, we add the count of updates in the
      *     replchangelog FROM that genState TO the crossDomainEligibleCSN
@@ -1451,12 +1451,12 @@ public final class ReplicationServer
         }
         else
         {
-          // There are records in the draftDB (so already returned to clients)
+          // There are records in the CNIndexDB (so already returned to clients)
           // BUT
-          // There is nothing related to this domain in the last draft record
+          // There is nothing related to this domain in the last CNIndexRecord
           // (may be this domain was disabled when this record was returned).
           // In that case, are counted the changes from
-          // the date of the most recent change from this last draft record
+          // the date of the most recent change from this last CNIndexRecord
           if (newestDate == 0)
           {
             newestDate = csnForLastCN.getTime();

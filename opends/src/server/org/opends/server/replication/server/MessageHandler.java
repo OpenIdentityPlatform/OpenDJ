@@ -536,7 +536,7 @@ public class MessageHandler extends MonitorProvider<MonitorProviderCfg>
        * large and therefore won't contain all the changes. Some changes may
        * only be stored in the backing DB of the servers.
        * The total size of the receive queue is calculated by doing the sum of
-       * the number of missing changes for every dbHandler.
+       * the number of missing changes for every replicaDB.
        */
       ServerState latestState = replicationServerDomain.getLatestServerState();
       return ServerState.diffChanges(latestState, serverState);
