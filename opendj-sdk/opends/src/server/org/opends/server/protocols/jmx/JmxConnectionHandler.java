@@ -407,9 +407,9 @@ public final class JmxConnectionHandler extends
   {
     JMXConnectionHandlerCfg config = (JMXConnectionHandlerCfg) configuration;
 
-    if (currentConfig == null ||
+    if ((currentConfig == null ||
         (!currentConfig.isEnabled() && config.isEnabled()) ||
-        currentConfig.getListenPort() != config.getListenPort() &&
+        currentConfig.getListenPort() != config.getListenPort()) &&
         !isPortConfigurationAcceptable(String.valueOf(config.dn()),
           config.getListenPort(), unacceptableReasons))
     {
