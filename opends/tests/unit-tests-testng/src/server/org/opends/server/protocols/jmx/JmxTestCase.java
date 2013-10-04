@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS.
  */
 package org.opends.server.protocols.jmx;
 
@@ -78,8 +79,7 @@ public abstract class JmxTestCase extends DirectoryServerTestCase
   /**
    * Get a reference to the JMX connection handler.
    *
-   * @throws an
-   *           Exception is something went wrong.
+   * @throws Exception if something went wrong.
    */
   protected JmxConnectionHandler getJmxConnectionHandler() throws Exception
   {
@@ -100,7 +100,7 @@ public abstract class JmxTestCase extends DirectoryServerTestCase
       enableJmx();
       synchronized (this)
       {
-        this.wait(1000);
+        this.wait(2000);
       }
       for (ConnectionHandler handler : handlers)
       {
