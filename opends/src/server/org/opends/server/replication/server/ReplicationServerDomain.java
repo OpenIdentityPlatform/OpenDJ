@@ -30,7 +30,6 @@ package org.opends.server.replication.server;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.*;
-import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
@@ -1721,17 +1720,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
    */
   public ServerState getLatestServerState()
   {
-    return toServerState(changelogDB.getDomainNewestCSNs(baseDN).values());
-  }
-
-  private ServerState toServerState(Collection<CSN> csns)
-  {
-    ServerState serverState = new ServerState();
-    for (CSN csn : csns)
-    {
-      serverState.update(csn);
-    }
-    return serverState;
+    return changelogDB.getDomainNewestCSNs(baseDN);
   }
 
   /**
@@ -2646,7 +2635,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
    */
   public ServerState getStartState()
   {
-    return toServerState(changelogDB.getDomainOldestCSNs(baseDN).values());
+    return changelogDB.getDomainOldestCSNs(baseDN);
   }
 
   /**
@@ -2662,12 +2651,11 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
   {
     CSN eligibleCSN = null;
 
-    for (Entry<Integer, CSN> entry :
-      changelogDB.getDomainNewestCSNs(baseDN).entrySet())
+    final ServerState newestCSNs = changelogDB.getDomainNewestCSNs(baseDN);
+    for (final int serverId : newestCSNs)
     {
       // Consider this producer (DS/db).
-      final int serverId = entry.getKey();
-      final CSN changelogNewestCSN = entry.getValue();
+      final CSN changelogNewestCSN = newestCSNs.getCSN(serverId);
 
       // Should it be considered for eligibility ?
       CSN heartbeatLastCSN =

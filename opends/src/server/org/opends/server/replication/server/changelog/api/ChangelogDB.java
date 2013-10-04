@@ -26,10 +26,10 @@
  */
 package org.opends.server.replication.server.changelog.api;
 
-import java.util.Map;
 import java.util.Set;
 
 import org.opends.server.replication.common.CSN;
+import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.types.DN;
 
@@ -49,14 +49,6 @@ public interface ChangelogDB
 {
 
   // DB control methods
-
-  /**
-   * Get the replication server database directory. This is used by tests to do
-   * some cleanup.
-   *
-   * @return the database directory name
-   */
-  String getDBDirectoryName();
 
   /**
    * Initializes the replication database by reading its previous state and
@@ -109,7 +101,7 @@ public interface ChangelogDB
    *
    * @param baseDN
    *          the replication domain baseDN
-   * @return a set of integers holding the serverIds
+   * @return an unmodifiable set of integers holding the serverIds
    */
   Set<Integer> getDomainServerIds(DN baseDN);
 
@@ -128,10 +120,11 @@ public interface ChangelogDB
    *
    * @param baseDN
    *          the replication domain baseDN
-   * @return a {serverId => oldest CSN} Map. If a replica DB is empty or closed,
-   *         the oldest CSN will be null for that replica.
+   * @return a new ServerState object holding the {serverId => oldest CSN}
+   *         mapping. If a replica DB is empty or closed, the oldest CSN will be
+   *         null for that replica. The caller owns the generated ServerState.
    */
-  Map<Integer, CSN> getDomainOldestCSNs(DN baseDN);
+  ServerState getDomainOldestCSNs(DN baseDN);
 
   /**
    * Returns the newest {@link CSN}s of each serverId for the specified
@@ -139,10 +132,11 @@ public interface ChangelogDB
    *
    * @param baseDN
    *          the replication domain baseDN
-   * @return a {serverId => newest CSN} Map. If a replica DB is empty or closed,
-   *         the newest CSN will be null for that replica.
+   * @return a new ServerState object holding the {serverId => newest CSN} Map.
+   *         If a replica DB is empty or closed, the newest CSN will be null for
+   *         that replica. The caller owns the generated ServerState.
    */
-  Map<Integer, CSN> getDomainNewestCSNs(DN baseDN);
+  ServerState getDomainNewestCSNs(DN baseDN);
 
   /**
    * Retrieves the latest trim date for the specified replication domain.
