@@ -54,7 +54,7 @@ import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class implements the interface between the underlying database
- * and the dbHandler class.
+ * and the JEReplicaDB class.
  * This is the only class that should have code using the BDB interfaces.
  */
 public class ReplicationDB

@@ -43,27 +43,32 @@ import org.opends.server.types.DN;
 import org.opends.server.util.StaticUtils;
 import org.testng.annotations.Test;
 
-import static org.opends.server.replication.server.changelog.je.DbHandlerTest.*;
+import static org.opends.server.replication.server.changelog.je.JEReplicaDBTest.*;
 import static org.testng.Assert.*;
 
 /**
- * Test the DraftCNDbHandler class with 2 kinds of cleaning of the db : -
+ * Test the JEChangeNumberIndexDB class with 2 kinds of cleaning of the db : -
  * periodic trim - call to clear method()
  */
 @SuppressWarnings("javadoc")
-public class DraftCNDbHandlerTest extends ReplicationTestCase
+public class JEChangeNumberIndexDBTest extends ReplicationTestCase
 {
   /**
-   * This test makes basic operations of a DraftCNDb : - create the db - add
-   * records - read them with a cursor - set a very short trim period - wait for
-   * the db to be trimmed / here since the changes are not stored in the
-   * replication changelog, the draftCNDb will be cleared.
+   * This test makes basic operations of a JEChangeNumberIndexDB:
+   * <ol>
+   * <li>create the db</li>
+   * <li>add records</li>
+   * <li>read them with a cursor</li>
+   * <li>set a very short trim period</li>
+   * <li>wait for the db to be trimmed / here since the changes are not stored
+   * in the replication changelog, the ChangeNumberIndexDB will be cleared.</li>
+   * </ol>
    */
   @Test()
-  void testDraftCNDbHandlerTrim() throws Exception
+  void testTrim() throws Exception
   {
     ReplicationServer replicationServer = null;
-    DraftCNDbHandler handler = null;
+    JEChangeNumberIndexDB cnIndexDB = null;
     try
     {
       TestCaseUtils.startServer();
@@ -76,8 +81,8 @@ public class DraftCNDbHandlerTest extends ReplicationTestCase
         2, 0, 100, null);
       replicationServer = new ReplicationServer(conf);
 
-      handler = newDraftCNDbHandler(replicationServer);
-      handler.setPurgeDelay(0);
+      cnIndexDB = newCNIndexDB(replicationServer);
+      cnIndexDB.setPurgeDelay(0);
 
       // Prepare data to be stored in the db
       int cn1 = 3;
@@ -95,16 +100,16 @@ public class DraftCNDbHandlerTest extends ReplicationTestCase
       CSN[] csns = newCSNs(1, 0, 3);
 
       // Add records
-      handler.addRecord(new CNIndexRecord(cn1, value1, baseDN1, csns[0]));
-      handler.addRecord(new CNIndexRecord(cn2, value2, baseDN2, csns[1]));
-      handler.addRecord(new CNIndexRecord(cn3, value3, baseDN3, csns[2]));
+      cnIndexDB.addRecord(new CNIndexRecord(cn1, value1, baseDN1, csns[0]));
+      cnIndexDB.addRecord(new CNIndexRecord(cn2, value2, baseDN2, csns[1]));
+      cnIndexDB.addRecord(new CNIndexRecord(cn3, value3, baseDN3, csns[2]));
 
       // The ChangeNumber should not get purged
-      final long firstChangeNumber = handler.getFirstRecord().getChangeNumber();
+      final long firstChangeNumber = cnIndexDB.getFirstRecord().getChangeNumber();
       assertEquals(firstChangeNumber, cn1);
-      assertEquals(handler.getLastRecord().getChangeNumber(), cn3);
+      assertEquals(cnIndexDB.getLastRecord().getChangeNumber(), cn3);
 
-      DraftCNDBCursor dbc = handler.getReadCursor(firstChangeNumber);
+      DraftCNDBCursor dbc = cnIndexDB.getReadCursor(firstChangeNumber);
       try
       {
         assertEqualTo(dbc.currentRecord(), csns[0], baseDN1, value1);
@@ -123,21 +128,21 @@ public class DraftCNDbHandlerTest extends ReplicationTestCase
         StaticUtils.close(dbc);
       }
 
-      handler.setPurgeDelay(100);
+      cnIndexDB.setPurgeDelay(100);
 
       // Check the db is cleared.
-      while (!handler.isEmpty())
+      while (!cnIndexDB.isEmpty())
       {
         Thread.sleep(200);
       }
-      assertNull(handler.getFirstRecord());
-      assertNull(handler.getLastRecord());
-      assertEquals(handler.count(), 0);
+      assertNull(cnIndexDB.getFirstRecord());
+      assertNull(cnIndexDB.getLastRecord());
+      assertEquals(cnIndexDB.count(), 0);
     }
     finally
     {
-      if (handler != null)
-        handler.shutdown();
+      if (cnIndexDB != null)
+        cnIndexDB.shutdown();
       remove(replicationServer);
     }
   }
@@ -149,11 +154,11 @@ public class DraftCNDbHandlerTest extends ReplicationTestCase
     assertEquals(data.getPreviousCookie(), cookie);
   }
 
-  private DraftCNDbHandler newDraftCNDbHandler(ReplicationServer rs) throws Exception
+  private JEChangeNumberIndexDB newCNIndexDB(ReplicationServer rs) throws Exception
   {
     File testRoot = createCleanDir();
     ReplicationDbEnv dbEnv = new ReplicationDbEnv(testRoot.getPath(), rs);
-    return new DraftCNDbHandler(rs, dbEnv);
+    return new JEChangeNumberIndexDB(rs, dbEnv);
   }
 
   private File createCleanDir() throws IOException
@@ -161,7 +166,7 @@ public class DraftCNDbHandlerTest extends ReplicationTestCase
     String buildRoot = System.getProperty(TestCaseUtils.PROPERTY_BUILD_ROOT);
     String path = System.getProperty(TestCaseUtils.PROPERTY_BUILD_DIR, buildRoot
             + File.separator + "build");
-    path = path + File.separator + "unit-tests" + File.separator + "DraftCNDbHandler";
+    path = path + File.separator + "unit-tests" + File.separator + "JEChangeNumberIndexDB";
     final File testRoot = new File(path);
     TestCaseUtils.deleteDirectory(testRoot);
     testRoot.mkdirs();
@@ -169,20 +174,21 @@ public class DraftCNDbHandlerTest extends ReplicationTestCase
   }
 
   /**
-   * This test makes basic operations of a DraftCNDb and explicitly calls
-   * the clear() method instead of waiting for the periodic trim to clear
+   * This test makes basic operations of a JEChangeNumberIndexDB and explicitly
+   * calls the clear() method instead of waiting for the periodic trim to clear
    * it.
-   * - create the db
-   * - add records
-   * - read them with a cursor
-   * - clear the db.
-   * @throws Exception
+   * <ol>
+   * <li>create the db</li>
+   * <li>add records</li>
+   * <li>read them with a cursor</li>
+   * <li>clear the db</li>
+   * </ol>
    */
   @Test()
-  void testDraftCNDbHandlerClear() throws Exception
+  void testClear() throws Exception
   {
     ReplicationServer replicationServer = null;
-    DraftCNDbHandler handler = null;
+    JEChangeNumberIndexDB cnIndexDB = null;
     try
     {
       TestCaseUtils.startServer();
@@ -195,10 +201,10 @@ public class DraftCNDbHandlerTest extends ReplicationTestCase
         2, 0, 100, null);
       replicationServer = new ReplicationServer(conf);
 
-      handler = newDraftCNDbHandler(replicationServer);
-      handler.setPurgeDelay(0);
+      cnIndexDB = newCNIndexDB(replicationServer);
+      cnIndexDB.setPurgeDelay(0);
 
-      assertTrue(handler.isEmpty());
+      assertTrue(cnIndexDB.isEmpty());
 
       // Prepare data to be stored in the db
       int cn1 = 3;
@@ -216,50 +222,51 @@ public class DraftCNDbHandlerTest extends ReplicationTestCase
       CSN[] csns = newCSNs(1, 0, 3);
 
       // Add records
-      handler.addRecord(new CNIndexRecord(cn1, value1, baseDN1, csns[0]));
-      handler.addRecord(new CNIndexRecord(cn2, value2, baseDN2, csns[1]));
-      handler.addRecord(new CNIndexRecord(cn3, value3, baseDN3, csns[2]));
+      cnIndexDB.addRecord(new CNIndexRecord(cn1, value1, baseDN1, csns[0]));
+      cnIndexDB.addRecord(new CNIndexRecord(cn2, value2, baseDN2, csns[1]));
+      cnIndexDB.addRecord(new CNIndexRecord(cn3, value3, baseDN3, csns[2]));
       Thread.sleep(500);
 
       // Checks
-      assertEquals(handler.getFirstRecord().getChangeNumber(), cn1);
-      assertEquals(handler.getLastRecord().getChangeNumber(), cn3);
+      assertEquals(cnIndexDB.getFirstRecord().getChangeNumber(), cn1);
+      assertEquals(cnIndexDB.getLastRecord().getChangeNumber(), cn3);
 
-      assertEquals(handler.count(), 3, "Db count");
-      assertFalse(handler.isEmpty());
+      assertEquals(cnIndexDB.count(), 3, "Db count");
+      assertFalse(cnIndexDB.isEmpty());
 
-      assertEquals(getPreviousCookie(handler, cn1), value1);
-      assertEquals(getPreviousCookie(handler, cn2), value2);
-      assertEquals(getPreviousCookie(handler, cn3), value3);
+      assertEquals(getPreviousCookie(cnIndexDB, cn1), value1);
+      assertEquals(getPreviousCookie(cnIndexDB, cn2), value2);
+      assertEquals(getPreviousCookie(cnIndexDB, cn3), value3);
 
-      ChangeNumberIndexDBCursor cursor = handler.getCursorFrom(cn1);
+      ChangeNumberIndexDBCursor cursor = cnIndexDB.getCursorFrom(cn1);
       assertCursorReadsInOrder(cursor, cn1, cn2, cn3);
 
-      cursor = handler.getCursorFrom(cn2);
+      cursor = cnIndexDB.getCursorFrom(cn2);
       assertCursorReadsInOrder(cursor, cn2, cn3);
 
-      cursor = handler.getCursorFrom(cn3);
+      cursor = cnIndexDB.getCursorFrom(cn3);
       assertCursorReadsInOrder(cursor, cn3);
 
-      handler.clear();
+      cnIndexDB.clear();
 
       // Check the db is cleared.
-      assertNull(handler.getFirstRecord());
-      assertNull(handler.getLastRecord());
-      assertEquals(handler.count(), 0);
-      assertTrue(handler.isEmpty());
+      assertNull(cnIndexDB.getFirstRecord());
+      assertNull(cnIndexDB.getLastRecord());
+      assertEquals(cnIndexDB.count(), 0);
+      assertTrue(cnIndexDB.isEmpty());
     }
     finally
     {
-      if (handler != null)
-        handler.shutdown();
+      if (cnIndexDB != null)
+        cnIndexDB.shutdown();
       remove(replicationServer);
     }
   }
 
-  private String getPreviousCookie(DraftCNDbHandler handler, long changeNumber) throws Exception
+  private String getPreviousCookie(JEChangeNumberIndexDB cnIndexDB,
+      long changeNumber) throws Exception
   {
-    ChangeNumberIndexDBCursor cursor = handler.getCursorFrom(changeNumber);
+    ChangeNumberIndexDBCursor cursor = cnIndexDB.getCursorFrom(changeNumber);
     try
     {
       return cursor.getRecord().getPreviousCookie();

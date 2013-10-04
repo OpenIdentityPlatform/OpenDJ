@@ -65,7 +65,7 @@ import static org.opends.server.util.StaticUtils.*;
  *
  * This class publish some monitoring information below cn=monitor.
  */
-public class DbHandler implements Runnable
+public class JEReplicaDB implements Runnable
 {
   /**
    * The msgQueue holds all the updates not yet saved to stable storage.
@@ -129,17 +129,17 @@ public class DbHandler implements Runnable
   private long trimAge;
 
   /**
-   * Creates a new dbHandler associated to a given LDAP server.
+   * Creates a new ReplicaDB associated to a given LDAP server.
    *
    * @param id Identifier of the DB.
    * @param baseDN the baseDN for which this DB was created.
-   * @param replicationServer The ReplicationServer that creates this dbHandler.
+   * @param replicationServer The ReplicationServer that creates this ReplicaDB.
    * @param dbenv the Database Env to use to create the ReplicationServer DB.
    * server for this domain.
-   * @param queueSize The queueSize to use when creating the dbHandler.
+   * @param queueSize The queueSize to use when creating the ReplicaDB.
    * @throws ChangelogException If a database problem happened
    */
-  public DbHandler(int id, DN baseDN, ReplicationServer replicationServer,
+  public JEReplicaDB(int id, DN baseDN, ReplicationServer replicationServer,
       ReplicationDbEnv dbenv, int queueSize) throws ChangelogException
   {
     this.replicationServer = replicationServer;
@@ -260,13 +260,13 @@ public class DbHandler implements Runnable
 
   /**
    * Generate a new {@link ReplicaDBCursor} that allows to browse the db managed
-   * by this dbHandler and starting at the position defined by a given CSN.
+   * by this ReplicaDB and starting at the position defined by a given CSN.
    *
    * @param startAfterCSN
    *          The position where the cursor must start. If null, start from the
    *          oldest CSN
    * @return a new {@link ReplicaDBCursor} that allows to browse the db managed
-   *         by this dbHandler and starting at the position defined by a given
+   *         by this ReplicaDB and starting at the position defined by a given
    *         CSN.
    * @throws ChangelogException
    *           if a database problem happened.
@@ -306,7 +306,7 @@ public class DbHandler implements Runnable
   }
 
   /**
-   * Shutdown this dbHandler.
+   * Shutdown this ReplicaDB.
    */
   public void shutdown()
   {
@@ -519,8 +519,8 @@ public class DbHandler implements Runnable
   }
 
   /**
-   * This internal class is used to implement the Monitoring capabilities
-   * of the dbHandler.
+   * This internal class is used to implement the Monitoring capabilities of the
+   * ReplicaDB.
    */
   private class DbMonitorProvider extends MonitorProvider<MonitorProviderCfg>
   {
@@ -625,7 +625,7 @@ public class DbHandler implements Runnable
   }
 
   /**
-   * Return the size of the msgQueue (the memory cache of the DbHandler).
+   * Return the size of the msgQueue (the memory cache of the ReplicaDB).
    * For test purpose.
    * @return The memory queue size.
    */
