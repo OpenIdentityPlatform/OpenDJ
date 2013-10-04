@@ -1783,8 +1783,7 @@ public final class StaticUtils {
                 builder.append(separator);
                 builder.append(i.next());
             }
-            String s = builder.toString();
-            return s;
+            return builder.toString();
         }
     }
 
@@ -2226,10 +2225,10 @@ public final class StaticUtils {
                 }
             }
             if (DEBUG_TO_STDERR) {
-                System.err.println(builder.toString());
-            } else if (DEFAULT_LOG.isErrorEnabled()) {
+                System.err.println(builder);
+            } else {
                 // TODO: I18N
-                DEFAULT_LOG.error(builder.toString());
+                DEFAULT_LOG.error("{}", builder);
             }
         }
     }

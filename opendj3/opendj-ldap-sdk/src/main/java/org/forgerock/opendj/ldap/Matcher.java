@@ -534,7 +534,7 @@ public final class Matcher {
         } catch (final DecodeException de) {
             // TODO: I18N
             DEFAULT_LOG.warn("The attribute value {} is invalid for matching rule {}. Possible schema error?",
-                    v.toString(), rule.getNameOrOID(), de);
+                    v, rule.getNameOrOID(), de);
             return ConditionResult.UNDEFINED;
         }
     }
