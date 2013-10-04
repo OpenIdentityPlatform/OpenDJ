@@ -43,7 +43,7 @@ import org.opends.server.types.ByteString;
  * For example, it is exchanged with the replication servers at connection
  * establishment time to communicate "which CSNs was last seen by a serverId".
  */
-public class ServerState implements Iterable<Integer>
+public class ServerState implements Iterable<CSN>
 {
 
   /** Associates a serverId with a CSN. */
@@ -404,9 +404,9 @@ public class ServerState implements Iterable<Integer>
    * {@inheritDoc}
    */
   @Override
-  public Iterator<Integer> iterator()
+  public Iterator<CSN> iterator()
   {
-    return serverIdToCSN.keySet().iterator();
+    return serverIdToCSN.values().iterator();
   }
 
   /**

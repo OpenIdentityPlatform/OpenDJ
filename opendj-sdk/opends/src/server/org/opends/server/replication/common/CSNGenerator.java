@@ -64,19 +64,22 @@ public class CSNGenerator
   *              all {@link CSN}s generated will be larger than all the
   *              {@link CSN}s currently in state.
   */
- public CSNGenerator(int id, ServerState state)
- {
-   this.lastTime = TimeThread.getTime();
-   for (int stateId : state)
-   {
-     if (this.lastTime < state.getCSN(stateId).getTime())
-       this.lastTime = state.getCSN(stateId).getTime();
-     if (stateId == id)
-       this.seqnum = state.getCSN(id).getSeqnum();
-   }
-   this.serverId = id;
-
- }
+  public CSNGenerator(int id, ServerState state)
+  {
+    this.lastTime = TimeThread.getTime();
+    for (CSN csn : state)
+    {
+      if (this.lastTime < csn.getTime())
+      {
+        this.lastTime = csn.getTime();
+      }
+      if (csn.getServerId() == id)
+      {
+        this.seqnum = csn.getSeqnum();
+      }
+    }
+    this.serverId = id;
+  }
 
   /**
    * Generate a new {@link CSN}.
@@ -160,9 +163,9 @@ public class CSNGenerator
    */
   public void adjust(ServerState state)
   {
-    for (int localServerId : state)
+    for (CSN csn : state)
     {
-      adjust(state.getCSN(localServerId));
+      adjust(csn);
     }
   }
 }

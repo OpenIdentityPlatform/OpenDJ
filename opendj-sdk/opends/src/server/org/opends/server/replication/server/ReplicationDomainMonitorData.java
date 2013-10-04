@@ -294,22 +294,21 @@ class ReplicationDomainMonitorData
    */
   public void setMaxCSNs(ServerState state)
   {
-    for (Integer serverId : state) {
-      CSN newCSN = state.getCSN(serverId);
-      setMaxCSN(serverId, newCSN);
+    for (CSN newCSN : state)
+    {
+      setMaxCSN(newCSN);
     }
   }
 
   /**
    * For the provided serverId, sets the provided CSN as the max if
    * it is newer than the current max.
-   * @param serverId the provided serverId
    * @param newCSN the provided new CSN
    */
-  public void setMaxCSN(int serverId, CSN newCSN)
+  public void setMaxCSN(CSN newCSN)
   {
-    if (newCSN==null) return;
-
+    if (newCSN == null) return;
+    int serverId = newCSN.getServerId();
     CSN currentMaxCSN = maxCSNs.get(serverId);
     if (currentMaxCSN == null)
     {
