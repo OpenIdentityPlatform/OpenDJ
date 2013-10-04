@@ -987,10 +987,10 @@ final class HeartBeatConnectionFactory implements ConnectionFactory {
      */
     private static final class Sync extends AbstractQueuedSynchronizer {
         private static final int LOCKED_EXCLUSIVELY = -1;
-        // Keep compiler quiet.
+        /** Keep compiler quiet. */
         private static final long serialVersionUID = -3590428415442668336L;
 
-        /* Lock states. Positive values indicate that the shared lock is taken. */
+        /** Lock states. Positive values indicate that the shared lock is taken. */
         private static final int UNLOCKED = 0; // initial state
 
         @Override
@@ -1191,11 +1191,9 @@ final class HeartBeatConnectionFactory implements ConnectionFactory {
         if (isClosed.compareAndSet(false, true)) {
             synchronized (validConnections) {
                 if (!validConnections.isEmpty()) {
-                    if (DEFAULT_LOG.isDebugEnabled()) {
-                        DEFAULT_LOG.debug(
-                                "HeartbeatConnectionFactory '{}' is closing while {} active connections remain",
-                                toString(), validConnections.size());
-                    }
+                    DEFAULT_LOG.debug(
+                            "HeartbeatConnectionFactory '{}' is closing while {} active connections remain",
+                            this, validConnections.size());
                 }
             }
             releaseScheduler();
