@@ -41,10 +41,7 @@ import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.ChangelogState;
 import org.opends.server.replication.server.ReplicationServer;
-import org.opends.server.replication.server.changelog.api.ChangeNumberIndexDB;
-import org.opends.server.replication.server.changelog.api.ChangelogDB;
-import org.opends.server.replication.server.changelog.api.ChangelogException;
-import org.opends.server.replication.server.changelog.api.ReplicaDBCursor;
+import org.opends.server.replication.server.changelog.api.*;
 import org.opends.server.types.DN;
 import org.opends.server.util.Pair;
 import org.opends.server.util.StaticUtils;
@@ -56,7 +53,7 @@ import static org.opends.server.util.StaticUtils.*;
 /**
  * JE implementation of the ChangelogDB.
  */
-public class JEChangelogDB implements ChangelogDB
+public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
 {
 
   /**
@@ -584,6 +581,13 @@ public class JEChangelogDB implements ChangelogDB
       }
       return cnIndexDB;
     }
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public ReplicationDomainDB getReplicationDomainDB()
+  {
+    return this;
   }
 
   /** {@inheritDoc} */

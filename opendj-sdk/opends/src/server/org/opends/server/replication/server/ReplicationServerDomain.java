@@ -46,9 +46,9 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.common.*;
 import org.opends.server.replication.protocol.*;
-import org.opends.server.replication.server.changelog.api.ChangelogDB;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.api.ReplicaDBCursor;
+import org.opends.server.replication.server.changelog.api.ReplicationDomainDB;
 import org.opends.server.types.*;
 
 import static org.opends.messages.ReplicationMessages.*;
@@ -117,7 +117,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
   private final Queue<MessageHandler> otherHandlers =
     new ConcurrentLinkedQueue<MessageHandler>();
 
-  private final ChangelogDB changelogDB;
+  private final ReplicationDomainDB domainDB;
   /** The ReplicationServer that created the current instance. */
   private ReplicationServer localReplicationServer;
 
@@ -186,7 +186,8 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     this.assuredTimeoutTimer = new Timer("Replication server RS("
         + localReplicationServer.getServerId()
         + ") assured timer for domain \"" + baseDN + "\"", true);
-    this.changelogDB = localReplicationServer.getChangelogDB();
+    this.domainDB =
+        localReplicationServer.getChangelogDB().getReplicationDomainDB();
 
     DirectoryServer.registerMonitorProvider(this);
   }
@@ -405,7 +406,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
   {
     try
     {
-      if (this.changelogDB.publishUpdateMsg(baseDN, serverId, updateMsg))
+      if (this.domainDB.publishUpdateMsg(baseDN, serverId, updateMsg))
       {
         /*
          * JNR: Matt and I had a hard time figuring out where to put this
@@ -1278,7 +1279,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
    */
   public Set<Integer> getServerIds()
   {
-    return changelogDB.getDomainServerIds(baseDN);
+    return domainDB.getDomainServerIds(baseDN);
   }
 
   /**
@@ -1296,11 +1297,11 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
    * @param startAfterCSN
    *          Starting point for the cursor. If null, start from the oldest CSN
    * @return a non null {@link ReplicaDBCursor}
-   * @see ChangelogDB#getCursorFrom(DN, int, CSN)
+   * @see ReplicationDomainDB#getCursorFrom(DN, int, CSN)
    */
   public ReplicaDBCursor getCursorFrom(int serverId, CSN startAfterCSN)
   {
-    return changelogDB.getCursorFrom(baseDN, serverId, startAfterCSN);
+    return domainDB.getCursorFrom(baseDN, serverId, startAfterCSN);
   }
 
  /**
@@ -1313,7 +1314,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
   */
   public long getCount(int serverId, CSN from, CSN to)
   {
-    return changelogDB.getCount(baseDN, serverId, from, to);
+    return domainDB.getCount(baseDN, serverId, from, to);
   }
 
   /**
@@ -1323,7 +1324,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
    */
   public long getChangesCount()
   {
-    return changelogDB.getDomainChangesCount(baseDN);
+    return domainDB.getDomainChangesCount(baseDN);
   }
 
   /**
@@ -1708,7 +1709,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
 
     stopAllServers(true);
 
-    changelogDB.shutdownDomain(baseDN);
+    domainDB.shutdownDomain(baseDN);
   }
 
   /**
@@ -1720,7 +1721,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
    */
   public ServerState getLatestServerState()
   {
-    return changelogDB.getDomainNewestCSNs(baseDN);
+    return domainDB.getDomainNewestCSNs(baseDN);
   }
 
   /**
@@ -2193,7 +2194,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
   {
     try
     {
-      changelogDB.removeDomain(baseDN);
+      domainDB.removeDomain(baseDN);
     }
     catch (ChangelogException e)
     {
@@ -2602,7 +2603,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
           if (eligibleCSN.olderOrEqual(mostRecentDbCSN))
           {
             // let's try to seek the first change <= eligibleCSN
-            CSN newCSN = changelogDB.getCSNAfter(baseDN, serverId, eligibleCSN);
+            CSN newCSN = domainDB.getCSNAfter(baseDN, serverId, eligibleCSN);
             result.update(newCSN);
           } else {
             // for this serverId, all changes in the ChangelogDb are holder
@@ -2635,7 +2636,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
    */
   public ServerState getStartState()
   {
-    return changelogDB.getDomainOldestCSNs(baseDN);
+    return domainDB.getDomainOldestCSNs(baseDN);
   }
 
   /**
@@ -2651,7 +2652,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
   {
     CSN eligibleCSN = null;
 
-    final ServerState newestCSNs = changelogDB.getDomainNewestCSNs(baseDN);
+    final ServerState newestCSNs = domainDB.getDomainNewestCSNs(baseDN);
     for (final int serverId : newestCSNs)
     {
       // Consider this producer (DS/db).
@@ -2845,7 +2846,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
    */
   public long getLatestDomainTrimDate()
   {
-    return changelogDB.getDomainLatestTrimDate(baseDN);
+    return domainDB.getDomainLatestTrimDate(baseDN);
   }
 
   /**
