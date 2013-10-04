@@ -2802,8 +2802,9 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
   {
     long res = 0;
 
-    for (CSN startCSN : getLatestServerState())
+    for (CSN csn : getLatestServerState())
     {
+      CSN startCSN = startState.getCSN(csn.getServerId());
       long serverIdRes = getCount(startCSN, endCSN);
 
       // The startPoint is excluded when counting the ECL eligible changes
