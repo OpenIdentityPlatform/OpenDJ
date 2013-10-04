@@ -27,13 +27,17 @@
 package org.opends.server.replication.server.changelog.je;
 
 import java.io.File;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 import org.opends.server.config.ConfigException;
 import org.opends.server.replication.common.CSN;
+import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.ChangelogState;
 import org.opends.server.replication.server.ReplicationServer;
@@ -369,7 +373,7 @@ public class JEChangelogDB implements ChangelogDB
   @Override
   public Set<Integer> getDomainServerIds(DN baseDN)
   {
-    return getDomainMap(baseDN).keySet();
+    return Collections.unmodifiableSet(getDomainMap(baseDN).keySet());
   }
 
   /** {@inheritDoc} */
@@ -418,30 +422,26 @@ public class JEChangelogDB implements ChangelogDB
 
   /** {@inheritDoc} */
   @Override
-  public Map<Integer, CSN> getDomainOldestCSNs(DN baseDN)
+  public ServerState getDomainOldestCSNs(DN baseDN)
   {
-    final Map<Integer, DbHandler> domainMap = getDomainMap(baseDN);
-    final Map<Integer, CSN> results =
-        new HashMap<Integer, CSN>(domainMap.size());
-    for (DbHandler dbHandler : domainMap.values())
+    final ServerState result = new ServerState();
+    for (DbHandler dbHandler : getDomainMap(baseDN).values())
     {
-      results.put(dbHandler.getServerId(), dbHandler.getOldestCSN());
+      result.update(dbHandler.getOldestCSN());
     }
-    return results;
+    return result;
   }
 
   /** {@inheritDoc} */
   @Override
-  public Map<Integer, CSN> getDomainNewestCSNs(DN baseDN)
+  public ServerState getDomainNewestCSNs(DN baseDN)
   {
-    final Map<Integer, DbHandler> domainMap = getDomainMap(baseDN);
-    final Map<Integer, CSN> results =
-        new HashMap<Integer, CSN>(domainMap.size());
-    for (DbHandler dbHandler : domainMap.values())
+    final ServerState result = new ServerState();
+    for (DbHandler dbHandler : getDomainMap(baseDN).values())
     {
-      results.put(dbHandler.getServerId(), dbHandler.getNewestCSN());
+      result.update(dbHandler.getNewestCSN());
     }
-    return results;
+    return result;
   }
 
   /** {@inheritDoc} */
@@ -584,13 +584,6 @@ public class JEChangelogDB implements ChangelogDB
       }
       return cnIndexDB;
     }
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public String getDBDirectoryName()
-  {
-    return this.dbDirectoryName;
   }
 
   /** {@inheritDoc} */
