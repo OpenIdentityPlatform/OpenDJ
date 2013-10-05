@@ -1307,13 +1307,14 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
  /**
   * Count the number of changes in the replication changelog for the provided
   * serverID, between 2 provided CSNs.
+  * @param serverId Identifier of the server for which to compute the count.
   * @param from lower limit CSN.
   * @param to   upper limit CSN.
   * @return the number of changes.
   */
-  public long getCount(CSN from, CSN to)
+  public long getCount(int serverId, CSN from, CSN to)
   {
-    return domainDB.getCount(baseDN, from, to);
+    return domainDB.getCount(baseDN, serverId, from, to);
   }
 
   /**
@@ -2805,7 +2806,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     for (CSN csn : getLatestServerState())
     {
       CSN startCSN = startState.getCSN(csn.getServerId());
-      long serverIdRes = getCount(startCSN, endCSN);
+      long serverIdRes = getCount(csn.getServerId(), startCSN, endCSN);
 
       // The startPoint is excluded when counting the ECL eligible changes
       if (startCSN != null && serverIdRes > 0)
@@ -2831,9 +2832,10 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     long res = 0;
     for (CSN csn : getLatestServerState())
     {
+      int serverId = csn.getServerId();
       CSN lStartCSN =
-          new CSN(startCSN.getTime(), startCSN.getSeqnum(), csn.getServerId());
-      res += getCount(lStartCSN, endCSN);
+          new CSN(startCSN.getTime(), startCSN.getSeqnum(), serverId);
+      res += getCount(serverId, lStartCSN, endCSN);
     }
     return res;
   }

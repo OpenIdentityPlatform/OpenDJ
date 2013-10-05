@@ -375,9 +375,9 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
 
   /** {@inheritDoc} */
   @Override
-  public long getCount(DN baseDN, CSN from, CSN to)
+  public long getCount(DN baseDN, int serverId, CSN from, CSN to)
   {
-    JEReplicaDB replicaDB = getReplicaDB(baseDN, from.getServerId());
+    JEReplicaDB replicaDB = getReplicaDB(baseDN, serverId);
     if (replicaDB != null)
     {
       return replicaDB.getCount(from, to);
