@@ -1001,7 +1001,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
             + ex.getClass().getName() + " : " + ex.getMessage());
       }
 
-      if (replMsg.equals(msgType.getClass()))
+      if (replMsg.getClass().equals(msgType))
       {
         // Ok, got it, let's return the expected message
         return (T) replMsg;
