@@ -27,7 +27,6 @@
  */
 package org.opends.server.replication;
 
-import java.net.SocketTimeoutException;
 import java.util.*;
 
 import org.assertj.core.api.Assertions;
@@ -104,9 +103,9 @@ public class InitOnLineTest extends ReplicationTestCase
   private static final int server1ID = 1;
   private static final int server2ID = 2;
   private static final int server3ID = 3;
-  private static final int changelog1ID =  8;
-  private static final int changelog2ID =  9;
-  private static final int changelog3ID = 10;
+  private static final int replServer1ID = 8;
+  private static final int replServer2ID = 9;
+  private static final int replServer3ID = 10;
 
   private static final String EXAMPLE_DN = "dc=example,dc=com";
   private static int[] replServerPort = new int[20];
@@ -114,9 +113,9 @@ public class InitOnLineTest extends ReplicationTestCase
   private DN baseDN;
   private ReplicationBroker server2;
   private ReplicationBroker server3;
-  private ReplicationServer changelog1;
-  private ReplicationServer changelog2;
-  private ReplicationServer changelog3;
+  private ReplicationServer replServer1;
+  private ReplicationServer replServer2;
+  private ReplicationServer replServer3;
   private boolean emptyOldChanges = true;
   private LDAPReplicationDomain replDomain;
   private int initWindow = 100;
@@ -131,16 +130,8 @@ public class InitOnLineTest extends ReplicationTestCase
     }
   }
 
-  private void log(String message, Exception e)
-  {
-    log(message + stackTraceToSingleLineString(e));
-  }
-
   /**
    * Set up the environment for performing the tests in this Class.
-   *
-   * @throws Exception
-   *           If the environment could not be set up.
    */
   @BeforeClass
   @Override
@@ -208,7 +199,6 @@ public class InitOnLineTest extends ReplicationTestCase
 
     for (String entry : updatedEntries)
     {
-
       int dns = entry.indexOf("dn: ");
       int dne = entry.indexOf(EXAMPLE_DN);
       String dn = entry.substring(dns+4,dne+EXAMPLE_DN.length());
@@ -217,22 +207,15 @@ public class InitOnLineTest extends ReplicationTestCase
 
       DN entryDN = DN.decode(dn);
 
-      try
+      Entry resultEntry = getEntry(entryDN, 1000, true);
+      if (resultEntry == null)
       {
-        Entry resultEntry = getEntry(entryDN, 1000, true);
-        if (resultEntry==null)
-        {
-          log("Entry not found <" + dn + ">");
-        }
-        else
-        {
-          log("Entry found <" + dn + ">");
-          found++;
-        }
+        log("Entry not found <" + dn + ">");
       }
-      catch(Exception e)
+      else
       {
-        log("TestEntriesInDb/", e);
+        log("Entry found <" + dn + ">");
+        found++;
       }
     }
 
@@ -441,64 +424,47 @@ public class InitOnLineTest extends ReplicationTestCase
     log("Broker " + senderID + " published entries");
   }
 
-  void receiveUpdatedEntries(ReplicationBroker broker, int serverID,
-      String[] updatedEntries)
+  private void receiveUpdatedEntries(ReplicationBroker broker) throws Exception
   {
+    final int serverId = broker.getServerId();
     // Expect the broker to receive the entries
-    ReplicationMsg msg;
-    short entriesReceived = 0;
+    int entriesReceived = 0;
     while (true)
     {
-      try
-      {
-        log("Broker " + serverID + " Wait for entry or done msg");
-        msg = broker.receive();
+      log("Broker " + serverId + " Wait for entry or done msg");
+      ReplicationMsg msg = broker.receive();
+      if (msg == null)
+        break;
 
-        if (msg == null)
-          break;
-
-        if (msg instanceof InitializeTargetMsg)
-        {
-          log("Broker " + serverID + " receives InitializeTargetMessage ");
-          entriesReceived = 0;
-        }
-        else if (msg instanceof EntryMsg)
-        {
-          EntryMsg em = (EntryMsg)msg;
-          log("Broker " + serverID + " receives entry " + new String(em.getEntryBytes()));
-          entriesReceived+=countEntryLimits(em.getEntryBytes());
-        }
-        else if (msg instanceof DoneMsg)
-        {
-          log("Broker " + serverID + "  receives done ");
-          break;
-        }
-        else if (msg instanceof ErrorMsg)
-        {
-          ErrorMsg em = (ErrorMsg)msg;
-          log("Broker " + serverID + "  receives ERROR "
-              + " " + em.getDetails());
-          break;
-        }
-        else
-        {
-          log("Broker " + serverID + " receives and trashes " + msg);
-        }
-      }
-      catch (SocketTimeoutException e)
+      if (msg instanceof InitializeTargetMsg)
       {
-        log("SocketTimeoutException while waiting for entries" +
-            stackTraceToSingleLineString(e));
+        log("Broker " + serverId + " receives InitializeTargetMessage ");
+        entriesReceived = 0;
       }
-      catch(Exception e)
+      else if (msg instanceof EntryMsg)
       {
-        log("receiveUpdatedEntries" + stackTraceToSingleLineString(e));
+        EntryMsg em = (EntryMsg) msg;
+        log("Broker " + serverId + " receives entry " + new String(em.getEntryBytes()));
+        entriesReceived += countEntryLimits(em.getEntryBytes());
+      }
+      else if (msg instanceof DoneMsg)
+      {
+        log("Broker " + serverId + "  receives done ");
+        break;
+      }
+      else if (msg instanceof ErrorMsg)
+      {
+        ErrorMsg em = (ErrorMsg) msg;
+        log("Broker " + serverId + "  receives ERROR " + " " + em.getDetails());
+        break;
+      }
+      else
+      {
+        log("Broker " + serverId + " receives and trashes " + msg);
       }
     }
 
-    assertTrue(entriesReceived == updatedEntries.length,
-        " Received entries("+entriesReceived +
-        ") == Expected entries("+updatedEntries.length+")");
+    assertEquals(entriesReceived, updatedEntries.length);
 
     broker.setGenerationID(EMPTY_DN_GENID);
     broker.reStart(true);
@@ -531,46 +497,36 @@ public class InitOnLineTest extends ReplicationTestCase
 
   /**
    * Creates a new replicationServer.
-   * @param changelogId The serverID of the replicationServer to create.
+   * @param replServerId The serverID of the replicationServer to create.
    * @return The new replicationServer.
    */
-  private ReplicationServer createChangelogServer(int changelogId,
+  private ReplicationServer createReplicationServer(int replServerId,
       String testCase) throws Exception
   {
     SortedSet<String> servers = new TreeSet<String>();
-    if (changelogId != changelog1ID)
-      servers.add("localhost:" + getChangelogPort(changelog1ID));
-    if (changelogId != changelog2ID)
-      servers.add("localhost:" + getChangelogPort(changelog2ID));
-    if (changelogId != changelog3ID)
-      servers.add("localhost:" + getChangelogPort(changelog3ID));
+    if (replServerId != replServer1ID)
+      servers.add("localhost:" + getReplServerPort(replServer1ID));
+    if (replServerId != replServer2ID)
+      servers.add("localhost:" + getReplServerPort(replServer2ID));
+    if (replServerId != replServer3ID)
+      servers.add("localhost:" + getReplServerPort(replServer3ID));
 
+    final int port = getReplServerPort(replServerId);
     ReplServerFakeConfiguration conf =
         new ReplServerFakeConfiguration(
-            getChangelogPort(changelogId),
-            "initOnlineTest" + getChangelogPort(changelogId) + testCase + "Db",
+            port,
+            "initOnlineTest" + port + testCase + "Db",
             0,
-            changelogId,
+            replServerId,
             0,
             100,
             servers);
     ReplicationServer replicationServer = new ReplicationServer(conf);
     Thread.sleep(1000);
-
     return replicationServer;
   }
 
-  /**
-   * Create a synchronized suffix in the current server providing the
-   * replication Server ID.
-   * @param changelogID
-   */
-  private void connectServer1ToChangelog(int changelogID) throws Exception
-  {
-    connectServer1ToChangelog(changelogID, 0);
-  }
-
-  private void connectServer1ToChangelog(int changelogID, int heartbeat) throws Exception
+  private void connectServer1ToReplServer(int replServerId) throws Exception
   {
     // suffix synchronized
     String testName = "initOnLineTest";
@@ -582,10 +538,9 @@ public class InitOnLineTest extends ReplicationTestCase
     + "cn: " + testName + "\n"
     + "ds-cfg-base-dn: " + EXAMPLE_DN + "\n"
     + "ds-cfg-replication-server: localhost:"
-    + getChangelogPort(changelogID)+"\n"
+    + getReplServerPort(replServerId)+"\n"
     + "ds-cfg-server-id: " + server1ID + "\n"
     + "ds-cfg-receive-status: true\n"
-    + (heartbeat>0?"ds-cfg-heartbeat-interval: "+heartbeat+" ms\n":"")
     + "ds-cfg-window-size: " + WINDOW_SIZE;
 
     TestCaseUtils.clearJEBackend(false, "userRoot", EXAMPLE_DN);
@@ -597,13 +552,13 @@ public class InitOnLineTest extends ReplicationTestCase
         "ReplicationDomain: Import/Export is not expected to be running");
   }
 
-  private int getChangelogPort(int changelogID) throws Exception
+  private int getReplServerPort(int replServerId) throws Exception
   {
-    if (replServerPort[changelogID] == 0)
+    if (replServerPort[replServerId] == 0)
     {
-      replServerPort[changelogID] = TestCaseUtils.findFreePort();
+      replServerPort[replServerId] = TestCaseUtils.findFreePort();
     }
-    return replServerPort[changelogID];
+    return replServerPort[replServerId];
   }
 
   /**
@@ -621,32 +576,24 @@ public class InitOnLineTest extends ReplicationTestCase
   public void initializeImport() throws Exception
   {
     String testCase = "initializeImport ";
-
     log("Starting "+testCase);
-
     try
     {
-      changelog1 = createChangelogServer(changelog1ID, testCase);
+      replServer1 = createReplicationServer(replServer1ID, testCase);
 
       // Connect DS to the replicationServer
-      connectServer1ToChangelog(changelog1ID);
+      connectServer1ToReplServer(replServer1ID);
 
       if (server2 == null)
         server2 = openReplicationSession(DN.decode(EXAMPLE_DN),
-          server2ID, 100, getChangelogPort(changelog1ID), 1000, emptyOldChanges);
-
-      // Thread.sleep(2000);
+          server2ID, 100, getReplServerPort(replServer1ID), 1000, emptyOldChanges);
 
       // In S1 launch the total update
       addTask(taskInitFromS2, ResultCode.SUCCESS, null);
 
       // S2 should receive init msg
-      ReplicationMsg msg;
-      msg = server2.receive();
-      if (!(msg instanceof InitializeRequestMsg))
-      {
-        fail(testCase + " Message received by S2 is of unexpected class" + msg);
-      }
+      ReplicationMsg msg = server2.receive();
+      Assertions.assertThat(msg).isInstanceOf(InitializeRequestMsg.class);
       InitializeRequestMsg initMsg = (InitializeRequestMsg)msg;
 
       // S2 publishes entries to S1
@@ -678,25 +625,19 @@ public class InitOnLineTest extends ReplicationTestCase
   public void initializeExport() throws Exception
   {
     String testCase = "initializeExport";
-
     log("Starting "+testCase);
-
     try
     {
-      changelog1 = createChangelogServer(changelog1ID, testCase);
+      replServer1 = createReplicationServer(replServer1ID, testCase);
 
       // Connect DS to the replicationServer
-      connectServer1ToChangelog(changelog1ID);
+      connectServer1ToReplServer(replServer1ID);
 
       addTestEntriesToDB();
 
       if (server2 == null)
         server2 = openReplicationSession(DN.decode(EXAMPLE_DN),
-          server2ID, 100, getChangelogPort(changelog1ID), 1000, emptyOldChanges);
-
-      // Not needed anymore since OpenReplicationSession
-      // checks for session establishment ?
-      // Thread.sleep(3000);
+          server2ID, 100, getReplServerPort(replServer1ID), 1000, emptyOldChanges);
 
       InitializeRequestMsg initMsg = new InitializeRequestMsg(baseDN, server2ID, server1ID, 100);
       server2.publish(initMsg);
@@ -704,7 +645,7 @@ public class InitOnLineTest extends ReplicationTestCase
       // Signal RS we just entered the full update status
       server2.signalStatusChange(ServerStatus.FULL_UPDATE_STATUS);
 
-      receiveUpdatedEntries(server2, server2ID, updatedEntries);
+      receiveUpdatedEntries(server2);
 
       log("Successfully ending " + testCase);
     } finally
@@ -724,16 +665,13 @@ public class InitOnLineTest extends ReplicationTestCase
   public void initializeTargetExport() throws Exception
   {
     String testCase = "initializeTargetExport";
-
     log("Starting " + testCase);
-
     try
     {
-
-      changelog1 = createChangelogServer(changelog1ID, testCase);
+      replServer1 = createReplicationServer(replServer1ID, testCase);
 
       // Creates config to synchronize suffix
-      connectServer1ToChangelog(changelog1ID);
+      connectServer1ToReplServer(replServer1ID);
 
       // Add in S1 the entries to be exported
       addTestEntriesToDB();
@@ -741,9 +679,7 @@ public class InitOnLineTest extends ReplicationTestCase
       // S1 is the server we are running in, S2 is simulated by a broker
       if (server2 == null)
         server2 = openReplicationSession(DN.decode(EXAMPLE_DN),
-          server2ID, 100, getChangelogPort(changelog1ID), 1000, emptyOldChanges);
-
-      // Thread.sleep(1000);
+          server2ID, 100, getReplServerPort(replServer1ID), 1000, emptyOldChanges);
 
       // Launch in S1 the task that will initialize S2
       addTask(taskInitTargetS2, ResultCode.SUCCESS, null);
@@ -752,7 +688,7 @@ public class InitOnLineTest extends ReplicationTestCase
       server2.signalStatusChange(ServerStatus.FULL_UPDATE_STATUS);
 
       // Tests that entries have been received by S2
-      receiveUpdatedEntries(server2, server2ID, updatedEntries);
+      receiveUpdatedEntries(server2);
 
       // Wait for task completion
       waitTaskState(taskInitTargetS2, TaskState.COMPLETED_SUCCESSFULLY, null);
@@ -780,15 +716,13 @@ public class InitOnLineTest extends ReplicationTestCase
   public void initializeTargetExportAll() throws Exception
   {
     String testCase = "initializeTargetExportAll";
-
     log("Starting " + testCase);
-
     try
     {
-      changelog1 = createChangelogServer(changelog1ID, testCase);
+      replServer1 = createReplicationServer(replServer1ID, testCase);
 
       // Creates config to synchronize suffix
-      connectServer1ToChangelog(changelog1ID);
+      connectServer1ToReplServer(replServer1ID);
 
       // Add in S1 the entries to be exported
       addTestEntriesToDB();
@@ -796,13 +730,11 @@ public class InitOnLineTest extends ReplicationTestCase
       // S1 is the server we are running in, S2 and S3 are simulated by brokers
       if (server2 == null)
         server2 = openReplicationSession(DN.decode(EXAMPLE_DN),
-          server2ID, 100, getChangelogPort(changelog1ID), 1000, emptyOldChanges);
+          server2ID, 100, getReplServerPort(replServer1ID), 1000, emptyOldChanges);
 
       if (server3 == null)
         server3 = openReplicationSession(DN.decode(EXAMPLE_DN),
-          server3ID, 100, getChangelogPort(changelog1ID), 1000, emptyOldChanges);
-
-      // Thread.sleep(1000);
+          server3ID, 100, getReplServerPort(replServer1ID), 1000, emptyOldChanges);
 
       // Launch in S1 the task that will initialize S2
       addTask(taskInitTargetAll, ResultCode.SUCCESS, null);
@@ -813,8 +745,8 @@ public class InitOnLineTest extends ReplicationTestCase
       server2.signalStatusChange(ServerStatus.FULL_UPDATE_STATUS);
       server3.signalStatusChange(ServerStatus.FULL_UPDATE_STATUS);
 
-      receiveUpdatedEntries(server2, server2ID, updatedEntries);
-      receiveUpdatedEntries(server3, server3ID, updatedEntries);
+      receiveUpdatedEntries(server2);
+      receiveUpdatedEntries(server3);
 
       // Wait for task completion
       waitTaskState(taskInitTargetAll, TaskState.COMPLETED_SUCCESSFULLY, null);
@@ -833,21 +765,18 @@ public class InitOnLineTest extends ReplicationTestCase
   public void initializeTargetImport() throws Exception
   {
     String testCase = "initializeTargetImport";
-
+    log("Starting " + testCase + " debugEnabled:" + debugEnabled());
     try
     {
-      log("Starting " + testCase + " debugEnabled:" + debugEnabled());
-
-      // Start SS
-      changelog1 = createChangelogServer(changelog1ID, testCase);
+      replServer1 = createReplicationServer(replServer1ID, testCase);
 
       // S1 is the server we are running in, S2 is simulated by a broker
       if (server2==null)
         server2 = openReplicationSession(DN.decode(EXAMPLE_DN),
-          server2ID, 100, getChangelogPort(changelog1ID), 1000, emptyOldChanges);
+          server2ID, 100, getReplServerPort(replServer1ID), 1000, emptyOldChanges);
 
       // Creates config to synchronize suffix
-      connectServer1ToChangelog(changelog1ID);
+      connectServer1ToReplServer(replServer1ID);
 
       // S2 publishes entries to S1
       makeBrokerPublishEntries(server2, server2ID, server1ID, server2ID);
@@ -859,17 +788,14 @@ public class InitOnLineTest extends ReplicationTestCase
       for (int count = 0; count < 120; count++)
       {
         readGenerationId = replDomain.getGenerationID();
-        if ( readGenerationId == EXPECTED_GENERATION_ID)
+        if (readGenerationId == EXPECTED_GENERATION_ID)
           break;
         log(testCase + " genId=" + readGenerationId);
         Thread.sleep(1000);
       }
 
-      if (readGenerationId != EXPECTED_GENERATION_ID)
-      {
-        fail(testCase + " Import success waited longer than expected \n" +
-            TestCaseUtils.threadStacksToString());
-      }
+      assertEquals(readGenerationId, EXPECTED_GENERATION_ID,
+          testCase + " Import success waited longer than expected");
 
       // Test that entries have been imported in S1
       testEntriesInDb();
@@ -888,11 +814,9 @@ public class InitOnLineTest extends ReplicationTestCase
   public void initializeTargetConfigErrors() throws Exception
   {
     String testCase = "InitializeTargetConfigErrors";
-
+    log("Starting " + testCase);
     try
     {
-      log("Starting " + testCase);
-
       // Invalid domain base dn
       Entry taskInitTarget = TestCaseUtils.makeEntry(
           "dn: ds-task-id=" + UUID.randomUUID() +
@@ -939,16 +863,13 @@ public class InitOnLineTest extends ReplicationTestCase
   public void initializeConfigErrors() throws Exception
   {
     String testCase = "initializeConfigErrors";
-
+    log("Starting " + testCase);
     try
     {
-      log("Starting " + testCase);
-
-      // Start SS
-      changelog1 = createChangelogServer(changelog1ID, testCase);
+      replServer1 = createReplicationServer(replServer1ID, testCase);
 
       // Creates config to synchronize suffix
-      connectServer1ToChangelog(changelog1ID);
+      connectServer1ToReplServer(replServer1ID);
 
       // Invalid domain base dn
       Entry taskInit = TestCaseUtils.makeEntry(
@@ -1014,61 +935,56 @@ public class InitOnLineTest extends ReplicationTestCase
     fail(testCase + " NYI");
   }
 
-  /*
-   * TestReplServerInfos tests that in a topology with more
-   * than one replication server, in each replication server
-   * is stored the list of LDAP servers connected to each
-   * replication server of the topology, thanks to the
-   * ReplServerInfoMessage(s) exchanged by the replication
-   * servers.
+  /**
+   * TestReplServerInfos tests that in a topology with more than one replication
+   * server, in each replication server is stored the list of LDAP servers
+   * connected to each replication server of the topology, thanks to the
+   * ReplServerInfoMessage(s) exchanged by the replication servers.
    */
   @Test(enabled=true, groups="slow")
   public void testReplServerInfos() throws Exception
   {
     String testCase = "testReplServerInfos";
-
     log("Starting " + testCase);
 
     ReplicationBroker broker2 = null;
     ReplicationBroker broker3 = null;
     try
     {
-      // Create the Repl Servers
-      changelog1 = createChangelogServer(changelog1ID, testCase);
-      changelog2 = createChangelogServer(changelog2ID, testCase);
-      changelog3 = createChangelogServer(changelog3ID, testCase);
+      replServer1 = createReplicationServer(replServer1ID, testCase);
+      replServer2 = createReplicationServer(replServer2ID, testCase);
+      replServer3 = createReplicationServer(replServer3ID, testCase);
 
       // Connects lDAP1 to replServer1
-      connectServer1ToChangelog(changelog1ID);
+      connectServer1ToReplServer(replServer1ID);
 
       // Connects lDAP2 to replServer2
       broker2 = openReplicationSession(DN.decode(EXAMPLE_DN),
-        server2ID, 100, getChangelogPort(changelog2ID), 1000, emptyOldChanges);
+        server2ID, 100, getReplServerPort(replServer2ID), 1000, emptyOldChanges);
 
       // Connects lDAP3 to replServer2
       broker3 = openReplicationSession(DN.decode(EXAMPLE_DN),
-        server3ID, 100, getChangelogPort(changelog2ID), 1000, emptyOldChanges);
+        server3ID, 100, getReplServerPort(replServer2ID), 1000, emptyOldChanges);
 
       // Check that the list of connected LDAP servers is correct in each replication servers
-      Assertions.assertThat(getConnectedDSServerIds(changelog1)).containsExactly(server1ID);
-      Assertions.assertThat(getConnectedDSServerIds(changelog2)).containsExactly(server2ID, server3ID);
-      Assertions.assertThat(getConnectedDSServerIds(changelog3)).isEmpty();
+      Assertions.assertThat(getConnectedDSServerIds(replServer1)).containsExactly(server1ID);
+      Assertions.assertThat(getConnectedDSServerIds(replServer2)).containsExactly(server2ID, server3ID);
+      Assertions.assertThat(getConnectedDSServerIds(replServer3)).isEmpty();
 
       // Test updates
       broker3.stop();
       Thread.sleep(1000);
-      Assertions.assertThat(getConnectedDSServerIds(changelog2)).containsExactly(server2ID);
+      Assertions.assertThat(getConnectedDSServerIds(replServer2)).containsExactly(server2ID);
 
       broker3 = openReplicationSession(DN.decode(EXAMPLE_DN),
-        server3ID, 100, getChangelogPort(changelog2ID), 1000, emptyOldChanges);
+        server3ID, 100, getReplServerPort(replServer2ID), 1000, emptyOldChanges);
       broker2.stop();
       Thread.sleep(1000);
-      Assertions.assertThat(getConnectedDSServerIds(changelog2)).containsExactly(server3ID);
+      Assertions.assertThat(getConnectedDSServerIds(replServer2)).containsExactly(server3ID);
 
     // TODO Test ReplicationServerDomain.getDestinationServers method.
 
       log("Successfully ending " + testCase);
-
     } finally
     {
       stop(broker2, broker3);
@@ -1076,9 +992,9 @@ public class InitOnLineTest extends ReplicationTestCase
     }
   }
 
-  private Set<Integer> getConnectedDSServerIds(ReplicationServer changelog)
+  private Set<Integer> getConnectedDSServerIds(ReplicationServer rs)
   {
-    ReplicationServerDomain domain = changelog.getReplicationServerDomain(baseDN);
+    ReplicationServerDomain domain = rs.getReplicationServerDomain(baseDN);
     return domain.getConnectedDSs().keySet();
   }
 
@@ -1086,45 +1002,33 @@ public class InitOnLineTest extends ReplicationTestCase
   public void initializeTargetExportMultiSS() throws Exception
   {
     String testCase = "initializeTargetExportMultiSS";
+    log("Starting " + testCase);
     try
     {
-      log("Starting " + testCase);
-
-      // Create 2 changelogs
-      changelog1 = createChangelogServer(changelog1ID, testCase);
-
-      changelog2 = createChangelogServer(changelog2ID, testCase);
+      replServer1 = createReplicationServer(replServer1ID, testCase);
+      replServer2 = createReplicationServer(replServer2ID, testCase);
 
       // Creates config to synchronize suffix
-      connectServer1ToChangelog(changelog1ID);
+      connectServer1ToReplServer(replServer1ID);
 
       // Add in S1 the entries to be exported
       addTestEntriesToDB();
 
       // S1 is the server we are running in, S2 is simulated by a broker
-      // connected to changelog2
+      // connected to replServer2
       if (server2 == null)
       {
-        log(testCase + " Will connect server 2 to " + changelog2ID);
+        log(testCase + " Will connect server 2 to " + replServer2ID);
         server2 = openReplicationSession(DN.decode(EXAMPLE_DN),
-            server2ID, 100, getChangelogPort(changelog2ID), 1000, emptyOldChanges);
+            server2ID, 100, getReplServerPort(replServer2ID), 1000, emptyOldChanges);
       }
-
-     // Thread.sleep(1000);
 
       // Launch in S1 the task that will initialize S2
       log(testCase + " add task " + Thread.currentThread());
       addTask(taskInitTargetS2, ResultCode.SUCCESS, null);
 
       log(testCase + " " + server2.getServerId() + " wait target " + Thread.currentThread());
-      ReplicationMsg msgrcv;
-      do
-      {
-        msgrcv = server2.receive();
-        log(testCase + " " + server2.getServerId() + " receives " + msgrcv);
-      }
-      while(!(msgrcv instanceof InitializeTargetMsg));
-      assertTrue(msgrcv instanceof InitializeTargetMsg, msgrcv.getClass().getCanonicalName());
+      waitForInitializeTargetMsg(testCase, server2);
 
       // Signal RS we just entered the full update status
       log(testCase + " change status");
@@ -1132,7 +1036,7 @@ public class InitOnLineTest extends ReplicationTestCase
 
       // Tests that entries have been received by S2
       log(testCase + " receive entries");
-      receiveUpdatedEntries(server2, server2ID, updatedEntries);
+      receiveUpdatedEntries(server2);
 
       // Wait for task completion
       log(testCase + " wait task completed");
@@ -1146,23 +1050,32 @@ public class InitOnLineTest extends ReplicationTestCase
     }
   }
 
+  private void waitForInitializeTargetMsg(String testCase,
+      ReplicationBroker server) throws Exception
+  {
+    ReplicationMsg msgrcv;
+    do
+    {
+      msgrcv = server.receive();
+      log(testCase + " " + server.getServerId() + " receives " + msgrcv);
+    }
+    while (!(msgrcv instanceof InitializeTargetMsg));
+    Assertions.assertThat(msgrcv).isInstanceOf(InitializeTargetMsg.class);
+  }
+
   @Test(enabled=true, groups="slow")
   public void initializeExportMultiSS() throws Exception
   {
     String testCase = "initializeExportMultiSS";
     log("Starting "+testCase);
-
     try
     {
-      // Create 2 changelogs
-      changelog1 = createChangelogServer(changelog1ID, testCase);
-      Thread.sleep(1000);
-
-      changelog2 = createChangelogServer(changelog2ID, testCase);
+      replServer1 = createReplicationServer(replServer1ID, testCase);
+      replServer2 = createReplicationServer(replServer2ID, testCase);
       Thread.sleep(1000);
 
       // Connect DS to the replicationServer 1
-      connectServer1ToChangelog(changelog1ID);
+      connectServer1ToReplServer(replServer1ID);
 
       // Put entries in DB
       log(testCase + " Will add entries");
@@ -1171,25 +1084,23 @@ public class InitOnLineTest extends ReplicationTestCase
       // Connect a broker acting as server 2 to Repl Server 2
       if (server2 == null)
       {
-        log(testCase + " Will connect server 2 to " + changelog2ID);
+        log(testCase + " Will connect server 2 to " + replServer2ID);
         server2 = openReplicationSession(DN.decode(EXAMPLE_DN),
-          server2ID, 100, getChangelogPort(changelog2ID),
-          1000, emptyOldChanges, changelog1.getGenerationId(baseDN));
+          server2ID, 100, getReplServerPort(replServer2ID),
+          1000, emptyOldChanges, replServer1.getGenerationId(baseDN));
       }
 
       // Connect a broker acting as server 3 to Repl Server 3
-      log(testCase + " Will create replServer " + changelog3ID);
-      changelog3 = createChangelogServer(changelog3ID, testCase);
+      log(testCase + " Will create replServer " + replServer3ID);
+      replServer3 = createReplicationServer(replServer3ID, testCase);
       Thread.sleep(500);
       if (server3 == null)
       {
-        log(testCase + " Will connect server 3 to " + changelog3ID);
+        log(testCase + " Will connect server 3 to " + replServer3ID);
         server3 = openReplicationSession(DN.decode(EXAMPLE_DN),
-          server3ID, 100, getChangelogPort(changelog3ID),
-          1000, emptyOldChanges, changelog1.getGenerationId(baseDN));
+          server3ID, 100, getReplServerPort(replServer3ID),
+          1000, emptyOldChanges, replServer1.getGenerationId(baseDN));
       }
-
-      // Thread.sleep(500);
 
       // S3 sends init request
       log(testCase + " server 3 Will send reqinit to " + server1ID);
@@ -1197,23 +1108,13 @@ public class InitOnLineTest extends ReplicationTestCase
       server3.publish(initMsg);
 
       // S3 should receive target, entries & done
-      log(testCase + " Wait for InitializeTargetMsg");
-
-      ReplicationMsg msgrcv = null;
-      do
-      {
-        msgrcv = server3.receive();
-        log(testCase + " receives  "+ msgrcv);
-      }
-      while (!(msgrcv instanceof InitializeTargetMsg));
-      assertTrue(msgrcv instanceof InitializeTargetMsg,msgrcv.getClass().getCanonicalName() +
-      msgrcv);
+      waitForInitializeTargetMsg(testCase, server3);
 
       // Signal RS we just entered the full update status
       server3.signalStatusChange(ServerStatus.FULL_UPDATE_STATUS);
 
       log(testCase + " Will verify server 3 has received expected entries");
-      receiveUpdatedEntries(server3, server3ID, updatedEntries);
+      receiveUpdatedEntries(server3);
 
       log("Successfully ending " + testCase);
     }
@@ -1228,14 +1129,12 @@ public class InitOnLineTest extends ReplicationTestCase
   {
     String testCase = "initializeNoSource";
     log("Starting "+testCase);
-
     try
     {
-      // Start Replication Server
-      changelog1 = createChangelogServer(changelog1ID, testCase);
+      replServer1 = createReplicationServer(replServer1ID, testCase);
 
       // Creates config to synchronize suffix
-      connectServer1ToChangelog(changelog1ID);
+      connectServer1ToReplServer(replServer1ID);
 
       // Test 1
       Entry taskInit = TestCaseUtils.makeEntry(
@@ -1285,14 +1184,12 @@ public class InitOnLineTest extends ReplicationTestCase
   {
     String testCase = "initializeTargetNoTarget"  + baseDN;
     log("Starting "+testCase);
-
     try
     {
-      // Start SS
-      changelog1 = createChangelogServer(changelog1ID, testCase);
+      replServer1 = createReplicationServer(replServer1ID, testCase);
 
       // Creates config to synchronize suffix
-      connectServer1ToChangelog(changelog1ID);
+      connectServer1ToReplServer(replServer1ID);
 
       // Put entries in DB
       addTestEntriesToDB();
@@ -1357,22 +1254,20 @@ public class InitOnLineTest extends ReplicationTestCase
   public void initializeSimultaneous() throws Exception
   {
     String testCase = "initializeSimultaneous";
-
     try
     {
-      // Start SS
-      changelog1 = createChangelogServer(changelog1ID, testCase);
+      replServer1 = createReplicationServer(replServer1ID, testCase);
 
-      // Connect a broker acting as server 2 to changelog2
+      // Connect a broker acting as server 2 to replServer2
       if (server2 == null)
       {
         server2 = openReplicationSession(DN.decode(EXAMPLE_DN),
-          server2ID, 100, getChangelogPort(changelog1ID),
+          server2ID, 100, getReplServerPort(replServer1ID),
           1000, emptyOldChanges);
       }
 
       // Creates config to synchronize suffix
-      connectServer1ToChangelog(changelog1ID);
+      connectServer1ToReplServer(replServer1ID);
 
       Entry taskInit = TestCaseUtils.makeEntry(
         "dn: ds-task-id=" + UUID.randomUUID() +
@@ -1454,10 +1349,14 @@ public class InitOnLineTest extends ReplicationTestCase
     sleep(100); // give some time to the brokers to disconnect from the replicationServer.
     server2 = server3 = null;
 
+    // do not try to remove non-leaves
+    entriesToCleanup.removeAll(Arrays.asList(
+        baseDN,
+        DN.decode("ou=people," + EXAMPLE_DN)));
     super.cleanRealEntries();
 
-    remove(changelog1, changelog2, changelog3);
-    changelog1 = changelog2 = changelog3 = null;
+    remove(replServer1, replServer2, replServer3);
+    replServer1 = replServer2 = replServer3 = null;
 
     Arrays.fill(replServerPort, 0);
     log("Successfully cleaned " + testCase);
