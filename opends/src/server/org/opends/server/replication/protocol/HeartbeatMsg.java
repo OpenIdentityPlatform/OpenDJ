@@ -83,4 +83,10 @@ public class HeartbeatMsg extends ReplicationMsg
     return resultByteArray;
   }
 
+  /** {@inheritDoc} */
+  @Override
+  public String toString()
+  {
+    return getClass().getSimpleName();
+  }
 }
