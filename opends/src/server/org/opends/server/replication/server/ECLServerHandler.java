@@ -116,7 +116,7 @@ public final class ECLServerHandler extends ServerHandler
   /**
    * The global list of contexts by domain for the search currently processed.
    */
-  private DomainContext[] domainCtxts = new DomainContext[0];
+  private Set<DomainContext> domainCtxts = Collections.emptySet();
 
   /**
    * Provides a string representation of this object.
@@ -276,7 +276,7 @@ public final class ECLServerHandler extends ServerHandler
         { // in non blocking mode, null means no more messages
           return null;
         }
-        else if (newMsg.getCSN().getTime() < domainLatestTrimDate)
+        else if (newMsg.getCSN().getTime() >= domainLatestTrimDate)
         {
           // when the replication changelog is trimmed, the last (latest) chg
           // is left in the db (whatever its age), and we don't want this chg
@@ -699,7 +699,7 @@ public final class ECLServerHandler extends ServerHandler
     {
       // Creates the table that will contain the real-time info for each
       // and every domain.
-      Set<DomainContext> tmpSet = new HashSet<DomainContext>();
+      final Set<DomainContext> tmpSet = new HashSet<DomainContext>();
       final StringBuilder missingDomains = new StringBuilder();
       for (ReplicationServerDomain rsd : toIterable(rs.getDomainIterator()))
       {
@@ -803,7 +803,7 @@ public final class ECLServerHandler extends ServerHandler
               "<" + providedCookie + missingDomains + ">"));
       }
 
-      domainCtxts = tmpSet.toArray(new DomainContext[tmpSet.size()]);
+      domainCtxts = tmpSet;
 
       /*
       When it is valid to have the provided cookie containing unknown domains
