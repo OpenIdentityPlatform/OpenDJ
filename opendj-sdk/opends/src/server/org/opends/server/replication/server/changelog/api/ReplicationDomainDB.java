@@ -213,15 +213,13 @@ public interface ReplicationDomainDB
    *
    * @param baseDN
    *          the replication domain baseDN
-   * @param serverId
-   *          the serverId on which to act
    * @param updateMsg
    *          the update message to publish to the replicaDB
    * @return true if a db had to be created to publish this message
    * @throws ChangelogException
    *           If a database problem happened
    */
-  boolean publishUpdateMsg(DN baseDN, int serverId, UpdateMsg updateMsg)
+  boolean publishUpdateMsg(DN baseDN, UpdateMsg updateMsg)
       throws ChangelogException;
 
 }
