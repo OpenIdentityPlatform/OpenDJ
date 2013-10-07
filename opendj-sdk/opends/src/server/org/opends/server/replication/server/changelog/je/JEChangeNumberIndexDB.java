@@ -363,7 +363,7 @@ public class JEChangeNumberIndexDB implements ChangeNumberIndexDB, Runnable
 
           final long currentChangeNumber = record.getChangeNumber();
 
-          if (csn.older(fcsn))
+          if (csn.isOlderThan(fcsn))
           {
             cursor.delete();
             continue;

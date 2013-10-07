@@ -992,7 +992,7 @@ public class ReplicationDB
 
         // reached a regular change record
         // test whether we reached the 'stop' target
-        if (!csn.newer(stop))
+        if (!csn.isNewerThan(stop))
         {
           // let's loop
           distanceToCounterRecords[START]++;
@@ -1043,7 +1043,7 @@ public class ReplicationDB
         }
 
         // it is a regular change record
-        if (!csn.older(start))
+        if (!csn.isOlderThan(start))
         {
           distanceToCounterRecords[STOP]++;
           status = cursor.getPrev(key, data, LockMode.DEFAULT);

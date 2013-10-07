@@ -202,7 +202,7 @@ public final class RemotePendingChanges
 
     for (PendingChange pendingChange : pendingChanges.values())
     {
-      if (pendingChange.getCSN().older(csn))
+      if (pendingChange.getCSN().isOlderThan(csn))
       {
         LDAPUpdateMsg pendingMsg = pendingChange.getMsg();
         if (pendingMsg != null)
@@ -292,7 +292,7 @@ public final class RemotePendingChanges
 
     for (PendingChange pendingChange : pendingChanges.values())
     {
-      if (pendingChange.getCSN().older(csn))
+      if (pendingChange.getCSN().isOlderThan(csn))
       {
         LDAPUpdateMsg pendingMsg = pendingChange.getMsg();
         if (pendingMsg != null)
@@ -353,7 +353,7 @@ public final class RemotePendingChanges
 
     for (PendingChange pendingChange : pendingChanges.values())
     {
-      if (pendingChange.getCSN().older(csn))
+      if (pendingChange.getCSN().isOlderThan(csn))
       {
         LDAPUpdateMsg pendingMsg = pendingChange.getMsg();
         if (pendingMsg != null)
@@ -437,7 +437,7 @@ public final class RemotePendingChanges
 
     for (PendingChange pendingChange : pendingChanges.values())
     {
-      if (pendingChange.getCSN().older(csn))
+      if (pendingChange.getCSN().isOlderThan(csn))
       {
         LDAPUpdateMsg pendingMsg = pendingChange.getMsg();
         if (pendingMsg != null)

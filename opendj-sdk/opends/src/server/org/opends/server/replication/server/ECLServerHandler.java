@@ -870,7 +870,7 @@ public final class ECLServerHandler extends ServerHandler
     for (CSN dbOldestChange : rsDomain.getStartState())
     {
       CSN providedChange = cookie.getCSN(dbOldestChange.getServerId());
-      if (providedChange != null && providedChange.older(dbOldestChange))
+      if (providedChange != null && providedChange.isOlderThan(dbOldestChange))
       {
         return true;
       }
@@ -1394,7 +1394,7 @@ public final class ECLServerHandler extends ServerHandler
       }
 
 
-      if (!csnFromCNIndexDB.older(csnFromChangelogDb))
+      if (!csnFromCNIndexDB.isOlderThan(csnFromChangelogDb))
       {
         // the change from the changelogDb is older
         // it should have been stored lately

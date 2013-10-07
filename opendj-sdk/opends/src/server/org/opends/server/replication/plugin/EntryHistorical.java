@@ -595,7 +595,7 @@ public class EntryHistorical
    */
   public boolean addedOrRenamedAfter(CSN csn)
   {
-    return csn.older(entryADDDate) || csn.older(entryMODDNDate);
+    return csn.isOlderThan(entryADDDate) || csn.isOlderThan(entryMODDNDate);
   }
 
 
@@ -612,7 +612,7 @@ public class EntryHistorical
     if (entryMODDNDate == null)
       return entryADDDate;
 
-    if (entryMODDNDate.older(entryADDDate))
+    if (entryMODDNDate.isOlderThan(entryADDDate))
       return entryMODDNDate;
     else
       return entryADDDate;
@@ -885,7 +885,7 @@ public class EntryHistorical
   private void updateOldestCSN(CSN csn)
   {
     if (csn != null
-        && (this.oldestCSN == null || csn.older(this.oldestCSN)))
+        && (this.oldestCSN == null || csn.isOlderThan(this.oldestCSN)))
       this.oldestCSN = csn;
   }
 

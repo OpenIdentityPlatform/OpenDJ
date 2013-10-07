@@ -160,48 +160,48 @@ public class CSNTest extends ReplicationTestCase
     assertTrue(CSN.compare(csn5, csn1) > 0);
   }
 
-  /** Test {@link CSN#older(CSN)} method */
+  /** Test {@link CSN#isOlderThan(CSN)} method */
   @Test(dataProvider = "createCSN")
   public void csnOlder(CSN csn1, CSN csn2, CSN csn3, CSN csn4, CSN csn5) throws Exception
   {
-    assertFalse(csn1.older(null));
-    assertFalse(csn1.older(csn1));
-    assertTrue(csn1.older(csn3));
-    assertTrue(csn1.older(csn4));
-    assertTrue(csn1.older(csn5));
+    assertFalse(csn1.isOlderThan(null));
+    assertFalse(csn1.isOlderThan(csn1));
+    assertTrue(csn1.isOlderThan(csn3));
+    assertTrue(csn1.isOlderThan(csn4));
+    assertTrue(csn1.isOlderThan(csn5));
   }
 
-  /** Test {@link CSN#olderOrEqual(CSN)} method */
+  /** Test {@link CSN#isOlderThanOrEqualTo(CSN)} method */
   @Test(dataProvider = "createCSN")
   public void csnOlderOrEqual(CSN csn1, CSN csn2, CSN csn3, CSN csn4, CSN csn5) throws Exception
   {
-    assertFalse(csn1.olderOrEqual(null));
-    assertTrue(csn1.olderOrEqual(csn1));
-    assertTrue(csn1.olderOrEqual(csn3));
-    assertTrue(csn1.olderOrEqual(csn4));
-    assertTrue(csn1.olderOrEqual(csn5));
+    assertFalse(csn1.isOlderThanOrEqualTo(null));
+    assertTrue(csn1.isOlderThanOrEqualTo(csn1));
+    assertTrue(csn1.isOlderThanOrEqualTo(csn3));
+    assertTrue(csn1.isOlderThanOrEqualTo(csn4));
+    assertTrue(csn1.isOlderThanOrEqualTo(csn5));
   }
 
-  /** Test {@link CSN#newer(CSN)} method */
+  /** Test {@link CSN#isNewerThan(CSN)} method */
   @Test(dataProvider = "createCSN")
   public void csnNewer(CSN csn1, CSN csn2, CSN csn3, CSN csn4, CSN csn5) throws Exception
   {
-    assertTrue(csn1.newer(null));
-    assertFalse(csn1.newer(csn1));
-    assertFalse(csn1.newer(csn3));
-    assertFalse(csn1.newer(csn4));
-    assertFalse(csn1.newer(csn5));
+    assertTrue(csn1.isNewerThan(null));
+    assertFalse(csn1.isNewerThan(csn1));
+    assertFalse(csn1.isNewerThan(csn3));
+    assertFalse(csn1.isNewerThan(csn4));
+    assertFalse(csn1.isNewerThan(csn5));
   }
 
-  /** Test {@link CSN#newerOrEquals(CSN)} method */
+  /** Test {@link CSN#isNewerThanOrEqualTo(CSN)} method */
   @Test(dataProvider = "createCSN")
   public void csnNewerOrEquals(CSN csn1, CSN csn2, CSN csn3, CSN csn4, CSN csn5) throws Exception
   {
-    assertTrue(csn1.newerOrEquals(null));
-    assertTrue(csn1.newerOrEquals(csn1));
-    assertFalse(csn1.newerOrEquals(csn3));
-    assertFalse(csn1.newerOrEquals(csn4));
-    assertFalse(csn1.newerOrEquals(csn5));
+    assertTrue(csn1.isNewerThanOrEqualTo(null));
+    assertTrue(csn1.isNewerThanOrEqualTo(csn1));
+    assertFalse(csn1.isNewerThanOrEqualTo(csn3));
+    assertFalse(csn1.isNewerThanOrEqualTo(csn4));
+    assertFalse(csn1.isNewerThanOrEqualTo(csn5));
   }
 
 

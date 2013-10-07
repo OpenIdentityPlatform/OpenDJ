@@ -198,7 +198,7 @@ public class JEReplicaDB implements Runnable
 
       queueByteSize += update.size();
       msgQueue.add(update);
-      if (newestCSN == null || newestCSN.older(update.getCSN()))
+      if (newestCSN == null || newestCSN.isOlderThan(update.getCSN()))
       {
         newestCSN = update.getCSN();
       }
@@ -456,7 +456,7 @@ public class JEReplicaDB implements Runnable
               return;
             }
 
-            if (!csn.equals(newestCSN) && csn.older(trimDate))
+            if (!csn.equals(newestCSN) && csn.isOlderThan(trimDate))
             {
               cursor.delete();
             }
@@ -659,7 +659,7 @@ public class JEReplicaDB implements Runnable
   {
     // Now that we always keep the last CSN in the DB to avoid expiring cookies
     // too quickly, we need to check if the "to" is older than the trim date.
-    if (to == null || !to.older(new CSN(latestTrimDate, 0, 0)))
+    if (to == null || !to.isOlderThan(new CSN(latestTrimDate, 0, 0)))
     {
       flush();
       return db.count(from, to);
