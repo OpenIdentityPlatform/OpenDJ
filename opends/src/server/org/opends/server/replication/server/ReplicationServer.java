@@ -1316,8 +1316,9 @@ public final class ReplicationServer
         continue;
 
       final CSN domainEligibleCSN = domain.getEligibleCSN();
-      if (eligibleCSN == null
-          ||(domainEligibleCSN != null && domainEligibleCSN.older(eligibleCSN)))
+      if (eligibleCSN == null ||
+          (domainEligibleCSN != null
+           && domainEligibleCSN.isOlderThan(eligibleCSN)))
       {
         eligibleCSN = domainEligibleCSN;
       }

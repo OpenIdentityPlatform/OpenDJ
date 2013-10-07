@@ -157,7 +157,7 @@ public class ServerState implements Iterable<CSN>
     {
       int serverId = csn.getServerId();
       CSN oldCSN = serverIdToCSN.get(serverId);
-      if (oldCSN == null || csn.newer(oldCSN))
+      if (oldCSN == null || csn.isNewerThan(oldCSN))
       {
         serverIdToCSN.put(serverId, csn);
         return true;
@@ -338,7 +338,7 @@ public class ServerState implements Iterable<CSN>
     {
       for (CSN csn : serverIdToCSN.values())
       {
-        if (maxCSN == null || csn.newer(maxCSN))
+        if (maxCSN == null || csn.isNewerThan(maxCSN))
           maxCSN = csn;
       }
     }
@@ -440,7 +440,7 @@ public class ServerState implements Iterable<CSN>
   {
     CSN change =
         this.serverIdToCSN.get(covered.getServerId());
-    return change != null && !change.older(covered);
+    return change != null && !change.isOlderThan(covered);
   }
 
   /**
@@ -543,7 +543,7 @@ public class ServerState implements Iterable<CSN>
     {
       for (CSN change : serverIdToCSN.values())
       {
-        if (change.older(csn))
+        if (change.isOlderThan(csn))
         {
           newState.serverIdToCSN.put(change.getServerId(), change);
         }

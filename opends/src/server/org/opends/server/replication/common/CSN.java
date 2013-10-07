@@ -27,6 +27,8 @@
  */
 package org.opends.server.replication.common;
 
+
+
 import java.io.Serializable;
 import java.util.Date;
 
@@ -98,7 +100,8 @@ public class CSN implements Serializable, Comparable<CSN>
   /**
    * Create a new {@link CSN} from a String.
    *
-   * @param str the string from which to create a {@link CSN}
+   * @param str
+   *          the string from which to create a {@link CSN}
    */
   public CSN(String str)
   {
@@ -115,9 +118,12 @@ public class CSN implements Serializable, Comparable<CSN>
   /**
    * Create a new {@link CSN}.
    *
-   * @param timeStamp timeStamp for the {@link CSN}
-   * @param seqNum sequence number
-   * @param serverId identity of server
+   * @param timeStamp
+   *          timeStamp for the {@link CSN}
+   * @param seqNum
+   *          sequence number
+   * @param serverId
+   *          identity of server
    */
   public CSN(long timeStamp, int seqNum, int serverId)
   {
@@ -128,6 +134,7 @@ public class CSN implements Serializable, Comparable<CSN>
 
   /**
    * Getter for the time.
+   *
    * @return the time
    */
   public long getTime()
@@ -137,15 +144,17 @@ public class CSN implements Serializable, Comparable<CSN>
 
   /**
    * Get the timestamp associated to this {@link CSN} in seconds.
+   *
    * @return timestamp associated to this {@link CSN} in seconds
    */
   public long getTimeSec()
   {
-    return timeStamp/1000;
+    return timeStamp / 1000;
   }
 
   /**
    * Getter for the sequence number.
+   *
    * @return the sequence number
    */
   public int getSeqnum()
@@ -155,6 +164,7 @@ public class CSN implements Serializable, Comparable<CSN>
 
   /**
    * Getter for the server ID.
+   *
    * @return the server ID
    */
   public int getServerId()
@@ -162,21 +172,26 @@ public class CSN implements Serializable, Comparable<CSN>
     return serverId;
   }
 
-
   /**
    * {@inheritDoc}
    */
   @Override
   public boolean equals(Object obj)
   {
-    if (obj instanceof CSN)
+    if (this == obj)
     {
-      CSN csn = (CSN) obj;
-      return this.seqnum == csn.seqnum &&
-          this.serverId == csn.serverId &&
-          this.timeStamp == csn.timeStamp;
+      return true;
     }
-    return false;
+    else if (obj instanceof CSN)
+    {
+      final CSN csn = (CSN) obj;
+      return this.seqnum == csn.seqnum && this.serverId == csn.serverId
+          && this.timeStamp == csn.timeStamp;
+    }
+    else
+    {
+      return false;
+    }
   }
 
   /**
@@ -235,8 +250,7 @@ public class CSN implements Serializable, Comparable<CSN>
   }
 
   /**
-   * Convert the {@link CSN} to a printable String with a user friendly
-   * format.
+   * Convert the {@link CSN} to a printable String with a user friendly format.
    *
    * @return the string
    */
@@ -250,45 +264,39 @@ public class CSN implements Serializable, Comparable<CSN>
   }
 
   /**
-   * Compares 2 {@link CSN}.
-   * @param csn1 the first {@link CSN} to compare
-   * @param csn2 the second {@link CSN} to compare
-   * @return value 0 if CSN matches, negative if first
-   * CSN is smaller, positive otherwise
+   * Compares this CSN with the provided CSN for order and returns a negative
+   * number if {@code csn1} is older than {@code csn2}, zero if they have the
+   * same age, or a positive number if {@code csn1} is newer than {@code csn2}.
+   *
+   * @param csn1
+   *          The first CSN to be compared, which may be {@code null}.
+   * @param csn2
+   *          The second CSN to be compared, which may be {@code null}.
+   * @return A negative number if {@code csn1} is older than {@code csn2}, zero
+   *         if they have the same age, or a positive number if {@code csn1} is
+   *         newer than {@code csn2}.
    */
   public static int compare(CSN csn1, CSN csn2)
   {
     if (csn1 == null)
     {
-      if (csn2 == null)
-        return 0;
-      return -1;
+      return csn2 == null ? 0 : -1;
     }
     else if (csn2 == null)
+    {
       return 1;
-    else if (csn1.timeStamp < csn2.timeStamp)
-      return -1;
-    else if (csn2.timeStamp < csn1.timeStamp)
-      return 1;
+    }
+    else if (csn1.timeStamp != csn2.timeStamp)
+    {
+      return csn1.timeStamp < csn2.timeStamp ? -1 : 1;
+    }
+    else if (csn1.seqnum != csn2.seqnum)
+    {
+      return csn1.seqnum - csn2.seqnum;
+    }
     else
     {
-      // timestamps are equals compare seqnums
-      if (csn1.seqnum < csn2.seqnum)
-        return -1;
-      else if (csn2.seqnum < csn1.seqnum)
-        return 1;
-      else
-      {
-        // timestamp and seqnum are equals compare serverIds
-        if (csn1.serverId < csn2.serverId)
-          return -1;
-        else if (csn2.serverId < csn1.serverId)
-          return 1;
-
-        // if we get here {@link CSN} are equals
-        return 0;
-      }
-
+      return csn1.serverId - csn2.serverId;
     }
   }
 
@@ -313,7 +321,7 @@ public class CSN implements Serializable, Comparable<CSN>
     {
       return csn1.getSeqnum();
     }
-    if (csn2.newerOrEquals(csn1))
+    if (csn2.isNewerThanOrEqualTo(csn1))
     {
       return 0;
     }
@@ -335,52 +343,67 @@ public class CSN implements Serializable, Comparable<CSN>
   }
 
   /**
-   * check if the current Object is strictly older than {@link CSN}
-   * given in parameter.
-   * @param csn the {@link CSN} to compare with
-   * @return true if strictly older, false if younger or same
+   * Returns {@code true} if this CSN is older than the provided CSN.
+   *
+   * @param csn
+   *          The CSN to be compared.
+   * @return {@code true} if this CSN is older than the provided CSN.
    */
-  public boolean older(CSN csn)
+  public boolean isOlderThan(CSN csn)
   {
     return compare(this, csn) < 0;
   }
 
   /**
-   * check if the current Object is older than {@link CSN}
-   * given in parameter.
-   * @param csn the {@link CSN} to compare with
-   * @return true if older or equal, false if younger
+   * Returns {@code true} if this CSN is older than or equal to the provided
+   * CSN.
+   *
+   * @param csn
+   *          The CSN to be compared.
+   * @return {@code true} if this CSN is older than or equal to the provided
+   *         CSN.
    */
-  public boolean olderOrEqual(CSN csn)
+  public boolean isOlderThanOrEqualTo(CSN csn)
   {
     return compare(this, csn) <= 0;
   }
 
   /**
-   * Check if the current Object is newer than {@link CSN}.
-   * @param csn the {@link CSN} to compare with
-   * @return true if newer
+   * Returns {@code true} if this CSN is newer than or equal to the provided
+   * CSN.
+   *
+   * @param csn
+   *          The CSN to be compared.
+   * @return {@code true} if this CSN is newer than or equal to the provided
+   *         CSN.
    */
-  public boolean newerOrEquals(CSN csn)
+  public boolean isNewerThanOrEqualTo(CSN csn)
   {
     return compare(this, csn) >= 0;
   }
 
   /**
-   * Check if the current Object is strictly newer than {@link CSN}.
-   * @param csn the {@link CSN} to compare with
-   * @return true if strictly newer
+   * Returns {@code true} if this CSN is newer than the provided CSN.
+   *
+   * @param csn
+   *          The CSN to be compared.
+   * @return {@code true} if this CSN is newer than the provided CSN.
    */
-  public boolean newer(CSN csn)
+  public boolean isNewerThan(CSN csn)
   {
     return compare(this, csn) > 0;
   }
 
   /**
-   * Compares this object with the specified object for order.
-   * @param csn the {@link CSN} to compare with.
-   * @return a negative integer, zero, or a positive integer as this object
-   *         is less than, equal to, or greater than the specified object.
+   * Compares this CSN with the provided CSN for order and returns a negative
+   * number if this CSN is older than {@code csn}, zero if they have the same
+   * age, or a positive number if this CSN is newer than {@code csn}.
+   *
+   * @param csn
+   *          The CSN to be compared.
+   * @return A negative number if this CSN is older than {@code csn}, zero if
+   *         they have the same age, or a positive number if this CSN is newer
+   *         than {@code csn}.
    */
   @Override
   public int compareTo(CSN csn)

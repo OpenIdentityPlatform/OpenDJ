@@ -135,17 +135,17 @@ public class AttrHistoricalMultiple extends AttrHistorical
      while (it.hasNext())
      {
        AttrValueHistorical info = it.next();
-       if (csn.newerOrEquals(info.getValueUpdateTime()) &&
-           csn.newerOrEquals(info.getValueDeleteTime()))
+       if (csn.isNewerThanOrEqualTo(info.getValueUpdateTime()) &&
+           csn.isNewerThanOrEqualTo(info.getValueDeleteTime()))
          it.remove();
      }
 
-     if (csn.newer(deleteTime))
+     if (csn.isNewerThan(deleteTime))
      {
        deleteTime = csn;
      }
 
-     if (csn.newer(lastUpdateTime))
+     if (csn.isNewerThan(lastUpdateTime))
      {
        lastUpdateTime = csn;
      }
@@ -162,7 +162,7 @@ public class AttrHistoricalMultiple extends AttrHistorical
      AttrValueHistorical info = new AttrValueHistorical(val, null, csn);
      valuesHist.remove(info);
      valuesHist.put(info, info);
-     if (csn.newer(lastUpdateTime))
+     if (csn.isNewerThan(lastUpdateTime))
      {
        lastUpdateTime = csn;
      }
@@ -184,7 +184,7 @@ public class AttrHistoricalMultiple extends AttrHistorical
       AttrValueHistorical info = new AttrValueHistorical(val, null, csn);
       valuesHist.remove(info);
       valuesHist.put(info, info);
-      if (csn.newer(lastUpdateTime))
+      if (csn.isNewerThan(lastUpdateTime))
       {
         lastUpdateTime = csn;
       }
@@ -204,7 +204,7 @@ public class AttrHistoricalMultiple extends AttrHistorical
      AttrValueHistorical info = new AttrValueHistorical(addedValue, csn, null);
      valuesHist.remove(info);
      valuesHist.put(info, info);
-     if (csn.newer(lastUpdateTime))
+     if (csn.isNewerThan(lastUpdateTime))
      {
        lastUpdateTime = csn;
      }
@@ -225,7 +225,7 @@ public class AttrHistoricalMultiple extends AttrHistorical
       AttrValueHistorical info = new AttrValueHistorical(val, csn, null);
       valuesHist.remove(info);
       valuesHist.put(info, info);
-      if (csn.newer(lastUpdateTime))
+      if (csn.isNewerThan(lastUpdateTime))
       {
         lastUpdateTime = csn;
       }
@@ -262,7 +262,7 @@ public class AttrHistoricalMultiple extends AttrHistorical
       switch (m.getModificationType())
       {
       case DELETE:
-        if (csn.older(getDeleteTime()))
+        if (csn.isOlderThan(getDeleteTime()))
         {
           /* this delete is already obsoleted by a more recent delete
            * skip this mod
@@ -282,7 +282,7 @@ public class AttrHistoricalMultiple extends AttrHistorical
         break;
 
       case REPLACE:
-        if (csn.older(getDeleteTime()))
+        if (csn.isOlderThan(getDeleteTime()))
         {
           /* this replace is already obsoleted by a more recent delete
            * skip this mod
@@ -428,7 +428,7 @@ public class AttrHistoricalMultiple extends AttrHistorical
       {
         AttrValueHistorical valInfo = it.next();
 
-        if (csn.older(valInfo.getValueUpdateTime()))
+        if (csn.isOlderThan(valInfo.getValueUpdateTime()))
         {
           /*
            * this value has been updated after this delete, therefore
@@ -443,7 +443,7 @@ public class AttrHistoricalMultiple extends AttrHistorical
            * information unless it is a Deleted attribute value that is
            * more recent than this DELETE
            */
-          if (csn.newerOrEquals(valInfo.getValueDeleteTime()))
+          if (csn.isNewerThanOrEqualTo(valInfo.getValueDeleteTime()))
           {
             it.remove();
           }
@@ -452,11 +452,11 @@ public class AttrHistoricalMultiple extends AttrHistorical
 
       m.setAttribute(builder.toAttribute());
 
-      if (csn.newer(getDeleteTime()))
+      if (csn.isNewerThan(getDeleteTime()))
       {
         deleteTime = csn;
       }
-      if (csn.newer(getLastUpdateTime()))
+      if (csn.isNewerThan(getLastUpdateTime()))
       {
         lastUpdateTime = csn;
       }
@@ -484,8 +484,8 @@ public class AttrHistoricalMultiple extends AttrHistorical
             // we need to keep the delete.
             addedInCurrentOp = true;
           }
-          if (csn.newerOrEquals(oldValInfo.getValueDeleteTime()) &&
-              csn.newerOrEquals(oldValInfo.getValueUpdateTime()))
+          if (csn.isNewerThanOrEqualTo(oldValInfo.getValueDeleteTime()) &&
+              csn.isNewerThanOrEqualTo(oldValInfo.getValueUpdateTime()))
           {
             valuesHist.remove(oldValInfo);
             valuesHist.put(valInfo, valInfo);
@@ -523,7 +523,7 @@ public class AttrHistoricalMultiple extends AttrHistorical
 
       m.setAttribute(builder.toAttribute());
 
-      if (csn.newer(getLastUpdateTime()))
+      if (csn.isNewerThan(getLastUpdateTime()))
       {
         lastUpdateTime = csn;
       }
@@ -554,7 +554,7 @@ public class AttrHistoricalMultiple extends AttrHistorical
      * real entry
      */
 
-    if (csn.older(getDeleteTime()))
+    if (csn.isOlderThan(getDeleteTime()))
     {
       /* A delete has been done more recently than this add
        * forget this MOD ADD
@@ -586,7 +586,7 @@ public class AttrHistoricalMultiple extends AttrHistorical
            * in all cases suppress this value from the value list
            * as it is already present in the entry
            */
-          if (csn.newer(oldValInfo.getValueUpdateTime()))
+          if (csn.isNewerThan(oldValInfo.getValueUpdateTime()))
           {
             valuesHist.remove(oldValInfo);
             valuesHist.put(valInfo, valInfo);
@@ -598,7 +598,7 @@ public class AttrHistoricalMultiple extends AttrHistorical
           /* this value is marked as a deleted value
            * check if this mod is more recent the this delete
            */
-          if (csn.newerOrEquals(oldValInfo.getValueDeleteTime()))
+          if (csn.isNewerThanOrEqualTo(oldValInfo.getValueDeleteTime()))
           {
             /* this add is more recent,
              * remove the old delete historical information
@@ -629,7 +629,7 @@ public class AttrHistoricalMultiple extends AttrHistorical
       modsIterator.remove();
     }
 
-    if (csn.newer(getLastUpdateTime()))
+    if (csn.isNewerThan(getLastUpdateTime()))
     {
       lastUpdateTime = csn;
     }

@@ -252,7 +252,7 @@ public class PendingChanges
   public synchronized boolean recoveryUntil(CSN recovered)
   {
     CSN lastLocalChange = domain.getLastLocalChange();
-    if (recovered != null && recovered.newerOrEquals(lastLocalChange))
+    if (recovered != null && recovered.isNewerThanOrEqualTo(lastLocalChange))
     {
       recoveringOldChanges = false;
     }

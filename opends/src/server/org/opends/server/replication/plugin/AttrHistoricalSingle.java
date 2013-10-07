@@ -153,11 +153,11 @@ public class AttrHistoricalSingle extends AttrHistorical
     switch (mod.getModificationType())
     {
     case DELETE:
-      if (csn.newer(addTime))
+      if (csn.isNewerThan(addTime))
       {
         if (newValue == null || newValue.equals(value) || value == null)
         {
-          if (csn.newer(deleteTime))
+          if (csn.isNewerThan(deleteTime))
           {
             deleteTime = csn;
           }
@@ -191,7 +191,7 @@ public class AttrHistoricalSingle extends AttrHistorical
         if ((lastMod == HistAttrModificationKey.ADD)
             || (lastMod == HistAttrModificationKey.REPL))
         {
-          if (csn.newer(deleteTime))
+          if (csn.isNewerThan(deleteTime))
           {
             deleteTime = csn;
           }
@@ -213,7 +213,7 @@ public class AttrHistoricalSingle extends AttrHistorical
       break;
 
     case ADD:
-      if (csn.newerOrEquals(deleteTime) && csn.older(addTime))
+      if (csn.isNewerThanOrEqualTo(deleteTime) && csn.isOlderThan(addTime))
       {
         conflict = true;
         mod.setModificationType(ModificationType.REPLACE);
@@ -223,8 +223,8 @@ public class AttrHistoricalSingle extends AttrHistorical
       }
       else
       {
-        if (csn.newerOrEquals(deleteTime)
-            && ((addTime == null ) || addTime.older(deleteTime)))
+        if (csn.isNewerThanOrEqualTo(deleteTime)
+            && ((addTime == null ) || addTime.isOlderThan(deleteTime)))
         {
           // no conflict : don't do anything beside setting the addTime
           addTime = csn;
@@ -252,7 +252,7 @@ public class AttrHistoricalSingle extends AttrHistorical
       break;
 
     case REPLACE:
-      if (csn.older(deleteTime))
+      if (csn.isOlderThan(deleteTime))
       {
         conflict = true;
         modsIterator.remove();

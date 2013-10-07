@@ -137,7 +137,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       for (FakeOperation op : updates)
       {
         CSN csn = op.getCSN();
-        if (csn.newer(startCSN) && csn.older(endCSN))
+        if (csn.isNewerThan(startCSN) && csn.isOlderThan(endCSN))
         {
           synchronized (replayOperations)
           {
@@ -4406,7 +4406,8 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       if (replServerMaxCSN != null && replServerMaxCSN.getSeqnum() != 0)
       {
         CSN ourMaxCSN = state.getMaxCSN(getServerId());
-        if (ourMaxCSN != null && !ourMaxCSN.olderOrEqual(replServerMaxCSN))
+        if (ourMaxCSN != null
+            && !ourMaxCSN.isOlderThanOrEqualTo(replServerMaxCSN))
         {
           pendingChanges.setRecovering(true);
           broker.setRecoveryRequired(true);
@@ -4442,7 +4443,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       Iterator<CSN> it = replayOperations.keySet().iterator();
       while (it.hasNext())
       {
-        if (it.next().newer(startCSN))
+        if (it.next().isNewerThan(startCSN))
         {
           break;
         }
@@ -4478,7 +4479,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
         while (itOp.hasNext())
         {
           FakeOperation fakeOp = itOp.next();
-          if (fakeOp.getCSN().newer(endCSN) // sanity check
+          if (fakeOp.getCSN().isNewerThan(endCSN) // sanity check
               || !state.cover(fakeOp.getCSN()))
           {
             break;

@@ -109,7 +109,7 @@ public class MultiDomainServerState implements Iterable<DN>
       if (oldServerState == null)
         oldServerState = new ServerState();
 
-      if (csn.newer(oldServerState.getCSN(serverId)))
+      if (csn.isNewerThan(oldServerState.getCSN(serverId)))
       {
         oldServerState.update(csn);
         list.put(baseDN, oldServerState);

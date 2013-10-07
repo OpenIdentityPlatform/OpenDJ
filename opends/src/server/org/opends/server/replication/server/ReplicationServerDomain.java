@@ -2619,12 +2619,13 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
       }
 
       if (changelogNewestCSN != null
-          && (eligibleCSN == null || changelogNewestCSN.newer(eligibleCSN)))
+          && (eligibleCSN == null ||
+              changelogNewestCSN.isNewerThan(eligibleCSN)))
       {
         eligibleCSN = changelogNewestCSN;
       }
       if (heartbeatLastCSN != null
-          && (eligibleCSN == null || heartbeatLastCSN.newer(eligibleCSN)))
+          && (eligibleCSN == null || heartbeatLastCSN.isNewerThan(eligibleCSN)))
       {
         eligibleCSN = heartbeatLastCSN;
       }

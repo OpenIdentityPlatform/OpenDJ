@@ -1647,7 +1647,7 @@ public class ReplicationBroker
       }
 
       // Has this replication server the latest local change ?
-      if (myCSN.olderOrEqual(rsCSN))
+      if (myCSN.isOlderThanOrEqualTo(rsCSN))
       {
         if (myCSN.equals(rsCSN))
         {
@@ -1663,7 +1663,7 @@ public class ReplicationBroker
             // Initialize the latest CSN
             latestRsCSN = rsCSN;
           }
-          if (rsCSN.newerOrEquals(latestRsCSN))
+          if (rsCSN.isNewerThanOrEqualTo(latestRsCSN))
           {
             if (rsCSN.equals(latestRsCSN))
             {

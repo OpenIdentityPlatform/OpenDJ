@@ -314,7 +314,7 @@ class ReplicationDomainMonitorData
     {
       maxCSNs.put(serverId, newCSN);
     }
-    else if (newCSN.newer(currentMaxCSN))
+    else if (newCSN.isNewerThan(currentMaxCSN))
     {
       maxCSNs.replace(serverId, newCSN);
     }
