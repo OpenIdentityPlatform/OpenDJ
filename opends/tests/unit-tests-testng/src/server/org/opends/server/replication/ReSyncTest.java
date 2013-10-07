@@ -69,25 +69,21 @@ public class ReSyncTest extends ReplicationTestCase
   private static final String EXAMPLE_DN = "dc=example,dc=com";
   private File reSyncTempDir;
 
- /**
-  * Set up the environment for performing the tests in this Class.
-  *
-  * @throws Exception
-  *           If the environment could not be set up.
-  */
- @BeforeClass
+  /**
+   * Set up the environment for performing the tests in this class:
+   * <ol>
+   * <li>Configure replication</li>
+   * <li>Do some changes</li>
+   * </ol>
+   */
+  @BeforeClass
   public void setup() throws Exception
   {
-   super.setUp();
+    super.setUp();
 
-   reSyncTempDir = TestCaseUtils.createTemporaryDirectory("resynctest");
+    reSyncTempDir = TestCaseUtils.createTemporaryDirectory("resynctest");
 
-   /*
-    * - Configure replication
-    * - Do some changes.
-    */
-
-    int replServerPort = TestCaseUtils.findFreePort();
+    final int replServerPort = TestCaseUtils.findFreePort();
 
     // This test uses restore task which does not work with memory backend
     // (like the test backend we use in every tests): backend is disabled then
@@ -152,21 +148,19 @@ public class ReSyncTest extends ReplicationTestCase
   }
 
   /**
-   * Test re-synchronization after after backup/restore
+   * Test re-synchronization after after backup/restore:
+   * <ol>
+   * <li>Backup the server</li>
+   * <li>ADD an entry</li>
+   * <li>Restore the backup taken previously</li>
+   * <li>Check that entry has been added again in the LDAP server.</li>
+   * </ol>
    */
   @Test(enabled=true, groups="slow")
   public void testResyncAfterRestore() throws Exception
   {
-    /*
-     * - Backup the server
-     * - ADD an entry
-     * - Restore the backup taken previously
-     * - Check that entry has been added again in the LDAP server.
-     */
-
     // Delete the entry we are going to use to make sure that
     // we do test something.
-
     DN entryDN = DN.decode("dc=fooUniqueName1," + EXAMPLE_DN);
     connection.processDelete(entryDN);
 
@@ -184,8 +178,7 @@ public class ReSyncTest extends ReplicationTestCase
         + "objectClass: top\n" + "objectClass: domain\n");
     debugInfo("testResyncAfterRestore: entry added");
 
-    task("dn: ds-task-id=" + UUID.randomUUID()
-        + ",cn=Scheduled Tasks,cn=Tasks\n"
+    task("dn: ds-task-id=" + UUID.randomUUID() + ",cn=Scheduled Tasks,cn=Tasks\n"
         + "objectclass: top\n"
         + "objectclass: ds-task\n"
         + "objectclass: ds-task-restore\n"
@@ -202,28 +195,25 @@ public class ReSyncTest extends ReplicationTestCase
   }
 
   /**
-   * Test re-synchronization after after backup/restore
+   * Test re-synchronization after after backup/restore:
+   * <ol>
+   * <li>Do an export to a LDIF file</li>
+   * <li>Add an entry</li>
+   * <li>Import LDIF file generated above.</li>
+   * <li>Check that entry has been added again in the LDAP server.</li>
+   * </ol>
    */
   @Test(enabled=true, groups="slow")
   public void testResyncAfterImport() throws Exception
   {
-    /*
-     * - Do an export to a LDIF file
-     * - Add an entry
-     * - Import LDIF file generated above.
-     * - Check that entry has been added again in the LDAP server.
-     */
-
     // delete the entry we are going to use to make sure that
     // we do test something.
     DN entryDN = DN.decode("dc=fooUniqueName2," + EXAMPLE_DN);
     connection.processDelete(entryDN);
 
-    String path = reSyncTempDir.getAbsolutePath() + File.pathSeparator +
-            "ReSynchTest";
+    String path = reSyncTempDir.getAbsolutePath() + File.pathSeparator + "ReSynchTest";
 
-    task("dn: ds-task-id=" + UUID.randomUUID()
-        + ",cn=Scheduled Tasks,cn=Tasks\n"
+    task("dn: ds-task-id=" + UUID.randomUUID() + ",cn=Scheduled Tasks,cn=Tasks\n"
         + "objectclass: top\n"
         + "objectclass: ds-task\n"
         + "objectclass: ds-task-export\n"
@@ -236,8 +226,7 @@ public class ReSyncTest extends ReplicationTestCase
         + "objectClass: top\n" + "objectClass: domain\n");
     debugInfo("testResyncAfterImport: entry added");
 
-    task("dn: ds-task-id=" + UUID.randomUUID()
-        + ",cn=Scheduled Tasks,cn=Tasks\n"
+    task("dn: ds-task-id=" + UUID.randomUUID() + ",cn=Scheduled Tasks,cn=Tasks\n"
         + "objectclass: top\n"
         + "objectclass: ds-task\n"
         + "objectclass: ds-task-import\n"
@@ -260,6 +249,9 @@ public class ReSyncTest extends ReplicationTestCase
   public void classCleanUp() throws Exception
   {
     callParanoiaCheck = false;
+
+    // Do not try to remove non leaves 
+    entriesToCleanup.remove(DN.decode(EXAMPLE_DN));
     super.classCleanUp();
 
     TestCaseUtils.clearJEBackend(false, "userRoot", EXAMPLE_DN);
