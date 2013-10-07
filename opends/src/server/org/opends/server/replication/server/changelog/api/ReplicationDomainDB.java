@@ -171,24 +171,6 @@ public interface ReplicationDomainDB
   long getCount(DN baseDN, int serverId, CSN from, CSN to);
 
   /**
-   * Returns the {@link CSN} situated immediately after the specified
-   * {@link CSN} for the specified serverId and replication domain according to
-   * the order specified by {@link CSN#compareTo(CSN)}. If an Exception occurs
-   * in this method, then it returns the oldest possible CSN for the provided
-   * serverId.
-   *
-   * @param baseDN
-   *          the replication domain baseDN
-   * @param serverId
-   *          the serverId for which we want the information
-   * @param startAfterCSN
-   *          The position where the iterator must start
-   * @return the CSN immediately after startAfterCSN, or null if no CSN exist
-   *         after startAfterCSN
-   */
-  CSN getCSNAfter(DN baseDN, int serverId, CSN startAfterCSN);
-
-  /**
    * Generates a {@link ReplicaDBCursor} for the specified serverId and
    * replication domain starting after the provided CSN.
    * <p>

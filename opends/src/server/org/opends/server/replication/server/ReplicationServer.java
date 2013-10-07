@@ -1507,12 +1507,12 @@ public final class ReplicationServer
     MultiDomainServerState result = new MultiDomainServerState();
     for (ReplicationServerDomain rsd : getReplicationServerDomains())
     {
+      final ServerState latestDBServerState = rsd.getLatestServerState();
       if (contains(excludedBaseDNs, rsd.getBaseDN().toNormalizedString())
-          || rsd.getLatestServerState().isEmpty())
+          || latestDBServerState.isEmpty())
         continue;
 
-      final CSN eligibleCSN = getEligibleCSN(excludedBaseDNs);
-      result.update(rsd.getBaseDN(), rsd.getEligibleState(eligibleCSN));
+      result.update(rsd.getBaseDN(), latestDBServerState);
     }
     return result;
   }

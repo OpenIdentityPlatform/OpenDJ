@@ -716,7 +716,7 @@ public final class ECLServerHandler extends ServerHandler
         // Assign the start state for the domain
         if (isPersistent == PERSISTENT_CHANGES_ONLY)
         {
-          newDomainCtxt.startState = rsd.getEligibleState(eligibleCSN);
+          newDomainCtxt.startState = rsd.getLatestServerState().duplicate();
           startStatesFromProvidedCookie.remove(rsd.getBaseDN());
         }
         else
@@ -760,8 +760,7 @@ public final class ECLServerHandler extends ServerHandler
             }
           }
 
-          // Set the stop state for the domain from the eligibleCSN
-          newDomainCtxt.stopState = rsd.getEligibleState(eligibleCSN);
+          newDomainCtxt.stopState = rsd.getLatestServerState().duplicate();
         }
         newDomainCtxt.currentState = new ServerState();
 

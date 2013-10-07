@@ -537,33 +537,6 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
 
   /** {@inheritDoc} */
   @Override
-  public CSN getCSNAfter(DN baseDN, int serverId, CSN startAfterCSN)
-  {
-    final JEReplicaDB replicaDB = getReplicaDB(baseDN, serverId);
-
-    ReplicaDBCursor cursor = null;
-    try
-    {
-      cursor = replicaDB.generateCursorFrom(startAfterCSN);
-      if (cursor != null && cursor.getChange() != null)
-      {
-        return cursor.getChange().getCSN();
-      }
-      return null;
-    }
-    catch (ChangelogException e)
-    {
-      // there's no change older than startAfterCSN
-      return new CSN(0, 0, serverId);
-    }
-    finally
-    {
-      close(cursor);
-    }
-  }
-
-  /** {@inheritDoc} */
-  @Override
   public ChangeNumberIndexDB getChangeNumberIndexDB()
   {
     synchronized (cnIndexDBLock)
