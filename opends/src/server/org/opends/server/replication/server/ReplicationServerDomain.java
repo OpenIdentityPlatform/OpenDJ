@@ -205,9 +205,6 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
   public void put(UpdateMsg update, ServerHandler sourceHandler)
     throws IOException
   {
-    CSN csn = update.getCSN();
-    int serverId = csn.getServerId();
-
     sourceHandler.updateServerState(update);
     sourceHandler.incrementInCount();
     setGenerationIdIfUnset(sourceHandler.getGenerationId());
@@ -264,7 +261,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
       }
     }
 
-    if (!publishUpdateMsg(update, serverId))
+    if (!publishUpdateMsg(update))
     {
       return;
     }
@@ -284,6 +281,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
         // The following timer will time out and send an timeout ack to the
         // requester if the acks are not received in time. The timer will also
         // remove the object from this map.
+        CSN csn = update.getCSN();
         waitingAcks.put(csn, preparedAssuredInfo.expectedAcksInfo);
 
         // Arm timer for this assured update message (wait for acks until it
@@ -402,11 +400,11 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     }
   }
 
-  private boolean publishUpdateMsg(UpdateMsg updateMsg, int serverId)
+  private boolean publishUpdateMsg(UpdateMsg updateMsg)
   {
     try
     {
-      if (this.domainDB.publishUpdateMsg(baseDN, serverId, updateMsg))
+      if (this.domainDB.publishUpdateMsg(baseDN, updateMsg))
       {
         /*
          * JNR: Matt and I had a hard time figuring out where to put this

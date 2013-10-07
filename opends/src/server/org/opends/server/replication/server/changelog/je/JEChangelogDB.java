@@ -614,11 +614,11 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
 
   /** {@inheritDoc} */
   @Override
-  public boolean publishUpdateMsg(DN baseDN, int serverId,
-      UpdateMsg updateMsg) throws ChangelogException
+  public boolean publishUpdateMsg(DN baseDN, UpdateMsg updateMsg)
+      throws ChangelogException
   {
-    final Pair<JEReplicaDB, Boolean> pair =
-        getOrCreateReplicaDB(baseDN, serverId, replicationServer);
+    final Pair<JEReplicaDB, Boolean> pair = getOrCreateReplicaDB(baseDN,
+        updateMsg.getCSN().getServerId(), replicationServer);
     final JEReplicaDB replicaDB = pair.getFirst();
     final boolean wasCreated = pair.getSecond();
 
