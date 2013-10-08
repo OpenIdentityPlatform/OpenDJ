@@ -1384,17 +1384,12 @@ public final class ECLServerHandler extends ServerHandler
   private void assignNewChangeNumberAndStore(ECLUpdateMsg change)
       throws ChangelogException
   {
-    ChangeNumberIndexDB cnIndexDB = replicationServer.getChangeNumberIndexDB();
-
-    change.setChangeNumber(cnIndexDB.nextChangeNumber());
-
+    final CNIndexRecord record = new CNIndexRecord(previousCookie.toString(),
+        change.getBaseDN(), change.getUpdateMsg().getCSN());
     // store in CNIndexDB the pair
     // (change number of the current change, state before this change)
-    cnIndexDB.addRecord(new CNIndexRecord(
-        change.getChangeNumber(),
-        previousCookie.toString(),
-        change.getBaseDN(),
-        change.getUpdateMsg().getCSN()));
+    change.setChangeNumber(
+        replicationServer.getChangeNumberIndexDB().addRecord(record));
   }
 
   /**

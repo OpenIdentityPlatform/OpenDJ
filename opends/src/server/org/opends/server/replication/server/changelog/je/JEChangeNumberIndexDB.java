@@ -153,12 +153,17 @@ public class JEChangeNumberIndexDB implements ChangeNumberIndexDB, Runnable
 
   /** {@inheritDoc} */
   @Override
-  public void addRecord(CNIndexRecord record) throws ChangelogException
+  public long addRecord(CNIndexRecord record) throws ChangelogException
   {
-    db.addRecord(record);
+    long changeNumber = nextChangeNumber();
+    final CNIndexRecord newRecord =
+        new CNIndexRecord(changeNumber, record.getPreviousCookie(), record
+            .getBaseDN(), record.getCSN());
+    db.addRecord(newRecord);
 
     if (debugEnabled())
-      TRACER.debugInfo("In JEChangeNumberIndexDB.add, added: " + record);
+      TRACER.debugInfo("In JEChangeNumberIndexDB.add, added: " + newRecord);
+    return changeNumber;
   }
 
   /** {@inheritDoc} */
@@ -175,9 +180,7 @@ public class JEChangeNumberIndexDB implements ChangeNumberIndexDB, Runnable
     return db.readLastRecord();
   }
 
-  /** {@inheritDoc} */
-  @Override
-  public long nextChangeNumber()
+  private long nextChangeNumber()
   {
     return lastGeneratedChangeNumber.incrementAndGet();
   }
