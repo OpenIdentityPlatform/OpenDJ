@@ -1269,19 +1269,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
   }
 
   /**
-   * Returns a set containing the serverIds that produced updates and known by
-   * this replicationServer from all over the topology, whether directly
-   * connected or connected to another RS.
-   *
-   * @return a set containing the serverIds known by this replicationServer.
-   */
-  public Set<Integer> getServerIds()
-  {
-    return domainDB.getDomainServerIds(baseDN);
-  }
-
-  /**
-   * Creates and returns a cursor.
+   * Creates and returns a cursor across this replication domain.
    * <p>
    * Client code must call {@link ReplicaDBCursor#next()} to advance the cursor
    * to the next available record.
@@ -1290,16 +1278,35 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
    * {@link ReplicaDBCursor#close()} method to free the resources and locks used
    * by the cursor.
    *
-   * @param serverId
-   *          Identifier of the server for which the cursor is created
    * @param startAfterCSN
    *          Starting point for the cursor. If null, start from the oldest CSN
    * @return a non null {@link ReplicaDBCursor}
-   * @see ReplicationDomainDB#getCursorFrom(DN, int, CSN)
+   * @see ReplicationDomainDB#getCursorFrom(DN, CSN)
    */
-  public ReplicaDBCursor getCursorFrom(int serverId, CSN startAfterCSN)
+  public ReplicaDBCursor getCursorFrom(CSN startAfterCSN)
   {
-    return domainDB.getCursorFrom(baseDN, serverId, startAfterCSN);
+    return domainDB.getCursorFrom(baseDN, startAfterCSN);
+  }
+
+  /**
+   * Creates and returns a cursor across this replication domain.
+   * <p>
+   * Client code must call {@link ReplicaDBCursor#next()} to advance the cursor
+   * to the next available record.
+   * <p>
+   * When the cursor is not used anymore, client code MUST call the
+   * {@link ReplicaDBCursor#close()} method to free the resources and locks used
+   * by the cursor.
+   *
+   * @param startAfterServerState
+   *          Starting point for the replicaDB cursors. If null, start from the
+   *          oldest CSN
+   * @return a non null {@link ReplicaDBCursor} going from oldest to newest CSN
+   * @see ReplicationDomainDB#getCursorFrom(DN, ServerState)
+   */
+  public ReplicaDBCursor getCursorFrom(ServerState startAfterServerState)
+  {
+    return domainDB.getCursorFrom(baseDN, startAfterServerState);
   }
 
  /**
@@ -2720,7 +2727,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
    */
   public void storeReceivedCTHeartbeat(CSN csn)
   {
-    // TODO:May be we can spare processing by only storing CSN (timestamp)
+    // TODO:Maybe we can spare processing by only storing CSN (timestamp)
     // instead of a server state.
     getChangeTimeHeartbeatState().update(csn);
   }

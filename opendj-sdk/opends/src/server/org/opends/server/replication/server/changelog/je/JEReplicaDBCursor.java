@@ -166,4 +166,12 @@ public class JEReplicaDBCursor implements ReplicaDBCursor
 
     return CSN.compare(csn1, csn2);
   }
+
+  /** {@inheritDoc} */
+  @Override
+  public String toString()
+  {
+    return getClass().getSimpleName() + " currentChange=" + currentChange + ""
+        + replicaDB;
+  }
 }

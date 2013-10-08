@@ -584,7 +584,8 @@ public class JEReplicaDB implements Runnable
   @Override
   public String toString()
   {
-    return baseDN + " " + serverId + " " + oldestCSN + " " + newestCSN;
+    return getClass().getSimpleName() + " " + baseDN + " " + serverId + " "
+        + oldestCSN + " " + newestCSN;
   }
 
   /**
