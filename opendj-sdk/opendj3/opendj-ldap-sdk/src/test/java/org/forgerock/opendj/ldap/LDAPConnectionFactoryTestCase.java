@@ -27,6 +27,7 @@ package org.forgerock.opendj.ldap;
 
 import static org.fest.assertions.Assertions.assertThat;
 import static org.forgerock.opendj.ldap.TestCaseUtils.findFreeSocketAddress;
+import static org.forgerock.opendj.ldap.TestCaseUtils.getLDAPTestOptions;
 import static org.mockito.Mockito.mock;
 
 import java.io.IOException;
@@ -44,6 +45,21 @@ public class LDAPConnectionFactoryTestCase extends SdkTestCase {
     // Test timeout for tests which need to wait for network events.
     private static final long TEST_TIMEOUT = 30L;
 
+    @Test
+    public void testCreateLDAPConnectionFactory() throws Exception {
+        // test no exception is thrown, which means transport provider is correctly loaded
+        LDAPConnectionFactory factory = new LDAPConnectionFactory(findFreeSocketAddress(), getLDAPTestOptions());
+        factory.close();
+    }
+
+    @Test(expectedExceptions = { ProviderNotFoundException.class },
+            expectedExceptionsMessageRegExp = "^The requested provider 'unknown' .*")
+    public void testCreateLDAPConnectionFactoryFailureProviderNotFound() throws Exception {
+        LDAPOptions options = getLDAPTestOptions().setTransportProvider("unknown");
+        LDAPConnectionFactory factory = new LDAPConnectionFactory(findFreeSocketAddress(), options);
+        factory.close();
+    }
+
     /**
      * This unit test exposes the bug raised in issue OPENDJ-1156: NPE in
      * ReferenceCountedObject after shutting down directory.
@@ -53,7 +69,8 @@ public class LDAPConnectionFactoryTestCase extends SdkTestCase {
         final AtomicReference<LDAPClientContext> context = new AtomicReference<LDAPClientContext>();
         final Semaphore latch = new Semaphore(0);
         final LDAPListener server = createServer(latch, context);
-        final ConnectionFactory factory = new LDAPConnectionFactory(server.getSocketAddress());
+        final ConnectionFactory factory = new LDAPConnectionFactory(server.getSocketAddress(),
+                getLDAPTestOptions());
         try {
             for (int i = 0; i < 100; i++) {
                 // Connect to the server.
@@ -92,6 +109,7 @@ public class LDAPConnectionFactoryTestCase extends SdkTestCase {
                         latch.release();
                         return mock(ServerConnection.class);
                     }
-                });
+                },
+                TestCaseUtils.getLDAPListenerTestOptions());
     }
 }

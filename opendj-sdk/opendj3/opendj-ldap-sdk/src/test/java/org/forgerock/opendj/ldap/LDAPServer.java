@@ -27,6 +27,8 @@
 
 package org.forgerock.opendj.ldap;
 
+import static org.forgerock.opendj.ldap.TestCaseUtils.*;
+
 import static com.forgerock.opendj.ldap.LDAPConstants.TYPE_AUTHENTICATION_SASL;
 
 import java.io.IOException;
@@ -542,8 +544,8 @@ public class LDAPServer implements ServerConnectionFactory<LDAPClientContext, In
         }
         sslContext = new SSLContextBuilder().getSSLContext();
         listener =
-                new LDAPListener(TestCaseUtils.findFreeSocketAddress(), getInstance(),
-                        new LDAPListenerOptions().setBacklog(4096));
+                new LDAPListener(findFreeSocketAddress(), getInstance(),
+                        getLDAPListenerTestOptions().setBacklog(4096));
         isRunning = true;
     }
 

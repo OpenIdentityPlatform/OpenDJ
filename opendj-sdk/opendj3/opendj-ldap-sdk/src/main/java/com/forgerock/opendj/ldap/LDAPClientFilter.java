@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2013 ForgeRock AS.
  */
 
 package com.forgerock.opendj.ldap;
@@ -67,7 +67,7 @@ import org.glassfish.grizzly.filterchain.NextAction;
  * side logic for SSL and SASL operations over LDAP.
  */
 final class LDAPClientFilter extends BaseFilter {
-    private static final Attribute<LDAPConnection> LDAP_CONNECTION_ATTR =
+    private static final Attribute<GrizzlyLDAPConnection> LDAP_CONNECTION_ATTR =
             Grizzly.DEFAULT_ATTRIBUTE_BUILDER.createAttribute("LDAPClientConnection");
     private static final Attribute<ASN1BufferReader> LDAP_ASN1_READER_ATTR =
             Grizzly.DEFAULT_ATTRIBUTE_BUILDER.createAttribute("LDAPASN1Reader");
@@ -80,7 +80,7 @@ final class LDAPClientFilter extends BaseFilter {
                 @Override
                 public void addResult(final FilterChainContext ctx, final int messageID,
                         final Result result) throws UnexpectedResponseException, IOException {
-                    final LDAPConnection ldapConnection =
+                    final GrizzlyLDAPConnection ldapConnection =
                             LDAP_CONNECTION_ATTR.get(ctx.getConnection());
                     if (ldapConnection != null) {
                         final AbstractLDAPFutureResultImpl<?> pendingRequest =
@@ -103,7 +103,7 @@ final class LDAPClientFilter extends BaseFilter {
                 @Override
                 public void bindResult(final FilterChainContext ctx, final int messageID,
                         final BindResult result) throws UnexpectedResponseException, IOException {
-                    final LDAPConnection ldapConnection =
+                    final GrizzlyLDAPConnection ldapConnection =
                             LDAP_CONNECTION_ATTR.get(ctx.getConnection());
                     if (ldapConnection != null) {
                         final AbstractLDAPFutureResultImpl<?> pendingRequest =
@@ -179,7 +179,7 @@ final class LDAPClientFilter extends BaseFilter {
                 @Override
                 public void compareResult(final FilterChainContext ctx, final int messageID,
                         final CompareResult result) throws UnexpectedResponseException, IOException {
-                    final LDAPConnection ldapConnection =
+                    final GrizzlyLDAPConnection ldapConnection =
                             LDAP_CONNECTION_ATTR.get(ctx.getConnection());
                     if (ldapConnection != null) {
                         final AbstractLDAPFutureResultImpl<?> pendingRequest =
@@ -200,7 +200,7 @@ final class LDAPClientFilter extends BaseFilter {
                 @Override
                 public void deleteResult(final FilterChainContext ctx, final int messageID,
                         final Result result) throws UnexpectedResponseException, IOException {
-                    final LDAPConnection ldapConnection =
+                    final GrizzlyLDAPConnection ldapConnection =
                             LDAP_CONNECTION_ATTR.get(ctx.getConnection());
                     if (ldapConnection != null) {
                         final AbstractLDAPFutureResultImpl<?> pendingRequest =
@@ -224,7 +224,7 @@ final class LDAPClientFilter extends BaseFilter {
                 public void extendedResult(final FilterChainContext ctx, final int messageID,
                         final ExtendedResult result) throws UnexpectedResponseException,
                         IOException {
-                    final LDAPConnection ldapConnection =
+                    final GrizzlyLDAPConnection ldapConnection =
                             LDAP_CONNECTION_ATTR.get(ctx.getConnection());
                     if (ldapConnection != null) {
                         if (messageID == 0) {
@@ -274,7 +274,7 @@ final class LDAPClientFilter extends BaseFilter {
                 public void intermediateResponse(final FilterChainContext ctx, final int messageID,
                         final IntermediateResponse response) throws UnexpectedResponseException,
                         IOException {
-                    final LDAPConnection ldapConnection =
+                    final GrizzlyLDAPConnection ldapConnection =
                             LDAP_CONNECTION_ATTR.get(ctx.getConnection());
                     if (ldapConnection != null) {
                         final AbstractLDAPFutureResultImpl<?> pendingRequest =
@@ -289,7 +289,7 @@ final class LDAPClientFilter extends BaseFilter {
                 @Override
                 public void modifyDNResult(final FilterChainContext ctx, final int messageID,
                         final Result result) throws UnexpectedResponseException, IOException {
-                    final LDAPConnection ldapConnection =
+                    final GrizzlyLDAPConnection ldapConnection =
                             LDAP_CONNECTION_ATTR.get(ctx.getConnection());
                     if (ldapConnection != null) {
                         final AbstractLDAPFutureResultImpl<?> pendingRequest =
@@ -312,7 +312,7 @@ final class LDAPClientFilter extends BaseFilter {
                 @Override
                 public void modifyResult(final FilterChainContext ctx, final int messageID,
                         final Result result) throws UnexpectedResponseException, IOException {
-                    final LDAPConnection ldapConnection =
+                    final GrizzlyLDAPConnection ldapConnection =
                             LDAP_CONNECTION_ATTR.get(ctx.getConnection());
                     if (ldapConnection != null) {
                         final AbstractLDAPFutureResultImpl<?> pendingRequest =
@@ -335,7 +335,7 @@ final class LDAPClientFilter extends BaseFilter {
                 @Override
                 public void searchResult(final FilterChainContext ctx, final int messageID,
                         final Result result) throws UnexpectedResponseException, IOException {
-                    final LDAPConnection ldapConnection =
+                    final GrizzlyLDAPConnection ldapConnection =
                             LDAP_CONNECTION_ATTR.get(ctx.getConnection());
                     if (ldapConnection != null) {
                         final AbstractLDAPFutureResultImpl<?> pendingRequest =
@@ -356,7 +356,7 @@ final class LDAPClientFilter extends BaseFilter {
                 public void searchResultEntry(final FilterChainContext ctx, final int messageID,
                         final SearchResultEntry entry) throws UnexpectedResponseException,
                         IOException {
-                    final LDAPConnection ldapConnection =
+                    final GrizzlyLDAPConnection ldapConnection =
                             LDAP_CONNECTION_ATTR.get(ctx.getConnection());
                     if (ldapConnection != null) {
                         final AbstractLDAPFutureResultImpl<?> pendingRequest =
@@ -376,7 +376,7 @@ final class LDAPClientFilter extends BaseFilter {
                 public void searchResultReference(final FilterChainContext ctx,
                         final int messageID, final SearchResultReference reference)
                         throws UnexpectedResponseException, IOException {
-                    final LDAPConnection ldapConnection =
+                    final GrizzlyLDAPConnection ldapConnection =
                             LDAP_CONNECTION_ATTR.get(ctx.getConnection());
                     if (ldapConnection != null) {
                         final AbstractLDAPFutureResultImpl<?> pendingRequest =
@@ -395,7 +395,7 @@ final class LDAPClientFilter extends BaseFilter {
 
                 // Needed in order to expose type information.
                 private <R extends ExtendedResult> void handleExtendedResult0(
-                        final LDAPConnection conn, final LDAPExtendedFutureResultImpl<R> future,
+                        final GrizzlyLDAPConnection conn, final LDAPExtendedFutureResultImpl<R> future,
                         final ExtendedResult result) throws DecodeException {
                     final R decodedResponse =
                             future.decodeResult(result, conn.getLDAPOptions().getDecodeOptions());
@@ -457,7 +457,7 @@ final class LDAPClientFilter extends BaseFilter {
             // Just ignore errors on closed connections.
             return;
         }
-        final LDAPConnection ldapConnection = LDAP_CONNECTION_ATTR.get(connection);
+        final GrizzlyLDAPConnection ldapConnection = LDAP_CONNECTION_ATTR.get(connection);
 
         Result errorResult;
         if (error instanceof EOFException) {
@@ -474,7 +474,7 @@ final class LDAPClientFilter extends BaseFilter {
     @Override
     public NextAction handleClose(final FilterChainContext ctx) throws IOException {
         final Connection<?> connection = ctx.getConnection();
-        final LDAPConnection ldapConnection = LDAP_CONNECTION_ATTR.remove(connection);
+        final GrizzlyLDAPConnection ldapConnection = LDAP_CONNECTION_ATTR.remove(connection);
         if (ldapConnection != null) {
             final Result errorResult = Responses.newResult(ResultCode.CLIENT_SIDE_SERVER_DOWN);
             ldapConnection.close(null, false, errorResult);
@@ -499,7 +499,7 @@ final class LDAPClientFilter extends BaseFilter {
                 ldapReader.decode(asn1Reader, CLIENT_RESPONSE_HANDLER, ctx);
             }
         } catch (IOException ioe) {
-            final LDAPConnection ldapConnection = LDAP_CONNECTION_ATTR.get(ctx.getConnection());
+            final GrizzlyLDAPConnection ldapConnection = LDAP_CONNECTION_ATTR.get(ctx.getConnection());
             final Result errorResult =
                     Responses.newResult(ResultCode.CLIENT_SIDE_DECODING_ERROR).setCause(ioe)
                             .setDiagnosticMessage(ioe.getMessage());
@@ -512,7 +512,7 @@ final class LDAPClientFilter extends BaseFilter {
         return ctx.getStopAction();
     }
 
-    void registerConnection(final Connection<?> connection, final LDAPConnection ldapConnection) {
+    void registerConnection(final Connection<?> connection, final GrizzlyLDAPConnection ldapConnection) {
         LDAP_CONNECTION_ATTR.set(connection, ldapConnection);
     }
 }

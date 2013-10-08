@@ -28,13 +28,14 @@
 package org.forgerock.opendj.ldap;
 
 import static java.util.Arrays.asList;
+
+import static org.forgerock.opendj.ldap.TestCaseUtils.getLDAPTestOptions;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.forgerock.opendj.ldap.Connections.newFixedConnectionPool;
 import static org.forgerock.opendj.ldap.Connections.newHeartBeatConnectionFactory;
 import static org.forgerock.opendj.ldap.Connections.newLoadBalancer;
 import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
-import static org.forgerock.opendj.ldap.TestCaseUtils.findFreeSocketAddress;
-import static org.forgerock.opendj.ldap.TestCaseUtils.getServerSocketAddress;
+import static org.forgerock.opendj.ldap.TestCaseUtils.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Mockito.doAnswer;
@@ -142,7 +143,8 @@ public class ConnectionFactoryTestCase extends SdkTestCase {
 
         factories[0][0] =
                 Connections.newHeartBeatConnectionFactory(new LDAPConnectionFactory(
-                        getServerSocketAddress()), 1000, 500, TimeUnit.MILLISECONDS, request);
+                        getServerSocketAddress(), getLDAPTestOptions()),
+                        1000, 500, TimeUnit.MILLISECONDS, request);
 
         // InternalConnectionFactory
         factories[1][0] = Connections.newInternalConnectionFactory(LDAPServer.getInstance(), null);
@@ -150,22 +152,25 @@ public class ConnectionFactoryTestCase extends SdkTestCase {
         // AuthenticatedConnectionFactory
         factories[2][0] =
                 new AuthenticatedConnectionFactory(new LDAPConnectionFactory(
-                        getServerSocketAddress()), Requests.newSimpleBindRequest("", new char[0]));
+                        getServerSocketAddress(), getLDAPTestOptions()),
+                        Requests.newSimpleBindRequest("", new char[0]));
 
         // AuthenticatedConnectionFactory with multi-stage SASL
         factories[3][0] =
                 new AuthenticatedConnectionFactory(new LDAPConnectionFactory(
-                        getServerSocketAddress()), Requests.newCRAMMD5SASLBindRequest("id:user",
+                        getServerSocketAddress(), getLDAPTestOptions()),
+                        Requests.newCRAMMD5SASLBindRequest("id:user",
                             "password".toCharArray()));
 
         // LDAPConnectionFactory with default options
-        factories[4][0] = new LDAPConnectionFactory(getServerSocketAddress());
+        factories[4][0] = new LDAPConnectionFactory(getServerSocketAddress(),
+                getLDAPTestOptions());
 
         // LDAPConnectionFactory with startTLS
         SSLContext sslContext =
                 new SSLContextBuilder().setTrustManager(TrustManagers.trustAll()).getSSLContext();
         LDAPOptions options =
-                new LDAPOptions().setSSLContext(sslContext).setUseStartTLS(true)
+                getLDAPTestOptions().setSSLContext(sslContext).setUseStartTLS(true)
                         .addEnabledCipherSuite(
                                 new String[] { "SSL_DH_anon_EXPORT_WITH_DES40_CBC_SHA",
                                     "SSL_DH_anon_EXPORT_WITH_RC4_40_MD5",
@@ -188,12 +193,14 @@ public class ConnectionFactoryTestCase extends SdkTestCase {
 
         // Connection pool and load balancing tests.
         ConnectionFactory offlineServer1 =
-                Connections.newNamedConnectionFactory(new LDAPConnectionFactory(findFreeSocketAddress()), "offline1");
+                Connections.newNamedConnectionFactory(new LDAPConnectionFactory(findFreeSocketAddress(),
+                        getLDAPTestOptions()), "offline1");
         ConnectionFactory offlineServer2 =
-                Connections.newNamedConnectionFactory(new LDAPConnectionFactory(findFreeSocketAddress()), "offline2");
+                Connections.newNamedConnectionFactory(new LDAPConnectionFactory(findFreeSocketAddress(),
+                        getLDAPTestOptions()), "offline2");
         ConnectionFactory onlineServer =
                 Connections.newNamedConnectionFactory(new LDAPConnectionFactory(
-                        getServerSocketAddress()), "online");
+                        getServerSocketAddress(), getLDAPTestOptions()), "online");
 
         // Connection pools.
         factories[7][0] = Connections.newFixedConnectionPool(onlineServer, 10);
@@ -539,9 +546,11 @@ public class ConnectionFactoryTestCase extends SdkTestCase {
                     }
                 });
 
-        LDAPListener listener = new LDAPListener(findFreeSocketAddress(), mockServer);
+        LDAPListener listener = new LDAPListener(findFreeSocketAddress(), mockServer,
+                TestCaseUtils.getLDAPListenerTestOptions());
         try {
-            LDAPConnectionFactory clientFactory = new LDAPConnectionFactory(listener.getSocketAddress());
+            LDAPConnectionFactory clientFactory =
+                    new LDAPConnectionFactory(listener.getSocketAddress(), getLDAPTestOptions());
             final Connection client = clientFactory.getConnection();
             connectLatch.await(TEST_TIMEOUT, TimeUnit.SECONDS);
             MockConnectionEventListener mockListener = null;
@@ -620,9 +629,11 @@ public class ConnectionFactoryTestCase extends SdkTestCase {
                     }
                 });
 
-        LDAPListener listener = new LDAPListener(findFreeSocketAddress(), mockServer);
+        LDAPListener listener = new LDAPListener(findFreeSocketAddress(), mockServer,
+                getLDAPListenerTestOptions());
         try {
-            LDAPConnectionFactory clientFactory = new LDAPConnectionFactory(listener.getSocketAddress());
+            LDAPConnectionFactory clientFactory =
+                    new LDAPConnectionFactory(listener.getSocketAddress(), getLDAPTestOptions());
             final Connection client = clientFactory.getConnection();
             connectLatch.await(TEST_TIMEOUT, TimeUnit.SECONDS);
             try {
@@ -659,7 +670,7 @@ public class ConnectionFactoryTestCase extends SdkTestCase {
         final ConnectionFactory factory =
                 newLoadBalancer(new FailoverLoadBalancingAlgorithm(asList(newFixedConnectionPool(
                         newHeartBeatConnectionFactory(new LDAPConnectionFactory(
-                                getServerSocketAddress())), 2))));
+                                getServerSocketAddress(), getLDAPTestOptions())), 2))));
         Connection conn = null;
         try {
             conn = factory.getConnection();

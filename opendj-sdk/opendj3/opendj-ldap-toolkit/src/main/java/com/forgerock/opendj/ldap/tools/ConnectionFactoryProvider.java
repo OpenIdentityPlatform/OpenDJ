@@ -180,15 +180,23 @@ final class ConnectionFactoryProvider {
 
     private final ConsoleApplication app;
 
+    private LDAPOptions options;
+
     public ConnectionFactoryProvider(final ArgumentParser argumentParser,
             final ConsoleApplication app) throws ArgumentException {
-        this(argumentParser, app, "cn=Directory Manager", 389, false);
+        this(argumentParser, app, "cn=Directory Manager", 389, false, null);
+    }
+
+    public ConnectionFactoryProvider(final ArgumentParser argumentParser,
+            final ConsoleApplication app, final LDAPOptions options) throws ArgumentException {
+        this(argumentParser, app, "cn=Directory Manager", 389, false, options);
     }
 
     public ConnectionFactoryProvider(final ArgumentParser argumentParser,
             final ConsoleApplication app, final String defaultBindDN, final int defaultPort,
-            final boolean alwaysSSL) throws ArgumentException {
+            final boolean alwaysSSL, final LDAPOptions options) throws ArgumentException {
         this.app = app;
+        this.options = options == null ? new LDAPOptions() : options;
         useSSLArg =
                 new BooleanArgument("useSSL", OPTION_SHORT_USE_SSL, OPTION_LONG_USE_SSL,
                         INFO_DESCRIPTION_USE_SSL.get());
@@ -432,13 +440,9 @@ final class ConnectionFactoryProvider {
             }
 
             if (sslContext != null) {
-                final LDAPOptions options =
-                        new LDAPOptions().setSSLContext(sslContext).setUseStartTLS(
-                                useStartTLSArg.isPresent());
-                connFactory = new LDAPConnectionFactory(hostNameArg.getValue(), port, options);
-            } else {
-                connFactory = new LDAPConnectionFactory(hostNameArg.getValue(), port);
+                options.setSSLContext(sslContext).setUseStartTLS(useStartTLSArg.isPresent());
             }
+            connFactory = new LDAPConnectionFactory(hostNameArg.getValue(), port, options);
         }
         return connFactory;
     }

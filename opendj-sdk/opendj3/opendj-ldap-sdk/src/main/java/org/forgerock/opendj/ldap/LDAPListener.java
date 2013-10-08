@@ -27,13 +27,16 @@
 
 package org.forgerock.opendj.ldap;
 
+import static com.forgerock.opendj.util.StaticUtils.*;
+
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
+import org.forgerock.opendj.ldap.spi.LDAPListenerImpl;
+import org.forgerock.opendj.ldap.spi.TransportProvider;
 
-import com.forgerock.opendj.ldap.LDAPListenerImpl;
 import com.forgerock.opendj.util.Validator;
 
 /**
@@ -91,10 +94,15 @@ import com.forgerock.opendj.util.Validator;
  * </pre>
  */
 public final class LDAPListener implements Closeable {
+
     // We implement the factory using the pimpl idiom in order have
     // cleaner Javadoc which does not expose implementation methods.
-
     private final LDAPListenerImpl impl;
+
+    /*
+     * Transport provider that provides the implementation of this listener.
+     */
+    private TransportProvider provider;
 
     /**
      * Creates a new LDAP listener implementation which will listen for LDAP
@@ -138,7 +146,9 @@ public final class LDAPListener implements Closeable {
             final LDAPListenerOptions options) throws IOException {
         Validator.ensureNotNull(factory, options);
         final SocketAddress address = new InetSocketAddress(port);
-        this.impl = new LDAPListenerImpl(address, factory, options);
+        this.provider = getProvider(TransportProvider.class, options.getTransportProvider(),
+                options.getProviderClassLoader());
+        this.impl = provider.getLDAPListener(address, factory, options);
     }
 
     /**
@@ -183,7 +193,9 @@ public final class LDAPListener implements Closeable {
             final ServerConnectionFactory<LDAPClientContext, Integer> factory,
             final LDAPListenerOptions options) throws IOException {
         Validator.ensureNotNull(address, factory, options);
-        this.impl = new LDAPListenerImpl(address, factory, options);
+        this.provider = getProvider(TransportProvider.class, options.getTransportProvider(),
+                options.getProviderClassLoader());
+        this.impl = provider.getLDAPListener(address, factory, options);
     }
 
     /**
@@ -233,7 +245,9 @@ public final class LDAPListener implements Closeable {
             final LDAPListenerOptions options) throws IOException {
         Validator.ensureNotNull(host, factory, options);
         final SocketAddress address = new InetSocketAddress(host, port);
-        this.impl = new LDAPListenerImpl(address, factory, options);
+        this.provider = getProvider(TransportProvider.class, options.getTransportProvider(),
+                options.getProviderClassLoader());
+        this.impl = provider.getLDAPListener(address, factory, options);
     }
 
     /**
@@ -299,6 +313,16 @@ public final class LDAPListener implements Closeable {
      */
     public SocketAddress getSocketAddress() {
         return impl.getSocketAddress();
+    }
+
+    /**
+     * Returns the name of the transport provider, which provides the implementation
+     * of this factory.
+     *
+     * @return The name of actual transport provider.
+     */
+    public String getProviderName() {
+        return provider.getName();
     }
 
     /**

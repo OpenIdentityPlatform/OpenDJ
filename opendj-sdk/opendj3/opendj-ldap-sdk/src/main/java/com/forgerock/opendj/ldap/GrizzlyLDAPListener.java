@@ -30,14 +30,15 @@ package com.forgerock.opendj.ldap;
 import static com.forgerock.opendj.ldap.DefaultTCPNIOTransport.DEFAULT_TRANSPORT;
 import static com.forgerock.opendj.util.StaticUtils.DEFAULT_LOG;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.net.SocketAddress;
 import java.util.concurrent.atomic.AtomicBoolean;
+
 import org.forgerock.opendj.ldap.DecodeOptions;
 import org.forgerock.opendj.ldap.LDAPClientContext;
 import org.forgerock.opendj.ldap.LDAPListenerOptions;
 import org.forgerock.opendj.ldap.ServerConnectionFactory;
+import org.forgerock.opendj.ldap.spi.LDAPListenerImpl;
 import org.glassfish.grizzly.filterchain.FilterChain;
 import org.glassfish.grizzly.filterchain.FilterChainBuilder;
 import org.glassfish.grizzly.filterchain.TransportFilter;
@@ -48,9 +49,9 @@ import org.glassfish.grizzly.nio.transport.TCPNIOTransport;
 import com.forgerock.opendj.util.ReferenceCountedObject;
 
 /**
- * LDAP listener implementation.
+ * LDAP listener implementation using Grizzly for transport.
  */
-public final class LDAPListenerImpl implements Closeable {
+public final class GrizzlyLDAPListener implements LDAPListenerImpl {
     private final ReferenceCountedObject<TCPNIOTransport>.Reference transport;
     private final FilterChain defaultFilterChain;
     private final ServerConnectionFactory<LDAPClientContext, Integer> connectionFactory;
@@ -72,10 +73,35 @@ public final class LDAPListenerImpl implements Closeable {
      *             If an error occurred while trying to listen on the provided
      *             address.
      */
-    public LDAPListenerImpl(final SocketAddress address,
+    public GrizzlyLDAPListener(final SocketAddress address,
             final ServerConnectionFactory<LDAPClientContext, Integer> factory,
             final LDAPListenerOptions options) throws IOException {
-        this.transport = DEFAULT_TRANSPORT.acquireIfNull(options.getTCPNIOTransport());
+        this(address, factory, options, null);
+    }
+
+    /**
+     * Creates a new LDAP listener implementation which will listen for LDAP
+     * client connections using the provided address, connection options and
+     * provided TCP transport.
+     *
+     * @param address
+     *            The address to listen on.
+     * @param factory
+     *            The server connection factory which will be used to create
+     *            server connections.
+     * @param options
+     *            The LDAP listener options.
+     * @param transport
+     *            Grizzly TCP Transport NIO implementation to use for
+     *            connections. If {@code null}, default transport will be used.
+     * @throws IOException
+     *             If an error occurred while trying to listen on the provided
+     *             address.
+     */
+    public GrizzlyLDAPListener(final SocketAddress address,
+            final ServerConnectionFactory<LDAPClientContext, Integer> factory,
+            final LDAPListenerOptions options, TCPNIOTransport transport) throws IOException {
+        this.transport = DEFAULT_TRANSPORT.acquireIfNull(transport);
         this.connectionFactory = factory;
 
         final DecodeOptions decodeOptions = new DecodeOptions(options.getDecodeOptions());
@@ -84,7 +110,7 @@ public final class LDAPListenerImpl implements Closeable {
                         new LDAPServerFilter(this, new LDAPReader(decodeOptions), options
                                 .getMaxRequestSize())).build();
         final TCPNIOBindingHandler bindingHandler =
-                TCPNIOBindingHandler.builder(transport.get()).processor(defaultFilterChain).build();
+                TCPNIOBindingHandler.builder(this.transport.get()).processor(defaultFilterChain).build();
         this.serverConnection = bindingHandler.bind(address, options.getBacklog());
     }
 
@@ -104,11 +130,8 @@ public final class LDAPListenerImpl implements Closeable {
         }
     }
 
-    /**
-     * Returns the address that this LDAP listener is listening on.
-     *
-     * @return The address that this LDAP listener is listening on.
-     */
+    /** {@inheritDoc} */
+    @Override
     public SocketAddress getSocketAddress() {
         return serverConnection.getLocalAddress();
     }

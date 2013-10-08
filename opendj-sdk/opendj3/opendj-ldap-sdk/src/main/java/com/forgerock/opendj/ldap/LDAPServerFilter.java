@@ -658,7 +658,7 @@ final class LDAPServerFilter extends BaseFilter {
     }
 
     private final LDAPReader ldapReader;
-    private final LDAPListenerImpl listener;
+    private final GrizzlyLDAPListener listener;
     private final int maxASN1ElementSize;
 
     private final AbstractLDAPMessageHandler<FilterChainContext> serverRequestHandler =
@@ -794,7 +794,7 @@ final class LDAPServerFilter extends BaseFilter {
                 }
             };
 
-    LDAPServerFilter(final LDAPListenerImpl listener, final LDAPReader ldapReader,
+    LDAPServerFilter(final GrizzlyLDAPListener listener, final LDAPReader ldapReader,
             final int maxASN1ElementSize) {
         this.listener = listener;
         this.ldapReader = ldapReader;
