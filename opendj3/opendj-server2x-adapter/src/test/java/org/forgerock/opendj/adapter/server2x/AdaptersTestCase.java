@@ -73,13 +73,13 @@ import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldap.responses.WhoAmIExtendedResult;
 import org.forgerock.opendj.ldif.ConnectionEntryReader;
 import org.forgerock.testng.ForgeRockTestCase;
-
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import static org.forgerock.opendj.adapter.server2x.EmbeddedServerTestCaseUtils.CONFIG_PROPERTIES;
+import static org.forgerock.opendj.adapter.server2x.TestCaseUtils.getLDAPTestOptions;
 
 /**
  * This class defines a set of tests for the Adapters.class.
@@ -96,8 +96,9 @@ public class AdaptersTestCase extends ForgeRockTestCase {
     @DataProvider
     public Object[][] anonymousConnectionFactories() {
         return new Object[][] {
-            { new LDAPConnectionFactory("localhost", Integer.valueOf(CONFIG_PROPERTIES
-                    .getProperty("listen-port"))) }, { Adapters.newAnonymousConnectionFactory() } };
+            { new LDAPConnectionFactory("localhost", Integer.valueOf(CONFIG_PROPERTIES.getProperty("listen-port")),
+                        getLDAPTestOptions()) },
+            { Adapters.newAnonymousConnectionFactory() } };
     }
 
     /**
@@ -108,9 +109,11 @@ public class AdaptersTestCase extends ForgeRockTestCase {
     @DataProvider
     public Object[][] rootConnectionFactories() {
         return new Object[][] {
-            { Connections.newAuthenticatedConnectionFactory(new LDAPConnectionFactory("localhost",
-                    Integer.valueOf(CONFIG_PROPERTIES.getProperty("listen-port"))), Requests
-                    .newSimpleBindRequest("cn=directory manager", "password".toCharArray())) },
+            { Connections.newAuthenticatedConnectionFactory(
+                   new LDAPConnectionFactory("localhost",
+                           Integer.valueOf(CONFIG_PROPERTIES.getProperty("listen-port")),
+                           getLDAPTestOptions()),
+                   Requests.newSimpleBindRequest("cn=directory manager", "password".toCharArray())) },
             { Adapters.newConnectionFactoryForUser(DN.valueOf("cn=directory manager")) } };
     }
 
@@ -216,7 +219,7 @@ public class AdaptersTestCase extends ForgeRockTestCase {
     public void testSimpleLDAPConnectionFactorySimpleBind() throws ErrorResultException {
         final LDAPConnectionFactory factory =
                 new LDAPConnectionFactory("localhost", Integer.valueOf(CONFIG_PROPERTIES
-                        .getProperty("listen-port")));
+                        .getProperty("listen-port")), getLDAPTestOptions());
         Connection connection = null;
         try {
             connection = factory.getConnection();
@@ -242,7 +245,7 @@ public class AdaptersTestCase extends ForgeRockTestCase {
             ErrorResultException {
         LDAPConnectionFactory factory =
                 new LDAPConnectionFactory("localhost", Integer.valueOf(CONFIG_PROPERTIES
-                        .getProperty("listen-port")));
+                        .getProperty("listen-port")), getLDAPTestOptions());
 
         Connection connection = factory.getConnection();
         PlainSASLBindRequest request =
@@ -1020,7 +1023,7 @@ public class AdaptersTestCase extends ForgeRockTestCase {
         // LDAP Connection
         final LDAPConnectionFactory factory =
                 new LDAPConnectionFactory("localhost", Integer.valueOf(CONFIG_PROPERTIES
-                        .getProperty("listen-port")));
+                        .getProperty("listen-port")), getLDAPTestOptions());
         Connection connection = null;
         connection = factory.getConnection();
         connection.bind("cn=Directory Manager", "password".toCharArray());

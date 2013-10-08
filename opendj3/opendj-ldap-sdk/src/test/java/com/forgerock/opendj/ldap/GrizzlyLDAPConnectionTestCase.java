@@ -38,7 +38,6 @@ import org.forgerock.opendj.ldap.Connections;
 import org.forgerock.opendj.ldap.ErrorResultException;
 import org.forgerock.opendj.ldap.LDAPConnectionFactory;
 import org.forgerock.opendj.ldap.LDAPListener;
-import org.forgerock.opendj.ldap.LDAPOptions;
 import org.forgerock.opendj.ldap.RequestHandler;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchResultHandler;
@@ -55,7 +54,7 @@ import org.testng.annotations.Test;
  * Tests LDAP connection implementation class.
  */
 @SuppressWarnings("javadoc")
-public class LDAPConnectionTestCase extends LDAPTestCase {
+public class GrizzlyLDAPConnectionTestCase extends LDAPTestCase {
 
     /**
      * Tests that a normal request is subject to client side timeout checking.
@@ -84,16 +83,16 @@ public class LDAPConnectionTestCase extends LDAPTestCase {
         @SuppressWarnings("unchecked")
         LDAPListener listener =
                 new LDAPListener(address, Connections
-                        .newServerConnectionFactory(mock(RequestHandler.class)));
+                        .newServerConnectionFactory(mock(RequestHandler.class)),
+                        TestCaseUtils.getLDAPListenerTestOptions());
 
         /*
          * Use a very long time out in order to prevent the timeout thread from
          * triggering the timeout.
          */
-        LDAPConnectionFactory factory =
-                new LDAPConnectionFactory(address, new LDAPOptions().setTimeout(100,
-                        TimeUnit.SECONDS));
-        LDAPConnection connection = (LDAPConnection) factory.getConnection();
+        LDAPConnectionFactory factory = new LDAPConnectionFactory(address,
+                TestCaseUtils.getLDAPTestOptions().setTimeout(100, TimeUnit.SECONDS));
+        GrizzlyLDAPConnection connection = (GrizzlyLDAPConnection) factory.getConnection();
         try {
             SearchRequest request =
                     Requests.newSearchRequest("dc=test", SearchScope.BASE_OBJECT, "(objectClass=*)");

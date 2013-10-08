@@ -45,6 +45,7 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.Iterator;
 import java.util.Locale;
+import java.util.ServiceLoader;
 import java.util.TimeZone;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -60,6 +61,8 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
+import org.forgerock.opendj.ldap.ProviderNotFoundException;
+import org.forgerock.opendj.ldap.spi.Provider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -2254,6 +2257,49 @@ public final class StaticUtils {
     // Prevent instantiation.
     private StaticUtils() {
         // No implementation required.
+    }
+
+    /**
+     * Find and returns a provider of one or more implementations.
+     * <p>
+     * The provider is loaded using the {@code ServiceLoader} facility.
+     *
+     * @param <P> type of provider
+     * @param providerClass
+     *          class of provider
+     * @param requestedProvider
+     *            name of provider to use, or {@code null} if no specific
+     *            provider is requested.
+     * @param classLoader
+     *            class loader to use to load the provider, or {@code null} to
+     *            use the default class loader.
+     * @return a provider
+     * @throws ProviderNotFoundException
+     *             if no provider is available or if the provider requested
+     *             using options is not found.
+     */
+    public static <P extends Provider> P getProvider(final Class<P> providerClass, final String requestedProvider,
+            final ClassLoader classLoader) {
+
+        ServiceLoader<P> loader = ServiceLoader.load(providerClass, classLoader);
+        StringBuilder providersFound = new StringBuilder();
+        for (P provider : loader) {
+            if (providersFound.length() > 0) {
+                providersFound.append(" ");
+            }
+            providersFound.append(provider.getName());
+            if (requestedProvider == null || provider.getName().equals(requestedProvider)) {
+                return provider;
+            }
+        }
+        if (providersFound.length() > 0) {
+            throw new ProviderNotFoundException(providerClass, requestedProvider, String.format(
+                    "The requested provider '%s' of type '%s' was not found. Available providers: %s",
+                    requestedProvider, providerClass.getName(), providersFound));
+        } else {
+            throw new ProviderNotFoundException(providerClass, requestedProvider, String.format(
+                    "There was no provider of type '%s' available.", providerClass.getName()));
+        }
     }
 
 }

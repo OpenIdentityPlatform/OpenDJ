@@ -27,11 +27,15 @@
 
 package org.forgerock.opendj.ldap;
 
+import static com.forgerock.opendj.util.StaticUtils.getProvider;
+
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 
-import com.forgerock.opendj.ldap.LDAPConnectionFactoryImpl;
+import org.forgerock.opendj.ldap.spi.LDAPConnectionFactoryImpl;
+import org.forgerock.opendj.ldap.spi.TransportProvider;
+
 import com.forgerock.opendj.util.Validator;
 
 /**
@@ -45,6 +49,11 @@ public final class LDAPConnectionFactory implements ConnectionFactory {
      */
     private final LDAPConnectionFactoryImpl impl;
 
+    /*
+     * Transport provider that provides the implementation of this factory.
+     */
+    private TransportProvider provider;
+
     /**
      * Creates a new LDAP connection factory which can be used to create LDAP
      * connections to the Directory Server at the provided address.
@@ -53,6 +62,8 @@ public final class LDAPConnectionFactory implements ConnectionFactory {
      *            The address of the Directory Server.
      * @throws NullPointerException
      *             If {@code address} was {@code null}.
+     * @throws ProviderNotFoundException if no provider is available or if the
+     *             provider requested using options is not found.
      */
     public LDAPConnectionFactory(final SocketAddress address) {
         this(address, new LDAPOptions());
@@ -68,10 +79,14 @@ public final class LDAPConnectionFactory implements ConnectionFactory {
      *            The LDAP options to use when creating connections.
      * @throws NullPointerException
      *             If {@code address} or {@code options} was {@code null}.
+     * @throws ProviderNotFoundException if no provider is available or if the
+     *             provider requested using options is not found.
      */
     public LDAPConnectionFactory(final SocketAddress address, final LDAPOptions options) {
         Validator.ensureNotNull(address, options);
-        this.impl = new LDAPConnectionFactoryImpl(address, options);
+        this.provider = getProvider(TransportProvider.class, options.getTransportProvider(),
+                options.getProviderClassLoader());
+        this.impl = provider.getLDAPConnectionFactory(address, options);
     }
 
     /**
@@ -85,6 +100,8 @@ public final class LDAPConnectionFactory implements ConnectionFactory {
      *            The port number.
      * @throws NullPointerException
      *             If {@code host} was {@code null}.
+     * @throws ProviderNotFoundException if no provider is available or if the
+     *             provider requested using options is not found.
      */
     public LDAPConnectionFactory(final String host, final int port) {
         this(host, port, new LDAPOptions());
@@ -103,11 +120,15 @@ public final class LDAPConnectionFactory implements ConnectionFactory {
      *            The LDAP options to use when creating connections.
      * @throws NullPointerException
      *             If {@code host} or {@code options} was {@code null}.
+     * @throws ProviderNotFoundException if no provider is available or if the
+     *             provider requested using options is not found.
      */
     public LDAPConnectionFactory(final String host, final int port, final LDAPOptions options) {
         Validator.ensureNotNull(host, options);
         final SocketAddress address = new InetSocketAddress(host, port);
-        this.impl = new LDAPConnectionFactoryImpl(address, options);
+        this.provider = getProvider(TransportProvider.class, options.getTransportProvider(),
+                options.getProviderClassLoader());
+        this.impl = provider.getLDAPConnectionFactory(address, options);
     }
 
     /**
@@ -175,12 +196,22 @@ public final class LDAPConnectionFactory implements ConnectionFactory {
     }
 
     /**
-     * Returns the address that this LDAP listener is listening on.
+     * Returns the address used by the connections created by this factory.
      *
-     * @return The address that this LDAP listener is listening on.
+     * @return The address used by the connections.
      */
     public SocketAddress getSocketAddress() {
         return impl.getSocketAddress();
+    }
+
+    /**
+     * Returns the name of the transport provider, which provides the implementation
+     * of this factory.
+     *
+     * @return The name of actual transport provider.
+     */
+    public String getProviderName() {
+        return provider.getName();
     }
 
     @Override

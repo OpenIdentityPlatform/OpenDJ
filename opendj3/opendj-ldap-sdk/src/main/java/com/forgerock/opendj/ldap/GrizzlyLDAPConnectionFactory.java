@@ -29,6 +29,7 @@ package com.forgerock.opendj.ldap;
 
 import static com.forgerock.opendj.ldap.DefaultTCPNIOTransport.DEFAULT_TRANSPORT;
 import static com.forgerock.opendj.ldap.TimeoutChecker.TIMEOUT_CHECKER;
+
 import static org.forgerock.opendj.ldap.ErrorResultException.*;
 
 import java.io.IOException;
@@ -40,7 +41,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import javax.net.ssl.SSLEngine;
 
 import org.forgerock.opendj.ldap.Connection;
-import org.forgerock.opendj.ldap.ConnectionFactory;
 import org.forgerock.opendj.ldap.ErrorResultException;
 import org.forgerock.opendj.ldap.FutureResult;
 import org.forgerock.opendj.ldap.LDAPOptions;
@@ -49,6 +49,7 @@ import org.forgerock.opendj.ldap.ResultHandler;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.requests.StartTLSExtendedRequest;
 import org.forgerock.opendj.ldap.responses.ExtendedResult;
+import org.forgerock.opendj.ldap.spi.LDAPConnectionFactoryImpl;
 import org.glassfish.grizzly.CompletionHandler;
 import org.glassfish.grizzly.EmptyCompletionHandler;
 import org.glassfish.grizzly.SocketConnectorHandler;
@@ -62,9 +63,9 @@ import com.forgerock.opendj.util.AsynchronousFutureResult;
 import com.forgerock.opendj.util.ReferenceCountedObject;
 
 /**
- * LDAP connection factory implementation.
+ * LDAP connection factory implementation using Grizzly for transport.
  */
-public final class LDAPConnectionFactoryImpl implements ConnectionFactory {
+public final class GrizzlyLDAPConnectionFactory implements LDAPConnectionFactoryImpl {
     /**
      * Adapts a Grizzly connection completion handler to an LDAP connection
      * asynchronous future result.
@@ -88,7 +89,7 @@ public final class LDAPConnectionFactoryImpl implements ConnectionFactory {
         @Override
         public void completed(final org.glassfish.grizzly.Connection result) {
             // Adapt the connection.
-            final LDAPConnection connection = adaptConnection(result);
+            final GrizzlyLDAPConnection connection = adaptConnection(result);
 
             // Plain connection.
             if (options.getSSLContext() == null) {
@@ -159,14 +160,14 @@ public final class LDAPConnectionFactoryImpl implements ConnectionFactory {
             // Ignore this.
         }
 
-        private LDAPConnection adaptConnection(final org.glassfish.grizzly.Connection<?> connection) {
+        private GrizzlyLDAPConnection adaptConnection(final org.glassfish.grizzly.Connection<?> connection) {
             /*
              * Test shows that its much faster with non block writes but risk
              * running out of memory if the server is slow.
              */
             connection.configureBlocking(true);
-            final LDAPConnection ldapConnection =
-                    new LDAPConnection(connection, LDAPConnectionFactoryImpl.this);
+            final GrizzlyLDAPConnection ldapConnection =
+                    new GrizzlyLDAPConnection(connection, GrizzlyLDAPConnectionFactory.this);
             timeoutChecker.get().addConnection(ldapConnection);
             clientFilter.registerConnection(connection, ldapConnection);
             return ldapConnection;
@@ -184,14 +185,14 @@ public final class LDAPConnectionFactoryImpl implements ConnectionFactory {
             }
         }
 
-        private void onFailure(final LDAPConnection connection, final Throwable t) {
+        private void onFailure(final GrizzlyLDAPConnection connection, final Throwable t) {
             // Abort connection attempt due to error.
             connection.close();
             future.handleErrorResult(adaptConnectionException(t));
             releaseTransportAndTimeoutChecker();
         }
 
-        private void onSuccess(final LDAPConnection connection) {
+        private void onSuccess(final GrizzlyLDAPConnection connection) {
             future.handleResult(connection);
 
             // Close the connection if the future was cancelled.
@@ -224,7 +225,7 @@ public final class LDAPConnectionFactoryImpl implements ConnectionFactory {
             .acquire();
 
     /**
-     * Creates a new LDAP connection factory implementation which can be used to
+     * Creates a new LDAP connection factory based on Grizzly which can be used to
      * create connections to the Directory Server at the provided host and port
      * address using provided connection options.
      *
@@ -233,14 +234,31 @@ public final class LDAPConnectionFactoryImpl implements ConnectionFactory {
      * @param options
      *            The LDAP connection options to use when creating connections.
      */
-    public LDAPConnectionFactoryImpl(final SocketAddress address, final LDAPOptions options) {
-        this.transport = DEFAULT_TRANSPORT.acquireIfNull(options.getTCPNIOTransport());
+    public GrizzlyLDAPConnectionFactory(final SocketAddress address, final LDAPOptions options) {
+        this(address, options, null);
+    }
+
+    /**
+     * Creates a new LDAP connection factory based on Grizzly which can be used
+     * to create connections to the Directory Server at the provided host and
+     * port address using provided connection options and provided TCP
+     * transport.
+     *
+     * @param address
+     *            The address of the Directory Server to connect to.
+     * @param options
+     *            The LDAP connection options to use when creating connections.
+     * @param transport
+     *            Grizzly TCP Transport NIO implementation to use for
+     *            connections. If {@code null}, default transport will be used.
+     */
+    public GrizzlyLDAPConnectionFactory(final SocketAddress address, final LDAPOptions options,
+            TCPNIOTransport transport) {
+        this.transport = DEFAULT_TRANSPORT.acquireIfNull(transport);
         this.socketAddress = address;
         this.options = new LDAPOptions(options);
-        this.clientFilter =
-                new LDAPClientFilter(new LDAPReader(this.options.getDecodeOptions()), 0);
-        this.defaultFilterChain =
-                FilterChainBuilder.stateless().add(new TransportFilter()).add(clientFilter).build();
+        this.clientFilter = new LDAPClientFilter(new LDAPReader(this.options.getDecodeOptions()), 0);
+        this.defaultFilterChain = FilterChainBuilder.stateless().add(new TransportFilter()).add(clientFilter).build();
     }
 
     @Override

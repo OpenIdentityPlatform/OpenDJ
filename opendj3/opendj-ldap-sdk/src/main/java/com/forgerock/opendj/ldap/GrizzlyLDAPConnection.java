@@ -87,7 +87,7 @@ import com.forgerock.opendj.util.Validator;
 /**
  * LDAP connection implementation.
  */
-final class LDAPConnection extends AbstractAsynchronousConnection implements Connection {
+final class GrizzlyLDAPConnection extends AbstractAsynchronousConnection implements Connection {
     /**
      * A dummy SSL client engine configurator as SSLFilter only needs client
      * config. This prevents Grizzly from needlessly using JVM defaults which
@@ -109,7 +109,7 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements Con
     private final org.glassfish.grizzly.Connection<?> connection;
     private final LDAPWriter ldapWriter = new LDAPWriter();
     private final AtomicInteger nextMsgID = new AtomicInteger(1);
-    private final LDAPConnectionFactoryImpl factory;
+    private final GrizzlyLDAPConnectionFactory factory;
     private final ConcurrentHashMap<Integer, AbstractLDAPFutureResultImpl<?>> pendingRequests =
             new ConcurrentHashMap<Integer, AbstractLDAPFutureResultImpl<?>>();
     private final Object stateLock = new Object();
@@ -120,8 +120,8 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements Con
     private boolean isFailed = false;
     private List<ConnectionEventListener> listeners = null;
 
-    LDAPConnection(final org.glassfish.grizzly.Connection<?> connection,
-            final LDAPConnectionFactoryImpl factory) {
+    GrizzlyLDAPConnection(final org.glassfish.grizzly.Connection<?> connection,
+            final GrizzlyLDAPConnectionFactory factory) {
         this.connection = connection;
         this.factory = factory;
     }

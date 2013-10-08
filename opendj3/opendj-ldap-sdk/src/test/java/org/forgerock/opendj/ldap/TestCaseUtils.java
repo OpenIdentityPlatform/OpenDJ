@@ -222,4 +222,26 @@ public final class TestCaseUtils {
         }
         return mock;
     }
+
+    /**
+     * Returns LDAP options with the parameter {@code LDAPOptions#getClassLoader()} already
+     * set to the test class loader.
+     *
+     * @return LDAPOptions already set with the class loader used by the test.
+     *         This is required if the test need to use a transport provider.
+     */
+    public static LDAPOptions getLDAPTestOptions() {
+        return new LDAPOptions().setProviderClassLoader(Thread.currentThread().getContextClassLoader());
+    }
+
+    /**
+     * Returns LDAPListener options with the parameter {@code LDAPListenerOptions#getClassLoader()} already
+     * set to the test class loader.
+     *
+     * @return LDAPListenerOptions already set with the class loader used by the test.
+     *         This is required if the test need to use a transport provider.
+     */
+    public static LDAPListenerOptions getLDAPListenerTestOptions() {
+        return new LDAPListenerOptions().setProviderClassLoader(Thread.currentThread().getContextClassLoader());
+    }
 }

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2013 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -32,8 +32,6 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.SSLContext;
-
-import org.glassfish.grizzly.nio.transport.TCPNIOTransport;
 
 import com.forgerock.opendj.util.Validator;
 
@@ -63,18 +61,15 @@ public final class LDAPOptions {
     private DecodeOptions decodeOptions;
     private List<String> enabledCipherSuites = new LinkedList<String>();
     private List<String> enabledProtocols = new LinkedList<String>();
-    private TCPNIOTransport transport;
+    private ClassLoader providerClassLoader;
+    private String transportProvider;
 
     /**
      * Creates a new set of connection options with default settings. SSL will
      * not be enabled, and a default set of decode options will be used.
      */
     public LDAPOptions() {
-        this.sslContext = null;
-        this.timeoutInMillis = 0;
-        this.useStartTLS = false;
         this.decodeOptions = new DecodeOptions();
-        this.transport = null;
     }
 
     /**
@@ -91,7 +86,8 @@ public final class LDAPOptions {
         this.decodeOptions = new DecodeOptions(options.decodeOptions);
         this.enabledCipherSuites.addAll(options.getEnabledCipherSuites());
         this.enabledProtocols.addAll(options.getEnabledProtocols());
-        this.transport = options.transport;
+        this.providerClassLoader = options.providerClassLoader;
+        this.transportProvider = options.transportProvider;
     }
 
     /**
@@ -120,22 +116,6 @@ public final class LDAPOptions {
      */
     public final SSLContext getSSLContext() {
         return sslContext;
-    }
-
-    /**
-     * Returns the Grizzly TCP transport which will be used when initiating
-     * connections with the Directory Server.
-     * <p>
-     * By default this method will return {@code null} indicating that the
-     * default transport factory should be used to obtain a TCP transport.
-     *
-     * @return The Grizzly TCP transport which will be used when initiating
-     *         connections with the Directory Server, or {@code null} if the
-     *         default transport factory should be used to obtain a TCP
-     *         transport.
-     */
-    public final TCPNIOTransport getTCPNIOTransport() {
-        return transport;
     }
 
     /**
@@ -183,25 +163,6 @@ public final class LDAPOptions {
      */
     public final LDAPOptions setSSLContext(final SSLContext sslContext) {
         this.sslContext = sslContext;
-        return this;
-    }
-
-    /**
-     * Sets the Grizzly TCP transport which will be used when initiating
-     * connections with the Directory Server.
-     * <p>
-     * By default this method will return {@code null} indicating that the
-     * default transport factory will be used to obtain a TCP transport.
-     *
-     * @param transport
-     *            The Grizzly TCP transport which will be used when initiating
-     *            connections with the Directory Server, or {@code null} if the
-     *            default transport factory should be used to obtain a TCP
-     *            transport.
-     * @return A reference to this LDAP connection options.
-     */
-    public final LDAPOptions setTCPNIOTransport(final TCPNIOTransport transport) {
-        this.transport = transport;
         return this;
     }
 
@@ -313,6 +274,90 @@ public final class LDAPOptions {
      */
     public final List<String> getEnabledCipherSuites() {
         return enabledCipherSuites;
+    }
+
+    /**
+     * Gets the class loader which will be used to load the
+     * {@code TransportProvider}.
+     * <p>
+     * By default this method will return {@code null} indicating that the
+     * default class loader will be used.
+     * <p>
+     * The transport provider is loaded using {@code java.util.ServiceLoader},
+     * the JDK service-provider loading facility. The provider must be
+     * accessible from the same class loader that was initially queried to
+     * locate the configuration file; note that this is not necessarily the
+     * class loader from which the file was actually loaded. This method allows
+     * to provide a class loader to be used for loading the provider.
+     *
+     * @return The class loader which will be used when loading the transport
+     *         provider, or {@code null} if the default class loader should be
+     *         used.
+     */
+    public final ClassLoader getProviderClassLoader() {
+        return providerClassLoader;
+    }
+
+    /**
+     * Sets the class loader which will be used to load the
+     * {@code TransportProvider}.
+     * <p>
+     * The default class loader will be used if no class loader is set using
+     * this method.
+     * <p>
+     * The transport provider is loaded using {@code java.util.ServiceLoader},
+     * the JDK service-provider loading facility. The provider must be
+     * accessible from the same class loader that was initially queried to
+     * locate the configuration file; note that this is not necessarily the
+     * class loader from which the file was actually loaded. This method allows
+     * to provide a class loader to be used for loading the provider.
+     *
+     * @param classLoader
+     *            The class loader which will be used when loading the transport
+     *            provider, or {@code null} if the default class loader should
+     *            be used.
+     * @return A reference to this LDAP connection options.
+     */
+    public final LDAPOptions setProviderClassLoader(ClassLoader classLoader) {
+        this.providerClassLoader = classLoader;
+        return this;
+    }
+
+    /**
+     * Returns the name of the provider used for transport.
+     * <p>
+     * Transport providers implement {@code TransportProvider}
+     * interface.
+     * <p>
+     * The name should correspond to the name of an existing provider, as
+     * returned by {@code TransportProvider#getName()} method.
+     *
+     * @return The name of transport provider. The name is {@code null} if no
+     *         specific provider has been selected. In that case, the first
+     *         provider found will be used.
+     */
+    public String getTransportProvider() {
+        return transportProvider;
+    }
+
+    /**
+     * Sets the name of the provider to use for transport.
+     * <p>
+     * Transport providers implement {@code TransportProvider}
+     * interface.
+     * <p>
+     * The name should correspond to the name of an existing provider, as
+     * returned by {@code TransportProvider#getName()} method.
+     *
+     * @param providerName
+     *            The name of transport provider, or {@code null} if no specific
+     *            provider is preferred. In that case, the first provider found
+     *            will be used.
+     * @return A reference to this LDAP connection options.
+     */
+    public LDAPOptions setTransportProvider(String providerName) {
+        this.transportProvider = providerName;
+        return this;
     }
 
 }

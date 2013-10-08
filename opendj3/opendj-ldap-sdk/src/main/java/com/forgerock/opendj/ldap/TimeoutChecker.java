@@ -63,8 +63,8 @@ final class TimeoutChecker {
      * The connection set must be safe from CMEs because expiring requests can
      * cause the connection to be closed.
      */
-    private final Set<LDAPConnection> connections =
-            newSetFromMap(new ConcurrentHashMap<LDAPConnection, Boolean>());
+    private final Set<GrizzlyLDAPConnection> connections =
+            newSetFromMap(new ConcurrentHashMap<GrizzlyLDAPConnection, Boolean>());
 
     /**
      * Used to signal thread shutdown.
@@ -80,7 +80,7 @@ final class TimeoutChecker {
                     final long currentTime = System.currentTimeMillis();
                     long delay = 0;
 
-                    for (final LDAPConnection connection : connections) {
+                    for (final GrizzlyLDAPConnection connection : connections) {
                         DEFAULT_LOG.trace("Checking connection {} delay = {}", connection, delay);
 
                         // May update the connections set.
@@ -113,12 +113,12 @@ final class TimeoutChecker {
         checkerThread.start();
     }
 
-    void addConnection(final LDAPConnection connection) {
+    void addConnection(final GrizzlyLDAPConnection connection) {
         connections.add(connection);
         signal();
     }
 
-    void removeConnection(final LDAPConnection connection) {
+    void removeConnection(final GrizzlyLDAPConnection connection) {
         connections.remove(connection);
         // No need to signal.
     }
