@@ -42,12 +42,6 @@ package org.opends.server.replication.server.changelog.api;
  */
 public interface ChangeNumberIndexDB
 {
-  /**
-   * Generates the next change number.
-   *
-   * @return The newly generated change number
-   */
-  long nextChangeNumber();
 
   /**
    * Returns the last generated change number.
@@ -96,10 +90,11 @@ public interface ChangeNumberIndexDB
    *
    * @param record
    *          The {@link CNIndexRecord} to add to this DB.
+   * @return the change number associated to this record on adding to this DB
    * @throws ChangelogException
    *           if a database problem occurs.
    */
-  void addRecord(CNIndexRecord record) throws ChangelogException;
+  long addRecord(CNIndexRecord record) throws ChangelogException;
 
   /**
    * Generate a new {@link ChangeNumberIndexDBCursor} that allows to browse the

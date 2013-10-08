@@ -37,10 +37,10 @@ public final class CNIndexRecord
 {
 
   /** This is the key used to store the rest of the . */
-  private long changeNumber;
-  private String previousCookie;
-  private DN baseDN;
-  private CSN csn;
+  private final long changeNumber;
+  private final String previousCookie;
+  private final DN baseDN;
+  private final CSN csn;
 
   /**
    * Builds an instance of this class.
@@ -61,6 +61,22 @@ public final class CNIndexRecord
     this.previousCookie = previousCookie;
     this.baseDN = baseDN;
     this.csn = csn;
+  }
+
+  /**
+   * Builds an instance of this class, with changeNumber equal to 0.
+   *
+   * @param previousCookie
+   *          the previous cookie
+   * @param baseDN
+   *          the baseDN
+   * @param csn
+   *          the replication CSN field
+   * @see #CNIndexRecord(long, String, DN, CSN)
+   */
+  public CNIndexRecord(String previousCookie, DN baseDN, CSN csn)
+  {
+    this(0, previousCookie, baseDN, csn);
   }
 
   /**
