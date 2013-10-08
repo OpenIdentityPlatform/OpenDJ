@@ -29,6 +29,7 @@ package org.opends.server.replication.common;
 
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.TreeMap;
 
 import org.opends.messages.Category;
@@ -120,15 +121,18 @@ public class MultiDomainServerState implements Iterable<DN>
   }
 
   /**
-   * Update the ServerState of the provided baseDN with the
-   * provided server state.
+   * Update the ServerState of the provided baseDN with the provided server
+   * state. The provided server state will be owned by this instance, so care
+   * must be taken by calling code to duplicate it if needed.
    *
-   * @param baseDN       The provided baseDN.
-   * @param serverState  The provided serverState.
+   * @param baseDN
+   *          The provided baseDN.
+   * @param serverState
+   *          The provided serverState.
    */
   public void update(DN baseDN, ServerState serverState)
   {
-    list.put(baseDN, serverState.duplicate());
+    list.put(baseDN, serverState);
   }
 
   /**
@@ -138,16 +142,16 @@ public class MultiDomainServerState implements Iterable<DN>
   @Override
   public String toString()
   {
-    String res = "";
-    if ((list != null) && (!list.isEmpty()))
+    StringBuilder res = new StringBuilder();
+    if (list != null && !list.isEmpty())
     {
-      for (DN baseDN : list.keySet())
+      for (Entry<DN, ServerState> entry : list.entrySet())
       {
-        ServerState ss = list.get(baseDN);
-        res += baseDN + ":" + ss + ";";
+        res.append(entry.getKey()).append(":")
+           .append(entry.getValue()).append(";");
       }
     }
-    return res;
+    return res.toString();
   }
 
   /**
@@ -156,7 +160,7 @@ public class MultiDomainServerState implements Iterable<DN>
    */
   public void toString(StringBuilder buffer)
   {
-    buffer.append(this.toString());
+    buffer.append(this);
   }
 
 
@@ -186,7 +190,7 @@ public class MultiDomainServerState implements Iterable<DN>
    */
   public boolean equalsTo(MultiDomainServerState other)
   {
-    return ((this.cover(other)) && (other.cover(this)));
+    return cover(other) && other.cover(this);
   }
 
   /**
@@ -200,7 +204,7 @@ public class MultiDomainServerState implements Iterable<DN>
     {
       ServerState state = list.get(baseDN);
       ServerState coveredState = covered.list.get(baseDN);
-      if ((state==null)||(coveredState == null) || (!state.cover(coveredState)))
+      if (state == null || coveredState == null || !state.cover(coveredState))
       {
         return false;
       }
@@ -220,8 +224,7 @@ public class MultiDomainServerState implements Iterable<DN>
       String multidomainserverstate) throws DirectoryException
   {
     Map<DN, ServerState> startStates = new TreeMap<DN, ServerState>();
-    if ((multidomainserverstate != null)
-        && (multidomainserverstate.length() > 0))
+    if (multidomainserverstate != null && multidomainserverstate.length() > 0)
     {
       try
       {

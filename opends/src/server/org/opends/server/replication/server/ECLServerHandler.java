@@ -805,7 +805,7 @@ public final class ECLServerHandler extends ServerHandler
       newDomainCtxt.mh = mh;
 
       previousCookie.update(newDomainCtxt.rsDomain.getBaseDN(),
-                            newDomainCtxt.startState);
+                            newDomainCtxt.startState.duplicate());
 
       results.add(newDomainCtxt);
     }
