@@ -198,8 +198,14 @@ public class JEChangeNumberIndexDB implements ChangeNumberIndexDB, Runnable
     return db.count();
   }
 
-  /** {@inheritDoc} */
-  @Override
+  /**
+   * Returns whether this database is empty.
+   *
+   * @return <code>true</code> if this database is empty, <code>false</code>
+   *         otherwise
+   * @throws ChangelogException
+   *           if a database problem occurs.
+   */
   public boolean isEmpty() throws ChangelogException
   {
     return getLastRecord() == null;
@@ -231,8 +237,9 @@ public class JEChangeNumberIndexDB implements ChangeNumberIndexDB, Runnable
     return new JEChangeNumberIndexDBCursor(db, startChangeNumber);
   }
 
-  /** {@inheritDoc} */
-  @Override
+  /**
+   * Shutdown this DB.
+   */
   public void shutdown()
   {
     if (shutdown)
@@ -317,8 +324,16 @@ public class JEChangeNumberIndexDB implements ChangeNumberIndexDB, Runnable
     clear(null);
   }
 
-  /** {@inheritDoc} */
-  @Override
+  /**
+   * Clear the changes from this DB (from both memory cache and DB storage) for
+   * the provided baseDN.
+   *
+   * @param baseDNToClear
+   *          The baseDN for which we want to remove all records from this DB,
+   *          null means all.
+   * @throws ChangelogException
+   *           if a database problem occurs.
+   */
   public void clear(DN baseDNToClear) throws ChangelogException
   {
     if (isEmpty())
@@ -510,8 +525,12 @@ public class JEChangeNumberIndexDB implements ChangeNumberIndexDB, Runnable
     trimAge = delay;
   }
 
-  /** {@inheritDoc} */
-  @Override
+  /**
+   * Clear the changes from this DB (from both memory cache and DB storage).
+   *
+   * @throws ChangelogException
+   *           if a database problem occurs.
+   */
   public void clear() throws ChangelogException
   {
     db.clear();
