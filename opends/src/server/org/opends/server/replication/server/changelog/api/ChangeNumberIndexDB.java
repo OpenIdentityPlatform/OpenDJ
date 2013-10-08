@@ -26,7 +26,6 @@
  */
 package org.opends.server.replication.server.changelog.api;
 
-import org.opends.server.types.DN;
 
 /**
  * This class stores an index of all the changes seen by this server in the form
@@ -117,43 +116,5 @@ public interface ChangeNumberIndexDB
    */
   ChangeNumberIndexDBCursor getCursorFrom(long startChangeNumber)
       throws ChangelogException;
-
-  /**
-   * Returns whether this database is empty.
-   *
-   * @return <code>true</code> if this database is empty, <code>false</code>
-   *         otherwise
-   * @throws ChangelogException
-   *           if a database problem occurs.
-   */
-  boolean isEmpty() throws ChangelogException;
-
-  /**
-   * Clear the changes from this DB (from both memory cache and DB storage).
-   *
-   * @throws ChangelogException
-   *           if a database problem occurs.
-   */
-  void clear() throws ChangelogException;
-
-  /**
-   * Clear the changes from this DB (from both memory cache and DB storage) for
-   * the provided baseDN.
-   *
-   * @param baseDNToClear
-   *          The baseDN for which we want to remove all records from this DB,
-   *          null means all.
-   * @throws ChangelogException
-   *           if a database problem occurs.
-   */
-  void clear(DN baseDNToClear) throws ChangelogException;
-
-  /**
-   * Shutdown this DB.
-   *
-   * @throws ChangelogException
-   *           if a database problem occurs.
-   */
-  void shutdown() throws ChangelogException;
 
 }

@@ -33,7 +33,7 @@ import org.opends.server.types.DN;
  * The Change Number Index Data class represents records stored in the
  * {@link ChangeNumberIndexDB}.
  */
-public class CNIndexRecord
+public final class CNIndexRecord
 {
 
   /** This is the key used to store the rest of the . */
@@ -57,7 +57,6 @@ public class CNIndexRecord
   public CNIndexRecord(long changeNumber, String previousCookie, DN baseDN,
       CSN csn)
   {
-    super();
     this.changeNumber = changeNumber;
     this.previousCookie = previousCookie;
     this.baseDN = baseDN;

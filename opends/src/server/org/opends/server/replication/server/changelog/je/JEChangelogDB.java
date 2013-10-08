@@ -71,7 +71,7 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
    * <p>
    * Guarded by cnIndexDBLock
    */
-  private ChangeNumberIndexDB cnIndexDB;
+  private JEChangeNumberIndexDB cnIndexDB;
 
   /** Used for protecting {@link ChangeNumberIndexDB} related state. */
   private final Object cnIndexDBLock = new Object();
