@@ -1506,14 +1506,14 @@ public final class ReplicationServer
   {
     // Initialize start state for all running domains with empty state
     MultiDomainServerState result = new MultiDomainServerState();
-    for (ReplicationServerDomain rsd : getReplicationServerDomains())
+    for (ReplicationServerDomain rsDomain : getReplicationServerDomains())
     {
-      final ServerState latestDBServerState = rsd.getLatestServerState();
-      if (contains(excludedBaseDNs, rsd.getBaseDN().toNormalizedString())
-          || latestDBServerState.isEmpty())
+      if (contains(excludedBaseDNs, rsDomain.getBaseDN().toNormalizedString()))
         continue;
-
-      result.update(rsd.getBaseDN(), latestDBServerState);
+      final ServerState latestDBServerState = rsDomain.getLatestServerState();
+      if (latestDBServerState.isEmpty())
+        continue;
+      result.update(rsDomain.getBaseDN(), latestDBServerState);
     }
     return result;
   }
