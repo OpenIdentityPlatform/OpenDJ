@@ -27,7 +27,7 @@
  */
 package org.opends.server.replication.server;
 
-import java.util.SortedMap;
+import java.util.NavigableMap;
 import java.util.TreeMap;
 
 import org.opends.messages.Message;
@@ -43,7 +43,7 @@ import static org.opends.server.loggers.ErrorLogger.*;
  */
 public class MsgQueue
 {
-  private SortedMap<CSN, UpdateMsg> map = new TreeMap<CSN, UpdateMsg>();
+  private NavigableMap<CSN, UpdateMsg> map = new TreeMap<CSN, UpdateMsg>();
   private final Object lock = new Object();
 
   /** The total number of bytes for all the message in the queue. */
@@ -191,5 +191,25 @@ public class MsgQueue
       map.clear();
       bytesCount = 0;
     }
+  }
+
+  /**
+   * Consumes all the messages in this queue up to and including the passed in
+   * message. If the passed in message is not contained in the current queue,
+   * then all messages will be removed from it.
+   *
+   * @param msg
+   *          the final message to reach when consuming messages from this queue
+   */
+  public void consumeUpTo(UpdateMsg msg)
+  {
+    UpdateMsg msg1;
+    do
+    {
+      // FIXME this code could be more efficient if the msgQueue could call the
+      // following code (to be tested):
+      // map.headMap(msg.getCSN(), true).clear()
+      msg1 = removeFirst();
+    } while (!msg.getCSN().equals(msg1.getCSN()));
   }
 }
