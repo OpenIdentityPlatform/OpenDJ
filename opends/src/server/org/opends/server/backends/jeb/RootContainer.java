@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.backends.jeb;
 import org.opends.messages.Message;
@@ -581,7 +581,7 @@ public class RootContainer
    * @param statsConfig The configuration to use for the EnvironmentStats
    *                    object.
    * @return The environment status of the JE environment.
-   * @throws DatabaseException If an error occurs while retriving the stats
+   * @throws DatabaseException If an error occurs while retrieving the stats
    *                           object.
    */
   public EnvironmentStats getEnvironmentStats(StatsConfig statsConfig)
@@ -802,8 +802,7 @@ public class RootContainer
             ConfigParam param = (ConfigParam) paramsMap.get(jePropertyName);
             if (!param.isMutable()) {
               String oldValue = oldEnvConfig.getConfigParam(param.getName());
-              String newValue = jePropertyValue;
-              if (!oldValue.equalsIgnoreCase(newValue)) {
+              if (!oldValue.equalsIgnoreCase(jePropertyValue)) {
                 adminActionRequired = true;
                 messages.add(INFO_CONFIG_JE_PROPERTY_REQUIRES_RESTART.get(
                         jePropertyName));
