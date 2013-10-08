@@ -79,8 +79,7 @@ import static org.opends.server.util.StaticUtils.*;
  * <p>
  * Currently are only implemented the create and restore backup features.
  */
-public class ReplicationBackend
-       extends Backend
+public class ReplicationBackend extends Backend
 {
   private static final String CHANGE_NUMBER = "replicationChangeNumber";
 
@@ -620,43 +619,41 @@ public class ReplicationBackend
    * Exports or returns all the changes from a ReplicationServerDomain coming
    * after the CSN specified in the searchOperation.
    */
-  private void writeChangesAfterCSN(ReplicationServerDomain rsd,
+  private void writeChangesAfterCSN(ReplicationServerDomain rsDomain,
       final LDIFExportConfig exportConfig, LDIFWriter ldifWriter,
       SearchOperation searchOperation, final CSN previousCSN)
   {
-    for (int serverId : rsd.getServerIds())
+    if (exportConfig != null && exportConfig.isCancelled())
+    { // Abort if cancelled
+      return;
+    }
+
+    ReplicaDBCursor cursor = rsDomain.getCursorFrom(previousCSN);
+    try
     {
-      if (exportConfig != null && exportConfig.isCancelled())
-      { // Abort if cancelled
-        return;
-      }
+      int lookthroughCount = 0;
 
-      ReplicaDBCursor cursor = rsd.getCursorFrom(serverId, previousCSN);
-      try
+      // Walk through the changes
+      cursor.next(); // first try to advance the cursor
+      while (cursor.getChange() != null)
       {
-        int lookthroughCount = 0;
-
-        // Walk through the changes
-        while (cursor.getChange() != null)
-        {
-          if (exportConfig != null && exportConfig.isCancelled())
-          { // abort if cancelled
-            return;
-          }
-          if (!canContinue(searchOperation, lookthroughCount))
-          {
-            break;
-          }
-          lookthroughCount++;
-          writeChange(cursor.getChange(), ldifWriter, searchOperation,
-              rsd.getBaseDN(), exportConfig != null);
-          cursor.next();
+        if (exportConfig != null && exportConfig.isCancelled())
+        { // abort if cancelled
+          return;
         }
+        if (!canContinue(searchOperation, lookthroughCount))
+        {
+          break;
+        }
+        lookthroughCount++;
+        writeChange(cursor.getChange(), ldifWriter, searchOperation,
+            rsDomain.getBaseDN(), exportConfig != null);
+        cursor.next();
       }
-      finally
-      {
-        close(cursor);
-      }
+    }
+    finally
+    {
+      close(cursor);
     }
   }
 
