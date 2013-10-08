@@ -2264,15 +2264,17 @@ public final class StaticUtils {
      * <p>
      * The provider is loaded using the {@code ServiceLoader} facility.
      *
-     * @param <P> type of provider
+     * @param <P>
+     *            type of provider
      * @param providerClass
-     *          class of provider
+     *            class of provider
      * @param requestedProvider
      *            name of provider to use, or {@code null} if no specific
      *            provider is requested.
      * @param classLoader
      *            class loader to use to load the provider, or {@code null} to
-     *            use the default class loader.
+     *            use the default class loader (the context class loader of the
+     *            current thread).
      * @return a provider
      * @throws ProviderNotFoundException
      *             if no provider is available or if the provider requested
@@ -2280,8 +2282,12 @@ public final class StaticUtils {
      */
     public static <P extends Provider> P getProvider(final Class<P> providerClass, final String requestedProvider,
             final ClassLoader classLoader) {
-
-        ServiceLoader<P> loader = ServiceLoader.load(providerClass, classLoader);
+        ServiceLoader<P> loader = null;
+        if (classLoader == null) {
+            loader = ServiceLoader.load(providerClass);
+        } else {
+            loader = ServiceLoader.load(providerClass, classLoader);
+        }
         StringBuilder providersFound = new StringBuilder();
         for (P provider : loader) {
             if (providersFound.length() > 0) {

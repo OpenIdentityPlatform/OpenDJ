@@ -27,7 +27,6 @@ package org.forgerock.opendj.ldap;
 
 import static org.fest.assertions.Assertions.assertThat;
 import static org.forgerock.opendj.ldap.TestCaseUtils.findFreeSocketAddress;
-import static org.forgerock.opendj.ldap.TestCaseUtils.getLDAPTestOptions;
 import static org.mockito.Mockito.mock;
 
 import java.io.IOException;
@@ -48,14 +47,23 @@ public class LDAPConnectionFactoryTestCase extends SdkTestCase {
     @Test
     public void testCreateLDAPConnectionFactory() throws Exception {
         // test no exception is thrown, which means transport provider is correctly loaded
-        LDAPConnectionFactory factory = new LDAPConnectionFactory(findFreeSocketAddress(), getLDAPTestOptions());
+        LDAPConnectionFactory factory = new LDAPConnectionFactory(findFreeSocketAddress());
+        factory.close();
+    }
+
+    @Test
+    public void testCreateLDAPConnectionFactoryWithCustomClassLoader() throws Exception {
+        // test no exception is thrown, which means transport provider is correctly loaded
+        LDAPOptions options = new LDAPOptions().
+                setProviderClassLoader(Thread.currentThread().getContextClassLoader());
+        LDAPConnectionFactory factory = new LDAPConnectionFactory(findFreeSocketAddress(), options);
         factory.close();
     }
 
     @Test(expectedExceptions = { ProviderNotFoundException.class },
             expectedExceptionsMessageRegExp = "^The requested provider 'unknown' .*")
     public void testCreateLDAPConnectionFactoryFailureProviderNotFound() throws Exception {
-        LDAPOptions options = getLDAPTestOptions().setTransportProvider("unknown");
+        LDAPOptions options = new LDAPOptions().setTransportProvider("unknown");
         LDAPConnectionFactory factory = new LDAPConnectionFactory(findFreeSocketAddress(), options);
         factory.close();
     }
@@ -69,8 +77,7 @@ public class LDAPConnectionFactoryTestCase extends SdkTestCase {
         final AtomicReference<LDAPClientContext> context = new AtomicReference<LDAPClientContext>();
         final Semaphore latch = new Semaphore(0);
         final LDAPListener server = createServer(latch, context);
-        final ConnectionFactory factory = new LDAPConnectionFactory(server.getSocketAddress(),
-                getLDAPTestOptions());
+        final ConnectionFactory factory = new LDAPConnectionFactory(server.getSocketAddress());
         try {
             for (int i = 0; i < 100; i++) {
                 // Connect to the server.
@@ -97,19 +104,17 @@ public class LDAPConnectionFactoryTestCase extends SdkTestCase {
         }
     }
 
-    private LDAPListener createServer(final Semaphore latch,
-            final AtomicReference<LDAPClientContext> context) throws IOException {
-        return new LDAPListener(findFreeSocketAddress(),
-                new ServerConnectionFactory<LDAPClientContext, Integer>() {
-                    @SuppressWarnings("unchecked")
-                    @Override
-                    public ServerConnection<Integer> handleAccept(
-                            final LDAPClientContext clientContext) throws ErrorResultException {
-                        context.set(clientContext);
-                        latch.release();
-                        return mock(ServerConnection.class);
-                    }
-                },
-                TestCaseUtils.getLDAPListenerTestOptions());
+    private LDAPListener createServer(final Semaphore latch, final AtomicReference<LDAPClientContext> context)
+            throws IOException {
+        return new LDAPListener(findFreeSocketAddress(), new ServerConnectionFactory<LDAPClientContext, Integer>() {
+            @SuppressWarnings("unchecked")
+            @Override
+            public ServerConnection<Integer> handleAccept(final LDAPClientContext clientContext)
+                    throws ErrorResultException {
+                context.set(clientContext);
+                latch.release();
+                return mock(ServerConnection.class);
+            }
+        });
     }
 }

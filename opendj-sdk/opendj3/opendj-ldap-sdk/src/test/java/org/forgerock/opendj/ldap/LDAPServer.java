@@ -545,7 +545,7 @@ public class LDAPServer implements ServerConnectionFactory<LDAPClientContext, In
         sslContext = new SSLContextBuilder().getSSLContext();
         listener =
                 new LDAPListener(findFreeSocketAddress(), getInstance(),
-                        getLDAPListenerTestOptions().setBacklog(4096));
+                        new LDAPListenerOptions().setBacklog(4096));
         isRunning = true;
     }
 
