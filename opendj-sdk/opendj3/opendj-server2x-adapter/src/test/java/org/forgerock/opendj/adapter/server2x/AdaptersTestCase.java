@@ -79,7 +79,6 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import static org.forgerock.opendj.adapter.server2x.EmbeddedServerTestCaseUtils.CONFIG_PROPERTIES;
-import static org.forgerock.opendj.adapter.server2x.TestCaseUtils.getLDAPTestOptions;
 
 /**
  * This class defines a set of tests for the Adapters.class.
@@ -96,8 +95,8 @@ public class AdaptersTestCase extends ForgeRockTestCase {
     @DataProvider
     public Object[][] anonymousConnectionFactories() {
         return new Object[][] {
-            { new LDAPConnectionFactory("localhost", Integer.valueOf(CONFIG_PROPERTIES.getProperty("listen-port")),
-                        getLDAPTestOptions()) },
+            { new LDAPConnectionFactory("localhost",
+                    Integer.valueOf(CONFIG_PROPERTIES.getProperty("listen-port"))) },
             { Adapters.newAnonymousConnectionFactory() } };
     }
 
@@ -111,8 +110,7 @@ public class AdaptersTestCase extends ForgeRockTestCase {
         return new Object[][] {
             { Connections.newAuthenticatedConnectionFactory(
                    new LDAPConnectionFactory("localhost",
-                           Integer.valueOf(CONFIG_PROPERTIES.getProperty("listen-port")),
-                           getLDAPTestOptions()),
+                           Integer.valueOf(CONFIG_PROPERTIES.getProperty("listen-port"))),
                    Requests.newSimpleBindRequest("cn=directory manager", "password".toCharArray())) },
             { Adapters.newConnectionFactoryForUser(DN.valueOf("cn=directory manager")) } };
     }
@@ -218,8 +216,8 @@ public class AdaptersTestCase extends ForgeRockTestCase {
     @Test()
     public void testSimpleLDAPConnectionFactorySimpleBind() throws ErrorResultException {
         final LDAPConnectionFactory factory =
-                new LDAPConnectionFactory("localhost", Integer.valueOf(CONFIG_PROPERTIES
-                        .getProperty("listen-port")), getLDAPTestOptions());
+                new LDAPConnectionFactory("localhost",
+                        Integer.valueOf(CONFIG_PROPERTIES.getProperty("listen-port")));
         Connection connection = null;
         try {
             connection = factory.getConnection();
@@ -244,8 +242,8 @@ public class AdaptersTestCase extends ForgeRockTestCase {
     public void testLDAPSASLBind() throws NumberFormatException, GeneralSecurityException,
             ErrorResultException {
         LDAPConnectionFactory factory =
-                new LDAPConnectionFactory("localhost", Integer.valueOf(CONFIG_PROPERTIES
-                        .getProperty("listen-port")), getLDAPTestOptions());
+                new LDAPConnectionFactory("localhost",
+                        Integer.valueOf(CONFIG_PROPERTIES.getProperty("listen-port")));
 
         Connection connection = factory.getConnection();
         PlainSASLBindRequest request =
@@ -1022,8 +1020,8 @@ public class AdaptersTestCase extends ForgeRockTestCase {
 
         // LDAP Connection
         final LDAPConnectionFactory factory =
-                new LDAPConnectionFactory("localhost", Integer.valueOf(CONFIG_PROPERTIES
-                        .getProperty("listen-port")), getLDAPTestOptions());
+                new LDAPConnectionFactory("localhost",
+                        Integer.valueOf(CONFIG_PROPERTIES.getProperty("listen-port")));
         Connection connection = null;
         connection = factory.getConnection();
         connection.bind("cn=Directory Manager", "password".toCharArray());
