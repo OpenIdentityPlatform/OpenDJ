@@ -25,8 +25,6 @@
  */
 package com.forgerock.opendj.ldap.tools;
 
-import static com.forgerock.opendj.ldap.tools.TestCaseUtils.getLDAPTestOptions;
-
 import static org.fest.assertions.Assertions.*;
 
 import java.io.File;
@@ -52,7 +50,7 @@ public class ConnectionFactoryProviderTest extends ToolsTestCase {
     public void init() throws Exception {
         MockitoAnnotations.initMocks(this);
         argParser = new ArgumentParser("unused", new LocalizableMessageBuilder().toMessage(), false);
-        connectionFactoryProvider = new ConnectionFactoryProvider(argParser, app, getLDAPTestOptions());
+        connectionFactoryProvider = new ConnectionFactoryProvider(argParser, app);
     }
 
     @Test
