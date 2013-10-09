@@ -74,15 +74,15 @@ public class JEChangeNumberIndexDB implements ChangeNumberIndexDB, Runnable
 
   private DraftCNDB db;
   /**
-   * FIXME Is this field that useful? {@link #getFirstChangeNumber()} does not
+   * FIXME Is this field that useful? {@link #getOldestChangeNumber()} does not
    * even use it!
    */
-  private long firstChangeNumber = NO_KEY;
+  private volatile long oldestChangeNumber = NO_KEY;
   /**
-   * FIXME Is this field that useful? {@link #getLastChangeNumber()} does not
+   * FIXME Is this field that useful? {@link #getNewestChangeNumber()} does not
    * even use it!
    */
-  private long lastChangeNumber = NO_KEY;
+  private volatile long newestChangeNumber = NO_KEY;
   /** The last generated value for the change number. */
   private final AtomicLong lastGeneratedChangeNumber;
   private DbMonitorProvider dbMonitor = new DbMonitorProvider();
@@ -102,7 +102,7 @@ public class JEChangeNumberIndexDB implements ChangeNumberIndexDB, Runnable
    * FIXME it never gets updated even when the replication server purge delay is
    * updated
    */
-  private long trimAge;
+  private volatile long trimAge;
 
   private ReplicationServer replicationServer;
 
@@ -123,14 +123,14 @@ public class JEChangeNumberIndexDB implements ChangeNumberIndexDB, Runnable
 
     // DB initialization
     db = new DraftCNDB(dbenv);
-    final CNIndexRecord firstRecord = db.readFirstRecord();
-    final CNIndexRecord lastRecord = db.readLastRecord();
-    firstChangeNumber = getChangeNumber(firstRecord);
-    lastChangeNumber = getChangeNumber(lastRecord);
+    final CNIndexRecord oldestRecord = db.readFirstRecord();
+    final CNIndexRecord newestRecord = db.readLastRecord();
+    oldestChangeNumber = getChangeNumber(oldestRecord);
+    newestChangeNumber = getChangeNumber(newestRecord);
     // initialization of the lastGeneratedChangeNumber from the DB content
     // if DB is empty => last record does not exist => default to 0
-    lastGeneratedChangeNumber =
-        new AtomicLong((lastRecord != null) ? lastRecord.getChangeNumber() : 0);
+    long newestCN = (newestRecord != null) ? newestRecord.getChangeNumber() : 0;
+    lastGeneratedChangeNumber = new AtomicLong(newestCN);
 
     // Trimming thread
     thread =
@@ -168,14 +168,14 @@ public class JEChangeNumberIndexDB implements ChangeNumberIndexDB, Runnable
 
   /** {@inheritDoc} */
   @Override
-  public CNIndexRecord getFirstRecord() throws ChangelogException
+  public CNIndexRecord getOldestRecord() throws ChangelogException
   {
     return db.readFirstRecord();
   }
 
   /** {@inheritDoc} */
   @Override
-  public CNIndexRecord getLastRecord() throws ChangelogException
+  public CNIndexRecord getNewestRecord() throws ChangelogException
   {
     return db.readLastRecord();
   }
@@ -211,7 +211,7 @@ public class JEChangeNumberIndexDB implements ChangeNumberIndexDB, Runnable
    */
   public boolean isEmpty() throws ChangelogException
   {
-    return getLastRecord() == null;
+    return getNewestRecord() == null;
   }
 
   /**
@@ -375,12 +375,12 @@ public class JEChangeNumberIndexDB implements ChangeNumberIndexDB, Runnable
             continue;
           }
 
+          // Purge up to wherever the other DBs have been purged to.
+          // FIXME there is an opportunity for a phantom record in the current
+          // DB if the replicaDB gets purged after the next if statement.
           final CSN csn = record.getCSN();
           final ServerState startState = domain.getStartState();
           final CSN fcsn = startState.getCSN(csn.getServerId());
-
-          final long currentChangeNumber = record.getChangeNumber();
-
           if (csn.isOlderThan(fcsn))
           {
             cursor.delete();
@@ -402,6 +402,7 @@ public class JEChangeNumberIndexDB implements ChangeNumberIndexDB, Runnable
           catch(Exception e)
           {
             // We could not parse the MultiDomainServerState from the record
+            // FIXME this is quite an aggressive delete()
             cursor.delete();
             continue;
           }
@@ -417,7 +418,7 @@ public class JEChangeNumberIndexDB implements ChangeNumberIndexDB, Runnable
             continue;
           }
 
-          firstChangeNumber = currentChangeNumber;
+          oldestChangeNumber = record.getChangeNumber();
           cursor.close();
           return;
         }
@@ -515,8 +516,8 @@ public class JEChangeNumberIndexDB implements ChangeNumberIndexDB, Runnable
   @Override
   public String toString()
   {
-    return "JEChangeNumberIndexDB: " + firstChangeNumber + " "
-        + lastChangeNumber;
+    return getClass().getSimpleName() + ": " + oldestChangeNumber + " "
+        + newestChangeNumber;
   }
 
   /**
@@ -537,8 +538,8 @@ public class JEChangeNumberIndexDB implements ChangeNumberIndexDB, Runnable
   public void clear() throws ChangelogException
   {
     db.clear();
-    firstChangeNumber = getChangeNumber(db.readFirstRecord());
-    lastChangeNumber = getChangeNumber(db.readLastRecord());
+    oldestChangeNumber = getChangeNumber(db.readFirstRecord());
+    newestChangeNumber = getChangeNumber(db.readLastRecord());
   }
 
   private ReentrantLock lock = new ReentrantLock();

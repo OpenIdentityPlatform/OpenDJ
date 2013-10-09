@@ -277,10 +277,10 @@ public final class ECLServerHandler extends ServerHandler
         }
         else if (newMsg.getCSN().getTime() >= domainLatestTrimDate)
         {
-          // when the replication changelog is trimmed, the last (latest) chg
-          // is left in the db (whatever its age), and we don't want this chg
+          // when the replication changelog is trimmed, the newest change
+          // is left in the DB (whatever its age), and we don't want this change
           // to be returned in the external changelog.
-          // So let's check if the chg time is older than the trim date
+          // So let's check if the change time is older than the trim date
           return newMsg;
         }
       }
@@ -528,10 +528,10 @@ public final class ECLServerHandler extends ServerHandler
   }
 
   /**
-   * Initialize the handler from a provided first change number.
+   * Initialize the handler from a provided start change number.
    *
    * @param startChangeNumber
-   *          The provided first change number.
+   *          The provided start change number.
    * @throws DirectoryException
    *           When an error is raised.
    */
@@ -582,29 +582,28 @@ public final class ECLServerHandler extends ServerHandler
 
     if (startChangeNumber <= 1)
     {
-      // Request filter DOES NOT contain any first change number
-      // So we'll generate from the first change number in the CNIndexDB
-      final CNIndexRecord firstCNRecord = cnIndexDB.getFirstRecord();
-      if (firstCNRecord == null)
+      // Request filter DOES NOT contain any start change number
+      // So we'll generate from the oldest change number in the CNIndexDB
+      final CNIndexRecord oldestRecord = cnIndexDB.getOldestRecord();
+      if (oldestRecord == null)
       { // DB is empty or closed
         isEndOfCNIndexDBReached = true;
         return null;
       }
 
-      final long firstChangeNumber = firstCNRecord.getChangeNumber();
-      final String crossDomainStartState = firstCNRecord.getPreviousCookie();
-      cnIndexDBCursor = cnIndexDB.getCursorFrom(firstChangeNumber);
+      final String crossDomainStartState = oldestRecord.getPreviousCookie();
+      cnIndexDBCursor = cnIndexDB.getCursorFrom(oldestRecord.getChangeNumber());
       return crossDomainStartState;
     }
 
     // Request filter DOES contain a startChangeNumber
 
     // Read the CNIndexDB to see whether it contains startChangeNumber
-    CNIndexRecord startCNRecord = cnIndexDB.getRecord(startChangeNumber);
-    if (startCNRecord != null)
+    CNIndexRecord startRecord = cnIndexDB.getRecord(startChangeNumber);
+    if (startRecord != null)
     {
       // found the provided startChangeNumber, let's return it
-      final String crossDomainStartState = startCNRecord.getPreviousCookie();
+      final String crossDomainStartState = startRecord.getPreviousCookie();
       cnIndexDBCursor = cnIndexDB.getCursorFrom(startChangeNumber);
       return crossDomainStartState;
     }
@@ -613,50 +612,49 @@ public final class ECLServerHandler extends ServerHandler
 
     /*
      * Get the changeNumberLimits (from the eligibleCSN obtained at the start of
-     * this method) in order to have the first and last change numbers.
+     * this method) in order to have the oldest and newest change numbers.
      */
     final long[] limits = replicationServer.getECLChangeNumberLimits(
         eligibleCSN, excludedBaseDNs);
-    final long firstChangeNumber = limits[0];
-    final long lastChangeNumber = limits[1];
+    final long oldestChangeNumber = limits[0];
+    final long newestChangeNumber = limits[1];
 
-    // If the startChangeNumber provided is lower than the firstChangeNumber in
+    // If the startChangeNumber provided is lower than the oldestChangeNumber in
     // the DB, let's use the lower limit.
-    if (startChangeNumber < firstChangeNumber)
+    if (startChangeNumber < oldestChangeNumber)
     {
-      CNIndexRecord firstCNRecord = cnIndexDB.getRecord(firstChangeNumber);
-      if (firstCNRecord == null)
+      CNIndexRecord oldestRecord = cnIndexDB.getRecord(oldestChangeNumber);
+      if (oldestRecord == null)
       {
         // This should not happen
         isEndOfCNIndexDBReached = true;
         return null;
       }
 
-      final String crossDomainStartState = firstCNRecord.getPreviousCookie();
-      cnIndexDBCursor = cnIndexDB.getCursorFrom(firstChangeNumber);
+      final String crossDomainStartState = oldestRecord.getPreviousCookie();
+      cnIndexDBCursor = cnIndexDB.getCursorFrom(oldestChangeNumber);
       return crossDomainStartState;
     }
-    else if (startChangeNumber <= lastChangeNumber)
+    else if (startChangeNumber <= newestChangeNumber)
     {
-      // startChangeNumber is between first and potential last and has never
+      // startChangeNumber is between oldest and potential newest and has never
       // been returned yet
-      final CNIndexRecord lastCNRecord = cnIndexDB.getLastRecord();
-      if (lastCNRecord == null)
+      final CNIndexRecord newestRecord = cnIndexDB.getNewestRecord();
+      if (newestRecord == null)
       {
         isEndOfCNIndexDBReached = true;
         return null;
       }
 
-      final long lastKey = lastCNRecord.getChangeNumber();
-      final String crossDomainStartState = lastCNRecord.getPreviousCookie();
-      cnIndexDBCursor = cnIndexDB.getCursorFrom(lastKey);
+      final String crossDomainStartState = newestRecord.getPreviousCookie();
+      cnIndexDBCursor = cnIndexDB.getCursorFrom(newestRecord.getChangeNumber());
       return crossDomainStartState;
 
       // TODO:ECL ... ok we'll start from the end of the CNIndexDB BUT ...
       // this may be very long. Work on perf improvement here.
     }
 
-    // startChangeNumber is greater than the potential lastChangeNumber
+    // startChangeNumber is greater than the potential newest change number
     throw new DirectoryException(ResultCode.SUCCESS, Message.raw(""));
   }
 

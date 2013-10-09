@@ -27,10 +27,7 @@
  */
 package org.opends.server.replication.common;
 
-import static org.opends.messages.ExtensionMessages.*;
-
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -41,11 +38,15 @@ import org.opends.server.api.VirtualAttributeProvider;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SearchOperation;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.plugin.MultimasterReplication;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.types.*;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.workflowelement.externalchangelog.ECLWorkflowElement;
+
+import static org.opends.messages.ExtensionMessages.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
 
 /**
  * This class implements a virtual attribute provider in the root-dse entry
@@ -56,6 +57,11 @@ public class LastCookieVirtualProvider
    extends VirtualAttributeProvider<UserDefinedVirtualAttributeCfg>
    implements ConfigurationChangeListener<UserDefinedVirtualAttributeCfg>
 {
+
+  /**
+   * The tracer object for the debug logger.
+   */
+  private static final DebugTracer TRACER = getTracer();
 
   /**
    * Creates a new instance of this member virtual attribute provider.
@@ -89,7 +95,7 @@ public class LastCookieVirtualProvider
   @Override()
   public void finalizeVirtualAttributeProvider()
   {
-    //
+    // nothing to finalize
   }
 
   /**
@@ -120,7 +126,6 @@ public class LastCookieVirtualProvider
   @Override()
   public Set<AttributeValue> getValues(Entry entry,VirtualAttributeRule rule)
   {
-    Set<AttributeValue> values = new HashSet<AttributeValue>();
     try
     {
       ECLWorkflowElement eclwe = (ECLWorkflowElement)
@@ -132,22 +137,17 @@ public class LastCookieVirtualProvider
           MultimasterReplication.getECLDisabledDomains();
         excludedDomains.add(ServerConstants.DN_EXTERNAL_CHANGELOG_ROOT);
 
-        ReplicationServer rs = eclwe.getReplicationServer();
-        MultiDomainServerState lastCookie =
-          rs.getLastECLCookie(excludedDomains);
-
-        AttributeValue value =
-          AttributeValues.create(
-              ByteString.valueOf(lastCookie.toString()),
-              ByteString.valueOf(lastCookie.toString()));
-        values=Collections.singleton(value);
+        final ReplicationServer rs = eclwe.getReplicationServer();
+        String newestCookie = rs.getNewestECLCookie(excludedDomains).toString();
+        final ByteString cookie = ByteString.valueOf(newestCookie);
+        return Collections.singleton(AttributeValues.create(cookie, cookie));
       }
-      return values;
     }
-    catch(Exception e)
+    catch (Exception e)
     {
-      return values;
+      TRACER.debugCaught(DebugLogLevel.ERROR, e);
     }
+    return Collections.emptySet();
   }
 
   /**

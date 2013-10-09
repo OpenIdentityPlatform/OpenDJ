@@ -71,24 +71,11 @@ public class JEChangeNumberIndexDBTest extends ReplicationTestCase
     JEChangeNumberIndexDB cnIndexDB = null;
     try
     {
-      TestCaseUtils.startServer();
-
-      int changelogPort = TestCaseUtils.findFreePort();
-
-      // configure a ReplicationServer.
-      ReplServerFakeConfiguration conf =
-        new ReplServerFakeConfiguration(changelogPort, null, 0,
-        2, 0, 100, null);
-      replicationServer = new ReplicationServer(conf);
-
+      replicationServer = newReplicationServer();
       cnIndexDB = newCNIndexDB(replicationServer);
       cnIndexDB.setPurgeDelay(0);
 
       // Prepare data to be stored in the db
-      int cn1 = 3;
-      int cn2 = 4;
-      int cn3 = 5;
-
       String value1 = "value1";
       String value2 = "value2";
       String value3 = "value3";
@@ -100,16 +87,16 @@ public class JEChangeNumberIndexDBTest extends ReplicationTestCase
       CSN[] csns = newCSNs(1, 0, 3);
 
       // Add records
-      cnIndexDB.addRecord(new CNIndexRecord(cn1, value1, baseDN1, csns[0]));
-      cnIndexDB.addRecord(new CNIndexRecord(cn2, value2, baseDN2, csns[1]));
-      cnIndexDB.addRecord(new CNIndexRecord(cn3, value3, baseDN3, csns[2]));
+      long cn1 = cnIndexDB.addRecord(new CNIndexRecord(value1, baseDN1, csns[0]));
+                 cnIndexDB.addRecord(new CNIndexRecord(value2, baseDN2, csns[1]));
+      long cn3 = cnIndexDB.addRecord(new CNIndexRecord(value3, baseDN3, csns[2]));
 
       // The ChangeNumber should not get purged
-      final long firstChangeNumber = cnIndexDB.getFirstRecord().getChangeNumber();
-      assertEquals(firstChangeNumber, cn1);
-      assertEquals(cnIndexDB.getLastRecord().getChangeNumber(), cn3);
+      final long oldestCN = cnIndexDB.getOldestRecord().getChangeNumber();
+      assertEquals(oldestCN, cn1);
+      assertEquals(cnIndexDB.getNewestRecord().getChangeNumber(), cn3);
 
-      DraftCNDBCursor dbc = cnIndexDB.getReadCursor(firstChangeNumber);
+      DraftCNDBCursor dbc = cnIndexDB.getReadCursor(oldestCN);
       try
       {
         assertEqualTo(dbc.currentRecord(), csns[0], baseDN1, value1);
@@ -135,8 +122,8 @@ public class JEChangeNumberIndexDBTest extends ReplicationTestCase
       {
         Thread.sleep(200);
       }
-      assertNull(cnIndexDB.getFirstRecord());
-      assertNull(cnIndexDB.getLastRecord());
+      assertNull(cnIndexDB.getOldestRecord());
+      assertNull(cnIndexDB.getNewestRecord());
       assertEquals(cnIndexDB.count(), 0);
     }
     finally
@@ -191,26 +178,13 @@ public class JEChangeNumberIndexDBTest extends ReplicationTestCase
     JEChangeNumberIndexDB cnIndexDB = null;
     try
     {
-      TestCaseUtils.startServer();
-
-      int changelogPort = TestCaseUtils.findFreePort();
-
-      // configure a ReplicationServer.
-      ReplServerFakeConfiguration conf =
-        new ReplServerFakeConfiguration(changelogPort, null, 0,
-        2, 0, 100, null);
-      replicationServer = new ReplicationServer(conf);
-
+      replicationServer = newReplicationServer();
       cnIndexDB = newCNIndexDB(replicationServer);
       cnIndexDB.setPurgeDelay(0);
 
       assertTrue(cnIndexDB.isEmpty());
 
       // Prepare data to be stored in the db
-      int cn1 = 3;
-      int cn2 = 4;
-      int cn3 = 5;
-
       String value1 = "value1";
       String value2 = "value2";
       String value3 = "value3";
@@ -222,14 +196,13 @@ public class JEChangeNumberIndexDBTest extends ReplicationTestCase
       CSN[] csns = newCSNs(1, 0, 3);
 
       // Add records
-      cnIndexDB.addRecord(new CNIndexRecord(cn1, value1, baseDN1, csns[0]));
-      cnIndexDB.addRecord(new CNIndexRecord(cn2, value2, baseDN2, csns[1]));
-      cnIndexDB.addRecord(new CNIndexRecord(cn3, value3, baseDN3, csns[2]));
-      Thread.sleep(500);
+      long cn1 = cnIndexDB.addRecord(new CNIndexRecord(value1, baseDN1, csns[0]));
+      long cn2 = cnIndexDB.addRecord(new CNIndexRecord(value2, baseDN2, csns[1]));
+      long cn3 = cnIndexDB.addRecord(new CNIndexRecord(value3, baseDN3, csns[2]));
 
       // Checks
-      assertEquals(cnIndexDB.getFirstRecord().getChangeNumber(), cn1);
-      assertEquals(cnIndexDB.getLastRecord().getChangeNumber(), cn3);
+      assertEquals(cnIndexDB.getOldestRecord().getChangeNumber(), cn1);
+      assertEquals(cnIndexDB.getNewestRecord().getChangeNumber(), cn3);
 
       assertEquals(cnIndexDB.count(), 3, "Db count");
       assertFalse(cnIndexDB.isEmpty());
@@ -250,8 +223,8 @@ public class JEChangeNumberIndexDBTest extends ReplicationTestCase
       cnIndexDB.clear();
 
       // Check the db is cleared.
-      assertNull(cnIndexDB.getFirstRecord());
-      assertNull(cnIndexDB.getLastRecord());
+      assertNull(cnIndexDB.getOldestRecord());
+      assertNull(cnIndexDB.getNewestRecord());
       assertEquals(cnIndexDB.count(), 0);
       assertTrue(cnIndexDB.isEmpty());
     }
@@ -261,6 +234,14 @@ public class JEChangeNumberIndexDBTest extends ReplicationTestCase
         cnIndexDB.shutdown();
       remove(replicationServer);
     }
+  }
+
+  private ReplicationServer newReplicationServer() throws Exception
+  {
+    TestCaseUtils.startServer();
+    final int port = TestCaseUtils.findFreePort();
+    return new ReplicationServer(
+        new ReplServerFakeConfiguration(port, null, 0, 2, 0, 100, null)) ;
   }
 
   private String getPreviousCookie(JEChangeNumberIndexDB cnIndexDB,
@@ -278,7 +259,7 @@ public class JEChangeNumberIndexDBTest extends ReplicationTestCase
   }
 
   private void assertCursorReadsInOrder(ChangeNumberIndexDBCursor cursor,
-      int... sns) throws ChangelogException
+      long... sns) throws ChangelogException
   {
     try
     {
