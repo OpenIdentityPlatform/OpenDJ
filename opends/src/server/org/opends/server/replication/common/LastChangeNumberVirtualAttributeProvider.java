@@ -94,7 +94,7 @@ public class LastChangeNumberVirtualAttributeProvider
   @Override()
   public void finalizeVirtualAttributeProvider()
   {
-    //
+    // nothing to finalize
   }
 
 
@@ -126,7 +126,7 @@ public class LastChangeNumberVirtualAttributeProvider
   @Override()
   public Set<AttributeValue> getValues(Entry entry,VirtualAttributeRule rule)
   {
-    String last = "0";
+    String value = "0";
     try
     {
       ECLWorkflowElement eclwe = (ECLWorkflowElement)
@@ -138,26 +138,22 @@ public class LastChangeNumberVirtualAttributeProvider
           MultimasterReplication.getECLDisabledDomains();
         excludedDomains.add(ServerConstants.DN_EXTERNAL_CHANGELOG_ROOT);
 
-        ReplicationServer rs = eclwe.getReplicationServer();
-        long[] limits = rs.getECLChangeNumberLimits(
+        final ReplicationServer rs = eclwe.getReplicationServer();
+        final long[] limits = rs.getECLChangeNumberLimits(
             rs.getEligibleCSN(excludedDomains), excludedDomains);
-
-        last = String.valueOf(limits[1]);
+        value = String.valueOf(limits[1]);
       }
     }
     catch(Exception e)
     {
-      // We got an error computing the first change number.
+      // We got an error computing this change number.
       // Rather than returning 0 which is no change, return -1 to
       // indicate the error.
-      last = "-1";
+      value = "-1";
       TRACER.debugCaught(DebugLogLevel.ERROR, e);
     }
-    AttributeValue value =
-      AttributeValues.create(
-          ByteString.valueOf(last),
-          ByteString.valueOf(last));
-    return Collections.singleton(value);
+    ByteString valueBS = ByteString.valueOf(value);
+    return Collections.singleton(AttributeValues.create(valueBS, valueBS));
   }
 
 
@@ -170,7 +166,7 @@ public class LastChangeNumberVirtualAttributeProvider
                               SearchOperation searchOperation,
                               boolean isPreIndexed)
   {
-    // We do not allow search for the lastChangeNumber. It's a read-only
+    // We do not allow search for this change number. It's a read-only
     // attribute of the RootDSE.
     return false;
   }

@@ -46,7 +46,7 @@ public interface ChangeNumberIndexDB
   /**
    * Returns the last generated change number.
    *
-   * @return the lastGeneratedChangeNumber
+   * @return the last generated change number
    */
   long getLastGeneratedChangeNumber();
 
@@ -62,31 +62,30 @@ public interface ChangeNumberIndexDB
   CNIndexRecord getRecord(long changeNumber) throws ChangelogException;
 
   /**
-   * Get the first record stored in this DB.
+   * Get the oldest record stored in this DB.
    *
-   * @return Returns the first {@link CNIndexRecord} in this DB, null when the
+   * @return Returns the oldest {@link CNIndexRecord} in this DB, null when the
    *         DB is empty or closed
    * @throws ChangelogException
    *           if a database problem occurs.
    */
-  CNIndexRecord getFirstRecord() throws ChangelogException;
+  CNIndexRecord getOldestRecord() throws ChangelogException;
 
   /**
-   * Get the last record stored in this DB.
+   * Get the newest record stored in this DB.
    *
-   * @return Returns the last {@link CNIndexRecord} in this DB, null when the DB
-   *         is empty or closed
+   * @return Returns the newest {@link CNIndexRecord} in this DB, null when the
+   *         DB is empty or closed
    * @throws ChangelogException
    *           if a database problem occurs.
    */
-  CNIndexRecord getLastRecord() throws ChangelogException;
+  CNIndexRecord getNewestRecord() throws ChangelogException;
 
   /**
    * Add an update to the list of messages that must be saved to this DB managed
-   * by this DB.
+   * by this DB and return the changeNumber associated to this record.
    * <p>
-   * This method is blocking if the size of the list of message is larger than
-   * its maximum.
+   * Note: this method disregards the changeNumber in the provided record.
    * <p>
    * FIXME will be removed when ECLServerHandler will not be responsible anymore
    * for lazily building the ChangeNumberIndexDB.
