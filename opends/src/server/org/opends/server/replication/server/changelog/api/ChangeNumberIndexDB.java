@@ -87,6 +87,9 @@ public interface ChangeNumberIndexDB
    * <p>
    * This method is blocking if the size of the list of message is larger than
    * its maximum.
+   * <p>
+   * FIXME will be removed when ECLServerHandler will not be responsible anymore
+   * for lazily building the ChangeNumberIndexDB.
    *
    * @param record
    *          The {@link CNIndexRecord} to add to this DB.

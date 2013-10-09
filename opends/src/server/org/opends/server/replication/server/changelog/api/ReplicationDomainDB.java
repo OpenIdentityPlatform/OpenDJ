@@ -73,6 +73,9 @@ public interface ReplicationDomainDB
 
   /**
    * Retrieves the latest trim date for the specified replication domain.
+   * <p>
+   * FIXME will be removed when ECLServerHandler will not be responsible anymore
+   * for lazily building the ChangeNumberIndexDB.
    *
    * @param baseDN
    *          the replication domain baseDN
@@ -215,4 +218,34 @@ public interface ReplicationDomainDB
   boolean publishUpdateMsg(DN baseDN, UpdateMsg updateMsg)
       throws ChangelogException;
 
+  /**
+   * Let the DB know this replica is alive.
+   * <p>
+   * This method allows the medium consistency point to move forward in case
+   * this replica did not publish new changes.
+   *
+   * @param baseDN
+   *          the replication domain baseDN
+   * @param csn
+   *          The CSN heartbeat sent by this replica (contains the serverId and
+   *          timestamp of the heartbeat)
+   */
+  void replicaHeartbeat(DN baseDN, CSN csn);
+
+  /**
+   * Let the DB know this replica is going down.
+   * <p>
+   * This method allows to let the medium consistency point move forward while
+   * this replica is offline.
+   * <p>
+   * Note: This method must not be called to let the DB know the replica is not
+   * sending heartbeats anymore, i.e. it must not be used in case of suspected
+   * network partition.
+   *
+   * @param baseDN
+   *          the replication domain baseDN
+   * @param serverId
+   *          The replica's serverId going offline
+   */
+  void replicaOffline(DN baseDN, int serverId);
 }
