@@ -25,21 +25,23 @@
  *      Copyright 2008 Sun Microsystems, Inc.
  *      Portions Copyright 2011-2013 ForgeRock AS
  */
-
 package org.opends.server.replication.protocol;
-
-import org.opends.server.api.DirectoryThread;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-
-import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.DebugLogLevel;
 
 import java.io.IOException;
 
+import org.opends.server.api.DirectoryThread;
+import org.opends.server.loggers.debug.DebugTracer;
+import org.opends.server.types.DebugLogLevel;
+import org.opends.server.util.StaticUtils;
+
+import static org.opends.server.loggers.debug.DebugLogger.*;
+
 /**
- * This thread publishes a heartbeat message on a given protocol session at
+ * This thread publishes a {@link HeartbeatMsg} on a given protocol session at
  * regular intervals when there are no other replication messages being
  * published.
+ * <p>
+ * These heartbeat messages are sent by a replication server.
  */
 public class HeartbeatThread extends DirectoryThread
 {
@@ -124,8 +126,7 @@ public class HeartbeatThread extends DirectoryThread
           }
         }
 
-        long sleepTime = session.getLastPublishTime() +
-            heartbeatInterval - now;
+        long sleepTime = session.getLastPublishTime() + heartbeatInterval - now;
         if (sleepTime <= 0)
         {
           sleepTime = heartbeatInterval;
@@ -161,9 +162,9 @@ public class HeartbeatThread extends DirectoryThread
     {
       if (debugEnabled())
       {
-        TRACER.debugInfo("Heartbeat thread could not send a heartbeat.");
+        TRACER.debugInfo("Heartbeat thread could not send a heartbeat."
+            + StaticUtils.stackTraceToString(e));
       }
-      // This will be caught in another thread.
     }
     finally
     {

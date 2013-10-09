@@ -35,14 +35,17 @@ import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.protocol.ChangeTimeHeartbeatMsg;
 import org.opends.server.replication.protocol.Session;
 import org.opends.server.types.DebugLogLevel;
+import org.opends.server.util.StaticUtils;
 import org.opends.server.util.TimeThread;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 
 /**
- * This thread publishes a heartbeat message on a given protocol session at
- * regular intervals when there are no other replication messages being
- * published.
+ * This thread publishes a {@link ChangeTimeHeartbeatMsg} on a given protocol
+ * session at regular intervals when there are no other replication messages
+ * being published.
+ * <p>
+ * These heartbeat messages are sent by a replica directory server.
  */
 public class CTHeartbeatPublisherThread extends DirectoryThread
 {
@@ -102,17 +105,15 @@ public class CTHeartbeatPublisherThread extends DirectoryThread
       while (!shutdown)
       {
         long now = System.currentTimeMillis();
-        ChangeTimeHeartbeatMsg ctHeartbeatMsg =
-         new ChangeTimeHeartbeatMsg(
-             new CSN(TimeThread.getTime(),0, serverId));
+        final CSN csn = new CSN(TimeThread.getTime(), 0, serverId);
+        ChangeTimeHeartbeatMsg ctHeartbeatMsg = new ChangeTimeHeartbeatMsg(csn);
 
         if (now > session.getLastPublishTime() + heartbeatInterval)
         {
           session.publish(ctHeartbeatMsg);
         }
 
-        long sleepTime = session.getLastPublishTime() +
-            heartbeatInterval - now;
+        long sleepTime = session.getLastPublishTime() + heartbeatInterval - now;
         if (sleepTime <= 0)
         {
           sleepTime = heartbeatInterval;
@@ -143,16 +144,15 @@ public class CTHeartbeatPublisherThread extends DirectoryThread
     {
       if (debugEnabled())
       {
-        TRACER.debugInfo(getName() + "could not send a heartbeat." +
-            e.getMessage() + e);
+        TRACER.debugInfo(getName() + " could not send a heartbeat: "
+            + StaticUtils.stackTraceToString(e));
       }
-      // This will be caught in another thread.
     }
     finally
     {
       if (debugEnabled())
       {
-        TRACER.debugInfo(getName()+" is exiting.");
+        TRACER.debugInfo(getName() + " is exiting.");
       }
     }
   }
