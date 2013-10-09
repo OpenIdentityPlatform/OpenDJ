@@ -50,6 +50,7 @@ import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.plugin.MultimasterReplication;
 import org.opends.server.replication.plugin.ReplicationServerListener;
 import org.opends.server.replication.protocol.*;
+import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.api.ReplicaDBCursor;
 import org.opends.server.types.*;
 import org.opends.server.util.*;
@@ -622,6 +623,7 @@ public class ReplicationBackend extends Backend
   private void writeChangesAfterCSN(ReplicationServerDomain rsDomain,
       final LDIFExportConfig exportConfig, LDIFWriter ldifWriter,
       SearchOperation searchOperation, final CSN previousCSN)
+      throws DirectoryException
   {
     if (exportConfig != null && exportConfig.isCancelled())
     { // Abort if cancelled
@@ -650,6 +652,10 @@ public class ReplicationBackend extends Backend
             rsDomain.getBaseDN(), exportConfig != null);
         cursor.next();
       }
+    }
+    catch (ChangelogException e)
+    {
+      throw new DirectoryException(ResultCode.OPERATIONS_ERROR, e);
     }
     finally
     {
