@@ -2568,15 +2568,15 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
   }
 
   /**
-   * Returns the start state of the domain, made of the oldest CSN stored for
-   * each serverId.
+   * Returns the oldest known state for the domain, made of the oldest CSN
+   * stored for each serverId.
    * <p>
    * Note: Because the replication changelogDB trimming always keep one change
    * whatever its date, the CSN contained in the returned state can be very old.
    *
    * @return the start state of the domain.
    */
-  public ServerState getStartState()
+  public ServerState getOldestState()
   {
     return domainDB.getDomainOldestCSNs(baseDN);
   }

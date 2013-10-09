@@ -375,14 +375,15 @@ public class JEChangeNumberIndexDB implements ChangeNumberIndexDB, Runnable
             continue;
           }
 
-          // Purge up to wherever the other DBs have been purged to.
-          // FIXME there is an opportunity for a phantom record in the current
-          // DB if the replicaDB gets purged after the next if statement.
+          // FIXME there is an opportunity for a phantom record in the CNIndexDB
+          // if the replicaDB gets purged after call to domain.getOldestState().
           final CSN csn = record.getCSN();
-          final ServerState startState = domain.getStartState();
-          final CSN fcsn = startState.getCSN(csn.getServerId());
+          final ServerState oldestState = domain.getOldestState();
+          final CSN fcsn = oldestState.getCSN(csn.getServerId());
           if (csn.isOlderThan(fcsn))
           {
+            // This change which has already been purged from the corresponding
+            // replicaDB => purge it from CNIndexDB
             cursor.delete();
             continue;
           }
@@ -397,7 +398,7 @@ public class JEChangeNumberIndexDB implements ChangeNumberIndexDB, Runnable
 
             if (debugEnabled())
               TRACER.debugInfo("JEChangeNumberIndexDB:clear() - ChangeVector:"
-                  + csnVector + " -- StartState:" + startState);
+                  + csnVector + " -- StartState:" + oldestState);
           }
           catch(Exception e)
           {
@@ -409,7 +410,7 @@ public class JEChangeNumberIndexDB implements ChangeNumberIndexDB, Runnable
 
           if (csnVector == null
               || (csnVector.getCSN(csn.getServerId()) != null
-                    && !csnVector.cover(startState)))
+                    && !csnVector.cover(oldestState)))
           {
             cursor.delete();
             if (debugEnabled())

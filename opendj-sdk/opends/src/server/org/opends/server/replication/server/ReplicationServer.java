@@ -1398,43 +1398,33 @@ public final class ReplicationServer
      */
     try
     {
-      boolean dbEmpty = true;
-      long oldestChangeNumber = 0;
-      long newestChangeNumber = 0;
-
       final ChangeNumberIndexDB cnIndexDB = getChangeNumberIndexDB();
-      final CNIndexRecord oldestCNRecord = cnIndexDB.getOldestRecord();
-      final CNIndexRecord newestCNRecord = cnIndexDB.getNewestRecord();
-
-      boolean noCookieForNewestCN = true;
-      CSN csnForNewestCN = null;
-      DN baseDNForNewestCN = null;
-      if (oldestCNRecord != null)
+      final CNIndexRecord oldestRecord = cnIndexDB.getOldestRecord();
+      final CNIndexRecord newestRecord = cnIndexDB.getNewestRecord();
+      if (oldestRecord == null)
       {
-        if (newestCNRecord == null)
-        {
-          // Edge case: DB was cleaned or closed in between calls to
-          // getOldest*() and getNewest*().
-          // The only remaining solution is to fail fast.
-          throw new ChangelogException(
-              ERR_READING_OLDEST_THEN_NEWEST_IN_CHANGENUMBER_DATABASE.get());
-        }
-
-        dbEmpty = false;
-        oldestChangeNumber = oldestCNRecord.getChangeNumber();
-        newestChangeNumber = newestCNRecord.getChangeNumber();
-
-        // Get the generalized state associated with the current newest change
-        // number and initializes from it the startStates table
-        String newestCNGenState = newestCNRecord.getPreviousCookie();
-        noCookieForNewestCN =
-            newestCNGenState == null || newestCNGenState.length() == 0;
-
-        csnForNewestCN = newestCNRecord.getCSN();
-        baseDNForNewestCN = newestCNRecord.getBaseDN();
+        // The database is empty
+        long lastGeneratedCN = cnIndexDB.getLastGeneratedChangeNumber();
+        return new long[] { lastGeneratedCN, lastGeneratedCN };
+      }
+      if (newestRecord == null) // oldestCNRecord != null
+      {
+        // Edge case: DB was cleaned or closed in between calls to
+        // getOldest*() and getNewest*().
+        // The only remaining solution is to fail fast.
+        throw new ChangelogException(
+            ERR_READING_OLDEST_THEN_NEWEST_IN_CHANGENUMBER_DATABASE.get());
       }
 
-      long newestDate = 0;
+      long oldestChangeNumber = oldestRecord.getChangeNumber();
+      long newestChangeNumber = newestRecord.getChangeNumber();
+
+      // Get the generalized state associated with the current newest change
+      // number and initializes from the startState table
+      final String cookie = newestRecord.getPreviousCookie();
+      boolean noCookieForNewestCN = cookie == null || cookie.length() == 0;
+
+      long newestTime = newestRecord.getCSN().getTime();
       for (ReplicationServerDomain rsDomain : getReplicationServerDomains())
       {
         if (contains(
@@ -1447,30 +1437,25 @@ public final class ReplicationServer
         if (noCookieForNewestCN)
         {
           // Count changes of this domain from the beginning of the changelog
-          CSN trimCSN = new CSN(rsDomain.getLatestDomainTrimDate(), 0, 0);
-          ec = rsDomain.getEligibleCount(
-              rsDomain.getStartState().duplicateOnlyOlderThan(trimCSN),
-              maxOldestChangeNumber);
+          final ServerState startState = rsDomain.getOldestState()
+              .duplicateOnlyOlderThan(rsDomain.getLatestDomainTrimDate());
+          ec = rsDomain.getEligibleCount(startState, maxOldestChangeNumber);
         }
         else
         {
           // There are records in the CNIndexDB (so already returned to clients)
           // BUT
           // There is nothing related to this domain in the newest CNIndexRecord
-          // (may be this domain was disabled when this record was returned).
-          // In that case, are counted the changes from
-          // the date of the most recent change from this newest CNIndexRecord
-          if (newestDate == 0)
-          {
-            newestDate = csnForNewestCN.getTime();
-          }
+          // (maybe this domain was disabled when this record was returned).
+          // In that case, are counted the changes from the time of the most
+          // recent change
 
           // And count changes of this domain from the date of the
           // newest seqnum record (that does not refer to this domain)
-          CSN csnx = new CSN(newestDate, csnForNewestCN.getSeqnum(), 0);
+          CSN csnx = new CSN(newestTime, newestRecord.getCSN().getSeqnum(), 0);
           ec = rsDomain.getEligibleCount(csnx, maxOldestChangeNumber);
 
-          if (baseDNForNewestCN.equals(rsDomain.getBaseDN()))
+          if (newestRecord.getBaseDN().equals(rsDomain.getBaseDN()))
             ec--;
         }
 
@@ -1481,15 +1466,6 @@ public final class ReplicationServer
         // changelog then init oldest change number
         if (ec > 0 && oldestChangeNumber == 0)
           oldestChangeNumber = 1;
-      }
-
-      if (dbEmpty)
-      {
-        // The database was empty, just keep increasing numbers since last time
-        // we generated one change number.
-        long lastGeneratedCN = cnIndexDB.getLastGeneratedChangeNumber();
-        oldestChangeNumber += lastGeneratedCN;
-        newestChangeNumber += lastGeneratedCN;
       }
       return new long[] { oldestChangeNumber, newestChangeNumber };
     }
