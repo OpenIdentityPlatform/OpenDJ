@@ -738,6 +738,18 @@
        description="Generate all the sources.">
   </target>
 
+  <!-- This target retrieves the libs, and generates the sources -->
+  <target name="eclipse" depends="resolve,generatesources,copymessages"
+       description="Set up all the files and directories required for the Eclipse project">
+    <copy todir=".eclipse-build">
+      <fileset dir="${classes.dir}">
+        <include name="admin/**" />
+        <include name="messages/**" />
+      </fileset>
+    </copy>
+    <echo>Refresh the OpenDJ server project in Eclipse: Select the OpenDJ server project and press 'F5' key</echo>
+  </target>
+
   <target name="compile"
        depends="init,checkjavaversion,generatesources,resolve"
        description="Compile the Directory Server source files.">
