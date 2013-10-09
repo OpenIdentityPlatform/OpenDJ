@@ -94,7 +94,7 @@ public class JEReplicaDBCursor implements ReplicaDBCursor
 
   /** {@inheritDoc} */
   @Override
-  public boolean next()
+  public boolean next() throws ChangelogException
   {
     currentChange = cursor.next();
 
@@ -112,18 +112,11 @@ public class JEReplicaDBCursor implements ReplicaDBCursor
           cursor = null;
         }
         replicaDB.flush();
-        try
+        cursor = db.openReadCursor(lastNonNullCurrentCSN);
+        currentChange = cursor.next();
+        if (currentChange != null)
         {
-          cursor = db.openReadCursor(lastNonNullCurrentCSN);
-          currentChange = cursor.next();
-          if (currentChange != null)
-          {
-            lastNonNullCurrentCSN = currentChange.getCSN();
-          }
-        }
-        catch(Exception e)
-        {
-          currentChange = null;
+          lastNonNullCurrentCSN = currentChange.getCSN();
         }
       }
     }

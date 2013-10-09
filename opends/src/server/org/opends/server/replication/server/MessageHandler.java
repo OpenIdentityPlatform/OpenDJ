@@ -40,6 +40,7 @@ import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.protocol.UpdateMsg;
+import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.api.ReplicaDBCursor;
 import org.opends.server.types.*;
 
@@ -304,6 +305,10 @@ public class MessageHandler extends MonitorProvider<MonitorProviderCfg>
             {
               lateQueue.add(cursor.getChange());
             }
+          }
+          catch (ChangelogException e)
+          {
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
           finally
           {

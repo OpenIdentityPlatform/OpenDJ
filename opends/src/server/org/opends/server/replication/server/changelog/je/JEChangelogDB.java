@@ -102,7 +102,7 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
     }
 
     @Override
-    public boolean next()
+    public boolean next() throws ChangelogException
     {
       if (cursors.isEmpty())
       {

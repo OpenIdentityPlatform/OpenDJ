@@ -51,8 +51,10 @@ public interface ReplicaDBCursor extends Closeable, Comparable<ReplicaDBCursor>
    * Go to the next change in the ReplicaDB or in the server Queue.
    *
    * @return false if the cursor is already on the last change before this call.
+   * @throws ChangelogException
+   *           When database exception raised.
    */
-  boolean next();
+  boolean next() throws ChangelogException;
 
   /**
    * Release the resources and locks used by this cursor. This method must be
