@@ -186,8 +186,8 @@ public final class ECLServerHandler extends ServerHandler
           .append(")")
           .append("] [nextNonEligibleMsg=").append(nextNonEligibleMsg)
           .append("] [startState=").append(startState)
-          .append("] [stopState=").append(stopState)
           .append("] [currentState=").append(currentState)
+          .append("] [stopState=").append(stopState)
           .append("]]");
     }
 
@@ -735,10 +735,9 @@ public final class ECLServerHandler extends ServerHandler
       }
 
       // skip unused domains
-      final ServerState latestServerState = domain.getLatestServerState();
-      if (latestServerState.isEmpty())
+      final ServerState latestState = domain.getLatestServerState();
+      if (latestState.isEmpty())
         continue;
-
 
       // Creates the new domain context
       final DomainContext newDomainCtxt = new DomainContext();
@@ -749,7 +748,7 @@ public final class ECLServerHandler extends ServerHandler
       // Assign the start state for the domain
       if (isPersistent == PERSISTENT_CHANGES_ONLY)
       {
-        newDomainCtxt.startState = latestServerState;
+        newDomainCtxt.startState = latestState;
         startStatesFromProvidedCookie.remove(domain.getBaseDN());
       }
       else
@@ -767,10 +766,9 @@ public final class ECLServerHandler extends ServerHandler
           // what we have in the replication changelog
           if (newDomainCtxt.startState == null)
           {
-            CSN latestTrimCSN =
-                new CSN(newDomainCtxt.domainLatestTrimDate, 0, 0);
             newDomainCtxt.startState =
-                domain.getStartState().duplicateOnlyOlderThan(latestTrimCSN);
+                domain.getOldestState().duplicateOnlyOlderThan(
+                    newDomainCtxt.domainLatestTrimDate);
           }
         }
         else
@@ -790,7 +788,7 @@ public final class ECLServerHandler extends ServerHandler
           }
         }
 
-        newDomainCtxt.stopState = latestServerState;
+        newDomainCtxt.stopState = latestState;
       }
       newDomainCtxt.currentState = new ServerState();
 
@@ -860,12 +858,11 @@ public final class ECLServerHandler extends ServerHandler
       ServerState cookie)
   {
     /*
-    when the provided startState is older than the replication
-    changelogdb startState, it means that the replication
-    changelog db has been trimmed and the cookie is not valid
-    anymore.
+    when the provided startState is older than the replication changelogdb
+    oldestState, it means that the replication changelog db has been trimmed and
+    the cookie is not valid anymore.
     */
-    for (CSN dbOldestChange : rsDomain.getStartState())
+    for (CSN dbOldestChange : rsDomain.getOldestState())
     {
       CSN providedChange = cookie.getCSN(dbOldestChange.getServerId());
       if (providedChange != null && providedChange.isOlderThan(dbOldestChange))
