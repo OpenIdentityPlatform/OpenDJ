@@ -27,10 +27,10 @@
  */
 package org.opends.server.replication;
 
-import java.net.SocketException;
 import java.util.*;
 import java.util.concurrent.locks.Lock;
 
+import org.assertj.core.api.Assertions;
 import org.opends.messages.Category;
 import org.opends.messages.Message;
 import org.opends.messages.Severity;
@@ -56,7 +56,6 @@ import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.server.changelog.je.JEChangelogDB;
 import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.replication.service.ReplicationDomain;
-import org.opends.server.schema.DirectoryStringSyntax;
 import org.opends.server.schema.IntegerSyntax;
 import org.opends.server.types.*;
 import org.testng.annotations.AfterClass;
@@ -66,7 +65,7 @@ import org.testng.annotations.Test;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.schema.DirectoryStringSyntax.*;
 import static org.opends.server.types.ResultCode.*;
 import static org.opends.server.types.SearchScope.*;
 import static org.testng.Assert.*;
@@ -117,38 +116,38 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
   private long lastCount;
 
   /**
-   * schema check flag
+   * Call the paranoiaCheck at test cleanup or not.
+   * <p>
+   * Must not been touched except if sub class has its own clean up code, for
+   * instance:
+   *
+   * <pre>
+   * &#064;AfterClass
+   * public void classCleanUp() throws Exception
+   * {
+   *   callParanoiaCheck = false;
+   *   super.classCleanUp();
+   *
+   *   // Clear my own stuff that I have setup (in my own setup() method for instance)
+   *   // This removes the replication changes backend
+   *   myReplServerInstantiatedWithConstructor.remove();
+   *
+   *   // Now call paramoiaCheck myself
+   *   paranoiaCheck();
+   * }
+   *
+   * </pre>
    */
-  protected boolean schemaCheck;
-
-  // Call the paranoiaCheck at test cleanup or not.
-  // Must not been touched except if sub class has its own clean up code,
-  // for instance:
-  // @AfterClass
-  // public void classCleanUp() throws Exception
-  // {
-  //   callParanoiaCheck = false;
-  //   super.classCleanUp();
-  //
-  //  // Clear my own stuff that I have setup (in my own setup() method for instance)
-  //  myReplServerInstantiatedWithConstructor.remove(); // This removes the replication changes backend
-  //
-  //  // Now call paramoiaCheck myself
-  //  paranoiaCheck();
-  // }
   protected boolean callParanoiaCheck = true;
 
   /**
    * The replication plugin entry
    */
-  protected final String SYNCHRO_PLUGIN_DN =
+  protected static final String SYNCHRO_PLUGIN_DN =
     "cn=Multimaster Synchronization, cn=Synchronization Providers,cn=config";
 
   /**
    * Set up the environment for performing the tests in this suite.
-   *
-   * @throws Exception
-   *         If the environment could not be set up.
    */
   @BeforeClass
   public void setUp() throws Exception
@@ -194,10 +193,9 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
    * The generation is read from the replicationDomain object. If it
    * does not exist, take the 'empty backend' generationID.
    */
-  protected ReplicationBroker openReplicationSession(
-      final DN baseDN, int serverId, int window_size,
-      int port, int timeout, boolean emptyOldChanges)
-          throws Exception, SocketException
+  protected ReplicationBroker openReplicationSession(final DN baseDN,
+      int serverId, int window_size, int port, int timeout,
+      boolean emptyOldChanges) throws Exception
   {
     return openReplicationSession(baseDN, serverId, window_size,
         port, timeout, emptyOldChanges, getGenerationId(baseDN), null);
@@ -207,11 +205,9 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
    * Open a replicationServer session to the local ReplicationServer
    * providing the generationId.
    */
-  protected ReplicationBroker openReplicationSession(
-        final DN baseDN, int serverId, int window_size,
-        int port, int timeout, boolean emptyOldChanges,
-        long generationId)
-  throws Exception, SocketException
+  protected ReplicationBroker openReplicationSession(final DN baseDN,
+      int serverId, int window_size, int port, int timeout,
+      boolean emptyOldChanges, long generationId) throws Exception
   {
     return openReplicationSession(baseDN, serverId, window_size,
         port, timeout, emptyOldChanges, generationId, null);
@@ -221,11 +217,10 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
    * Open a replicationServer session to the local ReplicationServer
    * providing the generationId.
    */
-  protected ReplicationBroker openReplicationSession(
-        final DN baseDN, int serverId, int window_size,
-        int port, int timeout, boolean emptyOldChanges,
-        long generationId, ReplicationDomain replicationDomain)
-  throws Exception, SocketException
+  protected ReplicationBroker openReplicationSession(final DN baseDN,
+      int serverId, int window_size, int port, int timeout,
+      boolean emptyOldChanges, long generationId,
+      ReplicationDomain replicationDomain) throws Exception
   {
     ServerState state = new ServerState();
 
@@ -283,10 +278,9 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
    * Open a replicationServer session to the local ReplicationServer
    * with a default value generationId.
    */
-  protected ReplicationBroker openReplicationSession(
-      final DN baseDN, int serverId, int window_size,
-      int port, int timeout, ServerState state)
-    throws Exception, SocketException
+  protected ReplicationBroker openReplicationSession(final DN baseDN,
+      int serverId, int window_size, int port, int timeout, ServerState state)
+      throws Exception
   {
     return openReplicationSession(baseDN, serverId, window_size,
         port, timeout, state, getGenerationId(baseDN));
@@ -296,10 +290,9 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
    * Open a new session to the ReplicationServer
    * starting with a given ServerState.
    */
-  protected ReplicationBroker openReplicationSession(
-      final DN baseDN, int serverId, int window_size,
-      int port, int timeout, ServerState state, long generationId)
-          throws Exception, SocketException
+  protected ReplicationBroker openReplicationSession(final DN baseDN,
+      int serverId, int window_size, int port, int timeout, ServerState state,
+      long generationId) throws Exception
   {
     ReplicationBroker broker = new ReplicationBroker(null,
         state, baseDN, serverId, window_size, generationId,
@@ -521,7 +514,6 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
     }
   }
 
-
   /**
    * Get the value of the specified attribute for a given replication
    * domain from the monitor entry.
@@ -563,11 +555,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
     do
     {
       final Lock lock = LockManager.lockRead(dn);
-      if (lock == null)
-      {
-        throw new Exception("could not lock entry " + dn);
-      }
-
+      assertNotNull(lock, "could not lock entry " + dn);
       try
       {
         final Entry newEntry = DirectoryServer.getEntry(dn);
@@ -615,11 +603,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
     }
 
     final Lock lock = LockManager.lockRead(dn);
-    if (lock == null)
-    {
-      throw new Exception("could not lock entry " + dn);
-    }
-
+    assertNotNull(lock, "could not lock entry " + dn);
     try
     {
       Entry entry = DirectoryServer.getEntry(dn);
@@ -647,18 +631,14 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
    * Get the delta between the current / last monitor counts.
    * @return The delta between the current and last monitor count.
    */
-  protected long getMonitorDelta() {
-    long delta = 0;
-    try {
-      long currentCount = getMonitorAttrValue(monitorDN, monitorAttr);
-      delta = (currentCount - lastCount);
-      lastCount = currentCount;
-    } catch (Exception ex) {
-      ex.printStackTrace();
-      fail();
-    }
+  protected long getMonitorDelta() throws Exception
+  {
+    long currentCount = getMonitorAttrValue(monitorDN, monitorAttr);
+    long delta = (currentCount - lastCount);
+    lastCount = currentCount;
     return delta;
   }
+
   /**
    * Generate a new modification replace with the given information.
    *
@@ -683,8 +663,6 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
   {
     Entry taskEntry = TestCaseUtils.makeEntry(task);
 
-    InternalClientConnection connection = getRootConnection();
-
     // Add the task.
     AddOperation addOperation = connection.processAdd(taskEntry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS,
@@ -693,8 +671,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
     // Wait until the task completes.
     AttributeType completionTimeType = DirectoryServer.getAttributeType(
          ATTR_TASK_COMPLETION_TIME.toLowerCase());
-    SearchFilter filter =
-         SearchFilter.createFilterFromString("(objectclass=*)");
+    SearchFilter filter = SearchFilter.createFilterFromString("(objectclass=*)");
     Entry resultEntry = null;
     String completionTime = null;
     long startMillisecs = System.currentTimeMillis();
@@ -704,17 +681,12 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
            connection.processSearch(taskEntry.getDN(),
                                     SearchScope.BASE_OBJECT,
                                     filter);
-      try
-      {
-        resultEntry = searchOperation.getSearchEntries().getFirst();
-      } catch (Exception e)
+      if (searchOperation.getSearchEntries().isEmpty())
       {
         continue;
       }
-      completionTime =
-           resultEntry.getAttributeValue(completionTimeType,
-                                         DirectoryStringSyntax.DECODER);
-
+      resultEntry = searchOperation.getSearchEntries().get(0);
+      completionTime = resultEntry.getAttributeValue(completionTimeType, DECODER);
       if (completionTime == null)
       {
         if (System.currentTimeMillis() - startMillisecs > 1000*30)
@@ -730,9 +702,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
     // Check that the task state is as expected.
     AttributeType taskStateType =
          DirectoryServer.getAttributeType(ATTR_TASK_STATE.toLowerCase());
-    String stateString =
-         resultEntry.getAttributeValue(taskStateType,
-                                       DirectoryStringSyntax.DECODER);
+    String stateString = resultEntry.getAttributeValue(taskStateType, DECODER);
     TaskState taskState = TaskState.fromString(stateString);
     assertEquals(taskState, TaskState.COMPLETED_SUCCESSFULLY,
                  "The task completed in an unexpected state");
@@ -767,36 +737,33 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
   protected void addTask(Entry taskEntry, ResultCode expectedResult,
       Message errorMessage) throws Exception
   {
+    TRACER.debugInfo("AddTask/" + taskEntry);
+
+    // Change config of DS to launch the total update task
+    AddOperation addOperation = connection.processAdd(taskEntry);
+    assertEquals(addOperation.getResultCode(), expectedResult,
+        "Result of ADD operation of the task is: "
+            + addOperation.getResultCode() + " Expected:" + expectedResult
+            + " Details:" + addOperation.getErrorMessage()
+            + addOperation.getAdditionalLogItems());
+
+    if (expectedResult != ResultCode.SUCCESS)
     {
-      TRACER.debugInfo("AddTask/" + taskEntry);
-
-      // Change config of DS to launch the total update task
-      AddOperation addOperation = getRootConnection().processAdd(taskEntry);
-
-      assertEquals(addOperation.getResultCode(), expectedResult,
-          "Result of ADD operation of the task is: "
-          + addOperation.getResultCode()
-          + " Expected:"
-          + expectedResult + " Details:" + addOperation.getErrorMessage()
-          + addOperation.getAdditionalLogItems());
-
-      if (expectedResult != ResultCode.SUCCESS)
-      {
-        assertTrue(addOperation.getErrorMessage().toString().startsWith(errorMessage.toString()),
-            "Error MsgID of the task <" + addOperation.getErrorMessage() + "> equals <" + errorMessage + ">");
-        TRACER.debugInfo("Create config task: <"+ errorMessage.getDescriptor().getId()
-                + addOperation.getErrorMessage() + ">");
-      }
-      else
-      {
-        waitTaskState(taskEntry, TaskState.RUNNING, null);
-      }
-
-      // Entry will be removed at the end of the test
-      entriesToCleanup.add(taskEntry.getDN());
-
-      TRACER.debugInfo("AddedTask/" + taskEntry.getDN());
+      Assertions.assertThat(addOperation.getErrorMessage().toString())
+          .startsWith(errorMessage.toString());
+      TRACER.debugInfo("Create config task: <"
+          + errorMessage.getDescriptor().getId()
+          + addOperation.getErrorMessage() + ">");
     }
+    else
+    {
+      waitTaskState(taskEntry, TaskState.RUNNING, null);
+    }
+
+    // Entry will be removed at the end of the test
+    entriesToCleanup.add(taskEntry.getDN());
+
+    TRACER.debugInfo("AddedTask/" + taskEntry.getDN());
   }
 
   protected void waitTaskState(Entry taskEntry, TaskState expectedTaskState,
@@ -816,28 +783,27 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
       // Check that the task state is as expected.
       AttributeType taskStateType =
           DirectoryServer.getAttributeType(ATTR_TASK_STATE.toLowerCase());
-      String stateString =
-          resultEntry.getAttributeValue(taskStateType, DirectoryStringSyntax.DECODER);
+      String stateString = resultEntry.getAttributeValue(taskStateType, DECODER);
       taskState = TaskState.fromString(stateString);
 
       Thread.sleep(500);
       cpt--;
     }
-    while ((taskState != expectedTaskState)
-        && (taskState != TaskState.STOPPED_BY_ERROR)
-        && (taskState != TaskState.COMPLETED_SUCCESSFULLY) && (cpt > 0));
+    while (taskState != expectedTaskState
+        && taskState != TaskState.STOPPED_BY_ERROR
+        && taskState != TaskState.COMPLETED_SUCCESSFULLY
+        && cpt > 0);
 
     // Check that the task contains some log messages.
     AttributeType logMessagesType =
         DirectoryServer.getAttributeType(ATTR_TASK_LOG_MESSAGES.toLowerCase());
     List<String> logMessages = new ArrayList<String>();
-    resultEntry.getAttributeValues(logMessagesType,
-        DirectoryStringSyntax.DECODER, logMessages);
+    resultEntry.getAttributeValues(logMessagesType, DECODER, logMessages);
 
-    if ((taskState != TaskState.COMPLETED_SUCCESSFULLY)
-        && (taskState != TaskState.RUNNING))
+    if (taskState != TaskState.COMPLETED_SUCCESSFULLY
+        && taskState != TaskState.RUNNING)
     {
-      assertTrue(logMessages.size() != 0,
+      assertFalse(logMessages.isEmpty(),
           "No log messages were written to the task entry on a failed task");
     }
     if (logMessages.size() != 0)
@@ -850,8 +816,8 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
       }
     }
 
-    if ((expectedTaskState == TaskState.RUNNING)
-        && (taskState == TaskState.COMPLETED_SUCCESSFULLY))
+    if (expectedTaskState == TaskState.RUNNING
+        && taskState == TaskState.COMPLETED_SUCCESSFULLY)
     {
       // We usually wait the running state after adding the task
       // and if the task is fast enough then it may be already done
@@ -869,25 +835,19 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
    */
   protected void addTestEntriesToDB(String... ldifEntries) throws Exception
   {
+    // Change config of DS to launch the total update task
+    for (String ldifEntry : ldifEntries)
     {
-      // Change config of DS to launch the total update task
-      InternalClientConnection connection =
-        InternalClientConnection.getRootConnection();
-
-      for (String ldifEntry : ldifEntries)
+      Entry entry = TestCaseUtils.entryFromLdifString(ldifEntry);
+      AddOperation addOp = connection.processAdd(entry);
+      if (addOp.getResultCode() != ResultCode.SUCCESS)
       {
-        Entry entry = TestCaseUtils.entryFromLdifString(ldifEntry);
-        AddOperation addOp = connection.processAdd(entry);
-        if (addOp.getResultCode() != ResultCode.SUCCESS)
-        {
-          TRACER.debugInfo("Failed to add entry " + entry.getDN() +
-              "Result code = : " + addOp.getResultCode());
-        }
-        else
-        {
-          TRACER.debugInfo(entry.getDN() +
-              " added " + addOp.getResultCode());
-        }
+        TRACER.debugInfo("Failed to add entry " + entry.getDN()
+            + "Result code = : " + addOp.getResultCode());
+      }
+      else
+      {
+        TRACER.debugInfo(entry.getDN() + " added " + addOp.getResultCode());
       }
     }
   }
@@ -902,16 +862,12 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
   {
     int count = 10;
     String found = null;
-    while ((count> 0) && (found == null))
+    while (count > 0 && found == null)
     {
       Thread.sleep(100);
 
       final Lock lock = LockManager.lockRead(dn);
-      if (lock == null)
-      {
-        throw new Exception("could not lock entry " + dn);
-      }
-
+      assertNotNull(lock, "could not lock entry " + dn);
       try
       {
         Entry newEntry = DirectoryServer.getEntry(dn);
@@ -931,8 +887,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
       }
       count --;
     }
-    if (found == null)
-      throw new Exception("Entry: " + dn + " Could not be found.");
+    assertNotNull(found, "Entry: " + dn + " Could not be found.");
     return found;
   }
 
