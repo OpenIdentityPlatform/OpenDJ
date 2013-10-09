@@ -48,7 +48,7 @@ import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.util.StaticUtils.*;
 
 /**
- * JE implementation of the ChangelogDB.
+ * JE implementation of the ChangelogDB interface.
  */
 public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
 {
@@ -724,4 +724,19 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
     return wasCreated;
   }
 
+  /** {@inheritDoc} */
+  @Override
+  public void replicaHeartbeat(DN baseDN, CSN csn)
+  {
+    // TODO implement this when the changelogDB will be responsible for
+    // maintaining the medium consistency point
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public void replicaOffline(DN baseDN, int serverId)
+  {
+    // TODO implement this when the changelogDB will be responsible for
+    // maintaining the medium consistency point
+  }
 }
