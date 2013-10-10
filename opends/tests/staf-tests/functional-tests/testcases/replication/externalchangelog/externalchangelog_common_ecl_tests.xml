@@ -335,7 +335,7 @@
               <if expr="searchRC == 0">
                 <sequence>
                 <message>
-                  'This is the ECL entry as read from server %s:%s: \n%s' %\
+                  'This is the ECL entry as read from server %s:%s: \n%s' % \
                   (replServer.getHostname(), replServer.getPort(), 
                    searchResult)
                 </message>
@@ -355,8 +355,7 @@
                     'Parsed changelog entry:  \n%s' % eclEntry
                   </message>
                   <message>
-                    'Index to use for the next ECL search:  %s' % \
-                    nextIndex
+                    'Index to use for the next ECL search:  %s' % nextIndex
                   </message>
                       
                   <if expr="addedEntry and eclEntry">
@@ -2711,77 +2710,79 @@
                        'Number of added entries %s does not match number of ECL \
                        entries %s' % (len(modEntries), len(eclEntries))
                       </message>
-                    <call function="'testFailed'"/>
+                      <call function="'testFailed'"/>
                     </sequence>
-                  </if>
-                  
-                  <iterate var="eclEntry"
-                           in="eclEntries"
-                           indexvar="i">
-                    <sequence>
-                    
-                      <script>
-                        if ecl_mode == 'opends':
-                          nextIndex     = eclEntry['changelogcookie'][0]
-                        else:
-                          nextChgNumber = int(eclEntry['changenumber'][0]) + 1
-                          nextIndex     = str(nextChgNumber)
-                                  
-                        modEntry               = modEntries[i]                        
-                        myTargetDN             = modEntry['dn'][0]
-                        myChangeType           = 'modify'
-                        myChangeTime           = modEntry['modifytimestamp'][0]
-                        myTargetEntryUUID      = modEntry['entryuuid'][0]
-                        # myReplicationCSN     = ----> grab from where???
-                        # myReplicatIdentifier = ----> grab from ldap server
-                        myModifiersName        = modEntry['modifiersname'][0]
-                        myModifyTimestamp      = modEntry['modifytimestamp'][0]
-                        myDescription          = modEntry['description'][0]
-                        myChanges              = []
-                        myChanges.append(['replace', 'description', myDescription])
-                        myChanges.append(['replace', 'modifiersname', myModifiersName])
-                        myChanges.append(['replace', 'modifytimestamp', myModifyTimestamp])
-                
-                        if ecl_mode != 'opends':
-                          myIntChangeNumber    = int(searchIndex) + i
-                          myChangeNumber       = str(myIntChangeNumber)
-                        else:
-                          myChangeNumber       = None
-                      </script>
-                      <message>
-                        'Parsed changelog entry:  \n%s' % eclEntry
-                      </message>
-                      <message>
-                        'Index to use for the next ECL search:  %s' % nextIndex
-                      </message>
-                  
-                      <if expr="modEntry and eclEntry">
-                        <call function="'checkChangelogEntry'">
-                          { 'location'        : masterHost,
-                            'dsPath'          : masterPath,
-                            'changelogEntry'  : eclEntry,
-                            'targetDN'        : myTargetDN,
-                            'changeNumber'    : myChangeNumber,
-                            'changeType'      : myChangeType,
-                            'changeTime'      : myChangeTime,
-                            'targetEntryUUID' : myTargetEntryUUID,
-                            'changes'         : myChanges
-                          }
-                        </call>
-                        <else>
+                    <else>
+                      <sequence>
+                        <iterate var="eclEntry"
+                                 in="eclEntries"
+                                 indexvar="i">
                           <sequence>
-                            <message log="1" level="'Error'">
-                              'Unable to check external changelog entry \
-                              (failed to read LDAP and/or changelog entry)'
-                            </message>
-                            <call function="'testFailed'"/>
-                          </sequence>
-                        </else>
-                      </if>
+                          
+                            <script>
+                              if ecl_mode == 'opends':
+                                nextIndex     = eclEntry['changelogcookie'][0]
+                              else:
+                                nextChgNumber = int(eclEntry['changenumber'][0]) + 1
+                                nextIndex     = str(nextChgNumber)
+                                        
+                              modEntry               = modEntries[i]                        
+                              myTargetDN             = modEntry['dn'][0]
+                              myChangeType           = 'modify'
+                              myChangeTime           = modEntry['modifytimestamp'][0]
+                              myTargetEntryUUID      = modEntry['entryuuid'][0]
+                              # myReplicationCSN     = ----> grab from where???
+                              # myReplicatIdentifier = ----> grab from ldap server
+                              myModifiersName        = modEntry['modifiersname'][0]
+                              myModifyTimestamp      = modEntry['modifytimestamp'][0]
+                              myDescription          = modEntry['description'][0]
+                              myChanges              = []
+                              myChanges.append(['replace', 'description', myDescription])
+                              myChanges.append(['replace', 'modifiersname', myModifiersName])
+                              myChanges.append(['replace', 'modifytimestamp', myModifyTimestamp])
                       
-                    </sequence>
-                  </iterate>
-                  
+                              if ecl_mode != 'opends':
+                                myIntChangeNumber    = int(searchIndex) + i
+                                myChangeNumber       = str(myIntChangeNumber)
+                              else:
+                                myChangeNumber       = None
+                            </script>
+                            <message>
+                              'Parsed changelog entry:  \n%s' % eclEntry
+                            </message>
+                            <message>
+                              'Index to use for the next ECL search:  %s' % nextIndex
+                            </message>
+                        
+                            <if expr="modEntry and eclEntry">
+                              <call function="'checkChangelogEntry'">
+                                { 'location'        : masterHost,
+                                  'dsPath'          : masterPath,
+                                  'changelogEntry'  : eclEntry,
+                                  'targetDN'        : myTargetDN,
+                                  'changeNumber'    : myChangeNumber,
+                                  'changeType'      : myChangeType,
+                                  'changeTime'      : myChangeTime,
+                                  'targetEntryUUID' : myTargetEntryUUID,
+                                  'changes'         : myChanges
+                                }
+                              </call>
+                              <else>
+                                <sequence>
+                                  <message log="1" level="'Error'">
+                                    'Unable to check external changelog entry \
+                                    (failed to read LDAP and/or changelog entry)'
+                                  </message>
+                                  <call function="'testFailed'"/>
+                                </sequence>
+                              </else>
+                            </if>
+                            
+                          </sequence>
+                        </iterate>
+                      </sequence>
+                    </else>
+                  </if>
                 </sequence>
                 <else>
                   <message log="1" level="'Error'">
@@ -3050,77 +3051,79 @@
                        'Number of added entries %s does not match number of ECL \
                        entries %s' % (len(modEntries), len(eclEntries))
                       </message>
-                    <call function="'testFailed'"/>
+                      <call function="'testFailed'"/>
                     </sequence>
-                  </if>
-                  
-                  <iterate var="eclEntry"
-                           in="eclEntries"
-                           indexvar="i">
-                    <sequence>
-                    
-                      <script>
-                        if ecl_mode == 'opends':
-                          nextIndex     = eclEntry['changelogcookie'][0]
-                        else:
-                          nextChgNumber = int(eclEntry['changenumber'][0]) + 1
-                          nextIndex     = str(nextChgNumber)
-                                  
-                        modEntry               = modEntries[i]                        
-                        myTargetDN             = modEntry['dn'][0]
-                        myChangeType           = 'modify'
-                        myChangeTime           = modEntry['modifytimestamp'][0]
-                        myTargetEntryUUID      = modEntry['entryuuid'][0]
-                        # myReplicationCSN     = ----> grab from where???
-                        # myReplicatIdentifier = ----> grab from ldap server
-                        myModifiersName        = modEntry['modifiersname'][0]
-                        myModifyTimestamp      = modEntry['modifytimestamp'][0]
-                        myDescription          = modEntry['description'][0]
-                        myChanges              = []
-                        myChanges.append(['replace', 'description', myDescription])
-                        myChanges.append(['replace', 'modifiersname', myModifiersName])
-                        myChanges.append(['replace', 'modifytimestamp', myModifyTimestamp])
-                
-                        if ecl_mode != 'opends':
-                          myIntChangeNumber    = int(searchIndex) + i
-                          myChangeNumber       = str(myIntChangeNumber)
-                        else:
-                          myChangeNumber       = None
-                      </script>
-                      <message>
-                        'Parsed changelog entry:  \n%s' % eclEntry
-                      </message>
-                      <message>
-                        'Index to use for the next ECL search:  %s' % nextIndex
-                      </message>
-                  
-                      <if expr="modEntry and eclEntry">
-                        <call function="'checkChangelogEntry'">
-                          { 'location'        : masterHost,
-                            'dsPath'          : masterPath,
-                            'changelogEntry'  : eclEntry,
-                            'targetDN'        : myTargetDN,
-                            'changeNumber'    : myChangeNumber,
-                            'changeType'      : myChangeType,
-                            'changeTime'      : myChangeTime,
-                            'targetEntryUUID' : myTargetEntryUUID,
-                            'changes'         : myChanges
-                          }
-                        </call>
-                        <else>
+                    <else>
+                      <sequence>
+                        <iterate var="eclEntry"
+                                 in="eclEntries"
+                                 indexvar="i">
                           <sequence>
-                            <message log="1" level="'Error'">
-                              'Unable to check external changelog entry \
-                              (failed to read LDAP and/or changelog entry)'
-                            </message>
-                            <call function="'testFailed'"/>
-                          </sequence>
-                        </else>
-                      </if>
+                          
+                            <script>
+                              if ecl_mode == 'opends':
+                                nextIndex     = eclEntry['changelogcookie'][0]
+                              else:
+                                nextChgNumber = int(eclEntry['changenumber'][0]) + 1
+                                nextIndex     = str(nextChgNumber)
+                                        
+                              modEntry               = modEntries[i]                        
+                              myTargetDN             = modEntry['dn'][0]
+                              myChangeType           = 'modify'
+                              myChangeTime           = modEntry['modifytimestamp'][0]
+                              myTargetEntryUUID      = modEntry['entryuuid'][0]
+                              # myReplicationCSN     = ----> grab from where???
+                              # myReplicatIdentifier = ----> grab from ldap server
+                              myModifiersName        = modEntry['modifiersname'][0]
+                              myModifyTimestamp      = modEntry['modifytimestamp'][0]
+                              myDescription          = modEntry['description'][0]
+                              myChanges              = []
+                              myChanges.append(['replace', 'description', myDescription])
+                              myChanges.append(['replace', 'modifiersname', myModifiersName])
+                              myChanges.append(['replace', 'modifytimestamp', myModifyTimestamp])
                       
-                    </sequence>
-                  </iterate>
-                  
+                              if ecl_mode != 'opends':
+                                myIntChangeNumber    = int(searchIndex) + i
+                                myChangeNumber       = str(myIntChangeNumber)
+                              else:
+                                myChangeNumber       = None
+                            </script>
+                            <message>
+                              'Parsed changelog entry:  \n%s' % eclEntry
+                            </message>
+                            <message>
+                              'Index to use for the next ECL search:  %s' % nextIndex
+                            </message>
+                        
+                            <if expr="modEntry and eclEntry">
+                              <call function="'checkChangelogEntry'">
+                                { 'location'        : masterHost,
+                                  'dsPath'          : masterPath,
+                                  'changelogEntry'  : eclEntry,
+                                  'targetDN'        : myTargetDN,
+                                  'changeNumber'    : myChangeNumber,
+                                  'changeType'      : myChangeType,
+                                  'changeTime'      : myChangeTime,
+                                  'targetEntryUUID' : myTargetEntryUUID,
+                                  'changes'         : myChanges
+                                }
+                              </call>
+                              <else>
+                                <sequence>
+                                  <message log="1" level="'Error'">
+                                    'Unable to check external changelog entry \
+                                    (failed to read LDAP and/or changelog entry)'
+                                  </message>
+                                  <call function="'testFailed'"/>
+                                </sequence>
+                              </else>
+                            </if>
+                            
+                          </sequence>
+                        </iterate>
+                      </sequence>
+                    </else>
+                  </if>
                 </sequence>
                 <else>
                   <message log="1" level="'Error'">
@@ -3317,73 +3320,75 @@
                       </message>
                       <call function="'testFailed'"/>
                     </sequence>
-                  </if>
-                  
-                  <iterate var="eclEntry"
-                           in="eclEntries"
-                           indexvar="i">
-                    <sequence>
-                    
-                      <script>
-                        if ecl_mode == 'opends':
-                          nextIndex     = eclEntry['changelogcookie'][0]
-                        else:
-                          nextChgNumber = int(eclEntry['changenumber'][0]) + 1
-                          nextIndex     = str(nextChgNumber)
-                          
-                        addedEntry             = addedEntries[i]
-                        myTargetDN             = addedEntry['dn'][0]
-                        myChangeType           = 'add'
-                        myChangeTime           = addedEntry['createtimestamp'][0]
-                        myTargetEntryUUID      = addedEntry['entryuuid'][0]
-                        # myReplicationCSN     = ----> grab from where???
-                        # myReplicatIdentifier = ----> grab from ldap server
-                        myChanges              = {}
-                        
-                        for attr in addedEntry.keys():
-                          if (attr != 'dn') and (attr != 'changelogcookie') :
-                            myChanges[attr] = addedEntry[attr]
-                        
-                        if ecl_mode != 'opends':
-                          myIntChangeNumber    = int(searchIndex) + i
-                          myChangeNumber       = str(myIntChangeNumber)
-                        else:
-                          myChangeNumber       = None
-                      </script>
-                      <message>
-                        'Parsed changelog entry:  \n%s' % eclEntry
-                      </message>
-                      <message>
-                        'Index to use for the next ECL search:  %s' % nextIndex
-                      </message>
-                  
-                      <if expr="addedEntry and eclEntry">
-                        <call function="'checkChangelogEntry'">
-                          { 'location'        : masterHost,
-                            'dsPath'          : masterPath,
-                            'changelogEntry'  : eclEntry,
-                            'targetDN'        : myTargetDN,
-                            'changeNumber'    : myChangeNumber,
-                            'changeType'      : myChangeType,
-                            'changeTime'      : myChangeTime,
-                            'targetEntryUUID' : myTargetEntryUUID,
-                            'changes'         : myChanges
-                          }
-                        </call>
-                        <else>
+                    <else>
+                      <sequence>
+                        <iterate var="eclEntry"
+                                 in="eclEntries"
+                                 indexvar="i">
                           <sequence>
-                            <message log="1" level="'Error'">
-                              'Unable to check external changelog entry \
-                              (failed to read LDAP and/or changelog entry)'
+                          
+                            <script>
+                              if ecl_mode == 'opends':
+                                nextIndex     = eclEntry['changelogcookie'][0]
+                              else:
+                                nextChgNumber = int(eclEntry['changenumber'][0]) + 1
+                                nextIndex     = str(nextChgNumber)
+                                
+                              addedEntry             = addedEntries[i]
+                              myTargetDN             = addedEntry['dn'][0]
+                              myChangeType           = 'add'
+                              myChangeTime           = addedEntry['createtimestamp'][0]
+                              myTargetEntryUUID      = addedEntry['entryuuid'][0]
+                              # myReplicationCSN     = ----> grab from where???
+                              # myReplicatIdentifier = ----> grab from ldap server
+                              myChanges              = {}
+                              
+                              for attr in addedEntry.keys():
+                                if (attr != 'dn') and (attr != 'changelogcookie') :
+                                  myChanges[attr] = addedEntry[attr]
+                              
+                              if ecl_mode != 'opends':
+                                myIntChangeNumber    = int(searchIndex) + i
+                                myChangeNumber       = str(myIntChangeNumber)
+                              else:
+                                myChangeNumber       = None
+                            </script>
+                            <message>
+                              'Parsed changelog entry:  \n%s' % eclEntry
                             </message>
-                            <call function="'testFailed'"/>
+                            <message>
+                              'Index to use for the next ECL search:  %s' % nextIndex
+                            </message>
+                        
+                            <if expr="addedEntry and eclEntry">
+                              <call function="'checkChangelogEntry'">
+                                { 'location'        : masterHost,
+                                  'dsPath'          : masterPath,
+                                  'changelogEntry'  : eclEntry,
+                                  'targetDN'        : myTargetDN,
+                                  'changeNumber'    : myChangeNumber,
+                                  'changeType'      : myChangeType,
+                                  'changeTime'      : myChangeTime,
+                                  'targetEntryUUID' : myTargetEntryUUID,
+                                  'changes'         : myChanges
+                                }
+                              </call>
+                              <else>
+                                <sequence>
+                                  <message log="1" level="'Error'">
+                                    'Unable to check external changelog entry \
+                                    (failed to read LDAP and/or changelog entry)'
+                                  </message>
+                                  <call function="'testFailed'"/>
+                                </sequence>
+                              </else>
+                            </if>
+                            
                           </sequence>
-                        </else>
-                      </if>
-                      
-                    </sequence>
-                  </iterate>
-                  
+                        </iterate>
+                      </sequence>
+                    </else>
+                  </if>
                 </sequence>
                 <else>
                   <message log="1" level="'Error'">
@@ -3542,8 +3547,6 @@
                    indexvar="indx">
             <sequence>
               <script>
-                myKnownIssue = None
-                
                 replServer = server
                 replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
               </script>
@@ -3566,8 +3569,7 @@
                   'dsBaseDN'           : 'cn=changelog',
                   'dsFilter'           : '(objectclass=*)',
                   'changeNumberFilter' : chgNumberFilter,
-                  'changelogCookie'    : lastCookie,
-                  'knownIssue'         : myKnownIssue
+                  'changelogCookie'    : lastCookie
                 }                
               </call>
               <script>
@@ -3594,75 +3596,77 @@
                        'Number of added entries %s does not match number of ECL \
                        entries %s' % (len(addedEntries), len(eclEntries))
                       </message>
-                    <call function="'testFailed'"/>
+                      <call function="'testFailed'"/>
                     </sequence>
-                  </if>
-                  
-                  <iterate var="eclEntry"
-                           in="eclEntries"
-                           indexvar="i">
-                    <sequence>
-                    
-                      <script>
-                        if ecl_mode == 'opends':
-                          nextIndex     = eclEntry['changelogcookie'][0]
-                        else:
-                          nextChgNumber = int(eclEntry['changenumber'][0]) + 1
-                          nextIndex     = str(nextChgNumber)
-                          
-                        addedEntry             = addedEntries[i]
-                        myTargetDN             = addedEntry['dn'][0]
-                        myChangeType           = 'add'
-                        myChangeTime           = addedEntry['createtimestamp'][0]
-                        myTargetEntryUUID      = addedEntry['entryuuid'][0]
-                        # myReplicationCSN     = ----> grab from where???
-                        # myReplicatIdentifier = ----> grab from ldap server
-                        myChanges              = {}
-                        
-                        for attr in addedEntry.keys():
-                          if (attr != 'dn') and (attr != 'changelogcookie') :
-                            myChanges[attr] = addedEntry[attr]
-                        
-                        if ecl_mode != 'opends':
-                          myIntChangeNumber    = int(searchIndex) + i
-                          myChangeNumber       = str(myIntChangeNumber)
-                        else:
-                          myChangeNumber       = None
-                      </script>
-                      <message>
-                        'Parsed changelog entry:  \n%s' % eclEntry
-                      </message>
-                      <message>
-                        'Index to use for the next ECL search:  %s' % nextIndex
-                      </message>
-                  
-                      <if expr="addedEntry and eclEntry">
-                        <call function="'checkChangelogEntry'">
-                          { 'location'        : masterHost,
-                            'dsPath'          : masterPath,
-                            'changelogEntry'  : eclEntry,
-                            'targetDN'        : myTargetDN,
-                            'changeNumber'    : myChangeNumber,
-                            'changeType'      : myChangeType,
-                            'changeTime'      : myChangeTime,
-                            'targetEntryUUID' : myTargetEntryUUID,
-                            'changes'         : myChanges
-                          }
-                        </call>
-                        <else>
+                    <else>
+                      <sequence>
+                        <iterate var="eclEntry"
+                                 in="eclEntries"
+                                 indexvar="i">
                           <sequence>
-                            <message log="1" level="'Error'">
-                              'Unable to check external changelog entry \
-                              (failed to read LDAP and/or changelog entry)'
+                          
+                            <script>
+                              if ecl_mode == 'opends':
+                                nextIndex     = eclEntry['changelogcookie'][0]
+                              else:
+                                nextChgNumber = int(eclEntry['changenumber'][0]) + 1
+                                nextIndex     = str(nextChgNumber)
+                                
+                              addedEntry             = addedEntries[i]
+                              myTargetDN             = addedEntry['dn'][0]
+                              myChangeType           = 'add'
+                              myChangeTime           = addedEntry['createtimestamp'][0]
+                              myTargetEntryUUID      = addedEntry['entryuuid'][0]
+                              # myReplicationCSN     = ----> grab from where???
+                              # myReplicatIdentifier = ----> grab from ldap server
+                              myChanges              = {}
+                              
+                              for attr in addedEntry.keys():
+                                if (attr != 'dn') and (attr != 'changelogcookie') :
+                                  myChanges[attr] = addedEntry[attr]
+                              
+                              if ecl_mode != 'opends':
+                                myIntChangeNumber    = int(searchIndex) + i
+                                myChangeNumber       = str(myIntChangeNumber)
+                              else:
+                                myChangeNumber       = None
+                            </script>
+                            <message>
+                              'Parsed changelog entry:  \n%s' % eclEntry
                             </message>
-                            <call function="'testFailed'"/>
+                            <message>
+                              'Index to use for the next ECL search:  %s' % nextIndex
+                            </message>
+                        
+                            <if expr="addedEntry and eclEntry">
+                              <call function="'checkChangelogEntry'">
+                                { 'location'        : masterHost,
+                                  'dsPath'          : masterPath,
+                                  'changelogEntry'  : eclEntry,
+                                  'targetDN'        : myTargetDN,
+                                  'changeNumber'    : myChangeNumber,
+                                  'changeType'      : myChangeType,
+                                  'changeTime'      : myChangeTime,
+                                  'targetEntryUUID' : myTargetEntryUUID,
+                                  'changes'         : myChanges
+                                }
+                              </call>
+                              <else>
+                                <sequence>
+                                  <message log="1" level="'Error'">
+                                    'Unable to check external changelog entry \
+                                    (failed to read LDAP and/or changelog entry)'
+                                  </message>
+                                  <call function="'testFailed'"/>
+                                </sequence>
+                              </else>
+                            </if>
+                            
                           </sequence>
-                        </else>
-                      </if>
-                      
-                    </sequence>
-                  </iterate>
-                  
+                        </iterate>
+                      </sequence>
+                    </else>
+                  </if>
                 </sequence>
                 <else>
                   <message log="1" level="'Error'">
@@ -3827,8 +3831,6 @@
                    indexvar="indx">
             <sequence>
               <script>
-                myKnownIssue = None
-                
                 replServer = server
                 replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
               </script>
@@ -3851,8 +3853,7 @@
                   'dsBaseDN'           : 'cn=changelog',
                   'dsFilter'           : '(objectclass=*)',
                   'changeNumberFilter' : chgNumberFilter,
-                  'changelogCookie'    : lastCookie,
-                  'knownIssue'         : myKnownIssue
+                  'changelogCookie'    : lastCookie
                 }                
               </call>
               <script>
@@ -3879,77 +3880,79 @@
                        'Number of added entries %s does not match number of ECL \
                        entries %s' % (len(modEntries), len(eclEntries))
                       </message>
-                    <call function="'testFailed'"/>
+                      <call function="'testFailed'"/>
                     </sequence>
-                  </if>
-                  
-                  <iterate var="eclEntry"
-                           in="eclEntries"
-                           indexvar="i">
-                    <sequence>
-                    
-                      <script>
-                        if ecl_mode == 'opends':
-                          nextIndex     = eclEntry['changelogcookie'][0]
-                        else:
-                          nextChgNumber = int(eclEntry['changenumber'][0]) + 1
-                          nextIndex     = str(nextChgNumber)
-                                  
-                        modEntry               = modEntries[i]                        
-                        myTargetDN             = modEntry['dn'][0]
-                        myChangeType           = 'modify'
-                        myChangeTime           = modEntry['modifytimestamp'][0]
-                        myTargetEntryUUID      = modEntry['entryuuid'][0]
-                        # myReplicationCSN     = ----> grab from where???
-                        # myReplicatIdentifier = ----> grab from ldap server
-                        myModifiersName        = modEntry['modifiersname'][0]
-                        myModifyTimestamp      = modEntry['modifytimestamp'][0]
-                        myTelephonenumber      = myTelephonenumbers[i]
-                        myChanges              = []
-                        myChanges.append(['add', 'telephonenumber', myTelephonenumber])
-                        myChanges.append(['replace', 'modifiersname', myModifiersName])
-                        myChanges.append(['replace', 'modifytimestamp', myModifyTimestamp])
-                
-                        if ecl_mode != 'opends':
-                          myIntChangeNumber    = int(searchIndex) + i
-                          myChangeNumber       = str(myIntChangeNumber)
-                        else:
-                          myChangeNumber       = None
-                      </script>
-                      <message>
-                        'Parsed changelog entry:  \n%s' % eclEntry
-                      </message>
-                      <message>
-                        'Index to use for the next ECL search:  %s' % nextIndex
-                      </message>
-                  
-                      <if expr="modEntry and eclEntry">
-                        <call function="'checkChangelogEntry'">
-                          { 'location'        : masterHost,
-                            'dsPath'          : masterPath,
-                            'changelogEntry'  : eclEntry,
-                            'targetDN'        : myTargetDN,
-                            'changeNumber'    : myChangeNumber,
-                            'changeType'      : myChangeType,
-                            'changeTime'      : myChangeTime,
-                            'targetEntryUUID' : myTargetEntryUUID,
-                            'changes'         : myChanges
-                          }
-                        </call>
-                        <else>
+                    <else>
+                      <sequence>
+                        <iterate var="eclEntry"
+                                 in="eclEntries"
+                                 indexvar="i">
                           <sequence>
-                            <message log="1" level="'Error'">
-                              'Unable to check external changelog entry \
-                              (failed to read LDAP and/or changelog entry)'
-                            </message>
-                            <call function="'testFailed'"/>
-                          </sequence>
-                        </else>
-                      </if>
+                          
+                            <script>
+                              if ecl_mode == 'opends':
+                                nextIndex     = eclEntry['changelogcookie'][0]
+                              else:
+                                nextChgNumber = int(eclEntry['changenumber'][0]) + 1
+                                nextIndex     = str(nextChgNumber)
+                                        
+                              modEntry               = modEntries[i]                        
+                              myTargetDN             = modEntry['dn'][0]
+                              myChangeType           = 'modify'
+                              myChangeTime           = modEntry['modifytimestamp'][0]
+                              myTargetEntryUUID      = modEntry['entryuuid'][0]
+                              # myReplicationCSN     = ----> grab from where???
+                              # myReplicatIdentifier = ----> grab from ldap server
+                              myModifiersName        = modEntry['modifiersname'][0]
+                              myModifyTimestamp      = modEntry['modifytimestamp'][0]
+                              myTelephonenumber      = myTelephonenumbers[i]
+                              myChanges              = []
+                              myChanges.append(['add', 'telephonenumber', myTelephonenumber])
+                              myChanges.append(['replace', 'modifiersname', myModifiersName])
+                              myChanges.append(['replace', 'modifytimestamp', myModifyTimestamp])
                       
-                    </sequence>
-                  </iterate>
-                  
+                              if ecl_mode != 'opends':
+                                myIntChangeNumber    = int(searchIndex) + i
+                                myChangeNumber       = str(myIntChangeNumber)
+                              else:
+                                myChangeNumber       = None
+                            </script>
+                            <message>
+                              'Parsed changelog entry:  \n%s' % eclEntry
+                            </message>
+                            <message>
+                              'Index to use for the next ECL search:  %s' % nextIndex
+                            </message>
+                        
+                            <if expr="modEntry and eclEntry">
+                              <call function="'checkChangelogEntry'">
+                                { 'location'        : masterHost,
+                                  'dsPath'          : masterPath,
+                                  'changelogEntry'  : eclEntry,
+                                  'targetDN'        : myTargetDN,
+                                  'changeNumber'    : myChangeNumber,
+                                  'changeType'      : myChangeType,
+                                  'changeTime'      : myChangeTime,
+                                  'targetEntryUUID' : myTargetEntryUUID,
+                                  'changes'         : myChanges
+                                }
+                              </call>
+                              <else>
+                                <sequence>
+                                  <message log="1" level="'Error'">
+                                    'Unable to check external changelog entry \
+                                    (failed to read LDAP and/or changelog entry)'
+                                  </message>
+                                  <call function="'testFailed'"/>
+                                </sequence>
+                              </else>
+                            </if>
+                            
+                          </sequence>
+                        </iterate>
+                      </sequence>
+                    </else>
+                  </if>
                 </sequence>
                 <else>
                   <message log="1" level="'Error'">
@@ -4107,8 +4110,6 @@
                    indexvar="indx">
             <sequence>
               <script>
-                myKnownIssue = None
-                
                 replServer = server
                 replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
               </script>
@@ -4131,8 +4132,7 @@
                   'dsBaseDN'           : 'cn=changelog',
                   'dsFilter'           : '(objectclass=*)',
                   'changeNumberFilter' : chgNumberFilter,
-                  'changelogCookie'    : lastCookie,
-                  'knownIssue'         : myKnownIssue
+                  'changelogCookie'    : lastCookie
                 }                
               </call>
               <script>
@@ -4340,8 +4340,6 @@
                    indexvar="indx">
             <sequence>
               <script>
-                myKnownIssue = None
-                
                 replServer = server
                 replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
               </script>
@@ -4364,8 +4362,7 @@
                   'dsBaseDN'           : 'cn=changelog',
                   'dsFilter'           : '(objectclass=*)',
                   'changeNumberFilter' : chgNumberFilter,
-                  'changelogCookie'    : lastCookie,
-                  'knownIssue'         : myKnownIssue
+                  'changelogCookie'    : lastCookie
                 }                
               </call>
               <script>
@@ -4593,8 +4590,7 @@
                   'dsBaseDN'           : 'cn=changelog',
                   'dsFilter'           : '(objectclass=*)',
                   'changeNumberFilter' : chgNumberFilter,
-                  'changelogCookie'    : lastCookie,
-                  'knownIssue'         : myKnownIssue
+                  'changelogCookie'    : lastCookie
                 }                
               </call>
               <script>
@@ -4822,8 +4818,7 @@
                       </message>
                       <call function="'searchString'">
                         { 'expectedString' : 'is missing the replicated domain',
-                          'returnString'   : searchResult,
-                          'knownIssue'     : myKnownIssue
+                          'returnString'   : searchResult
                         } 
                       </call>
                       <script>
@@ -5013,8 +5008,7 @@
                   'dsBaseDN'           : 'cn=changelog',
                   'dsFilter'           : '(objectclass=*)',
                   'changeNumberFilter' : chgNumberFilter,
-                  'changelogCookie'    : lastCookie,
-                  'knownIssue'         : myKnownIssue
+                  'changelogCookie'    : lastCookie
                 }                
               </call>
               <script>
@@ -5340,8 +5334,7 @@
                   'dsBaseDN'           : eclSearchBaseDn,
                   'dsFilter'           : eclSearchFilter,
                   'changeNumberFilter' : chgNumberFilter,
-                  'changelogCookie'    : lastCookie,
-                  'knownIssue'         : myKnownIssue
+                  'changelogCookie'    : lastCookie
                 }                
               </call>
               <script>
@@ -5544,8 +5537,7 @@
                   'dsBaseDN'           : eclSearchBaseDn,
                   'dsFilter'           : eclSearchFilter,
                   'changeNumberFilter' : chgNumberFilter,
-                  'changelogCookie'    : lastCookie,
-                  'knownIssue'         : myKnownIssue               
+                  'changelogCookie'    : lastCookie             
                 }
               </call>
               <script>
@@ -6244,8 +6236,7 @@
                   'dsBaseDN'           : 'cn=changelog',
                   'dsFilter'           : '(objectclass=*)',
                   'changeNumberFilter' : chgNumberFilter,
-                  'changelogCookie'    : lastCookie,
-                  'knownIssue'         : myKnownIssue
+                  'changelogCookie'    : lastCookie
                 }                
               </call>
               <script>
@@ -6690,8 +6681,7 @@
                         'changeType'      : myChangeType,
                         'changeTime'      : myChangeTime,
                         'targetEntryUUID' : myTargetEntryUUID,
-                        'changes'         : myChanges,
-                        'knownIssue'      : myKnownIssue
+                        'changes'         : myChanges
                       }
                     </call>
                     <else>
@@ -6930,8 +6920,6 @@
                    indexvar="indx">
             <sequence>
               <script>
-                myKnownIssue = None
-                
                 replServer = server
                 replServerPath = '%s/%s' % (replServer.getDir(), OPENDSNAME)
               </script>
@@ -6954,8 +6942,7 @@
                   'dsBaseDN'           : 'cn=changelog',
                   'dsFilter'           : '(objectclass=*)',
                   'changeNumberFilter' : chgNumberFilter,
-                  'changelogCookie'    : lastCookie,
-                  'knownIssue'         : myKnownIssue
+                  'changelogCookie'    : lastCookie
                 }                
               </call>
               <script>
@@ -6982,75 +6969,77 @@
                        'Number of added entries %s does not match number of ECL \
                        entries %s' % (len(addedEntries), len(eclEntries))
                       </message>
-                    <call function="'testFailed'"/>
+                      <call function="'testFailed'"/>
                     </sequence>
-                  </if>
-                  
-                  <iterate var="eclEntry"
-                           in="eclEntries"
-                           indexvar="i">
-                    <sequence>
-                    
-                      <script>
-                        if ecl_mode == 'opends':
-                          nextIndex     = eclEntry['changelogcookie'][0]
-                        else:
-                          nextChgNumber = int(eclEntry['changenumber'][0]) + 1
-                          nextIndex     = str(nextChgNumber)
-                          
-                        addedEntry             = addedEntries[i]
-                        myTargetDN             = addedEntry['dn'][0]
-                        myChangeType           = 'add'
-                        myChangeTime           = addedEntry['createtimestamp'][0]
-                        myTargetEntryUUID      = addedEntry['entryuuid'][0]
-                        # myReplicationCSN     = ----> grab from where???
-                        # myReplicatIdentifier = ----> grab from ldap server
-                        myChanges              = {}
-                        
-                        for attr in addedEntry.keys():
-                          if (attr != 'dn') and (attr != 'changelogcookie') :
-                            myChanges[attr] = addedEntry[attr]
-                        
-                        if ecl_mode != 'opends':
-                          myIntChangeNumber    = int(searchIndex) + i
-                          myChangeNumber       = str(myIntChangeNumber)
-                        else:
-                          myChangeNumber       = None
-                      </script>
-                      <message>
-                        'Parsed changelog entry:  \n%s' % eclEntry
-                      </message>
-                      <message>
-                        'Index to use for the next ECL search:  %s' % nextIndex
-                      </message>
-                  
-                      <if expr="addedEntry and eclEntry">
-                        <call function="'checkChangelogEntry'">
-                          { 'location'        : masterHost,
-                            'dsPath'          : masterPath,
-                            'changelogEntry'  : eclEntry,
-                            'targetDN'        : myTargetDN,
-                            'changeNumber'    : myChangeNumber,
-                            'changeType'      : myChangeType,
-                            'changeTime'      : myChangeTime,
-                            'targetEntryUUID' : myTargetEntryUUID,
-                            'changes'         : myChanges
-                          }
-                        </call>
-                        <else>
+                    <else>
+                      <sequence>
+                        <iterate var="eclEntry"
+                                 in="eclEntries"
+                                 indexvar="i">
                           <sequence>
-                            <message log="1" level="'Error'">
-                              'Unable to check external changelog entry \
-                              (failed to read LDAP and/or changelog entry)'
+                          
+                            <script>
+                              if ecl_mode == 'opends':
+                                nextIndex     = eclEntry['changelogcookie'][0]
+                              else:
+                                nextChgNumber = int(eclEntry['changenumber'][0]) + 1
+                                nextIndex     = str(nextChgNumber)
+                                
+                              addedEntry             = addedEntries[i]
+                              myTargetDN             = addedEntry['dn'][0]
+                              myChangeType           = 'add'
+                              myChangeTime           = addedEntry['createtimestamp'][0]
+                              myTargetEntryUUID      = addedEntry['entryuuid'][0]
+                              # myReplicationCSN     = ----> grab from where???
+                              # myReplicatIdentifier = ----> grab from ldap server
+                              myChanges              = {}
+                              
+                              for attr in addedEntry.keys():
+                                if (attr != 'dn') and (attr != 'changelogcookie') :
+                                  myChanges[attr] = addedEntry[attr]
+                              
+                              if ecl_mode != 'opends':
+                                myIntChangeNumber    = int(searchIndex) + i
+                                myChangeNumber       = str(myIntChangeNumber)
+                              else:
+                                myChangeNumber       = None
+                            </script>
+                            <message>
+                              'Parsed changelog entry:  \n%s' % eclEntry
                             </message>
-                            <call function="'testFailed'"/>
+                            <message>
+                              'Index to use for the next ECL search:  %s' % nextIndex
+                            </message>
+                        
+                            <if expr="addedEntry and eclEntry">
+                              <call function="'checkChangelogEntry'">
+                                { 'location'        : masterHost,
+                                  'dsPath'          : masterPath,
+                                  'changelogEntry'  : eclEntry,
+                                  'targetDN'        : myTargetDN,
+                                  'changeNumber'    : myChangeNumber,
+                                  'changeType'      : myChangeType,
+                                  'changeTime'      : myChangeTime,
+                                  'targetEntryUUID' : myTargetEntryUUID,
+                                  'changes'         : myChanges
+                                }
+                              </call>
+                              <else>
+                                <sequence>
+                                  <message log="1" level="'Error'">
+                                    'Unable to check external changelog entry \
+                                    (failed to read LDAP and/or changelog entry)'
+                                  </message>
+                                  <call function="'testFailed'"/>
+                                </sequence>
+                              </else>
+                            </if>
+                            
                           </sequence>
-                        </else>
-                      </if>
-                      
-                    </sequence>
-                  </iterate>
-                  
+                        </iterate>
+                      </sequence>
+                    </else>
+                  </if>
                 </sequence>
                 <else>
                   <message log="1" level="'Error'">
@@ -7369,8 +7358,7 @@
                         'Parsed changelog entry:  \n%s' % eclEntry
                       </message>
                       <message>
-                        'Index to use for the next ECL search:  %s' % \
-                        nextIndex
+                        'Index to use for the next ECL search:  %s' % nextIndex
                       </message>
                           
                       <if expr="addedEntry and eclEntry">
@@ -7622,8 +7610,7 @@
                         'Parsed changelog entry:  \n%s' % eclEntry
                       </message>
                       <message>
-                        'Index to use for the next ECL search:  %s' % \
-                        nextIndex
+                        'Index to use for the next ECL search:  %s' % nextIndex
                       </message>
 
                       <if expr="addedEntry and eclEntry">
@@ -7917,8 +7904,7 @@
                         'Parsed changelog entry:  \n%s' % eclEntry
                       </message>
                       <message>
-                        'Index to use for the next ECL search:  %s' % \
-                        nextIndex
+                        'Index to use for the next ECL search:  %s' % nextIndex
                       </message>
 
                       <if expr="addedEntry and eclEntry">
@@ -8208,8 +8194,7 @@
                         'Parsed changelog entry:  \n%s' % eclEntry
                       </message>
                       <message>
-                        'Index to use for the next ECL search:  %s' % \
-                        nextIndex
+                        'Index to use for the next ECL search:  %s' % nextIndex
                       </message>
                           
                       <if expr="addedEntry and eclEntry">
@@ -8475,8 +8460,7 @@
                         'Parsed changelog entry:  \n%s' % eclEntry
                       </message>
                       <message>
-                        'Index to use for the next ECL search:  %s' % \
-                        nextIndex
+                        'Index to use for the next ECL search:  %s' % nextIndex
                       </message>
                           
                       <if expr="addedEntry and eclEntry">
@@ -8773,83 +8757,85 @@
                            'Number of added entries %s does not match number of ECL \
                            entries %s' % (len(addedEntries), len(eclEntries))
                           </message>
-                        <call function="'testFailed'"/>
+                          <call function="'testFailed'"/>
                         </sequence>
-                      </if>
-                      
-                      <iterate var="eclEntry"
-                               in="eclEntries"
-                               indexvar="i">
-                        <sequence>
-                        
-                          <script>
-                            if ecl_mode == 'opends':
-                              nextIndex     = eclEntry['changelogcookie'][0]
-                            else:
-                              nextChgNumber = int(eclEntry['changenumber'][0]) + 1
-                              nextIndex     = str(nextChgNumber)
-                              
-                            addedEntry             = addedEntries[i]
-                            myTargetDN             = addedEntry['dn'][0]
-                            myChangeType           = 'add'
-                            myChangeTime           = addedEntry['createtimestamp'][0]
-                            myTargetEntryUUID      = addedEntry['entryuuid'][0]
-                            # myReplicationCSN     = ----> grab from where???
-                            # myReplicatIdentifier = ----> grab from ldap server
-                            myChanges              = {}
-                            myIncAttrs             = {}
-                            
-                            for attr in addedEntry.keys():
-                              if (attr != 'dn') and (attr != 'changelogcookie') :
-                                myChanges[attr] = addedEntry[attr]
-                            
-                            for incAttr in incAttrs:
-                              if incAttr in addedEntry.keys():
-                                myIncAttrs[incAttr] = addedEntry[incAttr]
-                              else:
-                                myIncAttrs[incAttr] = ' '
-                            
-                            if ecl_mode != 'opends':
-                              myIntChangeNumber    = int(searchIndex) + i
-                              myChangeNumber       = str(myIntChangeNumber)
-                            else:
-                              myChangeNumber       = None
-                          </script>
-                          <message>
-                            'Parsed changelog entry:  \n%s' % eclEntry
-                          </message>
-                          <message>
-                            'Index to use for the next ECL search:  %s' % nextIndex
-                          </message>
-
-                          <if expr="addedEntry and eclEntry">
-                            <call function="'checkChangelogEntry'">
-                              { 'location'        : masterHost,
-                                'dsPath'          : masterPath,
-                                'changelogEntry'  : eclEntry,
-                                'targetDN'        : myTargetDN,
-                                'changeNumber'    : myChangeNumber,
-                                'changeType'      : myChangeType,
-                                'changeTime'      : myChangeTime,
-                                'targetEntryUUID' : myTargetEntryUUID,
-                                'changes'         : myChanges,
-                                'includeAttrs'    : myIncAttrs
-                              }
-                            </call>
-                            <else>
+                        <else>
+                          <sequence>
+                            <iterate var="eclEntry"
+                                     in="eclEntries"
+                                     indexvar="i">
                               <sequence>
-                                <message log="1" level="'Error'">
-                                  'Unable to check external changelog entry \
-                                  (failed to read LDAP and/or changelog entry)'
+                              
+                                <script>
+                                  if ecl_mode == 'opends':
+                                    nextIndex     = eclEntry['changelogcookie'][0]
+                                  else:
+                                    nextChgNumber = int(eclEntry['changenumber'][0]) + 1
+                                    nextIndex     = str(nextChgNumber)
+                                    
+                                  addedEntry             = addedEntries[i]
+                                  myTargetDN             = addedEntry['dn'][0]
+                                  myChangeType           = 'add'
+                                  myChangeTime           = addedEntry['createtimestamp'][0]
+                                  myTargetEntryUUID      = addedEntry['entryuuid'][0]
+                                  # myReplicationCSN     = ----> grab from where???
+                                  # myReplicatIdentifier = ----> grab from ldap server
+                                  myChanges              = {}
+                                  myIncAttrs             = {}
+                                  
+                                  for attr in addedEntry.keys():
+                                    if (attr != 'dn') and (attr != 'changelogcookie') :
+                                      myChanges[attr] = addedEntry[attr]
+                                  
+                                  for incAttr in incAttrs:
+                                    if incAttr in addedEntry.keys():
+                                      myIncAttrs[incAttr] = addedEntry[incAttr]
+                                    else:
+                                      myIncAttrs[incAttr] = ' '
+                                  
+                                  if ecl_mode != 'opends':
+                                    myIntChangeNumber    = int(searchIndex) + i
+                                    myChangeNumber       = str(myIntChangeNumber)
+                                  else:
+                                    myChangeNumber       = None
+                                </script>
+                                <message>
+                                  'Parsed changelog entry:  \n%s' % eclEntry
                                 </message>
-                                <call function="'testFailed'"/>
+                                <message>
+                                  'Index to use for the next ECL search:  %s' % nextIndex
+                                </message>
+      
+                                <if expr="addedEntry and eclEntry">
+                                  <call function="'checkChangelogEntry'">
+                                    { 'location'        : masterHost,
+                                      'dsPath'          : masterPath,
+                                      'changelogEntry'  : eclEntry,
+                                      'targetDN'        : myTargetDN,
+                                      'changeNumber'    : myChangeNumber,
+                                      'changeType'      : myChangeType,
+                                      'changeTime'      : myChangeTime,
+                                      'targetEntryUUID' : myTargetEntryUUID,
+                                      'changes'         : myChanges,
+                                      'includeAttrs'    : myIncAttrs
+                                    }
+                                  </call>
+                                  <else>
+                                    <sequence>
+                                      <message log="1" level="'Error'">
+                                        'Unable to check external changelog entry \
+                                        (failed to read LDAP and/or changelog entry)'
+                                      </message>
+                                      <call function="'testFailed'"/>
+                                    </sequence>
+                                  </else>
+                                </if>
+                                
                               </sequence>
-                            </else>
-                          </if>
-                          
-                        </sequence>
-                      </iterate>
-                  
+                            </iterate>
+                          </sequence>
+                        </else>
+                      </if>
                     </sequence>
                     <else>
                       <sequence>
