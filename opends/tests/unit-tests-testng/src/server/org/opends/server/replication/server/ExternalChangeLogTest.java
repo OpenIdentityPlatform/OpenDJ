@@ -718,27 +718,14 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       InternalSearchOperation searchOp =
           searchOnCookieChangelog("(targetDN=*" + tn + "*)", cookie, tn, SUCCESS);
 
-      cookie="";
       List<SearchResultEntry> entries = searchOp.getSearchEntries();
       assertThat(entries).hasSize(4);
       debugAndWriteEntries(ldifWriter, entries, tn);
-      int i = 0;
-      for (SearchResultEntry entry : entries)
-      {
-        if (i++ == 2)
-        {
-          // Store the cookie returned with the 3rd ECL entry returned to use
-          // it in the test below.
-          cookie = entry.getAttribute("changelogcookie").get(0).iterator().next().toString();
-        }
-      }
+      cookie = readCookie(entries, 2);
 
       // Now start from last cookie and expect to get ONLY the 4th change
       searchOp = searchOnCookieChangelog("(targetDN=*" + tn + "*)", cookie, tn, SUCCESS);
-
-      // We expect the 4th change
-      cookie = "";
-      cookie = getCookie(searchOp.getSearchEntries(), 1, tn, ldifWriter, cookie);
+      cookie = assertContainsAndReadCookie(tn, searchOp.getSearchEntries(), ldifWriter, csn4);
 
       // Now publishes a new change and search from the previous cookie
       CSN csn5 = new CSN(time, ts++, s1test.getServerId());
@@ -751,12 +738,12 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       // o=test2      msg3        msg2
 
       searchOp = searchOnCookieChangelog("(targetDN=*" + tn + "*)", cookie, tn, SUCCESS);
-      cookie = getCookie(searchOp.getSearchEntries(), 1, tn, ldifWriter, cookie);
+      cookie = assertContainsAndReadCookie(tn, searchOp.getSearchEntries(), ldifWriter, csn5);
 
-      cookie="";
+      cookie = "";
       searchOp = searchOnCookieChangelog("(targetDN=*" + tn + "*,o=test)", cookie, tn, SUCCESS);
       // we expect msg1 + msg4 + msg5
-      cookie = getCookie(searchOp.getSearchEntries(), 3, tn, ldifWriter, cookie);
+      cookie = assertContainsAndReadCookie(tn, searchOp.getSearchEntries(), ldifWriter, csn1, csn4, csn5);
 
       // Test startState ("first cookie") of the ECL
       // --
@@ -838,32 +825,33 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     debugInfo(tn, "Ending test successfully");
   }
 
+  private String readCookie(List<SearchResultEntry> entries, int i)
+  {
+    SearchResultEntry entry = entries.get(i);
+    return entry.getAttribute("changelogcookie").get(0).iterator().next().toString();
+  }
+
   private ServerState getDomainOldestState(DN baseDN)
   {
     return replicationServer.getReplicationServerDomain(baseDN).getOldestState();
   }
 
-  private String getCookie(List<SearchResultEntry> entries,
-      int expectedNbEntries, String tn, LDIFWriter ldifWriter, String cookie)
-      throws Exception
+  private String assertContainsAndReadCookie(String tn, List<SearchResultEntry> entries,
+      LDIFWriter ldifWriter, CSN... csns) throws Exception
   {
-    assertThat(entries).hasSize(expectedNbEntries);
+    assertThat(getCSNs(entries)).containsExactly(csns);
     debugAndWriteEntries(ldifWriter, entries, tn);
+    return readCookie(entries, csns.length - 1);
+  }
 
+  private List<CSN> getCSNs(List<SearchResultEntry> entries)
+  {
+    List<CSN> results = new ArrayList<CSN>(entries.size());
     for (SearchResultEntry entry : entries)
     {
-      try
-      {
-        // Store the cookie returned with the 4rd ECL entry returned to use
-        // it in the test below.
-        List<Attribute> l = entry.getAttribute("changelogcookie");
-        cookie = l.get(0).iterator().next().toString();
-      }
-      catch (NullPointerException e)
-      {
-      }
+      results.add(new CSN(getAttributeValue(entry, "replicationCSN")));
     }
-    return cookie;
+    return results;
   }
 
   private void publishDeleteMsgInOTest(ReplicationBroker broker, CSN csn,
@@ -1295,7 +1283,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
   private static String getAttributeValue(Entry entry, String attrName)
   {
-    List<Attribute> attrs = entry.getAttribute(attrName);
+    List<Attribute> attrs = entry.getAttribute(attrName.toLowerCase());
     Attribute a = attrs.iterator().next();
     AttributeValue av = a.iterator().next();
     return av.toString();
@@ -2307,7 +2295,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       InternalSearchOperation searchOp = searchOnChangelog(filter, tn, SUCCESS);
 
       // test 4 entries returned
-      assertEntries(searchOp.getSearchEntries(), firstChangeNumber, tn,
+      assertFourEntries(searchOp.getSearchEntries(), firstChangeNumber, tn,
           ldifWriter, user1entryUUID, csns);
 
       stop(server01);
@@ -2319,7 +2307,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
           				"(changenumber<=" + (firstChangeNumber + 3) + ")))";
       searchOp = searchOnChangelog(filter, tn, SUCCESS);
 
-      assertEntries(searchOp.getSearchEntries(), firstChangeNumber, tn,
+      assertFourEntries(searchOp.getSearchEntries(), firstChangeNumber, tn,
           ldifWriter, user1entryUUID, csns);
       assertEquals(searchOp.getSearchEntries().size(), csns.length);
       return csns[1];
@@ -2330,62 +2318,65 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     }
   }
 
-  private void assertEntries(List<SearchResultEntry> entries,
+  private void assertFourEntries(List<SearchResultEntry> entries,
       long firstChangeNumber, String tn, LDIFWriter ldifWriter,
       String user1entryUUID, CSN... csns) throws Exception
   {
     debugAndWriteEntries(ldifWriter, entries, tn);
     assertEquals(entries.size(), 4);
 
-    int i=0;
-    for (SearchResultEntry resultEntry : entries)
-    {
-      i++;
+    int i = -1;
+    // check the DEL entry has the right content
+    final SearchResultEntry delEntry = entries.get(++i);
+    checkValue(delEntry, "changetype", "delete");
+    commonAssert(delEntry, user1entryUUID, firstChangeNumber, i, tn, csns[i]);
+    checkValue(delEntry, "targetuniqueid", user1entryUUID);
 
-      assertDnEquals(resultEntry, firstChangeNumber, i - 1);
-      checkValue(resultEntry, "changenumber", String.valueOf(firstChangeNumber + i - 1));
-      checkValue(resultEntry, "targetentryuuid", user1entryUUID);
-      checkValue(resultEntry, "replicaidentifier", String.valueOf(SERVER_ID_1));
-      final CSN csn = csns[i - 1];
-      checkValue(resultEntry, "replicationcsn", csn.toString());
-      checkValue(resultEntry, "changelogcookie", "o=test:" + csn + ";");
-      checkValue(resultEntry, "targetdn", "uid=" + tn + i + "," + TEST_ROOT_DN_STRING);
+    // check the ADD entry has the right content
+    final SearchResultEntry addEntry = entries.get(++i);
+    checkValue(addEntry, "changetype", "add");
+    commonAssert(addEntry, user1entryUUID, firstChangeNumber, i, tn, csns[i]);
+    String expectedValue1 = "objectClass: domain\nobjectClass: top\n" + "entryUUID: "
+        + user1entryUUID + "\n";
+    String expectedValue2 = "entryUUID: " + user1entryUUID + "\n"
+        + "objectClass: domain\nobjectClass: top\n";
+    checkPossibleValues(addEntry, "changes", expectedValue1, expectedValue2);
 
-      if (i==1)
-      {
-        // check the DEL entry has the right content
-        checkValue(resultEntry,"changetype","delete");
-        checkValue(resultEntry,"targetuniqueid",user1entryUUID);
-      } else if (i==2)
-      {
-        // check the ADD entry has the right content
-        checkValue(resultEntry, "changetype", "add");
-        String expectedValue1 = "objectClass: domain\nobjectClass: top\n"
-            + "entryUUID: " + user1entryUUID + "\n";
-        String expectedValue2 = "entryUUID: " + user1entryUUID + "\n"
-            + "objectClass: domain\nobjectClass: top\n";
-        checkPossibleValues(resultEntry,"changes",expectedValue1, expectedValue2);
-      } else if (i==3)
-      {
-        // check the MOD entry has the right content
-        checkValue(resultEntry, "changetype", "modify");
-        final String expectedValue = "replace: description\n" + "description: new value\n-\n";
-        checkValue(resultEntry,"changes",expectedValue);
-      } else if (i==4)
-      {
-        // check the MODDN entry has the right content
-        checkValue(resultEntry, "changetype", "modrdn");
-        checkValue(resultEntry,"newrdn","uid="+tn+"new4");
-        checkValue(resultEntry,"newsuperior",TEST_ROOT_DN_STRING2);
-        checkValue(resultEntry,"deleteoldrdn","true");
-      }
-    }
+    // check the MOD entry has the right content
+    final SearchResultEntry modEntry = entries.get(++i);
+    checkValue(modEntry, "changetype", "modify");
+    commonAssert(modEntry, user1entryUUID, firstChangeNumber, i, tn, csns[i]);
+    final String expectedValue = "replace: description\n" + "description: new value\n-\n";
+    checkValue(modEntry, "changes", expectedValue);
+
+    // check the MODDN entry has the right content
+    final SearchResultEntry moddnEntry = entries.get(++i);
+    checkValue(moddnEntry, "changetype", "modrdn");
+    commonAssert(moddnEntry, user1entryUUID, firstChangeNumber, i, tn, csns[i]);
+    checkValue(moddnEntry, "newrdn", "uid=" + tn + "new4");
+    checkValue(moddnEntry, "newsuperior", TEST_ROOT_DN_STRING2);
+    checkValue(moddnEntry, "deleteoldrdn", "true");
   }
 
-  private void assertDnEquals(SearchResultEntry resultEntry, long changeNumber, int i)
+  private void commonAssert(SearchResultEntry resultEntry, String entryUUID,
+      long firstChangeNumber, int i, String tn, CSN csn)
+  {
+    final long changeNumber = firstChangeNumber + i;
+    final String targetDN = "uid=" + tn + (i + 1) + "," + TEST_ROOT_DN_STRING;
+
+    assertDNEquals(resultEntry, changeNumber);
+    checkValue(resultEntry, "changenumber", String.valueOf(changeNumber));
+    checkValue(resultEntry, "targetentryuuid", entryUUID);
+    checkValue(resultEntry, "replicaidentifier", String.valueOf(SERVER_ID_1));
+    checkValue(resultEntry, "replicationcsn", csn.toString());
+    checkValue(resultEntry, "changelogcookie", "o=test:" + csn + ";");
+    checkValue(resultEntry, "targetdn", targetDN);
+  }
+
+  private void assertDNEquals(SearchResultEntry resultEntry, long changeNumber)
   {
     String actualDN = resultEntry.getDN().toNormalizedString();
-    String expectedDN = "changenumber=" + (changeNumber + i) + ",cn=changelog";
+    String expectedDN = "changenumber=" + changeNumber + ",cn=changelog";
     assertThat(actualDN).isEqualToIgnoringCase(expectedDN);
   }
 
