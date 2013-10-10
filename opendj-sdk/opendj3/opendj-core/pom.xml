@@ -31,23 +31,27 @@
     <groupId>org.forgerock.opendj</groupId>
     <version>2.7.0-SNAPSHOT</version>
   </parent>
-  <artifactId>opendj-ldap-sdk</artifactId>
+  <artifactId>opendj-core</artifactId>
   <name>OpenDJ LDAP SDK</name>
   <description>
     This module includes OpenDJ core APIs for implementing LDAP Directory
     client and server applications.
   </description>
-  <packaging>jar</packaging>
+  <packaging>bundle</packaging>
   <dependencies>
     <dependency>
-      <groupId>org.forgerock.opendj</groupId>
-      <artifactId>opendj-core</artifactId>
-      <version>${project.version}</version>
+      <groupId>org.forgerock.commons</groupId>
+      <artifactId>i18n-core</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.forgerock.opendj</groupId>
-      <artifactId>opendj-grizzly</artifactId>
-      <version>${project.version}</version>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.forgerock</groupId>
+      <artifactId>forgerock-build-tools</artifactId>
+      <version>${forgerockBuildToolsVersion}</version>
+      <scope>test</scope>
     </dependency>
   </dependencies>
   <properties>
@@ -58,26 +62,19 @@
   </properties>
   <build>
     <plugins>
-      <!-- Unpack opendj-core and opendj-grizzly to rebuild an unified jar with bundle -->
       <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-dependency-plugin</artifactId>
-        <version>2.8</version>
+        <groupId>org.forgerock.commons</groupId>
+        <artifactId>i18n-maven-plugin</artifactId>
         <executions>
           <execution>
-            <id>unpack-dependencies</id>
-            <phase>package</phase>
+            <phase>generate-sources</phase>
             <goals>
-              <goal>unpack-dependencies</goal>
+              <goal>generate-messages</goal>
             </goals>
             <configuration>
-              <includeArtifactIds>opendj-grizzly, opendj-core</includeArtifactIds>
-              <includes>**/*.class,**\/services\/*</includes>
-              <excludes>**/*.properties</excludes>
-              <outputDirectory>${project.build.directory}/classes</outputDirectory>
-              <overWriteReleases>false</overWriteReleases>
-              <overWriteSnapshots>true</overWriteSnapshots>
-              <excludeTransitive>true</excludeTransitive>
+              <messageFiles>
+                <messageFile>com/forgerock/opendj/ldap/core.properties</messageFile>
+              </messageFiles>
             </configuration>
           </execution>
         </executions>
@@ -86,19 +83,6 @@
         <groupId>org.apache.felix</groupId>
         <artifactId>maven-bundle-plugin</artifactId>
         <extensions>true</extensions>
-        <executions>
-          <execution>
-            <phase>package</phase>
-            <goals>
-              <goal>bundle</goal>
-            </goals>
-          </execution>
-        </executions>
-		<configuration>
-			<instructions>
-				<Include-Resource>META-INF/services=target/classes/META-INF/services</Include-Resource>
-			</instructions>
-		</configuration>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -107,6 +91,18 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-source-plugin</artifactId>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>2.4</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>test-jar</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>
