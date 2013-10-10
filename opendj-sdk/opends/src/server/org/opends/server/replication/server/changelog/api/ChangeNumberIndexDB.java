@@ -51,17 +51,6 @@ public interface ChangeNumberIndexDB
   long getLastGeneratedChangeNumber();
 
   /**
-   * Get the record associated to a provided change number.
-   *
-   * @param changeNumber
-   *          the provided change number.
-   * @return the {@link CNIndexRecord}, null when none.
-   * @throws ChangelogException
-   *           if a database problem occurs.
-   */
-  CNIndexRecord getRecord(long changeNumber) throws ChangelogException;
-
-  /**
    * Get the oldest record stored in this DB.
    *
    * @return Returns the oldest {@link CNIndexRecord} in this DB, null when the

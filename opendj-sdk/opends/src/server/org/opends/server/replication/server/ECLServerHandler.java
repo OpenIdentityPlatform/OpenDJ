@@ -598,22 +598,23 @@ public final class ECLServerHandler extends ServerHandler
         return null;
       }
 
-      final String crossDomainStartState = oldestRecord.getPreviousCookie();
-      cnIndexDBCursor = cnIndexDB.getCursorFrom(oldestRecord.getChangeNumber());
-      return crossDomainStartState;
+      cnIndexDBCursor =
+          getCursorFrom(cnIndexDB, oldestRecord.getChangeNumber());
+      return oldestRecord.getPreviousCookie();
     }
 
     // Request filter DOES contain a startChangeNumber
 
     // Read the CNIndexDB to see whether it contains startChangeNumber
-    CNIndexRecord startRecord = cnIndexDB.getRecord(startChangeNumber);
+    DBCursor<CNIndexRecord> cursor = cnIndexDB.getCursorFrom(startChangeNumber);
+    final CNIndexRecord startRecord = cursor.getRecord();
     if (startRecord != null)
     {
       // found the provided startChangeNumber, let's return it
-      final String crossDomainStartState = startRecord.getPreviousCookie();
-      cnIndexDBCursor = cnIndexDB.getCursorFrom(startChangeNumber);
-      return crossDomainStartState;
+      cnIndexDBCursor = cursor;
+      return startRecord.getPreviousCookie();
     }
+    close(cursor);
 
     // startChangeNumber provided in the request IS NOT in the CNIndexDB
 
@@ -630,17 +631,18 @@ public final class ECLServerHandler extends ServerHandler
     // the DB, let's use the lower limit.
     if (startChangeNumber < oldestChangeNumber)
     {
-      CNIndexRecord oldestRecord = cnIndexDB.getRecord(oldestChangeNumber);
+      cursor = cnIndexDB.getCursorFrom(oldestChangeNumber);
+      final CNIndexRecord oldestRecord = cursor.getRecord();
       if (oldestRecord == null)
       {
         // This should not happen
+        close(cursor);
         isEndOfCNIndexDBReached = true;
         return null;
       }
 
-      final String crossDomainStartState = oldestRecord.getPreviousCookie();
-      cnIndexDBCursor = cnIndexDB.getCursorFrom(oldestChangeNumber);
-      return crossDomainStartState;
+      cnIndexDBCursor = cursor;
+      return oldestRecord.getPreviousCookie();
     }
     else if (startChangeNumber <= newestChangeNumber)
     {
@@ -653,9 +655,9 @@ public final class ECLServerHandler extends ServerHandler
         return null;
       }
 
-      final String crossDomainStartState = newestRecord.getPreviousCookie();
-      cnIndexDBCursor = cnIndexDB.getCursorFrom(newestRecord.getChangeNumber());
-      return crossDomainStartState;
+      cnIndexDBCursor =
+          getCursorFrom(cnIndexDB, newestRecord.getChangeNumber());
+      return newestRecord.getPreviousCookie();
 
       // TODO:ECL ... ok we'll start from the end of the CNIndexDB BUT ...
       // this may be very long. Work on perf improvement here.
@@ -663,6 +665,19 @@ public final class ECLServerHandler extends ServerHandler
 
     // startChangeNumber is greater than the potential newest change number
     throw new DirectoryException(ResultCode.SUCCESS, Message.raw(""));
+  }
+
+  private DBCursor<CNIndexRecord> getCursorFrom(ChangeNumberIndexDB cnIndexDB,
+      long startChangeNumber) throws ChangelogException
+  {
+    DBCursor<CNIndexRecord> cursor = cnIndexDB.getCursorFrom(startChangeNumber);
+    if (cursor.getRecord() == null)
+    {
+      close(cursor);
+      throw new ChangelogException(Message.raw("Change Number "
+          + startChangeNumber + " is not available in the Changelog"));
+    }
+    return cursor;
   }
 
   /**

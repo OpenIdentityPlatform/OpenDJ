@@ -32,7 +32,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.locks.ReentrantLock;
 
 import org.opends.messages.MessageBuilder;
 import org.opends.server.admin.std.server.MonitorProviderCfg;
@@ -218,24 +217,6 @@ public class JEChangeNumberIndexDB implements ChangeNumberIndexDB, Runnable
   public boolean isEmpty() throws ChangelogException
   {
     return getNewestRecord() == null;
-  }
-
-  /**
-   * Get a read cursor on the database from a provided key. The cursor MUST be
-   * closed after use.
-   * <p>
-   * This method is only used by unit tests.
-   *
-   * @param startChangeNumber
-   *          The change number from where to start.
-   * @return the new cursor.
-   * @throws ChangelogException
-   *           if a database problem occurs.
-   */
-  DraftCNDBCursor getReadCursor(long startChangeNumber)
-      throws ChangelogException
-  {
-    return db.openReadCursor(startChangeNumber);
   }
 
   /** {@inheritDoc} */
@@ -562,51 +543,6 @@ public class JEChangeNumberIndexDB implements ChangeNumberIndexDB, Runnable
     db.clear();
     oldestChangeNumber = getChangeNumber(db.readFirstRecord());
     newestChangeNumber = getChangeNumber(db.readLastRecord());
-  }
-
-  private ReentrantLock lock = new ReentrantLock();
-
-  /**
-   * Tests if the current thread has the lock on this object.
-   * @return True if the current thread has the lock.
-   */
-  public boolean hasLock()
-  {
-    return lock.getHoldCount() > 0;
-  }
-
-  /**
-   * Takes the lock on this object (blocking until lock can be acquired).
-   * @throws InterruptedException If interrupted.
-   */
-  public void lock() throws InterruptedException
-  {
-    lock.lockInterruptibly();
-  }
-
-  /**
-   * Releases the lock on this object.
-   */
-  public void release()
-  {
-    lock.unlock();
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public CNIndexRecord getRecord(long changeNumber)
-      throws ChangelogException
-  {
-    DraftCNDBCursor cursor = null;
-    try
-    {
-      cursor = db.openReadCursor(changeNumber);
-      return cursor.currentRecord();
-    }
-    finally
-    {
-      close(cursor);
-    }
   }
 
 }
