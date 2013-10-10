@@ -32,10 +32,11 @@
     <version>2.7.0-SNAPSHOT</version>
   </parent>
   <artifactId>opendj-ldap-sdk</artifactId>
-  <name>OpenDJ LDAP SDK</name>
+  <name>OpenDJ SDK</name>
   <description>
-    This module includes OpenDJ core APIs for implementing LDAP Directory
-    client and server applications.
+    This module provides a complete LDAP SDK for developing LDAP Directory
+    client and server applications. It includes both the core APIs and a
+    default Grizzly based network transport.
   </description>
   <packaging>jar</packaging>
   <dependencies>
@@ -94,11 +95,11 @@
             </goals>
           </execution>
         </executions>
-		<configuration>
-			<instructions>
-				<Include-Resource>META-INF/services=target/classes/META-INF/services</Include-Resource>
-			</instructions>
-		</configuration>
+        <configuration>
+          <instructions>
+            <Include-Resource>META-INF/services=target/classes/META-INF/services</Include-Resource>
+          </instructions>
+        </configuration>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>

@@ -32,9 +32,9 @@
     <version>2.7.0-SNAPSHOT</version>
   </parent>
   <artifactId>opendj-grizzly</artifactId>
-  <name>Grizzly Provider for OpenDJ LDAP SDK</name>
+  <name>OpenDJ Grizzly Transport Provider</name>
   <description>
-    This module includes a Grizzly-based implementation of transport provider for OpenDJ LDAP SDK.
+    This module includes a Grizzly based network transport provider for OpenDJ.
   </description>
   <packaging>bundle</packaging>
   <dependencies>
