@@ -59,8 +59,8 @@ import static org.opends.server.util.StaticUtils.*;
  * This class is used for managing the replicationServer database for each
  * server in the topology. It is responsible for efficiently saving the updates
  * that is received from each master server into stable storage. This class is
- * also able to generate a {@link ChangeNumberIndexDBCursor} that can be used to
- * read all changes from a given change number.
+ * also able to generate a {@link DBCursor} that can be used to read all changes
+ * from a given change number.
  * <p>
  * This class publishes some monitoring information below <code>
  * cn=monitor</code>.
@@ -240,7 +240,7 @@ public class JEChangeNumberIndexDB implements ChangeNumberIndexDB, Runnable
 
   /** {@inheritDoc} */
   @Override
-  public ChangeNumberIndexDBCursor getCursorFrom(long startChangeNumber)
+  public DBCursor<CNIndexRecord> getCursorFrom(long startChangeNumber)
       throws ChangelogException
   {
     return new JEChangeNumberIndexDBCursor(db, startChangeNumber);

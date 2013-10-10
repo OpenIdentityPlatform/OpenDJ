@@ -38,10 +38,11 @@ import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.CSNGenerator;
 import org.opends.server.replication.protocol.DeleteMsg;
+import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
-import org.opends.server.replication.server.changelog.api.ReplicaDBCursor;
+import org.opends.server.replication.server.changelog.api.DBCursor;
 import org.opends.server.types.DN;
 import org.opends.server.util.StaticUtils;
 import org.testng.annotations.BeforeClass;
@@ -201,17 +202,17 @@ public class JEReplicaDBTest extends ReplicationTestCase
       return;
     }
 
-    ReplicaDBCursor cursor = replicaDB.generateCursorFrom(csns[0]);
+    DBCursor<UpdateMsg> cursor = replicaDB.generateCursorFrom(csns[0]);
     try
     {
-      assertNull(cursor.getChange());
+      assertNull(cursor.getRecord());
       for (int i = 1; i < csns.length; i++)
       {
         assertTrue(cursor.next());
-        assertEquals(cursor.getChange().getCSN(), csns[i]);
+        assertEquals(cursor.getRecord().getCSN(), csns[i]);
       }
       assertFalse(cursor.next());
-      assertNull(cursor.getChange(), "Actual change=" + cursor.getChange()
+      assertNull(cursor.getRecord(), "Actual change=" + cursor.getRecord()
           + ", Expected null");
     }
     finally
@@ -222,7 +223,7 @@ public class JEReplicaDBTest extends ReplicationTestCase
 
   private void assertNotFound(JEReplicaDB replicaDB, CSN csn)
   {
-    ReplicaDBCursor cursor = null;
+    DBCursor<UpdateMsg> cursor = null;
     try
     {
       cursor = replicaDB.generateCursorFrom(csn);
@@ -282,7 +283,7 @@ public class JEReplicaDBTest extends ReplicationTestCase
   public void testGenerateCursorFrom() throws Exception
   {
     ReplicationServer replicationServer = null;
-    ReplicaDBCursor cursor = null;
+    DBCursor<UpdateMsg> cursor = null;
     try
     {
       TestCaseUtils.startServer();
@@ -301,17 +302,17 @@ public class JEReplicaDBTest extends ReplicationTestCase
 
       cursor = replicaDB.generateCursorFrom(csns[0]);
       assertTrue(cursor.next());
-      assertEquals(cursor.getChange().getCSN(), csns[1]);
+      assertEquals(cursor.getRecord().getCSN(), csns[1]);
       StaticUtils.close(cursor);
 
       cursor = replicaDB.generateCursorFrom(csns[3]);
       assertTrue(cursor.next());
-      assertEquals(cursor.getChange().getCSN(), csns[4]);
+      assertEquals(cursor.getRecord().getCSN(), csns[4]);
       StaticUtils.close(cursor);
 
       cursor = replicaDB.generateCursorFrom(csns[4]);
       assertFalse(cursor.next());
-      assertNull(cursor.getChange());
+      assertNull(cursor.getRecord());
     }
     finally
     {

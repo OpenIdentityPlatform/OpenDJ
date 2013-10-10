@@ -162,36 +162,35 @@ public interface ReplicationDomainDB
   long getCount(DN baseDN, int serverId, CSN from, CSN to);
 
   /**
-   * Generates a {@link ReplicaDBCursor} across all the replicaDBs for the
-   * specified replication domain, with all cursors starting after the provided
-   * CSN.
+   * Generates a {@link DBCursor} across all the replicaDBs for the specified
+   * replication domain, with all cursors starting after the provided CSN.
    * <p>
    * The cursor is already advanced to the record after startAfterCSN.
    * <p>
    * When the cursor is not used anymore, client code MUST call the
-   * {@link ReplicaDBCursor#close()} method to free the resources and locks used
-   * by the cursor.
+   * {@link DBCursor#close()} method to free the resources and locks used by the
+   * cursor.
    *
    * @param baseDN
    *          the replication domain baseDN
    * @param startAfterCSN
    *          Starting point for each ReplicaDB cursor. If null, start from the
    *          oldest CSN for each ReplicaDB cursor.
-   * @return a non null {@link ReplicaDBCursor}
+   * @return a non null {@link DBCursor}
    * @see #getCursorFrom(DN, ServerState)
    */
-  ReplicaDBCursor getCursorFrom(DN baseDN, CSN startAfterCSN);
+  DBCursor<UpdateMsg> getCursorFrom(DN baseDN, CSN startAfterCSN);
 
   /**
-   * Generates a {@link ReplicaDBCursor} across all the replicaDBs for the
-   * specified replication domain starting after the provided
-   * {@link ServerState} for each replicaDBs.
+   * Generates a {@link DBCursor} across all the replicaDBs for the specified
+   * replication domain starting after the provided {@link ServerState} for each
+   * replicaDBs.
    * <p>
    * The cursor is already advanced to the records after the serverState.
    * <p>
    * When the cursor is not used anymore, client code MUST call the
-   * {@link ReplicaDBCursor#close()} method to free the resources and locks used
-   * by the cursor.
+   * {@link DBCursor#close()} method to free the resources and locks used by the
+   * cursor.
    *
    * @param baseDN
    *          the replication domain baseDN
@@ -199,10 +198,11 @@ public interface ReplicationDomainDB
    *          Starting point for each ReplicaDB cursor. If any CSN for a
    *          replicaDB is null, then start from the oldest CSN for this
    *          replicaDB
-   * @return a non null {@link ReplicaDBCursor}
+   * @return a non null {@link DBCursor}
    * @see #getCursorFrom(DN, CSN)
    */
-  ReplicaDBCursor getCursorFrom(DN baseDN, ServerState startAfterServerState);
+  DBCursor<UpdateMsg> getCursorFrom(DN baseDN,
+      ServerState startAfterServerState);
 
   /**
    * for the specified serverId and replication domain.

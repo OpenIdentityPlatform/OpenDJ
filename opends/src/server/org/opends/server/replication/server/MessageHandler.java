@@ -41,7 +41,7 @@ import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
-import org.opends.server.replication.server.changelog.api.ReplicaDBCursor;
+import org.opends.server.replication.server.changelog.api.DBCursor;
 import org.opends.server.types.*;
 
 import static org.opends.messages.ReplicationMessages.*;
@@ -296,14 +296,14 @@ public class MessageHandler extends MonitorProvider<MonitorProviderCfg>
            *           restart as usual
            *   load this change on the delayList
            */
-          ReplicaDBCursor cursor = null;
+          DBCursor<UpdateMsg> cursor = null;
           try
           {
             // fill the lateQueue
             cursor = replicationServerDomain.getCursorFrom(serverState);
             while (cursor.next() && isLateQueueBelowThreshold())
             {
-              lateQueue.add(cursor.getChange());
+              lateQueue.add(cursor.getRecord());
             }
           }
           catch (ChangelogException e)
@@ -454,12 +454,12 @@ public class MessageHandler extends MonitorProvider<MonitorProviderCfg>
 
   private CSN findOldestCSNFromReplicaDBs()
   {
-    ReplicaDBCursor cursor = null;
+    DBCursor<UpdateMsg> cursor = null;
     try
     {
       cursor = replicationServerDomain.getCursorFrom(serverState);
       cursor.next();
-      return cursor.getChange().getCSN();
+      return cursor.getRecord().getCSN();
     }
     catch (Exception e)
     {

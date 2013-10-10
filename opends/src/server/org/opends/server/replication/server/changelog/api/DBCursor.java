@@ -28,40 +28,38 @@ package org.opends.server.replication.server.changelog.api;
 
 import java.io.Closeable;
 
-import org.opends.server.replication.protocol.UpdateMsg;
-
 /**
- * This cursor allows to iterate through the changes received from a given
- * replica (Directory Server) in the topology.
- * <p>
- * Instances of this class are sorted in the order defined by the CSN of the
- * current {@link UpdateMsg}, i.e. the cursor with the oldest CSN comes first.
+ * Generic cursor interface into the changelog database. Once it is not used
+ * anymore, a cursor must be closed to release all the resources into the
+ * database.
+ *
+ * @param <T>
+ *          type of the record being returned
  */
-public interface ReplicaDBCursor extends Closeable, Comparable<ReplicaDBCursor>
+public interface DBCursor<T> extends Closeable
 {
 
   /**
-   * Get the UpdateMsg where the cursor is currently set.
+   * Getter for the current record.
    *
-   * @return The UpdateMsg where the cursor is currently set.
+   * @return The current record.
    */
-  UpdateMsg getChange();
+  T getRecord();
 
   /**
-   * Go to the next change in the ReplicaDB or in the server Queue.
+   * Skip to the next record of the database.
    *
-   * @return false if the cursor is already on the last change before this call.
+   * @return true if has next, false otherwise
    * @throws ChangelogException
    *           When database exception raised.
    */
   boolean next() throws ChangelogException;
 
   /**
-   * Release the resources and locks used by this cursor. This method must be
-   * called when the cursor is no longer used. Failure to do it could cause DB
+   * Release the resources and locks used by this Iterator. This method must be
+   * called when the iterator is no longer used. Failure to do it could cause DB
    * deadlock.
    */
   @Override
   void close();
-
 }

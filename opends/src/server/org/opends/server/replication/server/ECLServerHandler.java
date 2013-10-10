@@ -40,7 +40,10 @@ import org.opends.server.replication.common.MultiDomainServerState;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.common.ServerStatus;
 import org.opends.server.replication.protocol.*;
-import org.opends.server.replication.server.changelog.api.*;
+import org.opends.server.replication.server.changelog.api.CNIndexRecord;
+import org.opends.server.replication.server.changelog.api.ChangeNumberIndexDB;
+import org.opends.server.replication.server.changelog.api.ChangelogException;
+import org.opends.server.replication.server.changelog.api.DBCursor;
 import org.opends.server.types.*;
 import org.opends.server.util.ServerConstants;
 
@@ -59,7 +62,11 @@ public final class ECLServerHandler extends ServerHandler
 {
 
   private static int UNDEFINED_PHASE = 0;
-  /** TODO JNR. */
+  /**
+   * Constant used to indicate the handler is in the ECL initialization phase.
+   *
+   * @see #getSearchPhase()
+   */
   public static int INIT_PHASE = 1;
   private static int PERSISTENT_PHASE = 2;
 
@@ -70,7 +77,7 @@ public final class ECLServerHandler extends ServerHandler
   private String operationId;
 
   /** Cursor on the {@link ChangeNumberIndexDB}. */
-  private ChangeNumberIndexDBCursor cnIndexDBCursor;
+  private DBCursor<CNIndexRecord> cnIndexDBCursor;
 
   private boolean draftCompat = false;
   /**

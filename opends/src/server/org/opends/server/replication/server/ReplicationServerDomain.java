@@ -47,7 +47,7 @@ import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.common.*;
 import org.opends.server.replication.protocol.*;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
-import org.opends.server.replication.server.changelog.api.ReplicaDBCursor;
+import org.opends.server.replication.server.changelog.api.DBCursor;
 import org.opends.server.replication.server.changelog.api.ReplicationDomainDB;
 import org.opends.server.types.*;
 
@@ -1271,19 +1271,19 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
   /**
    * Creates and returns a cursor across this replication domain.
    * <p>
-   * Client code must call {@link ReplicaDBCursor#next()} to advance the cursor
-   * to the next available record.
+   * Client code must call {@link DBCursor#next()} to advance the cursor to the
+   * next available record.
    * <p>
    * When the cursor is not used anymore, client code MUST call the
-   * {@link ReplicaDBCursor#close()} method to free the resources and locks used
-   * by the cursor.
+   * {@link DBCursor#close()} method to free the resources and locks used by the
+   * cursor.
    *
    * @param startAfterCSN
    *          Starting point for the cursor. If null, start from the oldest CSN
-   * @return a non null {@link ReplicaDBCursor}
+   * @return a non null {@link DBCursor}
    * @see ReplicationDomainDB#getCursorFrom(DN, CSN)
    */
-  public ReplicaDBCursor getCursorFrom(CSN startAfterCSN)
+  public DBCursor<UpdateMsg> getCursorFrom(CSN startAfterCSN)
   {
     return domainDB.getCursorFrom(baseDN, startAfterCSN);
   }
@@ -1291,20 +1291,20 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
   /**
    * Creates and returns a cursor across this replication domain.
    * <p>
-   * Client code must call {@link ReplicaDBCursor#next()} to advance the cursor
-   * to the next available record.
+   * Client code must call {@link DBCursor#next()} to advance the cursor to the
+   * next available record.
    * <p>
    * When the cursor is not used anymore, client code MUST call the
-   * {@link ReplicaDBCursor#close()} method to free the resources and locks used
-   * by the cursor.
+   * {@link DBCursor#close()} method to free the resources and locks used by the
+   * cursor.
    *
    * @param startAfterServerState
    *          Starting point for the replicaDB cursors. If null, start from the
    *          oldest CSN
-   * @return a non null {@link ReplicaDBCursor} going from oldest to newest CSN
+   * @return a non null {@link DBCursor} going from oldest to newest CSN
    * @see ReplicationDomainDB#getCursorFrom(DN, ServerState)
    */
-  public ReplicaDBCursor getCursorFrom(ServerState startAfterServerState)
+  public DBCursor<UpdateMsg> getCursorFrom(ServerState startAfterServerState)
   {
     return domainDB.getCursorFrom(baseDN, startAfterServerState);
   }
