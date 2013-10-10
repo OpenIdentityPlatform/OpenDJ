@@ -38,7 +38,8 @@ import static org.opends.server.loggers.debug.DebugLogger.*;
  * This class allows to iterate through the changes received from a given
  * LDAP Server Identifier.
  */
-public class JEChangeNumberIndexDBCursor implements DBCursor<CNIndexRecord>
+public class JEChangeNumberIndexDBCursor implements
+    DBCursor<ChangeNumberIndexRecord>
 {
   private static final DebugTracer TRACER = getTracer();
   private DraftCNDBCursor draftCNDbCursor;
@@ -62,7 +63,7 @@ public class JEChangeNumberIndexDBCursor implements DBCursor<CNIndexRecord>
 
   /** {@inheritDoc} */
   @Override
-  public CNIndexRecord getRecord()
+  public ChangeNumberIndexRecord getRecord()
   {
     try
     {

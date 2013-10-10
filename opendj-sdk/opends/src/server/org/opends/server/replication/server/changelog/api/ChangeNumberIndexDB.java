@@ -29,10 +29,10 @@ package org.opends.server.replication.server.changelog.api;
 
 /**
  * This class stores an index of all the changes seen by this server in the form
- * of {@link CNIndexRecord}s. The records are sorted by a global ordering as
- * defined in the CSN class. The index links a <code>changeNumber</code> to the
- * corresponding CSN. The CSN then links to a corresponding change in one of the
- * ReplicaDBs.
+ * of {@link ChangeNumberIndexRecord}s. The records are sorted by a global
+ * ordering as defined in the CSN class. The index links a
+ * <code>changeNumber</code> to the corresponding CSN. The CSN then links to a
+ * corresponding change in one of the ReplicaDBs.
  *
  * @see <a href=
  * "https://wikis.forgerock.org/confluence/display/OPENDJ/OpenDJ+Domain+Names"
@@ -53,22 +53,22 @@ public interface ChangeNumberIndexDB
   /**
    * Get the oldest record stored in this DB.
    *
-   * @return Returns the oldest {@link CNIndexRecord} in this DB, null when the
-   *         DB is empty or closed
+   * @return Returns the oldest {@link ChangeNumberIndexRecord} in this DB, null
+   *         when the DB is empty or closed
    * @throws ChangelogException
    *           if a database problem occurs.
    */
-  CNIndexRecord getOldestRecord() throws ChangelogException;
+  ChangeNumberIndexRecord getOldestRecord() throws ChangelogException;
 
   /**
    * Get the newest record stored in this DB.
    *
-   * @return Returns the newest {@link CNIndexRecord} in this DB, null when the
-   *         DB is empty or closed
+   * @return Returns the newest {@link ChangeNumberIndexRecord} in this DB, null
+   *         when the DB is empty or closed
    * @throws ChangelogException
    *           if a database problem occurs.
    */
-  CNIndexRecord getNewestRecord() throws ChangelogException;
+  ChangeNumberIndexRecord getNewestRecord() throws ChangelogException;
 
   /**
    * Add an update to the list of messages that must be saved to this DB managed
@@ -80,12 +80,12 @@ public interface ChangeNumberIndexDB
    * for lazily building the ChangeNumberIndexDB.
    *
    * @param record
-   *          The {@link CNIndexRecord} to add to this DB.
+   *          The {@link ChangeNumberIndexRecord} to add to this DB.
    * @return the change number associated to this record on adding to this DB
    * @throws ChangelogException
    *           if a database problem occurs.
    */
-  long addRecord(CNIndexRecord record) throws ChangelogException;
+  long addRecord(ChangeNumberIndexRecord record) throws ChangelogException;
 
   /**
    * Generate a new {@link DBCursor} that allows to browse the db managed by
@@ -99,7 +99,7 @@ public interface ChangeNumberIndexDB
    * @throws ChangelogException
    *           if a database problem occurs.
    */
-  DBCursor<CNIndexRecord> getCursorFrom(long startChangeNumber)
+  DBCursor<ChangeNumberIndexRecord> getCursorFrom(long startChangeNumber)
       throws ChangelogException;
 
 }

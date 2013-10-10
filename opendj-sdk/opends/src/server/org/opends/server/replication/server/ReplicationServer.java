@@ -51,10 +51,7 @@ import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.common.*;
 import org.opends.server.replication.plugin.MultimasterReplication;
 import org.opends.server.replication.protocol.*;
-import org.opends.server.replication.server.changelog.api.CNIndexRecord;
-import org.opends.server.replication.server.changelog.api.ChangeNumberIndexDB;
-import org.opends.server.replication.server.changelog.api.ChangelogDB;
-import org.opends.server.replication.server.changelog.api.ChangelogException;
+import org.opends.server.replication.server.changelog.api.*;
 import org.opends.server.replication.server.changelog.je.JEChangelogDB;
 import org.opends.server.types.*;
 import org.opends.server.util.LDIFReader;
@@ -1399,8 +1396,8 @@ public final class ReplicationServer
     try
     {
       final ChangeNumberIndexDB cnIndexDB = getChangeNumberIndexDB();
-      final CNIndexRecord oldestRecord = cnIndexDB.getOldestRecord();
-      final CNIndexRecord newestRecord = cnIndexDB.getNewestRecord();
+      final ChangeNumberIndexRecord oldestRecord = cnIndexDB.getOldestRecord();
+      final ChangeNumberIndexRecord newestRecord = cnIndexDB.getNewestRecord();
 
       boolean dbEmpty = true;
       long oldestChangeNumber = 0;
@@ -1453,7 +1450,7 @@ public final class ReplicationServer
         {
           // There are records in the CNIndexDB (so already returned to clients)
           // BUT
-          // There is nothing related to this domain in the newest CNIndexRecord
+          // There is nothing related to this domain in the newest record
           // (maybe this domain was disabled when this record was returned).
           // In that case, are counted the changes from the time of the most
           // recent change

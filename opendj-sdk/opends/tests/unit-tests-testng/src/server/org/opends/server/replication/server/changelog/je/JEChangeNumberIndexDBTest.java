@@ -35,7 +35,7 @@ import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
-import org.opends.server.replication.server.changelog.api.CNIndexRecord;
+import org.opends.server.replication.server.changelog.api.ChangeNumberIndexRecord;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.api.DBCursor;
 import org.opends.server.types.DN;
@@ -86,16 +86,16 @@ public class JEChangeNumberIndexDBTest extends ReplicationTestCase
       CSN[] csns = newCSNs(1, 0, 3);
 
       // Add records
-      long cn1 = cnIndexDB.addRecord(new CNIndexRecord(value1, baseDN1, csns[0]));
-                 cnIndexDB.addRecord(new CNIndexRecord(value2, baseDN2, csns[1]));
-      long cn3 = cnIndexDB.addRecord(new CNIndexRecord(value3, baseDN3, csns[2]));
+      long cn1 = addRecord(cnIndexDB, value1, baseDN1, csns[0]);
+                 addRecord(cnIndexDB, value2, baseDN2, csns[1]);
+      long cn3 = addRecord(cnIndexDB, value3, baseDN3, csns[2]);
 
       // The ChangeNumber should not get purged
       final long oldestCN = cnIndexDB.getOldestRecord().getChangeNumber();
       assertEquals(oldestCN, cn1);
       assertEquals(cnIndexDB.getNewestRecord().getChangeNumber(), cn3);
 
-      DBCursor<CNIndexRecord> cursor = cnIndexDB.getCursorFrom(oldestCN);
+      DBCursor<ChangeNumberIndexRecord> cursor = cnIndexDB.getCursorFrom(oldestCN);
       try
       {
         assertEqualTo(cursor.getRecord(), csns[0], baseDN1, value1);
@@ -131,7 +131,13 @@ public class JEChangeNumberIndexDBTest extends ReplicationTestCase
     }
   }
 
-  private void assertEqualTo(CNIndexRecord record, CSN csn, DN baseDN, String cookie)
+  private long addRecord(JEChangeNumberIndexDB cnIndexDB, String cookie, DN baseDN, CSN csn)
+      throws ChangelogException
+  {
+    return cnIndexDB.addRecord(new ChangeNumberIndexRecord(cookie, baseDN, csn));
+  }
+
+  private void assertEqualTo(ChangeNumberIndexRecord record, CSN csn, DN baseDN, String cookie)
   {
     assertEquals(record.getCSN(), csn);
     assertEquals(record.getBaseDN(), baseDN);
@@ -190,9 +196,9 @@ public class JEChangeNumberIndexDBTest extends ReplicationTestCase
       CSN[] csns = newCSNs(1, 0, 3);
 
       // Add records
-      long cn1 = cnIndexDB.addRecord(new CNIndexRecord(value1, baseDN1, csns[0]));
-      long cn2 = cnIndexDB.addRecord(new CNIndexRecord(value2, baseDN2, csns[1]));
-      long cn3 = cnIndexDB.addRecord(new CNIndexRecord(value3, baseDN3, csns[2]));
+      long cn1 = addRecord(cnIndexDB, value1, baseDN1, csns[0]);
+      long cn2 = addRecord(cnIndexDB, value2, baseDN2, csns[1]);
+      long cn3 = addRecord(cnIndexDB, value3, baseDN3, csns[2]);
 
       // Checks
       assertEquals(cnIndexDB.getOldestRecord().getChangeNumber(), cn1);
@@ -205,7 +211,7 @@ public class JEChangeNumberIndexDBTest extends ReplicationTestCase
       assertEquals(getPreviousCookie(cnIndexDB, cn2), value2);
       assertEquals(getPreviousCookie(cnIndexDB, cn3), value3);
 
-      DBCursor<CNIndexRecord> cursor = cnIndexDB.getCursorFrom(cn1);
+      DBCursor<ChangeNumberIndexRecord> cursor = cnIndexDB.getCursorFrom(cn1);
       assertCursorReadsInOrder(cursor, cn1, cn2, cn3);
 
       cursor = cnIndexDB.getCursorFrom(cn2);
@@ -239,7 +245,7 @@ public class JEChangeNumberIndexDBTest extends ReplicationTestCase
   private String getPreviousCookie(JEChangeNumberIndexDB cnIndexDB,
       long changeNumber) throws Exception
   {
-    DBCursor<CNIndexRecord> cursor = cnIndexDB.getCursorFrom(changeNumber);
+    DBCursor<ChangeNumberIndexRecord> cursor = cnIndexDB.getCursorFrom(changeNumber);
     try
     {
       return cursor.getRecord().getPreviousCookie();
@@ -250,7 +256,7 @@ public class JEChangeNumberIndexDBTest extends ReplicationTestCase
     }
   }
 
-  private void assertCursorReadsInOrder(DBCursor<CNIndexRecord> cursor,
+  private void assertCursorReadsInOrder(DBCursor<ChangeNumberIndexRecord> cursor,
       long... cns) throws ChangelogException
   {
     try
