@@ -278,7 +278,7 @@ public class DraftCNDB
 
       return db.count();
     }
-    catch (Exception e)
+    catch (DatabaseException e)
     {
       TRACER.debugCaught(DebugLogLevel.ERROR, e);
     }
@@ -571,18 +571,8 @@ public class DraftCNDB
       {
         return null;
       }
-
-      try
-      {
-        return record;
-      }
-      catch (Exception e)
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        return null;
-      }
+      return record;
     }
-
 
     /**
      * Go to the next record on the cursor.
@@ -591,6 +581,8 @@ public class DraftCNDB
      */
     public boolean next() throws ChangelogException
     {
+      // first wipe old entry
+      record = null;
       if (isClosed)
       {
         return false;
@@ -598,18 +590,17 @@ public class DraftCNDB
 
       try {
         OperationStatus status = cursor.getNext(key, entry, LockMode.DEFAULT);
-        if (status != OperationStatus.SUCCESS)
+        if (status == OperationStatus.SUCCESS)
         {
-          record = null;
-          return false;
+          record = newCNIndexRecord(this.key, entry);
+          return true;
         }
-        record = newCNIndexRecord(this.key, entry);
+        return false;
       }
-      catch(Exception e)
+      catch (DatabaseException e)
       {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        throw new ChangelogException(e);
       }
-      return true;
     }
 
     /**
