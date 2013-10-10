@@ -32,10 +32,11 @@
     <version>2.7.0-SNAPSHOT</version>
   </parent>
   <artifactId>opendj-core</artifactId>
-  <name>OpenDJ LDAP SDK</name>
+  <name>OpenDJ Core APIs</name>
   <description>
     This module includes OpenDJ core APIs for implementing LDAP Directory
-    client and server applications.
+    client and server applications. Unlike the SDK this module does not
+    include a default network transport.
   </description>
   <packaging>bundle</packaging>
   <dependencies>
