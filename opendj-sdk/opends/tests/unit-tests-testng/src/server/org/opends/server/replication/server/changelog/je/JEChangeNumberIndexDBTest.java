@@ -53,6 +53,10 @@ import static org.testng.Assert.*;
 @SuppressWarnings("javadoc")
 public class JEChangeNumberIndexDBTest extends ReplicationTestCase
 {
+  private static final String value1 = "value1";
+  private static final String value2 = "value2";
+  private static final String value3 = "value3";
+
   /**
    * This test makes basic operations of a JEChangeNumberIndexDB:
    * <ol>
@@ -76,10 +80,6 @@ public class JEChangeNumberIndexDBTest extends ReplicationTestCase
       cnIndexDB.setPurgeDelay(0);
 
       // Prepare data to be stored in the db
-      String value1 = "value1";
-      String value2 = "value2";
-      String value3 = "value3";
-
       DN baseDN1 = DN.decode("o=baseDN1");
       DN baseDN2 = DN.decode("o=baseDN2");
       DN baseDN3 = DN.decode("o=baseDN3");
@@ -115,7 +115,9 @@ public class JEChangeNumberIndexDBTest extends ReplicationTestCase
         StaticUtils.close(dbc);
       }
 
+      // Now test that the trimming thread does its job => start it
       cnIndexDB.setPurgeDelay(100);
+      cnIndexDB.startTrimmingThread();
 
       // Check the db is cleared.
       while (!cnIndexDB.isEmpty())
@@ -145,7 +147,9 @@ public class JEChangeNumberIndexDBTest extends ReplicationTestCase
   {
     File testRoot = createCleanDir();
     ReplicationDbEnv dbEnv = new ReplicationDbEnv(testRoot.getPath(), rs);
-    return new JEChangeNumberIndexDB(rs, dbEnv);
+    JEChangeNumberIndexDB result = new JEChangeNumberIndexDB(rs, dbEnv);
+    assertTrue(result.isEmpty());
+    return result;
   }
 
   private File createCleanDir() throws IOException
@@ -182,12 +186,7 @@ public class JEChangeNumberIndexDBTest extends ReplicationTestCase
       cnIndexDB = newCNIndexDB(replicationServer);
       cnIndexDB.setPurgeDelay(0);
 
-      assertTrue(cnIndexDB.isEmpty());
-
       // Prepare data to be stored in the db
-      String value1 = "value1";
-      String value2 = "value2";
-      String value3 = "value3";
 
       DN baseDN1 = DN.decode("o=baseDN1");
       DN baseDN2 = DN.decode("o=baseDN2");
@@ -230,8 +229,6 @@ public class JEChangeNumberIndexDBTest extends ReplicationTestCase
     }
     finally
     {
-      if (cnIndexDB != null)
-        cnIndexDB.shutdown();
       remove(replicationServer);
     }
   }
@@ -241,7 +238,7 @@ public class JEChangeNumberIndexDBTest extends ReplicationTestCase
     TestCaseUtils.startServer();
     final int port = TestCaseUtils.findFreePort();
     return new ReplicationServer(
-        new ReplServerFakeConfiguration(port, null, 0, 2, 0, 100, null)) ;
+        new ReplServerFakeConfiguration(port, null, 0, 2, 0, 100, null));
   }
 
   private String getPreviousCookie(JEChangeNumberIndexDB cnIndexDB,
