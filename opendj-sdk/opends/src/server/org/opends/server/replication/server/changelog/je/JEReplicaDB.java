@@ -43,7 +43,7 @@ import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.server.ReplicationServerDomain;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
-import org.opends.server.replication.server.changelog.api.ReplicaDBCursor;
+import org.opends.server.replication.server.changelog.api.DBCursor;
 import org.opends.server.replication.server.changelog.je.ReplicationDB.*;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.Attributes;
@@ -58,11 +58,13 @@ import static org.opends.server.util.StaticUtils.*;
 /**
  * This class is used for managing the replicationServer database for each
  * server in the topology.
+ * <p>
  * It is responsible for efficiently saving the updates that is received from
  * each master server into stable storage.
- * This class is also able to generate a {@link ReplicaDBCursor} that can be
- * used to read all changes from a given {@link CSN}.
- *
+ * <p>
+ * This class is also able to generate a {@link DBCursor} that can be used to
+ * read all changes from a given {@link CSN}.
+ * <p>
  * This class publish some monitoring information below cn=monitor.
  */
 public class JEReplicaDB implements Runnable
@@ -259,19 +261,18 @@ public class JEReplicaDB implements Runnable
   }
 
   /**
-   * Generate a new {@link ReplicaDBCursor} that allows to browse the db managed
-   * by this ReplicaDB and starting at the position defined by a given CSN.
+   * Generate a new {@link DBCursor} that allows to browse the db managed by
+   * this ReplicaDB and starting at the position defined by a given CSN.
    *
    * @param startAfterCSN
    *          The position where the cursor must start. If null, start from the
    *          oldest CSN
-   * @return a new {@link ReplicaDBCursor} that allows to browse the db managed
-   *         by this ReplicaDB and starting at the position defined by a given
-   *         CSN.
+   * @return a new {@link DBCursor} that allows to browse the db managed by this
+   *         ReplicaDB and starting at the position defined by a given CSN.
    * @throws ChangelogException
    *           if a database problem happened.
    */
-  public ReplicaDBCursor generateCursorFrom(CSN startAfterCSN)
+  public DBCursor<UpdateMsg> generateCursorFrom(CSN startAfterCSN)
       throws ChangelogException
   {
     if (startAfterCSN == null)

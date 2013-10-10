@@ -51,7 +51,7 @@ import org.opends.server.replication.plugin.MultimasterReplication;
 import org.opends.server.replication.plugin.ReplicationServerListener;
 import org.opends.server.replication.protocol.*;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
-import org.opends.server.replication.server.changelog.api.ReplicaDBCursor;
+import org.opends.server.replication.server.changelog.api.DBCursor;
 import org.opends.server.types.*;
 import org.opends.server.util.*;
 
@@ -630,14 +630,14 @@ public class ReplicationBackend extends Backend
       return;
     }
 
-    ReplicaDBCursor cursor = rsDomain.getCursorFrom(previousCSN);
+    DBCursor<UpdateMsg> cursor = rsDomain.getCursorFrom(previousCSN);
     try
     {
       int lookthroughCount = 0;
 
       // Walk through the changes
       cursor.next(); // first try to advance the cursor
-      while (cursor.getChange() != null)
+      while (cursor.getRecord() != null)
       {
         if (exportConfig != null && exportConfig.isCancelled())
         { // abort if cancelled
@@ -648,7 +648,7 @@ public class ReplicationBackend extends Backend
           break;
         }
         lookthroughCount++;
-        writeChange(cursor.getChange(), ldifWriter, searchOperation,
+        writeChange(cursor.getRecord(), ldifWriter, searchOperation,
             rsDomain.getBaseDN(), exportConfig != null);
         cursor.next();
       }

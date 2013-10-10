@@ -36,8 +36,8 @@ import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.server.changelog.api.CNIndexRecord;
-import org.opends.server.replication.server.changelog.api.ChangeNumberIndexDBCursor;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
+import org.opends.server.replication.server.changelog.api.DBCursor;
 import org.opends.server.replication.server.changelog.je.DraftCNDB.DraftCNDBCursor;
 import org.opends.server.types.DN;
 import org.opends.server.util.StaticUtils;
@@ -210,7 +210,7 @@ public class JEChangeNumberIndexDBTest extends ReplicationTestCase
       assertEquals(getPreviousCookie(cnIndexDB, cn2), value2);
       assertEquals(getPreviousCookie(cnIndexDB, cn3), value3);
 
-      ChangeNumberIndexDBCursor cursor = cnIndexDB.getCursorFrom(cn1);
+      DBCursor<CNIndexRecord> cursor = cnIndexDB.getCursorFrom(cn1);
       assertCursorReadsInOrder(cursor, cn1, cn2, cn3);
 
       cursor = cnIndexDB.getCursorFrom(cn2);
@@ -244,7 +244,7 @@ public class JEChangeNumberIndexDBTest extends ReplicationTestCase
   private String getPreviousCookie(JEChangeNumberIndexDB cnIndexDB,
       long changeNumber) throws Exception
   {
-    ChangeNumberIndexDBCursor cursor = cnIndexDB.getCursorFrom(changeNumber);
+    DBCursor<CNIndexRecord> cursor = cnIndexDB.getCursorFrom(changeNumber);
     try
     {
       return cursor.getRecord().getPreviousCookie();
@@ -255,7 +255,7 @@ public class JEChangeNumberIndexDBTest extends ReplicationTestCase
     }
   }
 
-  private void assertCursorReadsInOrder(ChangeNumberIndexDBCursor cursor,
+  private void assertCursorReadsInOrder(DBCursor<CNIndexRecord> cursor,
       long... sns) throws ChangelogException
   {
     try

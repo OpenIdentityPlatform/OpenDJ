@@ -99,9 +99,8 @@ public interface ChangeNumberIndexDB
   long addRecord(CNIndexRecord record) throws ChangelogException;
 
   /**
-   * Generate a new {@link ChangeNumberIndexDBCursor} that allows to browse the
-   * db managed by this object and starting at the position defined by a given
-   * changeNumber.
+   * Generate a new {@link DBCursor} that allows to browse the db managed by
+   * this object and starting at the position defined by a given changeNumber.
    *
    * @param startChangeNumber
    *          The position where the iterator must start.
@@ -111,7 +110,7 @@ public interface ChangeNumberIndexDB
    * @throws ChangelogException
    *           if a database problem occurs.
    */
-  ChangeNumberIndexDBCursor getCursorFrom(long startChangeNumber)
+  DBCursor<CNIndexRecord> getCursorFrom(long startChangeNumber)
       throws ChangelogException;
 
 }

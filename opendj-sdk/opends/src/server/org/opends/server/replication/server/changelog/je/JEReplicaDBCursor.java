@@ -30,13 +30,13 @@ package org.opends.server.replication.server.changelog.je;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
-import org.opends.server.replication.server.changelog.api.ReplicaDBCursor;
+import org.opends.server.replication.server.changelog.api.DBCursor;
 import org.opends.server.replication.server.changelog.je.ReplicationDB.*;
 
 /**
- * Berkeley DB JE implementation of {@link ReplicaDBCursor}.
+ * Berkeley DB JE implementation of {@link DBCursor}.
  */
-public class JEReplicaDBCursor implements ReplicaDBCursor
+public class JEReplicaDBCursor implements DBCursor<UpdateMsg>
 {
   private UpdateMsg currentChange;
   private ReplServerDBCursor cursor;
@@ -87,7 +87,7 @@ public class JEReplicaDBCursor implements ReplicaDBCursor
 
   /** {@inheritDoc} */
   @Override
-  public UpdateMsg getChange()
+  public UpdateMsg getRecord()
   {
     return currentChange;
   }
@@ -148,16 +148,6 @@ public class JEReplicaDBCursor implements ReplicaDBCursor
   protected void finalize()
   {
     close();
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public int compareTo(ReplicaDBCursor o)
-  {
-    final CSN csn1 = getChange().getCSN();
-    final CSN csn2 = o.getChange().getCSN();
-
-    return CSN.compare(csn1, csn2);
   }
 
   /** {@inheritDoc} */
