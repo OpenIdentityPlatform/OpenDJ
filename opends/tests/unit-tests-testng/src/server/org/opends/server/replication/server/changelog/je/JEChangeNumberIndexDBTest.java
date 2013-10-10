@@ -38,7 +38,6 @@ import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.server.changelog.api.CNIndexRecord;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.api.DBCursor;
-import org.opends.server.replication.server.changelog.je.DraftCNDB.DraftCNDBCursor;
 import org.opends.server.types.DN;
 import org.opends.server.util.StaticUtils;
 import org.testng.annotations.Test;
@@ -96,23 +95,19 @@ public class JEChangeNumberIndexDBTest extends ReplicationTestCase
       assertEquals(oldestCN, cn1);
       assertEquals(cnIndexDB.getNewestRecord().getChangeNumber(), cn3);
 
-      DraftCNDBCursor dbc = cnIndexDB.getReadCursor(oldestCN);
+      DBCursor<CNIndexRecord> cursor = cnIndexDB.getCursorFrom(oldestCN);
       try
       {
-        assertEqualTo(dbc.currentRecord(), csns[0], baseDN1, value1);
-        assertTrue(dbc.toString().length() != 0);
-
-        assertTrue(dbc.next());
-        assertEqualTo(dbc.currentRecord(), csns[1], baseDN2, value2);
-
-        assertTrue(dbc.next());
-        assertEqualTo(dbc.currentRecord(), csns[2], baseDN3, value3);
-
-        assertFalse(dbc.next());
+        assertEqualTo(cursor.getRecord(), csns[0], baseDN1, value1);
+        assertTrue(cursor.next());
+        assertEqualTo(cursor.getRecord(), csns[1], baseDN2, value2);
+        assertTrue(cursor.next());
+        assertEqualTo(cursor.getRecord(), csns[2], baseDN3, value3);
+        assertFalse(cursor.next());
       }
       finally
       {
-        StaticUtils.close(dbc);
+        StaticUtils.close(cursor);
       }
 
       // Now test that the trimming thread does its job => start it
@@ -136,11 +131,11 @@ public class JEChangeNumberIndexDBTest extends ReplicationTestCase
     }
   }
 
-  private void assertEqualTo(CNIndexRecord data, CSN csn, DN baseDN, String cookie)
+  private void assertEqualTo(CNIndexRecord record, CSN csn, DN baseDN, String cookie)
   {
-    assertEquals(data.getCSN(), csn);
-    assertEquals(data.getBaseDN(), baseDN);
-    assertEquals(data.getPreviousCookie(), cookie);
+    assertEquals(record.getCSN(), csn);
+    assertEquals(record.getBaseDN(), baseDN);
+    assertEquals(record.getPreviousCookie(), cookie);
   }
 
   private JEChangeNumberIndexDB newCNIndexDB(ReplicationServer rs) throws Exception
@@ -256,14 +251,14 @@ public class JEChangeNumberIndexDBTest extends ReplicationTestCase
   }
 
   private void assertCursorReadsInOrder(DBCursor<CNIndexRecord> cursor,
-      long... sns) throws ChangelogException
+      long... cns) throws ChangelogException
   {
     try
     {
-      for (int i = 0; i < sns.length; i++)
+      for (int i = 0; i < cns.length; i++)
       {
-        assertEquals(cursor.getRecord().getChangeNumber(), sns[i]);
-        final boolean isNotLast = i + 1 < sns.length;
+        assertEquals(cursor.getRecord().getChangeNumber(), cns[i]);
+        final boolean isNotLast = i + 1 < cns.length;
         assertEquals(cursor.next(), isNotLast);
       }
     }
