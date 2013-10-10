@@ -21,7 +21,7 @@
   !
   ! CDDL HEADER END
   !
-  !      Copyright 2011-2012 ForgeRock AS
+  !      Copyright 2013 ForgeRock AS
   !    
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -31,23 +31,43 @@
     <groupId>org.forgerock.opendj</groupId>
     <version>2.7.0-SNAPSHOT</version>
   </parent>
-  <artifactId>opendj-ldap-sdk</artifactId>
-  <name>OpenDJ LDAP SDK</name>
+  <artifactId>opendj-grizzly</artifactId>
+  <name>Grizzly Provider for OpenDJ LDAP SDK</name>
   <description>
-    This module includes OpenDJ core APIs for implementing LDAP Directory
-    client and server applications.
+    This module includes a Grizzly-based implementation of transport provider for OpenDJ LDAP SDK.
   </description>
-  <packaging>jar</packaging>
+  <packaging>bundle</packaging>
   <dependencies>
-    <dependency>
+     <dependency>
       <groupId>org.forgerock.opendj</groupId>
       <artifactId>opendj-core</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>org.forgerock.opendj</groupId>
-      <artifactId>opendj-grizzly</artifactId>
+      <artifactId>opendj-core</artifactId>
+      <type>test-jar</type>
       <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.forgerock.commons</groupId>
+      <artifactId>i18n-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.glassfish.grizzly</groupId>
+      <artifactId>grizzly-framework</artifactId>
+      <version>${grizzlyFrameworkVersion}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.forgerock</groupId>
+      <artifactId>forgerock-build-tools</artifactId>
+      <version>${forgerockBuildToolsVersion}</version>
+      <scope>test</scope>
     </dependency>
   </dependencies>
   <properties>
@@ -58,47 +78,10 @@
   </properties>
   <build>
     <plugins>
-      <!-- Unpack opendj-core and opendj-grizzly to rebuild an unified jar with bundle -->
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-dependency-plugin</artifactId>
-        <version>2.8</version>
-        <executions>
-          <execution>
-            <id>unpack-dependencies</id>
-            <phase>package</phase>
-            <goals>
-              <goal>unpack-dependencies</goal>
-            </goals>
-            <configuration>
-              <includeArtifactIds>opendj-grizzly, opendj-core</includeArtifactIds>
-              <includes>**/*.class,**\/services\/*</includes>
-              <excludes>**/*.properties</excludes>
-              <outputDirectory>${project.build.directory}/classes</outputDirectory>
-              <overWriteReleases>false</overWriteReleases>
-              <overWriteSnapshots>true</overWriteSnapshots>
-              <excludeTransitive>true</excludeTransitive>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
       <plugin>
         <groupId>org.apache.felix</groupId>
         <artifactId>maven-bundle-plugin</artifactId>
         <extensions>true</extensions>
-        <executions>
-          <execution>
-            <phase>package</phase>
-            <goals>
-              <goal>bundle</goal>
-            </goals>
-          </execution>
-        </executions>
-		<configuration>
-			<instructions>
-				<Include-Resource>META-INF/services=target/classes/META-INF/services</Include-Resource>
-			</instructions>
-		</configuration>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>

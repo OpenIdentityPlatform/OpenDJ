@@ -1,0 +1,112 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<body>
+    The OpenDJ SDK for Java provides a high performance easy to use
+    library of classes and interfaces for accessing and implementing
+    LDAP Directory Services as defined in <a
+      href="http://tools.ietf.org/html/rfc4510">RFC 4510</a>.
+    <br>
+    For an introduction to LDAP, read the <em>OpenDJ SDK Developer's Guide</em>
+    chapter on <a
+      href="http://opendj.forgerock.org/doc/dev-guide/index.html#chap-understanding-ldap"
+    >Understanding LDAP</a>. Also see the chapter on <a
+      href="http://opendj.forgerock.org/doc/dev-guide/index.html#chap-best-practices"
+    >Best Practices For LDAP Application Developers</a>.
+    <br>
+    <h1>Getting Started</h1>
+    The following example shows how the OpenDJ SDK may be used to
+    connect to a directory server, authenticate, and then perform a
+    search. The search results are output as LDIF to the standard
+    output:
+    <br>
+    <table width="100%">
+      <tbody>
+        <tr>
+         <td>
+          <pre>    // Create an LDIF writer which will write the search results to stdout.
+    final LDIFEntryWriter writer = new LDIFEntryWriter(System.out);
+    Connection connection = null;
+    try
+    {
+      // Connect and bind to the server.
+      final LDAPConnectionFactory factory = new LDAPConnectionFactory("localhost", 1389);
+
+      connection = factory.getConnection();
+      connection.bind(userName, password);
+
+      // Read the entries and output them as LDIF.
+      final ConnectionEntryReader reader = connection.search(baseDN, scope, filter, attributes);
+      while (reader.hasNext())
+      {
+        if (reader.isEntry())
+        {
+          // Got an entry.
+          final SearchResultEntry entry = reader.readEntry();
+          writer.writeComment("Search result entry: " + entry.getName().toString());
+          writer.writeEntry(entry);
+        }
+        else
+        {
+          // Got a continuation reference.
+          final SearchResultReference ref = reader.readReference();
+          writer.writeComment("Search result reference: " + ref.getURIs().toString());
+        }
+      }
+      writer.flush();
+    }
+    catch (final Exception e)
+    {
+      // Handle exceptions...
+      System.err.println(e.getMessage());
+    }
+    finally
+    {
+      if (connection != null)
+      {
+        connection.close();
+      }
+    }</pre>
+       </td>
+        </tr>
+      </tbody>
+    </table>
+    <br><!-- It seems the .zip is not packaged with the SDK. -->
+    Additional examples can be found online at the <a
+      href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/"
+    >OpenDJ LDAP SDK Examples</a> site.
+    <br>
+    <h1>Creating Connections</h1>
+    The following classes can be used to create and manage connections to
+    LDAP directory servers:
+    <ul>
+      <li>{@link org.forgerock.opendj.ldap.LDAPConnectionFactory}</li>
+      <li>{@link org.forgerock.opendj.ldap.Connection}</li>
+      <li>{@link org.forgerock.opendj.ldap.Connections}</li>
+    </ul>
+    <br>
+    <h1>Creating Requests</h1>
+    The following classes can be used to create LDAP requests:
+    <ul>
+      <li>{@link org.forgerock.opendj.ldap.requests.Requests}</li>
+      <li>{@link org.forgerock.opendj.ldap.requests.Request}</li>
+    </ul>
+    <br>
+    <h1>Using Controls</h1>
+    Common LDAP control implementations can be found in
+    {@link org.forgerock.opendj.ldap.controls}.
+    <br>
+    <h1>Core Types</h1>
+    The following classes and interfaces represent core types:
+    <ul>
+      <li>{@link org.forgerock.opendj.ldap.AttributeDescription}</li>
+      <li>{@link org.forgerock.opendj.ldap.Attribute}</li>
+      <li>{@link org.forgerock.opendj.ldap.DN}</li>
+      <li>{@link org.forgerock.opendj.ldap.Entry}</li>
+      <li>{@link org.forgerock.opendj.ldap.Filter}</li>
+    </ul>
+    <br>
+@see <a href="http://tools.ietf.org/html/rfc4511">RFC 4511 - Lightweight
+      Directory Access Protocol (LDAP): The Protocol </a>
+@see org.forgerock.opendj.ldap
+</body>
+</html>

@@ -33,7 +33,7 @@
     <dependencies>
         <dependency>
             <groupId>org.forgerock.opendj</groupId>
-            <artifactId>opendj-ldap-sdk</artifactId>
+            <artifactId>opendj-core</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
