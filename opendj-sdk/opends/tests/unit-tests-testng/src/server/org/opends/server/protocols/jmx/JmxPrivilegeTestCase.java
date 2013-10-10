@@ -34,11 +34,11 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
 
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.UUID;
@@ -70,7 +70,6 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-
 
 
 
@@ -382,6 +381,7 @@ public class JmxPrivilegeTestCase
   /**
    * Check that simple connection to the JMX service are
    * accepted only if JMX_READ privilege is set.
+   * @throws  Exception  If an unexpected problem occurs.
    */
   @Test(enabled = true)
   public void simpleConnectJmxPrivilege() throws Exception
@@ -402,7 +402,7 @@ public class JmxPrivilegeTestCase
       opendsConnector = new OpendsJmxConnector("localhost", jmxPort, env);
       opendsConnector.connect();
       opendsConnector.close() ;
-      assertTrue(false, "User \"cn=Unprivileged JMX Root,cn=Root "+
+      fail("User \"cn=Unprivileged JMX Root,cn=Root "+
           "DNs,cn=config\" doesn't have JMX_READ privilege but he's able " +
           "to connect, which is not the correct behavior");
     }
@@ -410,11 +410,6 @@ public class JmxPrivilegeTestCase
     {
       Message message = ERR_JMX_INSUFFICIENT_PRIVILEGES.get();
       assertEquals(message.toString(), e.getMessage());
-    }
-    catch (IOException e)
-    {
-      assertTrue(false, "Unexpected exception - error message: "
-          + e.getMessage());
     }
 
     // Add JMX_READ privilege
@@ -434,20 +429,12 @@ public class JmxPrivilegeTestCase
       opendsConnector = new OpendsJmxConnector("localhost", jmxPort, env);
       opendsConnector.connect();
       opendsConnector.close() ;
-      assertTrue(true, "User \"cn=Unprivileged JMX Root,cn=Root "+
-          "DNs,cn=config\" has JMX_READ privilege and he's able " +
-          "to connect, which is the correct behavior.");
     }
     catch (SecurityException e)
     {
-      assertTrue(false, "User \"cn=Unprivileged JMX Root,cn=Root " +
+      fail("User \"cn=Unprivileged JMX Root,cn=Root " +
           "DNs,cn=config\" has JMX_READ privilege and he's NOT able " +
           "to connect, which is NOT the correct behavior.");
-    }
-    catch (IOException e)
-    {
-      assertTrue(false, "Unexpected exception - error message: "
-          + e.getMessage());
     }
 
     // remove JMX_READ privilege
@@ -465,7 +452,7 @@ public class JmxPrivilegeTestCase
       opendsConnector = new OpendsJmxConnector("localhost", jmxPort, env);
       opendsConnector.connect();
       opendsConnector.close() ;
-      assertTrue(false, "User \"cn=Unprivileged JMX Root,cn=Root "+
+      fail("User \"cn=Unprivileged JMX Root,cn=Root "+
           "DNs,cn=config\" doesn't have JMX_READ privilege but he's able " +
           "to connect, which is not the correct behavior");
     }
@@ -473,11 +460,6 @@ public class JmxPrivilegeTestCase
     {
       Message message = ERR_JMX_INSUFFICIENT_PRIVILEGES.get();
       assertEquals(message.toString(), e.getMessage());
-    }
-    catch (IOException e)
-    {
-      assertTrue(false, "Unexpected exception - error message: "
-          + e.getMessage());
     }
   }
 
@@ -1657,12 +1639,7 @@ public class JmxPrivilegeTestCase
       }
     }
 
-    if (task == null)
-    {
-      throw new AssertionError("There is no such task " +
-                               taskEntryDN.toString());
-    }
-
+    assertNotNull(task, "There is no such task " + taskEntryDN.toString());
     if (! TaskState.isDone(task.getTaskState()))
     {
       long stopWaitingTime = System.currentTimeMillis() + 20000L;
@@ -1673,11 +1650,9 @@ public class JmxPrivilegeTestCase
       }
     }
 
-    if (! TaskState.isDone(task.getTaskState()))
-    {
-      throw new AssertionError("Task " + taskEntryDN.toString() +
-                               " did not complete in a timely manner.");
-    }
+    assertTrue(TaskState.isDone(task.getTaskState()),
+        "Task " + taskEntryDN.toString()
+            + " did not complete in a timely manner.");
 
     return task;
   }
