@@ -123,8 +123,8 @@ public class JEChangeNumberIndexDB implements ChangeNumberIndexDB, Runnable
 
     // DB initialization
     db = new DraftCNDB(dbenv);
-    final CNIndexRecord oldestRecord = db.readFirstRecord();
-    final CNIndexRecord newestRecord = db.readLastRecord();
+    final ChangeNumberIndexRecord oldestRecord = db.readFirstRecord();
+    final ChangeNumberIndexRecord newestRecord = db.readLastRecord();
     oldestChangeNumber = getChangeNumber(oldestRecord);
     newestChangeNumber = getChangeNumber(newestRecord);
     // initialization of the lastGeneratedChangeNumber from the DB content
@@ -147,7 +147,8 @@ public class JEChangeNumberIndexDB implements ChangeNumberIndexDB, Runnable
     trimmingThread.start();
   }
 
-  private long getChangeNumber(CNIndexRecord record) throws ChangelogException
+  private long getChangeNumber(ChangeNumberIndexRecord record)
+      throws ChangelogException
   {
     if (record != null)
     {
@@ -158,12 +159,13 @@ public class JEChangeNumberIndexDB implements ChangeNumberIndexDB, Runnable
 
   /** {@inheritDoc} */
   @Override
-  public long addRecord(CNIndexRecord record) throws ChangelogException
+  public long addRecord(ChangeNumberIndexRecord record)
+      throws ChangelogException
   {
     long changeNumber = nextChangeNumber();
-    final CNIndexRecord newRecord =
-        new CNIndexRecord(changeNumber, record.getPreviousCookie(), record
-            .getBaseDN(), record.getCSN());
+    final ChangeNumberIndexRecord newRecord =
+        new ChangeNumberIndexRecord(changeNumber, record.getPreviousCookie(),
+            record.getBaseDN(), record.getCSN());
     db.addRecord(newRecord);
 
     if (debugEnabled())
@@ -173,14 +175,14 @@ public class JEChangeNumberIndexDB implements ChangeNumberIndexDB, Runnable
 
   /** {@inheritDoc} */
   @Override
-  public CNIndexRecord getOldestRecord() throws ChangelogException
+  public ChangeNumberIndexRecord getOldestRecord() throws ChangelogException
   {
     return db.readFirstRecord();
   }
 
   /** {@inheritDoc} */
   @Override
-  public CNIndexRecord getNewestRecord() throws ChangelogException
+  public ChangeNumberIndexRecord getNewestRecord() throws ChangelogException
   {
     return db.readLastRecord();
   }
@@ -221,7 +223,7 @@ public class JEChangeNumberIndexDB implements ChangeNumberIndexDB, Runnable
 
   /** {@inheritDoc} */
   @Override
-  public DBCursor<CNIndexRecord> getCursorFrom(long startChangeNumber)
+  public DBCursor<ChangeNumberIndexRecord> getCursorFrom(long startChangeNumber)
       throws ChangelogException
   {
     return new JEChangeNumberIndexDBCursor(db, startChangeNumber);
@@ -355,7 +357,7 @@ public class JEChangeNumberIndexDB implements ChangeNumberIndexDB, Runnable
             return;
           }
 
-          final CNIndexRecord record = cursor.currentRecord();
+          final ChangeNumberIndexRecord record = cursor.currentRecord();
           if (baseDNToClear != null && baseDNToClear.equals(record.getBaseDN()))
           {
             cursor.delete();
@@ -478,7 +480,7 @@ public class JEChangeNumberIndexDB implements ChangeNumberIndexDB, Runnable
     {
       try
       {
-        CNIndexRecord record =
+        final ChangeNumberIndexRecord record =
             isFirst ? db.readFirstRecord() : db.readLastRecord();
         if (record != null)
         {

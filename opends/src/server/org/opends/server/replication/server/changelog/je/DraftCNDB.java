@@ -33,8 +33,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.opends.messages.MessageBuilder;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.replication.server.changelog.api.CNIndexRecord;
-import org.opends.server.replication.server.changelog.api.ChangelogException;
+import org.opends.server.replication.server.changelog.api.*;
 import org.opends.server.types.DebugLogLevel;
 
 import com.sleepycat.je.*;
@@ -83,9 +82,9 @@ public class DraftCNDB
    * Add a record to the database.
    *
    * @param record
-   *          the provided {@link CNIndexRecord} to be stored.
+   *          the provided {@link ChangeNumberIndexRecord} to be stored.
    */
-  public void addRecord(CNIndexRecord record)
+  public void addRecord(ChangeNumberIndexRecord record)
   {
     try
     {
@@ -220,7 +219,7 @@ public class DraftCNDB
    * @throws ChangelogException
    *           if a database problem occurred
    */
-  public CNIndexRecord readFirstRecord() throws ChangelogException
+  public ChangeNumberIndexRecord readFirstRecord() throws ChangelogException
   {
     try
     {
@@ -256,7 +255,7 @@ public class DraftCNDB
     }
   }
 
-  private CNIndexRecord newCNIndexRecord(ReplicationDraftCNKey key,
+  private ChangeNumberIndexRecord newCNIndexRecord(ReplicationDraftCNKey key,
       DatabaseEntry data) throws ChangelogException
   {
     return new DraftCNData(key.getChangeNumber(), data.getData()).getRecord();
@@ -297,7 +296,7 @@ public class DraftCNDB
    * @throws ChangelogException
    *           if a database problem occurred
    */
-  public CNIndexRecord readLastRecord() throws ChangelogException
+  public ChangeNumberIndexRecord readLastRecord() throws ChangelogException
   {
     try
     {
@@ -357,7 +356,7 @@ public class DraftCNDB
     private final Transaction txn;
     private final ReplicationDraftCNKey key;
     private final DatabaseEntry entry = new DatabaseEntry();
-    private CNIndexRecord record;
+    private ChangeNumberIndexRecord record;
     private boolean isClosed = false;
 
 
@@ -561,11 +560,12 @@ public class DraftCNDB
     }
 
     /**
-     * Returns the {@link CNIndexRecord} at the current position of the cursor.
+     * Returns the {@link ChangeNumberIndexRecord} at the current position of
+     * the cursor.
      *
-     * @return The current {@link CNIndexRecord}.
+     * @return The current {@link ChangeNumberIndexRecord}.
      */
-    public CNIndexRecord currentRecord()
+    public ChangeNumberIndexRecord currentRecord()
     {
       if (isClosed)
       {

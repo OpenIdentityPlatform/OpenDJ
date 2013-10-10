@@ -40,10 +40,7 @@ import org.opends.server.replication.common.MultiDomainServerState;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.common.ServerStatus;
 import org.opends.server.replication.protocol.*;
-import org.opends.server.replication.server.changelog.api.CNIndexRecord;
-import org.opends.server.replication.server.changelog.api.ChangeNumberIndexDB;
-import org.opends.server.replication.server.changelog.api.ChangelogException;
-import org.opends.server.replication.server.changelog.api.DBCursor;
+import org.opends.server.replication.server.changelog.api.*;
 import org.opends.server.types.*;
 import org.opends.server.util.ServerConstants;
 
@@ -77,7 +74,7 @@ public final class ECLServerHandler extends ServerHandler
   private String operationId;
 
   /** Cursor on the {@link ChangeNumberIndexDB}. */
-  private DBCursor<CNIndexRecord> cnIndexDBCursor;
+  private DBCursor<ChangeNumberIndexRecord> cnIndexDBCursor;
 
   private boolean draftCompat = false;
   /**
@@ -591,7 +588,7 @@ public final class ECLServerHandler extends ServerHandler
     {
       // Request filter DOES NOT contain any start change number
       // So we'll generate from the oldest change number in the CNIndexDB
-      final CNIndexRecord oldestRecord = cnIndexDB.getOldestRecord();
+      final ChangeNumberIndexRecord oldestRecord = cnIndexDB.getOldestRecord();
       if (oldestRecord == null)
       { // DB is empty or closed
         isEndOfCNIndexDBReached = true;
@@ -606,8 +603,9 @@ public final class ECLServerHandler extends ServerHandler
     // Request filter DOES contain a startChangeNumber
 
     // Read the CNIndexDB to see whether it contains startChangeNumber
-    DBCursor<CNIndexRecord> cursor = cnIndexDB.getCursorFrom(startChangeNumber);
-    final CNIndexRecord startRecord = cursor.getRecord();
+    DBCursor<ChangeNumberIndexRecord> cursor =
+        cnIndexDB.getCursorFrom(startChangeNumber);
+    final ChangeNumberIndexRecord startRecord = cursor.getRecord();
     if (startRecord != null)
     {
       // found the provided startChangeNumber, let's return it
@@ -632,7 +630,7 @@ public final class ECLServerHandler extends ServerHandler
     if (startChangeNumber < oldestChangeNumber)
     {
       cursor = cnIndexDB.getCursorFrom(oldestChangeNumber);
-      final CNIndexRecord oldestRecord = cursor.getRecord();
+      final ChangeNumberIndexRecord oldestRecord = cursor.getRecord();
       if (oldestRecord == null)
       {
         // This should not happen
@@ -648,7 +646,7 @@ public final class ECLServerHandler extends ServerHandler
     {
       // startChangeNumber is between oldest and potential newest and has never
       // been returned yet
-      final CNIndexRecord newestRecord = cnIndexDB.getNewestRecord();
+      final ChangeNumberIndexRecord newestRecord = cnIndexDB.getNewestRecord();
       if (newestRecord == null)
       {
         isEndOfCNIndexDBReached = true;
@@ -667,10 +665,12 @@ public final class ECLServerHandler extends ServerHandler
     throw new DirectoryException(ResultCode.SUCCESS, Message.raw(""));
   }
 
-  private DBCursor<CNIndexRecord> getCursorFrom(ChangeNumberIndexDB cnIndexDB,
-      long startChangeNumber) throws ChangelogException
+  private DBCursor<ChangeNumberIndexRecord> getCursorFrom(
+      ChangeNumberIndexDB cnIndexDB, long startChangeNumber)
+      throws ChangelogException
   {
-    DBCursor<CNIndexRecord> cursor = cnIndexDB.getCursorFrom(startChangeNumber);
+    DBCursor<ChangeNumberIndexRecord> cursor =
+        cnIndexDB.getCursorFrom(startChangeNumber);
     if (cursor.getRecord() == null)
     {
       close(cursor);
@@ -1320,7 +1320,7 @@ public final class ECLServerHandler extends ServerHandler
         return true;
       }
 
-      final CNIndexRecord currentRecord = cnIndexDBCursor.getRecord();
+      final ChangeNumberIndexRecord currentRecord = cnIndexDBCursor.getRecord();
       final CSN csnFromCNIndexDB = currentRecord.getCSN();
       final DN dnFromCNIndexDB = currentRecord.getBaseDN();
 
@@ -1401,8 +1401,9 @@ public final class ECLServerHandler extends ServerHandler
   private void assignNewChangeNumberAndStore(ECLUpdateMsg change)
       throws ChangelogException
   {
-    final CNIndexRecord record = new CNIndexRecord(previousCookie.toString(),
-        change.getBaseDN(), change.getUpdateMsg().getCSN());
+    final ChangeNumberIndexRecord record =
+        new ChangeNumberIndexRecord(previousCookie.toString(),
+            change.getBaseDN(), change.getUpdateMsg().getCSN());
     // store in CNIndexDB the pair
     // (change number of the current change, state before this change)
     change.setChangeNumber(
