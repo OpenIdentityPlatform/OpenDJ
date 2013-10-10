@@ -41,7 +41,6 @@ import org.opends.server.admin.std.server.SynchronizationProviderCfg;
 import org.opends.server.api.SynchronizationProvider;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
-import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.replication.common.CSNGenerator;
 import org.opends.server.replication.plugin.EntryHistorical;
@@ -68,9 +67,6 @@ public class SchemaReplicationTest extends ReplicationTestCase
 
   /**
    * Set up the environment for performing the tests in this Class.
-   *
-   * @throws Exception
-   *           If the environment could not be set up.
    */
   @Override
   @BeforeClass
@@ -133,12 +129,7 @@ public class SchemaReplicationTest extends ReplicationTestCase
       List<Modification> mods = new ArrayList<Modification>();
       Modification mod = new Modification(ModificationType.ADD, attr);
       mods.add(mod);
-      ModifyOperationBasis modOp = new ModifyOperationBasis(connection,
-          InternalClientConnection.nextOperationID(), InternalClientConnection
-          .nextMessageID(), null, baseDN, mods);
-      modOp.setInternalOperation(true);
-      modOp.run();
-
+      ModifyOperation modOp = connection.processModify(baseDN, mods);
       assertEquals(modOp.getResultCode(), ResultCode.SUCCESS,
           "The original operation failed");
 
@@ -167,12 +158,7 @@ public class SchemaReplicationTest extends ReplicationTestCase
       mod = new Modification(ModificationType.DELETE, attr);
       mods.clear();
       mods.add(mod);
-      modOp = new ModifyOperationBasis(connection,
-          InternalClientConnection.nextOperationID(), InternalClientConnection
-          .nextMessageID(), null, baseDN, mods);
-      modOp.setInternalOperation(true);
-      modOp.run();
-
+      modOp = connection.processModify(baseDN, mods);
       assertEquals(modOp.getResultCode(), ResultCode.SUCCESS,
           "The original operation failed");
 

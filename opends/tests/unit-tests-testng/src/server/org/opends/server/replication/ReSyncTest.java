@@ -34,9 +34,8 @@ import org.opends.messages.Category;
 import org.opends.messages.Message;
 import org.opends.messages.Severity;
 import org.opends.server.TestCaseUtils;
-import org.opends.server.core.AddOperationBasis;
+import org.opends.server.core.AddOperation;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.ResultCode;
@@ -136,13 +135,7 @@ public class ReSyncTest extends ReplicationTestCase
   private ResultCode addEntry(String entryString) throws Exception
   {
     Entry entry = TestCaseUtils.entryFromLdifString(entryString);
-    AddOperationBasis addOp = new AddOperationBasis(connection,
-       InternalClientConnection.nextOperationID(), InternalClientConnection
-       .nextMessageID(), null, entry.getDN(), entry.getObjectClasses(),
-       entry.getUserAttributes(), entry.getOperationalAttributes());
-    addOp.setInternalOperation(true);
-    addOp.run();
-
+    AddOperation addOp = connection.processAdd(entry);
     entriesToCleanup.add(entry.getDN());
     return addOp.getResultCode();
   }
@@ -250,7 +243,7 @@ public class ReSyncTest extends ReplicationTestCase
   {
     callParanoiaCheck = false;
 
-    // Do not try to remove non leaves 
+    // Do not try to remove non leaves
     entriesToCleanup.remove(DN.decode(EXAMPLE_DN));
     super.classCleanUp();
 

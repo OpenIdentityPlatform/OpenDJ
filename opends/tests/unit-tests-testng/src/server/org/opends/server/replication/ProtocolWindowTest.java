@@ -36,11 +36,10 @@ import org.opends.messages.Category;
 import org.opends.messages.Message;
 import org.opends.messages.Severity;
 import org.opends.server.TestCaseUtils;
-import org.opends.server.core.AddOperationBasis;
-import org.opends.server.core.DeleteOperationBasis;
+import org.opends.server.core.AddOperation;
+import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
-import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.replication.protocol.AddMsg;
 import org.opends.server.replication.protocol.ReplicationMsg;
@@ -130,12 +129,7 @@ public class ProtocolWindowTest extends ReplicationTestCase
 
       // Create an Entry (add operation) that will be later used in the test.
       Entry tmp = personEntry.duplicate(false);
-      AddOperationBasis addOp = new AddOperationBasis(connection,
-          InternalClientConnection.nextOperationID(), InternalClientConnection
-          .nextMessageID(), null, tmp.getDN(),
-          tmp.getObjectClasses(), tmp.getUserAttributes(),
-          tmp.getOperationalAttributes());
-      addOp.run();
+      AddOperation addOp = connection.processAdd(tmp);
       assertEquals(addOp.getResultCode(), ResultCode.SUCCESS);
       assertTrue(DirectoryServer.entryExists(personEntry.getDN()),
         "The Add Entry operation failed");
@@ -186,12 +180,9 @@ public class ProtocolWindowTest extends ReplicationTestCase
       DN dn = repDomainEntry.getDN();
       try
       {
-        DeleteOperationBasis op = new DeleteOperationBasis(connection,
-          InternalClientConnection.nextOperationID(),
-          InternalClientConnection.nextMessageID(), null, dn);
-        op.run();
-        if ((op.getResultCode() != ResultCode.SUCCESS) &&
-          (op.getResultCode() != ResultCode.NO_SUCH_OBJECT))
+        DeleteOperation op = connection.processDelete(dn);
+        if (op.getResultCode() != ResultCode.SUCCESS
+            && op.getResultCode() != ResultCode.NO_SUCH_OBJECT)
         {
           logError(Message.raw(Category.SYNC, Severity.NOTICE,
           "saturateQueueAndRestart: error cleaning config entry: " + dn));

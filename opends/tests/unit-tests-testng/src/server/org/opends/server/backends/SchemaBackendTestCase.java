@@ -27,50 +27,28 @@
  */
 package org.opends.server.backends;
 
-
-
 import java.io.File;
 import java.util.Map;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.server.config.ConfigException;
-import org.opends.server.core.AddOperationBasis;
-import org.opends.server.core.DeleteOperationBasis;
-import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.ModifyDNOperationBasis;
-import org.opends.server.core.SchemaConfigManager;
+import org.opends.server.core.*;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.tools.LDAPModify;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.DITContentRule;
-import org.opends.server.types.DN;
-import org.opends.server.types.Entry;
-import org.opends.server.types.ExistingFileBehavior;
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.LDIFExportConfig;
-import org.opends.server.types.LDIFImportConfig;
-import org.opends.server.types.MatchingRuleUse;
-import org.opends.server.types.ObjectClass;
-import org.opends.server.types.ResultCode;
-import org.opends.server.types.SearchFilter;
-import org.opends.server.types.SearchScope;
+import org.opends.server.types.*;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import static org.testng.Assert.*;
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.util.StaticUtils.*;
-
-
+import static org.testng.Assert.*;
 
 /**
  * A set of test cases for the schema backend.
  */
 @SuppressWarnings("javadoc")
-public class SchemaBackendTestCase
-       extends BackendTestCase
+public class SchemaBackendTestCase extends BackendTestCase
 {
   /** A reference to the schema backend. */
   private SchemaBackend schemaBackend;
@@ -79,12 +57,9 @@ public class SchemaBackendTestCase
   /**
    * Ensures that the Directory Server is running and gets a reference to the
    * schema backend.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
    */
   @BeforeClass()
-  public void startServer()
-         throws Exception
+  public void startServer() throws Exception
   {
     TestCaseUtils.startServer();
 
@@ -256,19 +231,10 @@ public class SchemaBackendTestCase
    * exception.
    */
   @Test(expectedExceptions = { DirectoryException.class })
-  public void testAddEntry()
-         throws Exception
+  public void testAddEntry() throws Exception
   {
     Entry entry = createEntry(DN.decode("cn=schema"));
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    AddOperationBasis addOperation =
-         new AddOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
-                          null, entry.getDN(), entry.getObjectClasses(),
-                          entry.getUserAttributes(),
-                          entry.getOperationalAttributes());
-
+    AddOperation addOperation = getRootConnection().processAdd(entry);
     schemaBackend.addEntry(entry, addOperation);
   }
 

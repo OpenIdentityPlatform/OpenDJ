@@ -27,8 +27,6 @@
  */
 package org.opends.server.types;
 
-import static org.testng.Assert.*;
-
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -56,6 +54,10 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.types.ResultCode.*;
+import static org.testng.Assert.*;
 
 /**
  * This class provides a set of test cases for the Directory Server privilege
@@ -271,55 +273,29 @@ public class PrivilegeTestCase extends TypesTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @AfterClass()
-  public void cleanUp()
-         throws Exception
+  public void cleanUp() throws Exception
   {
-   TestCaseUtils.dsconfig(
+    TestCaseUtils.dsconfig(
             "set-sasl-mechanism-handler-prop",
             "--handler-name", "DIGEST-MD5",
             "--remove", "server-fqdn:" + "127.0.0.1");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
-    DeleteOperation deleteOperation =
-         conn.processDelete(
-              DN.decode("cn=Unprivileged Root,cn=Root DNs,cn=config"));
-    assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
-
-    deleteOperation =
-      conn.processDelete(
-           DN.decode("cn=Proxy Root,cn=Root DNs,cn=config"));
-    assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
-
-    deleteOperation =
-      conn.processDelete(
-           DN.decode("cn=Privileged User,o=test"));
-    assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
-
-    deleteOperation =
-      conn.processDelete(
-           DN.decode("cn=UnPrivileged User,o=test"));
-    assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
-
-    deleteOperation =
-      conn.processDelete(
-           DN.decode("cn=PWReset Target,o=test"));
-    assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
-
-    deleteOperation = conn.processDelete(DN
-        .decode("cn=test1 user,dc=unindexed,dc=jeb"));
-    assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
-
-    deleteOperation = conn.processDelete(DN
-        .decode("cn=test2 user,dc=unindexed,dc=jeb"));
-    assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
-
-    deleteOperation = conn.processDelete(DN
-        .decode("dc=unindexed,dc=jeb"));
-    assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
+    assertDeleteSuccessfully("cn=Unprivileged Root,cn=Root DNs,cn=config");
+    assertDeleteSuccessfully("cn=Proxy Root,cn=Root DNs,cn=config");
+    assertDeleteSuccessfully("cn=Privileged User,o=test");
+    assertDeleteSuccessfully("cn=UnPrivileged User,o=test");
+    assertDeleteSuccessfully("cn=PWReset Target,o=test");
+    assertDeleteSuccessfully("cn=test1 user,dc=unindexed,dc=jeb");
+    assertDeleteSuccessfully("cn=test2 user,dc=unindexed,dc=jeb");
+    assertDeleteSuccessfully("dc=unindexed,dc=jeb");
 
     TestCaseUtils.disableBackend("unindexedRoot");
+  }
+
+  private void assertDeleteSuccessfully(String dn) throws DirectoryException
+  {
+    DeleteOperation deleteOperation = getRootConnection().processDelete(DN.decode(dn));
+    assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
 
@@ -371,9 +347,8 @@ public class PrivilegeTestCase extends TypesTestCase
   {
     assertEquals(conn.hasPrivilege(Privilege.CONFIG_READ, null), hasPrivilege);
 
-    InternalSearchOperation searchOperation =
-         conn.processSearch(DN.decode("cn=config"), SearchScope.BASE_OBJECT,
-              SearchFilter.createFilterFromString("(objectClass=*)"));
+    InternalSearchOperation searchOperation = conn.processSearch(
+        "cn=config", SearchScope.BASE_OBJECT, "(objectClass=*)");
     assertPrivilege(searchOperation.getResultCode(), hasPrivilege);
   }
 
@@ -395,9 +370,8 @@ public class PrivilegeTestCase extends TypesTestCase
   {
     assertEquals(conn.hasPrivilege(Privilege.UNINDEXED_SEARCH, null), hasPrivilege);
 
-    InternalSearchOperation searchOperation =
-        conn.processSearch(DN.decode("dc=unindexed,dc=jeb"), SearchScope.WHOLE_SUBTREE,
-             SearchFilter.createFilterFromString("(carLicense=test*)"));
+    InternalSearchOperation searchOperation = conn.processSearch(
+        "dc=unindexed,dc=jeb", SearchScope.WHOLE_SUBTREE, "(carLicense=test*)");
     assertPrivilege(searchOperation.getResultCode(), hasPrivilege);
   }
 
@@ -1261,14 +1235,12 @@ public class PrivilegeTestCase extends TypesTestCase
       "sn: Test");
 
     List<Control> controls = new ArrayList<Control>(1);
-    controls.add(new ProxiedAuthV1Control(
-                          DN.decode("cn=PWReset Target,o=test")));
+    controls.add(new ProxiedAuthV1Control(DN.decode("cn=PWReset Target,o=test")));
 
 
     // Try to add the entry.  If this fails with the proxy control, then add it
     // with a root connection so we can do other things with it.
-    AddOperationBasis addOperation =
-         new AddOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
+    AddOperation addOperation = new AddOperationBasis(conn, nextOperationID(), nextMessageID(),
                           controls, e.getDN(), e.getObjectClasses(),
                           e.getUserAttributes(), e.getOperationalAttributes());
     addOperation.run();
@@ -1285,17 +1257,15 @@ public class PrivilegeTestCase extends TypesTestCase
     mods.add(new Modification(ModificationType.REPLACE,
         Attributes.create("description", "foo")));
 
-    ModifyOperationBasis modifyOperation =
-         new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
+    ModifyOperation modifyOperation = new ModifyOperationBasis(conn, nextOperationID(), nextMessageID(),
                              controls, e.getDN(), mods);
     modifyOperation.run();
     assertProxyPrivilege(modifyOperation.getResultCode(), hasProxyPrivilege);
 
 
     // Try to rename the entry.
-    ModifyDNOperationBasis modifyDNOperation =
-         new ModifyDNOperationBasis(conn, InternalClientConnection.nextOperationID(),
-                               InternalClientConnection.nextMessageID(), controls, e.getDN(),
+    ModifyDNOperation modifyDNOperation = new ModifyDNOperationBasis(conn, nextOperationID(),
+                               nextMessageID(), controls, e.getDN(),
                                RDN.decode("cn=Proxy V1 Test"), true, null);
     modifyDNOperation.run();
     assertProxyPrivilege(modifyOperation.getResultCode(), hasProxyPrivilege);
@@ -1309,17 +1279,14 @@ public class PrivilegeTestCase extends TypesTestCase
 
     // Try to delete the operation.  If this fails, then delete it with a root
     // connection so it gets cleaned up.
-    DeleteOperationBasis deleteOperation =
-         new DeleteOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
+    DeleteOperation deleteOperation = new DeleteOperationBasis(conn, nextOperationID(), nextMessageID(),
                              controls, newEntryDN);
     deleteOperation.run();
     assertProxyPrivilege(deleteOperation.getResultCode(), hasProxyPrivilege);
 
     if (!hasProxyPrivilege)
     {
-      InternalClientConnection rootConnection =
-           InternalClientConnection.getRootConnection();
-      DeleteOperation delOp = rootConnection.processDelete(newEntryDN);
+      DeleteOperation delOp = getRootConnection().processDelete(newEntryDN);
       assertEquals(delOp.getResultCode(), ResultCode.SUCCESS);
     }
   }
@@ -1355,28 +1322,26 @@ public class PrivilegeTestCase extends TypesTestCase
 
 
     // Test a compare operation against the PWReset Target user.
-    CompareOperationBasis compareOperation =
-         new CompareOperationBasis(conn, InternalClientConnection.nextOperationID(),
-                              InternalClientConnection.nextMessageID(), controls, targetDN,
+    CompareOperation compareOperation = new CompareOperationBasis(conn,
+                              nextOperationID(), nextMessageID(),
+                              controls, targetDN,
                               DirectoryServer.getAttributeType("cn", true),
-             ByteString.valueOf("PWReset Target"));
+                              ByteString.valueOf("PWReset Target"));
     compareOperation.run();
 
     if (hasProxyPrivilege)
     {
-      assertEquals(compareOperation.getResultCode(), ResultCode.COMPARE_TRUE);
+      assertEquals(compareOperation.getResultCode(), COMPARE_TRUE);
     }
     else
     {
-      assertEquals(compareOperation.getResultCode(),
-                   ResultCode.AUTHORIZATION_DENIED);
+      assertEquals(compareOperation.getResultCode(), AUTHORIZATION_DENIED);
     }
 
 
     // Test a search operation against the PWReset Target user.
-    InternalSearchOperation searchOperation =
-         new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
-                  InternalClientConnection.nextMessageID(), controls, targetDN,
+    InternalSearchOperation searchOperation = new InternalSearchOperation(conn,
+                  nextOperationID(), nextMessageID(), controls, targetDN,
                   SearchScope.BASE_OBJECT,
                   DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
                   SearchFilter.createFilterFromString("(objectClass=*)"), null,
@@ -1421,14 +1386,13 @@ public class PrivilegeTestCase extends TypesTestCase
       "sn: Test");
 
     List<Control> controls = new ArrayList<Control>(1);
-    controls.add(new ProxiedAuthV2Control(
-        ByteString.valueOf("dn:cn=PWReset Target,o=test")));
+    controls.add(new ProxiedAuthV2Control(ByteString.valueOf("dn:cn=PWReset Target,o=test")));
 
 
     // Try to add the entry.  If this fails with the proxy control, then add it
     // with a root connection so we can do other things with it.
-    AddOperationBasis addOperation =
-         new AddOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
+    AddOperation addOperation =
+         new AddOperationBasis(conn, nextOperationID(), nextMessageID(),
                           controls, e.getDN(), e.getObjectClasses(),
                           e.getUserAttributes(), e.getOperationalAttributes());
     addOperation.run();
@@ -1445,17 +1409,16 @@ public class PrivilegeTestCase extends TypesTestCase
     mods.add(new Modification(ModificationType.REPLACE,
         Attributes.create("description", "foo")));
 
-    ModifyOperationBasis modifyOperation =
-         new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
+    ModifyOperation modifyOperation =
+         new ModifyOperationBasis(conn, nextOperationID(), nextMessageID(),
                              controls, e.getDN(), mods);
     modifyOperation.run();
     assertProxyPrivilege(modifyOperation.getResultCode(), hasProxyPrivilege);
 
 
     // Try to rename the entry.
-    ModifyDNOperationBasis modifyDNOperation =
-         new ModifyDNOperationBasis(conn, InternalClientConnection.nextOperationID(),
-                               InternalClientConnection.nextMessageID(), controls, e.getDN(),
+    ModifyDNOperation modifyDNOperation = new ModifyDNOperationBasis(conn, nextOperationID(),
+                               nextMessageID(), controls, e.getDN(),
                                RDN.decode("cn=Proxy V2 Test"), true, null);
     modifyDNOperation.run();
     assertProxyPrivilege(modifyDNOperation.getResultCode(), hasProxyPrivilege);
@@ -1469,17 +1432,14 @@ public class PrivilegeTestCase extends TypesTestCase
 
     // Try to delete the operation.  If this fails, then delete it with a root
     // connection so it gets cleaned up.
-    DeleteOperationBasis deleteOperation =
-         new DeleteOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
+    DeleteOperationBasis deleteOperation = new DeleteOperationBasis(conn, nextOperationID(), nextMessageID(),
                              controls, newEntryDN);
     deleteOperation.run();
     assertProxyPrivilege(deleteOperation.getResultCode(), hasProxyPrivilege);
 
     if (!hasProxyPrivilege)
     {
-      InternalClientConnection rootConnection =
-           InternalClientConnection.getRootConnection();
-      DeleteOperation delOp = rootConnection.processDelete(newEntryDN);
+      DeleteOperation delOp = getRootConnection().processDelete(newEntryDN);
       assertEquals(delOp.getResultCode(), ResultCode.SUCCESS);
     }
   }
@@ -1511,33 +1471,29 @@ public class PrivilegeTestCase extends TypesTestCase
 
     DN targetDN = DN.decode("cn=PWReset Target,o=test");
     List<Control> controls = new ArrayList<Control>(1);
-    controls.add(new ProxiedAuthV2Control(
-         ByteString.valueOf("dn:" + targetDN)));
+    controls.add(new ProxiedAuthV2Control(ByteString.valueOf("dn:" + targetDN)));
 
 
     // Test a compare operation against the PWReset Target user.
-    CompareOperationBasis compareOperation =
-         new CompareOperationBasis(conn, InternalClientConnection.nextOperationID(),
-                              InternalClientConnection.nextMessageID(), controls, targetDN,
+    CompareOperation compareOperation = new CompareOperationBasis(conn, nextOperationID(),
+                              nextMessageID(), controls, targetDN,
                               DirectoryServer.getAttributeType("cn", true),
              ByteString.valueOf("PWReset Target"));
     compareOperation.run();
 
     if (hasProxyPrivilege)
     {
-      assertEquals(compareOperation.getResultCode(), ResultCode.COMPARE_TRUE);
+      assertEquals(compareOperation.getResultCode(), COMPARE_TRUE);
     }
     else
     {
-      assertEquals(compareOperation.getResultCode(),
-                   ResultCode.AUTHORIZATION_DENIED);
+      assertEquals(compareOperation.getResultCode(), AUTHORIZATION_DENIED);
     }
 
 
     // Test a search operation against the PWReset Target user.
-    InternalSearchOperation searchOperation =
-         new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
-                  InternalClientConnection.nextMessageID(), controls, targetDN,
+    InternalSearchOperation searchOperation = new InternalSearchOperation(conn, nextOperationID(),
+                  nextMessageID(), controls, targetDN,
                   SearchScope.BASE_OBJECT,
                   DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
                   SearchFilter.createFilterFromString("(objectClass=*)"), null,
@@ -2416,8 +2372,7 @@ public class PrivilegeTestCase extends TypesTestCase
       assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
       assertFalse(testConnection.hasPrivilege(Privilege.CONFIG_READ, null));
 
-      DeleteOperation deleteOperation = rootConnection.processDelete(DN
-          .decode("cn=Test User,o=test"));
+      DeleteOperation deleteOperation = rootConnection.processDelete("cn=Test User,o=test");
       assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
     }
     finally
@@ -2435,8 +2390,7 @@ public class PrivilegeTestCase extends TypesTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test()
-  public void testUpdateRootPrivileges()
-         throws Exception
+  public void testUpdateRootPrivileges() throws Exception
   {
     // Make sure that a root connection doesn't  have the proxied auth
     // privilege.
@@ -2449,16 +2403,13 @@ public class PrivilegeTestCase extends TypesTestCase
 
 
     // Update the set of root privileges to include proxied auth.
-    InternalClientConnection internalRootConn =
-         InternalClientConnection.getRootConnection();
+    InternalClientConnection internalRootConn = getRootConnection();
 
     List<Modification> mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.ADD,
         Attributes.create("ds-cfg-default-root-privilege-name",
                                     "proxied-auth")));
-    ModifyOperation modifyOperation =
-         internalRootConn.processModify(DN.decode("cn=Root DNs,cn=config"),
-                                        mods);
+    ModifyOperation modifyOperation = internalRootConn.processModify(DN.decode("cn=Root DNs,cn=config"), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -2474,9 +2425,7 @@ public class PrivilegeTestCase extends TypesTestCase
     mods.add(new Modification(ModificationType.DELETE,
         Attributes.create("ds-cfg-default-root-privilege-name",
                                     "proxied-auth")));
-    modifyOperation =
-         internalRootConn.processModify(DN.decode("cn=Root DNs,cn=config"),
-                                        mods);
+    modifyOperation = internalRootConn.processModify(DN.decode("cn=Root DNs,cn=config"), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
 
@@ -2546,8 +2495,7 @@ public class PrivilegeTestCase extends TypesTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  private Task getCompletedTask(DN taskEntryDN)
-          throws Exception
+  private Task getCompletedTask(DN taskEntryDN) throws Exception
   {
     TaskBackend taskBackend =
          (TaskBackend) DirectoryServer.getBackend(DN.decode("cn=tasks"));
@@ -2562,10 +2510,7 @@ public class PrivilegeTestCase extends TypesTestCase
       }
     }
 
-    if (task == null)
-    {
-      throw new AssertionError("There is no such task " + taskEntryDN);
-    }
+    assertNotNull(task, "There is no such task " + taskEntryDN);
 
     if (! TaskState.isDone(task.getTaskState()))
     {
@@ -2576,12 +2521,8 @@ public class PrivilegeTestCase extends TypesTestCase
         Thread.sleep(10);
       }
     }
-
-    if (! TaskState.isDone(task.getTaskState()))
-    {
-      throw new AssertionError("Task " + taskEntryDN +
-                               " did not complete in a timely manner.");
-    }
+    assertTrue(TaskState.isDone(task.getTaskState()),
+        "Task " + taskEntryDN + " did not complete in a timely manner.");
 
     return task;
   }

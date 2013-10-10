@@ -36,7 +36,6 @@ import org.opends.messages.Severity;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.backends.task.TaskState;
 import org.opends.server.core.AddOperation;
-import org.opends.server.core.AddOperationBasis;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.internal.InternalClientConnection;
@@ -85,16 +84,13 @@ import static org.testng.Assert.*;
  */
 @SuppressWarnings("javadoc")
 public class InitOnLineTest extends ReplicationTestCase
- {
+{
   /**
    * The tracer object for the debug logger
    */
   private static final DebugTracer TRACER = getTracer();
   private static final int WINDOW_SIZE = 10;
 
-  /**
-   * A "person" entry
-   */
   private Entry taskInitFromS2;
   private Entry taskInitTargetS2;
   private Entry taskInitTargetAll;
@@ -331,13 +327,7 @@ public class InitOnLineTest extends ReplicationTestCase
 
   private void addTestEntryToDB(final Entry entry)
   {
-    AddOperation addOp =
-        new AddOperationBasis(connection, InternalClientConnection
-            .nextOperationID(), InternalClientConnection.nextMessageID(), null,
-            entry.getDN(), entry.getObjectClasses(), entry.getUserAttributes(),
-            entry.getOperationalAttributes());
-    addOp.setInternalOperation(true);
-    addOp.run();
+    AddOperation addOp = connection.processAdd(entry);
     if (addOp.getResultCode() != ResultCode.SUCCESS)
     {
       log("addEntry: Failed" + addOp.getResultCode());
