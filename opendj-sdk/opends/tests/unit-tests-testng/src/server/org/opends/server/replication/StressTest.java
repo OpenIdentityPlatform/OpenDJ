@@ -30,6 +30,7 @@ package org.opends.server.replication;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.assertj.core.api.Assertions;
 import org.opends.messages.Category;
 import org.opends.messages.Message;
 import org.opends.messages.Severity;
@@ -37,7 +38,7 @@ import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.config.ConfigException;
-import org.opends.server.core.AddOperationBasis;
+import org.opends.server.core.AddOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.protocols.internal.InternalClientConnection;
@@ -97,27 +98,19 @@ public class StressTest extends ReplicationTestCase
 
       // Create an Entry (add operation) that will be later used in the test.
       Entry tmp = personEntry.duplicate(false);
-      AddOperationBasis addOp = new AddOperationBasis(connection,
-          InternalClientConnection.nextOperationID(), InternalClientConnection
-          .nextMessageID(), null, tmp.getDN(),
-          tmp.getObjectClasses(), tmp.getUserAttributes(),
-          tmp.getOperationalAttributes());
-      addOp.run();
+      AddOperation addOp = connection.processAdd(tmp);
       assertTrue(DirectoryServer.entryExists(personEntry.getDN()),
         "The Add Entry operation failed");
       if (ResultCode.SUCCESS == addOp.getResultCode())
       {
         // Check if the client has received the msg
         ReplicationMsg msg = broker.receive();
-
-        assertTrue(msg instanceof AddMsg,
-        "The received replication message is not an ADD msg");
+        Assertions.assertThat(msg).isInstanceOf(AddMsg.class);
         AddMsg addMsg =  (AddMsg) msg;
 
         Operation receivedOp = addMsg.createOperation(connection);
-        assertTrue(OperationType.ADD.compareTo(receivedOp.getOperationType()) == 0,
+        assertEquals(receivedOp.getOperationType(), OperationType.ADD,
         "The received replication message is not an ADD msg");
-
         assertEquals(addMsg.getDN(), personEntry.getDN(),
         "The received ADD replication message is not for the excepted DN");
       }
@@ -292,7 +285,7 @@ public class StressTest extends ReplicationTestCase
         synchronized (this)
         {
           finished = true;
-          this.notify();
+          notify();
         }
       }
     }
@@ -310,7 +303,7 @@ public class StressTest extends ReplicationTestCase
         {
           try
           {
-            this.wait(6000);
+            wait(6000);
           } catch (InterruptedException e)
           {
             return -1;

@@ -40,11 +40,10 @@ import org.opends.messages.Category;
 import org.opends.messages.Message;
 import org.opends.messages.Severity;
 import org.opends.server.TestCaseUtils;
-import org.opends.server.core.AddOperationBasis;
-import org.opends.server.core.DeleteOperationBasis;
+import org.opends.server.core.AddOperation;
+import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.*;
@@ -176,12 +175,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
   private void addEntry(Entry entry) throws Exception
   {
     debugInfo("AddEntry " + entry.getDN());
-    AddOperationBasis addOp = new AddOperationBasis(connection,
-      InternalClientConnection.nextOperationID(), InternalClientConnection.
-      nextMessageID(), null, entry.getDN(), entry.getObjectClasses(),
-      entry.getUserAttributes(), entry.getOperationalAttributes());
-    addOp.setInternalOperation(true);
-    addOp.run();
+    AddOperation addOp = connection.processAdd(entry);
     waitOpResult(addOp, ResultCode.SUCCESS);
     assertNotNull(getEntry(entry.getDN(), 1000, true));
   }
@@ -1493,11 +1487,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
   private void deleteEntry(String dn) throws Exception
   {
     DN realDN = DN.decode(dn);
-    DeleteOperationBasis delOp = new DeleteOperationBasis(connection,
-      InternalClientConnection.nextOperationID(),
-      InternalClientConnection.nextMessageID(), null, realDN);
-    delOp.setInternalOperation(true);
-    delOp.run();
+    DeleteOperation delOp = connection.processDelete(realDN);
     waitOpResult(delOp, ResultCode.SUCCESS);
     assertNull(DirectoryServer.getEntry(realDN));
   }

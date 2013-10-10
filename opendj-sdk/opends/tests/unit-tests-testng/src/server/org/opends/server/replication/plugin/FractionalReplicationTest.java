@@ -40,10 +40,8 @@ import org.opends.messages.Message;
 import org.opends.messages.Severity;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.config.ConfigException;
-import org.opends.server.core.AddOperationBasis;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.CSNGenerator;
 import org.opends.server.replication.common.ServerStatus;
@@ -765,12 +763,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
    */
   private void addEntry(Entry entry) throws Exception
   {
-    AddOperationBasis addOp = new AddOperationBasis(connection,
-      InternalClientConnection.nextOperationID(), InternalClientConnection.
-      nextMessageID(), null, entry.getDN(), entry.getObjectClasses(),
-      entry.getUserAttributes(), entry.getOperationalAttributes());
-    addOp.setInternalOperation(true);
-    addOp.run();
+    connection.processAdd(entry);
     assertNotNull(getEntry(entry.getDN(), 1000, true));
   }
 
