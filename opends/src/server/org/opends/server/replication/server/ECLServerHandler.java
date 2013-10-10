@@ -833,9 +833,8 @@ public final class ECLServerHandler extends ServerHandler
       // If there are domain missing in the provided cookie,
       // the request is rejected and a full resync is required.
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-        ERR_RESYNC_REQUIRED_MISSING_DOMAIN_IN_PROVIDED_COOKIE.get(
-            missingDomains,
-            "<" + providedCookie + missingDomains + ">"));
+          ERR_RESYNC_REQUIRED_MISSING_DOMAIN_IN_PROVIDED_COOKIE.get(
+              missingDomains, "<" + providedCookie + missingDomains + ">"));
     }
 
     /*
@@ -863,14 +862,14 @@ public final class ECLServerHandler extends ServerHandler
       This domain has probably been removed or replication disabled on it.
       The request is rejected and full resync is required.
       */
-      StringBuilder sb = new StringBuilder();
-      for (DomainContext domainCtxt : domainCtxts) {
+      final StringBuilder sb = new StringBuilder();
+      for (DomainContext domainCtxt : results) {
         sb.append(domainCtxt.rsDomain.getBaseDN()).append(":")
           .append(domainCtxt.startState).append(";");
       }
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
           ERR_RESYNC_REQUIRED_UNKNOWN_DOMAIN_IN_PROVIDED_COOKIE.get(
-              startStatesFromProvidedCookie.toString() ,sb.toString()));
+              startStatesFromProvidedCookie.toString(), sb.toString()));
     }
 
     return results;
