@@ -650,6 +650,7 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
         try
         {
           cnIndexDB = new JEChangeNumberIndexDB(replicationServer, this.dbEnv);
+          cnIndexDB.startTrimmingThread();
         }
         catch (Exception e)
         {
