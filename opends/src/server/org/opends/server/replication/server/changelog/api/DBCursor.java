@@ -32,6 +32,18 @@ import java.io.Closeable;
  * Generic cursor interface into the changelog database. Once it is not used
  * anymore, a cursor must be closed to release all the resources into the
  * database.
+ * <p>
+ * Here is a typical usage pattern:
+ *
+ * <pre>
+ * DBCursor&lt;T&gt; cursor = ...;         // obtain a new cursor,
+ *                                   // already initialized
+ * T record1 = cursor.getRecord();   // get the first record
+ * while (cursor.next()) {           // advance to the next record
+ *   T record = cursor.getRecord();  // get the next record
+ *   ...                             // etc.
+ * }
+ * </pre>
  *
  * @param <T>
  *          type of the record being returned
