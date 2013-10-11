@@ -23,25 +23,20 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS
  */
 package org.opends.server.types;
+
+import java.util.*;
+
 import org.opends.messages.Message;
-
-
-
-import java.util.Iterator;
-import java.util.List;
-import java.util.TreeMap;
-import java.util.TreeSet;
-
 import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.core.DirectoryServer;
-
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.messages.CoreMessages.*;
-import static org.opends.server.util.StaticUtils.*;
 
+import static org.opends.messages.CoreMessages.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class defines a data structure for storing and interacting
@@ -61,25 +56,22 @@ public final class RDN
    */
   private static final DebugTracer TRACER = getTracer();
 
-
-
-
-  // The set of attribute types for the elements in this RDN.
+  /** The set of attribute types for the elements in this RDN. */
   private AttributeType[] attributeTypes;
 
-  // The set of values for the elements in this RDN.
+  /** The set of values for the elements in this RDN. */
   private AttributeValue[] attributeValues;
 
-  // The number of values for this RDN.
+  /** The number of values for this RDN. */
   private int numValues;
 
-  // The string representation of the normalized form of this RDN.
+  /** The string representation of the normalized form of this RDN. */
   private String normalizedRDN;
 
-  // The string representation of this RDN.
+  /** The string representation of this RDN. */
   private String rdnString;
 
-  // The set of user-provided names for the attributes in this RDN.
+  /** The set of user-provided names for the attributes in this RDN. */
   private String[] attributeNames;
 
 
@@ -364,7 +356,7 @@ public final class RDN
    */
   public boolean isMultiValued()
   {
-    return (numValues > 1);
+    return numValues > 1;
   }
 
 
@@ -408,8 +400,7 @@ public final class RDN
    *          this RDN, or <CODE>false</CODE> if it was not (e.g., it
    *          was already present).
    */
-  boolean addValue(AttributeType type, String name,
-                   AttributeValue value)
+  boolean addValue(AttributeType type, String name, AttributeValue value)
   {
     for (int i=0; i < numValues; i++)
     {
@@ -423,20 +414,17 @@ public final class RDN
     numValues++;
 
     AttributeType[] newTypes = new AttributeType[numValues];
-    System.arraycopy(attributeTypes, 0, newTypes, 0,
-                     attributeTypes.length);
+    System.arraycopy(attributeTypes, 0, newTypes, 0, attributeTypes.length);
     newTypes[attributeTypes.length] = type;
     attributeTypes = newTypes;
 
     String[] newNames = new String[numValues];
-    System.arraycopy(attributeNames, 0, newNames, 0,
-                     attributeNames.length);
+    System.arraycopy(attributeNames, 0, newNames, 0, attributeNames.length);
     newNames[attributeNames.length] = name;
     attributeNames = newNames;
 
     AttributeValue[] newValues = new AttributeValue[numValues];
-    System.arraycopy(attributeValues, 0, newValues, 0,
-                     attributeValues.length);
+    System.arraycopy(attributeValues, 0, newValues, 0, attributeValues.length);
     newValues[attributeValues.length] = value;
     attributeValues = newValues;
 
@@ -452,13 +440,14 @@ public final class RDN
    * Retrieves a version of the provided value in a form that is
    * properly escaped for use in a DN or RDN.
    *
-   * @param  value  The value to be represented in a DN-safe form.
+   * @param  valueBS  The value to be represented in a DN-safe form.
    *
    * @return  A version of the provided value in a form that is
    *          properly escaped for use in a DN or RDN.
    */
-  private static String getDNValue(String value) {
-    if ((value == null) || (value.length() == 0)) {
+  private static String getDNValue(ByteString valueBS) {
+    final String value = valueBS.toString();
+    if (value == null || value.length() == 0) {
       return "";
     }
 
@@ -564,23 +553,20 @@ public final class RDN
    *           If a problem occurs while trying to decode the provided
    *           string as a RDN.
    */
-  public static RDN decode(String rdnString)
-         throws DirectoryException
+  public static RDN decode(String rdnString) throws DirectoryException
   {
     // A null or empty RDN is not acceptable.
     if (rdnString == null)
     {
       Message message = ERR_RDN_DECODE_NULL.get();
-      throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                   message);
+      throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX, message);
     }
 
     int length = rdnString.length();
     if (length == 0)
     {
       Message message = ERR_RDN_DECODE_NULL.get();
-      throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                   message);
+      throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX, message);
     }
 
 
@@ -596,8 +582,7 @@ public final class RDN
         // This means that the RDN was completely comprised of spaces,
         // which is not valid.
         Message message = ERR_RDN_DECODE_NULL.get();
-        throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                     message);
+        throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX, message);
       }
       else
       {
@@ -606,14 +591,11 @@ public final class RDN
     }
 
 
-    // We know that it's not an empty RDN, so we can do the real
-    // processing.  First, parse the attribute name.  We can borrow
-    // the DN code for this.
-    boolean allowExceptions =
-         DirectoryServer.allowAttributeNameExceptions();
+    // We know that it's not an empty RDN, so we can do the real processing.
+    // First, parse the attribute name. We can borrow the DN code for this.
+    boolean allowExceptions = DirectoryServer.allowAttributeNameExceptions();
     StringBuilder attributeName = new StringBuilder();
-    pos = DN.parseAttributeName(rdnString, pos, attributeName,
-                                allowExceptions);
+    pos = DN.parseAttributeName(rdnString, pos, attributeName, allowExceptions);
 
 
     // Make sure that we're not at the end of the RDN string because
@@ -622,8 +604,7 @@ public final class RDN
     {
       Message message = ERR_RDN_END_WITH_ATTR_NAME.get(
           rdnString, attributeName.toString());
-      throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                   message);
+      throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX, message);
     }
 
 
@@ -634,13 +615,11 @@ public final class RDN
       pos++;
       if (pos >= length)
       {
-        // This means that we hit the end of the string before
-        // finding a '='.  This is illegal because there is no
-        // attribute-value separator.
+        // This means that we hit the end of the string before finding a '='.
+        // This is illegal because there is no attribute-value separator.
         Message message = ERR_RDN_END_WITH_ATTR_NAME.get(
             rdnString, attributeName.toString());
-        throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                     message);
+        throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX, message);
       }
       else
       {
@@ -659,8 +638,7 @@ public final class RDN
     {
       Message message = ERR_RDN_NO_EQUAL.get(
           rdnString, attributeName.toString(), c);
-      throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                   message);
+      throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX, message);
     }
 
 
@@ -677,10 +655,9 @@ public final class RDN
     {
       String        name      = attributeName.toString();
       String        lowerName = toLowerCase(name);
-     Message message = ERR_RDN_MISSING_ATTRIBUTE_VALUE.get(rdnString,
+      Message message = ERR_RDN_MISSING_ATTRIBUTE_VALUE.get(rdnString,
              lowerName);
-      throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                   message);
+      throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX, message);
     }
 
 
@@ -694,8 +671,7 @@ public final class RDN
     // don't return it yet because this could be a multi-valued RDN.
     String name            = attributeName.toString();
     String lowerName       = toLowerCase(name);
-    AttributeType attrType =
-         DirectoryServer.getAttributeType(lowerName);
+    AttributeType attrType = DirectoryServer.getAttributeType(lowerName);
     if (attrType == null)
     {
       // This must be an attribute type that we don't know about.
@@ -718,8 +694,7 @@ public final class RDN
     }
 
 
-    // Most likely, this is the end of the RDN.  If so, then return
-    // it.
+    // Most likely, this is the end of the RDN.  If so, then return it.
     if (pos >= length)
     {
       return rdn;
@@ -731,19 +706,15 @@ public final class RDN
     if ((c == ',') || (c == ';'))
     {
       Message message = ERR_RDN_UNEXPECTED_COMMA.get(rdnString, pos);
-      throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                   message);
+      throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX, message);
     }
 
 
-    // If the next character is anything but a plus sign, then it is
-    // illegal.
+    // If the next character is anything but a plus sign, then it is illegal.
     if (c != '+')
     {
-      Message message =
-          ERR_RDN_ILLEGAL_CHARACTER.get(rdnString, c, pos);
-      throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                   message);
+      Message message = ERR_RDN_ILLEGAL_CHARACTER.get(rdnString, c, pos);
+      throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX, message);
     }
 
 
@@ -772,26 +743,22 @@ public final class RDN
       {
         Message message = ERR_RDN_END_WITH_ATTR_NAME.get(
             rdnString, attributeName.toString());
-        throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                     message);
+        throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX, message);
       }
 
 
-      // Skip over any spaces between the attribute name and the equal
-      // sign.
+      // Skip over any spaces between the attribute name and the equal sign.
       c = rdnString.charAt(pos);
       while (c == ' ')
       {
         pos++;
         if (pos >= length)
         {
-          // This means that we hit the end of the string before
-          // finding a '='.  This is illegal because there is no
-          // attribute-value separator.
+          // This means that we hit the end of the string before finding a '='.
+          // This is illegal because there is no attribute-value separator.
           Message message = ERR_RDN_END_WITH_ATTR_NAME.get(
               rdnString, attributeName.toString());
-          throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                       message);
+          throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX, message);
         }
         else
         {
@@ -809,8 +776,7 @@ public final class RDN
       {
         Message message = ERR_RDN_NO_EQUAL.get(
             rdnString, attributeName.toString(), c);
-        throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                     message);
+        throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX, message);
       }
 
 
@@ -824,8 +790,7 @@ public final class RDN
       // If we are at the end of the RDN string, then that must mean
       // that the attribute value was empty.  This will probably never
       // happen in a real-world environment, but technically isn't
-      // illegal.  If it does happen, then go ahead and return the
-      // RDN.
+      // illegal.  If it does happen, then go ahead and return the RDN.
       if (pos >= length)
       {
         name      = attributeName.toString();
@@ -842,8 +807,7 @@ public final class RDN
           attrType = DirectoryServer.getDefaultAttributeType(name);
         }
 
-        value = AttributeValues.create(ByteString.empty(),
-                                   ByteString.empty());
+        value = AttributeValues.create(ByteString.empty(), ByteString.empty());
         rdn.addValue(attrType, name, value);
         return rdn;
       }
@@ -868,8 +832,7 @@ public final class RDN
         attrType = DirectoryServer.getDefaultAttributeType(name);
       }
 
-      value = AttributeValues.create(attrType,
-          parsedValue.toByteString());
+      value = AttributeValues.create(attrType, parsedValue.toByteString());
       rdn.addValue(attrType, name, value);
 
 
@@ -891,21 +854,16 @@ public final class RDN
       // not allowed.  It would be legal for a DN but not an RDN.
       if ((c == ',') || (c == ';'))
       {
-        Message message =
-            ERR_RDN_UNEXPECTED_COMMA.get(rdnString, pos);
-        throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                     message);
+        Message message = ERR_RDN_UNEXPECTED_COMMA.get(rdnString, pos);
+        throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX, message);
       }
 
 
-      // If the next character is anything but a plus sign, then it is
-      // illegal.
+      // If the next character is anything but a plus sign, then it is illegal.
       if (c != '+')
       {
-        Message message =
-            ERR_RDN_ILLEGAL_CHARACTER.get(rdnString, c, pos);
-        throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX,
-                                     message);
+        Message message = ERR_RDN_ILLEGAL_CHARACTER.get(rdnString, c, pos);
+        throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX, message);
       }
     }
   }
@@ -947,6 +905,7 @@ public final class RDN
    *          object is equal to this RDN, or <CODE>false</CODE> if
    *          not.
    */
+  @Override
   public boolean equals(Object o)
   {
     if (this == o)
@@ -954,7 +913,7 @@ public final class RDN
       return true;
     }
 
-    if ((o == null) || (! (o instanceof RDN)))
+    if (o == null || !(o instanceof RDN))
     {
       return false;
     }
@@ -971,6 +930,7 @@ public final class RDN
    *
    * @return  The hash code for this RDN.
    */
+  @Override
   public int hashCode()
   {
     return toNormalizedString().hashCode();
@@ -983,6 +943,7 @@ public final class RDN
    *
    * @return  A string representation of this RDN.
    */
+  @Override
   public String toString()
   {
     if (rdnString == null)
@@ -991,23 +952,18 @@ public final class RDN
 
       buffer.append(attributeNames[0]);
       buffer.append("=");
-
-      String s = attributeValues[0].getValue().toString();
-      buffer.append(getDNValue(s));
+      buffer.append(getDNValue(attributeValues[0].getValue()));
 
       for (int i=1; i < numValues; i++)
       {
         buffer.append("+");
         buffer.append(attributeNames[i]);
         buffer.append("=");
-
-        s = attributeValues[i].getValue().toString();
-        buffer.append(getDNValue(s));
+        buffer.append(getDNValue(attributeValues[i].getValue()));
       }
 
       rdnString = buffer.toString();
     }
-
     return rdnString;
   }
 
@@ -1036,10 +992,8 @@ public final class RDN
   {
     if (normalizedRDN == null)
     {
-      StringBuilder buffer = new StringBuilder();
-      toNormalizedString(buffer);
+      toNormalizedString(new StringBuilder());
     }
-
     return normalizedRDN;
   }
 
@@ -1067,7 +1021,8 @@ public final class RDN
     }
     else
     {
-      TreeSet<String> rdnElementStrings = new TreeSet<String>();
+      // normalization sorts RDNs alphabetically
+      SortedSet<String> rdnElementStrings = new TreeSet<String>();
 
       for (int i=0; i < attributeNames.length; i++)
       {
@@ -1078,7 +1033,6 @@ public final class RDN
 
       Iterator<String> iterator = rdnElementStrings.iterator();
       buffer.append(iterator.next());
-
       while (iterator.hasNext())
       {
         buffer.append('+');
@@ -1104,15 +1058,12 @@ public final class RDN
    */
   public void getAVAString(int pos, StringBuilder buffer)
   {
-      buffer.append(
-          attributeTypes[pos].getNormalizedPrimaryNameOrOID());
+      buffer.append(attributeTypes[pos].getNormalizedPrimaryNameOrOID());
       buffer.append('=');
 
       try
       {
-        String s =
-            attributeValues[pos].getNormalizedValue().toString();
-        buffer.append(getDNValue(s));
+        buffer.append(getDNValue(attributeValues[pos].getNormalizedValue()));
       }
       catch (Exception e)
       {
@@ -1120,9 +1071,7 @@ public final class RDN
         {
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
-
-        String s = attributeValues[pos].getValue().toString();
-        buffer.append(getDNValue(s));
+        buffer.append(getDNValue(attributeValues[pos].getValue()));
       }
   }
 
@@ -1139,62 +1088,21 @@ public final class RDN
    *          after the provided RDN, or zero if there is no
    *          difference with regard to ordering.
    */
+  @Override
   public int compareTo(RDN rdn)
   {
-    if ((attributeTypes.length == 1) &&
-        (rdn.attributeTypes.length == 1))
+    if (attributeTypes.length == 1 && rdn.attributeTypes.length == 1)
     {
+      // fast path
       if (attributeTypes[0].equals(rdn.attributeTypes[0]))
       {
-        OrderingMatchingRule omr =
-             attributeTypes[0].getOrderingMatchingRule();
-        if (omr == null)
-        {
-          try
-          {
-            return attributeValues[0].getNormalizedValue().toString().
-                        compareTo(rdn.attributeValues[0].
-                             getNormalizedValue().toString());
-          }
-          catch (Exception e)
-          {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, e);
-            }
-
-            return attributeValues[0].getValue().toString().
-                compareTo(rdn.attributeValues[0].
-                    getValue().toString());
-          }
-        }
-        else
-        {
-          try
-          {
-            return omr.compareValues(
-                        attributeValues[0].getNormalizedValue(),
-                        rdn.attributeValues[0].getNormalizedValue());
-          }
-          catch (Exception e)
-          {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, e);
-            }
-
-            return omr.compareValues(
-                attributeValues[0].getValue(),
-                rdn.attributeValues[0].getValue());
-          }
-        }
+        OrderingMatchingRule omr = attributeTypes[0].getOrderingMatchingRule();
+        return compare(attributeValues[0], rdn.attributeValues[0], omr);
       }
       else
       {
-        String name1 =
-            attributeTypes[0].getNormalizedPrimaryNameOrOID();
-        String name2 =
-             rdn.attributeTypes[0].getNormalizedPrimaryNameOrOID();
+        String name1 = attributeTypes[0].getNormalizedPrimaryNameOrOID();
+        String name2 = rdn.attributeTypes[0].getNormalizedPrimaryNameOrOID();
         return name1.compareTo(name2);
       }
     }
@@ -1210,8 +1118,7 @@ public final class RDN
          new TreeMap<String,AttributeValue>();
     for (int i=0; i < attributeTypes.length; i++)
     {
-      String lowerName =
-           attributeTypes[i].getNormalizedPrimaryNameOrOID();
+      String lowerName = attributeTypes[i].getNormalizedPrimaryNameOrOID();
       typeMap1.put(lowerName, attributeTypes[i]);
       valueMap1.put(lowerName, attributeValues[i]);
     }
@@ -1222,8 +1129,7 @@ public final class RDN
          new TreeMap<String,AttributeValue>();
     for (int i=0; i < rdn.attributeTypes.length; i++)
     {
-      String lowerName =
-          rdn.attributeTypes[i].getNormalizedPrimaryNameOrOID();
+      String lowerName = rdn.attributeTypes[i].getNormalizedPrimaryNameOrOID();
       typeMap2.put(lowerName, rdn.attributeTypes[i]);
       valueMap2.put(lowerName, rdn.attributeValues[i]);
     }
@@ -1239,87 +1145,67 @@ public final class RDN
 
     while (true)
     {
-      if (type1.equals(type2))
+      if (!type1.equals(type2))
       {
-        int valueComparison;
-        OrderingMatchingRule omr = type1.getOrderingMatchingRule();
-        if (omr == null)
-        {
-          try
-          {
-            valueComparison =
-                 value1.getNormalizedValue().toString().compareTo(
-                      value2.getNormalizedValue().toString());
-          }
-          catch (Exception e)
-          {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, e);
-            }
-
-            valueComparison =
-                value1.getValue().toString().compareTo(
-                    value2.getValue().toString());
-          }
-        }
-        else
-        {
-          try
-          {
-            valueComparison =
-                 omr.compareValues(value1.getNormalizedValue(),
-                                   value2.getNormalizedValue());
-          }
-          catch (Exception e)
-          {
-            if (debugEnabled())
-            {
-              TRACER.debugCaught(DebugLogLevel.ERROR, e);
-            }
-
-            valueComparison =
-                omr.compareValues(value1.getValue(),
-                                  value2.getValue());
-          }
-        }
-
-        if (valueComparison == 0)
-        {
-          if (! iterator1.hasNext())
-          {
-            if (iterator2.hasNext())
-            {
-              return -1;
-            }
-            else
-            {
-              return 0;
-            }
-          }
-
-          if (! iterator2.hasNext())
-          {
-            return 1;
-          }
-
-          name1  = iterator1.next();
-          name2  = iterator2.next();
-          type1  = typeMap1.get(name1);
-          type2  = typeMap2.get(name2);
-          value1 = valueMap1.get(name1);
-          value2 = valueMap2.get(name2);
-        }
-        else
-        {
-          return valueComparison;
-        }
-      }
-      else
-      {
+        // there is a difference => return result
         return name1.compareTo(name2);
       }
+
+      final OrderingMatchingRule omr = type1.getOrderingMatchingRule();
+      final int valueComparison = compare(value1, value2, omr);
+      if (valueComparison != 0)
+      {
+        // we found a difference => return result
+        return valueComparison;
+      }
+
+      if (!iterator1.hasNext())
+      {
+        if (iterator2.hasNext())
+        {
+          return -1;
+        }
+        return 0;
+      }
+      if (!iterator2.hasNext())
+      {
+        return 1;
+      }
+
+      name1  = iterator1.next();
+      name2  = iterator2.next();
+      type1  = typeMap1.get(name1);
+      type2  = typeMap2.get(name2);
+      value1 = valueMap1.get(name1);
+      value2 = valueMap2.get(name2);
     }
   }
-}
 
+  private int compare(AttributeValue value1, AttributeValue value2,
+      OrderingMatchingRule omr)
+  {
+    ByteString val1;
+    ByteString val2;
+    try
+    {
+      val1 = value1.getNormalizedValue();
+      val2 = value2.getNormalizedValue();
+    }
+    catch (DirectoryException e)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
+      val1 = value1.getValue();
+      val2 = value2.getValue();
+    }
+
+
+    if (omr != null)
+    {
+      return omr.compareValues(val1, val2);
+    }
+    return val1.toString().compareTo(val2.toString());
+  }
+}
