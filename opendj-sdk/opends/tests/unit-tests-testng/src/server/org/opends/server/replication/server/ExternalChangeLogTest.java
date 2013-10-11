@@ -616,7 +616,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       // Add the root entry in the backend
       backend2 = initializeTestBackend(false, backendId2);
       backend2.setPrivateBackend(true);
-      SortedSet<String> replServers = newSet("localhost:" + replicationServerPort);
+      SortedSet<String> replServers = newSortedSet("localhost:" + replicationServerPort);
 
       DomainFakeCfg domainConf = new DomainFakeCfg(baseDN2, 1602, replServers);
       domain2 = startNewDomain(domainConf, null,null);
@@ -2870,10 +2870,10 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       // Add the root entry in the backend
       backend2 = initializeTestBackend(false, TEST_BACKEND_ID2);
 
-      SortedSet<String> replServers = newSet("localhost:" + replicationServerPort);
+      SortedSet<String> replServers = newSortedSet("localhost:" + replicationServerPort);
 
       // on o=test2,sid=1702 include attrs set to : 'sn'
-      SortedSet<String> eclInclude = newSet("sn", "roomnumber");
+      SortedSet<String> eclInclude = newSortedSet("sn", "roomnumber");
 
       DomainFakeCfg domainConf = new DomainFakeCfg(TEST_ROOT_DN2, 1702, replServers);
       domain2 = startNewDomain(domainConf, eclInclude, eclInclude);
@@ -2881,15 +2881,15 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       backend3 = initializeTestBackend(false, backendId3);
 
       // on o=test3,sid=1703 include attrs set to : 'objectclass'
-      eclInclude = newSet("objectclass");
+      eclInclude = newSortedSet("objectclass");
 
-      SortedSet<String> eclIncludeForDeletes = newSet("*");
+      SortedSet<String> eclIncludeForDeletes = newSortedSet("*");
 
       domainConf = new DomainFakeCfg(baseDN3, 1703, replServers);
       domain3 = startNewDomain(domainConf, eclInclude, eclIncludeForDeletes);
 
       // on o=test2,sid=1704 include attrs set to : 'cn'
-      eclInclude = newSet("cn");
+      eclInclude = newSortedSet("cn");
 
       domainConf = new DomainFakeCfg(TEST_ROOT_DN2, 1704, replServers);
       domain21 = startNewDomain(domainConf, eclInclude, eclInclude);
@@ -3019,11 +3019,6 @@ public class ExternalChangeLogTest extends ReplicationTestCase
         MultimasterReplication.deleteDomain(domain.getBaseDN());
       }
     }
-  }
-
-  private static SortedSet<String> newSet(String... values)
-  {
-    return new TreeSet<String>(Arrays.asList(values));
   }
 
   private LDAPReplicationDomain startNewDomain(DomainFakeCfg domainConf,

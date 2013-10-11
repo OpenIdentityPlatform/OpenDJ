@@ -27,12 +27,10 @@
  */
 package org.opends.server.replication.service;
 
-import static org.opends.messages.ReplicationMessages.*;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.Collection;
+import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -41,6 +39,8 @@ import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.ResultCode;
+
+import static org.opends.messages.ReplicationMessages.*;
 
 /**
  * This class is the minimum implementation of a Concrete ReplicationDomain
@@ -55,12 +55,8 @@ public class FakeStressReplicationDomain extends ReplicationDomain
    */
   private BlockingQueue<UpdateMsg> queue = null;
 
-  public FakeStressReplicationDomain(
-      DN baseDN,
-      int serverID,
-      Collection<String> replicationServers,
-      int window,
-      long heartbeatInterval,
+  public FakeStressReplicationDomain(DN baseDN, int serverID,
+      Set<String> replicationServers, int window, long heartbeatInterval,
       BlockingQueue<UpdateMsg> queue) throws ConfigException
   {
     super(baseDN, serverID, 100);

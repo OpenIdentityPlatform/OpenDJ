@@ -904,16 +904,6 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     };
   }
 
-  private <T> Set<T> newSet(T... elems)
-  {
-    return new HashSet<T>(Arrays.asList(elems));
-  }
-
-  private <T> List<T> newList(T... elems)
-  {
-    return Arrays.asList(elems);
-  }
-
   /**
    * Test TopologyMsg encoding and decoding.
    */

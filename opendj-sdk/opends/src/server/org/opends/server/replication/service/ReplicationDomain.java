@@ -1478,7 +1478,7 @@ public abstract class ReplicationDomain
       }
 
       if (debugEnabled())
-        TRACER.debugInfo("[IE] In " + getReplicationMonitorInstanceName()
+        TRACER.debugInfo("[IE] In " + broker.getReplicationMonitorInstanceName()
             + " export ends with " + " connected=" + broker.isConnected()
             + " exportRootException=" + exportRootException);
 
@@ -1583,11 +1583,6 @@ public abstract class ReplicationDomain
     {
       throw exportRootException;
     }
-  }
-
-  private String getReplicationMonitorInstanceName()
-  {
-    return broker.getReplicationMonitor().getMonitorInstanceName();
   }
 
   /**
@@ -1835,7 +1830,8 @@ public abstract class ReplicationDomain
         msg = broker.receive(false, false, true);
 
         if (debugEnabled())
-          TRACER.debugInfo("[IE] In " + getReplicationMonitorInstanceName()
+          TRACER.debugInfo("[IE] In "
+              + broker.getReplicationMonitorInstanceName()
               + ", receiveEntryBytes " + msg);
 
         if (msg == null)
@@ -1888,7 +1884,7 @@ public abstract class ReplicationDomain
               broker.publish(amsg, false);
               if (debugEnabled())
                 TRACER.debugInfo("[IE] In "
-                    + getReplicationMonitorInstanceName()
+                    + broker.getReplicationMonitorInstanceName()
                     + ", publish InitializeRcvAckMsg" + amsg);
             }
           }
@@ -2072,13 +2068,12 @@ public abstract class ReplicationDomain
       TRACER.debugInfo("[IE] Entering exportLDIFEntry pub entry="
           + Arrays.toString(lDIFEntry));
 
-    // publish the message
     boolean sent = broker.publish(entryMessage, false);
 
     // process any publish error
-    if (((!sent)||
-        (broker.hasConnectionError()))||
-        (broker.getNumLostConnections() != ieContext.initNumLostConnections))
+    if (!sent
+        || broker.hasConnectionError()
+        || broker.getNumLostConnections() != ieContext.initNumLostConnections)
     {
       // publish failed - store the error in the ieContext ...
       DirectoryException de = new DirectoryException(ResultCode.OTHER,
@@ -2125,8 +2120,7 @@ public abstract class ReplicationDomain
    * @throws DirectoryException If it was not possible to publish the
    *                            Initialization message to the Topology.
    */
-  public void initializeFromRemote(int source)
-  throws DirectoryException
+  public void initializeFromRemote(int source) throws DirectoryException
   {
     initializeFromRemote(source, null);
   }
@@ -2966,8 +2960,7 @@ public abstract class ReplicationDomain
    * @throws ConfigException     If the DirectoryServer configuration was
    *                             incorrect.
    */
-  public void startPublishService(
-      Collection<String> replicationServers, int window,
+  public void startPublishService(Set<String> replicationServers, int window,
       long heartbeatInterval, long changetimeHeartbeatInterval)
   throws ConfigException
   {
@@ -3078,18 +3071,15 @@ public abstract class ReplicationDomain
   /**
    * Change some ReplicationDomain parameters.
    *
-   * @param replicationServers  The new list of Replication Servers that this
+   * @param replicationServers  The new set of Replication Servers that this
    *                           domain should now use.
    * @param windowSize         The window size that this domain should use.
    * @param heartbeatInterval  The heartbeatInterval that this domain should
    *                           use.
    * @param groupId            The new group id to use
    */
-  public void changeConfig(
-      Collection<String> replicationServers,
-      int windowSize,
-      long heartbeatInterval,
-      byte groupId)
+  public void changeConfig(Set<String> replicationServers, int windowSize,
+      long heartbeatInterval, byte groupId)
   {
     this.groupId = groupId;
 
@@ -3576,15 +3566,13 @@ public abstract class ReplicationDomain
       Set<String> s2 = new HashSet<String>(s1);
       s2.addAll(includeAttributesForDeletes);
 
-      Set<String> s = eclIncludesByServer.get(serverId);
-      if (!s1.equals(s))
+      if (!s1.equals(eclIncludesByServer.get(serverId)))
       {
         configurationChanged = true;
         eclIncludesByServer.put(serverId, Collections.unmodifiableSet(s1));
       }
 
-      s = eclIncludesForDeletesByServer.get(serverId);
-      if (!s2.equals(s))
+      if (!s2.equals(eclIncludesForDeletesByServer.get(serverId)))
       {
         configurationChanged = true;
         eclIncludesForDeletesByServer.put(serverId,
@@ -3592,7 +3580,7 @@ public abstract class ReplicationDomain
       }
 
       // and rebuild the global list to be ready for usage
-      s = new HashSet<String>();
+      Set<String> s = new HashSet<String>();
       for (Set<String> attributes : eclIncludesByServer.values())
       {
         s.addAll(attributes);

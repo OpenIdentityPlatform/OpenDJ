@@ -45,6 +45,7 @@ import org.opends.server.types.DN;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import static org.opends.server.TestCaseUtils.*;
 import static org.testng.Assert.*;
 
 /**
@@ -92,16 +93,13 @@ public class ReplicationDomainTest extends ReplicationTestCase
       replServer2 = createReplicationServer(replServerID2, replServerPort2,
           "ReplicationDomainTestDb2", 100, "localhost:" + replServerPort1);
 
-      List<String> servers = new ArrayList<String>(1);
-      servers.add("localhost:" + replServerPort1);
+      Set<String> servers = newSet("localhost:" + replServerPort1);
 
       BlockingQueue<UpdateMsg> rcvQueue1 = new LinkedBlockingQueue<UpdateMsg>();
       domain1 = new FakeReplicationDomain(
           testService, domain1ServerId, servers, 100, 1000, rcvQueue1);
 
-      List<String> servers2 = new ArrayList<String>(1);
-      servers2.add("localhost:" + replServerPort2);
-
+      Set<String> servers2 = newSet("localhost:" + replServerPort2);
       BlockingQueue<UpdateMsg> rcvQueue2 = new LinkedBlockingQueue<UpdateMsg>();
       domain2 = new FakeReplicationDomain(
           testService, domain2ServerId, servers2, 100, 1000, rcvQueue2);
@@ -218,9 +216,7 @@ public class ReplicationDomainTest extends ReplicationTestCase
       replServer1 = createReplicationServer(replServerID1, replServerPort,
           "ReplicationDomainTestDb", 100000, "localhost:" + replServerPort);
 
-      List<String> servers = new ArrayList<String>(1);
-      servers.add("localhost:" + replServerPort);
-
+      Set<String> servers = newSet("localhost:" + replServerPort);
       BlockingQueue<UpdateMsg> rcvQueue1 = new LinkedBlockingQueue<UpdateMsg>();
       domain1 = new FakeReplicationDomain(
           testService, domain1ServerId, servers, 1000, 100000, rcvQueue1);
@@ -321,8 +317,7 @@ public class ReplicationDomainTest extends ReplicationTestCase
 
       replServer = createReplicationServer(replServerID, replServerPort,
           "exportAndImportData", 100);
-      List<String> servers = new ArrayList<String>(1);
-      servers.add("localhost:" + replServerPort);
+      Set<String> servers = newSet("localhost:" + replServerPort);
 
       StringBuilder exportedDataBuilder = new StringBuilder();
       for (int i =0; i<ENTRYCOUNT; i++)
@@ -399,11 +394,8 @@ public class ReplicationDomainTest extends ReplicationTestCase
       replServer2 = createReplicationServer(replServerID2, replServerPort2,
           "exportAndImportservice2", 100, "localhost:" + replServerPort1);
 
-      List<String> servers1 = new ArrayList<String>(1);
-      servers1.add("localhost:" + replServerPort1);
-
-      List<String> servers2 = new ArrayList<String>(1);
-      servers2.add("localhost:" + replServerPort2);
+      Set<String> servers1 = newSet("localhost:" + replServerPort1);
+      Set<String> servers2 = newSet("localhost:" + replServerPort2);
 
       StringBuilder exportedDataBuilder = new StringBuilder();
       for (int i =0; i<ENTRYCOUNT; i++)

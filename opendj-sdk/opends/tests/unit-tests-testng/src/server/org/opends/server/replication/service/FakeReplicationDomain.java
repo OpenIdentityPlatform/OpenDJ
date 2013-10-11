@@ -30,7 +30,7 @@ package org.opends.server.replication.service;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.Collection;
+import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -68,12 +68,8 @@ public class FakeReplicationDomain extends ReplicationDomain
 
   private long generationID = 1;
 
-  public FakeReplicationDomain(
-      DN baseDN,
-      int serverID,
-      Collection<String> replicationServers,
-      int window,
-      long heartbeatInterval,
+  public FakeReplicationDomain(DN baseDN, int serverID,
+      Set<String> replicationServers, int window, long heartbeatInterval,
       BlockingQueue<UpdateMsg> queue) throws ConfigException
   {
     super(baseDN, serverID, 100);
@@ -82,15 +78,10 @@ public class FakeReplicationDomain extends ReplicationDomain
     this.queue = queue;
   }
 
-  public FakeReplicationDomain(
-      DN baseDN,
-      int serverID,
-      Collection<String> replicationServers,
-      int window,
-      long heartbeatInterval,
-      String exportString,
-      StringBuilder importString,
-      int exportedEntryCount) throws ConfigException
+  public FakeReplicationDomain(DN baseDN, int serverID,
+      Set<String> replicationServers, int window, long heartbeatInterval,
+      String exportString, StringBuilder importString, int exportedEntryCount)
+      throws ConfigException
   {
     super(baseDN, serverID, 100);
     startPublishService(replicationServers, window, heartbeatInterval, 500);
