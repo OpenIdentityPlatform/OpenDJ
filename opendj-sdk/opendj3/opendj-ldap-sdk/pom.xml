@@ -59,47 +59,66 @@
   </properties>
   <build>
     <plugins>
-      <!-- Unpack opendj-core and opendj-grizzly to rebuild an unified jar with bundle -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-dependency-plugin</artifactId>
-        <version>2.8</version>
+        <artifactId>maven-shade-plugin</artifactId>
+        <configuration>
+          <createSourcesJar>true</createSourcesJar>
+          <promoteTransitiveDependencies>true</promoteTransitiveDependencies>          
+          <artifactSet>
+            <includes>
+              <include>org.forgerock.opendj:opendj-core</include>
+              <include>org.forgerock.opendj:opendj-grizzly</include>
+            </includes>
+          </artifactSet>
+        </configuration>
         <executions>
           <execution>
-            <id>unpack-dependencies</id>
             <phase>package</phase>
             <goals>
-              <goal>unpack-dependencies</goal>
+              <goal>shade</goal>
             </goals>
-            <configuration>
-              <includeArtifactIds>opendj-grizzly, opendj-core</includeArtifactIds>
-              <includes>**/*.class,**\/services\/*</includes>
-              <excludes>**/*.properties</excludes>
-              <outputDirectory>${project.build.directory}/classes</outputDirectory>
-              <overWriteReleases>false</overWriteReleases>
-              <overWriteSnapshots>true</overWriteSnapshots>
-              <excludeTransitive>true</excludeTransitive>
-            </configuration>
           </execution>
         </executions>
       </plugin>
       <plugin>
-        <groupId>org.apache.felix</groupId>
-        <artifactId>maven-bundle-plugin</artifactId>
-        <extensions>true</extensions>
+        <groupId>com.github.goldin</groupId>
+		    <artifactId>copy-maven-plugin</artifactId>
+		    <version>0.2.5</version>
         <executions>
           <execution>
+            <id>unpack-jar-to-classes</id>
             <phase>package</phase>
             <goals>
-              <goal>bundle</goal>
+              <goal>copy</goal>
             </goals>
+            <configuration>
+              <resource>
+	              <targetPath>${project.build.outputDirectory}</targetPath>
+	              <file>${project.build.directory}/${project.build.finalName}.jar</file>
+	              <unpack>true</unpack>
+              </resource>
+            </configuration>
           </execution>
-        </executions>
-        <configuration>
-          <instructions>
-            <Include-Resource>META-INF/services=target/classes/META-INF/services</Include-Resource>
-          </instructions>
-        </configuration>
+        </executions>         
+      </plugin>
+      <plugin>
+				<groupId>org.apache.felix</groupId>
+				<artifactId>maven-bundle-plugin</artifactId>
+				<extensions>true</extensions>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>bundle</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<instructions>
+						<Include-Resource>META-INF/services=target/classes/META-INF/services</Include-Resource>
+					</instructions>
+				</configuration>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>

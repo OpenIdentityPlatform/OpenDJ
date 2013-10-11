@@ -53,20 +53,9 @@
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-source-plugin</artifactId>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>
         <configuration>
           <createDependencyReducedPom>false</createDependencyReducedPom>
-          <artifactSet>
-            <excludes>
-              <!--  avoid duplicate classes, as opendj-ldap-sdk already contains them -->
-              <exclude>org.forgerock.opendj:opendj-core</exclude>
-              <exclude>org.forgerock.opendj:opendj-grizzly</exclude>
-            </excludes>
-          </artifactSet>
         </configuration>
         <executions>
           <execution>
@@ -76,6 +65,10 @@
             </goals>
           </execution>
         </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-source-plugin</artifactId>
       </plugin>
     </plugins>
   </build>
