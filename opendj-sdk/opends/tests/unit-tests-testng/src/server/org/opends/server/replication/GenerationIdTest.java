@@ -721,15 +721,8 @@ public class GenerationIdTest extends ReplicationTestCase
       connectServer1ToChangelog(changelog1ID);
 
       debugInfo("Create Reset task on DS1 to propagate the new gen ID as the reference");
-      Entry taskReset = TestCaseUtils.makeEntry(
-          "dn: ds-task-id=resetgenid"+genId+ UUID.randomUUID() +
-          ",cn=Scheduled Tasks,cn=Tasks",
-          "objectclass: top",
-          "objectclass: ds-task",
-          "objectclass: ds-task-reset-generation-id",
-          "ds-task-class-name: org.opends.server.tasks.SetGenerationIdTask",
-          "ds-task-reset-generation-id-domain-base-dn: " + baseDnStr);
-      executeTask(taskReset);
+      Entry taskReset = createSetGenerationIdTask(genId, "");
+      executeTask(taskReset, 20000);
 
       // Broker 2 and 3 should receive 1 change status message to order them
       // to enter the bad gen id status
@@ -818,15 +811,8 @@ public class GenerationIdTest extends ReplicationTestCase
           server3ID, 100, getChangelogPort(changelog1ID), 1000, emptyOldChanges, genId);
 
       debugInfo("Adding reset task to DS1");
-      taskReset = TestCaseUtils.makeEntry(
-          "dn: ds-task-id=resetgenid"+ UUID.randomUUID() +
-          ",cn=Scheduled Tasks,cn=Tasks",
-          "objectclass: top",
-          "objectclass: ds-task",
-          "objectclass: ds-task-reset-generation-id",
-          "ds-task-class-name: org.opends.server.tasks.SetGenerationIdTask",
-          "ds-task-reset-generation-id-domain-base-dn: " + baseDnStr);
-      executeTask(taskReset);
+      taskReset = createSetGenerationIdTask(null, "");
+      executeTask(taskReset, 20000);
 
       debugInfo("Verify that RS1 has still the right genID");
       assertEquals(replServer1.getGenerationId(baseDN), rgenId);
@@ -875,6 +861,18 @@ public class GenerationIdTest extends ReplicationTestCase
     {
       postTest();
     }
+  }
+
+  private Entry createSetGenerationIdTask(Long genId, String additionalAttribute) throws Exception
+  {
+    String genIdString = genId != null ? genId.toString() : "";
+    return TestCaseUtils.makeEntry(
+        "dn: ds-task-id=resetgenid" + genIdString + UUID.randomUUID() + ",cn=Scheduled Tasks,cn=Tasks",
+        "objectclass: top", "objectclass: ds-task",
+        "objectclass: ds-task-reset-generation-id",
+        "ds-task-class-name: org.opends.server.tasks.SetGenerationIdTask",
+        "ds-task-reset-generation-id-domain-base-dn: " + baseDnStr,
+        additionalAttribute);
   }
 
   private void assertNoMessageReceived(ReplicationBroker broker,
@@ -968,7 +966,6 @@ public class GenerationIdTest extends ReplicationTestCase
 
       debugInfo("Expecting that broker3 is in bad gen id since it has a bad genId");
       assertTrue(isDegradedDueToGenerationId(replServer1, server3ID));
-
       assertEquals(countUpdatedEntriesInDb(), updatedEntries.length);
 
       debugInfo("Connecting DS to replServer1.");
@@ -976,15 +973,8 @@ public class GenerationIdTest extends ReplicationTestCase
 
 
       debugInfo("Adding reset task to DS.");
-      Entry taskReset = TestCaseUtils.makeEntry(
-        "dn: ds-task-id=resetgenid" + UUID.randomUUID() +
-        ",cn=Scheduled Tasks,cn=Tasks",
-        "objectclass: top",
-        "objectclass: ds-task",
-        "objectclass: ds-task-reset-generation-id",
-        "ds-task-class-name: org.opends.server.tasks.SetGenerationIdTask",
-        "ds-task-reset-generation-id-domain-base-dn: " + baseDnStr);
-      executeTask(taskReset);
+      Entry taskReset = createSetGenerationIdTask(null, "");
+      executeTask(taskReset, 20000);
       Thread.sleep(500);
 
       debugInfo("Verifying that all replservers genIds have been reset.");
@@ -994,16 +984,8 @@ public class GenerationIdTest extends ReplicationTestCase
       assertEquals(replServer3.getGenerationId(baseDN), genId);
 
       debugInfo("Adding reset task to DS." + genId);
-      taskReset = TestCaseUtils.makeEntry(
-        "dn: ds-task-id=resetgenid" + UUID.randomUUID() +
-        ",cn=Scheduled Tasks,cn=Tasks",
-        "objectclass: top",
-        "objectclass: ds-task",
-        "objectclass: ds-task-reset-generation-id",
-        "ds-task-class-name: org.opends.server.tasks.SetGenerationIdTask",
-        "ds-task-reset-generation-id-domain-base-dn: " + baseDnStr,
-        "ds-task-reset-generation-id-new-value: -1");
-      executeTask(taskReset);
+      taskReset = createSetGenerationIdTask(null, "ds-task-reset-generation-id-new-value: -1");
+      executeTask(taskReset, 20000);
 
       debugInfo("Verifying that all replservers genIds have been reset.");
       int waitRes = 0;

@@ -1099,18 +1099,15 @@ public class ReplicationServerTest extends ReplicationTestCase
   /**
    * Test backup and restore of the Replication server backend.
    */
-   private void backupRestore() throws Exception
-   {
-     debugInfo("Starting backupRestore");
+  private void backupRestore() throws Exception
+  {
+    debugInfo("Starting backupRestore");
 
-     Entry backupTask = createBackupTask();
-     Entry restoreTask = createRestoreTask();
+    executeTask(createBackupTask(), 20000);
+    executeTask(createRestoreTask(), 20000);
 
-    executeTask(backupTask);
-    executeTask(restoreTask);
-
-     debugInfo("Ending backupRestore");
-   }
+    debugInfo("Ending backupRestore");
+  }
 
    /**
     * Test export of the Replication server backend
@@ -1140,13 +1137,13 @@ public class ReplicationServerTest extends ReplicationTestCase
         publishAll(server1, createChanges(TEST_ROOT_DN_STRING,  1));
         publishAll(server2, createChanges("dc=domain2,dc=com",  2));
 
-        debugInfo("Export all");
-      executeTask(createExportAllTask());
+      debugInfo("Export all");
+      executeTask(createExportAllTask(), 20000);
       // Not doing anything with the export file, let's delete it
       new File(DirectoryServer.getInstanceRoot(), exportLDIFAllFile).delete();
 
-        debugInfo("Export domain");
-      executeTask(createExportDomainTask("dc=domain2,dc=com"));
+      debugInfo("Export domain");
+      executeTask(createExportDomainTask("dc=domain2,dc=com"), 20000);
       if (exportLDIFDomainFile != null)
       {
         // Not doing anything with the export file, let's delete it
