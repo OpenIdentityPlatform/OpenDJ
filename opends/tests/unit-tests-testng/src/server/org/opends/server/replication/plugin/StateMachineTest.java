@@ -29,10 +29,7 @@ package org.opends.server.replication.plugin;
 
 import java.io.IOException;
 import java.net.SocketTimeoutException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.opends.messages.Category;
@@ -229,9 +226,7 @@ public class StateMachineTest extends ReplicationTestCase
     ReplSessionSecurity security = new ReplSessionSecurity(null, null, null, true);
     ReplicationBroker broker = new ReplicationBroker(null, state, EXAMPLE_DN_,
         dsId, 100, generationId, 0, security, (byte) 1, 500);
-    List<String> servers = new ArrayList<String>(1);
-    servers.add("localhost:" + rs1Port);
-    broker.start(servers);
+    broker.start(Collections.singleton("localhost:" + rs1Port));
     checkConnection(30, broker, rs1Port);
     return broker;
   }

@@ -300,18 +300,16 @@ public class AssuredReplicationServerTest
         (byte)groupId, assured, assuredMode, (byte)safeDataLevel, assuredTimeout,
         scenario, serverState);
 
-      List<String> replicationServers = new ArrayList<String>();
-      replicationServers.add("localhost:" + rsPort);
+    Set<String> replicationServers = newSet("localhost:" + rsPort);
       fakeReplicationDomain.startPublishService(replicationServers, window, 1000, 500);
       if (startListen)
         fakeReplicationDomain.startListenService();
 
       // Test connection
       assertTrue(fakeReplicationDomain.isConnected());
-      // Check connected server port
-    HostPort rd =
-        HostPort.valueOf(fakeReplicationDomain.getReplicationServer());
-      assertEquals(rd.getPort(), rsPort);
+    // Check connected server port
+    HostPort rd = HostPort.valueOf(fakeReplicationDomain.getReplicationServer());
+    assertEquals(rd.getPort(), rsPort);
 
       return fakeReplicationDomain;
   }
@@ -1253,17 +1251,9 @@ public class AssuredReplicationServerTest
     // Fake RS 3 scenario
     objectArrayList = addPossibleParameters(objectArrayList, REPLY_OK_RS_SCENARIO, TIMEOUT_RS_SCENARIO);
 
-    Object[][] result = new Object[objectArrayList.size()][];
-    int i = 0;
-    for (List<Object> objectArray : objectArrayList)
-    {
-      result[i] = objectArray.toArray();
-      i++;
-    }
-
-    debugInfo("testSafeDataLevelHighProvider: number of possible parameter combinations : " + i);
-
-    return result;
+    debugInfo("testSafeDataLevelHighProvider: number of possible parameter combinations : "
+        + objectArrayList.size());
+    return toDataProvider(objectArrayList);
   }
 
   /**
@@ -1862,11 +1852,16 @@ public class AssuredReplicationServerTest
     // Fake RS sends update in assured mode
     objectArrayList = addPossibleParameters(objectArrayList, true, false);
 
-    Object[][] result = new Object[objectArrayList.size()][];
+    return toDataProvider(objectArrayList);
+  }
+
+  private Object[][] toDataProvider(List<List<Object>> listOfList)
+  {
+    Object[][] result = new Object[listOfList.size()][];
     int i = 0;
-    for (List<Object> objectArray : objectArrayList)
+    for (List<Object> list : listOfList)
     {
-      result[i] = objectArray.toArray();
+      result[i] = list.toArray();
       i++;
     }
     return result;
@@ -2292,14 +2287,7 @@ public class AssuredReplicationServerTest
     // Other additional RS scenario
     objectArrayList = addPossibleParameters(objectArrayList, REPLY_OK_RS_SCENARIO, TIMEOUT_RS_SCENARIO, DS_TIMEOUT_RS_SCENARIO_SAFE_READ, DS_WRONG_STATUS_RS_SCENARIO_SAFE_READ, DS_REPLAY_ERROR_RS_SCENARIO_SAFE_READ);
 
-    Object[][] result = new Object[objectArrayList.size()][];
-    int i = 0;
-    for (List<Object> objectArray : objectArrayList)
-    {
-      result[i] = objectArray.toArray();
-      i++;
-    }
-    return result;
+    return toDataProvider(objectArrayList);
   }
 
   /**

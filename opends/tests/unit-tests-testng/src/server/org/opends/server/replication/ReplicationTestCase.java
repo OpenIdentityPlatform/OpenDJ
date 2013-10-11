@@ -236,7 +236,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
 
   private void connect(ReplicationBroker broker, int port, int timeout) throws Exception
   {
-    broker.start(Collections.singletonList("localhost:" + port));
+    broker.start(Collections.singleton("localhost:" + port));
     // give some time to the broker to connect to the replicationServer.
     checkConnection(30, broker, port);
 

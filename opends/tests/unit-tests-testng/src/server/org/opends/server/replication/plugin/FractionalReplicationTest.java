@@ -375,8 +375,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
   private void createFakeReplicationDomain(boolean firstBackend,
       long generationId) throws Exception
   {
-    List<String> replicationServers = new ArrayList<String>();
-    replicationServers.add("localhost:" + replServerPort);
+    Set<String> replicationServers = newSet("localhost:" + replServerPort);
 
     DN baseDN = DN.decode(firstBackend ? TEST_ROOT_DN_STRING : TEST2_ROOT_DN_STRING);
     replicationDomain = new FakeReplicationDomain(baseDN, DS2_ID, replicationServers, 100, 1000, generationId);
@@ -566,13 +565,9 @@ public class FractionalReplicationTest extends ReplicationTestCase {
     private int exportedEntryCount;
     private long generationID = -1;
 
-    public FakeReplicationDomain(
-      DN baseDN,
-      int serverID,
-      Collection<String> replicationServers,
-      int window,
-      long heartbeatInterval,
-      long generationId) throws ConfigException
+    public FakeReplicationDomain(DN baseDN, int serverID,
+        Set<String> replicationServers, int window, long heartbeatInterval,
+        long generationId) throws ConfigException
     {
       super(baseDN, serverID, 100);
       generationID = generationId;
