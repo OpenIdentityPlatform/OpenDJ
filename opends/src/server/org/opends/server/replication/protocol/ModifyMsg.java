@@ -137,7 +137,7 @@ public class ModifyMsg extends ModifyCommonMsg
     ModifyOperation mod = new ModifyOperationBasis(connection,
         InternalClientConnection.nextOperationID(),
         InternalClientConnection.nextMessageID(), null,
-        ByteString.valueOf(newDN.toNormalizedString()), ldapmods);
+        ByteString.valueOf(newDN.toString()), ldapmods);
     ModifyContext ctx = new ModifyContext(getCSN(), getEntryUUID());
     mod.setAttachment(SYNCHROCONTEXT, ctx);
     return mod;
