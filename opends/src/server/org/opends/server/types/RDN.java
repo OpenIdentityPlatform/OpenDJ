@@ -1181,6 +1181,20 @@ public final class RDN
     }
   }
 
+  /**
+   * Compares two attribute values by using the provided OrderingMatchingRule if
+   * it is not null, or relying on alphabetical ordering otherwise.
+   *
+   * @param value1
+   *          the first attribute value to compare
+   * @param value2
+   *          the second attribute value to compare
+   * @param omr
+   *          if not null, the OrderingMatchingRule to use for comparison
+   * @return A negative integer if this value1 should come before the value2, a
+   *         positive integer if value1 should come after value2, or zero if
+   *         there is no difference with regard to ordering.
+   */
   private int compare(AttributeValue value1, AttributeValue value2,
       OrderingMatchingRule omr)
   {
