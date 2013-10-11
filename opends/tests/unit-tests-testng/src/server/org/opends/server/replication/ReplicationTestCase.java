@@ -721,10 +721,10 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
     return new ReplSessionSecurity(null, null, null, true);
   }
 
-  protected void executeTask(Entry taskEntry) throws Exception
+  protected void executeTask(Entry taskEntry, long maxWaitTimeInMillis) throws Exception
   {
     addTask(taskEntry, ResultCode.SUCCESS, null);
-    waitTaskState(taskEntry, TaskState.COMPLETED_SUCCESSFULLY, null);
+    waitTaskState(taskEntry, TaskState.COMPLETED_SUCCESSFULLY, maxWaitTimeInMillis, null);
   }
 
   /**
@@ -757,7 +757,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
     }
     else
     {
-      waitTaskState(taskEntry, TaskState.RUNNING, null);
+      waitTaskState(taskEntry, TaskState.RUNNING, 20000, null);
     }
 
     // Entry will be removed at the end of the test
@@ -767,13 +767,13 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
   }
 
   protected void waitTaskState(Entry taskEntry, TaskState expectedTaskState,
-      Message expectedMessage) throws Exception
+      long maxWaitTimeInMillis, Message expectedMessage) throws Exception
   {
-    TaskState taskState = null;
-    int cpt=40;
+    long startTime = System.currentTimeMillis();
 
     SearchFilter filter = SearchFilter.createFilterFromString("(objectclass=*)");
     Entry resultEntry = null;
+    TaskState taskState = null;
     do
     {
       InternalSearchOperation searchOperation =
@@ -786,13 +786,12 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
       String stateString = resultEntry.getAttributeValue(taskStateType, DECODER);
       taskState = TaskState.fromString(stateString);
 
-      Thread.sleep(500);
-      cpt--;
+      Thread.sleep(100);
     }
     while (taskState != expectedTaskState
         && taskState != TaskState.STOPPED_BY_ERROR
         && taskState != TaskState.COMPLETED_SUCCESSFULLY
-        && cpt > 0);
+        && (System.currentTimeMillis() - startTime < maxWaitTimeInMillis));
 
     // Check that the task contains some log messages.
     AttributeType logMessagesType =

@@ -479,7 +479,7 @@ public class HistoricalTest extends ReplicationTestCase
    * - verify that all historical has been purged
    *
    * TODO: another test should be written that configures the task no NOT have
-   * the time to purge everything in 1 run .. and thus to relauch it to finish
+   * the time to purge everything in 1 run .. and thus to relaunch it to finish
    * the purge. And verify that the second run starts on the CSN where
    * the previous task run had stopped.
    */
@@ -489,6 +489,9 @@ public class HistoricalTest extends ReplicationTestCase
     int entryCnt = 10;
 
     addEntriesWithHistorical(1, entryCnt);
+    // leave a little delay between adding/modifying test entries
+    // and configuring the purge delay. 
+    Thread.sleep(10);
 
     // set the purge delay to 1 minute
     // FIXME could we change this setting to also accept seconds?
@@ -500,23 +503,23 @@ public class HistoricalTest extends ReplicationTestCase
         "--domain-name",testName,
         "--set","conflicts-historical-purge-delay:1m");
 
-    Thread.sleep(60*1000);
+    // Let's go past the purge delay
+    Thread.sleep(60 * 1000);
 
     // launch the purge
-    Entry taskInit = TestCaseUtils.makeEntry(
-        "dn: ds-task-id=" + UUID.randomUUID() +
-        ",cn=Scheduled Tasks,cn=Tasks",
+    final int maxWaitTimeInSeconds = 120;
+    Entry purgeConflictsHistoricalTask = TestCaseUtils.makeEntry(
+        "dn: ds-task-id=" + UUID.randomUUID() + ",cn=Scheduled Tasks,cn=Tasks",
         "objectclass: top",
         "objectclass: ds-task",
         "objectclass: ds-task-purge-conflicts-historical",
         "ds-task-class-name: org.opends.server.tasks.PurgeConflictsHistoricalTask",
-        "ds-task-purge-conflicts-historical-domain-dn: "+TEST_ROOT_DN_STRING,
-    "ds-task-purge-conflicts-historical-maximum-duration: 120"); // 120 sec
-
-    executeTask(taskInit);
+        "ds-task-purge-conflicts-historical-domain-dn: " + TEST_ROOT_DN_STRING,
+        "ds-task-purge-conflicts-historical-maximum-duration: " + maxWaitTimeInSeconds);
+    executeTask(purgeConflictsHistoricalTask, maxWaitTimeInSeconds * 1000);
 
     // every entry should be purged from its hist
-      // Search for matching entries in config backend
+    // Search for matching entries in config backend
     InternalSearchOperation op = connection.processSearch(
         TEST_ROOT_DN_STRING, SearchScope.WHOLE_SUBTREE, "(ds-sync-hist=*)");
     assertEquals(op.getResultCode(), ResultCode.SUCCESS, op.getErrorMessage().toString());

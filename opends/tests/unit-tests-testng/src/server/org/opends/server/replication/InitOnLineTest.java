@@ -56,6 +56,7 @@ import org.testng.annotations.Test;
 
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.messages.TaskMessages.*;
+import static org.opends.server.backends.task.TaskState.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
@@ -680,8 +681,7 @@ public class InitOnLineTest extends ReplicationTestCase
       // Tests that entries have been received by S2
       receiveUpdatedEntries(server2);
 
-      // Wait for task completion
-      waitTaskState(taskInitTargetS2, TaskState.COMPLETED_SUCCESSFULLY, null);
+      waitTaskState(taskInitTargetS2, COMPLETED_SUCCESSFULLY, 20000, null);
 
       log("Successfully ending " + testCase);
     } finally
@@ -738,8 +738,7 @@ public class InitOnLineTest extends ReplicationTestCase
       receiveUpdatedEntries(server2);
       receiveUpdatedEntries(server3);
 
-      // Wait for task completion
-      waitTaskState(taskInitTargetAll, TaskState.COMPLETED_SUCCESSFULLY, null);
+      waitTaskState(taskInitTargetAll, COMPLETED_SUCCESSFULLY, 20000, null);
 
       log("Successfully ending " + testCase);
     } finally
@@ -1028,9 +1027,7 @@ public class InitOnLineTest extends ReplicationTestCase
       log(testCase + " receive entries");
       receiveUpdatedEntries(server2);
 
-      // Wait for task completion
-      log(testCase + " wait task completed");
-      waitTaskState(taskInitTargetS2, TaskState.COMPLETED_SUCCESSFULLY, null);
+      waitTaskState(taskInitTargetS2, COMPLETED_SUCCESSFULLY, 20000, null);
 
       log("Successfully ending " + testCase);
     }
@@ -1138,8 +1135,7 @@ public class InitOnLineTest extends ReplicationTestCase
         "ds-task-initialize-replica-server-id: " + 20);
 
       addTask(taskInit, ResultCode.SUCCESS, null);
-
-      waitTaskState(taskInit, TaskState.STOPPED_BY_ERROR,
+      waitTaskState(taskInit, TaskState.STOPPED_BY_ERROR, 20000,
           ERR_NO_REACHABLE_PEER_IN_THE_DOMAIN.get(baseDN.toString(), "20"));
 
       // Test 2
@@ -1195,9 +1191,8 @@ public class InitOnLineTest extends ReplicationTestCase
         "ds-task-initialize-replica-server-id: " + 0);
 
       addTask(taskInit, ResultCode.SUCCESS, null);
-
-      waitTaskState(taskInit, TaskState.STOPPED_BY_ERROR,
-        ERR_NO_REACHABLE_PEER_IN_THE_DOMAIN.get(baseDN.toString(), "0"));
+      waitTaskState(taskInit, TaskState.STOPPED_BY_ERROR, 20000,
+          ERR_NO_REACHABLE_PEER_IN_THE_DOMAIN.get(baseDN.toString(), "0"));
 
       if (replDomain != null)
       {
@@ -1285,12 +1280,11 @@ public class InitOnLineTest extends ReplicationTestCase
 
       // Second task is expected to be rejected
       addTask(taskInit2, ResultCode.SUCCESS, null);
+      waitTaskState(taskInit2, STOPPED_BY_ERROR, 20000,
+          ERR_SIMULTANEOUS_IMPORT_EXPORT_REJECTED.get());
 
-      waitTaskState(taskInit2, TaskState.STOPPED_BY_ERROR,
-        ERR_SIMULTANEOUS_IMPORT_EXPORT_REJECTED.get());
-
-      // First task is stilll running
-      waitTaskState(taskInit, TaskState.RUNNING, null);
+      // First task is still running
+      waitTaskState(taskInit, RUNNING, 20000, null);
 
       // External request is supposed to be rejected
 
@@ -1299,7 +1293,7 @@ public class InitOnLineTest extends ReplicationTestCase
       ErrorMsg msg = new ErrorMsg(server1ID, 1, Message.EMPTY);
       server2.publish(msg);
 
-      waitTaskState(taskInit, TaskState.STOPPED_BY_ERROR, null);
+      waitTaskState(taskInit, STOPPED_BY_ERROR, 20000, null);
 
       log("Successfully ending " + testCase);
     } finally
