@@ -55,7 +55,6 @@ public class BasicTransportProvider implements TransportProvider {
     @Override
     public LDAPConnectionFactoryImpl getLDAPConnectionFactory(SocketAddress address, LDAPOptions options) {
         return new BasicLDAPConnectionFactory(address, options);
-        //return null;
     }
 
     /** {@inheritDoc} */
@@ -65,7 +64,6 @@ public class BasicTransportProvider implements TransportProvider {
             ServerConnectionFactory<LDAPClientContext, Integer> factory,
             LDAPListenerOptions options)
             throws IOException {
-        //return null;
         return new BasicLDAPListener(address, factory, options);
     }
 
