@@ -27,6 +27,7 @@
 package com.forgerock.opendj.ldap;
 
 import static org.forgerock.opendj.ldap.ErrorResultException.*;
+import static org.mockito.Mockito.*;
 
 import java.net.SocketAddress;
 
@@ -80,7 +81,7 @@ public final class BasicLDAPConnectionFactory implements LDAPConnectionFactoryIm
             final ResultHandler<? super Connection> handler) {
         final AsynchronousFutureResult<Connection, ResultHandler<? super Connection>> future =
                 new AsynchronousFutureResult<Connection, ResultHandler<? super Connection>>(handler);
-        future.handleResult(org.mockito.Mockito.mock(Connection.class));
+        future.handleResult(mock(Connection.class));
         return future;
     }
 
