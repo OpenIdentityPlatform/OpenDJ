@@ -69,7 +69,7 @@ import static org.opends.server.replication.common.StatusMachine.*;
  *   should read the list of replication servers from the configuration,
  *   instantiate a {@link ServerState} then start the publish service
  *   by calling
- *   {@link #startPublishService(Collection, int, long, long)}.
+ *   {@link #startPublishService(Set, int, long, long)}.
  *   At this point it can start calling the {@link #publish(UpdateMsg)}
  *   method if needed.
  * <p>
@@ -3674,5 +3674,12 @@ public abstract class ReplicationDomain
   public CSN getLastLocalChange()
   {
     return state.getCSN(serverID);
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public String toString()
+  {
+    return getClass().getSimpleName() + " " + this.baseDN + " " + this.serverID;
   }
 }
