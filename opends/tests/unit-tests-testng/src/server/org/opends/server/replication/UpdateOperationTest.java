@@ -27,6 +27,7 @@
  */
 package org.opends.server.replication;
 
+import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -375,14 +376,12 @@ public class UpdateOperationTest extends ReplicationTestCase
 
       // Check that the modify has been replayed.
       found = checkEntryHasAttribute(personWithUUIDEntry.getDN(),
-          "description", "Description was changed",
-          10000, true);
+          "description", "Description was changed", 10000, true);
       assertTrue(found, "The second modification was not replayed.");
 
       // Delete the entries to clean the database.
-      DeleteMsg delMsg = new DeleteMsg(personWithUUIDEntry.getDN(), gen.newCSN(), user1entryUUID);
-      broker.publish(delMsg);
-
+      broker.publish(
+          new DeleteMsg(personWithUUIDEntry.getDN(), gen.newCSN(), user1entryUUID));
       assertNull(getEntry(personWithUUIDEntry.getDN(), 10000, false),
           "The DELETE replication message was not replayed");
     }
@@ -552,16 +551,12 @@ public class UpdateOperationTest extends ReplicationTestCase
      * Open a session to the replicationServer using the ReplicationServer broker API.
      * This must use a serverId different from the LDAP server ID
      */
+    final int serverId = 2;
     ReplicationBroker broker =
-      openReplicationSession(baseDN, 2, 100, replServerPort, 1000, true);
-
+        openReplicationSession(baseDN, serverId, 100, replServerPort, 1000, true);
     try
     {
-      /*
-       * Create a CSN generator to generate new CSNs when we need to send
-       * operations messages to the replicationServer.
-       */
-      CSNGenerator gen = new CSNGenerator(2, 0);
+      CSNGenerator gen = new CSNGenerator(serverId, 0);
 
     /*
      * Test that the conflict resolution code is able to find entries
@@ -656,18 +651,17 @@ public class UpdateOperationTest extends ReplicationTestCase
      * the same UUID has the entry that has been used in the tests above.
      * Finally check that the delete operation has been applied.
      */
-    // send a delete operation with a wrong dn but the unique ID of the entry
-    // used above
-      DN delDN = DN.decode("cn=anotherdn," + baseDN);
-    DeleteMsg delMsg = new DeleteMsg(delDN, gen.newCSN(), user1entryUUID);
-    updateMonitorCount(baseDN, resolvedMonitorAttr);
+      // send a delete operation with a wrong dn but the unique ID of the entry
+      // used above
+      updateMonitorCount(baseDN, resolvedMonitorAttr);
       alertCount = DummyAlertHandler.getAlertCount();
-    broker.publish(delMsg);
+      DN delDN = DN.decode("cn=anotherdn," + baseDN);
+      broker.publish(new DeleteMsg(delDN, gen.newCSN(), user1entryUUID));
 
-    // check that the delete operation has been applied
-    assertNull(getEntry(personWithUUIDEntry.getDN(), 10000, false),
-        "The DELETE replication message was not replayed");
-    assertEquals(getMonitorDelta(), 1);
+      // check that the delete operation has been applied
+      assertNull(getEntry(personWithUUIDEntry.getDN(), 10000, false),
+          "The DELETE replication message was not replayed");
+      assertEquals(getMonitorDelta(), 1);
       assertConflictAutomaticallyResolved(alertCount);
 
     /*
@@ -739,15 +733,15 @@ public class UpdateOperationTest extends ReplicationTestCase
      * To achieve this send a delete operation with a correct DN
      * but a wrong unique ID.
      */
-    delMsg = new DeleteMsg(newPersonDN, gen.newCSN(), "11111111-9abc-def0-1234-1234567890ab");
-    updateMonitorCount(baseDN, resolvedMonitorAttr);
+      updateMonitorCount(baseDN, resolvedMonitorAttr);
       alertCount = DummyAlertHandler.getAlertCount();
-    broker.publish(delMsg);
+      broker.publish(
+          new DeleteMsg(newPersonDN, gen.newCSN(), "11111111-9abc-def0-1234-1234567890ab"));
 
-    // check that the delete operation has not been applied
+      // check that the delete operation has not been applied
       assertNotNull(getEntry(newPersonDN, 10000, true),
           "The DELETE replication message was replayed when it should not");
-    assertEquals(getMonitorDelta(), 1);
+      assertEquals(getMonitorDelta(), 1);
       assertConflictAutomaticallyResolved(alertCount);
 
 
@@ -823,20 +817,14 @@ public class UpdateOperationTest extends ReplicationTestCase
       assertNewAlertsGenerated(alertCount, 1);
 
 
-    // delete the entries to clean the database
-    DN delDN2 = DN.decode("entryUUID = " + user1entrysecondUUID + "+"
-        + user1dn.getRDN() + "," + baseDN);
-    delMsg = new DeleteMsg(delDN2, gen.newCSN(), user1entrysecondUUID);
-    broker.publish(delMsg);
-
-    // check that the delete operation has been applied
+      // delete the entries to clean the database
+      DN delDN2 = DN.decode(
+          "entryUUID = " + user1entrysecondUUID + "+" + user1dn.getRDN() + "," + baseDN);
+      broker.publish(new DeleteMsg(delDN2, gen.newCSN(), user1entrysecondUUID));
       assertNull(getEntry(delDN2, 10000, false),
-        "The DELETE replication message was not replayed");
+          "The DELETE replication message was not replayed");
 
-    delMsg = new DeleteMsg(reallyNewDN, gen.newCSN(), user1entryUUID);
-    broker.publish(delMsg);
-
-      // check that the delete operation has been applied
+      broker.publish(new DeleteMsg(reallyNewDN, gen.newCSN(), user1entryUUID));
       assertNull(getEntry(reallyNewDN, 10000, false),
           "The DELETE replication message was not replayed");
 
@@ -859,7 +847,7 @@ public class UpdateOperationTest extends ReplicationTestCase
       DN baseDN1 = DN.decode("ou=baseDn1," + baseDN);
       DN baseDN2 = DN.decode("ou=baseDn2," + baseDN);
 
-    // - create parent entry 1 with baseDn1
+      // - create parent entry 1 with baseDn1
       connection.processAdd(TestCaseUtils.entryFromLdifString(
           "dn: " + baseDN1 + "\n"
               + "objectClass: top\n"
@@ -926,12 +914,11 @@ public class UpdateOperationTest extends ReplicationTestCase
     DN conflictDomain3dn = DN.decode(
         "entryUUID = " + domain3uid + "+dc=domain3," + baseDN);
 
-    updateMonitorCount(baseDN, unresolvedMonitorAttr);
+      updateMonitorCount(baseDN, unresolvedMonitorAttr);
       alertCount = DummyAlertHandler.getAlertCount();
 
-    // delete domain1
-    delMsg = new DeleteMsg(domain1dn, olderCSN, domain1uid);
-    broker.publish(delMsg);
+      // delete domain1
+      broker.publish(new DeleteMsg(domain1dn, olderCSN, domain1uid));
 
     // check that the domain1 has correctly been deleted
     assertNull(getEntry(domain1dn, 10000, false),
@@ -971,12 +958,11 @@ public class UpdateOperationTest extends ReplicationTestCase
     gen.adjust(addCSN);
     domain3uid = getEntryUUID(domain3dn);
 
-    updateMonitorCount(baseDN, unresolvedMonitorAttr);
+      updateMonitorCount(baseDN, unresolvedMonitorAttr);
       alertCount = DummyAlertHandler.getAlertCount();
 
-    // delete domain1
-    delMsg = new DeleteMsg(domain1dn, gen.newCSN(), domain1uid);
-    broker.publish(delMsg);
+      // delete domain1
+      broker.publish(new DeleteMsg(domain1dn, gen.newCSN(), domain1uid));
 
     // check that the domain1 has correctly been deleted
     assertNull(getEntry(domain1dn, 10000, false),
@@ -1131,11 +1117,11 @@ public class UpdateOperationTest extends ReplicationTestCase
     // Cleanup from previous run
     cleanupTest();
 
+    final int serverId = 27;
     ReplicationBroker broker =
-      openReplicationSession(baseDN,  27, 100, replServerPort, 2000, true);
-
+        openReplicationSession(baseDN, serverId, 100, replServerPort, 2000, true);
     try {
-      CSNGenerator gen = new CSNGenerator( 27, 0);
+      CSNGenerator gen = new CSNGenerator(serverId, 0);
 
       /*
        * Test that operations done on this server are sent to the
@@ -1303,12 +1289,12 @@ public class UpdateOperationTest extends ReplicationTestCase
     logError(Message.raw(Category.SYNC, Severity.INFORMATION,
         "Starting replication test : infiniteReplayLoop"));
 
-    Thread.sleep(2000);
+    int serverId = 11;
     ReplicationBroker broker =
-      openReplicationSession(baseDN,  11, 100, replServerPort, 1000, true);
+        openReplicationSession(baseDN, serverId, 100, replServerPort, 1000, true);
     try
     {
-      CSNGenerator gen = new CSNGenerator( 11, 0);
+      CSNGenerator gen = new CSNGenerator(serverId, 0);
 
       // Create a test entry.
       Entry tmp = TestCaseUtils.entryFromLdifString(
@@ -1400,7 +1386,6 @@ public class UpdateOperationTest extends ReplicationTestCase
   public void csnGeneratorAdjust() throws Exception
   {
     testSetUp("csnGeneratorAdjust");
-    int serverId = 88;
     logError(Message.raw(Category.SYNC, Severity.INFORMATION,
         "Starting synchronization test : CSNGeneratorAdjust"));
 
@@ -1408,16 +1393,13 @@ public class UpdateOperationTest extends ReplicationTestCase
      * Open a session to the replicationServer using the broker API.
      * This must use a different serverId to that of the directory server.
      */
+    final int serverId = 88;
     ReplicationBroker broker =
-      openReplicationSession(baseDN, serverId, 100, replServerPort, 1000, true);
-
+        openReplicationSession(baseDN, serverId, 100, replServerPort, 1000, true);
+    consumeAllMessages(broker); // clean leftover messages from lostHeartbeatFailover()
     try
     {
-      /*
-       * Create a CSN generator to generate new CSNs
-       * when we need to send operation messages to the replicationServer.
-       */
-      long inTheFuture = System.currentTimeMillis() + (3600 * 1000);
+      final long inTheFuture = System.currentTimeMillis() + (3600 * 1000);
       CSNGenerator gen = new CSNGenerator(serverId, inTheFuture);
 
       // Create and publish an update message to add an entry.
@@ -1451,6 +1433,33 @@ public class UpdateOperationTest extends ReplicationTestCase
     finally
     {
       broker.stop();
+    }
+  }
+
+  /**
+   * Consumes all the messages sent to this broker. This is useful at the start
+   * of a test to avoid leftover messages from previous test runs.
+   */
+  private void consumeAllMessages(ReplicationBroker broker)
+  {
+    final List<ReplicationMsg> msgs = new ArrayList<ReplicationMsg>();
+    try
+    {
+      while (true)
+      {
+        msgs.add(broker.receive());
+      }
+    }
+    catch (SocketTimeoutException expectedAtSomeStage)
+    {
+      // this is expected to happen when there will not be any more messages to
+      // consume from the socket
+    }
+
+    if (!msgs.isEmpty())
+    {
+      logError(Message.raw(Category.SYNC, Severity.SEVERE_ERROR,
+          "Leftover messages from previous test runs " + msgs));
     }
   }
 }

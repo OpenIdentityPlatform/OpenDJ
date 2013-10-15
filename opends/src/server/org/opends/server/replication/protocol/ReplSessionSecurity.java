@@ -293,4 +293,10 @@ public final class ReplSessionSecurity
     return sslEncryption;
   }
 
+  /** {@inheritDoc} */
+  @Override
+  public String toString()
+  {
+    return getClass().getSimpleName() + " " + (sslEncryption ? "with SSL" : "");
+  }
 }
