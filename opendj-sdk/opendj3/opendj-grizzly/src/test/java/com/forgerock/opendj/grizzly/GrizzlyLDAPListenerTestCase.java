@@ -80,7 +80,7 @@ import com.forgerock.opendj.util.AsynchronousFutureResult;
 /**
  * Tests the LDAPListener class.
  */
-public class LDAPListenerTestCase extends SdkTestCase {
+public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
 
     private static class MockServerConnection implements ServerConnection<Integer> {
         final AsynchronousFutureResult<Throwable, ResultHandler<Throwable>> connectionError =

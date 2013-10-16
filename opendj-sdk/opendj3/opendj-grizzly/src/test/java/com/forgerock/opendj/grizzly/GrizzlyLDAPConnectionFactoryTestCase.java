@@ -52,7 +52,7 @@ import org.testng.annotations.Test;
  * Tests the {@link LDAPConnectionFactory} class.
  */
 @SuppressWarnings("javadoc")
-public class LDAPConnectionFactoryTestCase extends SdkTestCase {
+public class GrizzlyLDAPConnectionFactoryTestCase extends SdkTestCase {
     // Test timeout for tests which need to wait for network events.
     private static final long TEST_TIMEOUT = 30L;
 
