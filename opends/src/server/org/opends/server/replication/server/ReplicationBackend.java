@@ -452,8 +452,8 @@ public class ReplicationBackend extends Backend
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,message);
     }
 
-    final List<ReplicationServerDomain> exportContainers =
-        findExportContainers(exportConfig);
+    final List<ReplicationServerDomain> exportedDomains =
+        selectReplicationDomains(exportConfig.getIncludeBranches());
 
     // Make a note of the time we started.
     long startTime = System.currentTimeMillis();
@@ -461,8 +461,7 @@ public class ReplicationBackend extends Backend
     // Start a timer for the progress report.
     Timer timer = new Timer();
     TimerTask progressTask = new ProgressTask();
-    timer.scheduleAtFixedRate(progressTask, progressInterval,
-        progressInterval);
+    timer.scheduleAtFixedRate(progressTask, progressInterval, progressInterval);
 
     // Create the LDIF writer.
     LDIFWriter ldifWriter;
@@ -483,19 +482,17 @@ public class ReplicationBackend extends Backend
           message, e);
     }
 
-    exportRootChanges(exportContainers, exportConfig, ldifWriter);
+    exportRootChanges(exportedDomains, exportConfig, ldifWriter);
 
     try
     {
-      // Iterate through the containers.
-      for (ReplicationServerDomain exportContainer : exportContainers)
+      for (ReplicationServerDomain domain : exportedDomains)
       {
         if (exportConfig.isCancelled())
         {
           break;
         }
-        writeChangesAfterCSN(exportContainer, exportConfig, ldifWriter, null,
-            null);
+        writeChangesAfterCSN(domain, exportConfig, ldifWriter, null, null);
       }
     }
     finally
@@ -519,42 +516,42 @@ public class ReplicationBackend extends Backend
     logError(message);
   }
 
-  private List<ReplicationServerDomain> findExportContainers(
-      LDIFExportConfig exportConfig) throws DirectoryException
+  private List<ReplicationServerDomain> selectReplicationDomains(
+      List<DN> includeBranches) throws DirectoryException
   {
-    List<DN> includeBranches = exportConfig.getIncludeBranches();
-    List<ReplicationServerDomain> exportContainers =
+    final List<ReplicationServerDomain> results =
         new ArrayList<ReplicationServerDomain>();
-    for (Iterator<ReplicationServerDomain> iter = server.getDomainIterator();
-         iter.hasNext();)
+    final Iterable<ReplicationServerDomain> domains =
+        toIterable(server.getDomainIterator());
+    if (includeBranches == null || includeBranches.isEmpty())
     {
-      ReplicationServerDomain rsd = iter.next();
-
-      // Skip containers that are not covered by the include branches.
-      if (includeBranches == null || includeBranches.isEmpty())
+      for (ReplicationServerDomain domain : domains)
       {
-        exportContainers.add(rsd);
+        results.add(domain);
       }
-      else
+      return results;
+    }
+
+    for (ReplicationServerDomain domain : domains)
+    {
+      DN baseDN = DN.decode(domain.getBaseDN() + "," + BASE_DN);
+      for (DN includeBranch : includeBranches)
       {
-        DN baseDN = DN.decode(rsd.getBaseDN() + "," + BASE_DN);
-        for (DN includeBranch : includeBranches)
+        if (includeBranch.isDescendantOf(baseDN)
+            || includeBranch.isAncestorOf(baseDN))
         {
-          if (includeBranch.isDescendantOf(baseDN)
-              || includeBranch.isAncestorOf(baseDN))
-          {
-            exportContainers.add(rsd);
-          }
+          results.add(domain);
+          break;
         }
       }
     }
-    return exportContainers;
+    return results;
   }
 
   /**
    * Exports the root changes of the export, and one entry by domain.
    */
-  private void exportRootChanges(List<ReplicationServerDomain> exportContainers,
+  private void exportRootChanges(List<ReplicationServerDomain> exportedDomains,
       final LDIFExportConfig exportConfig, LDIFWriter ldifWriter)
   {
     AttributeType ocType = DirectoryServer.getObjectClassAttributeType();
@@ -580,30 +577,29 @@ public class ReplicationBackend extends Backend
       return;
     }
 
-    for (ReplicationServerDomain exportContainer : exportContainers)
+    for (ReplicationServerDomain domain : exportedDomains)
     {
       if (exportConfig.isCancelled())
       {
         break;
       }
 
-      final ServerState serverState = exportContainer.getLatestServerState();
+      final ServerState serverState = domain.getLatestServerState();
       TRACER.debugInfo("State=" + serverState);
       Attribute stateAttr = Attributes.create("state", serverState.toString());
       Attribute genidAttr = Attributes.create("generation-id",
-          "" + exportContainer.getGenerationId() + exportContainer.getBaseDN());
+          "" + domain.getGenerationId() + domain.getBaseDN());
 
       attrs.clear();
       attrs.put(ocType, singletonList(ocAttr));
       attrs.put(stateAttr.getAttributeType(), singletonList(stateAttr));
       attrs.put(genidAttr.getAttributeType(), singletonList(genidAttr));
 
-      final String dnString = exportContainer.getBaseDN() + "," + BASE_DN;
+      final String dnString = domain.getBaseDN() + "," + BASE_DN;
       try
       {
         DN dn = DN.decode(dnString);
-        ChangeRecordEntry changeRecord = new AddChangeRecordEntry(dn, attrs);
-        ldifWriter.writeChangeRecord(changeRecord);
+        ldifWriter.writeChangeRecord(new AddChangeRecordEntry(dn, attrs));
       }
       catch (Exception e)
       {
@@ -815,9 +811,7 @@ public class ReplicationBackend extends Backend
 
           if (isExport)
           {
-            ChangeRecordEntry changeRecord =
-              new AddChangeRecordEntry(dn, attrs);
-            ldifWriter.writeChangeRecord(changeRecord);
+            ldifWriter.writeChangeRecord(new AddChangeRecordEntry(dn, attrs));
           }
           else
           {
@@ -1202,37 +1196,14 @@ public class ReplicationBackend extends Backend
     }
 
     // Walk through all entries and send the ones that match.
-    final List<ReplicationServerDomain> searchContainers =
-        findSearchContainers(searchBaseDN);
-    for (ReplicationServerDomain exportContainer : searchContainers)
+    final List<ReplicationServerDomain> searchedDomains =
+        selectReplicationDomains(Collections.singletonList(searchBaseDN));
+    for (ReplicationServerDomain domain : searchedDomains)
     {
       final CSN previousCSN = extractCSN(searchOperation);
-      writeChangesAfterCSN(exportContainer, null, null, searchOperation,
-          previousCSN);
+      writeChangesAfterCSN(domain, null, null, searchOperation, previousCSN);
     }
   }
-
-  private List<ReplicationServerDomain> findSearchContainers(DN searchBaseDN)
-      throws DirectoryException
-  {
-    List<ReplicationServerDomain> searchContainers =
-        new ArrayList<ReplicationServerDomain>();
-    for (Iterator<ReplicationServerDomain> iter = server.getDomainIterator();
-         iter.hasNext();)
-    {
-      ReplicationServerDomain rsd = iter.next();
-
-      // Skip containers that are not covered by the include branches.
-      DN baseDN = DN.decode(rsd.getBaseDN() + "," + BASE_DN);
-      if (searchBaseDN.isDescendantOf(baseDN)
-          || searchBaseDN.isAncestorOf(baseDN))
-      {
-        searchContainers.add(rsd);
-      }
-    }
-    return searchContainers;
-  }
-
 
   /**
    * Retrieves the replication server associated to this backend.

@@ -62,10 +62,8 @@ public class ListenerThread extends DirectoryThread
    */
   public ListenerThread(ReplicationDomain repDomain)
   {
-    super("Replica DS(" + repDomain.getServerId()
- + ") listener for domain \""
-        + repDomain.getBaseDNString()
-        + "\"");
+    super("Replica DS(" + repDomain.getServerId() + ") listener for domain \""
+        + repDomain.getBaseDNString() + "\"");
     this.repDomain = repDomain;
   }
 

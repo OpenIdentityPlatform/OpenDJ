@@ -259,7 +259,7 @@ public class DirectoryThread extends Thread
       }
 
       Message message = ERR_UNCAUGHT_THREAD_EXCEPTION.get(
-          t.getName(), stackTraceToString(e));
+          t.getName(), stackTraceToSingleLineString(e));
       logError(message);
       DirectoryServer.sendAlertNotification(this,
           ALERT_TYPE_UNCAUGHT_EXCEPTION, message);
