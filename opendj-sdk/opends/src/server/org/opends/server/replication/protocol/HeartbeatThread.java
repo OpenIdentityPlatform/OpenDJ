@@ -163,7 +163,7 @@ public class HeartbeatThread extends DirectoryThread
       if (debugEnabled())
       {
         TRACER.debugInfo("Heartbeat thread could not send a heartbeat."
-            + StaticUtils.stackTraceToString(e));
+            + StaticUtils.stackTraceToSingleLineString(e));
       }
     }
     finally
