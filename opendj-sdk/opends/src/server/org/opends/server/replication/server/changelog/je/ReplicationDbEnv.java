@@ -171,8 +171,9 @@ public class ReplicationDbEnv
   {
     if (isShuttingDown.get())
     {
-      // TODO JNR i18n
-      throw new ChangelogException(Message.raw("DB is closing"));
+      throw new ChangelogException(
+          WARN_CANNOT_OPEN_DATABASE_BECAUSE_SHUTDOWN_WAS_REQUESTED.get(
+              databaseName, replicationServer.getServerId()));
     }
     final DatabaseConfig dbConfig = new DatabaseConfig();
     dbConfig.setAllowCreate(true);
@@ -182,8 +183,9 @@ public class ReplicationDbEnv
     if (isShuttingDown.get())
     {
       closeDB(db);
-      // TODO JNR i18n
-      throw new ChangelogException(Message.raw("DB is closing"));
+      throw new ChangelogException(
+          WARN_CANNOT_OPEN_DATABASE_BECAUSE_SHUTDOWN_WAS_REQUESTED.get(
+              databaseName, replicationServer.getServerId()));
     }
     allDbs.add(db);
     return db;
@@ -437,7 +439,7 @@ public class ReplicationDbEnv
     }
     catch (DatabaseException e)
     {
-      logError(newErrorMessage(e));
+      logError(newErrorMessage(null, e));
     }
   }
 
@@ -450,19 +452,21 @@ public class ReplicationDbEnv
     }
     catch (DatabaseException e)
     {
-      logError(newErrorMessage(e));
+      logError(newErrorMessage(db.getDatabaseName(), e));
     }
   }
 
-  private Message newErrorMessage(DatabaseException e)
+  private Message newErrorMessage(String dbName, DatabaseException e)
   {
-    if (!isShuttingDown.get())
+    final MessageBuilder mb = new MessageBuilder();
+    if (dbName != null)
     {
-      return NOTE_EXCEPTION_CLOSING_DATABASE
-          .get(stackTraceToSingleLineString(e));
+      mb.append(NOTE_EXCEPTION_CLOSING_DATABASE.get(dbName));
     }
-    MessageBuilder mb = new MessageBuilder();
-    mb.append(ERR_ERROR_CLOSING_CHANGELOG_ENV.get());
+    else
+    {
+      mb.append(ERR_ERROR_CLOSING_CHANGELOG_ENV.get());
+    }
     mb.append(" ");
     mb.append(stackTraceToSingleLineString(e));
     return mb.toMessage();

@@ -498,11 +498,11 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
   @Override
   public void shutdownDomain(DN baseDN)
   {
-    shutdownReplicaDBs(getDomainMap(baseDN));
-    domainToReplicaDBs.remove(baseDN);
+    shutdownReplicaDBs(baseDN, getDomainMap(baseDN));
   }
 
-  private void shutdownReplicaDBs(Map<Integer, JEReplicaDB> domainMap)
+  private void shutdownReplicaDBs(DN baseDN,
+      Map<Integer, JEReplicaDB> domainMap)
   {
     synchronized (domainMap)
     {
@@ -510,7 +510,7 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
       {
         replicaDB.shutdown();
       }
-      domainMap.clear();
+      domainToReplicaDBs.remove(baseDN);
     }
   }
 
@@ -562,8 +562,7 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
           firstException = e;
         }
       }
-      shutdownReplicaDBs(domainMap);
-      domainToReplicaDBs.remove(baseDN);
+      shutdownReplicaDBs(baseDN, domainMap);
     }
 
     // 2- clear the ChangeNumber index DB
