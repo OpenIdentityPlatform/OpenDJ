@@ -60,8 +60,10 @@ import org.forgerock.json.resource.UncategorizedException;
 import org.forgerock.json.resource.UpdateRequest;
 import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.AttributeDescription;
+import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.DecodeException;
+import org.forgerock.opendj.ldap.DecodeOptions;
 import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.ErrorResultException;
 import org.forgerock.opendj.ldap.Filter;
@@ -75,6 +77,7 @@ import org.forgerock.opendj.ldap.controls.PostReadRequestControl;
 import org.forgerock.opendj.ldap.controls.PostReadResponseControl;
 import org.forgerock.opendj.ldap.controls.PreReadRequestControl;
 import org.forgerock.opendj.ldap.controls.PreReadResponseControl;
+import org.forgerock.opendj.ldap.controls.SimplePagedResultsControl;
 import org.forgerock.opendj.ldap.controls.SubtreeDeleteRequestControl;
 import org.forgerock.opendj.ldap.requests.AddRequest;
 import org.forgerock.opendj.ldap.requests.ModifyRequest;
@@ -91,6 +94,9 @@ import org.forgerock.opendj.ldif.ChangeRecord;
 final class LDAPCollectionResourceProvider implements CollectionResourceProvider {
     // Dummy exception used for signalling search success.
     private static final ResourceException SUCCESS = new UncategorizedException(0, null, null);
+
+    // Empty decode options required for decoding response controls.
+    private static final DecodeOptions DECODE_OPTIONS = new DecodeOptions();
 
     private final List<Attribute> additionalLDAPAttributes;
     private final AttributeMapper attributeMapper;
@@ -342,11 +348,40 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
                         } else {
                             // Perform the search.
                             final String[] attributes = getLDAPAttributes(c, request.getFields());
-                            final SearchRequest request =
+                            final SearchRequest searchRequest =
                                     newSearchRequest(getBaseDN(c), SearchScope.SINGLE_LEVEL,
                                             ldapFilter == Filter.alwaysTrue() ? Filter
                                                     .objectClassPresent() : ldapFilter, attributes);
-                            c.getConnection().searchAsync(request, null, new SearchResultHandler() {
+
+                            /*
+                             * Add the page results control. We can support the
+                             * page offset by reading the next offset pages, or
+                             * offset x page size resources.
+                             */
+                            final int pageResultStartIndex;
+                            final int pageSize = request.getPageSize();
+                            if (request.getPageSize() > 0) {
+                                final int pageResultEndIndex;
+                                if (request.getPagedResultsOffset() > 0) {
+                                    pageResultStartIndex = request.getPagedResultsOffset() * pageSize;
+                                    pageResultEndIndex = pageResultStartIndex + pageSize;
+                                } else {
+                                    pageResultStartIndex = 0;
+                                    pageResultEndIndex = pageSize;
+                                }
+                                final ByteString cookie =
+                                        request.getPagedResultsCookie() != null ? ByteString
+                                                .valueOfBase64(request.getPagedResultsCookie())
+                                                : ByteString.empty();
+                                final SimplePagedResultsControl control =
+                                        SimplePagedResultsControl.newControl(true,
+                                                pageResultEndIndex, cookie);
+                                searchRequest.addControl(control);
+                            } else {
+                                pageResultStartIndex = 0;
+                            }
+
+                            c.getConnection().searchAsync(searchRequest, null, new SearchResultHandler() {
                                 /*
                                  * The following fields are guarded by
                                  * sequenceLock. In addition, the sequenceLock
@@ -357,6 +392,8 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
                                 private int pendingResourceCount = 0;
                                 private ResourceException pendingResult = null;
                                 private boolean resultSent = false;
+                                private int totalResourceCount = 0;
+                                private String cookie = null;
 
                                 @Override
                                 public boolean handleEntry(final SearchResultEntry entry) {
@@ -370,6 +407,10 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
                                     synchronized (sequenceLock) {
                                         if (pendingResult != null) {
                                             return false;
+                                        }
+                                        if (totalResourceCount++ < pageResultStartIndex) {
+                                            // Haven't reached paged results threshold yet.
+                                            return true;
                                         }
                                         pendingResourceCount++;
                                     }
@@ -440,6 +481,17 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
                                 @Override
                                 public void handleResult(final Result result) {
                                     synchronized (sequenceLock) {
+                                        if (request.getPageSize() > 0) {
+                                            try {
+                                                final SimplePagedResultsControl control = result.getControl(
+                                                    SimplePagedResultsControl.DECODER, DECODE_OPTIONS);
+                                                if (control != null && !control.getCookie().isEmpty()) {
+                                                    cookie = control.getCookie().toBase64String();
+                                                }
+                                            } catch (final DecodeException e) {
+                                                // FIXME: need some logging.
+                                            }
+                                        }
                                         completeIfNecessary(SUCCESS);
                                     }
                                 }
@@ -465,7 +517,7 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
                                     if (pendingResourceCount == 0 && pendingResult != null
                                             && !resultSent) {
                                         if (pendingResult == SUCCESS) {
-                                            h.handleResult(new QueryResult());
+                                            h.handleResult(new QueryResult(cookie, -1));
                                         } else {
                                             h.handleError(pendingResult);
                                         }
