@@ -43,6 +43,7 @@ import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.replication.common.CSNGenerator;
 import org.opends.server.replication.common.ServerStatus;
 import org.opends.server.replication.plugin.LDAPReplicationDomain;
+import org.opends.server.replication.plugin.MultimasterReplication;
 import org.opends.server.replication.protocol.*;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationBackend;
@@ -151,7 +152,7 @@ public class GenerationIdTest extends ReplicationTestCase
 
   private void debugInfo(String message, Exception e)
   {
-    debugInfo(message + stackTraceToSingleLineString(e));
+    debugInfo(message + " " + stackTraceToSingleLineString(e));
   }
 
   /**
@@ -443,7 +444,7 @@ public class GenerationIdTest extends ReplicationTestCase
       catch (DirectoryException e)
       {
         // success
-        debugInfo("disconnectFromReplServer:" + rs.getServerId(), e);
+        debugInfo("disconnectFromReplServer: " + rs.getServerId(), e);
       }
     }
   }
@@ -659,6 +660,7 @@ public class GenerationIdTest extends ReplicationTestCase
       debugInfo(testCase + " ** TEST ** The part of the topology with the right gen ID should work well");
 
       // Now create a change that must be replicated
+      assertConnectedToReplicationDomain();
       addTestEntriesToDB(createEntry(UUID.randomUUID()));
 
       // Verify that RS1 does contain the change related to this ADD.
@@ -764,6 +766,7 @@ public class GenerationIdTest extends ReplicationTestCase
           "Expecting that DS3 with old gen ID is in bad gen id from RS1");
 
       debugInfo("Add entries to DS1, update should not be sent to DS2 and DS3 that are in bad gen id");
+      assertConnectedToReplicationDomain();
       addTestEntriesToDB(createEntry(UUID.randomUUID()));
 
       debugInfo("RS1 must have stored that update.");
@@ -856,6 +859,13 @@ public class GenerationIdTest extends ReplicationTestCase
     {
       postTest();
     }
+  }
+
+  private void assertConnectedToReplicationDomain()
+  {
+    assertTrue(MultimasterReplication.findDomain(baseDN, null).isConnected(),
+        "The server should be connected to replication domain" + baseDN
+            + " at this point");
   }
 
   private Entry createSetGenerationIdTask(Long genId, String additionalAttribute) throws Exception
@@ -1055,6 +1065,7 @@ public class GenerationIdTest extends ReplicationTestCase
       assertEquals(readGenIdFromSuffixRootEntry(), -1,
           "genId attribute should not be retrievable since there are NO entry in the backend");
 
+      assertConnectedToReplicationDomain();
       addTestEntriesToDB(updatedEntries);
       assertEquals(readGenIdFromSuffixRootEntry(), EMPTY_DN_GENID,
           "genId attribute should be retrievable since there IS one entry in the backend");
