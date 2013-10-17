@@ -525,6 +525,11 @@ public final class ByteString implements ByteSequence {
         return hashCode(buffer, offset, length);
     }
 
+    @Override
+    public boolean isEmpty() {
+        return length == 0;
+    }
+
     /**
      * {@inheritDoc}
      */
