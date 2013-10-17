@@ -43,6 +43,7 @@ import org.forgerock.opendj.ldap.controls.PostReadRequestControl;
 import org.forgerock.opendj.ldap.controls.PostReadResponseControl;
 import org.forgerock.opendj.ldap.controls.PreReadRequestControl;
 import org.forgerock.opendj.ldap.controls.PreReadResponseControl;
+import org.forgerock.opendj.ldap.controls.SimplePagedResultsControl;
 import org.forgerock.opendj.ldap.controls.SubtreeDeleteRequestControl;
 import org.forgerock.opendj.ldap.requests.AddRequest;
 import org.forgerock.opendj.ldap.requests.BindRequest;
@@ -396,15 +397,18 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
                 if (matcher.matches(baseEntry).toBoolean()) {
                     sendEntry(attributeFilter, resultHandler, baseEntry);
                 }
+                resultHandler.handleResult(newResult(ResultCode.SUCCESS));
             } else if (scope.equals(SearchScope.SINGLE_LEVEL) || scope.equals(SearchScope.WHOLE_SUBTREE)) {
-                searchWithSubordinates(
-                        requestContext, resultHandler, dn, matcher,
-                        attributeFilter, request.getSizeLimit(), scope);
+                searchWithSubordinates(requestContext, resultHandler, dn, matcher, attributeFilter,
+                        request.getSizeLimit(), scope, request.getControl(
+                                SimplePagedResultsControl.DECODER, new DecodeOptions()));
             } else {
                 throw newErrorResult(ResultCode.PROTOCOL_ERROR,
                         "Search request contains an unsupported search scope");
             }
-            resultHandler.handleResult(newResult(ResultCode.SUCCESS));
+        } catch (DecodeException e) {
+            resultHandler.handleErrorResult(ErrorResultException.newErrorResult(
+                    ResultCode.PROTOCOL_ERROR, e.getMessage(), e));
         } catch (final ErrorResultException e) {
             resultHandler.handleErrorResult(e);
         }
@@ -478,33 +482,66 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
      * @param attributeFilter to select attributes to return in search results
      * @param sizeLimit maximum number of entries to return. A value of zero indicates no restriction
      *          on number of entries.
+     * @param pagedResults The simple paged results control, if present.
      * @throws CancelledResultException
      *           If a cancellation request has been received and processing of
      *           the request should be aborted if possible.
      * @throws ErrorResultException
      *           If the request is unsuccessful.
      */
-    private void searchWithSubordinates(final RequestContext requestContext, final SearchResultHandler resultHandler,
-            final DN dn, final Matcher matcher, final AttributeFilter attributeFilter, final int sizeLimit,
-            SearchScope scope) throws CancelledResultException, ErrorResultException {
-
+    private void searchWithSubordinates(final RequestContext requestContext,
+            final SearchResultHandler resultHandler, final DN dn, final Matcher matcher,
+            final AttributeFilter attributeFilter, final int sizeLimit, SearchScope scope,
+            SimplePagedResultsControl pagedResults) throws CancelledResultException,
+            ErrorResultException {
+        final int pageSize = pagedResults != null ? pagedResults.getSize() : 0;
+        final int offset = (pagedResults != null && !pagedResults.getCookie().isEmpty())
+                ? Integer.valueOf(pagedResults.getCookie().toString()) : 0;
         final Map<DN, Entry> subtree = entries.subMap(dn, dn.child(RDN.maxValue()));
         int numberOfResults = 0;
+        int position = 0;
         for (final Entry entry : subtree.values()) {
             requestContext.checkIfCancelled(false);
             if (scope.equals(SearchScope.WHOLE_SUBTREE) || entry.getName().isChildOf(dn)) {
                 if (matcher.matches(entry).toBoolean()) {
+                    /*
+                     * This entry is going to be returned to the client so it
+                     * counts towards the size limit and any paging criteria.
+                     */
+
+                    // Check size limit.
                     if (sizeLimit > 0 && numberOfResults >= sizeLimit) {
                         throw newErrorResult(newResult(ResultCode.SIZE_LIMIT_EXCEEDED));
                     }
+
+                    // Ignore this entry if we haven't reached the first page yet.
+                    if (pageSize > 0 && position++ < offset) {
+                        continue;
+                    }
+
+                    // Send the entry back to the client.
+                    if (!sendEntry(attributeFilter, resultHandler, entry)) {
+                        // Client has disconnected or cancelled.
+                        break;
+                    }
+
                     numberOfResults++;
-                    boolean acceptMoreResults = sendEntry(attributeFilter, resultHandler, entry);
-                    if (!acceptMoreResults) {
+
+                    // Stop if we've reached the end of the page.
+                    if (pageSize > 0 && numberOfResults == pageSize) {
                         break;
                     }
                 }
             }
         }
+        final Result result = newResult(ResultCode.SUCCESS);
+        if (pageSize > 0) {
+            final ByteString cookie =
+                    numberOfResults == pageSize ? ByteString.valueOf(String.valueOf(position))
+                            : ByteString.empty();
+            result.addControl(SimplePagedResultsControl.newControl(true, 0, cookie));
+        }
+        resultHandler.handleResult(result);
     }
 
     private <R extends Result> R addResultControls(final Request request, final Entry before,
