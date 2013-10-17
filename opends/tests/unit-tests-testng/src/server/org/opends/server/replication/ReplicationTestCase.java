@@ -386,8 +386,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
       "Found unexpected replication server config left");
 
     // Be sure that no replication server instance is left
-    List<ReplicationServer> allRSInstances = ReplicationServer.getAllInstances();
-    assertEquals(allRSInstances.size(), 0, "Some replication servers left: " + allRSInstances);
+    Assertions.assertThat(ReplicationServer.getAllInstances()).isEmpty();
 
     // Check for config entries for replication domain
     assertNoConfigEntriesWithFilter("(objectclass=ds-cfg-replication-domain)",
@@ -834,7 +833,6 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
    */
   protected void addTestEntriesToDB(String... ldifEntries) throws Exception
   {
-    // Change config of DS to launch the total update task
     for (String ldifEntry : ldifEntries)
     {
       Entry entry = TestCaseUtils.entryFromLdifString(ldifEntry);
