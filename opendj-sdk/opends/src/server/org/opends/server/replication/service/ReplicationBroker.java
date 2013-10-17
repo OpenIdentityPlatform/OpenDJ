@@ -99,7 +99,7 @@ public class ReplicationBroker
   /** The group id of the RS we are connected to. */
   private byte rsGroupId = -1;
   /** The server id of the RS we are connected to. */
-  private Integer rsServerId = -1;
+  private int rsServerId = -1;
   /** The server URL of the RS we are connected to. */
   private String rsServerUrl;
   /** Our replication domain. */
@@ -114,7 +114,7 @@ public class ReplicationBroker
    * as seen by the ReplicationServer the last time it was polled or the last
    * time it published monitoring information.
    */
-  private HashMap<Integer, ServerState> replicaStates =
+  private Map<Integer, ServerState> replicaStates =
     new HashMap<Integer, ServerState>();
   /**
    * The expected duration in milliseconds between heartbeats received
@@ -293,7 +293,7 @@ public class ReplicationBroker
    * Gets the server id of the RS we are connected to.
    * @return The server id of the RS we are connected to
    */
-  public Integer getRsServerId()
+  public int getRsServerId()
   {
     return rsServerId;
   }
@@ -2388,11 +2388,13 @@ public class ReplicationBroker
           MonitorMsg monitorMsg = (MonitorMsg) msg;
 
           // Extract and store replicas ServerStates
-          replicaStates = new HashMap<Integer, ServerState>();
+          final Map<Integer, ServerState> newReplicaStates =
+              new HashMap<Integer, ServerState>();
           for (int srvId : toIterable(monitorMsg.ldapIterator()))
           {
-            replicaStates.put(srvId, monitorMsg.getLDAPServerState(srvId));
+            newReplicaStates.put(srvId, monitorMsg.getLDAPServerState(srvId));
           }
+          replicaStates = newReplicaStates;
 
           // Notify the sender that the response was received.
           synchronized (monitorResponse)
@@ -3040,6 +3042,9 @@ public class ReplicationBroker
   @Override
   public String toString()
   {
-    return getClass().getSimpleName() + " " + baseDN + " " + serverId;
+    return getClass().getSimpleName() + " \"" + baseDN + " " + serverId + "\","
+        + " groupId=" + groupId + ", genId=" + generationID
+        + ", bestRS(serverId=" + rsServerId + ", serverUrl=" + rsServerUrl
+        + ", groupId=" + rsGroupId + ")";
   }
 }
