@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2011-2012 ForgeRock AS
+ *      Portions copyright 2011-2013 ForgeRock AS
  */
 package org.forgerock.opendj.ldap;
 
@@ -227,6 +227,13 @@ public interface ByteSequence extends Comparable<ByteSequence> {
      * @return A hash code for this byte sequence.
      */
     int hashCode();
+
+    /**
+     * Returns {@code true} if this byte sequence has a length of zero.
+     *
+     * @return {@code true} if this byte sequence has a length of zero.
+     */
+    boolean isEmpty();
 
     /**
      * Returns the length of this byte sequence.

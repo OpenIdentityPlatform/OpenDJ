@@ -37,6 +37,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 
 import org.forgerock.opendj.ldap.controls.AssertionRequestControl;
 import org.forgerock.opendj.ldap.controls.PermissiveModifyRequestControl;
@@ -44,7 +45,10 @@ import org.forgerock.opendj.ldap.controls.PostReadRequestControl;
 import org.forgerock.opendj.ldap.controls.PostReadResponseControl;
 import org.forgerock.opendj.ldap.controls.PreReadRequestControl;
 import org.forgerock.opendj.ldap.controls.PreReadResponseControl;
+import org.forgerock.opendj.ldap.controls.SimplePagedResultsControl;
 import org.forgerock.opendj.ldap.requests.Requests;
+import org.forgerock.opendj.ldap.requests.SearchRequest;
+import org.forgerock.opendj.ldap.responses.Result;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldif.ConnectionEntryReader;
 import org.forgerock.opendj.ldif.LDIFEntryReader;
@@ -55,8 +59,7 @@ import org.testng.annotations.Test;
  */
 @SuppressWarnings("javadoc")
 public class MemoryBackendTestCase extends SdkTestCase {
-
-    int numberOfEntriesInBackend;
+    private int numberOfEntriesInBackend;
 
     @Test
     public void testAdd() throws Exception {
@@ -469,6 +472,61 @@ public class MemoryBackendTestCase extends SdkTestCase {
     }
 
     @Test
+    public void testSearchPagedResults() throws Exception {
+        final Connection connection = getConnection();
+        final List<SearchResultEntry> entries = new ArrayList<SearchResultEntry>();
+        final SearchRequest search =
+                Requests.newSearchRequest("ou=people,dc=example,dc=com", SearchScope.WHOLE_SUBTREE,
+                        "(uid=*)");
+        final DecodeOptions dc = new DecodeOptions();
+
+        // First page.
+        search.addControl(SimplePagedResultsControl.newControl(true, 2, ByteString.empty()));
+        Result result = connection.search(search, entries);
+        assertThat(entries).hasSize(2);
+        assertThat(entries.get(0).getName().toString()).isEqualTo(
+                "uid=test1,ou=People,dc=example,dc=com");
+        assertThat(entries.get(1).getName().toString()).isEqualTo(
+                "uid=test2,ou=People,dc=example,dc=com");
+        SimplePagedResultsControl control =
+                result.getControl(SimplePagedResultsControl.DECODER, dc);
+        assertThat(control).isNotNull();
+        ByteString cookie = control.getCookie();
+        assertThat(cookie).isNotNull();
+        assertThat(cookie.isEmpty()).isFalse();
+        entries.clear();
+        search.getControls().clear();
+
+        // Second page.
+        search.addControl(SimplePagedResultsControl.newControl(true, 2, cookie));
+        result = connection.search(search, entries);
+        assertThat(entries).hasSize(2);
+        assertThat(entries.get(0).getName().toString()).isEqualTo(
+                "uid=test3,ou=People,dc=example,dc=com");
+        assertThat(entries.get(1).getName().toString()).isEqualTo(
+                "uid=test4,ou=People,dc=example,dc=com");
+        control = result.getControl(SimplePagedResultsControl.DECODER, dc);
+        assertThat(control).isNotNull();
+        cookie = control.getCookie();
+        assertThat(cookie).isNotNull();
+        assertThat(cookie.isEmpty()).isFalse();
+        entries.clear();
+        search.getControls().clear();
+
+        // Final page.
+        search.addControl(SimplePagedResultsControl.newControl(true, 2, cookie));
+        result = connection.search(search, entries);
+        assertThat(entries).hasSize(1);
+        assertThat(entries.get(0).getName().toString()).isEqualTo(
+                "uid=test5,ou=People,dc=example,dc=com");
+        control = result.getControl(SimplePagedResultsControl.DECODER, dc);
+        assertThat(control).isNotNull();
+        cookie = control.getCookie();
+        assertThat(cookie).isNotNull();
+        assertThat(cookie.isEmpty()).isTrue();
+    }
+
+    @Test
     public void testSimpleBind() throws Exception {
         final Connection connection = getConnection();
         connection.bind("uid=test1,ou=people,dc=example,dc=com", "password".toCharArray());
@@ -547,6 +605,30 @@ public class MemoryBackendTestCase extends SdkTestCase {
             "userpassword: password",
             "cn: test user 2",
             "sn: user 2",
+            "",
+            "dn: uid=test3,ou=People,dc=example,dc=com",
+            "objectClass: top",
+            "objectClass: person",
+            "uid: test3",
+            "userpassword: password",
+            "cn: test user 3",
+            "sn: user 3",
+            "",
+            "dn: uid=test4,ou=People,dc=example,dc=com",
+            "objectClass: top",
+            "objectClass: person",
+            "uid: test4",
+            "userpassword: password",
+            "cn: test user 4",
+            "sn: user 4",
+            "",
+            "dn: uid=test5,ou=People,dc=example,dc=com",
+            "objectClass: top",
+            "objectClass: person",
+            "uid: test5",
+            "userpassword: password",
+            "cn: test user 5",
+            "sn: user 5",
             "",
             "dn: dc=xxx,dc=com",
             "objectClass: domain",

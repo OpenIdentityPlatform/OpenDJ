@@ -180,6 +180,11 @@ public final class ByteStringBuilder implements ByteSequence {
             return ByteString.hashCode(buffer, subOffset, subLength);
         }
 
+        @Override
+        public boolean isEmpty() {
+            return length == 0;
+        }
+
         /**
          * {@inheritDoc}
          */
@@ -824,6 +829,11 @@ public final class ByteStringBuilder implements ByteSequence {
     @Override
     public int hashCode() {
         return ByteString.hashCode(buffer, 0, length);
+    }
+
+    @Override
+    public boolean isEmpty() {
+        return length == 0;
     }
 
     /**
