@@ -28,6 +28,7 @@ import static org.forgerock.json.resource.PatchOperation.remove;
 import static org.forgerock.json.resource.PatchOperation.replace;
 import static org.forgerock.json.resource.Requests.newDeleteRequest;
 import static org.forgerock.json.resource.Requests.newPatchRequest;
+import static org.forgerock.json.resource.Requests.newQueryRequest;
 import static org.forgerock.json.resource.Requests.newReadRequest;
 import static org.forgerock.json.resource.Requests.newUpdateRequest;
 import static org.forgerock.json.resource.Resources.newCollection;
@@ -42,6 +43,7 @@ import static org.forgerock.opendj.rest2ldap.TestUtils.content;
 import static org.forgerock.opendj.rest2ldap.TestUtils.ctx;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -51,6 +53,9 @@ import org.forgerock.json.resource.Connection;
 import org.forgerock.json.resource.NotFoundException;
 import org.forgerock.json.resource.NotSupportedException;
 import org.forgerock.json.resource.PreconditionFailedException;
+import org.forgerock.json.resource.QueryFilter;
+import org.forgerock.json.resource.QueryResult;
+import org.forgerock.json.resource.Requests;
 import org.forgerock.json.resource.Resource;
 import org.forgerock.opendj.ldap.ConnectionFactory;
 import org.forgerock.opendj.ldap.IntermediateResponseHandler;
@@ -86,6 +91,84 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
     // FIXME: we need to test the request handler, not internal connections,
     // so that we can check that the request handler is returning everything.
     // FIXME: factor out test for re-use as common test suite (e.g. for InMemoryBackend).
+
+    @Test
+    public void testQueryAll() throws Exception {
+        final Connection connection = newConnection();
+        final List<Resource> resources = new LinkedList<Resource>();
+        final QueryResult result =
+                connection.query(ctx(), Requests.newQueryRequest("").setQueryFilter(
+                        QueryFilter.alwaysTrue()), resources);
+        assertThat(resources).hasSize(5);
+        assertThat(result.getPagedResultsCookie()).isNull();
+        assertThat(result.getRemainingPagedResults()).isEqualTo(-1);
+    }
+
+    @Test
+    public void testQueryNone() throws Exception {
+        final Connection connection = newConnection();
+        final List<Resource> resources = new LinkedList<Resource>();
+        final QueryResult result =
+                connection.query(ctx(), Requests.newQueryRequest("").setQueryFilter(
+                        QueryFilter.alwaysFalse()), resources);
+        assertThat(resources).hasSize(0);
+        assertThat(result.getPagedResultsCookie()).isNull();
+        assertThat(result.getRemainingPagedResults()).isEqualTo(-1);
+    }
+
+    @Test
+    public void testQueryPageResultsCookie() throws Exception {
+        final Connection connection = newConnection();
+        final List<Resource> resources = new ArrayList<Resource>();
+
+        // Read first page.
+        QueryResult result =
+                connection.query(ctx(), newQueryRequest("")
+                        .setQueryFilter(QueryFilter.alwaysTrue()).setPageSize(2), resources);
+        assertThat(result.getPagedResultsCookie()).isNotNull();
+        assertThat(resources).hasSize(2);
+        assertThat(resources.get(0).getId()).isEqualTo("test1");
+        assertThat(resources.get(1).getId()).isEqualTo("test2");
+
+        String cookie = result.getPagedResultsCookie();
+        resources.clear();
+
+        // Read second page.
+        result =
+                connection.query(ctx(), newQueryRequest("")
+                        .setQueryFilter(QueryFilter.alwaysTrue()).setPageSize(2)
+                        .setPagedResultsCookie(cookie), resources);
+        assertThat(result.getPagedResultsCookie()).isNotNull();
+        assertThat(resources).hasSize(2);
+        assertThat(resources.get(0).getId()).isEqualTo("test3");
+        assertThat(resources.get(1).getId()).isEqualTo("test4");
+
+        cookie = result.getPagedResultsCookie();
+        resources.clear();
+
+        // Read third page.
+        result =
+                connection.query(ctx(), newQueryRequest("")
+                        .setQueryFilter(QueryFilter.alwaysTrue()).setPageSize(2)
+                        .setPagedResultsCookie(cookie), resources);
+        assertThat(result.getPagedResultsCookie()).isNull();
+        assertThat(resources).hasSize(1);
+        assertThat(resources.get(0).getId()).isEqualTo("test5");
+    }
+
+    @Test
+    public void testQueryPageResultsIndexed() throws Exception {
+        final Connection connection = newConnection();
+        final List<Resource> resources = new ArrayList<Resource>();
+        QueryResult result =
+                connection.query(ctx(), newQueryRequest("")
+                        .setQueryFilter(QueryFilter.alwaysTrue()).setPageSize(2)
+                        .setPagedResultsOffset(1), resources);
+        assertThat(result.getPagedResultsCookie()).isNotNull();
+        assertThat(resources).hasSize(2);
+        assertThat(resources.get(0).getId()).isEqualTo("test3");
+        assertThat(resources.get(1).getId()).isEqualTo("test4");
+    }
 
     @Test
     public void testDelete() throws Exception {
@@ -601,7 +684,34 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
                         "userpassword: password",
                         "cn: test user 2",
                         "sn: user 2",
-                        "etag: 67890"
+                        "etag: 67890",
+                        "",
+                        "dn: uid=test3,dc=test",
+                        "objectClass: top",
+                        "objectClass: person",
+                        "uid: test3",
+                        "userpassword: password",
+                        "cn: test user 3",
+                        "sn: user 3",
+                        "etag: 33333",
+                        "",
+                        "dn: uid=test4,dc=test",
+                        "objectClass: top",
+                        "objectClass: person",
+                        "uid: test4",
+                        "userpassword: password",
+                        "cn: test user 4",
+                        "sn: user 4",
+                        "etag: 44444",
+                        "",
+                        "dn: uid=test5,dc=test",
+                        "objectClass: top",
+                        "objectClass: person",
+                        "uid: test5",
+                        "userpassword: password",
+                        "cn: test user 5",
+                        "sn: user 5",
+                        "etag: 55555"
                 ));
         // @formatter:on
 
