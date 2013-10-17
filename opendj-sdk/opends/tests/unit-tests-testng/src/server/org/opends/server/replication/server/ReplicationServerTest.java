@@ -133,7 +133,6 @@ public class ReplicationServerTest extends ReplicationTestCase
         "--set", "replication-port:" + replicationServerPort,
         "--set", "replication-server-id:71");
 
-    DirectoryServer.getSynchronizationProviders();
     for (SynchronizationProvider<?> provider : DirectoryServer
         .getSynchronizationProviders()) {
       if (provider instanceof MultimasterReplication) {

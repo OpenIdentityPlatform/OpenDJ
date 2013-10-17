@@ -1778,10 +1778,8 @@ public final class LDAPReplicationDomain extends ReplicationDomain
          */
         if (fractionalFilterOperation(addOperation, false))
         {
-          StringBuilder sb = new StringBuilder();
-          addOperation.toString(sb);
           Message msg = NOTE_ERR_FRACTIONAL_FORBIDDEN_OPERATION.get(
-            getBaseDNString(), sb.toString());
+            getBaseDNString(), addOperation.toString());
           return new SynchronizationProviderResult.StopProcessing(
             ResultCode.UNWILLING_TO_PERFORM, msg);
         }
@@ -1907,10 +1905,8 @@ public final class LDAPReplicationDomain extends ReplicationDomain
          */
         if (fractionalFilterOperation(modifyDNOperation, false))
         {
-          StringBuilder sb = new StringBuilder();
-          modifyDNOperation.toString(sb);
           Message msg = NOTE_ERR_FRACTIONAL_FORBIDDEN_OPERATION.get(
-            getBaseDNString(), sb.toString());
+            getBaseDNString(), modifyDNOperation.toString());
           return new SynchronizationProviderResult.StopProcessing(
             ResultCode.UNWILLING_TO_PERFORM, msg);
         }
@@ -2042,10 +2038,8 @@ public final class LDAPReplicationDomain extends ReplicationDomain
           case FRACTIONAL_HAS_FRACTIONAL_FILTERED_ATTRIBUTES:
             // Some attributes not compliant with fractional configuration :
             // forbid the operation
-            StringBuilder sb = new StringBuilder();
-            modifyOperation.toString(sb);
             Message msg = NOTE_ERR_FRACTIONAL_FORBIDDEN_OPERATION.get(
-              getBaseDNString(), sb.toString());
+              getBaseDNString(), modifyOperation.toString());
             return new SynchronizationProviderResult.StopProcessing(
               ResultCode.UNWILLING_TO_PERFORM, msg);
         }
@@ -3811,10 +3805,10 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       }
 
       //  Release the shared lock on the backend.
-      String lockFile = LockFileManager.getBackendLockFileName(backend);
-      StringBuilder failureReason = new StringBuilder();
       try
       {
+        String lockFile = LockFileManager.getBackendLockFileName(backend);
+        StringBuilder failureReason = new StringBuilder();
         if (! LockFileManager.releaseLock(lockFile, failureReason))
         {
           Message message = WARN_LDIFEXPORT_CANNOT_UNLOCK_BACKEND.get(
@@ -3976,8 +3970,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
    * @param backend The backend implied in the import.
    * @exception DirectoryException Thrown when an error occurs.
    */
-  protected void closeBackendImport(Backend backend)
-  throws DirectoryException
+  protected void closeBackendImport(Backend backend) throws DirectoryException
   {
     String lockFile = LockFileManager.getBackendLockFileName(backend);
     StringBuilder failureReason = new StringBuilder();

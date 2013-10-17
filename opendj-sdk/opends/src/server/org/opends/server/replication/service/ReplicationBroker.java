@@ -3042,9 +3042,23 @@ public class ReplicationBroker
   @Override
   public String toString()
   {
-    return getClass().getSimpleName() + " \"" + baseDN + " " + serverId + "\","
-        + " groupId=" + groupId + ", genId=" + generationID
-        + ", bestRS(serverId=" + rsServerId + ", serverUrl=" + rsServerUrl
-        + ", groupId=" + rsGroupId + ")";
+    final StringBuilder sb = new StringBuilder();
+    sb.append(getClass().getSimpleName())
+      .append(" \"").append(baseDN).append(" ").append(serverId).append("\",")
+      .append(" groupId=").append(groupId)
+      .append(", genId=").append(generationID)
+      .append(", connected=").append(connected).append(", ");
+    if (rsServerId == -1)
+    {
+      sb.append("no RS");
+    }
+    else
+    {
+      sb.append("bestRS(serverId=").append(rsServerId)
+        .append(", serverUrl=").append(rsServerUrl)
+        .append(", groupId=").append(rsGroupId)
+        .append(")");
+    }
+    return sb.toString();
   }
 }
