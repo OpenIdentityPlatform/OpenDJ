@@ -1084,7 +1084,7 @@ final class HeartBeatConnectionFactory implements ConnectionFactory {
      * results.
      */
     private static final SearchRequest DEFAULT_SEARCH = Requests.newSearchRequest("",
-            SearchScope.BASE_OBJECT, "(objectClass=1.1)", "1.1");
+            SearchScope.BASE_OBJECT, "(objectClass=*)", "1.1");
 
     /**
      * This is package private in order to allow unit tests to inject fake time
