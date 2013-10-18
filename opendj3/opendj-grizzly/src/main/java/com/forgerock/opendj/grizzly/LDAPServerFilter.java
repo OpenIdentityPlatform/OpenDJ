@@ -76,7 +76,6 @@ import org.glassfish.grizzly.attributes.Attribute;
 import org.glassfish.grizzly.filterchain.BaseFilter;
 import org.glassfish.grizzly.filterchain.Filter;
 import org.glassfish.grizzly.filterchain.FilterChain;
-import org.glassfish.grizzly.filterchain.FilterChainBuilder;
 import org.glassfish.grizzly.filterchain.FilterChainContext;
 import org.glassfish.grizzly.filterchain.NextAction;
 import org.glassfish.grizzly.ssl.SSLEngineConfigurator;
@@ -360,25 +359,7 @@ final class LDAPServerFilter extends BaseFilter {
          *            The filter to be installed.
          */
         private void installFilter(final Filter filter) {
-            // Determine the index where the filter should be added.
-            final FilterChain oldFilterChain = (FilterChain) connection.getProcessor();
-            int filterIndex = oldFilterChain.size() - 1;
-            if (filter instanceof SSLFilter) {
-                // Beneath any ConnectionSecurityLayerFilters if present,
-                // otherwise beneath the LDAP filter.
-                for (int i = oldFilterChain.size() - 2; i >= 0; i--) {
-                    if (!(oldFilterChain.get(i) instanceof ConnectionSecurityLayerFilter)) {
-                        filterIndex = i + 1;
-                        break;
-                    }
-                }
-            }
-
-            // Create the new filter chain.
-            final FilterChain newFilterChain =
-                    FilterChainBuilder.stateless().addAll(oldFilterChain).add(filterIndex, filter)
-                            .build();
-            connection.setProcessor(newFilterChain);
+            GrizzlyUtils.addFilterToConnection(filter, connection);
         }
 
         /**

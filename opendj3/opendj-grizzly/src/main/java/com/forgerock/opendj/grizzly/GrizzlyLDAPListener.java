@@ -40,8 +40,6 @@ import org.forgerock.opendj.ldap.LDAPListenerOptions;
 import org.forgerock.opendj.ldap.ServerConnectionFactory;
 import org.forgerock.opendj.ldap.spi.LDAPListenerImpl;
 import org.glassfish.grizzly.filterchain.FilterChain;
-import org.glassfish.grizzly.filterchain.FilterChainBuilder;
-import org.glassfish.grizzly.filterchain.TransportFilter;
 import org.glassfish.grizzly.nio.transport.TCPNIOBindingHandler;
 import org.glassfish.grizzly.nio.transport.TCPNIOServerConnection;
 import org.glassfish.grizzly.nio.transport.TCPNIOTransport;
@@ -53,7 +51,6 @@ import com.forgerock.opendj.util.ReferenceCountedObject;
  */
 public final class GrizzlyLDAPListener implements LDAPListenerImpl {
     private final ReferenceCountedObject<TCPNIOTransport>.Reference transport;
-    private final FilterChain defaultFilterChain;
     private final ServerConnectionFactory<LDAPClientContext, Integer> connectionFactory;
     private final TCPNIOServerConnection serverConnection;
     private final AtomicBoolean isClosed = new AtomicBoolean();
@@ -105,12 +102,11 @@ public final class GrizzlyLDAPListener implements LDAPListenerImpl {
         this.connectionFactory = factory;
 
         final DecodeOptions decodeOptions = new DecodeOptions(options.getDecodeOptions());
-        this.defaultFilterChain =
-                FilterChainBuilder.stateless().add(new TransportFilter()).add(
-                        new LDAPServerFilter(this, new LDAPReader(decodeOptions), options
-                                .getMaxRequestSize())).build();
+        final LDAPServerFilter serverFilter = new LDAPServerFilter(this, new LDAPReader(decodeOptions), options
+                .getMaxRequestSize());
+        final FilterChain ldapChain = GrizzlyUtils.buildFilterChain(this.transport.get().getProcessor(), serverFilter);
         final TCPNIOBindingHandler bindingHandler =
-                TCPNIOBindingHandler.builder(this.transport.get()).processor(defaultFilterChain).build();
+                TCPNIOBindingHandler.builder(this.transport.get()).processor(ldapChain).build();
         this.serverConnection = bindingHandler.bind(address, options.getBacklog());
     }
 
@@ -147,9 +143,5 @@ public final class GrizzlyLDAPListener implements LDAPListenerImpl {
 
     ServerConnectionFactory<LDAPClientContext, Integer> getConnectionFactory() {
         return connectionFactory;
-    }
-
-    FilterChain getDefaultFilterChain() {
-        return defaultFilterChain;
     }
 }

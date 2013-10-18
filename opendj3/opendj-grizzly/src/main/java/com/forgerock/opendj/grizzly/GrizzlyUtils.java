@@ -1,0 +1,126 @@
+/*
+ * CDDL HEADER START
+ *
+ * The contents of this file are subject to the terms of the
+ * Common Development and Distribution License, Version 1.0 only
+ * (the "License").  You may not use this file except in compliance
+ * with the License.
+ *
+ * You can obtain a copy of the license at legal-notices/CDDLv1_0.txt
+ * or http://forgerock.org/license/CDDLv1.0.html.
+ * See the License for the specific language governing permissions
+ * and limitations under the License.
+ *
+ * When distributing Covered Code, include this CDDL HEADER in each
+ * file and include the License file at legal-notices/CDDLv1_0.txt.
+ * If applicable, add the following below this CDDL HEADER, with the
+ * fields enclosed by brackets "[]" replaced with your own identifying
+ * information:
+ *      Portions Copyright [yyyy] [name of copyright owner]
+ *
+ * CDDL HEADER END
+ *
+ *
+ *      Copyright 2013 ForgeRock AS.
+ */
+package com.forgerock.opendj.grizzly;
+
+import org.glassfish.grizzly.Processor;
+import org.glassfish.grizzly.filterchain.Filter;
+import org.glassfish.grizzly.filterchain.FilterChain;
+import org.glassfish.grizzly.filterchain.FilterChainBuilder;
+import org.glassfish.grizzly.filterchain.TransportFilter;
+import org.glassfish.grizzly.ssl.SSLFilter;
+
+/**
+ * Common utility methods.
+ */
+final class GrizzlyUtils {
+
+
+    /**
+     * Build a filter chain from the provided processor if possible and the
+     * provided filter.
+     * <p>
+     * If the provided processor can't be used for building the new filter
+     * chain, then a chain with only a {@code TransportFilter} is used as a base
+     * chain.
+     *
+     * @param processor
+     *            processor to build the filter chain from. If the processor is
+     *            not a filter chain (for example, it can be a
+     *            {@code StandaloneProcessor} then it is ignored to build the
+     *            returned filter chain
+     * @param filter
+     *            filter to add at the end of the filter chain
+     * @return a new filter chain, based on the provided processor if processor
+     *         is a {@code FilterChain}, and having the provided filter as the
+     *         last filter
+     */
+    public static FilterChain buildFilterChain(Processor processor, Filter filter) {
+        if (processor instanceof FilterChain) {
+            return FilterChainBuilder.stateless().addAll((FilterChain) processor).add(filter).build();
+        } else {
+            return FilterChainBuilder.stateless().add(new TransportFilter()).add(filter).build();
+        }
+    }
+
+    /**
+     * Adds a filter to filter chain registered with the given connection.
+     * <p>
+     * For a non-SSL filter, filter is added at the last position before the
+     * LDAP filter.
+     * <p>
+     * For a SSL filter, filter is added before any
+     * {@code ConnectionSecurityLayerFilter} which is already present in the
+     * filter chain.
+     *
+     * @param filter
+     *            filter to add
+     * @param connection
+     *            connection to update with the new filter chain containing the
+     *            provided filter
+     */
+    public static void addFilterToConnection(final Filter filter, org.glassfish.grizzly.Connection<?> connection) {
+        final FilterChain currentChain = (FilterChain) connection.getProcessor();
+        final FilterChain newChain = addFilterToChain(filter, currentChain);
+        connection.setProcessor(newChain);
+    }
+
+    /**
+     * Adds a filter to a filter chain.
+     * <p>
+     * For a non-SSL filter, filter is added at the last position before the
+     * LDAP filter.
+     * <p>
+     * For a SSL filter, filter is added before any
+     * {@code ConnectionSecurityLayerFilter} which is already present in the
+     * filter chain.
+     *
+     * @param filter
+     *            filter to add
+     * @param chain
+     *            initial filter chain
+     * @return a new filter chain which includes the provided filter
+     */
+    public static FilterChain addFilterToChain(final Filter filter, final FilterChain chain) {
+        // By default, before LDAP filter which is the last one
+        int indexToAddFilter = chain.size() - 1;
+        if (filter instanceof SSLFilter) {
+            // Before any ConnectionSecurityLayerFilters if present
+            for (int i = chain.size() - 2; i >= 0; i--) {
+                if (!(chain.get(i) instanceof ConnectionSecurityLayerFilter)) {
+                    indexToAddFilter = i + 1;
+                    break;
+                }
+            }
+        }
+        return FilterChainBuilder.stateless().addAll(chain).add(indexToAddFilter, filter).build();
+    }
+
+    // Prevent instantiation.
+    private GrizzlyUtils() {
+        // No implementation required.
+    }
+
+}

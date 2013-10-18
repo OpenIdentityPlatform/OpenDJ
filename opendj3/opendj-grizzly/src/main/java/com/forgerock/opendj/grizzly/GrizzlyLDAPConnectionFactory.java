@@ -53,8 +53,6 @@ import org.glassfish.grizzly.CompletionHandler;
 import org.glassfish.grizzly.EmptyCompletionHandler;
 import org.glassfish.grizzly.SocketConnectorHandler;
 import org.glassfish.grizzly.filterchain.FilterChain;
-import org.glassfish.grizzly.filterchain.FilterChainBuilder;
-import org.glassfish.grizzly.filterchain.TransportFilter;
 import org.glassfish.grizzly.nio.transport.TCPNIOConnectorHandler;
 import org.glassfish.grizzly.nio.transport.TCPNIOTransport;
 
@@ -257,7 +255,8 @@ public final class GrizzlyLDAPConnectionFactory implements LDAPConnectionFactory
         this.socketAddress = address;
         this.options = new LDAPOptions(options);
         this.clientFilter = new LDAPClientFilter(new LDAPReader(this.options.getDecodeOptions()), 0);
-        this.defaultFilterChain = FilterChainBuilder.stateless().add(new TransportFilter()).add(clientFilter).build();
+        this.defaultFilterChain = GrizzlyUtils.buildFilterChain(this.transport.get().getProcessor(), clientFilter);
+
     }
 
     @Override

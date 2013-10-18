@@ -84,7 +84,6 @@ import org.forgerock.opendj.ldap.spi.LDAPSearchFutureResultImpl;
 import org.glassfish.grizzly.CompletionHandler;
 import org.glassfish.grizzly.filterchain.Filter;
 import org.glassfish.grizzly.filterchain.FilterChain;
-import org.glassfish.grizzly.filterchain.FilterChainBuilder;
 import org.glassfish.grizzly.ssl.SSLEngineConfigurator;
 import org.glassfish.grizzly.ssl.SSLFilter;
 
@@ -706,25 +705,7 @@ final class GrizzlyLDAPConnection extends AbstractAsynchronousConnection impleme
      */
     void installFilter(final Filter filter) {
         synchronized (stateLock) {
-            // Determine the index where the filter should be added.
-            final FilterChain oldFilterChain = (FilterChain) connection.getProcessor();
-            int filterIndex = oldFilterChain.size() - 1;
-            if (filter instanceof SSLFilter) {
-                // Beneath any ConnectionSecurityLayerFilters if present,
-                // otherwise beneath the LDAP filter.
-                for (int i = oldFilterChain.size() - 2; i >= 0; i--) {
-                    if (!(oldFilterChain.get(i) instanceof ConnectionSecurityLayerFilter)) {
-                        filterIndex = i + 1;
-                        break;
-                    }
-                }
-            }
-
-            // Create the new filter chain.
-            final FilterChain newFilterChain =
-                    FilterChainBuilder.stateless().addAll(oldFilterChain).add(filterIndex, filter)
-                            .build();
-            connection.setProcessor(newFilterChain);
+            GrizzlyUtils.addFilterToConnection(filter, connection);
         }
     }
 
