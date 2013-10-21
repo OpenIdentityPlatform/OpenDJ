@@ -39,6 +39,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpServletResponseWrapper;
 
 import org.forgerock.json.resource.ResourceException;
+import org.forgerock.opendj.adapter.server2x.Adapters;
 import org.forgerock.opendj.ldap.*;
 import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.opendj.ldap.requests.BindRequest;
@@ -53,12 +54,10 @@ import org.opends.server.admin.std.server.ConnectionHandlerCfg;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.schema.SchemaConstants;
 import org.opends.server.types.AddressMask;
-import org.opends.server.types.AuthenticationInfo;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DisconnectReason;
 import org.opends.server.util.Base64;
 
-import static org.forgerock.opendj.adapter.server2x.Converters.*;
 import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.loggers.AccessLogger.*;
 import static org.opends.server.loggers.ErrorLogger.*;
@@ -142,7 +141,7 @@ final class CollectClientConnectionsFilter implements javax.servlet.Filter
         // wipe it from memory for security reasons
         ctx.password = null;
         ctx.connection.bindAsync(bindRequest, null,
-            new CallDoFilterResultHandler(ctx, resultEntry));
+            new CallDoFilterResultHandler(ctx));
       }
     }
 
@@ -157,13 +156,10 @@ final class CollectClientConnectionsFilter implements javax.servlet.Filter
   {
 
     private final HTTPRequestContext ctx;
-    private final SearchResultEntry resultEntry;
 
-    private CallDoFilterResultHandler(HTTPRequestContext ctx,
-        SearchResultEntry resultEntry)
+    private CallDoFilterResultHandler(HTTPRequestContext ctx)
     {
       this.ctx = ctx;
-      this.resultEntry = resultEntry;
     }
 
     @Override
@@ -177,11 +173,9 @@ final class CollectClientConnectionsFilter implements javax.servlet.Filter
     {
       ctx.clientConnection.setAuthUser(ctx.userName);
 
-      final AuthenticationInfo authInfo = new AuthenticationInfo(
-          to(resultEntry), to(resultEntry.getName()), false);
       try
       {
-        doFilter(ctx, authInfo);
+        doFilter(ctx);
       }
       catch (Exception e)
       {
@@ -295,13 +289,13 @@ final class CollectClientConnectionsFilter implements javax.servlet.Filter
 
         ctx.asyncContext = getAsyncContext(request);
 
-        ctx.connection.searchSingleEntryAsync(buildSearchRequest(ctx.userName),
-            new DoBindResultHandler(ctx));
+        Adapters.newRootConnection().searchSingleEntryAsync(
+            buildSearchRequest(ctx.userName), new DoBindResultHandler(ctx));
       }
       else if (this.connectionHandler.acceptUnauthenticatedRequests())
       {
         // use unauthenticated user
-        doFilter(ctx, new AuthenticationInfo());
+        doFilter(ctx);
       }
       else
       {
@@ -314,11 +308,9 @@ final class CollectClientConnectionsFilter implements javax.servlet.Filter
     }
   }
 
-  private void doFilter(HTTPRequestContext ctx, AuthenticationInfo authInfo)
+  private void doFilter(HTTPRequestContext ctx)
       throws Exception
   {
-    ctx.clientConnection.setAuthenticationInfo(authInfo);
-
     /*
      * WARNING: This action triggers 3-4 others: Set the connection for use with
      * this request on the HttpServletRequest. It will make
