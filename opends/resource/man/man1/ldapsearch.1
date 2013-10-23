@@ -2,12 +2,12 @@
 .\"     Title: ldapsearch
 .\"    Author: 
 .\" Generator: DocBook XSL-NS Stylesheets v1.76.1 <http://docbook.sf.net/>
-.\"      Date: 10/16/2012
+.\"      Date: 10/23/2013
 .\"    Manual: Tools Reference
-.\"    Source: OpenDJ 2.5.0
+.\"    Source: OpenDJ 2.7.0-SNAPSHOT
 .\"  Language: English
 .\"
-.TH "LDAPSEARCH" "1" "10/16/2012" "OpenDJ 2\&.5\&.0" "Tools Reference"
+.TH "LDAPSEARCH" "1" "10/23/2013" "OpenDJ 2\&.7\&.0\-SNAPSHOT" "Tools Reference"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -99,6 +99,55 @@ Use the virtual list view control to retrieve the specified results page
 \fB\-J, \-\-control {controloid[:criticality[:value|::b64value|:<filePath]]}\fR
 .RS 4
 Use a request control with the provided information
+.sp
+For some
+\fIcontroloid\fR
+values, you can replace object identifiers with user\-friendly strings\&. The strings are listed here in lower case, but the case is not important\&. You can use camelCase if you prefer, for example\&.
+.PP
+accountusable, accountusability
+.RS 4
+Account Usability Control, Object Identifier: 1\&.3\&.6\&.1\&.4\&.1\&.42\&.2\&.27\&.9\&.5\&.8
+.RE
+.PP
+authzid, authorizationidentity
+.RS 4
+Authorization Identity Request Control, Object Identifier: 2\&.16\&.840\&.1\&.113730\&.3\&.4\&.16
+.RE
+.PP
+effectiverights, geteffectiverights
+.RS 4
+Get Effective Rights Request Control, Object Identifier: 1\&.3\&.6\&.1\&.4\&.1\&.42\&.2\&.27\&.9\&.5\&.2
+.RE
+.PP
+managedsait
+.RS 4
+Manage DSAIT Request Control, Object Identifier: 2\&.16\&.840\&.1\&.113730\&.3\&.4\&.2
+.RE
+.PP
+noop, no\-op
+.RS 4
+No\-Op Control, Object Identifier: 1\&.3\&.6\&.1\&.4\&.1\&.4203\&.1\&.10\&.2
+.RE
+.PP
+pwpolicy, passwordpolicy
+.RS 4
+Password Policy Control, Object Identifier: 1\&.3\&.6\&.1\&.4\&.1\&.42\&.2\&.27\&.8\&.5\&.1
+.RE
+.PP
+realattrsonly, realattributesonly
+.RS 4
+Real Attributes Only Request Control, Object Identifier: 2\&.16\&.840\&.1\&.113730\&.3\&.4\&.17
+.RE
+.PP
+subtreedelete, treedelete
+.RS 4
+Subtree Delete Request Control, Object Identifier: 1\&.2\&.840\&.113556\&.1\&.4\&.805
+.RE
+.PP
+virtualattrsonly, virtualattributesonly
+.RS 4
+Virtual Attributes Only Request Control, Object Identifier: 2\&.16\&.840\&.1\&.113730\&.3\&.4\&.19
+.RE
 .RE
 .PP
 \fB\-l, \-\-timeLimit {timeLimit}\fR
@@ -481,5 +530,5 @@ entryUUID: fc252fd9\-b982\-3ed6\-b42a\-c76d2546312c
 .\}
 .SH "COPYRIGHT"
 .br
-Copyright \(co 2011-2012 ForgeRock AS
+Copyright \(co 2011-2013 ForgeRock AS
 .br
