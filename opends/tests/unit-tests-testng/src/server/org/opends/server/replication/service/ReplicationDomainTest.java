@@ -93,16 +93,15 @@ public class ReplicationDomainTest extends ReplicationTestCase
       replServer2 = createReplicationServer(replServerID2, replServerPort2,
           "ReplicationDomainTestDb2", 100, "localhost:" + replServerPort1);
 
-      Set<String> servers = newSet("localhost:" + replServerPort1);
-
+      SortedSet<String> servers = newSortedSet("localhost:" + replServerPort1);
       BlockingQueue<UpdateMsg> rcvQueue1 = new LinkedBlockingQueue<UpdateMsg>();
       domain1 = new FakeReplicationDomain(
-          testService, domain1ServerId, servers, 100, 1000, rcvQueue1);
+          testService, domain1ServerId, servers, 1000, rcvQueue1);
 
-      Set<String> servers2 = newSet("localhost:" + replServerPort2);
+      SortedSet<String> servers2 = newSortedSet("localhost:" + replServerPort2);
       BlockingQueue<UpdateMsg> rcvQueue2 = new LinkedBlockingQueue<UpdateMsg>();
       domain2 = new FakeReplicationDomain(
-          testService, domain2ServerId, servers2, 100, 1000, rcvQueue2);
+          testService, domain2ServerId, servers2, 1000, rcvQueue2);
 
       Thread.sleep(500);
 
@@ -216,10 +215,10 @@ public class ReplicationDomainTest extends ReplicationTestCase
       replServer1 = createReplicationServer(replServerID1, replServerPort,
           "ReplicationDomainTestDb", 100000, "localhost:" + replServerPort);
 
-      Set<String> servers = newSet("localhost:" + replServerPort);
+      SortedSet<String> servers = newSortedSet("localhost:" + replServerPort);
       BlockingQueue<UpdateMsg> rcvQueue1 = new LinkedBlockingQueue<UpdateMsg>();
       domain1 = new FakeReplicationDomain(
-          testService, domain1ServerId, servers, 1000, 100000, rcvQueue1);
+          testService, domain1ServerId, servers, 100000, rcvQueue1);
 
 
       /*
@@ -317,7 +316,7 @@ public class ReplicationDomainTest extends ReplicationTestCase
 
       replServer = createReplicationServer(replServerID, replServerPort,
           "exportAndImportData", 100);
-      Set<String> servers = newSet("localhost:" + replServerPort);
+      SortedSet<String> servers = newSortedSet("localhost:" + replServerPort);
 
       StringBuilder exportedDataBuilder = new StringBuilder();
       for (int i =0; i<ENTRYCOUNT; i++)
@@ -326,13 +325,11 @@ public class ReplicationDomainTest extends ReplicationTestCase
       }
       String exportedData=exportedDataBuilder.toString();
       domain1 = new FakeReplicationDomain(
-          testService, serverId1, servers,
-          100, 0, exportedData, null, ENTRYCOUNT);
+          testService, serverId1, servers, 0, exportedData, null, ENTRYCOUNT);
 
       StringBuilder importedData = new StringBuilder();
       domain2 = new FakeReplicationDomain(
-          testService, serverId2, servers, 100, 0,
-          null, importedData, 0);
+          testService, serverId2, servers, 0, null, importedData, 0);
 
       /*
        * Trigger a total update from domain1 to domain2.
@@ -394,8 +391,8 @@ public class ReplicationDomainTest extends ReplicationTestCase
       replServer2 = createReplicationServer(replServerID2, replServerPort2,
           "exportAndImportservice2", 100, "localhost:" + replServerPort1);
 
-      Set<String> servers1 = newSet("localhost:" + replServerPort1);
-      Set<String> servers2 = newSet("localhost:" + replServerPort2);
+      SortedSet<String> servers1 = newSortedSet("localhost:" + replServerPort1);
+      SortedSet<String> servers2 = newSortedSet("localhost:" + replServerPort2);
 
       StringBuilder exportedDataBuilder = new StringBuilder();
       for (int i =0; i<ENTRYCOUNT; i++)
@@ -404,13 +401,11 @@ public class ReplicationDomainTest extends ReplicationTestCase
       }
       String exportedData=exportedDataBuilder.toString();
       domain1 = new FakeReplicationDomain(
-          testService, 1, servers1,
-          100, 0, exportedData, null, ENTRYCOUNT);
+          testService, 1, servers1, 0, exportedData, null, ENTRYCOUNT);
 
       StringBuilder importedData = new StringBuilder();
       domain2 = new FakeReplicationDomain(
-          testService, 2, servers2, 100, 0,
-          null, importedData, 0);
+          testService, 2, servers2, 0, null, importedData, 0);
 
       domain2.initializeFromRemote(1);
 
@@ -467,16 +462,15 @@ public class ReplicationDomainTest extends ReplicationTestCase
 
     try
     {
-      SortedSet<String> servers = new TreeSet<String>();
-      servers.add(HOST1 + SENDERPORT);
-      servers.add(HOST2 + RECEIVERPORT);
+      SortedSet<String> servers =
+          newSortedSet(HOST1 + SENDERPORT, HOST2 + RECEIVERPORT);
 
       replServer = createReplicationServer(replServerID, SENDERPORT,
           "ReplicationDomainTestDb", 100, servers);
 
       BlockingQueue<UpdateMsg> rcvQueue1 = new LinkedBlockingQueue<UpdateMsg>();
       domain1 = new FakeStressReplicationDomain(
-          testService, 2, servers, 100, 1000, rcvQueue1);
+          testService, 2, servers, 1000, rcvQueue1);
 
       System.out.println("waiting");
       Thread.sleep(1000000000);
@@ -501,16 +495,15 @@ public class ReplicationDomainTest extends ReplicationTestCase
 
     try
     {
-      SortedSet<String> servers = new TreeSet<String>();
-      servers.add(HOST1 + SENDERPORT);
-      servers.add(HOST2 + RECEIVERPORT);
+      SortedSet<String> servers =
+          newSortedSet(HOST1 + SENDERPORT, HOST2 + RECEIVERPORT);
 
       replServer = createReplicationServer(replServerID, RECEIVERPORT,
           "ReplicationDomainTestDb", 100, servers);
 
       BlockingQueue<UpdateMsg> rcvQueue1 = new LinkedBlockingQueue<UpdateMsg>();
       domain1 = new FakeStressReplicationDomain(
-          testService, 1, servers, 100, 100000, rcvQueue1);
+          testService, 1, servers, 100000, rcvQueue1);
       /*
        * Trigger a total update from domain1 to domain2.
        * Check that the exported data is correctly received on domain2.

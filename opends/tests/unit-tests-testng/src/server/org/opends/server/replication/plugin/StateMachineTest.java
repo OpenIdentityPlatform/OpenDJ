@@ -58,6 +58,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.testng.Assert.*;
@@ -223,10 +224,11 @@ public class StateMachineTest extends ReplicationTestCase
   private ReplicationBroker createReplicationBroker(int dsId,
       ServerState state, long generationId) throws Exception
   {
+    SortedSet<String> replServers = newSortedSet("localhost:" + rs1Port);
+    DomainFakeCfg fakeCfg = new DomainFakeCfg(EXAMPLE_DN_, dsId, replServers);
     ReplSessionSecurity security = new ReplSessionSecurity(null, null, null, true);
-    ReplicationBroker broker = new ReplicationBroker(null, state, EXAMPLE_DN_,
-        dsId, 100, generationId, 0, security, (byte) 1, 500);
-    broker.start(Collections.singleton("localhost:" + rs1Port));
+    ReplicationBroker broker = new ReplicationBroker(null, state, fakeCfg, generationId, security);
+    broker.start();
     checkConnection(30, broker, rs1Port);
     return broker;
   }

@@ -36,6 +36,7 @@ import org.opends.messages.Message;
 import org.opends.messages.Severity;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
+import org.opends.server.admin.std.server.ReplicationDomainCfg;
 import org.opends.server.backends.task.TaskState;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.AddOperation;
@@ -45,10 +46,7 @@ import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.replication.common.ServerState;
-import org.opends.server.replication.plugin.GenerationIdChecksum;
-import org.opends.server.replication.plugin.LDAPReplicationDomain;
-import org.opends.server.replication.plugin.MultimasterReplication;
-import org.opends.server.replication.plugin.PersistentServerState;
+import org.opends.server.replication.plugin.*;
 import org.opends.server.replication.protocol.ReplSessionSecurity;
 import org.opends.server.replication.protocol.ReplicationMsg;
 import org.opends.server.replication.protocol.Session;
@@ -62,6 +60,7 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
@@ -194,10 +193,10 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
    * does not exist, take the 'empty backend' generationID.
    */
   protected ReplicationBroker openReplicationSession(final DN baseDN,
-      int serverId, int window_size, int port, int timeout,
+      int serverId, int windowSize, int port, int timeout,
       boolean emptyOldChanges) throws Exception
   {
-    return openReplicationSession(baseDN, serverId, window_size,
+    return openReplicationSession(baseDN, serverId, windowSize,
         port, timeout, emptyOldChanges, getGenerationId(baseDN), null);
   }
 
@@ -206,10 +205,10 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
    * providing the generationId.
    */
   protected ReplicationBroker openReplicationSession(final DN baseDN,
-      int serverId, int window_size, int port, int timeout,
+      int serverId, int windowSize, int port, int timeout,
       boolean emptyOldChanges, long generationId) throws Exception
   {
-    return openReplicationSession(baseDN, serverId, window_size,
+    return openReplicationSession(baseDN, serverId, windowSize,
         port, timeout, emptyOldChanges, generationId, null);
   }
 
@@ -218,25 +217,42 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
    * providing the generationId.
    */
   protected ReplicationBroker openReplicationSession(final DN baseDN,
-      int serverId, int window_size, int port, int timeout,
+      int serverId, int windowSize, int port, int timeout,
       boolean emptyOldChanges, long generationId,
+      ReplicationDomain replicationDomain) throws Exception
+  {
+    DomainFakeCfg config = newFakeCfg(baseDN, serverId, port);
+    config.setWindowSize(windowSize);
+    return openReplicationSession(config, port, timeout, emptyOldChanges,
+        generationId, replicationDomain);
+  }
+
+  protected ReplicationBroker openReplicationSession(ReplicationDomainCfg config,
+      int port, int timeout, boolean emptyOldChanges, long generationId,
       ReplicationDomain replicationDomain) throws Exception
   {
     ServerState state = new ServerState();
 
     if (emptyOldChanges)
-       new PersistentServerState(baseDN, serverId, new ServerState());
+      new PersistentServerState(config.getBaseDN(), config.getServerId(), new ServerState());
 
-    ReplicationBroker broker = new ReplicationBroker(replicationDomain,
-        state, baseDN, serverId, window_size,
-        generationId, 100000, getReplSessionSecurity(), (byte)1, 500);
+    ReplicationBroker broker = new ReplicationBroker(replicationDomain, state,
+        config, generationId, getReplSessionSecurity());
     connect(broker, port, timeout);
     return broker;
   }
 
-  private void connect(ReplicationBroker broker, int port, int timeout) throws Exception
+  protected DomainFakeCfg newFakeCfg(final DN baseDN, int serverId, int port)
   {
-    broker.start(Collections.singleton("localhost:" + port));
+    DomainFakeCfg fakeCfg = new DomainFakeCfg(baseDN, serverId, newSortedSet("localhost:" + port));
+    fakeCfg.setHeartbeatInterval(100000);
+    fakeCfg.setChangetimeHeartbeatInterval(500);
+    return fakeCfg;
+  }
+
+  protected void connect(ReplicationBroker broker, int port, int timeout) throws Exception
+  {
+    broker.start();
     // give some time to the broker to connect to the replicationServer.
     checkConnection(30, broker, port);
 
@@ -272,33 +288,6 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
           "checkConnection: DS " + rb.getServerId() + " is not connected to "
               + "the RS port " + rsPort + " after " + secTimeout + " seconds.");
     }
-  }
-
-  /**
-   * Open a replicationServer session to the local ReplicationServer
-   * with a default value generationId.
-   */
-  protected ReplicationBroker openReplicationSession(final DN baseDN,
-      int serverId, int window_size, int port, int timeout, ServerState state)
-      throws Exception
-  {
-    return openReplicationSession(baseDN, serverId, window_size,
-        port, timeout, state, getGenerationId(baseDN));
-  }
-
-  /**
-   * Open a new session to the ReplicationServer
-   * starting with a given ServerState.
-   */
-  protected ReplicationBroker openReplicationSession(final DN baseDN,
-      int serverId, int window_size, int port, int timeout, ServerState state,
-      long generationId) throws Exception
-  {
-    ReplicationBroker broker = new ReplicationBroker(null,
-        state, baseDN, serverId, window_size, generationId,
-        100000, getReplSessionSecurity(), (byte)1, 500);
-    connect(broker, port, timeout);
-    return broker;
   }
 
   protected void deleteEntry(DN dn) throws Exception

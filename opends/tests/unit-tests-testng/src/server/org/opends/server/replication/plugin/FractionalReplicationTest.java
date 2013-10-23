@@ -375,10 +375,10 @@ public class FractionalReplicationTest extends ReplicationTestCase {
   private void createFakeReplicationDomain(boolean firstBackend,
       long generationId) throws Exception
   {
-    Set<String> replicationServers = newSet("localhost:" + replServerPort);
+    SortedSet<String> replicationServers = newSortedSet("localhost:" + replServerPort);
 
     DN baseDN = DN.decode(firstBackend ? TEST_ROOT_DN_STRING : TEST2_ROOT_DN_STRING);
-    replicationDomain = new FakeReplicationDomain(baseDN, DS2_ID, replicationServers, 100, 1000, generationId);
+    replicationDomain = new FakeReplicationDomain(baseDN, DS2_ID, replicationServers, 1000, generationId);
 
     // Test connection
     assertTrue(replicationDomain.isConnected());
@@ -555,23 +555,26 @@ public class FractionalReplicationTest extends ReplicationTestCase {
         new LinkedBlockingQueue<UpdateMsg>();
 
     /** A string that will be exported should exportBackend be called. */
-    private String exportString = null;
+    private String exportString;
 
     /**
      * A StringBuilder that will be used to build a new String should the import
      * be called.
      */
-    private StringBuilder importString = null;
+    private StringBuilder importString;
     private int exportedEntryCount;
     private long generationID = -1;
 
     public FakeReplicationDomain(DN baseDN, int serverID,
-        Set<String> replicationServers, int window, long heartbeatInterval,
+        SortedSet<String> replicationServers, long heartbeatInterval,
         long generationId) throws ConfigException
     {
       super(baseDN, serverID, 100);
       generationID = generationId;
-      startPublishService(replicationServers, window, heartbeatInterval, 500);
+      DomainFakeCfg fakeCfg = new DomainFakeCfg(baseDN, serverID, replicationServers);
+      fakeCfg.setHeartbeatInterval(heartbeatInterval);
+      fakeCfg.setChangetimeHeartbeatInterval(500);
+      startPublishService(fakeCfg);
       startListenService();
     }
 

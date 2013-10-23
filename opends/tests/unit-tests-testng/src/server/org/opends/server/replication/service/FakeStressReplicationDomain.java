@@ -30,11 +30,12 @@ package org.opends.server.replication.service;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.Set;
+import java.util.SortedSet;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.opends.server.config.ConfigException;
+import org.opends.server.replication.plugin.DomainFakeCfg;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
@@ -53,14 +54,18 @@ public class FakeStressReplicationDomain extends ReplicationDomain
    * A blocking queue that is used to send the UpdateMsg received from the
    * Replication Service.
    */
-  private BlockingQueue<UpdateMsg> queue = null;
+  private BlockingQueue<UpdateMsg> queue;
 
   public FakeStressReplicationDomain(DN baseDN, int serverID,
-      Set<String> replicationServers, int window, long heartbeatInterval,
+      SortedSet<String> replicationServers, long heartbeatInterval,
       BlockingQueue<UpdateMsg> queue) throws ConfigException
   {
     super(baseDN, serverID, 100);
-    startPublishService(replicationServers, window, heartbeatInterval, 500);
+    final DomainFakeCfg fakeCfg =
+        new DomainFakeCfg(baseDN, serverID, replicationServers);
+    fakeCfg.setHeartbeatInterval(heartbeatInterval);
+    fakeCfg.setChangetimeHeartbeatInterval(500);
+    startPublishService(fakeCfg);
     startListenService();
     this.queue = queue;
   }

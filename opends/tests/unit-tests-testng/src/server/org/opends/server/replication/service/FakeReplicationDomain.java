@@ -30,11 +30,12 @@ package org.opends.server.replication.service;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.Set;
+import java.util.SortedSet;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.opends.server.config.ConfigException;
+import org.opends.server.replication.plugin.DomainFakeCfg;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
@@ -68,24 +69,32 @@ public class FakeReplicationDomain extends ReplicationDomain
 
   private long generationID = 1;
 
-  public FakeReplicationDomain(DN baseDN, int serverID,
-      Set<String> replicationServers, int window, long heartbeatInterval,
-      BlockingQueue<UpdateMsg> queue) throws ConfigException
+  private FakeReplicationDomain(DN baseDN, int serverID,
+      SortedSet<String> replicationServers, long heartbeatInterval)
+      throws ConfigException
   {
     super(baseDN, serverID, 100);
-    startPublishService(replicationServers, window, heartbeatInterval, 500);
+    DomainFakeCfg fakeCfg = new DomainFakeCfg(baseDN, serverID, replicationServers);
+    fakeCfg.setHeartbeatInterval(heartbeatInterval);
+    fakeCfg.setChangetimeHeartbeatInterval(500);
+    startPublishService(fakeCfg);
     startListenService();
+  }
+
+  public FakeReplicationDomain(DN baseDN, int serverID,
+      SortedSet<String> replicationServers, long heartbeatInterval,
+      BlockingQueue<UpdateMsg> queue) throws ConfigException
+  {
+    this(baseDN, serverID, replicationServers, heartbeatInterval);
     this.queue = queue;
   }
 
   public FakeReplicationDomain(DN baseDN, int serverID,
-      Set<String> replicationServers, int window, long heartbeatInterval,
+      SortedSet<String> replicationServers, long heartbeatInterval,
       String exportString, StringBuilder importString, int exportedEntryCount)
       throws ConfigException
   {
-    super(baseDN, serverID, 100);
-    startPublishService(replicationServers, window, heartbeatInterval, 500);
-    startListenService();
+    this(baseDN, serverID, replicationServers, heartbeatInterval);
     this.exportString = exportString;
     this.importString = importString;
     this.exportedEntryCount = exportedEntryCount;
