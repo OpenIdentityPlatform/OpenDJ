@@ -40,10 +40,12 @@ import org.opends.messages.Category;
 import org.opends.messages.Message;
 import org.opends.messages.Severity;
 import org.opends.server.TestCaseUtils;
+import org.opends.server.admin.std.server.ReplicationDomainCfg;
 import org.opends.server.config.ConfigException;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.*;
+import org.opends.server.replication.plugin.DomainFakeCfg;
 import org.opends.server.replication.plugin.MultimasterReplication;
 import org.opends.server.replication.protocol.*;
 import org.opends.server.replication.service.ReplicationDomain;
@@ -243,8 +245,9 @@ public class AssuredReplicationServerTest
     int scenario)
         throws Exception
   {
-    return createFakeReplicationDomain(serverId, groupId, rsId, generationId, assured,
-      assuredMode, safeDataLevel, assuredTimeout, scenario, new ServerState(), true, 100);
+    ReplicationDomainCfg config = newFakeCfg(serverId, getRsPort(rsId));
+    return createFakeReplicationDomain(config, groupId, rsId, generationId, assured,
+      assuredMode, safeDataLevel, assuredTimeout, scenario, new ServerState(), true);
   }
 
   private int getRsPort(int rsId)
@@ -255,8 +258,6 @@ public class AssuredReplicationServerTest
   /**
    * Creates a new fake replication domain, using the passed scenario.
    *
-   * @param serverId
-   *          The server ID for the replication domain.
    * @param groupId
    *          The group ID for the replication domain.
    * @param rsId
@@ -278,40 +279,44 @@ public class AssuredReplicationServerTest
    * @param startListen
    *          If true, we start the listen service. In all cases, the publish
    *          service gets started.
-   * @param window
-   *          The window size for replication
    * @return
    *          The FakeReplicationDomain, a mock-up of a Replication Domain
    *          for tests
    * @throws Exception
-   *
    */
-  private FakeReplicationDomain createFakeReplicationDomain(int serverId,
-            int groupId, int rsId, long generationId, boolean assured,
-            AssuredMode assuredMode, int safeDataLevel, long assuredTimeout,
-            int scenario, ServerState serverState, boolean startListen, int window)
-      throws Exception
+  private FakeReplicationDomain createFakeReplicationDomain(
+      ReplicationDomainCfg config, int groupId, int rsId, long generationId,
+      boolean assured, AssuredMode assuredMode, int safeDataLevel,
+      long assuredTimeout, int scenario, ServerState serverState,
+      boolean startListen) throws Exception
   {
-      // Set port to right real RS according to its id
-      int rsPort = getRsPort(rsId);
+    // Set port to right real RS according to its id
+    int rsPort = getRsPort(rsId);
 
-      FakeReplicationDomain fakeReplicationDomain = new FakeReplicationDomain(
-        DN.decode(TEST_ROOT_DN_STRING), serverId, generationId,
-        (byte)groupId, assured, assuredMode, (byte)safeDataLevel, assuredTimeout,
-        scenario, serverState);
+    FakeReplicationDomain fakeReplicationDomain = new FakeReplicationDomain(
+        config.getBaseDN(), config.getServerId(), generationId, (byte) groupId,
+        assured, assuredMode, (byte) safeDataLevel, assuredTimeout, scenario, serverState);
 
-    Set<String> replicationServers = newSet("localhost:" + rsPort);
-      fakeReplicationDomain.startPublishService(replicationServers, window, 1000, 500);
-      if (startListen)
-        fakeReplicationDomain.startListenService();
+    fakeReplicationDomain.startPublishService(config);
+    if (startListen)
+      fakeReplicationDomain.startListenService();
 
-      // Test connection
-      assertTrue(fakeReplicationDomain.isConnected());
+    // Test connection
+    assertTrue(fakeReplicationDomain.isConnected());
     // Check connected server port
     HostPort rd = HostPort.valueOf(fakeReplicationDomain.getReplicationServer());
     assertEquals(rd.getPort(), rsPort);
 
-      return fakeReplicationDomain;
+    return fakeReplicationDomain;
+  }
+
+  private DomainFakeCfg newFakeCfg(int serverId, int rsPort) throws Exception
+  {
+    DN baseDN = DN.decode(TEST_ROOT_DN_STRING);
+    DomainFakeCfg fakeCfg = new DomainFakeCfg(baseDN, serverId, newSortedSet("localhost:" + rsPort));
+    fakeCfg.setHeartbeatInterval(1000);
+    fakeCfg.setChangetimeHeartbeatInterval(500);
+    return fakeCfg;
   }
 
   /**
@@ -2103,9 +2108,10 @@ public class AssuredReplicationServerTest
       // Create and connect DS 2 to RS 1
       // Assured mode: SR
       ServerState serverState = fakeRd1.getServerState();
-      fakeRDs[2] = createFakeReplicationDomain(FDS2_ID, DEFAULT_GID, RS1_ID,
+      ReplicationDomainCfg config = newFakeCfg(FDS2_ID, getRsPort(RS1_ID));
+      fakeRDs[2] = createFakeReplicationDomain(config, DEFAULT_GID, RS1_ID,
         DEFAULT_GENID, true, AssuredMode.SAFE_READ_MODE, 1, LONG_TIMEOUT,
-        REPLY_OK_DS_SCENARIO, serverState, true, 100);
+              REPLY_OK_DS_SCENARIO, serverState, true);
 
       // Wait for connections to be established
       waitForStableTopo(fakeRd1, 1, 1);
@@ -3181,9 +3187,11 @@ public class AssuredReplicationServerTest
         TIMEOUT_DS_SCENARIO);
 
       // DS 2 connected to RS 1 with low window to easily put it in DEGRADED status
-      fakeRDs[2] = createFakeReplicationDomain(FDS2_ID, DEFAULT_GID, RS1_ID,
+      DomainFakeCfg config = newFakeCfg(FDS2_ID, getRsPort(RS1_ID));
+      config.setWindowSize(2);
+      fakeRDs[2] = createFakeReplicationDomain(config, DEFAULT_GID, RS1_ID,
         DEFAULT_GENID, true, AssuredMode.SAFE_READ_MODE, 1, LONG_TIMEOUT,
-        REPLY_OK_DS_SCENARIO, new ServerState(), false, 2);
+        REPLY_OK_DS_SCENARIO, new ServerState(), false);
 
       // Wait for connections to be finished
       // DS must see expected numbers of DSs/RSs

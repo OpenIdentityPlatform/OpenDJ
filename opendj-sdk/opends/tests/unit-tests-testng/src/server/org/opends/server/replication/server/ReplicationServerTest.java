@@ -356,8 +356,9 @@ public class ReplicationServerTest extends ReplicationTestCase
 
     // Connect to the replicationServer using the state created above.
     try {
-      broker = openReplicationSession(TEST_ROOT_DN,
-          3, 100, replicationServerPort, 5000, state);
+      broker = new ReplicationBroker(null, state, newFakeCfg(TEST_ROOT_DN, 3, replicationServerPort),
+          getGenerationId(TEST_ROOT_DN), getReplSessionSecurity());
+      connect(broker, replicationServerPort, 5000);
 
       ReplicationMsg receivedMsg = broker.receive();
       broker.updateWindowAfterReplay();

@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import org.assertj.core.api.Assertions;
 import org.opends.messages.Category;
 import org.opends.messages.Message;
 import org.opends.messages.Severity;
@@ -65,11 +66,11 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
 
   public static class TestBroker extends ReplicationBroker
   {
-    List<ReplicationMsg> list = null;
+    private List<ReplicationMsg> list;
 
     public TestBroker(List<ReplicationMsg> list)
     {
-      super(null, null, null, 0, 0, 0, 0, null, (byte) 0, 0);
+      super(null, null, new DomainFakeCfg(null, 0, TestCaseUtils.<String> newSortedSet()), 0, null);
       this.list = list;
     }
 
@@ -157,9 +158,7 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
     // Read the entry back to get its historical and included CSN
     Entry entry = DirectoryServer.getEntry(dn1);
     List<Attribute> attrs1 = entry.getAttribute(histType);
-
-    assertTrue(attrs1 != null);
-    assertTrue(attrs1.isEmpty() != true);
+      Assertions.assertThat(attrs1).isNotEmpty();
 
     String histValue =
       attrs1.get(0).iterator().next().getValue().toString();
@@ -178,9 +177,7 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
 
     Entry entry2 = DirectoryServer.getEntry(dn1);
     List<Attribute> attrs2 = entry2.getAttribute(histType);
-
-    assertTrue(attrs2 != null);
-    assertTrue(attrs2.isEmpty() != true);
+      Assertions.assertThat(attrs2).isNotEmpty();
 
     for (AttributeValue av : attrs2.get(0)) {
       logError(Message.raw(Category.SYNC, Severity.INFORMATION,
