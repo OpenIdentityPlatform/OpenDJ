@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS
  */
 
 package com.forgerock.opendj.ldap.extensions;
@@ -29,8 +30,8 @@ package com.forgerock.opendj.ldap.extensions;
 import java.io.IOException;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.opendj.asn1.ASN1;
-import org.forgerock.opendj.asn1.ASN1Reader;
+import org.forgerock.opendj.io.ASN1;
+import org.forgerock.opendj.io.ASN1Reader;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.DecodeOptions;

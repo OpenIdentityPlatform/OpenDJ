@@ -22,10 +22,10 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2013 ForgeRock AS.
  */
 
-package org.forgerock.opendj.asn1;
+package org.forgerock.opendj.io;
 
 import java.io.InputStream;
 import java.io.OutputStream;

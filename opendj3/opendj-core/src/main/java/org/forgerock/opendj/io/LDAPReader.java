@@ -34,8 +34,6 @@ import static com.forgerock.opendj.util.StaticUtils.*;
 import java.io.IOException;
 
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
-import org.forgerock.opendj.asn1.ASN1;
-import org.forgerock.opendj.asn1.ASN1Reader;
 import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;

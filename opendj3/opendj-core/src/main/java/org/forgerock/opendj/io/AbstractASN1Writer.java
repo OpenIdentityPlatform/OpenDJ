@@ -22,9 +22,9 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions copyright 2011-2012 ForgeRock AS
+ *      Portions copyright 2011-2013 ForgeRock AS
  */
-package org.forgerock.opendj.asn1;
+package org.forgerock.opendj.io;
 
 import java.io.IOException;
 

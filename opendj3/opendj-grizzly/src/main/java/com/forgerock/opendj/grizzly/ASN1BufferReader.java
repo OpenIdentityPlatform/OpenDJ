@@ -34,8 +34,8 @@ import static com.forgerock.opendj.util.StaticUtils.*;
 import java.io.IOException;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.opendj.asn1.ASN1Reader;
-import org.forgerock.opendj.asn1.AbstractASN1Reader;
+import org.forgerock.opendj.io.ASN1Reader;
+import org.forgerock.opendj.io.AbstractASN1Reader;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.DecodeException;

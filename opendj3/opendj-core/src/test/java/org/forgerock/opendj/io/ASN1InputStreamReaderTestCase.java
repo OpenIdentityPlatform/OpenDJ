@@ -22,20 +22,19 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS
  */
+package org.forgerock.opendj.io;
 
-package org.forgerock.opendj.asn1;
-
-import org.forgerock.opendj.ldap.ByteSequenceReader;
-import org.forgerock.opendj.ldap.ByteString;
+import java.io.ByteArrayInputStream;
 
 /**
- * Test class for ASN1ByteSequenceReaderTestCase
+ * Test class for ASN1InputStreamReader
  */
-public class ASN1ByteSequenceReaderTestCase extends ASN1ReaderTestCase {
+public class ASN1InputStreamReaderTestCase extends ASN1ReaderTestCase {
     @Override
     protected ASN1Reader getReader(final byte[] b, final int maxElementSize) {
-        final ByteSequenceReader reader = ByteString.wrap(b).asReader();
-        return ASN1.getReader(reader, maxElementSize);
+        final ByteArrayInputStream inStream = new ByteArrayInputStream(b);
+        return new ASN1InputStreamReader(inStream, maxElementSize);
     }
 }

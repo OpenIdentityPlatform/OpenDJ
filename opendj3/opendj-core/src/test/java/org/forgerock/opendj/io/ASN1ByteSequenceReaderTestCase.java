@@ -21,16 +21,22 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
+ *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS
  */
+
+package org.forgerock.opendj.io;
+
+import org.forgerock.opendj.ldap.ByteSequenceReader;
+import org.forgerock.opendj.ldap.ByteString;
 
 /**
- * Classes and interfaces for encoding and decoding ASN.1 data streams.
- * <p>
- * Note that this particular implementation is limited to the subset of elements
- * that are typically used by LDAP clients. As such, it does not include all
- * ASN.1 element types, particularly elements like OIDs, bit strings, and
- * timestamp values.
+ * Test class for ASN1ByteSequenceReaderTestCase
  */
-package org.forgerock.opendj.asn1;
-
+public class ASN1ByteSequenceReaderTestCase extends ASN1ReaderTestCase {
+    @Override
+    protected ASN1Reader getReader(final byte[] b, final int maxElementSize) {
+        final ByteSequenceReader reader = ByteString.wrap(b).asReader();
+        return ASN1.getReader(reader, maxElementSize);
+    }
+}
