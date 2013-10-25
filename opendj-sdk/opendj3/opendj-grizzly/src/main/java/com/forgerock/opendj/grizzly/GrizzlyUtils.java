@@ -25,11 +25,16 @@
  */
 package com.forgerock.opendj.grizzly;
 
+import org.forgerock.opendj.io.LDAPReader;
+import org.forgerock.opendj.io.LDAPWriter;
+import org.forgerock.opendj.ldap.DecodeOptions;
 import org.glassfish.grizzly.Processor;
+import org.glassfish.grizzly.ThreadCache;
 import org.glassfish.grizzly.filterchain.Filter;
 import org.glassfish.grizzly.filterchain.FilterChain;
 import org.glassfish.grizzly.filterchain.FilterChainBuilder;
 import org.glassfish.grizzly.filterchain.TransportFilter;
+import org.glassfish.grizzly.memory.MemoryManager;
 import org.glassfish.grizzly.ssl.SSLFilter;
 
 /**
@@ -37,6 +42,10 @@ import org.glassfish.grizzly.ssl.SSLFilter;
  */
 final class GrizzlyUtils {
 
+
+    @SuppressWarnings("rawtypes")
+    private static final ThreadCache.CachedTypeIndex<LDAPWriter> WRITER_INDEX = ThreadCache
+            .obtainIndex(LDAPWriter.class, 1);
 
     /**
      * Build a filter chain from the provided processor if possible and the
@@ -57,7 +66,7 @@ final class GrizzlyUtils {
      *         is a {@code FilterChain}, and having the provided filter as the
      *         last filter
      */
-    public static FilterChain buildFilterChain(Processor processor, Filter filter) {
+    public static FilterChain buildFilterChain(Processor<?> processor, Filter filter) {
         if (processor instanceof FilterChain) {
             return FilterChainBuilder.stateless().addAll((FilterChain) processor).add(filter).build();
         } else {
@@ -116,6 +125,57 @@ final class GrizzlyUtils {
             }
         }
         return FilterChainBuilder.stateless().addAll(chain).add(indexToAddFilter, filter).build();
+    }
+
+    /**
+     * Creates a new LDAP Reader with the provided maximum size of ASN1 element,
+     * options and memory manager.
+     *
+     * @param decodeOptions
+     *            allow to control how responses and requests are decoded
+     * @param maxASN1ElementSize
+     *            The maximum BER element size, or <code>0</code> to indicate
+     *            that there is no limit.
+     * @param memoryManager
+     *            The memory manager to use for buffering.
+     * @return a LDAP reader
+     */
+    public static LDAPReader<ASN1BufferReader> createReader(DecodeOptions decodeOptions, int maxASN1ElementSize,
+            MemoryManager<?> memoryManager) {
+        ASN1BufferReader asn1Reader = new ASN1BufferReader(maxASN1ElementSize, memoryManager);
+        return new LDAPReader<ASN1BufferReader>(asn1Reader, decodeOptions);
+    }
+
+    /**
+     * Returns a LDAP writer, with a clean ASN1Writer, possibly from
+     * the thread local cache.
+     * <p>
+     * The writer is either returned from thread local cache or created.
+     * In the former case, the writer is removed from the cache.
+     *
+     * @return a LDAP writer
+     */
+    @SuppressWarnings("unchecked")
+    public static LDAPWriter<ASN1BufferWriter> getWriter() {
+        LDAPWriter<ASN1BufferWriter> writer = ThreadCache.takeFromCache(WRITER_INDEX);
+        if (writer == null) {
+            writer = new LDAPWriter<ASN1BufferWriter>(new ASN1BufferWriter());
+        }
+        writer.getASN1Writer().reset();
+        return writer;
+    }
+
+    /**
+     * Recycle a LDAP writer to a thread local cache.
+     * <p>
+     * The LDAP writer is then available for the thread using the
+     * {@get()} method.
+     *
+     * @param writer LDAP writer to recycle
+     */
+    public static void recycleWriter(LDAPWriter<ASN1BufferWriter> writer) {
+        writer.getASN1Writer().recycle();
+        ThreadCache.putToCache(WRITER_INDEX, writer);
     }
 
     // Prevent instantiation.

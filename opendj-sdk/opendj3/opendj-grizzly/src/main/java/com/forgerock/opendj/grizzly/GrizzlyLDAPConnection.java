@@ -44,8 +44,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 
+import org.forgerock.opendj.io.LDAPWriter;
 import org.forgerock.opendj.ldap.AbstractAsynchronousConnection;
-import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.ConnectionEventListener;
 import org.forgerock.opendj.ldap.ErrorResultException;
 import org.forgerock.opendj.ldap.FutureResult;
@@ -55,6 +55,7 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.ResultHandler;
 import org.forgerock.opendj.ldap.SSLContextBuilder;
 import org.forgerock.opendj.ldap.SearchResultHandler;
+import org.forgerock.opendj.ldap.TimeoutEventListener;
 import org.forgerock.opendj.ldap.TrustManagers;
 import org.forgerock.opendj.ldap.requests.AbandonRequest;
 import org.forgerock.opendj.ldap.requests.AddRequest;
@@ -93,7 +94,7 @@ import com.forgerock.opendj.util.Validator;
 /**
  * LDAP connection implementation.
  */
-final class GrizzlyLDAPConnection extends AbstractAsynchronousConnection implements Connection {
+final class GrizzlyLDAPConnection extends AbstractAsynchronousConnection implements TimeoutEventListener {
     /**
      * A dummy SSL client engine configurator as SSLFilter only needs client
      * config. This prevents Grizzly from needlessly using JVM defaults which
@@ -113,7 +114,6 @@ final class GrizzlyLDAPConnection extends AbstractAsynchronousConnection impleme
 
     private final AtomicBoolean bindOrStartTLSInProgress = new AtomicBoolean(false);
     private final org.glassfish.grizzly.Connection<?> connection;
-    private final LDAPWriter ldapWriter = new LDAPWriter();
     private final AtomicInteger nextMsgID = new AtomicInteger(1);
     private final GrizzlyLDAPConnectionFactory factory;
     private final ConcurrentHashMap<Integer, AbstractLDAPFutureResultImpl<?>> pendingRequests =
@@ -126,6 +126,15 @@ final class GrizzlyLDAPConnection extends AbstractAsynchronousConnection impleme
     private boolean isFailed = false;
     private List<ConnectionEventListener> listeners = null;
 
+    /**
+     * Create a LDAP Connection with provided Grizzly connection and LDAP
+     * connection factory.
+     *
+     * @param connection
+     *            actual connection
+     * @param factory
+     *            factory that provides LDAP connections
+     */
     GrizzlyLDAPConnection(final org.glassfish.grizzly.Connection<?> connection,
             final GrizzlyLDAPConnectionFactory factory) {
         this.connection = connection;
@@ -155,13 +164,13 @@ final class GrizzlyLDAPConnection extends AbstractAsynchronousConnection impleme
             }
             pendingRequest.cancel(false);
             try {
-                final ASN1BufferWriter asn1Writer = ASN1BufferWriter.getWriter();
+                final LDAPWriter<ASN1BufferWriter> writer = GrizzlyUtils.getWriter();
                 try {
-                    ldapWriter.abandonRequest(asn1Writer, messageID, request);
-                    connection.write(asn1Writer.getBuffer(), null);
+                    writer.writeAbandonRequest(messageID, request);
+                    connection.write(writer.getASN1Writer().getBuffer(), null);
                     return new CompletedFutureResult<Void>((Void) null, messageID);
                 } finally {
-                    asn1Writer.recycle();
+                    GrizzlyUtils.recycleWriter(writer);
                 }
             } catch (final IOException e) {
                 throw adaptRequestIOException(e);
@@ -186,12 +195,12 @@ final class GrizzlyLDAPConnection extends AbstractAsynchronousConnection impleme
                 pendingRequests.put(messageID, future);
             }
             try {
-                final ASN1BufferWriter asn1Writer = ASN1BufferWriter.getWriter();
+                final LDAPWriter<ASN1BufferWriter> writer = GrizzlyUtils.getWriter();
                 try {
-                    ldapWriter.addRequest(asn1Writer, messageID, request);
-                    connection.write(asn1Writer.getBuffer(), null);
+                    writer.writeAddRequest(messageID, request);
+                    connection.write(writer.getASN1Writer().getBuffer(), null);
                 } finally {
-                    asn1Writer.recycle();
+                    GrizzlyUtils.recycleWriter(writer);
                 }
             } catch (final IOException e) {
                 pendingRequests.remove(messageID);
@@ -275,15 +284,15 @@ final class GrizzlyLDAPConnection extends AbstractAsynchronousConnection impleme
             }
 
             try {
-                final ASN1BufferWriter asn1Writer = ASN1BufferWriter.getWriter();
+                final LDAPWriter<ASN1BufferWriter> writer = GrizzlyUtils.getWriter();
                 try {
                     // Use the bind client to get the initial request instead of
                     // using the bind request passed to this method.
                     final GenericBindRequest initialRequest = context.nextBindRequest();
-                    ldapWriter.bindRequest(asn1Writer, messageID, 3, initialRequest);
-                    connection.write(asn1Writer.getBuffer(), null);
+                    writer.writeBindRequest(messageID, 3, initialRequest);
+                    connection.write(writer.getASN1Writer().getBuffer(), null);
                 } finally {
-                    asn1Writer.recycle();
+                    GrizzlyUtils.recycleWriter(writer);
                 }
             } catch (final IOException e) {
                 pendingRequests.remove(messageID);
@@ -320,12 +329,12 @@ final class GrizzlyLDAPConnection extends AbstractAsynchronousConnection impleme
                 pendingRequests.put(messageID, future);
             }
             try {
-                final ASN1BufferWriter asn1Writer = ASN1BufferWriter.getWriter();
+                final LDAPWriter<ASN1BufferWriter> writer = GrizzlyUtils.getWriter();
                 try {
-                    ldapWriter.compareRequest(asn1Writer, messageID, request);
-                    connection.write(asn1Writer.getBuffer(), null);
+                    writer.writeCompareRequest(messageID, request);
+                    connection.write(writer.getASN1Writer().getBuffer(), null);
                 } finally {
-                    asn1Writer.recycle();
+                    GrizzlyUtils.recycleWriter(writer);
                 }
             } catch (final IOException e) {
                 pendingRequests.remove(messageID);
@@ -352,12 +361,12 @@ final class GrizzlyLDAPConnection extends AbstractAsynchronousConnection impleme
                 pendingRequests.put(messageID, future);
             }
             try {
-                final ASN1BufferWriter asn1Writer = ASN1BufferWriter.getWriter();
+                final LDAPWriter<ASN1BufferWriter> writer = GrizzlyUtils.getWriter();
                 try {
-                    ldapWriter.deleteRequest(asn1Writer, messageID, request);
-                    connection.write(asn1Writer.getBuffer(), null);
+                    writer.writeDeleteRequest(messageID, request);
+                    connection.write(writer.getASN1Writer().getBuffer(), null);
                 } finally {
-                    asn1Writer.recycle();
+                    GrizzlyUtils.recycleWriter(writer);
                 }
             } catch (final IOException e) {
                 pendingRequests.remove(messageID);
@@ -404,12 +413,12 @@ final class GrizzlyLDAPConnection extends AbstractAsynchronousConnection impleme
                 pendingRequests.put(messageID, future);
             }
             try {
-                final ASN1BufferWriter asn1Writer = ASN1BufferWriter.getWriter();
+                final LDAPWriter<ASN1BufferWriter> writer = GrizzlyUtils.getWriter();
                 try {
-                    ldapWriter.extendedRequest(asn1Writer, messageID, request);
-                    connection.write(asn1Writer.getBuffer(), null);
+                    writer.writeExtendedRequest(messageID, request);
+                    connection.write(writer.getASN1Writer().getBuffer(), null);
                 } finally {
-                    asn1Writer.recycle();
+                    GrizzlyUtils.recycleWriter(writer);
                 }
             } catch (final IOException e) {
                 pendingRequests.remove(messageID);
@@ -451,12 +460,12 @@ final class GrizzlyLDAPConnection extends AbstractAsynchronousConnection impleme
                 pendingRequests.put(messageID, future);
             }
             try {
-                final ASN1BufferWriter asn1Writer = ASN1BufferWriter.getWriter();
+                final LDAPWriter<ASN1BufferWriter> writer = GrizzlyUtils.getWriter();
                 try {
-                    ldapWriter.modifyRequest(asn1Writer, messageID, request);
-                    connection.write(asn1Writer.getBuffer(), null);
+                    writer.writeModifyRequest(messageID, request);
+                    connection.write(writer.getASN1Writer().getBuffer(), null);
                 } finally {
-                    asn1Writer.recycle();
+                    GrizzlyUtils.recycleWriter(writer);
                 }
             } catch (final IOException e) {
                 pendingRequests.remove(messageID);
@@ -483,12 +492,12 @@ final class GrizzlyLDAPConnection extends AbstractAsynchronousConnection impleme
                 pendingRequests.put(messageID, future);
             }
             try {
-                final ASN1BufferWriter asn1Writer = ASN1BufferWriter.getWriter();
+                final LDAPWriter<ASN1BufferWriter> writer = GrizzlyUtils.getWriter();
                 try {
-                    ldapWriter.modifyDNRequest(asn1Writer, messageID, request);
-                    connection.write(asn1Writer.getBuffer(), null);
+                    writer.writeModifyDNRequest(messageID, request);
+                    connection.write(writer.getASN1Writer().getBuffer(), null);
                 } finally {
-                    asn1Writer.recycle();
+                    GrizzlyUtils.recycleWriter(writer);
                 }
             } catch (final IOException e) {
                 pendingRequests.remove(messageID);
@@ -525,12 +534,12 @@ final class GrizzlyLDAPConnection extends AbstractAsynchronousConnection impleme
                 pendingRequests.put(messageID, future);
             }
             try {
-                final ASN1BufferWriter asn1Writer = ASN1BufferWriter.getWriter();
+                final LDAPWriter<ASN1BufferWriter> writer = GrizzlyUtils.getWriter();
                 try {
-                    ldapWriter.searchRequest(asn1Writer, messageID, request);
-                    connection.write(asn1Writer.getBuffer(), null);
+                    writer.writeSearchRequest(messageID, request);
+                    connection.write(writer.getASN1Writer().getBuffer(), null);
                 } finally {
-                    asn1Writer.recycle();
+                    GrizzlyUtils.recycleWriter(writer);
                 }
             } catch (final IOException e) {
                 pendingRequests.remove(messageID);
@@ -553,19 +562,26 @@ final class GrizzlyLDAPConnection extends AbstractAsynchronousConnection impleme
         return builder.toString();
     }
 
-    long cancelExpiredRequests(final long currentTime) {
-        final long timeout = factory.getLDAPOptions().getTimeout(TimeUnit.MILLISECONDS);
+    @Override
+    public long handleTimeout(final long currentTime) {
+        final long timeout = getTimeout();
         long delay = timeout;
         if (timeout > 0) {
             for (final int requestID : pendingRequests.keySet()) {
                 final AbstractLDAPFutureResultImpl<?> future = pendingRequests.get(requestID);
                 if (future != null && future.checkForTimeout()) {
                     final long diff = (future.getTimestamp() + timeout) - currentTime;
-                    if (diff <= 0 && pendingRequests.remove(requestID) != null) {
-                        DEFAULT_LOG.debug("Cancelling expired future result: {}", future);
-                        final Result result = Responses.newResult(ResultCode.CLIENT_SIDE_TIMEOUT);
-                        future.adaptErrorResult(result);
-                        abandonAsync(Requests.newAbandonRequest(future.getRequestID()));
+                    if (diff <= 0) {
+                        if (pendingRequests.remove(requestID) != null) {
+                            DEFAULT_LOG.debug("Cancelling expired future result: {}", future);
+                            final Result result = Responses.newResult(ResultCode.CLIENT_SIDE_TIMEOUT);
+                            future.adaptErrorResult(result);
+                            abandonAsync(Requests.newAbandonRequest(future.getRequestID()));
+                        } else {
+                            DEFAULT_LOG.debug(
+                                    "Pending request {} has already been removed, not cancelling future result",
+                                    requestID);
+                        }
                     } else {
                         delay = Math.min(delay, diff);
                     }
@@ -573,6 +589,11 @@ final class GrizzlyLDAPConnection extends AbstractAsynchronousConnection impleme
             }
         }
         return delay;
+    }
+
+    @Override
+    public long getTimeout() {
+        return factory.getLDAPOptions().getTimeout(TimeUnit.MILLISECONDS);
     }
 
     /**
@@ -633,19 +654,19 @@ final class GrizzlyLDAPConnection extends AbstractAsynchronousConnection impleme
          * connection and release resources.
          */
         if (notifyClose) {
-            final ASN1BufferWriter asn1Writer = ASN1BufferWriter.getWriter();
+            final LDAPWriter<ASN1BufferWriter> writer = GrizzlyUtils.getWriter();
             try {
-                ldapWriter.unbindRequest(asn1Writer, nextMsgID.getAndIncrement(), unbindRequest);
-                connection.write(asn1Writer.getBuffer(), null);
+                writer.writeUnbindRequest(nextMsgID.getAndIncrement(), unbindRequest);
+                connection.write(writer.getASN1Writer().getBuffer(), null);
             } catch (final Exception ignore) {
                 /*
                  * Underlying channel probably blown up. Ignore all errors,
                  * including possibly runtime exceptions (see OPENDJ-672).
                  */
             } finally {
-                asn1Writer.recycle();
+                GrizzlyUtils.recycleWriter(writer);
             }
-            factory.getTimeoutChecker().removeConnection(this);
+            factory.getTimeoutChecker().removeListener(this);
             connection.closeSilently();
             factory.releaseTransportAndTimeoutChecker();
         }

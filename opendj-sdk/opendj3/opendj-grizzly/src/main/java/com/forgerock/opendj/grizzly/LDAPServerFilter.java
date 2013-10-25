@@ -38,8 +38,11 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLSession;
 
+import org.forgerock.opendj.io.LDAPReader;
+import org.forgerock.opendj.io.LDAPWriter;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConnectionSecurityLayer;
+import org.forgerock.opendj.ldap.DecodeOptions;
 import org.forgerock.opendj.ldap.ErrorResultException;
 import org.forgerock.opendj.ldap.IntermediateResponseHandler;
 import org.forgerock.opendj.ldap.LDAPClientContext;
@@ -69,6 +72,9 @@ import org.forgerock.opendj.ldap.responses.Responses;
 import org.forgerock.opendj.ldap.responses.Result;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldap.responses.SearchResultReference;
+import org.forgerock.opendj.ldap.spi.AbstractLDAPMessageHandler;
+import org.forgerock.opendj.ldap.spi.UnexpectedRequestException;
+import org.forgerock.opendj.ldap.spi.UnsupportedMessageException;
 import org.glassfish.grizzly.Buffer;
 import org.glassfish.grizzly.Connection;
 import org.glassfish.grizzly.Grizzly;
@@ -89,10 +95,29 @@ import com.forgerock.opendj.util.Validator;
  * side logic for SSL and SASL operations over LDAP.
  */
 final class LDAPServerFilter extends BaseFilter {
-    private abstract class AbstractHandler<R extends Result> implements
+
+    /**
+     * Provides an arbitrary write operation on a LDAP writer.
+     */
+    private interface LDAPWrite<T> {
+        void perform(LDAPWriter<ASN1BufferWriter> writer, int messageID, T message) throws IOException;
+    }
+
+    /**
+     * Write operation for intermediate responses.
+     */
+    private static final LDAPWrite<IntermediateResponse> INTERMEDIATE = new LDAPWrite<IntermediateResponse>() {
+        public void perform(LDAPWriter<ASN1BufferWriter> writer, int messageID, IntermediateResponse resp)
+                throws IOException {
+            writer.writeIntermediateResponse(messageID, resp);
+        }
+    };
+
+    private static abstract class AbstractHandler<R extends Result> implements
             IntermediateResponseHandler, ResultHandler<R> {
         protected final ClientContextImpl context;
         protected final int messageID;
+
 
         protected AbstractHandler(final ClientContextImpl context, final int messageID) {
             this.messageID = messageID;
@@ -100,22 +125,83 @@ final class LDAPServerFilter extends BaseFilter {
         }
 
         @Override
+        public void handleResult(final R result) {
+            defaultHandleResult(result);
+        }
+
+        @Override
         public final boolean handleIntermediateResponse(final IntermediateResponse response) {
-            final ASN1BufferWriter asn1Writer = ASN1BufferWriter.getWriter();
+            writeMessage(INTERMEDIATE, response);
+            return true;
+        }
+
+        /**
+         * Default implementation of result handling, that delegate
+         * the actual write operation to {@code writeResult} method.
+         */
+        private void defaultHandleResult(final R result) {
+            writeMessage(new LDAPWrite<R>() {
+                public void perform(LDAPWriter<ASN1BufferWriter> writer, int messageID, R res) throws IOException {
+                    writeResult(writer, res);
+                }
+            }, result);
+        }
+
+        /**
+         * Write a result to provided LDAP writer.
+         *
+         * @param ldapWriter
+         *            provided writer
+         * @param result
+         *            to write
+         * @throws IOException
+         *             if an error occurs during writing
+         */
+        abstract protected void writeResult(final LDAPWriter<ASN1BufferWriter> ldapWriter, final R result)
+                throws IOException;
+
+        /**
+         * Write a message on LDAP writer.
+         *
+         * @param <T>
+         *            type of message to write
+         * @param ldapWrite
+         *            the specific write operation
+         * @param message
+         *            the message to write
+         */
+        protected final <T> void writeMessage(final LDAPWrite<T> ldapWrite, final T message) {
+            final LDAPWriter<ASN1BufferWriter> writer = GrizzlyUtils.getWriter();
             try {
-                LDAP_WRITER.intermediateResponse(asn1Writer, messageID, response);
-                context.write(asn1Writer);
+                ldapWrite.perform(writer, messageID, message);
+                context.write(writer);
             } catch (final IOException ioe) {
                 context.handleError(ioe);
-                return false;
             } finally {
-                asn1Writer.recycle();
+                GrizzlyUtils.recycleWriter(writer);
             }
-            return true;
+        }
+
+        /**
+         * Copy diagnostic message, matched DN and cause to new result from the
+         * given result.
+         *
+         * @param newResult
+         *            to update
+         * @param result
+         *            contains parameters to copy
+         */
+        protected final void populateNewResultFromResult(final R newResult, final Result result) {
+            newResult.setDiagnosticMessage(result.getDiagnosticMessage());
+            newResult.setMatchedDN(result.getMatchedDN());
+            newResult.setCause(result.getCause());
+            for (final Control control : result.getControls()) {
+                newResult.addControl(control);
+            }
         }
     }
 
-    private final class AddHandler extends AbstractHandler<Result> {
+    private static final class AddHandler extends AbstractHandler<Result> {
         private AddHandler(final ClientContextImpl context, final int messageID) {
             super(context, messageID);
         }
@@ -126,20 +212,13 @@ final class LDAPServerFilter extends BaseFilter {
         }
 
         @Override
-        public void handleResult(final Result result) {
-            final ASN1BufferWriter asn1Writer = ASN1BufferWriter.getWriter();
-            try {
-                LDAP_WRITER.addResult(asn1Writer, messageID, result);
-                context.write(asn1Writer);
-            } catch (final IOException ioe) {
-                context.handleError(ioe);
-            } finally {
-                asn1Writer.recycle();
-            }
+        public void writeResult(LDAPWriter<ASN1BufferWriter> writer, final Result result)
+                throws IOException {
+            writer.writeAddResult(messageID, result);
         }
     }
 
-    private final class BindHandler extends AbstractHandler<BindResult> {
+    private static final class BindHandler extends AbstractHandler<BindResult> {
         private BindHandler(final ClientContextImpl context, final int messageID) {
             super(context, messageID);
         }
@@ -151,31 +230,19 @@ final class LDAPServerFilter extends BaseFilter {
                 handleResult((BindResult) result);
             } else {
                 final BindResult newResult = Responses.newBindResult(result.getResultCode());
-                newResult.setDiagnosticMessage(result.getDiagnosticMessage());
-                newResult.setMatchedDN(result.getMatchedDN());
-                newResult.setCause(result.getCause());
-                for (final Control control : result.getControls()) {
-                    newResult.addControl(control);
-                }
+                populateNewResultFromResult(newResult, result);
                 handleResult(newResult);
             }
         }
 
         @Override
-        public void handleResult(final BindResult result) {
-            final ASN1BufferWriter asn1Writer = ASN1BufferWriter.getWriter();
-            try {
-                LDAP_WRITER.bindResult(asn1Writer, messageID, result);
-                context.write(asn1Writer);
-            } catch (final IOException ioe) {
-                context.handleError(ioe);
-            } finally {
-                asn1Writer.recycle();
-            }
+        protected void writeResult(LDAPWriter<ASN1BufferWriter> writer, BindResult result)
+                throws IOException {
+            writer.writeBindResult(messageID, result);
         }
     }
 
-    private final class ClientContextImpl implements LDAPClientContext {
+    private static final class ClientContextImpl implements LDAPClientContext {
         private final Connection<?> connection;
         private final AtomicBoolean isClosed = new AtomicBoolean();
         private ServerConnection<Integer> serverConnection = null;
@@ -263,14 +330,14 @@ final class LDAPServerFilter extends BaseFilter {
 
         @Override
         public void sendUnsolicitedNotification(final ExtendedResult notification) {
-            final ASN1BufferWriter asn1Writer = ASN1BufferWriter.getWriter();
+            LDAPWriter<ASN1BufferWriter> writer = GrizzlyUtils.getWriter();
             try {
-                LDAP_WRITER.extendedResult(asn1Writer, 0, notification);
-                connection.write(asn1Writer.getBuffer(), null);
+                writer.writeExtendedResult(0, notification);
+                connection.write(writer.getASN1Writer().getBuffer(), null);
             } catch (final IOException ioe) {
                 handleError(ioe);
             } finally {
-                asn1Writer.recycle();
+                GrizzlyUtils.recycleWriter(writer);
             }
         }
 
@@ -288,8 +355,8 @@ final class LDAPServerFilter extends BaseFilter {
             return builder.toString();
         }
 
-        public void write(final ASN1BufferWriter asn1Writer) {
-            connection.write(asn1Writer.getBuffer(), null);
+        public void write(final LDAPWriter<ASN1BufferWriter> writer) {
+            connection.write(writer.getASN1Writer().getBuffer(), null);
         }
 
         private void disconnect0(final ResultCode resultCode, final String message) {
@@ -385,7 +452,7 @@ final class LDAPServerFilter extends BaseFilter {
         }
     }
 
-    private final class CompareHandler extends AbstractHandler<CompareResult> {
+    private static final class CompareHandler extends AbstractHandler<CompareResult> {
         private CompareHandler(final ClientContextImpl context, final int messageID) {
             super(context, messageID);
         }
@@ -397,31 +464,20 @@ final class LDAPServerFilter extends BaseFilter {
                 handleResult((CompareResult) result);
             } else {
                 final CompareResult newResult = Responses.newCompareResult(result.getResultCode());
-                newResult.setDiagnosticMessage(result.getDiagnosticMessage());
-                newResult.setMatchedDN(result.getMatchedDN());
-                newResult.setCause(result.getCause());
-                for (final Control control : result.getControls()) {
-                    newResult.addControl(control);
-                }
+                populateNewResultFromResult(newResult, result);
                 handleResult(newResult);
             }
         }
 
         @Override
-        public void handleResult(final CompareResult result) {
-            final ASN1BufferWriter asn1Writer = ASN1BufferWriter.getWriter();
-            try {
-                LDAP_WRITER.compareResult(asn1Writer, messageID, result);
-                context.write(asn1Writer);
-            } catch (final IOException ioe) {
-                context.handleError(ioe);
-            } finally {
-                asn1Writer.recycle();
-            }
+        protected void writeResult(LDAPWriter<ASN1BufferWriter> writer, CompareResult result)
+                throws IOException {
+            writer.writeCompareResult(messageID, result);
+
         }
     }
 
-    private final class DeleteHandler extends AbstractHandler<Result> {
+    private static final class DeleteHandler extends AbstractHandler<Result> {
         private DeleteHandler(final ClientContextImpl context, final int messageID) {
             super(context, messageID);
         }
@@ -432,20 +488,13 @@ final class LDAPServerFilter extends BaseFilter {
         }
 
         @Override
-        public void handleResult(final Result result) {
-            final ASN1BufferWriter asn1Writer = ASN1BufferWriter.getWriter();
-            try {
-                LDAP_WRITER.deleteResult(asn1Writer, messageID, result);
-                context.write(asn1Writer);
-            } catch (final IOException ioe) {
-                context.handleError(ioe);
-            } finally {
-                asn1Writer.recycle();
-            }
+        protected void writeResult(LDAPWriter<ASN1BufferWriter> writer, Result result)
+                throws IOException {
+            writer.writeDeleteResult(messageID, result);
         }
     }
 
-    private final class ExtendedHandler<R extends ExtendedResult> extends AbstractHandler<R> {
+    private static final class ExtendedHandler<R extends ExtendedResult> extends AbstractHandler<R> {
         private ExtendedHandler(final ClientContextImpl context, final int messageID) {
             super(context, messageID);
         }
@@ -470,19 +519,21 @@ final class LDAPServerFilter extends BaseFilter {
 
         @Override
         public void handleResult(final ExtendedResult result) {
-            final ASN1BufferWriter asn1Writer = ASN1BufferWriter.getWriter();
-            try {
-                LDAP_WRITER.extendedResult(asn1Writer, messageID, result);
-                context.write(asn1Writer);
-            } catch (final IOException ioe) {
-                context.handleError(ioe);
-            } finally {
-                asn1Writer.recycle();
-            }
+            writeMessage(new LDAPWrite<ExtendedResult>() {
+                public void perform(LDAPWriter<ASN1BufferWriter> writer, int messageID, ExtendedResult message)
+                        throws IOException {
+                    writer.writeExtendedResult(messageID, message);
+                }
+            }, result);
+        }
+
+        @Override
+        protected void writeResult(LDAPWriter<ASN1BufferWriter> ldapWriter, R result) throws IOException {
+            // never called because handleResult(result) method is overriden in this class
         }
     }
 
-    private final class ModifyDNHandler extends AbstractHandler<Result> {
+    private static final class ModifyDNHandler extends AbstractHandler<Result> {
         private ModifyDNHandler(final ClientContextImpl context, final int messageID) {
             super(context, messageID);
         }
@@ -493,20 +544,13 @@ final class LDAPServerFilter extends BaseFilter {
         }
 
         @Override
-        public void handleResult(final Result result) {
-            final ASN1BufferWriter asn1Writer = ASN1BufferWriter.getWriter();
-            try {
-                LDAP_WRITER.modifyDNResult(asn1Writer, messageID, result);
-                context.write(asn1Writer);
-            } catch (final IOException ioe) {
-                context.handleError(ioe);
-            } finally {
-                asn1Writer.recycle();
-            }
+        protected void writeResult(LDAPWriter<ASN1BufferWriter> writer, Result result)
+                throws IOException {
+            writer.writeModifyDNResult(messageID, result);
         }
     }
 
-    private final class ModifyHandler extends AbstractHandler<Result> {
+    private static final class ModifyHandler extends AbstractHandler<Result> {
         private ModifyHandler(final ClientContextImpl context, final int messageID) {
             super(context, messageID);
         }
@@ -517,20 +561,13 @@ final class LDAPServerFilter extends BaseFilter {
         }
 
         @Override
-        public void handleResult(final Result result) {
-            final ASN1BufferWriter asn1Writer = ASN1BufferWriter.getWriter();
-            try {
-                LDAP_WRITER.modifyResult(asn1Writer, messageID, result);
-                context.write(asn1Writer);
-            } catch (final IOException ioe) {
-                context.handleError(ioe);
-            } finally {
-                asn1Writer.recycle();
-            }
+        protected void writeResult(LDAPWriter<ASN1BufferWriter> writer, Result result)
+                throws IOException {
+            writer.writeModifyResult(messageID, result);
         }
     }
 
-    private final class SearchHandler extends AbstractHandler<Result> implements
+    private static final class SearchHandler extends AbstractHandler<Result> implements
             SearchResultHandler {
         private SearchHandler(final ClientContextImpl context, final int messageID) {
             super(context, messageID);
@@ -538,16 +575,12 @@ final class LDAPServerFilter extends BaseFilter {
 
         @Override
         public boolean handleEntry(final SearchResultEntry entry) {
-            final ASN1BufferWriter asn1Writer = ASN1BufferWriter.getWriter();
-            try {
-                LDAP_WRITER.searchResultEntry(asn1Writer, messageID, entry);
-                context.write(asn1Writer);
-            } catch (final IOException ioe) {
-                context.handleError(ioe);
-                return false;
-            } finally {
-                asn1Writer.recycle();
-            }
+            writeMessage(new LDAPWrite<SearchResultEntry>() {
+                public void perform(LDAPWriter<ASN1BufferWriter> writer, int messageID, SearchResultEntry sre)
+                        throws IOException {
+                    writer.writeSearchResultEntry(messageID, sre);
+                }
+            }, entry);
             return true;
         }
 
@@ -558,30 +591,19 @@ final class LDAPServerFilter extends BaseFilter {
 
         @Override
         public boolean handleReference(final SearchResultReference reference) {
-            final ASN1BufferWriter asn1Writer = ASN1BufferWriter.getWriter();
-            try {
-                LDAP_WRITER.searchResultReference(asn1Writer, messageID, reference);
-                context.write(asn1Writer);
-            } catch (final IOException ioe) {
-                context.handleError(ioe);
-                return false;
-            } finally {
-                asn1Writer.recycle();
-            }
+            writeMessage(new LDAPWrite<SearchResultReference>() {
+                public void perform(LDAPWriter<ASN1BufferWriter> writer, int messageID, SearchResultReference ref)
+                        throws IOException {
+                    writer.writeSearchResultReference(messageID, ref);
+                }
+            }, reference);
             return true;
         }
 
         @Override
-        public void handleResult(final Result result) {
-            final ASN1BufferWriter asn1Writer = ASN1BufferWriter.getWriter();
-            try {
-                LDAP_WRITER.searchResult(asn1Writer, messageID, result);
-                context.write(asn1Writer);
-            } catch (final IOException ioe) {
-                context.handleError(ioe);
-            } finally {
-                asn1Writer.recycle();
-            }
+        protected void writeResult(LDAPWriter<ASN1BufferWriter> writer, Result result)
+                throws IOException {
+            writer.writeSearchResult(messageID, result);
         }
     }
 
@@ -613,13 +635,11 @@ final class LDAPServerFilter extends BaseFilter {
     // Default maximum request size for incoming requests.
     private static final int DEFAULT_MAX_REQUEST_SIZE = 5 * 1024 * 1024;
 
-    private static final Attribute<ASN1BufferReader> LDAP_ASN1_READER_ATTR =
-            Grizzly.DEFAULT_ATTRIBUTE_BUILDER.createAttribute("LDAPASN1Reader");
-
     private static final Attribute<ClientContextImpl> LDAP_CONNECTION_ATTR =
             Grizzly.DEFAULT_ATTRIBUTE_BUILDER.createAttribute("LDAPServerConnection");
 
-    private static final LDAPWriter LDAP_WRITER = new LDAPWriter();
+    private static final Attribute<ServerRequestHandler> REQUEST_HANDLER_ATTR =
+            Grizzly.DEFAULT_ATTRIBUTE_BUILDER.createAttribute("ServerRequestHandler");
 
     /**
      * A dummy SSL client engine configurator as SSLFilter only needs server
@@ -638,154 +658,191 @@ final class LDAPServerFilter extends BaseFilter {
         }
     }
 
-    private final LDAPReader ldapReader;
     private final GrizzlyLDAPListener listener;
     private final int maxASN1ElementSize;
+    private final DecodeOptions decodeOptions;
 
-    private final AbstractLDAPMessageHandler<FilterChainContext> serverRequestHandler =
-            new AbstractLDAPMessageHandler<FilterChainContext>() {
-                @Override
-                public void abandonRequest(final FilterChainContext ctx, final int messageID,
-                        final AbandonRequest request) throws UnexpectedRequestException {
-                    final ClientContextImpl clientContext =
-                            LDAP_CONNECTION_ATTR.get(ctx.getConnection());
-                    if (clientContext != null) {
-                        final ServerConnection<Integer> conn = clientContext.getServerConnection();
-                        conn.handleAbandon(messageID, request);
-                    }
-                }
+    private static final class ServerRequestHandler extends AbstractLDAPMessageHandler {
 
-                @Override
-                public void addRequest(final FilterChainContext ctx, final int messageID,
-                        final AddRequest request) throws UnexpectedRequestException {
-                    final ClientContextImpl clientContext =
-                            LDAP_CONNECTION_ATTR.get(ctx.getConnection());
-                    if (clientContext != null) {
-                        final ServerConnection<Integer> conn = clientContext.getServerConnection();
-                        final AddHandler handler = new AddHandler(clientContext, messageID);
-                        conn.handleAdd(messageID, request, handler, handler);
-                    }
-                }
+        private final Connection<?> connection;
+        private final LDAPReader<ASN1BufferReader> reader;
 
-                @Override
-                public void bindRequest(final FilterChainContext ctx, final int messageID,
-                        final int version, final GenericBindRequest request)
-                        throws UnexpectedRequestException {
-                    final ClientContextImpl clientContext =
-                            LDAP_CONNECTION_ATTR.get(ctx.getConnection());
-                    if (clientContext != null) {
-                        final ServerConnection<Integer> conn = clientContext.getServerConnection();
-                        final BindHandler handler = new BindHandler(clientContext, messageID);
-                        conn.handleBind(messageID, version, request, handler, handler);
-                    }
-                }
+        /**
+         * Creates the handler with a connection.
+         *
+         * @param connection
+         *            connection this handler is associated with
+         * @param reader
+         *            LDAP reader to use for reading incoming messages
+         */
+        ServerRequestHandler(Connection<?> connection, LDAPReader<ASN1BufferReader> reader) {
+            this.connection = connection;
+            this.reader = reader;
+        }
 
-                @Override
-                public void compareRequest(final FilterChainContext ctx, final int messageID,
-                        final CompareRequest request) throws UnexpectedRequestException {
-                    final ClientContextImpl clientContext =
-                            LDAP_CONNECTION_ATTR.get(ctx.getConnection());
-                    if (clientContext != null) {
-                        final ServerConnection<Integer> conn = clientContext.getServerConnection();
-                        final CompareHandler handler = new CompareHandler(clientContext, messageID);
-                        conn.handleCompare(messageID, request, handler, handler);
-                    }
-                }
+        /**
+         * Returns the LDAP reader.
+         *
+         * @return the reader to read incoming LDAP messages
+         */
+        public LDAPReader<ASN1BufferReader> getReader() {
+            return reader;
+        }
 
-                @Override
-                public void deleteRequest(final FilterChainContext ctx, final int messageID,
-                        final DeleteRequest request) throws UnexpectedRequestException {
-                    final ClientContextImpl clientContext =
-                            LDAP_CONNECTION_ATTR.get(ctx.getConnection());
-                    if (clientContext != null) {
-                        final ServerConnection<Integer> conn = clientContext.getServerConnection();
-                        final DeleteHandler handler = new DeleteHandler(clientContext, messageID);
-                        conn.handleDelete(messageID, request, handler, handler);
-                    }
-                }
+        @Override
+        public void abandonRequest(final int messageID, final AbandonRequest request)
+                throws UnexpectedRequestException {
+            final ClientContextImpl clientContext =
+                    LDAP_CONNECTION_ATTR.get(connection);
+            if (clientContext != null) {
+                final ServerConnection<Integer> conn = clientContext.getServerConnection();
+                conn.handleAbandon(messageID, request);
+            }
+        }
 
-                @Override
-                public <R extends ExtendedResult> void extendedRequest(
-                        final FilterChainContext ctx, final int messageID,
-                        final ExtendedRequest<R> request) throws UnexpectedRequestException {
-                    final ClientContextImpl clientContext =
-                            LDAP_CONNECTION_ATTR.get(ctx.getConnection());
-                    if (clientContext != null) {
-                        final ServerConnection<Integer> conn = clientContext.getServerConnection();
-                        final ExtendedHandler<R> handler =
-                                new ExtendedHandler<R>(clientContext, messageID);
-                        conn.handleExtendedRequest(messageID, request, handler, handler);
-                    }
-                }
+        @Override
+        public void addRequest(final int messageID, final AddRequest request) throws UnexpectedRequestException {
+            final ClientContextImpl clientContext =
+                    LDAP_CONNECTION_ATTR.get(connection);
+            if (clientContext != null) {
+                final ServerConnection<Integer> conn = clientContext.getServerConnection();
+                final AddHandler handler = new AddHandler(clientContext, messageID);
+                conn.handleAdd(messageID, request, handler, handler);
+            }
+        }
 
-                @Override
-                public void modifyDNRequest(final FilterChainContext ctx, final int messageID,
-                        final ModifyDNRequest request) throws UnexpectedRequestException {
-                    final ClientContextImpl clientContext =
-                            LDAP_CONNECTION_ATTR.get(ctx.getConnection());
-                    if (clientContext != null) {
-                        final ServerConnection<Integer> conn = clientContext.getServerConnection();
-                        final ModifyDNHandler handler =
-                                new ModifyDNHandler(clientContext, messageID);
-                        conn.handleModifyDN(messageID, request, handler, handler);
-                    }
-                }
+        @Override
+        public void bindRequest(final int messageID, final int version,
+                final GenericBindRequest request)
+                throws UnexpectedRequestException {
+            final ClientContextImpl clientContext =
+                    LDAP_CONNECTION_ATTR.get(connection);
+            if (clientContext != null) {
+                final ServerConnection<Integer> conn = clientContext.getServerConnection();
+                final AbstractHandler<BindResult> handler = new BindHandler(clientContext, messageID);
+                conn.handleBind(messageID, version, request, handler, handler);
+            }
+        }
 
-                @Override
-                public void modifyRequest(final FilterChainContext ctx, final int messageID,
-                        final ModifyRequest request) throws UnexpectedRequestException {
-                    final ClientContextImpl clientContext =
-                            LDAP_CONNECTION_ATTR.get(ctx.getConnection());
-                    if (clientContext != null) {
-                        final ServerConnection<Integer> conn = clientContext.getServerConnection();
-                        final ModifyHandler handler = new ModifyHandler(clientContext, messageID);
-                        conn.handleModify(messageID, request, handler, handler);
-                    }
-                }
+        @Override
+        public void compareRequest(final int messageID, final CompareRequest request)
+                throws UnexpectedRequestException {
+            final ClientContextImpl clientContext =
+                    LDAP_CONNECTION_ATTR.get(connection);
+            if (clientContext != null) {
+                final ServerConnection<Integer> conn = clientContext.getServerConnection();
+                final CompareHandler handler = new CompareHandler(clientContext, messageID);
+                conn.handleCompare(messageID, request, handler, handler);
+            }
+        }
 
-                @Override
-                public void searchRequest(final FilterChainContext ctx, final int messageID,
-                        final SearchRequest request) throws UnexpectedRequestException {
-                    final ClientContextImpl clientContext =
-                            LDAP_CONNECTION_ATTR.get(ctx.getConnection());
-                    if (clientContext != null) {
-                        final ServerConnection<Integer> conn = clientContext.getServerConnection();
-                        final SearchHandler handler = new SearchHandler(clientContext, messageID);
-                        conn.handleSearch(messageID, request, handler, handler);
-                    }
-                }
+        @Override
+        public void deleteRequest(final int messageID, final DeleteRequest request)
+                throws UnexpectedRequestException {
+            final ClientContextImpl clientContext =
+                    LDAP_CONNECTION_ATTR.get(connection);
+            if (clientContext != null) {
+                final ServerConnection<Integer> conn = clientContext.getServerConnection();
+                final DeleteHandler handler = new DeleteHandler(clientContext, messageID);
+                conn.handleDelete(messageID, request, handler, handler);
+            }
+        }
 
-                @Override
-                public void unbindRequest(final FilterChainContext ctx, final int messageID,
-                        final UnbindRequest request) {
-                    // Remove the client context causing any subsequent LDAP
-                    // traffic to be ignored.
-                    final ClientContextImpl clientContext =
-                            LDAP_CONNECTION_ATTR.remove(ctx.getConnection());
-                    if (clientContext != null) {
-                        clientContext.handleClose(messageID, request);
-                    }
-                }
+        @Override
+        public <R extends ExtendedResult> void extendedRequest(
+                final int messageID,
+                final ExtendedRequest<R> request) throws UnexpectedRequestException {
+            final ClientContextImpl clientContext =
+                    LDAP_CONNECTION_ATTR.get(connection);
+            if (clientContext != null) {
+                final ServerConnection<Integer> conn = clientContext.getServerConnection();
+                final ExtendedHandler<R> handler = new ExtendedHandler<R>(clientContext, messageID);
+                conn.handleExtendedRequest(messageID, request, handler, handler);
+            }
+        }
 
-                @Override
-                public void unrecognizedMessage(final FilterChainContext ctx, final int messageID,
-                        final byte messageTag, final ByteString messageBytes) {
-                    exceptionOccurred(ctx, new UnsupportedMessageException(messageID, messageTag,
-                            messageBytes));
-                }
-            };
+        @Override
+        public void modifyDNRequest(final int messageID, final ModifyDNRequest request)
+                throws UnexpectedRequestException {
+            final ClientContextImpl clientContext =
+                    LDAP_CONNECTION_ATTR.get(connection);
+            if (clientContext != null) {
+                final ServerConnection<Integer> conn = clientContext.getServerConnection();
+                final ModifyDNHandler handler = new ModifyDNHandler(clientContext, messageID);
+                conn.handleModifyDN(messageID, request, handler, handler);
+            }
+        }
 
-    LDAPServerFilter(final GrizzlyLDAPListener listener, final LDAPReader ldapReader,
+        @Override
+        public void modifyRequest(final int messageID, final ModifyRequest request)
+                throws UnexpectedRequestException {
+            final ClientContextImpl clientContext =
+                    LDAP_CONNECTION_ATTR.get(connection);
+            if (clientContext != null) {
+                final ServerConnection<Integer> conn = clientContext.getServerConnection();
+                final ModifyHandler handler = new ModifyHandler(clientContext, messageID);
+                conn.handleModify(messageID, request, handler, handler);
+            }
+        }
+
+        @Override
+        public void searchRequest(final int messageID, final SearchRequest request)
+                throws UnexpectedRequestException {
+            final ClientContextImpl clientContext =
+                    LDAP_CONNECTION_ATTR.get(connection);
+            if (clientContext != null) {
+                final ServerConnection<Integer> conn = clientContext.getServerConnection();
+                final SearchHandler handler = new SearchHandler(clientContext, messageID);
+                conn.handleSearch(messageID, request, handler, handler);
+            }
+        }
+
+        @Override
+        public void unbindRequest(final int messageID, final UnbindRequest request) {
+            // Remove the client context causing any subsequent LDAP
+            // traffic to be ignored.
+            final ClientContextImpl clientContext =
+                    LDAP_CONNECTION_ATTR.remove(connection);
+            if (clientContext != null) {
+                clientContext.handleClose(messageID, request);
+            }
+        }
+
+        @Override
+        public void unrecognizedMessage(final int messageID, final byte messageTag,
+                final ByteString messageBytes) {
+            exceptionOccurred(connection, new UnsupportedMessageException(messageID, messageTag,
+                    messageBytes));
+        }
+    }
+
+    /**
+     * Creates a server filter with provided listener, options and max size of
+     * ASN1 element.
+     *
+     * @param listener
+     *            listen for incoming connections
+     * @param options
+     *            control how to decode requests and responses
+     * @param maxASN1ElementSize
+     *            The maximum BER element size, or <code>0</code> to indicate
+     *            that there is no limit.
+     */
+    LDAPServerFilter(final GrizzlyLDAPListener listener, final DecodeOptions options,
             final int maxASN1ElementSize) {
         this.listener = listener;
-        this.ldapReader = ldapReader;
+        this.decodeOptions = options;
         this.maxASN1ElementSize =
                 maxASN1ElementSize <= 0 ? DEFAULT_MAX_REQUEST_SIZE : maxASN1ElementSize;
     }
 
     @Override
     public void exceptionOccurred(final FilterChainContext ctx, final Throwable error) {
-        final ClientContextImpl clientContext = LDAP_CONNECTION_ATTR.remove(ctx.getConnection());
+        exceptionOccurred(ctx.getConnection(), error);
+    }
+
+    private static void exceptionOccurred(final Connection<?> connection, final Throwable error) {
+        final ClientContextImpl clientContext = LDAP_CONNECTION_ATTR.remove(connection);
         if (clientContext != null) {
             clientContext.handleError(error);
         }
@@ -819,19 +876,15 @@ final class LDAPServerFilter extends BaseFilter {
 
     @Override
     public NextAction handleRead(final FilterChainContext ctx) throws IOException {
+        final ServerRequestHandler requestHandler = getRequestHandler(ctx.getConnection());
+        final LDAPReader<ASN1BufferReader> reader = requestHandler.getReader();
+        final ASN1BufferReader asn1Reader = reader.getASN1Reader();
         final Buffer buffer = (Buffer) ctx.getMessage();
-        ASN1BufferReader asn1Reader = LDAP_ASN1_READER_ATTR.get(ctx.getConnection());
-        if (asn1Reader == null) {
-            asn1Reader =
-                    new ASN1BufferReader(maxASN1ElementSize, ctx.getConnection().getTransport()
-                            .getMemoryManager());
-            LDAP_ASN1_READER_ATTR.set(ctx.getConnection(), asn1Reader);
-        }
-        asn1Reader.appendBytesRead(buffer);
 
+        asn1Reader.appendBytesRead(buffer);
         try {
-            while (asn1Reader.elementAvailable()) {
-                ldapReader.decode(asn1Reader, serverRequestHandler, ctx);
+            while (reader.hasMessageAvailable()) {
+                reader.readMessage(requestHandler);
             }
         } catch (IOException e) {
             exceptionOccurred(ctx, e);
@@ -841,5 +894,27 @@ final class LDAPServerFilter extends BaseFilter {
         }
 
         return ctx.getStopAction();
+    }
+
+    /**
+     * Returns the request handler associated to a connection.
+     * <p>
+     * If no handler exists yet for this context, a new one is created and
+     * recorded for the context.
+     *
+     * @param ctx
+     *            Context
+     * @return the response handler associated to the context, which can be a
+     *         new one if no handler have been created yet
+     */
+    private ServerRequestHandler getRequestHandler(final Connection<?> connection) {
+        ServerRequestHandler handler = REQUEST_HANDLER_ATTR.get(connection);
+        if (handler == null) {
+            LDAPReader<ASN1BufferReader> reader = GrizzlyUtils.createReader(decodeOptions,
+                    maxASN1ElementSize, connection.getTransport().getMemoryManager());
+            handler = new ServerRequestHandler(connection, reader);
+            REQUEST_HANDLER_ATTR.set(connection, handler);
+        }
+        return handler;
     }
 }

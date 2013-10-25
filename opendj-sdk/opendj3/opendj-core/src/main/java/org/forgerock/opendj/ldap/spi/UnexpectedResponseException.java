@@ -22,9 +22,10 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS.
  */
 
-package com.forgerock.opendj.grizzly;
+package org.forgerock.opendj.ldap.spi;
 
 import java.io.IOException;
 
@@ -35,10 +36,18 @@ import org.forgerock.opendj.ldap.responses.Response;
  * Thrown when an unexpected LDAP response is received.
  */
 @SuppressWarnings("serial")
-final class UnexpectedResponseException extends IOException {
+public final class UnexpectedResponseException extends IOException {
     private final int messageID;
     private final Response response;
 
+    /**
+     * Creates the exception with a message id and a response.
+     *
+     * @param messageID
+     *            id of message
+     * @param response
+     *            response received
+     */
     public UnexpectedResponseException(final int messageID, final Response response) {
         super(LocalizableMessage.raw("Unexpected LDAP response: id=%d, message=%s", messageID,
                 response).toString());
@@ -46,10 +55,20 @@ final class UnexpectedResponseException extends IOException {
         this.response = response;
     }
 
+    /**
+     * Returns the identifier of the message.
+     *
+     * @return the identifier
+     */
     public int getMessageID() {
         return messageID;
     }
 
+    /**
+     * Returns the response.
+     *
+     * @return the received response
+     */
     public Response getResponse() {
         return response;
     }

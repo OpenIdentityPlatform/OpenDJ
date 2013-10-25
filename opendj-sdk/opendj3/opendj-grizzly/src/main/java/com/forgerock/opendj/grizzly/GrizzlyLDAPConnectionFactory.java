@@ -28,8 +28,8 @@
 package com.forgerock.opendj.grizzly;
 
 import static com.forgerock.opendj.grizzly.DefaultTCPNIOTransport.DEFAULT_TRANSPORT;
-import static com.forgerock.opendj.grizzly.TimeoutChecker.TIMEOUT_CHECKER;
 import static org.forgerock.opendj.ldap.ErrorResultException.*;
+import static org.forgerock.opendj.ldap.TimeoutChecker.TIMEOUT_CHECKER;
 
 import java.io.IOException;
 import java.net.SocketAddress;
@@ -45,6 +45,7 @@ import org.forgerock.opendj.ldap.FutureResult;
 import org.forgerock.opendj.ldap.LDAPOptions;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.ResultHandler;
+import org.forgerock.opendj.ldap.TimeoutChecker;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.requests.StartTLSExtendedRequest;
 import org.forgerock.opendj.ldap.responses.ExtendedResult;
@@ -165,7 +166,7 @@ public final class GrizzlyLDAPConnectionFactory implements LDAPConnectionFactory
             connection.configureBlocking(true);
             final GrizzlyLDAPConnection ldapConnection =
                     new GrizzlyLDAPConnection(connection, GrizzlyLDAPConnectionFactory.this);
-            timeoutChecker.get().addConnection(ldapConnection);
+            timeoutChecker.get().addListener(ldapConnection);
             clientFilter.registerConnection(connection, ldapConnection);
             return ldapConnection;
         }
@@ -254,7 +255,7 @@ public final class GrizzlyLDAPConnectionFactory implements LDAPConnectionFactory
         this.transport = DEFAULT_TRANSPORT.acquireIfNull(transport);
         this.socketAddress = address;
         this.options = new LDAPOptions(options);
-        this.clientFilter = new LDAPClientFilter(new LDAPReader(this.options.getDecodeOptions()), 0);
+        this.clientFilter = new LDAPClientFilter(this.options.getDecodeOptions(), 0);
         this.defaultFilterChain = GrizzlyUtils.buildFilterChain(this.transport.get().getProcessor(), clientFilter);
 
     }

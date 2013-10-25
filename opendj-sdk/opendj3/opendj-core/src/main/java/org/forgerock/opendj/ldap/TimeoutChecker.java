@@ -25,7 +25,7 @@
  *      Portions copyright 2013 ForgeRock AS.
  */
 
-package com.forgerock.opendj.grizzly;
+package org.forgerock.opendj.ldap;
 
 import static com.forgerock.opendj.util.StaticUtils.DEFAULT_LOG;
 import static java.util.Collections.newSetFromMap;
@@ -35,13 +35,19 @@ import java.util.concurrent.ConcurrentHashMap;
 import com.forgerock.opendj.util.ReferenceCountedObject;
 
 /**
- * Checks connection for pending requests that have timed out.
+ * Checks {@code TimeoutEventListener listeners} for events that have timed out.
+ * <p>
+ * All listeners registered with the {@code #addListener()} method are called
+ * back with {@code TimeoutEventListener#handleTimeout()} to be able to handle
+ * the timeout.
+ * <p>
+ *
  */
-final class TimeoutChecker {
+public final class TimeoutChecker {
     /**
-     * Global reference counted instance.
+     * Global reference on the timeout checker.
      */
-    static final ReferenceCountedObject<TimeoutChecker> TIMEOUT_CHECKER =
+    public static final ReferenceCountedObject<TimeoutChecker> TIMEOUT_CHECKER =
             new ReferenceCountedObject<TimeoutChecker>() {
                 @Override
                 protected void destroyInstance(final TimeoutChecker instance) {
@@ -60,11 +66,12 @@ final class TimeoutChecker {
     private final Object available = new Object();
 
     /**
-     * The connection set must be safe from CMEs because expiring requests can
+     * The listener set must be safe from CMEs.
+     * For example, if the listener is a connection, expiring requests can
      * cause the connection to be closed.
      */
-    private final Set<GrizzlyLDAPConnection> connections =
-            newSetFromMap(new ConcurrentHashMap<GrizzlyLDAPConnection, Boolean>());
+    private final Set<TimeoutEventListener> listeners =
+            newSetFromMap(new ConcurrentHashMap<TimeoutEventListener, Boolean>());
 
     /**
      * Used to signal thread shutdown.
@@ -72,19 +79,18 @@ final class TimeoutChecker {
     private volatile boolean shutdownRequested = false;
 
     private TimeoutChecker() {
-        final Thread checkerThread = new Thread("OpenDJ LDAP SDK Connection Timeout Checker") {
+        final Thread checkerThread = new Thread("OpenDJ LDAP SDK Timeout Checker") {
             @Override
             public void run() {
                 DEFAULT_LOG.debug("Timeout Checker Starting");
                 while (!shutdownRequested) {
                     final long currentTime = System.currentTimeMillis();
                     long delay = 0;
-
-                    for (final GrizzlyLDAPConnection connection : connections) {
-                        DEFAULT_LOG.trace("Checking connection {} delay = {}", connection, delay);
+                    for (final TimeoutEventListener listener : listeners) {
+                        DEFAULT_LOG.trace("Checking connection {} delay = {}", listener, delay);
 
                         // May update the connections set.
-                        final long newDelay = connection.cancelExpiredRequests(currentTime);
+                        final long newDelay = listener.handleTimeout(currentTime);
                         if (newDelay > 0) {
                             if (delay > 0) {
                                 delay = Math.min(newDelay, delay);
@@ -113,13 +119,27 @@ final class TimeoutChecker {
         checkerThread.start();
     }
 
-    void addConnection(final GrizzlyLDAPConnection connection) {
-        connections.add(connection);
-        signal();
+    /**
+     * Add a listener to check.
+     *
+     * @param listener
+     *            listener to check for timeout event
+     */
+    public void addListener(final TimeoutEventListener listener) {
+        listeners.add(listener);
+        if (listener.getTimeout() > 0) {
+            signal();
+        }
     }
 
-    void removeConnection(final GrizzlyLDAPConnection connection) {
-        connections.remove(connection);
+    /**
+     * Stop checking a listener.
+     *
+     * @param listener
+     *            listener that was previously added to check for timeout event
+     */
+    public void removeListener(final TimeoutEventListener listener) {
+        listeners.remove(listener);
         // No need to signal.
     }
 

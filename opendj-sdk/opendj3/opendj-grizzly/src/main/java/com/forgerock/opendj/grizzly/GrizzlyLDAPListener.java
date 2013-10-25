@@ -102,7 +102,7 @@ public final class GrizzlyLDAPListener implements LDAPListenerImpl {
         this.connectionFactory = factory;
 
         final DecodeOptions decodeOptions = new DecodeOptions(options.getDecodeOptions());
-        final LDAPServerFilter serverFilter = new LDAPServerFilter(this, new LDAPReader(decodeOptions), options
+        final LDAPServerFilter serverFilter = new LDAPServerFilter(this, decodeOptions, options
                 .getMaxRequestSize());
         final FilterChain ldapChain = GrizzlyUtils.buildFilterChain(this.transport.get().getProcessor(), serverFilter);
         final TCPNIOBindingHandler bindingHandler =

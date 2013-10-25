@@ -40,7 +40,6 @@ import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.glassfish.grizzly.Buffer;
 import org.glassfish.grizzly.Cacheable;
-import org.glassfish.grizzly.ThreadCache;
 import org.glassfish.grizzly.memory.ByteBufferWrapper;
 
 import com.forgerock.opendj.util.StaticUtils;
@@ -48,7 +47,7 @@ import com.forgerock.opendj.util.StaticUtils;
 /**
  * Grizzly ASN1 writer implementation.
  */
-final class ASN1BufferWriter extends AbstractASN1Writer implements ASN1Writer, Cacheable {
+final class ASN1BufferWriter extends AbstractASN1Writer implements Cacheable {
     private class ChildSequenceBuffer implements SequenceBuffer {
         private SequenceBuffer parent;
 
@@ -162,21 +161,16 @@ final class ASN1BufferWriter extends AbstractASN1Writer implements ASN1Writer, C
     }
 
     private static final int BUFFER_INIT_SIZE = 1024;
-    private final static ThreadCache.CachedTypeIndex<ASN1BufferWriter> WRITER_INDEX = ThreadCache
-            .obtainIndex(ASN1BufferWriter.class, 1);
 
-    static ASN1BufferWriter getWriter() {
-        ASN1BufferWriter asn1Writer = ThreadCache.takeFromCache(WRITER_INDEX);
-        if (asn1Writer == null) {
-            asn1Writer = new ASN1BufferWriter();
-        }
-
-        if (!asn1Writer.outBuffer.usable) {
+    /**
+     * Reset the writer.
+     */
+    void reset() {
+        if (!outBuffer.usable) {
             // If the output buffer is unusable, create a new one.
-            asn1Writer.outBuffer = new RecyclableBuffer();
+            outBuffer = new RecyclableBuffer();
         }
-        asn1Writer.outBuffer.clear();
-        return asn1Writer;
+        outBuffer.clear();
     }
 
     private SequenceBuffer sequenceBuffer;
@@ -187,7 +181,7 @@ final class ASN1BufferWriter extends AbstractASN1Writer implements ASN1Writer, C
     /**
      * Creates a new ASN.1 writer that writes to a StreamWriter.
      */
-    private ASN1BufferWriter() {
+    ASN1BufferWriter() {
         this.sequenceBuffer = this.rootBuffer = new RootSequenceBuffer();
         this.outBuffer = new RecyclableBuffer();
     }
@@ -213,10 +207,12 @@ final class ASN1BufferWriter extends AbstractASN1Writer implements ASN1Writer, C
         // Do nothing
     }
 
+    /**
+     * Recycle the writer to allow re-use.
+     */
     public void recycle() {
         sequenceBuffer = rootBuffer;
         outBuffer.clear();
-        ThreadCache.putToCache(WRITER_INDEX, this);
     }
 
     /**

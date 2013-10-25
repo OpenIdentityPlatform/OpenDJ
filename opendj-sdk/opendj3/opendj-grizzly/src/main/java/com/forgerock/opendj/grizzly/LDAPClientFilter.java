@@ -34,8 +34,11 @@ import java.io.IOException;
 
 import javax.net.ssl.SSLEngine;
 
+import org.forgerock.opendj.io.LDAPReader;
+import org.forgerock.opendj.io.LDAPWriter;
 import org.forgerock.opendj.ldap.ConnectionSecurityLayer;
 import org.forgerock.opendj.ldap.DecodeException;
+import org.forgerock.opendj.ldap.DecodeOptions;
 import org.forgerock.opendj.ldap.ErrorResultException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.requests.AddRequest;
@@ -54,11 +57,13 @@ import org.forgerock.opendj.ldap.responses.Result;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldap.responses.SearchResultReference;
 import org.forgerock.opendj.ldap.spi.AbstractLDAPFutureResultImpl;
+import org.forgerock.opendj.ldap.spi.AbstractLDAPMessageHandler;
 import org.forgerock.opendj.ldap.spi.LDAPBindFutureResultImpl;
 import org.forgerock.opendj.ldap.spi.LDAPCompareFutureResultImpl;
 import org.forgerock.opendj.ldap.spi.LDAPExtendedFutureResultImpl;
 import org.forgerock.opendj.ldap.spi.LDAPFutureResultImpl;
 import org.forgerock.opendj.ldap.spi.LDAPSearchFutureResultImpl;
+import org.forgerock.opendj.ldap.spi.UnexpectedResponseException;
 import org.glassfish.grizzly.Buffer;
 import org.glassfish.grizzly.Connection;
 import org.glassfish.grizzly.EmptyCompletionHandler;
@@ -75,382 +80,413 @@ import org.glassfish.grizzly.filterchain.NextAction;
 final class LDAPClientFilter extends BaseFilter {
     private static final Attribute<GrizzlyLDAPConnection> LDAP_CONNECTION_ATTR =
             Grizzly.DEFAULT_ATTRIBUTE_BUILDER.createAttribute("LDAPClientConnection");
-    private static final Attribute<ASN1BufferReader> LDAP_ASN1_READER_ATTR =
-            Grizzly.DEFAULT_ATTRIBUTE_BUILDER.createAttribute("LDAPASN1Reader");
+
+    private static final Attribute<ClientResponseHandler> RESPONSE_HANDLER_ATTR =
+            Grizzly.DEFAULT_ATTRIBUTE_BUILDER.createAttribute("ClientResponseHandler");
 
     private final int maxASN1ElementSize;
-    private final LDAPReader ldapReader;
+    private final DecodeOptions decodeOptions;
 
-    private static final AbstractLDAPMessageHandler<FilterChainContext> CLIENT_RESPONSE_HANDLER =
-            new AbstractLDAPMessageHandler<FilterChainContext>() {
-                @Override
-                public void addResult(final FilterChainContext ctx, final int messageID,
-                        final Result result) throws UnexpectedResponseException, IOException {
-                    final GrizzlyLDAPConnection ldapConnection =
-                            LDAP_CONNECTION_ATTR.get(ctx.getConnection());
-                    if (ldapConnection != null) {
-                        final AbstractLDAPFutureResultImpl<?> pendingRequest =
-                                ldapConnection.removePendingRequest(messageID);
+    private static final class ClientResponseHandler extends AbstractLDAPMessageHandler {
 
-                        if (pendingRequest != null) {
-                            if (pendingRequest instanceof LDAPFutureResultImpl) {
-                                final LDAPFutureResultImpl future =
-                                        (LDAPFutureResultImpl) pendingRequest;
-                                if (future.getRequest() instanceof AddRequest) {
-                                    future.setResultOrError(result);
-                                    return;
-                                }
-                            }
-                            throw new UnexpectedResponseException(messageID, result);
+        private final LDAPReader<ASN1BufferReader> reader;
+        private FilterChainContext context;
+
+        /**
+         * Creates a handler with the provided reader.
+         *
+         * @param reader
+         *            LDAP reader to use for reading incoming messages
+         */
+        public ClientResponseHandler(LDAPReader<ASN1BufferReader> reader) {
+            this.reader = reader;
+        }
+
+        void setFilterChainContext(FilterChainContext context) {
+            this.context = context;
+        }
+
+        /**
+         * Returns the LDAP reader.
+         *
+         * @return the reader to read incoming LDAP messages
+         */
+        public LDAPReader<ASN1BufferReader> getReader() {
+            return this.reader;
+        }
+
+        @Override
+        public void addResult(final int messageID, final Result result)
+                throws UnexpectedResponseException, IOException {
+            final GrizzlyLDAPConnection ldapConnection =
+                    LDAP_CONNECTION_ATTR.get(context.getConnection());
+            if (ldapConnection != null) {
+                final AbstractLDAPFutureResultImpl<?> pendingRequest =
+                        ldapConnection.removePendingRequest(messageID);
+
+                if (pendingRequest != null) {
+                    if (pendingRequest instanceof LDAPFutureResultImpl) {
+                        final LDAPFutureResultImpl future =
+                                (LDAPFutureResultImpl) pendingRequest;
+                        if (future.getRequest() instanceof AddRequest) {
+                            future.setResultOrError(result);
+                            return;
                         }
                     }
+                    throw new UnexpectedResponseException(messageID, result);
                 }
+            }
+        }
 
-                @Override
-                public void bindResult(final FilterChainContext ctx, final int messageID,
-                        final BindResult result) throws UnexpectedResponseException, IOException {
-                    final GrizzlyLDAPConnection ldapConnection =
-                            LDAP_CONNECTION_ATTR.get(ctx.getConnection());
-                    if (ldapConnection != null) {
-                        final AbstractLDAPFutureResultImpl<?> pendingRequest =
-                                ldapConnection.removePendingRequest(messageID);
+        @Override
+        public void bindResult(final int messageID, final BindResult result)
+                throws UnexpectedResponseException, IOException {
+            final GrizzlyLDAPConnection ldapConnection =
+                    LDAP_CONNECTION_ATTR.get(context.getConnection());
+            if (ldapConnection != null) {
+                final AbstractLDAPFutureResultImpl<?> pendingRequest =
+                        ldapConnection.removePendingRequest(messageID);
 
-                        if (pendingRequest != null) {
-                            if (pendingRequest instanceof LDAPBindFutureResultImpl) {
-                                final LDAPBindFutureResultImpl future =
-                                        ((LDAPBindFutureResultImpl) pendingRequest);
-                                final BindClient bindClient = future.getBindClient();
+                if (pendingRequest != null) {
+                    if (pendingRequest instanceof LDAPBindFutureResultImpl) {
+                        final LDAPBindFutureResultImpl future =
+                                ((LDAPBindFutureResultImpl) pendingRequest);
+                        final BindClient bindClient = future.getBindClient();
 
+                        try {
+                            if (!bindClient.evaluateResult(result)) {
+                                // The server is expecting a multi stage
+                                // bind response.
+                                final int msgID =
+                                        ldapConnection.continuePendingBindRequest(future);
+
+                                LDAPWriter<ASN1BufferWriter> ldapWriter = GrizzlyUtils.getWriter();
                                 try {
-                                    if (!bindClient.evaluateResult(result)) {
-                                        // The server is expecting a multi stage
-                                        // bind response.
-                                        final int msgID =
-                                                ldapConnection.continuePendingBindRequest(future);
-
-                                        final ASN1BufferWriter asn1Writer =
-                                                ASN1BufferWriter.getWriter();
-                                        try {
-                                            final GenericBindRequest nextRequest =
-                                                    bindClient.nextBindRequest();
-                                            new LDAPWriter().bindRequest(asn1Writer, msgID, 3,
-                                                    nextRequest);
-                                            ctx.write(asn1Writer.getBuffer(), null);
-                                        } finally {
-                                            asn1Writer.recycle();
-                                        }
-                                        return;
-                                    }
-                                } catch (final ErrorResultException e) {
-                                    ldapConnection.setBindOrStartTLSInProgress(false);
-                                    future.adaptErrorResult(e.getResult());
-                                    return;
-                                } catch (final IOException e) {
-                                    // FIXME: I18N need to have a better error
-                                    // message.
-                                    // FIXME: Is this the best result code?
-                                    ldapConnection.setBindOrStartTLSInProgress(false);
-                                    final Result errorResult =
-                                            Responses
-                                                    .newResult(ResultCode.CLIENT_SIDE_LOCAL_ERROR)
-                                                    .setDiagnosticMessage(
-                                                            "An error occurred during multi-stage authentication")
-                                                    .setCause(e);
-                                    future.adaptErrorResult(errorResult);
-                                    return;
+                                    final GenericBindRequest nextRequest =
+                                            bindClient.nextBindRequest();
+                                    ldapWriter.writeBindRequest(msgID, 3, nextRequest);
+                                    context.write(ldapWriter.getASN1Writer().getBuffer(), null);
+                                } finally {
+                                    GrizzlyUtils.recycleWriter(ldapWriter);
                                 }
-
-                                if (result.getResultCode() == ResultCode.SUCCESS) {
-                                    final ConnectionSecurityLayer l =
-                                            bindClient.getConnectionSecurityLayer();
-                                    if (l != null) {
-                                        // The connection needs to be secured by
-                                        // the SASL mechanism.
-                                        ldapConnection
-                                                .installFilter(new ConnectionSecurityLayerFilter(l,
-                                                        ctx.getConnection().getTransport()
-                                                                .getMemoryManager()));
-                                    }
-                                }
-
-                                ldapConnection.setBindOrStartTLSInProgress(false);
-                                future.setResultOrError(result);
                                 return;
                             }
-                            throw new UnexpectedResponseException(messageID, result);
+                        } catch (final ErrorResultException e) {
+                            ldapConnection.setBindOrStartTLSInProgress(false);
+                            future.adaptErrorResult(e.getResult());
+                            return;
+                        } catch (final IOException e) {
+                            // FIXME: I18N need to have a better error
+                            // message.
+                            // FIXME: Is this the best result code?
+                            ldapConnection.setBindOrStartTLSInProgress(false);
+                            final Result errorResult =
+                                    Responses
+                                            .newResult(ResultCode.CLIENT_SIDE_LOCAL_ERROR)
+                                            .setDiagnosticMessage(
+                                                    "An error occurred during multi-stage authentication")
+                                            .setCause(e);
+                            future.adaptErrorResult(errorResult);
+                            return;
                         }
-                    }
-                }
 
-                @Override
-                public void compareResult(final FilterChainContext ctx, final int messageID,
-                        final CompareResult result) throws UnexpectedResponseException, IOException {
-                    final GrizzlyLDAPConnection ldapConnection =
-                            LDAP_CONNECTION_ATTR.get(ctx.getConnection());
-                    if (ldapConnection != null) {
-                        final AbstractLDAPFutureResultImpl<?> pendingRequest =
-                                ldapConnection.removePendingRequest(messageID);
-
-                        if (pendingRequest != null) {
-                            if (pendingRequest instanceof LDAPCompareFutureResultImpl) {
-                                final LDAPCompareFutureResultImpl future =
-                                        (LDAPCompareFutureResultImpl) pendingRequest;
-                                future.setResultOrError(result);
-                                return;
+                        if (result.getResultCode() == ResultCode.SUCCESS) {
+                            final ConnectionSecurityLayer l =
+                                    bindClient.getConnectionSecurityLayer();
+                            if (l != null) {
+                                // The connection needs to be secured by
+                                // the SASL mechanism.
+                                ldapConnection
+                                        .installFilter(new ConnectionSecurityLayerFilter(l,
+                                                context.getConnection().getTransport()
+                                                        .getMemoryManager()));
                             }
-                            throw new UnexpectedResponseException(messageID, result);
+                        }
+
+                        ldapConnection.setBindOrStartTLSInProgress(false);
+                        future.setResultOrError(result);
+                        return;
+                    }
+                    throw new UnexpectedResponseException(messageID, result);
+                }
+            }
+        }
+
+        @Override
+        public void compareResult(final int messageID, final CompareResult result)
+                throws UnexpectedResponseException, IOException {
+            final GrizzlyLDAPConnection ldapConnection =
+                    LDAP_CONNECTION_ATTR.get(context.getConnection());
+            if (ldapConnection != null) {
+                final AbstractLDAPFutureResultImpl<?> pendingRequest =
+                        ldapConnection.removePendingRequest(messageID);
+
+                if (pendingRequest != null) {
+                    if (pendingRequest instanceof LDAPCompareFutureResultImpl) {
+                        final LDAPCompareFutureResultImpl future =
+                                (LDAPCompareFutureResultImpl) pendingRequest;
+                        future.setResultOrError(result);
+                        return;
+                    }
+                    throw new UnexpectedResponseException(messageID, result);
+                }
+            }
+        }
+
+        @Override
+        public void deleteResult(final int messageID, final Result result)
+                throws UnexpectedResponseException, IOException {
+            final GrizzlyLDAPConnection ldapConnection =
+                    LDAP_CONNECTION_ATTR.get(context.getConnection());
+            if (ldapConnection != null) {
+                final AbstractLDAPFutureResultImpl<?> pendingRequest =
+                        ldapConnection.removePendingRequest(messageID);
+
+                if (pendingRequest != null) {
+                    if (pendingRequest instanceof LDAPFutureResultImpl) {
+                        final LDAPFutureResultImpl future =
+                                (LDAPFutureResultImpl) pendingRequest;
+                        if (future.getRequest() instanceof DeleteRequest) {
+                            future.setResultOrError(result);
+                            return;
                         }
                     }
+                    throw new UnexpectedResponseException(messageID, result);
                 }
+            }
+        }
 
-                @Override
-                public void deleteResult(final FilterChainContext ctx, final int messageID,
-                        final Result result) throws UnexpectedResponseException, IOException {
-                    final GrizzlyLDAPConnection ldapConnection =
-                            LDAP_CONNECTION_ATTR.get(ctx.getConnection());
-                    if (ldapConnection != null) {
-                        final AbstractLDAPFutureResultImpl<?> pendingRequest =
-                                ldapConnection.removePendingRequest(messageID);
-
-                        if (pendingRequest != null) {
-                            if (pendingRequest instanceof LDAPFutureResultImpl) {
-                                final LDAPFutureResultImpl future =
-                                        (LDAPFutureResultImpl) pendingRequest;
-                                if (future.getRequest() instanceof DeleteRequest) {
-                                    future.setResultOrError(result);
-                                    return;
-                                }
-                            }
-                            throw new UnexpectedResponseException(messageID, result);
-                        }
+        @Override
+        public void extendedResult(final int messageID, final ExtendedResult result)
+                throws UnexpectedResponseException, IOException {
+            final GrizzlyLDAPConnection ldapConnection =
+                    LDAP_CONNECTION_ATTR.get(context.getConnection());
+            if (ldapConnection != null) {
+                if (messageID == 0) {
+                    // Unsolicited notification received.
+                    if ((result.getOID() != null)
+                            && result.getOID().equals(OID_NOTICE_OF_DISCONNECTION)) {
+                        // Treat this as a connection error.
+                        final Result errorResult =
+                                Responses
+                                        .newResult(result.getResultCode())
+                                        .setDiagnosticMessage(result.getDiagnosticMessage());
+                        ldapConnection.close(null, true, errorResult);
+                    } else {
+                        ldapConnection.handleUnsolicitedNotification(result);
                     }
-                }
+                } else {
+                    final AbstractLDAPFutureResultImpl<?> pendingRequest =
+                            ldapConnection.removePendingRequest(messageID);
 
-                @Override
-                public void extendedResult(final FilterChainContext ctx, final int messageID,
-                        final ExtendedResult result) throws UnexpectedResponseException,
-                        IOException {
-                    final GrizzlyLDAPConnection ldapConnection =
-                            LDAP_CONNECTION_ATTR.get(ctx.getConnection());
-                    if (ldapConnection != null) {
-                        if (messageID == 0) {
-                            // Unsolicited notification received.
-                            if ((result.getOID() != null)
-                                    && result.getOID().equals(OID_NOTICE_OF_DISCONNECTION)) {
-                                // Treat this as a connection error.
+                    if (pendingRequest != null) {
+                        if (pendingRequest instanceof LDAPExtendedFutureResultImpl<?>) {
+                            final LDAPExtendedFutureResultImpl<?> extendedFuture =
+                                    ((LDAPExtendedFutureResultImpl<?>) pendingRequest);
+                            try {
+                                handleExtendedResult0(ldapConnection, extendedFuture,
+                                        result);
+                            } catch (final DecodeException de) {
+                                // FIXME: should the connection be closed as
+                                // well?
                                 final Result errorResult =
-                                        Responses
-                                                .newResult(result.getResultCode())
-                                                .setDiagnosticMessage(result.getDiagnosticMessage());
-                                ldapConnection.close(null, true, errorResult);
-                            } else {
-                                ldapConnection.handleUnsolicitedNotification(result);
+                                        Responses.newResult(
+                                                ResultCode.CLIENT_SIDE_DECODING_ERROR)
+                                                .setDiagnosticMessage(
+                                                        de.getLocalizedMessage()).setCause(
+                                                        de);
+                                extendedFuture.adaptErrorResult(errorResult);
                             }
                         } else {
-                            final AbstractLDAPFutureResultImpl<?> pendingRequest =
-                                    ldapConnection.removePendingRequest(messageID);
+                            throw new UnexpectedResponseException(messageID, result);
+                        }
+                    }
+                }
+            }
+        }
 
-                            if (pendingRequest != null) {
-                                if (pendingRequest instanceof LDAPExtendedFutureResultImpl<?>) {
-                                    final LDAPExtendedFutureResultImpl<?> extendedFuture =
-                                            ((LDAPExtendedFutureResultImpl<?>) pendingRequest);
-                                    try {
-                                        handleExtendedResult0(ldapConnection, extendedFuture,
-                                                result);
-                                    } catch (final DecodeException de) {
-                                        // FIXME: should the connection be closed as
-                                        // well?
+        @Override
+        public void intermediateResponse(final int messageID, final IntermediateResponse response)
+                throws UnexpectedResponseException, IOException {
+            final GrizzlyLDAPConnection ldapConnection =
+                    LDAP_CONNECTION_ATTR.get(context.getConnection());
+            if (ldapConnection != null) {
+                final AbstractLDAPFutureResultImpl<?> pendingRequest =
+                        ldapConnection.getPendingRequest(messageID);
+
+                if (pendingRequest != null) {
+                    pendingRequest.handleIntermediateResponse(response);
+                }
+            }
+        }
+
+        @Override
+        public void modifyDNResult(final int messageID, final Result result)
+                throws UnexpectedResponseException, IOException {
+            final GrizzlyLDAPConnection ldapConnection =
+                    LDAP_CONNECTION_ATTR.get(context.getConnection());
+            if (ldapConnection != null) {
+                final AbstractLDAPFutureResultImpl<?> pendingRequest =
+                        ldapConnection.removePendingRequest(messageID);
+
+                if (pendingRequest != null) {
+                    if (pendingRequest instanceof LDAPFutureResultImpl) {
+                        final LDAPFutureResultImpl future =
+                                (LDAPFutureResultImpl) pendingRequest;
+                        if (future.getRequest() instanceof ModifyDNRequest) {
+                            future.setResultOrError(result);
+                            return;
+                        }
+                    }
+                    throw new UnexpectedResponseException(messageID, result);
+                }
+            }
+        }
+
+        @Override
+        public void modifyResult(final int messageID, final Result result)
+                throws UnexpectedResponseException, IOException {
+            final GrizzlyLDAPConnection ldapConnection =
+                    LDAP_CONNECTION_ATTR.get(context.getConnection());
+            if (ldapConnection != null) {
+                final AbstractLDAPFutureResultImpl<?> pendingRequest =
+                        ldapConnection.removePendingRequest(messageID);
+
+                if (pendingRequest != null) {
+                    if (pendingRequest instanceof LDAPFutureResultImpl) {
+                        final LDAPFutureResultImpl future =
+                                (LDAPFutureResultImpl) pendingRequest;
+                        if (future.getRequest() instanceof ModifyRequest) {
+                            future.setResultOrError(result);
+                            return;
+                        }
+                    }
+                    throw new UnexpectedResponseException(messageID, result);
+                }
+            }
+        }
+
+        @Override
+        public void searchResult(final int messageID, final Result result)
+                throws UnexpectedResponseException, IOException {
+            final GrizzlyLDAPConnection ldapConnection =
+                    LDAP_CONNECTION_ATTR.get(context.getConnection());
+            if (ldapConnection != null) {
+                final AbstractLDAPFutureResultImpl<?> pendingRequest =
+                        ldapConnection.removePendingRequest(messageID);
+
+                if (pendingRequest != null) {
+                    if (pendingRequest instanceof LDAPSearchFutureResultImpl) {
+                        ((LDAPSearchFutureResultImpl) pendingRequest)
+                                .setResultOrError(result);
+                    } else {
+                        throw new UnexpectedResponseException(messageID, result);
+                    }
+                }
+            }
+        }
+
+        @Override
+        public void searchResultEntry(final int messageID, final SearchResultEntry entry)
+                throws UnexpectedResponseException, IOException {
+            final GrizzlyLDAPConnection ldapConnection =
+                    LDAP_CONNECTION_ATTR.get(context.getConnection());
+            if (ldapConnection != null) {
+                final AbstractLDAPFutureResultImpl<?> pendingRequest =
+                        ldapConnection.getPendingRequest(messageID);
+
+                if (pendingRequest != null) {
+                    if (pendingRequest instanceof LDAPSearchFutureResultImpl) {
+                        ((LDAPSearchFutureResultImpl) pendingRequest).handleEntry(entry);
+                    } else {
+                        throw new UnexpectedResponseException(messageID, entry);
+                    }
+                }
+            }
+        }
+
+        @Override
+        public void searchResultReference(final int messageID, final SearchResultReference reference)
+                throws UnexpectedResponseException, IOException {
+            final GrizzlyLDAPConnection ldapConnection =
+                    LDAP_CONNECTION_ATTR.get(context.getConnection());
+            if (ldapConnection != null) {
+                final AbstractLDAPFutureResultImpl<?> pendingRequest =
+                        ldapConnection.getPendingRequest(messageID);
+
+                if (pendingRequest != null) {
+                    if (pendingRequest instanceof LDAPSearchFutureResultImpl) {
+                        ((LDAPSearchFutureResultImpl) pendingRequest)
+                                .handleReference(reference);
+                    } else {
+                        throw new UnexpectedResponseException(messageID, reference);
+                    }
+                }
+            }
+        }
+
+        // Needed in order to expose type information.
+        private <R extends ExtendedResult> void handleExtendedResult0(
+                final GrizzlyLDAPConnection conn, final LDAPExtendedFutureResultImpl<R> future,
+                final ExtendedResult result) throws DecodeException {
+            final R decodedResponse =
+                    future.decodeResult(result, conn.getLDAPOptions().getDecodeOptions());
+
+            if (future.getRequest() instanceof StartTLSExtendedRequest) {
+                if (result.getResultCode() == ResultCode.SUCCESS) {
+                    try {
+                        final StartTLSExtendedRequest request =
+                                (StartTLSExtendedRequest) future.getRequest();
+                        conn.startTLS(request.getSSLContext(), request
+                                .getEnabledProtocols(), request.getEnabledCipherSuites(),
+                                new EmptyCompletionHandler<SSLEngine>() {
+                                    @Override
+                                    public void completed(final SSLEngine result) {
+                                        conn.setBindOrStartTLSInProgress(false);
+                                        future.setResultOrError(decodedResponse);
+                                    }
+
+                                    @Override
+                                    public void failed(final Throwable throwable) {
                                         final Result errorResult =
                                                 Responses.newResult(
-                                                        ResultCode.CLIENT_SIDE_DECODING_ERROR)
+                                                        ResultCode.CLIENT_SIDE_LOCAL_ERROR)
+                                                        .setCause(throwable)
                                                         .setDiagnosticMessage(
-                                                                de.getLocalizedMessage()).setCause(
-                                                                de);
-                                        extendedFuture.adaptErrorResult(errorResult);
+                                                                "SSL handshake failed");
+                                        conn.setBindOrStartTLSInProgress(false);
+                                        conn.close(null, false, errorResult);
+                                        future.adaptErrorResult(errorResult);
                                     }
-                                } else {
-                                    throw new UnexpectedResponseException(messageID, result);
-                                }
-                            }
-                        }
+                                });
+                        return;
+                    } catch (final IOException e) {
+                        final Result errorResult =
+                                Responses.newResult(ResultCode.CLIENT_SIDE_LOCAL_ERROR)
+                                        .setCause(e).setDiagnosticMessage(e.getMessage());
+                        future.adaptErrorResult(errorResult);
+                        conn.close(null, false, errorResult);
+                        return;
                     }
                 }
+            }
 
-                @Override
-                public void intermediateResponse(final FilterChainContext ctx, final int messageID,
-                        final IntermediateResponse response) throws UnexpectedResponseException,
-                        IOException {
-                    final GrizzlyLDAPConnection ldapConnection =
-                            LDAP_CONNECTION_ATTR.get(ctx.getConnection());
-                    if (ldapConnection != null) {
-                        final AbstractLDAPFutureResultImpl<?> pendingRequest =
-                                ldapConnection.getPendingRequest(messageID);
+            future.setResultOrError(decodedResponse);
+        }
+    }
 
-                        if (pendingRequest != null) {
-                            pendingRequest.handleIntermediateResponse(response);
-                        }
-                    }
-                }
-
-                @Override
-                public void modifyDNResult(final FilterChainContext ctx, final int messageID,
-                        final Result result) throws UnexpectedResponseException, IOException {
-                    final GrizzlyLDAPConnection ldapConnection =
-                            LDAP_CONNECTION_ATTR.get(ctx.getConnection());
-                    if (ldapConnection != null) {
-                        final AbstractLDAPFutureResultImpl<?> pendingRequest =
-                                ldapConnection.removePendingRequest(messageID);
-
-                        if (pendingRequest != null) {
-                            if (pendingRequest instanceof LDAPFutureResultImpl) {
-                                final LDAPFutureResultImpl future =
-                                        (LDAPFutureResultImpl) pendingRequest;
-                                if (future.getRequest() instanceof ModifyDNRequest) {
-                                    future.setResultOrError(result);
-                                    return;
-                                }
-                            }
-                            throw new UnexpectedResponseException(messageID, result);
-                        }
-                    }
-                }
-
-                @Override
-                public void modifyResult(final FilterChainContext ctx, final int messageID,
-                        final Result result) throws UnexpectedResponseException, IOException {
-                    final GrizzlyLDAPConnection ldapConnection =
-                            LDAP_CONNECTION_ATTR.get(ctx.getConnection());
-                    if (ldapConnection != null) {
-                        final AbstractLDAPFutureResultImpl<?> pendingRequest =
-                                ldapConnection.removePendingRequest(messageID);
-
-                        if (pendingRequest != null) {
-                            if (pendingRequest instanceof LDAPFutureResultImpl) {
-                                final LDAPFutureResultImpl future =
-                                        (LDAPFutureResultImpl) pendingRequest;
-                                if (future.getRequest() instanceof ModifyRequest) {
-                                    future.setResultOrError(result);
-                                    return;
-                                }
-                            }
-                            throw new UnexpectedResponseException(messageID, result);
-                        }
-                    }
-                }
-
-                @Override
-                public void searchResult(final FilterChainContext ctx, final int messageID,
-                        final Result result) throws UnexpectedResponseException, IOException {
-                    final GrizzlyLDAPConnection ldapConnection =
-                            LDAP_CONNECTION_ATTR.get(ctx.getConnection());
-                    if (ldapConnection != null) {
-                        final AbstractLDAPFutureResultImpl<?> pendingRequest =
-                                ldapConnection.removePendingRequest(messageID);
-
-                        if (pendingRequest != null) {
-                            if (pendingRequest instanceof LDAPSearchFutureResultImpl) {
-                                ((LDAPSearchFutureResultImpl) pendingRequest)
-                                        .setResultOrError(result);
-                            } else {
-                                throw new UnexpectedResponseException(messageID, result);
-                            }
-                        }
-                    }
-                }
-
-                @Override
-                public void searchResultEntry(final FilterChainContext ctx, final int messageID,
-                        final SearchResultEntry entry) throws UnexpectedResponseException,
-                        IOException {
-                    final GrizzlyLDAPConnection ldapConnection =
-                            LDAP_CONNECTION_ATTR.get(ctx.getConnection());
-                    if (ldapConnection != null) {
-                        final AbstractLDAPFutureResultImpl<?> pendingRequest =
-                                ldapConnection.getPendingRequest(messageID);
-
-                        if (pendingRequest != null) {
-                            if (pendingRequest instanceof LDAPSearchFutureResultImpl) {
-                                ((LDAPSearchFutureResultImpl) pendingRequest).handleEntry(entry);
-                            } else {
-                                throw new UnexpectedResponseException(messageID, entry);
-                            }
-                        }
-                    }
-                }
-
-                @Override
-                public void searchResultReference(final FilterChainContext ctx,
-                        final int messageID, final SearchResultReference reference)
-                        throws UnexpectedResponseException, IOException {
-                    final GrizzlyLDAPConnection ldapConnection =
-                            LDAP_CONNECTION_ATTR.get(ctx.getConnection());
-                    if (ldapConnection != null) {
-                        final AbstractLDAPFutureResultImpl<?> pendingRequest =
-                                ldapConnection.getPendingRequest(messageID);
-
-                        if (pendingRequest != null) {
-                            if (pendingRequest instanceof LDAPSearchFutureResultImpl) {
-                                ((LDAPSearchFutureResultImpl) pendingRequest)
-                                        .handleReference(reference);
-                            } else {
-                                throw new UnexpectedResponseException(messageID, reference);
-                            }
-                        }
-                    }
-                }
-
-                // Needed in order to expose type information.
-                private <R extends ExtendedResult> void handleExtendedResult0(
-                        final GrizzlyLDAPConnection conn, final LDAPExtendedFutureResultImpl<R> future,
-                        final ExtendedResult result) throws DecodeException {
-                    final R decodedResponse =
-                            future.decodeResult(result, conn.getLDAPOptions().getDecodeOptions());
-
-                    if (future.getRequest() instanceof StartTLSExtendedRequest) {
-                        if (result.getResultCode() == ResultCode.SUCCESS) {
-                            try {
-                                final StartTLSExtendedRequest request =
-                                        (StartTLSExtendedRequest) future.getRequest();
-                                conn.startTLS(request.getSSLContext(), request
-                                        .getEnabledProtocols(), request.getEnabledCipherSuites(),
-                                        new EmptyCompletionHandler<SSLEngine>() {
-                                            @Override
-                                            public void completed(final SSLEngine result) {
-                                                conn.setBindOrStartTLSInProgress(false);
-                                                future.setResultOrError(decodedResponse);
-                                            }
-
-                                            @Override
-                                            public void failed(final Throwable throwable) {
-                                                final Result errorResult =
-                                                        Responses.newResult(
-                                                                ResultCode.CLIENT_SIDE_LOCAL_ERROR)
-                                                                .setCause(throwable)
-                                                                .setDiagnosticMessage(
-                                                                        "SSL handshake failed");
-                                                conn.setBindOrStartTLSInProgress(false);
-                                                conn.close(null, false, errorResult);
-                                                future.adaptErrorResult(errorResult);
-                                            }
-                                        });
-                                return;
-                            } catch (final IOException e) {
-                                final Result errorResult =
-                                        Responses.newResult(ResultCode.CLIENT_SIDE_LOCAL_ERROR)
-                                                .setCause(e).setDiagnosticMessage(e.getMessage());
-                                future.adaptErrorResult(errorResult);
-                                conn.close(null, false, errorResult);
-                                return;
-                            }
-                        }
-                    }
-
-                    future.setResultOrError(decodedResponse);
-                }
-            };
-
-    LDAPClientFilter(final LDAPReader ldapReader, final int maxASN1ElementSize) {
-        this.ldapReader = ldapReader;
+    /**
+     * Creates a client filter with provided options and max size of ASN1
+     * elements.
+     *
+     * @param options
+     *            allow to control how request and responses are decoded
+     * @param maxASN1ElementSize
+     *            The maximum BER element size, or <code>0</code> to indicate
+     *            that there is no limit.
+     */
+    LDAPClientFilter(final DecodeOptions options, final int maxASN1ElementSize) {
+        this.decodeOptions = options;
         this.maxASN1ElementSize = maxASN1ElementSize;
     }
 
@@ -490,27 +526,23 @@ final class LDAPClientFilter extends BaseFilter {
 
     @Override
     public NextAction handleRead(final FilterChainContext ctx) throws IOException {
+        final ClientResponseHandler handler = getResponseHandler(ctx);
+        final LDAPReader<ASN1BufferReader> reader = handler.getReader();
+        final ASN1BufferReader asn1Reader = reader.getASN1Reader();
         final Buffer buffer = (Buffer) ctx.getMessage();
-        ASN1BufferReader asn1Reader = LDAP_ASN1_READER_ATTR.get(ctx.getConnection());
-        if (asn1Reader == null) {
-            asn1Reader =
-                    new ASN1BufferReader(maxASN1ElementSize, ctx.getConnection().getTransport()
-                            .getMemoryManager());
-            LDAP_ASN1_READER_ATTR.set(ctx.getConnection(), asn1Reader);
-        }
-        asn1Reader.appendBytesRead(buffer);
 
+        asn1Reader.appendBytesRead(buffer);
         try {
-            while (asn1Reader.elementAvailable()) {
-                ldapReader.decode(asn1Reader, CLIENT_RESPONSE_HANDLER, ctx);
+            while (reader.hasMessageAvailable()) {
+                reader.readMessage(handler);
             }
-        } catch (IOException ioe) {
+        } catch (IOException e) {
             final GrizzlyLDAPConnection ldapConnection = LDAP_CONNECTION_ATTR.get(ctx.getConnection());
             final Result errorResult =
-                    Responses.newResult(ResultCode.CLIENT_SIDE_DECODING_ERROR).setCause(ioe)
-                            .setDiagnosticMessage(ioe.getMessage());
+                    Responses.newResult(ResultCode.CLIENT_SIDE_DECODING_ERROR).setCause(e)
+                            .setDiagnosticMessage(e.getMessage());
             ldapConnection.close(null, false, errorResult);
-            throw ioe;
+            throw e;
         } finally {
             asn1Reader.disposeBytesRead();
         }
@@ -518,6 +550,39 @@ final class LDAPClientFilter extends BaseFilter {
         return ctx.getStopAction();
     }
 
+    /**
+     * Returns the response handler associated to the provided connection and
+     * context.
+     * <p>
+     * If no handler exists yet for this context, a new one is created and
+     * recorded for the connection.
+     *
+     * @param ctx
+     *            current filter chain context
+     * @return the response handler associated to the context, which can be a
+     *         new one if no handler have been created yet
+     */
+    private ClientResponseHandler getResponseHandler(final FilterChainContext ctx) {
+        Connection<?> connection = ctx.getConnection();
+        ClientResponseHandler handler = RESPONSE_HANDLER_ATTR.get(connection);
+        if (handler == null) {
+            LDAPReader<ASN1BufferReader> reader = GrizzlyUtils.createReader(decodeOptions,
+                    maxASN1ElementSize, connection.getTransport().getMemoryManager());
+            handler = new ClientResponseHandler(reader);
+            RESPONSE_HANDLER_ATTR.set(connection, handler);
+        }
+        handler.setFilterChainContext(ctx);
+        return handler;
+    }
+
+    /**
+     * Associate a LDAP connection to the provided Grizzly connection.
+     *
+     * @param connection
+     *            Grizzly connection
+     * @param ldapConnection
+     *            LDAP connection
+     */
     void registerConnection(final Connection<?> connection, final GrizzlyLDAPConnection ldapConnection) {
         LDAP_CONNECTION_ATTR.set(connection, ldapConnection);
     }

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2013 ForgeRock AS
  */
 
 package com.forgerock.opendj.grizzly;
@@ -43,7 +43,7 @@ import org.glassfish.grizzly.memory.MemoryManager;
  */
 public class ASN1BufferWriterTestCase extends ASN1WriterTestCase {
 
-    private final ASN1BufferWriter writer = ASN1BufferWriter.getWriter();
+    private final ASN1BufferWriter writer = new ASN1BufferWriter();
 
     @Override
     protected byte[] getEncodedBytes() throws IOException, DecodeException {

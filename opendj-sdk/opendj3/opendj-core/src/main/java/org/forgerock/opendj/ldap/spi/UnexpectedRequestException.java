@@ -22,9 +22,10 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS.
  */
 
-package com.forgerock.opendj.grizzly;
+package org.forgerock.opendj.ldap.spi;
 
 import java.io.IOException;
 
@@ -32,13 +33,21 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.requests.Request;
 
 /**
- * Thrown when an expected LDAP request is received.
+ * Thrown when an unexpected LDAP request is received.
  */
 @SuppressWarnings("serial")
-final class UnexpectedRequestException extends IOException {
+public final class UnexpectedRequestException extends IOException {
     private final int messageID;
     private final Request request;
 
+    /**
+     * Creates the exception with a message id and a request.
+     *
+     * @param messageID
+     *            id of message
+     * @param request
+     *            request received
+     */
     public UnexpectedRequestException(final int messageID, final Request request) {
         super(LocalizableMessage.raw("Unexpected LDAP request: id=%d, message=%s", messageID,
                 request).toString());
@@ -46,10 +55,20 @@ final class UnexpectedRequestException extends IOException {
         this.request = request;
     }
 
+    /**
+     * Returns the identifier of the message.
+     *
+     * @return the identifier
+     */
     public int getMessageID() {
         return messageID;
     }
 
+    /**
+     * Returns the request.
+     *
+     * @return the received request
+     */
     public Request getRequest() {
         return request;
     }
