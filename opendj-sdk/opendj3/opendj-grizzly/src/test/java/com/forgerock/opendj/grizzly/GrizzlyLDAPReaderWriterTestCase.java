@@ -25,8 +25,8 @@
  */
 package com.forgerock.opendj.grizzly;
 
-import org.forgerock.opendj.asn1.ASN1Reader;
-import org.forgerock.opendj.asn1.ASN1Writer;
+import org.forgerock.opendj.io.ASN1Reader;
+import org.forgerock.opendj.io.ASN1Writer;
 import org.forgerock.opendj.io.LDAPReader;
 import org.forgerock.opendj.io.LDAPReaderWriterTestCase;
 import org.forgerock.opendj.io.LDAPWriter;

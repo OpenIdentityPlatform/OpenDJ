@@ -22,10 +22,10 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2013 ForgeRock AS.
  */
 
-package org.forgerock.opendj.asn1;
+package org.forgerock.opendj.io;
 
 import static com.forgerock.opendj.ldap.CoreMessages.ERR_ASN1_UNEXPECTED_TAG;
 

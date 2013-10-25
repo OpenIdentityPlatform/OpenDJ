@@ -476,19 +476,19 @@ public final class Converters {
         }
 
         final ByteString sdkByteString = from(builder.toByteString());
-        final org.forgerock.opendj.asn1.ASN1Reader sdkReaderASN1 =
-                org.forgerock.opendj.asn1.ASN1.getReader(sdkByteString.toByteArray());
+        final org.forgerock.opendj.io.ASN1Reader sdkReaderASN1 =
+                org.forgerock.opendj.io.ASN1.getReader(sdkByteString.toByteArray());
 
         // Reads the ASN1 SDK byte string.
         try {
             sdkReaderASN1.readStartSequence();
             oid = sdkReaderASN1.readOctetStringAsString();
             if (sdkReaderASN1.hasNextElement()
-                    && (sdkReaderASN1.peekType() == org.forgerock.opendj.asn1.ASN1.UNIVERSAL_BOOLEAN_TYPE)) {
+                    && (sdkReaderASN1.peekType() == org.forgerock.opendj.io.ASN1.UNIVERSAL_BOOLEAN_TYPE)) {
                 isCritical = sdkReaderASN1.readBoolean();
             }
             if (sdkReaderASN1.hasNextElement()
-                    && (sdkReaderASN1.peekType() == org.forgerock.opendj.asn1.ASN1.UNIVERSAL_OCTET_STRING_TYPE)) {
+                    && (sdkReaderASN1.peekType() == org.forgerock.opendj.io.ASN1.UNIVERSAL_OCTET_STRING_TYPE)) {
                 value = sdkReaderASN1.readOctetString();
             }
             sdkReaderASN1.readEndSequence();

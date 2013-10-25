@@ -34,7 +34,6 @@ import static com.forgerock.opendj.util.StaticUtils.byteToHex;
 import java.io.IOException;
 import java.util.List;
 
-import org.forgerock.opendj.asn1.ASN1Writer;
 import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;

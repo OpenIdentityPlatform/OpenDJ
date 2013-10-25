@@ -25,7 +25,7 @@
  *      Portions copyright 2012-2013 ForgeRock AS.
  */
 
-package org.forgerock.opendj.asn1;
+package org.forgerock.opendj.io;
 
 import static com.forgerock.opendj.ldap.CoreMessages.*;
 import static com.forgerock.opendj.util.StaticUtils.IO_LOG;

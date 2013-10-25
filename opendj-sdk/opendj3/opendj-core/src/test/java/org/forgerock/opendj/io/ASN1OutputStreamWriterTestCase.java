@@ -22,18 +22,34 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS
  */
-package org.forgerock.opendj.asn1;
+package org.forgerock.opendj.io;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 
 /**
- * Test class for ASN1InputStreamReader
+ * Test class for ASN1OutputStreamWriter
  */
-public class ASN1InputStreamReaderTestCase extends ASN1ReaderTestCase {
+public class ASN1OutputStreamWriterTestCase extends ASN1WriterTestCase {
+    private final ByteArrayOutputStream outStream = new ByteArrayOutputStream();
+    private final ASN1Writer writer = new ASN1OutputStreamWriter(outStream);
+
     @Override
-    protected ASN1Reader getReader(final byte[] b, final int maxElementSize) {
-        final ByteArrayInputStream inStream = new ByteArrayInputStream(b);
-        return new ASN1InputStreamReader(inStream, maxElementSize);
+    protected byte[] getEncodedBytes() {
+        return outStream.toByteArray();
+    }
+
+    @Override
+    protected ASN1Reader getReader(final byte[] encodedBytes) {
+        final ByteArrayInputStream inStream = new ByteArrayInputStream(encodedBytes);
+        return new ASN1InputStreamReader(inStream, 0);
+    }
+
+    @Override
+    protected ASN1Writer getWriter() {
+        outStream.reset();
+        return writer;
     }
 }

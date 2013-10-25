@@ -30,9 +30,9 @@ package com.forgerock.opendj.grizzly;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-import org.forgerock.opendj.asn1.ASN1Reader;
-import org.forgerock.opendj.asn1.ASN1Writer;
-import org.forgerock.opendj.asn1.ASN1WriterTestCase;
+import org.forgerock.opendj.io.ASN1Reader;
+import org.forgerock.opendj.io.ASN1Writer;
+import org.forgerock.opendj.io.ASN1WriterTestCase;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.glassfish.grizzly.Buffer;
 import org.glassfish.grizzly.memory.ByteBufferWrapper;

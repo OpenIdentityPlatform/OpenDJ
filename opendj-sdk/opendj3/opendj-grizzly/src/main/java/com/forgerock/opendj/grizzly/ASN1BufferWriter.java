@@ -32,10 +32,11 @@ import static com.forgerock.opendj.util.StaticUtils.byteToHex;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+
 import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.opendj.asn1.ASN1;
-import org.forgerock.opendj.asn1.ASN1Writer;
-import org.forgerock.opendj.asn1.AbstractASN1Writer;
+import org.forgerock.opendj.io.ASN1;
+import org.forgerock.opendj.io.ASN1Writer;
+import org.forgerock.opendj.io.AbstractASN1Writer;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.glassfish.grizzly.Buffer;

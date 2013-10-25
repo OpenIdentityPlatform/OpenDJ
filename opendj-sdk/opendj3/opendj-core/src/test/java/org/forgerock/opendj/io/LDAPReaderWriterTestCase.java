@@ -29,8 +29,6 @@ import static org.fest.assertions.Assertions.*;
 
 import java.io.IOException;
 
-import org.forgerock.opendj.asn1.ASN1Reader;
-import org.forgerock.opendj.asn1.ASN1Writer;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SdkTestCase;
 import org.forgerock.opendj.ldap.requests.AbandonRequest;
