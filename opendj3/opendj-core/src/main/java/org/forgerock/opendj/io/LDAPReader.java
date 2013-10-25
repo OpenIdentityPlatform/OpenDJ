@@ -25,14 +25,11 @@
  *      Portions copyright 2011-2013 ForgeRock AS
  */
 
-package com.forgerock.opendj.grizzly;
+package org.forgerock.opendj.io;
 
+import static com.forgerock.opendj.ldap.CoreMessages.*;
 import static com.forgerock.opendj.ldap.LDAPConstants.*;
-import static com.forgerock.opendj.ldap.CoreMessages.ERR_LDAP_MODIFICATION_DECODE_INVALID_MOD_TYPE;
-import static com.forgerock.opendj.ldap.CoreMessages.ERR_LDAP_SEARCH_REQUEST_DECODE_INVALID_DEREF;
-import static com.forgerock.opendj.ldap.CoreMessages.ERR_LDAP_SEARCH_REQUEST_DECODE_INVALID_SCOPE;
-import static com.forgerock.opendj.util.StaticUtils.IO_LOG;
-import static com.forgerock.opendj.util.StaticUtils.byteToHex;
+import static com.forgerock.opendj.util.StaticUtils.*;
 
 import java.io.IOException;
 
@@ -77,73 +74,99 @@ import org.forgerock.opendj.ldap.responses.Result;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldap.responses.SearchResultReference;
 import org.forgerock.opendj.ldap.schema.Schema;
+import org.forgerock.opendj.ldap.spi.LDAPMessageHandler;
 
 import com.forgerock.opendj.ldap.LDAPUtils;
 
 /**
- * Static methods for decoding LDAP messages.
+ * Responsible for reading LDAP messages.
+ *
+ * @param <R>
+ *            type of ASN1 reader used to decode elements
  */
-final class LDAPReader {
+public final class LDAPReader<R extends ASN1Reader> {
 
+    private final R reader;
 
     private final DecodeOptions options;
 
-    LDAPReader(final DecodeOptions options) {
+    /**
+     * Creates a reader with the provided ASN1 reader and decoding options.
+     *
+     * @param asn1Reader
+     *            reader capable of decoding ASN1 elements
+     * @param options
+     *            allow to control how responses and requests are decoded
+     */
+    public LDAPReader(final R asn1Reader, final DecodeOptions options) {
+        this.reader = asn1Reader;
         this.options = options;
     }
 
     /**
-     * Decodes the elements from the provided ASN.1 reader as an LDAP message.
+     * Returns the ASN1 reader used to decode elements.
      *
-     * @param <P>
-     *            The type of {@code param}.
-     * @param reader
-     *            The ASN.1 reader.
+     * @return ASN1 reader
+     */
+    public R getASN1Reader() {
+        return reader;
+    }
+
+    /**
+     * Read a LDAP message by decoding the elements from the provided ASN.1 asn1Reader.
+     *
      * @param handler
      *            The <code>LDAPMessageHandler</code> that will handle a decoded
      *            message.
-     * @param param
-     *            The parameter to pass into the <code>LDAPMessageHandler</code>
      * @throws IOException
      *             If an error occurred while reading bytes to decode.
      */
-    <P> void decode(final ASN1Reader reader, final LDAPMessageHandler<P> handler, final P param)
+    public void readMessage(final LDAPMessageHandler handler)
             throws IOException {
         reader.readStartSequence();
         try {
             final int messageID = (int) reader.readInteger();
-            decodeProtocolOp(reader, messageID, handler, param);
+            readProtocolOp(messageID, handler);
         } finally {
             reader.readEndSequence();
         }
     }
 
     /**
+     * Indicates whether or not the next message can be read without blocking.
+     *
+     * @return {@code true} if a complete element is available or {@code false}
+     *         otherwise.
+     * @throws DecodeException
+     *             If the available data was not valid ASN.1.
+     * @throws IOException
+     *             If an unexpected IO error occurred.
+     */
+    public boolean hasMessageAvailable() throws DecodeException, IOException {
+        return reader.elementAvailable();
+    }
+
+    /**
      * Decodes the elements from the provided ASN.1 read as an LDAP abandon
      * request protocol op.
      *
-     * @param reader
-     *            The ASN.1 reader.
      * @param messageID
      *            The decoded message ID for this message.
      * @param handler
      *            The <code>LDAPMessageHandler</code> that will handle this
      *            decoded message.
-     * @param p
-     *            The parameter to pass into the <code>LDAPMessageHandler</code>
      * @throws IOException
      *             If an error occurred while reading bytes to decode.
      */
-    private <P> void decodeAbandonRequest(final ASN1Reader reader, final int messageID,
-            final LDAPMessageHandler<P> handler, final P p) throws IOException {
+    private void readAbandonRequest(final int messageID, final LDAPMessageHandler handler) throws IOException {
         final int msgToAbandon = (int) reader.readInteger(OP_TYPE_ABANDON_REQUEST);
         final AbandonRequest message = Requests.newAbandonRequest(msgToAbandon);
 
-        decodeControls(reader, message);
+        readControls(message);
 
         IO_LOG.trace("DECODE LDAP ABANDON REQUEST(messageID={}, request={})", messageID, message);
 
-        handler.abandonRequest(p, messageID, message);
+        handler.abandonRequest(messageID, message);
     }
 
     /**
@@ -151,26 +174,24 @@ final class LDAPReader {
      * request protocol op.
      *
      * @param reader
-     *            The ASN.1 reader.
+     *            The ASN.1 reader
      * @param messageID
      *            The decoded message ID for this message.
      * @param handler
      *            The <code>LDAPMessageHandler</code> that will handle this
      *            decoded message.
-     * @param p
-     *            The parameter to pass into the <code>LDAPMessageHandler</code>
      * @throws IOException
      *             If an error occurred while reading bytes to decode.
      */
-    private <P> void decodeAddRequest(final ASN1Reader reader, final int messageID,
-            final LDAPMessageHandler<P> handler, final P p) throws IOException {
+    private void readAddRequest(final int messageID,
+            final LDAPMessageHandler handler) throws IOException {
         Entry entry;
 
         reader.readStartSequence(OP_TYPE_ADD_REQUEST);
         try {
             final String dnString = reader.readOctetStringAsString();
             final Schema schema = options.getSchemaResolver().resolveSchema(dnString);
-            final DN dn = decodeDN(dnString, schema);
+            final DN dn = readDN(dnString, schema);
             entry = options.getEntryFactory().newEntry(dn);
 
             reader.readStartSequence();
@@ -179,7 +200,7 @@ final class LDAPReader {
                     reader.readStartSequence();
                     try {
                         final String ads = reader.readOctetStringAsString();
-                        final AttributeDescription ad = decodeAttributeDescription(ads, schema);
+                        final AttributeDescription ad = readAttributeDescription(ads, schema);
                         final Attribute attribute = options.getAttributeFactory().newAttribute(ad);
 
                         reader.readStartSet();
@@ -203,11 +224,11 @@ final class LDAPReader {
         }
 
         final AddRequest message = Requests.newAddRequest(entry);
-        decodeControls(reader, message);
+        readControls(message);
 
         IO_LOG.trace("DECODE LDAP ADD REQUEST(messageID={}, request={})", messageID, message);
 
-        handler.addRequest(p, messageID, message);
+        handler.addRequest(messageID, message);
     }
 
     /**
@@ -215,19 +236,17 @@ final class LDAPReader {
      * protocol op.
      *
      * @param reader
-     *            The ASN.1 reader.
+     *            The ASN.1 reader
      * @param messageID
      *            The decoded message ID for this message.
      * @param handler
      *            The <code>LDAPMessageHandler</code> that will handle this
      *            decoded message.
-     * @param p
-     *            The parameter to pass into the <code>LDAPMessageHandler</code>
      * @throws IOException
      *             If an error occurred while reading bytes to decode.
      */
-    private <P> void decodeAddResult(final ASN1Reader reader, final int messageID,
-            final LDAPMessageHandler<P> handler, final P p) throws IOException {
+    private void readAddResult(final int messageID,
+            final LDAPMessageHandler handler) throws IOException {
         Result message;
 
         reader.readStartSequence(OP_TYPE_ADD_RESPONSE);
@@ -238,19 +257,19 @@ final class LDAPReader {
             message =
                     Responses.newResult(resultCode).setMatchedDN(matchedDN).setDiagnosticMessage(
                             diagnosticMessage);
-            decodeResponseReferrals(reader, message);
+            readResponseReferrals(message);
         } finally {
             reader.readEndSequence();
         }
 
-        decodeControls(reader, message);
+        readControls(message);
 
         IO_LOG.trace("DECODE LDAP ADD RESULT(messageID={}, result={})", messageID, message);
 
-        handler.addResult(p, messageID, message);
+        handler.addResult(messageID, message);
     }
 
-    private AttributeDescription decodeAttributeDescription(final String attributeDescription,
+    private AttributeDescription readAttributeDescription(final String attributeDescription,
             final Schema schema) throws DecodeException {
         try {
             return AttributeDescription.valueOf(attributeDescription, schema);
@@ -264,19 +283,17 @@ final class LDAPReader {
      * protocol op.
      *
      * @param reader
-     *            The ASN.1 reader.
+     *            The ASN.1 reader
      * @param messageID
      *            The decoded message ID for this message.
      * @param handler
      *            The <code>LDAPMessageHandler</code> that will handle this
      *            decoded message.
-     * @param p
-     *            The parameter to pass into the <code>LDAPMessageHandler</code>
      * @throws IOException
      *             If an error occurred while reading bytes to decode.
      */
-    private <P> void decodeBindRequest(final ASN1Reader reader, final int messageID,
-            final LDAPMessageHandler<P> handler, final P p) throws IOException {
+    private void readBindRequest(final int messageID,
+            final LDAPMessageHandler handler) throws IOException {
         reader.readStartSequence(OP_TYPE_BIND_REQUEST);
         try {
             final int protocolVersion = (int) reader.readInteger();
@@ -287,12 +304,12 @@ final class LDAPReader {
             final GenericBindRequest request =
                     Requests.newGenericBindRequest(authName, authType, authBytes);
 
-            decodeControls(reader, request);
+            readControls(request);
 
             IO_LOG.trace("DECODE LDAP BIND REQUEST(messageID={}, auth=0x{}, request={})", messageID,
                     byteToHex(request.getAuthenticationType()), request);
 
-            handler.bindRequest(p, messageID, protocolVersion, request);
+            handler.bindRequest(messageID, protocolVersion, request);
         } finally {
             reader.readEndSequence();
         }
@@ -303,19 +320,17 @@ final class LDAPReader {
      * protocol op.
      *
      * @param reader
-     *            The ASN.1 reader.
+     *            The ASN.1 reader
      * @param messageID
      *            The decoded message ID for this message.
      * @param handler
      *            The <code>LDAPMessageHandler</code> that will handle this
      *            decoded message.
-     * @param p
-     *            The parameter to pass into the <code>LDAPMessageHandler</code>
      * @throws IOException
      *             If an error occurred while reading bytes to decode.
      */
-    private <P> void decodeBindResult(final ASN1Reader reader, final int messageID,
-            final LDAPMessageHandler<P> handler, final P p) throws IOException {
+    private void readBindResult(final int messageID,
+            final LDAPMessageHandler handler) throws IOException {
         BindResult message;
 
         reader.readStartSequence(OP_TYPE_BIND_RESPONSE);
@@ -326,7 +341,7 @@ final class LDAPReader {
             message =
                     Responses.newBindResult(resultCode).setMatchedDN(matchedDN)
                             .setDiagnosticMessage(diagnosticMessage);
-            decodeResponseReferrals(reader, message);
+            readResponseReferrals(message);
             if (reader.hasNextElement() && (reader.peekType() == TYPE_SERVER_SASL_CREDENTIALS)) {
                 message.setServerSASLCredentials(reader
                         .readOctetString(TYPE_SERVER_SASL_CREDENTIALS));
@@ -335,11 +350,11 @@ final class LDAPReader {
             reader.readEndSequence();
         }
 
-        decodeControls(reader, message);
+        readControls(message);
 
         IO_LOG.trace("DECODE LDAP BIND RESULT(messageID={}, result={})", messageID, message);
 
-        handler.bindResult(p, messageID, message);
+        handler.bindResult(messageID, message);
     }
 
     /**
@@ -347,31 +362,29 @@ final class LDAPReader {
      * request protocol op.
      *
      * @param reader
-     *            The ASN.1 reader.
+     *            The ASN.1 reader
      * @param messageID
      *            The decoded message ID for this message.
      * @param handler
      *            The <code>LDAPMessageHandler</code> that will handle this
      *            decoded message.
-     * @param p
-     *            The parameter to pass into the <code>LDAPMessageHandler</code>
      * @throws IOException
      *             If an error occurred while reading bytes to decode.
      */
-    private <P> void decodeCompareRequest(final ASN1Reader reader, final int messageID,
-            final LDAPMessageHandler<P> handler, final P p) throws IOException {
+    private void readCompareRequest(final int messageID,
+            final LDAPMessageHandler handler) throws IOException {
         CompareRequest message;
 
         reader.readStartSequence(OP_TYPE_COMPARE_REQUEST);
         try {
             final String dnString = reader.readOctetStringAsString();
             final Schema schema = options.getSchemaResolver().resolveSchema(dnString);
-            final DN dn = decodeDN(dnString, schema);
+            final DN dn = readDN(dnString, schema);
 
             reader.readStartSequence();
             try {
                 final String ads = reader.readOctetStringAsString();
-                final AttributeDescription ad = decodeAttributeDescription(ads, schema);
+                final AttributeDescription ad = readAttributeDescription(ads, schema);
                 final ByteString assertionValue = reader.readOctetString();
                 message = Requests.newCompareRequest(dn, ad, assertionValue);
             } finally {
@@ -381,11 +394,11 @@ final class LDAPReader {
             reader.readEndSequence();
         }
 
-        decodeControls(reader, message);
+        readControls(message);
 
         IO_LOG.trace("DECODE LDAP COMPARE REQUEST(messageID={}, request={})", messageID, message);
 
-        handler.compareRequest(p, messageID, message);
+        handler.compareRequest(messageID, message);
     }
 
     /**
@@ -393,19 +406,17 @@ final class LDAPReader {
      * protocol op.
      *
      * @param reader
-     *            The ASN.1 reader.
+     *            The ASN.1 reader
      * @param messageID
      *            The decoded message ID for this message.
      * @param handler
      *            The <code>LDAPMessageHandler</code> that will handle this
      *            decoded message.
-     * @param p
-     *            The parameter to pass into the <code>LDAPMessageHandler</code>
      * @throws IOException
      *             If an error occurred while reading bytes to decode.
      */
-    private <P> void decodeCompareResult(final ASN1Reader reader, final int messageID,
-            final LDAPMessageHandler<P> handler, final P p) throws IOException {
+    private void readCompareResult(final int messageID,
+            final LDAPMessageHandler handler) throws IOException {
         CompareResult message;
 
         reader.readStartSequence(OP_TYPE_COMPARE_RESPONSE);
@@ -416,29 +427,29 @@ final class LDAPReader {
             message =
                     Responses.newCompareResult(resultCode).setMatchedDN(matchedDN)
                             .setDiagnosticMessage(diagnosticMessage);
-            decodeResponseReferrals(reader, message);
+            readResponseReferrals(message);
         } finally {
             reader.readEndSequence();
         }
 
-        decodeControls(reader, message);
+        readControls(message);
 
         IO_LOG.trace("DECODE LDAP COMPARE RESULT(messageID={}, result={})", messageID, message);
 
-        handler.compareResult(p, messageID, message);
+        handler.compareResult(messageID, message);
     }
 
     /**
      * Decodes the elements from the provided ASN.1 reader as an LDAP control.
      *
      * @param reader
-     *            The ASN.1 reader.
+     *            The ASN.1 reader
      * @param request
      *            The decoded request to decode controls for.
      * @throws IOException
      *             If an error occurred while reading bytes to decode.
      */
-    private void decodeControl(final ASN1Reader reader, final Request request) throws IOException {
+    private void readControl(final Request request) throws IOException {
         String oid;
         boolean isCritical;
         ByteString value;
@@ -466,13 +477,13 @@ final class LDAPReader {
      * Decodes the elements from the provided ASN.1 reader as an LDAP control.
      *
      * @param reader
-     *            The ASN.1 reader.
+     *            The ASN.1 reader
      * @param response
      *            The decoded message to decode controls for.
      * @throws IOException
      *             If an error occurred while reading bytes to decode.
      */
-    private void decodeControl(final ASN1Reader reader, final Response response) throws IOException {
+    private void readControl(final Response response) throws IOException {
         String oid;
         boolean isCritical;
         ByteString value;
@@ -500,18 +511,18 @@ final class LDAPReader {
      * Decodes the elements from the provided ASN.1 reader as a set of controls.
      *
      * @param reader
-     *            The ASN.1 reader.
+     *            The ASN.1 reader
      * @param request
      *            The decoded message to decode controls for.
      * @throws IOException
      *             If an error occurred while reading bytes to decode.
      */
-    private void decodeControls(final ASN1Reader reader, final Request request) throws IOException {
+    private void readControls(final Request request) throws IOException {
         if (reader.hasNextElement() && (reader.peekType() == TYPE_CONTROL_SEQUENCE)) {
             reader.readStartSequence(TYPE_CONTROL_SEQUENCE);
             try {
                 while (reader.hasNextElement()) {
-                    decodeControl(reader, request);
+                    readControl(request);
                 }
             } finally {
                 reader.readEndSequence();
@@ -523,19 +534,19 @@ final class LDAPReader {
      * Decodes the elements from the provided ASN.1 reader as a set of controls.
      *
      * @param reader
-     *            The ASN.1 reader.
+     *            The ASN.1 reader
      * @param response
      *            The decoded message to decode controls for.
      * @throws IOException
      *             If an error occurred while reading bytes to decode.
      */
-    private void decodeControls(final ASN1Reader reader, final Response response)
+    private void readControls(final Response response)
             throws IOException {
         if (reader.hasNextElement() && (reader.peekType() == TYPE_CONTROL_SEQUENCE)) {
             reader.readStartSequence(TYPE_CONTROL_SEQUENCE);
             try {
                 while (reader.hasNextElement()) {
-                    decodeControl(reader, response);
+                    readControl(response);
                 }
             } finally {
                 reader.readEndSequence();
@@ -548,29 +559,27 @@ final class LDAPReader {
      * request protocol op.
      *
      * @param reader
-     *            The ASN.1 reader.
+     *            The ASN.1 reader
      * @param messageID
      *            The decoded message ID for this message.
      * @param handler
      *            The <code>LDAPMessageHandler</code> that will handle this
      *            decoded message.
-     * @param p
-     *            The parameter to pass into the <code>LDAPMessageHandler</code>
      * @throws IOException
      *             If an error occurred while reading bytes to decode.
      */
-    private <P> void decodeDeleteRequest(final ASN1Reader reader, final int messageID,
-            final LDAPMessageHandler<P> handler, final P p) throws IOException {
+    private void readDeleteRequest(final int messageID,
+            final LDAPMessageHandler handler) throws IOException {
         final String dnString = reader.readOctetStringAsString(OP_TYPE_DELETE_REQUEST);
         final Schema schema = options.getSchemaResolver().resolveSchema(dnString);
-        final DN dn = decodeDN(dnString, schema);
+        final DN dn = readDN(dnString, schema);
         final DeleteRequest message = Requests.newDeleteRequest(dn);
 
-        decodeControls(reader, message);
+        readControls(message);
 
         IO_LOG.trace("DECODE LDAP DELETE REQUEST(messageID={}, request={})", messageID, message);
 
-        handler.deleteRequest(p, messageID, message);
+        handler.deleteRequest(messageID, message);
     }
 
     /**
@@ -578,19 +587,17 @@ final class LDAPReader {
      * protocol op.
      *
      * @param reader
-     *            The ASN.1 reader.
+     *            The ASN.1 reader
      * @param messageID
      *            The decoded message ID for this message.
      * @param handler
      *            The <code>LDAPMessageHandler</code> that will handle this
      *            decoded message.
-     * @param p
-     *            The parameter to pass into the <code>LDAPMessageHandler</code>
      * @throws IOException
      *             If an error occurred while reading bytes to decode.
      */
-    private <P> void decodeDeleteResult(final ASN1Reader reader, final int messageID,
-            final LDAPMessageHandler<P> handler, final P p) throws IOException {
+    private void readDeleteResult(final int messageID,
+            final LDAPMessageHandler handler) throws IOException {
         Result message;
 
         reader.readStartSequence(OP_TYPE_DELETE_RESPONSE);
@@ -601,19 +608,19 @@ final class LDAPReader {
             message =
                     Responses.newResult(resultCode).setMatchedDN(matchedDN).setDiagnosticMessage(
                             diagnosticMessage);
-            decodeResponseReferrals(reader, message);
+            readResponseReferrals(message);
         } finally {
             reader.readEndSequence();
         }
 
-        decodeControls(reader, message);
+        readControls(message);
 
         IO_LOG.trace("DECODE LDAP DELETE RESULT(messageID={}, result={})", messageID, message);
 
-        handler.deleteResult(p, messageID, message);
+        handler.deleteResult(messageID, message);
     }
 
-    private DN decodeDN(final String dn, final Schema schema) throws DecodeException {
+    private DN readDN(final String dn, final Schema schema) throws DecodeException {
         try {
             return DN.valueOf(dn, schema);
         } catch (final LocalizedIllegalArgumentException e) {
@@ -626,19 +633,17 @@ final class LDAPReader {
      * request protocol op.
      *
      * @param reader
-     *            The ASN.1 reader.
+     *            The ASN.1 reader
      * @param messageID
      *            The decoded message ID for this message.
      * @param handler
      *            The <code>LDAPMessageHandler</code> that will handle this
      *            decoded message.
-     * @param p
-     *            The parameter to pass into the <code>LDAPMessageHandler</code>
      * @throws IOException
      *             If an error occurred while reading bytes to decode.
      */
-    private <P> void decodeExtendedRequest(final ASN1Reader reader, final int messageID,
-            final LDAPMessageHandler<P> handler, final P p) throws IOException {
+    private void readExtendedRequest(final int messageID,
+            final LDAPMessageHandler handler) throws IOException {
         String oid;
         ByteString value;
 
@@ -655,11 +660,11 @@ final class LDAPReader {
 
         final GenericExtendedRequest message = Requests.newGenericExtendedRequest(oid, value);
 
-        decodeControls(reader, message);
+        readControls(message);
 
         IO_LOG.trace("DECODE LDAP EXTENDED REQUEST(messageID={}, request={})", messageID, message);
 
-        handler.extendedRequest(p, messageID, message);
+        handler.extendedRequest(messageID, message);
     }
 
     /**
@@ -667,19 +672,17 @@ final class LDAPReader {
      * response protocol op.
      *
      * @param reader
-     *            The ASN.1 reader.
+     *            The ASN.1 reader
      * @param messageID
      *            The decoded message ID for this message.
      * @param handler
      *            The <code>LDAPMessageHandler</code> that will handle this
      *            decoded message.
-     * @param p
-     *            The parameter to pass into the <code>LDAPMessageHandler</code>
      * @throws IOException
      *             If an error occurred while reading bytes to decode.
      */
-    private <P> void decodeExtendedResult(final ASN1Reader reader, final int messageID,
-            final LDAPMessageHandler<P> handler, final P p) throws IOException {
+    private void readExtendedResult(final int messageID,
+            final LDAPMessageHandler handler) throws IOException {
 
         GenericExtendedResult message;
 
@@ -691,7 +694,7 @@ final class LDAPReader {
             message =
                     Responses.newGenericExtendedResult(resultCode).setMatchedDN(matchedDN)
                             .setDiagnosticMessage(diagnosticMessage);
-            decodeResponseReferrals(reader, message);
+            readResponseReferrals(message);
             if (reader.hasNextElement() && (reader.peekType() == TYPE_EXTENDED_RESPONSE_OID)) {
                 message.setOID(reader.readOctetStringAsString(TYPE_EXTENDED_RESPONSE_OID));
             }
@@ -702,11 +705,11 @@ final class LDAPReader {
             reader.readEndSequence();
         }
 
-        decodeControls(reader, message);
+        readControls(message);
 
         IO_LOG.trace("DECODE LDAP EXTENDED RESULT(messageID={}, result={})", messageID, message);
 
-        handler.extendedResult(p, messageID, message);
+        handler.extendedResult(messageID, message);
     }
 
     /**
@@ -714,19 +717,17 @@ final class LDAPReader {
      * intermediate response protocol op.
      *
      * @param reader
-     *            The ASN.1 reader.
+     *            The ASN.1 reader
      * @param messageID
      *            The decoded message ID for this message.
      * @param handler
      *            The <code>LDAPMessageHandler</code> that will handle this
      *            decoded message.
-     * @param p
-     *            The parameter to pass into the <code>LDAPMessageHandler</code>
      * @throws IOException
      *             If an error occurred while reading bytes to decode.
      */
-    private <P> void decodeIntermediateResponse(final ASN1Reader reader, final int messageID,
-            final LDAPMessageHandler<P> handler, final P p) throws IOException {
+    private void readIntermediateResponse(final int messageID,
+            final LDAPMessageHandler handler) throws IOException {
         GenericIntermediateResponse message;
 
         reader.readStartSequence(OP_TYPE_INTERMEDIATE_RESPONSE);
@@ -742,12 +743,12 @@ final class LDAPReader {
             reader.readEndSequence();
         }
 
-        decodeControls(reader, message);
+        readControls(message);
 
         IO_LOG.trace("DECODE LDAP INTERMEDIATE RESPONSE(messageID={}, response={})",
                 messageID, message);
 
-        handler.intermediateResponse(p, messageID, message);
+        handler.intermediateResponse(messageID, message);
     }
 
     /**
@@ -755,29 +756,27 @@ final class LDAPReader {
      * request protocol op.
      *
      * @param reader
-     *            The ASN.1 reader.
+     *            The ASN.1 reader
      * @param messageID
      *            The decoded message ID for this message.
      * @param handler
      *            The <code>LDAPMessageHandler</code> that will handle this
      *            decoded message.
-     * @param p
-     *            The parameter to pass into the <code>LDAPMessageHandler</code>
      * @throws IOException
      *             If an error occurred while reading bytes to decode.
      */
-    private <P> void decodeModifyDNRequest(final ASN1Reader reader, final int messageID,
-            final LDAPMessageHandler<P> handler, final P p) throws IOException {
+    private void readModifyDNRequest(final int messageID,
+            final LDAPMessageHandler handler) throws IOException {
         ModifyDNRequest message;
 
         reader.readStartSequence(OP_TYPE_MODIFY_DN_REQUEST);
         try {
             final String dnString = reader.readOctetStringAsString();
             final Schema schema = options.getSchemaResolver().resolveSchema(dnString);
-            final DN dn = decodeDN(dnString, schema);
+            final DN dn = readDN(dnString, schema);
 
             final String newRDNString = reader.readOctetStringAsString();
-            final RDN newRDN = decodeRDN(newRDNString, schema);
+            final RDN newRDN = readRDN(newRDNString, schema);
 
             message = Requests.newModifyDNRequest(dn, newRDN);
 
@@ -786,18 +785,18 @@ final class LDAPReader {
             if (reader.hasNextElement() && (reader.peekType() == TYPE_MODIFY_DN_NEW_SUPERIOR)) {
                 final String newSuperiorString =
                         reader.readOctetStringAsString(TYPE_MODIFY_DN_NEW_SUPERIOR);
-                final DN newSuperior = decodeDN(newSuperiorString, schema);
+                final DN newSuperior = readDN(newSuperiorString, schema);
                 message.setNewSuperior(newSuperior);
             }
         } finally {
             reader.readEndSequence();
         }
 
-        decodeControls(reader, message);
+        readControls(message);
 
         IO_LOG.trace("DECODE LDAP MODIFY DN REQUEST(messageID={}, request={})", messageID, message);
 
-        handler.modifyDNRequest(p, messageID, message);
+        handler.modifyDNRequest(messageID, message);
     }
 
     /**
@@ -805,19 +804,17 @@ final class LDAPReader {
      * response protocol op.
      *
      * @param reader
-     *            The ASN.1 reader.
+     *            The ASN.1 reader
      * @param messageID
      *            The decoded message ID for this message.
      * @param handler
      *            The <code>LDAPMessageHandler</code> that will handle this
      *            decoded message.
-     * @param p
-     *            The parameter to pass into the <code>LDAPMessageHandler</code>
      * @throws IOException
      *             If an error occurred while reading bytes to decode.
      */
-    private <P> void decodeModifyDNResult(final ASN1Reader reader, final int messageID,
-            final LDAPMessageHandler<P> handler, final P p) throws IOException {
+    private void readModifyDNResult(final int messageID,
+            final LDAPMessageHandler handler) throws IOException {
         Result message;
 
         reader.readStartSequence(OP_TYPE_MODIFY_DN_RESPONSE);
@@ -828,16 +825,16 @@ final class LDAPReader {
             message =
                     Responses.newResult(resultCode).setMatchedDN(matchedDN).setDiagnosticMessage(
                             diagnosticMessage);
-            decodeResponseReferrals(reader, message);
+            readResponseReferrals(message);
         } finally {
             reader.readEndSequence();
         }
 
-        decodeControls(reader, message);
+        readControls(message);
 
         IO_LOG.trace("DECODE MODIFY DN RESULT(messageID={}, result={})", messageID, message);
 
-        handler.modifyDNResult(p, messageID, message);
+        handler.modifyDNResult(messageID, message);
     }
 
     /**
@@ -845,26 +842,24 @@ final class LDAPReader {
      * request protocol op.
      *
      * @param reader
-     *            The ASN.1 reader.
+     *            The ASN.1 reader
      * @param messageID
      *            The decoded message ID for this message.
      * @param handler
      *            The <code>LDAPMessageHandler</code> that will handle this
      *            decoded message.
-     * @param p
-     *            The parameter to pass into the <code>LDAPMessageHandler</code>
      * @throws IOException
      *             If an error occurred while reading bytes to decode.
      */
-    private <P> void decodeModifyRequest(final ASN1Reader reader, final int messageID,
-            final LDAPMessageHandler<P> handler, final P p) throws IOException {
+    private void readModifyRequest(final int messageID,
+            final LDAPMessageHandler handler) throws IOException {
         ModifyRequest message;
 
         reader.readStartSequence(OP_TYPE_MODIFY_REQUEST);
         try {
             final String dnString = reader.readOctetStringAsString();
             final Schema schema = options.getSchemaResolver().resolveSchema(dnString);
-            final DN dn = decodeDN(dnString, schema);
+            final DN dn = readDN(dnString, schema);
             message = Requests.newModifyRequest(dn);
 
             reader.readStartSequence();
@@ -882,7 +877,7 @@ final class LDAPReader {
                         reader.readStartSequence();
                         try {
                             final String ads = reader.readOctetStringAsString();
-                            final AttributeDescription ad = decodeAttributeDescription(ads, schema);
+                            final AttributeDescription ad = readAttributeDescription(ads, schema);
                             final Attribute attribute =
                                     options.getAttributeFactory().newAttribute(ad);
 
@@ -909,11 +904,11 @@ final class LDAPReader {
             reader.readEndSequence();
         }
 
-        decodeControls(reader, message);
+        readControls(message);
 
         IO_LOG.trace("DECODE LDAP MODIFY REQUEST(messageID={}, request={})", messageID, message);
 
-        handler.modifyRequest(p, messageID, message);
+        handler.modifyRequest(messageID, message);
     }
 
     /**
@@ -921,19 +916,17 @@ final class LDAPReader {
      * protocol op.
      *
      * @param reader
-     *            The ASN.1 reader.
+     *            The ASN.1 reader
      * @param messageID
      *            The decoded message ID for this message.
      * @param handler
      *            The <code>LDAPMessageHandler</code> that will handle this
      *            decoded message.
-     * @param p
-     *            The parameter to pass into the <code>LDAPMessageHandler</code>
      * @throws IOException
      *             If an error occurred while reading bytes to decode.
      */
-    private <P> void decodeModifyResult(final ASN1Reader reader, final int messageID,
-            final LDAPMessageHandler<P> handler, final P p) throws IOException {
+    private void readModifyResult(final int messageID,
+            final LDAPMessageHandler handler) throws IOException {
         Result message;
 
         reader.readStartSequence(OP_TYPE_MODIFY_RESPONSE);
@@ -944,16 +937,16 @@ final class LDAPReader {
             message =
                     Responses.newResult(resultCode).setMatchedDN(matchedDN).setDiagnosticMessage(
                             diagnosticMessage);
-            decodeResponseReferrals(reader, message);
+            readResponseReferrals(message);
         } finally {
             reader.readEndSequence();
         }
 
-        decodeControls(reader, message);
+        readControls(message);
 
         IO_LOG.trace("DECODE LDAP MODIFY RESULT(messageID={}, result={})", messageID, message);
 
-        handler.modifyResult(p, messageID, message);
+        handler.modifyResult(messageID, message);
     }
 
     /**
@@ -961,24 +954,22 @@ final class LDAPReader {
      * op.
      *
      * @param reader
-     *            The ASN.1 reader.
+     *            The ASN.1 reader
      * @param messageID
      *            The decoded message ID for this message.
      * @param handler
      *            The <code>LDAPMessageHandler</code> that will handle this
      *            decoded message.
-     * @param p
-     *            The parameter to pass into the <code>LDAPMessageHandler</code>
      * @throws IOException
      *             If an error occurred while reading bytes to decode.
      */
-    private <P> void decodeProtocolOp(final ASN1Reader reader, final int messageID,
-            final LDAPMessageHandler<P> handler, final P p) throws IOException {
+    private void readProtocolOp(final int messageID,
+            final LDAPMessageHandler handler) throws IOException {
         final byte type = reader.peekType();
 
         switch (type) {
         case OP_TYPE_UNBIND_REQUEST: // 0x42
-            decodeUnbindRequest(reader, messageID, handler, p);
+            readUnbindRequest(messageID, handler);
             break;
         case 0x43: // 0x43
         case 0x44: // 0x44
@@ -987,20 +978,20 @@ final class LDAPReader {
         case 0x47: // 0x47
         case 0x48: // 0x48
         case 0x49: // 0x49
-            handler.unrecognizedMessage(p, messageID, type, reader.readOctetString(type));
+            handler.unrecognizedMessage(messageID, type, reader.readOctetString(type));
             break;
         case OP_TYPE_DELETE_REQUEST: // 0x4A
-            decodeDeleteRequest(reader, messageID, handler, p);
+            readDeleteRequest(messageID, handler);
             break;
         case 0x4B: // 0x4B
         case 0x4C: // 0x4C
         case 0x4D: // 0x4D
         case 0x4E: // 0x4E
         case 0x4F: // 0x4F
-            handler.unrecognizedMessage(p, messageID, type, reader.readOctetString(type));
+            handler.unrecognizedMessage(messageID, type, reader.readOctetString(type));
             break;
         case OP_TYPE_ABANDON_REQUEST: // 0x50
-            decodeAbandonRequest(reader, messageID, handler, p);
+            readAbandonRequest(messageID, handler);
             break;
         case 0x51: // 0x51
         case 0x52: // 0x52
@@ -1017,85 +1008,85 @@ final class LDAPReader {
         case 0x5D: // 0x5D
         case 0x5E: // 0x5E
         case 0x5F: // 0x5F
-            handler.unrecognizedMessage(p, messageID, type, reader.readOctetString(type));
+            handler.unrecognizedMessage(messageID, type, reader.readOctetString(type));
             break;
         case OP_TYPE_BIND_REQUEST: // 0x60
-            decodeBindRequest(reader, messageID, handler, p);
+            readBindRequest(messageID, handler);
             break;
         case OP_TYPE_BIND_RESPONSE: // 0x61
-            decodeBindResult(reader, messageID, handler, p);
+            readBindResult(messageID, handler);
             break;
         case 0x62: // 0x62
-            handler.unrecognizedMessage(p, messageID, type, reader.readOctetString(type));
+            handler.unrecognizedMessage(messageID, type, reader.readOctetString(type));
             break;
         case OP_TYPE_SEARCH_REQUEST: // 0x63
-            decodeSearchRequest(reader, messageID, handler, p);
+            readSearchRequest(messageID, handler);
             break;
         case OP_TYPE_SEARCH_RESULT_ENTRY: // 0x64
-            decodeSearchResultEntry(reader, messageID, handler, p);
+            readSearchResultEntry(messageID, handler);
             break;
         case OP_TYPE_SEARCH_RESULT_DONE: // 0x65
-            decodeSearchResult(reader, messageID, handler, p);
+            readSearchResult(messageID, handler);
             break;
         case OP_TYPE_MODIFY_REQUEST: // 0x66
-            decodeModifyRequest(reader, messageID, handler, p);
+            readModifyRequest(messageID, handler);
             break;
         case OP_TYPE_MODIFY_RESPONSE: // 0x67
-            decodeModifyResult(reader, messageID, handler, p);
+            readModifyResult(messageID, handler);
             break;
         case OP_TYPE_ADD_REQUEST: // 0x68
-            decodeAddRequest(reader, messageID, handler, p);
+            readAddRequest(messageID, handler);
             break;
         case OP_TYPE_ADD_RESPONSE: // 0x69
-            decodeAddResult(reader, messageID, handler, p);
+            readAddResult(messageID, handler);
             break;
         case 0x6A: // 0x6A
-            handler.unrecognizedMessage(p, messageID, type, reader.readOctetString(type));
+            handler.unrecognizedMessage(messageID, type, reader.readOctetString(type));
             break;
         case OP_TYPE_DELETE_RESPONSE: // 0x6B
-            decodeDeleteResult(reader, messageID, handler, p);
+            readDeleteResult(messageID, handler);
             break;
         case OP_TYPE_MODIFY_DN_REQUEST: // 0x6C
-            decodeModifyDNRequest(reader, messageID, handler, p);
+            readModifyDNRequest(messageID, handler);
             break;
         case OP_TYPE_MODIFY_DN_RESPONSE: // 0x6D
-            decodeModifyDNResult(reader, messageID, handler, p);
+            readModifyDNResult(messageID, handler);
             break;
         case OP_TYPE_COMPARE_REQUEST: // 0x6E
-            decodeCompareRequest(reader, messageID, handler, p);
+            readCompareRequest(messageID, handler);
             break;
         case OP_TYPE_COMPARE_RESPONSE: // 0x6F
-            decodeCompareResult(reader, messageID, handler, p);
+            readCompareResult(messageID, handler);
             break;
         case 0x70: // 0x70
         case 0x71: // 0x71
         case 0x72: // 0x72
-            handler.unrecognizedMessage(p, messageID, type, reader.readOctetString(type));
+            handler.unrecognizedMessage(messageID, type, reader.readOctetString(type));
             break;
         case OP_TYPE_SEARCH_RESULT_REFERENCE: // 0x73
-            decodeSearchResultReference(reader, messageID, handler, p);
+            readSearchResultReference(messageID, handler);
             break;
         case 0x74: // 0x74
         case 0x75: // 0x75
         case 0x76: // 0x76
-            handler.unrecognizedMessage(p, messageID, type, reader.readOctetString(type));
+            handler.unrecognizedMessage(messageID, type, reader.readOctetString(type));
             break;
         case OP_TYPE_EXTENDED_REQUEST: // 0x77
-            decodeExtendedRequest(reader, messageID, handler, p);
+            readExtendedRequest(messageID, handler);
             break;
         case OP_TYPE_EXTENDED_RESPONSE: // 0x78
-            decodeExtendedResult(reader, messageID, handler, p);
+            readExtendedResult(messageID, handler);
             break;
         case OP_TYPE_INTERMEDIATE_RESPONSE: // 0x79
-            decodeIntermediateResponse(reader, messageID, handler, p);
+            readIntermediateResponse(messageID, handler);
             break;
         default:
-            handler.unrecognizedMessage(p, messageID, type, reader.readOctetString(type));
+            handler.unrecognizedMessage(messageID, type, reader.readOctetString(type));
             break;
         }
     }
 
-    private RDN decodeRDN(final String rdn, final Schema schema) throws DecodeException {
+    private RDN readRDN(final String rdn, final Schema schema) throws DecodeException {
         try {
             return RDN.valueOf(rdn, schema);
         } catch (final LocalizedIllegalArgumentException e) {
@@ -1103,7 +1094,7 @@ final class LDAPReader {
         }
     }
 
-    private void decodeResponseReferrals(final ASN1Reader reader, final Result message)
+    private void readResponseReferrals(final Result message)
             throws IOException {
         if (reader.hasNextElement() && (reader.peekType() == TYPE_REFERRAL_SEQUENCE)) {
             reader.readStartSequence(TYPE_REFERRAL_SEQUENCE);
@@ -1123,26 +1114,24 @@ final class LDAPReader {
      * request protocol op.
      *
      * @param reader
-     *            The ASN.1 reader.
+     *            The ASN.1 reader
      * @param messageID
      *            The decoded message ID for this message.
      * @param handler
      *            The <code>LDAPMessageHandler</code> that will handle this
      *            decoded message.
-     * @param p
-     *            The parameter to pass into the <code>LDAPMessageHandler</code>
      * @throws IOException
      *             If an error occurred while reading bytes to decode.
      */
-    private <P> void decodeSearchRequest(final ASN1Reader reader, final int messageID,
-            final LDAPMessageHandler<P> handler, final P p) throws IOException {
+    private void readSearchRequest(final int messageID,
+            final LDAPMessageHandler handler) throws IOException {
         SearchRequest message;
 
         reader.readStartSequence(OP_TYPE_SEARCH_REQUEST);
         try {
             final String baseDNString = reader.readOctetStringAsString();
             final Schema schema = options.getSchemaResolver().resolveSchema(baseDNString);
-            final DN baseDN = decodeDN(baseDNString, schema);
+            final DN baseDN = readDN(baseDNString, schema);
 
             final int scopeIntValue = reader.readEnumerated();
             final SearchScope scope = SearchScope.valueOf(scopeIntValue);
@@ -1186,11 +1175,11 @@ final class LDAPReader {
             reader.readEndSequence();
         }
 
-        decodeControls(reader, message);
+        readControls(message);
 
         IO_LOG.trace("DECODE LDAP SEARCH REQUEST(messageID={}, request={})", messageID, message);
 
-        handler.searchRequest(p, messageID, message);
+        handler.searchRequest(messageID, message);
     }
 
     /**
@@ -1198,19 +1187,17 @@ final class LDAPReader {
      * done protocol op.
      *
      * @param reader
-     *            The ASN.1 reader.
+     *            The ASN.1 reader
      * @param messageID
      *            The decoded message ID for this message.
      * @param handler
      *            The <code>LDAPMessageHandler</code> that will handle this
      *            decoded message.
-     * @param p
-     *            The parameter to pass into the <code>LDAPMessageHandler</code>
      * @throws IOException
      *             If an error occurred while reading bytes to decode.
      */
-    private <P> void decodeSearchResult(final ASN1Reader reader, final int messageID,
-            final LDAPMessageHandler<P> handler, final P p) throws IOException {
+    private void readSearchResult(final int messageID,
+            final LDAPMessageHandler handler) throws IOException {
 
         Result message;
 
@@ -1222,16 +1209,16 @@ final class LDAPReader {
             message =
                     Responses.newResult(resultCode).setMatchedDN(matchedDN).setDiagnosticMessage(
                             diagnosticMessage);
-            decodeResponseReferrals(reader, message);
+            readResponseReferrals(message);
         } finally {
             reader.readEndSequence();
         }
 
-        decodeControls(reader, message);
+        readControls(message);
 
         IO_LOG.trace("DECODE LDAP SEARCH RESULT(messageID={}, result={})", messageID, message);
 
-        handler.searchResult(p, messageID, message);
+        handler.searchResult(messageID, message);
     }
 
     /**
@@ -1239,26 +1226,25 @@ final class LDAPReader {
      * result entry protocol op.
      *
      * @param reader
-     *            The ASN.1 reader.
+     *            The ASN.1 reader
      * @param messageID
      *            The decoded message ID for this message.
      * @param handler
      *            The <code>LDAPMessageHandler</code> that will handle this
      *            decoded message.
-     * @param p
-     *            The parameter to pass into the <code>LDAPMessageHandler</code>
+
      * @throws IOException
      *             If an error occurred while reading bytes to decode.
      */
-    private <P> void decodeSearchResultEntry(final ASN1Reader reader, final int messageID,
-            final LDAPMessageHandler<P> handler, final P p) throws IOException {
+    private void readSearchResultEntry(final int messageID,
+            final LDAPMessageHandler handler) throws IOException {
         Entry entry;
 
         reader.readStartSequence(OP_TYPE_SEARCH_RESULT_ENTRY);
         try {
             final String dnString = reader.readOctetStringAsString();
             final Schema schema = options.getSchemaResolver().resolveSchema(dnString);
-            final DN dn = decodeDN(dnString, schema);
+            final DN dn = readDN(dnString, schema);
             entry = options.getEntryFactory().newEntry(dn);
 
             reader.readStartSequence();
@@ -1267,7 +1253,7 @@ final class LDAPReader {
                     reader.readStartSequence();
                     try {
                         final String ads = reader.readOctetStringAsString();
-                        final AttributeDescription ad = decodeAttributeDescription(ads, schema);
+                        final AttributeDescription ad = readAttributeDescription(ads, schema);
                         final Attribute attribute = options.getAttributeFactory().newAttribute(ad);
 
                         reader.readStartSet();
@@ -1291,11 +1277,11 @@ final class LDAPReader {
         }
 
         final SearchResultEntry message = Responses.newSearchResultEntry(entry);
-        decodeControls(reader, message);
+        readControls(message);
 
         IO_LOG.trace("DECODE LDAP SEARCH RESULT ENTRY(messageID={}, entry={})", messageID, message);
 
-        handler.searchResultEntry(p, messageID, message);
+        handler.searchResultEntry(messageID, message);
     }
 
     /**
@@ -1303,19 +1289,17 @@ final class LDAPReader {
      * reference protocol op.
      *
      * @param reader
-     *            The ASN.1 reader.
+     *            The ASN.1 reader
      * @param messageID
      *            The decoded message ID for this message.
      * @param handler
      *            The <code>LDAPMessageHandler</code> that will handle this
      *            decoded message.
-     * @param p
-     *            The parameter to pass into the <code>LDAPMessageHandler</code>
      * @throws IOException
      *             If an error occurred while reading bytes to decode.
      */
-    private <P> void decodeSearchResultReference(final ASN1Reader reader, final int messageID,
-            final LDAPMessageHandler<P> handler, final P p) throws IOException {
+    private void readSearchResultReference(final int messageID,
+            final LDAPMessageHandler handler) throws IOException {
         SearchResultReference message;
 
         reader.readStartSequence(OP_TYPE_SEARCH_RESULT_REFERENCE);
@@ -1328,12 +1312,12 @@ final class LDAPReader {
             reader.readEndSequence();
         }
 
-        decodeControls(reader, message);
+        readControls(message);
 
         IO_LOG.trace("DECODE LDAP SEARCH RESULT REFERENCE(messageID={}, result={})",
                 messageID, message);
 
-        handler.searchResultReference(p, messageID, message);
+        handler.searchResultReference(messageID, message);
     }
 
     /**
@@ -1341,27 +1325,25 @@ final class LDAPReader {
      * request protocol op.
      *
      * @param reader
-     *            The ASN.1 reader.
+     *            The ASN.1 reader
      * @param messageID
      *            The decoded message ID for this message.
      * @param handler
      *            The <code>LDAPMessageHandler</code> that will handle this
      *            decoded message.
-     * @param p
-     *            The parameter to pass into the <code>LDAPMessageHandler</code>
      * @throws IOException
      *             If an error occurred while reading bytes to decode.
      */
-    private <P> void decodeUnbindRequest(final ASN1Reader reader, final int messageID,
-            final LDAPMessageHandler<P> handler, final P p) throws IOException {
+    private void readUnbindRequest(final int messageID,
+            final LDAPMessageHandler handler) throws IOException {
         UnbindRequest message;
         reader.readNull(OP_TYPE_UNBIND_REQUEST);
         message = Requests.newUnbindRequest();
 
-        decodeControls(reader, message);
+        readControls(message);
 
         IO_LOG.trace("DECODE LDAP UNBIND REQUEST(messageID={}, request={})", messageID, message);
 
-        handler.unbindRequest(p, messageID, message);
+        handler.unbindRequest(messageID, message);
     }
 }

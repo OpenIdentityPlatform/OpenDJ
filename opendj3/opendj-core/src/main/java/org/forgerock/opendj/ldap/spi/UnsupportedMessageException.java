@@ -22,9 +22,10 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS.
  */
 
-package com.forgerock.opendj.grizzly;
+package org.forgerock.opendj.ldap.spi;
 
 import java.io.IOException;
 
@@ -35,11 +36,21 @@ import org.forgerock.opendj.ldap.ByteString;
  * Thrown when an unsupported LDAP message is received.
  */
 @SuppressWarnings("serial")
-final class UnsupportedMessageException extends IOException {
+public final class UnsupportedMessageException extends IOException {
     private final int id;
     private final byte tag;
     private final ByteString content;
 
+    /**
+     * Creates the exception with message id, tag and content.
+     *
+     * @param id
+     *            identifier of received message
+     * @param tag
+     *            identify message type
+     * @param content
+     *            message content
+     */
     public UnsupportedMessageException(final int id, final byte tag, final ByteString content) {
         super(LocalizableMessage.raw("Unsupported LDAP message: id=%d, tag=%d, content=%s", id,
                 tag, content).toString());
@@ -48,14 +59,29 @@ final class UnsupportedMessageException extends IOException {
         this.content = content;
     }
 
+    /**
+     * Returns the content.
+     *
+     * @return the message content
+     */
     public ByteString getContent() {
         return content;
     }
 
+    /**
+     * Returns the id.
+     *
+     * @return the message identifier
+     */
     public int getID() {
         return id;
     }
 
+    /**
+     * Returns the tag.
+     *
+     * @return the message tag
+     */
     public byte getTag() {
         return tag;
     }

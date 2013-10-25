@@ -27,15 +27,12 @@
 
 package com.forgerock.opendj.grizzly;
 
-import static com.forgerock.opendj.ldap.LDAPConstants.ELEMENT_READ_STATE_NEED_ADDITIONAL_LENGTH_BYTES;
-import static com.forgerock.opendj.ldap.LDAPConstants.ELEMENT_READ_STATE_NEED_FIRST_LENGTH_BYTE;
-import static com.forgerock.opendj.ldap.LDAPConstants.ELEMENT_READ_STATE_NEED_TYPE;
-import static com.forgerock.opendj.ldap.LDAPConstants.ELEMENT_READ_STATE_NEED_VALUE_BYTES;
 import static com.forgerock.opendj.ldap.CoreMessages.*;
-import static com.forgerock.opendj.util.StaticUtils.IO_LOG;
-import static com.forgerock.opendj.util.StaticUtils.byteToHex;
+import static com.forgerock.opendj.ldap.LDAPConstants.*;
+import static com.forgerock.opendj.util.StaticUtils.*;
 
 import java.io.IOException;
+
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.asn1.ASN1Reader;
 import org.forgerock.opendj.asn1.AbstractASN1Reader;
@@ -50,7 +47,7 @@ import org.glassfish.grizzly.memory.MemoryManager;
 /**
  * Grizzly ASN1 reader implementation.
  */
-final class ASN1BufferReader extends AbstractASN1Reader implements ASN1Reader {
+final class ASN1BufferReader extends AbstractASN1Reader {
     private final class ChildSequenceLimiter implements SequenceLimiter {
         private SequenceLimiter parent;
 
