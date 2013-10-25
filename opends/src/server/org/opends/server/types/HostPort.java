@@ -136,17 +136,19 @@ public final class HostPort
       {
         final Enumeration<NetworkInterface> i =
             NetworkInterface.getNetworkInterfaces();
-        final Set<InetAddress> newLocalAddresses = new HashSet<InetAddress>();
-        while (i.hasMoreElements())
-        {
-          NetworkInterface n = i.nextElement();
-          Enumeration<InetAddress> j = n.getInetAddresses();
-          while (j.hasMoreElements())
+        if (i != null) {
+          final Set<InetAddress> newLocalAddresses = new HashSet<InetAddress>();
+          while (i.hasMoreElements())
           {
-            newLocalAddresses.add(j.nextElement());
+            NetworkInterface n = i.nextElement();
+            Enumeration<InetAddress> j = n.getInetAddresses();
+            while (j.hasMoreElements())
+            {
+              newLocalAddresses.add(j.nextElement());
+            }
           }
+          localAddresses = newLocalAddresses;
         }
-        localAddresses = newLocalAddresses;
       }
       catch (SocketException e)
       {
