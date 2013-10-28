@@ -29,14 +29,33 @@ import static org.fest.assertions.Assertions.*;
 
 import java.io.IOException;
 
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.Entry;
+import org.forgerock.opendj.ldap.LDAPOptions;
+import org.forgerock.opendj.ldap.LinkedHashMapEntry;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SdkTestCase;
+import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.requests.AbandonRequest;
 import org.forgerock.opendj.ldap.requests.AddRequest;
+import org.forgerock.opendj.ldap.requests.CancelExtendedRequest;
+import org.forgerock.opendj.ldap.requests.CompareRequest;
+import org.forgerock.opendj.ldap.requests.DeleteRequest;
+import org.forgerock.opendj.ldap.requests.ExtendedRequest;
 import org.forgerock.opendj.ldap.requests.GenericBindRequest;
+import org.forgerock.opendj.ldap.requests.ModifyDNRequest;
+import org.forgerock.opendj.ldap.requests.ModifyRequest;
 import org.forgerock.opendj.ldap.requests.Requests;
+import org.forgerock.opendj.ldap.requests.SearchRequest;
+import org.forgerock.opendj.ldap.requests.UnbindRequest;
+import org.forgerock.opendj.ldap.responses.BindResult;
+import org.forgerock.opendj.ldap.responses.CompareResult;
+import org.forgerock.opendj.ldap.responses.ExtendedResult;
+import org.forgerock.opendj.ldap.responses.IntermediateResponse;
 import org.forgerock.opendj.ldap.responses.Responses;
 import org.forgerock.opendj.ldap.responses.Result;
+import org.forgerock.opendj.ldap.responses.SearchResultEntry;
+import org.forgerock.opendj.ldap.responses.SearchResultReference;
 import org.forgerock.opendj.ldap.spi.AbstractLDAPMessageHandler;
 import org.forgerock.opendj.ldap.spi.LDAPMessageHandler;
 import org.forgerock.opendj.ldap.spi.UnexpectedRequestException;
@@ -45,17 +64,24 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 /**
- * Support class for testing {@code LDAPWriter} and {@code LDAPReader}
- * classes in a specific transport provider.
- *
+ * Support class for testing {@code LDAPWriter} and {@code LDAPReader} classes
+ * in a specific transport provider.
+ * <p>
+ * Exercices a write and a read for all LDAP messages supported by the
+ * {@code LDAPMessageHandler} class.
+ * <p>
  * A specific transport provider should provide a test case by :
  * <ul>
- *   <li>Extending this class</li>
- *   <li>Implementing the 3 abstract methods {@code getLDAPReader()}, {@code getLDAPReader()}
- *   and {@code transferFromWriterToReader()}</li>
+ * <li>Extending this class</li>
+ * <li>Implementing the 3 abstract methods {@code getLDAPReader()},
+ * {@code getLDAPReader()} and {@code transferFromWriterToReader()}</li>
  * </ul>
  */
+@SuppressWarnings("javadoc")
 public abstract class LDAPReaderWriterTestCase extends SdkTestCase {
+
+    // message ID is used in all tests
+    private static final int MESSAGE_ID = 0;
 
     // DN used is several tests
     private static final String TEST_DN = "cn=test";
@@ -67,41 +93,30 @@ public abstract class LDAPReaderWriterTestCase extends SdkTestCase {
     @DataProvider
     protected Object[][] messagesFactories() {
         return new Object[][] {
+                abandonRequest(),
                 addRequest(),
                 addResult(),
                 abandonRequest(),
                 bindRequest(),
+                bindResult(),
+                compareRequest(),
+                compareResult(),
+                deleteRequest(),
+                deleteResult(),
+                extendedRequest(),
+                extendedResult(),
+                intermediateResponse(),
+                modifyDNRequest(),
+                modifyDNResult(),
+                modifyRequest(),
+                modifyResult(),
+                searchRequest(),
+                searchResult(),
+                searchResultEntry(),
+                searchResultReference(),
+                unbindRequest(),
+                unrecognizedMessage()
         };
-    }
-
-    Object[] addRequest() {
-        return new Object[] { new LDAPWrite() {
-            @Override
-            public void perform(LDAPWriter<? extends ASN1Writer> writer) throws IOException {
-                writer.writeAddRequest(0, Requests.newAddRequest(TEST_DN));
-            }
-        }, new AbstractLDAPMessageHandler() {
-            @Override
-            public void addRequest(int messageID, AddRequest request) throws UnexpectedRequestException, IOException {
-                assertThat(request.getName().toString()).isEqualTo(TEST_DN);
-            }
-        } };
-    }
-
-    Object[] addResult() {
-        final ResultCode resultCode = ResultCode.SUCCESS;
-        return new Object[] { new LDAPWrite() {
-            @Override
-            public void perform(LDAPWriter<? extends ASN1Writer> writer) throws IOException {
-                writer.writeAddResult(1, Responses.newResult(resultCode).setMatchedDN(TEST_DN));
-            }
-        }, new AbstractLDAPMessageHandler() {
-            @Override
-            public void addResult(int messageID, Result result) throws UnexpectedResponseException, IOException {
-                assertThat(result.getResultCode()).isEqualTo(resultCode);
-                assertThat(result.getMatchedDN().toString()).isEqualTo(TEST_DN);
-            }
-        } };
     }
 
     Object[] abandonRequest() {
@@ -109,7 +124,7 @@ public abstract class LDAPReaderWriterTestCase extends SdkTestCase {
         return new Object[] { new LDAPWrite() {
             @Override
             public void perform(LDAPWriter<? extends ASN1Writer> writer) throws IOException {
-                writer.writeAbandonRequest(0, Requests.newAbandonRequest(requestID));
+                writer.writeAbandonRequest(MESSAGE_ID, Requests.newAbandonRequest(requestID));
             }
         }, new AbstractLDAPMessageHandler() {
             @Override
@@ -120,13 +135,45 @@ public abstract class LDAPReaderWriterTestCase extends SdkTestCase {
         } };
     }
 
+    Object[] addRequest() {
+        return new Object[] { new LDAPWrite() {
+            @Override
+            public void perform(LDAPWriter<? extends ASN1Writer> writer) throws IOException {
+                writer.writeAddRequest(MESSAGE_ID, Requests.newAddRequest(TEST_DN));
+            }
+        }, new AbstractLDAPMessageHandler() {
+            @Override
+            public void addRequest(int messageID, AddRequest request)
+                    throws UnexpectedRequestException, IOException {
+                assertThat(request.getName().toString()).isEqualTo(TEST_DN);
+            }
+        } };
+    }
+
+    Object[] addResult() {
+        final ResultCode resultCode = ResultCode.SUCCESS;
+        return new Object[] { new LDAPWrite() {
+            @Override
+            public void perform(LDAPWriter<? extends ASN1Writer> writer) throws IOException {
+                writer.writeAddResult(MESSAGE_ID, Responses.newResult(resultCode).setMatchedDN(TEST_DN));
+            }
+        }, new AbstractLDAPMessageHandler() {
+            @Override
+            public void addResult(int messageID, Result result) throws UnexpectedResponseException, IOException {
+                assertThat(result.getResultCode()).isEqualTo(resultCode);
+                assertThat(result.getMatchedDN().toString()).isEqualTo(TEST_DN);
+            }
+        } };
+    }
+
     Object[] bindRequest() {
+        final int version = 1;
         final byte type = 0x01;
         final byte[] value = new byte[] {0x01, 0x02};
         return new Object[] { new LDAPWrite() {
             @Override
             public void perform(LDAPWriter<? extends ASN1Writer> writer) throws IOException {
-                writer.writeBindRequest(0, 1,
+                writer.writeBindRequest(MESSAGE_ID, version,
                         Requests.newGenericBindRequest(TEST_DN, type, value));
             }
         }, new AbstractLDAPMessageHandler() {
@@ -140,12 +187,323 @@ public abstract class LDAPReaderWriterTestCase extends SdkTestCase {
         } };
     }
 
+    Object[] bindResult() {
+        final ResultCode resultCode = ResultCode.SUCCESS;
+        return new Object[] { new LDAPWrite() {
+            @Override
+            public void perform(LDAPWriter<? extends ASN1Writer> writer) throws IOException {
+                writer.writeBindResult(MESSAGE_ID, Responses.newBindResult(resultCode));
+            }
+        }, new AbstractLDAPMessageHandler() {
+            @Override
+            public void bindResult(final int messageID, final BindResult result)
+                    throws UnexpectedRequestException, IOException {
+                assertThat(result.getResultCode()).isEqualTo(resultCode);
+            }
+        } };
+    }
+
+    Object[] compareRequest() {
+        final String description = "cn";
+        final String value = "test";
+        return new Object[] { new LDAPWrite() {
+            @Override
+            public void perform(LDAPWriter<? extends ASN1Writer> writer) throws IOException {
+                writer.writeCompareRequest(MESSAGE_ID, Requests.newCompareRequest(TEST_DN, description, value));
+            }
+        }, new AbstractLDAPMessageHandler() {
+            @Override
+            public void compareRequest(final int messageID, final CompareRequest request)
+                    throws UnexpectedRequestException, IOException {
+                assertThat(request.getName().toString()).isEqualTo(TEST_DN);
+                assertThat(request.getAttributeDescription().toString()).isEqualTo(description);
+                assertThat(request.getAssertionValue().toString()).isEqualTo(value);
+            }
+        } };
+    }
+
+    Object[] compareResult() {
+        final ResultCode resultCode = ResultCode.SUCCESS;
+        return new Object[] { new LDAPWrite() {
+            @Override
+            public void perform(LDAPWriter<? extends ASN1Writer> writer) throws IOException {
+                writer.writeCompareResult(MESSAGE_ID, Responses.newCompareResult(resultCode));
+            }
+        }, new AbstractLDAPMessageHandler() {
+            @Override
+            public void compareResult(int messageID, CompareResult result)
+                    throws UnexpectedResponseException, IOException {
+                assertThat(result.getResultCode()).isEqualTo(resultCode);
+            }
+        } };
+    }
+
+    Object[] deleteRequest() {
+        return new Object[] { new LDAPWrite() {
+            @Override
+            public void perform(LDAPWriter<? extends ASN1Writer> writer) throws IOException {
+                writer.writeDeleteRequest(MESSAGE_ID, Requests.newDeleteRequest(TEST_DN));
+            }
+        }, new AbstractLDAPMessageHandler() {
+            @Override
+            public void deleteRequest(int messageID, DeleteRequest request)
+                    throws UnexpectedRequestException, IOException {
+                assertThat(request.getName().toString()).isEqualTo(TEST_DN);
+            }
+        } };
+    }
+
+    Object[] deleteResult() {
+        final ResultCode resultCode = ResultCode.SUCCESS;
+        return new Object[] { new LDAPWrite() {
+            @Override
+            public void perform(LDAPWriter<? extends ASN1Writer> writer) throws IOException {
+                writer.writeDeleteResult(MESSAGE_ID, Responses.newResult(resultCode));
+            }
+        }, new AbstractLDAPMessageHandler() {
+            @Override
+            public void deleteResult(int messageID, Result result) throws UnexpectedResponseException, IOException {
+                assertThat(result.getResultCode()).isEqualTo(resultCode);
+            }
+        } };
+    }
+
+    Object[] extendedRequest() {
+        final int requestID = 1;
+        final String oidCancel = CancelExtendedRequest.OID;
+        return new Object[] { new LDAPWrite() {
+            @Override
+            public void perform(LDAPWriter<? extends ASN1Writer> writer) throws IOException {
+                writer.writeExtendedRequest(MESSAGE_ID, Requests.newCancelExtendedRequest(requestID));
+            }
+        }, new AbstractLDAPMessageHandler() {
+            @Override
+            public <R extends ExtendedResult> void extendedRequest(int messageID, ExtendedRequest<R> request)
+                    throws UnexpectedRequestException, IOException {
+                CancelExtendedRequest cancelRequest =
+                        CancelExtendedRequest.DECODER.decodeExtendedRequest(
+                                request, new LDAPOptions().getDecodeOptions());
+                assertThat(cancelRequest.getOID().toString()).isEqualTo(oidCancel);
+                assertThat(cancelRequest.getRequestID()).isEqualTo(requestID);
+            }
+        } };
+    }
+
+    Object[] extendedResult() {
+        final ResultCode resultCode = ResultCode.SUCCESS;
+        final String oidCancel = CancelExtendedRequest.OID;
+        return new Object[] { new LDAPWrite() {
+            @Override
+            public void perform(LDAPWriter<? extends ASN1Writer> writer) throws IOException {
+                writer.writeExtendedResult(MESSAGE_ID,
+                        Responses.newGenericExtendedResult(resultCode).setOID(oidCancel));
+            }
+        }, new AbstractLDAPMessageHandler() {
+            @Override
+            public void extendedResult(int messageID, ExtendedResult result)
+                    throws UnexpectedResponseException, IOException {
+                assertThat(result.getResultCode()).isEqualTo(resultCode);
+                assertThat(result.getOID()).isEqualTo(oidCancel);
+            }
+        } };
+    }
+
+    Object[] intermediateResponse() {
+        final String oid = "1.2.3";
+        final String responseValue = "value";
+        return new Object[] { new LDAPWrite() {
+            @Override
+            public void perform(LDAPWriter<? extends ASN1Writer> writer) throws IOException {
+                writer.writeIntermediateResponse(MESSAGE_ID,
+                        Responses.newGenericIntermediateResponse(oid, responseValue));
+            }
+        }, new AbstractLDAPMessageHandler() {
+            @Override
+            public void intermediateResponse(int messageID, IntermediateResponse response)
+                    throws UnexpectedResponseException, IOException {
+                assertThat(response.getOID()).isEqualTo(oid);
+                assertThat(response.getValue()).isEqualTo(ByteString.valueOf(responseValue));
+            }
+        } };
+    }
+
+    Object[] modifyDNRequest() {
+        final String newRDN = "cn=test2";
+        return new Object[] { new LDAPWrite() {
+            @Override
+            public void perform(LDAPWriter<? extends ASN1Writer> writer) throws IOException {
+                writer.writeModifyDNRequest(MESSAGE_ID, Requests.newModifyDNRequest(TEST_DN, newRDN));
+            }
+        }, new AbstractLDAPMessageHandler() {
+            @Override
+            public void modifyDNRequest(int messageID, ModifyDNRequest request)
+                    throws UnexpectedRequestException, IOException {
+                assertThat(request.getName().toString()).isEqualTo(TEST_DN);
+                assertThat(request.getNewRDN().toString()).isEqualTo(newRDN);
+            }
+        } };
+    }
+
+    Object[] modifyDNResult() {
+        final ResultCode resultCode = ResultCode.SUCCESS;
+        return new Object[] { new LDAPWrite() {
+            @Override
+            public void perform(LDAPWriter<? extends ASN1Writer> writer) throws IOException {
+                writer.writeModifyDNResult(MESSAGE_ID, Responses.newResult(resultCode));
+            }
+        }, new AbstractLDAPMessageHandler() {
+            @Override
+            public void modifyDNResult(int messageID, Result result)
+                    throws UnexpectedResponseException, IOException {
+                assertThat(result.getResultCode()).isEqualTo(resultCode);
+            }
+        } };
+    }
+
+    Object[] modifyRequest() {
+        return new Object[] { new LDAPWrite() {
+            @Override
+            public void perform(LDAPWriter<? extends ASN1Writer> writer) throws IOException {
+                writer.writeModifyRequest(MESSAGE_ID, Requests.newModifyRequest(TEST_DN));
+            }
+        }, new AbstractLDAPMessageHandler() {
+            @Override
+            public void modifyRequest(int messageID, ModifyRequest request)
+                    throws UnexpectedRequestException, IOException {
+                assertThat(request.getName().toString()).isEqualTo(TEST_DN);
+            }
+        } };
+    }
+
+    Object[] modifyResult() {
+        final ResultCode resultCode = ResultCode.SUCCESS;
+        return new Object[] { new LDAPWrite() {
+            @Override
+            public void perform(LDAPWriter<? extends ASN1Writer> writer) throws IOException {
+                writer.writeModifyResult(MESSAGE_ID, Responses.newResult(resultCode));
+            }
+        }, new AbstractLDAPMessageHandler() {
+            @Override
+            public void modifyResult(int messageID, Result result) throws UnexpectedResponseException, IOException {
+                assertThat(result.getResultCode()).isEqualTo(resultCode);
+            }
+        } };
+    }
+
+    Object[] searchRequest() {
+        final SearchScope scope = SearchScope.BASE_OBJECT;
+        final String filter = "(&(objectClass=person)(objectClass=user))";
+        final String attribute = "cn";
+        return new Object[] { new LDAPWrite() {
+            @Override
+            public void perform(LDAPWriter<? extends ASN1Writer> writer) throws IOException {
+                writer.writeSearchRequest(MESSAGE_ID, Requests.newSearchRequest(TEST_DN, scope, filter, attribute));
+            }
+        }, new AbstractLDAPMessageHandler() {
+            @Override
+            public void searchRequest(int messageID, SearchRequest request)
+                    throws UnexpectedRequestException, IOException {
+                assertThat(request.getName().toString()).isEqualTo(TEST_DN);
+                assertThat(request.getScope()).isEqualTo(scope);
+                assertThat(request.getFilter().toString()).isEqualTo(filter);
+                assertThat(request.getAttributes()).containsExactly(attribute);
+            }
+        } };
+    }
+
+    Object[] searchResult() {
+        final ResultCode resultCode = ResultCode.SUCCESS;
+        return new Object[] { new LDAPWrite() {
+            @Override
+            public void perform(LDAPWriter<? extends ASN1Writer> writer) throws IOException {
+                writer.writeSearchResult(MESSAGE_ID, Responses.newResult(resultCode));
+            }
+        }, new AbstractLDAPMessageHandler() {
+            @Override
+            public void searchResult(int messageID, Result result) throws UnexpectedResponseException, IOException {
+                assertThat(result.getResultCode()).isEqualTo(resultCode);
+            }
+        } };
+    }
+
+    Object[] searchResultEntry() {
+        final Entry entry = new LinkedHashMapEntry(
+                "dn: cn=test",
+                "objectClass: top",
+                "objectClass: test");
+        return new Object[] { new LDAPWrite() {
+            @Override
+            public void perform(LDAPWriter<? extends ASN1Writer> writer) throws IOException {
+                writer.writeSearchResultEntry(1, Responses.newSearchResultEntry(entry));
+            }
+        }, new AbstractLDAPMessageHandler() {
+            @Override
+            public void searchResultEntry(int messageID, SearchResultEntry resultEntry)
+                    throws UnexpectedResponseException, IOException {
+                assertThat(resultEntry).isEqualTo(entry);
+            }
+        } };
+    }
+
+    Object[] searchResultReference() {
+        final String uri = "ldap://ldap.example.com/cn=test??sub?(sn=Jensen)";
+        return new Object[] { new LDAPWrite() {
+            @Override
+            public void perform(LDAPWriter<? extends ASN1Writer> writer) throws IOException {
+                writer.writeSearchResultReference(MESSAGE_ID, Responses.newSearchResultReference(uri));
+            }
+        }, new AbstractLDAPMessageHandler() {
+            @Override
+            public void searchResultReference(int messageID, SearchResultReference reference)
+                    throws UnexpectedResponseException, IOException {
+                assertThat(reference.getURIs()).containsExactly(uri);
+            }
+        } };
+    }
+
+    Object[] unbindRequest() {
+        return new Object[] { new LDAPWrite() {
+            @Override
+            public void perform(LDAPWriter<? extends ASN1Writer> writer) throws IOException {
+                writer.writeUnbindRequest(MESSAGE_ID, Requests.newUnbindRequest());
+            }
+        }, new AbstractLDAPMessageHandler() {
+            @Override
+            public void unbindRequest(int messageID, UnbindRequest request)
+                    throws UnexpectedRequestException, IOException {
+                assertThat(request).isNotNull();
+            }
+        } };
+    }
+
+    Object[] unrecognizedMessage() {
+        final byte messageTag = 0x01;
+        final ByteString messageBytes = ByteString.valueOf("message");
+        return new Object[] { new LDAPWrite() {
+            @Override
+            public void perform(LDAPWriter<? extends ASN1Writer> writer) throws IOException {
+                writer.writeUnrecognizedMessage(MESSAGE_ID, messageTag, messageBytes);
+            }
+        }, new AbstractLDAPMessageHandler() {
+            @Override
+            public void unrecognizedMessage(int messageID, byte tag, ByteString message)
+                    throws UnexpectedRequestException, IOException {
+                assertThat(messageID).isEqualTo(MESSAGE_ID);
+                assertThat(tag).isEqualTo(messageTag);
+                assertThat(message).isEqualTo(messageBytes);
+            }
+        } };
+    }
+
     /**
-     * Test that a LDAP message written by LDAPWriter is read correctly using LDAPReader.
+     * Test that a LDAP message written by LDAPWriter is read correctly using
+     * LDAPReader.
      *
-     * @param writing write instruction to perform
-     * @param messageHandler handler of message read, containing assertion
-     *
+     * @param writing
+     *            write instruction to perform
+     * @param messageHandler
+     *            handler of message read, containing assertion(s) to check that
+     *            message is as expected
      * @throws Exception
      */
     @Test(dataProvider = "messagesFactories")
