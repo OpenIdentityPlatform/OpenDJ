@@ -75,11 +75,9 @@ import org.forgerock.opendj.ldap.responses.SearchResultReference;
 import org.forgerock.opendj.ldap.spi.AbstractLDAPMessageHandler;
 import org.forgerock.opendj.ldap.spi.UnexpectedRequestException;
 import org.forgerock.opendj.ldap.spi.UnsupportedMessageException;
-import org.glassfish.grizzly.Buffer;
 import org.glassfish.grizzly.Connection;
 import org.glassfish.grizzly.Grizzly;
 import org.glassfish.grizzly.attributes.Attribute;
-import org.glassfish.grizzly.filterchain.BaseFilter;
 import org.glassfish.grizzly.filterchain.Filter;
 import org.glassfish.grizzly.filterchain.FilterChain;
 import org.glassfish.grizzly.filterchain.FilterChainContext;
@@ -94,7 +92,7 @@ import com.forgerock.opendj.util.Validator;
  * Grizzly filter implementation for decoding LDAP requests and handling server
  * side logic for SSL and SASL operations over LDAP.
  */
-final class LDAPServerFilter extends BaseFilter {
+final class LDAPServerFilter extends LDAPBaseFilter {
 
     /**
      * Provides an arbitrary write operation on a LDAP writer.
@@ -659,10 +657,9 @@ final class LDAPServerFilter extends BaseFilter {
     }
 
     private final GrizzlyLDAPListener listener;
-    private final int maxASN1ElementSize;
-    private final DecodeOptions decodeOptions;
 
-    private static final class ServerRequestHandler extends AbstractLDAPMessageHandler {
+    private static final class ServerRequestHandler
+        extends AbstractLDAPMessageHandler implements LDAPBaseHandler {
 
         private final Connection<?> connection;
         private final LDAPReader<ASN1BufferReader> reader;
@@ -830,10 +827,8 @@ final class LDAPServerFilter extends BaseFilter {
      */
     LDAPServerFilter(final GrizzlyLDAPListener listener, final DecodeOptions options,
             final int maxASN1ElementSize) {
+        super(options, maxASN1ElementSize <= 0 ? DEFAULT_MAX_REQUEST_SIZE : maxASN1ElementSize);
         this.listener = listener;
-        this.decodeOptions = options;
-        this.maxASN1ElementSize =
-                maxASN1ElementSize <= 0 ? DEFAULT_MAX_REQUEST_SIZE : maxASN1ElementSize;
     }
 
     @Override
@@ -875,25 +870,8 @@ final class LDAPServerFilter extends BaseFilter {
     }
 
     @Override
-    public NextAction handleRead(final FilterChainContext ctx) throws IOException {
-        final ServerRequestHandler requestHandler = getRequestHandler(ctx.getConnection());
-        final LDAPReader<ASN1BufferReader> reader = requestHandler.getReader();
-        final ASN1BufferReader asn1Reader = reader.getASN1Reader();
-        final Buffer buffer = (Buffer) ctx.getMessage();
-
-        asn1Reader.appendBytesRead(buffer);
-        try {
-            while (reader.hasMessageAvailable()) {
-                reader.readMessage(requestHandler);
-            }
-        } catch (IOException e) {
-            exceptionOccurred(ctx, e);
-            throw e;
-        } finally {
-            asn1Reader.disposeBytesRead();
-        }
-
-        return ctx.getStopAction();
+    protected final void handleReadException(FilterChainContext ctx, IOException e) {
+        exceptionOccurred(ctx, e);
     }
 
     /**
@@ -907,7 +885,9 @@ final class LDAPServerFilter extends BaseFilter {
      * @return the response handler associated to the context, which can be a
      *         new one if no handler have been created yet
      */
-    private ServerRequestHandler getRequestHandler(final Connection<?> connection) {
+    @Override
+    protected final LDAPBaseHandler getLDAPHandler(final FilterChainContext ctx) {
+        Connection<?> connection = ctx.getConnection();
         ServerRequestHandler handler = REQUEST_HANDLER_ATTR.get(connection);
         if (handler == null) {
             LDAPReader<ASN1BufferReader> reader = GrizzlyUtils.createReader(decodeOptions,

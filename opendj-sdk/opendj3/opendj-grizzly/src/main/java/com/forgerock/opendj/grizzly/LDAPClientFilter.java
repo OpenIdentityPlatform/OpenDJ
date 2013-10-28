@@ -64,12 +64,10 @@ import org.forgerock.opendj.ldap.spi.LDAPExtendedFutureResultImpl;
 import org.forgerock.opendj.ldap.spi.LDAPFutureResultImpl;
 import org.forgerock.opendj.ldap.spi.LDAPSearchFutureResultImpl;
 import org.forgerock.opendj.ldap.spi.UnexpectedResponseException;
-import org.glassfish.grizzly.Buffer;
 import org.glassfish.grizzly.Connection;
 import org.glassfish.grizzly.EmptyCompletionHandler;
 import org.glassfish.grizzly.Grizzly;
 import org.glassfish.grizzly.attributes.Attribute;
-import org.glassfish.grizzly.filterchain.BaseFilter;
 import org.glassfish.grizzly.filterchain.FilterChainContext;
 import org.glassfish.grizzly.filterchain.NextAction;
 
@@ -77,17 +75,14 @@ import org.glassfish.grizzly.filterchain.NextAction;
  * Grizzly filter implementation for decoding LDAP responses and handling client
  * side logic for SSL and SASL operations over LDAP.
  */
-final class LDAPClientFilter extends BaseFilter {
+final class LDAPClientFilter extends LDAPBaseFilter {
     private static final Attribute<GrizzlyLDAPConnection> LDAP_CONNECTION_ATTR =
             Grizzly.DEFAULT_ATTRIBUTE_BUILDER.createAttribute("LDAPClientConnection");
 
     private static final Attribute<ClientResponseHandler> RESPONSE_HANDLER_ATTR =
             Grizzly.DEFAULT_ATTRIBUTE_BUILDER.createAttribute("ClientResponseHandler");
 
-    private final int maxASN1ElementSize;
-    private final DecodeOptions decodeOptions;
-
-    private static final class ClientResponseHandler extends AbstractLDAPMessageHandler {
+    static final class ClientResponseHandler extends AbstractLDAPMessageHandler implements LDAPBaseHandler {
 
         private final LDAPReader<ASN1BufferReader> reader;
         private FilterChainContext context;
@@ -486,8 +481,7 @@ final class LDAPClientFilter extends BaseFilter {
      *            that there is no limit.
      */
     LDAPClientFilter(final DecodeOptions options, final int maxASN1ElementSize) {
-        this.decodeOptions = options;
-        this.maxASN1ElementSize = maxASN1ElementSize;
+        super(options, maxASN1ElementSize);
     }
 
     @Override
@@ -524,30 +518,14 @@ final class LDAPClientFilter extends BaseFilter {
         return ctx.getInvokeAction();
     }
 
+
     @Override
-    public NextAction handleRead(final FilterChainContext ctx) throws IOException {
-        final ClientResponseHandler handler = getResponseHandler(ctx);
-        final LDAPReader<ASN1BufferReader> reader = handler.getReader();
-        final ASN1BufferReader asn1Reader = reader.getASN1Reader();
-        final Buffer buffer = (Buffer) ctx.getMessage();
-
-        asn1Reader.appendBytesRead(buffer);
-        try {
-            while (reader.hasMessageAvailable()) {
-                reader.readMessage(handler);
-            }
-        } catch (IOException e) {
-            final GrizzlyLDAPConnection ldapConnection = LDAP_CONNECTION_ATTR.get(ctx.getConnection());
-            final Result errorResult =
-                    Responses.newResult(ResultCode.CLIENT_SIDE_DECODING_ERROR).setCause(e)
-                            .setDiagnosticMessage(e.getMessage());
-            ldapConnection.close(null, false, errorResult);
-            throw e;
-        } finally {
-            asn1Reader.disposeBytesRead();
-        }
-
-        return ctx.getStopAction();
+    protected final void handleReadException(FilterChainContext ctx, IOException e) {
+        final GrizzlyLDAPConnection ldapConnection = LDAP_CONNECTION_ATTR.get(ctx.getConnection());
+        final Result errorResult =
+                Responses.newResult(ResultCode.CLIENT_SIDE_DECODING_ERROR).setCause(e)
+                        .setDiagnosticMessage(e.getMessage());
+        ldapConnection.close(null, false, errorResult);
     }
 
     /**
@@ -562,7 +540,8 @@ final class LDAPClientFilter extends BaseFilter {
      * @return the response handler associated to the context, which can be a
      *         new one if no handler have been created yet
      */
-    private ClientResponseHandler getResponseHandler(final FilterChainContext ctx) {
+    @Override
+    protected final LDAPBaseHandler getLDAPHandler(final FilterChainContext ctx) {
         Connection<?> connection = ctx.getConnection();
         ClientResponseHandler handler = RESPONSE_HANDLER_ATTR.get(connection);
         if (handler == null) {
