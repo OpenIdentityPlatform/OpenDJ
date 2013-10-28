@@ -52,12 +52,14 @@ import org.opends.server.replication.service.ReplicationDomain;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.HostPort;
+import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import static java.util.Arrays.*;
 
+import static org.assertj.core.api.Assertions.*;
 import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
@@ -545,7 +547,7 @@ public class AssuredReplicationServerTest
           getServerState().update(updateMsg.getCSN());
           break;
         default:
-          fail("Unknown scenario: " + scenario);
+          Assert.fail("Unknown scenario: " + scenario);
       }
       // IMPORTANT: return false so that we use the asynchronous processUpdate mechanism
       // (see processUpdate javadoc)
@@ -854,7 +856,7 @@ public class AssuredReplicationServerTest
                 }
                 break;
               default:
-                fail("Unknown scenario: " + scenario);
+                Assert.fail("Unknown scenario: " + scenario);
             }
           } catch (SocketTimeoutException toe)
           {
@@ -1092,7 +1094,7 @@ public class AssuredReplicationServerTest
       // (ack received if group id of DS and real RS are the same, no ack requested
       // otherwise)
       long sendUpdateTime = System.currentTimeMillis() - startTime;
-      assertTrue(sendUpdateTime < MAX_SEND_UPDATE_TIME);
+      assertThat(sendUpdateTime).isLessThan(MAX_SEND_UPDATE_TIME);
 
       Thread.sleep(500); // Sleep a while as counters are updated just after sending thread is unblocked
       if (mainDsGid == DEFAULT_GID)
@@ -1624,17 +1626,14 @@ public class AssuredReplicationServerTest
       if (expectedServers.size() >= nWishedServers) // Enough servers should ack
       {
         // Enough server ok for acking: ack should come back quickly
-        assertTrue(sendUpdateTime < MAX_SEND_UPDATE_TIME);
+        assertThat(sendUpdateTime).isLessThan(MAX_SEND_UPDATE_TIME);
         // Check monitoring values (check that ack has been correctly received)
         assertEquals(fakeRd1.getAssuredSdAcknowledgedUpdates(), prevNAckUpdates + 1);
         assertEquals(fakeRd1.getAssuredSdTimeoutUpdates(), prevNTimeoutUpdates);
         checkServerErrors(fakeRd1.getAssuredSdServerTimeoutUpdates(), prevNServerErrors, null); // Should have same value as previous one
       } else
       {
-        // Not enough expected servers: should have timed out in RS timeout
-        // (SMALL_TIMEOUT)
-        assertTrue((SMALL_TIMEOUT <= sendUpdateTime) && (sendUpdateTime <=
-          LONG_TIMEOUT));
+        assertBetweenInclusive(sendUpdateTime, SMALL_TIMEOUT, LONG_TIMEOUT);
         // Check monitoring values (check that timeout occurred)
         assertEquals(fakeRd1.getAssuredSdAcknowledgedUpdates(), prevNAckUpdates);
         assertEquals(fakeRd1.getAssuredSdTimeoutUpdates(), prevNTimeoutUpdates + 1);
@@ -1650,17 +1649,15 @@ public class AssuredReplicationServerTest
         if (expectedServers.size() == eligibleServers.size()) // All eligible servers should respond in time
         {
           // Enough server ok for acking: ack should come back quickly
-          assertTrue(sendUpdateTime < MAX_SEND_UPDATE_TIME);
+          assertThat(sendUpdateTime).isLessThan(MAX_SEND_UPDATE_TIME);
           // Check monitoring values (check that ack has been correctly received)
           assertEquals(fakeRd1.getAssuredSdAcknowledgedUpdates(), prevNAckUpdates + 1);
           assertEquals(fakeRd1.getAssuredSdTimeoutUpdates(), prevNTimeoutUpdates);
           checkServerErrors(fakeRd1.getAssuredSdServerTimeoutUpdates(), prevNServerErrors, null); // Should have same value as previous one
         } else
         { // Some eligible servers should fail
-          // Not enough expected servers: should have timed out in RS timeout
-          // (SMALL_TIMEOUT)
-          assertTrue((SMALL_TIMEOUT <= sendUpdateTime) && (sendUpdateTime <=
-            LONG_TIMEOUT));
+          // Not enough expected servers: should have timed out in RS timeout (SMALL_TIMEOUT)
+          assertBetweenInclusive(sendUpdateTime, SMALL_TIMEOUT, LONG_TIMEOUT);
           // Check monitoring values (check that timeout occurred)
           assertEquals(fakeRd1.getAssuredSdAcknowledgedUpdates(), prevNAckUpdates);
           assertEquals(fakeRd1.getAssuredSdTimeoutUpdates(), prevNTimeoutUpdates + 1);
@@ -1671,7 +1668,7 @@ public class AssuredReplicationServerTest
       } else
       {
         // No eligible servers at all, RS should not wait for any ack and immediately ack the update
-        assertTrue(sendUpdateTime < MAX_SEND_UPDATE_TIME);
+        assertThat(sendUpdateTime).isLessThan(MAX_SEND_UPDATE_TIME);
         // Check monitoring values (check that ack has been correctly received)
         assertEquals(fakeRd1.getAssuredSdAcknowledgedUpdates(), prevNAckUpdates + 1);
         assertEquals(fakeRd1.getAssuredSdTimeoutUpdates(), prevNTimeoutUpdates);
@@ -1766,7 +1763,7 @@ public class AssuredReplicationServerTest
       nSec = (System.currentTimeMillis() - startTime) / 1000;
     }
     while (nSec < 30);
-    fail("Did not reach expected topo view in time: expected " + expectedDs +
+    Assert.fail("Did not reach expected topo view in time: expected " + expectedDs +
       " DSs (had " + dsInfo +") and " + expectedRs + " RSs (had " + rsInfo +").");
   }
 
@@ -1945,7 +1942,7 @@ public class AssuredReplicationServerTest
       {
         // Ack should have been received
         assertFalse(timeout);
-        assertTrue(sendUpdateTime < MAX_SEND_UPDATE_TIME);
+        assertThat(sendUpdateTime).isLessThan(MAX_SEND_UPDATE_TIME);
         assertNotNull(ackMsg);
         assertFalse(ackMsg.hasTimeout());
         assertFalse(ackMsg.hasReplayError());
@@ -2033,7 +2030,7 @@ public class AssuredReplicationServerTest
       long sendUpdateTime = System.currentTimeMillis() - startTime;
 
       // Check call time
-      assertTrue(sendUpdateTime < MAX_SEND_UPDATE_TIME);
+      assertThat(sendUpdateTime).isLessThan(MAX_SEND_UPDATE_TIME);
 
       // Check monitoring values (check that ack has been correctly received)
       Thread.sleep(500); // Sleep a while as counters are updated just after sending thread is unblocked
@@ -2091,7 +2088,7 @@ public class AssuredReplicationServerTest
       long sendUpdateTime = System.currentTimeMillis() - startTime;
 
       // Check call time (should be short as RS should have acked)
-      assertTrue(sendUpdateTime < MAX_SEND_UPDATE_TIME);
+      assertThat(sendUpdateTime).isLessThan(MAX_SEND_UPDATE_TIME);
 
       // Check monitoring values (check that ack has been correctly received)
       Thread.sleep(500); // Sleep a while as counters are updated just after sending thread is unblocked
@@ -2124,7 +2121,7 @@ public class AssuredReplicationServerTest
       sendUpdateTime = System.currentTimeMillis() - startTime;
 
       // Check call time (should be short as RS should have acked)
-      assertTrue(sendUpdateTime < MAX_SEND_UPDATE_TIME);
+      assertThat(sendUpdateTime).isLessThan(MAX_SEND_UPDATE_TIME);
 
       // Check monitoring values (check that ack has been correctly received)
       Thread.sleep(500); // Sleep a while as counters are updated just after sending thread is unblocked
@@ -2159,7 +2156,7 @@ public class AssuredReplicationServerTest
       sendUpdateTime = System.currentTimeMillis() - startTime;
 
       // Check call time (should be short as RS should have acked)
-      assertTrue(sendUpdateTime < MAX_SEND_UPDATE_TIME);
+      assertThat(sendUpdateTime).isLessThan(MAX_SEND_UPDATE_TIME);
 
       // Check monitoring values (check that ack has been correctly received)
       Thread.sleep(500); // Sleep a while as counters are updated just after sending thread is unblocked
@@ -2194,7 +2191,7 @@ public class AssuredReplicationServerTest
       sendUpdateTime = System.currentTimeMillis() - startTime;
 
       // Check call time (should be short as RS should have acked)
-      assertTrue(sendUpdateTime < MAX_SEND_UPDATE_TIME);
+      assertThat(sendUpdateTime).isLessThan(MAX_SEND_UPDATE_TIME);
 
       // Check monitoring values (check that ack has been correctly received)
       Thread.sleep(500); // Sleep a while as counters are updated just after sending thread is unblocked
@@ -2226,7 +2223,7 @@ public class AssuredReplicationServerTest
       sendUpdateTime = System.currentTimeMillis() - startTime;
 
       // Check call time (should be short as RS should have acked)
-      assertTrue(sendUpdateTime < MAX_SEND_UPDATE_TIME);
+      assertThat(sendUpdateTime).isLessThan(MAX_SEND_UPDATE_TIME);
 
       // Check monitoring values (check that ack has been correctly received)
       Thread.sleep(500); // Sleep a while as counters are updated just after sending thread is unblocked
@@ -2408,7 +2405,7 @@ public class AssuredReplicationServerTest
             shouldSeeReplayError = true;
             break;
           default:
-            fail("No other scenario should be used here");
+            Assert.fail("No other scenario should be used here");
         }
       }
       if (rsIsEligible)
@@ -2434,26 +2431,24 @@ public class AssuredReplicationServerTest
             shouldSeeWrongStatus = true;
             break;
           default:
-            fail("No other scenario should be used here");
+            Assert.fail("No other scenario should be used here");
         }
       }
 
       if (!shouldSeeTimeout)
       {
         // Call time should have been short
-        assertTrue(sendUpdateTime < MAX_SEND_UPDATE_TIME);
+        assertThat(sendUpdateTime).isLessThan(MAX_SEND_UPDATE_TIME);
       } else // Timeout
       {
         if (shouldSeeDsRsIdInError) // Virtual DS timeout
         {
           // Should have timed out
-          assertTrue((MAX_SEND_UPDATE_TIME <= sendUpdateTime) && (sendUpdateTime <=
-            LONG_TIMEOUT));
+          assertBetweenInclusive(sendUpdateTime, MAX_SEND_UPDATE_TIME, LONG_TIMEOUT);
         } else // Normal rimeout case
         {
           // Should have timed out
-          assertTrue((SMALL_TIMEOUT <= sendUpdateTime) && (sendUpdateTime <=
-            LONG_TIMEOUT));
+          assertBetweenInclusive(sendUpdateTime, SMALL_TIMEOUT, LONG_TIMEOUT);
         }
       }
 
@@ -2573,6 +2568,13 @@ public class AssuredReplicationServerTest
     {
       endTest();
     }
+  }
+
+  private void assertBetweenInclusive(long value, int lowerBound, int upperBound)
+  {
+    assertTrue(lowerBound <= value && value <= upperBound, "Expected <" + value
+        + "> to be between <" + lowerBound + "> and <" + upperBound
+        + "> inclusive");
   }
 
   /**
@@ -2763,7 +2765,7 @@ public class AssuredReplicationServerTest
       long sendUpdateTime = System.currentTimeMillis() - startTime;
 
       // Check call time
-      assertTrue(sendUpdateTime < MAX_SEND_UPDATE_TIME);
+      assertThat(sendUpdateTime).isLessThan(MAX_SEND_UPDATE_TIME);
 
       // Check monitoring values (check that ack has been correctly received)
       Thread.sleep(1000); // Sleep a while as counters are updated just after sending thread is unblocked
@@ -2793,7 +2795,7 @@ public class AssuredReplicationServerTest
       sendUpdateTime = System.currentTimeMillis() - startTime;
 
       // Check call time
-      assertTrue(sendUpdateTime < MAX_SEND_UPDATE_TIME, "Exceeded max send time: " + sendUpdateTime);
+      assertThat(sendUpdateTime).isLessThan(MAX_SEND_UPDATE_TIME);
 
       // Check monitoring values (check that ack has been correctly received)
       Thread.sleep(1000); // Sleep a while as counters are updated just after sending thread is unblocked
@@ -2961,7 +2963,7 @@ public class AssuredReplicationServerTest
       long sendUpdateTime = System.currentTimeMillis() - startTime;
 
       // Check call time
-      assertTrue(sendUpdateTime < MAX_SEND_UPDATE_TIME);
+      assertThat(sendUpdateTime).isLessThan(MAX_SEND_UPDATE_TIME);
 
       // Check monitoring values (check that ack has been correctly received)
       Thread.sleep(500); // Sleep a while as counters are updated just after sending thread is unblocked
@@ -3060,15 +3062,13 @@ public class AssuredReplicationServerTest
       fakeRd1.sendNewFakeUpdate();
       long sendUpdateTime = System.currentTimeMillis() - startTime;
 
-      boolean fakeDsIsEligible = areGroupAndGenerationIdOk(fakeDsGid,
-        fakeDsGenId);
+      boolean fakeDsIsEligible = areGroupAndGenerationIdOk(fakeDsGid, fakeDsGenId);
 
       // Check call time
       if (fakeDsIsEligible && (fakeDsScen == TIMEOUT_DS_SCENARIO))
-        assertTrue((SMALL_TIMEOUT <= sendUpdateTime) && (sendUpdateTime <=
-          (SMALL_TIMEOUT + 1000)));
+        assertBetweenInclusive(sendUpdateTime, SMALL_TIMEOUT, SMALL_TIMEOUT + 1000);
       else
-        assertTrue(sendUpdateTime < MAX_SEND_UPDATE_TIME);
+        assertThat(sendUpdateTime).isLessThan(MAX_SEND_UPDATE_TIME);
 
       // Check monitoring values (check that ack has been correctly received)
       Thread.sleep(500); // Sleep a while as counters are updated just after sending thread is unblocked
@@ -3129,7 +3129,7 @@ public class AssuredReplicationServerTest
             assertEquals(fakeRd2.getAssuredSrReceivedUpdatesNotAcked(), 1);
             break;
           default:
-            fail("Unknown scenario: " + fakeDsScen);
+            Assert.fail("Unknown scenario: " + fakeDsScen);
         }
       } else
       {
@@ -3214,9 +3214,7 @@ public class AssuredReplicationServerTest
         long startTime = System.currentTimeMillis();
         fakeRd1.sendNewFakeUpdate();
         long sendUpdateTime = System.currentTimeMillis() - startTime;
-        // RS should timeout as no listener in DS2
-        assertTrue((SMALL_TIMEOUT <= sendUpdateTime) && (sendUpdateTime <=
-          LONG_TIMEOUT));
+        assertBetweenInclusive(sendUpdateTime, SMALL_TIMEOUT, LONG_TIMEOUT);
       }
 
       // Wait for DS2 being degraded
@@ -3272,7 +3270,7 @@ public class AssuredReplicationServerTest
       fakeRd1.sendNewFakeUpdate();
       long sendUpdateTime = System.currentTimeMillis() - startTime;
       // RS should ack quickly as DS2 degraded and not eligible for assured
-      assertTrue(sendUpdateTime < MAX_SEND_UPDATE_TIME);
+      assertThat(sendUpdateTime).isLessThan(MAX_SEND_UPDATE_TIME);
 
       Thread.sleep(500); // Sleep a while as counters are updated just after sending thread is unblocked
       assertEquals(fakeRd1.getAssuredSrSentUpdates(), 5);
@@ -3362,7 +3360,7 @@ public class AssuredReplicationServerTest
       fakeRd1.sendNewFakeUpdate();
       sendUpdateTime = System.currentTimeMillis() - startTime;
       // RS should ack quickly as DS2 degraded and not eligible for assured
-      assertTrue(sendUpdateTime < MAX_SEND_UPDATE_TIME);
+      assertThat(sendUpdateTime).isLessThan(MAX_SEND_UPDATE_TIME);
 
       Thread.sleep(500); // Sleep a while as counters are updated just after sending thread is unblocked
       assertEquals(fakeRd1.getAssuredSrSentUpdates(), 6);
