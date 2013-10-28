@@ -25,15 +25,16 @@
  *      Copyright 2008-2010 Sun Microsystems, Inc.
  *      Portions Copyright 2013 ForgeRock AS.
  */
-package org.opends.server.replication.plugin;
+package org.opends.server.replication.service;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.Map.Entry;
 
+import org.assertj.core.api.Assertions;
+import org.assertj.core.data.MapEntry;
 import org.opends.messages.Category;
 import org.opends.messages.Message;
+import org.opends.messages.MessageDescriptor;
 import org.opends.messages.Severity;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.ReplicationTestCase;
@@ -42,12 +43,15 @@ import org.opends.server.replication.common.RSInfo;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.protocol.ReplServerStartMsg;
 import org.opends.server.replication.server.ReplicationServer;
+import org.opends.server.replication.service.ReplicationBroker.RSEvaluations;
 import org.opends.server.replication.service.ReplicationBroker.ReplicationServerInfo;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import static java.util.Collections.*;
 
+import static org.assertj.core.data.MapEntry.*;
+import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.replication.service.ReplicationBroker.*;
@@ -106,11 +110,12 @@ public class ComputeBestServerTest extends ReplicationTestCase
 
     Map<Integer, ReplicationServerInfo> rsInfos =
         newRSInfos(newRSInfo(11, WINNER, aState, 0, 1));
-    ReplicationServerInfo bestServer =
+    RSEvaluations evals =
       computeBestReplicationServer(true, -1, mySt, rsInfos, myId1, (byte)1, 0);
 
-    assertEquals(bestServer.getServerURL(),
-      WINNER, "Wrong best replication server.");
+    assertEquals(evals.getBestRS().getServerURL(), WINNER,
+        "Wrong best replication server.");
+    containsOnly(evals.getEvaluations(), entry(11, NOTE_BEST_RS));
   }
 
   private Map<Integer, ReplicationServerInfo> newRSInfos(
@@ -156,11 +161,12 @@ public class ComputeBestServerTest extends ReplicationTestCase
 
     Map<Integer, ReplicationServerInfo> rsInfos =
         newRSInfos(newRSInfo(11, WINNER, aState, 0, 1));
-    ReplicationServerInfo bestServer =
+    RSEvaluations evals =
       computeBestReplicationServer(true, -1, mySt, rsInfos, myId1, (byte)1, 0);
 
-    assertEquals(bestServer.getServerURL(),
-      WINNER, "Wrong best replication server.");
+    assertEquals(evals.getBestRS().getServerURL(), WINNER,
+        "Wrong best replication server.");
+    containsOnly(evals.getEvaluations(), entry(11, NOTE_BEST_RS));
   }
 
   /**
@@ -187,17 +193,16 @@ public class ComputeBestServerTest extends ReplicationTestCase
 
     Map<Integer, ReplicationServerInfo> rsInfos =
         newRSInfos(newRSInfo(11, WINNER, aState, 0, 1));
-    ReplicationServerInfo bestServer =
+    RSEvaluations evals =
       computeBestReplicationServer(true, -1, mySt, rsInfos, myId1, (byte)1, 0);
 
-    assertEquals(bestServer.getServerURL(),
-      WINNER, "Wrong best replication server.");
+    assertEquals(evals.getBestRS().getServerURL(), WINNER,
+        "Wrong best replication server.");
+    containsOnly(evals.getEvaluations(), entry(11, NOTE_BEST_RS));
   }
 
   /**
    * Test with one replication server, up to date.
-   *
-   * @throws Exception If a problem occurred
    */
   @Test
   public void test1ServerUp() throws Exception
@@ -220,17 +225,16 @@ public class ComputeBestServerTest extends ReplicationTestCase
 
     Map<Integer, ReplicationServerInfo> rsInfos =
         newRSInfos(newRSInfo(11, WINNER, aState, 0, 1));
-    ReplicationServerInfo bestServer =
+    RSEvaluations evals =
       computeBestReplicationServer(true, -1, mySt, rsInfos, myId1, (byte)1, 0);
 
-    assertEquals(bestServer.getServerURL(),
-      WINNER, "Wrong best replication server.");
+    assertEquals(evals.getBestRS().getServerURL(), WINNER,
+        "Wrong best replication server.");
+    containsOnly(evals.getEvaluations(), entry(11, NOTE_BEST_RS));
   }
 
   /**
    * Test with 2 replication servers, up to date.
-   *
-   * @throws Exception If a problem occurred
    */
   @Test
   public void test2ServersUp() throws Exception
@@ -260,17 +264,18 @@ public class ComputeBestServerTest extends ReplicationTestCase
     Map<Integer, ReplicationServerInfo> rsInfos = newRSInfos(
         newRSInfo(11, LOOSER1, aState1, 0, 1),
         newRSInfo(12, WINNER, aState2, 0, 1));
-    ReplicationServerInfo bestServer =
+    RSEvaluations evals =
       computeBestReplicationServer(true, -1, mySt, rsInfos, myId1, (byte)1, 0);
 
-    assertEquals(bestServer.getServerURL(),
-      WINNER, "Wrong best replication server.");
+    assertEquals(evals.getBestRS().getServerURL(), WINNER,
+        "Wrong best replication server.");
+    containsOnly(evals.getEvaluations(),
+        entry(11, NOTE_RS_LATER_THAN_ANOTHER_RS_MORE_UP_TO_DATE_THAN_LOCAL_DS),
+        entry(12, NOTE_BEST_RS));
   }
 
   /**
    * Test with 2 replication servers, up to date, but 2 different group ids.
-   *
-   * @throws Exception If a problem occurred
    */
   @Test
   public void testDiffGroup2ServersUp() throws Exception
@@ -302,17 +307,65 @@ public class ComputeBestServerTest extends ReplicationTestCase
     Map<Integer, ReplicationServerInfo> rsInfos = newRSInfos(
         newRSInfo(11, WINNER, aState1, 0, 1),
         newRSInfo(12, LOOSER1, aState2, 0, 2));
-    ReplicationServerInfo bestServer =
+    RSEvaluations evals =
       computeBestReplicationServer(true, -1, mySt, rsInfos, myId1, (byte)1, 0);
 
-    assertEquals(bestServer.getServerURL(),
-      WINNER, "Wrong best replication server.");
+    assertEquals(evals.getBestRS().getServerURL(), WINNER,
+        "Wrong best replication server.");
+    containsOnly(evals.getEvaluations(),
+        entry(11, NOTE_BEST_RS),
+        entry(12, NOTE_RS_HAS_DIFFERENT_GROUP_ID_THAN_DS));
+  }
+
+  private void containsOnly(final Map<Integer, Message> evaluations,
+      MapEntry... entries)
+  {
+    final List<MapEntry> notFound = new ArrayList<MapEntry>(Arrays.asList(entries));
+    for (Iterator<MapEntry> iter = notFound.iterator(); iter.hasNext();)
+    {
+      final MapEntry entry = iter.next();
+      final Message reason = evaluations.get(entry.key);
+      if (reason != null && reason.getDescriptor().equals(entry.value))
+      {
+        iter.remove();
+      }
+    }
+    if (!notFound.isEmpty())
+    {
+      final StringBuilder sb = new StringBuilder("expecting:\n");
+      sb.append("  <").append(getDescription(evaluations)).append(">\n");
+      sb.append("   to contain:\n");
+      sb.append("  <").append(getDescription(Arrays.asList(entries))).append(">\n");
+      sb.append("   but could not find:\n");
+      sb.append("  <").append(getDescription(notFound)).append(">");
+      throw new AssertionError(sb.toString());
+    }
+
+    Assertions.assertThat(evaluations).hasSize(entries.length);
+  }
+
+  private Map<Integer, String> getDescription(Map<Integer, Message> evaluations)
+  {
+    final Map<Integer, String> result = new LinkedHashMap<Integer, String>();
+    for (Entry<Integer, Message> entry : evaluations.entrySet())
+    {
+      result.put(entry.getKey(), entry.getValue().getDescriptor().getKey());
+    }
+    return result;
+  }
+
+  private List<MapEntry> getDescription(List<MapEntry> entries)
+  {
+    final List<MapEntry> result = new ArrayList<MapEntry>();
+    for (MapEntry entry : entries)
+    {
+      result.add(entry(entry.key, ((MessageDescriptor) entry.value).getKey()));
+    }
+    return result;
   }
 
   /**
    * Test with 2 replication servers, none of them from our group id.
-   *
-   * @throws Exception If a problem occurred
    */
   @Test
   public void testNotOurGroup() throws Exception
@@ -342,17 +395,18 @@ public class ComputeBestServerTest extends ReplicationTestCase
     Map<Integer, ReplicationServerInfo> rsInfos = newRSInfos(
         newRSInfo(11, LOOSER1, aState1, 0, 2),
         newRSInfo(12, WINNER, aState2, 0, 2));
-    ReplicationServerInfo bestServer =
+    RSEvaluations evals =
       computeBestReplicationServer(true, -1, mySt, rsInfos, myId1, (byte)1, 0);
 
-    assertEquals(bestServer.getServerURL(),
-      WINNER, "Wrong best replication server.");
+    assertEquals(evals.getBestRS().getServerURL(), WINNER,
+        "Wrong best replication server.");
+    containsOnly(evals.getEvaluations(),
+        entry(11, NOTE_RS_LATER_THAN_ANOTHER_RS_MORE_UP_TO_DATE_THAN_LOCAL_DS),
+        entry(12, NOTE_BEST_RS));
   }
 
   /**
    * Test with 3 replication servers, up to date.
-   *
-   * @throws Exception If a problem occurred
    */
   @Test
   public void test3ServersUp() throws Exception
@@ -389,17 +443,19 @@ public class ComputeBestServerTest extends ReplicationTestCase
         newRSInfo(11, LOOSER1, aState1, 0, 1),
         newRSInfo(12, LOOSER2, aState2, 0, 1),
         newRSInfo(13, WINNER, aState3, 0, 1));
-    ReplicationServerInfo bestServer =
+    RSEvaluations evals =
       computeBestReplicationServer(true, -1, mySt, rsInfos, myId1, (byte)1, 0);
 
-    assertEquals(bestServer.getServerURL(),
-      WINNER, "Wrong best replication server.");
+    assertEquals(evals.getBestRS().getServerURL(), WINNER,
+        "Wrong best replication server.");
+    containsOnly(evals.getEvaluations(),
+        entry(11, NOTE_RS_LATER_THAN_ANOTHER_RS_MORE_UP_TO_DATE_THAN_LOCAL_DS),
+        entry(12, NOTE_RS_LATER_THAN_ANOTHER_RS_MORE_UP_TO_DATE_THAN_LOCAL_DS),
+        entry(13, NOTE_BEST_RS));
   }
 
   /**
    * Test with 3 replication servers, up to date, but 2 different group ids.
-   *
-   * @throws Exception If a problem occurred
    */
   @Test
   public void testDiffGroup3ServersUp() throws Exception
@@ -438,17 +494,19 @@ public class ComputeBestServerTest extends ReplicationTestCase
         // This server has less changes than looser2 but it has the same
         // group id as us so he should be the winner
         newRSInfo(13, WINNER, aState3, 0, 1));
-    ReplicationServerInfo bestServer =
+    RSEvaluations evals =
       computeBestReplicationServer(true, -1, mySt, rsInfos, myId1, (byte)1, 0);
 
-    assertEquals(bestServer.getServerURL(),
-      WINNER, "Wrong best replication server.");
+    assertEquals(evals.getBestRS().getServerURL(), WINNER,
+        "Wrong best replication server.");
+    containsOnly(evals.getEvaluations(),
+        entry(11, NOTE_RS_LATER_THAN_ANOTHER_RS_MORE_UP_TO_DATE_THAN_LOCAL_DS),
+        entry(12, NOTE_RS_HAS_DIFFERENT_GROUP_ID_THAN_DS),
+        entry(13, NOTE_BEST_RS));
   }
 
   /**
    * Test with one replication server, late.
-   *
-   * @throws Exception If a problem occurred
    */
   @Test
   public void test1ServerLate() throws Exception
@@ -471,43 +529,60 @@ public class ComputeBestServerTest extends ReplicationTestCase
 
     Map<Integer, ReplicationServerInfo> rsInfos =
         newRSInfos(newRSInfo(11, WINNER, aState, 0, 1));
-    ReplicationServerInfo bestServer =
+    RSEvaluations evals =
       computeBestReplicationServer(true, -1, mySt, rsInfos, myId1, (byte) 1, 0);
 
-    assertEquals(bestServer.getServerURL(),
-      WINNER, "Wrong best replication server.");
+    assertEquals(evals.getBestRS().getServerURL(), WINNER,
+        "Wrong best replication server.");
+    containsOnly(evals.getEvaluations(), entry(11, NOTE_BEST_RS));
   }
 
   @DataProvider(name = "create3ServersData")
   public Object[][] create3ServersData() {
     return new Object[][] {
         // first RS is up to date, the others are late none is local
-        { 4, 2, 3, false, 1, 2, 3, false, 2, 3, 4, false},
+        { 4, 2, 3, false,
+          1, 2, 3, false,
+          2, 3, 4, false},
 
         // test that the local RS  is chosen first when all up to date
-        { 4, 2, 3, true, 4, 2, 3, false, 4, 2, 3, false},
+        { 4, 2, 3, true,
+          4, 2, 3, false,
+          4, 2, 3, false},
 
         // test that the local ServerID is more important than the others
-        { 4, 0, 0, false, 2, 100, 100, false, 1, 100, 100, false},
+        { 4, 0, 0, false,
+          2, 100, 100, false,
+          1, 100, 100, false},
 
         // test that a remote RS is chosen first when up to date when the local
         // one is late
-        { 4, 1, 1, false, 3, 1, 1, true, 3, 1, 1, false},
+        { 4, 1, 1, false,
+          3, 1, 1, true,
+          3, 1, 1, false},
 
         // test that the local RS is not chosen first when it is missing
         // local changes
-        { 4, 1, 1, false, 3, 2, 3, false, 1, 1, 1, true},
+        { 4, 1, 1, false,
+          3, 2, 3, false,
+          1, 1, 1, true},
 
         // test that a RS which is more up to date than the DS is chosen
-        { 5, 1, 1, false, 2, 0, 0, false, 1, 1, 1, false},
+        { 5, 1, 1, false,
+          2, 0, 0, false,
+          1, 1, 1, false},
 
         // test that a RS which is more up to date than the DS is chosen even
         // is some RS with the same last change from the DS
-        { 5, 1, 1, false, 4, 0, 0, false, 4, 1, 1, false},
+        { 5, 1, 1, false,
+          4, 0, 0, false,
+          4, 1, 1, false},
 
         // test that the local RS is chosen first when it is missing
         // the same local changes as the other RSs
-        { 3, 1, 1, true, 2, 1, 1, false, 3, 1, 1, false},
+        { 3, 1, 1, true,
+          2, 1, 1, false,
+          3, 1, 1, false},
         };
   }
 
@@ -564,13 +639,31 @@ public class ComputeBestServerTest extends ReplicationTestCase
         newRSInfo(11, LOOSER1, aState1, 0, 1),
         newRSInfo(12, WINNER, aState2, 0, 1),
         newRSInfo(13, LOOSER2, aState3, 0, 1));
-    ReplicationServerInfo bestServer =
+    RSEvaluations evals =
       computeBestReplicationServer(true, -1, mySt, rsInfos, myId1, (byte) 1, 0);
 
     ReplicationServer.onlyForTestsClearLocalReplicationServerList();
 
-    assertEquals(bestServer.getServerURL(),
-      WINNER, "Wrong best replication server.");
+    assertEquals(evals.getBestRS().getServerURL(), WINNER,
+        "Wrong best replication server.");
+    final boolean winnerIsLatestRS = winnerT1 > 4 && looser1T1 == 4 && looser2T1 == 4;
+    containsOnly(evals.getEvaluations(),
+        entry(11, getEval1(winnerIsLocal, looser1IsLocal, winnerIsLatestRS)),
+        entry(12, NOTE_BEST_RS),
+        entry(13, getEval1(winnerIsLocal, looser2IsLocal, winnerIsLatestRS)));
+  }
+
+  private MessageDescriptor getEval1(boolean winnerIsLocal, boolean looserIsLocal, boolean winnerIsLatestRS)
+  {
+    if (winnerIsLocal && !looserIsLocal)
+    {
+      return NOTE_RS_ON_DIFFERENT_VM_THAN_DS;
+    }
+    else if (winnerIsLatestRS)
+    {
+      return NOTE_RS_LATER_THAN_ANOTHER_RS_MORE_UP_TO_DATE_THAN_LOCAL_DS;
+    }
+    return NOTE_RS_LATER_THAN_LOCAL_DS;
   }
 
   @DataProvider(name = "test3ServersMoreCriteria")
@@ -578,15 +671,21 @@ public class ComputeBestServerTest extends ReplicationTestCase
     return new Object[][] {
         // Test that a RS is chosen if its group is ok whereas the other parameters
         // are not ok
-        { 1L, 1L, (byte)1, false, 4L, 0L, (byte)2, false, 4L, 0L, (byte)3, false},
+        { 1L, 1L, 1, false,
+          4L, 0L, 2, false,
+          4L, 0L, 3, false},
 
         // Test that a RS is chosen if its genid is ok (all RS with same group)
         // and state is not ok
-        { 1L, 0L, (byte)1, false, 4L, 1L, (byte)1, false, 4L, 2L, (byte)1, false},
+        { 1L, 0L, 1, false,
+          4L, 1L, 1, false,
+          4L, 2L, 1, false},
 
         // Test that a RS is chosen if all servers have wrong genid and group id
         // but it is local
-        { 1L, 1L, (byte)2, true, 4L, 2L, (byte)3, false, 5L, 3L, (byte)4, false}
+        { 1L, 1L, 2, true,
+          4L, 2L, 3, false,
+          5L, 3L, 4, false}
         };
   }
 
@@ -595,9 +694,9 @@ public class ComputeBestServerTest extends ReplicationTestCase
    */
   @Test(dataProvider =  "test3ServersMoreCriteria")
   public void test3ServersMoreCriteria(
-      long winnerT1, long winnerGenId, byte winnerGroupId, boolean winnerIsLocal,
-      long looser1T1, long looser1GenId, byte looser1GroupId, boolean looser1IsLocal,
-      long looser2T1, long looser2GenId, byte looser2GroupId, boolean looser2IsLocal)
+      long winnerT1, long winnerGenId, int winnerGroupId, boolean winnerIsLocal,
+      long looser1T1, long looser1GenId, int looser1GroupId, boolean looser1IsLocal,
+      long looser2T1, long looser2GenId, int looser2GroupId, boolean looser2IsLocal)
       throws Exception
   {
     String testCase = "test3ServersMoreCriteria";
@@ -635,13 +734,30 @@ public class ComputeBestServerTest extends ReplicationTestCase
         newRSInfo(11, LOOSER1, aState1, looser1GenId, looser1GroupId),
         newRSInfo(12, WINNER, aState2, winnerGenId, winnerGroupId),
         newRSInfo(13, LOOSER2, aState3, looser2GenId, looser2GroupId));
-    ReplicationServerInfo bestServer =
+    RSEvaluations evals =
       computeBestReplicationServer(true, -1, mySt, rsInfos, myId1, (byte) 1, 0);
 
     ReplicationServer.onlyForTestsClearLocalReplicationServerList();
 
-    assertEquals(bestServer.getServerURL(),
-      WINNER, "Wrong best replication server.");
+    assertEquals(evals.getBestRS().getServerURL(), WINNER,
+        "Wrong best replication server.");
+    containsOnly(evals.getEvaluations(),
+        entry(11, getEval2(winnerGroupId == looser1GroupId, winnerIsLocal, looser1IsLocal)),
+        entry(12, NOTE_BEST_RS),
+        entry(13, getEval2(winnerGroupId == looser2GroupId, winnerIsLocal, looser2IsLocal)));
+  }
+
+  private MessageDescriptor getEval2(boolean sameGroupId, boolean winnerIsLocal, boolean looserIsLocal)
+  {
+    if (winnerIsLocal && !looserIsLocal)
+    {
+      return NOTE_RS_ON_DIFFERENT_VM_THAN_DS;
+    }
+    else if (!sameGroupId)
+    {
+      return NOTE_RS_HAS_DIFFERENT_GROUP_ID_THAN_DS;
+    }
+    return NOTE_RS_HAS_DIFFERENT_GENERATION_ID_THAN_DS;
   }
 
   @SuppressWarnings("unchecked")
@@ -691,7 +807,7 @@ public class ComputeBestServerTest extends ReplicationTestCase
       rsInfos,
       -1, // current RS id
       -1, // local DS id
-      rsInfos.values().iterator().next().getServerURL(), // winner url
+      "BwinnerHost:123", // winner url
     };
 
     /**
@@ -738,7 +854,7 @@ public class ComputeBestServerTest extends ReplicationTestCase
       rsInfos,
       -1, // current RS id
       -1, // local DS id
-      rsInfos.values().iterator().next().getServerURL(), // winner url
+      "DwinnerHost:123", // winner url
     };
 
     /**
@@ -1311,8 +1427,9 @@ public class ComputeBestServerTest extends ReplicationTestCase
 
     debugInfo("Starting " + testCase);
 
-    ReplicationServerInfo bestServer =
-      computeBestServerForWeight(servers, currentRsServerId, localServerId);
+    final RSEvaluations evals = new RSEvaluations(localServerId, servers);
+    computeBestServerForWeight(evals, currentRsServerId, localServerId);
+    final ReplicationServerInfo bestServer = evals.getBestRS();
 
     if (winnerUrl == null)
     {
