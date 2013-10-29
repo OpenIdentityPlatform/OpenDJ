@@ -247,7 +247,7 @@ public class AssuredReplicationServerTest
     int scenario)
         throws Exception
   {
-    ReplicationDomainCfg config = newFakeCfg(serverId, getRsPort(rsId));
+    ReplicationDomainCfg config = newFakeCfg(serverId, getRsPort(rsId), groupId);
     return createFakeReplicationDomain(config, groupId, rsId, generationId, assured,
       assuredMode, safeDataLevel, assuredTimeout, scenario, new ServerState(), true);
   }
@@ -312,10 +312,10 @@ public class AssuredReplicationServerTest
     return fakeReplicationDomain;
   }
 
-  private DomainFakeCfg newFakeCfg(int serverId, int rsPort) throws Exception
+  private DomainFakeCfg newFakeCfg(int serverId, int rsPort, int groupId) throws Exception
   {
-    DN baseDN = DN.decode(TEST_ROOT_DN_STRING);
-    DomainFakeCfg fakeCfg = new DomainFakeCfg(baseDN, serverId, newSortedSet("localhost:" + rsPort));
+    DomainFakeCfg fakeCfg = new DomainFakeCfg(
+        DN.decode(TEST_ROOT_DN_STRING), serverId, newSortedSet("localhost:" + rsPort), groupId);
     fakeCfg.setHeartbeatInterval(1000);
     fakeCfg.setChangetimeHeartbeatInterval(500);
     return fakeCfg;
@@ -2105,7 +2105,7 @@ public class AssuredReplicationServerTest
       // Create and connect DS 2 to RS 1
       // Assured mode: SR
       ServerState serverState = fakeRd1.getServerState();
-      ReplicationDomainCfg config = newFakeCfg(FDS2_ID, getRsPort(RS1_ID));
+      ReplicationDomainCfg config = newFakeCfg(FDS2_ID, getRsPort(RS1_ID), DEFAULT_GID);
       fakeRDs[2] = createFakeReplicationDomain(config, DEFAULT_GID, RS1_ID,
         DEFAULT_GENID, true, AssuredMode.SAFE_READ_MODE, 1, LONG_TIMEOUT,
               REPLY_OK_DS_SCENARIO, serverState, true);
@@ -3187,7 +3187,7 @@ public class AssuredReplicationServerTest
         TIMEOUT_DS_SCENARIO);
 
       // DS 2 connected to RS 1 with low window to easily put it in DEGRADED status
-      DomainFakeCfg config = newFakeCfg(FDS2_ID, getRsPort(RS1_ID));
+      DomainFakeCfg config = newFakeCfg(FDS2_ID, getRsPort(RS1_ID), DEFAULT_GID);
       config.setWindowSize(2);
       fakeRDs[2] = createFakeReplicationDomain(config, DEFAULT_GID, RS1_ID,
         DEFAULT_GENID, true, AssuredMode.SAFE_READ_MODE, 1, LONG_TIMEOUT,
