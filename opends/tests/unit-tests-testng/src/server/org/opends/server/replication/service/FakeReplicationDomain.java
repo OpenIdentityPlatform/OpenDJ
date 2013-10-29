@@ -70,22 +70,23 @@ public class FakeReplicationDomain extends ReplicationDomain
   private long generationID = 1;
 
   private FakeReplicationDomain(DN baseDN, int serverID,
-      SortedSet<String> replicationServers, long heartbeatInterval)
+      SortedSet<String> replicationServers, int window, long heartbeatInterval)
       throws ConfigException
   {
     super(baseDN, serverID, 100);
     DomainFakeCfg fakeCfg = new DomainFakeCfg(baseDN, serverID, replicationServers);
     fakeCfg.setHeartbeatInterval(heartbeatInterval);
     fakeCfg.setChangetimeHeartbeatInterval(500);
+    fakeCfg.setWindowSize(window);
     startPublishService(fakeCfg);
     startListenService();
   }
 
   public FakeReplicationDomain(DN baseDN, int serverID,
-      SortedSet<String> replicationServers, long heartbeatInterval,
+      SortedSet<String> replicationServers, int window, long heartbeatInterval,
       BlockingQueue<UpdateMsg> queue) throws ConfigException
   {
-    this(baseDN, serverID, replicationServers, heartbeatInterval);
+    this(baseDN, serverID, replicationServers, window, heartbeatInterval);
     this.queue = queue;
   }
 
@@ -94,7 +95,7 @@ public class FakeReplicationDomain extends ReplicationDomain
       String exportString, StringBuilder importString, int exportedEntryCount)
       throws ConfigException
   {
-    this(baseDN, serverID, replicationServers, heartbeatInterval);
+    this(baseDN, serverID, replicationServers, 100, heartbeatInterval);
     this.exportString = exportString;
     this.importString = importString;
     this.exportedEntryCount = exportedEntryCount;

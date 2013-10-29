@@ -96,12 +96,12 @@ public class ReplicationDomainTest extends ReplicationTestCase
       SortedSet<String> servers = newSortedSet("localhost:" + replServerPort1);
       BlockingQueue<UpdateMsg> rcvQueue1 = new LinkedBlockingQueue<UpdateMsg>();
       domain1 = new FakeReplicationDomain(
-          testService, domain1ServerId, servers, 1000, rcvQueue1);
+          testService, domain1ServerId, servers, 100, 1000, rcvQueue1);
 
       SortedSet<String> servers2 = newSortedSet("localhost:" + replServerPort2);
       BlockingQueue<UpdateMsg> rcvQueue2 = new LinkedBlockingQueue<UpdateMsg>();
       domain2 = new FakeReplicationDomain(
-          testService, domain2ServerId, servers2, 1000, rcvQueue2);
+          testService, domain2ServerId, servers2, 100, 1000, rcvQueue2);
 
       Thread.sleep(500);
 
@@ -218,7 +218,7 @@ public class ReplicationDomainTest extends ReplicationTestCase
       SortedSet<String> servers = newSortedSet("localhost:" + replServerPort);
       BlockingQueue<UpdateMsg> rcvQueue1 = new LinkedBlockingQueue<UpdateMsg>();
       domain1 = new FakeReplicationDomain(
-          testService, domain1ServerId, servers, 100000, rcvQueue1);
+          testService, domain1ServerId, servers, 1000, 100000, rcvQueue1);
 
 
       /*
