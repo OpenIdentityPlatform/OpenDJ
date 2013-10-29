@@ -226,6 +226,8 @@ public class StateMachineTest extends ReplicationTestCase
   {
     SortedSet<String> replServers = newSortedSet("localhost:" + rs1Port);
     DomainFakeCfg fakeCfg = new DomainFakeCfg(EXAMPLE_DN_, dsId, replServers);
+    fakeCfg.setHeartbeatInterval(0);
+    fakeCfg.setChangetimeHeartbeatInterval(500);
     ReplSessionSecurity security = new ReplSessionSecurity(null, null, null, true);
     ReplicationBroker broker = new ReplicationBroker(null, state, fakeCfg, generationId, security);
     broker.start();
