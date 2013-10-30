@@ -27,17 +27,17 @@
  */
 package org.opends.server.replication.server;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.replication.common.AssuredMode;
 import org.opends.server.replication.common.DSInfo;
 import org.opends.server.replication.common.ServerState;
-import org.opends.server.replication.common.ServerStatus;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.Attributes;
@@ -62,10 +62,7 @@ public class LightweightServerHandler
   private static final DebugTracer TRACER = getTracer();
 
   private final ReplicationServerHandler replServerHandler;
-  private final ReplicationServerDomain rsDomain;
 
-  /** Server id of this DS. */
-  private final int serverId;
   /** All the information for this DS. */
   private final DSInfo dsInfo;
 
@@ -74,44 +71,19 @@ public class LightweightServerHandler
    * connected to the remote Replication Server represented by
    * replServerHandler.
    *
-   * @param replServerHandler The server handler of the RS this remote DS is
-   * connected to
-   * @param replicationServerId The serverId of the RS this remote DS is
-   * connected to
-   * @param serverId The serverId of this remote DS.
-   * @param serverUrl The serverUrl of this remote DS.
-   * @param generationId The generation id of this remote DS.
-   * @param groupId The group id of the remote DS
-   * @param status The  id of the remote DS
-   * @param refUrls The exported referral URLs of the remote DS
-   * @param assuredFlag The assured flag of the remote DS
-   * @param assuredMode The assured mode of the remote DS
-   * @param safeDataLevel The safe data level of the remote DS
-   * @param eclInclude The list of entry attributes to be added to the ECL.
-   * @param eclIncludeForDeletes The list of entry attributes to be added to
-   *                             the ECL.
-   * @param protocolVersion The protocol version supported by the remote DS.
+   * @param replServerHandler
+   *          The server handler of the RS this remote DS is connected to
+   * @param dsInfo
+   *          all the info for the represented DS
    */
   public LightweightServerHandler(ReplicationServerHandler replServerHandler,
-      int replicationServerId, int serverId, String serverUrl,
-      long generationId, byte groupId, ServerStatus status,
-      List<String> refUrls, boolean assuredFlag, AssuredMode assuredMode,
-      byte safeDataLevel, Set<String> eclInclude,
-      Set<String> eclIncludeForDeletes, short protocolVersion)
+      DSInfo dsInfo)
   {
     this.replServerHandler = replServerHandler;
-    this.rsDomain = replServerHandler.getDomain();
-    this.serverId = serverId;
-
-    this.dsInfo =
-        new DSInfo(serverId, serverUrl, replicationServerId, generationId,
-            status, assuredFlag, assuredMode, safeDataLevel, groupId, refUrls,
-            eclInclude, eclIncludeForDeletes, protocolVersion);
+    this.dsInfo = dsInfo;
 
     if (debugEnabled())
-      TRACER.debugInfo("In " + rsDomain.getLocalRSMonitorInstanceName()
-          + " LWSH for remote server " + serverId + " connected to:"
-          + this.replServerHandler.getMonitorInstanceName() + " ()");
+      debugInfo("()");
   }
 
   /**
@@ -124,12 +96,13 @@ public class LightweightServerHandler
   }
 
   /**
-   * Get the serverID associated with this LDAP server.
+   * Get the serverID associated with this LDAP server / directory server.
+   *
    * @return The serverId.
    */
   public int getServerId()
   {
-    return serverId;
+    return dsInfo.getDsId();
   }
 
   /**
@@ -138,9 +111,7 @@ public class LightweightServerHandler
   public void startHandler()
   {
     if (debugEnabled())
-      TRACER.debugInfo("In " + rsDomain.getLocalRSMonitorInstanceName()
-          + " LWSH for remote server " + this.serverId + " connected to:"
-          + this.replServerHandler.getMonitorInstanceName() + " start");
+      debugInfo("start");
     DirectoryServer.deregisterMonitorProvider(this);
     DirectoryServer.registerMonitorProvider(this);
   }
@@ -151,10 +122,16 @@ public class LightweightServerHandler
   public void stopHandler()
   {
     if (debugEnabled())
-      TRACER.debugInfo("In " + rsDomain.getLocalRSMonitorInstanceName()
-          + " LWSH for remote server " + this.serverId + " connected to:"
-          + this.replServerHandler.getMonitorInstanceName() + " stop");
+      debugInfo("stop");
     DirectoryServer.deregisterMonitorProvider(this);
+  }
+
+  private void debugInfo(String message)
+  {
+    final ReplicationServerDomain domain = replServerHandler.getDomain();
+    TRACER.debugInfo("In " + domain.getLocalRSMonitorInstanceName()
+        + " LWSH for remote server " + getServerId() + " connected to:"
+        + replServerHandler.getMonitorInstanceName() + " " + message);
   }
 
   /**
@@ -176,7 +153,7 @@ public class LightweightServerHandler
   @Override
   public String getMonitorInstanceName()
   {
-    return "Connected directory server DS(" + serverId + ") "
+    return "Connected directory server DS(" + dsInfo.getDsId() + ") "
         + dsInfo.getDsUrl()
         + ",cn=" + replServerHandler.getMonitorInstanceName();
   }
@@ -194,15 +171,16 @@ public class LightweightServerHandler
   {
     List<Attribute> attributes = new ArrayList<Attribute>();
 
+    final int serverId = dsInfo.getDsId();
+    final ReplicationServerDomain domain = replServerHandler.getDomain();
     attributes.add(Attributes.create("server-id", String.valueOf(serverId)));
     attributes.add(Attributes.create("domain-name",
-        rsDomain.getBaseDN().toNormalizedString()));
+        domain.getBaseDN().toNormalizedString()));
     attributes.add(Attributes.create("connected-to",
         replServerHandler.getMonitorInstanceName()));
 
     // Retrieves the topology counters
-    ReplicationDomainMonitorData md = rsDomain.getDomainMonitorData();
-
+    final ReplicationDomainMonitorData md = domain.getDomainMonitorData();
     ServerState remoteState = md.getLDAPServerState(serverId);
     if (remoteState == null)
     {

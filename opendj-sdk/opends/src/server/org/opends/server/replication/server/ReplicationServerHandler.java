@@ -617,12 +617,9 @@ public class ReplicationServerHandler extends ServerHandler
       for (DSInfo dsInfo : topoMsg.getDsList())
       {
         // For each DS connected to the peer RS
-        LightweightServerHandler lsh = new LightweightServerHandler(this,
-            serverId, dsInfo.getDsId(), dsInfo.getDsUrl(),
-            dsInfo.getGenerationId(), dsInfo.getGroupId(), dsInfo.getStatus(),
-            dsInfo.getRefUrls(), dsInfo.isAssured(), dsInfo.getAssuredMode(),
-            dsInfo.getSafeDataLevel(), dsInfo.getEclIncludes(),
-            dsInfo.getEclIncludesForDeletes(), dsInfo.getProtocolVersion());
+        DSInfo clonedDSInfo = dsInfo.cloneWithReplicationServerId(serverId);
+        LightweightServerHandler lsh =
+            new LightweightServerHandler(this, clonedDSInfo);
         lsh.startHandler();
         remoteDirectoryServers.put(lsh.getServerId(), lsh);
       }

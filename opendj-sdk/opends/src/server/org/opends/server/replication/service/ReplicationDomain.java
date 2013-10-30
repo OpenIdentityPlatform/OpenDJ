@@ -1592,15 +1592,14 @@ public abstract class ReplicationDomain
    */
   private void waitForRemoteStartOfInit()
   {
-    int waitResultAttempt = 0;
-    Set<Integer> replicasWeAreWaitingFor = new HashSet<Integer>(0);
-
-    replicasWeAreWaitingFor.addAll(ieContext.startList);
+    final Set<Integer> replicasWeAreWaitingFor =
+        new HashSet<Integer>(ieContext.startList);
 
     if (debugEnabled())
       TRACER.debugInfo(
       "[IE] wait for start replicasWeAreWaitingFor=" + replicasWeAreWaitingFor);
 
+    int waitResultAttempt = 0;
     boolean done;
     do
     {
@@ -1609,7 +1608,7 @@ public abstract class ReplicationDomain
       {
         if (debugEnabled())
           TRACER.debugInfo(
-            "[IE] wait for start dsid " + dsi.getDsId()
+            "[IE] wait for start dsId " + dsi.getDsId()
             + " " + dsi.getStatus()
             + " " + dsi.getGenerationId()
             + " " + getGenerationID());
@@ -1651,8 +1650,8 @@ public abstract class ReplicationDomain
    */
   private void waitForRemoteEndOfInit()
   {
-    Set<Integer> replicasWeAreWaitingFor =  new HashSet<Integer>(
-        ieContext.startList);
+    final Set<Integer> replicasWeAreWaitingFor =
+        new HashSet<Integer>(ieContext.startList);
 
     if (debugEnabled())
       TRACER.debugInfo(
@@ -1670,8 +1669,8 @@ public abstract class ReplicationDomain
     do
     {
       done = true;
-      short reconnectMaxDelayInSec = 10;
-      short reconnectWait = 0;
+      int reconnectMaxDelayInSec = 10;
+      int reconnectWait = 0;
       Iterator<Integer> it = replicasWeAreWaitingFor.iterator();
       while (it.hasNext())
       {
@@ -1735,8 +1734,6 @@ public abstract class ReplicationDomain
     if (debugEnabled())
       TRACER.debugInfo(
         "[IE] wait for end ends with " + ieContext.failureList);
-
-
   }
 
   /**
