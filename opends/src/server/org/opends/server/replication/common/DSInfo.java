@@ -239,6 +239,22 @@ public final class DSInfo
   }
 
   /**
+   * Returns a new instance of {@link DSInfo} with the specified replication
+   * server Id.
+   *
+   * @param rsId
+   *          the replication server Id to set on the new DSInfo object.
+   * @return a new instance of {@link DSInfo} with the specified replication
+   *         server Id.
+   */
+  public DSInfo cloneWithReplicationServerId(int rsId)
+  {
+    return new DSInfo(dsId, dsUrl, rsId, generationId, status, assuredFlag,
+        assuredMode, safeDataLevel, groupId, refUrls, eclIncludes,
+        eclIncludesForDeletes, protocolVersion);
+  }
+
+  /**
    * Test if the passed object is equal to this one.
    * @param obj The object to test
    * @return True if both objects are equal
