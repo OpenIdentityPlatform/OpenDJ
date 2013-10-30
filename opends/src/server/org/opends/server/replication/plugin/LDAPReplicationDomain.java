@@ -3491,9 +3491,8 @@ private boolean solveNamingConflict(ModifyDNOperation op,
 
       if (result != ResultCode.SUCCESS)
       {
-        Message message = ERR_UPDATING_GENERATION_ID.get(
-            result.getResultCodeName() + " " , getBaseDNString());
-        logError(message);
+        logError(ERR_UPDATING_GENERATION_ID.get(
+            result.getResultCodeName(), getBaseDNString()));
       }
     }
     else

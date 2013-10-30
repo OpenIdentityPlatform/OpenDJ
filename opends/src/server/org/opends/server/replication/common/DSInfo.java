@@ -323,32 +323,19 @@ public final class DSInfo
   public String toString()
   {
     StringBuilder sb = new StringBuilder();
-    sb.append("\nDS id: ");
-    sb.append(dsId);
-    sb.append(" ; DS url: ");
-    sb.append(dsUrl);
-    sb.append(" ; RS id: ");
-    sb.append(rsId);
-    sb.append(" ; Generation id: ");
-    sb.append(generationId);
-    sb.append(" ; Status: ");
-    sb.append(status);
-    sb.append(" ; Assured replication: ");
-    sb.append(assuredFlag);
-    sb.append(" ; Assured mode: ");
-    sb.append(assuredMode);
-    sb.append(" ; Safe data level: ");
-    sb.append(safeDataLevel);
-    sb.append(" ; Group id: ");
-    sb.append(groupId);
-    sb.append(" ; Protocol version: ");
-    sb.append(protocolVersion);
-    sb.append(" ; Referral URLs: ");
-    sb.append(refUrls);
-    sb.append(" ; ECL Include: ");
-    sb.append(eclIncludes);
-    sb.append(" ; ECL Include for Deletes: ");
-    sb.append(eclIncludesForDeletes);
+    sb.append("DS id: ").append(dsId);
+    sb.append(" ; DS url: ").append(dsUrl);
+    sb.append(" ; RS id: ").append(rsId);
+    sb.append(" ; Generation id: ").append(generationId);
+    sb.append(" ; Status: ").append(status);
+    sb.append(" ; Assured replication: ").append(assuredFlag);
+    sb.append(" ; Assured mode: ").append(assuredMode);
+    sb.append(" ; Safe data level: ").append(safeDataLevel);
+    sb.append(" ; Group id: ").append(groupId);
+    sb.append(" ; Protocol version: ").append(protocolVersion);
+    sb.append(" ; Referral URLs: ").append(refUrls);
+    sb.append(" ; ECL Include: ").append(eclIncludes);
+    sb.append(" ; ECL Include for Deletes: ").append(eclIncludesForDeletes);
     return sb.toString();
   }
 
