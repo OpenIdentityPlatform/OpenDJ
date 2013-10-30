@@ -27,10 +27,6 @@
  */
 package org.opends.server.tasks;
 
-import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.core.DirectoryServer.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-
 import java.util.List;
 
 import org.opends.messages.Message;
@@ -41,6 +37,12 @@ import org.opends.server.backends.task.TaskState;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.plugin.LDAPReplicationDomain;
 import org.opends.server.types.*;
+
+import static org.opends.messages.BackendMessages.*;
+import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.core.DirectoryServer.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class provides an implementation of a Directory Server task that can
@@ -54,8 +56,8 @@ public class InitializeTargetTask extends Task
   private static final DebugTracer TRACER = getTracer();
 
   // Config properties
-  private String  domainString            = null;
-  private LDAPReplicationDomain domain = null;
+  private String domainString;
+  private LDAPReplicationDomain domain;
   private int target;
   private long total;
 
@@ -70,7 +72,8 @@ public class InitializeTargetTask extends Task
   /**
    * {@inheritDoc}
    */
-  @Override public void initializeTask() throws DirectoryException
+  @Override
+  public void initializeTask() throws DirectoryException
   {
     if (TaskState.isDone(getTaskState()))
     {
@@ -80,16 +83,12 @@ public class InitializeTargetTask extends Task
     // FIXME -- Do we need any special authorization here?
     Entry taskEntry = getTaskEntry();
 
-    AttributeType typeDomainBase;
-    AttributeType typeScope;
-
-    typeDomainBase =
+    AttributeType typeDomainBase =
       getAttributeType(ATTR_TASK_INITIALIZE_TARGET_DOMAIN_DN, true);
-    typeScope =
+    AttributeType typeScope =
       getAttributeType(ATTR_TASK_INITIALIZE_TARGET_SCOPE, true);
 
-    List<Attribute> attrList;
-    attrList = taskEntry.getAttribute(typeDomainBase);
+    List<Attribute> attrList = taskEntry.getAttribute(typeDomainBase);
     domainString = TaskUtils.getSingleValueString(attrList);
 
     try
@@ -102,7 +101,8 @@ public class InitializeTargetTask extends Task
     {
       MessageBuilder mb = new MessageBuilder();
       mb.append(TaskMessages.ERR_TASK_INITIALIZE_INVALID_DN.get());
-      mb.append(e.getMessage());
+      mb.append(" ");
+      mb.append(stackTraceToSingleLineString(e));
       throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX, e);
     }
 
@@ -127,12 +127,17 @@ public class InitializeTargetTask extends Task
     {
       domain.initializeRemote(target, this);
     }
-    catch(DirectoryException de)
+    catch (DirectoryException e)
     {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
+
       // This log will go to the task log message
-      MessageBuilder mb = new MessageBuilder();
-      mb.append(de.getMessageObject());
-      logError(mb.toMessage());
+      Message message = ERR_TASK_EXECUTE_FAILED.get(
+          String.valueOf(getTaskEntryDN()), stackTraceToSingleLineString(e));
+      logError(message);
 
       return TaskState.STOPPED_BY_ERROR;
     }
@@ -147,8 +152,7 @@ public class InitializeTargetTask extends Task
   public void setTotal(long total) throws DirectoryException
   {
     this.total = total;
-    replaceAttributeValue(ATTR_TASK_INITIALIZE_LEFT,
-        String.valueOf(total));
+    replaceAttributeValue(ATTR_TASK_INITIALIZE_LEFT, String.valueOf(total));
     replaceAttributeValue(ATTR_TASK_INITIALIZE_DONE, String.valueOf(0));
   }
 

@@ -23,33 +23,28 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS
  */
 package org.opends.server.backends.task;
+
+import java.util.Map;
+
 import org.opends.messages.Message;
-
-
-
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.DebugLogLevel;
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.messages.BackendMessages.*;
-
+import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.StaticUtils.*;
-
-import java.util.Map;
-
-
 
 /**
  * This class defines a thread that will be used to execute a scheduled task
  * within the server and provide appropriate notification that the task is
  * complete.
  */
-public class TaskThread
-       extends DirectoryThread
+public class TaskThread extends DirectoryThread
 {
   /**
    * The tracer object for the debug logger.
@@ -58,17 +53,19 @@ public class TaskThread
 
 
 
-  // Indicates whether a request has been made for this thread to exit.
+  /** Indicates whether a request has been made for this thread to exit. */
   private volatile boolean exitRequested;
 
-  // The thread ID for this task thread.
+  /** The thread ID for this task thread. */
   private int threadID;
 
-  // The reference to the scheduler with which this thread is associated.
+  /** The reference to the scheduler with which this thread is associated. */
   private TaskScheduler taskScheduler;
 
-  // The object that will be used for signaling the thread when there is new
-  // work to perform.
+  /**
+   * The object that will be used for signaling the thread when there is new
+   * work to perform.
+   */
   private final Object notifyLock;
 
 
@@ -206,8 +203,8 @@ public class TaskThread
 
           taskState = task.execute();
 
-          message = NOTE_TASK_FINISHED.get(
-            task.getDisplayName(), task.getTaskID());
+          message = NOTE_TASK_FINISHED.get(task.getDisplayName(),
+              task.getTaskID(), taskState.getDisplayName());
           logError(message);
         }
       }
@@ -247,7 +244,7 @@ public class TaskThread
 
 
   /**
-   * Retrieves any relevent debug information with which this tread is
+   * Retrieves any relevant debug information with which this tread is
    * associated so they can be included in debug messages.
    *
    * @return debug information about this thread as a string.
