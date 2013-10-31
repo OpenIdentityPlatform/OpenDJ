@@ -26,25 +26,6 @@
 
 package org.forgerock.opendj.ldap;
 
-import static org.fest.assertions.Assertions.assertThat;
-import static org.fest.assertions.Fail.fail;
-import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
-import static org.forgerock.opendj.ldap.SearchScope.BASE_OBJECT;
-import static org.forgerock.opendj.ldap.TestCaseUtils.mockConnection;
-import static org.forgerock.opendj.ldap.TestCaseUtils.mockConnectionFactory;
-import static org.forgerock.opendj.ldap.TestCaseUtils.mockTimeSource;
-import static org.forgerock.opendj.ldap.requests.Requests.newModifyRequest;
-import static org.forgerock.opendj.ldap.requests.Requests.newSearchRequest;
-import static org.forgerock.opendj.ldap.requests.Requests.newSimpleBindRequest;
-import static org.forgerock.opendj.ldap.responses.Responses.newResult;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.same;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -62,6 +43,16 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import com.forgerock.opendj.util.CompletedFutureResult;
+
+import static org.fest.assertions.Assertions.*;
+import static org.fest.assertions.Fail.*;
+import static org.forgerock.opendj.ldap.ErrorResultException.*;
+import static org.forgerock.opendj.ldap.SearchScope.*;
+import static org.forgerock.opendj.ldap.TestCaseUtils.*;
+import static org.forgerock.opendj.ldap.requests.Requests.*;
+import static org.forgerock.opendj.ldap.responses.Responses.*;
+import static org.mockito.Matchers.*;
+import static org.mockito.Mockito.*;
 
 /**
  * Tests the connection pool implementation..
@@ -137,10 +128,8 @@ public class HeartBeatConnectionFactoryTestCase extends SdkTestCase {
     @SuppressWarnings("unchecked")
     @Test
     public void testBindWhileHeartBeatInProgress() throws Exception {
-        // Mock connection with successful heartbeat.
-        init(ResultCode.SUCCESS);
+        mockConnectionWithInitialHeartbeatResult(ResultCode.SUCCESS);
 
-        // Get a connection.
         hbc = hbcf.getConnection();
 
         /*
@@ -177,8 +166,7 @@ public class HeartBeatConnectionFactoryTestCase extends SdkTestCase {
 
     @Test
     public void testGetConnection() throws Exception {
-        // Mock connection with successful initial heartbeat.
-        init(ResultCode.SUCCESS);
+        mockConnectionWithInitialHeartbeatResult(ResultCode.SUCCESS);
         hbc = hbcf.getConnection();
         assertThat(hbc).isNotNull();
         assertThat(hbc.isValid()).isTrue();
@@ -186,29 +174,40 @@ public class HeartBeatConnectionFactoryTestCase extends SdkTestCase {
 
     @Test
     public void testGetConnectionAsync() throws Exception {
-        // Mock connection with successful initial heartbeat.
-        init(ResultCode.SUCCESS);
-        hbc = hbcf.getConnectionAsync(null).get();
+        @SuppressWarnings("unchecked")
+        final ResultHandler<Connection> mockResultHandler = mock(ResultHandler.class);
+
+        mockConnectionWithInitialHeartbeatResult(ResultCode.SUCCESS);
+        hbc = hbcf.getConnectionAsync(mockResultHandler).get();
         assertThat(hbc).isNotNull();
         assertThat(hbc.isValid()).isTrue();
+
+        verify(mockResultHandler).handleResult(any(Connection.class));
+        verifyNoMoreInteractions(mockResultHandler);
     }
 
     @Test
     public void testGetConnectionAsyncWithInitialHeartBeatError() throws Exception {
-        // Mock connection with failing initial heartbeat.
-        init(ResultCode.BUSY);
+        @SuppressWarnings("unchecked")
+        final ResultHandler<Connection> mockResultHandler = mock(ResultHandler.class);
+        ErrorResultException expectedException = null;
+
+        mockConnectionWithInitialHeartbeatResult(ResultCode.BUSY);
         try {
-            hbcf.getConnectionAsync(null).get();
+            hbcf.getConnectionAsync(mockResultHandler).get();
             fail("Unexpectedly obtained a connection");
         } catch (final ErrorResultException e) {
             checkInitialHeartBeatFailure(e);
+            expectedException = e;
         }
+
+        verify(mockResultHandler).handleErrorResult(expectedException);
+        verifyNoMoreInteractions(mockResultHandler);
     }
 
     @Test
     public void testGetConnectionWithInitialHeartBeatError() throws Exception {
-        // Mock connection with failing initial heartbeat.
-        init(ResultCode.BUSY);
+        mockConnectionWithInitialHeartbeatResult(ResultCode.BUSY);
         try {
             hbcf.getConnection();
             fail("Unexpectedly obtained a connection");
@@ -219,8 +218,7 @@ public class HeartBeatConnectionFactoryTestCase extends SdkTestCase {
 
     @Test
     public void testHeartBeatSucceedsThenFails() throws Exception {
-        // Mock connection with successful heartbeat.
-        init(ResultCode.SUCCESS);
+        mockConnectionWithInitialHeartbeatResult(ResultCode.SUCCESS);
 
         // Get a connection and check that it was pinged.
         hbc = hbcf.getConnection();
@@ -267,8 +265,7 @@ public class HeartBeatConnectionFactoryTestCase extends SdkTestCase {
 
     @Test
     public void testHeartBeatTimeout() throws Exception {
-        // Mock connection with successful heartbeat.
-        init(ResultCode.SUCCESS);
+        mockConnectionWithInitialHeartbeatResult(ResultCode.SUCCESS);
 
         // Get a connection and check that it was pinged.
         hbc = hbcf.getConnection();
@@ -288,10 +285,8 @@ public class HeartBeatConnectionFactoryTestCase extends SdkTestCase {
     @SuppressWarnings("unchecked")
     @Test
     public void testHeartBeatWhileBindInProgress() throws Exception {
-        // Mock connection with successful heartbeat.
-        init(ResultCode.SUCCESS);
+        mockConnectionWithInitialHeartbeatResult(ResultCode.SUCCESS);
 
-        // Get a connection.
         hbc = hbcf.getConnection();
 
         /*
@@ -331,7 +326,7 @@ public class HeartBeatConnectionFactoryTestCase extends SdkTestCase {
 
     @Test
     public void testToString() {
-        init(ResultCode.SUCCESS);
+        mockConnectionWithInitialHeartbeatResult(ResultCode.SUCCESS);
         assertThat(hbcf.toString()).isNotNull();
     }
 
@@ -347,8 +342,7 @@ public class HeartBeatConnectionFactoryTestCase extends SdkTestCase {
                 ResultCode.BUSY);
     }
 
-    private void init(final ResultCode initialHeartBeatResult) {
-        // Mock connection with successful heartbeat.
+    private void mockConnectionWithInitialHeartbeatResult(final ResultCode initialHeartBeatResult) {
         listeners = new LinkedList<ConnectionEventListener>();
         connection = mockConnection(listeners);
         when(connection.isValid()).thenReturn(true);
