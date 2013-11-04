@@ -4468,7 +4468,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
           if (fakeOp.getCSN().isNewerThan(endCSN) // sanity check
               || !state.cover(fakeOp.getCSN())
               // do not look for replay operations in the future
-              || endCSN.isNewerThan(now()))
+              || currentStartCSN.isNewerThan(now()))
           {
             break;
           }
