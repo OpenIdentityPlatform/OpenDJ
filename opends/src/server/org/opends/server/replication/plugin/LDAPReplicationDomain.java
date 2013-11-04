@@ -4504,7 +4504,9 @@ private boolean solveNamingConflict(ModifyDNOperation op,
 
   private static CSN now()
   {
-    return new CSN(TimeThread.getTime(), 0, 0);
+    // ensure now() will always come last with isNewerThan() test,
+    // even though the timestamp, or the timestamp and seqnum would be the same
+    return new CSN(TimeThread.getTime(), Integer.MAX_VALUE, Integer.MAX_VALUE);
   }
 
   /**
