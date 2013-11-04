@@ -31,6 +31,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.assertj.core.api.Assertions;
 import org.opends.messages.Category;
@@ -187,10 +188,8 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
     LinkedList<ReplicationMsg> opList = new LinkedList<ReplicationMsg>();
     TestBroker session = new TestBroker(opList);
 
-    boolean result =
-      rd1.buildAndPublishMissingChanges(
-          new CSN(startTime, 0, serverId),
-          session);
+      CSN csn = new CSN(startTime, 0, serverId);
+      boolean result = rd1.buildAndPublishMissingChanges(csn, session, new AtomicBoolean());
     assertTrue(result, "buildAndPublishMissingChanges has failed");
     assertEquals(opList.size(), 3, "buildAndPublishMissingChanges should return 3 operations");
     assertTrue(opList.getFirst().getClass().equals(AddMsg.class));
@@ -204,7 +203,7 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
     opList = new LinkedList<ReplicationMsg>();
     session = new TestBroker(opList);
 
-      result = rd1.buildAndPublishMissingChanges(fromCSN, session);
+      result = rd1.buildAndPublishMissingChanges(fromCSN, session, new AtomicBoolean());
     assertTrue(result, "buildAndPublishMissingChanges has failed");
     assertEquals(opList.size(), 1, "buildAndPublishMissingChanges should return 1 operation");
     assertTrue(opList.getFirst().getClass().equals(ModifyMsg.class));
@@ -278,23 +277,21 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
         "dn: cn=test2," + baseDN,
         "changetype: modify",
         "add: description",
-    "description: foo");
+        "description: foo");
     resultCode = TestCaseUtils.applyModifications(false,
         "dn: cn=test1," + baseDN,
         "changetype: modify",
         "add: description",
-    "description: foo");
+        "description: foo");
     assertEquals(resultCode, 0);
 
     LinkedList<ReplicationMsg> opList = new LinkedList<ReplicationMsg>();
     TestBroker session = new TestBroker(opList);
 
-    // Call the buildAndPublishMissingChanges and check that this method
-    // correctly generates the 4 operations in the correct order.
-    boolean result =
-      rd1.buildAndPublishMissingChanges(
-          new CSN(startTime, 0, serverId),
-          session);
+      // Call the buildAndPublishMissingChanges and check that this method
+      // correctly generates the 4 operations in the correct order.
+      CSN csn = new CSN(startTime, 0, serverId);
+      boolean result = rd1.buildAndPublishMissingChanges(csn, session, new AtomicBoolean());
     assertTrue(result, "buildAndPublishMissingChanges has failed");
     assertEquals(opList.size(), 5, "buildAndPublishMissingChanges should return 5 operations");
     ReplicationMsg msg = opList.removeFirst();
@@ -336,14 +333,11 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
   private LDAPReplicationDomain createReplicationDomain(int dsId)
           throws DirectoryException, ConfigException
   {
-    DN baseDN = DN.decode(TEST_ROOT_DN_STRING);
-    DomainFakeCfg domainConf =
-      new DomainFakeCfg(baseDN, dsId, replServers, AssuredType.NOT_ASSURED,
-      2, 1, 0, null);
-    LDAPReplicationDomain replicationDomain =
-      MultimasterReplication.createNewDomain(domainConf);
+    final DN baseDN = DN.decode(TEST_ROOT_DN_STRING);
+    final DomainFakeCfg domainConf = new DomainFakeCfg(
+        baseDN, dsId, replServers, AssuredType.NOT_ASSURED, 2, 1, 0, null);
+    LDAPReplicationDomain replicationDomain = MultimasterReplication.createNewDomain(domainConf);
     replicationDomain.start();
-
     return replicationDomain;
   }
 }
