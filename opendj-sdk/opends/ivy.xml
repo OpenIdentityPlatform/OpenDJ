@@ -30,6 +30,8 @@
     <!ENTITY grizzly.version    "2.3.6">
     <!ENTITY opendj.sdk.version "2.7.0-SNAPSHOT">
     <!ENTITY crest.version      "2.1.0-SNAPSHOT">
+    <!ENTITY jackson.version    "1.9.2">
+    <!ENTITY slf4j.version      "1.7.5">
 ]>
 <ivy-module version="2.0"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -58,19 +60,22 @@
 
     <!-- Force download of the source jars -->
     <!--
-    <dependency org="org.codehaus.jackson"  name="jackson-core-asl"         rev="1.9.2"                conf="default->master,sources"/>
-    <dependency org="org.codehaus.jackson"  name="jackson-mapper-asl"       rev="1.9.2"                conf="default->master,sources"/>
+    <dependency org="org.codehaus.jackson"  name="jackson-core-asl"         rev="&jackson.version;"    conf="default->master,sources"/>
+    <dependency org="org.codehaus.jackson"  name="jackson-mapper-asl"       rev="&jackson.version;"    conf="default->master,sources"/>
     <dependency org="org.glassfish.grizzly" name="grizzly-framework"        rev="&grizzly.version;"    conf="default->master,sources"/>
     <dependency org="org.glassfish.grizzly" name="grizzly-http"             rev="&grizzly.version;"    conf="default->master,sources"/>
     <dependency org="org.glassfish.grizzly" name="grizzly-http-server"      rev="&grizzly.version;"    conf="default->master,sources"/>
-    <dependency org="org.glassfish.grizzly" name="grizzly-rcm"              rev="&grizzly.version;"    conf="default->master,sources"/>
     <dependency org="org.forgerock.commons" name="i18n-core"                rev="1.4.0"                conf="default->master,sources"/>
     <dependency org="org.forgerock.commons" name="json-fluent"              rev="&crest.version;"      conf="default->master,sources"/>
     <dependency org="org.forgerock.commons" name="json-resource"            rev="&crest.version;"      conf="default->master,sources"/>
     <dependency org="org.forgerock.commons" name="json-resource-servlet"    rev="&crest.version;"      conf="default->master,sources"/>
     <dependency org="org.forgerock.commons" name="org.forgerock.util"       rev="1.0.0"                conf="default->master,sources"/>
+    <dependency org="org.forgerock.opendj"  name="opendj-core"              rev="&opendj.sdk.version;" conf="default->master,sources"/>
     <dependency org="org.forgerock.opendj"  name="opendj-ldap-sdk"          rev="&opendj.sdk.version;" conf="default->master,sources"/>
     <dependency org="org.forgerock.opendj"  name="opendj-rest2ldap"         rev="&opendj.sdk.version;" conf="default->master,sources"/>
+    <dependency org="org.forgerock.opendj"  name="opendj-rest2ldap-servlet" rev="&opendj.sdk.version;" conf="default->master,sources"/>
+    <dependency org="org.slf4j"             name="slf4j-api"                rev="&slf4j.version;"      conf="default->master,sources"/>
+    <dependency org="org.slf4j"             name="slf4j-jdk14"              rev="&slf4j.version;"      conf="default->master,sources"/>
     -->
 
     <exclude org="javax.activation"         artifact="activation" />
