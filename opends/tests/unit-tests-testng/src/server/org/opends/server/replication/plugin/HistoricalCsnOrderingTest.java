@@ -87,8 +87,7 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
    * Check the basic comparator on the HistoricalCsnOrderingMatchingRule
    */
   @Test()
-  public void basicRuleTest()
-  throws Exception
+  public void basicRuleTest() throws Exception
   {
     // Creates a rule
     HistoricalCsnOrderingMatchingRule r =
@@ -97,17 +96,12 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
     CSN del1 = new CSN(1,  0,  1);
     CSN del2 = new CSN(1,  1,  1);
 
-    ByteString v1 = ByteString.valueOf("a"+":"+del1.toString());
-    ByteString v2 = ByteString.valueOf("a"+":"+del2.toString());
+    ByteString v1 = ByteString.valueOf("a" + ":" + del1);
+    ByteString v2 = ByteString.valueOf("a" + ":" + del2);
 
-    int cmp = r.compareValues(v1, v1);
-    assertTrue(cmp == 0);
-
-    cmp = r.compareValues(v1, v2);
-    assertTrue(cmp == -1);
-
-    cmp = r.compareValues(v2, v1);
-    assertTrue(cmp == 1);
+    assertEquals(r.compareValues(v1, v1), 0);
+    assertEquals(r.compareValues(v1, v2), -1);
+    assertEquals(r.compareValues(v2, v1), 1);
   }
 
   /**
@@ -116,8 +110,7 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
    * informations.
    */
   @Test()
-  public void buildAndPublishMissingChangesOneEntryTest()
-  throws Exception
+  public void buildAndPublishMissingChangesOneEntryTest() throws Exception
   {
     final int serverId = 123;
     final DN baseDN = DN.decode(TEST_ROOT_DN_STRING);
@@ -129,7 +122,7 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
     try
     {
       long startTime = TimeThread.getTime();
-      final DN dn1 = DN.decode("cn=test1," + baseDN.toString());
+      final DN dn1 = DN.decode("cn=test1," + baseDN);
     final AttributeType histType =
       DirectoryServer.getAttributeType(EntryHistorical.HISTORICAL_ATTRIBUTE_NAME);
 
@@ -138,7 +131,7 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
 
     // Add the first test entry.
     TestCaseUtils.addEntry(
-        "dn: cn=test1," + baseDN.toString(),
+        "dn: cn=test1," + baseDN,
         "displayname: Test1",
         "objectClass: top",
         "objectClass: person",
@@ -150,10 +143,10 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
 
     // Perform a first modification to update the historical attribute
     int resultCode = TestCaseUtils.applyModifications(false,
-        "dn: cn=test1," + baseDN.toString(),
+        "dn: cn=test1," + baseDN,
         "changetype: modify",
         "add: description",
-    "description: foo");
+        "description: foo");
     assertEquals(resultCode, 0);
 
     // Read the entry back to get its historical and included CSN
@@ -170,10 +163,10 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
     // Perform a 2nd modification to update the hist attribute with
     // a second value
     resultCode = TestCaseUtils.applyModifications(false,
-        "dn: cn=test1," + baseDN.toString(),
+        "dn: cn=test1," + baseDN,
         "changetype: modify",
         "add: description",
-    "description: bar");
+        "description: bar");
     assertEquals(resultCode, 0);
 
     Entry entry2 = DirectoryServer.getEntry(dn1);
@@ -182,7 +175,7 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
 
     for (AttributeValue av : attrs2.get(0)) {
       logError(Message.raw(Category.SYNC, Severity.INFORMATION,
-          "Second historical value:" + av.getValue().toString()));
+          "Second historical value:" + av.getValue()));
     }
 
     LinkedList<ReplicationMsg> opList = new LinkedList<ReplicationMsg>();
@@ -221,8 +214,7 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
    * informations.
    */
   @Test()
-  public void buildAndPublishMissingChangesSeveralEntriesTest()
-  throws Exception
+  public void buildAndPublishMissingChangesSeveralEntriesTest() throws Exception
   {
     final DN baseDN = DN.decode(TEST_ROOT_DN_STRING);
     TestCaseUtils.initializeTestBackend(true);
@@ -237,9 +229,9 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
     "Starting replication test : changesCmpTest"));
 
     // Add 3 entries.
-    DN dnTest1 = DN.decode("cn=test1," + baseDN.toString());
-    DN dnTest2 = DN.decode("cn=test2," + baseDN.toString());
-    DN dnTest3 = DN.decode("cn=test3," + baseDN.toString());
+    DN dnTest1 = DN.decode("cn=test1," + baseDN);
+    DN dnTest2 = DN.decode("cn=test2," + baseDN);
+    DN dnTest3 = DN.decode("cn=test3," + baseDN);
     TestCaseUtils.addEntry(
         "dn: " + dnTest3,
         "displayname: Test1",
