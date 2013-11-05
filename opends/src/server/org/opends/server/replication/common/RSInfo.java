@@ -167,16 +167,11 @@ public final class RSInfo
   public String toString()
   {
     StringBuilder sb = new StringBuilder();
-    sb.append("\nId: ");
-    sb.append(id);
-    sb.append(" ; Server URL: ");
-    sb.append(serverUrl);
-    sb.append(" ; Generation id: ");
-    sb.append(generationId);
-    sb.append(" ; Group id: ");
-    sb.append(groupId);
-    sb.append(" ; Weight: ");
-    sb.append(weight);
+    sb.append("Id: ").append(id);
+    sb.append(" ; Server URL: ").append(serverUrl);
+    sb.append(" ; Generation id: ").append(generationId);
+    sb.append(" ; Group id: ").append(groupId);
+    sb.append(" ; Weight: ").append(weight);
     return sb.toString();
   }
 }

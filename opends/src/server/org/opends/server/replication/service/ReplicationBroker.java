@@ -299,20 +299,19 @@ public class ReplicationBroker
   /**
    * Sets the locally configured flag for the passed ReplicationServerInfo
    * object, analyzing the local configuration.
-   * @param replicationServerInfo the Replication server to check and update
+   * @param rsInfo the Replication server to check and update
    */
-  private void updateRSInfoLocallyConfiguredStatus(
-    ReplicationServerInfo replicationServerInfo)
+  private void updateRSInfoLocallyConfiguredStatus(ReplicationServerInfo rsInfo)
   {
     // Determine if the passed ReplicationServerInfo has a URL that is present
     // in the locally configured replication servers
-    String rsUrl = replicationServerInfo.getServerURL();
+    String rsUrl = rsInfo.getServerURL();
     if (rsUrl == null)
     {
       // The ReplicationServerInfo has been generated from a server with
       // no URL in TopologyMsg (i.e: with replication protocol version < 4):
       // ignore this server as we do not know how to connect to it
-      replicationServerInfo.setLocallyConfigured(false);
+      rsInfo.setLocallyConfigured(false);
       return;
     }
     for (String serverUrl : getReplicationServerUrls())
@@ -320,12 +319,12 @@ public class ReplicationBroker
       if (isSameReplicationServerUrl(serverUrl, rsUrl))
       {
         // This RS is locally configured, mark this
-        replicationServerInfo.setLocallyConfigured(true);
-        replicationServerInfo.serverURL = serverUrl;
+        rsInfo.setLocallyConfigured(true);
+        rsInfo.serverURL = serverUrl;
         return;
       }
     }
-    replicationServerInfo.setLocallyConfigured(false);
+    rsInfo.setLocallyConfigured(false);
   }
 
   /**
@@ -704,14 +703,12 @@ public class ReplicationBroker
 
     for (String serverUrl : getReplicationServerUrls())
     {
-      // Connect to server and get info about it
-      ReplicationServerInfo replicationServerInfo =
-        performPhaseOneHandshake(serverUrl, false, false);
-
-      // Store server info in list
-      if (replicationServerInfo != null)
+      // Connect to server + get and store info about it
+      ReplicationServerInfo rsInfo =
+          performPhaseOneHandshake(serverUrl, false, false);
+      if (rsInfo != null)
       {
-        rsInfos.put(replicationServerInfo.getServerId(), replicationServerInfo);
+        rsInfos.put(rsInfo.getServerId(), rsInfo);
       }
     }
 
@@ -1943,10 +1940,10 @@ public class ReplicationBroker
     int sumOfWeights = 0;
     // Sum of the connected DSs
     int sumOfConnectedDSs = 0;
-    for (ReplicationServerInfo replicationServerInfo : bestServers.values())
+    for (ReplicationServerInfo rsInfo : bestServers.values())
     {
-      sumOfWeights += replicationServerInfo.getWeight();
-      sumOfConnectedDSs += replicationServerInfo.getConnectedDSNumber();
+      sumOfWeights += rsInfo.getWeight();
+      sumOfConnectedDSs += rsInfo.getConnectedDSNumber();
     }
 
     // Distance (difference) of the current loads to the load goals of each RS:
@@ -3036,27 +3033,25 @@ public class ReplicationBroker
 
     // Update replication server info list with the received topology
     // information
-    List<Integer> rsToKeepList = new ArrayList<Integer>();
+    final Set<Integer> rssToKeep = new HashSet<Integer>();
     for (RSInfo rsInfo : topoMsg.getRsList())
     {
       int rsId = rsInfo.getId();
-      rsToKeepList.add(rsId); // Mark this server as still existing
+      rssToKeep.add(rsId); // Mark this server as still existing
       List<Integer> connectedDSs = computeConnectedDSs(rsId, dsList);
-      ReplicationServerInfo replicationServerInfo =
-        replicationServerInfos.get(rsId);
-      if (replicationServerInfo == null)
+      ReplicationServerInfo rsInfo2 = replicationServerInfos.get(rsId);
+      if (rsInfo2 == null)
       {
         // New replication server, create info for it add it to the list
-        replicationServerInfo =
-          new ReplicationServerInfo(rsInfo, connectedDSs);
+        rsInfo2 = new ReplicationServerInfo(rsInfo, connectedDSs);
         // Set the locally configured flag for this new RS only if it is
         // configured
-        updateRSInfoLocallyConfiguredStatus(replicationServerInfo);
-        replicationServerInfos.put(rsId, replicationServerInfo);
+        updateRSInfoLocallyConfiguredStatus(rsInfo2);
+        replicationServerInfos.put(rsId, rsInfo2);
       } else
       {
         // Update the existing info for the replication server
-        replicationServerInfo.update(rsInfo, connectedDSs);
+        rsInfo2.update(rsInfo, connectedDSs);
       }
     }
 
@@ -3064,12 +3059,11 @@ public class ReplicationBroker
      * Now remove any replication server that may have disappeared from the
      * topology.
      */
-    Iterator<Entry<Integer, ReplicationServerInfo>> rsInfoIt =
-      replicationServerInfos.entrySet().iterator();
+    Iterator<Integer> rsInfoIt = replicationServerInfos.keySet().iterator();
     while (rsInfoIt.hasNext())
     {
-      Entry<Integer, ReplicationServerInfo> rsInfoEntry = rsInfoIt.next();
-      if (!rsToKeepList.contains(rsInfoEntry.getKey()))
+      final Integer rsId = rsInfoIt.next();
+      if (!rssToKeep.contains(rsId))
       {
         // This replication server has quit the topology, remove it from the
         // list

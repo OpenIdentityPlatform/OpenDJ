@@ -2595,10 +2595,10 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     CSN eligibleCSN = null;
 
     final ServerState newestCSNs = domainDB.getDomainNewestCSNs(baseDN);
-    for (final CSN changelogNewestCSN : newestCSNs)
+    for (final CSN replicaNewestCSN : newestCSNs)
     {
       // Should it be considered for eligibility ?
-      int serverId = changelogNewestCSN.getServerId();
+      int serverId = replicaNewestCSN.getServerId();
       CSN heartbeatLastCSN = getChangeTimeHeartbeatState().getCSN(serverId);
 
       // If the most recent UpdateMsg or CLHeartbeatMsg received is very old
@@ -2625,11 +2625,11 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
         continue;
       }
 
-      if (changelogNewestCSN != null
+      if (replicaNewestCSN != null
           && (eligibleCSN == null ||
-              changelogNewestCSN.isNewerThan(eligibleCSN)))
+              replicaNewestCSN.isNewerThan(eligibleCSN)))
       {
-        eligibleCSN = changelogNewestCSN;
+        eligibleCSN = replicaNewestCSN;
       }
       if (heartbeatLastCSN != null
           && (eligibleCSN == null || heartbeatLastCSN.isNewerThan(eligibleCSN)))
