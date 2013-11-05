@@ -112,13 +112,12 @@ public class ECLSearchOperation
 
 
   /** The attribute type for the "creatorsName" attribute. */
-  private static final AttributeType CREATORS_NAME_TYPE = DirectoryConfig
-      .getAttributeType(OP_ATTR_CREATORS_NAME_LC, true);
+  private static final AttributeType CREATORS_NAME_TYPE =
+      DirectoryConfig.getAttributeType(OP_ATTR_CREATORS_NAME_LC, true);
 
   /** The attribute type for the "modifiersName" attribute. */
-  private static final AttributeType
-    MODIFIERS_NAME_TYPE = DirectoryConfig.getAttributeType(
-        OP_ATTR_MODIFIERS_NAME_LC, true);
+  private static final AttributeType MODIFIERS_NAME_TYPE =
+      DirectoryConfig.getAttributeType(OP_ATTR_MODIFIERS_NAME_LC, true);
 
 
   /** The associated DN. */
@@ -166,7 +165,7 @@ public class ECLSearchOperation
   /**
    * A flag to know if the ECLControl has been requested.
    */
-  private Boolean returnECLControl = false;
+  private boolean returnECLControl = false;
 
   /**
    * Creates a new operation that may be used to search for entries in a local
@@ -214,9 +213,9 @@ public class ECLSearchOperation
       startECLSessionMsg.setECLRequestType(
           StartECLSessionMsg.REQUEST_TYPE_FROM_CHANGE_NUMBER);
 
-      // Set a string operationid that will help correlate any error message
+      // Set a string operationId that will help correlate any error message
       // logged for this operation with the 'real' client operation.
-      startECLSessionMsg.setOperationId(this.toString());
+      startECLSessionMsg.setOperationId(toString());
 
       // Set a list of excluded domains (also exclude 'cn=changelog' itself)
       Set<String> excludedDomains =
@@ -399,7 +398,7 @@ public class ECLSearchOperation
             getRequestControl(ExternalChangelogRequestControl.DECODER);
           MultiDomainServerState cookie = eclControl.getCookie();
           returnECLControl = true;
-          if (cookie!=null)
+          if (cookie != null)
           {
             startECLSessionMsg.setECLRequestType(
                 StartECLSessionMsg.REQUEST_TYPE_FROM_COOKIE);
@@ -617,8 +616,8 @@ public class ECLSearchOperation
         }
       }
 
-      if (baseDN.equals(CHANGELOG_ROOT_DN) && getScope().equals(
-          SearchScope.BASE_OBJECT))
+      if (baseDN.equals(CHANGELOG_ROOT_DN)
+          && getScope().equals(SearchScope.BASE_OBJECT))
       {
         // Only the change log root entry was requested. There is no need to
         // process other entries.
@@ -727,7 +726,7 @@ public class ECLSearchOperation
   public static Entry createEntryFromMsg(ECLUpdateMsg eclMsg)
       throws DirectoryException
   {
-    Entry clEntry = null;
+    Entry entry = null;
 
     // Get the meat from the ecl msg
     UpdateMsg msg = eclMsg.getUpdateMsg();
@@ -779,14 +778,10 @@ public class ECLSearchOperation
                 + e.getMessage()));
       }
 
-      List<RawAttribute> eclAttributes = addMsg.getEclIncludes();
-
-      clEntry = createChangelogEntry(eclMsg.getBaseDN(),
-          eclMsg.getCookie().toString(), addMsg.getDN(),
-          addMsg.getCSN(), ldifChanges, // entry as created (in LDIF format)
-          addMsg.getEntryUUID(),
-          eclAttributes, // entry attributes
-          eclMsg.getChangeNumber(), "add", changeInitiatorsName);
+      entry = createChangelogEntry(eclMsg,
+          addMsg,
+          ldifChanges, // entry as created (in LDIF format)
+          "add", changeInitiatorsName);
     }
     else if (msg instanceof ModifyCommonMsg)
     {
@@ -844,51 +839,43 @@ public class ECLSearchOperation
                 + e.getMessage()));
       }
 
-      String changeType = (modifyMsg instanceof ModifyDNMsg) ? "modrdn"
-          : "modify";
-
-      clEntry = createChangelogEntry(eclMsg.getBaseDN(),
-          eclMsg.getCookie().toString(), modifyMsg.getDN(),
-          modifyMsg.getCSN(), ldifChanges,
-          modifyMsg.getEntryUUID(),
-          modifyMsg.getEclIncludes(), // entry attributes
-          eclMsg.getChangeNumber(), changeType,
+      final boolean isModifyDNMsg = modifyMsg instanceof ModifyDNMsg;
+      entry = createChangelogEntry(eclMsg,
+          modifyMsg,
+          ldifChanges,
+          (isModifyDNMsg ? "modrdn" : "modify"),
           changeInitiatorsName);
 
-      if (modifyMsg instanceof ModifyDNMsg)
+      if (isModifyDNMsg)
       {
         ModifyDNMsg modDNMsg = (ModifyDNMsg) modifyMsg;
 
-        Attribute a = Attributes.create("newrdn", modDNMsg.getNewRDN());
-        clEntry.addAttribute(a, null);
-
+        addAttribute(entry, "newrdn", modDNMsg.getNewRDN());
         if (modDNMsg.getNewSuperior() != null)
         {
-          Attribute b = Attributes.create("newsuperior",
-              modDNMsg.getNewSuperior());
-          clEntry.addAttribute(b, null);
+          addAttribute(entry, "newsuperior", modDNMsg.getNewSuperior());
         }
-
-        Attribute c = Attributes.create("deleteoldrdn",
+        addAttribute(entry, "deleteoldrdn",
             String.valueOf(modDNMsg.deleteOldRdn()));
-        clEntry.addAttribute(c, null);
       }
     }
     else if (msg instanceof DeleteMsg)
     {
       DeleteMsg delMsg = (DeleteMsg) msg;
 
-      clEntry = createChangelogEntry(eclMsg.getBaseDN(),
-          eclMsg.getCookie().toString(), delMsg.getDN(),
-          delMsg.getCSN(),
+      entry = createChangelogEntry(eclMsg,
+          delMsg,
           null, // no changes
-          delMsg.getEntryUUID(),
-          delMsg.getEclIncludes(), // entry attributes
-          eclMsg.getChangeNumber(), "delete",
+          "delete",
           delMsg.getInitiatorsName());
     }
 
-    return clEntry;
+    return entry;
+  }
+
+  private static void addAttribute(Entry e, String attrType, String attrValue)
+  {
+    e.addAttribute(Attributes.create(attrType, attrValue), null);
   }
 
   /**
@@ -898,30 +885,24 @@ public class ECLSearchOperation
    */
   private Entry createRootEntry(boolean hasSubordinates)
   {
-    // Attributes.
+    // Attributes
     Map<AttributeType, List<Attribute>> userAttrs =
       new LinkedHashMap<AttributeType,List<Attribute>>();
     Map<AttributeType, List<Attribute>> operationalAttrs =
       new LinkedHashMap<AttributeType,List<Attribute>>();
 
-    // CN.
     addAttributeByUppercaseName(ATTR_COMMON_NAME, ATTR_COMMON_NAME,
         "changelog", userAttrs, operationalAttrs);
-
-    // subSchemaSubentry
     addAttributeByUppercaseName(ATTR_SUBSCHEMA_SUBENTRY_LC,
         ATTR_SUBSCHEMA_SUBENTRY, ConfigConstants.DN_DEFAULT_SCHEMA_ROOT,
         userAttrs, operationalAttrs);
 
     // TODO:numSubordinates
 
-    // hasSubordinates
-    addAttributeByUppercaseName("hassubordinates", "hasSubordinates", Boolean
-        .toString(hasSubordinates), userAttrs, operationalAttrs);
-
-    // entryDN
-    addAttributeByUppercaseName("entrydn", "entryDN", CHANGELOG_ROOT_DN
-        .toNormalizedString(), userAttrs, operationalAttrs);
+    addAttributeByUppercaseName("hassubordinates", "hasSubordinates",
+        Boolean.toString(hasSubordinates), userAttrs, operationalAttrs);
+    addAttributeByUppercaseName("entrydn", "entryDN",
+        CHANGELOG_ROOT_DN.toNormalizedString(), userAttrs, operationalAttrs);
 
     return new Entry(CHANGELOG_ROOT_DN, CHANGELOG_ROOT_OBJECT_CLASSES,
         userAttrs, operationalAttrs);
@@ -960,8 +941,7 @@ public class ECLSearchOperation
       aType = DirectoryServer.getDefaultAttributeType(attrNameUppercase);
     }
     Attribute a = Attributes.create(aType, attrValue);
-    List<Attribute> attrList = new ArrayList<Attribute>(1);
-    attrList.add(a);
+    List<Attribute> attrList = Collections.singletonList(a);
     if (aType.isOperational())
     {
       operationalAttrs.put(aType, attrList);
@@ -973,51 +953,50 @@ public class ECLSearchOperation
   }
 
   /**
-   * Create an ECL entry from a set of provided information. This is the part
-   * of entry creation common to all types of msgs (ADD, DEL, MOD, MODDN).
+   * Create an ECL entry from a set of provided information. This is the part of
+   * entry creation common to all types of msgs (ADD, DEL, MOD, MODDN).
    *
-   * @param baseDN          The provided baseDN value.
-   * @param cookie          The provided cookie value.
-   * @param targetDN        The provided targetDN.
-   * @param csn    The provided replication CSN.
-   * @param clearLDIFchanges     The provided LDIF changes for ADD and MODIFY
-   * @param targetUUID      The provided targetUUID.
-   * @param includedAttributes The provided attributes to include
-   * @param changenumber    The provided change number (integer)
-   * @param changetype      The provided change type (add, ...)
-   * @param changeInitiatorsName The provided initiators name
-   * @return                The created ECL entry.
+   * @param eclMsg
+   *          The provided ECLUpdateMsg for which to build the changelog entry.
+   * @param msg
+   *          The provided LDAPUpdateMsg for which to build the changelog entry.
+   * @param ldifChanges
+   *          The provided LDIF changes for ADD and MODIFY
+   * @param changeType
+   *          The provided change type (add, ...)
+   * @param changeInitiatorsName
+   *          The provided initiators name
+   * @return The created ECL entry.
    * @throws DirectoryException
-   *         When any error occurs.
+   *           When any error occurs.
    */
   private static Entry createChangelogEntry(
-      DN baseDN,
-      String cookie,
-      DN targetDN,
-      CSN csn,
-      String clearLDIFchanges,
-      String targetUUID,
-      List<RawAttribute> includedAttributes,
-      long changenumber,
-      String changetype,
+      ECLUpdateMsg eclMsg,
+      LDAPUpdateMsg msg,
+      String ldifChanges,
+      String changeType,
       String changeInitiatorsName)
   throws DirectoryException
   {
+    final DN baseDN = eclMsg.getBaseDN();
+    final long changeNumber = eclMsg.getChangeNumber();
+    final CSN csn = msg.getCSN();
+
     String dnString;
-    if (changenumber == 0)
+    if (changeNumber == 0)
     {
-      // Draft uncompat mode
+      // cookie mode
       dnString = "replicationCSN=" + csn + "," + baseDN.toNormalizedString()
           + "," + ServerConstants.DN_EXTERNAL_CHANGELOG_ROOT;
     }
     else
     {
       // Draft compat mode
-      dnString = "changeNumber=" + changenumber + ","
+      dnString = "changeNumber=" + changeNumber + ","
           + ServerConstants.DN_EXTERNAL_CHANGELOG_ROOT;
     }
 
-    // Objectclass
+    // Attributes
     Map<AttributeType, List<Attribute>> uAttrs =
       new LinkedHashMap<AttributeType,List<Attribute>>();
     Map<AttributeType, List<Attribute>> operationalAttrs =
@@ -1026,7 +1005,6 @@ public class ECLSearchOperation
     // Operational standard attributes
     addAttributeByType(ATTR_SUBSCHEMA_SUBENTRY_LC, ATTR_SUBSCHEMA_SUBENTRY_LC,
         ConfigConstants.DN_DEFAULT_SCHEMA_ROOT, uAttrs, operationalAttrs);
-
     addAttributeByType("numsubordinates", "numSubordinates", "0", uAttrs,
         operationalAttrs);
     addAttributeByType("hassubordinates", "hasSubordinates", "false", uAttrs,
@@ -1037,29 +1015,29 @@ public class ECLSearchOperation
     // REQUIRED attributes
 
     // ECL Changelog change number
-    addAttributeByType("changenumber", "changeNumber", String
-        .valueOf(changenumber), uAttrs, operationalAttrs);
+    addAttributeByType("changenumber", "changeNumber",
+        String.valueOf(changeNumber), uAttrs, operationalAttrs);
 
     SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT_GMT_TIME);
     dateFormat.setTimeZone(TimeZone.getTimeZone("UTC")); // ??
-    String format = dateFormat.format(new Date(csn.getTime()));
+    final String format = dateFormat.format(new Date(csn.getTime()));
     addAttributeByType("changetime", "changeTime", format, uAttrs,
         operationalAttrs);
-    addAttributeByType("changetype", "changeType", changetype, uAttrs,
+    addAttributeByType("changetype", "changeType", changeType, uAttrs,
         operationalAttrs);
-    addAttributeByType("targetdn", "targetDN", targetDN.toNormalizedString(),
+    addAttributeByType("targetdn", "targetDN", msg.getDN().toNormalizedString(),
         uAttrs, operationalAttrs);
 
     // NON REQUESTED attributes
 
-    addAttributeByType("replicationcsn", "replicationCSN", csn
-        .toString(), uAttrs, operationalAttrs);
-    addAttributeByType("replicaidentifier", "replicaIdentifier", Integer
-        .toString(csn.getServerId()), uAttrs, operationalAttrs);
+    addAttributeByType("replicationcsn", "replicationCSN",
+        csn.toString(), uAttrs, operationalAttrs);
+    addAttributeByType("replicaidentifier", "replicaIdentifier",
+        Integer.toString(csn.getServerId()), uAttrs, operationalAttrs);
 
-    if (clearLDIFchanges != null)
+    if (ldifChanges != null)
     {
-      addAttributeByType("changes", "changes", clearLDIFchanges, uAttrs,
+      addAttributeByType("changes", "changes", ldifChanges, uAttrs,
           operationalAttrs);
     }
 
@@ -1069,15 +1047,18 @@ public class ECLSearchOperation
           changeInitiatorsName, uAttrs, operationalAttrs);
     }
 
+    final String targetUUID = msg.getEntryUUID();
     if (targetUUID != null)
     {
       addAttributeByType("targetentryuuid", "targetEntryUUID", targetUUID,
           uAttrs, operationalAttrs);
     }
 
+    final String cookie = eclMsg.getCookie().toString();
     addAttributeByType("changelogcookie", "changeLogCookie", cookie, uAttrs,
         operationalAttrs);
 
+    final List<RawAttribute> includedAttributes = msg.getEclIncludes();
     if (includedAttributes != null && !includedAttributes.isEmpty())
     {
       StringBuilder builder = new StringBuilder(256);
@@ -1098,11 +1079,8 @@ public class ECLSearchOperation
     }
 
     // at the end build the CL entry to be returned
-    return new Entry(
-        DN.decode(dnString),
-        CHANGELOG_ENTRY_OBJECT_CLASSES,
-        uAttrs,
-        operationalAttrs);
+    return new Entry(DN.decode(dnString), CHANGELOG_ENTRY_OBJECT_CLASSES,
+        uAttrs, operationalAttrs);
   }
 
   /**
