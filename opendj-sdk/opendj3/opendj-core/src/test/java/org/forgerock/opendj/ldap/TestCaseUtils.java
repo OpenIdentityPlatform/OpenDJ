@@ -76,6 +76,25 @@ public final class TestCaseUtils {
     }
 
     /**
+     * Return the canonical file path for a test file.
+     * <p>
+     * For example, the path to file "src/test/resources/somedir/somefile" is
+     * obtained with <code>getTestFilePath("somedir/somefile")</code>.
+     *
+     * @param relativePathFromClasspath
+     *            the relative path to any directory that is declared
+     *            in the classpath (typically the src/test/resources
+     *            directory)
+     * @return the canonical path
+     * @throws Exception
+     *             if file is not found or can't be read
+     */
+    public static String getTestFilePath(String relativePathFromClasspath) throws Exception {
+        return new File(TestCaseUtils.class.getClassLoader().getResource(relativePathFromClasspath).toURI())
+                .getCanonicalPath();
+    }
+
+    /**
      * Finds a free server socket port on the local host.
      *
      * @return The free port.
