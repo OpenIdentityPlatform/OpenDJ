@@ -66,24 +66,34 @@ public class StartECLSessionMsg extends ReplicationMsg
   public final static short REQUEST_TYPE_EQUALS_REPL_CHANGE_NUMBER = 2;
 
   /**
-   * This specifies that the request on the ECL is a PERSISTENT search
-   * with changesOnly = false.
+   * This specifies that the request on the ECL is a PERSISTENT search with
+   * changesOnly = false.
+   * <p>
+   * It will return the content of the changelog DB as it is now, plus any
+   * subsequent changes.
    */
   public final static short PERSISTENT = 0;
 
   /**
    * This specifies that the request on the ECL is a NOT a PERSISTENT search.
+   * <p>
+   * It will only return the content of the changelog DB as it is now, and stop.
+   * It will NOT be turned into a persistent search that can return subsequent
+   * changes.
    */
   public final static short NON_PERSISTENT = 1;
 
   /**
-   * This specifies that the request on the ECL is a PERSISTENT search
-   * with changesOnly = true.
+   * This specifies that the request on the ECL is a PERSISTENT search with
+   * changesOnly = true.
+   * <p>
+   * It will only return subsequent changes that do not exist yet in the
+   * changelog DB.
    */
   public final static short PERSISTENT_CHANGES_ONLY = 2;
 
   /** The type of request as defined by REQUEST_TYPE_... */
-  private short  eclRequestType;
+  private short eclRequestType;
 
   /**
    * When eclRequestType = FROM_COOKIE, specifies the provided cookie value.
@@ -103,8 +113,14 @@ public class StartECLSessionMsg extends ReplicationMsg
    */
   private CSN csn;
 
-  /** Specifies whether the search is persistent and changesOnly. */
-  private short  isPersistent = NON_PERSISTENT;
+  /**
+   * Specifies whether the search is persistent and changesOnly.
+   *
+   * @see #NON_PERSISTENT
+   * @see #PERSISTENT
+   * @see #PERSISTENT_CHANGES_ONLY
+   */
+  private short isPersistent = NON_PERSISTENT;
 
   /**
    * A string helping debugging and tracing the client operation related when
