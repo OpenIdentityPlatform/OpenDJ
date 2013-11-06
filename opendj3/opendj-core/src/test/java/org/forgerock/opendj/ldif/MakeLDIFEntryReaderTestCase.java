@@ -33,11 +33,13 @@ import static org.forgerock.opendj.ldif.MakeLDIFEntryReader.*;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.SdkTestCase;
 import org.forgerock.opendj.ldap.schema.Schema;
@@ -136,13 +138,13 @@ public class MakeLDIFEntryReaderTestCase extends SdkTestCase {
         assertThat(reader.hasNext()).as("should have no more entries").isFalse();
     }
 
-    @Test(expectedExceptions = MakeLDIFException.class,
+    @Test(expectedExceptions = IOException.class,
             expectedExceptionsMessageRegExp = ".*Could not find template file unknown.*")
     public void testMissingTemplateFile() throws Exception {
         newReader("unknown").setResourcePath(resourcePath).build();
     }
 
-    @Test(expectedExceptions = MakeLDIFException.class,
+    @Test(expectedExceptions = DecodeException.class,
             expectedExceptionsMessageRegExp = ".*Cannot find file streets.*")
     public void testMissingResourceFile() throws Exception {
         // fail to find first resource file which is 'streets'
@@ -171,8 +173,8 @@ public class MakeLDIFEntryReaderTestCase extends SdkTestCase {
 
         try {
             templateFile.parse(lines, warns);
-            failWasExpected(MakeLDIFException.class);
-        } catch (MakeLDIFException e) {
+            failWasExpected(DecodeException.class);
+        } catch (DecodeException e) {
             LocalizableMessage expected = ERR_MAKELDIF_TAG_UNDEFINED_ATTRIBUTE.get("missingVar", 1);
             assertThat(e.getMessage()).isEqualTo(expected.toString());
         }

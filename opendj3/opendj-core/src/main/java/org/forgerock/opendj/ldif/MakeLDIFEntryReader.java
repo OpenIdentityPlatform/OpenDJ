@@ -40,6 +40,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldap.schema.SchemaValidationPolicy;
@@ -268,10 +269,12 @@ public final class MakeLDIFEntryReader implements EntryReader {
          * Return an instance of reader.
          *
          * @return a new instance of reader
-         * @throws MakeLDIFException
-         *             if a problem occurs during initialization of reader.
+         * @throws IOException
+         *             If an error occurs while reading template file.
+         * @throws DecodeException
+         *             If some other problem occurs during initialization
          */
-        public MakeLDIFEntryReader build() throws MakeLDIFException {
+        public MakeLDIFEntryReader build() throws IOException, DecodeException {
             if (schema == null) {
                 schema = Schema.getDefaultSchema();
             }
@@ -290,12 +293,12 @@ public final class MakeLDIFEntryReader implements EntryReader {
                     templateFile.parse(templateStream, warnings);
                 } else {
                     // this should never happen
-                    throw new MakeLDIFException(ERR_MAKELDIF_MISSING_TEMPLATE_FILE.get());
+                    throw DecodeException.fatalError(ERR_MAKELDIF_MISSING_TEMPLATE_FILE.get());
                 }
             } catch (IOException e) {
-                throw new MakeLDIFException(ERR_MAKELDIF_IOEXCEPTION_DURING_PARSE.get(e.getMessage()), e);
+                throw e;
             } catch (Exception e) {
-                throw new MakeLDIFException(ERR_MAKELDIF_EXCEPTION_DURING_PARSE.get(e.getMessage()), e);
+                throw DecodeException.fatalError(ERR_MAKELDIF_EXCEPTION_DURING_PARSE.get(e.getMessage()), e);
             }
             MakeLDIFEntryReader reader = new MakeLDIFEntryReader(templateFile,
                     warnings, new LinkedBlockingQueue<TemplateEntry>(maxNumberOfEntriesInQueue));
@@ -332,7 +335,7 @@ public final class MakeLDIFEntryReader implements EntryReader {
     }
 
     @Override
-    public void close() throws IOException {
+    public void close() {
         isClosed = true;
         ioException = null;
         try {
@@ -384,7 +387,7 @@ public final class MakeLDIFEntryReader implements EntryReader {
     private final class MakeEntryWriter implements EntryWriter {
 
         @Override
-        public boolean writeEntry(final TemplateEntry entry) throws IOException, MakeLDIFException {
+        public boolean writeEntry(final TemplateEntry entry) {
             while (!isClosed) {
                 try {
                     if (entryQueue.offer(entry, 500, TimeUnit.MILLISECONDS)) {
@@ -400,13 +403,7 @@ public final class MakeLDIFEntryReader implements EntryReader {
         @Override
         public void closeEntryWriter() {
             generationIsFinished = true;
-            try {
-                writeEntry(POISON_ENTRY);
-            } catch (IOException e) {
-                // should never happen
-            } catch (MakeLDIFException e) {
-                // should never happen
-            }
+            writeEntry(POISON_ENTRY);
         }
 
         public void setIOException(final IOException ioe) {
@@ -450,9 +447,6 @@ public final class MakeLDIFEntryReader implements EntryReader {
         void generate() {
             try {
                 templateFile.generateEntries(entryWriter);
-            } catch (MakeLDIFException e) {
-                entryWriter.setIOException(new IOException(e));
-                entryWriter.closeEntryWriter();
             } catch (IOException e) {
                 entryWriter.setIOException(e);
                 entryWriter.closeEntryWriter();

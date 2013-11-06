@@ -50,6 +50,7 @@ import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.AttributeFactory;
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.Entries;
 import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.LinkedAttribute;
@@ -237,17 +238,17 @@ class TemplateFile {
      *
      * @param tagClass
      *            The fully-qualified name of the class to register as a tag.
-     * @throws MakeLDIFException
+     * @throws DecodeException
      *             If a problem occurs while attempting to register the
      *             specified tag.
      */
-    public void registerTag(String tagClass) throws MakeLDIFException {
+    public void registerTag(String tagClass) throws DecodeException {
         Class<?> c;
         try {
             c = Class.forName(tagClass);
         } catch (Exception e) {
             final LocalizableMessage message = ERR_MAKELDIF_CANNOT_LOAD_TAG_CLASS.get(tagClass);
-            throw new MakeLDIFException(message, e);
+            throw DecodeException.fatalError(message, e);
         }
 
         TemplateTag t;
@@ -255,13 +256,13 @@ class TemplateFile {
             t = (TemplateTag) c.newInstance();
         } catch (Exception e) {
             final LocalizableMessage message = ERR_MAKELDIF_CANNOT_INSTANTIATE_TAG.get(tagClass);
-            throw new MakeLDIFException(message, e);
+            throw DecodeException.fatalError(message, e);
         }
 
         String lowerName = t.getName().toLowerCase();
         if (registeredTags.containsKey(lowerName)) {
             final LocalizableMessage message = ERR_MAKELDIF_CONFLICTING_TAG_NAME.get(tagClass, t.getName());
-            throw new MakeLDIFException(message);
+            throw DecodeException.fatalError(message);
         } else {
             registeredTags.put(lowerName, t);
         }
@@ -534,10 +535,10 @@ class TemplateFile {
      * @throws IOException
      *             If a problem occurs while attempting to read data from the
      *             specified file.
-     * @throws MakeLDIFException
+     * @throws DecodeException
      *             If any other problem occurs while parsing the template file.
      */
-    public void parse(String filename, List<LocalizableMessage> warnings) throws IOException, MakeLDIFException {
+    public void parse(String filename, List<LocalizableMessage> warnings) throws IOException, DecodeException {
         ArrayList<String> fileLines = new ArrayList<String>();
 
         templatePath = null;
@@ -577,11 +578,11 @@ class TemplateFile {
      * @throws IOException
      *             If a problem occurs while attempting to read data from the
      *             provided input stream.
-     * @throws MakeLDIFException
+     * @throws DecodeException
      *             If any other problem occurs while parsing the template.
      */
     public void parse(InputStream inputStream, List<LocalizableMessage> warnings)
-            throws IOException, MakeLDIFException {
+            throws IOException, DecodeException {
         ArrayList<String> fileLines = new ArrayList<String>();
 
         BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
@@ -608,10 +609,10 @@ class TemplateFile {
      *            The lines that make up the template file.
      * @param warnings
      *            A list into which any warnings identified may be placed.
-     * @throws MakeLDIFException
+     * @throws DecodeException
      *             If any other problem occurs while parsing the template lines.
      */
-    public void parse(String[] lines, List<LocalizableMessage> warnings) throws MakeLDIFException {
+    public void parse(String[] lines, List<LocalizableMessage> warnings) throws DecodeException {
         // Create temporary variables that will be used to hold the data read.
         LinkedHashMap<String, TemplateTag> templateFileIncludeTags = new LinkedHashMap<String, TemplateTag>();
         LinkedHashMap<String, String> templateFileConstants = new LinkedHashMap<String, String>();
@@ -640,7 +641,7 @@ class TemplateFile {
                     tagClass = Class.forName(className);
                 } catch (Exception e) {
                     LocalizableMessage message = ERR_MAKELDIF_CANNOT_LOAD_TAG_CLASS.get(className);
-                    throw new MakeLDIFException(message, e);
+                    throw DecodeException.fatalError(message, e);
                 }
 
                 TemplateTag tag;
@@ -648,13 +649,13 @@ class TemplateFile {
                     tag = (TemplateTag) tagClass.newInstance();
                 } catch (Exception e) {
                     LocalizableMessage message = ERR_MAKELDIF_CANNOT_INSTANTIATE_TAG.get(className);
-                    throw new MakeLDIFException(message, e);
+                    throw DecodeException.fatalError(message, e);
                 }
 
                 String lowerName = tag.getName().toLowerCase();
                 if (registeredTags.containsKey(lowerName) || templateFileIncludeTags.containsKey(lowerName)) {
                     LocalizableMessage message = ERR_MAKELDIF_CONFLICTING_TAG_NAME.get(className, tag.getName());
-                    throw new MakeLDIFException(message);
+                    throw DecodeException.fatalError(message);
                 }
 
                 templateFileIncludeTags.put(lowerName, tag);
@@ -666,19 +667,19 @@ class TemplateFile {
                 int equalPos = line.indexOf('=', 7);
                 if (equalPos < 0) {
                     LocalizableMessage message = ERR_MAKELDIF_DEFINE_MISSING_EQUALS.get(lineNumber);
-                    throw new MakeLDIFException(message);
+                    throw DecodeException.fatalError(message);
                 }
 
                 String name = line.substring(7, equalPos).trim();
                 if (name.length() == 0) {
                     LocalizableMessage message = ERR_MAKELDIF_DEFINE_NAME_EMPTY.get(lineNumber);
-                    throw new MakeLDIFException(message);
+                    throw DecodeException.fatalError(message);
                 }
 
                 String lowerName = name.toLowerCase();
                 if (templateFileConstants.containsKey(lowerName)) {
                     LocalizableMessage message = ERR_MAKELDIF_CONFLICTING_CONSTANT_NAME.get(name, lineNumber);
-                    throw new MakeLDIFException(message);
+                    throw DecodeException.fatalError(message);
                 }
 
                 String value = line.substring(equalPos + 1);
@@ -715,7 +716,7 @@ class TemplateFile {
                 if (templateFileBranches.containsKey(branchDN)) {
                     LocalizableMessage message = ERR_MAKELDIF_CONFLICTING_BRANCH_DN.get(String.valueOf(branchDN),
                             startLineNumber);
-                    throw new MakeLDIFException(message);
+                    throw DecodeException.fatalError(message);
                 } else {
                     templateFileBranches.put(branchDN, b);
                 }
@@ -747,13 +748,13 @@ class TemplateFile {
                 if (templateFileTemplates.containsKey(lowerName)) {
                     LocalizableMessage message = ERR_MAKELDIF_CONFLICTING_TEMPLATE_NAME.get(
                             String.valueOf(t.getName()), startLineNumber);
-                    throw new MakeLDIFException(message);
+                    throw DecodeException.fatalError(message);
                 } else {
                     templateFileTemplates.put(lowerName, t);
                 }
             } else {
                 LocalizableMessage message = ERR_MAKELDIF_UNEXPECTED_TEMPLATE_FILE_LINE.get(line, lineNumber);
-                throw new MakeLDIFException(message);
+                throw DecodeException.fatalError(message);
             }
         }
 
@@ -840,12 +841,12 @@ class TemplateFile {
      * @param warnings
      *            A list into which any warnings identified may be placed.
      * @return The decoded branch definition.
-     * @throws MakeLDIFException
+     * @throws DecodeException
      *             If a problem occurs during initializing any of the branch
      *             elements or during processing.
      */
     private Branch parseBranchDefinition(String[] branchLines, int startLineNumber, Map<String, TemplateTag> tags,
-            List<LocalizableMessage> warnings) throws MakeLDIFException {
+            List<LocalizableMessage> warnings) throws DecodeException {
         // The first line must be "branch: " followed by the branch DN.
         String dnString = branchLines[0].substring(8).trim();
         DN branchDN;
@@ -853,7 +854,7 @@ class TemplateFile {
             branchDN = DN.valueOf(dnString, schema);
         } catch (Exception e) {
             LocalizableMessage message = ERR_MAKELDIF_CANNOT_DECODE_BRANCH_DN.get(dnString, startLineNumber);
-            throw new MakeLDIFException(message);
+            throw DecodeException.fatalError(message);
         }
 
         // Create a new branch that will be used for the verification process.
@@ -875,7 +876,7 @@ class TemplateFile {
                 if (colonPos <= 21) {
                     LocalizableMessage message = ERR_MAKELDIF_BRANCH_SUBORDINATE_TEMPLATE_NO_COLON.get(lineNumber,
                             dnString);
-                    throw new MakeLDIFException(message);
+                    throw DecodeException.fatalError(message);
                 }
 
                 String templateName = line.substring(21, colonPos).trim();
@@ -886,7 +887,7 @@ class TemplateFile {
                     if (numEntries < 0) {
                         LocalizableMessage message = ERR_MAKELDIF_BRANCH_SUBORDINATE_INVALID_NUM_ENTRIES.get(
                                 lineNumber, dnString, numEntries, templateName);
-                        throw new MakeLDIFException(message);
+                        throw DecodeException.fatalError(message);
                     } else if (numEntries == 0) {
                         LocalizableMessage message = WARN_MAKELDIF_BRANCH_SUBORDINATE_ZERO_ENTRIES.get(lineNumber,
                                 dnString, templateName);
@@ -897,7 +898,7 @@ class TemplateFile {
                 } catch (NumberFormatException nfe) {
                     LocalizableMessage message = ERR_MAKELDIF_BRANCH_SUBORDINATE_CANT_PARSE_NUMENTRIES.get(
                             templateName, lineNumber, dnString);
-                    throw new MakeLDIFException(message);
+                    throw DecodeException.fatalError(message);
                 }
             } else {
                 TemplateLine templateLine =
@@ -927,13 +928,13 @@ class TemplateFile {
      * @param warnings
      *            A list into which any warnings identified may be placed.
      * @return The decoded template definition.
-     * @throws MakeLDIFException
+     * @throws DecodeException
      *             If a problem occurs during initializing any of the template
      *             elements or during processing.
      */
     private Template parseTemplateDefinition(String[] templateLines, int startLineNumber,
             Map<String, TemplateTag> tags, Map<String, Template> definedTemplates, List<LocalizableMessage> warnings)
-            throws MakeLDIFException {
+            throws DecodeException {
         // The first line must be "template: " followed by the template name.
         String templateName = templateLines[0].substring(10).trim();
 
@@ -959,7 +960,7 @@ class TemplateFile {
                 if (parentTemplate == null) {
                     LocalizableMessage message = ERR_MAKELDIF_TEMPLATE_INVALID_PARENT_TEMPLATE.get(parentTemplateName,
                             lineNumber, templateName);
-                    throw new MakeLDIFException(message);
+                    throw DecodeException.fatalError(message);
                 }
             } else if (lowerLine.startsWith("rdnattr: ")) {
                 // This is the set of RDN attributes. If there are multiple,
@@ -982,7 +983,7 @@ class TemplateFile {
                 if (colonPos <= 21) {
                     LocalizableMessage message = ERR_MAKELDIF_TEMPLATE_SUBORDINATE_TEMPLATE_NO_COLON.get(lineNumber,
                             templateName);
-                    throw new MakeLDIFException(message);
+                    throw DecodeException.fatalError(message);
                 }
 
                 String subTemplateName = line.substring(21, colonPos).trim();
@@ -993,7 +994,7 @@ class TemplateFile {
                     if (numEntries < 0) {
                         LocalizableMessage message = ERR_MAKELDIF_TEMPLATE_SUBORDINATE_INVALID_NUM_ENTRIES.get(
                                 lineNumber, templateName, numEntries, subTemplateName);
-                        throw new MakeLDIFException(message);
+                        throw DecodeException.fatalError(message);
                     } else if (numEntries == 0) {
                         LocalizableMessage message = WARN_MAKELDIF_TEMPLATE_SUBORDINATE_ZERO_ENTRIES.get(lineNumber,
                                 templateName, subTemplateName);
@@ -1005,7 +1006,7 @@ class TemplateFile {
                 } catch (NumberFormatException nfe) {
                     LocalizableMessage message = ERR_MAKELDIF_TEMPLATE_SUBORDINATE_CANT_PARSE_NUMENTRIES.get(
                             subTemplateName, lineNumber, templateName);
-                    throw new MakeLDIFException(message);
+                    throw DecodeException.fatalError(message);
                 }
             } else {
                 // It's something we don't recognize, so it must be a template
@@ -1079,32 +1080,32 @@ class TemplateFile {
      * @param warnings
      *            A list into which any warnings identified may be placed.
      * @return The template line that has been parsed.
-     * @throws MakeLDIFException
+     * @throws DecodeException
      *             If a problem occurs during initializing any of the template
      *             elements or during processing.
      */
     private TemplateLine parseTemplateLine(String line, String lowerLine, int lineNumber, Branch branch,
             Template template, Map<String, TemplateTag> tags, List<LocalizableMessage> warnings)
-            throws MakeLDIFException {
+            throws DecodeException {
         // The first component must be the attribute type, followed by a colon.
         int colonPos = lowerLine.indexOf(':');
         if (colonPos < 0) {
             if (branch == null) {
                 LocalizableMessage message = ERR_MAKELDIF_NO_COLON_IN_TEMPLATE_LINE.get(lineNumber, template.getName());
-                throw new MakeLDIFException(message);
+                throw DecodeException.fatalError(message);
             } else {
                 LocalizableMessage message = ERR_MAKELDIF_NO_COLON_IN_BRANCH_EXTRA_LINE.get(lineNumber,
                         String.valueOf(branch.getBranchDN()));
-                throw new MakeLDIFException(message);
+                throw DecodeException.fatalError(message);
             }
         } else if (colonPos == 0) {
             if (branch == null) {
                 LocalizableMessage message = ERR_MAKELDIF_NO_ATTR_IN_TEMPLATE_LINE.get(lineNumber, template.getName());
-                throw new MakeLDIFException(message);
+                throw DecodeException.fatalError(message);
             } else {
                 LocalizableMessage message = ERR_MAKELDIF_NO_ATTR_IN_BRANCH_EXTRA_LINE.get(lineNumber,
                         String.valueOf(branch.getBranchDN()));
-                throw new MakeLDIFException(message);
+                throw DecodeException.fatalError(message);
             }
         }
 
@@ -1241,7 +1242,7 @@ class TemplateFile {
             }
         } else {
             LocalizableMessage message = ERR_MAKELDIF_INCOMPLETE_TAG.get(lineNumber);
-            throw new MakeLDIFException(message);
+            throw DecodeException.fatalError(message);
         }
 
         TemplateTag[] tagArray = new TemplateTag[tagList.size()];
@@ -1269,11 +1270,11 @@ class TemplateFile {
      * @param warnings
      *            A list into which any warnings identified may be placed.
      * @return The replacement tag parsed from the provided string.
-     * @throws MakeLDIFException
+     * @throws DecodeException
      *             If some problem occurs during processing.
      */
     private TemplateTag parseReplacementTag(String tagString, Branch branch, Template template, int lineNumber,
-            Map<String, TemplateTag> tags, List<LocalizableMessage> warnings) throws MakeLDIFException {
+            Map<String, TemplateTag> tags, List<LocalizableMessage> warnings) throws DecodeException {
         // The components of the replacement tag will be separated by colons,
         // with
         // the first being the tag name and the remainder being arguments.
@@ -1286,7 +1287,7 @@ class TemplateFile {
             t = tags.get(lowerTagName);
             if (t == null) {
                 LocalizableMessage message = ERR_MAKELDIF_NO_SUCH_TAG.get(tagName, lineNumber);
-                throw new MakeLDIFException(message);
+                throw DecodeException.fatalError(message);
             }
         }
 
@@ -1304,7 +1305,7 @@ class TemplateFile {
         } catch (Exception e) {
             LocalizableMessage message = ERR_MAKELDIF_CANNOT_INSTANTIATE_NEW_TAG.get(tagName, lineNumber,
                     String.valueOf(e));
-            throw new MakeLDIFException(message, e);
+            throw DecodeException.fatalError(message, e);
         }
 
         if (branch == null) {
@@ -1314,7 +1315,7 @@ class TemplateFile {
                 newTag.initializeForBranch(schema, this, branch, args, lineNumber, warnings);
             } else {
                 LocalizableMessage message = ERR_MAKELDIF_TAG_NOT_ALLOWED_IN_BRANCH.get(newTag.getName(), lineNumber);
-                throw new MakeLDIFException(message);
+                throw DecodeException.fatalError(message);
             }
         }
 
@@ -1337,11 +1338,11 @@ class TemplateFile {
      * @param warnings
      *            A list into which any warnings identified may be placed.
      * @return The attribute tag parsed from the provided string.
-     * @throws MakeLDIFException
+     * @throws DecodeException
      *             If some other problem occurs during processing.
      */
     private TemplateTag parseAttributeTag(String tagString, Branch branch, Template template, int lineNumber,
-            List<LocalizableMessage> warnings) throws MakeLDIFException {
+            List<LocalizableMessage> warnings) throws DecodeException {
         // The attribute tag must have at least one argument, which is the name
         // of
         // the attribute to reference. It may have a second argument, which is
@@ -1462,10 +1463,10 @@ class TemplateFile {
      * @return The result that indicates whether processing should continue.
      * @throws IOException
      *             If an error occurs while writing the entry.
-     * @throws MakeLDIFException
+     * @throws DecodeException
      *             If some other problem occurs.
      */
-    public TagResult generateEntries(EntryWriter entryWriter) throws IOException, MakeLDIFException {
+    public TagResult generateEntries(EntryWriter entryWriter) throws IOException, DecodeException {
         for (Branch b : branches.values()) {
             TagResult result = b.writeEntries(entryWriter);
             if (!(result.keepProcessingTemplateFile())) {
@@ -1492,10 +1493,10 @@ class TemplateFile {
          * @throws IOException
          *             If a problem occurs while writing the entry to its
          *             intended destination.
-         * @throws MakeLDIFException
+         * @throws DecodeException
          *             If some other problem occurs.
          */
-        public boolean writeEntry(TemplateEntry entry) throws IOException, MakeLDIFException;
+        public boolean writeEntry(TemplateEntry entry) throws IOException, DecodeException;
 
         /**
          * Notifies the entry writer that no more entries will be provided and
@@ -1623,11 +1624,11 @@ class TemplateFile {
          *
          * @param templates
          *            The set of templates defined in the template file.
-         * @throws MakeLDIFException
+         * @throws DecodeException
          *             If any of the subordinate templates are not defined in
          *             the template file.
          */
-        public void completeBranchInitialization(Map<String, Template> templates) throws MakeLDIFException {
+        public void completeBranchInitialization(Map<String, Template> templates) throws DecodeException {
             if (subordinateTemplateNames == null) {
                 subordinateTemplateNames = new String[0];
                 subordinateTemplates = new Template[0];
@@ -1638,7 +1639,7 @@ class TemplateFile {
                     if (subordinateTemplates[i] == null) {
                         LocalizableMessage message = ERR_MAKELDIF_UNDEFINED_BRANCH_SUBORDINATE.get(branchDN.toString(),
                                 subordinateTemplateNames[i]);
-                        throw new MakeLDIFException(message);
+                        throw DecodeException.fatalError(message);
                     }
                 }
             }
@@ -1770,10 +1771,10 @@ class TemplateFile {
          * @throws IOException
          *             If a problem occurs while attempting to write to the LDIF
          *             writer.
-         * @throws MakeLDIFException
+         * @throws DecodeException
          *             If some other problem occurs.
          */
-        public TagResult writeEntries(EntryWriter entryWriter) throws IOException, MakeLDIFException {
+        public TagResult writeEntries(EntryWriter entryWriter) throws IOException, DecodeException {
             // Create a new template entry and populate it based on the RDN
             // attributes and extra lines.
             TemplateEntry entry = new TemplateEntry(this);
@@ -1912,11 +1913,11 @@ class TemplateFile {
          *
          * @param templates
          *            The set of templates defined in the template file.
-         * @throws MakeLDIFException
+         * @throws DecodeException
          *             If any of the subordinate templates are not defined in
          *             the template file.
          */
-        public void completeTemplateInitialization(Map<String, Template> templates) throws MakeLDIFException {
+        public void completeTemplateInitialization(Map<String, Template> templates) throws DecodeException {
             // Make sure that all of the specified subordinate templates exist.
             if (subordinateTemplateNames == null) {
                 subordinateTemplateNames = new String[0];
@@ -1928,7 +1929,7 @@ class TemplateFile {
                     if (subordinateTemplates[i] == null) {
                         LocalizableMessage message = ERR_MAKELDIF_UNDEFINED_TEMPLATE_SUBORDINATE.get(
                                 subordinateTemplateNames[i], name);
-                        throw new MakeLDIFException(message);
+                        throw DecodeException.fatalError(message);
                     }
                 }
             }
@@ -1950,7 +1951,7 @@ class TemplateFile {
             if (!rdnAttrs.isEmpty()) {
                 AttributeType t = rdnAttrs.iterator().next();
                 LocalizableMessage message = ERR_MAKELDIF_TEMPLATE_MISSING_RDN_ATTR.get(name, t.getNameOrOID());
-                throw new MakeLDIFException(message);
+                throw DecodeException.fatalError(message);
             }
         }
 
@@ -2064,11 +2065,11 @@ class TemplateFile {
          * @throws IOException
          *             If a problem occurs while attempting to write to the LDIF
          *             writer.
-         * @throws MakeLDIFException
+         * @throws DecodeException
          *             If some other problem occurs.
          */
         public TagResult writeEntries(EntryWriter entryWriter, DN parentDN, int count) throws IOException,
-                MakeLDIFException {
+                DecodeException {
             for (int i = 0; i < count; i++) {
                 templateFile.nextFirstAndLastNames();
                 TemplateEntry templateEntry = new TemplateEntry(this, parentDN);
