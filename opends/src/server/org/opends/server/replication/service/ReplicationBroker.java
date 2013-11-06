@@ -1487,26 +1487,33 @@ public class ReplicationBroker
    */
   private static class LocalEvaluation
   {
-    private final Map<Integer, ReplicationServerInfo> filteredRSs =
+    private final Map<Integer, ReplicationServerInfo> accepted =
         new HashMap<Integer, ReplicationServerInfo>();
     private final Map<ReplicationServerInfo, Message> rsEvals =
         new HashMap<ReplicationServerInfo, Message>();
 
     private void accept(Integer rsId, ReplicationServerInfo rsInfo)
     {
-      this.rsEvals.remove(rsInfo); // undo reject
-      this.filteredRSs.put(rsId, rsInfo);
+      // forget previous eval, including undoing reject
+      this.rsEvals.remove(rsInfo);
+      this.accepted.put(rsId, rsInfo);
     }
 
     private void reject(ReplicationServerInfo rsInfo, Message reason)
     {
-      this.filteredRSs.remove(rsInfo.getServerId()); // undo accept
+      this.accepted.remove(rsInfo.getServerId()); // undo accept
       this.rsEvals.put(rsInfo, reason);
     }
 
     private Map<Integer, ReplicationServerInfo> getAccepted()
     {
-      return filteredRSs;
+      return accepted;
+    }
+
+    private ReplicationServerInfo[] getAcceptedRSInfos()
+    {
+      return accepted.values().toArray(
+          new ReplicationServerInfo[accepted.size()]);
     }
 
     public Map<Integer, Message> getRejected()
@@ -1521,7 +1528,7 @@ public class ReplicationBroker
 
     private boolean hasAcceptedAny()
     {
-      return !filteredRSs.isEmpty();
+      return !accepted.isEmpty();
     }
 
   }
@@ -1818,20 +1825,20 @@ public class ReplicationBroker
     evals.keepBest(mostUpToDateEval);
   }
 
-  private static CSN getCSN(ServerState localState, int localServerId)
+  private static CSN getCSN(ServerState state, int serverId)
   {
-    final CSN csn = localState.getCSN(localServerId);
+    final CSN csn = state.getCSN(serverId);
     if (csn != null)
     {
       return csn;
     }
-    return new CSN(0, 0, localServerId);
+    return new CSN(0, 0, serverId);
   }
 
   private static void rejectAllWithRSIsLaterThanBestRS(
       final LocalEvaluation eval, int localServerId, CSN localCSN)
   {
-    for (ReplicationServerInfo rsInfo : eval.getAccepted().values())
+    for (ReplicationServerInfo rsInfo : eval.getAcceptedRSInfos())
     {
       final String rsCSN =
           getCSN(rsInfo.getServerState(), localServerId).toStringUI();
@@ -1902,7 +1909,7 @@ public class ReplicationBroker
   private static void rejectAllWithRSOnDifferentVMThanDS(LocalEvaluation eval,
       int localServerId)
   {
-    for (ReplicationServerInfo rsInfo : eval.getAccepted().values())
+    for (ReplicationServerInfo rsInfo : eval.getAcceptedRSInfos())
     {
       eval.reject(rsInfo, NOTE_RS_ON_DIFFERENT_VM_THAN_DS.get(
           rsInfo.getServerId(), localServerId));
