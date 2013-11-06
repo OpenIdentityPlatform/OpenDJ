@@ -43,7 +43,6 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.schema.Schema;
-import org.forgerock.opendj.ldap.schema.SchemaValidationPolicy;
 import org.forgerock.opendj.ldif.TemplateFile.EntryWriter;
 import org.forgerock.opendj.ldif.TemplateFile.TemplateEntry;
 
@@ -180,7 +179,6 @@ public final class EntryGenerator implements EntryReader {
         private int randomSeed = DEFAULT_RANDOM_SEED;
         private String resourcePath = DEFAULT_RESOURCE_PATH;
         private Schema schema;
-        private SchemaValidationPolicy schemaValidationPolicy;
 
         private Builder(String templatePath) {
             this.templatePath = templatePath;
@@ -247,26 +245,6 @@ public final class EntryGenerator implements EntryReader {
         }
 
         /**
-         * Specifies the schema validation which should be used when generating
-         * entries. If attribute value validation is enabled then all checks
-         * will be performed.
-         * <p>
-         * Schema validation is disabled by default.
-         * <p>
-         * <b>NOTE:</b> this method copies the provided policy so changes made
-         * to it after this method has been called will have no effect.
-         *
-         * @param policy
-         *            The schema validation which should be used when generating
-         *            entries.
-         * @return A reference to this {@code EntryGenerator.Builder}.
-         */
-        public Builder setSchemaValidationPolicy(final SchemaValidationPolicy policy) {
-            this.schemaValidationPolicy = SchemaValidationPolicy.copyOf(policy);
-            return this;
-        }
-
-        /**
          * Return an instance of reader.
          *
          * @return a new instance of reader
@@ -278,10 +256,6 @@ public final class EntryGenerator implements EntryReader {
         public EntryGenerator build() throws IOException, DecodeException {
             if (schema == null) {
                 schema = Schema.getDefaultSchema();
-            }
-            if (schemaValidationPolicy != null) {
-                schema = schemaValidationPolicy.checkAttributesAndObjectClasses().needsChecking() ? schema
-                        .asStrictSchema() : schema.asNonStrictSchema();
             }
             templateFile = new TemplateFile(schema, resourcePath, new Random(randomSeed));
             LinkedList<LocalizableMessage> warnings = new LinkedList<LocalizableMessage>();
