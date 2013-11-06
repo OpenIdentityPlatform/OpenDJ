@@ -87,6 +87,16 @@ public class ComputeBestServerTest extends ReplicationTestCase
     }
   }
 
+  private ServerState newServerState(CSN... csns)
+  {
+    ServerState result = new ServerState();
+    for (CSN csn : csns)
+    {
+      result.update(csn);
+    }
+    return result;
+  }
+
   /**
    * Test with one replication server, nobody has a CSN (simulates) very first
    * connection.
@@ -95,18 +105,10 @@ public class ComputeBestServerTest extends ReplicationTestCase
   public void testNullCSNBoth() throws Exception
   {
     String testCase = "testNullCSNBoth";
-
     debugInfo("Starting " + testCase);
 
-    // Create my state
-    ServerState mySt = new ServerState();
-    mySt.update(new CSN(2, 0, myId2)); // Should not be used inside algo
-    mySt.update(new CSN(3, 0, myId3)); // Should not be used inside algo
-
-    // State for server 1
-    ServerState aState = new ServerState();
-    aState.update(new CSN(0, 0, myId2));
-    aState.update(new CSN(0, 0, myId3));
+    ServerState mySt = newServerState();
+    ServerState aState = newServerState();
 
     Map<Integer, ReplicationServerInfo> rsInfos =
         newRSInfos(newRSInfo(11, WINNER, aState, 0, 1));
@@ -145,19 +147,10 @@ public class ComputeBestServerTest extends ReplicationTestCase
   public void testNullCSNDS() throws Exception
   {
     String testCase = "testNullCSNDS";
-
     debugInfo("Starting " + testCase);
 
-    // Create my state
-    ServerState mySt = new ServerState();
-    mySt.update(new CSN(2, 0, myId2));// Should not be used inside algo
-    mySt.update(new CSN(3, 0, myId3));// Should not be used inside algo
-
-    // State for server 1
-    ServerState aState = new ServerState();
-    aState.update(new CSN(0, 0, myId1));
-    aState.update(new CSN(0, 0, myId2));
-    aState.update(new CSN(0, 0, myId3));
+    ServerState mySt = newServerState();
+    ServerState aState = newServerState(new CSN(0, 0, myId1));
 
     Map<Integer, ReplicationServerInfo> rsInfos =
         newRSInfos(newRSInfo(11, WINNER, aState, 0, 1));
@@ -177,19 +170,10 @@ public class ComputeBestServerTest extends ReplicationTestCase
   public void testNullCSNRS() throws Exception
   {
     String testCase = "testNullCSNRS";
-
     debugInfo("Starting " + testCase);
 
-    // Create my state
-    ServerState mySt = new ServerState();
-    mySt.update(new CSN(1, 0, myId1));
-    mySt.update(new CSN(2, 0, myId2)); // Should not be used inside algo
-    mySt.update(new CSN(3, 0, myId3)); // Should not be used inside algo
-
-    // State for server 1
-    ServerState aState = new ServerState();
-    aState.update(new CSN(0, 0, myId2));
-    aState.update(new CSN(0, 0, myId3));
+    ServerState mySt = newServerState(new CSN(1, 0, myId1));
+    ServerState aState = newServerState();
 
     Map<Integer, ReplicationServerInfo> rsInfos =
         newRSInfos(newRSInfo(11, WINNER, aState, 0, 1));
@@ -208,20 +192,10 @@ public class ComputeBestServerTest extends ReplicationTestCase
   public void test1ServerUp() throws Exception
   {
     String testCase = "test1ServerUp";
-
     debugInfo("Starting " + testCase);
 
-    // Create my state
-    ServerState mySt = new ServerState();
-    mySt.update(new CSN(1, 0, myId1));
-    mySt.update(new CSN(2, 0, myId2)); // Should not be used inside algo
-    mySt.update(new CSN(3, 0, myId3)); // Should not be used inside algo
-
-    // State for server 1
-    ServerState aState = new ServerState();
-    aState.update(new CSN(1, 0, myId1));
-    aState.update(new CSN(1, 0, myId2));
-    aState.update(new CSN(1, 0, myId3));
+    ServerState mySt = newServerState(new CSN(1, 0, myId1));
+    ServerState aState = newServerState(new CSN(1, 0, myId1));
 
     Map<Integer, ReplicationServerInfo> rsInfos =
         newRSInfos(newRSInfo(11, WINNER, aState, 0, 1));
@@ -240,26 +214,11 @@ public class ComputeBestServerTest extends ReplicationTestCase
   public void test2ServersUp() throws Exception
   {
     String testCase = "test2ServersUp";
-
     debugInfo("Starting " + testCase);
 
-    // Create my state
-    ServerState mySt = new ServerState();
-    mySt.update(new CSN(1, 0, myId1));
-    mySt.update(new CSN(2, 0, myId2)); // Should not be used inside algo
-    mySt.update(new CSN(3, 0, myId3)); // Should not be used inside algo
-
-    // State for server 1
-    ServerState aState1 = new ServerState();
-    aState1.update(new CSN(1, 0, myId1));
-    aState1.update(new CSN(1, 0, myId2));
-    aState1.update(new CSN(1, 0, myId3));
-
-    // State for server 2
-    ServerState aState2 = new ServerState();
-    aState2.update(new CSN(2, 0, myId1));
-    aState2.update(new CSN(1, 0, myId2));
-    aState2.update(new CSN(1, 0, myId3));
+    ServerState mySt = newServerState(new CSN(1, 0, myId1));
+    ServerState aState1 = newServerState(new CSN(1, 0, myId1));
+    ServerState aState2 = newServerState(new CSN(2, 0, myId1));
 
     Map<Integer, ReplicationServerInfo> rsInfos = newRSInfos(
         newRSInfo(11, LOOSER1, aState1, 0, 1),
@@ -281,30 +240,15 @@ public class ComputeBestServerTest extends ReplicationTestCase
   public void testDiffGroup2ServersUp() throws Exception
   {
     String testCase = "testDiffGroup2ServersUp";
-
     debugInfo("Starting " + testCase);
 
-    // Create my state
-    ServerState mySt = new ServerState();
-    mySt.update(new CSN(1, 0, myId1));
-    mySt.update(new CSN(2, 0, myId2)); // Should not be used inside algo
-    mySt.update(new CSN(3, 0, myId3)); // Should not be used inside algo
-
-    // State for server 1
-    ServerState aState1 = new ServerState();
-    aState1.update(new CSN(1, 0, myId1));
-    aState1.update(new CSN(1, 0, myId2));
-    aState1.update(new CSN(1, 0, myId3));
-    // This server has less changes than the other one but it has the same
-    // group id as us so he should be the winner
-
-    // State for server 2
-    ServerState aState2 = new ServerState();
-    aState2.update(new CSN(2, 0, myId1));
-    aState2.update(new CSN(1, 0, myId2));
-    aState2.update(new CSN(1, 0, myId3));
+    ServerState mySt = newServerState(new CSN(1, 0, myId1));
+    ServerState aState1 = newServerState(new CSN(1, 0, myId1));
+    ServerState aState2 = newServerState(new CSN(2, 0, myId1));
 
     Map<Integer, ReplicationServerInfo> rsInfos = newRSInfos(
+        // This server has less changes than the other one but it has the same
+        // group id as us so he should be the winner
         newRSInfo(11, WINNER, aState1, 0, 1),
         newRSInfo(12, LOOSER1, aState2, 0, 2));
     RSEvaluations evals =
@@ -371,26 +315,11 @@ public class ComputeBestServerTest extends ReplicationTestCase
   public void testNotOurGroup() throws Exception
   {
     String testCase = "testNotOurGroup";
-
     debugInfo("Starting " + testCase);
 
-    // Create my state
-    ServerState mySt = new ServerState();
-    mySt.update(new CSN(1, 0, myId1));
-    mySt.update(new CSN(2, 0, myId2)); // Should not be used inside algo
-    mySt.update(new CSN(3, 0, myId3)); // Should not be used inside algo
-
-    // State for server 1
-    ServerState aState1 = new ServerState();
-    aState1.update(new CSN(1, 0, myId1));
-    aState1.update(new CSN(1, 0, myId2));
-    aState1.update(new CSN(1, 0, myId3));
-
-    // State for server 2
-    ServerState aState2 = new ServerState();
-    aState2.update(new CSN(2, 0, myId1));
-    aState2.update(new CSN(2, 0, myId2));
-    aState2.update(new CSN(2, 0, myId3));
+    ServerState mySt = newServerState(new CSN(1, 0, myId1));
+    ServerState aState1 = newServerState(new CSN(1, 0, myId1));
+    ServerState aState2 = newServerState(new CSN(2, 0, myId1));
 
     Map<Integer, ReplicationServerInfo> rsInfos = newRSInfos(
         newRSInfo(11, LOOSER1, aState1, 0, 2),
@@ -412,32 +341,42 @@ public class ComputeBestServerTest extends ReplicationTestCase
   public void test3ServersUp() throws Exception
   {
     String testCase = "test3ServersUp";
-
     debugInfo("Starting " + testCase);
 
-    // Create my state
-    ServerState mySt = new ServerState();
-    mySt.update(new CSN(1, 0, myId1));
-    mySt.update(new CSN(2, 0, myId2)); // Should not be used inside algo
-    mySt.update(new CSN(3, 0, myId3)); // Should not be used inside algo
+    ServerState mySt = newServerState(new CSN(1, 0, myId1));
+    ServerState aState1 = newServerState(new CSN(1, 0, myId1));
+    ServerState aState2 = newServerState(new CSN(2, 0, myId1));
+    ServerState aState3 = newServerState(new CSN(3, 0, myId1));
 
-    // State for server 1
-    ServerState aState1 = new ServerState();
-    aState1.update(new CSN(1, 0, myId1));
-    aState1.update(new CSN(1, 0, myId2));
-    aState1.update(new CSN(1, 0, myId3));
+    Map<Integer, ReplicationServerInfo> rsInfos = newRSInfos(
+        newRSInfo(11, LOOSER1, aState1, 0, 1),
+        newRSInfo(12, LOOSER2, aState2, 0, 1),
+        newRSInfo(13, WINNER, aState3, 0, 1));
+    RSEvaluations evals =
+      computeBestReplicationServer(true, -1, mySt, rsInfos, myId1, (byte)1, 0);
 
-    // State for server 2
-    ServerState aState2 = new ServerState();
-    aState2.update(new CSN(2, 0, myId1));
-    aState2.update(new CSN(1, 0, myId2));
-    aState2.update(new CSN(4, 0, myId3));
+    assertEquals(evals.getBestRS().getServerURL(), WINNER,
+        "Wrong best replication server.");
+    containsOnly(evals.getEvaluations(),
+        entry(11, NOTE_RS_LATER_THAN_ANOTHER_RS_MORE_UP_TO_DATE_THAN_LOCAL_DS),
+        entry(12, NOTE_RS_LATER_THAN_ANOTHER_RS_MORE_UP_TO_DATE_THAN_LOCAL_DS),
+        entry(13, NOTE_BEST_RS));
+  }
 
-    // State for server 3
-    ServerState aState3 = new ServerState();
-    aState3.update(new CSN(3, 0, myId1));
-    aState3.update(new CSN(2, 0, myId2));
-    aState3.update(new CSN(1, 0, myId3));
+  /**
+   * Test with 3 replication servers: 2 are up to date with the directory
+   * server, 1 is more up to date than the directory server.
+   */
+  @Test
+  public void test2ServersUpToDateAnd1EvenMoreUpToDate() throws Exception
+  {
+    String testCase = "test3ServersUp";
+    debugInfo("Starting " + testCase);
+
+    ServerState mySt = newServerState(new CSN(1, 0, myId1));
+    ServerState aState1 = newServerState(new CSN(1, 0, myId1));
+    ServerState aState2 = newServerState(new CSN(1, 0, myId1));
+    ServerState aState3 = newServerState(new CSN(2, 0, myId1));
 
     Map<Integer, ReplicationServerInfo> rsInfos = newRSInfos(
         newRSInfo(11, LOOSER1, aState1, 0, 1),
@@ -461,32 +400,12 @@ public class ComputeBestServerTest extends ReplicationTestCase
   public void testDiffGroup3ServersUp() throws Exception
   {
     String testCase = "testDiffGroup3ServersUp";
-
     debugInfo("Starting " + testCase);
 
-    // Create my state
-    ServerState mySt = new ServerState();
-    mySt.update(new CSN(1, 0, myId1));
-    mySt.update(new CSN(2, 0, myId2)); // Should not be used inside algo
-    mySt.update(new CSN(3, 0, myId3)); // Should not be used inside algo
-
-    // State for server 1
-    ServerState aState1 = new ServerState();
-    aState1.update(new CSN(1, 0, myId1));
-    aState1.update(new CSN(1, 0, myId2));
-    aState1.update(new CSN(1, 0, myId3));
-
-    // State for server 2
-    ServerState aState2 = new ServerState();
-    aState2.update(new CSN(2, 0, myId1));
-    aState2.update(new CSN(1, 0, myId2));
-    aState2.update(new CSN(3, 0, myId3));
-
-    // State for server 3
-    ServerState aState3 = new ServerState();
-    aState3.update(new CSN(3, 0, myId1));
-    aState3.update(new CSN(2, 0, myId2));
-    aState3.update(new CSN(1, 0, myId3));
+    ServerState mySt = newServerState(new CSN(1, 0, myId1));
+    ServerState aState1 = newServerState(new CSN(1, 0, myId1));
+    ServerState aState2 = newServerState(new CSN(2, 0, myId1));
+    ServerState aState3 = newServerState(new CSN(3, 0, myId1));
 
     Map<Integer, ReplicationServerInfo> rsInfos = newRSInfos(
         newRSInfo(11, LOOSER1, aState1, 0, 1),
@@ -512,20 +431,10 @@ public class ComputeBestServerTest extends ReplicationTestCase
   public void test1ServerLate() throws Exception
   {
     String testCase = "test1ServerLate";
-
     debugInfo("Starting " + testCase);
 
-    // Create my state
-    ServerState mySt = new ServerState();
-    mySt.update(new CSN(1, 0, myId1));
-    mySt.update(new CSN(2, 0, myId2));// Should not be used inside algo
-    mySt.update(new CSN(3, 0, myId3));// Should not be used inside algo
-
-    // State for server 1
-    ServerState aState = new ServerState();
-    aState.update(new CSN(0, 0, myId1));
-    aState.update(new CSN(1, 0, myId2));
-    aState.update(new CSN(1, 0, myId3));
+    ServerState mySt = newServerState(new CSN(1, 0, myId1));
+    ServerState aState = newServerState(new CSN(0, 0, myId1));
 
     Map<Integer, ReplicationServerInfo> rsInfos =
         newRSInfos(newRSInfo(11, WINNER, aState, 0, 1));
@@ -597,7 +506,6 @@ public class ComputeBestServerTest extends ReplicationTestCase
       throws Exception
   {
     String testCase = "test3ServersLate";
-
     debugInfo("Starting " + testCase);
 
     // definitions for server names
@@ -606,32 +514,32 @@ public class ComputeBestServerTest extends ReplicationTestCase
     final String LOOSER2 = "localhost:789";
 
     // Create my state
-    ServerState mySt = new ServerState();
-    mySt.update(new CSN(4, 0, myId1));
-    mySt.update(new CSN(2, 0, myId2));// Should not be used inside algo
-    mySt.update(new CSN(3, 0, myId3));// Should not be used inside algo
+    ServerState mySt = newServerState(
+        new CSN(4, 0, myId1),
+        new CSN(2, 0, myId2),  // myId2 should not be used inside algo (same for the other ServerStates)
+        new CSN(3, 0, myId3)); // myId3 should not be used inside algo (same for the other ServerStates)
 
     // State for server 1
-    ServerState aState1 = new ServerState();
-    aState1.update(new CSN(looser1T1, 0, myId1));
-    aState1.update(new CSN(looser1T2, 0, myId2));
-    aState1.update(new CSN(looser1T3, 0, myId3));
+    ServerState aState1 = newServerState(
+        new CSN(looser1T1, 0, myId1),
+        new CSN(looser1T2, 0, myId2),
+        new CSN(looser1T3, 0, myId3));
     if (looser1IsLocal)
       ReplicationServer.onlyForTestsAddlocalReplicationServer(LOOSER1);
 
     // State for server 2
-    ServerState aState2 = new ServerState();
-    aState2.update(new CSN(winnerT1, 0, myId1));
-    aState2.update(new CSN(winnerT2, 0, myId2));
-    aState2.update(new CSN(winnerT3, 0, myId3));
+    ServerState aState2 = newServerState(
+        new CSN(winnerT1, 0, myId1),
+        new CSN(winnerT2, 0, myId2),
+        new CSN(winnerT3, 0, myId3));
     if (winnerIsLocal)
       ReplicationServer.onlyForTestsAddlocalReplicationServer(WINNER);
 
     // State for server 3
-    ServerState aState3 = new ServerState();
-    aState3.update(new CSN(looser2T1, 0, myId1));
-    aState3.update(new CSN(looser2T2, 0, myId2));
-    aState3.update(new CSN(looser2T3, 0, myId3));
+    ServerState aState3 = newServerState(
+        new CSN(looser2T1, 0, myId1),
+        new CSN(looser2T2, 0, myId2),
+        new CSN(looser2T3, 0, myId3));
     if (looser2IsLocal)
       ReplicationServer.onlyForTestsAddlocalReplicationServer(LOOSER2);
 
@@ -700,7 +608,6 @@ public class ComputeBestServerTest extends ReplicationTestCase
       throws Exception
   {
     String testCase = "test3ServersMoreCriteria";
-
     debugInfo("Starting " + testCase);
 
     // definitions for server names
@@ -709,24 +616,20 @@ public class ComputeBestServerTest extends ReplicationTestCase
     final String LOOSER2 = "localhost:789";
 
     // Create my state
-    ServerState mySt = new ServerState();
-    mySt.update(new CSN(4, 0, myId1));
+    ServerState mySt = newServerState(new CSN(4, 0, myId1));
 
     // State for server 1
-    ServerState aState1 = new ServerState();
-    aState1.update(new CSN(looser1T1, 0, myId1));
+    ServerState aState1 = newServerState(new CSN(looser1T1, 0, myId1));
     if (looser1IsLocal)
       ReplicationServer.onlyForTestsAddlocalReplicationServer(LOOSER1);
 
     // State for server 2
-    ServerState aState2 = new ServerState();
-    aState2.update(new CSN(winnerT1, 0, myId1));
+    ServerState aState2 = newServerState(new CSN(winnerT1, 0, myId1));
     if (winnerIsLocal)
       ReplicationServer.onlyForTestsAddlocalReplicationServer(WINNER);
 
     // State for server 3
-    ServerState aState3 = new ServerState();
-    aState3.update(new CSN(looser2T1, 0, myId1));
+    ServerState aState3 = newServerState(new CSN(looser2T1, 0, myId1));
     if (looser2IsLocal)
       ReplicationServer.onlyForTestsAddlocalReplicationServer(LOOSER2);
 
@@ -1424,7 +1327,6 @@ public class ComputeBestServerTest extends ReplicationTestCase
       throws Exception
   {
     String testCase = "testComputeBestServerForWeight";
-
     debugInfo("Starting " + testCase);
 
     final RSEvaluations evals = new RSEvaluations(localServerId, servers);
