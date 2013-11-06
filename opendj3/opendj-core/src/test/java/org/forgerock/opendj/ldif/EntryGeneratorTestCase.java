@@ -59,7 +59,6 @@ public class EntryGeneratorTestCase extends SdkTestCase {
         // path of directory in src/main/resources must be obtained from a file
         // otherwise it may search in the wrong directory
         resourcePath = new File(getTestFilePath(TEMPLATE_FILE_PATH)).getParent();
-        System.out.println(resourcePath);
         schema = Schema.getDefaultSchema();
     }
 
