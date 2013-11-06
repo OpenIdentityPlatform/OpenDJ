@@ -1,6 +1,6 @@
 define suffix=dc=example,dc=com
 define maildomain=example.com
-define numusers=2
+define numusers=10000
 
 branch: [suffix]
 

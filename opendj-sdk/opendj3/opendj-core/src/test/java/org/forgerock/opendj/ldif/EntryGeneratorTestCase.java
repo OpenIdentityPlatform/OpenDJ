@@ -50,13 +50,16 @@ import org.testng.annotations.Test;
 @SuppressWarnings("javadoc")
 public class EntryGeneratorTestCase extends SdkTestCase {
 
-    private static final String TEMPLATE_FILE_PATH = "MakeLDIF/example.template";
+    private static final String TEMPLATE_FILE_PATH = "org/forgerock/opendj/ldif/example.template";
     private String resourcePath;
     private Schema schema;
 
     @BeforeClass
     public void setUp() throws Exception {
-        resourcePath = getTestFilePath("MakeLDIF");
+        // path of directory in src/main/resources must be obtained from a file
+        // otherwise it may search in the wrong directory
+        resourcePath = new File(getTestFilePath(TEMPLATE_FILE_PATH)).getParent();
+        System.out.println(resourcePath);
         schema = Schema.getDefaultSchema();
     }
 
@@ -65,7 +68,7 @@ public class EntryGeneratorTestCase extends SdkTestCase {
         String templatePath = getTestFilePath(TEMPLATE_FILE_PATH);
         EntryGenerator reader = newReader(templatePath).setResourcePath(resourcePath).build();
 
-        checkReader(reader);
+        checkReader(reader, 10000);
         reader.close();
     }
 
@@ -75,7 +78,7 @@ public class EntryGeneratorTestCase extends SdkTestCase {
                 new File(getTestFilePath(TEMPLATE_FILE_PATH)));
         EntryGenerator reader = newReader(stream).setResourcePath(resourcePath).build();
 
-        checkReader(reader);
+        checkReader(reader, 10000);
         reader.close();
     }
 
@@ -118,23 +121,25 @@ public class EntryGeneratorTestCase extends SdkTestCase {
                 "description: This is the description for {cn}.")
                 .setResourcePath(resourcePath).build();
 
-        checkReader(reader);
+        checkReader(reader, 2);
         reader.close();
     }
 
     /**
      * Check the content of the reader for basic case.
-     * Expecting 4 entries with 2 users.
+     *
+     * Expecting 2 entries and then numberOfUsers entries.
      */
-    private void checkReader(EntryGenerator reader) throws Exception {
+    private void checkReader(EntryGenerator reader, int numberOfUsers) throws Exception {
         assertThat(reader.hasNext()).isTrue();
         assertThat(reader.readEntry().getName().toString()).isEqualTo("dc=example,dc=com");
         assertThat(reader.hasNext()).isTrue();
         assertThat(reader.readEntry().getName().toString()).isEqualTo("ou=People,dc=example,dc=com");
-        assertThat(reader.hasNext()).isTrue();
-        assertThat(reader.readEntry().getName().toString()).isEqualTo("uid=user.0,ou=People,dc=example,dc=com");
-        assertThat(reader.hasNext()).isTrue();
-        assertThat(reader.readEntry().getName().toString()).isEqualTo("uid=user.1,ou=People,dc=example,dc=com");
+        for (int i = 0; i < numberOfUsers; i++) {
+            assertThat(reader.hasNext()).isTrue();
+            assertThat(reader.readEntry().getName().toString()).
+                isEqualTo("uid=user." + i + ",ou=People,dc=example,dc=com");
+        }
         assertThat(reader.hasNext()).as("should have no more entries").isFalse();
     }
 
