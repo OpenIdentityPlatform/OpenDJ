@@ -37,6 +37,7 @@ import java.util.UUID;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldif.TemplateFile.Branch;
@@ -87,11 +88,11 @@ abstract class TemplateTag {
      * @param warnings
      *            A list into which any appropriate warning messages may be
      *            placed.
-     * @throws MakeLDIFException
+     * @throws DecodeException
      *             if a problem occurs
      */
     public void initializeForBranch(Schema schema, TemplateFile templateFile, Branch branch, String[] arguments,
-            int lineNumber, List<LocalizableMessage> warnings) throws MakeLDIFException {
+            int lineNumber, List<LocalizableMessage> warnings) throws DecodeException {
         // No implementation required by default.
     }
 
@@ -113,11 +114,11 @@ abstract class TemplateTag {
      * @param warnings
      *            A list into which any appropriate warning messages may be
      *            placed.
-     * @throws MakeLDIFException
+     * @throws DecodeException
      *             if a problem occurs
      */
     public abstract void initializeForTemplate(Schema schema, TemplateFile templateFile, Template template,
-            String[] arguments, int lineNumber, List<LocalizableMessage> warnings) throws MakeLDIFException;
+            String[] arguments, int lineNumber, List<LocalizableMessage> warnings) throws DecodeException;
 
     /**
      * Performs any initialization for this tag that may be needed when starting
@@ -315,18 +316,18 @@ abstract class TemplateTag {
          */
         @Override
         public void initializeForBranch(Schema schema, TemplateFile templateFile, Branch branch, String[] arguments,
-                int lineNumber, List<LocalizableMessage> warnings) throws MakeLDIFException {
+                int lineNumber, List<LocalizableMessage> warnings) throws DecodeException {
             if ((arguments.length < 1) || (arguments.length > 2)) {
                 LocalizableMessage message = ERR_MAKELDIF_TAG_INVALID_ARGUMENT_RANGE_COUNT.get(getName(), lineNumber,
                         1, 2, arguments.length);
-                throw new MakeLDIFException(message);
+                throw DecodeException.fatalError(message);
             }
 
             String lowerName = arguments[0].toLowerCase();
             attributeType = schema.getAttributeType(lowerName);
             if (!branch.hasAttribute(attributeType)) {
                 LocalizableMessage message = ERR_MAKELDIF_TAG_UNDEFINED_ATTRIBUTE.get(arguments[0], lineNumber);
-                throw new MakeLDIFException(message);
+                throw DecodeException.fatalError(message);
             }
 
             if (arguments.length == 2) {
@@ -335,12 +336,12 @@ abstract class TemplateTag {
                     if (numCharacters < 0) {
                         LocalizableMessage message = ERR_MAKELDIF_TAG_INTEGER_BELOW_LOWER_BOUND.get(numCharacters, 0,
                                 getName(), lineNumber);
-                        throw new MakeLDIFException(message);
+                        throw DecodeException.fatalError(message);
                     }
                 } catch (NumberFormatException nfe) {
                     LocalizableMessage message = ERR_MAKELDIF_TAG_CANNOT_PARSE_AS_INTEGER.get(arguments[1], getName(),
                             lineNumber);
-                    throw new MakeLDIFException(message);
+                    throw DecodeException.fatalError(message);
                 }
             } else {
                 numCharacters = 0;
@@ -366,18 +367,18 @@ abstract class TemplateTag {
          */
         @Override
         public void initializeForTemplate(Schema schema, TemplateFile templateFile, Template template,
-                String[] arguments, int lineNumber, List<LocalizableMessage> warnings) throws MakeLDIFException {
+                String[] arguments, int lineNumber, List<LocalizableMessage> warnings) throws DecodeException {
             if ((arguments.length < 1) || (arguments.length > 2)) {
                 LocalizableMessage message = ERR_MAKELDIF_TAG_INVALID_ARGUMENT_RANGE_COUNT.get(getName(), lineNumber,
                         1, 2, arguments.length);
-                throw new MakeLDIFException(message);
+                throw DecodeException.fatalError(message);
             }
 
             String lowerName = arguments[0].toLowerCase();
             attributeType = schema.getAttributeType(lowerName);
             if (!template.hasAttribute(attributeType)) {
                 LocalizableMessage message = ERR_MAKELDIF_TAG_UNDEFINED_ATTRIBUTE.get(arguments[0], lineNumber);
-                throw new MakeLDIFException(message);
+                throw DecodeException.fatalError(message);
             }
 
             if (arguments.length == 2) {
@@ -386,12 +387,12 @@ abstract class TemplateTag {
                     if (numCharacters < 0) {
                         LocalizableMessage message = ERR_MAKELDIF_TAG_INTEGER_BELOW_LOWER_BOUND.get(numCharacters, 0,
                                 getName(), lineNumber);
-                        throw new MakeLDIFException(message);
+                        throw DecodeException.fatalError(message);
                     }
                 } catch (NumberFormatException nfe) {
                     LocalizableMessage message = ERR_MAKELDIF_TAG_CANNOT_PARSE_AS_INTEGER.get(arguments[1], getName(),
                             lineNumber);
-                    throw new MakeLDIFException(message);
+                    throw DecodeException.fatalError(message);
                 }
             } else {
                 numCharacters = 0;
@@ -485,7 +486,7 @@ abstract class TemplateTag {
          */
         @Override
         public void initializeForBranch(Schema schema, TemplateFile templateFile, Branch branch, String[] arguments,
-                int lineNumber, List<LocalizableMessage> warnings) throws MakeLDIFException {
+                int lineNumber, List<LocalizableMessage> warnings) throws DecodeException {
             initializeInternal(templateFile, arguments, lineNumber);
         }
 
@@ -508,7 +509,7 @@ abstract class TemplateTag {
          */
         @Override
         public void initializeForTemplate(Schema schema, TemplateFile templateFile, Template template,
-                String[] arguments, int lineNumber, List<LocalizableMessage> warnings) throws MakeLDIFException {
+                String[] arguments, int lineNumber, List<LocalizableMessage> warnings) throws DecodeException {
             initializeInternal(templateFile, arguments, lineNumber);
         }
 
@@ -523,11 +524,11 @@ abstract class TemplateTag {
          * @param lineNumber
          *            The line number on which this tag appears in the template
          *            file.
-         * @throws MakeLDIFException
+         * @throws DecodeException
          *             If a problem occurs while initializing this tag.
          */
         private void initializeInternal(TemplateFile templateFile, String[] arguments, int lineNumber)
-                throws MakeLDIFException {
+                throws DecodeException {
             if (arguments.length == 0) {
                 numComponents = 0;
             } else if (arguments.length == 1) {
@@ -536,12 +537,12 @@ abstract class TemplateTag {
                 } catch (NumberFormatException nfe) {
                     LocalizableMessage message = ERR_MAKELDIF_TAG_CANNOT_PARSE_AS_INTEGER.get(arguments[0], getName(),
                             lineNumber);
-                    throw new MakeLDIFException(message);
+                    throw DecodeException.fatalError(message);
                 }
             } else {
                 LocalizableMessage message = ERR_MAKELDIF_TAG_INVALID_ARGUMENT_RANGE_COUNT.get(getName(), lineNumber,
                         0, 1, arguments.length);
-                throw new MakeLDIFException(message);
+                throw DecodeException.fatalError(message);
             }
         }
 
@@ -660,7 +661,7 @@ abstract class TemplateTag {
          */
         @Override
         public void initializeForBranch(Schema schema, TemplateFile templateFile, Branch branch, String[] arguments,
-                int lineNumber, List<LocalizableMessage> warnings) throws MakeLDIFException {
+                int lineNumber, List<LocalizableMessage> warnings) throws DecodeException {
             initializeInternal(templateFile, arguments, lineNumber, warnings);
         }
 
@@ -683,7 +684,7 @@ abstract class TemplateTag {
          */
         @Override
         public void initializeForTemplate(Schema schema, TemplateFile templateFile, Template template,
-                String[] arguments, int lineNumber, List<LocalizableMessage> warnings) throws MakeLDIFException {
+                String[] arguments, int lineNumber, List<LocalizableMessage> warnings) throws DecodeException {
             initializeInternal(templateFile, arguments, lineNumber, warnings);
         }
 
@@ -700,25 +701,25 @@ abstract class TemplateTag {
          * @param warnings
          *            A list into which any appropriate warning messages may be
          *            placed.
-         * @throws MakeLDIFException
+         * @throws DecodeException
          *             If a problem occurs while initializing this tag.
          */
         private void initializeInternal(TemplateFile templateFile, String[] arguments, int lineNumber,
-                List<LocalizableMessage> warnings) throws MakeLDIFException {
+                List<LocalizableMessage> warnings) throws DecodeException {
             random = templateFile.getRandom();
 
             // There must be at least one argument, and possibly two.
             if ((arguments.length < 1) || (arguments.length > 2)) {
                 LocalizableMessage message = ERR_MAKELDIF_TAG_INVALID_ARGUMENT_RANGE_COUNT.get(getName(), lineNumber,
                         1, 2, arguments.length);
-                throw new MakeLDIFException(message);
+                throw DecodeException.fatalError(message);
             }
 
             // The first argument should be the path to the file.
             dataFile = templateFile.getFile(arguments[0]);
             if ((dataFile == null) || (!dataFile.exists())) {
                 LocalizableMessage message = ERR_MAKELDIF_TAG_CANNOT_FIND_FILE.get(arguments[0], getName(), lineNumber);
-                throw new MakeLDIFException(message);
+                throw DecodeException.fatalError(message);
             }
 
             // If there is a second argument, then it should be either
@@ -732,7 +733,7 @@ abstract class TemplateTag {
                 } else {
                     LocalizableMessage message = ERR_MAKELDIF_TAG_INVALID_FILE_ACCESS_MODE.get(arguments[1], getName(),
                             lineNumber);
-                    throw new MakeLDIFException(message);
+                    throw DecodeException.fatalError(message);
                 }
             } else {
                 sequential = false;
@@ -745,7 +746,7 @@ abstract class TemplateTag {
             } catch (IOException ioe) {
                 LocalizableMessage message = ERR_MAKELDIF_TAG_CANNOT_READ_FILE.get(arguments[0], getName(), lineNumber,
                         String.valueOf(ioe));
-                throw new MakeLDIFException(message, ioe);
+                throw DecodeException.fatalError(message, ioe);
             }
         }
 
@@ -828,13 +829,13 @@ abstract class TemplateTag {
          */
         @Override
         public void initializeForTemplate(Schema schema, TemplateFile templateFile, Template template,
-                String[] arguments, int lineNumber, List<LocalizableMessage> warnings) throws MakeLDIFException {
+                String[] arguments, int lineNumber, List<LocalizableMessage> warnings) throws DecodeException {
             this.templateFile = templateFile;
 
             if (arguments.length != 0) {
                 LocalizableMessage message = ERR_MAKELDIF_TAG_INVALID_ARGUMENT_COUNT.get(getName(), lineNumber, 0,
                         arguments.length);
-                throw new MakeLDIFException(message);
+                throw DecodeException.fatalError(message);
             }
         }
 
@@ -906,11 +907,11 @@ abstract class TemplateTag {
          */
         @Override
         public void initializeForBranch(Schema schema, TemplateFile templateFile, Branch branch, String[] arguments,
-                int lineNumber, List<LocalizableMessage> warnings) throws MakeLDIFException {
+                int lineNumber, List<LocalizableMessage> warnings) throws DecodeException {
             if (arguments.length != 0) {
                 LocalizableMessage message = ERR_MAKELDIF_TAG_INVALID_ARGUMENT_COUNT.get(getName(), lineNumber, 0,
                         arguments.length);
-                throw new MakeLDIFException(message);
+                throw DecodeException.fatalError(message);
             }
         }
 
@@ -933,11 +934,11 @@ abstract class TemplateTag {
          */
         @Override
         public void initializeForTemplate(Schema schema, TemplateFile templateFile, Template template,
-                String[] arguments, int lineNumber, List<LocalizableMessage> warnings) throws MakeLDIFException {
+                String[] arguments, int lineNumber, List<LocalizableMessage> warnings) throws DecodeException {
             if (arguments.length != 0) {
                 LocalizableMessage message = ERR_MAKELDIF_TAG_INVALID_ARGUMENT_COUNT.get(getName(), lineNumber, 0,
                         arguments.length);
-                throw new MakeLDIFException(message);
+                throw DecodeException.fatalError(message);
             }
         }
 
@@ -1016,18 +1017,18 @@ abstract class TemplateTag {
          */
         @Override
         public void initializeForBranch(Schema schema, TemplateFile templateFile, Branch branch, String[] arguments,
-                int lineNumber, List<LocalizableMessage> warnings) throws MakeLDIFException {
+                int lineNumber, List<LocalizableMessage> warnings) throws DecodeException {
             if ((arguments.length < 1) || (arguments.length > 2)) {
                 LocalizableMessage message = ERR_MAKELDIF_TAG_INVALID_ARGUMENT_RANGE_COUNT.get(getName(), lineNumber,
                         1, 2, arguments.length);
-                throw new MakeLDIFException(message);
+                throw DecodeException.fatalError(message);
             }
 
             String lowerName = arguments[0].toLowerCase();
             AttributeType t = schema.getAttributeType(lowerName);
             if (!branch.hasAttribute(t)) {
                 LocalizableMessage message = ERR_MAKELDIF_TAG_UNDEFINED_ATTRIBUTE.get(arguments[0], lineNumber);
-                throw new MakeLDIFException(message);
+                throw DecodeException.fatalError(message);
             }
 
             if (arguments.length == 2) {
@@ -1056,18 +1057,18 @@ abstract class TemplateTag {
          */
         @Override
         public void initializeForTemplate(Schema schema, TemplateFile templateFile, Template template,
-                String[] arguments, int lineNumber, List<LocalizableMessage> warnings) throws MakeLDIFException {
+                String[] arguments, int lineNumber, List<LocalizableMessage> warnings) throws DecodeException {
             if ((arguments.length < 1) || (arguments.length > 2)) {
                 LocalizableMessage message = ERR_MAKELDIF_TAG_INVALID_ARGUMENT_RANGE_COUNT.get(getName(), lineNumber,
                         1, 2, arguments.length);
-                throw new MakeLDIFException(message);
+                throw DecodeException.fatalError(message);
             }
 
             String lowerName = arguments[0].toLowerCase();
             attributeType = schema.getAttributeType(lowerName);
             if (!template.hasAttribute(attributeType)) {
                 LocalizableMessage message = ERR_MAKELDIF_TAG_UNDEFINED_ATTRIBUTE.get(arguments[0], lineNumber);
-                throw new MakeLDIFException(message);
+                throw DecodeException.fatalError(message);
             }
 
             if (arguments.length == 2) {
@@ -1166,18 +1167,18 @@ abstract class TemplateTag {
          */
         @Override
         public void initializeForBranch(Schema schema, TemplateFile templateFile, Branch branch, String[] arguments,
-                int lineNumber, List<LocalizableMessage> warnings) throws MakeLDIFException {
+                int lineNumber, List<LocalizableMessage> warnings) throws DecodeException {
             if ((arguments.length < 1) || (arguments.length > 2)) {
                 LocalizableMessage message = ERR_MAKELDIF_TAG_INVALID_ARGUMENT_RANGE_COUNT.get(getName(), lineNumber,
                         1, 2, arguments.length);
-                throw new MakeLDIFException(message);
+                throw DecodeException.fatalError(message);
             }
 
             String lowerName = arguments[0].toLowerCase();
             AttributeType t = schema.getAttributeType(lowerName);
             if (!branch.hasAttribute(t)) {
                 LocalizableMessage message = ERR_MAKELDIF_TAG_UNDEFINED_ATTRIBUTE.get(arguments[0], lineNumber);
-                throw new MakeLDIFException(message);
+                throw DecodeException.fatalError(message);
             }
 
             if (arguments.length == 2) {
@@ -1206,18 +1207,18 @@ abstract class TemplateTag {
          */
         @Override
         public void initializeForTemplate(Schema schema, TemplateFile templateFile, Template template,
-                String[] arguments, int lineNumber, List<LocalizableMessage> warnings) throws MakeLDIFException {
+                String[] arguments, int lineNumber, List<LocalizableMessage> warnings) throws DecodeException {
             if ((arguments.length < 1) || (arguments.length > 2)) {
                 LocalizableMessage message = ERR_MAKELDIF_TAG_INVALID_ARGUMENT_RANGE_COUNT.get(getName(), lineNumber,
                         1, 2, arguments.length);
-                throw new MakeLDIFException(message);
+                throw DecodeException.fatalError(message);
             }
 
             String lowerName = arguments[0].toLowerCase();
             attributeType = schema.getAttributeType(lowerName);
             if (!template.hasAttribute(attributeType)) {
                 LocalizableMessage message = ERR_MAKELDIF_TAG_UNDEFINED_ATTRIBUTE.get(arguments[0], lineNumber);
-                throw new MakeLDIFException(message);
+                throw DecodeException.fatalError(message);
             }
 
             if (arguments.length == 2) {
@@ -1312,13 +1313,13 @@ abstract class TemplateTag {
          */
         @Override
         public void initializeForTemplate(Schema schema, TemplateFile templateFile, Template template,
-                String[] arguments, int lineNumber, List<LocalizableMessage> warnings) throws MakeLDIFException {
+                String[] arguments, int lineNumber, List<LocalizableMessage> warnings) throws DecodeException {
             this.templateFile = templateFile;
 
             if (arguments.length != 0) {
                 LocalizableMessage message = ERR_MAKELDIF_TAG_INVALID_ARGUMENT_COUNT.get(getName(), lineNumber, 0,
                         arguments.length);
-                throw new MakeLDIFException(message);
+                throw DecodeException.fatalError(message);
             }
         }
 
@@ -1408,7 +1409,7 @@ abstract class TemplateTag {
          */
         @Override
         public void initializeForBranch(Schema schema, TemplateFile templateFile, Branch branch, String[] arguments,
-                int lineNumber, List<LocalizableMessage> warnings) throws MakeLDIFException {
+                int lineNumber, List<LocalizableMessage> warnings) throws DecodeException {
             initializeInternal(templateFile, arguments, lineNumber, warnings);
         }
 
@@ -1431,7 +1432,7 @@ abstract class TemplateTag {
          */
         @Override
         public void initializeForTemplate(Schema schema, TemplateFile templateFile, Template template,
-                String[] arguments, int lineNumber, List<LocalizableMessage> warnings) throws MakeLDIFException {
+                String[] arguments, int lineNumber, List<LocalizableMessage> warnings) throws DecodeException {
             initializeInternal(templateFile, arguments, lineNumber, warnings);
         }
 
@@ -1449,13 +1450,13 @@ abstract class TemplateTag {
          * @param warnings
          *            A list into which any appropriate warning messages may be
          *            placed.
-         * @throws MakeLDIFException
+         * @throws DecodeException
          *             If a problem occurs while initializing this tag.
          */
         private void initializeInternal(TemplateFile templateFile, String[] arguments, int lineNumber,
-                List<LocalizableMessage> warnings) throws MakeLDIFException {
+                List<LocalizableMessage> warnings) throws DecodeException {
             if (arguments.length == 0) {
-                throw new MakeLDIFException(ERR_MAKELDIF_TAG_LIST_NO_ARGUMENTS.get(lineNumber));
+                throw DecodeException.fatalError(ERR_MAKELDIF_TAG_LIST_NO_ARGUMENTS.get(lineNumber));
             }
 
             valueStrings = new String[arguments.length];
@@ -1558,11 +1559,11 @@ abstract class TemplateTag {
          */
         @Override
         public void initializeForTemplate(Schema schema, TemplateFile templateFile, Template template,
-                String[] arguments, int lineNumber, List<LocalizableMessage> warnings) throws MakeLDIFException {
+                String[] arguments, int lineNumber, List<LocalizableMessage> warnings) throws DecodeException {
             if (arguments.length != 0) {
                 LocalizableMessage message = ERR_MAKELDIF_TAG_INVALID_ARGUMENT_COUNT.get(getName(), lineNumber, 0,
                         arguments.length);
-                throw new MakeLDIFException(message);
+                throw DecodeException.fatalError(message);
             }
         }
 
@@ -1646,7 +1647,7 @@ abstract class TemplateTag {
          */
         @Override
         public void initializeForBranch(Schema schema, TemplateFile templateFile, Branch branch, String[] arguments,
-                int lineNumber, List<LocalizableMessage> warnings) throws MakeLDIFException {
+                int lineNumber, List<LocalizableMessage> warnings) throws DecodeException {
             initializeInternal(templateFile, arguments, lineNumber);
         }
 
@@ -1669,7 +1670,7 @@ abstract class TemplateTag {
          */
         @Override
         public void initializeForTemplate(Schema schema, TemplateFile templateFile, Template template,
-                String[] arguments, int lineNumber, List<LocalizableMessage> warnings) throws MakeLDIFException {
+                String[] arguments, int lineNumber, List<LocalizableMessage> warnings) throws DecodeException {
             initializeInternal(templateFile, arguments, lineNumber);
         }
 
@@ -1684,17 +1685,17 @@ abstract class TemplateTag {
          * @param lineNumber
          *            The line number on which this tag appears in the template
          *            file.
-         * @throws MakeLDIFException
+         * @throws DecodeException
          *             If a problem occurs while initializing this tag.
          */
         private void initializeInternal(TemplateFile templateFile, String[] arguments, int lineNumber)
-                throws MakeLDIFException {
+                throws DecodeException {
             random = templateFile.getRandom();
 
             if (arguments.length != 1) {
                 LocalizableMessage message = ERR_MAKELDIF_TAG_INVALID_ARGUMENT_COUNT.get(getName(), lineNumber, 1,
                         arguments.length);
-                throw new MakeLDIFException(message);
+                throw DecodeException.fatalError(message);
             }
 
             try {
@@ -1703,16 +1704,16 @@ abstract class TemplateTag {
                 if (percentage < 0) {
                     LocalizableMessage message = ERR_MAKELDIF_TAG_INTEGER_BELOW_LOWER_BOUND.get(percentage, 0,
                             getName(), lineNumber);
-                    throw new MakeLDIFException(message);
+                    throw DecodeException.fatalError(message);
                 } else if (percentage > 100) {
                     LocalizableMessage message = ERR_MAKELDIF_TAG_INTEGER_ABOVE_UPPER_BOUND.get(percentage, 100,
                             getName(), lineNumber);
-                    throw new MakeLDIFException(message);
+                    throw DecodeException.fatalError(message);
                 }
             } catch (NumberFormatException nfe) {
                 LocalizableMessage message = ERR_MAKELDIF_TAG_CANNOT_PARSE_AS_INTEGER.get(arguments[0], getName(),
                         lineNumber);
-                throw new MakeLDIFException(message);
+                throw DecodeException.fatalError(message);
             }
         }
 
@@ -1908,7 +1909,7 @@ abstract class TemplateTag {
          */
         @Override
         public void initializeForBranch(Schema schema, TemplateFile templateFile, Branch branch, String[] arguments,
-                int lineNumber, List<LocalizableMessage> warnings) throws MakeLDIFException {
+                int lineNumber, List<LocalizableMessage> warnings) throws DecodeException {
             initializeInternal(templateFile, arguments, lineNumber, warnings);
         }
 
@@ -1931,7 +1932,7 @@ abstract class TemplateTag {
          */
         @Override
         public void initializeForTemplate(Schema schema, TemplateFile templateFile, Template template,
-                String[] arguments, int lineNumber, List<LocalizableMessage> warnings) throws MakeLDIFException {
+                String[] arguments, int lineNumber, List<LocalizableMessage> warnings) throws DecodeException {
             initializeInternal(templateFile, arguments, lineNumber, warnings);
         }
 
@@ -1949,18 +1950,18 @@ abstract class TemplateTag {
          * @param warnings
          *            A list into which any appropriate warning messages may be
          *            placed.
-         * @throws MakeLDIFException
+         * @throws DecodeException
          *             If a problem occurs while initializing this tag.
          */
         private void initializeInternal(TemplateFile templateFile, String[] arguments, int lineNumber,
-                List<LocalizableMessage> warnings) throws MakeLDIFException {
+                List<LocalizableMessage> warnings) throws DecodeException {
             random = templateFile.getRandom();
 
             // There must be at least one argument, to specify the type of
             // random value to generate.
             if ((arguments == null) || (arguments.length == 0)) {
                 LocalizableMessage message = ERR_MAKELDIF_TAG_NO_RANDOM_TYPE_ARGUMENT.get(lineNumber);
-                throw new MakeLDIFException(message);
+                throw DecodeException.fatalError(message);
             }
 
             int numArgs = arguments.length;
@@ -1980,7 +1981,7 @@ abstract class TemplateTag {
                         if (minLength < 0) {
                             LocalizableMessage message = ERR_MAKELDIF_TAG_INTEGER_BELOW_LOWER_BOUND.get(minLength, 0,
                                     getName(), lineNumber);
-                            throw new MakeLDIFException(message);
+                            throw DecodeException.fatalError(message);
                         } else if (minLength == 0) {
                             LocalizableMessage message = WARN_MAKELDIF_TAG_WARNING_EMPTY_VALUE.get(lineNumber);
                             warnings.add(message);
@@ -1988,7 +1989,7 @@ abstract class TemplateTag {
                     } catch (NumberFormatException nfe) {
                         LocalizableMessage message = ERR_MAKELDIF_TAG_CANNOT_PARSE_AS_INTEGER.get(arguments[1],
                                 getName(), lineNumber);
-                        throw new MakeLDIFException(message, nfe);
+                        throw DecodeException.fatalError(message, nfe);
                     }
                 } else if ((numArgs == 3) || (numArgs == 4)) {
                     randomType = RANDOM_TYPE_NUMERIC;
@@ -1999,7 +2000,7 @@ abstract class TemplateTag {
                         } catch (Exception e) {
                             LocalizableMessage message = ERR_MAKELDIF_TAG_INVALID_FORMAT_STRING.get(arguments[3],
                                     getName(), lineNumber);
-                            throw new MakeLDIFException(message, e);
+                            throw DecodeException.fatalError(message, e);
                         }
                     } else {
                         decimalFormat = null;
@@ -2010,7 +2011,7 @@ abstract class TemplateTag {
                     } catch (NumberFormatException nfe) {
                         LocalizableMessage message = ERR_MAKELDIF_TAG_CANNOT_PARSE_AS_INTEGER.get(arguments[1],
                                 getName(), lineNumber);
-                        throw new MakeLDIFException(message, nfe);
+                        throw DecodeException.fatalError(message, nfe);
                     }
 
                     try {
@@ -2018,19 +2019,19 @@ abstract class TemplateTag {
                         if (maxValue < minValue) {
                             LocalizableMessage message = ERR_MAKELDIF_TAG_INTEGER_BELOW_LOWER_BOUND.get(maxValue,
                                     minValue, getName(), lineNumber);
-                            throw new MakeLDIFException(message);
+                            throw DecodeException.fatalError(message);
                         }
 
                         valueRange = maxValue - minValue + 1;
                     } catch (NumberFormatException nfe) {
                         LocalizableMessage message = ERR_MAKELDIF_TAG_CANNOT_PARSE_AS_INTEGER.get(arguments[2],
                                 getName(), lineNumber);
-                        throw new MakeLDIFException(message, nfe);
+                        throw DecodeException.fatalError(message, nfe);
                     }
                 } else {
                     LocalizableMessage message = ERR_MAKELDIF_TAG_INVALID_ARGUMENT_RANGE_COUNT.get(getName(),
                             lineNumber, 2, 4, numArgs);
-                    throw new MakeLDIFException(message);
+                    throw DecodeException.fatalError(message);
                 }
             } else if (randomTypeString.equals("alphanumeric")) {
                 characterSet = ALPHANUMERIC_CHARS;
@@ -2039,7 +2040,7 @@ abstract class TemplateTag {
                 if ((numArgs < 3) || (numArgs > 4)) {
                     LocalizableMessage message = ERR_MAKELDIF_TAG_INVALID_ARGUMENT_RANGE_COUNT.get(getName(),
                             lineNumber, 3, 4, numArgs);
-                    throw new MakeLDIFException(message);
+                    throw DecodeException.fatalError(message);
                 }
 
                 characterSet = arguments[1].toCharArray();
@@ -2061,23 +2062,23 @@ abstract class TemplateTag {
                         if (maxLength <= 0) {
                             LocalizableMessage message = ERR_MAKELDIF_TAG_INTEGER_BELOW_LOWER_BOUND.get(maxLength, 1,
                                     getName(), lineNumber);
-                            throw new MakeLDIFException(message);
+                            throw DecodeException.fatalError(message);
                         }
                     } catch (NumberFormatException nfe) {
                         LocalizableMessage message = ERR_MAKELDIF_TAG_CANNOT_PARSE_AS_INTEGER.get(arguments[1],
                                 getName(), lineNumber);
-                        throw new MakeLDIFException(message, nfe);
+                        throw DecodeException.fatalError(message, nfe);
                     }
                 } else {
                     LocalizableMessage message = ERR_MAKELDIF_TAG_INVALID_ARGUMENT_RANGE_COUNT.get(getName(),
                             lineNumber, 1, 2, numArgs);
-                    throw new MakeLDIFException(message);
+                    throw DecodeException.fatalError(message);
                 }
             } else if (randomTypeString.equals("telephone")) {
                 randomType = RANDOM_TYPE_TELEPHONE;
             } else {
                 LocalizableMessage message = ERR_MAKELDIF_TAG_UNKNOWN_RANDOM_TYPE.get(lineNumber, randomTypeString);
-                throw new MakeLDIFException(message);
+                throw DecodeException.fatalError(message);
             }
         }
 
@@ -2099,7 +2100,7 @@ abstract class TemplateTag {
          *            placed.
          */
         private void decodeLength(String[] arguments, int startPos, int lineNumber, List<LocalizableMessage> warnings)
-                throws MakeLDIFException {
+                throws DecodeException {
             int numArgs = arguments.length - startPos + 1;
 
             if (numArgs == 2) {
@@ -2112,7 +2113,7 @@ abstract class TemplateTag {
                     if (minLength < 0) {
                         LocalizableMessage message = ERR_MAKELDIF_TAG_INTEGER_BELOW_LOWER_BOUND.get(minLength, 0,
                                 getName(), lineNumber);
-                        throw new MakeLDIFException(message);
+                        throw DecodeException.fatalError(message);
                     } else if (minLength == 0) {
                         LocalizableMessage message = WARN_MAKELDIF_TAG_WARNING_EMPTY_VALUE.get(lineNumber);
                         warnings.add(message);
@@ -2120,7 +2121,7 @@ abstract class TemplateTag {
                 } catch (NumberFormatException nfe) {
                     LocalizableMessage message = ERR_MAKELDIF_TAG_CANNOT_PARSE_AS_INTEGER.get(arguments[startPos],
                             getName(), lineNumber);
-                    throw new MakeLDIFException(message, nfe);
+                    throw DecodeException.fatalError(message, nfe);
                 }
             } else if (numArgs == 3) {
                 // There are minimum and maximum lengths.
@@ -2132,12 +2133,12 @@ abstract class TemplateTag {
                     if (minLength < 0) {
                         LocalizableMessage message = ERR_MAKELDIF_TAG_INTEGER_BELOW_LOWER_BOUND.get(minLength, 0,
                                 getName(), lineNumber);
-                        throw new MakeLDIFException(message);
+                        throw DecodeException.fatalError(message);
                     }
                 } catch (NumberFormatException nfe) {
                     LocalizableMessage message = ERR_MAKELDIF_TAG_CANNOT_PARSE_AS_INTEGER.get(arguments[startPos],
                             getName(), lineNumber);
-                    throw new MakeLDIFException(message, nfe);
+                    throw DecodeException.fatalError(message, nfe);
                 }
 
                 try {
@@ -2147,7 +2148,7 @@ abstract class TemplateTag {
                     if (maxLength < minLength) {
                         LocalizableMessage message = ERR_MAKELDIF_TAG_INTEGER_BELOW_LOWER_BOUND.get(maxLength,
                                 minLength, getName(), lineNumber);
-                        throw new MakeLDIFException(message);
+                        throw DecodeException.fatalError(message);
                     } else if (maxLength == 0) {
                         LocalizableMessage message = WARN_MAKELDIF_TAG_WARNING_EMPTY_VALUE.get(lineNumber);
                         warnings.add(message);
@@ -2155,12 +2156,12 @@ abstract class TemplateTag {
                 } catch (NumberFormatException nfe) {
                     LocalizableMessage message = ERR_MAKELDIF_TAG_CANNOT_PARSE_AS_INTEGER.get(arguments[startPos + 1],
                             getName(), lineNumber);
-                    throw new MakeLDIFException(message, nfe);
+                    throw DecodeException.fatalError(message, nfe);
                 }
             } else {
                 LocalizableMessage message = ERR_MAKELDIF_TAG_INVALID_ARGUMENT_RANGE_COUNT.get(getName(), lineNumber,
                         startPos + 1, startPos + 2, numArgs);
-                throw new MakeLDIFException(message);
+                throw DecodeException.fatalError(message);
             }
         }
 
@@ -2279,11 +2280,11 @@ abstract class TemplateTag {
          */
         @Override
         public void initializeForBranch(Schema schema, TemplateFile templateFile, Branch branch, String[] arguments,
-                int lineNumber, List<LocalizableMessage> warnings) throws MakeLDIFException {
+                int lineNumber, List<LocalizableMessage> warnings) throws DecodeException {
             if (arguments.length != 0) {
                 LocalizableMessage message = ERR_MAKELDIF_TAG_INVALID_ARGUMENT_COUNT.get(getName(), lineNumber, 0,
                         arguments.length);
-                throw new MakeLDIFException(message);
+                throw DecodeException.fatalError(message);
             }
         }
 
@@ -2306,11 +2307,11 @@ abstract class TemplateTag {
          */
         @Override
         public void initializeForTemplate(Schema schema, TemplateFile templateFile, Template template,
-                String[] arguments, int lineNumber, List<LocalizableMessage> warnings) throws MakeLDIFException {
+                String[] arguments, int lineNumber, List<LocalizableMessage> warnings) throws DecodeException {
             if (arguments.length != 0) {
                 LocalizableMessage message = ERR_MAKELDIF_TAG_INVALID_ARGUMENT_COUNT.get(getName(), lineNumber, 0,
                         arguments.length);
-                throw new MakeLDIFException(message);
+                throw DecodeException.fatalError(message);
             }
         }
 
@@ -2396,7 +2397,7 @@ abstract class TemplateTag {
          */
         @Override
         public void initializeForBranch(Schema schema, TemplateFile templateFile, Branch branch, String[] arguments,
-                int lineNumber, List<LocalizableMessage> warnings) throws MakeLDIFException {
+                int lineNumber, List<LocalizableMessage> warnings) throws DecodeException {
             initializeInternal(templateFile, arguments, lineNumber);
         }
 
@@ -2419,7 +2420,7 @@ abstract class TemplateTag {
          */
         @Override
         public void initializeForTemplate(Schema schema, TemplateFile templateFile, Template template,
-                String[] arguments, int lineNumber, List<LocalizableMessage> warnings) throws MakeLDIFException {
+                String[] arguments, int lineNumber, List<LocalizableMessage> warnings) throws DecodeException {
             initializeInternal(templateFile, arguments, lineNumber);
         }
 
@@ -2434,11 +2435,11 @@ abstract class TemplateTag {
          * @param lineNumber
          *            The line number on which this tag appears in the template
          *            file.
-         * @throws MakeLDIFException
+         * @throws DecodeException
          *             If a problem occurs while initializing this tag.
          */
         private void initializeInternal(TemplateFile templateFile, String[] arguments, int lineNumber)
-                throws MakeLDIFException {
+                throws DecodeException {
             switch (arguments.length) {
             case 0:
                 initialValue = 0;
@@ -2451,7 +2452,7 @@ abstract class TemplateTag {
                 } catch (NumberFormatException nfe) {
                     LocalizableMessage message = ERR_MAKELDIF_TAG_CANNOT_PARSE_AS_INTEGER.get(arguments[0], getName(),
                             lineNumber);
-                    throw new MakeLDIFException(message);
+                    throw DecodeException.fatalError(message);
                 }
 
                 nextValue = initialValue;
@@ -2463,7 +2464,7 @@ abstract class TemplateTag {
                 } catch (NumberFormatException nfe) {
                     LocalizableMessage message = ERR_MAKELDIF_TAG_CANNOT_PARSE_AS_INTEGER.get(arguments[0], getName(),
                             lineNumber);
-                    throw new MakeLDIFException(message);
+                    throw DecodeException.fatalError(message);
                 }
 
                 if (arguments[1].equalsIgnoreCase("true")) {
@@ -2473,7 +2474,7 @@ abstract class TemplateTag {
                 } else {
                     LocalizableMessage message = ERR_MAKELDIF_TAG_CANNOT_PARSE_AS_BOOLEAN.get(arguments[1], getName(),
                             lineNumber);
-                    throw new MakeLDIFException(message);
+                    throw DecodeException.fatalError(message);
                 }
 
                 nextValue = initialValue;
@@ -2481,7 +2482,7 @@ abstract class TemplateTag {
             default:
                 LocalizableMessage message = ERR_MAKELDIF_TAG_INVALID_ARGUMENT_RANGE_COUNT.get(getName(), lineNumber,
                         0, 2, arguments.length);
-                throw new MakeLDIFException(message);
+                throw DecodeException.fatalError(message);
             }
         }
 
@@ -2570,11 +2571,11 @@ abstract class TemplateTag {
          */
         @Override
         public void initializeForBranch(Schema schema, TemplateFile templateFile, Branch branch, String[] arguments,
-                int lineNumber, List<LocalizableMessage> warnings) throws MakeLDIFException {
+                int lineNumber, List<LocalizableMessage> warnings) throws DecodeException {
             if (arguments.length != 1) {
                 LocalizableMessage message = ERR_MAKELDIF_TAG_INVALID_ARGUMENT_COUNT.get(getName(), lineNumber, 1,
                         arguments.length);
-                throw new MakeLDIFException(message);
+                throw DecodeException.fatalError(message);
             }
 
             text = arguments[0];
@@ -2599,11 +2600,11 @@ abstract class TemplateTag {
          */
         @Override
         public void initializeForTemplate(Schema schema, TemplateFile templateFile, Template template,
-                String[] arguments, int lineNumber, List<LocalizableMessage> warnings) throws MakeLDIFException {
+                String[] arguments, int lineNumber, List<LocalizableMessage> warnings) throws DecodeException {
             if (arguments.length != 1) {
                 LocalizableMessage message = ERR_MAKELDIF_TAG_INVALID_ARGUMENT_COUNT.get(getName(), lineNumber, 1,
                         arguments.length);
-                throw new MakeLDIFException(message);
+                throw DecodeException.fatalError(message);
             }
 
             text = arguments[0];
@@ -2680,7 +2681,7 @@ abstract class TemplateTag {
          */
         @Override
         public void initializeForBranch(Schema schema, TemplateFile templateFile, Branch branch, String[] arguments,
-                int lineNumber, List<LocalizableMessage> warnings) throws MakeLDIFException {
+                int lineNumber, List<LocalizableMessage> warnings) throws DecodeException {
             initializeInternal(templateFile, arguments, lineNumber);
         }
 
@@ -2703,7 +2704,7 @@ abstract class TemplateTag {
          */
         @Override
         public void initializeForTemplate(Schema schema, TemplateFile templateFile, Template template,
-                String[] arguments, int lineNumber, List<LocalizableMessage> warnings) throws MakeLDIFException {
+                String[] arguments, int lineNumber, List<LocalizableMessage> warnings) throws DecodeException {
             initializeInternal(templateFile, arguments, lineNumber);
         }
 
@@ -2718,11 +2719,11 @@ abstract class TemplateTag {
          * @param lineNumber
          *            The line number on which this tag appears in the template
          *            file.
-         * @throws MakeLDIFException
+         * @throws DecodeException
          *             TODO
          */
         private void initializeInternal(TemplateFile templateFile, String[] arguments, int lineNumber)
-                throws MakeLDIFException {
+                throws DecodeException {
             if (arguments.length == 0) {
                 numComponents = 0;
             } else if (arguments.length == 1) {
@@ -2731,12 +2732,12 @@ abstract class TemplateTag {
                 } catch (NumberFormatException nfe) {
                     LocalizableMessage message = ERR_MAKELDIF_TAG_CANNOT_PARSE_AS_INTEGER.get(arguments[0], getName(),
                             lineNumber);
-                    throw new MakeLDIFException(message);
+                    throw DecodeException.fatalError(message);
                 }
             } else {
                 LocalizableMessage message = ERR_MAKELDIF_TAG_INVALID_ARGUMENT_RANGE_COUNT.get(getName(), lineNumber,
                         0, 1, arguments.length);
-                throw new MakeLDIFException(message);
+                throw DecodeException.fatalError(message);
             }
         }
 
@@ -2836,11 +2837,11 @@ abstract class TemplateTag {
          */
         @Override
         public void initializeForTemplate(Schema schema, TemplateFile templateFile, Template template,
-                String[] arguments, int lineNumber, List<LocalizableMessage> warnings) throws MakeLDIFException {
+                String[] arguments, int lineNumber, List<LocalizableMessage> warnings) throws DecodeException {
             if (arguments.length != 0) {
                 LocalizableMessage message = ERR_MAKELDIF_TAG_INVALID_ARGUMENT_COUNT.get(getName(), lineNumber, 0,
                         arguments.length);
-                throw new MakeLDIFException(message);
+                throw DecodeException.fatalError(message);
             }
         }
 
