@@ -50,7 +50,7 @@ import org.forgerock.opendj.ldif.TemplateFile.TemplateValue;
  * It can be used to generate content.
  *
  * @see TemplateFile
- * @see MakeLDIFEntryReader
+ * @see EntryGenerator
  */
 abstract class TemplateTag {
 
@@ -318,15 +318,15 @@ abstract class TemplateTag {
         public void initializeForBranch(Schema schema, TemplateFile templateFile, Branch branch, String[] arguments,
                 int lineNumber, List<LocalizableMessage> warnings) throws DecodeException {
             if ((arguments.length < 1) || (arguments.length > 2)) {
-                LocalizableMessage message = ERR_MAKELDIF_TAG_INVALID_ARGUMENT_RANGE_COUNT.get(getName(), lineNumber,
-                        1, 2, arguments.length);
+                LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_INVALID_ARGUMENT_RANGE_COUNT.get(getName(),
+                        lineNumber, 1, 2, arguments.length);
                 throw DecodeException.fatalError(message);
             }
 
             String lowerName = arguments[0].toLowerCase();
             attributeType = schema.getAttributeType(lowerName);
             if (!branch.hasAttribute(attributeType)) {
-                LocalizableMessage message = ERR_MAKELDIF_TAG_UNDEFINED_ATTRIBUTE.get(arguments[0], lineNumber);
+                LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_UNDEFINED_ATTRIBUTE.get(arguments[0], lineNumber);
                 throw DecodeException.fatalError(message);
             }
 
@@ -334,13 +334,13 @@ abstract class TemplateTag {
                 try {
                     numCharacters = Integer.parseInt(arguments[1]);
                     if (numCharacters < 0) {
-                        LocalizableMessage message = ERR_MAKELDIF_TAG_INTEGER_BELOW_LOWER_BOUND.get(numCharacters, 0,
-                                getName(), lineNumber);
+                        LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_INTEGER_BELOW_LOWER_BOUND.get(
+                                numCharacters, 0, getName(), lineNumber);
                         throw DecodeException.fatalError(message);
                     }
                 } catch (NumberFormatException nfe) {
-                    LocalizableMessage message = ERR_MAKELDIF_TAG_CANNOT_PARSE_AS_INTEGER.get(arguments[1], getName(),
-                            lineNumber);
+                    LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_CANNOT_PARSE_AS_INTEGER.get(arguments[1],
+                            getName(), lineNumber);
                     throw DecodeException.fatalError(message);
                 }
             } else {
@@ -369,15 +369,15 @@ abstract class TemplateTag {
         public void initializeForTemplate(Schema schema, TemplateFile templateFile, Template template,
                 String[] arguments, int lineNumber, List<LocalizableMessage> warnings) throws DecodeException {
             if ((arguments.length < 1) || (arguments.length > 2)) {
-                LocalizableMessage message = ERR_MAKELDIF_TAG_INVALID_ARGUMENT_RANGE_COUNT.get(getName(), lineNumber,
-                        1, 2, arguments.length);
+                LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_INVALID_ARGUMENT_RANGE_COUNT.get(getName(),
+                        lineNumber, 1, 2, arguments.length);
                 throw DecodeException.fatalError(message);
             }
 
             String lowerName = arguments[0].toLowerCase();
             attributeType = schema.getAttributeType(lowerName);
             if (!template.hasAttribute(attributeType)) {
-                LocalizableMessage message = ERR_MAKELDIF_TAG_UNDEFINED_ATTRIBUTE.get(arguments[0], lineNumber);
+                LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_UNDEFINED_ATTRIBUTE.get(arguments[0], lineNumber);
                 throw DecodeException.fatalError(message);
             }
 
@@ -385,13 +385,13 @@ abstract class TemplateTag {
                 try {
                     numCharacters = Integer.parseInt(arguments[1]);
                     if (numCharacters < 0) {
-                        LocalizableMessage message = ERR_MAKELDIF_TAG_INTEGER_BELOW_LOWER_BOUND.get(numCharacters, 0,
-                                getName(), lineNumber);
+                        LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_INTEGER_BELOW_LOWER_BOUND.get(
+                                numCharacters, 0, getName(), lineNumber);
                         throw DecodeException.fatalError(message);
                     }
                 } catch (NumberFormatException nfe) {
-                    LocalizableMessage message = ERR_MAKELDIF_TAG_CANNOT_PARSE_AS_INTEGER.get(arguments[1], getName(),
-                            lineNumber);
+                    LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_CANNOT_PARSE_AS_INTEGER.get(arguments[1],
+                            getName(), lineNumber);
                     throw DecodeException.fatalError(message);
                 }
             } else {
@@ -535,13 +535,13 @@ abstract class TemplateTag {
                 try {
                     numComponents = Integer.parseInt(arguments[0]);
                 } catch (NumberFormatException nfe) {
-                    LocalizableMessage message = ERR_MAKELDIF_TAG_CANNOT_PARSE_AS_INTEGER.get(arguments[0], getName(),
-                            lineNumber);
+                    LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_CANNOT_PARSE_AS_INTEGER.get(arguments[0],
+                            getName(), lineNumber);
                     throw DecodeException.fatalError(message);
                 }
             } else {
-                LocalizableMessage message = ERR_MAKELDIF_TAG_INVALID_ARGUMENT_RANGE_COUNT.get(getName(), lineNumber,
-                        0, 1, arguments.length);
+                LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_INVALID_ARGUMENT_RANGE_COUNT.get(getName(),
+                        lineNumber, 0, 1, arguments.length);
                 throw DecodeException.fatalError(message);
             }
         }
@@ -710,20 +710,22 @@ abstract class TemplateTag {
 
             // There must be at least one argument, and possibly two.
             if ((arguments.length < 1) || (arguments.length > 2)) {
-                LocalizableMessage message = ERR_MAKELDIF_TAG_INVALID_ARGUMENT_RANGE_COUNT.get(getName(), lineNumber,
-                        1, 2, arguments.length);
+                LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_INVALID_ARGUMENT_RANGE_COUNT.get(getName(),
+                        lineNumber, 1, 2, arguments.length);
                 throw DecodeException.fatalError(message);
             }
 
             // The first argument should be the path to the file.
             dataFile = templateFile.getFile(arguments[0]);
             if ((dataFile == null) || (!dataFile.exists())) {
-                LocalizableMessage message = ERR_MAKELDIF_TAG_CANNOT_FIND_FILE.get(arguments[0], getName(), lineNumber);
+                LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_CANNOT_FIND_FILE.get(arguments[0], getName(),
+                        lineNumber);
                 throw DecodeException.fatalError(message);
             }
 
             // If there is a second argument, then it should be either
-            // "sequential" or "random". If there isn't one, then we should assume "random".
+            // "sequential" or "random". If there isn't one, then we should
+            // assume "random".
             if (arguments.length == 2) {
                 if (arguments[1].equalsIgnoreCase("sequential")) {
                     sequential = true;
@@ -731,8 +733,8 @@ abstract class TemplateTag {
                 } else if (arguments[1].equalsIgnoreCase("random")) {
                     sequential = false;
                 } else {
-                    LocalizableMessage message = ERR_MAKELDIF_TAG_INVALID_FILE_ACCESS_MODE.get(arguments[1], getName(),
-                            lineNumber);
+                    LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_INVALID_FILE_ACCESS_MODE.get(arguments[1],
+                            getName(), lineNumber);
                     throw DecodeException.fatalError(message);
                 }
             } else {
@@ -744,8 +746,8 @@ abstract class TemplateTag {
             try {
                 fileLines = templateFile.getFileLines(dataFile);
             } catch (IOException ioe) {
-                LocalizableMessage message = ERR_MAKELDIF_TAG_CANNOT_READ_FILE.get(arguments[0], getName(), lineNumber,
-                        String.valueOf(ioe));
+                LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_CANNOT_READ_FILE.get(arguments[0], getName(),
+                        lineNumber, String.valueOf(ioe));
                 throw DecodeException.fatalError(message, ioe);
             }
         }
@@ -833,8 +835,8 @@ abstract class TemplateTag {
             this.templateFile = templateFile;
 
             if (arguments.length != 0) {
-                LocalizableMessage message = ERR_MAKELDIF_TAG_INVALID_ARGUMENT_COUNT.get(getName(), lineNumber, 0,
-                        arguments.length);
+                LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_INVALID_ARGUMENT_COUNT.get(getName(), lineNumber,
+                        0, arguments.length);
                 throw DecodeException.fatalError(message);
             }
         }
@@ -909,8 +911,8 @@ abstract class TemplateTag {
         public void initializeForBranch(Schema schema, TemplateFile templateFile, Branch branch, String[] arguments,
                 int lineNumber, List<LocalizableMessage> warnings) throws DecodeException {
             if (arguments.length != 0) {
-                LocalizableMessage message = ERR_MAKELDIF_TAG_INVALID_ARGUMENT_COUNT.get(getName(), lineNumber, 0,
-                        arguments.length);
+                LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_INVALID_ARGUMENT_COUNT.get(getName(), lineNumber,
+                        0, arguments.length);
                 throw DecodeException.fatalError(message);
             }
         }
@@ -936,8 +938,8 @@ abstract class TemplateTag {
         public void initializeForTemplate(Schema schema, TemplateFile templateFile, Template template,
                 String[] arguments, int lineNumber, List<LocalizableMessage> warnings) throws DecodeException {
             if (arguments.length != 0) {
-                LocalizableMessage message = ERR_MAKELDIF_TAG_INVALID_ARGUMENT_COUNT.get(getName(), lineNumber, 0,
-                        arguments.length);
+                LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_INVALID_ARGUMENT_COUNT.get(getName(), lineNumber,
+                        0, arguments.length);
                 throw DecodeException.fatalError(message);
             }
         }
@@ -1019,15 +1021,15 @@ abstract class TemplateTag {
         public void initializeForBranch(Schema schema, TemplateFile templateFile, Branch branch, String[] arguments,
                 int lineNumber, List<LocalizableMessage> warnings) throws DecodeException {
             if ((arguments.length < 1) || (arguments.length > 2)) {
-                LocalizableMessage message = ERR_MAKELDIF_TAG_INVALID_ARGUMENT_RANGE_COUNT.get(getName(), lineNumber,
-                        1, 2, arguments.length);
+                LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_INVALID_ARGUMENT_RANGE_COUNT.get(getName(),
+                        lineNumber, 1, 2, arguments.length);
                 throw DecodeException.fatalError(message);
             }
 
             String lowerName = arguments[0].toLowerCase();
             AttributeType t = schema.getAttributeType(lowerName);
             if (!branch.hasAttribute(t)) {
-                LocalizableMessage message = ERR_MAKELDIF_TAG_UNDEFINED_ATTRIBUTE.get(arguments[0], lineNumber);
+                LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_UNDEFINED_ATTRIBUTE.get(arguments[0], lineNumber);
                 throw DecodeException.fatalError(message);
             }
 
@@ -1059,15 +1061,15 @@ abstract class TemplateTag {
         public void initializeForTemplate(Schema schema, TemplateFile templateFile, Template template,
                 String[] arguments, int lineNumber, List<LocalizableMessage> warnings) throws DecodeException {
             if ((arguments.length < 1) || (arguments.length > 2)) {
-                LocalizableMessage message = ERR_MAKELDIF_TAG_INVALID_ARGUMENT_RANGE_COUNT.get(getName(), lineNumber,
-                        1, 2, arguments.length);
+                LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_INVALID_ARGUMENT_RANGE_COUNT.get(getName(),
+                        lineNumber, 1, 2, arguments.length);
                 throw DecodeException.fatalError(message);
             }
 
             String lowerName = arguments[0].toLowerCase();
             attributeType = schema.getAttributeType(lowerName);
             if (!template.hasAttribute(attributeType)) {
-                LocalizableMessage message = ERR_MAKELDIF_TAG_UNDEFINED_ATTRIBUTE.get(arguments[0], lineNumber);
+                LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_UNDEFINED_ATTRIBUTE.get(arguments[0], lineNumber);
                 throw DecodeException.fatalError(message);
             }
 
@@ -1169,15 +1171,15 @@ abstract class TemplateTag {
         public void initializeForBranch(Schema schema, TemplateFile templateFile, Branch branch, String[] arguments,
                 int lineNumber, List<LocalizableMessage> warnings) throws DecodeException {
             if ((arguments.length < 1) || (arguments.length > 2)) {
-                LocalizableMessage message = ERR_MAKELDIF_TAG_INVALID_ARGUMENT_RANGE_COUNT.get(getName(), lineNumber,
-                        1, 2, arguments.length);
+                LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_INVALID_ARGUMENT_RANGE_COUNT.get(getName(),
+                        lineNumber, 1, 2, arguments.length);
                 throw DecodeException.fatalError(message);
             }
 
             String lowerName = arguments[0].toLowerCase();
             AttributeType t = schema.getAttributeType(lowerName);
             if (!branch.hasAttribute(t)) {
-                LocalizableMessage message = ERR_MAKELDIF_TAG_UNDEFINED_ATTRIBUTE.get(arguments[0], lineNumber);
+                LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_UNDEFINED_ATTRIBUTE.get(arguments[0], lineNumber);
                 throw DecodeException.fatalError(message);
             }
 
@@ -1209,15 +1211,15 @@ abstract class TemplateTag {
         public void initializeForTemplate(Schema schema, TemplateFile templateFile, Template template,
                 String[] arguments, int lineNumber, List<LocalizableMessage> warnings) throws DecodeException {
             if ((arguments.length < 1) || (arguments.length > 2)) {
-                LocalizableMessage message = ERR_MAKELDIF_TAG_INVALID_ARGUMENT_RANGE_COUNT.get(getName(), lineNumber,
-                        1, 2, arguments.length);
+                LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_INVALID_ARGUMENT_RANGE_COUNT.get(getName(),
+                        lineNumber, 1, 2, arguments.length);
                 throw DecodeException.fatalError(message);
             }
 
             String lowerName = arguments[0].toLowerCase();
             attributeType = schema.getAttributeType(lowerName);
             if (!template.hasAttribute(attributeType)) {
-                LocalizableMessage message = ERR_MAKELDIF_TAG_UNDEFINED_ATTRIBUTE.get(arguments[0], lineNumber);
+                LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_UNDEFINED_ATTRIBUTE.get(arguments[0], lineNumber);
                 throw DecodeException.fatalError(message);
             }
 
@@ -1317,8 +1319,8 @@ abstract class TemplateTag {
             this.templateFile = templateFile;
 
             if (arguments.length != 0) {
-                LocalizableMessage message = ERR_MAKELDIF_TAG_INVALID_ARGUMENT_COUNT.get(getName(), lineNumber, 0,
-                        arguments.length);
+                LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_INVALID_ARGUMENT_COUNT.get(getName(), lineNumber,
+                        0, arguments.length);
                 throw DecodeException.fatalError(message);
             }
         }
@@ -1456,7 +1458,7 @@ abstract class TemplateTag {
         private void initializeInternal(TemplateFile templateFile, String[] arguments, int lineNumber,
                 List<LocalizableMessage> warnings) throws DecodeException {
             if (arguments.length == 0) {
-                throw DecodeException.fatalError(ERR_MAKELDIF_TAG_LIST_NO_ARGUMENTS.get(lineNumber));
+                throw DecodeException.fatalError(ERR_ENTRY_GENERATOR_TAG_LIST_NO_ARGUMENTS.get(lineNumber));
             }
 
             valueStrings = new String[arguments.length];
@@ -1474,7 +1476,7 @@ abstract class TemplateTag {
                         weight = Integer.parseInt(s.substring(semicolonPos + 1));
                         s = s.substring(0, semicolonPos);
                     } catch (Exception e) {
-                        warnings.add(WARN_MAKELDIF_TAG_LIST_INVALID_WEIGHT.get(lineNumber, s));
+                        warnings.add(WARN_ENTRY_GENERATOR_TAG_LIST_INVALID_WEIGHT.get(lineNumber, s));
                     }
                 }
 
@@ -1561,8 +1563,8 @@ abstract class TemplateTag {
         public void initializeForTemplate(Schema schema, TemplateFile templateFile, Template template,
                 String[] arguments, int lineNumber, List<LocalizableMessage> warnings) throws DecodeException {
             if (arguments.length != 0) {
-                LocalizableMessage message = ERR_MAKELDIF_TAG_INVALID_ARGUMENT_COUNT.get(getName(), lineNumber, 0,
-                        arguments.length);
+                LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_INVALID_ARGUMENT_COUNT.get(getName(), lineNumber,
+                        0, arguments.length);
                 throw DecodeException.fatalError(message);
             }
         }
@@ -1693,8 +1695,8 @@ abstract class TemplateTag {
             random = templateFile.getRandom();
 
             if (arguments.length != 1) {
-                LocalizableMessage message = ERR_MAKELDIF_TAG_INVALID_ARGUMENT_COUNT.get(getName(), lineNumber, 1,
-                        arguments.length);
+                LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_INVALID_ARGUMENT_COUNT.get(getName(), lineNumber,
+                        1, arguments.length);
                 throw DecodeException.fatalError(message);
             }
 
@@ -1702,17 +1704,17 @@ abstract class TemplateTag {
                 percentage = Integer.parseInt(arguments[0]);
 
                 if (percentage < 0) {
-                    LocalizableMessage message = ERR_MAKELDIF_TAG_INTEGER_BELOW_LOWER_BOUND.get(percentage, 0,
+                    LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_INTEGER_BELOW_LOWER_BOUND.get(percentage, 0,
                             getName(), lineNumber);
                     throw DecodeException.fatalError(message);
                 } else if (percentage > 100) {
-                    LocalizableMessage message = ERR_MAKELDIF_TAG_INTEGER_ABOVE_UPPER_BOUND.get(percentage, 100,
+                    LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_INTEGER_ABOVE_UPPER_BOUND.get(percentage, 100,
                             getName(), lineNumber);
                     throw DecodeException.fatalError(message);
                 }
             } catch (NumberFormatException nfe) {
-                LocalizableMessage message = ERR_MAKELDIF_TAG_CANNOT_PARSE_AS_INTEGER.get(arguments[0], getName(),
-                        lineNumber);
+                LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_CANNOT_PARSE_AS_INTEGER.get(arguments[0],
+                        getName(), lineNumber);
                 throw DecodeException.fatalError(message);
             }
         }
@@ -1813,7 +1815,7 @@ abstract class TemplateTag {
          * The character set that will be used for base64 characters.
          */
         public static final char[] BASE64_CHARS = ("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
-            + "01234567890+/").toCharArray();
+                + "01234567890+/").toCharArray();
 
         /**
          * The set of month names that will be used.
@@ -1960,7 +1962,7 @@ abstract class TemplateTag {
             // There must be at least one argument, to specify the type of
             // random value to generate.
             if ((arguments == null) || (arguments.length == 0)) {
-                LocalizableMessage message = ERR_MAKELDIF_TAG_NO_RANDOM_TYPE_ARGUMENT.get(lineNumber);
+                LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_NO_RANDOM_TYPE_ARGUMENT.get(lineNumber);
                 throw DecodeException.fatalError(message);
             }
 
@@ -1979,15 +1981,15 @@ abstract class TemplateTag {
                         minLength = Integer.parseInt(arguments[1]);
 
                         if (minLength < 0) {
-                            LocalizableMessage message = ERR_MAKELDIF_TAG_INTEGER_BELOW_LOWER_BOUND.get(minLength, 0,
-                                    getName(), lineNumber);
+                            LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_INTEGER_BELOW_LOWER_BOUND.get(
+                                    minLength, 0, getName(), lineNumber);
                             throw DecodeException.fatalError(message);
                         } else if (minLength == 0) {
-                            LocalizableMessage message = WARN_MAKELDIF_TAG_WARNING_EMPTY_VALUE.get(lineNumber);
+                            LocalizableMessage message = WARN_ENTRY_GENERATOR_TAG_WARNING_EMPTY_VALUE.get(lineNumber);
                             warnings.add(message);
                         }
                     } catch (NumberFormatException nfe) {
-                        LocalizableMessage message = ERR_MAKELDIF_TAG_CANNOT_PARSE_AS_INTEGER.get(arguments[1],
+                        LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_CANNOT_PARSE_AS_INTEGER.get(arguments[1],
                                 getName(), lineNumber);
                         throw DecodeException.fatalError(message, nfe);
                     }
@@ -1998,8 +2000,8 @@ abstract class TemplateTag {
                         try {
                             decimalFormat = new DecimalFormat(arguments[3]);
                         } catch (Exception e) {
-                            LocalizableMessage message = ERR_MAKELDIF_TAG_INVALID_FORMAT_STRING.get(arguments[3],
-                                    getName(), lineNumber);
+                            LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_INVALID_FORMAT_STRING.get(
+                                    arguments[3], getName(), lineNumber);
                             throw DecodeException.fatalError(message, e);
                         }
                     } else {
@@ -2009,7 +2011,7 @@ abstract class TemplateTag {
                     try {
                         minValue = Long.parseLong(arguments[1]);
                     } catch (NumberFormatException nfe) {
-                        LocalizableMessage message = ERR_MAKELDIF_TAG_CANNOT_PARSE_AS_INTEGER.get(arguments[1],
+                        LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_CANNOT_PARSE_AS_INTEGER.get(arguments[1],
                                 getName(), lineNumber);
                         throw DecodeException.fatalError(message, nfe);
                     }
@@ -2017,19 +2019,19 @@ abstract class TemplateTag {
                     try {
                         maxValue = Long.parseLong(arguments[2]);
                         if (maxValue < minValue) {
-                            LocalizableMessage message = ERR_MAKELDIF_TAG_INTEGER_BELOW_LOWER_BOUND.get(maxValue,
-                                    minValue, getName(), lineNumber);
+                            LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_INTEGER_BELOW_LOWER_BOUND.get(
+                                    maxValue, minValue, getName(), lineNumber);
                             throw DecodeException.fatalError(message);
                         }
 
                         valueRange = maxValue - minValue + 1;
                     } catch (NumberFormatException nfe) {
-                        LocalizableMessage message = ERR_MAKELDIF_TAG_CANNOT_PARSE_AS_INTEGER.get(arguments[2],
+                        LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_CANNOT_PARSE_AS_INTEGER.get(arguments[2],
                                 getName(), lineNumber);
                         throw DecodeException.fatalError(message, nfe);
                     }
                 } else {
-                    LocalizableMessage message = ERR_MAKELDIF_TAG_INVALID_ARGUMENT_RANGE_COUNT.get(getName(),
+                    LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_INVALID_ARGUMENT_RANGE_COUNT.get(getName(),
                             lineNumber, 2, 4, numArgs);
                     throw DecodeException.fatalError(message);
                 }
@@ -2038,7 +2040,7 @@ abstract class TemplateTag {
                 decodeLength(arguments, 1, lineNumber, warnings);
             } else if (randomTypeString.equals("chars")) {
                 if ((numArgs < 3) || (numArgs > 4)) {
-                    LocalizableMessage message = ERR_MAKELDIF_TAG_INVALID_ARGUMENT_RANGE_COUNT.get(getName(),
+                    LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_INVALID_ARGUMENT_RANGE_COUNT.get(getName(),
                             lineNumber, 3, 4, numArgs);
                     throw DecodeException.fatalError(message);
                 }
@@ -2060,24 +2062,25 @@ abstract class TemplateTag {
                     try {
                         maxLength = Integer.parseInt(arguments[1]);
                         if (maxLength <= 0) {
-                            LocalizableMessage message = ERR_MAKELDIF_TAG_INTEGER_BELOW_LOWER_BOUND.get(maxLength, 1,
-                                    getName(), lineNumber);
+                            LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_INTEGER_BELOW_LOWER_BOUND.get(
+                                    maxLength, 1, getName(), lineNumber);
                             throw DecodeException.fatalError(message);
                         }
                     } catch (NumberFormatException nfe) {
-                        LocalizableMessage message = ERR_MAKELDIF_TAG_CANNOT_PARSE_AS_INTEGER.get(arguments[1],
+                        LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_CANNOT_PARSE_AS_INTEGER.get(arguments[1],
                                 getName(), lineNumber);
                         throw DecodeException.fatalError(message, nfe);
                     }
                 } else {
-                    LocalizableMessage message = ERR_MAKELDIF_TAG_INVALID_ARGUMENT_RANGE_COUNT.get(getName(),
+                    LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_INVALID_ARGUMENT_RANGE_COUNT.get(getName(),
                             lineNumber, 1, 2, numArgs);
                     throw DecodeException.fatalError(message);
                 }
             } else if (randomTypeString.equals("telephone")) {
                 randomType = RANDOM_TYPE_TELEPHONE;
             } else {
-                LocalizableMessage message = ERR_MAKELDIF_TAG_UNKNOWN_RANDOM_TYPE.get(lineNumber, randomTypeString);
+                LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_UNKNOWN_RANDOM_TYPE.get(lineNumber,
+                        randomTypeString);
                 throw DecodeException.fatalError(message);
             }
         }
@@ -2111,16 +2114,16 @@ abstract class TemplateTag {
                     minLength = Integer.parseInt(arguments[startPos]);
 
                     if (minLength < 0) {
-                        LocalizableMessage message = ERR_MAKELDIF_TAG_INTEGER_BELOW_LOWER_BOUND.get(minLength, 0,
-                                getName(), lineNumber);
+                        LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_INTEGER_BELOW_LOWER_BOUND.get(minLength,
+                                0, getName(), lineNumber);
                         throw DecodeException.fatalError(message);
                     } else if (minLength == 0) {
-                        LocalizableMessage message = WARN_MAKELDIF_TAG_WARNING_EMPTY_VALUE.get(lineNumber);
+                        LocalizableMessage message = WARN_ENTRY_GENERATOR_TAG_WARNING_EMPTY_VALUE.get(lineNumber);
                         warnings.add(message);
                     }
                 } catch (NumberFormatException nfe) {
-                    LocalizableMessage message = ERR_MAKELDIF_TAG_CANNOT_PARSE_AS_INTEGER.get(arguments[startPos],
-                            getName(), lineNumber);
+                    LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_CANNOT_PARSE_AS_INTEGER.get(
+                            arguments[startPos], getName(), lineNumber);
                     throw DecodeException.fatalError(message, nfe);
                 }
             } else if (numArgs == 3) {
@@ -2131,13 +2134,13 @@ abstract class TemplateTag {
                     minLength = Integer.parseInt(arguments[startPos]);
 
                     if (minLength < 0) {
-                        LocalizableMessage message = ERR_MAKELDIF_TAG_INTEGER_BELOW_LOWER_BOUND.get(minLength, 0,
-                                getName(), lineNumber);
+                        LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_INTEGER_BELOW_LOWER_BOUND.get(minLength,
+                                0, getName(), lineNumber);
                         throw DecodeException.fatalError(message);
                     }
                 } catch (NumberFormatException nfe) {
-                    LocalizableMessage message = ERR_MAKELDIF_TAG_CANNOT_PARSE_AS_INTEGER.get(arguments[startPos],
-                            getName(), lineNumber);
+                    LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_CANNOT_PARSE_AS_INTEGER.get(
+                            arguments[startPos], getName(), lineNumber);
                     throw DecodeException.fatalError(message, nfe);
                 }
 
@@ -2146,21 +2149,21 @@ abstract class TemplateTag {
                     lengthRange = maxLength - minLength + 1;
 
                     if (maxLength < minLength) {
-                        LocalizableMessage message = ERR_MAKELDIF_TAG_INTEGER_BELOW_LOWER_BOUND.get(maxLength,
+                        LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_INTEGER_BELOW_LOWER_BOUND.get(maxLength,
                                 minLength, getName(), lineNumber);
                         throw DecodeException.fatalError(message);
                     } else if (maxLength == 0) {
-                        LocalizableMessage message = WARN_MAKELDIF_TAG_WARNING_EMPTY_VALUE.get(lineNumber);
+                        LocalizableMessage message = WARN_ENTRY_GENERATOR_TAG_WARNING_EMPTY_VALUE.get(lineNumber);
                         warnings.add(message);
                     }
                 } catch (NumberFormatException nfe) {
-                    LocalizableMessage message = ERR_MAKELDIF_TAG_CANNOT_PARSE_AS_INTEGER.get(arguments[startPos + 1],
-                            getName(), lineNumber);
+                    LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_CANNOT_PARSE_AS_INTEGER.get(
+                            arguments[startPos + 1], getName(), lineNumber);
                     throw DecodeException.fatalError(message, nfe);
                 }
             } else {
-                LocalizableMessage message = ERR_MAKELDIF_TAG_INVALID_ARGUMENT_RANGE_COUNT.get(getName(), lineNumber,
-                        startPos + 1, startPos + 2, numArgs);
+                LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_INVALID_ARGUMENT_RANGE_COUNT.get(getName(),
+                        lineNumber, startPos + 1, startPos + 2, numArgs);
                 throw DecodeException.fatalError(message);
             }
         }
@@ -2282,8 +2285,8 @@ abstract class TemplateTag {
         public void initializeForBranch(Schema schema, TemplateFile templateFile, Branch branch, String[] arguments,
                 int lineNumber, List<LocalizableMessage> warnings) throws DecodeException {
             if (arguments.length != 0) {
-                LocalizableMessage message = ERR_MAKELDIF_TAG_INVALID_ARGUMENT_COUNT.get(getName(), lineNumber, 0,
-                        arguments.length);
+                LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_INVALID_ARGUMENT_COUNT.get(getName(), lineNumber,
+                        0, arguments.length);
                 throw DecodeException.fatalError(message);
             }
         }
@@ -2309,8 +2312,8 @@ abstract class TemplateTag {
         public void initializeForTemplate(Schema schema, TemplateFile templateFile, Template template,
                 String[] arguments, int lineNumber, List<LocalizableMessage> warnings) throws DecodeException {
             if (arguments.length != 0) {
-                LocalizableMessage message = ERR_MAKELDIF_TAG_INVALID_ARGUMENT_COUNT.get(getName(), lineNumber, 0,
-                        arguments.length);
+                LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_INVALID_ARGUMENT_COUNT.get(getName(), lineNumber,
+                        0, arguments.length);
                 throw DecodeException.fatalError(message);
             }
         }
@@ -2450,8 +2453,8 @@ abstract class TemplateTag {
                 try {
                     initialValue = Integer.parseInt(arguments[0]);
                 } catch (NumberFormatException nfe) {
-                    LocalizableMessage message = ERR_MAKELDIF_TAG_CANNOT_PARSE_AS_INTEGER.get(arguments[0], getName(),
-                            lineNumber);
+                    LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_CANNOT_PARSE_AS_INTEGER.get(arguments[0],
+                            getName(), lineNumber);
                     throw DecodeException.fatalError(message);
                 }
 
@@ -2462,8 +2465,8 @@ abstract class TemplateTag {
                 try {
                     initialValue = Integer.parseInt(arguments[0]);
                 } catch (NumberFormatException nfe) {
-                    LocalizableMessage message = ERR_MAKELDIF_TAG_CANNOT_PARSE_AS_INTEGER.get(arguments[0], getName(),
-                            lineNumber);
+                    LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_CANNOT_PARSE_AS_INTEGER.get(arguments[0],
+                            getName(), lineNumber);
                     throw DecodeException.fatalError(message);
                 }
 
@@ -2472,16 +2475,16 @@ abstract class TemplateTag {
                 } else if (arguments[1].equalsIgnoreCase("false")) {
                     resetOnNewParents = false;
                 } else {
-                    LocalizableMessage message = ERR_MAKELDIF_TAG_CANNOT_PARSE_AS_BOOLEAN.get(arguments[1], getName(),
-                            lineNumber);
+                    LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_CANNOT_PARSE_AS_BOOLEAN.get(arguments[1],
+                            getName(), lineNumber);
                     throw DecodeException.fatalError(message);
                 }
 
                 nextValue = initialValue;
                 break;
             default:
-                LocalizableMessage message = ERR_MAKELDIF_TAG_INVALID_ARGUMENT_RANGE_COUNT.get(getName(), lineNumber,
-                        0, 2, arguments.length);
+                LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_INVALID_ARGUMENT_RANGE_COUNT.get(getName(),
+                        lineNumber, 0, 2, arguments.length);
                 throw DecodeException.fatalError(message);
             }
         }
@@ -2573,8 +2576,8 @@ abstract class TemplateTag {
         public void initializeForBranch(Schema schema, TemplateFile templateFile, Branch branch, String[] arguments,
                 int lineNumber, List<LocalizableMessage> warnings) throws DecodeException {
             if (arguments.length != 1) {
-                LocalizableMessage message = ERR_MAKELDIF_TAG_INVALID_ARGUMENT_COUNT.get(getName(), lineNumber, 1,
-                        arguments.length);
+                LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_INVALID_ARGUMENT_COUNT.get(getName(), lineNumber,
+                        1, arguments.length);
                 throw DecodeException.fatalError(message);
             }
 
@@ -2602,8 +2605,8 @@ abstract class TemplateTag {
         public void initializeForTemplate(Schema schema, TemplateFile templateFile, Template template,
                 String[] arguments, int lineNumber, List<LocalizableMessage> warnings) throws DecodeException {
             if (arguments.length != 1) {
-                LocalizableMessage message = ERR_MAKELDIF_TAG_INVALID_ARGUMENT_COUNT.get(getName(), lineNumber, 1,
-                        arguments.length);
+                LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_INVALID_ARGUMENT_COUNT.get(getName(), lineNumber,
+                        1, arguments.length);
                 throw DecodeException.fatalError(message);
             }
 
@@ -2730,13 +2733,13 @@ abstract class TemplateTag {
                 try {
                     numComponents = Integer.parseInt(arguments[0]);
                 } catch (NumberFormatException nfe) {
-                    LocalizableMessage message = ERR_MAKELDIF_TAG_CANNOT_PARSE_AS_INTEGER.get(arguments[0], getName(),
-                            lineNumber);
+                    LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_CANNOT_PARSE_AS_INTEGER.get(arguments[0],
+                            getName(), lineNumber);
                     throw DecodeException.fatalError(message);
                 }
             } else {
-                LocalizableMessage message = ERR_MAKELDIF_TAG_INVALID_ARGUMENT_RANGE_COUNT.get(getName(), lineNumber,
-                        0, 1, arguments.length);
+                LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_INVALID_ARGUMENT_RANGE_COUNT.get(getName(),
+                        lineNumber, 0, 1, arguments.length);
                 throw DecodeException.fatalError(message);
             }
         }
@@ -2839,12 +2842,11 @@ abstract class TemplateTag {
         public void initializeForTemplate(Schema schema, TemplateFile templateFile, Template template,
                 String[] arguments, int lineNumber, List<LocalizableMessage> warnings) throws DecodeException {
             if (arguments.length != 0) {
-                LocalizableMessage message = ERR_MAKELDIF_TAG_INVALID_ARGUMENT_COUNT.get(getName(), lineNumber, 0,
-                        arguments.length);
+                LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_INVALID_ARGUMENT_COUNT.get(getName(), lineNumber,
+                        0, arguments.length);
                 throw DecodeException.fatalError(message);
             }
         }
-
 
         /**
          * Generates the content for this tag by appending it to the provided

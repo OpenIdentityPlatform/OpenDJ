@@ -29,7 +29,7 @@ import static com.forgerock.opendj.ldap.CoreMessages.*;
 
 import static org.fest.assertions.Assertions.*;
 import static org.forgerock.opendj.ldap.TestCaseUtils.getTestFilePath;
-import static org.forgerock.opendj.ldif.MakeLDIFEntryReader.*;
+import static org.forgerock.opendj.ldif.EntryGenerator.*;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -48,7 +48,7 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 @SuppressWarnings("javadoc")
-public class MakeLDIFEntryReaderTestCase extends SdkTestCase {
+public class EntryGeneratorTestCase extends SdkTestCase {
 
     private static final String TEMPLATE_FILE_PATH = "MakeLDIF/example.template";
     private String resourcePath;
@@ -63,7 +63,7 @@ public class MakeLDIFEntryReaderTestCase extends SdkTestCase {
     @Test
     public void testReaderWithTemplateFile() throws Exception {
         String templatePath = getTestFilePath(TEMPLATE_FILE_PATH);
-        MakeLDIFEntryReader reader = newReader(templatePath).setResourcePath(resourcePath).build();
+        EntryGenerator reader = newReader(templatePath).setResourcePath(resourcePath).build();
 
         checkReader(reader);
         reader.close();
@@ -73,7 +73,7 @@ public class MakeLDIFEntryReaderTestCase extends SdkTestCase {
     public void testReaderWithTemplateStream() throws Exception {
         InputStream stream = new FileInputStream(
                 new File(getTestFilePath(TEMPLATE_FILE_PATH)));
-        MakeLDIFEntryReader reader = newReader(stream).setResourcePath(resourcePath).build();
+        EntryGenerator reader = newReader(stream).setResourcePath(resourcePath).build();
 
         checkReader(reader);
         reader.close();
@@ -82,7 +82,7 @@ public class MakeLDIFEntryReaderTestCase extends SdkTestCase {
 
     @Test
     public void testReaderWithTemplateLines() throws Exception {
-        MakeLDIFEntryReader reader = newReader(
+        EntryGenerator reader = newReader(
                 "define suffix=dc=example,dc=com",
                 "define maildomain=example.com",
                 "define numusers=2",
@@ -126,7 +126,7 @@ public class MakeLDIFEntryReaderTestCase extends SdkTestCase {
      * Check the content of the reader for basic case.
      * Expecting 4 entries with 2 users.
      */
-    private void checkReader(MakeLDIFEntryReader reader) throws Exception {
+    private void checkReader(EntryGenerator reader) throws Exception {
         assertThat(reader.hasNext()).isTrue();
         assertThat(reader.readEntry().getName().toString()).isEqualTo("dc=example,dc=com");
         assertThat(reader.hasNext()).isTrue();
@@ -175,7 +175,7 @@ public class MakeLDIFEntryReaderTestCase extends SdkTestCase {
             templateFile.parse(lines, warns);
             failWasExpected(DecodeException.class);
         } catch (DecodeException e) {
-            LocalizableMessage expected = ERR_MAKELDIF_TAG_UNDEFINED_ATTRIBUTE.get("missingVar", 1);
+            LocalizableMessage expected = ERR_ENTRY_GENERATOR_TAG_UNDEFINED_ATTRIBUTE.get("missingVar", 1);
             assertThat(e.getMessage()).isEqualTo(expected.toString());
         }
     }
@@ -363,7 +363,7 @@ public class MakeLDIFEntryReaderTestCase extends SdkTestCase {
     @Test(dataProvider = "templatesToTestEscapeChars", dependsOnMethods = { "testParsingEscapeCharInTemplate" })
     public void testEscapeCharsFromTemplate(String testName, String[] lines, String attrName, String expectedValue)
             throws Exception {
-        MakeLDIFEntryReader reader = newReader(lines).setResourcePath(resourcePath).build();
+        EntryGenerator reader = newReader(lines).setResourcePath(resourcePath).build();
         Entry topEntry = reader.readEntry();
         Entry entry = reader.readEntry();
         reader.close();
@@ -392,7 +392,7 @@ public class MakeLDIFEntryReaderTestCase extends SdkTestCase {
             // from [A-Z].
             "cn: Foo \\<<random:chars:ABCDEFGHIJKLMNOPQRSTUVWXYZ:1>\\>\\{1\\}{sn}", "", };
 
-        MakeLDIFEntryReader reader = newReader(lines).setResourcePath(resourcePath).build();
+        EntryGenerator reader = newReader(lines).setResourcePath(resourcePath).build();
         Entry topEntry = reader.readEntry();
         Entry entry = reader.readEntry();
         reader.close();
