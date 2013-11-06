@@ -85,7 +85,7 @@ import com.forgerock.opendj.util.StaticUtils;
  * A template file allow to generate entries from a collection of constant
  * definitions, branches, and templates.
  *
- * @see MakeLDIFEntryReader
+ * @see EntryGenerator
  */
 class TemplateFile {
     /**
@@ -247,7 +247,7 @@ class TemplateFile {
         try {
             c = Class.forName(tagClass);
         } catch (Exception e) {
-            final LocalizableMessage message = ERR_MAKELDIF_CANNOT_LOAD_TAG_CLASS.get(tagClass);
+            final LocalizableMessage message = ERR_ENTRY_GENERATOR_CANNOT_LOAD_TAG_CLASS.get(tagClass);
             throw DecodeException.fatalError(message, e);
         }
 
@@ -255,13 +255,13 @@ class TemplateFile {
         try {
             t = (TemplateTag) c.newInstance();
         } catch (Exception e) {
-            final LocalizableMessage message = ERR_MAKELDIF_CANNOT_INSTANTIATE_TAG.get(tagClass);
+            final LocalizableMessage message = ERR_ENTRY_GENERATOR_CANNOT_INSTANTIATE_TAG.get(tagClass);
             throw DecodeException.fatalError(message, e);
         }
 
         String lowerName = t.getName().toLowerCase();
         if (registeredTags.containsKey(lowerName)) {
-            final LocalizableMessage message = ERR_MAKELDIF_CONFLICTING_TAG_NAME.get(tagClass, t.getName());
+            final LocalizableMessage message = ERR_ENTRY_GENERATOR_CONFLICTING_TAG_NAME.get(tagClass, t.getName());
             throw DecodeException.fatalError(message);
         } else {
             registeredTags.put(lowerName, t);
@@ -284,7 +284,7 @@ class TemplateFile {
                 registeredTags.put(t.getName().toLowerCase(), t);
             } catch (Exception e) {
                 // this should never happen
-                StaticUtils.DEFAULT_LOG.error(ERR_MAKELDIF_CANNOT_INSTANTIATE_TAG.get(c.getName()).toString());
+                StaticUtils.DEFAULT_LOG.error(ERR_ENTRY_GENERATOR_CANNOT_INSTANTIATE_TAG.get(c.getName()).toString());
             }
         }
     }
@@ -544,7 +544,7 @@ class TemplateFile {
         templatePath = null;
         File f = getFile(filename);
         if ((f == null) || (!f.exists())) {
-            LocalizableMessage message = ERR_MAKELDIF_COULD_NOT_FIND_TEMPLATE_FILE.get(filename);
+            LocalizableMessage message = ERR_ENTRY_GENERATOR_COULD_NOT_FIND_TEMPLATE_FILE.get(filename);
             throw new IOException(message.toString());
         } else {
             templatePath = f.getParentFile().getAbsolutePath();
@@ -581,8 +581,7 @@ class TemplateFile {
      * @throws DecodeException
      *             If any other problem occurs while parsing the template.
      */
-    public void parse(InputStream inputStream, List<LocalizableMessage> warnings)
-            throws IOException, DecodeException {
+    public void parse(InputStream inputStream, List<LocalizableMessage> warnings) throws IOException, DecodeException {
         ArrayList<String> fileLines = new ArrayList<String>();
 
         BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
@@ -640,7 +639,7 @@ class TemplateFile {
                 try {
                     tagClass = Class.forName(className);
                 } catch (Exception e) {
-                    LocalizableMessage message = ERR_MAKELDIF_CANNOT_LOAD_TAG_CLASS.get(className);
+                    LocalizableMessage message = ERR_ENTRY_GENERATOR_CANNOT_LOAD_TAG_CLASS.get(className);
                     throw DecodeException.fatalError(message, e);
                 }
 
@@ -648,13 +647,13 @@ class TemplateFile {
                 try {
                     tag = (TemplateTag) tagClass.newInstance();
                 } catch (Exception e) {
-                    LocalizableMessage message = ERR_MAKELDIF_CANNOT_INSTANTIATE_TAG.get(className);
+                    LocalizableMessage message = ERR_ENTRY_GENERATOR_CANNOT_INSTANTIATE_TAG.get(className);
                     throw DecodeException.fatalError(message, e);
                 }
 
                 String lowerName = tag.getName().toLowerCase();
                 if (registeredTags.containsKey(lowerName) || templateFileIncludeTags.containsKey(lowerName)) {
-                    LocalizableMessage message = ERR_MAKELDIF_CONFLICTING_TAG_NAME.get(className, tag.getName());
+                    LocalizableMessage message = ERR_ENTRY_GENERATOR_CONFLICTING_TAG_NAME.get(className, tag.getName());
                     throw DecodeException.fatalError(message);
                 }
 
@@ -666,25 +665,25 @@ class TemplateFile {
                 // value.
                 int equalPos = line.indexOf('=', 7);
                 if (equalPos < 0) {
-                    LocalizableMessage message = ERR_MAKELDIF_DEFINE_MISSING_EQUALS.get(lineNumber);
+                    LocalizableMessage message = ERR_ENTRY_GENERATOR_DEFINE_MISSING_EQUALS.get(lineNumber);
                     throw DecodeException.fatalError(message);
                 }
 
                 String name = line.substring(7, equalPos).trim();
                 if (name.length() == 0) {
-                    LocalizableMessage message = ERR_MAKELDIF_DEFINE_NAME_EMPTY.get(lineNumber);
+                    LocalizableMessage message = ERR_ENTRY_GENERATOR_DEFINE_NAME_EMPTY.get(lineNumber);
                     throw DecodeException.fatalError(message);
                 }
 
                 String lowerName = name.toLowerCase();
                 if (templateFileConstants.containsKey(lowerName)) {
-                    LocalizableMessage message = ERR_MAKELDIF_CONFLICTING_CONSTANT_NAME.get(name, lineNumber);
+                    LocalizableMessage message = ERR_ENTRY_GENERATOR_CONFLICTING_CONSTANT_NAME.get(name, lineNumber);
                     throw DecodeException.fatalError(message);
                 }
 
                 String value = line.substring(equalPos + 1);
                 if (value.length() == 0) {
-                    LocalizableMessage message = ERR_MAKELDIF_WARNING_DEFINE_VALUE_EMPTY.get(name, lineNumber);
+                    LocalizableMessage message = ERR_ENTRY_GENERATOR_WARNING_DEFINE_VALUE_EMPTY.get(name, lineNumber);
                     warnings.add(message);
                 }
 
@@ -714,8 +713,8 @@ class TemplateFile {
                 Branch b = parseBranchDefinition(branchLines, lineNumber, templateFileIncludeTags, warnings);
                 DN branchDN = b.getBranchDN();
                 if (templateFileBranches.containsKey(branchDN)) {
-                    LocalizableMessage message = ERR_MAKELDIF_CONFLICTING_BRANCH_DN.get(String.valueOf(branchDN),
-                            startLineNumber);
+                    LocalizableMessage message = ERR_ENTRY_GENERATOR_CONFLICTING_BRANCH_DN.get(
+                            String.valueOf(branchDN), startLineNumber);
                     throw DecodeException.fatalError(message);
                 } else {
                     templateFileBranches.put(branchDN, b);
@@ -746,14 +745,14 @@ class TemplateFile {
                         templateFileTemplates, warnings);
                 String lowerName = t.getName().toLowerCase();
                 if (templateFileTemplates.containsKey(lowerName)) {
-                    LocalizableMessage message = ERR_MAKELDIF_CONFLICTING_TEMPLATE_NAME.get(
+                    LocalizableMessage message = ERR_ENTRY_GENERATOR_CONFLICTING_TEMPLATE_NAME.get(
                             String.valueOf(t.getName()), startLineNumber);
                     throw DecodeException.fatalError(message);
                 } else {
                     templateFileTemplates.put(lowerName, t);
                 }
             } else {
-                LocalizableMessage message = ERR_MAKELDIF_UNEXPECTED_TEMPLATE_FILE_LINE.get(line, lineNumber);
+                LocalizableMessage message = ERR_ENTRY_GENERATOR_UNEXPECTED_TEMPLATE_FILE_LINE.get(line, lineNumber);
                 throw DecodeException.fatalError(message);
             }
         }
@@ -808,7 +807,7 @@ class TemplateFile {
                     String constantName = line.substring(openPos + 1, closePos).toLowerCase();
                     String constantValue = constants.get(constantName);
                     if (constantValue == null) {
-                        LocalizableMessage message = WARN_MAKELDIF_WARNING_UNDEFINED_CONSTANT.get(constantName,
+                        LocalizableMessage message = WARN_ENTRY_GENERATOR_WARNING_UNDEFINED_CONSTANT.get(constantName,
                                 lineNumber);
                         warnings.add(message);
                     } else {
@@ -853,7 +852,7 @@ class TemplateFile {
         try {
             branchDN = DN.valueOf(dnString, schema);
         } catch (Exception e) {
-            LocalizableMessage message = ERR_MAKELDIF_CANNOT_DECODE_BRANCH_DN.get(dnString, startLineNumber);
+            LocalizableMessage message = ERR_ENTRY_GENERATOR_CANNOT_DECODE_BRANCH_DN.get(dnString, startLineNumber);
             throw DecodeException.fatalError(message);
         }
 
@@ -874,8 +873,8 @@ class TemplateFile {
                 // number of entries.
                 int colonPos = line.indexOf(':', 21);
                 if (colonPos <= 21) {
-                    LocalizableMessage message = ERR_MAKELDIF_BRANCH_SUBORDINATE_TEMPLATE_NO_COLON.get(lineNumber,
-                            dnString);
+                    LocalizableMessage message = ERR_ENTRY_GENERATOR_BRANCH_SUBORDINATE_TEMPLATE_NO_COLON.get(
+                            lineNumber, dnString);
                     throw DecodeException.fatalError(message);
                 }
 
@@ -885,18 +884,18 @@ class TemplateFile {
                 try {
                     numEntries = Integer.parseInt(line.substring(colonPos + 1).trim());
                     if (numEntries < 0) {
-                        LocalizableMessage message = ERR_MAKELDIF_BRANCH_SUBORDINATE_INVALID_NUM_ENTRIES.get(
+                        LocalizableMessage message = ERR_ENTRY_GENERATOR_BRANCH_SUBORDINATE_INVALID_NUM_ENTRIES.get(
                                 lineNumber, dnString, numEntries, templateName);
                         throw DecodeException.fatalError(message);
                     } else if (numEntries == 0) {
-                        LocalizableMessage message = WARN_MAKELDIF_BRANCH_SUBORDINATE_ZERO_ENTRIES.get(lineNumber,
-                                dnString, templateName);
+                        LocalizableMessage message = WARN_ENTRY_GENERATOR_BRANCH_SUBORDINATE_ZERO_ENTRIES.get(
+                                lineNumber, dnString, templateName);
                         warnings.add(message);
                     }
 
                     branch.addSubordinateTemplate(templateName, numEntries);
                 } catch (NumberFormatException nfe) {
-                    LocalizableMessage message = ERR_MAKELDIF_BRANCH_SUBORDINATE_CANT_PARSE_NUMENTRIES.get(
+                    LocalizableMessage message = ERR_ENTRY_GENERATOR_BRANCH_SUBORDINATE_CANT_PARSE_NUMENTRIES.get(
                             templateName, lineNumber, dnString);
                     throw DecodeException.fatalError(message);
                 }
@@ -958,8 +957,8 @@ class TemplateFile {
                 String parentTemplateName = line.substring(9).trim();
                 parentTemplate = definedTemplates.get(parentTemplateName.toLowerCase());
                 if (parentTemplate == null) {
-                    LocalizableMessage message = ERR_MAKELDIF_TEMPLATE_INVALID_PARENT_TEMPLATE.get(parentTemplateName,
-                            lineNumber, templateName);
+                    LocalizableMessage message = ERR_ENTRY_GENERATOR_TEMPLATE_INVALID_PARENT_TEMPLATE.get(
+                            parentTemplateName, lineNumber, templateName);
                     throw DecodeException.fatalError(message);
                 }
             } else if (lowerLine.startsWith("rdnattr: ")) {
@@ -981,8 +980,8 @@ class TemplateFile {
                 // number of entries.
                 int colonPos = line.indexOf(':', 21);
                 if (colonPos <= 21) {
-                    LocalizableMessage message = ERR_MAKELDIF_TEMPLATE_SUBORDINATE_TEMPLATE_NO_COLON.get(lineNumber,
-                            templateName);
+                    LocalizableMessage message = ERR_ENTRY_GENERATOR_TEMPLATE_SUBORDINATE_TEMPLATE_NO_COLON.get(
+                            lineNumber, templateName);
                     throw DecodeException.fatalError(message);
                 }
 
@@ -992,19 +991,19 @@ class TemplateFile {
                 try {
                     numEntries = Integer.parseInt(line.substring(colonPos + 1).trim());
                     if (numEntries < 0) {
-                        LocalizableMessage message = ERR_MAKELDIF_TEMPLATE_SUBORDINATE_INVALID_NUM_ENTRIES.get(
+                        LocalizableMessage message = ERR_ENTRY_GENERATOR_TEMPLATE_SUBORDINATE_INVALID_NUM_ENTRIES.get(
                                 lineNumber, templateName, numEntries, subTemplateName);
                         throw DecodeException.fatalError(message);
                     } else if (numEntries == 0) {
-                        LocalizableMessage message = WARN_MAKELDIF_TEMPLATE_SUBORDINATE_ZERO_ENTRIES.get(lineNumber,
-                                templateName, subTemplateName);
+                        LocalizableMessage message = WARN_ENTRY_GENERATOR_TEMPLATE_SUBORDINATE_ZERO_ENTRIES.get(
+                                lineNumber, templateName, subTemplateName);
                         warnings.add(message);
                     }
 
                     subTemplateNames.add(subTemplateName);
                     entriesPerTemplate.add(numEntries);
                 } catch (NumberFormatException nfe) {
-                    LocalizableMessage message = ERR_MAKELDIF_TEMPLATE_SUBORDINATE_CANT_PARSE_NUMENTRIES.get(
+                    LocalizableMessage message = ERR_ENTRY_GENERATOR_TEMPLATE_SUBORDINATE_CANT_PARSE_NUMENTRIES.get(
                             subTemplateName, lineNumber, templateName);
                     throw DecodeException.fatalError(message);
                 }
@@ -1091,19 +1090,21 @@ class TemplateFile {
         int colonPos = lowerLine.indexOf(':');
         if (colonPos < 0) {
             if (branch == null) {
-                LocalizableMessage message = ERR_MAKELDIF_NO_COLON_IN_TEMPLATE_LINE.get(lineNumber, template.getName());
+                LocalizableMessage message = ERR_ENTRY_GENERATOR_NO_COLON_IN_TEMPLATE_LINE.get(lineNumber,
+                        template.getName());
                 throw DecodeException.fatalError(message);
             } else {
-                LocalizableMessage message = ERR_MAKELDIF_NO_COLON_IN_BRANCH_EXTRA_LINE.get(lineNumber,
+                LocalizableMessage message = ERR_ENTRY_GENERATOR_NO_COLON_IN_BRANCH_EXTRA_LINE.get(lineNumber,
                         String.valueOf(branch.getBranchDN()));
                 throw DecodeException.fatalError(message);
             }
         } else if (colonPos == 0) {
             if (branch == null) {
-                LocalizableMessage message = ERR_MAKELDIF_NO_ATTR_IN_TEMPLATE_LINE.get(lineNumber, template.getName());
+                LocalizableMessage message = ERR_ENTRY_GENERATOR_NO_ATTR_IN_TEMPLATE_LINE.get(lineNumber,
+                        template.getName());
                 throw DecodeException.fatalError(message);
             } else {
-                LocalizableMessage message = ERR_MAKELDIF_NO_ATTR_IN_BRANCH_EXTRA_LINE.get(lineNumber,
+                LocalizableMessage message = ERR_ENTRY_GENERATOR_NO_ATTR_IN_BRANCH_EXTRA_LINE.get(lineNumber,
                         String.valueOf(branch.getBranchDN()));
                 throw DecodeException.fatalError(message);
             }
@@ -1135,11 +1136,11 @@ class TemplateFile {
             // add a
             // warning.
             if (branch == null) {
-                LocalizableMessage message = WARN_MAKELDIF_NO_VALUE_IN_TEMPLATE_LINE
-                        .get(lineNumber, template.getName());
+                LocalizableMessage message = WARN_ENTRY_GENERATOR_NO_VALUE_IN_TEMPLATE_LINE.get(lineNumber,
+                        template.getName());
                 warnings.add(message);
             } else {
-                LocalizableMessage message = WARN_MAKELDIF_NO_VALUE_IN_BRANCH_EXTRA_LINE.get(lineNumber,
+                LocalizableMessage message = WARN_ENTRY_GENERATOR_NO_VALUE_IN_BRANCH_EXTRA_LINE.get(lineNumber,
                         String.valueOf(branch.getBranchDN()));
                 warnings.add(message);
             }
@@ -1241,7 +1242,7 @@ class TemplateFile {
                 tagList.add(t);
             }
         } else {
-            LocalizableMessage message = ERR_MAKELDIF_INCOMPLETE_TAG.get(lineNumber);
+            LocalizableMessage message = ERR_ENTRY_GENERATOR_INCOMPLETE_TAG.get(lineNumber);
             throw DecodeException.fatalError(message);
         }
 
@@ -1286,7 +1287,7 @@ class TemplateFile {
         if (t == null) {
             t = tags.get(lowerTagName);
             if (t == null) {
-                LocalizableMessage message = ERR_MAKELDIF_NO_SUCH_TAG.get(tagName, lineNumber);
+                LocalizableMessage message = ERR_ENTRY_GENERATOR_NO_SUCH_TAG.get(tagName, lineNumber);
                 throw DecodeException.fatalError(message);
             }
         }
@@ -1303,7 +1304,7 @@ class TemplateFile {
         try {
             newTag = t.getClass().newInstance();
         } catch (Exception e) {
-            LocalizableMessage message = ERR_MAKELDIF_CANNOT_INSTANTIATE_NEW_TAG.get(tagName, lineNumber,
+            LocalizableMessage message = ERR_ENTRY_GENERATOR_CANNOT_INSTANTIATE_NEW_TAG.get(tagName, lineNumber,
                     String.valueOf(e));
             throw DecodeException.fatalError(message, e);
         }
@@ -1314,7 +1315,8 @@ class TemplateFile {
             if (newTag.allowedInBranch()) {
                 newTag.initializeForBranch(schema, this, branch, args, lineNumber, warnings);
             } else {
-                LocalizableMessage message = ERR_MAKELDIF_TAG_NOT_ALLOWED_IN_BRANCH.get(newTag.getName(), lineNumber);
+                LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_NOT_ALLOWED_IN_BRANCH.get(newTag.getName(),
+                        lineNumber);
                 throw DecodeException.fatalError(message);
             }
         }
@@ -1604,7 +1606,8 @@ class TemplateFile {
                         TemplateTag[] tags = new TemplateTag[1];
                         tags[0] = new StaticTextTag();
                         tags[0].initializeForBranch(schema, templateFile, this, valueStrings, 0, warnings);
-                        lineList.add(new TemplateLine(attribute.getAttributeDescription().getAttributeType(), 0, tags));
+                        lineList.add(
+                                new TemplateLine(attribute.getAttributeDescription().getAttributeType(), 0, tags));
                     } catch (Exception e) {
                         // This should never happen.
                         e.printStackTrace();
@@ -1637,8 +1640,8 @@ class TemplateFile {
                 for (int i = 0; i < subordinateTemplates.length; i++) {
                     subordinateTemplates[i] = templates.get(subordinateTemplateNames[i].toLowerCase());
                     if (subordinateTemplates[i] == null) {
-                        LocalizableMessage message = ERR_MAKELDIF_UNDEFINED_BRANCH_SUBORDINATE.get(branchDN.toString(),
-                                subordinateTemplateNames[i]);
+                        LocalizableMessage message = ERR_ENTRY_GENERATOR_UNDEFINED_BRANCH_SUBORDINATE.get(
+                                branchDN.toString(), subordinateTemplateNames[i]);
                         throw DecodeException.fatalError(message);
                     }
                 }
@@ -1821,8 +1824,8 @@ class TemplateFile {
      */
     static class Template {
         /**
-         * The attribute types that are used in the RDN for entries generated using
-         * this template.
+         * The attribute types that are used in the RDN for entries generated
+         * using this template.
          */
         private org.forgerock.opendj.ldap.schema.AttributeType[] rdnAttributes;
 
@@ -1927,7 +1930,7 @@ class TemplateFile {
                 for (int i = 0; i < subordinateTemplates.length; i++) {
                     subordinateTemplates[i] = templates.get(subordinateTemplateNames[i].toLowerCase());
                     if (subordinateTemplates[i] == null) {
-                        LocalizableMessage message = ERR_MAKELDIF_UNDEFINED_TEMPLATE_SUBORDINATE.get(
+                        LocalizableMessage message = ERR_ENTRY_GENERATOR_UNDEFINED_TEMPLATE_SUBORDINATE.get(
                                 subordinateTemplateNames[i], name);
                         throw DecodeException.fatalError(message);
                     }
@@ -1950,7 +1953,7 @@ class TemplateFile {
 
             if (!rdnAttrs.isEmpty()) {
                 AttributeType t = rdnAttrs.iterator().next();
-                LocalizableMessage message = ERR_MAKELDIF_TEMPLATE_MISSING_RDN_ATTR.get(name, t.getNameOrOID());
+                LocalizableMessage message = ERR_ENTRY_GENERATOR_TEMPLATE_MISSING_RDN_ATTR.get(name, t.getNameOrOID());
                 throw DecodeException.fatalError(message);
             }
         }
@@ -2090,7 +2093,8 @@ class TemplateFile {
                             numEntriesPerTemplate[j]);
                     if (!(r.keepProcessingParent() && r.keepProcessingTemplateFile())) {
                         if (r.keepProcessingTemplateFile()) {
-                            // We don't want to propagate a "stop processing parent"
+                            // We don't want to propagate a
+                            // "stop processing parent"
                             // all the way up the chain.
                             return TagResult.SUCCESS_RESULT;
                         }

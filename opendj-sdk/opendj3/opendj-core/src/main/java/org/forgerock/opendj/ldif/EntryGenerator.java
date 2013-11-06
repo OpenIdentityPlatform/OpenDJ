@@ -50,10 +50,11 @@ import org.forgerock.opendj.ldif.TemplateFile.TemplateEntry;
 import com.forgerock.opendj.util.Validator;
 
 /**
- * This reader generates entries from a template file, which can be provided
- * as a file, a list of lines, an array of lines, or an input stream.
+ * Generator of entries based on a {@code TemplateFile template file}, which can
+ * be provided as a file, a list of lines, an array of lines, or an input
+ * stream.
  */
-public final class MakeLDIFEntryReader implements EntryReader {
+public final class EntryGenerator implements EntryReader {
 
     private static final TemplateEntry POISON_ENTRY = TemplateFile.TemplateEntry.NULL_TEMPLATE_ENTRY;
 
@@ -90,7 +91,7 @@ public final class MakeLDIFEntryReader implements EntryReader {
      *            used to hold generated entries and block generation until
      *            entries are read
      */
-    private MakeLDIFEntryReader(TemplateFile templateFile, LinkedList<LocalizableMessage> warnings,
+    private EntryGenerator(TemplateFile templateFile, LinkedList<LocalizableMessage> warnings,
             BlockingQueue<TemplateEntry> entryQueue) {
         this.templateFile = templateFile;
         this.warnings = warnings;
@@ -146,19 +147,19 @@ public final class MakeLDIFEntryReader implements EntryReader {
     }
 
     /**
-     * Builder of {@code MakeLDIFEntryReader readers}.
+     * Builder of {@code EntryGenerator readers}.
      * <p>
      *
      * To build a reader with all default values:
      * <pre>
-     * {@code reader = MakeLDIFEntryReader.newReader(...).build() }
+     * {@code reader = EntryGenerator.newReader(...).build() }
      * </pre>
      * <p>
      *
      * To build a reader with some custom values, using the
      * <code>set</code> methods:
      * <pre>
-     * {@code reader = MakeLDIFEntryReader.newReader(...).
+     * {@code reader = EntryGenerator.newReader(...).
      *    setResourcePath(path).
      *    setSchema(schema).
      *    build() }
@@ -198,7 +199,7 @@ public final class MakeLDIFEntryReader implements EntryReader {
          *
          * @param max
          *            capacity of the queue that holds generated entries
-         * @return A reference to this {@code MakeLDIFEntryReader.Builder}.
+         * @return A reference to this {@code EntryGenerator.Builder}.
          */
         public Builder setMaxNumberOfEntriesInQueue(final int max) {
             Validator.ensureTrue(max > 0, "queue capacity must be strictly superior to zero");
@@ -211,7 +212,7 @@ public final class MakeLDIFEntryReader implements EntryReader {
          *
          * @param seed
          *            seed to use
-         * @return A reference to this {@code MakeLDIFEntryReader.Builder}.
+         * @return A reference to this {@code EntryGenerator.Builder}.
          */
         public Builder setRandomSeed(final int seed) {
             randomSeed = seed;
@@ -224,7 +225,7 @@ public final class MakeLDIFEntryReader implements EntryReader {
          *
          * @param path
          *            resource path
-         * @return A reference to this {@code MakeLDIFEntryReader.Builder}.
+         * @return A reference to this {@code EntryGenerator.Builder}.
          */
         public Builder setResourcePath(final String path) {
             Validator.ensureNotNull(path);
@@ -238,7 +239,7 @@ public final class MakeLDIFEntryReader implements EntryReader {
          *
          * @param schema
          *            The schema which should be used for generating entries.
-         * @return A reference to this {@code MakeLDIFEntryReader.Builder}.
+         * @return A reference to this {@code EntryGenerator.Builder}.
          */
         public Builder setSchema(final Schema schema) {
             this.schema = schema;
@@ -258,7 +259,7 @@ public final class MakeLDIFEntryReader implements EntryReader {
          * @param policy
          *            The schema validation which should be used when generating
          *            entries.
-         * @return A reference to this {@code MakeLDIFEntryReader.Builder}.
+         * @return A reference to this {@code EntryGenerator.Builder}.
          */
         public Builder setSchemaValidationPolicy(final SchemaValidationPolicy policy) {
             this.schemaValidationPolicy = SchemaValidationPolicy.copyOf(policy);
@@ -274,7 +275,7 @@ public final class MakeLDIFEntryReader implements EntryReader {
          * @throws DecodeException
          *             If some other problem occurs during initialization
          */
-        public MakeLDIFEntryReader build() throws IOException, DecodeException {
+        public EntryGenerator build() throws IOException, DecodeException {
             if (schema == null) {
                 schema = Schema.getDefaultSchema();
             }
@@ -293,14 +294,14 @@ public final class MakeLDIFEntryReader implements EntryReader {
                     templateFile.parse(templateStream, warnings);
                 } else {
                     // this should never happen
-                    throw DecodeException.fatalError(ERR_MAKELDIF_MISSING_TEMPLATE_FILE.get());
+                    throw DecodeException.fatalError(ERR_ENTRY_GENERATOR_MISSING_TEMPLATE_FILE.get());
                 }
             } catch (IOException e) {
                 throw e;
             } catch (Exception e) {
-                throw DecodeException.fatalError(ERR_MAKELDIF_EXCEPTION_DURING_PARSE.get(e.getMessage()), e);
+                throw DecodeException.fatalError(ERR_ENTRY_GENERATOR_EXCEPTION_DURING_PARSE.get(e.getMessage()), e);
             }
-            MakeLDIFEntryReader reader = new MakeLDIFEntryReader(templateFile,
+            EntryGenerator reader = new EntryGenerator(templateFile,
                     warnings, new LinkedBlockingQueue<TemplateEntry>(maxNumberOfEntriesInQueue));
             reader.startEntriesGeneration();
             return reader;
