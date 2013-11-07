@@ -269,11 +269,8 @@ public class ReplicationDB
     }
     catch (DatabaseException e)
     {
-      MessageBuilder mb = new MessageBuilder();
-      mb.append(NOTE_EXCEPTION_CLOSING_DATABASE.get(toString()));
-      mb.append(" ");
-      mb.append(stackTraceToSingleLineString(e));
-      logError(mb.toMessage());
+      logError(NOTE_EXCEPTION_CLOSING_DATABASE.get(toString(),
+          stackTraceToSingleLineString(e)));
     }
     finally
     {
