@@ -458,18 +458,12 @@ public class ReplicationDbEnv
 
   private Message newErrorMessage(String dbName, DatabaseException e)
   {
-    final MessageBuilder mb = new MessageBuilder();
     if (dbName != null)
     {
-      mb.append(NOTE_EXCEPTION_CLOSING_DATABASE.get(dbName));
+      return NOTE_EXCEPTION_CLOSING_DATABASE.get(dbName,
+          stackTraceToSingleLineString(e));
     }
-    else
-    {
-      mb.append(ERR_ERROR_CLOSING_CHANGELOG_ENV.get());
-    }
-    mb.append(" ");
-    mb.append(stackTraceToSingleLineString(e));
-    return mb.toMessage();
+    return ERR_ERROR_CLOSING_CHANGELOG_ENV.get(stackTraceToSingleLineString(e));
   }
 
   /**
