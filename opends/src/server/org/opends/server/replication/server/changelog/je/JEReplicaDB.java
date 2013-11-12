@@ -133,33 +133,34 @@ public class JEReplicaDB implements Runnable
   /**
    * Creates a new ReplicaDB associated to a given LDAP server.
    *
-   * @param id Identifier of the DB.
+   * @param serverId The serverId for which changes will be stored in the DB.
    * @param baseDN the baseDN for which this DB was created.
    * @param replicationServer The ReplicationServer that creates this ReplicaDB.
    * @param dbenv the Database Env to use to create the ReplicationServer DB.
    * server for this domain.
-   * @param queueSize The queueSize to use when creating the ReplicaDB.
    * @throws ChangelogException If a database problem happened
    */
-  public JEReplicaDB(int id, DN baseDN, ReplicationServer replicationServer,
-      ReplicationDbEnv dbenv, int queueSize) throws ChangelogException
+  public JEReplicaDB(int serverId, DN baseDN,
+      ReplicationServer replicationServer, ReplicationDbEnv dbenv)
+      throws ChangelogException
   {
     this.replicationServer = replicationServer;
-    serverId = id;
+    this.serverId = serverId;
     this.baseDN = baseDN;
     trimAge = replicationServer.getTrimAge();
+    final int queueSize = replicationServer.getQueueSize();
     queueMaxSize = queueSize;
     queueLowmark = queueSize / 5;
     queueHimark = queueSize * 4 / 5;
     queueMaxBytes = 200 * queueMaxSize;
     queueLowmarkBytes = 200 * queueLowmark;
     queueHimarkBytes = 200 * queueLowmark;
-    db = new ReplicationDB(id, baseDN, replicationServer, dbenv);
+    db = new ReplicationDB(serverId, baseDN, replicationServer, dbenv);
     oldestCSN = db.readOldestCSN();
     newestCSN = db.readNewestCSN();
     thread = new DirectoryThread(this, "Replication server RS("
         + replicationServer.getServerId()
-        + ") changelog checkpointer for Replica DS(" + id
+        + ") changelog checkpointer for Replica DS(" + serverId
         + ") for domain \"" + baseDN + "\"");
     thread.start();
 
