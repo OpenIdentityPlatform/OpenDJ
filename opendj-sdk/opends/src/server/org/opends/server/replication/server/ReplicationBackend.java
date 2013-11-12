@@ -626,9 +626,10 @@ public class ReplicationBackend extends Backend
       return;
     }
 
-    DBCursor<UpdateMsg> cursor = rsDomain.getCursorFrom(previousCSN);
+    DBCursor<UpdateMsg> cursor = null;
     try
     {
+      cursor = rsDomain.getCursorFrom(previousCSN);
       int lookthroughCount = 0;
 
       // Walk through the changes
