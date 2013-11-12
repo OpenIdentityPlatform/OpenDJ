@@ -35,6 +35,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 import org.opends.server.config.ConfigException;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.protocol.UpdateMsg;
@@ -42,11 +43,13 @@ import org.opends.server.replication.server.ChangelogState;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.server.changelog.api.*;
 import org.opends.server.types.DN;
+import org.opends.server.types.DebugLogLevel;
 import org.opends.server.util.Pair;
 import org.opends.server.util.StaticUtils;
 
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.StaticUtils.*;
 
 /**
@@ -54,6 +57,8 @@ import static org.opends.server.util.StaticUtils.*;
  */
 public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
 {
+  /** The tracer object for the debug logger. */
+  protected static final DebugTracer TRACER = getTracer();
 
   /**
    * {@link DBCursor} implementation that iterates across all the ReplicaDBs of
@@ -83,6 +88,7 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
         });
 
     public CrossReplicaDBCursor(DN baseDN, ServerState startAfterServerState)
+        throws ChangelogException
     {
       this.baseDN = baseDN;
       for (int serverId : getDomainMap(baseDN).keySet())
@@ -94,22 +100,15 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
     }
 
     private DBCursor<UpdateMsg> getCursorFrom(DN baseDN, int serverId,
-        CSN startAfterCSN)
+        CSN startAfterCSN) throws ChangelogException
     {
       JEReplicaDB replicaDB = getReplicaDB(baseDN, serverId);
       if (replicaDB != null)
       {
-        try
-        {
-          DBCursor<UpdateMsg> cursor =
-              replicaDB.generateCursorFrom(startAfterCSN);
-          cursor.next();
-          return cursor;
-        }
-        catch (ChangelogException e)
-        {
-          // ignored
-        }
+        DBCursor<UpdateMsg> cursor =
+            replicaDB.generateCursorFrom(startAfterCSN);
+        cursor.next();
+        return cursor;
       }
       return EMPTY_CURSOR;
     }
@@ -262,7 +261,10 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
     }
     catch (Exception e)
     {
-      MessageBuilder mb = new MessageBuilder();
+      if (debugEnabled())
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+
+      final MessageBuilder mb = new MessageBuilder();
       mb.append(e.getLocalizedMessage());
       mb.append(" ");
       mb.append(String.valueOf(dbDirectory));
@@ -410,6 +412,9 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
     }
     catch (ChangelogException e)
     {
+      if (debugEnabled())
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+
       logError(ERR_COULD_NOT_READ_DB.get(this.dbDirectory.getAbsolutePath(),
           e.getLocalizedMessage()));
     }
@@ -537,6 +542,8 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
           {
             firstException = e;
           }
+          else if (debugEnabled())
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
         cnIndexDB = null;
@@ -682,6 +689,8 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
           {
             firstException = e;
           }
+          else if (debugEnabled())
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
       }
     }
@@ -697,6 +706,8 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
       {
         firstException = e;
       }
+      else if (debugEnabled())
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
     }
 
     if (firstException != null)
@@ -748,6 +759,8 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
         }
         catch (Exception e)
         {
+          if (debugEnabled())
+            TRACER.debugCaught(DebugLogLevel.ERROR, e);
           logError(ERR_CHANGENUMBER_DATABASE.get(e.getLocalizedMessage()));
         }
       }
@@ -765,6 +778,7 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
   /** {@inheritDoc} */
   @Override
   public DBCursor<UpdateMsg> getCursorFrom(DN baseDN, CSN startAfterCSN)
+      throws ChangelogException
   {
     // Builds a new serverState for all the serverIds in the replication domain
     // to ensure we get cursors starting after the provided CSN.
@@ -774,7 +788,7 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
   /** {@inheritDoc} */
   @Override
   public DBCursor<UpdateMsg> getCursorFrom(DN baseDN,
-      ServerState startAfterServerState)
+      ServerState startAfterServerState) throws ChangelogException
   {
     return new CrossReplicaDBCursor(baseDN, startAfterServerState);
   }

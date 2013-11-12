@@ -1281,9 +1281,12 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
    * @param startAfterCSN
    *          Starting point for the cursor. If null, start from the oldest CSN
    * @return a non null {@link DBCursor}
+   * @throws ChangelogException
+   *           If a database problem happened
    * @see ReplicationDomainDB#getCursorFrom(DN, CSN)
    */
   public DBCursor<UpdateMsg> getCursorFrom(CSN startAfterCSN)
+      throws ChangelogException
   {
     return domainDB.getCursorFrom(baseDN, startAfterCSN);
   }
@@ -1302,9 +1305,12 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
    *          Starting point for the replicaDB cursors. If null, start from the
    *          oldest CSN
    * @return a non null {@link DBCursor} going from oldest to newest CSN
+   * @throws ChangelogException
+   *           If a database problem happened
    * @see ReplicationDomainDB#getCursorFrom(DN, ServerState)
    */
   public DBCursor<UpdateMsg> getCursorFrom(ServerState startAfterServerState)
+      throws ChangelogException
   {
     return domainDB.getCursorFrom(baseDN, startAfterServerState);
   }

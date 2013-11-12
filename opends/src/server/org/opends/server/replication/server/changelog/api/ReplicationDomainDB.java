@@ -177,9 +177,12 @@ public interface ReplicationDomainDB
    *          Starting point for each ReplicaDB cursor. If null, start from the
    *          oldest CSN for each ReplicaDB cursor.
    * @return a non null {@link DBCursor}
+   * @throws ChangelogException
+   *           If a database problem happened
    * @see #getCursorFrom(DN, ServerState)
    */
-  DBCursor<UpdateMsg> getCursorFrom(DN baseDN, CSN startAfterCSN);
+  DBCursor<UpdateMsg> getCursorFrom(DN baseDN, CSN startAfterCSN)
+      throws ChangelogException;
 
   /**
    * Generates a {@link DBCursor} across all the replicaDBs for the specified
@@ -199,10 +202,12 @@ public interface ReplicationDomainDB
    *          replicaDB is null, then start from the oldest CSN for this
    *          replicaDB
    * @return a non null {@link DBCursor}
+   * @throws ChangelogException
+   *           If a database problem happened
    * @see #getCursorFrom(DN, CSN)
    */
   DBCursor<UpdateMsg> getCursorFrom(DN baseDN,
-      ServerState startAfterServerState);
+      ServerState startAfterServerState) throws ChangelogException;
 
   /**
    * for the specified serverId and replication domain.

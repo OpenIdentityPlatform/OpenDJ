@@ -1248,7 +1248,7 @@ public class ReplicationBroker
       // FIXME ECL In the handshake phase two, should RS send back a topo msg ?
       if (debugEnabled())
       {
-        TRACER.debugInfo("RB HANDSHAKE SENT:\n" + startECLSessionMsg);
+        debugInfo("RB HANDSHAKE SENT:\n" + startECLSessionMsg);
       }
 
       // Alright set the timeout to the desired value
@@ -1310,11 +1310,11 @@ public class ReplicationBroker
       /*
        * Read the TopologyMsg that should come back.
        */
-      TopologyMsg topologyMsg = (TopologyMsg) localSession.receive();
+      final TopologyMsg topologyMsg = (TopologyMsg) localSession.receive();
 
       if (debugEnabled())
       {
-        TRACER.debugInfo("RB HANDSHAKE SENT:\n" + startSessionMsg
+        debugInfo("RB HANDSHAKE SENT:\n" + startSessionMsg
             + "\nAND RECEIVED:\n" + topologyMsg);
       }
 
