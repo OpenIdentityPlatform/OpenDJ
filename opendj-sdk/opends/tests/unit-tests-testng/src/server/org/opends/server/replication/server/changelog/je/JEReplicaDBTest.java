@@ -408,7 +408,7 @@ public class JEReplicaDBTest extends ReplicationTestCase
 
       testRoot = createCleanDir();
       dbEnv = new ReplicationDbEnv(testRoot.getPath(), replicationServer);
-      replicaDB = new JEReplicaDB(1, TEST_ROOT_DN, replicationServer, dbEnv, 10);
+      replicaDB = new JEReplicaDB(1, TEST_ROOT_DN, replicationServer, dbEnv);
       replicaDB.setCounterRecordWindowSize(counterWindow);
 
       // Populate the db with 'max' msg
@@ -467,7 +467,7 @@ public class JEReplicaDBTest extends ReplicationTestCase
       debugInfo(tn, "SHUTDOWN replicaDB and recreate");
       replicaDB.shutdown();
 
-      replicaDB = new JEReplicaDB(1, TEST_ROOT_DN, replicationServer, dbEnv, 10);
+      replicaDB = new JEReplicaDB(1, TEST_ROOT_DN, replicationServer, dbEnv);
       replicaDB.setCounterRecordWindowSize(counterWindow);
 
       assertEquals(replicaDB.getOldestCSN(), csns[1], "Wrong oldest CSN");
