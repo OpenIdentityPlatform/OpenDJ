@@ -1242,32 +1242,131 @@ $ curl
   query string.</para>
   -->
 
-  <!-- Pending implementation https://bugster.forgerock.org/jira/browse/OPENDJ-701
   <variablelist>
    <para>You can page through search results using the following query string
    parameters.</para>
 
    <varlistentry>
-    <term><literal>__pagedResultsCookie=<replaceable>string</replaceable></literal></term>
+    <term><literal>_pagedResultsCookie=<replaceable>string</replaceable></literal></term>
     <listitem>
-     <para></para>
+     <para>
+      Opaque cookie used by the server to keep track of the position
+      in the search results.
+
+      In the request <literal>_pageSize</literal> must also be set and non-zero.
+
+      You receive the cookie value from the server on the first request,
+      and then supply the cookie value in subsequent requests
+      until the server returns a <literal>null</literal> cookie,
+      meaning that the final page of results has been returned.
+     </para>
     </listitem>
    </varlistentry>
 
    <varlistentry>
-    <term><literal>__pagedResultsOffset=<replaceable>string</replaceable></literal></term>
+    <term><literal>_pagedResultsOffset=<replaceable>integer</replaceable></literal></term>
     <listitem>
-     <para></para>
+     <para>
+      When <literal>_pageSize</literal> is non-zero, use this as
+      an index in the result set indicating the first page to return.
+
+      When the value of <literal>_pagedResultsOffset</literal>
+      is less than 1, the server returns the next page after
+      the last page returned.
+
+      When the value is greater than or equal to 1,
+      the server returns the page starting from the specified index.
+     </para>
     </listitem>
    </varlistentry>
 
    <varlistentry>
-    <term><literal>__pagedResultsCookie=<replaceable>string</replaceable></literal></term>
+    <term><literal>_pageSize=<replaceable>integer</replaceable></literal></term>
     <listitem>
-     <para></para>
+     <para>
+      Return query results in pages of this size.
+
+      After the initial request, use <literal>_pagedResultsCookie</literal>
+      to page through the results.
+     </para>
+
+
+     <para>
+      The following example demonstrates the use of paged results.
+
+      The first call requests 5 results per page, and retrieves the first page.
+
+      The next call provides the cookie to request the next 5 results.
+
+      The final call provides the cookie and requests the 10th page of results
+      after the last page of results that the server returned.
+     </para>
+
+     <screen>$ curl "http://bjensen:hifalutin@opendj.example.com:8080/users
+ ?_queryFilter=true&amp;_fields=userName&amp;_prettyPrint=true&amp;_pageSize=5"
+{
+  "result" : [ {
+    "userName" : "abarnes@example.com"
+  }, {
+    "userName" : "abergin@example.com"
+  }, {
+    "userName" : "achassin@example.com"
+  }, {
+    "userName" : "ahall@example.com"
+  }, {
+    "userName" : "ahel@example.com"
+  } ],
+  "resultCount" : 5,
+  "pagedResultsCookie" : "AAAAAAAAAA8=",
+  "remainingPagedResults" : -1
+}
+
+$ curl "http://bjensen:hifalutin@opendj.example.com:8080/users
+ ?_queryFilter=true&amp;_fields=userName&amp;_prettyPrint=true&amp;_pageSize=5
+ &amp;_pagedResultsCookie=AAAAAAAAAA8="
+{
+  "result" : [ {
+    "userName" : "ahunter@example.com"
+  }, {
+    "userName" : "ajensen@example.com"
+  }, {
+    "userName" : "aknutson@example.com"
+  }, {
+    "userName" : "alangdon@example.com"
+  }, {
+    "userName" : "alutz@example.com"
+  } ],
+  "resultCount" : 5,
+  "pagedResultsCookie" : "AAAAAAAAABQ=",
+  "remainingPagedResults" : -1
+}
+
+$ curl "http://bjensen:hifalutin@opendj.example.com:8080/users
+ ?_queryFilter=true&amp;_fields=userName&amp;_prettyPrint=true&amp;_pageSize=5
+ &amp;_pagedResultsCookie=AAAAAAAAAA8=&amp;_pagedResultsOffset=10"
+{
+  "result" : [ {
+    "userName" : "gtriplet@example.com"
+  }, {
+    "userName" : "gtyler@example.com"
+  }, {
+    "userName" : "hmiller@example.com"
+  }, {
+    "userName" : "jbourke@example.com"
+  }, {
+    "userName" : "jbrown@example.com"
+  } ],
+  "resultCount" : 5,
+  "pagedResultsCookie" : "AAAAAAAAAEY=",
+  "remainingPagedResults" : -1
+}</screen>
+
+     <para>
+      Notice that <literal>"remainingPagedResults" : -1</literal> in each case
+      meaning that the number of remaining results is not known.
+     </para>
     </listitem>
    </varlistentry>
   </variablelist>
-  -->
  </section>
 </chapter>
