@@ -795,8 +795,7 @@ public final class ECLServerHandler extends ServerHandler
       }
       else
       {
-        // let's take the start state for this domain from the provided
-        // cookie
+        // let's take the start state for this domain from the provided cookie
         newDomainCtxt.startState =
             startStatesFromProvidedCookie.remove(domain.getBaseDN());
 
@@ -867,6 +866,7 @@ public final class ECLServerHandler extends ServerHandler
     */
     if (!startStatesFromProvidedCookie.isEmpty() && allowUnknownDomains)
     {
+      // JNR: Will the following code trigger a ConcurrentModificationException?
       for (DN providedDomain : startStatesFromProvidedCookie.keySet())
         if (rs.getReplicationServerDomain(providedDomain) == null)
           // the domain provided in the cookie is not replicated
@@ -1039,17 +1039,16 @@ public final class ECLServerHandler extends ServerHandler
     isPersistent  = startECLSessionMsg.isPersistent();
     lastChangeNumber = startECLSessionMsg.getLastChangeNumber();
     searchPhase   = INIT_PHASE;
+    final String cookie = startECLSessionMsg.getCrossDomainServerState();
     try
     {
-      previousCookie = new MultiDomainServerState(
-        startECLSessionMsg.getCrossDomainServerState());
+      previousCookie = new MultiDomainServerState(cookie);
     }
     catch(Exception e)
     {
       TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      throw new DirectoryException(
-          ResultCode.PROTOCOL_ERROR,
-          ERR_INVALID_COOKIE_SYNTAX.get());
+      throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
+          ERR_INVALID_COOKIE_SYNTAX.get(cookie));
     }
 
     excludedBaseDNs = startECLSessionMsg.getExcludedBaseDNs();
@@ -1236,9 +1235,7 @@ public final class ECLServerHandler extends ServerHandler
         oldestContext.currentState.update(change.getUpdateMsg().getCSN());
 
         if (oldestContext.currentState.cover(oldestContext.stopState)
-            || (draftCompat
-                && lastChangeNumber > 0
-                && change.getChangeNumber() > lastChangeNumber))
+            || isBeyondLastRequestedChangeNumber(change))
         {
           oldestContext.active = false;
         }
@@ -1296,6 +1293,13 @@ public final class ECLServerHandler extends ServerHandler
             + oldestChange);
     }
     return oldestChange;
+  }
+
+  private boolean isBeyondLastRequestedChangeNumber(final ECLUpdateMsg change)
+  {
+    return draftCompat
+        && 0 < lastChangeNumber
+        && lastChangeNumber < change.getChangeNumber();
   }
 
   private ECLUpdateMsg newECLUpdateMsg(DomainContext ctx)
