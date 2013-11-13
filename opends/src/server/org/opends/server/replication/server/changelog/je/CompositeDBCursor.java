@@ -80,12 +80,12 @@ final class CompositeDBCursor implements DBCursor<UpdateMsg>
   public boolean next() throws ChangelogException
   {
     // try to recycle empty cursors in case the underlying ReplicaDBs received
-    // new changes
-    for (Iterator<DBCursor<UpdateMsg>> iter = exhaustedCursors.iterator(); iter
-        .hasNext();)
+    // new changes. Copy the List to avoid ConcurrentModificationExceptions.
+    DBCursor<UpdateMsg>[] copy =
+        exhaustedCursors.toArray(new DBCursor[exhaustedCursors.size()]);
+    exhaustedCursors.clear();
+    for (DBCursor<UpdateMsg> cursor : copy)
     {
-      DBCursor<UpdateMsg> cursor = iter.next();
-      iter.remove();
       cursor.next();
       add(cursor);
     }
