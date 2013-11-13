@@ -34,6 +34,7 @@ import java.io.StringReader;
 import java.net.Socket;
 import java.util.*;
 
+import org.assertj.core.api.Assertions;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.std.server.ExternalChangelogDomainCfg;
 import org.opends.server.api.Backend;
@@ -793,9 +794,8 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       searchOp = searchOnCookieChangelog("(targetDN=*" + tn + "*,o=test)", cookie, tn,
               PROTOCOL_ERROR);
       assertEquals(searchOp.getSearchEntries().size(), 0);
-      assertTrue(searchOp.getErrorMessage().toString().equals(
-          ERR_INVALID_COOKIE_SYNTAX.get().toString()),
-          searchOp.getErrorMessage().toString());
+      Assertions.assertThat(searchOp.getErrorMessage().toString()).startsWith(
+          ERR_INVALID_COOKIE_SYNTAX.get(cookie).toString());
 
       // Test unknown domain in provided cookie
       // This case seems to be very hard to obtain in the real life

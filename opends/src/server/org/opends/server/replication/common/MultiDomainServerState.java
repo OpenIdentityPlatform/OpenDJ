@@ -174,9 +174,7 @@ public class MultiDomainServerState implements Iterable<DN>
     return list.isEmpty();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public Iterator<DN> iterator()
   {
@@ -214,43 +212,45 @@ public class MultiDomainServerState implements Iterable<DN>
 
   /**
    * Splits the provided generalizedServerState being a String with the
-   * following syntax: "domain1:state1;domain2:state2;..."
-   * to a TreeMap of (domain DN, domain ServerState).
-   * @param multidomainserverstate the provided state
-   * @exception DirectoryException when an error occurs
+   * following syntax: "domain1:state1;domain2:state2;..." to a Map of (domain
+   * DN, domain ServerState).
+   *
+   * @param multiDomainServerState
+   *          the provided multi domain server state also known as cookie
+   * @exception DirectoryException
+   *              when an error occurs
    * @return the split state.
    */
   public static Map<DN, ServerState> splitGenStateToServerStates(
-      String multidomainserverstate) throws DirectoryException
+      String multiDomainServerState) throws DirectoryException
   {
     Map<DN, ServerState> startStates = new TreeMap<DN, ServerState>();
-    if (multidomainserverstate != null && multidomainserverstate.length() > 0)
+    if (multiDomainServerState != null && multiDomainServerState.length() > 0)
     {
       try
       {
-        // Split the provided multidomainserverstate into domains
-        String[] domains = multidomainserverstate.split(";");
+        // Split the provided multiDomainServerState into domains
+        String[] domains = multiDomainServerState.split(";");
         for (String domain : domains)
         {
           // For each domain, split the CSNs by server
           // and build a server state (SHOULD BE OPTIMIZED)
-          ServerState serverStateByDomain = new ServerState();
+          final ServerState serverStateByDomain = new ServerState();
 
-          String[] fields = domain.split(":");
+          final String[] fields = domain.split(":");
           if (fields.length == 0)
           {
             throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
-                ERR_INVALID_COOKIE_SYNTAX.get());
+                ERR_INVALID_COOKIE_SYNTAX.get(multiDomainServerState));
           }
-          String domainBaseDN = fields[0];
+          final String domainBaseDN = fields[0];
           if (fields.length > 1)
           {
-            String strState = fields[1];
-            String[] strCSN = strState.split(" ");
-            for (String sr : strCSN)
+            final String serverStateStr = fields[1];
+            for (String csnStr : serverStateStr.split(" "))
             {
-              CSN fromCSN = new CSN(sr);
-              serverStateByDomain.update(fromCSN);
+              final CSN csn = new CSN(csnStr);
+              serverStateByDomain.update(csn);
             }
           }
           startStates.put(DN.decode(domainBaseDN), serverStateByDomain);
