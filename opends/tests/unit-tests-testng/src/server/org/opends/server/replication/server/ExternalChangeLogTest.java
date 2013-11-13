@@ -794,8 +794,9 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       searchOp = searchOnCookieChangelog("(targetDN=*" + tn + "*,o=test)", cookie, tn,
               PROTOCOL_ERROR);
       assertEquals(searchOp.getSearchEntries().size(), 0);
+      final String cookieStr = new MultiDomainServerState(cookie).toString();
       Assertions.assertThat(searchOp.getErrorMessage().toString()).startsWith(
-          ERR_INVALID_COOKIE_SYNTAX.get(cookie).toString());
+          ERR_INVALID_COOKIE_SYNTAX.get(cookieStr).toString());
 
       // Test unknown domain in provided cookie
       // This case seems to be very hard to obtain in the real life
