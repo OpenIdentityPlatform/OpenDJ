@@ -158,10 +158,7 @@
         </if>
       </default>
     </switch>
-  	
-    <!-- Define tmp.dir variable -->
-    <property name="tmp.dir" value="${java.io.tmpdir}/temp_files/${host.name}"/>
-  	
+  	  	
     <!-- Default value for staf.type -->
     <if>
       <not>
@@ -206,6 +203,17 @@
             <var file="${basedir}/${tests.type}-${local.hostname}.properties"/>
           </then>
         </if>
+      </else>
+    </if>
+
+    <!-- Define tmp.dir variable -->
+    <if>
+      <equals arg1="${tests.mode}" arg2="remote"/>
+      <then>
+        <property name="tmp.dir" value="${java.io.tmpdir}/temp_files/${local.hostname}-${remote.hostname}"/>
+      </then>
+      <else>
+        <property name="tmp.dir" value="${java.io.tmpdir}/temp_files/${local.hostname}"/>
       </else>
     </if>
 
