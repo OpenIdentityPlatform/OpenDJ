@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
@@ -40,7 +41,7 @@ import org.testng.annotations.Test;
 import static org.testng.Assert.*;
 
 @SuppressWarnings("javadoc")
-public class CompositeDBCursorTest
+public class CompositeDBCursorTest extends DirectoryServerTestCase
 {
 
   private static class MyDBCursor implements DBCursor<UpdateMsg>
