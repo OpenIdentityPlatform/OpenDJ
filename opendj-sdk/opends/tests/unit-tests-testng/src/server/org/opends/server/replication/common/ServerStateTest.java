@@ -30,8 +30,6 @@ package org.opends.server.replication.common;
 import java.util.Set;
 
 import org.opends.server.replication.ReplicationTestCase;
-import org.opends.server.replication.common.CSN;
-import org.opends.server.replication.common.ServerState;
 import org.opends.server.util.TimeThread;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -74,10 +72,9 @@ public class ServerStateTest extends ReplicationTestCase
     assertFalse(serverState.update((CSN)null));
     assertTrue(serverState.update(csn));
     assertFalse(serverState.update(csn));
-    CSN csn1, csn2, csn3;
-    csn1 = new CSN(csn.getTime() + 1, csn.getSeqnum(), csn.getServerId());
-    csn2 = new CSN(csn1.getTime(), csn1.getSeqnum() + 1, csn1.getServerId());
-    csn3 = new CSN(csn2.getTime(), csn2.getSeqnum(), (csn2.getServerId() + 1));
+    CSN csn1 = new CSN(csn.getTime() + 1, csn.getSeqnum(), csn.getServerId());
+    CSN csn2 = new CSN(csn1.getTime(), csn1.getSeqnum() + 1, csn1.getServerId());
+    CSN csn3 = new CSN(csn2.getTime(), csn2.getSeqnum(), (csn2.getServerId() + 1));
 
     assertTrue(serverState.update(csn1));
     assertTrue(serverState.update(csn2));
@@ -108,12 +105,10 @@ public class ServerStateTest extends ReplicationTestCase
    * Create a new ServerState object
    */
   @Test(dataProvider = "csnData")
-  public void serverStateReloadTest(CSN csn)
-  throws Exception
+  public void serverStateReloadTest(CSN csn) throws Exception
   {
-    CSN csn1, csn3;
-    csn1 = new CSN(csn.getTime() + 1, csn.getSeqnum(), csn.getServerId());
-    csn3 = new CSN(csn1.getTime(), csn1.getSeqnum(), (csn1.getServerId() + 1));
+    CSN csn1 = new CSN(csn.getTime() + 1, csn.getSeqnum(), csn.getServerId());
+    CSN csn3 = new CSN(csn1.getTime(), csn1.getSeqnum(), (csn1.getServerId() + 1));
 
     ServerState state1 = new ServerState();
     state1.update(csn1);
@@ -123,7 +118,37 @@ public class ServerStateTest extends ReplicationTestCase
     state2.reload(state1);
 
     assertEquals(state1.toString(), state2.toString()) ;
-
   }
 
+  public void testCover() throws Exception
+  {
+    final CSN csn1Server1 = new CSN(1, 0, 1);
+    final CSN csn2Server1 = new CSN(2, 0, 1);
+    final CSN csn1Server2 = new CSN(1, 0, 2);
+    final CSN csn0Server3 = new CSN(0, 0, 3);
+
+    final ServerState state = new ServerState();
+    assertFalse(state.cover(csn1Server1));
+    assertFalse(state.cover(csn2Server1));
+    assertFalse(state.cover(csn1Server2));
+    assertFalse(state.cover(csn0Server3));
+
+    state.update(csn1Server1);
+    assertTrue(state.cover(csn1Server1));
+    assertFalse(state.cover(csn2Server1));
+    assertFalse(state.cover(csn1Server2));
+    assertFalse(state.cover(csn0Server3));
+
+    state.update(csn1Server2);
+    assertTrue(state.cover(csn1Server1));
+    assertFalse(state.cover(csn2Server1));
+    assertTrue(state.cover(csn1Server2));
+    assertFalse(state.cover(csn0Server3));
+
+    state.update(csn2Server1);
+    assertTrue(state.cover(csn1Server1));
+    assertTrue(state.cover(csn2Server1));
+    assertTrue(state.cover(csn1Server2));
+    assertFalse(state.cover(csn0Server3));
+  }
 }
