@@ -673,9 +673,9 @@ public final class TextAccessLogPublisher extends
 
     final long connectionID = clientConnection.getConnectionID();
     final StringBuilder buffer = new StringBuilder(100);
-    buffer.append("[");
-    buffer.append(TimeThread.getLocalTime());
-    buffer.append("]");
+    buffer.append('[');
+    buffer.append(TimeThread.getUserDefinedTime(timeStampFormat));
+    buffer.append(']');
     buffer.append(" CONNECT conn=");
     buffer.append(connectionID);
     buffer.append(" from=");
@@ -773,9 +773,9 @@ public final class TextAccessLogPublisher extends
 
     final long connectionID = clientConnection.getConnectionID();
     final StringBuilder buffer = new StringBuilder(100);
-    buffer.append("[");
-    buffer.append(TimeThread.getLocalTime());
-    buffer.append("]");
+    buffer.append('[');
+    buffer.append(TimeThread.getUserDefinedTime(timeStampFormat));
+    buffer.append(']');
     buffer.append(" DISCONNECT conn=");
     buffer.append(connectionID);
     appendLabel(buffer, "reason", disconnectReason);
