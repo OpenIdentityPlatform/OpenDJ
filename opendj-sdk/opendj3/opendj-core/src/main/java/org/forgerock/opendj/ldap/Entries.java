@@ -396,14 +396,14 @@ public final class Entries {
 
         final ModifyRequest request = Requests.newModifyRequest(fromEntry.getName());
 
-        TreeMapEntry tfrom;
+        final TreeMapEntry tfrom;
         if (fromEntry instanceof TreeMapEntry) {
             tfrom = (TreeMapEntry) fromEntry;
         } else {
             tfrom = new TreeMapEntry(fromEntry);
         }
 
-        TreeMapEntry tto;
+        final TreeMapEntry tto;
         if (toEntry instanceof TreeMapEntry) {
             tto = (TreeMapEntry) toEntry;
         } else {
@@ -419,14 +419,13 @@ public final class Entries {
         while (afrom != null && ato != null) {
             final AttributeDescription adfrom = afrom.getAttributeDescription();
             final AttributeDescription adto = ato.getAttributeDescription();
-
             final int cmp = adfrom.compareTo(adto);
             if (cmp == 0) {
-                // Attribute is in both entries. Compute the set of values to be
-                // added
-                // and removed. We won't replace the attribute because this is
-                // not
-                // reversible.
+                /*
+                 * Attribute is in both entries. Compute the set of values to be
+                 * added and removed. We won't replace the attribute because
+                 * this is not reversible.
+                 */
                 final Attribute addedValues = new LinkedAttribute(ato);
                 addedValues.removeAll(afrom);
                 if (!addedValues.isEmpty()) {
