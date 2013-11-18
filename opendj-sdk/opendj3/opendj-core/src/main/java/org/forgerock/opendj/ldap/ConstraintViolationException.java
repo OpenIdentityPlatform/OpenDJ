@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -37,6 +38,9 @@ import org.forgerock.opendj.ldap.responses.Result;
  * <li>{@link ResultCode#ATTRIBUTE_OR_VALUE_EXISTS ATTRIBUTE_OR_VALUE_EXISTS} -
  * the Request failed because it would have resulted in a conflict with an
  * existing attribute or attribute value in the target entry.
+ * <li>{@link ResultCode#NO_SUCH_ATTRIBUTE NO_SUCH_ATTRIBUTE} - the Request
+ * failed because it targeted an attribute or attribute value that did not exist
+ * in the specified entry.
  * <li>{@link ResultCode#CONSTRAINT_VIOLATION CONSTRAINT_VIOLATION} - the
  * Request failed because it would have violated some constraint defined in the
  * server.
