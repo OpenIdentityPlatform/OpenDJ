@@ -973,6 +973,8 @@ public class ReplicationDB
       else
       {
         key = new DatabaseEntry();
+        // JNR: I suspect this is equivalent to writing cursor.getFirst().
+        // If it is, then please change the code to make it clearer.
         status = cursor.getNext(key, data, LockMode.DEFAULT);
       }
 
@@ -987,19 +989,15 @@ public class ReplicationDB
           break;
         }
 
-        // reached a regular change record
-        // test whether we reached the 'stop' target
-        if (!csn.isNewerThan(stop))
-        {
-          // let's loop
-          distanceToCounterRecords[START]++;
-          status = cursor.getNext(key, data, LockMode.DEFAULT);
-        }
-        else
-        {
-          // reached the end
+        // it is a regular change record
+        if (csn.isNewerThan(stop))
+        { // we are outside the range: we reached the 'stop' target
           break;
         }
+
+        distanceToCounterRecords[START]++;
+        status = cursor.getNext(key, data, LockMode.DEFAULT);
+        // loop to update the distance and possibly find a counter record
       }
     }
     finally
@@ -1040,13 +1038,14 @@ public class ReplicationDB
         }
 
         // it is a regular change record
-        if (!csn.isOlderThan(start))
-        {
-          distanceToCounterRecords[STOP]++;
-          status = cursor.getPrev(key, data, LockMode.DEFAULT);
-        }
-        else
+        if (csn.isOlderThan(start))
+        { // we are outside the range: we reached the 'start' target
           break;
+        }
+
+        distanceToCounterRecords[STOP]++;
+        status = cursor.getPrev(key, data, LockMode.DEFAULT);
+        // loop to update the distance and possibly find a counter record
       }
       return true;
     }
@@ -1133,7 +1132,8 @@ public class ReplicationDB
    *
    * @param csn
    *          The CSN to test
-   * @return true if the provided CSN is a counter, false otherwise
+   * @return true if the provided CSN is a counter record, false if the change
+   *         is a regular/normal change that was performed on the replica.
    */
   private static boolean isACounterRecord(CSN csn)
   {

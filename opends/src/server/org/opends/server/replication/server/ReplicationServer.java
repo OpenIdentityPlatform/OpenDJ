@@ -1360,18 +1360,24 @@ public final class ReplicationServer
   }
 
   /**
-   * Get oldest and newest change numbers.
+   * Get the oldest and newest change numbers.
+   * <p>
+   * Implementation detail (but it could be more than a detail): The newest
+   * change number seem to be a "potential" newest number. It adds up the
+   * newesst change number to the number of changes coming from a domain's
+   * ReplicaDBs.
    *
-   * @param maxOldestChangeNumber
-   *          The provided crossDomainEligibleCSN used as the upper limit for
-   *          the oldest change number
+   * @param endCSN
+   *          The CSN used as the upper limit when computing the newest change
+   *          number
    * @param excludedBaseDNs
    *          The baseDNs that are excluded from the ECL.
-   * @return The oldest and newest change numbers.
+   * @return an array of size 2 holding the oldest and newest change numbers at
+   *         indexes 0 and 1.
    * @throws DirectoryException
    *           When it happens.
    */
-  public long[] getECLChangeNumberLimits(CSN maxOldestChangeNumber,
+  public long[] getECLChangeNumberLimits(CSN endCSN,
       Set<String> excludedBaseDNs) throws DirectoryException
   {
     /* The content of the CNIndexDB depends on the SEARCH operations done before
@@ -1444,7 +1450,7 @@ public final class ReplicationServer
           // Count changes of this domain from the beginning of the changelog
           final ServerState startState = rsDomain.getOldestState()
               .duplicateOnlyOlderThan(rsDomain.getLatestDomainTrimDate());
-          ec = rsDomain.getEligibleCount(startState, maxOldestChangeNumber);
+          ec = rsDomain.getEligibleCount(startState, endCSN);
         }
         else
         {
@@ -1458,7 +1464,7 @@ public final class ReplicationServer
           // And count changes of this domain from the date of the
           // newest seqnum record (that does not refer to this domain)
           CSN csnx = new CSN(newestTime, csnForNewestCN.getSeqnum(), 0);
-          ec = rsDomain.getEligibleCount(csnx, maxOldestChangeNumber);
+          ec = rsDomain.getEligibleCount(csnx, endCSN);
 
           if (baseDNForNewestCN.equals(rsDomain.getBaseDN()))
             ec--;
