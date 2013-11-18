@@ -49,11 +49,7 @@ import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 
 /**
- * This class implements a virtual attribute provider that allows administrators
- * to define their own values that will be inserted into any entry that matches
- * the criteria defined in the virtual attribute rule.  This can be used to
- * provide functionality like Class of Service (CoS) in the Sun Java System
- * Directory Server.
+ * Virtual attribute returning the oldest change number from the changelogDB.
  */
 public class FirstChangeNumberVirtualAttributeProvider
        extends VirtualAttributeProvider<UserDefinedVirtualAttributeCfg>
