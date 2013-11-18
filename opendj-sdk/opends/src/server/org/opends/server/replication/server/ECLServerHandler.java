@@ -1335,7 +1335,7 @@ public final class ECLServerHandler extends ServerHandler
     // The following loop allows to loop until being on the same cn in the 2 dbs
 
     CSN csnFromReplicaDB = replicaDBChange.getUpdateMsg().getCSN();
-    DN dnFromReplicaDB = replicaDBChange.getBaseDN();
+    DN baseDNFromReplicaDB = replicaDBChange.getBaseDN();
 
     while (true)
     {
@@ -1348,16 +1348,16 @@ public final class ECLServerHandler extends ServerHandler
 
       final ChangeNumberIndexRecord currentRecord = cnIndexDBCursor.getRecord();
       final CSN csnFromCNIndexDB = currentRecord.getCSN();
-      final DN dnFromCNIndexDB = currentRecord.getBaseDN();
+      final DN baseDNFromCNIndexDB = currentRecord.getBaseDN();
 
       if (debugEnabled())
         TRACER.debugInfo("assignChangeNumber() comparing the replicaDB's and"
-            + " CNIndexDB's DNs :" + dnFromReplicaDB + "?=" + dnFromCNIndexDB
-            + " timestamps:" + asDate(csnFromReplicaDB) + " ?older"
-            + asDate(csnFromCNIndexDB));
+            + " CNIndexDB's baseDNs :" + baseDNFromReplicaDB + "?="
+            + baseDNFromCNIndexDB + " timestamps:" + asDate(csnFromReplicaDB)
+            + " ?older" + asDate(csnFromCNIndexDB));
 
-      if (areSameChange(csnFromReplicaDB, dnFromReplicaDB, csnFromCNIndexDB,
-          dnFromCNIndexDB))
+      if (areSameChange(csnFromReplicaDB, baseDNFromReplicaDB,
+          csnFromCNIndexDB, baseDNFromCNIndexDB))
       {
         // We matched the ReplicaDB change with a record in the CNIndexDB
         // => set the changeNumber in memory and return the change to the client
@@ -1418,9 +1418,9 @@ public final class ECLServerHandler extends ServerHandler
     return new Date(csn.getTime());
   }
 
-  private boolean areSameChange(CSN csn1, DN dn1, CSN csn2, DN dn2)
+  private boolean areSameChange(CSN csn1, DN baseDN1, CSN csn2, DN baseDN2)
   {
-    boolean sameDN = dn1.compareTo(dn2) == 0;
+    boolean sameDN = baseDN1.compareTo(baseDN2) == 0;
     boolean sameCSN = csn1.compareTo(csn2) == 0;
     return sameDN && sameCSN;
   }

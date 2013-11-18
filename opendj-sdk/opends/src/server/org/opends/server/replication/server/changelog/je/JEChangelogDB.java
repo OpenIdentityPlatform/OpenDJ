@@ -753,7 +753,7 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
 
   /** {@inheritDoc} */
   @Override
-  public void replicaHeartbeat(DN baseDN, CSN csn)
+  public void replicaHeartbeat(DN baseDN, CSN heartbeatCSN)
   {
     // TODO implement this when the changelogDB will be responsible for
     // maintaining the medium consistency point
@@ -761,9 +761,11 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
 
   /** {@inheritDoc} */
   @Override
-  public void replicaOffline(DN baseDN, int serverId)
+  public void replicaOffline(DN baseDN, CSN offlineCSN)
   {
     // TODO implement this when the changelogDB will be responsible for
     // maintaining the medium consistency point
+    // TODO make sure that this operation will not lose changes
+    // TODO save this state in the changelogStateDB?
   }
 }

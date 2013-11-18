@@ -210,7 +210,9 @@ public interface ReplicationDomainDB
       ServerState startAfterServerState) throws ChangelogException;
 
   /**
-   * for the specified serverId and replication domain.
+   * Publishes the provided change to the changelog DB for the specified
+   * serverId and replication domain. After a change has been successfully
+   * published, it becomes available to be returned by the External ChangeLog.
    *
    * @param baseDN
    *          the replication domain baseDN
@@ -231,11 +233,11 @@ public interface ReplicationDomainDB
    *
    * @param baseDN
    *          the replication domain baseDN
-   * @param csn
+   * @param heartbeatCSN
    *          The CSN heartbeat sent by this replica (contains the serverId and
    *          timestamp of the heartbeat)
    */
-  void replicaHeartbeat(DN baseDN, CSN csn);
+  void replicaHeartbeat(DN baseDN, CSN heartbeatCSN);
 
   /**
    * Let the DB know this replica is going down.
@@ -249,8 +251,8 @@ public interface ReplicationDomainDB
    *
    * @param baseDN
    *          the replication domain baseDN
-   * @param serverId
-   *          The replica's serverId going offline
+   * @param offlineCSN
+   *          The CSN (serverId and timestamp) for the replica's going offline
    */
-  void replicaOffline(DN baseDN, int serverId);
+  void replicaOffline(DN baseDN, CSN offlineCSN);
 }
