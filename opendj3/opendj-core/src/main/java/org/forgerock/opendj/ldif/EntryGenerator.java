@@ -31,20 +31,17 @@ import static com.forgerock.opendj.ldap.CoreMessages.*;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Random;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.schema.Schema;
-import org.forgerock.opendj.ldif.TemplateFile.EntryWriter;
-import org.forgerock.opendj.ldif.TemplateFile.TemplateEntry;
 
 import com.forgerock.opendj.util.Validator;
 
@@ -52,247 +49,187 @@ import com.forgerock.opendj.util.Validator;
  * Generator of entries based on a {@code TemplateFile template file}, which can
  * be provided as a file, a list of lines, an array of lines, or an input
  * stream.
+ * <p>
+ * To build a generator with all default values, including default template
+ * file, use the empty constructor:
+ *
+ * <pre>
+ *  generator = new EntryGenerator();
+ * </pre>
+ * <p>
+ * To build a generator with some custom values, use the non-empty constructor
+ * and the <code>set</code> methods:
+ *
+ * <pre>
+ * generator = new EntryGenerator(templatePath)
+ *     .setResourcePath(path)
+ *     .setSchema(schema)
+ * </pre>
  */
 public final class EntryGenerator implements EntryReader {
 
-    private static final TemplateEntry POISON_ENTRY = TemplateFile.TemplateEntry.NULL_TEMPLATE_ENTRY;
+    private static final int DEFAULT_RANDOM_SEED = 1;
 
     /** Template file that contains directives for generation of entries. */
-    private final TemplateFile templateFile;
+    private TemplateFile templateFile;
 
-    /** Queue used to hold generated entries until they can be read. */
-    private final BlockingQueue<TemplateEntry> entryQueue;
+    /** Warnings issued by the parsing of the template file. */
+    private final List<LocalizableMessage> warnings = new LinkedList<LocalizableMessage>();
 
-    /** The next available entry. */
-    private TemplateEntry nextEntry;
+    /** Indicates if the generator is closed. */
+    private boolean isClosed = false;
 
-    private final List<LocalizableMessage> warnings;
+    /** Indicates if the generator is initialized, which means template file has been parsed. */
+    private boolean isInitialized = false;
 
-    private volatile IOException ioException;
-
-    private volatile boolean generationIsFinished = false;
-
-    private volatile boolean isClosed = false;
-
-    /** Thread that provides generation of entries. */
-    private Thread generationThread;
+    /** Random seed is used to generate random data. */
+    private int randomSeed = DEFAULT_RANDOM_SEED;
 
     /**
-     * Creates a reader.
-     *
-     * @param templateFile
-     *            contains definition of entries to generate. It must have
-     *            already been parsed
-     * @param warnings
-     *            list of warnings that were issued when parsing the template
-     *            file
-     * @param entryQueue
-     *            used to hold generated entries and block generation until
-     *            entries are read
+     * Path to the directory that may contain additional resource files needed
+     * during the generation process. It may be {@code null}.
      */
-    private EntryGenerator(TemplateFile templateFile, LinkedList<LocalizableMessage> warnings,
-            BlockingQueue<TemplateEntry> entryQueue) {
-        this.templateFile = templateFile;
-        this.warnings = warnings;
-        this.entryQueue = entryQueue;
+    private String resourcePath;
+
+    /**
+     * Schema is used to create attributes. If not provided, the default schema
+     * is used.
+     */
+    private Schema schema;
+
+    /**
+     * Path of template file, can be {@code null} if template file has been
+     * provided through another way.
+     */
+    private String templatePath;
+
+    /**
+     * Lines of template file, can be {@code null} if template file has been
+     * provided through another way.
+     */
+    private String[] templateLines;
+
+    /**
+     * Input stream containing template file, can be {@code null} if template
+     * file has been provided through another way.
+     */
+    private InputStream templateStream;
+
+    /** Dictionary of constants to use in the template file. */
+    private Map<String, String> constants = new HashMap<String, String>();
+
+    /**
+     * Creates a generator using default values.
+     * <p>
+     * The default template file will be used to generate entries.
+     */
+    public EntryGenerator() {
+        // nothing to do
     }
 
     /**
-     * Returns a builder to create a reader based on a template file given by
-     * the provided path.
+     * Creates a generator from the provided template path.
      *
      * @param templatePath
-     *            path of the template file
-     * @return a builder allowing to create the reader
+     *            Path of the template file.
      */
-    public static Builder newReader(final String templatePath) {
-        return new Builder(templatePath);
+    public EntryGenerator(final String  templatePath) {
+        Validator.ensureNotNull(templatePath);
+        this.templatePath = templatePath;
     }
 
     /**
-     * Returns a builder to create a reader based on a template file given by
-     * the provided lines.
+     * Creates a generator from the provided template lines.
      *
      * @param templateLines
-     *            lines defining the template file
-     * @return a builder allowing to create the reader
+     *            Lines defining the template file.
      */
-    public static Builder newReader(final String... templateLines) {
-        return new Builder(templateLines);
+    public EntryGenerator(final String... templateLines) {
+        Validator.ensureNotNull((Object[]) templateLines);
+        this.templateLines = templateLines;
     }
 
     /**
-     * Returns a builder to create a reader based on a template file given by
-     * the provided lines.
+     * Creates a generator from the provided template lines.
      *
      * @param templateLines
-     *            lines defining the template file
-     * @return a builder allowing to create the reader
+     *            Lines defining the template file.
      */
-    public static Builder newReader(final List<String> templateLines) {
-        return new Builder(templateLines.toArray(new String[templateLines.size()]));
+    public EntryGenerator(final List<String> templateLines) {
+        Validator.ensureNotNull(templateLines);
+        this.templateLines = templateLines.toArray(new String[templateLines.size()]);
     }
 
     /**
-     * Returns a builder to create a reader based on a template file given by
-     * the provided stream.
+     * Creates a generator from the provided input stream.
      *
      * @param templateStream
-     *            input stream to read the template file
-     * @return a builder allowing to create the reader
+     *            Input stream to read the template file.
      */
-    public static Builder newReader(final InputStream templateStream) {
-        return new Builder(templateStream);
+    public EntryGenerator(final InputStream templateStream) {
+        Validator.ensureNotNull(templateStream);
+        this.templateStream = templateStream;
     }
 
     /**
-     * Builder of {@code EntryGenerator readers}.
-     * <p>
+     * Sets the random seed to use when generating entries.
      *
-     * To build a reader with all default values:
-     * <pre>
-     * {@code reader = EntryGenerator.newReader(...).build() }
-     * </pre>
-     * <p>
-     *
-     * To build a reader with some custom values, using the
-     * <code>set</code> methods:
-     * <pre>
-     * {@code reader = EntryGenerator.newReader(...).
-     *    setResourcePath(path).
-     *    setSchema(schema).
-     *    build() }
-     * </pre>
+     * @param seed
+     *            Seed to use.
+     * @return A reference to this {@code EntryGenerator}.
      */
-    public static final class Builder {
-
-        private static final int DEFAULT_QUEUE_SIZE = 100;
-        private static final int DEFAULT_RANDOM_SEED = 1;
-        private static final String DEFAULT_RESOURCE_PATH = ".";
-
-        private String templatePath;
-        private String[] templateLines;
-        private InputStream templateStream;
-
-        private TemplateFile templateFile;
-        private int maxNumberOfEntriesInQueue = DEFAULT_QUEUE_SIZE;
-        private int randomSeed = DEFAULT_RANDOM_SEED;
-        private String resourcePath = DEFAULT_RESOURCE_PATH;
-        private Schema schema;
-
-        private Builder(String templatePath) {
-            this.templatePath = templatePath;
-        }
-
-        private Builder(String[] templateLines) {
-            this.templateLines = templateLines;
-        }
-
-        private Builder(InputStream templateStream) {
-            this.templateStream = templateStream;
-        }
-
-        /**
-         * Sets the capacity of the queue holding generated entries.
-         *
-         * @param max
-         *            capacity of the queue that holds generated entries
-         * @return A reference to this {@code EntryGenerator.Builder}.
-         */
-        public Builder setMaxNumberOfEntriesInQueue(final int max) {
-            Validator.ensureTrue(max > 0, "queue capacity must be strictly superior to zero");
-            maxNumberOfEntriesInQueue = max;
-            return this;
-        }
-
-        /**
-         * Sets the random seed to use when generating entries.
-         *
-         * @param seed
-         *            seed to use
-         * @return A reference to this {@code EntryGenerator.Builder}.
-         */
-        public Builder setRandomSeed(final int seed) {
-            randomSeed = seed;
-            return this;
-        }
-
-        /**
-         * Sets the resource path, used to looks for resources files like first
-         * names, last names, or other custom resources.
-         *
-         * @param path
-         *            resource path
-         * @return A reference to this {@code EntryGenerator.Builder}.
-         */
-        public Builder setResourcePath(final String path) {
-            Validator.ensureNotNull(path);
-            resourcePath = path;
-            return this;
-        }
-
-        /**
-         * Sets the schema which should be when generating entries. The default
-         * schema is used if no other is specified.
-         *
-         * @param schema
-         *            The schema which should be used for generating entries.
-         * @return A reference to this {@code EntryGenerator.Builder}.
-         */
-        public Builder setSchema(final Schema schema) {
-            this.schema = schema;
-            return this;
-        }
-
-        /**
-         * Return an instance of reader.
-         *
-         * @return a new instance of reader
-         * @throws IOException
-         *             If an error occurs while reading template file.
-         * @throws DecodeException
-         *             If some other problem occurs during initialization
-         */
-        public EntryGenerator build() throws IOException, DecodeException {
-            if (schema == null) {
-                schema = Schema.getDefaultSchema();
-            }
-            templateFile = new TemplateFile(schema, resourcePath, new Random(randomSeed));
-            LinkedList<LocalizableMessage> warnings = new LinkedList<LocalizableMessage>();
-            try {
-                if (templatePath != null) {
-                    templateFile.parse(templatePath, warnings);
-                } else if (templateLines != null) {
-                    templateFile.parse(templateLines, warnings);
-                } else if (templateStream != null) {
-                    templateFile.parse(templateStream, warnings);
-                } else {
-                    // this should never happen
-                    throw DecodeException.fatalError(ERR_ENTRY_GENERATOR_MISSING_TEMPLATE_FILE.get());
-                }
-            } catch (IOException e) {
-                throw e;
-            } catch (Exception e) {
-                throw DecodeException.fatalError(ERR_ENTRY_GENERATOR_EXCEPTION_DURING_PARSE.get(e.getMessage()), e);
-            }
-            EntryGenerator reader = new EntryGenerator(templateFile,
-                    warnings, new LinkedBlockingQueue<TemplateEntry>(maxNumberOfEntriesInQueue));
-            reader.startEntriesGeneration();
-            return reader;
-        }
+    public EntryGenerator setRandomSeed(final int seed) {
+        randomSeed = seed;
+        return this;
     }
 
     /**
-     * Start generation of entries by launching a separate thread.
+     * Sets the resource path, used to looks for resources files like first
+     * names, last names, or other custom resources.
+     *
+     * @param path
+     *            Resource path.
+     * @return A reference to this {@code EntryGenerator}.
      */
-    private void startEntriesGeneration() {
-        generationThread =
-                new Thread(new EntriesGenerator(new MakeEntryWriter(), templateFile), "MakeLDIF Generator Thread");
-        generationThread.start();
+    public EntryGenerator setResourcePath(final String path) {
+        Validator.ensureNotNull(path);
+        resourcePath = path;
+        return this;
+    }
+
+    /**
+     * Sets the schema which should be when generating entries. The default
+     * schema is used if no other is specified.
+     *
+     * @param schema
+     *            The schema which should be used for generating entries.
+     * @return A reference to this {@code EntryGenerator}.
+     */
+    public EntryGenerator setSchema(final Schema schema) {
+        this.schema = schema;
+        return this;
+    }
+
+    /**
+     * Sets a constant to use in template file. It overrides the constant set in
+     * the template file.
+     *
+     * @param name
+     *            Name of the constant.
+     * @param value
+     *            Value of the constant.
+     * @return A reference to this {@code EntryGenerator}.
+     */
+    public EntryGenerator setConstant(String name, Object value) {
+        constants.put(name, value.toString());
+        return this;
     }
 
     /**
      * Checks if there are some warning(s) after the parsing of template file.
+     * <p>
+     * Warnings are available only after the first call to {@code hasNext()} or
+     * {@code readEntry()} methods.
      *
      * @return true if there is at least one warning
      */
@@ -302,6 +239,9 @@ public final class EntryGenerator implements EntryReader {
 
     /**
      * Returns the warnings generated by the parsing of template file.
+     * <p>
+     * Warnings are available only after the first call to {@code hasNext()}
+     * or {@code readEntry()} methods.
      *
      * @return the list of warnings, which is empty if there is no warning
      */
@@ -312,120 +252,60 @@ public final class EntryGenerator implements EntryReader {
     @Override
     public void close() {
         isClosed = true;
-        ioException = null;
-        try {
-            generationThread.join(0);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
     }
 
     @Override
     public boolean hasNext() throws IOException {
         if (isClosed) {
             return false;
-        } else if (ioException != null) {
-            throw ioException;
-        } else if (nextEntry != null) {
-            return true;
-        } else if (generationIsFinished) {
-            nextEntry = entryQueue.poll();
-        } else {
-            try {
-                nextEntry = entryQueue.take();
-            } catch (InterruptedException ie) {
-                Thread.currentThread().interrupt();
-            }
         }
-        if (nextEntry == POISON_ENTRY) {
-            nextEntry = null;
-        }
-        return nextEntry != null;
+        ensureGeneratorIsInitialized();
+        return templateFile.hasNext();
     }
 
     @Override
     public Entry readEntry() throws IOException {
         if (!hasNext()) {
-            // LDIF reader has completed successfully.
             throw new NoSuchElementException();
         } else {
-            final Entry entry = nextEntry.toEntry();
-            nextEntry = null;
-            return entry;
+            return templateFile.nextEntry();
         }
     }
 
     /**
-     * Entry writer that store entries into the entry queue of this reader, and
-     * record close and exception events.
+     * Check that generator is initialized, and initialize it
+     * if it has not been initialized.
      */
-    private final class MakeEntryWriter implements EntryWriter {
-
-        @Override
-        public boolean writeEntry(final TemplateEntry entry) {
-            while (!isClosed) {
-                try {
-                    if (entryQueue.offer(entry, 500, TimeUnit.MILLISECONDS)) {
-                        return true;
-                    }
-                } catch (InterruptedException ie) {
-                    // nothing to do
-                }
-            }
-            return false;
-        }
-
-        @Override
-        public void closeEntryWriter() {
-            generationIsFinished = true;
-            writeEntry(POISON_ENTRY);
-        }
-
-        public void setIOException(final IOException ioe) {
-            ioException = ioe;
+    private void ensureGeneratorIsInitialized() throws IOException {
+        if (!isInitialized) {
+            isInitialized = true;
+            initialize();
         }
     }
 
-
     /**
-     * Generator of entries, that writes entries to a provided
-     * {@code EntryWriter writer}.
+     * Initializes the generator, by retrieving template file and parsing it.
      */
-    private static final class EntriesGenerator implements Runnable {
-
-        private final MakeEntryWriter entryWriter;
-
-        private final TemplateFile templateFile;
-
-        /**
-         * Creates a generator that writes to provided writer using the provided
-         * template file.
-         *
-         * @param entryWriter
-         * @param templateFile
-         */
-        EntriesGenerator(final MakeEntryWriter entryWriter, final TemplateFile templateFile) {
-            this.entryWriter = entryWriter;
-            this.templateFile = templateFile;
+    private void initialize() throws IOException {
+        if (schema == null) {
+            schema = Schema.getDefaultSchema();
         }
-
-        /**
-         * Run the generation of entries.
-         */
-        public void run() {
-            generate();
-        }
-
-        /**
-         * Generates entries to the entry writer.
-         */
-        void generate() {
-            try {
-                templateFile.generateEntries(entryWriter);
-            } catch (IOException e) {
-                entryWriter.setIOException(e);
-                entryWriter.closeEntryWriter();
+        templateFile = new TemplateFile(schema, constants, resourcePath, new Random(randomSeed));
+        try {
+            if (templatePath != null) {
+                templateFile.parse(templatePath, warnings);
+            } else if (templateLines != null) {
+                templateFile.parse(templateLines, warnings);
+            } else if (templateStream != null) {
+                templateFile.parse(templateStream, warnings);
+            } else {
+                // use default template file
+                templateFile.parse(warnings);
             }
+        } catch (IOException e) {
+            throw e;
+        } catch (Exception e) {
+            throw DecodeException.fatalError(ERR_ENTRY_GENERATOR_EXCEPTION_DURING_PARSE.get(e.getMessage()), e);
         }
     }
 

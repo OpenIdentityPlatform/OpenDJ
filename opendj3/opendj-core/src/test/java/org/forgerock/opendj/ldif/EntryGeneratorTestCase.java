@@ -29,16 +29,18 @@ import static com.forgerock.opendj.ldap.CoreMessages.*;
 
 import static org.fest.assertions.Assertions.*;
 import static org.forgerock.opendj.ldap.TestCaseUtils.getTestFilePath;
-import static org.forgerock.opendj.ldif.EntryGenerator.*;
+import static org.forgerock.opendj.ldap.schema.CoreSchema.*;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.Attribute;
+import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.SdkTestCase;
@@ -47,10 +49,13 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import com.forgerock.opendj.util.StaticUtils;
+
 @SuppressWarnings("javadoc")
 public class EntryGeneratorTestCase extends SdkTestCase {
 
-    private static final String TEMPLATE_FILE_PATH = "org/forgerock/opendj/ldif/example.template";
+    private static final String BASIC_TEMPLATE_PATH = "org/forgerock/opendj/ldif/example.template";
+    private static final String SUBTEMPLATES_TEMPLATE_PATH = "org/forgerock/opendj/ldif/people_and_groups.template";
     private String resourcePath;
     private Schema schema;
 
@@ -58,40 +63,92 @@ public class EntryGeneratorTestCase extends SdkTestCase {
     public void setUp() throws Exception {
         // path of directory in src/main/resources must be obtained from a file
         // otherwise it may search in the wrong directory
-        resourcePath = new File(getTestFilePath(TEMPLATE_FILE_PATH)).getParent();
+        resourcePath = new File(getTestFilePath(BASIC_TEMPLATE_PATH)).getParent();
         schema = Schema.getDefaultSchema();
     }
 
-    @Test
-    public void testReaderWithTemplateFile() throws Exception {
-        String templatePath = getTestFilePath(TEMPLATE_FILE_PATH);
-        EntryGenerator reader = newReader(templatePath).setResourcePath(resourcePath).build();
+    /**
+     * This test is a facility to print generated entries to stdout and should
+     * always be disabled.
+     * Turn it on locally if you need to see the output.
+     */
+    @Test(enabled = false)
+    public void printEntriesToStdOut() throws Exception {
+        String path = SUBTEMPLATES_TEMPLATE_PATH;
+        EntryGenerator generator = null;
+        try {
+            generator = new EntryGenerator(getTestFilePath(path)).setResourcePath(resourcePath);
+            while (generator.hasNext()) {
+                System.out.println(generator.readEntry());
+            }
+        } finally {
+            StaticUtils.closeSilently(generator);
+        }
 
-        checkReader(reader, 10000);
-        reader.close();
     }
 
     @Test
-    public void testReaderWithTemplateStream() throws Exception {
+    public void testCreateWithDefaultTemplateFile() throws Exception {
+        EntryGenerator generator = null;
+        try {
+            generator = new EntryGenerator();
+            assertThat(generator.hasNext()).isTrue();
+        } finally {
+            StaticUtils.closeSilently(generator);
+        }
+    }
+
+    @Test(expectedExceptions = DecodeException.class,
+            expectedExceptionsMessageRegExp = ".*Could not find template file unknown.*")
+    public void testCreateWithMissingTemplateFile() throws Exception {
+        EntryGenerator generator = null;
+        try {
+            generator = new EntryGenerator("unknown/path");
+            generator.hasNext();
+        } finally {
+            StaticUtils.closeSilently(generator);
+        }
+    }
+
+    @Test
+    public void testCreateWithSetConstants() throws Exception {
+        EntryGenerator generator = null;
+        try {
+            generator = new EntryGenerator().setConstant("numusers", 1);
+            generator.readEntry();
+            generator.readEntry();
+            assertThat(generator.readEntry().getName().toString()).isEqualTo("uid=user.0,ou=People,dc=example,dc=com");
+            assertThat(generator.hasNext()).as("should have no more entries").isFalse();
+        } finally {
+            StaticUtils.closeSilently(generator);
+        }
+    }
+
+    @DataProvider(name = "generators")
+    public Object[][] createGenerators() throws Exception {
+        Object[][] generators = new Object[3][2];
+
+        String templatePath = getTestFilePath(BASIC_TEMPLATE_PATH);
+        generators[0][0] = new EntryGenerator(templatePath).setResourcePath(resourcePath);
+        generators[0][1] = 10000;
+
         InputStream stream = new FileInputStream(
-                new File(getTestFilePath(TEMPLATE_FILE_PATH)));
-        EntryGenerator reader = newReader(stream).setResourcePath(resourcePath).build();
+                new File(templatePath));
+        generators[1][0] = new EntryGenerator(stream).setResourcePath(resourcePath);
+        generators[1][1] = 10000;
 
-        checkReader(reader, 10000);
-        reader.close();
-    }
-
-
-    @Test
-    public void testReaderWithTemplateLines() throws Exception {
-        EntryGenerator reader = newReader(
+        generators[2][0] = new EntryGenerator(
                 "define suffix=dc=example,dc=com",
                 "define maildomain=example.com",
                 "define numusers=2",
                 "",
                 "branch: [suffix]",
+                "objectClass: top",
+                "objectClass: domainComponent",
                 "",
                 "branch: ou=People,[suffix]",
+                "objectClass: top",
+                "objectClass: organizationalUnit",
                 "subordinateTemplate: person:[numusers]",
                 "",
                 "template: person",
@@ -118,41 +175,196 @@ public class EntryGeneratorTestCase extends SdkTestCase {
                 "postalCode: <random:numeric:5>",
                 "postalAddress: {cn}${street}${l}, {st}  {postalCode}",
                 "description: This is the description for {cn}.")
-                .setResourcePath(resourcePath).build();
+                .setResourcePath(resourcePath);
+        generators[2][1] = 2;
 
-        checkReader(reader, 2);
-        reader.close();
+        return generators;
     }
 
     /**
-     * Check the content of the reader for basic case.
+     * Test the generated DNs.
      *
      * Expecting 2 entries and then numberOfUsers entries.
      */
-    private void checkReader(EntryGenerator reader, int numberOfUsers) throws Exception {
-        assertThat(reader.hasNext()).isTrue();
-        assertThat(reader.readEntry().getName().toString()).isEqualTo("dc=example,dc=com");
-        assertThat(reader.hasNext()).isTrue();
-        assertThat(reader.readEntry().getName().toString()).isEqualTo("ou=People,dc=example,dc=com");
-        for (int i = 0; i < numberOfUsers; i++) {
-            assertThat(reader.hasNext()).isTrue();
-            assertThat(reader.readEntry().getName().toString()).
-                isEqualTo("uid=user." + i + ",ou=People,dc=example,dc=com");
+    @Test(dataProvider = "generators")
+    public void testGeneratedDNs(EntryGenerator generator, int numberOfUsers) throws Exception {
+        try {
+            assertThat(generator.hasNext()).isTrue();
+            assertThat(generator.readEntry().getName().toString()).isEqualTo("dc=example,dc=com");
+            assertThat(generator.hasNext()).isTrue();
+            assertThat(generator.readEntry().getName().toString()).isEqualTo("ou=People,dc=example,dc=com");
+            for (int i = 0; i < numberOfUsers; i++) {
+                assertThat(generator.hasNext()).isTrue();
+                assertThat(generator.readEntry().getName().toString()).
+                    isEqualTo("uid=user." + i + ",ou=People,dc=example,dc=com");
+            }
+            assertThat(generator.hasNext()).as("should have no more entries").isFalse();
+        } finally {
+            StaticUtils.closeSilently(generator);
         }
-        assertThat(reader.hasNext()).as("should have no more entries").isFalse();
     }
 
-    @Test(expectedExceptions = IOException.class,
-            expectedExceptionsMessageRegExp = ".*Could not find template file unknown.*")
-    public void testMissingTemplateFile() throws Exception {
-        newReader("unknown").setResourcePath(resourcePath).build();
+    /**
+     * Test the complete content of top entry.
+     */
+    @Test(dataProvider = "generators")
+    public void testTopEntry(EntryGenerator generator, int numberOfUsers) throws Exception {
+        try {
+            Entry topEntry = generator.readEntry();
+            assertThat(topEntry.getName().toString()).isEqualTo("dc=example,dc=com");
+
+            Attribute dcAttribute = topEntry.getAttribute(getDCAttributeType().getNameOrOID());
+            assertThat(dcAttribute).isNotNull();
+            assertThat(dcAttribute.firstValueAsString()).isEqualTo("example");
+
+            checkEntryObjectClasses(topEntry, "top", "domainComponent");
+        } finally {
+            StaticUtils.closeSilently(generator);
+
+        }
     }
 
-    @Test(expectedExceptions = DecodeException.class,
-            expectedExceptionsMessageRegExp = ".*Cannot find file streets.*")
-    public void testMissingResourceFile() throws Exception {
-        // fail to find first resource file which is 'streets'
-        newReader(getTestFilePath(TEMPLATE_FILE_PATH)).setResourcePath("unknown").build();
+    /**
+     * Test the complete content of second entry.
+     */
+    @Test(dataProvider = "generators")
+    public void testSecondEntry(EntryGenerator generator, int numberOfUsers) throws Exception {
+        try {
+            generator.readEntry(); // skip top entry
+            Entry entry = generator.readEntry();
+            assertThat(entry.getName().toString()).isEqualTo("ou=People,dc=example,dc=com");
+
+            Attribute dcAttribute = entry.getAttribute(getOUAttributeType().getNameOrOID());
+            assertThat(dcAttribute).isNotNull();
+            assertThat(dcAttribute.firstValueAsString()).isEqualTo("People");
+
+            checkEntryObjectClasses(entry, "top", "organizationalUnit");
+        } finally {
+            StaticUtils.closeSilently(generator);
+        }
+    }
+
+    /**
+     * Test the complete content of first user entry.
+     */
+    @Test(dataProvider = "generators")
+    public void testFirstUserEntry(EntryGenerator generator, int numberOfUsers) throws Exception {
+        try {
+            generator.readEntry(); // skip top entry
+            generator.readEntry(); // skip ou entry
+            Entry entry = generator.readEntry();
+            assertThat(entry.getName().toString()).isEqualTo("uid=user.0,ou=People,dc=example,dc=com");
+
+            checkPresenceOfAttributes(entry, "givenName", "sn", "cn", "initials",
+                    "employeeNumber", "uid", "mail", "userPassword", "telephoneNumber",
+                    "homePhone", "pager", "mobile", "street", "l", "st", "postalCode",
+                    "postalAddress", "description");
+            assertThat(entry.getAttribute("cn").firstValueAsString()).isEqualTo(
+                    entry.getAttribute("givenName").firstValueAsString() + " "
+                    + entry.getAttribute("sn").firstValueAsString());
+
+            checkEntryObjectClasses(entry, "top", "person", "organizationalPerson", "inetOrgPerson");
+        } finally {
+            StaticUtils.closeSilently(generator);
+        }
+    }
+
+    private void checkEntryObjectClasses(Entry entry, String...objectClasses) {
+        Attribute ocAttribute = entry.getAttribute(getObjectClassAttributeType().getNameOrOID());
+        assertThat(ocAttribute).isNotNull();
+        Iterator<ByteString> it = ocAttribute.iterator();
+        for (int i = 0; i < objectClasses.length; i++) {
+            assertThat(it.next().toString()).isEqualTo(objectClasses[i]);
+        }
+        assertThat(it.hasNext()).isFalse();
+    }
+
+    private void checkPresenceOfAttributes(Entry entry, String... attributes) {
+        for (int i = 0; i < attributes.length; i++) {
+            assertThat(entry.getAttribute(attributes[i])).isNotNull();
+        }
+    }
+
+    /**
+     * Test a template with subtemplates, ensuring all expected DNs are generated.
+     */
+    @Test
+    public void testTemplateWithSubTemplates() throws Exception {
+        int numberOfUsers = 10;
+        int numberOfGroups = 5;
+        int numberOfOUs = 10;
+        EntryGenerator generator = new EntryGenerator(
+                "define suffix=dc=example,dc=com",
+                "define maildomain=example.com",
+                "define numusers=" + numberOfUsers,
+                "define numous=" + numberOfOUs,
+                "define numgroup=" + numberOfGroups,
+                "",
+                "branch: [suffix]",
+                "subordinateTemplate: ous:[numous]",
+                "",
+                "template: ous",
+                "subordinateTemplate: People:1",
+                "subordinateTemplate: Groups:1",
+                "rdnAttr: ou",
+                "objectclass: top",
+                "objectclass: organizationalUnit",
+                "ou: Organization_<sequential:1>",
+                "",
+                "template: People",
+                "rdnAttr: ou",
+                "subordinateTemplate: person:[numusers]",
+                "objectclass: top",
+                "objectclass: organizationalUnit",
+                "ou: People",
+                "",
+                "template: Groups",
+                "subordinateTemplate: groupOfName:[numgroup]",
+                "rdnAttr: ou",
+                "objectclass: top",
+                "objectclass: organizationalUnit",
+                "ou: Groups",
+                "",
+                "template: person",
+                "rdnAttr: uid",
+                "objectClass: top",
+                "objectClass: inetOrgPerson",
+                "cn: <first> <last>",
+                "employeeNumber: <sequential:0>",
+                "uid: user.{employeeNumber}",
+                "",
+                "template: groupOfName",
+                "rdnAttr: cn",
+                "objectClass: top",
+                "objectClass: groupOfNames",
+                "cn: Group_<sequential:1>"
+        ).setResourcePath(resourcePath);
+
+        try {
+            assertThat(generator.readEntry().getName().toString()).isEqualTo("dc=example,dc=com");
+            int countUsers = 0;
+            int countGroups = 1;
+            for (int i = 1; i <= numberOfOUs; i++) {
+                String dnOU = "ou=Organization_" + i + ",dc=example,dc=com";
+                assertThat(generator.readEntry().getName().toString()).isEqualTo(dnOU);
+                assertThat(generator.readEntry().getName().toString()).isEqualTo("ou=People," + dnOU);
+                for (int j = countUsers; j < countUsers + numberOfUsers; j++) {
+                    assertThat(generator.readEntry().getName().toString()).isEqualTo(
+                            "uid=user." + j + ",ou=People," + dnOU);
+
+                }
+                countUsers += numberOfUsers;
+                assertThat(generator.readEntry().getName().toString()).isEqualTo("ou=Groups," + dnOU);
+                for (int j = countGroups; j < countGroups + numberOfGroups; j++) {
+                    assertThat(generator.readEntry().getName().toString()).isEqualTo(
+                            "cn=Group_" + j + ",ou=Groups," + dnOU);
+                }
+                countGroups += numberOfGroups;
+            }
+            assertThat(generator.hasNext()).isFalse();
+        } finally {
+            StaticUtils.closeSilently(generator);
+        }
     }
 
     /**
@@ -160,7 +372,7 @@ public class EntryGeneratorTestCase extends SdkTestCase {
      * generating templates reports the correct line.
      */
     @Test()
-    public void testParseFileTemplate() throws Exception {
+    public void testMissingVariableErrorReport() throws Exception {
         String[] lines = {
         /* 0 */"template: template",
         /* 1 */"a: {missingVar}",
@@ -172,7 +384,7 @@ public class EntryGeneratorTestCase extends SdkTestCase {
         // Test must show "missingVar" missing on line 1.
         // Previous behaviour showed "missingVar" on line 5.
 
-        TemplateFile templateFile = new TemplateFile(schema, resourcePath);
+        TemplateFile templateFile = new TemplateFile(schema, null, resourcePath);
         List<LocalizableMessage> warns = new ArrayList<LocalizableMessage>();
 
         try {
@@ -218,7 +430,7 @@ public class EntryGeneratorTestCase extends SdkTestCase {
      */
     @Test(dataProvider = "validTemplates")
     public void testParsingEscapeCharInTemplate(String testName, String[] lines) throws Exception {
-        TemplateFile templateFile = new TemplateFile(schema, resourcePath);
+        TemplateFile templateFile = new TemplateFile(schema, null, resourcePath);
         List<LocalizableMessage> warns = new ArrayList<LocalizableMessage>();
         templateFile.parse(lines, warns);
         assertThat(warns).isEmpty();
@@ -367,14 +579,18 @@ public class EntryGeneratorTestCase extends SdkTestCase {
     @Test(dataProvider = "templatesToTestEscapeChars", dependsOnMethods = { "testParsingEscapeCharInTemplate" })
     public void testEscapeCharsFromTemplate(String testName, String[] lines, String attrName, String expectedValue)
             throws Exception {
-        EntryGenerator reader = newReader(lines).setResourcePath(resourcePath).build();
-        Entry topEntry = reader.readEntry();
-        Entry entry = reader.readEntry();
-        reader.close();
+        EntryGenerator generator = null;
+        try {
+            generator = new EntryGenerator(lines).setResourcePath(resourcePath);
+            Entry topEntry = generator.readEntry();
+            Entry entry = generator.readEntry();
 
-        assertThat(topEntry).isNotNull();
-        assertThat(entry).isNotNull();
-        assertThat(entry.getAttribute(attrName).firstValueAsString()).isEqualTo(expectedValue);
+            assertThat(topEntry).isNotNull();
+            assertThat(entry).isNotNull();
+            assertThat(entry.getAttribute(attrName).firstValueAsString()).isEqualTo(expectedValue);
+        } finally {
+            StaticUtils.closeSilently(generator);
+        }
     }
 
     /**
@@ -394,15 +610,19 @@ public class EntryGeneratorTestCase extends SdkTestCase {
             // The value below combines variable, randoms and escaped chars.
             // The resulting value is "Foo <?>{1}Bar" where ? is a letter
             // from [A-Z].
-            "cn: Foo \\<<random:chars:ABCDEFGHIJKLMNOPQRSTUVWXYZ:1>\\>\\{1\\}{sn}", "", };
+            "cn: Foo \\<<random:chars:ABCDEFGHIJKLMNOPQRSTUVWXYZ:1>\\>\\{1\\}{sn}",
+            "" };
+        EntryGenerator generator = null;
+        try {
+            generator = new EntryGenerator(lines).setResourcePath(resourcePath);
+            Entry topEntry = generator.readEntry();
+            Entry entry = generator.readEntry();
 
-        EntryGenerator reader = newReader(lines).setResourcePath(resourcePath).build();
-        Entry topEntry = reader.readEntry();
-        Entry entry = reader.readEntry();
-        reader.close();
-
-        assertThat(topEntry).isNotNull();
-        assertThat(entry).isNotNull();
-        assertThat(entry.getAttribute("cn").firstValueAsString()).matches("Foo <[A-Z]>\\{1\\}Bar");
+            assertThat(topEntry).isNotNull();
+            assertThat(entry).isNotNull();
+            assertThat(entry.getAttribute("cn").firstValueAsString()).matches("Foo <[A-Z]>\\{1\\}Bar");
+        } finally {
+            StaticUtils.closeSilently(generator);
+        }
     }
 }
