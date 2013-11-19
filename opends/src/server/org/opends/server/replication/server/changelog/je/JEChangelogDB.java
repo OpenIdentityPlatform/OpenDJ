@@ -44,8 +44,9 @@ import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.server.changelog.api.*;
 import org.opends.server.types.DN;
 import org.opends.server.types.DebugLogLevel;
-import org.opends.server.util.Pair;
 import org.opends.server.util.StaticUtils;
+
+import com.forgerock.opendj.util.Pair;
 
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.loggers.ErrorLogger.*;
