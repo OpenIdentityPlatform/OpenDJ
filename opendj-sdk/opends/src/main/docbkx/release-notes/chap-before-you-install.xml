@@ -26,7 +26,8 @@
 <chapter xml:id='chap-before-you-install'
          xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
          xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
-         xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
+         xsi:schemaLocation='http://docbook.org/ns/docbook
+                             http://docbook.org/xml/5.0/xsd/docbook.xsd'
          xmlns:xlink='http://www.w3.org/1999/xlink'
          xmlns:xinclude='http://www.w3.org/2001/XInclude'>
  <title>Before You Install OpenDJ Software</title>
@@ -62,33 +63,7 @@
   corresponding Java SDK.</para>
  </section>
 
- <section xml:id="prerequisites-file-descriptors">
-  <title>Maximum Open Files</title>
-  <indexterm>
-   <primary>File descriptors</primary>
-   <secondary>Requirements</secondary>
-  </indexterm>
-
-  <para>OpenDJ needs to be able to open many files, especially when handling
-  many client connections. Linux systems in particular often set a limit of
-  1024 per user, which is too low for OpenDJ.</para>
-
-  <para>When setting up OpenDJ for production use, make sure OpenDJ can use
-  at least use at least 64K (65536) file descriptors. For example when running
-  OpenDJ as user <literal>opendj</literal> on a Linux system that uses
-  <filename>/etc/security/limits.conf</filename> to set user level limits,
-  you can set soft and hard limits by adding these lines to the file.</para>
-
-  <programlisting language="none">opendj soft nofile 65536
-opendj hard nofile 131072</programlisting>
-
-  <para>The example above assumes the system has enough file descriptors
-  available overall. You can check the Linux system overall maximum as
-  follows.</para>
-
-  <screen>$ cat /proc/sys/fs/file-max
-204252</screen>
- </section>
+ <xinclude:include href="../shared/sec-prerequisites-file-descriptors.xml" />
 
  <section xml:id="prerequisites-operating-systems">
   <title>Operating System</title>
@@ -117,12 +92,7 @@ opendj hard nofile 131072</programlisting>
    </listitem>
   </itemizedlist>
 
-  <para>In order to avoid directory database file corruption after crashes or
-  power failures on Linux systems, enable file system write barriers and make
-  sure that the file system journaling mode is ordered. For details on how to
-  enable write barriers and how to set the journaling mode for data, see the
-  options for your file system in the <command>mount</command> command manual
-  page.</para>
+  <xinclude:include href="../shared/para-write-barriers.xml" />
  </section>
 
  <section xml:id="prerequisites-virtualization">
