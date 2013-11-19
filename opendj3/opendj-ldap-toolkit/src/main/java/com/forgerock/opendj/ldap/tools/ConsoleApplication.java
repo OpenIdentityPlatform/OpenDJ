@@ -49,13 +49,13 @@ import org.forgerock.i18n.LocalizableMessage;
  * a console-based application.
  */
 abstract class ConsoleApplication {
-    private final PrintStream err = new PrintStream(System.err);
+    private final PrintStream err;
 
     private final BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 
     private final InputStream in = System.in;
 
-    private final PrintStream out = new PrintStream(System.out);
+    private final PrintStream out;
 
     private final Console console = System.console();
 
@@ -63,7 +63,16 @@ abstract class ConsoleApplication {
      * Creates a new console application instance.
      */
     ConsoleApplication() {
-        // Nothing to do.
+        this(System.out, System.err);
+    }
+
+    /**
+     * Creates a new console application instance with
+     * provided standard and error out streams.
+     */
+    ConsoleApplication(PrintStream out, PrintStream err) {
+        this.out = out;
+        this.err = err;
     }
 
     /**
