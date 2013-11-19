@@ -86,8 +86,7 @@ public class ServerState implements Iterable<CSN>
    *               ends.
    * @throws DataFormatException If the encoded form was not correct.
    */
-  public ServerState(byte[] in, int pos, int endpos)
-         throws DataFormatException
+  public ServerState(byte[] in, int pos, int endpos) throws DataFormatException
   {
     try
     {
@@ -373,15 +372,14 @@ public class ServerState implements Iterable<CSN>
       List<String> csnList = new ArrayList<String>(size);
       // calculate the total length needed to allocate byte array
       int length = 0;
-      for (Entry<Integer, CSN> entry : serverIdToCSN
-          .entrySet())
+      for (Entry<Integer, CSN> entry : serverIdToCSN.entrySet())
       {
         // serverId is useless, see comment in ServerState ctor
-        String serverIdStr = String.valueOf(entry.getKey());
+        final String serverIdStr = String.valueOf(entry.getKey());
         idList.add(serverIdStr);
         length += serverIdStr.length() + 1;
 
-        String csnStr = entry.getValue().toString();
+        final String csnStr = entry.getValue().toString();
         csnList.add(csnStr);
         length += csnStr.length() + 1;
       }
@@ -438,9 +436,8 @@ public class ServerState implements Iterable<CSN>
    */
   public boolean cover(CSN covered)
   {
-    CSN change =
-        this.serverIdToCSN.get(covered.getServerId());
-    return change != null && !change.isOlderThan(covered);
+    final CSN csn = this.serverIdToCSN.get(covered.getServerId());
+    return csn != null && !csn.isOlderThan(covered);
   }
 
   /**
@@ -477,7 +474,7 @@ public class ServerState implements Iterable<CSN>
    * @throws IllegalArgumentException If one of the passed state is null
    */
   public static int diffChanges(ServerState ss1, ServerState ss2)
-    throws  IllegalArgumentException
+      throws IllegalArgumentException
   {
     if (ss1 == null || ss2 == null)
     {
