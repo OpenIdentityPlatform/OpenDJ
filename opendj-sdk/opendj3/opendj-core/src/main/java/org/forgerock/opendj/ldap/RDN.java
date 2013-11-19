@@ -31,6 +31,7 @@ import static com.forgerock.opendj.ldap.CoreMessages.ERR_RDN_TYPE_NOT_FOUND;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
@@ -42,6 +43,7 @@ import org.forgerock.opendj.ldap.schema.UnknownSchemaElementException;
 
 import com.forgerock.opendj.util.Iterators;
 import com.forgerock.opendj.util.SubstringReader;
+import com.forgerock.opendj.util.Validator;
 
 /**
  * A relative distinguished name (RDN) as defined in RFC 4512 section 2.3 is the
@@ -216,7 +218,32 @@ public final class RDN implements Iterable<AVA>, Comparable<RDN> {
         this.avas = new AVA[] { new AVA(attributeType, attributeValue) };
     }
 
+    /**
+     * Creates a new RDN using the provided AVAs.
+     *
+     * @param avas
+     *            The attribute-value assertions used to build this RDN.
+     * @throws NullPointerException
+     *             If {@code avas} is {@code null} or contains a null ava.
+     */
+    public RDN(final AVA... avas) {
+        this(avas, null);
+    }
+
+    /**
+     * Creates a new RDN using the provided AVAs.
+     *
+     * @param avas
+     *            The attribute-value assertions used to build this RDN.
+     * @throws NullPointerException
+     *             If {@code ava} is {@code null} or contains null ava.
+     */
+    public RDN(Collection<AVA> avas) {
+        this(avas.toArray(new AVA[avas.size()]), null);
+    }
+
     private RDN(final AVA[] avas, final String stringValue) {
+        Validator.ensureNotNull((Object[]) avas);
         this.avas = avas;
         this.stringValue = stringValue;
     }

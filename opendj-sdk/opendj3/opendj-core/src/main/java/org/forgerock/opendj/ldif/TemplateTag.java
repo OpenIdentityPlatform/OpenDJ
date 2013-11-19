@@ -28,7 +28,7 @@ package org.forgerock.opendj.ldif;
 
 import static com.forgerock.opendj.ldap.CoreMessages.*;
 
-import java.io.File;
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.List;
@@ -45,6 +45,8 @@ import org.forgerock.opendj.ldif.TemplateFile.Template;
 import org.forgerock.opendj.ldif.TemplateFile.TemplateEntry;
 import org.forgerock.opendj.ldif.TemplateFile.TemplateValue;
 
+import com.forgerock.opendj.util.StaticUtils;
+
 /**
  * Represents a tag that may be used in a template line when generating entries.
  * It can be used to generate content.
@@ -56,26 +58,21 @@ abstract class TemplateTag {
 
     /**
      * Retrieves the name for this tag.
-     *
-     * @return The name for this tag.
      */
-    public abstract String getName();
+    abstract String getName();
 
     /**
      * Indicates whether this tag is allowed for use in the extra lines for
      * branches.
-     *
-     * @return <CODE>true</CODE> if this tag may be used in branch definitions,
-     *         or <CODE>false</CODE> if not.
      */
-    public abstract boolean allowedInBranch();
+    abstract boolean allowedInBranch();
 
     /**
      * Performs any initialization for this tag that may be needed while parsing
      * a branch definition.
      *
      * @param schema
-     *            schema used to create attributes
+     *            The schema used to create attributes.
      * @param templateFile
      *            The template file in which this tag is used.
      * @param branch
@@ -88,10 +85,8 @@ abstract class TemplateTag {
      * @param warnings
      *            A list into which any appropriate warning messages may be
      *            placed.
-     * @throws DecodeException
-     *             if a problem occurs
      */
-    public void initializeForBranch(Schema schema, TemplateFile templateFile, Branch branch, String[] arguments,
+    void initializeForBranch(Schema schema, TemplateFile templateFile, Branch branch, String[] arguments,
             int lineNumber, List<LocalizableMessage> warnings) throws DecodeException {
         // No implementation required by default.
     }
@@ -101,12 +96,12 @@ abstract class TemplateTag {
      * a template definition.
      *
      * @param schema
-     *            schema used to create attributes
+     *            The schema used to create attributes.
      * @param templateFile
      *            The template file in which this tag is used.
      * @param template
      *            The template in which this tag is used.
-     * @param arguments
+     * @param tagArguments
      *            The set of arguments provided for this tag.
      * @param lineNumber
      *            The line number on which this tag appears in the template
@@ -114,11 +109,9 @@ abstract class TemplateTag {
      * @param warnings
      *            A list into which any appropriate warning messages may be
      *            placed.
-     * @throws DecodeException
-     *             if a problem occurs
      */
-    public abstract void initializeForTemplate(Schema schema, TemplateFile templateFile, Template template,
-            String[] arguments, int lineNumber, List<LocalizableMessage> warnings) throws DecodeException;
+    abstract void initializeForTemplate(Schema schema, TemplateFile templateFile, Template template,
+            String[] tagArguments, int lineNumber, List<LocalizableMessage> warnings) throws DecodeException;
 
     /**
      * Performs any initialization for this tag that may be needed when starting
@@ -127,8 +120,26 @@ abstract class TemplateTag {
      * @param parentEntry
      *            The entry below which the new entries will be generated.
      */
-    public void initializeForParent(TemplateEntry parentEntry) {
+    void initializeForParent(TemplateEntry parentEntry) {
         // No implementation required by default.
+    }
+
+    /**
+     * Check for an attribute type in a branch or in a template.
+     *
+     * @param attrType
+     *            The attribute type to check for.
+     * @param branch
+     *            The branch that contains the type, or {@code null}
+     * @param template
+     *            The template that contains the type, or {@code null}
+     * @return true if either the branch or the template has the provided
+     *         attribute
+     */
+    final boolean hasAttributeTypeInBranchOrTemplate(AttributeType attrType, Branch branch,
+            Template template) {
+        return (branch != null && branch.hasAttribute(attrType))
+                || (template != null && template.hasAttribute(attrType));
     }
 
     /**
@@ -141,242 +152,64 @@ abstract class TemplateTag {
      *            appended.
      * @return The result of generating content for this tag.
      */
-    public abstract TagResult generateValue(TemplateEntry templateEntry, TemplateValue templateValue);
+    abstract TagResult generateValue(TemplateEntry templateEntry, TemplateValue templateValue);
 
     /**
-     * Provides information about the result of tag processing.
+     * Represents the result of tag generation.
      */
-    static final class TagResult {
-        /**
-         * A tag result in which all components have a value of
-         * <CODE>true</CODE>.
-         */
-        public static final TagResult SUCCESS_RESULT = new TagResult(true, true, true, true);
-
-        /**
-         * A tag result that indicates the value should not be included in the
-         * entry, but all other processing should continue.
-         */
-        public static final TagResult OMIT_FROM_ENTRY = new TagResult(false, true, true, true);
-
-        /**
-         * A tag result in whihc all components have a value of
-         * <CODE>false</CODE>.
-         */
-        public static final TagResult STOP_PROCESSING = new TagResult(false, false, false, false);
-
-        /** Indicates whether to keep processing the associated line. */
-        private boolean keepProcessingLine;
-
-        /** Indicates whether to keep processing the associated entry. */
-        private boolean keepProcessingEntry;
-
-        /**
-         * Indicates whether to keep processing entries below the associated
-         * parent.
-         */
-        private boolean keepProcessingParent;
-
-        /** Indicates whether to keep processing entries for the template file. */
-        private boolean keepProcessingTemplateFile;
-
-        /**
-         * Creates a new tag result object with the provided information.
-         *
-         * @param keepProcessingLine
-         *            Indicates whether to continue processing for the current
-         *            line. If not, then the line will not be included in the
-         *            entry.
-         * @param keepProcessingEntry
-         *            Indicates whether to continue processing for the current
-         *            entry. If not, then the entry will not be included in the
-         *            data.
-         * @param keepProcessingParent
-         *            Indicates whether to continue processing entries below the
-         *            current parent in the template file.
-         * @param keepProcessingTemplateFile
-         *            Indicates whether to continue processing entries for the
-         *            template file.
-         */
-        private TagResult(boolean keepProcessingLine, boolean keepProcessingEntry, boolean keepProcessingParent,
-                boolean keepProcessingTemplateFile) {
-            this.keepProcessingLine = keepProcessingLine;
-            this.keepProcessingEntry = keepProcessingEntry;
-            this.keepProcessingParent = keepProcessingParent;
-            this.keepProcessingTemplateFile = keepProcessingTemplateFile;
-        }
-
-        /**
-         * Indicates whether to continue processing for the current line. If
-         * this is <CODE>false</CODE>, then the current line will not be
-         * included in the entry. It will have no impact on whehter the entry
-         * itself is included in the generated LDIF.
-         *
-         * @return <CODE>true</CODE> if the line should be included in the
-         *         entry, or <CODE>false</CODE> if not.
-         */
-        public boolean keepProcessingLine() {
-            return keepProcessingLine;
-        }
-
-        /**
-         * Indicates whether to continue processing for the current entry. If
-         * this is <CODE>false</CODE>, then the current entry will not be
-         * included in the generated LDIF, and processing will resume with the
-         * next entry below the current parent.
-         *
-         * @return <CODE>true</CODE> if the entry should be included in the
-         *         generated LDIF, or <CODE>false</CODE> if not.
-         */
-        public boolean keepProcessingEntry() {
-            return keepProcessingEntry;
-        }
-
-        /**
-         * Indicates whether to continue processing entries below the current
-         * parent. If this is <CODE>false</CODE>, then the current entry will
-         * not be included, and processing will resume below the next parent in
-         * the template file.
-         *
-         * @return <CODE>true</CODE> if processing for the current parent should
-         *         continue, or <CODE>false</CODE> if not.
-         */
-        public boolean keepProcessingParent() {
-            return keepProcessingParent;
-        }
-
-        /**
-         * Indicates whether to keep processing entries for the template file.
-         * If this is <CODE>false</CODE>, then LDIF processing will end
-         * immediately (and the current entry will not be included).
-         *
-         * @return <CODE>true</CODE> if processing for the template file should
-         *         continue, or <CODE>false</CODE> if not.
-         */
-        public boolean keepProcessingTemplateFile() {
-            return keepProcessingTemplateFile;
-        }
+    static enum TagResult {
+        SUCCESS, FAILURE
     }
 
     /**
-     * This class defines a tag that is used to reference the value of a
-     * specified attribute already defined in the entry.
+     * Tag used to reference the value of a specified attribute
+     * already defined in the entry.
      */
     static class AttributeValueTag extends TemplateTag {
+
         /** The attribute type that specifies which value should be used. */
         private AttributeType attributeType;
 
         /** The maximum number of characters to include from the value. */
         private int numCharacters;
 
-        /**
-         * Creates a new instance of this attribute value tag.
-         */
-        public AttributeValueTag() {
+        AttributeValueTag() {
             attributeType = null;
             numCharacters = 0;
         }
 
-        /**
-         * Retrieves the name for this tag.
-         *
-         * @return The name for this tag.
-         */
-        public String getName() {
+        @Override
+        String getName() {
             return "AttributeValue";
         }
 
-        /**
-         * Indicates whether this tag is allowed for use in the extra lines for
-         * branches.
-         *
-         * @return <CODE>true</CODE> if this tag may be used in branch
-         *         definitions, or <CODE>false</CODE> if not.
-         */
-        public boolean allowedInBranch() {
+        @Override
+        boolean allowedInBranch() {
             return true;
         }
 
-        /**
-         * Performs any initialization for this tag that may be needed while
-         * parsing a branch definition.
-         *
-         * @param templateFile
-         *            The template file in which this tag is used.
-         * @param branch
-         *            The branch in which this tag is used.
-         * @param arguments
-         *            The set of arguments provided for this tag.
-         * @param lineNumber
-         *            The line number on which this tag appears in the template
-         *            file.
-         * @param warnings
-         *            A list into which any appropriate warning messages may be
-         *            placed.
-         */
         @Override
-        public void initializeForBranch(Schema schema, TemplateFile templateFile, Branch branch, String[] arguments,
+        void initializeForBranch(Schema schema, TemplateFile templateFile, Branch branch, String[] arguments,
                 int lineNumber, List<LocalizableMessage> warnings) throws DecodeException {
-            if ((arguments.length < 1) || (arguments.length > 2)) {
-                LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_INVALID_ARGUMENT_RANGE_COUNT.get(getName(),
-                        lineNumber, 1, 2, arguments.length);
-                throw DecodeException.fatalError(message);
-            }
-
-            String lowerName = arguments[0].toLowerCase();
-            attributeType = schema.getAttributeType(lowerName);
-            if (!branch.hasAttribute(attributeType)) {
-                LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_UNDEFINED_ATTRIBUTE.get(arguments[0], lineNumber);
-                throw DecodeException.fatalError(message);
-            }
-
-            if (arguments.length == 2) {
-                try {
-                    numCharacters = Integer.parseInt(arguments[1]);
-                    if (numCharacters < 0) {
-                        LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_INTEGER_BELOW_LOWER_BOUND.get(
-                                numCharacters, 0, getName(), lineNumber);
-                        throw DecodeException.fatalError(message);
-                    }
-                } catch (NumberFormatException nfe) {
-                    LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_CANNOT_PARSE_AS_INTEGER.get(arguments[1],
-                            getName(), lineNumber);
-                    throw DecodeException.fatalError(message);
-                }
-            } else {
-                numCharacters = 0;
-            }
+            initialize(schema, branch, null, arguments, lineNumber);
         }
 
-        /**
-         * Performs any initialization for this tag that may be needed while
-         * parsing a template definition.
-         *
-         * @param templateFile
-         *            The template file in which this tag is used.
-         * @param template
-         *            The template in which this tag is used.
-         * @param arguments
-         *            The set of arguments provided for this tag.
-         * @param lineNumber
-         *            The line number on which this tag appears in the template
-         *            file.
-         * @param warnings
-         *            A list into which any appropriate warning messages may be
-         *            placed.
-         */
         @Override
-        public void initializeForTemplate(Schema schema, TemplateFile templateFile, Template template,
-                String[] arguments, int lineNumber, List<LocalizableMessage> warnings) throws DecodeException {
+        void initializeForTemplate(Schema schema, TemplateFile templateFile, Template template, String[] arguments,
+                int lineNumber, List<LocalizableMessage> warnings) throws DecodeException {
+            initialize(schema, null, template, arguments, lineNumber);
+        }
+
+        private void initialize(Schema schema, Branch branch, Template template, String[] arguments, int lineNumber)
+                throws DecodeException {
             if ((arguments.length < 1) || (arguments.length > 2)) {
                 LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_INVALID_ARGUMENT_RANGE_COUNT.get(getName(),
                         lineNumber, 1, 2, arguments.length);
                 throw DecodeException.fatalError(message);
             }
 
-            String lowerName = arguments[0].toLowerCase();
-            attributeType = schema.getAttributeType(lowerName);
-            if (!template.hasAttribute(attributeType)) {
+            attributeType = schema.getAttributeType(arguments[0].toLowerCase());
+            if (!hasAttributeTypeInBranchOrTemplate(attributeType, branch, template)) {
                 LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_UNDEFINED_ATTRIBUTE.get(arguments[0], lineNumber);
                 throw DecodeException.fatalError(message);
             }
@@ -399,135 +232,60 @@ abstract class TemplateTag {
             }
         }
 
-        /**
-         * Generates the content for this tag by appending it to the provided
-         * tag.
-         *
-         * @param templateEntry
-         *            The entry for which this tag is being generated.
-         * @param templateValue
-         *            The template value to which the generated content should
-         *            be appended.
-         * @return The result of generating content for this tag.
-         */
-        public TagResult generateValue(TemplateEntry templateEntry, TemplateValue templateValue) {
-            TemplateValue v = templateEntry.getValue(attributeType);
-            if (v == null) {
+        @Override
+        TagResult generateValue(TemplateEntry templateEntry, TemplateValue templateValue) {
+            TemplateValue value = templateEntry.getValue(attributeType);
+            if (value == null) {
                 // This is fine -- we just won't append anything.
-                return TagResult.SUCCESS_RESULT;
+                return TagResult.SUCCESS;
             }
 
             if (numCharacters > 0) {
-                String valueString = v.getValueAsString();
+                String valueString = value.getValueAsString();
                 if (valueString.length() > numCharacters) {
                     templateValue.append(valueString.substring(0, numCharacters));
                 } else {
                     templateValue.append(valueString);
                 }
             } else {
-                templateValue.append(v.getValue());
+                templateValue.append(value.getValueAsString());
             }
 
-            return TagResult.SUCCESS_RESULT;
+            return TagResult.SUCCESS;
         }
     }
 
     /**
-     * This class defines a tag that is used to include the DN of the current
-     * entry in the attribute value.
+     * Tag used to include the DN of the current entry in the attribute value.
      */
     static class DNTag extends TemplateTag {
+
         /** The number of DN components to include. */
         private int numComponents;
 
-        /**
-         * Creates a new instance of this DN tag.
-         */
-        public DNTag() {
-            numComponents = 0;
-        }
-
-        /**
-         * Retrieves the name for this tag.
-         *
-         * @return The name for this tag.
-         */
-        public String getName() {
+        @Override
+        String getName() {
             return "DN";
         }
 
-        /**
-         * Indicates whether this tag is allowed for use in the extra lines for
-         * branches.
-         *
-         * @return <CODE>true</CODE> if this tag may be used in branch
-         *         definitions, or <CODE>false</CODE> if not.
-         */
-        public boolean allowedInBranch() {
+        @Override
+        final boolean allowedInBranch() {
             return true;
         }
 
-        /**
-         * Performs any initialization for this tag that may be needed while
-         * parsing a branch definition.
-         *
-         * @param templateFile
-         *            The template file in which this tag is used.
-         * @param branch
-         *            The branch in which this tag is used.
-         * @param arguments
-         *            The set of arguments provided for this tag.
-         * @param lineNumber
-         *            The line number on which this tag appears in the template
-         *            file.
-         * @param warnings
-         *            A list into which any appropriate warning messages may be
-         *            placed.
-         */
         @Override
-        public void initializeForBranch(Schema schema, TemplateFile templateFile, Branch branch, String[] arguments,
+        final void initializeForBranch(Schema schema, TemplateFile templateFile, Branch branch, String[] arguments,
                 int lineNumber, List<LocalizableMessage> warnings) throws DecodeException {
-            initializeInternal(templateFile, arguments, lineNumber);
+            initialize(arguments, lineNumber);
         }
 
-        /**
-         * Performs any initialization for this tag that may be needed while
-         * parsing a template definition.
-         *
-         * @param templateFile
-         *            The template file in which this tag is used.
-         * @param template
-         *            The template in which this tag is used.
-         * @param arguments
-         *            The set of arguments provided for this tag.
-         * @param lineNumber
-         *            The line number on which this tag appears in the template
-         *            file.
-         * @param warnings
-         *            A list into which any appropriate warning messages may be
-         *            placed.
-         */
         @Override
-        public void initializeForTemplate(Schema schema, TemplateFile templateFile, Template template,
+        final void initializeForTemplate(Schema schema, TemplateFile templateFile, Template template,
                 String[] arguments, int lineNumber, List<LocalizableMessage> warnings) throws DecodeException {
-            initializeInternal(templateFile, arguments, lineNumber);
+            initialize(arguments, lineNumber);
         }
 
-        /**
-         * Performs any initialization for this tag that may be needed for this
-         * tag.
-         *
-         * @param templateFile
-         *            The template file in which this tag is used.
-         * @param arguments
-         *            The set of arguments provided for this tag.
-         * @param lineNumber
-         *            The line number on which this tag appears in the template
-         *            file.
-         * @throws DecodeException
-         *             If a problem occurs while initializing this tag.
-         */
-        private void initializeInternal(TemplateFile templateFile, String[] arguments, int lineNumber)
+        private void initialize(String[] arguments, int lineNumber)
                 throws DecodeException {
             if (arguments.length == 0) {
                 numComponents = 0;
@@ -546,61 +304,52 @@ abstract class TemplateTag {
             }
         }
 
-        /**
-         * Generates the content for this tag by appending it to the provided
-         * tag.
-         *
-         * @param templateEntry
-         *            The entry for which this tag is being generated.
-         * @param templateValue
-         *            The template value to which the generated content should
-         *            be appended.
-         * @return The result of generating content for this tag.
-         */
-        public TagResult generateValue(TemplateEntry templateEntry, TemplateValue templateValue) {
+        @Override
+        TagResult generateValue(TemplateEntry templateEntry, TemplateValue templateValue) {
+            return generateValue(templateEntry, templateValue, ",");
+        }
+
+        final TagResult generateValue(TemplateEntry templateEntry, TemplateValue templateValue,
+                String separator) {
             DN dn = templateEntry.getDN();
             if ((dn == null) || dn.isRootDN()) {
-                return TagResult.SUCCESS_RESULT;
+                return TagResult.SUCCESS;
             }
 
+            String dnAsString = "";
             if (numComponents == 0) {
-                templateValue.append(dn.toNormalizedString());
+                // Return the DN of the entry
+                dnAsString = dn.toString();
             } else if (numComponents > 0) {
-                int count = Math.min(numComponents, dn.size());
-                templateValue.append(dn.rdn());
-                for (int i = 1; i < count; i++) {
-                    templateValue.append(",");
-                    templateValue.append(dn.parent(i).rdn());
-                }
+                // Return the first numComponents RDNs of the DN
+                dnAsString = dn.localName(numComponents).toString();
             } else {
-                int size = dn.size();
-                int count = Math.min(Math.abs(numComponents), size);
-
-                templateValue.append(dn.parent(size - count).rdn());
-                for (int i = 1; i < count; i++) {
-                    templateValue.append(",");
-                    templateValue.append(dn.parent(size - count + i).rdn());
-                }
+                // numComponents is negative
+                // Return the last numComponents RDNs of the DN
+                dnAsString = dn.parent(dn.size() - Math.abs(numComponents)).toString();
             }
+            // If expected separator is not standard separator
+            // Then substitute expected to standard
+            if (!separator.equals(",")) {
+                dnAsString = dnAsString.replaceAll(",", separator);
+            }
+            templateValue.append(dnAsString);
 
-            return TagResult.SUCCESS_RESULT;
+            return TagResult.SUCCESS;
         }
     }
 
     /**
-     * This class defines a tag that is used provide values from a text file.
-     * The file should have one value per line. Access to the values may be
-     * either at random or in sequential order.
+     * Tag used to provide values from a text file. The file should have one
+     * value per line. Access to the values may be either at random or in
+     * sequential order.
      */
     static class FileTag extends TemplateTag {
         /**
          * Indicates whether the values should be selected sequentially or at
          * random.
          */
-        private boolean sequential;
-
-        /** The file containing the data. */
-        private File dataFile;
+        private boolean isSequential = false;
 
         /** The index used for sequential access. */
         private int nextIndex;
@@ -608,104 +357,33 @@ abstract class TemplateTag {
         /** The random number generator for this tag. */
         private Random random;
 
-        /** The array of lines read from the file. */
+        /** The lines read from the file. */
         private String[] fileLines;
 
-        /**
-         * Creates a new instance of this file tag.
-         */
-        public FileTag() {
-            sequential = false;
-            dataFile = null;
-            nextIndex = 0;
-            random = null;
-            fileLines = null;
-        }
-
-        /**
-         * Retrieves the name for this tag.
-         *
-         * @return The name for this tag.
-         */
-        public String getName() {
+        @Override
+        String getName() {
             return "File";
         }
 
-        /**
-         * Indicates whether this tag is allowed for use in the extra lines for
-         * branches.
-         *
-         * @return <CODE>true</CODE> if this tag may be used in branch
-         *         definitions, or <CODE>false</CODE> if not.
-         */
-        public boolean allowedInBranch() {
+        @Override
+        boolean allowedInBranch() {
             return true;
         }
 
-        /**
-         * Performs any initialization for this tag that may be needed while
-         * parsing a branch definition.
-         *
-         * @param templateFile
-         *            The template file in which this tag is used.
-         * @param branch
-         *            The branch in which this tag is used.
-         * @param arguments
-         *            The set of arguments provided for this tag.
-         * @param lineNumber
-         *            The line number on which this tag appears in the template
-         *            file.
-         * @param warnings
-         *            A list into which any appropriate warning messages may be
-         *            placed.
-         */
         @Override
-        public void initializeForBranch(Schema schema, TemplateFile templateFile, Branch branch, String[] arguments,
+        void initializeForBranch(Schema schema, TemplateFile templateFile, Branch branch, String[] arguments,
                 int lineNumber, List<LocalizableMessage> warnings) throws DecodeException {
-            initializeInternal(templateFile, arguments, lineNumber, warnings);
+            initialize(templateFile, arguments, lineNumber);
         }
 
-        /**
-         * Performs any initialization for this tag that may be needed while
-         * parsing a template definition.
-         *
-         * @param templateFile
-         *            The template file in which this tag is used.
-         * @param template
-         *            The template in which this tag is used.
-         * @param arguments
-         *            The set of arguments provided for this tag.
-         * @param lineNumber
-         *            The line number on which this tag appears in the template
-         *            file.
-         * @param warnings
-         *            A list into which any appropriate warning messages may be
-         *            placed.
-         */
         @Override
-        public void initializeForTemplate(Schema schema, TemplateFile templateFile, Template template,
+        void initializeForTemplate(Schema schema, TemplateFile templateFile, Template template,
                 String[] arguments, int lineNumber, List<LocalizableMessage> warnings) throws DecodeException {
-            initializeInternal(templateFile, arguments, lineNumber, warnings);
+            initialize(templateFile, arguments, lineNumber);
         }
 
-        /**
-         * Performs any initialization for this tag that may be needed.
-         *
-         * @param templateFile
-         *            The template file in which this tag is used.
-         * @param arguments
-         *            The set of arguments provided for this tag.
-         * @param lineNumber
-         *            The line number on which this tag appears in the template
-         *            file.
-         * @param warnings
-         *            A list into which any appropriate warning messages may be
-         *            placed.
-         * @throws DecodeException
-         *             If a problem occurs while initializing this tag.
-         */
-        private void initializeInternal(TemplateFile templateFile, String[] arguments, int lineNumber,
-                List<LocalizableMessage> warnings) throws DecodeException {
+        private void initialize(TemplateFile templateFile, String[] arguments, int lineNumber)
+                throws DecodeException {
             random = templateFile.getRandom();
 
             // There must be at least one argument, and possibly two.
@@ -716,11 +394,27 @@ abstract class TemplateTag {
             }
 
             // The first argument should be the path to the file.
-            dataFile = templateFile.getFile(arguments[0]);
-            if ((dataFile == null) || (!dataFile.exists())) {
-                LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_CANNOT_FIND_FILE.get(arguments[0], getName(),
-                        lineNumber);
-                throw DecodeException.fatalError(message);
+            final String filePath = arguments[0];
+            BufferedReader dataReader = null;
+            try {
+                dataReader = templateFile.getReader(filePath);
+                if (dataReader == null) {
+                    LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_CANNOT_FIND_FILE.get(filePath, getName(),
+                            lineNumber);
+                    throw DecodeException.fatalError(message);
+                }
+
+                // See if the file has already been read into memory. If not, then
+                // read it.
+                try {
+                    fileLines = templateFile.getLines(filePath, dataReader);
+                } catch (IOException ioe) {
+                    LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_CANNOT_READ_FILE.get(filePath, getName(),
+                            lineNumber, String.valueOf(ioe));
+                    throw DecodeException.fatalError(message, ioe);
+                }
+            } finally {
+                StaticUtils.closeSilently(dataReader);
             }
 
             // If there is a second argument, then it should be either
@@ -728,43 +422,23 @@ abstract class TemplateTag {
             // assume "random".
             if (arguments.length == 2) {
                 if (arguments[1].equalsIgnoreCase("sequential")) {
-                    sequential = true;
+                    isSequential = true;
                     nextIndex = 0;
                 } else if (arguments[1].equalsIgnoreCase("random")) {
-                    sequential = false;
+                    isSequential = false;
                 } else {
                     LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_INVALID_FILE_ACCESS_MODE.get(arguments[1],
                             getName(), lineNumber);
                     throw DecodeException.fatalError(message);
                 }
             } else {
-                sequential = false;
-            }
-
-            // See if the file has already been read into memory. If not, then
-            // read it.
-            try {
-                fileLines = templateFile.getFileLines(dataFile);
-            } catch (IOException ioe) {
-                LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_CANNOT_READ_FILE.get(arguments[0], getName(),
-                        lineNumber, String.valueOf(ioe));
-                throw DecodeException.fatalError(message, ioe);
+                isSequential = false;
             }
         }
 
-        /**
-         * Generates the content for this tag by appending it to the provided
-         * tag.
-         *
-         * @param templateEntry
-         *            The entry for which this tag is being generated.
-         * @param templateValue
-         *            The template value to which the generated content should
-         *            be appended.
-         * @return The result of generating content for this tag.
-         */
-        public TagResult generateValue(TemplateEntry templateEntry, TemplateValue templateValue) {
-            if (sequential) {
+        @Override
+        TagResult generateValue(TemplateEntry templateEntry, TemplateValue templateValue) {
+            if (isSequential) {
                 templateValue.append(fileLines[nextIndex++]);
                 if (nextIndex >= fileLines.length) {
                     nextIndex = 0;
@@ -773,170 +447,55 @@ abstract class TemplateTag {
                 templateValue.append(fileLines[random.nextInt(fileLines.length)]);
             }
 
-            return TagResult.SUCCESS_RESULT;
+            return TagResult.SUCCESS;
         }
     }
 
     /**
-     * This class defines a tag that is used to include a first name in the
-     * attribute value.
+     * Tag used to include a first name in the attribute value.
      */
-    static class FirstNameTag extends TemplateTag {
-        /** The template file with which this tag is associated. */
-        private TemplateFile templateFile;
-
-        /**
-         * Creates a new instance of this first name tag.
-         */
-        public FirstNameTag() {
-            // No implementation required.
-        }
-
-        /**
-         * Retrieves the name for this tag.
-         *
-         * @return The name for this tag.
-         */
-        public String getName() {
+    static class FirstNameTag extends NameTag {
+        @Override
+        String getName() {
             return "First";
         }
 
-        /**
-         * Indicates whether this tag is allowed for use in the extra lines for
-         * branches.
-         *
-         * @return <CODE>true</CODE> if this tag may be used in branch
-         *         definitions, or <CODE>false</CODE> if not.
-         */
-        public boolean allowedInBranch() {
-            return false;
-        }
-
-        /**
-         * Performs any initialization for this tag that may be needed while
-         * parsing a template definition.
-         *
-         * @param templateFile
-         *            The template file in which this tag is used.
-         * @param template
-         *            The template in which this tag is used.
-         * @param arguments
-         *            The set of arguments provided for this tag.
-         * @param lineNumber
-         *            The line number on which this tag appears in the template
-         *            file.
-         * @param warnings
-         *            A list into which any appropriate warning messages may be
-         *            placed.
-         */
         @Override
-        public void initializeForTemplate(Schema schema, TemplateFile templateFile, Template template,
-                String[] arguments, int lineNumber, List<LocalizableMessage> warnings) throws DecodeException {
-            this.templateFile = templateFile;
-
-            if (arguments.length != 0) {
-                LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_INVALID_ARGUMENT_COUNT.get(getName(), lineNumber,
-                        0, arguments.length);
-                throw DecodeException.fatalError(message);
-            }
-        }
-
-        /**
-         * Generates the content for this tag by appending it to the provided
-         * tag.
-         *
-         * @param templateEntry
-         *            The entry for which this tag is being generated.
-         * @param templateValue
-         *            The template value to which the generated content should
-         *            be appended.
-         * @return The result of generating content for this tag.
-         */
-        public TagResult generateValue(TemplateEntry templateEntry, TemplateValue templateValue) {
+        TagResult generateValue(TemplateEntry templateEntry, TemplateValue templateValue) {
             templateValue.append(templateFile.getFirstName());
-            return TagResult.SUCCESS_RESULT;
+            return TagResult.SUCCESS;
         }
     }
 
     /**
-     * This class defines a tag that is used to include a GUID in the attribute
-     * value.
+     * Tag used to include a GUID in the attribute value.
      */
     static class GUIDTag extends TemplateTag {
-        /**
-         * Creates a new instance of this GUID tag.
-         */
-        public GUIDTag() {
-            // No implementation required.
-        }
 
-        /**
-         * Retrieves the name for this tag.
-         *
-         * @return The name for this tag.
-         */
-        public String getName() {
+        @Override
+        String getName() {
             return "GUID";
         }
 
-        /**
-         * Indicates whether this tag is allowed for use in the extra lines for
-         * branches.
-         *
-         * @return <CODE>true</CODE> if this tag may be used in branch
-         *         definitions, or <CODE>false</CODE> if not.
-         */
-        public boolean allowedInBranch() {
+        @Override
+        boolean allowedInBranch() {
             return true;
         }
 
-        /**
-         * Performs any initialization for this tag that may be needed while
-         * parsing a branch definition.
-         *
-         * @param templateFile
-         *            The template file in which this tag is used.
-         * @param branch
-         *            The branch in which this tag is used.
-         * @param arguments
-         *            The set of arguments provided for this tag.
-         * @param lineNumber
-         *            The line number on which this tag appears in the template
-         *            file.
-         * @param warnings
-         *            A list into which any appropriate warning messages may be
-         *            placed.
-         */
         @Override
-        public void initializeForBranch(Schema schema, TemplateFile templateFile, Branch branch, String[] arguments,
+        void initializeForBranch(Schema schema, TemplateFile templateFile, Branch branch, String[] arguments,
                 int lineNumber, List<LocalizableMessage> warnings) throws DecodeException {
-            if (arguments.length != 0) {
-                LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_INVALID_ARGUMENT_COUNT.get(getName(), lineNumber,
-                        0, arguments.length);
-                throw DecodeException.fatalError(message);
-            }
+            initialize(arguments, lineNumber);
         }
 
-        /**
-         * Performs any initialization for this tag that may be needed while
-         * parsing a template definition.
-         *
-         * @param templateFile
-         *            The template file in which this tag is used.
-         * @param template
-         *            The template in which this tag is used.
-         * @param arguments
-         *            The set of arguments provided for this tag.
-         * @param lineNumber
-         *            The line number on which this tag appears in the template
-         *            file.
-         * @param warnings
-         *            A list into which any appropriate warning messages may be
-         *            placed.
-         */
+
         @Override
-        public void initializeForTemplate(Schema schema, TemplateFile templateFile, Template template,
+        void initializeForTemplate(Schema schema, TemplateFile templateFile, Template template,
                 String[] arguments, int lineNumber, List<LocalizableMessage> warnings) throws DecodeException {
+            initialize(arguments, lineNumber);
+        }
+
+        private void initialize(String[] arguments, int lineNumber) throws DecodeException {
             if (arguments.length != 0) {
                 LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_INVALID_ARGUMENT_COUNT.get(getName(), lineNumber,
                         0, arguments.length);
@@ -944,408 +503,140 @@ abstract class TemplateTag {
             }
         }
 
-        /**
-         * Generates the content for this tag by appending it to the provided
-         * tag.
-         *
-         * @param templateEntry
-         *            The entry for which this tag is being generated.
-         * @param templateValue
-         *            The template value to which the generated content should
-         *            be appended.
-         * @return The result of generating content for this tag.
-         */
-        public TagResult generateValue(TemplateEntry templateEntry, TemplateValue templateValue) {
+        @Override
+        TagResult generateValue(TemplateEntry templateEntry, TemplateValue templateValue) {
             templateValue.append(UUID.randomUUID().toString());
-            return TagResult.SUCCESS_RESULT;
+            return TagResult.SUCCESS;
         }
     }
 
     /**
-     * This class defines a tag that is used to base presence of one attribute
-     * on the absence of another attribute and/or attribute value.
+     * Base tag to use to base presence of one attribute on the absence/presence
+     * of another attribute and/or attribute value.
      */
-    static class IfAbsentTag extends TemplateTag {
+    abstract static class IfTag extends TemplateTag {
         /** The attribute type for which to make the determination. */
-        private AttributeType attributeType;
+        AttributeType attributeType;
 
         /** The value for which to make the determination. */
-        private String assertionValue;
+        String assertionValue;
 
-        /**
-         * Creates a new instance of this ifabsent tag.
-         */
-        public IfAbsentTag() {
-            attributeType = null;
-            assertionValue = null;
+        @Override
+        final boolean allowedInBranch() {
+            return true;
         }
 
-        /**
-         * Retrieves the name for this tag.
-         *
-         * @return The name for this tag.
-         */
-        public String getName() {
+        @Override
+        final void initializeForBranch(Schema schema, TemplateFile templateFile, Branch branch, String[] arguments,
+                int lineNumber, List<LocalizableMessage> warnings) throws DecodeException {
+            initialize(schema, branch, null, arguments, lineNumber);
+        }
+
+        @Override
+        final void initializeForTemplate(Schema schema, TemplateFile templateFile, Template template,
+                String[] arguments, int lineNumber, List<LocalizableMessage> warnings) throws DecodeException {
+            initialize(schema, null, template, arguments, lineNumber);
+        }
+
+        private void initialize(Schema schema, Branch branch, Template template, String[] arguments, int lineNumber)
+                throws DecodeException {
+            if ((arguments.length < 1) || (arguments.length > 2)) {
+                LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_INVALID_ARGUMENT_RANGE_COUNT.get(getName(),
+                        lineNumber, 1, 2, arguments.length);
+                throw DecodeException.fatalError(message);
+            }
+
+            attributeType = schema.getAttributeType(arguments[0].toLowerCase());
+            if (!hasAttributeTypeInBranchOrTemplate(attributeType, branch, template)) {
+                LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_UNDEFINED_ATTRIBUTE.get(arguments[0], lineNumber);
+                throw DecodeException.fatalError(message);
+            }
+
+            if (arguments.length == 2) {
+                assertionValue = arguments[1];
+            } else {
+                assertionValue = null;
+            }
+        }
+    }
+
+    /**
+     * Tag used to base presence of one attribute on the absence of another
+     * attribute and/or attribute value.
+     */
+    static class IfAbsentTag extends IfTag {
+        @Override
+        String getName() {
             return "IfAbsent";
         }
 
-        /**
-         * Indicates whether this tag is allowed for use in the extra lines for
-         * branches.
-         *
-         * @return <CODE>true</CODE> if this tag may be used in branch
-         *         definitions, or <CODE>false</CODE> if not.
-         */
-        public boolean allowedInBranch() {
-            return true;
-        }
-
-        /**
-         * Performs any initialization for this tag that may be needed while
-         * parsing a branch definition.
-         *
-         * @param templateFile
-         *            The template file in which this tag is used.
-         * @param branch
-         *            The branch in which this tag is used.
-         * @param arguments
-         *            The set of arguments provided for this tag.
-         * @param lineNumber
-         *            The line number on which this tag appears in the template
-         *            file.
-         * @param warnings
-         *            A list into which any appropriate warning messages may be
-         *            placed.
-         */
         @Override
-        public void initializeForBranch(Schema schema, TemplateFile templateFile, Branch branch, String[] arguments,
-                int lineNumber, List<LocalizableMessage> warnings) throws DecodeException {
-            if ((arguments.length < 1) || (arguments.length > 2)) {
-                LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_INVALID_ARGUMENT_RANGE_COUNT.get(getName(),
-                        lineNumber, 1, 2, arguments.length);
-                throw DecodeException.fatalError(message);
-            }
-
-            String lowerName = arguments[0].toLowerCase();
-            AttributeType t = schema.getAttributeType(lowerName);
-            if (!branch.hasAttribute(t)) {
-                LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_UNDEFINED_ATTRIBUTE.get(arguments[0], lineNumber);
-                throw DecodeException.fatalError(message);
-            }
-
-            if (arguments.length == 2) {
-                assertionValue = arguments[1];
-            } else {
-                assertionValue = null;
-            }
-        }
-
-        /**
-         * Performs any initialization for this tag that may be needed while
-         * parsing a template definition.
-         *
-         * @param templateFile
-         *            The template file in which this tag is used.
-         * @param template
-         *            The template in which this tag is used.
-         * @param arguments
-         *            The set of arguments provided for this tag.
-         * @param lineNumber
-         *            The line number on which this tag appears in the template
-         *            file.
-         * @param warnings
-         *            A list into which any appropriate warning messages may be
-         *            placed.
-         */
-        @Override
-        public void initializeForTemplate(Schema schema, TemplateFile templateFile, Template template,
-                String[] arguments, int lineNumber, List<LocalizableMessage> warnings) throws DecodeException {
-            if ((arguments.length < 1) || (arguments.length > 2)) {
-                LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_INVALID_ARGUMENT_RANGE_COUNT.get(getName(),
-                        lineNumber, 1, 2, arguments.length);
-                throw DecodeException.fatalError(message);
-            }
-
-            String lowerName = arguments[0].toLowerCase();
-            attributeType = schema.getAttributeType(lowerName);
-            if (!template.hasAttribute(attributeType)) {
-                LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_UNDEFINED_ATTRIBUTE.get(arguments[0], lineNumber);
-                throw DecodeException.fatalError(message);
-            }
-
-            if (arguments.length == 2) {
-                assertionValue = arguments[1];
-            } else {
-                assertionValue = null;
-            }
-        }
-
-        /**
-         * Generates the content for this tag by appending it to the provided
-         * tag.
-         *
-         * @param templateEntry
-         *            The entry for which this tag is being generated.
-         * @param templateValue
-         *            The template value to which the generated content should
-         *            be appended.
-         * @return The result of generating content for this tag.
-         */
-        public TagResult generateValue(TemplateEntry templateEntry, TemplateValue templateValue) {
+        TagResult generateValue(TemplateEntry templateEntry, TemplateValue templateValue) {
             List<TemplateValue> values = templateEntry.getValues(attributeType);
-            if ((values == null) || values.isEmpty()) {
-                return TagResult.SUCCESS_RESULT;
+            if (values == null) {
+                return TagResult.SUCCESS;
             }
-
             if (assertionValue == null) {
-                return TagResult.OMIT_FROM_ENTRY;
-            } else {
-                for (TemplateValue v : values) {
-                    if (assertionValue.equals(v.getValueAsString())) {
-                        return TagResult.OMIT_FROM_ENTRY;
-                    }
-                }
-
-                return TagResult.SUCCESS_RESULT;
+                return TagResult.FAILURE;
             }
+            for (TemplateValue v : values) {
+                if (assertionValue.equals(v.getValueAsString())) {
+                    return TagResult.FAILURE;
+                }
+            }
+            return TagResult.SUCCESS;
         }
     }
 
     /**
-     * This class defines a tag that is used to base presence of one attribute
-     * on the presence of another attribute and/or attribute value.
+     * Tag used to base presence of one attribute on the presence of another
+     * attribute and/or attribute value.
      */
-    static class IfPresentTag extends TemplateTag {
-        /** The attribute type for which to make the determination. */
-        private AttributeType attributeType;
-
-        /** The value for which to make the determination. */
-        private String assertionValue;
-
-        /**
-         * Creates a new instance of this ifpresent tag.
-         */
-        public IfPresentTag() {
-            attributeType = null;
-            assertionValue = null;
-        }
-
-        /**
-         * Retrieves the name for this tag.
-         *
-         * @return The name for this tag.
-         */
-        public String getName() {
+    static class IfPresentTag extends IfTag {
+        @Override
+        String getName() {
             return "IfPresent";
         }
 
-        /**
-         * Indicates whether this tag is allowed for use in the extra lines for
-         * branches.
-         *
-         * @return <CODE>true</CODE> if this tag may be used in branch
-         *         definitions, or <CODE>false</CODE> if not.
-         */
-        public boolean allowedInBranch() {
-            return true;
-        }
-
-        /**
-         * Performs any initialization for this tag that may be needed while
-         * parsing a branch definition.
-         *
-         * @param templateFile
-         *            The template file in which this tag is used.
-         * @param branch
-         *            The branch in which this tag is used.
-         * @param arguments
-         *            The set of arguments provided for this tag.
-         * @param lineNumber
-         *            The line number on which this tag appears in the template
-         *            file.
-         * @param warnings
-         *            A list into which any appropriate warning messages may be
-         *            placed.
-         */
         @Override
-        public void initializeForBranch(Schema schema, TemplateFile templateFile, Branch branch, String[] arguments,
-                int lineNumber, List<LocalizableMessage> warnings) throws DecodeException {
-            if ((arguments.length < 1) || (arguments.length > 2)) {
-                LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_INVALID_ARGUMENT_RANGE_COUNT.get(getName(),
-                        lineNumber, 1, 2, arguments.length);
-                throw DecodeException.fatalError(message);
-            }
-
-            String lowerName = arguments[0].toLowerCase();
-            AttributeType t = schema.getAttributeType(lowerName);
-            if (!branch.hasAttribute(t)) {
-                LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_UNDEFINED_ATTRIBUTE.get(arguments[0], lineNumber);
-                throw DecodeException.fatalError(message);
-            }
-
-            if (arguments.length == 2) {
-                assertionValue = arguments[1];
-            } else {
-                assertionValue = null;
-            }
-        }
-
-        /**
-         * Performs any initialization for this tag that may be needed while
-         * parsing a template definition.
-         *
-         * @param templateFile
-         *            The template file in which this tag is used.
-         * @param template
-         *            The template in which this tag is used.
-         * @param arguments
-         *            The set of arguments provided for this tag.
-         * @param lineNumber
-         *            The line number on which this tag appears in the template
-         *            file.
-         * @param warnings
-         *            A list into which any appropriate warning messages may be
-         *            placed.
-         */
-        @Override
-        public void initializeForTemplate(Schema schema, TemplateFile templateFile, Template template,
-                String[] arguments, int lineNumber, List<LocalizableMessage> warnings) throws DecodeException {
-            if ((arguments.length < 1) || (arguments.length > 2)) {
-                LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_INVALID_ARGUMENT_RANGE_COUNT.get(getName(),
-                        lineNumber, 1, 2, arguments.length);
-                throw DecodeException.fatalError(message);
-            }
-
-            String lowerName = arguments[0].toLowerCase();
-            attributeType = schema.getAttributeType(lowerName);
-            if (!template.hasAttribute(attributeType)) {
-                LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_UNDEFINED_ATTRIBUTE.get(arguments[0], lineNumber);
-                throw DecodeException.fatalError(message);
-            }
-
-            if (arguments.length == 2) {
-                assertionValue = arguments[1];
-            } else {
-                assertionValue = null;
-            }
-        }
-
-        /**
-         * Generates the content for this tag by appending it to the provided
-         * tag.
-         *
-         * @param templateEntry
-         *            The entry for which this tag is being generated.
-         * @param templateValue
-         *            The template value to which the generated content should
-         *            be appended.
-         * @return The result of generating content for this tag.
-         */
-        public TagResult generateValue(TemplateEntry templateEntry, TemplateValue templateValue) {
+        TagResult generateValue(TemplateEntry templateEntry, TemplateValue templateValue) {
             List<TemplateValue> values = templateEntry.getValues(attributeType);
             if ((values == null) || values.isEmpty()) {
-                return TagResult.OMIT_FROM_ENTRY;
+                return TagResult.FAILURE;
             }
 
             if (assertionValue == null) {
-                return TagResult.SUCCESS_RESULT;
-            } else {
-                for (TemplateValue v : values) {
-                    if (assertionValue.equals(v.getValueAsString())) {
-                        return TagResult.SUCCESS_RESULT;
-                    }
-                }
-
-                return TagResult.OMIT_FROM_ENTRY;
+                return TagResult.SUCCESS;
             }
+            for (TemplateValue v : values) {
+                if (assertionValue.equals(v.getValueAsString())) {
+                    return TagResult.SUCCESS;
+                }
+            }
+            return TagResult.FAILURE;
         }
     }
 
     /**
-     * This class defines a tag that is used to include a last name in the
-     * attribute value.
+     * Tag used to include a last name in the attribute value.
      */
-    static class LastNameTag extends TemplateTag {
-        /** The template file with which this tag is associated. */
-        private TemplateFile templateFile;
-
-        /**
-         * Creates a new instance of this last name tag.
-         */
-        public LastNameTag() {
-            // No implementation required.
-        }
-
-        /**
-         * Retrieves the name for this tag.
-         *
-         * @return The name for this tag.
-         */
-        public String getName() {
+    static class LastNameTag extends NameTag {
+        @Override
+        String getName() {
             return "Last";
         }
 
-        /**
-         * Indicates whether this tag is allowed for use in the extra lines for
-         * branches.
-         *
-         * @return <CODE>true</CODE> if this tag may be used in branch
-         *         definitions, or <CODE>false</CODE> if not.
-         */
-        public boolean allowedInBranch() {
-            return false;
-        }
-
-        /**
-         * Performs any initialization for this tag that may be needed while
-         * parsing a template definition.
-         *
-         * @param templateFile
-         *            The template file in which this tag is used.
-         * @param template
-         *            The template in which this tag is used.
-         * @param arguments
-         *            The set of arguments provided for this tag.
-         * @param lineNumber
-         *            The line number on which this tag appears in the template
-         *            file.
-         * @param warnings
-         *            A list into which any appropriate warning messages may be
-         *            placed.
-         */
         @Override
-        public void initializeForTemplate(Schema schema, TemplateFile templateFile, Template template,
-                String[] arguments, int lineNumber, List<LocalizableMessage> warnings) throws DecodeException {
-            this.templateFile = templateFile;
-
-            if (arguments.length != 0) {
-                LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_INVALID_ARGUMENT_COUNT.get(getName(), lineNumber,
-                        0, arguments.length);
-                throw DecodeException.fatalError(message);
-            }
-        }
-
-        /**
-         * Generates the content for this tag by appending it to the provided
-         * tag.
-         *
-         * @param templateEntry
-         *            The entry for which this tag is being generated.
-         * @param templateValue
-         *            The template value to which the generated content should
-         *            be appended.
-         * @return The result of generating content for this tag.
-         */
-        public TagResult generateValue(TemplateEntry templateEntry, TemplateValue templateValue) {
+        TagResult generateValue(TemplateEntry templateEntry, TemplateValue templateValue) {
             templateValue.append(templateFile.getLastName());
-            return TagResult.SUCCESS_RESULT;
+            return TagResult.SUCCESS;
         }
     }
 
     /**
-     * This class defines a tag that may be used to select a value from a
-     * pre-defined list, optionally defining weights for each value that can
-     * impact the likelihood of a given item being selected.
+     * Tag used to select a value from a pre-defined list, optionally defining
+     * weights for each value that can impact the likelihood of a given item
+     * being selected.
      * <p>
      * The items to include in the list should be specified as arguments to the
      * tag. If the argument ends with a semicolon followed by an integer, then
@@ -1365,139 +656,58 @@ abstract class TemplateTag {
         /** The random number generator for this tag. */
         private Random random;
 
-        /**
-         * Creates a new instance of this list tag.
-         */
-        public ListTag() {
-            // No implementation required.
-        }
-
-        /**
-         * Retrieves the name for this tag.
-         *
-         * @return The name for this tag.
-         */
-        public String getName() {
+        @Override
+        String getName() {
             return "List";
         }
 
-        /**
-         * Indicates whether this tag is allowed for use in the extra lines for
-         * branches.
-         *
-         * @return <CODE>true</CODE> if this tag may be used in branch
-         *         definitions, or <CODE>false</CODE> if not.
-         */
-        public boolean allowedInBranch() {
+        @Override
+        boolean allowedInBranch() {
             return true;
         }
 
-        /**
-         * Performs any initialization for this tag that may be needed while
-         * parsing a branch definition.
-         *
-         * @param templateFile
-         *            The template file in which this tag is used.
-         * @param branch
-         *            The branch in which this tag is used.
-         * @param arguments
-         *            The set of arguments provided for this tag.
-         * @param lineNumber
-         *            The line number on which this tag appears in the template
-         *            file.
-         * @param warnings
-         *            A list into which any appropriate warning messages may be
-         *            placed.
-         */
         @Override
-        public void initializeForBranch(Schema schema, TemplateFile templateFile, Branch branch, String[] arguments,
+        void initializeForBranch(Schema schema, TemplateFile templateFile, Branch branch, String[] arguments,
                 int lineNumber, List<LocalizableMessage> warnings) throws DecodeException {
-            initializeInternal(templateFile, arguments, lineNumber, warnings);
+            initialize(templateFile, arguments, lineNumber, warnings);
         }
 
-        /**
-         * Performs any initialization for this tag that may be needed while
-         * parsing a template definition.
-         *
-         * @param templateFile
-         *            The template file in which this tag is used.
-         * @param template
-         *            The template in which this tag is used.
-         * @param arguments
-         *            The set of arguments provided for this tag.
-         * @param lineNumber
-         *            The line number on which this tag appears in the template
-         *            file.
-         * @param warnings
-         *            A list into which any appropriate warning messages may be
-         *            placed.
-         */
         @Override
-        public void initializeForTemplate(Schema schema, TemplateFile templateFile, Template template,
+        void initializeForTemplate(Schema schema, TemplateFile templateFile, Template template,
                 String[] arguments, int lineNumber, List<LocalizableMessage> warnings) throws DecodeException {
-            initializeInternal(templateFile, arguments, lineNumber, warnings);
+            initialize(templateFile, arguments, lineNumber, warnings);
         }
 
-        /**
-         * Performs any initialization for this tag that may be needed for this
-         * tag.
-         *
-         * @param templateFile
-         *            The template file in which this tag is used.
-         * @param arguments
-         *            The set of arguments provided for this tag.
-         * @param lineNumber
-         *            The line number on which this tag appears in the template
-         *            file.
-         * @param warnings
-         *            A list into which any appropriate warning messages may be
-         *            placed.
-         * @throws DecodeException
-         *             If a problem occurs while initializing this tag.
-         */
-        private void initializeInternal(TemplateFile templateFile, String[] arguments, int lineNumber,
+        private void initialize(TemplateFile templateFile, String[] arguments, int lineNumber,
                 List<LocalizableMessage> warnings) throws DecodeException {
             if (arguments.length == 0) {
                 throw DecodeException.fatalError(ERR_ENTRY_GENERATOR_TAG_LIST_NO_ARGUMENTS.get(lineNumber));
             }
-
             valueStrings = new String[arguments.length];
             valueWeights = new int[arguments.length];
             cumulativeWeight = 0;
             random = templateFile.getRandom();
 
             for (int i = 0; i < arguments.length; i++) {
-                String s = arguments[i];
-
+                String value = arguments[i];
                 int weight = 1;
-                int semicolonPos = s.lastIndexOf(';');
+                int semicolonPos = value.lastIndexOf(';');
                 if (semicolonPos >= 0) {
                     try {
-                        weight = Integer.parseInt(s.substring(semicolonPos + 1));
-                        s = s.substring(0, semicolonPos);
-                    } catch (Exception e) {
-                        warnings.add(WARN_ENTRY_GENERATOR_TAG_LIST_INVALID_WEIGHT.get(lineNumber, s));
+                        weight = Integer.parseInt(value.substring(semicolonPos + 1));
+                        value = value.substring(0, semicolonPos);
+                    } catch (NumberFormatException e) {
+                        warnings.add(WARN_ENTRY_GENERATOR_TAG_LIST_INVALID_WEIGHT.get(lineNumber, value));
                     }
                 }
-
                 cumulativeWeight += weight;
-                valueStrings[i] = s;
+                valueStrings[i] = value;
                 valueWeights[i] = cumulativeWeight;
             }
         }
 
-        /**
-         * Generates the content for this tag by appending it to the provided
-         * tag.
-         *
-         * @param templateEntry
-         *            The entry for which this tag is being generated.
-         * @param templateValue
-         *            The template value to which the generated content should
-         *            be appended.
-         * @return The result of generating content for this tag.
-         */
-        public TagResult generateValue(TemplateEntry templateEntry, TemplateValue templateValue) {
+        @Override
+        TagResult generateValue(TemplateEntry templateEntry, TemplateValue templateValue) {
             int selectedWeight = random.nextInt(cumulativeWeight) + 1;
             for (int i = 0; i < valueWeights.length; i++) {
                 if (selectedWeight <= valueWeights[i]) {
@@ -1505,62 +715,48 @@ abstract class TemplateTag {
                     break;
                 }
             }
-
-            return TagResult.SUCCESS_RESULT;
+            return TagResult.SUCCESS;
         }
     }
 
     /**
-     * This class defines a tag that is used to include the DN of the parent
-     * entry in the attribute value.
+     * Base tag to use to include a first name or last name in the attribute
+     * value.
      */
-    static class ParentDNTag extends TemplateTag {
-        /**
-         * Creates a new instance of this parent DN tag.
-         */
-        public ParentDNTag() {
-            // No implementation required.
-        }
+    static abstract class NameTag extends TemplateTag {
+        /** The template file with which this tag is associated. */
+        TemplateFile templateFile;
 
-        /**
-         * Retrieves the name for this tag.
-         *
-         * @return The name for this tag.
-         */
-        public String getName() {
-            return "ParentDN";
-        }
-
-        /**
-         * Indicates whether this tag is allowed for use in the extra lines for
-         * branches.
-         *
-         * @return <CODE>true</CODE> if this tag may be used in branch
-         *         definitions, or <CODE>false</CODE> if not.
-         */
-        public boolean allowedInBranch() {
+        @Override
+        final boolean allowedInBranch() {
             return false;
         }
 
-        /**
-         * Performs any initialization for this tag that may be needed while
-         * parsing a template definition.
-         *
-         * @param templateFile
-         *            The template file in which this tag is used.
-         * @param template
-         *            The template in which this tag is used.
-         * @param arguments
-         *            The set of arguments provided for this tag.
-         * @param lineNumber
-         *            The line number on which this tag appears in the template
-         *            file.
-         * @param warnings
-         *            A list into which any appropriate warning messages may be
-         *            placed.
-         */
         @Override
-        public void initializeForTemplate(Schema schema, TemplateFile templateFile, Template template,
+        final void initializeForTemplate(Schema schema, TemplateFile templateFile, Template template,
+                String[] arguments, int lineNumber, List<LocalizableMessage> warnings) throws DecodeException {
+            this.templateFile = templateFile;
+
+            if (arguments.length != 0) {
+                LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_INVALID_ARGUMENT_COUNT.get(getName(), lineNumber,
+                        0, arguments.length);
+                throw DecodeException.fatalError(message);
+            }
+        }
+    }
+
+    /**
+     * Base tag to use to include the DN of the parent entry in the attribute value.
+     */
+    static abstract class ParentTag extends TemplateTag {
+
+        @Override
+        final boolean allowedInBranch() {
+            return false;
+        }
+
+        @Override
+        final void initializeForTemplate(Schema schema, TemplateFile templateFile, Template template,
                 String[] arguments, int lineNumber, List<LocalizableMessage> warnings) throws DecodeException {
             if (arguments.length != 0) {
                 LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_INVALID_ARGUMENT_COUNT.get(getName(), lineNumber,
@@ -1568,129 +764,66 @@ abstract class TemplateTag {
                 throw DecodeException.fatalError(message);
             }
         }
+    }
 
-        /**
-         * Generates the content for this tag by appending it to the provided
-         * tag.
-         *
-         * @param templateEntry
-         *            The entry for which this tag is being generated.
-         * @param templateValue
-         *            The template value to which the generated content should
-         *            be appended.
-         * @return The result of generating content for this tag.
-         */
-        public TagResult generateValue(TemplateEntry templateEntry, TemplateValue templateValue) {
+    /**
+     * Tag used to include the DN of the parent entry in the attribute value.
+     */
+    static class ParentDNTag extends ParentTag {
+
+        @Override
+        String getName() {
+            return "ParentDN";
+        }
+
+        @Override
+        TagResult generateValue(TemplateEntry templateEntry, TemplateValue templateValue) {
             DN parentDN = templateEntry.getParentDN();
             if ((parentDN == null) || parentDN.isRootDN()) {
-                return TagResult.SUCCESS_RESULT;
+                return TagResult.SUCCESS;
             }
-
             templateValue.append(parentDN);
-            return TagResult.SUCCESS_RESULT;
+            return TagResult.SUCCESS;
         }
     }
 
     /**
-     * This class defines a tag that is used to indicate that a value should
-     * only be included in a percentage of the entries.
+     * Tag used to indicate that a value should only be included in a percentage
+     * of the entries.
      */
     static class PresenceTag extends TemplateTag {
-        /** The percentage of the entries in which this attribute value should */
-        /** appear. */
+        /**
+         * The percentage of the entries in which this attribute value should
+         * appear.
+         */
         private int percentage;
 
         /** The random number generator for this tag. */
         private Random random;
 
-        /**
-         * Creates a new instance of this presence tag.
-         */
-        public PresenceTag() {
-            percentage = 100;
-        }
-
-        /**
-         * Retrieves the name for this tag.
-         *
-         * @return The name for this tag.
-         */
-        public String getName() {
+        @Override
+        String getName() {
             return "Presence";
         }
 
-        /**
-         * Indicates whether this tag is allowed for use in the extra lines for
-         * branches.
-         *
-         * @return <CODE>true</CODE> if this tag may be used in branch
-         *         definitions, or <CODE>false</CODE> if not.
-         */
-        public boolean allowedInBranch() {
+        @Override
+        boolean allowedInBranch() {
             return true;
         }
 
-        /**
-         * Performs any initialization for this tag that may be needed while
-         * parsing a branch definition.
-         *
-         * @param templateFile
-         *            The template file in which this tag is used.
-         * @param branch
-         *            The branch in which this tag is used.
-         * @param arguments
-         *            The set of arguments provided for this tag.
-         * @param lineNumber
-         *            The line number on which this tag appears in the template
-         *            file.
-         * @param warnings
-         *            A list into which any appropriate warning messages may be
-         *            placed.
-         */
         @Override
-        public void initializeForBranch(Schema schema, TemplateFile templateFile, Branch branch, String[] arguments,
+        void initializeForBranch(Schema schema, TemplateFile templateFile, Branch branch, String[] arguments,
                 int lineNumber, List<LocalizableMessage> warnings) throws DecodeException {
-            initializeInternal(templateFile, arguments, lineNumber);
+            initialize(templateFile, arguments, lineNumber);
         }
 
-        /**
-         * Performs any initialization for this tag that may be needed while
-         * parsing a template definition.
-         *
-         * @param templateFile
-         *            The template file in which this tag is used.
-         * @param template
-         *            The template in which this tag is used.
-         * @param arguments
-         *            The set of arguments provided for this tag.
-         * @param lineNumber
-         *            The line number on which this tag appears in the template
-         *            file.
-         * @param warnings
-         *            A list into which any appropriate warning messages may be
-         *            placed.
-         */
         @Override
-        public void initializeForTemplate(Schema schema, TemplateFile templateFile, Template template,
+        void initializeForTemplate(Schema schema, TemplateFile templateFile, Template template,
                 String[] arguments, int lineNumber, List<LocalizableMessage> warnings) throws DecodeException {
-            initializeInternal(templateFile, arguments, lineNumber);
+            initialize(templateFile, arguments, lineNumber);
         }
 
-        /**
-         * Performs any initialization for this tag that may be needed for this
-         * tag.
-         *
-         * @param templateFile
-         *            The template file in which this tag is used.
-         * @param arguments
-         *            The set of arguments provided for this tag.
-         * @param lineNumber
-         *            The line number on which this tag appears in the template
-         *            file.
-         * @throws DecodeException
-         *             If a problem occurs while initializing this tag.
-         */
-        private void initializeInternal(TemplateFile templateFile, String[] arguments, int lineNumber)
+        private void initialize(TemplateFile templateFile, String[] arguments, int lineNumber)
                 throws DecodeException {
             random = templateFile.getRandom();
 
@@ -1702,14 +835,14 @@ abstract class TemplateTag {
 
             try {
                 percentage = Integer.parseInt(arguments[0]);
-
                 if (percentage < 0) {
-                    LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_INTEGER_BELOW_LOWER_BOUND.get(percentage, 0,
-                            getName(), lineNumber);
+                    LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_INTEGER_BELOW_LOWER_BOUND.get(percentage,
+                            0, getName(), lineNumber);
                     throw DecodeException.fatalError(message);
-                } else if (percentage > 100) {
-                    LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_INTEGER_ABOVE_UPPER_BOUND.get(percentage, 100,
-                            getName(), lineNumber);
+                }
+                if (percentage > 100) {
+                    LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_INTEGER_ABOVE_UPPER_BOUND.get(percentage,
+                            100, getName(), lineNumber);
                     throw DecodeException.fatalError(message);
                 }
             } catch (NumberFormatException nfe) {
@@ -1719,31 +852,20 @@ abstract class TemplateTag {
             }
         }
 
-        /**
-         * Generates the content for this tag by appending it to the provided
-         * tag.
-         *
-         * @param templateEntry
-         *            The entry for which this tag is being generated.
-         * @param templateValue
-         *            The template value to which the generated content should
-         *            be appended.
-         * @return The result of generating content for this tag.
-         */
-        public TagResult generateValue(TemplateEntry templateEntry, TemplateValue templateValue) {
+        @Override
+        TagResult generateValue(TemplateEntry templateEntry, TemplateValue templateValue) {
             int intValue = random.nextInt(100);
             if (intValue < percentage) {
-                return TagResult.SUCCESS_RESULT;
+                return TagResult.SUCCESS;
             } else {
-                return TagResult.OMIT_FROM_ENTRY;
+                return TagResult.FAILURE;
             }
         }
     }
 
     /**
-     * This class defines a tag that may be used to generate random values. It
-     * has a number of subtypes based on the type of information that should be
-     * generated, including:
+     * Tag used to generate random values. It has a number of subtypes based on
+     * the type of information that should be generated, including:
      * <UL>
      * <LI>alpha:length</LI>
      * <LI>alpha:minlength:maxlength</LI>
@@ -1764,32 +886,31 @@ abstract class TemplateTag {
      * </UL>
      */
     static class RandomTag extends TemplateTag {
-        /**
-         * The value that indicates that the value is to be generated from a
-         * fixed number of characters from a given character set.
-         */
-        public static final int RANDOM_TYPE_CHARS_FIXED = 1;
 
-        /**
-         * The value that indicates that the value is to be generated from a
-         * variable number of characters from a given character set.
-         */
-        public static final int RANDOM_TYPE_CHARS_VARIABLE = 2;
-
-        /**
-         * The value that indicates that the value should be a random number.
-         */
-        public static final int RANDOM_TYPE_NUMERIC = 3;
-
-        /**
-         * The value that indicates that the value should be a random month.
-         */
-        public static final int RANDOM_TYPE_MONTH = 4;
-
-        /**
-         * The value that indicates that the value should be a telephone number.
-         */
-        public static final int RANDOM_TYPE_TELEPHONE = 5;
+        static enum RandomType {
+            /**
+             * Generates values from a fixed number of characters from a given
+             * character set.
+             */
+            CHARS_FIXED,
+            /**
+             * Generates values from a variable number of characters from a given
+             * character set.
+             */
+            CHARS_VARIABLE,
+            /**
+             * Generates numbers.
+             */
+            NUMERIC,
+            /**
+             * Generates months (as text).
+             */
+            MONTH,
+            /**
+             * Generates telephone numbers.
+             */
+            TELEPHONE
+        }
 
         /**
          * The character set that will be used for alphabetic characters.
@@ -1831,7 +952,7 @@ abstract class TemplateTag {
 
         /** The number of characters between the minimum and maximum length */
         /** (inclusive). */
-        private int lengthRange;
+        private int lengthRange = 1;
 
         /** The maximum number of characters to include in the value. */
         private int maxLength;
@@ -1840,7 +961,7 @@ abstract class TemplateTag {
         private int minLength;
 
         /** The type of random value that should be generated. */
-        private int randomType;
+        private RandomType randomType;
 
         /** The maximum numeric value that should be generated. */
         private long maxValue;
@@ -1852,110 +973,34 @@ abstract class TemplateTag {
          * The number of values between the minimum and maximum value
          * (inclusive).
          */
-        private long valueRange;
+        private long valueRange = 1L;
 
         /** The random number generator for this tag. */
         private Random random;
 
-        /**
-         * Creates a new instance of this random tag.
-         */
-        public RandomTag() {
-            characterSet = null;
-            decimalFormat = null;
-            lengthRange = 1;
-            maxLength = 0;
-            minLength = 0;
-            randomType = 0;
-            maxValue = 0L;
-            minValue = 0L;
-            valueRange = 1L;
-        }
-
-        /**
-         * Retrieves the name for this tag.
-         *
-         * @return The name for this tag.
-         */
-        public String getName() {
+        @Override
+        String getName() {
             return "Random";
         }
 
-        /**
-         * Indicates whether this tag is allowed for use in the extra lines for
-         * branches.
-         *
-         * @return <CODE>true</CODE> if this tag may be used in branch
-         *         definitions, or <CODE>false</CODE> if not.
-         */
-        public boolean allowedInBranch() {
+        @Override
+        boolean allowedInBranch() {
             return true;
         }
 
-        /**
-         * Performs any initialization for this tag that may be needed while
-         * parsing a branch definition.
-         *
-         * @param templateFile
-         *            The template file in which this tag is used.
-         * @param branch
-         *            The branch in which this tag is used.
-         * @param arguments
-         *            The set of arguments provided for this tag.
-         * @param lineNumber
-         *            The line number on which this tag appears in the template
-         *            file.
-         * @param warnings
-         *            A list into which any appropriate warning messages may be
-         *            placed.
-         */
         @Override
-        public void initializeForBranch(Schema schema, TemplateFile templateFile, Branch branch, String[] arguments,
+        void initializeForBranch(Schema schema, TemplateFile templateFile, Branch branch, String[] arguments,
                 int lineNumber, List<LocalizableMessage> warnings) throws DecodeException {
-            initializeInternal(templateFile, arguments, lineNumber, warnings);
+            initialize(templateFile, arguments, lineNumber, warnings);
         }
 
-        /**
-         * Performs any initialization for this tag that may be needed while
-         * parsing a template definition.
-         *
-         * @param templateFile
-         *            The template file in which this tag is used.
-         * @param template
-         *            The template in which this tag is used.
-         * @param arguments
-         *            The set of arguments provided for this tag.
-         * @param lineNumber
-         *            The line number on which this tag appears in the template
-         *            file.
-         * @param warnings
-         *            A list into which any appropriate warning messages may be
-         *            placed.
-         */
         @Override
-        public void initializeForTemplate(Schema schema, TemplateFile templateFile, Template template,
+        void initializeForTemplate(Schema schema, TemplateFile templateFile, Template template,
                 String[] arguments, int lineNumber, List<LocalizableMessage> warnings) throws DecodeException {
-            initializeInternal(templateFile, arguments, lineNumber, warnings);
+            initialize(templateFile, arguments, lineNumber, warnings);
         }
 
-        /**
-         * Performs any initialization for this tag that may be needed while
-         * parsing either a branch or template definition.
-         *
-         * @param templateFile
-         *            The template file in which this tag is used.
-         * @param arguments
-         *            The set of arguments provided for this tag.
-         * @param lineNumber
-         *            The line number on which this tag appears in the template
-         *            file.
-         * @param warnings
-         *            A list into which any appropriate warning messages may be
-         *            placed.
-         * @throws DecodeException
-         *             If a problem occurs while initializing this tag.
-         */
-        private void initializeInternal(TemplateFile templateFile, String[] arguments, int lineNumber,
+        private void initialize(TemplateFile templateFile, String[] arguments, int lineNumber,
                 List<LocalizableMessage> warnings) throws DecodeException {
             random = templateFile.getRandom();
 
@@ -1974,7 +1019,7 @@ abstract class TemplateTag {
                 decodeLength(arguments, 1, lineNumber, warnings);
             } else if (randomTypeString.equals("numeric")) {
                 if (numArgs == 2) {
-                    randomType = RANDOM_TYPE_CHARS_FIXED;
+                    randomType = RandomType.CHARS_FIXED;
                     characterSet = NUMERIC_CHARS;
 
                     try {
@@ -1994,7 +1039,7 @@ abstract class TemplateTag {
                         throw DecodeException.fatalError(message, nfe);
                     }
                 } else if ((numArgs == 3) || (numArgs == 4)) {
-                    randomType = RANDOM_TYPE_NUMERIC;
+                    randomType = RandomType.NUMERIC;
 
                     if (numArgs == 4) {
                         try {
@@ -2054,7 +1099,7 @@ abstract class TemplateTag {
                 characterSet = BASE64_CHARS;
                 decodeLength(arguments, 1, lineNumber, warnings);
             } else if (randomTypeString.equals("month")) {
-                randomType = RANDOM_TYPE_MONTH;
+                randomType = RandomType.MONTH;
 
                 if (numArgs == 1) {
                     maxLength = 0;
@@ -2077,7 +1122,7 @@ abstract class TemplateTag {
                     throw DecodeException.fatalError(message);
                 }
             } else if (randomTypeString.equals("telephone")) {
-                randomType = RANDOM_TYPE_TELEPHONE;
+                randomType = RandomType.TELEPHONE;
             } else {
                 LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_UNKNOWN_RANDOM_TYPE.get(lineNumber,
                         randomTypeString);
@@ -2108,7 +1153,7 @@ abstract class TemplateTag {
 
             if (numArgs == 2) {
                 // There is a fixed number of characters in the value.
-                randomType = RANDOM_TYPE_CHARS_FIXED;
+                randomType = RandomType.CHARS_FIXED;
 
                 try {
                     minLength = Integer.parseInt(arguments[startPos]);
@@ -2128,7 +1173,7 @@ abstract class TemplateTag {
                 }
             } else if (numArgs == 3) {
                 // There are minimum and maximum lengths.
-                randomType = RANDOM_TYPE_CHARS_VARIABLE;
+                randomType = RandomType.CHARS_VARIABLE;
 
                 try {
                     minLength = Integer.parseInt(arguments[startPos]);
@@ -2168,33 +1213,23 @@ abstract class TemplateTag {
             }
         }
 
-        /**
-         * Generates the content for this tag by appending it to the provided
-         * tag.
-         *
-         * @param templateEntry
-         *            The entry for which this tag is being generated.
-         * @param templateValue
-         *            The template value to which the generated content should
-         *            be appended.
-         * @return The result of generating content for this tag.
-         */
-        public TagResult generateValue(TemplateEntry templateEntry, TemplateValue templateValue) {
+        @Override
+        TagResult generateValue(TemplateEntry templateEntry, TemplateValue templateValue) {
             switch (randomType) {
-            case RANDOM_TYPE_CHARS_FIXED:
+            case CHARS_FIXED:
                 for (int i = 0; i < minLength; i++) {
                     templateValue.append(characterSet[random.nextInt(characterSet.length)]);
                 }
                 break;
 
-            case RANDOM_TYPE_CHARS_VARIABLE:
+            case CHARS_VARIABLE:
                 int numChars = random.nextInt(lengthRange) + minLength;
                 for (int i = 0; i < numChars; i++) {
                     templateValue.append(characterSet[random.nextInt(characterSet.length)]);
                 }
                 break;
 
-            case RANDOM_TYPE_NUMERIC:
+            case NUMERIC:
                 long randomValue = ((random.nextLong() & 0x7FFFFFFFFFFFFFFFL) % valueRange) + minValue;
                 if (decimalFormat == null) {
                     templateValue.append(randomValue);
@@ -2203,7 +1238,7 @@ abstract class TemplateTag {
                 }
                 break;
 
-            case RANDOM_TYPE_MONTH:
+            case MONTH:
                 String month = MONTHS[random.nextInt(MONTHS.length)];
                 if ((maxLength == 0) || (month.length() <= maxLength)) {
                     templateValue.append(month);
@@ -2212,7 +1247,7 @@ abstract class TemplateTag {
                 }
                 break;
 
-            case RANDOM_TYPE_TELEPHONE:
+            case TELEPHONE:
                 templateValue.append("+1 ");
                 for (int i = 0; i < 3; i++) {
                     templateValue.append(NUMERIC_CHARS[random.nextInt(NUMERIC_CHARS.length)]);
@@ -2228,89 +1263,38 @@ abstract class TemplateTag {
                 break;
             }
 
-            return TagResult.SUCCESS_RESULT;
+            return TagResult.SUCCESS;
         }
     }
 
     /**
-     * This class defines a tag that is used to include the RDN of the current
-     * entry in the attribute value.
+     * Tag used to include the RDN of the current entry in the attribute value.
      */
     static class RDNTag extends TemplateTag {
-        /**
-         * Creates a new instance of this RDN tag.
-         */
-        public RDNTag() {
-            // No implementation required.
-        }
 
-        /**
-         * Retrieves the name for this tag.
-         *
-         * @return The name for this tag.
-         */
-        public String getName() {
+        @Override
+        String getName() {
             return "RDN";
         }
 
-        /**
-         * Indicates whether this tag is allowed for use in the extra lines for
-         * branches.
-         *
-         * @return <CODE>true</CODE> if this tag may be used in branch
-         *         definitions, or <CODE>false</CODE> if not.
-         */
-        public boolean allowedInBranch() {
+        @Override
+        boolean allowedInBranch() {
             return true;
         }
 
-        /**
-         * Performs any initialization for this tag that may be needed while
-         * parsing a branch definition.
-         *
-         * @param templateFile
-         *            The template file in which this tag is used.
-         * @param branch
-         *            The branch in which this tag is used.
-         * @param arguments
-         *            The set of arguments provided for this tag.
-         * @param lineNumber
-         *            The line number on which this tag appears in the template
-         *            file.
-         * @param warnings
-         *            A list into which any appropriate warning messages may be
-         *            placed.
-         */
         @Override
-        public void initializeForBranch(Schema schema, TemplateFile templateFile, Branch branch, String[] arguments,
+        void initializeForBranch(Schema schema, TemplateFile templateFile, Branch branch, String[] arguments,
                 int lineNumber, List<LocalizableMessage> warnings) throws DecodeException {
-            if (arguments.length != 0) {
-                LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_INVALID_ARGUMENT_COUNT.get(getName(), lineNumber,
-                        0, arguments.length);
-                throw DecodeException.fatalError(message);
-            }
+            initialize(arguments, lineNumber);
         }
 
-        /**
-         * Performs any initialization for this tag that may be needed while
-         * parsing a template definition.
-         *
-         * @param templateFile
-         *            The template file in which this tag is used.
-         * @param template
-         *            The template in which this tag is used.
-         * @param arguments
-         *            The set of arguments provided for this tag.
-         * @param lineNumber
-         *            The line number on which this tag appears in the template
-         *            file.
-         * @param warnings
-         *            A list into which any appropriate warning messages may be
-         *            placed.
-         */
         @Override
-        public void initializeForTemplate(Schema schema, TemplateFile templateFile, Template template,
-                String[] arguments, int lineNumber, List<LocalizableMessage> warnings) throws DecodeException {
+        void initializeForTemplate(Schema schema, TemplateFile templateFile, Template template, String[] arguments,
+                int lineNumber, List<LocalizableMessage> warnings) throws DecodeException {
+            initialize(arguments, lineNumber);
+        }
+
+        private void initialize(String[] arguments, int lineNumber) throws DecodeException {
             if (arguments.length != 0) {
                 LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_INVALID_ARGUMENT_COUNT.get(getName(), lineNumber,
                         0, arguments.length);
@@ -2318,35 +1302,25 @@ abstract class TemplateTag {
             }
         }
 
-        /**
-         * Generates the content for this tag by appending it to the provided
-         * tag.
-         *
-         * @param templateEntry
-         *            The entry for which this tag is being generated.
-         * @param templateValue
-         *            The template value to which the generated content should
-         *            be appended.
-         * @return The result of generating content for this tag.
-         */
-        public TagResult generateValue(TemplateEntry templateEntry, TemplateValue templateValue) {
+        @Override
+        TagResult generateValue(TemplateEntry templateEntry, TemplateValue templateValue) {
             DN dn = templateEntry.getDN();
             if ((dn == null) || dn.isRootDN()) {
-                return TagResult.SUCCESS_RESULT;
+                return TagResult.SUCCESS;
             } else {
                 templateValue.append(dn.rdn());
-                return TagResult.SUCCESS_RESULT;
+                return TagResult.SUCCESS;
             }
         }
     }
 
     /**
-     * This class defines a tag that is used to include a
-     * sequentially-incrementing integer in the generated values.
+     * Tag that is used to include a sequentially-incrementing integer in the
+     * generated values.
      */
     static class SequentialTag extends TemplateTag {
         /** Indicates whether to reset for each parent. */
-        private boolean resetOnNewParents;
+        private boolean resetOnNewParents = true;
 
         /** The initial value in the sequence. */
         private int initialValue;
@@ -2354,515 +1328,156 @@ abstract class TemplateTag {
         /** The next value in the sequence. */
         private int nextValue;
 
-        /**
-         * Creates a new instance of this sequential tag.
-         */
-        public SequentialTag() {
-            // No implementation required.
-        }
-
-        /**
-         * Retrieves the name for this tag.
-         *
-         * @return The name for this tag.
-         */
-        public String getName() {
+        @Override
+        String getName() {
             return "Sequential";
         }
 
-        /**
-         * Indicates whether this tag is allowed for use in the extra lines for
-         * branches.
-         *
-         * @return <CODE>true</CODE> if this tag may be used in branch
-         *         definitions, or <CODE>false</CODE> if not.
-         */
-        public boolean allowedInBranch() {
+        @Override
+        boolean allowedInBranch() {
             return true;
         }
 
-        /**
-         * Performs any initialization for this tag that may be needed while
-         * parsing a branch definition.
-         *
-         * @param templateFile
-         *            The template file in which this tag is used.
-         * @param branch
-         *            The branch in which this tag is used.
-         * @param arguments
-         *            The set of arguments provided for this tag.
-         * @param lineNumber
-         *            The line number on which this tag appears in the template
-         *            file.
-         * @param warnings
-         *            A list into which any appropriate warning messages may be
-         *            placed.
-         */
         @Override
-        public void initializeForBranch(Schema schema, TemplateFile templateFile, Branch branch, String[] arguments,
+        void initializeForBranch(Schema schema, TemplateFile templateFile, Branch branch, String[] arguments,
                 int lineNumber, List<LocalizableMessage> warnings) throws DecodeException {
-            initializeInternal(templateFile, arguments, lineNumber);
+            initialize(arguments, lineNumber);
         }
 
-        /**
-         * Performs any initialization for this tag that may be needed while
-         * parsing a template definition.
-         *
-         * @param templateFile
-         *            The template file in which this tag is used.
-         * @param template
-         *            The template in which this tag is used.
-         * @param arguments
-         *            The set of arguments provided for this tag.
-         * @param lineNumber
-         *            The line number on which this tag appears in the template
-         *            file.
-         * @param warnings
-         *            A list into which any appropriate warning messages may be
-         *            placed.
-         */
         @Override
-        public void initializeForTemplate(Schema schema, TemplateFile templateFile, Template template,
+        void initializeForTemplate(Schema schema, TemplateFile templateFile, Template template,
                 String[] arguments, int lineNumber, List<LocalizableMessage> warnings) throws DecodeException {
-            initializeInternal(templateFile, arguments, lineNumber);
+            initialize(arguments, lineNumber);
         }
 
-        /**
-         * Performs any initialization for this tag that may be needed for this
-         * tag.
-         *
-         * @param templateFile
-         *            The template file in which this tag is used.
-         * @param arguments
-         *            The set of arguments provided for this tag.
-         * @param lineNumber
-         *            The line number on which this tag appears in the template
-         *            file.
-         * @throws DecodeException
-         *             If a problem occurs while initializing this tag.
-         */
-        private void initializeInternal(TemplateFile templateFile, String[] arguments, int lineNumber)
-                throws DecodeException {
-            switch (arguments.length) {
-            case 0:
-                initialValue = 0;
-                nextValue = 0;
-                resetOnNewParents = true;
-                break;
-            case 1:
-                try {
-                    initialValue = Integer.parseInt(arguments[0]);
-                } catch (NumberFormatException nfe) {
-                    LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_CANNOT_PARSE_AS_INTEGER.get(arguments[0],
-                            getName(), lineNumber);
-                    throw DecodeException.fatalError(message);
+        private void initialize(String[] arguments, int lineNumber) throws DecodeException {
+            if (arguments.length < 0 || arguments.length > 2) {
+                throw DecodeException.fatalError(ERR_ENTRY_GENERATOR_TAG_INVALID_ARGUMENT_RANGE_COUNT.get(
+                        getName(), lineNumber, 0, 2, arguments.length));
+            }
+            if (arguments.length > 0) {
+                initializeValue(arguments[0], lineNumber);
+                if (arguments.length > 1) {
+                    initializeReset(arguments[1], lineNumber);
                 }
-
-                nextValue = initialValue;
-                resetOnNewParents = true;
-                break;
-            case 2:
-                try {
-                    initialValue = Integer.parseInt(arguments[0]);
-                } catch (NumberFormatException nfe) {
-                    LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_CANNOT_PARSE_AS_INTEGER.get(arguments[0],
-                            getName(), lineNumber);
-                    throw DecodeException.fatalError(message);
-                }
-
-                if (arguments[1].equalsIgnoreCase("true")) {
-                    resetOnNewParents = true;
-                } else if (arguments[1].equalsIgnoreCase("false")) {
-                    resetOnNewParents = false;
-                } else {
-                    LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_CANNOT_PARSE_AS_BOOLEAN.get(arguments[1],
-                            getName(), lineNumber);
-                    throw DecodeException.fatalError(message);
-                }
-
-                nextValue = initialValue;
-                break;
-            default:
-                LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_INVALID_ARGUMENT_RANGE_COUNT.get(getName(),
-                        lineNumber, 0, 2, arguments.length);
-                throw DecodeException.fatalError(message);
             }
         }
 
-        /**
-         * Performs any initialization for this tag that may be needed when
-         * starting to generate entries below a new parent.
-         *
-         * @param parentEntry
-         *            The entry below which the new entries will be generated.
-         */
-        public void initializeForParent(TemplateEntry parentEntry) {
+        private void initializeReset(String resetValue, int lineNumber) throws DecodeException {
+            if (resetValue.equalsIgnoreCase("true")) {
+                resetOnNewParents = true;
+            } else if (resetValue.equalsIgnoreCase("false")) {
+                resetOnNewParents = false;
+            } else {
+                throw DecodeException.fatalError(ERR_ENTRY_GENERATOR_TAG_CANNOT_PARSE_AS_BOOLEAN.get(
+                        resetValue, getName(), lineNumber));
+            }
+        }
+
+        private void initializeValue(String value, int lineNumber) throws DecodeException {
+            try {
+                initialValue = Integer.parseInt(value);
+            } catch (NumberFormatException nfe) {
+                throw DecodeException.fatalError(ERR_ENTRY_GENERATOR_TAG_CANNOT_PARSE_AS_INTEGER.get(
+                        value, getName(), lineNumber));
+            }
+            nextValue = initialValue;
+        }
+
+        @Override
+        void initializeForParent(TemplateEntry parentEntry) {
             if (resetOnNewParents) {
                 nextValue = initialValue;
             }
         }
 
-        /**
-         * Generates the content for this tag by appending it to the provided
-         * tag.
-         *
-         * @param templateEntry
-         *            The entry for which this tag is being generated.
-         * @param templateValue
-         *            The template value to which the generated content should
-         *            be appended.
-         * @return The result of generating content for this tag.
-         */
-        public TagResult generateValue(TemplateEntry templateEntry, TemplateValue templateValue) {
+        @Override
+        TagResult generateValue(TemplateEntry templateEntry, TemplateValue templateValue) {
             templateValue.append(nextValue++);
-            return TagResult.SUCCESS_RESULT;
+            return TagResult.SUCCESS;
         }
     }
 
     /**
-     * This class defines a tag that is used to hold static text (i.e., text
-     * that appears outside of any tag).
+     * Tag that is used to hold static text (i.e., text that appears outside of
+     * any tag).
      */
     static class StaticTextTag extends TemplateTag {
 
-        /** The static text to include in the LDIF. */
-        private String text;
+        /** The static text to include. */
+        private String text = "";
 
-        /**
-         * Creates a new instance of this static text tag.
-         */
-        public StaticTextTag() {
-            text = "";
-        }
-
-        /**
-         * Retrieves the name for this tag.
-         *
-         * @return The name for this tag.
-         */
-        public String getName() {
+        @Override
+        String getName() {
             return "StaticText";
         }
 
-        /**
-         * Indicates whether this tag is allowed for use in the extra lines for
-         * branches.
-         *
-         * @return <CODE>true</CODE> if this tag may be used in branch
-         *         definitions, or <CODE>false</CODE> if not.
-         */
-        public boolean allowedInBranch() {
+        @Override
+        boolean allowedInBranch() {
             return true;
         }
 
-        /**
-         * Performs any initialization for this tag that may be needed while
-         * parsing a branch definition.
-         *
-         * @param templateFile
-         *            The template file in which this tag is used.
-         * @param branch
-         *            The branch in which this tag is used.
-         * @param arguments
-         *            The set of arguments provided for this tag.
-         * @param lineNumber
-         *            The line number on which this tag appears in the template
-         *            file.
-         * @param warnings
-         *            A list into which any appropriate warning messages may be
-         *            placed.
-         */
         @Override
-        public void initializeForBranch(Schema schema, TemplateFile templateFile, Branch branch, String[] arguments,
+        void initializeForBranch(Schema schema, TemplateFile templateFile, Branch branch, String[] arguments,
                 int lineNumber, List<LocalizableMessage> warnings) throws DecodeException {
-            if (arguments.length != 1) {
-                LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_INVALID_ARGUMENT_COUNT.get(getName(), lineNumber,
-                        1, arguments.length);
-                throw DecodeException.fatalError(message);
-            }
-
-            text = arguments[0];
+            initialize(arguments, lineNumber);
         }
 
-        /**
-         * Performs any initialization for this tag that may be needed while
-         * parsing a template definition.
-         *
-         * @param templateFile
-         *            The template file in which this tag is used.
-         * @param template
-         *            The template in which this tag is used.
-         * @param arguments
-         *            The set of arguments provided for this tag.
-         * @param lineNumber
-         *            The line number on which this tag appears in the template
-         *            file.
-         * @param warnings
-         *            A list into which any appropriate warning messages may be
-         *            placed.
-         */
         @Override
-        public void initializeForTemplate(Schema schema, TemplateFile templateFile, Template template,
+        void initializeForTemplate(Schema schema, TemplateFile templateFile, Template template,
                 String[] arguments, int lineNumber, List<LocalizableMessage> warnings) throws DecodeException {
+            initialize(arguments, lineNumber);
+        }
+
+        private void initialize(String[] arguments, int lineNumber) throws DecodeException {
             if (arguments.length != 1) {
                 LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_INVALID_ARGUMENT_COUNT.get(getName(), lineNumber,
                         1, arguments.length);
                 throw DecodeException.fatalError(message);
             }
-
             text = arguments[0];
         }
 
-        /**
-         * Generates the content for this tag by appending it to the provided
-         * tag.
-         *
-         * @param templateEntry
-         *            The entry for which this tag is being generated.
-         * @param templateValue
-         *            The template value to which the generated content should
-         *            be appended.
-         * @return The result of generating content for this tag.
-         */
-        public TagResult generateValue(TemplateEntry templateEntry, TemplateValue templateValue) {
+        @Override
+        TagResult generateValue(TemplateEntry templateEntry, TemplateValue templateValue) {
             templateValue.append(text);
-            return TagResult.SUCCESS_RESULT;
+            return TagResult.SUCCESS;
         }
     }
 
     /**
-     * This class defines a tag that is used to include the DN of the current
-     * entry in the attribute value, with underscores in place of the commas.
+     * Tag used to include the DN of the current entry in the attribute value,
+     * with underscores in place of the commas.
      */
-    static class UnderscoreDNTag extends TemplateTag {
-        /** The number of DN components to include. */
-        private int numComponents;
+    static class UnderscoreDNTag extends DNTag {
 
-        /**
-         * Creates a new instance of this DN tag.
-         */
-        public UnderscoreDNTag() {
-            numComponents = 0;
-        }
-
-        /**
-         * Retrieves the name for this tag.
-         *
-         * @return The name for this tag.
-         */
-        public String getName() {
+        @Override
+        String getName() {
             return "_DN";
         }
 
-        /**
-         * Indicates whether this tag is allowed for use in the extra lines for
-         * branches.
-         *
-         * @return <CODE>true</CODE> if this tag may be used in branch
-         *         definitions, or <CODE>false</CODE> if not.
-         */
-        public boolean allowedInBranch() {
-            return true;
-        }
-
-        /**
-         * Performs any initialization for this tag that may be needed while
-         * parsing a branch definition.
-         *
-         * @param templateFile
-         *            The template file in which this tag is used.
-         * @param branch
-         *            The branch in which this tag is used.
-         * @param arguments
-         *            The set of arguments provided for this tag.
-         * @param lineNumber
-         *            The line number on which this tag appears in the template
-         *            file.
-         * @param warnings
-         *            A list into which any appropriate warning messages may be
-         *            placed.
-         */
         @Override
-        public void initializeForBranch(Schema schema, TemplateFile templateFile, Branch branch, String[] arguments,
-                int lineNumber, List<LocalizableMessage> warnings) throws DecodeException {
-            initializeInternal(templateFile, arguments, lineNumber);
-        }
-
-        /**
-         * Performs any initialization for this tag that may be needed while
-         * parsing a template definition.
-         *
-         * @param templateFile
-         *            The template file in which this tag is used.
-         * @param template
-         *            The template in which this tag is used.
-         * @param arguments
-         *            The set of arguments provided for this tag.
-         * @param lineNumber
-         *            The line number on which this tag appears in the template
-         *            file.
-         * @param warnings
-         *            A list into which any appropriate warning messages may be
-         *            placed.
-         */
-        @Override
-        public void initializeForTemplate(Schema schema, TemplateFile templateFile, Template template,
-                String[] arguments, int lineNumber, List<LocalizableMessage> warnings) throws DecodeException {
-            initializeInternal(templateFile, arguments, lineNumber);
-        }
-
-        /**
-         * Performs any initialization for this tag that may be needed for this
-         * tag.
-         *
-         * @param templateFile
-         *            The template file in which this tag is used.
-         * @param arguments
-         *            The set of arguments provided for this tag.
-         * @param lineNumber
-         *            The line number on which this tag appears in the template
-         *            file.
-         * @throws DecodeException
-         *             TODO
-         */
-        private void initializeInternal(TemplateFile templateFile, String[] arguments, int lineNumber)
-                throws DecodeException {
-            if (arguments.length == 0) {
-                numComponents = 0;
-            } else if (arguments.length == 1) {
-                try {
-                    numComponents = Integer.parseInt(arguments[0]);
-                } catch (NumberFormatException nfe) {
-                    LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_CANNOT_PARSE_AS_INTEGER.get(arguments[0],
-                            getName(), lineNumber);
-                    throw DecodeException.fatalError(message);
-                }
-            } else {
-                LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_INVALID_ARGUMENT_RANGE_COUNT.get(getName(),
-                        lineNumber, 0, 1, arguments.length);
-                throw DecodeException.fatalError(message);
-            }
-        }
-
-        /**
-         * Generates the content for this tag by appending it to the provided
-         * tag.
-         *
-         * @param templateEntry
-         *            The entry for which this tag is being generated.
-         * @param templateValue
-         *            The template value to which the generated content should
-         *            be appended.
-         * @return The result of generating content for this tag.
-         */
-        public TagResult generateValue(TemplateEntry templateEntry, TemplateValue templateValue) {
-            DN dn = templateEntry.getDN();
-            if ((dn == null) || dn.isRootDN()) {
-                return TagResult.SUCCESS_RESULT;
-            }
-
-            if (numComponents == 0) {
-                templateValue.append(dn.rdn());
-                for (int i = 1; i < dn.size(); i++) {
-                    templateValue.append("_");
-                    templateValue.append(dn.parent(i).rdn());
-                }
-            } else if (numComponents > 0) {
-                int count = Math.min(numComponents, dn.size());
-                templateValue.append(dn.rdn());
-                for (int i = 1; i < count; i++) {
-                    templateValue.append(",");
-                    templateValue.append(dn.parent(i).rdn());
-                }
-            } else {
-                int size = dn.size();
-                int count = Math.min(Math.abs(numComponents), size);
-
-                templateValue.append(dn.parent(size - count).rdn());
-                for (int i = 1; i < count; i++) {
-                    templateValue.append(",");
-                    templateValue.append(dn.parent(size - count + i).rdn());
-                }
-            }
-
-            return TagResult.SUCCESS_RESULT;
+        TagResult generateValue(TemplateEntry templateEntry, TemplateValue templateValue) {
+            return generateValue(templateEntry, templateValue, "_");
         }
     }
 
     /**
-     * This class defines a tag that is used to include the DN of the parent
-     * entry in the attribute value, with underscores in place of commas.
+     * Tag used to include the DN of the parent entry in the attribute value,
+     * with underscores in place of commas.
      */
-    static class UnderscoreParentDNTag extends TemplateTag {
-        /**
-         * Creates a new instance of this underscore parent DN tag.
-         */
-        public UnderscoreParentDNTag() {
-            // No implementation required.
-        }
+    static class UnderscoreParentDNTag extends ParentTag {
 
-        /**
-         * Retrieves the name for this tag.
-         *
-         * @return The name for this tag.
-         */
-        public String getName() {
+        @Override
+        String getName() {
             return "_ParentDN";
         }
 
-        /**
-         * Indicates whether this tag is allowed for use in the extra lines for
-         * branches.
-         *
-         * @return <CODE>true</CODE> if this tag may be used in branch
-         *         definitions, or <CODE>false</CODE> if not.
-         */
-        public boolean allowedInBranch() {
-            return false;
-        }
-
-        /**
-         * Performs any initialization for this tag that may be needed while
-         * parsing a template definition.
-         *
-         * @param templateFile
-         *            The template file in which this tag is used.
-         * @param template
-         *            The template in which this tag is used.
-         * @param arguments
-         *            The set of arguments provided for this tag.
-         * @param lineNumber
-         *            The line number on which this tag appears in the template
-         *            file.
-         * @param warnings
-         *            A list into which any appropriate warning messages may be
-         *            placed.
-         */
         @Override
-        public void initializeForTemplate(Schema schema, TemplateFile templateFile, Template template,
-                String[] arguments, int lineNumber, List<LocalizableMessage> warnings) throws DecodeException {
-            if (arguments.length != 0) {
-                LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_INVALID_ARGUMENT_COUNT.get(getName(), lineNumber,
-                        0, arguments.length);
-                throw DecodeException.fatalError(message);
-            }
-        }
-
-        /**
-         * Generates the content for this tag by appending it to the provided
-         * tag.
-         *
-         * @param templateEntry
-         *            The entry for which this tag is being generated.
-         * @param templateValue
-         *            The template value to which the generated content should
-         *            be appended.
-         * @return The result of generating content for this tag.
-         */
-        public TagResult generateValue(TemplateEntry templateEntry, TemplateValue templateValue) {
+        TagResult generateValue(TemplateEntry templateEntry, TemplateValue templateValue) {
             DN parentDN = templateEntry.getParentDN();
             if ((parentDN == null) || parentDN.isRootDN()) {
-                return TagResult.SUCCESS_RESULT;
+                return TagResult.SUCCESS;
             }
             templateValue.append(parentDN.rdn());
             for (int i = 1; i < parentDN.size(); i++) {
@@ -2870,7 +1485,7 @@ abstract class TemplateTag {
                 templateValue.append(parentDN.parent(i).rdn());
             }
 
-            return TagResult.SUCCESS_RESULT;
+            return TagResult.SUCCESS;
         }
     }
 }

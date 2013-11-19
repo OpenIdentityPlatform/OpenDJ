@@ -36,29 +36,30 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Random;
+import java.util.Set;
 import java.util.StringTokenizer;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.AVA;
 import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.AttributeDescription;
-import org.forgerock.opendj.ldap.AttributeFactory;
+import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.DecodeException;
-import org.forgerock.opendj.ldap.Entries;
 import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.LinkedAttribute;
 import org.forgerock.opendj.ldap.LinkedHashMapEntry;
 import org.forgerock.opendj.ldap.RDN;
 import org.forgerock.opendj.ldap.schema.AttributeType;
-import org.forgerock.opendj.ldap.schema.CoreSchema;
-import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldif.TemplateTag.AttributeValueTag;
 import org.forgerock.opendj.ldif.TemplateTag.DNTag;
@@ -79,7 +80,9 @@ import org.forgerock.opendj.ldif.TemplateTag.TagResult;
 import org.forgerock.opendj.ldif.TemplateTag.UnderscoreDNTag;
 import org.forgerock.opendj.ldif.TemplateTag.UnderscoreParentDNTag;
 
+import com.forgerock.opendj.util.Pair;
 import com.forgerock.opendj.util.StaticUtils;
+import com.forgerock.opendj.util.Validator;
 
 /**
  * A template file allow to generate entries from a collection of constant
@@ -88,21 +91,24 @@ import com.forgerock.opendj.util.StaticUtils;
  * @see EntryGenerator
  */
 class TemplateFile {
-    /**
-     * The name of the file holding the list of first names.
-     */
-    public static final String FIRST_NAME_FILE = "first.names";
 
-    /**
-     * The name of the file holding the list of last names.
-     */
-    public static final String LAST_NAME_FILE = "last.names";
+    /** Default resource path used if no resource path is provided. */
+    private static final File DEFAULT_RESOURCES_PATH = new File("org/forgerock/opendj/ldif");
+
+    /** Default template path used if no template file is provided. */
+    private static final String DEFAULT_TEMPLATE_PATH = "example.template";
+
+    /** The name of the file holding the list of first names. */
+    private static final String FIRST_NAME_FILE = "first.names";
+
+    /** The name of the file holding the list of last names. */
+    private static final String LAST_NAME_FILE = "last.names";
 
     /**
      * A map of the contents of various text files used during the parsing
      * process, mapped from absolute path to the array of lines in the file.
      */
-    private Map<String, String[]> fileLines;
+    private final Map<String, String[]> fileLines = new HashMap<String, String[]>();
 
     /** The index of the next first name value that should be used. */
     private int firstNameIndex;
@@ -120,22 +126,22 @@ class TemplateFile {
      * A counter that will be used in case we have exhausted all possible first
      * and last name combinations.
      */
-    private int nameUniquenessCounter;
+    private int nameUniquenessCounter = 1;
 
     /** The set of branch definitions for this template file. */
-    private Map<DN, Branch> branches;
+    private final Map<DN, Branch> branches = new LinkedHashMap<DN, Branch>();
 
     /** The set of constant definitions for this template file. */
-    private Map<String, String> constants;
+    private final Map<String, String> constants;
 
     /** The set of registered tags for this template file. */
-    private Map<String, TemplateTag> registeredTags;
+    private final Map<String, TemplateTag> registeredTags = new LinkedHashMap<String, TemplateTag>();
 
     /** The set of template definitions for this template file. */
-    private Map<String, Template> templates;
+    private final Map<String, Template> templates = new LinkedHashMap<String, Template>();
 
     /** The random number generator for this template file. */
-    private Random random;
+    private final Random random;
 
     /** The next first name that should be used. */
     private String firstName;
@@ -149,14 +155,11 @@ class TemplateFile {
      */
     private String resourcePath;
 
-    /** The path to the directory containing the template file, if available. */
-    private String templatePath;
-
     /** The set of first names to use when generating the LDIF. */
-    private String[] firstNames;
+    private String[] firstNames = new String[0];
 
     /** The set of last names to use when generating the LDIF. */
-    private String[] lastNames;
+    private String[] lastNames = new String[0];
 
     /** Schema used to create attributes. */
     private final Schema schema;
@@ -165,107 +168,51 @@ class TemplateFile {
      * Creates a new, empty template file structure.
      *
      * @param schema
-     *            LDAP Schema to use
+     *            LDAP Schema to use.
+     * @param constants
+     *            Constants to use, override any constant defined in the
+     *            template file. May be {@code null}.
      * @param resourcePath
      *            The path to the directory that may contain additional resource
-     *            files needed during the generation process.
+     *            files needed during the generation process. May be
+     *            {@code null}.
+     * @throws IOException
+     *             if a problem occurs when initializing
      */
-    public TemplateFile(Schema schema, String resourcePath) {
-        this(schema, resourcePath, new Random());
+    TemplateFile(Schema schema, Map<String, String> constants, String resourcePath) throws IOException {
+        this(schema, constants, resourcePath, new Random());
     }
 
     /**
      * Creates a new, empty template file structure.
      *
      * @param schema
-     *            used to create attributes
+     *            LDAP Schema to use.
+     * @param constants
+     *            Constants to use, override any constant defined in the
+     *            template file. May be {@code null}.
      * @param resourcePath
      *            The path to the directory that may contain additional resource
-     *            files needed during the generation process.
+     *            files needed during the generation process. May be
+     *            {@code null}.
      * @param random
      *            The random number generator for this template file.
+     * @throws IOException
+     *             if a problem occurs when initializing
      */
-    public TemplateFile(Schema schema, String resourcePath, Random random) {
+    TemplateFile(Schema schema, Map<String, String> constants, String resourcePath, Random random)
+            throws IOException {
+        Validator.ensureNotNull(schema, random);
         this.schema = schema;
+        this.constants = constants != null ? constants : new HashMap<String, String>();
         this.resourcePath = resourcePath;
         this.random = random;
-
-        fileLines = new HashMap<String, String[]>();
-        branches = new LinkedHashMap<DN, Branch>();
-        constants = new LinkedHashMap<String, String>();
-        registeredTags = new LinkedHashMap<String, TemplateTag>();
-        templates = new LinkedHashMap<String, Template>();
-        templatePath = null;
-        firstNames = new String[0];
-        lastNames = new String[0];
-        firstName = null;
-        lastName = null;
-        firstNameIndex = 0;
-        lastNameIndex = 0;
-        nameLoopCounter = 0;
-        nameUniquenessCounter = 1;
-
         registerDefaultTags();
-
-        readNames();
+        retrieveFirstAndLastNames();
     }
 
-    /**
-     * Retrieves the set of tags that have been registered. They will be in the
-     * form of a mapping between the name of the tag (in all lowercase
-     * characters) and the corresponding tag implementation.
-     *
-     * @return The set of tags that have been registered.
-     */
-    public Map<String, TemplateTag> getTags() {
-        return registeredTags;
-    }
-
-    /**
-     * Retrieves the tag with the specified name.
-     *
-     * @param lowerName
-     *            The name of the tag to retrieve, in all lowercase characters.
-     * @return The requested tag, or <CODE>null</CODE> if no such tag has been
-     *         registered.
-     */
-    public TemplateTag getTag(String lowerName) {
+    TemplateTag getTag(String lowerName) {
         return registeredTags.get(lowerName);
-    }
-
-    /**
-     * Registers the specified class as a tag that may be used in templates.
-     *
-     * @param tagClass
-     *            The fully-qualified name of the class to register as a tag.
-     * @throws DecodeException
-     *             If a problem occurs while attempting to register the
-     *             specified tag.
-     */
-    public void registerTag(String tagClass) throws DecodeException {
-        Class<?> c;
-        try {
-            c = Class.forName(tagClass);
-        } catch (Exception e) {
-            final LocalizableMessage message = ERR_ENTRY_GENERATOR_CANNOT_LOAD_TAG_CLASS.get(tagClass);
-            throw DecodeException.fatalError(message, e);
-        }
-
-        TemplateTag t;
-        try {
-            t = (TemplateTag) c.newInstance();
-        } catch (Exception e) {
-            final LocalizableMessage message = ERR_ENTRY_GENERATOR_CANNOT_INSTANTIATE_TAG.get(tagClass);
-            throw DecodeException.fatalError(message, e);
-        }
-
-        String lowerName = t.getName().toLowerCase();
-        if (registeredTags.containsKey(lowerName)) {
-            final LocalizableMessage message = ERR_ENTRY_GENERATOR_CONFLICTING_TAG_NAME.get(tagClass, t.getName());
-            throw DecodeException.fatalError(message);
-        } else {
-            registeredTags.put(lowerName, t);
-        }
     }
 
     /**
@@ -278,182 +225,45 @@ class TemplateFile {
             ListTag.class, ParentDNTag.class, PresenceTag.class, RandomTag.class, RDNTag.class,
             SequentialTag.class, StaticTextTag.class, UnderscoreDNTag.class, UnderscoreParentDNTag.class };
 
-        for (Class<?> c : defaultTagClasses) {
+        for (final Class<?> c : defaultTagClasses) {
             try {
-                TemplateTag t = (TemplateTag) c.newInstance();
+                final TemplateTag t = (TemplateTag) c.newInstance();
                 registeredTags.put(t.getName().toLowerCase(), t);
             } catch (Exception e) {
-                // this should never happen
-                StaticUtils.DEFAULT_LOG.error(ERR_ENTRY_GENERATOR_CANNOT_INSTANTIATE_TAG.get(c.getName()).toString());
+                // this is a programming error
+                throw new RuntimeException(ERR_ENTRY_GENERATOR_CANNOT_INSTANTIATE_TAG.get(c.getName()).toString(), e);
             }
         }
     }
 
-    /**
-     * Retrieves the set of constants defined for this template file.
-     *
-     * @return The set of constants defined for this template file.
-     */
-    public Map<String, String> getConstants() {
-        return constants;
-    }
-
-    /**
-     * Retrieves the value of the constant with the specified name.
-     *
-     * @param lowerName
-     *            The name of the constant to retrieve, in all lowercase
-     *            characters.
-     * @return The value of the constant with the specified name, or
-     *         <CODE>null</CODE> if there is no such constant.
-     */
-    public String getConstant(String lowerName) {
-        return constants.get(lowerName);
-    }
-
-    /**
-     * Registers the provided constant for use in the template.
-     *
-     * @param name
-     *            The name for the constant.
-     * @param value
-     *            The value for the constant.
-     */
-    public void registerConstant(String name, String value) {
-        constants.put(name.toLowerCase(), value);
-    }
-
-    /**
-     * Retrieves the set of branches defined in this template file.
-     *
-     * @return The set of branches defined in this template file.
-     */
-    public Map<DN, Branch> getBranches() {
-        return branches;
-    }
-
-    /**
-     * Retrieves the branch registered with the specified DN.
-     *
-     * @param branchDN
-     *            The DN for which to retrieve the corresponding branch.
-     * @return The requested branch, or <CODE>null</CODE> if no such branch has
-     *         been registered.
-     */
-    public Branch getBranch(DN branchDN) {
-        return branches.get(branchDN);
-    }
-
-    /**
-     * Registers the provided branch in this template file.
-     *
-     * @param branch
-     *            The branch to be registered.
-     */
-    public void registerBranch(Branch branch) {
-        branches.put(branch.getBranchDN(), branch);
-    }
-
-    /**
-     * Retrieves the set of templates defined in this template file.
-     *
-     * @return The set of templates defined in this template file.
-     */
-    public Map<String, Template> getTemplates() {
-        return templates;
-    }
-
-    /**
-     * Retrieves the template with the specified name.
-     *
-     * @param lowerName
-     *            The name of the template to retrieve, in all lowercase
-     *            characters.
-     * @return The requested template, or <CODE>null</CODE> if there is no such
-     *         template.
-     */
-    public Template getTemplate(String lowerName) {
-        return templates.get(lowerName);
-    }
-
-    /**
-     * Registers the provided template for use in this template file.
-     *
-     * @param template
-     *            The template to be registered.
-     */
-    public void registerTemplate(Template template) {
-        templates.put(template.getName().toLowerCase(), template);
-    }
-
-    /**
-     * Retrieves the random number generator for this template file.
-     *
-     * @return The random number generator for this template file.
-     */
-    public Random getRandom() {
+    Random getRandom() {
         return random;
     }
 
-    /**
-     * Reads the first and last names in standard files or use default values if
-     * files can't be read.
-     */
-    private void readNames() {
-        firstNames = readNamesFromFile(FIRST_NAME_FILE);
-        if (firstNames == null) {
-            firstNames = new String[] { "Christophe", "Gael", "Gary", "Jean-Noel", "Laurent", "Ludovic", "Mark",
-                "Matthew", "Nicolas", "Violette" };
-        }
-        lastNames = readNamesFromFile(LAST_NAME_FILE);
-        if (lastNames == null) {
-            lastNames = new String[] { "Maahs", "Maas", "Mabes", "Mabson", "Mabuchi", "Mac", "Mac Maid", "MacAdams",
-                "MacArthur", "MacCarthy" };
-        }
-    }
-
-    /**
-     * Returns an array of names read in the provided file, or null if a problem
-     * occurs.
-     */
-    private String[] readNamesFromFile(String fileName) {
-        String[] names = null;
-        File file = getFile(fileName);
-        if (file != null) {
-            try {
-                List<String> nameList = readDataFile(file);
-                names = new String[nameList.size()];
-                nameList.toArray(names);
-            } catch (IOException e) {
-                // TODO : I18N
-                StaticUtils.DEFAULT_LOG.error("Unable to read names file {}", fileName);
-            }
-        }
-        return names;
-    }
-
-    /**
-     * Read a file of data, and return a list containing one item per line.
-     */
-    private List<String> readDataFile(File file) throws FileNotFoundException, IOException {
-        List<String> data = new ArrayList<String>();
-        BufferedReader reader = null;
+    private void retrieveFirstAndLastNames() throws IOException {
+        BufferedReader first = null;
         try {
-            reader = new BufferedReader(new FileReader(file));
-            while (true) {
-                String line = reader.readLine();
-                if (line == null) {
-                    break;
-                } else {
-                    data.add(line);
-                }
+            first = getReader(FIRST_NAME_FILE);
+            if (first == null) {
+                throw DecodeException.fatalError(ERR_ENTRY_GENERATOR_COULD_NOT_FIND_NAME_FILE.get(FIRST_NAME_FILE));
             }
+            final List<String> names = readLines(first);
+            firstNames = names.toArray(new String[names.size()]);
         } finally {
-            if (reader != null) {
-                reader.close();
-            }
+            StaticUtils.closeSilently(first);
         }
-        return data;
+
+        BufferedReader last = null;
+        try {
+            last = getReader(LAST_NAME_FILE);
+            if (last == null) {
+                throw DecodeException.fatalError(ERR_ENTRY_GENERATOR_COULD_NOT_FIND_NAME_FILE.get(LAST_NAME_FILE));
+            }
+            final List<String> names = readLines(last);
+            lastNames = names.toArray(new String[names.size()]);
+        } finally {
+            StaticUtils.closeSilently(first);
+        }
     }
 
     /**
@@ -463,22 +273,21 @@ class TemplateFile {
      * names and the number of last names being relatively prime. This method
      * should be called before beginning generation of each template entry.
      */
-    public void nextFirstAndLastNames() {
+    void nextFirstAndLastNames() {
         firstName = firstNames[firstNameIndex++];
         lastName = lastNames[lastNameIndex++];
 
-        // If we've already exhausted every possible combination, then append an
-        // integer to the last name.
+        // If we've already exhausted every possible combination
+        // then append an integer to the last name.
         if (nameUniquenessCounter > 1) {
             lastName += nameUniquenessCounter;
         }
 
         if (firstNameIndex >= firstNames.length) {
-            // We're at the end of the first name list, so start over. If the
-            // first
-            // name list is larger than the last name list, then we'll also need
-            // to
-            // set the last name index to the next loop counter position.
+            // We're at the end of the first name list, so start over.
+            // If the first name list is larger than the last name list,
+            // then we'll also need to set the last name index
+            // to the next loop counter position.
             firstNameIndex = 0;
             if (firstNames.length > lastNames.length) {
                 lastNameIndex = ++nameLoopCounter;
@@ -490,11 +299,10 @@ class TemplateFile {
         }
 
         if (lastNameIndex >= lastNames.length) {
-            // We're at the end of the last name list, so start over. If the
-            // last
-            // name list is larger than the first name list, then we'll also
-            // need to
-            // set the first name index to the next loop counter position.
+            // We're at the end of the last name list, so start over.
+            // If the last name list is larger than the first name list,
+            // then we'll also need to set the first name index
+            // to the next loop counter position.
             lastNameIndex = 0;
             if (lastNames.length > firstNames.length) {
                 firstNameIndex = ++nameLoopCounter;
@@ -506,29 +314,35 @@ class TemplateFile {
         }
     }
 
-    /**
-     * Retrieves the first name value that should be used for the current entry.
-     *
-     * @return The first name value that should be used for the current entry.
-     */
-    public String getFirstName() {
+    String getFirstName() {
         return firstName;
     }
 
-    /**
-     * Retrieves the last name value that should be used for the current entry.
-     *
-     * @return The last name value that should be used for the current entry.
-     */
-    public String getLastName() {
+    String getLastName() {
         return lastName;
     }
 
     /**
-     * Parses the contents of the specified file as a MakeLDIF template file
-     * definition.
+     * Parses the contents of the default template file definition, that will be
+     * used to generate entries.
      *
-     * @param filename
+     * @param warnings
+     *            A list into which any warnings identified may be placed.
+     * @throws IOException
+     *             If a problem occurs while attempting to read data from the
+     *             default template file.
+     * @throws DecodeException
+     *             If any other problem occurs while parsing the template file.
+     */
+    void parse(List<LocalizableMessage> warnings) throws IOException, DecodeException {
+        parse(DEFAULT_TEMPLATE_PATH, warnings);
+    }
+
+    /**
+     * Parses the contents of the provided file as an entry generator template
+     * file definition.
+     *
+     * @param templateFilename
      *            The name of the file containing the template data.
      * @param warnings
      *            A list into which any warnings identified may be placed.
@@ -538,37 +352,31 @@ class TemplateFile {
      * @throws DecodeException
      *             If any other problem occurs while parsing the template file.
      */
-    public void parse(String filename, List<LocalizableMessage> warnings) throws IOException, DecodeException {
-        ArrayList<String> fileLines = new ArrayList<String>();
-
-        templatePath = null;
-        File f = getFile(filename);
-        if ((f == null) || (!f.exists())) {
-            LocalizableMessage message = ERR_ENTRY_GENERATOR_COULD_NOT_FIND_TEMPLATE_FILE.get(filename);
-            throw new IOException(message.toString());
-        } else {
-            templatePath = f.getParentFile().getAbsolutePath();
-        }
-
-        BufferedReader reader = new BufferedReader(new FileReader(f));
-        while (true) {
-            String line = reader.readLine();
-            if (line == null) {
-                break;
-            } else {
-                fileLines.add(line);
+    void parse(String templateFilename, List<LocalizableMessage> warnings) throws IOException, DecodeException {
+        BufferedReader templateReader = null;
+        try {
+            templateReader = getReader(templateFilename);
+            if (templateReader == null) {
+                throw DecodeException.fatalError(
+                        ERR_ENTRY_GENERATOR_COULD_NOT_FIND_TEMPLATE_FILE.get(templateFilename));
             }
+            if (resourcePath == null) {
+                // Use the template file directory as resource path
+                final File file = getFile(templateFilename);
+                if (file != null) {
+                    resourcePath = file.getParentFile().getAbsolutePath();
+                }
+            }
+            final List<String> fileLines = readLines(templateReader);
+            final String[] lines = fileLines.toArray(new String[fileLines.size()]);
+            parse(lines, warnings);
+        } finally {
+            StaticUtils.closeSilently(templateReader);
         }
-
-        reader.close();
-
-        String[] lines = new String[fileLines.size()];
-        fileLines.toArray(lines);
-        parse(lines, warnings);
     }
 
     /**
-     * Parses the data read from the provided input stream as a MakeLDIF
+     * Parses the contents of the provided input stream as an entry generator
      * template file definition.
      *
      * @param inputStream
@@ -581,28 +389,48 @@ class TemplateFile {
      * @throws DecodeException
      *             If any other problem occurs while parsing the template.
      */
-    public void parse(InputStream inputStream, List<LocalizableMessage> warnings) throws IOException, DecodeException {
-        ArrayList<String> fileLines = new ArrayList<String>();
-
-        BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
-        while (true) {
-            String line = reader.readLine();
-            if (line == null) {
-                break;
-            } else {
-                fileLines.add(line);
-            }
+    void parse(InputStream inputStream, List<LocalizableMessage> warnings) throws IOException, DecodeException {
+        BufferedReader reader = null;
+        try {
+            reader = new BufferedReader(new InputStreamReader(inputStream));
+            final List<String> fileLines = readLines(reader);
+            final String[] lines = fileLines.toArray(new String[fileLines.size()]);
+            parse(lines, warnings);
+        } finally {
+            StaticUtils.closeSilently(reader);
         }
+    }
 
-        reader.close();
+    private static final String INCLUDE_LABEL = "include ";
+    private static final String DEFINE_LABEL = "define ";
+    private static final String BRANCH_LABEL = "branch: ";
+    private static final String TEMPLATE_LABEL = "template: ";
+    private static final String SUBORDINATE_TEMPLATE_LABEL = "subordinatetemplate: ";
+    private static final String RDNATTR_LABEL = "rdnattr: ";
+    private static final String EXTENDS_LABEL = "extends: ";
 
-        String[] lines = new String[fileLines.size()];
-        fileLines.toArray(lines);
-        parse(lines, warnings);
+    /**
+     * Structure to hold template data during parsing of the template.
+     */
+    private static class TemplateData {
+        final Map<String, TemplateTag> tags = new LinkedHashMap<String, TemplateTag>();
+        final Map<DN, Branch> branches = new LinkedHashMap<DN, Branch>();
+        final Map<String, Template> templates = new LinkedHashMap<String, Template>();
     }
 
     /**
-     * Parses the provided data as a MakeLDIF template file definition.
+     * Enumeration of elements that act as "container" of other elements.
+     */
+    private enum Element {
+        BRANCH, TEMPLATE;
+
+        String getLabel() {
+            return toString().toLowerCase();
+        }
+    }
+
+    /**
+     * Parses the provided lines as an entry generator template file definition.
      *
      * @param lines
      *            The lines that make up the template file.
@@ -611,168 +439,183 @@ class TemplateFile {
      * @throws DecodeException
      *             If any other problem occurs while parsing the template lines.
      */
-    public void parse(String[] lines, List<LocalizableMessage> warnings) throws DecodeException {
-        // Create temporary variables that will be used to hold the data read.
-        LinkedHashMap<String, TemplateTag> templateFileIncludeTags = new LinkedHashMap<String, TemplateTag>();
-        LinkedHashMap<String, String> templateFileConstants = new LinkedHashMap<String, String>();
-        LinkedHashMap<DN, Branch> templateFileBranches = new LinkedHashMap<DN, Branch>();
-        LinkedHashMap<String, Template> templateFileTemplates = new LinkedHashMap<String, Template>();
+    void parse(final String[] lines, final List<LocalizableMessage> warnings) throws DecodeException {
+        TemplateData templateData = new TemplateData();
 
         for (int lineNumber = 0; lineNumber < lines.length; lineNumber++) {
-            String line = lines[lineNumber];
+            final String line = replaceConstants(lines[lineNumber], lineNumber, constants, warnings);
 
-            line = replaceConstants(line, lineNumber, templateFileConstants, warnings);
-
-            String lowerLine = line.toLowerCase();
+            final String lowerLine = line.toLowerCase();
             if ((line.length() == 0) || line.startsWith("#")) {
                 // This is a comment or a blank line, so we'll ignore it.
                 continue;
-            } else if (lowerLine.startsWith("include ")) {
-                // This should be an include definition. The next element should
-                // be the
-                // name of the class. Load and instantiate it and make sure
-                // there are
-                // no conflicts.
-                String className = line.substring(8).trim();
-
-                Class<?> tagClass;
-                try {
-                    tagClass = Class.forName(className);
-                } catch (Exception e) {
-                    LocalizableMessage message = ERR_ENTRY_GENERATOR_CANNOT_LOAD_TAG_CLASS.get(className);
-                    throw DecodeException.fatalError(message, e);
-                }
-
-                TemplateTag tag;
-                try {
-                    tag = (TemplateTag) tagClass.newInstance();
-                } catch (Exception e) {
-                    LocalizableMessage message = ERR_ENTRY_GENERATOR_CANNOT_INSTANTIATE_TAG.get(className);
-                    throw DecodeException.fatalError(message, e);
-                }
-
-                String lowerName = tag.getName().toLowerCase();
-                if (registeredTags.containsKey(lowerName) || templateFileIncludeTags.containsKey(lowerName)) {
-                    LocalizableMessage message = ERR_ENTRY_GENERATOR_CONFLICTING_TAG_NAME.get(className, tag.getName());
-                    throw DecodeException.fatalError(message);
-                }
-
-                templateFileIncludeTags.put(lowerName, tag);
-            } else if (lowerLine.startsWith("define ")) {
-                // This should be a constant definition. The rest of the line
-                // should
-                // contain the constant name, an equal sign, and the constant
-                // value.
-                int equalPos = line.indexOf('=', 7);
-                if (equalPos < 0) {
-                    LocalizableMessage message = ERR_ENTRY_GENERATOR_DEFINE_MISSING_EQUALS.get(lineNumber);
-                    throw DecodeException.fatalError(message);
-                }
-
-                String name = line.substring(7, equalPos).trim();
-                if (name.length() == 0) {
-                    LocalizableMessage message = ERR_ENTRY_GENERATOR_DEFINE_NAME_EMPTY.get(lineNumber);
-                    throw DecodeException.fatalError(message);
-                }
-
-                String lowerName = name.toLowerCase();
-                if (templateFileConstants.containsKey(lowerName)) {
-                    LocalizableMessage message = ERR_ENTRY_GENERATOR_CONFLICTING_CONSTANT_NAME.get(name, lineNumber);
-                    throw DecodeException.fatalError(message);
-                }
-
-                String value = line.substring(equalPos + 1);
-                if (value.length() == 0) {
-                    LocalizableMessage message = ERR_ENTRY_GENERATOR_WARNING_DEFINE_VALUE_EMPTY.get(name, lineNumber);
-                    warnings.add(message);
-                }
-
-                templateFileConstants.put(lowerName, value);
-            } else if (lowerLine.startsWith("branch: ")) {
-                int startLineNumber = lineNumber;
-                ArrayList<String> lineList = new ArrayList<String>();
-                lineList.add(line);
-                while (true) {
-                    lineNumber++;
-                    if (lineNumber >= lines.length) {
-                        break;
-                    }
-
-                    line = lines[lineNumber];
-                    if (line.length() == 0) {
-                        break;
-                    } else {
-                        line = replaceConstants(line, lineNumber, templateFileConstants, warnings);
-                        lineList.add(line);
-                    }
-                }
-
-                String[] branchLines = new String[lineList.size()];
-                lineList.toArray(branchLines);
-
-                Branch b = parseBranchDefinition(branchLines, lineNumber, templateFileIncludeTags, warnings);
-                DN branchDN = b.getBranchDN();
-                if (templateFileBranches.containsKey(branchDN)) {
-                    LocalizableMessage message = ERR_ENTRY_GENERATOR_CONFLICTING_BRANCH_DN.get(
-                            String.valueOf(branchDN), startLineNumber);
-                    throw DecodeException.fatalError(message);
-                } else {
-                    templateFileBranches.put(branchDN, b);
-                }
-            } else if (lowerLine.startsWith("template: ")) {
-                int startLineNumber = lineNumber;
-                ArrayList<String> lineList = new ArrayList<String>();
-                lineList.add(line);
-                while (true) {
-                    lineNumber++;
-                    if (lineNumber >= lines.length) {
-                        break;
-                    }
-
-                    line = lines[lineNumber];
-                    if (line.length() == 0) {
-                        break;
-                    } else {
-                        line = replaceConstants(line, lineNumber, templateFileConstants, warnings);
-                        lineList.add(line);
-                    }
-                }
-
-                String[] templateLines = new String[lineList.size()];
-                lineList.toArray(templateLines);
-
-                Template t = parseTemplateDefinition(templateLines, startLineNumber, templateFileIncludeTags,
-                        templateFileTemplates, warnings);
-                String lowerName = t.getName().toLowerCase();
-                if (templateFileTemplates.containsKey(lowerName)) {
-                    LocalizableMessage message = ERR_ENTRY_GENERATOR_CONFLICTING_TEMPLATE_NAME.get(
-                            String.valueOf(t.getName()), startLineNumber);
-                    throw DecodeException.fatalError(message);
-                } else {
-                    templateFileTemplates.put(lowerName, t);
-                }
+            } else if (lowerLine.startsWith(INCLUDE_LABEL)) {
+                parseInclude(line, templateData.tags);
+            } else if (lowerLine.startsWith(DEFINE_LABEL)) {
+                parseDefine(lineNumber, line, constants, warnings);
+            } else if (lowerLine.startsWith(BRANCH_LABEL)) {
+                lineNumber = parseBranch(lineNumber, line, lines, templateData, warnings);
+            } else if (lowerLine.startsWith(TEMPLATE_LABEL)) {
+                lineNumber = parseTemplate(lineNumber, line, lines, templateData, warnings);
             } else {
-                LocalizableMessage message = ERR_ENTRY_GENERATOR_UNEXPECTED_TEMPLATE_FILE_LINE.get(line, lineNumber);
-                throw DecodeException.fatalError(message);
+                throw DecodeException.fatalError(
+                        ERR_ENTRY_GENERATOR_UNEXPECTED_TEMPLATE_FILE_LINE.get(line, lineNumber));
             }
         }
 
-        // If we've gotten here, then we're almost done. We just need to
-        // finalize
-        // the branch and template definitions and then update the template file
-        // variables.
-        for (Branch b : templateFileBranches.values()) {
-            b.completeBranchInitialization(templateFileTemplates);
+        // Finalize the branch and template definitions
+        // and then update the template file variables.
+        for (Branch b : templateData.branches.values()) {
+            b.completeBranchInitialization(templateData.templates);
         }
 
-        for (Template t : templateFileTemplates.values()) {
-            t.completeTemplateInitialization(templateFileTemplates);
+        for (Template t : templateData.templates.values()) {
+            t.completeTemplateInitialization(templateData.templates);
         }
 
-        registeredTags.putAll(templateFileIncludeTags);
-        constants.putAll(templateFileConstants);
-        branches.putAll(templateFileBranches);
-        templates.putAll(templateFileTemplates);
+        registeredTags.putAll(templateData.tags);
+        branches.putAll(templateData.branches);
+        templates.putAll(templateData.templates);
+
+        // Initialize iterator on branches and current branch used
+        // to read entries
+        if (branchesIterator == null) {
+            branchesIterator = branches.values().iterator();
+            if (branchesIterator.hasNext()) {
+                currentBranch = branchesIterator.next();
+            }
+        }
+    }
+
+    private void parseInclude(final String line, final Map<String, TemplateTag> templateFileIncludeTags)
+            throws DecodeException {
+        // The next element should be the name of the class.
+        // Load and instantiate it and make sure there are no conflicts.
+        final String className = line.substring(INCLUDE_LABEL.length()).trim();
+
+        Class<?> tagClass = null;
+        try {
+            tagClass = Class.forName(className);
+        } catch (Exception e) {
+            final LocalizableMessage message = ERR_ENTRY_GENERATOR_CANNOT_LOAD_TAG_CLASS.get(className);
+            throw DecodeException.fatalError(message, e);
+        }
+
+        TemplateTag tag;
+        try {
+            tag = (TemplateTag) tagClass.newInstance();
+        } catch (Exception e) {
+            final LocalizableMessage message = ERR_ENTRY_GENERATOR_CANNOT_INSTANTIATE_TAG.get(className);
+            throw DecodeException.fatalError(message, e);
+        }
+
+        String lowerName = tag.getName().toLowerCase();
+        if (registeredTags.containsKey(lowerName) || templateFileIncludeTags.containsKey(lowerName)) {
+            final LocalizableMessage message = ERR_ENTRY_GENERATOR_CONFLICTING_TAG_NAME.get(className, tag.getName());
+            throw DecodeException.fatalError(message);
+        }
+
+        templateFileIncludeTags.put(lowerName, tag);
+    }
+
+    private void parseDefine(final int lineNumber, final String line, final Map<String, String> templateFileConstants,
+            final List<LocalizableMessage> warnings) throws DecodeException {
+        // The rest of the line should contain the constant name,
+        // an equal sign, and the constant value.
+        final int equalPos = line.indexOf('=', DEFINE_LABEL.length());
+        if (equalPos < 0) {
+            throw DecodeException.fatalError(ERR_ENTRY_GENERATOR_DEFINE_MISSING_EQUALS.get(lineNumber));
+        }
+
+        final String name = line.substring(DEFINE_LABEL.length(), equalPos).trim();
+        if (name.length() == 0) {
+            throw DecodeException.fatalError(ERR_ENTRY_GENERATOR_DEFINE_NAME_EMPTY.get(lineNumber));
+        }
+
+        final String value = line.substring(equalPos + 1);
+        if (value.length() == 0) {
+            warnings.add(ERR_ENTRY_GENERATOR_WARNING_DEFINE_VALUE_EMPTY.get(name, lineNumber));
+        }
+
+        final String lowerName = name.toLowerCase();
+        if (!templateFileConstants.containsKey(lowerName)) {
+            templateFileConstants.put(lowerName, value);
+        }
+    }
+
+    /**
+     * Parses the complete branch and returns the current line number at the
+     * end.
+     */
+    private int parseBranch(final int startLineNumber, final String startLine, final String[] lines,
+            final TemplateData templateData, final List<LocalizableMessage> warnings) throws DecodeException {
+        final String[] branchLines =
+                parseLinesUntilEndOfBlock(startLineNumber, startLine, lines, warnings);
+        final Branch branch = parseBranchDefinition(branchLines, startLineNumber, templateData.tags, warnings);
+        final DN branchDN = branch.getBranchDN();
+        if (templateData.branches.containsKey(branchDN)) {
+            throw DecodeException.fatalError(
+                    ERR_ENTRY_GENERATOR_CONFLICTING_BRANCH_DN.get(String.valueOf(branchDN), startLineNumber));
+        }
+        templateData.branches.put(branchDN, branch);
+        // position to next line after end of branch
+        return startLineNumber + branchLines.length;
+    }
+
+    /**
+     * Parses the complete template and returns the current line number at the
+     * end.
+     */
+    private int parseTemplate(final int startLineNumber, final String startLine, final String[] lines,
+            final TemplateData templateData, final List<LocalizableMessage> warnings) throws DecodeException {
+        final String[] templateLines =
+                parseLinesUntilEndOfBlock(startLineNumber, startLine, lines, warnings);
+        final Template template =
+                parseTemplateDefinition(startLineNumber, templateLines, templateData, warnings);
+        final String lowerName = template.getName().toLowerCase();
+        if (templateData.templates.containsKey(lowerName)) {
+            throw DecodeException.fatalError(ERR_ENTRY_GENERATOR_CONFLICTING_TEMPLATE_NAME.get(
+                    String.valueOf(template.getName()), startLineNumber));
+        }
+        templateData.templates.put(lowerName, template);
+        // position to next line after end of template
+        return startLineNumber + templateLines.length;
+    }
+
+    /**
+     * Parses lines of a block until the block ends (with an empty line) or
+     * lines ends.
+     *
+     * @param startLineNumber
+     *            Line number at beginning of block.
+     * @param startLine
+     *            First line of block.
+     * @param lines
+     *            The list of all lines in the template.
+     * @param warnings
+     *            A list into which any warnings identified may be placed.
+     * @return The lines of the block
+     */
+    private String[] parseLinesUntilEndOfBlock(final int startLineNumber, final String startLine,
+            final String[] lines, final List<LocalizableMessage> warnings) {
+        final List<String> lineList = new ArrayList<String>();
+        String line = startLine;
+        lineList.add(line);
+
+        int lineNumber = startLineNumber;
+        while (true) {
+            lineNumber++;
+            if (lineNumber >= lines.length) {
+                break;
+            }
+            line = lines[lineNumber];
+            if (line.length() == 0) {
+                break;
+            }
+            line = replaceConstants(line, lineNumber, constants, warnings);
+            lineList.add(line);
+        }
+        return lineList.toArray(new String[lineList.size()]);
     }
 
     /**
@@ -789,27 +632,26 @@ class TemplateFile {
      * @return The line in which all constant variables have been replaced with
      *         their value
      */
-    private String replaceConstants(String line, int lineNumber, Map<String, String> constants,
-            List<LocalizableMessage> warnings) {
+    private String replaceConstants(final String line, final int lineNumber, final Map<String, String> constants,
+            final List<LocalizableMessage> warnings) {
+        String newLine = line;
         int closePos = line.lastIndexOf(']');
         // Loop until we've scanned all closing brackets
         do {
             // Skip escaped closing brackets
-            while (closePos > 0 && line.charAt(closePos - 1) == '\\') {
-                closePos = line.lastIndexOf(']', closePos - 1);
+            while (closePos > 0 && newLine.charAt(closePos - 1) == '\\') {
+                closePos = newLine.lastIndexOf(']', closePos - 1);
             }
             if (closePos > 0) {
-                StringBuilder lineBuffer = new StringBuilder(line);
-                int openPos = line.lastIndexOf('[', closePos);
-                // Find the opening bracket. If it's escaped, then it's not a
-                // constant
-                if ((openPos > 0 && line.charAt(openPos - 1) != '\\') || (openPos == 0)) {
-                    String constantName = line.substring(openPos + 1, closePos).toLowerCase();
-                    String constantValue = constants.get(constantName);
+                final StringBuilder lineBuffer = new StringBuilder(newLine);
+                int openPos = newLine.lastIndexOf('[', closePos);
+                // Find the opening bracket.
+                // If it's escaped, then it's not a constant
+                if ((openPos > 0 && newLine.charAt(openPos - 1) != '\\') || (openPos == 0)) {
+                    final String constantName = newLine.substring(openPos + 1, closePos).toLowerCase();
+                    final String constantValue = constants.get(constantName);
                     if (constantValue == null) {
-                        LocalizableMessage message = WARN_ENTRY_GENERATOR_WARNING_UNDEFINED_CONSTANT.get(constantName,
-                                lineNumber);
-                        warnings.add(message);
+                        warnings.add(WARN_ENTRY_GENERATOR_WARNING_UNDEFINED_CONSTANT.get(constantName, lineNumber));
                     } else {
                         lineBuffer.replace(openPos, closePos + 1, constantValue);
                     }
@@ -817,16 +659,16 @@ class TemplateFile {
                 if (openPos >= 0) {
                     closePos = openPos;
                 }
-                line = lineBuffer.toString();
-                closePos = line.lastIndexOf(']', closePos);
+                newLine = lineBuffer.toString();
+                closePos = newLine.lastIndexOf(']', closePos);
             }
         } while (closePos > 0);
-        return line;
+        return newLine;
     }
 
     /**
-     * Parses the information contained in the provided set of lines as a
-     * MakeLDIF branch definition.
+     * Parses the information contained in the provided set of lines as a branch
+     * definition.
      *
      * @param branchLines
      *            The set of lines containing the branch definition.
@@ -844,80 +686,52 @@ class TemplateFile {
      *             If a problem occurs during initializing any of the branch
      *             elements or during processing.
      */
-    private Branch parseBranchDefinition(String[] branchLines, int startLineNumber, Map<String, TemplateTag> tags,
-            List<LocalizableMessage> warnings) throws DecodeException {
+    private Branch parseBranchDefinition(final String[] branchLines, final int startLineNumber,
+            final Map<String, TemplateTag> tags, final List<LocalizableMessage> warnings) throws DecodeException {
         // The first line must be "branch: " followed by the branch DN.
-        String dnString = branchLines[0].substring(8).trim();
+        final String dnString = branchLines[0].substring(BRANCH_LABEL.length()).trim();
         DN branchDN;
         try {
             branchDN = DN.valueOf(dnString, schema);
         } catch (Exception e) {
-            LocalizableMessage message = ERR_ENTRY_GENERATOR_CANNOT_DECODE_BRANCH_DN.get(dnString, startLineNumber);
-            throw DecodeException.fatalError(message);
+            throw DecodeException.fatalError(ERR_ENTRY_GENERATOR_CANNOT_DECODE_BRANCH_DN.get(
+                    dnString, startLineNumber));
         }
 
-        // Create a new branch that will be used for the verification process.
-        Branch branch = new Branch(this, branchDN, null);
+        final Branch branch = new Branch(this, branchDN, schema);
 
         for (int i = 1; i < branchLines.length; i++) {
-            String line = branchLines[i];
-            String lowerLine = line.toLowerCase();
-            int lineNumber = startLineNumber + i;
+            final String line = branchLines[i];
+            final String lowerLine = line.toLowerCase();
+            final int lineNumber = startLineNumber + i;
 
             if (lowerLine.startsWith("#")) {
                 // It's a comment, so we should ignore it.
                 continue;
-            } else if (lowerLine.startsWith("subordinatetemplate: ")) {
-                // It's a subordinate template, so we'll want to parse the name
-                // and the
-                // number of entries.
-                int colonPos = line.indexOf(':', 21);
-                if (colonPos <= 21) {
-                    LocalizableMessage message = ERR_ENTRY_GENERATOR_BRANCH_SUBORDINATE_TEMPLATE_NO_COLON.get(
-                            lineNumber, dnString);
-                    throw DecodeException.fatalError(message);
-                }
-
-                String templateName = line.substring(21, colonPos).trim();
-
-                int numEntries;
-                try {
-                    numEntries = Integer.parseInt(line.substring(colonPos + 1).trim());
-                    if (numEntries < 0) {
-                        LocalizableMessage message = ERR_ENTRY_GENERATOR_BRANCH_SUBORDINATE_INVALID_NUM_ENTRIES.get(
-                                lineNumber, dnString, numEntries, templateName);
-                        throw DecodeException.fatalError(message);
-                    } else if (numEntries == 0) {
-                        LocalizableMessage message = WARN_ENTRY_GENERATOR_BRANCH_SUBORDINATE_ZERO_ENTRIES.get(
-                                lineNumber, dnString, templateName);
-                        warnings.add(message);
-                    }
-
-                    branch.addSubordinateTemplate(templateName, numEntries);
-                } catch (NumberFormatException nfe) {
-                    LocalizableMessage message = ERR_ENTRY_GENERATOR_BRANCH_SUBORDINATE_CANT_PARSE_NUMENTRIES.get(
-                            templateName, lineNumber, dnString);
-                    throw DecodeException.fatalError(message);
-                }
+            } else if (lowerLine.startsWith(SUBORDINATE_TEMPLATE_LABEL)) {
+                final Pair<String, Integer> pair =
+                        parseSubordinateTemplate(lineNumber, line, Element.BRANCH, dnString, warnings);
+                final String templateName = pair.getFirst();
+                final int numEntries = pair.getSecond();
+                branch.addSubordinateTemplate(templateName, numEntries);
             } else {
-                TemplateLine templateLine =
-                        parseTemplateLine(line, lowerLine, lineNumber, branch, null, tags, warnings);
+                final TemplateLine templateLine =
+                        parseTemplateLine(line, lineNumber, branch, null, Element.BRANCH, tags, warnings);
                 branch.addExtraLine(templateLine);
             }
         }
-
         return branch;
     }
 
     /**
      * Parses the information contained in the provided set of lines as a
-     * MakeLDIF template definition.
+     * template definition.
      *
-     * @param templateLines
-     *            The set of lines containing the template definition.
      * @param startLineNumber
      *            The line number in the template file on which the first of the
      *            template lines appears.
+     * @param templateLines
+     *            The set of lines containing the template definition.
      * @param tags
      *            The set of defined tags from the template file. Note that this
      *            does not include the tags that are always registered by
@@ -931,126 +745,126 @@ class TemplateFile {
      *             If a problem occurs during initializing any of the template
      *             elements or during processing.
      */
-    private Template parseTemplateDefinition(String[] templateLines, int startLineNumber,
-            Map<String, TemplateTag> tags, Map<String, Template> definedTemplates, List<LocalizableMessage> warnings)
-            throws DecodeException {
-        // The first line must be "template: " followed by the template name.
-        String templateName = templateLines[0].substring(10).trim();
+    private Template parseTemplateDefinition(final int startLineNumber, final String[] templateLines,
+            final TemplateData templateData, final List<LocalizableMessage> warnings) throws DecodeException {
+        final Map<String, TemplateTag> tags = templateData.tags;
+        final Map<String, Template> definedTemplates = templateData.templates;
 
-        // The next line may start with either "extends: ", "rdnAttr: ", or
-        // "subordinateTemplate: ". Keep reading until we find something that's
-        // not one of those.
-        int arrayLineNumber = 1;
+        // The first line must be "template: " followed by the template name.
+        final String templateName = templateLines[0].substring(TEMPLATE_LABEL.length()).trim();
+
+        // The next line may be with an "extends", a rdn attribute, or
+        // a subordinate template. Keep reading until we find something
+        // that's not one of those.
+        int lineCount = 1;
         Template parentTemplate = null;
-        AttributeType[] rdnAttributes = null;
-        ArrayList<String> subTemplateNames = new ArrayList<String>();
-        ArrayList<Integer> entriesPerTemplate = new ArrayList<Integer>();
-        for (; arrayLineNumber < templateLines.length; arrayLineNumber++) {
-            int lineNumber = startLineNumber + arrayLineNumber;
-            String line = templateLines[arrayLineNumber];
-            String lowerLine = line.toLowerCase();
+        final List<AttributeType> rdnAttributes = new ArrayList<AttributeType>();
+        final List<String> subordinatesTemplateNames = new ArrayList<String>();
+        final List<Integer> numberOfentriesPerTemplate = new ArrayList<Integer>();
+
+        for (; lineCount < templateLines.length; lineCount++) {
+            final int lineNumber = startLineNumber + lineCount;
+            final String line = templateLines[lineCount];
+            final String lowerLine = line.toLowerCase();
 
             if (lowerLine.startsWith("#")) {
                 // It's a comment. Ignore it.
                 continue;
-            } else if (lowerLine.startsWith("extends: ")) {
-                String parentTemplateName = line.substring(9).trim();
+            } else if (lowerLine.startsWith(EXTENDS_LABEL)) {
+                final String parentTemplateName = line.substring(EXTENDS_LABEL.length()).trim();
                 parentTemplate = definedTemplates.get(parentTemplateName.toLowerCase());
                 if (parentTemplate == null) {
-                    LocalizableMessage message = ERR_ENTRY_GENERATOR_TEMPLATE_INVALID_PARENT_TEMPLATE.get(
-                            parentTemplateName, lineNumber, templateName);
-                    throw DecodeException.fatalError(message);
+                    throw DecodeException.fatalError(ERR_ENTRY_GENERATOR_TEMPLATE_INVALID_PARENT_TEMPLATE.get(
+                            parentTemplateName, lineNumber, templateName));
                 }
-            } else if (lowerLine.startsWith("rdnattr: ")) {
+            } else if (lowerLine.startsWith(RDNATTR_LABEL)) {
                 // This is the set of RDN attributes. If there are multiple,
-                // they may
-                // be separated by plus signs.
-                ArrayList<AttributeType> attrList = new ArrayList<AttributeType>();
-                String rdnAttrNames = lowerLine.substring(9).trim();
-                StringTokenizer tokenizer = new StringTokenizer(rdnAttrNames, "+");
+                // they may be separated by plus signs.
+                final String rdnAttrNames = lowerLine.substring(RDNATTR_LABEL.length()).trim();
+                final StringTokenizer tokenizer = new StringTokenizer(rdnAttrNames, "+");
                 while (tokenizer.hasMoreTokens()) {
-                    attrList.add(schema.getAttributeType(tokenizer.nextToken()));
+                    rdnAttributes.add(schema.getAttributeType(tokenizer.nextToken()));
                 }
-
-                rdnAttributes = new AttributeType[attrList.size()];
-                attrList.toArray(rdnAttributes);
-            } else if (lowerLine.startsWith("subordinatetemplate: ")) {
-                // It's a subordinate template, so we'll want to parse the name
-                // and the
-                // number of entries.
-                int colonPos = line.indexOf(':', 21);
-                if (colonPos <= 21) {
-                    LocalizableMessage message = ERR_ENTRY_GENERATOR_TEMPLATE_SUBORDINATE_TEMPLATE_NO_COLON.get(
-                            lineNumber, templateName);
-                    throw DecodeException.fatalError(message);
-                }
-
-                String subTemplateName = line.substring(21, colonPos).trim();
-
-                int numEntries;
-                try {
-                    numEntries = Integer.parseInt(line.substring(colonPos + 1).trim());
-                    if (numEntries < 0) {
-                        LocalizableMessage message = ERR_ENTRY_GENERATOR_TEMPLATE_SUBORDINATE_INVALID_NUM_ENTRIES.get(
-                                lineNumber, templateName, numEntries, subTemplateName);
-                        throw DecodeException.fatalError(message);
-                    } else if (numEntries == 0) {
-                        LocalizableMessage message = WARN_ENTRY_GENERATOR_TEMPLATE_SUBORDINATE_ZERO_ENTRIES.get(
-                                lineNumber, templateName, subTemplateName);
-                        warnings.add(message);
-                    }
-
-                    subTemplateNames.add(subTemplateName);
-                    entriesPerTemplate.add(numEntries);
-                } catch (NumberFormatException nfe) {
-                    LocalizableMessage message = ERR_ENTRY_GENERATOR_TEMPLATE_SUBORDINATE_CANT_PARSE_NUMENTRIES.get(
-                            subTemplateName, lineNumber, templateName);
-                    throw DecodeException.fatalError(message);
-                }
+            } else if (lowerLine.startsWith(SUBORDINATE_TEMPLATE_LABEL)) {
+                final Pair<String, Integer> pair =
+                        parseSubordinateTemplate(lineNumber, line, Element.BRANCH, templateName, warnings);
+                subordinatesTemplateNames.add(pair.getFirst());
+                numberOfentriesPerTemplate.add(pair.getSecond());
             } else {
-                // It's something we don't recognize, so it must be a template
-                // line.
+                // Not recognized, it must be a template line.
                 break;
             }
         }
 
-        // Create a new template that will be used for the verification process.
-        String[] subordinateTemplateNames = new String[subTemplateNames.size()];
-        subTemplateNames.toArray(subordinateTemplateNames);
+        final List<TemplateLine> parentLines =
+                (parentTemplate == null) ? new ArrayList<TemplateLine>() : parentTemplate.getTemplateLines();
 
-        int[] numEntriesPerTemplate = new int[entriesPerTemplate.size()];
-        for (int i = 0; i < numEntriesPerTemplate.length; i++) {
-            numEntriesPerTemplate[i] = entriesPerTemplate.get(i);
-        }
+        final Template template = new Template(this, templateName, rdnAttributes, subordinatesTemplateNames,
+                numberOfentriesPerTemplate, parentLines);
 
-        TemplateLine[] parsedLines;
-        if (parentTemplate == null) {
-            parsedLines = new TemplateLine[0];
-        } else {
-            TemplateLine[] parentLines = parentTemplate.getTemplateLines();
-            parsedLines = new TemplateLine[parentLines.length];
-            System.arraycopy(parentLines, 0, parsedLines, 0, parentLines.length);
-        }
-
-        Template template = new Template(this, templateName, rdnAttributes, subordinateTemplateNames,
-                numEntriesPerTemplate, parsedLines);
-
-        for (; arrayLineNumber < templateLines.length; arrayLineNumber++) {
-            String line = templateLines[arrayLineNumber];
-            String lowerLine = line.toLowerCase();
-            int lineNumber = startLineNumber + arrayLineNumber;
+        // Add lines to template
+        for (; lineCount < templateLines.length; lineCount++) {
+            final String line = templateLines[lineCount];
+            final String lowerLine = line.toLowerCase();
 
             if (lowerLine.startsWith("#")) {
-                // It's a comment, so we should ignore it.
+                // It's a comment, ignore it.
                 continue;
             } else {
-                TemplateLine templateLine = parseTemplateLine(line, lowerLine, lineNumber, null, template, tags,
-                        warnings);
+                final int lineNumber = startLineNumber + lineCount;
+                final TemplateLine templateLine =
+                        parseTemplateLine(line, lineNumber, null, template, Element.TEMPLATE, tags, warnings);
                 template.addTemplateLine(templateLine);
             }
         }
 
         return template;
+    }
+
+    /**
+     * Parses a subordinate template for a template or a branch.
+     * <p>
+     * A subordinate template has a name and a number of entries.
+     *
+     * @param lineNumber
+     *            Line number of definition.
+     * @param line
+     *            Line containing the definition.
+     * @param element
+     *            indicates the kind of element to use in error messages.
+     * @param elementName
+     *            Name of the branch or template.
+     * @param warnings
+     *            A list into which any warnings identified may be placed.
+     * @return the pair (template name, number of entries in template)
+     */
+    private Pair<String, Integer> parseSubordinateTemplate(final int lineNumber, final String line,
+            final Element element, final String elementName, final List<LocalizableMessage> warnings)
+            throws DecodeException {
+        // It's a subordinate template, so we'll want to parse
+        // the template name and the number of entries.
+        final int colonPos = line.indexOf(':', SUBORDINATE_TEMPLATE_LABEL.length());
+        if (colonPos <= SUBORDINATE_TEMPLATE_LABEL.length()) {
+            throw DecodeException.fatalError(ERR_ENTRY_GENERATOR_SUBORDINATE_TEMPLATE_NO_COLON.get(
+                    lineNumber, element.getLabel(), elementName));
+        }
+
+        final String templateName = line.substring(SUBORDINATE_TEMPLATE_LABEL.length(), colonPos).trim();
+
+        try {
+            final int numEntries = Integer.parseInt(line.substring(colonPos + 1).trim());
+            if (numEntries < 0) {
+                throw DecodeException.fatalError(ERR_ENTRY_GENERATOR_SUBORDINATE_INVALID_NUM_ENTRIES.get(
+                        lineNumber, element.getLabel(), elementName, numEntries, templateName));
+            } else if (numEntries == 0) {
+                warnings.add(WARN_ENTRY_GENERATOR_SUBORDINATE_ZERO_ENTRIES.get(
+                        lineNumber, element.getLabel(), elementName, templateName));
+            }
+            return Pair.of(templateName, numEntries);
+        } catch (NumberFormatException nfe) {
+            throw DecodeException.fatalError(ERR_ENTRY_GENERATOR_SUBORDINATE_CANT_PARSE_NUMENTRIES.get(
+                    templateName, lineNumber, element.getLabel(), elementName));
+        }
     }
 
     private static final int PARSING_STATIC_TEXT = 0;
@@ -1064,8 +878,6 @@ class TemplateFile {
      *
      * @param line
      *            The text of the template line.
-     * @param lowerLine
-     *            The template line in all lowercase characters.
      * @param lineNumber
      *            The line number on which the template line appears.
      * @param branch
@@ -1083,37 +895,26 @@ class TemplateFile {
      *             If a problem occurs during initializing any of the template
      *             elements or during processing.
      */
-    private TemplateLine parseTemplateLine(String line, String lowerLine, int lineNumber, Branch branch,
-            Template template, Map<String, TemplateTag> tags, List<LocalizableMessage> warnings)
-            throws DecodeException {
+    private TemplateLine parseTemplateLine(final String line, final int lineNumber, final Branch branch,
+            final Template template, final Element element, final Map<String, TemplateTag> tags,
+            final List<LocalizableMessage> warnings) throws DecodeException {
+        final String elementName = element == Element.BRANCH ? branch.getBranchDN().toString() : template.getName();
+
         // The first component must be the attribute type, followed by a colon.
-        int colonPos = lowerLine.indexOf(':');
+        final String lowerLine = line.toLowerCase();
+        final int colonPos = lowerLine.indexOf(':');
         if (colonPos < 0) {
-            if (branch == null) {
-                LocalizableMessage message = ERR_ENTRY_GENERATOR_NO_COLON_IN_TEMPLATE_LINE.get(lineNumber,
-                        template.getName());
-                throw DecodeException.fatalError(message);
-            } else {
-                LocalizableMessage message = ERR_ENTRY_GENERATOR_NO_COLON_IN_BRANCH_EXTRA_LINE.get(lineNumber,
-                        String.valueOf(branch.getBranchDN()));
-                throw DecodeException.fatalError(message);
-            }
+            throw DecodeException.fatalError(ERR_ENTRY_GENERATOR_NO_COLON_IN_TEMPLATE_LINE.get(
+                    lineNumber, element.getLabel(), elementName));
         } else if (colonPos == 0) {
-            if (branch == null) {
-                LocalizableMessage message = ERR_ENTRY_GENERATOR_NO_ATTR_IN_TEMPLATE_LINE.get(lineNumber,
-                        template.getName());
-                throw DecodeException.fatalError(message);
-            } else {
-                LocalizableMessage message = ERR_ENTRY_GENERATOR_NO_ATTR_IN_BRANCH_EXTRA_LINE.get(lineNumber,
-                        String.valueOf(branch.getBranchDN()));
-                throw DecodeException.fatalError(message);
-            }
+            throw DecodeException.fatalError(ERR_ENTRY_GENERATOR_NO_ATTR_IN_TEMPLATE_LINE.get(
+                    lineNumber, element.getLabel(), elementName));
         }
 
-        AttributeType attributeType = schema.getAttributeType(lowerLine.substring(0, colonPos));
+        final AttributeType attributeType = schema.getAttributeType(lowerLine.substring(0, colonPos));
 
         // First, check whether the value is an URL value: <attrName>:< <url>
-        int length = line.length();
+        final int length = line.length();
         int pos = colonPos + 1;
         boolean valueIsURL = false;
         boolean valueIsBase64 = false;
@@ -1132,24 +933,16 @@ class TemplateFile {
         }
 
         if (pos >= length) {
-            // We've hit the end of the line with no value. We'll allow it, but
-            // add a
-            // warning.
-            if (branch == null) {
-                LocalizableMessage message = WARN_ENTRY_GENERATOR_NO_VALUE_IN_TEMPLATE_LINE.get(lineNumber,
-                        template.getName());
-                warnings.add(message);
-            } else {
-                LocalizableMessage message = WARN_ENTRY_GENERATOR_NO_VALUE_IN_BRANCH_EXTRA_LINE.get(lineNumber,
-                        String.valueOf(branch.getBranchDN()));
-                warnings.add(message);
-            }
+            // We've hit the end of the line with no value.
+            // We'll allow it, but add a warning.
+            warnings.add(WARN_ENTRY_GENERATOR_NO_VALUE_IN_TEMPLATE_LINE.get(
+                    lineNumber, element.getLabel(), elementName));
         }
 
         int phase = PARSING_STATIC_TEXT;
         int previousPhase = PARSING_STATIC_TEXT;
 
-        ArrayList<TemplateTag> tagList = new ArrayList<TemplateTag>();
+        final List<TemplateTag> tagList = new ArrayList<TemplateTag>();
         StringBuilder buffer = new StringBuilder();
 
         for (; pos < length; pos++) {
@@ -1199,7 +992,6 @@ class TemplateFile {
                         parseReplacementTag(buffer.toString(), branch, template, lineNumber, tags, warnings);
                     tagList.add(t);
                     buffer = new StringBuilder();
-
                     phase = PARSING_STATIC_TEXT;
                     break;
                 default:
@@ -1242,13 +1034,10 @@ class TemplateFile {
                 tagList.add(t);
             }
         } else {
-            LocalizableMessage message = ERR_ENTRY_GENERATOR_INCOMPLETE_TAG.get(lineNumber);
-            throw DecodeException.fatalError(message);
+            throw DecodeException.fatalError(ERR_ENTRY_GENERATOR_INCOMPLETE_TAG.get(lineNumber));
         }
 
-        TemplateTag[] tagArray = new TemplateTag[tagList.size()];
-        tagList.toArray(tagArray);
-        return new TemplateLine(attributeType, lineNumber, tagArray, valueIsURL, valueIsBase64);
+        return new TemplateLine(attributeType, lineNumber, tagList, valueIsURL, valueIsBase64);
     }
 
     /**
@@ -1274,53 +1063,45 @@ class TemplateFile {
      * @throws DecodeException
      *             If some problem occurs during processing.
      */
-    private TemplateTag parseReplacementTag(String tagString, Branch branch, Template template, int lineNumber,
-            Map<String, TemplateTag> tags, List<LocalizableMessage> warnings) throws DecodeException {
+    private TemplateTag parseReplacementTag(final String tagString, final Branch branch, final Template template,
+            final int lineNumber, final Map<String, TemplateTag> tags, final List<LocalizableMessage> warnings)
+            throws DecodeException {
         // The components of the replacement tag will be separated by colons,
-        // with
-        // the first being the tag name and the remainder being arguments.
-        StringTokenizer tokenizer = new StringTokenizer(tagString, ":");
-        String tagName = tokenizer.nextToken().trim();
-        String lowerTagName = tagName.toLowerCase();
+        // with the first being the tag name and the remainder being arguments.
+        final StringTokenizer tokenizer = new StringTokenizer(tagString, ":");
+        final String tagName = tokenizer.nextToken().trim();
+        final String lowerTagName = tagName.toLowerCase();
 
-        TemplateTag t = getTag(lowerTagName);
-        if (t == null) {
-            t = tags.get(lowerTagName);
-            if (t == null) {
-                LocalizableMessage message = ERR_ENTRY_GENERATOR_NO_SUCH_TAG.get(tagName, lineNumber);
-                throw DecodeException.fatalError(message);
+        TemplateTag tag = getTag(lowerTagName);
+        if (tag == null) {
+            tag = tags.get(lowerTagName);
+            if (tag == null) {
+                throw DecodeException.fatalError(ERR_ENTRY_GENERATOR_NO_SUCH_TAG.get(tagName, lineNumber));
             }
         }
 
-        ArrayList<String> argList = new ArrayList<String>();
+        final List<String> args = new ArrayList<String>();
         while (tokenizer.hasMoreTokens()) {
-            argList.add(tokenizer.nextToken().trim());
+            args.add(tokenizer.nextToken().trim());
         }
-
-        String[] args = new String[argList.size()];
-        argList.toArray(args);
+        final String[] arguments = args.toArray(new String[args.size()]);
 
         TemplateTag newTag;
         try {
-            newTag = t.getClass().newInstance();
+            newTag = tag.getClass().newInstance();
         } catch (Exception e) {
-            LocalizableMessage message = ERR_ENTRY_GENERATOR_CANNOT_INSTANTIATE_NEW_TAG.get(tagName, lineNumber,
-                    String.valueOf(e));
-            throw DecodeException.fatalError(message, e);
+            throw DecodeException.fatalError(ERR_ENTRY_GENERATOR_CANNOT_INSTANTIATE_NEW_TAG.get(
+                    tagName, lineNumber, String.valueOf(e)), e);
         }
 
         if (branch == null) {
-            newTag.initializeForTemplate(schema, this, template, args, lineNumber, warnings);
+            newTag.initializeForTemplate(schema, this, template, arguments, lineNumber, warnings);
+        } else if (newTag.allowedInBranch()) {
+            newTag.initializeForBranch(schema, this, branch, arguments, lineNumber, warnings);
         } else {
-            if (newTag.allowedInBranch()) {
-                newTag.initializeForBranch(schema, this, branch, args, lineNumber, warnings);
-            } else {
-                LocalizableMessage message = ERR_ENTRY_GENERATOR_TAG_NOT_ALLOWED_IN_BRANCH.get(newTag.getName(),
-                        lineNumber);
-                throw DecodeException.fatalError(message);
-            }
+            throw DecodeException.fatalError(ERR_ENTRY_GENERATOR_TAG_NOT_ALLOWED_IN_BRANCH.get(newTag.getName(),
+                    lineNumber));
         }
-
         return newTag;
     }
 
@@ -1343,197 +1124,234 @@ class TemplateFile {
      * @throws DecodeException
      *             If some other problem occurs during processing.
      */
-    private TemplateTag parseAttributeTag(String tagString, Branch branch, Template template, int lineNumber,
-            List<LocalizableMessage> warnings) throws DecodeException {
+    private TemplateTag parseAttributeTag(final String tagString, final Branch branch,
+            final Template template, final int lineNumber, final List<LocalizableMessage> warnings)
+            throws DecodeException {
         // The attribute tag must have at least one argument, which is the name
-        // of
-        // the attribute to reference. It may have a second argument, which is
-        // the
-        // number of characters to use from the attribute value. The arguments
-        // will
-        // be delimited by colons.
-        StringTokenizer tokenizer = new StringTokenizer(tagString, ":");
-        ArrayList<String> argList = new ArrayList<String>();
+        // of the attribute to reference. It may have a second argument, which
+        // is the number of characters to use from the attribute value. The
+        // arguments will be delimited by colons.
+        final StringTokenizer tokenizer = new StringTokenizer(tagString, ":");
+        final List<String> args = new ArrayList<String>();
         while (tokenizer.hasMoreTokens()) {
-            argList.add(tokenizer.nextToken());
+            args.add(tokenizer.nextToken());
         }
+        final String[] arguments = args.toArray(new String[args.size()]);
 
-        String[] args = new String[argList.size()];
-        argList.toArray(args);
-
-        AttributeValueTag tag = new AttributeValueTag();
+        final AttributeValueTag tag = new AttributeValueTag();
         if (branch == null) {
-            tag.initializeForTemplate(schema, this, template, args, lineNumber, warnings);
+            tag.initializeForTemplate(schema, this, template, arguments, lineNumber, warnings);
         } else {
-            tag.initializeForBranch(schema, this, branch, args, lineNumber, warnings);
+            tag.initializeForBranch(schema, this, branch, arguments, lineNumber, warnings);
         }
-
         return tag;
     }
 
     /**
-     * Retrieves a File object based on the provided path. If the given path is
-     * absolute, then that absolute path will be used. If it is relative, then
-     * it will first be evaluated relative to the current working directory. If
-     * that path doesn't exist, then it will be evaluated relative to the
-     * resource path. If that path doesn't exist, then it will be evaluated
-     * relative to the directory containing the template file.
+     * Retrieves a file based on the provided path.
+     * <p>
+     * To allow retrieval of a file located in a jar, you must use
+     * {@code getReader()} method instead of this one.
+     * <p>
+     * File is searched successively in two locations :
+     * <ul>
+     * <li>Using the provided path as is.</li>
+     * <li>Using resource path + provided path.</li>
+     * </ul>
      *
-     * @param path
-     *            The path provided for the file.
-     * @return The File object for the specified path, or <CODE>null</CODE> if
-     *         the specified file could not be found.
+     * @param filePath
+     *            The path provided for the file, which can be absolute or
+     *            relative.
+     * @return the file, or <code>null</code> if it could not be found.
      */
-    public File getFile(String path) {
-        // First, see if the file exists using the given path. This will work if
-        // the file is absolute, or it's relative to the current working
-        // directory.
-        File f = new File(path);
-        if (f.exists()) {
-            return f;
+    private File getFile(final String filePath) {
+        File file = new File(filePath);
+        // try raw path first
+        if (file.exists()) {
+            return file;
         }
-
-        // If the provided path was absolute, then use it anyway, even though we
-        // couldn't find the file.
-        if (f.isAbsolute()) {
-            return f;
-        }
-
-        // Try a path relative to the resource directory.
-        String newPath = resourcePath + File.separator + path;
-        f = new File(newPath);
-        if (f.exists()) {
-            return f;
-        }
-
-        // Try a path relative to the template directory, if it's available.
-        if (templatePath != null) {
-            newPath = templatePath = File.separator + path;
-            f = new File(newPath);
-            if (f.exists()) {
-                return f;
+        // try using resource path
+        if (resourcePath != null) {
+            file = new File(resourcePath + File.separator + filePath);
+            if (file.exists()) {
+                return file;
             }
         }
-
         return null;
     }
 
     /**
-     * Retrieves the lines of the specified file as a string array. If the
-     * result is already cached, then it will be used. If the result is not
-     * cached, then the file data will be cached so that the contents can be
-     * re-used if there are multiple references to the same file.
+     * Retrieves a reader based on the provided path.
+     * <p>
+     * The path represent a file path either on the file system or in a jar.
+     * File is searched successively in three locations :
+     * <ul>
+     * <li>Using the provided path on the file system.</li>
+     * <li>Using resource path + provided path on the file system.</li>
+     * <li>Using default resources path + provided path on the file system or in
+     * a jar.</li>
+     * </ul>
      *
-     * @param file
-     *            The file for which to retrieve the contents.
-     * @return An array containing the lines of the specified file.
+     * @param filePath
+     *            The path provided for the file, which can be absolute or
+     *            relative.
+     * @return A reader on the file, or <code>null</code> if it could not be
+     *         found. It is the responsability of caller to close the returned
+     *         reader.
+     */
+    @SuppressWarnings("resource")
+    BufferedReader getReader(final String filePath) {
+        BufferedReader reader = null;
+        File file = new File(filePath);
+        try {
+            if (file.exists()) {
+                // try raw path first
+                reader = new BufferedReader(new FileReader(file));
+            } else if (resourcePath != null) {
+                // try using resource path
+                file = new File(resourcePath + File.separator + filePath);
+                if (file.exists()) {
+                    reader = new BufferedReader(new FileReader(file));
+                }
+            }
+            if (reader == null) {
+                // try to find in default resources provided
+                final InputStream stream = TemplateFile.class.getClassLoader().getResourceAsStream(
+                        new File(DEFAULT_RESOURCES_PATH, filePath).getPath());
+                if (stream != null) {
+                    reader = new BufferedReader(new InputStreamReader(stream));
+                }
+            }
+        } catch (FileNotFoundException e) {
+            // Should never happen as we test file existence first.
+            // In any case, nothing to do as we want to return null
+        }
+        return reader;
+    }
+
+    /**
+     * Retrieves the lines of the provided reader, possibly reading them from
+     * memory cache.
+     * <p>
+     * Lines are retrieved from reader at the first call, then cached in memory
+     * for next calls, using the provided identifier.
+     * <p>
+     * Use {@code readFile()} method to avoid caching.
+     *
+     * @param label
+     *            Label used as identifier to cache the line read.
+     * @param reader
+     *            Reader to parse for lines.
+     * @return a list of lines
      * @throws IOException
      *             If a problem occurs while reading the file.
      */
-    public String[] getFileLines(File file) throws IOException {
-        String absolutePath = file.getAbsolutePath();
-        String[] lines = fileLines.get(absolutePath);
+    String[] getLines(String identifier, final BufferedReader reader) throws IOException {
+        String[] lines = fileLines.get(identifier);
         if (lines == null) {
-            ArrayList<String> lineList = new ArrayList<String>();
-
-            BufferedReader reader = new BufferedReader(new FileReader(file));
-            while (true) {
-                String line = reader.readLine();
-                if (line == null) {
-                    break;
-                } else {
-                    lineList.add(line);
-                }
-            }
-
-            reader.close();
-
-            lines = new String[lineList.size()];
-            lineList.toArray(lines);
-            lineList.clear();
-            fileLines.put(absolutePath, lines);
+            lines = readLines(reader).toArray(new String[] {});
+            fileLines.put(identifier, lines);
         }
-
         return lines;
     }
 
     /**
-     * Generates the entries and writes them to the provided entry writer.
+     * Retrieves the lines from the provided reader.
      *
-     * @param entryWriter
-     *            The entry writer that should be used to write the entries.
-     * @return The result that indicates whether processing should continue.
+     * @param reader
+     *            The reader containing the lines.
+     * @return a list of lines
      * @throws IOException
-     *             If an error occurs while writing the entry.
-     * @throws DecodeException
-     *             If some other problem occurs.
+     *             If a problem occurs while reading the lines.
      */
-    public TagResult generateEntries(EntryWriter entryWriter) throws IOException, DecodeException {
-        for (Branch b : branches.values()) {
-            TagResult result = b.writeEntries(entryWriter);
-            if (!(result.keepProcessingTemplateFile())) {
-                return result;
+    private List<String> readLines(final BufferedReader reader) throws IOException {
+        final List<String> lines = new ArrayList<String>();
+        while (true) {
+            final String line = reader.readLine();
+            if (line == null) {
+                break;
             }
+            lines.add(line);
         }
+        return lines;
+    }
 
-        entryWriter.closeEntryWriter();
-        return TagResult.SUCCESS_RESULT;
+    /** Iterator on branches that are used to read entries. */
+    private Iterator<Branch> branchesIterator;
+
+    /** Branch from which entries are currently read. */
+    private Branch currentBranch;
+
+    /** Entry to return when calling {@code nextEntry} method. */
+    private TemplateEntry nextEntry;
+
+    /**
+     * Returns {@code true} if there is another generated entry
+     * to return.
+     *
+     * @return {@code true} if another entry can be returned.
+     */
+    boolean hasNext() {
+        if (nextEntry != null) {
+            return true;
+        }
+        while (currentBranch != null) {
+            if (currentBranch.hasNext()) {
+                nextEntry = currentBranch.nextEntry();
+                return true;
+            }
+            currentBranch = branchesIterator.hasNext() ? branchesIterator.next() : null;
+        }
+        return false;
     }
 
     /**
-     * Writer of generated entries.
+     * Returns the next generated entry.
+     *
+     * @return The next entry.
+     * @throws NoSuchElementException
+     *             If this reader does not contain any more entries.
      */
-    public interface EntryWriter {
-        /**
-         * Writes the provided entry to the appropriate target.
-         *
-         * @param entry
-         *            The entry to be written.
-         * @return <CODE>true</CODE> if the entry writer will accept additional
-         *         entries, or <CODE>false</CODE> if no more entries should be
-         *         written.
-         * @throws IOException
-         *             If a problem occurs while writing the entry to its
-         *             intended destination.
-         * @throws DecodeException
-         *             If some other problem occurs.
-         */
-        public boolean writeEntry(TemplateEntry entry) throws IOException, DecodeException;
-
-        /**
-         * Notifies the entry writer that no more entries will be provided and
-         * that any associated cleanup may be performed.
-         */
-        public void closeEntryWriter();
+    Entry nextEntry() {
+        if (!hasNext()) {
+            throw new NoSuchElementException();
+        }
+        final Entry entry = nextEntry.toEntry();
+        nextEntry = null;
+        return entry;
     }
 
     /**
      * Represents a branch that should be included in the generated results. A
      * branch may or may not have subordinate entries.
      */
-    static class Branch {
+    static final class Branch {
         /** The DN for this branch entry. */
-        private DN branchDN;
+        private final DN branchDN;
 
         /**
          * The number of entries that should be created below this branch for
          * each subordinate template.
          */
-        private int[] numEntriesPerTemplate;
+        private final List<Integer> numEntriesPerTemplate;
 
         /** The names of the subordinate templates for this branch. */
-        private String[] subordinateTemplateNames;
+        private final List<String> subordinateTemplateNames;
 
         /** The set of subordinate templates for this branch. */
-        private Template[] subordinateTemplates;
+        private List<Template> subordinateTemplates;
 
         /** The set of template lines that correspond to the RDN components. */
-        private TemplateLine[] rdnLines;
+        private final List<TemplateLine> rdnLines;
 
         /** The set of extra lines that should be included in this branch entry. */
-        private TemplateLine[] extraLines;
+        private final List<TemplateLine> extraLines;
 
-        private Schema schema;
+        /** Entry to return when calling {@code nextEntry} method. */
+        private TemplateEntry nextEntry;
+
+        /** Index of subordinate template currently read. */
+        private int currentSubTemplateIndex;
 
         /**
          * Creates a new branch with the provided information.
@@ -1544,9 +1362,12 @@ class TemplateFile {
          *            The DN for this branch entry.
          * @param schema
          *            schema used to create attribute
+         * @throws DecodeException
+         *             if a problem occurs during initialization
          */
-        public Branch(TemplateFile templateFile, DN branchDN, Schema schema) {
-            this(templateFile, branchDN, schema, new String[0], new int[0], new TemplateLine[0]);
+        Branch(final TemplateFile templateFile, final DN branchDN, final Schema schema) throws DecodeException {
+            this(templateFile, branchDN, schema, new ArrayList<String>(), new ArrayList<Integer>(),
+                    new ArrayList<TemplateLine>());
         }
 
         /**
@@ -1567,56 +1388,37 @@ class TemplateFile {
          * @param extraLines
          *            The set of extra lines that should be included in this
          *            branch entry.
+         * @throws DecodeException
+         *             if a problem occurs during initialization
          */
-        public Branch(TemplateFile templateFile, DN branchDN, Schema schema, String[] subordinateTemplateNames,
-                int[] numEntriesPerTemplate, TemplateLine[] extraLines) {
+        Branch(final TemplateFile templateFile, final DN branchDN, final Schema schema,
+                final List<String> subordinateTemplateNames, final List<Integer> numEntriesPerTemplate,
+                final List<TemplateLine> extraLines) throws DecodeException {
             this.branchDN = branchDN;
-            this.schema = schema;
             this.subordinateTemplateNames = subordinateTemplateNames;
             this.numEntriesPerTemplate = numEntriesPerTemplate;
             this.extraLines = extraLines;
 
-            subordinateTemplates = null;
-
-            // Get the RDN template lines based just on the entry DN.
-            Entry entry = LinkedHashMapEntry.FACTORY.newEntry(branchDN);
-
-            ArrayList<LocalizableMessage> warnings = new ArrayList<LocalizableMessage>();
-            ArrayList<TemplateLine> lineList = new ArrayList<TemplateLine>();
-
-            for (ObjectClass objectClass : Entries.getObjectClasses(entry, schema)) {
-                try {
-                    String[] valueStrings = new String[] { objectClass.getNameOrOID() };
-                    TemplateTag[] tags = new TemplateTag[1];
-                    tags[0] = new StaticTextTag();
-                    tags[0].initializeForBranch(schema, templateFile, this, valueStrings, 0, warnings);
-
-                    TemplateLine l = new TemplateLine(CoreSchema.getObjectClassAttributeType(), 0, tags);
-                    lineList.add(l);
-                } catch (Exception e) {
-                    // This should never happen.
-                    e.printStackTrace();
+            // The RDN template lines are based on the DN.
+            final List<LocalizableMessage> warnings = new ArrayList<LocalizableMessage>();
+            rdnLines = new ArrayList<TemplateLine>();
+            for (final AVA ava : branchDN.rdn()) {
+                final Attribute attribute = ava.toAttribute();
+                for (final ByteString value : attribute.toArray()) {
+                    final List<TemplateTag> tags =
+                            buildTagListForValue(value.toString(), templateFile, schema, warnings);
+                    rdnLines.add(new TemplateLine(attribute.getAttributeDescription().getAttributeType(), 0, tags));
                 }
             }
+        }
 
-            for (Attribute attribute : entry.getAllAttributes()) {
-                for (String value : attribute.toArray(new String[attribute.size()])) {
-                    try {
-                        String[] valueStrings = new String[] { value };
-                        TemplateTag[] tags = new TemplateTag[1];
-                        tags[0] = new StaticTextTag();
-                        tags[0].initializeForBranch(schema, templateFile, this, valueStrings, 0, warnings);
-                        lineList.add(
-                                new TemplateLine(attribute.getAttributeDescription().getAttributeType(), 0, tags));
-                    } catch (Exception e) {
-                        // This should never happen.
-                        e.printStackTrace();
-                    }
-                }
-            }
-
-            rdnLines = new TemplateLine[lineList.size()];
-            lineList.toArray(rdnLines);
+        private List<TemplateTag> buildTagListForValue(final String value, final TemplateFile templateFile,
+                final Schema schema, final List<LocalizableMessage> warnings) throws DecodeException {
+            final StaticTextTag tag = new StaticTextTag();
+            tag.initializeForBranch(schema, templateFile, this, new String[] { value }, 0, warnings);
+            final List<TemplateTag> tags = new ArrayList<TemplateTag>();
+            tags.add(tag);
+            return tags;
         }
 
         /**
@@ -1631,63 +1433,21 @@ class TemplateFile {
          *             If any of the subordinate templates are not defined in
          *             the template file.
          */
-        public void completeBranchInitialization(Map<String, Template> templates) throws DecodeException {
-            if (subordinateTemplateNames == null) {
-                subordinateTemplateNames = new String[0];
-                subordinateTemplates = new Template[0];
-            } else {
-                subordinateTemplates = new Template[subordinateTemplateNames.length];
-                for (int i = 0; i < subordinateTemplates.length; i++) {
-                    subordinateTemplates[i] = templates.get(subordinateTemplateNames[i].toLowerCase());
-                    if (subordinateTemplates[i] == null) {
-                        LocalizableMessage message = ERR_ENTRY_GENERATOR_UNDEFINED_BRANCH_SUBORDINATE.get(
-                                branchDN.toString(), subordinateTemplateNames[i]);
-                        throw DecodeException.fatalError(message);
-                    }
+        private void completeBranchInitialization(final Map<String, Template> templates) throws DecodeException {
+            subordinateTemplates = new ArrayList<Template>();
+            for (int i = 0; i < subordinateTemplateNames.size(); i++) {
+                subordinateTemplates.add(templates.get(subordinateTemplateNames.get(i).toLowerCase()));
+                if (subordinateTemplates.get(i) == null) {
+                    throw DecodeException.fatalError(ERR_ENTRY_GENERATOR_UNDEFINED_BRANCH_SUBORDINATE.get(
+                            branchDN.toString(), subordinateTemplateNames.get(i)));
                 }
             }
+
+            nextEntry = buildBranchEntry();
         }
 
-        /**
-         * Retrieves the DN for this branch entry.
-         *
-         * @return The DN for this branch entry.
-         */
-        public DN getBranchDN() {
+        DN getBranchDN() {
             return branchDN;
-        }
-
-        /**
-         * Retrieves the names of the subordinate templates for this branch.
-         *
-         * @return The names of the subordinate templates for this branch.
-         */
-        public String[] getSubordinateTemplateNames() {
-            return subordinateTemplateNames;
-        }
-
-        /**
-         * Retrieves the set of subordinate templates used to generate entries
-         * below this branch. Note that the subordinate templates will not be
-         * available until the <CODE>completeBranchInitialization</CODE> method
-         * has been called.
-         *
-         * @return The set of subordinate templates used to generate entries
-         *         below this branch.
-         */
-        public Template[] getSubordinateTemplates() {
-            return subordinateTemplates;
-        }
-
-        /**
-         * Retrieves the number of entries that should be created below this
-         * branch for each subordinate template.
-         *
-         * @return The number of entries that should be created below this
-         *         branch for each subordinate template.
-         */
-        public int[] getNumEntriesPerTemplate() {
-            return numEntriesPerTemplate;
         }
 
         /**
@@ -1700,29 +1460,9 @@ class TemplateFile {
          * @param numEntries
          *            The number of entries to create based on the template.
          */
-        public void addSubordinateTemplate(String name, int numEntries) {
-            String[] newNames = new String[subordinateTemplateNames.length + 1];
-            int[] newCounts = new int[numEntriesPerTemplate.length + 1];
-
-            System.arraycopy(subordinateTemplateNames, 0, newNames, 0, subordinateTemplateNames.length);
-            System.arraycopy(numEntriesPerTemplate, 0, newCounts, 0, numEntriesPerTemplate.length);
-
-            newNames[subordinateTemplateNames.length] = name;
-            newCounts[numEntriesPerTemplate.length] = numEntries;
-
-            subordinateTemplateNames = newNames;
-            numEntriesPerTemplate = newCounts;
-        }
-
-        /**
-         * Retrieves the set of extra lines that should be included in this
-         * branch entry.
-         *
-         * @return The set of extra lines that should be included in this branch
-         *         entry.
-         */
-        public TemplateLine[] getExtraLines() {
-            return extraLines;
+        void addSubordinateTemplate(final String name, final int numEntries) {
+            subordinateTemplateNames.add(name);
+            numEntriesPerTemplate.add(numEntries);
         }
 
         /**
@@ -1732,12 +1472,8 @@ class TemplateFile {
          * @param line
          *            The line to add to the set of extra lines for this branch.
          */
-        public void addExtraLine(TemplateLine line) {
-            TemplateLine[] newExtraLines = new TemplateLine[extraLines.length + 1];
-            System.arraycopy(extraLines, 0, newExtraLines, 0, extraLines.length);
-            newExtraLines[extraLines.length] = line;
-
-            extraLines = newExtraLines;
+        void addExtraLine(final TemplateLine line) {
+            extraLines.add(line);
         }
 
         /**
@@ -1747,73 +1483,76 @@ class TemplateFile {
          *
          * @param attributeType
          *            The attribute type for which to make the determination.
-         * @return <CODE>true</CODE> if the branch does contain the specified
-         *         attribute type, or <CODE>false</CODE> if it does not.
+         * @return <code>true</code> if the branch does contain the specified
+         *         attribute type, or <code>false</code> if it does not.
          */
-        public boolean hasAttribute(AttributeType attributeType) {
+        boolean hasAttribute(final AttributeType attributeType) {
             if (branchDN.rdn().getAttributeValue(attributeType) != null) {
                 return true;
             }
-
-            for (TemplateLine l : extraLines) {
-                if (l.getAttributeType().equals(attributeType)) {
+            for (final TemplateLine line : extraLines) {
+                if (line.getAttributeType().equals(attributeType)) {
                     return true;
                 }
             }
-
             return false;
         }
 
         /**
-         * Writes the entry for this branch, as well as all appropriate
-         * subordinate entries.
+         * Returns the entry corresponding to this branch.
          *
-         * @param entryWriter
-         *            The entry writer to which the entries should be written.
-         * @return The result that indicates whether processing should continue.
-         * @throws IOException
-         *             If a problem occurs while attempting to write to the LDIF
-         *             writer.
-         * @throws DecodeException
-         *             If some other problem occurs.
+         * @return the entry, or null if it can't be generated
          */
-        public TagResult writeEntries(EntryWriter entryWriter) throws IOException, DecodeException {
-            // Create a new template entry and populate it based on the RDN
-            // attributes and extra lines.
-            TemplateEntry entry = new TemplateEntry(this);
-
-            for (TemplateLine l : rdnLines) {
-                TagResult r = l.generateLine(entry);
-                if (!(r.keepProcessingEntry() && r.keepProcessingParent() && r.keepProcessingTemplateFile())) {
-                    return r;
-                }
+        private TemplateEntry buildBranchEntry() {
+            final TemplateEntry entry = new TemplateEntry(this);
+            final List<TemplateLine> lines = new ArrayList<TemplateLine>(rdnLines);
+            lines.addAll(extraLines);
+            for (final TemplateLine line : lines) {
+                line.generateLine(entry);
             }
-
-            for (TemplateLine l : extraLines) {
-                TagResult r = l.generateLine(entry);
-                if (!(r.keepProcessingEntry() && r.keepProcessingParent() && r.keepProcessingTemplateFile())) {
-                    return r;
-                }
+            for (int i = 0; i < subordinateTemplates.size(); i++) {
+                subordinateTemplates.get(i).reset(entry.getDN(), numEntriesPerTemplate.get(i));
             }
+            return entry;
+        }
 
-            if (!entryWriter.writeEntry(entry)) {
-                return TagResult.STOP_PROCESSING;
+        /**
+         * Returns {@code true} if there is another generated entry to return.
+         *
+         * @return {@code true} if another entry can be returned.
+         */
+        boolean hasNext() {
+            if (nextEntry != null) {
+                return true;
             }
-
-            for (int i = 0; i < subordinateTemplates.length; i++) {
-                TagResult r = subordinateTemplates[i].writeEntries(entryWriter, branchDN, numEntriesPerTemplate[i]);
-                if (!(r.keepProcessingParent() && r.keepProcessingTemplateFile())) {
-                    if (r.keepProcessingTemplateFile()) {
-                        // We don't want to propagate a "stop processing parent"
-                        // all the way up the chain.
-                        return TagResult.SUCCESS_RESULT;
+            // get the next entry from current subtemplate
+            if (nextEntry == null) {
+                for (; currentSubTemplateIndex < subordinateTemplates.size(); currentSubTemplateIndex++) {
+                    if (subordinateTemplates.get(currentSubTemplateIndex).hasNext()) {
+                        nextEntry = subordinateTemplates.get(currentSubTemplateIndex).nextEntry();
+                        if (nextEntry != null) {
+                            return true;
+                        }
                     }
-
-                    return r;
                 }
             }
+            return false;
+        }
 
-            return TagResult.SUCCESS_RESULT;
+        /**
+         * Returns the next generated entry.
+         *
+         * @return The next entry.
+         * @throws NoSuchElementException
+         *             If this reader does not contain any more entries.
+         */
+        TemplateEntry nextEntry() {
+            if (!hasNext()) {
+                throw new NoSuchElementException();
+            }
+            final TemplateEntry entry = nextEntry;
+            nextEntry = null;
+            return entry;
         }
     }
 
@@ -1827,54 +1566,25 @@ class TemplateFile {
          * The attribute types that are used in the RDN for entries generated
          * using this template.
          */
-        private org.forgerock.opendj.ldap.schema.AttributeType[] rdnAttributes;
+        private final List<AttributeType> rdnAttributes;
 
         /** The number of entries to create for each subordinate template. */
-        private int[] numEntriesPerTemplate;
+        private final List<Integer> numEntriesPerTemplate;
 
         /** The name for this template. */
-        private String name;
+        private final String name;
 
         /** The names of the subordinate templates below this template. */
-        private String[] subordinateTemplateNames;
+        private final List<String> subTemplateNames;
 
         /** The subordinate templates below this template. */
-        private Template[] subordinateTemplates;
+        private List<Template> subTemplates;
 
         /** The template file that contains this template. */
-        private TemplateFile templateFile;
+        private final TemplateFile templateFile;
 
         /** The set of template lines for this template. */
-        private TemplateLine[] templateLines;
-
-        /**
-         * Creates a new template with the provided information.
-         *
-         * @param templateFile
-         *            The template file that contains this template.
-         * @param name
-         *            The name for this template.
-         * @param rdnAttributes
-         *            The set of attribute types that are used in the RDN for
-         *            entries generated using this template.
-         * @param subordinateTemplateNames
-         *            The names of the subordinate templates below this
-         *            template.
-         * @param numEntriesPerTemplate
-         *            The number of entries to create below each subordinate
-         *            template.
-         */
-        public Template(TemplateFile templateFile, String name, AttributeType[] rdnAttributes,
-                String[] subordinateTemplateNames, int[] numEntriesPerTemplate) {
-            this.templateFile = templateFile;
-            this.name = name;
-            this.rdnAttributes = rdnAttributes;
-            this.subordinateTemplateNames = subordinateTemplateNames;
-            this.numEntriesPerTemplate = numEntriesPerTemplate;
-
-            templateLines = new TemplateLine[0];
-            subordinateTemplates = null;
-        }
+        private final List<TemplateLine> templateLines;
 
         /**
          * Creates a new template with the provided information.
@@ -1895,16 +1605,15 @@ class TemplateFile {
          * @param templateLines
          *            The set of template lines for this template.
          */
-        public Template(TemplateFile templateFile, String name, AttributeType[] rdnAttributes,
-                String[] subordinateTemplateNames, int[] numEntriesPerTemplate, TemplateLine[] templateLines) {
+        Template(final TemplateFile templateFile, final String name, final List<AttributeType> rdnAttributes,
+                final List<String> subordinateTemplateNames, final List<Integer> numEntriesPerTemplate,
+                final List<TemplateLine> templateLines) {
             this.templateFile = templateFile;
             this.name = name;
             this.rdnAttributes = rdnAttributes;
-            this.subordinateTemplateNames = subordinateTemplateNames;
+            this.subTemplateNames = subordinateTemplateNames;
             this.numEntriesPerTemplate = numEntriesPerTemplate;
             this.templateLines = templateLines;
-
-            subordinateTemplates = null;
         }
 
         /**
@@ -1920,117 +1629,47 @@ class TemplateFile {
          *             If any of the subordinate templates are not defined in
          *             the template file.
          */
-        public void completeTemplateInitialization(Map<String, Template> templates) throws DecodeException {
-            // Make sure that all of the specified subordinate templates exist.
-            if (subordinateTemplateNames == null) {
-                subordinateTemplateNames = new String[0];
-                subordinateTemplates = new Template[0];
-            } else {
-                subordinateTemplates = new Template[subordinateTemplateNames.length];
-                for (int i = 0; i < subordinateTemplates.length; i++) {
-                    subordinateTemplates[i] = templates.get(subordinateTemplateNames[i].toLowerCase());
-                    if (subordinateTemplates[i] == null) {
-                        LocalizableMessage message = ERR_ENTRY_GENERATOR_UNDEFINED_TEMPLATE_SUBORDINATE.get(
-                                subordinateTemplateNames[i], name);
-                        throw DecodeException.fatalError(message);
-                    }
+        void completeTemplateInitialization(final Map<String, Template> templates) throws DecodeException {
+            subTemplates = new ArrayList<Template>();
+            for (final String subordinateName : subTemplateNames) {
+                final Template template = templates.get(subordinateName.toLowerCase());
+                if (template == null) {
+                    throw DecodeException.fatalError(ERR_ENTRY_GENERATOR_UNDEFINED_TEMPLATE_SUBORDINATE.get(
+                            this.name, subordinateName));
                 }
+                subTemplates.add(template);
             }
+            ensureAllRDNAttributesAreDefined();
+        }
 
-            // Make sure that all of the RDN attributes are defined.
-            HashSet<AttributeType> rdnAttrs = new HashSet<AttributeType>(rdnAttributes.length);
-            for (AttributeType t : rdnAttributes) {
-                rdnAttrs.add(t);
+        private void ensureAllRDNAttributesAreDefined() throws DecodeException {
+            Set<AttributeType> rdnAttrs = new HashSet<AttributeType>(rdnAttributes);
+            List<AttributeType> templateAttrs = new ArrayList<AttributeType>();
+            for (TemplateLine line : templateLines) {
+                templateAttrs.add(line.getAttributeType());
             }
-
-            for (TemplateLine l : templateLines) {
-                if (rdnAttrs.remove(l.getAttributeType())) {
-                    if (rdnAttrs.isEmpty()) {
-                        break;
-                    }
-                }
-            }
-
+            rdnAttrs.removeAll(templateAttrs);
             if (!rdnAttrs.isEmpty()) {
                 AttributeType t = rdnAttrs.iterator().next();
-                LocalizableMessage message = ERR_ENTRY_GENERATOR_TEMPLATE_MISSING_RDN_ATTR.get(name, t.getNameOrOID());
-                throw DecodeException.fatalError(message);
+                throw DecodeException.fatalError(ERR_ENTRY_GENERATOR_TEMPLATE_MISSING_RDN_ATTR.get(
+                        name, t.getNameOrOID()));
             }
         }
 
-        /**
-         * Retrieves the name for this template.
-         *
-         * @return The name for this template.
-         */
-        public String getName() {
+        String getName() {
             return name;
         }
 
-        /**
-         * Retrieves the set of attribute types that are used in the RDN for
-         * entries generated using this template.
-         *
-         * @return The set of attribute types that are used in the RDN for
-         *         entries generated using this template.
-         */
-        public AttributeType[] getRDNAttributes() {
+        List<AttributeType> getRDNAttributes() {
             return rdnAttributes;
         }
 
-        /**
-         * Retrieves the names of the subordinate templates used to generate
-         * entries below entries created by this template.
-         *
-         * @return The names of the subordinate templates used to generate
-         *         entries below entries created by this template.
-         */
-        public String[] getSubordinateTemplateNames() {
-            return subordinateTemplateNames;
-        }
-
-        /**
-         * Retrieves the subordinate templates used to generate entries below
-         * entries created by this template.
-         *
-         * @return The subordinate templates used to generate entries below
-         *         entries created by this template.
-         */
-        public Template[] getSubordinateTemplates() {
-            return subordinateTemplates;
-        }
-
-        /**
-         * Retrieves the number of entries that should be created for each
-         * subordinate template.
-         *
-         * @return The number of entries that should be created for each
-         *         subordinate template.
-         */
-        public int[] getNumEntriesPerTemplate() {
-            return numEntriesPerTemplate;
-        }
-
-        /**
-         * Retrieves the set of template lines for this template.
-         *
-         * @return The set of template lines for this template.
-         */
-        public TemplateLine[] getTemplateLines() {
+        List<TemplateLine> getTemplateLines() {
             return templateLines;
         }
 
-        /**
-         * Adds the provided template line to this template.
-         *
-         * @param line
-         *            The template line to add to this template.
-         */
-        public void addTemplateLine(TemplateLine line) {
-            TemplateLine[] newTemplateLines = new TemplateLine[templateLines.length + 1];
-            System.arraycopy(templateLines, 0, newTemplateLines, 0, templateLines.length);
-            newTemplateLines[templateLines.length] = line;
-            templateLines = newTemplateLines;
+        void addTemplateLine(final TemplateLine line) {
+            templateLines.add(line);
         }
 
         /**
@@ -2043,68 +1682,124 @@ class TemplateFile {
          *         template lines that reference the provided attribute type, or
          *         <CODE>false</CODE> if not.
          */
-        public boolean hasAttribute(AttributeType attributeType) {
-            for (TemplateLine l : templateLines) {
-                if (l.getAttributeType().equals(attributeType)) {
+        boolean hasAttribute(final AttributeType attributeType) {
+            for (final TemplateLine line : templateLines) {
+                if (line.getAttributeType().equals(attributeType)) {
                     return true;
                 }
             }
+            return false;
+        }
 
+        /** parent DN of entries to generate for this template. */
+        private DN parentDN;
+
+        /** Number of entries to generate for this template. */
+        private int numberOfEntries;
+
+        /** Current count of generated entries for this template. */
+        private int entriesCount;
+
+        /** Indicates if current entry has been initialized. */
+        private boolean currentEntryIsInitialized;
+
+        /** Index of current subordinate template to use for current entry. */
+        private int subTemplateIndex;
+
+        /** Entry to return when calling {@code nextEntry} method. */
+        private TemplateEntry nextEntry;
+
+        /**
+         * Reset this template with provided parentDN and number of entries to
+         * generate.
+         * <p>
+         * After a reset, the template can be used again to generate some
+         * entries with a different parent DN and number of entries.
+         *
+         * @param parentDN
+         *            The parent DN of entires to generate for this template.
+         * @param numberOfEntries
+         *            The number of entries to generate for this template.
+         */
+        void reset(final DN parentDN, final int numberOfEntries) {
+            this.parentDN = parentDN;
+            this.numberOfEntries = numberOfEntries;
+            entriesCount = 0;
+            currentEntryIsInitialized = false;
+            subTemplateIndex = 0;
+            nextEntry = null;
+        }
+
+        /**
+         * Returns an entry for this template.
+         *
+         * @return the entry, or null if it can't be generated
+         */
+        private TemplateEntry buildTemplateEntry() {
+            templateFile.nextFirstAndLastNames();
+            final TemplateEntry templateEntry = new TemplateEntry(this, parentDN);
+
+            for (final TemplateLine line : templateLines) {
+                line.generateLine(templateEntry);
+            }
+            for (int i = 0; i < subTemplates.size(); i++) {
+                subTemplates.get(i).reset(templateEntry.getDN(), numEntriesPerTemplate.get(i));
+            }
+            return templateEntry;
+        }
+
+        /**
+         * Returns {@code true} if there is another generated entry to return.
+         *
+         * @return {@code true} if another entry can be returned.
+         */
+        boolean hasNext() {
+            if (nextEntry != null) {
+                return true;
+            }
+            while (entriesCount < numberOfEntries) {
+                // get the template entry
+                if (!currentEntryIsInitialized) {
+                    nextEntry = buildTemplateEntry();
+                    if (nextEntry != null) {
+                        currentEntryIsInitialized = true;
+                        return true;
+                    }
+                    return false;
+                }
+                // get the next entry from current subtemplate
+                if (nextEntry == null) {
+                    for (; subTemplateIndex < subTemplates.size(); subTemplateIndex++) {
+                        if (subTemplates.get(subTemplateIndex).hasNext()) {
+                            nextEntry = subTemplates.get(subTemplateIndex).nextEntry();
+                            if (nextEntry != null) {
+                                return true;
+                            }
+                        }
+                    }
+                }
+                // reset for next template entry
+                entriesCount++;
+                currentEntryIsInitialized = false;
+                subTemplateIndex = 0;
+            }
             return false;
         }
 
         /**
-         * Writes the entry for this template, as well as all appropriate
-         * subordinate entries.
+         * Returns the next generated entry.
          *
-         * @param entryWriter
-         *            The entry writer that will be used to write the entries.
-         * @param parentDN
-         *            The DN of the entry below which the subordinate entries
-         *            should be generated.
-         * @param count
-         *            The number of entries to generate based on this template.
-         * @return The result that indicates whether processing should continue.
-         * @throws IOException
-         *             If a problem occurs while attempting to write to the LDIF
-         *             writer.
-         * @throws DecodeException
-         *             If some other problem occurs.
+         * @return The next entry.
+         * @throws NoSuchElementException
+         *             If this reader does not contain any more entries.
          */
-        public TagResult writeEntries(EntryWriter entryWriter, DN parentDN, int count) throws IOException,
-                DecodeException {
-            for (int i = 0; i < count; i++) {
-                templateFile.nextFirstAndLastNames();
-                TemplateEntry templateEntry = new TemplateEntry(this, parentDN);
-
-                for (TemplateLine l : templateLines) {
-                    TagResult r = l.generateLine(templateEntry);
-                    if (!(r.keepProcessingEntry() && r.keepProcessingParent() && r.keepProcessingTemplateFile())) {
-                        return r;
-                    }
-                }
-
-                if (!entryWriter.writeEntry(templateEntry)) {
-                    return TagResult.STOP_PROCESSING;
-                }
-
-                for (int j = 0; j < subordinateTemplates.length; j++) {
-                    TagResult r = subordinateTemplates[j].writeEntries(entryWriter, templateEntry.getDN(),
-                            numEntriesPerTemplate[j]);
-                    if (!(r.keepProcessingParent() && r.keepProcessingTemplateFile())) {
-                        if (r.keepProcessingTemplateFile()) {
-                            // We don't want to propagate a
-                            // "stop processing parent"
-                            // all the way up the chain.
-                            return TagResult.SUCCESS_RESULT;
-                        }
-
-                        return r;
-                    }
-                }
+        TemplateEntry nextEntry() {
+            if (!hasNext()) {
+                throw new NoSuchElementException();
             }
-
-            return TagResult.SUCCESS_RESULT;
+            final TemplateEntry entry = nextEntry;
+            nextEntry = null;
+            return entry;
         }
     }
 
@@ -2116,12 +1811,6 @@ class TemplateFile {
         /** Template entry that represents a null object. */
         static final TemplateEntry NULL_TEMPLATE_ENTRY = new TemplateEntry(null, null);
 
-        /**
-         * The branch used to generate this entry (if it is associated with a
-         * branch).
-         */
-        private Branch branch;
-
         /** The DN for this template entry, if it is known. */
         private DN dn;
 
@@ -2129,20 +1818,22 @@ class TemplateFile {
          * The DN of the parent entry for this template entry, if it is
          * available.
          */
-        private DN parentDN;
+        private final DN parentDN;
 
         /**
          * The set of attributes associated with this template entry, mapped
          * from the lowercase name of the attribute to the list of generated
          * values.
+         * A list of template values is never empty in the map, it always has
+         * at least one element.
          */
-        private LinkedHashMap<AttributeType, ArrayList<TemplateValue>> attributes;
+        private final LinkedHashMap<AttributeType, List<TemplateValue>> attributes;
 
         /**
-         * The template used to generate this entry (if it is associated with a
-         * template).
+         * The template used to generate this entry if it is associated with a
+         * template.
          */
-        private Template template;
+        private final Template template;
 
         /**
          * Creates a new template entry that will be associated with the
@@ -2151,13 +1842,11 @@ class TemplateFile {
          * @param branch
          *            The branch to use when creating this template entry.
          */
-        public TemplateEntry(Branch branch) {
-            this.branch = branch;
-
+        TemplateEntry(final Branch branch) {
             dn = branch.getBranchDN();
+            attributes = new LinkedHashMap<AttributeType, List<TemplateValue>>();
             template = null;
             parentDN = null;
-            attributes = new LinkedHashMap<AttributeType, ArrayList<TemplateValue>>();
         }
 
         /**
@@ -2169,43 +1858,13 @@ class TemplateFile {
          * @param parentDN
          *            The DN of the parent entry for this template entry.
          */
-        public TemplateEntry(Template template, DN parentDN) {
+        TemplateEntry(final Template template, final DN parentDN) {
             this.template = template;
             this.parentDN = parentDN;
-
-            dn = null;
-            branch = null;
-            attributes = new LinkedHashMap<AttributeType, ArrayList<TemplateValue>>();
+            attributes = new LinkedHashMap<AttributeType, List<TemplateValue>>();
         }
 
-        /**
-         * Retrieves the branch used to generate this entry.
-         *
-         * @return The branch used to generate this entry, or <CODE>null</CODE>
-         *         if it is associated with a template instead of a branch.
-         */
-        public Branch getBranch() {
-            return branch;
-        }
-
-        /**
-         * Retrieves the template used to generate this entry.
-         *
-         * @return The template used to generate this entry, or
-         *         <CODE>null</CODE> if it is associated with a branch instead
-         *         of a template.
-         */
-        public Template getTemplate() {
-            return template;
-        }
-
-        /**
-         * Retrieves the DN of the parent entry for this template entry.
-         *
-         * @return The DN of the parent entry for this template entry, or
-         *         <CODE>null</CODE> if there is no parent DN.
-         */
-        public DN getParentDN() {
+        DN getParentDN() {
             return parentDN;
         }
 
@@ -2215,52 +1874,19 @@ class TemplateFile {
          * @return The DN for this template entry if it is known, or
          *         <CODE>null</CODE> if it cannot yet be determined.
          */
-        public DN getDN() {
-            // TODO : building to review, particularly building RN with multiple
-            // AVA
-            // using StringBuilder because no facility using other way
+        DN getDN() {
             if (dn == null) {
-                RDN rdn;
-                AttributeType[] rdnAttrs = template.getRDNAttributes();
-                if (rdnAttrs.length == 1) {
-                    AttributeType type = rdnAttrs[0];
-                    TemplateValue templateValue = getValue(type);
+                final Collection<AVA> avas = new ArrayList<AVA>();
+                for (final AttributeType attrType : template.getRDNAttributes()) {
+                    final TemplateValue templateValue = getValue(attrType);
                     if (templateValue == null) {
                         return null;
                     }
-                    rdn = new RDN(type, templateValue.getValueAsString());
-                } else {
-                    StringBuilder rdnString = new StringBuilder();
-                    for (int i = 0; i < rdnAttrs.length; i++) {
-                        AttributeType type = rdnAttrs[i];
-                        TemplateValue templateValue = getValue(type);
-                        if (templateValue == null) {
-                            return null;
-                        }
-                        if (i > 0) {
-                            rdnString.append("+");
-                        }
-                        rdnString.append(new AVA(type, templateValue.getValueAsString()).toString());
-                    }
-                    rdn = RDN.valueOf(rdnString.toString());
+                    avas.add(new AVA(attrType, templateValue.getValueAsString()));
                 }
-                dn = parentDN.child(rdn);
+                dn = parentDN.child(new RDN(avas));
             }
             return dn;
-        }
-
-        /**
-         * Indicates whether this entry contains one or more values for the
-         * specified attribute type.
-         *
-         * @param attributeType
-         *            The attribute type for which to make the determination.
-         * @return <CODE>true</CODE> if this entry contains one or more values
-         *         for the specified attribute type, or <CODE>false</CODE> if
-         *         not.
-         */
-        public boolean hasAttribute(AttributeType attributeType) {
-            return attributes.containsKey(attributeType);
         }
 
         /**
@@ -2273,13 +1899,12 @@ class TemplateFile {
          * @return The value for the specified attribute, or <CODE>null</CODE>
          *         if there are no values for that attribute type.
          */
-        public TemplateValue getValue(AttributeType attributeType) {
-            ArrayList<TemplateValue> valueList = attributes.get(attributeType);
-            if ((valueList == null) || valueList.isEmpty()) {
-                return null;
-            } else {
-                return valueList.get(0);
+        TemplateValue getValue(final AttributeType attributeType) {
+            final List<TemplateValue> values = attributes.get(attributeType);
+            if ((values != null)) {
+                return values.get(0);
             }
+            return null;
         }
 
         /**
@@ -2292,41 +1917,32 @@ class TemplateFile {
          *         <CODE>null</CODE> if there are no values for that attribute
          *         type.
          */
-        public List<TemplateValue> getValues(AttributeType attributeType) {
-            ArrayList<TemplateValue> valueList = attributes.get(attributeType);
-            return valueList;
+        List<TemplateValue> getValues(AttributeType attributeType) {
+            return attributes.get(attributeType);
         }
 
-        /**
-         * Adds the provided template value to this entry.
-         *
-         * @param value
-         *            The value to add to this entry.
-         */
-        public void addValue(TemplateValue value) {
-            ArrayList<TemplateValue> valueList = attributes.get(value.getAttributeType());
-            if (valueList == null) {
-                valueList = new ArrayList<TemplateValue>();
-                valueList.add(value);
-                attributes.put(value.getAttributeType(), valueList);
-            } else {
-                valueList.add(value);
+        void addValue(TemplateValue value) {
+            List<TemplateValue> values = attributes.get(value.getAttributeType());
+            if (values == null) {
+                values = new ArrayList<TemplateValue>();
+                attributes.put(value.getAttributeType(), values);
             }
+            values.add(value);
         }
 
         /**
-         * Returns an entry from this template entry.
+         * Returns an entry built from this template entry.
          *
          * @return an entry
          */
-        public Entry toEntry() {
-            Entry entry = LinkedHashMapEntry.FACTORY.newEntry(getDN());
-            AttributeFactory attributeFactory = LinkedAttribute.FACTORY;
+        Entry toEntry() {
+            final Entry entry = new LinkedHashMapEntry(getDN());
 
-            for (AttributeType attributeType : attributes.keySet()) {
-                ArrayList<TemplateValue> valueList = attributes.get(attributeType);
-                Attribute newAttribute = attributeFactory.newAttribute(AttributeDescription.create(attributeType));
-                for (TemplateValue value : valueList) {
+            for (final AttributeType attributeType : attributes.keySet()) {
+                final List<TemplateValue> valueList = attributes.get(attributeType);
+                final Attribute newAttribute =
+                        new LinkedAttribute(AttributeDescription.create(attributeType));
+                for (final TemplateValue value : valueList) {
                     newAttribute.add(value.getValueAsString());
                 }
                 entry.addAttribute(newAttribute);
@@ -2340,69 +1956,27 @@ class TemplateFile {
      * any number of tags to be evaluated.
      */
     static class TemplateLine {
-        /** The attribute type for this template line. */
-        private AttributeType attributeType;
+
+        /** The attribute type to which this template line corresponds. */
+        private final AttributeType attributeType;
 
         /**
          * The line number on which this template line appears in the template
          * file.
          */
-        private int lineNumber;
+        private final int lineNumber;
 
         /** The set of tags for this template line. */
-        private TemplateTag[] tags;
+        private final List<TemplateTag> tags;
 
         /** Whether this line corresponds to an URL value or not. */
-        private boolean isURL;
+        private final boolean isURL;
 
         /** Whether this line corresponds to a base64 encoded value or not. */
-        private boolean isBase64;
+        private final boolean isBase64;
 
         /**
-         * Retrieves the attribute type for this template line.
-         *
-         * @return The attribute type for this template line.
-         */
-        public AttributeType getAttributeType() {
-            return attributeType;
-        }
-
-        /**
-         * Retrieves the line number on which this template line appears in the
-         * template file.
-         *
-         * @return The line number on which this template line appears in the
-         *         template file.
-         */
-        public int getLineNumber() {
-            return lineNumber;
-        }
-
-        /**
-         * Returns whether the value of this template line corresponds to an URL
-         * or not.
-         *
-         * @return <CODE>true</CODE> if the value of this template line
-         *         corresponds to an URL and <CODE>false</CODE> otherwise.
-         */
-        public boolean isURL() {
-            return isURL;
-        }
-
-        /**
-         * Returns whether the value of this template line corresponds to a
-         * Base64 encoded value or not.
-         *
-         * @return <CODE>true</CODE> if the value of this template line
-         *         corresponds to a Base64 encoded value and <CODE>false</CODE>
-         *         otherwise.
-         */
-        public boolean isBase64() {
-            return isBase64;
-        }
-
-        /**
-         * Creates a new template line with the provided information.
+         * Creates a new template line.
          *
          * @param attributeType
          *            The attribute type for this template line.
@@ -2412,12 +1986,12 @@ class TemplateFile {
          * @param tags
          *            The set of tags for this template line.
          */
-        public TemplateLine(AttributeType attributeType, int lineNumber, TemplateTag[] tags) {
+        TemplateLine(final AttributeType attributeType, final int lineNumber, final List<TemplateTag> tags) {
             this(attributeType, lineNumber, tags, false, false);
         }
 
         /**
-         * Creates a new template line with the provided information.
+         * Creates a new template line with URL and base64 flags.
          *
          * @param attributeType
          *            The attribute type for this template line.
@@ -2432,13 +2006,17 @@ class TemplateFile {
          *            Whether this template line's value is Base64 encoded or
          *            not.
          */
-        public TemplateLine(AttributeType attributeType, int lineNumber, TemplateTag[] tags, boolean isURL,
-                boolean isBase64) {
+        TemplateLine(final AttributeType attributeType, final int lineNumber, final List<TemplateTag> tags,
+                final boolean isURL, final boolean isBase64) {
             this.attributeType = attributeType;
             this.lineNumber = lineNumber;
             this.tags = tags;
             this.isURL = isURL;
             this.isBase64 = isBase64;
+        }
+
+        AttributeType getAttributeType() {
+            return attributeType;
         }
 
         /**
@@ -2449,19 +2027,16 @@ class TemplateFile {
          *            The template entry being generated.
          * @return The result of generating the template line.
          */
-        public TagResult generateLine(TemplateEntry templateEntry) {
-            TemplateValue value = new TemplateValue(this);
-
-            for (TemplateTag t : tags) {
-                TagResult result = t.generateValue(templateEntry, value);
-                if (!(result.keepProcessingLine() && result.keepProcessingEntry()
-                        && result.keepProcessingParent() && result.keepProcessingTemplateFile())) {
+        TagResult generateLine(final TemplateEntry templateEntry) {
+            final TemplateValue value = new TemplateValue(this);
+            for (final TemplateTag tag : tags) {
+                final TagResult result = tag.generateValue(templateEntry, value);
+                if (result != TagResult.SUCCESS) {
                     return result;
                 }
             }
-
             templateEntry.addValue(value);
-            return TagResult.SUCCESS_RESULT;
+            return TagResult.SUCCESS;
         }
     }
 
@@ -2469,77 +2044,37 @@ class TemplateFile {
      * Represents a value generated from a template line.
      */
     static class TemplateValue {
+
         /** The generated template value. */
-        private StringBuilder templateValue;
+        private final StringBuilder templateValue;
 
         /** The template line used to generate this value. */
-        private TemplateLine templateLine;
+        private final TemplateLine templateLine;
 
-        /**
-         * Creates a new template value with the provided information.
-         *
-         * @param templateLine
-         *            The template line used to generate this value.
-         */
-        public TemplateValue(TemplateLine templateLine) {
+        TemplateValue(final TemplateLine templateLine) {
             this.templateLine = templateLine;
             templateValue = new StringBuilder();
         }
 
-        /**
-         * Retrieves the template line used to generate this value.
-         *
-         * @return The template line used to generate this value.
-         */
-        public TemplateLine getTemplateLine() {
-            return templateLine;
-        }
-
-        /**
-         * Retrieves the attribute type for this template value.
-         *
-         * @return The attribute type for this template value.
-         */
-        public AttributeType getAttributeType() {
+        AttributeType getAttributeType() {
             return templateLine.getAttributeType();
         }
 
-        /**
-         * Retrieves the generated value.
-         *
-         * @return The generated value.
-         */
-        public StringBuilder getValue() {
-            return templateValue;
-        }
-
-        /**
-         * Retrieves the generated value as String.
-         *
-         * @return The generated value.
-         */
-        public String getValueAsString() {
+        /** Returns the generated value as String. */
+        String getValueAsString() {
             return templateValue.toString();
         }
 
-        /**
-         * Appends the provided string to this template value.
-         *
-         * @param s
-         *            The string to append.
-         */
-        public void append(String s) {
+        /** Appends the provided string to this template value. */
+        void append(final String s) {
             templateValue.append(s);
         }
 
         /**
          * Appends the string representation of the provided object to this
          * template value.
-         *
-         * @param o
-         *            The object to append.
          */
-        public void append(Object o) {
+        void append(final Object o) {
             templateValue.append(String.valueOf(o));
         }
     }

@@ -1,15 +1,34 @@
 define suffix=dc=example,dc=com
 define maildomain=example.com
-define numusers=10000
+define numusers=10
+define numous=10
+define numgroup=5
 
 branch: [suffix]
-objectClass: top
-objectClass: domainComponent
+subordinateTemplate: ous:[numous]
 
-branch: ou=People,[suffix]
-objectClass: top
-objectClass: organizationalUnit
+template: ous
+subordinateTemplate: People:1
+subordinateTemplate: Groups:1
+rdnAttr: ou
+objectclass: top
+objectclass: organizationalUnit
+ou: Organization_<sequential:1>
+description: This is {ou}
+
+template: People
+rdnAttr: ou
 subordinateTemplate: person:[numusers]
+objectclass: top
+objectclass: organizationalUnit
+ou: People
+
+template: Groups
+subordinateTemplate: groupOfName:[numgroup]
+rdnAttr: ou
+objectclass: top
+objectclass: organizationalUnit
+ou: Groups
 
 template: person
 rdnAttr: uid
@@ -36,3 +55,8 @@ postalCode: <random:numeric:5>
 postalAddress: {cn}${street}${l}, {st}  {postalCode}
 description: This is the description for {cn}.
 
+template: groupOfName
+rdnAttr: cn
+objectClass: top
+objectClass: groupOfNames
+cn: Group_<sequential:1>

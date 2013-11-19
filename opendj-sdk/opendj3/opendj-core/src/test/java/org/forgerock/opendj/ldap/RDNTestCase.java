@@ -32,8 +32,8 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
+import java.util.Arrays;
 import java.util.Iterator;
-
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.Schema;
@@ -48,19 +48,19 @@ import org.testng.annotations.Test;
 public final class RDNTestCase extends TypesTestCase {
 
     // Domain component attribute type.
-    private static final AttributeType AT_DC;
+    private static final AttributeType ATTR_TYPE_DC;
 
     // Common name attribute type.
-    private static final AttributeType AT_CN;
+    private static final AttributeType ATTR_TYPE_CN;
 
     // Test attribute value.
-    private static final AVA AV_DC_ORG;
+    private static final AVA ATTR_VALUE_DC_ORG;
 
     static {
-        AT_DC = Schema.getCoreSchema().getAttributeType("dc");
-        AT_CN = Schema.getCoreSchema().getAttributeType("cn");
+        ATTR_TYPE_DC = Schema.getCoreSchema().getAttributeType("dc");
+        ATTR_TYPE_CN = Schema.getCoreSchema().getAttributeType("cn");
         // Set the avas.
-        AV_DC_ORG = new AVA(AT_DC, ByteString.valueOf("org"));
+        ATTR_VALUE_DC_ORG = new AVA(ATTR_TYPE_DC, ByteString.valueOf("org"));
     }
 
     // org bytestring.
@@ -211,13 +211,13 @@ public final class RDNTestCase extends TypesTestCase {
      */
     @Test
     public void testConstructor() throws Exception {
-        final RDN rdn = new RDN(AT_DC, ORG);
+        final RDN rdn = new RDN(ATTR_TYPE_DC, ORG);
 
         assertEquals(rdn.size(), 1);
         assertEquals(rdn.isMultiValued(), false);
-        assertEquals(rdn.getFirstAVA().getAttributeType(), AT_DC);
-        assertEquals(rdn.getFirstAVA().getAttributeType().getNameOrOID(), AT_DC.getNameOrOID());
-        assertEquals(rdn.getFirstAVA(), AV_DC_ORG);
+        assertEquals(rdn.getFirstAVA().getAttributeType(), ATTR_TYPE_DC);
+        assertEquals(rdn.getFirstAVA().getAttributeType().getNameOrOID(), ATTR_TYPE_DC.getNameOrOID());
+        assertEquals(rdn.getFirstAVA(), ATTR_VALUE_DC_ORG);
     }
 
     /**
@@ -230,9 +230,51 @@ public final class RDNTestCase extends TypesTestCase {
     public void testConstructorWithString() throws Exception {
         final RDN rdn = new RDN("dc", "org");
         assertEquals(rdn.size(), 1);
-        assertEquals(rdn.getFirstAVA().getAttributeType(), AT_DC);
+        assertEquals(rdn.getFirstAVA().getAttributeType(), ATTR_TYPE_DC);
         assertEquals(rdn.getFirstAVA().getAttributeType().getNameOrOID(), "dc");
-        assertEquals(rdn.getFirstAVA(), AV_DC_ORG);
+        assertEquals(rdn.getFirstAVA(), ATTR_VALUE_DC_ORG);
+    }
+
+    @Test
+    public void testConstructorWithAVA() throws Exception {
+        final RDN rdn = new RDN(new AVA("dc", "org"));
+        assertEquals(rdn.size(), 1);
+        assertEquals(rdn.getFirstAVA().getAttributeType(), ATTR_TYPE_DC);
+        assertEquals(rdn.getFirstAVA(), ATTR_VALUE_DC_ORG);
+    }
+
+    @Test
+    public void testConstructorWithMultipleAVAs() throws Exception {
+        AVA example = new AVA("dc", "example");
+        AVA org = new AVA("dc", "org");
+
+        final RDN rdn = new RDN(example, org);
+        assertEquals(rdn.size(), 2);
+        Iterator<AVA> rdnIt = rdn.iterator();
+        AVA firstAva = rdnIt.next();
+        assertEquals(firstAva.getAttributeType(), ATTR_TYPE_DC);
+        assertEquals(firstAva, example);
+
+        AVA secondAva = rdnIt.next();
+        assertEquals(secondAva.getAttributeType(), ATTR_TYPE_DC);
+        assertEquals(secondAva, org);
+    }
+
+    @Test
+    public void testConstructorWithCollectionOfAVAs() throws Exception {
+        AVA example = new AVA("dc", "example");
+        AVA org = new AVA("dc", "org");
+
+        final RDN rdn = new RDN(Arrays.asList(example, org));
+        assertEquals(rdn.size(), 2);
+        Iterator<AVA> rdnIt = rdn.iterator();
+        AVA firstAva = rdnIt.next();
+        assertEquals(firstAva.getAttributeType(), ATTR_TYPE_DC);
+        assertEquals(firstAva, example);
+
+        AVA secondAva = rdnIt.next();
+        assertEquals(secondAva.getAttributeType(), ATTR_TYPE_DC);
+        assertEquals(secondAva, org);
     }
 
     /**
@@ -298,7 +340,7 @@ public final class RDNTestCase extends TypesTestCase {
      */
     @Test
     public void testDuplicateSingle() {
-        final RDN rdn1 = new RDN(AT_DC, ORG);
+        final RDN rdn1 = new RDN(ATTR_TYPE_DC, ORG);
         final RDN rdn2 = RDN.valueOf("dc=org");
 
         assertFalse(rdn1 == rdn2);
@@ -338,7 +380,7 @@ public final class RDNTestCase extends TypesTestCase {
      */
     @Test
     public void testEqualityNonRDN() {
-        final RDN rdn = new RDN(AT_DC, ORG);
+        final RDN rdn = new RDN(ATTR_TYPE_DC, ORG);
 
         assertFalse(rdn.equals("this isn't an RDN"));
     }
@@ -351,7 +393,7 @@ public final class RDNTestCase extends TypesTestCase {
      */
     @Test
     public void testEqualityNull() {
-        final RDN rdn = new RDN(AT_DC, ORG);
+        final RDN rdn = new RDN(ATTR_TYPE_DC, ORG);
 
         assertFalse(rdn.equals(null));
     }
@@ -368,8 +410,8 @@ public final class RDNTestCase extends TypesTestCase {
         assertTrue(rdn.isMultiValued());
         assertEquals(rdn.size(), 2);
         final Iterator<AVA> it = rdn.iterator();
-        assertEquals(it.next().getAttributeType().getNameOrOID(), AT_DC.getNameOrOID());
-        assertEquals(it.next().getAttributeType().getNameOrOID(), AT_CN.getNameOrOID());
+        assertEquals(it.next().getAttributeType().getNameOrOID(), ATTR_TYPE_DC.getNameOrOID());
+        assertEquals(it.next().getAttributeType().getNameOrOID(), ATTR_TYPE_CN.getNameOrOID());
     }
 
     /**
