@@ -120,6 +120,7 @@ public class ServerStateTest extends ReplicationTestCase
     assertEquals(state1.toString(), state2.toString()) ;
   }
 
+  @Test
   public void testCover() throws Exception
   {
     final CSN csn1Server1 = new CSN(1, 0, 1);
