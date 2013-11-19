@@ -151,7 +151,14 @@
    of failure. Be sure to list the resources you expect to have, when and how
    long you expect to have them, and why you need them. Also make note of
    what is missing and why.</para>
-   
+
+   <para>
+    In addition to the suggestions in this section, also read the section on
+    <link xlink:href="release-notes#prerequisites-hardware" xlink:show="new"
+    xlink:role="http://docbook.org/xlink/role/olink"><citetitle
+    >Hardware</citetitle></link> in the <citetitle>Release Notes</citetitle>.
+   </para>
+
    <section xml:id="perf-hardware">
     <title>Server Hardware Recommendations</title>
    
@@ -182,6 +189,8 @@
     then the database grows to about twice its initial size on disk. This is
     normal, and due to the way the database manages its logs. The size on disk
     does not impact the DB cache size requirements.</para>
+
+    <xinclude:include href="../shared/para-write-barriers.xml" />
    </section>
   </section>
  </section>
@@ -258,7 +267,9 @@
   you have the right underlying network, hardware, storage, and system
   resources in place, you can tweak OpenDJ performance in a number of ways.
   This section mentions the most common tweaks.</para>
-  
+
+  <xinclude:include href="../shared/sec-prerequisites-file-descriptors.xml" />
+
   <section xml:id="perf-java">
    <title>Java Settings</title>
    
