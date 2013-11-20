@@ -23,19 +23,12 @@
  *
  *
  *      Copyright 2007-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.backends;
 
-
-
 import java.io.File;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.opends.messages.Message;
@@ -46,45 +39,16 @@ import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.Backend;
 import org.opends.server.config.ConfigException;
 import org.opends.server.controls.SubtreeDeleteControl;
-import org.opends.server.core.AddOperation;
-import org.opends.server.core.DeleteOperation;
-import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.ModifyOperation;
-import org.opends.server.core.ModifyDNOperation;
-import org.opends.server.core.SearchOperation;
+import org.opends.server.core.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.BackupConfig;
-import org.opends.server.types.BackupDirectory;
-import org.opends.server.types.ConditionResult;
-import org.opends.server.types.ConfigChangeResult;
-import org.opends.server.types.Control;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.DN;
-import org.opends.server.types.Entry;
-import org.opends.server.types.ExistingFileBehavior;
-import org.opends.server.types.IndexType;
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.LDIFExportConfig;
-import org.opends.server.types.LDIFImportConfig;
-import org.opends.server.types.LDIFImportResult;
-import org.opends.server.types.RestoreConfig;
-import org.opends.server.types.ResultCode;
-import org.opends.server.types.SearchFilter;
-import org.opends.server.types.SearchScope;
-import org.opends.server.util.LDIFException;
-import org.opends.server.util.LDIFReader;
-import org.opends.server.util.LDIFWriter;
-import org.opends.server.util.Validator;
+import org.opends.server.types.*;
+import org.opends.server.util.*;
 
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-
-
 
 /**
  * This class provides a backend implementation that stores the underlying data
@@ -104,31 +68,31 @@ public class LDIFBackend
 
 
 
-  // The base DNs for this backend.
+  /** The base DNs for this backend. */
   private DN[] baseDNs;
 
-  // The mapping between parent DNs and their immediate children.
-  private final HashMap<DN,HashSet<DN>> childDNs;
+  /** The mapping between parent DNs and their immediate children. */
+  private final Map<DN, Set<DN>> childDNs;
 
-  // The base DNs for this backend, in a hash set.
-  private HashSet<DN> baseDNSet;
+  /** The base DNs for this backend, in a hash set. */
+  private Set<DN> baseDNSet;
 
-  // The set of supported controls for this backend.
-  private HashSet<String> supportedControls;
+  /** The set of supported controls for this backend. */
+  private Set<String> supportedControls;
 
-  // The set of supported features for this backend.
-  private HashSet<String> supportedFeatures;
+  /** The set of supported features for this backend. */
+  private Set<String> supportedFeatures;
 
-  // The current configuration for this backend.
+  /** The current configuration for this backend. */
   private LDIFBackendCfg currentConfig;
 
-  // The mapping between entry DNs and the corresponding entries.
-  private final LinkedHashMap<DN,Entry> entryMap;
+  /** The mapping between entry DNs and the corresponding entries. */
+  private final Map<DN, Entry> entryMap;
 
-  // A read-write lock used to protect access to this backend.
+  /** A read-write lock used to protect access to this backend. */
   private final ReentrantReadWriteLock backendLock;
 
-  // The path to the LDIF file containing the data for this backend.
+  /** The path to the LDIF file containing the data for this backend. */
   private String ldifFilePath;
 
 
@@ -143,7 +107,7 @@ public class LDIFBackend
     super();
 
     entryMap = new LinkedHashMap<DN,Entry>();
-    childDNs = new HashMap<DN,HashSet<DN>>();
+    childDNs = new HashMap<DN, Set<DN>>();
 
     boolean useFairLocking =
          DirectoryServer.getEnvironmentConfig().getLockManagerFairOrdering();
@@ -152,9 +116,7 @@ public class LDIFBackend
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public void initializeBackend()
          throws ConfigException, InitializationException
@@ -163,7 +125,7 @@ public class LDIFBackend
     // implementation.  If we were to add such support in the future, we would
     // likely want to separate the data for each base DN into a separate entry
     // map.
-    if ((baseDNs == null) || (baseDNs.length != 1))
+    if (baseDNs == null || baseDNs.length != 1)
     {
       Message message = ERR_LDIF_BACKEND_MULTIPLE_BASE_DNS.get(
                              currentConfig.dn().toString());
@@ -291,10 +253,7 @@ public class LDIFBackend
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        try
-        {
-          writer.close();
-        } catch (Exception e2) {}
+        StaticUtils.close(writer);
 
         Message m = ERR_LDIF_BACKEND_ERROR_WRITING_FILE.get(
                          tempFile.getAbsolutePath(),
@@ -307,10 +266,7 @@ public class LDIFBackend
       }
     }
 
-    try
-    {
-      writer.close();
-    } catch (Exception e) {}
+    StaticUtils.close(writer);
 
 
     // Rename the existing "live" file out of the way and move the new file
@@ -321,7 +277,14 @@ public class LDIFBackend
       {
         oldFile.delete();
       }
-    } catch (Exception e) {}
+    }
+    catch (Exception e)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
+    }
 
     try
     {
@@ -363,9 +326,7 @@ public class LDIFBackend
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public void finalizeBackend()
   {
@@ -399,9 +360,7 @@ public class LDIFBackend
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public DN[] getBaseDNs()
   {
@@ -410,9 +369,7 @@ public class LDIFBackend
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public long getEntryCount()
   {
@@ -435,9 +392,7 @@ public class LDIFBackend
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public boolean isLocal()
   {
@@ -446,9 +401,7 @@ public class LDIFBackend
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public boolean isIndexed(AttributeType attributeType, IndexType indexType)
   {
@@ -458,9 +411,7 @@ public class LDIFBackend
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public ConditionResult hasSubordinates(DN entryDN)
          throws DirectoryException
@@ -469,8 +420,8 @@ public class LDIFBackend
 
     try
     {
-      HashSet<DN> childDNSet = childDNs.get(entryDN);
-      if ((childDNSet == null) || childDNSet.isEmpty())
+      Set<DN> childDNSet = childDNs.get(entryDN);
+      if (childDNSet == null || childDNSet.isEmpty())
       {
         // It could be that the entry doesn't exist, in which case we should
         // throw an exception.
@@ -498,9 +449,7 @@ public class LDIFBackend
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public long numSubordinates(DN entryDN, boolean subtree)
          throws DirectoryException
@@ -509,8 +458,8 @@ public class LDIFBackend
 
     try
     {
-      HashSet<DN> childDNSet = childDNs.get(entryDN);
-      if ((childDNSet == null) || childDNSet.isEmpty())
+      Set<DN> childDNSet = childDNs.get(entryDN);
+      if (childDNSet == null || childDNSet.isEmpty())
       {
         // It could be that the entry doesn't exist, in which case we should
         // throw an exception.
@@ -552,9 +501,7 @@ public class LDIFBackend
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public Entry getEntry(DN entryDN)
   {
@@ -572,9 +519,7 @@ public class LDIFBackend
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public boolean entryExists(DN entryDN)
   {
@@ -592,9 +537,7 @@ public class LDIFBackend
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public void addEntry(Entry entry, AddOperation addOperation)
          throws DirectoryException
@@ -621,11 +564,11 @@ public class LDIFBackend
       else
       {
         DN parentDN = entryDN.getParentDNInSuffix();
-        if ((parentDN != null) && entryMap.containsKey(parentDN))
+        if (parentDN != null && entryMap.containsKey(parentDN))
         {
           entryMap.put(entryDN, entry.duplicate(false));
 
-          HashSet<DN> childDNSet = childDNs.get(parentDN);
+          Set<DN> childDNSet = childDNs.get(parentDN);
           if (childDNSet == null)
           {
             childDNSet = new HashSet<DN>();
@@ -671,9 +614,7 @@ public class LDIFBackend
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public void deleteEntry(DN entryDN, DeleteOperation deleteOperation)
          throws DirectoryException
@@ -712,15 +653,15 @@ public class LDIFBackend
       // See if the target entry has any children.  If so, then we'll only
       // delete it if the request contains the subtree delete control (in
       // which case we'll delete the entire subtree).
-      HashSet<DN> childDNSet = childDNs.get(entryDN);
-      if ((childDNSet == null) || childDNSet.isEmpty())
+      Set<DN> childDNSet = childDNs.get(entryDN);
+      if (childDNSet == null || childDNSet.isEmpty())
       {
         entryMap.remove(entryDN);
         childDNs.remove(entryDN);
 
         if (parentDN != null)
         {
-          HashSet<DN> parentChildren = childDNs.get(parentDN);
+          Set<DN> parentChildren = childDNs.get(parentDN);
           if (parentChildren != null)
           {
             parentChildren.remove(entryDN);
@@ -736,14 +677,9 @@ public class LDIFBackend
       }
       else
       {
-        boolean subtreeDelete = false;
-
-        if (deleteOperation != null
+        boolean subtreeDelete = deleteOperation != null
             && deleteOperation
-                .getRequestControl(SubtreeDeleteControl.DECODER) != null)
-        {
-          subtreeDelete = true;
-        }
+                .getRequestControl(SubtreeDeleteControl.DECODER) != null;
 
         if (! subtreeDelete)
         {
@@ -756,7 +692,7 @@ public class LDIFBackend
 
         if (parentDN != null)
         {
-          HashSet<DN> parentChildren = childDNs.get(parentDN);
+          Set<DN> parentChildren = childDNs.get(parentDN);
           if (parentChildren != null)
           {
             parentChildren.remove(entryDN);
@@ -795,7 +731,7 @@ public class LDIFBackend
   private void subtreeDelete(DN entryDN)
   {
     entryMap.remove(entryDN);
-    HashSet<DN> childDNSet = childDNs.remove(entryDN);
+    Set<DN> childDNSet = childDNs.remove(entryDN);
     if (childDNSet != null)
     {
       for (DN childDN : childDNSet)
@@ -807,9 +743,7 @@ public class LDIFBackend
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public void replaceEntry(Entry oldEntry, Entry newEntry,
       ModifyOperation modifyOperation) throws DirectoryException
@@ -853,9 +787,7 @@ public class LDIFBackend
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public void renameEntry(DN currentDN, Entry entry,
                           ModifyDNOperation modifyDNOperation)
@@ -907,12 +839,12 @@ public class LDIFBackend
       // Remove the entry from the list of children for the old parent and
       // add the new entry DN to the set of children for the new parent.
       DN oldParentDN = currentDN.getParentDNInSuffix();
-      HashSet<DN> parentChildDNs = childDNs.get(oldParentDN);
+      Set<DN> parentChildDNs = childDNs.get(oldParentDN);
       if (parentChildDNs != null)
       {
         parentChildDNs.remove(currentDN);
-        if (parentChildDNs.isEmpty() &&
-            (modifyDNOperation.getNewSuperior() != null))
+        if (parentChildDNs.isEmpty()
+            && modifyDNOperation.getNewSuperior() != null)
         {
           childDNs.remove(oldParentDN);
         }
@@ -930,24 +862,16 @@ public class LDIFBackend
       // If the entry has children, then we'll need to work on the whole
       // subtree.  Otherwise, just work on the target entry.
       Set<DN> childDNSet = childDNs.remove(currentDN);
-      if ((childDNSet == null) || childDNSet.isEmpty())
+      entryMap.remove(currentDN);
+      entryMap.put(newDN, entry.duplicate(false));
+      if (childDNSet != null && !childDNSet.isEmpty())
       {
-        entryMap.remove(currentDN);
-        entryMap.put(newDN, entry.duplicate(false));
-        writeLDIF();
-        return;
-      }
-      else
-      {
-        entryMap.remove(currentDN);
-        entryMap.put(newDN, entry.duplicate(false));
         for (DN childDN : childDNSet)
         {
           subtreeRename(childDN, newDN);
         }
-        writeLDIF();
-        return;
       }
+      writeLDIF();
     }
     finally
     {
@@ -978,7 +902,7 @@ public class LDIFBackend
       if (debugEnabled())
       {
         TRACER.debugWarning("Subtree rename encountered entry DN " +
-                            entryDN.toString() + " for nonexistent entry.");
+                            entryDN + " for nonexistent entry.");
       }
       return;
     }
@@ -987,7 +911,7 @@ public class LDIFBackend
     newEntry.setDN(newEntryDN);
     entryMap.put(newEntryDN, newEntry);
 
-    HashSet<DN> parentChildren = childDNs.get(newParentDN);
+    Set<DN> parentChildren = childDNs.get(newParentDN);
     if (parentChildren == null)
     {
       parentChildren = new HashSet<DN>();
@@ -1006,9 +930,7 @@ public class LDIFBackend
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public void search(SearchOperation searchOperation)
          throws DirectoryException
@@ -1025,7 +947,7 @@ public class LDIFBackend
 
       // Make sure the base entry exists if it's supposed to be in this backend.
       Entry baseEntry = entryMap.get(baseDN);
-      if ((baseEntry == null) && handlesEntry(baseDN))
+      if (baseEntry == null && handlesEntry(baseDN))
       {
         DN matchedDN = baseDN.getParentDNInSuffix();
         while (matchedDN != null)
@@ -1079,31 +1001,25 @@ public class LDIFBackend
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
-  public HashSet<String> getSupportedControls()
+  public Set<String> getSupportedControls()
   {
     return supportedControls;
   }
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
-  public HashSet<String> getSupportedFeatures()
+  public Set<String> getSupportedFeatures()
   {
     return supportedFeatures;
   }
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public boolean supportsLDIFExport()
   {
@@ -1112,9 +1028,7 @@ public class LDIFBackend
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public void exportLDIF(LDIFExportConfig exportConfig)
          throws DirectoryException
@@ -1163,17 +1077,7 @@ public class LDIFBackend
       }
       finally
       {
-        try
-        {
-          ldifWriter.close();
-        }
-        catch (Exception e)
-        {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
-        }
+        StaticUtils.close(ldifWriter);
       }
     }
     finally
@@ -1184,9 +1088,7 @@ public class LDIFBackend
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public boolean supportsLDIFImport()
   {
@@ -1195,9 +1097,7 @@ public class LDIFBackend
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public LDIFImportResult importLDIF(LDIFImportConfig importConfig)
          throws DirectoryException
@@ -1312,7 +1212,7 @@ public class LDIFBackend
           }
 
           DN parentDN = entryDN.getParentDNInSuffix();
-          if ((parentDN == null) || (! entryMap.containsKey(parentDN)))
+          if (parentDN == null || !entryMap.containsKey(parentDN))
           {
             Message m = ERR_LDIF_BACKEND_MISSING_PARENT.get(ldifFilePath,
                              currentConfig.dn().toString(), entryDN.toString());
@@ -1326,7 +1226,7 @@ public class LDIFBackend
           // the set of children for the parent.
           entryMap.put(entryDN, e);
 
-          HashSet<DN> childDNSet = childDNs.get(parentDN);
+          Set<DN> childDNSet = childDNs.get(parentDN);
           if (childDNSet == null)
           {
             childDNSet = new HashSet<DN>();
@@ -1359,7 +1259,7 @@ public class LDIFBackend
       }
       finally
       {
-        reader.close();
+        StaticUtils.close(reader);
       }
     }
     finally
@@ -1370,9 +1270,7 @@ public class LDIFBackend
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public boolean supportsBackup()
   {
@@ -1382,9 +1280,7 @@ public class LDIFBackend
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public boolean supportsBackup(BackupConfig backupConfig,
                                 StringBuilder unsupportedReason)
@@ -1395,9 +1291,7 @@ public class LDIFBackend
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public void createBackup(BackupConfig backupConfig)
          throws DirectoryException
@@ -1408,9 +1302,7 @@ public class LDIFBackend
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public void removeBackup(BackupDirectory backupDirectory, String backupID)
          throws DirectoryException
@@ -1421,9 +1313,7 @@ public class LDIFBackend
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public boolean supportsRestore()
   {
@@ -1433,9 +1323,7 @@ public class LDIFBackend
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public void restoreBackup(RestoreConfig restoreConfig)
          throws DirectoryException
@@ -1446,9 +1334,7 @@ public class LDIFBackend
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public void configureBackend(Configuration config)
          throws ConfigException
@@ -1468,10 +1354,7 @@ public class LDIFBackend
       }
 
       baseDNSet = new HashSet<DN>();
-      for (DN dn : baseDNs)
-      {
-        baseDNSet.add(dn);
-      }
+      Collections.addAll(baseDNSet, baseDNs);
 
       supportedControls = new HashSet<String>(1);
       supportedControls.add(OID_SUBTREE_DELETE_CONTROL);
@@ -1484,9 +1367,8 @@ public class LDIFBackend
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public boolean isConfigurationChangeAcceptable(LDIFBackendCfg configuration,
                       List<Message> unacceptableReasons)
   {
@@ -1505,9 +1387,8 @@ public class LDIFBackend
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public ConfigChangeResult applyConfigurationChange(
                                  LDIFBackendCfg configuration)
   {
@@ -1528,13 +1409,10 @@ public class LDIFBackend
       }
     }
 
-    if (baseDNSet != null)
+    if (baseDNSet != null && !baseDNSet.equals(configuration.getBaseDN()))
     {
-      if (! baseDNSet.equals(configuration.getBaseDN()))
-      {
-        messages.add(INFO_LDIF_BACKEND_BASE_DN_CHANGED.get());
-        adminActionRequired = true;
-      }
+      messages.add(INFO_LDIF_BACKEND_BASE_DN_CHANGED.get());
+      adminActionRequired = true;
     }
 
     currentConfig = configuration;
@@ -1544,9 +1422,8 @@ public class LDIFBackend
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public DN getComponentEntryDN()
   {
     return currentConfig.dn();
@@ -1554,9 +1431,8 @@ public class LDIFBackend
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public String getClassName()
   {
     return LDIFBackend.class.getName();
@@ -1564,12 +1440,11 @@ public class LDIFBackend
 
 
 
-  /**
-   * {@inheritDoc}
-   */
-  public LinkedHashMap<String,String> getAlerts()
+  /** {@inheritDoc} */
+  @Override
+  public Map<String,String> getAlerts()
   {
-    LinkedHashMap<String,String> alerts = new LinkedHashMap<String,String>();
+    Map<String,String> alerts = new LinkedHashMap<String,String>();
 
     alerts.put(ALERT_TYPE_LDIF_BACKEND_CANNOT_WRITE_UPDATE,
                ALERT_DESCRIPTION_LDIF_BACKEND_CANNOT_WRITE_UPDATE);
@@ -1579,12 +1454,9 @@ public class LDIFBackend
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void preloadEntryCache() throws UnsupportedOperationException {
     throw new UnsupportedOperationException("Operation not supported.");
   }
 }
-
