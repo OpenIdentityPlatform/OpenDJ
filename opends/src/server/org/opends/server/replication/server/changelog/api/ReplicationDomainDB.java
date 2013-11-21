@@ -210,6 +210,31 @@ public interface ReplicationDomainDB
       ServerState startAfterServerState) throws ChangelogException;
 
   /**
+   * Generates a {@link DBCursor} for one replicaDB for the specified
+   * replication domain and serverId starting after the provided {@link CSN}.
+   * <p>
+   * The cursor is already advanced to the records after the CSN.
+   * <p>
+   * When the cursor is not used anymore, client code MUST call the
+   * {@link DBCursor#close()} method to free the resources and locks used by the
+   * cursor.
+   *
+   * @param baseDN
+   *          the replication domain baseDN of the replicaDB
+   * @param serverId
+   *          the serverId of the replicaDB
+   * @param startAfterCSN
+   *          Starting point for the ReplicaDB cursor. If the CSN is null, then
+   *          start from the oldest CSN for this replicaDB
+   * @return a non null {@link DBCursor}
+   * @throws ChangelogException
+   *           If a database problem happened
+   * @see #getCursorFrom(DN, CSN)
+   */
+  DBCursor<UpdateMsg> getCursorFrom(DN baseDN, int serverId, CSN startAfterCSN)
+      throws ChangelogException;
+
+  /**
    * Publishes the provided change to the changelog DB for the specified
    * serverId and replication domain. After a change has been successfully
    * published, it becomes available to be returned by the External ChangeLog.

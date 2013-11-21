@@ -154,7 +154,7 @@ public class JEReplicaDBCursor implements DBCursor<UpdateMsg>
   @Override
   public String toString()
   {
-    return getClass().getSimpleName() + " currentChange=" + currentChange + ""
-        + replicaDB;
+    return getClass().getSimpleName() + " currentChange=" + currentChange
+        + " replicaDB=" + replicaDB;
   }
 }

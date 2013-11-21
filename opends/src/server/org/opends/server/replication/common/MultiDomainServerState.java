@@ -69,8 +69,7 @@ public class MultiDomainServerState implements Iterable<DN>
    * @param mdss The provided string representation of the state.
    * @throws DirectoryException when the string has an invalid format
    */
-  public MultiDomainServerState(String mdss)
-          throws DirectoryException
+  public MultiDomainServerState(String mdss) throws DirectoryException
   {
     list = splitGenStateToServerStates(mdss);
   }
@@ -105,18 +104,13 @@ public class MultiDomainServerState implements Iterable<DN>
 
     synchronized(this)
     {
-      int serverId =  csn.getServerId();
       ServerState oldServerState = list.get(baseDN);
       if (oldServerState == null)
-        oldServerState = new ServerState();
-
-      if (csn.isNewerThan(oldServerState.getCSN(serverId)))
       {
-        oldServerState.update(csn);
+        oldServerState = new ServerState();
         list.put(baseDN, oldServerState);
-        return true;
       }
-      return false;
+      return oldServerState.update(csn);
     }
   }
 
@@ -132,7 +126,24 @@ public class MultiDomainServerState implements Iterable<DN>
    */
   public void update(DN baseDN, ServerState serverState)
   {
-    list.put(baseDN, serverState);
+    for (CSN csn : serverState)
+    {
+      update(baseDN, csn);
+    }
+  }
+
+  /**
+   * Update the current object with the provided multi domain server state.
+   *
+   * @param state
+   *          The provided multi domain server state.
+   */
+  public void update(MultiDomainServerState state)
+  {
+    for (Entry<DN, ServerState> entry : state.list.entrySet())
+    {
+      update(entry.getKey(), entry.getValue());
+    }
   }
 
   /**
@@ -142,7 +153,7 @@ public class MultiDomainServerState implements Iterable<DN>
   @Override
   public String toString()
   {
-    StringBuilder res = new StringBuilder();
+    final StringBuilder res = new StringBuilder();
     if (list != null && !list.isEmpty())
     {
       for (Entry<DN, ServerState> entry : list.entrySet())
@@ -163,7 +174,6 @@ public class MultiDomainServerState implements Iterable<DN>
     buffer.append(this);
   }
 
-
   /**
    * Tests if the state is empty.
    *
@@ -179,6 +189,19 @@ public class MultiDomainServerState implements Iterable<DN>
   public Iterator<DN> iterator()
   {
     return list.keySet().iterator();
+  }
+
+  /**
+   * Returns the ServerState associated to the provided replication domain's
+   * baseDN.
+   *
+   * @param baseDN
+   *          the replication domain's baseDN
+   * @return the associated ServerState
+   */
+  public ServerState get(DN baseDN)
+  {
+    return list.get(baseDN);
   }
 
   /**
@@ -211,6 +234,22 @@ public class MultiDomainServerState implements Iterable<DN>
   }
 
   /**
+   * Test if this object covers the provided CSN for the provided baseDN.
+   *
+   * @param baseDN
+   *          The provided baseDN.
+   * @param csn
+   *          The provided CSN.
+   * @return true when this object covers the provided CSN for the provided
+   *         baseDN.
+   */
+  public boolean cover(DN baseDN, CSN csn)
+  {
+    final ServerState state = list.get(baseDN);
+    return state != null && state.cover(csn);
+  }
+
+  /**
    * Splits the provided generalizedServerState being a String with the
    * following syntax: "domain1:state1;domain2:state2;..." to a Map of (domain
    * DN, domain ServerState).
@@ -224,7 +263,7 @@ public class MultiDomainServerState implements Iterable<DN>
   public static Map<DN, ServerState> splitGenStateToServerStates(
       String multiDomainServerState) throws DirectoryException
   {
-    Map<DN, ServerState> startStates = new TreeMap<DN, ServerState>();
+    final Map<DN, ServerState> startStates = new TreeMap<DN, ServerState>();
     if (multiDomainServerState != null && multiDomainServerState.length() > 0)
     {
       try
