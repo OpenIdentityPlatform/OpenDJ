@@ -688,18 +688,20 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
       ServerState startAfterServerState) throws ChangelogException
   {
     final Set<Integer> serverIds = getDomainMap(baseDN).keySet();
-    final List<DBCursor<UpdateMsg>> cursors =
-        new ArrayList<DBCursor<UpdateMsg>>(serverIds.size());
+    final Map<DBCursor<UpdateMsg>, Void> cursors =
+        new HashMap<DBCursor<UpdateMsg>, Void>(serverIds.size());
     for (int serverId : serverIds)
     {
       // get the last already sent CSN from that server to get a cursor
       final CSN lastCSN = startAfterServerState.getCSN(serverId);
-      cursors.add(getCursorFrom(baseDN, serverId, lastCSN));
+      cursors.put(getCursorFrom(baseDN, serverId, lastCSN), null);
     }
-    return new CompositeDBCursor(cursors);
+    return new CompositeDBCursor<Void>(cursors);
   }
 
-  private DBCursor<UpdateMsg> getCursorFrom(DN baseDN, int serverId,
+  /** {@inheritDoc} */
+  @Override
+  public DBCursor<UpdateMsg> getCursorFrom(DN baseDN, int serverId,
       CSN startAfterCSN) throws ChangelogException
   {
     JEReplicaDB replicaDB = getReplicaDB(baseDN, serverId);
