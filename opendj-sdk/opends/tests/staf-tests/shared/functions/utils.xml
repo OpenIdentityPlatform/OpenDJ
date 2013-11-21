@@ -783,7 +783,7 @@
 
     <sequence>
       <script>checkRC=9999</script>
-      <loop from="1" to="noOfLoops" var="loop" while="checkRC != 48">
+      <loop from="1" to="100" var="loop" while="checkRC != 48">
         <sequence>
           <message>
             'Check if %s/logs/server.pid still exists on host %s' \
@@ -818,6 +818,13 @@
             % (noOfLoops*noOfMilliSeconds,dsPath,location)
           </message>
           <tcstatus result="'fail'"/>
+          
+          <!-- Kill the server to avoid impact on the other testcases -->
+          <call function="'killDs'">
+            { 'location' : location,
+              'dsPath'   : dsPath
+            }
+          </call>
         </sequence>
       </if>
     </sequence>
