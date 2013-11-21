@@ -126,10 +126,7 @@ public class MultiDomainServerState implements Iterable<DN>
    */
   public void update(DN baseDN, ServerState serverState)
   {
-    for (CSN csn : serverState)
-    {
-      update(baseDN, csn);
-    }
+    list.put(baseDN, serverState);
   }
 
   /**
