@@ -51,6 +51,11 @@
       <item name="Toolkit" href="index.html" />
     </menu>
 
+    <menu name="OpenDJ Mobile Apps">
+      <item name="Contact Manager (Android)"
+            href="http://commons.forgerock.org/mobile/contact-manager/" />
+    </menu>
+
     <menu name="OpenDJ Documentation">
       <item name="All Documentation" href="../docs.html"/>
       <item name="Developer Guide" href="../doc/dev-guide/index.html"/>

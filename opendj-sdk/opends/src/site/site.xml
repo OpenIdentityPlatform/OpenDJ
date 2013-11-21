@@ -66,6 +66,11 @@
       <item name="Toolkit" href="../opendj-ldap-toolkit" />
     </menu>
 
+    <menu name="OpenDJ Mobile Apps">
+      <item name="Contact Manager (Android)"
+            href="http://commons.forgerock.org/mobile/contact-manager/" />
+    </menu>
+
     <menu name="OpenDJ Documentation">
       <item name="All Formats" href="../docs.html" />
       <item name="Release Notes" href="./doc/release-notes/index.html" />
