@@ -34,11 +34,13 @@ import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.api.DBCursor;
-import org.opends.server.util.Pair;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import static org.opends.server.util.Pair.*;
+import com.forgerock.opendj.util.Pair;
+
+import static com.forgerock.opendj.util.Pair.*;
+
 import static org.testng.Assert.*;
 
 @SuppressWarnings({ "javadoc", "unchecked" })
