@@ -73,9 +73,6 @@ public final class LDIFReader implements Closeable
   /** The reader that will be used to read the data. */
   private BufferedReader reader;
 
-  /** The buffer to use to read data from a URL. */
-  private byte[] buffer;
-
   /** The import configuration that specifies what should be imported. */
   private LDIFImportConfig importConfig;
 
@@ -139,7 +136,6 @@ public final class LDIFReader implements Closeable
     this.importConfig = importConfig;
 
     reader               = importConfig.getReader();
-    buffer               = new byte[4096];
     lineNumber           = 0;
     lastEntryLineNumber  = -1;
     lastEntryBodyLines   = new LinkedList<StringBuilder>();
@@ -162,14 +158,12 @@ public final class LDIFReader implements Closeable
    *          The import configuration for this LDIF reader. It must not
    *          be <CODE>null</CODE>.
    * @param rootContainer The root container needed to get the next entry ID.
-   * @param size The size of the buffer to read the LDIF bytes into.
    *
    * @throws IOException
    *           If a problem occurs while opening the LDIF file for
    *           reading.
    */
-  public LDIFReader(LDIFImportConfig importConfig, RootContainer rootContainer,
-                     int size)
+  public LDIFReader(LDIFImportConfig importConfig, RootContainer rootContainer)
          throws IOException
   {
     ensureNotNull(importConfig);
@@ -180,7 +174,6 @@ public final class LDIFReader implements Closeable
     this.lastEntryBodyLines   = new LinkedList<StringBuilder>();
     this.lastEntryHeaderLines = new LinkedList<StringBuilder>();
     this.pluginConfigManager  = DirectoryServer.getPluginConfigManager();
-    this.buffer        = new byte[size];
     this.rootContainer = rootContainer;
     // If we should invoke import plugins, then do so.
     if (importConfig.invokeImportPlugins())
@@ -1972,17 +1965,12 @@ public final class LDIFReader implements Closeable
 
 
         InputStream inputStream = null;
-        ByteStringBuilder builder;
         try
         {
-          builder = new ByteStringBuilder();
+          ByteStringBuilder builder = new ByteStringBuilder(4096);
           inputStream  = contentURL.openConnection().getInputStream();
 
-          int bytesRead;
-          while ((bytesRead = inputStream.read(buffer)) > 0)
-          {
-            builder.append(buffer, 0, bytesRead);
-          }
+          while (builder.append(inputStream, 4096) != -1) { /* Do nothing */ }
 
           value = builder.toByteString();
         }
@@ -2005,13 +1993,7 @@ public final class LDIFReader implements Closeable
         }
         finally
         {
-          if (inputStream != null)
-          {
-            try
-            {
-              inputStream.close();
-            } catch (Exception e) {}
-          }
+          StaticUtils.close(inputStream);
         }
       }
       else
