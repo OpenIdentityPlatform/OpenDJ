@@ -26,69 +26,31 @@
  */
 package org.opends.server.replication.server.changelog.je;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.api.DBCursor;
+import org.opends.server.util.Pair;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import static org.opends.server.util.Pair.*;
 import static org.testng.Assert.*;
 
-@SuppressWarnings("javadoc")
+@SuppressWarnings({ "javadoc", "unchecked" })
 public class CompositeDBCursorTest extends DirectoryServerTestCase
 {
-
-  private static class MyDBCursor implements DBCursor<UpdateMsg>
-  {
-
-    private final List<UpdateMsg> msgs;
-    private UpdateMsg current;
-
-    public MyDBCursor(UpdateMsg... msgs)
-    {
-      this.msgs = new ArrayList<UpdateMsg>(Arrays.asList(msgs));
-      next();
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public UpdateMsg getRecord()
-    {
-      return this.current;
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public boolean next()
-    {
-      if (!this.msgs.isEmpty())
-      {
-        this.current = this.msgs.remove(0);
-        return true;
-      }
-      this.current = null;
-      return false;
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public void close()
-    {
-      // nothing to do
-    }
-
-  }
 
   private UpdateMsg msg1;
   private UpdateMsg msg2;
   private UpdateMsg msg3;
   private UpdateMsg msg4;
+  private String baseDN1 = "dc=forgerock,dc=com";
+  private String baseDN2 = "dc=example,dc=com";
 
   @BeforeClass
   public void setupMsgs()
@@ -102,60 +64,89 @@ public class CompositeDBCursorTest extends DirectoryServerTestCase
   @Test
   public void emptyCursor() throws Exception
   {
-    final CompositeDBCursor compCursor = newCompositeDBCursor(new MyDBCursor());
+    final CompositeDBCursor<String> compCursor =
+        newCompositeDBCursor(of(new SequentialDBCursor(), baseDN1));
     assertInOrder(compCursor);
   }
 
   @Test
   public void oneElementCursor() throws Exception
   {
-    final CompositeDBCursor compCursor =
-        newCompositeDBCursor(new MyDBCursor(msg1));
-    assertInOrder(compCursor, msg1);
+    final CompositeDBCursor<String> compCursor =
+        newCompositeDBCursor(of(new SequentialDBCursor(msg1), baseDN1));
+    assertInOrder(compCursor, of(msg1, baseDN1));
   }
 
   @Test
   public void twoElementsCursor() throws Exception
   {
-    final CompositeDBCursor compCursor =
-        newCompositeDBCursor(new MyDBCursor(msg1, msg2));
-    assertInOrder(compCursor, msg1, msg2);
+    final CompositeDBCursor<String> compCursor =
+        newCompositeDBCursor(of(new SequentialDBCursor(msg1, msg2), baseDN1));
+    assertInOrder(compCursor,
+        of(msg1, baseDN1),
+        of(msg2, baseDN1));
   }
 
   @Test
   public void twoEmptyCursors() throws Exception
   {
-    final CompositeDBCursor compCursor = newCompositeDBCursor(
-        new MyDBCursor(),
-        new MyDBCursor());
+    final CompositeDBCursor<String> compCursor = newCompositeDBCursor(
+        of(new SequentialDBCursor(), baseDN1),
+        of(new SequentialDBCursor(), baseDN2));
     assertInOrder(compCursor);
   }
 
   @Test
   public void twoOneElementCursors() throws Exception
   {
-    final CompositeDBCursor compCursor = newCompositeDBCursor(
-        new MyDBCursor(msg2),
-        new MyDBCursor(msg1));
-    assertInOrder(compCursor, msg1, msg2);
+    final CompositeDBCursor<String> compCursor = newCompositeDBCursor(
+        of(new SequentialDBCursor(msg2), baseDN1),
+        of(new SequentialDBCursor(msg1), baseDN2));
+    assertInOrder(compCursor,
+        of(msg1, baseDN2),
+        of(msg2, baseDN1));
   }
 
   @Test
   public void twoTwoElementCursors() throws Exception
   {
-    final CompositeDBCursor compCursor = newCompositeDBCursor(
-        new MyDBCursor(msg2, msg3),
-        new MyDBCursor(msg1, msg4));
-    assertInOrder(compCursor, msg1, msg2, msg3, msg4);
+    final CompositeDBCursor<String> compCursor = newCompositeDBCursor(
+        of(new SequentialDBCursor(msg2, msg3), baseDN1),
+        of(new SequentialDBCursor(msg1, msg4), baseDN2));
+    assertInOrder(compCursor,
+        of(msg1, baseDN2),
+        of(msg2, baseDN1),
+        of(msg3, baseDN1),
+        of(msg4, baseDN2));
   }
 
   @Test
   public void recycleTwoElementCursors() throws Exception
   {
-    final CompositeDBCursor compCursor = newCompositeDBCursor(
-        new MyDBCursor(msg2, null, msg3),
-        new MyDBCursor(null, msg1, msg4));
-    assertInOrder(compCursor, msg1, msg2, msg3, msg4);
+    final CompositeDBCursor<String> compCursor = newCompositeDBCursor(
+        of(new SequentialDBCursor(msg2, null, msg3), baseDN1),
+        of(new SequentialDBCursor(null, msg1, msg4), baseDN2));
+    assertInOrder(compCursor,
+        of(msg1, baseDN2),
+        of(msg2, baseDN1),
+        of(msg3, baseDN1),
+        of(msg4, baseDN2));
+  }
+
+  @Test
+  public void recycleTwoElementCursorsTODOJNR() throws Exception
+  {
+    SequentialDBCursor cursor1 = new SequentialDBCursor(msg2, null, msg3);
+    SequentialDBCursor cursor2 = new SequentialDBCursor(null, msg1, msg4);
+    cursor1.next();
+    cursor2.next();
+    final CompositeDBCursor<String> compCursor = newCompositeDBCursor(
+        of(cursor1, baseDN1),
+        of(cursor2, baseDN2));
+    assertInOrder(compCursor,
+        of(msg1, baseDN2),
+        of(msg3, baseDN1),
+        of(msg4, baseDN2));
   }
 
   private UpdateMsg newUpdateMsg(int t)
@@ -163,18 +154,26 @@ public class CompositeDBCursorTest extends DirectoryServerTestCase
     return new UpdateMsg(new CSN(t, t, t), new byte[t]);
   }
 
-  private CompositeDBCursor newCompositeDBCursor(DBCursor<UpdateMsg>... cursors)
+  private CompositeDBCursor<String> newCompositeDBCursor(
+      Pair<? extends DBCursor<UpdateMsg>, String>... pairs) throws Exception
   {
-    return new CompositeDBCursor(Arrays.asList(cursors));
+    final Map<DBCursor<UpdateMsg>, String> cursorsMap =
+        new HashMap<DBCursor<UpdateMsg>, String>();
+    for (Pair<? extends DBCursor<UpdateMsg>, String> pair : pairs)
+    {
+      cursorsMap.put(pair.getFirst(), pair.getSecond());
+    }
+    return new CompositeDBCursor<String>(cursorsMap);
   }
 
-  private void assertInOrder(final CompositeDBCursor compCursor,
-      UpdateMsg... msgs) throws ChangelogException
+  private void assertInOrder(final CompositeDBCursor<String> compCursor,
+      Pair<UpdateMsg, String>... expecteds) throws ChangelogException
   {
-    for (UpdateMsg msg : msgs)
+    for (final Pair<UpdateMsg, String> expected : expecteds)
     {
       assertTrue(compCursor.next());
-      assertSame(compCursor.getRecord(), msg);
+      assertSame(compCursor.getRecord(), expected.getFirst());
+      assertSame(compCursor.getData(), expected.getSecond());
     }
     assertFalse(compCursor.next());
     compCursor.close();
