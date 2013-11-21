@@ -516,26 +516,29 @@ public class SASLContext implements CallbackHandler,
   {
     int ssf = 0;
     final String qop = (String) saslServer.getNegotiatedProperty(Sasl.QOP);
-    if (qop.equalsIgnoreCase(integrity))
+    if (integrity.equalsIgnoreCase(qop))
     {
       ssf = 1;
     }
-    else
+    else if (confidentiality.equalsIgnoreCase(qop))
     {
       final String negStrength = (String) saslServer
           .getNegotiatedProperty(Sasl.STRENGTH);
-      if (negStrength.equalsIgnoreCase("low"))
+      if ("low".equalsIgnoreCase(negStrength))
       {
         ssf = 40;
       }
-      else if (negStrength.equalsIgnoreCase("medium"))
+      else if ("medium".equalsIgnoreCase(negStrength))
       {
         ssf = 56;
       }
-      else
+      else if ("high".equalsIgnoreCase(negStrength))
       {
         ssf = 128;
       }
+      /* Treat anything else as if not security is provided and keep the
+        server running
+       */
     }
     return ssf;
   }
@@ -684,7 +687,6 @@ public class SASLContext implements CallbackHandler,
     {
       setCallbackMsg(ERR_SASLDIGESTMD5_EMPTY_AUTHZID.get());
       callback.setAuthorized(false);
-      return;
     }
     else if (!responseAuthzID.equals(userName))
     {
@@ -862,11 +864,11 @@ public class SASLContext implements CallbackHandler,
 
   /**
    * Helper routine to call the SASL server evaluateResponse method with the
-   * specified byte array.
+   * specified ByteString.
    *
-   * @param bytes
-   *          The byte array to pass to the SASL server.
-   * @return A byte array containing the result of the evaluation.
+   * @param response A ByteString containing the response to pass to the
+   *                 SASL server.
+   * @return A ByteString containing the result of the evaluation.
    * @throws SaslException
    *           If the SASL server cannot evaluate the byte array.
    */
@@ -920,7 +922,6 @@ public class SASLContext implements CallbackHandler,
       setCallbackMsg(ERR_SASL_CANNOT_GET_ENTRY_BY_DN.get(
           String.valueOf(userDN), SASL_MECHANISM_DIGEST_MD5,
           e.getMessageObject()));
-      return;
     }
     finally
     {
@@ -998,8 +999,8 @@ public class SASLContext implements CallbackHandler,
       }
     }
 
-    if (AccessControlConfigManager.getInstance().getAccessControlHandler()
-        .mayProxy(authInfo.getAuthenticationEntry(), e, bindOp) == false)
+    if (!AccessControlConfigManager.getInstance().getAccessControlHandler()
+        .mayProxy(authInfo.getAuthenticationEntry(), e, bindOp))
     {
       setCallbackMsg(ERR_SASL_AUTHZID_INSUFFICIENT_ACCESS.get(String
           .valueOf(authEntry.getDN())));
@@ -1144,17 +1145,13 @@ public class SASLContext implements CallbackHandler,
         }
         setCallbackMsg(ERR_SASLDIGESTMD5_CANNOT_MAP_USERNAME.get(
             String.valueOf(userName), e.getMessageObject()));
-        return;
       }
     }
-
-    if (authEntry == null)
-    {
-      // The authEntry is null, this is an error. The password callback
-      // will catch this error. There is no way to stop the processing
-      // from the name callback.
-      return;
-    }
+    /*
+      At this point, the authEntry should not be null.
+      If it is, it's an error, but the password callback will catch it.
+      There is no way to stop the processing from the name callback.
+    */
   }
 
 
@@ -1214,7 +1211,6 @@ public class SASLContext implements CallbackHandler,
     // Use the first password.
     final char[] password = clearPasswords.get(0).toString().toCharArray();
     passwordCallback.setPassword(password);
-    return;
   }
 
 
