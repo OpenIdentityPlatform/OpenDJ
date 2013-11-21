@@ -903,9 +903,7 @@ public final class Importer implements DiskSpaceMonitorHandler
     this.rootContainer = rootContainer;
     try
     {
-      reader =
-          new LDIFReader(importConfiguration, rootContainer,
-              READER_WRITER_BUFFER_SIZE);
+      reader = new LDIFReader(importConfiguration, rootContainer);
     }
     catch (IOException ioe)
     {
