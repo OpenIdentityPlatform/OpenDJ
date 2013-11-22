@@ -189,16 +189,23 @@ public class MultiDomainServerState implements Iterable<DN>
   }
 
   /**
-   * Returns the ServerState associated to the provided replication domain's
-   * baseDN.
+   * Returns the CSN associated to the provided replication domain's baseDN and
+   * serverId.
    *
    * @param baseDN
    *          the replication domain's baseDN
+   * @param serverId
+   *          the serverId
    * @return the associated ServerState
    */
-  public ServerState get(DN baseDN)
+  public CSN getCSN(DN baseDN, int serverId)
   {
-    return list.get(baseDN);
+    final ServerState ss = list.get(baseDN);
+    if (ss != null)
+    {
+      return ss.getCSN(serverId);
+    }
+    return null;
   }
 
   /**
@@ -260,7 +267,7 @@ public class MultiDomainServerState implements Iterable<DN>
   public static Map<DN, ServerState> splitGenStateToServerStates(
       String multiDomainServerState) throws DirectoryException
   {
-    final Map<DN, ServerState> startStates = new TreeMap<DN, ServerState>();
+    Map<DN, ServerState> startStates = new TreeMap<DN, ServerState>();
     if (multiDomainServerState != null && multiDomainServerState.length() > 0)
     {
       try

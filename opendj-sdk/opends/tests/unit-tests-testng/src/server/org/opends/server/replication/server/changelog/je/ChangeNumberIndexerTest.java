@@ -27,6 +27,7 @@
 package org.opends.server.replication.server.changelog.je;
 
 import java.lang.Thread.State;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -106,7 +107,7 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
       new HashMap<Pair<DN, Integer>, SequentialDBCursor>();
   private ChangelogState initialState;
   private ChangeNumberIndexer indexer;
-  private MultiDomainServerState previousCookie;
+  private MultiDomainServerState initialCookie;
 
   @BeforeClass
   public static void classSetup() throws Exception
@@ -131,7 +132,7 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
     when(changelogDB.getReplicationDomainDB()).thenReturn(domainDB);
 
     initialState = new ChangelogState();
-    previousCookie = new MultiDomainServerState();
+    initialCookie = new MultiDomainServerState();
   }
 
 
@@ -181,7 +182,7 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
     final ReplicatedUpdateMsg msg2 = msg(BASE_DN, serverId2, 2);
     publishUpdateMsg(msg2, msg1);
 
-    assertAddedRecords(msg1, msg2);
+    assertAddedRecords(msg1);
   }
 
   @Test(dependsOnMethods = { EMPTY_DB_NO_DS })
@@ -197,14 +198,20 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
     final ReplicatedUpdateMsg msg3 = msg(BASE_DN, serverId2, 3);
     final ReplicatedUpdateMsg msg4 = msg(BASE_DN, serverId1, 4);
     publishUpdateMsg(msg3, msg4);
+    assertAddedRecords(msg3);
 
-    assertAddedRecords(msg3, msg4);
+    final ReplicatedUpdateMsg msg5 = msg(BASE_DN, serverId1, 5);
+    publishUpdateMsg(msg5);
+    assertAddedRecords(msg3);
+
+    final ReplicatedUpdateMsg msg6 = msg(BASE_DN, serverId2, 6);
+    publishUpdateMsg(msg6);
+    assertAddedRecords(msg3, msg4, msg5);
   }
 
-  @Test(enabled = false, dependsOnMethods = { EMPTY_DB_NO_DS })
+  @Test(dependsOnMethods = { EMPTY_DB_NO_DS })
   public void emptyDBTwoCursorsOneEmptyForSomeTime() throws Exception
   {
-    // TODO JNR make this tests work
     addReplica(BASE_DN, serverId1);
     addReplica(BASE_DN, serverId2);
     startIndexer();
@@ -216,7 +223,7 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
     // simulate no messages received during some time for replica 2
     publishUpdateMsg(msg1Sid2, emptySid2, emptySid2, emptySid2, msg3Sid2, msg2Sid1);
 
-    assertAddedRecords(msg1Sid2, msg2Sid1, msg3Sid2);
+    assertAddedRecords(msg1Sid2, msg2Sid1);
   }
 
   @Test(dependsOnMethods = { EMPTY_DB_NO_DS })
@@ -231,7 +238,10 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
     addReplica(BASE_DN, serverId2);
     final ReplicatedUpdateMsg msg2 = msg(BASE_DN, serverId2, 2);
     publishUpdateMsg(msg2);
+    assertAddedRecords(msg1);
 
+    final ReplicatedUpdateMsg msg3 = msg(BASE_DN, serverId1, 3);
+    publishUpdateMsg(msg3);
     assertAddedRecords(msg1, msg2);
   }
 
@@ -275,13 +285,13 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
         final DN baseDN = newestMsg.getBaseDN();
         final CSN csn = newestMsg.getCSN();
         when(cnIndexDB.getNewestRecord()).thenReturn(
-            new ChangeNumberIndexRecord(previousCookie.toString(), baseDN, csn));
+            new ChangeNumberIndexRecord(initialCookie.toString(), baseDN, csn));
         final SequentialDBCursor cursor =
             cursors.get(Pair.of(baseDN, csn.getServerId()));
         cursor.add(newestMsg);
         cursor.next(); // simulate the cursor had been initialized with this change
       }
-      previousCookie.update(msg.getBaseDN(), msg.getCSN());
+      initialCookie.update(msg.getBaseDN(), msg.getCSN());
     }
   }
 
@@ -321,6 +331,10 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
     assertThat(state).isEqualTo(State.WAITING);
   }
 
+  /**
+   * Asserts which records have been added to the CNIndexDB since starting the
+   * {@link ChangeNumberIndexer} thread.
+   */
   private void assertAddedRecords(ReplicatedUpdateMsg... msgs) throws Exception
   {
     final ArgumentCaptor<ChangeNumberIndexRecord> arg =
@@ -328,17 +342,21 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
     verify(cnIndexDB, atLeast(0)).addRecord(arg.capture());
     final List<ChangeNumberIndexRecord> allValues = arg.getAllValues();
 
-    // recheck it was not called more than expected
-    assertThat(allValues).hasSameSizeAs(msgs);
+    // clone initial state to avoid modifying it
+    final MultiDomainServerState previousCookie =
+        new MultiDomainServerState(initialCookie.toString());
+    // check it was not called more than expected
+    String desc1 = "actual was:<" + allValues + ">, but expected was:<" + Arrays.toString(msgs) + ">";
+    assertThat(allValues.size()).as(desc1).isEqualTo(msgs.length);
     for (int i = 0; i < msgs.length; i++)
     {
       final ReplicatedUpdateMsg msg = msgs[i];
       final ChangeNumberIndexRecord record = allValues.get(i);
       // check content in order
-      String description = "expected: <" + msg + ">, but got: <" + record + ">";
-      assertThat(record.getBaseDN()).as(description).isEqualTo(msg.getBaseDN());
-      assertThat(record.getCSN()).as(description).isEqualTo(msg.getCSN());
-      assertThat(record.getPreviousCookie()).as(description).isEqualTo(previousCookie.toString());
+      String desc2 = "actual was:<" + record + ">, but expected was:<" + msg + ">";
+      assertThat(record.getBaseDN()).as(desc2).isEqualTo(msg.getBaseDN());
+      assertThat(record.getCSN()).as(desc2).isEqualTo(msg.getCSN());
+      assertThat(record.getPreviousCookie()).as(desc2).isEqualTo(previousCookie.toString());
       previousCookie.update(msg.getBaseDN(), msg.getCSN());
     }
   }

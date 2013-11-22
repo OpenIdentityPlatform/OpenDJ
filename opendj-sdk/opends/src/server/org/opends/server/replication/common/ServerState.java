@@ -140,9 +140,12 @@ public class ServerState implements Iterable<CSN>
   }
 
   /**
-   * Update the Server State with a CSN.
+   * Forward update the Server State with a CSN. The provided CSN will be put on
+   * the current object only if it is newer than the existing CSN for the same
+   * serverId or if there is no existing CSN.
    *
-   * @param csn The committed CSN.
+   * @param csn
+   *          The committed CSN.
    * @return a boolean indicating if the update was meaningful.
    */
   public boolean update(CSN csn)
@@ -154,9 +157,9 @@ public class ServerState implements Iterable<CSN>
 
     synchronized (serverIdToCSN)
     {
-      int serverId = csn.getServerId();
-      CSN oldCSN = serverIdToCSN.get(serverId);
-      if (oldCSN == null || csn.isNewerThan(oldCSN))
+      final int serverId = csn.getServerId();
+      final CSN existingCSN = serverIdToCSN.get(serverId);
+      if (existingCSN == null || csn.isNewerThan(existingCSN))
       {
         serverIdToCSN.put(serverId, csn);
         return true;
