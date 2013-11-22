@@ -614,14 +614,12 @@ public class ReplicationDB
       }
       catch (ChangelogException e)
       {
-        // Unlocking is required before throwing any exception
-        closeAndReleaseReadLock(localCursor);
+        StaticUtils.close(localCursor);
         throw e;
       }
       catch (DatabaseException e)
       {
-        // Unlocking is required before throwing any exception
-        closeAndReleaseReadLock(localCursor);
+        StaticUtils.close(localCursor);
         throw new ChangelogException(e);
       }
       finally
@@ -666,13 +664,13 @@ public class ReplicationDB
       }
       catch (ChangelogException e)
       {
-        closeAndReleaseReadLock(localCursor);
+        StaticUtils.close(localCursor);
         abort(localTxn);
         throw e;
       }
       catch (Exception e)
       {
-        closeAndReleaseReadLock(localCursor);
+        StaticUtils.close(localCursor);
         abort(localTxn);
         throw new ChangelogException(e);
       }
