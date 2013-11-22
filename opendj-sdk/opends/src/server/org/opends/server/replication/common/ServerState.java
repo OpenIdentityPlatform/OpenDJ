@@ -192,6 +192,36 @@ public class ServerState implements Iterable<CSN>
   }
 
   /**
+   * Removes the mapping to the provided CSN if it is present in this
+   * ServerState.
+   *
+   * @param expectedCSN
+   *          the CSN to be removed
+   * @return true if the CSN could be removed, false otherwise.
+   */
+  public boolean removeCSN(CSN expectedCSN)
+  {
+    if (expectedCSN == null)
+      return false;
+
+    synchronized (serverIdToCSN)
+    {
+      for (Iterator<CSN> iter = serverIdToCSN.values().iterator();
+          iter.hasNext();)
+      {
+        final CSN csn = iter.next();
+        if (expectedCSN.equals(csn))
+        {
+          iter.remove();
+          saved = false;
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  /**
    * Replace the Server State with another ServerState.
    *
    * @param serverState The ServerState.

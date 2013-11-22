@@ -152,4 +152,20 @@ public class ServerStateTest extends ReplicationTestCase
     assertTrue(state.cover(csn1Server2));
     assertFalse(state.cover(csn0Server3));
   }
+
+  @Test
+  public void testRemoveCSN() throws Exception
+  {
+    final CSN csn1Server1 = new CSN(1, 0, 1);
+    final CSN csn2Server1 = new CSN(2, 0, 1);
+    final CSN csn1Server2 = new CSN(1, 0, 2);
+
+    final ServerState state = new ServerState();
+    assertTrue(state.update(csn1Server1));
+
+    assertFalse(state.removeCSN(null));
+    assertFalse(state.removeCSN(csn2Server1));
+    assertFalse(state.removeCSN(csn1Server2));
+    assertTrue(state.removeCSN(csn1Server1));
+  }
 }

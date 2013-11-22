@@ -209,6 +209,26 @@ public class MultiDomainServerState implements Iterable<DN>
   }
 
   /**
+   * Removes the mapping to the provided CSN if it is present in this
+   * MultiDomainServerState.
+   *
+   * @param baseDN
+   *          the replication domain's baseDN
+   * @param expectedCSN
+   *          the CSN to be removed
+   * @return true if the CSN could be removed, false otherwise.
+   */
+  public boolean removeCSN(DN baseDN, CSN expectedCSN)
+  {
+    ServerState ss = list.get(baseDN);
+    if (ss != null)
+    {
+      return ss.removeCSN(expectedCSN);
+    }
+    return false;
+  }
+
+  /**
    * Test if this object equals the provided other object.
    * @param other The other object with which we want to test equality.
    * @return      Returns True if this equals other, else return false.

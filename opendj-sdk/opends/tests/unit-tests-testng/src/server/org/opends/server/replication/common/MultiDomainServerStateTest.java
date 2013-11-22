@@ -93,6 +93,23 @@ public class MultiDomainServerStateTest extends ReplicationTestCase
     assertEquals(state.toString(), expected);
   }
 
+  @Test
+  public void testUpdateMultiDomainServerState() throws Exception
+  {
+    final DN dn1 = DN.decode("o=test1");
+    final DN dn2 = DN.decode("o=test2");
+
+    final MultiDomainServerState state1 = new MultiDomainServerState();
+    state1.update(dn1, csn3);
+    state1.update(dn2, csn2);
+    final MultiDomainServerState state2 = new MultiDomainServerState();
+    state2.update(state1);
+
+    assertSame(csn3, state2.getCSN(dn1, csn3.getServerId()));
+    assertSame(csn2, state2.getCSN(dn2, csn2.getServerId()));
+    assertTrue(state1.equalsTo(state2));
+  }
+
   @Test(dependsOnMethods = { "testUpdateCSN" })
   public void testEqualsTo() throws Exception
   {
@@ -136,4 +153,33 @@ public class MultiDomainServerStateTest extends ReplicationTestCase
     assertTrue(state.isEmpty());
   }
 
+  @Test(dependsOnMethods = { "testUpdateCSN" })
+  public void testRemoveCSN() throws Exception
+  {
+    final DN dn1 = DN.decode("o=test1");
+    final DN dn2 = DN.decode("o=test2");
+    final DN dn3 = DN.decode("o=test3");
+
+    final MultiDomainServerState state = new MultiDomainServerState();
+
+    assertTrue(state.update(dn1, csn1));
+    assertTrue(state.update(dn2, csn1));
+    assertTrue(state.update(dn2, csn2));
+    assertNull(state.getCSN(dn3, 42));
+
+    assertFalse(state.removeCSN(dn3, csn1));
+    assertSame(csn1, state.getCSN(dn1, csn1.getServerId()));
+    assertSame(csn1, state.getCSN(dn2, csn1.getServerId()));
+    assertSame(csn2, state.getCSN(dn2, csn2.getServerId()));
+
+    assertFalse(state.removeCSN(dn1, csn2));
+    assertSame(csn1, state.getCSN(dn1, csn1.getServerId()));
+    assertSame(csn1, state.getCSN(dn2, csn1.getServerId()));
+    assertSame(csn2, state.getCSN(dn2, csn2.getServerId()));
+
+    assertTrue(state.removeCSN(dn2, csn1));
+    assertSame(csn1, state.getCSN(dn1, csn1.getServerId()));
+    assertNull(state.getCSN(dn2, csn1.getServerId()));
+    assertSame(csn2, state.getCSN(dn2, csn2.getServerId()));
+  }
 }
