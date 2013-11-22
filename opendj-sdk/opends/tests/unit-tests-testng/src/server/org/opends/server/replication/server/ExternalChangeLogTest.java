@@ -1022,7 +1022,6 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     LDIFWriter ldifWriter = getLDIFWriter();
 
     Set<String> lastcookieattribute = newSet("lastExternalChangelogCookie");
-
     InternalSearchOperation searchOp = searchOnRootDSE(lastcookieattribute);
     List<SearchResultEntry> entries = searchOp.getSearchEntries();
     if (entries != null)
@@ -1030,14 +1029,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       for (SearchResultEntry resultEntry : entries)
       {
         ldifWriter.writeEntry(resultEntry);
-        try
-        {
-          List<Attribute> l = resultEntry.getAttribute("lastexternalchangelogcookie");
-          cookie = l.get(0).iterator().next().toString();
-        }
-        catch (NullPointerException e)
-        {
-        }
+        cookie = getAttributeValue(resultEntry, "lastexternalchangelogcookie");
       }
     }
     return cookie;
@@ -1146,9 +1138,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
           checkValue(resultEntry, "changetype", "add");
           String expectedValue1 = "objectClass: domain\nobjectClass: top\n"
               + "entryUUID: 11111111-1111-1111-1111-111111111111\n";
-          String expectedValue2 = "entryUUID: 11111111-1111-1111-1111-111111111111\n"
-              + "objectClass: domain\nobjectClass: top\n";
-          checkPossibleValues(resultEntry,"changes",expectedValue1, expectedValue2);
+          checkValue(resultEntry, "changes", expectedValue1);
           checkValue(resultEntry,"targetentryuuid",user1entryUUID);
         } else if (i==3)
         {
@@ -1263,43 +1253,21 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
   private static void checkValue(Entry entry, String attrName, String expectedValue)
   {
-    String encodedValue = getAttributeValue(entry, attrName);
-    assertTrue(encodedValue.equalsIgnoreCase(expectedValue), "In entry "
-        + entry + " attr <" + attrName + "> equals " + encodedValue
-        + " instead of expected value " + expectedValue);
-  }
-
-
-  private static String getAttributeValueOrNull(Entry entry, String attrName)
-  {
-    try
-    {
-      return getAttributeValue(entry, attrName);
-    }
-    catch(Exception e)
-    {
-    }
-    return null;
+    assertThat(getAttributeValue(entry, attrName))
+        .as("In entry " + entry + " incorrect value for attr '" + attrName + "'")
+        .isEqualToIgnoringCase(expectedValue);
   }
 
   private static String getAttributeValue(Entry entry, String attrName)
   {
     List<Attribute> attrs = entry.getAttribute(attrName.toLowerCase());
+    if (attrs == null)
+    {
+      return null;
+    }
     Attribute a = attrs.iterator().next();
     AttributeValue av = a.iterator().next();
     return av.toString();
-  }
-
-  private static void checkPossibleValues(Entry entry, String attrName,
-      String expectedValue1, String expectedValue2)
-  {
-    String encodedValue = getAttributeValue(entry, attrName);
-    assertTrue(
-        (encodedValue.equalsIgnoreCase(expectedValue1)
-            || encodedValue.equalsIgnoreCase(expectedValue2)),
-        "In entry " + entry + " attr <" + attrName + "> equals " + encodedValue
-        + " instead of one of the expected values " + expectedValue1 + " or "
-        + expectedValue2);
   }
 
   private static void checkValues(Entry entry, String attrName,
@@ -1309,10 +1277,9 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     {
       for (AttributeValue av : a)
       {
-        String encodedValue = av.toString();
-        assertTrue(expectedValues.contains(encodedValue), "In entry " + entry
-            + " attr <" + attrName + "> equals " + av
-            + " instead of one of the expected values " + expectedValues);
+        assertThat(expectedValues)
+            .as("In entry " + entry + " incorrect value for attr '" + attrName + "'")
+            .contains(av.toString());
       }
     }
   }
@@ -1485,18 +1452,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       Thread.sleep(1000);
 
       // Check we received change 2
-      for (LDAPAttribute a : searchResultEntry.getAttributes())
-      {
-        if ("targetDN".equalsIgnoreCase(a.getAttributeType()))
-        {
-          for (ByteString av : a.getValues())
-          {
-            assertTrue(av.toString().equalsIgnoreCase(expectedDn),
-                "Entry returned by psearch is " + av +
-                " when expected is " + expectedDn);
-          }
-        }
-      }
+      checkAttributeValue(searchResultEntry, "targetDN", expectedDn);
       debugInfo(tn, "Second search done successfully : " + searchResultEntry);
 
       stop(server01);
@@ -1570,6 +1526,25 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     {
       debugInfo(tn, "Ends test successfully");
     }
+  }
+
+  private void checkAttributeValue(SearchResultEntryProtocolOp entry,
+      String attrType, String expectedDN)
+  {
+    for (LDAPAttribute a : entry.getAttributes())
+    {
+      if (attrType.equalsIgnoreCase(a.getAttributeType()))
+      {
+        for (ByteString av : a.getValues())
+        {
+          assertThat(av.toString())
+              .as("Wrong entry returned by psearch")
+              .isEqualToIgnoringCase(expectedDN);
+          return;
+        }
+      }
+    }
+    fail();
   }
 
   private SearchRequestProtocolOp createSearchRequest(String filterString,
@@ -1967,18 +1942,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       Thread.sleep(1000);
 
       // Check we received change 13
-      for (LDAPAttribute a : searchResultEntry.getAttributes())
-      {
-        if ("targetDN".equalsIgnoreCase(a.getAttributeType()))
-        {
-          for (ByteString av : a.getValues())
-          {
-            assertTrue(av.toString().equalsIgnoreCase(expectedDn13),
-                "Entry returned by psearch 13 is " + av +
-                " when expected is " + expectedDn13);
-          }
-        }
-      }
+      checkAttributeValue(searchResultEntry, "targetDN", expectedDn13);
       debugInfo(tn, "Search 3 successfully receives additional changes");
     }
     finally
@@ -2341,9 +2305,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     commonAssert(addEntry, user1entryUUID, firstChangeNumber, i, tn, csns[i]);
     String expectedValue1 = "objectClass: domain\nobjectClass: top\n" + "entryUUID: "
         + user1entryUUID + "\n";
-    String expectedValue2 = "entryUUID: " + user1entryUUID + "\n"
-        + "objectClass: domain\nobjectClass: top\n";
-    checkPossibleValues(addEntry, "changes", expectedValue1, expectedValue2);
+    checkValue(addEntry, "changes", expectedValue1);
 
     // check the MOD entry has the right content
     final SearchResultEntry modEntry = entries.get(++i);
@@ -2629,10 +2591,10 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     debugAndWriteEntries(null, entries, tn);
     for (SearchResultEntry resultEntry : entries)
     {
-      assertEquals(getAttributeValueOrNull(resultEntry, "firstchangenumber"), null);
-      assertEquals(getAttributeValueOrNull(resultEntry, "lastchangenumber"), null);
-      assertEquals(getAttributeValueOrNull(resultEntry, "changelog"), null);
-      assertEquals(getAttributeValueOrNull(resultEntry, "lastExternalChangelogCookie"), null);
+      assertEquals(getAttributeValue(resultEntry, "firstchangenumber"), null);
+      assertEquals(getAttributeValue(resultEntry, "lastchangenumber"), null);
+      assertEquals(getAttributeValue(resultEntry, "changelog"), null);
+      assertEquals(getAttributeValue(resultEntry, "lastExternalChangelogCookie"), null);
     }
 
     debugInfo(tn, "Ending test with success");
@@ -2671,10 +2633,10 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     else
     {
       if (expectedFirst > 0)
-        assertEquals(getAttributeValueOrNull(resultEntry, "firstchangenumber"), null);
-      assertEquals(getAttributeValueOrNull(resultEntry, "lastchangenumber"), null);
-      assertEquals(getAttributeValueOrNull(resultEntry, "changelog"), null);
-      assertEquals(getAttributeValueOrNull(resultEntry, "lastExternalChangelogCookie"), null);
+        assertEquals(getAttributeValue(resultEntry, "firstchangenumber"), null);
+      assertEquals(getAttributeValue(resultEntry, "lastchangenumber"), null);
+      assertEquals(getAttributeValue(resultEntry, "changelog"), null);
+      assertEquals(getAttributeValue(resultEntry, "lastExternalChangelogCookie"), null);
     }
 
     debugInfo(tn, "Ending test with success");
@@ -2960,7 +2922,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
       for (SearchResultEntry resultEntry : entries)
       {
-        String targetdn = getAttributeValueOrNull(resultEntry, "targetdn");
+        String targetdn = getAttributeValue(resultEntry, "targetdn");
 
         if (targetdn.endsWith("cn=robert hue,o=test3")
             || targetdn.endsWith("cn=robert hue2,o=test3"))
@@ -2970,7 +2932,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
           Set<String> eoc = newSet("person", "inetOrgPerson", "organizationalPerson", "top");
           checkValues(targetEntry, "objectclass", eoc);
 
-          String changeType = getAttributeValueOrNull(resultEntry, "changetype");
+          String changeType = getAttributeValue(resultEntry, "changetype");
           if ("delete".equals(changeType))
           {
             // We are using "*" for deletes so should get back 4 attributes.
@@ -3050,7 +3012,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       String targetdn) throws Exception
   {
     // Parse includedAttributes as an entry.
-    String includedAttributes = getAttributeValueOrNull(resultEntry, "includedattributes");
+    String includedAttributes = getAttributeValue(resultEntry, "includedattributes");
     String[] ldifAttributeLines = includedAttributes.split("\\n");
     String[] ldif = new String[ldifAttributeLines.length + 1];
     System.arraycopy(ldifAttributeLines, 0, ldif, 1, ldifAttributeLines.length);
