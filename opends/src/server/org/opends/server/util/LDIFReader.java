@@ -606,8 +606,7 @@ public final class LDIFReader implements Closeable
           logToRejectWriter(lines, message);
           throw new LDIFException(message, lastEntryLineNumber, true);
         }
-        //Add any superior objectclass(s) missing in an entries
-        //objectclass map.
+        //Add any superior objectclass(s) missing in an entries objectclass map.
         addSuperiorObjectClasses(entry.getObjectClasses());
       }
 
@@ -734,35 +733,26 @@ public final class LDIFReader implements Closeable
         // This must mean that we have reached the end of the LDIF source.
         // If the set of lines read so far is empty, then move onto the next
         // file or return null.  Otherwise, break out of this loop.
-        if (lines.isEmpty())
-        {
-          reader = importConfig.nextReader();
-          if (reader == null)
-          {
-            return null;
-          }
-          else
-          {
-            return readEntryLines();
-          }
-        }
-        else
+        if (!lines.isEmpty())
         {
           break;
         }
+        reader = importConfig.nextReader();
+        if (reader != null)
+        {
+          return readEntryLines();
+        }
+        return null;
       }
       else if (line.length() == 0)
       {
         // This is a blank line.  If the set of lines read so far is empty,
         // then just skip over it.  Otherwise, break out of this loop.
-        if (lines.isEmpty())
-        {
-          continue;
-        }
-        else
+        if (!lines.isEmpty())
         {
           break;
         }
+        continue;
       }
       else if (line.charAt(0) == '#')
       {
@@ -868,8 +858,7 @@ public final class LDIFReader implements Closeable
     // Look at the character immediately after the colon.  If there is none,
     // then assume the null DN.  If it is another colon, then the DN must be
     // base64-encoded.  Otherwise, it may be one or more spaces.
-    int length = line.length();
-    if (colonPos == (length-1))
+    if (colonPos == line.length() - 1)
     {
       return DN.nullDN();
     }
@@ -878,115 +867,90 @@ public final class LDIFReader implements Closeable
     {
       // The DN is base64-encoded.  Find the first non-blank character and
       // take the rest of the line, base64-decode it, and parse it as a DN.
-      int pos = colonPos+2;
-      while ((pos < length) && (line.charAt(pos) == ' '))
-      {
-        pos++;
-      }
-
-      String encodedDNStr = line.substring(pos);
-
-      String dnStr;
-      try
-      {
-        dnStr = new String(Base64.decode(encodedDNStr), "UTF-8");
-      }
-      catch (Exception e)
-      {
-        // The value did not have a valid base64-encoding.
-        if (debugEnabled())
-        {
-          TRACER.debugInfo("Base64 decode failed for dn: ",
-                            line.substring(pos));
-        }
-
-        Message message =
-                ERR_LDIF_COULD_NOT_BASE64_DECODE_DN.get(
-                        lastEntryLineNumber, line,
-                        String.valueOf(e));
-
-        logToRejectWriter(lines, message);
-        throw new LDIFException(message, lastEntryLineNumber, true, e);
-      }
-
-      try
-      {
-        return DN.decode(dnStr);
-      }
-      catch (DirectoryException de)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugInfo("DN decode failed for: ", dnStr);
-        }
-
-        Message message = ERR_LDIF_INVALID_DN.get(
-                lastEntryLineNumber, line.toString(),
-                de.getMessageObject());
-
-        logToRejectWriter(lines, message);
-        throw new LDIFException(message, lastEntryLineNumber, true, de);
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugInfo("DN decode failed for: ", dnStr);
-        }
-        Message message = ERR_LDIF_INVALID_DN.get(
-                lastEntryLineNumber, line.toString(),
-                String.valueOf(e));
-
-        logToRejectWriter(lines, message);
-        throw new LDIFException(message, lastEntryLineNumber, true, e);
-      }
+      int pos = findFirstNonSpaceCharPosition(line, colonPos + 2);
+      String dnStr = base64Decode(line.substring(pos), lines, line);
+      return decodeDN(dnStr, lines, line);
     }
     else
     {
       // The rest of the value should be the DN.  Skip over any spaces and
       // attempt to decode the rest of the line as the DN.
-      int pos = colonPos+1;
-      while ((pos < length) && (line.charAt(pos) == ' '))
-      {
-        pos++;
-      }
-
-      String dnString = line.substring(pos);
-
-      try
-      {
-        return DN.decode(dnString);
-      }
-      catch (DirectoryException de)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugInfo("DN decode failed for: ", line.substring(pos));
-        }
-        Message message = ERR_LDIF_INVALID_DN.get(
-                lastEntryLineNumber, line.toString(), de.getMessageObject());
-
-        logToRejectWriter(lines, message);
-        throw new LDIFException(message, lastEntryLineNumber, true, de);
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugInfo("DN decode failed for: ", line.substring(pos));
-        }
-
-        Message message = ERR_LDIF_INVALID_DN.get(
-                lastEntryLineNumber, line.toString(),
-                String.valueOf(e));
-
-        logToRejectWriter(lines, message);
-        throw new LDIFException(message, lastEntryLineNumber, true, e);
-      }
+      int pos = findFirstNonSpaceCharPosition(line, colonPos + 1);
+      return decodeDN(line.substring(pos), lines, line);
     }
   }
 
+  private int findFirstNonSpaceCharPosition(StringBuilder line, int startPos)
+  {
+    final int length = line.length();
+    int pos = startPos;
+    while ((pos < length) && (line.charAt(pos) == ' '))
+    {
+      pos++;
+    }
+    return pos;
+  }
 
+  private String base64Decode(String encodedStr, List<StringBuilder> lines,
+      StringBuilder line) throws LDIFException
+  {
+    try
+    {
+      return new String(Base64.decode(encodedStr), "UTF-8");
+    }
+    catch (Exception e)
+    {
+      // The value did not have a valid base64-encoding.
+      final String stackTrace = StaticUtils.stackTraceToSingleLineString(e);
+      if (debugEnabled())
+      {
+        TRACER.debugInfo(
+            "Base64 decode failed for dn '%s', exception stacktrace: %s",
+            encodedStr, stackTrace);
+      }
+
+      Message message = ERR_LDIF_COULD_NOT_BASE64_DECODE_DN.get(
+          lastEntryLineNumber, line, stackTrace);
+      logToRejectWriter(lines, message);
+      throw new LDIFException(message, lastEntryLineNumber, true, e);
+    }
+  }
+
+  private DN decodeDN(String dnString, List<StringBuilder> lines,
+      StringBuilder line) throws LDIFException
+  {
+    try
+    {
+      return DN.decode(dnString);
+    }
+    catch (DirectoryException de)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugInfo("DN decode failed for: ", dnString);
+      }
+
+      Message message = ERR_LDIF_INVALID_DN.get(
+              lastEntryLineNumber, line.toString(),
+              de.getMessageObject());
+
+      logToRejectWriter(lines, message);
+      throw new LDIFException(message, lastEntryLineNumber, true, de);
+    }
+    catch (Exception e)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugInfo("DN decode failed for: ", dnString);
+      }
+      Message message = ERR_LDIF_INVALID_DN.get(
+              lastEntryLineNumber, line.toString(),
+              String.valueOf(e));
+
+      logToRejectWriter(lines, message);
+      throw new LDIFException(message, lastEntryLineNumber, true, e);
+    }
+  }
 
   /**
    * Reads the changetype of the entry from the provided list of lines.  If
@@ -1025,11 +989,9 @@ public final class LDIFReader implements Closeable
     {
       // No changetype attribute - return null
       return null;
-    } else
-    {
-      // Remove the line
-      lines.remove();
     }
+    // Remove the line
+    lines.remove();
 
 
     // Look at the character immediately after the colon.  If there is none,
@@ -1044,51 +1006,16 @@ public final class LDIFReader implements Closeable
 
     if (line.charAt(colonPos+1) == ':')
     {
-      // The change type is base64-encoded.  Find the first non-blank
-      // character and
-      // take the rest of the line, and base64-decode it.
-      int pos = colonPos+2;
-      while ((pos < length) && (line.charAt(pos) == ' '))
-      {
-        pos++;
-      }
-
-      String encodedChangeTypeStr = line.substring(pos);
-
-      String changeTypeStr;
-      try
-      {
-        changeTypeStr = new String(Base64.decode(encodedChangeTypeStr),
-            "UTF-8");
-      }
-      catch (Exception e)
-      {
-        // The value did not have a valid base64-encoding.
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-
-        Message message = ERR_LDIF_COULD_NOT_BASE64_DECODE_DN.get(
-                lastEntryLineNumber, line,
-                String.valueOf(e));
-        logToRejectWriter(lines, message);
-        throw new LDIFException(message, lastEntryLineNumber, true, e);
-      }
-
-      return changeTypeStr;
+      // The change type is base64-encoded.  Find the first non-blank character
+      // and take the rest of the line, and base64-decode it.
+      int pos = findFirstNonSpaceCharPosition(line, colonPos + 2);
+      return base64Decode(line.substring(pos), lines, line);
     }
     else
     {
-      // The rest of the value should be the changetype.
-      // Skip over any spaces and
-      // attempt to decode the rest of the line as the changetype string.
-      int pos = colonPos+1;
-      while ((pos < length) && (line.charAt(pos) == ' '))
-      {
-        pos++;
-      }
-
+      // The rest of the value should be the changetype. Skip over any spaces
+      // and attempt to decode the rest of the line as the changetype string.
+      int pos = findFirstNonSpaceCharPosition(line, colonPos + 1);
       return line.substring(pos);
     }
   }
@@ -1215,40 +1142,30 @@ public final class LDIFReader implements Closeable
           else
           {
             logToRejectWriter(lines, message);
-            throw new LDIFException(message, lastEntryLineNumber,
-                                    true);
+            throw new LDIFException(message, lastEntryLineNumber, true);
           }
         }
       }
 
-      AttributeValue attributeValue =
-          AttributeValues.create(attrType, value);
-      List<AttributeBuilder> attrList;
+      AttributeValue attributeValue = AttributeValues.create(attrType, value);
+      final Map<AttributeType, List<AttributeBuilder>> attrBuilders;
       if (attrType.isOperational())
       {
-        attrList = operationalAttrBuilders.get(attrType);
-        if (attrList == null)
-        {
-          AttributeBuilder builder = new AttributeBuilder(attribute, true);
-          builder.add(attributeValue);
-          attrList = new ArrayList<AttributeBuilder>();
-          attrList.add(builder);
-          operationalAttrBuilders.put(attrType, attrList);
-          return;
-        }
+        attrBuilders = operationalAttrBuilders;
       }
       else
       {
-        attrList = userAttrBuilders.get(attrType);
-        if (attrList == null)
-        {
-          AttributeBuilder builder = new AttributeBuilder(attribute, true);
-          builder.add(attributeValue);
-          attrList = new ArrayList<AttributeBuilder>();
-          attrList.add(builder);
-          userAttrBuilders.put(attrType, attrList);
-          return;
-        }
+        attrBuilders = userAttrBuilders;
+      }
+      List<AttributeBuilder> attrList = attrBuilders.get(attrType);
+      if (attrList == null)
+      {
+        AttributeBuilder builder = new AttributeBuilder(attribute, true);
+        builder.add(attributeValue);
+        attrList = new ArrayList<AttributeBuilder>();
+        attrList.add(builder);
+        attrBuilders.put(attrType, attrList);
+        return;
       }
 
       // Check to see if any of the attributes in the list have the same set of
@@ -1264,8 +1181,7 @@ public final class LDIFReader implements Closeable
                       lastEntryLineNumber, attrName,
                       value.toString());
               logToRejectWriter(lines, message);
-              throw new LDIFException(message, lastEntryLineNumber,
-                      true);
+            throw new LDIFException(message, lastEntryLineNumber, true);
           }
           if (attrType.isSingleValue() && (a.size() > 1)  && checkSchema)
           {
@@ -1422,8 +1338,7 @@ public final class LDIFReader implements Closeable
           rejectWriter.write(message.toString());
           rejectWriter.newLine();
         }
-        String dnStr = e.getDN().toString();
-        rejectWriter.write(dnStr);
+        rejectWriter.write(e.getDN().toString());
         rejectWriter.newLine();
         List<StringBuilder> eLDIF = e.toLDIF();
         for(StringBuilder l : eLDIF) {
@@ -1710,16 +1625,14 @@ public final class LDIFReader implements Closeable
     List<RawModification> modifications = new ArrayList<RawModification>();
     while(!lines.isEmpty())
     {
-      ModificationType modType;
-
       StringBuilder line = lines.remove();
-      Attribute attr =
-        readSingleValueAttribute(lines, line, entryDN, null);
+      Attribute attr = readSingleValueAttribute(lines, line, entryDN, null);
       String name = attr.getName();
 
       // Get the attribute description
       String attrDescr = attr.iterator().next().getValue().toString();
 
+      ModificationType modType;
       String lowerName = toLowerCase(name);
       if (lowerName.equals("add"))
       {
@@ -1745,8 +1658,7 @@ public final class LDIFReader implements Closeable
         throw new LDIFException(message, lineNumber, true);
       }
 
-      // Now go through the rest of the attributes till the "-" line is
-      // reached.
+      // Now go through the rest of the attributes till the "-" line is reached.
       Attribute modAttr = LDIFReader.parseAttrDescription(attrDescr);
       AttributeBuilder builder = new AttributeBuilder(modAttr, true);
       while (! lines.isEmpty())
@@ -1821,8 +1733,7 @@ public final class LDIFReader implements Closeable
     AttributeType ocType = DirectoryServer.getObjectClassAttributeType();
     AttributeBuilder builder = new AttributeBuilder(ocType, "objectClass");
     for (String value : objectClasses.values()) {
-      AttributeValue av = AttributeValues.create(ocType, value);
-      builder.add(av);
+      builder.add(AttributeValues.create(ocType, value));
     }
     Map<AttributeType, List<Attribute>> attributes =
         toAttributesMap(attrBuilders);
@@ -1851,7 +1762,6 @@ public final class LDIFReader implements Closeable
    */
   private int parseColonPosition(List<StringBuilder> lines,
       StringBuilder line) throws LDIFException {
-
     int colonPos = line.indexOf(":");
     if (colonPos <= 0)
     {
@@ -1906,11 +1816,7 @@ public final class LDIFReader implements Closeable
       {
         // The value is base64-encoded. Find the first non-blank
         // character, take the rest of the line, and base64-decode it.
-        int pos = colonPos+2;
-        while ((pos < length) && (line.charAt(pos) == ' '))
-        {
-          pos++;
-        }
+        int pos = findFirstNonSpaceCharPosition(line, colonPos + 2);
 
         try
         {
@@ -1936,11 +1842,7 @@ public final class LDIFReader implements Closeable
       {
         // Find the first non-blank character, decode the rest of the
         // line as a URL, and read its contents.
-        int pos = colonPos+2;
-        while ((pos < length) && (line.charAt(pos) == ' '))
-        {
-          pos++;
-        }
+        int pos = findFirstNonSpaceCharPosition(line, colonPos + 2);
 
         URL contentURL;
         try
@@ -1976,8 +1878,7 @@ public final class LDIFReader implements Closeable
         }
         catch (Exception e)
         {
-          // We were unable to read the contents of that URL for some
-          // reason.
+          // We were unable to read the contents of that URL for some reason.
           if (debugEnabled())
           {
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
@@ -2000,12 +1901,7 @@ public final class LDIFReader implements Closeable
       {
         // The rest of the line should be the value. Skip over any
         // spaces and take the rest of the line as the value.
-        int pos = colonPos+1;
-        while ((pos < length) && (line.charAt(pos) == ' '))
-        {
-          pos++;
-        }
-
+        int pos = findFirstNonSpaceCharPosition(line, colonPos + 1);
         value = ByteString.valueOf(line.substring(pos));
       }
     }
@@ -2154,4 +2050,3 @@ public final class LDIFReader implements Closeable
     }
   }
 }
-

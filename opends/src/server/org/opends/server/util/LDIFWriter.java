@@ -27,15 +27,13 @@
  */
 package org.opends.server.util;
 
-
-
 import java.io.BufferedWriter;
 import java.io.Closeable;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Pattern;
-import java.util.Collection;
 
 import org.opends.messages.Message;
 import org.opends.server.tools.makeldif.TemplateEntry;
@@ -43,7 +41,6 @@ import org.opends.server.types.*;
 
 import static org.opends.server.util.StaticUtils.*;
 import static org.opends.server.util.Validator.*;
-
 
 /**
  * This class provides a mechanism for writing entries in LDIF form to a file or
@@ -59,15 +56,13 @@ public final class LDIFWriter implements Closeable
   // FIXME -- Add support for generating a hash when writing the data.
   // FIXME -- Add support for signing the hash that is generated.
 
-
-
-  // The writer to which the LDIF information will be written.
+  /** The writer to which the LDIF information will be written. */
   private BufferedWriter writer;
 
-  // The configuration to use for the export.
+  /** The configuration to use for the export. */
   private LDIFExportConfig exportConfig;
 
-  // Regular expression used for splitting comments on line-breaks.
+  /** Regular expression used for splitting comments on line-breaks. */
   private static final Pattern SPLIT_NEWLINE = Pattern.compile("\\r?\\n");
 
 
@@ -151,7 +146,7 @@ public final class LDIFWriter implements Closeable
 outerLoop:
           while (startPos < l.length())
           {
-            if ((startPos+breakColumn) >= l.length())
+            if (startPos + breakColumn >= l.length())
             {
 
               writer.write("# ");
@@ -210,15 +205,17 @@ outerLoop:
  * @throws LDIFException If a problem occurs while trying to determine
  *                         whether to include the entry in the export.
  */
-public boolean writeEntries(Collection <Entry> entries)
-  throws IOException, LDIFException {
-
-     boolean ret=true;
-     Iterator<Entry> i = entries.iterator();
-     while(ret && i.hasNext()) {
-         ret=writeEntry(i.next());
-     }
-      return ret;
+  public boolean writeEntries(Collection<Entry> entries) throws IOException,
+      LDIFException
+  {
+    for (Entry entry : entries)
+    {
+      if (!writeEntry(entry))
+      {
+        return false;
+      }
+    }
+    return true;
   }
 
 
@@ -265,8 +262,6 @@ public boolean writeEntries(Collection <Entry> entries)
   throws IOException, LDIFException
   {
     ensureNotNull(templateEntry);
-
-    //  Delegate to TemplateEntry.toLDIF(...)
     return templateEntry.toLDIF(exportConfig);
   }
 
@@ -286,15 +281,11 @@ public boolean writeEntries(Collection <Entry> entries)
     // Get the information necessary to write the LDIF.
     BufferedWriter writer     = exportConfig.getWriter();
     int            wrapColumn = exportConfig.getWrapColumn();
-    boolean        wrapLines  = (wrapColumn > 1);
+    boolean        wrapLines  = wrapColumn > 1;
 
 
     // First, write the DN.
-    StringBuilder dnLine = new StringBuilder();
-    dnLine.append("dn");
-    appendLDIFSeparatorAndValue(dnLine,
-        ByteString.valueOf(changeRecord.getDN().toString()));
-    writeLDIFLine(dnLine, writer, wrapLines, wrapColumn);
+    writeDN("dn", changeRecord.getDN(), writer, wrapLines, wrapColumn);
 
 
     // Figure out what type of change it is and act accordingly.
@@ -308,10 +299,8 @@ public boolean writeEntries(Collection <Entry> entries)
       {
         for (AttributeValue v : a)
         {
-          StringBuilder line = new StringBuilder();
-          line.append(a.getNameWithOptions());
-          appendLDIFSeparatorAndValue(line, v.getValue());
-          writeLDIFLine(line, writer, wrapLines, wrapColumn);
+          final String attrName = a.getNameWithOptions();
+          writeAttribute(attrName, v, writer, wrapLines, wrapColumn);
         }
       }
     }
@@ -342,10 +331,9 @@ public boolean writeEntries(Collection <Entry> entries)
 
         for (ByteString s : a.getValues())
         {
-          StringBuilder valueLine = new StringBuilder();
+          StringBuilder valueLine = new StringBuilder(attrName);
           String stringValue = s.toString();
 
-          valueLine.append(attrName);
           if (needsBase64Encoding(stringValue))
           {
             valueLine.append(":: ");
@@ -375,28 +363,18 @@ public boolean writeEntries(Collection <Entry> entries)
       ModifyDNChangeRecordEntry modifyDNRecord =
            (ModifyDNChangeRecordEntry) changeRecord;
 
-      StringBuilder newRDNLine = new StringBuilder();
-      newRDNLine.append("newrdn: ");
+      StringBuilder newRDNLine = new StringBuilder("newrdn: ");
       modifyDNRecord.getNewRDN().toString(newRDNLine);
       writeLDIFLine(newRDNLine, writer, wrapLines, wrapColumn);
 
-      StringBuilder deleteOldRDNLine = new StringBuilder();
-      deleteOldRDNLine.append("deleteoldrdn: ");
-      if (modifyDNRecord.deleteOldRDN())
-      {
-        deleteOldRDNLine.append("1");
-      }
-      else
-      {
-        deleteOldRDNLine.append("0");
-      }
+      StringBuilder deleteOldRDNLine = new StringBuilder("deleteoldrdn: ");
+      deleteOldRDNLine.append(modifyDNRecord.deleteOldRDN() ? "1" : "0");
       writeLDIFLine(deleteOldRDNLine, writer, wrapLines, wrapColumn);
 
       DN newSuperiorDN = modifyDNRecord.getNewSuperiorDN();
       if (newSuperiorDN != null)
       {
-        StringBuilder newSuperiorLine = new StringBuilder();
-        newSuperiorLine.append("newsuperior: ");
+        StringBuilder newSuperiorLine = new StringBuilder("newsuperior: ");
         newSuperiorDN.toString(newSuperiorLine);
         writeLDIFLine(newSuperiorLine, writer, wrapLines, wrapColumn);
       }
@@ -428,15 +406,11 @@ public boolean writeEntries(Collection <Entry> entries)
     // Get the information necessary to write the LDIF.
     BufferedWriter writer     = exportConfig.getWriter();
     int            wrapColumn = exportConfig.getWrapColumn();
-    boolean        wrapLines  = (wrapColumn > 1);
+    boolean        wrapLines  = wrapColumn > 1;
 
 
     // First, write the DN.
-    StringBuilder dnLine = new StringBuilder();
-    dnLine.append("dn");
-    appendLDIFSeparatorAndValue(dnLine,
-        ByteString.valueOf(entry.getDN().toString()));
-    writeLDIFLine(dnLine, writer, wrapLines, wrapColumn);
+    writeDN("dn", entry.getDN(), writer, wrapLines, wrapColumn);
 
 
     // Next, the changetype.
@@ -457,8 +431,7 @@ public boolean writeEntries(Collection <Entry> entries)
     // Finally, the set of user attributes.
     for (AttributeType attrType : entry.getUserAttributes().keySet())
     {
-      List<Attribute> attrList = entry.getUserAttribute(attrType);
-      for (Attribute a : attrList)
+      for (Attribute a : entry.getUserAttribute(attrType))
       {
         StringBuilder attrName = new StringBuilder(a.getName());
         for (String o : a.getOptions())
@@ -469,10 +442,7 @@ public boolean writeEntries(Collection <Entry> entries)
 
         for (AttributeValue v : a)
         {
-          StringBuilder attrLine = new StringBuilder();
-          attrLine.append(attrName);
-          appendLDIFSeparatorAndValue(attrLine, v.getValue());
-          writeLDIFLine(attrLine, writer, wrapLines, wrapColumn);
+          writeAttribute(attrName, v, writer, wrapLines, wrapColumn);
         }
       }
     }
@@ -505,15 +475,11 @@ public boolean writeEntries(Collection <Entry> entries)
     // Get the information necessary to write the LDIF.
     BufferedWriter writer     = exportConfig.getWriter();
     int            wrapColumn = exportConfig.getWrapColumn();
-    boolean        wrapLines  = (wrapColumn > 1);
+    boolean        wrapLines  = wrapColumn > 1;
 
 
     // Add the DN and changetype lines.
-    StringBuilder dnLine = new StringBuilder();
-    dnLine.append("dn");
-    appendLDIFSeparatorAndValue(dnLine,
-        ByteString.valueOf(entry.getDN().toString()));
-    writeLDIFLine(dnLine, writer, wrapLines, wrapColumn);
+    writeDN("dn", entry.getDN(), writer, wrapLines, wrapColumn);
 
     StringBuilder changeTypeLine = new StringBuilder("changetype: delete");
     writeLDIFLine(changeTypeLine, writer, wrapLines, wrapColumn);
@@ -535,8 +501,7 @@ public boolean writeEntries(Collection <Entry> entries)
       // Write the set of user attributes.
       for (AttributeType attrType : entry.getUserAttributes().keySet())
       {
-        List<Attribute> attrList = entry.getUserAttribute(attrType);
-        for (Attribute a : attrList)
+        for (Attribute a : entry.getUserAttribute(attrType))
         {
           StringBuilder attrName = new StringBuilder();
           attrName.append("# ");
@@ -549,10 +514,7 @@ public boolean writeEntries(Collection <Entry> entries)
 
           for (AttributeValue v : a)
           {
-            StringBuilder attrLine = new StringBuilder();
-            attrLine.append(attrName);
-            appendLDIFSeparatorAndValue(attrLine, v.getValue());
-            writeLDIFLine(attrLine, writer, wrapLines, wrapColumn);
+            writeAttribute(attrName, v, writer, wrapLines, wrapColumn);
           }
         }
       }
@@ -591,14 +553,11 @@ public boolean writeEntries(Collection <Entry> entries)
     // Get the information necessary to write the LDIF.
     BufferedWriter writer     = exportConfig.getWriter();
     int            wrapColumn = exportConfig.getWrapColumn();
-    boolean        wrapLines  = (wrapColumn > 1);
+    boolean        wrapLines  = wrapColumn > 1;
 
 
     // Write the DN and changetype.
-    StringBuilder dnLine = new StringBuilder();
-    dnLine.append("dn");
-    appendLDIFSeparatorAndValue(dnLine, ByteString.valueOf(dn.toString()));
-    writeLDIFLine(dnLine, writer, wrapLines, wrapColumn);
+    writeDN("dn", dn, writer, wrapLines, wrapColumn);
 
     StringBuilder changeTypeLine = new StringBuilder("changetype: modify");
     writeLDIFLine(changeTypeLine, writer, wrapLines, wrapColumn);
@@ -620,36 +579,14 @@ public boolean writeEntries(Collection <Entry> entries)
       String  name = nameBuffer.toString();
 
       StringBuilder modTypeLine = new StringBuilder();
-      switch (m.getModificationType())
-      {
-        case ADD:
-          modTypeLine.append("add: ");
-          modTypeLine.append(name);
-          break;
-        case DELETE:
-          modTypeLine.append("delete: ");
-          modTypeLine.append(name);
-          break;
-        case REPLACE:
-          modTypeLine.append("replace: ");
-          modTypeLine.append(name);
-          break;
-        case INCREMENT:
-          modTypeLine.append("increment: ");
-          modTypeLine.append(name);
-          break;
-        default:
-          // We have no idea what the changetype is, so we can't write anything.
-          continue;
-      }
+      modTypeLine.append(m.getModificationType().getLDIFName());
+      modTypeLine.append(": ");
+      modTypeLine.append(name);
       writeLDIFLine(modTypeLine, writer, wrapLines, wrapColumn);
 
       for (AttributeValue v : a)
       {
-        StringBuilder valueLine = new StringBuilder();
-        valueLine.append(name);
-        appendLDIFSeparatorAndValue(valueLine, v.getValue());
-        writeLDIFLine(valueLine, writer, wrapLines, wrapColumn);
+        writeAttribute(name, v, writer, wrapLines, wrapColumn);
       }
 
 
@@ -658,12 +595,8 @@ public boolean writeEntries(Collection <Entry> entries)
       if (iterator.hasNext())
       {
         writer.write("-");
-        writer.newLine();
       }
-      else
-      {
-        writer.newLine();
-      }
+      writer.newLine();
     }
   }
 
@@ -695,14 +628,11 @@ public boolean writeEntries(Collection <Entry> entries)
     // Get the information necessary to write the LDIF.
     BufferedWriter writer     = exportConfig.getWriter();
     int            wrapColumn = exportConfig.getWrapColumn();
-    boolean        wrapLines  = (wrapColumn > 1);
+    boolean        wrapLines  = wrapColumn > 1;
 
 
     // Write the current DN.
-    StringBuilder dnLine = new StringBuilder();
-    dnLine.append("dn");
-    appendLDIFSeparatorAndValue(dnLine, ByteString.valueOf(dn.toString()));
-    writeLDIFLine(dnLine, writer, wrapLines, wrapColumn);
+    writeDN("dn", dn, writer, wrapLines, wrapColumn);
 
 
     // Write the changetype.  Some older tools may not support the "moddn"
@@ -721,8 +651,7 @@ public boolean writeEntries(Collection <Entry> entries)
 
 
     // Write the newRDN element.
-    StringBuilder rdnLine = new StringBuilder();
-    rdnLine.append("newrdn");
+    StringBuilder rdnLine = new StringBuilder("newrdn");
     appendLDIFSeparatorAndValue(rdnLine, ByteString.valueOf(newRDN.toString()));
     writeLDIFLine(rdnLine, writer, wrapLines, wrapColumn);
 
@@ -735,11 +664,7 @@ public boolean writeEntries(Collection <Entry> entries)
 
     if (newSuperior != null)
     {
-      StringBuilder newSuperiorLine = new StringBuilder();
-      newSuperiorLine.append("newsuperior");
-      appendLDIFSeparatorAndValue(newSuperiorLine,
-          ByteString.valueOf(newSuperior.toString()));
-      writeLDIFLine(newSuperiorLine, writer, wrapLines, wrapColumn);
+      writeDN("newsuperior", newSuperior, writer, wrapLines, wrapColumn);
     }
 
 
@@ -747,7 +672,22 @@ public boolean writeEntries(Collection <Entry> entries)
     writer.newLine();
   }
 
+  private void writeDN(String attrType, DN dn, BufferedWriter writer,
+      boolean wrapLines, int wrapColumn) throws IOException
+  {
+    final StringBuilder newLine = new StringBuilder(attrType);
+    appendLDIFSeparatorAndValue(newLine, ByteString.valueOf(dn.toString()));
+    writeLDIFLine(newLine, writer, wrapLines, wrapColumn);
+  }
 
+  private void writeAttribute(CharSequence attrName, AttributeValue v,
+      BufferedWriter writer, boolean wrapLines, int wrapColumn)
+      throws IOException
+  {
+    StringBuilder newLine = new StringBuilder(attrName);
+    appendLDIFSeparatorAndValue(newLine, v.getValue());
+    writeLDIFLine(newLine, writer, wrapLines, wrapColumn);
+  }
 
   /**
    * Flushes the data written to the output stream or underlying file.
@@ -767,6 +707,7 @@ public boolean writeEntries(Collection <Entry> entries)
    *
    * @throws  IOException  If a problem occurs while closing the writer.
    */
+  @Override
   public void close()
          throws IOException
   {
@@ -815,32 +756,22 @@ public boolean writeEntries(Collection <Entry> entries)
 
     // If the value is empty, then just append a single colon (the URL '<' if
     // required) and a single space.
-    if ((valueBytes == null) || (valueBytes.length() == 0))
-    {
-      if (isURL)
-      {
-        buffer.append(":< ");
-      }
-      else if (isBase64)
-      {
-        buffer.append(":: ");
-      }
-      else
-      {
-        buffer.append(": ");
-      }
-      return;
-    }
-
+    final boolean valueIsEmpty = valueBytes == null || valueBytes.length() == 0;
     if (isURL)
     {
       buffer.append(":< ");
-      buffer.append(valueBytes.toString());
+      if (!valueIsEmpty)
+      {
+        buffer.append(valueBytes.toString());
+      }
     }
     else if (isBase64)
     {
       buffer.append(":: ");
-      buffer.append(valueBytes.toString());
+      if (!valueIsEmpty)
+      {
+        buffer.append(valueBytes.toString());
+      }
     }
     else if (needsBase64Encoding(valueBytes))
     {
@@ -850,7 +781,10 @@ public boolean writeEntries(Collection <Entry> entries)
     else
     {
       buffer.append(": ");
-      buffer.append(valueBytes.toString());
+      if (!valueIsEmpty)
+      {
+        buffer.append(valueBytes.toString());
+      }
     }
   }
 
@@ -875,7 +809,7 @@ public boolean writeEntries(Collection <Entry> entries)
     ensureNotNull(line, writer);
 
     int length = line.length();
-    if (wrapLines && (length > wrapColumn))
+    if (wrapLines && length > wrapColumn)
     {
       writer.write(line.substring(0, wrapColumn));
       writer.newLine();
@@ -898,4 +832,3 @@ public boolean writeEntries(Collection <Entry> entries)
     }
   }
 }
-
