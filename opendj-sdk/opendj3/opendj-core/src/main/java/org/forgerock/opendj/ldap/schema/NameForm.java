@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2013 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.schema;
@@ -32,16 +32,20 @@ import static com.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_NAME_FORM_U
 import static com.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_NAME_FORM_UNKNOWN_REQUIRED_ATTR1;
 import static com.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_NAME_FORM_UNKNOWN_STRUCTURAL_CLASS1;
 
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
-
-import com.forgerock.opendj.util.Validator;
 
 /**
  * This class defines a data structure for storing and interacting with a name
@@ -49,6 +53,7 @@ import com.forgerock.opendj.util.Validator;
  * RDN of an entry with a given structural objectclass.
  */
 public final class NameForm extends SchemaElement {
+
     // The OID that may be used to reference this definition.
     private final String oid;
 
@@ -74,27 +79,317 @@ public final class NameForm extends SchemaElement {
     private Set<AttributeType> optionalAttributes = Collections.emptySet();
     private Set<AttributeType> requiredAttributes = Collections.emptySet();
 
-    NameForm(final String oid, final List<String> names, final String description,
-            final boolean obsolete, final String structuralClassOID,
-            final Set<String> requiredAttributeOIDs, final Set<String> optionalAttributeOIDs,
-            final Map<String, List<String>> extraProperties, final String definition) {
-        super(description, extraProperties);
+    /**
+     * The name form builder.
+     */
+    public static class Builder extends SchemaElementBuilder<Builder> {
 
-        Validator.ensureNotNull(oid, names);
-        Validator.ensureNotNull(structuralClassOID, requiredAttributeOIDs, optionalAttributeOIDs);
-        Validator.ensureTrue(requiredAttributeOIDs.size() > 0, "required attribute is empty");
-        this.oid = oid;
-        this.names = names;
-        this.isObsolete = obsolete;
-        this.structuralClassOID = structuralClassOID;
-        this.requiredAttributeOIDs = requiredAttributeOIDs;
-        this.optionalAttributeOIDs = optionalAttributeOIDs;
+        // Required attributes
+        private String oid;
+        private String structuralObjectClassOID;
+        private Set<String> requiredAttribute = new LinkedHashSet<String>();
 
-        if (definition != null) {
-            this.definition = definition;
-        } else {
-            this.definition = buildDefinition();
+        // Optional attributes - initialized to default values.
+        private List<String> names = new LinkedList<String>();
+        private Set<String> optionalAttributes = new LinkedHashSet<String>();
+        private String definition;
+        private boolean isObsolete = false;
+
+        /**
+         * Sets the OID of the name form definition.
+         * <p>
+         * RFC 4512 : numericoid ; object identifier.
+         *
+         * @param oid
+         *            Like 1.3.6.1.4.1.1466.115.121.1.35.
+         * @return This name form builder.
+         */
+        public Builder oid(final String oid) {
+            this.oid = oid;
+            return this;
         }
+
+        /**
+         * Sets the structural object class OID.
+         * <p>
+         * e.g : OC person.
+         *
+         * @param oid
+         *            = SP "OC" SP oid (RFC 4512).
+         * @return This name form builder.
+         */
+        public Builder structuralObjectClassOID(final String oid) {
+            this.structuralObjectClassOID = oid;
+            return this;
+        }
+
+        /**
+         * Sets the user defined names for this definition.
+         * <p>
+         * RFC 4512 : [ SP "NAME" SP qdescrs ] ; short names (descriptors).
+         *
+         * @param names
+         *            Contains a collection of strings.
+         * @return This name form builder.
+         */
+        public Builder names(final Collection<String> names) {
+            this.names.addAll(names);
+            return this;
+        }
+
+        /**
+         * Sets the user defined names for this definition.
+         * <p>
+         * RFC 4512 : [ SP "NAME" SP qdescrs ] ; short names (descriptors).
+         *
+         * @param names
+         *            Contains a series of strings.
+         * @return This name form builder.
+         */
+        public Builder names(final String... names) {
+            return names(Arrays.asList(names));
+        }
+
+        /**
+         * Erases all the names.
+         *
+         * @return This name form builder.
+         */
+        public Builder removeAllNames() {
+            this.names.clear();
+            return this;
+        }
+
+        /**
+         * Removes the defined name.
+         *
+         * @param name
+         *            The name to remove.
+         * @return This name form builder.
+         */
+        public Builder removeName(String name) {
+            names.remove(name);
+            return this;
+        }
+
+        /**
+         * Specifies which attributes are required by this name form.
+         * <p>
+         * RFC 4512 : SP "MUST" SP oids ; attribute types.
+         *
+         * @param oids
+         *            The OIDs of the required attributes.
+         * @return This name form builder.
+         */
+        public Builder requiredAttributes(final String... oids) {
+            return requiredAttributes(Arrays.asList(oids));
+        }
+
+        /**
+         * Specifies which attributes are required by this name form.
+         * <p>
+         * RFC 4512 : SP "MUST" SP oids ; attribute types.
+         *
+         * @param oids
+         *            The OIDs of the required attributes.
+         * @return This name form builder.
+         */
+        public Builder requiredAttributes(final Collection<String> oids) {
+            this.requiredAttribute.addAll(oids);
+            return this;
+        }
+
+        /**
+         * Removes the specified required attribute.
+         *
+         * @param oid
+         *            The OID of the required attributes.
+         * @return This name form builder.
+         */
+        public Builder removeRequiredAttribute(final String oid) {
+            this.requiredAttribute.remove(oid);
+            return this;
+        }
+
+        /**
+         * Removes all the required attributes.
+         *
+         * @return This name form builder.
+         */
+        public Builder removeAllRequiredAttributes() {
+            this.requiredAttribute.clear();
+            return this;
+        }
+
+        /**
+         * Sets the optional attribute OIDs.
+         * <p>
+         * RFC 4512 : [ SP "MAY" SP oids ] ; attribute types.
+         *
+         * @param oids
+         *            The OIDs of the optional attributes.
+         * @return This name form builder.
+         */
+        public Builder optionalAttributes(final String... oids) {
+            return optionalAttributes(Arrays.asList(oids));
+        }
+
+        /**
+         * Sets the optional attributes.
+         * <p>
+         * RFC 4512 : [ SP "MAY" SP oids ] ; attribute types.
+         *
+         * @param oids
+         *            The OIDs of the optional attributes.
+         * @return This name form builder.
+         */
+        public Builder optionalAttributes(final Collection<String> oids) {
+            this.optionalAttributes.addAll(oids);
+            return this;
+        }
+
+        /**
+         * Removes the specified attributes.
+         *
+         * @param oid
+         *            The OID of the optional attributes.
+         * @return This name form builder.
+         */
+        public Builder removeOptionalAttribute(final String oid) {
+            this.optionalAttributes.remove(oid);
+            return this;
+        }
+
+        /**
+         * Removes all the optional attributes.
+         *
+         * @return This name form builder.
+         */
+        public Builder removeAllOptionalAttributes() {
+            this.optionalAttributes.clear();
+            return this;
+        }
+
+        /**
+         * {@code true} if the object class definition is obsolete, otherwise
+         * {@code false}.
+         * <p>
+         * RFC 4512 : [ SP "OBSOLETE" ] ; not active.
+         *
+         * @param isObsolete
+         *            default is {@code false}.
+         * @return This name form builder.
+         */
+        public Builder obsolete(final boolean isObsolete) {
+            this.isObsolete = isObsolete;
+            return this;
+        }
+
+        /**
+         * Sets the definition string used to create this object class.
+         *
+         * @param definition
+         *            The definition to set.
+         * @return This name form builder.
+         */
+        Builder definition(final String definition) {
+            this.definition = definition;
+            return this;
+        }
+
+        /**
+         * Returns the builder.
+         *
+         * @return This name form builder.
+         */
+        @Override
+        Builder getThis() {
+            return this;
+        }
+
+        /**
+         * Creates a new name form builder implementation.
+         *
+         * @param oid
+         *            The OID of the name form definition.
+         * @param builder
+         *            The schema builder linked.
+         */
+        Builder(final String oid, final SchemaBuilder builder) {
+            this.oid(oid);
+            this.schemaBuilder(builder);
+        }
+
+        /**
+         * Duplicates an existing name form builder.
+         *
+         * @param nf
+         *            The name form to duplicate.
+         * @param builder
+         *            The schema builder where to adds this new name form
+         * @throws ConflictingSchemaElementException
+         *             If {@code overwrite} was {@code false} and a conflicting
+         *             schema element was found.
+         */
+        Builder(final NameForm nf, final SchemaBuilder builder) {
+            this.oid = nf.oid;
+            this.definition = nf.buildDefinition();
+            this.description(nf.description);
+            this.structuralObjectClassOID = nf.structuralClassOID;
+            this.isObsolete = nf.isObsolete;
+            this.names = new ArrayList<String>(nf.names);
+            this.extraProperties(new LinkedHashMap<String, List<String>>(nf.extraProperties));
+            this.requiredAttribute = new LinkedHashSet<String>(nf.requiredAttributeOIDs);
+            this.optionalAttributes = new LinkedHashSet<String>(nf.optionalAttributeOIDs);
+            this.schemaBuilder(builder);
+        }
+
+        /**
+         * Adds the name form to the builder overwriting any existing name form
+         * with the same OID.
+         *
+         * @return A schema builder.
+         */
+        public SchemaBuilder addToSchema() {
+            return this.getSchemaBuilder().addNameForm(new NameForm(this), true);
+        }
+
+        /**
+         * Adds the name form to the builder throwing an
+         * ConflictingSchemaElementException if there is an existing name form
+         * with the same OID.
+         *
+         * @return A schema builder.
+         * @throws ConflictingSchemaElementException
+         *             If there is an existing name form with the same OID.
+         */
+        public SchemaBuilder addNoOverwriteToSchema() {
+            return this.getSchemaBuilder().addNameForm(new NameForm(this), false);
+        }
+    }
+
+    private NameForm(final Builder builder) {
+        super(builder.description, builder.extraProperties);
+        // Checks for required attributes.
+        if (builder.oid == null || builder.oid.isEmpty()) {
+            throw new IllegalArgumentException("An OID must be specified.");
+        }
+        if (builder.structuralObjectClassOID == null || builder.structuralObjectClassOID.isEmpty()) {
+            throw new IllegalArgumentException("A structural class OID must be specified.");
+        }
+        if (builder.requiredAttribute == null || builder.requiredAttribute.isEmpty()) {
+            throw new IllegalArgumentException("Required attribute must be specified.");
+        }
+
+        oid = builder.oid;
+        structuralClassOID = builder.structuralObjectClassOID;
+        names = SchemaUtils.unmodifiableCopyOfList(builder.names);
+        requiredAttributeOIDs = SchemaUtils.unmodifiableCopyOfSet(builder.requiredAttribute);
+        optionalAttributeOIDs = SchemaUtils.unmodifiableCopyOfSet(builder.optionalAttributes);
+        isObsolete = builder.isObsolete;
+
+        definition = buildDefinition();
+
     }
 
     /**
@@ -284,11 +579,6 @@ public final class NameForm extends SchemaElement {
     @Override
     public String toString() {
         return definition;
-    }
-
-    NameForm duplicate() {
-        return new NameForm(oid, names, description, isObsolete, structuralClassOID,
-                requiredAttributeOIDs, optionalAttributeOIDs, extraProperties, definition);
     }
 
     @Override
