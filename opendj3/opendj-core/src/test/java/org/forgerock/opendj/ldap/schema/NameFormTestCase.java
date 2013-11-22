@@ -21,663 +21,1043 @@
  * CDDL HEADER END
  *
  *
- *      Portions copyright 2012 ForgeRock AS.
+ *      Copyright 2013 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.schema;
 
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.TreeMap;
-import java.util.TreeSet;
 
 import static org.fest.assertions.Assertions.assertThat;
 
-import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.schema.NameForm.Builder;
 import org.testng.annotations.Test;
 
 /**
- * This class tests the NameForm class.
+ * This class tests the NameForm class. The name form builder can be only used
+ * with the schema builder.
  */
 @SuppressWarnings("javadoc")
 public class NameFormTestCase extends SchemaTestCase {
 
     /**
-     * NameForm doesn't allow null OID.
+     * Creates a new form using the required parameters only (oid, structural
+     * OID and required attributes).
      */
-    @Test(expectedExceptions = NullPointerException.class)
-    public final void testCreateFormDoesntAllowNullOid() {
+    @Test()
+    public final void testCreatesANewFormWithOnlyRequiredParameters() {
 
-        // The set of user defined names for this definition.
-        List<String> names = new ArrayList<String>();
-        names.add("MyNewForm");
-        names.add("TheNewForm");
+        final Schema schema = new SchemaBuilder(Schema.getCoreSchema())
+                .buildNameForm("1.3.6.1.4.1.1466.115.121.1.35")
+                    .structuralObjectClassOID("person")
+                    .requiredAttributes("sn", "cn") // ("cn, sn") is not supported.
+                    .addNoOverwriteToSchema()
+                .toSchema();
 
-        // An optional set of extensions for the name form ( X-ORIGIN / X-SCHEMA-FILE)
-        Map<String, List<String>> extraProperties = new TreeMap<String, List<String>>();
-        List<String> extra = new ArrayList<String>();
-        extra.add("EntrySchemaCheckingTestCase");
-        extraProperties.put("X-ORIGIN", extra);
+        assertThat(schema.getWarnings()).isEmpty();
+        assertThat(schema.getNameForms().size()).isGreaterThan(0);
 
-        // The set of required attribute types for this name form.
-        Set<String> requiredAttributeOIDs = new TreeSet<String>();
-        requiredAttributeOIDs.add("sn");
-        requiredAttributeOIDs.add("cn");
-
-        // @formatter:off
-        new NameForm(null, names, "Description of the new form", false,
-                "mynewform-oid", requiredAttributeOIDs, Collections.<String> emptySet(), extraProperties, null);
-        // @formatter:on
+        for (final NameForm nf : schema.getNameForms()) {
+            assertThat(nf.hasName("hasAName ?")).isFalse();
+            assertThat(nf.getNameOrOID()).isEqualTo("1.3.6.1.4.1.1466.115.121.1.35");
+            assertThat(nf.getOID()).isEqualTo("1.3.6.1.4.1.1466.115.121.1.35");
+            assertThat(nf.toString()).isEqualTo("( 1.3.6.1.4.1.1466.115.121.1.35 OC person MUST ( sn $ cn ) )");
+        }
     }
 
     /**
-     * NameForm doesn't allow null structuralClassOID.
+     * Creates a new form with a name.
      */
-    @Test(expectedExceptions = NullPointerException.class)
-    public final void testCreateFormDoesntAllowNullStructuralClassOID() {
-
-        // The set of user defined names for this definition.
-        List<String> names = new ArrayList<String>();
-        names.add("MyNewForm");
-        names.add("TheNewForm");
-
-        // An optional set of extensions for the name form ( X-ORIGIN / X-SCHEMA-FILE)
-        Map<String, List<String>> extraProperties = new TreeMap<String, List<String>>();
-        List<String> extra = new ArrayList<String>();
-        names.add("EntrySchemaCheckingTestCase");
-        extraProperties.put("X-ORIGIN", extra);
-
-        // The set of required attribute types for this name form.
-        Set<String> requiredAttributeOIDs = new TreeSet<String>();
-        requiredAttributeOIDs.add("sn");
-        requiredAttributeOIDs.add("cn");
+    @Test()
+    public final void testCreatesANewFormWithAName() {
 
         // @formatter:off
-        new NameForm("mynewform-oid", names, "Description of the new form", false,
-                null, requiredAttributeOIDs, Collections.<String> emptySet(), extraProperties, null);
+        final Schema schema = new SchemaBuilder(Schema.getCoreSchema())
+                .buildNameForm("1.3.6.1.4.1.1466.115.121.1.35")
+                    .structuralObjectClassOID("person")
+                    .names("MyNewForm")
+                    .requiredAttributes("sn", "cn")
+                    .addNoOverwriteToSchema()
+                .toSchema();
         // @formatter:on
+
+        assertThat(schema.getWarnings()).isEmpty();
+        assertThat(schema.getNameForms().size()).isGreaterThan(0);
+
+        for (final NameForm nf : schema.getNameForms()) {
+
+            assertThat(nf.hasName("hasAName ?")).isFalse();
+            assertThat(nf.getNameOrOID()).isEqualTo("MyNewForm");
+            assertThat(nf.getOID()).isEqualTo("1.3.6.1.4.1.1466.115.121.1.35");
+
+            assertThat(nf.toString()).isEqualTo(
+                "( 1.3.6.1.4.1.1466.115.121.1.35 NAME 'MyNewForm' OC person MUST ( sn $ cn ) )");
+        }
     }
 
     /**
-     * NameForm doesn't allow null requiredAttributeOIDs.
+     * Creates a new form with optional attributes OID.
      */
-    @Test(expectedExceptions = NullPointerException.class)
-    public final void testCreateFormDoesntAllowNullRequiredAttributeOIDs() {
+    @Test()
+    public final void testCreatesANewFormWithOptionalAttributesOid() {
 
-        // The set of user defined names for this definition.
-        List<String> names = new ArrayList<String>();
-        names.add("MyNewForm");
-        names.add("TheNewForm");
-
-        // An optional set of extensions for the name form ( X-ORIGIN / X-SCHEMA-FILE)
-        Map<String, List<String>> extraProperties = new TreeMap<String, List<String>>();
-        List<String> extra = new ArrayList<String>();
-        extra.add("EntrySchemaCheckingTestCase");
-        extraProperties.put("X-ORIGIN", extra);
-
-        // The set of required attribute types for this name form.
-        Set<String> requiredAttributeOIDs = new TreeSet<String>();
-        requiredAttributeOIDs.add("sn");
-        requiredAttributeOIDs.add("cn");
-
+        final SchemaBuilder sb = new SchemaBuilder();
+        sb.addSchema(Schema.getCoreSchema(), false);
         // @formatter:off
-        new NameForm("mynewform-oid", names, "Description of the new form", false,
-                "mynewform-oid", null, Collections.<String> emptySet(), extraProperties, null);
+        final Schema schema = new SchemaBuilder(Schema.getCoreSchema())
+            .buildNameForm("1.3.6.1.4.1.1466.115.121.1.35")
+                .structuralObjectClassOID("person")
+                .names("MyNewForm")
+                .requiredAttributes("sn", "cn")
+                .optionalAttributes("owner")
+                .addNoOverwriteToSchema()
+            .toSchema();
         // @formatter:on
+
+        assertThat(schema.getWarnings()).isEmpty();
+        assertThat(schema.getNameForms().size()).isGreaterThan(0);
+
+        for (final NameForm nf : schema.getNameForms()) {
+            assertThat(nf.hasName("hasAName ?")).isFalse();
+            assertThat(nf.getNameOrOID()).isEqualTo("MyNewForm");
+            assertThat(nf.getOID()).isEqualTo("1.3.6.1.4.1.1466.115.121.1.35");
+            assertThat(nf.getOptionalAttributes().toString()).contains("owner");
+
+            assertThat(nf.toString()).isEqualTo(
+                    "( 1.3.6.1.4.1.1466.115.121.1.35 NAME 'MyNewForm' OC person MUST ( sn $ cn ) MAY owner )");
+        }
     }
 
     /**
-     * NameForm doesn't allow null requiredAttributeOIDs.
+     * Creates a new form with ExtraProperties.
+     */
+    @Test()
+    public final void testCreatesANewNameFormWithExtraProperties() {
+        // @formatter:off
+        final Schema schema = new SchemaBuilder(Schema.getCoreSchema())
+            .buildNameForm("1.3.6.1.4.1.1466.115.121.1.35")
+                .structuralObjectClassOID("person")
+                .names("MyNewForm")
+                .requiredAttributes("sn", "cn")
+                .optionalAttributes("owner")
+                .extraProperties("X-ORIGIN", "RFC xxx")
+                .addNoOverwriteToSchema()
+            .toSchema();
+        // @formatter:on
+
+        assertThat(schema.getWarnings()).isEmpty();
+        assertThat(schema.getNameForms().size()).isGreaterThan(0);
+
+        for (final NameForm nf : schema.getNameForms()) {
+
+            assertThat(nf.hasName("hasAName ?")).isFalse();
+            assertThat(nf.getNameOrOID()).isEqualTo("MyNewForm");
+            assertThat(nf.getOID()).isEqualTo("1.3.6.1.4.1.1466.115.121.1.35");
+            assertThat(nf.getExtraProperty("X-ORIGIN").get(0)).isEqualTo("RFC xxx");
+
+            assertThat(nf.toString()).isEqualTo(
+                "( 1.3.6.1.4.1.1466.115.121.1.35 NAME 'MyNewForm' OC person "
+                + "MUST ( sn $ cn ) MAY owner X-ORIGIN 'RFC xxx' )");
+        }
+    }
+
+    /**
+     * When required attributes are absents, the builder sends exception. Here,
+     * the OID is missing. An exception is expected.
+     *
+     * @throws SchemaException
      */
     @Test(expectedExceptions = IllegalArgumentException.class)
-    public final void testCreateFormDoesntAllowEmptyRequiredAttributeOIDs() {
-
-        // The set of user defined names for this definition.
-        List<String> names = new ArrayList<String>();
-        names.add("MyNewForm");
-        names.add("TheNewForm");
-
-        // An optional set of extensions for the name form ( X-ORIGIN / X-SCHEMA-FILE)
-        Map<String, List<String>> extraProperties = new TreeMap<String, List<String>>();
-        List<String> extra = new ArrayList<String>();
-        extra.add("EntrySchemaCheckingTestCase");
-        extraProperties.put("X-ORIGIN", extra);
-
-        // The set of required attribute types for this name form.
-        Set<String> requiredAttributeOIDs = new TreeSet<String>();
-
+    public final void testBuilderDoesntAllowNullOid() {
         // @formatter:off
-        new NameForm("mynewform-oid", names, "Description of the new form", false,
-                "mynewform-oid", requiredAttributeOIDs, Collections.<String> emptySet(), extraProperties, null);
+        new SchemaBuilder(Schema.getCoreSchema())
+            .buildNameForm((String) null)
+                .description("This is a description")
+                .names("name1")
+                .names("name2", "name3")
+                .extraProperties("X-ORIGIN", "NameFormCheckingTestCase")
+                .structuralObjectClassOID("person")
+                .requiredAttributes("sn, cn")
+                .addNoOverwriteToSchema()
+            .toSchema();
         // @formatter:on
     }
 
     /**
-     * NameForm doesn't allow null requiredAttributeOIDs.
+     * When required attributes are absents, the builder sends an exception.
+     * Here, the structural class OID is missing.
+     *
+     * @throws SchemaException
+     */
+    @Test(expectedExceptions = IllegalArgumentException.class)
+    public final void testBuilderDoesntAllowNullStructuralClassOid() {
+
+        // @formatter:off
+        new SchemaBuilder(Schema.getCoreSchema())
+            .buildNameForm("1.3.6.1.4.1.1466.115.121.1.35")
+                .description("This is a description")
+                .names("MyNewForm")
+                .extraProperties("X-ORIGIN", "NameFormCheckingTestCase")
+                .requiredAttributes("sn, cn")
+                .addNoOverwriteToSchema()
+            .toSchema();
+        // @formatter:on
+    }
+
+    /**
+     * When required attributes are absents, the builder sends an exception.
+     * Here, the required attributes OID is missing.
+     *
+     * @throws SchemaException
+     */
+    @Test(expectedExceptions = java.lang.IllegalArgumentException.class)
+    public final void testBuilderDoesntAllowEmptyRequiredAttributes() {
+
+        // @formatter:off
+        new SchemaBuilder(Schema.getCoreSchema())
+            .buildNameForm("1.3.6.1.4.1.1466.115.121.1.35")
+                .description("This is a description")
+                .names("MyNewForm")
+                .structuralObjectClassOID("person")
+                .extraProperties("X-ORIGIN", "NameFormCheckingTestCase")
+                .requiredAttributes()
+                .addNoOverwriteToSchema()
+            .toSchema();
+        // @formatter:on
+    }
+
+    /**
+     * When required attributes are absents, the builder sends an exception.
+     * Here, the required attribute is missing.
+     *
+     * @throws SchemaException
+     */
+    @Test(expectedExceptions = IllegalArgumentException.class)
+    public final void testBuilderDoesntAllowNullRequiredAttributes() {
+
+        // @formatter:off
+        new SchemaBuilder(Schema.getCoreSchema())
+            .buildNameForm("1.3.6.1.4.1.1466.115.121.1.35")
+                .description("This is a description")
+                .names("MyNewForm")
+                .structuralObjectClassOID("person")
+                .extraProperties("X-ORIGIN", "NameFormCheckingTestCase")
+                .addNoOverwriteToSchema()
+            .toSchema();
+        // @formatter:on
+    }
+
+    /**
+     * Optional attributes shouldn't be equals to null. Exception expected.
+     *
+     * @throws SchemaException
      */
     @Test(expectedExceptions = NullPointerException.class)
-    public final void testCreateFormDoesntAllowNullOptionalAttributeOIDs() {
-
-        // The set of user defined names for this definition.
-        List<String> names = new ArrayList<String>();
-        names.add("MyNewForm");
-        names.add("TheNewForm");
-
-        // An optional set of extensions for the name form ( X-ORIGIN / X-SCHEMA-FILE)
-        Map<String, List<String>> extraProperties = new TreeMap<String, List<String>>();
-        List<String> extra = new ArrayList<String>();
-        extra.add("EntrySchemaCheckingTestCase");
-        extraProperties.put("X-ORIGIN", extra);
-
-        // The set of required attribute types for this name form.
-        Set<String> requiredAttributeOIDs = new TreeSet<String>();
-        requiredAttributeOIDs.add("sn");
-        requiredAttributeOIDs.add("cn");
-
+    public final void testBuilderDoesntAllowNullOptionalAttributes() {
         // @formatter:off
-        new NameForm("mynewform-oid", names, "Description of the new form", false,
-                "mynewform-oid", requiredAttributeOIDs, null, extraProperties, null);
+        new SchemaBuilder(Schema.getCoreSchema())
+            .buildNameForm("1.3.6.1.4.1.1466.115.121.1.35")
+                .description("This is a description")
+                .names("MyNewForm")
+                .extraProperties("X-ORIGIN", "NameFormCheckingTestCase")
+                .structuralObjectClassOID("person")
+                .requiredAttributes("sn, cn")
+                .requiredAttributes((String[]) null)
+                .addNoOverwriteToSchema()
+            .toSchema();
         // @formatter:on
     }
 
     /**
-     * Create a new form and compare the result as string with the expected
-     * usual form.
+     * By default optional attributes are empty.
+     *
+     * @throws SchemaException
      */
     @Test()
-    public final void testCreateNewFormWithUniqueName() {
-
-        // The set of user defined names for this definition.
-        List<String> names = new ArrayList<String>();
-        names.add("MyNewForm");
-
-        // An optional set of extensions for the name form ( X-ORIGIN / X-SCHEMA-FILE)
-        Map<String, List<String>> extraProperties = new TreeMap<String, List<String>>();
-        List<String> extra = new ArrayList<String>();
-        extra.add("EntrySchemaCheckingTestCase");
-        extraProperties.put("X-ORIGIN", extra);
-
-        // The set of required attribute types for this name form.
-        Set<String> requiredAttributeOIDs = new TreeSet<String>();
-        requiredAttributeOIDs.add("sn");
-        requiredAttributeOIDs.add("cn");
+    public final void testBuilderAllowsEmptyOptionalAttributes() {
 
         // @formatter:off
-        NameForm nf = new NameForm("mynewform-oid", names, "Description of the new form", false,
-                "mynewform-oid", requiredAttributeOIDs, Collections.<String> emptySet(), extraProperties, null);
+        new SchemaBuilder(Schema.getCoreSchema())
+            .buildNameForm("1.3.6.1.4.1.1466.115.121.1.35")
+                .description("This is a description")
+                .names("MyNewForm")
+                .structuralObjectClassOID("person")
+                .extraProperties("X-ORIGIN", "NameFormCheckingTestCase")
+                .requiredAttributes("sn", "cn")
+                // .optionalAttributeOIDs("") empty by default.
+                .addNoOverwriteToSchema()
+            .toSchema();
+        // @formatter:on
+    }
 
-        assertThat(nf.hasName("MyNewForm")).isTrue();
-        assertThat(nf.getOID().toString()).isEqualTo("mynewform-oid");
+    /**
+     * Allows removing non-existent attributes without errors.
+     *
+     * @throws SchemaException
+     */
+    @Test()
+    public final void testBuilderAllowRemovingNonexistentAttributes() {
 
+        // @formatter:off
+        final Schema schema = new SchemaBuilder(Schema.getCoreSchema())
+            .buildNameForm("1.3.6.1.4.1.1466.115.121.1.35")
+                .description("This is a description")
+                .names("MyNewForm")
+                .extraProperties("X-ORIGIN", "NameFormCheckingTestCase")
+                .structuralObjectClassOID("person")
+                .requiredAttributes("sn")
+                .removeRequiredAttribute("unknown")
+                .removeOptionalAttribute("optionalunknown")
+                .addNoOverwriteToSchema()
+            .toSchema();
+        // @formatter:on
+
+        assertThat(schema.getWarnings()).isEmpty();
+
+        assertThat(schema.getNameForms()).isNotEmpty();
+        final NameForm nf = schema.getNameForms().iterator().next();
+        assertThat(nf.getOID()).isEqualTo("1.3.6.1.4.1.1466.115.121.1.35");
+        assertThat(nf.getRequiredAttributes().size()).isEqualTo(1);
+        assertThat(nf.getRequiredAttributes().iterator().next().getNameOrOID()).isEqualTo("sn");
+        assertThat(nf.getOptionalAttributes()).isEmpty();
+    }
+
+    /**
+     * Verifying the schema builder allows to add directly a definition. The
+     * name form is created as well.
+     */
+    @Test()
+    public final void testNameFormDefinition() {
+        final SchemaBuilder sb = new SchemaBuilder();
+        sb.addSchema(Schema.getCoreSchema(), false);
+
+        // @formatter:off
+        final String nameFormDefinition = "( 1.3.6.1.4.1.1466.115.121.1.35 NAME 'MyNewForm' "
+                + "DESC 'Description of the new form' "
+                + "OC person MUST ( sn $ cn ) "
+                + "MAY ( description $ uid ) "
+                + "X-SCHEMA-FILE 'NameFormCheckingTestCase' "
+                + "X-ORIGIN 'NameFormCheckingTestCase' )";
+        // @formatter:on
+
+        // Add the nameForm to the schemaBuilder.
+        sb.addNameForm(nameFormDefinition, false);
+        Schema schema = sb.toSchema();
+        assertThat(schema.getWarnings()).isEmpty();
+
+        assertThat(schema.getNameForms()).isNotEmpty();
+        final NameForm nf = schema.getNameForms().iterator().next();
+        assertThat(nf.getOID()).isEqualTo("1.3.6.1.4.1.1466.115.121.1.35");
+        assertThat(nf.getExtraPropertyNames()).isNotEmpty();
+
+        // @formatter:off
         assertThat(nf.toString()).isEqualTo(
-                "( mynewform-oid NAME 'MyNewForm' DESC 'Description of the new form'"
-                + " OC mynewform-oid MUST ( cn $ sn ) X-ORIGIN 'EntrySchemaCheckingTestCase' )");
+                "( 1.3.6.1.4.1.1466.115.121.1.35 NAME 'MyNewForm' "
+                + "DESC 'Description of the new form' "
+                + "OC person MUST ( sn $ cn ) "
+                + "MAY ( description $ uid ) "
+                + "X-SCHEMA-FILE 'NameFormCheckingTestCase' "
+                + "X-ORIGIN 'NameFormCheckingTestCase' )");
         // @formatter:on
     }
 
     /**
-     * Create a new form without name(s).
+     * Required attributes are missing in the following definition.
      */
-    @Test()
-    public final void testCreateNewFormWithOnlyOid() {
-
-        // An optional set of extensions for the name form ( X-ORIGIN / X-SCHEMA-FILE)
-        Map<String, List<String>> extraProperties = new TreeMap<String, List<String>>();
-        List<String> extra = new ArrayList<String>();
-        extra.add("EntrySchemaCheckingTestCase");
-        extraProperties.put("X-ORIGIN", extra);
-
-        // The set of required attribute types for this name form.
-        Set<String> requiredAttributeOIDs = new TreeSet<String>();
-        requiredAttributeOIDs.add("sn");
-        requiredAttributeOIDs.add("cn");
+    @Test(expectedExceptions = IllegalArgumentException.class)
+    public final void testNameFormDefinitionDoesntAllowMissingAttributes() {
+        final SchemaBuilder sb = new SchemaBuilder();
+        sb.addSchema(Schema.getCoreSchema(), false);
 
         // @formatter:off
-        NameForm nf = new NameForm("1.3.6.1.4.1.1466.115.121.1.35", new ArrayList<String>(),
-                "Description of the new form", false, "mynewform-oid", requiredAttributeOIDs,
-                Collections.<String> emptySet(), extraProperties, null);
+        final String nameFormDefinition = "( 1.3.6.1.4.1.1466.115.121.1.35 NAME 'MyNewForm' "
+                + "DESC 'Description of the new form' "
+                + "OC person "
+                + "MAY ( description $ uid ) "
+                + "X-SCHEMA-FILE 'NameFormCheckingTestCase' "
+                + "X-ORIGIN 'EntrySchemaCheckingTestCase' "
+                + "X-ORIGIN 'NameFormCheckingTestCase' )";
+        // @formatter:on
 
-        assertThat(nf.hasName("hasAName ?")).isFalse();
-        assertThat(nf.getNameOrOID()).isEqualTo("1.3.6.1.4.1.1466.115.121.1.35");
+        // Add the nameForm to the schemaBuilder.
+        sb.addNameForm(nameFormDefinition, false);
+        final Schema schema = sb.toSchema();
+        assertThat(schema.getWarnings()).isEmpty();
+    }
+
+    /**
+     * Duplicates a name form using the schema builder.
+     *
+     * @throws SchemaException
+     */
+    @Test()
+    public final void testDuplicatesTheNameForm() {
+
+        final SchemaBuilder sb = new SchemaBuilder();
+        sb.addSchema(Schema.getCoreSchema(), false);
+        // @formatter:off
+        final Builder nfb = new Builder("1.3.6.1.4.1.1466.115.121.1.35", sb);
+        nfb.description("Description of the new form")
+            .names("MyNewForm")
+            .structuralObjectClassOID("person")
+            .extraProperties("X-ORIGIN", "NameFormCheckingTestCase")
+            .requiredAttributes("sn", "cn")
+            .optionalAttributes("description", "uid")
+            .addNoOverwriteToSchema();
+
+        Schema schema = sb.toSchema();
+        assertThat(schema.getWarnings()).isEmpty();
+        assertThat(schema.getNameForms()).isNotEmpty();
+        final NameForm nf = schema.getNameForms().iterator().next();
         assertThat(nf.getOID()).isEqualTo("1.3.6.1.4.1.1466.115.121.1.35");
 
-        assertThat(nf.toString()).isEqualTo(
-                "( 1.3.6.1.4.1.1466.115.121.1.35 DESC 'Description of the new form'"
-                + " OC mynewform-oid MUST ( cn $ sn ) X-ORIGIN 'EntrySchemaCheckingTestCase' )");
-        // @formatter:on
+        sb.buildNameForm(nf)
+            .names("Dolly")
+            .oid("1.3.6.1.4.1.1466.115.121.1.36")
+            .addToSchema();
+        schema = sb.toSchema();
+        assertThat(schema.getNameForms()).isNotEmpty();
+        assertThat(schema.getNameForms().size()).isEqualTo(2);
+        assertThat(schema.getWarnings()).isEmpty();
+
+        final Iterator<NameForm> i = schema.getNameForms().iterator();
+        i.next(); // Jump the first element (== nf)
+        final NameForm dolly = i.next(); // Our new cloned NameForm.
+        assertThat(dolly.getOID()).isEqualTo("1.3.6.1.4.1.1466.115.121.1.36"); // With the new OID !
+        assertThat(dolly.getNames().size()).isEqualTo(2);
     }
 
     /**
-     * Create a new form and compare the result as string with the expected
-     * usual form.
-     */
-    @Test()
-    public final void testCreateNewForm() {
-
-        // The set of user defined names for this definition.
-        List<String> names = new ArrayList<String>();
-        names.add("MyNewForm");
-        names.add("TheNewForm");
-
-        // An optional set of extensions for the name form ( X-ORIGIN / X-SCHEMA-FILE)
-        Map<String, List<String>> extraProperties = new TreeMap<String, List<String>>();
-        List<String> extra = new ArrayList<String>();
-        extra.add("EntrySchemaCheckingTestCase");
-        extraProperties.put("X-ORIGIN", extra);
-
-        // The set of required attribute types for this name form.
-        Set<String> requiredAttributeOIDs = new TreeSet<String>();
-        requiredAttributeOIDs.add("sn");
-        requiredAttributeOIDs.add("cn");
-
-        // @formatter:off
-        NameForm nf = new NameForm("mynewform-oid", names, "Description of the new form", false,
-                "mynewform-oid", requiredAttributeOIDs, Collections.<String> emptySet(),
-                extraProperties, null);
-
-        assertThat(nf.toString()).isEqualTo(
-                "( mynewform-oid NAME ( 'MyNewForm' 'TheNewForm' )"
-                + " DESC 'Description of the new form' OC mynewform-oid"
-                + " MUST ( cn $ sn ) X-ORIGIN 'EntrySchemaCheckingTestCase' )");
-        // @formatter:on
-    }
-
-    /**
-     * Create a new form and compare the result as string with the expected
-     * usual form.
-     */
-    @Test()
-    public final void testCreateNewFormWithOptionalAttributesOid() {
-
-        // The set of user defined names for this definition.
-        List<String> names = new ArrayList<String>();
-        names.add("MyNewForm");
-
-        // An optional set of extensions for the name form ( X-ORIGIN / X-SCHEMA-FILE)
-        Map<String, List<String>> extraProperties = new TreeMap<String, List<String>>();
-        List<String> extra = new ArrayList<String>();
-        extra.add("EntrySchemaCheckingTestCase");
-        extraProperties.put("X-ORIGIN", extra);
-
-        // The set of required attribute types for this name form.
-        Set<String> requiredAttributeOIDs = new TreeSet<String>();
-        requiredAttributeOIDs.add("sn");
-        requiredAttributeOIDs.add("cn");
-
-        Set<String> optionalAttributeOIDs = new TreeSet<String>();
-        optionalAttributeOIDs.add("description");
-        optionalAttributeOIDs.add("uid");
-
-        // @formatter:off
-        NameForm nf = new NameForm("mynewform-oid", names, "Description of the new form", false,
-                "mynewform-oid", requiredAttributeOIDs, optionalAttributeOIDs, extraProperties, null);
-
-        assertThat(nf.toString()).isEqualTo(
-                "( mynewform-oid NAME 'MyNewForm' DESC 'Description of the new form'"
-                + " OC mynewform-oid MUST ( cn $ sn )"
-                + " MAY ( description $ uid )"
-                + " X-ORIGIN 'EntrySchemaCheckingTestCase' )");
-        // @formatter:on
-    }
-
-    /**
-     * Adds a new form which is containing an OID not provided by the schema.
-     * Exception expected : The name form description "MyNewForm" is associated
-     * with a structural object class "mynewform-oid" which is not defined in
-     * the schema.
-     *
-     * @throws SchemaException
-     */
-    @Test(expectedExceptions = SchemaException.class)
-    public final void testNameFormValidateDoesntAllowUnknowNewStructuralObject()
-            throws SchemaException {
-
-        // The set of user defined names for this definition.
-        List<String> names = new ArrayList<String>();
-        names.add("MyNewForm");
-        names.add("TheNewForm");
-
-        // An optional set of extensions for the name form ( X-ORIGIN / X-SCHEMA-FILE)
-        Map<String, List<String>> extraProperties = new TreeMap<String, List<String>>();
-        List<String> extra = new ArrayList<String>();
-        extra.add("EntrySchemaCheckingTestCase");
-        extraProperties.put("X-ORIGIN", extra);
-
-        // The set of required attribute types for this name form.
-        Set<String> requiredAttributeOIDs = new TreeSet<String>();
-        requiredAttributeOIDs.add("sn");
-        requiredAttributeOIDs.add("cn");
-
-        Set<String> optionalAttributeOIDs = new TreeSet<String>();
-        optionalAttributeOIDs.add("description");
-        optionalAttributeOIDs.add("uid");
-
-        // @formatter:off
-        NameForm nf1 = new NameForm("mynewform-oid", names, "Description of the new form", false,
-                "mynewform-oid", requiredAttributeOIDs, optionalAttributeOIDs, extraProperties, null);
-
-        assertThat(nf1.toString()).isEqualTo(
-                "( mynewform-oid NAME ( 'MyNewForm' 'TheNewForm' )"
-                + " DESC 'Description of the new form'"
-                + " OC mynewform-oid"
-                + " MUST ( cn $ sn )"
-                + " MAY ( description $ uid )"
-                + " X-ORIGIN 'EntrySchemaCheckingTestCase' )");
-        // @formatter:on
-
-        List<LocalizableMessage> warnings = new ArrayList<LocalizableMessage>();
-        nf1.validate(Schema.getDefaultSchema(), warnings);
-    }
-
-    /**
-     * Validate a nameForm using an abstract object class instead of an
-     * structural object class throws an error.
-     *
-     * @throws SchemaException
-     */
-    @Test(expectedExceptions = SchemaException.class)
-    public final void testNameFormValidateDoesntAllowAbstractObjectClass() throws SchemaException {
-
-        // The set of user defined names for this definition.
-        List<String> names = new ArrayList<String>();
-        names.add("MyNewForm");
-        names.add("TheNewForm");
-
-        // An optional set of extensions for the name form ( X-ORIGIN / X-SCHEMA-FILE)
-        Map<String, List<String>> extraProperties = new TreeMap<String, List<String>>();
-        List<String> extra = new ArrayList<String>();
-        extra.add("EntrySchemaCheckingTestCase");
-        extraProperties.put("X-ORIGIN", extra);
-
-        // The set of required attribute types for this name form.
-        Set<String> requiredAttributeOIDs = new TreeSet<String>();
-        requiredAttributeOIDs.add("sn");
-        requiredAttributeOIDs.add("cn");
-
-        Set<String> optionalAttributeOIDs = new TreeSet<String>();
-        optionalAttributeOIDs.add("description");
-        optionalAttributeOIDs.add("uid");
-
-        // @formatter:off
-        NameForm nf1 = new NameForm("mynewform-oid", names, "Description of the new form", false,
-                "top", requiredAttributeOIDs, optionalAttributeOIDs, extraProperties, null);
-
-        assertThat(nf1.toString()).isEqualTo(
-                "( mynewform-oid NAME ( 'MyNewForm' 'TheNewForm' )"
-                + " DESC 'Description of the new form'"
-                + " OC top"
-                + " MUST ( cn $ sn )"
-                + " MAY ( description $ uid )"
-                + " X-ORIGIN 'EntrySchemaCheckingTestCase' )");
-        // @formatter:on
-
-        List<LocalizableMessage> warnings = new ArrayList<LocalizableMessage>();
-        nf1.validate(Schema.getDefaultSchema(), warnings);
-    }
-
-    /**
-     * Validate a new form without warnings.
+     * Duplicates a name form using the schema builder.
+     * The duplicate name form contains an inappropriate structural class OID which made the build fails.
+     * <p>Warning from schema is : <pre>
+     * "The name form description "MyNewForm" is associated with a structural object class
+     * "wrongStructuralOID" which is not defined in the schema".</pre>
      *
      * @throws SchemaException
      */
     @Test()
-    public final void testNameFormValidate() throws SchemaException {
+    public final void testDuplicatesTheNameFormFails() {
 
-        // The set of user defined names for this definition.
-        List<String> names = new ArrayList<String>();
-        names.add("MyNewForm");
-        names.add("TheNewForm");
-
-        // An optional set of extensions for the name form ( X-ORIGIN / X-SCHEMA-FILE)
-        Map<String, List<String>> extraProperties = new TreeMap<String, List<String>>();
-        List<String> extra = new ArrayList<String>();
-        extra.add("EntrySchemaCheckingTestCase");
-        extraProperties.put("X-ORIGIN", extra);
-
-        // The set of required attribute types for this name form.
-        Set<String> requiredAttributeOIDs = new TreeSet<String>();
-        requiredAttributeOIDs.add("sn");
-        requiredAttributeOIDs.add("cn");
-
-        Set<String> optionalAttributeOIDs = new TreeSet<String>();
-        optionalAttributeOIDs.add("description");
-        optionalAttributeOIDs.add("uid");
-
+        final SchemaBuilder sb = new SchemaBuilder();
+        sb.addSchema(Schema.getCoreSchema(), false);
         // @formatter:off
-        NameForm nf1 = new NameForm("1.3.6.1.4.1.1466.115.121.1.35", names, "Description of the new form", false,
-                "person", requiredAttributeOIDs, optionalAttributeOIDs, extraProperties, null);
+        final Builder nfb = new Builder("1.3.6.1.4.1.1466.115.121.1.35", sb);
+        nfb.description("Description of the new form")
+            .names("MyNewForm")
+            .structuralObjectClassOID("person")
+            .extraProperties("X-ORIGIN", "NameFormCheckingTestCase")
+            .requiredAttributes("sn", "cn")
+            .optionalAttributes("description", "uid")
+            .addNoOverwriteToSchema();
 
-        assertThat(nf1.toString()).isEqualTo(
-                "( 1.3.6.1.4.1.1466.115.121.1.35 NAME ( 'MyNewForm' 'TheNewForm' )"
-                + " DESC 'Description of the new form'"
-                // Structural Object class, contained in the core schema:
-                + " OC person"
-                + " MUST ( cn $ sn )"
-                + " MAY ( description $ uid )"
-                + " X-ORIGIN 'EntrySchemaCheckingTestCase' )");
-        // @formatter:on
+        Schema schema = sb.toSchema();
+        assertThat(schema.getWarnings()).isEmpty();
+        assertThat(schema.getNameForms()).isNotEmpty();
+        final NameForm nf = schema.getNameForms().iterator().next();
+        assertThat(nf.getOID()).isEqualTo("1.3.6.1.4.1.1466.115.121.1.35");
 
-        List<LocalizableMessage> warnings = new ArrayList<LocalizableMessage>();
-        nf1.validate(Schema.getCoreSchema(), warnings);
-
-        assertThat(warnings).isEmpty();
+        sb.buildNameForm(nf)
+            .names("Dolly")
+            .oid("1.3.6.1.4.1.1466.115.121.1.36")
+            .structuralObjectClassOID("wrongStructuralOID")
+            .addToSchema();
+        schema = sb.toSchema();
+        assertThat(schema.getNameForms().size()).isEqualTo(1); // MyNewForm
+        // The duplicate name form is  not created and the schema contains warnings about.
+        assertThat(schema.getWarnings()).isNotEmpty();
     }
 
     /**
-     * Compare two same nameForm using the equal function.
+     * Compare two same name forms using the equal function.
      */
     @Test()
     public final void testNameFormEqualsTrue() {
 
-        // The set of user defined names for this definition.
-        List<String> names = new ArrayList<String>();
-        names.add("MyNewForm");
-        names.add("TheNewForm");
-
-        // An optional set of extensions for the name form ( X-ORIGIN / X-SCHEMA-FILE)
-        Map<String, List<String>> extraProperties = new TreeMap<String, List<String>>();
-        List<String> extra = new ArrayList<String>();
-        extra.add("EntrySchemaCheckingTestCase");
-        extraProperties.put("X-ORIGIN", extra);
-
-        // The set of required attribute types for this name form.
-        Set<String> requiredAttributeOIDs = new TreeSet<String>();
-        requiredAttributeOIDs.add("sn");
-        requiredAttributeOIDs.add("cn");
-
         // @formatter:off
-        NameForm nf1 = new NameForm("mynewform-oid", names, "Description of the new form", false,
-                "mynewform-oid", requiredAttributeOIDs, Collections.<String> emptySet(), extraProperties, null);
-
-        NameForm nf2 = new NameForm("mynewform-oid", names, "Description of the new form", false,
-                "mynewform-oid", requiredAttributeOIDs, Collections.<String> emptySet(), extraProperties, null);
+        final Schema schema = new SchemaBuilder(Schema.getCoreSchema())
+            .buildNameForm("1.3.6.1.4.1.1466.115.121.1.35")
+                .description("Description of the new form")
+                .names("MyNewForm")
+                .names("TheNewForm")
+                .structuralObjectClassOID("person")
+                .extraProperties("X-ORIGIN", "NameFormCheckingTestCase")
+                .requiredAttributes("sn", "cn")
+                .optionalAttributes("description", "uid")
+                .addNoOverwriteToSchema()
+            .toSchema();
         // @formatter:on
+
+        final NameForm nf1 = schema.getNameForms().iterator().next();
+
+        final Schema schema2 = new SchemaBuilder(Schema.getCoreSchema())
+            .buildNameForm("1.3.6.1.4.1.1466.115.121.1.35")
+            .names("MyNewForm")
+            .structuralObjectClassOID("person")
+            .requiredAttributes("sn", "cn")
+            .addNoOverwriteToSchema().toSchema();
+        final NameForm nf2 = schema2.getNameForm("MyNewForm");
 
         assertThat(nf1.equals(nf2)).isTrue();
     }
 
     /**
-     * Equals between two 'nameforms' fails.
+     * Equals between two name forms fails.
      */
     @Test()
     public final void testNameFormEqualsFalse() {
 
-        // The set of user defined names for this definition.
-        List<String> names = new ArrayList<String>();
-        names.add("MyNewForm");
-        names.add("TheNewForm");
-
-        // An optional set of extensions for the name form ( X-ORIGIN / X-SCHEMA-FILE)
-        Map<String, List<String>> extraProperties = new TreeMap<String, List<String>>();
-        List<String> extra = new ArrayList<String>();
-        extra.add("EntrySchemaCheckingTestCase");
-        extraProperties.put("X-ORIGIN", extra);
-
-        // The set of required attribute types for this name form.
-        Set<String> requiredAttributeOIDs = new TreeSet<String>();
-        requiredAttributeOIDs.add("sn");
-        requiredAttributeOIDs.add("cn");
+        // @formatter:off
+        final Schema schema = new SchemaBuilder(Schema.getCoreSchema())
+            .buildNameForm("1.3.6.1.4.1.1466.115.121.1.35")
+                .description("Description of the new form")
+                .names("MyNewForm")
+                .names("TheNewForm")
+                .structuralObjectClassOID("person")
+                .extraProperties("X-ORIGIN", "NameFormCheckingTestCase")
+                .requiredAttributes("sn", "cn")
+                .optionalAttributes("description", "uid")
+                .addNoOverwriteToSchema()
+            .toSchema();
+        // @formatter:on
+        final NameForm nf1 = schema.getNameForms().iterator().next();
 
         // @formatter:off
-        NameForm nf1 = new NameForm("mynewform-oid", names, "Description of the new form", false,
-                "mynewform-oid", requiredAttributeOIDs, Collections.<String> emptySet(), extraProperties, null);
-
-        NameForm nf2 = new NameForm("mynewform-oid2", names, "Description of the new form", false,
-                "mynewform-oid", requiredAttributeOIDs, Collections.<String> emptySet(), extraProperties, null);
+        final Schema schema2 = new SchemaBuilder(Schema.getCoreSchema())
+            .buildNameForm("1.3.6.1.4.1.1466.115.121.1.36")
+                .description("Description of the new form")
+                .names("MyNewForm")
+                .names("TheNewForm")
+                .structuralObjectClassOID("person")
+                .extraProperties("X-ORIGIN", "NameFormCheckingTestCase")
+                .requiredAttributes("sn", "cn")
+                .optionalAttributes("description", "uid")
+                .addNoOverwriteToSchema()
+            .toSchema();
         // @formatter:on
 
-        assertThat(nf1.getOID()).isEqualTo("mynewform-oid");
-        assertThat(nf2.getOID()).isEqualTo("mynewform-oid2");
-        // fails if oid is different.
-        assertThat(nf1.equals(nf2)).isFalse();
+        assertThat(nf1.equals(schema2.getNameForms().iterator().next())).isFalse();
     }
 
     /**
-     * Duplicating a form without validating it doesn't copy OptionalAttributes
-     * and RequiredAttributes.
-     */
-    @Test()
-    public final void testNameFormDuplicateDoesntDuplicateAllAttributeWithoutValidateIt() {
-
-        // The set of user defined names for this definition.
-        List<String> names = new ArrayList<String>();
-        names.add("MyNewForm");
-        names.add("TheNewForm");
-
-        // An optional set of extensions for the name form ( X-ORIGIN / X-SCHEMA-FILE)
-        Map<String, List<String>> extraProperties = new TreeMap<String, List<String>>();
-        List<String> extra = new ArrayList<String>();
-        extra.add("EntrySchemaCheckingTestCase");
-        extraProperties.put("X-ORIGIN", extra);
-
-        // The set of required attribute types for this name form.
-        Set<String> requiredAttributeOIDs = new TreeSet<String>();
-        requiredAttributeOIDs.add("sn");
-        requiredAttributeOIDs.add("cn");
-
-        // The set of optional attribute types
-        Set<String> optionalAttributeOIDs = new TreeSet<String>();
-        optionalAttributeOIDs.add("description");
-        optionalAttributeOIDs.add("uid");
-
-        // @formatter:off
-        NameForm nf1 = new NameForm("1.3.6.1.4.1.1466.115.121.1.35", names, "Description of the new form", false,
-                "person", requiredAttributeOIDs, optionalAttributeOIDs, extraProperties, null);
-
-        assertThat(nf1.toString()).isEqualTo(
-                "( 1.3.6.1.4.1.1466.115.121.1.35 NAME ( 'MyNewForm' 'TheNewForm' )"
-                + " DESC 'Description of the new form'"
-                // Structural Object class, contained in the core schema:
-                + " OC person"
-                + " MUST ( cn $ sn )"
-                + " MAY ( description $ uid )"
-                + " X-ORIGIN 'EntrySchemaCheckingTestCase' )");
-        // @formatter:on
-
-        // Duplicating the 'nameform'.
-        NameForm nf2 = nf1.duplicate();
-
-        // Checking if the attributes are the same :
-        assertThat(nf2.getDescription()).isEqualTo(nf1.getDescription());
-        assertThat(nf2.getDescription()).isEqualTo("Description of the new form");
-
-        assertThat(nf2.getExtraPropertyNames()).isEqualTo(nf1.getExtraPropertyNames());
-        assertThat(nf2.getExtraPropertyNames().iterator().next()).isEqualTo("X-ORIGIN");
-
-        assertThat(nf2.getNameOrOID()).isEqualTo(nf1.getNameOrOID());
-        assertThat(nf2.getNameOrOID()).isEqualTo("MyNewForm");
-
-        assertThat(nf2.getOID()).isEqualTo(nf1.getOID());
-        assertThat(nf2.getOID()).isEqualTo("1.3.6.1.4.1.1466.115.121.1.35");
-
-        // Required and optional attributes are empty.
-        assertThat(nf2.getOptionalAttributes()).isEmpty();
-        assertThat(nf2.getOptionalAttributes()).isEqualTo(nf1.getOptionalAttributes());
-
-        assertThat(nf2.getRequiredAttributes()).isEmpty();
-        assertThat(nf2.getRequiredAttributes()).isEqualTo(nf1.getRequiredAttributes());
-
-        assertThat(nf2.getStructuralClass()).isEqualTo(nf1.getStructuralClass());
-    }
-
-    /**
-     * Duplicating a form succeeds after a schema validation.
+     * Testing to add a name form using the definition.
      *
      * @throws SchemaException
      */
     @Test()
-    public final void testNameFormDuplicateSucceedAfterValidation() throws SchemaException {
+    public final void testCreateFormUsingDefinitionAndSchemaBuilder() {
+        final SchemaBuilder sb = new SchemaBuilder();
 
-        // The set of user defined names for this definition.
-        List<String> names = new ArrayList<String>();
-        names.add("MyNewForm");
-        names.add("TheNewForm");
+        // @formatter:off
+        sb.addSchema(Schema.getCoreSchema(), false)
+            .addObjectClass(
+                "( mycustomobjectclass-oid NAME 'myCustomObjectClassOC' SUP top "
+                + "STRUCTURAL MUST cn X-ORIGIN 'NameFormTestCase')", false)
+            .addNameForm(
+                "( mycustomnameform-oid NAME 'myCustomNameForm' OC myCustomObjectClassOC "
+                + "MUST cn X-ORIGIN 'NameFormTestCase' )",
+                false)
+            .toSchema();
+        // @formatter:on
 
-        // An optional set of extensions for the name form ( X-ORIGIN / X-SCHEMA-FILE)
-        Map<String, List<String>> extraProperties = new TreeMap<String, List<String>>();
-        List<String> extra = new ArrayList<String>();
+        final Schema schema = sb.toSchema();
+        assertThat(schema.getWarnings()).isEmpty();
+        assertThat(schema.getNameFormsWithName("mycustomnameform")).isNotNull();
+        for (final NameForm o : schema.getNameForms()) {
+            assertThat(o.getNameOrOID()).isEqualTo("myCustomNameForm");
+            assertThat(o.getOID()).isEqualTo("mycustomnameform-oid");
+            assertThat(o.getStructuralClass().getOID().toString()).isEqualTo(
+                    "mycustomobjectclass-oid");
+        }
+    }
+
+    /**
+     * Compare two same name forms using the equal function. One created by the
+     * name form builder, the other by the schema builder directly using the
+     * definition.
+     */
+    @Test()
+    public final void testNameFormEqualityReturnsTrueBetweenBuilderAndDefinition() {
+
+        // @formatter:off
+        final Schema schema = new SchemaBuilder(Schema.getCoreSchema())
+            .buildNameForm("1.3.6.1.4.1.1466.115.121.1.35")
+                .description("Description of the new form")
+                .names("MyNewForm")
+                .structuralObjectClassOID("person")
+                .extraProperties("X-ORIGIN", "NameFormCheckingTestCase")
+                .requiredAttributes("sn", "cn")
+                .optionalAttributes("description", "uid")
+                .addNoOverwriteToSchema()
+            .toSchema();
+        // @formatter:on
+
+        assertThat(schema.getWarnings()).isEmpty();
+        final NameForm nf1 = schema.getNameForms().iterator().next();
+
+        final SchemaBuilder sb2 = new SchemaBuilder();
+        sb2.addSchema(Schema.getCoreSchema(), false);
+
+        // @formatter:off
+        sb2.addNameForm(
+                "( 1.3.6.1.4.1.1466.115.121.1.35 NAME ( 'MyNewForm' ) "
+                + "DESC 'Description of the new form' "
+                + "OC person MUST ( sn $ cn ) "
+                + "MAY ( description $ uid ) "
+                + "X-ORIGIN 'NameFormCheckingTestCase' )", false);
+        // @formatter:on
+
+        final NameForm nf2 = sb2.toSchema().getNameForm("MyNewForm");
+
+        assertThat(nf1.equals(nf2)).isTrue();
+    }
+
+    /**
+     * Compare two same name forms using the equal function. One created by the
+     * name form builder, the other by the schema builder directly using the
+     * definition with different OID.
+     */
+    @Test()
+    public final void testNameFormEqualityReturnsFalseBetweenBuilderAndDefinition() {
+
+        // @formatter:off
+        final Schema schema = new SchemaBuilder(Schema.getCoreSchema())
+            .buildNameForm("1.3.6.1.4.1.1466.115.121.1.35")
+                .description("Description of the new form")
+                .names("MyNewForm")
+                .structuralObjectClassOID("person")
+                .extraProperties("X-ORIGIN", "NameFormCheckingTestCase")
+                .requiredAttributes("sn", "cn")
+                .optionalAttributes("description", "uid")
+                .addNoOverwriteToSchema()
+            .toSchema();
+        // @formatter:on
+
+        assertThat(schema.getWarnings()).isEmpty();
+        final NameForm nf1 = schema.getNameForms().iterator().next();
+
+        final SchemaBuilder sb2 = new SchemaBuilder();
+        sb2.addSchema(Schema.getCoreSchema(), false);
+
+        // @formatter:off
+        sb2.addNameForm(
+                "( 1.3.6.1.4.1.1466.115.121.1.36 NAME ( 'MyNewForm' ) " // OID changed.
+                + "DESC 'Description of the new form' "
+                + "OC person MUST ( sn $ cn ) "
+                + "MAY ( description $ uid ) "
+                + "X-ORIGIN 'NameFormCheckingTestCase' )", false);
+        // @formatter:on
+
+        final NameForm nf2 = sb2.toSchema().getNameForm("MyNewForm");
+        // Equals is only based on the OID.
+        assertThat(nf1.equals(nf2)).isFalse();
+    }
+
+    /**
+     * Validates a name form using an abstract object class instead of an
+     * structural object class and throws an error.
+     *
+     * @throws SchemaException
+     */
+    @Test()
+    public final void testNameFormValidateDoesntAllowAbstractObjectClass() {
+
+        // @formatter:off
+        final Schema schema = new SchemaBuilder(Schema.getCoreSchema())
+            .buildNameForm("mynewform-oid")
+                .description("Description of the new form")
+                .names("MyNewForm")
+                .structuralObjectClassOID("top")
+                .extraProperties("X-ORIGIN", "NameFormCheckingTestCase")
+                .requiredAttributes("sn", "cn")
+                .optionalAttributes("description", "uid")
+                .addNoOverwriteToSchema()
+            .toSchema();
+        // @formatter:on
+
+        assertThat(schema.getNameForms()).isEmpty();
+        assertThat(schema.getWarnings()).isNotEmpty();
+        assertThat(schema.getWarnings().toString()).contains(
+                "This object class exists in the schema but is defined as ABSTRACT rather than structural");
+        // output is : The name form description "MyNewForm" is associated with the "top" object class.
+        // This object class exists in the schema but is defined as ABSTRACT rather than structural
+    }
+
+    /**
+     * Creates a name form using the appropriate structural object class.
+     *
+     * @throws SchemaException
+     */
+    @Test()
+    public final void testNameFormValidateAllowsStructuralObjectClass() {
+
+        // @formatter:off
+        final Schema schema = new SchemaBuilder(Schema.getCoreSchema())
+            .buildNameForm("mynewform-oid")
+                .description("Description of the new form")
+                .names("MyNewForm")
+                .structuralObjectClassOID("person")
+                .extraProperties("X-ORIGIN", "NameFormCheckingTestCase")
+                .requiredAttributes("sn", "cn")
+                .optionalAttributes("description", "uid")
+                .addNoOverwriteToSchema()
+            .toSchema();
+        // @formatter:on
+
+        assertThat(schema.getNameForms()).isNotEmpty();
+        assertThat(schema.getWarnings()).isEmpty();
+
+        assertThat(schema.getNameForms().iterator().next().getOID()).isEqualTo("mynewform-oid");
+        assertThat(schema.getNameForms().iterator().next().getNames().get(0)).isEqualTo("MyNewForm");
+    }
+
+    /**
+     * Adds multiple attributes... e.g : name form containing multiple
+     * extra-properties, requiredAttributes, optional attributes, names...
+     *
+     * @throws SchemaException
+     */
+    @Test()
+    public final void testBuildsANewFormWithMultipleAttributes() {
+
+        // @formatter:off
+        final Schema schema = new SchemaBuilder(Schema.getCoreSchema())
+            .buildNameForm("0.0.1.2.3")
+                .description("multipleAttributes Test description")
+                .names("multipleAttributes")
+                .structuralObjectClassOID("person")
+                .extraProperties("X-ORIGIN", "NameFormCheckingTestCase")
+                .extraProperties("X-ORIGIN", "NameFormCheckingTestCase2")
+                .requiredAttributes("sn", "cn") // ("cn, sn") is not supported.
+                .requiredAttributes("uid")
+                .optionalAttributes("owner")
+                .optionalAttributes("l")
+                .names("Rock")
+                .addNoOverwriteToSchema()
+            .toSchema();
+        // @formatter:on
+
+        assertThat(schema.getWarnings()).isEmpty();
+        assertThat(schema.getNameForms()).isNotEmpty();
+
+        for (final NameForm nf : schema.getNameForms()) {
+
+            assertThat(nf.getDescription()).isEqualTo("multipleAttributes Test description");
+            assertThat(nf.getOID()).isEqualTo("0.0.1.2.3");
+
+            assertThat(nf.getNames().get(0)).isEqualTo("multipleAttributes");
+            assertThat(nf.getNames().get(1)).isEqualTo("Rock");
+            assertThat(nf.getExtraProperty("X-ORIGIN").get(0))
+                    .isEqualTo("NameFormCheckingTestCase");
+            assertThat(nf.getExtraProperty("X-ORIGIN").get(1)).isEqualTo(
+                    "NameFormCheckingTestCase2");
+
+            assertThat(nf.getStructuralClass().getNameOrOID()).isEqualTo("person");
+
+            // RequiredAttributes is accessible only after validate
+            for (final AttributeType att : nf.getRequiredAttributes()) {
+                assertThat(
+                        att.getNameOrOID().contains("cn") || att.getNameOrOID().contains("sn")
+                                || att.getNameOrOID().contains("uid")).isTrue();
+            }
+            // OptionalAttributes is accessible only after validate
+            for (final AttributeType att : nf.getOptionalAttributes()) {
+                assertThat(att.getNameOrOID().contains("owner") || att.getNameOrOID().contains("l"))
+                        .isTrue();
+            }
+        }
+    }
+
+    /**
+     * Using the schema builder for adding new name forms. Allows methods
+     * chaining.
+     * <p>
+     * e.g : (SchemaBuilder) <code>
+     * scb.addNameForm("1.2.3").build(true).addAttributeType
+     * (...).build(false).addNameForm(...)...etc.
+     * </code>
+     * <p>
+     * N.B : NameForm is validated when the SchemaBuilder is building a Schema.
+     * If the NameForm is not valid, the SchemaBuilder just remove the invalid
+     * NameForm.
+     *
+     * @throws SchemaException
+     */
+    @Test()
+    public final void testCreatesANewFormUsingChainingMethods() {
+        final Map<String, List<String>> extraProperties = new TreeMap<String, List<String>>();
+        final List<String> extra = new ArrayList<String>();
         extra.add("EntrySchemaCheckingTestCase");
         extraProperties.put("X-ORIGIN", extra);
 
-        // The set of required attribute types for this name form.
-        Set<String> requiredAttributeOIDs = new TreeSet<String>();
-        requiredAttributeOIDs.add("sn");
-        requiredAttributeOIDs.add("cn");
-
-        Set<String> optionalAttributeOIDs = new TreeSet<String>();
-        optionalAttributeOIDs.add("description");
-        optionalAttributeOIDs.add("uid");
-
         // @formatter:off
-        NameForm nf1 = new NameForm("1.3.6.1.4.1.1466.115.121.1.35", names, "Description of the new form", false,
-                "person", requiredAttributeOIDs, optionalAttributeOIDs, extraProperties, null);
-
-        assertThat(nf1.toString()).isEqualTo(
-                "( 1.3.6.1.4.1.1466.115.121.1.35 NAME ( 'MyNewForm' 'TheNewForm' )"
-                + " DESC 'Description of the new form'"
-                // Structural Object class, contained in the core schema:
-                + " OC person"
-                + " MUST ( cn $ sn )"
-                + " MAY ( description $ uid )"
-                + " X-ORIGIN 'EntrySchemaCheckingTestCase' )");
+        final Schema schema = new SchemaBuilder(Schema.getCoreSchema())
+            .buildNameForm("1.2.3")
+                .description("NF1's description")
+                .names("theFirstNameForm")
+                .structuralObjectClassOID("person")
+                .extraProperties(extraProperties)
+                .requiredAttributes("uid")
+                .optionalAttributes("sn")
+                .addToSchema()
+            .buildNameForm("4.4.4")
+                .description("NF2's description")
+                .names("theSecondNameForm")
+                .structuralObjectClassOID("person")
+                .extraProperties(extraProperties)
+                .requiredAttributes("uid")
+                .requiredAttributes("sn")
+                .addToSchema()
+            .toSchema();
         // @formatter:on
 
-        List<LocalizableMessage> warnings1 = new ArrayList<LocalizableMessage>();
-        nf1.validate(Schema.getCoreSchema(), warnings1);
+        // First name form
+        final NameForm first = schema.getNameForm("theFirstNameForm");
+        assertThat(first.getOID()).isEqualTo("1.2.3");
+        assertThat(first.getDescription()).isEqualTo("NF1's description");
+        assertThat(first.getRequiredAttributes()).isNotEmpty();
+        assertThat(first.getOptionalAttributes()).isNotEmpty();
+        assertThat(first.getStructuralClass().getNameOrOID()).isEqualTo("person");
 
-        // Duplicating the 'nameform'.
-        NameForm nf2 = nf1.duplicate();
+        // Second name form
+        final NameForm second = schema.getNameForm("theSecondNameForm");
+        assertThat(second.getOID()).isEqualTo("4.4.4");
+        assertThat(second.getDescription()).isEqualTo("NF2's description");
+        assertThat(second.getRequiredAttributes()).isNotEmpty();
+        assertThat(second.getOptionalAttributes()).isEmpty();
+    }
 
-        // Required and optional attributes are empty :
-        assertThat(nf2.getOptionalAttributes()).isEmpty();
-        assertThat(nf2.getRequiredAttributes()).isEmpty();
+    /**
+     * Remove functions uses on names / required attribute /
+     *
+     * @throws SchemaException
+     */
+    @Test()
+    public final void testCreatesNewFormAndRemovesAttributes() {
 
-        List<LocalizableMessage> warnings2 = new ArrayList<LocalizableMessage>();
-        nf2.validate(Schema.getCoreSchema(), warnings2);
+        // @formatter:off
+        final Schema schema = new SchemaBuilder(Schema.getCoreSchema())
+            .buildNameForm("0.0.1.2.3")
+                .description("multipleAttributes Test description")
+                .structuralObjectClassOID("person")
+                .extraProperties("X-ORIGIN", "NameFormCheckingTestCase")
+                .extraProperties("X-ORIGIN", "NameFormCheckingTestCase2")
+                .requiredAttributes("sn", "cn")
+                .requiredAttributes("uid")
+                .optionalAttributes("givenName")
+                .optionalAttributes("l")
+                .names("nameform1")
+                .names("nameform2")
+                .names("nameform3")
+                .removeName("nameform2")
+                .removeRequiredAttribute("cn")
+                .removeOptionalAttribute("l")
+                .addNoOverwriteToSchema()
+            .toSchema();
+        // @formatter:on
 
-        // Checking if the attributes are the same :
-        assertThat(nf2.getDescription()).isEqualTo(nf1.getDescription());
-        assertThat(nf2.getDescription()).isEqualTo("Description of the new form");
+        assertThat(schema.getNameForms()).isNotEmpty();
+        final NameForm nf = schema.getNameForms().iterator().next();
 
-        assertThat(nf2.getExtraPropertyNames()).isEqualTo(nf1.getExtraPropertyNames());
-        assertThat(nf2.getExtraPropertyNames().iterator().next()).isEqualTo("X-ORIGIN");
+        assertThat(nf.getNames()).hasSize(2);
+        assertThat(nf.getNames()).contains("nameform1");
+        assertThat(nf.getNames()).contains("nameform3");
 
-        assertThat(nf2.getNameOrOID()).isEqualTo(nf1.getNameOrOID());
-        assertThat(nf2.getNameOrOID()).isEqualTo("MyNewForm");
+        assertThat(nf.getRequiredAttributes().size()).isEqualTo(2);
+        assertThat(nf.getRequiredAttributes().toString()).contains("'sn'");
+        assertThat(nf.getRequiredAttributes().toString()).contains("uid");
 
-        assertThat(nf2.getOID()).isEqualTo(nf1.getOID());
-        assertThat(nf2.getOID()).isEqualTo("1.3.6.1.4.1.1466.115.121.1.35");
+        assertThat(nf.getOptionalAttributes().size()).isEqualTo(1);
+    }
 
-        // Required and optional attributes are not empty :
-        assertThat(nf2.getOptionalAttributes()).isNotEmpty();
-        assertThat(nf2.getOptionalAttributes()).isEqualTo(nf1.getOptionalAttributes());
+    /**
+     * Trying to remove attributes from a duplicated name form.
+     *
+     * @throws SchemaException
+     */
+    @Test()
+    public final void testDuplicatesNameFormAndRemovesAttributes() {
 
-        assertThat(nf2.getRequiredAttributes()).isNotEmpty();
-        assertThat(nf2.getRequiredAttributes()).isEqualTo(nf1.getRequiredAttributes());
+        // @formatter:off
+        Schema schema = new SchemaBuilder(Schema.getCoreSchema())
+            .buildNameForm("1.3.6.1.4.1.1466.115.121.1.35")
+                .description("Description of the new form")
+                .names("MyNewForm")
+                .structuralObjectClassOID("person")
+                .extraProperties("X-ORIGIN", "NameFormTestCase", "Forgerock", "extra")
+                .extraProperties("FROM", "NameFormTestCase")
+                .requiredAttributes("sn", "cn")
+                .optionalAttributes("description", "uid")
+                .addNoOverwriteToSchema()
+            .toSchema();
+        // @formatter:on
 
-        assertThat(nf2.getStructuralClass()).isEqualTo(nf1.getStructuralClass());
+        assertThat(schema.getWarnings()).isEmpty();
+        assertThat(schema.getNameForms()).isNotEmpty();
+
+        final NameForm nf = schema.getNameForms().iterator().next();
+        assertThat(nf.getOID()).isEqualTo("1.3.6.1.4.1.1466.115.121.1.35");
+        assertThat(nf.getRequiredAttributes().size()).isEqualTo(2);
+        assertThat(nf.getOptionalAttributes().size()).isEqualTo(2);
+
+        // @formatter:off.
+        SchemaBuilder sb = new SchemaBuilder(Schema.getCoreSchema());
+        Builder nfBuilder = new Builder(nf, sb)
+                    .names("Dolly")
+                    .oid("1.3.6.1.4.1.1466.115.121.1.36")
+                    .removeOptionalAttribute("uid")
+                    .removeOptionalAttribute("nonExistentUid")
+                    .requiredAttributes("street")
+                    .removeRequiredAttribute("sn")
+                    .removeExtraProperties("X-ORIGIN", "extra")
+                    .removeExtraProperties("X-ORIGIN", "Forgerock")
+                    .removeExtraProperties("FROM", null);
+        // @formatter:on
+        sb.addSchema(schema, true);
+        sb.addSchema(nfBuilder.addToSchema().toSchema(), true);
+        Schema finalSchema =  sb.toSchema();
+
+        assertThat(finalSchema.getNameForms()).isNotEmpty();
+        assertThat(finalSchema.getNameForms().size()).isEqualTo(2);
+        assertThat(finalSchema.getWarnings()).isEmpty();
+
+        final Iterator<NameForm> i = finalSchema.getNameForms().iterator();
+        i.next(); // Jump the first element (== nf)
+        final NameForm dolly = i.next();
+        assertThat(dolly.getOID()).isEqualTo("1.3.6.1.4.1.1466.115.121.1.36");
+
+        assertThat(dolly.getRequiredAttributes().size()).isEqualTo(2);
+        assertThat(dolly.getRequiredAttributes().toString()).contains("street");
+        assertThat(dolly.getRequiredAttributes().toString()).contains("cn");
+
+        assertThat(dolly.getOptionalAttributes().size()).isEqualTo(1);
+        assertThat(dolly.getExtraProperty("X-ORIGIN").size()).isEqualTo(1);
+        assertThat(dolly.getExtraProperty("FROM")).isEmpty();
+    }
+
+    /**
+     * Clears attributes from a duplicated name form.
+     *
+     * @throws SchemaException
+     */
+    @Test()
+    public final void testDuplicatesNameFormAndClears() {
+
+        final SchemaBuilder sb = new SchemaBuilder();
+        sb.addSchema(Schema.getCoreSchema(), false);
+        // @formatter:off
+        final Builder nfb = new Builder("1.3.6.1.4.1.1466.115.121.1.35", sb);
+        nfb.description("Description of the new form")
+            .names("MyNewForm")
+            .structuralObjectClassOID("person")
+            .extraProperties("X-ORIGIN", "NameFormTestCase", "Forgerock", "extra")
+            .extraProperties("FROM", "NameFormTestCase")
+            .requiredAttributes("sn", "cn")
+            .optionalAttributes("description", "uid")
+            .addNoOverwriteToSchema();
+
+        Schema schema = sb.toSchema();
+        assertThat(schema.getWarnings()).isEmpty();
+        assertThat(schema.getNameForms()).isNotEmpty();
+
+        final NameForm nf = schema.getNameForms().iterator().next();
+        assertThat(nf.getOID()).isEqualTo("1.3.6.1.4.1.1466.115.121.1.35");
+        assertThat(nf.getRequiredAttributes().size()).isEqualTo(2);
+        assertThat(nf.getOptionalAttributes().size()).isEqualTo(2);
+        assertThat(nf.getExtraPropertyNames().size()).isEqualTo(2);
+
+        sb.buildNameForm(nf)
+            .removeAllNames()
+            .names("Dolly")
+            .removeName("thisOneDoesntExist")
+            .oid("1.3.6.1.4.1.1466.115.121.1.36")
+            .removeAllOptionalAttributes()
+            .clearExtraProperties()
+            .removeAllRequiredAttributes()
+            .requiredAttributes("businessCategory")
+            .addToSchema();
+        schema = sb.toSchema();
+        assertThat(schema.getNameForms()).isNotEmpty();
+        assertThat(schema.getNameForms().size()).isEqualTo(2);
+        assertThat(schema.getWarnings()).isEmpty();
+
+        final Iterator<NameForm> i = schema.getNameForms().iterator();
+        i.next(); // Jump the first element (== nf)
+        final NameForm dolly = i.next();
+        assertThat(dolly.getOID()).isEqualTo("1.3.6.1.4.1.1466.115.121.1.36");
+
+        assertThat(dolly.getNames().size()).isEqualTo(1);
+        assertThat(dolly.getNames().get(0)).isEqualTo("Dolly");
+        assertThat(dolly.getRequiredAttributes().size()).isEqualTo(1);
+        assertThat(dolly.getRequiredAttributes().iterator().next().getOID()).isEqualTo("2.5.4.15");
+        assertThat(dolly.getRequiredAttributes().iterator().next().getNameOrOID()).isEqualTo("businessCategory");
+
+        assertThat(dolly.getOptionalAttributes().size()).isEqualTo(0);
+
+        assertThat(dolly.getExtraPropertyNames().size()).isEqualTo(0);
+    }
+
+    /**
+     * Adds several name forms to the same schema builder.
+     *
+     * @throws SchemaException
+     */
+    @Test()
+    public final void testAddsSeveralFormsToSchemaBuilder() {
+
+        // @formatter:off
+        final Schema schema = new SchemaBuilder(Schema.getCoreSchema())
+            .buildNameForm("1.3.6.1.4.1.1466.115.121.1.35")
+                .description("Description of the new form")
+                .names("MyNewForm")
+                .structuralObjectClassOID("person")
+                .extraProperties("X-ORIGIN", "NameFormTestCase", "Forgerock", "extra")
+                .requiredAttributes("sn", "cn")
+                .optionalAttributes("description", "uid")
+                .addNoOverwriteToSchema()
+            .buildNameForm("1.3.6.1.4.1.1466.115.121.1.36")
+                .description("Description of the second form")
+                .names("SecondForm")
+                .structuralObjectClassOID("organization")
+                .extraProperties("X-ORIGIN", "NameFormTestCase2")
+                .requiredAttributes("name")
+                .optionalAttributes("owner")
+                .addNoOverwriteToSchema()
+            .buildNameForm("1.3.6.1.4.1.1466.115.121.1.37")
+                .description("Description of the third form")
+                .names("ThirdForm")
+                .structuralObjectClassOID("groupOfNames")
+                .extraProperties("X-ORIGIN", "NameFormTestCase3", "ForgeRock")
+                .requiredAttributes("sn", "l")
+                .optionalAttributes("description", "uid")
+                .description("Description of the third form")
+                .addNoOverwriteToSchema()
+                // we overwritten the third name form.
+            .buildNameForm("1.3.6.1.4.1.1466.115.121.1.37")
+                .names("ThirdFormOverwritten")
+                .structuralObjectClassOID("groupOfNames")
+                .extraProperties("X-ORIGIN", "RFC 2252")
+                .requiredAttributes("sn", "l")
+                .optionalAttributes("description", "uid")
+                .addToSchema()
+            .toSchema();
+        // @formatter:on
+
+        assertThat(schema.getWarnings()).isEmpty();
+        assertThat(schema.getNameForms().size()).isEqualTo(3);
+        assertThat(schema.getNameForm("MyNewForm").getOID()).isEqualTo(
+                "1.3.6.1.4.1.1466.115.121.1.35");
+        assertThat(schema.getNameForm("SecondForm").getOID()).isEqualTo(
+                "1.3.6.1.4.1.1466.115.121.1.36");
+        // The third form is completely overwritten.
+        assertThat(schema.getNameForm("ThirdFormOverwritten").getOID()).isEqualTo(
+                "1.3.6.1.4.1.1466.115.121.1.37");
+        assertThat(schema.getNameForm("ThirdFormOverwritten").getDescription()).isEmpty();
+        assertThat(schema.getNameForm("ThirdFormOverwritten").getExtraProperty("X-ORIGIN").get(0))
+                .isEqualTo("RFC 2252");
     }
 }

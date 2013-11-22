@@ -41,6 +41,7 @@ import static org.forgerock.opendj.ldap.schema.SchemaUtils.unmodifiableCopyOfSet
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -1317,15 +1318,14 @@ public final class SchemaBuilder {
             reader.skipWhitespaces();
 
             // The next set of characters must be the OID.
-            final String oid = SchemaUtils.readOID(reader, allowMalformedNamesAndOptions);
+            final NameForm.Builder nameFormBuilder =
+                    new NameForm.Builder(
+                            SchemaUtils.readOID(reader, allowMalformedNamesAndOptions), this);
 
-            List<String> names = Collections.emptyList();
-            String description = "".intern();
-            boolean isObsolete = false;
-            String structuralClass = null;
-            Set<String> optionalAttributes = Collections.emptySet();
-            Set<String> requiredAttributes = null;
-            Map<String, List<String>> extraProperties = Collections.emptyMap();
+
+            // Required properties :
+            String structuralOID = null;
+            Collection<String> requiredAttributes = Collections.emptyList();
 
             // At this point, we should have a pretty specific syntax that
             // describes what may come next, but some of the components are
@@ -1342,35 +1342,37 @@ public final class SchemaBuilder {
                     // No more tokens.
                     break;
                 } else if (tokenName.equalsIgnoreCase("name")) {
-                    names = SchemaUtils.readNameDescriptors(reader, allowMalformedNamesAndOptions);
+                    nameFormBuilder.names(SchemaUtils.readNameDescriptors(reader,
+                            allowMalformedNamesAndOptions));
                 } else if (tokenName.equalsIgnoreCase("desc")) {
                     // This specifies the description for the attribute type. It
                     // is an arbitrary string of characters enclosed in single
                     // quotes.
-                    description = SchemaUtils.readQuotedString(reader);
+                    nameFormBuilder.description(SchemaUtils.readQuotedString(reader));
                 } else if (tokenName.equalsIgnoreCase("obsolete")) {
                     // This indicates whether the attribute type should be
                     // considered obsolete. We do not need to do any more
                     // parsing for this token.
-                    isObsolete = true;
+                    nameFormBuilder.obsolete(true);
                 } else if (tokenName.equalsIgnoreCase("oc")) {
-                    structuralClass = SchemaUtils.readOID(reader, allowMalformedNamesAndOptions);
+                    structuralOID = SchemaUtils.readOID(reader, allowMalformedNamesAndOptions);
+                    nameFormBuilder.structuralObjectClassOID(structuralOID);
                 } else if (tokenName.equalsIgnoreCase("must")) {
                     requiredAttributes =
                             SchemaUtils.readOIDs(reader, allowMalformedNamesAndOptions);
+                    nameFormBuilder.requiredAttributes(requiredAttributes);
                 } else if (tokenName.equalsIgnoreCase("may")) {
-                    optionalAttributes =
-                            SchemaUtils.readOIDs(reader, allowMalformedNamesAndOptions);
+                    nameFormBuilder.optionalAttributes(SchemaUtils.readOIDs(reader,
+                            allowMalformedNamesAndOptions));
                 } else if (tokenName.matches("^X-[A-Za-z_-]+$")) {
                     // This must be a non-standard property and it must be
                     // followed by either a single definition in single quotes
                     // or an open parenthesis followed by one or more values in
                     // single quotes separated by spaces followed by a close
                     // parenthesis.
-                    if (extraProperties.isEmpty()) {
-                        extraProperties = new HashMap<String, List<String>>();
-                    }
-                    extraProperties.put(tokenName, SchemaUtils.readExtensions(reader));
+                    final List<String> extensions = SchemaUtils.readExtensions(reader);
+                    nameFormBuilder.extraProperties(tokenName, extensions
+                            .toArray(new String[extensions.size()]));
                 } else {
                     final LocalizableMessage message =
                             ERR_ATTR_SYNTAX_NAME_FORM_ILLEGAL_TOKEN1.get(definition, tokenName);
@@ -1378,28 +1380,27 @@ public final class SchemaBuilder {
                 }
             }
 
+            nameFormBuilder.definition(definition);
+
             // Make sure that a structural class was specified. If not, then
-            // it cannot be valid.
-            if (structuralClass == null) {
+            // it cannot be valid and the name form cannot be build.
+            if (structuralOID == null) {
                 final LocalizableMessage message =
                         ERR_ATTR_SYNTAX_NAME_FORM_NO_STRUCTURAL_CLASS1.get(definition);
                 throw new LocalizedIllegalArgumentException(message);
             }
 
-            if (requiredAttributes == null || requiredAttributes.size() == 0) {
+            if (requiredAttributes.isEmpty()) {
                 final LocalizableMessage message =
                         ERR_ATTR_SYNTAX_NAME_FORM_NO_REQUIRED_ATTR.get(definition);
                 throw new LocalizedIllegalArgumentException(message);
             }
 
-            if (!extraProperties.isEmpty()) {
-                extraProperties = Collections.unmodifiableMap(extraProperties);
+            if (overwrite) {
+                nameFormBuilder.addToSchema();
+            } else {
+                nameFormBuilder.addNoOverwriteToSchema();
             }
-
-            final NameForm nameForm =
-                    new NameForm(oid, names, description, isObsolete, structuralClass,
-                            requiredAttributes, optionalAttributes, extraProperties, definition);
-            addNameForm(nameForm, overwrite);
         } catch (final DecodeException e) {
             final LocalizableMessage msg =
                     ERR_ATTR_SYNTAX_NAME_FORM_INVALID1.get(definition, e.getMessageObject());
@@ -1409,49 +1410,33 @@ public final class SchemaBuilder {
     }
 
     /**
-     * Adds the provided name form definition to this schema builder.
+     * Returns a builder which can be used for incrementally constructing a new
+     * name form before adding it to the schema. Example usage:
+     *
+     * <pre>
+     * SchemaBuilder builder = ...;
+     * builder.buildNameForm("1.2.3.4").name("myNameform").addToSchema();
+     * </pre>
      *
      * @param oid
      *            The OID of the name form definition.
-     * @param names
-     *            The user-friendly names of the name form definition.
-     * @param description
-     *            The description of the name form definition.
-     * @param obsolete
-     *            {@code true} if the name form definition is obsolete,
-     *            otherwise {@code false}.
-     * @param structuralClass
-     *            The structural object class this rule applies to.
-     * @param requiredAttributes
-     *            A list of naming attribute types that entries subject to the
-     *            name form must contain.
-     * @param optionalAttributes
-     *            A list of naming attribute types that entries subject to the
-     *            name form may contain.
-     * @param extraProperties
-     *            A map containing additional properties associated with the
-     *            name form definition.
-     * @param overwrite
-     *            {@code true} if any existing name form use with the same OID
-     *            should be overwritten.
-     * @return A reference to this schema builder.
-     * @throws ConflictingSchemaElementException
-     *             If {@code overwrite} was {@code false} and a conflicting
-     *             schema element was found.
+     * @return A builder to continue building the NameForm.
      */
-    SchemaBuilder addNameForm(final String oid, final List<String> names,
-            final String description, final boolean obsolete, final String structuralClass,
-            final Set<String> requiredAttributes, final Set<String> optionalAttributes,
-            final Map<String, List<String>> extraProperties, final boolean overwrite) {
+    public NameForm.Builder buildNameForm(final String oid) {
         lazyInitBuilder();
+        return new NameForm.Builder(oid, this);
+    }
 
-        final NameForm nameForm =
-                new NameForm(oid, unmodifiableCopyOfList(names), description, obsolete,
-                        structuralClass, unmodifiableCopyOfSet(requiredAttributes),
-                        unmodifiableCopyOfSet(optionalAttributes),
-                        unmodifiableCopyOfExtraProperties(extraProperties), null);
-        addNameForm(nameForm, overwrite);
-        return this;
+    /**
+     * Duplicates the name form.
+     *
+     * @param nameForm
+     *            The name form to duplicate.
+     * @return A name form builder.
+     */
+    public NameForm.Builder buildNameForm(final NameForm nameForm) {
+        lazyInitBuilder();
+        return new NameForm.Builder(nameForm, this);
     }
 
     /**
@@ -2664,7 +2649,12 @@ public final class SchemaBuilder {
         }
     }
 
-    private void addNameForm(final NameForm form, final boolean overwrite) {
+    SchemaBuilder addNameForm(final NameForm form, final boolean overwrite) {
+        // If schema is not initialized before.
+        if (numericOID2NameForms == null || name2NameForms == null) {
+            lazyInitBuilder();
+        }
+
         NameForm conflictingForm;
         if (numericOID2NameForms.containsKey(form.getOID())) {
             conflictingForm = numericOID2NameForms.get(form.getOID());
@@ -2691,6 +2681,7 @@ public final class SchemaBuilder {
                 forms.add(form);
             }
         }
+        return this;
     }
 
     private void addObjectClass(final ObjectClass oc, final boolean overwrite) {
@@ -2748,7 +2739,7 @@ public final class SchemaBuilder {
         }
 
         for (final NameForm nameForm : schema.getNameForms()) {
-            addNameForm(nameForm.duplicate(), overwrite);
+            addNameForm(nameForm, overwrite);
         }
 
         for (final DITContentRule contentRule : schema.getDITContentRules()) {
