@@ -576,6 +576,7 @@ public class ReplicationDB
       // unlock it when throwing an exception.
       dbCloseLock.readLock().lock();
 
+      boolean cursorHeld = false;
       Cursor localCursor = null;
       try
       {
@@ -609,6 +610,7 @@ public class ReplicationDB
           }
         }
         cursor = localCursor;
+        cursorHeld = cursor != null;
       }
       catch (ChangelogException e)
       {
@@ -622,6 +624,13 @@ public class ReplicationDB
         closeAndReleaseReadLock(localCursor);
         throw new ChangelogException(e);
       }
+      finally
+      {
+        if (!cursorHeld)
+        {
+          dbCloseLock.readLock().unlock();
+        }
+      }
     }
 
     private ReplServerDBCursor() throws ChangelogException
@@ -632,6 +641,7 @@ public class ReplicationDB
       // We'll go on only if no close or no clear is running
       dbCloseLock.readLock().lock();
 
+      boolean cursorHeld = false;
       Transaction localTxn = null;
       Cursor localCursor = null;
       try
@@ -652,6 +662,7 @@ public class ReplicationDB
 
         txn = localTxn;
         cursor = localCursor;
+        cursorHeld = cursor != null;
       }
       catch (ChangelogException e)
       {
@@ -664,6 +675,13 @@ public class ReplicationDB
         closeAndReleaseReadLock(localCursor);
         abort(localTxn);
         throw new ChangelogException(e);
+      }
+      finally
+      {
+        if (!cursorHeld)
+        {
+          dbCloseLock.readLock().unlock();
+        }
       }
     }
 
