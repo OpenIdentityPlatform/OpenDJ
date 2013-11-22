@@ -153,7 +153,6 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
 
     final ReplicatedUpdateMsg msg1 = msg(BASE_DN, serverId1, 1);
     publishUpdateMsg(msg1);
-
     assertAddedRecords(msg1);
   }
 
@@ -167,7 +166,6 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
 
     final ReplicatedUpdateMsg msg2 = msg(BASE_DN, serverId1, 2);
     publishUpdateMsg(msg2);
-
     assertAddedRecords(msg2);
   }
 
@@ -181,7 +179,6 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
     final ReplicatedUpdateMsg msg1 = msg(BASE_DN, serverId1, 1);
     final ReplicatedUpdateMsg msg2 = msg(BASE_DN, serverId2, 2);
     publishUpdateMsg(msg2, msg1);
-
     assertAddedRecords(msg1);
   }
 
@@ -210,7 +207,7 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
   }
 
   @Test(dependsOnMethods = { EMPTY_DB_NO_DS })
-  public void emptyDBTwoCursorsOneEmptyForSomeTime() throws Exception
+  public void emptyDBTwoDSsOneSendsNoUpdatesForSomeTime() throws Exception
   {
     addReplica(BASE_DN, serverId1);
     addReplica(BASE_DN, serverId2);
@@ -222,7 +219,6 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
     final ReplicatedUpdateMsg msg3Sid2 = msg(BASE_DN, serverId2, 3);
     // simulate no messages received during some time for replica 2
     publishUpdateMsg(msg1Sid2, emptySid2, emptySid2, emptySid2, msg3Sid2, msg2Sid1);
-
     assertAddedRecords(msg1Sid2, msg2Sid1);
   }
 
@@ -244,6 +240,46 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
     publishUpdateMsg(msg3);
     assertAddedRecords(msg1, msg2);
   }
+
+  @Test(dependsOnMethods = { EMPTY_DB_NO_DS })
+  public void emptyDBTwoInitialDSsOneSendingHeartbeats() throws Exception
+  {
+    addReplica(BASE_DN, serverId1);
+    addReplica(BASE_DN, serverId2);
+    startIndexer();
+
+    final ReplicatedUpdateMsg msg1 = msg(BASE_DN, serverId1, 1);
+    final ReplicatedUpdateMsg msg2 = msg(BASE_DN, serverId2, 2);
+    publishUpdateMsg(msg1, msg2);
+    assertAddedRecords(msg1);
+
+    sendHeartbeat(BASE_DN, serverId1, 3);
+    assertAddedRecords(msg1, msg2);
+  }
+
+  @Test(dependsOnMethods = { EMPTY_DB_NO_DS })
+  public void emptyDBTwoInitialDSsOneGoingOffline() throws Exception
+  {
+    addReplica(BASE_DN, serverId1);
+    addReplica(BASE_DN, serverId2);
+    startIndexer();
+
+    final ReplicatedUpdateMsg msg1 = msg(BASE_DN, serverId1, 1);
+    final ReplicatedUpdateMsg msg2 = msg(BASE_DN, serverId2, 2);
+    publishUpdateMsg(msg1, msg2);
+    assertAddedRecords(msg1);
+
+    replicaOffline(BASE_DN, serverId2, 3);
+    // MCP cannot move forward since no new updates from serverId1
+    assertAddedRecords(msg1);
+
+    final ReplicatedUpdateMsg msg4 = msg(BASE_DN, serverId1, 4);
+    publishUpdateMsg(msg4);
+    // MCP moved forward after receiving update from serverId1
+    // (last replica in the domain)
+    assertAddedRecords(msg1, msg2, msg4);
+  }
+
 
   private void addReplica(DN baseDN, int serverId) throws Exception
   {
@@ -317,6 +353,18 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
         indexer.publishUpdateMsg(msg.getBaseDN(), msg);
       }
     }
+    waitForWaitingState(indexer);
+  }
+
+  private void sendHeartbeat(DN baseDN, int serverId, int time) throws Exception
+  {
+    indexer.publishHeartbeat(baseDN, new CSN(time, 0, serverId));
+    waitForWaitingState(indexer);
+  }
+
+  private void replicaOffline(DN baseDN, int serverId, int time) throws Exception
+  {
+    indexer.replicaOffline(baseDN, new CSN(time, 0, serverId));
     waitForWaitingState(indexer);
   }
 
