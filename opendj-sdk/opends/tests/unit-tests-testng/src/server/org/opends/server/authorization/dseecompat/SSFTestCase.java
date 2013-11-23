@@ -100,7 +100,6 @@ public class SSFTestCase extends AciTestCase {
 
     @BeforeClass
     public void setupClass() throws Exception {
-//      TestCaseUtils.restartServer();
       TestCaseUtils.initializeTestBackend(true);
       TestCaseUtils.dsconfig(
               "create-password-policy",
