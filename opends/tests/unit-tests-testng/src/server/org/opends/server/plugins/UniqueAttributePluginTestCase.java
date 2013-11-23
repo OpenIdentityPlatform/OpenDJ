@@ -106,6 +106,8 @@ public class UniqueAttributePluginTestCase extends PluginTestCase {
   public void tearDown() throws Exception {
     clearConfigEntries();
     TestCaseUtils.clearJEBackend(false,"userRoot", "dc=example,dc=com");
+    clearAcis("o=test");
+    TestCaseUtils.clearMemoryBackend(TestCaseUtils.TEST_BACKEND_ID);
   }
 
 
@@ -724,6 +726,12 @@ public class UniqueAttributePluginTestCase extends PluginTestCase {
             "telephoneNumber: 2-777-9012"
       );
     }
+  }
+
+  private void clearAcis(String suffix) throws Exception
+  {
+    deleteAttrsFromEntry(DN.decode("ou=People," + suffix), "aci");
+    deleteAttrsFromEntry(DN.decode("ou=People1," + suffix), "aci");
   }
 
   /**
