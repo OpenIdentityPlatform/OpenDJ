@@ -1,0 +1,397 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at
+  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2011-2012 ForgeRock AS
+  !    
+-->
+<chapter xml:id='chap-best-practices'
+ xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+ xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+ xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ xmlns:xlink='http://www.w3.org/1999/xlink'
+ xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ <title>Best Practices For LDAP Application Developers</title>
+
+ <para>Follow the advice in this chapter to write effective, maintainable,
+ high performance directory client applications.</para>
+
+ <section xml:id="authenticate-correctly">
+  <title>Authenticate Correctly</title>
+  <indexterm>
+   <primary>Authentications</primary>
+  </indexterm>
+  <indexterm>
+   <primary>Authorizations</primary>
+  </indexterm>
+
+  <para>Unless your application performs only read operations, you should
+  authenticate to the directory server. Some directory administrators require
+  authentication even to read directory data.</para>
+
+  <para>Once you authenticate (bind), directory servers like OpenDJ make
+  authorization decisions based on your identity. With servers like OpenDJ
+  that support proxied authorization, once authenticated your application can
+  also request an operation on behalf of another identity, for example the
+  identity of the end user.</para>
+
+  <para>Your application therefore should have an account used to authenticate
+  such as <literal>cn=My Killer App,ou=Apps,dc=example,dc=com</literal>. The
+  directory administrator can then authorize appropriate access for your
+  application, and also monitor your application's requests to help you
+  troubleshoot problems if they arise.</para>
+
+  <para>Your application can use simple, password-based authentication. When
+  you opt for password-based authentication, also use Start TLS for example to
+  avoid sending the password as clear text over the network. If you prefer to
+  manage certificates rather than passwords, directory servers like OpenDJ can
+  do client authentication as well.</para>
+ </section>
+
+ <section xml:id="reuse-connections">
+  <title>Reuse Connections</title>
+  <indexterm>
+   <primary>Connections</primary>
+   <secondary>Pooling</secondary>
+  </indexterm>
+
+  <para>LDAP is a stateful protocol. You authenticate (bind), you do stuff,
+  you unbind. The server maintains a context that lets it make authorization
+  decisions concerning your requests. You should therefore reuse
+  connections when possible.</para>
+
+  <para>You can make multiple requests without having to set up a new
+  connection and authenticate for every request. You can issue a request and
+  get results asynchronously, while you issue another request. You can even
+  share connections in a pool, avoiding the overhead of setting up and tearing
+  down connections if you use them often.</para>
+ </section>
+ 
+ <section xml:id="health-check-connections">
+  <title>Health Check Connections</title>
+  <indexterm>
+   <primary>Connections</primary>
+   <secondary>Health check</secondary>
+  </indexterm>
+
+  <para>In a network built for HTTP applications, your long-lived LDAP
+  connections can get cut by network equipment configured to treat idle and
+  even just old connections as stale resources to reclaim.</para>
+
+  <para>When you maintain a particularly long-lived connection such as a
+  connection for a persistent search, periodically perform a health check to
+  make sure nothing on the network quietly decided to drop your connection
+  without notification. A health check might involve reading an attribute
+  on a well-known entry in the directory.</para>
+
+  <para>OpenDJ LDAP SDK offers
+  <literal>Connections.newHeartBeatConnectionFactory()</literal> methods to
+  ensure your <literal>ConnectionFactory</literal> serves connections that
+  are periodically checked to detect whether they are still alive.</para>
+ </section>
+ 
+ <section xml:id="request-what-you-need-all-at-once">
+  <title>Request Exactly What You Need All At Once</title>
+
+  <para>By the time your application makes it to production, you should know
+  what attributes you want, so request them explicitly and request all
+  the attributes you need in the same search. For example, if all you need
+  is <literal>mail</literal> and <literal>cn</literal>, then specify both
+  attributes in your <literal>SearchRequest</literal>.</para>
+ </section>
+ 
+ <section xml:id="use-specific-filters">
+  <title>Use Specific LDAP Filters</title>
+  <indexterm>
+   <primary>Filters</primary>
+  </indexterm>
+
+  <para>The difference between a general filter
+  <literal>(mail=*@example.com)</literal> and a good, specific filter like
+  <literal>(mail=user@example.com)</literal> can be huge numbers of entries
+  and enormous amounts of processing time, both for the directory server
+  that has to return search results, and also for your application that has
+  to sort through the results. Many use cases can be handled with short,
+  specific filters. As a rule, prefer equality filters over substring
+  filters.</para>
+
+  <para>Some directory servers like OpenDJ reject unindexed searches by
+  default, because unindexed searches are generally far more resource intensive.
+  If your application needs to use a filter that results in an unindexed search,
+  then work with your directory administrator to find a solution, such as having
+  the directory maintain the indexes required by your application.</para>
+
+  <para>Furthermore, always use <literal>&amp;</literal> with
+  <literal>!</literal> to restrict the potential result set before returning
+  all entries that do not match part of the filter. For example, <literal
+  >(&amp;(location=Oslo)(!(mail=birthday.girl@example.com)))</literal>.</para>
+ </section>
+
+ <section xml:id="make-modifications-specific">
+  <title>Make Modifications Specific</title>
+  <indexterm>
+   <primary>Modifications</primary>
+  </indexterm>
+
+  <para>When you modify attributes with multiple values, for example when you
+  modify a list of group members, replace or delete specific values
+  individually, rather than replacing the entire list of values. Making
+  modifications specific helps directory servers replicate your changes more
+  effectively.</para>
+ </section>
+
+ <section xml:id="trust-result-codes">
+  <title>Trust Result Codes</title>
+  <indexterm>
+   <primary>Errors</primary>
+   <secondary>Result codes</secondary>
+  </indexterm>
+
+  <para>Trust the LDAP result code that your application gets from the
+  directory server. For example, if you request a modify application and you
+  get <literal>ResultCode.SUCCESS</literal>, then consider the operation a
+  success rather than issuing a search immediately to get the modified
+  entry.</para>
+
+  <para>The LDAP replication model is loosely convergent. In other words,
+  the directory server can, and probably does, send you
+  <literal>ResultCode.SUCCESS</literal> before replicating your change to
+  every directory server instance across the network. If you issue a read
+  immediately after a write, and a load balancer sends your request to another
+  directory server instance, you could get a result that differs from what
+  you expect.</para>
+
+  <indexterm>
+   <primary>Assertions</primary>
+  </indexterm>
+  <para>The loosely convergent model also means that the entry could have
+  changed since you read it. If needed, you can use <link xlink:show="new"
+  xlink:href="http://tools.ietf.org/html/rfc4528">LDAP assertions</link> to set
+  conditions for your LDAP operations.</para>
+ </section>
+
+ <section xml:id="ismemberof-for-membership">
+  <title>Check Group Membership on the Account, Not the Group</title>
+  <indexterm>
+   <primary>Groups</primary>
+  </indexterm>
+
+  <para>If you need to determine which groups an account belongs to, request
+  <literal>isMemberOf</literal> for example with OpenDJ when you read the
+  account entry. Other directory servers use other names for this attribute
+  that identifies the groups to which an account belongs.</para>
+ </section>
+
+ <section xml:id="ask-directory-what-it-supports">
+  <title>Ask the Directory Server What It Supports</title>
+  <indexterm>
+   <primary>LDAP</primary>
+   <secondary>Checking supported features</secondary>
+  </indexterm>
+
+  <para>Directory servers expose their capabilities, suffixes they support,
+  and so forth as attribute values on the root DSE. See the section on
+  <link xlink:href="dev-guide#read-root-dse"
+  xlink:role="http://docbook.org/xlink/role/olink"><citetitle>Reading Root
+  DSEs</citetitle></link>.</para>
+
+  <para>This allows your application to discover a variety of information at
+  run time, rather than storing configuration separately. Thus putting effort
+  into querying the directory about its configuration and the features it
+  supports can make your application easier to deploy and to maintain.</para>
+
+  <para>For example, rather than hard-coding
+  <literal>dc=example,dc=com</literal> as a suffix DN in your configuration,
+  you can search the root DSE on OpenDJ for <literal>namingContexts</literal>,
+  and then search under the naming context DNs to locate the entries you are
+  looking for in order to initialize your configuration.</para>
+
+  <para>Directory servers also expose their schema over LDAP. The root DSE
+  attribute <literal>subschemaSubentry</literal> shows the DN of the entry
+  holding LDAP schema definitions. See the section, <link
+  xlink:href="dev-guide#get-schema-information"
+  xlink:role="http://docbook.org/xlink/role/olink"><citetitle>Getting Schema
+  Information</citetitle></link>. Note that LDAP object class and attribute
+  type names are case-insensitive, so <literal>isMemberOf</literal> and
+  <literal>ismemberof</literal> refer to the same attribute for example.</para>
+ </section>
+
+ <section xml:id="storing-large-attributes">
+  <title>Store Large Attribute Values By Reference</title>
+  <indexterm>
+   <primary>Attributes</primary>
+  </indexterm>
+
+  <para>When you use large attribute values such as photos or audio messages,
+  consider storing the objects themselves elsewhere and keeping only a reference
+  to external content on directory entries. In order to serve results quickly
+  with high availability, directory servers both cache content and also
+  replicate it everywhere.</para>
+
+  <para>Textual entries with a bunch of attributes and perhaps a certificate
+  are often no larger than a few KB. Your directory administrator might
+  therefore be disappointed to learn that your popular application stores
+  users' photo and .mp3 collections as attributes of their accounts.</para>
+ </section>
+
+ <section xml:id="careful-with-persistent-search-and-server-side-sorting">
+  <title>Take Care With Persistent Search &amp; Server-Side Sorting</title>
+  <indexterm>
+   <primary>Searches</primary>
+   <secondary>Sorting</secondary>
+  </indexterm>
+  <indexterm>
+   <primary>Controls</primary>
+   <secondary>Persistent search</secondary>
+  </indexterm>
+
+  <para>A persistent search lets your application receive updates from the
+  server as they happen by keeping the connection open and forcing the server
+  to check whether to return additional results any time it performs a
+  modification in the scope of your search. Directory administrators therefore
+  might hesitate to grant persistent search access to your application.
+  Directory servers like OpenDJ can let you discover updates with less
+  overhead by searching the change log periodically. If you do have to use
+  a persistent search instead, try to narrow the scope of your search.</para>
+
+  <para>Directory servers also support a resource-intensive operation called
+  server-side sorting. When your application requests a server-side sort, the
+  directory server retrieves all the entries matching your search, and then
+  returns the whole set of entries in sorted order. For result sets of any size
+  server-side sorting therefore ties up server resources that could be used
+  elsewhere. Alternatives include both sorting the results after your
+  application receives them, and also working with the directory administrator
+  to have appropriate browsing (virtual list view) indexes maintained on the
+  directory server for applications that must regularly page through long
+  lists of search results.</para>
+ </section>
+
+ <section xml:id="reuse-schemas">
+  <title>Reuse Schemas Where Possible</title>
+  <indexterm>
+   <primary>LDAP</primary>
+   <secondary>Schema</secondary>
+  </indexterm>
+
+  <para>Directory servers like OpenDJ come with schema definitions for a wide
+  range of standard object classes and attribute types. This is because
+  directories are designed to be shared by many applications. Directories
+  use unique, typically <link xlink:href="http://www.iana.org/"
+  xlink:show="new">IANA</link>-registered object identifiers (OID) to avoid
+  object class and attribute type name clashes. The overall goal is
+  Internet-wide interoperability.</para>
+
+  <para>You therefore should reuse schema definitions that already exist
+  whenever you reasonably can. Reuse them as is. Do not try to redefine
+  existing schema definitions.</para>
+
+  <para>If you must add schema definitions for your application, extend
+  existing object classes with AUXILIARY classes of your own. Take care to
+  name your definitions such that they do not clash with other names.</para>
+
+  <para>When you have defined schema required for your application, work with
+  the directory administrator to have your definitions added to the directory
+  service. Directory servers like OpenDJ let directory administrators update
+  schema definitions over LDAP, so there is not generally a need to interrupt
+  the service to add your application. Directory administrators can however
+  have other reasons why they hesitate to add your schema definitions.
+  Coming to the discussion prepared with good schema definitions, explanations
+  of why they should be added, and evident regard for interoperability makes
+  it easier for the directory administrator to grant your request.</para>
+ </section>
+
+ <section xml:id="handle-referrals">
+  <title>Handle Referrals</title>
+  <indexterm>
+   <primary>Referrals</primary>
+  </indexterm>
+  <indexterm>
+   <primary>Searches</primary>
+   <secondary>Handling results</secondary>
+  </indexterm>
+
+  <para>When a directory server returns a search result, the result is not
+  necessarily an entry. If the result is a referral, then your application
+  should follow up with an additional search based on the URIs provided in
+  the result.</para>
+ </section>
+
+ <section xml:id="check-result-codes">
+  <title>Troubleshooting: Check Result Codes</title>
+  <indexterm>
+   <primary>Errors</primary>
+   <secondary>Result codes</secondary>
+  </indexterm>
+
+  <para>LDAP result codes are standard and clearly defined. When you receive
+  a <literal>Result</literal>, check the <literal>ResultCode</literal> value to
+  determine what action your application should take. When the result is not
+  what you expect, you can also read or at least log the message string from
+  <literal>ResultCode.getDiagnosticMessage()</literal>.</para>
+ </section>
+
+ <section xml:id="check-log-files">
+  <title>Troubleshooting: Check Server Log Files</title>
+
+  <para>If you can read the directory server access log, then you can check
+  what the server did with your application's request. For example, the
+  following OpenDJ access log excerpt shows a successful connection from
+  <literal>cn=My Killer App,ou=Apps,dc=example,dc=com</literal> performing
+  a simple bind after Start TLS, and then a simple search before unbind.
+  The lines are wrapped for readability, whereas in the log each record starts
+  with the time stamp.</para>
+
+  <programlisting language="none">[20/Apr/2012:13:31:05 +0200] CONNECT conn=5
+ from=127.0.0.1:51561 to=127.0.0.1:1389 protocol=LDAP
+[20/Apr/2012:13:31:05 +0200] EXTENDED REQ conn=5 op=0 msgID=1 name="StartTLS"
+ oid="1.3.6.1.4.1.1466.20037"
+[20/Apr/2012:13:31:05 +0200] EXTENDED RES conn=5 op=0 msgID=1 name="StartTLS"
+ oid="1.3.6.1.4.1.1466.20037" result=0 etime=0
+[20/Apr/2012:13:31:07 +0200] BIND REQ conn=5 op=1 msgID=2 version=3 type=SIMPLE
+ dn="cn=My Killer App,ou=Apps,dc=example,dc=com"
+[20/Apr/2012:13:31:07 +0200] BIND RES conn=5 op=1 msgID=2 result=0
+ authDN="cn=My Killer App,ou=Apps,dc=example,dc=com" etime=1
+[20/Apr/2012:13:31:07 +0200] SEARCH REQ conn=5 op=2 msgID=3
+ base="dc=example,dc=com" scope=wholeSubtree
+ filter="(uid=kvaughan)" attrs="isMemberOf"
+[20/Apr/2012:13:31:07 +0200] SEARCH RES conn=5 op=2 msgID=3
+ result=0 nentries=1 etime=6
+[20/Apr/2012:13:31:07 +0200] UNBIND REQ conn=5 op=3 msgID=4
+[20/Apr/2012:13:31:07 +0200] DISCONNECT conn=5 reason="Client Unbind"</programlisting>
+
+  <para>Notice that each operation type is shown in upper case, and that the
+  server tracks both the connection (<literal>conn=5</literal>), operation
+  (<literal>op=[0-3]</literal>), and message ID (<literal>msgID=[1-4]</literal>)
+  numbers to make it easy to filter records. The <literal>etime</literal> refers
+  to how long the server worked on the request in milliseconds. Result code
+  0 corresponds to <literal>ResultCode.SUCCESS</literal>, as described in
+  <link xlink:href="http://tools.ietf.org/html/rfc4511#section-4.1.9"
+  xlink:show="new">RFC 4511</link>.</para>
+ </section>
+
+ <section xml:id="inspect-network-traffic">
+  <title>Troubleshooting: Inspect Network Traffic</title>
+
+  <para>If result codes and server logs are not enough, many network tools
+  can interpret LDAP packets. Get the necessary certificates to decrypt
+  encrypted packet content.</para>
+ </section>
+</chapter>

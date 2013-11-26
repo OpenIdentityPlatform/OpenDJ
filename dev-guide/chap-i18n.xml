@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at
+  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2011-2012 ForgeRock AS
+  !    
+-->
+<chapter xml:id='chap-i18n'
+ xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+ xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+ xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ xmlns:xlink='http://www.w3.org/1999/xlink'
+ xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ <title>Internationalizing Applications</title>
+  <indexterm>
+   <primary>Internationalization</primary>
+  </indexterm>
+
+ <para>When you internationalize your application &#8212; adapting your
+ application for use in different languages and regions &#8212; how much you
+ do depends on what you must later localize. Directory servers often support
+ localized user data. OpenDJ directory server supports use of the locales
+ provided by your Java installation, and also supports many language subtypes,
+ for example.</para>
+
+ <para>Therefore if your application is not end user facing and the
+ administrators managing your application all use the same language as you do,
+ you might be content to use language subtypes in LDAP filters, as described
+ in the section on <link xlink:href="dev-guide#about-filters"
+ xlink:role="http://docbook.org/xlink/role/olink"><citetitle>Working With
+ Search Filters</citetitle></link>.</para>
+
+ <para>For end user facing applications where you must return localized
+ messages, and for applications where administrators need localized log
+ messages, you can use the <link xlink:show="new"
+ xlink:href="http://commons.forgerock.org/i18n-framework/">ForgeRock I18N
+ Framework</link>.</para>
+</chapter>
