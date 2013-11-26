@@ -23,7 +23,7 @@
  *
  *      Copyright 2013 ForgeRock AS.
  */
-package com.forgerock.opendj.ldap;
+package org.forgerock.opendj.ldap.spi;
 
 import static org.fest.assertions.Assertions.assertThat;
 import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
@@ -41,6 +41,7 @@ import org.forgerock.opendj.ldap.responses.ExtendedResult;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.testng.annotations.Test;
+
 
 /**
  * Tests for {@linkConnectionState}.

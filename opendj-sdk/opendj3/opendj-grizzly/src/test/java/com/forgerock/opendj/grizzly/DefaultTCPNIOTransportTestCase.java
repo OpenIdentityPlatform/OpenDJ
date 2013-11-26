@@ -27,23 +27,23 @@
 
 package com.forgerock.opendj.grizzly;
 
-import static org.forgerock.opendj.ldap.TestCaseUtils.*;
 import static com.forgerock.opendj.grizzly.DefaultTCPNIOTransport.DEFAULT_TRANSPORT;
-import static org.testng.Assert.*;
+import static org.forgerock.opendj.ldap.TestCaseUtils.findFreeSocketAddress;
+import static org.testng.Assert.assertTrue;
 
 import java.net.Socket;
 import java.net.SocketAddress;
 
+import org.forgerock.opendj.ldap.SdkTestCase;
 import org.glassfish.grizzly.nio.transport.TCPNIOTransport;
 import org.testng.annotations.Test;
 
-import com.forgerock.opendj.ldap.LDAPTestCase;
 import com.forgerock.opendj.util.ReferenceCountedObject;
 
 /**
  * Tests DefaultTCPNIOTransport class.
  */
-public class DefaultTCPNIOTransportTestCase extends LDAPTestCase {
+public class DefaultTCPNIOTransportTestCase extends SdkTestCase {
     /**
      * Tests the default transport.
      * <p>

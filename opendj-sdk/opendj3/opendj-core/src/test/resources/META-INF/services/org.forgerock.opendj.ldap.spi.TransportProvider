@@ -23,4 +23,4 @@
 #
 #      Copyright 2013 ForgeRock AS.
 #
-com.forgerock.opendj.ldap.BasicTransportProvider
+org.forgerock.opendj.ldap.spi.BasicTransportProvider
