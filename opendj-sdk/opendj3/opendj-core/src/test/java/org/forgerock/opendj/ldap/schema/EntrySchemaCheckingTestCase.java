@@ -38,7 +38,7 @@ import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.ErrorResultException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.SchemaValidationPolicy.EntryResolver;
-import org.forgerock.opendj.ldap.schema.SchemaValidationPolicy.Policy;
+import org.forgerock.opendj.ldap.schema.SchemaValidationPolicy.Action;
 import org.forgerock.opendj.ldif.LDIFEntryReader;
 import org.testng.annotations.Test;
 
@@ -269,7 +269,7 @@ public class EntrySchemaCheckingTestCase extends SchemaTestCase {
         // @formatter:on
 
         assertDoesNotConformToSchema(e, schema, defaultPolicy().checkDITStructureRules(
-                Policy.REJECT, newResolver(null)));
+                Action.REJECT, newResolver(null)));
 
         // @formatter:off
         final Entry p = newEntry(schema,
@@ -280,7 +280,7 @@ public class EntrySchemaCheckingTestCase extends SchemaTestCase {
             "ou: parent");
         // @formatter:on
 
-        assertConformsToSchema(e, schema, defaultPolicy().checkDITStructureRules(Policy.REJECT,
+        assertConformsToSchema(e, schema, defaultPolicy().checkDITStructureRules(Action.REJECT,
                 newResolver(p)));
 
         // @formatter:off
@@ -292,7 +292,7 @@ public class EntrySchemaCheckingTestCase extends SchemaTestCase {
         // @formatter:on
 
         assertDoesNotConformToSchema(e, schema, defaultPolicy().checkDITStructureRules(
-                Policy.REJECT, newResolver(null)));
+                Action.REJECT, newResolver(null)));
 
         // @formatter:off
         e = newEntry(schema,
@@ -303,7 +303,7 @@ public class EntrySchemaCheckingTestCase extends SchemaTestCase {
         // @formatter:on
 
         assertDoesNotConformToSchema(e, schema, defaultPolicy().checkDITStructureRules(
-                Policy.REJECT, newResolver(p)));
+                Action.REJECT, newResolver(p)));
     }
 
     /**
@@ -522,7 +522,7 @@ public class EntrySchemaCheckingTestCase extends SchemaTestCase {
         e.removeAttribute("objectClass", "organization");
         e.removeAttribute("o", "test");
 
-        assertConformsToSchema(e, ignoreAll().checkAttributeValues(Policy.REJECT));
+        assertConformsToSchema(e, ignoreAll().checkAttributeValues(Action.REJECT));
     }
 
     /**
@@ -563,10 +563,10 @@ public class EntrySchemaCheckingTestCase extends SchemaTestCase {
             "dc: foo");
         // @formatter:on
 
-        assertDoesNotConformToSchema(e, ignoreAll().checkAttributeValues(Policy.REJECT));
+        assertDoesNotConformToSchema(e, ignoreAll().checkAttributeValues(Action.REJECT));
 
         e.removeAttribute("dc", "foo");
-        assertConformsToSchema(e, ignoreAll().checkAttributeValues(Policy.REJECT));
+        assertConformsToSchema(e, ignoreAll().checkAttributeValues(Action.REJECT));
     }
 
     /**
@@ -588,10 +588,10 @@ public class EntrySchemaCheckingTestCase extends SchemaTestCase {
             "creatorsName: cn=Another Manager");
         // @formatter:on
 
-        assertDoesNotConformToSchema(e, ignoreAll().checkAttributeValues(Policy.REJECT));
+        assertDoesNotConformToSchema(e, ignoreAll().checkAttributeValues(Action.REJECT));
 
         e.removeAttribute("creatorsName", "cn=Another Manager");
-        assertConformsToSchema(e, ignoreAll().checkAttributeValues(Policy.REJECT));
+        assertConformsToSchema(e, ignoreAll().checkAttributeValues(Action.REJECT));
     }
 
     /**

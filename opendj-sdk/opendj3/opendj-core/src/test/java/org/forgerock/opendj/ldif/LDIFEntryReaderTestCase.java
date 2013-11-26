@@ -49,7 +49,7 @@ import org.forgerock.opendj.ldap.TestCaseUtils;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldap.schema.SchemaBuilder;
 import org.forgerock.opendj.ldap.schema.SchemaValidationPolicy;
-import org.forgerock.opendj.ldap.schema.SchemaValidationPolicy.Policy;
+import org.forgerock.opendj.ldap.schema.SchemaValidationPolicy.Action;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 import static org.fest.assertions.Assertions.assertThat;
@@ -630,7 +630,7 @@ public final class LDIFEntryReaderTestCase extends AbstractLDIFTestCase {
         reader.setRejectedLDIFListener(listener)
              .setSchemaValidationPolicy(
                  SchemaValidationPolicy.ignoreAll()
-                     .checkAttributesAndObjectClasses(Policy.REJECT));
+                     .checkAttributesAndObjectClasses(Action.REJECT));
         // @formatter:on
 
         assertThat(reader.hasNext()).isFalse();
@@ -659,7 +659,7 @@ public final class LDIFEntryReaderTestCase extends AbstractLDIFTestCase {
                 new LDIFEntryReader("dn: dc=example,dc=com", "changetype: add", "objectClass: top",
                         "objectClass: domainComponent", "dc: example", "xxx: unknown attribute");
         reader.setRejectedLDIFListener(listener).setSchemaValidationPolicy(
-                SchemaValidationPolicy.ignoreAll().checkAttributesAndObjectClasses(Policy.WARN));
+                SchemaValidationPolicy.ignoreAll().checkAttributesAndObjectClasses(Action.WARN));
 
         assertThat(reader.hasNext()).isTrue();
 
