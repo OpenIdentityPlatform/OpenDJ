@@ -24,10 +24,10 @@
  *      Copyright 2013 ForgeRock AS.
  */
 
-package com.forgerock.opendj.ldap;
+package org.forgerock.opendj.ldap.spi;
 
-import static org.forgerock.opendj.ldap.ErrorResultException.*;
-import static org.mockito.Mockito.*;
+import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
+import static org.mockito.Mockito.mock;
 
 import java.net.SocketAddress;
 
@@ -37,7 +37,6 @@ import org.forgerock.opendj.ldap.FutureResult;
 import org.forgerock.opendj.ldap.LDAPOptions;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.ResultHandler;
-import org.forgerock.opendj.ldap.spi.LDAPConnectionFactoryImpl;
 
 import com.forgerock.opendj.util.AsynchronousFutureResult;
 

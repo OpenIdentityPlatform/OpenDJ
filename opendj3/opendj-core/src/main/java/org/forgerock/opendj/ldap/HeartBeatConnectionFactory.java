@@ -64,8 +64,8 @@ import org.forgerock.opendj.ldap.responses.ExtendedResult;
 import org.forgerock.opendj.ldap.responses.Result;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldap.responses.SearchResultReference;
+import org.forgerock.opendj.ldap.spi.ConnectionState;
 
-import com.forgerock.opendj.ldap.ConnectionState;
 import com.forgerock.opendj.util.AsynchronousFutureResult;
 import com.forgerock.opendj.util.CompletedFutureResult;
 import com.forgerock.opendj.util.FutureResultTransformer;

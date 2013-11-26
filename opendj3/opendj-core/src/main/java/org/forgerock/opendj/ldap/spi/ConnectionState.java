@@ -23,7 +23,7 @@
  *
  *      Copyright 2013 ForgeRock AS.
  */
-package com.forgerock.opendj.ldap;
+package org.forgerock.opendj.ldap.spi;
 
 import java.util.LinkedList;
 import java.util.List;

@@ -23,7 +23,7 @@
  *
  *      Copyright 2013 ForgeRock AS.
  */
-package com.forgerock.opendj.ldap;
+package org.forgerock.opendj.ldap.spi;
 
 import java.io.IOException;
 import java.net.SocketAddress;
@@ -32,9 +32,6 @@ import org.forgerock.opendj.ldap.LDAPClientContext;
 import org.forgerock.opendj.ldap.LDAPListenerOptions;
 import org.forgerock.opendj.ldap.LDAPOptions;
 import org.forgerock.opendj.ldap.ServerConnectionFactory;
-import org.forgerock.opendj.ldap.spi.LDAPConnectionFactoryImpl;
-import org.forgerock.opendj.ldap.spi.LDAPListenerImpl;
-import org.forgerock.opendj.ldap.spi.TransportProvider;
 
 /**
  * Provides an basic implementation of a transport provider doing nothing.

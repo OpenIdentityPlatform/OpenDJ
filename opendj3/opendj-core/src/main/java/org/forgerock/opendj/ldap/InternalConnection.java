@@ -22,24 +22,15 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2012 ForgeRock AS.
+ *      Portions copyright 2011-2013 ForgeRock AS.
  */
 
-package com.forgerock.opendj.ldap;
+package org.forgerock.opendj.ldap;
 
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.forgerock.opendj.ldap.AbstractAsynchronousConnection;
-import org.forgerock.opendj.ldap.Connection;
-import org.forgerock.opendj.ldap.ConnectionEventListener;
-import org.forgerock.opendj.ldap.FutureResult;
-import org.forgerock.opendj.ldap.IntermediateResponseHandler;
-import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.ResultHandler;
-import org.forgerock.opendj.ldap.SearchResultHandler;
-import org.forgerock.opendj.ldap.ServerConnection;
 import org.forgerock.opendj.ldap.requests.AbandonRequest;
 import org.forgerock.opendj.ldap.requests.AddRequest;
 import org.forgerock.opendj.ldap.requests.BindRequest;
@@ -69,7 +60,7 @@ import com.forgerock.opendj.util.Validator;
  * internal operations directly against a {@code ServerConnection}
  * implementation.
  */
-public final class InternalConnection extends AbstractAsynchronousConnection {
+final class InternalConnection extends AbstractAsynchronousConnection {
     private static final class InternalBindFutureResultImpl extends
             AbstractLDAPFutureResultImpl<BindResult> {
         private final BindRequest bindRequest;
@@ -115,7 +106,7 @@ public final class InternalConnection extends AbstractAsynchronousConnection {
      * @param serverConnection
      *            The server connection.
      */
-    public InternalConnection(final ServerConnection<Integer> serverConnection) {
+    InternalConnection(final ServerConnection<Integer> serverConnection) {
         this.serverConnection = serverConnection;
     }
 

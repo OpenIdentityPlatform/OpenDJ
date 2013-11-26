@@ -27,7 +27,6 @@
 
 package org.forgerock.opendj.ldap;
 
-import com.forgerock.opendj.ldap.InternalConnection;
 import com.forgerock.opendj.util.CompletedFutureResult;
 
 /**

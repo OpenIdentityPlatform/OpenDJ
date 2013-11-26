@@ -24,14 +24,14 @@
  *      Copyright 2013 ForgeRock AS.
  */
 
-package com.forgerock.opendj.ldap;
+package org.forgerock.opendj.ldap.spi;
 
 import java.io.IOException;
 import java.net.SocketAddress;
+
 import org.forgerock.opendj.ldap.LDAPClientContext;
 import org.forgerock.opendj.ldap.LDAPListenerOptions;
 import org.forgerock.opendj.ldap.ServerConnectionFactory;
-import org.forgerock.opendj.ldap.spi.LDAPListenerImpl;
 
 /**
  * Basic LDAP listener implementation to use for tests only.

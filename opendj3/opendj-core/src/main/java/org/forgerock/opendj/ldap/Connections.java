@@ -35,7 +35,6 @@ import java.util.concurrent.TimeUnit;
 import org.forgerock.opendj.ldap.requests.BindRequest;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
 
-import com.forgerock.opendj.ldap.InternalConnection;
 import com.forgerock.opendj.util.Validator;
 
 /**

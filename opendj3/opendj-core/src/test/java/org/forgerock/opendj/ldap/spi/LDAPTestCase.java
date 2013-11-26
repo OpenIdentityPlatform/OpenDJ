@@ -22,10 +22,19 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
+
+package org.forgerock.opendj.ldap.spi;
+
+import org.forgerock.testng.ForgeRockTestCase;
+import org.testng.annotations.Test;
 
 /**
- * Classes implementing LDAP protocol.
+ * An abstract class that all ldap unit tests should extend. Ldap represents the
+ * classes found directly under the package com.forgerock.opendj.ldap.ldap.
  */
-package com.forgerock.opendj.ldap;
 
+@Test(groups = { "precommit", "ldap", "sdk" })
+public abstract class LDAPTestCase extends ForgeRockTestCase {
+}
