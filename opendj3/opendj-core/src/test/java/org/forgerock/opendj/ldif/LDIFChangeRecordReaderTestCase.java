@@ -62,7 +62,7 @@ import org.forgerock.opendj.ldap.requests.ModifyRequest;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldap.schema.SchemaBuilder;
 import org.forgerock.opendj.ldap.schema.SchemaValidationPolicy;
-import org.forgerock.opendj.ldap.schema.SchemaValidationPolicy.Policy;
+import org.forgerock.opendj.ldap.schema.SchemaValidationPolicy.Action;
 import org.testng.annotations.Test;
 
 /**
@@ -946,7 +946,7 @@ public final class LDIFChangeRecordReaderTestCase extends AbstractLDIFTestCase {
         reader.setRejectedLDIFListener(listener)
              .setSchemaValidationPolicy(
                  SchemaValidationPolicy.ignoreAll()
-                     .checkAttributesAndObjectClasses(Policy.REJECT));
+                     .checkAttributesAndObjectClasses(Action.REJECT));
         // @formatter:on
 
         assertThat(reader.hasNext()).isFalse();
@@ -982,7 +982,7 @@ public final class LDIFChangeRecordReaderTestCase extends AbstractLDIFTestCase {
         reader.setRejectedLDIFListener(listener)
              .setSchemaValidationPolicy(
                  SchemaValidationPolicy.ignoreAll()
-                     .checkAttributesAndObjectClasses(Policy.WARN));
+                     .checkAttributesAndObjectClasses(Action.WARN));
         // @formatter:on
 
         assertThat(reader.hasNext()).isTrue();
@@ -1876,7 +1876,7 @@ public final class LDIFChangeRecordReaderTestCase extends AbstractLDIFTestCase {
     /**
      * Change Record throw an exception because the added attribute is not valid
      * ('badAttribute') relative to the default schema. Here, we use a
-     * Policy.warn instead of a Policy.REJECT (default)
+     * Action.warn instead of a Action.REJECT (default)
      *
      * @throws Exception
      */
@@ -1896,7 +1896,7 @@ public final class LDIFChangeRecordReaderTestCase extends AbstractLDIFTestCase {
         final LDIFChangeRecordReader reader = new LDIFChangeRecordReader(strChangeRecord);
         reader.setSchema(Schema.getDefaultSchema());
         reader.setSchemaValidationPolicy(SchemaValidationPolicy.defaultPolicy()
-                .checkAttributesAndObjectClasses(Policy.WARN));
+                .checkAttributesAndObjectClasses(Action.WARN));
 
         try {
             reader.readChangeRecord();

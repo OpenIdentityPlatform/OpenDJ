@@ -53,9 +53,10 @@ public final class SchemaValidationPolicy {
     }
 
     /**
-     * The schema validation policy.
+     * An enumeration of the possible actions which can be performed when a
+     * schema validation failure is encountered.
      */
-    public static enum Policy {
+    public static enum Action {
         /**
          * Schema validation will not be performed.
          */
@@ -73,7 +74,7 @@ public final class SchemaValidationPolicy {
          */
         REJECT;
 
-        private Policy() {
+        private Action() {
             // Nothing to do.
         }
 
@@ -151,23 +152,17 @@ public final class SchemaValidationPolicy {
      * @return The new schema validation policy.
      */
     public static SchemaValidationPolicy ignoreAll() {
-        return new SchemaValidationPolicy().checkAttributesAndObjectClasses(Policy.IGNORE)
-                .checkAttributeValues(Policy.IGNORE).checkDITContentRules(Policy.IGNORE)
-                .checkNameForms(Policy.IGNORE).requireSingleStructuralObjectClass(Policy.IGNORE);
+        return new SchemaValidationPolicy().checkAttributesAndObjectClasses(Action.IGNORE)
+                .checkAttributeValues(Action.IGNORE).checkDITContentRules(Action.IGNORE)
+                .checkNameForms(Action.IGNORE).requireSingleStructuralObjectClass(Action.IGNORE);
     }
 
-    private Policy checkNameForms = Policy.REJECT;
-
-    private Policy checkDITStructureRules = Policy.IGNORE;
-
-    private Policy checkDITContentRules = Policy.REJECT;
-
-    private Policy requireSingleStructuralObjectClass = Policy.REJECT;
-
-    private Policy checkAttributesAndObjectClasses = Policy.REJECT;
-
-    private Policy checkAttributeValues = Policy.REJECT;
-
+    private Action checkNameForms = Action.REJECT;
+    private Action checkDITStructureRules = Action.IGNORE;
+    private Action checkDITContentRules = Action.REJECT;
+    private Action requireSingleStructuralObjectClass = Action.REJECT;
+    private Action checkAttributesAndObjectClasses = Action.REJECT;
+    private Action checkAttributeValues = Action.REJECT;
     private EntryResolver checkDITStructureRulesEntryResolver = null;
 
     // Prevent direct instantiation.
@@ -187,7 +182,7 @@ public final class SchemaValidationPolicy {
      * @return The policy for verifying that the user attributes in an entry
      *         conform to its object classes.
      */
-    public Policy checkAttributesAndObjectClasses() {
+    public Action checkAttributesAndObjectClasses() {
         return checkAttributesAndObjectClasses;
     }
 
@@ -205,7 +200,7 @@ public final class SchemaValidationPolicy {
      *            conform to its object classes.
      * @return A reference to this {@code SchemaValidationPolicy}.
      */
-    public SchemaValidationPolicy checkAttributesAndObjectClasses(final Policy policy) {
+    public SchemaValidationPolicy checkAttributesAndObjectClasses(final Action policy) {
         this.checkAttributesAndObjectClasses = policy;
         return this;
     }
@@ -232,7 +227,7 @@ public final class SchemaValidationPolicy {
      * @return The policy for verifying that the user attributes in an entry
      *         conform to their associated attribute type descriptions.
      */
-    public Policy checkAttributeValues() {
+    public Action checkAttributeValues() {
         return checkAttributeValues;
     }
 
@@ -260,7 +255,7 @@ public final class SchemaValidationPolicy {
      *            conform to their associated attribute type descriptions.
      * @return A reference to this {@code SchemaValidationPolicy}.
      */
-    public SchemaValidationPolicy checkAttributeValues(final Policy policy) {
+    public SchemaValidationPolicy checkAttributeValues(final Action policy) {
         this.checkAttributeValues = policy;
         return this;
     }
@@ -274,7 +269,7 @@ public final class SchemaValidationPolicy {
      * @return The policy for validating entries against content rules defined
      *         in the schema.
      */
-    public Policy checkDITContentRules() {
+    public Action checkDITContentRules() {
         return checkDITContentRules;
     }
 
@@ -289,7 +284,7 @@ public final class SchemaValidationPolicy {
      *            defined in the schema.
      * @return A reference to this {@code SchemaValidationPolicy}.
      */
-    public SchemaValidationPolicy checkDITContentRules(final Policy policy) {
+    public SchemaValidationPolicy checkDITContentRules(final Action policy) {
         this.checkDITContentRules = policy;
         return this;
     }
@@ -303,7 +298,7 @@ public final class SchemaValidationPolicy {
      * @return The policy for validating entries against structure rules defined
      *         in the schema.
      */
-    public Policy checkDITStructureRules() {
+    public Action checkDITStructureRules() {
         return checkDITStructureRules;
     }
 
@@ -325,7 +320,7 @@ public final class SchemaValidationPolicy {
      *             {@code checkDITStructureRules} is either {@code WARN} or
      *             {@code REJECT}.
      */
-    public SchemaValidationPolicy checkDITStructureRules(final Policy policy,
+    public SchemaValidationPolicy checkDITStructureRules(final Action policy,
             final EntryResolver resolver) {
         if (checkDITStructureRules.needsChecking() && resolver == null) {
             throw new IllegalArgumentException(
@@ -359,7 +354,7 @@ public final class SchemaValidationPolicy {
      * @return The policy for validating entries against name forms defined in
      *         the schema.
      */
-    public Policy checkNameForms() {
+    public Action checkNameForms() {
         return checkNameForms;
     }
 
@@ -374,7 +369,7 @@ public final class SchemaValidationPolicy {
      *            in the schema.
      * @return A reference to this {@code SchemaValidationPolicy}.
      */
-    public SchemaValidationPolicy checkNameForms(final Policy policy) {
+    public SchemaValidationPolicy checkNameForms(final Action policy) {
         this.checkNameForms = policy;
         return this;
     }
@@ -389,7 +384,7 @@ public final class SchemaValidationPolicy {
      * @return The policy for checking that entries have one and only one
      *         structural object class.
      */
-    public Policy requireSingleStructuralObjectClass() {
+    public Action requireSingleStructuralObjectClass() {
         return requireSingleStructuralObjectClass;
     }
 
@@ -405,7 +400,7 @@ public final class SchemaValidationPolicy {
      *            structural object class.
      * @return A reference to this {@code SchemaValidationPolicy}.
      */
-    public SchemaValidationPolicy requireSingleStructuralObjectClass(final Policy policy) {
+    public SchemaValidationPolicy requireSingleStructuralObjectClass(final Action policy) {
         this.requireSingleStructuralObjectClass = policy;
         return this;
     }
