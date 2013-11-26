@@ -63,13 +63,13 @@
     </mailingList>
   </mailingLists>
   <scm>
-    <url>https://svn.forgerock.org/opendj/trunk/opendj3/</url>
-    <connection>scm:svn:https://svn.forgerock.org/opendj/trunk/opendj3/</connection>
-    <developerConnection>scm:svn:https://svn.forgerock.org/opendj/trunk/opendj3/</developerConnection>
+    <url>https://svn.forgerock.org/opendj/trunk/opendj/</url>
+    <connection>scm:svn:https://svn.forgerock.org/opendj/trunk/opendj/</connection>
+    <developerConnection>scm:svn:https://svn.forgerock.org/opendj/trunk/opendj/</developerConnection>
   </scm>
   <ciManagement>
     <system>jenkins</system>
-    <url>http://builds.forgerock.org/job/OpenDJ3</url>
+    <url>https://builds.forgerock.org/view/OpenDJ/job/OpenDJ%20SDK%20-%20trunk%20-%20postcommit/</url>
     <notifiers>
       <notifier>
         <type>mail</type>
