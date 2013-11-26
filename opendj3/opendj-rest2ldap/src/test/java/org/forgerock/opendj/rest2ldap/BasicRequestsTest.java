@@ -23,7 +23,6 @@ import static org.forgerock.json.fluent.JsonValue.json;
 import static org.forgerock.json.fluent.JsonValue.object;
 import static org.forgerock.json.resource.PatchOperation.add;
 import static org.forgerock.json.resource.PatchOperation.increment;
-import static org.forgerock.json.resource.PatchOperation.operation;
 import static org.forgerock.json.resource.PatchOperation.remove;
 import static org.forgerock.json.resource.PatchOperation.replace;
 import static org.forgerock.json.resource.Requests.newDeleteRequest;
@@ -424,13 +423,6 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
     public void testPatchUnknownAttribute() throws Exception {
         final Connection connection = newConnection();
         connection.patch(ctx(), newPatchRequest("/test1", add("/dummy", "junk")));
-    }
-
-    @Test(expectedExceptions = NotSupportedException.class)
-    public void testPatchUnknownOperation() throws Exception {
-        final Connection connection = newConnection();
-        connection.patch(ctx(), newPatchRequest("/test1", operation("dummy", "/description",
-                asList("one", "two"))));
     }
 
     @Test(expectedExceptions = BadRequestException.class)

@@ -28,9 +28,9 @@ package org.forgerock.opendj.ldap.requests;
 
 import static org.testng.Assert.assertNotNull;
 
+import org.forgerock.opendj.io.LDAP;
 import org.testng.annotations.Test;
 
-import com.forgerock.opendj.ldap.LDAPConstants;
 
 /**
  * Tests the BIND requests.
@@ -40,7 +40,7 @@ public abstract class BindRequestTestCase extends RequestTestCase {
     @Test(dataProvider = "testRequests")
     public void testAuthType(final BindRequest request) throws Exception {
         final byte b = request.getAuthenticationType();
-        if (!(b == LDAPConstants.TYPE_AUTHENTICATION_SASL || b == LDAPConstants.TYPE_AUTHENTICATION_SIMPLE)) {
+        if (!(b == LDAP.TYPE_AUTHENTICATION_SASL || b == LDAP.TYPE_AUTHENTICATION_SIMPLE)) {
             throw new Exception("Invalid bind type");
         }
     }

@@ -90,7 +90,7 @@ import com.forgerock.opendj.util.Validator;
  *
  * @see EntryGenerator
  */
-class TemplateFile {
+final class TemplateFile {
 
     /** Default resource path used if no resource path is provided. */
     private static final File DEFAULT_RESOURCES_PATH = new File("org/forgerock/opendj/ldif");
@@ -1196,10 +1196,9 @@ class TemplateFile {
      *            The path provided for the file, which can be absolute or
      *            relative.
      * @return A reader on the file, or <code>null</code> if it could not be
-     *         found. It is the responsability of caller to close the returned
+     *         found. It is the responsibility of caller to close the returned
      *         reader.
      */
-    @SuppressWarnings("resource")
     BufferedReader getReader(final String filePath) {
         BufferedReader reader = null;
         File file = new File(filePath);
@@ -1964,15 +1963,18 @@ class TemplateFile {
          * The line number on which this template line appears in the template
          * file.
          */
+        @SuppressWarnings("unused")
         private final int lineNumber;
 
         /** The set of tags for this template line. */
         private final List<TemplateTag> tags;
 
         /** Whether this line corresponds to an URL value or not. */
+        @SuppressWarnings("unused")
         private final boolean isURL;
 
         /** Whether this line corresponds to a base64 encoded value or not. */
+        @SuppressWarnings("unused")
         private final boolean isBase64;
 
         /**

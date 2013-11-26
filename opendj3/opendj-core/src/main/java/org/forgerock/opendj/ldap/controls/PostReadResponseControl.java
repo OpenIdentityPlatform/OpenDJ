@@ -27,26 +27,21 @@
 
 package org.forgerock.opendj.ldap.controls;
 
-import static com.forgerock.opendj.ldap.CoreMessages.ERR_POSTREADRESP_CANNOT_DECODE_VALUE;
-import static com.forgerock.opendj.ldap.CoreMessages.ERR_POSTREADRESP_NO_CONTROL_VALUE;
-import static com.forgerock.opendj.ldap.CoreMessages.ERR_POSTREAD_CONTROL_BAD_OID;
+import static com.forgerock.opendj.ldap.CoreMessages.*;
 
 import java.io.IOException;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.io.ASN1;
 import org.forgerock.opendj.io.ASN1Reader;
-import org.forgerock.opendj.io.ASN1Writer;
+import org.forgerock.opendj.io.LDAP;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.DecodeOptions;
 import org.forgerock.opendj.ldap.Entries;
 import org.forgerock.opendj.ldap.Entry;
-import org.forgerock.opendj.ldap.responses.Responses;
-import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 
-import com.forgerock.opendj.ldap.LDAPUtils;
 import com.forgerock.opendj.util.StaticUtils;
 import com.forgerock.opendj.util.Validator;
 
@@ -116,12 +111,11 @@ public final class PostReadResponseControl implements Control {
                     }
 
                     final ASN1Reader reader = ASN1.getReader(control.getValue());
-                    SearchResultEntry searchEntry;
+                    final Entry entry;
                     try {
-                        searchEntry = LDAPUtils.decodeSearchResultEntry(reader, options);
+                        entry = LDAP.readEntry(reader, options);
                     } catch (final IOException le) {
                         StaticUtils.CONTROLS_LOG.debug("Unable to read result entry ", le);
-
                         final LocalizableMessage message =
                                 ERR_POSTREADRESP_CANNOT_DECODE_VALUE.get(le.getMessage());
                         throw DecodeException.error(message, le);
@@ -134,7 +128,7 @@ public final class PostReadResponseControl implements Control {
                      * controls?
                      */
                     return new PostReadResponseControl(control.isCritical(), Entries
-                            .unmodifiableEntry(searchEntry));
+                            .unmodifiableEntry(entry));
                 }
 
                 public String getOID() {
@@ -195,10 +189,9 @@ public final class PostReadResponseControl implements Control {
      * {@inheritDoc}
      */
     public ByteString getValue() {
-        final ByteStringBuilder buffer = new ByteStringBuilder();
-        final ASN1Writer writer = ASN1.getWriter(buffer);
         try {
-            LDAPUtils.encodeSearchResultEntry(writer, Responses.newSearchResultEntry(entry));
+            final ByteStringBuilder buffer = new ByteStringBuilder();
+            LDAP.writeEntry(ASN1.getWriter(buffer), entry);
             return buffer.toByteString();
         } catch (final IOException ioe) {
             // This should never happen unless there is a bug somewhere.

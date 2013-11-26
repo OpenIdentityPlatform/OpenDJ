@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2012 ForgeRock AS.
+ *      Copyright 2012-2013 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap;
 
@@ -37,6 +37,7 @@ import org.forgerock.opendj.ldap.responses.ExtendedResult;
  * A connection event listener which records events and signals when it has been
  * notified.
  */
+@SuppressWarnings("javadoc")
 public final class MockConnectionEventListener implements ConnectionEventListener {
     private final CountDownLatch closedLatch = new CountDownLatch(1);
     private final CountDownLatch errorLatch = new CountDownLatch(1);

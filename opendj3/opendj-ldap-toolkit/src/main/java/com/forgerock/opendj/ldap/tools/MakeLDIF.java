@@ -128,7 +128,7 @@ public final class MakeLDIF extends ConsoleApplication {
                 return EXIT_CODE_FAILURE;
             }
 
-            if (generator.hasWarning()) {
+            if (generator.hasWarnings()) {
                 for (LocalizableMessage warn : generator.getWarnings()) {
                     println(warn);
                 }

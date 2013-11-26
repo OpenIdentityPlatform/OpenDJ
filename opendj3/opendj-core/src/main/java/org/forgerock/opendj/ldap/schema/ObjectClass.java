@@ -73,9 +73,6 @@ public final class ObjectClass extends SchemaElement {
     // The set of optional attribute types for this objectclass.
     private final Set<String> optionalAttributeOIDs;
 
-    // The definition string used to create this objectclass.
-    private final String definition;
-
     private Set<ObjectClass> superiorClasses = Collections.emptySet();
     private Set<AttributeType> declaredRequiredAttributes = Collections.emptySet();
     private Set<AttributeType> requiredAttributes = Collections.emptySet();
@@ -93,7 +90,7 @@ public final class ObjectClass extends SchemaElement {
             final Set<String> requiredAttributeOIDs, final Set<String> optionalAttributeOIDs,
             final ObjectClassType objectClassType, final Map<String, List<String>> extraProperties,
             final String definition) {
-        super(description, extraProperties);
+        super(description, extraProperties, definition);
 
         Validator.ensureNotNull(oid, names);
         Validator.ensureNotNull(superiorClassOIDs, requiredAttributeOIDs, optionalAttributeOIDs,
@@ -105,12 +102,6 @@ public final class ObjectClass extends SchemaElement {
         this.objectClassType = objectClassType;
         this.requiredAttributeOIDs = requiredAttributeOIDs;
         this.optionalAttributeOIDs = optionalAttributeOIDs;
-
-        if (definition != null) {
-            this.definition = definition;
-        } else {
-            this.definition = buildDefinition();
-        }
     }
 
     /**
@@ -124,7 +115,7 @@ public final class ObjectClass extends SchemaElement {
      *            The map of "extra" properties for this schema definition
      */
     ObjectClass(final String description, final Map<String, List<String>> extraProperties) {
-        super(description, extraProperties);
+        super(description, extraProperties, null);
         this.oid = EXTENSIBLE_OBJECT_OBJECTCLASS_OID;
         this.names = Collections.singletonList(EXTENSIBLE_OBJECT_OBJECTCLASS_NAME);
         this.isObsolete = false;
@@ -132,8 +123,6 @@ public final class ObjectClass extends SchemaElement {
         this.objectClassType = ObjectClassType.AUXILIARY;
         this.requiredAttributeOIDs = Collections.emptySet();
         this.optionalAttributeOIDs = Collections.emptySet();
-
-        this.definition = buildDefinition();
     }
 
     /**
@@ -370,22 +359,10 @@ public final class ObjectClass extends SchemaElement {
         return isRequired(attributeType) || isOptional(attributeType);
     }
 
-    /**
-     * Returns the string representation of this schema definition in the form
-     * specified in RFC 2252.
-     *
-     * @return The string representation of this schema definition in the form
-     *         specified in RFC 2252.
-     */
-    @Override
-    public String toString() {
-        return definition;
-    }
-
     ObjectClass duplicate() {
-        return new ObjectClass(oid, names, description, isObsolete, superiorClassOIDs,
-                requiredAttributeOIDs, optionalAttributeOIDs, objectClassType, extraProperties,
-                definition);
+        return new ObjectClass(oid, names, getDescription(), isObsolete, superiorClassOIDs,
+                requiredAttributeOIDs, optionalAttributeOIDs, objectClassType,
+                getExtraProperties(), toString());
     }
 
     @Override
@@ -413,11 +390,7 @@ public final class ObjectClass extends SchemaElement {
             }
         }
 
-        if (description != null && description.length() > 0) {
-            buffer.append(" DESC '");
-            buffer.append(description);
-            buffer.append("'");
-        }
+        appendDescription(buffer);
 
         if (isObsolete) {
             buffer.append(" OBSOLETE");

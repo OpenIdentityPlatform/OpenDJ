@@ -27,10 +27,14 @@
 
 package org.forgerock.opendj.ldap.schema;
 
+import static org.forgerock.opendj.ldap.schema.SchemaUtils.unmodifiableCopyOfExtraProperties;
+
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import com.forgerock.opendj.util.Validator;
 
@@ -43,127 +47,239 @@ import com.forgerock.opendj.util.Validator;
  * definitions).
  */
 abstract class SchemaElement {
+    static abstract class SchemaElementBuilder<T extends SchemaElementBuilder<T>> {
+        private String definition;
+        private String description;
+        private final Map<String, List<String>> extraProperties;
+        private final SchemaBuilder schemaBuilder;
+
+        SchemaElementBuilder(final SchemaBuilder schemaBuilder) {
+            this.schemaBuilder = schemaBuilder;
+            this.description = "";
+            this.extraProperties = new LinkedHashMap<String, List<String>>(1);
+        }
+
+        SchemaElementBuilder(final SchemaBuilder schemaBuilder, final SchemaElement copy) {
+            this.schemaBuilder = schemaBuilder;
+            this.description = copy.description;
+            this.extraProperties = new LinkedHashMap<String, List<String>>(copy.extraProperties);
+        }
+
+        /**
+         * Sets the description.
+         *
+         * @param description
+         *            The description, which may be {@code null} in which case
+         *            the empty string will be used.
+         * @return This builder.
+         */
+        public T description(final String description) {
+            this.description = description == null ? "" : description;
+            return getThis();
+        }
+
+        /**
+         * Adds the provided collection of extended properties.
+         *
+         * @param extraProperties
+         *            The collection of extended properties.
+         * @return This builder.
+         */
+        public T extraProperties(final Map<String, List<String>> extraProperties) {
+            this.extraProperties.putAll(extraProperties);
+            return getThis();
+        }
+
+        /**
+         * Adds the provided extended property.
+         *
+         * @param extensionName
+         *            The name of the extended property.
+         * @param extensionValues
+         *            The optional list of values for the extended property.
+         * @return This builder.
+         */
+        public T extraProperties(final String extensionName, final String... extensionValues) {
+            if (this.extraProperties.get(extensionName) != null) {
+                final List<String> tempExtraProperties =
+                        new ArrayList<String>(this.extraProperties.get(extensionName));
+                tempExtraProperties.addAll(Arrays.asList(extensionValues));
+                this.extraProperties.put(extensionName, tempExtraProperties);
+            } else {
+                this.extraProperties.put(extensionName, Arrays.asList(extensionValues));
+            }
+            return getThis();
+        }
+
+        /**
+         * Removes all extra properties.
+         *
+         * @return This builder.
+         */
+        public T removeAllExtraProperties() {
+            this.extraProperties.clear();
+            return getThis();
+        }
+
+        /**
+         * Removes the specified extended property.
+         *
+         * @param extensionName
+         *            The name of the extended property.
+         * @param extensionValues
+         *            The optional list of values for the extended property,
+         *            which may be empty indicating that the entire property
+         *            should be removed.
+         * @return This builder.
+         */
+        public T removeExtraProperty(final String extensionName, final String... extensionValues) {
+            if (this.extraProperties.get(extensionName) != null && extensionValues.length > 0) {
+                final List<String> tempExtraProperties =
+                        new ArrayList<String>(this.extraProperties.get(extensionName));
+                tempExtraProperties.removeAll(Arrays.asList(extensionValues));
+                this.extraProperties.put(extensionName, tempExtraProperties);
+            } else if (this.extraProperties.get(extensionName) != null) {
+                this.extraProperties.remove(extensionName);
+            }
+            return getThis();
+        }
+
+        T definition(final String definition) {
+            this.definition = definition;
+            return getThis();
+        }
+
+        String getDescription() {
+            return description;
+        }
+
+        Map<String, List<String>> getExtraProperties() {
+            return extraProperties;
+        }
+
+        SchemaBuilder getSchemaBuilder() {
+            return schemaBuilder;
+        }
+
+        abstract T getThis();
+    }
+
+    /**
+     * Lazily created string representation.
+     */
+    private String definition;
+
     // The description for this definition.
-    final String description;
+    private final String description;
 
     // The set of additional name-value pairs.
-    final Map<String, List<String>> extraProperties;
+    private final Map<String, List<String>> extraProperties;
 
-    SchemaElement(final String description, final Map<String, List<String>> extraProperties) {
+    SchemaElement() {
+        this.description = "";
+        this.extraProperties = Collections.<String, List<String>> emptyMap();
+        this.definition = null;
+    }
+
+    SchemaElement(final SchemaElementBuilder<?> builder) {
+        this.description = builder.description;
+        this.extraProperties = unmodifiableCopyOfExtraProperties(builder.extraProperties);
+        this.definition = builder.definition;
+    }
+
+    SchemaElement(final String description, final Map<String, List<String>> extraProperties,
+            final String definition) {
         Validator.ensureNotNull(description, extraProperties);
         this.description = description;
-
-        // Assumes caller has made the map unmodifiable.
-        this.extraProperties = extraProperties;
+        this.extraProperties = extraProperties; // Should already be unmodifiable.
+        this.definition = definition;
     }
 
     /**
      * {@inheritDoc}
      */
+    @Override
     public abstract boolean equals(Object obj);
 
     /**
-     * Returns the description of this schema definition.
+     * Returns the description of this schema element, or the empty string if it
+     * does not have a description.
      *
-     * @return The description of this schema definition.
+     * @return The description of this schema element, or the empty string if it
+     *         does not have a description.
      */
     public final String getDescription() {
-
         return description;
     }
 
     /**
-     * Returns an unmodifiable list containing the values of the named "extra"
-     * property for this schema definition.
+     * Returns an unmodifiable map containing all of the extra properties
+     * associated with this schema element.
      *
-     * @param name
-     *            The name of the "extra" property whose values are to be
-     *            returned.
-     * @return Returns an unmodifiable list containing the values of the named
-     *         "extra" property for this schema definition, which may be empty
-     *         if no such property is defined.
+     * @return An unmodifiable map containing all of the extra properties
+     *         associated with this schema element.
      */
-    public final List<String> getExtraProperty(final String name) {
-
-        final List<String> values = extraProperties.get(name);
-        return values != null ? values : Collections.<String> emptyList();
-    }
-
-    /**
-     * Returns an unmodifiable set containing the names of the "extra"
-     * properties associated with this schema definition.
-     *
-     * @return Returns an unmodifiable set containing the names of the "extra"
-     *         properties associated with this schema definition.
-     */
-    public final Set<String> getExtraPropertyNames() {
-
-        return extraProperties.keySet();
+    public final Map<String, List<String>> getExtraProperties() {
+        return extraProperties;
     }
 
     /**
      * {@inheritDoc}
      */
+    @Override
     public abstract int hashCode();
 
     /**
-     * {@inheritDoc}
-     */
-    public abstract String toString();
-
-    /**
-     * Builds a string representation of this schema definition in the form
-     * specified in RFC 2252.
+     * Returns the string representation of this schema element as defined in
+     * RFC 2252.
      *
-     * @return The string representation of this schema definition in the form
-     *         specified in RFC 2252.
+     * @return The string representation of this schema element as defined in
+     *         RFC 2252.
      */
-    final String buildDefinition() {
+    @Override
+    public final String toString() {
+        if (definition == null) {
+            definition = buildDefinition();
+        }
+        return definition;
+    }
+
+    final void appendDescription(final StringBuilder buffer) {
+        if (description != null && description.length() > 0) {
+            buffer.append(" DESC '");
+            buffer.append(description);
+            buffer.append("'");
+        }
+    }
+
+    abstract void toStringContent(StringBuilder buffer);
+
+    private final String buildDefinition() {
         final StringBuilder buffer = new StringBuilder();
-
         buffer.append("( ");
-
         toStringContent(buffer);
-
         if (!extraProperties.isEmpty()) {
             for (final Map.Entry<String, List<String>> e : extraProperties.entrySet()) {
-
                 final String property = e.getKey();
-
                 final List<String> valueList = e.getValue();
-
                 buffer.append(" ");
                 buffer.append(property);
-
                 if (valueList.size() == 1) {
                     buffer.append(" '");
                     buffer.append(valueList.get(0));
                     buffer.append("'");
                 } else {
                     buffer.append(" ( ");
-
                     for (final String value : valueList) {
                         buffer.append("'");
                         buffer.append(value);
                         buffer.append("' ");
                     }
-
                     buffer.append(")");
                 }
             }
         }
-
         buffer.append(" )");
-
         return buffer.toString();
     }
-
-    /**
-     * Appends a string representation of this schema definition's non-generic
-     * properties to the provided buffer.
-     *
-     * @param buffer
-     *            The buffer to which the information should be appended.
-     */
-    abstract void toStringContent(StringBuilder buffer);
 }

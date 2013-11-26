@@ -27,8 +27,7 @@
 
 package org.forgerock.opendj.ldap.requests;
 
-import static com.forgerock.opendj.ldap.LDAPConstants.TYPE_AUTHENTICATION_SIMPLE;
-
+import org.forgerock.opendj.io.LDAP;
 import org.forgerock.opendj.ldap.ErrorResultException;
 
 import com.forgerock.opendj.util.StaticUtils;
@@ -60,7 +59,7 @@ final class SimpleBindRequestImpl extends AbstractBindRequest<SimpleBindRequest>
 
     @Override
     public byte getAuthenticationType() {
-        return TYPE_AUTHENTICATION_SIMPLE;
+        return LDAP.TYPE_AUTHENTICATION_SIMPLE;
     }
 
     @Override

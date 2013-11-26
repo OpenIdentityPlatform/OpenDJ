@@ -99,6 +99,7 @@
     <module>opendj-server2x-adapter</module>
   </modules>
   <properties>
+    <forgerockBuildToolsVersion>1.0.2</forgerockBuildToolsVersion>
     <currentSDKversion>${project.version}</currentSDKversion>
     <stableSDKversion>version.not.defined</stableSDKversion>
     <currentServerVersion>2.5.0-SNAPSHOT</currentServerVersion>

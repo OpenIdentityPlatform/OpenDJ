@@ -27,9 +27,9 @@ package com.forgerock.opendj.grizzly;
 
 import java.io.IOException;
 
+import org.forgerock.opendj.io.LDAPMessageHandler;
 import org.forgerock.opendj.io.LDAPReader;
 import org.forgerock.opendj.ldap.DecodeOptions;
-import org.forgerock.opendj.ldap.spi.LDAPMessageHandler;
 import org.glassfish.grizzly.Buffer;
 import org.glassfish.grizzly.filterchain.BaseFilter;
 import org.glassfish.grizzly.filterchain.FilterChainContext;

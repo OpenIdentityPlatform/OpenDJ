@@ -28,12 +28,12 @@
 package com.forgerock.opendj.grizzly;
 
 import static com.forgerock.opendj.ldap.CoreMessages.*;
-import static com.forgerock.opendj.ldap.LDAPConstants.*;
 import static com.forgerock.opendj.util.StaticUtils.*;
 
 import java.io.IOException;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.io.ASN1;
 import org.forgerock.opendj.io.ASN1Reader;
 import org.forgerock.opendj.io.AbstractASN1Reader;
 import org.forgerock.opendj.ldap.ByteString;
@@ -50,11 +50,8 @@ import org.glassfish.grizzly.memory.MemoryManager;
 final class ASN1BufferReader extends AbstractASN1Reader {
     private final class ChildSequenceLimiter implements SequenceLimiter {
         private SequenceLimiter parent;
-
         private ChildSequenceLimiter child;
-
         private int readLimit;
-
         private int bytesRead;
 
         public void checkLimit(final int readSize) throws IOException {
@@ -62,23 +59,18 @@ final class ASN1BufferReader extends AbstractASN1Reader {
                 final LocalizableMessage message = ERR_ASN1_TRUNCATED_LENGTH_BYTE.get();
                 throw DecodeException.fatalError(message);
             }
-
             parent.checkLimit(readSize);
-
             bytesRead += readSize;
         }
 
         public SequenceLimiter endSequence() throws IOException {
             parent.checkLimit(remaining());
-
             if (remaining() > 0) {
                 IO_LOG.debug("Ignoring {} unused trailing bytes in ASN.1 SEQUENCE", remaining());
             }
-
             for (int i = 0; i < remaining(); i++) {
                 buffer.get();
             }
-
             return parent;
         }
 
@@ -91,10 +83,8 @@ final class ASN1BufferReader extends AbstractASN1Reader {
                 child = new ChildSequenceLimiter();
                 child.parent = this;
             }
-
             child.readLimit = readLimit;
             child.bytesRead = 0;
-
             return child;
         }
     }
@@ -123,10 +113,8 @@ final class ASN1BufferReader extends AbstractASN1Reader {
                 child = new ChildSequenceLimiter();
                 child.parent = this;
             }
-
             child.readLimit = readLimit;
             child.bytesRead = 0;
-
             return child;
         }
     }
@@ -142,21 +130,13 @@ final class ASN1BufferReader extends AbstractASN1Reader {
     }
 
     private static final int MAX_STRING_BUFFER_SIZE = 1024;
-
-    private int state = ELEMENT_READ_STATE_NEED_TYPE;
-
+    private int state = ASN1.ELEMENT_READ_STATE_NEED_TYPE;
     private byte peekType = 0;
-
     private int peekLength = -1;
-
     private int lengthBytesNeeded = 0;
-
     private final int maxElementSize;
-
     private final CompositeBuffer buffer;
-
     private SequenceLimiter readLimiter;
-
     private final byte[] stringBuffer;
 
     /**
@@ -196,10 +176,11 @@ final class ASN1BufferReader extends AbstractASN1Reader {
      *             If an error occurs while trying to decode an ASN1 element.
      */
     public boolean elementAvailable() throws IOException {
-        return !((state == ELEMENT_READ_STATE_NEED_TYPE) && !needTypeState(true))
-                && !((state == ELEMENT_READ_STATE_NEED_FIRST_LENGTH_BYTE)
+        return !((state == ASN1.ELEMENT_READ_STATE_NEED_TYPE)
+                        && !needTypeState(true))
+                && !((state == ASN1.ELEMENT_READ_STATE_NEED_FIRST_LENGTH_BYTE)
                         && !needFirstLengthByteState(true))
-                && !((state == ELEMENT_READ_STATE_NEED_ADDITIONAL_LENGTH_BYTES)
+                && !((state == ASN1.ELEMENT_READ_STATE_NEED_ADDITIONAL_LENGTH_BYTES)
                         && !needAdditionalLengthBytesState(true))
                 && peekLength <= readLimiter.remaining();
 
@@ -215,7 +196,7 @@ final class ASN1BufferReader extends AbstractASN1Reader {
      *             If an error occurs while trying to decode an ASN1 element.
      */
     public boolean hasNextElement() throws IOException {
-        return (state != ELEMENT_READ_STATE_NEED_TYPE) || needTypeState(true);
+        return (state != ASN1.ELEMENT_READ_STATE_NEED_TYPE) || needTypeState(true);
     }
 
     /**
@@ -225,11 +206,11 @@ final class ASN1BufferReader extends AbstractASN1Reader {
         peekType();
 
         switch (state) {
-        case ELEMENT_READ_STATE_NEED_FIRST_LENGTH_BYTE:
+        case ASN1.ELEMENT_READ_STATE_NEED_FIRST_LENGTH_BYTE:
             needFirstLengthByteState(false);
             break;
 
-        case ELEMENT_READ_STATE_NEED_ADDITIONAL_LENGTH_BYTES:
+        case ASN1.ELEMENT_READ_STATE_NEED_ADDITIONAL_LENGTH_BYTES:
             needAdditionalLengthBytesState(false);
         }
 
@@ -240,7 +221,7 @@ final class ASN1BufferReader extends AbstractASN1Reader {
      * {@inheritDoc}
      */
     public byte peekType() throws IOException {
-        if (state == ELEMENT_READ_STATE_NEED_TYPE) {
+        if (state == ASN1.ELEMENT_READ_STATE_NEED_TYPE) {
             needTypeState(false);
         }
 
@@ -262,10 +243,10 @@ final class ASN1BufferReader extends AbstractASN1Reader {
         readLimiter.checkLimit(peekLength);
         final byte readByte = buffer.get();
 
-        IO_LOG.trace("READ ASN.1 BOOLEAN(type=0x{}, length={}, value={})",
-                byteToHex(peekType), peekLength, String.valueOf(readByte != 0x00));
+        IO_LOG.trace("READ ASN.1 BOOLEAN(type=0x{}, length={}, value={})", byteToHex(peekType),
+                peekLength, String.valueOf(readByte != 0x00));
 
-        state = ELEMENT_READ_STATE_NEED_TYPE;
+        state = ASN1.ELEMENT_READ_STATE_NEED_TYPE;
         return readByte != 0x00;
     }
 
@@ -278,7 +259,7 @@ final class ASN1BufferReader extends AbstractASN1Reader {
         IO_LOG.debug("READ ASN.1 END SEQUENCE");
 
         // Reset the state
-        state = ELEMENT_READ_STATE_NEED_TYPE;
+        state = ASN1.ELEMENT_READ_STATE_NEED_TYPE;
     }
 
     /**
@@ -330,7 +311,7 @@ final class ASN1BufferReader extends AbstractASN1Reader {
                 longValue = (longValue << 8) | (readByte & 0xFF);
             }
 
-            state = ELEMENT_READ_STATE_NEED_TYPE;
+            state = ASN1.ELEMENT_READ_STATE_NEED_TYPE;
             return longValue;
         } else {
             int intValue = 0;
@@ -342,10 +323,10 @@ final class ASN1BufferReader extends AbstractASN1Reader {
                 intValue = (intValue << 8) | (readByte & 0xFF);
             }
 
-            IO_LOG.trace("READ ASN.1 INTEGER(type=0x{}, length={}, value={})",
-                    byteToHex(peekType), peekLength, intValue);
+            IO_LOG.trace("READ ASN.1 INTEGER(type=0x{}, length={}, value={})", byteToHex(peekType),
+                    peekLength, intValue);
 
-            state = ELEMENT_READ_STATE_NEED_TYPE;
+            state = ASN1.ELEMENT_READ_STATE_NEED_TYPE;
             return intValue;
         }
     }
@@ -363,10 +344,9 @@ final class ASN1BufferReader extends AbstractASN1Reader {
             throw DecodeException.fatalError(message);
         }
 
-        IO_LOG.trace("READ ASN.1 NULL(type=0x{}, length={})",
-                    byteToHex(peekType), peekLength);
+        IO_LOG.trace("READ ASN.1 NULL(type=0x{}, length={})", byteToHex(peekType), peekLength);
 
-        state = ELEMENT_READ_STATE_NEED_TYPE;
+        state = ASN1.ELEMENT_READ_STATE_NEED_TYPE;
     }
 
     /**
@@ -377,7 +357,7 @@ final class ASN1BufferReader extends AbstractASN1Reader {
         peekLength();
 
         if (peekLength == 0) {
-            state = ELEMENT_READ_STATE_NEED_TYPE;
+            state = ASN1.ELEMENT_READ_STATE_NEED_TYPE;
             return ByteString.empty();
         }
 
@@ -386,9 +366,10 @@ final class ASN1BufferReader extends AbstractASN1Reader {
         final byte[] value = new byte[peekLength];
         buffer.get(value);
 
-        IO_LOG.trace("READ ASN.1 OCTETSTRING(type=0x{}, length={})", byteToHex(peekType), peekLength);
+        IO_LOG.trace("READ ASN.1 OCTETSTRING(type=0x{}, length={})", byteToHex(peekType),
+                peekLength);
 
-        state = ELEMENT_READ_STATE_NEED_TYPE;
+        state = ASN1.ELEMENT_READ_STATE_NEED_TYPE;
         return ByteString.wrap(value);
     }
 
@@ -400,7 +381,7 @@ final class ASN1BufferReader extends AbstractASN1Reader {
         peekLength();
 
         if (peekLength == 0) {
-            state = ELEMENT_READ_STATE_NEED_TYPE;
+            state = ASN1.ELEMENT_READ_STATE_NEED_TYPE;
             return builder;
         }
 
@@ -411,9 +392,10 @@ final class ASN1BufferReader extends AbstractASN1Reader {
             builder.append(buffer.get());
         }
 
-        IO_LOG.trace("READ ASN.1 OCTETSTRING(type=0x{}, length={})", byteToHex(peekType), peekLength);
+        IO_LOG.trace("READ ASN.1 OCTETSTRING(type=0x{}, length={})", byteToHex(peekType),
+                peekLength);
 
-        state = ELEMENT_READ_STATE_NEED_TYPE;
+        state = ASN1.ELEMENT_READ_STATE_NEED_TYPE;
         return builder;
     }
 
@@ -425,7 +407,7 @@ final class ASN1BufferReader extends AbstractASN1Reader {
         peekLength();
 
         if (peekLength == 0) {
-            state = ELEMENT_READ_STATE_NEED_TYPE;
+            state = ASN1.ELEMENT_READ_STATE_NEED_TYPE;
             return "";
         }
 
@@ -439,7 +421,7 @@ final class ASN1BufferReader extends AbstractASN1Reader {
         readLimiter.checkLimit(peekLength);
         buffer.get(readBuffer, 0, peekLength);
 
-        state = ELEMENT_READ_STATE_NEED_TYPE;
+        state = ASN1.ELEMENT_READ_STATE_NEED_TYPE;
 
         String str;
         try {
@@ -451,8 +433,8 @@ final class ASN1BufferReader extends AbstractASN1Reader {
             str = new String(stringBuffer, 0, peekLength);
         }
 
-        IO_LOG.trace("READ ASN.1 OCTETSTRING(type=0x{}, length={}, value={})",
-                byteToHex(peekType), peekLength, str);
+        IO_LOG.trace("READ ASN.1 OCTETSTRING(type=0x{}, length={}, value={})", byteToHex(peekType),
+                peekLength, str);
 
         return str;
     }
@@ -466,11 +448,11 @@ final class ASN1BufferReader extends AbstractASN1Reader {
 
         readLimiter = readLimiter.startSequence(peekLength);
 
-        IO_LOG.trace("READ ASN.1 START SEQUENCE(type=0x{}, length={})",
-                byteToHex(peekType), peekLength);
+        IO_LOG.trace("READ ASN.1 START SEQUENCE(type=0x{}, length={})", byteToHex(peekType),
+                peekLength);
 
         // Reset the state
-        state = ELEMENT_READ_STATE_NEED_TYPE;
+        state = ASN1.ELEMENT_READ_STATE_NEED_TYPE;
     }
 
     /**
@@ -493,7 +475,7 @@ final class ASN1BufferReader extends AbstractASN1Reader {
         for (int i = 0; i < peekLength; i++) {
             buffer.get();
         }
-        state = ELEMENT_READ_STATE_NEED_TYPE;
+        state = ASN1.ELEMENT_READ_STATE_NEED_TYPE;
         return this;
     }
 
@@ -536,7 +518,7 @@ final class ASN1BufferReader extends AbstractASN1Reader {
                             .get(peekLength, maxElementSize);
             throw DecodeException.fatalError(m);
         }
-        state = ELEMENT_READ_STATE_NEED_VALUE_BYTES;
+        state = ASN1.ELEMENT_READ_STATE_NEED_VALUE_BYTES;
         return true;
     }
 
@@ -568,7 +550,7 @@ final class ASN1BufferReader extends AbstractASN1Reader {
             peekLength = 0x00;
 
             if (ensureRead && (readLimiter.remaining() < lengthBytesNeeded)) {
-                state = ELEMENT_READ_STATE_NEED_ADDITIONAL_LENGTH_BYTES;
+                state = ASN1.ELEMENT_READ_STATE_NEED_ADDITIONAL_LENGTH_BYTES;
                 return false;
             }
 
@@ -588,7 +570,7 @@ final class ASN1BufferReader extends AbstractASN1Reader {
                             .get(peekLength, maxElementSize);
             throw DecodeException.fatalError(m);
         }
-        state = ELEMENT_READ_STATE_NEED_VALUE_BYTES;
+        state = ASN1.ELEMENT_READ_STATE_NEED_VALUE_BYTES;
         return true;
     }
 
@@ -610,7 +592,7 @@ final class ASN1BufferReader extends AbstractASN1Reader {
 
         readLimiter.checkLimit(1);
         peekType = buffer.get();
-        state = ELEMENT_READ_STATE_NEED_FIRST_LENGTH_BYTE;
+        state = ASN1.ELEMENT_READ_STATE_NEED_FIRST_LENGTH_BYTE;
         return true;
     }
 }

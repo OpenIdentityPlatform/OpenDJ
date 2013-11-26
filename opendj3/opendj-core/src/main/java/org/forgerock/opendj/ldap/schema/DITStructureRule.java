@@ -61,9 +61,6 @@ public final class DITStructureRule extends SchemaElement {
     // The set of superior DIT structure rules.
     private final Set<Integer> superiorRuleIDs;
 
-    // The definition string used to create this objectclass.
-    private final String definition;
-
     private NameForm nameForm;
     private Set<DITStructureRule> superiorRules = Collections.emptySet();
 
@@ -76,7 +73,7 @@ public final class DITStructureRule extends SchemaElement {
     DITStructureRule(final Integer ruleID, final List<String> names, final String description,
             final boolean obsolete, final String nameFormOID, final Set<Integer> superiorRuleIDs,
             final Map<String, List<String>> extraProperties, final String definition) {
-        super(description, extraProperties);
+        super(description, extraProperties, definition);
 
         Validator.ensureNotNull(ruleID, nameFormOID, superiorRuleIDs);
         this.ruleID = ruleID;
@@ -84,12 +81,6 @@ public final class DITStructureRule extends SchemaElement {
         this.isObsolete = obsolete;
         this.nameFormOID = nameFormOID;
         this.superiorRuleIDs = superiorRuleIDs;
-
-        if (definition != null) {
-            this.definition = definition;
-        } else {
-            this.definition = buildDefinition();
-        }
     }
 
     /**
@@ -205,21 +196,9 @@ public final class DITStructureRule extends SchemaElement {
         return isObsolete;
     }
 
-    /**
-     * Retrieves the string representation of this schema definition in the form
-     * specified in RFC 2252.
-     *
-     * @return The string representation of this schema definition in the form
-     *         specified in RFC 2252.
-     */
-    @Override
-    public String toString() {
-        return definition;
-    }
-
     DITStructureRule duplicate() {
-        return new DITStructureRule(ruleID, names, description, isObsolete, nameFormOID,
-                superiorRuleIDs, extraProperties, definition);
+        return new DITStructureRule(ruleID, names, getDescription(), isObsolete, nameFormOID,
+                superiorRuleIDs, getExtraProperties(), toString());
     }
 
     @Override
@@ -247,11 +226,7 @@ public final class DITStructureRule extends SchemaElement {
             }
         }
 
-        if (description != null && description.length() > 0) {
-            buffer.append(" DESC '");
-            buffer.append(description);
-            buffer.append("'");
-        }
+        appendDescription(buffer);
 
         if (isObsolete) {
             buffer.append(" OBSOLETE");

@@ -61,7 +61,6 @@ public abstract class AbstractSchemaElementTestCase extends SchemaTestCase {
     @Test(dataProvider = "equalsTestData")
     public final void testEquals(final SchemaElement e1, final SchemaElement e2,
             final boolean result) throws Exception {
-
         Assert.assertEquals(e1.equals(e2), result);
         Assert.assertEquals(e2.equals(e1), result);
     }
@@ -93,7 +92,7 @@ public abstract class AbstractSchemaElementTestCase extends SchemaTestCase {
     }
 
     /**
-     * Check that the {@link SchemaElement#getExtraProperty(String)} method
+     * Check that the {@link SchemaElement#getExtraProperties()} method
      * returns values.
      *
      * @throws Exception
@@ -108,14 +107,14 @@ public abstract class AbstractSchemaElementTestCase extends SchemaTestCase {
         final SchemaElement e = getElement("", props);
 
         int i = 0;
-        for (final String value : e.getExtraProperty("test")) {
+        for (final String value : e.getExtraProperties().get("test")) {
             Assert.assertEquals(value, values.get(i));
             i++;
         }
     }
 
     /**
-     * Check that the {@link SchemaElement#getExtraProperty(String)} method
+     * Check that the {@link SchemaElement#getExtraProperties()} method
      * returns <code>null</code> when there is no property.
      *
      * @throws Exception
@@ -124,19 +123,7 @@ public abstract class AbstractSchemaElementTestCase extends SchemaTestCase {
     @Test
     public final void testGetExtraPropertyDefault() throws Exception {
         final SchemaElement e = getElement("", EMPTY_PROPS);
-        Assert.assertTrue(e.getExtraProperty("test").isEmpty());
-    }
-
-    /**
-     * Check that the {@link SchemaElement#getExtraPropertyNames()} method.
-     *
-     * @throws Exception
-     *             If the test failed unexpectedly.
-     */
-    @Test
-    public final void testGetExtraPropertyNames() throws Exception {
-        final SchemaElement e = getElement("", EMPTY_PROPS);
-        Assert.assertTrue(e.getExtraProperty("test").isEmpty());
+        Assert.assertNull(e.getExtraProperties().get("test"));
     }
 
     /**
@@ -154,7 +141,6 @@ public abstract class AbstractSchemaElementTestCase extends SchemaTestCase {
     @Test(dataProvider = "equalsTestData")
     public final void testHashCode(final SchemaElement e1, final SchemaElement e2,
             final boolean result) throws Exception {
-
         Assert.assertEquals(e1.hashCode() == e2.hashCode(), result);
     }
 

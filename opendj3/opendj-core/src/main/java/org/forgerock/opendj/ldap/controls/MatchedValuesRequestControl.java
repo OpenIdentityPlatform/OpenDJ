@@ -27,8 +27,8 @@
 
 package org.forgerock.opendj.ldap.controls;
 
-import static com.forgerock.opendj.util.StaticUtils.getExceptionMessage;
 import static com.forgerock.opendj.ldap.CoreMessages.*;
+import static com.forgerock.opendj.util.StaticUtils.getExceptionMessage;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -42,6 +42,7 @@ import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.io.ASN1;
 import org.forgerock.opendj.io.ASN1Reader;
 import org.forgerock.opendj.io.ASN1Writer;
+import org.forgerock.opendj.io.LDAP;
 import org.forgerock.opendj.ldap.AbstractFilterVisitor;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
@@ -49,7 +50,6 @@ import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.DecodeOptions;
 import org.forgerock.opendj.ldap.Filter;
 
-import com.forgerock.opendj.ldap.LDAPUtils;
 import com.forgerock.opendj.util.StaticUtils;
 import com.forgerock.opendj.util.Validator;
 
@@ -191,14 +191,12 @@ public final class MatchedValuesRequestControl implements Control {
 
                         final LinkedList<Filter> filters = new LinkedList<Filter>();
                         do {
-                            final Filter filter = LDAPUtils.decodeFilter(reader);
-
+                            final Filter filter = LDAP.readFilter(reader);
                             try {
                                 validateFilter(filter);
                             } catch (final LocalizedIllegalArgumentException e) {
                                 throw DecodeException.error(e.getMessageObject());
                             }
-
                             filters.add(filter);
                         } while (reader.hasNextElement());
 
@@ -340,7 +338,7 @@ public final class MatchedValuesRequestControl implements Control {
         try {
             writer.writeStartSequence();
             for (final Filter f : filters) {
-                LDAPUtils.encodeFilter(writer, f);
+                LDAP.writeFilter(writer, f);
             }
             writer.writeEndSequence();
             return buffer.toByteString();

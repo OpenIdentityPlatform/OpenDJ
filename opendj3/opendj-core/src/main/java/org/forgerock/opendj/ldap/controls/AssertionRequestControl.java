@@ -27,10 +27,10 @@
 
 package org.forgerock.opendj.ldap.controls;
 
-import static com.forgerock.opendj.util.StaticUtils.getExceptionMessage;
 import static com.forgerock.opendj.ldap.CoreMessages.ERR_LDAPASSERT_CONTROL_BAD_OID;
 import static com.forgerock.opendj.ldap.CoreMessages.ERR_LDAPASSERT_INVALID_CONTROL_VALUE;
 import static com.forgerock.opendj.ldap.CoreMessages.ERR_LDAPASSERT_NO_CONTROL_VALUE;
+import static com.forgerock.opendj.util.StaticUtils.getExceptionMessage;
 
 import java.io.IOException;
 
@@ -38,13 +38,13 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.io.ASN1;
 import org.forgerock.opendj.io.ASN1Reader;
 import org.forgerock.opendj.io.ASN1Writer;
+import org.forgerock.opendj.io.LDAP;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.DecodeOptions;
 import org.forgerock.opendj.ldap.Filter;
 
-import com.forgerock.opendj.ldap.LDAPUtils;
 import com.forgerock.opendj.util.Validator;
 
 /**
@@ -109,16 +109,14 @@ public final class AssertionRequestControl implements Control {
                         throw DecodeException.error(message);
                     }
 
-                    final ASN1Reader reader = ASN1.getReader(control.getValue());
-                    Filter filter;
                     try {
-                        filter = LDAPUtils.decodeFilter(reader);
+                        final ASN1Reader reader = ASN1.getReader(control.getValue());
+                        final Filter filter = LDAP.readFilter(reader);
+                        return new AssertionRequestControl(control.isCritical(), filter);
                     } catch (final IOException e) {
                         throw DecodeException.error(ERR_LDAPASSERT_INVALID_CONTROL_VALUE
                                 .get(getExceptionMessage(e)), e);
                     }
-
-                    return new AssertionRequestControl(control.isCritical(), filter);
                 }
 
                 public String getOID() {
@@ -179,7 +177,7 @@ public final class AssertionRequestControl implements Control {
         final ByteStringBuilder buffer = new ByteStringBuilder();
         final ASN1Writer writer = ASN1.getWriter(buffer);
         try {
-            LDAPUtils.encodeFilter(writer, filter);
+            LDAP.writeFilter(writer, filter);
             return buffer.toByteString();
         } catch (final IOException ioe) {
             // This should never happen unless there is a bug somewhere.

@@ -60,28 +60,19 @@ public final class MatchingRuleUse extends SchemaElement {
     // associated.
     private final Set<String> attributeOIDs;
 
-    // The definition string used to create this objectclass.
-    private final String definition;
-
     private MatchingRule matchingRule;
     private Set<AttributeType> attributes = Collections.emptySet();
 
     MatchingRuleUse(final String oid, final List<String> names, final String description,
             final boolean obsolete, final Set<String> attributeOIDs,
             final Map<String, List<String>> extraProperties, final String definition) {
-        super(description, extraProperties);
+        super(description, extraProperties, definition);
 
         Validator.ensureNotNull(oid, names, attributeOIDs);
         this.oid = oid;
         this.names = names;
         this.isObsolete = obsolete;
         this.attributeOIDs = attributeOIDs;
-
-        if (definition != null) {
-            this.definition = definition;
-        } else {
-            this.definition = buildDefinition();
-        }
     }
 
     /**
@@ -224,21 +215,9 @@ public final class MatchingRuleUse extends SchemaElement {
         return isObsolete;
     }
 
-    /**
-     * Returns the string representation of this schema definition in the form
-     * specified in RFC 2252.
-     *
-     * @return The string representation of this schema definition in the form
-     *         specified in RFC 2252.
-     */
-    @Override
-    public String toString() {
-        return definition;
-    }
-
     MatchingRuleUse duplicate() {
-        return new MatchingRuleUse(oid, names, description, isObsolete, attributeOIDs,
-                extraProperties, definition);
+        return new MatchingRuleUse(oid, names, getDescription(), isObsolete, attributeOIDs,
+                getExtraProperties(), toString());
     }
 
     @Override
@@ -266,11 +245,7 @@ public final class MatchingRuleUse extends SchemaElement {
             }
         }
 
-        if (description != null && description.length() > 0) {
-            buffer.append(" DESC '");
-            buffer.append(description);
-            buffer.append("'");
-        }
+        appendDescription(buffer);
 
         if (isObsolete) {
             buffer.append(" OBSOLETE");

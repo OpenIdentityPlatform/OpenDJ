@@ -25,6 +25,7 @@
  */
 package com.forgerock.opendj.grizzly;
 
+import org.forgerock.opendj.io.LDAP;
 import org.forgerock.opendj.io.LDAPReader;
 import org.forgerock.opendj.io.LDAPWriter;
 import org.forgerock.opendj.ldap.DecodeOptions;
@@ -41,8 +42,6 @@ import org.glassfish.grizzly.ssl.SSLFilter;
  * Common utility methods.
  */
 final class GrizzlyUtils {
-
-
     @SuppressWarnings("rawtypes")
     private static final ThreadCache.CachedTypeIndex<LDAPWriter> WRITER_INDEX = ThreadCache
             .obtainIndex(LDAPWriter.class, 1);
@@ -143,7 +142,7 @@ final class GrizzlyUtils {
     public static LDAPReader<ASN1BufferReader> createReader(DecodeOptions decodeOptions, int maxASN1ElementSize,
             MemoryManager<?> memoryManager) {
         ASN1BufferReader asn1Reader = new ASN1BufferReader(maxASN1ElementSize, memoryManager);
-        return new LDAPReader<ASN1BufferReader>(asn1Reader, decodeOptions);
+        return LDAP.getReader(asn1Reader, decodeOptions);
     }
 
     /**
@@ -159,7 +158,7 @@ final class GrizzlyUtils {
     public static LDAPWriter<ASN1BufferWriter> getWriter() {
         LDAPWriter<ASN1BufferWriter> writer = ThreadCache.takeFromCache(WRITER_INDEX);
         if (writer == null) {
-            writer = new LDAPWriter<ASN1BufferWriter>(new ASN1BufferWriter());
+            writer = LDAP.getWriter(new ASN1BufferWriter());
         }
         writer.getASN1Writer().reset();
         return writer;
