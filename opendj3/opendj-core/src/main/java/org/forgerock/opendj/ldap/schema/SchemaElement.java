@@ -65,6 +65,15 @@ abstract class SchemaElement {
             this.extraProperties = new LinkedHashMap<String, List<String>>(copy.extraProperties);
         }
 
+        /*
+         * The abstract methods in this class are required in order to obtain
+         * meaningful Javadoc. If the methods were defined in this class then
+         * the resulting Javadoc in sub-class is invalid. The only workaround is
+         * to make the methods abstract, provide "xxx0" implementations, and
+         * override the abstract methods in sub-classes as delegates to the
+         * "xxx0" methods. Ghastly! Thanks Javadoc.
+         */
+
         /**
          * Sets the description.
          *
@@ -73,10 +82,7 @@ abstract class SchemaElement {
          *            the empty string will be used.
          * @return This builder.
          */
-        public T description(final String description) {
-            this.description = description == null ? "" : description;
-            return getThis();
-        }
+        public abstract T description(final String description);
 
         /**
          * Adds the provided collection of extended properties.
@@ -85,10 +91,7 @@ abstract class SchemaElement {
          *            The collection of extended properties.
          * @return This builder.
          */
-        public T extraProperties(final Map<String, List<String>> extraProperties) {
-            this.extraProperties.putAll(extraProperties);
-            return getThis();
-        }
+        public abstract T extraProperties(final Map<String, List<String>> extraProperties);
 
         /**
          * Adds the provided extended property.
@@ -99,27 +102,15 @@ abstract class SchemaElement {
          *            The optional list of values for the extended property.
          * @return This builder.
          */
-        public T extraProperties(final String extensionName, final String... extensionValues) {
-            if (this.extraProperties.get(extensionName) != null) {
-                final List<String> tempExtraProperties =
-                        new ArrayList<String>(this.extraProperties.get(extensionName));
-                tempExtraProperties.addAll(Arrays.asList(extensionValues));
-                this.extraProperties.put(extensionName, tempExtraProperties);
-            } else {
-                this.extraProperties.put(extensionName, Arrays.asList(extensionValues));
-            }
-            return getThis();
-        }
+        public abstract T extraProperties(final String extensionName,
+                final String... extensionValues);
 
         /**
          * Removes all extra properties.
          *
          * @return This builder.
          */
-        public T removeAllExtraProperties() {
-            this.extraProperties.clear();
-            return getThis();
-        }
+        public abstract T removeAllExtraProperties();
 
         /**
          * Removes the specified extended property.
@@ -132,20 +123,33 @@ abstract class SchemaElement {
          *            should be removed.
          * @return This builder.
          */
-        public T removeExtraProperty(final String extensionName, final String... extensionValues) {
-            if (this.extraProperties.get(extensionName) != null && extensionValues.length > 0) {
-                final List<String> tempExtraProperties =
-                        new ArrayList<String>(this.extraProperties.get(extensionName));
-                tempExtraProperties.removeAll(Arrays.asList(extensionValues));
-                this.extraProperties.put(extensionName, tempExtraProperties);
-            } else if (this.extraProperties.get(extensionName) != null) {
-                this.extraProperties.remove(extensionName);
-            }
-            return getThis();
-        }
+        public abstract T removeExtraProperty(final String extensionName,
+                final String... extensionValues);
 
         T definition(final String definition) {
             this.definition = definition;
+            return getThis();
+        }
+
+        T description0(final String description) {
+            this.description = description == null ? "" : description;
+            return getThis();
+        }
+
+        T extraProperties0(final Map<String, List<String>> extraProperties) {
+            this.extraProperties.putAll(extraProperties);
+            return getThis();
+        }
+
+        T extraProperties0(final String extensionName, final String... extensionValues) {
+            if (this.extraProperties.get(extensionName) != null) {
+                final List<String> tempExtraProperties =
+                        new ArrayList<String>(this.extraProperties.get(extensionName));
+                tempExtraProperties.addAll(Arrays.asList(extensionValues));
+                this.extraProperties.put(extensionName, tempExtraProperties);
+            } else {
+                this.extraProperties.put(extensionName, Arrays.asList(extensionValues));
+            }
             return getThis();
         }
 
@@ -162,6 +166,23 @@ abstract class SchemaElement {
         }
 
         abstract T getThis();
+
+        T removeAllExtraProperties0() {
+            this.extraProperties.clear();
+            return getThis();
+        }
+
+        T removeExtraProperty0(final String extensionName, final String... extensionValues) {
+            if (this.extraProperties.get(extensionName) != null && extensionValues.length > 0) {
+                final List<String> tempExtraProperties =
+                        new ArrayList<String>(this.extraProperties.get(extensionName));
+                tempExtraProperties.removeAll(Arrays.asList(extensionValues));
+                this.extraProperties.put(extensionName, tempExtraProperties);
+            } else if (this.extraProperties.get(extensionName) != null) {
+                this.extraProperties.remove(extensionName);
+            }
+            return getThis();
+        }
     }
 
     /**
