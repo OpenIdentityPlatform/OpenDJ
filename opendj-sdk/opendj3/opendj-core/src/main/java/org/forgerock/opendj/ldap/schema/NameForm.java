@@ -27,7 +27,10 @@
 
 package org.forgerock.opendj.ldap.schema;
 
-import static com.forgerock.opendj.ldap.CoreMessages.*;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_NAME_FORM_STRUCTURAL_CLASS_NOT_STRUCTURAL1;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_NAME_FORM_UNKNOWN_OPTIONAL_ATTR1;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_NAME_FORM_UNKNOWN_REQUIRED_ATTR1;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_NAME_FORM_UNKNOWN_STRUCTURAL_CLASS1;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -37,6 +40,7 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -95,6 +99,21 @@ public final class NameForm extends SchemaElement {
          */
         public SchemaBuilder addToSchemaNoOverwrite() {
             return this.getSchemaBuilder().addNameForm(new NameForm(this), false);
+        }
+
+        @Override
+        public Builder description(final String description) {
+            return description0(description);
+        }
+
+        @Override
+        public Builder extraProperties(final Map<String, List<String>> extraProperties) {
+            return extraProperties0(extraProperties);
+        }
+
+        @Override
+        public Builder extraProperties(final String extensionName, final String... extensionValues) {
+            return extraProperties0(extensionName, extensionValues);
         }
 
         /**
@@ -168,6 +187,11 @@ public final class NameForm extends SchemaElement {
             return optionalAttributes(Arrays.asList(nameOrOIDs));
         }
 
+        @Override
+        public Builder removeAllExtraProperties() {
+            return removeAllExtraProperties0();
+        }
+
         /**
          * Removes all user friendly names.
          *
@@ -196,6 +220,12 @@ public final class NameForm extends SchemaElement {
         public Builder removeAllRequiredAttributes() {
             this.requiredAttributes.clear();
             return this;
+        }
+
+        @Override
+        public Builder removeExtraProperty(final String extensionName,
+                final String... extensionValues) {
+            return removeExtraProperty0(extensionName, extensionValues);
         }
 
         /**
