@@ -27,9 +27,7 @@
 
 package org.forgerock.opendj.ldap;
 
-import static org.forgerock.opendj.ldap.TestCaseUtils.*;
-
-import static com.forgerock.opendj.ldap.LDAPConstants.TYPE_AUTHENTICATION_SASL;
+import static org.forgerock.opendj.ldap.TestCaseUtils.findFreeSocketAddress;
 
 import java.io.IOException;
 import java.net.SocketAddress;
@@ -54,6 +52,7 @@ import javax.security.sasl.SaslServer;
 
 import org.forgerock.opendj.io.ASN1;
 import org.forgerock.opendj.io.ASN1Reader;
+import org.forgerock.opendj.io.LDAP;
 import org.forgerock.opendj.ldap.controls.Control;
 import org.forgerock.opendj.ldap.controls.ControlDecoder;
 import org.forgerock.opendj.ldap.requests.AbandonRequest;
@@ -209,7 +208,7 @@ public class LDAPServer implements ServerConnectionFactory<LDAPClientContext, In
             // TODO: all bind types.
             final AbandonableRequest abReq = new AbandonableRequest(request);
             requestsInProgress.put(context, abReq);
-            if (request.getAuthenticationType() == TYPE_AUTHENTICATION_SASL
+            if (request.getAuthenticationType() == LDAP.TYPE_AUTHENTICATION_SASL
                     && request instanceof GenericBindRequest) {
                 ASN1Reader reader =
                         ASN1.getReader(((GenericBindRequest) request).getAuthenticationValue());

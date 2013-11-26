@@ -80,6 +80,7 @@ import com.forgerock.opendj.util.AsynchronousFutureResult;
 /**
  * Tests the LDAPListener class.
  */
+@SuppressWarnings("javadoc")
 public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
 
     private static class MockServerConnection implements ServerConnection<Integer> {
@@ -280,7 +281,7 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
     /**
      * Test creation of LDAP listener with unknown transport provider.
      */
-    @SuppressWarnings({ "unused", "resource", "unchecked" })
+    @SuppressWarnings({ "unchecked" })
     @Test(expectedExceptions = { ProviderNotFoundException.class },
         expectedExceptionsMessageRegExp = "^The requested provider 'unknown' .*")
     public void testCreateLDAPListenerFailureProviderNotFound() throws Exception {

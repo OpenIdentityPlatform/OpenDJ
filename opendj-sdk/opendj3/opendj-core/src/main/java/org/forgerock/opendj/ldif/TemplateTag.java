@@ -51,7 +51,6 @@ import com.forgerock.opendj.util.StaticUtils;
  * Represents a tag that may be used in a template line when generating entries.
  * It can be used to generate content.
  *
- * @see TemplateFile
  * @see EntryGenerator
  */
 abstract class TemplateTag {

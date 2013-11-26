@@ -55,7 +55,7 @@ public class NameFormTestCase extends SchemaTestCase {
                 .buildNameForm("1.3.6.1.4.1.1466.115.121.1.35")
                     .structuralObjectClassOID("person")
                     .requiredAttributes("sn", "cn") // ("cn, sn") is not supported.
-                    .addNoOverwriteToSchema()
+                    .addToSchemaNoOverwrite()
                 .toSchema();
 
         assertThat(schema.getWarnings()).isEmpty();
@@ -81,7 +81,7 @@ public class NameFormTestCase extends SchemaTestCase {
                     .structuralObjectClassOID("person")
                     .names("MyNewForm")
                     .requiredAttributes("sn", "cn")
-                    .addNoOverwriteToSchema()
+                    .addToSchemaNoOverwrite()
                 .toSchema();
         // @formatter:on
 
@@ -114,7 +114,7 @@ public class NameFormTestCase extends SchemaTestCase {
                 .names("MyNewForm")
                 .requiredAttributes("sn", "cn")
                 .optionalAttributes("owner")
-                .addNoOverwriteToSchema()
+                .addToSchemaNoOverwrite()
             .toSchema();
         // @formatter:on
 
@@ -145,7 +145,7 @@ public class NameFormTestCase extends SchemaTestCase {
                 .requiredAttributes("sn", "cn")
                 .optionalAttributes("owner")
                 .extraProperties("X-ORIGIN", "RFC xxx")
-                .addNoOverwriteToSchema()
+                .addToSchemaNoOverwrite()
             .toSchema();
         // @formatter:on
 
@@ -153,12 +153,10 @@ public class NameFormTestCase extends SchemaTestCase {
         assertThat(schema.getNameForms().size()).isGreaterThan(0);
 
         for (final NameForm nf : schema.getNameForms()) {
-
             assertThat(nf.hasName("hasAName ?")).isFalse();
             assertThat(nf.getNameOrOID()).isEqualTo("MyNewForm");
             assertThat(nf.getOID()).isEqualTo("1.3.6.1.4.1.1466.115.121.1.35");
-            assertThat(nf.getExtraProperty("X-ORIGIN").get(0)).isEqualTo("RFC xxx");
-
+            assertThat(nf.getExtraProperties().get("X-ORIGIN").get(0)).isEqualTo("RFC xxx");
             assertThat(nf.toString()).isEqualTo(
                 "( 1.3.6.1.4.1.1466.115.121.1.35 NAME 'MyNewForm' OC person "
                 + "MUST ( sn $ cn ) MAY owner X-ORIGIN 'RFC xxx' )");
@@ -182,7 +180,7 @@ public class NameFormTestCase extends SchemaTestCase {
                 .extraProperties("X-ORIGIN", "NameFormCheckingTestCase")
                 .structuralObjectClassOID("person")
                 .requiredAttributes("sn, cn")
-                .addNoOverwriteToSchema()
+                .addToSchemaNoOverwrite()
             .toSchema();
         // @formatter:on
     }
@@ -203,7 +201,7 @@ public class NameFormTestCase extends SchemaTestCase {
                 .names("MyNewForm")
                 .extraProperties("X-ORIGIN", "NameFormCheckingTestCase")
                 .requiredAttributes("sn, cn")
-                .addNoOverwriteToSchema()
+                .addToSchemaNoOverwrite()
             .toSchema();
         // @formatter:on
     }
@@ -225,7 +223,7 @@ public class NameFormTestCase extends SchemaTestCase {
                 .structuralObjectClassOID("person")
                 .extraProperties("X-ORIGIN", "NameFormCheckingTestCase")
                 .requiredAttributes()
-                .addNoOverwriteToSchema()
+                .addToSchemaNoOverwrite()
             .toSchema();
         // @formatter:on
     }
@@ -246,7 +244,7 @@ public class NameFormTestCase extends SchemaTestCase {
                 .names("MyNewForm")
                 .structuralObjectClassOID("person")
                 .extraProperties("X-ORIGIN", "NameFormCheckingTestCase")
-                .addNoOverwriteToSchema()
+                .addToSchemaNoOverwrite()
             .toSchema();
         // @formatter:on
     }
@@ -267,7 +265,7 @@ public class NameFormTestCase extends SchemaTestCase {
                 .structuralObjectClassOID("person")
                 .requiredAttributes("sn, cn")
                 .requiredAttributes((String[]) null)
-                .addNoOverwriteToSchema()
+                .addToSchemaNoOverwrite()
             .toSchema();
         // @formatter:on
     }
@@ -289,7 +287,7 @@ public class NameFormTestCase extends SchemaTestCase {
                 .extraProperties("X-ORIGIN", "NameFormCheckingTestCase")
                 .requiredAttributes("sn", "cn")
                 // .optionalAttributeOIDs("") empty by default.
-                .addNoOverwriteToSchema()
+                .addToSchemaNoOverwrite()
             .toSchema();
         // @formatter:on
     }
@@ -312,7 +310,7 @@ public class NameFormTestCase extends SchemaTestCase {
                 .requiredAttributes("sn")
                 .removeRequiredAttribute("unknown")
                 .removeOptionalAttribute("optionalunknown")
-                .addNoOverwriteToSchema()
+                .addToSchemaNoOverwrite()
             .toSchema();
         // @formatter:on
 
@@ -352,7 +350,7 @@ public class NameFormTestCase extends SchemaTestCase {
         assertThat(schema.getNameForms()).isNotEmpty();
         final NameForm nf = schema.getNameForms().iterator().next();
         assertThat(nf.getOID()).isEqualTo("1.3.6.1.4.1.1466.115.121.1.35");
-        assertThat(nf.getExtraPropertyNames()).isNotEmpty();
+        assertThat(nf.getExtraProperties()).isNotEmpty();
 
         // @formatter:off
         assertThat(nf.toString()).isEqualTo(
@@ -407,7 +405,7 @@ public class NameFormTestCase extends SchemaTestCase {
             .extraProperties("X-ORIGIN", "NameFormCheckingTestCase")
             .requiredAttributes("sn", "cn")
             .optionalAttributes("description", "uid")
-            .addNoOverwriteToSchema();
+            .addToSchemaNoOverwrite();
 
         Schema schema = sb.toSchema();
         assertThat(schema.getWarnings()).isEmpty();
@@ -453,7 +451,7 @@ public class NameFormTestCase extends SchemaTestCase {
             .extraProperties("X-ORIGIN", "NameFormCheckingTestCase")
             .requiredAttributes("sn", "cn")
             .optionalAttributes("description", "uid")
-            .addNoOverwriteToSchema();
+            .addToSchemaNoOverwrite();
 
         Schema schema = sb.toSchema();
         assertThat(schema.getWarnings()).isEmpty();
@@ -488,7 +486,7 @@ public class NameFormTestCase extends SchemaTestCase {
                 .extraProperties("X-ORIGIN", "NameFormCheckingTestCase")
                 .requiredAttributes("sn", "cn")
                 .optionalAttributes("description", "uid")
-                .addNoOverwriteToSchema()
+                .addToSchemaNoOverwrite()
             .toSchema();
         // @formatter:on
 
@@ -499,7 +497,7 @@ public class NameFormTestCase extends SchemaTestCase {
             .names("MyNewForm")
             .structuralObjectClassOID("person")
             .requiredAttributes("sn", "cn")
-            .addNoOverwriteToSchema().toSchema();
+            .addToSchemaNoOverwrite().toSchema();
         final NameForm nf2 = schema2.getNameForm("MyNewForm");
 
         assertThat(nf1.equals(nf2)).isTrue();
@@ -521,7 +519,7 @@ public class NameFormTestCase extends SchemaTestCase {
                 .extraProperties("X-ORIGIN", "NameFormCheckingTestCase")
                 .requiredAttributes("sn", "cn")
                 .optionalAttributes("description", "uid")
-                .addNoOverwriteToSchema()
+                .addToSchemaNoOverwrite()
             .toSchema();
         // @formatter:on
         final NameForm nf1 = schema.getNameForms().iterator().next();
@@ -536,7 +534,7 @@ public class NameFormTestCase extends SchemaTestCase {
                 .extraProperties("X-ORIGIN", "NameFormCheckingTestCase")
                 .requiredAttributes("sn", "cn")
                 .optionalAttributes("description", "uid")
-                .addNoOverwriteToSchema()
+                .addToSchemaNoOverwrite()
             .toSchema();
         // @formatter:on
 
@@ -592,7 +590,7 @@ public class NameFormTestCase extends SchemaTestCase {
                 .extraProperties("X-ORIGIN", "NameFormCheckingTestCase")
                 .requiredAttributes("sn", "cn")
                 .optionalAttributes("description", "uid")
-                .addNoOverwriteToSchema()
+                .addToSchemaNoOverwrite()
             .toSchema();
         // @formatter:on
 
@@ -633,7 +631,7 @@ public class NameFormTestCase extends SchemaTestCase {
                 .extraProperties("X-ORIGIN", "NameFormCheckingTestCase")
                 .requiredAttributes("sn", "cn")
                 .optionalAttributes("description", "uid")
-                .addNoOverwriteToSchema()
+                .addToSchemaNoOverwrite()
             .toSchema();
         // @formatter:on
 
@@ -675,7 +673,7 @@ public class NameFormTestCase extends SchemaTestCase {
                 .extraProperties("X-ORIGIN", "NameFormCheckingTestCase")
                 .requiredAttributes("sn", "cn")
                 .optionalAttributes("description", "uid")
-                .addNoOverwriteToSchema()
+                .addToSchemaNoOverwrite()
             .toSchema();
         // @formatter:on
 
@@ -704,7 +702,7 @@ public class NameFormTestCase extends SchemaTestCase {
                 .extraProperties("X-ORIGIN", "NameFormCheckingTestCase")
                 .requiredAttributes("sn", "cn")
                 .optionalAttributes("description", "uid")
-                .addNoOverwriteToSchema()
+                .addToSchemaNoOverwrite()
             .toSchema();
         // @formatter:on
 
@@ -737,7 +735,7 @@ public class NameFormTestCase extends SchemaTestCase {
                 .optionalAttributes("owner")
                 .optionalAttributes("l")
                 .names("Rock")
-                .addNoOverwriteToSchema()
+                .addToSchemaNoOverwrite()
             .toSchema();
         // @formatter:on
 
@@ -751,9 +749,9 @@ public class NameFormTestCase extends SchemaTestCase {
 
             assertThat(nf.getNames().get(0)).isEqualTo("multipleAttributes");
             assertThat(nf.getNames().get(1)).isEqualTo("Rock");
-            assertThat(nf.getExtraProperty("X-ORIGIN").get(0))
+            assertThat(nf.getExtraProperties().get("X-ORIGIN").get(0))
                     .isEqualTo("NameFormCheckingTestCase");
-            assertThat(nf.getExtraProperty("X-ORIGIN").get(1)).isEqualTo(
+            assertThat(nf.getExtraProperties().get("X-ORIGIN").get(1)).isEqualTo(
                     "NameFormCheckingTestCase2");
 
             assertThat(nf.getStructuralClass().getNameOrOID()).isEqualTo("person");
@@ -856,7 +854,7 @@ public class NameFormTestCase extends SchemaTestCase {
                 .removeName("nameform2")
                 .removeRequiredAttribute("cn")
                 .removeOptionalAttribute("l")
-                .addNoOverwriteToSchema()
+                .addToSchemaNoOverwrite()
             .toSchema();
         // @formatter:on
 
@@ -892,7 +890,7 @@ public class NameFormTestCase extends SchemaTestCase {
                 .extraProperties("FROM", "NameFormTestCase")
                 .requiredAttributes("sn", "cn")
                 .optionalAttributes("description", "uid")
-                .addNoOverwriteToSchema()
+                .addToSchemaNoOverwrite()
             .toSchema();
         // @formatter:on
 
@@ -913,9 +911,10 @@ public class NameFormTestCase extends SchemaTestCase {
                     .removeOptionalAttribute("nonExistentUid")
                     .requiredAttributes("street")
                     .removeRequiredAttribute("sn")
-                    .removeExtraProperties("X-ORIGIN", "extra")
-                    .removeExtraProperties("X-ORIGIN", "Forgerock")
-                    .removeExtraProperties("FROM", null);
+                    .removeExtraProperty("X-ORIGIN", "extra")
+                    .removeExtraProperty("X-ORIGIN", "Forgerock")
+                    .removeExtraProperty("FROM");
+
         // @formatter:on
         sb.addSchema(schema, true);
         sb.addSchema(nfBuilder.addToSchema().toSchema(), true);
@@ -935,8 +934,8 @@ public class NameFormTestCase extends SchemaTestCase {
         assertThat(dolly.getRequiredAttributes().toString()).contains("cn");
 
         assertThat(dolly.getOptionalAttributes().size()).isEqualTo(1);
-        assertThat(dolly.getExtraProperty("X-ORIGIN").size()).isEqualTo(1);
-        assertThat(dolly.getExtraProperty("FROM")).isEmpty();
+        assertThat(dolly.getExtraProperties().get("X-ORIGIN").size()).isEqualTo(1);
+        assertThat(dolly.getExtraProperties().get("FROM")).isNull();
     }
 
     /**
@@ -958,7 +957,7 @@ public class NameFormTestCase extends SchemaTestCase {
             .extraProperties("FROM", "NameFormTestCase")
             .requiredAttributes("sn", "cn")
             .optionalAttributes("description", "uid")
-            .addNoOverwriteToSchema();
+            .addToSchemaNoOverwrite();
 
         Schema schema = sb.toSchema();
         assertThat(schema.getWarnings()).isEmpty();
@@ -966,9 +965,9 @@ public class NameFormTestCase extends SchemaTestCase {
 
         final NameForm nf = schema.getNameForms().iterator().next();
         assertThat(nf.getOID()).isEqualTo("1.3.6.1.4.1.1466.115.121.1.35");
-        assertThat(nf.getRequiredAttributes().size()).isEqualTo(2);
-        assertThat(nf.getOptionalAttributes().size()).isEqualTo(2);
-        assertThat(nf.getExtraPropertyNames().size()).isEqualTo(2);
+        assertThat(nf.getRequiredAttributes()).hasSize(2);
+        assertThat(nf.getOptionalAttributes()).hasSize(2);
+        assertThat(nf.getExtraProperties()).hasSize(2);
 
         sb.buildNameForm(nf)
             .removeAllNames()
@@ -976,7 +975,7 @@ public class NameFormTestCase extends SchemaTestCase {
             .removeName("thisOneDoesntExist")
             .oid("1.3.6.1.4.1.1466.115.121.1.36")
             .removeAllOptionalAttributes()
-            .clearExtraProperties()
+            .removeAllExtraProperties()
             .removeAllRequiredAttributes()
             .requiredAttributes("businessCategory")
             .addToSchema();
@@ -995,10 +994,8 @@ public class NameFormTestCase extends SchemaTestCase {
         assertThat(dolly.getRequiredAttributes().size()).isEqualTo(1);
         assertThat(dolly.getRequiredAttributes().iterator().next().getOID()).isEqualTo("2.5.4.15");
         assertThat(dolly.getRequiredAttributes().iterator().next().getNameOrOID()).isEqualTo("businessCategory");
-
-        assertThat(dolly.getOptionalAttributes().size()).isEqualTo(0);
-
-        assertThat(dolly.getExtraPropertyNames().size()).isEqualTo(0);
+        assertThat(dolly.getOptionalAttributes()).isEmpty();
+        assertThat(dolly.getExtraProperties()).isEmpty();
     }
 
     /**
@@ -1018,7 +1015,7 @@ public class NameFormTestCase extends SchemaTestCase {
                 .extraProperties("X-ORIGIN", "NameFormTestCase", "Forgerock", "extra")
                 .requiredAttributes("sn", "cn")
                 .optionalAttributes("description", "uid")
-                .addNoOverwriteToSchema()
+                .addToSchemaNoOverwrite()
             .buildNameForm("1.3.6.1.4.1.1466.115.121.1.36")
                 .description("Description of the second form")
                 .names("SecondForm")
@@ -1026,7 +1023,7 @@ public class NameFormTestCase extends SchemaTestCase {
                 .extraProperties("X-ORIGIN", "NameFormTestCase2")
                 .requiredAttributes("name")
                 .optionalAttributes("owner")
-                .addNoOverwriteToSchema()
+                .addToSchemaNoOverwrite()
             .buildNameForm("1.3.6.1.4.1.1466.115.121.1.37")
                 .description("Description of the third form")
                 .names("ThirdForm")
@@ -1035,7 +1032,7 @@ public class NameFormTestCase extends SchemaTestCase {
                 .requiredAttributes("sn", "l")
                 .optionalAttributes("description", "uid")
                 .description("Description of the third form")
-                .addNoOverwriteToSchema()
+                .addToSchemaNoOverwrite()
                 // we overwritten the third name form.
             .buildNameForm("1.3.6.1.4.1.1466.115.121.1.37")
                 .names("ThirdFormOverwritten")
@@ -1057,7 +1054,7 @@ public class NameFormTestCase extends SchemaTestCase {
         assertThat(schema.getNameForm("ThirdFormOverwritten").getOID()).isEqualTo(
                 "1.3.6.1.4.1.1466.115.121.1.37");
         assertThat(schema.getNameForm("ThirdFormOverwritten").getDescription()).isEmpty();
-        assertThat(schema.getNameForm("ThirdFormOverwritten").getExtraProperty("X-ORIGIN").get(0))
+        assertThat(schema.getNameForm("ThirdFormOverwritten").getExtraProperties().get("X-ORIGIN").get(0))
                 .isEqualTo("RFC 2252");
     }
 }

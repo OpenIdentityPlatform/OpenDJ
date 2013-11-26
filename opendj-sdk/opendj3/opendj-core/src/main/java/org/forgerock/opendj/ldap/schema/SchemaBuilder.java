@@ -1320,8 +1320,8 @@ public final class SchemaBuilder {
             // The next set of characters must be the OID.
             final NameForm.Builder nameFormBuilder =
                     new NameForm.Builder(
-                            SchemaUtils.readOID(reader, allowMalformedNamesAndOptions), this);
-
+                            SchemaUtils.readOID(reader, allowMalformedNamesAndOptions), this)
+                            .definition(definition);
 
             // Required properties :
             String structuralOID = null;
@@ -1380,8 +1380,6 @@ public final class SchemaBuilder {
                 }
             }
 
-            nameFormBuilder.definition(definition);
-
             // Make sure that a structural class was specified. If not, then
             // it cannot be valid and the name form cannot be build.
             if (structuralOID == null) {
@@ -1399,7 +1397,7 @@ public final class SchemaBuilder {
             if (overwrite) {
                 nameFormBuilder.addToSchema();
             } else {
-                nameFormBuilder.addNoOverwriteToSchema();
+                nameFormBuilder.addToSchemaNoOverwrite();
             }
         } catch (final DecodeException e) {
             final LocalizableMessage msg =

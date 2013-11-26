@@ -58,9 +58,6 @@ public final class AttributeType extends SchemaElement implements Comparable<Att
     // The attribute usage for this attribute type.
     private final AttributeUsage attributeUsage;
 
-    // The definition string used to create this objectclass.
-    private final String definition;
-
     // The equality matching rule for this attribute type.
     private final String equalityMatchingRuleOID;
 
@@ -137,7 +134,7 @@ public final class AttributeType extends SchemaElement implements Comparable<Att
             final boolean collective, final boolean noUserModification,
             final AttributeUsage attributeUsage, final Map<String, List<String>> extraProperties,
             final String definition) {
-        super(description, extraProperties);
+        super(description, extraProperties, definition);
 
         Validator.ensureNotNull(oid, names, description, attributeUsage);
         Validator.ensureTrue(superiorType != null || syntax != null,
@@ -157,13 +154,6 @@ public final class AttributeType extends SchemaElement implements Comparable<Att
         this.isCollective = collective;
         this.isNoUserModification = noUserModification;
         this.attributeUsage = attributeUsage;
-
-        if (definition != null) {
-            this.definition = definition;
-        } else {
-            this.definition = buildDefinition();
-        }
-
         this.isObjectClassType = oid.equals("2.5.4.0");
         this.isPlaceHolder = false;
         this.normalizedName = StaticUtils.toLowerCase(getNameOrOID());
@@ -179,8 +169,6 @@ public final class AttributeType extends SchemaElement implements Comparable<Att
      *            The name of the place-holder attribute type.
      */
     AttributeType(final String name) {
-        super("", Collections.<String, List<String>> emptyMap());
-
         final StringBuilder builder = new StringBuilder(name.length() + 4);
         StaticUtils.toLowerCase(name, builder);
         builder.append("-oid");
@@ -201,7 +189,6 @@ public final class AttributeType extends SchemaElement implements Comparable<Att
         this.isCollective = false;
         this.isNoUserModification = false;
         this.attributeUsage = AttributeUsage.USER_APPLICATIONS;
-        this.definition = buildDefinition();
         this.isObjectClassType = false;
         this.isPlaceHolder = true;
         this.normalizedName = StaticUtils.toLowerCase(getNameOrOID());
@@ -564,23 +551,11 @@ public final class AttributeType extends SchemaElement implements Comparable<Att
         }
     }
 
-    /**
-     * Returns the string representation of this schema definition in the form
-     * specified in RFC 2252.
-     *
-     * @return The string representation of this schema definition in the form
-     *         specified in RFC 2252.
-     */
-    @Override
-    public String toString() {
-        return definition;
-    }
-
     AttributeType duplicate() {
-        return new AttributeType(oid, names, description, isObsolete, superiorTypeOID,
+        return new AttributeType(oid, names, getDescription(), isObsolete, superiorTypeOID,
                 equalityMatchingRuleOID, orderingMatchingRuleOID, substringMatchingRuleOID,
                 approximateMatchingRuleOID, syntaxOID, isSingleValue, isCollective,
-                isNoUserModification, attributeUsage, extraProperties, definition);
+                isNoUserModification, attributeUsage, getExtraProperties(), toString());
     }
 
     @Override
@@ -608,11 +583,7 @@ public final class AttributeType extends SchemaElement implements Comparable<Att
             }
         }
 
-        if (description != null && description.length() > 0) {
-            buffer.append(" DESC '");
-            buffer.append(description);
-            buffer.append("'");
-        }
+        appendDescription(buffer);
 
         if (isObsolete) {
             buffer.append(" OBSOLETE");

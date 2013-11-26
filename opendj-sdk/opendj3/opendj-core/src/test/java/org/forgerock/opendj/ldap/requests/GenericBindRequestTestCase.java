@@ -30,9 +30,9 @@ package org.forgerock.opendj.ldap.requests;
 import static com.forgerock.opendj.util.StaticUtils.EMPTY_BYTES;
 import static com.forgerock.opendj.util.StaticUtils.getBytes;
 
+import org.forgerock.opendj.io.LDAP;
 import org.testng.annotations.DataProvider;
 
-import com.forgerock.opendj.ldap.LDAPConstants;
 
 /**
  * Tests Generic Bind requests.
@@ -47,9 +47,9 @@ public class GenericBindRequestTestCase extends BindRequestTestCase {
     @Override
     protected GenericBindRequest[] createTestRequests() throws Exception {
         return new GenericBindRequest[] {
-                Requests.newGenericBindRequest(LDAPConstants.TYPE_AUTHENTICATION_SASL, EMPTY_BYTES),
-                Requests.newGenericBindRequest(LDAPConstants.TYPE_AUTHENTICATION_SIMPLE, getBytes("password")),
-                Requests.newGenericBindRequest("username", LDAPConstants.TYPE_AUTHENTICATION_SIMPLE,
+                Requests.newGenericBindRequest(LDAP.TYPE_AUTHENTICATION_SASL, EMPTY_BYTES),
+                Requests.newGenericBindRequest(LDAP.TYPE_AUTHENTICATION_SIMPLE, getBytes("password")),
+                Requests.newGenericBindRequest("username", LDAP.TYPE_AUTHENTICATION_SIMPLE,
                         getBytes("password"))
         };
     }

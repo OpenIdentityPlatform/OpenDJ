@@ -30,6 +30,7 @@ import static org.fest.assertions.Assertions.*;
 import java.io.IOException;
 
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.LDAPOptions;
 import org.forgerock.opendj.ldap.LinkedHashMapEntry;
@@ -56,10 +57,6 @@ import org.forgerock.opendj.ldap.responses.Responses;
 import org.forgerock.opendj.ldap.responses.Result;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldap.responses.SearchResultReference;
-import org.forgerock.opendj.ldap.spi.AbstractLDAPMessageHandler;
-import org.forgerock.opendj.ldap.spi.LDAPMessageHandler;
-import org.forgerock.opendj.ldap.spi.UnexpectedRequestException;
-import org.forgerock.opendj.ldap.spi.UnexpectedResponseException;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
@@ -92,31 +89,12 @@ public abstract class LDAPReaderWriterTestCase extends SdkTestCase {
 
     @DataProvider
     protected Object[][] messagesFactories() {
-        return new Object[][] {
-                abandonRequest(),
-                addRequest(),
-                addResult(),
-                abandonRequest(),
-                bindRequest(),
-                bindResult(),
-                compareRequest(),
-                compareResult(),
-                deleteRequest(),
-                deleteResult(),
-                extendedRequest(),
-                extendedResult(),
-                intermediateResponse(),
-                modifyDNRequest(),
-                modifyDNResult(),
-                modifyRequest(),
-                modifyResult(),
-                searchRequest(),
-                searchResult(),
-                searchResultEntry(),
-                searchResultReference(),
-                unbindRequest(),
-                unrecognizedMessage()
-        };
+        return new Object[][] { abandonRequest(), addRequest(), addResult(), abandonRequest(),
+            bindRequest(), bindResult(), compareRequest(), compareResult(), deleteRequest(),
+            deleteResult(), extendedRequest(), extendedResult(), intermediateResponse(),
+            modifyDNRequest(), modifyDNResult(), modifyRequest(), modifyResult(), searchRequest(),
+            searchResult(), searchResultEntry(), searchResultReference(), unbindRequest(),
+            unrecognizedMessage() };
     }
 
     Object[] abandonRequest() {
@@ -128,8 +106,8 @@ public abstract class LDAPReaderWriterTestCase extends SdkTestCase {
             }
         }, new AbstractLDAPMessageHandler() {
             @Override
-            public void abandonRequest(int messageID, AbandonRequest request) throws UnexpectedRequestException,
-            IOException {
+            public void abandonRequest(int messageID, AbandonRequest request)
+                    throws DecodeException, IOException {
                 assertThat(request.getRequestID()).isEqualTo(requestID);
             }
         } };
@@ -143,8 +121,8 @@ public abstract class LDAPReaderWriterTestCase extends SdkTestCase {
             }
         }, new AbstractLDAPMessageHandler() {
             @Override
-            public void addRequest(int messageID, AddRequest request)
-                    throws UnexpectedRequestException, IOException {
+            public void addRequest(int messageID, AddRequest request) throws DecodeException,
+                    IOException {
                 assertThat(request.getName().toString()).isEqualTo(TEST_DN);
             }
         } };
@@ -155,11 +133,12 @@ public abstract class LDAPReaderWriterTestCase extends SdkTestCase {
         return new Object[] { new LDAPWrite() {
             @Override
             public void perform(LDAPWriter<? extends ASN1Writer> writer) throws IOException {
-                writer.writeAddResult(MESSAGE_ID, Responses.newResult(resultCode).setMatchedDN(TEST_DN));
+                writer.writeAddResult(MESSAGE_ID, Responses.newResult(resultCode).setMatchedDN(
+                        TEST_DN));
             }
         }, new AbstractLDAPMessageHandler() {
             @Override
-            public void addResult(int messageID, Result result) throws UnexpectedResponseException, IOException {
+            public void addResult(int messageID, Result result) throws DecodeException, IOException {
                 assertThat(result.getResultCode()).isEqualTo(resultCode);
                 assertThat(result.getMatchedDN().toString()).isEqualTo(TEST_DN);
             }
@@ -169,17 +148,17 @@ public abstract class LDAPReaderWriterTestCase extends SdkTestCase {
     Object[] bindRequest() {
         final int version = 1;
         final byte type = 0x01;
-        final byte[] value = new byte[] {0x01, 0x02};
+        final byte[] value = new byte[] { 0x01, 0x02 };
         return new Object[] { new LDAPWrite() {
             @Override
             public void perform(LDAPWriter<? extends ASN1Writer> writer) throws IOException {
-                writer.writeBindRequest(MESSAGE_ID, version,
-                        Requests.newGenericBindRequest(TEST_DN, type, value));
+                writer.writeBindRequest(MESSAGE_ID, version, Requests.newGenericBindRequest(
+                        TEST_DN, type, value));
             }
         }, new AbstractLDAPMessageHandler() {
             @Override
-            public void bindRequest(final int messageID, final int version, final GenericBindRequest request)
-                    throws UnexpectedRequestException, IOException {
+            public void bindRequest(final int messageID, final int version,
+                    final GenericBindRequest request) throws DecodeException, IOException {
                 assertThat(request.getAuthenticationType()).isEqualTo(type);
                 assertThat(request.getAuthenticationValue()).isEqualTo(value);
                 assertThat(request.getName()).isEqualTo(TEST_DN);
@@ -197,7 +176,7 @@ public abstract class LDAPReaderWriterTestCase extends SdkTestCase {
         }, new AbstractLDAPMessageHandler() {
             @Override
             public void bindResult(final int messageID, final BindResult result)
-                    throws UnexpectedRequestException, IOException {
+                    throws DecodeException, IOException {
                 assertThat(result.getResultCode()).isEqualTo(resultCode);
             }
         } };
@@ -209,12 +188,13 @@ public abstract class LDAPReaderWriterTestCase extends SdkTestCase {
         return new Object[] { new LDAPWrite() {
             @Override
             public void perform(LDAPWriter<? extends ASN1Writer> writer) throws IOException {
-                writer.writeCompareRequest(MESSAGE_ID, Requests.newCompareRequest(TEST_DN, description, value));
+                writer.writeCompareRequest(MESSAGE_ID, Requests.newCompareRequest(TEST_DN,
+                        description, value));
             }
         }, new AbstractLDAPMessageHandler() {
             @Override
             public void compareRequest(final int messageID, final CompareRequest request)
-                    throws UnexpectedRequestException, IOException {
+                    throws DecodeException, IOException {
                 assertThat(request.getName().toString()).isEqualTo(TEST_DN);
                 assertThat(request.getAttributeDescription().toString()).isEqualTo(description);
                 assertThat(request.getAssertionValue().toString()).isEqualTo(value);
@@ -231,8 +211,8 @@ public abstract class LDAPReaderWriterTestCase extends SdkTestCase {
             }
         }, new AbstractLDAPMessageHandler() {
             @Override
-            public void compareResult(int messageID, CompareResult result)
-                    throws UnexpectedResponseException, IOException {
+            public void compareResult(int messageID, CompareResult result) throws DecodeException,
+                    IOException {
                 assertThat(result.getResultCode()).isEqualTo(resultCode);
             }
         } };
@@ -246,8 +226,8 @@ public abstract class LDAPReaderWriterTestCase extends SdkTestCase {
             }
         }, new AbstractLDAPMessageHandler() {
             @Override
-            public void deleteRequest(int messageID, DeleteRequest request)
-                    throws UnexpectedRequestException, IOException {
+            public void deleteRequest(int messageID, DeleteRequest request) throws DecodeException,
+                    IOException {
                 assertThat(request.getName().toString()).isEqualTo(TEST_DN);
             }
         } };
@@ -262,7 +242,8 @@ public abstract class LDAPReaderWriterTestCase extends SdkTestCase {
             }
         }, new AbstractLDAPMessageHandler() {
             @Override
-            public void deleteResult(int messageID, Result result) throws UnexpectedResponseException, IOException {
+            public void deleteResult(int messageID, Result result) throws DecodeException,
+                    IOException {
                 assertThat(result.getResultCode()).isEqualTo(resultCode);
             }
         } };
@@ -274,15 +255,16 @@ public abstract class LDAPReaderWriterTestCase extends SdkTestCase {
         return new Object[] { new LDAPWrite() {
             @Override
             public void perform(LDAPWriter<? extends ASN1Writer> writer) throws IOException {
-                writer.writeExtendedRequest(MESSAGE_ID, Requests.newCancelExtendedRequest(requestID));
+                writer.writeExtendedRequest(MESSAGE_ID, Requests
+                        .newCancelExtendedRequest(requestID));
             }
         }, new AbstractLDAPMessageHandler() {
             @Override
-            public <R extends ExtendedResult> void extendedRequest(int messageID, ExtendedRequest<R> request)
-                    throws UnexpectedRequestException, IOException {
+            public <R extends ExtendedResult> void extendedRequest(int messageID,
+                    ExtendedRequest<R> request) throws DecodeException, IOException {
                 CancelExtendedRequest cancelRequest =
-                        CancelExtendedRequest.DECODER.decodeExtendedRequest(
-                                request, new LDAPOptions().getDecodeOptions());
+                        CancelExtendedRequest.DECODER.decodeExtendedRequest(request,
+                                new LDAPOptions().getDecodeOptions());
                 assertThat(cancelRequest.getOID().toString()).isEqualTo(oidCancel);
                 assertThat(cancelRequest.getRequestID()).isEqualTo(requestID);
             }
@@ -295,13 +277,13 @@ public abstract class LDAPReaderWriterTestCase extends SdkTestCase {
         return new Object[] { new LDAPWrite() {
             @Override
             public void perform(LDAPWriter<? extends ASN1Writer> writer) throws IOException {
-                writer.writeExtendedResult(MESSAGE_ID,
-                        Responses.newGenericExtendedResult(resultCode).setOID(oidCancel));
+                writer.writeExtendedResult(MESSAGE_ID, Responses.newGenericExtendedResult(
+                        resultCode).setOID(oidCancel));
             }
         }, new AbstractLDAPMessageHandler() {
             @Override
             public void extendedResult(int messageID, ExtendedResult result)
-                    throws UnexpectedResponseException, IOException {
+                    throws DecodeException, IOException {
                 assertThat(result.getResultCode()).isEqualTo(resultCode);
                 assertThat(result.getOID()).isEqualTo(oidCancel);
             }
@@ -314,13 +296,13 @@ public abstract class LDAPReaderWriterTestCase extends SdkTestCase {
         return new Object[] { new LDAPWrite() {
             @Override
             public void perform(LDAPWriter<? extends ASN1Writer> writer) throws IOException {
-                writer.writeIntermediateResponse(MESSAGE_ID,
-                        Responses.newGenericIntermediateResponse(oid, responseValue));
+                writer.writeIntermediateResponse(MESSAGE_ID, Responses
+                        .newGenericIntermediateResponse(oid, responseValue));
             }
         }, new AbstractLDAPMessageHandler() {
             @Override
             public void intermediateResponse(int messageID, IntermediateResponse response)
-                    throws UnexpectedResponseException, IOException {
+                    throws DecodeException, IOException {
                 assertThat(response.getOID()).isEqualTo(oid);
                 assertThat(response.getValue()).isEqualTo(ByteString.valueOf(responseValue));
             }
@@ -332,12 +314,13 @@ public abstract class LDAPReaderWriterTestCase extends SdkTestCase {
         return new Object[] { new LDAPWrite() {
             @Override
             public void perform(LDAPWriter<? extends ASN1Writer> writer) throws IOException {
-                writer.writeModifyDNRequest(MESSAGE_ID, Requests.newModifyDNRequest(TEST_DN, newRDN));
+                writer.writeModifyDNRequest(MESSAGE_ID, Requests
+                        .newModifyDNRequest(TEST_DN, newRDN));
             }
         }, new AbstractLDAPMessageHandler() {
             @Override
             public void modifyDNRequest(int messageID, ModifyDNRequest request)
-                    throws UnexpectedRequestException, IOException {
+                    throws DecodeException, IOException {
                 assertThat(request.getName().toString()).isEqualTo(TEST_DN);
                 assertThat(request.getNewRDN().toString()).isEqualTo(newRDN);
             }
@@ -353,8 +336,8 @@ public abstract class LDAPReaderWriterTestCase extends SdkTestCase {
             }
         }, new AbstractLDAPMessageHandler() {
             @Override
-            public void modifyDNResult(int messageID, Result result)
-                    throws UnexpectedResponseException, IOException {
+            public void modifyDNResult(int messageID, Result result) throws DecodeException,
+                    IOException {
                 assertThat(result.getResultCode()).isEqualTo(resultCode);
             }
         } };
@@ -368,8 +351,8 @@ public abstract class LDAPReaderWriterTestCase extends SdkTestCase {
             }
         }, new AbstractLDAPMessageHandler() {
             @Override
-            public void modifyRequest(int messageID, ModifyRequest request)
-                    throws UnexpectedRequestException, IOException {
+            public void modifyRequest(int messageID, ModifyRequest request) throws DecodeException,
+                    IOException {
                 assertThat(request.getName().toString()).isEqualTo(TEST_DN);
             }
         } };
@@ -384,7 +367,8 @@ public abstract class LDAPReaderWriterTestCase extends SdkTestCase {
             }
         }, new AbstractLDAPMessageHandler() {
             @Override
-            public void modifyResult(int messageID, Result result) throws UnexpectedResponseException, IOException {
+            public void modifyResult(int messageID, Result result) throws DecodeException,
+                    IOException {
                 assertThat(result.getResultCode()).isEqualTo(resultCode);
             }
         } };
@@ -397,12 +381,13 @@ public abstract class LDAPReaderWriterTestCase extends SdkTestCase {
         return new Object[] { new LDAPWrite() {
             @Override
             public void perform(LDAPWriter<? extends ASN1Writer> writer) throws IOException {
-                writer.writeSearchRequest(MESSAGE_ID, Requests.newSearchRequest(TEST_DN, scope, filter, attribute));
+                writer.writeSearchRequest(MESSAGE_ID, Requests.newSearchRequest(TEST_DN, scope,
+                        filter, attribute));
             }
         }, new AbstractLDAPMessageHandler() {
             @Override
-            public void searchRequest(int messageID, SearchRequest request)
-                    throws UnexpectedRequestException, IOException {
+            public void searchRequest(int messageID, SearchRequest request) throws DecodeException,
+                    IOException {
                 assertThat(request.getName().toString()).isEqualTo(TEST_DN);
                 assertThat(request.getScope()).isEqualTo(scope);
                 assertThat(request.getFilter().toString()).isEqualTo(filter);
@@ -420,17 +405,16 @@ public abstract class LDAPReaderWriterTestCase extends SdkTestCase {
             }
         }, new AbstractLDAPMessageHandler() {
             @Override
-            public void searchResult(int messageID, Result result) throws UnexpectedResponseException, IOException {
+            public void searchResult(int messageID, Result result) throws DecodeException,
+                    IOException {
                 assertThat(result.getResultCode()).isEqualTo(resultCode);
             }
         } };
     }
 
     Object[] searchResultEntry() {
-        final Entry entry = new LinkedHashMapEntry(
-                "dn: cn=test",
-                "objectClass: top",
-                "objectClass: test");
+        final Entry entry =
+                new LinkedHashMapEntry("dn: cn=test", "objectClass: top", "objectClass: test");
         return new Object[] { new LDAPWrite() {
             @Override
             public void perform(LDAPWriter<? extends ASN1Writer> writer) throws IOException {
@@ -439,7 +423,7 @@ public abstract class LDAPReaderWriterTestCase extends SdkTestCase {
         }, new AbstractLDAPMessageHandler() {
             @Override
             public void searchResultEntry(int messageID, SearchResultEntry resultEntry)
-                    throws UnexpectedResponseException, IOException {
+                    throws DecodeException, IOException {
                 assertThat(resultEntry).isEqualTo(entry);
             }
         } };
@@ -450,12 +434,13 @@ public abstract class LDAPReaderWriterTestCase extends SdkTestCase {
         return new Object[] { new LDAPWrite() {
             @Override
             public void perform(LDAPWriter<? extends ASN1Writer> writer) throws IOException {
-                writer.writeSearchResultReference(MESSAGE_ID, Responses.newSearchResultReference(uri));
+                writer.writeSearchResultReference(MESSAGE_ID, Responses
+                        .newSearchResultReference(uri));
             }
         }, new AbstractLDAPMessageHandler() {
             @Override
             public void searchResultReference(int messageID, SearchResultReference reference)
-                    throws UnexpectedResponseException, IOException {
+                    throws DecodeException, IOException {
                 assertThat(reference.getURIs()).containsExactly(uri);
             }
         } };
@@ -469,8 +454,8 @@ public abstract class LDAPReaderWriterTestCase extends SdkTestCase {
             }
         }, new AbstractLDAPMessageHandler() {
             @Override
-            public void unbindRequest(int messageID, UnbindRequest request)
-                    throws UnexpectedRequestException, IOException {
+            public void unbindRequest(int messageID, UnbindRequest request) throws DecodeException,
+                    IOException {
                 assertThat(request).isNotNull();
             }
         } };
@@ -487,7 +472,7 @@ public abstract class LDAPReaderWriterTestCase extends SdkTestCase {
         }, new AbstractLDAPMessageHandler() {
             @Override
             public void unrecognizedMessage(int messageID, byte tag, ByteString message)
-                    throws UnexpectedRequestException, IOException {
+                    throws DecodeException, IOException {
                 assertThat(messageID).isEqualTo(MESSAGE_ID);
                 assertThat(tag).isEqualTo(messageTag);
                 assertThat(message).isEqualTo(messageBytes);

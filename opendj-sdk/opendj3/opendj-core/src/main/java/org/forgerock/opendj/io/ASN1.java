@@ -97,27 +97,31 @@ public final class ASN1 {
      * The ASN.1 element decoding state that indicates that the next byte read
      * should be additional bytes of a multi-byte length.
      */
-    static final int ELEMENT_READ_STATE_NEED_ADDITIONAL_LENGTH_BYTES = 2;
+    public static final int ELEMENT_READ_STATE_NEED_ADDITIONAL_LENGTH_BYTES = 2;
 
     /**
      * The ASN.1 element decoding state that indicates that the next byte read
      * should be the first byte for the element length.
      */
-    static final int ELEMENT_READ_STATE_NEED_FIRST_LENGTH_BYTE = 1;
+    public static final int ELEMENT_READ_STATE_NEED_FIRST_LENGTH_BYTE = 1;
+
     /**
      * The ASN.1 element decoding state that indicates that the next byte read
      * should be the BER type for a new element.
      */
-    static final int ELEMENT_READ_STATE_NEED_TYPE = 0;
+    public static final int ELEMENT_READ_STATE_NEED_TYPE = 0;
+
     /**
      * The ASN.1 element decoding state that indicates that the next byte read
      * should be applied to the value of the element.
      */
-    static final int ELEMENT_READ_STATE_NEED_VALUE_BYTES = 3;
+    public static final int ELEMENT_READ_STATE_NEED_VALUE_BYTES = 3;
+
     /**
      * The byte array that will be used for ASN.1 elements with no value.
      */
     static final byte[] NO_VALUE = new byte[0];
+
     /**
      * The bitmask that can be ANDed with the BER type to zero out all bits
      * except those used in the class.

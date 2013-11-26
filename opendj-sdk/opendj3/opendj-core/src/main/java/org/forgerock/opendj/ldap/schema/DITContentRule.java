@@ -70,9 +70,6 @@ public final class DITContentRule extends SchemaElement {
     // The set of required attribute types for this DIT content rule.
     private final Set<String> requiredAttributeOIDs;
 
-    // The definition string used to create this objectclass.
-    private final String definition;
-
     private ObjectClass structuralClass;
     private Set<ObjectClass> auxiliaryClasses = Collections.emptySet();
     private Set<AttributeType> optionalAttributes = Collections.emptySet();
@@ -84,7 +81,7 @@ public final class DITContentRule extends SchemaElement {
             final Set<String> optionalAttributeOIDs, final Set<String> prohibitedAttributeOIDs,
             final Set<String> requiredAttributeOIDs,
             final Map<String, List<String>> extraProperties, final String definition) {
-        super(description, extraProperties);
+        super(description, extraProperties, definition);
 
         Validator.ensureNotNull(structuralClassOID, names);
         Validator.ensureNotNull(auxiliaryClassOIDs, optionalAttributeOIDs, prohibitedAttributeOIDs,
@@ -96,12 +93,6 @@ public final class DITContentRule extends SchemaElement {
         this.optionalAttributeOIDs = optionalAttributeOIDs;
         this.prohibitedAttributeOIDs = prohibitedAttributeOIDs;
         this.requiredAttributeOIDs = requiredAttributeOIDs;
-
-        if (definition != null) {
-            this.definition = definition;
-        } else {
-            this.definition = buildDefinition();
-        }
     }
 
     /**
@@ -304,22 +295,10 @@ public final class DITContentRule extends SchemaElement {
         return isRequired(attributeType) || isOptional(attributeType);
     }
 
-    /**
-     * Returns the string representation of this schema definition in the form
-     * specified in RFC 2252.
-     *
-     * @return The string representation of this schema definition in the form
-     *         specified in RFC 2252.
-     */
-    @Override
-    public String toString() {
-        return definition;
-    }
-
     DITContentRule duplicate() {
-        return new DITContentRule(structuralClassOID, names, description, isObsolete,
+        return new DITContentRule(structuralClassOID, names, getDescription(), isObsolete,
                 auxiliaryClassOIDs, optionalAttributeOIDs, prohibitedAttributeOIDs,
-                requiredAttributeOIDs, extraProperties, definition);
+                requiredAttributeOIDs, getExtraProperties(), toString());
     }
 
     @Override
@@ -347,11 +326,7 @@ public final class DITContentRule extends SchemaElement {
             }
         }
 
-        if (description != null && description.length() > 0) {
-            buffer.append(" DESC '");
-            buffer.append(description);
-            buffer.append("'");
-        }
+        appendDescription(buffer);
 
         if (isObsolete) {
             buffer.append(" OBSOLETE");

@@ -55,7 +55,6 @@ import com.forgerock.opendj.util.Validator;
  */
 public final class Syntax extends SchemaElement {
     private final String oid;
-    private final String definition;
     private MatchingRule equalityMatchingRule;
     private MatchingRule orderingMatchingRule;
     private MatchingRule substringMatchingRule;
@@ -65,27 +64,20 @@ public final class Syntax extends SchemaElement {
 
     Syntax(final String oid) {
         super("", Collections.singletonMap("X-SUBST", Collections.singletonList(Schema
-                .getDefaultSyntax().getOID())));
+                .getDefaultSyntax().getOID())), null);
 
         Validator.ensureNotNull(oid);
         this.oid = oid;
-        this.definition = buildDefinition();
         this.impl = Schema.getDefaultSyntax().impl;
     }
 
     Syntax(final String oid, final String description,
             final Map<String, List<String>> extraProperties, final String definition,
             final SyntaxImpl implementation) {
-        super(description, extraProperties);
+        super(description, extraProperties, definition);
 
         Validator.ensureNotNull(oid);
         this.oid = oid;
-
-        if (definition != null) {
-            this.definition = definition;
-        } else {
-            this.definition = buildDefinition();
-        }
         this.impl = implementation;
     }
 
@@ -205,18 +197,6 @@ public final class Syntax extends SchemaElement {
     }
 
     /**
-     * Retrieves a string representation of this attribute syntax in the format
-     * defined in RFC 2252.
-     *
-     * @return A string representation of this attribute syntax in the format
-     *         defined in RFC 2252.
-     */
-    @Override
-    public String toString() {
-        return definition;
-    }
-
-    /**
      * Indicates whether the provided value is acceptable for use in an
      * attribute with this syntax. If it is not, then the reason may be appended
      * to the provided buffer.
@@ -234,18 +214,13 @@ public final class Syntax extends SchemaElement {
     }
 
     Syntax duplicate() {
-        return new Syntax(oid, description, extraProperties, definition, impl);
+        return new Syntax(oid, getDescription(), getExtraProperties(), toString(), impl);
     }
 
     @Override
     void toStringContent(final StringBuilder buffer) {
         buffer.append(oid);
-
-        if (description != null && description.length() > 0) {
-            buffer.append(" DESC '");
-            buffer.append(description);
-            buffer.append("'");
-        }
+        appendDescription(buffer);
     }
 
     void validate(final Schema schema, final List<LocalizableMessage> warnings)
@@ -253,7 +228,7 @@ public final class Syntax extends SchemaElement {
         this.schema = schema;
         if (impl == null) {
             // See if we need to override the implementation of the syntax
-            for (final Map.Entry<String, List<String>> property : extraProperties.entrySet()) {
+            for (final Map.Entry<String, List<String>> property : getExtraProperties().entrySet()) {
                 // Enums are handled in the schema builder.
                 if (property.getKey().equalsIgnoreCase("x-subst")) {
                     /**

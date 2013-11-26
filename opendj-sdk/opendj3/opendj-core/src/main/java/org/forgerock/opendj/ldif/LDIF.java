@@ -43,8 +43,7 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 
 import org.forgerock.opendj.io.ASN1;
-import org.forgerock.opendj.io.ASN1Reader;
-import org.forgerock.opendj.io.ASN1Writer;
+import org.forgerock.opendj.io.LDAP;
 import org.forgerock.opendj.ldap.AVA;
 import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.AttributeDescription;
@@ -68,12 +67,8 @@ import org.forgerock.opendj.ldap.requests.ModifyDNRequest;
 import org.forgerock.opendj.ldap.requests.ModifyRequest;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
-import org.forgerock.opendj.ldap.responses.Responses;
-import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldap.schema.AttributeUsage;
 import org.forgerock.opendj.ldap.schema.Schema;
-
-import com.forgerock.opendj.ldap.LDAPUtils;
 
 /**
  * This class contains common utility methods for creating and manipulating
@@ -715,13 +710,9 @@ public final class LDIF {
         return entries;
     }
 
-    private static SearchResultEntry decodeEntry(final byte[] asn1EntryFormat) {
-        final ASN1Reader readerASN1 = ASN1.getReader(asn1EntryFormat);
+    private static Entry decodeEntry(final byte[] asn1EntryFormat) {
         try {
-            final SearchResultEntry sr =
-                    LDAPUtils.decodeSearchResultEntry(readerASN1, new DecodeOptions());
-            readerASN1.close();
-            return sr;
+            return LDAP.readEntry(ASN1.getReader(asn1EntryFormat), new DecodeOptions());
         } catch (IOException ex) {
             throw new IllegalStateException(ex);
         }
@@ -729,14 +720,12 @@ public final class LDIF {
 
     private static byte[][] encodeEntry(final Entry entry) {
         final byte[][] bEntry = new byte[2][];
-
-        final ByteStringBuilder bsb = new ByteStringBuilder();
-        final ASN1Writer writer = ASN1.getWriter(bsb);
         // Store normalized DN
         bEntry[0] = getBytes(entry.getName().toNormalizedString());
         try {
             // Store ASN1 representation of the entry.
-            LDAPUtils.encodeSearchResultEntry(writer, Responses.newSearchResultEntry(entry));
+            final ByteStringBuilder bsb = new ByteStringBuilder();
+            LDAP.writeEntry(ASN1.getWriter(bsb), entry);
             bEntry[1] = bsb.toByteArray();
             return bEntry;
         } catch (final IOException ioe) {

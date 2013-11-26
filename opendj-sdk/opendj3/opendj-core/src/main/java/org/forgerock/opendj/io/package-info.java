@@ -27,7 +27,8 @@
 /**
  * Classes and interfaces providing I/O functionality.
  * <p>
- * It includes facilities for encoding and decoding ASN.1 data streams.
+ * It includes facilities for encoding and decoding ASN.1 data streams, as
+ * well as LDAP protocol messages.
  * <p>
  * Note that this particular implementation is limited to the subset of elements
  * that are typically used by LDAP clients. As such, it does not include all

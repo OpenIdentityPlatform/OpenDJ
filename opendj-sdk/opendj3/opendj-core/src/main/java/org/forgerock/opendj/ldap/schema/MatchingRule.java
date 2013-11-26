@@ -62,7 +62,6 @@ public final class MatchingRule extends SchemaElement {
     private final List<String> names;
     private final boolean isObsolete;
     private final String syntaxOID;
-    private final String definition;
     private MatchingRuleImpl impl;
     private Syntax syntax;
     private Schema schema;
@@ -71,7 +70,7 @@ public final class MatchingRule extends SchemaElement {
             final boolean obsolete, final String syntax,
             final Map<String, List<String>> extraProperties, final String definition,
             final MatchingRuleImpl implementation) {
-        super(description, extraProperties);
+        super(description, extraProperties, definition);
 
         Validator.ensureNotNull(oid, names, description, syntax);
         Validator.ensureNotNull(extraProperties);
@@ -79,12 +78,6 @@ public final class MatchingRule extends SchemaElement {
         this.names = names;
         this.isObsolete = obsolete;
         this.syntaxOID = syntax;
-
-        if (definition != null) {
-            this.definition = definition;
-        } else {
-            this.definition = buildDefinition();
-        }
         this.impl = implementation;
     }
 
@@ -303,21 +296,9 @@ public final class MatchingRule extends SchemaElement {
         return impl.normalizeAttributeValue(schema, value);
     }
 
-    /**
-     * Returns the string representation of this schema definition in the form
-     * specified in RFC 2252.
-     *
-     * @return The string representation of this schema definition in the form
-     *         specified in RFC 2252.
-     */
-    @Override
-    public String toString() {
-        return definition;
-    }
-
     MatchingRule duplicate() {
-        return new MatchingRule(oid, names, description, isObsolete, syntaxOID, extraProperties,
-                definition, impl);
+        return new MatchingRule(oid, names, getDescription(), isObsolete, syntaxOID,
+                getExtraProperties(), toString(), impl);
     }
 
     @Override
@@ -345,11 +326,7 @@ public final class MatchingRule extends SchemaElement {
             }
         }
 
-        if (description != null && description.length() > 0) {
-            buffer.append(" DESC '");
-            buffer.append(description);
-            buffer.append("'");
-        }
+        appendDescription(buffer);
 
         if (isObsolete) {
             buffer.append(" OBSOLETE");

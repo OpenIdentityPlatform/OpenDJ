@@ -22,11 +22,12 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.requests;
 
-import static com.forgerock.opendj.ldap.LDAPConstants.TYPE_AUTHENTICATION_SASL;
+import org.forgerock.opendj.io.LDAP;
 
 /**
  * An abstract SASL Bind request which can be used as the basis for implementing
@@ -48,7 +49,7 @@ abstract class AbstractSASLBindRequest<R extends SASLBindRequest> extends Abstra
 
     @Override
     public final byte getAuthenticationType() {
-        return TYPE_AUTHENTICATION_SASL;
+        return LDAP.TYPE_AUTHENTICATION_SASL;
     }
 
     @Override
