@@ -126,10 +126,6 @@ public abstract class ConsoleApplication
      */
     ERROR,
     /**
-     * Defines a breakline.
-     */
-    BREAKLINE,
-    /**
      * Defines a warning.
      */
     WARNING
@@ -448,8 +444,6 @@ public abstract class ConsoleApplication
       case ERROR:
         out.println();
         out.println(wrapText("** " + msg, MAX_LINE_WIDTH, indent));
-        break;
-      case BREAKLINE:
         out.println();
         break;
       case WARNING:
@@ -537,9 +531,12 @@ public abstract class ConsoleApplication
         }
       }
       bar.append(".   ");
-      if(progress >= 0) {
+      if (progress >= 0)
+      {
         bar.append(progress).append("%     ");
-      } else {
+      }
+      else
+      {
         bar.append("FAIL");
       }
       final int endBuilder = linePos + bar.length();

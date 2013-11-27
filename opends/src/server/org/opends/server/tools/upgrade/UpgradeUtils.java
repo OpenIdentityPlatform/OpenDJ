@@ -566,10 +566,14 @@ final class UpgradeUtils
    *         is inserted successfully to the destination file.
    * @throws IOException
    *           If an unexpected IO error occurred while reading the entry.
+   * @throws UnknownSchemaElementException
+   *           Failure to find an attribute in the template schema indicates
+   *           either a programming error (e.g. typo in the attribute name) or
+   *           template corruption. Upgrade should stop.
    */
   static int updateSchemaFile(final File templateFile, final File destination,
       final String[] attributes, final String[] objectClasses)
-      throws IOException
+      throws IOException, UnknownSchemaElementException
   {
     int changeCount = 0;
     LDIFEntryReader reader = null;
@@ -582,6 +586,12 @@ final class UpgradeUtils
     {
       reader = new LDIFEntryReader(new FileInputStream(templateFile));
 
+      if (!reader.hasNext())
+      {
+        // Unless template are corrupted, this should not happen.
+        throw new IOException(String.format(
+            "'%s' file is empty. Template corrupted.", templateFile.getName()));
+      }
       final LinkedList<String> definitionsList = new LinkedList<String>();
 
       final Entry schemaEntry = reader.readEntry();
@@ -604,6 +614,7 @@ final class UpgradeUtils
           {
             LOG.log(Level.SEVERE, ERR_UPGRADE_UNKNOWN_OC_ATT.get("attribute",
                 att).toString());
+            throw e;
           }
         }
       }
@@ -623,6 +634,7 @@ final class UpgradeUtils
           {
             LOG.log(Level.SEVERE, ERR_UPGRADE_UNKNOWN_OC_ATT.get(
                 "object class", oc).toString());
+            throw e;
           }
         }
       }
