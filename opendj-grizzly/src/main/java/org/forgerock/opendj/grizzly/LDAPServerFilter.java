@@ -25,7 +25,7 @@
  *      Portions copyright 2012-2013 ForgeRock AS.
  */
 
-package com.forgerock.opendj.grizzly;
+package org.forgerock.opendj.grizzly;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -48,9 +48,9 @@ import org.forgerock.opendj.ldap.IntermediateResponseHandler;
 import org.forgerock.opendj.ldap.LDAPClientContext;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.ResultHandler;
+import org.forgerock.opendj.ldap.SSLContextBuilder;
 import org.forgerock.opendj.ldap.SearchResultHandler;
 import org.forgerock.opendj.ldap.ServerConnection;
-import org.forgerock.opendj.ldap.SSLContextBuilder;
 import org.forgerock.opendj.ldap.TrustManagers;
 import org.forgerock.opendj.ldap.controls.Control;
 import org.forgerock.opendj.ldap.requests.AbandonRequest;
@@ -853,7 +853,7 @@ final class LDAPServerFilter extends LDAPBaseFilter {
     }
 
     @Override
-    protected final void handleReadException(FilterChainContext ctx, IOException e) {
+    final void handleReadException(FilterChainContext ctx, IOException e) {
         exceptionOccurred(ctx, e);
     }
 
@@ -869,7 +869,7 @@ final class LDAPServerFilter extends LDAPBaseFilter {
      *         new one if no handler have been created yet
      */
     @Override
-    protected final LDAPBaseHandler getLDAPHandler(final FilterChainContext ctx) {
+    final LDAPBaseHandler getLDAPHandler(final FilterChainContext ctx) {
         Connection<?> connection = ctx.getConnection();
         ServerRequestHandler handler = REQUEST_HANDLER_ATTR.get(connection);
         if (handler == null) {

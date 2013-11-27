@@ -25,26 +25,47 @@
  *      Portions copyright 2011-2013 ForgeRock AS
  */
 
-package com.forgerock.opendj.grizzly;
+package org.forgerock.opendj.grizzly;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
 import org.forgerock.opendj.io.ASN1Reader;
-import org.forgerock.opendj.io.ASN1ReaderTestCase;
+import org.forgerock.opendj.io.ASN1Writer;
+import org.forgerock.opendj.io.ASN1WriterTestCase;
+import org.forgerock.opendj.ldap.DecodeException;
+import org.glassfish.grizzly.Buffer;
 import org.glassfish.grizzly.memory.ByteBufferWrapper;
 import org.glassfish.grizzly.memory.MemoryManager;
 
 /**
- * This class provides test cases for ASN1BufferReader.
+ * This class provides testcases for ASN1BufferWriter.
  */
-public class ASN1BufferReaderTestCase extends ASN1ReaderTestCase {
+public class ASN1BufferWriterTestCase extends ASN1WriterTestCase {
+
+    private final ASN1BufferWriter writer = new ASN1BufferWriter();
+
     @Override
-    protected ASN1Reader getReader(final byte[] b, final int maxElementSize) throws IOException {
-        final ByteBufferWrapper buffer = new ByteBufferWrapper(ByteBuffer.wrap(b));
+    protected byte[] getEncodedBytes() throws IOException, DecodeException {
+        final Buffer buffer = writer.getBuffer();
+        final byte[] byteArray = new byte[buffer.remaining()];
+        buffer.get(byteArray);
+        return byteArray;
+    }
+
+    @Override
+    protected ASN1Reader getReader(final byte[] encodedBytes) throws DecodeException, IOException {
+        final ByteBufferWrapper buffer = new ByteBufferWrapper(ByteBuffer.wrap(encodedBytes));
         final ASN1BufferReader reader =
-                new ASN1BufferReader(maxElementSize, MemoryManager.DEFAULT_MEMORY_MANAGER);
+                new ASN1BufferReader(0, MemoryManager.DEFAULT_MEMORY_MANAGER);
         reader.appendBytesRead(buffer);
         return reader;
+    }
+
+    @Override
+    protected ASN1Writer getWriter() throws IOException {
+        writer.flush();
+        writer.recycle();
+        return writer;
     }
 }

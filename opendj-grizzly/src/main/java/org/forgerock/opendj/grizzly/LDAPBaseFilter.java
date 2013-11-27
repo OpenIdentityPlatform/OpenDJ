@@ -23,7 +23,7 @@
  *
  *      Copyright 2013 ForgeRock AS.
  */
-package com.forgerock.opendj.grizzly;
+package org.forgerock.opendj.grizzly;
 
 import java.io.IOException;
 
@@ -41,18 +41,18 @@ import org.glassfish.grizzly.filterchain.NextAction;
  * Provides a common {@code handleRead()} method for both client and server
  * filters.
  */
-public abstract class LDAPBaseFilter extends BaseFilter {
+abstract class LDAPBaseFilter extends BaseFilter {
 
     /**
      * The maximum BER element size, or <code>0</code> to indicate that there is
      * no limit.
      */
-    protected final int maxASN1ElementSize;
+    final int maxASN1ElementSize;
 
     /**
      * Allow to control how to decode requests and responses.
      */
-    protected final DecodeOptions decodeOptions;
+    final DecodeOptions decodeOptions;
 
     /**
      * Creates a filter with provided decode options and max size of
@@ -64,7 +64,7 @@ public abstract class LDAPBaseFilter extends BaseFilter {
      *            The maximum BER element size, or <code>0</code> to indicate
      *            that there is no limit.
      */
-    protected LDAPBaseFilter(final DecodeOptions options, final int maxASN1ElementSize) {
+    LDAPBaseFilter(final DecodeOptions options, final int maxASN1ElementSize) {
         this.decodeOptions = options;
         this.maxASN1ElementSize = maxASN1ElementSize;
     }
@@ -100,13 +100,13 @@ public abstract class LDAPBaseFilter extends BaseFilter {
      * @param e
      *            exception occuring while reading
      */
-    protected abstract void handleReadException(FilterChainContext ctx, IOException e);
+    abstract void handleReadException(FilterChainContext ctx, IOException e);
 
     /**
      * Interface for the {@code LDAPMessageHandler} used in the filter, that
      * must be able to retrieve a Grizzly reader.
      */
-    protected interface LDAPBaseHandler extends LDAPMessageHandler {
+    interface LDAPBaseHandler extends LDAPMessageHandler {
         /**
          * Returns the LDAP reader for this handler.
          * @return the reader
@@ -126,6 +126,6 @@ public abstract class LDAPBaseFilter extends BaseFilter {
      * @return the response handler associated to the connection, which can be a
      *         new one if no handler have been created yet
      */
-    protected abstract LDAPBaseHandler getLDAPHandler(final FilterChainContext ctx);
+    abstract LDAPBaseHandler getLDAPHandler(final FilterChainContext ctx);
 
 }

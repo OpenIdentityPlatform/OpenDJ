@@ -24,7 +24,7 @@
  *      Copyright 2010 Sun Microsystems, Inc.
  *      Portions copyright 2012-2013 ForgeRock AS.
  */
-package com.forgerock.opendj.grizzly;
+package org.forgerock.opendj.grizzly;
 
 import static com.forgerock.opendj.ldap.CoreMessages.ERR_ASN1_SEQUENCE_WRITE_NOT_STARTED;
 import static com.forgerock.opendj.util.StaticUtils.IO_LOG;

@@ -23,7 +23,7 @@
  *
  *      Copyright 2013 ForgeRock AS.
  */
-package com.forgerock.opendj.grizzly;
+package org.forgerock.opendj.grizzly;
 
 import org.forgerock.opendj.io.ASN1Reader;
 import org.forgerock.opendj.io.ASN1Writer;

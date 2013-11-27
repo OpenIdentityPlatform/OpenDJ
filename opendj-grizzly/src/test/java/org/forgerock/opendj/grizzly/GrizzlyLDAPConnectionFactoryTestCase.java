@@ -23,11 +23,11 @@
  *
  *     Copyright 2013 ForgeRock AS.
  */
-package com.forgerock.opendj.grizzly;
+package org.forgerock.opendj.grizzly;
 
-import static org.fest.assertions.Assertions.*;
-import static org.forgerock.opendj.ldap.TestCaseUtils.*;
-import static org.mockito.Mockito.*;
+import static org.fest.assertions.Assertions.assertThat;
+import static org.forgerock.opendj.ldap.TestCaseUtils.findFreeSocketAddress;
+import static org.mockito.Mockito.mock;
 
 import java.io.IOException;
 import java.util.concurrent.Semaphore;

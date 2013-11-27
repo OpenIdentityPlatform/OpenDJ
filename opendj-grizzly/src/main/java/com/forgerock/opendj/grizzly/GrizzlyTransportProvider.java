@@ -28,6 +28,8 @@ package com.forgerock.opendj.grizzly;
 import java.io.IOException;
 import java.net.SocketAddress;
 
+import org.forgerock.opendj.grizzly.GrizzlyLDAPConnectionFactory;
+import org.forgerock.opendj.grizzly.GrizzlyLDAPListener;
 import org.forgerock.opendj.ldap.LDAPClientContext;
 import org.forgerock.opendj.ldap.LDAPListenerOptions;
 import org.forgerock.opendj.ldap.LDAPOptions;
@@ -37,24 +39,7 @@ import org.forgerock.opendj.ldap.spi.LDAPListenerImpl;
 import org.forgerock.opendj.ldap.spi.TransportProvider;
 
 /**
- * Provides an implementation of a transport provider using Grizzly as
- * transport. This provider is named "Grizzly".
- * <p>
- * To be used, this implementation must be declared in the
- * provider-configuration file
- * {@code META-INF/services/org.forgerock.opendj.ldap.spi.TransportProvider}
- * with this single line:
- *
- * <pre>
- * com.forgerock.opendj.ldap.GrizzlyTransportProvider
- * </pre>.
- * <p>
- * To require that this implementation is used, you must set the transport
- * provider to "Grizzly" using {@code LDAPOptions#setTransportProvider()}
- * method if requesting a {@code LDAPConnectionFactory} or
- * {@code LDAPListenerOptions#setTransportProvider()} method if requesting a
- * {@code LDAPListener}. Otherwise there is no guarantee that this
- * implementation will be used.
+ * Grizzly transport provider implementation.
  */
 public class GrizzlyTransportProvider implements TransportProvider {
 
