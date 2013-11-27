@@ -35,11 +35,16 @@
         ${project.description}
       </p>
     </section>
+    <section name="Documentation for ${project.name}">
+      <p>
+        Javadoc for this module can be found <a href="apidocs/index.html">here</a>.
+      </p>
+    </section>
     <section name="Get ${project.name}">
       <p>
         Start developing your applications by obtaining ${project.name}
         using any of the following methods: 
-    </p>
+      </p>
       <subsection name="Maven">
         <p>
           By far the simplest method is to develop your application using Maven
