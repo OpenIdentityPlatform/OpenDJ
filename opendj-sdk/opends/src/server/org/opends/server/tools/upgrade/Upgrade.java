@@ -27,8 +27,6 @@
 
 package org.opends.server.tools.upgrade;
 
-
-
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.tools.upgrade.FormattedNotificationCallback.*;
 import static org.opends.server.tools.upgrade.UpgradeTasks.*;
@@ -52,8 +50,6 @@ import org.opends.server.core.LockFileManager;
 import org.opends.server.tools.ClientException;
 import org.opends.server.util.BuildVersion;
 import org.opends.server.util.StaticUtils;
-
-
 
 /**
  * This class contains the table of upgrade tasks that need performing when
@@ -315,8 +311,6 @@ public final class Upgrade
     // @formatter:on
   }
 
-
-
   /**
    * Returns a list containing all the tasks which are required in order to
    * upgrade from {@code fromVersion} to {@code toVersion}.
@@ -357,14 +351,15 @@ public final class Upgrade
     isVersionCanBeUpdated(context);
 
     // Server must be offline.
-    checkIfServerIsRunning();
+    checkIfServerIsRunning(context);
 
-    context.notify( INFO_UPGRADE_TITLE.get(), TITLE_CALLBACK);
-    context.notify( INFO_UPGRADE_SUMMARY.get(context.getFromVersion()
-        .toString(), context.getToVersion().toString()), NOTICE_CALLBACK);
-    context.notify( INFO_UPGRADE_GENERAL_SEE_FOR_DETAILS
-        .get(UpgradeUtils.getInstallationPath() + File.separator
-            + UpgradeLog.UPGRADELOGNAME), NOTICE_CALLBACK);
+    context.notify(INFO_UPGRADE_TITLE.get(), TITLE_CALLBACK);
+    context.notify(
+        INFO_UPGRADE_SUMMARY.get(context.getFromVersion().toString(), context
+            .getToVersion().toString()), NOTICE_CALLBACK);
+    context.notify(INFO_UPGRADE_GENERAL_SEE_FOR_DETAILS.get(UpgradeUtils
+        .getInstallationPath()
+        + File.separator + UpgradeLog.UPGRADELOGNAME), NOTICE_CALLBACK);
 
     // Checks License.
     checkLicence(context);
@@ -372,8 +367,8 @@ public final class Upgrade
     /*
      * Get the list of required upgrade tasks.
      */
-    final List<UpgradeTask> tasks = getUpgradeTasks(context.getFromVersion(),
-        context.getToVersion());
+    final List<UpgradeTask> tasks =
+        getUpgradeTasks(context.getFromVersion(), context.getToVersion());
     if (tasks.isEmpty())
     {
       changeBuildInfoVersion(context);
@@ -381,10 +376,9 @@ public final class Upgrade
     }
 
     /*
-     * Verify tasks requirements.
-     * E.g. if a task requires mandatory user interaction
-     * and the application is non-interactive then, the process
-     * may abort immediately.
+     * Verify tasks requirements. E.g. if a task requires mandatory user
+     * interaction and the application is non-interactive then, the process may
+     * abort immediately.
      */
     for (final UpgradeTask task : tasks)
     {
@@ -401,12 +395,14 @@ public final class Upgrade
     }
 
     // Starts upgrade
-    final int userResponse = context.confirmYN(
-        INFO_UPGRADE_DISPLAY_CONFIRM_START.get(), ConfirmationCallback.YES);
+    final int userResponse =
+        context.confirmYN(INFO_UPGRADE_DISPLAY_CONFIRM_START.get(),
+            ConfirmationCallback.YES);
     if (userResponse == ConfirmationCallback.NO)
     {
-      throw new ClientException(EXIT_CODE_ERROR,
-          INFO_UPGRADE_ABORTED_BY_USER.get());
+      final Message message = INFO_UPGRADE_ABORTED_BY_USER.get();
+      context.notify(message, WARNING);
+      throw new ClientException(EXIT_CODE_ERROR, message);
     }
 
     try
@@ -414,8 +410,7 @@ public final class Upgrade
       /*
        * Perform the upgrade tasks.
        */
-      context.notify(INFO_UPGRADE_PERFORMING_TASKS.get(),
-          TITLE_CALLBACK);
+      context.notify(INFO_UPGRADE_PERFORMING_TASKS.get(), TITLE_CALLBACK);
       for (final UpgradeTask task : tasks)
       {
         task.perform(context);
@@ -424,9 +419,9 @@ public final class Upgrade
       if (UpgradeTasks.countErrors == 0)
       {
         /*
-         * The end of a successful upgrade is marked up with the build info
-         * file update and the license, if present, requires the creation of
-         * an approval file.
+         * The end of a successful upgrade is marked up with the build info file
+         * update and the license, if present, requires the creation of an
+         * approval file.
          */
         changeBuildInfoVersion(context);
 
@@ -434,8 +429,8 @@ public final class Upgrade
       }
       else
       {
-        context.notify(
-            ERR_UPGRADE_FAILS.get(UpgradeTasks.countErrors), TITLE_CALLBACK);
+        context.notify(ERR_UPGRADE_FAILS.get(UpgradeTasks.countErrors),
+            TITLE_CALLBACK);
       }
 
       /*
@@ -451,27 +446,26 @@ public final class Upgrade
     }
     catch (final ClientException e)
     {
-      LOG.log(Level.SEVERE, e.getMessage());
-      context.notify( e.getMessageObject());
+      context.notify(e.getMessageObject(), ERROR_CALLBACK);
       throw e;
     }
     catch (final Exception e)
     {
-      LOG.log(Level.SEVERE, e.getMessage());
-      context.notify(ERR_UPGRADE_TASKS_FAIL.get(e.getMessage()));
-      throw new ClientException(EXIT_CODE_ERROR, Message.raw(e.getMessage()));
+      final Message message = ERR_UPGRADE_TASKS_FAIL.get(e.getMessage());
+      context.notify(message, ERROR_CALLBACK);
+      throw new ClientException(EXIT_CODE_ERROR, message);
     }
     finally
     {
-      context.notify(INFO_UPGRADE_GENERAL_SEE_FOR_DETAILS
-          .get(UpgradeUtils.getInstallationPath() + File.separator
-              + UpgradeLog.UPGRADELOGNAME), NOTICE_CALLBACK);
+      context.notify(INFO_UPGRADE_GENERAL_SEE_FOR_DETAILS.get(UpgradeUtils
+          .getInstallationPath()
+          + File.separator + UpgradeLog.UPGRADELOGNAME), NOTICE_CALLBACK);
+      LOG.log(Level.CONFIG, INFO_UPGRADE_PROCESS_END.get().toString());
     }
   }
 
   private static void performPostUpgradeTasks(final UpgradeContext context,
-      final List<UpgradeTask> tasks)
-      throws ClientException
+      final List<UpgradeTask> tasks) throws ClientException
   {
     boolean isOk = true;
     for (final UpgradeTask task : tasks)
@@ -518,7 +512,8 @@ public final class Upgrade
    * @throws ClientException
    *           An exception is thrown if the server is currently running.
    */
-  private final static void checkIfServerIsRunning() throws ClientException
+  private final static void checkIfServerIsRunning(final UpgradeContext context)
+      throws ClientException
   {
     final String lockFile = LockFileManager.getServerLockFileName();
 
@@ -529,9 +524,9 @@ public final class Upgrade
       // running.
       if (!LockFileManager.acquireExclusiveLock(lockFile, failureReason))
       {
-        LOG.log(Level.SEVERE, failureReason.toString());
-        throw new ClientException(EXIT_CODE_ERROR,
-            ERR_UPGRADE_REQUIRES_SERVER_OFFLINE.get());
+        final Message message = ERR_UPGRADE_REQUIRES_SERVER_OFFLINE.get();
+        context.notify(message, NOTICE_CALLBACK);
+        throw new ClientException(EXIT_CODE_ERROR, message);
       }
     }
     finally
@@ -539,8 +534,6 @@ public final class Upgrade
       LockFileManager.releaseLock(lockFile, failureReason);
     }
   }
-
-
 
   /**
    * Checks if the version can be updated.
@@ -559,21 +552,22 @@ public final class Upgrade
        * If the server is already up to date then treat it as a successful
        * upgrade so that upgrade is idempotent.
        */
-      final Message message = ERR_UPGRADE_VERSION_UP_TO_DATE.get(context
-          .getToVersion().toString());
+      final Message message =
+          ERR_UPGRADE_VERSION_UP_TO_DATE.get(context.getToVersion().toString());
+      context.notify(message, NOTICE_CALLBACK);
       throw new ClientException(EXIT_CODE_SUCCESS, message);
     }
 
     // The upgrade only supports version >= 2.4.5.
     if (context.getFromVersion().compareTo(UPGRADESUPPORTSVERSIONFROM) < 0)
     {
-      throw new ClientException(EXIT_CODE_ERROR,
+      final Message message =
           INFO_UPGRADE_VERSION_IS_NOT_SUPPORTED.get(UPGRADESUPPORTSVERSIONFROM
-              .toString(), UPGRADESUPPORTSVERSIONFROM.toString()));
+              .toString(), UPGRADESUPPORTSVERSIONFROM.toString());
+      context.notify(message, NOTICE_CALLBACK);
+      throw new ClientException(EXIT_CODE_ERROR, message);
     }
   }
-
-
 
   /**
    * Writes the up to date's version number within the build info file.
@@ -591,27 +585,28 @@ public final class Upgrade
     FileWriter buildInfo = null;
     try
     {
-      buildInfo = new FileWriter(new File(UpgradeUtils.configDirectory,
-          Installation.BUILDINFO_RELATIVE_PATH), false);
+      buildInfo =
+          new FileWriter(new File(UpgradeUtils.configDirectory,
+              Installation.BUILDINFO_RELATIVE_PATH), false);
 
       // Write the new version
       buildInfo.write(context.getToVersion().toString());
 
-      context.notify(INFO_UPGRADE_SUCCESSFUL.get(context
-          .getFromVersion().toString(), context.getToVersion().toString()),
-          TITLE_CALLBACK);
+      context.notify(INFO_UPGRADE_SUCCESSFUL.get(context.getFromVersion()
+          .toString(), context.getToVersion().toString()), TITLE_CALLBACK);
 
     }
     catch (IOException e)
     {
-      throw new ClientException(EXIT_CODE_ERROR, Message.raw(e.getMessage()));
+      final Message message = Message.raw(e.getMessage());
+      context.notify(message, ERROR_CALLBACK);
+      throw new ClientException(EXIT_CODE_ERROR, message);
     }
     finally
     {
       StaticUtils.close(buildInfo);
     }
   }
-
 
   private static void checkLicence(final UpgradeContext context)
       throws ClientException

@@ -52,9 +52,6 @@ public class FormattedNotificationCallback extends TextOutputCallback
   /** Output an error. */
   public static final int ERROR_CALLBACK = 8;
 
-  /** Output a line break. */
-  public static final int BREAKLINE = 9;
-
   /**
    * An integer representing the message's sub-type.
    */

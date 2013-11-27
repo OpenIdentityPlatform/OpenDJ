@@ -40,6 +40,7 @@ import org.opends.server.util.StaticUtils;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.logging.Logger;
@@ -401,11 +402,14 @@ class FileManager
               }
 
             }
+            catch (FileNotFoundException e)
+            {
+              throw new IOException(e.getMessage());
+            }
             catch (Exception e)
             {
               final Message errMsg = INFO_ERROR_COPYING_FILE.get(
                   objectFile.getAbsolutePath(), destination.getAbsolutePath());
-              LOG.log(Level.SEVERE, message.toString());
               throw new IOException(errMsg.toString());
             }
             finally

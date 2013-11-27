@@ -368,15 +368,10 @@ public final class UpgradeCli extends ConsoleApplication implements
     }
     catch (ClientException ex)
     {
-      LOG.log(SEVERE, ex.getMessage());
-      println(Style.ERROR, ex.getMessageObject(), 0);
-
       return ex.getExitCode();
     }
     catch (Exception ex)
     {
-      LOG.log(SEVERE, ERR_UPGRADE_MAIN_UPGRADE_PROCESS.get(ex
-          .getMessage()).toString());
       println(Style.ERROR, ERR_UPGRADE_MAIN_UPGRADE_PROCESS.get(ex
           .getMessage()), 0);
 
@@ -424,9 +419,6 @@ public final class UpgradeCli extends ConsoleApplication implements
         case ERROR_CALLBACK:
           println(Style.ERROR, Message.raw(fnc.getMessage()), 1);
           LOG.log(Level.SEVERE, fnc.getMessage());
-          break;
-        case BREAKLINE:
-          println(Style.BREAKLINE, Message.raw(fnc.getMessage()), 1);
           break;
         case WARNING:
           println(Style.WARNING, Message.raw(fnc.getMessage()), 2);
