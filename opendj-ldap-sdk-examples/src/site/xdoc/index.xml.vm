@@ -26,11 +26,11 @@
 <document xmlns="http://maven.apache.org/XDOC/2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/XDOC/2.0 http://maven.apache.org/xsd/xdoc-2.0.xsd">
   <properties>
-    <title>About OpenDJ LDAP SDK Examples</title>
-    <author email="opendj-dev@forgerock.org">ForgeRock AS</author>
+    <title>About ${project.name}</title>
+    <author email="opendj-dev@forgerock.org">${project.organization.name}</author>
   </properties>
   <body>
-    <section name="About OpenDJ LDAP SDK Examples">
+    <section name="About ${project.name}">
       <p>This module contains example LDAP applications implemented using the
         OpenDJ LDAP SDK:</p>
       <ul>
@@ -113,29 +113,31 @@
         </li>
       </ul>
     </section>
-    <section name="Get the OpenDJ LDAP SDK Examples">
+    <section name="Documentation for ${project.name}">
       <p>
-        You can get the
-        OpenDJ
-        LDAP SDK examples using any of the following
+        Javadoc for this module can be found <a href="apidocs/index.html">here</a>.
+      </p>
+    </section>
+    <section name="Get ${project.name}">
+      <p>
+        You can get the OpenDJ LDAP SDK examples using any of the following
         methods: 
-    </p>
+      </p>
       <subsection name="Download">
         <p>
-          The easiest way to download the OpenDJ LDAP SDK Examples and all of
-          its
-          dependencies is to get the latest version from our
-          <a
-            href="${mavenRepoSnapshots}/org/forgerock/opendj/opendj-ldap-sdk-examples/${currentSDKversion}">repository</a>
-          .
+          Pre-built binaries can be downloaded directly from the ForgeRock Maven
+          repository:
         </p>
+        <ul>
+          <li><a href="${mavenRepoReleases}/org/forgerock/opendj/${project.artifactId}">Stable releases</a></li>
+          <li><a href="${mavenRepoSnapshots}/org/forgerock/opendj/${project.artifactId}/${project.version}">Latest development snapshot</a></li>
+        </ul>
       </subsection>
       <subsection name="Build">
         <p>
           For the DIY enthusiasts you can build it yourself by checking out the
-          latest code using
-          <a href="source-repository.html">Subversion</a>
-          and building it with Maven 3.
+          latest code using <a href="source-repository.html">Subversion</a> and
+          building it with Maven 3.
         </p>
       </subsection>
     </section>

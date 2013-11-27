@@ -48,6 +48,14 @@
         experimental RFCs that are supported by modern LDAP servers.
       </p>
     </section>
+    <section name="Documentation for ${project.name}">
+      <p>
+        Javadoc for this module can be found <a href="apidocs/index.html">here</a>.
+        Read the <a href="../doc/dev-guide/index.html">developer guide</a> for
+        a deeper understanding of LDAP application development, as well as a
+        detailed over of LDAP itself.
+      </p>
+    </section>
     <section name="Get the OpenDJ LDAP SDK">
       <p>
         You can start developing your LDAP applications now by obtaining the

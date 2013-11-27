@@ -68,6 +68,7 @@
     <item name="Toolkit" href="opendj-ldap-toolkit" />
     <item name="Rest2LDAP" href="opendj-rest2ldap" />
     <item name="Rest2LDAP Servlet" href="opendj-rest2ldap-servlet" />
+    <item name="Server 2.x Adapter" href="opendj-server2x-adapter" />
   </menu>
 
   <menu name="OpenDJ Mobile Apps" inherit="top">

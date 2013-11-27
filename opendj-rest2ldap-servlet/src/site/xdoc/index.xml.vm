@@ -35,6 +35,11 @@
         ${project.description}
       </p>
     </section>
+    <section name="Documentation for ${project.name}">
+      <p>
+        Javadoc for this module can be found <a href="apidocs/index.html">here</a>.
+      </p>
+    </section>
     <section name="Get ${project.name}">
       <p>
         Start developing your applications by obtaining ${project.name}
