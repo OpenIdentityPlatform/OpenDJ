@@ -25,17 +25,23 @@
  *      Portions copyright 2011-2013 ForgeRock AS
  */
 
-package com.forgerock.opendj.grizzly;
+package org.forgerock.opendj.grizzly;
 
-import static java.util.Arrays.*;
-
-import static org.fest.assertions.Assertions.*;
-import static org.forgerock.opendj.ldap.Connections.*;
-import static org.forgerock.opendj.ldap.ErrorResultException.*;
-import static org.forgerock.opendj.ldap.TestCaseUtils.*;
-import static org.mockito.Matchers.*;
-import static org.mockito.Mockito.*;
-import static org.testng.Assert.*;
+import static java.util.Arrays.asList;
+import static org.fest.assertions.Assertions.assertThat;
+import static org.forgerock.opendj.ldap.Connections.newFixedConnectionPool;
+import static org.forgerock.opendj.ldap.Connections.newHeartBeatConnectionFactory;
+import static org.forgerock.opendj.ldap.Connections.newLoadBalancer;
+import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
+import static org.forgerock.opendj.ldap.TestCaseUtils.findFreeSocketAddress;
+import static org.forgerock.opendj.ldap.TestCaseUtils.getServerSocketAddress;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertTrue;
 
 import java.util.Arrays;
 import java.util.concurrent.Callable;

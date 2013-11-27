@@ -25,10 +25,17 @@
  *      Portions copyright 2012-2013 ForgeRock AS.
  */
 
-package com.forgerock.opendj.grizzly;
+package org.forgerock.opendj.grizzly;
 
-import static com.forgerock.opendj.ldap.CoreMessages.*;
-import static com.forgerock.opendj.util.StaticUtils.*;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_ASN1_BOOLEAN_INVALID_LENGTH;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_ASN1_INTEGER_INVALID_LENGTH;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_ASN1_INVALID_NUM_LENGTH_BYTES;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_ASN1_NULL_INVALID_LENGTH;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_ASN1_SEQUENCE_READ_NOT_STARTED;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_ASN1_TRUNCATED_LENGTH_BYTE;
+import static com.forgerock.opendj.ldap.CoreMessages.ERR_LDAP_CLIENT_DECODE_MAX_REQUEST_SIZE_EXCEEDED;
+import static com.forgerock.opendj.util.StaticUtils.IO_LOG;
+import static com.forgerock.opendj.util.StaticUtils.byteToHex;
 
 import java.io.IOException;
 

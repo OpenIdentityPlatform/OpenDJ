@@ -25,11 +25,12 @@
  *      Portions copyright 2011-2013 ForgeRock AS
  */
 
-package com.forgerock.opendj.grizzly;
+package org.forgerock.opendj.grizzly;
 
 import static com.forgerock.opendj.util.StaticUtils.DEFAULT_LOG;
 
 import java.io.IOException;
+
 import org.glassfish.grizzly.nio.transport.TCPNIOTransport;
 import org.glassfish.grizzly.nio.transport.TCPNIOTransportBuilder;
 import org.glassfish.grizzly.strategies.SameThreadIOStrategy;

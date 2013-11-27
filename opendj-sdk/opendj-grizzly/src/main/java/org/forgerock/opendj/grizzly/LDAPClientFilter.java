@@ -25,7 +25,7 @@
  *      Portions copyright 2012-2013 ForgeRock AS.
  */
 
-package com.forgerock.opendj.grizzly;
+package org.forgerock.opendj.grizzly;
 
 import java.io.EOFException;
 import java.io.IOException;
@@ -92,7 +92,7 @@ final class LDAPClientFilter extends LDAPBaseFilter {
          * @param reader
          *            LDAP reader to use for reading incoming messages
          */
-        public ClientResponseHandler(LDAPReader<ASN1BufferReader> reader) {
+        ClientResponseHandler(LDAPReader<ASN1BufferReader> reader) {
             this.reader = reader;
         }
 
@@ -504,7 +504,7 @@ final class LDAPClientFilter extends LDAPBaseFilter {
     }
 
     @Override
-    protected final void handleReadException(FilterChainContext ctx, IOException e) {
+    final void handleReadException(FilterChainContext ctx, IOException e) {
         final GrizzlyLDAPConnection ldapConnection = LDAP_CONNECTION_ATTR.get(ctx.getConnection());
         final Result errorResult =
                 Responses.newResult(ResultCode.CLIENT_SIDE_DECODING_ERROR).setCause(e)
@@ -525,7 +525,7 @@ final class LDAPClientFilter extends LDAPBaseFilter {
      *         new one if no handler have been created yet
      */
     @Override
-    protected final LDAPBaseHandler getLDAPHandler(final FilterChainContext ctx) {
+    final LDAPBaseHandler getLDAPHandler(final FilterChainContext ctx) {
         Connection<?> connection = ctx.getConnection();
         ClientResponseHandler handler = RESPONSE_HANDLER_ATTR.get(connection);
         if (handler == null) {

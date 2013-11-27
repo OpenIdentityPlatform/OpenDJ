@@ -25,10 +25,10 @@
  *      Portions copyright 2011-2013 ForgeRock AS
  */
 
-package com.forgerock.opendj.grizzly;
+package org.forgerock.opendj.grizzly;
 
-import static com.forgerock.opendj.grizzly.DefaultTCPNIOTransport.DEFAULT_TRANSPORT;
 import static com.forgerock.opendj.util.StaticUtils.DEFAULT_LOG;
+import static org.forgerock.opendj.grizzly.DefaultTCPNIOTransport.DEFAULT_TRANSPORT;
 
 import java.io.IOException;
 import java.net.SocketAddress;

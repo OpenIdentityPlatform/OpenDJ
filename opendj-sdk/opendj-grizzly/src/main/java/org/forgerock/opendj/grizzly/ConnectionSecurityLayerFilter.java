@@ -25,7 +25,7 @@
  *      Portions copyright 2012 ForgeRock AS.
  */
 
-package com.forgerock.opendj.grizzly;
+package org.forgerock.opendj.grizzly;
 
 import org.forgerock.opendj.ldap.ConnectionSecurityLayer;
 import org.forgerock.opendj.ldap.ErrorResultException;

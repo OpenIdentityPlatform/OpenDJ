@@ -23,9 +23,9 @@
  *
  *      Copyright 2013 ForgeRock AS.
  */
-package com.forgerock.opendj.grizzly;
+package org.forgerock.opendj.grizzly;
 
-import static org.fest.assertions.Assertions.*;
+import static org.fest.assertions.Assertions.assertThat;
 
 import org.forgerock.opendj.ldap.SdkTestCase;
 import org.glassfish.grizzly.StandaloneProcessor;

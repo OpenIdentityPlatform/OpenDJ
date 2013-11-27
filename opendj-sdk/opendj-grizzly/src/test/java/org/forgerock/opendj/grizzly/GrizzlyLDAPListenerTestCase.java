@@ -24,12 +24,12 @@
  *      Copyright 2010 Sun Microsystems, Inc.
  *      Portions copyright 2011-2013 ForgeRock AS.
  */
-package com.forgerock.opendj.grizzly;
+package org.forgerock.opendj.grizzly;
 
-import static org.fest.assertions.Assertions.*;
-import static org.fest.assertions.Fail.*;
-import static org.forgerock.opendj.ldap.TestCaseUtils.*;
-import static org.mockito.Mockito.*;
+import static org.fest.assertions.Assertions.assertThat;
+import static org.fest.assertions.Fail.fail;
+import static org.forgerock.opendj.ldap.TestCaseUtils.findFreeSocketAddress;
+import static org.mockito.Mockito.mock;
 
 import java.net.InetSocketAddress;
 import java.util.Arrays;
