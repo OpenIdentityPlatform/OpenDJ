@@ -57,7 +57,7 @@
         <p>
           The easiest way to download the OpenDJ LDAP Toolkit is to get the latest version from our
           <a
-            href="http://maven.forgerock.org/repo/snapshots/org/forgerock/opendj/opendj-ldap-toolkit/${currentSDKversion}">repository</a>
+            href="${mavenRepoSnapshots}/org/forgerock/opendj/opendj-ldap-toolkit/${currentSDKversion}">repository</a>
           .
         </p>
       </subsection>

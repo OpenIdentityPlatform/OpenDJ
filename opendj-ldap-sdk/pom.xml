@@ -21,10 +21,12 @@
   !
   ! CDDL HEADER END
   !
-  !      Copyright 2011-2012 ForgeRock AS
+  !      Copyright 2011-2013 ForgeRock AS
   !    
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <artifactId>opendj-project</artifactId>
@@ -34,11 +36,11 @@
   <artifactId>opendj-ldap-sdk</artifactId>
   <name>OpenDJ SDK</name>
   <description>
-    This module provides a complete LDAP SDK for developing LDAP Directory
-    client and server applications. It includes both the core APIs and a
-    default Grizzly based network transport.
+    This group module provides a complete LDAP SDK for developing LDAP Directory
+    client and server applications. It includes both the core APIs and the
+    Grizzly based network transport.
   </description>
-  <packaging>jar</packaging>
+  <packaging>pom</packaging>
   <dependencies>
     <dependency>
       <groupId>org.forgerock.opendj</groupId>
@@ -51,85 +53,6 @@
       <version>${project.version}</version>
     </dependency>
   </dependencies>
-  <properties>
-    <opendj.osgi.import>
-      com.sun.security.auth*;resolution:=optional,
-      *
-    </opendj.osgi.import>
-  </properties>
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-shade-plugin</artifactId>
-        <configuration>
-          <createSourcesJar>true</createSourcesJar>
-          <promoteTransitiveDependencies>true</promoteTransitiveDependencies>          
-          <artifactSet>
-            <includes>
-              <include>org.forgerock.opendj:opendj-core</include>
-              <include>org.forgerock.opendj:opendj-grizzly</include>
-            </includes>
-          </artifactSet>
-        </configuration>
-        <executions>
-          <execution>
-            <phase>package</phase>
-            <goals>
-              <goal>shade</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>com.github.goldin</groupId>
-		    <artifactId>copy-maven-plugin</artifactId>
-		    <version>0.2.5</version>
-        <executions>
-          <execution>
-            <id>unpack-jar-to-classes</id>
-            <phase>package</phase>
-            <goals>
-              <goal>copy</goal>
-            </goals>
-            <configuration>
-              <resource>
-	              <targetPath>${project.build.outputDirectory}</targetPath>
-	              <file>${project.build.directory}/${project.build.finalName}.jar</file>
-	              <unpack>true</unpack>
-              </resource>
-            </configuration>
-          </execution>
-        </executions>         
-      </plugin>
-      <plugin>
-				<groupId>org.apache.felix</groupId>
-				<artifactId>maven-bundle-plugin</artifactId>
-				<extensions>true</extensions>
-				<executions>
-					<execution>
-						<phase>package</phase>
-						<goals>
-							<goal>bundle</goal>
-						</goals>
-					</execution>
-				</executions>
-				<configuration>
-					<instructions>
-						<Include-Resource>META-INF/services=target/classes/META-INF/services</Include-Resource>
-					</instructions>
-				</configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-surefire-plugin</artifactId>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-source-plugin</artifactId>
-      </plugin>
-    </plugins>
-  </build>
   <reporting>
     <plugins>
       <plugin>
@@ -138,23 +61,10 @@
         <reportSets>
           <reportSet>
             <reports>
-              <report>mailing-list</report>
-              <report>issue-tracking</report>
-              <report>license</report>
-              <report>cim</report>
-              <report>distribution-management</report>
+              <report>dependencies</report>
             </reports>
           </reportSet>
         </reportSets>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-javadoc-plugin</artifactId>
-        <configuration>
-          <links>
-           <link>http://commons.forgerock.org/i18n-framework/i18n-core/apidocs</link>
-          </links>
-        </configuration>
       </plugin>
     </plugins>
   </reporting>
