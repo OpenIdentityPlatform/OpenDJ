@@ -28,7 +28,7 @@
   <parent>
     <groupId>org.forgerock</groupId>
     <artifactId>forgerock-parent</artifactId>
-    <version>1.1.0</version>
+    <version>1.2.0-SNAPSHOT</version>
   </parent>
   <groupId>org.forgerock.opendj</groupId>
   <artifactId>opendj-project</artifactId>
@@ -99,6 +99,8 @@
     <module>opendj-server2x-adapter</module>
   </modules>
   <properties>
+    <mavenRepoSnapshots>http://maven.forgerock.org/repo/snapshots</mavenRepoSnapshots>
+    <mavenRepoReleases>http://maven.forgerock.org/repo/releases</mavenRepoReleases>
     <forgerockBuildToolsVersion>1.0.2</forgerockBuildToolsVersion>
     <currentSDKversion>${project.version}</currentSDKversion>
     <stableSDKversion>version.not.defined</stableSDKversion>
@@ -410,6 +412,8 @@
               <report>issue-tracking</report>
               <report>license</report>
               <report>scm</report>
+              <report>cim</report>
+              <report>distribution-management</report>
             </reports>
           </reportSet>
         </reportSets>
@@ -420,7 +424,7 @@
     <repository>
       <id>forgerock-staging-repository</id>
       <name>ForgeRock Release Repository</name>
-      <url>http://maven.forgerock.org/repo/releases</url>
+      <url>${mavenRepoReleases}</url>
       <snapshots>
         <enabled>false</enabled>
       </snapshots>
@@ -428,7 +432,7 @@
     <repository>
       <id>forgerock-snapshots-repository</id>
       <name>ForgeRock Snapshot Repository</name>
-      <url>http://maven.forgerock.org/repo/snapshots</url>
+      <url>${mavenRepoSnapshots}</url>
       <releases>
         <enabled>false</enabled>
       </releases>
