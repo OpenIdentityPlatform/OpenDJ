@@ -326,46 +326,8 @@ public class LocalBackendDeleteOperation
         return;
       }
 
-      // If it is not a private backend, then check to see if the server or
-      // backend is operating in read-only mode.
-      if (!backend.isPrivateBackend())
-      {
-        switch (DirectoryServer.getWritabilityMode())
-        {
-        case DISABLED:
-          setResultCodeAndMessageNoInfoDisclosure(entry,
-              ResultCode.UNWILLING_TO_PERFORM,
-              ERR_DELETE_SERVER_READONLY.get(String.valueOf(entryDN)));
-          return;
-
-        case INTERNAL_ONLY:
-          if (!(isInternalOperation() || isSynchronizationOperation()))
-          {
-            setResultCodeAndMessageNoInfoDisclosure(entry,
-                ResultCode.UNWILLING_TO_PERFORM,
-                ERR_DELETE_SERVER_READONLY.get(String.valueOf(entryDN)));
-            return;
-          }
-        }
-
-        switch (backend.getWritabilityMode())
-        {
-        case DISABLED:
-          setResultCodeAndMessageNoInfoDisclosure(entry,
-              ResultCode.UNWILLING_TO_PERFORM,
-              ERR_DELETE_BACKEND_READONLY.get(String.valueOf(entryDN)));
-          return;
-
-        case INTERNAL_ONLY:
-          if (!(isInternalOperation() || isSynchronizationOperation()))
-          {
-            setResultCodeAndMessageNoInfoDisclosure(entry,
-                ResultCode.UNWILLING_TO_PERFORM,
-                ERR_DELETE_BACKEND_READONLY.get(String.valueOf(entryDN)));
-            return;
-          }
-        }
-      }
+      LocalBackendWorkflowElement.checkIfBackendIsWritable(backend, this,
+          entryDN, ERR_DELETE_SERVER_READONLY, ERR_DELETE_BACKEND_READONLY);
 
       // The selected backend will have the responsibility of making sure that
       // the entry actually exists and does not have any children (or possibly

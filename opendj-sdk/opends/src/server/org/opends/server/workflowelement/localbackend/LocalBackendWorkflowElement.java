@@ -33,6 +33,7 @@ import java.util.TreeMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.opends.messages.Message;
+import org.opends.messages.MessageDescriptor;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.server.ServerManagementContext;
 import org.opends.server.admin.std.server.BackendCfg;
@@ -800,6 +801,65 @@ public class LocalBackendWorkflowElement extends
   List<PersistentSearch> getPersistentSearches()
   {
     return persistentSearches;
+  }
+
+
+
+  /**
+   * Checks if an update operation can be performed against a backend. The
+   * operation will be rejected based on the server and backend writability
+   * modes.
+   *
+   * @param backend
+   *          The backend handling the update.
+   * @param op
+   *          The update operation.
+   * @param entryDN
+   *          The name of the entry being updated.
+   * @param serverMsg
+   *          The message to log if the update was rejected because the server
+   *          is read-only.
+   * @param backendMsg
+   *          The message to log if the update was rejected because the backend
+   *          is read-only.
+   * @throws DirectoryException
+   *           If the update operation has been rejected.
+   */
+  static void checkIfBackendIsWritable(Backend backend, Operation op,
+      DN entryDN, MessageDescriptor.Arg1<CharSequence> serverMsg,
+      MessageDescriptor.Arg1<CharSequence> backendMsg)
+      throws DirectoryException
+  {
+    if (!backend.isPrivateBackend())
+    {
+      switch (DirectoryServer.getWritabilityMode())
+      {
+      case DISABLED:
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+            serverMsg.get(String.valueOf(entryDN)));
+
+      case INTERNAL_ONLY:
+        if (!(op.isInternalOperation() || op.isSynchronizationOperation()))
+        {
+          throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+              serverMsg.get(String.valueOf(entryDN)));
+        }
+      }
+
+      switch (backend.getWritabilityMode())
+      {
+      case DISABLED:
+        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+            backendMsg.get(String.valueOf(entryDN)));
+
+      case INTERNAL_ONLY:
+        if (!(op.isInternalOperation() || op.isSynchronizationOperation()))
+        {
+          throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+              backendMsg.get(String.valueOf(entryDN)));
+        }
+      }
+    }
   }
 }
 
