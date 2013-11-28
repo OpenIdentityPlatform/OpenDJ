@@ -39,10 +39,7 @@
       <groupId>org.forgerock.opendj</groupId>
       <artifactId>opendj-ldap-sdk</artifactId>
       <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-api</artifactId>
+      <type>pom</type>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
