@@ -31,15 +31,19 @@ import org.opends.server.types.DN;
 
 /**
  * The Change Number Index Record class represents records stored in the
- * {@link ChangeNumberIndexDB}.
+ * {@link ChangeNumberIndexDB}. It stores data about a change that happened with
+ * the replication.
  */
 public final class ChangeNumberIndexRecord
 {
 
-  /** This is the key used to store the rest of the . */
+  /** This is the key used to store this record. */
   private final long changeNumber;
+  /** This is used on startup to recover the medium consistency point. */
   private final String previousCookie;
+  /** The baseDN where the change happened. */
   private final DN baseDN;
+  /** The CSN of the change. */
   private final CSN csn;
 
   /**

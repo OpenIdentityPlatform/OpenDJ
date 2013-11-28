@@ -329,13 +329,11 @@ public class DraftCNDB
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String toString()
   {
-    return "DraftCNDB";
+    return getClass().getSimpleName();
   }
 
   /**
@@ -622,6 +620,12 @@ public class DraftCNDB
       }
     }
 
+    /** {@inheritDoc} */
+    @Override
+    public String toString()
+    {
+      return getClass().getSimpleName() + " currentRecord=" + record;
+    }
   }
 
   /**

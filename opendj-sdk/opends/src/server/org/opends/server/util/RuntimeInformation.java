@@ -23,25 +23,27 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Copyright 2013 ForgeRock AS
  */
+package org.opends.server.util;
 
- package org.opends.server.util;
- import static org.opends.server.loggers.ErrorLogger.logError;
- import static org.opends.messages.RuntimeMessages.*;
- import static org.opends.messages.CoreMessages.*;
- import static org.opends.server.util.DynamicConstants.*;
- import org.opends.server.core.DirectoryServer;
- import java.net.InetAddress;
 import java.io.File;
- import java.lang.management.RuntimeMXBean;
- import java.lang.management.ManagementFactory;
- import java.util.List;
+import java.lang.management.ManagementFactory;
+import java.lang.management.RuntimeMXBean;
+import java.net.InetAddress;
+import java.util.List;
 
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
 
+import org.opends.server.core.DirectoryServer;
+
 import com.sleepycat.je.JEVersion;
 
+import static org.opends.messages.CoreMessages.*;
+import static org.opends.messages.RuntimeMessages.*;
+import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.util.DynamicConstants.*;
 
  /**
   * This class is used to gather and display information from the runtime
@@ -85,7 +87,7 @@ import com.sleepycat.je.JEVersion;
      RuntimeMXBean rtBean = ManagementFactory.getRuntimeMXBean();
      StringBuilder argList = new StringBuilder();
      List<String> jvmArguments = rtBean.getInputArguments();
-     if ((jvmArguments != null) && (! jvmArguments.isEmpty())) {
+     if (jvmArguments != null && !jvmArguments.isEmpty()) {
        for (String jvmArg : jvmArguments) {
          if (argList.length() > 0)  {
            argList.append(" ");
@@ -124,12 +126,7 @@ import com.sleepycat.je.JEVersion;
              NOTE_JE_VERSION.get(JEVersion.CURRENT_VERSION.toString()));
      System.out.println(
              NOTE_CURRENT_DIRECTORY.get(System.getProperty("user.dir")));
-     String installDir = DirectoryServer.getServerRoot();
-     try
-     {
-       installDir = new File(installDir).getCanonicalPath();
-     }
-     catch (Exception e){}
+     String installDir = toCanonicalPath(DirectoryServer.getServerRoot());
      if (installDir == null)
      {
        System.out.println(NOTE_UNKNOWN_INSTALL_DIRECTORY.get());
@@ -138,12 +135,7 @@ import com.sleepycat.je.JEVersion;
      {
        System.out.println(NOTE_INSTALL_DIRECTORY.get(installDir));
      }
-     String instanceDir = DirectoryServer.getInstanceRoot();
-     try
-     {
-       instanceDir = new File(instanceDir).getCanonicalPath();
-     }
-     catch (Exception e){}
+     String instanceDir = toCanonicalPath(DirectoryServer.getInstanceRoot());
      if (instanceDir == null)
      {
        System.out.println(NOTE_UNKNOWN_INSTANCE_DIRECTORY.get());
@@ -181,6 +173,18 @@ import com.sleepycat.je.JEVersion;
              NOTE_FREE_MEMORY.get(Runtime.getRuntime().freeMemory()));
    }
 
+  private static String toCanonicalPath(String path)
+  {
+    try
+    {
+      return new File(path).getCanonicalPath();
+    }
+    catch (Exception ignored)
+    {
+      return path;
+    }
+  }
+
    /**
      * Returns the physical memory size, in bytes, of the hardware we are
      * running on.
@@ -198,18 +202,13 @@ import com.sleepycat.je.JEVersion;
       // Check if this MXBean contains Sun's extension
       if (mbs.isInstanceOf(oname, "com.sun.management.OperatingSystemMXBean")) {
           // Get platform-specific attribute "TotalPhysicalMemorySize"
-          Long l = (Long) mbs.getAttribute(oname, "TotalPhysicalMemorySize");
-          return l ;
-      }
-      else
-      {
-        return -1;
+          return (Long) mbs.getAttribute(oname, "TotalPhysicalMemorySize");
       }
     }
-    catch (Exception e)
+    catch (Exception ignored)
     {
-      return -1;
     }
+    return -1;
    }
 
    /**
@@ -219,14 +218,12 @@ import com.sleepycat.je.JEVersion;
     * string "unknown" if an exception was thrown.
     */
    private static String getHostName() {
-     String host;
      try {
-       host=InetAddress.getLocalHost().getCanonicalHostName();
+       return InetAddress.getLocalHost().getCanonicalHostName();
      }
      catch (Exception e) {
-       host="Unknown (" + e + ")";
+       return "Unknown (" + e + ")";
      }
-     return host;
    }
 
    /**
@@ -251,10 +248,10 @@ import com.sleepycat.je.JEVersion;
     */
    private static String getArch() {
      String sunOsArchDataModel = System.getProperty("sun.arch.data.model");
-     if (sunOsArchDataModel != null) {
-       if (! sunOsArchDataModel.toLowerCase().equals("unknown")) {
-         return (sunOsArchDataModel + "-bit");
-       }
+     if (sunOsArchDataModel != null
+         && !sunOsArchDataModel.toLowerCase().equals("unknown"))
+     {
+       return sunOsArchDataModel + "-bit";
      }
      return "unknown";
    }
@@ -263,12 +260,7 @@ import com.sleepycat.je.JEVersion;
     * Write runtime information to error log.
     */
    public static void logInfo() {
-     String installDir = DirectoryServer.getServerRoot();
-     try
-     {
-       installDir = new File(installDir).getCanonicalPath();
-     }
-     catch (Exception e){}
+     String installDir = toCanonicalPath(DirectoryServer.getServerRoot());
      if (installDir == null)
      {
        logError(NOTE_UNKNOWN_INSTALL_DIRECTORY.get());
@@ -277,12 +269,7 @@ import com.sleepycat.je.JEVersion;
      {
        logError(NOTE_INSTALL_DIRECTORY.get(installDir));
      }
-     String instanceDir = DirectoryServer.getInstanceRoot();
-     try
-     {
-       instanceDir = new File(instanceDir).getCanonicalPath();
-     }
-     catch (Exception e){}
+     String instanceDir = toCanonicalPath(DirectoryServer.getInstanceRoot());
      if (instanceDir == null)
      {
        logError(NOTE_UNKNOWN_INSTANCE_DIRECTORY.get());
@@ -294,7 +281,7 @@ import com.sleepycat.je.JEVersion;
     logError(NOTE_JVM_INFO.get(System.getProperty("java.runtime.version"),
                                System.getProperty("java.vendor"),
                                getArch(),Runtime.getRuntime().maxMemory()));
-    Long physicalMemorySize = getPhysicalMemorySize();
+    long physicalMemorySize = getPhysicalMemorySize();
     if (physicalMemorySize != -1)
     {
       logError(NOTE_JVM_HOST.get(getHostName(), getOSInfo(),

@@ -102,4 +102,12 @@ public class ChangelogState
   {
     return domainToServerIds;
   }
+
+  /** {@inheritDoc} */
+  @Override
+  public String toString()
+  {
+    return "domainToGenerationId=" + domainToGenerationId
+        + ", domainToServerIds=" + domainToServerIds;
+  }
 }

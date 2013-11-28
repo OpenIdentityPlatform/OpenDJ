@@ -371,12 +371,14 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
   private void waitForWaitingState(final Thread t)
   {
     State state = t.getState();
-    while (!state.equals(State.WAITING) && !state.equals(State.TERMINATED))
+    while (!state.equals(State.WAITING)
+        && !state.equals(State.TIMED_WAITING)
+        && !state.equals(State.TERMINATED))
     {
       Thread.yield();
       state = t.getState();
     }
-    assertThat(state).isEqualTo(State.WAITING);
+    assertThat(state).isIn(State.WAITING, State.TIMED_WAITING);
   }
 
   /**
