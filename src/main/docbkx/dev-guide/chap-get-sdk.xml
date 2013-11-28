@@ -103,7 +103,7 @@
   &lt;repository&gt;
     &lt;id&gt;forgerock-staging-repository&lt;/id&gt;
     &lt;name&gt;ForgeRock Release Repository&lt;/name&gt;
-    &lt;url&gt;http://maven.forgerock.org/repo/releases&lt;/url&gt;
+    &lt;url&gt;${mavenRepoReleases}&lt;/url&gt;
     &lt;snapshots&gt;
       &lt;enabled&gt;false&lt;/enabled&gt;
     &lt;/snapshots&gt;
@@ -111,7 +111,7 @@
   &lt;repository&gt;
     &lt;id&gt;forgerock-snapshots-repository&lt;/id&gt;
     &lt;name&gt;ForgeRock Snapshot Repository&lt;/name&gt;
-    &lt;url&gt;http://maven.forgerock.org/repo/snapshots&lt;/url&gt;
+    &lt;url&gt;${mavenRepoSnapshots}&lt;/url&gt;
     &lt;releases&gt;
       &lt;enabled&gt;false&lt;/enabled&gt;
     &lt;/releases&gt;
@@ -122,9 +122,10 @@
 
 &lt;dependencies&gt;
   &lt;dependency&gt;
-    &lt;groupId&gt;org.forgerock.opendj&lt;/groupId&gt;
+    &lt;groupId&gt;${project.group}&lt;/groupId&gt;
     &lt;artifactId&gt;opendj-ldap-sdk&lt;/artifactId&gt;
     &lt;version&gt;<?eval ${docTargetVersion}?>&lt;/version&gt;
+    &lt;type&gt;pom&lt;/type&gt;
   &lt;/dependency&gt;
 &lt;/dependencies&gt;</programlisting>
    </step>
@@ -155,20 +156,6 @@ $ export PATH=/path/to/opendj-ldap-toolkit-<?eval ${docTargetVersion}?>/bin:$PAT
         <screen>(Windows)
 C:\>set PATH=\\path\to\opendj-ldap-toolkit-<?eval ${docTargetVersion}?>\bat:%PATH%</screen>
     </step>
-    <step>
-     <para> Add the OpenDJ LDAP SDK for the APIs, the I18N core library,
-     and Grizzly I/O framework for the transport to your CLASSPATH, typically found under
-     <filename>opendj-ldap-toolkit-<?eval ${docTargetVersion}?>/lib/</filename>.</para>
-     <screen>(UNIX)
-$ export CLASSPATH=/path/to/lib/grizzly-framework-<?eval ${grizzlyFrameworkVersion}?>.jar:$CLASSPATH
-$ export CLASSPATH=/path/to/lib/i18n-core-<?eval ${i18nFrameworkVersion}?>.jar:$CLASSPATH
-$ export CLASSPATH=/path/to/lib/opendj-ldap-sdk-<?eval ${docTargetVersion}?>.jar:$CLASSPATH
-     </screen>
-     <screen>(Windows)
-C:\>set CLASSPATH=\\path\to\lib\grizzly-framework-<?eval ${grizzlyFrameworkVersion}?>.jar:%CLASSPATH%
-C:\>set CLASSPATH=\\path\to\lib\i18n-core-<?eval ${i18nFrameworkVersion}?>.jar:%CLASSPATH%
-C:\>set CLASSPATH=\\path\to\lib\opendj-ldap-sdk-<?eval ${docTargetVersion}?>.jar:%CLASSPATH%</screen>
-    </step>
   </procedure>
 
   <procedure xml:id="proc-roll-your-own-sdk">
@@ -184,26 +171,23 @@ C:\>set CLASSPATH=\\path\to\lib\opendj-ldap-sdk-<?eval ${docTargetVersion}?>.jar
    </step>
    <step>
     <para>Check out the source code.</para>
-    <screen>$ svn co https://svn.forgerock.org/opendj/trunk/opendj3
+    <screen>$ svn co ${project.scm.url} opendj
 ...
 Checked out revision <replaceable>XXXX</replaceable>.</screen>
    </step>
    <step>
     <para>Build the modules and install them in the local repository.</para>
-    <screen>$ cd opendj3/
+    <screen>$ cd opendj/
 $ mvn install
 [INFO] Scanning for projects...
 [INFO] ------------------------------------------------------------------------
 [INFO] Reactor Build Order:
-[INFO]
+[INFO] 
 [INFO] OpenDJ Directory Services Project
-[INFO] OpenDJ LDAP SDK
-[INFO] OpenDJ LDAP Toolkit
-[INFO] OpenDJ LDAP SDK Examples
-[INFO] OpenDJ Commons REST Adapter
-[INFO] OpenDJ Commons REST LDAP Gateway
-[INFO] OpenDJ Server 2.x Adapter
-[INFO]
+[INFO] OpenDJ Core APIs
+[INFO] OpenDJ Grizzly Transport Provider
+[INFO] OpenDJ SDK
+[INFO] OpenDJ SDK Toolkit
        ...
 [INFO] ------------------------------------------------------------------------
 [INFO] BUILD SUCCESS
@@ -215,22 +199,12 @@ $ mvn install
    </step>
    <step>
     <para>Unzip the tools and libraries included in the file,
-    <filename>opendj3/opendj-ldap-toolkit/target/opendj-ldap-toolkit-<?eval ${docTargetVersion}?>.zip</filename>.</para>
+    <filename>opendj/opendj-ldap-toolkit/target/opendj-ldap-toolkit-<?eval ${docTargetVersion}?>.zip</filename>.</para>
    </step>
    <step>
     <para>Add the <filename>opendj-ldap-toolkit-<?eval ${docTargetVersion}?>/bin</filename>
     (UNIX) or <filename>opendj-ldap-toolkit-<?eval ${docTargetVersion}?>\bat</filename>
     (Windows) directory to your PATH.</para>
-   </step>
-   <step>
-    <para>Set your CLASSPATH to include the OpenDJ LDAP SDK library,
-    <filename>opendj-ldap-sdk-<?eval ${docTargetVersion}?>.jar</filename>,
-    the I18N core library,
-    <filename>i18n-core-<?eval ${i18nFrameworkVersion}?>.jar</filename>, and the
-    Grizzly framework,
-    <filename>grizzly-framework-<?eval ${grizzlyFrameworkVersion}?>.jar</filename>
-    under
-    <filename>opendj-ldap-toolkit-<?eval ${docTargetVersion}?>/lib/</filename>.</para>
    </step>
   </procedure>
 
