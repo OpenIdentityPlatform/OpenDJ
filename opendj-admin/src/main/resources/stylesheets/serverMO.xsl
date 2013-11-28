@@ -373,7 +373,7 @@
           </import>
         </xsl:if>
         <xsl:if test="$this-local-relations">
-          <import>org.opends.server.types.ConfigException</import>
+          <import>org.opends.server.config.ConfigException</import>
         </xsl:if>
         <xsl:if
           test="$this-local-relations/adm:one-to-zero-or-one|$this-local-relations/adm:one-to-many">
