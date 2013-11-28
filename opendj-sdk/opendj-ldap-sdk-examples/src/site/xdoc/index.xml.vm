@@ -120,8 +120,7 @@
     </section>
     <section name="Get ${project.name}">
       <p>
-        You can get the OpenDJ LDAP SDK examples using any of the following
-        methods: 
+        You can get ${project.name} using any of the following methods: 
       </p>
       <subsection name="Download">
         <p>
