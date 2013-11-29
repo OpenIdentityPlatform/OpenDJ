@@ -5089,9 +5089,9 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       Iterator<String> iterator;
 
       // Deduce the wished fractional mode
-      if (exclIt.hasNext())
+      if (exclIt != null && exclIt.hasNext())
       {
-        if (inclIt.hasNext())
+        if (inclIt != null && inclIt.hasNext())
         {
           throw new ConfigException(
             NOTE_ERR_FRACTIONAL_CONFIG_BOTH_MODES.get());
@@ -5102,7 +5102,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       }
       else
       {
-        if (inclIt.hasNext())
+        if (inclIt != null && inclIt.hasNext())
         {
           fractionalMode = INCLUSIVE_FRACTIONAL;
           iterator = inclIt;
