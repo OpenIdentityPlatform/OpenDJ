@@ -4934,7 +4934,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
      * Getter for fractional.
      * @return True if the configuration has fractional enabled
      */
-    private boolean isFractional()
+    boolean isFractional()
     {
       return fractional;
     }
@@ -4952,7 +4952,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
      * Getter for fractionalExclusive.
      * @return True if the configuration has fractional exclusive enabled
      */
-    private boolean isFractionalExclusive()
+    boolean isFractionalExclusive()
     {
       return fractionalExclusive;
     }
@@ -4970,7 +4970,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
      * Getter for fractionalSpecificClassesAttributes attribute.
      * @return The fractionalSpecificClassesAttributes attribute.
      */
-    private Map<String, Set<String>> getFractionalSpecificClassesAttributes()
+    Map<String, Set<String>> getFractionalSpecificClassesAttributes()
     {
       return fractionalSpecificClassesAttributes;
     }
@@ -4991,7 +4991,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
      * Getter for fractionalSpecificClassesAttributes attribute.
      * @return The fractionalSpecificClassesAttributes attribute.
      */
-    private Set<String> getFractionalAllClassesAttributes()
+    Set<String> getFractionalAllClassesAttributes()
     {
       return fractionalAllClassesAttributes;
     }
@@ -5011,7 +5011,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
      * Getter for the base baseDN.
      * @return The baseDN attribute.
      */
-    private DN getBaseDn()
+    DN getBaseDn()
     {
       return baseDN;
     }
@@ -5023,7 +5023,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
      * @return The fractional replication configuration.
      * @throws ConfigException If an error occurred.
      */
-    private static FractionalConfig toFractionalConfig(
+    static FractionalConfig toFractionalConfig(
       ReplicationDomainCfg configuration) throws ConfigException
     {
       // Prepare fractional configuration variables to parse
