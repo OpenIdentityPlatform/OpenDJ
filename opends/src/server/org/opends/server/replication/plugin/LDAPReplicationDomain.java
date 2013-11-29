@@ -1708,7 +1708,6 @@ public final class LDAPReplicationDomain extends ReplicationDomain
             deleteOperation.getEntryDN(), csn, modifiedEntryUUID);
         replayOperations.put(csn, op);
       }
-
     }
 
     return new SynchronizationProviderResult.ContinueProcessing();
@@ -4280,19 +4279,18 @@ private boolean solveNamingConflict(ModifyDNOperation op,
         // Create the ECL domain object
         eclDomain = new ExternalChangelogDomain(this, eclDomCfg);
       }
-
     }
-    catch(Exception de)
+    catch (Exception de)
     {
       throw new ConfigException(NOTE_ERR_UNABLE_TO_ENABLE_ECL.get(
-          "Replication Domain on" + getBaseDNString(),
+          "Replication Domain on " + getBaseDNString(),
           de.getMessage() + " " + de.getCause().getMessage()), de);
     }
   }
 
   private static String makeLdif(String... lines)
   {
-    StringBuilder buffer = new StringBuilder();
+    final StringBuilder buffer = new StringBuilder();
     for (String line : lines) {
       buffer.append(line).append(EOL);
     }
@@ -4331,10 +4329,10 @@ private boolean solveNamingConflict(ModifyDNOperation op,
         if (wfe!=null)
           wfe.getReplicationServer().enableECL();
       }
-      catch(DirectoryException de)
+      catch (DirectoryException de)
       {
         Message message = NOTE_ERR_UNABLE_TO_ENABLE_ECL.get(
-            "Replication Domain on" + getBaseDNString(),
+            "Replication Domain on " + getBaseDNString(),
             de.getMessage() + " " + de.getCause().getMessage());
         logError(message);
         // and go on
@@ -4711,7 +4709,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     {
       Message message = ERR_INVALID_IMPORT_SOURCE.get(
           getBaseDNString(), Integer.toString(getServerId()),
-          Integer.toString(source),"Details:" + cause.getLocalizedMessage());
+          Integer.toString(source), "Details: " + cause.getLocalizedMessage());
       throw new DirectoryException(resultCode, message, cause);
     }
     Message message = ERR_INVALID_IMPORT_SOURCE.get(getBaseDNString(),
@@ -4731,44 +4729,43 @@ private boolean solveNamingConflict(ModifyDNOperation op,
   {
     if (op instanceof PostOperationDeleteOperation)
     {
-      Set<String> names = getEclIncludesForDeletes();
       PostOperationDeleteOperation delOp = (PostOperationDeleteOperation) op;
+      final Set<String> names = getEclIncludesForDeletes();
       Entry entry = delOp.getEntryToDelete();
-      ((DeleteMsg) msg).setEclIncludes(getIncludedAttributes(entry, names));
+      final DeleteMsg deleteMsg = (DeleteMsg) msg;
+      deleteMsg.setEclIncludes(getIncludedAttributes(entry, names));
 
       // For delete only, add the Authorized DN since it's required in the
       // ECL entry but is not part of rest of the message.
       DN deleterDN = delOp.getAuthorizationDN();
       if (deleterDN != null)
       {
-        ((DeleteMsg) msg).setInitiatorsName(deleterDN.toString());
+        deleteMsg.setInitiatorsName(deleterDN.toString());
       }
     }
     else if (op instanceof PostOperationModifyOperation)
     {
-      Set<String> names = getEclIncludes();
       PostOperationModifyOperation modOp = (PostOperationModifyOperation) op;
+      Set<String> names = getEclIncludes();
       Entry entry = modOp.getCurrentEntry();
       ((ModifyMsg) msg).setEclIncludes(getIncludedAttributes(entry, names));
     }
     else if (op instanceof PostOperationModifyDNOperation)
     {
-      Set<String> names = getEclIncludes();
       PostOperationModifyDNOperation modDNOp =
         (PostOperationModifyDNOperation) op;
+      Set<String> names = getEclIncludes();
       Entry entry = modDNOp.getOriginalEntry();
       ((ModifyDNMsg) msg).setEclIncludes(getIncludedAttributes(entry, names));
     }
     else if (op instanceof PostOperationAddOperation)
     {
-      Set<String> names = getEclIncludes();
       PostOperationAddOperation addOp = (PostOperationAddOperation) op;
+      Set<String> names = getEclIncludes();
       Entry entry = addOp.getEntryToAdd();
       ((AddMsg) msg).setEclIncludes(getIncludedAttributes(entry, names));
     }
   }
-
-
 
   private Collection<Attribute> getIncludedAttributes(Entry entry,
       Set<String> names)
@@ -4795,61 +4792,63 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     }
     else
     {
-      // Expand @objectclass references in attribute list if needed. We
-      // do this now in order to take into account dynamic schema changes.
+      // Expand @objectclass references in attribute list if needed.
+      // We do this now in order to take into account dynamic schema changes.
+      Set<String> expandedNames = getExpandedNames(names);
 
-      // Only rebuild the attribute set if necessary.
-      boolean needsExpanding = false;
-      for (String name : names)
-      {
-        if (name.startsWith("@"))
-        {
-          needsExpanding = true;
-          break;
-        }
-      }
+      Entry filteredEntry =
+          entry.filterEntry(expandedNames, false, false, false);
+      return filteredEntry.getAttributes();
+    }
+  }
 
-      Set<String> expandedNames;
-      if (needsExpanding)
+  private Set<String> getExpandedNames(Set<String> names)
+  {
+    // Only rebuild the attribute set if necessary.
+    if (!needsExpanding(names))
+    {
+      return names;
+    }
+
+    final Set<String> expandedNames = new HashSet<String>(names.size());
+    for (String name : names)
+    {
+      if (name.startsWith("@"))
       {
-        expandedNames = new HashSet<String>(names.size());
-        for (String name : names)
+        String ocName = name.substring(1);
+        ObjectClass objectClass =
+            DirectoryServer.getObjectClass(toLowerCase(ocName));
+        if (objectClass != null)
         {
-          if (name.startsWith("@"))
+          for (AttributeType at : objectClass.getRequiredAttributeChain())
           {
-            String ocName = name.substring(1);
-            ObjectClass objectClass = DirectoryServer
-                .getObjectClass(toLowerCase(ocName));
-            if (objectClass != null)
-            {
-              for (AttributeType at : objectClass.getRequiredAttributeChain())
-              {
-                expandedNames.add(at.getNameOrOID());
-              }
-              for (AttributeType at : objectClass.getOptionalAttributeChain())
-              {
-                expandedNames.add(at.getNameOrOID());
-              }
-            }
+            expandedNames.add(at.getNameOrOID());
           }
-          else
+          for (AttributeType at : objectClass.getOptionalAttributeChain())
           {
-            expandedNames.add(name);
+            expandedNames.add(at.getNameOrOID());
           }
         }
       }
       else
       {
-        expandedNames = names;
+        expandedNames.add(name);
       }
-
-      Entry filteredEntry = entry.filterEntry(expandedNames, false,
-          false, false);
-      return filteredEntry.getAttributes();
     }
+    return expandedNames;
   }
 
-
+  private boolean needsExpanding(Set<String> names)
+  {
+    for (String name : names)
+    {
+      if (name.startsWith("@"))
+      {
+        return true;
+      }
+    }
+    return false;
+  }
 
   /**
    * Gets the fractional configuration of this domain.
@@ -4926,7 +4925,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
      * Constructs a new fractional configuration object.
      * @param baseDN The base DN the object is for.
      */
-    FractionalConfig(DN baseDN)
+    private FractionalConfig(DN baseDN)
     {
       this.baseDN = baseDN;
     }
@@ -4935,7 +4934,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
      * Getter for fractional.
      * @return True if the configuration has fractional enabled
      */
-    boolean isFractional()
+    private boolean isFractional()
     {
       return fractional;
     }
@@ -4944,7 +4943,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
      * Set the fractional parameter.
      * @param fractional The fractional parameter
      */
-    void setFractional(boolean fractional)
+    private void setFractional(boolean fractional)
     {
       this.fractional = fractional;
     }
@@ -4953,7 +4952,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
      * Getter for fractionalExclusive.
      * @return True if the configuration has fractional exclusive enabled
      */
-    boolean isFractionalExclusive()
+    private boolean isFractionalExclusive()
     {
       return fractionalExclusive;
     }
@@ -4962,7 +4961,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
      * Set the fractionalExclusive parameter.
      * @param fractionalExclusive The fractionalExclusive parameter
      */
-    void setFractionalExclusive(boolean fractionalExclusive)
+    private void setFractionalExclusive(boolean fractionalExclusive)
     {
       this.fractionalExclusive = fractionalExclusive;
     }
@@ -4971,7 +4970,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
      * Getter for fractionalSpecificClassesAttributes attribute.
      * @return The fractionalSpecificClassesAttributes attribute.
      */
-    Map<String, Set<String>> getFractionalSpecificClassesAttributes()
+    private Map<String, Set<String>> getFractionalSpecificClassesAttributes()
     {
       return fractionalSpecificClassesAttributes;
     }
@@ -4981,7 +4980,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
      * @param fractionalSpecificClassesAttributes The
      * fractionalSpecificClassesAttributes parameter to set.
      */
-    void setFractionalSpecificClassesAttributes(
+    private void setFractionalSpecificClassesAttributes(
         Map<String, Set<String>> fractionalSpecificClassesAttributes)
     {
       this.fractionalSpecificClassesAttributes =
@@ -4992,7 +4991,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
      * Getter for fractionalSpecificClassesAttributes attribute.
      * @return The fractionalSpecificClassesAttributes attribute.
      */
-    Set<String> getFractionalAllClassesAttributes()
+    private Set<String> getFractionalAllClassesAttributes()
     {
       return fractionalAllClassesAttributes;
     }
@@ -5002,7 +5001,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
      * @param fractionalAllClassesAttributes The
      * fractionalSpecificClassesAttributes parameter to set.
      */
-    void setFractionalAllClassesAttributes(
+    private void setFractionalAllClassesAttributes(
         Set<String> fractionalAllClassesAttributes)
     {
       this.fractionalAllClassesAttributes = fractionalAllClassesAttributes;
@@ -5012,7 +5011,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
      * Getter for the base baseDN.
      * @return The baseDN attribute.
      */
-    DN getBaseDn()
+    private DN getBaseDn()
     {
       return baseDN;
     }
@@ -5024,23 +5023,12 @@ private boolean solveNamingConflict(ModifyDNOperation op,
      * @return The fractional replication configuration.
      * @throws ConfigException If an error occurred.
      */
-    static FractionalConfig toFractionalConfig(
+    private static FractionalConfig toFractionalConfig(
       ReplicationDomainCfg configuration) throws ConfigException
     {
       // Prepare fractional configuration variables to parse
-      Iterator<String> exclIt = null;
-      Set<String> fractionalExclude = configuration.getFractionalExclude();
-      if (fractionalExclude != null)
-      {
-        exclIt = fractionalExclude.iterator();
-      }
-
-      Iterator<String> inclIt = null;
-      Set<String> fractionalInclude = configuration.getFractionalInclude();
-      if (fractionalInclude != null)
-      {
-        inclIt = fractionalInclude.iterator();
-      }
+      Iterator<String> exclIt = configuration.getFractionalExclude().iterator();
+      Iterator<String> inclIt = configuration.getFractionalInclude().iterator();
 
       // Get potentially new fractional configuration
       Map<String, Set<String>> newFractionalSpecificClassesAttributes =
@@ -5101,9 +5089,9 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       Iterator<String> iterator;
 
       // Deduce the wished fractional mode
-      if (exclIt != null && exclIt.hasNext())
+      if (exclIt.hasNext())
       {
-        if (inclIt != null && inclIt.hasNext())
+        if (inclIt.hasNext())
         {
           throw new ConfigException(
             NOTE_ERR_FRACTIONAL_CONFIG_BOTH_MODES.get());
@@ -5114,7 +5102,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       }
       else
       {
-        if (inclIt != null && inclIt.hasNext())
+        if (inclIt.hasNext())
         {
           fractionalMode = INCLUSIVE_FRACTIONAL;
           iterator = inclIt;
