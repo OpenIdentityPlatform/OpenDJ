@@ -23,6 +23,7 @@ rem CDDL HEADER END
 rem
 rem
 rem      Copyright 2008-2009 Sun Microsystems, Inc.
+rem      Portions copyright 2013 ForgeRock AS.
 
 set SET_JAVA_HOME_AND_ARGS_DONE=false
 set SET_ENVIRONMENT_VARS_DONE=false
@@ -182,7 +183,7 @@ pause
 exit /B 1
 
 :isVersionOrHelp
-if [%1] == [] goto check
+if [%1] == [] goto end
 if [%1] == [--help] goto end
 if [%1] == [-H] goto end
 if [%1] == [--version] goto end
