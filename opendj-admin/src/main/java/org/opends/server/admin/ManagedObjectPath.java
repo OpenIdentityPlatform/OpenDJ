@@ -36,11 +36,14 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.opends.server.admin.std.client.RootCfgClient;
-import org.opends.server.admin.std.meta.RootCfgDefn;
-import org.opends.server.admin.std.server.RootCfg;
+import org.forgerock.opendj.admin.client.RootCfgClient;
+import org.forgerock.opendj.admin.meta.RootCfgDefn;
+import org.forgerock.opendj.admin.server.RootCfg;
+import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.RDN;
+import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.*;
+import org.opends.server.types.DirectoryException;
 
 
 /**
@@ -138,7 +141,7 @@ public final class ManagedObjectPath<C extends ConfigurationClient,
 
     // Create a new DN builder.
     private DNSerializer() {
-      this.dn = DN.nullDN();
+      this.dn = DN.rootDN();
       this.profile = LDAPProfile.getInstance();
     }
 

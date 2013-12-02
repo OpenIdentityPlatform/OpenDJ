@@ -27,65 +27,53 @@
 
 package org.opends.server.admin;
 
-
-
-import org.opends.messages.Message;
-
-
+import org.forgerock.i18n.LocalizableMessage;
 
 /**
- * Exceptions thrown when interacting with administration framework
- * that applications are not expected to catch.
+ * Exceptions thrown when interacting with administration framework that
+ * applications are not expected to catch.
  */
 public abstract class AdminRuntimeException extends RuntimeException {
 
-  /**
-   * Fake serialization ID.
-   */
-  private static final long serialVersionUID = 1L;
+    /**
+     * Fake serialization ID.
+     */
+    private static final long serialVersionUID = 1L;
 
+    // LocalizableMessage that explains the problem.
+    private final LocalizableMessage message;
 
+    /**
+     * Create an admin runtime exception with a message and cause.
+     *
+     * @param message
+     *            The message.
+     * @param cause
+     *            The cause.
+     */
+    protected AdminRuntimeException(LocalizableMessage message, Throwable cause) {
+        super(message.toString(), cause);
+        this.message = message;
+    }
 
-  // Message that explains the problem.
-  private final Message message;
+    /**
+     * Create an admin runtime exception with a message.
+     *
+     * @param message
+     *            The message.
+     */
+    protected AdminRuntimeException(LocalizableMessage message) {
+        super(message.toString());
+        this.message = message;
+    }
 
-
-
-  /**
-   * Create an admin runtime exception with a message and cause.
-   *
-   * @param message
-   *          The message.
-   * @param cause
-   *          The cause.
-   */
-  protected AdminRuntimeException(Message message, Throwable cause) {
-    super(message.toString(), cause);
-    this.message = message;
-  }
-
-
-
-  /**
-   * Create an admin runtime exception with a message.
-   *
-   * @param message
-   *          The message.
-   */
-  protected AdminRuntimeException(Message message) {
-    super(message.toString());
-    this.message = message;
-  }
-
-
-
-  /**
-   * Returns the message that explains the problem that occurred.
-   *
-   * @return Returns the message describing the problem that occurred
-   *         (never <code>null</code>).
-   */
-  public Message getMessageObject() {
-    return this.message;
-  }
+    /**
+     * Returns the message that explains the problem that occurred.
+     *
+     * @return Returns the message describing the problem that occurred (never
+     *         <code>null</code>).
+     */
+    public LocalizableMessage getLocalizableMessageObject() {
+        return this.message;
+    }
 }

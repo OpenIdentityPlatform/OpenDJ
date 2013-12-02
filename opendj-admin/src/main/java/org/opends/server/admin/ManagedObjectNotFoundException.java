@@ -27,41 +27,32 @@
 
 package org.opends.server.admin;
 
-
-
-import static org.opends.messages.AdminMessages.*;
-
-
+import static com.forgerock.opendj.ldap.AdminMessages.*;
 
 /**
  * The requested managed object could not be located.
  */
 public class ManagedObjectNotFoundException extends OperationsException {
 
-  /**
-   * Version ID required by serializable classes.
-   */
-  private static final long serialVersionUID = -477551786551892978L;
+    /**
+     * Version ID required by serializable classes.
+     */
+    private static final long serialVersionUID = -477551786551892978L;
 
+    /**
+     * Create a managed object not found exception.
+     */
+    public ManagedObjectNotFoundException() {
+        super(ERR_MANAGED_OBJECT_NOT_FOUND_EXCEPTION.get());
+    }
 
-
-  /**
-   * Create a managed object not found exception.
-   */
-  public ManagedObjectNotFoundException() {
-    super(ERR_MANAGED_OBJECT_NOT_FOUND_EXCEPTION.get());
-  }
-
-
-
-  /**
-   * Create a managed object not found exception with the specified
-   * cause.
-   *
-   * @param cause
-   *          The cause of this exception.
-   */
-  public ManagedObjectNotFoundException(Throwable cause) {
-    super(ERR_MANAGED_OBJECT_NOT_FOUND_EXCEPTION.get(), cause);
-  }
+    /**
+     * Create a managed object not found exception with the specified cause.
+     *
+     * @param cause
+     *            The cause of this exception.
+     */
+    public ManagedObjectNotFoundException(Throwable cause) {
+        super(ERR_MANAGED_OBJECT_NOT_FOUND_EXCEPTION.get(), cause);
+    }
 }

@@ -27,32 +27,26 @@
 
 package org.opends.server.admin;
 
-
-
-import static org.opends.messages.AdminMessages.*;
-
-
+import static com.forgerock.opendj.ldap.AdminMessages.*;
 
 /**
  * Thrown when an attempt is made to modify a read-only property.
  */
 public class PropertyIsReadOnlyException extends PropertyException {
 
-  /**
-   * Serialization ID.
-   */
-  private static final long serialVersionUID = 5315348044141024459L;
+    /**
+     * Serialization ID.
+     */
+    private static final long serialVersionUID = 5315348044141024459L;
 
-
-
-  /**
-   * Create a new property is read-only exception.
-   *
-   * @param pd
-   *          The property definition.
-   */
-  public PropertyIsReadOnlyException(PropertyDefinition<?> pd) {
-    super(pd, ERR_PROPERTY_IS_READ_ONLY_EXCEPTION.get(pd.getName()));
-  }
+    /**
+     * Create a new property is read-only exception.
+     *
+     * @param pd
+     *            The property definition.
+     */
+    public PropertyIsReadOnlyException(PropertyDefinition<?> pd) {
+        super(pd, ERR_PROPERTY_IS_READ_ONLY_EXCEPTION.get(pd.getName()));
+    }
 
 }

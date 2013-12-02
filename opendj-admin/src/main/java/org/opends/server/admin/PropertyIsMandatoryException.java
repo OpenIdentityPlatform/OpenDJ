@@ -27,32 +27,26 @@
 
 package org.opends.server.admin;
 
-
-
-import static org.opends.messages.AdminMessages.*;
-
-
+import static com.forgerock.opendj.ldap.AdminMessages.*;
 
 /**
  * Thrown when an attempt is made to remove a mandatory property.
  */
 public class PropertyIsMandatoryException extends PropertyException {
 
-  /**
-   * Serialization ID.
-   */
-  private static final long serialVersionUID = 5328211711156565625L;
+    /**
+     * Serialization ID.
+     */
+    private static final long serialVersionUID = 5328211711156565625L;
 
-
-
-  /**
-   * Create a new property is mandatory exception.
-   *
-   * @param pd
-   *          The property definition.
-   */
-  public PropertyIsMandatoryException(PropertyDefinition<?> pd) {
-    super(pd, ERR_PROPERTY_IS_MANDATORY_EXCEPTION.get(pd.getName()));
-  }
+    /**
+     * Create a new property is mandatory exception.
+     *
+     * @param pd
+     *            The property definition.
+     */
+    public PropertyIsMandatoryException(PropertyDefinition<?> pd) {
+        super(pd, ERR_PROPERTY_IS_MANDATORY_EXCEPTION.get(pd.getName()));
+    }
 
 }

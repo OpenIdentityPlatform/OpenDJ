@@ -27,11 +27,11 @@
 
 package org.opends.server.admin;
 
+import static com.forgerock.opendj.util.Validator.*;
+
 import org.opends.server.authorization.dseecompat.Aci;
-import org.opends.server.authorization.dseecompat.AciException;
+import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
-import org.opends.server.types.ByteString;
-import static org.opends.server.util.Validator.ensureNotNull;
 
 import java.util.EnumSet;
 
@@ -116,7 +116,7 @@ public class ACIPropertyDefinition extends PropertyDefinition<Aci> {
     ensureNotNull(value);
 
     try {
-      return Aci.decode(ByteString.valueOf(value), DN.NULL_DN);
+      return Aci.decode(ByteString.valueOf(value), DN.rootDN());
     } catch (AciException e) {
       // TODO: it would be nice to throw the cause.
       throw new IllegalPropertyValueStringException(this, value);

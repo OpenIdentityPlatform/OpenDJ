@@ -27,46 +27,38 @@
 
 package org.opends.server.admin;
 
-
-
-import org.opends.messages.Message;
-
-
+import org.forgerock.i18n.LocalizableMessage;
 
 /**
- * Exceptions thrown as a result of errors that occurred when reading,
- * listing, and modifying managed objects.
+ * Exceptions thrown as a result of errors that occurred when reading, listing,
+ * and modifying managed objects.
  */
 public abstract class OperationsException extends AdminException {
 
-  /**
-   * Serialization ID.
-   */
-  private static final long serialVersionUID = 6329910102360262187L;
+    /**
+     * Serialization ID.
+     */
+    private static final long serialVersionUID = 6329910102360262187L;
 
+    /**
+     * Create an operations exception with a message and cause.
+     *
+     * @param message
+     *            The message.
+     * @param cause
+     *            The cause.
+     */
+    protected OperationsException(LocalizableMessage message, Throwable cause) {
+        super(message, cause);
+    }
 
-
-  /**
-   * Create an operations exception with a message and cause.
-   *
-   * @param message
-   *          The message.
-   * @param cause
-   *          The cause.
-   */
-  protected OperationsException(Message message, Throwable cause) {
-    super(message, cause);
-  }
-
-
-
-  /**
-   * Create an operations exception with a message.
-   *
-   * @param message
-   *          The message.
-   */
-  protected OperationsException(Message message) {
-    super(message);
-  }
+    /**
+     * Create an operations exception with a message.
+     *
+     * @param message
+     *            The message.
+     */
+    protected OperationsException(LocalizableMessage message) {
+        super(message);
+    }
 }

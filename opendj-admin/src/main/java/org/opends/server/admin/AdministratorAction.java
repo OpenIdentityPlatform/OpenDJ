@@ -25,167 +25,143 @@
  *      Copyright 2008 Sun Microsystems, Inc.
  */
 package org.opends.server.admin;
-import org.opends.messages.Message;
-
-
 
 import java.util.Locale;
 import java.util.MissingResourceException;
 
-
+import org.forgerock.i18n.LocalizableMessage;
 
 /**
- * Defines an optional action which administators must perform after
- * they have modified a property. By default modifications to
- * properties are assumed to take effect immediately and require no
- * additional administrative action. Developers should be aware that,
- * where feasible, they should implement components such that property
- * modifications require no additional administrative action. This is
- * required in order to minimize server downtime during administration
- * and provide a more user-friendly experience.
+ * Defines an optional action which administators must perform after they have
+ * modified a property. By default modifications to properties are assumed to
+ * take effect immediately and require no additional administrative action.
+ * Developers should be aware that, where feasible, they should implement
+ * components such that property modifications require no additional
+ * administrative action. This is required in order to minimize server downtime
+ * during administration and provide a more user-friendly experience.
  */
 public final class AdministratorAction {
 
-  /**
-   * Specifies the type of administrator action which must be
-   * performed in order for pending changes to take effect.
-   */
-  public static enum Type {
     /**
-     * Used when modifications to a property require a component
-     * restart in order to take effect (usually by disabling and
-     * re-enabling the component). May have a description describing
-     * any additional administrator action that is required when the
-     * component is restarted.
+     * Specifies the type of administrator action which must be performed in
+     * order for pending changes to take effect.
      */
-    COMPONENT_RESTART("component-restart"),
+    public static enum Type {
+        /**
+         * Used when modifications to a property require a component restart in
+         * order to take effect (usually by disabling and re-enabling the
+         * component). May have a description describing any additional
+         * administrator action that is required when the component is
+         * restarted.
+         */
+        COMPONENT_RESTART("component-restart"),
 
-    /**
-     * Used when modifications to a property take effect immediately,
-     * and no additional administrator action is required. May have a
-     * description describing how changes to the modified property
-     * will take effect.
-     */
-    NONE("none"),
+        /**
+         * Used when modifications to a property take effect immediately, and no
+         * additional administrator action is required. May have a description
+         * describing how changes to the modified property will take effect.
+         */
+        NONE("none"),
 
-    /**
-     * Used when modifications to a property require an additional
-     * administrative action in order to take effect. This should be
-     * used when neither a server restart nor a component restart are
-     * applicable. Always has a description which describes the
-     * additional administrator action which is required when the
-     * property is modified.
-     */
-    OTHER("other"),
+        /**
+         * Used when modifications to a property require an additional
+         * administrative action in order to take effect. This should be used
+         * when neither a server restart nor a component restart are applicable.
+         * Always has a description which describes the additional administrator
+         * action which is required when the property is modified.
+         */
+        OTHER("other"),
 
-    /**
-     * Used when modifications to a property require a server restart
-     * in order to take effect. May have a description describing any
-     * additional administrator action that is required when the
-     * component is restarted.
-     */
-    SERVER_RESTART("server-restart");
+        /**
+         * Used when modifications to a property require a server restart in
+         * order to take effect. May have a description describing any
+         * additional administrator action that is required when the component
+         * is restarted.
+         */
+        SERVER_RESTART("server-restart");
 
-    // The user-friendly name of the type.
-    private final String name;
+        // The user-friendly name of the type.
+        private final String name;
 
+        // Private constructor.
+        private Type(String name) {
+            this.name = name;
+        }
 
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public String toString() {
+            return name;
+        }
 
-    // Private constructor.
-    private Type(String name) {
-      this.name = name;
     }
 
+    // The managed object definition associated with this administrator
+    // action.
+    private final AbstractManagedObjectDefinition<?, ?> definition;
 
+    // The name of the property definition associated with this
+    // administrator action.
+    private final String propertyName;
+
+    // The type of administration action.
+    private final Type type;
 
     /**
-     * {@inheritDoc}
+     * Create a new administrator action.
+     *
+     * @param type
+     *            The type of this administration action.
+     * @param d
+     *            The managed object definition associated with this
+     *            administrator action.
+     * @param propertyName
+     *            The name of the property definition associated with this
+     *            administrator action.
      */
-    @Override
-    public String toString() {
-      return name;
+    public AdministratorAction(Type type, AbstractManagedObjectDefinition<?, ?> d, String propertyName) {
+        this.type = type;
+        this.definition = d;
+        this.propertyName = propertyName;
     }
 
-  }
-
-  // The managed object definition associated with this administrator
-  // action.
-  private final AbstractManagedObjectDefinition<?, ?> definition;
-
-  // The name of the property definition associated with this
-  // administrator action.
-  private final String propertyName;
-
-  // The type of administration action.
-  private final Type type;
-
-
-
-  /**
-   * Create a new administrator action.
-   *
-   * @param type
-   *          The type of this administration action.
-   * @param d
-   *          The managed object definition associated with this
-   *          administrator action.
-   * @param propertyName
-   *          The name of the property definition associated with this
-   *          administrator action.
-   */
-  public AdministratorAction(Type type,
-      AbstractManagedObjectDefinition<?, ?> d, String propertyName) {
-    this.type = type;
-    this.definition = d;
-    this.propertyName = propertyName;
-  }
-
-
-
-  /**
-   * Gets the synopsis of this administrator action in the default
-   * locale.
-   *
-   * @return Returns the synopsis of this administrator action in the
-   *         default locale, or <code>null</code> if there is no
-   *         synopsis defined.
-   */
-  public final Message getSynopsis() {
-    return getSynopsis(Locale.getDefault());
-  }
-
-
-
-  /**
-   * Gets the synopsis of this administrator action in the specified
-   * locale.
-   *
-   * @param locale
-   *          The locale.
-   * @return Returns the synopsis of this administrator action in the
-   *         specified locale, or <code>null</code> if there is no
-   *         synopsis defined.
-   */
-  public final Message getSynopsis(Locale locale) {
-    ManagedObjectDefinitionI18NResource resource =
-      ManagedObjectDefinitionI18NResource.getInstance();
-    String property = "property." + propertyName
-        + ".requires-admin-action.synopsis";
-    try {
-      return resource.getMessage(definition, property, locale);
-    } catch (MissingResourceException e) {
-      return null;
+    /**
+     * Gets the synopsis of this administrator action in the default locale.
+     *
+     * @return Returns the synopsis of this administrator action in the default
+     *         locale, or <code>null</code> if there is no synopsis defined.
+     */
+    public final LocalizableMessage getSynopsis() {
+        return getSynopsis(Locale.getDefault());
     }
-  }
 
+    /**
+     * Gets the synopsis of this administrator action in the specified locale.
+     *
+     * @param locale
+     *            The locale.
+     * @return Returns the synopsis of this administrator action in the
+     *         specified locale, or <code>null</code> if there is no synopsis
+     *         defined.
+     */
+    public final LocalizableMessage getSynopsis(Locale locale) {
+        ManagedObjectDefinitionI18NResource resource = ManagedObjectDefinitionI18NResource.getInstance();
+        String property = "property." + propertyName + ".requires-admin-action.synopsis";
+        try {
+            return resource.getLocalizableMessage(definition, property, locale);
+        } catch (MissingResourceException e) {
+            return null;
+        }
+    }
 
-
-  /**
-   * Gets the type of this administrator action.
-   *
-   * @return Returns the type of this administrator action.
-   */
-  public final Type getType() {
-    return type;
-  }
+    /**
+     * Gets the type of this administrator action.
+     *
+     * @return Returns the type of this administrator action.
+     */
+    public final Type getType() {
+        return type;
+    }
 }

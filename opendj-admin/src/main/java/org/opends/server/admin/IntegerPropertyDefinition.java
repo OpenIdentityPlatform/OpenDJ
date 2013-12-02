@@ -26,17 +26,14 @@
  */
 
 package org.opends.server.admin;
-import org.opends.messages.Message;
 
-
-
-import static org.opends.server.util.Validator.ensureNotNull;
+import static com.forgerock.opendj.util.Validator.*;
 
 import java.util.EnumSet;
 import java.util.Locale;
 import java.util.MissingResourceException;
 
-
+import org.forgerock.i18n.LocalizableMessage;
 
 /**
  * Integer property definition.
@@ -45,350 +42,297 @@ import java.util.MissingResourceException;
  * constraints. Support is provided for "unlimited" values. These are
  * represented using a negative value or using the string "unlimited".
  */
-public final class IntegerPropertyDefinition extends
-    PropertyDefinition<Integer> {
+public final class IntegerPropertyDefinition extends PropertyDefinition<Integer> {
 
-  // String used to represent unlimited.
-  private static final String UNLIMITED = "unlimited";
-
-  // The lower limit of the property value.
-  private final int lowerLimit;
-
-  // The optional upper limit of the property value.
-  private final Integer upperLimit;
-
-  // Indicates whether this property allows the use of the "unlimited" value
-  // (represented using a -1 or the string "unlimited").
-  private final boolean allowUnlimited;
-
-
-
-  /**
-   * An interface for incrementally constructing integer property definitions.
-   */
-  public static class Builder extends
-      AbstractBuilder<Integer, IntegerPropertyDefinition> {
+    // String used to represent unlimited.
+    private static final String UNLIMITED = "unlimited";
 
     // The lower limit of the property value.
-    private int lowerLimit = 0;
+    private final int lowerLimit;
 
     // The optional upper limit of the property value.
-    private Integer upperLimit = null;
+    private final Integer upperLimit;
 
     // Indicates whether this property allows the use of the "unlimited" value
     // (represented using a -1 or the string "unlimited").
-    private boolean allowUnlimited = false;
-
-
-
-    // Private constructor
-    private Builder(
-        AbstractManagedObjectDefinition<?, ?> d, String propertyName) {
-      super(d, propertyName);
-    }
-
-
+    private final boolean allowUnlimited;
 
     /**
-     * Set the lower limit.
-     *
-     * @param lowerLimit
-     *          The new lower limit (must be >= 0).
-     * @throws IllegalArgumentException
-     *           If a negative lower limit was specified or the lower limit is
-     *           greater than the upper limit.
+     * An interface for incrementally constructing integer property definitions.
      */
-    public final void setLowerLimit(int lowerLimit)
-        throws IllegalArgumentException {
-      if (lowerLimit < 0) {
-        throw new IllegalArgumentException("Negative lower limit");
-      }
-      if (upperLimit != null && lowerLimit > upperLimit) {
-        throw new IllegalArgumentException(
-            "Lower limit greater than upper limit");
-      }
-      this.lowerLimit = lowerLimit;
-    }
+    public static class Builder extends AbstractBuilder<Integer, IntegerPropertyDefinition> {
 
+        // The lower limit of the property value.
+        private int lowerLimit = 0;
 
+        // The optional upper limit of the property value.
+        private Integer upperLimit = null;
 
-    /**
-     * Set the upper limit.
-     *
-     * @param upperLimit
-     *          The new upper limit or <code>null</code> if there is no upper
-     *          limit.
-     */
-    public final void setUpperLimit(Integer upperLimit) {
-      if (upperLimit != null) {
-        if (upperLimit < 0) {
-          throw new IllegalArgumentException("Negative lower limit");
+        // Indicates whether this property allows the use of the "unlimited"
+        // value
+        // (represented using a -1 or the string "unlimited").
+        private boolean allowUnlimited = false;
+
+        // Private constructor
+        private Builder(AbstractManagedObjectDefinition<?, ?> d, String propertyName) {
+            super(d, propertyName);
         }
-        if (lowerLimit > upperLimit) {
-          throw new IllegalArgumentException(
-              "Lower limit greater than upper limit");
+
+        /**
+         * Set the lower limit.
+         *
+         * @param lowerLimit
+         *            The new lower limit (must be >= 0).
+         * @throws IllegalArgumentException
+         *             If a negative lower limit was specified or the lower
+         *             limit is greater than the upper limit.
+         */
+        public final void setLowerLimit(int lowerLimit) throws IllegalArgumentException {
+            if (lowerLimit < 0) {
+                throw new IllegalArgumentException("Negative lower limit");
+            }
+            if (upperLimit != null && lowerLimit > upperLimit) {
+                throw new IllegalArgumentException("Lower limit greater than upper limit");
+            }
+            this.lowerLimit = lowerLimit;
         }
-      }
-      this.upperLimit = upperLimit;
+
+        /**
+         * Set the upper limit.
+         *
+         * @param upperLimit
+         *            The new upper limit or <code>null</code> if there is no
+         *            upper limit.
+         */
+        public final void setUpperLimit(Integer upperLimit) {
+            if (upperLimit != null) {
+                if (upperLimit < 0) {
+                    throw new IllegalArgumentException("Negative lower limit");
+                }
+                if (lowerLimit > upperLimit) {
+                    throw new IllegalArgumentException("Lower limit greater than upper limit");
+                }
+            }
+            this.upperLimit = upperLimit;
+        }
+
+        /**
+         * Specify whether or not this property definition will allow unlimited
+         * values (default is false).
+         *
+         * @param allowUnlimited
+         *            <code>true</code> if the property will allow unlimited
+         *            values, or <code>false</code> otherwise.
+         */
+        public final void setAllowUnlimited(boolean allowUnlimited) {
+            this.allowUnlimited = allowUnlimited;
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        protected IntegerPropertyDefinition buildInstance(AbstractManagedObjectDefinition<?, ?> d, String propertyName,
+                EnumSet<PropertyOption> options, AdministratorAction adminAction,
+                DefaultBehaviorProvider<Integer> defaultBehavior) {
+            return new IntegerPropertyDefinition(d, propertyName, options, adminAction, defaultBehavior, lowerLimit,
+                    upperLimit, allowUnlimited);
+        }
+
     }
-
-
 
     /**
-     * Specify whether or not this property definition will allow unlimited
-     * values (default is false).
+     * Create an integer property definition builder.
      *
-     * @param allowUnlimited
-     *          <code>true</code> if the property will allow unlimited values,
-     *          or <code>false</code> otherwise.
+     * @param d
+     *            The managed object definition associated with this property
+     *            definition.
+     * @param propertyName
+     *            The property name.
+     * @return Returns the new integer property definition builder.
      */
-    public final void setAllowUnlimited(boolean allowUnlimited) {
-      this.allowUnlimited = allowUnlimited;
+    public static Builder createBuilder(AbstractManagedObjectDefinition<?, ?> d, String propertyName) {
+        return new Builder(d, propertyName);
     }
 
+    // Private constructor.
+    private IntegerPropertyDefinition(AbstractManagedObjectDefinition<?, ?> d, String propertyName,
+            EnumSet<PropertyOption> options, AdministratorAction adminAction,
+            DefaultBehaviorProvider<Integer> defaultBehavior, int lowerLimit, Integer upperLimit, boolean allowUnlimited) {
+        super(d, Integer.class, propertyName, options, adminAction, defaultBehavior);
+        this.lowerLimit = lowerLimit;
+        this.upperLimit = upperLimit;
+        this.allowUnlimited = allowUnlimited;
+    }
 
+    /**
+     * Get the lower limit.
+     *
+     * @return Returns the lower limit.
+     */
+    public int getLowerLimit() {
+        return lowerLimit;
+    }
+
+    /**
+     * Get the upper limit.
+     *
+     * @return Returns the upper limit or <code>null</code> if there is no upper
+     *         limit.
+     */
+    public Integer getUpperLimit() {
+        return upperLimit;
+    }
+
+    /**
+     * Gets the optional unit synopsis of this integer property definition in
+     * the default locale.
+     *
+     * @return Returns the unit synopsis of this integer property definition in
+     *         the default locale, or <code>null</code> if there is no unit
+     *         synopsis.
+     */
+    public LocalizableMessage getUnitSynopsis() {
+        return getUnitSynopsis(Locale.getDefault());
+    }
+
+    /**
+     * Gets the optional unit synopsis of this integer property definition in
+     * the specified locale.
+     *
+     * @param locale
+     *            The locale.
+     * @return Returns the unit synopsis of this integer property definition in
+     *         the specified locale, or <code>null</code> if there is no unit
+     *         synopsis.
+     */
+    public LocalizableMessage getUnitSynopsis(Locale locale) {
+        ManagedObjectDefinitionI18NResource resource = ManagedObjectDefinitionI18NResource.getInstance();
+        String property = "property." + getName() + ".syntax.integer.unit-synopsis";
+        try {
+            return resource.getMessage(getManagedObjectDefinition(), property, locale);
+        } catch (MissingResourceException e) {
+            return null;
+        }
+    }
+
+    /**
+     * Determine whether this property allows unlimited values.
+     *
+     * @return Returns <code>true</code> if this this property allows unlimited
+     *         values.
+     */
+    public boolean isAllowUnlimited() {
+        return allowUnlimited;
+    }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    protected IntegerPropertyDefinition buildInstance(
-        AbstractManagedObjectDefinition<?, ?> d, String propertyName,
-        EnumSet<PropertyOption> options,
-        AdministratorAction adminAction,
-        DefaultBehaviorProvider<Integer> defaultBehavior) {
-      return new IntegerPropertyDefinition(d, propertyName, options,
-          adminAction, defaultBehavior, lowerLimit, upperLimit, allowUnlimited);
+    public void validateValue(Integer value) throws IllegalPropertyValueException {
+        ensureNotNull(value);
+
+        if (!allowUnlimited && value < lowerLimit) {
+            throw new IllegalPropertyValueException(this, value);
+
+            // unlimited allowed
+        } else if (value >= 0 && value < lowerLimit) {
+            throw new IllegalPropertyValueException(this, value);
+        }
+
+        if ((upperLimit != null) && (value > upperLimit)) {
+            throw new IllegalPropertyValueException(this, value);
+        }
     }
 
-  }
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String encodeValue(Integer value) throws IllegalPropertyValueException {
+        ensureNotNull(value);
 
+        // Make sure that we correctly encode negative values as "unlimited".
+        if (allowUnlimited) {
+            if (value < 0) {
+                return UNLIMITED;
+            }
+        }
 
-
-  /**
-   * Create an integer property definition builder.
-   *
-   * @param d
-   *          The managed object definition associated with this
-   *          property definition.
-   * @param propertyName
-   *          The property name.
-   * @return Returns the new integer property definition builder.
-   */
-  public static Builder createBuilder(
-      AbstractManagedObjectDefinition<?, ?> d, String propertyName) {
-    return new Builder(d, propertyName);
-  }
-
-
-
-  // Private constructor.
-  private IntegerPropertyDefinition(
-      AbstractManagedObjectDefinition<?, ?> d, String propertyName,
-      EnumSet<PropertyOption> options,
-      AdministratorAction adminAction,
-      DefaultBehaviorProvider<Integer> defaultBehavior, int lowerLimit,
-      Integer upperLimit, boolean allowUnlimited) {
-    super(d, Integer.class, propertyName, options, adminAction,
-        defaultBehavior);
-    this.lowerLimit = lowerLimit;
-    this.upperLimit = upperLimit;
-    this.allowUnlimited = allowUnlimited;
-  }
-
-
-
-  /**
-   * Get the lower limit.
-   *
-   * @return Returns the lower limit.
-   */
-  public int getLowerLimit() {
-    return lowerLimit;
-  }
-
-
-
-  /**
-   * Get the upper limit.
-   *
-   * @return Returns the upper limit or <code>null</code> if there is no upper
-   *         limit.
-   */
-  public Integer getUpperLimit() {
-    return upperLimit;
-  }
-
-
-
-  /**
-   * Gets the optional unit synopsis of this integer property
-   * definition in the default locale.
-   *
-   * @return Returns the unit synopsis of this integer property
-   *         definition in the default locale, or <code>null</code>
-   *         if there is no unit synopsis.
-   */
-  public Message getUnitSynopsis() {
-    return getUnitSynopsis(Locale.getDefault());
-  }
-
-
-
-  /**
-   * Gets the optional unit synopsis of this integer property
-   * definition in the specified locale.
-   *
-   * @param locale
-   *          The locale.
-   * @return Returns the unit synopsis of this integer property
-   *         definition in the specified locale, or <code>null</code>
-   *         if there is no unit synopsis.
-   */
-  public Message getUnitSynopsis(Locale locale) {
-    ManagedObjectDefinitionI18NResource resource =
-      ManagedObjectDefinitionI18NResource.getInstance();
-    String property = "property." + getName() + ".syntax.integer.unit-synopsis";
-    try {
-      return resource.getMessage(getManagedObjectDefinition(),
-          property, locale);
-    } catch (MissingResourceException e) {
-      return null;
-    }
-  }
-
-
-
-  /**
-   * Determine whether this property allows unlimited values.
-   *
-   * @return Returns <code>true</code> if this this property allows unlimited
-   *         values.
-   */
-  public boolean isAllowUnlimited() {
-    return allowUnlimited;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void validateValue(Integer value)
-      throws IllegalPropertyValueException {
-    ensureNotNull(value);
-
-    if (!allowUnlimited && value < lowerLimit) {
-      throw new IllegalPropertyValueException(this, value);
-
-    // unlimited allowed
-    } else if (value >= 0 && value < lowerLimit) {
-      throw new IllegalPropertyValueException(this, value);
+        return value.toString();
     }
 
-    if ((upperLimit != null) && (value > upperLimit)) {
-      throw new IllegalPropertyValueException(this, value);
-    }
-  }
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Integer decodeValue(String value) throws IllegalPropertyValueStringException {
+        ensureNotNull(value);
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public String encodeValue(Integer value)
-          throws IllegalPropertyValueException {
-    ensureNotNull(value);
+        if (allowUnlimited) {
+            if (value.trim().equalsIgnoreCase(UNLIMITED)) {
+                return -1;
+            }
+        }
 
-    // Make sure that we correctly encode negative values as "unlimited".
-    if (allowUnlimited) {
-      if (value < 0) {
-        return UNLIMITED;
-      }
-    }
+        Integer i;
+        try {
+            i = Integer.valueOf(value);
+        } catch (NumberFormatException e) {
+            throw new IllegalPropertyValueStringException(this, value);
+        }
 
-    return value.toString();
-  }
+        try {
+            validateValue(i);
+        } catch (IllegalPropertyValueException e) {
+            throw new IllegalPropertyValueStringException(this, value);
+        }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public Integer decodeValue(String value)
-      throws IllegalPropertyValueStringException {
-    ensureNotNull(value);
-
-    if (allowUnlimited) {
-      if (value.trim().equalsIgnoreCase(UNLIMITED)) {
-        return -1;
-      }
+        return i;
     }
 
-    Integer i;
-    try {
-      i = Integer.valueOf(value);
-    } catch (NumberFormatException e) {
-      throw new IllegalPropertyValueStringException(this, value);
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public <R, P> R accept(PropertyDefinitionVisitor<R, P> v, P p) {
+        return v.visitInteger(this, p);
     }
 
-    try {
-      validateValue(i);
-    } catch (IllegalPropertyValueException e) {
-      throw new IllegalPropertyValueStringException(this, value);
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public <R, P> R accept(PropertyValueVisitor<R, P> v, Integer value, P p) {
+        return v.visitInteger(this, value, p);
     }
 
-    return i;
-  }
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void toString(StringBuilder builder) {
+        super.toString(builder);
 
+        builder.append(" lowerLimit=");
+        builder.append(lowerLimit);
 
+        if (upperLimit != null) {
+            builder.append(" upperLimit=");
+            builder.append(upperLimit);
+        }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public <R, P> R accept(PropertyDefinitionVisitor<R, P> v, P p) {
-    return v.visitInteger(this, p);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public <R, P> R accept(PropertyValueVisitor<R, P> v, Integer value, P p) {
-    return v.visitInteger(this, value, p);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void toString(StringBuilder builder) {
-    super.toString(builder);
-
-    builder.append(" lowerLimit=");
-    builder.append(lowerLimit);
-
-    if (upperLimit != null) {
-      builder.append(" upperLimit=");
-      builder.append(upperLimit);
+        builder.append(" allowUnlimited=");
+        builder.append(allowUnlimited);
     }
 
-    builder.append(" allowUnlimited=");
-    builder.append(allowUnlimited);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public int compare(Integer o1, Integer o2) {
-    return o1.compareTo(o2);
-  }
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public int compare(Integer o1, Integer o2) {
+        return o1.compareTo(o2);
+    }
 
 }

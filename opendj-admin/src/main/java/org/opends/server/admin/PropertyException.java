@@ -27,73 +27,62 @@
 
 package org.opends.server.admin;
 
-
-
-import org.opends.messages.Message;
-
-
+import org.forgerock.i18n.LocalizableMessage;
 
 /**
- * Exceptions thrown as a result of errors that occurred when decoding
- * and modifying property values.
+ * Exceptions thrown as a result of errors that occurred when decoding and
+ * modifying property values.
  */
 public abstract class PropertyException extends AdminRuntimeException {
 
-  /**
-   * Version ID required by serializable classes.
-   */
-  private static final long serialVersionUID = -8465109598081914482L;
+    /**
+     * Version ID required by serializable classes.
+     */
+    private static final long serialVersionUID = -8465109598081914482L;
 
-  // The property definition associated with the property that caused
-  // the exception.
-  private final PropertyDefinition<?> pd;
+    // The property definition associated with the property that caused
+    // the exception.
+    private final PropertyDefinition<?> pd;
 
+    /**
+     * Creates property exception without a cause.
+     *
+     * @param pd
+     *            The property definition associated with the property that
+     *            caused the exception.
+     * @param message
+     *            The message.
+     */
+    protected PropertyException(PropertyDefinition<?> pd, LocalizableMessage message) {
+        super(message);
+        this.pd = pd;
+    }
 
+    /**
+     * Creates property exception with a cause.
+     *
+     * @param pd
+     *            The property definition associated with the property that
+     *            caused the exception.
+     * @param message
+     *            The message.
+     * @param cause
+     *            The cause.
+     */
+    protected PropertyException(PropertyDefinition<?> pd, LocalizableMessage message, Throwable cause) {
+        super(message, cause);
+        this.pd = pd;
+    }
 
-  /**
-   * Creates property exception without a cause.
-   *
-   * @param pd
-   *          The property definition associated with the property
-   *          that caused the exception.
-   * @param message
-   *          The message.
-   */
-  protected PropertyException(PropertyDefinition<?> pd, Message message) {
-    super(message);
-    this.pd = pd;
-  }
-
-
-
-  /**
-   * Creates property exception with a cause.
-   *
-   * @param pd
-   *          The property definition associated with the property
-   *          that caused the exception.
-   * @param message
-   *          The message.
-   * @param cause
-   *          The cause.
-   */
-  protected PropertyException(PropertyDefinition<?> pd, Message message,
-      Throwable cause) {
-    super(message, cause);
-    this.pd = pd;
-  }
-
-
-
-  /**
-   * Get the property definition associated with the property that
-   * caused the exception.
-   *
-   * @return Returns the property definition associated with the
-   *         property that caused the exception.
-   */
-  public final PropertyDefinition<?> getPropertyDefinition() {
-    return pd;
-  }
+    /**
+     * Get the property definition associated with the property that caused the
+     * exception.
+     *
+     * @return Returns the property definition associated with the property that
+     *         caused the exception.
+     */
+    public final PropertyDefinition<?> getPropertyDefinition() {
+        return pd;
+    }
 
 }

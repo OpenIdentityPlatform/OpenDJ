@@ -27,162 +27,127 @@
 
 package org.opends.server.admin;
 
-
-
-import static org.opends.server.util.Validator.ensureNotNull;
+import static com.forgerock.opendj.util.Validator.*;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.EnumSet;
 
-
-
 /**
  * IP address property definition.
  */
-public final class IPAddressPropertyDefinition extends
-    PropertyDefinition<InetAddress> {
+public final class IPAddressPropertyDefinition extends PropertyDefinition<InetAddress> {
 
-  /**
-   * An interface for incrementally constructing IP address property
-   * definitions.
-   */
-  public static class Builder extends
-      AbstractBuilder<InetAddress, IPAddressPropertyDefinition> {
+    /**
+     * An interface for incrementally constructing IP address property
+     * definitions.
+     */
+    public static class Builder extends AbstractBuilder<InetAddress, IPAddressPropertyDefinition> {
 
-    // Private constructor
-    private Builder(
-        AbstractManagedObjectDefinition<?, ?> d, String propertyName) {
-      super(d, propertyName);
+        // Private constructor
+        private Builder(AbstractManagedObjectDefinition<?, ?> d, String propertyName) {
+            super(d, propertyName);
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        protected IPAddressPropertyDefinition buildInstance(AbstractManagedObjectDefinition<?, ?> d,
+                String propertyName, EnumSet<PropertyOption> options, AdministratorAction adminAction,
+                DefaultBehaviorProvider<InetAddress> defaultBehavior) {
+            return new IPAddressPropertyDefinition(d, propertyName, options, adminAction, defaultBehavior);
+        }
+
     }
 
+    /**
+     * Create a IP address property definition builder.
+     *
+     * @param d
+     *            The managed object definition associated with this property
+     *            definition.
+     * @param propertyName
+     *            The property name.
+     * @return Returns the new IP address property definition builder.
+     */
+    public static Builder createBuilder(AbstractManagedObjectDefinition<?, ?> d, String propertyName) {
+        return new Builder(d, propertyName);
+    }
 
+    // Private constructor.
+    private IPAddressPropertyDefinition(AbstractManagedObjectDefinition<?, ?> d, String propertyName,
+            EnumSet<PropertyOption> options, AdministratorAction adminAction,
+            DefaultBehaviorProvider<InetAddress> defaultBehavior) {
+        super(d, InetAddress.class, propertyName, options, adminAction, defaultBehavior);
+    }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    protected IPAddressPropertyDefinition buildInstance(
-        AbstractManagedObjectDefinition<?, ?> d, String propertyName,
-        EnumSet<PropertyOption> options,
-        AdministratorAction adminAction,
-        DefaultBehaviorProvider<InetAddress> defaultBehavior) {
-      return new IPAddressPropertyDefinition(d, propertyName, options,
-          adminAction, defaultBehavior);
+    public void validateValue(InetAddress value) throws IllegalPropertyValueException {
+        ensureNotNull(value);
+
+        // No additional validation required.
     }
 
-  }
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public InetAddress decodeValue(String value) throws IllegalPropertyValueStringException {
+        ensureNotNull(value);
 
-
-
-  /**
-   * Create a IP address property definition builder.
-   *
-   * @param d
-   *          The managed object definition associated with this
-   *          property definition.
-   * @param propertyName
-   *          The property name.
-   * @return Returns the new IP address property definition builder.
-   */
-  public static Builder createBuilder(
-      AbstractManagedObjectDefinition<?, ?> d, String propertyName) {
-    return new Builder(d, propertyName);
-  }
-
-
-
-  // Private constructor.
-  private IPAddressPropertyDefinition(
-      AbstractManagedObjectDefinition<?, ?> d, String propertyName,
-      EnumSet<PropertyOption> options,
-      AdministratorAction adminAction,
-      DefaultBehaviorProvider<InetAddress> defaultBehavior) {
-    super(d, InetAddress.class, propertyName, options, adminAction,
-        defaultBehavior);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void validateValue(InetAddress value)
-      throws IllegalPropertyValueException {
-    ensureNotNull(value);
-
-    // No additional validation required.
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public InetAddress decodeValue(String value)
-      throws IllegalPropertyValueStringException {
-    ensureNotNull(value);
-
-    try {
-      return InetAddress.getByName(value);
-    } catch (UnknownHostException e) {
-      // TODO: it would be nice to throw the cause.
-      throw new IllegalPropertyValueStringException(this, value);
+        try {
+            return InetAddress.getByName(value);
+        } catch (UnknownHostException e) {
+            // TODO: it would be nice to throw the cause.
+            throw new IllegalPropertyValueStringException(this, value);
+        }
     }
-  }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String encodeValue(InetAddress value) throws IllegalPropertyValueException {
+        // We should return the host name if it is available, or the IP
+        // address if not.
 
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public String encodeValue(InetAddress value)
-      throws IllegalPropertyValueException {
-    // We should return the host name if it is available, or the IP
-    // address if not.
-
-    // Unforunately, there is no InetAddress method for doing this, so
-    // we have to resort to hacking at the toString() encoding.
-    String s = value.toString();
-    int i = s.indexOf('/');
-    if (i > 0) {
-      // Host address is before the forward slash.
-      return s.substring(0, i);
-    } else {
-      return value.getHostAddress();
+        // Unforunately, there is no InetAddress method for doing this, so
+        // we have to resort to hacking at the toString() encoding.
+        String s = value.toString();
+        int i = s.indexOf('/');
+        if (i > 0) {
+            // Host address is before the forward slash.
+            return s.substring(0, i);
+        } else {
+            return value.getHostAddress();
+        }
     }
-  }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public <R, P> R accept(PropertyDefinitionVisitor<R, P> v, P p) {
+        return v.visitIPAddress(this, p);
+    }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public <R, P> R accept(PropertyValueVisitor<R, P> v, InetAddress value, P p) {
+        return v.visitIPAddress(this, value, p);
+    }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public <R, P> R accept(PropertyDefinitionVisitor<R, P> v, P p) {
-    return v.visitIPAddress(this, p);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public <R, P> R accept(PropertyValueVisitor<R, P> v, InetAddress value, P p) {
-    return v.visitIPAddress(this, value, p);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public int compare(InetAddress o1, InetAddress o2) {
-    return o1.getHostAddress().compareTo(o2.getHostAddress());
-  }
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public int compare(InetAddress o1, InetAddress o2) {
+        return o1.getHostAddress().compareTo(o2.getHostAddress());
+    }
 }

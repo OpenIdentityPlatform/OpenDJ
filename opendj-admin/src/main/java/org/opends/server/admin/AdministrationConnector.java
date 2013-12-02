@@ -27,9 +27,6 @@
  */
 package org.opends.server.admin;
 
-import static org.opends.server.loggers.ErrorLogger.logError;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.messages.AdminMessages.*;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
@@ -38,36 +35,26 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
+
 import javax.naming.ldap.Rdn;
-import org.opends.messages.Message;
+
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.server.ServerManagementContext;
-import org.opends.server.admin.std.meta.LDAPConnectionHandlerCfgDefn.
-  SSLClientAuthPolicy;
-import org.opends.server.admin.std.server.AdministrationConnectorCfg;
-import org.opends.server.admin.std.server.ConnectionHandlerCfg;
-import org.opends.server.admin.std.server.KeyManagerProviderCfg;
-import org.opends.server.admin.std.server.FileBasedKeyManagerProviderCfg;
-import org.opends.server.admin.std.server.FileBasedTrustManagerProviderCfg;
-import org.opends.server.admin.std.server.LDAPConnectionHandlerCfg;
-import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.config.ConfigException;
-import org.opends.server.core.SynchronousStrategy;
-import org.opends.server.protocols.ldap.LDAPConnectionHandler;
 import org.opends.server.types.AddressMask;
 import org.opends.server.types.ConfigChangeResult;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.admin.server.AdministrationConnectorCfg;
+import org.forgerock.opendj.admin.server.FileBasedKeyManagerProviderCfg;
+import org.forgerock.opendj.admin.server.FileBasedTrustManagerProviderCfg;
+import org.forgerock.opendj.admin.server.KeyManagerProviderCfg;
+import org.forgerock.opendj.admin.server.LDAPConnectionHandlerCfg;
+import org.forgerock.opendj.admin.server.RootCfg;
+import org.forgerock.opendj.admin.server.TrustManagerProviderCfg;
 import org.forgerock.opendj.ldap.DN;
 import org.opends.server.types.InitializationException;
-import org.opends.server.types.ResultCode;
-import org.opends.server.util.CertificateManager;
-import org.opends.server.util.SetupUtils;
-import org.opends.server.admin.std.server.TrustManagerProviderCfg;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.loggers.ErrorLogger;
-import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.FilePermission;
 
 /**
  * This class is a wrapper on top of LDAPConnectionHandler to manage
@@ -218,7 +205,7 @@ public final class AdministrationConnector implements
    */
   public boolean isConfigurationChangeAcceptable(
       AdministrationConnectorCfg configuration,
-      List<Message> unacceptableReasons)
+      List<LocalizableMessage> unacceptableReasons)
   {
     LDAPConnectionHandlerCfg cfg = new FakeLDAPConnectionHandlerCfg(
         configuration);
@@ -235,7 +222,7 @@ public final class AdministrationConnector implements
       AdministrationConnectorCfg configuration)
   {
     return new ConfigChangeResult(ResultCode.SUCCESS, true,
-        new ArrayList<Message>());
+        new ArrayList<LocalizableMessage>());
   }
 
 
@@ -676,7 +663,7 @@ public final class AdministrationConnector implements
         {
           err += pinFilePath + " ";
         }
-        Message message = ERR_ADMIN_CERTIFICATE_GENERATION_MISSING_FILES
+        LocalizableMessage message = ERR_ADMIN_CERTIFICATE_GENERATION_MISSING_FILES
             .get(err);
         logError(message);
         throw new InitializationException(message);
@@ -728,7 +715,7 @@ public final class AdministrationConnector implements
               new FilePermission(0600)))
           {
             // Log a warning that the permissions were not set.
-            Message message = WARN_ADMIN_SET_PERMISSIONS_FAILED
+            LocalizableMessage message = WARN_ADMIN_SET_PERMISSIONS_FAILED
                 .get(pinFilePath);
             ErrorLogger.logError(message);
           }
@@ -736,7 +723,7 @@ public final class AdministrationConnector implements
         catch (DirectoryException e)
         {
           // Log a warning that the permissions were not set.
-          Message message = WARN_ADMIN_SET_PERMISSIONS_FAILED.get(pinFilePath);
+          LocalizableMessage message = WARN_ADMIN_SET_PERMISSIONS_FAILED.get(pinFilePath);
           ErrorLogger.logError(message);
         }
       }
@@ -755,7 +742,7 @@ public final class AdministrationConnector implements
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
-      Message message = ERR_ADMIN_CERTIFICATE_GENERATION.get(e.getMessage());
+      LocalizableMessage message = ERR_ADMIN_CERTIFICATE_GENERATION.get(e.getMessage());
       logError(message);
       throw new InitializationException(message);
     }

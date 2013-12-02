@@ -36,4 +36,12 @@ public class DirectoryServer {
         throw new RuntimeException("Not implemented");
     }
 
+    public static String getInstanceRoot() {
+        throw new RuntimeException("Not implemented");
+    }
+
+    public static String getServerRoot() {
+        throw new RuntimeException("Not implemented");
+    }
+
 }

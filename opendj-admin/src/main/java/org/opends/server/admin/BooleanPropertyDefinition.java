@@ -27,15 +27,11 @@
 
 package org.opends.server.admin;
 
-
-
-import static org.opends.server.util.Validator.ensureNotNull;
+import static com.forgerock.opendj.util.Validator.*;
 
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
-
-
 
 /**
  * Boolean property definition.

@@ -25,11 +25,10 @@
  *      Copyright 2008 Sun Microsystems, Inc.
  */
 package org.opends.server.admin;
-import org.opends.messages.Message;
 
 import java.util.Locale;
 
-
+import org.forgerock.i18n.LocalizableMessage;
 
 /**
  * A default behavior provider which indicates special behavior. It should be
@@ -40,76 +39,62 @@ import java.util.Locale;
  * values.
  *
  * @param <T>
- *          The type of values represented by this provider.
+ *            The type of values represented by this provider.
  */
-public final class AliasDefaultBehaviorProvider<T> extends
-    DefaultBehaviorProvider<T> {
+public final class AliasDefaultBehaviorProvider<T> extends DefaultBehaviorProvider<T> {
 
-  // The managed object definition associated with this default
-  // behavior.
-  private final AbstractManagedObjectDefinition<?, ?> definition;
+    // The managed object definition associated with this default
+    // behavior.
+    private final AbstractManagedObjectDefinition<?, ?> definition;
 
-  // The name of the property definition associated with this default
-  // behavior.
-  private final String propertyName;
+    // The name of the property definition associated with this default
+    // behavior.
+    private final String propertyName;
 
+    /**
+     * Create an alias default behavior provider.
+     *
+     * @param d
+     *            The managed object definition associated with this default
+     *            behavior.
+     * @param propertyName
+     *            The name of the property definition associated with this
+     *            default behavior.
+     */
+    public AliasDefaultBehaviorProvider(AbstractManagedObjectDefinition<?, ?> d, String propertyName) {
+        this.definition = d;
+        this.propertyName = propertyName;
+    }
 
+    /**
+     * {@inheritDoc}
+     */
+    public <R, P> R accept(DefaultBehaviorProviderVisitor<T, R, P> v, P p) {
+        return v.visitAlias(this, p);
+    }
 
-  /**
-   * Create an alias default behavior provider.
-   *
-   * @param d
-   *          The managed object definition associated with this
-   *          default behavior.
-   * @param propertyName
-   *          The name of the property definition associated with this
-   *          default behavior.
-   */
-  public AliasDefaultBehaviorProvider(
-      AbstractManagedObjectDefinition<?, ?> d, String propertyName) {
-    this.definition = d;
-    this.propertyName = propertyName;
-  }
+    /**
+     * Gets the synopsis of this alias default behavior in the default locale.
+     *
+     * @return Returns the synopsis of this alias default behavior in the
+     *         default locale.
+     */
+    public final LocalizableMessage getSynopsis() {
+        return getSynopsis(Locale.getDefault());
+    }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public <R, P> R accept(DefaultBehaviorProviderVisitor<T, R, P> v, P p) {
-    return v.visitAlias(this, p);
-  }
-
-
-
-  /**
-   * Gets the synopsis of this alias default behavior in the
-   * default locale.
-   *
-   * @return Returns the synopsis of this alias default behavior in
-   *         the default locale.
-   */
-  public final Message getSynopsis() {
-    return getSynopsis(Locale.getDefault());
-  }
-
-
-
-  /**
-   * Gets the synopsis of this alias default behavior in the specified
-   * locale.
-   *
-   * @param locale
-   *          The locale.
-   * @return Returns the synopsis of this alias default behavior in
-   *         the specified locale.
-   */
-  public final Message getSynopsis(Locale locale) {
-    ManagedObjectDefinitionI18NResource resource =
-      ManagedObjectDefinitionI18NResource.getInstance();
-    String property = "property." + propertyName
-        + ".default-behavior.alias.synopsis";
-    return resource.getMessage(definition, property, locale);
-  }
+    /**
+     * Gets the synopsis of this alias default behavior in the specified locale.
+     *
+     * @param locale
+     *            The locale.
+     * @return Returns the synopsis of this alias default behavior in the
+     *         specified locale.
+     */
+    public final LocalizableMessage getSynopsis(Locale locale) {
+        ManagedObjectDefinitionI18NResource resource = ManagedObjectDefinitionI18NResource.getInstance();
+        String property = "property." + propertyName + ".default-behavior.alias.synopsis";
+        return resource.getLocalizableMessage(definition, property, locale);
+    }
 
 }
