@@ -86,21 +86,24 @@ public final class ClassPropertyDefinition extends PropertyDefinition<String> {
     public final void addInstanceOf(String className) {
       ensureNotNull(className);
 
-      // Do some basic checks to make sure the string representation
-      // is valid.
+      /*
+       * Do some basic checks to make sure the string representation is valid.
+       */
       String value = className.trim();
       if (!value.matches(CLASS_RE)) {
         throw new IllegalArgumentException("\"" + value
             + "\" is not a valid Java class name");
       }
 
-      // If possible try and load the class in order to perform
-      // additional
-      // validation.
+      /*
+       * If possible try and load the class in order to perform additional
+       * validation.
+       */
       if (isAllowClassValidation()) {
-        // Check that the class can be loaded so that validation can
-        // be
-        // performed.
+        /*
+         * Check that the class can be loaded so that validation can be
+         * performed.
+         */
         try {
           loadClass(value);
         } catch (ClassNotFoundException e) {
@@ -133,8 +136,9 @@ public final class ClassPropertyDefinition extends PropertyDefinition<String> {
   private static final String CLASS_RE =
     "^([A-Za-z][A-Za-z0-9_]*\\.)*[A-Za-z][A-Za-z0-9_]*(\\$[A-Za-z0-9_]+)*$";
 
-  // Flag indicating whether class property values should be
-  // validated.
+  /*
+   * Flag indicating whether class property values should be validated.
+   */
   private static boolean allowClassValidation = true;
 
 
@@ -325,9 +329,10 @@ public final class ClassPropertyDefinition extends PropertyDefinition<String> {
     // Always make sure the name is a valid class name.
     validateClassName(value);
 
-    // If additional validation is enabled then attempt to load the
-    // class and
-    // check the interfaces that it implements/extends.
+    /*
+     * If additional validation is enabled then attempt to load the class and
+     * check the interfaces that it implements/extends.
+     */
     if (allowClassValidation) {
       validateClassInterfaces(value);
     }
@@ -335,9 +340,10 @@ public final class ClassPropertyDefinition extends PropertyDefinition<String> {
 
 
 
-  // Make sure that named class implements the interfaces named by
-  // this
-  // definition.
+  /*
+   * Make sure that named class implements the interfaces named by this
+   * definition.
+   */
   private Class<?> validateClassInterfaces(String className)
       throws IllegalPropertyValueException {
     String nvalue = className.trim();
@@ -345,7 +351,7 @@ public final class ClassPropertyDefinition extends PropertyDefinition<String> {
     Class<?> theClass;
     try {
       theClass = loadClass(nvalue);
-    } catch (Exception e) {
+    } catch (Throwable t) {
       // If the class cannot be loaded then it is an invalid value.
       throw new IllegalPropertyValueException(this, className);
     }
@@ -358,9 +364,10 @@ public final class ClassPropertyDefinition extends PropertyDefinition<String> {
           throw new IllegalPropertyValueException(this, className);
         }
       } catch (Exception e) {
-        // Should not happen because the class was validated when the
-        // property
-        // definition was constructed.
+        /*
+         * Should not happen because the class was validated when the property
+         * definition was constructed.
+         */
         throw new IllegalPropertyValueException(this, className);
       }
     }
@@ -370,8 +377,9 @@ public final class ClassPropertyDefinition extends PropertyDefinition<String> {
 
 
 
-  // Do some basic checks to make sure the string representation is
-  // valid.
+  /*
+   * Do some basic checks to make sure the string representation is valid.
+   */
   private void validateClassName(String className)
       throws IllegalPropertyValueException {
     String nvalue = className.trim();
