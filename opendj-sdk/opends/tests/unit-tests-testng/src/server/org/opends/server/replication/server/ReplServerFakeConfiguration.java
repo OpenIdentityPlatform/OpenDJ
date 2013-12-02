@@ -40,6 +40,7 @@ import org.opends.server.types.DN;
  * This Class implements an object that can be used to instantiate
  * The ReplicationServer class for tests purpose.
  */
+@SuppressWarnings("javadoc")
 public class ReplServerFakeConfiguration implements ReplicationServerCfg
 {
   private int port;
@@ -67,6 +68,7 @@ public class ReplServerFakeConfiguration implements ReplicationServerCfg
 
   /** The monitoring publisher period. */
   private long monitoringPeriod = 3000;
+  private boolean computeChangenumber;
 
   /**
    * Constructor without group id, assured info and weight
@@ -140,15 +142,17 @@ public class ReplServerFakeConfiguration implements ReplicationServerCfg
   /**
    * {@inheritDoc}
    */
+  @Override
   public void addChangeListener(
       ConfigurationChangeListener<ReplicationServerCfg> listener)
   {
-
+    // not supported
   }
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public Class<? extends ReplicationServerCfg> configurationClass()
   {
     return null;
@@ -157,6 +161,7 @@ public class ReplServerFakeConfiguration implements ReplicationServerCfg
   /**
    * {@inheritDoc}
    */
+  @Override
   public String getReplicationDBDirectory()
   {
     return dirName;
@@ -165,6 +170,7 @@ public class ReplServerFakeConfiguration implements ReplicationServerCfg
   /**
    * {@inheritDoc}
    */
+  @Override
   public int getReplicationPort()
   {
     return port;
@@ -173,6 +179,7 @@ public class ReplServerFakeConfiguration implements ReplicationServerCfg
   /**
    * {@inheritDoc}
    */
+  @Override
   public long getReplicationPurgeDelay()
   {
     return purgeDelay;
@@ -181,6 +188,7 @@ public class ReplServerFakeConfiguration implements ReplicationServerCfg
   /**
    * {@inheritDoc}
    */
+  @Override
   public SortedSet<String> getReplicationServer()
   {
      return servers;
@@ -189,6 +197,7 @@ public class ReplServerFakeConfiguration implements ReplicationServerCfg
   /**
    * {@inheritDoc}
    */
+  @Override
   public int getReplicationServerId()
   {
     return serverId;
@@ -197,6 +206,7 @@ public class ReplServerFakeConfiguration implements ReplicationServerCfg
   /**
    * {@inheritDoc}
    */
+  @Override
   public int getQueueSize()
   {
     return queueSize;
@@ -205,6 +215,7 @@ public class ReplServerFakeConfiguration implements ReplicationServerCfg
   /**
    * {@inheritDoc}
    */
+  @Override
   public int getWindowSize()
   {
     return windowSize;
@@ -213,15 +224,17 @@ public class ReplServerFakeConfiguration implements ReplicationServerCfg
   /**
    * {@inheritDoc}
    */
+  @Override
   public void removeChangeListener(
       ConfigurationChangeListener<ReplicationServerCfg> listener)
   {
-
+    // not supported
   }
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public DN dn()
   {
     return null;
@@ -234,16 +247,19 @@ public class ReplServerFakeConfiguration implements ReplicationServerCfg
     return null;
   }
 
+  @Override
   public int getGroupId()
   {
     return groupId;
   }
 
+  @Override
   public long getAssuredTimeout()
   {
     return assuredTimeout;
   }
 
+  @Override
   public int getDegradedStatusThreshold()
   {
     return degradedStatusThreshold;
@@ -254,22 +270,31 @@ public class ReplServerFakeConfiguration implements ReplicationServerCfg
     this.degradedStatusThreshold = degradedStatusThreshold;
   }
 
+  @Override
   public int getWeight()
   {
     return weight;
   }
 
+  @Override
   public long getMonitoringPeriod()
   {
     return monitoringPeriod;
   }
 
-  /**
-   * @param monitoringPeriod the monitoringPeriod to set
-   */
   public void setMonitoringPeriod(long monitoringPeriod)
   {
     this.monitoringPeriod = monitoringPeriod;
   }
 
+  @Override
+  public boolean isComputeChangenumber()
+  {
+    return computeChangenumber;
+  }
+
+  public void setComputeChangenumber(boolean computeChangenumber)
+  {
+    this.computeChangenumber = computeChangenumber;
+  }
 }

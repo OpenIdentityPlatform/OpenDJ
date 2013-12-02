@@ -57,6 +57,19 @@ public interface ChangelogDB
   void setPurgeDelay(long delayInMillis);
 
   /**
+   * Sets whether the replication database must compute change numbers for
+   * replicated changes. Change numbers are computed using a separate new
+   * thread.
+   *
+   * @param computeChangeNumber
+   *          whether to compute change numbers for replicated changes
+   * @throws ChangelogException
+   *           If a database problem happened
+   */
+  void setComputeChangeNumber(boolean computeChangeNumber)
+      throws ChangelogException;
+
+  /**
    * Shutdown the replication database.
    *
    * @throws ChangelogException

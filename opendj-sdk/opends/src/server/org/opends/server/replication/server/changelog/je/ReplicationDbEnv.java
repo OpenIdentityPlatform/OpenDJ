@@ -48,6 +48,7 @@ import com.sleepycat.je.*;
 import static com.sleepycat.je.LockMode.*;
 import static com.sleepycat.je.OperationStatus.*;
 
+import static org.opends.messages.JebMessages.*;
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
@@ -246,11 +247,12 @@ public class ReplicationDbEnv
     }
     catch (RuntimeException e)
     {
-      throw new ChangelogException(e);
+      final Message message = ERR_JEB_DATABASE_EXCEPTION.get(e.getMessage());
+      throw new ChangelogException(message, e);
     }
     catch (DirectoryException e)
     {
-      throw new ChangelogException(e);
+      throw new ChangelogException(e.getMessageObject(), e);
     }
     finally
     {
@@ -439,7 +441,7 @@ public class ReplicationDbEnv
     }
     catch (DatabaseException e)
     {
-      logError(newErrorMessage(null, e));
+      logError(closeDBErrorMessage(null, e));
     }
   }
 
@@ -452,11 +454,11 @@ public class ReplicationDbEnv
     }
     catch (DatabaseException e)
     {
-      logError(newErrorMessage(db.getDatabaseName(), e));
+      logError(closeDBErrorMessage(db.getDatabaseName(), e));
     }
   }
 
-  private Message newErrorMessage(String dbName, DatabaseException e)
+  private Message closeDBErrorMessage(String dbName, DatabaseException e)
   {
     if (dbName != null)
     {
