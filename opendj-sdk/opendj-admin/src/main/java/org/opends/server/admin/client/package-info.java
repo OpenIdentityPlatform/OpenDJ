@@ -25,15 +25,11 @@
  *      Copyright 2008 Sun Microsystems, Inc.
  */
 
-
-
 /**
  * Common client-side administration classes.
  * <p>
  * This package contains classes which client applications are
  * expected to use.
  */
-@org.opends.server.types.PublicAPI(
-     stability=org.opends.server.types.StabilityLevel.PRIVATE)
 package org.opends.server.admin.client;
 

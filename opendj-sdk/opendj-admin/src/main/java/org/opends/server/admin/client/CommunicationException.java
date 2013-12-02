@@ -29,9 +29,9 @@ package org.opends.server.admin.client;
 
 
 
-import static org.opends.messages.AdminMessages.*;
+import org.forgerock.i18n.LocalizableMessage;
 
-import org.opends.messages.Message;
+import static com.forgerock.opendj.ldap.AdminMessages.*;
 
 
 
@@ -82,7 +82,7 @@ public class CommunicationException extends AdminClientException {
    * @param cause
    *          The cause.
    */
-  public CommunicationException(Message message, Throwable cause) {
+  public CommunicationException(LocalizableMessage message, Throwable cause) {
     super(message, cause);
   }
 
@@ -94,7 +94,7 @@ public class CommunicationException extends AdminClientException {
    * @param message
    *          The message.
    */
-  public CommunicationException(Message message) {
+  public CommunicationException(LocalizableMessage message) {
     super(message);
   }
 }

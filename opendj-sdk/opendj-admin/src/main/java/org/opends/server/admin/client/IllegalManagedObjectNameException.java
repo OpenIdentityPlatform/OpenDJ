@@ -29,9 +29,9 @@ package org.opends.server.admin.client;
 
 
 
-import static org.opends.messages.AdminMessages.*;
+import static com.forgerock.opendj.ldap.AdminMessages.*;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.IllegalPropertyValueStringException;
 import org.opends.server.admin.OperationsException;
 import org.opends.server.admin.PropertyDefinition;
@@ -58,7 +58,7 @@ public class IllegalManagedObjectNameException extends OperationsException {
 
 
   // Create the message
-  private static Message createMessage(String illegalName,
+  private static LocalizableMessage createMessage(String illegalName,
       PropertyDefinition<?> namingPropertyDefinition) {
     if (illegalName.length() == 0) {
       return ERR_ILLEGAL_MANAGED_OBJECT_NAME_EXCEPTION_EMPTY.get();

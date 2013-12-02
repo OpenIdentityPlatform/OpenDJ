@@ -29,17 +29,18 @@ package org.opends.server.admin.client;
 
 
 
-import static org.opends.messages.AdminMessages.*;
+import static com.forgerock.opendj.ldap.AdminMessages.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.admin.OperationsException;
 import org.opends.server.admin.PropertyIsMandatoryException;
-import org.opends.server.util.Validator;
+
+import com.forgerock.opendj.util.Validator;
 
 
 
@@ -58,16 +59,16 @@ public class MissingMandatoryPropertiesException extends OperationsException {
 
 
   // Create the message.
-  private static Message createMessage(
+  private static LocalizableMessage createMessage(
       Collection<PropertyIsMandatoryException> causes) {
     Validator.ensureNotNull(causes);
-    Validator.ensureTrue(!causes.isEmpty());
+    Validator.ensureTrue(!causes.isEmpty(), "causes should not be empty");
 
     if (causes.size() == 1) {
       return ERR_MISSING_MANDATORY_PROPERTIES_EXCEPTION_SINGLE.get(causes
           .iterator().next().getPropertyDefinition().getName());
     } else {
-      MessageBuilder builder = new MessageBuilder();
+      LocalizableMessageBuilder builder = new LocalizableMessageBuilder();
 
       boolean isFirst = true;
       for (PropertyIsMandatoryException cause : causes) {
@@ -92,7 +93,7 @@ public class MissingMandatoryPropertiesException extends OperationsException {
 
   // The user friendly name of the component that caused this
   // exception.
-  private final Message ufn;
+  private final LocalizableMessage ufn;
 
 
 
@@ -110,7 +111,7 @@ public class MissingMandatoryPropertiesException extends OperationsException {
    *          Indicates whether the exception occurred during managed
    *          object creation.
    */
-  public MissingMandatoryPropertiesException(Message ufn,
+  public MissingMandatoryPropertiesException(LocalizableMessage ufn,
       Collection<PropertyIsMandatoryException> causes, boolean isCreate) {
     super(createMessage(causes));
 
@@ -153,7 +154,7 @@ public class MissingMandatoryPropertiesException extends OperationsException {
    * @return Returns the user friendly name of the component that
    *         caused this exception.
    */
-  public Message getUserFriendlyName() {
+  public LocalizableMessage getUserFriendlyName() {
     return ufn;
   }
 

@@ -27,71 +27,58 @@
 
 package org.opends.server.admin.client;
 
+import org.forgerock.i18n.LocalizableMessage;
 
-
-import static org.opends.messages.AdminMessages.*;
-
-import org.opends.messages.Message;
-
-
+import static com.forgerock.opendj.ldap.AdminMessages.*;
 
 /**
- * This exception is thrown when an authentication error occurs while
- * connecting to the Directory Server. An authentication error can
- * happen, for example, when the client credentials are invalid.
+ * This exception is thrown when an authentication error occurs while connecting
+ * to the Directory Server. An authentication error can happen, for example,
+ * when the client credentials are invalid.
  */
 public class AuthenticationException extends AdminSecurityException {
 
-  /**
-   * Serialization ID.
-   */
-  private static final long serialVersionUID = 3544797197747686958L;
+    /**
+     * Serialization ID.
+     */
+    private static final long serialVersionUID = 3544797197747686958L;
 
+    /**
+     * Creates an authentication exception with a default message.
+     */
+    public AuthenticationException() {
+        super(ERR_AUTHENTICATION_EXCEPTION_DEFAULT.get());
+    }
 
+    /**
+     * Create an authentication exception with a cause and a default message.
+     *
+     * @param cause
+     *            The cause.
+     */
+    public AuthenticationException(Throwable cause) {
+        super(ERR_AUTHENTICATION_EXCEPTION_DEFAULT.get(), cause);
+    }
 
-  /**
-   * Creates an authentication exception with a default message.
-   */
-  public AuthenticationException() {
-    super(ERR_AUTHENTICATION_EXCEPTION_DEFAULT.get());
-  }
+    /**
+     * Create an authentication exception with a message and cause.
+     *
+     * @param message
+     *            The message.
+     * @param cause
+     *            The cause.
+     */
+    public AuthenticationException(LocalizableMessage message, Throwable cause) {
+        super(message, cause);
+    }
 
-
-
-  /**
-   * Create an authentication exception with a cause and a default
-   * message.
-   *
-   * @param cause
-   *          The cause.
-   */
-  public AuthenticationException(Throwable cause) {
-    super(ERR_AUTHENTICATION_EXCEPTION_DEFAULT.get(), cause);
-  }
-
-
-
-  /**
-   * Create an authentication exception with a message and cause.
-   *
-   * @param message
-   *          The message.
-   * @param cause
-   *          The cause.
-   */
-  public AuthenticationException(Message message, Throwable cause) {
-    super(message, cause);
-  }
-
-
-
-  /**
-   * Create an authentication exception with a message.
-   *
-   * @param message
-   *          The message.
-   */
-  public AuthenticationException(Message message) {
-    super(message);
-  }
+    /**
+     * Create an authentication exception with a message.
+     *
+     * @param message
+     *            The message.
+     */
+    public AuthenticationException(LocalizableMessage message) {
+        super(message);
+    }
 }

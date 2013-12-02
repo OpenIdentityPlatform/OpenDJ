@@ -27,48 +27,39 @@
 
 package org.opends.server.admin.client;
 
-
-
-import org.opends.messages.Message;
-
-
+import org.forgerock.i18n.LocalizableMessage;
 
 /**
- * This exception is thrown when a security related problem occurs
- * whilst interacting with the Directory Server. These fall broadly
- * into two categories: authentication problems and authorization
- * problems.
+ * This exception is thrown when a security related problem occurs whilst
+ * interacting with the Directory Server. These fall broadly into two
+ * categories: authentication problems and authorization problems.
  */
 public abstract class AdminSecurityException extends AdminClientException {
 
-  /**
-   * Fake serialization ID.
-   */
-  private static final long serialVersionUID = 1L;
+    /**
+     * Fake serialization ID.
+     */
+    private static final long serialVersionUID = 1L;
 
+    /**
+     * Create a security exception with a message and cause.
+     *
+     * @param message
+     *            The message.
+     * @param cause
+     *            The cause.
+     */
+    protected AdminSecurityException(LocalizableMessage message, Throwable cause) {
+        super(message, cause);
+    }
 
-
-  /**
-   * Create a security exception with a message and cause.
-   *
-   * @param message
-   *          The message.
-   * @param cause
-   *          The cause.
-   */
-  protected AdminSecurityException(Message message, Throwable cause) {
-    super(message, cause);
-  }
-
-
-
-  /**
-   * Create a security exception with a message.
-   *
-   * @param message
-   *          The message.
-   */
-  protected AdminSecurityException(Message message) {
-    super(message);
-  }
+    /**
+     * Create a security exception with a message.
+     *
+     * @param message
+     *            The message.
+     */
+    protected AdminSecurityException(LocalizableMessage message) {
+        super(message);
+    }
 }
