@@ -256,7 +256,7 @@
        description="Perform all processing needed for weekly builds.">
   </target>
 
-  <target name="prepare-release" depends="check-no-snapshot-dependencies"
+  <target name="prepare-release" depends="check-no-snapshot-dependencies,check-documentations-built-with-correct-url"
        description="Performs all the checks to prepare a release.">
     <echo>
 Previous checks succeeded.
@@ -265,10 +265,16 @@ Please:
 1- Check the archive has no build number
 2- Check the archive contains the license
 3- Run the tests
-4- Check that documentation refers to forgerock.com instead of forgerock.org
     </echo>
   </target>
 
+  <target name="check-documentations-built-with-correct-url">
+    <fail message="The documentation must be built with the correct URL. Incorrectly found 'opendj.forgerock.org' inside PRODUCT file.">
+      <condition>
+        <resourcecontains resource="PRODUCT" substring="opendj.forgerock.org" />
+      </condition>
+    </fail>
+  </target>
 
 
   <!-- The build target that should be used to build everything. -->
