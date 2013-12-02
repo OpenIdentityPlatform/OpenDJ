@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS.
  */
 
 package org.opends.server.admin;
@@ -105,7 +106,7 @@ public final class ClassPropertyDefinition extends PropertyDefinition<String> {
          * performed.
          */
         try {
-          loadClass(value);
+          loadClass(value, true);
         } catch (ClassNotFoundException e) {
           // TODO: can we do something better here?
           throw new RuntimeException(e);
@@ -193,9 +194,9 @@ public final class ClassPropertyDefinition extends PropertyDefinition<String> {
 
 
   // Load a named class.
-  private static Class<?> loadClass(String className)
+  private static Class<?> loadClass(String className, boolean initialize)
       throws ClassNotFoundException, LinkageError {
-    return Class.forName(className, true, ClassLoaderProvider
+    return Class.forName(className, initialize, ClassLoaderProvider
         .getInstance().getClassLoader());
   }
 
@@ -250,7 +251,7 @@ public final class ClassPropertyDefinition extends PropertyDefinition<String> {
     try {
       validateValue(value);
     } catch (IllegalPropertyValueException e) {
-      throw new IllegalPropertyValueStringException(this, value);
+      throw new IllegalPropertyValueStringException(this, value, e.getCause());
     }
 
     return value;
@@ -297,7 +298,7 @@ public final class ClassPropertyDefinition extends PropertyDefinition<String> {
 
     // Make sure that the named class is valid.
     validateClassName(className);
-    Class<?> theClass = validateClassInterfaces(className);
+    Class<?> theClass = validateClassInterfaces(className, true);
 
     // Cast it to the required type.
     return theClass.asSubclass(instanceOf);
@@ -334,7 +335,7 @@ public final class ClassPropertyDefinition extends PropertyDefinition<String> {
      * check the interfaces that it implements/extends.
      */
     if (allowClassValidation) {
-      validateClassInterfaces(value);
+      validateClassInterfaces(value, false);
     }
   }
 
@@ -344,31 +345,30 @@ public final class ClassPropertyDefinition extends PropertyDefinition<String> {
    * Make sure that named class implements the interfaces named by this
    * definition.
    */
-  private Class<?> validateClassInterfaces(String className)
+  private Class<?> validateClassInterfaces(String className, boolean initialize)
       throws IllegalPropertyValueException {
     String nvalue = className.trim();
 
     Class<?> theClass;
     try {
-      theClass = loadClass(nvalue);
+      theClass = loadClass(nvalue, initialize);
     } catch (Throwable t) {
       // If the class cannot be loaded then it is an invalid value.
-      throw new IllegalPropertyValueException(this, className);
+      throw new IllegalPropertyValueException(this, className, t);
     }
 
     for (String i : instanceOfInterfaces) {
       try {
-        Class<?> instanceOfClass = loadClass(i);
-
+        Class<?> instanceOfClass = loadClass(i, initialize);
         if (!instanceOfClass.isAssignableFrom(theClass)) {
           throw new IllegalPropertyValueException(this, className);
         }
-      } catch (Exception e) {
+      } catch (Throwable t) {
         /*
          * Should not happen because the class was validated when the property
          * definition was constructed.
          */
-        throw new IllegalPropertyValueException(this, className);
+        throw new IllegalPropertyValueException(this, className, t);
       }
     }
 
