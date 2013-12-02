@@ -29,12 +29,7 @@ package org.opends.server.types;
 
 
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -3576,7 +3571,9 @@ public final class Schema
     TreeSet<File> schemaFiles = new TreeSet<File>();
     String schemaDirectory =
       SchemaConfigManager.getSchemaDirectoryPath();
-    for (File f : new File(schemaDirectory).listFiles())
+
+    final FilenameFilter filter = new SchemaConfigManager.SchemaFileFilter();
+    for (File f : new File(schemaDirectory).listFiles(filter))
     {
       if (f.isFile())
       {
@@ -3621,7 +3618,7 @@ public final class Schema
 
 
       // Iterate through each line in the list.  Find the colon and
-      // get the attribute name at the beginning.  If it's someting
+      // get the attribute name at the beginning.  If it's something
       // that we don't recognize, then skip it.  Otherwise, add the
       // X-SCHEMA-FILE extension and add it to the appropriate schema
       // element list.

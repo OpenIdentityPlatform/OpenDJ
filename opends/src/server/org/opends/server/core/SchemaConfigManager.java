@@ -161,7 +161,7 @@ public class SchemaConfigManager
   /**
    * Filter implementation that accepts only ldif files.
    */
-  private static class SchemaFileFilter implements FilenameFilter
+  public static class SchemaFileFilter implements FilenameFilter
   {
     /**
      * {@inheritDoc}
