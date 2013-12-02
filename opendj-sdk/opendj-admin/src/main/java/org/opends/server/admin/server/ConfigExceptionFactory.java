@@ -25,7 +25,7 @@
  *      Copyright 2008 Sun Microsystems, Inc.
  */
 package org.opends.server.admin.server;
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 
 
 
@@ -78,7 +78,7 @@ final class ConfigExceptionFactory {
    */
   public ConfigException createDecodingExceptionAdaptor(DN dn,
       DefinitionDecodingException e) {
-    Message message = AdminMessages.ERR_ADMIN_MANAGED_OBJECT_DECODING_PROBLEM.
+    LocalizableMessage message = AdminMessages.ERR_ADMIN_MANAGED_OBJECT_DECODING_PROBLEM.
         get(String.valueOf(dn), stackTraceToSingleLineString(e));
     return new ConfigException(message, e);
   }
@@ -97,7 +97,7 @@ final class ConfigExceptionFactory {
   public ConfigException createDecodingExceptionAdaptor(
       ServerManagedObjectDecodingException e) {
     DN dn = e.getPartialManagedObject().getDN();
-    Message message =
+    LocalizableMessage message =
             AdminMessages.ERR_ADMIN_MANAGED_OBJECT_DECODING_PROBLEM.get(
                     String.valueOf(dn),
         stackTraceToSingleLineString(e));
@@ -117,7 +117,7 @@ final class ConfigExceptionFactory {
   public ConfigException createDecodingExceptionAdaptor(
       ConstraintViolationException e) {
     DN dn = e.getManagedObject().getDN();
-    Message message = AdminMessages.ERR_ADMIN_MANAGED_OBJECT_DECODING_PROBLEM
+    LocalizableMessage message = AdminMessages.ERR_ADMIN_MANAGED_OBJECT_DECODING_PROBLEM
         .get(String.valueOf(dn), stackTraceToSingleLineString(e));
     return new ConfigException(message, e);
   }
@@ -140,7 +140,7 @@ final class ConfigExceptionFactory {
 
   public ConfigException createClassLoadingExceptionAdaptor(DN dn,
       String className, Exception e) {
-    Message message = AdminMessages.ERR_ADMIN_CANNOT_INSTANTIATE_CLASS.
+    LocalizableMessage message = AdminMessages.ERR_ADMIN_CANNOT_INSTANTIATE_CLASS.
         get(String.valueOf(className), String.valueOf(dn),
             stackTraceToSingleLineString(e));
     return new ConfigException(message, e);

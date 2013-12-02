@@ -30,7 +30,7 @@ package org.opends.server.admin.server;
 
 import java.util.List;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.Configuration;
 import org.opends.server.types.ConfigChangeResult;
 
@@ -94,7 +94,7 @@ final class ServerManagedObjectChangeListenerAdaptor<T extends Configuration>
    * {@inheritDoc}
    */
   public boolean isConfigurationChangeAcceptable(
-      ServerManagedObject<? extends T> mo, List<Message> unacceptableReasons) {
+      ServerManagedObject<? extends T> mo, List<LocalizableMessage> unacceptableReasons) {
     return listener.isConfigurationChangeAcceptable(mo.getConfiguration(),
         unacceptableReasons);
   }

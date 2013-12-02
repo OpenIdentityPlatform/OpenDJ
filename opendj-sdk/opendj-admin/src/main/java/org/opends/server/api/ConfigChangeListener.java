@@ -30,7 +30,7 @@ package org.opends.server.api;
 
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.types.ConfigChangeResult;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 
 
 /**
@@ -61,7 +61,7 @@ public interface ConfigChangeListener
    *          not.
    */
   public boolean configChangeIsAcceptable(ConfigEntry configEntry,
-                      MessageBuilder unacceptableReason);
+                      LocalizableMessageBuilder unacceptableReason);
 
 
 

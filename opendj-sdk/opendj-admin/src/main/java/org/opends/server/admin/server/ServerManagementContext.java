@@ -29,7 +29,7 @@ package org.opends.server.admin.server;
 
 
 
-import static org.opends.messages.AdminMessages.*;
+import static com.forgerock.opendj.ldap.AdminMessages.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -44,7 +44,7 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.AbsoluteInheritedDefaultBehaviorProvider;
 import org.opends.server.admin.AbstractManagedObjectDefinition;
 import org.opends.server.admin.AggregationPropertyDefinition;
@@ -955,7 +955,7 @@ public final class ServerManagementContext {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      Message message = ERR_ADMIN_CANNOT_GET_MANAGED_OBJECT.get(
+      LocalizableMessage message = ERR_ADMIN_CANNOT_GET_MANAGED_OBJECT.get(
           String.valueOf(dn), stackTraceToSingleLineString(e));
       throw new ConfigException(message, e);
     }
@@ -963,7 +963,7 @@ public final class ServerManagementContext {
     // The configuration handler is free to return null indicating
     // that the entry does not exist.
     if (configEntry == null) {
-      Message message = ERR_ADMIN_MANAGED_OBJECT_DOES_NOT_EXIST
+      LocalizableMessage message = ERR_ADMIN_MANAGED_OBJECT_DOES_NOT_EXIST
           .get(String.valueOf(dn));
       throw new ConfigException(message);
     }

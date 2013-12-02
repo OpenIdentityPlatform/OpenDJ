@@ -22,13 +22,18 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2007-2008 Sun Microsystems, Inc.
+ *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS.
  */
+package org.opends.server.types;
 
 /**
- * Administration documentation classes.
- * <p>
- * This package contains classes used to generate administration documentation.
+ * This class provides a set of properties that may control various aspects of
+ * the server environment. Note that these properties may only be altered before
+ * the Directory Server is started. Any attempt to change an environment
+ * configuration property while the server is running will be rejected.
  */
-package org.opends.server.admin.doc;
+public final class DirectoryEnvironmentConfig {
 
+    // TODO : implements
+}

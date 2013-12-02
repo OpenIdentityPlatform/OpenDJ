@@ -29,27 +29,24 @@ package org.opends.server.admin;
 
 import org.forgerock.i18n.LocalizableMessage;
 
-
 /**
  * The requested managed object was found but it could not be decoded.
  */
 public abstract class DecodingException extends OperationsException {
 
-  /**
-   * Fake serialization ID.
-   */
-  private static final long serialVersionUID = 1L;
+    /**
+     * Fake serialization ID.
+     */
+    private static final long serialVersionUID = 1L;
 
-
-
-  /**
-   * Create a decoding exception with a message.
-   *
-   * @param message
-   *          The message.
-   */
-  protected DecodingException(LocalizableMessage message) {
-    super(message);
-  }
+    /**
+     * Create a decoding exception with a message.
+     *
+     * @param message
+     *            The message.
+     */
+    protected DecodingException(LocalizableMessage message) {
+        super(message);
+    }
 
 }

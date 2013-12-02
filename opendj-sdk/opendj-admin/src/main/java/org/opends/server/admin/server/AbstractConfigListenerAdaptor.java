@@ -30,8 +30,8 @@ package org.opends.server.admin.server;
 
 import java.util.Collection;
 
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 
 
 
@@ -57,10 +57,10 @@ abstract class AbstractConfigListenerAdaptor {
    * @param unacceptableReason
    *          The single message to which messages should be appended.
    */
-  protected final void generateUnacceptableReason(Collection<Message> reasons,
-      MessageBuilder unacceptableReason) {
+  protected final void generateUnacceptableReason(Collection<LocalizableMessage> reasons,
+      LocalizableMessageBuilder unacceptableReason) {
     boolean isFirst = true;
-    for (Message reason : reasons) {
+    for (LocalizableMessage reason : reasons) {
       if (isFirst) {
         isFirst = false;
       } else {

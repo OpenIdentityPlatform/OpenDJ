@@ -28,9 +28,8 @@ package org.opends.server.api;
 
 
 
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.types.ConfigChangeResult;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 
 
 /**
@@ -38,11 +37,6 @@ import org.opends.messages.MessageBuilder;
  * component should implement if it wishes to be able to receive
  * notification if entries below a configuration entry are removed.
  */
-@org.opends.server.types.PublicAPI(
-     stability=org.opends.server.types.StabilityLevel.VOLATILE,
-     mayInstantiate=false,
-     mayExtend=true,
-     mayInvoke=false)
 public interface ConfigDeleteListener
 {
   /**
@@ -60,7 +54,7 @@ public interface ConfigDeleteListener
    *          the configuration, or {@code false} if not.
    */
   public boolean configDeleteIsAcceptable(ConfigEntry configEntry,
-                      MessageBuilder unacceptableReason);
+                      LocalizableMessageBuilder unacceptableReason);
 
 
 
