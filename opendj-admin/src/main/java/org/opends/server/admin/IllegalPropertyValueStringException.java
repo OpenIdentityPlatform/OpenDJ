@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS.
  */
 
 package org.opends.server.admin;
@@ -55,6 +56,21 @@ public class IllegalPropertyValueStringException extends PropertyException {
      */
     public IllegalPropertyValueStringException(PropertyDefinition<?> pd, String value) {
         super(pd, createMessage(pd, value));
+        this.value = value;
+    }
+
+    /**
+     * Create a new illegal property value string exception.
+     *
+     * @param pd
+     *            The property definition.
+     * @param value
+     *            The illegal property value string.
+     * @param cause
+     *            The cause.
+     */
+    public IllegalPropertyValueStringException(PropertyDefinition<?> pd, String value, Throwable cause) {
+        super(pd, createMessage(pd, value), cause);
         this.value = value;
     }
 
