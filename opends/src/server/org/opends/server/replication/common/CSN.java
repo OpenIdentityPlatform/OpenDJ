@@ -27,8 +27,6 @@
  */
 package org.opends.server.replication.common;
 
-
-
 import java.io.Serializable;
 import java.util.Date;
 
@@ -39,6 +37,9 @@ import org.opends.server.types.ByteStringBuilder;
 
 /**
  * Class used to represent Change Sequence Numbers.
+ *
+ * @see <a href="http://tools.ietf.org/html/draft-ietf-ldup-infomod-08"
+ * >Inspiration for this class comes from LDAPChangeSequenceNumber</a>
  */
 public class CSN implements Serializable, Comparable<CSN>
 {
@@ -63,6 +64,12 @@ public class CSN implements Serializable, Comparable<CSN>
 
   private static final long serialVersionUID = -8802722277749190740L;
   private final long timeStamp;
+  /**
+   * The sequence number is set to zero at the start of each millisecond, and
+   * incremented by one for each update operation that occurs within that
+   * millisecond. It allows to distinguish changes that have been done in the
+   * same millisecond.
+   */
   private final int seqnum;
   private final int serverId;
 
