@@ -57,6 +57,16 @@
     <adminPackage>org/forgerock/opendj/admin</adminPackage>
     <generatedSourcesDir>${project.build.directory}/generated-sources/admin/${adminPackage}</generatedSourcesDir>
     <xslDir>src/main/resources/stylesheets</xslDir>
+    
+    <!-- properties used to generate DynamicConstant class -->
+    <serverProductName>OpenDJ</serverProductName>
+    <serverShortProductName>OpenDJ</serverShortProductName>
+    <issuesFixIds></issuesFixIds>
+    <isDebugBuild>false</isDebugBuild>
+    <docReferenceHome>http://opendj.forgerock.org/</docReferenceHome>
+    <docReferenceWiki>http://opendj.forgerock.org/docs.html</docReferenceWiki>
+    <docQuickRefGuide>http://opendj.forgerock.org/doc/admin-guide/index.html</docQuickRefGuide>
+    <adminGuideUrl>http://opendj.forgerock.org/doc/admin-guide/index.html</adminGuideUrl>
   </properties>
   <build>
     <plugins>
@@ -350,19 +360,124 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-source-plugin</artifactId>
       </plugin>
+      <!-- Parse the maven version to get version parts (major, minor, ...) -->
       <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-jar-plugin</artifactId>
-        <version>2.4</version>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <version>1.8</version>
         <executions>
           <execution>
+            <id>parse-version</id>
             <goals>
-              <goal>test-jar</goal>
+              <goal>parse-version</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <!-- Retrieve the SVN revision number and the build timestamp -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>buildnumber-maven-plugin</artifactId>
+        <version>1.2</version>
+        <executions>
+          <execution>
+            <id>generate-buildnumber</id>
+            <phase>validate</phase>
+            <goals>
+              <goal>create</goal>
+            </goals>
+            <configuration>
+              <useLastCommittedRevision>true</useLastCommittedRevision>
+              <buildNumberPropertyName>buildRevision</buildNumberPropertyName>
+            </configuration>
+          </execution>
+          <execution>
+            <id>generate-timestamp</id>
+            <phase>validate</phase>
+            <goals>
+              <goal>create</goal>
+            </goals>
+            <configuration>
+              <format>{0,date,yyyyMMddHHmmss}</format>
+              <items>
+                <item>timestamp</item>
+              </items>
+              <buildNumberPropertyName>buildDateTime</buildNumberPropertyName>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <!-- Filter java sources located in src/main/java-templates -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>templating-maven-plugin</artifactId>
+        <version>1.0-alpha-3</version>
+        <executions>
+          <execution>
+            <id>filter-src</id>
+            <goals>
+              <goal>filter-sources</goal>
             </goals>
           </execution>
         </executions>
       </plugin>
     </plugins>
+    <pluginManagement>
+      <plugins>
+        <!--This plugin's configuration is used to store Eclipse m2e settings 
+          only. It has no influence on the Maven build itself. -->
+        <plugin>
+          <groupId>org.eclipse.m2e</groupId>
+          <artifactId>lifecycle-mapping</artifactId>
+          <version>1.0.0</version>
+          <configuration>
+            <lifecycleMappingMetadata>
+              <pluginExecutions>
+                <pluginExecution>
+                  <pluginExecutionFilter>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>build-helper-maven-plugin</artifactId>
+                    <versionRange>[1.8,)</versionRange>
+                    <goals>
+                      <goal>parse-version</goal>
+                    </goals>
+                  </pluginExecutionFilter>
+                  <action>
+                    <ignore></ignore>
+                  </action>
+                </pluginExecution>
+                <pluginExecution>
+                  <pluginExecutionFilter>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>templating-maven-plugin</artifactId>
+                    <versionRange>[1.0-alpha-3,)</versionRange>
+                    <goals>
+                      <goal>filter-sources</goal>
+                    </goals>
+                  </pluginExecutionFilter>
+                  <action>
+                    <ignore></ignore>
+                  </action>
+                </pluginExecution>
+                <pluginExecution>
+                  <pluginExecutionFilter>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>xml-maven-plugin</artifactId>
+                    <versionRange>[1.0,)</versionRange>
+                    <goals>
+                      <goal>transform</goal>
+                    </goals>
+                  </pluginExecutionFilter>
+                  <action>
+                    <ignore></ignore>
+                  </action>
+                </pluginExecution>
+              </pluginExecutions>
+            </lifecycleMappingMetadata>
+          </configuration>
+        </plugin>
+      </plugins>
+    </pluginManagement>
   </build>
   <reporting>
     <plugins>

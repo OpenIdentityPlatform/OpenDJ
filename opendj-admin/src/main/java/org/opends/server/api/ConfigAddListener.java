@@ -26,6 +26,7 @@
  */
 package org.opends.server.api;
 
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.types.ConfigChangeResult;
 
 /**
@@ -47,7 +48,7 @@ public interface ConfigAddListener {
      * @return {@code true} if the proposed entry contains an acceptable
      *         configuration, or {@code false} if it does not.
      */
-    public boolean configAddIsAcceptable(ConfigEntry configEntry, MessageBuilder unacceptableReason);
+    public boolean configAddIsAcceptable(ConfigEntry configEntry, LocalizableMessageBuilder unacceptableReason);
 
     /**
      * Attempts to apply a new configuration based on the provided added entry.

@@ -29,16 +29,16 @@ package org.opends.server.admin.server;
 
 
 
-import static org.opends.messages.AdminMessages.*;
+import static com.forgerock.opendj.ldap.AdminMessages.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.admin.DecodingException;
-import org.opends.server.util.Validator;
+import static com.forgerock.opendj.util.Validator.*;
 
 
 
@@ -60,7 +60,7 @@ public class ConstraintViolationException extends DecodingException {
 
 
   // Gets the default message.
-  private static Message getDefaultMessage(Collection<Message> messages) {
+  private static LocalizableMessage getDefaultMessage(Collection<Message> messages) {
     Validator.ensureNotNull(messages);
     Validator.ensureTrue(!messages.isEmpty());
 
@@ -76,14 +76,14 @@ public class ConstraintViolationException extends DecodingException {
 
 
   // Merge the messages into a single message.
-  private static Message getSingleMessage(Collection<Message> messages) {
+  private static LocalizableMessage getSingleMessage(Collection<Message> messages) {
     if (messages.size() == 1) {
       return messages.iterator().next();
     } else {
-      MessageBuilder builder = new MessageBuilder();
+      LocalizableMessageBuilder builder = new MessageBuilder();
 
       boolean isFirst = true;
-      for (Message m : messages) {
+      for (LocalizableMessage m : messages) {
         if (!isFirst) {
           builder.append(";  ");
         }
@@ -96,7 +96,7 @@ public class ConstraintViolationException extends DecodingException {
   }
 
   // The messages describing the constraint violations that occurred.
-  private final Collection<Message> messages;
+  private final Collection<LocalizableMessage> messages;
 
 
 
@@ -113,11 +113,11 @@ public class ConstraintViolationException extends DecodingException {
    *          non-empty).
    */
   public ConstraintViolationException(ServerManagedObject<?> managedObject,
-      Collection<Message> messages) {
+      Collection<LocalizableMessage> messages) {
     super(getDefaultMessage(messages));
 
     this.managedObject = managedObject;
-    this.messages = new ArrayList<Message>(messages);
+    this.messages = new ArrayList<LocalizableMessage>(messages);
   }
 
 
@@ -134,7 +134,7 @@ public class ConstraintViolationException extends DecodingException {
    *          occurred.
    */
   public ConstraintViolationException(ServerManagedObject<?> managedObject,
-      Message message) {
+      LocalizableMessage message) {
     this(managedObject, Collections.singleton(message));
   }
 
@@ -147,7 +147,7 @@ public class ConstraintViolationException extends DecodingException {
    * @return Returns an unmodifiable collection view of the messages
    *         describing the constraint violations that occurred.
    */
-  public Collection<Message> getMessages() {
+  public Collection<LocalizableMessage> getMessages() {
     return Collections.unmodifiableCollection(messages);
   }
 
@@ -160,7 +160,7 @@ public class ConstraintViolationException extends DecodingException {
    * @return Returns a single message listing all the messages
    *         combined into a single list separated by semi-colons.
    */
-  public Message getMessagesAsSingleMessage() {
+  public LocalizableMessage getMessagesAsSingleMessage() {
     return getSingleMessage(messages);
   }
 
