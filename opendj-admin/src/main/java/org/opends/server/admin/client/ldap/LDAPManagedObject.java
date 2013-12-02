@@ -40,7 +40,7 @@ import javax.naming.directory.BasicAttributes;
 import javax.naming.ldap.LdapName;
 import javax.naming.ldap.Rdn;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.AggregationPropertyDefinition;
 import org.opends.server.admin.Configuration;
 import org.opends.server.admin.ConfigurationClient;
@@ -217,7 +217,7 @@ final class LDAPManagedObject<T extends ConfigurationClient> extends
             throw new OperationRejectedException(OperationType.CREATE, d
                 .getUserFriendlyName());
           } else {
-            Message m = Message.raw("%s", e.getMessage());
+            LocalizableMessage m = LocalizableMessage.raw("%s", e.getMessage());
             throw new OperationRejectedException(OperationType.CREATE, d
                 .getUserFriendlyName(), m);
           }
@@ -268,7 +268,7 @@ final class LDAPManagedObject<T extends ConfigurationClient> extends
         throw new OperationRejectedException(OperationType.CREATE, d
             .getUserFriendlyName());
       } else {
-        Message m = Message.raw("%s", e.getMessage());
+        LocalizableMessage m = LocalizableMessage.raw("%s", e.getMessage());
         throw new OperationRejectedException(OperationType.CREATE, d
             .getUserFriendlyName(), m);
       }
@@ -323,7 +323,7 @@ final class LDAPManagedObject<T extends ConfigurationClient> extends
           throw new OperationRejectedException(OperationType.MODIFY, d
               .getUserFriendlyName());
         } else {
-          Message m = Message.raw("%s", e.getMessage());
+          LocalizableMessage m = LocalizableMessage.raw("%s", e.getMessage());
           throw new OperationRejectedException(OperationType.MODIFY, d
               .getUserFriendlyName(), m);
         }

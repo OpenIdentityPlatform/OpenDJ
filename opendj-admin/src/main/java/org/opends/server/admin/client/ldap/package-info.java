@@ -34,7 +34,5 @@
  * that, at some point in the future, we will replace this implementation
  * with our own LDAP client SDK based implementation.
  */
-@org.opends.server.types.PublicAPI(
-     stability=org.opends.server.types.StabilityLevel.PRIVATE)
 package org.opends.server.admin.client.ldap;
 
