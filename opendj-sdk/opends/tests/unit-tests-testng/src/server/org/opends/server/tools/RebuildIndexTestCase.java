@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS
  */
 package org.opends.server.tools;
 
@@ -32,7 +33,6 @@ import java.util.ArrayList;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
-
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
@@ -55,7 +55,10 @@ public class RebuildIndexTestCase
        extends ToolsTestCase
 {
   
-  private String configFilePath ;
+  private String configFilePath;
+  
+  private String userRootDN = "ds-cfg-backend-id=userRoot,cn=Backends,cn=config";
+  private String baseDN = "o=airius.com";
 
   /**
    * Ensures that the Directory Server is running and performs other necessary
@@ -71,13 +74,15 @@ public class RebuildIndexTestCase
     configFilePath = DirectoryServer.getConfigFile();
     
     // Add the airius.com suffix to userRoot
-    InternalClientConnection rootConnection =
+    final InternalClientConnection rootConnection =
       InternalClientConnection.getRootConnection();
-    ArrayList<Modification> mods = new ArrayList<Modification>();
+    final ArrayList<Modification> mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.ADD,
-        Attributes.create("ds-cfg-base-dn", "o=airius.com")));
-    String userRootDN  = "ds-cfg-backend-id=userRoot,cn=Backends,cn=config";
-    ModifyOperation modifyOperation =
+        Attributes.create("ds-cfg-base-dn", baseDN)));
+    // Backend should be disabled.
+    mods.add(new Modification(ModificationType.REPLACE,
+        Attributes.create("ds-cfg-enabled", "false")));
+    final ModifyOperation modifyOperation =
          rootConnection.processModify(DN.decode(userRootDN), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
   }
@@ -93,28 +98,43 @@ public class RebuildIndexTestCase
          throws Exception
   {
     // remove the airius.com suffix to userRoot
-    InternalClientConnection rootConnection =
+    final InternalClientConnection rootConnection =
       InternalClientConnection.getRootConnection();
-    ArrayList<Modification> mods = new ArrayList<Modification>();
+    final ArrayList<Modification> mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.DELETE,
-        Attributes.create("ds-cfg-base-dn", "o=airius.com")));
-    String userRootDN  = "ds-cfg-backend-id=userRoot,cn=Backends,cn=config";
-    ModifyOperation modifyOperation =
+        Attributes.create("ds-cfg-base-dn", baseDN)));
+    mods.add(new Modification(ModificationType.REPLACE,
+        Attributes.create("ds-cfg-enabled", "true")));
+    final ModifyOperation modifyOperation =
          rootConnection.processModify(DN.decode(userRootDN), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
   /**
-   * Tests the rebuild-index -b o=airius.com -i description
+   * Tries to rebuild an index but the index doesn't exist in the base DN.
    */
   @Test()
-  public void testNoIndexOnDescription()
+  public void testRebuildIndexOnNonExistentShouldFail()
   {
-    String[] args = {
+    final String[] args = {
         "-f",configFilePath,
-        "-b", "o=airius.com",
-        "-i", "description" };
+        "-b", baseDN,
+        "-i", "description"
+    };
     assertEquals(RebuildIndex.mainRebuildIndex(args, false, null, null), 1);
   }
+  
+  /**
+   * Tries to rebuild a valid index.
+   */
+  @Test()
+  public void testRebuildIndexShouldSuccess()
+  {
+    final String[] args = {
+        "-f", configFilePath,
+        "-b", baseDN,
+        "-i", "ds-sync-hist"
+    };
+    assertEquals(RebuildIndex.mainRebuildIndex(args, false, null, null), 0);
+  }  
 }
-
