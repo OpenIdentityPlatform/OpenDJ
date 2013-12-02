@@ -347,32 +347,31 @@ public final class ClassPropertyDefinition extends PropertyDefinition<String> {
    */
   private Class<?> validateClassInterfaces(String className, boolean initialize)
       throws IllegalPropertyValueException {
-    String nvalue = className.trim();
-
-    Class<?> theClass;
-    try {
-      theClass = loadClass(nvalue, initialize);
-    } catch (Throwable t) {
-      // If the class cannot be loaded then it is an invalid value.
-      throw new IllegalPropertyValueException(this, className, t);
-    }
-
+    Class<?> theClass = loadClassForValidation(className, className,
+        initialize);
     for (String i : instanceOfInterfaces) {
-      try {
-        Class<?> instanceOfClass = loadClass(i, initialize);
-        if (!instanceOfClass.isAssignableFrom(theClass)) {
-          throw new IllegalPropertyValueException(this, className);
-        }
-      } catch (Throwable t) {
-        /*
-         * Should not happen because the class was validated when the property
-         * definition was constructed.
-         */
-        throw new IllegalPropertyValueException(this, className, t);
+      Class<?> instanceOfClass = loadClassForValidation(className, i,
+          initialize);
+      if (!instanceOfClass.isAssignableFrom(theClass)) {
+        throw new IllegalPropertyValueException(this, className);
       }
     }
-
     return theClass;
+  }
+
+
+
+  private Class<?> loadClassForValidation(String componentClassName,
+      String classToBeLoaded, boolean initialize) {
+    try {
+      return loadClass(classToBeLoaded.trim(), initialize);
+    } catch (ClassNotFoundException e) {
+      // If the class cannot be loaded then it is an invalid value.
+      throw new IllegalPropertyValueException(this, componentClassName, e);
+    } catch (LinkageError e) {
+      // If the class cannot be initialized then it is an invalid value.
+      throw new IllegalPropertyValueException(this, componentClassName, e);
+    }
   }
 
 
