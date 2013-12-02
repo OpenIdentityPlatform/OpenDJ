@@ -36,7 +36,13 @@
 <ivy-module version="2.0"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="http://incubator.apache.org/ivy/schemas/ivy.xsd">
-  <info organisation="org.forgerock" module="opendj"/>
+
+  <info organisation="org.forgerock" module="opendj" branch="b2.6">
+    <license     name="CDDL v1.0"    url="http://forgerock.org/license/CDDLv1.0.html" />
+    <ivyauthor   name="ForgeRock AS" url="http://forgerock.com" />
+    <description homepage="http://opendj.forgerock.org/" />
+  </info>
+
   <dependencies>
 
     <!-- compile + runtime libs -->

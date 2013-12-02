@@ -270,6 +270,18 @@
        description="Perform all processing needed for weekly builds.">
   </target>
 
+  <target name="prepare-release" depends="check-no-snapshot-dependencies"
+       description="Performs all the checks to prepare a release.">
+    <echo>
+Previous checks succeeded.
+
+Please:
+1- Check the archive has no build number
+2- Check the archive contains the license
+3- Run the tests
+4- Check that documentation refers to forgerock.com instead of forgerock.org
+    </echo>
+  </target>
 
 
 
@@ -2830,10 +2842,36 @@
     <ivy:retrieve pattern="${lib.dir}/[type]/[artifact].[ext]"/>
   </target>
 
+  <property name="snapshots.dir" value="${lib.dir}/snapshots" />
+  <target name="resolve-snapshots-separately" depends="install-ivy">
+    <ivy:retrieve type="jar,bundle" pattern="${lib.dir}/[artifact]-[revision].[ext]">
+      <firstmatchmapper>
+        <globmapper from="${lib.dir}/*-SNAPSHOT.jar" to="${snapshots.dir}/*-SNAPSHOT.jar" />
+        <globmapper from="${lib.dir}/*" to="${lib.dir}/releases/*" />
+      </firstmatchmapper>
+    </ivy:retrieve>
+  </target>
+
+  <fileset dir="${snapshots.dir}" id="snapshots.dir.ref" erroronmissingdir="false">
+    <include name="**"/>
+  </fileset>
+  <target name="check-no-snapshot-dependencies" depends="cleanlib,resolve-snapshots-separately">
+    <fail message="The project must not depend on snapshot dependencies. Found: ${toString:snapshots.dir.ref}">
+      <condition>
+        <resourcecount refid="snapshots.dir.ref" when="greater" count="0" />
+      </condition>
+    </fail>
+    <antcall target="cleanlib" />
+    <echo message="OK." />
+  </target>
+
   <target name="cleanlib" description="--> clean the lib directory">
-    <delete>
+    <delete includeemptydirs="true">
       <fileset dir="${lib.dir}">
-        <include name="**/*.jar" />
+        <include name="**" />
+        <exclude name="opendj_service.exe" />
+        <exclude name="winlauncher.exe" />
+        <exclude name="launcher_administrator.exe" />
       </fileset>
     </delete>
   </target>
