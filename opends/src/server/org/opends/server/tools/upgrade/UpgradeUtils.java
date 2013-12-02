@@ -46,6 +46,7 @@ import org.forgerock.opendj.ldif.LDIF;
 import org.forgerock.opendj.ldif.LDIFEntryReader;
 import org.forgerock.opendj.ldif.LDIFEntryWriter;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.SchemaConfigManager;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.util.ChangeOperationType;
 import org.opends.server.util.SetupUtils;
@@ -708,7 +709,9 @@ final class UpgradeUtils
     {
       if (folder.isDirectory())
       {
-        for (final File f : folder.listFiles())
+        final FilenameFilter filter =
+            new SchemaConfigManager.SchemaFileFilter();
+        for (final File f : folder.listFiles(filter))
         {
           LOG.log(Level.INFO, String.format("Processing %s", f
               .getAbsolutePath()));
