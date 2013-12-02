@@ -478,7 +478,7 @@ public final class Upgrade
         }
         catch (ClientException e)
         {
-          LOG.log(Level.SEVERE, e.getMessage());
+          context.notify(e.getMessageObject(), WARNING);
           isOk = false;
         }
       }

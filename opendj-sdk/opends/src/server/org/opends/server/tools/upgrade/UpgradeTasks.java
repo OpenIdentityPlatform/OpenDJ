@@ -151,7 +151,11 @@ public final class UpgradeTasks
         try
         {
           context.notifyProgress(pnc.setProgress(20));
-
+          if (!schemaFileTemplate.exists() || schemaFileTemplate.length() == 0)
+          {
+            throw new IOException(ERR_UPGRADE_CORRUPTED_TEMPLATE
+                .get(schemaFileTemplate.getPath()).toString());
+          }
           copy(schemaFileTemplate, configSchemaDirectory, true);
           context.notifyProgress(pnc.setProgress(100));
         }
@@ -487,9 +491,8 @@ public final class UpgradeTasks
         // Requires answer from the user.
         final int answer = context.confirmYN(summary, ConfirmationCallback.NO);
         isATaskToPerform = (answer == ConfirmationCallback.YES);
-        isRebuildAllIndexesIsPresent =  true;
-        isRebuildAllIndexesTaskAccepted =  isATaskToPerform;
-
+        isRebuildAllIndexesIsPresent = true;
+        isRebuildAllIndexesTaskAccepted = isATaskToPerform;
       }
 
       @Override
@@ -650,9 +653,9 @@ public final class UpgradeTasks
         }
         else
         {
-          LOG.log(Level.SEVERE, ERR_UPGRADE_PERFORMING_POST_TASKS_FAIL.get()
-              .toString());
+          final Message msg = ERR_UPGRADE_PERFORMING_POST_TASKS_FAIL.get();
           context.notifyProgress(pnc.setProgress(-100));
+          throw new ClientException(EXIT_CODE_ERROR, msg);
         }
       }
     };

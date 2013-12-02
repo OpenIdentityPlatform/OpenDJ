@@ -40,7 +40,6 @@ import org.opends.server.util.StaticUtils;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.logging.Logger;
@@ -353,7 +352,7 @@ class FileManager
      */
     public void apply() throws IOException
     {
-      File objectFile = getObjectFile();
+      final File objectFile = getObjectFile();
       if (objectFile.isDirectory())
       {
         if (!destination.exists())
@@ -363,7 +362,6 @@ class FileManager
       }
       else
       {
-
         // If overwriting and the destination exists then kill it
         if (destination.exists() && overwrite)
         {
@@ -383,7 +381,7 @@ class FileManager
             {
               fis = new FileInputStream(objectFile);
               fos = new FileOutputStream(destination);
-              byte[] buf = new byte[1024];
+              final byte[] buf = new byte[1024];
               int i;
               while ((i = fis.read(buf)) != -1)
               {
@@ -395,22 +393,21 @@ class FileManager
                 // Java 1.6 but until then use the TestUtilities methods
                 if (UpgradeUtils.isUnix())
                 {
-                  FilePermission permissions =
+                  final FilePermission permissions =
                       getFileSystemPermissions(objectFile);
                   FilePermission.setPermissions(destination, permissions);
                 }
               }
-
             }
-            catch (FileNotFoundException e)
+            catch (IOException e)
             {
-              throw new IOException(e.getMessage());
+              throw e;
             }
             catch (Exception e)
             {
               final Message errMsg = INFO_ERROR_COPYING_FILE.get(
                   objectFile.getAbsolutePath(), destination.getAbsolutePath());
-              throw new IOException(errMsg.toString());
+              throw new IOException(errMsg.toString(), e);
             }
             finally
             {
