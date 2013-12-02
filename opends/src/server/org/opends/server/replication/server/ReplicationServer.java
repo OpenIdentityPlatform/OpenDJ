@@ -780,8 +780,8 @@ public final class ReplicationServer
     {
       this.changelogDB.setPurgeDelay(getTrimAge());
     }
-    final boolean computeCN = config.isComputeChangenumber();
-    if (computeCN != oldConfig.isComputeChangenumber())
+    final boolean computeCN = config.isComputeChangeNumber();
+    if (computeCN != oldConfig.isComputeChangeNumber())
     {
       try
       {

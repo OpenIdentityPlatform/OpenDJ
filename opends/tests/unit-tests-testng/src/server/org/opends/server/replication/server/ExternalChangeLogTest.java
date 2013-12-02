@@ -151,7 +151,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       new ReplServerFakeConfiguration(
           replicationServerPort, "ExternalChangeLogTestDb",
           0, 71, 0, maxWindow, null);
-    conf1.setComputeChangenumber(true);
+    conf1.setComputeChangeNumber(true);
 
     replicationServer = new ReplicationServer(conf1);
     debugInfo("configure", "ReplicationServer created"+replicationServer);

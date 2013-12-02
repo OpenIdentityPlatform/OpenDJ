@@ -311,7 +311,7 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
       dbEnv = new ReplicationDbEnv(dbDir.getAbsolutePath(), replicationServer);
       final ChangelogState changelogState = dbEnv.readChangelogState();
       initializeChangelogState(changelogState);
-      if (config.isComputeChangenumber())
+      if (config.isComputeChangeNumber())
       {
         final ChangeNumberIndexer indexer =
             new ChangeNumberIndexer(this, changelogState);

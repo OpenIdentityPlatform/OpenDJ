@@ -288,12 +288,12 @@ public class ReplServerFakeConfiguration implements ReplicationServerCfg
   }
 
   @Override
-  public boolean isComputeChangenumber()
+  public boolean isComputeChangeNumber()
   {
     return computeChangenumber;
   }
 
-  public void setComputeChangenumber(boolean computeChangenumber)
+  public void setComputeChangeNumber(boolean computeChangenumber)
   {
     this.computeChangenumber = computeChangenumber;
   }
