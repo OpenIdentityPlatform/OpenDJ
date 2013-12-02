@@ -27,51 +27,42 @@
 
 package org.opends.server.admin.client.ldap;
 
-
-
 import org.opends.server.admin.LDAPProfile;
 import org.opends.server.admin.client.ManagementContext;
 import org.opends.server.admin.client.spi.Driver;
-import org.opends.server.util.Validator;
 
-
+import com.forgerock.opendj.util.Validator;
 
 /**
  * An LDAP management connection context.
  */
 public final class LDAPManagementContext extends ManagementContext {
 
-  /**
-   * Create a new LDAP management context using the provided LDAP
-   * connection.
-   *
-   * @param connection
-   *          The LDAP connection.
-   * @return Returns the new management context.
-   */
-  public static ManagementContext createFromContext(LDAPConnection connection) {
-    Validator.ensureNotNull(connection);
-    return new LDAPManagementContext(connection, LDAPProfile.getInstance());
-  }
+    /**
+     * Create a new LDAP management context using the provided LDAP connection.
+     *
+     * @param connection
+     *            The LDAP connection.
+     * @return Returns the new management context.
+     */
+    public static ManagementContext createFromContext(LDAPConnection connection) {
+        Validator.ensureNotNull(connection);
+        return new LDAPManagementContext(connection, LDAPProfile.getInstance());
+    }
 
-  // The LDAP management context driver.
-  private final LDAPDriver driver;
+    // The LDAP management context driver.
+    private final LDAPDriver driver;
 
+    // Private constructor.
+    private LDAPManagementContext(LDAPConnection connection, LDAPProfile profile) {
+        this.driver = new LDAPDriver(this, connection, profile);
+    }
 
-
-  // Private constructor.
-  private LDAPManagementContext(LDAPConnection connection,
-      LDAPProfile profile) {
-    this.driver = new LDAPDriver(this, connection, profile);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  protected Driver getDriver() {
-    return driver;
-  }
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected Driver getDriver() {
+        return driver;
+    }
 }
