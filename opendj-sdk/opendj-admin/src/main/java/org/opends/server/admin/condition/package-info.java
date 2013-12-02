@@ -31,6 +31,4 @@
  * This package contains interfaces for building and evaluating
  * arbitrary logical conditions which can be used with constraints.
  */
-@org.opends.server.types.PublicAPI(
-    stability = org.opends.server.types.StabilityLevel.PRIVATE)
 package org.opends.server.admin.condition;

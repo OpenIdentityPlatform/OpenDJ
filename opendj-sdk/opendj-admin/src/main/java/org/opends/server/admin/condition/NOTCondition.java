@@ -26,8 +26,6 @@
  */
 package org.opends.server.admin.condition;
 
-
-
 import org.opends.server.admin.AbstractManagedObjectDefinition;
 import org.opends.server.admin.client.AuthorizationException;
 import org.opends.server.admin.client.CommunicationException;
@@ -35,63 +33,50 @@ import org.opends.server.admin.client.ManagedObject;
 import org.opends.server.admin.client.ManagementContext;
 import org.opends.server.admin.server.ServerManagedObject;
 import org.opends.server.config.ConfigException;
-import org.opends.server.util.Validator;
 
-
+import com.forgerock.opendj.util.Validator;
 
 /**
- * A condition which evaluates to <code>true</code> if the
- * sub-condition is <code>false</code>, or <code>false</code> if
- * the sub-condition is <code>true</code>.
+ * A condition which evaluates to <code>true</code> if the sub-condition is
+ * <code>false</code>, or <code>false</code> if the sub-condition is
+ * <code>true</code>.
  */
 public final class NOTCondition implements Condition {
 
-  // The single sub-condition.
-  private final Condition condition;
+    // The single sub-condition.
+    private final Condition condition;
 
+    /**
+     * Creates a new logical NOT condition with the provided sub-condition.
+     *
+     * @param condition
+     *            The sub-condition which will be inverted.
+     */
+    public NOTCondition(Condition condition) {
+        Validator.ensureNotNull(condition);
+        this.condition = condition;
+    }
 
+    /**
+     * {@inheritDoc}
+     */
+    public boolean evaluate(ManagementContext context, ManagedObject<?> managedObject) throws AuthorizationException,
+            CommunicationException {
+        return !condition.evaluate(context, managedObject);
+    }
 
-  /**
-   * Creates a new logical NOT condition with the provided
-   * sub-condition.
-   *
-   * @param condition
-   *          The sub-condition which will be inverted.
-   */
-  public NOTCondition(Condition condition) {
-    Validator.ensureNotNull(condition);
-    this.condition = condition;
-  }
+    /**
+     * {@inheritDoc}
+     */
+    public boolean evaluate(ServerManagedObject<?> managedObject) throws ConfigException {
+        return !condition.evaluate(managedObject);
+    }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public boolean evaluate(ManagementContext context,
-      ManagedObject<?> managedObject) throws AuthorizationException,
-      CommunicationException {
-    return !condition.evaluate(context, managedObject);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public boolean evaluate(ServerManagedObject<?> managedObject)
-      throws ConfigException {
-    return !condition.evaluate(managedObject);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public void initialize(AbstractManagedObjectDefinition<?, ?> d)
-      throws Exception {
-    condition.initialize(d);
-  }
+    /**
+     * {@inheritDoc}
+     */
+    public void initialize(AbstractManagedObjectDefinition<?, ?> d) throws Exception {
+        condition.initialize(d);
+    }
 
 }
