@@ -328,13 +328,13 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="compute-changenumber" mandatory="false">
+  <adm:property name="compute-change-number" mandatory="false">
     <adm:synopsis>
-      Whether the replication server will compute changenumbers.
+      Whether the replication server will compute change numbers.
     </adm:synopsis>
     <adm:description>
-      This boolean tells the replication server to compute changenumbers for
-      each replicated change by maintaining a changenumber index database.
+      This boolean tells the replication server to compute change numbers for
+      each replicated change by maintaining a change number index database.
       Changenumbers are computed according to 
       http://tools.ietf.org/html/draft-good-ldap-changelog-04.
       Note this functionality has an impact on CPU, disk accesses and storage.
@@ -351,7 +351,7 @@
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:name>ds-cfg-compute-changenumber</ldap:name>
+        <ldap:name>ds-cfg-compute-change-number</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
