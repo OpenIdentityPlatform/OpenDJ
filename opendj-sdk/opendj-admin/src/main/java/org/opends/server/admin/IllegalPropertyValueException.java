@@ -27,62 +27,50 @@
 
 package org.opends.server.admin;
 
+import static com.forgerock.opendj.ldap.AdminMessages.*;
 
-
-import static org.opends.messages.AdminMessages.*;
-
-import org.opends.messages.Message;
-
-
+import org.forgerock.i18n.LocalizableMessage;
 
 /**
- * Thrown to indicate that a property value was invalid according to
- * its associated property definition.
+ * Thrown to indicate that a property value was invalid according to its
+ * associated property definition.
  */
 public class IllegalPropertyValueException extends PropertyException {
 
-  /**
-   * Serialization ID.
-   */
-  private static final long serialVersionUID = -3145632074909281823L;
+    /**
+     * Serialization ID.
+     */
+    private static final long serialVersionUID = -3145632074909281823L;
 
-  // The illegal property value.
-  private final Object value;
+    // The illegal property value.
+    private final Object value;
 
+    /**
+     * Create a new illegal property value exception.
+     *
+     * @param pd
+     *            The property definition.
+     * @param value
+     *            The illegal property value.
+     */
+    public IllegalPropertyValueException(PropertyDefinition<?> pd, Object value) {
+        super(pd, createMessage(pd, value));
+        this.value = value;
+    }
 
+    /**
+     * Get the illegal property value that caused the exception.
+     *
+     * @return Returns the illegal property value.
+     */
+    public final Object getIllegalValue() {
+        return value;
+    }
 
-  /**
-   * Create a new illegal property value exception.
-   *
-   * @param pd
-   *          The property definition.
-   * @param value
-   *          The illegal property value.
-   */
-  public IllegalPropertyValueException(PropertyDefinition<?> pd, Object value) {
-    super(pd, createMessage(pd, value));
-    this.value = value;
-  }
-
-
-
-  /**
-   * Get the illegal property value that caused the exception.
-   *
-   * @return Returns the illegal property value.
-   */
-  public final Object getIllegalValue() {
-    return value;
-  }
-
-
-
-  // Create the message.
-  private static Message createMessage(PropertyDefinition<?> pd, Object value) {
-    PropertyDefinitionUsageBuilder builder = new PropertyDefinitionUsageBuilder(
-        true);
-    return ERR_ILLEGAL_PROPERTY_VALUE_EXCEPTION.get(String.valueOf(value), pd
-        .getName(), builder.getUsage(pd));
-  }
+    // Create the message.
+    private static LocalizableMessage createMessage(PropertyDefinition<?> pd, Object value) {
+        PropertyDefinitionUsageBuilder builder = new PropertyDefinitionUsageBuilder(true);
+        return ERR_ILLEGAL_PROPERTY_VALUE_EXCEPTION.get(String.valueOf(value), pd.getName(), builder.getUsage(pd));
+    }
 
 }

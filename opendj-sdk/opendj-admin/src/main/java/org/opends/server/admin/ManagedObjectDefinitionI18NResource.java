@@ -131,9 +131,9 @@ public final class ManagedObjectDefinitionI18NResource {
    *           If the provided managed object definition was the
    *           {@link TopCfgDefn}.
    */
-  public LocalizableMessage getLocalizableMessage(AbstractManagedObjectDefinition<?, ?> d, String key)
+  public LocalizableMessage getMessage(AbstractManagedObjectDefinition<?, ?> d, String key)
       throws MissingResourceException, UnsupportedOperationException {
-    return getLocalizableMessage(d, key, Locale.getDefault(), (String[]) null);
+    return getMessage(d, key, Locale.getDefault(), (String[]) null);
   }
 
 
@@ -156,10 +156,10 @@ public final class ManagedObjectDefinitionI18NResource {
    *           If the provided managed object definition was the
    *           {@link TopCfgDefn}.
    */
-  public LocalizableMessage getLocalizableMessage(AbstractManagedObjectDefinition<?, ?> d,
+  public LocalizableMessage getMessage(AbstractManagedObjectDefinition<?, ?> d,
       String key, Locale locale) throws MissingResourceException,
       UnsupportedOperationException {
-    return getLocalizableMessage(d, key, locale, (String[]) null);
+    return getMessage(d, key, locale, (String[]) null);
   }
 
 
@@ -185,7 +185,7 @@ public final class ManagedObjectDefinitionI18NResource {
    *           If the provided managed object definition was the
    *           {@link TopCfgDefn}.
    */
-  public LocalizableMessage getLocalizableMessage(AbstractManagedObjectDefinition<?, ?> d,
+  public LocalizableMessage getMessage(AbstractManagedObjectDefinition<?, ?> d,
       String key, Locale locale, String... args)
       throws MissingResourceException, UnsupportedOperationException {
     ResourceBundle resource = getResourceBundle(d, locale);
@@ -219,10 +219,10 @@ public final class ManagedObjectDefinitionI18NResource {
    *           If the provided managed object definition was the
    *           {@link TopCfgDefn}.
    */
-  public LocalizableMessage getLocalizableMessage(AbstractManagedObjectDefinition<?, ?> d,
+  public LocalizableMessage getMessage(AbstractManagedObjectDefinition<?, ?> d,
       String key, String... args) throws MissingResourceException,
       UnsupportedOperationException {
-    return getLocalizableMessage(d, key, Locale.getDefault(), args);
+    return getMessage(d, key, Locale.getDefault(), args);
   }
 
 

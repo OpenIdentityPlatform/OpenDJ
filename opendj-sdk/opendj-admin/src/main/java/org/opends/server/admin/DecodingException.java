@@ -27,10 +27,7 @@
 
 package org.opends.server.admin;
 
-
-
-import org.opends.messages.Message;
-
+import org.forgerock.i18n.LocalizableMessage;
 
 
 /**
@@ -51,7 +48,7 @@ public abstract class DecodingException extends OperationsException {
    * @param message
    *          The message.
    */
-  protected DecodingException(Message message) {
+  protected DecodingException(LocalizableMessage message) {
     super(message);
   }
 

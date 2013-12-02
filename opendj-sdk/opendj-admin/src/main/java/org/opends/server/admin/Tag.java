@@ -25,9 +25,8 @@
  *      Copyright 2008 Sun Microsystems, Inc.
  */
 package org.opends.server.admin;
-import org.opends.messages.Message;
 
-
+import static com.forgerock.opendj.util.Validator.*;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -36,177 +35,151 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.MissingResourceException;
 
-import org.opends.server.admin.std.meta.RootCfgDefn;
-import org.opends.server.util.Validator;
-
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.admin.meta.RootCfgDefn;
 
 
 /**
  * An interface for querying the properties of a tag.
  * <p>
- * Tags are used to group related managed objects together into
- * categories.
+ * Tags are used to group related managed objects together into categories.
  */
 public final class Tag implements Comparable<Tag> {
 
-  // All the tags.
-  private static final Map<String, Tag> tags = new HashMap<String, Tag>();
+    // All the tags.
+    private static final Map<String, Tag> tags = new HashMap<String, Tag>();
 
+    /**
+     * Defines a new tag with the specified name.
+     *
+     * @param name
+     *            The name of the new tag.
+     */
+    public static void define(String name) {
+        Tag tag = new Tag(name);
 
-
-  /**
-   * Defines a new tag with the specified name.
-   *
-   * @param name
-   *          The name of the new tag.
-   */
-  public static void define(String name) {
-    Tag tag = new Tag(name);
-
-    // Register the tag.
-    tags.put(name, tag);
-  }
-
-
-
-  /**
-   * Returns the tag associated with the specified name.
-   *
-   * @param name
-   *          The name of the tag.
-   * @return Returns the tag associated with the specified name.
-   * @throws IllegalArgumentException
-   *           If the tag name was not recognized.
-   */
-  public static Tag valueOf(String name) throws IllegalArgumentException {
-    Validator.ensureNotNull(name);
-
-    // Hack to force initialization of the tag definitions.
-    RootCfgDefn.getInstance();
-
-    Tag tag = tags.get(name.toLowerCase());
-
-    if (tag == null) {
-      throw new IllegalArgumentException("Unknown tag \"" + name + "\"");
+        // Register the tag.
+        tags.put(name, tag);
     }
 
-    return tag;
-  }
+    /**
+     * Returns the tag associated with the specified name.
+     *
+     * @param name
+     *            The name of the tag.
+     * @return Returns the tag associated with the specified name.
+     * @throws IllegalArgumentException
+     *             If the tag name was not recognized.
+     */
+    public static Tag valueOf(String name) throws IllegalArgumentException {
+        ensureNotNull(name);
 
+        // Hack to force initialization of the tag definitions.
+        RootCfgDefn.getInstance();
 
+        Tag tag = tags.get(name.toLowerCase());
 
-  /**
-   * Returns an unmodifiable collection view of the set of registered
-   * tags.
-   *
-   * @return Returns an unmodifiable collection view of the set of
-   *         registered tags.
-   */
-  public static Collection<Tag> values() {
-    // Hack to force initialization of the tag definitions.
-    RootCfgDefn.getInstance();
+        if (tag == null) {
+            throw new IllegalArgumentException("Unknown tag \"" + name + "\"");
+        }
 
-    return Collections.unmodifiableCollection(tags.values());
-  }
-
-  // The name of the tag.
-  private final String name;
-
-
-
-  // Private constructor.
-  private Tag(String name) {
-    this.name = name;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public final int compareTo(Tag o) {
-    return name.compareTo(o.name);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public final boolean equals(Object obj) {
-    if (this == obj) {
-      return true;
+        return tag;
     }
 
-    if (obj instanceof Tag) {
-      Tag other = (Tag) obj;
-      return other.name.equals(this.name);
+    /**
+     * Returns an unmodifiable collection view of the set of registered tags.
+     *
+     * @return Returns an unmodifiable collection view of the set of registered
+     *         tags.
+     */
+    public static Collection<Tag> values() {
+        // Hack to force initialization of the tag definitions.
+        RootCfgDefn.getInstance();
+
+        return Collections.unmodifiableCollection(tags.values());
     }
 
-    return false;
-  }
+    // The name of the tag.
+    private final String name;
 
-
-
-  /**
-   * Gets the name of this tag.
-   *
-   * @return Returns the name of this tag.
-   */
-  public final String getName() {
-    return name;
-  }
-
-
-
-  /**
-   * Gets the synopsis of this tag in the default locale.
-   *
-   * @return Returns the synopsis of this tag in the default locale.
-   */
-  public final Message getSynopsis() {
-    return getSynopsis(Locale.getDefault());
-  }
-
-
-
-  /**
-   * Gets the synopsis of this tag in the specified locale.
-   *
-   * @param locale
-   *          The locale.
-   * @return Returns the synopsis of this tag in the specified locale.
-   */
-  public final Message getSynopsis(Locale locale) {
-    ManagedObjectDefinitionI18NResource resource =
-      ManagedObjectDefinitionI18NResource.getInstance();
-    String property = "tag." + name + ".synopsis";
-    try {
-      return resource.getMessage(RootCfgDefn.getInstance(), property, locale);
-    } catch (MissingResourceException e) {
-      return null;
+    // Private constructor.
+    private Tag(String name) {
+        this.name = name;
     }
-  }
 
+    /**
+     * {@inheritDoc}
+     */
+    public final int compareTo(Tag o) {
+        return name.compareTo(o.name);
+    }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public final boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public final int hashCode() {
-    return name.hashCode();
-  }
+        if (obj instanceof Tag) {
+            Tag other = (Tag) obj;
+            return other.name.equals(this.name);
+        }
 
+        return false;
+    }
 
+    /**
+     * Gets the name of this tag.
+     *
+     * @return Returns the name of this tag.
+     */
+    public final String getName() {
+        return name;
+    }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public final String toString() {
-    return name;
-  }
+    /**
+     * Gets the synopsis of this tag in the default locale.
+     *
+     * @return Returns the synopsis of this tag in the default locale.
+     */
+    public final LocalizableMessage getSynopsis() {
+        return getSynopsis(Locale.getDefault());
+    }
+
+    /**
+     * Gets the synopsis of this tag in the specified locale.
+     *
+     * @param locale
+     *            The locale.
+     * @return Returns the synopsis of this tag in the specified locale.
+     */
+    public final LocalizableMessage getSynopsis(Locale locale) {
+        ManagedObjectDefinitionI18NResource resource = ManagedObjectDefinitionI18NResource.getInstance();
+        String property = "tag." + name + ".synopsis";
+        try {
+            return resource.getMessage(RootCfgDefn.getInstance(), property, locale);
+        } catch (MissingResourceException e) {
+            return null;
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public final int hashCode() {
+        return name.hashCode();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public final String toString() {
+        return name;
+    }
 
 }

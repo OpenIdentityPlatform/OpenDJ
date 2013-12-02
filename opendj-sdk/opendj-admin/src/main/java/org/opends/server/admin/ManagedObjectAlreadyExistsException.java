@@ -27,30 +27,23 @@
 
 package org.opends.server.admin;
 
-
-
-import static org.opends.messages.AdminMessages.*;
-
-
+import static com.forgerock.opendj.ldap.AdminMessages.*;
 
 /**
- * A managed object could not be created because there is an existing
- * managed object with the same name.
+ * A managed object could not be created because there is an existing managed
+ * object with the same name.
  */
-public final class ManagedObjectAlreadyExistsException extends
-    OperationsException {
+public final class ManagedObjectAlreadyExistsException extends OperationsException {
 
-  /**
-   * Version ID required by serializable classes.
-   */
-  private static final long serialVersionUID = -2344653674171609366L;
+    /**
+     * Version ID required by serializable classes.
+     */
+    private static final long serialVersionUID = -2344653674171609366L;
 
-
-
-  /**
-   * Create a managed object already exists exception.
-   */
-  public ManagedObjectAlreadyExistsException() {
-    super(ERR_MANAGED_OBJECT_ALREADY_EXISTS_EXCEPTION.get());
-  }
+    /**
+     * Create a managed object already exists exception.
+     */
+    public ManagedObjectAlreadyExistsException() {
+        super(ERR_MANAGED_OBJECT_ALREADY_EXISTS_EXCEPTION.get());
+    }
 }

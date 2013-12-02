@@ -27,32 +27,26 @@
 
 package org.opends.server.admin;
 
-
-
-import static org.opends.messages.AdminMessages.*;
-
-
+import static com.forgerock.opendj.ldap.AdminMessages.*;
 
 /**
- * Thrown when an attempt is made to add more than value to a
- * single-valued property.
+ * Thrown when an attempt is made to add more than value to a single-valued
+ * property.
  */
 public class PropertyIsSingleValuedException extends PropertyException {
 
-  /**
-   * Serialization ID.
-   */
-  private static final long serialVersionUID = -8056602690887917027L;
+    /**
+     * Serialization ID.
+     */
+    private static final long serialVersionUID = -8056602690887917027L;
 
-
-
-  /**
-   * Create a new property is single valued exception.
-   *
-   * @param pd
-   *          The property definition.
-   */
-  public PropertyIsSingleValuedException(PropertyDefinition<?> pd) {
-    super(pd, ERR_PROPERTY_IS_SINGLE_VALUED_EXCEPTION.get(pd.getName()));
-  }
+    /**
+     * Create a new property is single valued exception.
+     *
+     * @param pd
+     *            The property definition.
+     */
+    public PropertyIsSingleValuedException(PropertyDefinition<?> pd) {
+        super(pd, ERR_PROPERTY_IS_SINGLE_VALUED_EXCEPTION.get(pd.getName()));
+    }
 }

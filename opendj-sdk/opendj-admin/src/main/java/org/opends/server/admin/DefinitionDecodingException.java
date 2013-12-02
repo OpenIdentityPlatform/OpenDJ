@@ -27,13 +27,9 @@
 
 package org.opends.server.admin;
 
+import static com.forgerock.opendj.ldap.AdminMessages.*;
 
-
-import static org.opends.messages.AdminMessages.*;
-
-import org.opends.messages.Message;
-
-
+import org.forgerock.i18n.LocalizableMessage;
 
 /**
  * The requested managed object was found but its type could not be
@@ -75,9 +71,9 @@ public class DefinitionDecodingException extends DecodingException {
 
 
   // Create the message.
-  private static Message createMessage(AbstractManagedObjectDefinition<?, ?> d,
+  private static LocalizableMessage createLocalizableMessage(AbstractManagedObjectDefinition<?, ?> d,
       Reason reason) {
-    Message ufn = d.getUserFriendlyName();
+    LocalizableMessage ufn = d.getUserFriendlyName();
     switch (reason) {
     case NO_TYPE_INFORMATION:
       return ERR_DECODING_EXCEPTION_NO_TYPE_INFO.get(ufn);
@@ -106,7 +102,7 @@ public class DefinitionDecodingException extends DecodingException {
    */
   public DefinitionDecodingException(AbstractManagedObjectDefinition<?, ?> d,
       Reason reason) {
-    super(createMessage(d, reason));
+    super(createLocalizableMessage(d, reason));
     this.d = d;
     this.reason = reason;
   }

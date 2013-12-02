@@ -27,43 +27,34 @@
 
 package org.opends.server.admin;
 
-
-
-import static org.opends.messages.AdminMessages.*;
-
-
-
 /**
  * This exception is thrown when a property's default values cannot be
  * determined. This can occur in the following situations:
  * <ul>
- * <li>the property has a well-defined set of default values but they
- * are invalid according to the property's syntax
- * <li>the property inherits its default values from another managed
- * object but they could not be retrieved, perhaps because of a
- * communication problem.
+ * <li>the property has a well-defined set of default values but they are
+ * invalid according to the property's syntax
+ * <li>the property inherits its default values from another managed object but
+ * they could not be retrieved, perhaps because of a communication problem.
  * </ul>
  */
 public class DefaultBehaviorException extends PropertyException {
 
-  /**
-   * Serialization ID.
-   */
-  private static final long serialVersionUID = -2542117466747573053L;
+    /**
+     * Serialization ID.
+     */
+    private static final long serialVersionUID = -2542117466747573053L;
 
-
-
-  /**
-   * Create a new default behavior exception with a cause.
-   *
-   * @param pd
-   *          The property definition whose default values could not
-   *          be determined.
-   * @param cause
-   *          The exception that prevented the default values from
-   *          being determined.
-   */
-  public DefaultBehaviorException(PropertyDefinition<?> pd, Throwable cause) {
-    super(pd, ERR_DEFAULT_BEHAVIOR_PROPERTY_EXCEPTION.get(pd.getName()), cause);
-  }
+    /**
+     * Create a new default behavior exception with a cause.
+     *
+     * @param pd
+     *            The property definition whose default values could not be
+     *            determined.
+     * @param cause
+     *            The exception that prevented the default values from being
+     *            determined.
+     */
+    public DefaultBehaviorException(PropertyDefinition<?> pd, Throwable cause) {
+        super(pd, ERR_DEFAULT_BEHAVIOR_PROPERTY_EXCEPTION.get(pd.getName()), cause);
+    }
 }

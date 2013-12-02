@@ -33,7 +33,5 @@
  * This package contains administration related classes and interfaces
  * common to both the client and server.
  */
-@org.opends.server.types.PublicAPI(
-     stability=org.opends.server.types.StabilityLevel.PRIVATE)
 package org.opends.server.admin;
 

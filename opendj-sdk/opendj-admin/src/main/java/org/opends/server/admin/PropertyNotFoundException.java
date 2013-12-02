@@ -27,8 +27,7 @@
 
 package org.opends.server.admin;
 
-import static org.opends.messages.AdminMessages.*;
-
+import static com.forgerock.opendj.ldap.AdminMessages.*;
 
 /**
  * Thrown when an attempt is made to retrieve a property using its name but the
@@ -39,37 +38,33 @@ import static org.opends.messages.AdminMessages.*;
  */
 public class PropertyNotFoundException extends OperationsException {
 
-  /**
-   * Serialization ID.
-   */
-  private static final long serialVersionUID = -895548482881819610L;
+    /**
+     * Serialization ID.
+     */
+    private static final long serialVersionUID = -895548482881819610L;
 
-  // The name of the property that could not be found.
-  private final String propertyName;
+    // The name of the property that could not be found.
+    private final String propertyName;
 
+    /**
+     * Create a new property not found exception.
+     *
+     * @param propertyName
+     *            The name of the property that could not be found.
+     */
+    public PropertyNotFoundException(String propertyName) {
+        super(ERR_PROPERTY_NOT_FOUND_EXCEPTION.get(propertyName));
 
+        this.propertyName = propertyName;
+    }
 
-  /**
-   * Create a new property not found exception.
-   *
-   * @param propertyName
-   *          The name of the property that could not be found.
-   */
-  public PropertyNotFoundException(String propertyName) {
-    super(ERR_PROPERTY_NOT_FOUND_EXCEPTION.get(propertyName));
-
-    this.propertyName = propertyName;
-  }
-
-
-
-  /**
-   * Get the name of the property that could not be found.
-   *
-   * @return Returns the name of the property that could not be found.
-   */
-  public String getPropertyName() {
-    return propertyName;
-  }
+    /**
+     * Get the name of the property that could not be found.
+     *
+     * @return Returns the name of the property that could not be found.
+     */
+    public String getPropertyName() {
+        return propertyName;
+    }
 
 }

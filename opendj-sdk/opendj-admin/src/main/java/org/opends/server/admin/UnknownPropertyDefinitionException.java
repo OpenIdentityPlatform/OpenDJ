@@ -27,52 +27,41 @@
 
 package org.opends.server.admin;
 
-
-
-import static org.opends.messages.AdminMessages.*;
-
-
+import static com.forgerock.opendj.ldap.AdminMessages.*;
 
 /**
- * Indicates that an unknown type of property definition was
- * encountered. This can occur as the management prototype develops
- * and new kinds of property definitions are added.
+ * Indicates that an unknown type of property definition was encountered. This
+ * can occur as the management prototype develops and new kinds of property
+ * definitions are added.
  */
-public final class UnknownPropertyDefinitionException
-    extends PropertyException {
+public final class UnknownPropertyDefinitionException extends PropertyException {
 
-  // Generated serialization ID.
-  private static final long serialVersionUID = 7042646409131322385L;
+    // Generated serialization ID.
+    private static final long serialVersionUID = 7042646409131322385L;
 
-  // The visitor parameter if there was one.
-  private Object parameter;
+    // The visitor parameter if there was one.
+    private Object parameter;
 
+    /**
+     * Creates a new unknown property definition exception.
+     *
+     * @param pd
+     *            The unknown property definition.
+     * @param p
+     *            The visitor parameter if there was one.
+     */
+    public UnknownPropertyDefinitionException(PropertyDefinition<?> pd, Object p) {
+        super(pd, ERR_UNKNOWN_PROPERTY_DEFINITION_EXCEPTION.get(pd.getName(), pd.getClass().getName()));
+        this.parameter = p;
+    }
 
-
-  /**
-   * Creates a new unknown property definition exception.
-   *
-   * @param pd
-   *          The unknown property definition.
-   * @param p
-   *          The visitor parameter if there was one.
-   */
-  public UnknownPropertyDefinitionException(PropertyDefinition<?> pd,
-      Object p) {
-    super(pd, ERR_UNKNOWN_PROPERTY_DEFINITION_EXCEPTION.get(pd.getName(), pd
-        .getClass().getName()));
-    this.parameter = p;
-  }
-
-
-
-  /**
-   * Get the visitor parameter if there was one.
-   *
-   * @return Returns the visitor parameter if there was one.
-   */
-  public Object getParameter() {
-    return parameter;
-  }
+    /**
+     * Get the visitor parameter if there was one.
+     *
+     * @return Returns the visitor parameter if there was one.
+     */
+    public Object getParameter() {
+        return parameter;
+    }
 
 }

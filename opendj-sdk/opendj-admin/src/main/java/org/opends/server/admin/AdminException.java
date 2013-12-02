@@ -27,47 +27,38 @@
 
 package org.opends.server.admin;
 
-
-
-import org.opends.messages.Message;
-
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.types.OpenDsException;
-
-
 
 /**
  * Exceptions thrown when interacting with administration framework.
  */
 public abstract class AdminException extends OpenDsException {
 
-  /**
-   * Fake serialization ID.
-   */
-  private static final long serialVersionUID = 1L;
+    /**
+     * Fake serialization ID.
+     */
+    private static final long serialVersionUID = 1L;
 
+    /**
+     * Create an admin exception with a message and cause.
+     *
+     * @param message
+     *            The message.
+     * @param cause
+     *            The cause.
+     */
+    protected AdminException(LocalizableMessage message, Throwable cause) {
+        super(message, cause);
+    }
 
-
-  /**
-   * Create an admin exception with a message and cause.
-   *
-   * @param message
-   *          The message.
-   * @param cause
-   *          The cause.
-   */
-  protected AdminException(Message message, Throwable cause) {
-    super(message, cause);
-  }
-
-
-
-  /**
-   * Create an admin exception with a message.
-   *
-   * @param message
-   *          The message.
-   */
-  protected AdminException(Message message) {
-    super(message);
-  }
+    /**
+     * Create an admin exception with a message.
+     *
+     * @param message
+     *            The message.
+     */
+    protected AdminException(LocalizableMessage message) {
+        super(message);
+    }
 }
