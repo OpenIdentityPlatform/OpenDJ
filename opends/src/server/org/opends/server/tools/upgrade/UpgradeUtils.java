@@ -53,6 +53,7 @@ import org.opends.server.util.StaticUtils;
 
 import static org.opends.messages.ConfigMessages.INFO_CONFIG_FILE_HEADER;
 import static org.opends.messages.ToolMessages.ERR_UPGRADE_UNKNOWN_OC_ATT;
+import static org.opends.messages.ToolMessages.ERR_UPGRADE_CORRUPTED_TEMPLATE;
 import static org.opends.server.tools.upgrade.FileManager.deleteRecursively;
 import static org.opends.server.tools.upgrade.FileManager.rename;
 import static org.opends.server.tools.upgrade.Installation.*;
@@ -579,9 +580,7 @@ final class UpgradeUtils
     LDIFEntryReader reader = null;
     BufferedReader br = null;
     FileWriter fw = null;
-    final File copy =
-        File.createTempFile("copySchema", ".tmp",
-            destination.getParentFile());
+    File copy = null;
     try
     {
       reader = new LDIFEntryReader(new FileInputStream(templateFile));
@@ -589,8 +588,8 @@ final class UpgradeUtils
       if (!reader.hasNext())
       {
         // Unless template are corrupted, this should not happen.
-        throw new IOException(String.format(
-            "'%s' file is empty. Template corrupted.", templateFile.getName()));
+        throw new IOException(ERR_UPGRADE_CORRUPTED_TEMPLATE.get(
+            templateFile.getPath()).toString());
       }
       final LinkedList<String> definitionsList = new LinkedList<String>();
 
@@ -640,7 +639,9 @@ final class UpgradeUtils
       }
       // Then, open the destination file and write the new attribute
       // or objectClass definitions
-
+      copy =
+          File.createTempFile("copySchema", ".tmp",
+              destination.getParentFile());
       br = new BufferedReader(new FileReader(destination));
       fw = new FileWriter(copy);
       String line = br.readLine();
@@ -743,7 +744,7 @@ final class UpgradeUtils
         File parentDirectory = destination.getParentFile();
         if (!parentDirectory.exists())
         {
-          LOG.log(Level.INFO, String.format("File %s's parent doesn't exist",
+          LOG.log(Level.INFO, String.format("Parent file of %s doesn't exist",
               destination.getPath()));
 
           parentDirectory.mkdirs();
@@ -763,7 +764,7 @@ final class UpgradeUtils
         writer.writeEntry(theNewSchemaEntry);
 
         LOG.log(Level.INFO, String.format(
-            "%s file created and completed successfully.", destination
+            "%s created and completed successfully.", destination
                 .getAbsolutePath()));
       }
     }
