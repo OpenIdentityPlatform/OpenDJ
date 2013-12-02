@@ -27,54 +27,44 @@
 
 package org.opends.server.admin.client;
 
-
-
-import org.opends.messages.Message;
-
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.AdminException;
 
-
-
 /**
- * Administration client exceptions represent non-operational problems
- * which occur whilst interacting with the administration framework.
- * They provide clients with a transport independent interface for
- * handling transport related exceptions.
+ * Administration client exceptions represent non-operational problems which
+ * occur whilst interacting with the administration framework. They provide
+ * clients with a transport independent interface for handling transport related
+ * exceptions.
  * <p>
- * Client exceptions represent communications problems, security
- * problems, and service related problems.
+ * Client exceptions represent communications problems, security problems, and
+ * service related problems.
  */
 public abstract class AdminClientException extends AdminException {
 
-  /**
-   * Serialization ID.
-   */
-  private static final long serialVersionUID = 4044747533980824456L;
+    /**
+     * Serialization ID.
+     */
+    private static final long serialVersionUID = 4044747533980824456L;
 
+    /**
+     * Create an administration client exception with a message and cause.
+     *
+     * @param message
+     *            The message.
+     * @param cause
+     *            The cause.
+     */
+    protected AdminClientException(LocalizableMessage message, Throwable cause) {
+        super(message, cause);
+    }
 
-
-  /**
-   * Create an administration client exception with a message and
-   * cause.
-   *
-   * @param message
-   *          The message.
-   * @param cause
-   *          The cause.
-   */
-  protected AdminClientException(Message message, Throwable cause) {
-    super(message, cause);
-  }
-
-
-
-  /**
-   * Create an administration client exception with a message.
-   *
-   * @param message
-   *          The message.
-   */
-  protected AdminClientException(Message message) {
-    super(message);
-  }
+    /**
+     * Create an administration client exception with a message.
+     *
+     * @param message
+     *            The message.
+     */
+    protected AdminClientException(LocalizableMessage message) {
+        super(message);
+    }
 }

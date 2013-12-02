@@ -29,19 +29,19 @@ package org.opends.server.admin.client;
 
 
 
-import static org.opends.messages.AdminMessages.*;
-
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
+import static com.forgerock.opendj.ldap.AdminMessages.*;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.admin.DecodingException;
 import org.opends.server.admin.ManagedObjectDefinition;
 import org.opends.server.admin.PropertyException;
-import org.opends.server.util.Validator;
+
+import com.forgerock.opendj.util.Validator;
 
 
 
@@ -59,25 +59,25 @@ public class ManagedObjectDecodingException extends DecodingException {
 
 
   // Create the message.
-  private static Message createMessage(ManagedObject<?> partialManagedObject,
+  private static LocalizableMessage createMessage(ManagedObject<?> partialManagedObject,
       Collection<PropertyException> causes) {
     Validator.ensureNotNull(causes);
-    Validator.ensureTrue(!causes.isEmpty());
+    Validator.ensureTrue(!causes.isEmpty(), "causes should not be empty");
 
     ManagedObjectDefinition<?, ?> d = partialManagedObject
         .getManagedObjectDefinition();
     if (causes.size() == 1) {
       return ERR_MANAGED_OBJECT_DECODING_EXCEPTION_SINGLE.get(d
-          .getUserFriendlyName(), causes.iterator().next().getMessageObject());
+          .getUserFriendlyName(), causes.iterator().next().getLocalizableMessageObject());
     } else {
-      MessageBuilder builder = new MessageBuilder();
+      LocalizableMessageBuilder builder = new LocalizableMessageBuilder();
 
       boolean isFirst = true;
       for (PropertyException cause : causes) {
         if (!isFirst) {
           builder.append("; ");
         }
-        builder.append(cause.getMessageObject());
+        builder.append(cause.getLocalizableMessageObject());
         isFirst = false;
       }
 

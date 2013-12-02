@@ -29,9 +29,9 @@ package org.opends.server.admin.client;
 
 
 
-import static org.opends.messages.AdminMessages.*;
+import static com.forgerock.opendj.ldap.AdminMessages.*;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.OperationsException;
 
 
@@ -82,7 +82,7 @@ public class ConcurrentModificationException extends OperationsException {
    * @param cause
    *          The cause.
    */
-  public ConcurrentModificationException(Message message, Throwable cause) {
+  public ConcurrentModificationException(LocalizableMessage message, Throwable cause) {
     super(message, cause);
   }
 
@@ -94,7 +94,7 @@ public class ConcurrentModificationException extends OperationsException {
    * @param message
    *          The message.
    */
-  public ConcurrentModificationException(Message message) {
+  public ConcurrentModificationException(LocalizableMessage message) {
     super(message);
   }
 }

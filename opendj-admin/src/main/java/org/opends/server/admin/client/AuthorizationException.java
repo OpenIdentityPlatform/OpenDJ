@@ -27,72 +27,59 @@
 
 package org.opends.server.admin.client;
 
+import org.forgerock.i18n.LocalizableMessage;
 
-
-import static org.opends.messages.AdminMessages.*;
-
-import org.opends.messages.Message;
-
-
+import static com.forgerock.opendj.ldap.AdminMessages.*;
 
 /**
- * This exception is thrown when an authorization error occurs while
- * interacting with the Directory Server. Authorization errors can
- * occur when a client attempts to perform an administrative operation
- * which they are not permitted to perform.
+ * This exception is thrown when an authorization error occurs while interacting
+ * with the Directory Server. Authorization errors can occur when a client
+ * attempts to perform an administrative operation which they are not permitted
+ * to perform.
  */
 public class AuthorizationException extends AdminSecurityException {
 
-  /**
-   * Serialization ID.
-   */
-  private static final long serialVersionUID = 8414248362572933814L;
+    /**
+     * Serialization ID.
+     */
+    private static final long serialVersionUID = 8414248362572933814L;
 
+    /**
+     * Create an authorization exception with a default message.
+     */
+    public AuthorizationException() {
+        super(ERR_AUTHORIZATION_EXCEPTION_DEFAULT.get());
+    }
 
+    /**
+     * Create an authorization exception with a cause and a default message.
+     *
+     * @param cause
+     *            The cause.
+     */
+    public AuthorizationException(Throwable cause) {
+        super(ERR_AUTHORIZATION_EXCEPTION_DEFAULT.get(), cause);
+    }
 
-  /**
-   * Create an authorization exception with a default message.
-   */
-  public AuthorizationException() {
-    super(ERR_AUTHORIZATION_EXCEPTION_DEFAULT.get());
-  }
+    /**
+     * Create an authorization exception with a message and cause.
+     *
+     * @param message
+     *            The message.
+     * @param cause
+     *            The cause.
+     */
+    public AuthorizationException(LocalizableMessage message, Throwable cause) {
+        super(message, cause);
+    }
 
-
-
-  /**
-   * Create an authorization exception with a cause and a default
-   * message.
-   *
-   * @param cause
-   *          The cause.
-   */
-  public AuthorizationException(Throwable cause) {
-    super(ERR_AUTHORIZATION_EXCEPTION_DEFAULT.get(), cause);
-  }
-
-
-
-  /**
-   * Create an authorization exception with a message and cause.
-   *
-   * @param message
-   *          The message.
-   * @param cause
-   *          The cause.
-   */
-  public AuthorizationException(Message message, Throwable cause) {
-    super(message, cause);
-  }
-
-
-
-  /**
-   * Create an authorization exception with a message.
-   *
-   * @param message
-   *          The message.
-   */
-  public AuthorizationException(Message message) {
-    super(message);
-  }
+    /**
+     * Create an authorization exception with a message.
+     *
+     * @param message
+     *            The message.
+     */
+    public AuthorizationException(LocalizableMessage message) {
+        super(message);
+    }
 }

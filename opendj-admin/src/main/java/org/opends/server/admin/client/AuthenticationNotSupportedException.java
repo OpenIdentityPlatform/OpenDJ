@@ -27,73 +27,59 @@
 
 package org.opends.server.admin.client;
 
+import org.forgerock.i18n.LocalizableMessage;
 
-
-import static org.opends.messages.AdminMessages.*;
-
-import org.opends.messages.Message;
-
-
+import static com.forgerock.opendj.ldap.AdminMessages.*;
 
 /**
- * This exception is thrown when the particular flavor of
- * authentication requested is not supported by the Directory Server.
+ * This exception is thrown when the particular flavor of authentication
+ * requested is not supported by the Directory Server.
  */
-public class AuthenticationNotSupportedException
-    extends AdminSecurityException {
+public class AuthenticationNotSupportedException extends AdminSecurityException {
 
-  /**
-   * Serialization ID.
-   */
-  private static final long serialVersionUID = 7387834052676291793L;
+    /**
+     * Serialization ID.
+     */
+    private static final long serialVersionUID = 7387834052676291793L;
 
+    /**
+     * Creates an authentication not supported exception with a default message.
+     */
+    public AuthenticationNotSupportedException() {
+        super(ERR_AUTHENTICATION_NOT_SUPPORTED_EXCEPTION_DEFAULT.get());
+    }
 
+    /**
+     * Creates an authentication not supported exception with a cause and a
+     * default message.
+     *
+     * @param cause
+     *            The cause.
+     */
+    public AuthenticationNotSupportedException(Throwable cause) {
+        super(ERR_AUTHENTICATION_NOT_SUPPORTED_EXCEPTION_DEFAULT.get(), cause);
+    }
 
-  /**
-   * Creates an authentication not supported exception with a default
-   * message.
-   */
-  public AuthenticationNotSupportedException() {
-    super(ERR_AUTHENTICATION_NOT_SUPPORTED_EXCEPTION_DEFAULT.get());
-  }
+    /**
+     * Create an authentication not supported exception with a message and
+     * cause.
+     *
+     * @param message
+     *            The message.
+     * @param cause
+     *            The cause.
+     */
+    public AuthenticationNotSupportedException(LocalizableMessage message, Throwable cause) {
+        super(message, cause);
+    }
 
-
-
-  /**
-   * Creates an authentication not supported exception with a cause
-   * and a default message.
-   *
-   * @param cause
-   *          The cause.
-   */
-  public AuthenticationNotSupportedException(Throwable cause) {
-    super(ERR_AUTHENTICATION_NOT_SUPPORTED_EXCEPTION_DEFAULT.get(), cause);
-  }
-
-
-
-  /**
-   * Create an authentication not supported exception with a message
-   * and cause.
-   *
-   * @param message
-   *          The message.
-   * @param cause
-   *          The cause.
-   */
-  public AuthenticationNotSupportedException(Message message, Throwable cause) {
-    super(message, cause);
-  }
-
-
-
-  /**
-   * Create an authentication not supported exception with a message.
-   *
-   * @param message
-   *          The message.
-   */
-  public AuthenticationNotSupportedException(Message message) {
-    super(message);
-  }
+    /**
+     * Create an authentication not supported exception with a message.
+     *
+     * @param message
+     *            The message.
+     */
+    public AuthenticationNotSupportedException(LocalizableMessage message) {
+        super(message);
+    }
 }

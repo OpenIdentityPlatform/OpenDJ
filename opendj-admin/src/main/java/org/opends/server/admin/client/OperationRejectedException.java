@@ -27,217 +27,184 @@
 
 package org.opends.server.admin.client;
 
-
-
-import static org.opends.messages.AdminMessages.*;
+import static com.forgerock.opendj.ldap.AdminMessages.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 
-import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
-import org.opends.server.util.Validator;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 
-
+import com.forgerock.opendj.util.Validator;
 
 /**
- * This exception is thrown when the client or server refuses to
- * create, delete, or modify a managed object due to one or more
- * constraints that cannot be satisfied.
+ * This exception is thrown when the client or server refuses to create, delete,
+ * or modify a managed object due to one or more constraints that cannot be
+ * satisfied.
  * <p>
- * Operations can be rejected either by a client-side constraint
- * violation triggered by {@link ClientConstraintHandler}, or by a
- * server-side error.
+ * Operations can be rejected either by a client-side constraint violation
+ * triggered by {@link ClientConstraintHandler}, or by a server-side error.
  * <p>
- * For example, the Directory Server might not be able perform an
- * operation due to some OS related problem, such as lack of disk
- * space, or missing files.
+ * For example, the Directory Server might not be able perform an operation due
+ * to some OS related problem, such as lack of disk space, or missing files.
  */
 public class OperationRejectedException extends AdminClientException {
 
-  /**
-   * The type of operation that caused this exception.
-   */
-  public enum OperationType {
     /**
-     * A managed object could not be created.
+     * The type of operation that caused this exception.
      */
-    CREATE,
+    public enum OperationType {
+        /**
+         * A managed object could not be created.
+         */
+        CREATE,
 
-    /**
-     * A managed object could not be deleted.
-     */
-    DELETE,
+        /**
+         * A managed object could not be deleted.
+         */
+        DELETE,
 
-    /**
-     * A managed object could not be modified.
-     */
-    MODIFY;
-  }
-
-  /**
-   * Serialization ID.
-   */
-  private static final long serialVersionUID = 8547688890613079044L;
-
-
-
-  // Gets the default message.
-  private static Message getDefaultMessage(Collection<Message> messages) {
-    Validator.ensureNotNull(messages);
-    Validator.ensureTrue(!messages.isEmpty());
-
-    if (messages.size() == 1) {
-      return ERR_OPERATION_REJECTED_EXCEPTION_SINGLE.get(messages.iterator()
-          .next());
-    } else {
-      return ERR_OPERATION_REJECTED_EXCEPTION_PLURAL
-          .get(getSingleMessage(messages));
+        /**
+         * A managed object could not be modified.
+         */
+        MODIFY;
     }
-  }
 
+    /**
+     * Serialization ID.
+     */
+    private static final long serialVersionUID = 8547688890613079044L;
 
+    // Gets the default message.
+    private static LocalizableMessage getDefaultMessage(Collection<LocalizableMessage> messages) {
+        Validator.ensureNotNull(messages);
+        Validator.ensureTrue(!messages.isEmpty(), "Messages should not be empty");
 
-  // Merge the messages into a single message.
-  private static Message getSingleMessage(Collection<Message> messages) {
-    if (messages.size() == 1) {
-      return messages.iterator().next();
-    } else {
-      MessageBuilder builder = new MessageBuilder();
-
-      boolean isFirst = true;
-      for (Message m : messages) {
-        if (!isFirst) {
-          builder.append(";  ");
+        if (messages.size() == 1) {
+            return ERR_OPERATION_REJECTED_EXCEPTION_SINGLE.get(messages.iterator().next());
+        } else {
+            return ERR_OPERATION_REJECTED_EXCEPTION_PLURAL.get(getSingleMessage(messages));
         }
-        builder.append(m);
-        isFirst = false;
-      }
-
-      return builder.toMessage();
     }
-  }
 
-  // The messages describing the constraint violations that occurred.
-  private final Collection<Message> messages;
+    // Merge the messages into a single message.
+    private static LocalizableMessage getSingleMessage(Collection<LocalizableMessage> messages) {
+        if (messages.size() == 1) {
+            return messages.iterator().next();
+        } else {
+            LocalizableMessageBuilder builder = new LocalizableMessageBuilder();
 
-  // The type of operation that caused this exception.
-  private final OperationType type;
+            boolean isFirst = true;
+            for (LocalizableMessage m : messages) {
+                if (!isFirst) {
+                    builder.append(";  ");
+                }
+                builder.append(m);
+                isFirst = false;
+            }
 
-  // The user friendly name of the component that caused this
-  // exception.
-  private final Message ufn;
+            return builder.toMessage();
+        }
+    }
 
+    // The messages describing the constraint violations that occurred.
+    private final Collection<LocalizableMessage> messages;
 
+    // The type of operation that caused this exception.
+    private final OperationType type;
 
-  /**
-   * Creates a new operation rejected exception with a default
-   * message.
-   *
-   * @param type
-   *          The type of operation that caused this exception.
-   * @param ufn
-   *          The user friendly name of the component that caused this
-   *          exception.
-   */
-  public OperationRejectedException(OperationType type, Message ufn) {
-    this(type, ufn, ERR_OPERATION_REJECTED_DEFAULT.get());
-  }
+    // The user friendly name of the component that caused this
+    // exception.
+    private final LocalizableMessage ufn;
 
+    /**
+     * Creates a new operation rejected exception with a default message.
+     *
+     * @param type
+     *            The type of operation that caused this exception.
+     * @param ufn
+     *            The user friendly name of the component that caused this
+     *            exception.
+     */
+    public OperationRejectedException(OperationType type, LocalizableMessage ufn) {
+        this(type, ufn, ERR_OPERATION_REJECTED_DEFAULT.get());
+    }
 
+    /**
+     * Creates a new operation rejected exception with the provided messages.
+     *
+     * @param type
+     *            The type of operation that caused this exception.
+     * @param ufn
+     *            The user friendly name of the component that caused this
+     *            exception.
+     * @param messages
+     *            The messages describing the constraint violations that
+     *            occurred (must be non-<code>null</code> and non-empty).
+     */
+    public OperationRejectedException(OperationType type, LocalizableMessage ufn, Collection<LocalizableMessage> messages) {
+        super(getDefaultMessage(messages));
 
-  /**
-   * Creates a new operation rejected exception with the provided
-   * messages.
-   *
-   * @param type
-   *          The type of operation that caused this exception.
-   * @param ufn
-   *          The user friendly name of the component that caused this
-   *          exception.
-   * @param messages
-   *          The messages describing the constraint violations that
-   *          occurred (must be non-<code>null</code> and
-   *          non-empty).
-   */
-  public OperationRejectedException(OperationType type, Message ufn,
-      Collection<Message> messages) {
-    super(getDefaultMessage(messages));
+        this.messages = new ArrayList<LocalizableMessage>(messages);
+        this.type = type;
+        this.ufn = ufn;
+    }
 
-    this.messages = new ArrayList<Message>(messages);
-    this.type = type;
-    this.ufn = ufn;
-  }
+    /**
+     * Creates a new operation rejected exception with the provided message.
+     *
+     * @param type
+     *            The type of operation that caused this exception.
+     * @param ufn
+     *            The user friendly name of the component that caused this
+     *            exception.
+     * @param message
+     *            The message describing the constraint violation that occurred.
+     */
+    public OperationRejectedException(OperationType type, LocalizableMessage ufn, LocalizableMessage message) {
+        this(type, ufn, Collections.singleton(message));
+    }
 
+    /**
+     * Gets an unmodifiable collection view of the messages describing the
+     * constraint violations that occurred.
+     *
+     * @return Returns an unmodifiable collection view of the messages
+     *         describing the constraint violations that occurred.
+     */
+    public Collection<LocalizableMessage> getMessages() {
+        return Collections.unmodifiableCollection(messages);
+    }
 
+    /**
+     * Creates a single message listing all the messages combined into a single
+     * list separated by semi-colons.
+     *
+     * @return Returns a single message listing all the messages combined into a
+     *         single list separated by semi-colons.
+     */
+    public LocalizableMessage getMessagesAsSingleMessage() {
+        return getSingleMessage(messages);
+    }
 
-  /**
-   * Creates a new operation rejected exception with the provided
-   * message.
-   *
-   * @param type
-   *          The type of operation that caused this exception.
-   * @param ufn
-   *          The user friendly name of the component that caused this
-   *          exception.
-   * @param message
-   *          The message describing the constraint violation that
-   *          occurred.
-   */
-  public OperationRejectedException(OperationType type, Message ufn,
-      Message message) {
-    this(type, ufn, Collections.singleton(message));
-  }
+    /**
+     * Gets the type of operation that caused this exception.
+     *
+     * @return Returns the type of operation that caused this exception.
+     */
+    public OperationType getOperationType() {
+        return type;
+    }
 
-
-
-  /**
-   * Gets an unmodifiable collection view of the messages describing
-   * the constraint violations that occurred.
-   *
-   * @return Returns an unmodifiable collection view of the messages
-   *         describing the constraint violations that occurred.
-   */
-  public Collection<Message> getMessages() {
-    return Collections.unmodifiableCollection(messages);
-  }
-
-
-
-  /**
-   * Creates a single message listing all the messages combined into a
-   * single list separated by semi-colons.
-   *
-   * @return Returns a single message listing all the messages
-   *         combined into a single list separated by semi-colons.
-   */
-  public Message getMessagesAsSingleMessage() {
-    return getSingleMessage(messages);
-  }
-
-
-
-  /**
-   * Gets the type of operation that caused this exception.
-   *
-   * @return Returns the type of operation that caused this exception.
-   */
-  public OperationType getOperationType() {
-    return type;
-  }
-
-
-
-  /**
-   * Gets the user friendly name of the component that caused this
-   * exception.
-   *
-   * @return Returns the user friendly name of the component that
-   *         caused this exception.
-   */
-  public Message getUserFriendlyName() {
-    return ufn;
-  }
+    /**
+     * Gets the user friendly name of the component that caused this exception.
+     *
+     * @return Returns the user friendly name of the component that caused this
+     *         exception.
+     */
+    public LocalizableMessage getUserFriendlyName() {
+        return ufn;
+    }
 
 }
