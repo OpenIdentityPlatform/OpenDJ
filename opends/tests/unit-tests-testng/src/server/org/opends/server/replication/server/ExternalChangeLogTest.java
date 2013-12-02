@@ -151,6 +151,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       new ReplServerFakeConfiguration(
           replicationServerPort, "ExternalChangeLogTestDb",
           0, 71, 0, maxWindow, null);
+    conf1.setComputeChangenumber(true);
 
     replicationServer = new ReplicationServer(conf1);
     debugInfo("configure", "ReplicationServer created"+replicationServer);
@@ -169,6 +170,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
   @Test(enabled=true, dependsOnMethods = { "ECLReplicationServerPreTest"})
   public void ECLReplicationServerTest() throws Exception
   {
+    getCNIndexDB().setPurgeDelay(0);
     // Following test does not create RSDomain (only broker) but want to test
     // ECL .. so let's enable ECl manually
     // Now that we tested that ECl is not available
@@ -191,6 +193,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
   @Test(enabled=true, dependsOnMethods = { "ECLReplicationServerTest"})
   public void ECLReplicationServerTest1() throws Exception
   {
+    getCNIndexDB().setPurgeDelay(0);
     // Test with a mix of domains, a mix of DSes
     ECLTwoDomains();
   }
@@ -205,6 +208,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
   @Test(enabled=true, dependsOnMethods = { "ECLReplicationServerTest"})
   public void ECLReplicationServerTest3() throws Exception
   {
+    getCNIndexDB().setPurgeDelay(0);
     // Write changes and read ECL from start
     ECLCompatWriteReadAllOps(1);
 
@@ -263,6 +267,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
   @Test(enabled=true, groups="slow", dependsOnMethods = { "ECLReplicationServerTest"})
   public void ECLReplicationServerFullTest3() throws Exception
   {
+    getCNIndexDB().setPurgeDelay(0);
     // Test all types of ops.
     ECLAllOps(); // Do not clean the db for the next test
 
@@ -353,6 +358,8 @@ public class ExternalChangeLogTest extends ReplicationTestCase
   @Test(enabled=true, groups="slow", dependsOnMethods = { "ECLReplicationServerTest"})
   public void ECLReplicationServerFullTest15() throws Exception
   {
+    final JEChangeNumberIndexDB cnIndexDB = getCNIndexDB();
+    cnIndexDB.setPurgeDelay(0);
     // Write 4 changes and read ECL from start
     ECLCompatWriteReadAllOps(1);
 
@@ -373,6 +380,8 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     ECLCompatTestLimitsAndAdd(1, 8, 4);
 
     // Test CNIndexDB is purged when replication change log is purged
+    cnIndexDB.setPurgeDelay(1);
+    cnIndexDB.trim(null);
     ECLPurgeCNIndexDBAfterChangelogClear();
 
     // Test first and last are updated
@@ -1949,6 +1958,16 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     clearChangelogDB(replicationServer);
   }
 
+  @AfterTest
+  public void setPurgeDelayToInitialValue() throws Exception
+  {
+    JEChangeNumberIndexDB cnIndexDB = getCNIndexDB();
+    if (cnIndexDB != null)
+    {
+      cnIndexDB.setPurgeDelay(1);
+    }
+  }
+
   /**
    * After the tests stop the replicationServer.
    */
@@ -2593,6 +2612,15 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     debugInfo(tn, "Ending test with success");
   }
 
+  private JEChangeNumberIndexDB getCNIndexDB()
+  {
+    if (replicationServer != null)
+    {
+      return (JEChangeNumberIndexDB) replicationServer.getChangeNumberIndexDB();
+    }
+    return null;
+  }
+
   private void ECLGetEligibleCountTest() throws Exception
   {
     String tn = "ECLGetEligibleCountTest";
@@ -2604,6 +2632,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     final CSN csn2 = csns[1];
     final CSN csn3 = csns[2];
 
+    getCNIndexDB().setPurgeDelay(0);
     ReplicationServerDomain rsdtest = replicationServer.getReplicationServerDomain(TEST_ROOT_DN);
     // this empty state will force to count from the start of the DB
     final ServerState fromStart = new ServerState();

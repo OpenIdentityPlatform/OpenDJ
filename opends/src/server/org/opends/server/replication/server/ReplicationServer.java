@@ -144,9 +144,7 @@ public final class ReplicationServer
     throws ConfigException
   {
     this.config = configuration;
-
-    this.changelogDB =
-        new JEChangelogDB(this, configuration.getReplicationDBDirectory());
+    this.changelogDB = new JEChangelogDB(this, configuration);
 
     replSessionSecurity = new ReplSessionSecurity();
     initialize();
@@ -764,6 +762,9 @@ public final class ReplicationServer
   public ConfigChangeResult applyConfigurationChange(
       ReplicationServerCfg configuration)
   {
+    ResultCode resultCode = ResultCode.SUCCESS;
+    boolean adminActionRequired = false;
+
     // Some of those properties change don't need specific code.
     // They will be applied for next connections. Some others have immediate
     // effect
@@ -778,6 +779,20 @@ public final class ReplicationServer
     if (newPurgeDelay != oldConfig.getReplicationPurgeDelay())
     {
       this.changelogDB.setPurgeDelay(getTrimAge());
+    }
+    final boolean computeCN = config.isComputeChangenumber();
+    if (computeCN != oldConfig.isComputeChangenumber())
+    {
+      try
+      {
+        this.changelogDB.setComputeChangeNumber(computeCN);
+      }
+      catch (ChangelogException e)
+      {
+        if (debugEnabled())
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        resultCode = ResultCode.OPERATIONS_ERROR;
+      }
     }
 
     // changing the listen port requires to stop the listen thread
@@ -800,10 +815,14 @@ public final class ReplicationServer
       }
       catch (IOException e)
       {
+        if (debugEnabled())
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         logError(ERR_COULD_NOT_CLOSE_THE_SOCKET.get(e.toString()));
       }
       catch (InterruptedException e)
       {
+        if (debugEnabled())
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
         logError(ERR_COULD_NOT_STOP_LISTEN_THREAD.get(e.toString()));
       }
     }
@@ -849,10 +868,9 @@ public final class ReplicationServer
     final String newDir = config.getReplicationDBDirectory();
     if (newDir != null && !newDir.equals(oldConfig.getReplicationDBDirectory()))
     {
-      return new ConfigChangeResult(ResultCode.SUCCESS, true);
+      adminActionRequired = true;
     }
-
-    return new ConfigChangeResult(ResultCode.SUCCESS, false);
+    return new ConfigChangeResult(resultCode, adminActionRequired);
   }
 
   /**
@@ -1505,7 +1523,7 @@ public final class ReplicationServer
   public MultiDomainServerState getNewestECLCookie(Set<String> excludedBaseDNs)
   {
     // Initialize start state for all running domains with empty state
-    MultiDomainServerState result = new MultiDomainServerState();
+    final MultiDomainServerState result = new MultiDomainServerState();
     for (ReplicationServerDomain rsDomain : getReplicationServerDomains())
     {
       if (contains(excludedBaseDNs, rsDomain.getBaseDN().toNormalizedString()))
@@ -1513,7 +1531,7 @@ public final class ReplicationServer
       final ServerState latestDBServerState = rsDomain.getLatestServerState();
       if (latestDBServerState.isEmpty())
         continue;
-      result.update(rsDomain.getBaseDN(), latestDBServerState);
+      result.replace(rsDomain.getBaseDN(), latestDBServerState);
     }
     return result;
   }

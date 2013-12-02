@@ -841,8 +841,8 @@ public final class ECLServerHandler extends ServerHandler
       domain.registerHandler(mh);
       newDomainCtxt.mh = mh;
 
-      previousCookie.update(newDomainCtxt.rsDomain.getBaseDN(),
-                            newDomainCtxt.startState.duplicate());
+      previousCookie.replace(newDomainCtxt.rsDomain.getBaseDN(),
+                             newDomainCtxt.startState.duplicate());
 
       results.add(newDomainCtxt);
     }
@@ -1260,13 +1260,9 @@ public final class ECLServerHandler extends ServerHandler
         final DomainContext oldestContext = findDomainCtxtWithOldestChange();
         if (oldestContext != null)
         {
-          final ECLUpdateMsg change = newECLUpdateMsg(oldestContext);
-          oldestContext.currentState.update(change.getUpdateMsg().getCSN());
-          if (draftCompat)
-          {
-            assignNewChangeNumberAndStore(change);
-          }
-          oldestChange = change;
+          oldestChange = newECLUpdateMsg(oldestContext);
+          oldestContext.currentState.update(
+              oldestChange.getUpdateMsg().getCSN());
         }
       }
     }
@@ -1326,7 +1322,7 @@ public final class ECLServerHandler extends ServerHandler
    *           if a database problem occurs.
    */
   private boolean assignChangeNumber(final ECLUpdateMsg replicaDBChange)
-      throws ChangelogException
+      throws ChangelogException, DirectoryException
   {
     // We also need to check if the CNIndexDB is consistent with the replicaDBs.
     // If not, 2 potential reasons:
@@ -1337,15 +1333,8 @@ public final class ECLServerHandler extends ServerHandler
     CSN csnFromReplicaDB = replicaDBChange.getUpdateMsg().getCSN();
     DN baseDNFromReplicaDB = replicaDBChange.getBaseDN();
 
-    while (true)
+    while (!isEndOfCNIndexDBReached)
     {
-      if (isEndOfCNIndexDBReached)
-      {
-        // we are at the end of the CNIndexDB in the append mode
-        assignNewChangeNumberAndStore(replicaDBChange);
-        return true;
-      }
-
       final ChangeNumberIndexRecord currentRecord = cnIndexDBCursor.getRecord();
       final CSN csnFromCNIndexDB = currentRecord.getCSN();
       final DN baseDNFromCNIndexDB = currentRecord.getBaseDN();
@@ -1366,6 +1355,9 @@ public final class ECLServerHandler extends ServerHandler
               + currentRecord.getChangeNumber() + " to change="
               + replicaDBChange);
 
+        previousCookie =
+            new MultiDomainServerState(currentRecord.getPreviousCookie());
+        replicaDBChange.setCookie(previousCookie);
         replicaDBChange.setChangeNumber(currentRecord.getChangeNumber());
         return true;
       }
@@ -1411,6 +1403,7 @@ public final class ECLServerHandler extends ServerHandler
         // continuously throws ChangelogExceptions
       }
     }
+    return false;
   }
 
   private Date asDate(CSN csn)
@@ -1423,18 +1416,6 @@ public final class ECLServerHandler extends ServerHandler
     boolean sameDN = baseDN1.compareTo(baseDN2) == 0;
     boolean sameCSN = csn1.compareTo(csn2) == 0;
     return sameDN && sameCSN;
-  }
-
-  private void assignNewChangeNumberAndStore(ECLUpdateMsg change)
-      throws ChangelogException
-  {
-    final ChangeNumberIndexRecord record =
-        new ChangeNumberIndexRecord(previousCookie.toString(),
-            change.getBaseDN(), change.getUpdateMsg().getCSN());
-    // store in CNIndexDB the pair
-    // (change number of the current change, state before this change)
-    change.setChangeNumber(
-        replicationServer.getChangeNumberIndexDB().addRecord(record));
   }
 
   /**

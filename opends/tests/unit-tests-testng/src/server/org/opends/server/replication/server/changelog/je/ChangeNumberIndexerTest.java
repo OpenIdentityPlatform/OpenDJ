@@ -402,6 +402,11 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
     {
       final ReplicatedUpdateMsg msg = msgs[i];
       final ChangeNumberIndexRecord record = allValues.get(i);
+      if (previousCookie.isEmpty())
+      {
+        // ugly hack to go round strange legacy code
+        previousCookie.replace(record.getBaseDN(), new ServerState());
+      }
       // check content in order
       String desc2 = "actual was:<" + record + ">, but expected was:<" + msg + ">";
       assertThat(record.getBaseDN()).as(desc2).isEqualTo(msg.getBaseDN());

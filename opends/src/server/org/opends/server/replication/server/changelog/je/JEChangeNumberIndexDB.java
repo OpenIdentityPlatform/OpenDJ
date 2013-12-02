@@ -295,6 +295,30 @@ public class JEChangeNumberIndexDB implements ChangeNumberIndexDB, Runnable
           replicationServer.shutdown();
         break;
       }
+      try {
+        trim(shutdown);
+
+        synchronized (this)
+        {
+          try
+          {
+            wait(1000);
+          } catch (InterruptedException e)
+          {
+            Thread.currentThread().interrupt();
+          }
+        }
+      } catch (Exception end)
+      {
+        MessageBuilder mb = new MessageBuilder();
+        mb.append(ERR_EXCEPTION_CHANGELOG_TRIM_FLUSH.get());
+        mb.append(" ");
+        mb.append(stackTraceToSingleLineString(end));
+        logError(mb.toMessage());
+        if (replicationServer != null)
+          replicationServer.shutdown();
+        break;
+      }
     }
 
     synchronized (this)
@@ -306,9 +330,13 @@ public class JEChangeNumberIndexDB implements ChangeNumberIndexDB, Runnable
 
   /**
    * Trim old changes from this database.
-   * @throws ChangelogException In case of database problem.
+   *
+   * @param shutdown
+   *          AtomicBoolean telling whether the current run must be stopped
+   * @throws ChangelogException
+   *           In case of database problem.
    */
-  private void trim(AtomicBoolean shutdown) throws ChangelogException
+  public void trim(AtomicBoolean shutdown) throws ChangelogException
   {
     if (trimAge == 0)
       return;

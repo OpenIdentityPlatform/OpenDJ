@@ -31,6 +31,8 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ConcurrentSkipListMap;
 
 import org.opends.messages.Category;
 import org.opends.messages.Message;
@@ -54,14 +56,14 @@ public class MultiDomainServerState implements Iterable<DN>
   /**
    * The list of (domain service id, ServerState).
    */
-  private Map<DN, ServerState> list;
+  private final ConcurrentMap<DN, ServerState> list;
 
   /**
    * Creates a new empty object.
    */
   public MultiDomainServerState()
   {
-    list = new TreeMap<DN, ServerState>();
+    list = new ConcurrentSkipListMap<DN, ServerState>();
   }
 
   /**
@@ -71,9 +73,9 @@ public class MultiDomainServerState implements Iterable<DN>
    */
   public MultiDomainServerState(String mdss) throws DirectoryException
   {
-    list = splitGenStateToServerStates(mdss);
+    list = new ConcurrentSkipListMap<DN, ServerState>(
+        splitGenStateToServerStates(mdss));
   }
-
 
   /**
    * Empty the object..
@@ -82,10 +84,7 @@ public class MultiDomainServerState implements Iterable<DN>
    */
   public void clear()
   {
-    synchronized (this)
-    {
-      list.clear();
-    }
+    list.clear();
   }
 
   /**
@@ -102,22 +101,22 @@ public class MultiDomainServerState implements Iterable<DN>
     if (csn == null)
       return false;
 
-    synchronized(this)
+    ServerState serverState = list.get(baseDN);
+    if (serverState == null)
     {
-      ServerState oldServerState = list.get(baseDN);
-      if (oldServerState == null)
+      serverState = new ServerState();
+      final ServerState existingSS = list.putIfAbsent(baseDN, serverState);
+      if (existingSS != null)
       {
-        oldServerState = new ServerState();
-        list.put(baseDN, oldServerState);
+        serverState = existingSS;
       }
-      return oldServerState.update(csn);
     }
+    return serverState.update(csn);
   }
 
   /**
    * Update the ServerState of the provided baseDN with the provided server
-   * state. The provided server state will be owned by this instance, so care
-   * must be taken by calling code to duplicate it if needed.
+   * state.
    *
    * @param baseDN
    *          The provided baseDN.
@@ -126,6 +125,28 @@ public class MultiDomainServerState implements Iterable<DN>
    */
   public void update(DN baseDN, ServerState serverState)
   {
+    for (CSN csn : serverState)
+    {
+      update(baseDN, csn);
+    }
+  }
+
+  /**
+   * Replace the ServerState of the provided baseDN with the provided server
+   * state. The provided server state will be owned by this instance, so care
+   * must be taken by calling code to duplicate it if needed.
+   *
+   * @param baseDN
+   *          The provided baseDN.
+   * @param serverState
+   *          The provided serverState.
+   */
+  public void replace(DN baseDN, ServerState serverState)
+  {
+    if (serverState == null)
+    {
+      throw new IllegalArgumentException("ServerState must not be null");
+    }
     list.put(baseDN, serverState);
   }
 
