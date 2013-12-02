@@ -38,6 +38,12 @@ import org.opends.server.util.TimeThread;
 public class CSNGenerator
 {
   private long lastTime;
+  /**
+   * The sequence number allows to distinguish changes that have been done in
+   * the same millisecond.
+   *
+   * @see #lastTime
+   */
   private int seqnum;
   private int serverId;
 
