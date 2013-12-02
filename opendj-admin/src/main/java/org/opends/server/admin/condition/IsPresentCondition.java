@@ -26,8 +26,6 @@
  */
 package org.opends.server.admin.condition;
 
-
-
 import java.util.SortedSet;
 
 import org.opends.server.admin.AbstractManagedObjectDefinition;
@@ -38,67 +36,55 @@ import org.opends.server.admin.client.ManagedObject;
 import org.opends.server.admin.client.ManagementContext;
 import org.opends.server.admin.server.ServerManagedObject;
 import org.opends.server.config.ConfigException;
-import org.opends.server.util.Validator;
 
-
+import com.forgerock.opendj.util.Validator;
 
 /**
- * A condition which evaluates to <code>true</code> if and only if a
- * particular property has any values specified.
+ * A condition which evaluates to <code>true</code> if and only if a particular
+ * property has any values specified.
  */
 public final class IsPresentCondition implements Condition {
 
-  // The property name.
-  private final String propertyName;
+    // The property name.
+    private final String propertyName;
 
-  // The property definition.
-  private PropertyDefinition<?> pd;
+    // The property definition.
+    private PropertyDefinition<?> pd;
 
+    /**
+     * Creates a new is present condition.
+     *
+     * @param propertyName
+     *            The property name.
+     */
+    public IsPresentCondition(String propertyName) {
+        Validator.ensureNotNull(propertyName);
+        this.propertyName = propertyName;
+    }
 
+    /**
+     * {@inheritDoc}
+     */
+    public boolean evaluate(ManagementContext context, ManagedObject<?> managedObject) throws AuthorizationException,
+            CommunicationException {
+        SortedSet<?> values = managedObject.getPropertyValues(pd);
+        return !values.isEmpty();
+    }
 
-  /**
-   * Creates a new is present condition.
-   *
-   * @param propertyName
-   *          The property name.
-   */
-  public IsPresentCondition(String propertyName) {
-    Validator.ensureNotNull(propertyName);
-    this.propertyName = propertyName;
-  }
+    /**
+     * {@inheritDoc}
+     */
+    public boolean evaluate(ServerManagedObject<?> managedObject) throws ConfigException {
+        SortedSet<?> values = managedObject.getPropertyValues(pd);
+        return !values.isEmpty();
+    }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public boolean evaluate(ManagementContext context,
-      ManagedObject<?> managedObject) throws AuthorizationException,
-      CommunicationException {
-    SortedSet<?> values = managedObject.getPropertyValues(pd);
-    return !values.isEmpty();
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public boolean evaluate(ServerManagedObject<?> managedObject)
-      throws ConfigException {
-    SortedSet<?> values = managedObject.getPropertyValues(pd);
-    return !values.isEmpty();
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public void initialize(AbstractManagedObjectDefinition<?, ?> d)
-      throws Exception {
-    // Decode the property.
-    this.pd = d.getPropertyDefinition(propertyName);
-  }
+    /**
+     * {@inheritDoc}
+     */
+    public void initialize(AbstractManagedObjectDefinition<?, ?> d) throws Exception {
+        // Decode the property.
+        this.pd = d.getPropertyDefinition(propertyName);
+    }
 
 }

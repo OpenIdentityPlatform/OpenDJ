@@ -26,8 +26,6 @@
  */
 package org.opends.server.admin.condition;
 
-
-
 import java.util.Arrays;
 import java.util.List;
 
@@ -38,75 +36,61 @@ import org.opends.server.admin.client.ManagedObject;
 import org.opends.server.admin.client.ManagementContext;
 import org.opends.server.admin.server.ServerManagedObject;
 import org.opends.server.config.ConfigException;
-import org.opends.server.util.Validator;
 
-
+import com.forgerock.opendj.util.Validator;
 
 /**
- * A condition which evaluates to <code>true</code> if and only if
- * all of its sub-conditions are <code>true</code>.
+ * A condition which evaluates to <code>true</code> if and only if all of its
+ * sub-conditions are <code>true</code>.
  */
 public final class ANDCondition implements Condition {
 
-  // The list of sub-conditions.
-  private final List<Condition> conditions;
+    // The list of sub-conditions.
+    private final List<Condition> conditions;
 
-
-
-  /**
-   * Creates a new logical AND condition with the provided
-   * sub-conditions.
-   *
-   * @param conditions
-   *          The sub-conditions which will be combined using a
-   *          logical AND.
-   */
-  public ANDCondition(Condition... conditions) {
-    Validator.ensureNotNull(conditions);
-    this.conditions = Arrays.asList(conditions);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public boolean evaluate(ManagementContext context,
-      ManagedObject<?> managedObject) throws AuthorizationException,
-      CommunicationException {
-    for (Condition condition : conditions) {
-      if (!condition.evaluate(context, managedObject)) {
-        return false;
-      }
+    /**
+     * Creates a new logical AND condition with the provided sub-conditions.
+     *
+     * @param conditions
+     *            The sub-conditions which will be combined using a logical AND.
+     */
+    public ANDCondition(Condition... conditions) {
+        Validator.ensureNotNull(conditions);
+        this.conditions = Arrays.asList(conditions);
     }
-    return true;
-  }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public boolean evaluate(ServerManagedObject<?> managedObject)
-      throws ConfigException {
-    for (Condition condition : conditions) {
-      if (!condition.evaluate(managedObject)) {
-        return false;
-      }
+    /**
+     * {@inheritDoc}
+     */
+    public boolean evaluate(ManagementContext context, ManagedObject<?> managedObject) throws AuthorizationException,
+            CommunicationException {
+        for (Condition condition : conditions) {
+            if (!condition.evaluate(context, managedObject)) {
+                return false;
+            }
+        }
+        return true;
     }
-    return true;
-  }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public void initialize(AbstractManagedObjectDefinition<?, ?> d)
-      throws Exception {
-    for (Condition condition : conditions) {
-      condition.initialize(d);
+    /**
+     * {@inheritDoc}
+     */
+    public boolean evaluate(ServerManagedObject<?> managedObject) throws ConfigException {
+        for (Condition condition : conditions) {
+            if (!condition.evaluate(managedObject)) {
+                return false;
+            }
+        }
+        return true;
     }
-  }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void initialize(AbstractManagedObjectDefinition<?, ?> d) throws Exception {
+        for (Condition condition : conditions) {
+            condition.initialize(d);
+        }
+    }
 
 }

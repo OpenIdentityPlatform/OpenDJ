@@ -26,8 +26,6 @@
  */
 package org.opends.server.admin.condition;
 
-
-
 import java.util.SortedSet;
 
 import org.opends.server.admin.AbstractManagedObjectDefinition;
@@ -39,176 +37,144 @@ import org.opends.server.admin.client.ManagedObject;
 import org.opends.server.admin.client.ManagementContext;
 import org.opends.server.admin.server.ServerManagedObject;
 import org.opends.server.config.ConfigException;
-import org.opends.server.util.Validator;
 
-
+import com.forgerock.opendj.util.Validator;
 
 /**
- * A condition which evaluates to <code>true</code> if and only if a
- * property contains a particular value.
+ * A condition which evaluates to <code>true</code> if and only if a property
+ * contains a particular value.
  */
 public final class ContainsCondition implements Condition {
 
-  /**
-   * The strongly typed underlying implementation.
-   *
-   * @param <T>
-   *          The type of the property value being tested.
-   */
-  private static final class Impl<T> implements Condition {
+    /**
+     * The strongly typed underlying implementation.
+     *
+     * @param <T>
+     *            The type of the property value being tested.
+     */
+    private static final class Impl<T> implements Condition {
 
-    // The property.
-    final PropertyDefinition<T> pd;
+        // The property.
+        final PropertyDefinition<T> pd;
 
-    // The required property value.
-    final T value;
+        // The required property value.
+        final T value;
 
+        // Private constructor.
+        private Impl(PropertyDefinition<T> pd, T value) throws IllegalPropertyValueStringException {
+            this.pd = pd;
+            this.value = value;
+        }
 
+        /**
+         * {@inheritDoc}
+         */
+        public boolean evaluate(ManagementContext context, ManagedObject<?> managedObject)
+                throws AuthorizationException, CommunicationException {
+            SortedSet<T> values = managedObject.getPropertyValues(pd);
+            return values.contains(value);
+        }
 
-    // Private constructor.
-    private Impl(PropertyDefinition<T> pd, T value)
-        throws IllegalPropertyValueStringException {
-      this.pd = pd;
-      this.value = value;
+        /**
+         * {@inheritDoc}
+         */
+        public boolean evaluate(ServerManagedObject<?> managedObject) throws ConfigException {
+            SortedSet<T> values = managedObject.getPropertyValues(pd);
+            return values.contains(value);
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        public void initialize(AbstractManagedObjectDefinition<?, ?> d) throws Exception {
+            // Not used.
+        }
+
+        // Private implementation of fix() method.
+        private void setPropertyValue(ManagedObject<?> managedObject) {
+            managedObject.setPropertyValue(pd, value);
+        }
+
     }
 
+    // The strongly typed private implementation.
+    private Impl<?> impl = null;
 
+    // The property name.
+    private final String propertyName;
+
+    // The string representation of the required property value.
+    private final String propertyStringValue;
+
+    /**
+     * Creates a new contains value condition.
+     *
+     * @param propertyName
+     *            The property name.
+     * @param stringValue
+     *            The string representation of the required property value.
+     */
+    public ContainsCondition(String propertyName, String stringValue) {
+        Validator.ensureNotNull(propertyName, stringValue);
+        this.propertyName = propertyName;
+        this.propertyStringValue = stringValue;
+    }
 
     /**
      * {@inheritDoc}
      */
-    public boolean evaluate(ManagementContext context,
-        ManagedObject<?> managedObject) throws AuthorizationException,
-        CommunicationException {
-      SortedSet<T> values = managedObject.getPropertyValues(pd);
-      return values.contains(value);
+    public boolean evaluate(ManagementContext context, ManagedObject<?> managedObject) throws AuthorizationException,
+            CommunicationException {
+        return impl.evaluate(context, managedObject);
     }
-
-
 
     /**
      * {@inheritDoc}
      */
-    public boolean evaluate(ServerManagedObject<?> managedObject)
-        throws ConfigException {
-      SortedSet<T> values = managedObject.getPropertyValues(pd);
-      return values.contains(value);
+    public boolean evaluate(ServerManagedObject<?> managedObject) throws ConfigException {
+        return impl.evaluate(managedObject);
     }
 
-
+    /**
+     * Modifies the provided managed object so that it has the property value
+     * associated with this condition.
+     *
+     * @param managedObject
+     *            The managed object.
+     */
+    public void setPropertyValue(ManagedObject<?> managedObject) {
+        impl.setPropertyValue(managedObject);
+    }
 
     /**
      * {@inheritDoc}
      */
-    public void initialize(AbstractManagedObjectDefinition<?, ?> d)
-        throws Exception {
-      // Not used.
+    public void initialize(AbstractManagedObjectDefinition<?, ?> d) throws Exception {
+        // Decode the property.
+        buildImpl(d.getPropertyDefinition(propertyName));
     }
 
-
-
-    // Private implementation of fix() method.
-    private void setPropertyValue(ManagedObject<?> managedObject) {
-      managedObject.setPropertyValue(pd, value);
+    // Creates the new private implementation.
+    private <T> void buildImpl(PropertyDefinition<T> pd) throws IllegalPropertyValueStringException {
+        T value = pd.decodeValue(propertyStringValue);
+        this.impl = new Impl<T>(pd, value);
     }
 
-  }
+    /**
+     * Returns the property definition associated with this condition.
+     *
+     * @return the property definition associated with this condition.
+     */
+    public PropertyDefinition<?> getPropertyDefinition() {
+        return impl.pd;
+    }
 
-  // The strongly typed private implementation.
-  private Impl<?> impl = null;
-
-  // The property name.
-  private final String propertyName;
-
-  // The string representation of the required property value.
-  private final String propertyStringValue;
-
-
-
-  /**
-   * Creates a new contains value condition.
-   *
-   * @param propertyName
-   *          The property name.
-   * @param stringValue
-   *          The string representation of the required property
-   *          value.
-   */
-  public ContainsCondition(String propertyName, String stringValue) {
-    Validator.ensureNotNull(propertyName, stringValue);
-    this.propertyName = propertyName;
-    this.propertyStringValue = stringValue;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public boolean evaluate(ManagementContext context,
-      ManagedObject<?> managedObject) throws AuthorizationException,
-      CommunicationException {
-    return impl.evaluate(context, managedObject);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public boolean evaluate(ServerManagedObject<?> managedObject)
-      throws ConfigException {
-    return impl.evaluate(managedObject);
-  }
-
-
-
-  /**
-   * Modifies the provided managed object so that it has the property
-   * value associated with this condition.
-   *
-   * @param managedObject
-   *          The managed object.
-   */
-  public void setPropertyValue(ManagedObject<?> managedObject) {
-    impl.setPropertyValue(managedObject);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public void initialize(AbstractManagedObjectDefinition<?, ?> d)
-      throws Exception {
-    // Decode the property.
-    buildImpl(d.getPropertyDefinition(propertyName));
-  }
-
-
-
-  // Creates the new private implementation.
-  private <T> void buildImpl(PropertyDefinition<T> pd)
-      throws IllegalPropertyValueStringException {
-    T value = pd.decodeValue(propertyStringValue);
-    this.impl = new Impl<T>(pd, value);
-  }
-
-  /**
-   * Returns the property definition associated with this condition.
-   * @return the property definition associated with this condition.
-   */
-  public PropertyDefinition<?> getPropertyDefinition()
-  {
-    return impl.pd;
-  }
-
-  /**
-   * Returns the value that must be set for this condition to be fulfilled.
-   * @return the value that must be set for this condition to be fulfilled.
-   */
-  public Object getValue()
-  {
-    return impl.value;
-  }
+    /**
+     * Returns the value that must be set for this condition to be fulfilled.
+     *
+     * @return the value that must be set for this condition to be fulfilled.
+     */
+    public Object getValue() {
+        return impl.value;
+    }
 }
