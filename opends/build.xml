@@ -198,23 +198,9 @@
     <os family="windows"/>
   </condition>
 
-  <!-- sort-of Maven like properties for opendj dependencies-->
-  <fileset id="opendj.runtime.jars" dir="${lib.dir}">
-    <include name="**/jar/*.jar" />
-    <include name="**/bundle/*.jar" />
-
-    <exclude name="**/assertj-core.jar" />
-    <exclude name="**/hamcrest-core.jar" />
-    <exclude name="**/mockito-core.jar" />
-    <exclude name="**/objenesis.jar" />
-  </fileset>
-
-  <fileset id="opendj.test.jars" dir="${lib.dir}">
-    <include name="**/assertj-core.jar" />
-    <include name="**/hamcrest-core.jar" />
-    <include name="**/mockito-core.jar" />
-    <include name="**/objenesis.jar" />
-  </fileset>
+  <!-- sort-of Maven like properties for opendj dependencies -->
+  <fileset id="opendj.runtime.jars" dir="${lib.dir}/compile" />
+  <fileset id="opendj.test.jars" dir="${lib.dir}/test" />
 
   <!-- Prevent ant runtime from being included on classpath during
        compilation. -->
@@ -255,7 +241,7 @@
   <!-- The build target that should be used for build part of nightly builds. -->
   <target name="nightlybuild"
        depends="checkstyle,dsml,srczip,javadoc,docgen"
-       description="Perform all processing related to build  for nightly builds.">
+       description="Perform all processing related to build for nightly builds.">
   </target>
 
   <!-- The build target that should be used for test part of nightly builds. -->
@@ -2839,7 +2825,14 @@ Please:
   </target>
 
   <target name="resolve" depends="install-ivy" description="--> retrieve dependencies with ivy">
-    <ivy:retrieve pattern="${lib.dir}/[type]/[artifact].[ext]"/>
+    <ivy:retrieve pattern="${lib.dir}/[type]/[artifact].[ext]">
+      <firstmatchmapper>
+        <regexpmapper from="(.*/(source|javadoc)/.*)" to="\1"/>
+        <!-- Separate test and compile jars ala Maven -->
+        <regexpmapper from="(.*)/(jar)/(.*(?:assertj-core|hamcrest-core|mockito-core|objenesis)\.jar)" to="\1/test/\3"/>
+        <regexpmapper from="(.*)/(jar|bundle)/(.*)" to="\1/compile/\3"/>
+      </firstmatchmapper>
+    </ivy:retrieve>
   </target>
 
   <property name="snapshots.dir" value="${lib.dir}/snapshots" />
