@@ -459,9 +459,13 @@ public class MessageHandler extends MonitorProvider<MonitorProviderCfg>
     {
       cursor = replicationServerDomain.getCursorFrom(serverState);
       cursor.next();
-      return cursor.getRecord().getCSN();
+      if (cursor.getRecord() != null)
+      {
+        return cursor.getRecord().getCSN();
+      }
+      return null;
     }
-    catch (Exception e)
+    catch (ChangelogException e)
     {
       return null;
     }
