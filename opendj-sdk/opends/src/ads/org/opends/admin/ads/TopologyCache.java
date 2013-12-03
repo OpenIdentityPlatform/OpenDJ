@@ -494,8 +494,13 @@ public class TopologyCache
         int replicaId = -1;
         try
         {
-          replicaId =
-              new Integer(ConnectionUtils.getFirstValue(sr, "server-id"));
+          String sid = ConnectionUtils.getFirstValue(sr, "server-id");
+          if (sid == null)
+          {
+            // This is not a replica, but a replication server. Skip it
+            continue;
+          }
+          replicaId = new Integer(sid);
         }
         catch (Throwable t)
         {
