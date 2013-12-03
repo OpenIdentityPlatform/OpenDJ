@@ -595,8 +595,11 @@ public class ReplicationDB
           // We could not move the cursor to the expected startCSN
           if (localCursor.getSearchKeyRange(key, data, DEFAULT) != SUCCESS)
           {
-            // We could not even move the cursor close to it => failure
-            throw new ChangelogException(Message.raw("CSN not available"));
+            // We could not even move the cursor close to it
+            // => return empty cursor
+            isClosed = true;
+            cursor = null;
+            return;
           }
 
           // We can move close to the startCSN.
@@ -611,11 +614,6 @@ public class ReplicationDB
         }
         cursor = localCursor;
         cursorHeld = cursor != null;
-      }
-      catch (ChangelogException e)
-      {
-        StaticUtils.close(localCursor);
-        throw e;
       }
       catch (DatabaseException e)
       {
