@@ -130,49 +130,27 @@ public final class SchemaBuilder {
     }
 
     private Map<Integer, DITStructureRule> id2StructureRules;
-
     private Map<String, List<AttributeType>> name2AttributeTypes;
-
     private Map<String, List<DITContentRule>> name2ContentRules;
-
     private Map<String, List<MatchingRule>> name2MatchingRules;
-
     private Map<String, List<MatchingRuleUse>> name2MatchingRuleUses;
-
     private Map<String, List<NameForm>> name2NameForms;
-
     private Map<String, List<ObjectClass>> name2ObjectClasses;
-
     private Map<String, List<DITStructureRule>> name2StructureRules;
-
     private Map<String, List<DITStructureRule>> nameForm2StructureRules;
-
     private Map<String, AttributeType> numericOID2AttributeTypes;
-
     private Map<String, DITContentRule> numericOID2ContentRules;
-
     private Map<String, MatchingRule> numericOID2MatchingRules;
-
     private Map<String, MatchingRuleUse> numericOID2MatchingRuleUses;
-
     private Map<String, NameForm> numericOID2NameForms;
-
     private Map<String, ObjectClass> numericOID2ObjectClasses;
-
     private Map<String, Syntax> numericOID2Syntaxes;
-
     private Map<String, List<NameForm>> objectClass2NameForms;
-
     private String schemaName;
-
     private List<LocalizableMessage> warnings;
-
     private boolean allowNonStandardTelephoneNumbers;
-
     private boolean allowZeroLengthDirectoryStrings;
-
     private boolean allowMalformedNamesAndOptions;
-
     private boolean allowMalformedJPEGPhotos;
 
     // A schema which should be copied into this builder on any mutation.
