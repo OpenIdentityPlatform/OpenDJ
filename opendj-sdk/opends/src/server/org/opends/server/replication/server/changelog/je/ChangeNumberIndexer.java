@@ -334,6 +334,10 @@ public class ChangeNumberIndexer extends DirectoryThread
    */
   private CSN getPrecedingCSN(CSN csn)
   {
+    if (csn == null)
+    {
+      return null;
+    }
     if (csn.getSeqnum() > 0)
     {
       return new CSN(csn.getTime(), csn.getSeqnum() - 1, csn.getServerId());
