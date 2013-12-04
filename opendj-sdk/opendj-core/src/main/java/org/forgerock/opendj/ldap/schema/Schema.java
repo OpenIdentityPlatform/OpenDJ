@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2012 ForgeRock AS
+ *      Portions copyright 2011-2013 ForgeRock AS
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -95,13 +95,21 @@ public final class Schema {
             return false;
         }
 
+        public Syntax getDefaultSyntax() {
+            return Schema.getCoreSchema().getDefaultSyntax();
+        }
+
+        public MatchingRule getDefaultMatchingRule() {
+            return Schema.getCoreSchema().getDefaultMatchingRule();
+        }
+
         @Override
-        public AttributeType getAttributeType(final String name) {
+        public AttributeType getAttributeType(final Schema schema, final String name) {
             if (isStrict) {
                 throw new UnknownSchemaElementException(WARN_ATTR_TYPE_UNKNOWN.get(name));
             } else {
                 // Return a place-holder.
-                return new AttributeType(name);
+                return new AttributeType(schema, name);
             }
         }
 
@@ -234,9 +242,9 @@ public final class Schema {
         }
 
         @Override
-        public Syntax getSyntax(final String numericOID) {
+        public Syntax getSyntax(final Schema schema, final String numericOID) {
             // Fake up a syntax substituted by the default syntax.
-            return new Syntax(numericOID);
+            return new Syntax(schema, numericOID);
         }
 
         @Override
@@ -308,7 +316,11 @@ public final class Schema {
 
         boolean allowZeroLengthDirectoryStrings();
 
-        AttributeType getAttributeType(String name);
+        MatchingRule getDefaultMatchingRule();
+
+        Syntax getDefaultSyntax();
+
+        AttributeType getAttributeType(Schema schema, String name);
 
         Collection<AttributeType> getAttributeTypes();
 
@@ -360,7 +372,7 @@ public final class Schema {
 
         String getSchemaName();
 
-        Syntax getSyntax(String numericOID);
+        Syntax getSyntax(Schema schema, String numericOID);
 
         Collection<Syntax> getSyntaxes();
 
@@ -408,10 +420,18 @@ public final class Schema {
             return strictImpl.allowZeroLengthDirectoryStrings();
         }
 
+        public Syntax getDefaultSyntax() {
+            return strictImpl.getDefaultSyntax();
+        }
+
+        public MatchingRule getDefaultMatchingRule() {
+            return strictImpl.getDefaultMatchingRule();
+        }
+
         @Override
-        public AttributeType getAttributeType(final String name) {
+        public AttributeType getAttributeType(final Schema schema, final String name) {
             final AttributeType type = strictImpl.getAttributeType0(name);
-            return type != null ? type : new AttributeType(name);
+            return type != null ? type : new AttributeType(schema, name);
         }
 
         @Override
@@ -540,11 +560,11 @@ public final class Schema {
         }
 
         @Override
-        public Syntax getSyntax(final String numericOID) {
+        public Syntax getSyntax(final Schema schema, final String numericOID) {
             if (!strictImpl.hasSyntax(numericOID)) {
-                return new Syntax(numericOID);
+                return new Syntax(schema, numericOID);
             }
-            return strictImpl.getSyntax(numericOID);
+            return strictImpl.getSyntax(schema, numericOID);
         }
 
         @Override
@@ -609,55 +629,37 @@ public final class Schema {
 
     private static final class StrictImpl implements Impl {
         private final Map<Integer, DITStructureRule> id2StructureRules;
-
         private final Map<String, List<AttributeType>> name2AttributeTypes;
-
         private final Map<String, List<DITContentRule>> name2ContentRules;
-
         private final Map<String, List<MatchingRule>> name2MatchingRules;
-
         private final Map<String, List<MatchingRuleUse>> name2MatchingRuleUses;
-
         private final Map<String, List<NameForm>> name2NameForms;
-
         private final Map<String, List<ObjectClass>> name2ObjectClasses;
-
         private final Map<String, List<DITStructureRule>> name2StructureRules;
-
         private final Map<String, List<DITStructureRule>> nameForm2StructureRules;
-
         private final Map<String, AttributeType> numericOID2AttributeTypes;
-
         private final Map<String, DITContentRule> numericOID2ContentRules;
-
         private final Map<String, MatchingRule> numericOID2MatchingRules;
-
         private final Map<String, MatchingRuleUse> numericOID2MatchingRuleUses;
-
         private final Map<String, NameForm> numericOID2NameForms;
-
         private final Map<String, ObjectClass> numericOID2ObjectClasses;
-
         private final Map<String, Syntax> numericOID2Syntaxes;
-
         private final Map<String, List<NameForm>> objectClass2NameForms;
-
         private final List<LocalizableMessage> warnings;
-
         private final String schemaName;
-
         private final boolean allowMalformedJPEGPhotos;
-
         private final boolean allowNonStandardTelephoneNumbers;
-
         private final boolean allowZeroLengthDirectoryStrings;
-
         private final boolean allowMalformedNamesAndOptions;
+        private final Syntax defaultSyntax;
+        private final MatchingRule defaultMatchingRule;
 
         StrictImpl(final String schemaName, final boolean allowMalformedNamesAndOptions,
                 final boolean allowMalformedJPEGPhotos,
                 final boolean allowNonStandardTelephoneNumbers,
                 final boolean allowZeroLengthDirectoryStrings,
+                final Syntax defaultSyntax,
+                final MatchingRule defaultMatchingRule,
                 final Map<String, Syntax> numericOID2Syntaxes,
                 final Map<String, MatchingRule> numericOID2MatchingRules,
                 final Map<String, MatchingRuleUse> numericOID2MatchingRuleUses,
@@ -681,6 +683,8 @@ public final class Schema {
             this.allowMalformedJPEGPhotos = allowMalformedJPEGPhotos;
             this.allowNonStandardTelephoneNumbers = allowNonStandardTelephoneNumbers;
             this.allowZeroLengthDirectoryStrings = allowZeroLengthDirectoryStrings;
+            this.defaultSyntax = defaultSyntax;
+            this.defaultMatchingRule = defaultMatchingRule;
             this.numericOID2Syntaxes = Collections.unmodifiableMap(numericOID2Syntaxes);
             this.numericOID2MatchingRules = Collections.unmodifiableMap(numericOID2MatchingRules);
             this.numericOID2MatchingRuleUses =
@@ -718,8 +722,16 @@ public final class Schema {
             return allowZeroLengthDirectoryStrings;
         }
 
+        public Syntax getDefaultSyntax() {
+            return defaultSyntax;
+        }
+
+        public MatchingRule getDefaultMatchingRule() {
+            return defaultMatchingRule;
+        }
+
         @Override
-        public AttributeType getAttributeType(final String name) {
+        public AttributeType getAttributeType(final Schema schema, final String name) {
             final AttributeType type = getAttributeType0(name);
             if (type != null) {
                 return type;
@@ -963,7 +975,7 @@ public final class Schema {
         }
 
         @Override
-        public Syntax getSyntax(final String numericOID) {
+        public Syntax getSyntax(final Schema schema, final String numericOID) {
             final Syntax syntax = numericOID2Syntaxes.get(numericOID);
             if (syntax == null) {
                 throw new UnknownSchemaElementException(WARN_SYNTAX_UNKNOWN.get(numericOID));
@@ -1317,20 +1329,14 @@ public final class Schema {
         return new SchemaBuilder(entry).toSchema();
     }
 
-    static MatchingRule getDefaultMatchingRule() {
-        return CoreSchema.getCaseIgnoreMatchingRule();
-    }
-
-    static Syntax getDefaultSyntax() {
-        return CoreSchema.getDirectoryStringSyntax();
-    }
-
     private final Impl impl;
 
     Schema(final String schemaName, final boolean allowMalformedNamesAndOptions,
             final boolean allowMalformedJPEGPhotos,
             final boolean allowNonStandardTelephoneNumbers,
             final boolean allowZeroLengthDirectoryStrings,
+            final Syntax defaultSyntax,
+            final MatchingRule defaultMatchingRule,
             final Map<String, Syntax> numericOID2Syntaxes,
             final Map<String, MatchingRule> numericOID2MatchingRules,
             final Map<String, MatchingRuleUse> numericOID2MatchingRuleUses,
@@ -1350,9 +1356,9 @@ public final class Schema {
             final Map<String, List<DITStructureRule>> nameForm2StructureRules,
             final List<LocalizableMessage> warnings) {
         impl =
-                new StrictImpl(schemaName, allowMalformedNamesAndOptions,
-                        allowMalformedJPEGPhotos, allowNonStandardTelephoneNumbers,
-                        allowZeroLengthDirectoryStrings, numericOID2Syntaxes,
+                new StrictImpl(schemaName, allowMalformedNamesAndOptions, allowMalformedJPEGPhotos,
+                        allowNonStandardTelephoneNumbers, allowZeroLengthDirectoryStrings,
+                        defaultSyntax, defaultMatchingRule, numericOID2Syntaxes,
                         numericOID2MatchingRules, numericOID2MatchingRuleUses,
                         numericOID2AttributeTypes, numericOID2ObjectClasses, numericOID2NameForms,
                         numericOID2ContentRules, id2StructureRules, name2MatchingRules,
@@ -1474,6 +1480,28 @@ public final class Schema {
     }
 
     /**
+     * Returns the default matching rule which will be used when parsing
+     * unrecognized attributes.
+     *
+     * @return The default matching rule which will be used when parsing
+     *         unrecognized attributes.
+     */
+    public MatchingRule getDefaultMatchingRule() {
+        return impl.getDefaultMatchingRule();
+    }
+
+    /**
+     * Returns the default syntax which will be used when parsing unrecognized
+     * attributes.
+     *
+     * @return The default syntax which will be used when parsing unrecognized
+     *         attributes.
+     */
+    public Syntax getDefaultSyntax() {
+        return impl.getDefaultSyntax();
+    }
+
+    /**
      * Returns the attribute type with the specified name or numeric OID.
      * <p>
      * If the requested attribute type is not registered in this schema and this
@@ -1492,7 +1520,7 @@ public final class Schema {
      * @see AttributeType#isPlaceHolder()
      */
     public AttributeType getAttributeType(final String name) {
-        return impl.getAttributeType(name);
+        return impl.getAttributeType(this, name);
     }
 
     /**
@@ -1824,7 +1852,7 @@ public final class Schema {
      *             found or if the provided name is ambiguous.
      */
     public Syntax getSyntax(final String numericOID) {
-        return impl.getSyntax(numericOID);
+        return impl.getSyntax(this, numericOID);
     }
 
     /**
