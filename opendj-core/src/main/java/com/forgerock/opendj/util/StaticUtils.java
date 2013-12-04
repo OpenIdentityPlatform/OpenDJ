@@ -1823,15 +1823,15 @@ public final class StaticUtils {
      *
      * @param throwable
      *            The exception for which to retrieve the stack trace.
-     * @param isDebug
+     * @param isFullStack
      *            If {@code true}, provides the full stack trace, otherwise
      *            provides a limited extract of stack trace
      * @return A stack trace from the provided exception as a single-line
      *         string.
      */
-    public static String stackTraceToSingleLineString(Throwable throwable, boolean isDebug) {
+    public static String stackTraceToSingleLineString(Throwable throwable, boolean isFullStack) {
         StringBuilder buffer = new StringBuilder();
-        stackTraceToSingleLineString(buffer, throwable, isDebug);
+        stackTraceToSingleLineString(buffer, throwable, isFullStack);
         return buffer.toString();
     }
 
@@ -1844,15 +1844,15 @@ public final class StaticUtils {
      *            The buffer to which the information is to be appended.
      * @param throwable
      *            The exception for which to retrieve the stack trace.
-     * @param isDebug
+     * @param isFullStack
      *            If {@code true}, provides the full stack trace, otherwise
      *            provides a limited extract of stack trace
      */
-    public static void stackTraceToSingleLineString(StringBuilder buffer, Throwable throwable, boolean isDebug) {
+    public static void stackTraceToSingleLineString(StringBuilder buffer, Throwable throwable, boolean isFullStack) {
         if (throwable == null) {
             return;
         }
-        if (isDebug) {
+        if (isFullStack) {
             buffer.append(throwable);
             // add first-level stack trace
             for (StackTraceElement e : throwable.getStackTrace()) {
@@ -1906,6 +1906,7 @@ public final class StaticUtils {
                 buffer.append(e.getLineNumber());
                 i++;
             }
+
             buffer.append(")");
         }
     }
