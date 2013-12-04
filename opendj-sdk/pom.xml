@@ -109,7 +109,7 @@
     <docPreviousVersion>2.6.0</docPreviousVersion>
     <sdkDocTargetVersion>${docTargetVersion}</sdkDocTargetVersion>
     <siteDistributionURL>scp://forgerock.org/var/www/vhosts/opendj.forgerock.org/httpdocs</siteDistributionURL>
-    <i18nFrameworkVersion>1.4.0</i18nFrameworkVersion>
+    <i18nFrameworkVersion>1.4.1-SNAPSHOT</i18nFrameworkVersion>
     <grizzlyFrameworkVersion>2.3.6</grizzlyFrameworkVersion>
     <slf4jVersion>1.7.5</slf4jVersion>
     <forgerockRestVersion>2.1.0-SNAPSHOT</forgerockRestVersion>
