@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2011-2012 ForgeRock AS.
+ *      Portions copyright 2011-2013 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.schema;
@@ -175,10 +175,12 @@ public final class AttributeType extends SchemaElement implements Comparable<Att
      * attribute will be the normalized attribute type name followed by the
      * suffix "-oid".
      *
+     * @param schema
+     *            The parent schema.
      * @param name
      *            The name of the place-holder attribute type.
      */
-    AttributeType(final String name) {
+    AttributeType(final Schema schema, final String name) {
         super("", Collections.<String, List<String>> emptyMap());
 
         final StringBuilder builder = new StringBuilder(name.length() + 4);
@@ -190,12 +192,12 @@ public final class AttributeType extends SchemaElement implements Comparable<Att
         this.isObsolete = false;
         this.superiorTypeOID = null;
         this.superiorType = null;
-        this.equalityMatchingRule = Schema.getDefaultMatchingRule();
+        this.equalityMatchingRule = schema.getDefaultMatchingRule();
         this.equalityMatchingRuleOID = equalityMatchingRule.getOID();
         this.orderingMatchingRuleOID = null;
         this.substringMatchingRuleOID = null;
         this.approximateMatchingRuleOID = null;
-        this.syntax = Schema.getDefaultSyntax();
+        this.syntax = schema.getDefaultSyntax();
         this.syntaxOID = syntax.getOID();
         this.isSingleValue = false;
         this.isCollective = false;

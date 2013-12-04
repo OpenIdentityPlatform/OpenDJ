@@ -174,6 +174,9 @@ public final class SchemaBuilder {
 
     private boolean allowMalformedJPEGPhotos;
 
+    private String defaultSyntaxOID;
+    private String defaultMatchingRuleOID;
+
     // A schema which should be copied into this builder on any mutation.
     private Schema copyOnWriteSchema = null;
 
@@ -2285,6 +2288,74 @@ public final class SchemaBuilder {
     }
 
     /**
+     * Sets the default syntax which will be used when parsing unrecognized
+     * attributes.
+     * <p>
+     * By default the {@link CoreSchema#getOctetStringSyntax() OctetString}
+     * syntax will be used.
+     *
+     * @param syntax
+     *            The default syntax which will be used when parsing
+     *            unrecognized attributes.
+     * @return A reference to this {@code SchemaBuilder}.
+     */
+    public SchemaBuilder defaultSyntax(final Syntax syntax) {
+        return defaultSyntax(syntax.getOID());
+    }
+
+    /**
+     * Sets the default matching rule which will be used when parsing
+     * unrecognized attributes.
+     * <p>
+     * By default the {@link CoreSchema#getOctetStringMatchingRule()
+     * OctetString} matching rule will be used.
+     *
+     * @param rule
+     *            The default matching rule which will be used when parsing
+     *            unrecognized attributes.
+     * @return A reference to this {@code SchemaBuilder}.
+     */
+    public SchemaBuilder defaultMatchingRule(final MatchingRule rule) {
+        return defaultMatchingRule(rule.getOID());
+    }
+
+    /**
+     * Sets the default syntax which will be used when parsing unrecognized
+     * attributes.
+     * <p>
+     * By default the {@link CoreSchema#getOctetStringSyntax() OctetString}
+     * syntax will be used.
+     *
+     * @param syntaxOID
+     *            The default syntax which will be used when parsing
+     *            unrecognized attributes.
+     * @return A reference to this {@code SchemaBuilder}.
+     */
+    public SchemaBuilder defaultSyntax(final String syntaxOID) {
+        lazyInitBuilder();
+        this.defaultSyntaxOID = syntaxOID;
+        return this;
+    }
+
+    /**
+     * Sets the default matching rule which will be used when parsing
+     * unrecognized attributes.
+     * <p>
+     * By default the {@link CoreSchema#getOctetStringMatchingRule()
+     * OctetString} matching rule will be used.
+     *
+     * @param ruleOID
+     *            The default matching rule which will be used when parsing
+     *            unrecognized attributes.
+     * @return A reference to this {@code SchemaBuilder}.
+     */
+    public SchemaBuilder defaultMatchingRule(final String ruleOID) {
+        lazyInitBuilder();
+        this.defaultMatchingRuleOID = ruleOID;
+        return this;
+    }
+
+    /**
      * Removes the named attribute type from this schema builder.
      *
      * @param name
@@ -2500,17 +2571,26 @@ public final class SchemaBuilder {
             localSchemaName = String.format("Schema#%d", NEXT_SCHEMA_ID.getAndIncrement());
         }
 
+        Syntax defaultSyntax = numericOID2Syntaxes.get(defaultSyntaxOID);
+        if (defaultSyntax == null) {
+            defaultSyntax = Schema.getCoreSchema().getDefaultSyntax();
+        }
+
+        MatchingRule defaultMatchingRule = numericOID2MatchingRules.get(defaultMatchingRuleOID);
+        if (defaultMatchingRule == null) {
+            defaultMatchingRule = Schema.getCoreSchema().getDefaultMatchingRule();
+        }
+
         final Schema schema =
                 new Schema(localSchemaName, allowMalformedNamesAndOptions,
                         allowMalformedJPEGPhotos, allowNonStandardTelephoneNumbers,
-                        allowZeroLengthDirectoryStrings, numericOID2Syntaxes,
-                        numericOID2MatchingRules, numericOID2MatchingRuleUses,
+                        allowZeroLengthDirectoryStrings, defaultSyntax, defaultMatchingRule,
+                        numericOID2Syntaxes, numericOID2MatchingRules, numericOID2MatchingRuleUses,
                         numericOID2AttributeTypes, numericOID2ObjectClasses, numericOID2NameForms,
                         numericOID2ContentRules, id2StructureRules, name2MatchingRules,
                         name2MatchingRuleUses, name2AttributeTypes, name2ObjectClasses,
                         name2NameForms, name2ContentRules, name2StructureRules,
                         objectClass2NameForms, nameForm2StructureRules, warnings);
-
         validate(schema);
 
         // Re-init this builder so that it can continue to be used afterwards.
@@ -2782,6 +2862,8 @@ public final class SchemaBuilder {
             allowMalformedJPEGPhotos = true;
             allowNonStandardTelephoneNumbers = true;
             allowZeroLengthDirectoryStrings = false;
+            defaultSyntaxOID = SchemaConstants.SYNTAX_OCTET_STRING_OID;
+            defaultMatchingRuleOID = SchemaConstants.EMR_OCTET_STRING_OID;
 
             numericOID2Syntaxes = new LinkedHashMap<String, Syntax>();
             numericOID2MatchingRules = new LinkedHashMap<String, MatchingRule>();
@@ -2813,6 +2895,8 @@ public final class SchemaBuilder {
             allowMalformedJPEGPhotos = copyOnWriteSchema.allowMalformedJPEGPhotos();
             allowNonStandardTelephoneNumbers = copyOnWriteSchema.allowNonStandardTelephoneNumbers();
             allowZeroLengthDirectoryStrings = copyOnWriteSchema.allowZeroLengthDirectoryStrings();
+            defaultSyntaxOID = copyOnWriteSchema.getDefaultSyntax().getOID();
+            defaultMatchingRuleOID = copyOnWriteSchema.getDefaultMatchingRule().getOID();
 
             copyOnWriteSchema = null;
         }
@@ -2826,6 +2910,8 @@ public final class SchemaBuilder {
         this.allowMalformedJPEGPhotos = true;
         this.allowNonStandardTelephoneNumbers = true;
         this.allowZeroLengthDirectoryStrings = false;
+        this.defaultSyntaxOID = null;
+        this.defaultMatchingRuleOID = null;
 
         this.numericOID2Syntaxes = null;
         this.numericOID2MatchingRules = null;
