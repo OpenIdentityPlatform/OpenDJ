@@ -55,6 +55,7 @@ import static org.opends.server.util.StaticUtils.*;
 /**
  * This class implements the interface between the underlying database
  * and the JEReplicaDB class.
+ * <p>
  * This is the only class that should have code using the BDB interfaces.
  */
 public class ReplicationDB
@@ -137,7 +138,6 @@ public class ReplicationDB
         replicationServer.getReplicationServerDomain(baseDN, true);
     db = dbenv.getOrAddDb(serverId, baseDN, domain.getGenerationId());
 
-
     intializeCounters();
   }
 
@@ -184,7 +184,6 @@ public class ReplicationDB
     return new CSN(decodeUTF8(data));
   }
 
-
   /**
    * add a list of changes to the underlying db.
    *
@@ -203,8 +202,7 @@ public class ReplicationDB
 
       for (UpdateMsg change : changes)
       {
-        final DatabaseEntry key =
-            createReplicationKey(change.getCSN());
+        final DatabaseEntry key = createReplicationKey(change.getCSN());
         final DatabaseEntry data = new ReplicationData(change);
 
         insertCounterRecordIfNeeded(change.getCSN());
@@ -309,8 +307,6 @@ public class ReplicationDB
     return new ReplServerDBCursor();
   }
 
-
-
   private void closeAndReleaseReadLock(Cursor cursor)
   {
     try
@@ -377,8 +373,6 @@ public class ReplicationDB
       closeAndReleaseReadLock(cursor);
     }
   }
-
-
 
   /**
    * Read the newest CSN present in the database.
@@ -617,14 +611,13 @@ public class ReplicationDB
       }
       catch (DatabaseException e)
       {
-        StaticUtils.close(localCursor);
         throw new ChangelogException(e);
       }
       finally
       {
         if (!cursorHeld)
         {
-          dbCloseLock.readLock().unlock();
+          closeAndReleaseReadLock(localCursor);
         }
       }
     }
@@ -662,13 +655,11 @@ public class ReplicationDB
       }
       catch (ChangelogException e)
       {
-        StaticUtils.close(localCursor);
         abort(localTxn);
         throw e;
       }
       catch (Exception e)
       {
-        StaticUtils.close(localCursor);
         abort(localTxn);
         throw new ChangelogException(e);
       }
@@ -676,7 +667,7 @@ public class ReplicationDB
       {
         if (!cursorHeld)
         {
-          dbCloseLock.readLock().unlock();
+          closeAndReleaseReadLock(localCursor);
         }
       }
     }
@@ -809,7 +800,8 @@ public class ReplicationDB
           {
             return null;
           }
-        } catch (DatabaseException e)
+        }
+        catch (DatabaseException e)
         {
           return null;
         }
@@ -895,12 +887,11 @@ public class ReplicationDB
       // RE-create the db
       db = dbenv.getOrAddDb(serverId, baseDN, -1);
     }
-    catch(Exception e)
+    catch (Exception e)
     {
       MessageBuilder mb = new MessageBuilder();
       mb.append(ERR_ERROR_CLEARING_DB.get(toString(),
-          e.getMessage() + " " +
-          stackTraceToSingleLineString(e)));
+          e.getMessage() + " " + stackTraceToSingleLineString(e)));
       logError(mb.toMessage());
     }
     finally
@@ -909,6 +900,7 @@ public class ReplicationDB
       dbCloseLock.writeLock().unlock();
     }
   }
+
   /**
    * Count the number of changes between 2 changes numbers (inclusive).
    * @param start The lower limit of the count.
@@ -966,9 +958,8 @@ public class ReplicationDB
     return 0;
   }
 
-
-  private void findFirstCounterRecordAfterStartPoint(CSN start,
-      CSN stop, int[] counterValues, int[] distanceToCounterRecords)
+  private void findFirstCounterRecordAfterStartPoint(CSN start, CSN stop,
+      int[] counterValues, int[] distanceToCounterRecords)
       throws DatabaseException
   {
     Cursor cursor = db.openCursor(null, null);
@@ -1020,8 +1011,8 @@ public class ReplicationDB
     }
   }
 
-  private boolean findFirstCounterRecordBeforeStopPoint(CSN start,
-      CSN stop, int[] counterValues, int[] distanceToCounterRecords)
+  private boolean findFirstCounterRecordBeforeStopPoint(CSN start, CSN stop,
+      int[] counterValues, int[] distanceToCounterRecords)
       throws DatabaseException
   {
     Cursor cursor = db.openCursor(null, null);
