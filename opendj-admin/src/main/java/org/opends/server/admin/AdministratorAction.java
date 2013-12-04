@@ -150,7 +150,7 @@ public final class AdministratorAction {
         ManagedObjectDefinitionI18NResource resource = ManagedObjectDefinitionI18NResource.getInstance();
         String property = "property." + propertyName + ".requires-admin-action.synopsis";
         try {
-            return resource.getLocalizableMessage(definition, property, locale);
+            return resource.getMessage(definition, property, locale);
         } catch (MissingResourceException e) {
             return null;
         }

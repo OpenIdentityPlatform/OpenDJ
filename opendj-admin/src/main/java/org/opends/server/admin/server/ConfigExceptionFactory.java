@@ -25,124 +25,104 @@
  *      Copyright 2008 Sun Microsystems, Inc.
  */
 package org.opends.server.admin.server;
+
 import org.forgerock.i18n.LocalizableMessage;
 
-
-
-import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
+import static com.forgerock.opendj.util.StaticUtils.*;
 
 import org.opends.server.admin.DefinitionDecodingException;
 import org.opends.server.config.ConfigException;
-import org.opends.messages.AdminMessages;
+import org.opends.server.util.DynamicConstants;
+
+import com.forgerock.opendj.ldap.AdminMessages;
+
 import org.forgerock.opendj.ldap.DN;
-
-
 
 /**
  * A utility class for converting admin exceptions to config exceptions.
  */
 final class ConfigExceptionFactory {
 
-  // The singleton instance.
-  private static final ConfigExceptionFactory INSTANCE =
-    new ConfigExceptionFactory();
+    // The singleton instance.
+    private static final ConfigExceptionFactory INSTANCE = new ConfigExceptionFactory();
 
+    // Prevent instantiation.
+    private ConfigExceptionFactory() {
+        // Do nothing.
+    }
 
+    /**
+     * Get the configuration exception factory instance.
+     *
+     * @return Returns the configuration exception factory instance.
+     */
+    public static ConfigExceptionFactory getInstance() {
+        return INSTANCE;
+    }
 
-  // Prevent instantiation.
-  private ConfigExceptionFactory() {
-    // Do nothing.
-  }
+    /**
+     * Create a configuration exception from a definition decoding exception.
+     *
+     * @param dn
+     *            The dn of the configuration entry that could not be decoded.
+     * @param e
+     *            The definition decoding exception
+     * @return Returns the configuration exception.
+     */
+    public ConfigException createDecodingExceptionAdaptor(DN dn, DefinitionDecodingException e) {
+        LocalizableMessage message = AdminMessages.ERR_ADMIN_MANAGED_OBJECT_DECODING_PROBLEM.get(String.valueOf(dn),
+                stackTraceToSingleLineString(e, DynamicConstants.DEBUG_BUILD));
+        return new ConfigException(message, e);
+    }
 
+    /**
+     * Create a configuration exception from a server managed object decoding
+     * exception.
+     *
+     * @param e
+     *            The server managed object decoding exception.
+     * @return Returns the configuration exception.
+     */
 
+    public ConfigException createDecodingExceptionAdaptor(ServerManagedObjectDecodingException e) {
+        DN dn = e.getPartialManagedObject().getDN();
+        LocalizableMessage message = AdminMessages.ERR_ADMIN_MANAGED_OBJECT_DECODING_PROBLEM.get(String.valueOf(dn),
+                stackTraceToSingleLineString(e, DynamicConstants.DEBUG_BUILD));
+        return new ConfigException(message, e);
+    }
 
-  /**
-   * Get the configuration exception factory instance.
-   *
-   * @return Returns the configuration exception factory instance.
-   */
-  public static ConfigExceptionFactory getInstance() {
-    return INSTANCE;
-  }
+    /**
+     * Create a configuration exception from a constraints violation decoding
+     * exception.
+     *
+     * @param e
+     *            The constraints violation decoding exception.
+     * @return Returns the configuration exception.
+     */
+    public ConfigException createDecodingExceptionAdaptor(ConstraintViolationException e) {
+        DN dn = e.getManagedObject().getDN();
+        LocalizableMessage message = AdminMessages.ERR_ADMIN_MANAGED_OBJECT_DECODING_PROBLEM.get(String.valueOf(dn),
+                stackTraceToSingleLineString(e, DynamicConstants.DEBUG_BUILD));
+        return new ConfigException(message, e);
+    }
 
+    /**
+     * Create an exception that describes a problem that occurred when
+     * attempting to load and instantiate a class.
+     *
+     * @param dn
+     *            The dn of the configuration entry was being processed.
+     * @param className
+     *            The name of the class that could not be loaded or
+     *            instantiated.
+     * @param e
+     *            The exception that occurred.
+     * @return Returns the configuration exception.
+     */
 
-
-  /**
-   * Create a configuration exception from a definition decoding exception.
-   *
-   * @param dn
-   *          The dn of the configuration entry that could not be decoded.
-   * @param e
-   *          The definition decoding exception
-   * @return Returns the configuration exception.
-   */
-  public ConfigException createDecodingExceptionAdaptor(DN dn,
-      DefinitionDecodingException e) {
-    LocalizableMessage message = AdminMessages.ERR_ADMIN_MANAGED_OBJECT_DECODING_PROBLEM.
-        get(String.valueOf(dn), stackTraceToSingleLineString(e));
-    return new ConfigException(message, e);
-  }
-
-
-
-  /**
-   * Create a configuration exception from a server managed object decoding
-   * exception.
-   *
-   * @param e
-   *          The server managed object decoding exception.
-   * @return Returns the configuration exception.
-   */
-
-  public ConfigException createDecodingExceptionAdaptor(
-      ServerManagedObjectDecodingException e) {
-    DN dn = e.getPartialManagedObject().getDN();
-    LocalizableMessage message =
-            AdminMessages.ERR_ADMIN_MANAGED_OBJECT_DECODING_PROBLEM.get(
-                    String.valueOf(dn),
-        stackTraceToSingleLineString(e));
-    return new ConfigException(message, e);
-  }
-
-
-
-  /**
-   * Create a configuration exception from a constraints violation
-   * decoding exception.
-   *
-   * @param e
-   *          The constraints violation decoding exception.
-   * @return Returns the configuration exception.
-   */
-  public ConfigException createDecodingExceptionAdaptor(
-      ConstraintViolationException e) {
-    DN dn = e.getManagedObject().getDN();
-    LocalizableMessage message = AdminMessages.ERR_ADMIN_MANAGED_OBJECT_DECODING_PROBLEM
-        .get(String.valueOf(dn), stackTraceToSingleLineString(e));
-    return new ConfigException(message, e);
-  }
-
-
-
-  /**
-   * Create an exception that describes a problem that occurred when
-   * attempting to load and instantiate a class.
-   *
-   * @param dn
-   *          The dn of the configuration entry was being processed.
-   * @param className
-   *          The name of the class that could not be loaded or
-   *          instantiated.
-   * @param e
-   *          The exception that occurred.
-   * @return Returns the configuration exception.
-   */
-
-  public ConfigException createClassLoadingExceptionAdaptor(DN dn,
-      String className, Exception e) {
-    LocalizableMessage message = AdminMessages.ERR_ADMIN_CANNOT_INSTANTIATE_CLASS.
-        get(String.valueOf(className), String.valueOf(dn),
-            stackTraceToSingleLineString(e));
-    return new ConfigException(message, e);
-  }
+    public ConfigException createClassLoadingExceptionAdaptor(DN dn, String className, Exception e) {
+        LocalizableMessage message = AdminMessages.ERR_ADMIN_CANNOT_INSTANTIATE_CLASS.get(String.valueOf(className),
+                String.valueOf(dn), stackTraceToSingleLineString(e, DynamicConstants.DEBUG_BUILD));
+        return new ConfigException(message, e);
+    }
 }

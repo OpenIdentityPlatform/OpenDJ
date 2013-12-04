@@ -28,8 +28,6 @@ package org.opends.server.admin.server;
 
 
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
-
 import java.util.LinkedList;
 import java.util.List;
 
@@ -46,14 +44,12 @@ import org.opends.server.admin.OptionalRelationDefinition;
 import org.opends.server.admin.SetRelationDefinition;
 import org.opends.server.admin.DefinitionDecodingException.Reason;
 import org.opends.server.api.ConfigAddListener;
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
-import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.AttributeValue;
 import org.opends.server.types.ConfigChangeResult;
 import org.forgerock.opendj.ldap.DN;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.ResultCode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.forgerock.opendj.ldap.ResultCode;
 
 
 
@@ -68,10 +64,7 @@ import org.opends.server.types.ResultCode;
 final class ConfigAddListenerAdaptor<S extends Configuration> extends
     AbstractConfigListenerAdaptor implements ConfigAddListener {
 
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+  private static final Logger debugLogger = LoggerFactory.getLogger(ConfigAddListenerAdaptor.class);
 
   // Cached managed object between accept/apply callbacks.
   private ServerManagedObject<? extends S> cachedManagedObject;
@@ -196,9 +189,7 @@ final class ConfigAddListenerAdaptor<S extends Configuration> extends
           try {
             handler.performPostAdd(cachedManagedObject);
           } catch (ConfigException e) {
-            if (debugEnabled()) {
-              TRACER.debugCaught(DebugLogLevel.ERROR, e);
-            }
+              debugLogger.trace("Unable to perform post add", e);
           }
         }
       }
@@ -257,7 +248,7 @@ final class ConfigAddListenerAdaptor<S extends Configuration> extends
     }
 
     // Let the add listener decide.
-    List<LocalizableMessage> reasons = new LinkedList<Message>();
+    List<LocalizableMessage> reasons = new LinkedList<LocalizableMessage>();
     if (listener.isConfigurationAddAcceptable(cachedManagedObject, reasons)) {
       return true;
     } else {

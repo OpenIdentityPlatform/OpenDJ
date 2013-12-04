@@ -27,64 +27,47 @@
 
 package org.opends.server.admin.server;
 
-
-
 import org.forgerock.opendj.ldap.DN;
 import org.opends.server.admin.LDAPProfile;
 import org.opends.server.admin.ManagedObjectPath;
 import org.opends.server.admin.RelationDefinition;
-import org.opends.server.types.DirectoryException;
-
-
 
 /**
- * A factory class for creating <code>DN</code>s from managed
- * object paths.
+ * A factory class for creating <code>DN</code>s from managed object paths.
  */
 final class DNBuilder {
 
-  /**
-   * Creates a new DN representing the specified managed object path.
-   *
-   * @param path
-   *          The managed object path.
-   * @return Returns a new DN representing the specified managed
-   *         object path.
-   */
-  public static DN create(ManagedObjectPath<?, ?> path) {
-    return path.toDN();
-  }
-
-
-
-  /**
-   * Creates a new DN representing the specified managed object path
-   * and relation.
-   *
-   * @param path
-   *          The managed object path.
-   * @param relation
-   *          The child relation.
-   * @return Returns a new DN representing the specified managed
-   *         object path and relation.
-   */
-  public static DN create(ManagedObjectPath<?, ?> path,
-      RelationDefinition<?, ?> relation) {
-    DN dn = path.toDN();
-
-    try {
-      LDAPProfile profile = LDAPProfile.getInstance();
-      DN localName = DN.decode(profile.getRelationRDNSequence(relation));
-      return dn.concat(localName);
-    } catch (DirectoryException e) {
-      throw new RuntimeException(e);
+    /**
+     * Creates a new DN representing the specified managed object path.
+     *
+     * @param path
+     *            The managed object path.
+     * @return Returns a new DN representing the specified managed object path.
+     */
+    public static DN create(ManagedObjectPath<?, ?> path) {
+        return path.toDN();
     }
-  }
 
+    /**
+     * Creates a new DN representing the specified managed object path and
+     * relation.
+     *
+     * @param path
+     *            The managed object path.
+     * @param relation
+     *            The child relation.
+     * @return Returns a new DN representing the specified managed object path
+     *         and relation.
+     */
+    public static DN create(ManagedObjectPath<?, ?> path, RelationDefinition<?, ?> relation) {
+        DN dn = path.toDN();
+        LDAPProfile profile = LDAPProfile.getInstance();
+        DN localName = DN.valueOf(profile.getRelationRDNSequence(relation));
+        return dn.child(localName);
+    }
 
-
-  // Prevent instantiation.
-  private DNBuilder() {
-    // No implementation required.
-  }
+    // Prevent instantiation.
+    private DNBuilder() {
+        // No implementation required.
+    }
 }
