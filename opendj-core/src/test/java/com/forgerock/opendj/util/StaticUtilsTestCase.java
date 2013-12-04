@@ -26,6 +26,11 @@
 
 package com.forgerock.opendj.util;
 
+import static com.forgerock.opendj.util.StaticUtils.*;
+
+import static org.fest.assertions.Assertions.*;
+
+import java.lang.reflect.InvocationTargetException;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -134,7 +139,7 @@ public final class StaticUtilsTestCase extends UtilTestCase {
         calendar.set(yyyy, months, dd, hours, mm, ss);
         calendar.set(Calendar.MILLISECOND, ms);
         final Date time = new Date(calendar.getTimeInMillis());
-        final String actual = StaticUtils.formatAsGeneralizedTime(time);
+        final String actual = formatAsGeneralizedTime(time);
         Assert.assertEquals(actual, expected);
     }
 
@@ -167,13 +172,13 @@ public final class StaticUtilsTestCase extends UtilTestCase {
         calendar.set(yyyy, months, dd, hours, mm, ss);
         calendar.set(Calendar.MILLISECOND, ms);
         final long time = calendar.getTimeInMillis();
-        final String actual = StaticUtils.formatAsGeneralizedTime(time);
+        final String actual = formatAsGeneralizedTime(time);
         Assert.assertEquals(actual, expected);
     }
 
     @Test(dataProvider = "dataForToLowerCase")
     public void testToLowerCaseString(final String s, final String expected) {
-        final String actual = StaticUtils.toLowerCase(s);
+        final String actual = toLowerCase(s);
         if (expected == null) {
             Assert.assertSame(actual, s);
         } else {
@@ -184,11 +189,45 @@ public final class StaticUtilsTestCase extends UtilTestCase {
     @Test(dataProvider = "dataForToLowerCase")
     public void testToLowerCaseStringBuilder(final String s, final String expected) {
         final StringBuilder builder = new StringBuilder();
-        final String actual = StaticUtils.toLowerCase(s, builder).toString();
+        final String actual = toLowerCase(s, builder).toString();
         if (expected == null) {
             Assert.assertEquals(actual, s);
         } else {
             Assert.assertEquals(actual, expected);
         }
+    }
+
+    @Test
+    public void testStackTraceToSingleLineDebugIsFalse() throws Exception {
+        String trace = stackTraceToSingleLineString(
+                new InvocationTargetException(new RuntimeException("message")), false);
+        assertThat(trace).as("case 1").startsWith("message (StaticUtilsTestCase.java");
+        assertThat(trace).as("case 1").endsWith("...)");
+
+        trace = stackTraceToSingleLineString(new RuntimeException("message"), false);
+        assertThat(trace).as("case 2").startsWith("message (StaticUtilsTestCase.java");
+        assertThat(trace).as("case 2").endsWith("...)");
+
+        trace = stackTraceToSingleLineString(new RuntimeException(""), false);
+        assertThat(trace).as("case 3").startsWith("RuntimeException (StaticUtilsTestCase.java");
+        assertThat(trace).as("case 3").endsWith("...)");
+    }
+
+    @Test
+    public void testStackTraceToSingleLineDebugIsTrue() throws Exception {
+        String trace = stackTraceToSingleLineString(
+                new InvocationTargetException(new RuntimeException("message")), true);
+        assertThat(trace).as("case 1").startsWith(
+                "java.lang.reflect.InvocationTargetException / StaticUtilsTestCase.java:");
+        assertThat(trace).as("case 1").contains("message");
+        assertThat(trace).as("case 1").doesNotContain("...)");
+
+        trace = stackTraceToSingleLineString(new RuntimeException("message"), true);
+        assertThat(trace).as("case 2").startsWith("java.lang.RuntimeException: message / StaticUtilsTestCase.java:");
+        assertThat(trace).as("case 2").doesNotContain("...)");
+
+        trace = stackTraceToSingleLineString(new RuntimeException(""), true);
+        assertThat(trace).as("case 3").startsWith("java.lang.RuntimeException:  / StaticUtilsTestCase.java:");
+        assertThat(trace).as("case 3").doesNotContain("...)");
     }
 }
