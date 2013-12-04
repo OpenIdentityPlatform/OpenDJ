@@ -29,7 +29,7 @@ package org.forgerock.opendj.ldap.requests;
 import org.testng.annotations.DataProvider;
 
 /**
- * @author sin
+ * Tests for CompareRequest.
  */
 @SuppressWarnings("javadoc")
 public class CompareRequestTestCase extends RequestTestCase {
