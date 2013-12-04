@@ -26,10 +26,14 @@
 
 package org.forgerock.opendj.ldap;
 
+import static org.testng.AssertJUnit.assertFalse;
+import static org.testng.AssertJUnit.assertTrue;
+
 import java.util.Iterator;
 
 import org.forgerock.opendj.ldap.requests.ModifyRequest;
 import org.forgerock.opendj.ldap.requests.Requests;
+import org.forgerock.opendj.ldap.schema.Schema;
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -37,6 +41,7 @@ import org.testng.annotations.Test;
 /**
  * Test {@code Entries}.
  */
+@SuppressWarnings("javadoc")
 public final class EntriesTestCase extends SdkTestCase {
     /**
      * Creates test data for {@link #testDiffEntries}.
@@ -211,5 +216,15 @@ public final class EntriesTestCase extends SdkTestCase {
             Assert.assertEquals(m1.getModificationType(), m2.getModificationType());
             Assert.assertEquals(m1.getAttribute(), m2.getAttribute());
         }
+    }
+
+    @Test
+    public void testContainsObjectClass() throws Exception {
+        Entry entry = new LinkedHashMapEntry("dn: cn=test", "objectClass: top", "objectClass: person");
+        Schema schema = Schema.getDefaultSchema();
+
+        assertTrue("should contain top", Entries.containsObjectClass(entry, schema.getObjectClass("top")));
+        assertTrue("should contain person", Entries.containsObjectClass(entry, schema.getObjectClass("person")));
+        assertFalse("should not contain country", Entries.containsObjectClass(entry, schema.getObjectClass("country")));
     }
 }

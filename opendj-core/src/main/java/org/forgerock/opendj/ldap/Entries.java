@@ -364,6 +364,48 @@ public final class Entries {
     }
 
     /**
+     * Check if the provided entry contains the provided object class.
+     * <p>
+     * This method uses the default schema for decoding the object class
+     * attribute values.
+     * <p>
+     * The provided object class must be recognized by the schema, otherwise the
+     * method returns false.
+     *
+     * @param entry
+     *            The entry which is checked against the object class.
+     * @param objectClass
+     *            The object class to check.
+     * @return {@code true} if and only if entry contains the object class and
+     *         the object class is recognized by the default schema,
+     *         {@code false} otherwise
+     */
+    public static boolean containsObjectClass(final Entry entry, final ObjectClass objectClass) {
+        return containsObjectClass(entry, Schema.getDefaultSchema(), objectClass);
+    }
+
+    /**
+     * Check if the provided entry contains the provided object class.
+     * <p>
+     * The provided object class must be recognized by the provided schema,
+     * otherwise the method returns false.
+     *
+     * @param entry
+     *            The entry which is checked against the object class.
+     * @param schema
+     *            The schema which should be used for decoding the object class
+     *            attribute values.
+     * @param objectClass
+     *            The object class to check.
+     * @return {@code true} if and only if entry contains the object class and
+     *         the object class is recognized by the provided schema,
+     *         {@code false} otherwise
+     */
+    public static boolean containsObjectClass(final Entry entry, final Schema schema, final ObjectClass objectClass) {
+        return getObjectClasses(entry, schema).contains(objectClass);
+    }
+
+    /**
      * Creates a new modify request containing a list of modifications which can
      * be used to transform {@code fromEntry} into entry {@code toEntry}.
      * <p>
