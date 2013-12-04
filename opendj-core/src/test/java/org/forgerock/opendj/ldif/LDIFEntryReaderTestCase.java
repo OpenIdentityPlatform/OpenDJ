@@ -1156,16 +1156,15 @@ public final class LDIFEntryReaderTestCase extends AbstractLDIFTestCase {
     }
 
 
-  /**
-   * Tries to read an entry composed by multi-valued attributes. The
-   * multi-valued attributes contains an interesting case where two of them
-   * represents the same value, one in uppercase and the other in lower case.
-   *
-   * @throws Exception
-   */
-    @Test(enabled = false)
+    /**
+     * Tries to read an entry composed by multi-valued attributes. The
+     * multi-valued attributes contains an interesting case where two of them
+     * represents the same value, one in uppercase and the other in lower case.
+     *
+     * @throws Exception
+     */
+    @Test
     public void testLDIFEntryReaderMultiplesAttributeValuesDifferentLetterCase() throws Exception {
-
         // @formatter:off
         final String[] strEntry = {
             "dn: cn=Character Set,cn=Password Validators,cn=config",
@@ -1185,7 +1184,6 @@ public final class LDIFEntryReaderTestCase extends AbstractLDIFTestCase {
         final String path = TestCaseUtils.createTempFile(strEntry);
         final FileInputStream in = new FileInputStream(path);
         final LDIFEntryReader reader = new LDIFEntryReader(in);
-
         try {
             assertThat(reader.hasNext());
             final Entry entry = reader.readEntry();
