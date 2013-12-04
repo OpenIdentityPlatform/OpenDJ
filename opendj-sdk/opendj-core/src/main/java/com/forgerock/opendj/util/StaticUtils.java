@@ -1818,6 +1818,99 @@ public final class StaticUtils {
     }
 
     /**
+     * Retrieves a stack trace from the provided exception as a single-line
+     * string.
+     *
+     * @param throwable
+     *            The exception for which to retrieve the stack trace.
+     * @param isDebug
+     *            If {@code true}, provides the full stack trace, otherwise
+     *            provides a limited extract of stack trace
+     * @return A stack trace from the provided exception as a single-line
+     *         string.
+     */
+    public static String stackTraceToSingleLineString(Throwable throwable, boolean isDebug) {
+        StringBuilder buffer = new StringBuilder();
+        stackTraceToSingleLineString(buffer, throwable, isDebug);
+        return buffer.toString();
+    }
+
+
+    /**
+     * Appends a single-line string representation of the provided exception to
+     * the given buffer.
+     *
+     * @param buffer
+     *            The buffer to which the information is to be appended.
+     * @param throwable
+     *            The exception for which to retrieve the stack trace.
+     * @param isDebug
+     *            If {@code true}, provides the full stack trace, otherwise
+     *            provides a limited extract of stack trace
+     */
+    public static void stackTraceToSingleLineString(StringBuilder buffer, Throwable throwable, boolean isDebug) {
+        if (throwable == null) {
+            return;
+        }
+        if (isDebug) {
+            buffer.append(throwable);
+            // add first-level stack trace
+            for (StackTraceElement e : throwable.getStackTrace()) {
+                buffer.append(" / ");
+                buffer.append(e.getFileName());
+                buffer.append(":");
+                buffer.append(e.getLineNumber());
+            }
+            // add stack trace of all underlying causes
+            while (throwable.getCause() != null) {
+                throwable = throwable.getCause();
+                buffer.append("; caused by ");
+                buffer.append(throwable);
+
+                for (StackTraceElement e : throwable.getStackTrace()) {
+                    buffer.append(" / ");
+                    buffer.append(e.getFileName());
+                    buffer.append(":");
+                    buffer.append(e.getLineNumber());
+                }
+            }
+        } else {
+            if ((throwable instanceof InvocationTargetException) && (throwable.getCause() != null)) {
+                throwable = throwable.getCause();
+            }
+            // add class name and message of the exception
+            String message = throwable.getMessage();
+            if ((message == null) || (message.length() == 0)) {
+                String className = throwable.getClass().getName();
+                try {
+                    className = className.substring(className.lastIndexOf('.') + 1);
+                } catch (Exception e) { /* ignored */
+                }
+                buffer.append(className);
+            } else {
+                buffer.append(message);
+            }
+            // add first 20 items of the first-level stack trace
+            int i = 0;
+            buffer.append(" (");
+            for (StackTraceElement e : throwable.getStackTrace()) {
+                if (i > 20) {
+                    buffer.append(" ...");
+                    break;
+                } else if (i > 0) {
+                    buffer.append(" ");
+                }
+
+                buffer.append(e.getFileName());
+                buffer.append(":");
+                buffer.append(e.getLineNumber());
+                i++;
+            }
+            buffer.append(")");
+        }
+    }
+
+    /**
      * Returns a string representation of the contents of the provided byte
      * sequence using hexadecimal characters and a space between each byte.
      *
