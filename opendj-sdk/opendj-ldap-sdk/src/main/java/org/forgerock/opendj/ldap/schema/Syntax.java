@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.schema;
@@ -63,14 +64,24 @@ public final class Syntax extends SchemaElement {
     private Schema schema;
     private SyntaxImpl impl;
 
-    Syntax(final String oid) {
-        super("", Collections.singletonMap("X-SUBST", Collections.singletonList(Schema
+    /**
+     * Creates a syntax representing an unrecognized syntax and whose
+     * implementation is substituted by the schema's default syntax.
+     *
+     * @param schema
+     *            The parent schema.
+     * @param oid
+     *            The numeric OID of the unrecognized syntax.
+     */
+    Syntax(final Schema schema, final String oid) {
+        super("", Collections.singletonMap("X-SUBST", Collections.singletonList(schema
                 .getDefaultSyntax().getOID())));
 
         Validator.ensureNotNull(oid);
         this.oid = oid;
         this.definition = buildDefinition();
-        this.impl = Schema.getDefaultSyntax().impl;
+        this.schema = schema;
+        this.impl = schema.getDefaultSyntax().impl;
     }
 
     Syntax(final String oid, final String description,
@@ -307,10 +318,10 @@ public final class Syntax extends SchemaElement {
             }
 
             if (impl == null) {
-                impl = Schema.getDefaultSyntax().impl;
-                final LocalizableMessage message =
-                        WARN_ATTR_SYNTAX_NOT_IMPLEMENTED1.get(getDescription(), oid, Schema
-                                .getDefaultSyntax().getOID());
+                impl = schema.getDefaultSyntax().impl;
+                final LocalizableMessage message = WARN_ATTR_SYNTAX_NOT_IMPLEMENTED1
+                        .get(getDescription(), oid, schema.getDefaultSyntax()
+                                .getOID());
                 warnings.add(message);
             }
         }

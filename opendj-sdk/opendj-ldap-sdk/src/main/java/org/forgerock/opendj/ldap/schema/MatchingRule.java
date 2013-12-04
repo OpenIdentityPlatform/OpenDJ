@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.schema;
@@ -370,10 +371,10 @@ public final class MatchingRule extends SchemaElement {
         }
 
         if (impl == null) {
-            impl = Schema.getDefaultMatchingRule().impl;
-            final LocalizableMessage message =
-                    WARN_MATCHING_RULE_NOT_IMPLEMENTED1.get(getNameOrOID(), Schema
-                            .getDefaultMatchingRule().getOID());
+            impl = schema.getDefaultMatchingRule().impl;
+            final LocalizableMessage message = WARN_MATCHING_RULE_NOT_IMPLEMENTED1
+                    .get(getNameOrOID(), schema.getDefaultMatchingRule()
+                            .getOID());
             warnings.add(message);
         }
 

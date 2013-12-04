@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2013 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -210,6 +210,9 @@ public class SchemaBuilderTestCase extends SchemaTestCase {
         assertThat(schema.getObjectClasses()).isEmpty();
         assertThat(schema.getSyntaxes()).isEmpty();
         assertThat(schema.getWarnings()).isEmpty();
+        assertThat(schema.getDefaultSyntax()).isEqualTo(CoreSchema.getOctetStringSyntax());
+        assertThat(schema.getDefaultMatchingRule()).isEqualTo(
+                CoreSchema.getOctetStringMatchingRule());
         // Could go on...
     }
 
@@ -1960,7 +1963,46 @@ public class SchemaBuilderTestCase extends SchemaTestCase {
         assertThat(sc.getNameForms()).isNotNull();
         assertThat(sc.getNameForms()).isEmpty();
 
-
         connection.close();
     }
+
+    @Test
+    public void testDefaultSyntax() {
+        final Schema schema =
+                new SchemaBuilder(Schema.getCoreSchema()).toSchema().asNonStrictSchema();
+        assertThat(schema.getDefaultSyntax()).isEqualTo(CoreSchema.getOctetStringSyntax());
+        assertThat(schema.getAttributeType("dummy").getSyntax()).isEqualTo(
+                CoreSchema.getOctetStringSyntax());
+    }
+
+    @Test
+    public void testOverrideDefaultSyntax() {
+        final Schema schema =
+                new SchemaBuilder(Schema.getCoreSchema()).defaultSyntax(
+                        CoreSchema.getDirectoryStringSyntax()).toSchema().asNonStrictSchema();
+        assertThat(schema.getDefaultSyntax()).isEqualTo(CoreSchema.getDirectoryStringSyntax());
+        assertThat(schema.getAttributeType("dummy").getSyntax()).isEqualTo(
+                CoreSchema.getDirectoryStringSyntax());
+    }
+
+    @Test
+    public void testDefaultMatchingRule() {
+        final Schema schema =
+                new SchemaBuilder(Schema.getCoreSchema()).toSchema().asNonStrictSchema();
+        assertThat(schema.getDefaultMatchingRule()).isEqualTo(
+                CoreSchema.getOctetStringMatchingRule());
+        assertThat(schema.getAttributeType("dummy").getEqualityMatchingRule()).isEqualTo(
+                CoreSchema.getOctetStringMatchingRule());
+    }
+
+    @Test
+    public void testOverrideMatchingRule() {
+        final Schema schema =
+                new SchemaBuilder(Schema.getCoreSchema()).defaultMatchingRule(
+                        CoreSchema.getCaseIgnoreMatchingRule()).toSchema().asNonStrictSchema();
+        assertThat(schema.getDefaultMatchingRule()).isEqualTo(CoreSchema.getCaseIgnoreMatchingRule());
+        assertThat(schema.getAttributeType("dummy").getEqualityMatchingRule()).isEqualTo(
+                CoreSchema.getCaseIgnoreMatchingRule());
+    }
+
 }

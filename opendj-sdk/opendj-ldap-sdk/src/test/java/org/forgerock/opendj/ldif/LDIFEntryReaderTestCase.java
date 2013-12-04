@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2013 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldif;
@@ -52,6 +52,7 @@ import org.forgerock.opendj.ldap.schema.SchemaValidationPolicy;
 import org.forgerock.opendj.ldap.schema.SchemaValidationPolicy.Policy;
 import org.testng.Assert;
 import org.testng.annotations.Test;
+
 import static org.fest.assertions.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyListOf;
@@ -1651,5 +1652,49 @@ public final class LDIFEntryReaderTestCase extends AbstractLDIFTestCase {
     @Test(expectedExceptions = NullPointerException.class)
     public void testValueOfLDIFEntryDoesntAllowNull() throws Exception {
         LDIFEntryReader.valueOfLDIFEntry((String[]) null);
+    }
+
+    /**
+     * Tries to read an entry composed by multi-valued attributes. The
+     * multi-valued attributes contains an interesting case where two of them
+     * represents the same value, one in uppercase and the other in lower case.
+     *
+     * @throws Exception
+     */
+    @Test
+    public void testLDIFEntryReaderMultiplesAttributeValuesDifferentLetterCase() throws Exception {
+        // @formatter:off
+        final String[] strEntry = {
+            "dn: cn=Character Set,cn=Password Validators,cn=config",
+            "objectClass: ds-cfg-character-set-password-validator",
+            "objectClass: ds-cfg-password-validator",
+            "objectClass: top",
+            "ds-cfg-enabled: true",
+            "ds-cfg-java-class: org.opends.server.extensions.CharacterSetPasswordValidator",
+            "ds-cfg-allow-unclassified-characters: true",
+            "ds-cfg-character-set: 1:abcdefghijklmnopqrstuvwxyz",
+            "ds-cfg-character-set: 1:ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+            "ds-cfg-character-set: 1:0123456789",
+            "ds-cfg-character-set: 1:~!@#$%^&*()-_=+[]{}|;:,.<>/?",
+            "cn: Character Set"
+        };
+        // @formatter:on
+        final String path = TestCaseUtils.createTempFile(strEntry);
+        final FileInputStream in = new FileInputStream(path);
+        final LDIFEntryReader reader = new LDIFEntryReader(in);
+        try {
+            assertThat(reader.hasNext());
+            final Entry entry = reader.readEntry();
+            assertThat(entry.getName().toString()).isEqualTo(
+                    "cn=Character Set,cn=Password Validators,cn=config");
+            // List the attributes : objectClass ds-cfg-enabled ds-cfg-java-class
+            // ds-cfg-allow-unclassified-characters ds-cfg-character-set cn
+            assertThat(entry.getAttributeCount()).isEqualTo(6);
+            assertThat(entry.getAttribute("ds-cfg-character-set")).isNotEmpty();
+            assertThat(entry.getAttribute("ds-cfg-character-set").toArray().length).isEqualTo(4);
+            assertThat(reader.hasNext()).isFalse();
+        } finally {
+            reader.close();
+        }
     }
 }

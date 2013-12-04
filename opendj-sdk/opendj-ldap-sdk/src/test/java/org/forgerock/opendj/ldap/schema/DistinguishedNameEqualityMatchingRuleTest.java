@@ -22,15 +22,13 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.schema;
 
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.EMR_DN_OID;
 import static org.testng.Assert.assertEquals;
-
-import java.text.Normalizer;
-import java.text.Normalizer.Form;
 
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
@@ -112,7 +110,11 @@ public class DistinguishedNameEqualityMatchingRuleTest extends MatchingRuleTest 
             { "CN=Lu\\C4\\8Di\\C4\\87", "cn=lu\u010di\u0107", ConditionResult.TRUE },
             { "ou=\\e5\\96\\b6\\e6\\a5\\ad\\e9\\83\\a8,o=Airius", "ou=\u55b6\u696d\u90e8,o=airius",
                 ConditionResult.TRUE },
-            { "photo=\\ john \\ ,dc=com", "photo=\\ john \\ ,dc=com", ConditionResult.TRUE },
+            { "cn=\\ john \\ ,dc=com", "cn=\\ john \\ ,dc=com", ConditionResult.TRUE },
+            { "caseexact=UPPER,dc=COM", "caseexact=UPPER,dc=com", ConditionResult.TRUE },
+            { "caseexact=upper,dc=COM", "caseexact=UPPER,dc=com", ConditionResult.FALSE },
+            { "caseexact=UPPER,dc=COM", "caseexact=upper,dc=com", ConditionResult.FALSE },
+            { "caseexact=lower,dc=COM", "caseexact=lower,dc=com", ConditionResult.TRUE },
             { "AB-global=", "ab-global=", ConditionResult.TRUE },
             { "OU= Sales + CN = J. Smith ,DC=example,DC=net",
                 "cn=j. smith+ou=sales,dc=example,dc=net", ConditionResult.TRUE },
@@ -167,10 +169,12 @@ public class DistinguishedNameEqualityMatchingRuleTest extends MatchingRuleTest 
                 // Unicode codepoints from 0000-0008 are mapped to nothing.
                 "cn=hi" },
             { "1.1.1=", "1.1.1=" },
-            { "CN=Lu\\C4\\8Di\\C4\\87", "cn=lu\u010di\u0107" },
+            { "CN=Lu\\C4\\8Di\\C4\\87", "cn=luc\u030cic\u0301" },
             { "ou=\\e5\\96\\b6\\e6\\a5\\ad\\e9\\83\\a8,o=Airius",
                 "o=airius\u0000ou=\u55b6\u696d\u90e8" },
-            { "photo=\\ john \\ ,dc=com", "dc=com\u0000photo=john" },
+            { "cn=\\ john \\ ,dc=com", "dc=com\u0000cn=john" },
+            { "caseexact=UPPER,dc=COM", "dc=com\u0000caseexact=UPPER" },
+            { "caseexact=mIxEd,dc=COM", "dc=com\u0000caseexact=mIxEd" },
             { "AB-global=", "ab-global=" },
             { "OU= Sales + CN = J. Smith ,DC=example,DC=net",
                 "dc=net\u0000dc=example\u0000cn=j. smith\u0001ou=sales" },
@@ -186,13 +190,11 @@ public class DistinguishedNameEqualityMatchingRuleTest extends MatchingRuleTest 
      * Test the normalized values
      */
     @Test(dataProvider = "testDNs")
-    public void matchingRules(final String value1, final String value2) throws Exception {
+    public void testNormalization(final String value1, final String value2) throws Exception {
         final MatchingRule rule = getRule();
-
         final ByteString normalizedValue1 =
                 rule.normalizeAttributeValue(ByteString.valueOf(value1));
-        final ByteString expectedValue =
-                ByteString.valueOf(Normalizer.normalize(value2, Form.NFKD));
+        final ByteString expectedValue = ByteString.valueOf(value2);
         assertEquals(normalizedValue1, expectedValue);
     }
 }
