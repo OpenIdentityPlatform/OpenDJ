@@ -365,6 +365,7 @@ public class ChangeNumberIndexer extends DirectoryThread
           if (doClear.get())
           {
             removeAllCursors();
+            resetNextChangeForInsertDBCursor();
             // No need to use CAS here because it is only for unit tests and at
             // this point all will have been cleaned up anyway.
             doClear.set(false);
@@ -434,7 +435,6 @@ public class ChangeNumberIndexer extends DirectoryThread
           Thread.currentThread().interrupt();
         }
       }
-      removeAllCursors();
     }
     catch (ChangelogException e)
     {
@@ -447,6 +447,10 @@ public class ChangeNumberIndexer extends DirectoryThread
       if (debugEnabled())
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       // TODO JNR error message i18n
+    }
+    finally
+    {
+      removeAllCursors();
     }
   }
 
@@ -467,15 +471,19 @@ public class ChangeNumberIndexer extends DirectoryThread
     }
   }
 
-  private void removeAllCursors() throws ChangelogException
+  private void removeAllCursors()
   {
+    if (nextChangeForInsertDBCursor != null)
+    {
+      nextChangeForInsertDBCursor.close();
+      nextChangeForInsertDBCursor = null;
+    }
     for (Map<Integer, DBCursor<UpdateMsg>> map : allCursors.values())
     {
       StaticUtils.close(map.values());
     }
     allCursors.clear();
     newCursors.clear();
-    resetNextChangeForInsertDBCursor();
   }
 
   private void removeCursor(final DN baseDN, final CSN csn)

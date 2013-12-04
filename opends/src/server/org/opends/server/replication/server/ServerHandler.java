@@ -145,7 +145,7 @@ public abstract class ServerHandler extends MessageHandler
   /**
    * The associated ServerWriter that sends messages to the remote server.
    */
-  protected ServerWriter writer = null;
+  protected ServerWriter writer;
 
   /**
    * The associated ServerReader that receives messages from the remote server.
@@ -202,7 +202,7 @@ public abstract class ServerHandler extends MessageHandler
   /**
    * Set when ServerWriter is stopping.
    */
-  protected boolean shutdownWriter = false;
+  protected volatile boolean shutdownWriter = false;
 
   /**
    * Weight of this remote server.
