@@ -198,7 +198,7 @@ public final class StaticUtilsTestCase extends UtilTestCase {
     }
 
     @Test
-    public void testStackTraceToSingleLineDebugIsFalse() throws Exception {
+    public void testStackTraceToSingleLineLimitedStack() throws Exception {
         String trace = stackTraceToSingleLineString(
                 new InvocationTargetException(new RuntimeException("message")), false);
         assertThat(trace).as("case 1").startsWith("message (StaticUtilsTestCase.java");
@@ -214,7 +214,7 @@ public final class StaticUtilsTestCase extends UtilTestCase {
     }
 
     @Test
-    public void testStackTraceToSingleLineDebugIsTrue() throws Exception {
+    public void testStackTraceToSingleLineFullStack() throws Exception {
         String trace = stackTraceToSingleLineString(
                 new InvocationTargetException(new RuntimeException("message")), true);
         assertThat(trace).as("case 1").startsWith(
