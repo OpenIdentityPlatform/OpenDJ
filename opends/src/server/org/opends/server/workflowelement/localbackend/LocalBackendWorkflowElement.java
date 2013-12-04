@@ -462,7 +462,7 @@ public class LocalBackendWorkflowElement extends
     {
       // replacement reason returned to the user
       operation.setResultCode(altResultCode);
-      operation.appendMaskedErrorMessage(altMessage);
+      operation.appendErrorMessage(altMessage);
       // real underlying reason
       operation.setMaskedResultCode(resultCode);
       operation.appendMaskedErrorMessage(message);

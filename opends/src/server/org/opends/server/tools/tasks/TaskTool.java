@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2012 ForgeRock AS
+ *      Portions Copyright 2012-2013 ForgeRock AS
  */
 
 package org.opends.server.tools.tasks;
@@ -372,7 +372,7 @@ public abstract class TaskTool implements TaskScheduleInformation {
         if (err != null) err.println(wrapText(message, MAX_LINE_WIDTH));
         ret = 1;
       } catch (LDAPException le) {
-        Message message = ERR_TASK_TOOL_DECODE_ERROR.get(le.getMessage());
+        Message message = ERR_TASK_TOOL_LDAP_ERROR.get(le.getMessage());
         if (err != null) err.println(wrapText(message, MAX_LINE_WIDTH));
         ret = 1;
       } catch (OpenDsException e) {
