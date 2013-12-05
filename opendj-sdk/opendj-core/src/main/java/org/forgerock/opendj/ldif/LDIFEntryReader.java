@@ -347,9 +347,7 @@ public final class LDIFEntryReader extends AbstractLDIFReader implements EntryRe
      */
     public LDIFEntryReader setSchema(final Schema schema) {
         Validator.ensureNotNull(schema);
-        this.schema =
-                schemaValidationPolicy.checkAttributesAndObjectClasses().needsChecking() ? schema
-                        .asStrictSchema() : schema.asNonStrictSchema();
+        this.schema = schemaValidationPolicy.adaptSchemaForValidation(schema);
         return this;
     }
 
@@ -370,9 +368,7 @@ public final class LDIFEntryReader extends AbstractLDIFReader implements EntryRe
      */
     public LDIFEntryReader setSchemaValidationPolicy(final SchemaValidationPolicy policy) {
         this.schemaValidationPolicy = SchemaValidationPolicy.copyOf(policy);
-        this.schema =
-                schemaValidationPolicy.checkAttributesAndObjectClasses().needsChecking() ? schema
-                        .asStrictSchema() : schema.asNonStrictSchema();
+        this.schema = schemaValidationPolicy.adaptSchemaForValidation(schema);
         return this;
     }
 
