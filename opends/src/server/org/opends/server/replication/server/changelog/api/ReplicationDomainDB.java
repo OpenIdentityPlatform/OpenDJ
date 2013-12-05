@@ -84,14 +84,6 @@ public interface ReplicationDomainDB
   long getDomainLatestTrimDate(DN baseDN);
 
   /**
-   * Shutdown all the replica databases for the specified replication domain.
-   *
-   * @param baseDN
-   *          the replication domain baseDN
-   */
-  void shutdownDomain(DN baseDN);
-
-  /**
    * Removes all the data relating to the specified replication domain and
    * shutdown all its replica databases. In particular, it will:
    * <ol>

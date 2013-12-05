@@ -397,7 +397,10 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
       synchronized (domainMap)
       {
         it.remove();
-        innerShutdownDomain(domainMap);
+        for (JEReplicaDB replicaDB : domainMap.values())
+        {
+          replicaDB.shutdown();
+        }
       }
     }
 
@@ -509,37 +512,6 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
       entryCount += replicaDB.getChangesCount();
     }
     return entryCount;
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public void shutdownDomain(DN baseDN)
-  {
-    if (this.shutdown.get())
-    { // shutdown has already been initiated
-      return;
-    }
-
-    final Map<Integer, JEReplicaDB> domainMap = domainToReplicaDBs.get(baseDN);
-    if (domainMap != null)
-    {
-      synchronized (domainMap)
-      {
-        innerShutdownDomain(domainToReplicaDBs.remove(baseDN));
-      }
-    }
-  }
-
-  /**
-   * This method assumes the domainMap is synchronized by calling code and that
-   * the domainMap is not null.
-   */
-  private void innerShutdownDomain(final Map<Integer, JEReplicaDB> domainMap)
-  {
-    for (JEReplicaDB replicaDB : domainMap.values())
-    {
-      replicaDB.shutdown();
-    }
   }
 
   /** {@inheritDoc} */

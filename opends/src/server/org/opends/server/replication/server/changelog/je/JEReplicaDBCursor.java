@@ -96,9 +96,10 @@ public class JEReplicaDBCursor implements DBCursor<UpdateMsg>
   @Override
   public boolean next() throws ChangelogException
   {
-    if (cursor != null)
+    final ReplServerDBCursor localCursor = cursor;
+    if (localCursor != null)
     {
-      currentChange = cursor.next();
+      currentChange = localCursor.next();
     }
     else
     {
