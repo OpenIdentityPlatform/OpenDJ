@@ -98,8 +98,7 @@
 
     <para>Although they are both considered modify DN operations, renaming a
     leaf entry is generally much simpler than moving a container entry that has
-    child entries. Not all modify DN operations mobilize equivalent resources
-    on the directory server.</para>
+    child entries.</para>
    </listitem>
 
    <listitem>
