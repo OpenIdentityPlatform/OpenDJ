@@ -78,7 +78,7 @@ public class ReplServerFakeConfiguration implements ReplicationServerCfg
       int queueSize, int windowSize, SortedSet<String> servers)
   {
     this.port    = port;
-    this.dirName = dirName;
+    this.dirName = dirName != null ? dirName : "changelogDb";
 
     if (purgeDelay == 0)
     {
