@@ -2915,6 +2915,12 @@ attributeTypes: ( 1.3.6.1.4.1.26027.1.1.605
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
   SINGLE-VALUE
   X-ORIGIN 'OpenDS Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.133
+  NAME 'ds-cfg-compute-change-number'
+  EQUALITY booleanMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.7
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDJ Directory Server' )
 attributeTypes: ( 1.3.6.1.4.1.26027.1.1.607
   NAME 'ds-cfg-initialization-window-size'
   EQUALITY integerMatch
@@ -4507,7 +4513,8 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.64
         ds-cfg-assured-timeout $
         ds-cfg-degraded-status-threshold $
         ds-cfg-weight $
-        ds-cfg-monitoring-period)
+        ds-cfg-monitoring-period $
+        ds-cfg-compute-change-number )
   X-ORIGIN 'OpenDS Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.65
   NAME 'ds-backup-directory'
