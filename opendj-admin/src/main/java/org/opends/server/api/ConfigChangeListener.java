@@ -26,56 +26,40 @@
  */
 package org.opends.server.api;
 
-
-
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.types.ConfigChangeResult;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 
-
 /**
- * This interface defines the methods that a Directory Server
- * component should implement if it wishes to be able to receive
- * notification of changes to a configuration entry.
+ * This interface defines the methods that a Directory Server component should
+ * implement if it wishes to be able to receive notification of changes to a
+ * configuration entry.
  */
-@org.opends.server.types.PublicAPI(
-     stability=org.opends.server.types.StabilityLevel.VOLATILE,
-     mayInstantiate=false,
-     mayExtend=true,
-     mayInvoke=false)
-public interface ConfigChangeListener
-{
-  /**
-   * Indicates whether the configuration entry that will result from a
-   * proposed modification is acceptable to this change listener.
-   *
-   * @param  configEntry         The configuration entry that will
-   *                             result from the requested update.
-   * @param  unacceptableReason  A buffer to which this method can
-   *                             append a human-readable message
-   *                             explaining why the proposed change is
-   *                             not acceptable.
-   *
-   * @return  {@code true} if the proposed entry contains an
-   *          acceptable configuration, or {@code false} if it does
-   *          not.
-   */
-  public boolean configChangeIsAcceptable(ConfigEntry configEntry,
-                      LocalizableMessageBuilder unacceptableReason);
+public interface ConfigChangeListener {
+    /**
+     * Indicates whether the configuration entry that will result from a
+     * proposed modification is acceptable to this change listener.
+     *
+     * @param configEntry
+     *            The configuration entry that will result from the requested
+     *            update.
+     * @param unacceptableReason
+     *            A buffer to which this method can append a human-readable
+     *            message explaining why the proposed change is not acceptable.
+     * @return {@code true} if the proposed entry contains an acceptable
+     *         configuration, or {@code false} if it does not.
+     */
+    public boolean configChangeIsAcceptable(ConfigEntry configEntry, LocalizableMessageBuilder unacceptableReason);
 
-
-
-  /**
-   * Attempts to apply a new configuration to this Directory Server
-   * component based on the provided changed entry.
-   *
-   * @param  configEntry  The configuration entry that containing the
-   *                      updated configuration for this component.
-   *
-   * @return  Information about the result of processing the
-   *          configuration change.
-   */
-  public ConfigChangeResult applyConfigurationChange(
-                                 ConfigEntry configEntry);
+    /**
+     * Attempts to apply a new configuration to this Directory Server component
+     * based on the provided changed entry.
+     *
+     * @param configEntry
+     *            The configuration entry that containing the updated
+     *            configuration for this component.
+     * @return Information about the result of processing the configuration
+     *         change.
+     */
+    public ConfigChangeResult applyConfigurationChange(ConfigEntry configEntry);
 }
-

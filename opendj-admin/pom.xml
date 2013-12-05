@@ -86,6 +86,7 @@
             <configuration>
               <messageFiles>
                 <messageFile>com/forgerock/opendj/ldap/admin.properties</messageFile>
+                <messageFile>com/forgerock/opendj/ldap/config.properties</messageFile>
                 <messageFile>com/forgerock/opendj/ldap/protocol.properties</messageFile>
               </messageFiles>
             </configuration>

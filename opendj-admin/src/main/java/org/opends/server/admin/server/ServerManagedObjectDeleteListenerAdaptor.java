@@ -26,76 +26,59 @@
  */
 package org.opends.server.admin.server;
 
-
-
 import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.Configuration;
 import org.opends.server.types.ConfigChangeResult;
 
-
-
 /**
- * An adaptor class which converts
- * {@link ServerManagedObjectDeleteListener} callbacks to
- * {@link ConfigurationDeleteListener} callbacks.
+ * An adaptor class which converts {@link ServerManagedObjectDeleteListener}
+ * callbacks to {@link ConfigurationDeleteListener} callbacks.
  *
  * @param <T>
- *          The type of server managed object that this listener
- *          should be notified about.
+ *            The type of server managed object that this listener should be
+ *            notified about.
  */
-final class ServerManagedObjectDeleteListenerAdaptor<T extends Configuration>
-    implements ServerManagedObjectDeleteListener<T> {
+final class ServerManagedObjectDeleteListenerAdaptor<T extends Configuration> implements
+        ServerManagedObjectDeleteListener<T> {
 
-  // The underlying delete listener.
-  private final ConfigurationDeleteListener<T> listener;
+    // The underlying delete listener.
+    private final ConfigurationDeleteListener<T> listener;
 
+    /**
+     * Creates a new server managed object delete listener adaptor.
+     *
+     * @param listener
+     *            The underlying delete listener.
+     */
+    public ServerManagedObjectDeleteListenerAdaptor(ConfigurationDeleteListener<T> listener) {
+        this.listener = listener;
+    }
 
+    /**
+     * {@inheritDoc}
+     */
+    public ConfigChangeResult applyConfigurationDelete(ServerManagedObject<? extends T> mo) {
+        return listener.applyConfigurationDelete(mo.getConfiguration());
+    }
 
-  /**
-   * Creates a new server managed object delete listener adaptor.
-   *
-   * @param listener
-   *          The underlying delete listener.
-   */
-  public ServerManagedObjectDeleteListenerAdaptor(
-      ConfigurationDeleteListener<T> listener) {
-    this.listener = listener;
-  }
+    /**
+     * Gets the configuration delete listener associated with this adaptor.
+     *
+     * @return Returns the configuration delete listener associated with this
+     *         adaptor.
+     */
+    public ConfigurationDeleteListener<T> getConfigurationDeleteListener() {
+        return listener;
+    }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public ConfigChangeResult applyConfigurationDelete(
-      ServerManagedObject<? extends T> mo) {
-    return listener.applyConfigurationDelete(mo.getConfiguration());
-  }
-
-
-
-  /**
-   * Gets the configuration delete listener associated with this
-   * adaptor.
-   *
-   * @return Returns the configuration delete listener associated with
-   *         this adaptor.
-   */
-  public ConfigurationDeleteListener<T> getConfigurationDeleteListener() {
-    return listener;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public boolean isConfigurationDeleteAcceptable(
-      ServerManagedObject<? extends T> mo, List<LocalizableMessage> unacceptableReasons) {
-    return listener.isConfigurationDeleteAcceptable(mo.getConfiguration(),
-        unacceptableReasons);
-  }
+    /**
+     * {@inheritDoc}
+     */
+    public boolean isConfigurationDeleteAcceptable(ServerManagedObject<? extends T> mo,
+            List<LocalizableMessage> unacceptableReasons) {
+        return listener.isConfigurationDeleteAcceptable(mo.getConfiguration(), unacceptableReasons);
+    }
 
 }

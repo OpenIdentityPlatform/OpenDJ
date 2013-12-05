@@ -26,8 +26,6 @@
  */
 package org.opends.server.admin.server;
 
-
-
 import org.forgerock.i18n.LocalizableMessage;
 
 import java.util.List;
@@ -35,46 +33,39 @@ import java.util.List;
 import org.opends.server.admin.Configuration;
 import org.opends.server.types.ConfigChangeResult;
 
-
-
 /**
- * This interface defines the methods that a Directory Server
- * configurable component should implement if it wishes to be able to
- * receive notifications when an existing server managed object is
- * deleted.
+ * This interface defines the methods that a Directory Server configurable
+ * component should implement if it wishes to be able to receive notifications
+ * when an existing server managed object is deleted.
  *
  * @param <T>
- *          The type of server managed object that this listener
- *          should be notified about.
+ *            The type of server managed object that this listener should be
+ *            notified about.
  */
 public interface ServerManagedObjectDeleteListener<T extends Configuration> {
 
-  /**
-   * Indicates whether the proposed deletion of an existing server
-   * managed object is acceptable to this delete listener.
-   *
-   * @param mo
-   *          The server managed object that will be deleted.
-   * @param unacceptableReasons
-   *          A list that can be used to hold messages about why the
-   *          provided server managed object is not acceptable.
-   * @return Returns <code>true</code> if the proposed deletion is
-   *         acceptable, or <code>false</code> if it is not.
-   */
-  public boolean isConfigurationDeleteAcceptable(
-      ServerManagedObject<? extends T> mo, List<LocalizableMessage> unacceptableReasons);
+    /**
+     * Indicates whether the proposed deletion of an existing server managed
+     * object is acceptable to this delete listener.
+     *
+     * @param mo
+     *            The server managed object that will be deleted.
+     * @param unacceptableReasons
+     *            A list that can be used to hold messages about why the
+     *            provided server managed object is not acceptable.
+     * @return Returns <code>true</code> if the proposed deletion is acceptable,
+     *         or <code>false</code> if it is not.
+     */
+    public boolean isConfigurationDeleteAcceptable(ServerManagedObject<? extends T> mo,
+            List<LocalizableMessage> unacceptableReasons);
 
-
-
-  /**
-   * Deletes an existing server managed object from this delete
-   * listener.
-   *
-   * @param mo
-   *          The existing server managed object that will be deleted.
-   * @return Returns information about the result of deleting the
-   *         server managed object.
-   */
-  public ConfigChangeResult applyConfigurationDelete(
-      ServerManagedObject<? extends T> mo);
+    /**
+     * Deletes an existing server managed object from this delete listener.
+     *
+     * @param mo
+     *            The existing server managed object that will be deleted.
+     * @return Returns information about the result of deleting the server
+     *         managed object.
+     */
+    public ConfigChangeResult applyConfigurationDelete(ServerManagedObject<? extends T> mo);
 }

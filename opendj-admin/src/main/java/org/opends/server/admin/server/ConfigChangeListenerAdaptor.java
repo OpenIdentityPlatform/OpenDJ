@@ -34,7 +34,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-import com.forgerock.opendj.ldap.AdminMessages;
 import com.forgerock.opendj.util.StaticUtils;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -56,6 +55,7 @@ import org.opends.server.admin.RelativeInheritedDefaultBehaviorProvider;
 import org.opends.server.admin.UndefinedDefaultBehaviorProvider;
 import org.opends.server.api.ConfigChangeListener;
 import org.opends.server.api.ConfigDeleteListener;
+import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.ConfigChangeResult;
@@ -75,8 +75,8 @@ final class ConfigChangeListenerAdaptor<S extends Configuration> extends Abstrac
         ConfigChangeListener {
 
     private static final Logger debugLogger = LoggerFactory.getLogger(ConfigChangeListenerAdaptor.class);
-    private static final LocalizedLogger adminLogger = LocalizedLogger.getLocalizedLogger(
-            ERR_ADMIN_MANAGED_OBJECT_DOES_NOT_EXIST.get("").resourceName());
+    private static final LocalizedLogger adminLogger = LocalizedLogger
+            .getLocalizedLogger(ERR_ADMIN_MANAGED_OBJECT_DOES_NOT_EXIST.get("").resourceName());
 
     /**
      * A default behavior visitor used for determining the set of dependencies.
@@ -278,7 +278,7 @@ final class ConfigChangeListenerAdaptor<S extends Configuration> extends Abstrac
 
         DN parent = dn.parent();
         if (parent != null) {
-            ConfigEntry configEntry = getConfigEntry(dn.parent();
+            ConfigEntry configEntry = getConfigEntry(dn.parent());
             if (configEntry != null) {
                 configEntry.registerDeleteListener(cleanerListener);
             }
@@ -382,7 +382,7 @@ final class ConfigChangeListenerAdaptor<S extends Configuration> extends Abstrac
 
         // Now remove the cleaner listener as it will no longer be
         // needed.
-        ConfigEntry parentConfigEntry = getConfigEntry(dn.parent();
+        ConfigEntry parentConfigEntry = getConfigEntry(dn.parent());
         if (parentConfigEntry != null) {
             parentConfigEntry.deregisterDeleteListener(cleanerListener);
         }

@@ -28,6 +28,7 @@ package org.opends.server.api;
 
 
 
+import org.opends.server.config.ConfigEntry;
 import org.opends.server.types.ConfigChangeResult;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 

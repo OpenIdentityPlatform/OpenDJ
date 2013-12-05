@@ -26,77 +26,59 @@
  */
 package org.opends.server.admin.server;
 
-
-
 import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.Configuration;
 import org.opends.server.types.ConfigChangeResult;
 
-
-
 /**
- * An adaptor class which converts
- * {@link ServerManagedObjectChangeListener} callbacks to
- * {@link ConfigurationChangeListener} callbacks.
+ * An adaptor class which converts {@link ServerManagedObjectChangeListener}
+ * callbacks to {@link ConfigurationChangeListener} callbacks.
  *
  * @param <T>
- *          The type of server managed object that this listener
- *          should be notified about.
+ *            The type of server managed object that this listener should be
+ *            notified about.
  */
-final class ServerManagedObjectChangeListenerAdaptor<T extends Configuration>
-    implements ServerManagedObjectChangeListener<T> {
+final class ServerManagedObjectChangeListenerAdaptor<T extends Configuration> implements
+        ServerManagedObjectChangeListener<T> {
 
-  // The underlying change listener.
-  private final ConfigurationChangeListener<? super T> listener;
+    // The underlying change listener.
+    private final ConfigurationChangeListener<? super T> listener;
 
+    /**
+     * Creates a new server managed object change listener adaptor.
+     *
+     * @param listener
+     *            The underlying change listener.
+     */
+    public ServerManagedObjectChangeListenerAdaptor(ConfigurationChangeListener<? super T> listener) {
+        this.listener = listener;
+    }
 
+    /**
+     * {@inheritDoc}
+     */
+    public ConfigChangeResult applyConfigurationChange(ServerManagedObject<? extends T> mo) {
+        return listener.applyConfigurationChange(mo.getConfiguration());
+    }
 
-  /**
-   * Creates a new server managed object change listener adaptor.
-   *
-   * @param listener
-   *          The underlying change listener.
-   */
-  public ServerManagedObjectChangeListenerAdaptor(
-      ConfigurationChangeListener<? super T> listener) {
-    this.listener = listener;
-  }
+    /**
+     * Gets the configuration change listener associated with this adaptor.
+     *
+     * @return Returns the configuration change listener associated with this
+     *         adaptor.
+     */
+    public ConfigurationChangeListener<? super T> getConfigurationChangeListener() {
+        return listener;
+    }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public ConfigChangeResult applyConfigurationChange(
-      ServerManagedObject<? extends T> mo) {
-    return listener.applyConfigurationChange(mo.getConfiguration());
-  }
-
-
-
-  /**
-   * Gets the configuration change listener associated with this
-   * adaptor.
-   *
-   * @return Returns the configuration change listener associated with
-   *         this adaptor.
-   */
-  public ConfigurationChangeListener<? super T>
-  getConfigurationChangeListener() {
-    return listener;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public boolean isConfigurationChangeAcceptable(
-      ServerManagedObject<? extends T> mo, List<LocalizableMessage> unacceptableReasons) {
-    return listener.isConfigurationChangeAcceptable(mo.getConfiguration(),
-        unacceptableReasons);
-  }
+    /**
+     * {@inheritDoc}
+     */
+    public boolean isConfigurationChangeAcceptable(ServerManagedObject<? extends T> mo,
+            List<LocalizableMessage> unacceptableReasons) {
+        return listener.isConfigurationChangeAcceptable(mo.getConfiguration(), unacceptableReasons);
+    }
 
 }
