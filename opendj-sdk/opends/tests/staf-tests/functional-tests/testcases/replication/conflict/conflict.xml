@@ -152,6 +152,7 @@
                   testsList.append('replication_conflict_016')
                   testsList.append('replication_conflict_017')
                   testsList.append('replication_conflict_018')
+                  testsList.append('replication_conflict_019')
                 </script>
 
                 <!-- Execute the Tests -->
