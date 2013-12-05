@@ -2187,7 +2187,7 @@
         pidPath = '%s/logs/server.pid' % dsPath
         _args = '%s' % pidPath
       </script>
-
+      
       <call function="'runSTAFCommand'">
         { 'name'      :  'Read server pid file',
           'location'  :  location,
@@ -2196,14 +2196,35 @@
           'arguments' :  _args
         }
       </call>
+                   
+      <script>
+          pidSTAXResult = STAXResult
+          pid = STAXResult[:-1]
+      
+          cmd = '%s/bin/jstack' % JAVA_HOME
+          env = ['JAVA_HOME=%s' % JAVA_HOME]
+          cmdOptions = '-l %s' % pid
+          
+          outputPath = '%s/..' % (dsPath)
+      </script>
+      
+      <call function="'runCommand'" >
+        { 
+        'name'       : 'Run jstack' ,
+        'command'    : cmd ,
+        'arguments'  : cmdOptions ,
+        'location'   : location ,
+        'outputFile' : '%s/jstack.txt' % outputPath ,
+        'envCmd'     : env
+        }
+      </call>
                                 
       <script>
         if is_windows_platform(location):
           _cmd = 'tskill'
-          _args = STAXResult
+          _args = pidSTAXResult
         else:
           _cmd = '/bin/kill'
-          pid = STAXResult[:-1]
           _args = '-9 %s' % pid
       </script>
       <if expr="os.path.exists(os.path.join(dsPath,'lib','emma.jar')) == False">
