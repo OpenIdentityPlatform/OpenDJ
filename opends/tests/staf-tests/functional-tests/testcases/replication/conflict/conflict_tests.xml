@@ -3811,4 +3811,210 @@
     </testcase>
   </function>
 
+  <!--- Test Case information
+  #@TestMarker         Replication Conflict Tests
+  #@TestName           Replication: Conflict: double_mod_add_del_single
+  #@TestID             double_mod_add_del_single
+  #@TestPurpose        Double mod_add_del a single-valued attribute
+  #@TestPreamble
+  #@TestSteps          Add entry to server1 (employeeNumber=0)
+  #@TestSteps          Disconnect Replication Servers
+  #@TestSteps          server1: add employeeNumber=2, del employeeNumber=1
+  #@TestSteps          server2: add employeeNumber=3, del employeeNumber=1
+  #@TestSteps          Re-connect Replication Servers
+  #@TestSteps          Check employeeNumber=3 on both servers
+  #@TestPostamble
+  #@TestResult         Success if trees are synchronised
+  -->
+  <function name="replication_conflict_019" scope="local">
+    <testcase name="getTestCaseName('double_mod_add_del_single')">                     
+      <sequence> 
+        <try>
+          <sequence>
+       
+            <call function="'testCase_Preamble'"/>
+
+            <message>
+               'Test Name = %s' % STAXCurrentTestcase
+            </message>
+
+            <message>
+              'Replication: Conflict: double_mod_add_del_single. \
+              Double mod_add_del a single-valued attribute'
+            </message>
+                                                              
+            <!-- Operation -->
+            <script>
+              server1del = ['employeeNumber:1']
+              server1add = ['employeeNumber:2']
+              server2del = ['employeeNumber:1']
+              server2add = ['employeeNumber:3']
+              server1mods = [server1del, server1add]
+              server2mods = [server2del, server2add]
+              mods = [server1mods, server2mods]
+            </script>
+            
+            <!-- Add entry to server1 -->
+            <script>
+              myEntry = Entry('cn=A4')
+              myEntry.addAttr('employeeNumber', '1')
+            </script>
+            <call function="'addAnEntry'">
+              { 'location'       : server1Host,
+                'dsPath'         : server1Path,
+                'dsInstanceHost' : server1Host,
+                'dsInstancePort' : server1.getPort(),
+                'dsInstanceDn'   : server1.getRootDn(),
+                'dsInstancePswd' : server1.getRootPwd(),
+                'DNToAdd'        : myEntry.getDn(),
+                'listAttributes' : myEntry.getAttrList()
+              }
+            </call>
+
+            <!-- Disconnect Replication Servers -->
+            <call function="'disconnectReplicationServers'">
+              [ clientHost, clientPath, [replServer1, replServer2] ]
+            </call>
+
+            <iterate var="server"
+                     in="[server1, server2]"
+                     indexvar="i">
+              <sequence>
+                <!-- Modify entry on one of the servers -->
+                <call function="'modifyAnAttribute'">
+                  { 'location'       : server.getHostname(),
+                    'dsPath'         : '%s/%s' \
+                                       % (server.getDir(), OPENDSNAME),
+                    'dsInstanceHost' : server.getHostname(),
+                    'dsInstancePort' : server.getPort(),
+                    'dsInstanceDn'   : server.getRootDn(),
+                    'dsInstancePswd' : server.getRootPwd(),
+                    'DNToModify'     : myEntry.getDn(),
+                    'listAttributes' : mods[i][0],
+                    'changetype'     : 'delete'
+                  }
+                </call>
+                <call function="'modifyAnAttribute'">
+                  { 'location'       : server.getHostname(),
+                    'dsPath'         : '%s/%s' \
+                                       % (server.getDir(), OPENDSNAME),
+                    'dsInstanceHost' : server.getHostname(),
+                    'dsInstancePort' : server.getPort(),
+                    'dsInstanceDn'   : server.getRootDn(),
+                    'dsInstancePswd' : server.getRootPwd(),
+                    'DNToModify'     : myEntry.getDn(),
+                    'listAttributes' : mods[i][1],
+                    'changetype'     : 'add'
+                  }
+                </call>
+              </sequence>
+            </iterate>
+
+            <!-- Check modifies have not been propagated -->
+            <paralleliterate var="server" in="[server1, server2]">
+              <sequence>
+                <call function="'ldapSearchWithScript'">
+                  { 'location'       : server.getHostname(),
+                    'dsPath'         : '%s/%s' \
+                                       % (server.getDir(), OPENDSNAME),
+                    'dsInstanceHost' : server.getHostname(),
+                    'dsInstancePort' : server.getPort(),
+                    'dsInstanceDn'   : server.getRootDn(),
+                    'dsInstancePswd' : server.getRootPwd(),
+                    'dsBaseDN'       : myEntry.getDn(),
+                    'dsFilter'       : 'objectclass=*',
+                    'dsAttributes'   : 'employeeNumber',
+                    'logStderr'      : False
+                  }                
+                </call>                
+                <script>
+                  searchRC = STAXResult[0][0]
+                  searchResult = STAXResult[0][1]
+                  resultLength = len(searchResult) > 0
+                </script>
+                <if expr="resultLength != 0">
+                  <sequence>
+                    <message>
+                      '+++++++++++ LDAPSEARCH RESULT for %s:%s ++++++++\n%s' \
+                      % (server.getHostname(), server.getPort(), searchResult)
+                    </message>
+                  </sequence>
+                </if>
+              </sequence>                  
+            </paralleliterate>
+              
+            <!-- Reconnect Replication Servers -->
+            <call function="'reconnectReplicationServers'">
+              [ clientHost, clientPath, [replServer1, replServer2] ]
+            </call>
+
+            <!-- Check conflict is resolved -->
+            <paralleliterate var="server" in="[server1, server2]">
+              <sequence>
+                <call function="'ldapSearchWithScript'">
+                  { 'location'       : server.getHostname(),
+                    'dsPath'         : '%s/%s' \
+                                       % (server.getDir(), OPENDSNAME),
+                    'dsInstanceHost' : server.getHostname(),
+                    'dsInstancePort' : server.getPort(),
+                    'dsInstanceDn'   : server.getRootDn(),
+                    'dsInstancePswd' : server.getRootPwd(),
+                    'dsBaseDN'       : myEntry.getDn(),
+                    'dsFilter'       : 'objectclass=*',
+                    'dsAttributes'   : 'employeeNumber',
+                    'logStderr'      : False
+                  }                
+                </call>                
+                <script>
+                  searchRC = STAXResult[0][0]
+                  searchResult = STAXResult[0][1]
+                  resultLength = len(searchResult) > 0
+                </script>
+                <if expr="resultLength != 0">
+                  <sequence>
+                    <message>
+                      '+++++++++++ LDAPSEARCH RESULT for %s:%s ++++++++\n%s' \
+                      % (server.getHostname(), server.getPort(), searchResult)
+                    </message>
+                  </sequence>
+                </if>
+              </sequence>                  
+            </paralleliterate>
+
+            <!-- Verify the synchronization of the trees among the servers in 
+              the topology -->
+            <call function="'verifyTrees'">
+              [ clientHost, clientPath, server1, [server2], synchroSuffix,
+                'OPENDJ-1192' ]
+            </call> 
+
+            <!-- Delete added entry -->
+            <call function="'ldapDeleteWithScript'">
+              { 'location'       : clientHost,
+                'dsPath'         : clientPath,
+                'dsInstanceHost' : server1Host,
+                'dsInstancePort' : server1.getPort(),
+                'dsInstanceDn'   : server1.getRootDn(),
+                'dsInstancePswd' : server1.getRootPwd(),
+                'dsDn'           : [myEntry.getDn()]
+              }
+            </call>
+
+          </sequence>
+  
+          <catch exception="'STAXException'" typevar="eType" var="eInfo">
+            <message log="1" level="'fatal'">
+              '%s: Test failed. eInfo(%s)' % (eType,eInfo)
+            </message>
+          </catch>
+          <finally>
+            <sequence>
+              <call function="'testCase_Postamble'"/>
+            </sequence>
+          </finally>
+        </try>
+      </sequence>
+    </testcase>
+  </function>
+
 </stax>
