@@ -347,6 +347,17 @@ public class ChangeNumberIndexer extends DirectoryThread
 
   /** {@inheritDoc} */
   @Override
+  public void initiateShutdown()
+  {
+    super.initiateShutdown();
+    synchronized (this)
+    {
+      notify();
+    }
+  }
+
+  /** {@inheritDoc} */
+  @Override
   public void run()
   {
     try
@@ -380,6 +391,10 @@ public class ChangeNumberIndexer extends DirectoryThread
           {
             synchronized (this)
             {
+              if (isShutdownInitiated())
+              {
+                continue;
+              }
               wait();
             }
             // advance cursor, success/failure will be checked later
@@ -400,7 +415,8 @@ public class ChangeNumberIndexer extends DirectoryThread
             synchronized (this)
             {
               // double check to protect against a missed call to notify()
-              if (!canMoveForwardMediumConsistencyPoint(baseDN))
+              if (!isShutdownInitiated()
+                  && !canMoveForwardMediumConsistencyPoint(baseDN))
               {
                 wait();
                 // loop to check if changes older than the medium consistency

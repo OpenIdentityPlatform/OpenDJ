@@ -363,7 +363,10 @@ public class JEReplicaDB implements Runnable
               }
               catch (InterruptedException e)
               {
-                Thread.currentThread().interrupt();
+                // Do not reset the interrupt flag here,
+                // because otherwise JE will barf next time flush() is called:
+                // JE 5.0.97 refuses to persist changes to the DB when invoked
+                // from a Thread with the interrupt flag set to true.
               }
             }
           }
