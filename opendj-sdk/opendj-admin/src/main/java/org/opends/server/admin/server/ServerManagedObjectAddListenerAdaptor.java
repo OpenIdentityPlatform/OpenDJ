@@ -26,75 +26,58 @@
  */
 package org.opends.server.admin.server;
 
-
-
 import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.Configuration;
 import org.opends.server.types.ConfigChangeResult;
 
-
-
 /**
- * An adaptor class which converts
- * {@link ServerManagedObjectAddListener} callbacks to
- * {@link ConfigurationAddListener} callbacks.
+ * An adaptor class which converts {@link ServerManagedObjectAddListener}
+ * callbacks to {@link ConfigurationAddListener} callbacks.
  *
  * @param <T>
- *          The type of server managed object that this listener
- *          should be notified about.
+ *            The type of server managed object that this listener should be
+ *            notified about.
  */
-final class ServerManagedObjectAddListenerAdaptor<T extends Configuration>
-    implements ServerManagedObjectAddListener<T> {
+final class ServerManagedObjectAddListenerAdaptor<T extends Configuration> implements ServerManagedObjectAddListener<T> {
 
-  // The underlying add listener.
-  private final ConfigurationAddListener<T> listener;
+    // The underlying add listener.
+    private final ConfigurationAddListener<T> listener;
 
+    /**
+     * Creates a new server managed object add listener adaptor.
+     *
+     * @param listener
+     *            The underlying add listener.
+     */
+    public ServerManagedObjectAddListenerAdaptor(ConfigurationAddListener<T> listener) {
+        this.listener = listener;
+    }
 
+    /**
+     * {@inheritDoc}
+     */
+    public ConfigChangeResult applyConfigurationAdd(ServerManagedObject<? extends T> mo) {
+        return listener.applyConfigurationAdd(mo.getConfiguration());
+    }
 
-  /**
-   * Creates a new server managed object add listener adaptor.
-   *
-   * @param listener
-   *          The underlying add listener.
-   */
-  public ServerManagedObjectAddListenerAdaptor(
-      ConfigurationAddListener<T> listener) {
-    this.listener = listener;
-  }
+    /**
+     * Gets the configuration add listener associated with this adaptor.
+     *
+     * @return Returns the configuration add listener associated with this
+     *         adaptor.
+     */
+    public ConfigurationAddListener<T> getConfigurationAddListener() {
+        return listener;
+    }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public ConfigChangeResult applyConfigurationAdd(
-      ServerManagedObject<? extends T> mo) {
-    return listener.applyConfigurationAdd(mo.getConfiguration());
-  }
-
-
-
-  /**
-   * Gets the configuration add listener associated with this adaptor.
-   *
-   * @return Returns the configuration add listener associated with
-   *         this adaptor.
-   */
-  public ConfigurationAddListener<T> getConfigurationAddListener() {
-    return listener;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public boolean isConfigurationAddAcceptable(
-      ServerManagedObject<? extends T> mo, List<LocalizableMessage> unacceptableReasons) {
-    return listener.isConfigurationAddAcceptable(mo.getConfiguration(),
-        unacceptableReasons);
-  }
+    /**
+     * {@inheritDoc}
+     */
+    public boolean isConfigurationAddAcceptable(ServerManagedObject<? extends T> mo,
+            List<LocalizableMessage> unacceptableReasons) {
+        return listener.isConfigurationAddAcceptable(mo.getConfiguration(), unacceptableReasons);
+    }
 
 }

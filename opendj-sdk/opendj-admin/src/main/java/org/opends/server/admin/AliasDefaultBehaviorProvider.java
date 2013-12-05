@@ -94,7 +94,7 @@ public final class AliasDefaultBehaviorProvider<T> extends DefaultBehaviorProvid
     public final LocalizableMessage getSynopsis(Locale locale) {
         ManagedObjectDefinitionI18NResource resource = ManagedObjectDefinitionI18NResource.getInstance();
         String property = "property." + propertyName + ".default-behavior.alias.synopsis";
-        return resource.getLocalizableMessage(definition, property, locale);
+        return resource.getMessage(definition, property, locale);
     }
 
 }

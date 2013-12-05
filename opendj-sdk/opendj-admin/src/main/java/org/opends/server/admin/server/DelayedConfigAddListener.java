@@ -28,6 +28,7 @@ package org.opends.server.admin.server;
 
 import org.opends.server.api.ConfigAddListener;
 import org.opends.server.api.ConfigDeleteListener;
+import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.ConfigChangeResult;

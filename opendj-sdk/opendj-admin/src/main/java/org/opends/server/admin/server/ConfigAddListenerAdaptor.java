@@ -44,6 +44,7 @@ import org.opends.server.admin.OptionalRelationDefinition;
 import org.opends.server.admin.SetRelationDefinition;
 import org.opends.server.admin.DefinitionDecodingException.Reason;
 import org.opends.server.api.ConfigAddListener;
+import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.ConfigChangeResult;
 import org.forgerock.opendj.ldap.DN;
@@ -206,7 +207,7 @@ final class ConfigAddListenerAdaptor<S extends Configuration> extends
   public boolean configAddIsAcceptable(ConfigEntry configEntry,
       LocalizableMessageBuilder unacceptableReason) {
     DN dn = configEntry.getDN();
-    AttributeValue av = dn.getRDN().getAttributeValue(0);
+    AttributeValue av = dn.rdn().getAttributeValue(0);
     String name = av.getValue().toString().trim();
 
     try {

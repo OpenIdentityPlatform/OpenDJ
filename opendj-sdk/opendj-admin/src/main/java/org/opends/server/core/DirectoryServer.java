@@ -25,7 +25,11 @@
  */
 package org.opends.server.core;
 
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.schema.AttributeType;
+import org.forgerock.opendj.ldap.schema.ObjectClass;
+import org.opends.server.config.ConfigEntry;
+import org.opends.server.config.ConfigException;
 
 /**
  *  TODO : this is a stub
@@ -41,6 +45,26 @@ public class DirectoryServer {
     }
 
     public static String getServerRoot() {
+        throw new RuntimeException("Not implemented");
+    }
+
+    public static ObjectClass getObjectClass(String lowerCase) {
+        throw new RuntimeException("Not implemented");
+    }
+
+    public static ObjectClass getDefaultObjectClass(String name) {
+        throw new RuntimeException("Not implemented");
+    }
+
+    public static AttributeType getAttributeType(String lowerCase) {
+        throw new RuntimeException("Not implemented");
+    }
+
+    public static AttributeType getDefaultAttributeType(String attrName) {
+        throw new RuntimeException("Not implemented");
+    }
+
+    public static ConfigEntry getConfigEntry(DN dn) throws ConfigException {
         throw new RuntimeException("Not implemented");
     }
 
