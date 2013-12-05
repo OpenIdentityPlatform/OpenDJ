@@ -41,7 +41,6 @@ import org.opends.server.replication.protocol.DeleteMsg;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
-import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.api.DBCursor;
 import org.opends.server.types.DN;
 import org.opends.server.util.StaticUtils;
@@ -221,17 +220,14 @@ public class JEReplicaDBTest extends ReplicationTestCase
     }
   }
 
-  private void assertNotFound(JEReplicaDB replicaDB, CSN csn)
+  private void assertNotFound(JEReplicaDB replicaDB, CSN csn) throws Exception
   {
     DBCursor<UpdateMsg> cursor = null;
     try
     {
       cursor = replicaDB.generateCursorFrom(csn);
-      fail("Expected exception");
-    }
-    catch (ChangelogException e)
-    {
-      assertEquals(e.getLocalizedMessage(), "CSN not available");
+      assertFalse(cursor.next());
+      assertNull(cursor.getRecord());
     }
     finally
     {
