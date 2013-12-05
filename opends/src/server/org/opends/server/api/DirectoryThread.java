@@ -416,7 +416,6 @@ public class DirectoryThread extends Thread
   public void initiateShutdown()
   {
     setThreadStateIfNotShuttingDown(ThreadState.SHUTTING_DOWN);
-    interrupt();
   }
 
   /**
