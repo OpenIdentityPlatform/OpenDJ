@@ -32,7 +32,7 @@ import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 
 /**
- *  TODO : this is a stub
+ * TODO : this is a stub
  */
 public class DirectoryServer {
 
@@ -53,14 +53,6 @@ public class DirectoryServer {
     }
 
     public static ObjectClass getDefaultObjectClass(String name) {
-        throw new RuntimeException("Not implemented");
-    }
-
-    public static AttributeType getAttributeType(String lowerCase) {
-        throw new RuntimeException("Not implemented");
-    }
-
-    public static AttributeType getDefaultAttributeType(String attrName) {
         throw new RuntimeException("Not implemented");
     }
 
