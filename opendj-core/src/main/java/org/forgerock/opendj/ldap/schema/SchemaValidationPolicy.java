@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2011-2012 ForgeRock AS
+ *      Copyright 2011-2013 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.schema;
@@ -403,6 +403,21 @@ public final class SchemaValidationPolicy {
     public SchemaValidationPolicy requireSingleStructuralObjectClass(final Action policy) {
         this.requireSingleStructuralObjectClass = policy;
         return this;
+    }
+
+    /**
+     * Returns a strict view of the provided schema if the this policy is
+     * configured to check attributes and object class, or a non-strict view of
+     * the schema if not.
+     *
+     * @param schema
+     *            The schema to be adapted according to this policy.
+     * @return A strict or non-strict view of {@code schema} depending on
+     *         {@link #checkAttributesAndObjectClasses()}.
+     */
+    public Schema adaptSchemaForValidation(final Schema schema) {
+        return checkAttributesAndObjectClasses().needsChecking() ? schema.asStrictSchema() : schema
+                .asNonStrictSchema();
     }
 
     // Assigns the provided options to this set of options.

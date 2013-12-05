@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2012 ForgeRock AS
+ *      Portions copyright 2011-2013 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldif;
@@ -375,9 +375,7 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader implements 
      */
     public LDIFChangeRecordReader setSchema(final Schema schema) {
         Validator.ensureNotNull(schema);
-        this.schema =
-                schemaValidationPolicy.checkAttributesAndObjectClasses().needsChecking() ? schema
-                        .asStrictSchema() : schema.asNonStrictSchema();
+        this.schema = schemaValidationPolicy.adaptSchemaForValidation(schema);
         return this;
     }
 
@@ -398,9 +396,7 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader implements 
      */
     public LDIFChangeRecordReader setSchemaValidationPolicy(final SchemaValidationPolicy policy) {
         this.schemaValidationPolicy = SchemaValidationPolicy.copyOf(policy);
-        this.schema =
-                schemaValidationPolicy.checkAttributesAndObjectClasses().needsChecking() ? schema
-                        .asStrictSchema() : schema.asNonStrictSchema();
+        this.schema = schemaValidationPolicy.adaptSchemaForValidation(schema);
         return this;
     }
 
