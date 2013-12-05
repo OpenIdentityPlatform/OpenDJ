@@ -45,6 +45,7 @@ import org.opends.server.api.MonitorProvider;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.common.*;
+import org.opends.server.replication.plugin.MultimasterReplication;
 import org.opends.server.replication.protocol.*;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.api.DBCursor;
@@ -1720,7 +1721,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
 
     stopAllServers(true);
 
-    domainDB.shutdownDomain(baseDN);
+    MultimasterReplication.deleteDomain(baseDN);
   }
 
   /**
