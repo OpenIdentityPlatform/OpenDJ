@@ -228,7 +228,8 @@ public class ECLSearchOperation
       // search processing.
       baseDN = getBaseDN();
       filter = getFilter();
-      if ((baseDN == null) || (filter == null)){
+      if (baseDN == null || filter == null)
+      {
         break searchProcessing;
       }
 
@@ -367,11 +368,10 @@ public class ECLSearchOperation
    * @throws  DirectoryException  If there is a problem with any of the request
    *                              controls.
    */
-  private void handleRequestControls()
-  throws DirectoryException
+  private void handleRequestControls() throws DirectoryException
   {
     List<Control> requestControls  = getRequestControls();
-    if ((requestControls != null) && (! requestControls.isEmpty()))
+    if (requestControls != null && !requestControls.isEmpty())
     {
       for (Control c : requestControls)
       {
@@ -468,7 +468,7 @@ public class ECLSearchOperation
           addAdditionalLogItem(AdditionalLogItem.keyOnly(getClass(),
               "obsoleteProxiedAuthzV1Control"));
 
-          // The requester must have the PROXIED_AUTH privilige in order to be
+          // The requester must have the PROXIED_AUTH privilege in order to be
           // able to use this control.
           if (! clientConnection.hasPrivilege(Privilege.PROXIED_AUTH, this))
           {
@@ -492,7 +492,7 @@ public class ECLSearchOperation
         }
         else if (oid.equals(OID_PROXIED_AUTH_V2))
         {
-          // The requester must have the PROXIED_AUTH privilige in order to be
+          // The requester must have the PROXIED_AUTH privilege in order to be
           // able to use this control.
           if (! clientConnection.hasPrivilege(Privilege.PROXIED_AUTH, this))
           {
@@ -571,14 +571,12 @@ public class ECLSearchOperation
         }
 
         // TODO: Add support for additional controls, including VLV
-        else if (c.isCritical())
+        else if (c.isCritical()
+            && (replicationServer == null || !supportsControl(oid)))
         {
-          if ((replicationServer == null) || (! supportsControl(oid)))
-          {
-            throw new DirectoryException(
-                ResultCode.UNAVAILABLE_CRITICAL_EXTENSION,
-                ERR_SEARCH_UNSUPPORTED_CRITICAL_CONTROL.get(oid));
-          }
+          throw new DirectoryException(
+              ResultCode.UNAVAILABLE_CRITICAL_EXTENSION,
+              ERR_SEARCH_UNSUPPORTED_CRITICAL_CONTROL.get(oid));
         }
       }
     }
@@ -605,14 +603,11 @@ public class ECLSearchOperation
       if (CHANGELOG_ROOT_DN.matchesBaseAndScope(baseDN, getScope()))
       {
         final Entry entry = createRootEntry(update != null);
-        if (filter.matchesEntry(entry))
+        if (filter.matchesEntry(entry) && !returnEntry(entry, null))
         {
-          if (!returnEntry(entry, null))
-          {
-            // Abandon, Size limit reached.
-            abortECLSession = true;
-            return;
-          }
+          // Abandon, Size limit reached.
+          abortECLSession = true;
+          return;
         }
       }
 
@@ -707,11 +702,8 @@ public class ECLSearchOperation
    */
   private boolean matchScopeAndFilter(Entry entry) throws DirectoryException
   {
-    if (entry.matchesBaseAndScope(getBaseDN(), getScope()))
-    {
-      return getFilter().matchesEntry(entry);
-    }
-    return false;
+    return entry.matchesBaseAndScope(getBaseDN(), getScope())
+        && getFilter().matchesEntry(entry);
   }
 
   /**
@@ -1083,9 +1075,7 @@ public class ECLSearchOperation
         uAttrs, operationalAttrs);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public CancelResult cancel(CancelRequest cancelRequest)
   {
@@ -1095,9 +1085,7 @@ public class ECLSearchOperation
     return super.cancel(cancelRequest);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void abort(CancelRequest cancelRequest)
   {
@@ -1189,20 +1177,17 @@ public class ECLSearchOperation
       int sn = Integer.decode(
           sf.getAssertionValue().getNormalizedValue().toString());
       startCLmsg.setFirstChangeNumber(sn);
-      return startCLmsg;
     }
     else if (matches(sf, FilterType.LESS_OR_EQUAL, "changeNumber"))
     {
       int sn = Integer.decode(
           sf.getAssertionValue().getNormalizedValue().toString());
       startCLmsg.setLastChangeNumber(sn);
-      return startCLmsg;
     }
     else if (matches(sf, FilterType.EQUALITY, "replicationcsn"))
     {
       // == exact CSN
       startCLmsg.setCSN(new CSN(sf.getAssertionValue().toString()));
-      return startCLmsg;
     }
     else if (matches(sf, FilterType.EQUALITY, "changenumber"))
     {
@@ -1210,7 +1195,6 @@ public class ECLSearchOperation
           sf.getAssertionValue().getNormalizedValue().toString());
       startCLmsg.setFirstChangeNumber(sn);
       startCLmsg.setLastChangeNumber(sn);
-      return startCLmsg;
     }
     else if (sf.getFilterType() == FilterType.AND)
     {
@@ -1243,12 +1227,8 @@ public class ECLSearchOperation
         startCLmsg.setLastChangeNumber(Math.min(l1, l2));
 
       startCLmsg.setFirstChangeNumber(Math.max(f1,f2));
-      return startCLmsg;
     }
-    else
-    {
-      return startCLmsg;
-    }
+    return startCLmsg;
   }
 
   private static boolean matches(SearchFilter sf, FilterType filterType,

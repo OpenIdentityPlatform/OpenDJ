@@ -29,6 +29,8 @@ package org.opends.server.extensions;
 
 
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -43,10 +45,8 @@ import org.opends.server.core.ExtendedOperation;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.*;
 
-import static org.opends.messages.ExtensionMessages
-    .ERR_EXTOP_WHOAMI_PROXYAUTH_INSUFFICIENT_PRIVILEGES;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
+import static org.opends.messages.ExtensionMessages.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 
 
@@ -62,8 +62,10 @@ public class WhoAmIExtendedOperation
    */
   private static final DebugTracer TRACER = getTracer();
 
-  // The default set of supported control OIDs for this extended
-  private Set<String> supportedControlOIDs = new HashSet<String>(0);
+  /** The default set of supported control OIDs for this extended. */
+  private final Set<String> supportedControlOIDs =
+      Collections.unmodifiableSet(new HashSet<String>(Arrays.asList(
+          OID_PROXIED_AUTH_V1, OID_PROXIED_AUTH_V2)));
 
 
   /**
@@ -98,10 +100,6 @@ public class WhoAmIExtendedOperation
                    WhoAmIExtendedOperationHandlerCfg config)
          throws ConfigException, InitializationException
   {
-    supportedControlOIDs = new HashSet<String>(2);
-    supportedControlOIDs.add(OID_PROXIED_AUTH_V1);
-    supportedControlOIDs.add(OID_PROXIED_AUTH_V2);
-
     DirectoryServer.registerSupportedExtension(OID_WHO_AM_I_REQUEST, this);
 
     registerControlsAndFeatures();
@@ -121,22 +119,14 @@ public class WhoAmIExtendedOperation
     deregisterControlsAndFeatures();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public Set<String> getSupportedControls()
   {
     return supportedControlOIDs;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public void processExtendedOperation(ExtendedOperation operation)
   {
@@ -152,8 +142,8 @@ public class WhoAmIExtendedOperation
           operation.getRequestControl(ProxiedAuthV2Control.DECODER);
       if(proxyControlV1 != null || proxyControlV2 != null)
       {
-        // The requester must have the PROXIED_AUTH privilige in order to
-        // be able to use this control.
+        // The requester must have the PROXIED_AUTH privilege in order to be
+        // able to use this control.
         if (! clientConnection.hasPrivilege(Privilege.PROXIED_AUTH,
             operation))
         {
@@ -201,7 +191,7 @@ public class WhoAmIExtendedOperation
     }
     else
     {
-      authzID = "dn:" + authzDN.toString();
+      authzID = "dn:" + authzDN;
     }
 
     operation.setResponseValue(ByteString.valueOf(authzID));
@@ -210,11 +200,7 @@ public class WhoAmIExtendedOperation
     operation.setResultCode(ResultCode.SUCCESS);
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String getExtendedOperationName()
   {
