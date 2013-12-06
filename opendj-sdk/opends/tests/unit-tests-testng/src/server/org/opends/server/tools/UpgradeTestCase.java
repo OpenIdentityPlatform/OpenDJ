@@ -250,7 +250,6 @@ public class UpgradeTestCase extends ToolsTestCase
     finally
     {
       StaticUtils.close(ps, baos);
-      TestCaseUtils.shutdownServer("testUpgradeToolAllowsNonInteractiveAndForce");
     }
   }
 }
