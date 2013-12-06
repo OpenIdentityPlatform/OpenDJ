@@ -30,6 +30,7 @@ package org.forgerock.opendj.ldif;
 import static org.fest.assertions.Assertions.assertThat;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -51,7 +52,9 @@ import org.forgerock.opendj.ldap.requests.DeleteRequest;
 import org.forgerock.opendj.ldap.requests.ModifyRequest;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
+import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.forgerock.opendj.ldap.schema.Schema;
+import org.forgerock.opendj.ldap.schema.SchemaBuilder;
 import org.testng.annotations.Test;
 
 /**
@@ -216,15 +219,13 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
                 Requests.newSearchRequest("dc=example,dc=com", SearchScope.WHOLE_SUBTREE, "uid=*");
 
         final EntryReader resultReader = LDIF.search(reader, sr, Schema.getEmptySchema());
-        if (resultReader.hasNext()) {
-            Entry entry = resultReader.readEntry();
-            assertThat(entry.getName().toString()).isEqualTo(
-                    "uid=user.0,ou=People,dc=example,dc=com");
-            assertThat(entry.getAttributeCount()).isEqualTo(2);
-            assertThat(entry.getAttribute("uid")).isNotNull();
-            assertThat(entry.getAttribute("uid").getAttributeDescription()).isNotNull();
-            assertThat(entry.getAttribute("uid").firstValueAsString()).isNotNull();
-        }
+        final Entry entry = resultReader.readEntry();
+        assertThat(entry.getName().toString()).isEqualTo("uid=user.0,ou=People,dc=example,dc=com");
+        assertThat(entry.getAttributeCount()).isEqualTo(2);
+        assertThat(entry.getAttribute("uid")).isNotNull();
+        assertThat(entry.getAttribute("uid").getAttributeDescription()).isNotNull();
+        assertThat(entry.getAttribute("uid").firstValueAsString()).isNotNull();
+
         resultReader.close();
     }
 
@@ -254,15 +255,13 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
                         .setTypesOnly(true);
 
         final EntryReader resultReader = LDIF.search(reader, sr, Schema.getEmptySchema());
-        if (resultReader.hasNext()) {
-            Entry entry = resultReader.readEntry();
-            assertThat(entry.getName().toString()).isEqualTo(
-                    "uid=user.0,ou=People,dc=example,dc=com");
-            assertThat(entry.getAttributeCount()).isEqualTo(2);
-            assertThat(entry.getAttribute("uid")).isNotNull();
-            assertThat(entry.getAttribute("uid").getAttributeDescription()).isNotNull();
-            assertThat(entry.getAttribute("uid")).isEmpty();
-        }
+        final Entry entry = resultReader.readEntry();
+        assertThat(entry.getName().toString()).isEqualTo("uid=user.0,ou=People,dc=example,dc=com");
+        assertThat(entry.getAttributeCount()).isEqualTo(2);
+        assertThat(entry.getAttribute("uid")).isNotNull();
+        assertThat(entry.getAttribute("uid").getAttributeDescription()).isNotNull();
+        assertThat(entry.getAttribute("uid")).isEmpty();
+
         resultReader.close();
     }
 
@@ -290,15 +289,13 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
                         "(uid=user.0)", "*");
 
         final EntryReader resultReader = LDIF.search(reader, sr, Schema.getEmptySchema());
-        if (resultReader.hasNext()) {
-            Entry entry = resultReader.readEntry();
-            assertThat(entry.getName().toString()).isEqualTo(
-                    "uid=user.0,ou=People,dc=example,dc=com");
-            assertThat(entry.getAttributeCount()).isEqualTo(2);
-            assertThat(entry.getAttribute("uid")).isNotNull();
-            assertThat(entry.getAttribute("uid").getAttributeDescription()).isNotNull();
-            assertThat(entry.getAttribute("uid").firstValueAsString()).isEqualTo("user.0");
-        }
+        final Entry entry = resultReader.readEntry();
+        assertThat(entry.getName().toString()).isEqualTo("uid=user.0,ou=People,dc=example,dc=com");
+        assertThat(entry.getAttributeCount()).isEqualTo(2);
+        assertThat(entry.getAttribute("uid")).isNotNull();
+        assertThat(entry.getAttribute("uid").getAttributeDescription()).isNotNull();
+        assertThat(entry.getAttribute("uid").firstValueAsString()).isEqualTo("user.0");
+
         resultReader.close();
     }
 
@@ -326,20 +323,17 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
                         "(uid=user.0)", "*").setTypesOnly(true);
 
         final EntryReader resultReader = LDIF.search(reader, sr, Schema.getEmptySchema());
+        final Entry entry = resultReader.readEntry();
+        assertThat(entry.getName().toString()).isEqualTo("uid=user.0,ou=People,dc=example,dc=com");
+        assertThat(entry.getAttributeCount()).isEqualTo(2);
+        assertThat(entry.getAttribute("objectClass")).isNotNull();
+        assertThat(entry.getAttribute("uid")).isNotNull();
+        assertThat(entry.getAttribute("uid").getAttributeDescription()).isNotNull();
+        assertThat(entry.getAttribute("uid")).isEmpty();
+        // The following assert throws an exception because it contains only
+        // attribute descriptions (and not values) are to be returned.
+        assertThat(entry.getAttribute("uid").firstValueAsString()).isNull();
 
-        if (resultReader.hasNext()) {
-            Entry entry = resultReader.readEntry();
-            assertThat(entry.getName().toString()).isEqualTo(
-                    "uid=user.0,ou=People,dc=example,dc=com");
-            assertThat(entry.getAttributeCount()).isEqualTo(2);
-            assertThat(entry.getAttribute("objectClass")).isNotNull();
-            assertThat(entry.getAttribute("uid")).isNotNull();
-            assertThat(entry.getAttribute("uid").getAttributeDescription()).isNotNull();
-            assertThat(entry.getAttribute("uid")).isEmpty();
-            // The following assert throws an exception because it contains only
-            // attribute descriptions (and not values) are to be returned.
-            assertThat(entry.getAttribute("uid").firstValueAsString()).isNull();
-        }
         resultReader.close();
     }
 
@@ -372,17 +366,15 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
                         "(uid=user.0)", "+");
 
         final EntryReader resultReader = LDIF.search(reader, sr, Schema.getCoreSchema());
-        if (resultReader.hasNext()) {
-            Entry entry = resultReader.readEntry();
-            assertThat(entry.getName().toString()).isEqualTo(
-                    "uid=user.0,ou=People,dc=example,dc=com");
-            assertThat(entry.getAttributeCount()).isEqualTo(4);
-            assertThat(entry.getAttribute("entryDN").firstValueAsString()).isEqualTo(
-                    "uid=user.0,ou=People,dc=example,dc=com");
-            assertThat(entry.getAttribute("entryUUID")).isNotEmpty();
-            assertThat(entry.getAttribute("modifyTimestamp")).isNotEmpty();
-            assertThat(entry.getAttribute("modifiersName")).isNotEmpty();
-        }
+        final Entry entry = resultReader.readEntry();
+        assertThat(entry.getName().toString()).isEqualTo("uid=user.0,ou=People,dc=example,dc=com");
+        assertThat(entry.getAttributeCount()).isEqualTo(4);
+        assertThat(entry.getAttribute("entryDN").firstValueAsString()).isEqualTo(
+                "uid=user.0,ou=People,dc=example,dc=com");
+        assertThat(entry.getAttribute("entryUUID")).isNotEmpty();
+        assertThat(entry.getAttribute("modifyTimestamp")).isNotEmpty();
+        assertThat(entry.getAttribute("modifiersName")).isNotEmpty();
+
         resultReader.close();
     }
 
@@ -416,16 +408,14 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
                         "(uid=user.0)", "+").setTypesOnly(true);
 
         final EntryReader resultReader = LDIF.search(reader, sr, Schema.getCoreSchema());
-        if (resultReader.hasNext()) {
-            Entry entry = resultReader.readEntry();
-            assertThat(entry.getName().toString()).isEqualTo(
-                    "uid=user.0,ou=People,dc=example,dc=com");
-            assertThat(entry.getAttributeCount()).isEqualTo(4);
-            assertThat(entry.getAttribute("entryDN")).isEmpty();
-            assertThat(entry.getAttribute("entryUUID")).isEmpty();
-            assertThat(entry.getAttribute("modifyTimestamp")).isEmpty();
-            assertThat(entry.getAttribute("modifiersName")).isEmpty();
-        }
+        final Entry entry = resultReader.readEntry();
+        assertThat(entry.getName().toString()).isEqualTo("uid=user.0,ou=People,dc=example,dc=com");
+        assertThat(entry.getAttributeCount()).isEqualTo(4);
+        assertThat(entry.getAttribute("entryDN")).isEmpty();
+        assertThat(entry.getAttribute("entryUUID")).isEmpty();
+        assertThat(entry.getAttribute("modifyTimestamp")).isEmpty();
+        assertThat(entry.getAttribute("modifiersName")).isEmpty();
+
         resultReader.close();
     }
 
@@ -453,12 +443,10 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
                         "(uid=user.0)", "uid");
 
         final EntryReader resultReader = LDIF.search(reader, sr, Schema.getEmptySchema());
-        if (resultReader.hasNext()) {
-            Entry entry = resultReader.readEntry();
-            assertThat(entry.getName().toString()).isEqualTo(
-                    "uid=user.0,ou=People,dc=example,dc=com");
-            assertThat(entry.getAttributeCount()).isEqualTo(1);
-        }
+        final Entry entry = resultReader.readEntry();
+        assertThat(entry.getName().toString()).isEqualTo("uid=user.0,ou=People,dc=example,dc=com");
+        assertThat(entry.getAttributeCount()).isEqualTo(1);
+
         resultReader.close();
     }
 
@@ -486,17 +474,13 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
                         "(uid=user.0)", "uid").setTypesOnly(true);
 
         final EntryReader resultReader = LDIF.search(reader, sr, Schema.getEmptySchema());
-        if (resultReader.hasNext()) {
-            Entry entry = resultReader.readEntry();
-            assertThat(entry.getName().toString()).isEqualTo(
-                    "uid=user.0,ou=People,dc=example,dc=com");
-            assertThat(entry.getAttributeCount()).isEqualTo(1);
-            assertThat(entry.getAttribute("uid").getAttributeDescription()).isNotNull();
-            assertThat(entry.getAttribute("uid")).isEmpty();
-            // The following assert throws an exception because no values contained in, only type.
-            assertThat(entry.getAttribute("uid").firstValueAsString()).isNull();
-
-        }
+        final Entry entry = resultReader.readEntry();
+        assertThat(entry.getName().toString()).isEqualTo("uid=user.0,ou=People,dc=example,dc=com");
+        assertThat(entry.getAttributeCount()).isEqualTo(1);
+        assertThat(entry.getAttribute("uid").getAttributeDescription()).isNotNull();
+        assertThat(entry.getAttribute("uid")).isEmpty();
+        // The following assert throws an exception because no values contained in, only type.
+        assertThat(entry.getAttribute("uid").firstValueAsString()).isNull();
         resultReader.close();
     }
 
@@ -524,12 +508,10 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
                         "(uid=user.0)", "email");
 
         final EntryReader resultReader = LDIF.search(reader, sr, Schema.getEmptySchema());
-        if (resultReader.hasNext()) {
-            Entry entry = resultReader.readEntry();
-            assertThat(entry.getName().toString()).isEqualTo(
-                    "uid=user.0,ou=People,dc=example,dc=com");
-            assertThat(entry.getAttributeCount()).isEqualTo(0);
-        }
+        final Entry entry = resultReader.readEntry();
+        assertThat(entry.getName().toString()).isEqualTo("uid=user.0,ou=People,dc=example,dc=com");
+        assertThat(entry.getAttributeCount()).isEqualTo(0);
+
         resultReader.close();
     }
 
@@ -558,10 +540,105 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
                         "(uid=user.0)", "wro ng"); // wrong syntax filter
 
         final EntryReader resultReader = LDIF.search(reader, sr, Schema.getEmptySchema());
-        if (resultReader.hasNext()) {
-            resultReader.readEntry();
-        }
+        resultReader.readEntry();
         resultReader.close();
+    }
+
+    /**
+     * Tries to search for an entry in ldif using ignore case exact matching rule and lower case search filter.
+     *
+     * @throws IOException
+     */
+    @Test
+    public final void testSearchForEntryInLDIFUsingIgnoreMatchingRuleSucceedWithLowerCaseFilter() throws IOException {
+        Schema schema =
+                new SchemaBuilder(Schema.getCoreSchema()).defaultMatchingRule(
+                        CoreSchema.getCaseIgnoreMatchingRule()).defaultSyntax(
+                        CoreSchema.getDirectoryStringSyntax()).toSchema().asNonStrictSchema();
+
+        // @formatter:off
+        final LDIFEntryReader input = new LDIFEntryReader(
+                "dn: cn=JPEG,cn=Syntaxes,cn=config",
+                "objectClass: top",
+                "objectClass: ds-cfg-attribute-syntax",
+                "cn: JPEG",
+                "ds-cfg-java-class: org.opends.server.schema.JPEGSyntax",
+                "ds-cfg-enabled: true"
+        ).setSchema(schema);
+        // @formatter:on
+
+        final SearchRequest sr = Requests.newSearchRequest("cn=config", SearchScope.WHOLE_SUBTREE,
+                "(ds-cfg-java-class=org.opends.server.schema.jpegsyntax)", "*");
+        final EntryReader resultReader = LDIF.search(input, sr, schema);
+        final Entry entry = resultReader.readEntry();
+        assertThat(entry.getName().toString()).isEqualTo("cn=JPEG,cn=Syntaxes,cn=config");
+        assertThat(entry.getAttributeCount()).isEqualTo(4);
+        assertThat(entry.getAttribute("ds-cfg-java-class").firstValueAsString()).isEqualTo(
+                "org.opends.server.schema.JPEGSyntax");
+        input.close();
+    }
+
+    /**
+     * Tries to search for an entry in ldif using case exact matching rule and lower case search filter.
+     *
+     * @throws IOException
+     */
+    @Test(expectedExceptions = NoSuchElementException.class)
+    public final void testSearchForEntryInLDIFUsingExactMatchingRuleFailsWithLowerCaseFilter() throws IOException {
+        Schema schema =
+                new SchemaBuilder(Schema.getCoreSchema()).defaultMatchingRule(
+                        CoreSchema.getCaseExactMatchingRule()).defaultSyntax(
+                        CoreSchema.getDirectoryStringSyntax()).toSchema().asNonStrictSchema();
+
+        // @formatter:off
+        final LDIFEntryReader input = new LDIFEntryReader(
+                "dn: cn=JPEG,cn=Syntaxes,cn=config",
+                "objectClass: top",
+                "objectClass: ds-cfg-attribute-syntax",
+                "cn: JPEG",
+                "ds-cfg-java-class: org.opends.server.schema.JPEGSyntax",
+                "ds-cfg-enabled: true"
+        ).setSchema(schema);
+        // @formatter:on
+
+        final SearchRequest sr = Requests.newSearchRequest("cn=config", SearchScope.WHOLE_SUBTREE,
+                "(ds-cfg-java-class=org.opends.server.schema.jpegsyntax)", "*");
+        final EntryReader resultReader = LDIF.search(input, sr, schema);
+        resultReader.readEntry();
+    }
+
+    /**
+     * Tries to search for an entry in ldif using case exact matching rule and the right search filter.
+     *
+     * @throws IOException
+     */
+    @Test
+    public final void testSearchForEntryInLDIFUsingExactMatchingRuleSucceedWithRightFilter() throws IOException {
+        Schema schema =
+                new SchemaBuilder(Schema.getCoreSchema()).defaultMatchingRule(
+                        CoreSchema.getCaseExactMatchingRule()).defaultSyntax(
+                        CoreSchema.getDirectoryStringSyntax()).toSchema().asNonStrictSchema();
+
+        // @formatter:off
+        final LDIFEntryReader input = new LDIFEntryReader(
+                "dn: cn=JPEG,cn=Syntaxes,cn=config",
+                "objectClass: top",
+                "objectClass: ds-cfg-attribute-syntax",
+                "cn: JPEG",
+                "ds-cfg-java-class: org.opends.server.schema.JPEGSyntax",
+                "ds-cfg-enabled: true"
+        ).setSchema(schema);
+        // @formatter:on
+
+        final SearchRequest sr = Requests.newSearchRequest("cn=config", SearchScope.WHOLE_SUBTREE,
+                "(ds-cfg-java-class=org.opends.server.schema.JPEGSyntax)", "*");
+        final EntryReader resultReader = LDIF.search(input, sr, schema);
+        final Entry entry = resultReader.readEntry();
+        assertThat(entry.getName().toString()).isEqualTo("cn=JPEG,cn=Syntaxes,cn=config");
+        assertThat(entry.getAttributeCount()).isEqualTo(4);
+        assertThat(entry.getAttribute("ds-cfg-java-class").firstValueAsString()).isEqualTo(
+                "org.opends.server.schema.JPEGSyntax");
+        input.close();
     }
 
     /**
