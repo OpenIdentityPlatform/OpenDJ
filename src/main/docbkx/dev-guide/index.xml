@@ -92,6 +92,8 @@
   <xinclude:include href='man-ldifdiff.xml' />
   <xinclude:include href='man-ldifmodify.xml' />
   <xinclude:include href='man-ldifsearch.xml' />
+  <xinclude:include href='man-makeldif.xml' />
+  <xinclude:include href='man-makeldif-template.xml' />
   <xinclude:include href='man-modrate.xml' />
   <xinclude:include href='man-searchrate.xml' />
  </reference>

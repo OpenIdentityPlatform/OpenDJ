@@ -76,7 +76,6 @@ public final class MakeLDIF extends ConsoleApplication {
         try {
             resourcePath = new StringArgument("resourcepath", 'r', "resourcePath", false, false, true,
                     INFO_PATH_PLACEHOLDER.get(), null, null, INFO_MAKELDIF_DESCRIPTION_RESOURCE_PATH.get());
-            resourcePath.setHidden(true);
             argParser.addArgument(resourcePath);
 
             ldifFile = new StringArgument("ldiffile", OPTION_SHORT_OUTPUT_LDIF_FILENAME,
@@ -88,8 +87,8 @@ public final class MakeLDIF extends ConsoleApplication {
                     false, true, INFO_SEED_PLACEHOLDER.get(), 0, null, INFO_MAKELDIF_DESCRIPTION_SEED.get());
             argParser.addArgument(randomSeed);
 
-            constants = new StringArgument("constant", 'c', "constant", false, true, true, INFO_FILE_PLACEHOLDER.get(),
-                    null, null, INFO_MAKELDIF_DESCRIPTION_LDIF.get());
+            constants = new StringArgument("constant", 'c', "constant", false, true, true, INFO_CONSTANT_PLACEHOLDER.get(),
+                    null, null, INFO_MAKELDIF_DESCRIPTION_CONSTANT.get());
             argParser.addArgument(constants);
 
             showUsage = new BooleanArgument("help", OPTION_SHORT_HELP, OPTION_LONG_HELP,
