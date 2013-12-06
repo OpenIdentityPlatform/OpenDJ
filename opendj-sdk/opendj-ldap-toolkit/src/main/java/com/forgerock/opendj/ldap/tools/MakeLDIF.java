@@ -87,7 +87,8 @@ public final class MakeLDIF extends ConsoleApplication {
                     false, true, INFO_SEED_PLACEHOLDER.get(), 0, null, INFO_MAKELDIF_DESCRIPTION_SEED.get());
             argParser.addArgument(randomSeed);
 
-            constants = new StringArgument("constant", 'c', "constant", false, true, true, INFO_CONSTANT_PLACEHOLDER.get(),
+            constants = new StringArgument("constant", 'c', "constant", false, true, true,
+                    INFO_CONSTANT_PLACEHOLDER.get(),
                     null, null, INFO_MAKELDIF_DESCRIPTION_CONSTANT.get());
             argParser.addArgument(constants);
 
