@@ -36,9 +36,11 @@ import org.testng.ITestContext;
 import org.testng.annotations.Test;
 import org.testng.annotations.DataProvider;
 import org.testng.xml.XmlSuite;
+
 import static org.opends.server.util.ServerConstants.EOL;
 import static org.opends.server.TestCaseUtils.originalSystemErr;
 
+import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.LinkedHashMap;
 import java.util.Collection;
@@ -66,27 +68,30 @@ import java.lang.reflect.InvocationTargetException;
  */
 public class TestListener extends TestListenerAdapter implements IReporter {
 
-  public static final String REPORT_FILE_NAME = "results.txt";
+  private static final String REPORT_FILE_NAME = "results.txt";
 
   // This is used to communicate with build.xml.  So that even when a test
   // fails, we can do the coverage report before failing the build.
-  public static final String ANT_TESTS_FAILED_FILE_NAME = ".tests-failed-marker";
+  private static final String ANT_TESTS_FAILED_FILE_NAME = ".tests-failed-marker";
 
 
   private final StringBuilder _bufferedTestFailures = new StringBuilder();
 
 
-  public static final String PROPERTY_TEST_PROGRESS = "test.progress";
-  public static final String TEST_PROGRESS_NONE = "none";
-  public static final String TEST_PROGRESS_ALL = "all";
-  public static final String TEST_PROGRESS_DEFAULT = "default";
-  public static final String TEST_PROGRESS_TIME = "time";
-  public static final String TEST_PROGRESS_TEST_COUNT = "count";
-  public static final String TEST_PROGRESS_MEMORY = "memory";
-  public static final String TEST_PROGRESS_MEMORY_GCS = "gcs";  // Hidden for now, since it's not useful to most developers
-  public static final String TEST_PROGRESS_RESTARTS = "restarts";
-  public static final String TEST_PROGRESS_THREAD_COUNT = "threadcount";
-  public static final String TEST_PROGRESS_THREAD_CHANGES = "threadchanges";
+  private static final String PROPERTY_TEST_PROGRESS = "test.progress";
+  private static final String TEST_PROGRESS_NONE = "none";
+  private static final String TEST_PROGRESS_ALL = "all";
+  private static final String TEST_PROGRESS_DEFAULT = "default";
+  private static final String TEST_PROGRESS_TIME = "time";
+  private static final String TEST_PROGRESS_TEST_COUNT = "count";
+  private static final String TEST_PROGRESS_MEMORY = "memory";
+  private static final String TEST_PROGRESS_MEMORY_GCS = "gcs";  // Hidden for now, since it's not useful to most developers
+  private static final String TEST_PROGRESS_RESTARTS = "restarts";
+  private static final String TEST_PROGRESS_THREAD_COUNT = "threadcount";
+  private static final String TEST_PROGRESS_THREAD_CHANGE = "threadchange";
+
+  private static final SimpleDateFormat TEST_PROGESS_TIME_FORMAT = new SimpleDateFormat(
+      "dd/MMM/yyyy:HH:mm:ss Z");
 
   private boolean doProgressNone = false;
   private boolean doProgressTime = true;
@@ -95,7 +100,7 @@ public class TestListener extends TestListenerAdapter implements IReporter {
   private boolean doProgressMemoryGcs = false;
   private boolean doProgressRestarts = true;
   private boolean doProgressThreadCount = false;
-  private boolean doProgressThreadChanges = false;
+  private boolean doProgressThreadChange = false;
 
   private void initializeProgressVars() {
     String prop = System.getProperty(PROPERTY_TEST_PROGRESS);
@@ -116,7 +121,7 @@ public class TestListener extends TestListenerAdapter implements IReporter {
       doProgressMemoryGcs = false;
       doProgressRestarts = false;
       doProgressThreadCount = false;
-      doProgressThreadChanges = false;
+      doProgressThreadChange = false;
     } else if (progressValues.contains(TEST_PROGRESS_ALL)) {
       doProgressNone = false;
       doProgressTime = true;
@@ -125,7 +130,7 @@ public class TestListener extends TestListenerAdapter implements IReporter {
       doProgressMemoryGcs = true;
       doProgressRestarts = true;
       doProgressThreadCount = true;
-      doProgressThreadChanges = true;
+      doProgressThreadChange = true;
     } else {
       doProgressNone = false;
       doProgressTime = progressValues.contains(TEST_PROGRESS_TIME);
@@ -134,7 +139,7 @@ public class TestListener extends TestListenerAdapter implements IReporter {
       doProgressMemoryGcs = progressValues.contains(TEST_PROGRESS_MEMORY_GCS);
       doProgressRestarts = progressValues.contains(TEST_PROGRESS_RESTARTS);
       doProgressThreadCount = progressValues.contains(TEST_PROGRESS_THREAD_COUNT);
-      doProgressThreadChanges = progressValues.contains(TEST_PROGRESS_THREAD_CHANGES);
+      doProgressThreadChange = progressValues.contains(TEST_PROGRESS_THREAD_CHANGE);
 
       // If we were asked to do the defaults, then restore anything that's on by default
       if (progressValues.contains(TEST_PROGRESS_DEFAULT)) {
@@ -231,7 +236,7 @@ public class TestListener extends TestListenerAdapter implements IReporter {
 
   private void writeReportToScreen(File reportFile) {
     // HACK: print out status for the last test object
-    outputTestProgress(_lastTestObject);
+    outputTestProgress(_lastTestObject, true);
 
     List<ITestResult> failedTests = getFailedTests();
     StringBuilder failed = new StringBuilder();
@@ -295,9 +300,9 @@ public class TestListener extends TestListenerAdapter implements IReporter {
             TestCaseUtils.getNumServerRestarts(), averageRestartSec);
     originalSystemErr.println();
 
-    if (doProgressThreadChanges) {
-      originalSystemErr.print(TestCaseUtils.threadStacksToString());      
-    }
+//    if (doProgressThreadChange) {
+//      originalSystemErr.print(TestCaseUtils.threadStacksToString());
+//    }
 
     if (_classesWithTestsRunInterleaved.size() > 0) {
       System.err.println("WARNING:  Some of the test methods for multiple classes " +
@@ -421,8 +426,6 @@ public class TestListener extends TestListenerAdapter implements IReporter {
 
     StringBuilder failureInfo = new StringBuilder();
     failureInfo.append("Failed Test:  ").append(fqMethod).append(EOL);
-    Object[] parameters = tr.getParameters();
-
 
     Throwable cause = tr.getThrowable();
     if (cause != null) {
@@ -603,8 +606,8 @@ public class TestListener extends TestListenerAdapter implements IReporter {
     }
 
     // Output progress info since we're running a new class
-    outputTestProgress(_lastTestObject);
-    
+    outputTestProgress(_lastTestObject, false);
+
     // And make sure we don't have a test object that we already ran tests with.
     if (_previousTestObjects.containsKey(testInstance)) {
       _classesWithTestsRunInterleaved.add(testInstance.getClass());
@@ -690,7 +693,7 @@ public class TestListener extends TestListenerAdapter implements IReporter {
       originalSystemErr.println("  In core restart status: {#rs number of in-core restarts}");
     }
 
-    if (doProgressThreadChanges) {
+    if (doProgressThreadChange) {
       originalSystemErr.println("  Thread change status: +/- thread name for new or finished threads since last status");
     }
 
@@ -703,12 +706,20 @@ public class TestListener extends TestListenerAdapter implements IReporter {
   private List<String> prevThreads = new ArrayList<String>();
   private long prevMemInUse = 0;
   private long maxMemInUse = 0;
-  private void outputTestProgress(Object finishedTestObject) {
-    if (doProgressNone) {
+
+
+
+  private void outputTestProgress(Object finishedTestObject, boolean isLastTest)
+  {
+    if (doProgressNone)
+    {
       return;
     }
 
     printStatusHeaderOnce();
+
+    String timeStamp = TEST_PROGESS_TIME_FORMAT.format(new Date());
+    originalSystemErr.printf("[%s]  ", timeStamp);
 
     if (doProgressTime) {
       long curTimeMs = System.currentTimeMillis();
@@ -770,19 +781,21 @@ public class TestListener extends TestListenerAdapter implements IReporter {
       originalSystemErr.println();
     }
 
-    if (doProgressThreadChanges) {
+    if (doProgressThreadChange) {
+      boolean isFirstOrLastTest = prevThreads.isEmpty() || isLastTest;
       List<String> currentThreads = listAllThreadNames();
-      List<String> newThreads = removeExactly(prevThreads, currentThreads);
-      List<String> oldThreads = removeExactly(currentThreads, prevThreads);
+      List<String> removedThreads = removeExactly(prevThreads, currentThreads);
+      List<String> addedThreads = removeExactly(currentThreads, prevThreads);
 
-      if (!newThreads.isEmpty()) {
+      if (!isFirstOrLastTest
+          && (!removedThreads.isEmpty() || !addedThreads.isEmpty()))
+      {
         originalSystemErr.println("  Thread changes:");
-        for (int i = 0; i < oldThreads.size(); i++) {
-          String threadName =  oldThreads.get(i);
+        for (String threadName : addedThreads)
+        {
           originalSystemErr.println("    + " + threadName);
         }
-        for (int i = 0; i < newThreads.size(); i++) {
-          String threadName =  newThreads.get(i);
+        for (String threadName : removedThreads) {
           originalSystemErr.println("    - " + threadName);
         }
       }
@@ -843,8 +856,7 @@ public class TestListener extends TestListenerAdapter implements IReporter {
    */
   private List<String> removeExactly(List<String> base, List<String> toRemove) {
     List<String> diff = new ArrayList<String>(base);
-    for (int i = 0; i < toRemove.size(); i++) {
-      String item = toRemove.get(i);
+    for (String item : toRemove) {
       diff.remove(item);
     }
     return diff;
