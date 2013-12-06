@@ -331,7 +331,11 @@ public class RebuildIndex extends TaskTool
     final DirectoryServer directoryServer = DirectoryServer.getInstance();
     if (initializeServer)
     {
-      initializeServer(directoryServer, out, err);
+      final int init = initializeServer(directoryServer, out, err);
+      if (init != 0)
+      {
+        return init;
+      }
       setErrorAndDebugLogPublisher(out, err);
     }
 
@@ -432,7 +436,7 @@ public class RebuildIndex extends TaskTool
    * @param err
    *          The output stream to use for standard error, or {@code null} if
    *          standard error is not needed.
-   * @return The error code.
+   * @return The result code.
    */
   private int initializeServer(final DirectoryServer directoryServer,
       final PrintStream out, final PrintStream err)
@@ -765,7 +769,11 @@ public class RebuildIndex extends TaskTool
       final DirectoryServer directoryServer = DirectoryServer.getInstance();
       if (initializeServer)
       {
-        initializeServer(directoryServer, out, out);
+        final int init = initializeServer(directoryServer, out, out);
+        if (init != 0)
+        {
+          return init;
+        }
       }
 
       for (final String dn : baseDNString.getValues())
