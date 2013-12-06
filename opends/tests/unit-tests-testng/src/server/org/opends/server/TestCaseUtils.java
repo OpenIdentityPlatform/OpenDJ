@@ -648,7 +648,7 @@ public final class TestCaseUtils {
   private static void waitForOpsToComplete()
   {
     try {
-      WorkQueue workQueue = DirectoryServer.getWorkQueue();
+      WorkQueue<?> workQueue = DirectoryServer.getWorkQueue();
       final long NO_TIMEOUT = -1;
       workQueue.waitUntilIdle(NO_TIMEOUT);
     } catch (Exception e) {
@@ -754,15 +754,6 @@ public final class TestCaseUtils {
   public static void shutdownFakeServer()
   {
     DirectoryServer.setSchema(schemaBeforeStartingFakeServer);
-  }
-
-  /**
-   * Shut down the server, if it has been started.
-   * @param reason The reason for the shutdown.
-   */
-  public static void shutdownServer(String reason)
-  {
-    shutdownServer(Message.raw(reason));
   }
 
   /**

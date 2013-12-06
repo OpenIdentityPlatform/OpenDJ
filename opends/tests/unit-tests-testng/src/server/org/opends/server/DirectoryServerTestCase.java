@@ -23,16 +23,21 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS.
  */
 package org.opends.server;
 
 import org.testng.annotations.AfterSuite;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.testng.annotations.AfterClass;
 import org.opends.messages.Message;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.IdentityHashMap;
+import java.util.List;
 import java.util.Set;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -45,7 +50,9 @@ import java.lang.reflect.Modifier;
  * have them include the class name.
  */
 @Test(sequential=true)
+@SuppressWarnings("javadoc")
 public abstract class DirectoryServerTestCase {
+
   @BeforeSuite
   public final void suppressOutput() {
     TestCaseUtils.suppressOutput();
@@ -129,9 +136,9 @@ public abstract class DirectoryServerTestCase {
    */
   @AfterClass(alwaysRun = true)
   public void nullMemberVariablesAfterTest() {
-    Class cls = this.getClass();
+    Class<?> cls = this.getClass();
     // Iterate through all of the fields in all subclasses of
-    // DirectoryServerTestCase, but not DirectoryServerTestCase itself. 
+    // DirectoryServerTestCase, but not DirectoryServerTestCase itself.
     while (DirectoryServerTestCase.class.isAssignableFrom(cls) &&
            !DirectoryServerTestCase.class.equals(cls))
     {
@@ -139,7 +146,8 @@ public abstract class DirectoryServerTestCase {
       for (int i = 0; i < fields.length; i++) {
         Field field = fields[i];
         int modifiers = field.getModifiers();
-        Class fieldClass = field.getType();
+        Class<?> fieldClass = field.getType();
+
         // If it's a non-static non-final non-primitive type, then null it out
         // so that the garbage collector can reclaim it and everything it
         // references.
@@ -159,5 +167,52 @@ public abstract class DirectoryServerTestCase {
       }
       cls = cls.getSuperclass();
     }
+  }
+
+  // Accessed by listener on test class completion.
+  long startTime;
+  long endTime;
+  List<String> threadNamesBeforeClass;
+  List<String> threadNamesAfterClass;
+
+  @BeforeClass(alwaysRun = true)
+  public void captureEnvironmentStateBeforeClass()
+  {
+    startTime = System.currentTimeMillis();
+    threadNamesBeforeClass = listAllThreadNames();
+  }
+
+  @AfterClass(alwaysRun = true)
+  public void captureEnvironmentStateAfterClass()
+  {
+    endTime = System.currentTimeMillis();
+    threadNamesAfterClass = listAllThreadNames();
+  }
+
+  private List<String> listAllThreadNames()
+  {
+    Thread currentThread = Thread.currentThread();
+    ThreadGroup topGroup = currentThread.getThreadGroup();
+    while (topGroup.getParent() != null)
+    {
+      topGroup = topGroup.getParent();
+    }
+
+    Thread threads[] = new Thread[topGroup.activeCount() * 2];
+    int numThreads = topGroup.enumerate(threads);
+
+    List<String> activeThreads = new ArrayList<String>();
+    for (int i = 0; i < numThreads; i++)
+    {
+      Thread thread = threads[i];
+      if (thread.isAlive())
+      {
+        String fullName = thread.getName();
+        activeThreads.add(fullName);
+      }
+    }
+
+    Collections.sort(activeThreads);
+    return activeThreads;
   }
 }

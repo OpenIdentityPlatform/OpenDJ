@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS.
  */
 package org.opends.server;
 
@@ -66,6 +67,7 @@ import java.lang.reflect.InvocationTargetException;
  * This class is our replacement for the test results that TestNG generates.
  *   It prints out test to the console as they happen.
  */
+@SuppressWarnings("javadoc")
 public class TestListener extends TestListenerAdapter implements IReporter {
 
   private static final String REPORT_FILE_NAME = "results.txt";
@@ -89,7 +91,6 @@ public class TestListener extends TestListenerAdapter implements IReporter {
   private static final String TEST_PROGRESS_RESTARTS = "restarts";
   private static final String TEST_PROGRESS_THREAD_COUNT = "threadcount";
   private static final String TEST_PROGRESS_THREAD_CHANGE = "threadchange";
-
   private static final SimpleDateFormat TEST_PROGESS_TIME_FORMAT = new SimpleDateFormat(
       "dd/MMM/yyyy:HH:mm:ss Z");
 
@@ -203,9 +204,10 @@ public class TestListener extends TestListenerAdapter implements IReporter {
     reportStream.println(EOL + DIVIDER_LINE + DIVIDER_LINE + EOL + EOL);
     reportStream.println(center("TEST CLASSES RUN INTERLEAVED"));
     reportStream.println(EOL + EOL);
-    for (Iterator<Class> iterator = _classesWithTestsRunInterleaved.iterator(); iterator.hasNext();)
+    for (Iterator<Class<?>> iterator = _classesWithTestsRunInterleaved
+        .iterator(); iterator.hasNext();)
     {
-      Class cls = iterator.next();
+      Class<?> cls = iterator.next();
       reportStream.println("  " + cls.getName());
     }
 
@@ -539,9 +541,10 @@ public class TestListener extends TestListenerAdapter implements IReporter {
   }
 
 
-  private Set<Class> _checkedForTypeAndAnnotations = new HashSet<Class>();
+  private Set<Class<?>> _checkedForTypeAndAnnotations = new HashSet<Class<?>>();
+
   private void enforceTestClassTypeAndAnnotations(ITestResult tr) {
-    Class testClass = null;
+    Class<?> testClass = null;
     testClass = tr.getMethod().getRealClass();
 
     // Only warn once per class.
@@ -582,7 +585,7 @@ public class TestListener extends TestListenerAdapter implements IReporter {
     }
   }
 
-  private final LinkedHashSet<Class> _classesWithTestsRunInterleaved = new LinkedHashSet<Class>();
+  private final LinkedHashSet<Class<?>> _classesWithTestsRunInterleaved = new LinkedHashSet<Class<?>>();
   private Object _lastTestObject = null;
   private final IdentityHashMap<Object,Object> _previousTestObjects = new IdentityHashMap<Object,Object>();
   private void checkForInterleavedBetweenClasses(ITestResult tr) {
@@ -642,7 +645,7 @@ public class TestListener extends TestListenerAdapter implements IReporter {
 
   // Return the class in cls's inheritence hierarchy that has the @Test
   // annotation defined.
-  private Class findClassWithTestAnnotation(Class<?> cls) {
+  private Class<?> findClassWithTestAnnotation(Class<?> cls) {
     while (cls != null) {
       if (cls.getAnnotation(Test.class) != null) {
         return cls;
@@ -701,13 +704,10 @@ public class TestListener extends TestListenerAdapter implements IReporter {
     originalSystemErr.println();
   }
 
-  private final long startTimeMs = System.currentTimeMillis();
-  private long prevTimeMs = System.currentTimeMillis();
-  private List<String> prevThreads = new ArrayList<String>();
+  private final long testSuiteStartTime = System.currentTimeMillis();
   private long prevMemInUse = 0;
   private long maxMemInUse = 0;
-
-
+  private boolean isFirstTest = true;
 
   private void outputTestProgress(Object finishedTestObject, boolean isLastTest)
   {
@@ -718,18 +718,20 @@ public class TestListener extends TestListenerAdapter implements IReporter {
 
     printStatusHeaderOnce();
 
-    String timeStamp = TEST_PROGESS_TIME_FORMAT.format(new Date());
-    originalSystemErr.printf("[%s]  ", timeStamp);
+    DirectoryServerTestCase testInstance = (DirectoryServerTestCase) finishedTestObject;
+    long startTime = testInstance != null ? testInstance.startTime
+        : testSuiteStartTime;
+    originalSystemErr.printf("[%s]  ",
+        TEST_PROGESS_TIME_FORMAT.format(new Date(startTime)));
 
-    if (doProgressTime) {
-      long curTimeMs = System.currentTimeMillis();
-      long durationSec = (curTimeMs - startTimeMs) / 1000;
-      long durationLastMs = curTimeMs - prevTimeMs;
-      originalSystemErr.printf("{%2d:%02d (%3.0fs)}  ",
-              (durationSec / 60),
-              (durationSec % 60),
-              (durationLastMs / 1000.0));
-      prevTimeMs = curTimeMs;
+    if (doProgressTime)
+    {
+      long endTime = testInstance != null ? testInstance.endTime : System
+          .currentTimeMillis();
+      long durationSec = (endTime - testSuiteStartTime) / 1000;
+      long durationLastMs = endTime - startTime;
+      originalSystemErr.printf("{%2d:%02d (%3.0fs)}  ", (durationSec / 60),
+          (durationSec % 60), (durationLastMs / 1000.0));
     }
 
     if (doProgressTestCount) {
@@ -773,34 +775,39 @@ public class TestListener extends TestListenerAdapter implements IReporter {
       originalSystemErr.printf("{#rs %2d}  ", TestCaseUtils.getNumServerRestarts());
     }
 
-    if (finishedTestObject == null) {
+    if (testInstance == null) {
       originalSystemErr.println(": starting");
     } else {
-      String abbrClass = packageLessClass(finishedTestObject);
+      String abbrClass = packageLessClass(testInstance);
       originalSystemErr.printf(": %s ", abbrClass).flush();
       originalSystemErr.println();
-    }
 
-    if (doProgressThreadChange) {
-      boolean isFirstOrLastTest = prevThreads.isEmpty() || isLastTest;
-      List<String> currentThreads = listAllThreadNames();
-      List<String> removedThreads = removeExactly(prevThreads, currentThreads);
-      List<String> addedThreads = removeExactly(currentThreads, prevThreads);
-
-      if (!isFirstOrLastTest
-          && (!removedThreads.isEmpty() || !addedThreads.isEmpty()))
+      if (doProgressThreadChange)
       {
-        originalSystemErr.println("  Thread changes:");
-        for (String threadName : addedThreads)
+        if (isFirstTest)
         {
-          originalSystemErr.println("    + " + threadName);
+          isFirstTest = false;
         }
-        for (String threadName : removedThreads) {
-          originalSystemErr.println("    - " + threadName);
+        else
+        {
+          List<String> startThreads = testInstance.threadNamesBeforeClass;
+          List<String> endThreads = testInstance.threadNamesAfterClass;
+          List<String> removedThreads = removeExactly(startThreads, endThreads);
+          List<String> addedThreads = removeExactly(endThreads, startThreads);
+          if (!removedThreads.isEmpty() || !addedThreads.isEmpty())
+          {
+            originalSystemErr.println("  Thread changes:");
+            for (String threadName : addedThreads)
+            {
+              originalSystemErr.println("    + " + threadName);
+            }
+            for (String threadName : removedThreads)
+            {
+              originalSystemErr.println("    - " + threadName);
+            }
+          }
         }
       }
-
-      prevThreads = currentThreads;
     }
   }
 
@@ -823,29 +830,6 @@ public class TestListener extends TestListenerAdapter implements IReporter {
         gcConvergence.append("[" + numGcs + "]: " + (prevMem - curMem)).append("  ");
     }
     return numGcs;
-  }
-
-  private List<String> listAllThreadNames() {
-    Thread currentThread = Thread.currentThread();
-    ThreadGroup topGroup = currentThread.getThreadGroup();
-    while (topGroup.getParent() != null) {
-      topGroup = topGroup.getParent();
-    }
-
-    Thread threads[] = new Thread[topGroup.activeCount() * 2];
-    int numThreads = topGroup.enumerate(threads);
-
-    List<String> activeThreads = new ArrayList<String>();
-    for (int i = 0; i < numThreads; i++) {
-      Thread thread = threads[i];
-      if (thread.isAlive()) {
-        String fullName = thread.getName();
-        activeThreads.add(fullName);
-      }
-    }
-
-    Collections.sort(activeThreads);
-    return activeThreads;
   }
 
   /**
