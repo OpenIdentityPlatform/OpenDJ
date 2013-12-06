@@ -33,12 +33,15 @@ import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPControl;
+
 import static org.opends.server.util.ServerConstants.OID_REAL_ATTRS_ONLY;
 import static org.opends.server.util.ServerConstants.OID_VIRTUAL_ATTRS_ONLY;
+
 import org.opends.server.core.DirectoryServer;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.assertFalse;
@@ -46,6 +49,7 @@ import static org.testng.Assert.assertEquals;
 
 import java.util.*;
 
+@SuppressWarnings("javadoc")
 public class NumSubordinatesVirtualAttributeProviderTestCase extends DirectoryServerTestCase {
     // The attribute type for the numSubordinates attribute.
   private AttributeType numSubordinatesType;
@@ -195,8 +199,6 @@ public class NumSubordinatesVirtualAttributeProviderTestCase extends DirectorySe
 //          DirectoryServer.getBackends().size() },
       new Object[] { DN.decode("cn=Work Queue,cn=config"), 0 },
       new Object[] { DN.decode("cn=tasks"), 2 },
-      new Object[] { DN.decode("cn=Recurring Tasks,cn=tasks"), 0 },
-      new Object[] { DN.decode("cn=Scheduled Tasks,cn=tasks"), 0 },
       new Object[] { DN.decode("cn=backups"), 0 }
     };
   }
