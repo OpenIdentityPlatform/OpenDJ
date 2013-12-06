@@ -1169,10 +1169,25 @@ public class ArgumentParser
       argumentProperties = checkExternalProperties();
     }
 
-    // Iterate through all of the arguments.  For any that were not provided on
-    // the command line, see if there is an alternate default that can be used.
-    // For cases where there is not, see that argument is required.
-    for (Argument a : argumentList)
+    normalizeArguments(argumentProperties, argumentList);
+  }
+
+  /**
+   * Iterate through all the arguments and make sure that they have values or a
+   * suitable default is available.
+   *
+   * @param argumentProperties
+   *          A set of properties that may be used to provide default values for
+   *          arguments not included in the given raw arguments.
+   * @param arguments
+   *          the arguments to normalize
+   * @throws ArgumentException
+   *           if no value or default value exists for a required argument
+   */
+  protected void normalizeArguments(Properties argumentProperties,
+      List<Argument> arguments) throws ArgumentException
+  {
+    for (Argument a : arguments)
     {
       if (!a.isPresent()
           // See if there is a value in the properties that can be used
@@ -1201,7 +1216,6 @@ public class ArgumentParser
         }
       }
 
-
       if (!a.isPresent() && a.needsValue())
       {
         // See if the argument defines a default.
@@ -1222,7 +1236,10 @@ public class ArgumentParser
     }
   }
 
-  private void printVersion()
+  /**
+   * Prints out the version string of the server.
+   */
+  protected void printVersion()
   {
     try
     {

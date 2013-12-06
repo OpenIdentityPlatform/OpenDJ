@@ -34,7 +34,6 @@ import java.util.*;
 
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
-import org.opends.server.core.DirectoryServer;
 import org.opends.server.util.SetupUtils;
 
 import static org.opends.messages.UtilityMessages.*;
@@ -1211,76 +1210,11 @@ public class SubCommandArgumentParser extends ArgumentParser
     // Iterate through all the global arguments
     normalizeArguments(argumentProperties, globalArgumentList);
 
-
     // Iterate through all the subcommand-specific arguments
     if (subCommand != null)
     {
       normalizeArguments(argumentProperties, subCommand.getArguments());
     }
-  }
-
-  /**
-   * Iterate through all the arguments and make sure that they have values or a
-   * suitable default is available.
-   */
-  private void normalizeArguments(Properties argumentProperties,
-      List<Argument> arguments) throws ArgumentException
-  {
-    for (Argument a : arguments)
-    {
-      if (!a.isPresent()
-          && argumentProperties != null
-          && a.getPropertyName() != null)
-      {
-        String value =
-            argumentProperties.getProperty(a.getPropertyName().toLowerCase());
-        MessageBuilder invalidReason = new MessageBuilder();
-        if (value != null)
-        {
-          Boolean addValue = true;
-          if (!(a instanceof BooleanArgument))
-          {
-            addValue = a.valueIsAcceptable(value, invalidReason);
-          }
-          if (addValue)
-          {
-            a.addValue(value);
-            if (a.needsValue())
-            {
-              a.setPresent(true);
-            }
-            a.setValueSetByProperty(true);
-          }
-        }
-      }
-
-      if (!a.isPresent() && a.needsValue())
-      {
-        // See if the argument defines a default.
-        if (a.getDefaultValue() != null)
-        {
-          a.addValue(a.getDefaultValue());
-        }
-
-        // If there is still no value and the argument is required, then
-        // that's a problem.
-        if (!a.hasValue() && a.isRequired())
-        {
-          Message message =
-              ERR_SUBCMDPARSER_NO_VALUE_FOR_REQUIRED_ARG.get(a.getName());
-          throw new ArgumentException(message);
-        }
-      }
-    }
-  }
-
-  private void printVersion()
-  {
-    try
-    {
-      DirectoryServer.printVersion(usageOutputStream);
-    }
-    catch (Exception e) {}
   }
 
   private boolean dashVAccepted()
@@ -1423,69 +1357,76 @@ public class SubCommandArgumentParser extends ArgumentParser
       }
 
 
-      // Write one or more lines with the description of the argument.  We will
-      // indent the description five characters and try our best to wrap at or
-      // before column 79 so it will be friendly to 80-column displays.
-      Message description = a.getDescription();
-      int maxLength = MAX_LENGTH - INDENT.length() - 1;
-      if (description.length() <= maxLength)
-      {
-        buffer.append(INDENT);
-        buffer.append(description);
-        buffer.append(EOL);
-      }
-      else
-      {
-        String s = description.toString();
-        while (s.length() > maxLength)
-        {
-          int spacePos = s.lastIndexOf(' ', maxLength);
-          if (spacePos > 0)
-          {
-            buffer.append(INDENT);
-            buffer.append(s.substring(0, spacePos).trim());
-            s = s.substring(spacePos+1).trim();
-            buffer.append(EOL);
-          }
-          else
-          {
-            // There are no spaces in the first 74 columns.  See if there is one
-            // after that point.  If so, then break there.  If not, then don't
-            // break at all.
-            spacePos = s.indexOf(' ');
-            if (spacePos > 0)
-            {
-              buffer.append(INDENT);
-              buffer.append(s.substring(0, spacePos).trim());
-              s = s.substring(spacePos+1).trim();
-              buffer.append(EOL);
-            }
-            else
-            {
-              buffer.append(INDENT);
-              buffer.append(s);
-              s = "";
-              buffer.append(EOL);
-            }
-          }
-        }
-
-        if (s.length() > 0)
-        {
-          buffer.append("    ");
-          buffer.append(s);
-          buffer.append(EOL);
-        }
-      }
+      indentAndWrap2(INDENT, a.getDescription(), buffer);
       if (a.needsValue()
           && a.getDefaultValue() != null
           && a.getDefaultValue().length() > 0)
        {
-         buffer.append(INDENT);
-         buffer.append(INFO_ARGPARSER_USAGE_DEFAULT_VALUE.get(
-             a.getDefaultValue()).toString());
-         buffer.append(EOL);
+        indentAndWrap2(INDENT, INFO_ARGPARSER_USAGE_DEFAULT_VALUE.get(a
+            .getDefaultValue()), buffer);
        }
+    }
+  }
+
+  /**
+   * Write one or more lines with the description of the argument. We will
+   * indent the description five characters and try our best to wrap at or
+   * before column 79 so it will be friendly to 80-column displays.
+   * <p>
+   * FIXME Try to merge with #indentAndWrap(Message, Message, MessageBuilder).
+   */
+  private void indentAndWrap2(String indent, Message text,
+      MessageBuilder buffer)
+  {
+    int actualSize = MAX_LENGTH - indent.length() - 1;
+    if (text.length() <= actualSize)
+    {
+      buffer.append(indent);
+      buffer.append(text);
+      buffer.append(EOL);
+    }
+    else
+    {
+      String s = text.toString();
+      while (s.length() > actualSize)
+      {
+        int spacePos = s.lastIndexOf(' ', actualSize);
+        if (spacePos > 0)
+        {
+          buffer.append(indent);
+          buffer.append(s.substring(0, spacePos).trim());
+          s = s.substring(spacePos + 1).trim();
+          buffer.append(EOL);
+        }
+        else
+        {
+          // There are no spaces in the first 74 columns.
+          // See if there is one after that point. If so, then break there.
+          // If not, then don't break at all.
+          spacePos = s.indexOf(' ');
+          if (spacePos > 0)
+          {
+            buffer.append(indent);
+            buffer.append(s.substring(0, spacePos).trim());
+            s = s.substring(spacePos + 1).trim();
+            buffer.append(EOL);
+          }
+          else
+          {
+            buffer.append(indent);
+            buffer.append(s);
+            s = "";
+            buffer.append(EOL);
+          }
+        }
+      }
+
+      if (s.length() > 0)
+      {
+        buffer.append(indent);
+        buffer.append(s);
+        buffer.append(EOL);
+      }
     }
   }
 
@@ -1868,8 +1809,8 @@ public class SubCommandArgumentParser extends ArgumentParser
         }
         else
         {
-          // There are no spaces in the first actualSize -1 columns. See
-          // if there is one after that point. If so, then break there.
+          // There are no spaces in the first actualSize -1 columns.
+          // See if there is one after that point. If so, then break there.
           // If not, then don't break at all.
           spacePos = s.indexOf(' ');
           if (spacePos > 0)
@@ -1907,12 +1848,7 @@ public class SubCommandArgumentParser extends ArgumentParser
   @Override
   public boolean isUsageArgumentPresent()
   {
-    boolean isUsageArgumentPresent = false;
-    if (usageArgument != null)
-    {
-      isUsageArgumentPresent = usageArgument.isPresent();
-    }
-    return isUsageArgumentPresent;
+    return usageArgument != null && usageArgument.isPresent();
   }
 
   /**
@@ -1924,16 +1860,11 @@ public class SubCommandArgumentParser extends ArgumentParser
   @Override
   public boolean isVersionArgumentPresent()
   {
-    boolean isPresent;
     if (!super.isVersionArgumentPresent())
     {
-      isPresent = versionPresent;
+      return versionPresent;
     }
-    else
-    {
-      isPresent = true;
-    }
-    return isPresent;
+    return true;
   }
 
   /**
@@ -1994,29 +1925,29 @@ public class SubCommandArgumentParser extends ArgumentParser
    */
   private String toRefSect2(SubCommand sc)
   {
-    String options = "";
+    final StringBuilder options = new StringBuilder();
     if (!sc.getArguments().isEmpty())
     {
-      options += " <variablelist>" + EOL;
+      options.append(" <variablelist>").append(EOL);
       for (Argument a : sc.getArguments())
       {
-        options += "  <varlistentry>" + EOL;
-        options += "   <term><option>";
+        options.append("  <varlistentry>").append(EOL);
+        options.append("   <term><option>");
         Character shortID = a.getShortIdentifier();
-        if (shortID != null) options += "-" + shortID.charValue();
+        if (shortID != null) options.append("-").append(shortID.charValue());
         String longID = a.getLongIdentifier();
-        if (shortID != null && longID != null) options += " | ";
-        if (longID != null) options += "--" + longID;
-        if (a.needsValue()) options += " " + a.getValuePlaceholder();
-        options += "</option></term>" + EOL;
-        options += "   <listitem>"  + EOL;
-        options += "    <para>";
-        options += a.getDescription().toString();
-        options += "</para>" + EOL;
-        options += "   </listitem>" + EOL;
-        options += "  </varlistentry>" + EOL;
+        if (shortID != null && longID != null) options.append(" | ");
+        if (longID != null) options.append("--").append(longID);
+        if (a.needsValue()) options.append(" ").append(a.getValuePlaceholder());
+        options.append("</option></term>").append(EOL);
+        options.append("   <listitem>").append(EOL);
+        options.append("    <para>");
+        options.append(a.getDescription());
+        options.append("</para>").append(EOL);
+        options.append("   </listitem>").append(EOL);
+        options.append("  </varlistentry>").append(EOL);
       }
-      options += " </variablelist>" + EOL;
+      options.append(" </variablelist>").append(EOL);
     }
 
     return "<refsect2 xml:id=\"dsconfig-" + sc.getName() + "\">" + EOL +
