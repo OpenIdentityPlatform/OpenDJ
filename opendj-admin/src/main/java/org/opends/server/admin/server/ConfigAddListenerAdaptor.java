@@ -207,8 +207,7 @@ final class ConfigAddListenerAdaptor<S extends Configuration> extends
   public boolean configAddIsAcceptable(ConfigEntry configEntry,
       LocalizableMessageBuilder unacceptableReason) {
     DN dn = configEntry.getDN();
-    AttributeValue av = dn.rdn().getAttributeValue(0);
-    String name = av.getValue().toString().trim();
+    String name = dn.rdn().getFirstAVA().getAttributeValue().toString().trim();
 
     try {
       ManagedObjectPath<?, ? extends S> childPath;

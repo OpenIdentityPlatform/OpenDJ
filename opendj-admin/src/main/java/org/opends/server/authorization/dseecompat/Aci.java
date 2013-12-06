@@ -27,15 +27,21 @@
  */
 package org.opends.server.authorization.dseecompat;
 
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DN;
+
 /**
  * The Aci class represents ACI strings.
  */
-public class Aci implements Comparable<Aci>
-{
+public class Aci implements Comparable<Aci> {
     // TODO : to complete when implementing Aci support.
 
     @Override
     public int compareTo(Aci o) {
         throw new RuntimeException("This class is not implemented");
     }
- }
+
+    public static Aci decode(ByteString valueOf, DN rootDN) throws AciException {
+        throw new RuntimeException("This class is not implemented");
+    }
+}

@@ -26,220 +26,182 @@
  */
 package org.opends.server.admin;
 
+import static com.forgerock.opendj.util.StaticUtils.*;
 
-
-import org.opends.server.types.AttributeValue;
 import org.forgerock.opendj.ldap.DN;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.RDN;
-import org.opends.server.util.StaticUtils;
-
-
+import org.forgerock.opendj.ldap.RDN;
 
 /**
  * A reference to another managed object.
  *
  * @param <C>
- *          The type of client managed object configuration that this
- *          reference refers to.
+ *            The type of client managed object configuration that this
+ *            reference refers to.
  * @param <S>
- *          The type of server managed object configuration that this
- *          reference refers to.
+ *            The type of server managed object configuration that this
+ *            reference refers to.
  */
-public final class Reference<C extends ConfigurationClient,
-                             S extends Configuration> {
+public final class Reference<C extends ConfigurationClient, S extends Configuration> {
 
-  /**
-   * Parses a DN string value as a reference using the provided
-   * managed object path and relation definition.
-   *
-   * @param <C>
-   *          The type of client managed object configuration that
-   *          this reference refers to.
-   * @param <S>
-   *          The type of server managed object configuration that
-   *          this reference refers to.
-   * @param p
-   *          The path of the referenced managed object's parent.
-   * @param rd
-   *          The instantiable relation in the parent which contains
-   *          the referenced managed object.
-   * @param s
-   *          The DN string value.
-   * @return Returns the new reference based on the provided DN string
-   *         value.
-   * @throws IllegalArgumentException
-   *           If the DN string value could not be decoded as a DN or
-   *           if the provided DN did not correspond to the provided
-   *           path and relation.
-   */
-  public static <C extends ConfigurationClient, S extends Configuration>
-  Reference<C, S> parseDN(
-      ManagedObjectPath<?, ?> p, InstantiableRelationDefinition<C, S> rd,
-      String s) throws IllegalArgumentException {
-    AbstractManagedObjectDefinition<?, ?> d = p.getManagedObjectDefinition();
-    RelationDefinition<?, ?> tmp = d.getRelationDefinition(rd.getName());
-    if (tmp != rd) {
-      throw new IllegalArgumentException("The relation \"" + rd.getName()
-          + "\" is not associated with the definition \"" + d.getName() + "\"");
+    /**
+     * Parses a DN string value as a reference using the provided managed object
+     * path and relation definition.
+     *
+     * @param <C>
+     *            The type of client managed object configuration that this
+     *            reference refers to.
+     * @param <S>
+     *            The type of server managed object configuration that this
+     *            reference refers to.
+     * @param path
+     *            The path of the referenced managed object's parent.
+     * @param relationDef
+     *            The instantiable relation in the parent which contains the
+     *            referenced managed object.
+     * @param dnAsString
+     *            The DN string value.
+     * @return Returns the new reference based on the provided DN string value.
+     * @throws IllegalArgumentException
+     *             If the DN string value could not be decoded as a DN or if the
+     *             provided DN did not correspond to the provided path and
+     *             relation.
+     */
+    public static <C extends ConfigurationClient, S extends Configuration> Reference<C, S> parseDN(
+            ManagedObjectPath<?, ?> path, InstantiableRelationDefinition<C, S> relationDef, String dnAsString)
+            throws IllegalArgumentException {
+        AbstractManagedObjectDefinition<?, ?> definition = path.getManagedObjectDefinition();
+        RelationDefinition<?, ?> tmp = definition.getRelationDefinition(relationDef.getName());
+        if (tmp != relationDef) {
+            // TODO : i18n ?
+            throw new IllegalArgumentException("The relation \"" + relationDef.getName()
+                    + "\" is not associated with the definition \"" + definition.getName() + "\"");
+        }
+
+        DN dn = DN.valueOf(dnAsString);
+        RDN rdn = dn.rdn();
+        if (rdn == null) {
+            // TODO : i18n ?
+            throw new IllegalArgumentException("Unabled to decode the DN string: \"" + dnAsString + "\"");
+        }
+
+        // Check that the DN was valid.
+        String name = rdn.getFirstAVA().getAttributeValue().toString();
+        DN expected = path.child(relationDef, name).toDN();
+        if (!dn.equals(expected)) {
+            // TODO : i18n ?
+            throw new IllegalArgumentException("Unabled to decode the DN string: \"" + dnAsString + "\"");
+        }
+
+        return new Reference<C, S>(path, relationDef, name);
     }
 
-    DN dn;
-    try {
-      dn = DN.decode(s);
-    } catch (DirectoryException e) {
-      throw new IllegalArgumentException("Unabled to decode the DN string: \""
-          + s + "\"");
+    /**
+     * Parses a name as a reference using the provided managed object path and
+     * relation definition.
+     *
+     * @param <C>
+     *            The type of client managed object configuration that this
+     *            reference refers to.
+     * @param <S>
+     *            The type of server managed object configuration that this
+     *            reference refers to.
+     * @param p
+     *            The path of the referenced managed object's parent.
+     * @param rd
+     *            The instantiable relation in the parent which contains the
+     *            referenced managed object.
+     * @param s
+     *            The name of the referenced managed object.
+     * @return Returns the new reference based on the provided name.
+     * @throws IllegalArgumentException
+     *             If the relation is not associated with the provided parent's
+     *             definition, or if the provided name is empty.
+     */
+    public static <C extends ConfigurationClient, S extends Configuration> Reference<C, S> parseName(
+            ManagedObjectPath<?, ?> p, InstantiableRelationDefinition<C, S> rd, String s)
+            throws IllegalArgumentException {
+        // Sanity checks.
+        AbstractManagedObjectDefinition<?, ?> d = p.getManagedObjectDefinition();
+        RelationDefinition<?, ?> tmp = d.getRelationDefinition(rd.getName());
+        if (tmp != rd) {
+            throw new IllegalArgumentException("The relation \"" + rd.getName()
+                    + "\" is not associated with the definition \"" + d.getName() + "\"");
+        }
+
+        if (s.trim().length() == 0) {
+            throw new IllegalArgumentException("Empty names are not allowed");
+        }
+
+        return new Reference<C, S>(p, rd, s);
     }
 
-    RDN rdn = dn.getRDN();
-    if (rdn == null) {
-      throw new IllegalArgumentException("Unabled to decode the DN string: \""
-          + s + "\"");
+    // The name of the referenced managed object.
+    private final String name;
+
+    // The path of the referenced managed object.
+    private final ManagedObjectPath<C, S> path;
+
+    // The instantiable relation in the parent which contains the
+    // referenced managed object.
+    private final InstantiableRelationDefinition<C, S> relation;
+
+    // Private constructor.
+    private Reference(ManagedObjectPath<?, ?> parent, InstantiableRelationDefinition<C, S> relation, String name)
+            throws IllegalArgumentException {
+        this.relation = relation;
+        this.name = name;
+        this.path = parent.child(relation, name);
     }
 
-    AttributeValue av = rdn.getAttributeValue(0);
-    if (av == null) {
-      throw new IllegalArgumentException("Unabled to decode the DN string: \""
-          + s + "\"");
+    /**
+     * Gets the name of the referenced managed object.
+     *
+     * @return Returns the name of the referenced managed object.
+     */
+    public String getName() {
+        return name;
     }
 
-    String name = av.getValue().toString();
-
-    // Check that the DN was valid.
-    DN expected = p.child(rd, name).toDN();
-    if (!dn.equals(expected)) {
-      throw new IllegalArgumentException("Unabled to decode the DN string: \""
-          + s + "\"");
+    /**
+     * Gets the normalized name of the referenced managed object.
+     *
+     * @return Returns the normalized name of the referenced managed object.
+     */
+    public String getNormalizedName() {
+        PropertyDefinition<?> pd = relation.getNamingPropertyDefinition();
+        return normalizeName(pd);
     }
 
-    return new Reference<C, S>(p, rd, name);
-  }
-
-
-
-  /**
-   * Parses a name as a reference using the provided managed object
-   * path and relation definition.
-   *
-   * @param <C>
-   *          The type of client managed object configuration that
-   *          this reference refers to.
-   * @param <S>
-   *          The type of server managed object configuration that
-   *          this reference refers to.
-   * @param p
-   *          The path of the referenced managed object's parent.
-   * @param rd
-   *          The instantiable relation in the parent which contains
-   *          the referenced managed object.
-   * @param s
-   *          The name of the referenced managed object.
-   * @return Returns the new reference based on the provided name.
-   * @throws IllegalArgumentException
-   *           If the relation is not associated with the provided
-   *           parent's definition, or if the provided name is empty.
-   */
-  public static <C extends ConfigurationClient, S extends Configuration>
-  Reference<C, S> parseName(
-      ManagedObjectPath<?, ?> p, InstantiableRelationDefinition<C, S> rd,
-      String s) throws IllegalArgumentException {
-    // Sanity checks.
-    AbstractManagedObjectDefinition<?, ?> d = p.getManagedObjectDefinition();
-    RelationDefinition<?, ?> tmp = d.getRelationDefinition(rd.getName());
-    if (tmp != rd) {
-      throw new IllegalArgumentException("The relation \"" + rd.getName()
-          + "\" is not associated with the definition \"" + d.getName() + "\"");
+    /**
+     * Gets the DN of the referenced managed object.
+     *
+     * @return Returns the DN of the referenced managed object.
+     */
+    public DN toDN() {
+        return path.toDN();
     }
 
-    if (s.trim().length() == 0) {
-      throw new IllegalArgumentException("Empty names are not allowed");
+    /**
+     * {@inheritDoc}
+     */
+    public String toString() {
+        return name;
     }
 
-    return new Reference<C, S>(p, rd, s);
-  }
+    // Normalize a value using the specified naming property definition
+    // if defined.
+    private <T> String normalizeName(PropertyDefinition<T> pd) {
+        if (pd != null) {
+            try {
+                T tvalue = pd.decodeValue(name);
+                return pd.normalizeValue(tvalue);
+            } catch (IllegalPropertyValueStringException e) {
+                // Fall through to default normalization.
+            }
+        }
 
-  // The name of the referenced managed object.
-  private final String name;
-
-  // The path of the referenced managed object.
-  private final ManagedObjectPath<C, S> path;
-
-  // The instantiable relation in the parent which contains the
-  // referenced managed object.
-  private final InstantiableRelationDefinition<C, S> relation;
-
-
-
-  // Private constructor.
-  private Reference(ManagedObjectPath<?, ?> parent,
-      InstantiableRelationDefinition<C, S> relation, String name)
-      throws IllegalArgumentException {
-    this.relation = relation;
-    this.name = name;
-    this.path = parent.child(relation, name);
-  }
-
-
-
-  /**
-   * Gets the name of the referenced managed object.
-   *
-   * @return Returns the name of the referenced managed object.
-   */
-  public String getName() {
-    return name;
-  }
-
-
-
-  /**
-   * Gets the normalized name of the referenced managed object.
-   *
-   * @return Returns the normalized name of the referenced managed
-   *         object.
-   */
-  public String getNormalizedName() {
-    PropertyDefinition<?> pd = relation.getNamingPropertyDefinition();
-    return normalizeName(pd);
-  }
-
-
-
-  /**
-   * Gets the DN of the referenced managed object.
-   *
-   * @return Returns the DN of the referenced managed object.
-   */
-  public DN toDN() {
-    return path.toDN();
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public String toString() {
-    return name;
-  }
-
-
-
-  // Normalize a value using the specified naming property definition
-  // if defined.
-  private <T> String normalizeName(PropertyDefinition<T> pd) {
-    if (pd != null) {
-      try {
-        T tvalue = pd.decodeValue(name);
-        return pd.normalizeValue(tvalue);
-      } catch (IllegalPropertyValueStringException e) {
-        // Fall through to default normalization.
-      }
+        // FIXME: should really use directory string normalizer.
+        String s = name.trim().replaceAll(" +", " ");
+        return toLowerCase(s);
     }
-
-    // FIXME: should really use directory string normalizer.
-    String s = name.trim().replaceAll(" +", " ");
-    return StaticUtils.toLowerCase(s);
-  }
 }

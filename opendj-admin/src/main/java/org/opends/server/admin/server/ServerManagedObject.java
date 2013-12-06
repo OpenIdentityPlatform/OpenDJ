@@ -60,6 +60,7 @@ import org.opends.server.util.DynamicConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+
 /**
  * A server-side managed object.
  *
@@ -246,8 +247,7 @@ public final class ServerManagedObject<S extends Configuration> implements Prope
                 ConfigChangeListenerAdaptor<?> adaptor = (ConfigChangeListenerAdaptor<?>) l;
                 ServerManagedObjectChangeListener<?> l2 = adaptor.getServerManagedObjectChangeListener();
                 if (l2 instanceof ServerManagedObjectChangeListenerAdaptor<?>) {
-                    ServerManagedObjectChangeListenerAdaptor<?> adaptor2 =
-                            (ServerManagedObjectChangeListenerAdaptor<?>) l2;
+                    ServerManagedObjectChangeListenerAdaptor<?> adaptor2 = (ServerManagedObjectChangeListenerAdaptor<?>) l2;
                     if (adaptor2.getConfigurationChangeListener() == listener) {
                         adaptor.finalizeChangeListener();
                         configEntry.deregisterChangeListener(adaptor);
@@ -797,6 +797,10 @@ public final class ServerManagedObject<S extends Configuration> implements Prope
         ConfigChangeListener adaptor = new ConfigChangeListenerAdaptor<S>(path, listener);
         configEntry.registerChangeListener(adaptor);
 
+        // TODO : go toward this
+        // Entry entry;
+        // configBackend.registerChangeListener(entry.getName(), adapter));
+
         // Change listener registration usually signifies that a managed
         // object has been accepted and added to the server configuration
         // during initialization post-add.
@@ -1030,8 +1034,7 @@ public final class ServerManagedObject<S extends Configuration> implements Prope
                         ConfigAddListenerAdaptor<?> adaptor = (ConfigAddListenerAdaptor<?>) l;
                         ServerManagedObjectAddListener<?> l2 = adaptor.getServerManagedObjectAddListener();
                         if (l2 instanceof ServerManagedObjectAddListenerAdaptor<?>) {
-                            ServerManagedObjectAddListenerAdaptor<?> adaptor2 =
-                                    (ServerManagedObjectAddListenerAdaptor<?>) l2;
+                            ServerManagedObjectAddListenerAdaptor<?> adaptor2 = (ServerManagedObjectAddListenerAdaptor<?>) l2;
                             if (adaptor2.getConfigurationAddListener() == listener) {
                                 configEntry.deregisterAddListener(adaptor);
                             }
@@ -1050,8 +1053,7 @@ public final class ServerManagedObject<S extends Configuration> implements Prope
     }
 
     // Deregister an add listener.
-    private <M extends Configuration> void deregisterAddListener(DN baseDN,
-            ServerManagedObjectAddListener<M> listener) {
+    private <M extends Configuration> void deregisterAddListener(DN baseDN, ServerManagedObjectAddListener<M> listener) {
         try {
             ConfigEntry configEntry = getListenerConfigEntry(baseDN);
             if (configEntry != null) {
@@ -1075,8 +1077,7 @@ public final class ServerManagedObject<S extends Configuration> implements Prope
     }
 
     // Deregister a delete listener.
-    private <M extends Configuration> void deregisterDeleteListener(DN baseDN,
-            ConfigurationDeleteListener<M> listener) {
+    private <M extends Configuration> void deregisterDeleteListener(DN baseDN, ConfigurationDeleteListener<M> listener) {
         try {
             ConfigEntry configEntry = getListenerConfigEntry(baseDN);
             if (configEntry != null) {
@@ -1085,8 +1086,7 @@ public final class ServerManagedObject<S extends Configuration> implements Prope
                         ConfigDeleteListenerAdaptor<?> adaptor = (ConfigDeleteListenerAdaptor<?>) l;
                         ServerManagedObjectDeleteListener<?> l2 = adaptor.getServerManagedObjectDeleteListener();
                         if (l2 instanceof ServerManagedObjectDeleteListenerAdaptor<?>) {
-                            ServerManagedObjectDeleteListenerAdaptor<?> adaptor2 =
-                                    (ServerManagedObjectDeleteListenerAdaptor<?>) l2;
+                            ServerManagedObjectDeleteListenerAdaptor<?> adaptor2 = (ServerManagedObjectDeleteListenerAdaptor<?>) l2;
                             if (adaptor2.getConfigurationDeleteListener() == listener) {
                                 configEntry.deregisterDeleteListener(adaptor);
                             }
@@ -1183,8 +1183,7 @@ public final class ServerManagedObject<S extends Configuration> implements Prope
 
     // Deregister a delayed listener with the nearest existing parent
     // entry to the provided base DN.
-    private <M extends Configuration> void deregisterDelayedAddListener(DN baseDN,
-            ConfigurationAddListener<M> listener)
+    private <M extends Configuration> void deregisterDelayedAddListener(DN baseDN, ConfigurationAddListener<M> listener)
             throws ConfigException {
         DN parentDN = baseDN.parent();
         int delayWrappers = 0;
@@ -1222,8 +1221,7 @@ public final class ServerManagedObject<S extends Configuration> implements Prope
                             ConfigAddListenerAdaptor<?> adaptor = (ConfigAddListenerAdaptor<?>) delayedListener;
                             ServerManagedObjectAddListener<?> l2 = adaptor.getServerManagedObjectAddListener();
                             if (l2 instanceof ServerManagedObjectAddListenerAdaptor<?>) {
-                                ServerManagedObjectAddListenerAdaptor<?> adaptor2 =
-                                        (ServerManagedObjectAddListenerAdaptor<?>) l2;
+                                ServerManagedObjectAddListenerAdaptor<?> adaptor2 = (ServerManagedObjectAddListenerAdaptor<?>) l2;
                                 if (adaptor2.getConfigurationAddListener() == listener) {
                                     relationEntry.deregisterAddListener(l);
                                 }
@@ -1276,8 +1274,7 @@ public final class ServerManagedObject<S extends Configuration> implements Prope
                             ConfigDeleteListenerAdaptor<?> adaptor = (ConfigDeleteListenerAdaptor<?>) delayedListener;
                             ServerManagedObjectDeleteListener<?> l2 = adaptor.getServerManagedObjectDeleteListener();
                             if (l2 instanceof ServerManagedObjectDeleteListenerAdaptor<?>) {
-                                ServerManagedObjectDeleteListenerAdaptor<?> adaptor2 =
-                                        (ServerManagedObjectDeleteListenerAdaptor<?>) l2;
+                                ServerManagedObjectDeleteListenerAdaptor<?> adaptor2 = (ServerManagedObjectDeleteListenerAdaptor<?>) l2;
                                 if (adaptor2.getConfigurationDeleteListener() == listener) {
                                     relationEntry.deregisterAddListener(l);
                                 }

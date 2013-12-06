@@ -56,12 +56,12 @@
       com.sun.security.auth*;resolution:=optional,
       *
     </opendj.osgi.import>
-    <xmlDefinitionsBaseDir>src/main/resources/definitions</xmlDefinitionsBaseDir>
+    <xmlDefinitionsBaseDir>${basedir}/src/main/resources/definitions</xmlDefinitionsBaseDir>
     <xmlDefinitionsDir>${xmlDefinitionsBaseDir}/org/forgerock/opendj/admin</xmlDefinitionsDir>
     <adminPackage>org/forgerock/opendj/admin</adminPackage>
     <generatedSourcesDir>${project.build.directory}/generated-sources/admin/${adminPackage}</generatedSourcesDir>
-    <xslDir>src/main/resources/stylesheets</xslDir>
-    
+    <xslDir>${basedir}/src/main/resources/stylesheets</xslDir>
+
     <!-- properties used to generate DynamicConstant class -->
     <serverProductName>OpenDJ</serverProductName>
     <serverShortProductName>OpenDJ</serverShortProductName>
@@ -87,6 +87,7 @@
               <messageFiles>
                 <messageFile>com/forgerock/opendj/ldap/admin.properties</messageFile>
                 <messageFile>com/forgerock/opendj/ldap/config.properties</messageFile>
+                <messageFile>com/forgerock/opendj/ldap/extension.properties</messageFile>
                 <messageFile>com/forgerock/opendj/ldap/protocol.properties</messageFile>
               </messageFiles>
             </configuration>
@@ -99,8 +100,28 @@
         <artifactId>xml-maven-plugin</artifactId>
         <version>1.0</version>
         <executions>
+          <!-- Validate core components XML definition files -->
+          <execution>
+            <id>validate-core-components</id>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>validate</goal>
+            </goals>
+            <configuration>
+              <validationSets>
+                <validationSet>
+                  <dir>${xmlDefinitionsDir}</dir>
+                  <systemId>${xslDir}/admin.xsd</systemId>
+                </validationSet>
+              </validationSets>
+              <catalogs>
+                <catalog>${xslDir}/catalog.xml</catalog>
+              </catalogs>
+            </configuration>
+          </execution>
           <execution>
             <id>generate-core-components</id>
+            <phase>generate-sources</phase>
             <goals>
               <goal>transform</goal>
             </goals>
@@ -427,8 +448,6 @@
         </executions>
       </plugin>
     </plugins>
-    <pluginManagement>
-    </pluginManagement>
   </build>
   <reporting>
     <plugins>

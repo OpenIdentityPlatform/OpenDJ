@@ -27,6 +27,8 @@
 
 package org.opends.server.admin;
 
+import static com.forgerock.opendj.ldap.AdminMessages.*;
+
 /**
  * This exception is thrown when a property's default values cannot be
  * determined. This can occur in the following situations:

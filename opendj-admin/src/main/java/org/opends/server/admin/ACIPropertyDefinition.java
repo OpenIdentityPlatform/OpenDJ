@@ -30,6 +30,7 @@ package org.opends.server.admin;
 import static com.forgerock.opendj.util.Validator.*;
 
 import org.opends.server.authorization.dseecompat.Aci;
+import org.opends.server.authorization.dseecompat.AciException;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 
