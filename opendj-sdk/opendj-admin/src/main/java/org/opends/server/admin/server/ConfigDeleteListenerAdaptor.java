@@ -33,7 +33,6 @@ import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.admin.Configuration;
 import org.opends.server.admin.Constraint;
 import org.opends.server.admin.DecodingException;
@@ -187,8 +186,7 @@ final class ConfigDeleteListenerAdaptor<S extends Configuration> extends Abstrac
      */
     public boolean configDeleteIsAcceptable(ConfigEntry configEntry, LocalizableMessageBuilder unacceptableReason) {
         DN dn = configEntry.getDN();
-        AttributeValue av = dn.rdn().getAttributeValue(0);
-        String name = av.getValue().toString().trim();
+        String name = dn.rdn().getFirstAVA().getAttributeValue().toString().trim();
 
         try {
             ManagedObjectPath<?, ? extends S> childPath;

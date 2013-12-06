@@ -26,6 +26,7 @@
  */
 package org.opends.server.config;
 
+import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.forgerock.opendj.ldap.DN;
@@ -59,14 +60,17 @@ public final class ConfigEntry {
     /** The actual entry wrapped by this configuration entry. */
     private Entry entry;
 
+    private final ConfigurationRepository configRepository;
+
     /**
      * Creates a new config entry with the provided entry.
      *
      * @param entry
      *            The entry that will be encapsulated by this config entry.
      */
-    public ConfigEntry(Entry entry) {
+    public ConfigEntry(Entry entry, ConfigurationRepository configRepository) {
         this.entry = entry;
+        this.configRepository = configRepository;
         addListeners = new CopyOnWriteArrayList<ConfigAddListener>();
         changeListeners = new CopyOnWriteArrayList<ConfigChangeListener>();
         deleteListeners = new CopyOnWriteArrayList<ConfigDeleteListener>();
@@ -218,5 +222,14 @@ public final class ConfigEntry {
     @Override
     public String toString() {
         return entry.getName().toNormalizedString();
+    }
+
+    /**
+     * Retrieves the set of children associated with this configuration entry.
+     *
+     * @return  The set of children associated with this configuration entry.
+     */
+    public Set<DN> getChildren() {
+        return configRepository.getChildren(entry);
     }
 }

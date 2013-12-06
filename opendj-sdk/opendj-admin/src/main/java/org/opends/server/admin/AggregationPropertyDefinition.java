@@ -26,6 +26,10 @@
  */
 package org.opends.server.admin;
 
+import static com.forgerock.opendj.ldap.AdminMessages.*;
+import static com.forgerock.opendj.util.StaticUtils.*;
+import static com.forgerock.opendj.util.Validator.*;
+
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -53,7 +57,11 @@ import org.opends.server.admin.server.ServerManagedObjectChangeListener;
 import org.opends.server.admin.server.ServerManagementContext;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.ConfigChangeResult;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.admin.meta.RootCfgDefn;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ResultCode;
 
@@ -260,13 +268,13 @@ public final class AggregationPropertyDefinition<C extends ConfigurationClient, 
                 }
             } catch (ConfigException e) {
                 // The condition could not be evaluated.
-                if (debugEnabled()) {
-                    TRACER.debugCaught(DebugLogLevel.ERROR, e);
-                }
-
-                LocalizableMessage message = ERR_REFINT_UNABLE_TO_EVALUATE_TARGET_CONDITION.get(mo.getManagedObjectDefinition()
-                        .getUserFriendlyName(), String.valueOf(mo.getDN()), StaticUtils.getExceptionLocalizableMessage(e));
-                ErrorLogger.logError(message);
+                debugLogger.trace("Unable to perform post add", e);
+                LocalizableMessage message = ERR_REFINT_UNABLE_TO_EVALUATE_TARGET_CONDITION.get(mo
+                        .getManagedObjectDefinition().getUserFriendlyName(), String.valueOf(mo.getDN()),
+                        getExceptionMessage(e));
+                LocalizedLogger logger = LocalizedLogger
+                        .getLocalizedLogger(ERR_REFINT_UNABLE_TO_EVALUATE_TARGET_CONDITION.resourceName());
+                logger.error(message);
                 unacceptableReasons.add(message);
                 return false;
             }
@@ -504,12 +512,14 @@ public final class AggregationPropertyDefinition<C extends ConfigurationClient, 
                 try {
                     ref = context.getManagedObject(path);
                 } catch (DefinitionDecodingException e) {
-                    LocalizableMessage msg = ERR_CLIENT_REFINT_TARGET_INVALID.get(ufn, name, getName(), e.getLocalizableMessageObject());
+                    LocalizableMessage msg = ERR_CLIENT_REFINT_TARGET_INVALID.get(ufn, name, getName(),
+                            e.getMessageObject());
                     unacceptableReasons.add(msg);
                     isAcceptable = false;
                     continue;
                 } catch (ManagedObjectDecodingException e) {
-                    LocalizableMessage msg = ERR_CLIENT_REFINT_TARGET_INVALID.get(ufn, name, getName(), e.getLocalizableMessageObject());
+                    LocalizableMessage msg = ERR_CLIENT_REFINT_TARGET_INVALID.get(ufn, name, getName(),
+                            e.getMessageObject());
                     unacceptableReasons.add(msg);
                     isAcceptable = false;
                     continue;
@@ -688,11 +698,6 @@ public final class AggregationPropertyDefinition<C extends ConfigurationClient, 
     }
 
     /**
-     * The tracer object for the debug logger.
-     */
-    private static final DebugTracer TRACER = getTracer();
-
-    /**
      * Creates an aggregation property definition builder.
      *
      * @param <C>
@@ -712,6 +717,8 @@ public final class AggregationPropertyDefinition<C extends ConfigurationClient, 
             AbstractManagedObjectDefinition<?, ?> d, String propertyName) {
         return new Builder<C, S>(d, propertyName);
     }
+
+    private static final Logger debugLogger = LoggerFactory.getLogger(AggregationPropertyDefinition.class);
 
     // The active server-side referential integrity change listeners
     // associated with this property.
@@ -902,7 +909,7 @@ public final class AggregationPropertyDefinition<C extends ConfigurationClient, 
         ManagedObjectDefinitionI18NResource resource = ManagedObjectDefinitionI18NResource.getInstance();
         String property = "property." + getName() + ".syntax.aggregation.constraint-synopsis";
         try {
-            return resource.getLocalizableMessage(getManagedObjectDefinition(), property, locale);
+            return resource.getMessage(getManagedObjectDefinition(), property, locale);
         } catch (MissingResourceException e) {
             return null;
         }

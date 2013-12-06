@@ -5,6 +5,8 @@
   xmlns:tns="http://www.opends.org/admin">
   <xsd:import namespace="http://www.opends.org/admin-ldap"
     schemaLocation="admin-ldap.xsd" />
+  <xsd:import namespace="http://www.opends.org/admin-cli"
+    schemaLocation="admin-cli.xsd" />
   <xsd:import namespace="http://www.opends.org/admin-preprocessor"
     schemaLocation="admin-preprocessor.xsd" />
   <xsd:annotation>
