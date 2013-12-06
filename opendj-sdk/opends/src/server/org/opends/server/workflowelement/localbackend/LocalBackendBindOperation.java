@@ -388,22 +388,17 @@ public class LocalBackendBindOperation
    * @throws  DirectoryException  If there is a problem with any of the
    *                              controls.
    */
-  private void handleRequestControls()
-          throws DirectoryException
+  private void handleRequestControls() throws DirectoryException
   {
+    LocalBackendWorkflowElement.removeAllDisallowedControls(bindDN, this);
+
     List<Control> requestControls = getRequestControls();
-    if ((requestControls != null) && (! requestControls.isEmpty()))
+    if (requestControls != null && !requestControls.isEmpty())
     {
       for (int i=0; i < requestControls.size(); i++)
       {
         Control c   = requestControls.get(i);
         String  oid = c.getOID();
-
-        if (!LocalBackendWorkflowElement.isControlAllowed(bindDN, this, c))
-        {
-          // Skip disallowed non-critical controls.
-          continue;
-        }
 
         if (oid.equals(OID_AUTHZID_REQUEST))
         {
@@ -415,7 +410,6 @@ public class LocalBackendBindOperation
         }
 
         // NYI -- Add support for additional controls.
-
         else if (c.isCritical())
         {
           throw new DirectoryException(
@@ -520,7 +514,6 @@ public class LocalBackendBindOperation
         PasswordPolicy policy = pwPolicyState.getAuthenticationPolicy();
 
         AttributeType pwType = policy.getPasswordAttribute();
-
         List<Attribute> pwAttr = userEntry.getAttribute(pwType);
         if ((pwAttr == null) || (pwAttr.isEmpty()))
         {
@@ -652,8 +645,7 @@ public class LocalBackendBindOperation
    * @throws  DirectoryException  If a problem occurs that should cause the bind
    *                              operation to fail.
    */
-  protected boolean processAnonymousSimpleBind()
-          throws DirectoryException
+  protected boolean processAnonymousSimpleBind() throws DirectoryException
   {
     // If the server is in lockdown mode, then fail.
     if (DirectoryServer.lockdownMode())
@@ -663,8 +655,8 @@ public class LocalBackendBindOperation
     }
 
     // If there is a bind DN, then see whether that is acceptable.
-    if (DirectoryServer.bindWithDNRequiresPassword() &&
-        ((bindDN != null) && (! bindDN.isNullDN())))
+    if (DirectoryServer.bindWithDNRequiresPassword()
+        && bindDN != null && !bindDN.isNullDN())
     {
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
                                    ERR_BIND_DN_BUT_NO_PASSWORD.get());
@@ -693,8 +685,7 @@ public class LocalBackendBindOperation
    * @throws  DirectoryException  If a problem occurs that should cause the bind
    *                              operation to fail.
    */
-  private boolean processSASLBind()
-          throws DirectoryException
+  private boolean processSASLBind() throws DirectoryException
   {
     // Get the appropriate authentication handler for this request based
     // on the SASL mechanism.  If there is none, then fail.

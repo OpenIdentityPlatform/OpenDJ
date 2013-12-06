@@ -682,9 +682,10 @@ public class LocalBackendModifyOperation
    * @throws  DirectoryException  If a problem is encountered with any of the
    *                              controls.
    */
-  protected void processRequestControls()
-          throws DirectoryException
+  protected void processRequestControls() throws DirectoryException
   {
+    LocalBackendWorkflowElement.removeAllDisallowedControls(entryDN, this);
+
     List<Control> requestControls = getRequestControls();
     if ((requestControls != null) && (! requestControls.isEmpty()))
     {
@@ -692,12 +693,6 @@ public class LocalBackendModifyOperation
       {
         Control c   = requestControls.get(i);
         String  oid = c.getOID();
-
-        if (!LocalBackendWorkflowElement.isControlAllowed(entryDN, this, c))
-        {
-          // Skip disallowed non-critical controls.
-          continue;
-        }
 
         if (oid.equals(OID_LDAP_ASSERTION))
         {
@@ -2081,8 +2076,6 @@ public class LocalBackendModifyOperation
    *          {@code false} if not.
    */
   protected boolean handleConflictResolution() {
-      boolean returnVal = true;
-
       for (SynchronizationProvider<?> provider :
           DirectoryServer.getSynchronizationProviders()) {
           try {
@@ -2093,8 +2086,7 @@ public class LocalBackendModifyOperation
                       result.getResultCode(), result.getErrorMessage());
                   setMatchedDN(result.getMatchedDN());
                   setReferralURLs(result.getReferralURLs());
-                  returnVal = false;
-                  break;
+                  return false;
               }
           } catch (DirectoryException de) {
               if (debugEnabled()) {
@@ -2104,11 +2096,10 @@ public class LocalBackendModifyOperation
                       getConnectionID(), getOperationID(),
                       getExceptionMessage(de)));
               setResponseData(de);
-              returnVal = false;
-              break;
+              return false;
           }
       }
-      return returnVal;
+      return true;
   }
 
   /**
@@ -2117,7 +2108,6 @@ public class LocalBackendModifyOperation
    *          {@code false} if not.
    */
   protected boolean processPreOperation() {
-      boolean returnVal = true;
       for (SynchronizationProvider<?> provider :
           DirectoryServer.getSynchronizationProviders()) {
           try {
@@ -2128,8 +2118,7 @@ public class LocalBackendModifyOperation
                   appendErrorMessage(result.getErrorMessage());
                   setMatchedDN(result.getMatchedDN());
                   setReferralURLs(result.getReferralURLs());
-                  returnVal = false;
-                  break;
+                  return false;
               }
           } catch (DirectoryException de) {
               if (debugEnabled()) {
@@ -2138,11 +2127,10 @@ public class LocalBackendModifyOperation
               logError(ERR_MODIFY_SYNCH_PREOP_FAILED.get(getConnectionID(),
                       getOperationID(), getExceptionMessage(de)));
               setResponseData(de);
-              returnVal = false;
-              break;
+              return false;
           }
       }
-      return returnVal;
+      return true;
   }
 
   /**
@@ -2160,7 +2148,7 @@ public class LocalBackendModifyOperation
               logError(ERR_MODIFY_SYNCH_POSTOP_FAILED.get(getConnectionID(),
                       getOperationID(), getExceptionMessage(de)));
               setResponseData(de);
-              break;
+              return;
           }
       }
   }

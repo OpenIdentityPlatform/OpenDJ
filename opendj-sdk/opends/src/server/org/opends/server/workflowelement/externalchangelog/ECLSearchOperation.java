@@ -373,9 +373,10 @@ public class ECLSearchOperation
     List<Control> requestControls  = getRequestControls();
     if (requestControls != null && !requestControls.isEmpty())
     {
-      for (Control c : requestControls)
+      for (Iterator<Control> iter = requestControls.iterator(); iter.hasNext();)
       {
-        String  oid = c.getOID();
+        final Control c = iter.next();
+        final String oid = c.getOID();
 
         if (!AccessControlConfigManager.getInstance().getAccessControlHandler()
             .isAllowed(baseDN, this, c))
@@ -388,7 +389,7 @@ public class ECLSearchOperation
                 ERR_CONTROL_INSUFFICIENT_ACCESS_RIGHTS.get(oid));
           }
           // We don't want to process this non-critical control, so remove it.
-          removeRequestControl(c);
+          iter.remove();
           continue;
         }
 

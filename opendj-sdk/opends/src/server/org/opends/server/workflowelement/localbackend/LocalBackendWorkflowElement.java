@@ -28,6 +28,7 @@
 package org.opends.server.workflowelement.localbackend;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.TreeMap;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -324,42 +325,51 @@ public class LocalBackendWorkflowElement extends
 
 
   /**
-   * Determine whether or not the provided request control is permitted by the
-   * access control policy. If it is not allowed, then abort the operation if
-   * the control was critical, otherwise ignore it.
+   * Removes all the disallowed request controls from the provided operation.
+   * <p>
+   * As per RFC 4511 4.1.11, if a disallowed request control is critical, then a
+   * DirectoryException is thrown with unavailableCriticalExtension. Otherwise,
+   * if the disallowed request control is non critical, it is removed because we
+   * do not want the backend to process it.
    *
    * @param targetDN
-   *          The operation target DN.
+   *          the target DN on which the operation applies
    * @param op
-   *          The operation.
-   * @param control
-   *          The request control.
-   * @return {@code true} if access is allowed, or {@code false} if access is
-   *         not allowed, but the control is non-critical and should be ignored.
+   *          the operation currently processed
    * @throws DirectoryException
-   *           If access is not allowed and the control is critical.
+   *           If a disallowed request control is critical, thrown with
+   *           unavailableCriticalExtension. If an error occurred while
+   *           performing the access control check. For example, if an attribute
+   *           could not be decoded. Care must be taken not to expose any
+   *           potentially sensitive information in the exception.
    */
-  static boolean isControlAllowed(DN targetDN, Operation op, Control control)
+  static void removeAllDisallowedControls(DN targetDN, Operation op)
       throws DirectoryException
   {
-    if (!AccessControlConfigManager.getInstance().getAccessControlHandler()
-        .isAllowed(targetDN, op, control))
+    final List<Control> requestControls = op.getRequestControls();
+    if (requestControls != null && !requestControls.isEmpty())
     {
-      // As per RFC 4511 4.1.11.
-      if (control.isCritical())
+      for (Iterator<Control> iter = requestControls.iterator(); iter.hasNext();)
       {
-        throw new DirectoryException(ResultCode.UNAVAILABLE_CRITICAL_EXTENSION,
-            ERR_CONTROL_INSUFFICIENT_ACCESS_RIGHTS.get(control.getOID()));
-      }
-      else
-      {
-        // We do not want the backend to process this non-critical control, so
-        // remove it.
-        op.removeRequestControl(control);
-        return false;
+        final Control control = iter.next();
+
+        if (!AccessControlConfigManager.getInstance().getAccessControlHandler()
+            .isAllowed(targetDN, op, control))
+        {
+          // As per RFC 4511 4.1.11.
+          if (control.isCritical())
+          {
+            throw new DirectoryException(
+                ResultCode.UNAVAILABLE_CRITICAL_EXTENSION,
+                ERR_CONTROL_INSUFFICIENT_ACCESS_RIGHTS.get(control.getOID()));
+          }
+
+          // We do not want the backend to process this non-critical control, so
+          // remove it.
+          iter.remove();
+        }
       }
     }
-    return true;
   }
 
   /**

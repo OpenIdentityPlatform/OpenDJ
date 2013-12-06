@@ -32,17 +32,8 @@ import java.util.List;
 import org.opends.server.api.Backend;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.plugin.PluginResult;
-import org.opends.server.controls.LDAPAssertionRequestControl;
-import org.opends.server.controls.MatchedValuesControl;
-import org.opends.server.controls.PersistentSearchControl;
-import org.opends.server.controls.ProxiedAuthV1Control;
-import org.opends.server.controls.ProxiedAuthV2Control;
-import org.opends.server.controls.SubentriesControl;
-import org.opends.server.core.AccessControlConfigManager;
-import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.PersistentSearch;
-import org.opends.server.core.SearchOperationWrapper;
-import org.opends.server.core.SearchOperation;
+import org.opends.server.controls.*;
+import org.opends.server.core.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.*;
 import org.opends.server.types.operation.PostOperationSearchOperation;
@@ -342,6 +333,8 @@ public class LocalBackendSearchOperation
    */
   private void handleRequestControls() throws DirectoryException
   {
+    LocalBackendWorkflowElement.removeAllDisallowedControls(baseDN, this);
+
     List<Control> requestControls  = getRequestControls();
     if ((requestControls != null) && (! requestControls.isEmpty()))
     {
@@ -350,19 +343,12 @@ public class LocalBackendSearchOperation
         Control c   = requestControls.get(i);
         String  oid = c.getOID();
 
-        if (!LocalBackendWorkflowElement.isControlAllowed(baseDN, this, c))
-        {
-          // Skip disallowed non-critical controls.
-          continue;
-        }
-
         if (oid.equals(OID_LDAP_ASSERTION))
         {
           LDAPAssertionRequestControl assertControl =
                 getRequestControl(LDAPAssertionRequestControl.DECODER);
 
           SearchFilter assertionFilter;
-
           try
           {
             assertionFilter = assertControl.getSearchFilter();

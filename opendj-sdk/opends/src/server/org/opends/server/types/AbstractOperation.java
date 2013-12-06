@@ -308,13 +308,6 @@ public abstract class AbstractOperation
 
   /** {@inheritDoc} */
   @Override
-  public final void removeRequestControl(Control control)
-  {
-    requestControls.remove(control);
-  }
-
-  /** {@inheritDoc} */
-  @Override
   public final ResultCode getResultCode()
   {
     return resultCode;
@@ -404,14 +397,11 @@ public abstract class AbstractOperation
   @Override
   public List<AdditionalLogItem> getAdditionalLogItems()
   {
-    if (additionalLogItems == null)
-    {
-      return Collections.emptyList();
-    }
-    else
+    if (additionalLogItems != null)
     {
       return Collections.unmodifiableList(additionalLogItems);
     }
+    return Collections.emptyList();
   }
 
   /** {@inheritDoc} */
@@ -548,14 +538,11 @@ public abstract class AbstractOperation
   @Override
   public final DN getAuthorizationDN()
   {
-    if (authorizationEntry == null)
-    {
-      return DN.nullDN();
-    }
-    else
+    if (authorizationEntry != null)
     {
       return authorizationEntry.getDN();
     }
+    return DN.nullDN();
   }
 
   /** {@inheritDoc} */
@@ -730,7 +717,7 @@ public abstract class AbstractOperation
   @Override
   public final long getProcessingTime()
   {
-    return (processingStopTime - processingStartTime);
+    return processingStopTime - processingStartTime;
   }
 
   /** {@inheritDoc} */
@@ -739,12 +726,9 @@ public abstract class AbstractOperation
   {
     if(useNanoTime)
     {
-      return (processingStopNanoTime - processingStartNanoTime);
+      return processingStopNanoTime - processingStartNanoTime;
     }
-    else
-    {
-      return -1;
-    }
+    return -1;
   }
 
   /** {@inheritDoc} */

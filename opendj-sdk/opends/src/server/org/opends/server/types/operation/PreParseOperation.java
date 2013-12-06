@@ -23,19 +23,16 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS.
+ *      Portions copyright 2011-2013 ForgeRock AS.
  */
 package org.opends.server.types.operation;
+
 import java.util.List;
 
 import org.opends.messages.Message;
-
-
-
-import org.opends.server.types.*;
-
 import org.opends.messages.MessageBuilder;
-
+import org.opends.server.types.AdditionalLogItem;
+import org.opends.server.types.Control;
 
 /**
  * This class defines a set of methods that are available for use by
@@ -59,17 +56,6 @@ public interface PreParseOperation
    *                  controls for this operation.
    */
   public void addRequestControl(Control control);
-
-
-
-  /**
-   * Removes the provided control from the set of request controls for
-   * this operation.
-   *
-   * @param  control  The control to remove from the set of request
-   *                  controls for this operation.
-   */
-  public void removeRequestControl(Control control);
 
 
 
