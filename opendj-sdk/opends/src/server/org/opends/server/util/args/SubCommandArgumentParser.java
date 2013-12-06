@@ -26,31 +26,21 @@
  *      Portions copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.util.args;
+
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.*;
+
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.util.SetupUtils;
 
 import static org.opends.messages.UtilityMessages.*;
 import static org.opends.server.tools.ToolConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.Map;
-import java.util.Properties;
-import java.util.SortedMap;
-import java.util.TreeMap;
-
-import org.opends.server.core.DirectoryServer;
-import org.opends.server.util.SetupUtils;
-
-
 
 /**
  * This class defines a variant of the argument parser that can be used with
@@ -65,64 +55,85 @@ import org.opends.server.util.SetupUtils;
  */
 public class SubCommandArgumentParser extends ArgumentParser
 {
-  // The argument that will be used to trigger the display of usage information.
+  /**
+   * The argument that will be used to trigger the display of usage information.
+   */
   private Argument usageArgument;
 
-  // The arguments that will be used to trigger the display of usage
-  // information for groups of sub-commands.
+  /**
+   * The arguments that will be used to trigger the display of usage information
+   * for groups of sub-commands.
+   */
   private final Map<Argument, Collection<SubCommand>> usageGroupArguments;
 
-  // The set of unnamed trailing arguments that were provided for this parser.
+  /**
+   * The set of unnamed trailing arguments that were provided for this parser.
+   */
   private ArrayList<String> trailingArguments;
 
-  // Indicates whether subcommand and long argument names should be treated in a
-  // case-sensitive manner.
+  /**
+   * Indicates whether subcommand and long argument names should be treated in a
+   * case-sensitive manner.
+   */
   private final boolean longArgumentsCaseSensitive;
 
-  // Indicates whether the usage information has been displayed.
+  /** Indicates whether the usage information has been displayed. */
   private boolean usageOrVersionDisplayed;
 
-  // The set of global arguments defined for this parser, referenced by short
-  // ID.
-  private final HashMap<Character,Argument> globalShortIDMap;
+  /**
+   * The set of global arguments defined for this parser, referenced by short
+   * ID.
+   */
+  private final Map<Character, Argument> globalShortIDMap;
 
-  //  The set of global arguments defined for this parser, referenced by
-  // argument name.
-  private final HashMap<String,Argument> globalArgumentMap;
+  /**
+   * The set of global arguments defined for this parser, referenced by argument
+   * name.
+   */
+  private final Map<String, Argument> globalArgumentMap;
 
-  //  The set of global arguments defined for this parser, referenced by long
-  // ID.
-  private final HashMap<String,Argument> globalLongIDMap;
+  /**
+   * The set of global arguments defined for this parser, referenced by long ID.
+   */
+  private final Map<String, Argument> globalLongIDMap;
 
-  // The set of subcommands defined for this parser, referenced by subcommand
-  // name.
+  /**
+   * The set of subcommands defined for this parser, referenced by subcommand
+   * name.
+   */
   private final SortedMap<String,SubCommand> subCommands;
 
-  // The total set of global arguments defined for this parser.
-  private final LinkedList<Argument> globalArgumentList;
+  /** The total set of global arguments defined for this parser. */
+  private final List<Argument> globalArgumentList;
 
-  // The output stream to which usage information should be printed.
+  /** The output stream to which usage information should be printed. */
   private OutputStream usageOutputStream;
 
-  // The fully-qualified name of the Java class that should be invoked to launch
-  // the program with which this argument parser is associated.
+  /**
+   * The fully-qualified name of the Java class that should be invoked to launch
+   * the program with which this argument parser is associated.
+   */
   private final String mainClassName;
 
-  // A human-readable description for the tool, which will be included when
-  // displaying usage information.
+  /**
+   * A human-readable description for the tool, which will be included when
+   * displaying usage information.
+   */
   private final Message toolDescription;
 
-  // The raw set of command-line arguments that were provided.
+  /** The raw set of command-line arguments that were provided. */
   private String[] rawArguments;
 
-  // The subcommand requested by the user as part of the command-line arguments.
+  /**
+   * The subcommand requested by the user as part of the command-line arguments.
+   */
   private SubCommand subCommand;
 
-  //Indicates whether the version argument was provided.
+  /**Indicates whether the version argument was provided. */
   private boolean versionPresent;
 
-  private final static String INDENT = "    ";
-  private final static int MAX_LENGTH = SetupUtils.isWindows() ? 79 : 80;
+  private static final String INDENT = "    ";
+  private static final int MAX_LENGTH = SetupUtils.isWindows() ? 79 : 80;
 
 
   /**
@@ -217,7 +228,7 @@ public class SubCommandArgumentParser extends ArgumentParser
    * @return  The list of all global arguments that have been defined for this
    *          argument parser.
    */
-  public LinkedList<Argument> getGlobalArgumentList()
+  public List<Argument> getGlobalArgumentList()
   {
     return globalArgumentList;
   }
@@ -263,7 +274,7 @@ public class SubCommandArgumentParser extends ArgumentParser
    * @return  The set of global arguments mapped by the short identifier that
    *          may be used to reference them.
    */
-  public HashMap<Character,Argument> getGlobalArgumentsByShortID()
+  public Map<Character, Argument> getGlobalArgumentsByShortID()
   {
     return globalShortIDMap;
   }
@@ -310,7 +321,7 @@ public class SubCommandArgumentParser extends ArgumentParser
    * @return  The set of global arguments mapped by the long identifier that may
    *          be used to reference them.
    */
-  public HashMap<String,Argument> getGlobalArgumentsByLongID()
+  public Map<String, Argument> getGlobalArgumentsByLongID()
   {
     return globalLongIDMap;
   }
@@ -752,8 +763,8 @@ public class SubCommandArgumentParser extends ArgumentParser
           throw new ArgumentException(ERR_ARG_SUBCOMMAND_INVALID.get());
         }
 
-        if ((subCommand.getMaxTrailingArguments() > 0) &&
-            (trailingArguments.size() > subCommand.getMaxTrailingArguments()))
+        if (subCommand.getMaxTrailingArguments() > 0
+            && trailingArguments.size() > subCommand.getMaxTrailingArguments())
         {
           Message message = ERR_ARGPARSER_TOO_MANY_TRAILING_ARGS.get(
               subCommand.getMaxTrailingArguments());
@@ -813,11 +824,7 @@ public class SubCommandArgumentParser extends ArgumentParser
             {
               // "--help" will always be interpreted as requesting usage
               // information.
-              try
-              {
-                getUsage(usageOutputStream);
-              } catch (Exception e) {}
-
+              getUsage(usageOutputStream);
               return;
             }
             else
@@ -825,13 +832,9 @@ public class SubCommandArgumentParser extends ArgumentParser
             {
               // "--version" will always be interpreted as requesting usage
               // information.
-              try
-              {
-                versionPresent = true;
-                DirectoryServer.printVersion(usageOutputStream);
-                usageOrVersionDisplayed = true ;
-              } catch (Exception e) {}
-
+              versionPresent = true;
+              usageOrVersionDisplayed = true ;
+              printVersion();
               return;
             }
             else
@@ -852,11 +855,7 @@ public class SubCommandArgumentParser extends ArgumentParser
               {
                 // "--help" will always be interpreted as requesting usage
                 // information.
-                try
-                {
-                  getUsage(usageOutputStream);
-                } catch (Exception e) {}
-
+                getUsage(usageOutputStream);
                 return;
               }
               else
@@ -864,13 +863,9 @@ public class SubCommandArgumentParser extends ArgumentParser
               {
                 // "--version" will always be interpreted as requesting usage
                 // information.
-                try
-                {
-                  versionPresent = true;
-                  DirectoryServer.printVersion(usageOutputStream);
-                  usageOrVersionDisplayed = true ;
-                } catch (Exception e) {}
-
+                versionPresent = true;
+                usageOrVersionDisplayed = true ;
+                printVersion();
                 return;
               }
               else
@@ -890,11 +885,7 @@ public class SubCommandArgumentParser extends ArgumentParser
         // usage information.
         if (usageGroupArguments.containsKey(a))
         {
-          try
-          {
-            getUsage(a, usageOutputStream);
-          } catch (Exception e) {}
-
+          getUsage(a, usageOutputStream);
           return;
         }
 
@@ -925,7 +916,7 @@ public class SubCommandArgumentParser extends ArgumentParser
 
           // If the argument already has a value, then make sure it is
           // acceptable to have more than one.
-          if (a.hasValue() && (! a.isMultiValued()))
+          if (a.hasValue() && !a.isMultiValued())
           {
             Message message =
                 ERR_SUBCMDPARSER_NOT_MULTIVALUED_FOR_LONG_ID.get(origArgName);
@@ -980,15 +971,11 @@ public class SubCommandArgumentParser extends ArgumentParser
             if (argCharacter == '?')
             {
               // "-?" will always be interpreted as requesting usage.
-              try
+              getUsage(usageOutputStream);
+              if (usageArgument != null)
               {
-                getUsage(usageOutputStream);
-                if (usageArgument != null)
-                {
-                  usageArgument.setPresent(true);
-                }
-              } catch (Exception e) {}
-
+                usageArgument.setPresent(true);
+              }
               return;
             }
             else
@@ -996,33 +983,11 @@ public class SubCommandArgumentParser extends ArgumentParser
             {
               //  "-V" will always be interpreted as requesting
               // version information except if it's already defined.
-              boolean dashVAccepted = true;
-              if (globalShortIDMap.containsKey(OPTION_SHORT_PRODUCT_VERSION))
-              {
-                dashVAccepted = false;
-              }
-              else
-              {
-                for (SubCommand subCmd : subCommands.values())
-                {
-                  if (subCmd.getArgument(OPTION_SHORT_PRODUCT_VERSION) != null)
-                  {
-                    dashVAccepted = false;
-                    break;
-                  }
-                }
-              }
-              if (dashVAccepted)
+              if (dashVAccepted())
               {
                 usageOrVersionDisplayed = true;
                 versionPresent = true;
-                try
-                {
-                  DirectoryServer.printVersion(usageOutputStream);
-                }
-                catch (Exception e)
-                {
-                }
+                printVersion();
                 return;
               }
               else
@@ -1052,45 +1017,17 @@ public class SubCommandArgumentParser extends ArgumentParser
               if (argCharacter == '?')
               {
                 // "-?" will always be interpreted as requesting usage.
-                try
-                {
-                  getUsage(usageOutputStream);
-                } catch (Exception e) {}
-
+                getUsage(usageOutputStream);
                 return;
               }
               else
               if (argCharacter == OPTION_SHORT_PRODUCT_VERSION)
               {
-                  // "-V" will always be interpreted as requesting
-                  // version information except if it's already defined.
-                boolean dashVAccepted = true;
-                if (globalShortIDMap.containsKey(OPTION_SHORT_PRODUCT_VERSION))
-                {
-                  dashVAccepted = false;
-                }
-                else
-                {
-                  for (SubCommand subCmd : subCommands.values())
-                  {
-                    if (subCmd.getArgument(OPTION_SHORT_PRODUCT_VERSION)!=null)
-                    {
-                      dashVAccepted = false;
-                      break;
-                    }
-                  }
-                }
-                if (dashVAccepted)
+                if (dashVAccepted())
                 {
                   usageOrVersionDisplayed = true;
                   versionPresent = true;
-                  try
-                  {
-                    DirectoryServer.printVersion(usageOutputStream);
-                  }
-                  catch (Exception e)
-                  {
-                  }
+                  printVersion();
                   return;
                 }
               }
@@ -1111,11 +1048,7 @@ public class SubCommandArgumentParser extends ArgumentParser
         // usage information.
         if (usageGroupArguments.containsKey(a))
         {
-          try
-          {
-            getUsage(a, usageOutputStream);
-          } catch (Exception e) {}
-
+          getUsage(a, usageOutputStream);
           return;
         }
 
@@ -1147,7 +1080,7 @@ public class SubCommandArgumentParser extends ArgumentParser
 
           // If the argument already has a value, then make sure it is
           // acceptable to have more than one.
-          if (a.hasValue() && (! a.isMultiValued()))
+          if (a.hasValue() && !a.isMultiValued())
           {
             Message message = ERR_SUBCMDPARSER_NOT_MULTIVALUED_FOR_SHORT_ID.get(
                 String.valueOf(argCharacter));
@@ -1208,11 +1141,7 @@ public class SubCommandArgumentParser extends ArgumentParser
                 // print usage information.
                 if (usageGroupArguments.containsKey(b))
                 {
-                  try
-                  {
-                    getUsage(b, usageOutputStream);
-                  } catch (Exception e) {}
-
+                  getUsage(b, usageOutputStream);
                   return;
                 }
               }
@@ -1264,14 +1193,12 @@ public class SubCommandArgumentParser extends ArgumentParser
     if (subCommand != null)
     {
       int minTrailingArguments = subCommand.getMinTrailingArguments();
-      if (subCommand.allowsTrailingArguments() && (minTrailingArguments > 0))
+      if (subCommand.allowsTrailingArguments() && minTrailingArguments > 0
+          && trailingArguments.size() < minTrailingArguments)
       {
-        if (trailingArguments.size() < minTrailingArguments)
-        {
-          Message message = ERR_ARGPARSER_TOO_FEW_TRAILING_ARGUMENTS.get(
-              minTrailingArguments);
-          throw new ArgumentException(message);
-        }
+        Message message =
+            ERR_ARGPARSER_TOO_FEW_TRAILING_ARGUMENTS.get(minTrailingArguments);
+        throw new ArgumentException(message);
       }
     }
 
@@ -1281,49 +1208,63 @@ public class SubCommandArgumentParser extends ArgumentParser
       argumentProperties = checkExternalProperties();
     }
 
-    // Iterate through all the global arguments and make sure that they have
-    // values or a suitable default is available.
-    for (Argument a : globalArgumentList)
+    // Iterate through all the global arguments
+    normalizeArguments(argumentProperties, globalArgumentList);
+
+
+    // Iterate through all the subcommand-specific arguments
+    if (subCommand != null)
     {
-      if (! a.isPresent())
+      normalizeArguments(argumentProperties, subCommand.getArguments());
+    }
+  }
+
+  /**
+   * Iterate through all the arguments and make sure that they have values or a
+   * suitable default is available.
+   */
+  private void normalizeArguments(Properties argumentProperties,
+      List<Argument> arguments) throws ArgumentException
+  {
+    for (Argument a : arguments)
+    {
+      if (!a.isPresent()
+          && argumentProperties != null
+          && a.getPropertyName() != null)
       {
-        // See if there is a value in the properties that can be used
-        if ((argumentProperties != null) && (a.getPropertyName() != null))
+        String value =
+            argumentProperties.getProperty(a.getPropertyName().toLowerCase());
+        MessageBuilder invalidReason = new MessageBuilder();
+        if (value != null)
         {
-          String value = argumentProperties.getProperty(a.getPropertyName()
-              .toLowerCase());
-          MessageBuilder invalidReason =  new MessageBuilder();
-          if (value != null)
+          Boolean addValue = true;
+          if (!(a instanceof BooleanArgument))
           {
-            Boolean addValue = true;
-            if (!( a instanceof BooleanArgument))
+            addValue = a.valueIsAcceptable(value, invalidReason);
+          }
+          if (addValue)
+          {
+            a.addValue(value);
+            if (a.needsValue())
             {
-              addValue = a.valueIsAcceptable(value, invalidReason);
+              a.setPresent(true);
             }
-            if (addValue)
-            {
-              a.addValue(value);
-              if (a.needsValue())
-              {
-                a.setPresent(true);
-              }
-              a.setValueSetByProperty(true);
-            }
+            a.setValueSetByProperty(true);
           }
         }
       }
 
-      if ((! a.isPresent()) && a.needsValue())
+      if (!a.isPresent() && a.needsValue())
       {
-        // ISee if the argument defines a default.
+        // See if the argument defines a default.
         if (a.getDefaultValue() != null)
         {
           a.addValue(a.getDefaultValue());
         }
 
-        // If there is still no value and the argument is required, then that's
-        // a problem.
-        if ((! a.hasValue()) && a.isRequired())
+        // If there is still no value and the argument is required, then
+        // that's a problem.
+        if (!a.hasValue() && a.isRequired())
         {
           Message message =
               ERR_SUBCMDPARSER_NO_VALUE_FOR_REQUIRED_ARG.get(a.getName());
@@ -1331,64 +1272,32 @@ public class SubCommandArgumentParser extends ArgumentParser
         }
       }
     }
-
-
-    // Iterate through all the subcommand-specific arguments and make sure that
-    // they have values or a suitable default is available.
-    if (subCommand != null)
-    {
-      for (Argument a : subCommand.getArguments())
-      {
-        if (! a.isPresent())
-        {
-          // See if there is a value in the properties that can be used
-          if ((argumentProperties != null) && (a.getPropertyName() != null))
-          {
-            String value = argumentProperties.getProperty(a.getPropertyName()
-                .toLowerCase());
-            MessageBuilder invalidReason =  new MessageBuilder();
-            if (value != null)
-            {
-              Boolean addValue = true;
-              if (!( a instanceof BooleanArgument))
-              {
-                addValue = a.valueIsAcceptable(value, invalidReason);
-              }
-              if (addValue)
-              {
-                a.addValue(value);
-                if (a.needsValue())
-                {
-                  a.setPresent(true);
-                }
-                a.setValueSetByProperty(true);
-              }
-            }
-          }
-        }
-
-        if ((! a.isPresent()) && a.needsValue())
-        {
-          // See if the argument defines a default.
-          if (a.getDefaultValue() != null)
-          {
-            a.addValue(a.getDefaultValue());
-          }
-
-          // If there is still no value and the argument is required, then
-          // that's a problem.
-          if ((! a.hasValue()) && a.isRequired())
-          {
-            Message message =
-                ERR_SUBCMDPARSER_NO_VALUE_FOR_REQUIRED_ARG.get(a.getName());
-            throw new ArgumentException(message);
-          }
-        }
-      }
-    }
   }
 
+  private void printVersion()
+  {
+    try
+    {
+      DirectoryServer.printVersion(usageOutputStream);
+    }
+    catch (Exception e) {}
+  }
 
+  private boolean dashVAccepted()
+  {
+    if (globalShortIDMap.containsKey(OPTION_SHORT_PRODUCT_VERSION))
+    {
+      return false;
+    }
+    for (SubCommand subCmd : subCommands.values())
+    {
+      if (subCmd.getArgument(OPTION_SHORT_PRODUCT_VERSION) != null)
+      {
+        return false;
+      }
+    }
+    return true;
+  }
 
   /**
    * Appends usage information for the specified subcommand to the provided
@@ -1403,7 +1312,7 @@ public class SubCommandArgumentParser extends ArgumentParser
   {
     usageOrVersionDisplayed = true;
     String scriptName = System.getProperty(PROPERTY_SCRIPT_NAME);
-    if ((scriptName == null) || (scriptName.length() == 0))
+    if (scriptName == null || scriptName.length() == 0)
     {
       scriptName = "java " + mainClassName;
     }
@@ -1486,12 +1395,8 @@ public class SubCommandArgumentParser extends ArgumentParser
           if (lineLength > MAX_LENGTH)
           {
             buffer.append(EOL);
-            buffer.append(newBuffer.toString());
           }
-          else
-          {
-            buffer.append(newBuffer.toString());
-          }
+          buffer.append(newBuffer.toString());
         }
 
         buffer.append(EOL);
@@ -1572,8 +1477,9 @@ public class SubCommandArgumentParser extends ArgumentParser
           buffer.append(EOL);
         }
       }
-      if (a.needsValue() && (a.getDefaultValue() != null) &&
-          (a.getDefaultValue().length() > 0))
+      if (a.needsValue()
+          && a.getDefaultValue() != null
+          && a.getDefaultValue().length() > 0)
        {
          buffer.append(INDENT);
          buffer.append(INFO_ARGPARSER_USAGE_DEFAULT_VALUE.get(
@@ -1629,7 +1535,7 @@ public class SubCommandArgumentParser extends ArgumentParser
   {
     usageOrVersionDisplayed = true;
     String scriptName = System.getProperty(PROPERTY_SCRIPT_NAME);
-    if ((scriptName == null) || (scriptName.length() == 0))
+    if (scriptName == null || scriptName.length() == 0)
     {
       scriptName = "java " + mainClassName;
     }
@@ -1688,9 +1594,8 @@ public class SubCommandArgumentParser extends ArgumentParser
 
 
 
-  // Get usage for a specific usage argument.
-  private void getUsage(Argument a, OutputStream outputStream)
-      throws IOException {
+  /** Get usage for a specific usage argument. */
+  private void getUsage(Argument a, OutputStream outputStream) {
     MessageBuilder buffer = new MessageBuilder();
 
     if (a.equals(usageArgument) && subCommand != null) {
@@ -1707,27 +1612,33 @@ public class SubCommandArgumentParser extends ArgumentParser
       getFullUsage(usageGroupArguments.get(a), false, buffer);
     }
 
-    outputStream.write(buffer.toString().getBytes());
+    try
+    {
+      outputStream.write(buffer.toString().getBytes());
+    } catch (Exception e) {}
   }
+
+
+  /** {@inheritDoc} */
+  @Override
+  public void getUsage(OutputStream outputStream)
+  {
+    try
+    {
+      outputStream.write(getUsage().getBytes());
+    }
+    catch (IOException e) {}
+  }
+
 
 
   /**
-   * {@inheritDoc}
+   * Appends complete usage information for the specified set of sub-commands.
    */
-  @Override
-  public void getUsage(OutputStream outputStream)
-      throws IOException {
-    outputStream.write(getUsage().getBytes());
-  }
-
-
-
-  // Appends complete usage information for the specified set of
-  // sub-commands.
   private void getFullUsage(Collection<SubCommand> c,
       boolean showGlobalOptions, MessageBuilder buffer) {
     usageOrVersionDisplayed = true;
-    if ((toolDescription != null) && (toolDescription.length() > 0))
+    if (toolDescription != null && toolDescription.length() > 0)
     {
       buffer.append(wrapText(toolDescription, MAX_LENGTH - 1));
       buffer.append(EOL);
@@ -1735,7 +1646,7 @@ public class SubCommandArgumentParser extends ArgumentParser
     }
 
     String scriptName = System.getProperty(PROPERTY_SCRIPT_NAME);
-    if ((scriptName == null) || (scriptName.length() == 0))
+    if (scriptName == null || scriptName.length() == 0)
     {
       scriptName = "java " + mainClassName;
     }
@@ -1745,11 +1656,11 @@ public class SubCommandArgumentParser extends ArgumentParser
 
     if (subCommands.isEmpty())
     {
-      buffer.append(" "+INFO_SUBCMDPARSER_OPTIONS.get());
+      buffer.append(" ").append(INFO_SUBCMDPARSER_OPTIONS.get());
     }
     else
     {
-      buffer.append(" "+INFO_SUBCMDPARSER_SUBCMD_AND_OPTIONS.get());
+      buffer.append(" ").append(INFO_SUBCMDPARSER_SUBCMD_AND_OPTIONS.get());
     }
 
     if (!subCommands.isEmpty())
@@ -1774,10 +1685,9 @@ public class SubCommandArgumentParser extends ArgumentParser
           continue;
         }
 
-        if (usageGroupArguments.containsKey(a)) {
-          if (!a.equals(usageArgument)) {
-            printArgumentUsage(a, buffer);
-          }
+        if (usageGroupArguments.containsKey(a)
+            && !a.equals(usageArgument)) {
+          printArgumentUsage(a, buffer);
         }
       }
     } else {
@@ -1804,13 +1714,12 @@ public class SubCommandArgumentParser extends ArgumentParser
       if (subCommands.isEmpty())
       {
         buffer.append(INFO_SUBCMDPARSER_WHERE_OPTIONS_INCLUDE.get());
-        buffer.append(EOL);
       }
       else
       {
         buffer.append(INFO_SUBCMDPARSER_GLOBAL_HEADING.get());
-        buffer.append(EOL);
       }
+      buffer.append(EOL);
       buffer.append(EOL);
 
       boolean printGroupHeaders = printUsageGroupHeaders();
@@ -1917,8 +1826,9 @@ public class SubCommandArgumentParser extends ArgumentParser
     buffer.append(EOL);
     indentAndWrap(Message.raw(INDENT), a.getDescription(), buffer);
 
-    if (a.needsValue() && (a.getDefaultValue() != null) &&
-        (a.getDefaultValue().length() > 0))
+    if (a.needsValue()
+        && a.getDefaultValue() != null
+        && a.getDefaultValue().length() > 0)
      {
        indentAndWrap(Message.raw(INDENT),
            INFO_ARGPARSER_USAGE_DEFAULT_VALUE.get(a.getDefaultValue()),
@@ -2111,7 +2021,7 @@ public class SubCommandArgumentParser extends ArgumentParser
 
     return "<refsect2 xml:id=\"dsconfig-" + sc.getName() + "\">" + EOL +
       " <title>dsconfig " + sc.getName() + "</title>" + EOL +
-      " <para>" + sc.getDescription().toString() + "</para>" + EOL +
+      " <para>" + sc.getDescription() + "</para>" + EOL +
       options +
       "</refsect2>" + EOL;
   }
