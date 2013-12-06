@@ -128,8 +128,10 @@ public class MultimasterReplication
          * running later do not generate CSN, solve conflicts and forward the
          * operation to the replication server.
          */
-        for (Control c : op.getRequestControls())
+        final List<Control> controls = op.getRequestControls();
+        for (Iterator<Control> iter = controls.iterator(); iter.hasNext();)
         {
+          Control c = iter.next();
           if (c.getOID().equals(OID_REPLICATION_REPAIR_CONTROL))
           {
             op.setSynchronizationOperation(true);
@@ -139,25 +141,20 @@ public class MultimasterReplication
             processed and the local backend will fail if it finds a control that
             it does not know about and that is marked as critical.
             */
-            List<Control> controls = op.getRequestControls();
-            controls.remove(c);
+            iter.remove();
             return null;
           }
         }
     }
 
 
-    LDAPReplicationDomain domain;
+    LDAPReplicationDomain domain = null;
     DN temp = dn;
-    do
+    while (domain == null && temp != null)
     {
       domain = domains.get(temp);
       temp = temp.getParentDNInSuffix();
-      if (temp == null)
-      {
-        break;
-      }
-    } while (domain == null);
+    }
 
     return domain;
   }

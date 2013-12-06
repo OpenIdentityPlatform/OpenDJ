@@ -440,22 +440,16 @@ public class LocalBackendDeleteOperation
    * @throws  DirectoryException  If a problem occurs that should cause the
    *                              operation to fail.
    */
-  private void handleRequestControls()
-          throws DirectoryException
+  private void handleRequestControls() throws DirectoryException
   {
+    LocalBackendWorkflowElement.removeAllDisallowedControls(entryDN, this);
+
     List<Control> requestControls = getRequestControls();
-    if ((requestControls != null) && (! requestControls.isEmpty()))
+    if (requestControls != null && !requestControls.isEmpty())
     {
       for (Control c : requestControls)
       {
-        String  oid = c.getOID();
-
-        if (!LocalBackendWorkflowElement.isControlAllowed(entryDN, this, c))
-        {
-          // Skip disallowed non-critical controls.
-          continue;
-        }
-
+        final String oid = c.getOID();
         if (oid.equals(OID_LDAP_ASSERTION))
         {
           LDAPAssertionRequestControl assertControl =
@@ -494,8 +488,7 @@ public class LocalBackendDeleteOperation
             if (!filter.matchesEntry(entry))
             {
               throw newDirectoryException(entry, ResultCode.ASSERTION_FAILED,
-                  ERR_DELETE_ASSERTION_FAILED.get(String
-                      .valueOf(entryDN)));
+                  ERR_DELETE_ASSERTION_FAILED.get(String.valueOf(entryDN)));
             }
           }
           catch (DirectoryException de)
@@ -595,15 +588,12 @@ public class LocalBackendDeleteOperation
   }
 
 
-
   /**
    * Handle conflict resolution.
    * @return  {@code true} if processing should continue for the operation, or
    *          {@code false} if not.
    */
   private boolean handleConflictResolution() {
-      boolean returnVal = true;
-
       for (SynchronizationProvider<?> provider :
           DirectoryServer.getSynchronizationProviders()) {
           try {
@@ -614,8 +604,7 @@ public class LocalBackendDeleteOperation
                       result.getResultCode(), result.getErrorMessage());
                   setMatchedDN(result.getMatchedDN());
                   setReferralURLs(result.getReferralURLs());
-                  returnVal = false;
-                  break;
+                  return false;
               }
           } catch (DirectoryException de) {
               if (debugEnabled()) {
@@ -625,11 +614,10 @@ public class LocalBackendDeleteOperation
                       getConnectionID(), getOperationID(),
                       getExceptionMessage(de)));
               setResponseData(de);
-              returnVal = false;
-              break;
+              return false;
           }
       }
-      return returnVal;
+      return true;
   }
 
   /**
@@ -648,7 +636,7 @@ public class LocalBackendDeleteOperation
               logError(ERR_DELETE_SYNCH_POSTOP_FAILED.get(getConnectionID(),
                       getOperationID(), getExceptionMessage(de)));
               setResponseData(de);
-              break;
+              return;
           }
       }
   }
@@ -659,8 +647,6 @@ public class LocalBackendDeleteOperation
    *          {@code false} if not.
    */
   private boolean processPreOperation() {
-      boolean returnVal = true;
-
       for (SynchronizationProvider<?> provider :
           DirectoryServer.getSynchronizationProviders()) {
           try {
@@ -671,8 +657,7 @@ public class LocalBackendDeleteOperation
                   appendErrorMessage(result.getErrorMessage());
                   setMatchedDN(result.getMatchedDN());
                   setReferralURLs(result.getReferralURLs());
-                  returnVal = false;
-                  break;
+                  return false;
               }
           } catch (DirectoryException de) {
               if (debugEnabled())
@@ -682,10 +667,9 @@ public class LocalBackendDeleteOperation
               logError(ERR_DELETE_SYNCH_PREOP_FAILED.get(getConnectionID(),
                       getOperationID(), getExceptionMessage(de)));
               setResponseData(de);
-              returnVal = false;
-              break;
+              return false;
           }
       }
-      return returnVal;
+      return true;
   }
 }

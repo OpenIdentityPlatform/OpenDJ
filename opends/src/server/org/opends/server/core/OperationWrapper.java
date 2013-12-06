@@ -406,15 +406,6 @@ public class OperationWrapper<W extends Operation> implements Operation
    * {@inheritDoc}
    */
   @Override
-  public void removeRequestControl(Control control)
-  {
-    operation.removeRequestControl(control);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
   public void removeResponseControl(Control control)
   {
     operation.removeResponseControl(control);

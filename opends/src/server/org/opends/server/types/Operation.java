@@ -155,16 +155,6 @@ public interface Operation extends Runnable
   public abstract void addRequestControl(Control control);
 
   /**
-   * Removes the provided control from the set of request controls for
-   * this operation.  This method may only be called by pre-parse
-   * plugins.
-   *
-   * @param  control  The control to remove from the set of request
-   *                  controls for this operation.
-   */
-  public abstract void removeRequestControl(Control control);
-
-  /**
    * Retrieves the set of controls to include in the response to the
    * client.  The contents of this list must not be altered.
    *
