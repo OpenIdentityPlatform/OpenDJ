@@ -103,7 +103,7 @@ public final class Upgrade
     // @formatter:off
     register("2.5.0.6869",
         modifyConfigEntry(INFO_UPGRADE_TASK_6869_SUMMARY.get(),
-        "(objectClass= ds-cfg-collation-matching-rule)",
+        "(objectClass=ds-cfg-collation-matching-rule)",
         "add: ds-cfg-collation",
         "ds-cfg-collation: de:1.3.6.1.4.1.42.2.27.9.4.28.1",
         "ds-cfg-collation: de-DE:1.3.6.1.4.1.42.2.27.9.4.28.1",
@@ -114,7 +114,7 @@ public final class Upgrade
 
     register("2.5.0.7192",
         modifyConfigEntry(INFO_UPGRADE_TASK_7192_SUMMARY.get(),
-        "(objectClass= ds-cfg-password-policy)",
+        "(objectClass=ds-cfg-password-policy)",
         "add: objectClass",
         "objectClass: ds-cfg-authentication-policy",
         "-",
@@ -123,7 +123,7 @@ public final class Upgrade
 
     register("2.5.0.7364",
         modifyConfigEntry(INFO_UPGRADE_TASK_7364_SUMMARY.get(),
-        "(ds-cfg-java-class= org.opends.server.loggers.TextAuditLogPublisher)",
+        "(ds-cfg-java-class=org.opends.server.loggers.TextAuditLogPublisher)",
         "add: objectClass",
         "objectClass: ds-cfg-file-based-audit-log-publisher",
         "-",
@@ -167,7 +167,7 @@ public final class Upgrade
 
     register("2.5.0.7979",
         modifyConfigEntry(INFO_UPGRADE_TASK_7979_SUMMARY.get(),
-        "(ds-cfg-java-class= org.opends.server.schema.CertificateSyntax)",
+        "(ds-cfg-java-class=org.opends.server.schema.CertificateSyntax)",
         "add: objectClass",
         "objectClass: ds-cfg-certificate-attribute-syntax",
         "-",
@@ -176,7 +176,7 @@ public final class Upgrade
 
     register("2.5.0.8124",
         modifyConfigEntry(INFO_UPGRADE_TASK_8124_SUMMARY.get(),
-        "(ds-cfg-java-class= org.opends.server.schema.JPEGSyntax)",
+        "(ds-cfg-java-class=org.opends.server.schema.JPEGSyntax)",
         "add: objectClass",
         "objectClass: ds-cfg-jpeg-attribute-syntax",
         "-",
@@ -185,7 +185,7 @@ public final class Upgrade
 
     register("2.5.0.8133",
         modifyConfigEntry(INFO_UPGRADE_TASK_8133_SUMMARY.get(),
-        "(ds-cfg-java-class= org.opends.server.schema.CountryStringSyntax)",
+        "(ds-cfg-java-class=org.opends.server.schema.CountryStringSyntax)",
         "add: objectClass",
         "objectClass: ds-cfg-country-string-attribute-syntax",
         "-",
@@ -206,13 +206,13 @@ public final class Upgrade
 
     register("2.5.0.8387",
         modifyConfigEntry(INFO_UPGRADE_TASK_8387_SUMMARY.get(),
-        "(objectClass= ds-cfg-dictionary-password-validator)",
+        "(objectClass=ds-cfg-dictionary-password-validator)",
         "add: ds-cfg-check-substrings",
         "ds-cfg-check-substrings: false"));
 
     register("2.5.0.8389",
         modifyConfigEntry(INFO_UPGRADE_TASK_8389_SUMMARY.get(),
-        "(objectClass= ds-cfg-attribute-value-password-validator)",
+        "(objectClass=ds-cfg-attribute-value-password-validator)",
         "add: ds-cfg-check-substrings",
         "ds-cfg-check-substrings: false"));
 

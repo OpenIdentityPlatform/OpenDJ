@@ -37,9 +37,9 @@ import org.forgerock.opendj.ldap.requests.AddRequest;
 import org.forgerock.opendj.ldap.requests.ModifyRequest;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
+import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldap.schema.SchemaBuilder;
-import org.forgerock.opendj.ldap.schema.SchemaValidationPolicy;
 import org.forgerock.opendj.ldap.schema.UnknownSchemaElementException;
 import org.forgerock.opendj.ldif.EntryReader;
 import org.forgerock.opendj.ldif.LDIF;
@@ -47,7 +47,6 @@ import org.forgerock.opendj.ldif.LDIFEntryReader;
 import org.forgerock.opendj.ldif.LDIFEntryWriter;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SchemaConfigManager;
-import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.util.ChangeOperationType;
 import org.opends.server.util.SetupUtils;
 import org.opends.server.util.StaticUtils;
@@ -450,7 +449,7 @@ final class UpgradeUtils
    * @return The changes number that have occurred.
    */
   static int updateConfigFile(final String configPath,
-      final LDAPFilter filter, final ChangeOperationType changeType,
+      final Filter filter, final ChangeOperationType changeType,
       final String... lines) throws IOException
   {
     final File original = new File(configPath);
@@ -462,8 +461,15 @@ final class UpgradeUtils
     LDIFEntryWriter writer = null;
     try
     {
-      entryReader = new LDIFEntryReader(new FileInputStream(configPath));
-      entryReader.setSchemaValidationPolicy(SchemaValidationPolicy.ignoreAll());
+      Schema schema =
+          new SchemaBuilder(Schema.getCoreSchema()).defaultMatchingRule(
+              CoreSchema.getCaseExactMatchingRule()).defaultSyntax(
+              CoreSchema.getDirectoryStringSyntax()).toSchema()
+              .asNonStrictSchema();
+
+      entryReader =
+          new LDIFEntryReader(new FileInputStream(configPath))
+              .setSchema(schema);
 
       writer = new LDIFEntryWriter(new FileOutputStream(copyConfig));
       writer.setWrapColumn(80);
@@ -479,13 +485,14 @@ final class UpgradeUtils
         // For an Add, the first line should start with dn:
         dn = lines[0].replaceFirst("dn: ","");
       }
+      final Matcher matcher =
+          filter != null ? filter.matcher(schema) : Filter.alwaysFalse()
+              .matcher(schema);
       while (entryReader.hasNext())
       {
         Entry entry = entryReader.readEntry();
         // Searching for the related entries
-        if (filter != null
-            && Filter.valueOf(filter.toString()).matches(entry)
-              == ConditionResult.TRUE)
+        if (matcher.matches(entry) == ConditionResult.TRUE)
         {
           try
           {

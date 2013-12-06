@@ -47,9 +47,9 @@ import java.util.logging.Logger;
 import javax.security.auth.callback.ConfirmationCallback;
 import javax.security.auth.callback.TextOutputCallback;
 
+import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.opendj.ldap.schema.UnknownSchemaElementException;
 import org.opends.messages.Message;
-import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.tools.ClientException;
 import org.opends.server.tools.RebuildIndex;
 import org.opends.server.util.BuildVersion;
@@ -907,8 +907,8 @@ public final class UpgradeTasks
                     Installation.CURRENT_CONFIG_FILE_NAME);
 
             final int changeCount =
-                updateConfigFile(configFile.getPath(), LDAPFilter
-                    .decode(filter), ChangeOperationType.MODIFY, ldif);
+                updateConfigFile(configFile.getPath(), Filter.valueOf(filter),
+                    ChangeOperationType.MODIFY, ldif);
 
             displayChangeCount(configFile.getPath(), changeCount);
 
