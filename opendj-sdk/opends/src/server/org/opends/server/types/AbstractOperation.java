@@ -27,8 +27,6 @@
  */
 package org.opends.server.types;
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
-
 import java.util.*;
 
 import org.opends.messages.Message;
@@ -41,6 +39,8 @@ import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.types.operation.PostResponseOperation;
 import org.opends.server.types.operation.PreParseOperation;
 import org.opends.server.util.Validator;
+
+import static org.opends.server.loggers.debug.DebugLogger.*;
 
 /**
  * This class defines a generic operation that may be processed by the
@@ -227,56 +227,23 @@ public abstract class AbstractOperation
   }
 
 
-
-  /**
-   * Terminates the client connection being used to process this
-   * operation.  If this is called by a plugin, then that plugin must
-   * return a result indicating that the  client connection has been
-   * terminated.
-   *
-   * @param  disconnectReason  The disconnect reason that provides the
-   *                           generic cause for the disconnect.
-   * @param  sendNotification  Indicates whether to try to provide
-   *                           notification
-   *                           to the client that the connection will
-   *                           be closed.
-   * @param  message           The message to send to the client.  It
-   *                           may be {@code null} if no notification
-   *                           is to be sent.
-   */
+  /** {@inheritDoc} */
   @Override
   public void disconnectClient(DisconnectReason disconnectReason,
                                boolean sendNotification,
                                Message message)
   {
-    clientConnection.disconnect(disconnectReason, sendNotification,
-            message);
+    clientConnection.disconnect(disconnectReason, sendNotification, message);
   }
 
-
-
-  /**
-   * Retrieves the client connection with which this operation is
-   * associated.
-   *
-   * @return  The client connection with which this operation is
-   *          associated.
-   */
+  /** {@inheritDoc} */
   @Override
   public final ClientConnection getClientConnection()
   {
     return clientConnection;
   }
 
-
-
-  /**
-   * Retrieves the unique identifier that is assigned to the client
-   * connection that submitted this operation.
-   *
-   * @return  The unique identifier that is assigned to the client
-   *          connection that submitted this operation.
-   */
+  /** {@inheritDoc} */
   @Override
   public final long getConnectionID()
   {
@@ -304,9 +271,7 @@ public abstract class AbstractOperation
     return requestControls;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   @SuppressWarnings("unchecked")
   public final <T extends Control> T getRequestControl(
@@ -347,8 +312,6 @@ public abstract class AbstractOperation
   {
     requestControls.remove(control);
   }
-
-
 
   /** {@inheritDoc} */
   @Override
@@ -437,9 +400,7 @@ public abstract class AbstractOperation
     maskedErrorMessage.append(maskedMessage);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public List<AdditionalLogItem> getAdditionalLogItems()
   {
@@ -453,11 +414,7 @@ public abstract class AbstractOperation
     }
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void addAdditionalLogItem(AdditionalLogItem item)
   {
@@ -511,8 +468,6 @@ public abstract class AbstractOperation
     appendMaskedErrorMessage(directoryException.getMaskedMessage());
   }
 
-
-
   /** {@inheritDoc} */
   @Override
   public final boolean isInternalOperation()
@@ -561,16 +516,7 @@ public abstract class AbstractOperation
     this.isSynchronizationOperation = isSynchronizationOperation;
   }
 
-
-
-  /**
-   * Indicates whether this operation needs to be synchronized to
-   * other copies of the data.
-   *
-   * @return  {@code true} if this operation should not be
-   *          synchronized, or {@code false} if it should be
-   *          synchronized.
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean dontSynchronize()
   {
@@ -619,14 +565,7 @@ public abstract class AbstractOperation
     return attachments;
   }
 
-
-
-  /**
-   * Set the attachments to the operation.
-   *
-   * @param attachments - Attachments to register within the
-   *                      operation
-   */
+  /** {@inheritDoc} */
   @Override
   public final void setAttachments(Map<String, Object> attachments)
   {
@@ -698,15 +637,7 @@ public abstract class AbstractOperation
     return cancelResult;
   }
 
-
-
-  /**
-   * Attempts to cancel this operation before processing has
-   * completed without waiting for a cancel result.
-   *
-   * @param  cancelRequest  Information about the way in which the
-   *                        operation should be canceled.
-   */
+  /** {@inheritDoc} */
   @Override
   public synchronized void abort(CancelRequest cancelRequest)
   {
@@ -716,15 +647,11 @@ public abstract class AbstractOperation
     }
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
-  public synchronized final void
-    checkIfCanceled(boolean signalTooLate)
-      throws CanceledOperationException {
+  final synchronized public void checkIfCanceled(boolean signalTooLate)
+      throws CanceledOperationException
+  {
     if(cancelRequest != null)
     {
       throw new CanceledOperationException(cancelRequest);
@@ -736,20 +663,14 @@ public abstract class AbstractOperation
     }
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final CancelRequest getCancelRequest()
   {
     return cancelRequest;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final CancelResult getCancelResult()
   {
@@ -772,8 +693,6 @@ public abstract class AbstractOperation
     return processingStartTime;
   }
 
-
-
   /**
    * Set the time at which the processing started for this operation.
    */
@@ -793,8 +712,6 @@ public abstract class AbstractOperation
     return processingStopTime;
   }
 
-
-
   /**
    * Set the time at which the processing stopped for this operation.
    * This will actually hold a time immediately before the response
@@ -809,17 +726,7 @@ public abstract class AbstractOperation
     }
   }
 
-
-
-  /**
-   * Retrieves the length of time in milliseconds that
-   * the server spent processing this operation.  This should not be
-   * called until after the server has sent the response to the
-   * client.
-   *
-   * @return  The length of time in milliseconds that
-   *          the server spent processing this operation.
-   */
+  /** {@inheritDoc} */
   @Override
   public final long getProcessingTime()
   {
@@ -840,11 +747,7 @@ public abstract class AbstractOperation
     }
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final void registerPostResponseCallback(Runnable callback)
   {
@@ -855,22 +758,14 @@ public abstract class AbstractOperation
     postResponseCallbacks.add(callback);
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final int hashCode()
   {
     return clientConnection.hashCode() * (int) operationID;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final boolean equals(Object obj)
   {
