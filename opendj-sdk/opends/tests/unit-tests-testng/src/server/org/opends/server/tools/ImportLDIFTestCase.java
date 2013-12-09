@@ -29,23 +29,30 @@ package org.opends.server.tools;
 
 
 
+import static org.opends.server.TestCaseUtils.readFile;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.PrintStream;
+import java.util.List;
+
+import org.opends.server.TestCaseUtils;
+import org.opends.server.admin.server.ServerManagementContext;
+import org.opends.server.admin.std.server.RootCfg;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.tasks.TaskUtils;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.Attributes;
+import org.opends.server.types.DN;
+import org.opends.server.types.Entry;
+import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
-import org.opends.server.TestCaseUtils;
-import org.opends.server.core.DirectoryServer;
-
-import static org.opends.server.TestCaseUtils.readFile;
-import static org.testng.Assert.*;
-
-import java.io.*;
-import java.util.*;
-
-import org.testng.annotations.AfterClass;
-import org.opends.server.tasks.TaskUtils;
-import org.opends.server.types.Attributes;
-import org.opends.server.types.Entry;
-import org.opends.server.types.DN;
-import org.opends.server.types.Attribute;
 
 
 
@@ -135,7 +142,7 @@ public class ImportLDIFTestCase extends ToolsTestCase
     assertEquals(
         ImportLDIF.mainImportLDIF(args, false, System.out, System.err), 0);
     // Expecting a non-empty reject file.
-    assertRejectedFile(reject, false);
+    assertRejectedFile(reject, true);
   }
 
 
@@ -536,11 +543,10 @@ public class ImportLDIFTestCase extends ToolsTestCase
    *          The file to be asserted
    * @param shouldBeEmpty
    *          whether the file should be empty.
-   * @throws IOException
-   *           If the reject file could not be read.
+   * @throws Exception
+   *           If an unexpected error occurred.
    */
-  private void assertRejectedFile(File reject, boolean shouldBeEmpty)
-      throws IOException
+  private void assertRejectedFile(File reject, boolean shouldBeEmpty) throws Exception
   {
     try
     {
@@ -548,7 +554,11 @@ public class ImportLDIFTestCase extends ToolsTestCase
       {
         if (reject.length() > 0)
         {
-          fail("Unexpected content in reject file:\n\n" + readFile(reject));
+          RootCfg root = ServerManagementContext.getInstance()
+              .getRootConfiguration();
+          fail("Unexpected content in reject file:\n\n" + readFile(reject)
+              + "\n\nThe backend was configured with the following base DNs: "
+              + root.getBackend(beID).getBaseDN() + "\n\n");
         }
       }
       else
