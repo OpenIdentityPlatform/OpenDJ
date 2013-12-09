@@ -545,18 +545,11 @@ public final class TestCaseUtils {
 
       clearLoggersContents();
 
-      clearJEBackends();
+      EmbeddedUtils.stopServer(null, null);
       restoreServerConfigLdif();
-      // We need it to be recreated and reregistered
-      MemoryBackend memoryBackend =
-        (MemoryBackend) DirectoryServer.getBackend(TEST_BACKEND_ID);
-      if (memoryBackend != null)
-      {
-        memoryBackend.finalizeBackend();
-        DirectoryServer.deregisterBackend(memoryBackend);
-      }
+      EmbeddedUtils.startServer(DirectoryServer.getEnvironmentConfig());
 
-      EmbeddedUtils.restartServer(null, null, DirectoryServer.getEnvironmentConfig());
+      clearJEBackends();
       initializeTestBackend(true);
 
       // This generates too much noise, so it's disabled by default.
@@ -756,11 +749,16 @@ public final class TestCaseUtils {
     DirectoryServer.setSchema(schemaBeforeStartingFakeServer);
   }
 
+
+
   /**
-   * Shut down the server, if it has been started.
-   * @param reason The reason for the shutdown.
+   * Shut down the server. This should only be called at the end of the test
+   * suite and not by any unit tests.
+   *
+   * @param reason
+   *          The reason for the shutdown.
    */
-  public static void shutdownServer(Message reason)
+  static void shutdownServer(Message reason)
   {
     if (SERVER_STARTED)
     {
