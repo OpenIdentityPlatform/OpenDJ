@@ -2456,7 +2456,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
   private void stopStatusAnalyzer()
   {
     final StatusAnalyzer thread = statusAnalyzer.get();
-    if (statusAnalyzer.compareAndSet(thread, null))
+    if (thread != null && statusAnalyzer.compareAndSet(thread, null))
     {
       thread.shutdown();
       thread.waitForShutdown();
@@ -2485,7 +2485,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
   private void stopMonitoringPublisher()
   {
     final MonitoringPublisher thread = monitoringPublisher.get();
-    if (monitoringPublisher.compareAndSet(thread, null))
+    if (thread != null && monitoringPublisher.compareAndSet(thread, null))
     {
       thread.shutdown();
       thread.waitForShutdown();
@@ -2629,14 +2629,11 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
         continue;
       }
 
-      if (replicaNewestCSN != null
-          && (eligibleCSN == null ||
-              replicaNewestCSN.isNewerThan(eligibleCSN)))
+      if (eligibleCSN == null || replicaNewestCSN.isNewerThan(eligibleCSN))
       {
         eligibleCSN = replicaNewestCSN;
       }
-      if (heartbeatLastCSN != null
-          && (eligibleCSN == null || heartbeatLastCSN.isNewerThan(eligibleCSN)))
+      if (heartbeatLastCSN != null && heartbeatLastCSN.isNewerThan(eligibleCSN))
       {
         eligibleCSN = heartbeatLastCSN;
       }
