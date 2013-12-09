@@ -404,6 +404,12 @@
         <scope>compile</scope>
       </dependency>
       <dependency>
+        <groupId>org.forgerock.commons</groupId>
+        <artifactId>i18n-slf4j</artifactId>
+        <version>${i18nFrameworkVersion}</version>
+        <scope>compile</scope>
+      </dependency>
+      <dependency>
         <groupId>org.slf4j</groupId>
         <artifactId>slf4j-api</artifactId>
         <version>${slf4jVersion}</version>
