@@ -242,8 +242,9 @@ public class LocalBackendDeleteOperation
     {
       if (entryLock == null)
       {
-        setResultCodeAndMessageNoInfoDisclosure(entry, ResultCode.BUSY,
-            ERR_DELETE_CANNOT_LOCK_ENTRY.get(String.valueOf(entryDN)));
+        setResultCode(ResultCode.BUSY);
+        appendErrorMessage(ERR_DELETE_CANNOT_LOCK_ENTRY.get(
+            String.valueOf(entryDN)));
         return;
       }
 

@@ -195,8 +195,9 @@ public class LocalBackendCompareOperation
     {
       if (readLock == null)
       {
-        setResultCodeAndMessageNoInfoDisclosure(null, entryDN, ResultCode.BUSY,
-            ERR_COMPARE_CANNOT_LOCK_ENTRY.get(String.valueOf(entryDN)));
+        setResultCode(ResultCode.BUSY);
+        appendErrorMessage(ERR_COMPARE_CANNOT_LOCK_ENTRY.get(
+            String.valueOf(entryDN)));
         return;
       }
 
@@ -204,7 +205,6 @@ public class LocalBackendCompareOperation
       try
       {
         entry = DirectoryServer.getEntry(entryDN);
-
         if (entry == null)
         {
           setResultCode(ResultCode.NO_SUCH_OBJECT);

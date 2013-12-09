@@ -417,8 +417,9 @@ public class LocalBackendModifyOperation
     {
       if (entryLock == null)
       {
-        setResultCodeAndMessageNoInfoDisclosure(currentEntry, ResultCode.BUSY,
-            ERR_MODIFY_CANNOT_LOCK_ENTRY.get(String.valueOf(entryDN)));
+        setResultCode(ResultCode.BUSY);
+        appendErrorMessage(ERR_MODIFY_CANNOT_LOCK_ENTRY.get(
+            String.valueOf(entryDN)));
         return;
       }
 
