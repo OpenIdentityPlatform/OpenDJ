@@ -23,6 +23,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS.
  */
 package org.opends.server.tools;
 
@@ -30,15 +31,16 @@ package org.opends.server.tools;
 
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
-
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
+
+import static org.opends.server.TestCaseUtils.readFile;
 import static org.testng.Assert.*;
+
 import java.io.*;
 import java.util.*;
 
 import org.testng.annotations.AfterClass;
-
 import org.opends.server.tasks.TaskUtils;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.Entry;
@@ -47,6 +49,7 @@ import org.opends.server.types.Attribute;
 
 
 
+@SuppressWarnings("javadoc")
 public class ImportLDIFTestCase extends ToolsTestCase
 {
 
@@ -526,25 +529,37 @@ public class ImportLDIFTestCase extends ToolsTestCase
 
 
   /**
-   * Utility method which is called by the testcase for asserting the
-   * rejected file.
+   * Utility method which is called by the testcase for asserting the rejected
+   * file.
    *
    * @param reject
    *          The file to be asserted
    * @param shouldBeEmpty
    *          whether the file should be empty.
+   * @throws IOException
+   *           If the reject file could not be read.
    */
   private void assertRejectedFile(File reject, boolean shouldBeEmpty)
+      throws IOException
   {
-    if (shouldBeEmpty)
+    try
     {
-      assertEquals(reject.length(), 0);
+      if (shouldBeEmpty)
+      {
+        if (reject.length() > 0)
+        {
+          fail("Unexpected content in reject file:\n\n" + readFile(reject));
+        }
+      }
+      else
+      {
+        assertFalse(reject.length() == 0);
+      }
     }
-    else
+    finally
     {
-      assertFalse(reject.length() == 0);
+      reject.delete();
     }
-    reject.delete();
   }
 
 
