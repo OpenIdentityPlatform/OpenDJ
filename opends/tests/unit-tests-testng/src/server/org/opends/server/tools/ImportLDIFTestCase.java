@@ -57,7 +57,7 @@ public class ImportLDIFTestCase extends ToolsTestCase
 
   private String ldifFilePath;
 
-  String configFilePath;
+  private String configFilePath;
 
   private String homeDirName;
 
