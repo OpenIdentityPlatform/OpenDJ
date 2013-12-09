@@ -219,8 +219,7 @@ public final class AciHandler extends
   {
     aciListenerMgr.finalizeListenerManager();
     AciEffectiveRights.finalizeOnShutdown();
-    DirectoryServer
-        .deregisterSupportedControl(OID_GET_EFFECTIVE_RIGHTS);
+    DirectoryServer.deregisterSupportedControl(OID_GET_EFFECTIVE_RIGHTS);
   }
 
 
@@ -371,8 +370,7 @@ public final class AciHandler extends
 
     AttributeType attributeType = getAttributeType(baseName);
     AttributeValue attributeValue =
-        AttributeValues.create(attributeType, operation
-            .getAssertionValue());
+        AttributeValues.create(attributeType, operation.getAssertionValue());
     container.setCurrentAttributeType(attributeType);
     container.setCurrentAttributeValue(attributeValue);
     return isAllowed(container, operation);
@@ -610,7 +608,7 @@ public final class AciHandler extends
    */
   boolean accessAllowed(AciContainer container)
   {
-    DN dn = container.getResourceEntry().getDN();
+    DN dn = container.getResourceDN();
     // For ACI_WRITE_ADD and ACI_WRITE_DELETE set the ACI_WRITE
     // right.
     if (container.hasRights(ACI_WRITE_ADD)
@@ -839,9 +837,9 @@ public final class AciHandler extends
       // type are being replaced or deleted. If only a subset is being
       // deleted than this access check is skipped.
       ModificationType modType = m.getModificationType();
-      if (((modType == ModificationType.DELETE) && modAttr.isEmpty())
-          || ((modType == ModificationType.REPLACE)
-              || (modType == ModificationType.INCREMENT)))
+      if ((modType == ModificationType.DELETE && modAttr.isEmpty())
+          || modType == ModificationType.REPLACE
+          || modType == ModificationType.INCREMENT)
       {
         /*
          * Check if we have rights to delete all values of an attribute
@@ -851,8 +849,7 @@ public final class AciHandler extends
         {
           container.setCurrentAttributeType(modAttrType);
           List<Attribute> attrList =
-              resourceEntry.getAttribute(modAttrType, modAttr
-                  .getOptions());
+              resourceEntry.getAttribute(modAttrType, modAttr.getOptions());
           if (attrList != null)
           {
             for (Attribute a : attrList)
@@ -898,8 +895,7 @@ public final class AciHandler extends
           case INCREMENT:
             Entry modifiedEntry = operation.getModifiedEntry();
             List<Attribute> modifiedAttrs =
-                modifiedEntry.getAttribute(modAttrType, modAttr
-                    .getOptions());
+                modifiedEntry.getAttribute(modAttrType, modAttr.getOptions());
             if (modifiedAttrs != null)
             {
               for (Attribute attr : modifiedAttrs)
@@ -1272,10 +1268,8 @@ public final class AciHandler extends
       if (globalAcis != null)
       {
         aciList.addAci(DN.nullDN(), globalAcis);
-        Message message =
-            INFO_ACI_ADD_LIST_GLOBAL_ACIS.get(Integer
-                .toString(globalAcis.size()));
-        logError(message);
+        logError(INFO_ACI_ADD_LIST_GLOBAL_ACIS.get(
+            Integer.toString(globalAcis.size())));
       }
     }
     catch (Exception e)
@@ -1284,9 +1278,8 @@ public final class AciHandler extends
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
-      Message message =
-          INFO_ACI_HANDLER_FAIL_PROCESS_GLOBAL_ACI.get(String
-              .valueOf(configuration.dn()));
+      Message message = INFO_ACI_HANDLER_FAIL_PROCESS_GLOBAL_ACI.get(
+          String.valueOf(configuration.dn()));
       throw new InitializationException(message, e);
     }
   }
@@ -1480,9 +1473,8 @@ public final class AciHandler extends
       if (!operation.getClientConnection().hasPrivilege(
           Privilege.MODIFY_ACL, operation))
       {
-        Message message =
-            INFO_ACI_ADD_FAILED_PRIVILEGE.get(String.valueOf(entry
-                .getDN()), String.valueOf(clientDN));
+        Message message = INFO_ACI_ADD_FAILED_PRIVILEGE.get(
+            String.valueOf(entry.getDN()), String.valueOf(clientDN));
         logError(message);
         return false;
       }
@@ -1498,9 +1490,8 @@ public final class AciHandler extends
           }
           catch (AciException ex)
           {
-            Message message =
-                WARN_ACI_ADD_FAILED_DECODE.get(String.valueOf(entry
-                    .getDN()), ex.getMessage());
+            Message message = WARN_ACI_ADD_FAILED_DECODE.get(
+                String.valueOf(entry.getDN()), ex.getMessage());
             throw new DirectoryException(
                 ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
           }

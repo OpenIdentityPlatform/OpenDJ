@@ -275,8 +275,9 @@ public class LocalBackendAddOperation
       entryLock = LockManager.lockWrite(entryDN);
       if (entryLock == null)
       {
-        setResultCodeAndMessageNoInfoDisclosure(entryDN, ResultCode.BUSY,
-            ERR_ADD_CANNOT_LOCK_ENTRY.get(String.valueOf(entryDN)));
+        setResultCode(ResultCode.BUSY);
+        appendErrorMessage(ERR_ADD_CANNOT_LOCK_ENTRY.get(
+            String.valueOf(entryDN)));
         return;
       }
 
@@ -291,8 +292,8 @@ public class LocalBackendAddOperation
               provider.handleConflictResolution(this);
           if (!result.continueProcessing())
           {
-            setResultCodeAndMessageNoInfoDisclosure(entryDN,
-                result.getResultCode(), result.getErrorMessage());
+            setResultCode(result.getResultCode());
+            appendErrorMessage(result.getErrorMessage());
             setMatchedDN(result.getMatchedDN());
             setReferralURLs(result.getReferralURLs());
             return;
@@ -640,47 +641,40 @@ public class LocalBackendAddOperation
    * @throws  DirectoryException  If a problem occurs while attempting to
    *                              acquire the lock.
    */
-  private Lock lockParent(DN parentDN)
-          throws DirectoryException
+  private Lock lockParent(DN parentDN) throws DirectoryException
   {
-    Lock parentLock = null;
-
-    if (parentDN == null)
+    if (parentDN != null)
     {
-      // Either this entry is a suffix or doesn't belong in the directory.
-      if (DirectoryServer.isNamingContext(entryDN))
+      final Lock parentLock = LockManager.lockRead(parentDN);
+      if (parentLock == null)
       {
-        // This is fine.  This entry is one of the configured suffixes.
-        parentLock = null;
+        throw newDirectoryException(parentDN, ResultCode.BUSY,
+            ERR_ADD_CANNOT_LOCK_PARENT.get(
+                String.valueOf(entryDN),
+                String.valueOf(parentDN)));
       }
-      else if (entryDN.isNullDN())
-      {
-        // This is not fine.  The root DSE cannot be added.
-        throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-                                     ERR_ADD_CANNOT_ADD_ROOT_DSE.get());
-      }
-      else
-      {
-        // The entry doesn't have a parent but isn't a suffix.  This is not
-        // allowed.
-        throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
-                                     ERR_ADD_ENTRY_NOT_SUFFIX.get(
-                                          String.valueOf(entryDN)));
-      }
+      return parentLock;
+    }
+
+    // Either this entry is a suffix or doesn't belong in the directory.
+    if (DirectoryServer.isNamingContext(entryDN))
+    {
+      // This is fine.  This entry is one of the configured suffixes.
+      return null;
+    }
+    else if (entryDN.isNullDN())
+    {
+      // This is not fine.  The root DSE cannot be added.
+      throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+          ERR_ADD_CANNOT_ADD_ROOT_DSE.get());
     }
     else
     {
-      parentLock = LockManager.lockRead(parentDN);
-      if (parentLock == null)
-      {
-        throw newDirectoryException(entryDN, ResultCode.BUSY,
-                                     ERR_ADD_CANNOT_LOCK_PARENT.get(
-                                          String.valueOf(entryDN),
-                                          String.valueOf(parentDN)));
-      }
+      // The entry doesn't have a parent but isn't a suffix.  This is not
+      // allowed.
+      throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
+          ERR_ADD_ENTRY_NOT_SUFFIX.get(String.valueOf(entryDN)));
     }
-
-    return parentLock;
   }
 
 

@@ -341,8 +341,9 @@ public class LocalBackendModifyDNOperation
     {
       if (currentLock == null)
       {
-        setResultCodeAndMessageNoInfoDisclosure(null, entryDN, ResultCode.BUSY,
-            ERR_MODDN_CANNOT_LOCK_CURRENT_DN.get(String.valueOf(entryDN)));
+        setResultCode(ResultCode.BUSY);
+        appendErrorMessage(ERR_MODDN_CANNOT_LOCK_CURRENT_DN.get(
+            String.valueOf(entryDN)));
         return;
       }
 
@@ -351,9 +352,9 @@ public class LocalBackendModifyDNOperation
         newLock = LockManager.lockWrite(newDN);
         if (newLock == null)
         {
-          setResultCodeAndMessageNoInfoDisclosure(null, newDN, ResultCode.BUSY,
-              ERR_MODDN_CANNOT_LOCK_NEW_DN.get(String.valueOf(entryDN), String
-                  .valueOf(newDN)));
+          setResultCode(ResultCode.BUSY);
+          appendErrorMessage(ERR_MODDN_CANNOT_LOCK_NEW_DN.get(
+              String.valueOf(entryDN), String.valueOf(newDN)));
           return;
         }
       }
@@ -537,11 +538,11 @@ public class LocalBackendModifyDNOperation
     }
   }
 
-  private DirectoryException newDirectoryException(Entry entry, DN entryDN,
+  private DirectoryException newDirectoryException(Entry entry,
       ResultCode resultCode, Message message) throws DirectoryException
   {
-    return LocalBackendWorkflowElement.newDirectoryException(this, entry,
-        entryDN, resultCode, message, ResultCode.NO_SUCH_OBJECT,
+    return LocalBackendWorkflowElement.newDirectoryException(this, entry, null,
+        resultCode, message, ResultCode.NO_SUCH_OBJECT,
         ERR_MODDN_NO_CURRENT_ENTRY.get(String.valueOf(entryDN)));
   }
 
@@ -613,8 +614,7 @@ public class LocalBackendModifyDNOperation
               TRACER.debugCaught(DebugLogLevel.ERROR, de);
             }
 
-            throw newDirectoryException(currentEntry, entryDN,
-                de.getResultCode(),
+            throw newDirectoryException(currentEntry, de.getResultCode(),
                 ERR_MODDN_CANNOT_PROCESS_ASSERTION_FILTER.get(
                     String.valueOf(entryDN),
                     de.getMessageObject()));
@@ -634,7 +634,7 @@ public class LocalBackendModifyDNOperation
           {
             if (!filter.matchesEntry(currentEntry))
             {
-              throw newDirectoryException(currentEntry, entryDN,
+              throw newDirectoryException(currentEntry,
                   ResultCode.ASSERTION_FAILED,
                   ERR_MODDN_ASSERTION_FAILED.get(String
                       .valueOf(entryDN)));
@@ -652,8 +652,7 @@ public class LocalBackendModifyDNOperation
               TRACER.debugCaught(DebugLogLevel.ERROR, de);
             }
 
-            throw newDirectoryException(currentEntry, entryDN,
-                de.getResultCode(),
+            throw newDirectoryException(currentEntry, de.getResultCode(),
                 ERR_MODDN_CANNOT_PROCESS_ASSERTION_FILTER.get(
                     String.valueOf(entryDN),
                     de.getMessageObject()));
