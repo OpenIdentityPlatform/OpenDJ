@@ -115,13 +115,20 @@
 
                 <script>
                  resultString = STAXResult[0][1]
+                 
+                 msg1 = 'The server rejected the task for the following reason:'
+                 msg2 = 'cannot be added due%sto insufficient access rights' % newLine
                 </script>
 
                 <call function="'searchString'">
-                { 'expectedString' : 'Tasks cannot be%sadded due to insufficient access rights' % newLine,
-                  'returnString'   : resultString,
-                  'knownIssue'     : 'OPENDJ-1107'
-                }
+                { 'expectedString' : msg1 ,
+                  'returnString'   : resultString
+                  }
+                </call>
+                <call function="'searchString'">
+                { 'expectedString' : msg2 ,
+                  'returnString'   : resultString
+                  }
                 </call>
                   
                 <message>
@@ -155,13 +162,20 @@
 
                 <script>
                  resultString = STAXResult[0][1]
+                 
+                 msg1 = 'The server rejected the task for the following reason:'
+                 msg2 = 'cannot be added due%sto insufficient access rights' % newLine
                 </script>
 
-                 <call function="'searchString'">
-                { 'expectedString' : 'Tasks cannot be%sadded due to insufficient access rights' % newLine,
-                  'returnString'   : resultString,
-                  'knownIssue'     : 'OPENDJ-1107'
-                }
+                <call function="'searchString'">
+                { 'expectedString' : msg1 ,
+                  'returnString'   : resultString
+                  }
+                </call>
+                <call function="'searchString'">
+                { 'expectedString' : msg2 ,
+                  'returnString'   : resultString
+                  }
                 </call>
                   
                 <message>
@@ -242,12 +256,20 @@
 
                 <script>
                  resultString = STAXResult[0][1]
+                 
+                 msg1 = 'The server rejected the task for the following reason:'
+                 msg2 = 'cannot be added due%sto insufficient access rights' % newLine
                 </script>
 
-                 <call function="'searchString'">
-                { 'expectedString' : 'Tasks cannot be%sadded due to insufficient access rights' % newLine,
-                  'returnString'	 : resultString
-                }
+                <call function="'searchString'">
+                { 'expectedString' : msg1 ,
+                  'returnString'   : resultString
+                  }
+                </call>
+                <call function="'searchString'">
+                { 'expectedString' : msg2 ,
+                  'returnString'   : resultString
+                  }
                 </call>
                        
                 <call function="'testCase_Postamble'"/>
@@ -326,7 +348,7 @@
                 </script>
 
                  <call function="'searchString'">
-                { 'expectedString' : 'You do not have sufficient privileges to initiate an LDIF export',
+                { 'expectedString' : 'You do not have%ssufficient privileges to initiate an LDIF export' % newLine,
                   'returnString'	 : resultString
                 }
                 </call>
@@ -447,7 +469,7 @@
                 </script>
 
                  <call function="'searchString'">
-                { 'expectedString' : 'You do not have sufficient privileges to initiate an LDIF export',
+                { 'expectedString' : 'You do not have%ssufficient privileges to initiate an LDIF export' % newLine,
                   'returnString'	 : resultString
                 }
                 </call>

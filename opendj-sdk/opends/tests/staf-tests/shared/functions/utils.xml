@@ -2203,8 +2203,12 @@
       
           cmd = '%s/bin/jstack' % JAVA_HOME
           env = ['JAVA_HOME=%s' % JAVA_HOME]
-          cmdOptions = '-l %s' % pid
           
+          if is_windows_platform(location):
+            cmdOptions = '-l %s' % pidSTAXResult
+          else:
+            cmdOptions = '-l %s' % pid
+
           outputPath = '%s/..' % (dsPath)
       </script>
       
