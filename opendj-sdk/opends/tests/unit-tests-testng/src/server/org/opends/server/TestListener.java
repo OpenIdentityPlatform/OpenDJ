@@ -27,41 +27,23 @@
  */
 package org.opends.server;
 
-import org.testng.TestListenerAdapter;
-import org.testng.IReporter;
-import org.testng.ISuite;
-import org.testng.ITestResult;
-import org.testng.IClass;
-import org.testng.ITestNGMethod;
-import org.testng.ITestContext;
-import org.testng.annotations.Test;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.PrintStream;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.text.SimpleDateFormat;
+import java.util.*;
+
+import org.testng.*;
 import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
 import org.testng.xml.XmlSuite;
 
-import static org.opends.server.util.ServerConstants.EOL;
-import static org.opends.server.TestCaseUtils.originalSystemErr;
-
-import java.text.SimpleDateFormat;
-import java.util.List;
-import java.util.LinkedHashMap;
-import java.util.Collection;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.Set;
-import java.util.HashSet;
-import java.util.IdentityHashMap;
-import java.util.LinkedHashSet;
-import java.util.Iterator;
-import java.util.Arrays;
-import java.io.PrintStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.FileNotFoundException;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Method;
-import java.lang.reflect.InvocationTargetException;
+import static org.opends.server.TestCaseUtils.*;
+import static org.opends.server.util.ServerConstants.*;
 
 /**
  * This class is our replacement for the test results that TestNG generates.
@@ -72,8 +54,10 @@ public class TestListener extends TestListenerAdapter implements IReporter {
 
   private static final String REPORT_FILE_NAME = "results.txt";
 
-  // This is used to communicate with build.xml.  So that even when a test
-  // fails, we can do the coverage report before failing the build.
+  /**
+   * This is used to communicate with build.xml. So that even when a test fails,
+   * we can do the coverage report before failing the build.
+   */
   private static final String ANT_TESTS_FAILED_FILE_NAME = ".tests-failed-marker";
 
 
@@ -87,7 +71,8 @@ public class TestListener extends TestListenerAdapter implements IReporter {
   private static final String TEST_PROGRESS_TIME = "time";
   private static final String TEST_PROGRESS_TEST_COUNT = "count";
   private static final String TEST_PROGRESS_MEMORY = "memory";
-  private static final String TEST_PROGRESS_MEMORY_GCS = "gcs";  // Hidden for now, since it's not useful to most developers
+  /** Hidden for now, since it's not useful to most developers. */
+  private static final String TEST_PROGRESS_MEMORY_GCS = "gcs";
   private static final String TEST_PROGRESS_RESTARTS = "restarts";
   private static final String TEST_PROGRESS_THREAD_COUNT = "threadcount";
   private static final String TEST_PROGRESS_THREAD_CHANGE = "threadchange";
@@ -112,7 +97,7 @@ public class TestListener extends TestListenerAdapter implements IReporter {
     prop = prop.toLowerCase();
     List<String> progressValues = Arrays.asList(prop.split("\\s*\\W+\\s*"));
 
-    if ((prop.length() == 0) || progressValues.isEmpty()) {
+    if (prop.length() == 0 || progressValues.isEmpty()) {
       // Accept the defaults
     } else if (progressValues.contains(TEST_PROGRESS_NONE)) {
       doProgressNone = true;
@@ -158,6 +143,7 @@ public class TestListener extends TestListenerAdapter implements IReporter {
 
   private static final String DIVIDER_LINE = "-------------------------------------------------------------------------------" + EOL;
 
+  @Override
   public void onStart(ITestContext testContext) {
     super.onStart(testContext);
 
@@ -165,6 +151,7 @@ public class TestListener extends TestListenerAdapter implements IReporter {
     new File(testContext.getOutputDirectory(), REPORT_FILE_NAME).delete();
   }
 
+  @Override
   public void generateReport(List<XmlSuite> xmlSuites, List<ISuite> suites, String outputDirectory) {
     File reportFile = new File(outputDirectory, REPORT_FILE_NAME);
 
@@ -176,8 +163,8 @@ public class TestListener extends TestListenerAdapter implements IReporter {
   private void writeAntTestsFailedMarker(String outputDirectory) {
     // Signal 'ant' that all of the tests passed by removing this
     // special file.
-    if ((countTestsWithStatus(ITestResult.FAILURE) == 0) &&
-        (countTestsWithStatus(ITestResult.SKIP) == 0))
+    if (countTestsWithStatus(ITestResult.FAILURE) == 0
+        && countTestsWithStatus(ITestResult.SKIP) == 0)
     {
       new File(outputDirectory, ANT_TESTS_FAILED_FILE_NAME).delete();
     }
@@ -195,7 +182,7 @@ public class TestListener extends TestListenerAdapter implements IReporter {
 
     reportStream.println(center("UNIT TEST REPORT"));
     reportStream.println(center("----------------") + EOL);
-    reportStream.println("Finished at: " + (new Date()));
+    reportStream.println("Finished at: " + new Date());
     reportStream.println("# Test classes: " + _classResults.size());
     reportStream.println("# Test classes interleaved: " + _classesWithTestsRunInterleaved.size());
     reportStream.println("# Test methods: " + countTestMethods());
@@ -204,10 +191,8 @@ public class TestListener extends TestListenerAdapter implements IReporter {
     reportStream.println(EOL + DIVIDER_LINE + DIVIDER_LINE + EOL + EOL);
     reportStream.println(center("TEST CLASSES RUN INTERLEAVED"));
     reportStream.println(EOL + EOL);
-    for (Iterator<Class<?>> iterator = _classesWithTestsRunInterleaved
-        .iterator(); iterator.hasNext();)
+    for (Class<?> cls : _classesWithTestsRunInterleaved)
     {
-      Class<?> cls = iterator.next();
       reportStream.println("  " + cls.getName());
     }
 
@@ -222,8 +207,8 @@ public class TestListener extends TestListenerAdapter implements IReporter {
 
     reportStream.close();
 
-    if ((countTestsWithStatus(ITestResult.FAILURE) == 0) &&
-        (countTestsWithStatus(ITestResult.SKIP) != 0)) {
+    if (countTestsWithStatus(ITestResult.FAILURE) == 0
+        && countTestsWithStatus(ITestResult.SKIP) != 0) {
       originalSystemErr.println("There were no explicit test failures, but some tests were skipped (possibly due to errors in @Before* or @After* methods).");
       System.exit(-1);
     }
@@ -238,7 +223,7 @@ public class TestListener extends TestListenerAdapter implements IReporter {
 
   private void writeReportToScreen(File reportFile) {
     // HACK: print out status for the last test object
-    outputTestProgress(_lastTestObject, true);
+    outputTestProgress(_lastTestObject);
 
     List<ITestResult> failedTests = getFailedTests();
     StringBuilder failed = new StringBuilder();
@@ -248,8 +233,8 @@ public class TestListener extends TestListenerAdapter implements IReporter {
       int numFailures = 1;
       // Peek ahead to see if we had multiple failures for the same method
       // In which case, we list it once with a count of the failures.
-      while (((i + 1) < failedTests.size()) &&
-              fqMethod.equals(getFqMethod(failedTests.get(i+1)))) {
+      while (i + 1 < failedTests.size()
+          && fqMethod.equals(getFqMethod(failedTests.get(i+1)))) {
         numFailures++;
         i++;
       }
@@ -257,7 +242,7 @@ public class TestListener extends TestListenerAdapter implements IReporter {
       failed.append("  ").append(fqMethod);
 
       if (numFailures > 1) {
-        failed.append(" (x " + numFailures + ")");
+        failed.append(" (x ").append(numFailures).append(")");
       }
 
       failed.append(EOL);
@@ -315,6 +300,7 @@ public class TestListener extends TestListenerAdapter implements IReporter {
   }
 
 
+  @Override
   public void onTestStart(ITestResult tr) {
     super.onTestStart(tr);
 
@@ -330,11 +316,13 @@ public class TestListener extends TestListenerAdapter implements IReporter {
     addTestResult(tr);
   }
 
+  @Override
   public void onTestSuccess(ITestResult tr) {
     super.onTestSuccess(tr);
     onTestFinished(tr);
   }
 
+  @Override
   public void onTestFailure(ITestResult tr) {
     super.onTestFailure(tr);
 
@@ -353,14 +341,15 @@ public class TestListener extends TestListenerAdapter implements IReporter {
       failureInfo.append("Failure Cause:  ").append(getTestngLessStack(cause));
     }
 
-    for (int i = 0; (parameters != null) && (i < parameters.length); i++) {
+    for (int i = 0; parameters != null && i < parameters.length; i++) {
       Object parameter = parameters[i];
-      failureInfo.append("parameter[" + i + "]: ").append(parameter).append(EOL);
+      failureInfo.append("parameter[").append(i).append("]: ")
+          .append(parameter).append(EOL);
     }
 
     appendFailureInfo(failureInfo);
 
-    failureInfo.append(EOL + EOL);
+    failureInfo.append(EOL).append(EOL);
     originalSystemErr.print(EOL + EOL + EOL + "                 T E S T   F A I L U R E ! ! !" + EOL + EOL);
     originalSystemErr.print(failureInfo);
     originalSystemErr.print(DIVIDER_LINE + EOL + EOL);
@@ -368,7 +357,7 @@ public class TestListener extends TestListenerAdapter implements IReporter {
     _bufferedTestFailures.append(failureInfo);
 
     String pauseStr = System.getProperty("org.opends.test.pauseOnFailure");
-    if ((pauseStr != null) && pauseStr.equalsIgnoreCase("true"))
+    if ("true".equalsIgnoreCase(pauseStr))
     {
       pauseOnFailure();
     }
@@ -401,7 +390,7 @@ public class TestListener extends TestListenerAdapter implements IReporter {
            "JVM when you're done investigating the problem.");
     }
 
-    while ((tempFile != null) && tempFile.exists())
+    while (tempFile != null && tempFile.exists())
     {
       try
       {
@@ -418,6 +407,7 @@ public class TestListener extends TestListenerAdapter implements IReporter {
     TestCaseUtils.appendLogsContents(failureInfo);
   }
 
+  @Override
   public void onConfigurationFailure(ITestResult tr) {
     super.onConfigurationFailure(tr);
 
@@ -436,7 +426,7 @@ public class TestListener extends TestListenerAdapter implements IReporter {
 
     appendFailureInfo(failureInfo);
 
-    failureInfo.append(EOL + EOL);
+    failureInfo.append(EOL).append(EOL);
     originalSystemErr.print(EOL + EOL + EOL + "         C O N F I G U R A T I O N   F A I L U R E ! ! !" + EOL + EOL);
     originalSystemErr.print(failureInfo);
     originalSystemErr.print(DIVIDER_LINE + EOL + EOL);
@@ -452,7 +442,7 @@ public class TestListener extends TestListenerAdapter implements IReporter {
     for (lowestOpenDSFrame = elements.length - 1; lowestOpenDSFrame >= 0; lowestOpenDSFrame--) {
       StackTraceElement element = elements[lowestOpenDSFrame];
       String clsName = element.getClassName();
-      if (clsName.startsWith("org.opends.") && !clsName.equals("org.opends.server.SuiteRunner")) {
+      if (clsName.startsWith("org.opends.") && !"org.opends.server.SuiteRunner".equals(clsName)) {
         break;
       }
     }
@@ -464,18 +454,17 @@ public class TestListener extends TestListenerAdapter implements IReporter {
     }
 
     Throwable cause = t.getCause();
-    if (t != null) {
-      if (cause instanceof InvocationTargetException) {
-        InvocationTargetException invocation = ((InvocationTargetException)cause);
-        buffer.append("Invocation Target Exception: " + getTestngLessStack(invocation));
-      }
+    if (cause instanceof InvocationTargetException) {
+      InvocationTargetException invocation = (InvocationTargetException) cause;
+      buffer.append("Invocation Target Exception: ").append(
+          getTestngLessStack(invocation));
     }
 
     return buffer.toString();
   }
 
 
-  private final static int PAGE_WIDTH = 80;
+  private static final int PAGE_WIDTH = 80;
   private static String center(String header) {
     StringBuilder buffer = new StringBuilder();
     int indent = (PAGE_WIDTH - header.length()) / 2;
@@ -487,11 +476,13 @@ public class TestListener extends TestListenerAdapter implements IReporter {
   }
 
 
+  @Override
   public void onTestSkipped(ITestResult tr) {
     super.onTestSkipped(tr);
     onTestFinished(tr);
   }
 
+  @Override
   public void onTestFailedButWithinSuccessPercentage(ITestResult tr) {
     super.onTestFailedButWithinSuccessPercentage(tr);
     onTestFinished(tr);
@@ -503,8 +494,8 @@ public class TestListener extends TestListenerAdapter implements IReporter {
     // Read the comments in DirectoryServerTestCase to understand what's
     // going on here.
     Object[] testInstances = result.getMethod().getInstances();
-    for (int i = 0; i < testInstances.length; i++) {
-      Object testInstance = testInstances[i];
+    for (Object testInstance : testInstances)
+    {
       if (testInstance instanceof DirectoryServerTestCase) {
         DirectoryServerTestCase dsTestCase = (DirectoryServerTestCase)testInstance;
         Object[] parameters = result.getParameters();
@@ -520,9 +511,7 @@ public class TestListener extends TestListenerAdapter implements IReporter {
           // or DN), so go ahead and convert it to a String now.
           result.setParameters(convertToStringParameters(parameters));
         }
-      } else {
-        // We already warned about it.
-      }
+      } // else we already warned about it.
     }
   }
 
@@ -609,7 +598,7 @@ public class TestListener extends TestListenerAdapter implements IReporter {
     }
 
     // Output progress info since we're running a new class
-    outputTestProgress(_lastTestObject, false);
+    outputTestProgress(_lastTestObject);
 
     // And make sure we don't have a test object that we already ran tests with.
     if (_previousTestObjects.containsKey(testInstance)) {
@@ -632,7 +621,7 @@ public class TestListener extends TestListenerAdapter implements IReporter {
     Annotation testAnnotation = testMethod.getAnnotation(Test.class);
     Annotation dataProviderAnnotation = testMethod.getAnnotation(DataProvider.class);
 
-    if ((testAnnotation == null) && (dataProviderAnnotation == null)) {
+    if (testAnnotation == null && dataProviderAnnotation == null) {
       String errorMessage =
               "The test method " + testMethod + " does not have a @Test annotation.  " +
               "However, TestNG assumes it is a test method because it's a public method " +
@@ -643,15 +632,16 @@ public class TestListener extends TestListenerAdapter implements IReporter {
   }
 
 
-  // Return the class in cls's inheritence hierarchy that has the @Test
-  // annotation defined.
+  /**
+   * Return the class in cls's inheritance hierarchy that has the @Test
+   * annotation defined.
+   */
   private Class<?> findClassWithTestAnnotation(Class<?> cls) {
     while (cls != null) {
       if (cls.getAnnotation(Test.class) != null) {
         return cls;
-      } else {
-        cls = cls.getSuperclass();
       }
+      cls = cls.getSuperclass();
     }
     return null;
   }
@@ -709,7 +699,7 @@ public class TestListener extends TestListenerAdapter implements IReporter {
   private long maxMemInUse = 0;
   private boolean isFirstTest = true;
 
-  private void outputTestProgress(Object finishedTestObject, boolean isLastTest)
+  private void outputTestProgress(Object finishedTestObject)
   {
     if (doProgressNone)
     {
@@ -818,7 +808,7 @@ public class TestListener extends TestListenerAdapter implements IReporter {
     long curMem = usedMemory();
     long prevMem = Long.MAX_VALUE;
     StringBuilder gcConvergence = new StringBuilder();
-    for (numGcs = 0; (prevMem > curMem) && numGcs < 100; numGcs++) {
+    for (numGcs = 0; prevMem > curMem && numGcs < 100; numGcs++) {
         runtime.runFinalization();
         runtime.gc();
         Thread.yield();
@@ -827,7 +817,8 @@ public class TestListener extends TestListenerAdapter implements IReporter {
         prevMem = curMem;
         curMem = usedMemory();
 
-        gcConvergence.append("[" + numGcs + "]: " + (prevMem - curMem)).append("  ");
+        gcConvergence.append("[").append(numGcs).append("]: ").append(
+            prevMem - curMem).append("  ");
     }
     return numGcs;
   }
@@ -869,12 +860,14 @@ public class TestListener extends TestListenerAdapter implements IReporter {
   synchronized StringBuilder getTimingInfo() {
     StringBuilder timingOutput = new StringBuilder();
     timingOutput.append(center("TESTS RUN BY CLASS")).append(EOL);
-    timingOutput.append(center("[method-name total-time (total-invocations)]")).append(EOL + EOL);
+    timingOutput.append(center("[method-name total-time (total-invocations)]"))
+        .append(EOL).append(EOL);
     for (TestClassResults results: _classResults.values()) {
       results.getTimingInfo(timingOutput);
     }
 
-    timingOutput.append(EOL + DIVIDER_LINE + DIVIDER_LINE + EOL);
+    timingOutput.append(EOL).append(DIVIDER_LINE).append(DIVIDER_LINE).append(
+        EOL);
 
     getSlowestTestsOutput(timingOutput);
     return timingOutput;
@@ -904,7 +897,7 @@ public class TestListener extends TestListenerAdapter implements IReporter {
     return count;
   }
 
-  synchronized private List<TestMethodResults> getAllMethodResults() {
+  private synchronized List<TestMethodResults> getAllMethodResults() {
     List<TestMethodResults> allResults = new ArrayList<TestMethodResults>();
     for (TestClassResults results: _classResults.values()) {
       allResults.addAll(results.getAllMethodResults());
@@ -916,7 +909,8 @@ public class TestListener extends TestListenerAdapter implements IReporter {
 
   private void getSlowestTestsOutput(StringBuilder timingOutput) {
     timingOutput.append(center("CLASS SUMMARY SORTED BY DURATION")).append(EOL);
-    timingOutput.append(center("[class-name total-time (total-invocations)]")).append(EOL + EOL);
+    timingOutput.append(center("[class-name total-time (total-invocations)]"))
+        .append(EOL).append(EOL);
     List<TestClassResults> sortedClasses = getClassesDescendingSortedByDuration();
     for (int i = 0; i < sortedClasses.size(); i++) {
       TestClassResults results = sortedClasses.get(i);
@@ -925,9 +919,10 @@ public class TestListener extends TestListenerAdapter implements IReporter {
       timingOutput.append(EOL);
     }
 
-    timingOutput.append(EOL + DIVIDER_LINE + EOL + EOL);
+    timingOutput.append(EOL).append(DIVIDER_LINE).append(EOL).append(EOL);
     timingOutput.append(center("SLOWEST METHODS")).append(EOL);
-    timingOutput.append(center("[method-name total-time (total-invocations)]")).append(EOL + EOL);
+    timingOutput.append(center("[method-name total-time (total-invocations)]"))
+        .append(EOL).append(EOL);
     List<TestMethodResults> sortedMethods = getMethodsDescendingSortedByDuration();
     for (int i = 0; i < Math.min(sortedMethods.size(), NUM_SLOWEST_METHODS); i++) {
       TestMethodResults results = sortedMethods.get(i);
@@ -939,6 +934,7 @@ public class TestListener extends TestListenerAdapter implements IReporter {
   private List<TestMethodResults> getMethodsDescendingSortedByDuration() {
     List<TestMethodResults> allMethods = getAllMethodResults();
     Collections.sort(allMethods, new Comparator<TestMethodResults>() {
+      @Override
       public int compare(TestMethodResults o1, TestMethodResults o2) {
         if (o1._totalDurationMs > o2._totalDurationMs) {
           return -1;
@@ -955,6 +951,7 @@ public class TestListener extends TestListenerAdapter implements IReporter {
   private List<TestClassResults> getClassesDescendingSortedByDuration() {
     List<TestClassResults> allClasses = new ArrayList<TestClassResults>(_classResults.values());
     Collections.sort(allClasses, new Comparator<TestClassResults>() {
+      @Override
       public int compare(TestClassResults o1, TestClassResults o2) {
         if (o1._totalDurationMs > o2._totalDurationMs) {
           return -1;
@@ -968,20 +965,17 @@ public class TestListener extends TestListenerAdapter implements IReporter {
     return allClasses;
   }
 
-  private final static String[] STATUSES =
+  private static final String[] STATUSES =
           {"<<invalid>>", "Success", "Failure", "Skip", "Success Percentage Failure"};
 
 
-  /**
-   *
-   */
   private static class TestClassResults {
     private final IClass _cls;
     private final LinkedHashMap<ITestNGMethod, TestMethodResults> _methods = new LinkedHashMap<ITestNGMethod, TestMethodResults>();
     private int _totalInvocations = 0;
     private long _totalDurationMs = 0;
 
-    // Indexed by SUCCESS, FAILURE, SKIP, SUCCESS_PERCENTAGE_FAILURE
+    /** Indexed by SUCCESS, FAILURE, SKIP, SUCCESS_PERCENTAGE_FAILURE. */
     private int[] _resultCounts = new int[STATUSES.length];
 
     public TestClassResults(IClass cls) {
@@ -1010,8 +1004,9 @@ public class TestListener extends TestListenerAdapter implements IReporter {
     }
 
     synchronized void getSummaryTimingInfo(StringBuilder timingOutput) {
-      timingOutput.append(_cls.getRealClass().getName() + "    ");
-      timingOutput.append(getTotalDurationMs() + " ms" + " (" + getTotalInvocations() + ")");
+      timingOutput.append(_cls.getRealClass().getName()).append("    ");
+      timingOutput.append(getTotalDurationMs()).append(" ms")
+          .append(" (").append(getTotalInvocations()).append(")");
     }
 
     synchronized Collection<TestMethodResults> getAllMethodResults() {
@@ -1038,15 +1033,12 @@ public class TestListener extends TestListenerAdapter implements IReporter {
   }
 
 
-  /**
-   *
-   */
   private static class TestMethodResults {
     private final ITestNGMethod _method;
     int _totalInvocations = 0;
     long _totalDurationMs = 0;
 
-    // Indexed by SUCCESS, FAILURE, SKIP, SUCCESS_PERCENTAGE_FAILURE
+    /** Indexed by SUCCESS, FAILURE, SKIP, SUCCESS_PERCENTAGE_FAILURE. */
     private int[] _resultCounts = new int[STATUSES.length];
 
     public TestMethodResults(ITestNGMethod method) {
@@ -1069,10 +1061,12 @@ public class TestListener extends TestListenerAdapter implements IReporter {
       if (includeClassName) {
         timingOutput.append(_method.getRealClass().getName()).append("#");
       }
-      timingOutput.append(_method.getMethodName() + "  ");
-      timingOutput.append(_totalDurationMs + " ms" + " (" + _totalInvocations + ")");
+      timingOutput.append(_method.getMethodName()).append("  ");
+      timingOutput.append(_totalDurationMs).append(" ms")
+          .append(" (").append(_totalInvocations).append(")");
       if (_resultCounts[ITestResult.FAILURE] > 0) {
-        timingOutput.append(" " + _resultCounts[ITestResult.FAILURE] + " failure(s)");
+        timingOutput.append(" ").append(_resultCounts[ITestResult.FAILURE])
+            .append(" failure(s)");
       }
       timingOutput.append(EOL);
     }
