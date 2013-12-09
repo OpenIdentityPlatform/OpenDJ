@@ -45,10 +45,7 @@ import org.opends.server.replication.server.changelog.api.ChangeNumberIndexRecor
 import org.opends.server.replication.server.changelog.api.ChangelogDB;
 import org.opends.server.replication.server.changelog.api.ReplicationDomainDB;
 import org.opends.server.types.DN;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.testng.annotations.*;
 
 import com.forgerock.opendj.util.Pair;
 
@@ -135,6 +132,11 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
     initialCookie = new MultiDomainServerState();
   }
 
+  @AfterMethod
+  public void tearDown() throws Exception
+  {
+    stopIndexer();
+  }
 
   private static final String EMPTY_DB_NO_DS = "emptyDBNoDS";
 
@@ -296,6 +298,11 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
     indexer = new ChangeNumberIndexer(changelogDB, initialState);
     indexer.start();
     waitForWaitingState(indexer);
+  }
+
+  private void stopIndexer()
+  {
+    indexer.initiateShutdown();
   }
 
   private ReplicatedUpdateMsg msg(DN baseDN, int serverId, long time)
