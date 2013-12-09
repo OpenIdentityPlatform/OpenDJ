@@ -27,11 +27,6 @@
  */
 package org.opends.server.replication.server;
 
-import static org.opends.messages.ReplicationMessages.*;
-import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.util.StaticUtils.*;
-
 import java.net.SocketException;
 import java.util.NoSuchElementException;
 
@@ -42,6 +37,10 @@ import org.opends.server.replication.common.ServerStatus;
 import org.opends.server.replication.protocol.Session;
 import org.opends.server.replication.protocol.UpdateMsg;
 
+import static org.opends.messages.ReplicationMessages.*;
+import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class defines a server writer, which is used to send changes to a
@@ -75,13 +74,9 @@ public class ServerWriter extends DirectoryThread
       ReplicationServerDomain replicationServerDomain)
   {
     // Session may be null for ECLServerWriter.
-    super("Replication server RS("
-        + handler.getReplicationServerId()
-        + ") writing to "
-        + handler.toString()
-        + " at "
-        + ((session != null) ? session.getReadableRemoteAddress()
-            : "unknown"));
+    super("Replication server RS(" + handler.getReplicationServerId()
+        + ") writing to " + handler + " at "
+        + (session != null ? session.getReadableRemoteAddress() : "unknown"));
 
     this.session = session;
     this.handler = handler;
@@ -96,11 +91,12 @@ public class ServerWriter extends DirectoryThread
   @Override
   public void run()
   {
-    Message errMessage = null;
     if (debugEnabled())
     {
-      TRACER.debugInfo(this.getName() + " starting");
+      TRACER.debugInfo(getName() + " starting");
     }
+
+    Message errMessage = null;
     try
     {
       while (true)
@@ -129,8 +125,8 @@ public class ServerWriter extends DirectoryThread
            * mode (most of the time).
            */
           ServerStatus dsStatus = handler.getStatus();
-          if ((dsStatus == ServerStatus.BAD_GEN_ID_STATUS) ||
-            (dsStatus == ServerStatus.FULL_UPDATE_STATUS))
+          if (dsStatus == ServerStatus.BAD_GEN_ID_STATUS
+              || dsStatus == ServerStatus.FULL_UPDATE_STATUS)
           {
             long referenceGenerationId =
               replicationServerDomain.getGenerationId();
@@ -158,8 +154,9 @@ public class ServerWriter extends DirectoryThread
            */
           long referenceGenerationId =
             replicationServerDomain.getGenerationId();
-          if ((referenceGenerationId != handler.getGenerationId()) ||
-            (referenceGenerationId == -1) || (handler.getGenerationId() == -1))
+          if (referenceGenerationId != handler.getGenerationId()
+              || referenceGenerationId == -1
+              || handler.getGenerationId() == -1)
           {
             logError(
                 WARN_IGNORING_UPDATE_TO_RS.get(
@@ -173,21 +170,6 @@ public class ServerWriter extends DirectoryThread
             continue;
           }
         }
-
-        /*
-        if (debugEnabled())
-        {
-          TRACER.debugInfo(
-            "In " + replicationServerDomain.getReplicationServer().
-              getMonitorInstanceName() +
-            ", writer to " + this.handler.getMonitorInstanceName() +
-            " publishes msg=[" + update.toString() + "]"+
-            " refgenId=" + referenceGenerationId +
-            " isAssured=" + update.isAssured() +
-            " server=" + handler.getServerId() +
-            " generationId=" + handler.getGenerationId());
-        }
-        */
 
         // Publish the update to the remote server using a protocol version he
         // it supports
@@ -241,7 +223,7 @@ public class ServerWriter extends DirectoryThread
        * An unexpected error happened.
        * Log an error and close the connection.
        */
-      errMessage = ERR_WRITER_UNEXPECTED_EXCEPTION.get(handler.toString() +
+      errMessage = ERR_WRITER_UNEXPECTED_EXCEPTION.get(handler +
                         " " +  stackTraceToSingleLineString(e));
       logError(errMessage);
     }
@@ -250,7 +232,7 @@ public class ServerWriter extends DirectoryThread
       replicationServerDomain.stopServer(handler, false);
       if (debugEnabled())
       {
-        TRACER.debugInfo(this.getName() + " stopped " + errMessage);
+        TRACER.debugInfo(getName() + " stopped " + errMessage);
       }
     }
   }
