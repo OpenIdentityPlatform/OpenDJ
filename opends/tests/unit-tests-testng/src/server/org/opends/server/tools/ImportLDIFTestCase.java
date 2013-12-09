@@ -132,6 +132,7 @@ public class ImportLDIFTestCase extends ToolsTestCase
         "--noPropertiesFile",
         "-l",
         ldifFilePath,
+        "-F",
         "-R",
         rejectFilePath,
         "-n",
@@ -142,7 +143,7 @@ public class ImportLDIFTestCase extends ToolsTestCase
     assertEquals(
         ImportLDIF.mainImportLDIF(args, false, System.out, System.err), 0);
     // Expecting a non-empty reject file.
-    assertRejectedFile(reject, true);
+    assertRejectedFile(reject, false);
   }
 
 
@@ -166,6 +167,7 @@ public class ImportLDIFTestCase extends ToolsTestCase
         "--noPropertiesFile",
         "-l",
         ldifFilePath,
+        "-F",
         "-R",
         rejectFilePath,
         "-n",
@@ -210,6 +212,7 @@ public class ImportLDIFTestCase extends ToolsTestCase
         "--noPropertiesFile",
         "-l",
         ldifFilePath,
+        "-F",
         "-n",
         beID,
         "-R",
@@ -254,6 +257,7 @@ public class ImportLDIFTestCase extends ToolsTestCase
         "--noPropertiesFile",
         "-l",
         ldifFilePath,
+        "-F",
         "-b",
         baseDN,
         "-R",
@@ -297,6 +301,7 @@ public class ImportLDIFTestCase extends ToolsTestCase
         "--noPropertiesFile",
         "-l",
         ldifFilePath,
+        "-F",
         "-n",
         beID,
         "-R",
@@ -338,6 +343,7 @@ public class ImportLDIFTestCase extends ToolsTestCase
         "--noPropertiesFile",
         "-l",
         ldifFilePath,
+        "-F",
         "-n",
         beID,
         "-R",
@@ -373,6 +379,7 @@ public class ImportLDIFTestCase extends ToolsTestCase
         "--noPropertiesFile",
         "-l",
         ldifFilePath,
+        "-F",
         "-n",
         beID,
         "-R",
@@ -413,6 +420,7 @@ public class ImportLDIFTestCase extends ToolsTestCase
         "--noPropertiesFile",
         "-l",
         ldifFilePath,
+        "-F",
         "-n",
         beID,
         "-R",
@@ -454,6 +462,7 @@ public class ImportLDIFTestCase extends ToolsTestCase
         "--noPropertiesFile",
         "-l",
         ldifFilePath,
+        "-F",
         "-n",
         beID,
         "-R",
@@ -497,7 +506,6 @@ public class ImportLDIFTestCase extends ToolsTestCase
   @Test
   public void testImportLDIFSelectiveExcludeAttributes() throws Exception
   {
-
     File reject = File.createTempFile("reject", ".ldif");
     String rejectFilePath = reject.getAbsolutePath();
     String[] args =
@@ -507,6 +515,7 @@ public class ImportLDIFTestCase extends ToolsTestCase
         "--noPropertiesFile",
         "-l",
         ldifFilePath,
+        "-F",
         "-n",
         beID,
         "-R",
