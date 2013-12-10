@@ -26,19 +26,15 @@
  *      Portions copyright 2013 ForgeRock AS
  */
 package org.opends.server.util.args;
-import org.opends.messages.Message;
-
-
 
 import java.util.Iterator;
 import java.util.LinkedList;
 
-import static org.opends.messages.UtilityMessages.*;
-
+import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
+
+import static org.opends.messages.UtilityMessages.*;
 import static org.opends.server.util.StaticUtils.*;
-
-
 
 /**
  * This class defines a generic argument that may be used in the argument list
@@ -47,50 +43,60 @@ import static org.opends.server.util.StaticUtils.*;
  */
 public abstract class Argument
 {
-  // Indicates whether this argument should be hidden in the usage information.
+  /**
+   * Indicates whether this argument should be hidden in the usage information.
+   */
   private boolean isHidden;
 
-  // Indicates whether this argument may be specified more than once for
-  // multiple values.
+  /**
+   * Indicates whether this argument may be specified more than once for
+   * multiple values.
+   */
   private boolean isMultiValued;
 
-  // Indicates whether this argument was provided in the set of command-line
-  // arguments.
+  /**
+   * Indicates whether this argument was provided in the set of command-line
+   * arguments.
+   */
   private boolean isPresent;
 
-  // Indicates whether this argument is required to have a value.
+  /** Indicates whether this argument is required to have a value. */
   private boolean isRequired;
 
-  // Indicates whether this argument requires a value.
+  /** Indicates whether this argument requires a value. */
   private boolean needsValue;
 
-  // The single-character identifier for this argument.
+  /** The single-character identifier for this argument. */
   private Character shortIdentifier;
 
-  // The unique ID of the description for this argument.
+  /** The unique ID of the description for this argument. */
   private Message description;
 
-  // The set of values for this argument.
+  /** The set of values for this argument. */
   private LinkedList<String> values;
 
-  // The default value for the argument if none other is provided.
+  /** The default value for the argument if none other is provided. */
   private String defaultValue;
 
-  // The long identifier for this argument.
+  /** The long identifier for this argument. */
   private String longIdentifier;
 
-  // The generic name that will be used to refer to this argument.
+  /** The generic name that will be used to refer to this argument. */
   private String name;
 
-  // The name of the property that can be used to set the default value.
+  /** The name of the property that can be used to set the default value. */
   private String propertyName;
 
-  // The value placeholder for this argument, which will be used in usage
-  // information.
+  /**
+   * The value placeholder for this argument, which will be used in usage
+   * information.
+   */
   private Message valuePlaceholder;
 
-  // Indicates whether this argument was provided in the set of properties
-  // found is a properties file.
+  /**
+   * Indicates whether this argument was provided in the set of properties found
+   * is a properties file.
+   */
   private boolean isValueSetByProperty;
 
 
@@ -145,13 +151,13 @@ public abstract class Argument
     this.description      = description;
     this.isValueSetByProperty = false ;
 
-    if ((shortIdentifier == null) && (longIdentifier == null))
+    if (shortIdentifier == null && longIdentifier == null)
     {
       Message message = ERR_ARG_NO_IDENTIFIER.get(name);
       throw new ArgumentException(message);
     }
 
-    if (needsValue && (valuePlaceholder == null))
+    if (needsValue && valuePlaceholder == null)
     {
       Message message = ERR_ARG_NO_VALUE_PLACEHOLDER.get(name);
       throw new ArgumentException(message);
@@ -424,8 +430,6 @@ public abstract class Argument
     return propertyName;
   }
 
-
-
   /**
    * Specifies the name of a property in a properties file that may be used to
    * set the default value for this argument if it is present.
@@ -475,8 +479,6 @@ public abstract class Argument
     return description != null ? description : Message.EMPTY;
   }
 
-
-
   /**
    * Indicates whether this argument has at least one value.
    *
@@ -485,10 +487,8 @@ public abstract class Argument
    */
   public boolean hasValue()
   {
-    return (! values.isEmpty());
+    return !values.isEmpty();
   }
-
-
 
   /**
    * Retrieves the string value for this argument.  If it has multiple values,
@@ -504,11 +504,8 @@ public abstract class Argument
     {
       return defaultValue;
     }
-
     return values.getFirst();
   }
-
-
 
   /**
    * Retrieves the set of string values for this argument.
@@ -519,8 +516,6 @@ public abstract class Argument
   {
     return values;
   }
-
-
 
   /**
    * Retrieves the value of this argument as an integer.
@@ -558,13 +553,8 @@ public abstract class Argument
       Message message = ERR_ARG_INT_MULTIPLE_VALUES.get(name);
       throw new ArgumentException(message);
     }
-    else
-    {
-      return intValue;
-    }
+    return intValue;
   }
-
-
 
   /**
    * Retrieves the set of values for this argument as a list of integers.
@@ -580,11 +570,8 @@ public abstract class Argument
   {
     LinkedList<Integer> intList = new LinkedList<Integer>();
 
-    Iterator<String> iterator = values.iterator();
-    while (iterator.hasNext())
+    for (String valueString : values)
     {
-      String valueString = iterator.next();
-
       try
       {
         intList.add(Integer.valueOf(valueString));
@@ -622,13 +609,13 @@ public abstract class Argument
     String valueString = toLowerCase(iterator.next());
 
     boolean booleanValue;
-    if (valueString.equals("true") || valueString.equals("yes") ||
-        valueString.equals("on") || valueString.equals("1"))
+    if ("true".equals(valueString) || "yes".equals(valueString) ||
+        "on".equals(valueString) || "1".equals(valueString))
     {
       booleanValue = true;
     }
-    else if (valueString.equals("false") || valueString.equals("no") ||
-             valueString.equals("off") || valueString.equals("0"))
+    else if ("false".equals(valueString) || "no".equals(valueString) ||
+             "off".equals(valueString) || "0".equals(valueString))
     {
       booleanValue = false;
     }
@@ -643,10 +630,7 @@ public abstract class Argument
       Message message = ERR_ARG_BOOLEAN_MULTIPLE_VALUES.get(name);
       throw new ArgumentException(message);
     }
-    else
-    {
-      return booleanValue;
-    }
+    return booleanValue;
   }
 
 
@@ -665,8 +649,6 @@ public abstract class Argument
   public abstract boolean valueIsAcceptable(String valueString,
                                             MessageBuilder invalidReason);
 
-
-
   /**
    * Adds a value to the set of values for this argument.  This should only be
    * called if the value is allowed by the <CODE>valueIsAcceptable</CODE>
@@ -680,8 +662,6 @@ public abstract class Argument
     values.add(valueString);
   }
 
-
-
   /**
    * Clears the set of values assigned to this argument.
    */
@@ -689,5 +669,44 @@ public abstract class Argument
   {
     values.clear();
   }
-}
 
+  /** {@inheritDoc} */
+  @Override
+  public String toString()
+  {
+    final StringBuilder sb = new StringBuilder(getClass().getSimpleName());
+    sb.append("[name=\"").append(this.name).append("\"");
+    if (shortIdentifier != null || longIdentifier != null)
+    {
+      sb.append(", options=");
+      if (shortIdentifier != null)
+      {
+        sb.append("-").append(shortIdentifier);
+      }
+      if (longIdentifier != null)
+      {
+        if (shortIdentifier != null)
+        {
+          sb.append(" ");
+        }
+        sb.append("--").append(longIdentifier);
+      }
+    }
+    if (isRequired)
+    {
+      sb.append(", required");
+    }
+    if (isMultiValued)
+    {
+      sb.append(", multiValued");
+    }
+    if (needsValue)
+    {
+      sb.append(", needsValue");
+    }
+    sb.append(", defaultValue=\"").append(defaultValue)
+      .append("\", description=\"").append(description)
+      .append("\"]");
+    return sb.toString();
+  }
+}
