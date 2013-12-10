@@ -54,7 +54,7 @@ public final class NameForm extends SchemaElement {
     /**
      * A fluent API for incrementally constructing name forms.
      */
-    public static class Builder extends SchemaElementBuilder<Builder> {
+    public final static class Builder extends SchemaElementBuilder<Builder> {
         private boolean isObsolete = false;
         private final List<String> names = new LinkedList<String>();
         private String oid;
@@ -83,7 +83,7 @@ public final class NameForm extends SchemaElement {
          *
          * @return The parent schema builder.
          */
-        public SchemaBuilder addToSchema() {
+        public SchemaBuilder addToSchemaOverwrite() {
             return this.getSchemaBuilder().addNameForm(new NameForm(this), true);
         }
 
@@ -97,7 +97,7 @@ public final class NameForm extends SchemaElement {
          *             If there is an existing name form with the same numeric
          *             OID.
          */
-        public SchemaBuilder addToSchemaNoOverwrite() {
+        public SchemaBuilder addToSchema() {
             return this.getSchemaBuilder().addNameForm(new NameForm(this), false);
         }
 

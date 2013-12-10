@@ -30,8 +30,11 @@ package org.forgerock.opendj.ldap.schema;
 import static com.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_MR_UNKNOWN_SYNTAX1;
 import static com.forgerock.opendj.ldap.CoreMessages.WARN_MATCHING_RULE_NOT_IMPLEMENTED1;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -41,7 +44,6 @@ import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
 
-import com.forgerock.opendj.util.Validator;
 
 /**
  * This class defines a data structure for storing and interacting with matching
@@ -59,6 +61,175 @@ import com.forgerock.opendj.util.Validator;
  * or via the {@link #toString()} methods.
  */
 public final class MatchingRule extends SchemaElement {
+    /**
+     * A fluent API for incrementally constructing matching rules.
+     */
+    public final static class Builder extends SchemaElementBuilder<Builder> {
+        private String oid;
+        private final List<String> names = new LinkedList<String>();
+        private boolean isObsolete = false;
+        private String syntaxOID;
+        private MatchingRuleImpl impl;
+
+        Builder(final MatchingRule mr, final SchemaBuilder builder) {
+            super(builder, mr);
+            this.oid = mr.oid;
+            this.names.addAll(mr.names);
+            this.isObsolete = mr.isObsolete;
+            this.syntaxOID = mr.syntaxOID;
+            this.impl = mr.impl;
+        }
+
+        Builder(final String oid, final SchemaBuilder builder) {
+            super(builder);
+            this.oid(oid);
+        }
+
+        /**
+         * Adds this matching rule to the schema overwriting any existing matching rule with the same numeric OID.
+         *
+         * @return The parent schema builder.
+         */
+        public SchemaBuilder addToSchemaOverwrite() {
+            return this.getSchemaBuilder().addMatchingRule(new MatchingRule(this), true);
+        }
+
+        /**
+         * Adds this matching rule to the schema, throwing an {@code  ConflictingSchemaElementException} if there is an
+         * existing matching rule with the same numeric OID.
+         *
+         * @return The parent schema builder.
+         * @throws ConflictingSchemaElementException
+         *             If there is an existing matching rule with the same numeric OID.
+         */
+        public SchemaBuilder addToSchema() {
+            return this.getSchemaBuilder().addMatchingRule(new MatchingRule(this), false);
+        }
+
+        @Override
+        public Builder description(final String description) {
+            return description0(description);
+        }
+
+        @Override
+        public Builder extraProperties(final Map<String, List<String>> extraProperties) {
+            return extraProperties0(extraProperties);
+        }
+
+        @Override
+        public Builder extraProperties(final String extensionName, final String... extensionValues) {
+            return extraProperties0(extensionName, extensionValues);
+        }
+
+        /**
+         * Adds the provided user friendly names.
+         *
+         * @param names
+         *            The user friendly names.
+         * @return This builder.
+         */
+        public Builder names(final Collection<String> names) {
+            this.names.addAll(names);
+            return this;
+        }
+
+        /**
+         * Adds the provided user friendly names.
+         *
+         * @param names
+         *            The user friendly names.
+         * @return This builder.
+         */
+        public Builder names(final String... names) {
+            return names(Arrays.asList(names));
+        }
+
+        /**
+         * Specifies whether or not this schema element is obsolete.
+         *
+         * @param isObsolete
+         *            {@code true} if this schema element is obsolete (default is {@code false}).
+         * @return This builder.
+         */
+        public Builder obsolete(final boolean isObsolete) {
+            this.isObsolete = isObsolete;
+            return this;
+        }
+
+        /**
+         * Sets the numeric OID which uniquely identifies this matching rule.
+         *
+         * @param oid
+         *            The numeric OID.
+         * @return This builder.
+         */
+        public Builder oid(final String oid) {
+            this.oid = oid;
+            return this;
+        }
+
+        /**
+         * Sets the syntax OID of this matching rule.
+         *
+         * @param syntax
+         *            The syntax OID.
+         * @return This builder.
+         */
+        public Builder syntaxOID(final String syntax) {
+            this.syntaxOID = syntax;
+            return this;
+        }
+
+        /**
+         * Sets the matching rule implementation.
+         *
+         * @param implementation
+         *            The matching rule implementation.
+         * @return This builder.
+         */
+        public Builder implementation(final MatchingRuleImpl implementation) {
+            this.impl = implementation;
+            return this;
+        }
+
+        @Override
+        public Builder removeAllExtraProperties() {
+            return removeAllExtraProperties0();
+        }
+
+        /**
+         * Removes all user friendly names.
+         *
+         * @return This builder.
+         */
+        public Builder removeAllNames() {
+            this.names.clear();
+            return this;
+        }
+
+        @Override
+        public Builder removeExtraProperty(final String extensionName, final String... extensionValues) {
+            return removeExtraProperty0(extensionName, extensionValues);
+        }
+
+        /**
+         * Removes the provided user friendly name.
+         *
+         * @param name
+         *            The user friendly name to be removed.
+         * @return This builder.
+         */
+        public Builder removeName(final String name) {
+            names.remove(name);
+            return this;
+        }
+
+        @Override
+        Builder getThis() {
+            return this;
+        }
+    }
+
     private final String oid;
     private final List<String> names;
     private final boolean isObsolete;
@@ -67,19 +238,22 @@ public final class MatchingRule extends SchemaElement {
     private Syntax syntax;
     private Schema schema;
 
-    MatchingRule(final String oid, final List<String> names, final String description,
-            final boolean obsolete, final String syntax,
-            final Map<String, List<String>> extraProperties, final String definition,
-            final MatchingRuleImpl implementation) {
-        super(description, extraProperties, definition);
+    private MatchingRule(final Builder builder) {
+        super(builder);
 
-        Validator.ensureNotNull(oid, names, description, syntax);
-        Validator.ensureNotNull(extraProperties);
-        this.oid = oid;
-        this.names = names;
-        this.isObsolete = obsolete;
-        this.syntaxOID = syntax;
-        this.impl = implementation;
+        // Checks for required attributes.
+        if (builder.oid == null || builder.oid.isEmpty()) {
+            throw new IllegalArgumentException("An OID must be specified.");
+        }
+        if (builder.syntaxOID == null || builder.syntaxOID.isEmpty()) {
+            throw new IllegalArgumentException("Required syntax OID must be specified.");
+        }
+
+        oid = builder.oid;
+        names = SchemaUtils.unmodifiableCopyOfList(builder.names);
+        isObsolete = builder.isObsolete;
+        syntaxOID = builder.syntaxOID;
+        impl = builder.impl;
     }
 
     /**
@@ -117,7 +291,7 @@ public final class MatchingRule extends SchemaElement {
     /**
      * Returns the normalized form of the provided assertion value, which is
      * best suite for efficiently performing matching operations on that value.
-     * The assertion value is guarenteed to be valid against this matching
+     * The assertion value is guaranteed to be valid against this matching
      * rule's assertion syntax.
      *
      * @param value
@@ -157,7 +331,7 @@ public final class MatchingRule extends SchemaElement {
     /**
      * Returns the normalized form of the provided assertion value, which is
      * best suite for efficiently performing greater than or equal ordering
-     * matching operations on that value. The assertion value is guarenteed to
+     * matching operations on that value. The assertion value is guaranteed to
      * be valid against this matching rule's assertion syntax.
      *
      * @param value
@@ -173,7 +347,7 @@ public final class MatchingRule extends SchemaElement {
     /**
      * Returns the normalized form of the provided assertion value, which is
      * best suite for efficiently performing greater than or equal ordering
-     * matching operations on that value. The assertion value is guarenteed to
+     * matching operations on that value. The assertion value is guaranteed to
      * be valid against this matching rule's assertion syntax.
      *
      * @param value
@@ -295,11 +469,6 @@ public final class MatchingRule extends SchemaElement {
      */
     public ByteString normalizeAttributeValue(final ByteSequence value) throws DecodeException {
         return impl.normalizeAttributeValue(schema, value);
-    }
-
-    MatchingRule duplicate() {
-        return new MatchingRule(oid, names, getDescription(), isObsolete, syntaxOID,
-                getExtraProperties(), toString(), impl);
     }
 
     @Override

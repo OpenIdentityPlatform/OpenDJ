@@ -900,14 +900,15 @@ public final class SchemaBuilder {
         final Syntax enumSyntax =
                 new Syntax(oid, description, Collections.singletonMap("X-ENUM", Arrays
                         .asList(enumerations)), null, enumImpl);
-        final MatchingRule enumOMR =
-                new MatchingRule(enumImpl.getOrderingMatchingRule(), Collections
-                        .singletonList(OMR_GENERIC_ENUM_NAME + oid), "", false, oid,
-                        CoreSchemaImpl.OPENDS_ORIGIN, null, new EnumOrderingMatchingRule(enumImpl));
 
         addSyntax(enumSyntax, overwrite);
         try {
-            addMatchingRule(enumOMR, overwrite);
+            buildMatchingRule(enumImpl.getOrderingMatchingRule())
+                    .names(OMR_GENERIC_ENUM_NAME + oid)
+                    .syntaxOID(oid)
+                    .extraProperties(CoreSchemaImpl.OPENDJ_ORIGIN)
+                    .implementation(new EnumOrderingMatchingRule(enumImpl))
+                    .addToSchemaOverwrite();
         } catch (final ConflictingSchemaElementException e) {
             removeSyntax(oid);
         }
@@ -965,14 +966,12 @@ public final class SchemaBuilder {
             reader.skipWhitespaces();
 
             // The next set of characters must be the OID.
-            final String oid = SchemaUtils.readOID(reader, allowMalformedNamesAndOptions);
+            final MatchingRule.Builder matchingRuleBuilder =
+                    new MatchingRule.Builder(
+                            SchemaUtils.readOID(reader, allowMalformedNamesAndOptions), this)
+                            .definition(definition);
 
-            List<String> names = Collections.emptyList();
-            String description = "".intern();
-            boolean isObsolete = false;
             String syntax = null;
-            Map<String, List<String>> extraProperties = Collections.emptyMap();
-
             // At this point, we should have a pretty specific syntax that
             // describes what may come next, but some of the components are
             // optional and it would be pretty easy to put something in the
@@ -988,29 +987,29 @@ public final class SchemaBuilder {
                     // No more tokens.
                     break;
                 } else if (tokenName.equalsIgnoreCase("name")) {
-                    names = SchemaUtils.readNameDescriptors(reader, allowMalformedNamesAndOptions);
+                    matchingRuleBuilder.names(SchemaUtils.readNameDescriptors(reader, allowMalformedNamesAndOptions));
                 } else if (tokenName.equalsIgnoreCase("desc")) {
                     // This specifies the description for the matching rule. It
                     // is an arbitrary string of characters enclosed in single
                     // quotes.
-                    description = SchemaUtils.readQuotedString(reader);
+                    matchingRuleBuilder.description(SchemaUtils.readQuotedString(reader));
                 } else if (tokenName.equalsIgnoreCase("obsolete")) {
                     // This indicates whether the matching rule should be
                     // considered obsolete. We do not need to do any more
                     // parsing for this token.
-                    isObsolete = true;
+                    matchingRuleBuilder.obsolete(true);
                 } else if (tokenName.equalsIgnoreCase("syntax")) {
                     syntax = SchemaUtils.readOID(reader, allowMalformedNamesAndOptions);
+                    matchingRuleBuilder.syntaxOID(syntax);
                 } else if (tokenName.matches("^X-[A-Za-z_-]+$")) {
                     // This must be a non-standard property and it must be
                     // followed by either a single definition in single quotes
                     // or an open parenthesis followed by one or more values in
                     // single quotes separated by spaces followed by a close
                     // parenthesis.
-                    if (extraProperties.isEmpty()) {
-                        extraProperties = new HashMap<String, List<String>>();
-                    }
-                    extraProperties.put(tokenName, SchemaUtils.readExtensions(reader));
+                    final List<String> extensions = SchemaUtils.readExtensions(reader);
+                    matchingRuleBuilder.extraProperties(tokenName, extensions
+                            .toArray(new String[extensions.size()]));
                 } else {
                     final LocalizableMessage message =
                             ERR_ATTR_SYNTAX_MR_ILLEGAL_TOKEN1.get(definition, tokenName);
@@ -1023,61 +1022,16 @@ public final class SchemaBuilder {
                 final LocalizableMessage message = ERR_ATTR_SYNTAX_MR_NO_SYNTAX.get(definition);
                 throw new LocalizedIllegalArgumentException(message);
             }
-
-            if (!extraProperties.isEmpty()) {
-                extraProperties = Collections.unmodifiableMap(extraProperties);
+            if (overwrite) {
+                matchingRuleBuilder.addToSchemaOverwrite();
+            } else {
+                matchingRuleBuilder.addToSchema();
             }
-
-            addMatchingRule(new MatchingRule(oid, names, description, isObsolete, syntax,
-                    extraProperties, definition, null), overwrite);
         } catch (final DecodeException e) {
             final LocalizableMessage msg =
                     ERR_ATTR_SYNTAX_MR_INVALID1.get(definition, e.getMessageObject());
             throw new LocalizedIllegalArgumentException(msg, e.getCause());
         }
-        return this;
-    }
-
-    /**
-     * Adds the provided matching rule definition to this schema builder.
-     *
-     * @param oid
-     *            The OID of the matching rule definition.
-     * @param names
-     *            The user-friendly names of the matching rule definition.
-     * @param description
-     *            The description of the matching rule definition.
-     * @param obsolete
-     *            {@code true} if the matching rule definition is obsolete,
-     *            otherwise {@code false}.
-     * @param assertionSyntax
-     *            The OID of the assertion syntax definition.
-     * @param extraProperties
-     *            A map containing additional properties associated with the
-     *            matching rule definition.
-     * @param implementation
-     *            The implementation of the matching rule.
-     * @param overwrite
-     *            {@code true} if any existing matching rule with the same OID
-     *            should be overwritten.
-     * @return A reference to this schema builder.
-     * @throws ConflictingSchemaElementException
-     *             If {@code overwrite} was {@code false} and a conflicting
-     *             schema element was found.
-     */
-    SchemaBuilder addMatchingRule(final String oid, final List<String> names,
-            final String description, final boolean obsolete, final String assertionSyntax,
-            final Map<String, List<String>> extraProperties, final MatchingRuleImpl implementation,
-            final boolean overwrite) {
-        Validator.ensureNotNull(implementation);
-
-        lazyInitBuilder();
-
-        final MatchingRule matchingRule =
-                new MatchingRule(oid, unmodifiableCopyOfList(names), description, obsolete,
-                        assertionSyntax, unmodifiableCopyOfExtraProperties(extraProperties), null,
-                        implementation);
-        addMatchingRule(matchingRule, overwrite);
         return this;
     }
 
@@ -1207,6 +1161,24 @@ public final class SchemaBuilder {
             throw new LocalizedIllegalArgumentException(msg, e.getCause());
         }
         return this;
+    }
+
+    /**
+     * Returns a builder which can be used for incrementally constructing a new matching rule before adding it to the
+     * schema. Example usage:
+     *
+     * <pre>
+     * SchemaBuilder builder = ...;
+     * builder.buildMatchingRule("matchingrule-oid").name("matching rule name").addToSchema();
+     * </pre>
+     *
+     * @param oid
+     *            The OID of the matching rule definition.
+     * @return A builder to continue building the NameForm.
+     */
+    public MatchingRule.Builder buildMatchingRule(final String oid) {
+        lazyInitBuilder();
+        return new MatchingRule.Builder(oid, this);
     }
 
     /**
@@ -1376,9 +1348,9 @@ public final class SchemaBuilder {
             }
 
             if (overwrite) {
-                nameFormBuilder.addToSchema();
+                nameFormBuilder.addToSchemaOverwrite();
             } else {
-                nameFormBuilder.addToSchemaNoOverwrite();
+                nameFormBuilder.addToSchema();
             }
         } catch (final DecodeException e) {
             final LocalizableMessage msg =
@@ -1472,6 +1444,18 @@ public final class SchemaBuilder {
         lazyInitBuilder();
         this.defaultMatchingRuleOID = ruleOID;
         return this;
+    }
+
+    /**
+     * Duplicates the matching rule.
+     *
+     * @param matchingRule
+     *            The matching rule to duplicate.
+     * @return A matching rule builder.
+     */
+    public MatchingRule.Builder buildMatchingRule(final MatchingRule matchingRule) {
+        lazyInitBuilder();
+        return new MatchingRule.Builder(matchingRule, this);
     }
 
     /**
@@ -2175,14 +2159,14 @@ public final class SchemaBuilder {
                     final EnumSyntaxImpl enumImpl = new EnumSyntaxImpl(oid, property.getValue());
                     final Syntax enumSyntax =
                             new Syntax(oid, description, extraProperties, definition, enumImpl);
-                    final MatchingRule enumOMR =
-                            new MatchingRule(enumImpl.getOrderingMatchingRule(), Collections
-                                    .singletonList(OMR_GENERIC_ENUM_NAME + oid), "", false, oid,
-                                    CoreSchemaImpl.OPENDS_ORIGIN, null,
-                                    new EnumOrderingMatchingRule(enumImpl));
-
                     addSyntax(enumSyntax, overwrite);
-                    addMatchingRule(enumOMR, overwrite);
+
+                    buildMatchingRule(enumImpl.getOrderingMatchingRule())
+                        .names(OMR_GENERIC_ENUM_NAME + oid)
+                        .syntaxOID(oid)
+                        .extraProperties(CoreSchemaImpl.OPENDJ_ORIGIN)
+                        .implementation(new EnumOrderingMatchingRule(enumImpl))
+                        .addToSchemaOverwrite();
                     return this;
                 }
             }
@@ -2647,35 +2631,6 @@ public final class SchemaBuilder {
         }
     }
 
-    private void addMatchingRule(final MatchingRule rule, final boolean overwrite) {
-        MatchingRule conflictingRule;
-        if (numericOID2MatchingRules.containsKey(rule.getOID())) {
-            conflictingRule = numericOID2MatchingRules.get(rule.getOID());
-            if (!overwrite) {
-                final LocalizableMessage message =
-                        ERR_SCHEMA_CONFLICTING_MR_OID.get(rule.getNameOrOID(), rule.getOID(),
-                                conflictingRule.getNameOrOID());
-                throw new ConflictingSchemaElementException(message);
-            }
-            removeMatchingRule(conflictingRule);
-        }
-
-        numericOID2MatchingRules.put(rule.getOID(), rule);
-        for (final String name : rule.getNames()) {
-            final String lowerName = StaticUtils.toLowerCase(name);
-            List<MatchingRule> rules;
-            if ((rules = name2MatchingRules.get(lowerName)) == null) {
-                name2MatchingRules.put(lowerName, Collections.singletonList(rule));
-            } else if (rules.size() == 1) {
-                rules = new ArrayList<MatchingRule>(rules);
-                rules.add(rule);
-                name2MatchingRules.put(lowerName, rules);
-            } else {
-                rules.add(rule);
-            }
-        }
-    }
-
     private void addMatchingRuleUse(final MatchingRuleUse use, final boolean overwrite) {
         MatchingRuleUse conflictingUse;
         if (numericOID2MatchingRuleUses.containsKey(use.getMatchingRuleOID())) {
@@ -2705,12 +2660,37 @@ public final class SchemaBuilder {
         }
     }
 
-    SchemaBuilder addNameForm(final NameForm form, final boolean overwrite) {
-        // If schema is not initialized before.
-        if (numericOID2NameForms == null || name2NameForms == null) {
-            lazyInitBuilder();
+    SchemaBuilder addMatchingRule(final MatchingRule rule, final boolean overwrite) {
+        MatchingRule conflictingRule;
+        if (numericOID2MatchingRules.containsKey(rule.getOID())) {
+            conflictingRule = numericOID2MatchingRules.get(rule.getOID());
+            if (!overwrite) {
+                final LocalizableMessage message =
+                        ERR_SCHEMA_CONFLICTING_MR_OID.get(rule.getNameOrOID(), rule.getOID(),
+                                conflictingRule.getNameOrOID());
+                throw new ConflictingSchemaElementException(message);
+            }
+            removeMatchingRule(conflictingRule);
         }
 
+        numericOID2MatchingRules.put(rule.getOID(), rule);
+        for (final String name : rule.getNames()) {
+            final String lowerName = StaticUtils.toLowerCase(name);
+            List<MatchingRule> rules;
+            if ((rules = name2MatchingRules.get(lowerName)) == null) {
+                name2MatchingRules.put(lowerName, Collections.singletonList(rule));
+            } else if (rules.size() == 1) {
+                rules = new ArrayList<MatchingRule>(rules);
+                rules.add(rule);
+                name2MatchingRules.put(lowerName, rules);
+            } else {
+                rules.add(rule);
+            }
+        }
+        return this;
+    }
+
+    SchemaBuilder addNameForm(final NameForm form, final boolean overwrite) {
         NameForm conflictingForm;
         if (numericOID2NameForms.containsKey(form.getOID())) {
             conflictingForm = numericOID2NameForms.get(form.getOID());
@@ -2779,7 +2759,7 @@ public final class SchemaBuilder {
         }
 
         for (final MatchingRule matchingRule : schema.getMatchingRules()) {
-            addMatchingRule(matchingRule.duplicate(), overwrite);
+            addMatchingRule(matchingRule, overwrite);
         }
 
         for (final MatchingRuleUse matchingRuleUse : schema.getMatchingRuleUses()) {
