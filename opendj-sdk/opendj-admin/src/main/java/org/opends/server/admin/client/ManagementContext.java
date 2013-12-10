@@ -31,6 +31,7 @@ import java.util.Set;
 import java.util.SortedSet;
 
 import org.forgerock.opendj.admin.client.RootCfgClient;
+import org.forgerock.opendj.ldap.ErrorResultException;
 import org.opends.server.admin.AbstractManagedObjectDefinition;
 import org.opends.server.admin.Configuration;
 import org.opends.server.admin.ConfigurationClient;
@@ -84,17 +85,13 @@ public abstract class ManagementContext {
      *             client-side or server-side constraint which cannot be
      *             satisfied (for example, if it is referenced by another
      *             managed object).
-     * @throws AuthorizationException
-     *             If the server refuses to remove the managed objects because
-     *             the client does not have the correct privileges.
-     * @throws CommunicationException
-     *             If the client cannot contact the server due to an underlying
-     *             communication problem.
+     * @throws ErrorResultException
+     *             If any other error occurs.
      */
     public final <C extends ConfigurationClient, S extends Configuration> boolean deleteManagedObject(
             ManagedObjectPath<?, ?> parent, InstantiableRelationDefinition<C, S> rd, String name)
             throws IllegalArgumentException, ManagedObjectNotFoundException, OperationRejectedException,
-            AuthorizationException, CommunicationException {
+            ErrorResultException {
         return getDriver().deleteManagedObject(parent, rd, name);
     }
 
@@ -124,16 +121,12 @@ public abstract class ManagementContext {
      *             client-side or server-side constraint which cannot be
      *             satisfied (for example, if it is referenced by another
      *             managed object).
-     * @throws AuthorizationException
-     *             If the server refuses to remove the managed objects because
-     *             the client does not have the correct privileges.
-     * @throws CommunicationException
-     *             If the client cannot contact the server due to an underlying
-     *             communication problem.
+     * @throws ErrorResultException
+     *             If any other error occurs.
      */
     public final <C extends ConfigurationClient, S extends Configuration> boolean deleteManagedObject(
             ManagedObjectPath<?, ?> parent, OptionalRelationDefinition<C, S> rd) throws IllegalArgumentException,
-            ManagedObjectNotFoundException, OperationRejectedException, AuthorizationException, CommunicationException {
+            ManagedObjectNotFoundException, OperationRejectedException, ErrorResultException {
         return getDriver().deleteManagedObject(parent, rd);
     }
 
@@ -164,17 +157,13 @@ public abstract class ManagementContext {
      *             client-side or server-side constraint which cannot be
      *             satisfied (for example, if it is referenced by another
      *             managed object).
-     * @throws AuthorizationException
-     *             If the server refuses to remove the managed objects because
-     *             the client does not have the correct privileges.
-     * @throws CommunicationException
-     *             If the client cannot contact the server due to an underlying
-     *             communication problem.
+     * @throws ErrorResultException
+     *             If any other error occurs.
      */
     public final <C extends ConfigurationClient, S extends Configuration> boolean deleteManagedObject(
             ManagedObjectPath<?, ?> parent, SetRelationDefinition<C, S> rd, String name)
             throws IllegalArgumentException, ManagedObjectNotFoundException, OperationRejectedException,
-            AuthorizationException, CommunicationException {
+            ErrorResultException {
         return getDriver().deleteManagedObject(parent, rd, name);
     }
 
@@ -199,17 +188,13 @@ public abstract class ManagementContext {
      * @throws ManagedObjectNotFoundException
      *             If the requested managed object could not be found on the
      *             server.
-     * @throws AuthorizationException
-     *             If the server refuses to retrieve the managed object because
-     *             the client does not have the correct privileges.
-     * @throws CommunicationException
-     *             If the client cannot contact the server due to an underlying
-     *             communication problem.
+     * @throws ErrorResultException
+     *             If any other error occurs.
      */
     @SuppressWarnings("unchecked")
     public final <C extends ConfigurationClient, S extends Configuration> ManagedObject<? extends C> getManagedObject(
             ManagedObjectPath<C, S> path) throws DefinitionDecodingException, ManagedObjectDecodingException,
-            ManagedObjectNotFoundException, AuthorizationException, CommunicationException {
+            ManagedObjectNotFoundException, ErrorResultException {
         // Be careful to handle the root configuration.
         if (path.isEmpty()) {
             return (ManagedObject<C>) getRootConfigurationManagedObject();
@@ -241,16 +226,12 @@ public abstract class ManagementContext {
      * @throws ManagedObjectNotFoundException
      *             If the requested managed object could not be found on the
      *             server.
-     * @throws AuthorizationException
-     *             If the server refuses to retrieve the managed object because
-     *             the client does not have the correct privileges.
-     * @throws CommunicationException
-     *             If the client cannot contact the server due to an underlying
-     *             communication problem.
+     * @throws ErrorResultException
+     *             If any other error occurs.
      */
     public final <PD> PD getPropertyValue(ManagedObjectPath<?, ?> path, PropertyDefinition<PD> pd)
-            throws IllegalArgumentException, DefinitionDecodingException, AuthorizationException,
-            ManagedObjectNotFoundException, CommunicationException, PropertyException {
+            throws IllegalArgumentException, DefinitionDecodingException, ErrorResultException,
+            ManagedObjectNotFoundException, PropertyException {
         Set<PD> values = getPropertyValues(path, pd);
         if (values.isEmpty()) {
             return null;
@@ -282,16 +263,12 @@ public abstract class ManagementContext {
      * @throws ManagedObjectNotFoundException
      *             If the requested managed object could not be found on the
      *             server.
-     * @throws AuthorizationException
-     *             If the server refuses to retrieve the managed object because
-     *             the client does not have the correct privileges.
-     * @throws CommunicationException
-     *             If the client cannot contact the server due to an underlying
-     *             communication problem.
+     * @throws ErrorResultException
+     *             If any other error occurs.
      */
     public final <PD> SortedSet<PD> getPropertyValues(ManagedObjectPath<?, ?> path, PropertyDefinition<PD> pd)
-            throws IllegalArgumentException, DefinitionDecodingException, AuthorizationException,
-            ManagedObjectNotFoundException, CommunicationException, PropertyException {
+            throws IllegalArgumentException, DefinitionDecodingException, ErrorResultException,
+            ManagedObjectNotFoundException, PropertyException {
         return getDriver().getPropertyValues(path, pd);
     }
 
@@ -336,16 +313,12 @@ public abstract class ManagementContext {
      *             managed object's definition.
      * @throws ManagedObjectNotFoundException
      *             If the parent managed object could not be found.
-     * @throws AuthorizationException
-     *             If the server refuses to list the managed objects because the
-     *             client does not have the correct privileges.
-     * @throws CommunicationException
-     *             If the client cannot contact the server due to an underlying
-     *             communication problem.
+     * @throws ErrorResultException
+     *             If any other error occurs.
      */
     public final <C extends ConfigurationClient, S extends Configuration> String[] listManagedObjects(
             ManagedObjectPath<?, ?> parent, InstantiableRelationDefinition<C, S> rd) throws IllegalArgumentException,
-            ManagedObjectNotFoundException, AuthorizationException, CommunicationException {
+            ManagedObjectNotFoundException, ErrorResultException {
         return listManagedObjects(parent, rd, rd.getChildDefinition());
     }
 
@@ -372,17 +345,13 @@ public abstract class ManagementContext {
      *             managed object's definition.
      * @throws ManagedObjectNotFoundException
      *             If the parent managed object could not be found.
-     * @throws AuthorizationException
-     *             If the server refuses to list the managed objects because the
-     *             client does not have the correct privileges.
-     * @throws CommunicationException
-     *             If the client cannot contact the server due to an underlying
-     *             communication problem.
+     * @throws ErrorResultException
+     *             If any other error occurs.
      */
     public final <C extends ConfigurationClient, S extends Configuration> String[] listManagedObjects(
             ManagedObjectPath<?, ?> parent, InstantiableRelationDefinition<C, S> rd,
             AbstractManagedObjectDefinition<? extends C, ? extends S> d) throws IllegalArgumentException,
-            ManagedObjectNotFoundException, AuthorizationException, CommunicationException {
+            ManagedObjectNotFoundException, ErrorResultException {
         return getDriver().listManagedObjects(parent, rd, d);
     }
 
@@ -405,16 +374,12 @@ public abstract class ManagementContext {
      *             managed object's definition.
      * @throws ManagedObjectNotFoundException
      *             If the parent managed object could not be found.
-     * @throws AuthorizationException
-     *             If the server refuses to list the managed objects because the
-     *             client does not have the correct privileges.
-     * @throws CommunicationException
-     *             If the client cannot contact the server due to an underlying
-     *             communication problem.
+     * @throws ErrorResultException
+     *             If any other error occurs.
      */
     public final <C extends ConfigurationClient, S extends Configuration> String[] listManagedObjects(
             ManagedObjectPath<?, ?> parent, SetRelationDefinition<C, S> rd) throws IllegalArgumentException,
-            ManagedObjectNotFoundException, AuthorizationException, CommunicationException {
+            ManagedObjectNotFoundException, ErrorResultException {
         return getDriver().listManagedObjects(parent, rd, rd.getChildDefinition());
     }
 
@@ -427,15 +392,11 @@ public abstract class ManagementContext {
      *         <code>false</code> otherwise.
      * @throws ManagedObjectNotFoundException
      *             If the parent managed object could not be found.
-     * @throws AuthorizationException
-     *             If the server refuses to make the determination because the
-     *             client does not have the correct privileges.
-     * @throws CommunicationException
-     *             If the client cannot contact the server due to an underlying
-     *             communication problem.
+     * @throws ErrorResultException
+     *             If any other error occurs.
      */
     public final boolean managedObjectExists(ManagedObjectPath<?, ?> path) throws ManagedObjectNotFoundException,
-            AuthorizationException, CommunicationException {
+            ErrorResultException {
         return getDriver().managedObjectExists(path);
     }
 

@@ -28,11 +28,10 @@ package org.opends.server.admin.condition;
 
 import java.util.SortedSet;
 
+import org.forgerock.opendj.ldap.ErrorResultException;
 import org.opends.server.admin.AbstractManagedObjectDefinition;
 import org.opends.server.admin.IllegalPropertyValueStringException;
 import org.opends.server.admin.PropertyDefinition;
-import org.opends.server.admin.client.AuthorizationException;
-import org.opends.server.admin.client.CommunicationException;
 import org.opends.server.admin.client.ManagedObject;
 import org.opends.server.admin.client.ManagementContext;
 import org.opends.server.admin.server.ServerManagedObject;
@@ -69,8 +68,7 @@ public final class ContainsCondition implements Condition {
         /**
          * {@inheritDoc}
          */
-        public boolean evaluate(ManagementContext context, ManagedObject<?> managedObject)
-                throws AuthorizationException, CommunicationException {
+        public boolean evaluate(ManagementContext context, ManagedObject<?> managedObject) throws ErrorResultException {
             SortedSet<T> values = managedObject.getPropertyValues(pd);
             return values.contains(value);
         }
@@ -123,8 +121,7 @@ public final class ContainsCondition implements Condition {
     /**
      * {@inheritDoc}
      */
-    public boolean evaluate(ManagementContext context, ManagedObject<?> managedObject) throws AuthorizationException,
-            CommunicationException {
+    public boolean evaluate(ManagementContext context, ManagedObject<?> managedObject) throws ErrorResultException {
         return impl.evaluate(context, managedObject);
     }
 

@@ -27,8 +27,7 @@
 
 package org.opends.server.admin;
 
-import org.opends.server.admin.client.AuthorizationException;
-import org.opends.server.admin.client.CommunicationException;
+import org.forgerock.opendj.ldap.ErrorResultException;
 import org.opends.server.admin.client.ConcurrentModificationException;
 import org.opends.server.admin.client.MissingMandatoryPropertiesException;
 import org.opends.server.admin.client.OperationRejectedException;
@@ -71,14 +70,10 @@ public interface ConfigurationClient {
      * @throws OperationRejectedException
      *             If the server refuses to add or modify this configuration due
      *             to some server-side constraint which cannot be satisfied.
-     * @throws AuthorizationException
-     *             If the server refuses to add or modify this configuration
-     *             because the client does not have the correct privileges.
-     * @throws CommunicationException
-     *             If the client cannot contact the server due to an underlying
-     *             communication problem.
+     * @throws ErrorResultException
+     *             If any other error occurs.
      */
     void commit() throws ManagedObjectAlreadyExistsException, MissingMandatoryPropertiesException,
-            ConcurrentModificationException, OperationRejectedException, AuthorizationException, CommunicationException;
+            ConcurrentModificationException, OperationRejectedException, ErrorResultException;
 
 }

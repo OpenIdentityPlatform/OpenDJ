@@ -42,9 +42,7 @@ import java.util.Map;
 import java.util.MissingResourceException;
 import java.util.SortedSet;
 
-import org.opends.server.admin.client.AuthorizationException;
 import org.opends.server.admin.client.ClientConstraintHandler;
-import org.opends.server.admin.client.CommunicationException;
 import org.opends.server.admin.client.ManagedObject;
 import org.opends.server.admin.client.ManagedObjectDecodingException;
 import org.opends.server.admin.client.ManagementContext;
@@ -63,6 +61,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.admin.meta.RootCfgDefn;
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.ErrorResultException;
 import org.forgerock.opendj.ldap.ResultCode;
 
 /**
@@ -495,7 +494,7 @@ public final class AggregationPropertyDefinition<C extends ConfigurationClient, 
          */
         @Override
         public boolean isAddAcceptable(ManagementContext context, ManagedObject<?> managedObject,
-                Collection<LocalizableMessage> unacceptableReasons) throws AuthorizationException, CommunicationException {
+                Collection<LocalizableMessage> unacceptableReasons) throws ErrorResultException {
             // If all of this managed object's "enabled" properties are true
             // then any referenced managed objects must also be enabled.
             boolean needsEnabling = targetNeedsEnablingCondition.evaluate(context, managedObject);
@@ -547,7 +546,7 @@ public final class AggregationPropertyDefinition<C extends ConfigurationClient, 
          */
         @Override
         public boolean isModifyAcceptable(ManagementContext context, ManagedObject<?> managedObject,
-                Collection<LocalizableMessage> unacceptableReasons) throws AuthorizationException, CommunicationException {
+                Collection<LocalizableMessage> unacceptableReasons) throws ErrorResultException {
             // The same constraint applies as for adds.
             return isAddAcceptable(context, managedObject, unacceptableReasons);
         }
@@ -566,7 +565,7 @@ public final class AggregationPropertyDefinition<C extends ConfigurationClient, 
          */
         @Override
         public boolean isDeleteAcceptable(ManagementContext context, ManagedObjectPath<?, ?> path,
-                Collection<LocalizableMessage> unacceptableReasons) throws AuthorizationException, CommunicationException {
+                Collection<LocalizableMessage> unacceptableReasons) throws ErrorResultException {
             // Any references to the deleted managed object should cause a
             // constraint violation.
             boolean isAcceptable = true;
@@ -593,7 +592,7 @@ public final class AggregationPropertyDefinition<C extends ConfigurationClient, 
          */
         @Override
         public boolean isModifyAcceptable(ManagementContext context, ManagedObject<?> managedObject,
-                Collection<LocalizableMessage> unacceptableReasons) throws AuthorizationException, CommunicationException {
+                Collection<LocalizableMessage> unacceptableReasons) throws ErrorResultException {
             // If the modified managed object is disabled and there are some
             // active references then refuse the change.
             if (targetIsEnabledCondition.evaluate(context, managedObject)) {
@@ -628,7 +627,7 @@ public final class AggregationPropertyDefinition<C extends ConfigurationClient, 
         // object using this property.
         private <CC extends ConfigurationClient> List<ManagedObject<? extends CC>> findReferences(
                 ManagementContext context, AbstractManagedObjectDefinition<CC, ?> mod, String name)
-                throws AuthorizationException, CommunicationException {
+                throws ErrorResultException {
             List<ManagedObject<? extends CC>> instances = findInstances(context, mod);
 
             Iterator<ManagedObject<? extends CC>> i = instances.iterator();
@@ -654,8 +653,7 @@ public final class AggregationPropertyDefinition<C extends ConfigurationClient, 
         // Find all instances of a specific type of managed object.
         @SuppressWarnings("unchecked")
         private <CC extends ConfigurationClient> List<ManagedObject<? extends CC>> findInstances(
-                ManagementContext context, AbstractManagedObjectDefinition<CC, ?> mod) throws AuthorizationException,
-                CommunicationException {
+                ManagementContext context, AbstractManagedObjectDefinition<CC, ?> mod) throws ErrorResultException {
             List<ManagedObject<? extends CC>> instances = new LinkedList<ManagedObject<? extends CC>>();
 
             if (mod == RootCfgDefn.getInstance()) {

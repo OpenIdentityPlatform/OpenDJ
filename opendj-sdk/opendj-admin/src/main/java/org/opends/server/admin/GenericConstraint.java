@@ -31,9 +31,8 @@ import java.util.Collections;
 import java.util.Locale;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.opends.server.admin.client.AuthorizationException;
+import org.forgerock.opendj.ldap.ErrorResultException;
 import org.opends.server.admin.client.ClientConstraintHandler;
-import org.opends.server.admin.client.CommunicationException;
 import org.opends.server.admin.client.ManagedObject;
 import org.opends.server.admin.client.ManagementContext;
 import org.opends.server.admin.condition.Condition;
@@ -63,7 +62,7 @@ public class GenericConstraint extends Constraint {
          */
         @Override
         public boolean isAddAcceptable(ManagementContext context, ManagedObject<?> managedObject,
-                Collection<LocalizableMessage> unacceptableReasons) throws AuthorizationException, CommunicationException {
+                Collection<LocalizableMessage> unacceptableReasons) throws ErrorResultException {
             if (!condition.evaluate(context, managedObject)) {
                 unacceptableReasons.add(getSynopsis());
                 return false;
@@ -77,7 +76,7 @@ public class GenericConstraint extends Constraint {
          */
         @Override
         public boolean isModifyAcceptable(ManagementContext context, ManagedObject<?> managedObject,
-                Collection<LocalizableMessage> unacceptableReasons) throws AuthorizationException, CommunicationException {
+                Collection<LocalizableMessage> unacceptableReasons) throws ErrorResultException {
             if (!condition.evaluate(context, managedObject)) {
                 unacceptableReasons.add(getSynopsis());
                 return false;

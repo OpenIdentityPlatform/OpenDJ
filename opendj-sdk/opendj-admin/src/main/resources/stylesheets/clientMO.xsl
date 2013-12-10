@@ -112,16 +112,14 @@
                        '          If the ', $ufn, ' could not be found on the server.&#xa;',
                        '@throws ConcurrentModificationException&#xa;',
                        '          If this ', $this-ufn, ' has been removed from the server by another client.&#xa;',
-                       '@throws AuthorizationException&#xa;',
-                       '          If the server refuses to retrieve the ', $ufn, ' because the client does not have the correct privileges.&#xa;',
-                       '@throws CommunicationException&#xa;',
-                       '          If the client cannot contact the server due to an underlying communication problem.')" />
+                       '@throws ErrorResultException&#xa;',
+                       '          If any other error occurs.')" />
         </xsl:call-template>
         <xsl:value-of
           select="concat('  ', $java-class-name, 'CfgClient get', $java-relation-name, '()&#xa;',
                        '      throws DefinitionDecodingException, ManagedObjectDecodingException,&#xa;',
                        '      ManagedObjectNotFoundException, ConcurrentModificationException,&#xa;',
-                       '      AuthorizationException, CommunicationException;&#xa;')" />
+                       '      ErrorResultException;&#xa;')" />
       </xsl:when>
       <xsl:when test="adm:one-to-zero-or-one">
         <xsl:call-template name="add-java-comment2">
@@ -132,15 +130,13 @@
                        '@return Returns &lt;true&gt; if the ', $ufn,' exists.&#xa;',
                        '@throws ConcurrentModificationException&#xa;',
                        '          If this ', $this-ufn, ' has been removed from the server by another client.&#xa;',
-                       '@throws AuthorizationException&#xa;',
-                       '          If the server refuses to make the determination because the client does not have the correct privileges.&#xa;',
-                       '@throws CommunicationException&#xa;',
-                       '          If the client cannot contact the server due to an underlying communication problem.')" />
+                       '@throws ErrorResultException&#xa;',
+                       '          If any other error occurs.')" />
         </xsl:call-template>
         <xsl:value-of
           select="concat('  boolean has',
                        $java-relation-name, '() throws ConcurrentModificationException,&#xa;',
-                       '      AuthorizationException, CommunicationException;&#xa;')" />
+                       '      ErrorResultException;&#xa;')" />
         <xsl:text>&#xa;</xsl:text>
         <xsl:text>&#xa;</xsl:text>
         <xsl:text>&#xa;</xsl:text>
@@ -159,16 +155,14 @@
                        '          If the ', $ufn, ' is not present.&#xa;',
                        '@throws ConcurrentModificationException&#xa;',
                        '          If this ', $this-ufn, ' has been removed from the server by another client.&#xa;',
-                       '@throws AuthorizationException&#xa;',
-                       '          If the server refuses to retrieve the ', $ufn, ' because the client does not have the correct privileges.&#xa;',
-                       '@throws CommunicationException&#xa;',
-                       '          If the client cannot contact the server due to an underlying communication problem.')" />
+                       '@throws ErrorResultException&#xa;',
+                       '          If any other error occurs.')" />
         </xsl:call-template>
         <xsl:value-of
           select="concat('  ', $java-class-name, 'CfgClient get', $java-relation-name, '()&#xa;',
                        '      throws DefinitionDecodingException, ManagedObjectDecodingException,&#xa;',
                        '      ManagedObjectNotFoundException, ConcurrentModificationException,&#xa;',
-                       '      AuthorizationException, CommunicationException;&#xa;')" />
+                       '      ErrorResultException;&#xa;')" />
         <xsl:text>&#xa;</xsl:text>
         <xsl:text>&#xa;</xsl:text>
         <xsl:text>&#xa;</xsl:text>
@@ -211,16 +205,13 @@
                        '          If the server refuses to remove the ', $ufn, ' due to some server-side constraint which cannot be satisfied (for example, if it is referenced by another managed object).&#xa;',
                        '@throws ConcurrentModificationException&#xa;',
                        '          If this ', $this-ufn, ' has been removed from the server by another client.&#xa;',
-                       '@throws AuthorizationException&#xa;',
-                       '          If the server refuses to remove the ', $ufn, ' because the client does not have the correct privileges.&#xa;',
-                       '@throws CommunicationException&#xa;',
-                       '          If the client cannot contact the server due to an underlying communication problem.')" />
+                       '@throws ErrorResultException&#xa;',
+                       '          If any other error occurs.')" />
         </xsl:call-template>
         <xsl:value-of
           select="concat('  void remove', $java-relation-name, '()&#xa;',
                          '      throws ManagedObjectNotFoundException, OperationRejectedException,&#xa;',
-                         '      ConcurrentModificationException, AuthorizationException,&#xa;',
-                         '      CommunicationException;&#xa;')" />
+                         '      ConcurrentModificationException, ErrorResultException;&#xa;')" />
       </xsl:when>
       <xsl:when test="adm:one-to-many">
         <xsl:variable name="plural-name"
@@ -243,15 +234,13 @@
                        '@return Returns an array containing the names of the ', $ufpn,'.&#xa;',
                        '@throws ConcurrentModificationException&#xa;',
                        '          If this ', $this-ufn, ' has been removed from the server by another client.&#xa;',
-                       '@throws AuthorizationException&#xa;',
-                       '          If the server refuses to list the ', $ufpn, ' because the client does not have the correct privileges.&#xa;',
-                       '@throws CommunicationException&#xa;',
-                       '          If the client cannot contact the server due to an underlying communication problem.')" />
+                       '@throws ErrorResultException&#xa;',
+                       '          If any other error occurs.')" />
         </xsl:call-template>
         <xsl:value-of
           select="concat('  String[] list',
                        $java-relation-plural-name, '() throws ConcurrentModificationException,&#xa;',
-                       '      AuthorizationException, CommunicationException;&#xa;')" />
+                       '      ErrorResultException;&#xa;')" />
         <xsl:text>&#xa;</xsl:text>
         <xsl:text>&#xa;</xsl:text>
         <xsl:text>&#xa;</xsl:text>
@@ -272,16 +261,14 @@
                        '          If the named ', $ufn, ' was not found on the server.&#xa;',
                        '@throws ConcurrentModificationException&#xa;',
                        '          If this ', $this-ufn, ' has been removed from the server by another client.&#xa;',
-                       '@throws AuthorizationException&#xa;',
-                       '          If the server refuses to retrieve the named ', $ufn, ' because the client does not have the correct privileges.&#xa;',
-                       '@throws CommunicationException&#xa;',
-                       '          If the client cannot contact the server due to an underlying communication problem.')" />
+                       '@throws ErrorResultException&#xa;',
+                       '          If any other error occurs.')" />
         </xsl:call-template>
         <xsl:value-of
           select="concat('  ', $java-class-name, 'CfgClient get', $java-relation-name, '(String name)&#xa;',
                        '      throws DefinitionDecodingException, ManagedObjectDecodingException,&#xa;',
                        '      ManagedObjectNotFoundException, ConcurrentModificationException,&#xa;',
-                       '      AuthorizationException, CommunicationException;&#xa;')" />
+                       '      ErrorResultException;&#xa;')" />
         <xsl:text>&#xa;</xsl:text>
         <xsl:text>&#xa;</xsl:text>
         <xsl:text>&#xa;</xsl:text>
@@ -360,16 +347,13 @@
                        '          If the server refuses to remove the ', $ufn, ' due to some server-side constraint which cannot be satisfied (for example, if it is referenced by another managed object).&#xa;',
                        '@throws ConcurrentModificationException&#xa;',
                        '          If this ', $this-ufn, ' has been removed from the server by another client.&#xa;',
-                       '@throws AuthorizationException&#xa;',
-                       '          If the server refuses to remove the ', $ufn, ' because the client does not have the correct privileges.&#xa;',
-                       '@throws CommunicationException&#xa;',
-                       '          If the client cannot contact the server due to an underlying communication problem.')" />
+                       '@throws ErrorResultException&#xa;',
+                       '          If any other error occurs.')" />
         </xsl:call-template>
         <xsl:value-of
           select="concat('  void remove', $java-relation-name, '(String name)&#xa;',
                          '      throws ManagedObjectNotFoundException, OperationRejectedException,&#xa;',
-                         '      ConcurrentModificationException, AuthorizationException,&#xa;',
-                         '      CommunicationException;&#xa;')" />
+                         '      ConcurrentModificationException, ErrorResultException;&#xa;')" />
       </xsl:when>
       <xsl:otherwise>
         <xsl:message terminate="yes">
@@ -425,10 +409,7 @@
             org.opends.server.admin.client.ConcurrentModificationException
           </import>
           <import>
-            org.opends.server.admin.client.AuthorizationException
-          </import>
-          <import>
-            org.opends.server.admin.client.CommunicationException
+            org.forgerock.opendj.ldap.ErrorResultException
           </import>
         </xsl:if>
         <xsl:for-each

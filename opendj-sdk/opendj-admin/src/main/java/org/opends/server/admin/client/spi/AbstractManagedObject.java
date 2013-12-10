@@ -35,6 +35,7 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.ErrorResultException;
 import org.opends.server.admin.AbstractManagedObjectDefinition;
 import org.opends.server.admin.Configuration;
 import org.opends.server.admin.ConfigurationClient;
@@ -60,9 +61,7 @@ import org.opends.server.admin.RelationDefinitionVisitor;
 import org.opends.server.admin.SetRelationDefinition;
 import org.opends.server.admin.SingletonRelationDefinition;
 import org.opends.server.admin.DefinitionDecodingException.Reason;
-import org.opends.server.admin.client.AuthorizationException;
 import org.opends.server.admin.client.ClientConstraintHandler;
-import org.opends.server.admin.client.CommunicationException;
 import org.opends.server.admin.client.ConcurrentModificationException;
 import org.opends.server.admin.client.IllegalManagedObjectNameException;
 import org.opends.server.admin.client.ManagedObject;
@@ -88,8 +87,6 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient> imple
     private final class DefaultManagedObjectFactory implements RelationDefinitionVisitor<Void, Void> {
 
         // Possible exceptions.
-        private AuthorizationException ae = null;
-
         private ManagedObjectAlreadyExistsException moaee = null;
 
         private MissingMandatoryPropertiesException mmpe = null;
@@ -98,7 +95,7 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient> imple
 
         private OperationRejectedException ore = null;
 
-        private CommunicationException ce = null;
+        private ErrorResultException ere = null;
 
         /**
          * {@inheritDoc}
@@ -167,8 +164,6 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient> imple
 
             try {
                 child.commit();
-            } catch (AuthorizationException e) {
-                ae = e;
             } catch (ManagedObjectAlreadyExistsException e) {
                 moaee = e;
             } catch (MissingMandatoryPropertiesException e) {
@@ -177,8 +172,8 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient> imple
                 cme = e;
             } catch (OperationRejectedException e) {
                 ore = e;
-            } catch (CommunicationException e) {
-                ce = e;
+            } catch (ErrorResultException e) {
+                ere = e;
             }
         }
 
@@ -189,15 +184,13 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient> imple
          * @param rd
          *            The relation definition.
          */
-        private void createDefaultManagedObjects(RelationDefinition<?, ?> rd) throws AuthorizationException,
-                CommunicationException, ConcurrentModificationException, MissingMandatoryPropertiesException,
+        private void createDefaultManagedObjects(RelationDefinition<?, ?> rd) throws ErrorResultException,
+                ConcurrentModificationException, MissingMandatoryPropertiesException,
                 ManagedObjectAlreadyExistsException, OperationRejectedException {
             rd.accept(this, null);
 
-            if (ae != null) {
-                throw ae;
-            } else if (ce != null) {
-                throw ce;
+            if (ere != null) {
+                throw ere;
             } else if (cme != null) {
                 throw cme;
             } else if (mmpe != null) {
@@ -264,7 +257,7 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient> imple
      * {@inheritDoc}
      */
     public final void commit() throws ManagedObjectAlreadyExistsException, MissingMandatoryPropertiesException,
-            ConcurrentModificationException, OperationRejectedException, AuthorizationException, CommunicationException {
+            ConcurrentModificationException, OperationRejectedException, ErrorResultException {
         // First make sure all mandatory properties are defined.
         List<PropertyIsMandatoryException> exceptions = new LinkedList<PropertyIsMandatoryException>();
 
@@ -389,7 +382,7 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient> imple
     public final <C extends ConfigurationClient, S extends Configuration> ManagedObject<? extends C> getChild(
             InstantiableRelationDefinition<C, S> r, String name) throws IllegalArgumentException,
             DefinitionDecodingException, ManagedObjectDecodingException, ManagedObjectNotFoundException,
-            ConcurrentModificationException, AuthorizationException, CommunicationException {
+            ConcurrentModificationException, ErrorResultException {
         validateRelationDefinition(r);
         ensureThisManagedObjectExists();
         Driver ctx = getDriver();
@@ -402,7 +395,7 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient> imple
     public final <C extends ConfigurationClient, S extends Configuration> ManagedObject<? extends C> getChild(
             OptionalRelationDefinition<C, S> r) throws IllegalArgumentException, DefinitionDecodingException,
             ManagedObjectDecodingException, ManagedObjectNotFoundException, ConcurrentModificationException,
-            AuthorizationException, CommunicationException {
+            ErrorResultException {
         validateRelationDefinition(r);
         ensureThisManagedObjectExists();
         Driver ctx = getDriver();
@@ -415,7 +408,7 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient> imple
     public final <C extends ConfigurationClient, S extends Configuration> ManagedObject<? extends C> getChild(
             SingletonRelationDefinition<C, S> r) throws IllegalArgumentException, DefinitionDecodingException,
             ManagedObjectDecodingException, ManagedObjectNotFoundException, ConcurrentModificationException,
-            AuthorizationException, CommunicationException {
+            ErrorResultException {
         validateRelationDefinition(r);
         ensureThisManagedObjectExists();
         Driver ctx = getDriver();
@@ -428,7 +421,7 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient> imple
     public final <C extends ConfigurationClient, S extends Configuration> ManagedObject<? extends C> getChild(
             SetRelationDefinition<C, S> r, String name) throws IllegalArgumentException, DefinitionDecodingException,
             ManagedObjectDecodingException, ManagedObjectNotFoundException, ConcurrentModificationException,
-            AuthorizationException, CommunicationException {
+            ErrorResultException {
         validateRelationDefinition(r);
         ensureThisManagedObjectExists();
         Driver ctx = getDriver();
@@ -499,7 +492,7 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient> imple
      */
     public final <C extends ConfigurationClient, S extends Configuration> boolean hasChild(
             OptionalRelationDefinition<C, S> r) throws IllegalArgumentException, ConcurrentModificationException,
-            AuthorizationException, CommunicationException {
+            ErrorResultException {
         validateRelationDefinition(r);
         Driver ctx = getDriver();
         try {
@@ -521,7 +514,7 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient> imple
      */
     public final <C extends ConfigurationClient, S extends Configuration> String[] listChildren(
             InstantiableRelationDefinition<C, S> r) throws IllegalArgumentException, ConcurrentModificationException,
-            AuthorizationException, CommunicationException {
+            ErrorResultException {
         return listChildren(r, r.getChildDefinition());
     }
 
@@ -530,8 +523,7 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient> imple
      */
     public final <C extends ConfigurationClient, S extends Configuration> String[] listChildren(
             InstantiableRelationDefinition<C, S> r, AbstractManagedObjectDefinition<? extends C, ? extends S> d)
-            throws IllegalArgumentException, ConcurrentModificationException, AuthorizationException,
-            CommunicationException {
+            throws IllegalArgumentException, ConcurrentModificationException, ErrorResultException {
         validateRelationDefinition(r);
         Driver ctx = getDriver();
         try {
@@ -546,7 +538,7 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient> imple
      */
     public final <C extends ConfigurationClient, S extends Configuration> String[] listChildren(
             SetRelationDefinition<C, S> r) throws IllegalArgumentException, ConcurrentModificationException,
-            AuthorizationException, CommunicationException {
+            ErrorResultException {
         return listChildren(r, r.getChildDefinition());
     }
 
@@ -555,8 +547,7 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient> imple
      */
     public final <C extends ConfigurationClient, S extends Configuration> String[] listChildren(
             SetRelationDefinition<C, S> r, AbstractManagedObjectDefinition<? extends C, ? extends S> d)
-            throws IllegalArgumentException, ConcurrentModificationException, AuthorizationException,
-            CommunicationException {
+            throws IllegalArgumentException, ConcurrentModificationException, ErrorResultException {
         validateRelationDefinition(r);
         Driver ctx = getDriver();
         try {
@@ -572,7 +563,7 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient> imple
     public final <C extends ConfigurationClient, S extends Configuration> void removeChild(
             InstantiableRelationDefinition<C, S> r, String name) throws IllegalArgumentException,
             ManagedObjectNotFoundException, OperationRejectedException, ConcurrentModificationException,
-            AuthorizationException, CommunicationException {
+            ErrorResultException {
         validateRelationDefinition(r);
         Driver ctx = getDriver();
         boolean found;
@@ -593,7 +584,7 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient> imple
      */
     public final <C extends ConfigurationClient, S extends Configuration> void removeChild(
             OptionalRelationDefinition<C, S> r) throws IllegalArgumentException, ManagedObjectNotFoundException,
-            OperationRejectedException, ConcurrentModificationException, AuthorizationException, CommunicationException {
+            OperationRejectedException, ConcurrentModificationException, ErrorResultException {
         validateRelationDefinition(r);
         Driver ctx = getDriver();
         boolean found;
@@ -615,7 +606,7 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient> imple
     public final <C extends ConfigurationClient, S extends Configuration> void removeChild(
             SetRelationDefinition<C, S> r, String name) throws IllegalArgumentException,
             ManagedObjectNotFoundException, OperationRejectedException, ConcurrentModificationException,
-            AuthorizationException, CommunicationException {
+            ErrorResultException {
         validateRelationDefinition(r);
         Driver ctx = getDriver();
         boolean found;
@@ -702,14 +693,10 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient> imple
      * @throws OperationRejectedException
      *             If the managed object cannot be added due to some client-side
      *             or server-side constraint which cannot be satisfied.
-     * @throws AuthorizationException
-     *             If the server refuses to add this managed object because the
-     *             client does not have the correct privileges.
-     * @throws CommunicationException
-     *             If the client cannot contact the server due to an underlying
-     *             communication problem.
+     * @throws ErrorResultException
+     *             If any other error occurs.
      */
-    protected abstract void addNewManagedObject() throws AuthorizationException, CommunicationException,
+    protected abstract void addNewManagedObject() throws ErrorResultException,
             OperationRejectedException, ConcurrentModificationException, ManagedObjectAlreadyExistsException;
 
     /**
@@ -765,7 +752,7 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient> imple
      *             communication problem.
      */
     protected abstract void modifyExistingManagedObject() throws ConcurrentModificationException,
-            OperationRejectedException, AuthorizationException, CommunicationException;
+            OperationRejectedException, ErrorResultException;
 
     /**
      * Creates a new managed object.
@@ -833,8 +820,7 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient> imple
     }
 
     // Makes sure that this managed object exists.
-    private void ensureThisManagedObjectExists() throws ConcurrentModificationException, CommunicationException,
-            AuthorizationException {
+    private void ensureThisManagedObjectExists() throws ConcurrentModificationException, ErrorResultException {
         if (!path.isEmpty()) {
             Driver ctx = getDriver();
 

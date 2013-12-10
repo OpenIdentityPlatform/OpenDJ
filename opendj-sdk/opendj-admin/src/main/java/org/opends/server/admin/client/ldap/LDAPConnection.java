@@ -26,124 +26,101 @@
  */
 package org.opends.server.admin.client.ldap;
 
-
 import java.util.Collection;
 
-import javax.naming.NamingException;
-import javax.naming.directory.Attributes;
-import javax.naming.ldap.LdapName;
-
-
+import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.Entry;
+import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.requests.ModifyRequest;
+import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 
 /**
- * An LDAP connection adaptor interface which is used to perform LDAP
- * client operations.
+ * An LDAP connection adaptor interface which is used to perform LDAP client
+ * operations.
  * <p>
- * This interface is provided in order to make it easier to keep track
- * of which JNDI DirContext methods we require and also to facilitate
- * implementation of mock JNDI contexts for unit-testing.
+ * This interface is provided in order to make it easier to keep track of which
+ * JNDI DirContext methods we require and also to facilitate implementation of
+ * mock JNDI contexts for unit-testing.
  */
 public abstract class LDAPConnection {
 
-  /**
-   * Create a new LDAP connection.
-   */
-  protected LDAPConnection() {
-    // No implementation required.
-  }
+    /**
+     * Create a new LDAP connection.
+     */
+    protected LDAPConnection() {
+        // No implementation required.
+    }
 
+    /**
+     * Creates a new entry.
+     *
+     * @param entry
+     *            The entry to create.
+     * @throws ErrorResultException
+     *             If an error occurred whilst creating the entry.
+     */
+    public abstract void createEntry(Entry entry) throws ErrorResultException;
 
+    /**
+     * Deletes the named subtree.
+     *
+     * @param dn
+     *            The name of the subtree to be deleted.
+     * @throws ErrorResultException
+     *             If an error occurred whilst deleting the subtree.
+     */
+    public abstract void deleteSubtree(DN dn) throws ErrorResultException;
 
-  /**
-   * Creates a new entry with the specified set of attributes.
-   *
-   * @param dn
-   *          The name of the entry to be created.
-   * @param attributes
-   *          The set of attributes.
-   * @throws NamingException
-   *           If an error occurred whilst creating the entry.
-   */
-  public abstract void createEntry(LdapName dn, Attributes attributes)
-      throws NamingException;
+    /**
+     * Determines whether or not the named entry exists.
+     *
+     * @param dn
+     *            The name of the entry.
+     * @return Returns <code>true</code> if the entry exists.
+     * @throws ErrorResultException
+     *             If an error occurred whilst making the determination.
+     */
+    public abstract boolean entryExists(DN dn) throws ErrorResultException;
 
+    /**
+     * Lists the children of the named entry.
+     *
+     * @param dn
+     *            The name of the entry to list.
+     * @param filter
+     *            An LDAP filter string, or <code>null</code> indicating the
+     *            default filter of <code>(objectclass=*)</code>.
+     * @return Returns the names of the children.
+     * @throws ErrorResultException
+     *             If an error occurred whilst listing the children.
+     */
+    public abstract Collection<DN> listEntries(DN dn, String filter) throws ErrorResultException;
 
+    /**
+     * Modifies an entry according to the provided modify request.
+     *
+     * @param request
+     *            The modification request to perform.
+     * @throws ErrorResultException
+     *             If an error occurred whilst applying the modifications.
+     */
+    public abstract void modifyEntry(ModifyRequest request) throws ErrorResultException;
 
-  /**
-   * Deletes the named subtree.
-   *
-   * @param dn
-   *          The name of the subtree to be deleted.
-   * @throws NamingException
-   *           If an error occurred whilst deleting the subtree.
-   */
-  public abstract void deleteSubtree(LdapName dn) throws NamingException;
+    /**
+     * Reads the attributes of the named entry.
+     *
+     * @param dn
+     *            The name of the entry to be read.
+     * @param attrIds
+     *            The list of attributes to be retrievd.
+     * @return Returns the attributes of the requested entry.
+     * @throws ErrorResultException
+     *             If an error occurred whilst reading the entry.
+     */
+    public abstract SearchResultEntry readEntry(DN dn, Collection<String> attrIds) throws ErrorResultException;
 
-
-
-  /**
-   * Determines whether or not the named entry exists.
-   *
-   * @param dn
-   *          The name of the entry.
-   * @return Returns <code>true</code> if the entry exists.
-   * @throws NamingException
-   *           If an error occurred whilst making the determination.
-   */
-  public abstract boolean entryExists(LdapName dn) throws NamingException;
-
-
-
-  /**
-   * Lists the children of the named entry.
-   *
-   * @param dn
-   *          The name of the entry to list.
-   * @param filter
-   *          An LDAP filter string, or <code>null</code> indicating
-   *          the default filter of <code>(objectclass=*)</code>.
-   * @return Returns the names of the children.
-   * @throws NamingException
-   *           If an error occurred whilst listing the children.
-   */
-  public abstract Collection<LdapName> listEntries(LdapName dn, String filter)
-      throws NamingException;
-
-
-
-  /**
-   * Modifies the attributes of the named entry.
-   *
-   * @param dn
-   *          The name of the entry to be modified.
-   * @param mods
-   *          The list of attributes which need replacing.
-   * @throws NamingException
-   *           If an error occurred whilst applying the modifications.
-   */
-  public abstract void modifyEntry(LdapName dn, Attributes mods)
-      throws NamingException;
-
-
-
-  /**
-   * Reads the attributes of the named entry.
-   *
-   * @param dn
-   *          The name of the entry to be read.
-   * @param attrIds
-   *          The list of attributes to be retrievd.
-   * @return Returns the attributes of the requested entry.
-   * @throws NamingException
-   *           If an error occurred whilst reading the entry.
-   */
-  public abstract Attributes readEntry(LdapName dn, Collection<String> attrIds)
-      throws NamingException;
-
-
-
-  /**
-   * Closes the LDAP connection.
-   */
-  public abstract void unbind();
+    /**
+     * Closes the LDAP connection.
+     */
+    public abstract void unbind();
 }

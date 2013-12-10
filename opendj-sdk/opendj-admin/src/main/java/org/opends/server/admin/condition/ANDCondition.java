@@ -29,9 +29,8 @@ package org.opends.server.admin.condition;
 import java.util.Arrays;
 import java.util.List;
 
+import org.forgerock.opendj.ldap.ErrorResultException;
 import org.opends.server.admin.AbstractManagedObjectDefinition;
-import org.opends.server.admin.client.AuthorizationException;
-import org.opends.server.admin.client.CommunicationException;
 import org.opends.server.admin.client.ManagedObject;
 import org.opends.server.admin.client.ManagementContext;
 import org.opends.server.admin.server.ServerManagedObject;
@@ -62,8 +61,7 @@ public final class ANDCondition implements Condition {
     /**
      * {@inheritDoc}
      */
-    public boolean evaluate(ManagementContext context, ManagedObject<?> managedObject) throws AuthorizationException,
-            CommunicationException {
+    public boolean evaluate(ManagementContext context, ManagedObject<?> managedObject) throws ErrorResultException {
         for (Condition condition : conditions) {
             if (!condition.evaluate(context, managedObject)) {
                 return false;
