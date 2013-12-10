@@ -27,14 +27,11 @@
 
 package org.opends.server.admin.client.ldap;
 
-
-
+import java.util.Collections;
 import java.util.LinkedList;
 
-import javax.naming.InvalidNameException;
-import javax.naming.ldap.LdapName;
-import javax.naming.ldap.Rdn;
-
+import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.RDN;
 import org.opends.server.admin.AbstractManagedObjectDefinition;
 import org.opends.server.admin.Configuration;
 import org.opends.server.admin.ConfigurationClient;
@@ -47,200 +44,161 @@ import org.opends.server.admin.RelationDefinition;
 import org.opends.server.admin.SetRelationDefinition;
 import org.opends.server.admin.SingletonRelationDefinition;
 
-
-
 /**
- * A strategy for creating <code>LdapName</code>s from managed object paths.
+ * A strategy for creating <code>DN</code>s from managed object paths.
  */
 final class LDAPNameBuilder implements ManagedObjectPathSerializer {
 
-  /**
-   * Creates a new LDAP name representing the specified managed object
-   * path.
-   *
-   * @param path
-   *          The managed object path.
-   * @param profile
-   *          The LDAP profile which should be used to construct LDAP
-   *          names.
-   * @return Returns a new LDAP name representing the specified
-   *         managed object path.
-   */
-  public static LdapName create(ManagedObjectPath<?, ?> path,
-      LDAPProfile profile) {
-    LDAPNameBuilder builder = new LDAPNameBuilder(profile);
-    path.serialize(builder);
-    return builder.getInstance();
-  }
-
-
-
-  /**
-   * Creates a new LDAP name representing the specified managed object
-   * path and instantiable relation.
-   *
-   * @param path
-   *          The managed object path.
-   * @param relation
-   *          The child instantiable relation.
-   * @param profile
-   *          The LDAP profile which should be used to construct LDAP
-   *          names.
-   * @return Returns a new LDAP name representing the specified
-   *         managed object path and instantiable relation.
-   */
-  public static LdapName create(ManagedObjectPath<?, ?> path,
-      InstantiableRelationDefinition<?, ?> relation, LDAPProfile profile) {
-    LDAPNameBuilder builder = new LDAPNameBuilder(profile);
-    path.serialize(builder);
-    builder.appendManagedObjectPathElement(relation);
-    return builder.getInstance();
-  }
-
-
-
-  /**
-   * Creates a new LDAP name representing the specified managed object
-   * path and set relation.
-   *
-   * @param path
-   *          The managed object path.
-   * @param relation
-   *          The child set relation.
-   * @param profile
-   *          The LDAP profile which should be used to construct LDAP
-   *          names.
-   * @return Returns a new LDAP name representing the specified
-   *         managed object path and set relation.
-   */
-  public static LdapName create(ManagedObjectPath<?, ?> path,
-      SetRelationDefinition<?, ?> relation, LDAPProfile profile) {
-    LDAPNameBuilder builder = new LDAPNameBuilder(profile);
-    path.serialize(builder);
-    builder.appendManagedObjectPathElement(relation);
-    return builder.getInstance();
-  }
-
-  // The list of RDNs in big-endian order.
-  private final LinkedList<Rdn> rdns;
-
-  // The LDAP profile.
-  private final LDAPProfile profile;
-
-
-
-  /**
-   * Create a new JNDI LDAP name builder.
-   *
-   * @param profile
-   *          The LDAP profile which should be used to construct LDAP
-   *          names.
-   */
-  public LDAPNameBuilder(LDAPProfile profile) {
-    this.rdns = new LinkedList<Rdn>();
-    this.profile = profile;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public <C extends ConfigurationClient, S extends Configuration>
-      void appendManagedObjectPathElement(
-          InstantiableRelationDefinition<? super C, ? super S> r,
-          AbstractManagedObjectDefinition<C, S> d, String name) {
-    // Add the RDN sequence representing the relation.
-    appendManagedObjectPathElement(r);
-
-    // Now add the single RDN representing the named instance.
-    String type = profile.getRelationChildRDNType(r);
-    try {
-      Rdn rdn = new Rdn(type, name.trim());
-      rdns.add(rdn);
-    } catch (InvalidNameException e1) {
-      // Should not happen.
-      throw new RuntimeException(e1);
+    /**
+     * Creates a new DN representing the specified managed object path.
+     *
+     * @param path
+     *            The managed object path.
+     * @param profile
+     *            The LDAP profile which should be used to construct LDAP names.
+     * @return Returns a new DN representing the specified managed object path.
+     */
+    public static DN create(ManagedObjectPath<?, ?> path, LDAPProfile profile) {
+        LDAPNameBuilder builder = new LDAPNameBuilder(profile);
+        path.serialize(builder);
+        return builder.getInstance();
     }
-  }
 
-
-
-  /**
-   * Appends the RDN sequence representing the provided relation.
-   *
-   * @param r
-   *          The relation definition.
-   */
-  public void appendManagedObjectPathElement(RelationDefinition<?, ?> r) {
-    // Add the RDN sequence representing the relation.
-    try {
-      LdapName tmp = new LdapName(profile.getRelationRDNSequence(r));
-      rdns.addAll(tmp.getRdns());
-    } catch (InvalidNameException e1) {
-      // Should not happen.
-      throw new RuntimeException(e1);
+    /**
+     * Creates a new DN representing the specified managed object path and
+     * instantiable relation.
+     *
+     * @param path
+     *            The managed object path.
+     * @param relation
+     *            The child instantiable relation.
+     * @param profile
+     *            The LDAP profile which should be used to construct LDAP names.
+     * @return Returns a new DN representing the specified managed object path
+     *         and instantiable relation.
+     */
+    public static DN create(ManagedObjectPath<?, ?> path, InstantiableRelationDefinition<?, ?> relation,
+            LDAPProfile profile) {
+        LDAPNameBuilder builder = new LDAPNameBuilder(profile);
+        path.serialize(builder);
+        builder.appendManagedObjectPathElement(relation);
+        return builder.getInstance();
     }
-  }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public <C extends ConfigurationClient, S extends Configuration>
-      void appendManagedObjectPathElement(
-          OptionalRelationDefinition<? super C, ? super S> r,
-          AbstractManagedObjectDefinition<C, S> d) {
-    // Add the RDN sequence representing the relation.
-    appendManagedObjectPathElement(r);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public <C extends ConfigurationClient, S extends Configuration>
-      void appendManagedObjectPathElement(
-          SingletonRelationDefinition<? super C, ? super S> r,
-          AbstractManagedObjectDefinition<C, S> d) {
-    // Add the RDN sequence representing the relation.
-    appendManagedObjectPathElement(r);
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public <C extends ConfigurationClient, S extends Configuration>
-      void appendManagedObjectPathElement(
-          SetRelationDefinition<? super C, ? super S> r,
-          AbstractManagedObjectDefinition<C, S> d) {
-    // Add the RDN sequence representing the relation.
-    appendManagedObjectPathElement(r);
-
-    // Now add the single RDN representing the named instance.
-    String type = profile.getRelationChildRDNType(r);
-    try {
-      Rdn rdn = new Rdn(type, d.getName());
-      rdns.add(rdn);
-    } catch (InvalidNameException e1) {
-      // Should not happen.
-      throw new RuntimeException(e1);
+    /**
+     * Creates a new DN representing the specified managed object path and set
+     * relation.
+     *
+     * @param path
+     *            The managed object path.
+     * @param relation
+     *            The child set relation.
+     * @param profile
+     *            The LDAP profile which should be used to construct LDAP names.
+     * @return Returns a new DN representing the specified managed object path
+     *         and set relation.
+     */
+    public static DN create(ManagedObjectPath<?, ?> path, SetRelationDefinition<?, ?> relation, LDAPProfile profile) {
+        LDAPNameBuilder builder = new LDAPNameBuilder(profile);
+        path.serialize(builder);
+        builder.appendManagedObjectPathElement(relation);
+        return builder.getInstance();
     }
-  }
 
+    // The list of RDNs in big-endian order.
+    private final LinkedList<RDN> rdns;
 
+    // The LDAP profile.
+    private final LDAPProfile profile;
 
-  /**
-   * Create a new JNDI LDAP name using the current state of this LDAP name
-   * builder.
-   *
-   * @return Returns the new JNDI LDAP name instance.
-   */
-  public LdapName getInstance() {
-    return new LdapName(rdns);
-  }
+    /**
+     * Create a new DN builder.
+     *
+     * @param profile
+     *            The LDAP profile which should be used to construct DNs.
+     */
+    public LDAPNameBuilder(LDAPProfile profile) {
+        this.rdns = new LinkedList<RDN>();
+        this.profile = profile;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public <C extends ConfigurationClient, S extends Configuration> void appendManagedObjectPathElement(
+            InstantiableRelationDefinition<? super C, ? super S> r, AbstractManagedObjectDefinition<C, S> d, String name) {
+        // Add the RDN sequence representing the relation.
+        appendManagedObjectPathElement(r);
+
+        // Now add the single RDN representing the named instance.
+        String type = profile.getRelationChildRDNType(r);
+        RDN rdn = new RDN(type, name.trim());
+        rdns.add(rdn);
+
+    }
+
+    /**
+     * Appends the RDN sequence representing the provided relation.
+     *
+     * @param r
+     *            The relation definition.
+     */
+    public void appendManagedObjectPathElement(RelationDefinition<?, ?> r) {
+        // Add the RDN sequence representing the relation.
+        DN dn = DN.valueOf(profile.getRelationRDNSequence(r));
+        for (RDN rdn : dn) {
+            rdns.add(rdn);
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public <C extends ConfigurationClient, S extends Configuration> void appendManagedObjectPathElement(
+            OptionalRelationDefinition<? super C, ? super S> r, AbstractManagedObjectDefinition<C, S> d) {
+        // Add the RDN sequence representing the relation.
+        appendManagedObjectPathElement(r);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public <C extends ConfigurationClient, S extends Configuration> void appendManagedObjectPathElement(
+            SingletonRelationDefinition<? super C, ? super S> r, AbstractManagedObjectDefinition<C, S> d) {
+        // Add the RDN sequence representing the relation.
+        appendManagedObjectPathElement(r);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public <C extends ConfigurationClient, S extends Configuration> void appendManagedObjectPathElement(
+            SetRelationDefinition<? super C, ? super S> r, AbstractManagedObjectDefinition<C, S> d) {
+        // Add the RDN sequence representing the relation.
+        appendManagedObjectPathElement(r);
+
+        // Now add the single RDN representing the named instance.
+        String type = profile.getRelationChildRDNType(r);
+        RDN rdn = new RDN(type, d.getName());
+        rdns.add(rdn);
+    }
+
+    /**
+     * Create a new DN using the current state of this builder.
+     *
+     * @return Returns the new DN instance.
+     */
+    public DN getInstance() {
+        if (rdns.isEmpty()) {
+            return DN.rootDN();
+        }
+        else {
+            Collections.reverse(rdns);
+            DN dn = DN.valueOf(rdns.removeFirst().toString());
+            for (RDN rdn : rdns) {
+                dn = dn.child(rdn);
+            }
+            return dn;
+        }
+    }
 }

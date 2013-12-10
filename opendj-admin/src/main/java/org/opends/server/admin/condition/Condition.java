@@ -26,69 +26,51 @@
  */
 package org.opends.server.admin.condition;
 
-
-
+import org.forgerock.opendj.ldap.ErrorResultException;
 import org.opends.server.admin.AbstractManagedObjectDefinition;
-import org.opends.server.admin.client.AuthorizationException;
-import org.opends.server.admin.client.CommunicationException;
 import org.opends.server.admin.client.ManagedObject;
 import org.opends.server.admin.client.ManagementContext;
 import org.opends.server.admin.server.ServerManagedObject;
 import org.opends.server.config.ConfigException;
-
-
 
 /**
  * An interface for evaluating conditions.
  */
 public interface Condition {
 
-  /**
-   * Initializes this condition.
-   *
-   * @param d
-   *          The abstract managed object definition associated with
-   *          this condition.
-   * @throws Exception
-   *           If this condition could not be initialized.
-   */
-  void initialize(AbstractManagedObjectDefinition<?, ?> d) throws Exception;
+    /**
+     * Initializes this condition.
+     *
+     * @param d
+     *            The abstract managed object definition associated with this
+     *            condition.
+     * @throws Exception
+     *             If this condition could not be initialized.
+     */
+    void initialize(AbstractManagedObjectDefinition<?, ?> d) throws Exception;
 
+    /**
+     * Evaluates this condition against the provided client managed object.
+     *
+     * @param context
+     *            The client management context.
+     * @param managedObject
+     *            The client managed object.
+     * @return Returns <code>true</code> if this condition is satisfied.
+     * @throws ErrorResultException
+     *             If the condition could not be evaluated.
+     */
+    boolean evaluate(ManagementContext context, ManagedObject<?> managedObject) throws ErrorResultException;
 
-
-  /**
-   * Evaluates this condition against the provided client managed
-   * object.
-   *
-   * @param context
-   *          The client management context.
-   * @param managedObject
-   *          The client managed object.
-   * @return Returns <code>true</code> if this condition is
-   *         satisfied.
-   * @throws AuthorizationException
-   *           If the condition could not be evaluated due to an
-   *           authorization problem.
-   * @throws CommunicationException
-   *           If the condition could not be evaluated due to an
-   *           communication problem.
-   */
-  boolean evaluate(ManagementContext context, ManagedObject<?> managedObject)
-      throws AuthorizationException, CommunicationException;
-
-
-
-  /**
-   * Evaluates this condition against the provided server managed
-   * object.
-   *
-   * @param managedObject
-   *          The server managed object.
-   * @return Returns <code>true</code> if this condition is
-   *         satisfied.
-   * @throws ConfigException
-   *           If the condition could not be evaluated due to an
-   *           unexpected configuration exception.
-   */
-  boolean evaluate(ServerManagedObject<?> managedObject) throws ConfigException;
+    /**
+     * Evaluates this condition against the provided server managed object.
+     *
+     * @param managedObject
+     *            The server managed object.
+     * @return Returns <code>true</code> if this condition is satisfied.
+     * @throws ConfigException
+     *             If the condition could not be evaluated due to an unexpected
+     *             configuration exception.
+     */
+    boolean evaluate(ServerManagedObject<?> managedObject) throws ConfigException;
 }

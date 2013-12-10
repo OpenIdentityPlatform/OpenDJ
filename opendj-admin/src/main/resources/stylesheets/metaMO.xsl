@@ -466,8 +466,7 @@
                      '     */&#xa;',
                      '    public void commit() throws ManagedObjectAlreadyExistsException,&#xa;',
                      '        MissingMandatoryPropertiesException, ConcurrentModificationException,&#xa;',
-                     '        OperationRejectedException, AuthorizationException,&#xa;',
-                     '        CommunicationException {&#xa;',
+                     '        OperationRejectedException, ErrorResultException {&#xa;',
                      '      impl.commit();&#xa;',
                      '    }&#xa;')" />
     <xsl:text>&#xa;</xsl:text>
@@ -1193,7 +1192,7 @@
                          '    public ', $java-class-name, 'CfgClient get', $java-relation-name, '()&#xa;',
                          '        throws DefinitionDecodingException, ManagedObjectDecodingException,&#xa;',
                          '        ManagedObjectNotFoundException, ConcurrentModificationException,&#xa;',
-                         '        AuthorizationException, CommunicationException {&#xa;',
+                         '        ErrorResultException {&#xa;',
                          '      return impl.getChild(INSTANCE.get', $java-relation-name,'RelationDefinition()).getConfiguration();&#xa;',
                          '    }&#xa;')" />
       </xsl:when>
@@ -1203,7 +1202,7 @@
                          '     * {@inheritDoc}&#xa;',
                          '     */&#xa;',
                          '    public boolean has', $java-relation-name, '() throws ConcurrentModificationException,&#xa;',
-                         '        AuthorizationException, CommunicationException {&#xa;',
+                         '        ErrorResultException {&#xa;',
                          '      return impl.hasChild(INSTANCE.get', $java-relation-name,'RelationDefinition());&#xa;',
                          '    }&#xa;')" />
         <xsl:text>&#xa;</xsl:text>
@@ -1216,7 +1215,7 @@
                          '    public ', $java-class-name, 'CfgClient get', $java-relation-name, '()&#xa;',
                          '        throws DefinitionDecodingException, ManagedObjectDecodingException,&#xa;',
                          '        ManagedObjectNotFoundException, ConcurrentModificationException,&#xa;',
-                         '        AuthorizationException, CommunicationException {&#xa;',
+                         '        ErrorResultException {&#xa;',
                          '      return impl.getChild(INSTANCE.get', $java-relation-name,'RelationDefinition()).getConfiguration();&#xa;',
                          '    }&#xa;')" />
         <xsl:text>&#xa;</xsl:text>
@@ -1239,7 +1238,7 @@
                          '     */&#xa;',
                          '    public void remove', $java-relation-name, '()&#xa;',
                          '        throws ManagedObjectNotFoundException, ConcurrentModificationException,&#xa;',
-                         '        OperationRejectedException, AuthorizationException, CommunicationException {&#xa;',
+                         '        OperationRejectedException, ErrorResultException {&#xa;',
                          '      impl.removeChild(INSTANCE.get', $java-relation-name,'RelationDefinition());&#xa;',
                          '    }&#xa;')" />
       </xsl:when>
@@ -1256,7 +1255,7 @@
                          '     * {@inheritDoc}&#xa;',
                          '     */&#xa;',
                          '    public String[] list', $java-relation-plural-name, '() throws ConcurrentModificationException,&#xa;',
-                         '        AuthorizationException, CommunicationException {&#xa;',
+                         '        ErrorResultException {&#xa;',
                          '      return impl.listChildren(INSTANCE.get', $java-relation-plural-name,'RelationDefinition());&#xa;',
                          '    }&#xa;')" />
         <xsl:text>&#xa;</xsl:text>
@@ -1269,7 +1268,7 @@
                          '    public ', $java-class-name, 'CfgClient get', $java-relation-name, '(String name)&#xa;',
                          '        throws DefinitionDecodingException, ManagedObjectDecodingException,&#xa;',
                          '        ManagedObjectNotFoundException, ConcurrentModificationException,&#xa;',
-                         '        AuthorizationException, CommunicationException {&#xa;',
+                         '        ErrorResultException {&#xa;',
                          '      return impl.getChild(INSTANCE.get', $java-relation-plural-name,'RelationDefinition(), name).getConfiguration();&#xa;',
                          '    }&#xa;')" />
         <xsl:text>&#xa;</xsl:text>
@@ -1307,7 +1306,7 @@
                          '     */&#xa;',
                          '    public void remove', $java-relation-name, '(String name)&#xa;',
                          '        throws ManagedObjectNotFoundException, ConcurrentModificationException,&#xa;',
-                         '        OperationRejectedException, AuthorizationException, CommunicationException {&#xa;',
+                         '        OperationRejectedException, ErrorResultException {&#xa;',
                          '      impl.removeChild(INSTANCE.get', $java-relation-plural-name,'RelationDefinition(), name);&#xa;',
                          '    }&#xa;')" />
       </xsl:when>
@@ -1925,10 +1924,7 @@
               org.opends.server.admin.ManagedObjectAlreadyExistsException
             </import>
             <import>
-              org.opends.server.admin.client.AuthorizationException
-            </import>
-            <import>
-              org.opends.server.admin.client.CommunicationException
+              org.forgerock.opendj.ldap.ErrorResultException
             </import>
             <import>
               org.opends.server.admin.client.ConcurrentModificationException
