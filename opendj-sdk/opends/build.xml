@@ -2156,7 +2156,7 @@ Please:
     <echo message="      the server tools on the test server.  It can slow down the test startup"/>
     <echo message="      so the files are not copied by default."/>
     <echo message=""/>
-    <echo message="  -Dtest.failed=true"/>
+    <echo message="  -Dtest.failures=true"/>
     <echo message="      runs only the tests that failed last time"/>
     <echo message=""/>
     <echo message="  -Dorg.opends.server.debug.target=org.opends.server.core:level=verbose,category=data"/>
