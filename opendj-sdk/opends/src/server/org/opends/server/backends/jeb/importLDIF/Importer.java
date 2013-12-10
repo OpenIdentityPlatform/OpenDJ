@@ -901,38 +901,39 @@ public final class Importer implements DiskSpaceMonitorHandler
       InterruptedException, ExecutionException
   {
     this.rootContainer = rootContainer;
-    try
-    {
-      reader = new LDIFReader(importConfiguration, rootContainer);
-    }
-    catch (IOException ioe)
-    {
-      Message message = ERR_JEB_IMPORT_LDIF_READER_IO_ERROR.get();
-      throw new InitializationException(message, ioe);
-    }
+    DiskSpaceMonitor tmpMonitor = null;
+    DiskSpaceMonitor dbMonitor = null;
+    try {
+      try
+      {
+        reader = new LDIFReader(importConfiguration, rootContainer);
+      }
+      catch (IOException ioe)
+      {
+        Message message = ERR_JEB_IMPORT_LDIF_READER_IO_ERROR.get();
+        throw new InitializationException(message, ioe);
+      }
 
-    DiskSpaceMonitor tmpMonitor =
-        new DiskSpaceMonitor(backendConfiguration.getBackendId()
-            + " backend import tmp directory", tempDir, backendConfiguration
-            .getDiskLowThreshold(),
-            backendConfiguration.getDiskFullThreshold(), 5, TimeUnit.SECONDS,
-            this);
-    tmpMonitor.initializeMonitorProvider(null);
-    DirectoryServer.registerMonitorProvider(tmpMonitor);
-    File parentDirectory =
-        getFileForPath(backendConfiguration.getDBDirectory());
-    File backendDirectory =
-        new File(parentDirectory, backendConfiguration.getBackendId());
-    DiskSpaceMonitor dbMonitor =
-        new DiskSpaceMonitor(backendConfiguration.getBackendId()
-            + " backend import DB directory", backendDirectory,
-            backendConfiguration.getDiskLowThreshold(), backendConfiguration
-                .getDiskFullThreshold(), 5, TimeUnit.SECONDS, this);
-    dbMonitor.initializeMonitorProvider(null);
-    DirectoryServer.registerMonitorProvider(dbMonitor);
+      tmpMonitor =
+          new DiskSpaceMonitor(backendConfiguration.getBackendId()
+              + " backend import tmp directory", tempDir, backendConfiguration
+              .getDiskLowThreshold(),
+              backendConfiguration.getDiskFullThreshold(), 5, TimeUnit.SECONDS,
+              this);
+      tmpMonitor.initializeMonitorProvider(null);
+      DirectoryServer.registerMonitorProvider(tmpMonitor);
+      File parentDirectory =
+          getFileForPath(backendConfiguration.getDBDirectory());
+      File backendDirectory =
+          new File(parentDirectory, backendConfiguration.getBackendId());
+      dbMonitor =
+          new DiskSpaceMonitor(backendConfiguration.getBackendId()
+              + " backend import DB directory", backendDirectory,
+              backendConfiguration.getDiskLowThreshold(), backendConfiguration
+                  .getDiskFullThreshold(), 5, TimeUnit.SECONDS, this);
+      dbMonitor.initializeMonitorProvider(null);
+      DirectoryServer.registerMonitorProvider(dbMonitor);
 
-    try
-    {
       Message message =
           NOTE_JEB_IMPORT_STARTING.get(DirectoryServer.getVersionString(),
               BUILD_ID, REVISION_NUMBER);
@@ -978,17 +979,34 @@ public final class Importer implements DiskSpaceMonitorHandler
               .get(), reader.getEntriesIgnored(), reader.getEntriesRejected(),
               migratedCount, importTime / 1000, rate);
       logError(message);
+      return new LDIFImportResult(reader.getEntriesRead(), reader
+          .getEntriesRejected(), reader.getEntriesIgnored());
     }
     finally
     {
-      reader.close();
-      DirectoryServer.deregisterMonitorProvider(tmpMonitor);
-      DirectoryServer.deregisterMonitorProvider(dbMonitor);
-      tmpMonitor.finalizeMonitorProvider();
-      dbMonitor.finalizeMonitorProvider();
+      StaticUtils.close(reader);
+      if (!skipDNValidation)
+      {
+        try
+        {
+          tmpEnv.shutdown();
+        }
+        catch (Exception ignored)
+        {
+          // Do nothing.
+        }
+      }
+      if (tmpMonitor != null)
+      {
+        DirectoryServer.deregisterMonitorProvider(tmpMonitor);
+        tmpMonitor.finalizeMonitorProvider();
+      }
+      if (dbMonitor != null)
+      {
+        DirectoryServer.deregisterMonitorProvider(dbMonitor);
+        dbMonitor.finalizeMonitorProvider();
+      }
     }
-    return new LDIFImportResult(reader.getEntriesRead(), reader
-        .getEntriesRejected(), reader.getEntriesIgnored());
   }
 
   private void recursiveDelete(File dir)
