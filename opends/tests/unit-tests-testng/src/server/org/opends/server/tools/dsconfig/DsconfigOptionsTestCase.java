@@ -21,62 +21,49 @@
  *
  * CDDL HEADER END
  *
- *      Copyright 2011 ForgeRock AS
+ *      Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.tools.dsconfig;
 
-
-
+import org.opends.server.DirectoryServerTestCase;
+import org.opends.server.TestCaseUtils;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import org.opends.server.TestCaseUtils;
-import org.opends.server.DirectoryServerTestCase;
+import static org.opends.server.admin.client.cli.DsFrameworkCliReturnCode.*;
 import static org.testng.Assert.*;
 
-import static org.opends.server.admin.client.cli.DsFrameworkCliReturnCode.*;
-
-
-
 /**
- * A set of test cases for the dsservice tool.
+ * A set of test cases for the dsconfig tool.
  */
+@SuppressWarnings("javadoc")
 public class DsconfigOptionsTestCase extends DirectoryServerTestCase {
-
-
+ 
   /**
    * Ensures that the Directory Server is running and performs other necessary
    * setup.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
    */
   @BeforeClass()
-  public void before()
-         throws Exception
+  public void before() throws Exception
   {
     TestCaseUtils.startServer();
   }
 
   /**
    * Ensures ADS is removed.
-   * @throws  Exception  If an unexpected problem occurs.
    */
   @AfterClass()
-  public void afterClass()
-         throws Exception
+  public void afterClass() throws Exception
   {
   }
 
   /**
    * Tests that multiple  "--set" option cannot be used with a singlevalued
    * property
-   *
-   * @throws  Exception  If an unexpected problem occurs.
    */
   @Test()
-  public void testMultipleSetSingleValuedProperty()
-         throws Exception
+  public void testMultipleSetSingleValuedProperty() throws Exception
   {
     String[] args =
     {
@@ -89,22 +76,15 @@ public class DsconfigOptionsTestCase extends DirectoryServerTestCase {
           "--set", "idle-time-limit:10000ms",
           "--set", "idle-time-limit:1000ms"
     };
-
-     assertFalse(DSConfig.main(args, false, System.out, System.err)
-        == SUCCESSFUL.getReturnCode());
-
-
+    assertTrue(dsconfigMain(args) != SUCCESSFUL.getReturnCode());
   }
 
   /**
    * Tests that multiple  "--set" option are allowed to be used with a multivalued
    * property (see OPENDJ-255)
-   *
-   * @throws  Exception  If an unexpected problem occurs.
    */
   @Test()
-  public void testMultipleSetMultiValuedProperty()
-         throws Exception
+  public void testMultipleSetMultiValuedProperty() throws Exception
   {
     String[] args =
     {
@@ -117,16 +97,23 @@ public class DsconfigOptionsTestCase extends DirectoryServerTestCase {
           "--no-prompt",
           "--set", "denied-client:1.1.1.1",
           "--set", "denied-client:2.2.2.2"
-          
     };
-
-     assertEquals(DSConfig.main(args, false, System.out, System.err),
-        SUCCESSFUL.getReturnCode());
-
-
+    assertEquals(dsconfigMain(args), SUCCESSFUL.getReturnCode());
   }
 
+  public void testGenerateDoc() throws Exception
+  {
+    System.setProperty("org.forgerock.opendj.gendoc", "true");
+    String[] args = {
+      "--no-prompt",
+      "-?",
+    };
+    assertEquals(dsconfigMain(args), CANNOT_INITIALIZE_ARGS.getReturnCode());
+  }
 
+  private int dsconfigMain(String[] args)
+  {
+    return DSConfig.main(args, false, System.out, System.err);
+  }
 
 }
-

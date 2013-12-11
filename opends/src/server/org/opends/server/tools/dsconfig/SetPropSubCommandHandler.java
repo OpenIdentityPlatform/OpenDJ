@@ -23,12 +23,10 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  *      Portions Copyright 2012 profiq, s.r.o.
  */
 package org.opends.server.tools.dsconfig;
-
-
 
 import static org.opends.messages.DSConfigMessages.*;
 import static org.opends.messages.ToolMessages.*;
@@ -80,7 +78,7 @@ import org.opends.server.util.cli.CommandBuilder;
 import org.opends.server.util.cli.ConsoleApplication;
 import org.opends.server.util.cli.MenuResult;
 
-
+import com.forgerock.opendj.util.Pair;
 
 /**
  * A sub-command handler which is used to modify the properties of a
@@ -382,8 +380,9 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
 
 
 
-  // Check that any referenced components are enabled if
-  // required.
+  /**
+   * Check that any referenced components are enabled if required.
+   */
   private static MenuResult<Void> checkReferences(ConsoleApplication app,
       ManagementContext context, ManagedObject<?> mo,
       SubCommandHandler handler) throws ClientException,
@@ -586,34 +585,42 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
 
 
 
-  // The sub-commands naming arguments.
+  /** The sub-commands naming arguments. */
   private final List<StringArgument> namingArgs;
 
-  // The path of the managed object.
+  /** The path of the managed object. */
   private final ManagedObjectPath<?, ?> path;
 
-  // The argument which should be used to specify zero or more
-  // property value adds.
+  /**
+   * The argument which should be used to specify zero or more property value
+   * adds.
+   */
   private final StringArgument propertyAddArgument;
 
-  // The argument which should be used to specify zero or more
-  // property value removes.
+  /**
+   * The argument which should be used to specify zero or more property value
+   * removes.
+   */
   private final StringArgument propertyRemoveArgument;
 
-  // The argument which should be used to specify zero or more
-  // property value resets.
+  /**
+   * The argument which should be used to specify zero or more property value
+   * resets.
+   */
   private final StringArgument propertyResetArgument;
 
-  // The argument which should be used to specify zero or more
-  // property value assignments.
+  /**
+   * The argument which should be used to specify zero or more property value
+   * assignments.
+   */
   private final StringArgument propertySetArgument;
 
-  // The sub-command associated with this handler.
+  /** The sub-command associated with this handler. */
   private final SubCommand subCommand;
 
 
 
-  // Private constructor.
+  /** Private constructor. */
   private SetPropSubCommandHandler(
       SubCommandArgumentParser parser, ManagedObjectPath<?, ?> path,
       RelationDefinition<?, ?> r) throws ArgumentException {
@@ -670,24 +677,21 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
    * @return Returns the relation definition associated with the type
    *         of component that this sub-command handles.
    */
+  @Override
   public RelationDefinition<?, ?> getRelationDefinition() {
     return path.getRelationDefinition();
   }
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public SubCommand getSubCommand() {
     return subCommand;
   }
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @SuppressWarnings("unchecked")
   @Override
   public MenuResult<Integer> run(ConsoleApplication app,
@@ -775,22 +779,15 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
               OPTION_DSCFG_LONG_RESET);
       }
 
-      // Check the property definition.
-      PropertyDefinition<?> pd;
-      try {
-        pd = d.getPropertyDefinition(m);
-      } catch (IllegalArgumentException e) {
-        throw ArgumentExceptionFactory.unknownProperty(d, m);
-      }
+      PropertyDefinition<?> pd = getPropertyDefinition(d, m);
 
-      // Mandatory properties which have no defined defaults cannot be
-      // reset.
-      if (pd.hasOption(PropertyOption.MANDATORY)) {
-        if (pd.getDefaultBehaviorProvider()
-            instanceof UndefinedDefaultBehaviorProvider) {
-          throw ArgumentExceptionFactory.unableToResetMandatoryProperty(d, m,
-              OPTION_DSCFG_LONG_SET);
-        }
+      // Mandatory properties which have no defined defaults cannot be reset.
+      if (pd.hasOption(PropertyOption.MANDATORY)
+          && pd.getDefaultBehaviorProvider()
+              instanceof UndefinedDefaultBehaviorProvider)
+      {
+        throw ArgumentExceptionFactory.unableToResetMandatoryProperty(d, m,
+            OPTION_DSCFG_LONG_SET);
       }
 
       // Save the modification type.
@@ -802,30 +799,11 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
 
     // Set properties.
     for (String m : propertySetArgument.getValues()) {
-      // Parse the property "property:value".
-      int sep = m.indexOf(':');
+      Pair<String, String> pair = parseValue(m);
+      String propertyName = pair.getFirst();
+      String value = pair.getSecond();
 
-      if (sep < 0) {
-        throw ArgumentExceptionFactory.missingSeparatorInPropertyArgument(m);
-      }
-
-      if (sep == 0) {
-        throw ArgumentExceptionFactory.missingNameInPropertyArgument(m);
-      }
-
-      String propertyName = m.substring(0, sep);
-      String value = m.substring(sep + 1, m.length());
-      if (value.length() == 0) {
-        throw ArgumentExceptionFactory.missingValueInPropertyArgument(m);
-      }
-
-      // Check the property definition.
-      PropertyDefinition<?> pd;
-      try {
-        pd = d.getPropertyDefinition(propertyName);
-      } catch (IllegalArgumentException e) {
-        throw ArgumentExceptionFactory.unknownProperty(d, propertyName);
-      }
+      PropertyDefinition<?> pd = getPropertyDefinition(d, propertyName);
 
       // Apply the modification.
       if (lastModTypes.containsKey(propertyName)) {
@@ -838,34 +816,15 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
 
     // Remove properties.
     for (String m : propertyRemoveArgument.getValues()) {
-      // Parse the property "property:value".
-      int sep = m.indexOf(':');
+      Pair<String, String> pair = parseValue(m);
+      String propertyName = pair.getFirst();
+      String value = pair.getSecond();
 
-      if (sep < 0) {
-        throw ArgumentExceptionFactory.missingSeparatorInPropertyArgument(m);
-      }
-
-      if (sep == 0) {
-        throw ArgumentExceptionFactory.missingNameInPropertyArgument(m);
-      }
-
-      String propertyName = m.substring(0, sep);
-      String value = m.substring(sep + 1, m.length());
-      if (value.length() == 0) {
-        throw ArgumentExceptionFactory.missingValueInPropertyArgument(m);
-      }
-
-      // Check the property definition.
-      PropertyDefinition<?> pd;
-      try {
-        pd = d.getPropertyDefinition(propertyName);
-      } catch (IllegalArgumentException e) {
-        throw ArgumentExceptionFactory.unknownProperty(d, propertyName);
-      }
+      PropertyDefinition<?> pd = getPropertyDefinition(d, propertyName);
 
       // Apply the modification.
-      if (lastModTypes.containsKey(propertyName) &&
-        (lastModTypes.get(propertyName) == ModificationType.SET)) {
+      if (lastModTypes.containsKey(propertyName)
+          && lastModTypes.get(propertyName) == ModificationType.SET) {
         throw ArgumentExceptionFactory.incompatiblePropertyModification(m);
       }
 
@@ -875,34 +834,15 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
 
     // Add properties.
     for (String m : propertyAddArgument.getValues()) {
-      // Parse the property "property:value".
-      int sep = m.indexOf(':');
+      Pair<String, String> pair = parseValue(m);
+      String propertyName = pair.getFirst();
+      String value = pair.getSecond();
 
-      if (sep < 0) {
-        throw ArgumentExceptionFactory.missingSeparatorInPropertyArgument(m);
-      }
-
-      if (sep == 0) {
-        throw ArgumentExceptionFactory.missingNameInPropertyArgument(m);
-      }
-
-      String propertyName = m.substring(0, sep);
-      String value = m.substring(sep + 1, m.length());
-      if (value.length() == 0) {
-        throw ArgumentExceptionFactory.missingValueInPropertyArgument(m);
-      }
-
-      // Check the property definition.
-      PropertyDefinition<?> pd;
-      try {
-        pd = d.getPropertyDefinition(propertyName);
-      } catch (IllegalArgumentException e) {
-        throw ArgumentExceptionFactory.unknownProperty(d, propertyName);
-      }
+      PropertyDefinition<?> pd = getPropertyDefinition(d, propertyName);
 
       // Apply the modification.
-      if (lastModTypes.containsKey(propertyName) &&
-        (lastModTypes.get(propertyName) == ModificationType.SET)) {
+      if (lastModTypes.containsKey(propertyName)
+          && lastModTypes.get(propertyName) == ModificationType.SET) {
         throw ArgumentExceptionFactory.incompatiblePropertyModification(m);
       }
 
@@ -948,8 +888,38 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
     }
   }
 
+  /** Parse and check the property "property:value". */
+  private Pair<String, String> parseValue(String m) throws ArgumentException
+  {
+    int sep = m.indexOf(':');
+    if (sep < 0) {
+      throw ArgumentExceptionFactory.missingSeparatorInPropertyArgument(m);
+    }
+    if (sep == 0) {
+      throw ArgumentExceptionFactory.missingNameInPropertyArgument(m);
+    }
 
-  // Apply a single modification to the current change-set.
+    String propertyName = m.substring(0, sep);
+    String value = m.substring(sep + 1, m.length());
+    if (value.length() == 0) {
+      throw ArgumentExceptionFactory.missingValueInPropertyArgument(m);
+    }
+    return Pair.of(propertyName, value);
+  }
+
+  /** Get and check the property definition. */
+  private PropertyDefinition<?> getPropertyDefinition(
+      ManagedObjectDefinition<?, ?> def, String propertyName)
+      throws ArgumentException
+  {
+    try {
+      return def.getPropertyDefinition(propertyName);
+    } catch (IllegalArgumentException e) {
+      throw ArgumentExceptionFactory.unknownProperty(def, propertyName);
+    }
+  }
+
+  /** Apply a single modification to the current change-set. */
   @SuppressWarnings("unchecked")
   private <T> void modifyPropertyValues(ManagedObject<?> mo,
       PropertyDefinition<T> pd, Map<PropertyDefinition, Set> changes,
@@ -976,7 +946,7 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
         values.add(value);
         break;
       case REMOVE:
-        if (values.remove(value) != true) {
+        if (!values.remove(value)) {
           // value was not part of values
           throw ArgumentExceptionFactory.
             unknownValueForMultiValuedProperty(s, pd.getName());

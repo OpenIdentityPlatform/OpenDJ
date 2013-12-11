@@ -27,7 +27,6 @@
  */
 package org.opends.server.util.args;
 
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.*;
@@ -672,57 +671,6 @@ public class SubCommandArgumentParser extends ArgumentParser
     parseArguments(rawArguments, null);
   }
 
-
-
-  /**
-   * Parses the provided set of arguments and updates the information associated
-   * with this parser accordingly.  Default values for unspecified arguments
-   * may be read from the specified properties file.
-   *
-   * @param  rawArguments           The set of raw arguments to parse.
-   * @param  propertiesFile         The path to the properties file to use to
-   *                                obtain default values for unspecified
-   *                                properties.
-   * @param  requirePropertiesFile  Indicates whether the parsing should fail if
-   *                                the provided properties file does not exist
-   *                                or is not accessible.
-   *
-   * @throws  ArgumentException  If a problem was encountered while parsing the
-   *                             provided arguments or interacting with the
-   *                             properties file.
-   */
-  @Override
-  public void parseArguments(String[] rawArguments, String propertiesFile,
-                             boolean requirePropertiesFile)
-         throws ArgumentException
-  {
-    this.rawArguments = rawArguments;
-
-    Properties argumentProperties = null;
-
-    try
-    {
-      Properties p = new Properties();
-      FileInputStream fis = new FileInputStream(propertiesFile);
-      p.load(fis);
-      fis.close();
-      argumentProperties = p;
-    }
-    catch (Exception e)
-    {
-      if (requirePropertiesFile)
-      {
-        Message message = ERR_SUBCMDPARSER_CANNOT_READ_PROPERTIES_FILE.get(
-            String.valueOf(propertiesFile), getExceptionMessage(e));
-        throw new ArgumentException(message, e);
-      }
-    }
-
-    parseArguments(rawArguments, argumentProperties);
-  }
-
-
-
   /**
    * Parses the provided set of arguments and updates the information associated
    * with this parser accordingly.  Default values for unspecified arguments may
@@ -819,7 +767,7 @@ public class SubCommandArgumentParser extends ArgumentParser
         {
           if (subCommand == null)
           {
-            if (argName.equals("help"))
+            if (argName.equals(OPTION_LONG_HELP))
             {
               // "--help" will always be interpreted as requesting usage
               // information.
@@ -850,7 +798,7 @@ public class SubCommandArgumentParser extends ArgumentParser
             a = subCommand.getArgument(argName);
             if (a == null)
             {
-              if (argName.equals("help"))
+              if (argName.equals(OPTION_LONG_HELP))
               {
                 // "--help" will always be interpreted as requesting usage
                 // information.
@@ -1401,8 +1349,8 @@ public class SubCommandArgumentParser extends ArgumentParser
         else
         {
           // There are no spaces in the first 74 columns.
-          // See if there is one after that point. If so, then break there.
-          // If not, then don't break at all.
+          // See if there is one after that point.
+          // If so, then break there. If not, then don't break at all.
           spacePos = s.indexOf(' ');
           if (spacePos > 0)
           {
@@ -1429,8 +1377,6 @@ public class SubCommandArgumentParser extends ArgumentParser
       }
     }
   }
-
-
 
   /**
    * Retrieves a string containing usage information based on the defined
@@ -1765,8 +1711,8 @@ public class SubCommandArgumentParser extends ArgumentParser
     }
 
     buffer.append(EOL);
-    indentAndWrap(Message.raw(INDENT), a.getDescription(), buffer);
 
+    indentAndWrap(Message.raw(INDENT), a.getDescription(), buffer);
     if (a.needsValue()
         && a.getDefaultValue() != null
         && a.getDefaultValue().length() > 0)
@@ -1810,8 +1756,8 @@ public class SubCommandArgumentParser extends ArgumentParser
         else
         {
           // There are no spaces in the first actualSize -1 columns.
-          // See if there is one after that point. If so, then break there.
-          // If not, then don't break at all.
+          // See if there is one after that point.
+          // If so, then break there. If not, then don't break at all.
           spacePos = s.indexOf(' ');
           if (spacePos > 0)
           {
@@ -1860,11 +1806,7 @@ public class SubCommandArgumentParser extends ArgumentParser
   @Override
   public boolean isVersionArgumentPresent()
   {
-    if (!super.isVersionArgumentPresent())
-    {
-      return versionPresent;
-    }
-    return true;
+    return super.isVersionArgumentPresent() && !versionPresent;
   }
 
   /**
