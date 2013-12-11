@@ -27,8 +27,6 @@
  */
 package org.opends.server.core;
 
-
-
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -56,39 +54,17 @@ import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPControl;
-import org.opends.server.types.ConfigChangeResult;
-import org.opends.server.types.Control;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.DereferencePolicy;
-import org.opends.server.types.DN;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.Entry;
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.ResultCode;
-import org.opends.server.types.SearchResultEntry;
-import org.opends.server.types.SearchScope;
-import org.opends.server.types.SearchFilter;
-import org.opends.server.types.operation.PluginOperation;
-import org.opends.server.types.operation.PostOperationAddOperation;
-import org.opends.server.types.operation.PostOperationDeleteOperation;
-import org.opends.server.types.operation.PostOperationModifyDNOperation;
-import org.opends.server.types.operation.PostOperationModifyOperation;
-import org.opends.server.types.operation.PostSynchronizationAddOperation;
-import org.opends.server.types.operation.PostSynchronizationDeleteOperation;
-import org.opends.server.types.operation.PostSynchronizationModifyDNOperation;
-import org.opends.server.types.operation.PostSynchronizationModifyOperation;
-import org.opends.server.workflowelement.localbackend.
-            LocalBackendSearchOperation;
+import org.opends.server.types.*;
+import org.opends.server.types.operation.*;
+import org.opends.server.workflowelement.localbackend.LocalBackendSearchOperation;
 
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.messages.CoreMessages.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-
-
 
 /**
  * This class provides a mechanism for interacting with all groups defined in
@@ -113,23 +89,28 @@ public class GroupManager extends InternalDirectoryServerPlugin
   private static final DebugTracer TRACER = getTracer();
 
 
-  //Used by group instances to determine if new groups have been
-  //registered or groups deleted.
-  private volatile long refreshToken=0;
+  /**
+   * Used by group instances to determine if new groups have been registered or
+   * groups deleted.
+   */
+  private volatile long refreshToken = 0;
 
+  /**
+   * A mapping between the DNs of the config entries and the associated group
+   * implementations.
+   */
+  private ConcurrentHashMap<DN, Group> groupImplementations;
 
-  // A mapping between the DNs of the config entries and the associated
-  // group implementations.
-  private ConcurrentHashMap<DN,Group> groupImplementations;
-
-  // A mapping between the DNs of all group entries and the corresponding
-  // group instances.
+  /**
+   * A mapping between the DNs of all group entries and the corresponding group
+   * instances.
+   */
   private DITCacheMap<Group> groupInstances;
 
-  // Lock to protect internal data structures.
+  /** Lock to protect internal data structures. */
   private final ReentrantReadWriteLock lock;
 
-  // Dummy configuration DN for Group Manager.
+  /** Dummy configuration DN for Group Manager. */
   private static final String CONFIG_DN = "cn=Group Manager,cn=config";
 
 
@@ -219,9 +200,8 @@ public class GroupManager extends InternalDirectoryServerPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public boolean isConfigurationAddAcceptable(
                       GroupImplementationCfg configuration,
                       List<Message> unacceptableReasons)
@@ -243,9 +223,8 @@ public class GroupManager extends InternalDirectoryServerPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public ConfigChangeResult applyConfigurationAdd(
                                  GroupImplementationCfg configuration)
   {
@@ -282,9 +261,8 @@ public class GroupManager extends InternalDirectoryServerPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public boolean isConfigurationDeleteAcceptable(
                       GroupImplementationCfg configuration,
                       List<Message> unacceptableReasons)
@@ -296,9 +274,8 @@ public class GroupManager extends InternalDirectoryServerPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public ConfigChangeResult applyConfigurationDelete(
                                  GroupImplementationCfg configuration)
   {
@@ -334,9 +311,8 @@ public class GroupManager extends InternalDirectoryServerPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public boolean isConfigurationChangeAcceptable(
                       GroupImplementationCfg configuration,
                       List<Message> unacceptableReasons)
@@ -358,9 +334,8 @@ public class GroupManager extends InternalDirectoryServerPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public ConfigChangeResult applyConfigurationChange(
                                  GroupImplementationCfg configuration)
   {
@@ -478,9 +453,8 @@ public class GroupManager extends InternalDirectoryServerPlugin
 
       if (initialize)
       {
-        Method method = group.getClass()
-            .getMethod("initializeGroupImplementation",
-                configuration.configurationClass());
+        Method method = group.getClass().getMethod(
+          "initializeGroupImplementation", configuration.configurationClass());
         method.invoke(group, configuration);
       }
       else
@@ -494,20 +468,9 @@ public class GroupManager extends InternalDirectoryServerPlugin
                                                      unacceptableReasons);
         if (! acceptable)
         {
-          StringBuilder buffer = new StringBuilder();
-          if (! unacceptableReasons.isEmpty())
-          {
-            Iterator<Message> iterator = unacceptableReasons.iterator();
-            buffer.append(iterator.next());
-            while (iterator.hasNext())
-            {
-              buffer.append(".  ");
-              buffer.append(iterator.next());
-            }
-          }
-
+          String reason = collectionToString(unacceptableReasons, ".  ");
           Message message = ERR_CONFIG_GROUP_CONFIG_NOT_ACCEPTABLE.get(
-              String.valueOf(configuration.dn()), buffer.toString());
+              String.valueOf(configuration.dn()), reason);
           throw new InitializationException(message);
         }
       }
@@ -614,6 +577,7 @@ public class GroupManager extends InternalDirectoryServerPlugin
    * all group instances that it may contain and register them with this group
    * manager.
    */
+  @Override
   public void performBackendInitializationProcessing(Backend backend)
   {
     InternalClientConnection conn =
@@ -723,6 +687,7 @@ public class GroupManager extends InternalDirectoryServerPlugin
    * {@inheritDoc}  In this case, the server will de-register all group
    * instances associated with entries in the provided backend.
    */
+  @Override
   public void performBackendFinalizationProcessing(Backend backend)
   {
     lock.writeLock().lock();
@@ -753,21 +718,32 @@ public class GroupManager extends InternalDirectoryServerPlugin
    * a group definition, and if so it will be instantiated and
    * registered with this group manager.
    */
-  private void doPostAdd(PluginOperation addOperation,
-          Entry entry)
+  private void doPostAdd(PluginOperation addOperation, Entry entry)
   {
-    List<Control> requestControls = addOperation.getRequestControls();
+    if (hasGroupMembershipUpdateControl(addOperation))
+    {
+      return;
+    }
+
+    createAndRegisterGroup(entry);
+  }
+
+
+
+  private boolean hasGroupMembershipUpdateControl(PluginOperation operation)
+  {
+    List<Control> requestControls = operation.getRequestControls();
     if (requestControls != null)
     {
       for (Control c : requestControls)
       {
-        if (c.getOID().equals(OID_INTERNAL_GROUP_MEMBERSHIP_UPDATE))
+        if (OID_INTERNAL_GROUP_MEMBERSHIP_UPDATE.equals(c.getOID()))
         {
-          return;
+          return true;
         }
       }
     }
-    createAndRegisterGroup(entry);
+    return false;
   }
 
 
@@ -776,20 +752,13 @@ public class GroupManager extends InternalDirectoryServerPlugin
    * In this case, if the entry is associated with a registered
    * group instance, then that group instance will be deregistered.
    */
-  private void doPostDelete(PluginOperation deleteOperation,
-          Entry entry)
+  private void doPostDelete(PluginOperation deleteOperation, Entry entry)
   {
-    List<Control> requestControls = deleteOperation.getRequestControls();
-    if (requestControls != null)
+    if (hasGroupMembershipUpdateControl(deleteOperation))
     {
-      for (Control c : requestControls)
-      {
-        if (c.getOID().equals(OID_INTERNAL_GROUP_MEMBERSHIP_UPDATE))
-        {
-          return;
-        }
-      }
+      return;
     }
+
     lock.writeLock().lock();
     try
     {
@@ -815,16 +784,9 @@ public class GroupManager extends InternalDirectoryServerPlugin
   private void doPostModify(PluginOperation modifyOperation,
           Entry oldEntry, Entry newEntry)
   {
-    List<Control> requestControls = modifyOperation.getRequestControls();
-    if (requestControls != null)
+    if (hasGroupMembershipUpdateControl(modifyOperation))
     {
-      for (Control c : requestControls)
-      {
-        if (c.getOID().equals(OID_INTERNAL_GROUP_MEMBERSHIP_UPDATE))
-        {
-          return;
-        }
-      }
+      return;
     }
 
     lock.readLock().lock();
@@ -873,16 +835,9 @@ public class GroupManager extends InternalDirectoryServerPlugin
   private void doPostModifyDN(PluginOperation modifyDNOperation,
           Entry oldEntry, Entry newEntry)
   {
-    List<Control> requestControls = modifyDNOperation.getRequestControls();
-    if (requestControls != null)
+    if (hasGroupMembershipUpdateControl(modifyDNOperation))
     {
-      for (Control c : requestControls)
-      {
-        if (c.getOID().equals(OID_INTERNAL_GROUP_MEMBERSHIP_UPDATE))
-        {
-          return;
-        }
-      }
+      return;
     }
 
     lock.writeLock().lock();
@@ -897,8 +852,7 @@ public class GroupManager extends InternalDirectoryServerPlugin
         StringBuilder builder = new StringBuilder(
                 group.getGroupDN().toNormalizedString());
         int oldDNIndex = builder.lastIndexOf(oldDNString);
-        builder.replace(oldDNIndex, builder.length(),
-                newDNString);
+        builder.replace(oldDNIndex, builder.length(), newDNString);
         String groupDNString = builder.toString();
         DN groupDN;
         try
@@ -931,9 +885,7 @@ public class GroupManager extends InternalDirectoryServerPlugin
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public PostOperation doPostOperation(
           PostOperationAddOperation addOperation)
@@ -949,9 +901,7 @@ public class GroupManager extends InternalDirectoryServerPlugin
     return PluginResult.PostOperation.continueOperationProcessing();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public PostOperation doPostOperation(
           PostOperationDeleteOperation deleteOperation)
@@ -967,9 +917,7 @@ public class GroupManager extends InternalDirectoryServerPlugin
     return PluginResult.PostOperation.continueOperationProcessing();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public PostOperation doPostOperation(
           PostOperationModifyOperation modifyOperation)
@@ -987,9 +935,7 @@ public class GroupManager extends InternalDirectoryServerPlugin
     return PluginResult.PostOperation.continueOperationProcessing();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public PostOperation doPostOperation(
           PostOperationModifyDNOperation modifyDNOperation)
@@ -1007,9 +953,7 @@ public class GroupManager extends InternalDirectoryServerPlugin
     return PluginResult.PostOperation.continueOperationProcessing();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void doPostSynchronization(
       PostSynchronizationAddOperation addOperation)
@@ -1021,9 +965,7 @@ public class GroupManager extends InternalDirectoryServerPlugin
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void doPostSynchronization(
       PostSynchronizationDeleteOperation deleteOperation)
@@ -1035,31 +977,27 @@ public class GroupManager extends InternalDirectoryServerPlugin
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void doPostSynchronization(
       PostSynchronizationModifyOperation modifyOperation)
   {
     Entry entry = modifyOperation.getCurrentEntry();
     Entry modEntry = modifyOperation.getModifiedEntry();
-    if ((entry != null) && (modEntry != null))
+    if (entry != null && modEntry != null)
     {
       doPostModify(modifyOperation, entry, modEntry);
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void doPostSynchronization(
       PostSynchronizationModifyDNOperation modifyDNOperation)
   {
     Entry oldEntry = modifyDNOperation.getOriginalEntry();
     Entry newEntry = modifyDNOperation.getUpdatedEntry();
-    if ((oldEntry != null) && (newEntry != null))
+    if (oldEntry != null && newEntry != null)
     {
       doPostModifyDN(modifyDNOperation, oldEntry, newEntry);
     }
