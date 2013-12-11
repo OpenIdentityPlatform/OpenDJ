@@ -72,7 +72,7 @@ public abstract class Argument
   /** The unique ID of the description for this argument. */
   private Message description;
 
-  /** The set of values for this argument. */
+  /** The set of provided values for this argument. */
   private LinkedList<String> values;
 
   /** The default value for the argument if none other is provided. */
@@ -89,7 +89,8 @@ public abstract class Argument
 
   /**
    * The value placeholder for this argument, which will be used in usage
-   * information.
+   * information. It describes the format that must be used to specify the
+   * values for this argument.
    */
   private Message valuePlaceholder;
 
@@ -692,19 +693,11 @@ public abstract class Argument
         sb.append("--").append(longIdentifier);
       }
     }
-    if (isRequired)
-    {
-      sb.append(", required");
-    }
-    if (isMultiValued)
-    {
-      sb.append(", multiValued");
-    }
-    if (needsValue)
-    {
-      sb.append(", needsValue");
-    }
+    sb.append(", ").append(isRequired ? "required" : "optional");
+    sb.append(", ").append(isMultiValued ? "multiValued" : "singleValued");
     sb.append(", defaultValue=\"").append(defaultValue)
+      .append("\", valueFormat=\"").append(valuePlaceholder)
+      .append("\", providedValues=\"").append(values)
       .append("\", description=\"").append(description)
       .append("\"]");
     return sb.toString();

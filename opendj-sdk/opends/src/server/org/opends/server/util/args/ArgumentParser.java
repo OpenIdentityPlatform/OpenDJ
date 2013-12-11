@@ -763,56 +763,6 @@ public class ArgumentParser
     parseArguments(rawArguments, null);
   }
 
-
-
-  /**
-   * Parses the provided set of arguments and updates the information associated
-   * with this parser accordingly.  Default values for unspecified arguments
-   * may be read from the specified properties file.
-   *
-   * @param  rawArguments           The set of raw arguments to parse.
-   * @param  propertiesFile         The path to the properties file to use to
-   *                                obtain default values for unspecified
-   *                                properties.
-   * @param  requirePropertiesFile  Indicates whether the parsing should fail if
-   *                                the provided properties file does not exist
-   *                                or is not accessible.
-   *
-   * @throws  ArgumentException  If a problem was encountered while parsing the
-   *                             provided arguments or interacting with the
-   *                             properties file.
-   */
-  public void parseArguments(String[] rawArguments, String propertiesFile,
-                             boolean requirePropertiesFile)
-         throws ArgumentException
-  {
-    this.rawArguments = rawArguments;
-
-    Properties argumentProperties = null;
-
-    try
-    {
-      Properties p = new Properties();
-      FileInputStream fis = new FileInputStream(propertiesFile);
-      p.load(fis);
-      fis.close();
-      argumentProperties = p;
-    }
-    catch (Exception e)
-    {
-      if (requirePropertiesFile)
-      {
-        Message message = ERR_ARGPARSER_CANNOT_READ_PROPERTIES_FILE.get(
-            String.valueOf(propertiesFile), getExceptionMessage(e));
-        throw new ArgumentException(message, e);
-      }
-    }
-
-    parseArguments(rawArguments, argumentProperties);
-  }
-
-
-
   /**
    * Parses the provided set of arguments and updates the information associated
    * with this parser accordingly.  Default values for unspecified arguments may
@@ -1362,10 +1312,7 @@ public class ArgumentParser
     {
       return f.getAbsolutePath();
     }
-    else
-    {
-      return null;
-    }
+    return null;
   }
 
   /**
@@ -1538,12 +1485,10 @@ public class ArgumentParser
   *          The buffer to which the usage information should be
   *          appended.
   */
-   private void printArgumentUsage(Argument a, StringBuilder buffer)
+  private void printArgumentUsage(Argument a, StringBuilder buffer)
   {
-    // Write a line with the short and/or long identifiers that may be
-    // used
-    // for the argument.
-    final int indentLength = INDENT.length();
+     // Write a line with the short and/or long identifiers that may be
+     // used for the argument.
     Character shortID = a.getShortIdentifier();
     String longID = a.getLongIdentifier();
     if (shortID != null)
@@ -1609,50 +1554,59 @@ public class ArgumentParser
     }
 
 
-    // Write one or more lines with the description of the argument.
-    // We will
-    // indent the description five characters and try our best to wrap
-    // at or
-    // before column 79 so it will be friendly to 80-column displays.
-    Message description = a.getDescription();
-    int descMaxLength = MAX_LENGTH - indentLength - 1;
-    if (description.length() <= descMaxLength)
+    indentAndWrap(INDENT, a.getDescription(), buffer);
+    if (a.needsValue()
+        && a.getDefaultValue() != null
+        && a.getDefaultValue().length() > 0)
     {
-      buffer.append(INDENT);
-      buffer.append(description);
+      indentAndWrap(INDENT, INFO_ARGPARSER_USAGE_DEFAULT_VALUE.get(a
+          .getDefaultValue()), buffer);
+    }
+  }
+
+  /**
+   * Write one or more lines with the description of the argument. We will
+   * indent the description five characters and try our best to wrap at or
+   * before column 79 so it will be friendly to 80-column displays.
+   */
+  private void indentAndWrap(String indent, Message text, StringBuilder buffer)
+  {
+    int actualSize = MAX_LENGTH - indent.length() - 1;
+    if (text.length() <= actualSize)
+    {
+      buffer.append(indent);
+      buffer.append(text);
       buffer.append(EOL);
     }
     else
     {
-      String s = description.toString();
-      while (s.length() > descMaxLength)
+      String s = text.toString();
+      while (s.length() > actualSize)
       {
-        int spacePos = s.lastIndexOf(' ', descMaxLength);
+        int spacePos = s.lastIndexOf(' ', actualSize);
         if (spacePos > 0)
         {
-          buffer.append(INDENT);
+          buffer.append(indent);
           buffer.append(s.substring(0, spacePos).trim());
-          s = s.substring(spacePos+1).trim();
+          s = s.substring(spacePos + 1).trim();
           buffer.append(EOL);
         }
         else
         {
-          // There are no spaces in the first 74 columns. See if there
-          // is one
-          // after that point. If so, then break there. If not, then
-          // don't
-          // break at all.
+          // There are no spaces in the first 74 columns.
+          // See if there is one after that point.
+          // If so, then break there. If not, then don't break at all.
           spacePos = s.indexOf(' ');
           if (spacePos > 0)
           {
-            buffer.append(INDENT);
+            buffer.append(indent);
             buffer.append(s.substring(0, spacePos).trim());
-            s = s.substring(spacePos+1).trim();
+            s = s.substring(spacePos + 1).trim();
             buffer.append(EOL);
           }
           else
           {
-            buffer.append(INDENT);
+            buffer.append(indent);
             buffer.append(s);
             s = "";
             buffer.append(EOL);
@@ -1662,20 +1616,10 @@ public class ArgumentParser
 
       if (s.length() > 0)
       {
-        buffer.append(INDENT);
+        buffer.append(indent);
         buffer.append(s);
         buffer.append(EOL);
       }
-    }
-
-    if (a.needsValue()
-        && a.getDefaultValue() != null
-        && a.getDefaultValue().length() > 0)
-    {
-      buffer.append(INDENT);
-      buffer.append(INFO_ARGPARSER_USAGE_DEFAULT_VALUE.get(
-          a.getDefaultValue()).toString());
-      buffer.append(EOL);
     }
   }
 
@@ -1687,17 +1631,14 @@ public class ArgumentParser
    * @return argument group appropriate for <code>argument</code>
    */
   protected ArgumentGroup getStandardGroup(Argument argument) {
-    ArgumentGroup group;
     if (isInputOutputArgument(argument)) {
-      group = ioArgGroup;
+      return ioArgGroup;
     } else if (isGeneralArgument(argument)) {
-      group = generalArgGroup;
+      return generalArgGroup;
     } else if (isLdapConnectionArgument(argument)) {
-      group = ldapArgGroup;
-    } else {
-      group = defaultArgGroup;
+      return ldapArgGroup;
     }
-    return group;
+    return defaultArgGroup;
   }
 
   /**
@@ -1740,10 +1681,9 @@ public class ArgumentParser
 
 
   private boolean isInputOutputArgument(Argument arg) {
-    boolean io = false;
     if (arg != null) {
       String longId = arg.getLongIdentifier();
-      io = OPTION_LONG_VERBOSE.equals(longId) ||
+      return OPTION_LONG_VERBOSE.equals(longId) ||
               OPTION_LONG_QUIET.equals(longId) ||
               OPTION_LONG_NO_PROMPT.equals(longId) ||
               OPTION_LONG_PROP_FILE_PATH.equals(longId) ||
@@ -1755,14 +1695,13 @@ public class ArgumentParser
               OPTION_LONG_EQUIVALENT_COMMAND_FILE_PATH.equals(longId) ||
               OPTION_LONG_BATCH_FILE_PATH.equals(longId);
     }
-    return io;
+    return false;
   }
 
   private boolean isLdapConnectionArgument(Argument arg) {
-    boolean ldap = false;
     if (arg != null) {
       String longId = arg.getLongIdentifier();
-      ldap = OPTION_LONG_USE_SSL.equals(longId) ||
+      return OPTION_LONG_USE_SSL.equals(longId) ||
               OPTION_LONG_START_TLS.equals(longId) ||
               OPTION_LONG_HOST.equals(longId) ||
               OPTION_LONG_PORT.equals(longId) ||
@@ -1788,18 +1727,17 @@ public class ArgumentParser
               OPTION_LONG_PROTOCOL_VERSION.equals(longId) ||
               OPTION_LONG_CONNECT_TIMEOUT.equals(longId);
     }
-    return ldap;
+    return false;
   }
 
 
   private boolean isGeneralArgument(Argument arg) {
-    boolean general = false;
     if (arg != null) {
       String longId = arg.getLongIdentifier();
-      general = OPTION_LONG_HELP.equals(longId) ||
-                    OPTION_LONG_PRODUCT_VERSION.equals(longId);
+      return OPTION_LONG_HELP.equals(longId)
+          || OPTION_LONG_PRODUCT_VERSION.equals(longId);
     }
-    return general;
+    return false;
   }
 
   /**
@@ -1810,12 +1748,7 @@ public class ArgumentParser
    */
   public boolean isUsageArgumentPresent()
   {
-    boolean isUsageArgumentPresent = false;
-    if (usageArgument != null)
-    {
-      isUsageArgumentPresent = usageArgument.isPresent();
-    }
-    return isUsageArgumentPresent;
+    return usageArgument != null && usageArgument.isPresent();
   }
 
   /**
@@ -1845,21 +1778,14 @@ public class ArgumentParser
   public static String getBindPassword(StringArgument clearArg,
       FileBasedArgument fileArg)
   {
-    String pwd;
     if (clearArg.isPresent())
     {
-      pwd = clearArg.getValue();
+      return clearArg.getValue();
     }
-    else
-    if (fileArg.isPresent())
+    else if (fileArg.isPresent())
     {
-      pwd = fileArg.getValue();
+      return fileArg.getValue();
     }
-    else
-    {
-      pwd = null;
-    }
-    return pwd;
+    return null;
   }
 }
-
