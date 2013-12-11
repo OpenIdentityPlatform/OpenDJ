@@ -677,7 +677,6 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
    * @return Returns the relation definition associated with the type
    *         of component that this sub-command handles.
    */
-  @Override
   public RelationDefinition<?, ?> getRelationDefinition() {
     return path.getRelationDefinition();
   }
