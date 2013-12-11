@@ -27,6 +27,7 @@ package org.forgerock.opendj.ldap;
 
 import static com.forgerock.opendj.util.StaticUtils.closeSilently;
 import static org.fest.assertions.Assertions.assertThat;
+import static org.fest.assertions.Fail.fail;
 import static org.forgerock.opendj.ldap.TestCaseUtils.findFreeSocketAddress;
 import static org.forgerock.opendj.ldap.requests.Requests.newSimpleBindRequest;
 import static org.mockito.Mockito.*;
@@ -42,6 +43,7 @@ import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.opendj.ldap.requests.UnbindRequest;
 import org.forgerock.opendj.ldap.responses.BindResult;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
+import org.mockito.ArgumentCaptor;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.mockito.stubbing.Stubber;
@@ -61,10 +63,8 @@ public class LDAPConnectionFactoryTestCase extends SdkTestCase {
      * and no other operations can be performed. Therefore, a timeout should
      * cause the connection to become invalid and an appropriate connection
      * event sent. In addition, no abandon request should be sent.
-     * <p>
-     * This test is failing because the connection remains valid.
      */
-    @Test(enabled = false)
+    @Test
     public void testClientSideTimeoutForBindRequest() throws Exception {
         final AtomicReference<LDAPClientContext> context = new AtomicReference<LDAPClientContext>();
         final Semaphore latch = new Semaphore(0);
@@ -106,12 +106,17 @@ public class LDAPConnectionFactoryTestCase extends SdkTestCase {
             // Wait for the request to timeout.
             try {
                 future.get(TEST_TIMEOUT, TimeUnit.SECONDS);
+                fail("The bind request succeeded unexpectedly");
             } catch (TimeoutResultException e) {
                 assertThat(e.getResult().getResultCode()).isEqualTo(ResultCode.CLIENT_SIDE_TIMEOUT);
                 verify(handler).handleErrorResult(same(e));
 
                 // The connection should no longer be valid.
-                verify(listener).handleConnectionError(eq(false), same(e));
+                ArgumentCaptor<ErrorResultException> capturedError =
+                        ArgumentCaptor.forClass(ErrorResultException.class);
+                verify(listener).handleConnectionError(eq(false), capturedError.capture());
+                assertThat(capturedError.getValue().getResult().getResultCode()).isEqualTo(
+                        ResultCode.CLIENT_SIDE_TIMEOUT);
                 assertThat(connection.isValid()).isFalse();
                 connection.close();
 
@@ -137,14 +142,98 @@ public class LDAPConnectionFactoryTestCase extends SdkTestCase {
     }
 
     /**
+     * Unit test for OPENDJ-1247: as per previous test, except this time verify
+     * that the connection failure removes the connection from a connection
+     * pool.
+     */
+    @Test
+    public void testClientSideTimeoutForBindRequestInConnectionPool() throws Exception {
+        final AtomicReference<LDAPClientContext> context = new AtomicReference<LDAPClientContext>();
+        final Semaphore latch = new Semaphore(0);
+
+        // The server connection should receive a bind, but no abandon request.
+        final ServerConnection<Integer> serverConnection = mock(ServerConnection.class);
+        release(latch).when(serverConnection).handleBind(any(Integer.class), anyInt(),
+                any(BindRequest.class), any(IntermediateResponseHandler.class),
+                any(ResultHandler.class));
+        release(latch).when(serverConnection).handleConnectionClosed(any(Integer.class),
+                any(UnbindRequest.class));
+
+        final LDAPListener server = createServer(latch, context, serverConnection);
+        final ConnectionFactory factory =
+                Connections.newFixedConnectionPool(
+                        new LDAPConnectionFactory(server.getSocketAddress(), new LDAPOptions()
+                                .setTimeout(1, TimeUnit.MILLISECONDS)), 10);
+        Connection connection = null;
+        try {
+            // Get pooled connection to the server.
+            connection = factory.getConnection();
+
+            // Wait for the server to accept the connection.
+            assertThat(latch.tryAcquire(TEST_TIMEOUT, TimeUnit.SECONDS)).isTrue();
+
+            /*
+             * Sanity check: close the connection and reopen. There should be no
+             * interactions with the server due to the pool.
+             */
+            connection.close();
+            connection = factory.getConnection();
+            verifyNoMoreInteractions(serverConnection);
+
+            // Now bind with timeout.
+            final ResultHandler<BindResult> handler = mock(ResultHandler.class);
+            final FutureResult<BindResult> future =
+                    connection.bindAsync(newSimpleBindRequest(), null, handler);
+
+            // Wait for the server to receive the bind request.
+            assertThat(latch.tryAcquire(TEST_TIMEOUT, TimeUnit.SECONDS)).isTrue();
+
+            // Wait for the request to timeout.
+            try {
+                future.get(TEST_TIMEOUT, TimeUnit.SECONDS);
+                fail("The bind request succeeded unexpectedly");
+            } catch (TimeoutResultException e) {
+                assertThat(e.getResult().getResultCode()).isEqualTo(ResultCode.CLIENT_SIDE_TIMEOUT);
+                verify(handler).handleErrorResult(same(e));
+
+                // The connection should no longer be valid.
+                assertThat(connection.isValid()).isFalse();
+                connection.close();
+
+                // Wait for the server to receive the close request.
+                assertThat(latch.tryAcquire(TEST_TIMEOUT, TimeUnit.SECONDS)).isTrue();
+
+                /*
+                 * Check that the only interactions were the bind and the close
+                 * and specifically there was no abandon request.
+                 */
+                verify(serverConnection).handleBind(any(Integer.class), eq(3),
+                        any(BindRequest.class), any(IntermediateResponseHandler.class),
+                        any(ResultHandler.class));
+                verify(serverConnection).handleConnectionClosed(any(Integer.class),
+                        any(UnbindRequest.class));
+                verifyNoMoreInteractions(serverConnection);
+
+                // Now get another connection. This time we should reconnect to the server.
+                connection = factory.getConnection();
+
+                // Wait for the server to accept the connection.
+                assertThat(latch.tryAcquire(TEST_TIMEOUT, TimeUnit.SECONDS)).isTrue();
+            }
+        } finally {
+            closeSilently(connection);
+            factory.close();
+            server.close();
+        }
+    }
+
+    /**
      * Unit test for OPENDJ-1247: a locally timed out request which is not a
      * bind or startTLS should result in a client side timeout error, but the
      * connection should remain valid. In addition, no abandon request should be
      * sent.
-     * <p>
-     * This test is failing because no abandon request is received.
      */
-    @Test(enabled = false)
+    @Test
     public void testClientSideTimeoutForSearchRequest() throws Exception {
         final AtomicReference<LDAPClientContext> context = new AtomicReference<LDAPClientContext>();
         final Semaphore latch = new Semaphore(0);
@@ -186,6 +275,7 @@ public class LDAPConnectionFactoryTestCase extends SdkTestCase {
             // Wait for the request to timeout.
             try {
                 future.get(TEST_TIMEOUT, TimeUnit.SECONDS);
+                fail("The search request succeeded unexpectedly");
             } catch (TimeoutResultException e) {
                 assertThat(e.getResult().getResultCode()).isEqualTo(ResultCode.CLIENT_SIDE_TIMEOUT);
                 verify(handler).handleErrorResult(same(e));
