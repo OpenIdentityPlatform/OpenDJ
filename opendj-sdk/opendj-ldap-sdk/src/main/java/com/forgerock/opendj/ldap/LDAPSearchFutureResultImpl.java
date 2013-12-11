@@ -27,6 +27,8 @@
 
 package com.forgerock.opendj.ldap;
 
+import static org.forgerock.opendj.ldap.controls.PersistentSearchRequestControl.ACTIVE_DIRECTORY_OID;
+
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.IntermediateResponseHandler;
 import org.forgerock.opendj.ldap.ResultCode;
@@ -54,7 +56,9 @@ final class LDAPSearchFutureResultImpl extends AbstractLDAPFutureResultImpl<Resu
         super(requestID, resultHandler, intermediateResponseHandler, connection);
         this.request = request;
         this.searchResultHandler = resultHandler;
-        this.isPersistentSearch = request.containsControl(PersistentSearchRequestControl.OID);
+        this.isPersistentSearch =
+                request.containsControl(PersistentSearchRequestControl.OID)
+                        || request.containsControl(ACTIVE_DIRECTORY_OID);
     }
 
     public boolean handleEntry(final SearchResultEntry entry) {
