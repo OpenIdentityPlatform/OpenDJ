@@ -203,15 +203,7 @@ public class AsynchronousFutureResult<M, H extends ResultHandler<? super M>> imp
         }
 
         private boolean setStatePending() {
-            for (;;) {
-                final int s = getState();
-                if (s != WAITING) {
-                    return false;
-                }
-                if (compareAndSetState(s, PENDING)) {
-                    return true;
-                }
-            }
+            return compareAndSetState(WAITING, PENDING);
         }
     }
 
