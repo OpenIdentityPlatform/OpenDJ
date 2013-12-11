@@ -94,8 +94,31 @@ abstract class AbstractLDAPFutureResultImpl<S extends Result>
      */
     @Override
     protected final ErrorResultException handleCancelRequest(final boolean mayInterruptIfRunning) {
+        /*
+         * This will abandon the request, but will also recursively cancel this
+         * future. There is no risk of an infinite loop because the state of
+         * this future has already been changed.
+         */
         connection.abandonAsync(Requests.newAbandonRequest(requestID));
         return null;
+    }
+
+    @Override
+    protected final boolean isCancelable() {
+        /*
+         * No other operations can be performed while a bind or startTLS
+         * operations is active. Therefore it is not possible to cancel bind or
+         * startTLS requests, since doing so will leave the connection in a
+         * state which prevents other operations from being performed.
+         */
+        return !isBindOrStartTLS();
+    }
+
+    /**
+     * Returns {@code false} by default.
+     */
+    boolean isBindOrStartTLS() {
+        return false;
     }
 
     @Override

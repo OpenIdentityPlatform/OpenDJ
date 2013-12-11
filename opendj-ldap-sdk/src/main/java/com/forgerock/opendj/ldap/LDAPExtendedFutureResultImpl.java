@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS.
+ *      Portions copyright 2011-2013 ForgeRock AS.
  */
 
 package com.forgerock.opendj.ldap;
@@ -66,12 +66,9 @@ final class LDAPExtendedFutureResultImpl<R extends ExtendedResult> extends
         return sb.toString();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    protected boolean isCancelable() {
-        return !request.getOID().equals(StartTLSExtendedRequest.OID);
+    boolean isBindOrStartTLS() {
+        return request.getOID().equals(StartTLSExtendedRequest.OID);
     }
 
     R decodeResult(final ExtendedResult result, final DecodeOptions options) throws DecodeException {
