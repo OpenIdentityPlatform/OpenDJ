@@ -56,7 +56,7 @@ import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.types.*;
 import org.opends.server.types.operation.*;
-import org.opends.server.workflowelement.localbackend.LocalBackendSearchOperation;
+import org.opends.server.workflowelement.localbackend.*;
 
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.messages.CoreMessages.*;
