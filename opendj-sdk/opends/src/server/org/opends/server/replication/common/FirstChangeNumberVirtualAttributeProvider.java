@@ -35,7 +35,6 @@ import org.opends.messages.Message;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.UserDefinedVirtualAttributeCfg;
 import org.opends.server.api.VirtualAttributeProvider;
-import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.loggers.debug.DebugTracer;
@@ -69,45 +68,14 @@ public class FirstChangeNumberVirtualAttributeProvider
     // initializeVirtualAttributeProvider method.
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public void initializeVirtualAttributeProvider(
-                            UserDefinedVirtualAttributeCfg configuration)
-         throws ConfigException, InitializationException
-  {
-    // No initialization required
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public void finalizeVirtualAttributeProvider()
-  {
-    // nothing to finalize
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public boolean isMultiValued()
   {
     return false;
   }
 
-
-  /**
-   *  {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean hasValue(Entry entry, VirtualAttributeRule rule)
   {
@@ -115,10 +83,7 @@ public class FirstChangeNumberVirtualAttributeProvider
     return entry.getDN().isNullDN();
   }
 
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public Set<AttributeValue> getValues(Entry entry,VirtualAttributeRule rule)
   {
@@ -152,11 +117,7 @@ public class FirstChangeNumberVirtualAttributeProvider
     return Collections.singleton(AttributeValues.create(valueBS, valueBS));
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public boolean isSearchable(VirtualAttributeRule rule,
                               SearchOperation searchOperation,
@@ -167,11 +128,7 @@ public class FirstChangeNumberVirtualAttributeProvider
     return false;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public void processSearch(VirtualAttributeRule rule,
                             SearchOperation searchOperation)
@@ -182,11 +139,7 @@ public class FirstChangeNumberVirtualAttributeProvider
     searchOperation.appendErrorMessage(message);
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
                       UserDefinedVirtualAttributeCfg configuration,
@@ -195,11 +148,7 @@ public class FirstChangeNumberVirtualAttributeProvider
     return false;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
                                  UserDefinedVirtualAttributeCfg configuration)

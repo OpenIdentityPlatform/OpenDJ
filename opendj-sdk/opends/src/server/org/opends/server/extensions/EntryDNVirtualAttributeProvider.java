@@ -23,21 +23,14 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2012 ForgeRock AS
+ *      Portions Copyright 2012-2013 ForgeRock AS
  */
 package org.opends.server.extensions;
 
-
-
-import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import org.opends.server.admin.std.server.EntryDNVirtualAttributeCfg;
 import org.opends.server.api.VirtualAttributeProvider;
-import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.loggers.debug.DebugTracer;
@@ -45,8 +38,6 @@ import org.opends.server.types.*;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.ServerConstants.*;
-
-
 
 /**
  * This class implements a virtual attribute provider that is meant to serve the
@@ -71,35 +62,14 @@ public class EntryDNVirtualAttributeProvider
     // initializeVirtualAttributeProvider method.
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public void initializeVirtualAttributeProvider(
-                            EntryDNVirtualAttributeCfg configuration)
-         throws ConfigException, InitializationException
-  {
-    // No initialization is required.
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public boolean isMultiValued()
   {
     return false;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public Set<AttributeValue> getValues(Entry entry,
                                        VirtualAttributeRule rule)
@@ -111,11 +81,7 @@ public class EntryDNVirtualAttributeProvider
     return Collections.singleton(value);
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public boolean hasValue(Entry entry, VirtualAttributeRule rule)
   {
@@ -123,11 +89,7 @@ public class EntryDNVirtualAttributeProvider
     return true;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public boolean hasValue(Entry entry, VirtualAttributeRule rule,
                           AttributeValue value)
@@ -149,11 +111,7 @@ public class EntryDNVirtualAttributeProvider
     }
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public boolean hasAnyValue(Entry entry, VirtualAttributeRule rule,
                              Collection<AttributeValue> values)
@@ -165,11 +123,7 @@ public class EntryDNVirtualAttributeProvider
     return values.contains(v);
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public ConditionResult matchesSubstring(Entry entry,
                                           VirtualAttributeRule rule,
@@ -181,11 +135,7 @@ public class EntryDNVirtualAttributeProvider
     return ConditionResult.UNDEFINED;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public ConditionResult greaterThanOrEqualTo(Entry entry,
                               VirtualAttributeRule rule,
@@ -195,11 +145,7 @@ public class EntryDNVirtualAttributeProvider
     return ConditionResult.UNDEFINED;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public ConditionResult lessThanOrEqualTo(Entry entry,
                               VirtualAttributeRule rule,
@@ -209,11 +155,7 @@ public class EntryDNVirtualAttributeProvider
     return ConditionResult.UNDEFINED;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public ConditionResult approximatelyEqualTo(Entry entry,
                               VirtualAttributeRule rule,
@@ -306,11 +248,7 @@ public class EntryDNVirtualAttributeProvider
     }
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public void processSearch(VirtualAttributeRule rule,
                             SearchOperation searchOperation)
@@ -336,7 +274,7 @@ public class EntryDNVirtualAttributeProvider
       try
       {
         Entry entry = DirectoryServer.getEntry(dn);
-        if ((entry != null) && filter.matchesEntry(entry))
+        if (entry != null && filter.matchesEntry(entry))
         {
           searchOperation.returnEntry(entry, null);
         }

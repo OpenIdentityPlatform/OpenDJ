@@ -23,11 +23,9 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2012 ForgeRock AS
+ *      Portions Copyright 2012-2013 ForgeRock AS
  */
 package org.opends.server.extensions;
-
-
 
 import java.util.Collections;
 import java.util.List;
@@ -36,14 +34,11 @@ import java.util.Set;
 import org.opends.messages.Message;
 import org.opends.server.admin.std.server.SubschemaSubentryVirtualAttributeCfg;
 import org.opends.server.api.VirtualAttributeProvider;
-import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.types.*;
 
 import static org.opends.messages.ExtensionMessages.*;
-
-
 
 /**
  * This class implements a virtual attribute provider that is meant to serve the
@@ -64,35 +59,14 @@ public class SubschemaSubentryVirtualAttributeProvider
     // initializeVirtualAttributeProvider method.
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public void initializeVirtualAttributeProvider(
-                            SubschemaSubentryVirtualAttributeCfg configuration)
-         throws ConfigException, InitializationException
-  {
-    // No initialization is required.
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public boolean isMultiValued()
   {
     return false;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public Set<AttributeValue> getValues(Entry entry,
                                        VirtualAttributeRule rule)
@@ -108,11 +82,7 @@ public class SubschemaSubentryVirtualAttributeProvider
     return Collections.singleton(value);
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public ConditionResult matchesSubstring(Entry entry,
                                           VirtualAttributeRule rule,
@@ -124,11 +94,7 @@ public class SubschemaSubentryVirtualAttributeProvider
     return ConditionResult.UNDEFINED;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public ConditionResult greaterThanOrEqualTo(Entry entry,
                               VirtualAttributeRule rule,
@@ -138,11 +104,7 @@ public class SubschemaSubentryVirtualAttributeProvider
     return ConditionResult.UNDEFINED;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public ConditionResult lessThanOrEqualTo(Entry entry,
                               VirtualAttributeRule rule,
@@ -152,11 +114,7 @@ public class SubschemaSubentryVirtualAttributeProvider
     return ConditionResult.UNDEFINED;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public ConditionResult approximatelyEqualTo(Entry entry,
                               VirtualAttributeRule rule,
@@ -166,11 +124,7 @@ public class SubschemaSubentryVirtualAttributeProvider
     return ConditionResult.UNDEFINED;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public boolean isSearchable(VirtualAttributeRule rule,
                               SearchOperation searchOperation,
@@ -181,11 +135,7 @@ public class SubschemaSubentryVirtualAttributeProvider
     return false;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public void processSearch(VirtualAttributeRule rule,
                             SearchOperation searchOperation)

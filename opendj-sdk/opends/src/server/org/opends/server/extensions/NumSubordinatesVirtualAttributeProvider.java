@@ -23,11 +23,9 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2012 ForgeRock AS
+ *      Portions Copyright 2012-2013 ForgeRock AS
  */
 package org.opends.server.extensions;
-
-
 
 import java.util.Collections;
 import java.util.List;
@@ -35,19 +33,15 @@ import java.util.Set;
 
 import org.opends.messages.Message;
 import org.opends.server.admin.std.server.NumSubordinatesVirtualAttributeCfg;
-import org.opends.server.api.VirtualAttributeProvider;
 import org.opends.server.api.Backend;
-import org.opends.server.config.ConfigException;
+import org.opends.server.api.VirtualAttributeProvider;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.*;
 
 import static org.opends.messages.ExtensionMessages.*;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-
-
+import static org.opends.server.loggers.debug.DebugLogger.*;
 
 /**
  * This class implements a virtual attribute provider that is meant to serve the
@@ -73,35 +67,14 @@ public class NumSubordinatesVirtualAttributeProvider
     // initializeVirtualAttributeProvider method.
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public void initializeVirtualAttributeProvider(
-                            NumSubordinatesVirtualAttributeCfg configuration)
-         throws ConfigException, InitializationException
-  {
-    // No initialization is required.
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public boolean isMultiValued()
   {
     return false;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public Set<AttributeValue> getValues(Entry entry,
                                        VirtualAttributeRule rule)
@@ -130,11 +103,7 @@ public class NumSubordinatesVirtualAttributeProvider
     return Collections.emptySet();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public boolean hasValue(Entry entry, VirtualAttributeRule rule)
   {
@@ -155,11 +124,7 @@ public class NumSubordinatesVirtualAttributeProvider
     }
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public boolean hasValue(Entry entry, VirtualAttributeRule rule,
                           AttributeValue value)
@@ -169,12 +134,8 @@ public class NumSubordinatesVirtualAttributeProvider
     try
     {
       long count = backend.numSubordinates(entry.getDN(), false);
-      if(count >= 0)
-      {
-        return Long.parseLong(value.getNormalizedValue().toString())
-            == count;
-      }
-      return false;
+      return count >= 0
+          && Long.parseLong(value.getNormalizedValue().toString()) == count;
     }
     catch(DirectoryException de)
     {
@@ -187,11 +148,7 @@ public class NumSubordinatesVirtualAttributeProvider
     }
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public ConditionResult matchesSubstring(Entry entry,
                                           VirtualAttributeRule rule,
@@ -203,11 +160,7 @@ public class NumSubordinatesVirtualAttributeProvider
     return ConditionResult.UNDEFINED;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public ConditionResult approximatelyEqualTo(Entry entry,
                               VirtualAttributeRule rule,
@@ -217,11 +170,7 @@ public class NumSubordinatesVirtualAttributeProvider
     return ConditionResult.UNDEFINED;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public boolean isSearchable(VirtualAttributeRule rule,
                               SearchOperation searchOperation,
@@ -230,11 +179,7 @@ public class NumSubordinatesVirtualAttributeProvider
     return false;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public void processSearch(VirtualAttributeRule rule,
                             SearchOperation searchOperation)

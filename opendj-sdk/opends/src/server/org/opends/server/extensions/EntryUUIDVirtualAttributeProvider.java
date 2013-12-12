@@ -23,11 +23,9 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2012 ForgeRock AS
+ *      Portions Copyright 2012-2013 ForgeRock AS
  */
 package org.opends.server.extensions;
-
-
 
 import java.util.Collections;
 import java.util.List;
@@ -37,7 +35,6 @@ import java.util.UUID;
 import org.opends.messages.Message;
 import org.opends.server.admin.std.server.EntryUUIDVirtualAttributeCfg;
 import org.opends.server.api.VirtualAttributeProvider;
-import org.opends.server.config.ConfigException;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.*;
@@ -46,12 +43,10 @@ import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.StaticUtils.*;
 
-
-
 /**
  * This class implements a virtual attribute provider that is meant to serve the
  * entryUUID operational attribute as described in RFC 4530.  Note that this
- * should only be used for entries used in conjuntion with data in private
+ * should only be used for entries used in conjunction with data in private
  * backends (e.g., those holding the configuration, schema, monitor, and root
  * DSE entries).  Real user data should have entry UUID values generated at the
  * time the entries are added or imported.
@@ -75,35 +70,14 @@ public class EntryUUIDVirtualAttributeProvider
     // initializeVirtualAttributeProvider method.
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public void initializeVirtualAttributeProvider(
-                            EntryUUIDVirtualAttributeCfg configuration)
-         throws ConfigException, InitializationException
-  {
-    // No initialization is required.
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public boolean isMultiValued()
   {
     return false;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public Set<AttributeValue> getValues(Entry entry,
                                        VirtualAttributeRule rule)
@@ -117,11 +91,7 @@ public class EntryUUIDVirtualAttributeProvider
     return Collections.singleton(value);
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public boolean hasValue(Entry entry, VirtualAttributeRule rule)
   {
@@ -129,11 +99,7 @@ public class EntryUUIDVirtualAttributeProvider
     return true;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public boolean hasValue(Entry entry, VirtualAttributeRule rule,
                           AttributeValue value)
@@ -158,11 +124,7 @@ public class EntryUUIDVirtualAttributeProvider
     }
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public ConditionResult matchesSubstring(Entry entry,
                                           VirtualAttributeRule rule,
@@ -174,11 +136,7 @@ public class EntryUUIDVirtualAttributeProvider
     return ConditionResult.UNDEFINED;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public ConditionResult greaterThanOrEqualTo(Entry entry,
                               VirtualAttributeRule rule,
@@ -188,11 +146,7 @@ public class EntryUUIDVirtualAttributeProvider
     return ConditionResult.UNDEFINED;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public ConditionResult lessThanOrEqualTo(Entry entry,
                               VirtualAttributeRule rule,
@@ -202,11 +156,7 @@ public class EntryUUIDVirtualAttributeProvider
     return ConditionResult.UNDEFINED;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public ConditionResult approximatelyEqualTo(Entry entry,
                               VirtualAttributeRule rule,
@@ -216,11 +166,7 @@ public class EntryUUIDVirtualAttributeProvider
     return ConditionResult.UNDEFINED;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public boolean isSearchable(VirtualAttributeRule rule,
                               SearchOperation searchOperation,
@@ -229,11 +175,7 @@ public class EntryUUIDVirtualAttributeProvider
     return false;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public void processSearch(VirtualAttributeRule rule,
                             SearchOperation searchOperation)

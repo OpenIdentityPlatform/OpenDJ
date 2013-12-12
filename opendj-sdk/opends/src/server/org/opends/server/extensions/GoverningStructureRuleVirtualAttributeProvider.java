@@ -23,11 +23,9 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions Copyright 2012 ForgeRock AS
+ *      Portions Copyright 2012-2013 ForgeRock AS
  */
 package org.opends.server.extensions;
-
-
 
 import java.util.Collections;
 import java.util.List;
@@ -37,14 +35,11 @@ import org.opends.messages.Message;
 import org.opends.server.admin.std.server.
         GoverningStructureRuleVirtualAttributeCfg;
 import org.opends.server.api.VirtualAttributeProvider;
-import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.types.*;
 
 import static org.opends.messages.ExtensionMessages.*;
-
-
 
 /**
  * This class implements a virtual attribute provider that is meant to serve
@@ -65,35 +60,14 @@ public class GoverningStructureRuleVirtualAttributeProvider  extends
     // initializeVirtualAttributeProvider method.
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public void initializeVirtualAttributeProvider(
-                      GoverningStructureRuleVirtualAttributeCfg configuration)
-         throws ConfigException, InitializationException
-  {
-    // No initialization is required.
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public boolean isMultiValued()
   {
     return false;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public Set<AttributeValue> getValues(Entry entry,
                                        VirtualAttributeRule rule)
@@ -110,22 +84,14 @@ public class GoverningStructureRuleVirtualAttributeProvider  extends
     return Collections.<AttributeValue>emptySet();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public boolean hasValue(Entry entry, VirtualAttributeRule rule)
   {
     return getDITStructureRule(entry)!=null;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public ConditionResult matchesSubstring(Entry entry,
                                           VirtualAttributeRule rule,
@@ -137,11 +103,7 @@ public class GoverningStructureRuleVirtualAttributeProvider  extends
     return ConditionResult.UNDEFINED;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public ConditionResult greaterThanOrEqualTo(Entry entry,
                               VirtualAttributeRule rule,
@@ -151,11 +113,7 @@ public class GoverningStructureRuleVirtualAttributeProvider  extends
     return ConditionResult.UNDEFINED;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public ConditionResult lessThanOrEqualTo(Entry entry,
                               VirtualAttributeRule rule,
@@ -165,11 +123,7 @@ public class GoverningStructureRuleVirtualAttributeProvider  extends
     return ConditionResult.UNDEFINED;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public ConditionResult approximatelyEqualTo(Entry entry,
                               VirtualAttributeRule rule,
@@ -179,11 +133,7 @@ public class GoverningStructureRuleVirtualAttributeProvider  extends
     return ConditionResult.UNDEFINED;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public boolean isSearchable(VirtualAttributeRule rule,
                               SearchOperation searchOperation,
@@ -193,11 +143,7 @@ public class GoverningStructureRuleVirtualAttributeProvider  extends
     return false;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public void processSearch(VirtualAttributeRule rule,
                             SearchOperation searchOperation)
@@ -209,9 +155,7 @@ public class GoverningStructureRuleVirtualAttributeProvider  extends
     searchOperation.appendErrorMessage(message);
   }
 
-
-
-  //Checks if the entry matches the nameform.
+  /** Checks if the entry matches the nameform. */
   private boolean matchesNameForm(NameForm nameForm,
                        AcceptRejectWarn structuralPolicy,
                        Entry entry)
@@ -222,12 +166,10 @@ public class GoverningStructureRuleVirtualAttributeProvider  extends
       // Make sure that all the required attributes are present.
       for (AttributeType t : nameForm.getRequiredAttributes())
       {
-        if (! rdn.hasAttributeType(t))
+        if (!rdn.hasAttributeType(t)
+            && structuralPolicy == AcceptRejectWarn.REJECT)
         {
-          if (structuralPolicy == AcceptRejectWarn.REJECT)
-          {
-            return false;
-          }
+          return false;
         }
       }
 
@@ -236,21 +178,17 @@ public class GoverningStructureRuleVirtualAttributeProvider  extends
       for (int i = 0; i < numAVAs; i++)
       {
         AttributeType t = rdn.getAttributeType(i);
-        if (! nameForm.isRequiredOrOptional(t))
+        if (!nameForm.isRequiredOrOptional(t)
+            && structuralPolicy == AcceptRejectWarn.REJECT)
         {
-          if (structuralPolicy == AcceptRejectWarn.REJECT)
-          {
-            return false;
-          }
+          return false;
         }
        }
      }
     return true;
   }
 
-
-
-  //Finds the appropriate DIT structure rule for an entry.
+  /** Finds the appropriate DIT structure rule for an entry. */
   private DITStructureRule getDITStructureRule(Entry entry)
   {
     ObjectClass oc = entry.getStructuralObjectClass();
@@ -261,28 +199,26 @@ public class GoverningStructureRuleVirtualAttributeProvider  extends
     //select the first one that matches. Since the entry exists, the same
     //algorithm should work fine to retrieve the nameform which was
     //applied while creating the entry.
-    if(listForms != null)
+    if (listForms != null)
     {
       boolean obsolete = true;
       AcceptRejectWarn structuralPolicy =
-         DirectoryServer.getSingleStructuralObjectClassPolicy();
-      for(NameForm nf : listForms)
+        DirectoryServer.getSingleStructuralObjectClassPolicy();
+      for (NameForm nf : listForms)
       {
-        if(!nf.isObsolete())
+        if (!nf.isObsolete())
         {
           obsolete = false;
-          if(matchesNameForm(nf,
-                  structuralPolicy, entry))
+          if (matchesNameForm(nf, structuralPolicy, entry))
           {
            nameForm = nf;
            break;
           }
         }
       }
-      if( nameForm != null && !obsolete)
+      if (nameForm != null && !obsolete)
       {
-        ditRule =
-                DirectoryServer.getDITStructureRule(nameForm);
+        ditRule = DirectoryServer.getDITStructureRule(nameForm);
       }
     }
     return ditRule;

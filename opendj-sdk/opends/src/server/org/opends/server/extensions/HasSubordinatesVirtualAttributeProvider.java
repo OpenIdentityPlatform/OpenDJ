@@ -23,11 +23,9 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2012 ForgeRock AS
+ *      Portions Copyright 2012-2013 ForgeRock AS
  */
 package org.opends.server.extensions;
-
-
 
 import java.util.Collections;
 import java.util.List;
@@ -35,19 +33,15 @@ import java.util.Set;
 
 import org.opends.messages.Message;
 import org.opends.server.admin.std.server.HasSubordinatesVirtualAttributeCfg;
-import org.opends.server.api.VirtualAttributeProvider;
 import org.opends.server.api.Backend;
+import org.opends.server.api.VirtualAttributeProvider;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SearchOperation;
-import org.opends.server.config.ConfigException;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.*;
 
 import static org.opends.messages.ExtensionMessages.*;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-
-
+import static org.opends.server.loggers.debug.DebugLogger.*;
 
 /**
  * This class implements a virtual attribute provider that is meant to serve the
@@ -72,35 +66,14 @@ public class HasSubordinatesVirtualAttributeProvider
     // initializeVirtualAttributeProvider method.
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public void initializeVirtualAttributeProvider(
-                            HasSubordinatesVirtualAttributeCfg configuration)
-         throws ConfigException, InitializationException
-  {
-    // No initialization is required.
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public boolean isMultiValued()
   {
     return false;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public Set<AttributeValue> getValues(Entry entry,
                                        VirtualAttributeRule rule)
@@ -129,11 +102,7 @@ public class HasSubordinatesVirtualAttributeProvider
     return Collections.emptySet();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public boolean hasValue(Entry entry, VirtualAttributeRule rule)
   {
@@ -155,11 +124,7 @@ public class HasSubordinatesVirtualAttributeProvider
     }
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public boolean hasValue(Entry entry, VirtualAttributeRule rule,
                           AttributeValue value)
@@ -169,12 +134,10 @@ public class HasSubordinatesVirtualAttributeProvider
     try
     {
       ConditionResult ret = backend.hasSubordinates(entry.getDN());
-      if(ret != null && ret != ConditionResult.UNDEFINED)
-      {
-        return ConditionResult.valueOf(
-            value.getNormalizedValue().toString()).equals(ret);
-      }
-      return false;
+      return ret != null
+          && ret != ConditionResult.UNDEFINED
+          && ConditionResult.valueOf(value.getNormalizedValue().toString())
+              .equals(ret);
     }
     catch(DirectoryException de)
     {
@@ -187,11 +150,7 @@ public class HasSubordinatesVirtualAttributeProvider
     }
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public ConditionResult matchesSubstring(Entry entry,
                                           VirtualAttributeRule rule,
@@ -203,11 +162,7 @@ public class HasSubordinatesVirtualAttributeProvider
     return ConditionResult.UNDEFINED;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public ConditionResult greaterThanOrEqualTo(Entry entry,
                               VirtualAttributeRule rule,
@@ -217,11 +172,7 @@ public class HasSubordinatesVirtualAttributeProvider
     return ConditionResult.UNDEFINED;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public ConditionResult lessThanOrEqualTo(Entry entry,
                               VirtualAttributeRule rule,
@@ -231,11 +182,7 @@ public class HasSubordinatesVirtualAttributeProvider
     return ConditionResult.UNDEFINED;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public ConditionResult approximatelyEqualTo(Entry entry,
                               VirtualAttributeRule rule,
@@ -245,11 +192,7 @@ public class HasSubordinatesVirtualAttributeProvider
     return ConditionResult.UNDEFINED;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public boolean isSearchable(VirtualAttributeRule rule,
                               SearchOperation searchOperation,
@@ -258,11 +201,7 @@ public class HasSubordinatesVirtualAttributeProvider
     return false;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public void processSearch(VirtualAttributeRule rule,
                             SearchOperation searchOperation)

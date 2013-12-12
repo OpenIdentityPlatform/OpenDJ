@@ -23,9 +23,8 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2012 ForgeRock AS
+ *      Portions copyright 2011-2013 ForgeRock AS
  */
-
 package org.opends.server.extensions;
 
 import java.util.Collections;
@@ -39,7 +38,6 @@ import org.opends.server.admin.std.server.
 import org.opends.server.api.VirtualAttributeProvider;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SearchOperation;
-import org.opends.server.config.ConfigException;
 import org.opends.server.types.*;
 
 import static org.opends.messages.ExtensionMessages.*;
@@ -65,35 +63,14 @@ public class CollectiveAttributeSubentriesVirtualAttributeProvider
     // initializeVirtualAttributeProvider method.
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public void initializeVirtualAttributeProvider(
-          CollectiveAttributeSubentriesVirtualAttributeCfg configuration)
-          throws ConfigException, InitializationException
-  {
-    // No initialization is required.
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public boolean isMultiValued()
   {
     return true;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public Set<AttributeValue> getValues(Entry entry,
                                        VirtualAttributeRule rule)
@@ -135,21 +112,14 @@ public class CollectiveAttributeSubentriesVirtualAttributeProvider
       }
     }
 
-    if (values == null)
-    {
-      return Collections.emptySet();
-    }
-    else
+    if (values != null)
     {
       return Collections.unmodifiableSet(values);
     }
+    return Collections.emptySet();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public boolean isSearchable(VirtualAttributeRule rule,
                               SearchOperation searchOperation,
@@ -158,11 +128,7 @@ public class CollectiveAttributeSubentriesVirtualAttributeProvider
     return false;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public void processSearch(VirtualAttributeRule rule,
                             SearchOperation searchOperation)
