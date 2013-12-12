@@ -34,6 +34,7 @@ import static org.forgerock.opendj.ldap.ErrorResultException.*;
 import java.io.IOException;
 import java.net.SocketAddress;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -167,7 +168,9 @@ public final class LDAPConnectionFactoryImpl implements ConnectionFactory {
             connection.configureBlocking(true);
             final LDAPConnection ldapConnection =
                     new LDAPConnection(connection, LDAPConnectionFactoryImpl.this);
-            timeoutChecker.get().addConnection(ldapConnection);
+            if (options.getTimeout(TimeUnit.MILLISECONDS) > 0) {
+                timeoutChecker.get().addConnection(ldapConnection);
+            }
             clientFilter.registerConnection(connection, ldapConnection);
             return ldapConnection;
         }

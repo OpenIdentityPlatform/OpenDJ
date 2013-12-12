@@ -48,7 +48,6 @@ abstract class AbstractLDAPFutureResultImpl<S extends Result>
         extends AsynchronousFutureResult<S, ResultHandler<? super S>>
         implements IntermediateResponseHandler {
     private final Connection connection;
-    private final int requestID;
     private IntermediateResponseHandler intermediateResponseHandler;
     private volatile long timestamp;
 
@@ -56,19 +55,10 @@ abstract class AbstractLDAPFutureResultImpl<S extends Result>
         final ResultHandler<? super S> resultHandler,
         final IntermediateResponseHandler intermediateResponseHandler,
         final Connection connection) {
-        super(resultHandler);
-        this.requestID = requestID;
+        super(resultHandler, requestID);
         this.connection = connection;
         this.intermediateResponseHandler = intermediateResponseHandler;
         this.timestamp = System.currentTimeMillis();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public final int getRequestID() {
-        return requestID;
     }
 
     /** {@inheritDoc} */
@@ -99,7 +89,7 @@ abstract class AbstractLDAPFutureResultImpl<S extends Result>
          * future. There is no risk of an infinite loop because the state of
          * this future has already been changed.
          */
-        connection.abandonAsync(Requests.newAbandonRequest(requestID));
+        connection.abandonAsync(Requests.newAbandonRequest(getRequestID()));
         return null;
     }
 
@@ -124,7 +114,7 @@ abstract class AbstractLDAPFutureResultImpl<S extends Result>
     @Override
     protected void toString(final StringBuilder sb) {
         sb.append(" requestID = ");
-        sb.append(requestID);
+        sb.append(getRequestID());
         sb.append(" timestamp = ");
         sb.append(timestamp);
         super.toString(sb);

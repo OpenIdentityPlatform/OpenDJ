@@ -30,7 +30,6 @@ package com.forgerock.opendj.ldap;
 import static com.forgerock.opendj.util.StaticUtils.DEBUG_LOG;
 import static org.forgerock.opendj.ldap.CoreMessages.*;
 import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
-import static org.forgerock.opendj.ldap.requests.Requests.newAbandonRequest;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -575,65 +574,62 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements Con
 
     long cancelExpiredRequests(final long currentTime) {
         final long timeout = factory.getLDAPOptions().getTimeout(TimeUnit.MILLISECONDS);
+        if (timeout <= 0) {
+            return 0;
+        }
+
         long delay = timeout;
-        if (timeout > 0) {
-            for (final int requestID : pendingRequests.keySet()) {
-                final AbstractLDAPFutureResultImpl<?> future = pendingRequests.get(requestID);
-                if (future != null && future.checkForTimeout()) {
-                    final long diff = (future.getTimestamp() + timeout) - currentTime;
-                    if (diff <= 0 && pendingRequests.remove(requestID) != null) {
-                        if (future.isBindOrStartTLS()) {
-                            /*
-                             * No other operations can be performed while a bind
-                             * or StartTLS request is active, so we cannot time
-                             * out the request. We therefore have a choice:
-                             * either ignore timeouts for these operations, or
-                             * enforce them but doing so requires invalidating
-                             * the connection. We'll do the latter, since
-                             * ignoring timeouts could cause the application to
-                             * hang.
-                             */
-                            DEBUG_LOG.fine("Failing bind or StartTLS request due to timeout "
-                                    + "(connection will be invalidated): " + future);
-                            final Result result =
-                                    Responses.newResult(ResultCode.CLIENT_SIDE_TIMEOUT)
-                                            .setDiagnosticMessage(
-                                                    LDAP_CONNECTION_BIND_OR_START_TLS_REQUEST_TIMEOUT
-                                                            .get(timeout).toString());
-                            future.adaptErrorResult(result);
+        for (final AbstractLDAPFutureResultImpl<?> future : pendingRequests.values()) {
+            if (future == null || !future.checkForTimeout()) {
+                continue;
+            }
+            final long diff = (future.getTimestamp() + timeout) - currentTime;
+            if (diff > 0) {
+                // Will expire in diff milliseconds.
+                delay = Math.min(delay, diff);
+            } else if (pendingRequests.remove(future.getRequestID()) == null) {
+                // Result arrived at the same time.
+                continue;
+            } else if (future.isBindOrStartTLS()) {
+                /*
+                 * No other operations can be performed while a bind or StartTLS
+                 * request is active, so we cannot time out the request. We
+                 * therefore have a choice: either ignore timeouts for these
+                 * operations, or enforce them but doing so requires
+                 * invalidating the connection. We'll do the latter, since
+                 * ignoring timeouts could cause the application to hang.
+                 */
+                DEBUG_LOG.fine("Failing bind or StartTLS request due to timeout "
+                        + "(connection will be invalidated): " + future);
+                final Result result =
+                        Responses.newResult(ResultCode.CLIENT_SIDE_TIMEOUT).setDiagnosticMessage(
+                                LDAP_CONNECTION_BIND_OR_START_TLS_REQUEST_TIMEOUT.get(timeout)
+                                        .toString());
+                future.adaptErrorResult(result);
 
-                            // Fail the connection.
-                            final Result errorResult =
-                                    Responses.newResult(ResultCode.CLIENT_SIDE_TIMEOUT)
-                                            .setDiagnosticMessage(
-                                                    LDAP_CONNECTION_BIND_OR_START_TLS_CONNECTION_TIMEOUT
-                                                            .get(timeout).toString());
-                            connectionErrorOccurred(errorResult);
-                        } else {
-                            DEBUG_LOG.fine("Failing request due to timeout: " + future);
-                            final Result result =
-                                    Responses.newResult(ResultCode.CLIENT_SIDE_TIMEOUT)
-                                            .setDiagnosticMessage(
-                                                    LDAP_CONNECTION_REQUEST_TIMEOUT.get(timeout)
-                                                            .toString());
-                            future.adaptErrorResult(result);
+                // Fail the connection.
+                final Result errorResult =
+                        Responses.newResult(ResultCode.CLIENT_SIDE_TIMEOUT).setDiagnosticMessage(
+                                LDAP_CONNECTION_BIND_OR_START_TLS_CONNECTION_TIMEOUT.get(timeout)
+                                        .toString());
+                connectionErrorOccurred(errorResult);
+            } else {
+                DEBUG_LOG.fine("Failing request due to timeout: " + future);
+                final Result result =
+                        Responses.newResult(ResultCode.CLIENT_SIDE_TIMEOUT).setDiagnosticMessage(
+                                LDAP_CONNECTION_REQUEST_TIMEOUT.get(timeout).toString());
+                future.adaptErrorResult(result);
 
-                            /*
-                             * FIXME: there's a potential race condition here if
-                             * a bind or startTLS is initiated just after we
-                             * check the boolean. It seems potentially even more
-                             * dangerous to send the abandon request while
-                             * holding the state lock, since a blocking write
-                             * could hang the application.
-                             */
-                            if (!bindOrStartTLSInProgress.get()) {
-                                sendAbandonRequest(newAbandonRequest(requestID));
-                            }
-                        }
-                    } else {
-                        delay = Math.min(delay, diff);
-                    }
-                }
+                /*
+                 * FIXME: there's a potential race condition here if a bind or
+                 * startTLS is initiated just after we check the boolean. It
+                 * seems potentially even more dangerous to send the abandon
+                 * request while holding the state lock, since a blocking write
+                 * could hang the application.
+                 */
+//                if (!bindOrStartTLSInProgress.get()) {
+//                    sendAbandonRequest(newAbandonRequest(future.getRequestID()));
+//                }
             }
         }
         return delay;
