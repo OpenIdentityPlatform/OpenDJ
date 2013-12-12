@@ -23,50 +23,34 @@
  *
  *
  *      Copyright 2007-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.core;
-import org.opends.server.types.SearchScope;
-import org.opends.messages.Message;
-
-
 
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.LinkedHashSet;
+import java.util.*;
+import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
+import org.opends.messages.Message;
 import org.opends.server.admin.ClassPropertyDefinition;
 import org.opends.server.admin.server.ConfigurationAddListener;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.server.ConfigurationDeleteListener;
-import org.opends.server.admin.std.meta.VirtualAttributeCfgDefn;
-import org.opends.server.admin.std.server.VirtualAttributeCfg;
-import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.admin.server.ServerManagementContext;
+import org.opends.server.admin.std.meta.VirtualAttributeCfgDefn;
+import org.opends.server.admin.std.server.RootCfg;
+import org.opends.server.admin.std.server.VirtualAttributeCfg;
 import org.opends.server.api.VirtualAttributeProvider;
 import org.opends.server.config.ConfigException;
-import org.opends.server.types.ConfigChangeResult;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.DN;
-
-
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.ResultCode;
-import org.opends.server.types.SearchFilter;
-import org.opends.server.types.VirtualAttributeRule;
-
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.loggers.ErrorLogger;
+import org.opends.server.loggers.debug.DebugTracer;
+import org.opends.server.types.*;
+
 import static org.opends.messages.ConfigMessages.*;
-
+import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.StaticUtils.*;
-
-
 
 /**
  * This class defines a utility that will be used to manage the set of
@@ -85,18 +69,18 @@ public class VirtualAttributeConfigManager
    */
   private static final DebugTracer TRACER = getTracer();
 
-  // A mapping between the DNs of the config entries and the associated
-  // virtual attribute rules.
-  private ConcurrentHashMap<DN,VirtualAttributeRule> rules;
-
-
+  /**
+   * A mapping between the DNs of the config entries and the associated virtual
+   * attribute rules.
+   */
+  private final ConcurrentMap<DN, VirtualAttributeRule> rules =
+      new ConcurrentHashMap<DN, VirtualAttributeRule>();
 
   /**
    * Creates a new instance of this virtual attribute config manager.
    */
   public VirtualAttributeConfigManager()
   {
-    rules = new ConcurrentHashMap<DN,VirtualAttributeRule>();
   }
 
 
@@ -146,26 +130,14 @@ public class VirtualAttributeConfigManager
           VirtualAttributeProvider<? extends VirtualAttributeCfg> provider =
                loadProvider(className, cfg, true);
 
-          LinkedHashSet<SearchFilter> filters =
-               new LinkedHashSet<SearchFilter>();
-          for (String filterString : cfg.getFilter())
+          Map<Message, DirectoryException> reasons =
+              new LinkedHashMap<Message, DirectoryException>();
+          Set<SearchFilter> filters = buildFilters(cfg, reasons);
+          if (!reasons.isEmpty())
           {
-            try
-            {
-              filters.add(SearchFilter.createFilterFromString(filterString));
-            }
-            catch (DirectoryException de)
-            {
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, de);
-              }
-
-              Message message = ERR_CONFIG_VATTR_INVALID_SEARCH_FILTER.get(
-                      filterString, String.valueOf(cfg.dn()),
-                      de.getMessageObject());
-              throw new ConfigException(message, de);
-            }
+            Entry<Message, DirectoryException> entry =
+                reasons.entrySet().iterator().next();
+            throw new ConfigException(entry.getKey(), entry.getValue());
           }
 
           if (cfg.getAttributeType().isSingleValue())
@@ -188,12 +160,7 @@ public class VirtualAttributeConfigManager
             }
           }
 
-          VirtualAttributeRule rule =
-               new VirtualAttributeRule(cfg.getAttributeType(), provider,
-                     cfg.getBaseDN(),
-                     SearchScope.valueOf(cfg.getScope().name()),
-                     cfg.getGroupDN(),
-                     filters, cfg.getConflictBehavior());
+          VirtualAttributeRule rule = createRule(cfg, provider, filters);
           rules.put(cfg.dn(), rule);
           DirectoryServer.registerVirtualAttribute(rule);
         }
@@ -206,11 +173,23 @@ public class VirtualAttributeConfigManager
     }
   }
 
+  private VirtualAttributeRule createRule(VirtualAttributeCfg cfg,
+      VirtualAttributeProvider<? extends VirtualAttributeCfg> provider,
+      Set<SearchFilter> filters)
+  {
+    return new VirtualAttributeRule(cfg.getAttributeType(), provider,
+           cfg.getBaseDN(),
+           SearchScope.valueOf(cfg.getScope().name()),
+           cfg.getGroupDN(),
+           filters,
+           cfg.getConflictBehavior());
+  }
 
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationAddAcceptable(
                       VirtualAttributeCfg configuration,
                       List<Message> unacceptableReasons)
@@ -233,55 +212,14 @@ public class VirtualAttributeConfigManager
 
     // If there were any search filters provided, then make sure they are all
     // valid.
-    for (String filterString : configuration.getFilter())
-    {
-      try
-      {
-        SearchFilter.createFilterFromString(filterString);
-      }
-      catch (DirectoryException de)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, de);
-        }
-
-        Message message = ERR_CONFIG_VATTR_INVALID_SEARCH_FILTER.get(
-                filterString,
-                String.valueOf(configuration.dn()),
-                de.getMessageObject());
-        unacceptableReasons.add(message);
-        return false;
-      }
-    }
-
-    // If we've gotten here, then it's fine.
-    return true;
+    return areFiltersAcceptable(configuration, unacceptableReasons);
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public ConfigChangeResult applyConfigurationAdd(
-                                 VirtualAttributeCfg configuration)
+  private Set<SearchFilter> buildFilters(VirtualAttributeCfg cfg,
+      Map<Message, DirectoryException> unacceptableReasons)
   {
-    ResultCode        resultCode          = ResultCode.SUCCESS;
-    boolean           adminActionRequired = false;
-    ArrayList<Message> messages            = new ArrayList<Message>();
-
-    configuration.addChangeListener(this);
-
-    if (! configuration.isEnabled())
-    {
-      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
-    }
-
-    // Make sure that we can parse all of the search filters.
-    LinkedHashSet<SearchFilter> filters =
-         new LinkedHashSet<SearchFilter>();
-    for (String filterString : configuration.getFilter())
+    Set<SearchFilter> filters = new LinkedHashSet<SearchFilter>();
+    for (String filterString : cfg.getFilter())
     {
       try
       {
@@ -294,16 +232,46 @@ public class VirtualAttributeConfigManager
           TRACER.debugCaught(DebugLogLevel.ERROR, de);
         }
 
-        if (resultCode == ResultCode.SUCCESS)
-        {
-          resultCode = ResultCode.INVALID_ATTRIBUTE_SYNTAX;
-        }
-
         Message message = ERR_CONFIG_VATTR_INVALID_SEARCH_FILTER.get(
                 filterString,
-                String.valueOf(configuration.dn()),
+                String.valueOf(cfg.dn()),
                 de.getMessageObject());
-        messages.add(message);
+        unacceptableReasons.put(message, de);
+      }
+    }
+    return filters;
+  }
+
+
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ConfigChangeResult applyConfigurationAdd(
+                                 VirtualAttributeCfg configuration)
+  {
+    ResultCode        resultCode          = ResultCode.SUCCESS;
+    boolean           adminActionRequired = false;
+    List<Message>     messages            = new ArrayList<Message>();
+
+    configuration.addChangeListener(this);
+
+    if (! configuration.isEnabled())
+    {
+      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    }
+
+    // Make sure that we can parse all of the search filters.
+    Map<Message, DirectoryException> reasons =
+        new LinkedHashMap<Message, DirectoryException>();
+    Set<SearchFilter> filters = buildFilters(configuration, reasons);
+    if (!reasons.isEmpty())
+    {
+      messages.addAll(reasons.keySet());
+      if (resultCode == ResultCode.SUCCESS)
+      {
+        resultCode = ResultCode.INVALID_ATTRIBUTE_SYNTAX;
       }
     }
 
@@ -326,14 +294,7 @@ public class VirtualAttributeConfigManager
 
     if (resultCode == ResultCode.SUCCESS)
     {
-      VirtualAttributeRule rule =
-           new VirtualAttributeRule(configuration.getAttributeType(), provider,
-                 configuration.getBaseDN(),
-                 SearchScope.valueOf(configuration.getScope().name()),
-                 configuration.getGroupDN(),
-                 filters,
-                 configuration.getConflictBehavior());
-
+      VirtualAttributeRule rule = createRule(configuration, provider, filters);
       rules.put(configuration.dn(), rule);
       DirectoryServer.registerVirtualAttribute(rule);
     }
@@ -346,6 +307,7 @@ public class VirtualAttributeConfigManager
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationDeleteAcceptable(
                       VirtualAttributeCfg configuration,
                       List<Message> unacceptableReasons)
@@ -359,12 +321,13 @@ public class VirtualAttributeConfigManager
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationDelete(
                                  VirtualAttributeCfg configuration)
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
-    ArrayList<Message> messages            = new ArrayList<Message>();
+    List<Message>     messages            = new ArrayList<Message>();
 
     VirtualAttributeRule rule = rules.remove(configuration.dn());
     if (rule != null)
@@ -381,6 +344,7 @@ public class VirtualAttributeConfigManager
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationChangeAcceptable(
                       VirtualAttributeCfg configuration,
                       List<Message> unacceptableReasons)
@@ -403,29 +367,20 @@ public class VirtualAttributeConfigManager
 
     // If there were any search filters provided, then make sure they are all
     // valid.
-    for (String filterString : configuration.getFilter())
+    return areFiltersAcceptable(configuration, unacceptableReasons);
+  }
+
+  private boolean areFiltersAcceptable(VirtualAttributeCfg cfg,
+      List<Message> unacceptableReasons)
+  {
+    Map<Message, DirectoryException> reasons =
+        new LinkedHashMap<Message, DirectoryException>();
+    buildFilters(cfg, reasons);
+    if (!reasons.isEmpty())
     {
-      try
-      {
-        SearchFilter.createFilterFromString(filterString);
-      }
-      catch (DirectoryException de)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, de);
-        }
-
-        Message message = ERR_CONFIG_VATTR_INVALID_SEARCH_FILTER.get(
-                filterString,
-                String.valueOf(configuration.dn()),
-                de.getMessageObject());
-        unacceptableReasons.add(message);
-        return false;
-      }
+      unacceptableReasons.addAll(reasons.keySet());
+      return false;
     }
-
-    // If we've gotten here, then it's fine.
     return true;
   }
 
@@ -434,12 +389,13 @@ public class VirtualAttributeConfigManager
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationChange(
                                  VirtualAttributeCfg configuration)
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
     boolean           adminActionRequired = false;
-    ArrayList<Message> messages            = new ArrayList<Message>();
+    List<Message>     messages            = new ArrayList<Message>();
 
 
     // Get the existing rule if it's already enabled.
@@ -462,31 +418,15 @@ public class VirtualAttributeConfigManager
 
 
     // Make sure that we can parse all of the search filters.
-    LinkedHashSet<SearchFilter> filters =
-         new LinkedHashSet<SearchFilter>();
-    for (String filterString : configuration.getFilter())
+    Map<Message, DirectoryException> reasons =
+        new LinkedHashMap<Message, DirectoryException>();
+    Set<SearchFilter> filters = buildFilters(configuration, reasons);
+    if (!reasons.isEmpty())
     {
-      try
+      messages.addAll(reasons.keySet());
+      if (resultCode == ResultCode.SUCCESS)
       {
-        filters.add(SearchFilter.createFilterFromString(filterString));
-      }
-      catch (DirectoryException de)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, de);
-        }
-
-        if (resultCode == ResultCode.SUCCESS)
-        {
-          resultCode = ResultCode.INVALID_ATTRIBUTE_SYNTAX;
-        }
-
-        Message message = ERR_CONFIG_VATTR_INVALID_SEARCH_FILTER.get(
-                filterString,
-                String.valueOf(configuration.dn()),
-                de.getMessageObject());
-        messages.add(message);
+        resultCode = ResultCode.INVALID_ATTRIBUTE_SYNTAX;
       }
     }
 
@@ -509,13 +449,7 @@ public class VirtualAttributeConfigManager
 
     if (resultCode == ResultCode.SUCCESS)
     {
-      VirtualAttributeRule rule =
-           new VirtualAttributeRule(configuration.getAttributeType(), provider,
-                 configuration.getBaseDN(),
-                 SearchScope.valueOf(configuration.getScope().name()),
-                 configuration.getGroupDN(),
-                 filters,
-                 configuration.getConflictBehavior());
+      VirtualAttributeRule rule = createRule(configuration, provider, filters);
 
       rules.put(configuration.dn(), rule);
       if (existingRule == null)
@@ -566,7 +500,6 @@ public class VirtualAttributeConfigManager
            propertyDefinition.loadClass(className,
                                         VirtualAttributeProvider.class);
       VirtualAttributeProvider<? extends VirtualAttributeCfg> provider =
-           (VirtualAttributeProvider<? extends VirtualAttributeCfg>)
            providerClass.newInstance();
 
       if (initialize)
@@ -588,20 +521,9 @@ public class VirtualAttributeConfigManager
                                                      unacceptableReasons);
         if (! acceptable)
         {
-          StringBuilder buffer = new StringBuilder();
-          if (! unacceptableReasons.isEmpty())
-          {
-            Iterator<Message> iterator = unacceptableReasons.iterator();
-            buffer.append(iterator.next());
-            while (iterator.hasNext())
-            {
-              buffer.append(".  ");
-              buffer.append(iterator.next());
-            }
-          }
-
+          String reasons = collectionToString(unacceptableReasons, ".  ");
           Message message = ERR_CONFIG_VATTR_CONFIG_NOT_ACCEPTABLE.get(
-              String.valueOf(configuration.dn()), buffer.toString());
+              String.valueOf(configuration.dn()), reasons);
           throw new InitializationException(message);
         }
       }
@@ -617,4 +539,3 @@ public class VirtualAttributeConfigManager
     }
   }
 }
-
