@@ -106,6 +106,13 @@ public final class PersistentSearchRequestControl implements Control {
     public static final String OID = "2.16.840.1.113730.3.4.3";
 
     /**
+     * The OID for the Microsoft Active Directory persistent search request
+     * control. The control itself is empty and the changes are returned in the
+     * following attributes "isDeleted", "whenChanged", "whenCreated".
+     */
+    public static final String ACTIVE_DIRECTORY_OID = "1.2.840.113556.1.4.528";
+
+    /**
      * A decoder which can be used for decoding the persistent search request
      * control.
      */
