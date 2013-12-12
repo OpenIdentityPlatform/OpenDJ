@@ -23,13 +23,11 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.types;
 
-
-
-import java.util.Iterator;
+import java.util.Collection;
 import java.util.Set;
 
 import org.opends.server.admin.std.meta.VirtualAttributeCfgDefn;
@@ -37,12 +35,11 @@ import org.opends.server.admin.std.server.VirtualAttributeCfg;
 import org.opends.server.api.Group;
 import org.opends.server.api.VirtualAttributeProvider;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.loggers.debug.DebugTracer;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
+import static org.opends.server.util.StaticUtils.*;
 import static org.opends.server.util.Validator.*;
-
-
 
 /**
  * This class defines a virtual attribute rule, which associates a
@@ -65,56 +62,62 @@ public final class VirtualAttributeRule
    */
   private static final DebugTracer TRACER = getTracer();
 
-  // The attribute type for which the values should be generated.
+  /** The attribute type for which the values should be generated. */
   private final AttributeType attributeType;
 
-  // The set of base DNs for branches that are eligible to have this
-  // virtual attribute.
+  /**
+   * The set of base DNs for branches that are eligible to have this virtual
+   * attribute.
+   */
   private final Set<DN> baseDNs;
 
-  // The scope of entries eligible to have this virtual attribute,
-  // under the base DNs.
+  /**
+   * The scope of entries eligible to have this virtual attribute, under the
+   * base DNs.
+   */
   private final SearchScope scope;
 
-  // The set of DNs for groups whose members are eligible to have this
-  // virtual attribute.
+  /**
+   * The set of DNs for groups whose members are eligible to have this virtual
+   * attribute.
+   */
   private final Set<DN> groupDNs;
 
-  // The set of search filters for entries that are eligible to have
-  // this virtual attribute.
+  /**
+   * The set of search filters for entries that are eligible to have this
+   * virtual attribute.
+   */
   private final Set<SearchFilter> filters;
 
-  // The virtual attribute provider used to generate the values.
+  /** The virtual attribute provider used to generate the values. */
   private final VirtualAttributeProvider<
                      ? extends VirtualAttributeCfg> provider;
 
-  // The behavior that should be exhibited for entries that already
-  // have real values for the target attribute.
+  /**
+   * The behavior that should be exhibited for entries that already have real
+   * values for the target attribute.
+   */
   private final VirtualAttributeCfgDefn.ConflictBehavior
                      conflictBehavior;
 
 
 
   /**
-   * Creates a new virtual attribute rule with the provided
-   * information.
+   * Creates a new virtual attribute rule with the provided information.
    *
    * @param  attributeType     The attribute type for which the values
    *                           should be generated.
    * @param  provider          The virtual attribute provider to use
    *                           to generate the values.
    * @param  baseDNs           The set of base DNs for branches that
-   *                           are eligible to have this virtual
-   *                           attribute.
+   *                           are eligible to have this virtual attribute.
    * @param  scope             The scope of entries, related to the
    *                           base DNs, that are eligible to have
    *                           this virtual attribute.
    * @param  groupDNs          The set of DNs for groups whose members
-   *                           are eligible to have this virtual
-   *                           attribute.
+   *                           are eligible to have this virtual attribute.
    * @param  filters           The set of search filters for entries
-   *                           that are eligible to have this virtual
-   *                           attribute.
+   *                           that are eligible to have this virtual attribute.
    * @param  conflictBehavior  The behavior that the server should
    *                           exhibit for entries that already have
    *                           one or more real values for the target
@@ -143,11 +146,9 @@ public final class VirtualAttributeRule
 
 
   /**
-   * Retrieves the attribute type for which the values should be
-   * generated.
+   * Retrieves the attribute type for which the values should be generated.
    *
-   * @return  The attribute type for which the values should be
-   *          generated.
+   * @return  The attribute type for which the values should be generated.
    */
   public AttributeType getAttributeType()
   {
@@ -158,11 +159,9 @@ public final class VirtualAttributeRule
 
   /**
    *
-   * Retrieves the virtual attribute provider used to generate the
-   * values.
+   * Retrieves the virtual attribute provider used to generate the values.
    *
-   * @return  The virtual attribute provider to use to generate the
-   *          values.
+   * @return  The virtual attribute provider to use to generate the values.
    */
   public VirtualAttributeProvider<? extends VirtualAttributeCfg>
               getProvider()
@@ -229,8 +228,7 @@ public final class VirtualAttributeRule
 
   /**
    * Retrieves the behavior that the server should exhibit for entries
-   * that already have one or more real values for the target
-   * attribute.
+   * that already have one or more real values for the target attribute.
    *
    * @return  The behavior that the server should exhibit for entries
    *          that already have one or more real values for the target
@@ -252,8 +250,7 @@ public final class VirtualAttributeRule
    * @param  entry  The entry for which to make the determination.
    *
    * @return  {@code true} if this virtual attribute rule may be used
-   *          to generate values for the entry, or {@code false} if
-   *          not.
+   *          to generate values for the entry, or {@code false} if not.
    */
   public boolean appliesToEntry(Entry entry)
   {
@@ -261,9 +258,9 @@ public final class VirtualAttributeRule
     // potentially most expensive are done last.  First, check to see
     // if real values should override virtual ones and if so whether
     // the entry already has virtual values.
-    if ((conflictBehavior == VirtualAttributeCfgDefn.ConflictBehavior.
-                                  REAL_OVERRIDES_VIRTUAL) &&
-        entry.hasAttribute(attributeType))
+    if (conflictBehavior == VirtualAttributeCfgDefn.ConflictBehavior.
+                                REAL_OVERRIDES_VIRTUAL
+        && entry.hasAttribute(attributeType))
     {
       return false;
     }
@@ -330,7 +327,7 @@ public final class VirtualAttributeRule
         {
           Group group =
                DirectoryServer.getGroupManager().getGroupInstance(dn);
-          if ((group != null) && group.isMember(entry))
+          if (group != null && group.isMember(entry))
           {
             found = true;
             break;
@@ -360,8 +357,9 @@ public final class VirtualAttributeRule
   /**
    * Retrieves a string representation of this virtual attribute rule.
    *
-   * @return  A string representation of this virutal attribute rule.
+   * @return  A string representation of this virtual attribute rule.
    */
+  @Override
   public String toString()
   {
     StringBuilder buffer = new StringBuilder();
@@ -375,68 +373,36 @@ public final class VirtualAttributeRule
    * Appends a string representation of this virtual attribute rule to
    * the provided buffer.
    *
-   * @param  buffer  The buffer to which the information should be
-   *                 written.
+   * @param  buffer  The buffer to which the information should be written.
    */
   public void toString(StringBuilder buffer)
   {
     buffer.append("VirtualAttributeRule(attrType=");
     buffer.append(attributeType.getNameOrOID());
-    buffer.append(", providerDN=\"");
-    buffer.append(provider.getClass().getName());
+    buffer.append(", providerDN=\"").append(provider.getClass().getName());
 
     buffer.append("\", baseDNs={");
-    if (! baseDNs.isEmpty())
-    {
-      buffer.append("\"");
-      Iterator<DN> iterator = baseDNs.iterator();
-      buffer.append(iterator.next());
+    append(buffer, baseDNs);
 
-      while (iterator.hasNext())
-      {
-        buffer.append("\", \"");
-        buffer.append(iterator.next());
-      }
+    buffer.append("}, scope=").append(scope.toString());
 
-      buffer.append("\"");
-    }
-    buffer.append("}, scope=");
-    buffer.append(scope.toString());
     buffer.append(", groupDNs={");
-    if (! groupDNs.isEmpty())
-    {
-      buffer.append("\"");
-      Iterator<DN> iterator = groupDNs.iterator();
-      buffer.append(iterator.next());
-
-      while (iterator.hasNext())
-      {
-        buffer.append("\", \"");
-        buffer.append(iterator.next());
-      }
-
-      buffer.append("\"");
-    }
-
+    append(buffer, groupDNs);
     buffer.append("}, filters={");
-    if (! filters.isEmpty())
+    append(buffer, filters);
+
+    buffer.append("}, conflictBehavior=").append(conflictBehavior);
+    buffer.append(")");
+  }
+
+  private void append(StringBuilder buffer, Collection<?> col)
+  {
+    if (!col.isEmpty())
     {
       buffer.append("\"");
-      Iterator<SearchFilter> iterator = filters.iterator();
-      buffer.append(iterator.next());
-
-      while (iterator.hasNext())
-      {
-        buffer.append("\", \"");
-        buffer.append(iterator.next());
-      }
-
+      buffer.append(collectionToString(col, "\", \""));
       buffer.append("\"");
     }
-
-    buffer.append("}, conflictBehavior=");
-    buffer.append(conflictBehavior);
-    buffer.append(")");
   }
 }
 
