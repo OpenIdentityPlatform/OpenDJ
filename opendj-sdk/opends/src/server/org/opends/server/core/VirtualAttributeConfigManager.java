@@ -27,7 +27,6 @@
  */
 package org.opends.server.core;
 
-import java.lang.reflect.Method;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
@@ -104,8 +103,7 @@ public class VirtualAttributeConfigManager
     // Get the root configuration object.
     ServerManagementContext managementContext =
          ServerManagementContext.getInstance();
-    RootCfg rootConfiguration =
-         managementContext.getRootConfiguration();
+    RootCfg rootConfiguration = managementContext.getRootConfiguration();
 
 
     // Register as an add and delete listener with the root configuration so we
@@ -162,7 +160,6 @@ public class VirtualAttributeConfigManager
 
           VirtualAttributeRule rule = createRule(cfg, provider, filters);
           rules.put(cfg.dn(), rule);
-          DirectoryServer.registerVirtualAttribute(rule);
         }
         catch (InitializationException ie)
         {
@@ -185,10 +182,7 @@ public class VirtualAttributeConfigManager
            cfg.getConflictBehavior());
   }
 
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAddAcceptable(
                       VirtualAttributeCfg configuration,
@@ -242,11 +236,7 @@ public class VirtualAttributeConfigManager
     return filters;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationAdd(
                                  VirtualAttributeCfg configuration)
@@ -296,17 +286,12 @@ public class VirtualAttributeConfigManager
     {
       VirtualAttributeRule rule = createRule(configuration, provider, filters);
       rules.put(configuration.dn(), rule);
-      DirectoryServer.registerVirtualAttribute(rule);
     }
 
     return new ConfigChangeResult(resultCode, adminActionRequired, messages);
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationDeleteAcceptable(
                       VirtualAttributeCfg configuration,
@@ -316,11 +301,7 @@ public class VirtualAttributeConfigManager
     return true;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationDelete(
                                  VirtualAttributeCfg configuration)
@@ -332,18 +313,13 @@ public class VirtualAttributeConfigManager
     VirtualAttributeRule rule = rules.remove(configuration.dn());
     if (rule != null)
     {
-      DirectoryServer.deregisterVirtualAttribute(rule);
       rule.getProvider().finalizeVirtualAttributeProvider();
     }
 
     return new ConfigChangeResult(resultCode, adminActionRequired, messages);
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
                       VirtualAttributeCfg configuration,
@@ -384,11 +360,7 @@ public class VirtualAttributeConfigManager
     return true;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
                                  VirtualAttributeCfg configuration)
@@ -409,7 +381,6 @@ public class VirtualAttributeConfigManager
       if (existingRule != null)
       {
         rules.remove(configuration.dn());
-        DirectoryServer.deregisterVirtualAttribute(existingRule);
         existingRule.getProvider().finalizeVirtualAttributeProvider();
       }
 
@@ -450,15 +421,9 @@ public class VirtualAttributeConfigManager
     if (resultCode == ResultCode.SUCCESS)
     {
       VirtualAttributeRule rule = createRule(configuration, provider, filters);
-
       rules.put(configuration.dn(), rule);
-      if (existingRule == null)
+      if (existingRule != null)
       {
-        DirectoryServer.registerVirtualAttribute(rule);
-      }
-      else
-      {
-        DirectoryServer.replaceVirtualAttribute(existingRule, rule);
         existingRule.getProvider().finalizeVirtualAttributeProvider();
       }
     }
@@ -474,7 +439,7 @@ public class VirtualAttributeConfigManager
    *
    * @param  className      The fully-qualified name of the certificate mapper
    *                        class to load, instantiate, and initialize.
-   * @param  configuration  The configuration to use to initialize the
+   * @param  cfg            The configuration to use to initialize the
    *                        virtual attribute provider.  It must not be
    *                        {@code null}.
    * @param  initialize     Indicates whether the virtual attribute provider
@@ -485,8 +450,9 @@ public class VirtualAttributeConfigManager
    * @throws  InitializationException  If a problem occurred while attempting to
    *                                   initialize the certificate mapper.
    */
+  @SuppressWarnings({ "rawtypes", "unchecked" })
   private VirtualAttributeProvider<? extends VirtualAttributeCfg>
-               loadProvider(String className, VirtualAttributeCfg configuration,
+               loadProvider(String className, VirtualAttributeCfg cfg,
                             boolean initialize)
           throws InitializationException
   {
@@ -499,31 +465,20 @@ public class VirtualAttributeConfigManager
       Class<? extends VirtualAttributeProvider> providerClass =
            propertyDefinition.loadClass(className,
                                         VirtualAttributeProvider.class);
-      VirtualAttributeProvider<? extends VirtualAttributeCfg> provider =
-           providerClass.newInstance();
+      VirtualAttributeProvider provider = providerClass.newInstance();
 
       if (initialize)
       {
-        Method method = provider.getClass().getMethod(
-            "initializeVirtualAttributeProvider",
-            configuration.configurationClass());
-        method.invoke(provider, configuration);
+        provider.initializeVirtualAttributeProvider(cfg);
       }
       else
       {
-        Method method =
-             provider.getClass().getMethod("isConfigurationAcceptable",
-                                           VirtualAttributeCfg.class,
-                                           List.class);
-
         List<Message> unacceptableReasons = new ArrayList<Message>();
-        Boolean acceptable = (Boolean) method.invoke(provider, configuration,
-                                                     unacceptableReasons);
-        if (! acceptable)
+        if (!provider.isConfigurationAcceptable(cfg, unacceptableReasons))
         {
           String reasons = collectionToString(unacceptableReasons, ".  ");
           Message message = ERR_CONFIG_VATTR_CONFIG_NOT_ACCEPTABLE.get(
-              String.valueOf(configuration.dn()), reasons);
+              String.valueOf(cfg.dn()), reasons);
           throw new InitializationException(message);
         }
       }
@@ -533,9 +488,55 @@ public class VirtualAttributeConfigManager
     catch (Exception e)
     {
       Message message = ERR_CONFIG_VATTR_INITIALIZATION_FAILED.
-          get(className, String.valueOf(configuration.dn()),
+          get(className, String.valueOf(cfg.dn()),
               stackTraceToSingleLineString(e));
       throw new InitializationException(message, e);
+    }
+  }
+
+  /**
+   * Retrieves the collection of registered virtual attribute rules.
+   *
+   * @return The collection of registered virtual attribute rules.
+   */
+  public Collection<VirtualAttributeRule> getVirtualAttributes()
+  {
+    return this.rules.values();
+  }
+
+  /**
+   * Registers the provided virtual attribute rule.
+   *
+   * @param rule
+   *          The virtual attribute rule to be registered.
+   */
+  public void register(VirtualAttributeRule rule)
+  {
+    rules.put(getDummyDN(rule), rule);
+  }
+
+  /**
+   * Deregisters the provided virtual attribute rule.
+   *
+   * @param rule
+   *          The virtual attribute rule to be deregistered.
+   */
+  public void deregister(VirtualAttributeRule rule)
+  {
+    rules.remove(getDummyDN(rule));
+  }
+
+  private DN getDummyDN(VirtualAttributeRule rule)
+  {
+    try
+    {
+      String name = rule.getAttributeType().getNameOrOID();
+      return DN.decode("cn=" + name + ",cn=Virtual Attributes,cn=config");
+    }
+    catch (DirectoryException e)
+    {
+      // should never happen
+      throw new RuntimeException(e);
     }
   }
 }
