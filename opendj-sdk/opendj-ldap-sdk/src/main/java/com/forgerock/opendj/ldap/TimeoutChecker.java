@@ -59,7 +59,7 @@ final class TimeoutChecker {
     /**
      * Condition variable used for coordinating the timeout thread.
      */
-    private final Object available = new Object();
+    private final Object stateLock = new Object();
 
     /**
      * The connection set must be safe from CMEs because expiring requests can
@@ -73,6 +73,12 @@ final class TimeoutChecker {
      */
     private volatile boolean shutdownRequested = false;
 
+    /**
+     * Used for signalling that new connections have been added while performing
+     * timeout processing.
+     */
+    private volatile boolean pendingNewConnections = false;
+
     private TimeoutChecker() {
         final Thread checkerThread = new Thread("OpenDJ LDAP SDK Connection Timeout Checker") {
             @Override
@@ -81,7 +87,13 @@ final class TimeoutChecker {
                 while (!shutdownRequested) {
                     final long currentTime = System.currentTimeMillis();
                     long delay = 0;
-
+                    /*
+                     * New connections may be added during iteration and may be
+                     * missed resulting in the timeout checker waiting longer
+                     * than it should, or even forever (e.g. if the new
+                     * connection is the first).
+                     */
+                    pendingNewConnections = false;
                     for (final LDAPConnection connection : connections) {
                         if (DEBUG_LOG.isLoggable(Level.FINER)) {
                             DEBUG_LOG.finer("Checking connection " + connection + " delay = "
@@ -100,11 +112,18 @@ final class TimeoutChecker {
                     }
 
                     try {
-                        synchronized (available) {
-                            if (delay <= 0) {
-                                available.wait();
+                        synchronized (stateLock) {
+                            if (shutdownRequested || pendingNewConnections) {
+                                // Loop immediately.
+                                pendingNewConnections = false;
+                            } else if (delay <= 0) {
+                                /*
+                                 * If there is at least one connection then the
+                                 * delay should be > 0.
+                                 */
+                                stateLock.wait();
                             } else {
-                                available.wait(delay);
+                                stateLock.wait(delay);
                             }
                         }
                     } catch (final InterruptedException e) {
@@ -120,7 +139,10 @@ final class TimeoutChecker {
 
     void addConnection(final LDAPConnection connection) {
         connections.add(connection);
-        signal();
+        synchronized (stateLock) {
+            pendingNewConnections = true;
+            stateLock.notifyAll();
+        }
     }
 
     void removeConnection(final LDAPConnection connection) {
@@ -129,14 +151,9 @@ final class TimeoutChecker {
     }
 
     private void shutdown() {
-        shutdownRequested = true;
-        signal();
-    }
-
-    // Wakes the timeout checker if it is sleeping.
-    private void signal() {
-        synchronized (available) {
-            available.notifyAll();
+        synchronized (stateLock) {
+            shutdownRequested = true;
+            stateLock.notifyAll();
         }
     }
 }
