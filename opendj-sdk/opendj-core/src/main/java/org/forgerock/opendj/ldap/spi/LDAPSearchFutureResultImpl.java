@@ -69,7 +69,8 @@ public final class LDAPSearchFutureResultImpl extends AbstractLDAPFutureResultIm
         super(requestID, resultHandler, intermediateResponseHandler, connection);
         this.request = request;
         this.searchResultHandler = resultHandler;
-        this.isPersistentSearch = request.containsControl(PersistentSearchRequestControl.OID);
+        this.isPersistentSearch = request.containsControl(PersistentSearchRequestControl.OID)
+                || request.containsControl(PersistentSearchRequestControl.ACTIVE_DIRECTORY_OID);
     }
 
     /** {@inheritDoc} */
