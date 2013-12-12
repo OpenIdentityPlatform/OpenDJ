@@ -23,20 +23,20 @@
  *
  *
  *      Copyright 2012 profiq s.r.o.
- *      Portions Copyright 2012 ForgeRock AS
+ *      Portions Copyright 2012-2013 ForgeRock AS
  */
 package org.opends.server.extensions;
 
 import java.util.Collections;
-import org.opends.server.core.PasswordPolicyState;
 import java.util.Set;
+
 import org.opends.messages.Message;
 import
   org.opends.server.admin.std.server.PasswordExpirationTimeVirtualAttributeCfg;
 import org.opends.server.api.AuthenticationPolicy;
 import org.opends.server.api.VirtualAttributeProvider;
+import org.opends.server.core.PasswordPolicyState;
 import org.opends.server.core.SearchOperation;
-import org.opends.server.config.ConfigException;
 import org.opends.server.loggers.ErrorLogger;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.schema.GeneralizedTimeSyntax;
@@ -66,30 +66,14 @@ public class PasswordExpirationTimeVirtualAttributeProvider
     super();
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void
-    initializeVirtualAttributeProvider(
-      PasswordExpirationTimeVirtualAttributeCfg configuration)
-    throws ConfigException, InitializationException
-  {
-    // No initialization needed
-  }
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isMultiValued()
   {
     return false;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public Set<AttributeValue> getValues(Entry entry,
                                        VirtualAttributeRule rule)
@@ -114,9 +98,7 @@ public class PasswordExpirationTimeVirtualAttributeProvider
     return Collections.emptySet();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isSearchable(VirtualAttributeRule rule,
                               SearchOperation searchOperation,
@@ -125,9 +107,7 @@ public class PasswordExpirationTimeVirtualAttributeProvider
     return false;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void processSearch(VirtualAttributeRule rule,
                             SearchOperation searchOperation)
@@ -140,20 +120,14 @@ public class PasswordExpirationTimeVirtualAttributeProvider
     searchOperation.appendErrorMessage(message);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean hasValue(Entry entry, VirtualAttributeRule rule)
   {
     // Do not process LDAP operational entries.
-    if (entry.isSubentry() || entry.isLDAPSubentry()
-        || (getPasswordExpirationTime(entry) == -1))
-    {
-      return false;
-    }
-
-    return true;
+    return !entry.isSubentry()
+        && !entry.isLDAPSubentry()
+        && getPasswordExpirationTime(entry) != -1;
   }
 
   /**

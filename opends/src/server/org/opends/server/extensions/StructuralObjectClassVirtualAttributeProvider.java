@@ -23,11 +23,9 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions Copyright 2012 ForgeRock AS
+ *      Portions Copyright 2012-2013 ForgeRock AS
  */
 package org.opends.server.extensions;
-
-
 
 import java.util.Collections;
 import java.util.List;
@@ -37,13 +35,10 @@ import org.opends.messages.Message;
 import org.opends.server.admin.std.server.
         StructuralObjectClassVirtualAttributeCfg;
 import org.opends.server.api.VirtualAttributeProvider;
-import org.opends.server.config.ConfigException;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.types.*;
 
 import static org.opends.messages.ExtensionMessages.*;
-
-
 
 /**
  * This class implements a virtual attribute provider that is meant to serve
@@ -64,35 +59,14 @@ public class StructuralObjectClassVirtualAttributeProvider
     // initializeVirtualAttributeProvider method.
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public void initializeVirtualAttributeProvider(
-                    StructuralObjectClassVirtualAttributeCfg configuration)
-         throws ConfigException, InitializationException
-  {
-    // No initialization is required.
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public boolean isMultiValued()
   {
     return false;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public Set<AttributeValue> getValues(Entry entry,
                                        VirtualAttributeRule rule)
@@ -103,11 +77,7 @@ public class StructuralObjectClassVirtualAttributeProvider
     return Collections.singleton(value);
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public boolean hasValue(Entry entry, VirtualAttributeRule rule)
   {
@@ -115,11 +85,7 @@ public class StructuralObjectClassVirtualAttributeProvider
     return true;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public ConditionResult matchesSubstring(Entry entry,
                                           VirtualAttributeRule rule,
@@ -131,11 +97,7 @@ public class StructuralObjectClassVirtualAttributeProvider
     return ConditionResult.UNDEFINED;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public ConditionResult greaterThanOrEqualTo(Entry entry,
                               VirtualAttributeRule rule,
@@ -145,11 +107,7 @@ public class StructuralObjectClassVirtualAttributeProvider
     return ConditionResult.UNDEFINED;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public ConditionResult lessThanOrEqualTo(Entry entry,
                               VirtualAttributeRule rule,
@@ -159,11 +117,7 @@ public class StructuralObjectClassVirtualAttributeProvider
     return ConditionResult.UNDEFINED;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public ConditionResult approximatelyEqualTo(Entry entry,
                               VirtualAttributeRule rule,
@@ -173,11 +127,7 @@ public class StructuralObjectClassVirtualAttributeProvider
     return ConditionResult.UNDEFINED;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public boolean isSearchable(VirtualAttributeRule rule,
                               SearchOperation searchOperation,
@@ -188,11 +138,7 @@ public class StructuralObjectClassVirtualAttributeProvider
     return false;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public void processSearch(VirtualAttributeRule rule,
                             SearchOperation searchOperation)

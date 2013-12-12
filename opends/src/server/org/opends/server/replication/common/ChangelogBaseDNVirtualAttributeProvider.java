@@ -23,7 +23,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2012 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.replication.common;
 
@@ -31,24 +31,15 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-import static org.opends.messages.ExtensionMessages.*;
 import org.opends.messages.Message;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.UserDefinedVirtualAttributeCfg;
 import org.opends.server.api.VirtualAttributeProvider;
-import org.opends.server.config.ConfigException;
 import org.opends.server.core.SearchOperation;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.AttributeValues;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.ConfigChangeResult;
-import org.opends.server.types.Entry;
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.ResultCode;
-import org.opends.server.types.VirtualAttributeRule;
+import org.opends.server.types.*;
 import org.opends.server.util.ServerConstants;
 
-
+import static org.opends.messages.ExtensionMessages.*;
 
 /**
  * This class implements a virtual attribute provider that specifies the
@@ -59,7 +50,7 @@ public class ChangelogBaseDNVirtualAttributeProvider
        implements ConfigurationChangeListener<UserDefinedVirtualAttributeCfg>
 {
 
-  /*
+  /**
    * The base DN of the changelog is a constant.
    * TODO: This shouldn't be a virtual attribute, but directly
    * registered in the RootDSE.
@@ -74,64 +65,26 @@ public class ChangelogBaseDNVirtualAttributeProvider
   {
     super();
 
-    AttributeValue value =
-    AttributeValues.create(
-        ByteString.valueOf(ServerConstants.DN_EXTERNAL_CHANGELOG_ROOT),
-        ByteString.valueOf(ServerConstants.DN_EXTERNAL_CHANGELOG_ROOT));
-    values=Collections.singleton(value);
+    ByteString dn =
+        ByteString.valueOf(ServerConstants.DN_EXTERNAL_CHANGELOG_ROOT);
+    values = Collections.singleton(AttributeValues.create(dn, dn));
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public void initializeVirtualAttributeProvider(
-                            UserDefinedVirtualAttributeCfg configuration)
-         throws ConfigException, InitializationException
-  {
-    // No initialization required
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public void finalizeVirtualAttributeProvider()
-  {
-    //
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public boolean isMultiValued()
   {
     return false;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public Set<AttributeValue> getValues(Entry entry,VirtualAttributeRule rule)
   {
     return values;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public boolean isSearchable(VirtualAttributeRule rule,
                               SearchOperation searchOperation,
@@ -141,11 +94,7 @@ public class ChangelogBaseDNVirtualAttributeProvider
     return false;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public void processSearch(VirtualAttributeRule rule,
                             SearchOperation searchOperation)
@@ -156,11 +105,8 @@ public class ChangelogBaseDNVirtualAttributeProvider
     searchOperation.appendErrorMessage(message);
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public boolean isConfigurationChangeAcceptable(
                       UserDefinedVirtualAttributeCfg configuration,
                       List<Message> unacceptableReasons)
@@ -168,11 +114,8 @@ public class ChangelogBaseDNVirtualAttributeProvider
     return false;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public ConfigChangeResult applyConfigurationChange(
                                  UserDefinedVirtualAttributeCfg configuration)
   {

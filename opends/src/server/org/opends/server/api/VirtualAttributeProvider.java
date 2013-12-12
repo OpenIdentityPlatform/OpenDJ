@@ -23,27 +23,23 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2012 ForgeRock AS
+ *      Portions Copyright 2012-2013 ForgeRock AS
  */
 package org.opends.server.api;
-import org.opends.messages.Message;
-
-
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
+import org.opends.messages.Message;
 import org.opends.server.admin.std.server.VirtualAttributeCfg;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.SearchOperation;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.*;
 
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import org.opends.server.loggers.debug.DebugTracer;
-
-
 
 /**
  * This class defines the set of methods and structures that must be
@@ -82,9 +78,11 @@ public abstract class VirtualAttributeProvider
    *                                   related to the server
    *                                   configuration.
    */
-  public abstract void initializeVirtualAttributeProvider(
-                            T configuration)
-         throws ConfigException, InitializationException;
+  public void initializeVirtualAttributeProvider(T configuration)
+      throws ConfigException, InitializationException
+  {
+    // No initialization required
+  }
 
 
 
@@ -186,7 +184,7 @@ public abstract class VirtualAttributeProvider
    * @param  value  The value for which to make the determination.
    *
    * @return  {@code true} if this virtual attribute provider will
-   *          generate the specified vaule for the provided entry, or
+   *          generate the specified value for the provided entry, or
    *          {@code false} if not.
    */
   public boolean hasValue(Entry entry, VirtualAttributeRule rule,
@@ -222,7 +220,7 @@ public abstract class VirtualAttributeProvider
 
 
   /**
-   * Indicates whether this virutal attribute provider will generate
+   * Indicates whether this virtual attribute provider will generate
    * any of the values in the provided collection.
    *
    * @param  entry   The entry for which to make the determination.
@@ -566,7 +564,7 @@ public abstract class VirtualAttributeProvider
    * @param  value  The value for which to make the determination.
    *
    * @return  {@code UNDEFINED} if the associated attribute type does
-   *          not have an aproximate matching rule, {@code TRUE} if at
+   *          not have an approximate matching rule, {@code TRUE} if at
    *          least one of the generated values will be approximately
    *          equal to the specified value, or {@code FALSE} if none
    *          of the generated values will be approximately equal to

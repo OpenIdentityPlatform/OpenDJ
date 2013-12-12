@@ -23,9 +23,8 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2012 ForgeRock AS.
+ *      Portions copyright 2011-2013 ForgeRock AS.
  */
-
 package org.opends.server.extensions;
 
 import java.util.Collections;
@@ -38,7 +37,6 @@ import org.opends.server.api.AuthenticationPolicy;
 import org.opends.server.api.VirtualAttributeProvider;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SearchOperation;
-import org.opends.server.config.ConfigException;
 import org.opends.server.loggers.ErrorLogger;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.*;
@@ -73,35 +71,14 @@ public class PasswordPolicySubentryVirtualAttributeProvider
     // initializeVirtualAttributeProvider method.
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public void initializeVirtualAttributeProvider(
-          PasswordPolicySubentryVirtualAttributeCfg configuration)
-          throws ConfigException, InitializationException
-  {
-    // No initialization is required.
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public boolean isMultiValued()
   {
     return false;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public Set<AttributeValue> getValues(Entry entry,
                                        VirtualAttributeRule rule)
@@ -163,11 +140,7 @@ public class PasswordPolicySubentryVirtualAttributeProvider
     return Collections.emptySet();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public boolean isSearchable(VirtualAttributeRule rule,
                               SearchOperation searchOperation,
@@ -176,11 +149,7 @@ public class PasswordPolicySubentryVirtualAttributeProvider
     return false;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public void processSearch(VirtualAttributeRule rule,
                             SearchOperation searchOperation)
