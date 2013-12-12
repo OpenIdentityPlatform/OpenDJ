@@ -81,12 +81,9 @@ public final class LDAPExtendedFutureResultImpl<R extends ExtendedResult> extend
         return sb.toString();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    protected boolean isCancelable() {
-        return !request.getOID().equals(StartTLSExtendedRequest.OID);
+    public boolean isBindOrStartTLS() {
+        return request.getOID().equals(StartTLSExtendedRequest.OID);
     }
 
     /**
