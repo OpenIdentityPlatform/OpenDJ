@@ -32,13 +32,13 @@ import java.io.StringReader;
 import java.net.*;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.opends.messages.Category;
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 import org.opends.messages.Severity;
 import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.admin.std.meta.VirtualAttributeCfgDefn;
 import org.opends.server.admin.std.meta.VirtualAttributeCfgDefn.*;
 import org.opends.server.admin.std.server.ReplicationServerCfg;
 import org.opends.server.admin.std.server.UserDefinedVirtualAttributeCfg;
@@ -111,10 +111,11 @@ public final class ReplicationServer
    */
   private static final DebugTracer TRACER = getTracer();
 
-  private static String externalChangeLogWorkflowID =
+  private static String eclWorkflowID =
     "External Changelog Workflow ID";
   private ECLWorkflowElement eclwe;
-  private WorkflowImpl externalChangeLogWorkflowImpl = null;
+  private AtomicReference<WorkflowImpl> eclWorkflowImpl =
+      new AtomicReference<WorkflowImpl>();
 
   /**
    * This is required for unit testing, so that we can keep track of all the
@@ -428,7 +429,7 @@ public final class ReplicationServer
 
       // Creates the ECL workflow elem so that DS (LDAPReplicationDomain)
       // can know me and really enableECL.
-      if (WorkflowImpl.getWorkflow(externalChangeLogWorkflowID) != null)
+      if (WorkflowImpl.getWorkflow(eclWorkflowID) != null)
       {
         // Already done. Nothing to do
         return;
@@ -461,54 +462,54 @@ public final class ReplicationServer
    */
   public void enableECL() throws DirectoryException
   {
-    if (externalChangeLogWorkflowImpl!=null)
+    if (eclWorkflowImpl.get() != null)
     {
-      // do nothing if ECL is already enabled
+      // ECL is already enabled, do nothing
       return;
     }
 
-    // Create the workflow for the base DN and register the workflow with
-    // the server.
-    externalChangeLogWorkflowImpl = new WorkflowImpl(
-        externalChangeLogWorkflowID,
-        DN.decode(ServerConstants.DN_EXTERNAL_CHANGELOG_ROOT),
-        eclwe.getWorkflowElementID(),
-        eclwe);
-    externalChangeLogWorkflowImpl.register();
+    // Create the workflow for the base DN
+    // and register the workflow with the server.
+    final DN dn = DN.decode(ServerConstants.DN_EXTERNAL_CHANGELOG_ROOT);
+    final WorkflowImpl workflowImpl = new WorkflowImpl(eclWorkflowID, dn,
+        eclwe.getWorkflowElementID(), eclwe);
+    if (!eclWorkflowImpl.compareAndSet(null, workflowImpl))
+    {
+      // ECL is being enabled, do nothing
+      return;
+    }
 
-    NetworkGroup defaultNetworkGroup = NetworkGroup.getDefaultNetworkGroup();
-    defaultNetworkGroup.registerWorkflow(externalChangeLogWorkflowImpl);
+    workflowImpl.register();
 
-    // FIXME:ECL should the ECL Workflow be registered in adminNetworkGroup?
-    NetworkGroup adminNetworkGroup = NetworkGroup.getAdminNetworkGroup();
-    adminNetworkGroup.registerWorkflow(externalChangeLogWorkflowImpl);
+    NetworkGroup.getDefaultNetworkGroup().registerWorkflow(workflowImpl);
 
-    // FIXME:ECL should the ECL Workflow be registered in internalNetworkGroup?
-    NetworkGroup internalNetworkGroup = NetworkGroup.getInternalNetworkGroup();
-    internalNetworkGroup.registerWorkflow(externalChangeLogWorkflowImpl);
+    // FIXME:ECL should the ECL Workflow be registered in admin and internal
+    // network groups?
+    NetworkGroup.getAdminNetworkGroup().registerWorkflow(workflowImpl);
+    NetworkGroup.getInternalNetworkGroup().registerWorkflow(workflowImpl);
 
-    enableECLVirtualAttr("lastexternalchangelogcookie",
-        new LastCookieVirtualProvider());
-    enableECLVirtualAttr("firstchangenumber",
-        new FirstChangeNumberVirtualAttributeProvider());
-    enableECLVirtualAttr("lastchangenumber",
-        new LastChangeNumberVirtualAttributeProvider());
-    enableECLVirtualAttr("changelog",
-        new ChangelogBaseDNVirtualAttributeProvider());
+    DirectoryServer.registerVirtualAttribute(buildVirtualAttributeRule(
+        "lastexternalchangelogcookie", new LastCookieVirtualProvider()));
+    DirectoryServer.registerVirtualAttribute(buildVirtualAttributeRule(
+        "firstchangenumber", new FirstChangeNumberVirtualAttributeProvider()));
+    DirectoryServer.registerVirtualAttribute(buildVirtualAttributeRule(
+        "lastchangenumber", new LastChangeNumberVirtualAttributeProvider()));
+    DirectoryServer.registerVirtualAttribute(buildVirtualAttributeRule(
+        "changelog", new ChangelogBaseDNVirtualAttributeProvider()));
   }
 
-  private static void enableECLVirtualAttr(String attrName,
+  private static VirtualAttributeRule buildVirtualAttributeRule(String attrName,
       VirtualAttributeProvider<UserDefinedVirtualAttributeCfg> provider)
-  throws DirectoryException
+      throws DirectoryException
   {
-    Set<DN> baseDNs = new HashSet<DN>(0);
-    Set<DN> groupDNs = new HashSet<DN>(0);
-    Set<SearchFilter> filters = new HashSet<SearchFilter>(0);
-    VirtualAttributeCfgDefn.ConflictBehavior conflictBehavior =
-      ConflictBehavior.VIRTUAL_OVERRIDES_REAL;
+    ConflictBehavior conflictBehavior = ConflictBehavior.VIRTUAL_OVERRIDES_REAL;
 
     try
     {
+      Set<DN> baseDNs = Collections.singleton(DN.decode(""));
+      Set<DN> groupDNs = Collections.emptySet();
+      Set<SearchFilter> filters = Collections.singleton(
+          SearchFilter.createFilterFromString("(objectclass=*)"));
 
       // To avoid the configuration in cn=config just
       // create a rule and register it into the DirectoryServer
@@ -517,17 +518,9 @@ public final class ReplicationServer
       AttributeType attributeType = DirectoryServer.getAttributeType(
           attrName, false);
 
-      SearchFilter filter =
-        SearchFilter.createFilterFromString("objectclass=*");
-      filters.add(filter);
-
-      baseDNs.add(DN.decode(""));
-      VirtualAttributeRule rule =
-        new VirtualAttributeRule(attributeType, provider,
-              baseDNs, SearchScope.BASE_OBJECT,
-              groupDNs, filters, conflictBehavior);
-
-      DirectoryServer.registerVirtualAttribute(rule);
+      return new VirtualAttributeRule(attributeType, provider,
+            baseDNs, SearchScope.BASE_OBJECT,
+            groupDNs, filters, conflictBehavior);
     }
     catch (Exception e)
     {
@@ -539,25 +532,35 @@ public final class ReplicationServer
 
   private void shutdownECL()
   {
-    WorkflowImpl eclwf = (WorkflowImpl) WorkflowImpl
-        .getWorkflow(externalChangeLogWorkflowID);
-
+    WorkflowImpl eclwf = (WorkflowImpl) WorkflowImpl.getWorkflow(eclWorkflowID);
     // do it only if not already done by another RS (unit test case)
-    // if (DirectoryServer.getWorkflowElement(externalChangeLogWorkflowID)
     if (eclwf != null)
     {
-      // FIXME:ECL should the ECL Workflow be registered in
-      // internalNetworkGroup?
-      NetworkGroup internalNetworkGroup = NetworkGroup
-          .getInternalNetworkGroup();
-      internalNetworkGroup.deregisterWorkflow(externalChangeLogWorkflowID);
+      // FIXME:ECL should the ECL Workflow be registered in admin and internal
+      // network groups?
+      NetworkGroup.getInternalNetworkGroup().deregisterWorkflow(eclWorkflowID);
+      NetworkGroup.getAdminNetworkGroup().deregisterWorkflow(eclWorkflowID);
 
-      // FIXME:ECL should the ECL Workflow be registered in adminNetworkGroup?
-      NetworkGroup adminNetworkGroup = NetworkGroup.getAdminNetworkGroup();
-      adminNetworkGroup.deregisterWorkflow(externalChangeLogWorkflowID);
+      NetworkGroup.getDefaultNetworkGroup().deregisterWorkflow(eclWorkflowID);
 
-      NetworkGroup defaultNetworkGroup = NetworkGroup.getDefaultNetworkGroup();
-      defaultNetworkGroup.deregisterWorkflow(externalChangeLogWorkflowID);
+      try
+      {
+        DirectoryServer.deregisterVirtualAttribute(buildVirtualAttributeRule(
+            "lastexternalchangelogcookie", new LastCookieVirtualProvider()));
+        DirectoryServer.deregisterVirtualAttribute(buildVirtualAttributeRule(
+            "firstchangenumber",
+            new FirstChangeNumberVirtualAttributeProvider()));
+        DirectoryServer.deregisterVirtualAttribute(buildVirtualAttributeRule(
+            "lastchangenumber",
+            new LastChangeNumberVirtualAttributeProvider()));
+        DirectoryServer.deregisterVirtualAttribute(buildVirtualAttributeRule(
+            "changelog", new ChangelogBaseDNVirtualAttributeProvider()));
+      }
+      catch (DirectoryException e)
+      {
+        // Should never happen
+        throw new RuntimeException(e);
+      }
 
       eclwf.deregister();
       eclwf.finalizeWorkflow();
