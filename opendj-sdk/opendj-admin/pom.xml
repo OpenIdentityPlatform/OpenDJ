@@ -33,6 +33,13 @@
       <artifactId>i18n-core</artifactId>
     </dependency>
     <dependency>
+      <groupId>org.forgerock.opendj</groupId>
+      <artifactId>opendj-core</artifactId>
+      <type>test-jar</type>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>org.forgerock.commons</groupId>
       <artifactId>i18n-slf4j</artifactId>
     </dependency>
@@ -145,13 +152,13 @@
             </goals>
             <configuration>
               <outputDirectory>${project.build.directory}/generated-sources/java</outputDirectory>
-              <resources>          
+              <resources>
                 <resource>
                   <directory>src/main/java-templates</directory>
                   <filtering>true</filtering>
                 </resource>
-              </resources>              
-            </configuration>            
+              </resources>
+            </configuration>
           </execution>
         </executions>
       </plugin>
