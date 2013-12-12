@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS.
+ *      Portions copyright 2011-2013 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.spi;
@@ -64,12 +64,9 @@ public final class LDAPBindFutureResultImpl extends AbstractLDAPFutureResultImpl
         this.bindClient = bindClient;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
-    protected boolean isCancelable() {
-        return false;
+    public boolean isBindOrStartTLS() {
+        return true;
     }
 
     @Override

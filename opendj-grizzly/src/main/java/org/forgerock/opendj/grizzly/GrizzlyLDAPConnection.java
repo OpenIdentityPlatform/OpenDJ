@@ -27,6 +27,9 @@
 
 package org.forgerock.opendj.grizzly;
 
+import static com.forgerock.opendj.grizzly.GrizzlyMessages.LDAP_CONNECTION_BIND_OR_START_TLS_CONNECTION_TIMEOUT;
+import static com.forgerock.opendj.grizzly.GrizzlyMessages.LDAP_CONNECTION_BIND_OR_START_TLS_REQUEST_TIMEOUT;
+import static com.forgerock.opendj.grizzly.GrizzlyMessages.LDAP_CONNECTION_REQUEST_TIMEOUT;
 import static com.forgerock.opendj.util.StaticUtils.DEFAULT_LOG;
 import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
 
@@ -66,7 +69,6 @@ import org.forgerock.opendj.ldap.requests.ExtendedRequest;
 import org.forgerock.opendj.ldap.requests.GenericBindRequest;
 import org.forgerock.opendj.ldap.requests.ModifyDNRequest;
 import org.forgerock.opendj.ldap.requests.ModifyRequest;
-import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.opendj.ldap.requests.StartTLSExtendedRequest;
 import org.forgerock.opendj.ldap.requests.UnbindRequest;
@@ -142,40 +144,64 @@ final class GrizzlyLDAPConnection extends AbstractAsynchronousConnection impleme
 
     @Override
     public FutureResult<Void> abandonAsync(final AbandonRequest request) {
-        final AbstractLDAPFutureResultImpl<?> pendingRequest;
-        final int messageID = nextMsgID.getAndIncrement();
+        /*
+         * Need to be careful here since both abandonAsync and Future.cancel can
+         * be called separately by the client application. Therefore
+         * future.cancel() should abandon the request, and abandonAsync should
+         * cancel the future. In addition, bind or StartTLS requests cannot be
+         * abandoned.
+         */
         try {
             synchronized (stateLock) {
                 checkConnectionIsValid();
-                checkBindOrStartTLSInProgress();
-                // Remove the future associated with the request to be abandoned.
-                pendingRequest = pendingRequests.remove(request.getRequestID());
-            }
-            if (pendingRequest == null) {
                 /*
-                 * There has never been a request with the specified message ID
-                 * or the response has already been received and handled. We can
-                 * ignore this abandon request.
+                 * If there is a bind or startTLS in progress then it must be
+                 * this request which is being abandoned. The following check
+                 * will prevent it from happening.
                  */
-
-                // Message ID will be -1 since no request was sent.
-                return new CompletedFutureResult<Void>((Void) null);
-            }
-            pendingRequest.cancel(false);
-            try {
-                final LDAPWriter<ASN1BufferWriter> writer = GrizzlyUtils.getWriter();
-                try {
-                    writer.writeAbandonRequest(messageID, request);
-                    connection.write(writer.getASN1Writer().getBuffer(), null);
-                    return new CompletedFutureResult<Void>((Void) null, messageID);
-                } finally {
-                    GrizzlyUtils.recycleWriter(writer);
-                }
-            } catch (final IOException e) {
-                throw adaptRequestIOException(e);
+                checkBindOrStartTLSInProgress();
             }
         } catch (final ErrorResultException e) {
-            return new CompletedFutureResult<Void>(e, messageID);
+            return new CompletedFutureResult<Void>(e);
+        }
+
+        // Remove the future associated with the request to be abandoned.
+        final AbstractLDAPFutureResultImpl<?> pendingRequest =
+                pendingRequests.remove(request.getRequestID());
+        if (pendingRequest == null) {
+            /*
+             * There has never been a request with the specified message ID or
+             * the response has already been received and handled. We can ignore
+             * this abandon request.
+             */
+            return new CompletedFutureResult<Void>((Void) null);
+        }
+
+        /*
+         * This will cancel the future, but will also recursively invoke this
+         * method. Since the pending request has been removed, there is no risk
+         * of an infinite loop.
+         */
+        pendingRequest.cancel(false);
+
+        /*
+         * FIXME: there's a potential race condition here if a bind or startTLS
+         * is initiated just after we removed the pending request.
+         */
+        return sendAbandonRequest(request);
+    }
+
+    private FutureResult<Void> sendAbandonRequest(final AbandonRequest request) {
+        final LDAPWriter<ASN1BufferWriter> writer = GrizzlyUtils.getWriter();
+        try {
+            final int messageID = nextMsgID.getAndIncrement();
+            writer.writeAbandonRequest(messageID, request);
+            connection.write(writer.getASN1Writer().getBuffer(), null);
+            return new CompletedFutureResult<Void>((Void) null, messageID);
+        } catch (final IOException e) {
+            return new CompletedFutureResult<Void>(adaptRequestIOException(e));
+        } finally {
+            GrizzlyUtils.recycleWriter(writer);
         }
     }
 
@@ -563,28 +589,63 @@ final class GrizzlyLDAPConnection extends AbstractAsynchronousConnection impleme
 
     @Override
     public long handleTimeout(final long currentTime) {
-        final long timeout = getTimeout();
+        final long timeout = factory.getLDAPOptions().getTimeout(TimeUnit.MILLISECONDS);
+        if (timeout <= 0) {
+            return 0;
+        }
+
         long delay = timeout;
-        if (timeout > 0) {
-            for (final int requestID : pendingRequests.keySet()) {
-                final AbstractLDAPFutureResultImpl<?> future = pendingRequests.get(requestID);
-                if (future != null && future.checkForTimeout()) {
-                    final long diff = (future.getTimestamp() + timeout) - currentTime;
-                    if (diff <= 0) {
-                        if (pendingRequests.remove(requestID) != null) {
-                            DEFAULT_LOG.debug("Cancelling expired future result: {}", future);
-                            final Result result = Responses.newResult(ResultCode.CLIENT_SIDE_TIMEOUT);
-                            future.adaptErrorResult(result);
-                            abandonAsync(Requests.newAbandonRequest(future.getRequestID()));
-                        } else {
-                            DEFAULT_LOG.debug(
-                                    "Pending request {} has already been removed, not cancelling future result",
-                                    requestID);
-                        }
-                    } else {
-                        delay = Math.min(delay, diff);
-                    }
-                }
+        for (final AbstractLDAPFutureResultImpl<?> future : pendingRequests.values()) {
+            if (future == null || !future.checkForTimeout()) {
+                continue;
+            }
+            final long diff = (future.getTimestamp() + timeout) - currentTime;
+            if (diff > 0) {
+                // Will expire in diff milliseconds.
+                delay = Math.min(delay, diff);
+            } else if (pendingRequests.remove(future.getRequestID()) == null) {
+                // Result arrived at the same time.
+                continue;
+            } else if (future.isBindOrStartTLS()) {
+                /*
+                 * No other operations can be performed while a bind or StartTLS
+                 * request is active, so we cannot time out the request. We
+                 * therefore have a choice: either ignore timeouts for these
+                 * operations, or enforce them but doing so requires
+                 * invalidating the connection. We'll do the latter, since
+                 * ignoring timeouts could cause the application to hang.
+                 */
+                DEFAULT_LOG.debug("Failing bind or StartTLS request due to timeout "
+                        + "(connection will be invalidated): " + future);
+                final Result result =
+                        Responses.newResult(ResultCode.CLIENT_SIDE_TIMEOUT).setDiagnosticMessage(
+                                LDAP_CONNECTION_BIND_OR_START_TLS_REQUEST_TIMEOUT.get(timeout)
+                                        .toString());
+                future.adaptErrorResult(result);
+
+                // Fail the connection.
+                final Result errorResult =
+                        Responses.newResult(ResultCode.CLIENT_SIDE_TIMEOUT).setDiagnosticMessage(
+                                LDAP_CONNECTION_BIND_OR_START_TLS_CONNECTION_TIMEOUT.get(timeout)
+                                        .toString());
+                connectionErrorOccurred(errorResult);
+            } else {
+                DEFAULT_LOG.debug("Failing request due to timeout: " + future);
+                final Result result =
+                        Responses.newResult(ResultCode.CLIENT_SIDE_TIMEOUT).setDiagnosticMessage(
+                                LDAP_CONNECTION_REQUEST_TIMEOUT.get(timeout).toString());
+                future.adaptErrorResult(result);
+
+                /*
+                 * FIXME: there's a potential race condition here if a bind or
+                 * startTLS is initiated just after we check the boolean. It
+                 * seems potentially even more dangerous to send the abandon
+                 * request while holding the state lock, since a blocking write
+                 * could hang the application.
+                 */
+//              if (!bindOrStartTLSInProgress.get()) {
+//                  sendAbandonRequest(newAbandonRequest(future.getRequestID()));
+//              }
             }
         }
         return delay;

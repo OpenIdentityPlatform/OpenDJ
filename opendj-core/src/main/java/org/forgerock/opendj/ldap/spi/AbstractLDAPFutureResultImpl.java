@@ -44,11 +44,10 @@ import com.forgerock.opendj.util.AsynchronousFutureResult;
  * @param <S>
  *            The type of result returned by this future.
  */
-public abstract class AbstractLDAPFutureResultImpl<S extends Result>
-        extends AsynchronousFutureResult<S, ResultHandler<? super S>>
-        implements IntermediateResponseHandler {
+public abstract class AbstractLDAPFutureResultImpl<S extends Result> extends
+        AsynchronousFutureResult<S, ResultHandler<? super S>> implements
+        IntermediateResponseHandler {
     private final Connection connection;
-    private final int requestID;
     private IntermediateResponseHandler intermediateResponseHandler;
     private volatile long timestamp;
 
@@ -66,22 +65,13 @@ public abstract class AbstractLDAPFutureResultImpl<S extends Result>
      *            the connection to directory server
      */
     protected AbstractLDAPFutureResultImpl(final int requestID,
-        final ResultHandler<? super S> resultHandler,
-        final IntermediateResponseHandler intermediateResponseHandler,
-        final Connection connection) {
-        super(resultHandler);
-        this.requestID = requestID;
+            final ResultHandler<? super S> resultHandler,
+            final IntermediateResponseHandler intermediateResponseHandler,
+            final Connection connection) {
+        super(resultHandler, requestID);
         this.connection = connection;
         this.intermediateResponseHandler = intermediateResponseHandler;
         this.timestamp = System.currentTimeMillis();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public final int getRequestID() {
-        return requestID;
     }
 
     /** {@inheritDoc} */
@@ -107,14 +97,41 @@ public abstract class AbstractLDAPFutureResultImpl<S extends Result>
      */
     @Override
     protected final ErrorResultException handleCancelRequest(final boolean mayInterruptIfRunning) {
-        connection.abandonAsync(Requests.newAbandonRequest(requestID));
+        /*
+         * This will abandon the request, but will also recursively cancel this
+         * future. There is no risk of an infinite loop because the state of
+         * this future has already been changed.
+         */
+        connection.abandonAsync(Requests.newAbandonRequest(getRequestID()));
         return null;
+    }
+
+    @Override
+    protected final boolean isCancelable() {
+        /*
+         * No other operations can be performed while a bind or startTLS
+         * operations is active. Therefore it is not possible to cancel bind or
+         * startTLS requests, since doing so will leave the connection in a
+         * state which prevents other operations from being performed.
+         */
+        return !isBindOrStartTLS();
+    }
+
+    /**
+     * Returns {@code true} if this future represents the result of a bind or
+     * StartTLS request. The default implementation is to return {@code false}.
+     *
+     * @return {@code true} if this future represents the result of a bind or
+     *         StartTLS request.
+     */
+    public boolean isBindOrStartTLS() {
+        return false;
     }
 
     @Override
     protected void toString(final StringBuilder sb) {
         sb.append(" requestID = ");
-        sb.append(requestID);
+        sb.append(getRequestID());
         sb.append(" timestamp = ");
         sb.append(timestamp);
         super.toString(sb);
@@ -123,7 +140,8 @@ public abstract class AbstractLDAPFutureResultImpl<S extends Result>
     /**
      * Sets the result associated to this future as an error result.
      *
-     * @param result result of an operation
+     * @param result
+     *            result of an operation
      */
     public final void adaptErrorResult(final Result result) {
         final S errorResult =
@@ -152,12 +170,14 @@ public abstract class AbstractLDAPFutureResultImpl<S extends Result>
      *            cause of the error
      * @return the error result
      */
-    protected abstract S newErrorResult(ResultCode resultCode, String diagnosticMessage, Throwable cause);
+    protected abstract S newErrorResult(ResultCode resultCode, String diagnosticMessage,
+            Throwable cause);
 
     /**
      * Sets the result associated to this future.
      *
-     * @param result the result of operation
+     * @param result
+     *            the result of operation
      */
     public final void setResultOrError(final S result) {
         if (result.getResultCode().isExceptional()) {

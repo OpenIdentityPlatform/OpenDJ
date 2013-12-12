@@ -24,7 +24,6 @@
  *      Copyright 2010 Sun Microsystems, Inc.
  *      Portions copyright 2013 ForgeRock AS.
  */
-
 package org.forgerock.opendj.ldap;
 
 import static com.forgerock.opendj.util.StaticUtils.DEFAULT_LOG;
@@ -40,8 +39,6 @@ import com.forgerock.opendj.util.ReferenceCountedObject;
  * All listeners registered with the {@code #addListener()} method are called
  * back with {@code TimeoutEventListener#handleTimeout()} to be able to handle
  * the timeout.
- * <p>
- *
  */
 public final class TimeoutChecker {
     /**
@@ -63,12 +60,11 @@ public final class TimeoutChecker {
     /**
      * Condition variable used for coordinating the timeout thread.
      */
-    private final Object available = new Object();
+    private final Object stateLock = new Object();
 
     /**
-     * The listener set must be safe from CMEs.
-     * For example, if the listener is a connection, expiring requests can
-     * cause the connection to be closed.
+     * The listener set must be safe from CMEs. For example, if the listener is
+     * a connection, expiring requests can cause the connection to be closed.
      */
     private final Set<TimeoutEventListener> listeners =
             newSetFromMap(new ConcurrentHashMap<TimeoutEventListener, Boolean>());
@@ -78,34 +74,53 @@ public final class TimeoutChecker {
      */
     private volatile boolean shutdownRequested = false;
 
+    /**
+     * Contains the minimum delay for listeners which were added while the
+     * timeout check was not sleeping (i.e. while it was processing listeners).
+     */
+    private volatile long pendingListenerMinDelay = Long.MAX_VALUE;
+
     private TimeoutChecker() {
         final Thread checkerThread = new Thread("OpenDJ LDAP SDK Timeout Checker") {
             @Override
             public void run() {
                 DEFAULT_LOG.debug("Timeout Checker Starting");
                 while (!shutdownRequested) {
+                    /*
+                     * New listeners may be added during iteration and may not
+                     * be included in the computation of the new delay. This
+                     * could potentially result in the timeout checker waiting
+                     * longer than it should, or even forever (e.g. if the new
+                     * listener is the first).
+                     */
                     final long currentTime = System.currentTimeMillis();
-                    long delay = 0;
+                    long delay = Long.MAX_VALUE;
+                    pendingListenerMinDelay = Long.MAX_VALUE;
                     for (final TimeoutEventListener listener : listeners) {
                         DEFAULT_LOG.trace("Checking connection {} delay = {}", listener, delay);
 
                         // May update the connections set.
                         final long newDelay = listener.handleTimeout(currentTime);
                         if (newDelay > 0) {
-                            if (delay > 0) {
-                                delay = Math.min(newDelay, delay);
-                            } else {
-                                delay = newDelay;
-                            }
+                            delay = Math.min(newDelay, delay);
                         }
                     }
 
                     try {
-                        synchronized (available) {
-                            if (delay <= 0) {
-                                available.wait();
+                        synchronized (stateLock) {
+                            // Include any pending listener delays.
+                            delay = Math.min(pendingListenerMinDelay, delay);
+                            if (shutdownRequested) {
+                                // Stop immediately.
+                                break;
+                            } else if (delay <= 0) {
+                                /*
+                                 * If there is at least one connection then the
+                                 * delay should be > 0.
+                                 */
+                                stateLock.wait();
                             } else {
-                                available.wait(delay);
+                                stateLock.wait(delay);
                             }
                         }
                     } catch (final InterruptedException e) {
@@ -120,23 +135,31 @@ public final class TimeoutChecker {
     }
 
     /**
-     * Add a listener to check.
+     * Registers a timeout event listener for timeout notification.
      *
      * @param listener
-     *            listener to check for timeout event
+     *            The timeout event listener.
      */
     public void addListener(final TimeoutEventListener listener) {
-        listeners.add(listener);
-        if (listener.getTimeout() > 0) {
-            signal();
+        /*
+         * Only add the listener if it has a non-zero timeout. This assumes that
+         * the timeout is fixed.
+         */
+        final long timeout = listener.getTimeout();
+        if (timeout > 0) {
+            listeners.add(listener);
+            synchronized (stateLock) {
+                pendingListenerMinDelay = Math.min(pendingListenerMinDelay, timeout);
+                stateLock.notifyAll();
+            }
         }
     }
 
     /**
-     * Stop checking a listener.
+     * Deregisters a timeout event listener for timeout notification.
      *
      * @param listener
-     *            listener that was previously added to check for timeout event
+     *            The timeout event listener.
      */
     public void removeListener(final TimeoutEventListener listener) {
         listeners.remove(listener);
@@ -144,14 +167,9 @@ public final class TimeoutChecker {
     }
 
     private void shutdown() {
-        shutdownRequested = true;
-        signal();
-    }
-
-    // Wakes the timeout checker if it is sleeping.
-    private void signal() {
-        synchronized (available) {
-            available.notifyAll();
+        synchronized (stateLock) {
+            shutdownRequested = true;
+            stateLock.notifyAll();
         }
     }
 }

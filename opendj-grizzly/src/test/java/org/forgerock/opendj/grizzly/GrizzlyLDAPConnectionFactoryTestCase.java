@@ -35,40 +35,243 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.forgerock.opendj.ldap.Connection;
+import org.forgerock.opendj.ldap.ConnectionEventListener;
 import org.forgerock.opendj.ldap.ConnectionFactory;
+import org.forgerock.opendj.ldap.Connections;
+import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.FutureResult;
+import org.forgerock.opendj.ldap.IntermediateResponseHandler;
 import org.forgerock.opendj.ldap.LDAPClientContext;
 import org.forgerock.opendj.ldap.LDAPConnectionFactory;
 import org.forgerock.opendj.ldap.LDAPListener;
 import org.forgerock.opendj.ldap.LDAPOptions;
 import org.forgerock.opendj.ldap.MockConnectionEventListener;
 import org.forgerock.opendj.ldap.ProviderNotFoundException;
+import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.ResultHandler;
 import org.forgerock.opendj.ldap.SdkTestCase;
+import org.forgerock.opendj.ldap.SearchResultHandler;
 import org.forgerock.opendj.ldap.ServerConnection;
 import org.forgerock.opendj.ldap.ServerConnectionFactory;
+import org.forgerock.opendj.ldap.TimeoutResultException;
 import org.testng.annotations.Test;
+
+import static org.fest.assertions.Fail.fail;
+import static org.forgerock.opendj.ldap.requests.Requests.newSimpleBindRequest;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Matchers.same;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
+
+import java.util.concurrent.TimeoutException;
+import org.forgerock.opendj.ldap.requests.AbandonRequest;
+import org.forgerock.opendj.ldap.requests.BindRequest;
+import org.forgerock.opendj.ldap.requests.SearchRequest;
+import org.forgerock.opendj.ldap.requests.UnbindRequest;
+import org.forgerock.opendj.ldap.responses.BindResult;
+import org.forgerock.opendj.ldap.responses.SearchResultEntry;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
+import org.mockito.stubbing.Stubber;
+import org.testng.annotations.AfterClass;
 
 /**
  * Tests the {@link LDAPConnectionFactory} class.
  */
-@SuppressWarnings("javadoc")
+@SuppressWarnings({ "javadoc", "unchecked" })
 public class GrizzlyLDAPConnectionFactoryTestCase extends SdkTestCase {
+    // Manual testing has gone up to 10000 iterations.
+    private static final int ITERATIONS = 100;
+
     // Test timeout for tests which need to wait for network events.
     private static final long TEST_TIMEOUT = 30L;
+
+    /*
+     * It is usually quite a bad code smell to share state between unit tests.
+     * However, in this case we want to re-use the same factories and listeners
+     * in order to avoid shutting down and restarting the transport for each
+     * iteration.
+     */
+
+    private final Semaphore abandonLatch = new Semaphore(0);
+    private final Semaphore bindLatch = new Semaphore(0);
+    private final Semaphore closeLatch = new Semaphore(0);
+    private final Semaphore connectLatch = new Semaphore(0);
+    private final Semaphore searchLatch = new Semaphore(0);
+    private final AtomicReference<LDAPClientContext> context =
+            new AtomicReference<LDAPClientContext>();
+    private final LDAPListener server = createServer();
+    private final ConnectionFactory factory = new LDAPConnectionFactory(server.getSocketAddress(),
+            new LDAPOptions().setTimeout(1, TimeUnit.MILLISECONDS));
+    private final ConnectionFactory pool = Connections.newFixedConnectionPool(factory, 10);
+    private volatile ServerConnection<Integer> serverConnection;
+
+    @AfterClass
+    public void tearDown() {
+        pool.close();
+        factory.close();
+        server.close();
+    }
+
+    /**
+     * Unit test for OPENDJ-1247: a locally timed out bind request will leave a
+     * connection in an invalid state since a bind (or startTLS) is in progress
+     * and no other operations can be performed. Therefore, a timeout should
+     * cause the connection to become invalid and an appropriate connection
+     * event sent. In addition, no abandon request should be sent.
+     */
+    @Test
+    public void testClientSideTimeoutForBindRequest() throws Exception {
+        resetState();
+        registerBindEvent();
+        registerCloseEvent();
+
+        for (int i = 0; i < ITERATIONS; i++) {
+            final Connection connection = factory.getConnection();
+            try {
+                waitForConnect();
+                final MockConnectionEventListener listener = new MockConnectionEventListener();
+                connection.addConnectionEventListener(listener);
+
+                final ResultHandler<BindResult> handler = mock(ResultHandler.class);
+                final FutureResult<BindResult> future =
+                        connection.bindAsync(newSimpleBindRequest(), null, handler);
+                waitForBind();
+
+                // Wait for the request to timeout.
+                try {
+                    future.get(TEST_TIMEOUT, TimeUnit.SECONDS);
+                    fail("The bind request succeeded unexpectedly");
+                } catch (TimeoutResultException e) {
+                    verifyResultCodeIsClientSideTimeout(e);
+                    verify(handler).handleErrorResult(same(e));
+
+                    /*
+                     * The connection should no longer be valid, the event
+                     * listener should have been notified, but no abandon should
+                     * have been sent.
+                     */
+                    listener.awaitError(TEST_TIMEOUT, TimeUnit.SECONDS);
+                    assertThat(connection.isValid()).isFalse();
+                    verifyResultCodeIsClientSideTimeout(listener.getError());
+                    connection.close();
+                    waitForClose();
+                    verifyNoAbandonSent();
+                }
+            } finally {
+                connection.close();
+            }
+        }
+    }
+
+    /**
+     * Unit test for OPENDJ-1247: as per previous test, except this time verify
+     * that the connection failure removes the connection from a connection
+     * pool.
+     */
+    @Test
+    public void testClientSideTimeoutForBindRequestInConnectionPool() throws Exception {
+        resetState();
+        registerBindEvent();
+        registerCloseEvent();
+
+        for (int i = 0; i < ITERATIONS; i++) {
+            final Connection connection = pool.getConnection();
+            try {
+                waitForConnect();
+                final MockConnectionEventListener listener = new MockConnectionEventListener();
+                connection.addConnectionEventListener(listener);
+
+                // Now bind with timeout.
+                final ResultHandler<BindResult> handler = mock(ResultHandler.class);
+                final FutureResult<BindResult> future =
+                        connection.bindAsync(newSimpleBindRequest(), null, handler);
+                waitForBind();
+
+                // Wait for the request to timeout.
+                try {
+                    future.get(5, TimeUnit.SECONDS);
+                    fail("The bind request succeeded unexpectedly");
+                } catch (TimeoutException e) {
+                    fail("The bind request future get timed out");
+                } catch (TimeoutResultException e) {
+                    verifyResultCodeIsClientSideTimeout(e);
+                    verify(handler).handleErrorResult(same(e));
+
+                    /*
+                     * The connection should no longer be valid, the event
+                     * listener should have been notified, but no abandon should
+                     * have been sent.
+                     */
+                    listener.awaitError(TEST_TIMEOUT, TimeUnit.SECONDS);
+                    assertThat(connection.isValid()).isFalse();
+                    verifyResultCodeIsClientSideTimeout(listener.getError());
+                    connection.close();
+                    waitForClose();
+                    verifyNoAbandonSent();
+                }
+            } finally {
+                connection.close();
+            }
+        }
+    }
+
+    /**
+     * Unit test for OPENDJ-1247: a locally timed out request which is not a
+     * bind or startTLS should result in a client side timeout error, but the
+     * connection should remain valid. In addition, no abandon request should be
+     * sent.
+     */
+    @Test
+    public void testClientSideTimeoutForSearchRequest() throws Exception {
+        resetState();
+        registerSearchEvent();
+        registerAbandonEvent();
+
+        for (int i = 0; i < ITERATIONS; i++) {
+            final Connection connection = factory.getConnection();
+            try {
+                waitForConnect();
+                final ConnectionEventListener listener = mock(ConnectionEventListener.class);
+                connection.addConnectionEventListener(listener);
+
+                final ResultHandler<SearchResultEntry> handler = mock(ResultHandler.class);
+                final FutureResult<SearchResultEntry> future =
+                        connection.readEntryAsync(DN.valueOf("cn=test"), null, handler);
+                waitForSearch();
+
+                // Wait for the request to timeout.
+                try {
+                    future.get(TEST_TIMEOUT, TimeUnit.SECONDS);
+                    fail("The search request succeeded unexpectedly");
+                } catch (TimeoutResultException e) {
+                    verifyResultCodeIsClientSideTimeout(e);
+                    verify(handler).handleErrorResult(same(e));
+
+                    // The connection should still be valid.
+                    assertThat(connection.isValid()).isTrue();
+                    verifyZeroInteractions(listener);
+
+                    /*
+                     * FIXME: The search should have been abandoned (see comment
+                     * in LDAPConnection for explanation).
+                     */
+                    // waitForAbandon();
+                }
+            } finally {
+                connection.close();
+            }
+        }
+    }
 
     @Test
     public void testCreateLDAPConnectionFactory() throws Exception {
         // test no exception is thrown, which means transport provider is correctly loaded
         LDAPConnectionFactory factory = new LDAPConnectionFactory(findFreeSocketAddress());
-        factory.close();
-    }
-
-    @Test
-    public void testCreateLDAPConnectionFactoryWithCustomClassLoader() throws Exception {
-        // test no exception is thrown, which means transport provider is correctly loaded
-        LDAPOptions options = new LDAPOptions().
-                setProviderClassLoader(Thread.currentThread().getContextClassLoader());
-        LDAPConnectionFactory factory = new LDAPConnectionFactory(findFreeSocketAddress(), options);
         factory.close();
     }
 
@@ -80,53 +283,133 @@ public class GrizzlyLDAPConnectionFactoryTestCase extends SdkTestCase {
         factory.close();
     }
 
+    @Test
+    public void testCreateLDAPConnectionFactoryWithCustomClassLoader() throws Exception {
+        // test no exception is thrown, which means transport provider is correctly loaded
+        LDAPOptions options =
+                new LDAPOptions().setProviderClassLoader(Thread.currentThread()
+                        .getContextClassLoader());
+        LDAPConnectionFactory factory = new LDAPConnectionFactory(findFreeSocketAddress(), options);
+        factory.close();
+    }
+
     /**
      * This unit test exposes the bug raised in issue OPENDJ-1156: NPE in
      * ReferenceCountedObject after shutting down directory.
      */
     @Test
     public void testResourceManagement() throws Exception {
-        final AtomicReference<LDAPClientContext> context = new AtomicReference<LDAPClientContext>();
-        final Semaphore latch = new Semaphore(0);
-        final LDAPListener server = createServer(latch, context);
-        final ConnectionFactory factory = new LDAPConnectionFactory(server.getSocketAddress());
-        try {
-            for (int i = 0; i < 100; i++) {
-                // Connect to the server.
-                final Connection connection = factory.getConnection();
-                try {
-                    // Wait for the server to accept the connection.
-                    assertThat(latch.tryAcquire(TEST_TIMEOUT, TimeUnit.SECONDS)).isTrue();
+        resetState();
 
-                    final MockConnectionEventListener listener = new MockConnectionEventListener();
-                    connection.addConnectionEventListener(listener);
+        for (int i = 0; i < ITERATIONS; i++) {
+            final Connection connection = factory.getConnection();
+            try {
+                waitForConnect();
+                final MockConnectionEventListener listener = new MockConnectionEventListener();
+                connection.addConnectionEventListener(listener);
 
-                    // Perform remote disconnect which will trigger a client side connection error.
-                    context.get().disconnect();
+                // Perform remote disconnect which will trigger a client side connection error.
+                context.get().disconnect();
 
-                    // Wait for the error notification to reach the client.
-                    listener.awaitError(TEST_TIMEOUT, TimeUnit.SECONDS);
-                } finally {
-                    connection.close();
-                }
+                // Wait for the error notification to reach the client.
+                listener.awaitError(TEST_TIMEOUT, TimeUnit.SECONDS);
+            } finally {
+                connection.close();
             }
-        } finally {
-            factory.close();
-            server.close();
         }
     }
 
-    private LDAPListener createServer(final Semaphore latch, final AtomicReference<LDAPClientContext> context)
-            throws IOException {
-        return new LDAPListener(findFreeSocketAddress(), new ServerConnectionFactory<LDAPClientContext, Integer>() {
-            @SuppressWarnings("unchecked")
+    private LDAPListener createServer() {
+        try {
+            return new LDAPListener(findFreeSocketAddress(),
+                    new ServerConnectionFactory<LDAPClientContext, Integer>() {
+                        @Override
+                        public ServerConnection<Integer> handleAccept(
+                                final LDAPClientContext clientContext) throws ErrorResultException {
+                            context.set(clientContext);
+                            connectLatch.release();
+                            return serverConnection;
+                        }
+                    });
+        } catch (IOException e) {
+            fail("Unable to create LDAP listener", e);
+            return null;
+        }
+    }
+
+    private Stubber notifyEvent(final Semaphore latch) {
+        return doAnswer(new Answer<Void>() {
             @Override
-            public ServerConnection<Integer> handleAccept(final LDAPClientContext clientContext)
-                    throws ErrorResultException {
-                context.set(clientContext);
+            public Void answer(InvocationOnMock invocation) {
                 latch.release();
-                return mock(ServerConnection.class);
+                return null;
             }
         });
+    }
+
+    private void registerAbandonEvent() {
+        notifyEvent(abandonLatch).when(serverConnection).handleAbandon(any(Integer.class),
+                any(AbandonRequest.class));
+    }
+
+    private void registerBindEvent() {
+        notifyEvent(bindLatch).when(serverConnection).handleBind(any(Integer.class), anyInt(),
+                any(BindRequest.class), any(IntermediateResponseHandler.class),
+                any(ResultHandler.class));
+    }
+
+    private void registerCloseEvent() {
+        notifyEvent(closeLatch).when(serverConnection).handleConnectionClosed(any(Integer.class),
+                any(UnbindRequest.class));
+    }
+
+    private void registerSearchEvent() {
+        notifyEvent(searchLatch).when(serverConnection).handleSearch(any(Integer.class),
+                any(SearchRequest.class), any(IntermediateResponseHandler.class),
+                any(SearchResultHandler.class));
+    }
+
+    private void resetState() {
+        connectLatch.drainPermits();
+        abandonLatch.drainPermits();
+        bindLatch.drainPermits();
+        searchLatch.drainPermits();
+        closeLatch.drainPermits();
+        context.set(null);
+        serverConnection = mock(ServerConnection.class);
+    }
+
+    private void verifyNoAbandonSent() {
+        verify(serverConnection, never()).handleAbandon(any(Integer.class),
+                any(AbandonRequest.class));
+    }
+
+    private void verifyResultCodeIsClientSideTimeout(ErrorResultException error) {
+        assertThat(error.getResult().getResultCode()).isEqualTo(ResultCode.CLIENT_SIDE_TIMEOUT);
+    }
+
+    @SuppressWarnings("unused")
+    private void waitForAbandon() throws InterruptedException {
+        waitForEvent(abandonLatch);
+    }
+
+    private void waitForBind() throws InterruptedException {
+        waitForEvent(bindLatch);
+    }
+
+    private void waitForClose() throws InterruptedException {
+        waitForEvent(closeLatch);
+    }
+
+    private void waitForConnect() throws InterruptedException {
+        waitForEvent(connectLatch);
+    }
+
+    private void waitForEvent(final Semaphore latch) throws InterruptedException {
+        assertThat(latch.tryAcquire(TEST_TIMEOUT, TimeUnit.SECONDS)).isTrue();
+    }
+
+    private void waitForSearch() throws InterruptedException {
+        waitForEvent(searchLatch);
     }
 }

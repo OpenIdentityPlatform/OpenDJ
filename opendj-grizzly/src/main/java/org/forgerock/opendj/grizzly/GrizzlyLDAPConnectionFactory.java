@@ -34,6 +34,7 @@ import static org.forgerock.opendj.ldap.TimeoutChecker.TIMEOUT_CHECKER;
 import java.io.IOException;
 import java.net.SocketAddress;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -166,7 +167,9 @@ public final class GrizzlyLDAPConnectionFactory implements LDAPConnectionFactory
             connection.configureBlocking(true);
             final GrizzlyLDAPConnection ldapConnection =
                     new GrizzlyLDAPConnection(connection, GrizzlyLDAPConnectionFactory.this);
-            timeoutChecker.get().addListener(ldapConnection);
+            if (options.getTimeout(TimeUnit.MILLISECONDS) > 0) {
+                timeoutChecker.get().addListener(ldapConnection);
+            }
             clientFilter.registerConnection(connection, ldapConnection);
             return ldapConnection;
         }
