@@ -371,10 +371,15 @@ public final class MatchingRule extends SchemaElement {
         }
 
         if (impl == null) {
-            impl = schema.getDefaultMatchingRule().impl;
-            final LocalizableMessage message = WARN_MATCHING_RULE_NOT_IMPLEMENTED1
-                    .get(getNameOrOID(), schema.getDefaultMatchingRule()
-                            .getOID());
+            final MatchingRule defaultMatchingRule = schema.getDefaultMatchingRule();
+            if (defaultMatchingRule.impl == null) {
+                // The default matching rule was never validated.
+                defaultMatchingRule.validate(schema, warnings);
+            }
+            impl = defaultMatchingRule.impl;
+            final LocalizableMessage message =
+                    WARN_MATCHING_RULE_NOT_IMPLEMENTED1.get(getNameOrOID(), schema
+                            .getDefaultMatchingRule().getOID());
             warnings.add(message);
         }
 
