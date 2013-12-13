@@ -591,21 +591,9 @@ public final class UpgradeTasks
       public void postUpgrade(final UpgradeContext context)
           throws ClientException
       {
-        // Sets the arguments like the rebuild index command line.
-        final List<String> args = new LinkedList<String>();
-        args.addAll(Arrays.asList(
-            "-f",
-            new File(configDirectory, CURRENT_CONFIG_FILE_NAME)
-              .getAbsolutePath()));
-
-        // Index(es) could be contained in several backends.
-        for (final String be : UpgradeUtils.getLocalBackendsFromConfig())
-        {
-          args.add("-b");
-          args.add(be);
-        }
-
         Message message = null;
+        final List<String> args = new LinkedList<String>();
+
         if (isRebuildAllIndexesIsPresent && isRebuildAllIndexesTaskAccepted)
         {
           args.add("--rebuildAll");
@@ -624,38 +612,72 @@ public final class UpgradeTasks
             args.add("-i");
             args.add(indexToRebuild);
           }
-        } else {
+        }
+        else
+        {
           return;
         }
-
+        // Startup message.
         ProgressNotificationCallback pnc =
             new ProgressNotificationCallback(0, message, 25);
         LOG.log(Level.INFO, message.toString());
         context.notifyProgress(pnc);
 
-        final String[] commandLineArgs = args.toArray(new String[args.size()]);
-        // Displays info about command line args for log only.
-        LOG.log(Level.INFO, INFO_UPGRADE_REBUILD_INDEX_ARGUMENTS.get(
-            Arrays.toString(commandLineArgs)).toString());
+        // Sets the arguments like the rebuild index command line.
+        args.addAll(Arrays.asList(
+            "-f",
+            new File(configDirectory, CURRENT_CONFIG_FILE_NAME)
+              .getAbsolutePath()));
 
         /*
-         * The rebuild-index process just display a status ok / fails. The
-         * logger stream contains all the log linked to this process. The
-         * complete process is not displayed in the upgrade console.
+         * Index(es) could be contained in several backends or none, If none,
+         * the post upgrade tasks succeed and a message is printed in the
+         * upgrade log file.
          */
-        final int result =
-            new RebuildIndex().rebuildIndexesWithinMultipleBackends(true,
-                UpgradeLog.getPrintStream(), commandLineArgs);
-        if (result == 0)
+        final List<String> backends = UpgradeUtils.getLocalBackendsFromConfig();
+        if (!backends.isEmpty())
         {
-          LOG.log(Level.INFO, INFO_UPGRADE_REBUILD_INDEX_ENDS.get().toString());
-          context.notifyProgress(pnc.setProgress(100));
+          for (final String be : backends)
+          {
+            args.add("-b");
+            args.add(be);
+          }
+
+          final String[] commandLineArgs =
+              args.toArray(new String[args.size()]);
+          // Displays info about command line args for log only.
+          LOG.log(Level.INFO, INFO_UPGRADE_REBUILD_INDEX_ARGUMENTS.get(
+              Arrays.toString(commandLineArgs)).toString());
+
+          /*
+           * The rebuild-index process just display a status ok / fails. The
+           * logger stream contains all the log linked to this process. The
+           * complete process is not displayed in the upgrade console.
+           */
+          final int result =
+              new RebuildIndex().rebuildIndexesWithinMultipleBackends(true,
+                  UpgradeLog.getPrintStream(), commandLineArgs);
+
+          if (result == 0)
+          {
+            LOG.log(Level.INFO, INFO_UPGRADE_REBUILD_INDEX_ENDS.get()
+                .toString());
+            context.notifyProgress(pnc.setProgress(100));
+          }
+          else
+          {
+            final Message msg = ERR_UPGRADE_PERFORMING_POST_TASKS_FAIL.get();
+            context.notifyProgress(pnc.setProgress(-100));
+            throw new ClientException(EXIT_CODE_ERROR, msg);
+          }
         }
         else
         {
-          final Message msg = ERR_UPGRADE_PERFORMING_POST_TASKS_FAIL.get();
-          context.notifyProgress(pnc.setProgress(-100));
-          throw new ClientException(EXIT_CODE_ERROR, msg);
+          final Message msg = INFO_UPGRADE_REBUILD_INDEX_NO_BACKEND_FOUND.get();
+          LOG.log(Level.INFO, msg.toString());
+          LOG.log(Level.INFO, INFO_UPGRADE_REBUILD_INDEX_DECLINED.get(
+              Arrays.toString(indexesListToRebuild.toArray())).toString());
+          context.notifyProgress(pnc.setProgress(100));
         }
       }
     };
