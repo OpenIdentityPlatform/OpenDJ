@@ -276,7 +276,7 @@ public final class DirectoryServer
   private CertificateMapperConfigManager certificateMapperConfigManager;
 
   /** The class used to provide the config handler implementation. */
-  private Class configClass;
+  private Class<ConfigHandler> configClass;
 
   /** The configuration handler for the Directory Server. */
   private ConfigHandler configHandler;
@@ -673,7 +673,8 @@ public final class DirectoryServer
    * The virtual attribute provider configuration manager for the Directory
    * Server.
    */
-  private VirtualAttributeConfigManager virtualAttributeConfigManager;
+  private final VirtualAttributeConfigManager virtualAttributeConfigManager =
+      new VirtualAttributeConfigManager();
 
   /** The work queue that will be used to service client requests. */
   private WorkQueue workQueue;
@@ -1076,7 +1077,7 @@ public final class DirectoryServer
   public void initializeConfiguration(String configClass, String configFile)
          throws InitializationException
   {
-    Class cfgClass;
+    Class<?> cfgClass;
     try
     {
       cfgClass = Class.forName(configClass);
@@ -1126,10 +1127,10 @@ public final class DirectoryServer
 
 
     // Load and instantiate the configuration handler class.
-    Class handlerClass = configClass;
+    Class<ConfigHandler> handlerClass = configClass;
     try
     {
-      configHandler = (ConfigHandler) handlerClass.newInstance();
+      configHandler = handlerClass.newInstance();
     }
     catch (Exception e)
     {
@@ -1183,7 +1184,6 @@ public final class DirectoryServer
                   e.getLocalizedMessage());
       throw new InitializationException(message, e);
     }
-
   }
 
 
@@ -1302,7 +1302,7 @@ public final class DirectoryServer
 
 
       // Initialize all the virtual attribute handlers.
-      initializeVirtualAttributes();
+      virtualAttributeConfigManager.initializeVirtualAttributes();
 
 
       // Initialize the core Directory Server configuration.
@@ -1377,16 +1377,14 @@ public final class DirectoryServer
 
       // Now we can initialize both subentry manager and group manager
       // for this backend.
-      subentryManager.performBackendInitializationProcessing(
-              configHandler);
+      subentryManager.performBackendInitializationProcessing(configHandler);
       groupManager.performBackendInitializationProcessing(configHandler);
 
       // Initialize the access control handler.
       AccessControlConfigManager.getInstance().initializeAccessControl();
 
       // Initialize all the backends and their associated suffixes
-      // and initialize the workflows when workflow configuration mode
-      // is auto.
+      // and initialize the workflows when workflow configuration mode is auto.
       initializeBackends();
 
       // When workflow configuration mode is manual, do configure the
@@ -1474,7 +1472,7 @@ public final class DirectoryServer
      // Notify all the initialization completed listeners.
       for (InitializationCompletedListener initializationCompletedListener :
         directoryServer.initializationCompletedListeners)
-        {
+      {
         try
         {
           initializationCompletedListener.initializationCompleted();
@@ -2599,26 +2597,6 @@ public final class DirectoryServer
   {
     saslConfigManager = new SASLConfigManager();
     saslConfigManager.initializeSASLMechanismHandlers();
-  }
-
-
-
-  /**
-   * Initializes the set of virtual attributes that should be defined in the
-   * Directory Server.
-   *
-   * @throws  ConfigException  If there is a configuration problem with any of
-   *                           the virtual attribute handlers.
-   *
-   * @throws  InitializationException  If a problem occurs while initializing
-   *                                   the virtual attribute handlers that is
-   *                                   not related to the server configuration.
-   */
-  private void initializeVirtualAttributes()
-          throws ConfigException, InitializationException
-  {
-    virtualAttributeConfigManager = new VirtualAttributeConfigManager();
-    virtualAttributeConfigManager.initializeVirtualAttributes();
   }
 
 
