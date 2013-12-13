@@ -28,8 +28,7 @@
  version='5.0' xml:lang='en'
  xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
  xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
- xmlns:xlink='http://www.w3.org/1999/xlink'
- xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ xmlns:xlink='http://www.w3.org/1999/xlink'>
  <info><copyright><year>2012-2013</year><holder>ForgeRock AS</holder></copyright></info>
  <refmeta>
   <refentrytitle>make-ldif.template</refentrytitle><manvolnum>5</manvolnum>
@@ -397,7 +396,7 @@ xml: \&lt;id&gt;{uid}\&lt;/id&gt;</programlisting>
   <para>The following example generates 10 organization units, each containing
   50 entries.</para>
 
-  <programlisting language="ldif">define suffix=dc=example,dc=com
+  <programlisting language="plain"><![CDATA[define suffix=dc=example,dc=com
 define maildomain=example.com
 define numusers=50
 define numorgs=10
@@ -412,7 +411,7 @@ telephoneNumber: +33 00010002
 template: orgunit
 subordinateTemplate: person:[numusers]
 rdnAttr: ou
-ou: Org-&lt;sequential:0&gt;
+ou: Org-<sequential:0>
 objectClass: top
 objectClass: organizationalUnit
 description: This is the {ou} organizational unit
@@ -423,24 +422,24 @@ objectClass: top
 objectClass: person
 objectClass: organizationalPerson
 objectClass: inetOrgPerson
-givenName: &lt;first&gt;
-sn: &lt;last&gt;
+givenName: <first>
+sn: <last>
 cn: {givenName} {sn}
-initials: {givenName:1}&lt;random:chars:ABCDEFGHIJKLMNOPQRSTUVWXYZ:1&gt;{sn:1}
-employeeNumber: &lt;sequential:0&gt;
+initials: {givenName:1}<random:chars:ABCDEFGHIJKLMNOPQRSTUVWXYZ:1>{sn:1}
+employeeNumber: <sequential:0>
 uid: user.{employeeNumber}
 mail: {uid}@[maildomain]
 userPassword: password
-telephoneNumber: &lt;random:telephone&gt;
-homePhone: &lt;random:telephone&gt;
-pager: &lt;random:telephone&gt;
-mobile: &lt;random:telephone&gt;
-street: &lt;random:numeric:5&gt; &lt;file:streets&gt; Street
-l: &lt;file:cities&gt;
-st: &lt;file:states&gt;
-postalCode: &lt;random:numeric:5&gt;
+telephoneNumber: <random:telephone>
+homePhone: <random:telephone>
+pager: <random:telephone>
+mobile: <random:telephone>
+street: <random:numeric:5> <file:streets> Street
+l: <file:cities>
+st: <file:states>
+postalCode: <random:numeric:5>
 postalAddress: {cn}${street}${l}, {st}  {postalCode}
-description: This is the description for {cn}.</programlisting>
+description: This is the description for {cn}.]]></programlisting>
  </refsect1>
  <refsect1>
   <title>See Also</title>
