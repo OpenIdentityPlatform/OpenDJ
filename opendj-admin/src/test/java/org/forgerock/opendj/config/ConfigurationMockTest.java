@@ -34,6 +34,7 @@ import org.forgerock.opendj.admin.server.CollectiveAttributeSubentriesVirtualAtt
 import org.forgerock.opendj.admin.server.GoverningStructureRuleVirtualAttributeCfg;
 import org.forgerock.opendj.admin.server.LDAPConnectionHandlerCfg;
 import org.forgerock.opendj.ldap.schema.Schema;
+import org.opends.server.admin.AttributeTypePropertyDefinition;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -75,6 +76,7 @@ public class ConfigurationMockTest extends ConfigTestCase {
 
     @Test
     public void testPropertyWithAttributeTypeReturnValue() throws Exception {
+        AttributeTypePropertyDefinition.setCheckSchema(false); // attribute type is not in default schema
         CollectiveAttributeSubentriesVirtualAttributeCfg mock =
                 mockCfg(CollectiveAttributeSubentriesVirtualAttributeCfg.class);
         assertThat(mock.getAttributeType()).isEqualTo(

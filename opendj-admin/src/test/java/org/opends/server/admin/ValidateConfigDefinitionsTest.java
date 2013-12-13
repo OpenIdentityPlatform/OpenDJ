@@ -44,6 +44,7 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 @SuppressWarnings("javadoc")
+@Test(singleThreaded = true)
 public class ValidateConfigDefinitionsTest extends ConfigTestCase {
 
     private static final String EOL = System.getProperty("line.separator");

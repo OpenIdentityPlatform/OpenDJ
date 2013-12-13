@@ -76,6 +76,7 @@ import org.opends.server.util.EmbeddedUtils;
  * This class allow Configuration Guide documentation generation (html format).
  * It is based on the Admin Framework Introspection API
  */
+@SuppressWarnings({ "unchecked", "rawtypes" })
 public class ConfigGuideGeneration {
 
     // Note : still to be done :
@@ -249,8 +250,9 @@ public class ConfigGuideGeneration {
     /**
      * Generate the inheritance tree of all the managed objects.
      */
-    @SuppressWarnings("unchecked")
-    private void genManagedObjectInheritanceTree(TreeMap<String, TreeMap<String, AbstractManagedObjectDefinition>> list) {
+
+    private void genManagedObjectInheritanceTree(
+            TreeMap<String, TreeMap<String, AbstractManagedObjectDefinition>> list) {
 
         htmlHeader(DynamicConstants.PRODUCT_NAME + " " + "Configuration Reference - Inheritance View");
         tabMenu(INHERITANCE_TREE_FILE);
@@ -262,7 +264,8 @@ public class ConfigGuideGeneration {
             // Get the list of the category
             TreeMap<String, AbstractManagedObjectDefinition> catList = list.get(catName);
             for (AbstractManagedObjectDefinition mo : catList.values()) {
-                if ((relList.get(mo.getName()) != null) && (relList.get(mo.getName()).hasOption(RelationOption.HIDDEN))) {
+                if ((relList.get(mo.getName()) != null)
+                        && (relList.get(mo.getName()).hasOption(RelationOption.HIDDEN))) {
                     continue;
                 }
                 paragraph(getLink(mo.getUserFriendlyName().toString(), mo.getName() + ".html", MAIN_FRAME));
@@ -276,7 +279,6 @@ public class ConfigGuideGeneration {
         generateFile(INHERITANCE_TREE_FILE);
     }
 
-    @SuppressWarnings("unchecked")
     private void genMoInheritanceTree(TreeMap<String, AbstractManagedObjectDefinition> catList) {
 
         beginList();
@@ -325,7 +327,6 @@ public class ConfigGuideGeneration {
         generateFile(RELATION_TREE_FILE);
     }
 
-    @SuppressWarnings("unchecked")
     private void genMORelationTree(TreeMap<String, RelationDefinition> list) {
         for (RelationDefinition rel : list.values()) {
             AbstractManagedObjectDefinition childMo = rel.getChildDefinition();
@@ -337,7 +338,8 @@ public class ConfigGuideGeneration {
             if (rel.hasOption(RelationOption.HIDDEN)) {
                 continue;
             }
-            String linkStr = getLink(childMo.getUserFriendlyName().toString(), childMo.getName() + ".html", MAIN_FRAME);
+            String linkStr = getLink(childMo.getUserFriendlyName().toString(), childMo.getName() + ".html",
+                    MAIN_FRAME);
             String fromStr = "";
             if (!parentMo.getName().equals("")) {
                 fromStr = " (from "
@@ -374,7 +376,6 @@ public class ConfigGuideGeneration {
     /**
      * Generate all the managed objects HTML pages.
      */
-    @SuppressWarnings("unchecked")
     private void genAllManagedObject(TreeMap<String, AbstractManagedObjectDefinition> list) {
 
         for (AbstractManagedObjectDefinition mo : list.values()) {
@@ -415,7 +416,7 @@ public class ConfigGuideGeneration {
             heading3("Direct Subcomponents");
             paragraph("The following " + mo.getUserFriendlyPluralName() + " are available in the server :");
             beginList();
-            @SuppressWarnings("unchecked")
+
             TreeMap<String, AbstractManagedObjectDefinition> children = makeMOTreeMap(mo.getChildren());
             for (AbstractManagedObjectDefinition child : children.values()) {
                 link(child.getUserFriendlyName().toString(), child.getName() + ".html");
@@ -460,7 +461,7 @@ public class ConfigGuideGeneration {
         TreeMap<String, PropertyDefinition> basicProps = new TreeMap<String, PropertyDefinition>();
         TreeMap<String, PropertyDefinition> advancedProps = new TreeMap<String, PropertyDefinition>();
         // Properties actually defined in this managed object
-        @SuppressWarnings("unchecked")
+
         Collection<PropertyDefinition> props = mo.getAllPropertyDefinitions();
         for (PropertyDefinition prop : props) {
             if (prop.hasOption(PropertyOption.ADVANCED)) {
@@ -503,7 +504,6 @@ public class ConfigGuideGeneration {
 
     private TreeMap<String, PropertyDefinition> getPropertyList(AbstractManagedObjectDefinition mo) {
 
-        @SuppressWarnings("unchecked")
         Collection<PropertyDefinition> props = mo.getAllPropertyDefinitions();
         return makePropTreeMap(props);
     }
@@ -516,14 +516,14 @@ public class ConfigGuideGeneration {
 
     private void generateRelationsSection(AbstractManagedObjectDefinition mo) {
         // Composition relations
-        @SuppressWarnings("unchecked")
+
         Collection<RelationDefinition> compRels = mo.getRelationDefinitions();
-        @SuppressWarnings("unchecked")
+
         Collection<RelationDefinition> reverseCompRels = mo.getReverseRelationDefinitions();
         // Aggregation properties
-        @SuppressWarnings("unchecked")
+
         Collection<AggregationPropertyDefinition> aggregProps = mo.getAggregationPropertyDefinitions();
-        @SuppressWarnings("unchecked")
+
         Collection<AggregationPropertyDefinition> reverseAggregProps = mo.getReverseAggregationPropertyDefinitions();
 
         // Check if something to print in composition relations
@@ -558,7 +558,7 @@ public class ConfigGuideGeneration {
         if (!reverseAggregProps.isEmpty()) {
             for (AggregationPropertyDefinition agg : reverseAggregProps) {
                 AbstractManagedObjectDefinition fromMo = agg.getManagedObjectDefinition();
-                @SuppressWarnings("unchecked")
+
                 Collection<RelationDefinition> rels = fromMo.getAllReverseRelationDefinitions();
                 for (RelationDefinition rel : rels) {
                     if (rel.hasOption(RelationOption.HIDDEN)) {
@@ -717,7 +717,8 @@ public class ConfigGuideGeneration {
 
             String basicHtmlCell = "";
             if (basicPropName != null) {
-                basicHtmlCell = "  <td>&darr;&nbsp;<a href=\"#" + basicPropName + "\">" + basicPropName + "</a></td>\n";
+                basicHtmlCell = "  <td>&darr;&nbsp;<a href=\"#" + basicPropName + "\">" + basicPropName
+                        + "</a></td>\n";
             } else if ((basicPropsArray.length == 0) && (ii == 0)) {
                 basicHtmlCell = "  <td>&nbsp;None</td>\n";
             } else if (ii >= basicPropsArray.length) {
@@ -805,8 +806,8 @@ public class ConfigGuideGeneration {
                 moPointers.append(getAnchor(letter) + getHeading2(letter));
                 lettersPointers += getLink(letter, "#" + letter) + " ";
             }
-            moPointers.append("<p> " + getLink(mo.getUserFriendlyName().toString(), mo.getName() + ".html", MAIN_FRAME)
-                    + "</p>\n");
+            moPointers.append("<p> "
+                    + getLink(mo.getUserFriendlyName().toString(), mo.getName() + ".html", MAIN_FRAME) + "</p>\n");
         }
         paragraph(lettersPointers);
         htmlBuff.append(moPointers);
@@ -903,13 +904,13 @@ public class ConfigGuideGeneration {
     private void genMainTopPage() {
         htmlHeader(DynamicConstants.PRODUCT_NAME + " Configuration Reference - Main Top");
         htmlBuff.append("<div class=\"breadcrumb\"><span class=\"pageactions\">" + "<a href=\"" + OpenDJHome
-                + "\" target=\"_parent\">" + "<span style=\"font-size: 12px;\">&laquo;&nbsp;&nbsp;</span>" + "Back to "
-                + DynamicConstants.PRODUCT_NAME + " Home</a></span>&nbsp;&nbsp;</div>\n");
+                + "\" target=\"_parent\">" + "<span style=\"font-size: 12px;\">&laquo;&nbsp;&nbsp;</span>"
+                + "Back to " + DynamicConstants.PRODUCT_NAME + " Home</a></span>&nbsp;&nbsp;</div>\n");
         htmlBuff.append("<table class=\"titletable\" cellspacing=\"0\" " + "width=\"100%\">\n");
         htmlBuff.append("<tbody><tr>\n");
         htmlBuff.append("  <td><h2>" + DynamicConstants.PRODUCT_NAME + " Configuration Reference</h2></td>\n");
-        htmlBuff.append("  <td valign=\"bottom\" width=\"10%\">" + "<a href=\"" + OpenDJHome + "\" target=\"_parent\">"
-                + "<img src=\"opendj_logo_sm.png\" alt=\"OpenDJ Logo\" align=\"bottom\" "
+        htmlBuff.append("  <td valign=\"bottom\" width=\"10%\">" + "<a href=\"" + OpenDJHome
+                + "\" target=\"_parent\">" + "<img src=\"opendj_logo_sm.png\" alt=\"OpenDJ Logo\" align=\"bottom\" "
                 + "border=\"0\" height=\"33\" width=\"114\"></a></td>\n");
         htmlBuff.append("</tr>\n");
         htmlBuff.append("</tbody></table>\n");
@@ -961,7 +962,6 @@ public class ConfigGuideGeneration {
         return null;
     }
 
-    @SuppressWarnings("unchecked")
     private String getSyntaxStr(PropertyDefinition prop) {
         // Create a visitor for performing syntax specific processing.
         PropertyDefinitionVisitor<String, Void> visitor = new PropertyDefinitionVisitor<String, Void>() {
@@ -979,8 +979,8 @@ public class ConfigGuideGeneration {
                 return "The DN of any "
                         + linkStr
                         + ". "
-                        + ((prop.getSourceConstraintSynopsis() != null) ? prop.getSourceConstraintSynopsis().toString()
-                                : "");
+                        + ((prop.getSourceConstraintSynopsis() != null) ? prop.getSourceConstraintSynopsis()
+                                .toString() : "");
             }
 
             @Override
@@ -1022,7 +1022,8 @@ public class ConfigGuideGeneration {
                 if (prop.getMaximumUnit() != null) {
                     durationStr += "Maximum unit is \"" + prop.getMaximumUnit().getLongName() + "\". ";
                 }
-                long lowerLimitStr = new Double(prop.getBaseUnit().fromMilliSeconds(prop.getLowerLimit())).longValue();
+                long lowerLimitStr = new Double(prop.getBaseUnit().fromMilliSeconds(prop.getLowerLimit()))
+                        .longValue();
                 durationStr += "Lower limit is " + lowerLimitStr + " " + prop.getBaseUnit().getLongName() + ". ";
                 if (prop.getUpperLimit() != null) {
                     long upperLimitStr = new Double(prop.getBaseUnit().fromMilliSeconds(prop.getUpperLimit()))
@@ -1109,7 +1110,6 @@ public class ConfigGuideGeneration {
 
     }
 
-    @SuppressWarnings("unchecked")
     private String getDefaultBehaviorString(PropertyDefinition prop) {
         DefaultBehaviorProvider defaultBehav = prop.getDefaultBehaviorProvider();
         String defValueStr = "";
@@ -1244,11 +1244,12 @@ public class ConfigGuideGeneration {
                 "<span><a " + (activeTab.equals(RELATION_TREE_FILE) ? "class=\"activetab\" " : "") + "href=\""
                 + RELATION_TREE_FILE + "\"" + " title=\"Relational View of Components\">Structure</a></span> " +
 
-                "<span><a " + (activeTab.equals(MO_LIST_FILE) ? "class=\"activetab\" " : "") + "href=\"" + MO_LIST_FILE
-                + "\"" + " title=\"Alphabetical Index of Components\">Components</a></span> " +
+                "<span><a " + (activeTab.equals(MO_LIST_FILE) ? "class=\"activetab\" " : "") + "href=\""
+                + MO_LIST_FILE + "\"" + " title=\"Alphabetical Index of Components\">Components</a></span> " +
 
                 "<span><a " + (activeTab.equals(PROPERTIES_INDEX_FILE) ? "class=\"activetab\" " : "") + "href=\""
-                + PROPERTIES_INDEX_FILE + "\"" + " title=\"Alphabetical Index of Properties\" >Properties</a></span>" +
+                + PROPERTIES_INDEX_FILE + "\"" + " title=\"Alphabetical Index of Properties\" >Properties</a></span>"
+                +
 
                 "</div>" + "\n");
     }
@@ -1406,8 +1407,8 @@ public class ConfigGuideGeneration {
     private void generateFile(String fileName) {
         // Write the html buffer in a file
         try {
-            PrintWriter file = new java.io.PrintWriter(
-                    new java.io.FileWriter(generationDir + File.separator + fileName));
+            PrintWriter file = new java.io.PrintWriter(new java.io.FileWriter(generationDir + File.separator
+                    + fileName));
             file.write(htmlBuff.toString());
             file.close();
         } catch (Exception e) {
