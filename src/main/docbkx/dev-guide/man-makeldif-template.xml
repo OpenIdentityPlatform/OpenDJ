@@ -553,7 +553,7 @@ xml: \&lt;id>{uid}\&lt;/id></programlisting>
    needed to generate the output.
   </para>
 
-  <programlisting language="ldif">define suffix=dc=example,dc=com
+  <programlisting language="plain"><![CDATA[define suffix=dc=example,dc=com
 define maildomain=example.com
 define numusers=50
 define numorgs=10
@@ -568,7 +568,7 @@ telephoneNumber: +33 00010002
 template: orgunit
 subordinateTemplate: person:[numusers]
 rdnAttr: ou
-ou: Org-&lt;sequential:0>
+ou: Org-<sequential:0>
 objectClass: top
 objectClass: organizationalUnit
 description: This is the {ou} organizational unit
@@ -579,24 +579,24 @@ objectClass: top
 objectClass: person
 objectClass: organizationalPerson
 objectClass: inetOrgPerson
-givenName: &lt;first>
-sn: &lt;last>
+givenName: <first>
+sn: <last>
 cn: {givenName} {sn}
-initials: {givenName:1}&lt;random:chars:ABCDEFGHIJKLMNOPQRSTUVWXYZ:1>{sn:1}
-employeeNumber: &lt;sequential:0>
+initials: {givenName:1}<random:chars:ABCDEFGHIJKLMNOPQRSTUVWXYZ:1>{sn:1}
+employeeNumber: <sequential:0>
 uid: user.{employeeNumber}
 mail: {uid}@[maildomain]
 userPassword: password
-telephoneNumber: &lt;random:telephone>
-homePhone: &lt;random:telephone>
-pager: &lt;random:telephone>
-mobile: &lt;random:telephone>
-street: &lt;random:numeric:5> &lt;file:streets> Street
-l: &lt;file:cities>
-st: &lt;file:states>
-postalCode: &lt;random:numeric:5>
+telephoneNumber: <random:telephone>
+homePhone: <random:telephone>
+pager: <random:telephone>
+mobile: <random:telephone>
+street: <random:numeric:5> <file:streets> Street
+l: <file:cities>
+st: <file:states>
+postalCode: <random:numeric:5>
 postalAddress: {cn}${street}${l}, {st}  {postalCode}
-description: This is the description for {cn}.</programlisting>
+description: This is the description for {cn}.]]></programlisting>
  </refsect1>
 
  <refsect1>
