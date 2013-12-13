@@ -94,7 +94,6 @@ import org.opends.server.workflowelement.WorkflowElement;
 import org.opends.server.workflowelement.WorkflowElementConfigManager;
 import org.opends.server.workflowelement.localbackend.*;
 
-
 /**
  * This class defines the core of the Directory Server.  It manages the startup
  * and shutdown processes and coordinates activities between all other
@@ -117,7 +116,7 @@ public final class DirectoryServer
 
   /**
    * Indicates whether the server currently holds an exclusive lock on the
-   * server lock fiie.
+   * server lock file.
    */
   private static boolean serverLocked = false;
 
@@ -1290,7 +1289,7 @@ public final class DirectoryServer
 
       // Determine whether or not we should start the connection handlers.
       boolean startConnectionHandlers =
-           (! environmentConfig.disableConnectionHandlers());
+          !environmentConfig.disableConnectionHandlers();
 
 
       // Initialize all the schema elements.
@@ -1709,8 +1708,8 @@ public final class DirectoryServer
    */
   public static boolean mailServerConfigured()
   {
-    return ((directoryServer.mailServerPropertySets != null) &&
-            (! directoryServer.mailServerPropertySets.isEmpty()));
+    return directoryServer.mailServerPropertySets != null
+        && !directoryServer.mailServerPropertySets.isEmpty();
   }
 
 
@@ -1935,21 +1934,21 @@ public final class DirectoryServer
       Map<String, List<ConfigChangeListener>> changeListeners)
   {
     List<ConfigAddListener> cfgAddListeners = configEntry.getAddListeners();
-    if ((cfgAddListeners != null) && (cfgAddListeners.size() > 0))
+    if (cfgAddListeners != null && cfgAddListeners.size() > 0)
     {
       addListeners.put(configEntry.getDN().toString(), cfgAddListeners);
     }
 
     List<ConfigDeleteListener> cfgDeleteListeners =
         configEntry.getDeleteListeners();
-    if ((cfgDeleteListeners != null) && (cfgDeleteListeners.size() > 0))
+    if (cfgDeleteListeners != null && cfgDeleteListeners.size() > 0)
     {
       deleteListeners.put(configEntry.getDN().toString(), cfgDeleteListeners);
     }
 
     List<ConfigChangeListener> cfgChangeListeners =
         configEntry.getChangeListeners();
-    if ((cfgChangeListeners != null) && (cfgChangeListeners.size() > 0))
+    if (cfgChangeListeners != null && cfgChangeListeners.size() > 0)
     {
       changeListeners.put(configEntry.getDN().toString(), cfgChangeListeners);
     }
@@ -2172,7 +2171,7 @@ public final class DirectoryServer
     // we might want to configure several workflows handling the same
     // baseDN through different network groups. So a mix of both
     // backendID and baseDN should be ok.
-    String workflowID = backend.getBackendID() + "#" + baseDN.toString();
+    String workflowID = backend.getBackendID() + "#" + baseDN;
 
     // Create the workflow for the base DN and register the workflow with
     // the server.
@@ -2283,8 +2282,8 @@ public final class DirectoryServer
       WorkflowConfigurationMode oldMode,
       WorkflowConfigurationMode newMode)
   {
-    if ((oldMode == WorkflowConfigurationMode.AUTO)
-        && (newMode == WorkflowConfigurationMode.MANUAL))
+    if (oldMode == WorkflowConfigurationMode.AUTO
+        && newMode == WorkflowConfigurationMode.MANUAL)
     {
       // move to manual mode
       try
@@ -2310,8 +2309,8 @@ public final class DirectoryServer
         }
       }
     }
-    else if ((oldMode == WorkflowConfigurationMode.MANUAL)
-        && (newMode == WorkflowConfigurationMode.AUTO))
+    else if (oldMode == WorkflowConfigurationMode.MANUAL
+        && newMode == WorkflowConfigurationMode.AUTO)
     {
       // move to auto mode
       try
@@ -3491,7 +3490,7 @@ public final class DirectoryServer
                                            boolean returnDefault)
   {
     ObjectClass oc = directoryServer.schema.getObjectClass(lowerName);
-    if (returnDefault && (oc == null))
+    if (returnDefault && oc == null)
     {
       oc = getDefaultObjectClass(lowerName);
     }
@@ -3695,7 +3694,7 @@ public final class DirectoryServer
                                                boolean returnDefault)
   {
     AttributeType type = directoryServer.schema.getAttributeType(lowerName);
-    if (returnDefault && (type == null))
+    if (returnDefault && type == null)
     {
       type = getDefaultAttributeType(lowerName);
     }
@@ -3894,7 +3893,7 @@ public final class DirectoryServer
                                                    boolean allowDefault)
   {
     AttributeSyntax syntax = directoryServer.schema.getSyntax(oid);
-    if ((syntax == null) && allowDefault)
+    if (syntax == null && allowDefault)
     {
       return getDefaultAttributeSyntax();
     }
@@ -4616,8 +4615,8 @@ public final class DirectoryServer
                                            String alertType,
                                            Message alertMessage)
   {
-    if ((directoryServer.alertHandlers == null) ||
-        directoryServer.alertHandlers.isEmpty())
+    if (directoryServer.alertHandlers == null
+        || directoryServer.alertHandlers.isEmpty())
     {
       // If the Directory Server is still in the process of starting up, then
       // create a JMX alert handler to use for this notification.
@@ -4646,9 +4645,9 @@ public final class DirectoryServer
         AlertHandlerCfg config = alertHandler.getAlertHandlerConfiguration();
         Set<String> enabledAlerts = config.getEnabledAlertType();
         Set<String> disabledAlerts = config.getDisabledAlertType();
-        if ((enabledAlerts == null) || enabledAlerts.isEmpty())
+        if (enabledAlerts == null || enabledAlerts.isEmpty())
         {
-          if ((disabledAlerts != null) && disabledAlerts.contains(alertType))
+          if (disabledAlerts != null && disabledAlerts.contains(alertType))
           {
             continue;
           }
@@ -4657,7 +4656,7 @@ public final class DirectoryServer
         {
           if (enabledAlerts.contains(alertType))
           {
-            if ((disabledAlerts != null) && disabledAlerts.contains(alertType))
+            if (disabledAlerts != null && disabledAlerts.contains(alertType))
             {
               continue;
             }
@@ -5177,8 +5176,8 @@ public final class DirectoryServer
           .get(directoryServer.defaultPasswordPolicyDN) :
             "Internal Error: no default password policy defined.";
 
-      if ((directoryServer.defaultPasswordPolicy == null)
-          && (directoryServer.defaultPasswordPolicyDN != null))
+      if (directoryServer.defaultPasswordPolicy == null
+          && directoryServer.defaultPasswordPolicyDN != null)
       {
         // The correct policy type is enforced by the core config manager.
         directoryServer.defaultPasswordPolicy = (PasswordPolicy)
@@ -5731,8 +5730,8 @@ public final class DirectoryServer
     DN existingRootEntryDN =
          directoryServer.alternateRootBindDNs.putIfAbsent(alternateRootBindDN,
                                                           actualRootEntryDN);
-    if ((existingRootEntryDN != null) &&
-        (! existingRootEntryDN.equals(actualRootEntryDN)))
+    if (existingRootEntryDN != null
+        && !existingRootEntryDN.equals(actualRootEntryDN))
     {
       Message message = ERR_CANNOT_REGISTER_DUPLICATE_ALTERNATE_ROOT_BIND_DN.
           get(String.valueOf(alternateRootBindDN),
@@ -6268,20 +6267,18 @@ public final class DirectoryServer
       // When a new baseDN is registered with the server we have to create
       // a new workflow to handle the base DN. We do not need to create
       // the workflow in manual mode because in that case the workflows
-      // are created explicitely.
-      if (workflowConfigurationModeIsAuto())
+      // are created explicitly.
+      if (workflowConfigurationModeIsAuto()
+          && !baseDN.equals(DN.decode("cn=config")))
       {
         // Now create a workflow for the registered baseDN and register
         // the workflow with the default network group, but don't register
         // the workflow if the backend happens to be the configuration
         // backend because it's too soon for the config backend.
-        if (! baseDN.equals(DN.decode("cn=config")))
-        {
-          WorkflowImpl workflowImpl = createWorkflow(baseDN, backend);
-          registerWorkflowWithInternalNetworkGroup(workflowImpl);
-          registerWorkflowWithAdminNetworkGroup(workflowImpl);
-          registerWorkflowWithDefaultNetworkGroup(workflowImpl);
-        }
+        WorkflowImpl workflowImpl = createWorkflow(baseDN, backend);
+        registerWorkflowWithInternalNetworkGroup(workflowImpl);
+        registerWorkflowWithAdminNetworkGroup(workflowImpl);
+        registerWorkflowWithDefaultNetworkGroup(workflowImpl);
       }
     }
   }
@@ -6481,16 +6478,10 @@ public final class DirectoryServer
       return true;
     }
 
-    // Figure out which backend should be used for the entry.  If it isn't
-    // appropriate for any backend, then return false.
-    Backend backend = getBackend(entryDN);
-    if (backend == null)
-    {
-      return false;
-    }
-
     // Ask the appropriate backend if the entry exists.
-    return backend.entryExists(entryDN);
+    // If it is not appropriate for any backend, then return false.
+    Backend backend = getBackend(entryDN);
+    return backend != null && backend.entryExists(entryDN);
   }
 
 
@@ -7111,8 +7102,7 @@ public final class DirectoryServer
         case EXTENDED:
          ExtendedOperationBasis extOp = (ExtendedOperationBasis) operation;
          String   requestOID = extOp.getRequestOID();
-         if (!((requestOID != null) &&
-                 requestOID.equals(OID_START_TLS_REQUEST)))
+         if (!OID_START_TLS_REQUEST.equals(requestOID))
          {
            if (directoryServer.lockdownMode)
            {
@@ -7149,7 +7139,7 @@ public final class DirectoryServer
           // If it did, then add a corresponding response control.
           for (Control c : operation.getRequestControls())
           {
-            if (c.getOID().equals(OID_PASSWORD_POLICY_CONTROL))
+            if (OID_PASSWORD_POLICY_CONTROL.equals(c.getOID()))
             {
               operation.addResponseControl(new PasswordPolicyResponseControl(
                    null, 0, PasswordPolicyErrorType.CHANGE_AFTER_RESET));
@@ -7169,15 +7159,14 @@ public final class DirectoryServer
           // operations.
           ExtendedOperationBasis extOp = (ExtendedOperationBasis) operation;
           String            requestOID = extOp.getRequestOID();
-          if ((requestOID == null) ||
-              ((! requestOID.equals(OID_PASSWORD_MODIFY_REQUEST)) &&
-               (! requestOID.equals(OID_START_TLS_REQUEST))))
+          if (!OID_PASSWORD_MODIFY_REQUEST.equals(requestOID)
+              && !OID_START_TLS_REQUEST.equals(requestOID))
           {
             // See if the request included the password policy request control.
             // If it did, then add a corresponding response control.
             for (Control c : operation.getRequestControls())
             {
-              if (c.getOID().equals(OID_PASSWORD_POLICY_CONTROL))
+              if (OID_PASSWORD_POLICY_CONTROL.equals(c.getOID()))
               {
                 operation.addResponseControl(new PasswordPolicyResponseControl(
                      null, 0, PasswordPolicyErrorType.CHANGE_AFTER_RESET));
@@ -8477,15 +8466,14 @@ public final class DirectoryServer
       if (directoryServer.lockdownMode)
       {
         InetAddress remoteAddress = clientConnection.getRemoteAddress();
-        if ((remoteAddress != null) && (! remoteAddress.isLoopbackAddress()))
+        if (remoteAddress != null && !remoteAddress.isLoopbackAddress())
         {
           return -1;
         }
       }
 
-      if ((directoryServer.maxAllowedConnections > 0) &&
-          (directoryServer.currentConnections >=
-               directoryServer.maxAllowedConnections))
+      final long maxAllowed = directoryServer.maxAllowedConnections;
+      if (0 < maxAllowed && maxAllowed <= directoryServer.currentConnections)
       {
         return -1;
       }
@@ -8700,13 +8688,8 @@ public final class DirectoryServer
   public static boolean allowNewPersistentSearch()
   {
     //-1 indicates that there is no limit.
-    if(directoryServer.maxPSearches ==-1 ||
-            directoryServer.activePSearches.get() <
-            directoryServer.maxPSearches)
-    {
-      return true;
-    }
-    return false;
+    return directoryServer.maxPSearches == -1
+        || directoryServer.activePSearches.get() < directoryServer.maxPSearches;
   }
 
 
@@ -9168,7 +9151,7 @@ public final class DirectoryServer
         List<String> newArgList = new LinkedList<String>();
         for (String arg : args)
         {
-          if (! arg.equalsIgnoreCase("--checkstartability"))
+          if (!"--checkstartability".equalsIgnoreCase(arg))
           {
             newArgList.add(arg);
           }
@@ -9308,14 +9291,11 @@ public final class DirectoryServer
                new FileOutputStream(new File(logDir, "server.out"), true);
           serverOutStream = new PrintStream(fos);
 
-          if (noDetach.isPresent())
+          if (noDetach.isPresent() && !quietMode.isPresent())
           {
-            if (! quietMode.isPresent())
-            {
-              MultiOutputStream multiStream =
-                   new MultiOutputStream(System.out, serverOutStream);
-              serverOutStream = new PrintStream(multiStream);
-            }
+            MultiOutputStream multiStream =
+                new MultiOutputStream(System.out, serverOutStream);
+            serverOutStream = new PrintStream(multiStream);
           }
 
           System.setOut(serverOutStream);
@@ -9690,10 +9670,8 @@ public final class DirectoryServer
    */
   public static boolean workflowConfigurationModeIsAuto()
   {
-    boolean isAuto =
-      (directoryServer.workflowConfigurationMode
-       == WorkflowConfigurationMode.AUTO);
-    return isAuto;
+    return directoryServer.workflowConfigurationMode
+        == WorkflowConfigurationMode.AUTO;
   }
 
   /**
@@ -9713,7 +9691,7 @@ public final class DirectoryServer
    * @return the associated workflow element or null
    */
   public static WorkflowElement getWorkflowElement(String workflowElementID) {
-    return(directoryServer.workflowElements.get(workflowElementID));
+    return directoryServer.workflowElements.get(workflowElementID);
   }
 
   /**
@@ -9737,7 +9715,7 @@ public final class DirectoryServer
         loadAndRegisterWorkflowElement(workflowElementID);
     }
 
-    return (we);
+    return we;
   }
 
   /**
@@ -9792,15 +9770,13 @@ public final class DirectoryServer
    * @return boolean indicating if workflow element is already registered
    */
   public static boolean isWorkflowElementRegistered(String workflowElementID) {
-    return (directoryServer.workflowElements.containsKey(workflowElementID));
+    return directoryServer.workflowElements.containsKey(workflowElementID);
   }
 
   /**
    * Print messages for start-ds "-F" option (full version information).
    */
-
-  private static
-  void printFullVersionInformation() {
+  private static void printFullVersionInformation() {
     /**
      * This option is used by the upgrade to identify the server build and it
      * can eventually also be used to be sent to the support in case of an
