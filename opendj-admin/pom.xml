@@ -64,11 +64,12 @@
       com.sun.security.auth*;resolution:=optional,
       *
     </opendj.osgi.import>
-    <xmlDefinitionsBaseDir>${basedir}/src/main/resources/definitions</xmlDefinitionsBaseDir>
+    <mainResourcesDir>${basedir}/src/main/resources</mainResourcesDir>
+    <xmlDefinitionsBaseDir>${mainResourcesDir}/definitions</xmlDefinitionsBaseDir>
     <xmlDefinitionsDir>${xmlDefinitionsBaseDir}/org/forgerock/opendj/admin</xmlDefinitionsDir>
     <adminPackage>org/forgerock/opendj/admin</adminPackage>
     <generatedSourcesDir>${project.build.directory}/generated-sources/admin/${adminPackage}</generatedSourcesDir>
-    <xslDir>${basedir}/src/main/resources/stylesheets</xslDir>
+    <xslDir>${mainResourcesDir}/stylesheets</xslDir>
 
     <!-- properties used to generate DynamicConstant class -->
     <serverProductName>OpenDJ</serverProductName>
@@ -182,7 +183,8 @@
           </execution>
         </executions>
       </plugin>
-      <!-- Generate core administration components. -->
+      <!-- Validate core components XML definition files 
+           and generate the components. -->
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>xml-maven-plugin</artifactId>
@@ -388,10 +390,36 @@
                     </parameter>
                   </parameters>
                 </transformationSet>
-                <!-- Generate I18N messages for core administration components. -->
+                <!-- Generate manifest file for core administration components. -->
                 <transformationSet>
                   <dir>${xmlDefinitionsDir}</dir>
-                  <outputDir>${project.build.outputDirectory}/admin/messages/${adminPackage}/meta</outputDir>
+                  <outputDir>${project.build.directory}/tmp</outputDir>
+                  <stylesheet>${xslDir}/manifestMO.xsl</stylesheet>
+                  <excludes>
+                    <exclude>Package.xml</exclude>
+                  </excludes>
+                  <fileMappers>
+                    <fileMapper
+                      implementation="org.codehaus.plexus.components.io.filemappers.FileExtensionMapper">
+                      <targetExtension>.manifest</targetExtension>
+                    </fileMapper>
+                  </fileMappers>
+                </transformationSet>
+              </transformationSets>
+            </configuration>
+          </execution>
+          <execution>
+            <id>generate-core-properties</id>
+            <phase>generate-resources</phase>
+            <goals>
+              <goal>transform</goal>
+            </goals>
+            <configuration>
+              <transformationSets>
+               <!-- Generate I18N messages for core administration components. -->
+                <transformationSet>
+                  <dir>${xmlDefinitionsDir}</dir>
+                  <outputDir>${mainResourcesDir}/admin/messages/${adminPackage}/meta</outputDir>
                   <stylesheet>${xslDir}/messagesMO.xsl</stylesheet>
                   <excludes>
                     <exclude>Package.xml</exclude>
@@ -409,21 +437,6 @@
                       <value>${xmlDefinitionsBaseDir}</value>
                     </parameter>
                   </parameters>
-                </transformationSet>
-                <!-- Generate manifest file for core administration components. -->
-                <transformationSet>
-                  <dir>${xmlDefinitionsDir}</dir>
-                  <outputDir>${project.build.directory}/tmp</outputDir>
-                  <stylesheet>${xslDir}/manifestMO.xsl</stylesheet>
-                  <excludes>
-                    <exclude>Package.xml</exclude>
-                  </excludes>
-                  <fileMappers>
-                    <fileMapper
-                      implementation="org.codehaus.plexus.components.io.filemappers.FileExtensionMapper">
-                      <targetExtension>.manifest</targetExtension>
-                    </fileMapper>
-                  </fileMappers>
                 </transformationSet>
               </transformationSets>
             </configuration>

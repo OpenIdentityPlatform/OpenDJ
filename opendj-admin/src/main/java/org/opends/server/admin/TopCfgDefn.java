@@ -26,49 +26,40 @@
  */
 package org.opends.server.admin;
 
-
-
 /**
- * Configuration definition <code>TopCfgDefn</code> is the root of
- * the configuration definition hierarchy. Every configuration has
+ * Configuration definition <code>TopCfgDefn</code> is the root of the
+ * configuration definition hierarchy. Every configuration has
  * <code>TopCfgDefn</code> as a superclass.
  * <p>
- * The <code>TopCfgDefn</code> has no properties or relations.
- * However, it can be used to determine all the configuration
- * definitions currently available to the administration framework
- * using the {@link #getAllChildren()}.
+ * The <code>TopCfgDefn</code> has no properties or relations. However, it can
+ * be used to determine all the configuration definitions currently available to
+ * the administration framework using the {@link #getAllChildren()}.
  * <p>
- * <b>NOTE:</b> it is not possible to retrieve I18N related
- * information or profile information for this managed object
- * definition. In particular, calls to the methods
- * {@link #getSynopsis()}, {@link #getDescription()},
- * {@link #getUserFriendlyName()}, and
- * {@link #getUserFriendlyPluralName()} will not work.
+ * <b>NOTE:</b> it is not possible to retrieve I18N related information or
+ * profile information for this managed object definition. In particular, calls
+ * to the methods {@link #getSynopsis()}, {@link #getDescription()},
+ * {@link #getUserFriendlyName()}, and {@link #getUserFriendlyPluralName()} will
+ * not work.
  */
-public final class TopCfgDefn extends
-    AbstractManagedObjectDefinition<ConfigurationClient, Configuration> {
+public final class TopCfgDefn extends AbstractManagedObjectDefinition<ConfigurationClient, Configuration> {
 
-  // The singleton configuration definition instance.
-  private static final TopCfgDefn INSTANCE = new TopCfgDefn();
+    // The singleton configuration definition instance.
+    private static final TopCfgDefn INSTANCE = new TopCfgDefn();
 
+    /**
+     * Get the Top configuration definition singleton.
+     *
+     * @return Returns the Top configuration definition singleton.
+     */
+    public static TopCfgDefn getInstance() {
+        return INSTANCE;
+    }
 
-
-  /**
-   * Get the Top configuration definition singleton.
-   *
-   * @return Returns the Top configuration definition singleton.
-   */
-  public static TopCfgDefn getInstance() {
-    return INSTANCE;
-  }
-
-
-
-  /**
-   * Private constructor.
-   */
-  private TopCfgDefn() {
-    super("top", null);
-  }
+    /**
+     * Private constructor.
+     */
+    private TopCfgDefn() {
+        super("top", null);
+    }
 
 }
