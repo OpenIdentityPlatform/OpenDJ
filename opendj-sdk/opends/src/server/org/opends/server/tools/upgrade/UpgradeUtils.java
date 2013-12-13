@@ -398,20 +398,22 @@ final class UpgradeUtils
    */
   static List<String> getLocalBackendsFromConfig()
   {
+    final Schema schema = getUpgradeSchema();
+
     final List<String> listBackends = new LinkedList<String>();
     LDIFEntryReader entryReader = null;
     try
     {
       entryReader =
           new LDIFEntryReader(new FileInputStream(new File(configDirectory,
-              CURRENT_CONFIG_FILE_NAME)));
+              CURRENT_CONFIG_FILE_NAME))).setSchema(schema);
 
       final SearchRequest sr =
           Requests.newSearchRequest("", SearchScope.WHOLE_SUBTREE,
               "(&(objectclass=ds-cfg-local-db-backend)(ds-cfg-enabled=true))",
               "ds-cfg-base-dn");
 
-      final EntryReader resultReader = LDIF.search(entryReader, sr);
+      final EntryReader resultReader = LDIF.search(entryReader, sr, schema);
 
       while (resultReader.hasNext())
       {
@@ -461,12 +463,7 @@ final class UpgradeUtils
     LDIFEntryWriter writer = null;
     try
     {
-      Schema schema =
-          new SchemaBuilder(Schema.getCoreSchema()).defaultMatchingRule(
-              CoreSchema.getCaseExactMatchingRule()).defaultSyntax(
-              CoreSchema.getDirectoryStringSyntax()).toSchema()
-              .asNonStrictSchema();
-
+      final Schema schema = getUpgradeSchema();
       entryReader =
           new LDIFEntryReader(new FileInputStream(configPath))
               .setSchema(schema);
@@ -782,6 +779,39 @@ final class UpgradeUtils
     {
       StaticUtils.close(reader, writer);
     }
+  }
+
+  /**
+   * Returns a schema used by upgrade(default octet string matching rule and
+   * directory string syntax). Added attribute types which we know we are
+   * sensitive to in the unit tests, e.g. ds-cfg-enabled (boolean syntax),
+   * ds-cfg-filter(case ingnore), ds-cfg-collation (case ignore)... related to
+   * upgrade tasks. See OPENDJ-1245.
+   *
+   * @return A schema which may used in the upgrade context.
+   */
+  final static Schema getUpgradeSchema() {
+    final SchemaBuilder sb =
+        new SchemaBuilder(Schema.getCoreSchema())
+        .defaultMatchingRule(CoreSchema.getCaseExactMatchingRule())
+        .defaultSyntax(CoreSchema.getDirectoryStringSyntax());
+
+    // Adds ds-cfg-enabled / boolean syntax
+    sb.addAttributeType("( 1.3.6.1.4.1.26027.1.1.2 NAME 'ds-cfg-enabled'"
+        + " EQUALITY booleanMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.7"
+        + " SINGLE-VALUE X-ORIGIN 'OpenDS Directory Server' )", false);
+
+    // Adds ds-cfg-filter / ignore match syntax
+    sb.addAttributeType("( 1.3.6.1.4.1.26027.1.1.279 NAME 'ds-cfg-filter'"
+        + " EQUALITY caseIgnoreMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15"
+        + " X-ORIGIN 'OpenDS Directory Server' )", false);
+
+    // Adds ds-cfg-collation / ignore match syntax
+    sb.addAttributeType("( 1.3.6.1.4.1.26027.1.1.500 NAME 'ds-cfg-collation'"
+        + " EQUALITY caseIgnoreMatch SYNTAX 1.3.6.1.4.1.1466.115.121.1.15"
+        + " X-ORIGIN 'OpenDS Directory Server' )", false);
+
+    return sb.toSchema().asNonStrictSchema();
   }
 
   private static String[] readLDIFLines(final DN dn,
