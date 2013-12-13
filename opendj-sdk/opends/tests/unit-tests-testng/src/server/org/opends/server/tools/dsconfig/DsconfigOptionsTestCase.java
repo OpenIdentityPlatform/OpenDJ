@@ -101,6 +101,7 @@ public class DsconfigOptionsTestCase extends DirectoryServerTestCase {
     assertEquals(dsconfigMain(args), SUCCESSFUL.getReturnCode());
   }
 
+  @Test
   public void testGenerateDoc() throws Exception
   {
     System.setProperty("org.forgerock.opendj.gendoc", "true");
@@ -108,7 +109,14 @@ public class DsconfigOptionsTestCase extends DirectoryServerTestCase {
       "--no-prompt",
       "-?",
     };
-    assertEquals(dsconfigMain(args), CANNOT_INITIALIZE_ARGS.getReturnCode());
+    try
+    {
+      assertEquals(dsconfigMain(args), CANNOT_INITIALIZE_ARGS.getReturnCode());
+    }
+    finally
+    {
+      System.clearProperty("org.forgerock.opendj.gendoc");
+    }
   }
 
   private int dsconfigMain(String[] args)
