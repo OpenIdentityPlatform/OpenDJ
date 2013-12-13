@@ -1079,8 +1079,9 @@
               
               <!--- Start DS -->                 
               <call function="'StartDsWithScript'">
-                { 'location' : server.getHostname(),
-                  'dsPath'   : '%s/%s' % (server.getDir(),OPENDSNAME)
+                { 'location'    : server.getHostname(),
+                  'dsPath'      : '%s/%s' % (server.getDir(),OPENDSNAME),
+                  'dsDebugPort' : server.getDebugPort()
                 }
               </call>
               
@@ -1110,8 +1111,9 @@
                 
                 <!--- Start DS -->                 
                 <call function="'StartDsWithScript'">
-                  { 'location' : server.getHostname(),
-                    'dsPath'   : '%s/%s' % (server.getDir(),OPENDSNAME)
+                  { 'location'    : server.getHostname(),
+                    'dsPath'      : '%s/%s' % (server.getDir(),OPENDSNAME),
+                    'dsDebugPort' : server.getDebugPort()
                   }
                 </call>
                 

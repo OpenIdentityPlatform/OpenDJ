@@ -76,7 +76,7 @@ class SynchronizedSuffix:
 	    
 # Define Server class
 class Server:
-  def __init__(self, hostname, dir, port, adminPort, sslPort, jmxPort, rootDn, rootPwd, baseDn, datadir):
+  def __init__(self, hostname, dir, port, adminPort, sslPort, jmxPort, rootDn, rootPwd, baseDn, debugPort, datadir):
     self.hostname = hostname
     self.dir = dir
     self.temp = '%s/temp' % dir
@@ -92,6 +92,7 @@ class Server:
     self.rootPwd = rootPwd
     self.baseDn = baseDn
     self.changelogServer = None
+    self.debugPort = debugPort
     self.synchronizedSuffixList = []
 
   def __repr__(self):
@@ -139,6 +140,9 @@ class Server:
   def getChangelogServer(self):
     return self.changelogServer
 
+  def getDebugPort(self):
+    return self.debugPort
+
   def getSynchronizedSuffixList(self):
     return self.synchronizedSuffixList
     
@@ -162,10 +166,11 @@ class Server:
     new_rootPwd = self.rootPwd
     new_baseDn = self.baseDn
     new_changelogServer = self.changelogServer
+    new_debugPort = self.debugPort
     self.changelogServer = None
     
     replServer = Server(new_hostname, new_dir, new_port, new_adminPort, new_sslPort,
-                        new_jmxPort, new_rootDn, new_rootPwd, new_baseDn, self.data)
+                        new_jmxPort, new_rootDn, new_rootPwd, new_baseDn, self.debugPort, self.data)
     replServer.addChangelogServer(new_changelogServer)
 
     return replServer

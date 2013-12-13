@@ -1492,6 +1492,7 @@
         rootPwd = None
         baseDn = None
         changelogport = None
+        debugPort = None
         suffixList = []
         changelogList = []
         serverId = 1
@@ -1521,13 +1522,15 @@
             baseDn = line[line.find('BaseDn') + 7:].strip()
           elif line.find('Changelogport') != -1:
             changelogport = line[line.find('Changelogport') + 14:].strip()
+          elif line.find('Debugport') != -1:
+            debugPort = line[line.find('Debugport') + 10:].strip()
           elif line.find('SynchronizedSuffix') != -1:
             suffixList.append( line[line.find('SynchronizedSuffix') + 19:].strip() )
           elif line.find('ChangelogServer') != -1:
             changelogList.append( line[line.find('ChangelogServer') + 16:].strip() )
           elif (line.isspace()) or (len(line) == 0):
             server = Server(hostname, dir, port, adminport, sslport, jmxport,
-                            rootDn, rootPwd, baseDn, remote.data)
+                            rootDn, rootPwd, baseDn, debugPort, remote.data)
             
             if changelogport != None:
               changelogServer = ChangelogServer(changelogport, serverId)
@@ -1557,13 +1560,14 @@
             rootPwd = None
             baseDn = None
             changelogport = None
+            debugPort = None
             suffixList = []
             changelogList = []
             serverId += 1
         
         if hostname != None:
           server = Server(hostname, dir, port, adminport, sslport, jmxport,
-                          rootDn, rootPwd, baseDn, remote.data)
+                          rootDn, rootPwd, baseDn, debugPort, remote.data)
           
           if changelogport != None:
             changelogServer = ChangelogServer(changelogport, serverId)

@@ -61,9 +61,9 @@
               suiteList.append('encryption')
               suiteList.append('changelog')
               suiteList.append('conflict')
+              suiteList.append('aci')
               suiteList.append('externalchangelog')
               suiteList.append('externalchangelog_consistency')
-              suiteList.append('aci')
               
               globalAssuredReplication = None
               

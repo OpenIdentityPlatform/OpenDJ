@@ -106,8 +106,9 @@
     
           <!-- Start the Directory Server -->
           <call function="'StartDsWithScript'">
-            { 'location'  : masterHost,
-              'dsPath'    : masterPath
+            { 'location'    : masterHost,
+              'dsPath'      : masterPath,
+              'dsDebugPort' : master.getDebugPort()
             }
           </call>
     

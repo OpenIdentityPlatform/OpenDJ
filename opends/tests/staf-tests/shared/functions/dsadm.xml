@@ -589,6 +589,12 @@
         </function-arg-description>
         <function-arg-property name="type" value="option"/>
       </function-arg-def>
+      <function-arg-def name="dsDebugPort" type="optional" default="DEBUG_PORT">
+        <function-arg-description>
+          Directory Server debug port     
+        </function-arg-description>
+        <function-arg-property name="type" value="Port number"/>
+      </function-arg-def>
       <function-arg-def name="expectedRC" type="optional" default="0">
         <function-arg-description>
           Expected return code value. Default value is 0.
@@ -710,6 +716,14 @@
         </sequence>
       </if>
 
+      <message>'DEBUG PORT: %s' % dsDebugPort</message>
+
+      <script>
+        if dsDebugPort != '' and STAFCmdParams == '': 
+          envCmd = [ 'OPENDJ_JAVA_ARGS=-agentlib:jdwp=transport=dt_socket,address=%s,server=y,suspend=y' % dsDebugPort ]
+        else:
+          envCmd = []
+      </script>
 
       <call function="'runCommand'">
         { 'location'  : location,
@@ -717,7 +731,8 @@
           'arguments' : STAFCmdParams,
           'location'  : location,
           'expectedRC': expectedRC,
-          'knownIssue': knownIssue
+          'knownIssue': knownIssue,
+          'envCmd'    : envCmd
         }
       </call>
       <return>STAXResult</return>
