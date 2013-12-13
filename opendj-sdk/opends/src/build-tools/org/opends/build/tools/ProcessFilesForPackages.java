@@ -273,8 +273,7 @@ public class ProcessFilesForPackages extends Task
           && !file.getAbsolutePath().contains("/snmp/")
           && (fileName.endsWith(".doc")
           || fileName.endsWith(".txt")
-          || fileName.contains("example-plugin")
-          || fileName.equals("opends.license")));
+          || fileName.contains("example-plugin")));
     }
   }
 }
