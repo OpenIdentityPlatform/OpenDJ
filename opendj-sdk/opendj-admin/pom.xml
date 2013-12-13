@@ -346,50 +346,6 @@
                     </parameter>
                   </parameters>
                 </transformationSet>
-                <!-- Generate LDAP profile for core administration components. -->
-                <transformationSet>
-                  <dir>${xmlDefinitionsDir}</dir>
-                  <outputDir>${project.build.outputDirectory}/admin/profiles/ldap/${adminPackage}/meta</outputDir>
-                  <stylesheet>${xslDir}/ldapMOProfile.xsl</stylesheet>
-                  <excludes>
-                    <exclude>Package.xml</exclude>
-                  </excludes>
-                  <fileMappers>
-                    <fileMapper
-                      implementation="org.codehaus.plexus.components.io.filemappers.RegExpFileMapper">
-                      <pattern>^([^/]+)Configuration\.xml$</pattern>
-                      <replacement>$1CfgDefn.properties</replacement>
-                    </fileMapper>
-                  </fileMappers>
-                  <parameters>
-                    <parameter>
-                      <name>base-dir</name>
-                      <value>${xmlDefinitionsBaseDir}</value>
-                    </parameter>
-                  </parameters>
-                </transformationSet>
-                <!-- Generate CLI profile for core administration components. -->
-                <transformationSet>
-                  <dir>${xmlDefinitionsDir}</dir>
-                  <outputDir>${project.build.outputDirectory}/admin/profiles/cli/${adminPackage}/meta</outputDir>
-                  <stylesheet>${xslDir}/cliMOProfile.xsl</stylesheet>
-                  <excludes>
-                    <exclude>Package.xml</exclude>
-                  </excludes>
-                  <fileMappers>
-                    <fileMapper
-                      implementation="org.codehaus.plexus.components.io.filemappers.RegExpFileMapper">
-                      <pattern>^([^/]+)Configuration\.xml$</pattern>
-                      <replacement>$1CfgDefn.properties</replacement>
-                    </fileMapper>
-                  </fileMappers>
-                  <parameters>
-                    <parameter>
-                      <name>base-dir</name>
-                      <value>${xmlDefinitionsBaseDir}</value>
-                    </parameter>
-                  </parameters>
-                </transformationSet>
                 <!-- Generate manifest file for core administration components. -->
                 <transformationSet>
                   <dir>${xmlDefinitionsDir}</dir>
@@ -428,6 +384,50 @@
                     <fileMapper
                       implementation="org.codehaus.plexus.components.io.filemappers.RegExpFileMapper">
                       <pattern>^([^/]+)Configuration\.xml$</pattern>
+                      <replacement>$1CfgDefn.properties</replacement>
+                    </fileMapper>
+                  </fileMappers>
+                  <parameters>
+                    <parameter>
+                      <name>base-dir</name>
+                      <value>${xmlDefinitionsBaseDir}</value>
+                    </parameter>
+                  </parameters>
+                </transformationSet>
+                <!-- Generate LDAP profile for core administration components. -->
+                <transformationSet>
+                  <dir>${xmlDefinitionsDir}</dir>
+                  <outputDir>${project.build.outputDirectory}/admin/profiles/ldap/${adminPackage}/meta</outputDir>
+                  <stylesheet>${xslDir}/ldapMOProfile.xsl</stylesheet>
+                  <excludes>
+                    <exclude>Package.xml</exclude>
+                  </excludes>
+                  <fileMappers>
+                    <fileMapper
+                      implementation="org.codehaus.plexus.components.io.filemappers.RegExpFileMapper">
+                      <pattern>^([^/]+)Configuration\.xml$</pattern>
+                      <replacement>$1CfgDefn.properties</replacement>
+                    </fileMapper>
+                  </fileMappers>
+                  <parameters>
+                    <parameter>
+                      <name>base-dir</name>
+                      <value>${xmlDefinitionsBaseDir}</value>
+                    </parameter>
+                  </parameters>
+                </transformationSet>
+                <!-- Generate CLI profile for core administration components. -->
+                <transformationSet>
+                  <dir>${xmlDefinitionsDir}</dir>
+                  <outputDir>${project.build.outputDirectory}/admin/profiles/cli/${adminPackage}/meta</outputDir>
+                  <stylesheet>${xslDir}/cliMOProfile.xsl</stylesheet>
+                  <excludes>
+                    <exclude>Package.xml</exclude>
+                  </excludes>
+                  <fileMappers>
+                    <fileMapper
+                      implementation="org.codehaus.plexus.components.io.filemappers.RegExpFileMapper">
+                     <pattern>^([^/]+)Configuration\.xml$</pattern>
                       <replacement>$1CfgDefn.properties</replacement>
                     </fileMapper>
                   </fileMappers>

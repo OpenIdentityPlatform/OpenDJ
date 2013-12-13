@@ -62,10 +62,6 @@ public final class TestCfg {
                 RootCfgDefn.getInstance(), "test-one-to-zero-or-one-parent", TestParentCfgDefn.getInstance());
         RD_TEST_ONE_TO_ZERO_OR_ONE_PARENT = builder.getInstance();
     }
-
-    //private static ObjectClass TEST_PARENT_OBJECTCLASS = null;
-    //private static ObjectClass TEST_CHILD_OBJECTCLASS = null;
-
     /**
      * Registers test parent and child object class definitions and any required
      * resource bundles.
@@ -77,43 +73,8 @@ public final class TestCfg {
      *             If an unexpected error occurred.
      */
     public synchronized static void setUp() throws Exception {
-//        SchemaBuilder schemaBuilder = new SchemaBuilder(Schema.getDefaultSchema());
-//        if (TEST_PARENT_OBJECTCLASS == null || TEST_CHILD_OBJECTCLASS == null) {
-//            String def1 = "( 1.3.6.1.4.1.26027.1.2.4455114401 " + "NAME 'ds-cfg-test-parent-dummy' "
-//                    + "SUP top STRUCTURAL " + "MUST ( cn $ ds-cfg-java-class $ "
-//                    + "ds-cfg-enabled $ ds-cfg-attribute-type ) " + "MAY ( ds-cfg-base-dn $ ds-cfg-group-dn $ "
-//                    + "ds-cfg-filter $ ds-cfg-conflict-behavior ) " + "X-ORIGIN 'OpenDS Directory Server' )";
-//            schemaBuilder.addObjectClass(def1, false);
-//
-//            String def2 = "( 1.3.6.1.4.1.26027.1.2.4455114402 " + "NAME 'ds-cfg-test-child-dummy' "
-//                    + "SUP top STRUCTURAL " + "MUST ( cn $ ds-cfg-java-class $ "
-//                    + "ds-cfg-enabled $ ds-cfg-attribute-type ) " + "MAY ( ds-cfg-base-dn $ ds-cfg-group-dn $ "
-//                    + "ds-cfg-filter $ ds-cfg-conflict-behavior $" + "ds-cfg-rotation-policy) "
-//                    + "X-ORIGIN 'OpenDS Directory Server' )";
-//            schemaBuilder.addObjectClass(def2, false);
-//            Schema schema = schemaBuilder.toSchema();
-//            TEST_PARENT_OBJECTCLASS = schema.getObjectClass("ds-cfg-test-parent-dummy");
-//            TEST_CHILD_OBJECTCLASS = schema.getObjectClass("ds-cfg-test-child-dummy");
-//        }
-
-
-        {
-            // Register the test parent resource bundle.
-            TestParentCfgDefn def = TestParentCfgDefn.getInstance();
-            def.initialize();
-            String baseName = def.getClass().getName();
-            ResourceBundle resourceBundle = ResourceBundle.getBundle(baseName);
-            ManagedObjectDefinitionI18NResource.getInstance().setResourceBundle(def, resourceBundle);
-        }
-
-        {
-            // Register the test child resource bundle.
-            TestChildCfgDefn def = TestChildCfgDefn.getInstance();
-            def.initialize();
-            String baseName = def.getClass().getName();
-            ResourceBundle resourceBundle = ResourceBundle.getBundle(baseName);
-            ManagedObjectDefinitionI18NResource.getInstance().setResourceBundle(def, resourceBundle);
-        }
+        initializeAndRegisterBundle(TestParentCfgDefn.getInstance());
+        initializeAndRegisterBundle(TestChildCfgDefn.getInstance());
 
         // Ensure that the relations are registered (do this after things
         // that can fail and leave tests in a bad state).
@@ -122,10 +83,17 @@ public final class TestCfg {
         LDAPProfile.getInstance().pushWrapper(new MockLDAPProfile());
     }
 
+    private static void initializeAndRegisterBundle(ManagedObjectDefinition<?,?> definition) throws Exception {
+        definition.initialize();
+        String baseName = definition.getClass().getName();
+        ResourceBundle resourceBundle = ResourceBundle.getBundle(baseName);
+        ManagedObjectDefinitionI18NResource.getInstance().setResourceBundle(definition, resourceBundle);
+    }
+
     /**
      * Deregisters the test configurations from the administration framework.
      */
-    public static void cleanup() {
+    public synchronized static void cleanup() {
         LDAPProfile.getInstance().popWrapper();
 
         AbstractManagedObjectDefinition<?, ?> root = RootCfgDefn.getInstance();
