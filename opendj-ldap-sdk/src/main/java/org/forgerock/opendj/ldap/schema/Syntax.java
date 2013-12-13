@@ -318,7 +318,12 @@ public final class Syntax extends SchemaElement {
             }
 
             if (impl == null) {
-                impl = schema.getDefaultSyntax().impl;
+                final Syntax defaultSyntax = schema.getDefaultSyntax();
+                if (defaultSyntax.impl == null) {
+                    // The default syntax was never validated.
+                    defaultSyntax.validate(schema, warnings);
+                }
+                impl = defaultSyntax.impl;
                 final LocalizableMessage message = WARN_ATTR_SYNTAX_NOT_IMPLEMENTED1
                         .get(getDescription(), oid, schema.getDefaultSyntax()
                                 .getOID());
