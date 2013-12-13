@@ -23,7 +23,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2007-2010 Sun Microsystems, Inc.
- !      Portions Copyright 2011-2012 ForgeRock AS.
+ !      Portions Copyright 2011-2013 ForgeRock AS.
  ! -->
 <stax>
 
@@ -82,8 +82,9 @@
     
             <!-- Start the Directory Server -->
             <call function="'StartDsWithScript'">
-              { 'location'  : masterHost,
-                'dsPath'    : masterPath
+              { 'location'    : masterHost,
+                'dsPath'      : masterPath,
+                'dsDebugPort' : master.getDebugPort()
               }
             </call>
                 
@@ -226,14 +227,16 @@
                                                                               
                 <!-- Start the server again -->
                 <call function="'StartDsWithScript'">
-                  { 'location'  :  server.getHostname(),
-                    'dsPath'    :  serverPath
+                  { 'location'    :  server.getHostname(),
+                    'dsPath'      :  serverPath,
+                    'dsDebugPort' :  server.getDebugPort()
                   }
                 </call>
                 <if expr="globalSplitServers">
                   <call function="'StartDsWithScript'">
                     { 'location'    :  replServer.getHostname(),
-                      'dsPath'      :  replServerPath
+                      'dsPath'      :  replServerPath,
+                      'dsDebugPort' :  replServer.getDebugPort()
                     }
                   </call>
                 </if>
@@ -451,14 +454,16 @@
                                                                               
                 <!-- Start the server again -->
                 <call function="'StartDsWithScript'">
-                  { 'location'  :  server.getHostname(),
-                    'dsPath'    :  serverPath
+                  { 'location'    :  server.getHostname(),
+                    'dsPath'      :  serverPath,
+                    'dsDebugPort' :  server.getDebugPort()
                   }
                 </call>
                 <if expr="globalSplitServers">
                   <call function="'StartDsWithScript'">
                     { 'location'    :  replServer.getHostname(),
-                      'dsPath'      :  replServerPath
+                      'dsPath'      :  replServerPath,
+                      'dsDebugPort' :  replServer.getDebugPort()
                     }
                   </call>
                 </if>
