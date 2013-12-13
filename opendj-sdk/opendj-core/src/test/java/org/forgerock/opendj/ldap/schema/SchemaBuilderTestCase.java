@@ -35,7 +35,9 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
+import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.EntryNotFoundException;
 import org.forgerock.opendj.ldap.LinkedHashMapEntry;
@@ -43,6 +45,7 @@ import org.forgerock.opendj.ldap.LinkedHashMapEntry;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
 import org.testng.annotations.Test;
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
@@ -2000,9 +2003,38 @@ public class SchemaBuilderTestCase extends SchemaTestCase {
         final Schema schema =
                 new SchemaBuilder(Schema.getCoreSchema()).defaultMatchingRule(
                         CoreSchema.getCaseIgnoreMatchingRule()).toSchema().asNonStrictSchema();
-        assertThat(schema.getDefaultMatchingRule()).isEqualTo(CoreSchema.getCaseIgnoreMatchingRule());
+        assertThat(schema.getDefaultMatchingRule()).isEqualTo(
+                CoreSchema.getCaseIgnoreMatchingRule());
         assertThat(schema.getAttributeType("dummy").getEqualityMatchingRule()).isEqualTo(
                 CoreSchema.getCaseIgnoreMatchingRule());
+    }
+
+    @Test
+    public void testDefaultSyntaxDefinedInSchema() {
+        // The next line was triggering a NPE with OPENDJ-1252.
+        final Schema schema =
+                new SchemaBuilder().addSyntax("( 9.9.9 DESC 'Test Syntax' )", false).addSyntax(
+                        CoreSchema.getOctetStringSyntax().toString(), false).toSchema();
+
+        // Ensure that the substituted syntax is usable.
+        assertThat(schema.getSyntax("9.9.9").valueIsAcceptable(ByteString.valueOf("test"), null))
+                .isTrue();
+    }
+
+    @Test
+    public void testDefaultMatchingRuleDefinedInSchema() throws DecodeException {
+        final Schema schema =
+                new SchemaBuilder().addSyntax(CoreSchema.getOctetStringSyntax().toString(), false)
+                        .addMatchingRule(
+                                "( 9.9.9 NAME 'testRule' SYNTAX 1.3.6.1.4.1.1466.115.121.1.40 )",
+                                false).addMatchingRule(
+                                CoreSchema.getOctetStringMatchingRule().toString(), false)
+                        .toSchema();
+
+        // Ensure that the substituted rule is usable: was triggering a NPE with OPENDJ-1252.
+        assertThat(
+                schema.getMatchingRule("9.9.9").normalizeAttributeValue(ByteString.valueOf("test")))
+                .isEqualTo(ByteString.valueOf("test"));
     }
 
 }
