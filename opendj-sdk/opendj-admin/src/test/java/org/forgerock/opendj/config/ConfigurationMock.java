@@ -40,9 +40,9 @@ import org.opends.server.admin.Configuration;
 import org.opends.server.admin.DefaultBehaviorProvider;
 import org.opends.server.admin.DefaultBehaviorProviderVisitor;
 import org.opends.server.admin.DefinedDefaultBehaviorProvider;
-import org.opends.server.admin.EnumPropertyDefinition;
 import org.opends.server.admin.ManagedObjectDefinition;
 import org.opends.server.admin.PropertyDefinition;
+import org.opends.server.admin.PropertyOption;
 import org.opends.server.admin.RelativeInheritedDefaultBehaviorProvider;
 import org.opends.server.admin.UndefinedDefaultBehaviorProvider;
 
@@ -144,7 +144,7 @@ public final class ConfigurationMock {
          * @throws Exception
          *             If an error occurs.
          */
-        @SuppressWarnings({ "unchecked", "unused" })
+        @SuppressWarnings("unchecked")
         private <T> Object getDefaultValue(ManagedObjectDefinition<?, ?> definition,
                 Method getPropertyDefMethod, Class<T> propertyReturnClass) throws Exception {
             PropertyDefinition<T> propertyDefinition = (PropertyDefinition<T>) getPropertyDefMethod.invoke(definition);
@@ -153,8 +153,7 @@ public final class ConfigurationMock {
             MockProviderVisitor<T> visitor = new MockProviderVisitor<T>(propertyDefinition);
             Collection<T> values = defaultBehaviorProvider.accept(visitor, null);
 
-            if (propertyDefinition instanceof EnumPropertyDefinition) {
-                // enum values returned as a sorted set
+            if (propertyDefinition.hasOption(PropertyOption.MULTI_VALUED)) {
                 return values;
             } else {
                 // single value returned
