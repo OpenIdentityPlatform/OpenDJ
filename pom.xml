@@ -89,6 +89,7 @@
     </site>
   </distributionManagement>
   <modules>
+    <!--module>opendj-admin</module-->
     <module>opendj-core</module>
     <module>opendj-grizzly</module>
     <module>opendj-ldap-sdk</module>

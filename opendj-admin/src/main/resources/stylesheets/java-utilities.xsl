@@ -6,17 +6,16 @@
   ! (the "License").  You may not use this file except in compliance
   ! with the License.
   !
-  ! You can obtain a copy of the license at
-  ! trunk/opends/resource/legal-notices/OpenDS.LICENSE
-  ! or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+  ! You can obtain a copy of the license at legal-notices/CDDLv1_0.txt
+  ! or http://forgerock.org/license/CDDLv1.0.html.
   ! See the License for the specific language governing permissions
   ! and limitations under the License.
   !
   ! When distributing Covered Code, include this CDDL HEADER in each
-  ! file and include the License file at
-  ! trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
-  ! add the following below this CDDL HEADER, with the fields enclosed
-  ! by brackets "[]" replaced with your own identifying information:
+  ! file and include the License file at legal-notices/CDDLv1_0.txt.
+  ! If applicable, add the following below this CDDL HEADER, with the
+  ! fields enclosed by brackets "[]" replaced with your own identifying
+  ! information:
   !      Portions Copyright [yyyy] [name of copyright owner]
   !
   ! CDDL HEADER END
@@ -48,17 +47,16 @@
                      ' * (the &quot;License&quot;).  You may not use this file except in compliance&#xa;',
                      ' * with the License.&#xa;',
                      ' *&#xa;',
-                     ' * You can obtain a copy of the license at&#xa;',
-                     ' * trunk/opends/resource/legal-notices/OpenDS.LICENSE&#xa;',
-                     ' * or https://OpenDS.dev.java.net/OpenDS.LICENSE.&#xa;',
+                     ' * You can obtain a copy of the license at legal-notices/CDDLv1_0.txt&#xa;',
+                     ' * or http://forgerock.org/license/CDDLv1.0.html.&#xa;',
                      ' * See the License for the specific language governing permissions&#xa;',
                      ' * and limitations under the License.&#xa;',
                      ' *&#xa;',
                      ' * When distributing Covered Code, include this CDDL HEADER in each&#xa;',
-                     ' * file and include the License file at&#xa;',
-                     ' * trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,&#xa;',
-                     ' * add the following below this CDDL HEADER, with the fields enclosed&#xa;',
-                     ' * by brackets &quot;[]&quot; replaced with your own identifying information:&#xa;',
+                     ' * file and include the License file at legal-notices/CDDLv1_0.txt.&#xa;',
+                     ' * If applicable, add the following below this CDDL HEADER, with the&#xa;',
+                     ' * fields enclosed by brackets &quot;[]&quot; replaced with your own identifying&#xa;',
+                     ' * information:&#xa;',
                      ' *      Portions Copyright [yyyy] [name of copyright owner]&#xa;',
                      ' *&#xa;',
                      ' * CDDL HEADER END&#xa;',
