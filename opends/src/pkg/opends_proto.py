@@ -8,17 +8,16 @@
 # (the "License").  You may not use this file except in compliance
 # with the License.
 #
-# You can obtain a copy of the license at
-# trunk/opends/resource/legal-notices/OpenDS.LICENSE
-# or https://OpenDS.dev.java.net/OpenDS.LICENSE.
+# You can obtain a copy of the license at legal-notices/CDDLv1_0.txt
+# or http://forgerock.org/license/CDDLv1.0.html.
 # See the License for the specific language governing permissions
 # and limitations under the License.
 #
 # When distributing Covered Code, include this CDDL HEADER in each
-# file and include the License file at
-# trunk/opends/resource/legal-notices/OpenDS.LICENSE.  If applicable,
-# add the following below this CDDL HEADER, with the fields enclosed
-# by brackets "[]" replaced with your own identifying information:
+# file and include the License file at legal-notices/CDDLv1_0.txt.
+# If applicable, add the following below this CDDL HEADER, with the
+# fields enclosed by brackets "[]" replaced with your own identifying
+# information:
 #      Portions Copyright [yyyy] [name of copyright owner]
 #
 # CDDL HEADER END
@@ -48,7 +47,7 @@ to be highly extensible, and to be easy to deploy, manage and monitor.",
 
     "excludefiles" :  [
 	                     "opends/dsml/opends-dsml.war",
-	                     "opends/dsml/legal-notices/OpenDS.LICENSE",
+	                     "opends/dsml/legal-notices/CDDLv1_0.txt",
 		      ],
     "files": {
                "opends/config/messages/password-reset.template"             :   {"preserve":"strawberry"},
@@ -82,7 +81,7 @@ to be highly extensible, and to be easy to deploy, manage and monitor.",
                  ],
 
     "licenses" : {
-                  "opends/legal-notices/OpenDS.LICENSE"        : {"license" : "CDDLv1.0" },
+                  "opends/legal-notices/CDDLv1_0.txt"        : {"license" : "CDDLv1.0" },
                   "opends/legal-notices/THIRDPARTYREADME.txt"  : {"license" : "Third party" },
                  }
 }
