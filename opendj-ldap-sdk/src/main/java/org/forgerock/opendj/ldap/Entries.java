@@ -28,12 +28,7 @@
 package org.forgerock.opendj.ldap;
 
 import static org.forgerock.opendj.ldap.AttributeDescription.objectClass;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_ENTRY_DUPLICATE_VALUES;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_ENTRY_INCREMENT_CANNOT_PARSE_AS_INT;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_ENTRY_INCREMENT_INVALID_VALUE_COUNT;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_ENTRY_INCREMENT_NO_SUCH_ATTRIBUTE;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_ENTRY_NO_SUCH_VALUE;
-import static org.forgerock.opendj.ldap.CoreMessages.ERR_ENTRY_UNKNOWN_MODIFICATION_TYPE;
+import static org.forgerock.opendj.ldap.CoreMessages.*;
 import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
 
 import java.util.ArrayList;
@@ -629,20 +624,7 @@ public final class Entries {
      */
     public static Entry modifyEntry(final Entry entry, final Modification change,
             final Collection<? super ByteString> conflictingValues) throws ErrorResultException {
-        final ModificationType modType = change.getModificationType();
-        if (modType.equals(ModificationType.ADD)) {
-            entry.addAttribute(change.getAttribute(), conflictingValues);
-        } else if (modType.equals(ModificationType.DELETE)) {
-            entry.removeAttribute(change.getAttribute(), conflictingValues);
-        } else if (modType.equals(ModificationType.REPLACE)) {
-            entry.replaceAttribute(change.getAttribute());
-        } else if (modType.equals(ModificationType.INCREMENT)) {
-            incrementAttribute(entry, change.getAttribute());
-        } else {
-            throw newErrorResult(ResultCode.UNWILLING_TO_PERFORM,
-                    ERR_ENTRY_UNKNOWN_MODIFICATION_TYPE.get(String.valueOf(modType)).toString());
-        }
-        return entry;
+        return modifyEntry0(entry, change, conflictingValues, true);
     }
 
     /**
@@ -769,20 +751,38 @@ public final class Entries {
         final Collection<ByteString> conflictingValues =
                 isPermissive ? null : new ArrayList<ByteString>(0);
         for (final Modification change : changes) {
-            modifyEntry(entry, change, conflictingValues);
+            modifyEntry0(entry, change, conflictingValues, isPermissive);
+        }
+        return entry;
+    }
+
+    private static Entry modifyEntry0(final Entry entry, final Modification change,
+            final Collection<? super ByteString> conflictingValues, final boolean isPermissive)
+            throws ErrorResultException {
+        final ModificationType modType = change.getModificationType();
+        if (modType.equals(ModificationType.ADD)) {
+            entry.addAttribute(change.getAttribute(), conflictingValues);
             if (!isPermissive && !conflictingValues.isEmpty()) {
-                if (change.getModificationType().equals(ModificationType.ADD)) {
-                    // Duplicate values.
-                    throw newErrorResult(ResultCode.ATTRIBUTE_OR_VALUE_EXISTS,
-                            ERR_ENTRY_DUPLICATE_VALUES.get(
-                                    change.getAttribute().getAttributeDescriptionAsString())
-                                    .toString());
-                } else {
-                    // Missing values.
-                    throw newErrorResult(ResultCode.NO_SUCH_ATTRIBUTE, ERR_ENTRY_NO_SUCH_VALUE.get(
-                            change.getAttribute().getAttributeDescriptionAsString()).toString());
-                }
+                // Duplicate values.
+                throw newErrorResult(ResultCode.ATTRIBUTE_OR_VALUE_EXISTS,
+                        ERR_ENTRY_DUPLICATE_VALUES.get(
+                                change.getAttribute().getAttributeDescriptionAsString()).toString());
             }
+        } else if (modType.equals(ModificationType.DELETE)) {
+            final boolean hasChanged =
+                    entry.removeAttribute(change.getAttribute(), conflictingValues);
+            if (!isPermissive && (!hasChanged || !conflictingValues.isEmpty())) {
+                // Missing attribute or values.
+                throw newErrorResult(ResultCode.NO_SUCH_ATTRIBUTE, ERR_ENTRY_NO_SUCH_VALUE.get(
+                        change.getAttribute().getAttributeDescriptionAsString()).toString());
+            }
+        } else if (modType.equals(ModificationType.REPLACE)) {
+            entry.replaceAttribute(change.getAttribute());
+        } else if (modType.equals(ModificationType.INCREMENT)) {
+            incrementAttribute(entry, change.getAttribute());
+        } else {
+            throw newErrorResult(ResultCode.UNWILLING_TO_PERFORM,
+                    ERR_ENTRY_UNKNOWN_MODIFICATION_TYPE.get(String.valueOf(modType)).toString());
         }
         return entry;
     }

@@ -328,6 +328,12 @@ public class MemoryBackendTestCase extends SdkTestCase {
         connection.modify("dn: dc=example,dc=com", "changetype: modify", "delete: dc", "dc: xxx");
     }
 
+    @Test(expectedExceptions = ConstraintViolationException.class)
+    public void testModifyStrictWithMissingAttribute() throws Exception {
+        final Connection connection = getConnection();
+        connection.modify("dn: dc=example,dc=com", "changetype: modify", "delete: cn");
+    }
+
     @Test
     public void testSearchAttributesOperational() throws Exception {
         final Connection connection = getConnection();
