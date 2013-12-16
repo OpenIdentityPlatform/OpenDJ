@@ -33,7 +33,7 @@ RootDn: cn=directory manager
 RootPwd: secret12
 BaseDn: o=example
 Changelogport: 11112
-#Debugport: 8081
+Debugport:
 SynchronizedSuffix: o=example
 ChangelogServer: ${remote.hostname}:11112
 ChangelogServer: ${remote.hostname}:22222
@@ -49,7 +49,7 @@ RootDn: cn=directory manager
 RootPwd: secret12
 BaseDn: o=example
 Changelogport: 22222
-#Debugport: 8082
+Debugport:
 SynchronizedSuffix: o=example
 ChangelogServer: ${remote.hostname}:11112
 ChangelogServer: ${remote.hostname}:22222
@@ -65,7 +65,7 @@ RootDn: cn=directory manager
 RootPwd: secret12
 BaseDn: o=example
 Changelogport: 33333
-#Debugport: 8083
+Debugport:
 SynchronizedSuffix: o=example
 ChangelogServer: ${remote.hostname}:11112
 ChangelogServer: ${remote.hostname}:22222
