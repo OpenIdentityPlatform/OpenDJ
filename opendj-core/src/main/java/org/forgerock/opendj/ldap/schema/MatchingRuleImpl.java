@@ -51,7 +51,7 @@ public interface MatchingRuleImpl {
 
     /**
      * Retrieves the normalized form of the provided assertion value, which is
-     * best suite for efficiently performing matching operations on that value.
+     * best suited for efficiently performing matching operations on that value.
      * The assertion value is guarenteed to be valid against this matching
      * rule's assertion syntax.
      *
@@ -67,7 +67,7 @@ public interface MatchingRuleImpl {
 
     /**
      * Retrieves the normalized form of the provided assertion substring values,
-     * which is best suite for efficiently performing matching operations on
+     * which is best suited for efficiently performing matching operations on
      * that value.
      *
      * @param schema
@@ -85,13 +85,13 @@ public interface MatchingRuleImpl {
      * @throws DecodeException
      *             if an syntax error occured while parsing the value.
      */
-    public Assertion getAssertion(Schema schema, ByteSequence subInitial,
+    public Assertion getSubstringAssertion(Schema schema, ByteSequence subInitial,
             List<? extends ByteSequence> subAnyElements, ByteSequence subFinal)
             throws DecodeException;
 
     /**
      * Retrieves the normalized form of the provided assertion value, which is
-     * best suite for efficiently performing greater than or equal matching
+     * best suited for efficiently performing greater than or equal matching
      * operations on that value. The assertion value is guarenteed to be valid
      * against this matching rule's assertion syntax.
      *
@@ -108,7 +108,7 @@ public interface MatchingRuleImpl {
 
     /**
      * Retrieves the normalized form of the provided assertion value, which is
-     * best suite for efficiently performing greater than or equal matching
+     * best suited for efficiently performing greater than or equal matching
      * operations on that value. The assertion value is guarenteed to be valid
      * against this matching rule's assertion syntax.
      *
@@ -125,7 +125,7 @@ public interface MatchingRuleImpl {
 
     /**
      * Retrieves the normalized form of the provided attribute value, which is
-     * best suite for efficiently performing matching operations on that value.
+     * best suited for efficiently performing matching operations on that value.
      *
      * @param schema
      *            The schema in which this matching rule is defined.

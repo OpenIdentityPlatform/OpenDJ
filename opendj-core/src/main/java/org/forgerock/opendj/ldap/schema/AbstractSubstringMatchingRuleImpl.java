@@ -144,7 +144,7 @@ abstract class AbstractSubstringMatchingRuleImpl extends AbstractMatchingRuleImp
         final String valueString = value.toString();
 
         if (valueString.length() == 1 && valueString.charAt(0) == '*') {
-            return getAssertion(schema, initialString, anyStrings, finalString);
+            return getSubstringAssertion(schema, initialString, anyStrings, finalString);
         }
 
         final char[] escapeChars = new char[] { '*' };
@@ -178,11 +178,11 @@ abstract class AbstractSubstringMatchingRuleImpl extends AbstractMatchingRuleImp
             }
         }
 
-        return getAssertion(schema, initialString, anyStrings, finalString);
+        return getSubstringAssertion(schema, initialString, anyStrings, finalString);
     }
 
     @Override
-    public Assertion getAssertion(final Schema schema, final ByteSequence subInitial,
+    public Assertion getSubstringAssertion(final Schema schema, final ByteSequence subInitial,
             final List<? extends ByteSequence> subAnyElements, final ByteSequence subFinal)
             throws DecodeException {
         final ByteString normInitial =

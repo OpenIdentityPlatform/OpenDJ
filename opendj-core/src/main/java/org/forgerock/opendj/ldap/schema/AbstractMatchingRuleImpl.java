@@ -77,7 +77,7 @@ abstract class AbstractMatchingRuleImpl implements MatchingRuleImpl {
         return new DefaultEqualityAssertion(normalizeAttributeValue(schema, value));
     }
 
-    public Assertion getAssertion(final Schema schema, final ByteSequence subInitial,
+    public Assertion getSubstringAssertion(final Schema schema, final ByteSequence subInitial,
             final List<? extends ByteSequence> subAnyElements, final ByteSequence subFinal)
             throws DecodeException {
         return UNDEFINED_ASSERTION;
