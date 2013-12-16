@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS
+ *      Portions copyright 2011-2012 ForgeRock AS
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -79,26 +79,32 @@ public final class Schema {
             this.isStrict = isStrict;
         }
 
+        @Override
         public boolean allowMalformedNamesAndOptions() {
             return true;
         }
 
+        @Override
         public boolean allowNonStandardTelephoneNumbers() {
             return true;
         }
 
+        @Override
         public boolean allowMalformedJPEGPhotos() {
             return true;
         }
 
+        @Override
         public boolean allowZeroLengthDirectoryStrings() {
             return false;
         }
 
+        @Override
         public Syntax getDefaultSyntax() {
             return Schema.getCoreSchema().getDefaultSyntax();
         }
 
+        @Override
         public MatchingRule getDefaultMatchingRule() {
             return Schema.getCoreSchema().getDefaultMatchingRule();
         }
@@ -233,9 +239,7 @@ public final class Schema {
             return Collections.emptyList();
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public String getSchemaName() {
             return "Empty Schema";
@@ -404,26 +408,32 @@ public final class Schema {
             this.strictImpl = strictImpl;
         }
 
+        @Override
         public boolean allowMalformedNamesAndOptions() {
             return strictImpl.allowMalformedNamesAndOptions();
         }
 
+        @Override
         public boolean allowMalformedJPEGPhotos() {
             return strictImpl.allowMalformedJPEGPhotos();
         }
 
+        @Override
         public boolean allowNonStandardTelephoneNumbers() {
             return strictImpl.allowNonStandardTelephoneNumbers();
         }
 
+        @Override
         public boolean allowZeroLengthDirectoryStrings() {
             return strictImpl.allowZeroLengthDirectoryStrings();
         }
 
+        @Override
         public Syntax getDefaultSyntax() {
             return strictImpl.getDefaultSyntax();
         }
 
+        @Override
         public MatchingRule getDefaultMatchingRule() {
             return strictImpl.getDefaultMatchingRule();
         }
@@ -706,26 +716,32 @@ public final class Schema {
             this.warnings = Collections.unmodifiableList(warnings);
         }
 
+        @Override
         public boolean allowMalformedNamesAndOptions() {
             return allowMalformedNamesAndOptions;
         }
 
+        @Override
         public boolean allowMalformedJPEGPhotos() {
             return allowMalformedJPEGPhotos;
         }
 
+        @Override
         public boolean allowNonStandardTelephoneNumbers() {
             return allowNonStandardTelephoneNumbers;
         }
 
+        @Override
         public boolean allowZeroLengthDirectoryStrings() {
             return allowZeroLengthDirectoryStrings;
         }
 
+        @Override
         public Syntax getDefaultSyntax() {
             return defaultSyntax;
         }
 
+        @Override
         public MatchingRule getDefaultMatchingRule() {
             return defaultMatchingRule;
         }
@@ -2107,8 +2123,7 @@ public final class Schema {
     public boolean validateEntry(final Entry entry, final SchemaValidationPolicy policy,
             final Collection<LocalizableMessage> errorMessages) {
         // First check that the object classes are recognized and that there is
-        // one
-        // structural object class.
+        // one structural object class.
         ObjectClass structuralObjectClass = null;
         final Attribute objectClassAttribute = entry.getAttribute(objectClass());
         final List<ObjectClass> objectClasses = new LinkedList<ObjectClass>();
@@ -2184,8 +2199,7 @@ public final class Schema {
         }
 
         // Check that the name of the entry conforms to at least one applicable
-        // name
-        // form.
+        // name form.
         if (policy.checkNameForms().needsChecking() && structuralObjectClass != null) {
             /**
              * There may be multiple name forms registered with this structural
@@ -2205,8 +2219,7 @@ public final class Schema {
                 }
 
                 // If there are any candidate name forms then at least one
-                // should be
-                // valid.
+                // should be valid.
                 foundMatchingNameForms = true;
 
                 if (checkNameForm(entry, policy, nameFormWarnings, nf)) {
@@ -2220,9 +2233,8 @@ public final class Schema {
                     ditStructureRules = getDITStructureRules(nameForm);
                 } else {
                     // We couldn't match this entry against any of the name
-                    // forms, so
-                    // append the reasons why they didn't match and reject if
-                    // required.
+                    // forms, so append the reasons why they didn't match and
+                    // reject if required.
                     if (errorMessages != null) {
                         errorMessages.addAll(nameFormWarnings);
                     }
@@ -2249,8 +2261,7 @@ public final class Schema {
                 foundMatchingRules = true;
 
                 // A DIT structure rule with no superiors is automatically
-                // valid, so
-                // avoid reading the parent.
+                // valid, so avoid reading the parent.
                 if (rule.getSuperiorRules().isEmpty()) {
                     foundValidRule = true;
                     break;
@@ -2266,7 +2277,7 @@ public final class Schema {
                 }
 
                 if (parentStructuralObjectClass != null) {
-                    if (checkDITStructureRule(entry, policy, ruleWarnings, rule,
+                    if (checkDITStructureRule(entry, ruleWarnings, rule,
                             structuralObjectClass, parentStructuralObjectClass)) {
                         foundValidRule = true;
                         break;
@@ -2318,9 +2329,8 @@ public final class Schema {
                                     }
 
                                     // We could break out of the loop here in
-                                    // warn mode but
-                                    // continuing allows us to collect all
-                                    // conflicts.
+                                    // warn mode but continuing allows us to
+                                    // collect all conflicts.
                                 }
                             }
                         }
@@ -2346,8 +2356,7 @@ public final class Schema {
         if (checkObjectClasses || checkDITContentRule) {
             for (final ObjectClass objectClass : objectClasses) {
                 // Make sure that any auxiliary object classes are permitted by
-                // the
-                // content rule.
+                // the content rule.
                 if (checkDITContentRule) {
                     if (objectClass.getObjectClassType() == ObjectClassType.AUXILIARY
                             && !ditContentRule.getAuxiliaryClasses().contains(objectClass)) {
@@ -2365,8 +2374,7 @@ public final class Schema {
                 }
 
                 // Make sure that all of the attributes required by the object
-                // class are
-                // present.
+                // class are present.
                 if (checkObjectClasses) {
                     for (final AttributeType t : objectClass.getDeclaredRequiredAttributes()) {
                         final Attribute a =
@@ -2388,8 +2396,7 @@ public final class Schema {
             }
 
             // Make sure that all of the attributes required by the content rule
-            // are
-            // present.
+            // are present.
             if (checkDITContentRule) {
                 for (final AttributeType t : ditContentRule.getRequiredAttributes()) {
                     final Attribute a = Attributes.emptyAttribute(AttributeDescription.create(t));
@@ -2408,8 +2415,7 @@ public final class Schema {
                 }
 
                 // Make sure that attributes prohibited by the content rule are
-                // not
-                // present.
+                // not present.
                 for (final AttributeType t : ditContentRule.getProhibitedAttributes()) {
                     final Attribute a = Attributes.emptyAttribute(AttributeDescription.create(t));
                     if (entry.containsAttribute(a, null)) {
@@ -2503,7 +2509,7 @@ public final class Schema {
         return true;
     }
 
-    private boolean checkDITStructureRule(final Entry entry, final SchemaValidationPolicy policy,
+    private boolean checkDITStructureRule(final Entry entry,
             final List<LocalizableMessage> ruleWarnings, final DITStructureRule rule,
             final ObjectClass structuralObjectClass, final ObjectClass parentStructuralObjectClass) {
         boolean matchFound = false;
