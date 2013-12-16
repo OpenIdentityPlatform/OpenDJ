@@ -481,7 +481,7 @@ public final class Matcher {
             }
 
             try {
-                assertion = rule.getAssertion(initialSubstring, anySubstrings, finalSubstring);
+                assertion = rule.getSubstringAssertion(initialSubstring, anySubstrings, finalSubstring);
             } catch (final DecodeException de) {
                 // TODO: I18N
                 DEFAULT_LOG.warn("The substring assertion values contain an invalid value", de);

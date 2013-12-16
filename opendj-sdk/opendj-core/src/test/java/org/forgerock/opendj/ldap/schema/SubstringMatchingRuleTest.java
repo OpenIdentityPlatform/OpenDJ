@@ -94,7 +94,7 @@ public abstract class SubstringMatchingRuleTest extends SchemaTestCase {
         // normalize the 2 provided values and check that they are equals
         final ByteString normalizedValue = rule.normalizeAttributeValue(ByteString.valueOf(value));
 
-        if (rule.getAssertion(null, null, ByteString.valueOf(finalValue)).matches(normalizedValue) != result
+        if (rule.getSubstringAssertion(null, null, ByteString.valueOf(finalValue)).matches(normalizedValue) != result
                 || rule.getAssertion(ByteString.valueOf("*" + finalValue)).matches(normalizedValue) != result) {
             fail("final substring matching rule " + rule + " does not give expected result ("
                     + result + ") for values : " + value + " and " + finalValue);
@@ -112,7 +112,7 @@ public abstract class SubstringMatchingRuleTest extends SchemaTestCase {
         // normalize the 2 provided values and check that they are equals
         final ByteString normalizedValue = rule.normalizeAttributeValue(ByteString.valueOf(value));
 
-        if (rule.getAssertion(ByteString.valueOf(initial), null, null).matches(normalizedValue) != result
+        if (rule.getSubstringAssertion(ByteString.valueOf(initial), null, null).matches(normalizedValue) != result
                 || rule.getAssertion(ByteString.valueOf(initial + "*")).matches(normalizedValue) != result) {
             fail("initial substring matching rule " + rule + " does not give expected result ("
                     + result + ") for values : " + value + " and " + initial);
@@ -133,7 +133,7 @@ public abstract class SubstringMatchingRuleTest extends SchemaTestCase {
         for (final String middleSub : anys) {
             anyList.add(ByteString.valueOf(middleSub));
         }
-        rule.getAssertion(subInitial == null ? null : ByteString.valueOf(subInitial), anyList,
+        rule.getSubstringAssertion(subInitial == null ? null : ByteString.valueOf(subInitial), anyList,
                 subFinal == null ? null : ByteString.valueOf(subFinal));
     }
 
@@ -182,7 +182,7 @@ public abstract class SubstringMatchingRuleTest extends SchemaTestCase {
             middleList.add(ByteString.valueOf(middleSub));
         }
 
-        if (rule.getAssertion(null, middleList, null).matches(normalizedValue) != result
+        if (rule.getSubstringAssertion(null, middleList, null).matches(normalizedValue) != result
                 || rule.getAssertion(ByteString.valueOf(printableMiddleSubs)).matches(
                         normalizedValue) != result) {
             fail("middle substring matching rule " + rule + " does not give expected result ("

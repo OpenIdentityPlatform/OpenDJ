@@ -290,7 +290,7 @@ public final class MatchingRule extends SchemaElement {
 
     /**
      * Returns the normalized form of the provided assertion value, which is
-     * best suite for efficiently performing matching operations on that value.
+     * best suited for efficiently performing matching operations on that value.
      * The assertion value is guaranteed to be valid against this matching
      * rule's assertion syntax.
      *
@@ -306,7 +306,7 @@ public final class MatchingRule extends SchemaElement {
 
     /**
      * Returns the normalized form of the provided assertion substring values,
-     * which is best suite for efficiently performing matching operations on
+     * which is best suited for efficiently performing matching operations on
      * that value.
      *
      * @param subInitial
@@ -322,15 +322,15 @@ public final class MatchingRule extends SchemaElement {
      * @throws DecodeException
      *             if the syntax of the value is not valid.
      */
-    public Assertion getAssertion(final ByteSequence subInitial,
+    public Assertion getSubstringAssertion(final ByteSequence subInitial,
             final List<? extends ByteSequence> subAnyElements, final ByteSequence subFinal)
             throws DecodeException {
-        return impl.getAssertion(schema, subInitial, subAnyElements, subFinal);
+        return impl.getSubstringAssertion(schema, subInitial, subAnyElements, subFinal);
     }
 
     /**
      * Returns the normalized form of the provided assertion value, which is
-     * best suite for efficiently performing greater than or equal ordering
+     * best suited for efficiently performing greater than or equal ordering
      * matching operations on that value. The assertion value is guaranteed to
      * be valid against this matching rule's assertion syntax.
      *
@@ -346,7 +346,7 @@ public final class MatchingRule extends SchemaElement {
 
     /**
      * Returns the normalized form of the provided assertion value, which is
-     * best suite for efficiently performing greater than or equal ordering
+     * best suited for efficiently performing greater than or equal ordering
      * matching operations on that value. The assertion value is guaranteed to
      * be valid against this matching rule's assertion syntax.
      *
@@ -459,7 +459,7 @@ public final class MatchingRule extends SchemaElement {
 
     /**
      * Returns the normalized form of the provided attribute value, which is
-     * best suite for efficiently performing matching operations on that value.
+     * best suited for efficiently performing matching operations on that value.
      *
      * @param value
      *            The attribute value to be normalized.
