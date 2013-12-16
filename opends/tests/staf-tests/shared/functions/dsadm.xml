@@ -720,7 +720,7 @@
 
       <script>
         if dsDebugPort != '' and STAFCmdParams == '': 
-          envCmd = [ 'OPENDJ_JAVA_ARGS=-agentlib:jdwp=transport=dt_socket,address=%s,server=y,suspend=y' % dsDebugPort ]
+          envCmd = [ 'OPENDJ_JAVA_ARGS=-agentlib:jdwp=transport=dt_socket,address=%s,server=y,suspend=n' % dsDebugPort ]
         else:
           envCmd = []
       </script>
