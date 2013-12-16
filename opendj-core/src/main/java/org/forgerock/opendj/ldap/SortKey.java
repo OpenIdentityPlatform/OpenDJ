@@ -115,55 +115,40 @@ public final class SortKey {
          * attributes sort last.
          */
         public int compare(final Entry entry1, final Entry entry2) {
-            // Find an normalize the lowest value attribute in entry1
-            ByteString lowestNormalizedValue1 = null;
-            for (final Attribute attribute : entry1.getAllAttributes(attributeDescription)) {
-                for (final ByteString value : attribute) {
-                    try {
-                        final ByteString tmp = matchingRule.normalizeAttributeValue(value);
-                        if (lowestNormalizedValue1 == null) {
-                            lowestNormalizedValue1 = tmp;
-                        } else if (valueComparator.compare(tmp, lowestNormalizedValue1) < 0) {
-                            lowestNormalizedValue1 = tmp;
-                        }
-                    } catch (final DecodeException ignored) {
-                        // Ignore the error - treat the value as missing.
-                    }
-                }
-            }
-
-            // Find an normalize the lowest value attribute in entry2
-            ByteString lowestNormalizedValue2 = null;
-            for (final Attribute attribute : entry2.getAllAttributes(attributeDescription)) {
-                for (final ByteString value : attribute) {
-                    try {
-                        final ByteString tmp = matchingRule.normalizeAttributeValue(value);
-                        if (lowestNormalizedValue2 == null) {
-                            lowestNormalizedValue2 = tmp;
-                        } else if (valueComparator.compare(tmp, lowestNormalizedValue2) < 0) {
-                            lowestNormalizedValue2 = tmp;
-                        }
-                    } catch (final DecodeException ignored) {
-                        // Ignore the error - treat the value as missing.
-                    }
-                }
-            }
+            // Find and normalize the lowest value attribute in each entry.
+            final ByteString normalizedValue1 = lowestValueOf(entry1);
+            final ByteString normalizedValue2 = lowestValueOf(entry2);
 
             // Entries with missing attributes always sort after (regardless of
             // order).
-            if (lowestNormalizedValue1 == null) {
-                return lowestNormalizedValue2 != null ? 1 : 0;
-            }
-
-            if (lowestNormalizedValue2 == null) {
+            if (normalizedValue1 == null) {
+                return normalizedValue2 != null ? 1 : 0;
+            } else if (normalizedValue2 == null) {
                 return -1;
-            }
-
-            if (isReverseOrder) {
-                return valueComparator.compare(lowestNormalizedValue2, lowestNormalizedValue1);
+            } else if (isReverseOrder) {
+                return valueComparator.compare(normalizedValue2, normalizedValue1);
             } else {
-                return valueComparator.compare(lowestNormalizedValue1, lowestNormalizedValue2);
+                return valueComparator.compare(normalizedValue1, normalizedValue2);
             }
+        }
+
+        private ByteString lowestValueOf(final Entry entry) {
+            ByteString normalizedValue = null;
+            for (final Attribute attribute : entry.getAllAttributes(attributeDescription)) {
+                for (final ByteString value : attribute) {
+                    try {
+                        final ByteString tmp = matchingRule.normalizeAttributeValue(value);
+                        if (normalizedValue == null) {
+                            normalizedValue = tmp;
+                        } else if (valueComparator.compare(tmp, normalizedValue) < 0) {
+                            normalizedValue = tmp;
+                        }
+                    } catch (final DecodeException ignored) {
+                        // Ignore the error - treat the value as missing.
+                    }
+                }
+            }
+            return normalizedValue;
         }
 
     }
