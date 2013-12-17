@@ -67,7 +67,7 @@ public class DraftCNDB
    * Creates a new database or open existing database that will be used
    * to store and retrieve changes from an LDAP server.
    * @param dbenv The Db environment to use to create the db.
-   * @throws ChangelogException If a database problem happened.
+   * @throws ChangelogException If a database problem happened
    */
   public DraftCNDB(ReplicationDbEnv dbenv) throws ChangelogException
   {
@@ -82,8 +82,11 @@ public class DraftCNDB
    *
    * @param record
    *          the provided {@link ChangeNumberIndexRecord} to be stored.
+   * @throws ChangelogException
+   *           If a database problem happened
    */
   public void addRecord(ChangeNumberIndexRecord record)
+      throws ChangelogException
   {
     try
     {
@@ -110,40 +113,13 @@ public class DraftCNDB
       }
       finally
       {
-        abort(txn);
+        JEUtils.abort(txn);
         dbCloseLock.readLock().unlock();
       }
     }
     catch (DatabaseException e)
     {
-      dbenv.shutdownOnException(e);
-    }
-    catch (ChangelogException e)
-    {
-      dbenv.shutdownOnException(e);
-    }
-  }
-
-  /**
-   * Aborts the current transaction. It has no effect if the transaction has
-   * committed.
-   *
-   * @param txn
-   *          the transaction to abort
-   */
-  private static void abort(Transaction txn)
-  {
-    if (txn != null)
-    {
-      try
-      {
-        txn.abort();
-      }
-      catch (DatabaseException ignored)
-      {
-        // Ignore.
-        TRACER.debugCaught(DebugLogLevel.ERROR, ignored);
-      }
+      throw new ChangelogException(e);
     }
   }
 
@@ -173,9 +149,9 @@ public class DraftCNDB
    * Create a cursor that can be used to search or iterate on this DB.
    *
    * @param changeNumber The change number from which the cursor must start.
+   * @return The ReplServerDBCursor
    * @throws ChangelogException If a database error prevented the cursor
    *                           creation.
-   * @return The ReplServerDBCursor.
    */
   public DraftCNDBCursor openReadCursor(long changeNumber)
       throws ChangelogException
@@ -187,9 +163,9 @@ public class DraftCNDB
    * Create a cursor that can be used to delete some record from this
    * ReplicationServer database.
    *
+   * @return The ReplServerDBCursor
    * @throws ChangelogException If a database error prevented the cursor
    *                           creation.
-   * @return The ReplServerDBCursor.
    */
   public DraftCNDBCursor openDeleteCursor() throws ChangelogException
   {
@@ -246,8 +222,7 @@ public class DraftCNDB
     }
     catch (DatabaseException e)
     {
-      dbenv.shutdownOnException(e);
-      return null;
+      throw new ChangelogException(e);
     }
   }
 
@@ -323,8 +298,7 @@ public class DraftCNDB
     }
     catch (DatabaseException e)
     {
-      dbenv.shutdownOnException(e);
-      return null;
+      throw new ChangelogException(e);
     }
   }
 
@@ -360,7 +334,7 @@ public class DraftCNDB
      * @param startChangeNumber
      *          the change number from which the cursor must start.
      * @throws ChangelogException
-     *           when the startChangeNumber does not exist.
+     *           If a database problem happened
      */
     private DraftCNDBCursor(long startChangeNumber) throws ChangelogException
     {
@@ -469,13 +443,13 @@ public class DraftCNDB
       catch (DatabaseException e)
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        DraftCNDB.abort(localTxn);
+        JEUtils.abort(localTxn);
         throw new ChangelogException(e);
       }
       catch (ChangelogException e)
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        DraftCNDB.abort(localTxn);
+        JEUtils.abort(localTxn);
         throw e;
       }
       finally
@@ -521,9 +495,9 @@ public class DraftCNDB
     }
 
     /**
-     * Abort the Cursor after a Deadlock Exception.
-     * This method catch and ignore the DeadlockException because
-     * this must be done when aborting a cursor after a DeadlockException
+     * Abort the Cursor after a DatabaseException.
+     * This method catch and ignore the DatabaseException because
+     * this must be done when aborting a cursor after a DatabaseException
      * (per the Cursor documentation).
      * This should not be used in any other case.
      */
@@ -539,18 +513,7 @@ public class DraftCNDB
       }
 
       closeLockedCursor(cursor);
-
-      if (txn != null)
-      {
-        try
-        {
-          txn.abort();
-        }
-        catch (DatabaseException e)
-        {
-          dbenv.shutdownOnException(e);
-        }
-      }
+      JEUtils.abort(txn);
     }
 
     /**
@@ -570,8 +533,10 @@ public class DraftCNDB
 
     /**
      * Go to the next record on the cursor.
+     *
      * @return the next record on this cursor.
-     * @throws ChangelogException a.
+     * @throws ChangelogException
+     *           If a database problem happened
      */
     public boolean next() throws ChangelogException
     {
@@ -600,7 +565,8 @@ public class DraftCNDB
     /**
      * Delete the record at the current cursor position.
      *
-     * @throws ChangelogException In case of database problem.
+     * @throws ChangelogException
+     *           If a database problem happened
      */
     public void delete() throws ChangelogException
     {
@@ -630,7 +596,8 @@ public class DraftCNDB
   /**
    * Clears this change DB from the changes it contains.
    *
-   * @throws ChangelogException Throws a DatabaseException when it occurs.
+   * @throws ChangelogException
+   *           If a database problem happened
    */
   public void clear() throws ChangelogException
   {

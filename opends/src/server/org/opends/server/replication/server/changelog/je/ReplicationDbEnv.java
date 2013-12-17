@@ -614,30 +614,8 @@ public class ReplicationDbEnv
    */
   void shutdownOnException(DatabaseException e)
   {
-    innerShutdownOnException(e);
-  }
-
-  /**
-   * Shuts down replication when an unexpected changelog exception occurs. Note
-   * that we do not expect lock timeouts or txn timeouts because the replication
-   * databases are deadlock free, thus all operations should complete
-   * eventually.
-   *
-   * @param e
-   *          The unexpected changelog exception.
-   */
-  void shutdownOnException(ChangelogException e)
-  {
-    innerShutdownOnException(e);
-  }
-
-  private void innerShutdownOnException(Exception e)
-  {
-    MessageBuilder mb = new MessageBuilder();
-    mb.append(ERR_CHANGELOG_SHUTDOWN_DATABASE_ERROR.get());
-    mb.append(".   ");
-    mb.append(stackTraceToSingleLineString(e));
-    logError(mb.toMessage());
+    logError(ERR_CHANGELOG_SHUTDOWN_DATABASE_ERROR
+        .get(stackTraceToSingleLineString(e)));
     replicationServer.shutdown();
   }
 

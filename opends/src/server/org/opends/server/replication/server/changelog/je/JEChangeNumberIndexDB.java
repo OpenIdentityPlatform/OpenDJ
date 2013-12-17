@@ -32,7 +32,6 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
-import org.opends.messages.MessageBuilder;
 import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.api.MonitorProvider;
@@ -283,15 +282,15 @@ public class JEChangeNumberIndexDB implements ChangeNumberIndexDB, Runnable
             Thread.currentThread().interrupt();
           }
         }
-      } catch (Exception end)
+      }
+      catch (Exception end)
       {
-        MessageBuilder mb = new MessageBuilder();
-        mb.append(ERR_EXCEPTION_CHANGELOG_TRIM_FLUSH.get());
-        mb.append(" ");
-        mb.append(stackTraceToSingleLineString(end));
-        logError(mb.toMessage());
+        logError(ERR_EXCEPTION_CHANGELOG_TRIM_FLUSH
+            .get(stackTraceToSingleLineString(end)));
         if (replicationServer != null)
+        {
           replicationServer.shutdown();
+        }
         break;
       }
       try {
@@ -309,13 +308,12 @@ public class JEChangeNumberIndexDB implements ChangeNumberIndexDB, Runnable
         }
       } catch (Exception end)
       {
-        MessageBuilder mb = new MessageBuilder();
-        mb.append(ERR_EXCEPTION_CHANGELOG_TRIM_FLUSH.get());
-        mb.append(" ");
-        mb.append(stackTraceToSingleLineString(end));
-        logError(mb.toMessage());
+        logError(ERR_EXCEPTION_CHANGELOG_TRIM_FLUSH
+            .get(stackTraceToSingleLineString(end)));
         if (replicationServer != null)
+        {
           replicationServer.shutdown();
+        }
         break;
       }
     }
@@ -454,18 +452,12 @@ public class JEChangeNumberIndexDB implements ChangeNumberIndexDB, Runnable
       }
       catch (ChangelogException e)
       {
-        // mark shutdown for this db so that we don't try again to
-        // stop it from cursor.close() or methods called by cursor.close()
         cursor.abort();
-        shutdown.set(true);
         throw e;
       }
       catch (Exception e)
       {
-        // mark shutdown for this db so that we don't try again to
-        // stop it from cursor.close() or methods called by cursor.close()
         cursor.abort();
-        shutdown.set(true);
         throw new ChangelogException(e);
       }
     }
