@@ -27,20 +27,40 @@
 
 package org.forgerock.opendj.ldap.requests;
 
+import static org.fest.assertions.Assertions.assertThat;
+
 import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
 
 /**
  * Tests the unbind requests.
  */
 @SuppressWarnings("javadoc")
-public class UnbindRequestTestCase extends RequestTestCase {
+public class UnbindRequestTestCase extends RequestsTestCase {
+    private static final UnbindRequest NEW_UNBIND_REQUEST = Requests.newUnbindRequest();
+
     @DataProvider(name = "UnbindRequests")
-    public Object[][] getUnbindRequests() throws Exception {
-        return getTestRequests();
+    private Object[][] getUnbindRequests() throws Exception {
+        return createModifiableInstance();
     }
 
     @Override
-    protected UnbindRequest[] createTestRequests() throws Exception {
-        return new UnbindRequest[] { Requests.newUnbindRequest(), };
+    protected UnbindRequest[] newInstance() {
+        return new UnbindRequest[] { NEW_UNBIND_REQUEST };
+    }
+
+    @Override
+    protected Request copyOf(Request original) {
+        return Requests.copyOfUnbindRequest((UnbindRequest) original);
+    }
+
+    @Override
+    protected Request unmodifiableOf(Request original) {
+        return Requests.unmodifiableUnbindRequest((UnbindRequest) original);
+    }
+    @Test()
+    public void testModifiableRequest() {
+        final UnbindRequest copy = (UnbindRequest) copyOf(Requests.newUnbindRequest());
+        assertThat(copy.toString()).isEqualTo("UnbindRequest(controls=[])");
     }
 }

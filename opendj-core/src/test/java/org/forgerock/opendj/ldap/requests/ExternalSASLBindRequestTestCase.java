@@ -27,20 +27,59 @@
 
 package org.forgerock.opendj.ldap.requests;
 
+import static org.fest.assertions.Assertions.assertThat;
+
 import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
 
 /**
  * Tests the external SASL Bind requests.
  */
 @SuppressWarnings("javadoc")
 public class ExternalSASLBindRequestTestCase extends BindRequestTestCase {
+    private static final ExternalSASLBindRequest NEW_EXTERNAL_SASL_BIND_REQUEST = Requests.newExternalSASLBindRequest();
+
     @DataProvider(name = "ExternalSASLBindRequests")
-    public Object[][] getExternalSASLBindRequests() throws Exception {
-        return getTestRequests();
+    private Object[][] getExternalSASLBindRequests() throws Exception {
+        return createModifiableInstance();
     }
 
     @Override
-    protected ExternalSASLBindRequest[] createTestRequests() throws Exception {
-        return new ExternalSASLBindRequest[] { Requests.newExternalSASLBindRequest() };
+    protected ExternalSASLBindRequest[] newInstance() {
+        return new ExternalSASLBindRequest[] {
+            NEW_EXTERNAL_SASL_BIND_REQUEST };
+    }
+
+    @Override
+    protected Request copyOf(Request original) {
+        return Requests.copyOfExternalSASLBindRequest((ExternalSASLBindRequest) original);
+    }
+
+    @Override
+    protected Request unmodifiableOf(Request original) {
+        return Requests.unmodifiableExternalSASLBindRequest((ExternalSASLBindRequest) original);
+    }
+
+    @Test(dataProvider = "ExternalSASLBindRequests")
+    public void testModifiableRequest(final ExternalSASLBindRequest original) {
+        final String authID = "u:user.0";
+        final ExternalSASLBindRequest copy = (ExternalSASLBindRequest) copyOf(original);
+        copy.setAuthorizationID(authID);
+        assertThat(copy.getAuthorizationID()).isEqualTo(authID);
+        assertThat(copy.getSASLMechanism()).isEqualTo(original.getSASLMechanism());
+    }
+
+    @Test(dataProvider = "ExternalSASLBindRequests")
+    public void testUnmodifiableRequest(final ExternalSASLBindRequest original) {
+        final ExternalSASLBindRequest unmodifiable = (ExternalSASLBindRequest) unmodifiableOf(original);
+        assertThat(unmodifiable.getAuthorizationID()).isEqualTo(original.getAuthorizationID());
+        assertThat(unmodifiable.getAuthenticationType()).isEqualTo(original.getAuthenticationType());
+        assertThat(unmodifiable.getSASLMechanism()).isEqualTo(original.getSASLMechanism());
+    }
+
+    @Test(dataProvider = "ExternalSASLBindRequests", expectedExceptions = UnsupportedOperationException.class)
+    public void testUnmodifiableSetAuthorizationID(final ExternalSASLBindRequest original) {
+        final ExternalSASLBindRequest unmodifiable = (ExternalSASLBindRequest) unmodifiableOf(original);
+        unmodifiable.setAuthorizationID("dn: uid=scarter,ou=people,dc=example,dc=com");
     }
 }

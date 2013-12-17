@@ -27,24 +27,61 @@
 
 package org.forgerock.opendj.ldap.requests;
 
+import static org.fest.assertions.Assertions.assertThat;
+
 import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
 
 /**
  * Tests Abandon requests.
  */
 @SuppressWarnings("javadoc")
-public class AbandonRequestTestCase extends RequestTestCase {
+public class AbandonRequestTestCase extends RequestsTestCase {
+    private static final AbandonRequest NEW_ABANDON_REQUEST = Requests.newAbandonRequest(-1);
+    private static final AbandonRequest NEW_ABANDON_REQUEST2 = Requests.newAbandonRequest(0);
+    private static final AbandonRequest NEW_ABANDON_REQUEST3 = Requests.newAbandonRequest(1);
+
     @DataProvider(name = "abandonRequests")
-    public Object[][] getAbandonRequests() throws Exception {
-        return getTestRequests();
+    private Object[][] getAbandonRequests() throws Exception {
+        return createModifiableInstance();
     }
 
     @Override
-    protected AbandonRequest[] createTestRequests() throws Exception {
+    protected AbandonRequest[] newInstance() {
         return new AbandonRequest[] {
-                Requests.newAbandonRequest(-1),
-                Requests.newAbandonRequest(0),
-                Requests.newAbandonRequest(1)
-        };
+            NEW_ABANDON_REQUEST,
+            NEW_ABANDON_REQUEST2,
+            NEW_ABANDON_REQUEST3 };
+    }
+
+    @Override
+    protected Request copyOf(final Request original) {
+        return Requests.copyOfAbandonRequest((AbandonRequest) original);
+    }
+
+    @Override
+    protected Request unmodifiableOf(final Request original) {
+        return Requests.unmodifiableAbandonRequest((AbandonRequest) original);
+    }
+
+    @Test(dataProvider = "abandonRequests")
+    public void testModifiableRequest(final AbandonRequest original) {
+        final int newReqId = 9999;
+        final AbandonRequest copy = (AbandonRequest) copyOf(original);
+        copy.setRequestID(newReqId);
+        assertThat(copy.getRequestID()).isEqualTo(newReqId);
+        assertThat(original.getRequestID()).isNotEqualTo(newReqId);
+    }
+
+    @Test(dataProvider = "abandonRequests")
+    public void testUnmodifiableRequest(final AbandonRequest original) {
+        final AbandonRequest unmodifiable = (AbandonRequest) unmodifiableOf(original);
+        assertThat(unmodifiable.getRequestID()).isEqualTo(original.getRequestID());
+    }
+
+    @Test(dataProvider = "abandonRequests", expectedExceptions = UnsupportedOperationException.class)
+    public void testUnmodifiableSetters(final AbandonRequest original) {
+        final AbandonRequest unmodifiable = (AbandonRequest) unmodifiableOf(original);
+        unmodifiable.setRequestID(0);
     }
 }
