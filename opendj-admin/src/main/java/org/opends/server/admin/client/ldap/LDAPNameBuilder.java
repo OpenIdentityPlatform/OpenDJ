@@ -26,8 +26,10 @@
 
 package org.opends.server.admin.client.ldap;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
+import java.util.List;
 
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.RDN;
@@ -104,10 +106,9 @@ final class LDAPNameBuilder implements ManagedObjectPathSerializer {
         return builder.getInstance();
     }
 
-    // The list of RDNs in big-endian order.
+    /** The list of RDNs in big-endian order. */
     private final LinkedList<RDN> rdns;
 
-    // The LDAP profile.
     private final LDAPProfile profile;
 
     /**
@@ -145,9 +146,24 @@ final class LDAPNameBuilder implements ManagedObjectPathSerializer {
     public void appendManagedObjectPathElement(RelationDefinition<?, ?> r) {
         // Add the RDN sequence representing the relation.
         DN dn = DN.valueOf(profile.getRelationRDNSequence(r));
+        List<RDN> rdnsOfDn = getRdnsInBigEndianOrder(dn);
+        rdns.addAll(rdnsOfDn);
+    }
+
+    /**
+     * Returns list of RDNs of provided DN in big-endian order.
+     *
+     * @param dn
+     *            The DN to decompose in RDNs.
+     * @return rdns in big endian order
+     */
+    private List<RDN> getRdnsInBigEndianOrder(DN dn) {
+        List<RDN> rdnsOfDn = new ArrayList<RDN>();
         for (RDN rdn : dn) {
-            rdns.add(rdn);
+            rdnsOfDn.add(rdn);
         }
+        Collections.reverse(rdnsOfDn);
+        return rdnsOfDn;
     }
 
     /**
@@ -188,16 +204,10 @@ final class LDAPNameBuilder implements ManagedObjectPathSerializer {
      * @return Returns the new DN instance.
      */
     public DN getInstance() {
-        if (rdns.isEmpty()) {
-            return DN.rootDN();
+        DN dn = DN.rootDN();
+        for (RDN rdn : rdns) {
+            dn = dn.child(rdn);
         }
-        else {
-            Collections.reverse(rdns);
-            DN dn = DN.valueOf(rdns.removeFirst().toString());
-            for (RDN rdn : rdns) {
-                dn = dn.child(rdn);
-            }
-            return dn;
-        }
+        return dn;
     }
 }
