@@ -46,8 +46,6 @@ import static org.opends.server.loggers.debug.DebugLogger.*;
 public class MonitoringPublisher extends DirectoryThread
 {
 
-  private volatile boolean shutdown = false;
-
   /**
    * The tracer object for the debug logger.
    */
@@ -58,9 +56,6 @@ public class MonitoringPublisher extends DirectoryThread
 
   /** Sleep time (in ms) before sending new monitoring messages. */
   private volatile long period;
-
-  /** Whether the thread is terminated. */
-  private volatile boolean done = false;
 
   private final Object shutdownLock = new Object();
 
@@ -95,16 +90,8 @@ public class MonitoringPublisher extends DirectoryThread
 
     try
     {
-      while (!shutdown)
+      while (!isShutdownInitiated())
       {
-        synchronized (shutdownLock)
-        {
-          if (!shutdown)
-          {
-            shutdownLock.wait(period);
-          }
-        }
-
         // Send global topology information to peer DSs
         final int senderId = domain.getLocalRSServerId();
         final MonitorMsg monitorMsg =
@@ -112,6 +99,11 @@ public class MonitoringPublisher extends DirectoryThread
 
         for (ServerHandler serverHandler : domain.getConnectedDSs().values())
         {
+          // send() can be long operation, check for shutdown between each calls
+          if (isShutdownInitiated())
+          {
+            break;
+          }
           monitorMsg.setDestination(serverHandler.getServerId());
           try
           {
@@ -122,6 +114,15 @@ public class MonitoringPublisher extends DirectoryThread
             // Server is disconnecting ? Forget it
           }
         }
+
+        synchronized (shutdownLock)
+        {
+          // double check to ensure the call to notify() was not missed
+          if (!isShutdownInitiated())
+          {
+            shutdownLock.wait(period);
+          }
+        }
       }
     }
     catch (InterruptedException e)
@@ -130,7 +131,6 @@ public class MonitoringPublisher extends DirectoryThread
           "Monitoring publisher has been interrupted while sleeping."));
     }
 
-    done = true;
     TRACER.debugInfo(getMessage("Monitoring publisher is terminated."));
   }
 
@@ -141,15 +141,14 @@ public class MonitoringPublisher extends DirectoryThread
    */
   public void shutdown()
   {
+    initiateShutdown();
     synchronized (shutdownLock)
     {
-      shutdown = true;
       shutdownLock.notifyAll();
-
-      if (debugEnabled())
-      {
-        TRACER.debugInfo(getMessage("Shutting down monitoring publisher."));
-      }
+    }
+    if (debugEnabled())
+    {
+      TRACER.debugInfo(getMessage("Shutting down monitoring publisher."));
     }
   }
 
@@ -161,19 +160,10 @@ public class MonitoringPublisher extends DirectoryThread
   {
     try
     {
-      int FACTOR = 40; // Wait for 2 seconds before interrupting the thread
-      int n = 0;
-      while (!done && isAlive())
-      {
-        Thread.sleep(50);
-        n++;
-        if (n >= FACTOR)
-        {
-          TRACER.debugInfo(getMessage("Interrupting monitoring publisher."));
-          interrupt();
-        }
-      }
-    } catch (InterruptedException e)
+      // Here, "this" is the monitoring publisher thread
+      this.join(2000);
+    }
+    catch (InterruptedException e)
     {
       // exit the loop if this thread is interrupted.
     }
