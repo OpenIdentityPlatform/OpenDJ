@@ -1312,19 +1312,6 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     return domainDB.getCursorFrom(baseDN, startAfterServerState);
   }
 
- /**
-  * Count the number of changes in the replication changelog for the provided
-  * serverID, between 2 provided CSNs.
-  * @param serverId Identifier of the server for which to compute the count.
-  * @param from lower limit CSN.
-  * @param to   upper limit CSN.
-  * @return the number of changes.
-  */
-  public long getCount(int serverId, CSN from, CSN to)
-  {
-    return domainDB.getCount(baseDN, serverId, from, to);
-  }
-
   /**
    * Returns the change count for that ReplicationServerDomain.
    *
@@ -2682,55 +2669,6 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     {
       release();
     }
-  }
-
-  /**
-   * This methods count the changes, server by server :
-   * - from a serverState start point
-   * - to (inclusive) an end point (the provided endCSN).
-   * @param startState The provided start server state.
-   * @param endCSN The provided end CSN.
-   * @return The number of changes between startState and endCSN.
-   */
-  public long getEligibleCount(ServerState startState, CSN endCSN)
-  {
-    long res = 0;
-
-    for (CSN csn : getLatestServerState())
-    {
-      CSN startCSN = startState.getCSN(csn.getServerId());
-      long serverIdRes = getCount(csn.getServerId(), startCSN, endCSN);
-
-      // The startPoint is excluded when counting the ECL eligible changes
-      if (startCSN != null && serverIdRes > 0)
-      {
-        serverIdRes--;
-      }
-
-      res += serverIdRes;
-    }
-    return res;
-  }
-
-  /**
-   * This methods count the changes, server by server:
-   * - from a start CSN
-   * - to (inclusive) an end point (the provided endCSN).
-   * @param startCSN The provided start CSN.
-   * @param endCSN The provided end CSN.
-   * @return The number of changes between startTime and endCSN.
-   */
-  public long getEligibleCount(CSN startCSN, CSN endCSN)
-  {
-    long res = 0;
-    for (CSN csn : getLatestServerState())
-    {
-      int serverId = csn.getServerId();
-      CSN lStartCSN =
-          new CSN(startCSN.getTime(), startCSN.getSeqnum(), serverId);
-      res += getCount(serverId, lStartCSN, endCSN);
-    }
-    return res;
   }
 
   /**

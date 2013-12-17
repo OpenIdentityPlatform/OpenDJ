@@ -63,7 +63,6 @@ import org.opends.server.tools.LDAPSearch;
 import org.opends.server.tools.LDAPWriter;
 import org.opends.server.types.*;
 import org.opends.server.util.LDIFWriter;
-import org.opends.server.util.ServerConstants;
 import org.opends.server.util.TimeThread;
 import org.opends.server.workflowelement.externalchangelog.ECLSearchOperation;
 import org.opends.server.workflowelement.externalchangelog.ECLWorkflowElement;
@@ -306,13 +305,6 @@ public class ExternalChangeLogTest extends ReplicationTestCase
   {
     // Simultaneous psearches
     ECLSimultaneousPsearches();
-  }
-
-  @Test(enabled=true, groups="slow", dependsOnMethods = { "ECLReplicationServerTest"})
-  public void ECLReplicationServerFullTest10() throws Exception
-  {
-    // Test eligible count method.
-    ECLGetEligibleCountTest();
   }
 
   // TODO:ECL Test SEARCH abandon and check everything shutdown and cleaned
@@ -2611,128 +2603,6 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       return (JEChangeNumberIndexDB) replicationServer.getChangeNumberIndexDB();
     }
     return null;
-  }
-
-  private void ECLGetEligibleCountTest() throws Exception
-  {
-    String tn = "ECLGetEligibleCountTest";
-    debugInfo(tn, "Starting test\n\n");
-    String user1entryUUID = "11111111-1112-1113-1114-111111111115";
-
-    final CSN[] csns = generateCSNs(4, SERVER_ID_1);
-    final CSN csn1 = csns[0];
-    final CSN csn2 = csns[1];
-    final CSN csn3 = csns[2];
-
-    getCNIndexDB().setPurgeDelay(0);
-    ReplicationServerDomain rsdtest = replicationServer.getReplicationServerDomain(TEST_ROOT_DN);
-    // this empty state will force to count from the start of the DB
-    final ServerState fromStart = new ServerState();
-
-    // The replication changelog is empty
-    assertEquals(rsdtest.getEligibleCount(fromStart, csns[0]), 0);
-
-    // Creates broker on o=test
-    ReplicationBroker server01 = openReplicationSession(TEST_ROOT_DN, SERVER_ID_1,
-        1000, replicationServerPort, brokerSessionTimeout, true);
-
-    // Publish one first message
-    DeleteMsg delMsg = newDeleteMsg("uid=" + tn + "1," + TEST_ROOT_DN_STRING, csn1, user1entryUUID);
-    server01.publish(delMsg);
-    debugInfo(tn, " publishes " + delMsg.getCSN());
-    Thread.sleep(300);
-
-    // From begin to now : 1 change
-    assertEquals(rsdtest.getEligibleCount(fromStart, now()), 1);
-
-    // Publish one second message
-    delMsg = newDeleteMsg("uid=" + tn + "1," + TEST_ROOT_DN_STRING, csn2, user1entryUUID);
-    server01.publish(delMsg);
-    debugInfo(tn, " publishes " + delMsg.getCSN());
-
-    // From begin to now : 2 changes
-    searchOnChangelog("(changenumber>=1)", 2, tn, SUCCESS);
-    assertEquals(rsdtest.getEligibleCount(fromStart, now()), 2);
-
-    // From begin to first change (inclusive) : 1 change = csn1
-    assertEquals(rsdtest.getEligibleCount(fromStart, csn1), 1);
-
-    final ServerState fromStateBeforeCSN1 = new ServerState();
-    fromStateBeforeCSN1.update(csn1);
-
-    // From state/csn1(exclusive) to csn1 (inclusive) : 0 change
-    assertEquals(rsdtest.getEligibleCount(fromStateBeforeCSN1, csn1), 0);
-
-    // From state/csn1(exclusive) to csn2 (inclusive) : 1 change = csn2
-    assertEquals(rsdtest.getEligibleCount(fromStateBeforeCSN1, csn2), 1);
-
-    final ServerState fromStateBeforeCSN2 = new ServerState();
-    fromStateBeforeCSN2.update(csn2);
-
-    // From state/csn2(exclusive) to now (inclusive) : 0 change
-    assertEquals(rsdtest.getEligibleCount(fromStateBeforeCSN2, now()), 0);
-
-    // Publish one third message
-    delMsg = newDeleteMsg("uid="+tn+"1," + TEST_ROOT_DN_STRING, csn3, user1entryUUID);
-    server01.publish(delMsg);
-    debugInfo(tn, " publishes " + delMsg.getCSN());
-    Thread.sleep(300);
-
-    fromStateBeforeCSN2.update(csn2);
-
-    // From state/csn2(exclusive) to now : 1 change = csn3
-    assertEquals(rsdtest.getEligibleCount(fromStateBeforeCSN2, now()), 1);
-
-    boolean perfs=false;
-    if (perfs)
-    {
-      // number of msgs used by the test
-      final int maxMsg = 999999;
-
-      // We need an RS configured with a window size bigger than the number
-      // of msg used by the test.
-      assertTrue(maxMsg<maxWindow);
-      debugInfo(tn, "Perf test in compat mode - will generate " + maxMsg + " msgs.");
-      for (int i=4; i<=maxMsg; i++)
-      {
-        CSN csnx = new CSN(TimeThread.getTime(), i, SERVER_ID_1);
-        delMsg = newDeleteMsg("uid="+tn+i+"," + TEST_ROOT_DN_STRING, csnx, user1entryUUID);
-        server01.publish(delMsg);
-      }
-      Thread.sleep(1000);
-      debugInfo(tn, "Perfs test in compat - search lastChangeNumber");
-      Set<String> excludedDomains = MultimasterReplication.getECLDisabledDomains();
-      excludedDomains.add(ServerConstants.DN_EXTERNAL_CHANGELOG_ROOT);
-
-      long t1 = TimeThread.getTime();
-      long[] limits = replicationServer.getECLChangeNumberLimits(
-          replicationServer.getEligibleCSN(excludedDomains), excludedDomains);
-      assertEquals(limits[1], maxMsg);
-      long t2 = TimeThread.getTime();
-      debugInfo(tn, "Perfs - " + maxMsg + " counted in (ms):" + (t2 - t1));
-
-      String filter = "(changenumber>=" + maxMsg + ")";
-      searchOnChangelog(filter, 1, tn, SUCCESS);
-      long t3 = TimeThread.getTime();
-      debugInfo(tn, "Perfs - last change searched in (ms):" + (t3 - t2));
-
-      filter = "(changenumber>=" + maxMsg + ")";
-      searchOnChangelog(filter, 1, tn, SUCCESS);
-      long t4 = TimeThread.getTime();
-      debugInfo(tn, "Perfs - last change searched in (ms):" + (t4 - t3));
-
-      filter = "(changenumber>=" + (maxMsg - 2) + ")";
-      searchOnChangelog(filter, 3, tn, SUCCESS);
-      long t5 = TimeThread.getTime();
-      debugInfo(tn, "Perfs - last 3 changes searched in (ms):" + (t5 - t4));
-    }
-    stop(server01);
-    debugInfo(tn, "Ending test with success");
-  }
-
-  private CSN now()
-  {
-    return new CSN(TimeThread.getTime(), 1, SERVER_ID_1);
   }
 
   /**

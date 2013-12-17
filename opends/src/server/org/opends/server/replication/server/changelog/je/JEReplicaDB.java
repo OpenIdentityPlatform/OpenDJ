@@ -652,24 +652,4 @@ public class JEReplicaDB implements Runnable
     db.setCounterRecordWindowSize(size);
   }
 
-  /**
-   * Return the number of changes between 2 provided CSNs.
-   * This a alternative to traverseAndCount, expected to be much more efficient
-   * when there is a huge number of changes in the Db.
-   * @param from The lower (older) CSN.
-   * @param to   The upper (newer) CSN.
-   * @return The computed number of changes.
-   */
-  public long getCount(CSN from, CSN to)
-  {
-    // Now that we always keep the last CSN in the DB to avoid expiring cookies
-    // too quickly, we need to check if the "to" is older than the trim date.
-    if (to == null || !to.isOlderThan(new CSN(latestTrimDate, 0, 0)))
-    {
-      flush();
-      return db.count(from, to);
-    }
-    return 0;
-  }
-
 }
