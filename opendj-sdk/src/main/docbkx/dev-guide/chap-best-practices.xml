@@ -20,15 +20,15 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2012 ForgeRock AS
+  !      Copyright 2011-2013 ForgeRock AS
   !    
 -->
 <chapter xml:id='chap-best-practices'
  xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
  xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
- xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
- xmlns:xlink='http://www.w3.org/1999/xlink'
- xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ xsi:schemaLocation='http://docbook.org/ns/docbook
+                     http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ xmlns:xlink='http://www.w3.org/1999/xlink'>
  <title>Best Practices For LDAP Application Developers</title>
 
  <para>Follow the advice in this chapter to write effective, maintainable,
@@ -316,6 +316,41 @@
   Coming to the discussion prepared with good schema definitions, explanations
   of why they should be added, and evident regard for interoperability makes
   it easier for the directory administrator to grant your request.</para>
+ </section>
+
+ <section xml:id="initialize-with-server-schemas">
+  <title>Read Directory Server Schemas During Initialization</title>
+  <indexterm>
+   <primary>LDAP</primary>
+   <secondary>Schema</secondary>
+  </indexterm>
+
+  <para>
+   By default OpenDJ LDAP SDK uses a very minimal, built-in core schema.
+   The SDK does not read the schema from the directory server by default
+   when setting up a connection, because doing so would have
+   a significant performance cost, and generally needs to be done only once.
+  </para>
+
+  <para>
+   When you start your application, read directory server schemas
+   as a one-off initialization step, using a method such as
+   <literal>Schema.readSchema()</literal>. For sample code see the section,
+   <link xlink:href="get-schema-information" xlink:show="new"
+   xlink:role="http://docbook.org/xlink/role/olink"><citetitle
+   >Getting Schema Information</citetitle></link>.
+  </para>
+
+  <para>
+   Once you have the directory server schema definitions,
+   you can validate entries with <literal>Schema.validateEntry()</literal>.
+   You can also set the schema to use for decoding LDAP search results with
+   <literal>DecodeOptions.setSchema()</literal>
+   or <literal>DecodeOptions.setSchemaResolver()</literal>,
+   and specify the <literal>DecodeOptions</literal>
+   as part of <literal>LDAPOptions</literal> when creating
+   an <literal>LDAPConnectionFactory</literal>.
+  </para>
  </section>
 
  <section xml:id="handle-referrals">

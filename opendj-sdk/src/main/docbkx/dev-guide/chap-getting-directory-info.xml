@@ -26,9 +26,9 @@
 <chapter xml:id='chap-getting-directory-info'
  xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
  xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
- xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
- xmlns:xlink='http://www.w3.org/1999/xlink'
- xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ xsi:schemaLocation='http://docbook.org/ns/docbook
+                     http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ xmlns:xlink='http://www.w3.org/1999/xlink'>
  <title>Getting Information About the Directory Service</title>
 
  <para>LDAP directories expose what their capabilities through the root
@@ -216,10 +216,19 @@ entryUUID: d41d8cd9-8f00-3204-a980-0998ecf8427e
 
   <para>The <literal>org.forgerock.opendj.ldap.schema</literal> package
   is devoted to constructing and querying LDAP schemas. The
-  <literal>Schema</literal> class for example lets you
-  <literal>readSchemaForEntry()</literal> to get the relevant schema from the
+  <literal>Schema</literal> class provides <literal>readSchema()</literal>,
+  and <literal>readSchemaForEntry()</literal> to get the relevant schema from the
   subschema subentry, and then <literal>validateEntry()</literal> to check
   an entry your application has constructed before sending the entry to the
   server.</para>
+
+  <para>
+   The following example reads schemas from the directory server,
+   and then lists the attribute types, object classes, matching rules,
+   and syntaxes obtained.
+  </para>
+
+  <programlisting language="java"
+  >[jcp:org.forgerock.opendj.examples.ReadSchema:--- JCite ---]</programlisting>
  </section>
 </chapter>
