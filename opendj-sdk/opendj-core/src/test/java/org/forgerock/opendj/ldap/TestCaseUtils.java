@@ -31,20 +31,22 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.SocketAddress;
+import java.util.ArrayList;
 import java.util.List;
 
+import org.forgerock.opendj.ldif.LDIFEntryReader;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.mockito.stubbing.OngoingStubbing;
 
 import com.forgerock.opendj.util.CompletedFutureResult;
+import com.forgerock.opendj.util.StaticUtils;
 import com.forgerock.opendj.util.TimeSource;
 
 /**
@@ -241,4 +243,66 @@ public final class TestCaseUtils {
         }
         return mock;
     }
+
+    /**
+     * Builds an entry from the provided lines of LDIF.
+     * <p>
+     * Here's a sample usage:
+     * <pre>
+     * Entry john = makeEntry(
+     *   "dn: cn=John Smith,dc=example,dc=com",
+     *   "objectclass: inetorgperson",
+     *   "cn: John Smith",
+     *   "sn: Smith",
+     *   "givenname: John");
+     * </pre>
+     *
+     * @param lines
+     *          LDIF lines that contains entry definition.
+     * @return an entry
+     * @throws IOException
+     *          If an error occurs.
+     */
+    public static Entry makeEntry(String... lines) throws IOException {
+       return makeEntries(lines).get(0);
+    }
+
+    /**
+     * Builds a list of entries from the provided lines of LDIF.
+     * <p>
+     * Here's a sample usage
+     * <pre>
+     * List<Entry> smiths = TestCaseUtils.makeEntries(
+     *   "dn: cn=John Smith,dc=example,dc=com",
+     *   "objectclass: inetorgperson",
+     *   "cn: John Smith",
+     *   "sn: Smith",
+     *   "givenname: John",
+     *   "",
+     *   "dn: cn=Jane Smith,dc=example,dc=com",
+     *   "objectclass: inetorgperson",
+     *   "cn: Jane Smith",
+     *   "sn: Smith",
+     *   "givenname: Jane");
+     * </pre>
+     * @param ldifLines
+     *          LDIF lines that contains entries definition.
+     * @return a list of entries
+     * @throws IOException
+     *          If an error occurs.
+     */
+    public static List<Entry> makeEntries(String... ldifLines) throws IOException {
+        List<Entry> entries = new ArrayList<Entry>();
+        LDIFEntryReader reader = null;
+        try {
+            reader = new LDIFEntryReader(ldifLines);
+            while (reader.hasNext()) {
+                entries.add(reader.readEntry());
+            }
+        } finally {
+            StaticUtils.closeSilently(reader);
+        }
+        return entries;
+    }
+
 }
