@@ -35,8 +35,9 @@ import org.testng.annotations.Test;
  * Tests various extended requests.
  */
 @SuppressWarnings("javadoc")
-public abstract class ExtendedRequestTestCase extends RequestTestCase {
-    @Test(dataProvider = "testRequests")
+public abstract class ExtendedRequestTestCase extends RequestsTestCase {
+
+    @Test(dataProvider = "ExtendedRequests")
     public void testDecoder(final ExtendedRequest<?> request) throws Exception {
         final ExtendedResultDecoder<?> decoder = request.getResultDecoder();
         assertNotNull(decoder);

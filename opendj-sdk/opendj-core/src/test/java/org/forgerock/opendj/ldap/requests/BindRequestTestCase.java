@@ -26,6 +26,7 @@
 
 package org.forgerock.opendj.ldap.requests;
 
+import static org.fest.assertions.Assertions.assertThat;
 import static org.testng.Assert.assertNotNull;
 
 import org.forgerock.opendj.io.LDAP;
@@ -36,8 +37,8 @@ import org.testng.annotations.Test;
  * Tests the BIND requests.
  */
 @SuppressWarnings("javadoc")
-public abstract class BindRequestTestCase extends RequestTestCase {
-    @Test(dataProvider = "testRequests")
+public abstract class BindRequestTestCase extends RequestsTestCase {
+    @Test(dataProvider = "createModifiableInstance")
     public void testAuthType(final BindRequest request) throws Exception {
         final byte b = request.getAuthenticationType();
         if (!(b == LDAP.TYPE_AUTHENTICATION_SASL || b == LDAP.TYPE_AUTHENTICATION_SIMPLE)) {
@@ -45,14 +46,28 @@ public abstract class BindRequestTestCase extends RequestTestCase {
         }
     }
 
-    @Test(dataProvider = "testRequests")
+    @Test(dataProvider = "createModifiableInstance")
     public void testBindClient(final BindRequest request) throws Exception {
         final BindClient client = request.createBindClient("localhost");
         assertNotNull(client);
     }
 
-    @Test(dataProvider = "testRequests")
+    @Test(dataProvider = "createModifiableInstance")
     public void testName(final BindRequest request) throws Exception {
         assertNotNull(request.getName());
+    }
+
+    @Test(dataProvider = "createModifiableInstance")
+    public void testModifiableRequest(final BindRequest original) {
+        final BindRequest copy = (BindRequest) copyOf(original);
+        assertThat(copy.getAuthenticationType()).isEqualTo(original.getAuthenticationType());
+        assertThat(copy.getName()).isEqualTo(original.getName());
+    }
+
+    @Test(dataProvider = "createModifiableInstance")
+    public void testUnmodifiableRequest(final BindRequest original) {
+        final BindRequest unmodifiable = (BindRequest) unmodifiableOf(original);
+        assertThat(unmodifiable.getAuthenticationType()).isEqualTo(original.getAuthenticationType());
+        assertThat(unmodifiable.getName()).isEqualTo(original.getName());
     }
 }

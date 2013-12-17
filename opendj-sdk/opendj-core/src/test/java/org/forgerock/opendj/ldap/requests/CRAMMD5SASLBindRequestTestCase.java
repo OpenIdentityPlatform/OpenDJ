@@ -29,24 +29,90 @@ package org.forgerock.opendj.ldap.requests;
 
 import static com.forgerock.opendj.util.StaticUtils.EMPTY_BYTES;
 import static com.forgerock.opendj.util.StaticUtils.getBytes;
+import static org.fest.assertions.Assertions.assertThat;
 
 import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
 
 /**
  * Tests CRAM MD5 SASL bind requests.
  */
 @SuppressWarnings("javadoc")
 public class CRAMMD5SASLBindRequestTestCase extends BindRequestTestCase {
+
+    private static final CRAMMD5SASLBindRequest NEW_CRAMMD5SASL_BIND_REQUEST = Requests.newCRAMMD5SASLBindRequest(
+            "id1", EMPTY_BYTES);
+    private static final CRAMMD5SASLBindRequest NEW_CRAMMD5SASL_BIND_REQUEST2 = Requests.newCRAMMD5SASLBindRequest(
+            "id2", getBytes("test"));
+
     @DataProvider(name = "CRAMMD5SASLBindRequests")
-    public Object[][] getCRAMMD5SASLBindRequests() throws Exception {
-        return getTestRequests();
+    private Object[][] getCRAMMD5SASLBindRequests() throws Exception {
+        return createModifiableInstance();
     }
 
     @Override
-    protected CRAMMD5SASLBindRequest[] createTestRequests() throws Exception {
+    protected CRAMMD5SASLBindRequest[] newInstance() {
         return new CRAMMD5SASLBindRequest[] {
-                Requests.newCRAMMD5SASLBindRequest("id1", EMPTY_BYTES),
-                Requests.newCRAMMD5SASLBindRequest("id2", getBytes("test"))
+            NEW_CRAMMD5SASL_BIND_REQUEST,
+            NEW_CRAMMD5SASL_BIND_REQUEST2
         };
+    }
+
+    @Override
+    protected Request copyOf(Request original) {
+        return Requests.copyOfCRAMMD5SASLBindRequest((CRAMMD5SASLBindRequest) original);
+    }
+
+    @Override
+    protected Request unmodifiableOf(Request original) {
+        return Requests.unmodifiableCRAMMD5SASLBindRequest((CRAMMD5SASLBindRequest) original);
+    }
+
+    @Test(dataProvider = "CRAMMD5SASLBindRequests")
+    public void testModifiableRequest(final CRAMMD5SASLBindRequest original) {
+        final String authId = "newAuthId";
+        final String pwd = "pass";
+        final String pwd2 = "pass2";
+
+        final CRAMMD5SASLBindRequest copy = (CRAMMD5SASLBindRequest) copyOf(original);
+        copy.setAuthenticationID(authId);
+        assertThat(copy.getAuthenticationID()).isEqualTo(authId);
+        assertThat(original.getAuthenticationID()).isNotEqualTo(authId);
+
+        copy.setPassword(pwd.toCharArray());
+        assertThat(copy.getPassword()).isEqualTo(pwd.getBytes());
+        assertThat(original.getPassword()).isNotEqualTo(pwd.getBytes());
+
+        copy.setPassword(pwd2.getBytes());
+        assertThat(copy.getPassword()).isEqualTo(pwd2.getBytes());
+        assertThat(original.getPassword()).isNotEqualTo(pwd2.getBytes());
+    }
+
+    @Test(dataProvider = "CRAMMD5SASLBindRequests")
+    public void testUnmodifiableRequest(final CRAMMD5SASLBindRequest original) {
+        final CRAMMD5SASLBindRequest unmodifiable = (CRAMMD5SASLBindRequest) unmodifiableOf(original);
+        assertThat(unmodifiable.getAuthenticationID()).isEqualTo(original.getAuthenticationID());
+        assertThat(unmodifiable.getAuthenticationType()).isEqualTo(original.getAuthenticationType());
+        assertThat(unmodifiable.getName()).isEqualTo(original.getName());
+        assertThat(unmodifiable.getPassword()).isEqualTo(original.getPassword());
+        assertThat(unmodifiable.getSASLMechanism()).isEqualTo(original.getSASLMechanism());
+    }
+
+    @Test(dataProvider = "CRAMMD5SASLBindRequests", expectedExceptions = UnsupportedOperationException.class)
+    public void testUnmodifiableSetAuthenticationId(final CRAMMD5SASLBindRequest original) {
+        final CRAMMD5SASLBindRequest unmodifiable = (CRAMMD5SASLBindRequest) unmodifiableOf(original);
+        unmodifiable.setAuthenticationID("dn: uid=scarter,ou=people,dc=example,dc=com");
+    }
+
+    @Test(dataProvider = "CRAMMD5SASLBindRequests", expectedExceptions = UnsupportedOperationException.class)
+    public void testUnmodifiableSetPassword(final CRAMMD5SASLBindRequest original) {
+        final CRAMMD5SASLBindRequest unmodifiable = (CRAMMD5SASLBindRequest) unmodifiableOf(original);
+        unmodifiable.setPassword("password".getBytes());
+    }
+
+    @Test(dataProvider = "CRAMMD5SASLBindRequests", expectedExceptions = UnsupportedOperationException.class)
+    public void testUnmodifiableSetPassword2(final CRAMMD5SASLBindRequest original) {
+        final CRAMMD5SASLBindRequest unmodifiable = (CRAMMD5SASLBindRequest) unmodifiableOf(original);
+        unmodifiable.setPassword("password".toCharArray());
     }
 }
