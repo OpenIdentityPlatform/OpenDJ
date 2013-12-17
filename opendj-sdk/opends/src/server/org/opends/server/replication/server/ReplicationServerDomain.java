@@ -429,11 +429,8 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
        * job properly anymore and needs to close all its connections and
        * shutdown itself.
        */
-      MessageBuilder mb = new MessageBuilder();
-      mb.append(ERR_CHANGELOG_SHUTDOWN_DATABASE_ERROR.get());
-      mb.append(" ");
-      mb.append(stackTraceToSingleLineString(e));
-      logError(mb.toMessage());
+      logError(ERR_CHANGELOG_SHUTDOWN_DATABASE_ERROR
+          .get(stackTraceToSingleLineString(e)));
       localReplicationServer.shutdown();
       return false;
     }

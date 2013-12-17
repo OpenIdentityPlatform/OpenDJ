@@ -119,7 +119,7 @@ public class ReplicationDB
    * @param baseDN The baseDN of the replication domain.
    * @param replicationServer The ReplicationServer that needs to be shutdown.
    * @param dbenv The Db environment to use to create the db.
-   * @throws ChangelogException If a database problem happened.
+   * @throws ChangelogException If a database problem happened
    */
   public ReplicationDB(int serverId, DN baseDN,
       ReplicationServer replicationServer, ReplicationDbEnv dbenv)
@@ -184,9 +184,12 @@ public class ReplicationDB
   /**
    * add a list of changes to the underlying db.
    *
-   * @param changes The list of changes to add to the underlying db.
+   * @param changes
+   *          The list of changes to add to the underlying db.
+   * @throws ChangelogException
+   *           If a database problem happened
    */
-  public void addEntries(List<UpdateMsg> changes)
+  public void addEntries(List<UpdateMsg> changes) throws ChangelogException
   {
     dbCloseLock.readLock().lock();
     try
@@ -209,7 +212,7 @@ public class ReplicationDB
     }
     catch (DatabaseException e)
     {
-      dbenv.shutdownOnException(e);
+      throw new ChangelogException(e);
     }
     finally
     {
@@ -280,9 +283,9 @@ public class ReplicationDB
    * @param startCSN
    *          The CSN from which the cursor must start.If null, start from the
    *          oldest CSN
-   * @throws ChangelogException
-   *           When a problem occurs or the startCSN does not exist.
    * @return The ReplServerDBCursor.
+   * @throws ChangelogException
+   *           If a database problem happened
    */
   public ReplServerDBCursor openReadCursor(CSN startCSN)
       throws ChangelogException
@@ -320,8 +323,10 @@ public class ReplicationDB
    * Read the oldest CSN present in the database.
    *
    * @return the oldest CSN in the DB, null if the DB is empty or closed
+   * @throws ChangelogException
+   *           If a database problem happened
    */
-  public CSN readOldestCSN()
+  public CSN readOldestCSN() throws ChangelogException
   {
     dbCloseLock.readLock().lock();
 
@@ -362,8 +367,7 @@ public class ReplicationDB
     }
     catch (DatabaseException e)
     {
-      dbenv.shutdownOnException(e);
-      return null;
+      throw new ChangelogException(e);
     }
     finally
     {
@@ -375,8 +379,10 @@ public class ReplicationDB
    * Read the newest CSN present in the database.
    *
    * @return the newest CSN in the DB, null if the DB is empty or closed
+   * @throws ChangelogException
+   *           If a database problem happened
    */
-  public CSN readNewestCSN()
+  public CSN readNewestCSN() throws ChangelogException
   {
     dbCloseLock.readLock().lock();
 
@@ -419,8 +425,7 @@ public class ReplicationDB
     }
     catch (DatabaseException e)
     {
-      dbenv.shutdownOnException(e);
-      return null;
+      throw new ChangelogException(e);
     }
     finally
     {
@@ -435,8 +440,10 @@ public class ReplicationDB
    *          The CSN from which we start searching.
    * @return the CSN right before the one passed as a parameter. Can return null
    *         if there is none.
+   * @throws ChangelogException
+   *           If a database problem happened
    */
-  public CSN getPreviousCSN(CSN csn)
+  public CSN getPreviousCSN(CSN csn) throws ChangelogException
   {
     if (csn == null)
     {
@@ -479,7 +486,7 @@ public class ReplicationDB
     }
     catch (DatabaseException e)
     {
-      dbenv.shutdownOnException(e);
+      throw new ChangelogException(e);
     }
     finally
     {
@@ -652,12 +659,12 @@ public class ReplicationDB
       }
       catch (ChangelogException e)
       {
-        abort(localTxn);
+        JEUtils.abort(localTxn);
         throw e;
       }
       catch (Exception e)
       {
-        abort(localTxn);
+        JEUtils.abort(localTxn);
         throw new ChangelogException(e);
       }
       finally
@@ -665,21 +672,6 @@ public class ReplicationDB
         if (!cursorHeld)
         {
           closeAndReleaseReadLock(localCursor);
-        }
-      }
-    }
-
-    private void abort(Transaction localTxn)
-    {
-      if (localTxn != null)
-      {
-        try
-        {
-          localTxn.abort();
-        }
-        catch (DatabaseException ignore)
-        {
-          // Ignore.
         }
       }
     }
@@ -716,9 +708,9 @@ public class ReplicationDB
     }
 
     /**
-     * Abort the Cursor after a Deadlock Exception.
-     * This method catch and ignore the DeadlockException because
-     * this must be done when aborting a cursor after a DeadlockException
+     * Abort the cursor after an Exception.
+     * This method catch and ignore the DatabaseException because
+     * this must be done when aborting a cursor after a DatabaseException
      * (per the Cursor documentation).
      * This should not be used in any other case.
      */
@@ -734,18 +726,7 @@ public class ReplicationDB
       }
 
       closeAndReleaseReadLock(cursor);
-
-      if (txn != null)
-      {
-        try
-        {
-          txn.abort();
-        }
-        catch (DatabaseException e)
-        {
-          dbenv.shutdownOnException(e);
-        }
-      }
+      JEUtils.abort(txn);
     }
 
     /**
