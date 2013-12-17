@@ -26,9 +26,9 @@
 <chapter xml:id='chap-pwd-policy'
          xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
          xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
-         xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
-         xmlns:xlink='http://www.w3.org/1999/xlink'
-         xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+         xsi:schemaLocation='http://docbook.org/ns/docbook
+                             http://docbook.org/xml/5.0/xsd/docbook.xsd'
+         xmlns:xlink='http://www.w3.org/1999/xlink'>
  <title>Configuring Password Policy</title>
  <indexterm><primary>Password policy</primary></indexterm>
  
@@ -614,6 +614,98 @@ ADD operation successful for DN cn=Password Policy for Dir
  pwdPolicySubentry
 dn: uid=kvaughan,ou=People,dc=example,dc=com
 pwdPolicySubentry: cn=Root Password Policy,cn=Password Policies,cn=config</screen>
+   </step>
+  </procedure>
+
+  <procedure xml:id="assign-pwp-for-branch">
+   <title>To Assign Password Policy for an Entire Branch</title>
+
+   <para>
+    You can use a collective attribute to assign a password policy
+    to the entries under a base DN.
+   </para>
+
+   <step>
+    <para>
+     Create a password policy and collective attribute subentry
+     to assign the policy to all entries under a base DN.
+    </para>
+
+    <para>
+     The following example creates a password policy,
+     and then assigns that policy to entries
+     under <literal>ou=People,dc=example,dc=com</literal>.
+    </para>
+
+    <screen>$ cat collective-pwp.ldif
+dn: cn=People Password Policy,dc=example,dc=com
+objectClass: top
+objectClass: subentry
+objectClass: pwdPolicy
+cn: People Password Policy
+pwdAttribute: userPassword
+pwdLockout: TRUE
+pwdMaxFailure: 3
+pwdFailureCountInterval: 300
+pwdLockoutDuration: 300
+pwdAllowUserChange: TRUE
+pwdSafeModify: TRUE
+subtreeSpecification: {}
+
+dn: cn=Assign People Password Policy,dc=example,dc=com
+objectClass: top
+objectClass: subentry
+objectClass: extensibleObject
+objectClass: collectiveAttributeSubentry
+cn: Assign People Password Policy
+ds-pwp-password-policy-dn;collective: cn=People Password Policy,dc=example,dc=com
+subtreeSpecification: { base "ou=people" }
+
+
+$ ldapmodify
+ --port 1389
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --defaultAdd
+ --filename collective-pwp.ldif
+Processing ADD request for cn=People Password Policy,dc=example,dc=com
+ADD operation successful for DN cn=People Password Policy,dc=example,dc=com
+Processing ADD request for cn=Assign People Password Policy,dc=example,dc=com
+ADD operation successful for DN
+ cn=Assign People Password Policy,dc=example,dc=com</screen>
+
+    <para>
+     Notice the subtree specification used to assign the policy,
+     <literal>{ base "ou=people" }</literal>.
+     You can relax the subtree specification value to <literal>{}</literal>
+     to apply the password policy to all entries
+     the parent of the subentry, <literal>dc=example,dc=com</literal>,
+     or further restrict the subtree specification
+     by adding a <literal>specificationFilter</literal>.
+     See <link xlink:show="new" xlink:href="admin-guide#collective-attributes"
+     xlink:role="http://docbook.org/xlink/role/olink"><citetitle
+     >Collective Attributes</citetitle></link> for more information.
+    </para>
+   </step>
+
+   <step>
+    <para>
+     Check your work.
+    </para>
+
+    <screen>$ ldapsearch
+ --port 1389
+ --baseDN dc=example,dc=com
+ "(uid=alutz)"
+ pwdPolicySubentry
+dn: uid=alutz,ou=People,dc=example,dc=com
+pwdPolicySubentry: cn=People Password Policy,dc=example,dc=com</screen>
+
+    <para>
+     If everything is correctly configured,
+     then the password policy should be assigned to users
+     whose entries are under <literal>ou=People,dc=example,dc=com</literal>.
+    </para>
    </step>
   </procedure>
  </section>
