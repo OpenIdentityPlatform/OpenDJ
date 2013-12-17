@@ -41,13 +41,14 @@ import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.ChangelogState;
 import org.opends.server.replication.server.changelog.api.*;
 import org.opends.server.types.DN;
-import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.util.StaticUtils;
 
 import com.forgerock.opendj.util.Pair;
 
+import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.util.StaticUtils.*;
 
 /**
  * Thread responsible for inserting replicated changes into the ChangeNumber
@@ -101,7 +102,9 @@ public class ChangeNumberIndexer extends DirectoryThread
 
   /**
    * Holds the most recent changes or heartbeats received for each serverIds
-   * cross domain.
+   * cross domain. changes are stored in the replicaDBs and hence persistent,
+   * heartbeats are transient because they are easily constructed on normal
+   * operations.
    */
   private final MultiDomainServerState lastSeenUpdates =
       new MultiDomainServerState();
@@ -276,9 +279,9 @@ public class ChangeNumberIndexer extends DirectoryThread
       final UpdateMsg record = nextChangeForInsertDBCursor.getRecord();
       if (!record.getCSN().equals(newestRecord.getCSN()))
       {
-        // TODO JNR i18n safety check, should never happen
-        throw new ChangelogException(Message.raw("They do not equal! recordCSN="
-            + record.getCSN() + " newestRecordCSN=" + newestRecord.getCSN()));
+        throw new ChangelogException(
+            ERR_CHANGE_NUMBER_INDEXER_INCONSISTENT_CSN_READ.get(newestRecord
+                .getCSN().toStringUI(), record.getCSN().toStringUI()));
       }
       mediumConsistencyRUV.update(newestRecord.getBaseDN(), record.getCSN());
       nextChangeForInsertDBCursor.next();
@@ -406,7 +409,7 @@ public class ChangeNumberIndexer extends DirectoryThread
           final CSN csn = msg.getCSN();
           final DN baseDN = nextChangeForInsertDBCursor.getData();
           // FIXME problem: what if the serverId is not part of the ServerState?
-          // right now, thread will be blocked
+          // right now, change number will be blocked
           if (!canMoveForwardMediumConsistencyPoint(baseDN))
           {
             // the oldest record to insert is newer than the medium consistency
@@ -451,17 +454,27 @@ public class ChangeNumberIndexer extends DirectoryThread
         }
       }
     }
-    catch (ChangelogException e)
+    catch (RuntimeException e)
     {
-      if (debugEnabled())
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      // TODO JNR error message i18n
+      // Nothing can be done about it.
+      // Rely on the DirectoryThread uncaught exceptions handler
+      // for logging error + alert.
+      // Message logged here gives corrective information to the administrator.
+      Message msg = ERR_CHANGE_NUMBER_INDEXER_UNEXPECTED_EXCEPTION.get(
+          getClass().getSimpleName(), stackTraceToSingleLineString(e));
+      TRACER.debugError(msg.toString());
+      throw e;
     }
-    catch (DirectoryException e)
+    catch (Exception e)
     {
-      if (debugEnabled())
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      // TODO JNR error message i18n
+      // Nothing can be done about it.
+      // Rely on the DirectoryThread uncaught exceptions handler
+      // for logging error + alert.
+      // Message logged here gives corrective information to the administrator.
+      Message msg = ERR_CHANGE_NUMBER_INDEXER_UNEXPECTED_EXCEPTION.get(
+          getClass().getSimpleName(), stackTraceToSingleLineString(e));
+      TRACER.debugError(msg.toString());
+      throw new RuntimeException(e);
     }
     finally
     {
