@@ -246,7 +246,7 @@ public final class Connections {
      * using the provided connection factory and periodically ping any created
      * connections in order to detect that they are still alive every 10 seconds
      * using the default scheduler. Connections will be marked as having failed
-     * if a heart-beat takes longer than 500ms.
+     * if a heart-beat takes longer than 3 seconds.
      *
      * @param factory
      *            The connection factory to use for creating connections.
@@ -255,8 +255,7 @@ public final class Connections {
      *             If {@code factory} was {@code null}.
      */
     public static ConnectionFactory newHeartBeatConnectionFactory(final ConnectionFactory factory) {
-        return new HeartBeatConnectionFactory(factory, 10000, 500, TimeUnit.MILLISECONDS, null,
-                null);
+        return new HeartBeatConnectionFactory(factory, 10, 3, TimeUnit.SECONDS, null, null);
     }
 
     /**
