@@ -37,7 +37,6 @@ import org.forgerock.opendj.ldap.ErrorResultException;
 import org.forgerock.opendj.ldap.LinkedAttribute;
 import org.forgerock.opendj.ldap.LinkedHashMapEntry;
 import org.forgerock.opendj.ldap.ModificationType;
-import org.forgerock.opendj.ldap.RDN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.requests.ModifyRequest;
 import org.forgerock.opendj.ldap.requests.Requests;
@@ -175,8 +174,7 @@ final class LDAPManagedObject<T extends ConfigurationClient> extends AbstractMan
                 addObjectClassesToEntry(objectClasses, entry);
 
                 // Create the branch's naming attribute.
-                RDN rdn = dn.parent(dn.size() - 1).rdn();
-                entry.addAttribute(rdn.getFirstAVA().toAttribute());
+                entry.addAttribute(dn.rdn().getFirstAVA().toAttribute());
 
                 // Create the entry.
                 try {
@@ -204,8 +202,7 @@ final class LDAPManagedObject<T extends ConfigurationClient> extends AbstractMan
         // Create the naming attribute if there is not naming property.
         PropertyDefinition<?> namingPropertyDef = getNamingPropertyDefinition();
         if (namingPropertyDef == null) {
-            RDN rdn = dn.parent(dn.size() - 1).rdn();
-            entry.addAttribute(rdn.getFirstAVA().toAttribute());
+            entry.addAttribute(dn.rdn().getFirstAVA().toAttribute());
         }
 
         // Create the remaining attributes.
