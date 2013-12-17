@@ -264,7 +264,7 @@ public final class TestCaseUtils {
      *          If an error occurs.
      */
     public static Entry makeEntry(String... lines) throws IOException {
-       return makeEntries(lines).get(0);
+        return makeEntries(lines).get(0);
     }
 
     /**
