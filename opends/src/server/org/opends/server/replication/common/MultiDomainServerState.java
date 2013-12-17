@@ -209,6 +209,19 @@ public class MultiDomainServerState implements Iterable<DN>
   }
 
   /**
+   * Returns the ServerState associated to the provided replication domain's
+   * baseDN.
+   *
+   * @param baseDN
+   *          the replication domain's baseDN
+   * @return the associated ServerState
+   */
+  public ServerState getServerState(DN baseDN)
+  {
+    return list.get(baseDN);
+  }
+
+  /**
    * Returns the CSN associated to the provided replication domain's baseDN and
    * serverId.
    *
@@ -216,7 +229,7 @@ public class MultiDomainServerState implements Iterable<DN>
    *          the replication domain's baseDN
    * @param serverId
    *          the serverId
-   * @return the associated ServerState
+   * @return the associated CSN
    */
   public CSN getCSN(DN baseDN, int serverId)
   {

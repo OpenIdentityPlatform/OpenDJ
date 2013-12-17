@@ -47,8 +47,8 @@ public interface ReplicationDomainDB
   long getDomainChangesCount(DN baseDN);
 
   /**
-   * Returns the oldest {@link CSN}s of each serverId for the specified
-   * replication domain.
+   * Returns the oldest {@link CSN}s from the replicaDBs for each serverId in
+   * the specified replication domain.
    *
    * @param baseDN
    *          the replication domain baseDN
@@ -59,8 +59,8 @@ public interface ReplicationDomainDB
   ServerState getDomainOldestCSNs(DN baseDN);
 
   /**
-   * Returns the newest {@link CSN}s of each serverId for the specified
-   * replication domain.
+   * Returns the newest {@link CSN}s from the replicaDBs for each serverId in
+   * the specified replication domain.
    *
    * @param baseDN
    *          the replication domain baseDN
@@ -69,6 +69,18 @@ public interface ReplicationDomainDB
    *         that replica. The caller owns the generated ServerState.
    */
   ServerState getDomainNewestCSNs(DN baseDN);
+
+  /**
+   * Returns the last time each serverId was seen alive for the specified
+   * replication domain.
+   *
+   * @param baseDN
+   *          the replication domain baseDN
+   * @return a new ServerState object holding the {serverId => CSN} Map. Can be
+   *         null if the config that computes change numbers is set to false or
+   *         if domain is not replicated.
+   */
+  ServerState getDomainLastAliveCSNs(DN baseDN);
 
   /**
    * Retrieves the latest trim date for the specified replication domain.

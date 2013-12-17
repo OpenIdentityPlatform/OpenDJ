@@ -552,9 +552,8 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     debugInfo(tn, "Starting test\n\n");
 
     // root entry returned
-    final InternalSearchOperation op = searchOnChangelog(
-        "(objectclass=*)", Collections.<String>emptySet(), createControls(""), 1, tn);
-    waitOpResult(op, ResultCode.SUCCESS);
+    searchOnChangelog("(objectclass=*)", Collections.<String> emptySet(), createControls(""),
+        1, ResultCode.SUCCESS, tn);
 
     debugInfo(tn, "Ending test successfully");
   }
@@ -585,8 +584,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
   /** Add an entry in the database */
   private void addEntry(Entry entry) throws Exception
   {
-    AddOperation addOp = connection.processAdd(entry);
-    waitOpResult(addOp, ResultCode.SUCCESS);
+    waitOpResult(connection.processAdd(entry), ResultCode.SUCCESS);
     assertNotNull(getEntry(entry.getDN(), 1000, true));
   }
 
@@ -868,10 +866,8 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       throws Exception
   {
     debugInfo(testName, "Search with cookie=[" + cookie + "] filter=[" + filterString + "]");
-    final InternalSearchOperation searchOp = searchOnChangelog(
-        filterString, ALL_ATTRIBUTES, createControls(cookie), expectedNbEntries, testName);
-    waitOpResult(searchOp, expectedResultCode);
-    return searchOp;
+    return searchOnChangelog(filterString, ALL_ATTRIBUTES, createControls(cookie),
+        expectedNbEntries, expectedResultCode, testName);
   }
 
   private InternalSearchOperation searchOnChangelog(String filterString,
@@ -879,15 +875,13 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       throws Exception
   {
     debugInfo(testName, " Search: " + filterString);
-    final InternalSearchOperation searchOp = searchOnChangelog(
-        filterString, ALL_ATTRIBUTES, NO_CONTROL, expectedNbEntries, testName);
-    waitOpResult(searchOp, expectedResultCode);
-    return searchOp;
+    return searchOnChangelog(filterString, ALL_ATTRIBUTES, NO_CONTROL,
+        expectedNbEntries, expectedResultCode, testName);
   }
 
   private InternalSearchOperation searchOnChangelog(String filterString,
       Set<String> attributes, List<Control> controls, int expectedNbEntries,
-      String testName) throws Exception
+      ResultCode expectedResultCode, String testName) throws Exception
   {
     InternalSearchOperation op = null;
     int cnt = 0;
@@ -912,6 +906,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     final List<SearchResultEntry> entries = op.getSearchEntries();
     assertThat(entries).hasSize(expectedNbEntries);
     debugAndWriteEntries(getLDIFWriter(), entries, testName);
+    waitOpResult(op, expectedResultCode);
     return op;
   }
 
@@ -2104,7 +2099,6 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       ReplicationServerDomain rsd1 = replicationServer.getReplicationServerDomain(TEST_ROOT_DN);
       debugInfo(tn, rsd1.getBaseDN()
           + " LatestServerState=" + rsd1.getLatestServerState()
-          + " ChangeTimeHeartBeatState=" + rsd1.getChangeTimeHeartbeatState()
           + " eligibleCSN=" + rsd1.getEligibleCSN()
           + " rs eligibleCSN=" + replicationServer.getEligibleCSN(null));
       // FIXME:ECL Enable this test by adding an assert on the right value
@@ -2112,7 +2106,6 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       ReplicationServerDomain rsd2 = replicationServer.getReplicationServerDomain(TEST_ROOT_DN2);
       debugInfo(tn, rsd2.getBaseDN()
           + " LatestServerState=" + rsd2.getLatestServerState()
-          + " ChangeTimeHeartBeatState=" + rsd2.getChangeTimeHeartbeatState()
           + " eligibleCSN=" + rsd2.getEligibleCSN()
           + " rs eligibleCSN=" + replicationServer.getEligibleCSN(null));
       // FIXME:ECL Enable this test by adding an assert on the right value
@@ -2882,13 +2875,10 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     }
     finally
     {
-      final DeleteOperation delOp1 = connection.processDelete(
-          DN.decode("cn=Fiona Jensen," + TEST_ROOT_DN_STRING2));
-      waitOpResult(delOp1, ResultCode.SUCCESS);
-      final DeleteOperation delOp2 = connection.processDelete(TEST_ROOT_DN2);
-      waitOpResult(delOp2, ResultCode.SUCCESS);
-      final DeleteOperation delOp3 = connection.processDelete(baseDN3);
-      waitOpResult(delOp3, ResultCode.SUCCESS);
+      final DN fionaDN = DN.decode("cn=Fiona Jensen," + TEST_ROOT_DN_STRING2);
+      waitOpResult(connection.processDelete(fionaDN), ResultCode.SUCCESS);
+      waitOpResult(connection.processDelete(TEST_ROOT_DN2), ResultCode.SUCCESS);
+      waitOpResult(connection.processDelete(baseDN3), ResultCode.SUCCESS);
 
       remove(domain21, domain2, domain3);
       removeTestBackend(backend2, backend3);

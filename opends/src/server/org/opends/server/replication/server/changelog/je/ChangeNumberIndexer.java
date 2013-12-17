@@ -101,12 +101,13 @@ public class ChangeNumberIndexer extends DirectoryThread
   private volatile CSN mediumConsistencyCSN;
 
   /**
-   * Holds the most recent changes or heartbeats received for each serverIds
-   * cross domain. changes are stored in the replicaDBs and hence persistent,
-   * heartbeats are transient because they are easily constructed on normal
-   * operations.
+   * Holds the last time each replica was seen alive, whether via updates or
+   * heartbeats received. Data is held for each serverId cross domain.
+   * <p>
+   * Updates are persistent and stored in the replicaDBs, heartbeats are
+   * transient and are easily constructed on normal operations.
    */
-  private final MultiDomainServerState lastSeenUpdates =
+  private final MultiDomainServerState lastAliveCSNs =
       new MultiDomainServerState();
   private final MultiDomainServerState replicasOffline =
       new MultiDomainServerState();
@@ -174,7 +175,7 @@ public class ChangeNumberIndexer extends DirectoryThread
    */
   public void publishHeartbeat(DN baseDN, CSN heartbeatCSN)
   {
-    lastSeenUpdates.update(baseDN, heartbeatCSN);
+    lastAliveCSNs.update(baseDN, heartbeatCSN);
     tryNotify(baseDN);
   }
 
@@ -192,10 +193,24 @@ public class ChangeNumberIndexer extends DirectoryThread
       throws ChangelogException
   {
     final CSN csn = updateMsg.getCSN();
-    lastSeenUpdates.update(baseDN, csn);
+    lastAliveCSNs.update(baseDN, csn);
     // only keep the oldest CSN that will be the new cursor's starting point
     newCursors.putIfAbsent(Pair.of(baseDN, csn.getServerId()), csn);
     tryNotify(baseDN);
+  }
+
+  /**
+   * Returns the last time each serverId was seen alive for the specified
+   * replication domain.
+   *
+   * @param baseDN
+   *          the replication domain baseDN
+   * @return a new ServerState object holding the {serverId => CSN} Map. Can be
+   *         null if domain is not replicated.
+   */
+  public ServerState getDomainLastAliveCSNs(DN baseDN)
+  {
+    return lastAliveCSNs.getServerState(baseDN);
   }
 
   /**
@@ -208,7 +223,7 @@ public class ChangeNumberIndexer extends DirectoryThread
    */
   public void replicaOffline(DN baseDN, CSN offlineCSN)
   {
-    lastSeenUpdates.update(baseDN, offlineCSN);
+    lastAliveCSNs.update(baseDN, offlineCSN);
     replicasOffline.update(baseDN, offlineCSN);
     tryNotify(baseDN);
   }
@@ -234,8 +249,8 @@ public class ChangeNumberIndexer extends DirectoryThread
     if (mcCSN != null)
     {
       final int serverId = mcCSN.getServerId();
-      final CSN lastSeenSameServerId = lastSeenUpdates.getCSN(baseDN, serverId);
-      return mcCSN.isOlderThan(lastSeenSameServerId);
+      CSN lastTimeSameReplicaSeenAlive = lastAliveCSNs.getCSN(baseDN, serverId);
+      return mcCSN.isOlderThan(lastTimeSameReplicaSeenAlive);
     }
     return true;
   }
@@ -269,7 +284,7 @@ public class ChangeNumberIndexer extends DirectoryThread
       }
 
       ServerState latestKnownState = domainDB.getDomainNewestCSNs(baseDN);
-      lastSeenUpdates.update(baseDN, latestKnownState);
+      lastAliveCSNs.update(baseDN, latestKnownState);
     }
     resetNextChangeForInsertDBCursor();
 
@@ -491,7 +506,7 @@ public class ChangeNumberIndexer extends DirectoryThread
     if (offlineCSN != null
         && offlineCSN.isOlderThan(mediumConsistencyCSN)
         // If no new updates has been seen for this replica
-        && lastSeenUpdates.removeCSN(baseDN, offlineCSN))
+        && lastAliveCSNs.removeCSN(baseDN, offlineCSN))
     {
       removeCursor(baseDN, csn);
       replicasOffline.removeCSN(baseDN, offlineCSN);

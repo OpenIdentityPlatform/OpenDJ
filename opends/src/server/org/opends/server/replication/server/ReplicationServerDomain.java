@@ -167,8 +167,6 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
    */
   private int assuredTimeoutTimerPurgeCounter = 0;
 
-  private ServerState ctHeartbeatState;
-
   /**
    * Creates a new ReplicationServerDomain associated to the baseDN.
    *
@@ -2558,19 +2556,6 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
   }
 
   /**
-   * Return the state that contain for each server the time of eligibility.
-   * @return the state.
-   */
-  public ServerState getChangeTimeHeartbeatState()
-  {
-    if (ctHeartbeatState == null)
-    {
-      ctHeartbeatState = getLatestServerState().duplicate();
-    }
-    return ctHeartbeatState;
-  }
-
-  /**
    * Returns the oldest known state for the domain, made of the oldest CSN
    * stored for each serverId.
    * <p>
@@ -2593,31 +2578,13 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
    *
    * @return the eligible CSN.
    */
-  public CSN getEligibleCSN()
+  CSN getEligibleCSN()
   {
     CSN eligibleCSN = null;
-
-    final ServerState newestCSNs = domainDB.getDomainNewestCSNs(baseDN);
-    for (final CSN replicaNewestCSN : newestCSNs)
+    for (final CSN lastAliveCSN : domainDB.getDomainLastAliveCSNs(baseDN))
     {
       // Should it be considered for eligibility ?
-      int serverId = replicaNewestCSN.getServerId();
-      CSN heartbeatLastCSN = getChangeTimeHeartbeatState().getCSN(serverId);
-
-      // If the most recent UpdateMsg or CLHeartbeatMsg received is very old
-      // then the domain is considered down and not considered for eligibility
-      /*
-      if ((heartbeatLastDN != null) &&
-          (TimeThread.getTime()- heartbeatLastDN.getTime() > 5000))
-      {
-        if (debugEnabled())
-          TRACER.debugInfo("In " + this.getName() +
-            " Server " + sid
-            + " is not considered for eligibility ... potentially down");
-        continue;
-      }
-      */
-
+      final int serverId = lastAliveCSN.getServerId();
       if (!isServerConnected(serverId))
       {
         if (debugEnabled())
@@ -2628,13 +2595,9 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
         continue;
       }
 
-      if (eligibleCSN == null || replicaNewestCSN.isNewerThan(eligibleCSN))
+      if (eligibleCSN == null || lastAliveCSN.isNewerThan(eligibleCSN))
       {
-        eligibleCSN = replicaNewestCSN;
-      }
-      if (heartbeatLastCSN != null && heartbeatLastCSN.isNewerThan(eligibleCSN))
-      {
-        eligibleCSN = heartbeatLastCSN;
+        eligibleCSN = lastAliveCSN;
       }
     }
 
@@ -2671,7 +2634,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
    * @param msg The message to process.
    */
   public void processChangeTimeHeartbeatMsg(ServerHandler senderHandler,
-      ChangeTimeHeartbeatMsg msg )
+      ChangeTimeHeartbeatMsg msg)
   {
     try
     {
@@ -2689,7 +2652,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
 
     try
     {
-      storeReceivedCTHeartbeat(msg.getCSN());
+      domainDB.replicaHeartbeat(baseDN, msg.getCSN());
       if (senderHandler.isDataServer())
       {
         // If we are the first replication server warned,
@@ -2719,17 +2682,6 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     {
       release();
     }
-  }
-
-  /**
-   * Store a change time value received from a data server.
-   * @param csn The provided change time.
-   */
-  public void storeReceivedCTHeartbeat(CSN csn)
-  {
-    // TODO:Maybe we can spare processing by only storing CSN (timestamp)
-    // instead of a server state.
-    getChangeTimeHeartbeatState().update(csn);
   }
 
   /**
