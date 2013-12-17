@@ -639,8 +639,7 @@ public final class ECLServerHandler extends ServerHandler
      * Get the changeNumberLimits (from the eligibleCSN obtained at the start of
      * this method) in order to have the oldest and newest change numbers.
      */
-    final long[] limits = replicationServer.getECLChangeNumberLimits(
-        eligibleCSN, excludedBaseDNs);
+    final long[] limits = replicationServer.getECLChangeNumberLimits();
     final long oldestChangeNumber = limits[0];
     final long newestChangeNumber = limits[1];
 

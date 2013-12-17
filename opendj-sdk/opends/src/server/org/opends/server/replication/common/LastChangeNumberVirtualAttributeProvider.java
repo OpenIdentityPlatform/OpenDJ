@@ -37,10 +37,8 @@ import org.opends.server.api.VirtualAttributeProvider;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.replication.plugin.MultimasterReplication;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.types.*;
-import org.opends.server.util.ServerConstants;
 import org.opends.server.workflowelement.externalchangelog.ECLWorkflowElement;
 
 import static org.opends.messages.ExtensionMessages.*;
@@ -91,16 +89,10 @@ public class LastChangeNumberVirtualAttributeProvider
     {
       ECLWorkflowElement eclwe = (ECLWorkflowElement)
       DirectoryServer.getWorkflowElement("EXTERNAL CHANGE LOG");
-      if (eclwe!=null)
+      if (eclwe != null)
       {
-        // Set a list of excluded domains (also exclude 'cn=changelog' itself)
-        Set<String> excludedDomains =
-          MultimasterReplication.getECLDisabledDomains();
-        excludedDomains.add(ServerConstants.DN_EXTERNAL_CHANGELOG_ROOT);
-
         final ReplicationServer rs = eclwe.getReplicationServer();
-        final long[] limits = rs.getECLChangeNumberLimits(
-            rs.getEligibleCSN(excludedDomains), excludedDomains);
+        final long[] limits = rs.getECLChangeNumberLimits();
         value = String.valueOf(limits[1]);
       }
     }

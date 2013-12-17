@@ -489,17 +489,6 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
     StaticUtils.recursiveDelete(dbDirectory);
   }
 
-  /** {@inheritDoc} */
-  @Override
-  public long getCount(DN baseDN, int serverId, CSN from, CSN to)
-  {
-    JEReplicaDB replicaDB = getReplicaDB(baseDN, serverId);
-    if (replicaDB != null)
-    {
-      return replicaDB.getCount(from, to);
-    }
-    return 0;
-  }
 
   /** {@inheritDoc} */
   @Override

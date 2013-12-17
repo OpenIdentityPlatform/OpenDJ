@@ -316,60 +316,13 @@ public class JEReplicaDBTest extends ReplicationTestCase
     }
   }
 
-  @Test
-  public void testGetCountNoCounterRecords() throws Exception
-  {
-    ReplicationServer replicationServer = null;
-    try
-    {
-      TestCaseUtils.startServer();
-      replicationServer = configureReplicationServer(100000, 10);
-      JEReplicaDB replicaDB = newReplicaDB(replicationServer);
-
-      CSN[] csns = newCSNs(1, System.currentTimeMillis(), 5);
-      for (CSN csn : csns)
-      {
-        replicaDB.add(new DeleteMsg(TEST_ROOT_DN, csn, "uid"));
-      }
-      replicaDB.flush();
-
-      assertEquals(replicaDB.getCount(csns[0], csns[0]), 1);
-      assertEquals(replicaDB.getCount(csns[0], csns[1]), 2);
-      assertEquals(replicaDB.getCount(csns[0], csns[4]), 5);
-      assertEquals(replicaDB.getCount(null, csns[4]), 5);
-      assertEquals(replicaDB.getCount(csns[0], null), 0);
-      assertEquals(replicaDB.getCount(null, null), 5);
-    }
-    finally
-    {
-      remove(replicationServer);
-    }
-  }
-
   /**
    * Test the logic that manages counter records in the JEReplicaDB in order to
-   * optimize the counting of record in the replication changelog db.
+   * optimize the oldest and newest records in the replication changelog db.
    */
   @Test(enabled=true, groups = { "opendj-256" })
-  void testDbCounts() throws Exception
+  void testGetOldestNewestCSNs() throws Exception
   {
-    // FIXME: for some reason this test is always failing in Jenkins when run as
-    // part of the unit tests. Here is the output (the failure is 100%
-    // reproducible and always has the same value of 3004):
-    //
-    // Failed Test:
-    // org.opends.server.replication.server.JEReplicaDBTest#testDbCounts
-    // [testng] Failure Cause: java.lang.AssertionError: AFTER PURGE
-    // expected:<8000> but was:<3004>
-    // [testng] org.testng.Assert.fail(Assert.java:84)
-    // [testng] org.testng.Assert.failNotEquals(Assert.java:438)
-    // [testng] org.testng.Assert.assertEquals(Assert.java:108)
-    // [testng] org.testng.Assert.assertEquals(Assert.java:323)
-    // [testng]
-    // org.opends.server.replication.server.JEReplicaDBTest.testDBCount(JEReplicaDBTest.java:594)
-    // [testng]
-    // org.opends.server.replication.server.JEReplicaDBTest.testDbCounts(JEReplicaDBTest.java:389)
-
     // It's worth testing with 2 different setting for counterRecord
     // - a counter record is put every 10 Update msg in the db - just a unit
     //   setting.
@@ -381,13 +334,12 @@ public class JEReplicaDBTest extends ReplicationTestCase
     // - when start and stop are after the first counter record,
     // - when start and stop are before and after more than one counter record,
     // After a purge.
-    // After shutdowning/closing and reopening the db.
-    testDBCount(40, 10);
-    // FIXME next line is the one failing with the stacktrace above
-    testDBCount(4000, 1000);
+    // After shutting down/closing and reopening the db.
+    testGetOldestNewestCSNs(40, 10);
+    testGetOldestNewestCSNs(4000, 1000);
   }
 
-  private void testDBCount(int max, int counterWindow) throws Exception
+  private void testGetOldestNewestCSNs(int max, int counterWindow) throws Exception
   {
     String tn = "testDBCount("+max+","+counterWindow+")";
     debugInfo(tn, "Starting test");
@@ -421,41 +373,6 @@ public class JEReplicaDBTest extends ReplicationTestCase
       assertEquals(replicaDB.getOldestCSN(), csns[1], "Wrong oldest CSN");
       assertEquals(replicaDB.getNewestCSN(), csns[max], "Wrong newest CSN");
 
-      // Test count in different subcases trying to handle all special cases
-      // regarding the 'counter' record and 'count' algorithm
-      assertCount(tn, replicaDB, csns[1], csns[1], 1, "FROM change1 TO change1 ");
-      assertCount(tn, replicaDB, csns[1], csns[2], 2, "FROM change1 TO change2 ");
-      assertCount(tn, replicaDB, csns[1], csns[counterWindow], counterWindow,
-          "FROM change1 TO counterWindow=" + counterWindow);
-
-      final int j = counterWindow + 1;
-      assertCount(tn, replicaDB, csns[1], csns[j], j,
-          "FROM change1 TO counterWindow+1=" + j);
-      final int k = 2 * counterWindow;
-      assertCount(tn, replicaDB, csns[1], csns[k], k,
-          "FROM change1 TO 2*counterWindow=" + k);
-      final int l = k + 1;
-      assertCount(tn, replicaDB, csns[1], csns[l], l,
-          "FROM change1 TO 2*counterWindow+1=" + l);
-      assertCount(tn, replicaDB, csns[2], csns[5], 4,
-          "FROM change2 TO change5 ");
-      assertCount(tn, replicaDB, csns[(counterWindow + 2)], csns[(counterWindow + 5)], 4,
-          "FROM counterWindow+2 TO counterWindow+5 ");
-      assertCount(tn, replicaDB, csns[2], csns[(counterWindow + 5)], counterWindow + 4,
-          "FROM change2 TO counterWindow+5 ");
-      assertCount(tn, replicaDB, csns[(counterWindow + 4)], csns[(counterWindow + 4)], 1,
-          "FROM counterWindow+4 TO counterWindow+4 ");
-
-      CSN olderThanOldest = null;
-      CSN newerThanNewest = new CSN(System.currentTimeMillis() + (2*(max+1)), 100, 1);
-
-      // Now we want to test with start and stop outside of the db
-
-      assertCount(tn, replicaDB, csns[1], newerThanNewest, max,
-          "FROM our first generated change TO now (> newest change in the db)");
-      assertCount(tn, replicaDB, olderThanOldest, newerThanNewest, max,
-          "FROM null (start of time) TO now (> newest change in the db)");
-
       // Now we want to test that after closing and reopening the db, the
       // counting algo is well reinitialized and when new messages are added
       // the new counter are correctly generated.
@@ -467,9 +384,6 @@ public class JEReplicaDBTest extends ReplicationTestCase
 
       assertEquals(replicaDB.getOldestCSN(), csns[1], "Wrong oldest CSN");
       assertEquals(replicaDB.getNewestCSN(), csns[max], "Wrong newest CSN");
-
-      assertCount(tn, replicaDB, csns[1], newerThanNewest, max,
-          "FROM our first generated change TO now (> newest change in the db)");
 
       // Populate the db with 'max' msg
       for (int i=max+1; i<=(2*max); i++)
@@ -483,32 +397,14 @@ public class JEReplicaDBTest extends ReplicationTestCase
       assertEquals(replicaDB.getOldestCSN(), csns[1], "Wrong oldest CSN");
       assertEquals(replicaDB.getNewestCSN(), csns[2 * max], "Wrong newest CSN");
 
-      assertCount(tn, replicaDB, csns[1], newerThanNewest, 2 * max,
-          "FROM our first generated change TO now (> newest change in the db)");
-
       //
 
       replicaDB.setPurgeDelay(100);
-      sleep(4000);
-      long totalCount = replicaDB.getCount(null, null);
-      debugInfo(tn, "FROM our first generated change TO now (> newest change in the db)" + " After purge, total count=" + totalCount);
+      sleep(1000);
 
       String testcase = "AFTER PURGE (oldest, newest)=";
       debugInfo(tn, testcase + replicaDB.getOldestCSN() + replicaDB.getNewestCSN());
       assertEquals(replicaDB.getNewestCSN(), csns[2 * max], "Newest=");
-
-      int expectedCnt;
-      if (totalCount>1)
-      {
-        final int newestSeqnum = replicaDB.getNewestCSN().getSeqnum();
-        final int oldestSeqnum = replicaDB.getOldestCSN().getSeqnum();
-        expectedCnt = ((newestSeqnum - oldestSeqnum + 1)/2) + 1;
-      }
-      else
-      {
-        expectedCnt = 0;
-      }
-      assertCount(tn, replicaDB, csns[1], newerThanNewest, expectedCnt, "AFTER PURGE");
 
       // Clear ...
       debugInfo(tn,"clear:");
@@ -528,14 +424,6 @@ public class JEReplicaDBTest extends ReplicationTestCase
       remove(replicationServer);
       TestCaseUtils.deleteDirectory(testRoot);
     }
-  }
-
-  private void assertCount(String tn, JEReplicaDB replicaDB, CSN from, CSN to,
-      int expectedCount, String testcase)
-  {
-    long actualCount = replicaDB.getCount(from, to);
-    debugInfo(tn, testcase + " actualCount=" + actualCount);
-    assertEquals(actualCount, expectedCount, testcase);
   }
 
 }
