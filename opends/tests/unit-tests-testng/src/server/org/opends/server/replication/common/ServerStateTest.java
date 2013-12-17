@@ -162,9 +162,22 @@ public class ServerStateTest extends ReplicationTestCase
     final ServerState state = new ServerState();
     assertTrue(state.update(csn1Server1));
 
+    // test 1
     assertFalse(state.removeCSN(null));
+
+    // test 2
+    assertEquals(csn1Server1, state.getCSN(1));
     assertFalse(state.removeCSN(csn2Server1));
+    assertEquals(csn1Server1, state.getCSN(1));
+
+    // test 3
+    assertNull(state.getCSN(2));
     assertFalse(state.removeCSN(csn1Server2));
+    assertNull(state.getCSN(2));
+
+    // test 4
+    assertEquals(csn1Server1, state.getCSN(1));
     assertTrue(state.removeCSN(csn1Server1));
+    assertNull(state.getCSN(1));
   }
 }
