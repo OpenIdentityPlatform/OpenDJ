@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2012 ForgeRock AS
+ *      Portions copyright 2011-2013 ForgeRock AS
  */
 
 package org.forgerock.opendj.examples;
@@ -66,6 +66,7 @@ public final class ReadSchema {
         final String userName = args[2];
         final String password = args[3];
 
+        // --- JCite ---
         // Connect and bind to the server.
         final LDAPConnectionFactory factory = new LDAPConnectionFactory(hostName, port);
         Connection connection = null;
@@ -117,6 +118,7 @@ public final class ReadSchema {
                 connection.close();
             }
         }
+        // --- JCite ---
     }
 
     private ReadSchema() {
