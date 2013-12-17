@@ -539,6 +539,23 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
 
   /** {@inheritDoc} */
   @Override
+  public ServerState getDomainLastAliveCSNs(DN baseDN)
+  {
+    final ChangeNumberIndexer indexer = this.cnIndexer.get();
+    if (indexer != null)
+    {
+      final ServerState results = indexer.getDomainLastAliveCSNs(baseDN);
+      if (results != null)
+      {
+        // return a copy to protect against concurrent modifications
+        return results.duplicate();
+      }
+    }
+    return null;
+  }
+
+  /** {@inheritDoc} */
+  @Override
   public void removeDomain(DN baseDN) throws ChangelogException
   {
     // Remember the first exception because :
@@ -791,8 +808,11 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
   @Override
   public void replicaHeartbeat(DN baseDN, CSN heartbeatCSN)
   {
-    // TODO implement this when the changelogDB will be responsible for
-    // maintaining the medium consistency point
+    final ChangeNumberIndexer indexer = cnIndexer.get();
+    if (indexer != null)
+    {
+      indexer.publishHeartbeat(baseDN, heartbeatCSN);
+    }
   }
 
   /** {@inheritDoc} */
