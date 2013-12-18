@@ -128,13 +128,15 @@
      *
     </opendj.osgi.import>
     <!--
-      Release date is specified only when building the documentation
-      for publication. For example:
-          -D"releaseDate=Software release date: January 1, 1970"
-      Otherwise release date should remain empty.
+      Release date and publication date are set at release build time.
+        -D"releaseDate=Software release date: January 1, 1970"
+        -D"pubDate=Publication date: December 31, 1969"
+      At all other times, the dates should be empty.
     -->
     <releaseDate />
     <softwareReleaseDate>${releaseDate}</softwareReleaseDate>
+    <pubDate />
+    <publicationDate>${pubDate}</publicationDate>
     <checkstyleHeaderLocation>org/forgerock/checkstyle/opendj-java-header</checkstyleHeaderLocation>
     <frDocPluginVersion>2.0.0-SNAPSHOT</frDocPluginVersion>
 
@@ -157,6 +159,13 @@
         </configuration>
         <executions>
           <execution>
+            <id>copy-common</id>
+            <phase>pre-site</phase>
+            <goals>
+              <goal>boilerplate</goal>
+            </goals>
+          </execution>
+          <execution>
            <id>filter-sources</id>
            <phase>pre-site</phase>
            <goals>
@@ -174,13 +183,6 @@
            <goals>
             <goal>jcite</goal>
            </goals>
-          </execution>
-          <execution>
-            <id>copy-common</id>
-            <phase>pre-site</phase>
-            <goals>
-              <goal>boilerplate</goal>
-            </goals>
           </execution>
           <execution>
             <id>prepare-sources</id>
