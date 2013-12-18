@@ -122,7 +122,7 @@
 
 &lt;dependencies&gt;
   &lt;dependency&gt;
-    &lt;groupId&gt;${project.group}&lt;/groupId&gt;
+    &lt;groupId&gt;${project.groupId}&lt;/groupId&gt;
     &lt;artifactId&gt;opendj-ldap-sdk&lt;/artifactId&gt;
     &lt;version&gt;<?eval ${docTargetVersion}?>&lt;/version&gt;
     &lt;type&gt;pom&lt;/type&gt;
