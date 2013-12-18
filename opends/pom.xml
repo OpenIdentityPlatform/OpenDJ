@@ -99,13 +99,15 @@
     <sdkDocTargetVersion>${docTargetVersion}</sdkDocTargetVersion>
     <gaId>UA-23412190-8</gaId>
     <!--
-      Release date is specified only when building the documentation
-      for publication. For example:
-          -D"releaseDate=Software release date: January 1, 1970"
-      Otherwise release date should remain empty.
+      Release date and publication date are set at release build time.
+        -D"releaseDate=Software release date: January 1, 1970"
+        -D"pubDate=Publication date: December 31, 1969"
+      At all other times, the dates should be empty.
     -->
     <releaseDate />
     <softwareReleaseDate>${releaseDate}</softwareReleaseDate>
+    <pubDate />
+    <publicationDate>${pubDate}</publicationDate>
     <checkstyleHeaderLocation>org/forgerock/checkstyle/opendj-java-header</checkstyleHeaderLocation>
     <frDocPluginVersion>2.0.0-SNAPSHOT</frDocPluginVersion>
 
@@ -114,9 +116,6 @@
     <configRefBase>http://opendj.forgerock.org/opendj-server/configref/</configRefBase>
     <serverJavadocBase>http://opendj.forgerock.org/opendj-server/javadoc/</serverJavadocBase>
     <sdkJavadocBase>http://opendj.forgerock.org/opendj-ldap-sdk/apidocs/</sdkJavadocBase>
-
-    <docbkxSourceDirectory>${basedir}/src/main/docbkx</docbkxSourceDirectory>
-    <docbkxBuildDirectory>build</docbkxBuildDirectory>
 
     <!-- END Documentation properties -->
   </properties>
@@ -194,26 +193,23 @@
         <version>${frDocPluginVersion}</version>
         <inherited>false</inherited>
         <configuration>
-         <buildDirectory>${docbkxBuildDirectory}</buildDirectory>
          <projectName>OpenDJ</projectName>
          <googleAnalyticsId>${gaId}</googleAnalyticsId>
+         <docbkxSourceDirectory>${basedir}/src/main/docbkx</docbkxSourceDirectory>
         </configuration>
         <executions>
-          <execution>
-            <id>filter-sources</id>
-            <phase>pre-site</phase>
-            <goals>
-              <goal>filter</goal>
-            </goals>
-            <configuration>
-              <docbkxSourceDirectory>${docbkxSourceDirectory}</docbkxSourceDirectory>
-            </configuration>
-          </execution>
           <execution>
             <id>copy-common</id>
             <phase>pre-site</phase>
             <goals>
               <goal>boilerplate</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>filter-sources</id>
+            <phase>pre-site</phase>
+            <goals>
+              <goal>filter</goal>
             </goals>
           </execution>
           <execution>
