@@ -936,7 +936,7 @@ public class ReplicationServerTest extends ReplicationTestCase
       // answers correctly to a WindowProbeMsg Message.
       session.publish(new WindowProbeMsg());
 
-      WindowMsg windowMsg = (WindowMsg) session.receive();
+      WindowMsg windowMsg = waitForSpecificMsg(session, WindowMsg.class);
       assertEquals(serverwindow, windowMsg.getNumAck());
 
       // check that this did not change the window by sending a probe again.
