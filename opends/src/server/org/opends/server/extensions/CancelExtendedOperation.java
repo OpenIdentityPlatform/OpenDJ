@@ -22,35 +22,25 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2013 ForgeRock AS
  */
 package org.opends.server.extensions;
-
-
 
 import org.opends.messages.Message;
 import org.opends.server.admin.std.server.CancelExtendedOperationHandlerCfg;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ExtendedOperationHandler;
 import org.opends.server.config.ConfigException;
-import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ExtendedOperation;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.protocols.asn1.ASN1Reader;
 import org.opends.server.protocols.asn1.ASN1;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.CancelRequest;
-import org.opends.server.types.CancelResult;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.ResultCode;
+import org.opends.server.protocols.asn1.ASN1Reader;
+import org.opends.server.types.*;
 
 import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-
-
 
 /**
  * This class implements the LDAP cancel extended operation defined in RFC 3909.
@@ -67,8 +57,6 @@ public class CancelExtendedOperation
    */
   private static final DebugTracer TRACER = getTracer();
 
-
-
   /**
    * Create an instance of this cancel extended operation.  All initialization
    * should be performed in the <CODE>initializeExtendedOperationHandler</CODE>
@@ -79,55 +67,21 @@ public class CancelExtendedOperation
     super();
   }
 
-
-  /**
-   * Initializes this extended operation handler based on the information in the
-   * provided configuration entry.  It should also register itself with the
-   * Directory Server for the particular kinds of extended operations that it
-   * will process.
-   *
-   * @param  config       The configuration that contains the information
-   *                      to use to initialize this extended operation handler.
-   *
-   * @throws  ConfigException  If an unrecoverable problem arises in the
-   *                           process of performing the initialization.
-   *
-   * @throws  InitializationException  If a problem occurs during initialization
-   *                                   that is not related to the server
-   *                                   configuration.
-   */
+  /** {@inheritDoc} */
+  @Override
   public void initializeExtendedOperationHandler(
                    CancelExtendedOperationHandlerCfg config)
          throws ConfigException, InitializationException
   {
-    // No special configuration is required.
-
-    DirectoryServer.registerSupportedExtension(OID_CANCEL_REQUEST, this);
-
-    registerControlsAndFeatures();
+    super.initializeExtendedOperationHandler(config);
   }
-
-
-
-  /**
-   * Performs any finalization that may be necessary for this extended
-   * operation handler.  By default, no finalization is performed.
-   */
-  @Override
-  public void finalizeExtendedOperationHandler()
-  {
-    DirectoryServer.deregisterSupportedExtension(OID_CANCEL_REQUEST);
-
-    deregisterControlsAndFeatures();
-  }
-
-
 
   /**
    * Processes the provided extended operation.
    *
    * @param  operation  The extended operation to be processed.
    */
+  @Override
   public void processExtendedOperation(ExtendedOperation operation)
   {
     // The value of the request must be a sequence containing an integer element
@@ -138,34 +92,30 @@ public class CancelExtendedOperation
     if (requestValue == null)
     {
       operation.setResultCode(ResultCode.PROTOCOL_ERROR);
-
       operation.appendErrorMessage(ERR_EXTOP_CANCEL_NO_REQUEST_VALUE.get());
       return;
     }
-    else
+
+    try
     {
-      try
+      ASN1Reader reader = ASN1.getReader(requestValue);
+      reader.readStartSequence();
+      idToCancel = (int)reader.readInteger();
+      reader.readEndSequence();
+    }
+    catch (Exception e)
+    {
+      if (debugEnabled())
       {
-        ASN1Reader reader = ASN1.getReader(requestValue);
-        reader.readStartSequence();
-        idToCancel = (int)reader.readInteger();
-        reader.readEndSequence();
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
 
-        operation.setResultCode(ResultCode.PROTOCOL_ERROR);
+      operation.setResultCode(ResultCode.PROTOCOL_ERROR);
 
-        Message message = ERR_EXTOP_CANCEL_CANNOT_DECODE_REQUEST_VALUE.get(
-                getExceptionMessage(e));
-        operation.appendErrorMessage(message);
-
-        return;
-      }
+      Message message = ERR_EXTOP_CANCEL_CANNOT_DECODE_REQUEST_VALUE.get(
+              getExceptionMessage(e));
+      operation.appendErrorMessage(message);
+      return;
     }
 
 
@@ -188,15 +138,17 @@ public class CancelExtendedOperation
     operation.appendErrorMessage(cancelResult.getResponseMessage());
   }
 
+  /** {@inheritDoc} */
+  @Override
+  public String getExtendedOperationOID()
+  {
+    return OID_CANCEL_REQUEST;
+  }
 
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String getExtendedOperationName()
   {
     return "Cancel";
   }
 }
-

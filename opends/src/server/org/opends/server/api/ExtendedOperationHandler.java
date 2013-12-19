@@ -22,23 +22,20 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS
  */
 package org.opends.server.api;
-import org.opends.messages.Message;
 
-
-
-import java.util.HashSet;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-import org.opends.server.config.ConfigException;
-import org.opends.server.core.ExtendedOperation;
-import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.InitializationException;
+import org.opends.messages.Message;
 import org.opends.server.admin.std.server.ExtendedOperationHandlerCfg;
-
-
+import org.opends.server.config.ConfigException;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.ExtendedOperation;
+import org.opends.server.types.InitializationException;
 
 /**
  * This class defines the set of methods and structures that must be
@@ -57,13 +54,33 @@ import org.opends.server.admin.std.server.ExtendedOperationHandlerCfg;
 public abstract class
      ExtendedOperationHandler<T extends ExtendedOperationHandlerCfg>
 {
-  // The default set of supported control OIDs for this extended
-  private Set<String> supportedControlOIDs = new HashSet<String>(0);
 
-  // The default set of supported feature OIDs for this extended
-  private Set<String> supportedFeatureOIDs = new HashSet<String>(0);
+  /** The default set of supported control OIDs for this extended op. */
+  private final Set<String> supportedControlOIDs;
 
+  /** The default set of supported feature OIDs for this extended op. */
+  private final Set<String> supportedFeatureOIDs = Collections.emptySet();
 
+  /**
+   * Builds an extended operation.
+   */
+  public ExtendedOperationHandler()
+  {
+    this.supportedControlOIDs = Collections.<String> emptySet();
+  }
+
+  /**
+   * Builds an extended operation.
+   *
+   * @param supportedControlOIDs
+   *          the default set of supported control OIDs for this extended op
+   */
+  public ExtendedOperationHandler(Set<String> supportedControlOIDs)
+  {
+    this.supportedControlOIDs = supportedControlOIDs != null ?
+        Collections.unmodifiableSet(supportedControlOIDs)
+        : Collections.<String> emptySet();
+  }
 
   /**
    * Initializes this extended operation handler based on the
@@ -84,8 +101,12 @@ public abstract class
    *                                   not related to the server
    *                                   configuration.
    */
-  public abstract void initializeExtendedOperationHandler(T config)
-         throws ConfigException, InitializationException;
+  public void initializeExtendedOperationHandler(T config)
+      throws ConfigException, InitializationException
+  {
+    DirectoryServer.registerSupportedExtension(getExtendedOperationOID(), this);
+    registerControlsAndFeatures();
+  }
 
 
 
@@ -130,7 +151,8 @@ public abstract class
    */
   public void finalizeExtendedOperationHandler()
   {
-    // No implementation is required by default.
+    DirectoryServer.deregisterSupportedExtension(getExtendedOperationOID());
+    deregisterControlsAndFeatures();
   }
 
 
@@ -212,9 +234,8 @@ public abstract class
   /**
    * If the extended operation handler defines any supported controls
    * and/or features, then register them with the server.
-   *
    */
-  protected void registerControlsAndFeatures()
+  private void registerControlsAndFeatures()
   {
     Set<String> controlOIDs = getSupportedControls();
     if (controlOIDs != null)
@@ -241,7 +262,7 @@ public abstract class
    * If the extended operation handler defines any supported controls
    * and/or features, then deregister them with the server.
    */
-  protected void deregisterControlsAndFeatures()
+  private void deregisterControlsAndFeatures()
   {
     Set<String> controlOIDs = getSupportedControls();
     if (controlOIDs != null)
@@ -262,19 +283,25 @@ public abstract class
     }
   }
 
-
-
   /**
    * Retrieves the name associated with this extended operation.
-   * Implementing classes should override this method with their
-   * own providing string representation of the operation name.
    *
    * @return  The name associated with this extended operation,
    *          if any, or <CODE>null</CODE> if there is none.
    */
   public String getExtendedOperationName()
   {
-    // Abstract, hence no name associated.
+    return null;
+  }
+
+  /**
+   * Retrieves the object OID associated with this extended operation.
+   *
+   * @return the oid associated with this extended operation, if any, or
+   *         <CODE>null</CODE> if there is none.
+   */
+  public String getExtendedOperationOID()
+  {
     return null;
   }
 }

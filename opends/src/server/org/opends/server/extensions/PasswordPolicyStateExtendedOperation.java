@@ -22,16 +22,14 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.extensions;
 
-
-
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.io.IOException;
 
 import org.opends.messages.Message;
 import org.opends.server.admin.std.server.
@@ -40,27 +38,21 @@ import org.opends.server.api.AuthenticationPolicy;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ExtendedOperationHandler;
 import org.opends.server.config.ConfigException;
-import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.ExtendedOperation;
-import org.opends.server.core.ModifyOperation;
-import org.opends.server.core.PasswordPolicy;
-import org.opends.server.core.PasswordPolicyState;
+import org.opends.server.core.*;
 import org.opends.server.loggers.debug.DebugTracer;
+import org.opends.server.protocols.asn1.ASN1;
+import org.opends.server.protocols.asn1.ASN1Reader;
+import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
-import org.opends.server.protocols.asn1.ASN1Reader;
-import org.opends.server.protocols.asn1.ASN1;
-import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.server.schema.GeneralizedTimeSyntax;
 import org.opends.server.types.*;
 
+import static org.opends.messages.CoreMessages.*;
 import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-import static org.opends.messages.CoreMessages.INFO_MODIFY_ACCOUNT_DISABLED;
-import static org.opends.messages.CoreMessages.INFO_MODIFY_ACCOUNT_ENABLED;
-
 
 /**
  * This class implements an LDAP extended operation that can be used to query
@@ -137,302 +129,120 @@ public class PasswordPolicyStateExtendedOperation
   private static final DebugTracer TRACER = getTracer();
 
 
-
-  /**
-   * The enumerated value for the getPasswordPolicyDN operation.
-   */
+  /** The enumerated value for the getPasswordPolicyDN operation. */
   public static final int OP_GET_PASSWORD_POLICY_DN = 0;
-
-
-
-  /**
-   * The enumerated value for the getAccountDisabledState operation.
-   */
+  /** The enumerated value for the getAccountDisabledState operation. */
   public static final int OP_GET_ACCOUNT_DISABLED_STATE = 1;
-
-
-
-  /**
-   * The enumerated value for the setAccountDisabledState operation.
-   */
+  /** The enumerated value for the setAccountDisabledState operation. */
   public static final int OP_SET_ACCOUNT_DISABLED_STATE = 2;
-
-
-
-  /**
-   * The enumerated value for the clearAccountDisabledState operation.
-   */
+  /** The enumerated value for the clearAccountDisabledState operation. */
   public static final int OP_CLEAR_ACCOUNT_DISABLED_STATE = 3;
-
-
-
-  /**
-   * The enumerated value for the getAccountExpirationTime operation.
-   */
+  /** The enumerated value for the getAccountExpirationTime operation. */
   public static final int OP_GET_ACCOUNT_EXPIRATION_TIME = 4;
-
-
-
-  /**
-   * The enumerated value for the setAccountExpirationTime operation.
-   */
+  /** The enumerated value for the setAccountExpirationTime operation. */
   public static final int OP_SET_ACCOUNT_EXPIRATION_TIME = 5;
-
-
-
-  /**
-   * The enumerated value for the clearAccountExpirationTime operation.
-   */
+  /** The enumerated value for the clearAccountExpirationTime operation. */
   public static final int OP_CLEAR_ACCOUNT_EXPIRATION_TIME = 6;
-
-
-
   /**
    * The enumerated value for the getSecondsUntilAccountExpiration operation.
    */
   public static final int OP_GET_SECONDS_UNTIL_ACCOUNT_EXPIRATION = 7;
-
-
-
-  /**
-   * The enumerated value for the getPasswordChangedTime operation.
-   */
+  /** The enumerated value for the getPasswordChangedTime operation. */
   public static final int OP_GET_PASSWORD_CHANGED_TIME = 8;
-
-
-
-  /**
-   * The enumerated value for the setPasswordChangedTime operation.
-   */
+  /** The enumerated value for the setPasswordChangedTime operation. */
   public static final int OP_SET_PASSWORD_CHANGED_TIME = 9;
-
-
-
-  /**
-   * The enumerated value for the clearPasswordChangedTime operation.
-   */
+  /** The enumerated value for the clearPasswordChangedTime operation. */
   public static final int OP_CLEAR_PASSWORD_CHANGED_TIME = 10;
-
-
-
-  /**
-   * The enumerated value for the getPasswordExpirationWarnedTime operation.
-   */
+  /** The enumerated value for the getPasswordExpirationWarnedTime operation. */
   public static final int OP_GET_PASSWORD_EXPIRATION_WARNED_TIME = 11;
-
-
-
-  /**
-   * The enumerated value for the setPasswordExpirationWarnedTime operation.
-   */
+  /** The enumerated value for the setPasswordExpirationWarnedTime operation. */
   public static final int OP_SET_PASSWORD_EXPIRATION_WARNED_TIME = 12;
-
-
-
   /**
    * The enumerated value for the clearPasswordExpirationWarnedTime operation.
    */
   public static final int OP_CLEAR_PASSWORD_EXPIRATION_WARNED_TIME = 13;
-
-
-
   /**
    * The enumerated value for the getSecondsUntilPasswordExpiration operation.
    */
   public static final int OP_GET_SECONDS_UNTIL_PASSWORD_EXPIRATION = 14;
-
-
-
   /**
    * The enumerated value for the getSecondsUntilPasswordExpirationWarning
    * operation.
    */
   public static final int OP_GET_SECONDS_UNTIL_PASSWORD_EXPIRATION_WARNING = 15;
-
-
-
-  /**
-   * The enumerated value for the getAuthenticationFailureTimes operation.
-   */
+  /** The enumerated value for the getAuthenticationFailureTimes operation. */
   public static final int OP_GET_AUTHENTICATION_FAILURE_TIMES = 16;
-
-
-
-  /**
-   * The enumerated value for the addAuthenticationFailureTime operation.
-   */
+  /** The enumerated value for the addAuthenticationFailureTime operation. */
   public static final int OP_ADD_AUTHENTICATION_FAILURE_TIME = 17;
-
-
-
-  /**
-   * The enumerated value for the setAuthenticationFailureTimes operation.
-   */
+  /** The enumerated value for the setAuthenticationFailureTimes operation. */
   public static final int OP_SET_AUTHENTICATION_FAILURE_TIMES = 18;
-
-
-
-  /**
-   * The enumerated value for the clearAuthenticationFailureTimes operation.
-   */
+  /** The enumerated value for the clearAuthenticationFailureTimes operation. */
   public static final int OP_CLEAR_AUTHENTICATION_FAILURE_TIMES = 19;
-
-
-
   /**
    * The enumerated value for the getSecondsUntilAuthenticationFailureUnlock
    * operation.
    */
   public static final int OP_GET_SECONDS_UNTIL_AUTHENTICATION_FAILURE_UNLOCK =
        20;
-
-
-
   /**
    * The enumerated value for the getRemainingAuthenticationFailureCount
    * operation.
    */
   public static final int OP_GET_REMAINING_AUTHENTICATION_FAILURE_COUNT = 21;
-
-
-
-  /**
-   * The enumerated value for the getLastLoginTime operation.
-   */
+  /** The enumerated value for the getLastLoginTime operation. */
   public static final int OP_GET_LAST_LOGIN_TIME = 22;
-
-
-
-  /**
-   * The enumerated value for the setLastLoginTime operation.
-   */
+  /** The enumerated value for the setLastLoginTime operation. */
   public static final int OP_SET_LAST_LOGIN_TIME = 23;
-
-
-
-  /**
-   * The enumerated value for the clearLastLoginTime operation.
-   */
+  /** The enumerated value for the clearLastLoginTime operation. */
   public static final int OP_CLEAR_LAST_LOGIN_TIME = 24;
-
-
-
-  /**
-   * The enumerated value for the getSecondsUntilIdleLockout operation.
-   */
+  /** The enumerated value for the getSecondsUntilIdleLockout operation. */
   public static final int OP_GET_SECONDS_UNTIL_IDLE_LOCKOUT = 25;
-
-
-
-  /**
-   * The enumerated value for the getPasswordResetState operation.
-   */
+  /** The enumerated value for the getPasswordResetState operation. */
   public static final int OP_GET_PASSWORD_RESET_STATE = 26;
-
-
-
-  /**
-   * The enumerated value for the setPasswordResetState operation.
-   */
+  /** The enumerated value for the setPasswordResetState operation. */
   public static final int OP_SET_PASSWORD_RESET_STATE = 27;
-
-
-
-  /**
-   * The enumerated value for the clearPasswordResetState operation.
-   */
+  /** The enumerated value for the clearPasswordResetState operation. */
   public static final int OP_CLEAR_PASSWORD_RESET_STATE = 28;
-
-
-
   /**
    * The enumerated value for the getSecondsUntilPasswordResetLockout operation.
    */
   public static final int OP_GET_SECONDS_UNTIL_PASSWORD_RESET_LOCKOUT = 29;
-
-
-
-  /**
-   * The enumerated value for the getGraceLoginUseTimes operation.
-   */
+  /** The enumerated value for the getGraceLoginUseTimes operation. */
   public static final int OP_GET_GRACE_LOGIN_USE_TIMES = 30;
-
-
-
-  /**
-   * The enumerated value for the addGraceLoginUseTime operation.
-   */
+  /** The enumerated value for the addGraceLoginUseTime operation. */
   public static final int OP_ADD_GRACE_LOGIN_USE_TIME = 31;
-
-
-
-  /**
-   * The enumerated value for the setGraceLoginUseTimes operation.
-   */
+  /** The enumerated value for the setGraceLoginUseTimes operation. */
   public static final int OP_SET_GRACE_LOGIN_USE_TIMES = 32;
-
-
-
-  /**
-   * The enumerated value for the clearGraceLoginUseTimes operation.
-   */
+  /** The enumerated value for the clearGraceLoginUseTimes operation. */
   public static final int OP_CLEAR_GRACE_LOGIN_USE_TIMES = 33;
-
-
-
-  /**
-   * The enumerated value for the getRemainingGraceLoginCount operation.
-   */
+  /** The enumerated value for the getRemainingGraceLoginCount operation. */
   public static final int OP_GET_REMAINING_GRACE_LOGIN_COUNT = 34;
-
-
-
   /**
    * The enumerated value for the getPasswordChangedByRequiredTime operation.
    */
   public static final int OP_GET_PASSWORD_CHANGED_BY_REQUIRED_TIME = 35;
-
-
-
   /**
    * The enumerated value for the setPasswordChangedByRequiredTime operation.
    */
   public static final int OP_SET_PASSWORD_CHANGED_BY_REQUIRED_TIME = 36;
-
-
-
   /**
    * The enumerated value for the clearPasswordChangedByRequiredTime operation.
    */
   public static final int OP_CLEAR_PASSWORD_CHANGED_BY_REQUIRED_TIME = 37;
-
-
-
   /**
    * The enumerated value for the getSecondsUntilRequiredChangeTime operation.
    */
   public static final int OP_GET_SECONDS_UNTIL_REQUIRED_CHANGE_TIME = 38;
-
-
-
-  /**
-   * The enumerated value for the getPasswordHistory operation.
-   */
+  /** The enumerated value for the getPasswordHistory operation. */
   public static final int OP_GET_PASSWORD_HISTORY = 39;
-
-
-
-  /**
-   * The enumerated value for the clearPasswordHistory operation.
-   */
+  /** The enumerated value for the clearPasswordHistory operation. */
   public static final int OP_CLEAR_PASSWORD_HISTORY = 40;
 
 
-
-  // The set of attributes to request when retrieving a user's entry.
+  /** The set of attributes to request when retrieving a user's entry. */
   private LinkedHashSet<String> requestAttributes;
 
-  // The search filter that will be used to retrieve user entries.
+  /** The search filter that will be used to retrieve user entries. */
   private SearchFilter userFilter;
 
   private boolean isAccountSetDisabled;
@@ -465,6 +275,7 @@ public class PasswordPolicyStateExtendedOperation
    *                                   that is not related to the server
    *                                   configuration.
    */
+  @Override
   public void initializeExtendedOperationHandler(
                    PasswordPolicyStateExtendedOperationHandlerCfg config)
          throws ConfigException, InitializationException
@@ -492,29 +303,15 @@ public class PasswordPolicyStateExtendedOperation
 
     DirectoryServer.registerSupportedExtension(OID_PASSWORD_POLICY_STATE_EXTOP,
                                                this);
+    // FIXME registerControlAndFeatures?
   }
-
-
-
-  /**
-   * Performs any finalization that may be necessary for this extended
-   * operation handler.  By default, no finalization is performed.
-   */
-  @Override
-  public void finalizeExtendedOperationHandler()
-  {
-    DirectoryServer.deregisterSupportedExtension(
-      OID_PASSWORD_POLICY_STATE_EXTOP);
-    deregisterControlsAndFeatures();
-  }
-
-
 
   /**
    * Processes the provided extended operation.
    *
    * @param  operation  The extended operation to be processed.
    */
+  @Override
   public void processExtendedOperation(ExtendedOperation operation)
   {
     operation.setResultCode(ResultCode.UNDEFINED);
@@ -696,7 +493,7 @@ public class PasswordPolicyStateExtendedOperation
       // If there are any modifications that need to be made to the password
       // policy state, then apply them now.
       List<Modification> stateMods = pwpState.getModifications();
-      if ((stateMods != null) && (! stateMods.isEmpty()))
+      if (stateMods != null && !stateMods.isEmpty())
       {
         ModifyOperation modifyOperation =
             conn.processModify(targetDN, stateMods);
@@ -852,7 +649,7 @@ public class PasswordPolicyStateExtendedOperation
     writer.writeStartSequence();
     writer.writeEnumerated(opType);
 
-    if ((value != null))
+    if (value != null)
     {
       writer.writeStartSequence();
       writer.writeOctetString(value);
@@ -880,12 +677,12 @@ public class PasswordPolicyStateExtendedOperation
     writer.writeStartSequence();
     writer.writeEnumerated(opType);
 
-    if ((values != null) && (values.length > 0))
+    if (values != null && values.length > 0)
     {
       writer.writeStartSequence();
-      for (int i=0; i < values.length; i++)
+      for (String value : values)
       {
-        writer.writeOctetString(values[i]);
+        writer.writeOctetString(value);
       }
       writer.writeEndSequence();
     }
@@ -909,7 +706,7 @@ public class PasswordPolicyStateExtendedOperation
     writer.writeStartSequence();
     writer.writeEnumerated(opType);
 
-    if ((values != null) && (values.size() > 0))
+    if (values != null && values.size() > 0)
     {
       writer.writeStartSequence();
       for (long l : values)
@@ -1329,12 +1126,12 @@ public class PasswordPolicyStateExtendedOperation
         else
         {
           String value = opValues.get(0);
-          if (value.equalsIgnoreCase("true"))
+          if ("true".equalsIgnoreCase(value))
           {
             pwpState.setDisabled(true);
             isAccountSetDisabled = true;
           }
-          else if (value.equalsIgnoreCase("false"))
+          else if ("false".equalsIgnoreCase(value))
           {
             pwpState.setDisabled(false);
             isAccountSetEnabled = true;
@@ -1674,11 +1471,11 @@ public class PasswordPolicyStateExtendedOperation
         else
         {
           String value = opValues.get(0);
-          if (value.equalsIgnoreCase("true"))
+          if ("true".equalsIgnoreCase(value))
           {
             pwpState.setMustChangePassword(true);
           }
-          else if (value.equalsIgnoreCase("false"))
+          else if ("false".equalsIgnoreCase(value))
           {
             pwpState.setMustChangePassword(false);
           }
@@ -1859,15 +1656,17 @@ public class PasswordPolicyStateExtendedOperation
     return true;
   }
 
+  /** {@inheritDoc} */
+  @Override
+  public String getExtendedOperationOID()
+  {
+    return OID_PASSWORD_POLICY_STATE_EXTOP;
+  }
 
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String getExtendedOperationName()
   {
     return "Password Policy State";
   }
 }
-

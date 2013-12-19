@@ -22,30 +22,30 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS
  */
-
 package org.opends.server.crypto;
 
+import java.io.IOException;
+
+import org.opends.messages.Message;
 import org.opends.server.admin.std.server.
-            GetSymmetricKeyExtendedOperationHandlerCfg;
+GetSymmetricKeyExtendedOperationHandlerCfg;
 import org.opends.server.api.ExtendedOperationHandler;
-import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.loggers.debug.DebugLogger;
-import org.opends.server.types.*;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ExtendedOperation;
-import org.opends.server.util.StaticUtils;
-import org.opends.server.util.ServerConstants;
-import org.opends.server.protocols.asn1.ASN1Reader;
+import org.opends.server.loggers.debug.DebugLogger;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.asn1.ASN1;
 import org.opends.server.protocols.asn1.ASN1Exception;
+import org.opends.server.protocols.asn1.ASN1Reader;
 import org.opends.server.protocols.asn1.ASN1Writer;
-import org.opends.messages.Message;
-import static org.opends.messages.ExtensionMessages.*;
+import org.opends.server.types.*;
+import org.opends.server.util.ServerConstants;
+import org.opends.server.util.StaticUtils;
 
-import java.util.Set;
-import java.util.HashSet;
+import static org.opends.messages.ExtensionMessages.*;
 
 /**
  * This class implements the get symmetric key extended operation, an OpenDS
@@ -61,26 +61,15 @@ public class GetSymmetricKeyExtendedOperation
    */
   private static final DebugTracer TRACER = DebugLogger.getTracer();
 
-
-
   /**
    * The BER type value for the symmetric key element of the operation value.
    */
   public static final byte TYPE_SYMMETRIC_KEY_ELEMENT = (byte) 0x80;
 
-
-
   /**
    * The BER type value for the instance key ID element of the operation value.
    */
   public static final byte TYPE_INSTANCE_KEY_ID_ELEMENT = (byte) 0x81;
-
-
-
-  // The default set of supported control OIDs for this extended operation.
-  private Set<String> supportedControlOIDs = new HashSet<String>(0);
-
-
 
   /**
    * Create an instance of this symmetric key extended operation.  All
@@ -90,60 +79,23 @@ public class GetSymmetricKeyExtendedOperation
   public GetSymmetricKeyExtendedOperation()
   {
     super();
-
   }
 
-
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public void initializeExtendedOperationHandler(
        GetSymmetricKeyExtendedOperationHandlerCfg config)
          throws ConfigException, InitializationException
   {
-    supportedControlOIDs = new HashSet<String>();
-
-
-    DirectoryServer.registerSupportedExtension(
-         ServerConstants.OID_GET_SYMMETRIC_KEY_EXTENDED_OP, this);
-
-    registerControlsAndFeatures();
+    super.initializeExtendedOperationHandler(config);
   }
-
-
-
-  /**
-   * Performs any finalization that may be necessary for this extended
-   * operation handler.  By default, no finalization is performed.
-   */
-  public void finalizeExtendedOperationHandler()
-  {
-    DirectoryServer.deregisterSupportedExtension(
-         ServerConstants.OID_GET_SYMMETRIC_KEY_EXTENDED_OP);
-
-    deregisterControlsAndFeatures();
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public Set<String> getSupportedControls()
-  {
-    return supportedControlOIDs;
-  }
-
-
 
   /**
    * Processes the provided extended operation.
    *
    * @param  operation  The extended operation to be processed.
    */
+  @Override
   public void processExtendedOperation(ExtendedOperation operation)
   {
     // Initialize the variables associated with components that may be included
@@ -253,7 +205,7 @@ public class GetSymmetricKeyExtendedOperation
       writer.writeOctetString(TYPE_INSTANCE_KEY_ID_ELEMENT, instanceKeyID);
       writer.writeEndSequence();
     }
-    catch(Exception e)
+    catch (IOException e)
     {
       // TODO: DO something
     }
@@ -261,5 +213,17 @@ public class GetSymmetricKeyExtendedOperation
     return builder.toByteString();
   }
 
+  /** {@inheritDoc} */
+  @Override
+  public String getExtendedOperationOID()
+  {
+    return ServerConstants.OID_GET_SYMMETRIC_KEY_EXTENDED_OP;
+  }
 
+  /** {@inheritDoc} */
+  @Override
+  public String getExtendedOperationName()
+  {
+    return "Get Symmetric Key";
+  }
 }

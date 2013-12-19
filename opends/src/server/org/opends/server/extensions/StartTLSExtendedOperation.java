@@ -26,24 +26,17 @@
  */
 package org.opends.server.extensions;
 
-
-
 import org.opends.messages.MessageBuilder;
 import org.opends.server.admin.std.server.StartTLSExtendedOperationHandlerCfg;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ExtendedOperationHandler;
 import org.opends.server.config.ConfigException;
-import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ExtendedOperation;
-import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ResultCode;
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.util.ServerConstants.*;
-
-
 
 /**
  * This class provides an implementation of the StartTLS extended operation as
@@ -54,12 +47,6 @@ import static org.opends.server.util.ServerConstants.*;
 public class StartTLSExtendedOperation
        extends ExtendedOperationHandler<StartTLSExtendedOperationHandlerCfg>
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
-
-
 
   /**
    * Create an instance of this StartTLS extended operation handler.  All
@@ -71,54 +58,21 @@ public class StartTLSExtendedOperation
     super();
   }
 
-
-  /**
-   * Initializes this extended operation handler based on the information in the
-   * provided configuration entry.  It should also register itself with the
-   * Directory Server for the particular kinds of extended operations that it
-   * will process.
-   *
-   * @param  config       The configuration that contains the information
-   *                      to use to initialize this extended operation handler.
-   *
-   * @throws  ConfigException  If an unrecoverable problem arises in the
-   *                           process of performing the initialization.
-   *
-   * @throws  InitializationException  If a problem occurs during initialization
-   *                                   that is not related to the server
-   *                                   configuration.
-   */
+  /** {@inheritDoc} */
+  @Override
   public void initializeExtendedOperationHandler(
                    StartTLSExtendedOperationHandlerCfg config)
          throws ConfigException, InitializationException
   {
-    // FIXME -- Are there any configurable options that we should support?
-    DirectoryServer.registerSupportedExtension(OID_START_TLS_REQUEST, this);
-
-    registerControlsAndFeatures();
+    super.initializeExtendedOperationHandler(config);
   }
-
-
-
-  /**
-   * Performs any finalization that may be necessary for this extended
-   * operation handler.  By default, no finalization is performed.
-   */
-  @Override
-  public void finalizeExtendedOperationHandler()
-  {
-    DirectoryServer.deregisterSupportedExtension(OID_START_TLS_REQUEST);
-
-    deregisterControlsAndFeatures();
-  }
-
-
 
   /**
    * Processes the provided extended operation.
    *
    * @param  operation  The extended operation to be processed.
    */
+  @Override
   public void processExtendedOperation(ExtendedOperation operation)
   {
     // We should always include the StartTLS OID in the response (the same OID
@@ -164,15 +118,17 @@ public class StartTLSExtendedOperation
     operation.setResultCode(ResultCode.SUCCESS);
   }
 
+  /** {@inheritDoc} */
+  @Override
+  public String getExtendedOperationOID()
+  {
+    return OID_START_TLS_REQUEST;
+  }
 
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String getExtendedOperationName()
   {
     return "StartTLS";
   }
 }
-
