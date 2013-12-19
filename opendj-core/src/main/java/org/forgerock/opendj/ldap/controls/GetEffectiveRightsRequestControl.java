@@ -50,7 +50,7 @@ import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldap.schema.UnknownSchemaElementException;
 
-import com.forgerock.opendj.util.Validator;
+import org.forgerock.util.Reject;
 
 /**
  * A partial implementation of the get effective rights request control as
@@ -117,7 +117,7 @@ public final class GetEffectiveRightsRequestControl implements Control {
 
                 public GetEffectiveRightsRequestControl decodeControl(final Control control,
                         final DecodeOptions options) throws DecodeException {
-                    Validator.ensureNotNull(control);
+                    Reject.ifNull(control);
 
                     if (control instanceof GetEffectiveRightsRequestControl) {
                         return (GetEffectiveRightsRequestControl) control;
@@ -230,7 +230,7 @@ public final class GetEffectiveRightsRequestControl implements Control {
      */
     public static GetEffectiveRightsRequestControl newControl(final boolean isCritical,
             final DN authorizationName, final Collection<AttributeType> attributes) {
-        Validator.ensureNotNull(attributes);
+        Reject.ifNull(attributes);
 
         final Collection<AttributeType> copyOfAttributes =
                 Collections.unmodifiableList(new ArrayList<AttributeType>(attributes));
@@ -267,7 +267,7 @@ public final class GetEffectiveRightsRequestControl implements Control {
      */
     public static GetEffectiveRightsRequestControl newControl(final boolean isCritical,
             final String authorizationName, final String... attributes) {
-        Validator.ensureNotNull((Object) attributes);
+        Reject.ifNull((Object) attributes);
 
         final DN dn = authorizationName == null ? null : DN.valueOf(authorizationName);
 

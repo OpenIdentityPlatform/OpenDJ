@@ -43,7 +43,7 @@ import org.forgerock.opendj.ldap.Entries;
 import org.forgerock.opendj.ldap.Entry;
 
 import com.forgerock.opendj.util.StaticUtils;
-import com.forgerock.opendj.util.Validator;
+import org.forgerock.util.Reject;
 
 /**
  * The pre-read response control as defined in RFC 4527. This control is
@@ -91,7 +91,7 @@ public final class PreReadResponseControl implements Control {
 
                 public PreReadResponseControl decodeControl(final Control control,
                         final DecodeOptions options) throws DecodeException {
-                    Validator.ensureNotNull(control);
+                    Reject.ifNull(control);
 
                     if (control instanceof PreReadResponseControl) {
                         return (PreReadResponseControl) control;

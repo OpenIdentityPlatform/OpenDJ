@@ -25,7 +25,7 @@
  */
 package org.opends.server.admin;
 
-import static com.forgerock.opendj.util.Validator.*;
+import org.forgerock.util.Reject;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -71,7 +71,7 @@ public final class Tag implements Comparable<Tag> {
      *             If the tag name was not recognized.
      */
     public static Tag valueOf(String name) throws IllegalArgumentException {
-        ensureNotNull(name);
+        Reject.ifNull(name);
 
         // Hack to force initialization of the tag definitions.
         RootCfgDefn.getInstance();

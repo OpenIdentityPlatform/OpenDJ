@@ -46,8 +46,7 @@ import java.util.TimeZone;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
-
-import com.forgerock.opendj.util.Validator;
+import org.forgerock.util.Reject;
 
 /**
  * An LDAP generalized time as defined in RFC 4517. This class facilitates
@@ -91,7 +90,7 @@ public final class GeneralizedTime implements Comparable<GeneralizedTime> {
      * @return A generalized time representing the provided {@code Calendar}.
      */
     public static GeneralizedTime valueOf(final Calendar calendar) {
-        Validator.ensureNotNull(calendar);
+        Reject.ifNull(calendar);
         return new GeneralizedTime((Calendar) calendar.clone(), null, -1L, null);
     }
 
@@ -106,7 +105,7 @@ public final class GeneralizedTime implements Comparable<GeneralizedTime> {
      * @return A generalized time representing the provided {@code Date}.
      */
     public static GeneralizedTime valueOf(final Date date) {
-        Validator.ensureNotNull(date);
+        Reject.ifNull(date);
         return new GeneralizedTime(null, (Date) date.clone(), -1L, null);
     }
 
@@ -120,7 +119,7 @@ public final class GeneralizedTime implements Comparable<GeneralizedTime> {
      *         since the epoch.
      */
     public static GeneralizedTime valueOf(final long timeMS) {
-        Validator.ensureTrue(timeMS >= 0, "timeMS must be >= 0");
+        Reject.ifFalse(timeMS >= 0, "timeMS must be >= 0");
         return new GeneralizedTime(null, null, timeMS, null);
     }
 

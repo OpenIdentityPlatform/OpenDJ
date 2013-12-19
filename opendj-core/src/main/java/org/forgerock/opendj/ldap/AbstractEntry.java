@@ -32,7 +32,7 @@ import java.util.Iterator;
 
 import com.forgerock.opendj.util.Iterables;
 import com.forgerock.opendj.util.Predicate;
-import com.forgerock.opendj.util.Validator;
+import org.forgerock.util.Reject;
 
 /**
  * This class provides a skeletal implementation of the {@code Entry} interface,
@@ -125,7 +125,7 @@ public abstract class AbstractEntry implements Entry {
 
     @Override
     public Iterable<Attribute> getAllAttributes(final AttributeDescription attributeDescription) {
-        Validator.ensureNotNull(attributeDescription);
+        Reject.ifNull(attributeDescription);
 
         return Iterables.filteredIterable(getAllAttributes(), FIND_ATTRIBUTES_PREDICATE,
                 attributeDescription);

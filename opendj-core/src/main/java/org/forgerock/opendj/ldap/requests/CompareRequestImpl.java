@@ -31,7 +31,7 @@ import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 
-import com.forgerock.opendj.util.Validator;
+import org.forgerock.util.Reject;
 
 /**
  * Compare request implementation.
@@ -79,35 +79,35 @@ final class CompareRequestImpl extends AbstractRequestImpl<CompareRequest> imple
 
     @Override
     public CompareRequest setAssertionValue(final Object value) {
-        Validator.ensureNotNull(value);
+        Reject.ifNull(value);
         this.assertionValue = ByteString.valueOf(value);
         return this;
     }
 
     @Override
     public CompareRequest setAttributeDescription(final AttributeDescription attributeDescription) {
-        Validator.ensureNotNull(attributeDescription);
+        Reject.ifNull(attributeDescription);
         this.attributeDescription = attributeDescription;
         return this;
     }
 
     @Override
     public CompareRequest setAttributeDescription(final String attributeDescription) {
-        Validator.ensureNotNull(attributeDescription);
+        Reject.ifNull(attributeDescription);
         this.attributeDescription = AttributeDescription.valueOf(attributeDescription);
         return this;
     }
 
     @Override
     public CompareRequest setName(final DN dn) {
-        Validator.ensureNotNull(dn);
+        Reject.ifNull(dn);
         this.name = dn;
         return this;
     }
 
     @Override
     public CompareRequest setName(final String dn) {
-        Validator.ensureNotNull(dn);
+        Reject.ifNull(dn);
         this.name = DN.valueOf(dn);
         return this;
     }

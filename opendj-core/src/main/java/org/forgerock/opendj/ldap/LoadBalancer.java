@@ -28,7 +28,7 @@
 package org.forgerock.opendj.ldap;
 
 import com.forgerock.opendj.util.CompletedFutureResult;
-import com.forgerock.opendj.util.Validator;
+import org.forgerock.util.Reject;
 
 /**
  * A load balancing connection factory allocates connections using the provided
@@ -38,7 +38,7 @@ final class LoadBalancer implements ConnectionFactory {
     private final LoadBalancingAlgorithm algorithm;
 
     LoadBalancer(final LoadBalancingAlgorithm algorithm) {
-        Validator.ensureNotNull(algorithm);
+        Reject.ifNull(algorithm);
         this.algorithm = algorithm;
     }
 

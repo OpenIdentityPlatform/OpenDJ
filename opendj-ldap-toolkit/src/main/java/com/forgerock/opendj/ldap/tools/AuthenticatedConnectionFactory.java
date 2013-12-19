@@ -36,10 +36,10 @@ import org.forgerock.opendj.ldap.IntermediateResponseHandler;
 import org.forgerock.opendj.ldap.ResultHandler;
 import org.forgerock.opendj.ldap.requests.BindRequest;
 import org.forgerock.opendj.ldap.responses.BindResult;
+import org.forgerock.util.Reject;
 
 import com.forgerock.opendj.util.FutureResultTransformer;
 import com.forgerock.opendj.util.RecursiveFutureResult;
-import com.forgerock.opendj.util.Validator;
 
 /**
  * An authenticated connection factory can be used to create pre-authenticated
@@ -239,7 +239,8 @@ final class AuthenticatedConnectionFactory implements ConnectionFactory {
      *             If {@code factory} or {@code request} was {@code null}.
      */
     AuthenticatedConnectionFactory(final ConnectionFactory factory, final BindRequest request) {
-        Validator.ensureNotNull(factory, request);
+        Reject.ifNull(factory);
+        Reject.ifNull(request);
         this.parentFactory = factory;
 
         // FIXME: should do a defensive copy.

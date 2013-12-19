@@ -32,7 +32,7 @@ import org.opends.server.admin.client.ManagementContext;
 import org.opends.server.admin.server.ServerManagedObject;
 import org.opends.server.config.ConfigException;
 
-import com.forgerock.opendj.util.Validator;
+import org.forgerock.util.Reject;
 
 /**
  * A condition which evaluates to <code>true</code> if the sub-condition is
@@ -51,7 +51,7 @@ public final class NOTCondition implements Condition {
      *            The sub-condition which will be inverted.
      */
     public NOTCondition(Condition condition) {
-        Validator.ensureNotNull(condition);
+        Reject.ifNull(condition);
         this.condition = condition;
     }
 

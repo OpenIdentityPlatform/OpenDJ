@@ -40,9 +40,9 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.DecodeOptions;
+import org.forgerock.util.Reject;
 
 import com.forgerock.opendj.util.StaticUtils;
-import com.forgerock.opendj.util.Validator;
 
 /**
  * The password policy response control as defined in
@@ -119,7 +119,7 @@ public final class PasswordPolicyResponseControl implements Control {
 
                 public PasswordPolicyResponseControl decodeControl(final Control control,
                         final DecodeOptions options) throws DecodeException {
-                    Validator.ensureNotNull(control);
+                    Reject.ifNull(control);
 
                     if (control instanceof PasswordPolicyResponseControl) {
                         return (PasswordPolicyResponseControl) control;
@@ -205,7 +205,7 @@ public final class PasswordPolicyResponseControl implements Control {
      *             If {@code errorType} was {@code null}.
      */
     public static PasswordPolicyResponseControl newControl(final PasswordPolicyErrorType errorType) {
-        Validator.ensureNotNull(errorType);
+        Reject.ifNull(errorType);
 
         return new PasswordPolicyResponseControl(false, null, -1, errorType);
     }
@@ -225,8 +225,8 @@ public final class PasswordPolicyResponseControl implements Control {
      */
     public static PasswordPolicyResponseControl newControl(
             final PasswordPolicyWarningType warningType, final int warningValue) {
-        Validator.ensureNotNull(warningType);
-        Validator.ensureTrue(warningValue >= 0, "warningValue is negative");
+        Reject.ifNull(warningType);
+        Reject.ifFalse(warningValue >= 0, "warningValue is negative");
 
         return new PasswordPolicyResponseControl(false, warningType, warningValue, null);
     }
@@ -250,8 +250,9 @@ public final class PasswordPolicyResponseControl implements Control {
     public static PasswordPolicyResponseControl newControl(
             final PasswordPolicyWarningType warningType, final int warningValue,
             final PasswordPolicyErrorType errorType) {
-        Validator.ensureNotNull(warningType, errorType);
-        Validator.ensureTrue(warningValue >= 0, "warningValue is negative");
+        Reject.ifNull(warningType);
+        Reject.ifNull(errorType);
+        Reject.ifFalse(warningValue >= 0, "warningValue is negative");
 
         return new PasswordPolicyResponseControl(false, warningType, warningValue, errorType);
     }

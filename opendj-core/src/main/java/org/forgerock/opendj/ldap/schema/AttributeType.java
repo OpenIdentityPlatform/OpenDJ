@@ -36,9 +36,9 @@ import java.util.List;
 import java.util.Map;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.util.Reject;
 
 import com.forgerock.opendj.util.StaticUtils;
-import com.forgerock.opendj.util.Validator;
 
 /**
  * This class defines a data structure for storing and interacting with an
@@ -136,10 +136,12 @@ public final class AttributeType extends SchemaElement implements Comparable<Att
             final String definition) {
         super(description, extraProperties, definition);
 
-        Validator.ensureNotNull(oid, names, description, attributeUsage);
-        Validator.ensureTrue(superiorType != null || syntax != null,
-                "superiorType and/or syntax must not be null");
-        Validator.ensureNotNull(extraProperties);
+        Reject.ifNull(oid);
+        Reject.ifNull(names);
+        Reject.ifNull(description);
+        Reject.ifNull(attributeUsage);
+        Reject.ifFalse(superiorType != null || syntax != null, "superiorType and/or syntax must not be null");
+        Reject.ifNull(extraProperties);
 
         this.oid = oid;
         this.names = names;

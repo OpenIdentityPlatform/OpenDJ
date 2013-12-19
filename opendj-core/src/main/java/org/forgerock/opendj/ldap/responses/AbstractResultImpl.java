@@ -32,7 +32,7 @@ import java.util.List;
 
 import org.forgerock.opendj.ldap.ResultCode;
 
-import com.forgerock.opendj.util.Validator;
+import org.forgerock.util.Reject;
 
 /**
  * Modifiable result implementation.
@@ -64,7 +64,7 @@ abstract class AbstractResultImpl<S extends Result> extends AbstractResponseImpl
 
     @Override
     public final S addReferralURI(final String uri) {
-        Validator.ensureNotNull(uri);
+        Reject.ifNull(uri);
 
         referralURIs.add(uri);
         return getThis();
@@ -137,7 +137,7 @@ abstract class AbstractResultImpl<S extends Result> extends AbstractResponseImpl
 
     @Override
     public final S setResultCode(final ResultCode resultCode) {
-        Validator.ensureNotNull(resultCode);
+        Reject.ifNull(resultCode);
 
         this.resultCode = resultCode;
         return getThis();

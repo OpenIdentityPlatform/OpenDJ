@@ -31,7 +31,7 @@ import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
 
-import com.forgerock.opendj.util.Validator;
+import org.forgerock.util.Reject;
 
 /**
  * This class is the ordering matching rule implementation for an enum syntax
@@ -42,7 +42,7 @@ final class EnumOrderingMatchingRule extends AbstractOrderingMatchingRuleImpl {
     private final EnumSyntaxImpl syntax;
 
     EnumOrderingMatchingRule(final EnumSyntaxImpl syntax) {
-        Validator.ensureNotNull(syntax);
+        Reject.ifNull(syntax);
         this.syntax = syntax;
     }
 

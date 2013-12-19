@@ -43,7 +43,7 @@ import org.forgerock.opendj.ldap.schema.UnknownSchemaElementException;
 
 import com.forgerock.opendj.util.Iterators;
 import com.forgerock.opendj.util.SubstringReader;
-import com.forgerock.opendj.util.Validator;
+import org.forgerock.util.Reject;
 
 /**
  * A relative distinguished name (RDN) as defined in RFC 4512 section 2.3 is the
@@ -243,7 +243,7 @@ public final class RDN implements Iterable<AVA>, Comparable<RDN> {
     }
 
     private RDN(final AVA[] avas, final String stringValue) {
-        Validator.ensureNotNull((Object[]) avas);
+        Reject.ifNull(avas);
         this.avas = avas;
         this.stringValue = stringValue;
     }

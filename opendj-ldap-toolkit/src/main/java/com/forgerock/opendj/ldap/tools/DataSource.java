@@ -38,7 +38,7 @@ import java.util.Set;
 import org.forgerock.i18n.LocalizableMessage;
 
 import com.forgerock.opendj.util.StaticUtils;
-import com.forgerock.opendj.util.Validator;
+import org.forgerock.util.Reject;
 
 /**
  * A source of data for performance tools.
@@ -279,7 +279,7 @@ final class DataSource {
      *             If an exception occurs while parsing.
      */
     public static DataSource[] parse(final List<String> sources) throws ArgumentException {
-        Validator.ensureNotNull(sources);
+        Reject.ifNull(sources);
         final DataSource[] dataSources = new DataSource[sources.size()];
         for (int i = 0; i < sources.size(); i++) {
             final String dataSourceDef = sources.get(i);

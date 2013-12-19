@@ -63,6 +63,7 @@ import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.ProviderNotFoundException;
 import org.forgerock.opendj.ldap.spi.Provider;
+import org.forgerock.util.Reject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -1771,7 +1772,8 @@ public final class StaticUtils {
      *             If {@code c} or {@code separator} were {@code null}.
      */
     public static String joinCollection(Collection<?> c, String separator) {
-        Validator.ensureNotNull(c, separator);
+        Reject.ifNull(c);
+        Reject.ifNull(separator);
 
         switch (c.size()) {
         case 0:
@@ -2053,7 +2055,8 @@ public final class StaticUtils {
      * @return The updated {@code StringBuilder}.
      */
     public static StringBuilder toLowerCase(final ByteSequence b, final StringBuilder builder) {
-        Validator.ensureNotNull(b, builder);
+        Reject.ifNull(b);
+        Reject.ifNull(builder);
 
         // FIXME: What locale should we use for non-ASCII characters? I
         // think we should use default to the Unicode StringPrep.
@@ -2090,7 +2093,7 @@ public final class StaticUtils {
      * @return The lower-case representation of the given string.
      */
     public static String toLowerCase(final String s) {
-        Validator.ensureNotNull(s);
+        Reject.ifNull(s);
 
         // FIXME: What locale should we use for non-ASCII characters? I
         // think we should use default to the Unicode StringPrep.
@@ -2155,7 +2158,8 @@ public final class StaticUtils {
      * @return The updated {@code StringBuilder}.
      */
     public static StringBuilder toLowerCase(final String s, final StringBuilder builder) {
-        Validator.ensureNotNull(s, builder);
+        Reject.ifNull(s);
+        Reject.ifNull(builder);
 
         // FIXME: What locale should we use for non-ASCII characters? I
         // think we should use default to the Unicode StringPrep.

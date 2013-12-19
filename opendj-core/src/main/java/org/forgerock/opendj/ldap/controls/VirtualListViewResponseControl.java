@@ -42,8 +42,7 @@ import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.DecodeOptions;
 import org.forgerock.opendj.ldap.ResultCode;
-
-import com.forgerock.opendj.util.Validator;
+import org.forgerock.util.Reject;
 
 /**
  * The virtual list view response control as defined in
@@ -142,7 +141,7 @@ public final class VirtualListViewResponseControl implements Control {
 
                 public VirtualListViewResponseControl decodeControl(final Control control,
                         final DecodeOptions options) throws DecodeException {
-                    Validator.ensureNotNull(control);
+                    Reject.ifNull(control);
 
                     if (control instanceof VirtualListViewResponseControl) {
                         return (VirtualListViewResponseControl) control;
@@ -209,9 +208,9 @@ public final class VirtualListViewResponseControl implements Control {
      */
     public static VirtualListViewResponseControl newControl(final int targetPosition,
             final int contentCount, final ResultCode result, final ByteString contextID) {
-        Validator.ensureNotNull(result);
-        Validator.ensureTrue(targetPosition >= 0, "targetPosition is less than 0");
-        Validator.ensureTrue(contentCount >= 0, "contentCount is less than 0");
+        Reject.ifNull(result);
+        Reject.ifFalse(targetPosition >= 0, "targetPosition is less than 0");
+        Reject.ifFalse(contentCount >= 0, "contentCount is less than 0");
 
         return new VirtualListViewResponseControl(false, targetPosition, contentCount, result,
                 contextID);

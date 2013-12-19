@@ -39,10 +39,10 @@ import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldap.schema.Syntax;
 import org.forgerock.opendj.ldap.schema.UnknownSchemaElementException;
+import org.forgerock.util.Reject;
 
 import com.forgerock.opendj.util.StaticUtils;
 import com.forgerock.opendj.util.SubstringReader;
-import com.forgerock.opendj.util.Validator;
 
 /**
  * An attribute value assertion (AVA) as defined in RFC 4512 section 2.3
@@ -607,7 +607,8 @@ public final class AVA implements Comparable<AVA> {
      *             {@code null}.
      */
     public AVA(final AttributeType attributeType, final Object attributeValue) {
-        Validator.ensureNotNull(attributeType, attributeValue);
+        Reject.ifNull(attributeType);
+        Reject.ifNull(attributeValue);
 
         this.attributeType = attributeType;
         this.attributeValue = ByteString.valueOf(attributeValue);
@@ -631,7 +632,8 @@ public final class AVA implements Comparable<AVA> {
      *             {@code null}.
      */
     public AVA(final String attributeType, final Object attributeValue) {
-        Validator.ensureNotNull(attributeType, attributeValue);
+        Reject.ifNull(attributeType);
+        Reject.ifNull(attributeValue);
 
         this.attributeType = Schema.getDefaultSchema().getAttributeType(attributeType);
         this.attributeValue = ByteString.valueOf(attributeValue);

@@ -44,7 +44,7 @@ import javax.net.ssl.SSLEngine;
 import javax.net.ssl.X509ExtendedKeyManager;
 import javax.net.ssl.X509KeyManager;
 
-import com.forgerock.opendj.util.Validator;
+import org.forgerock.util.Reject;
 
 /**
  * This class contains methods for creating common types of key manager.
@@ -219,7 +219,7 @@ public final class KeyManagers {
      */
     public static X509KeyManager useKeyStoreFile(final String file, final char[] password,
             final String format) throws GeneralSecurityException, IOException {
-        Validator.ensureNotNull(file);
+        Reject.ifNull(file);
 
         final File keyStoreFile = new File(file);
         final String keyStoreFormat = format != null ? format : KeyStore.getDefaultType();
@@ -312,7 +312,8 @@ public final class KeyManagers {
      */
     public static X509KeyManager useSingleCertificate(final String alias,
             final X509KeyManager keyManager) {
-        Validator.ensureNotNull(alias, keyManager);
+        Reject.ifNull(alias);
+        Reject.ifNull(keyManager);
         return new SelectCertificate(keyManager, alias);
     }
 

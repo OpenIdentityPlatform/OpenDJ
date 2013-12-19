@@ -53,7 +53,7 @@ import org.forgerock.opendj.ldap.Matcher;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldap.schema.SchemaValidationPolicy;
 
-import com.forgerock.opendj.util.Validator;
+import org.forgerock.util.Reject;
 
 /**
  * An LDIF entry reader reads attribute value records (entries) using the LDAP
@@ -241,7 +241,7 @@ public final class LDIFEntryReader extends AbstractLDIFReader implements EntryRe
      * @return A reference to this {@code LDIFEntryReader}.
      */
     public LDIFEntryReader setExcludeAttribute(final AttributeDescription attributeDescription) {
-        Validator.ensureNotNull(attributeDescription);
+        Reject.ifNull(attributeDescription);
         excludeAttributes.add(attributeDescription);
         return this;
     }
@@ -256,7 +256,7 @@ public final class LDIFEntryReader extends AbstractLDIFReader implements EntryRe
      * @return A reference to this {@code LDIFEntryReader}.
      */
     public LDIFEntryReader setExcludeBranch(final DN excludeBranch) {
-        Validator.ensureNotNull(excludeBranch);
+        Reject.ifNull(excludeBranch);
         excludeBranches.add(excludeBranch);
         return this;
     }
@@ -271,7 +271,7 @@ public final class LDIFEntryReader extends AbstractLDIFReader implements EntryRe
      * @return A reference to this {@code LDIFEntryReader}.
      */
     public LDIFEntryReader setExcludeFilter(final Matcher excludeFilter) {
-        Validator.ensureNotNull(excludeFilter);
+        Reject.ifNull(excludeFilter);
         excludeFilters.add(excludeFilter);
         return this;
     }
@@ -286,7 +286,7 @@ public final class LDIFEntryReader extends AbstractLDIFReader implements EntryRe
      * @return A reference to this {@code LDIFEntryReader}.
      */
     public LDIFEntryReader setIncludeAttribute(final AttributeDescription attributeDescription) {
-        Validator.ensureNotNull(attributeDescription);
+        Reject.ifNull(attributeDescription);
         includeAttributes.add(attributeDescription);
         return this;
     }
@@ -301,7 +301,7 @@ public final class LDIFEntryReader extends AbstractLDIFReader implements EntryRe
      * @return A reference to this {@code LDIFEntryReader}.
      */
     public LDIFEntryReader setIncludeBranch(final DN includeBranch) {
-        Validator.ensureNotNull(includeBranch);
+        Reject.ifNull(includeBranch);
         includeBranches.add(includeBranch);
         return this;
     }
@@ -316,7 +316,7 @@ public final class LDIFEntryReader extends AbstractLDIFReader implements EntryRe
      * @return A reference to this {@code LDIFEntryReader}.
      */
     public LDIFEntryReader setIncludeFilter(final Matcher includeFilter) {
-        Validator.ensureNotNull(includeFilter);
+        Reject.ifNull(includeFilter);
         includeFilters.add(includeFilter);
         return this;
     }
@@ -346,7 +346,7 @@ public final class LDIFEntryReader extends AbstractLDIFReader implements EntryRe
      * @return A reference to this {@code LDIFEntryReader}.
      */
     public LDIFEntryReader setSchema(final Schema schema) {
-        Validator.ensureNotNull(schema);
+        Reject.ifNull(schema);
         this.schema = schemaValidationPolicy.adaptSchemaForValidation(schema);
         return this;
     }

@@ -34,10 +34,10 @@ import java.util.LinkedList;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.util.Reject;
 import org.opends.server.admin.DecodingException;
 import org.opends.server.admin.ManagedObjectDefinition;
 import org.opends.server.admin.PropertyException;
-import static com.forgerock.opendj.util.Validator.*;
 
 /**
  * The requested server managed object was found but one or more of its
@@ -53,8 +53,8 @@ public class ServerManagedObjectDecodingException extends DecodingException {
     // Create the message.
     private static LocalizableMessage createMessage(ServerManagedObject<?> partialManagedObject,
             Collection<PropertyException> causes) {
-        ensureNotNull(causes);
-        ensureTrue(!causes.isEmpty(), "causes should nnot be empty");
+        Reject.ifNull(causes);
+        Reject.ifFalse(!causes.isEmpty(), "causes should nnot be empty");
 
         ManagedObjectDefinition<?, ?> d = partialManagedObject.getManagedObjectDefinition();
         if (causes.size() == 1) {

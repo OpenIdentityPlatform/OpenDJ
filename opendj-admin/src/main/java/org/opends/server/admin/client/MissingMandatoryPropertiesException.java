@@ -36,10 +36,9 @@ import java.util.Collections;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.util.Reject;
 import org.opends.server.admin.OperationsException;
 import org.opends.server.admin.PropertyIsMandatoryException;
-
-import com.forgerock.opendj.util.Validator;
 
 
 
@@ -60,8 +59,8 @@ public class MissingMandatoryPropertiesException extends OperationsException {
   // Create the message.
   private static LocalizableMessage createMessage(
       Collection<PropertyIsMandatoryException> causes) {
-    Validator.ensureNotNull(causes);
-    Validator.ensureTrue(!causes.isEmpty(), "causes should not be empty");
+    Reject.ifNull(causes);
+    Reject.ifFalse(!causes.isEmpty(), "causes should not be empty");
 
     if (causes.size() == 1) {
       return ERR_MISSING_MANDATORY_PROPERTIES_EXCEPTION_SINGLE.get(causes

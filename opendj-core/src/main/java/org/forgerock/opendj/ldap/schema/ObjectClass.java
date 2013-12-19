@@ -39,8 +39,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
-
-import com.forgerock.opendj.util.Validator;
+import org.forgerock.util.Reject;
 
 /**
  * This class defines a data structure for storing and interacting with an
@@ -92,9 +91,12 @@ public final class ObjectClass extends SchemaElement {
             final String definition) {
         super(description, extraProperties, definition);
 
-        Validator.ensureNotNull(oid, names);
-        Validator.ensureNotNull(superiorClassOIDs, requiredAttributeOIDs, optionalAttributeOIDs,
-                objectClassType);
+        Reject.ifNull(oid);
+        Reject.ifNull(names);
+        Reject.ifNull(superiorClassOIDs);
+        Reject.ifNull(requiredAttributeOIDs);
+        Reject.ifNull(optionalAttributeOIDs);
+        Reject.ifNull(objectClassType);
         this.oid = oid;
         this.names = names;
         this.isObsolete = obsolete;

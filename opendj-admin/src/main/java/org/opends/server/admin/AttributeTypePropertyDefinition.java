@@ -26,7 +26,7 @@
 
 package org.opends.server.admin;
 
-import static com.forgerock.opendj.util.Validator.*;
+import org.forgerock.util.Reject;
 
 import java.util.EnumSet;
 
@@ -139,7 +139,7 @@ public final class AttributeTypePropertyDefinition extends PropertyDefinition<At
      */
     @Override
     public AttributeType decodeValue(String value) throws IllegalPropertyValueStringException {
-        ensureNotNull(value);
+        Reject.ifNull(value);
 
         String name = value.trim().toLowerCase();
         AttributeType type = DirectoryServer.getAttributeType(name, !isCheckSchema);
@@ -169,7 +169,7 @@ public final class AttributeTypePropertyDefinition extends PropertyDefinition<At
      */
     @Override
     public void validateValue(AttributeType value) throws IllegalPropertyValueException {
-        ensureNotNull(value);
+        Reject.ifNull(value);
 
         // No implementation required.
     }

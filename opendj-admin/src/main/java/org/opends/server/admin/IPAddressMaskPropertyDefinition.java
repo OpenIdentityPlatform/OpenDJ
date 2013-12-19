@@ -26,7 +26,7 @@
 
 package org.opends.server.admin;
 
-import static com.forgerock.opendj.util.Validator.*;
+import org.forgerock.util.Reject;
 
 import java.util.EnumSet;
 
@@ -87,7 +87,7 @@ public final class IPAddressMaskPropertyDefinition extends PropertyDefinition<Ad
      */
     @Override
     public void validateValue(AddressMask value) throws IllegalPropertyValueException {
-        ensureNotNull(value);
+        Reject.ifNull(value);
 
         // No additional validation required.
     }
@@ -97,7 +97,7 @@ public final class IPAddressMaskPropertyDefinition extends PropertyDefinition<Ad
      */
     @Override
     public AddressMask decodeValue(String value) throws IllegalPropertyValueStringException {
-        ensureNotNull(value);
+        Reject.ifNull(value);
 
         try {
             return AddressMask.decode(value);

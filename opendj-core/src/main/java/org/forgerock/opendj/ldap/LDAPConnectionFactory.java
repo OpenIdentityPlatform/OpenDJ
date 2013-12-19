@@ -35,8 +35,7 @@ import java.net.SocketAddress;
 
 import org.forgerock.opendj.ldap.spi.LDAPConnectionFactoryImpl;
 import org.forgerock.opendj.ldap.spi.TransportProvider;
-
-import com.forgerock.opendj.util.Validator;
+import org.forgerock.util.Reject;
 
 /**
  * A factory class which can be used to obtain connections to an LDAP Directory
@@ -83,7 +82,8 @@ public final class LDAPConnectionFactory implements ConnectionFactory {
      *             provider requested using options is not found.
      */
     public LDAPConnectionFactory(final SocketAddress address, final LDAPOptions options) {
-        Validator.ensureNotNull(address, options);
+        Reject.ifNull(address);
+        Reject.ifNull(options);
         this.provider = getProvider(TransportProvider.class, options.getTransportProvider(),
                 options.getProviderClassLoader());
         this.impl = provider.getLDAPConnectionFactory(address, options);
@@ -124,7 +124,8 @@ public final class LDAPConnectionFactory implements ConnectionFactory {
      *             provider requested using options is not found.
      */
     public LDAPConnectionFactory(final String host, final int port, final LDAPOptions options) {
-        Validator.ensureNotNull(host, options);
+        Reject.ifNull(host);
+        Reject.ifNull(options);
         final SocketAddress address = new InetSocketAddress(host, port);
         this.provider = getProvider(TransportProvider.class, options.getTransportProvider(),
                 options.getProviderClassLoader());

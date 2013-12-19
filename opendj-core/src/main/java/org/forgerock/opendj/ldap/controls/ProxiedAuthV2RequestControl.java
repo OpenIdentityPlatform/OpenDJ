@@ -40,7 +40,7 @@ import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.DecodeOptions;
 
 import com.forgerock.opendj.util.StaticUtils;
-import com.forgerock.opendj.util.Validator;
+import org.forgerock.util.Reject;
 
 /**
  * The proxy authorization v2 request control as defined in RFC 4370. This
@@ -94,7 +94,7 @@ public final class ProxiedAuthV2RequestControl implements Control {
 
                 public ProxiedAuthV2RequestControl decodeControl(final Control control,
                         final DecodeOptions options) throws DecodeException {
-                    Validator.ensureNotNull(control);
+                    Reject.ifNull(control);
 
                     if (control instanceof ProxiedAuthV2RequestControl) {
                         return (ProxiedAuthV2RequestControl) control;

@@ -34,10 +34,10 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
+
 import org.forgerock.opendj.ldap.spi.LDAPListenerImpl;
 import org.forgerock.opendj.ldap.spi.TransportProvider;
-
-import com.forgerock.opendj.util.Validator;
+import org.forgerock.util.Reject;
 
 /**
  * An LDAP server connection listener which waits for LDAP connection requests
@@ -144,7 +144,8 @@ public final class LDAPListener implements Closeable {
     public LDAPListener(final int port,
             final ServerConnectionFactory<LDAPClientContext, Integer> factory,
             final LDAPListenerOptions options) throws IOException {
-        Validator.ensureNotNull(factory, options);
+        Reject.ifNull(factory);
+        Reject.ifNull(options);
         final SocketAddress address = new InetSocketAddress(port);
         this.provider = getProvider(TransportProvider.class, options.getTransportProvider(),
                 options.getProviderClassLoader());
@@ -192,7 +193,9 @@ public final class LDAPListener implements Closeable {
     public LDAPListener(final SocketAddress address,
             final ServerConnectionFactory<LDAPClientContext, Integer> factory,
             final LDAPListenerOptions options) throws IOException {
-        Validator.ensureNotNull(address, factory, options);
+        Reject.ifNull(address);
+        Reject.ifNull(factory);
+        Reject.ifNull(options);
         this.provider = getProvider(TransportProvider.class, options.getTransportProvider(),
                 options.getProviderClassLoader());
         this.impl = provider.getLDAPListener(address, factory, options);
@@ -243,7 +246,9 @@ public final class LDAPListener implements Closeable {
     public LDAPListener(final String host, final int port,
             final ServerConnectionFactory<LDAPClientContext, Integer> factory,
             final LDAPListenerOptions options) throws IOException {
-        Validator.ensureNotNull(host, factory, options);
+        Reject.ifNull(host);
+        Reject.ifNull(factory);
+        Reject.ifNull(options);
         final SocketAddress address = new InetSocketAddress(host, port);
         this.provider = getProvider(TransportProvider.class, options.getTransportProvider(),
                 options.getProviderClassLoader());

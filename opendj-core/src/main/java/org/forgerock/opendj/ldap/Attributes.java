@@ -31,9 +31,9 @@ import java.util.Collection;
 import java.util.Iterator;
 
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
+import org.forgerock.util.Reject;
 
 import com.forgerock.opendj.util.Iterators;
-import com.forgerock.opendj.util.Validator;
 
 /**
  * This class contains methods for creating and manipulating attributes.
@@ -495,7 +495,8 @@ public final class Attributes {
      */
     public static final Attribute renameAttribute(final Attribute attribute,
             final AttributeDescription attributeDescription) {
-        Validator.ensureNotNull(attribute, attributeDescription);
+        Reject.ifNull(attribute);
+        Reject.ifNull(attributeDescription);
 
         // Optimize for the case where no renaming is required.
         if (attribute.getAttributeDescription() == attributeDescription) {
@@ -525,7 +526,8 @@ public final class Attributes {
      */
     public static final Attribute renameAttribute(final Attribute attribute,
             final String attributeDescription) {
-        Validator.ensureNotNull(attribute, attributeDescription);
+        Reject.ifNull(attribute);
+        Reject.ifNull(attributeDescription);
         return renameAttribute(attribute, AttributeDescription.valueOf(attributeDescription));
     }
 

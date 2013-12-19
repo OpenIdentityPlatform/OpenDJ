@@ -39,7 +39,7 @@ import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.controls.Control;
 
-import com.forgerock.opendj.util.Validator;
+import org.forgerock.util.Reject;
 
 /**
  * Common LDIF writer functionality.
@@ -194,7 +194,7 @@ abstract class AbstractLDIFWriter extends AbstractLDIFStream {
     }
 
     final void writeComment0(final CharSequence comment) throws IOException {
-        Validator.ensureNotNull(comment);
+        Reject.ifNull(comment);
 
         /*
          * First, break up the comment into multiple lines to preserve the

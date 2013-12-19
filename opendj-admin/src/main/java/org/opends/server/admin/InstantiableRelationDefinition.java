@@ -26,7 +26,7 @@
 
 package org.opends.server.admin;
 
-import static com.forgerock.opendj.util.Validator.*;
+import org.forgerock.util.Reject;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -116,7 +116,7 @@ public final class InstantiableRelationDefinition<C extends ConfigurationClient,
          *            relation does not use a property for naming.
          */
         public void setNamingProperty(PropertyDefinition<?> namingPropertyDefinition) {
-            ensureNotNull(namingPropertyDefinition);
+            Reject.ifNull(namingPropertyDefinition);
             this.namingPropertyDefinition = namingPropertyDefinition;
         }
 

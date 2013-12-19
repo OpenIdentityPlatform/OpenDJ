@@ -30,7 +30,7 @@ import org.opends.server.admin.LDAPProfile;
 import org.opends.server.admin.client.ManagementContext;
 import org.opends.server.admin.client.spi.Driver;
 
-import com.forgerock.opendj.util.Validator;
+import org.forgerock.util.Reject;
 
 /**
  * An LDAP management connection context.
@@ -45,7 +45,7 @@ public final class LDAPManagementContext extends ManagementContext {
      * @return Returns the new management context.
      */
     public static ManagementContext createFromContext(LDAPConnection connection) {
-        Validator.ensureNotNull(connection);
+        Reject.ifNull(connection);
         return new LDAPManagementContext(connection, LDAPProfile.getInstance());
     }
 

@@ -34,9 +34,8 @@ import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.util.Reject;
 import org.testng.Assert;
-
-import com.forgerock.opendj.util.Validator;
 
 /**
  * A mock LDAP connection which is used to verify that an add operation was
@@ -73,9 +72,9 @@ public final class CreateEntryMockLDAPConnection extends MockLDAPConnection {
      *            The attribute's expected values (never empty).
      */
     public void addExpectedAttribute(String expectedName, String... expectedValues) {
-        Validator.ensureNotNull(expectedName);
-        Validator.ensureNotNull(expectedValues);
-        Validator.ensureTrue(expectedValues.length > 0, "should have at least one expected value");
+        Reject.ifNull(expectedName);
+        Reject.ifNull(expectedValues);
+        Reject.ifFalse(expectedValues.length > 0, "should have at least one expected value");
         attributes.put(expectedName, Arrays.asList(expectedValues));
     }
 

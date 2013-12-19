@@ -32,7 +32,7 @@ import java.util.TreeMap;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.requests.Requests;
 
-import com.forgerock.opendj.util.Validator;
+import org.forgerock.util.Reject;
 
 /**
  * An implementation of the {@code Entry} interface which uses a {@code TreeMap}
@@ -115,7 +115,7 @@ public final class TreeMapEntry extends AbstractMapEntry {
      *             If {@code name} was {@code null}.
      */
     public TreeMapEntry(final DN name) {
-        super(Validator.ensureNotNull(name), new TreeMap<AttributeDescription, Attribute>());
+        super(Reject.checkNotNull(name), new TreeMap<AttributeDescription, Attribute>());
     }
 
     /**

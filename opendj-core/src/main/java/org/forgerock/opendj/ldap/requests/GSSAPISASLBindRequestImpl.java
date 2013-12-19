@@ -56,9 +56,9 @@ import org.forgerock.opendj.ldap.ErrorResultException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.responses.BindResult;
 import org.forgerock.opendj.ldap.responses.Responses;
+import org.forgerock.util.Reject;
 
 import com.forgerock.opendj.util.StaticUtils;
-import com.forgerock.opendj.util.Validator;
 import com.sun.security.auth.callback.TextCallbackHandler;
 import com.sun.security.auth.module.Krb5LoginModule;
 
@@ -339,19 +339,21 @@ final class GSSAPISASLBindRequestImpl extends AbstractSASLBindRequest<GSSAPISASL
     }
 
     GSSAPISASLBindRequestImpl(final String authenticationID, final byte[] password) {
-        Validator.ensureNotNull(authenticationID, password);
+        Reject.ifNull(authenticationID);
+        Reject.ifNull(password);
         this.authenticationID = authenticationID;
         this.password = password;
     }
 
     GSSAPISASLBindRequestImpl(final Subject subject) {
-        Validator.ensureNotNull(subject);
+        Reject.ifNull(subject);
         this.subject = subject;
     }
 
     @Override
     public GSSAPISASLBindRequest addAdditionalAuthParam(final String name, final String value) {
-        Validator.ensureNotNull(name, value);
+        Reject.ifNull(name);
+        Reject.ifNull(value);
         additionalAuthParams.put(name, value);
         return this;
     }
@@ -359,7 +361,7 @@ final class GSSAPISASLBindRequestImpl extends AbstractSASLBindRequest<GSSAPISASL
     @Override
     public GSSAPISASLBindRequest addQOP(final String... qopValues) {
         for (final String qopValue : qopValues) {
-            this.qopValues.add(Validator.ensureNotNull(qopValue));
+            this.qopValues.add(Reject.checkNotNull(qopValue));
         }
         return this;
     }
@@ -431,7 +433,7 @@ final class GSSAPISASLBindRequestImpl extends AbstractSASLBindRequest<GSSAPISASL
 
     @Override
     public GSSAPISASLBindRequest setAuthenticationID(final String authenticationID) {
-        Validator.ensureNotNull(authenticationID);
+        Reject.ifNull(authenticationID);
         this.authenticationID = authenticationID;
         return this;
     }
@@ -462,14 +464,14 @@ final class GSSAPISASLBindRequestImpl extends AbstractSASLBindRequest<GSSAPISASL
 
     @Override
     public GSSAPISASLBindRequest setPassword(final byte[] password) {
-        Validator.ensureNotNull(password);
+        Reject.ifNull(password);
         this.password = password;
         return this;
     }
 
     @Override
     public GSSAPISASLBindRequest setPassword(final char[] password) {
-        Validator.ensureNotNull(password);
+        Reject.ifNull(password);
         this.password = StaticUtils.getBytes(password);
         return this;
     }

@@ -30,7 +30,7 @@ package org.forgerock.opendj.ldap;
 import java.util.Collection;
 import java.util.Map;
 
-import com.forgerock.opendj.util.Validator;
+import org.forgerock.util.Reject;
 
 /**
  * Abstract implementation for {@code Map} based entries.
@@ -157,7 +157,7 @@ abstract class AbstractMapEntry extends AbstractEntry {
      */
     @Override
     public final Entry setName(final DN dn) {
-        Validator.ensureNotNull(dn);
+        Reject.ifNull(dn);
         this.name = dn;
         return this;
     }

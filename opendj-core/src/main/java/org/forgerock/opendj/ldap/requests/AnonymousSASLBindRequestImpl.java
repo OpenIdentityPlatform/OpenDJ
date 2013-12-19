@@ -29,7 +29,7 @@ package org.forgerock.opendj.ldap.requests;
 
 import org.forgerock.opendj.ldap.ByteString;
 
-import com.forgerock.opendj.util.Validator;
+import org.forgerock.util.Reject;
 
 /**
  * Anonymous SASL bind request implementation.
@@ -52,7 +52,7 @@ final class AnonymousSASLBindRequestImpl extends AbstractSASLBindRequest<Anonymo
     }
 
     AnonymousSASLBindRequestImpl(final String traceString) {
-        Validator.ensureNotNull(traceString);
+        Reject.ifNull(traceString);
         this.traceString = traceString;
     }
 
@@ -73,7 +73,7 @@ final class AnonymousSASLBindRequestImpl extends AbstractSASLBindRequest<Anonymo
 
     @Override
     public AnonymousSASLBindRequest setTraceString(final String traceString) {
-        Validator.ensureNotNull(traceString);
+        Reject.ifNull(traceString);
         this.traceString = traceString;
         return this;
     }

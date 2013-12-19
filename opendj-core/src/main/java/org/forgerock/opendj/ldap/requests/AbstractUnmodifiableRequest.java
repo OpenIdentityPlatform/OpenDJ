@@ -37,9 +37,9 @@ import org.forgerock.opendj.ldap.Functions;
 import org.forgerock.opendj.ldap.controls.Control;
 import org.forgerock.opendj.ldap.controls.ControlDecoder;
 import org.forgerock.opendj.ldap.controls.GenericControl;
+import org.forgerock.util.Reject;
 
 import com.forgerock.opendj.util.Collections2;
-import com.forgerock.opendj.util.Validator;
 
 /**
  * Unmodifiable request implementation.
@@ -68,7 +68,8 @@ abstract class AbstractUnmodifiableRequest<R extends Request> implements Request
     @Override
     public final <C extends Control> C getControl(final ControlDecoder<C> decoder,
             final DecodeOptions options) throws DecodeException {
-        Validator.ensureNotNull(decoder, options);
+        Reject.ifNull(decoder);
+        Reject.ifNull(options);
 
         final List<Control> controls = impl.getControls();
         final Control control = AbstractRequestImpl.getControl(controls, decoder.getOID());

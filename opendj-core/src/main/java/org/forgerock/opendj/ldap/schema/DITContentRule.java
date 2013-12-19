@@ -37,8 +37,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
-
-import com.forgerock.opendj.util.Validator;
+import org.forgerock.util.Reject;
 
 /**
  * This class defines a DIT content rule, which defines the set of allowed,
@@ -83,9 +82,12 @@ public final class DITContentRule extends SchemaElement {
             final Map<String, List<String>> extraProperties, final String definition) {
         super(description, extraProperties, definition);
 
-        Validator.ensureNotNull(structuralClassOID, names);
-        Validator.ensureNotNull(auxiliaryClassOIDs, optionalAttributeOIDs, prohibitedAttributeOIDs,
-                requiredAttributeOIDs);
+        Reject.ifNull(structuralClassOID);
+        Reject.ifNull(names);
+        Reject.ifNull(auxiliaryClassOIDs);
+        Reject.ifNull(optionalAttributeOIDs);
+        Reject.ifNull(prohibitedAttributeOIDs);
+        Reject.ifNull(requiredAttributeOIDs);
         this.names = names;
         this.isObsolete = obsolete;
         this.structuralClassOID = structuralClassOID;

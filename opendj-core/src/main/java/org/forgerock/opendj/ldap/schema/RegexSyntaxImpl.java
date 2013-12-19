@@ -38,7 +38,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.opendj.ldap.ByteSequence;
 
-import com.forgerock.opendj.util.Validator;
+import org.forgerock.util.Reject;
 
 /**
  * This class provides a regex mechanism where a new syntax and its
@@ -50,7 +50,7 @@ final class RegexSyntaxImpl extends AbstractSyntaxImpl {
     private final Pattern pattern;
 
     RegexSyntaxImpl(final Pattern pattern) {
-        Validator.ensureNotNull(pattern);
+        Reject.ifNull(pattern);
         this.pattern = pattern;
     }
 

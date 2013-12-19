@@ -29,7 +29,7 @@ package org.forgerock.opendj.ldap;
 
 import org.forgerock.opendj.ldap.schema.Schema;
 
-import com.forgerock.opendj.util.Validator;
+import org.forgerock.util.Reject;
 
 /**
  * Decode options allow applications to control how requests and responses are
@@ -136,7 +136,7 @@ public final class DecodeOptions {
      *             If {@code factory} was {@code null}.
      */
     public final DecodeOptions setAttributeFactory(final AttributeFactory factory) {
-        Validator.ensureNotNull(factory);
+        Reject.ifNull(factory);
         this.attributeFactory = factory;
         return this;
     }
@@ -153,7 +153,7 @@ public final class DecodeOptions {
      *             If {@code factory} was {@code null}.
      */
     public final DecodeOptions setEntryFactory(final EntryFactory factory) {
-        Validator.ensureNotNull(factory);
+        Reject.ifNull(factory);
         this.entryFactory = factory;
         return this;
     }
@@ -171,7 +171,7 @@ public final class DecodeOptions {
      *             If {@code schema} was {@code null}.
      */
     public final DecodeOptions setSchema(final Schema schema) {
-        Validator.ensureNotNull(schema);
+        Reject.ifNull(schema);
         this.schemaResolver = new FixedSchemaResolver(schema);
         return this;
     }
@@ -189,7 +189,7 @@ public final class DecodeOptions {
      *             If {@code resolver} was {@code null}.
      */
     public final DecodeOptions setSchemaResolver(final SchemaResolver resolver) {
-        Validator.ensureNotNull(resolver);
+        Reject.ifNull(resolver);
         this.schemaResolver = resolver;
         return this;
     }

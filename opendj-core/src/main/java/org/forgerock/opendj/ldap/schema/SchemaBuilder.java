@@ -75,7 +75,7 @@ import com.forgerock.opendj.util.FutureResultTransformer;
 import com.forgerock.opendj.util.RecursiveFutureResult;
 import com.forgerock.opendj.util.StaticUtils;
 import com.forgerock.opendj.util.SubstringReader;
-import com.forgerock.opendj.util.Validator;
+import org.forgerock.util.Reject;
 
 /**
  * Schema builders should be used for incremental construction of new schemas.
@@ -231,7 +231,7 @@ public final class SchemaBuilder {
      *             If {@code definition} was {@code null}.
      */
     public SchemaBuilder addAttributeType(final String definition, final boolean overwrite) {
-        Validator.ensureNotNull(definition);
+        Reject.ifNull(definition);
 
         lazyInitBuilder();
 
@@ -532,7 +532,7 @@ public final class SchemaBuilder {
      *             If {@code definition} was {@code null}.
      */
     public SchemaBuilder addDITContentRule(final String definition, final boolean overwrite) {
-        Validator.ensureNotNull(definition);
+        Reject.ifNull(definition);
 
         lazyInitBuilder();
 
@@ -762,7 +762,7 @@ public final class SchemaBuilder {
      *             If {@code definition} was {@code null}.
      */
     public SchemaBuilder addDITStructureRule(final String definition, final boolean overwrite) {
-        Validator.ensureNotNull(definition);
+        Reject.ifNull(definition);
 
         lazyInitBuilder();
 
@@ -892,7 +892,7 @@ public final class SchemaBuilder {
      */
     public SchemaBuilder addEnumerationSyntax(final String oid, final String description,
             final boolean overwrite, final String... enumerations) {
-        Validator.ensureNotNull((Object) enumerations);
+        Reject.ifNull((Object) enumerations);
 
         lazyInitBuilder();
 
@@ -933,7 +933,7 @@ public final class SchemaBuilder {
      *             If {@code definition} was {@code null}.
      */
     public SchemaBuilder addMatchingRule(final String definition, final boolean overwrite) {
-        Validator.ensureNotNull(definition);
+        Reject.ifNull(definition);
 
         lazyInitBuilder();
 
@@ -1054,7 +1054,7 @@ public final class SchemaBuilder {
      *             If {@code definition} was {@code null}.
      */
     public SchemaBuilder addMatchingRuleUse(final String definition, final boolean overwrite) {
-        Validator.ensureNotNull(definition);
+        Reject.ifNull(definition);
 
         lazyInitBuilder();
 
@@ -1237,7 +1237,7 @@ public final class SchemaBuilder {
      *             If {@code definition} was {@code null}.
      */
     public SchemaBuilder addNameForm(final String definition, final boolean overwrite) {
-        Validator.ensureNotNull(definition);
+        Reject.ifNull(definition);
 
         lazyInitBuilder();
 
@@ -1488,7 +1488,7 @@ public final class SchemaBuilder {
      *             If {@code definition} was {@code null}.
      */
     public SchemaBuilder addObjectClass(final String definition, final boolean overwrite) {
-        Validator.ensureNotNull(definition);
+        Reject.ifNull(definition);
 
         lazyInitBuilder();
 
@@ -1696,7 +1696,7 @@ public final class SchemaBuilder {
      */
     public SchemaBuilder addPatternSyntax(final String oid, final String description,
             final Pattern pattern, final boolean overwrite) {
-        Validator.ensureNotNull(pattern);
+        Reject.ifNull(pattern);
 
         lazyInitBuilder();
 
@@ -1756,7 +1756,7 @@ public final class SchemaBuilder {
      *             If {@code entry} was {@code null}.
      */
     public SchemaBuilder addSchema(final Entry entry, final boolean overwrite) {
-        Validator.ensureNotNull(entry);
+        Reject.ifNull(entry);
 
         lazyInitBuilder();
 
@@ -1868,7 +1868,7 @@ public final class SchemaBuilder {
      *             If {@code schema} was {@code null}.
      */
     public SchemaBuilder addSchema(final Schema schema, final boolean overwrite) {
-        Validator.ensureNotNull(schema);
+        Reject.ifNull(schema);
 
         lazyInitBuilder();
 
@@ -2048,7 +2048,7 @@ public final class SchemaBuilder {
      */
     public SchemaBuilder addSubstitutionSyntax(final String oid, final String description,
             final String substituteSyntax, final boolean overwrite) {
-        Validator.ensureNotNull(substituteSyntax);
+        Reject.ifNull(substituteSyntax);
 
         lazyInitBuilder();
 
@@ -2075,7 +2075,7 @@ public final class SchemaBuilder {
      *             If {@code definition} was {@code null}.
      */
     public SchemaBuilder addSyntax(final String definition, final boolean overwrite) {
-        Validator.ensureNotNull(definition);
+        Reject.ifNull(definition);
 
         lazyInitBuilder();
 

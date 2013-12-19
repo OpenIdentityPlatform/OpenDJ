@@ -48,8 +48,7 @@ import javax.net.ssl.X509TrustManager;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
-
-import com.forgerock.opendj.util.Validator;
+import org.forgerock.util.Reject;
 
 /**
  * A trust manager which prompts the user for the length of time that they would
@@ -123,7 +122,8 @@ final class PromptingTrustManager implements X509TrustManager {
     PromptingTrustManager(final ConsoleApplication app, final String acceptedStorePath,
             final X509TrustManager sourceTrustManager) throws KeyStoreException, IOException,
             NoSuchAlgorithmException, CertificateException {
-        Validator.ensureNotNull(app, acceptedStorePath);
+        Reject.ifNull(app);
+        Reject.ifNull(acceptedStorePath);
         this.app = app;
         this.nestedTrustManager = sourceTrustManager;
         inMemoryTrustStore = KeyStore.getInstance(KeyStore.getDefaultType());

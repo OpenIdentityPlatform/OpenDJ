@@ -53,7 +53,7 @@ import org.forgerock.opendj.ldap.spi.LDAPFutureResultImpl;
 import org.forgerock.opendj.ldap.spi.LDAPSearchFutureResultImpl;
 
 import com.forgerock.opendj.util.CompletedFutureResult;
-import com.forgerock.opendj.util.Validator;
+import org.forgerock.util.Reject;
 
 /**
  * This class defines a pseudo-connection object that can be used for performing
@@ -140,7 +140,7 @@ final class InternalConnection extends AbstractAsynchronousConnection {
      */
     @Override
     public void addConnectionEventListener(final ConnectionEventListener listener) {
-        Validator.ensureNotNull(listener);
+        Reject.ifNull(listener);
         listeners.add(listener);
     }
 
@@ -267,7 +267,7 @@ final class InternalConnection extends AbstractAsynchronousConnection {
      */
     @Override
     public void removeConnectionEventListener(final ConnectionEventListener listener) {
-        Validator.ensureNotNull(listener);
+        Reject.ifNull(listener);
         listeners.remove(listener);
     }
 

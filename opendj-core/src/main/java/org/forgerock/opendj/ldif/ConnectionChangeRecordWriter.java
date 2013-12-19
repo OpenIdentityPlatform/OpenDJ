@@ -37,7 +37,7 @@ import org.forgerock.opendj.ldap.requests.DeleteRequest;
 import org.forgerock.opendj.ldap.requests.ModifyDNRequest;
 import org.forgerock.opendj.ldap.requests.ModifyRequest;
 
-import com.forgerock.opendj.util.Validator;
+import org.forgerock.util.Reject;
 
 /**
  * A {@code ConnectionChangeRecordWriter} is a bridge from {@code Connection}s
@@ -66,7 +66,7 @@ public final class ConnectionChangeRecordWriter implements ChangeRecordWriter {
      *             If {@code connection} was {@code null}.
      */
     public ConnectionChangeRecordWriter(final Connection connection) {
-        Validator.ensureNotNull(connection);
+        Reject.ifNull(connection);
         this.connection = connection;
     }
 
@@ -102,7 +102,7 @@ public final class ConnectionChangeRecordWriter implements ChangeRecordWriter {
      */
     public ConnectionChangeRecordWriter writeChangeRecord(final AddRequest change)
             throws ErrorResultIOException {
-        Validator.ensureNotNull(change);
+        Reject.ifNull(change);
         try {
             connection.add(change);
         } catch (final ErrorResultException e) {
@@ -126,7 +126,7 @@ public final class ConnectionChangeRecordWriter implements ChangeRecordWriter {
      */
     public ConnectionChangeRecordWriter writeChangeRecord(final ChangeRecord change)
             throws ErrorResultIOException {
-        Validator.ensureNotNull(change);
+        Reject.ifNull(change);
 
         final IOException e = change.accept(ChangeRecordVisitorWriter.getInstance(), this);
         try {
@@ -157,7 +157,7 @@ public final class ConnectionChangeRecordWriter implements ChangeRecordWriter {
      */
     public ConnectionChangeRecordWriter writeChangeRecord(final DeleteRequest change)
             throws ErrorResultIOException {
-        Validator.ensureNotNull(change);
+        Reject.ifNull(change);
         try {
             connection.delete(change);
         } catch (final ErrorResultException e) {
@@ -181,7 +181,7 @@ public final class ConnectionChangeRecordWriter implements ChangeRecordWriter {
      */
     public ConnectionChangeRecordWriter writeChangeRecord(final ModifyDNRequest change)
             throws ErrorResultIOException {
-        Validator.ensureNotNull(change);
+        Reject.ifNull(change);
         try {
             connection.modifyDN(change);
         } catch (final ErrorResultException e) {
@@ -205,7 +205,7 @@ public final class ConnectionChangeRecordWriter implements ChangeRecordWriter {
      */
     public ConnectionChangeRecordWriter writeChangeRecord(final ModifyRequest change)
             throws ErrorResultIOException {
-        Validator.ensureNotNull(change);
+        Reject.ifNull(change);
         try {
             connection.modify(change);
         } catch (final ErrorResultException e) {
@@ -225,7 +225,7 @@ public final class ConnectionChangeRecordWriter implements ChangeRecordWriter {
      *             If {@code comment} was {@code null}.
      */
     public ConnectionChangeRecordWriter writeComment(final CharSequence comment) {
-        Validator.ensureNotNull(comment);
+        Reject.ifNull(comment);
 
         // Do nothing.
         return this;

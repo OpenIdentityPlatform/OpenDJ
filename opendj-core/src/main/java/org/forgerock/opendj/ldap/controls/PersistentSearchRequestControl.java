@@ -49,7 +49,7 @@ import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.DecodeOptions;
 
 import com.forgerock.opendj.util.StaticUtils;
-import com.forgerock.opendj.util.Validator;
+import org.forgerock.util.Reject;
 
 /**
  * The persistent search request control as defined in
@@ -114,7 +114,7 @@ public final class PersistentSearchRequestControl implements Control {
 
                 public PersistentSearchRequestControl decodeControl(final Control control,
                         final DecodeOptions options) throws DecodeException {
-                    Validator.ensureNotNull(control);
+                    Reject.ifNull(control);
 
                     if (control instanceof PersistentSearchRequestControl) {
                         return (PersistentSearchRequestControl) control;
@@ -214,7 +214,7 @@ public final class PersistentSearchRequestControl implements Control {
     public static PersistentSearchRequestControl newControl(final boolean isCritical,
             final boolean changesOnly, final boolean returnECs,
             final Collection<PersistentSearchChangeType> changeTypes) {
-        Validator.ensureNotNull(changeTypes);
+        Reject.ifNull(changeTypes);
 
         final Set<PersistentSearchChangeType> copyOfChangeTypes =
                 EnumSet.noneOf(PersistentSearchChangeType.class);
@@ -250,7 +250,7 @@ public final class PersistentSearchRequestControl implements Control {
     public static PersistentSearchRequestControl newControl(final boolean isCritical,
             final boolean changesOnly, final boolean returnECs,
             final PersistentSearchChangeType... changeTypes) {
-        Validator.ensureNotNull((Object) changeTypes);
+        Reject.ifNull((Object) changeTypes);
 
         return newControl(isCritical, changesOnly, returnECs, Arrays.asList(changeTypes));
     }

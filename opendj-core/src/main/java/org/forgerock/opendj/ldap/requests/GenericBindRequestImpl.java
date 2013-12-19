@@ -32,7 +32,7 @@ import static com.forgerock.opendj.util.StaticUtils.copyOfBytes;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ErrorResultException;
 
-import com.forgerock.opendj.util.Validator;
+import org.forgerock.util.Reject;
 
 /**
  * Generic bind request implementation.
@@ -103,14 +103,14 @@ final class GenericBindRequestImpl extends AbstractBindRequest<GenericBindReques
 
     @Override
     public GenericBindRequest setAuthenticationValue(final byte[] bytes) {
-        Validator.ensureNotNull(bytes);
+        Reject.ifNull(bytes);
         this.authenticationValue = bytes;
         return this;
     }
 
     @Override
     public GenericBindRequest setName(final String name) {
-        Validator.ensureNotNull(name);
+        Reject.ifNull(name);
         this.name = name;
         return this;
     }

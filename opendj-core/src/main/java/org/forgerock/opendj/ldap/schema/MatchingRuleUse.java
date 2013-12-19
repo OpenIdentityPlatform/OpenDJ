@@ -37,8 +37,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
-
-import com.forgerock.opendj.util.Validator;
+import org.forgerock.util.Reject;
 
 /**
  * This class defines a data structure for storing and interacting with a
@@ -68,7 +67,9 @@ public final class MatchingRuleUse extends SchemaElement {
             final Map<String, List<String>> extraProperties, final String definition) {
         super(description, extraProperties, definition);
 
-        Validator.ensureNotNull(oid, names, attributeOIDs);
+        Reject.ifNull(oid);
+        Reject.ifNull(names);
+        Reject.ifNull(attributeOIDs);
         this.oid = oid;
         this.names = names;
         this.isObsolete = obsolete;

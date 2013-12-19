@@ -36,11 +36,10 @@ import java.util.LinkedList;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.util.Reject;
 import org.opends.server.admin.DecodingException;
 import org.opends.server.admin.ManagedObjectDefinition;
 import org.opends.server.admin.PropertyException;
-
-import com.forgerock.opendj.util.Validator;
 
 
 
@@ -60,8 +59,8 @@ public class ManagedObjectDecodingException extends DecodingException {
   // Create the message.
   private static LocalizableMessage createMessage(ManagedObject<?> partialManagedObject,
       Collection<PropertyException> causes) {
-    Validator.ensureNotNull(causes);
-    Validator.ensureTrue(!causes.isEmpty(), "causes should not be empty");
+    Reject.ifNull(causes);
+    Reject.ifFalse(!causes.isEmpty(), "causes should not be empty");
 
     ManagedObjectDefinition<?, ?> d = partialManagedObject
         .getManagedObjectDefinition();

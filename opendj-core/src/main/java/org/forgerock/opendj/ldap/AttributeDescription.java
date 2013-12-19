@@ -45,10 +45,10 @@ import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldap.schema.UnknownSchemaElementException;
+import org.forgerock.util.Reject;
 
 import com.forgerock.opendj.util.ASCIICharProp;
 import com.forgerock.opendj.util.Iterators;
-import com.forgerock.opendj.util.Validator;
 
 /**
  * An attribute description as defined in RFC 4512 section 2.5. Attribute
@@ -388,7 +388,7 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
      *             {@code null}.
      */
     public AttributeDescription withOption(final String option) {
-        Validator.ensureNotNull(option);
+        Reject.ifNull(option);
 
         final String normalizedOption = toLowerCase(option);
         if (pimpl.hasOption(normalizedOption)) {
@@ -477,7 +477,7 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
      *             {@code null}.
      */
     public AttributeDescription withoutOption(final String option) {
-        Validator.ensureNotNull(option);
+        Reject.ifNull(option);
 
         final String normalizedOption = toLowerCase(option);
         if (!pimpl.hasOption(normalizedOption)) {
@@ -555,7 +555,7 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
      *             If {@code attributeType} was {@code null}.
      */
     public static AttributeDescription create(final AttributeType attributeType) {
-        Validator.ensureNotNull(attributeType);
+        Reject.ifNull(attributeType);
 
         // Use object identity in case attribute type does not come from
         // core schema.
@@ -580,7 +580,8 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
      *             If {@code attributeType} or {@code option} was {@code null}.
      */
     public static AttributeDescription create(final AttributeType attributeType, final String option) {
-        Validator.ensureNotNull(attributeType, option);
+        Reject.ifNull(attributeType);
+        Reject.ifNull(option);
 
         final String oid = attributeType.getNameOrOID();
         final StringBuilder builder = new StringBuilder(oid.length() + option.length() + 1);
@@ -608,7 +609,8 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
      */
     public static AttributeDescription create(final AttributeType attributeType,
             final String... options) {
-        Validator.ensureNotNull(attributeType, options);
+        Reject.ifNull(attributeType);
+        Reject.ifNull(options);
 
         switch (options.length) {
         case 0:
@@ -695,7 +697,8 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
     @SuppressWarnings("serial")
     public static AttributeDescription valueOf(final String attributeDescription,
             final Schema schema) {
-        Validator.ensureNotNull(attributeDescription, schema);
+        Reject.ifNull(attributeDescription);
+        Reject.ifNull(schema);
 
         // First look up the attribute description in the cache.
         final WeakHashMap<Schema, Map<String, AttributeDescription>> threadLocalMap = CACHE.get();

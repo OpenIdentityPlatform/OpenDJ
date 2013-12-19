@@ -28,12 +28,7 @@
 package org.forgerock.opendj.ldap;
 
 import static org.forgerock.opendj.ldap.AttributeDescription.objectClass;
-import static com.forgerock.opendj.ldap.CoreMessages.ERR_ENTRY_DUPLICATE_VALUES;
-import static com.forgerock.opendj.ldap.CoreMessages.ERR_ENTRY_INCREMENT_CANNOT_PARSE_AS_INT;
-import static com.forgerock.opendj.ldap.CoreMessages.ERR_ENTRY_INCREMENT_INVALID_VALUE_COUNT;
-import static com.forgerock.opendj.ldap.CoreMessages.ERR_ENTRY_INCREMENT_NO_SUCH_ATTRIBUTE;
 import static com.forgerock.opendj.ldap.CoreMessages.*;
-import static com.forgerock.opendj.ldap.CoreMessages.ERR_ENTRY_UNKNOWN_MODIFICATION_TYPE;
 import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
 
 import java.util.ArrayList;
@@ -53,9 +48,9 @@ import org.forgerock.opendj.ldap.schema.ObjectClassType;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldap.schema.SchemaValidationPolicy;
 import org.forgerock.opendj.ldap.schema.UnknownSchemaElementException;
+import org.forgerock.util.Reject;
 
 import com.forgerock.opendj.util.Iterables;
-import com.forgerock.opendj.util.Validator;
 
 /**
  * This class contains methods for creating and manipulating entries.
@@ -434,7 +429,8 @@ public final class Entries {
      * @see Requests#newModifyRequest(Entry, Entry)
      */
     public static ModifyRequest diffEntries(final Entry fromEntry, final Entry toEntry) {
-        Validator.ensureNotNull(fromEntry, toEntry);
+        Reject.ifNull(fromEntry);
+        Reject.ifNull(toEntry);
 
         final ModifyRequest request = Requests.newModifyRequest(fromEntry.getName());
 

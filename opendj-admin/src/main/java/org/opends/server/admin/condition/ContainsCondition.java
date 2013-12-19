@@ -28,6 +28,7 @@ package org.opends.server.admin.condition;
 import java.util.SortedSet;
 
 import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.util.Reject;
 import org.opends.server.admin.AbstractManagedObjectDefinition;
 import org.opends.server.admin.IllegalPropertyValueStringException;
 import org.opends.server.admin.PropertyDefinition;
@@ -35,8 +36,6 @@ import org.opends.server.admin.client.ManagedObject;
 import org.opends.server.admin.client.ManagementContext;
 import org.opends.server.admin.server.ServerManagedObject;
 import org.opends.server.config.ConfigException;
-
-import com.forgerock.opendj.util.Validator;
 
 /**
  * A condition which evaluates to <code>true</code> if and only if a property
@@ -112,7 +111,8 @@ public final class ContainsCondition implements Condition {
      *            The string representation of the required property value.
      */
     public ContainsCondition(String propertyName, String stringValue) {
-        Validator.ensureNotNull(propertyName, stringValue);
+        Reject.ifNull(propertyName);
+        Reject.ifNull(stringValue);
         this.propertyName = propertyName;
         this.propertyStringValue = stringValue;
     }

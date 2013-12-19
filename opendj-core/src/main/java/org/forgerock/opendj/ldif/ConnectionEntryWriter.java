@@ -32,7 +32,7 @@ import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.ErrorResultException;
 import org.forgerock.opendj.ldap.ErrorResultIOException;
 
-import com.forgerock.opendj.util.Validator;
+import org.forgerock.util.Reject;
 
 /**
  * A {@code ConnectionEntryWriter} is a bridge from {@code Connection}s to
@@ -60,7 +60,7 @@ public final class ConnectionEntryWriter implements EntryWriter {
      *             If {@code connection} was {@code null}.
      */
     public ConnectionEntryWriter(final Connection connection) {
-        Validator.ensureNotNull(connection);
+        Reject.ifNull(connection);
         this.connection = connection;
     }
 
@@ -91,7 +91,7 @@ public final class ConnectionEntryWriter implements EntryWriter {
      *             If {@code comment} was {@code null}.
      */
     public ConnectionEntryWriter writeComment(final CharSequence comment) {
-        Validator.ensureNotNull(comment);
+        Reject.ifNull(comment);
 
         // Do nothing.
         return this;
@@ -111,7 +111,7 @@ public final class ConnectionEntryWriter implements EntryWriter {
      *             If {@code entry} was {@code null}.
      */
     public ConnectionEntryWriter writeEntry(final Entry entry) throws ErrorResultIOException {
-        Validator.ensureNotNull(entry);
+        Reject.ifNull(entry);
         try {
             connection.add(entry);
         } catch (final ErrorResultException e) {

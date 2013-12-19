@@ -25,7 +25,6 @@
  */
 package com.forgerock.opendj.util;
 
-import static com.forgerock.opendj.util.Validator.ensureNotNull;
 
 import java.text.Normalizer;
 import java.text.Normalizer.Form;
@@ -33,6 +32,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 
 import org.forgerock.opendj.ldap.ByteSequence;
+import org.forgerock.util.Reject;
 
 /**
  * This class defines the "stringprep" profile as defined in RFC 4518. It must
@@ -452,8 +452,9 @@ public final class StringPrepProfile {
      */
     public static void prepareUnicode(final StringBuilder buffer, final ByteSequence sequence,
             final boolean trim, final boolean foldCase) {
-        ensureNotNull(buffer);
-        ensureNotNull(sequence);
+        Reject.ifNull(buffer);
+        Reject.ifNull(sequence);
+
         // Optimize in the case of purely ascii characters which is the most
         // common case.
         final int length = sequence.length();

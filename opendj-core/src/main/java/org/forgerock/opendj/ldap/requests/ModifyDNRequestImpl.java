@@ -31,7 +31,7 @@ import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.RDN;
 import org.forgerock.opendj.ldif.ChangeRecordVisitor;
 
-import com.forgerock.opendj.util.Validator;
+import org.forgerock.util.Reject;
 
 /**
  * Modify DN request implementation.
@@ -89,28 +89,28 @@ final class ModifyDNRequestImpl extends AbstractRequestImpl<ModifyDNRequest> imp
 
     @Override
     public ModifyDNRequest setName(final DN dn) {
-        Validator.ensureNotNull(dn);
+        Reject.ifNull(dn);
         this.name = dn;
         return this;
     }
 
     @Override
     public ModifyDNRequest setName(final String dn) {
-        Validator.ensureNotNull(dn);
+        Reject.ifNull(dn);
         this.name = DN.valueOf(dn);
         return this;
     }
 
     @Override
     public ModifyDNRequest setNewRDN(final RDN rdn) {
-        Validator.ensureNotNull(rdn);
+        Reject.ifNull(rdn);
         this.newRDN = rdn;
         return this;
     }
 
     @Override
     public ModifyDNRequest setNewRDN(final String rdn) {
-        Validator.ensureNotNull(rdn);
+        Reject.ifNull(rdn);
         this.newRDN = RDN.valueOf(rdn);
         return this;
     }

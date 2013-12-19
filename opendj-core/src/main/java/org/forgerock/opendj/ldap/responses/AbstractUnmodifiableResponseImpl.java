@@ -37,9 +37,9 @@ import org.forgerock.opendj.ldap.Functions;
 import org.forgerock.opendj.ldap.controls.Control;
 import org.forgerock.opendj.ldap.controls.ControlDecoder;
 import org.forgerock.opendj.ldap.controls.GenericControl;
+import org.forgerock.util.Reject;
 
 import com.forgerock.opendj.util.Collections2;
-import com.forgerock.opendj.util.Validator;
 
 /**
  * Unmodifiable response implementation.
@@ -52,7 +52,7 @@ abstract class AbstractUnmodifiableResponseImpl<S extends Response> implements R
     protected final S impl;
 
     AbstractUnmodifiableResponseImpl(final S impl) {
-        Validator.ensureNotNull(impl);
+        Reject.ifNull(impl);
         this.impl = impl;
     }
 
@@ -69,7 +69,8 @@ abstract class AbstractUnmodifiableResponseImpl<S extends Response> implements R
     @Override
     public final <C extends Control> C getControl(final ControlDecoder<C> decoder,
             final DecodeOptions options) throws DecodeException {
-        Validator.ensureNotNull(decoder, options);
+        Reject.ifNull(decoder);
+        Reject.ifNull(options);
 
         final List<Control> controls = impl.getControls();
         final Control control = AbstractResponseImpl.getControl(controls, decoder.getOID());
