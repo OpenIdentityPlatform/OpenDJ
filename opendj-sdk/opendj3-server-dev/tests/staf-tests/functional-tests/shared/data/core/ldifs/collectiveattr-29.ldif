@@ -1,0 +1,8 @@
+dn: cn=Collective c-FacsimileTelephoneNumber,dc=example,dc=com
+objectClass: top
+objectClass: subentry
+objectClass: collectiveAttributeSubentry
+objectClass: extensibleObject
+cn: Collective c-FacsimileTelephoneNumber
+c-FacsimileTelephoneNumber: + 1 408 777 4444
+subtreeSpecification: {base "ou=peple", minimum 1 }

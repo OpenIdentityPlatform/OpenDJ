@@ -1,0 +1,170 @@
+'\" t
+.\"     Title: ldif-diff
+.\"    Author: 
+.\" Generator: DocBook XSL-NS Stylesheets v1.76.1 <http://docbook.sf.net/>
+.\"      Date: 03/01/2013
+.\"    Manual: Tools Reference
+.\"    Source: OpenDJ 2.5.0
+.\"  Language: English
+.\"
+.TH "LDIF\-DIFF" "1" "03/01/2013" "OpenDJ 2\&.5\&.0" "Tools Reference"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+ldif-diff \- compare small LDIF files
+.SH "SYNOPSIS"
+.HP \w'\fBldif\-diff\fR\ 'u
+\fBldif\-diff\fR {options}
+.SH "DESCRIPTION"
+.PP
+This utility can be used to compare two LDIF files and report the differences in LDIF format\&.
+.SH "OPTIONS"
+.PP
+The following options are supported\&.
+.PP
+\fB\-a, \-\-ignoreAttrs {file}\fR
+.RS 4
+File containing a list of attributes to ignore when computing the difference\&.
+.RE
+.PP
+\fB\-\-checkSchema\fR
+.RS 4
+Takes into account the syntax of the attributes as defined in the schema to make the value comparison\&. The provided LDIF files must conform to the server schema\&.
+.RE
+.PP
+\fB\-e, \-\-ignoreEntries {file}\fR
+.RS 4
+File containing a list of entries (DN) to ignore when computing the difference\&.
+.RE
+.PP
+\fB\-o, \-\-outputLDIF {file}\fR
+.RS 4
+File to which the output should be written\&.
+.RE
+.PP
+\fB\-O, \-\-overwriteExisting\fR
+.RS 4
+Any existing output file should be overwritten rather than appending to it\&.
+.RE
+.PP
+\fB\-r, \-\-useCompareResultCode\fR
+.RS 4
+Use the LDAP compare result as an exit code for reporting differences between the two LDIF files\&.
+.RE
+.PP
+\fB\-s, \-\-sourceLDIF {file}\fR
+.RS 4
+LDIF file to use as the source data\&.
+.RE
+.PP
+\fB\-S, \-\-singleValueChanges\fR
+.RS 4
+Each attribute\-level change should be written as a separate modification per attribute value rather than one modification per entry\&.
+.RE
+.PP
+\fB\-t, \-\-targetLDIF {file}\fR
+.RS 4
+LDIF file to use as the target data\&.
+.RE
+.PP
+\fB\-V, \-\-version\fR
+.RS 4
+Display version information\&.
+.RE
+.PP
+\fB\-?, \-H, \-\-help\fR
+.RS 4
+Display usage information\&.
+.RE
+.SH "EXIT CODES"
+.PP
+0
+.RS 4
+The command completed successfully\&.
+.RE
+.PP
+5
+.RS 4
+The \-r option was used, and no differences are reported\&.
+.RE
+.PP
+6
+.RS 4
+The\-r option was used, and differences are reported\&.
+.RE
+.PP
+other
+.RS 4
+An error occurred\&.
+.RE
+.SH "EXAMPLES"
+.PP
+The following example demonstrates use of the command with two small LDIF files\&.
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+$ cat /path/to/newuser\&.ldif 
+dn: uid=newuser,ou=People,dc=example,dc=com
+uid: newuser
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+objectClass: top
+cn: New User
+sn: User
+ou: People
+mail: newuser@example\&.com
+userPassword: changeme
+
+$ cat /path/to/neweruser\&.ldif 
+dn: uid=newuser,ou=People,dc=example,dc=com
+uid: newuser
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+objectClass: top
+cn: New User
+sn: User
+ou: People
+mail: newuser@example\&.com
+userPassword: secret12
+description: A new description\&.
+
+$ ldif\-diff \-s /path/to/newuser\&.ldif \-t /path/to/neweruser\&.ldif
+dn: uid=newuser,ou=People,dc=example,dc=com
+changetype: modify
+add: userPassword
+userPassword: secret12
+\-
+delete: userPassword
+userPassword: changeme
+\-
+add: description
+description: A new description\&.
+.fi
+.if n \{\
+.RE
+.\}
+.SH "COPYRIGHT"
+.br
+Copyright \(co 2011-2012 ForgeRock AS
+.br

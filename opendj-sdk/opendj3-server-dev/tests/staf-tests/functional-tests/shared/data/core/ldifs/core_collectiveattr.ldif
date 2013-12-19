@@ -1,0 +1,220 @@
+dn: dc=com
+objectClass: domain
+objectClass: top
+dc: com
+
+dn: dc=example,dc=com
+objectClass: domain
+objectClass: top
+dc: example
+
+dn: o=collectiveattr tests,dc=example,dc=com
+objectClass: top
+objectClass: organization
+o: collectiveattr tests
+
+dn: ou=People,o=collectiveattr tests,dc=example,dc=com
+objectClass: organizationalunit
+objectClass: top
+ou: People
+
+dn: ou=Asia,ou=People,o=collectiveattr tests,dc=example,dc=com
+objectClass: organizationalunit
+objectClass: top
+ou: Asia
+
+dn: ou=Europe,ou=People,o=collectiveattr tests,dc=example,dc=com
+objectClass: organizationalunit
+objectClass: top
+description: Users in Europe Region
+ou: Europe
+
+dn: ou=America,ou=People,o=collectiveattr tests,dc=example,dc=com
+objectClass: organizationalunit
+objectClass: top
+description: Users in America Region
+ou: America
+
+dn: uid=scarter,ou=Asia,ou=People,o=collectiveattr tests,dc=example,dc=com
+objectClass: person
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: top
+givenName: Sam
+uid: scarter
+cn: Sam Carter
+telephoneNumber: +1 408 555 4798
+sn: Carter
+userPassword: sprain
+roomNumber: 4612
+mail: scarter@example.com
+l: Sunnyvale
+ou: Asia
+ou: People
+facsimileTelephoneNumber: +1 408 555 9751
+
+dn: uid=tmorris,ou=Asia,ou=People,o=collectiveattr tests,dc=example,dc=com
+objectClass: person
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: top
+givenName: Ted
+uid: tmorris
+cn: Ted Morris
+telephoneNumber: +1 408 555 9187
+sn: Morris
+userPassword: irrefutable
+roomNumber: 4117
+mail: tmorris@example.com
+l: Santa Clara
+ou: Asia
+ou: People
+facsimileTelephoneNumber: +1 408 555 8473
+
+dn: uid=kvaughan,ou=Europe,ou=People,o=collectiveattr tests,dc=example,dc=com
+objectClass: person
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: top
+givenName: Kirsten
+uid: kvaughan
+cn: Kirsten Vaughan
+telephoneNumber: +1 408 555 5625
+sn: Vaughan
+userPassword: bribery
+roomNumber: 2871
+mail: kvaughan@example.com
+l: Sunnyvale
+ou: Europe
+ou: People
+
+dn: uid=abergin,ou=Europe,ou=People,o=collectiveattr tests,dc=example,dc=com
+objectClass: person
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: top
+givenName: Andy
+uid: abergin
+cn: Andy Bergin
+telephoneNumber: +1 408 555 8585
+sn: Bergin
+userPassword: inflict
+roomNumber: 3472
+mail: abergin@example.com
+l: Cupertino
+ou: Europe
+ou: People
+
+dn: uid=dmiller,ou=America,ou=People,o=collectiveattr tests,dc=example,dc=com
+objectClass: person
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: top
+givenName: David
+uid: dmiller
+cn: David Miller
+telephoneNumber: +1 408 555 9423
+sn: Miller
+userPassword: gosling
+roomNumber: 4135
+mail: dmiller@example.com
+l: Sunnyvale
+ou: America
+ou: People
+facsimileTelephoneNumber: +1 408 555 0111
+employeeType: MGT-1
+preferredLanguage: fr
+
+dn: uid=gfarmer,ou=America,ou=People,o=collectiveattr tests,dc=example,dc=com
+objectClass: person
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: top
+givenName: Gern
+uid: gfarmer
+cn: Gern Farmer
+telephoneNumber: +1 408 555 6201
+sn: Farmer
+userPassword: ruling
+roomNumber: 1269
+mail: gfarmer@example.com
+l: Cupertino
+ou: America
+ou: People
+facsimileTelephoneNumber: +1 408 555 8473
+
+dn: ou=North,ou=America,ou=People,o=collectiveattr tests,dc=example,dc=com
+objectClass: organizationalunit
+objectClass: top
+description: Users in North America Region
+ou: North
+
+dn: ou=South,ou=America,ou=People,o=collectiveattr tests,dc=example,dc=com
+objectClass: organizationalunit
+objectClass: top
+description: Users in South America Region
+ou: South
+
+dn: uid=kwinters,ou=North,ou=America,ou=People,o=collectiveattr tests,dc=example,dc=com
+objectClass: person
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: top
+givenName: Kelly
+uid: kwinters
+cn: Kelly Winters
+telephoneNumber: +1 408 555 9069
+sn: Winters
+userPassword: forsook
+roomNumber: 4178
+l: Santa Clara
+mail: kwinters@example.com
+facsimileTelephoneNumber: +1 408 555 1992
+
+dn: uid=trigden,ou=North,ou=America,ou=People,o=collectiveattr tests,dc=example,dc=com
+objectClass: person
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: top
+givenName: Torrey
+uid: trigden
+cn: Torrey Rigden
+telephoneNumber: +1 408 555 9280
+sn: Rigden
+userPassword: sensitive
+roomNumber: 3584
+l: Sunnyvale
+mail: trigden@example.com
+facsimileTelephoneNumber: +1 408 555 8473
+
+dn: uid=cschmith,ou=South,ou=America,ou=People,o=collectiveattr tests,dc=example,dc=com
+objectClass: person
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: top
+givenName: Chris
+uid: cschmith
+cn: Chris Schmith
+telephoneNumber: +1 408 555 8011
+sn: Schmith
+userPassword: hypotenuse
+roomNumber: 4016
+l: Sao Paolo
+mail: cschmith@example.com
+facsimileTelephoneNumber: +1 408 555 4774
+
+dn: uid=jwallace,ou=South,ou=America,ou=People,o=collectiveattr tests,dc=example,dc=com
+objectClass: person
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: top
+givenName: Judy
+uid: jwallace
+cn: Judy Wallace
+telephoneNumber: +1 408 555 0319
+sn: Wallace
+userPassword: linear
+roomNumber: 1033
+l: Lima
+mail: jwallace@example.com
+facsimileTelephoneNumber: +1 408 555 8473

@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at
+  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2011-2013 ForgeRock AS
+  !    
+-->
+<chapter xml:id='chap-whats-new'
+  xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+  xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+  xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
+  xmlns:xlink='http://www.w3.org/1999/xlink'
+  xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+  <title>What's New in OpenDJ <?eval ${docTargetVersion}?></title>
+
+  <para>Compared to the OpenDJ <?eval ${docPreviousVersion}?> release, OpenDJ
+  <?eval ${docTargetVersion}?> provides the following new features.</para>
+  
+  <itemizedlist>
+
+    <listitem>
+     <para>TODO</para>
+    </listitem>
+
+    <listitem>
+     <para>Debian and RPM packages now provide service management scripts so
+     that you can manage the server with the <command>service</command>, and
+     include documentation files under <filename>/usr/share/doc/opendj*</filename>
+     (<link xlink:show="new"
+     xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1068"
+     >OPENDJ-1068</link>, <link xlink:show="new"
+     xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1114"
+     >OPENDJ-1114</link>).</para>
+    </listitem>
+
+    <listitem>
+     <para>OpenDJ REST LDAP gateway now supports SSL and StartTLS connections
+     to directory servers (<link xlink:show="new"
+     xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1033"
+     >OPENDJ-1033</link>).</para>
+    </listitem>
+
+  </itemizedlist>
+</chapter>

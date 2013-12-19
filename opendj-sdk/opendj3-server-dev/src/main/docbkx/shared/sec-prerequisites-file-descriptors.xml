@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at
+  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2011-2013 ForgeRock AS
+  !
+-->
+<section xml:id="prerequisites-file-descriptors"
+         xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+         xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+         xsi:schemaLocation='http://docbook.org/ns/docbook
+                             http://docbook.org/xml/5.0/xsd/docbook.xsd'>
+ <title>Maximum Open Files</title>
+
+ <indexterm>
+  <primary>File descriptors</primary>
+  <secondary>Requirements</secondary>
+ </indexterm>
+
+ <para>
+  OpenDJ needs to be able to open many file descriptors,
+  especially when handling thousands of client connections.
+
+  Linux systems in particular often set a limit of 1024 per user,
+  which is too low to handle many client connections to OpenDJ.
+ </para>
+
+ <para>
+  When setting up OpenDJ for production use,
+  make sure OpenDJ can use at least 64K (65536) file descriptors.
+
+  For example when running OpenDJ as user <literal>opendj</literal>
+  on a Linux system that uses
+  <filename>/etc/security/limits.conf</filename> to set user level limits,
+  you can set soft and hard limits by adding these lines to the file:
+ </para>
+
+ <programlisting language="none">opendj soft nofile 65536
+opendj hard nofile 131072</programlisting>
+
+ <para>
+  The example above assumes the system has
+  enough file descriptors available overall.
+
+  You can check the Linux system overall maximum as follows.
+ </para>
+
+ <screen>$ cat /proc/sys/fs/file-max
+204252</screen>
+</section>

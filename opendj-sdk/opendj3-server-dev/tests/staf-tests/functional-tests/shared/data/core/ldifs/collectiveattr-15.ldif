@@ -1,0 +1,17 @@
+dn: cn=Collective PostalAddress,dc=example,dc=com
+objectClass: top
+objectClass: subentry
+objectClass: collectiveAttributeSubentry
+objectClass: extensibleObject
+cn: Collective PostalAddress
+PostalAddress;collective: Example Com$ 40388 Sixth Street$Detroit, WA  87003
+subtreeSpecification: {base "ou=people,o=collectiveattr tests", minimum 1}
+
+dn: cn=Collective c-PostalAddress,dc=example,dc=com
+objectClass: top
+objectClass: subentry
+objectClass: collectiveAttributeSubentry
+objectClass: extensibleObject
+cn: Collective c-PostalAddress
+c-PostalAddress: Example Com$30754 College Street$El Paso, VT  70898
+subtreeSpecification: {base "ou=people,o=collectiveattr tests", minimum 1}

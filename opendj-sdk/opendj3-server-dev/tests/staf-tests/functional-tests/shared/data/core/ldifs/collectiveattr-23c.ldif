@@ -1,0 +1,8 @@
+dn: cn=Collective c-o,dc=example,dc=com
+objectClass: top
+objectClass: subentry
+objectClass: collectiveAttributeSubentry
+objectClass: extensibleObject
+cn: Collective c-o
+c-o: Development
+subtreeSpecification: {base "ou=people,o=collectiveattr tests", minimum 2}

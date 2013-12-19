@@ -1,0 +1,274 @@
+'\" t
+.\"     Title: export-ldif
+.\"    Author: 
+.\" Generator: DocBook XSL-NS Stylesheets v1.76.1 <http://docbook.sf.net/>
+.\"      Date: 03/21/2012
+.\"    Manual: Tools Reference
+.\"    Source: OpenDJ 2.5.0
+.\"  Language: English
+.\"
+.TH "EXPORT\-LDIF" "1" "03/21/2012" "OpenDJ 2\&.5\&.0" "Tools Reference"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+export-ldif \- export OpenDJ directory data in LDIF
+.SH "SYNOPSIS"
+.HP \w'\fBexport\-ldif\fR\ 'u
+\fBexport\-ldif\fR {options}
+.SH "DESCRIPTION"
+.PP
+This utility can be used to export data from a directory server backend in LDIF form\&.
+.SH "OPTIONS"
+.PP
+The following options are supported\&.
+.PP
+\fB\-a, \-\-appendToLDIF\fR
+.RS 4
+Append an existing LDIF file rather than overwriting it\&.
+.RE
+.PP
+\fB\-b, \-\-includeBranch {branchDN}\fR
+.RS 4
+Base DN of a branch to include in the LDIF export\&.
+.RE
+.PP
+\fB\-B, \-\-excludeBranch {branchDN}\fR
+.RS 4
+Base DN of a branch to exclude from the LDIF export\&.
+.RE
+.PP
+\fB\-c, \-\-compress\fR
+.RS 4
+Compress the LDIF data as it is exported\&.
+.RE
+.PP
+\fB\-e, \-\-excludeAttribute {attribute}\fR
+.RS 4
+Attribute to exclude from the LDIF export\&.
+.RE
+.PP
+\fB\-E, \-\-excludeFilter {filter}\fR
+.RS 4
+Filter to identify entries to exclude from the LDIF export\&.
+.RE
+.PP
+\fB\-i, \-\-includeAttribute {attribute}\fR
+.RS 4
+Attribute to include in the LDIF export\&.
+.RE
+.PP
+\fB\-I, \-\-includeFilter {filter}\fR
+.RS 4
+Filter to identify entries to include in the LDIF export\&.
+.RE
+.PP
+\fB\-l, \-\-ldifFile {ldifFile}\fR
+.RS 4
+Path to the LDIF file to be written\&.
+.RE
+.PP
+\fB\-n, \-\-backendID {backendName}\fR
+.RS 4
+Backend ID for the backend to export\&.
+.RE
+.PP
+\fB\-O, \-\-excludeOperational\fR
+.RS 4
+Exclude operational attributes from the LDIF export\&.
+.RE
+.PP
+\fB\-\-wrapColumn {wrapColumn}\fR
+.RS 4
+Column at which to wrap long lines (0 for no wrapping)\&.
+.sp
+Default value: 0
+.RE
+.SS "Task Backend Connection Options"
+.PP
+\fB\-\-connectTimeout {timeout}\fR
+.RS 4
+Maximum length of time (in milliseconds) that can be taken to establish a connection\&. Use \*(Aq0\*(Aq to specify no time out\&.
+.sp
+Default value: 30000
+.RE
+.PP
+\fB\-D, \-\-bindDN {bindDN}\fR
+.RS 4
+DN to use to bind to the server
+.sp
+Default value: cn=Directory Manager
+.RE
+.PP
+\fB\-h, \-\-hostname {host}\fR
+.RS 4
+Directory server hostname or IP address
+.sp
+Default value: localhost\&.localdomain
+.RE
+.PP
+\fB\-j, \-\-bindPasswordFile {bindPasswordFile}\fR
+.RS 4
+Bind password file
+.RE
+.PP
+\fB\-K, \-\-keyStorePath {keyStorePath}\fR
+.RS 4
+Certificate key store path
+.RE
+.PP
+\fB\-N, \-\-certNickname {nickname}\fR
+.RS 4
+Nickname of certificate for SSL client authentication
+.RE
+.PP
+\fB\-o, \-\-saslOption {name=value}\fR
+.RS 4
+SASL bind options
+.RE
+.PP
+\fB\-p, \-\-port {port}\fR
+.RS 4
+Directory server administration port number
+.sp
+Default value: 4444
+.RE
+.PP
+\fB\-P, \-\-trustStorePath {trustStorePath}\fR
+.RS 4
+Certificate trust store path
+.RE
+.PP
+\fB\-T, \-\-trustStorePassword {trustStorePassword}\fR
+.RS 4
+Certificate trust store PIN
+.RE
+.PP
+\fB\-u, \-\-keyStorePasswordFile {keyStorePasswordFile}\fR
+.RS 4
+Certificate key store PIN file
+.RE
+.PP
+\fB\-U, \-\-trustStorePasswordFile {path}\fR
+.RS 4
+Certificate trust store PIN file
+.RE
+.PP
+\fB\-w, \-\-bindPassword {bindPassword}\fR
+.RS 4
+Password to use to bind to the server
+.sp
+Use
+\fB\-w \-\fR
+to have the command prompt for the password, rather than enter the password on the command line\&.
+.RE
+.PP
+\fB\-W, \-\-keyStorePassword {keyStorePassword}\fR
+.RS 4
+Certificate key store PIN
+.RE
+.PP
+\fB\-X, \-\-trustAll\fR
+.RS 4
+Trust all server SSL certificates
+.RE
+.SS "Task Scheduling Options"
+.PP
+\fB\-\-completionNotify {emailAddress}\fR
+.RS 4
+Email address of a recipient to be notified when the task completes\&. This option may be specified more than once\&.
+.RE
+.PP
+\fB\-\-dependency {taskID}\fR
+.RS 4
+ID of a task upon which this task depends\&. A task will not start execution until all its dependencies have completed execution\&.
+.RE
+.PP
+\fB\-\-errorNotify {emailAddress}\fR
+.RS 4
+Email address of a recipient to be notified if an error occurs when this task executes\&. This option may be specified more than once\&.
+.RE
+.PP
+\fB\-\-failedDependencyAction {action}\fR
+.RS 4
+Action this task will take should one if its dependent tasks fail\&. The value must be one of PROCESS, CANCEL, DISABLE\&. If not specified defaults to CANCEL\&.
+.RE
+.PP
+\fB\-\-recurringTask {schedulePattern}\fR
+.RS 4
+Indicates the task is recurring and will be scheduled according to the value argument expressed in crontab(5) compatible time/date pattern\&.
+.RE
+.PP
+\fB\-t, \-\-start {startTime}\fR
+.RS 4
+Indicates the date/time at which this operation will start when scheduled as a server task expressed in YYYYMMDDhhmmssZ format for UTC time or YYYYMMDDhhmmss for local time\&. A value of \*(Aq0\*(Aq will cause the task to be scheduled for immediate execution\&. When this option is specified the operation will be scheduled to start at the specified time after which this utility will exit immediately\&.
+.RE
+.SS "Utility Input/Output Options"
+.PP
+\fB\-\-noPropertiesFile\fR
+.RS 4
+No properties file will be used to get default command line argument values
+.RE
+.PP
+\fB\-\-propertiesFilePath {propertiesFilePath}\fR
+.RS 4
+Path to the file containing default property values used for command line arguments
+.RE
+.SS "General Options"
+.PP
+\fB\-V, \-\-version\fR
+.RS 4
+Display version information
+.RE
+.PP
+\fB\-?, \-H, \-\-help\fR
+.RS 4
+Display usage information
+.RE
+.SH "EXIT CODES"
+.PP
+0
+.RS 4
+The command completed successfully\&.
+.RE
+.PP
+> 0
+.RS 4
+An error occurred\&.
+.RE
+.SH "EXAMPLES"
+.PP
+The following example exports data to a file,
+Example\&.ldif, with the server offline\&.
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+$ export\-ldif \-b dc=example,dc=com \-n userRoot \-l \&.\&./ldif/Example\&.ldif
+[21/Jun/2011:13:40:49 +0200] category=BACKEND severity=INFORMATION \&.\&.\&.
+\&.\&.\&.Exported 160 entries and skipped 0 in 0 seconds (average rate 1428\&.6/sec)
+.fi
+.if n \{\
+.RE
+.\}
+.SH "COPYRIGHT"
+.br
+Copyright \(co 2011-2012 ForgeRock AS
+.br

@@ -1,0 +1,8 @@
+dn: cn=Collective photo,dc=example,dc=com
+objectClass: top
+objectClass: subentry
+objectClass: collectiveAttributeSubentry
+objectClass: extensibleObject
+cn: Collective photo
+photo;collective: SunOraclesmall.gif
+subtreeSpecification: {base "ou=people,o=collectiveattr tests", minimum 1}

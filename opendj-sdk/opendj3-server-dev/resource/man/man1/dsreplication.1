@@ -1,0 +1,313 @@
+'\" t
+.\"     Title: dsreplication
+.\"    Author: 
+.\" Generator: DocBook XSL-NS Stylesheets v1.76.1 <http://docbook.sf.net/>
+.\"      Date: 05/16/2013
+.\"    Manual: Tools Reference
+.\"    Source: OpenDJ 2.6.0
+.\"  Language: English
+.\"
+.TH "DSREPLICATION" "1" "05/16/2013" "OpenDJ 2\&.6\&.0" "Tools Reference"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+dsreplication \- manage OpenDJ directory data replication
+.SH "SYNOPSIS"
+.HP \w'\fBdsreplication\fR\fB\fIsubcommand\fR\fR\ 'u
+\fBdsreplication\fR\fB\fIsubcommand\fR\fR [options]
+.SH "DESCRIPTION"
+.PP
+This utility can be used to configure replication between servers so that the data of the servers is synchronized\&. For replication to work you must first enable replication using the
+\fBenable\fR
+subcommand and then initialize the contents of one of the servers with the contents of the other using the
+\fBinitialize\fR
+subcommand\&.
+.SH "SUBCOMMANDS"
+.PP
+The following subcommands are supported\&.
+.PP
+\fBdisable\fR
+.RS 4
+Disable replication on the specified server for the provided base DN and removes references in the other servers with which it is replicating data\&.
+.RE
+.PP
+\fBenable\fR
+.RS 4
+Update the configuration of the servers to replicate the data under the specified base DN\&. If one of the specified servers is already replicating the data under the base DN with other servers, executing this subcommand will update the configuration of all the servers\&. Thus it is sufficient to execute the command line once for each server added to the replication topology\&.
+.RE
+.PP
+\fBinitialize\fR
+.RS 4
+Initialize the contents of the data under the specified base DN on the destination server with the contents on the source server\&. This operation is required after enabling replication in order replication to work\&.
+\fBinitialize\-all\fR
+can also be used for this purpose\&.
+.RE
+.PP
+\fBinitialize\-all\fR
+.RS 4
+Initialize the contents of the data under the specified base DN on all the servers whose contents are being replicated with the contents on the specified server\&. This operation is required after enabling replication for replication to work\&. Run
+\fBinitialize\fR
+for each server to achieve the same effect\&.
+.RE
+.PP
+\fBpost\-external\-initialization\fR
+.RS 4
+This subcommand must be called after initializing the contents of all the replicated servers using the
+\fBimport\-ldif\fR
+command, or by copying the database\&. You must specify the list of base DNs that have been initialized, and you must provide the credentials of any of the servers that are being replicated\&. See
+\fBpre\-external\-initialization \-\-help\fR
+for more information\&.
+.RE
+.PP
+\fBpre\-external\-initialization\fR
+.RS 4
+This subcommand must be called before initializing the contents of all the replicated servers using the
+\fBimport\-ldif\fR
+command, or by copying the database\&. You must specify the list of base DNs that have been initialized, and you must provide the credentials of any of the servers that are being replicated\&. After calling this subcommand, initialize the contents of all the servers in the topology, either by using the same LDIF file or by copying the database to each of the servers, then call the
+\fBpost\-external\-initialization\fR
+subcommand\&.
+.RE
+.PP
+\fBpurge\-historical\fR
+.RS 4
+Launch a purge processing of the historical information stored in the user entries by replication\&. Since this processing may take a while, you must specify a maximum duration\&.
+.RE
+.PP
+\fBstatus\fR
+.RS 4
+Display a list with the basic replication configuration of the base DNs of the servers defined in the registration information\&. If no base DNs are specified as parameter, information for all base DNs is displayed\&.
+.RE
+.SH "OPTIONS"
+.PP
+The following options are supported\&.
+.PP
+\fB\-\-advanced\fR
+.RS 4
+Access advanced settings when running this command in interactive mode\&.
+.RE
+.PP
+\fB\-b, \-\-baseDN {baseDN}\fR
+.RS 4
+Base DN of the data to be replicated, initialized or for which you want to disable replication\&. Multiple base DNs can be provided by using this option multiple times\&.
+.RE
+.SS "LDAP Connection Options"
+.PP
+\fB\-\-connectTimeout {timeout}\fR
+.RS 4
+Maximum length of time (in milliseconds) that can be taken to establish a connection\&. Use \*(Aq0\*(Aq to specify no time out\&.
+.sp
+Default value: 30000
+.RE
+.PP
+\fB\-h, \-\-hostname {host}\fR
+.RS 4
+Directory server hostname or IP address
+.sp
+Default value: localhost\&.localdomain
+.RE
+.PP
+\fB\-I, \-\-adminUID {adminUID}\fR
+.RS 4
+User ID of the global administrator to use to bind to the server\&. For the
+\fBenable\fR
+subcommand, if no global administrator was defined previously for any servers, the global administrator will be created using the UID provided\&.
+.sp
+Default value: admin
+.RE
+.PP
+\fB\-j, \-\-adminPasswordFile {bindPasswordFile}\fR
+.RS 4
+Global administrator password file
+.RE
+.PP
+\fB\-K, \-\-keyStorePath {keyStorePath}\fR
+.RS 4
+Certificate key store path
+.RE
+.PP
+\fB\-N, \-\-certNickname {nickname}\fR
+.RS 4
+Nickname of certificate for SSL client authentication
+.RE
+.PP
+\fB\-o, \-\-saslOption {name=value}\fR
+.RS 4
+SASL bind options
+.RE
+.PP
+\fB\-p, \-\-port {port}\fR
+.RS 4
+Directory server administration port number
+.sp
+Default value: 4444
+.RE
+.PP
+\fB\-P, \-\-trustStorePath {trustStorePath}\fR
+.RS 4
+Certificate trust store path
+.sp
+Default value: /path/to/opendj/config/admin\-truststore
+.RE
+.PP
+\fB\-T, \-\-trustStorePassword {trustStorePassword}\fR
+.RS 4
+Certificate trust store PIN
+.RE
+.PP
+\fB\-u, \-\-keyStorePasswordFile {keyStorePasswordFile}\fR
+.RS 4
+Certificate key store PIN file
+.RE
+.PP
+\fB\-U, \-\-trustStorePasswordFile {path}\fR
+.RS 4
+Certificate trust store PIN file
+.RE
+.PP
+\fB\-w, \-\-adminPassword {bindPassword}\fR
+.RS 4
+Password for the global administrator
+.RE
+.PP
+\fB\-W, \-\-keyStorePassword {keyStorePassword}\fR
+.RS 4
+Certificate key store PIN
+.RE
+.PP
+\fB\-X, \-\-trustAll\fR
+.RS 4
+Trust all server SSL certificates
+.RE
+.SS "Utility Input/Output Options"
+.PP
+\fB\-\-commandFilePath {path}\fR
+.RS 4
+The full path to the file where the equivalent non\-interactive commands will be written when this command is run in interactive mode\&.
+.RE
+.PP
+\fB\-\-displayCommand\fR
+.RS 4
+Display the equivalent non\-interactive option on standard output when this command is run in interactive mode\&.
+.RE
+.PP
+\fB\-n, \-\-no\-prompt\fR
+.RS 4
+Use non\-interactive mode\&. If data in the command is missing, the user is not prompted and the command exits with an error\&.
+.RE
+.PP
+\fB\-\-noPropertiesFile\fR
+.RS 4
+No properties file will be used to get default command line argument values
+.RE
+.PP
+\fB\-\-propertiesFilePath {propertiesFilePath}\fR
+.RS 4
+Path to the file containing default property values used for command line arguments
+.RE
+.PP
+\fB\-Q, \-\-quiet\fR
+.RS 4
+Do not write progress information to standard output
+.RE
+.SS "General Options"
+.PP
+\fB\-\-version\fR
+.RS 4
+Display version information
+.RE
+.PP
+\fB\-?, \-H, \-\-help\fR
+.RS 4
+Display usage information
+.RE
+.SH "EXIT CODES"
+.PP
+0
+.RS 4
+The command completed successfully\&.
+.RE
+.PP
+> 0
+.RS 4
+An error occurred\&.
+.RE
+.SH "EXAMPLES"
+.PP
+The following example enables and then initializes replication for a new replica on
+opendj2\&.example\&.com
+from an existing replica on
+opendj\&.example\&.com\&.
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+$ dsreplication enable \-I admin \-w password \-X \-n \-b dc=example,dc=com
+ \-\-host1 opendj\&.example\&.com \-\-port1 4444 \-\-bindDN1 "cn=Directory Manager"
+ \-\-bindPassword1 password \-\-replicationPort1 8989
+ \-\-host2 opendj2\&.example\&.com \-\-port2 4444 \-\-bindDN2 "cn=Directory Manager"
+ \-\-bindPassword2 password \-\-replicationPort2 8989
+
+Establishing connections \&.\&.\&.\&.\&. Done\&.
+Checking registration information \&.\&.\&.\&.\&. Done\&.
+Updating remote references on server opendj\&.example\&.com:4444 \&.\&.\&.\&.\&. Done\&.
+Configuring Replication port on server opendj2\&.example\&.com:4444 \&.\&.\&.\&.\&. Done\&.
+Updating replication configuration for baseDN dc=example,dc=com on server
+ opendj\&.example\&.com:4444 \&.\&.\&.\&.\&. Done\&.
+Updating replication configuration for baseDN dc=example,dc=com on server
+ opendj2\&.example\&.com:4444 \&.\&.\&.\&.\&. Done\&.
+Updating registration configuration on server
+ opendj\&.example\&.com:4444 \&.\&.\&.\&.\&. Done\&.
+Updating registration configuration on server
+ opendj2\&.example\&.com:4444 \&.\&.\&.\&.\&. Done\&.
+Updating replication configuration for baseDN cn=schema on server
+ opendj\&.example\&.com:4444 \&.\&.\&.\&.\&. Done\&.
+Updating replication configuration for baseDN cn=schema on server
+ opendj2\&.example\&.com:4444 \&.\&.\&.\&.\&. Done\&.
+Initializing registration information on server opendj2\&.example\&.com:4444 with
+ the contents of server opendj\&.example\&.com:4444 \&.\&.\&.\&.\&. Done\&.
+Initializing schema on server opendj2\&.example\&.com:4444 with the contents of
+ server opendj\&.example\&.com:4444 \&.\&.\&.\&.\&. Done\&.
+
+Replication has been successfully enabled\&.  Note that for replication to
+ work you must initialize the contents of the base DN\*(Aqs that are being
+  replicated (use dsreplication initialize to do so)\&.
+
+See
+/var/\&.\&.\&./opends\-replication\-7958637258600693490\&.log
+for a detailed log of this operation\&.
+$ dsreplication initialize\-all \-I admin \-w password \-X \-n \-b dc=example,dc=com
+ \-h opendj\&.example\&.com \-p 4444
+
+Initializing base DN dc=example,dc=com with the contents from
+ opendj\&.example\&.com:4444: 160 entries processed (100 % complete)\&.
+Base DN initialized successfully\&.
+
+See
+/var/\&.\&.\&./opends\-replication\-5020375834904394170\&.log
+for a detailed log of this operation\&.
+.fi
+.if n \{\
+.RE
+.\}
+.SH "COPYRIGHT"
+.br
+Copyright \(co 2011-2013 ForgeRock AS
+.br

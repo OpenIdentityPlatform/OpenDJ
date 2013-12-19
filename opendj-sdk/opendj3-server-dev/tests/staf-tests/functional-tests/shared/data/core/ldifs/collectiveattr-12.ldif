@@ -1,0 +1,8 @@
+dn: cn=Collective c-PostOfficeBox,dc=example,dc=com
+objectClass: top
+objectClass: subentry
+objectClass: collectiveAttributeSubentry
+objectClass: extensibleObject
+cn: Collective c-PostOfficeBox
+c-PostOfficeBox: PO BOX 2869
+subtreeSpecification: {base "ou=people,o=collectiveattr tests", minimum 2, maximum 2}

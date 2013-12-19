@@ -1,0 +1,125 @@
+dn: uid=user.10,ou=ldapdelete,o=clu tests,dc=example,dc=com
+changetype: add
+objectClass: person
+objectClass: organizationalperson
+objectClass: top
+objectClass: inetorgperson
+initials: BAB
+pager: +1 466 230 1383
+postalAddress: Bree Bjorklund$00450 Fifteenth Street$Colorado Springs, CT  76102
+sn: Bjorklund
+mobile: +1 265 998 9902
+uid: user.10
+postalCode: 76102
+userPassword: {SSHA}LrBv0i/fIEMDnvrCRXuZuRn5nNLdTKeQc1jBKw==
+givenName: Bree
+mail: user.10@example.com
+homePhone: +1 473 051 7933
+street: 00450 Fifteenth Street
+cn: Bree Bjorklund
+st: CT
+employeeNumber: 10
+telephoneNumber: +1 016 571 7798
+description: This is the description for Bree Bjorklund.
+l: Colorado Springs
+
+dn: uid=user.9,ou=ldappasswordmodify,o=clu tests,dc=example,dc=com
+changetype: delete
+# objectClass: person
+# objectClass: organizationalperson
+# objectClass: top
+# objectClass: inetorgperson
+# initials: AMA
+# pager: +1 091 356 2843
+# postalAddress: Abbe Abbate$76410 Sixth Street$Lafayette, IA  06698
+# sn: Abbate
+# mobile: +1 258 453 7401
+# uid: user.9
+# postalCode: 06698
+# userPassword: {SSHA}LrBv0i/fIEMDnvrCRXuZuRn5nNLdTKeQc1jBKw==
+# givenName: Abbe
+# mail: user.9@example.com
+# homePhone: +1 257 002 0605
+# street: 76410 Sixth Street
+# cn: Abbe Abbate
+# st: IA
+# employeeNumber: 9
+# telephoneNumber: +1 712 054 8412
+# description: This is the description for Abbe Abbate.
+# l: Lafayette
+
+dn: uid=user.10,ou=ldapsearch,o=clu tests,dc=example,dc=com
+changetype: modify
+delete: employeeNumber
+employeeNumber: 10
+
+dn: uid=user.10,ou=ldapsearch,o=clu tests,dc=example,dc=com
+changetype: modify
+add: employeeNumber
+employeeNumber: 100
+
+dn: uid=user.3,ou=ldapsearch,o=clu tests,dc=example,dc=com
+changetype: modify
+delete: mobile
+mobile: +1 863 963 6402
+
+dn: uid=user.3,ou=ldapsearch,o=clu tests,dc=example,dc=com
+changetype: modify
+add: mobile
+mobile: +1 863 963 7000
+
+dn: uid=user.3,ou=ldapsearch,o=clu tests,dc=example,dc=com
+changetype: modify
+delete: postalCode
+postalCode: 07852
+
+dn: uid=user.3,ou=ldapsearch,o=clu tests,dc=example,dc=com
+changetype: modify
+add: postalCode
+postalCode: 70000
+
+dn: uid=user.3,ou=ldapsearch,o=clu tests,dc=example,dc=com
+changetype: modify
+delete: mail
+mail: user.3@example.com
+
+dn: uid=user.3,ou=ldapsearch,o=clu tests,dc=example,dc=com
+changetype: modify
+add: mail
+mail: user.70@example.com
+
+dn: uid=user.506,ou=ldapsearch,o=clu tests,dc=example,dc=com
+changetype: delete
+# objectClass: person
+# objectClass: organizationalperson
+# objectClass: top
+# objectClass: inetorgperson
+# initials: AIB
+# pager: +1 551 774 6808
+# postalAddress: Apollo Baddeley$83045 Valley Street$Cedar Rapids, NY  07959
+# sn: Baddeley
+# mobile: +1 684 547 8803
+# uid: user.506
+# postalCode: 07959
+# userPassword: {SSHA}LrBv0i/fIEMDnvrCRXuZuRn5nNLdTKeQc1jBKw==
+# givenName: Apollo
+# mail: user.506@example.com
+# homePhone: +1 400 149 3400
+# street: 83045 Valley Street
+# cn: Apollo Baddeley
+# st: NY
+# employeeNumber: 506
+# telephoneNumber: +1 770 103 3141
+# description: This is the description for Apollo Baddeley.
+# l: Cedar Rapids
+
+dn: uid=user.762,ou=ldapsearch,o=clu tests,dc=example,dc=com
+changetype: modify
+add: myattribute1
+myattribute1: value1
+
+dn: uid=user.762,ou=ldapsearch,o=clu tests,dc=example,dc=com
+changetype: modify
+add: myattribute2
+myattribute2: value2
+

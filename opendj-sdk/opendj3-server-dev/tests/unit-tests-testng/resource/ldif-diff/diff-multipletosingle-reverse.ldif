@@ -1,0 +1,42 @@
+dn: dc=example,dc=com
+changetype: modify
+delete: objectClass
+objectClass: organization
+objectClass: dcObject
+-
+add: objectClass
+objectClass: domain
+-
+delete: o
+o: Example Corp.
+-
+delete: description
+description: description 1
+description: description 2
+description: description 3
+
+dn: ou=Applications,dc=example,dc=com
+changetype: delete
+# objectClass: top
+# objectClass: organizationalUnit
+# ou: Applications
+
+dn: ou=People,dc=example,dc=com
+changetype: delete
+# objectClass: top
+# objectClass: organizationalUnit
+# ou: People
+# description: This is where you put the people
+
+dn: cn=Test User,ou=People,dc=example,dc=com
+changetype: delete
+# objectClass: inetOrgPerson
+# objectClass: person
+# objectClass: top
+# objectClass: organizationalPerson
+# cn: Test User
+# givenName: Test
+# sn: User
+# uid: test.user
+# userPassword: password
+

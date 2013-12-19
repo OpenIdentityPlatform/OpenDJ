@@ -1,0 +1,33 @@
+dn: o=o1
+objectclass: top
+objectclass: organization
+aci: (targetattr = "*")(version 3.0;acl "test";allow (all) userdn = "ldap:///anyone";)
+o: o1
+
+dn: cn=user_1,o=o1
+objectclass: top
+objectclass: inetOrgPerson
+cn: user_1
+sn: snofuser_user_1
+userPassword: user_1
+
+dn: cn=user_2,o=doesnotexist
+objectclass: top
+objectclass: inetOrgPerson
+cn: user_2
+sn: snofuser_user_2
+userPassword: user_2
+
+dn: cn=user_3,o=o1
+objectclass: top
+objectclass: notavalidobjectclass
+cn: user_3
+sn: snofuser_user_3
+
+dn: cn=user_4,o=o1
+objectclass: top
+objectclass: inetOrgPerson
+notavalidattribute: user_4
+cn: user_4
+sn: snofuser_user_4
+userPassword: user_4

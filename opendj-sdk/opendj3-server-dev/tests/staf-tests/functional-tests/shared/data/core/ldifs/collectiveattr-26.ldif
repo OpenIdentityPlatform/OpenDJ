@@ -1,0 +1,8 @@
+dn: cn=Collective description,dc=example,dc=com
+objectClass: top
+objectClass: subentry
+objectClass: collectiveAttributeSubentry
+objectClass: extensibleObject
+cn: Collective description
+description;collective: Worldwide employees
+subtreeSpecification: {base "ou=people,o=collectiveattr tests", minimum 1, specificationFilter and:{item:top, not:item:person}}

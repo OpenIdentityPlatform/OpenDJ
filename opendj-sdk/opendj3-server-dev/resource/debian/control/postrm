@@ -1,0 +1,11 @@
+#!/bin/bash
+set -e
+# Post rm script
+# Files are removed automatically by pm. 
+if [ "$1" = "remove" ]
+then
+  echo
+  echo *OpenDJ successfully removed
+fi
+echo 
+# End of the post rm script

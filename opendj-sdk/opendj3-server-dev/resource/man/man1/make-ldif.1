@@ -1,0 +1,100 @@
+'\" t
+.\"     Title: make-ldif
+.\"    Author: 
+.\" Generator: DocBook XSL-NS Stylesheets v1.76.1 <http://docbook.sf.net/>
+.\"      Date: 03/21/2012
+.\"    Manual: Tools Reference
+.\"    Source: OpenDJ 2.5.0
+.\"  Language: English
+.\"
+.TH "MAKE\-LDIF" "1" "03/21/2012" "OpenDJ 2\&.5\&.0" "Tools Reference"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+make-ldif \- generate test LDIF
+.SH "SYNOPSIS"
+.HP \w'\fBmake\-ldif\fR\ 'u
+\fBmake\-ldif\fR {options}
+.SH "DESCRIPTION"
+.PP
+This utility can be used to generate LDIF data based on a definition in a template file\&.
+.SH "OPTIONS"
+.PP
+The following options are supported\&.
+.PP
+\fB\-o, \-\-ldifFile {file}\fR
+.RS 4
+The path to the LDIF file to be written\&.
+.RE
+.PP
+\fB\-s, \-\-randomSeed {seed}\fR
+.RS 4
+The seed to use to initialize the random number generator\&.
+.sp
+Default value: 0
+.RE
+.PP
+\fB\-t, \-\-templateFile {file}\fR
+.RS 4
+The path to the template file with information about the LDIF data to generate\&.
+.RE
+.PP
+\fB\-V, \-\-version\fR
+.RS 4
+Display version information\&.
+.RE
+.PP
+\fB\-?, \-H, \-\-help\fR
+.RS 4
+Display usage information\&.
+.RE
+.SH "EXIT CODES"
+.PP
+0
+.RS 4
+The command completed successfully\&.
+.RE
+.PP
+> 0
+.RS 4
+An error occurred\&.
+.RE
+.SH "EXAMPLES"
+.PP
+The following example uses the default template to generate LDIF\&.
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+$ make\-ldif \-t \&.\&./config/MakeLDIF/example\&.template \-o \&.\&./ldif/generated\&.ldif
+Processed 1000 entries
+Processed 2000 entries
+\&.\&.\&.
+Processed 10000 entries
+LDIF processing complete\&.  10003 entries written
+.fi
+.if n \{\
+.RE
+.\}
+.SH "COPYRIGHT"
+.br
+Copyright \(co 2011-2012 ForgeRock AS
+.br

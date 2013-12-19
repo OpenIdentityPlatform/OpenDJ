@@ -1,0 +1,208 @@
+'\" t
+.\"     Title: status
+.\"    Author: 
+.\" Generator: DocBook XSL-NS Stylesheets v1.76.1 <http://docbook.sf.net/>
+.\"      Date: 05/16/2013
+.\"    Manual: Tools Reference
+.\"    Source: OpenDJ 2.6.0
+.\"  Language: English
+.\"
+.TH "STATUS" "1" "05/16/2013" "OpenDJ 2\&.6\&.0" "Tools Reference"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+status \- display basic OpenDJ server information
+.SH "SYNOPSIS"
+.HP \w'\fBstatus\fR\ 'u
+\fBstatus\fR [options]
+.SH "DESCRIPTION"
+.PP
+This utility can be used to display basic server information\&.
+.SH "OPTIONS"
+.PP
+The following options are supported\&.
+.SS "LDAP Connection Options"
+.PP
+\fB\-\-connectTimeout {timeout}\fR
+.RS 4
+Maximum length of time (in milliseconds) that can be taken to establish a connection\&. Use \*(Aq0\*(Aq to specify no time out\&.
+.sp
+Default value: 30000
+.RE
+.PP
+\fB\-D, \-\-bindDN {bindDN}\fR
+.RS 4
+DN to use to bind to the server
+.sp
+Default value: cn=Directory Manager
+.RE
+.PP
+\fB\-j, \-\-bindPasswordFile {bindPasswordFile}\fR
+.RS 4
+Bind password file
+.RE
+.PP
+\fB\-K, \-\-keyStorePath {keyStorePath}\fR
+.RS 4
+Certificate key store path
+.RE
+.PP
+\fB\-N, \-\-certNickname {nickname}\fR
+.RS 4
+Nickname of certificate for SSL client authentication
+.RE
+.PP
+\fB\-o, \-\-saslOption {name=value}\fR
+.RS 4
+SASL bind options
+.RE
+.PP
+\fB\-P, \-\-trustStorePath {trustStorePath}\fR
+.RS 4
+Certificate trust store path
+.RE
+.PP
+\fB\-T, \-\-trustStorePassword {trustStorePassword}\fR
+.RS 4
+Certificate trust store PIN
+.RE
+.PP
+\fB\-u, \-\-keyStorePasswordFile {keyStorePasswordFile}\fR
+.RS 4
+Certificate key store PIN file
+.RE
+.PP
+\fB\-U, \-\-trustStorePasswordFile {path}\fR
+.RS 4
+Certificate trust store PIN file
+.RE
+.PP
+\fB\-w, \-\-bindPassword {bindPassword}\fR
+.RS 4
+Password to use to bind to the server
+.RE
+.PP
+\fB\-W, \-\-keyStorePassword {keyStorePassword}\fR
+.RS 4
+Certificate key store PIN
+.RE
+.PP
+\fB\-X, \-\-trustAll\fR
+.RS 4
+Trust all server SSL certificates
+.RE
+.SS "Utility Input/Output Options"
+.PP
+\fB\-n, \-\-no\-prompt\fR
+.RS 4
+Use non\-interactive mode\&. If data in the command is missing, the user is not prompted and the tool will fail
+.RE
+.PP
+\fB\-\-noPropertiesFile\fR
+.RS 4
+No properties file will be used to get default command line argument values
+.RE
+.PP
+\fB\-r, \-\-refresh {period}\fR
+.RS 4
+When this argument is specified, the status command will display its contents periodically\&. Used to specify the period (in seconds) between two status displays
+.RE
+.PP
+\fB\-s, \-\-script\-friendly\fR
+.RS 4
+Use script\-friendly mode
+.RE
+.SS "General Options"
+.PP
+\fB\-V, \-\-version\fR
+.RS 4
+Display version information
+.RE
+.PP
+\fB\-?, \-H, \-\-help\fR
+.RS 4
+Display usage information
+.RE
+.SH "EXIT CODES"
+.PP
+0
+.RS 4
+The command completed successfully\&.
+.RE
+.PP
+> 0
+.RS 4
+An error occurred\&.
+.RE
+.SH "EXAMPLES"
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+$ status \-D "cn=Directory Manager" \-w password
+
+          \-\-\- Server Status \-\-\-
+Server Run Status:        Started
+Open Connections:         1
+
+          \-\-\- Server Details \-\-\-
+Host Name:                localhost\&.localdomain
+Administrative Users:     cn=Directory Manager
+Installation Path:        /path/to/opendj
+Version:                  OpenDJ 2\&.6\&.0
+Java Version:             1\&.6\&.0_29
+Administration Connector: Port 4444 (LDAPS)
+
+          \-\-\- Connection Handlers \-\-\-
+Address:Port : Protocol    : State
+\-\-\-\-\-\-\-\-\-\-\-\-\-:\-\-\-\-\-\-\-\-\-\-\-\-\-:\-\-\-\-\-\-\-\-\-
+\-\-           : LDIF        : Disabled
+8989         : Replication : Enabled
+0\&.0\&.0\&.0:161  : SNMP        : Disabled
+0\&.0\&.0\&.0:636  : LDAPS       : Disabled
+0\&.0\&.0\&.0:1389 : LDAP        : Enabled
+0\&.0\&.0\&.0:1689 : JMX         : Disabled
+
+          \-\-\- Data Sources \-\-\-
+Base DN:                      dc=example,dc=com
+Backend ID:                   userRoot
+Entries:                      160
+Replication:                  Enabled
+Missing Changes:              0
+Age of Oldest Missing Change: <not available>
+
+Base DN:     dc=myCompany,dc=com
+Backend ID:  myCompanyRoot
+Entries:     3
+Replication: Disabled
+
+Base DN:     o=myOrg
+Backend ID:  myOrgRoot
+Entries:     3
+Replication: Disabled
+.fi
+.if n \{\
+.RE
+.\}
+.SH "COPYRIGHT"
+.br
+Copyright \(co 2011-2013 ForgeRock AS
+.br

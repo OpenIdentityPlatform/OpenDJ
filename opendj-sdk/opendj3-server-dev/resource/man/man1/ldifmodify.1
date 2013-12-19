@@ -1,0 +1,132 @@
+'\" t
+.\"     Title: ldifmodify
+.\"    Author: 
+.\" Generator: DocBook XSL-NS Stylesheets v1.76.1 <http://docbook.sf.net/>
+.\"      Date: 03/21/2012
+.\"    Manual: Tools Reference
+.\"    Source: OpenDJ 2.5.0
+.\"  Language: English
+.\"
+.TH "LDIFMODIFY" "1" "03/21/2012" "OpenDJ 2\&.5\&.0" "Tools Reference"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+ldifmodify \- apply LDIF changes to LDIF
+.SH "SYNOPSIS"
+.HP \w'\fBldifmodify\fR\ 'u
+\fBldifmodify\fR {options}
+.SH "DESCRIPTION"
+.PP
+This utility can be used to apply a set of modify, add, and delete operations against data in an LDIF file\&.
+.SH "OPTIONS"
+.PP
+The following options are supported\&.
+.PP
+\fB\-m, \-\-changesLDIF {ldifFile}\fR
+.RS 4
+LDIF file containing the changes to apply\&.
+.RE
+.PP
+\fB\-s, \-\-sourceLDIF {ldifFile}\fR
+.RS 4
+LDIF file containing the data to be updated\&.
+.RE
+.PP
+\fB\-t, \-\-targetLDIF {ldifFile}\fR
+.RS 4
+File to which the updated data should be written\&.
+.RE
+.PP
+\fB\-V, \-\-version\fR
+.RS 4
+Display version information\&.
+.RE
+.PP
+\fB\-?, \-H, \-\-help\fR
+.RS 4
+Display usage information\&.
+.RE
+.SH "EXIT CODES"
+.PP
+0
+.RS 4
+The command completed successfully\&.
+.RE
+.PP
+> 0
+.RS 4
+An error occurred\&.
+.RE
+.SH "EXAMPLES"
+.PP
+The following example demonstrates use of the command\&.
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+$ cat /path/to/newuser\&.ldif 
+dn: uid=newuser,ou=People,dc=example,dc=com
+uid: newuser
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+objectClass: top
+cn: New User
+sn: User
+ou: People
+mail: newuser@example\&.com
+userPassword: changeme
+  
+$ cat /path/to/newdiff\&.ldif 
+dn: uid=newuser,ou=People,dc=example,dc=com
+changetype: modify
+add: userPassword
+userPassword: secret12
+\-
+delete: userPassword
+userPassword: changeme
+\-
+add: description
+description: A new description\&.
+
+$ ldifmodify \-s /path/to/newuser\&.ldif \-m /path/to/newdiff\&.ldif \-t neweruser\&.ldif
+$ cat neweruser\&.ldif 
+dn: uid=newuser,ou=People,dc=example,dc=com
+objectClass: person
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: top
+uid: newuser
+description: A new description\&.
+cn: New User
+sn: User
+userPassword: secret12
+mail: newuser@example\&.com
+ou: People
+
+.fi
+.if n \{\
+.RE
+.\}
+.SH "COPYRIGHT"
+.br
+Copyright \(co 2011-2012 ForgeRock AS
+.br

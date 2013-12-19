@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema targetNamespace="http://www.opends.org/admin-cli"
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+  elementFormDefault="qualified" xmlns:adm="http://www.opends.org/admin"
+  xmlns:tns="http://www.opends.org/admin-cli">
+  <xsd:import namespace="http://www.opends.org/admin"
+    schemaLocation="admin.xsd" />
+  <xsd:annotation>
+    <xsd:documentation>
+      This schema defines the elements and attributes of the "cli"
+      profile. This profile provides the ability to annotate managed
+      object definitions, properties, and relations with additional
+      information which the CLI can use to provide a better user
+      experience.
+    </xsd:documentation>
+  </xsd:annotation>
+  <xsd:element name="managed-object">
+    <xsd:annotation>
+      <xsd:documentation>
+        Defines CLI annotations for use with managed object definitions.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:complexType>
+      <xsd:attribute name="custom" default="false" type="xsd:boolean">
+        <xsd:annotation>
+          <xsd:documentation>
+            Indicates whether the CLI should refer to this managed
+            object type as "custom" as opposed to "generic". Custom
+            managed object types generally are the top-level type of
+            component (e.g. connection-handler but not
+            ldap-connection-handler) having a non-advanced java-class
+            property. Users create this type of component with a custom
+            implementation class. It is better to refer to these as
+            "custom" since the term "generic" can mislead users (e.g.
+            many users confuse a generic backend as being a JE backend).
+          </xsd:documentation>
+        </xsd:annotation>
+      </xsd:attribute>
+    </xsd:complexType>
+  </xsd:element>
+  <xsd:element name="relation">
+    <xsd:annotation>
+      <xsd:documentation>
+        Defines CLI annotations for use with relation definitions.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element name="default-property" minOccurs="0"
+          maxOccurs="unbounded">
+          <xsd:annotation>
+            <xsd:documentation>
+              The name of a property in the referenced managed object
+              (or one of its sub-types) which will be displayed by
+              default in list-xxx sub-commands.
+            </xsd:documentation>
+          </xsd:annotation>
+          <xsd:complexType>
+            <xsd:attribute name="name" type="adm:name-type"
+              use="required">
+              <xsd:annotation>
+                <xsd:documentation>
+                  The name of a property in the referenced managed
+                  object (or one of its sub-types) which will be
+                  displayed by default in list-xxx sub-commands.
+                </xsd:documentation>
+              </xsd:annotation>
+            </xsd:attribute>
+          </xsd:complexType>
+        </xsd:element>
+      </xsd:sequence>
+      <xsd:attribute name="naming-argument-override"
+        type="adm:name-type" use="optional">
+        <xsd:annotation>
+          <xsd:documentation>
+            A command-line argument name which should be used to
+            override the default argument name used to identify managed
+            objects referenced by this relation. By default the
+            command-line argument name is derived by taking the last
+            word in the relation name and appending "-name". For
+            example, the relation "certificate-mapper" becomes
+            "mapper-name".
+          </xsd:documentation>
+        </xsd:annotation>
+      </xsd:attribute>
+    </xsd:complexType>
+  </xsd:element>
+</xsd:schema>

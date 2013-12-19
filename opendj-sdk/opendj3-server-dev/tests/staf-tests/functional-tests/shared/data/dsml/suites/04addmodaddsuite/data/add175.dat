@@ -1,0 +1,57 @@
+POST /dsml HTTP/1.1
+Host: Foo
+Connection: Close
+Content-Length: 1518
+SOAPAction: "#batchRequest"
+
+<?xml version='1.0' encoding='UTF-8'?>
+  <soap-env:Envelope
+      xmlns:xsd='http://www.w3.org/2001/XMLSchema'
+      xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+      xmlns:soap-env='http://schemas.xmlsoap.org/soap/envelope/'>
+    <soap-env:Body>
+      <batchRequest xmlns="urn:oasis:names:tc:DSML:2:0:core">
+        <addRequest dn="uid=foo35, ou=People, o=dsmlfe.com">
+        <attr name="mail">
+        <value>foo35@airius.com</value>
+        </attr>
+        <attr name="objectclass">
+        <value>top</value>
+        <value>person</value>
+        <value>organizationalPerson</value>
+        <value>inetOrgPerson</value>
+        </attr>
+        <attr name="pager">
+        <value>+1 999 555 1212</value>
+        </attr>
+        <attr name="givenname">
+        <value>foo</value>
+        </attr>
+        <attr name="telephonenumber">
+        <value>+1 408 555 1221</value>
+        </attr>
+        <attr name="cn">
+        <value>foo 35</value>
+        </attr>
+        <attr name="uid">
+        <value>foo35</value>
+        </attr>
+        <attr name="roomnumber">
+        <value>7t</value>
+        </attr>
+        <attr name="sn">
+        <value>35</value>
+        </attr>
+        <attr name="ou">
+        <value>People</value>
+        </attr>
+        <attr name="facsimiletelephonenumber">
+        <value>+ 1 408 555 1221</value>
+        </attr>
+        <attr name="l">
+        <value>foobar</value>
+        </attr>
+        </addRequest>
+      </batchRequest>
+    </soap-env:Body>
+  </soap-env:Envelope>

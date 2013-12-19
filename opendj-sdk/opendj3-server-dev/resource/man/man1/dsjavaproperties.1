@@ -1,0 +1,95 @@
+'\" t
+.\"     Title: dsjavaproperties
+.\"    Author: 
+.\" Generator: DocBook XSL-NS Stylesheets v1.76.1 <http://docbook.sf.net/>
+.\"      Date: 05/16/2013
+.\"    Manual: Tools Reference
+.\"    Source: OpenDJ 2.6.0
+.\"  Language: English
+.\"
+.TH "DSJAVAPROPERTIES" "1" "05/16/2013" "OpenDJ 2\&.6\&.0" "Tools Reference"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+dsjavaproperties \- apply OpenDJ Java home and JVM settings
+.SH "SYNOPSIS"
+.HP \w'\fBdsjavaproperties\fR\ 'u
+\fBdsjavaproperties\fR [options]
+.SH "DESCRIPTION"
+.PP
+This utility can be used to change the Java arguments and Java home that are used by other server commands\&.
+.PP
+Before launching the command, edit the properties file located in
+/path/to/opendj/config/java\&.properties
+to specify the Java arguments and Java home\&. When you have edited the properties file, run this command for the changes to be taken into account\&.
+.PP
+Changes apply to the current server installation\&. No modifications are made to your environment variables\&.
+.SH "OPTIONS"
+.PP
+The following options are supported\&.
+.PP
+\fB\-Q, \-\-quiet\fR
+.RS 4
+Run the tool in quiet mode\&. Quiet mode will not output progress information to standard output\&.
+.RE
+.PP
+\fB\-V, \-\-version\fR
+.RS 4
+Display version information\&.
+.RE
+.PP
+\fB\-?, \-H, \-\-help\fR
+.RS 4
+Display usage information\&.
+.RE
+.SH "FILES"
+.PP
+This command depends on the content of the
+config/java\&.properties
+file\&.
+.SH "EXIT CODES"
+.PP
+0
+.RS 4
+The command completed successfully\&.
+.RE
+.PP
+> 0
+.RS 4
+An error occurred\&.
+.RE
+.SH "EXAMPLES"
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+$ dsjavaproperties 
+The operation was successful\&.  The server commands will use the java arguments
+ and java home specified in the properties file located in
+ /path/to/opendj/config/java\&.properties
+.fi
+.if n \{\
+.RE
+.\}
+.SH "COPYRIGHT"
+.br
+Copyright \(co 2011-2013 ForgeRock AS
+.br

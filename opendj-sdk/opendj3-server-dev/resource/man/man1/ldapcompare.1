@@ -1,0 +1,304 @@
+'\" t
+.\"     Title: ldapcompare
+.\"    Author: 
+.\" Generator: DocBook XSL-NS Stylesheets v1.76.1 <http://docbook.sf.net/>
+.\"      Date: 03/01/2013
+.\"    Manual: Tools Reference
+.\"    Source: OpenDJ 2.5.0
+.\"  Language: English
+.\"
+.TH "LDAPCOMPARE" "1" "03/01/2013" "OpenDJ 2\&.5\&.0" "Tools Reference"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+ldapcompare \- perform LDAP compare operations
+.SH "SYNOPSIS"
+.HP \w'\fBldapcompare\fR\ 'u
+\fBldapcompare\fR {options} [[attribute] | [:] | [value]] [DN...]
+.SH "DESCRIPTION"
+.PP
+This utility can be used to perform LDAP compare operations in the directory\&.
+.SH "OPTIONS"
+.PP
+The following options are supported\&.
+.PP
+\fB\-\-assertionFilter {filter}\fR
+.RS 4
+Use the LDAP assertion control with the provided filter
+.RE
+.PP
+\fB\-c, \-\-continueOnError\fR
+.RS 4
+Continue processing even if there are errors
+.RE
+.PP
+\fB\-f, \-\-filename {file}\fR
+.RS 4
+LDIF file containing one DN per line of entries to compare
+.RE
+.PP
+\fB\-J, \-\-control {controloid[:criticality[:value|::b64value|:<filePath]]}\fR
+.RS 4
+Use a request control with the provided information
+.RE
+.PP
+\fB\-m, \-\-useCompareResultCode\fR
+.RS 4
+Use the LDAP compare result as an exit code for the LDAP compare operations\&.
+.RE
+.PP
+\fB\-n, \-\-dry\-run\fR
+.RS 4
+Show what would be done but do not perform any operation
+.RE
+.SS "LDAP Connection Options"
+.PP
+\fB\-\-connectTimeout {timeout}\fR
+.RS 4
+Maximum length of time (in milliseconds) that can be taken to establish a connection\&. Use \*(Aq0\*(Aq to specify no time out\&.
+.sp
+Default value: 30000
+.RE
+.PP
+\fB\-D, \-\-bindDN {bindDN}\fR
+.RS 4
+DN to use to bind to the server
+.sp
+Default value: cn=Directory Manager
+.RE
+.PP
+\fB\-h, \-\-hostname {host}\fR
+.RS 4
+Directory server hostname or IP address
+.sp
+Default value: localhost\&.localdomain
+.RE
+.PP
+\fB\-j, \-\-bindPasswordFile {bindPasswordFile}\fR
+.RS 4
+Bind password file
+.RE
+.PP
+\fB\-K, \-\-keyStorePath {keyStorePath}\fR
+.RS 4
+Certificate key store path
+.RE
+.PP
+\fB\-N, \-\-certNickname {nickname}\fR
+.RS 4
+Nickname of certificate for SSL client authentication
+.RE
+.PP
+\fB\-o, \-\-saslOption {name=value}\fR
+.RS 4
+SASL bind options
+.RE
+.PP
+\fB\-p, \-\-port {port}\fR
+.RS 4
+Directory server port number
+.sp
+Default value: 389
+.RE
+.PP
+\fB\-P, \-\-trustStorePath {trustStorePath}\fR
+.RS 4
+Certificate trust store path
+.RE
+.PP
+\fB\-q, \-\-useStartTLS\fR
+.RS 4
+Use StartTLS to secure communication with the server
+.RE
+.PP
+\fB\-r, \-\-useSASLExternal\fR
+.RS 4
+Use the SASL EXTERNAL authentication mechanism
+.RE
+.PP
+\fB\-\-trustStorePassword {trustStorePassword}\fR
+.RS 4
+Certificate trust store PIN
+.RE
+.PP
+\fB\-u, \-\-keyStorePasswordFile {keyStorePasswordFile}\fR
+.RS 4
+Certificate key store PIN file
+.RE
+.PP
+\fB\-U, \-\-trustStorePasswordFile {path}\fR
+.RS 4
+Certificate trust store PIN file
+.RE
+.PP
+\fB\-V, \-\-ldapVersion {version}\fR
+.RS 4
+LDAP protocol version number
+.sp
+Default value: 3
+.RE
+.PP
+\fB\-w, \-\-bindPassword {bindPassword}\fR
+.RS 4
+Password to use to bind to the server
+.RE
+.PP
+\fB\-W, \-\-keyStorePassword {keyStorePassword}\fR
+.RS 4
+Certificate key store PIN
+.RE
+.PP
+\fB\-X, \-\-trustAll\fR
+.RS 4
+Trust all server SSL certificates
+.RE
+.PP
+\fB\-Z, \-\-useSSL\fR
+.RS 4
+Use SSL for secure communication with the server
+.RE
+.SS "Utility Input/Output Options"
+.PP
+\fB\-i, \-\-encoding {encoding}\fR
+.RS 4
+Use the specified character set for command\-line input
+.RE
+.PP
+\fB\-\-noPropertiesFile\fR
+.RS 4
+No properties file will be used to get default command line argument values
+.RE
+.PP
+\fB\-\-propertiesFilePath {propertiesFilePath}\fR
+.RS 4
+Path to the file containing default property values used for command line arguments
+.RE
+.PP
+\fB\-s, \-\-script\-friendly\fR
+.RS 4
+Use script\-friendly mode
+.RE
+.PP
+\fB\-v, \-\-verbose\fR
+.RS 4
+Use verbose mode
+.RE
+.SS "General Options"
+.PP
+\fB\-\-version\fR
+.RS 4
+Display version information
+.RE
+.PP
+\fB\-?, \-H, \-\-help\fR
+.RS 4
+Display usage information
+.RE
+.SH "EXIT CODES"
+.PP
+0
+.RS 4
+The command completed successfully\&.
+.RE
+.PP
+5
+.RS 4
+The \-m option was used, and at least one of the LDAP compare operations did not match\&.
+.RE
+.PP
+6
+.RS 4
+The \-m option was used, and all the LDAP compare operations did match\&.
+.RE
+.PP
+\fIldap\-error\fR
+.RS 4
+An LDAP error occurred while processing the operation\&.
+.sp
+LDAP result codes are described in
+\m[blue]\fBRFC 4511\fR\m[]\&. Also see the additional information for details\&.
+.RE
+.PP
+89
+.RS 4
+An error occurred while parsing the command\-line arguments\&.
+.RE
+.SH "FILES"
+.PP
+You can use
+~/\&.opendj/tools\&.properties
+to set the defaults for bind DN, host name, and port number as in the following example\&.
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+hostname=directory\&.example\&.com
+port=1389
+bindDN=uid=kvaughan,ou=People,dc=example,dc=com
+
+ldapcompare\&.port=1389
+ldapdelete\&.port=1389
+ldapmodify\&.port=1389
+ldappasswordmodify\&.port=1389
+ldapsearch\&.port=1389
+.fi
+.if n \{\
+.RE
+.\}
+.SH "EXAMPLES"
+.PP
+The following examples demonstrate comparing Babs Jensen\*(Aqs UID\&.
+.PP
+The following example uses a matching UID value\&.
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+$ ldapcompare \-p 1389 uid:bjensen uid=bjensen,ou=people,dc=example,dc=com
+Comparing type uid with value bjensen in entry
+uid=bjensen,ou=people,dc=example,dc=com
+Compare operation returned true for entry
+uid=bjensen,ou=people,dc=example,dc=com
+.fi
+.if n \{\
+.RE
+.\}
+.PP
+The following example uses a UID value that does not match\&.
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+$ ldapcompare \-p 1389 uid:beavis uid=bjensen,ou=people,dc=example,dc=com
+Comparing type uid with value beavis in entry
+uid=bjensen,ou=people,dc=example,dc=com
+Compare operation returned false for entry
+uid=bjensen,ou=people,dc=example,dc=com
+.fi
+.if n \{\
+.RE
+.\}
+.SH "COPYRIGHT"
+.br
+Copyright \(co 2011-2013 ForgeRock AS
+.br

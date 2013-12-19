@@ -1,0 +1,213 @@
+'\" t
+.\"     Title: ldifsearch
+.\"    Author: 
+.\" Generator: DocBook XSL-NS Stylesheets v1.76.1 <http://docbook.sf.net/>
+.\"      Date: 10/16/2012
+.\"    Manual: Tools Reference
+.\"    Source: OpenDJ 2.5.0
+.\"  Language: English
+.\"
+.TH "LDIFSEARCH" "1" "10/16/2012" "OpenDJ 2\&.5\&.0" "Tools Reference"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+ldifsearch \- search LDIF with LDAP filters
+.SH "SYNOPSIS"
+.HP \w'\fBldifsearch\fR\ 'u
+\fBldifsearch\fR {options} [filter] [attribute...]
+.SH "DESCRIPTION"
+.PP
+This utility can be used to perform search operations against data in an LDIF file\&.
+.SH "OPTIONS"
+.PP
+The following options are supported\&.
+.PP
+\fB\-b, \-\-baseDN {baseDN}\fR
+.RS 4
+The base DN for the search\&. Multiple base DNs may be specified by providing the option multiple times\&. If no base DN is provided, then the root DSE will be used\&.
+.RE
+.PP
+\fB\-f, \-\-filterFile {filterFile}\fR
+.RS 4
+The path to the file containing the search filter(s) to use\&. If this is not provided, then the filter must be provided on the command line after all configuration options\&.
+.RE
+.PP
+\fB\-l, \-\-ldifFile {ldifFile}\fR
+.RS 4
+LDIF file containing the data to search\&. Multiple files may be specified by providing the option multiple times\&. If no files are provided, the data will be read from standard input\&.
+.RE
+.PP
+\fB\-o, \-\-outputFile {outputFile}\fR
+.RS 4
+The path to the output file to which the matching entries should be written\&. If this is not provided, then the data will be written to standard output\&.
+.RE
+.PP
+\fB\-O, \-\-overwriteExisting\fR
+.RS 4
+Any existing output file should be overwritten rather than appending to it\&.
+.RE
+.PP
+\fB\-s, \-\-searchScope {scope}\fR
+.RS 4
+The scope for the search\&. It must be one of \*(Aqbase\*(Aq, \*(Aqone\*(Aq, \*(Aqsub\*(Aq, or \*(Aqsubordinate\*(Aq\&. If it is not provided, then \*(Aqsub\*(Aq will be used\&.
+.RE
+.PP
+\fB\-t, \-\-timeLimit {timeLimit}\fR
+.RS 4
+Maximum length of time (in seconds) to spend processing\&.
+.sp
+Default value: 0
+.RE
+.PP
+\fB\-T, \-\-dontWrap\fR
+.RS 4
+Long lines should not be wrapped\&.
+.RE
+.PP
+\fB\-V, \-\-version\fR
+.RS 4
+Display version information\&.
+.RE
+.PP
+\fB\-z, \-\-sizeLimit {sizeLimit}\fR
+.RS 4
+Maximum number of matching entries to return\&.
+.sp
+Default value: 0
+.RE
+.PP
+\fB\-?, \-H, \-\-help\fR
+.RS 4
+Display usage information\&.
+.RE
+.SH "FILTER"
+.PP
+The filter argument is a string representation of an LDAP search filter as in
+(cn=Babs Jensen),
+(&(objectClass=Person)(|(sn=Jensen)(cn=Babs J*))), or
+(cn:caseExactMatch:=Fred Flintstone)\&.
+.SH "ATTRIBUTE"
+.PP
+The optional attribute list specifies the attributes to return in the entries found by the search\&. In addition to identifying attributes by name such as
+cn sn mail
+and so forth, you can use the following notations, too\&.
+.PP
+*
+.RS 4
+Return all user attributes such as
+cn,
+sn, and
+mail\&.
+.RE
+.PP
++
+.RS 4
+Return all operational attributes such as
+etag
+and
+pwdPolicySubentry\&.
+.RE
+.PP
+@\fIobjectclass\fR
+.RS 4
+Return all attributes of the specified object class, where
+\fIobjectclass\fR
+is one of the object classes on the entries returned by the search\&.
+.RE
+.SH "EXIT CODES"
+.PP
+0
+.RS 4
+The command completed successfully\&.
+.RE
+.PP
+> 0
+.RS 4
+An error occurred\&.
+.RE
+.SH "EXAMPLES"
+.PP
+The following example demonstrates use of the command\&.
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+$ ldifsearch \-l /path/to/Example\&.ldif \-b dc=example,dc=com uid=bjensen
+dn: uid=bjensen,ou=People,dc=example,dc=com
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: top
+uid: bjensen
+userpassword: hifalutin
+facsimiletelephonenumber: +1 408 555 1992
+givenname: Barbara
+cn: Barbara Jensen
+cn: Babs Jensen
+telephonenumber: +1 408 555 1862
+sn: Jensen
+roomnumber: 0209
+homeDirectory: /home/bjensen
+mail: bjensen@example\&.com
+l: Cupertino
+ou: Product Development
+ou: People
+uidNumber: 1076
+gidNumber: 1000
+.fi
+.if n \{\
+.RE
+.\}
+.PP
+You can also use
+@\fIobjectclass\fR
+notation in the attribute list to return the attributes of a particular object class\&. The following example shows how to return attributes of the
+posixAccount
+object class\&.
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+$ ldifsearch \-\-ldifFile /path/to/Example\&.ldif
+ \-\-baseDN dc=example,dc=com "(uid=bjensen)" @posixaccount
+dn: uid=bjensen,ou=People,dc=example,dc=com
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: top
+uid: bjensen
+userpassword: hifalutin
+cn: Barbara Jensen
+cn: Babs Jensen
+homeDirectory: /home/bjensen
+uidNumber: 1076
+gidNumber: 1000
+.fi
+.if n \{\
+.RE
+.\}
+.SH "COPYRIGHT"
+.br
+Copyright \(co 2011-2012 ForgeRock AS
+.br
