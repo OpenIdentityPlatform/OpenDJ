@@ -26,8 +26,6 @@
  */
 package org.opends.server.core;
 
-import static org.testng.Assert.*;
-
 import java.util.ArrayList;
 
 import org.opends.messages.Message;
@@ -39,32 +37,27 @@ import org.opends.server.types.Operation;
 import org.opends.server.types.ResultCode;
 import org.testng.annotations.Test;
 
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.testng.Assert.*;
+
 /**
  * A set of test cases for unbind operations
  */
-public class UnbindOperationTestCase
-       extends OperationTestCase
+public class UnbindOperationTestCase extends OperationTestCase
 {
-  /**
-   * {@inheritDoc}
-   */
+
+  /** {@inheritDoc} */
   @Override()
   protected Operation[] createTestOperations()
          throws Exception
   {
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
+    final InternalClientConnection conn = getRootConnection();
     return new Operation[]
     {
-      new UnbindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
-                          null),
-      new UnbindOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
-                          new ArrayList<Control>())
+      new UnbindOperationBasis(conn, nextOperationID(), nextMessageID(), null),
+      new UnbindOperationBasis(conn, nextOperationID(), nextMessageID(), new ArrayList<Control>())
     };
   }
-
-
 
   /**
    * Invokes a number of operation methods on the provided unbind operation for
@@ -79,8 +72,6 @@ public class UnbindOperationTestCase
     assertTrue(unbindOperation.getProcessingTime() >= 0);
   }
 
-
-
   /**
    * Attempts an internal unbind operation.  This won't actually do anything,
    * since there's nothing to disconnect with an internal connection, but it
@@ -90,21 +81,16 @@ public class UnbindOperationTestCase
   public void testUnbindInternal()
   {
     InvocationCounterPlugin.resetAllCounters();
+    final InternalClientConnection conn = getRootConnection();
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
-    UnbindOperationBasis unbindOperation =
-         new UnbindOperationBasis(conn, InternalClientConnection.nextOperationID(),
-                             InternalClientConnection.nextMessageID(), new ArrayList<Control>());
+    UnbindOperationBasis unbindOperation = new UnbindOperationBasis(
+        conn, nextOperationID(), nextMessageID(), new ArrayList<Control>());
     unbindOperation.run();
     examineCompletedOperation(unbindOperation);
 
 //    assertTrue(InvocationCounterPlugin.getPreParseCount() > 0);
 //    assertTrue(InvocationCounterPlugin.getPostOperationCount() > 0);
   }
-
-
 
   /**
    * Tests the <CODE>cancel</CODE> method to ensure that it indicates that the
@@ -113,20 +99,15 @@ public class UnbindOperationTestCase
   @Test()
   public void testCancel()
   {
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
+    final InternalClientConnection conn = getRootConnection();
     CancelRequest cancelRequest =
          new CancelRequest(false, Message.raw("Test Unbind Cancel"));
 
-    UnbindOperationBasis unbindOperation =
-         new UnbindOperationBasis(conn, InternalClientConnection.nextOperationID(),
-                             InternalClientConnection.nextMessageID(), new ArrayList<Control>());
+    UnbindOperationBasis unbindOperation = new UnbindOperationBasis(
+        conn, nextOperationID(), nextMessageID(), new ArrayList<Control>());
     assertEquals(unbindOperation.cancel(cancelRequest).getResultCode(),
                  ResultCode.CANNOT_CANCEL);
   }
-
-
 
   /**
    * Tests the <CODE>getCancelRequest</CODE> method to ensure that it always
@@ -135,20 +116,16 @@ public class UnbindOperationTestCase
   @Test
   public void testGetCancelRequest()
   {
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
+    final InternalClientConnection conn = getRootConnection();
     CancelRequest cancelRequest =
          new CancelRequest(false, Message.raw("Test Unbind Cancel"));
 
-    UnbindOperationBasis unbindOperation =
-         new UnbindOperationBasis(conn, InternalClientConnection.nextOperationID(),
-                             InternalClientConnection.nextMessageID(), new ArrayList<Control>());
+    UnbindOperationBasis unbindOperation = new UnbindOperationBasis(
+        conn, nextOperationID(), nextMessageID(), new ArrayList<Control>());
     assertNull(unbindOperation.getCancelRequest());
 
     assertEquals(unbindOperation.cancel(cancelRequest).getResultCode(),
                  ResultCode.CANNOT_CANCEL);
-
     assertNull(unbindOperation.getCancelRequest());
   }
 }
