@@ -488,29 +488,20 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
         StartSessionMsg startSessionMsg = (StartSessionMsg)msg;
 
         // Sanity checking for assured parameters
-        boolean receivedIsAssured = startSessionMsg.isAssured();
-        assertEquals(receivedIsAssured, isAssured);
+        assertEquals(startSessionMsg.isAssured(), isAssured);
         if (isAssured)
         {
-          AssuredMode receivedAssuredMode = startSessionMsg.getAssuredMode();
-          assertEquals(receivedAssuredMode, assuredMode);
-          byte receivedSafeDataLevel = startSessionMsg.getSafeDataLevel();
-          assertEquals(receivedSafeDataLevel, safeDataLevel);
+          assertEquals(startSessionMsg.getAssuredMode(), assuredMode);
+          assertEquals(startSessionMsg.getSafeDataLevel(), safeDataLevel);
         }
-        ServerStatus receivedServerStatus = startSessionMsg.getStatus();
-        assertEquals(receivedServerStatus, ServerStatus.NORMAL_STATUS);
-        List<String> receivedReferralsURLs = startSessionMsg.getReferralsURLs();
-        assertEquals(receivedReferralsURLs.size(), 0);
+        assertEquals(startSessionMsg.getStatus(), ServerStatus.NORMAL_STATUS);
+        Assertions.assertThat(startSessionMsg.getReferralsURLs()).isEmpty();
 
         debugInfo("Received start session assured parameters are ok.");
 
         // Send topo view
-        List<RSInfo> rsList = new ArrayList<RSInfo>();
         RSInfo rsInfo = new RSInfo(serverId, "localhost:" + port, generationId, groupId, 1);
-        rsList.add(rsInfo);
-        TopologyMsg topologyMsg = new TopologyMsg(new ArrayList<DSInfo>(),
-          rsList);
-        session.publish(topologyMsg);
+        session.publish(new TopologyMsg(new ArrayList<DSInfo>(), Arrays.asList(rsInfo)));
       }
       return true;
     }
@@ -521,7 +512,6 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
      */
     public boolean isHandshakeOk()
     {
-
       return handshakeOk;
     }
 
@@ -531,7 +521,6 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
      */
     public boolean isScenarioExecuted()
     {
-
       return scenarioExecuted;
     }
 
@@ -619,8 +608,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
      */
     private void executeNotAssuredScenario() throws Exception
     {
-      UpdateMsg updateMsg = (UpdateMsg) session.receive();
-      checkUpdateAssuredParameters(updateMsg);
+      checkAssuredParametersOnReceivedUpdateMsg();
 
       scenarioExecuted = true;
     }
@@ -631,8 +619,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
      */
     private void executeTimeoutScenario() throws Exception
     {
-      UpdateMsg updateMsg = (UpdateMsg) session.receive();
-      checkUpdateAssuredParameters(updateMsg);
+      checkAssuredParametersOnReceivedUpdateMsg();
 
       scenarioExecuted = true;
 
@@ -645,8 +632,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
      */
     private void executeNoTimeoutScenario() throws Exception
     {
-      UpdateMsg updateMsg = (UpdateMsg) session.receive();
-      checkUpdateAssuredParameters(updateMsg);
+      UpdateMsg updateMsg = checkAssuredParametersOnReceivedUpdateMsg();
 
       // Sleep before sending back the ack
       sleep(NO_TIMEOUT_RS_SLEEP_TIME);
@@ -659,10 +645,13 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
     }
 
     /**
-     * Check that received update assured parameters are as defined at RS start
+     * Receives an {@link UpdateMsg} and checks that received update assured
+     * parameters are as defined at RS start
      */
-    private void checkUpdateAssuredParameters(UpdateMsg updateMsg)
+    private UpdateMsg checkAssuredParametersOnReceivedUpdateMsg() throws Exception
     {
+      final UpdateMsg updateMsg = (UpdateMsg) session.receive();
+
       assertEquals(updateMsg.isAssured(), isAssured,
           "msg=" + ((updateMsg instanceof AddMsg)?
               ((AddMsg)updateMsg).getDN():updateMsg.getCSN()));
@@ -672,6 +661,8 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
         assertEquals(updateMsg.getSafeDataLevel(), safeDataLevel);
       }
       debugInfo("Received update assured parameters are ok.");
+
+      return updateMsg;
     }
 
     /**
@@ -679,50 +670,37 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
      */
     private void executeSafeReadManyErrorsScenario() throws Exception
     {
-      {
-        // Read first update
-        UpdateMsg updateMsg = (UpdateMsg) session.receive();
-        checkUpdateAssuredParameters(updateMsg);
+      // Read first update
+      UpdateMsg updateMsg = checkAssuredParametersOnReceivedUpdateMsg();
 
-        // Sleep before sending back the ack
-        sleep(NO_TIMEOUT_RS_SLEEP_TIME);
+      // Sleep before sending back the ack
+      sleep(NO_TIMEOUT_RS_SLEEP_TIME);
 
-        // Send an ack with errors:
-        // - replay error
-        // - server 10 error, server 20 error
-        List<Integer> serversInError = new ArrayList<Integer>();
-        serversInError.add(10);
-        serversInError.add(20);
-        AckMsg ackMsg = new AckMsg(updateMsg.getCSN(), false, false, true, serversInError);
-        session.publish(ackMsg);
+      // Send an ack with errors:
+      // - replay error
+      // - server 10 error, server 20 error
+      List<Integer> serversInError = Arrays.asList(10, 20);
+      session.publish(new AckMsg(updateMsg.getCSN(), false, false, true, serversInError));
 
-        // Read second update
-        updateMsg = (UpdateMsg) session.receive();
-        checkUpdateAssuredParameters(updateMsg);
+      // Read second update
+      updateMsg = checkAssuredParametersOnReceivedUpdateMsg();
 
-        // Sleep before sending back the ack
-        sleep(NO_TIMEOUT_RS_SLEEP_TIME);
+      // Sleep before sending back the ack
+      sleep(NO_TIMEOUT_RS_SLEEP_TIME);
 
-        // Send an ack with errors:
-        // - timeout error
-        // - wrong status error
-        // - replay error
-        // - server 10 error, server 20 error, server 30 error
-        serversInError = new ArrayList<Integer>();
-        serversInError.add(10);
-        serversInError.add(20);
-        serversInError.add(30);
-        ackMsg = new AckMsg(updateMsg.getCSN(), true, true, true, serversInError);
-        session.publish(ackMsg);
+      // Send an ack with errors:
+      // - timeout error
+      // - wrong status error
+      // - replay error
+      // - server 10 error, server 20 error, server 30 error
+      serversInError = Arrays.asList(10, 20, 30);
+      session.publish(new AckMsg(updateMsg.getCSN(), true, true, true, serversInError));
 
-        // Read third update
-        updateMsg = (UpdateMsg) session.receive();
-        checkUpdateAssuredParameters(updateMsg);
+      // Read third update
+      updateMsg = checkAssuredParametersOnReceivedUpdateMsg();
 
-        // let timeout occur
-
-        scenarioExecuted = true;
-      }
+      // let timeout occur
+      scenarioExecuted = true;
     }
 
     /**
@@ -730,46 +708,37 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
      */
     private void executeSafeDataManyErrorsScenario() throws Exception
     {
-      {
-        // Read first update
-        UpdateMsg updateMsg = (UpdateMsg) session.receive();
-        checkUpdateAssuredParameters(updateMsg);
+      // Read first update
+      UpdateMsg updateMsg = checkAssuredParametersOnReceivedUpdateMsg();
 
-        // Sleep before sending back the ack
-        sleep(NO_TIMEOUT_RS_SLEEP_TIME);
+      // Sleep before sending back the ack
+      sleep(NO_TIMEOUT_RS_SLEEP_TIME);
 
-        // Send an ack with errors:
-        // - timeout error
-        // - server 10 error
-        List<Integer> serversInError = new ArrayList<Integer>();
-        serversInError.add(10);
-        AckMsg ackMsg = new AckMsg(updateMsg.getCSN(), true, false, false, serversInError);
-        session.publish(ackMsg);
+      // Send an ack with errors:
+      // - timeout error
+      // - server 10 error
+      List<Integer> serversInError = Arrays.asList(10);
+      session.publish(new AckMsg(updateMsg.getCSN(), true, false, false, serversInError));
 
-        // Read second update
-        updateMsg = (UpdateMsg) session.receive();
-        checkUpdateAssuredParameters(updateMsg);
+      // Read second update
+      updateMsg = checkAssuredParametersOnReceivedUpdateMsg();
 
-        // Sleep before sending back the ack
-        sleep(NO_TIMEOUT_RS_SLEEP_TIME);
+      // Sleep before sending back the ack
+      sleep(NO_TIMEOUT_RS_SLEEP_TIME);
 
-        // Send an ack with errors:
-        // - timeout error
-        // - server 10 error, server 20 error
-        serversInError = new ArrayList<Integer>();
-        serversInError.add(10);
-        serversInError.add(20);
-        ackMsg = new AckMsg(updateMsg.getCSN(), true, false, false, serversInError);
-        session.publish(ackMsg);
+      // Send an ack with errors:
+      // - timeout error
+      // - server 10 error, server 20 error
+      serversInError = Arrays.asList(10, 20);
+      session.publish(new AckMsg(updateMsg.getCSN(), true, false, false, serversInError));
 
-        // Read third update
-        updateMsg = (UpdateMsg) session.receive();
-        checkUpdateAssuredParameters(updateMsg);
+      // Read third update
+      updateMsg = checkAssuredParametersOnReceivedUpdateMsg();
 
-        // let timeout occur
-        scenarioExecuted = true;
-      }
+      // let timeout occur
+      scenarioExecuted = true;
     }
+
   }
 
   /**
@@ -802,13 +771,13 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
       // safe data level 2
       replicationServer = new FakeReplicationServer(rsGroupId, replServerPort, RS_SERVER_ID,
         1, testcase);
-      if (rsGroupId != (byte)1)
+      if (rsGroupId != 1)
         replicationServer.setAssured(false);
       replicationServer.start(TIMEOUT_SCENARIO);
 
       long startTime;
       // Create a safe data assured domain
-      if (rsGroupId == (byte)1)
+      if (rsGroupId == 1)
       {
         safeDataDomainCfgEntry = createAssuredDomain(AssuredMode.SAFE_DATA_MODE, 1, TIMEOUT);
         // Wait for connection of domain to RS
@@ -838,7 +807,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
 
       waitForScenarioExecutedOnRs(testcase, replicationServer);
 
-      if (rsGroupId == (byte)1)
+      if (rsGroupId == 1)
       {
         // RS has same group id as DS
         assertBlockedLongerThanTimeout(startTime, endTime, TIMEOUT);
@@ -852,7 +821,8 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
           .assertValue("assured-sd-timeout-updates", 1)
           .assertRemainingValuesAreZero();
         assertServerErrorsSafeDataMode(baseDN, entry(RS_SERVER_ID, 1));
-      } else
+      }
+      else
       {
         // RS has a different group id, addEntry should have returned quickly
         assertTrue((endTime - startTime) < 3000);
@@ -910,14 +880,14 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
       // Create and start a RS expecting clients in safe read assured mode
       replicationServer = new FakeReplicationServer(rsGroupId, replServerPort, RS_SERVER_ID,
         true, testcase);
-      if (rsGroupId != (byte)1)
+      if (rsGroupId != 1)
         replicationServer.setAssured(false);
       replicationServer.start(TIMEOUT_SCENARIO);
 
       long startTime;
 
       // Create a safe data assured domain
-      if (rsGroupId == (byte)1)
+      if (rsGroupId == 1)
       {
         // Create a safe read assured domain
         safeReadDomainCfgEntry = createAssuredDomain(AssuredMode.SAFE_READ_MODE, 0, TIMEOUT);
@@ -948,7 +918,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
 
       waitForScenarioExecutedOnRs(testcase, replicationServer);
 
-      if (rsGroupId == (byte)1)
+      if (rsGroupId == 1)
       {
         assertBlockedLongerThanTimeout(startTime, endTime, TIMEOUT);
         assertTrue(replicationServer.isScenarioExecuted());
@@ -962,7 +932,8 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
           .assertValue("assured-sr-timeout-updates", 1)
           .assertRemainingValuesAreZero();
         assertServerErrorsSafeReadMode(baseDN, entry(RS_SERVER_ID, 1));
-      } else
+      }
+      else
       {
         // RS has a different group id, addEntry should have returned quickly
         assertTrue((endTime - startTime) < 3000);
@@ -1186,7 +1157,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
       try {
         AckMsg ackMsg = replicationServer.sendAssuredAddMsg(entry, parentUid);
 
-         if (rsGroupId == (byte)2)
+        if (rsGroupId == 2)
            fail("Should only go here for RS with same group id as DS");
 
         // Ack received, replay has occurred
@@ -1205,10 +1176,11 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
           .assertValue("assured-sr-received-updates-acked", 1)
           .assertRemainingValuesAreZero();
         assertNoServerErrors(baseDN);
-      } catch (SocketTimeoutException e)
+      }
+      catch (SocketTimeoutException e)
       {
         // Expected
-        if (rsGroupId == (byte)1)
+        if (rsGroupId == 1)
            fail("Should only go here for RS with group id different from DS one");
 
         return;
