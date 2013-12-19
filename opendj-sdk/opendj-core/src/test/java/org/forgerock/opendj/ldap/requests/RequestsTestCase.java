@@ -31,7 +31,6 @@ import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 import static org.fest.assertions.Assertions.assertThat;
 
-import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.DecodeOptions;
 import org.forgerock.opendj.ldap.TestCaseUtils;
@@ -47,7 +46,6 @@ import org.testng.annotations.Test;
  * An abstract class that all requests unit tests should extend. Requests represents the classes found directly under
  * the package org.forgerock.opendj.ldap.requests.
  */
-
 @Test(groups = { "precommit", "requests", "sdk" })
 public abstract class RequestsTestCase extends ForgeRockTestCase {
 
@@ -77,7 +75,6 @@ public abstract class RequestsTestCase extends ForgeRockTestCase {
     @BeforeClass()
     public void startServer() throws Exception {
         TestCaseUtils.startServer();
-        con = TestCaseUtils.getInternalConnection();
     }
 
     /**
@@ -104,9 +101,6 @@ public abstract class RequestsTestCase extends ForgeRockTestCase {
      * @return A unmodifiable request from the original.
      */
     protected abstract Request unmodifiableOf(final Request original);
-
-    // Connection used for sending requests.
-    protected Connection con;
 
     /**
      * Request data to be validated.
