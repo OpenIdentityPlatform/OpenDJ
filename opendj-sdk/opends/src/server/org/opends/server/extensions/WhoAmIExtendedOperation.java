@@ -22,16 +22,12 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2012 ForgeRock AS
+ *      Portions Copyright 2011-2013 ForgeRock AS
  */
 package org.opends.server.extensions;
 
-
-
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashSet;
-import java.util.Set;
 
 import org.opends.server.admin.std.server.WhoAmIExtendedOperationHandlerCfg;
 import org.opends.server.api.ClientConnection;
@@ -39,7 +35,6 @@ import org.opends.server.api.ExtendedOperationHandler;
 import org.opends.server.config.ConfigException;
 import org.opends.server.controls.ProxiedAuthV1Control;
 import org.opends.server.controls.ProxiedAuthV2Control;
-import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ExtendedOperation;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.*;
@@ -47,7 +42,6 @@ import org.opends.server.types.*;
 import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.ServerConstants.*;
-
 
 /**
  * This class implements the "Who Am I?" extended operation defined in RFC 4532.
@@ -61,12 +55,6 @@ public class WhoAmIExtendedOperation
    */
   private static final DebugTracer TRACER = getTracer();
 
-  /** The default set of supported control OIDs for this extended. */
-  private final Set<String> supportedControlOIDs =
-      Collections.unmodifiableSet(new HashSet<String>(Arrays.asList(
-          OID_PROXIED_AUTH_V1, OID_PROXIED_AUTH_V2)));
-
-
   /**
    * Create an instance of this "Who Am I?" extended operation.  All
    * initialization should be performed in the
@@ -74,55 +62,17 @@ public class WhoAmIExtendedOperation
    */
   public WhoAmIExtendedOperation()
   {
-    super();
+    super(new HashSet<String>(Arrays.asList(
+        OID_PROXIED_AUTH_V1, OID_PROXIED_AUTH_V2)));
   }
 
-
-  /**
-   * Initializes this extended operation handler based on the information in the
-   * provided configuration entry.  It should also register itself with the
-   * Directory Server for the particular kinds of extended operations that it
-   * will process.
-   *
-   * @param  config       The configuration that contains the information
-   *                      to use to initialize this extended operation handler.
-   *
-   * @throws  ConfigException  If an unrecoverable problem arises in the
-   *                           process of performing the initialization.
-   *
-   * @throws  InitializationException  If a problem occurs during initialization
-   *                                   that is not related to the server
-   *                                   configuration.
-   */
+  /** {@inheritDoc} */
   @Override
   public void initializeExtendedOperationHandler(
                    WhoAmIExtendedOperationHandlerCfg config)
          throws ConfigException, InitializationException
   {
-    DirectoryServer.registerSupportedExtension(OID_WHO_AM_I_REQUEST, this);
-
-    registerControlsAndFeatures();
-  }
-
-
-
-  /**
-   * Performs any finalization that may be necessary for this extended
-   * operation handler.  By default, no finalization is performed.
-   */
-  @Override()
-  public void finalizeExtendedOperationHandler()
-  {
-    DirectoryServer.deregisterSupportedExtension(OID_WHO_AM_I_REQUEST);
-
-    deregisterControlsAndFeatures();
-  }
-
-  /** {@inheritDoc} */
-  @Override()
-  public Set<String> getSupportedControls()
-  {
-    return supportedControlOIDs;
+    super.initializeExtendedOperationHandler(config);
   }
 
   /** {@inheritDoc} */
@@ -201,9 +151,15 @@ public class WhoAmIExtendedOperation
 
   /** {@inheritDoc} */
   @Override
+  public String getExtendedOperationOID()
+  {
+    return OID_WHO_AM_I_REQUEST;
+  }
+
+  /** {@inheritDoc} */
+  @Override
   public String getExtendedOperationName()
   {
     return "Who Am I?";
   }
 }
-

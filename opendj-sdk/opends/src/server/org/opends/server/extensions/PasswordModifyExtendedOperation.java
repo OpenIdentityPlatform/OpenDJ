@@ -26,6 +26,7 @@
  */
 package org.opends.server.extensions;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.locks.Lock;
 
@@ -123,9 +124,6 @@ public class PasswordModifyExtendedOperation
   /** The reference to the identity mapper. */
   private IdentityMapper<?> identityMapper;
 
-  /** The default set of supported control OIDs for this extended. */
-  private Set<String> supportedControlOIDs = new HashSet<String>(0);
-
   /**
    * Create an instance of this password modify extended operation.  All
    * initialization should be performed in the
@@ -133,7 +131,8 @@ public class PasswordModifyExtendedOperation
    */
   public PasswordModifyExtendedOperation()
   {
-    super();
+    super(new HashSet<String>(Arrays.asList(
+        OID_LDAP_NOOP_OPENLDAP_ASSIGNED, OID_PASSWORD_POLICY_CONTROL)));
   }
 
   /**
@@ -179,22 +178,13 @@ public class PasswordModifyExtendedOperation
       throw new InitializationException(message, e);
     }
 
-
-    supportedControlOIDs = new HashSet<String>();
-    supportedControlOIDs.add(OID_LDAP_NOOP_OPENLDAP_ASSIGNED);
-    supportedControlOIDs.add(OID_PASSWORD_POLICY_CONTROL);
-
-
     // Save this configuration for future reference.
     currentConfig = config;
 
     // Register this as a change listener.
     config.addPasswordModifyChangeListener(this);
 
-    DirectoryServer.registerSupportedExtension(OID_PASSWORD_MODIFY_REQUEST,
-                                               this);
-
-    registerControlsAndFeatures();
+    super.initializeExtendedOperationHandler(config);
   }
 
 
@@ -208,23 +198,8 @@ public class PasswordModifyExtendedOperation
   {
     currentConfig.removePasswordModifyChangeListener(this);
 
-    DirectoryServer.deregisterSupportedExtension(OID_PASSWORD_MODIFY_REQUEST);
-
-    deregisterControlsAndFeatures();
+    super.finalizeExtendedOperationHandler();
   }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public Set<String> getSupportedControls()
-  {
-    return supportedControlOIDs;
-  }
-
-
 
   /**
    * Processes the provided extended operation.
@@ -298,11 +273,8 @@ public class PasswordModifyExtendedOperation
         }
 
         operation.setResultCode(ResultCode.PROTOCOL_ERROR);
-
-        Message message = ERR_EXTOP_PASSMOD_CANNOT_DECODE_REQUEST.get(
-                getExceptionMessage(ae));
-        operation.appendErrorMessage(message);
-
+        operation.appendErrorMessage(ERR_EXTOP_PASSMOD_CANNOT_DECODE_REQUEST
+            .get(getExceptionMessage(ae)));
         return;
       }
     }
@@ -330,10 +302,8 @@ public class PasswordModifyExtendedOperation
         if ((! authInfo.isAuthenticated()) || (requestorEntry == null))
         {
           operation.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
-
           operation.appendErrorMessage(
                   ERR_EXTOP_PASSMOD_NO_AUTH_OR_USERID.get());
-
           return;
         }
 
@@ -349,7 +319,6 @@ public class PasswordModifyExtendedOperation
               .get(String.valueOf(userDN)));
           return;
         }
-
 
         userEntry = requestorEntry;
       }
@@ -372,10 +341,8 @@ public class PasswordModifyExtendedOperation
             }
 
             operation.setResultCode(ResultCode.INVALID_DN_SYNTAX);
-
             operation.appendErrorMessage(
                     ERR_EXTOP_PASSMOD_CANNOT_DECODE_AUTHZ_DN.get(authzIDStr));
-
             return;
           }
 
@@ -405,10 +372,8 @@ public class PasswordModifyExtendedOperation
                       ERR_EXTOP_PASSMOD_CANNOT_MAP_USER.get(authzIDStr));
               return;
             }
-            else
-            {
-              userDN = userEntry.getDN();
-            }
+
+            userDN = userEntry.getDN();
           }
           catch (DirectoryException de)
           {
@@ -434,16 +399,15 @@ public class PasswordModifyExtendedOperation
           {
             userDN = DN.decode(authzIDStr);
           }
-          catch (DirectoryException de)
+          catch (DirectoryException ignored)
           {
             if (debugEnabled())
             {
-              TRACER.debugCaught(DebugLogLevel.ERROR, de);
+              TRACER.debugCaught(DebugLogLevel.ERROR, ignored);
             }
-            // IGNORE.
           }
 
-          if ((userDN != null) && (!userDN.isNullDN())) {
+          if (userDN != null && !userDN.isNullDN()) {
             // If the provided DN is an alternate DN for a root user,
             // then replace it with the actual root DN.
             DN actualRootDN = DirectoryServer.getActualRootBindDN(userDN);
@@ -456,13 +420,12 @@ public class PasswordModifyExtendedOperation
             {
               userEntry = identityMapper.getEntryForID(authzIDStr);
             }
-            catch (DirectoryException de)
+            catch (DirectoryException ignored)
             {
               if (debugEnabled())
               {
-                TRACER.debugCaught(DebugLogLevel.ERROR, de);
+                TRACER.debugCaught(DebugLogLevel.ERROR, ignored);
               }
-              // IGNORE.
             }
           }
 
@@ -473,10 +436,8 @@ public class PasswordModifyExtendedOperation
               ERR_EXTOP_PASSMOD_INVALID_AUTHZID_STRING.get(authzIDStr));
             return;
           }
-          else
-          {
-            userDN = userEntry.getDN();
-          }
+
+          userDN = userEntry.getDN();
         }
       }
 
@@ -506,7 +467,6 @@ public class PasswordModifyExtendedOperation
         }
 
         operation.setResultCode(DirectoryServer.getServerErrorResultCode());
-
         operation.appendErrorMessage(
                 ERR_EXTOP_PASSMOD_CANNOT_GET_PW_POLICY.get(
                         String.valueOf(userDN),
@@ -552,19 +512,15 @@ public class PasswordModifyExtendedOperation
       {
         if (pwPolicyRequested)
         {
-          pwPolicyErrorType =
-               PasswordPolicyErrorType.ACCOUNT_LOCKED;
+          pwPolicyErrorType = PasswordPolicyErrorType.ACCOUNT_LOCKED;
           operation.addResponseControl(
                new PasswordPolicyResponseControl(pwPolicyWarningType,
                                                  pwPolicyWarningValue,
                                                  pwPolicyErrorType));
         }
 
-        Message message = ERR_EXTOP_PASSMOD_ACCOUNT_DISABLED.get();
-
         operation.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
-        operation.appendErrorMessage(message);
-
+        operation.appendErrorMessage(ERR_EXTOP_PASSMOD_ACCOUNT_DISABLED.get());
         return;
       }
       else if (selfChange &&
@@ -574,19 +530,15 @@ public class PasswordModifyExtendedOperation
       {
         if (pwPolicyRequested)
         {
-          pwPolicyErrorType =
-               PasswordPolicyErrorType.ACCOUNT_LOCKED;
+          pwPolicyErrorType = PasswordPolicyErrorType.ACCOUNT_LOCKED;
           operation.addResponseControl(
                new PasswordPolicyResponseControl(pwPolicyWarningType,
                                                  pwPolicyWarningValue,
                                                  pwPolicyErrorType));
         }
 
-        Message message = ERR_EXTOP_PASSMOD_ACCOUNT_LOCKED.get();
-
         operation.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
-        operation.appendErrorMessage(message);
-
+        operation.appendErrorMessage(ERR_EXTOP_PASSMOD_ACCOUNT_LOCKED.get());
         return;
       }
 
@@ -601,7 +553,6 @@ public class PasswordModifyExtendedOperation
                 .isPasswordChangeRequiresCurrentPassword())
         {
           operation.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
-
           operation.appendErrorMessage(
                   ERR_EXTOP_PASSMOD_REQUIRE_CURRENT_PW.get());
 
@@ -622,7 +573,7 @@ public class PasswordModifyExtendedOperation
       {
         if (pwPolicyState.getAuthenticationPolicy()
             .isRequireSecureAuthentication()
-            && (!operation.getClientConnection().isSecure()))
+            && !operation.getClientConnection().isSecure())
         {
           operation.setResultCode(ResultCode.CONFIDENTIALITY_REQUIRED);
           operation.addAdditionalLogItem(AdditionalLogItem.quotedKeyValue(
@@ -659,13 +610,12 @@ public class PasswordModifyExtendedOperation
       // If it is a self password change and we don't allow that, then reject
       // the request.
       if (selfChange
-          && (!pwPolicyState.getAuthenticationPolicy()
-              .isAllowUserPasswordChanges()))
+          && !pwPolicyState.getAuthenticationPolicy()
+              .isAllowUserPasswordChanges())
       {
         if (pwPolicyRequested)
         {
-          pwPolicyErrorType =
-               PasswordPolicyErrorType.PASSWORD_MOD_NOT_ALLOWED;
+          pwPolicyErrorType = PasswordPolicyErrorType.PASSWORD_MOD_NOT_ALLOWED;
           operation.addResponseControl(
                new PasswordPolicyResponseControl(pwPolicyWarningType,
                                                  pwPolicyWarningValue,
@@ -673,7 +623,6 @@ public class PasswordModifyExtendedOperation
         }
 
         operation.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
-
         operation.appendErrorMessage(
                 ERR_EXTOP_PASSMOD_USER_PW_CHANGES_NOT_ALLOWED.get());
         return;
@@ -684,10 +633,9 @@ public class PasswordModifyExtendedOperation
       // then reject the request.
       if (pwPolicyState.getAuthenticationPolicy()
           .isRequireSecurePasswordChanges()
-          && (!operation.getClientConnection().isSecure()))
+          && !operation.getClientConnection().isSecure())
       {
         operation.setResultCode(ResultCode.CONFIDENTIALITY_REQUIRED);
-
         operation.appendErrorMessage(
                 ERR_EXTOP_PASSMOD_SECURE_CHANGES_REQUIRED.get());
         return;
@@ -700,8 +648,7 @@ public class PasswordModifyExtendedOperation
       {
         if (pwPolicyRequested)
         {
-          pwPolicyErrorType =
-               PasswordPolicyErrorType.PASSWORD_TOO_YOUNG;
+          pwPolicyErrorType = PasswordPolicyErrorType.PASSWORD_TOO_YOUNG;
           operation.addResponseControl(
                new PasswordPolicyResponseControl(pwPolicyWarningType,
                                                  pwPolicyWarningValue,
@@ -709,22 +656,21 @@ public class PasswordModifyExtendedOperation
         }
 
         operation.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
-
         operation.appendErrorMessage(ERR_EXTOP_PASSMOD_IN_MIN_AGE.get());
-
         return;
       }
 
 
       // If the user's password is expired and it's a self-change request, then
       // see if that's OK.
-      if ((selfChange && pwPolicyState.isPasswordExpired() && (!pwPolicyState
-          .getAuthenticationPolicy().isAllowExpiredPasswordChanges())))
+      if (selfChange
+          && pwPolicyState.isPasswordExpired()
+          && !pwPolicyState.getAuthenticationPolicy()
+              .isAllowExpiredPasswordChanges())
       {
         if (pwPolicyRequested)
         {
-          pwPolicyErrorType =
-               PasswordPolicyErrorType.PASSWORD_EXPIRED;
+          pwPolicyErrorType = PasswordPolicyErrorType.PASSWORD_EXPIRED;
           operation.addResponseControl(
                new PasswordPolicyResponseControl(pwPolicyWarningType,
                                                  pwPolicyWarningValue,
@@ -732,7 +678,6 @@ public class PasswordModifyExtendedOperation
         }
 
         operation.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
-
         operation.appendErrorMessage(
                 ERR_EXTOP_PASSMOD_PASSWORD_IS_EXPIRED.get());
         return;
@@ -752,15 +697,12 @@ public class PasswordModifyExtendedOperation
           if (newPassword == null)
           {
             operation.setResultCode(ResultCode.UNWILLING_TO_PERFORM);
-
             operation.appendErrorMessage(
                     ERR_EXTOP_PASSMOD_NO_PW_GENERATOR.get());
             return;
           }
-          else
-          {
-            generatedPassword = true;
-          }
+
+          generatedPassword = true;
         }
         catch (DirectoryException de)
         {
@@ -770,7 +712,6 @@ public class PasswordModifyExtendedOperation
           }
 
           operation.setResultCode(de.getResultCode());
-
           operation.appendErrorMessage(
                   ERR_EXTOP_PASSMOD_CANNOT_GENERATE_PW.get(
                           de.getMessageObject()));
@@ -789,7 +730,6 @@ public class PasswordModifyExtendedOperation
               .isAllowPreEncodedPasswords())
           {
             operation.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
-
             operation.appendErrorMessage(
                     ERR_EXTOP_PASSMOD_PRE_ENCODED_NOT_ALLOWED.get());
             return;
@@ -799,10 +739,10 @@ public class PasswordModifyExtendedOperation
         {
           // Run the new password through the set of password validators.
           if (selfChange
-              || (!pwPolicyState.getAuthenticationPolicy()
-                  .isSkipValidationForAdministrators()))
+              || !pwPolicyState.getAuthenticationPolicy()
+                  .isSkipValidationForAdministrators())
           {
-            HashSet<ByteString> clearPasswords;
+            Set<ByteString> clearPasswords;
             if (oldPassword == null)
             {
               clearPasswords =
@@ -838,7 +778,6 @@ public class PasswordModifyExtendedOperation
               }
 
               operation.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
-
               operation.appendErrorMessage(
                       ERR_EXTOP_PASSMOD_UNACCEPTABLE_PW.get(
                               String.valueOf(invalidReason)));
@@ -852,11 +791,11 @@ public class PasswordModifyExtendedOperation
           {
             if (pwPolicyState.isPasswordInHistory(newPassword))
             {
-              if (selfChange || (! pwPolicyState.getAuthenticationPolicy().
-                                      isSkipValidationForAdministrators()))
+              if (selfChange
+                  || !pwPolicyState.getAuthenticationPolicy()
+                      .isSkipValidationForAdministrators())
               {
                 operation.setResultCode(ResultCode.CONSTRAINT_VIOLATION);
-
                 operation.appendErrorMessage(
                         ERR_EXTOP_PASSMOD_PW_IN_HISTORY.get());
                 return;
@@ -892,7 +831,6 @@ public class PasswordModifyExtendedOperation
           }
 
           operation.setResultCode(de.getResultCode());
-
           operation.appendErrorMessage(
                   ERR_EXTOP_PASSMOD_CANNOT_ENCODE_PASSWORD.get(
                           de.getMessageObject()));
@@ -1043,152 +981,149 @@ public class PasswordModifyExtendedOperation
       if (noOpRequested)
       {
         operation.appendErrorMessage(WARN_EXTOP_PASSMOD_NOOP.get());
-
         operation.setResultCode(ResultCode.NO_OPERATION);
+        return;
+      }
+
+      if (selfChange && requestorEntry == null)
+      {
+        requestorEntry = userEntry;
+      }
+
+      // Get an internal connection and use it to perform the modification.
+      boolean isRoot = DirectoryServer.isRootDN(requestorEntry.getDN());
+      AuthenticationInfo authInfo = new AuthenticationInfo(requestorEntry,
+                                                           isRoot);
+      InternalClientConnection internalConnection = new
+           InternalClientConnection(authInfo);
+
+      ModifyOperation modifyOperation =
+           internalConnection.processModify(userDN, modList);
+      ResultCode resultCode = modifyOperation.getResultCode();
+      if (resultCode != ResultCode.SUCCESS)
+      {
+        operation.setResultCode(resultCode);
+        operation.setErrorMessage(modifyOperation.getErrorMessage());
+        operation.setReferralURLs(modifyOperation.getReferralURLs());
+        return;
+      }
+
+
+      // If there were any password policy state changes, we need to apply
+      // them using a root connection because the end user may not have
+      // sufficient access to apply them.  This is less efficient than
+      // doing them all in the same modification, but it's safer.
+      List<Modification> pwPolicyMods = pwPolicyState.getModifications();
+      if (! pwPolicyMods.isEmpty())
+      {
+        InternalClientConnection rootConnection =
+             InternalClientConnection.getRootConnection();
+        ModifyOperation modOp =
+             rootConnection.processModify(userDN, pwPolicyMods);
+        if (modOp.getResultCode() != ResultCode.SUCCESS)
+        {
+          // At this point, the user's password is already changed so there's
+          // not much point in returning a non-success result.  However, we
+          // should at least log that something went wrong.
+          ErrorLogger.logError(WARN_EXTOP_PASSMOD_CANNOT_UPDATE_PWP_STATE.get(
+                  String.valueOf(userDN),
+                  String.valueOf(modOp.getResultCode()),
+                  modOp.getErrorMessage()));
+        }
+      }
+
+
+      // If we've gotten here, then everything is OK, so indicate that the
+      // operation was successful.
+      operation.setResultCode(ResultCode.SUCCESS);
+
+      // Save attachments for post-op plugins (e.g. Samba password plugin).
+      operation.setAttachment(AUTHZ_DN_ATTACHMENT, userDN);
+      operation.setAttachment(PWD_ATTRIBUTE_ATTACHMENT, pwPolicyState
+          .getAuthenticationPolicy().getPasswordAttribute());
+      if (!isPreEncoded)
+      {
+        operation.setAttachment(CLEAR_PWD_ATTACHMENT, newPassword);
+      }
+      operation.setAttachment(ENCODED_PWD_ATTACHMENT, encodedPasswords);
+
+      // If a password was generated, then include it in the response.
+      if (generatedPassword)
+      {
+        ByteStringBuilder builder = new ByteStringBuilder();
+        ASN1Writer writer = ASN1.getWriter(builder);
+
+        try
+        {
+          writer.writeStartSequence();
+          writer.writeOctetString(TYPE_PASSWORD_MODIFY_GENERATED_PASSWORD,
+              newPassword);
+          writer.writeEndSequence();
+        }
+        catch (IOException e)
+        {
+          TRACER.debugCaught(DebugLogLevel.ERROR, e);
+        }
+
+        operation.setResponseValue(builder.toByteString());
+      }
+
+
+      // If this was a self password change, and the client is authenticated
+      // as the user whose password was changed, then clear the "must change
+      // password" flag in the client connection.  Note that we're using the
+      // authentication DN rather than the authorization DN in this case to
+      // avoid mistakenly clearing the flag for the wrong user.
+      if (selfChange && (authInfo.getAuthenticationDN() != null) &&
+          (authInfo.getAuthenticationDN().equals(userDN)))
+      {
+        operation.getClientConnection().setMustChangePassword(false);
+      }
+
+
+      // If the password policy control was requested, then add the
+      // appropriate response control.
+      if (pwPolicyRequested)
+      {
+        operation.addResponseControl(
+             new PasswordPolicyResponseControl(pwPolicyWarningType,
+                                               pwPolicyWarningValue,
+                                               pwPolicyErrorType));
+      }
+
+      // Handle Account Status Notifications that may be needed.
+      // They are not handled by the backend for internal operations.
+      List<AttributeValue> currentPasswords = null;
+      if (oldPassword != null)
+      {
+        currentPasswords = new ArrayList<AttributeValue>(1);
+        currentPasswords.add(AttributeValues
+                            .create(oldPassword, oldPassword));
+      }
+      List<AttributeValue> newPasswords = null;
+      if (newPassword != null)
+      {
+        newPasswords = new ArrayList<AttributeValue>(1);
+        newPasswords.add(AttributeValues
+                         .create(newPassword, newPassword));
+      }
+      if (selfChange)
+      {
+        Message message = INFO_MODIFY_PASSWORD_CHANGED.get();
+        pwPolicyState.generateAccountStatusNotification(
+          AccountStatusNotificationType.PASSWORD_CHANGED,
+          userEntry, message,
+          AccountStatusNotification.createProperties(pwPolicyState, false,
+                -1, currentPasswords, newPasswords));
       }
       else
       {
-        if (selfChange && (requestorEntry == null))
-        {
-          requestorEntry = userEntry;
-        }
-
-        // Get an internal connection and use it to perform the modification.
-        boolean isRoot = DirectoryServer.isRootDN(requestorEntry.getDN());
-        AuthenticationInfo authInfo = new AuthenticationInfo(requestorEntry,
-                                                             isRoot);
-        InternalClientConnection internalConnection = new
-             InternalClientConnection(authInfo);
-
-        ModifyOperation modifyOperation =
-             internalConnection.processModify(userDN, modList);
-        ResultCode resultCode = modifyOperation.getResultCode();
-        if (resultCode != ResultCode.SUCCESS)
-        {
-          operation.setResultCode(resultCode);
-          operation.setErrorMessage(modifyOperation.getErrorMessage());
-          operation.setReferralURLs(modifyOperation.getReferralURLs());
-          return;
-        }
-
-
-        // If there were any password policy state changes, we need to apply
-        // them using a root connection because the end user may not have
-        // sufficient access to apply them.  This is less efficient than
-        // doing them all in the same modification, but it's safer.
-        List<Modification> pwPolicyMods = pwPolicyState.getModifications();
-        if (! pwPolicyMods.isEmpty())
-        {
-          InternalClientConnection rootConnection =
-               InternalClientConnection.getRootConnection();
-          ModifyOperation modOp =
-               rootConnection.processModify(userDN, pwPolicyMods);
-          if (modOp.getResultCode() != ResultCode.SUCCESS)
-          {
-            // At this point, the user's password is already changed so there's
-            // not much point in returning a non-success result.  However, we
-            // should at least log that something went wrong.
-            Message message = WARN_EXTOP_PASSMOD_CANNOT_UPDATE_PWP_STATE.get(
-                    String.valueOf(userDN),
-                    String.valueOf(modOp.getResultCode()),
-                    modOp.getErrorMessage());
-            ErrorLogger.logError(message);
-          }
-        }
-
-
-        // If we've gotten here, then everything is OK, so indicate that the
-        // operation was successful.
-        operation.setResultCode(ResultCode.SUCCESS);
-
-        // Save attachments for post-op plugins (e.g. Samba password plugin).
-        operation.setAttachment(AUTHZ_DN_ATTACHMENT, userDN);
-        operation.setAttachment(PWD_ATTRIBUTE_ATTACHMENT, pwPolicyState
-            .getAuthenticationPolicy().getPasswordAttribute());
-        if (!isPreEncoded)
-        {
-          operation.setAttachment(CLEAR_PWD_ATTACHMENT, newPassword);
-        }
-        operation.setAttachment(ENCODED_PWD_ATTACHMENT, encodedPasswords);
-
-        // If a password was generated, then include it in the response.
-        if (generatedPassword)
-        {
-          ByteStringBuilder builder = new ByteStringBuilder();
-          ASN1Writer writer = ASN1.getWriter(builder);
-
-          try
-          {
-          writer.writeStartSequence();
-          writer.writeOctetString(TYPE_PASSWORD_MODIFY_GENERATED_PASSWORD,
-                                   newPassword);
-          writer.writeEndSequence();
-          }
-          catch(Exception e)
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
-
-          operation.setResponseValue(builder.toByteString());
-        }
-
-
-        // If this was a self password change, and the client is authenticated
-        // as the user whose password was changed, then clear the "must change
-        // password" flag in the client connection.  Note that we're using the
-        // authentication DN rather than the authorization DN in this case to
-        // avoid mistakenly clearing the flag for the wrong user.
-        if (selfChange && (authInfo.getAuthenticationDN() != null) &&
-            (authInfo.getAuthenticationDN().equals(userDN)))
-        {
-          operation.getClientConnection().setMustChangePassword(false);
-        }
-
-
-        // If the password policy control was requested, then add the
-        // appropriate response control.
-        if (pwPolicyRequested)
-        {
-          operation.addResponseControl(
-               new PasswordPolicyResponseControl(pwPolicyWarningType,
-                                                 pwPolicyWarningValue,
-                                                 pwPolicyErrorType));
-        }
-
-        // Handle Account Status Notifications that may be needed.
-        // They are not handled by the backend for internal operations.
-        List<AttributeValue> currentPasswords = null;
-        if (oldPassword != null)
-        {
-          currentPasswords = new ArrayList<AttributeValue>(1);
-          currentPasswords.add(AttributeValues
-                              .create(oldPassword, oldPassword));
-        }
-        List<AttributeValue> newPasswords = null;
-        if (newPassword != null)
-        {
-          newPasswords = new ArrayList<AttributeValue>(1);
-          newPasswords.add(AttributeValues
-                           .create(newPassword, newPassword));
-        }
-        if (selfChange)
-        {
-          Message message = INFO_MODIFY_PASSWORD_CHANGED.get();
-          pwPolicyState.generateAccountStatusNotification(
-            AccountStatusNotificationType.PASSWORD_CHANGED,
-            userEntry, message,
-            AccountStatusNotification.createProperties(pwPolicyState, false,
-                  -1, currentPasswords, newPasswords));
-        }
-        else
-        {
-          Message message = INFO_MODIFY_PASSWORD_RESET.get();
-          pwPolicyState.generateAccountStatusNotification(
-            AccountStatusNotificationType.PASSWORD_RESET,
-            userEntry, message,
-            AccountStatusNotification.createProperties(pwPolicyState, false,
-                  -1, currentPasswords, newPasswords));
-        }
+        Message message = INFO_MODIFY_PASSWORD_RESET.get();
+        pwPolicyState.generateAccountStatusNotification(
+          AccountStatusNotificationType.PASSWORD_RESET,
+          userEntry, message,
+          AccountStatusNotification.createProperties(pwPolicyState, false,
+                -1, currentPasswords, newPasswords));
       }
     }
     finally
@@ -1258,7 +1193,6 @@ public class PasswordModifyExtendedOperation
       operation.appendErrorMessage(de.getMessageObject());
       operation.setMatchedDN(de.getMatchedDN());
       operation.setReferralURLs(de.getReferralURLs());
-
       return null;
     }
   }
@@ -1428,15 +1362,17 @@ public class PasswordModifyExtendedOperation
     return new ConfigChangeResult(resultCode, adminActionRequired, messages);
   }
 
+  /** {@inheritDoc} */
+  @Override
+  public String getExtendedOperationOID()
+  {
+    return OID_PASSWORD_MODIFY_REQUEST;
+  }
 
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String getExtendedOperationName()
   {
     return "Password Modify";
   }
 }
-

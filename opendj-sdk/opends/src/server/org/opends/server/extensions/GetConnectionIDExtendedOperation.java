@@ -22,30 +22,24 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions copyright 2013 ForgeRock AS
  */
 package org.opends.server.extensions;
-
-
 
 import org.opends.server.admin.std.server.
             GetConnectionIdExtendedOperationHandlerCfg;
 import org.opends.server.api.ExtendedOperationHandler;
 import org.opends.server.config.ConfigException;
-import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ExtendedOperation;
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.ResultCode;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.ByteStringBuilder;
-import org.opends.server.protocols.asn1.ASN1Writer;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.asn1.ASN1;
 import org.opends.server.protocols.asn1.ASN1Exception;
 import org.opends.server.protocols.asn1.ASN1Reader;
-import org.opends.server.loggers.debug.DebugTracer;
+import org.opends.server.protocols.asn1.ASN1Writer;
+import org.opends.server.types.*;
 
-import org.opends.server.types.DebugLogLevel;
-import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.util.ServerConstants.*;
 
 /**
  * This class implements the "Get Connection ID" extended operation that can be
@@ -60,8 +54,6 @@ public class GetConnectionIDExtendedOperation
    */
   private static final DebugTracer TRACER = getTracer();
 
-
-
   /**
    * Create an instance of this "Get Connection ID" extended operation.  All
    * initialization should be performed in the
@@ -72,41 +64,19 @@ public class GetConnectionIDExtendedOperation
     super();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public void initializeExtendedOperationHandler(
                    GetConnectionIdExtendedOperationHandlerCfg config)
          throws ConfigException, InitializationException
   {
-    // No special configuration is required.
-
-    DirectoryServer.registerSupportedExtension(OID_GET_CONNECTION_ID_EXTOP,
-                                               this);
-
-    registerControlsAndFeatures();
+    super.initializeExtendedOperationHandler(config);
   }
-
-
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public void finalizeExtendedOperationHandler()
-  {
-    DirectoryServer.deregisterSupportedExtension(OID_GET_CONNECTION_ID_EXTOP);
-
-    deregisterControlsAndFeatures();
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
   public void processExtendedOperation(ExtendedOperation operation)
   {
     operation.setResponseOID(OID_GET_CONNECTION_ID_EXTOP);
@@ -172,15 +142,17 @@ public class GetConnectionIDExtendedOperation
     }
   }
 
+  /** {@inheritDoc} */
+  @Override
+  public String getExtendedOperationOID()
+  {
+    return OID_GET_CONNECTION_ID_EXTOP;
+  }
 
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String getExtendedOperationName()
   {
     return "Get Connection ID";
   }
 }
-
