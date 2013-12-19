@@ -136,12 +136,8 @@ public final class AttributeType extends SchemaElement implements Comparable<Att
             final String definition) {
         super(description, extraProperties, definition);
 
-        Reject.ifNull(oid);
-        Reject.ifNull(names);
-        Reject.ifNull(description);
-        Reject.ifNull(attributeUsage);
+        Reject.ifNull(oid, names, attributeUsage);
         Reject.ifFalse(superiorType != null || syntax != null, "superiorType and/or syntax must not be null");
-        Reject.ifNull(extraProperties);
 
         this.oid = oid;
         this.names = names;

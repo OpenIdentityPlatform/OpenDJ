@@ -122,8 +122,7 @@ final class PromptingTrustManager implements X509TrustManager {
     PromptingTrustManager(final ConsoleApplication app, final String acceptedStorePath,
             final X509TrustManager sourceTrustManager) throws KeyStoreException, IOException,
             NoSuchAlgorithmException, CertificateException {
-        Reject.ifNull(app);
-        Reject.ifNull(acceptedStorePath);
+        Reject.ifNull(app, acceptedStorePath);
         this.app = app;
         this.nestedTrustManager = sourceTrustManager;
         inMemoryTrustStore = KeyStore.getInstance(KeyStore.getDefaultType());

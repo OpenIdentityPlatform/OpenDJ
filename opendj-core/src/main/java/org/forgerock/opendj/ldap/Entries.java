@@ -429,8 +429,7 @@ public final class Entries {
      * @see Requests#newModifyRequest(Entry, Entry)
      */
     public static ModifyRequest diffEntries(final Entry fromEntry, final Entry toEntry) {
-        Reject.ifNull(fromEntry);
-        Reject.ifNull(toEntry);
+        Reject.ifNull(fromEntry, toEntry);
 
         final ModifyRequest request = Requests.newModifyRequest(fromEntry.getName());
 

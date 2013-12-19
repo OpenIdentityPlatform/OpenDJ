@@ -1174,8 +1174,7 @@ final class HeartBeatConnectionFactory implements ConnectionFactory {
     HeartBeatConnectionFactory(final ConnectionFactory factory, final long interval,
             final long timeout, final TimeUnit unit, final SearchRequest heartBeat,
             final ScheduledExecutorService scheduler) {
-        Reject.ifNull(factory);
-        Reject.ifNull(unit);
+        Reject.ifNull(factory, unit);
         Reject.ifFalse(interval >= 0, "negative interval");
         Reject.ifFalse(timeout >= 0, "negative timeout");
 

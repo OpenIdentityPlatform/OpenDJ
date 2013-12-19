@@ -65,8 +65,7 @@ public final class Connections {
      */
     public static ConnectionFactory newAuthenticatedConnectionFactory(
             final ConnectionFactory factory, final BindRequest request) {
-        Reject.ifNull(factory);
-        Reject.ifNull(request);
+        Reject.ifNull(factory, request);
 
         return new AuthenticatedConnectionFactory(factory, request);
     }
@@ -531,8 +530,7 @@ public final class Connections {
      */
     public static ConnectionFactory newNamedConnectionFactory(final ConnectionFactory factory,
             final String name) {
-        Reject.ifNull(factory);
-        Reject.ifNull(name);
+        Reject.ifNull(factory, name);
 
         return new ConnectionFactory() {
 

@@ -77,8 +77,7 @@ final class ModifyRequestImpl extends AbstractRequestImpl<ModifyRequest> impleme
     @Override
     public ModifyRequest addModification(final ModificationType type,
             final String attributeDescription, final Object... values) {
-        Reject.ifNull(type);
-        Reject.ifNull(attributeDescription);
+        Reject.ifNull(type, attributeDescription);
         Reject.ifNull(values);
         changes.add(new Modification(type, new LinkedAttribute(attributeDescription, values)));
         return this;

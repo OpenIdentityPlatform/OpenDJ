@@ -127,8 +127,7 @@ final class CRAMMD5SASLBindRequestImpl extends AbstractSASLBindRequest<CRAMMD5SA
     }
 
     CRAMMD5SASLBindRequestImpl(final String authenticationID, final byte[] password) {
-        Reject.ifNull(authenticationID);
-        Reject.ifNull(password);
+        Reject.ifNull(authenticationID, password);
         this.authenticationID = authenticationID;
         this.password = password;
     }

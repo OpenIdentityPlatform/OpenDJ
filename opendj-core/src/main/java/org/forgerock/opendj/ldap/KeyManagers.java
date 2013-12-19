@@ -312,8 +312,7 @@ public final class KeyManagers {
      */
     public static X509KeyManager useSingleCertificate(final String alias,
             final X509KeyManager keyManager) {
-        Reject.ifNull(alias);
-        Reject.ifNull(keyManager);
+        Reject.ifNull(alias, keyManager);
         return new SelectCertificate(keyManager, alias);
     }
 

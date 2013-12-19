@@ -56,8 +56,7 @@ final class EnumSyntaxImpl extends AbstractSyntaxImpl {
     private final List<String> entries;
 
     EnumSyntaxImpl(final String oid, final List<String> entries) {
-        Reject.ifNull(oid);
-        Reject.ifNull(entries);
+        Reject.ifNull(oid, entries);
         this.oid = oid;
         final List<String> entryStrings = new ArrayList<String>(entries.size());
 

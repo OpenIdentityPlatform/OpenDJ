@@ -74,9 +74,7 @@ public final class DITStructureRule extends SchemaElement {
             final Map<String, List<String>> extraProperties, final String definition) {
         super(description, extraProperties, definition);
 
-        Reject.ifNull(ruleID);
-        Reject.ifNull(nameFormOID);
-        Reject.ifNull(superiorRuleIDs);
+        Reject.ifNull(ruleID, nameFormOID, superiorRuleIDs);
         this.ruleID = ruleID;
         this.names = names;
         this.isObsolete = obsolete;

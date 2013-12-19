@@ -580,8 +580,7 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
      *             If {@code attributeType} or {@code option} was {@code null}.
      */
     public static AttributeDescription create(final AttributeType attributeType, final String option) {
-        Reject.ifNull(attributeType);
-        Reject.ifNull(option);
+        Reject.ifNull(attributeType, option);
 
         final String oid = attributeType.getNameOrOID();
         final StringBuilder builder = new StringBuilder(oid.length() + option.length() + 1);
@@ -697,8 +696,7 @@ public final class AttributeDescription implements Comparable<AttributeDescripti
     @SuppressWarnings("serial")
     public static AttributeDescription valueOf(final String attributeDescription,
             final Schema schema) {
-        Reject.ifNull(attributeDescription);
-        Reject.ifNull(schema);
+        Reject.ifNull(attributeDescription, schema);
 
         // First look up the attribute description in the cache.
         final WeakHashMap<Schema, Map<String, AttributeDescription>> threadLocalMap = CACHE.get();

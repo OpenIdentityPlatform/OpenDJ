@@ -96,8 +96,7 @@ public final class ServerSideSortResponseControl implements Control {
 
                 public ServerSideSortResponseControl decodeControl(final Control control,
                         final DecodeOptions options) throws DecodeException {
-                    Reject.ifNull(control);
-                    Reject.ifNull(options);
+                    Reject.ifNull(control, options);
 
                     if (control instanceof ServerSideSortResponseControl) {
                         return (ServerSideSortResponseControl) control;

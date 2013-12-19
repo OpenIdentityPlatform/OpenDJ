@@ -239,8 +239,7 @@ final class AuthenticatedConnectionFactory implements ConnectionFactory {
      *             If {@code factory} or {@code request} was {@code null}.
      */
     AuthenticatedConnectionFactory(final ConnectionFactory factory, final BindRequest request) {
-        Reject.ifNull(factory);
-        Reject.ifNull(request);
+        Reject.ifNull(factory, request);
         this.parentFactory = factory;
 
         // FIXME: should do a defensive copy.

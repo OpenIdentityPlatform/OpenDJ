@@ -607,8 +607,7 @@ public final class AVA implements Comparable<AVA> {
      *             {@code null}.
      */
     public AVA(final AttributeType attributeType, final Object attributeValue) {
-        Reject.ifNull(attributeType);
-        Reject.ifNull(attributeValue);
+        Reject.ifNull(attributeType, attributeValue);
 
         this.attributeType = attributeType;
         this.attributeValue = ByteString.valueOf(attributeValue);
@@ -632,8 +631,7 @@ public final class AVA implements Comparable<AVA> {
      *             {@code null}.
      */
     public AVA(final String attributeType, final Object attributeValue) {
-        Reject.ifNull(attributeType);
-        Reject.ifNull(attributeValue);
+        Reject.ifNull(attributeType, attributeValue);
 
         this.attributeType = Schema.getDefaultSchema().getAttributeType(attributeType);
         this.attributeValue = ByteString.valueOf(attributeValue);

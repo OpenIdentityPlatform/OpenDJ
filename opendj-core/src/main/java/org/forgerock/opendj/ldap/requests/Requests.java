@@ -528,9 +528,7 @@ public final class Requests {
      */
     public static CompareRequest newCompareRequest(final DN name,
             final AttributeDescription attributeDescription, final Object assertionValue) {
-        Reject.ifNull(name);
-        Reject.ifNull(attributeDescription);
-        Reject.ifNull(assertionValue);
+        Reject.ifNull(name, attributeDescription, assertionValue);
         return new CompareRequestImpl(name, attributeDescription, ByteString
                 .valueOf(assertionValue));
     }
@@ -558,9 +556,7 @@ public final class Requests {
      */
     public static CompareRequest newCompareRequest(final String name,
             final String attributeDescription, final Object assertionValue) {
-        Reject.ifNull(name);
-        Reject.ifNull(attributeDescription);
-        Reject.ifNull(assertionValue);
+        Reject.ifNull(name, attributeDescription, assertionValue);
         return new CompareRequestImpl(DN.valueOf(name), AttributeDescription
                 .valueOf(attributeDescription), ByteString.valueOf(assertionValue));
     }
@@ -736,8 +732,7 @@ public final class Requests {
      */
     public static GenericBindRequest newGenericBindRequest(final String name,
             final byte authenticationType, final byte[] authenticationValue) {
-        Reject.ifNull(name);
-        Reject.ifNull(authenticationValue);
+        Reject.ifNull(name, authenticationValue);
         return new GenericBindRequestImpl(name, authenticationType, authenticationValue);
     }
 
@@ -872,8 +867,7 @@ public final class Requests {
      *             If {@code name} or {@code newRDN} was {@code null}.
      */
     public static ModifyDNRequest newModifyDNRequest(final String name, final String newRDN) {
-        Reject.ifNull(name);
-        Reject.ifNull(newRDN);
+        Reject.ifNull(name, newRDN);
         return new ModifyDNRequestImpl(DN.valueOf(name), RDN.valueOf(newRDN));
     }
 
@@ -1042,9 +1036,7 @@ public final class Requests {
      */
     public static SearchRequest newSearchRequest(final DN name, final SearchScope scope,
             final Filter filter, final String... attributeDescriptions) {
-        Reject.ifNull(name);
-        Reject.ifNull(scope);
-        Reject.ifNull(filter);
+        Reject.ifNull(name, scope, filter);
         final SearchRequest request = new SearchRequestImpl(name, scope, filter);
         for (final String attributeDescription : attributeDescriptions) {
             request.addAttribute(attributeDescription);
@@ -1077,9 +1069,7 @@ public final class Requests {
      */
     public static SearchRequest newSearchRequest(final String name, final SearchScope scope,
             final String filter, final String... attributeDescriptions) {
-        Reject.ifNull(name);
-        Reject.ifNull(scope);
-        Reject.ifNull(filter);
+        Reject.ifNull(name, scope, filter);
         final SearchRequest request =
                 new SearchRequestImpl(DN.valueOf(name), scope, Filter.valueOf(filter));
         for (final String attributeDescription : attributeDescriptions) {
@@ -1171,8 +1161,7 @@ public final class Requests {
      *             If {@code name} or {@code password} was {@code null}.
      */
     public static SimpleBindRequest newSimpleBindRequest(final String name, final byte[] password) {
-        Reject.ifNull(name);
-        Reject.ifNull(password);
+        Reject.ifNull(name, password);
         return new SimpleBindRequestImpl(name, password);
     }
 
@@ -1198,8 +1187,7 @@ public final class Requests {
      *             If {@code name} or {@code password} was {@code null}.
      */
     public static SimpleBindRequest newSimpleBindRequest(final String name, final char[] password) {
-        Reject.ifNull(name);
-        Reject.ifNull(password);
+        Reject.ifNull(name, password);
         return new SimpleBindRequestImpl(name, getBytes(password));
     }
 

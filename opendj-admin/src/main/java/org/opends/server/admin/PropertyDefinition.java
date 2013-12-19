@@ -193,12 +193,7 @@ public abstract class PropertyDefinition<T> implements Comparator<T>, Comparable
      */
     protected PropertyDefinition(AbstractManagedObjectDefinition<?, ?> d, Class<T> theClass, String propertyName,
             EnumSet<PropertyOption> options, AdministratorAction adminAction, DefaultBehaviorProvider<T> defaultBehavior) {
-        Reject.ifNull(d);
-        Reject.ifNull(theClass);
-        Reject.ifNull(propertyName);
-        Reject.ifNull(options);
-        Reject.ifNull(adminAction);
-        Reject.ifNull(defaultBehavior);
+        Reject.ifNull(d, theClass, propertyName, options, adminAction, defaultBehavior);
 
         this.definition = d;
         this.theClass = theClass;

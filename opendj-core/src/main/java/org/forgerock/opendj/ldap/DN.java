@@ -237,8 +237,7 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
      * @see #format(String, Schema, Object...)
      */
     public static DN valueOf(final String dn, final Schema schema) {
-        Reject.ifNull(dn);
-        Reject.ifNull(schema);
+        Reject.ifNull(dn, schema);
         if (dn.length() == 0) {
             return ROOT_DN;
         }
@@ -872,8 +871,7 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
      *             If {@code fromDN} or {@code toDN} was {@code null}.
      */
     public DN rename(final DN fromDN, final DN toDN) {
-        Reject.ifNull(fromDN);
-        Reject.ifNull(toDN);
+        Reject.ifNull(fromDN, toDN);
 
         if (!isSubordinateOrEqualTo(fromDN)) {
             return this;

@@ -82,8 +82,7 @@ public final class LDAPConnectionFactory implements ConnectionFactory {
      *             provider requested using options is not found.
      */
     public LDAPConnectionFactory(final SocketAddress address, final LDAPOptions options) {
-        Reject.ifNull(address);
-        Reject.ifNull(options);
+        Reject.ifNull(address, options);
         this.provider = getProvider(TransportProvider.class, options.getTransportProvider(),
                 options.getProviderClassLoader());
         this.impl = provider.getLDAPConnectionFactory(address, options);
@@ -124,8 +123,7 @@ public final class LDAPConnectionFactory implements ConnectionFactory {
      *             provider requested using options is not found.
      */
     public LDAPConnectionFactory(final String host, final int port, final LDAPOptions options) {
-        Reject.ifNull(host);
-        Reject.ifNull(options);
+        Reject.ifNull(host, options);
         final SocketAddress address = new InetSocketAddress(host, port);
         this.provider = getProvider(TransportProvider.class, options.getTransportProvider(),
                 options.getProviderClassLoader());

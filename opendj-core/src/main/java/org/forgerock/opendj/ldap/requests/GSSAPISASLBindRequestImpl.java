@@ -339,8 +339,7 @@ final class GSSAPISASLBindRequestImpl extends AbstractSASLBindRequest<GSSAPISASL
     }
 
     GSSAPISASLBindRequestImpl(final String authenticationID, final byte[] password) {
-        Reject.ifNull(authenticationID);
-        Reject.ifNull(password);
+        Reject.ifNull(authenticationID, password);
         this.authenticationID = authenticationID;
         this.password = password;
     }
@@ -352,8 +351,7 @@ final class GSSAPISASLBindRequestImpl extends AbstractSASLBindRequest<GSSAPISASL
 
     @Override
     public GSSAPISASLBindRequest addAdditionalAuthParam(final String name, final String value) {
-        Reject.ifNull(name);
-        Reject.ifNull(value);
+        Reject.ifNull(name, value);
         additionalAuthParams.put(name, value);
         return this;
     }
