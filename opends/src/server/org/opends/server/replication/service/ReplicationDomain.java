@@ -452,16 +452,13 @@ public abstract class ReplicationDomain
   {
     switch (status)
     {
-      case NOT_CONNECTED_STATUS:
-        break;
-      case NORMAL_STATUS:
-        break;
-      case DEGRADED_STATUS:
-        break;
       case FULL_UPDATE_STATUS:
         // Signal RS we just entered the full update status
         broker.signalStatusChange(status);
         break;
+      case NOT_CONNECTED_STATUS:
+      case NORMAL_STATUS:
+      case DEGRADED_STATUS:
       case BAD_GEN_ID_STATUS:
         break;
       default:
@@ -1221,9 +1218,7 @@ public abstract class ReplicationDomain
       }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public String toString()
     {
@@ -1562,19 +1557,17 @@ public abstract class ReplicationDomain
     // Don't forget to release IEcontext acquired at beginning.
     releaseIEContext();
 
-    String cause = exportRootException != null ? exportRootException
-        .getLocalizedMessage() : "";
+    final String cause = exportRootException == null ? ""
+        : exportRootException.getLocalizedMessage();
     if (serverToInitialize == RoutableMsg.ALL_SERVERS)
     {
-      Message msg = NOTE_FULL_UPDATE_ENGAGED_FOR_REMOTE_END_ALL.get(
-          getBaseDNString(), serverID, cause);
-      logError(msg);
+      logError(NOTE_FULL_UPDATE_ENGAGED_FOR_REMOTE_END_ALL.get(
+          getBaseDNString(), serverID, cause));
     }
     else
     {
-      Message msg = NOTE_FULL_UPDATE_ENGAGED_FOR_REMOTE_END.get(
-          getBaseDNString(), serverID, serverToInitialize, cause);
-      logError(msg);
+      logError(NOTE_FULL_UPDATE_ENGAGED_FOR_REMOTE_END.get(
+          getBaseDNString(), serverID, serverToInitialize, cause));
     }
 
 
@@ -2388,8 +2381,8 @@ public abstract class ReplicationDomain
       {
         Message msg = NOTE_FULL_UPDATE_ENGAGED_FROM_REMOTE_END.get(
             getBaseDNString(), initTargetMsgReceived.getSenderID(), serverID,
-            (ieContext.getException() != null ? ieContext
-                .getException().getLocalizedMessage() : ""));
+            (ieContext.getException() == null ? ""
+                : ieContext.getException().getLocalizedMessage()));
         logError(msg);
         releaseIEContext();
       } // finally
@@ -3084,7 +3077,7 @@ public abstract class ReplicationDomain
    *                             be produced.
    * @throws DirectoryException  When needed.
    */
-  abstract protected void exportBackend(OutputStream output)
+  protected abstract void exportBackend(OutputStream output)
            throws DirectoryException;
 
   /**
@@ -3095,7 +3088,7 @@ public abstract class ReplicationDomain
    *
    * @throws DirectoryException  When needed.
    */
-  abstract protected void importBackend(InputStream input)
+  protected abstract void importBackend(InputStream input)
            throws DirectoryException;
 
   /**
