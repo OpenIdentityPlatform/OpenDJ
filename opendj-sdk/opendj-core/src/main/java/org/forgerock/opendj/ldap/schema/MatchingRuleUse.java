@@ -67,9 +67,7 @@ public final class MatchingRuleUse extends SchemaElement {
             final Map<String, List<String>> extraProperties, final String definition) {
         super(description, extraProperties, definition);
 
-        Reject.ifNull(oid);
-        Reject.ifNull(names);
-        Reject.ifNull(attributeOIDs);
+        Reject.ifNull(oid, names, attributeOIDs);
         this.oid = oid;
         this.names = names;
         this.isObsolete = obsolete;

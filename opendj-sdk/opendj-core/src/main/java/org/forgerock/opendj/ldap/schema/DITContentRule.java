@@ -82,12 +82,8 @@ public final class DITContentRule extends SchemaElement {
             final Map<String, List<String>> extraProperties, final String definition) {
         super(description, extraProperties, definition);
 
-        Reject.ifNull(structuralClassOID);
-        Reject.ifNull(names);
-        Reject.ifNull(auxiliaryClassOIDs);
-        Reject.ifNull(optionalAttributeOIDs);
-        Reject.ifNull(prohibitedAttributeOIDs);
-        Reject.ifNull(requiredAttributeOIDs);
+        Reject.ifNull(structuralClassOID, names, auxiliaryClassOIDs, optionalAttributeOIDs, prohibitedAttributeOIDs,
+                requiredAttributeOIDs);
         this.names = names;
         this.isObsolete = obsolete;
         this.structuralClassOID = structuralClassOID;

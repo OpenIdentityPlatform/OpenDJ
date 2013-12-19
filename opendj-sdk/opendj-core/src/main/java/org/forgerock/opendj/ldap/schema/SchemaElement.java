@@ -210,8 +210,7 @@ abstract class SchemaElement {
 
     SchemaElement(final String description, final Map<String, List<String>> extraProperties,
             final String definition) {
-        Reject.ifNull(description);
-        Reject.ifNull(extraProperties);
+        Reject.ifNull(description, extraProperties);
         this.description = description;
         this.extraProperties = extraProperties; // Should already be unmodifiable.
         this.definition = definition;

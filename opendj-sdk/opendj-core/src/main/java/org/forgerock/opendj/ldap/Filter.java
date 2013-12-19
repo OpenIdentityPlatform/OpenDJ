@@ -522,8 +522,7 @@ public final class Filter {
      * @return The newly created {@code approximate match} filter.
      */
     public static Filter approx(final String attributeDescription, final Object assertionValue) {
-        Reject.ifNull(attributeDescription);
-        Reject.ifNull(assertionValue);
+        Reject.ifNull(attributeDescription, assertionValue);
         return new Filter(new ApproxMatchImpl(attributeDescription, ByteString
                 .valueOf(assertionValue)));
     }
@@ -542,8 +541,7 @@ public final class Filter {
      * @return The newly created {@code equality match} filter.
      */
     public static Filter equality(final String attributeDescription, final Object assertionValue) {
-        Reject.ifNull(attributeDescription);
-        Reject.ifNull(assertionValue);
+        Reject.ifNull(attributeDescription, assertionValue);
         return new Filter(new EqualityMatchImpl(attributeDescription, ByteString
                 .valueOf(assertionValue)));
     }
@@ -634,8 +632,7 @@ public final class Filter {
      */
     public static Filter greaterOrEqual(final String attributeDescription,
             final Object assertionValue) {
-        Reject.ifNull(attributeDescription);
-        Reject.ifNull(assertionValue);
+        Reject.ifNull(attributeDescription, assertionValue);
         return new Filter(new GreaterOrEqualImpl(attributeDescription, ByteString
                 .valueOf(assertionValue)));
     }
@@ -679,8 +676,7 @@ public final class Filter {
      * @return The newly created {@code less or equal} filter.
      */
     public static Filter lessOrEqual(final String attributeDescription, final Object assertionValue) {
-        Reject.ifNull(attributeDescription);
-        Reject.ifNull(assertionValue);
+        Reject.ifNull(attributeDescription, assertionValue);
         return new Filter(new LessOrEqualImpl(attributeDescription, ByteString
                 .valueOf(assertionValue)));
     }

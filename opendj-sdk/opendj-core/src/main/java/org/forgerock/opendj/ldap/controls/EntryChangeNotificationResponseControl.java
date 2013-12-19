@@ -107,8 +107,7 @@ public final class EntryChangeNotificationResponseControl implements Control {
 
                 public EntryChangeNotificationResponseControl decodeControl(final Control control,
                         final DecodeOptions options) throws DecodeException {
-                    Reject.ifNull(control);
-                    Reject.ifNull(options);
+                    Reject.ifNull(control, options);
 
                     if (control instanceof EntryChangeNotificationResponseControl) {
                         return (EntryChangeNotificationResponseControl) control;

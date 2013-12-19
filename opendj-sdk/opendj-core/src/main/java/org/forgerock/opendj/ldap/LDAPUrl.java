@@ -266,8 +266,7 @@ public final class LDAPUrl {
      *             If {@code url} or {@code schema} was {@code null}.
      */
     public static LDAPUrl valueOf(final String url, final Schema schema) {
-        Reject.ifNull(url);
-        Reject.ifNull(schema);
+        Reject.ifNull(url, schema);
         return new LDAPUrl(url, schema);
     }
 

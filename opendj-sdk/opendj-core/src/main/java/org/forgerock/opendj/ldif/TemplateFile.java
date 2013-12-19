@@ -202,8 +202,7 @@ final class TemplateFile {
      */
     TemplateFile(Schema schema, Map<String, String> constants, String resourcePath, Random random)
             throws IOException {
-        Reject.ifNull(schema);
-        Reject.ifNull(random);
+        Reject.ifNull(schema, random);
         this.schema = schema;
         this.constants = constants != null ? constants : new HashMap<String, String>();
         this.resourcePath = resourcePath;

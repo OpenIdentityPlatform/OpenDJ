@@ -191,8 +191,7 @@ public final class SortKey {
      *             If {@code schema} or {@code keys} was {@code null}.
      */
     public static Comparator<Entry> comparator(final Schema schema, final Collection<SortKey> keys) {
-        Reject.ifNull(schema);
-        Reject.ifNull(keys);
+        Reject.ifNull(schema, keys);
         Reject.ifFalse(!keys.isEmpty(), "keys must not be empty");
 
         final List<Comparator<Entry>> comparators = new ArrayList<Comparator<Entry>>(keys.size());

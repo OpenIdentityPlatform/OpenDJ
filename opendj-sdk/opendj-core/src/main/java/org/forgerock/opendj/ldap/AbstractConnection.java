@@ -497,8 +497,7 @@ public abstract class AbstractConnection implements Connection {
     public Result search(final SearchRequest request,
             final Collection<? super SearchResultEntry> entries,
             final Collection<? super SearchResultReference> references) throws ErrorResultException {
-        Reject.ifNull(request);
-        Reject.ifNull(entries);
+        Reject.ifNull(request, entries);
 
         // FIXME: does this need to be thread safe?
         final SearchResultHandler handler = new SearchResultHandler() {

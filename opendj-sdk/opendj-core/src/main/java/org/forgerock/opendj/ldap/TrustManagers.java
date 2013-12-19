@@ -290,8 +290,7 @@ public final class TrustManagers {
      */
     public static X509TrustManager checkHostName(final String hostNamePattern,
             final X509TrustManager trustManager) {
-        Reject.ifNull(trustManager);
-        Reject.ifNull(hostNamePattern);
+        Reject.ifNull(trustManager, hostNamePattern);
         return new CheckHostName(trustManager, hostNamePattern);
     }
 

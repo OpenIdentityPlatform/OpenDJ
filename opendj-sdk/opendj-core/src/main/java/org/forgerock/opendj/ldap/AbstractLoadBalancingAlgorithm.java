@@ -282,8 +282,7 @@ abstract class AbstractLoadBalancingAlgorithm implements LoadBalancingAlgorithm 
     AbstractLoadBalancingAlgorithm(final Collection<? extends ConnectionFactory> factories,
             final LoadBalancerEventListener listener, final long interval, final TimeUnit unit,
             final ScheduledExecutorService scheduler) {
-        Reject.ifNull(factories);
-        Reject.ifNull(unit);
+        Reject.ifNull(factories, unit);
 
         this.monitoredFactories = new ArrayList<MonitoredConnectionFactory>(factories.size());
         int i = 0;

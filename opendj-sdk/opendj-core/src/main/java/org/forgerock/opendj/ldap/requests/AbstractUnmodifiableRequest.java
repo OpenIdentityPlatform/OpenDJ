@@ -68,8 +68,7 @@ abstract class AbstractUnmodifiableRequest<R extends Request> implements Request
     @Override
     public final <C extends Control> C getControl(final ControlDecoder<C> decoder,
             final DecodeOptions options) throws DecodeException {
-        Reject.ifNull(decoder);
-        Reject.ifNull(options);
+        Reject.ifNull(decoder, options);
 
         final List<Control> controls = impl.getControls();
         final Control control = AbstractRequestImpl.getControl(controls, decoder.getOID());

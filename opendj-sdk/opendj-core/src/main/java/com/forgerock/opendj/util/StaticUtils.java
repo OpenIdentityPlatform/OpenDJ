@@ -1772,8 +1772,7 @@ public final class StaticUtils {
      *             If {@code c} or {@code separator} were {@code null}.
      */
     public static String joinCollection(Collection<?> c, String separator) {
-        Reject.ifNull(c);
-        Reject.ifNull(separator);
+        Reject.ifNull(c, separator);
 
         switch (c.size()) {
         case 0:
@@ -2055,8 +2054,7 @@ public final class StaticUtils {
      * @return The updated {@code StringBuilder}.
      */
     public static StringBuilder toLowerCase(final ByteSequence b, final StringBuilder builder) {
-        Reject.ifNull(b);
-        Reject.ifNull(builder);
+        Reject.ifNull(b, builder);
 
         // FIXME: What locale should we use for non-ASCII characters? I
         // think we should use default to the Unicode StringPrep.

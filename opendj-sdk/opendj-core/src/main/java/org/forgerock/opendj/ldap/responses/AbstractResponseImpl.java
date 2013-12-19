@@ -86,8 +86,7 @@ abstract class AbstractResponseImpl<S extends Response> implements Response {
     @Override
     public final <C extends Control> C getControl(final ControlDecoder<C> decoder,
             final DecodeOptions options) throws DecodeException {
-        Reject.ifNull(decoder);
-        Reject.ifNull(options);
+        Reject.ifNull(decoder, options);
         final Control control = getControl(controls, decoder.getOID());
         return control != null ? decoder.decodeControl(control, options) : null;
     }

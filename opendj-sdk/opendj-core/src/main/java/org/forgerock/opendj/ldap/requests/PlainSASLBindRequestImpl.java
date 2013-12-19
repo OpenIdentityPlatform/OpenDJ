@@ -115,8 +115,7 @@ final class PlainSASLBindRequestImpl extends AbstractSASLBindRequest<PlainSASLBi
     }
 
     PlainSASLBindRequestImpl(final String authenticationID, final byte[] password) {
-        Reject.ifNull(authenticationID);
-        Reject.ifNull(password);
+        Reject.ifNull(authenticationID, password);
         this.authenticationID = authenticationID;
         this.password = password;
     }

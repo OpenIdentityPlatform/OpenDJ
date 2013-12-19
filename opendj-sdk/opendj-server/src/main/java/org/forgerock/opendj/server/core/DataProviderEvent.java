@@ -83,8 +83,7 @@ public final class DataProviderEvent {
      *            The types of event that have occurred in the data provider.
      */
     public DataProviderEvent(final LocalizableMessage reason, final Set<Type> types) {
-        Reject.ifNull(reason);
-        Reject.ifNull(types);
+        Reject.ifNull(reason, types);
         Reject.ifTrue(types.isEmpty());
 
         this.reason = reason;

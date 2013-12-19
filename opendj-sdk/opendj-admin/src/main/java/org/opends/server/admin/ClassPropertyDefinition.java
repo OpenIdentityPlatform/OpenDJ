@@ -247,8 +247,7 @@ public final class ClassPropertyDefinition extends PropertyDefinition<String> {
      */
     public <T> Class<? extends T> loadClass(String className, Class<T> instanceOf)
             throws IllegalPropertyValueException, ClassCastException {
-        Reject.ifNull(className);
-        Reject.ifNull(instanceOf);
+        Reject.ifNull(className, instanceOf);
 
         // Make sure that the named class is valid.
         validateClassName(className);

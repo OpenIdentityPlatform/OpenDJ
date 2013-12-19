@@ -53,8 +53,7 @@ public final class Modification {
      *            The the attribute containing the values to be modified.
      */
     public Modification(final ModificationType modificationType, final Attribute attribute) {
-        Reject.ifNull(modificationType);
-        Reject.ifNull(attribute);
+        Reject.ifNull(modificationType, attribute);
         this.modificationType = modificationType;
         this.attribute = attribute;
     }

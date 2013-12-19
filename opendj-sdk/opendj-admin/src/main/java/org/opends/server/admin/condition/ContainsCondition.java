@@ -111,8 +111,7 @@ public final class ContainsCondition implements Condition {
      *            The string representation of the required property value.
      */
     public ContainsCondition(String propertyName, String stringValue) {
-        Reject.ifNull(propertyName);
-        Reject.ifNull(stringValue);
+        Reject.ifNull(propertyName, stringValue);
         this.propertyName = propertyName;
         this.propertyStringValue = stringValue;
     }

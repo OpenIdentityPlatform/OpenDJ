@@ -144,8 +144,7 @@ public final class LDAPListener implements Closeable {
     public LDAPListener(final int port,
             final ServerConnectionFactory<LDAPClientContext, Integer> factory,
             final LDAPListenerOptions options) throws IOException {
-        Reject.ifNull(factory);
-        Reject.ifNull(options);
+        Reject.ifNull(factory, options);
         final SocketAddress address = new InetSocketAddress(port);
         this.provider = getProvider(TransportProvider.class, options.getTransportProvider(),
                 options.getProviderClassLoader());
@@ -193,9 +192,7 @@ public final class LDAPListener implements Closeable {
     public LDAPListener(final SocketAddress address,
             final ServerConnectionFactory<LDAPClientContext, Integer> factory,
             final LDAPListenerOptions options) throws IOException {
-        Reject.ifNull(address);
-        Reject.ifNull(factory);
-        Reject.ifNull(options);
+        Reject.ifNull(address, factory, options);
         this.provider = getProvider(TransportProvider.class, options.getTransportProvider(),
                 options.getProviderClassLoader());
         this.impl = provider.getLDAPListener(address, factory, options);
@@ -246,9 +243,7 @@ public final class LDAPListener implements Closeable {
     public LDAPListener(final String host, final int port,
             final ServerConnectionFactory<LDAPClientContext, Integer> factory,
             final LDAPListenerOptions options) throws IOException {
-        Reject.ifNull(host);
-        Reject.ifNull(factory);
-        Reject.ifNull(options);
+        Reject.ifNull(host, factory, options);
         final SocketAddress address = new InetSocketAddress(host, port);
         this.provider = getProvider(TransportProvider.class, options.getTransportProvider(),
                 options.getProviderClassLoader());

@@ -495,8 +495,7 @@ public final class Attributes {
      */
     public static final Attribute renameAttribute(final Attribute attribute,
             final AttributeDescription attributeDescription) {
-        Reject.ifNull(attribute);
-        Reject.ifNull(attributeDescription);
+        Reject.ifNull(attribute, attributeDescription);
 
         // Optimize for the case where no renaming is required.
         if (attribute.getAttributeDescription() == attributeDescription) {
@@ -526,8 +525,7 @@ public final class Attributes {
      */
     public static final Attribute renameAttribute(final Attribute attribute,
             final String attributeDescription) {
-        Reject.ifNull(attribute);
-        Reject.ifNull(attributeDescription);
+        Reject.ifNull(attribute, attributeDescription);
         return renameAttribute(attribute, AttributeDescription.valueOf(attributeDescription));
     }
 

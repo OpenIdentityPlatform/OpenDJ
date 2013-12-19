@@ -91,12 +91,7 @@ public final class ObjectClass extends SchemaElement {
             final String definition) {
         super(description, extraProperties, definition);
 
-        Reject.ifNull(oid);
-        Reject.ifNull(names);
-        Reject.ifNull(superiorClassOIDs);
-        Reject.ifNull(requiredAttributeOIDs);
-        Reject.ifNull(optionalAttributeOIDs);
-        Reject.ifNull(objectClassType);
+        Reject.ifNull(oid, names, superiorClassOIDs, requiredAttributeOIDs, optionalAttributeOIDs, objectClassType);
         this.oid = oid;
         this.names = names;
         this.isObsolete = obsolete;
