@@ -1,0 +1,243 @@
+'\" t
+.\"     Title: dsframework
+.\"    Author: 
+.\" Generator: DocBook XSL-NS Stylesheets v1.76.1 <http://docbook.sf.net/>
+.\"      Date: 05/16/2013
+.\"    Manual: Tools Reference
+.\"    Source: OpenDJ 2.6.0
+.\"  Language: English
+.\"
+.TH "DSFRAMEWORK" "1" "05/16/2013" "OpenDJ 2\&.6\&.0" "Tools Reference"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+dsframework \- manage OpenDJ administration framework
+.SH "SYNOPSIS"
+.HP \w'\fBdsframework\fR\fB\fIsubcommand\fR\fR\ 'u
+\fBdsframework\fR\fB\fIsubcommand\fR\fR {options}
+.SH "DESCRIPTION"
+.PP
+This utility can be used to perform operations in the directory server administration framework\&.
+.PP
+This utility has no interactive mode\&. Consider using
+\fB\-X\fR
+if you authenticate over a secure connection protected with a self\-signed certificate\&.
+.SH "SUBCOMMANDS"
+.PP
+The
+\fBdsconfig\fR
+command provides many subcommands\&. Use the following options to view help for subcommands\&.
+.PP
+\fB\-\-help\-all\fR
+.RS 4
+Display all subcommands
+.RE
+.PP
+\fB\-\-help\-admin\-user\fR
+.RS 4
+Display subcommands relating to admin\-user
+.RE
+.PP
+\fB\-\-help\-server\fR
+.RS 4
+Display subcommands relating to server
+.RE
+.PP
+\fB\-\-help\-server\-group\fR
+.RS 4
+Display subcommands relating to server\-group
+.RE
+.PP
+For help with individual subcommands, use
+\fBdsframework \fR\fB\fIsubcommand\fR\fR\fB \-\-help\fR\&.
+.SH "OPTIONS"
+.PP
+The following options are supported\&.
+.SS "LDAP Connection Options"
+.PP
+\fB\-\-connectTimeout {timeout}\fR
+.RS 4
+Maximum length of time (in milliseconds) that can be taken to establish a connection\&. Use \*(Aq0\*(Aq to specify no time out\&.
+.sp
+Default value: 30000
+.RE
+.PP
+\fB\-h, \-\-hostname {host}\fR
+.RS 4
+Directory server hostname or IP address
+.sp
+Default value: localhost\&.localdomain
+.RE
+.PP
+\fB\-I, \-\-adminUID {adminUID}\fR
+.RS 4
+User ID of the global administrator to use to bind to the server\&. For the
+\fBenable\fR
+subcommand, if no global administrator was defined previously for any servers, the global administrator will be created using the UID provided\&.
+.sp
+Default value: admin
+.RE
+.PP
+\fB\-j, \-\-adminPasswordFile {bindPasswordFile}\fR
+.RS 4
+Global administrator password file
+.RE
+.PP
+\fB\-K, \-\-keyStorePath {keyStorePath}\fR
+.RS 4
+Certificate key store path
+.RE
+.PP
+\fB\-N, \-\-certNickname {nickname}\fR
+.RS 4
+Nickname of certificate for SSL client authentication
+.RE
+.PP
+\fB\-o, \-\-saslOption {name=value}\fR
+.RS 4
+SASL bind options
+.RE
+.PP
+\fB\-p, \-\-port {port}\fR
+.RS 4
+Directory server administration port number
+.sp
+Default value: 4444
+.RE
+.PP
+\fB\-P, \-\-trustStorePath {trustStorePath}\fR
+.RS 4
+Certificate trust store path
+.sp
+Default value: /path/to/opendj/config/admin\-truststore
+.RE
+.PP
+\fB\-T, \-\-trustStorePassword {trustStorePassword}\fR
+.RS 4
+Certificate trust store PIN
+.RE
+.PP
+\fB\-u, \-\-keyStorePasswordFile {keyStorePasswordFile}\fR
+.RS 4
+Certificate key store PIN file
+.RE
+.PP
+\fB\-U, \-\-trustStorePasswordFile {path}\fR
+.RS 4
+Certificate trust store PIN file
+.RE
+.PP
+\fB\-w, \-\-adminPassword {bindPassword}\fR
+.RS 4
+Password for the global administrator
+.RE
+.PP
+\fB\-W, \-\-keyStorePassword {keyStorePassword}\fR
+.RS 4
+Certificate key store PIN
+.RE
+.PP
+\fB\-X, \-\-trustAll\fR
+.RS 4
+Trust all server SSL certificates
+.RE
+.SS "Utility Input/Output Options"
+.PP
+\fB\-\-noPropertiesFile\fR
+.RS 4
+No properties file will be used to get default command line argument values
+.RE
+.PP
+\fB\-\-propertiesFilePath {propertiesFilePath}\fR
+.RS 4
+Path to the file containing default property values used for command line arguments
+.RE
+.PP
+\fB\-v, \-\-verbose\fR
+.RS 4
+Use verbose mode
+.RE
+.SS "General Options"
+.PP
+\fB\-V, \-\-version\fR
+.RS 4
+Display version information
+.RE
+.PP
+\fB\-?, \-H, \-\-help\fR
+.RS 4
+Display usage information
+.RE
+.SH "EXIT CODES"
+.PP
+0
+.RS 4
+The command completed successfully\&.
+.RE
+.PP
+> 0
+.RS 4
+An error occurred\&.
+.RE
+.SH "EXAMPLES"
+.PP
+This example lists server properties\&.
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+$ dsframework \-p 4444 \-h opendj\&.example\&.com \-D "cn=Directory Manager"
+ \-w password \-X list\-server\-properties
+Option Types:
+
+ r \-\- Property value(s) are readable
+ w \-\- Property value(s) are writable
+ m \-\- The property is mandatory
+ s \-\- The property is single\-valued
+
+Property                       Options  Syntax              Default value
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
+ldapsport                      rw\-\-     INTEGER             \-
+certificate                    rw\-s     STRING              \-
+hostname                       r\-ms     STRING              localhost
+ldapport                       rwm\-     INTEGER             389
+jmxsEnabled                    rw\-s     BOOLEAN             false
+instancepath                   rw\-s     STRING              \-
+ldapsEnabled                   rw\-s     BOOLEAN             false
+jmxsport                       rw\-\-     INTEGER             \-
+os                             rw\-s     STRING              \-
+ds\-cfg\-key\-id                  rw\-s     STRING              \-
+jmxport                        rw\-\-     INTEGER             \-
+description                    rw\-s     STRING              \-
+id                             rw\-s     STRING              \-
+startTLSEnabled                rw\-s     BOOLEAN             false
+jmxEnabled                     rw\-s     BOOLEAN             false
+ds\-cfg\-public\-key\-certificate  rw\-s     CERTIFICATE_BINARY  \-
+location                       rw\-s     STRING              \-
+ldapEnabled                    rw\-s     BOOLEAN             false
+.fi
+.if n \{\
+.RE
+.\}
+.SH "COPYRIGHT"
+.br
+Copyright \(co 2011-2013 ForgeRock AS
+.br

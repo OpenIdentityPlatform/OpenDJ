@@ -1,0 +1,989 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at
+  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2011-2013 ForgeRock AS
+  !    
+-->
+<chapter xml:id='chap-monitoring'
+         xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+         xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+         xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
+         xmlns:xlink='http://www.w3.org/1999/xlink'
+         xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ <title>Monitoring, Logging, &amp; Alerts</title>
+ 
+ <para>This chapter describes the monitoring capabilities that OpenDJ
+ implements, and shows how to configure them.</para>
+ 
+ <indexterm><primary>Monitoring</primary></indexterm>
+ 
+ <para>OpenDJ Control Panel provides basic monitoring capabilities under
+ Monitoring &gt; General Information, Monitoring &gt; Connection Handler, and
+ Monitoring &gt; Manage Tasks. This chapter covers the other options for
+ monitoring OpenDJ.</para>
+ 
+ <section xml:id="ldap-monitoring">
+  <title>LDAP-Based Monitoring</title>
+  
+  <para>OpenDJ exposes monitoring information over LDAP under the entry
+  <literal>cn=monitor</literal>. Many different types of information are
+  exposed. The following example shows monitoring information about the
+  <literal>userRoot</literal> backend holding Example.com data.</para>
+  
+  <para>Interface stability: <link xlink:href="admin-guide#interface-stability"
+  xlink:show="new" xlink:role="http://docbook.org/xlink/role/olink"
+  >Evolving</link></para>
+
+  <screen>$ ldapsearch --port 1389 --baseDN cn=monitor "(cn=userRoot backend)"
+dn: cn=userRoot backend,cn=Disk Space Monitor,cn=monitor
+disk-state: normal
+objectClass: top
+objectClass: ds-monitor-entry
+objectClass: extensibleObject
+disk-dir: /path/to/opendj/db/userRoot
+disk-free: 343039315968
+cn: userRoot backend
+
+dn: cn=userRoot Backend,cn=monitor
+objectClass: top
+objectClass: ds-monitor-entry
+objectClass: ds-backend-monitor-entry
+ds-backend-is-private: FALSE
+ds-backend-writability-mode: enabled
+cn: userRoot Backend
+ds-backend-entry-count: 163
+ds-backend-id: userRoot
+ds-base-dn-entry-count: 163 dc=example,dc=com
+ds-backend-base-dn: dc=example,dc=com
+</screen>
+
+  <para>You can set global ACIs on the Access Control Handler if you want
+  to limit read access under <literal>cn=monitor</literal>.</para>
+ </section>
+
+ <section xml:id="snmp-monitoring">
+  <title>SNMP-Based Monitoring</title>
+  <indexterm><primary>SNMP</primary></indexterm>
+  
+  <para>OpenDJ lets you monitor the server over the Simple Network Management
+  Protocol (SNMP), with support for the Management Information Base described
+  in <link xlink:href="http://tools.ietf.org/html/rfc2605">RFC 2605: Directory
+  Server Monitoring MIB</link>.</para>
+  
+  <para>OpenDJ SNMP-based monitoring depends on OpenDMK, which you must
+  <link xlink:href="http://opendmk.java.net/download/" xlink:show="new">download
+  separately</link>. Install the <link xlink:show="new"
+  xlink:href="http://java.net/projects/opendmk/content/download/opendmk-1.0-b02-bin-dual-01-Oct-2007_19-17-46.jar"
+  >Full Binary Bundle</link> by using the graphical installer, which requires
+  that you accept the <link xlink:show="new"
+  xlink:href="http://java.net/projects/opendmk/content/legal_notices/LICENSE_BINARY.txt"
+  >Binary License for Project OpenDMK</link>. OpenDJ directory server that you
+  download from ForgeRock is built with OpenDMK, but due to licensing OpenDMK
+  is not part of OpenDJ. SNMP is therefore not enabled by default.</para>
+
+  <para>To run the OpenDMK installer, use the self-extracting .jar.</para>
+
+  <screen>$ java -jar ~/Downloads/opendmk-1.0-b02-*.jar</screen>
+
+  <para>If you install under <filename>/path/to</filename>, then the runtime
+  library needed for SNMP is
+  <filename>/path/to/OpenDMK-bin/lib/jdmkrt.jar</filename>.</para>
+
+  <para>Once you have installed OpenDMK, you can set up a connection handler
+  for SNMP by enabling the connection handler, and pointing OpenDJ to your
+  installation of the OpenDMK <filename>jdmkrt.jar</filename> library.</para>
+  
+  <screen>$ dsconfig
+ set-connection-handler-prop
+ --port 4444
+ --hostname opendj.example.com
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --handler-name "SNMP Connection Handler"
+ --set enabled:true
+ --set opendmk-jarfile:/path/to/OpenDMK-bin/lib/jdmkrt.jar
+ --trustAll
+ --no-prompt</screen>
+  
+  <para>By default, the SNMP Connection Handler listens on port 161 and uses
+  port 162 for traps. On UNIX and Linux systems, only root can normally open
+  these ports. Therefore if you install as a normal user, you might want
+  to change the listen and trap ports.</para>
+  
+  <screen>$ dsconfig
+ set-connection-handler-prop
+ --port 4444
+ --hostname opendj.example.com
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --handler-name "SNMP Connection Handler"
+ --set listen-port:11161
+ --set trap-port:11162
+ --trustAll
+ --no-prompt</screen>
+
+  <para>Restart the SNMP Connection Handler to take the port number changes
+  into account.</para>
+  <para> To restart the connection handler, you disable it, then enable
+  it again.</para>
+
+  <screen>$ dsconfig
+ set-connection-handler-prop
+ --port 4444
+ --hostname opendj.example.com
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --handler-name "SNMP Connection Handler"
+ --set enabled:false
+ --trustAll
+ --no-prompt
+$ dsconfig
+ set-connection-handler-prop
+ --port 4444
+ --hostname opendj.example.com
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --handler-name "SNMP Connection Handler"
+ --set enabled:true
+ --trustAll
+ --no-prompt</screen>
+
+  <para>Use a command such as <command>snmpwalk</command> to check that the
+  SNMP listen port works.</para>
+
+  <screen>$ snmpwalk -v 2c -c OpenDJ@OpenDJ localhost:11161
+SNMPv2-SMI::mib-2.66.1.1.1.1 = STRING: "OpenDJ <?eval ${docTargetVersion}?>..."
+SNMPv2-SMI::mib-2.66.1.1.2.1 = STRING: "/path/to/opendj"
+...</screen>
+
+ </section>
+
+ <section xml:id="jmx-monitoring">
+  <title>JMX-Based Monitoring</title>
+  <indexterm><primary>JMX</primary></indexterm>
+  
+  <para>OpenDJ provides Java Management eXtensions (JMX) based monitoring. A
+  number of tools support JMX, including <command>jconsole</command> and
+  <command>jvisualvm</command>, which are bundled with the Sun/Oracle Java
+  platform. JMX is not configured by default. Use the
+  <command>dsconfig</command> command to configure the JMX connection
+  handler.</para>
+  
+  <para>Interface stability: <link xlink:href="admin-guide#interface-stability"
+  xlink:show="new" xlink:role="http://docbook.org/xlink/role/olink"
+  >Evolving</link></para>
+
+  <screen>$ dsconfig
+ set-connection-handler-prop
+ --port 4444
+ --hostname opendj.example.com
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --handler-name "JMX Connection Handler"
+ --set enabled:true
+ --trustAll
+ --no-prompt</screen>
+
+  <para>By default, no users have privileges to access the JMX connection. The
+  following command adds JMX privileges for Directory Manager.</para>
+
+  <screen>$ dsconfig
+ set-root-dn-prop
+ --port 4444
+ --hostname opendj.example.com
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --add default-root-privilege-name:jmx-notify
+ --add default-root-privilege-name:jmx-read
+ --add default-root-privilege-name:jmx-write
+ --trustAll
+ --no-prompt</screen>
+
+  <para>You must also configure security to login remotely. See the section on
+  <citetitle>Using SSL</citetitle> in <link
+  xlink:href="http://docs.oracle.com/javase/1.5.0/docs/guide/management/agent.html#SSL_enabled"
+  xlink:show="new"><citetitle>Monitoring and Management Using
+  JMX</citetitle></link> for hints.</para>
+  
+  <para>Alternatively, you can connect to a local server process by using the
+  server process identifier.</para>
+
+  <screen>$ cat ../logs/server.pid
+3363
+$ jvisualvm --openpid 3363 &amp;</screen>
+ </section>
+
+ <section xml:id="monitoring-status-and-tasks">
+  <title>Server Operation &amp; Tasks</title>
+  
+  <para>OpenDJ comes with two commands for monitoring server processes and
+  tasks. The <command>status</command> command displays basic information
+  about the local server, similar to what is seen in the default window of the
+  Control Panel. The <command>manage-tasks</command> command lets you manage
+  tasks scheduled on a server, such as nightly backup.</para>
+  
+  <para>The <command>status</command> command takes administrative credentials
+  to read the configuration, as does the Control Panel.</para>
+  <screen>$ status --bindDN "cn=Directory Manager" --bindPassword password
+
+          --- Server Status ---
+Server Run Status:        Started
+Open Connections:         1
+
+          --- Server Details ---
+Host Name:                localhost
+Administrative Users:     cn=Directory Manager
+Installation Path:        /path/to/opendj
+Version:                  OpenDJ <?eval ${docTargetVersion}?>
+Java Version:             1.6.0_24
+Administration Connector: Port 4444 (LDAPS)
+
+          --- Connection Handlers ---
+Address:Port : Protocol : State
+-------------:----------:---------
+--           : LDIF     : Disabled
+0.0.0.0:636  : LDAPS    : Disabled
+0.0.0.0:1389 : LDAP     : Enabled
+0.0.0.0:1689 : JMX      : Disabled
+
+          --- Data Sources ---
+Base DN:     dc=example,dc=com
+Backend ID:  userRoot
+Entries:     163
+Replication: Disabled</screen>
+
+  <para>The <command>manage-tasks</command> command connects over the
+  administration port, and so can connect to both local and remote
+  servers.</para>
+  
+  <screen>$ manage-tasks
+ --hostname opendj.example.com
+ --port 4444
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --trustAll
+ --no-prompt
+
+ID                         Type    Status
+--------------------------------------------------------
+example                    Backup  Recurring
+example-20110623030000000  Backup  Waiting on start time</screen>
+ </section>
+
+ <section xml:id="logging">
+  <title>Server Logs</title>
+  <indexterm><primary>Logs</primary></indexterm>
+  <indexterm>
+   <primary>Replication</primary>
+   <secondary>Log</secondary>
+  </indexterm>
+  
+  <para>By default OpenDJ stores access and errors logs as well as a
+  server process ID file under the <filename>logs/</filename> directory.
+  For the replication service, OpenDJ also keeps a replication log there.
+  You can also configure a debug log. Furthermore, you can configure policies
+  about how logs are rotated, and how they are retained. You configure logging
+  using the <command>dsconfig</command> command.</para>
+  
+  <itemizedlist>
+   <listitem>
+    <para>The <firstterm>access log</firstterm> traces the operations the
+    server processes including timestamps, connection information, and
+    information about the operation itself. The access log can therefore
+    grow quickly, as each client request results in at least one new log
+    message.</para>
+    <para>The following access log excerpt shows a search operation from the
+    local host, with the first three lines wrapped for readability.</para>
+    <screen>
+[21/Jun/2011:08:01:53 +0200] CONNECT conn=4 from=127.0.0.1:49708
+ to=127.0.0.1:1389 protocol=LDAP
+[21/Jun/2011:08:01:53 +0200] SEARCH REQ conn=4 op=0 msgID=1
+ base="dc=example,dc=com" scope=wholeSubtree filter="(uid=bjensen)" attrs="ALL"
+[21/Jun/2011:08:01:53 +0200] SEARCH RES conn=4 op=0 msgID=1
+ result=0 nentries=1 etime=3
+[21/Jun/2011:08:01:53 +0200] UNBIND REQ conn=4 op=1 msgID=2
+[21/Jun/2011:08:01:53 +0200] DISCONNECT conn=4 reason="Client Unbind"</screen>
+   </listitem>
+   <listitem>
+    <para>The <firstterm>errors log</firstterm> traces server events, error
+    conditions, and warnings, categorized and identified by severity.</para>
+    <para>The following errors log excerpt shows log entries about a
+    backup task, with lines wrapped for readability.</para>
+    <screen>
+[22/Jun/2011:12:32:23 +0200] category=BACKEND severity=NOTICE msgID=9896349
+ msg=Backup task 20110622123224088 started execution
+[22/Jun/2011:12:32:23 +0200] category=TOOLS severity=NOTICE msgID=10944792
+ msg=Starting backup for backend userRoot
+[22/Jun/2011:12:32:24 +0200] category=JEB severity=NOTICE msgID=8847446
+ msg=Archived: 00000000.jdb
+[22/Jun/2011:12:32:24 +0200] category=TOOLS severity=NOTICE msgID=10944795
+ msg=The backup process completed successfully
+[22/Jun/2011:12:32:24 +0200] category=BACKEND severity=NOTICE msgID=9896350
+ msg=Backup task 20110622123224088 finished execution</screen>
+   </listitem>
+
+   <listitem>
+    <para>If you use the HTTP Connection Handler, OpenDJ maintains a separate
+    access log in <filename>logs/http-access</filename>. This access log, by
+    default configured as the File Based HTTP Access Log Publisher, uses
+    a different format than the LDAP access log. This HTTP access log uses
+    <link xlink:href="http://www.w3.org/TR/WD-logfile.html" xlink:show="new"
+    >Extended Log File Format</link> with fields described in <link
+    xlink:show="new"
+    xlink:href="http://www.microsoft.com/technet/prodtechnol/WindowsServer2003/Library/IIS/676400bc-8969-4aa7-851a-9319490a9bbb.mspx?mfr=true"
+    >Microsoft's implementation</link> as well. The following default
+    fields are shown here in the order they occur in the log file.</para>
+
+    <para>Interface stability: <link xlink:href="admin-guide#interface-stability"
+    xlink:show="new" xlink:role="http://docbook.org/xlink/role/olink"
+    >Evolving</link></para>
+
+    <variablelist>
+     <varlistentry>
+      <term><literal>cs-host</literal></term>
+      <listitem>
+       <para>Client host name</para>
+      </listitem>
+     </varlistentry>
+     <varlistentry>
+      <term><literal>c-ip</literal></term>
+      <listitem>
+       <para>Client IP address</para>
+      </listitem>
+     </varlistentry>
+     <varlistentry>
+      <term><literal>cs-username</literal></term>
+      <listitem>
+       <para>Username used to authenticate</para>
+      </listitem>
+     </varlistentry>
+     <varlistentry>
+      <term><literal>x-datetime</literal></term>
+      <listitem>
+       <para>Completion timestamp for the HTTP request, which you can configure
+        using the <literal>log-record-time-format</literal> property</para>
+      </listitem>
+     </varlistentry>
+     <varlistentry>
+      <term><literal>cs-method</literal></term>
+      <listitem>
+       <para>HTTP method requested by the client</para>
+      </listitem>
+     </varlistentry>
+     <varlistentry>
+      <term><literal>cs-uri-query</literal></term>
+      <listitem>
+       <para>Path and query string requested by the client</para>
+      </listitem>
+     </varlistentry>
+     <varlistentry>
+      <term><literal>cs-version</literal></term>
+      <listitem>
+       <para>HTTP version requested by the client</para>
+      </listitem>
+     </varlistentry>
+     <varlistentry>
+      <term><literal>sc-status</literal></term>
+      <listitem>
+       <para>HTTP status code for the operation</para>
+      </listitem>
+     </varlistentry>
+     <varlistentry>
+      <term><literal>cs(User-Agent)</literal></term>
+      <listitem>
+       <para>User-Agent identifier</para>
+      </listitem>
+     </varlistentry>
+     <varlistentry>
+      <term><literal>x-connection-id</literal></term>
+      <listitem>
+       <para>Connection ID used for OpenDJ internal operations</para>
+       <para>When using this field to match HTTP requests with internal
+       operations in the LDAP access log, first set the access log advanced
+       property, <literal>suppress-internal-operations</literal>, to
+       <literal>false</literal>. By default, internal operations do not appear
+       in the LDAP access log.</para>
+      </listitem>
+     </varlistentry>
+     <varlistentry>
+      <term><literal>x-etime</literal></term>
+      <listitem>
+       <para>Execution time in milliseconds needed by OpenDJ to service the
+       HTTP request</para>
+      </listitem>
+     </varlistentry>
+    </variablelist>
+
+    <para>Missing values are replaced with <literal>-</literal>. Tabs separate
+    the fields, and if a field contains a tab character, then the field is
+    surrounded with double quotes. OpenDJ then doubles double quotes in the
+    field to escape them.</para>
+
+    <para>The following example shows an excerpt of an HTTP access log with
+    the default configuration. Lines are folded and space reformatted for the
+    printed page.</para>
+
+    <screen>-  192.168.0.15  bjensen   22/May/2013:10:06:18 +0200
+  GET  /users/bjensen?_prettyPrint=true                      HTTP/1.1    200
+  curl/7.21.4  3    40
+-  192.168.0.15  bjensen   22/May/2013:10:06:52 +0200
+  GET  /groups/Directory%20Administrators?_prettyPrint=true  HTTP/1.1    200
+  curl/7.21.4  4    41
+-  192.168.0.12  bjensen   22/May/2013:10:07:07 +0200
+  GET  /users/missing?_prettyPrint=true                      HTTP/1.1    200
+  curl/7.21.4  5     9
+-  192.168.0.12  -         22/May/2013:10:07:46 +0200
+  GET  /users/missing?_prettyPrint=true                      HTTP/1.1    401
+  curl/7.21.4  6     0
+-  192.168.0.15  kvaughan  22/May/2013:10:09:10 +0200
+  POST /users?_action=create&amp;_prettyPrint=true               HTTP/1.1    200
+  curl/7.21.4  7   120</screen>
+
+    <para>You can configure the <literal>log-format</literal> for the access log
+    using the <command>dsconfig</command> command. In addition to the default
+    fields, the following standard fields are supported.</para>
+
+    <variablelist>
+     <varlistentry>
+      <term><literal>c-port</literal></term>
+      <listitem>
+       <para>Client port number</para>
+      </listitem>
+     </varlistentry>
+     <varlistentry>
+      <term><literal>s-computername</literal></term>
+      <listitem>
+       <para>Server name where the access log was written</para>
+      </listitem>
+     </varlistentry>
+     <varlistentry>
+      <term><literal>s-ip</literal></term>
+      <listitem>
+       <para>Server IP address</para>
+      </listitem>
+     </varlistentry>
+     <varlistentry>
+      <term><literal>s-port</literal></term>
+      <listitem>
+       <para>Server port number</para>
+      </listitem>
+     </varlistentry>
+    </variablelist>
+   </listitem>
+
+   <listitem>
+    <para>The <firstterm>replication log</firstterm> traces replication
+    events, with entries similar to the errors log. The following excerpt has
+    lines wrapped for readability.</para>
+    <screen>
+[22/Jun/2011:14:37:34 +0200] category=SYNC severity=NOTICE msgID=15139026
+ msg=Finished total update: exported domain "dc=example,dc=com" from this
+ directory server DS(24065) to all remote directory servers. 
+[22/Jun/2011:14:37:35 +0200] category=SYNC severity=MILD_WARNING msgID=14745663
+ msg=Replication server RS(23947) at opendj.example.com/10.10.0.168:8989 has
+ closed the connection to this directory server DS(24065). This directory
+ server will now try to connect to another replication server in order to
+ receive changes for the domain "dc=example,dc=com"
+[22/Jun/2011:14:37:35 +0200] category=SYNC severity=NOTICE msgID=15138894
+ msg=The generation ID for domain "dc=example,dc=com" has been reset to 3679640</screen>
+    <para>Notice that the replication log does not trace replication operations.
+    Use the external change log instead to get notifications about changes to
+    directory data over protocol. You can alternatively configure an audit
+    log, which is a type of access log that dumps changes in LDIF.</para>
+   </listitem>
+   <listitem>
+    <para>A <firstterm>debug log</firstterm> traces details needed to
+    troubleshoot a problem in the server. Debug logs can grow large quickly,
+    and therefore no debug logs are enabled by default.</para>
+   </listitem>
+  </itemizedlist>
+  
+  <para>Each log depends on a <firstterm>log publisher</firstterm>, whose
+  type corresponds to the type of log. OpenDJ uses file-based log publishers.
+  The design allows for custom log publishers, however, which could publish
+  the logs elsewhere besides a file.</para>
+  
+  <para>For debug logging, you also set a <firstterm>debug target</firstterm>
+  to control what gets logged.</para>
+
+  <section xml:id="log-rotation">
+   <title>Log Rotation &amp; Retention</title>
+
+   <para>Each file-based log can be associated with a <firstterm>log rotation
+   policy</firstterm>, and a <firstterm>log retention policy</firstterm>. The
+   former can specify when, after how much time, or at what maximum size a log
+   is rotated. The latter can specify a maximum number or size of logs to
+   retain, or an amount of free disk space to maintain. The design allows
+   for custom policies as well.</para>
+
+   <para>By default the file-based logs are subject to rotation and retention
+   policies that you can list with <command>dsconfig
+   list-log-rotation-policies</command> and <command>dsconfig
+   list-log-retention-policies</command>.</para>
+
+   <para>For example, view the log rotation policies with the following
+   command.</para>
+
+   <screen width="101">$ dsconfig
+ list-log-rotation-policies
+ --port 4444
+ --hostname opendj.example.com
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+
+
+Log Rotation Policy                 : Type       : file-size-limit : rotation-interval : time-of-day
+------------------------------------:------------:-----------------:-------------------:------------
+24 Hours Time Limit Rotation Policy : time-limit : -               : 1 d               : -
+7 Days Time Limit Rotation Policy   : time-limit : -               : 1 w               : -
+Fixed Time Rotation Policy          : fixed-time : -               : -                 : 2359
+Size Limit Rotation Policy          : size-limit : 100 mb          : -                 : -</screen>
+
+   <para>View the log retention policies with the following command.</para>
+
+   <screen width="105">$ dsconfig
+ list-log-retention-policies
+ --port 4444
+ --hostname opendj.example.com
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+
+
+Log Retention Policy             : Type            : disk-space-used : free-disk-space : number-of-files
+---------------------------------:-----------------:-----------------:-----------------:----------------
+File Count Retention Policy      : file-count      : -               : -               : 10
+Free Disk Space Retention Policy : free-disk-space : -               : 500 mb          : -
+Size Limit Retention Policy      : size-limit      : 500 mb          : -               : -</screen>
+
+   <para>Use the <command>dsconfig get-log-publisher-prop</command> command to
+   examine the policies that apply to a particular logger.</para>
+
+   <screen>$ dsconfig
+ get-log-publisher-prop
+ --port 4444
+ --hostname opendj.example.com
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --publisher-name "File-Based Access Logger"
+ --property retention-policy
+ --property rotation-policy
+Property         : Value(s)
+-----------------:-------------------------------------------------------------
+retention-policy : File Count Retention Policy
+rotation-policy  : 24 Hours Time Limit Rotation Policy, Size Limit Rotation
+                 : Policy</screen>
+
+   <para>In other words, by default OpenDJ keeps 10 access log files, rotating
+   the access log each day, or when the log size reaches 100 MB.</para>
+
+   <para>The <command>dsconfig</command> command offers a number of subcommands
+   for creating and deleting log rotation and retention policies, and for
+   setting policy properties. You can update which policies apply to a logger
+   by using the <command>dsconfig set-log-publisher-prop</command>
+   command.</para>
+  </section>
+
+  <section xml:id="log-filtering">
+   <title>Log Filtering</title>
+   <indexterm>
+    <primary>Logs</primary>
+    <secondary>Filtering</secondary>
+   </indexterm>
+   
+   <para>Each time a client application sends a request to OpenDJ, the server
+   writes to its access log. As shown above, a simple search operation results
+   in five messages written to the access log. This volume of logging gives you
+   the information to analyze overall access patterns, or to audit access when
+   you do not know in advance what you are looking for.</para>
+   
+   <para>Yet when you do know what you are looking for, log filtering
+   lets you limit what the server logs, and focus on what you want to see.
+   You define the filter criteria, and also set the filtering policy.</para>
+   
+   <para>You can filter both access and also audit logs.</para>
+   
+   <itemizedlist>
+    <para>Log filtering lets you define rules based these criteria.</para>
+    <listitem>
+     <para>Client IP address, bind DN, group membership</para>
+    </listitem>
+    <listitem>
+     <para>Port number</para>
+    </listitem>
+    <listitem>
+     <para>Protocol used (such as LDAP, LDAPS, JMX)</para>
+    </listitem>
+    <listitem>
+     <para>Response times</para>
+    </listitem>
+    <listitem>
+     <para>Result codes (only log error results, for example)</para>
+    </listitem>
+    <listitem>
+     <para>Search response criteria (number of entries returned, whether the
+     search was indexed)</para>
+    </listitem>
+    <listitem>
+     <para>Target DN</para>
+    </listitem>
+    <listitem>
+     <para>Type of operation (connect, bind, add, delete, modify, rename,
+     search, etc.)</para>
+    </listitem>
+   </itemizedlist>
+   <para>The filtering policy in the log publisher configuration specifies
+   whether to include or exclude log messages that match the criteria you
+   define. OpenDJ does not filter logs until you update the log publisher
+   configuration.</para>
+   
+   <example xml:id="log-filtering-exclude-control-panel">
+    <title>Example: Exclude Control Panel-Related Messages</title>
+    
+    <para>A common development troubleshooting technique consists of sending
+    client requests while tailing the access log:</para>
+    <screen>$ tail -f /path/to/opendj/logs/access</screen>
+    <para>Trouble is, when OpenDJ Control Panel is running, or when you are
+    also adapting your configuration using the <command>dsconfig</command>
+    command, OpenDJ writes access log messages related to administration.
+    These might prevent you from noticing the messages that interest
+    you.</para>
+    
+    <para>This example demonstrates how to filter out access log messages
+    due to administrative connections over LDAPS on ports 1636 and 4444.</para>
+    
+    <para>Create access log filtering criteria rules.</para>
+    <screen>$ dsconfig
+ create-access-log-filtering-criteria
+ --port 4444
+ --hostname opendj.example.com
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --publisher-name "File-Based Access Logger"
+ --criteria-name "Exclude LDAPS on 1636 and 4444"
+ --type generic
+ --set connection-port-equal-to:1636
+ --set connection-port-equal-to:4444
+ --set connection-protocol-equal-to:ldaps
+ --trustAll
+ --no-prompt</screen>
+    
+    <para>Activate filtering to exclude messages from the default access log
+    according to the criteria you specified.</para>
+    <screen>$ dsconfig
+ set-log-publisher-prop
+ --port 4444
+ --hostname opendj.example.com
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --publisher-name "File-Based Access Logger"
+ --set filtering-policy:exclusive
+ --trustAll
+ --no-prompt</screen>
+    
+    <para>At this point, OpenDJ filters out connections over LDAPS to ports
+    1636 and 4444. While performing operations in OpenDJ Control Panel, if
+    you perform a simple <command>ldapsearch --port 1389 --baseDN
+    dc=example,dc=com uid=bjensen cn</command>, then all you see in the access
+    log is the effect of the <command>ldapsearch</command> command.</para>
+    <screen>$ tail -f /path/to/opendj/logs/access
+[19/Oct/2011:16:37:16 +0200] CONNECT conn=8 from=127.0.0.1:54165
+ to=127.0.0.1:1389 protocol=LDAP
+[19/Oct/2011:16:37:16 +0200] SEARCH REQ conn=8 op=0 msgID=1
+ base="dc=example,dc=com" scope=wholeSubtree filter="(uid=bjensen)" attrs="cn"
+[19/Oct/2011:16:37:16 +0200] SEARCH RES conn=8 op=0 msgID=1 result=0 nentries=1
+ etime=14
+[19/Oct/2011:16:37:16 +0200] UNBIND REQ conn=8 op=1 msgID=2
+[19/Oct/2011:16:37:16 +0200] DISCONNECT conn=8 reason="Client Unbind"</screen>
+   </example>
+   
+   <para>In addition to the filtering policy, you can also adjust how OpenDJ
+   writes log messages. By default, OpenDJ writes one log message for a
+   request, and another for a response. You can set the log publisher
+   property <literal>log-format</literal> to <literal>combined</literal>
+   to have OpenDJ write a single message per operation. This can be helpful,
+   for example, when evaluating response times. In addition, you can change
+   the log message time stamps with <literal>log-record-time-format</literal>,
+   and specify whether to log LDAP control OIDs for operations by setting
+   <literal>log-control-oids</literal> to <literal>true</literal>.</para>
+  </section>
+ </section>
+
+ <section xml:id="alert-notifications">
+  <title>Alert Notifications</title>
+  <indexterm><primary>Alerts</primary></indexterm>
+  
+  <para>OpenDJ can send alerts to provide notifications of significant server
+  events. Yet alert notifications are not enabled by default. You can use
+  the <command>dsconfig</command> command to enable alert notifications.</para>
+  
+  <screen>$ dsconfig
+ set-alert-handler-prop
+ --port 4444
+ --hostname opendj.example.com
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --handler-name "JMX Alert Handler"
+ --set enabled:true
+ --trustAll
+ --no-prompt</screen>
+
+  <para>OpenDJ can also send mail over SMTP instead of JMX notifications.
+  Before you set up the SMTP-based alert handler, you must identify an SMTP
+  server to which OpenDJ sends messages.</para>
+  
+  <screen>$ dsconfig
+ set-global-configuration-prop
+ --port 4444
+ --hostname opendj.example.com
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --set smtp-server:smtp.example.com
+ --trustAll
+ --no-prompt
+$ dsconfig
+ create-alert-handler
+ --port 4444
+ --hostname opendj.example.com
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --handler-name "SMTP Alert Handler"
+ --type smtp
+ --set enabled:true
+ --set message-subject:"OpenDJ Alert, Type: %%alert-type%%, ID: %%alert-id%%"
+ --set message-body:"%%alert-message%%"
+ --set recipient-address:kvaughan@example.com
+ --set sender-address:opendj@example.com
+ --trustAll
+ --no-prompt</screen>
+
+  <variablelist xml:id="alert-types">
+   <title>Alert Types</title>
+
+   <para>OpenDJ directory server uses the following types when sending
+   alerts. For alert types that indicate server problems, check
+   <filename>OpenDJ/logs/errors</filename> for details.</para>
+
+   <varlistentry>
+    <term><literal>org.opends.server.AccessControlDisabled</literal></term>
+    <listitem>
+     <para>The access control handler has been disabled.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>org.opends.server.AccessControlEnabled</literal></term>
+    <listitem>
+     <para>The access control handler has been enabled.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>org.opends.server.authentiation.dseecompat.ACIParseFailed</literal></term>
+    <listitem>
+     <para>The dseecompat access control subsystem failed to correctly parse
+     one or more ACI rules when the server first started.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>org.opends.server.BackendRunRecovery</literal></term>
+    <listitem>
+     <para>The JE backend has thrown a <literal>RunRecoveryException</literal>.
+     The directory server needs to be restarted.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>org.opends.server.CannotCopySchemaFiles</literal></term>
+    <listitem>
+     <para>A problem has occurred while attempting to create copies of the
+     existing schema configuration files before making a schema update, and the
+     schema configuration has been left in a potentially inconsistent
+     state.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>org.opends.server.CannotRenameCurrentTaskFile</literal></term>
+    <listitem>
+     <para>The directory server is unable to rename the current tasks backing
+     file in the process of trying to write an updated version.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>org.opends.server.CannotRenameNewTaskFile</literal></term>
+    <listitem>
+     <para>The directory server is unable to rename the new tasks backing file
+     into place.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>org.opends.server.CannotScheduleRecurringIteration</literal></term>
+    <listitem>
+     <para>The directory server is unable to schedule an iteration of a
+     recurring task.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>org.opends.server.CannotWriteConfig</literal></term>
+    <listitem>
+     <para>The directory server is unable to write its updated configuration
+     for some reason and therefore the server may not exhibit the new
+     configuration if it is restarted.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>org.opends.server.CannotWriteNewSchemaFiles</literal></term>
+    <listitem>
+     <para>A problem has occurred while attempting to write new versions of the
+     server schema configuration files, and the schema configuration has been
+     left in a potentially inconsistent state.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>org.opends.server.CannotWriteTaskFile</literal></term>
+    <listitem>
+     <para>The directory server is unable to write an updated tasks backing
+     file for some reason.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>org.opends.server.DirectoryServerShutdown</literal></term>
+    <listitem>
+     <para>The directory server has begun the process of shutting down.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>org.opends.server.DirectoryServerStarted</literal></term>
+    <listitem>
+     <para>The directory server has completed its startup process.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>org.opends.server.DiskFull</literal></term>
+    <listitem>
+     <para>Free disk space has reached the full threshold.</para>
+     <para>Default is 20 MB.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>org.opends.server.DiskSpaceLow</literal></term>
+    <listitem>
+     <para>Free disk space has reached the low threshold.</para>
+     <para>Default is 100 MB.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>org.opends.server.EnteringLockdownMode</literal></term>
+    <listitem>
+     <para>The directory server is entering lockdown mode, in which only root
+     users are allowed to perform operations and only over the loopback
+     address.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>org.opends.server.LDAPHandlerDisabledByConsecutiveFailures</literal></term>
+    <listitem>
+     <para>Consecutive failures have occurred in the LDAP connection handler
+     and have caused it to become disabled.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>org.opends.server.LDAPHandlerUncaughtError</literal></term>
+    <listitem>
+     <para>Uncaught errors in the LDAP connection handler that have caused it
+     to become disabled.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>org.opends.server.LDIFBackendCannotWriteUpdate</literal></term>
+    <listitem>
+     <para>An LDIF backend was unable to store an updated copy of the LDIF file
+     after processing a write operation.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>org.opends.server.LDIFConnectionHandlerIOError</literal></term>
+    <listitem>
+     <para>The LDIF connection handler encountered an I/O error that prevented
+     it from completing its processing.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>org.opends.server.LDIFConnectionHandlerParseError</literal></term>
+    <listitem>
+     <para>The LDIF connection handler encountered an unrecoverable error while
+     attempting to parse an LDIF file.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>org.opends.server.LeavingLockdownMode</literal></term>
+    <listitem>
+     <para>The directory server is leaving lockdown mode.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>org.opends.server.ManualConfigEditHandled</literal></term>
+    <listitem>
+     <para>The directory server detects that its configuration has been
+     manually edited with the server online and those changes were overwritten
+     by another change made through the server. The manually-edited
+     configuration will be copied to another location.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>org.opends.server.ManualConfigEditLost</literal></term>
+    <listitem>
+     <para>The directory server detects that its configuration has been
+     manually edited with the server online and those changes were overwritten
+     by another change made through the server. The manually-edited
+     configuration could not be preserved due to an unexpected error.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>org.opends.server.replication.UnresolvedConflict</literal></term>
+    <listitem>
+     <para>Multimaster replication cannot resolve a conflict
+     automatically.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>org.opends.server.UncaughtException</literal></term>
+    <listitem>
+     <para>A directory server thread has encountered an uncaught exception that
+     caused that thread to terminate abnormally. The impact that this problem
+     has on the server depends on which thread was impacted and the nature
+     of the exception.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>org.opends.server.UniqueAttributeSynchronizationConflict</literal></term>
+    <listitem>
+     <para>A unique attribute conflict has been detected during synchronization
+     processing.</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><literal>org.opends.server.UniqueAttributeSynchronizationError</literal></term>
+    <listitem>
+     <para>An error occurred while attempting to perform unique attribute
+     conflict detection during synchronization processing.</para>
+    </listitem>
+   </varlistentry>
+  </variablelist>
+ </section>
+</chapter>

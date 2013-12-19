@@ -1,0 +1,259 @@
+'\" t
+.\"     Title: rebuild-index
+.\"    Author: 
+.\" Generator: DocBook XSL-NS Stylesheets v1.76.1 <http://docbook.sf.net/>
+.\"      Date: 02/12/2013
+.\"    Manual: Tools Reference
+.\"    Source: OpenDJ 2.5.0
+.\"  Language: English
+.\"
+.TH "REBUILD\-INDEX" "1" "02/12/2013" "OpenDJ 2\&.5\&.0" "Tools Reference"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+rebuild-index \- rebuild index after configuration change
+.SH "SYNOPSIS"
+.HP \w'\fBrebuild\-index\fR\ 'u
+\fBrebuild\-index\fR {options}
+.SH "DESCRIPTION"
+.PP
+This utility can be used to rebuild index data within a backend based on the Berkeley DB Java Edition\&.
+.SH "OPTIONS"
+.PP
+The following options are supported\&.
+.PP
+\fB\-b, \-\-baseDN {baseDN}\fR
+.RS 4
+Base DN of a backend supporting indexing\&. Rebuild is performed on indexes within the scope of the given base DN\&.
+.RE
+.PP
+\fB\-\-clearDegradedState\fR
+.RS 4
+Indicates that indexes do not need rebuilding because they are known to be empty and forcefully marks them as valid\&.
+\fIThis is an advanced option which must only be used in cases where a degraded index is known to be empty and does not therefore need rebuilding\&.\fR
+This situation typically arises when an index is created for an attribute which has just been added to the schema\&.
+.RE
+.PP
+\fB\-i, \-\-index {index}\fR
+.RS 4
+Names of index(es) to rebuild\&. For an attribute index this is simply an attribute name\&. At least one index must be specified for rebuild\&. Cannot be used with the
+\fB\-\-rebuildAll\fR
+or
+\fB\-\-rebuildDegraded\fR
+options\&.
+.RE
+.PP
+\fB\-\-rebuildAll\fR
+.RS 4
+Rebuild all indexes, including any DN2ID, DN2URI, VLV and extensible indexes\&. Cannot be used with the
+\fB\-\-index\fR
+or
+\fB\-\-rebuildDegraded\fR
+options\&.
+.RE
+.PP
+\fB\-\-rebuildDegraded\fR
+.RS 4
+Rebuild all degraded indexes, including any DN2ID, DN2URI, VLV and extensible indexes\&. Cannot be used with the
+\fB\-\-index\fR
+or
+\fB\-\-rebuildAll\fR
+options\&.
+.RE
+.PP
+\fB\-\-tmpdirectory {directory}\fR
+.RS 4
+Path to temporary directory for index scratch files during index rebuilding\&.
+.sp
+Default value: import\-tmp
+.RE
+.SS "Task Backend Connection Options"
+.PP
+\fB\-\-connectTimeout {timeout}\fR
+.RS 4
+Maximum length of time (in milliseconds) that can be taken to establish a connection\&. Use \*(Aq0\*(Aq to specify no time out\&.
+.sp
+Default value: 30000
+.RE
+.PP
+\fB\-D, \-\-bindDN {bindDN}\fR
+.RS 4
+DN to use to bind to the server
+.sp
+Default value: cn=Directory Manager
+.RE
+.PP
+\fB\-h, \-\-hostname {host}\fR
+.RS 4
+Directory server hostname or IP address
+.sp
+Default value: localhost\&.localdomain
+.RE
+.PP
+\fB\-j, \-\-bindPasswordFile {bindPasswordFile}\fR
+.RS 4
+Bind password file
+.RE
+.PP
+\fB\-K, \-\-keyStorePath {keyStorePath}\fR
+.RS 4
+Certificate key store path
+.RE
+.PP
+\fB\-N, \-\-certNickname {nickname}\fR
+.RS 4
+Nickname of certificate for SSL client authentication
+.RE
+.PP
+\fB\-o, \-\-saslOption {name=value}\fR
+.RS 4
+SASL bind options
+.RE
+.PP
+\fB\-p, \-\-port {port}\fR
+.RS 4
+Directory server administration port number
+.sp
+Default value: 4444
+.RE
+.PP
+\fB\-P, \-\-trustStorePath {trustStorePath}\fR
+.RS 4
+Certificate trust store path
+.RE
+.PP
+\fB\-T, \-\-trustStorePassword {trustStorePassword}\fR
+.RS 4
+Certificate trust store PIN
+.RE
+.PP
+\fB\-u, \-\-keyStorePasswordFile {keyStorePasswordFile}\fR
+.RS 4
+Certificate key store PIN file
+.RE
+.PP
+\fB\-U, \-\-trustStorePasswordFile {path}\fR
+.RS 4
+Certificate trust store PIN file
+.RE
+.PP
+\fB\-w, \-\-bindPassword {bindPassword}\fR
+.RS 4
+Password to use to bind to the server
+.sp
+Use
+\fB\-w \-\fR
+to have the command prompt for the password, rather than enter the password on the command line\&.
+.RE
+.PP
+\fB\-W, \-\-keyStorePassword {keyStorePassword}\fR
+.RS 4
+Certificate key store PIN
+.RE
+.PP
+\fB\-X, \-\-trustAll\fR
+.RS 4
+Trust all server SSL certificates
+.RE
+.SS "Task Scheduling Options"
+.PP
+\fB\-\-completionNotify {emailAddress}\fR
+.RS 4
+Email address of a recipient to be notified when the task completes\&. This option may be specified more than once\&.
+.RE
+.PP
+\fB\-\-dependency {taskID}\fR
+.RS 4
+ID of a task upon which this task depends\&. A task will not start execution until all its dependencies have completed execution\&.
+.RE
+.PP
+\fB\-\-errorNotify {emailAddress}\fR
+.RS 4
+Email address of a recipient to be notified if an error occurs when this task executes\&. This option may be specified more than once\&.
+.RE
+.PP
+\fB\-\-failedDependencyAction {action}\fR
+.RS 4
+Action this task will take should one if its dependent tasks fail\&. The value must be one of PROCESS, CANCEL, DISABLE\&. If not specified defaults to CANCEL\&.
+.RE
+.PP
+\fB\-\-recurringTask {schedulePattern}\fR
+.RS 4
+Indicates the task is recurring and will be scheduled according to the value argument expressed in crontab(5) compatible time/date pattern\&.
+.RE
+.PP
+\fB\-t, \-\-start {startTime}\fR
+.RS 4
+Indicates the date/time at which this operation will start when scheduled as a server task expressed in YYYYMMDDhhmmssZ format for UTC time or YYYYMMDDhhmmss for local time\&. A value of \*(Aq0\*(Aq will cause the task to be scheduled for immediate execution\&. When this option is specified the operation will be scheduled to start at the specified time after which this utility will exit immediately\&.
+.RE
+.SS "Utility Input/Output Options"
+.PP
+\fB\-\-noPropertiesFile\fR
+.RS 4
+No properties file will be used to get default command line argument values
+.RE
+.PP
+\fB\-\-propertiesFilePath {propertiesFilePath}\fR
+.RS 4
+Path to the file containing default property values used for command line arguments
+.RE
+.SS "General Options"
+.PP
+\fB\-V, \-\-version\fR
+.RS 4
+Display version information
+.RE
+.PP
+\fB\-?, \-H, \-\-help\fR
+.RS 4
+Display usage information
+.RE
+.SH "EXIT CODES"
+.PP
+0
+.RS 4
+The command completed successfully\&.
+.RE
+.PP
+1
+.RS 4
+An error occurred while parsing the command\-line arguments\&.
+.RE
+.SH "EXAMPLES"
+.PP
+The following example schedules a task to start immediately that rebuilds the
+cn
+(common name) index\&.
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+$ rebuild\-index \-p 4444 \-h opendj\&.example\&.com \-D "cn=Directory Manager"
+ \-w password \-b dc=example,dc=com \-i cn \-t 0
+Rebuild Index task 20110607160349596 scheduled to start Jun 7, 2011 4:03:49 PM
+.fi
+.if n \{\
+.RE
+.\}
+.SH "COPYRIGHT"
+.br
+Copyright \(co 2011-2013 ForgeRock AS
+.br

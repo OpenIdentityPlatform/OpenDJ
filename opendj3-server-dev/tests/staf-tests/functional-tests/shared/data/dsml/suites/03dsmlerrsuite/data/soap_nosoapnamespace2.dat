@@ -1,0 +1,19 @@
+POST /dsml HTTP/1.1
+Host: Foo
+Connection: Close
+Content-Length: 306
+SOAPAction: batchRequest
+
+<?xml version='1.0' encoding='UTF-8'?>
+<Envelope
+   xmlns:xsd='http://www.w3.org/2001/XMLSchema'
+   xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+   >
+<Body>
+<batchRequest
+   xmlns="urn:oasis:names:tc:DSML:2:0:core"
+   requestID="SOAP namespace is missing"
+   >
+</batchRequest>
+</Body>
+</Envelope>

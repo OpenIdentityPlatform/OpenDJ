@@ -1,0 +1,277 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at
+  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2011-2013 ForgeRock AS
+  !    
+-->
+<chapter xml:id='chap-backup-restore'
+ xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+ xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+ xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ xmlns:xlink='http://www.w3.org/1999/xlink'
+ xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ <title>Backing Up &amp; Restoring Data</title>
+
+ <para>OpenDJ lets you backup and restore your data either in compressed,
+ binary format, or in LDAP Data Interchange Format. This chapter shows you how
+ to backup and to restore OpenDJ data from archives, and explains portability
+ of backup archives, as well as backing up server configuration
+ information.</para>
+ 
+ <section xml:id="backup">
+  <title>Backing Up Directory Data</title>
+  <indexterm><primary>Backup</primary></indexterm>
+  <para>A <filename>bak/</filename> directory is provided when you install
+  OpenDJ, as a location to save binary backups. When you create a backup,
+  the <filename>bak/backup.info</filename> contains information about the
+  archive.</para>
+  
+  <para>Archives produced by the <command>backup</command> command contain
+  backups only of the directory data. Backups of server configuration are
+  found in <filename>config/archived-configs/</filename>.</para>
+ 
+  <procedure xml:id="backup-immediately">
+   <title>To Back Up Data Immediately</title>
+
+   <para>To perform online backup, you start backup as a task by connecting to
+   the administrative port and authenticating as a user with the
+   <literal>backend-backup</literal> privilege, and also setting a start time
+   for the task by using the <option>--start</option> option.</para>
+
+   <para>To perform offline backup when OpenDJ is stopped, you run the
+   <command>backup</command> command without connecting to the server,
+   authenticating, or requesting a backup task.</para>
+
+   <step>
+    <para>Use one of the following alternatives.</para>
+    <stepalternatives>
+     <step>
+      <para>Back up only the database for Example.com, where the data
+      is stored in the backend named <literal>userRoot</literal>.</para>
+
+      <para>The following example requests an online backup task that
+      starts immediately, backing up only the <literal>userRoot</literal>
+      backend.</para>
+      <screen>$ backup
+ --port 4444
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --backendID userRoot
+ --backupDirectory /path/to/opendj/bak
+ --start 0
+Backup task 20110613143715983 scheduled to start Jun 13, 2011 2:37:15 PM CEST</screen>
+     </step>
+     <step>
+      <para>Stop the server to back up Example.com data offline.</para>
+
+      <para>The following example stops OpenDJ, runs offline backup, and
+      starts the server after backup has completed.</para>
+      <screen>$ stop-ds 
+Stopping Server...
+
+[13/Jun/2011:14:31:00 +0200] category=BACKEND severity=NOTICE msgID=9896306
+ msg=The backend userRoot is now taken offline
+[13/Jun/2011:14:31:00 +0200] category=CORE severity=NOTICE msgID=458955
+ msg=The Directory Server is now stopped
+$ backup --backendID userRoot -d /path/to/opendj/bak
+[13/Jun/2011:14:33:48 +0200] category=TOOLS severity=NOTICE msgID=10944792
+ msg=Starting backup for backend userRoot
+[13/Jun/2011:14:33:48 +0200] category=JEB severity=NOTICE msgID=8847446
+ msg=Archived: 00000000.jdb
+[13/Jun/2011:14:33:48 +0200] category=TOOLS severity=NOTICE msgID=10944795
+ msg=The backup process completed successfully
+$ start-ds
+... The Directory Server has started successfully</screen>
+     </step>
+     <step>
+      <para>Back up all user data on the server.</para>
+
+      <para>The following example requests an online backup task that
+      starts immediately, backing up all backends.</para>
+      <screen>$ backup
+ --port 4444
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --backUpAll
+ --backupDirectory /path/to/opendj/bak
+ --start 0
+Backup task 20110613143801866 scheduled to start Jun 13, 2011 2:38:01 PM CEST</screen>
+     </step>
+    </stepalternatives>
+   </step>
+  </procedure>
+  
+  <procedure xml:id="schedule-backup">
+   <title>To Schedule Data Backup</title>
+   
+   <para>You can schedule online data backup using <command>crontab</command>
+   format.</para>
+   
+   <step>
+    <para>Back up all user data every night at 2 AM, and notify
+    diradmin@example.com when finished, or on error.</para>
+    <screen>$ backup
+ --port 4444
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --backUpAll
+ --backupDirectory /path/to/opendj/bak
+ --recurringTask "00 02 * * *"
+ --completionNotify diradmin@example.com
+ --errorNotify diradmin@example.com
+Recurring Backup task BackupTask-988d6adf-4d65-44bf-8546-6ea74a2480b0
+scheduled successfully</screen>
+   </step>
+  </procedure>
+ </section>
+
+ <section xml:id="restore-data">
+  <title>Restoring Directory Data From Backup</title>
+  <indexterm><primary>Backup</primary></indexterm>
+  <indexterm>
+   <primary>Restoring</primary>
+   <secondary>From backup</secondary>
+  </indexterm>
+  
+  <para>When you restore data, the procedure to follow depends on whether
+  the OpenDJ directory server is replicated.</para>
+  
+  <procedure xml:id="restore-standalone-server">
+   <title>To Restore a Stand-alone Server</title>
+
+   <para>To restore OpenDJ when the server is online, you start a restore task
+   by connecting to the administrative port and authenticating as a user with
+   the <literal>backend-restore</literal> privilege, and also setting a start
+   time for the task by using the <option>--start</option> option.</para>
+
+   <para>To restore data when OpenDJ is stopped, you run the
+   <command>restore</command> command without connecting to the server,
+   authenticating, or requesting a restore task.</para>
+   <step>
+    <para>Use one of the following alternatives.</para>
+    <stepalternatives>
+     <step>
+      <para>Stop the server to restore data for Example.com.</para>
+
+      <para>The following example stops OpenDJ, restores data offline from
+      one of the available backups, and then starts the server after the
+      restore is complete.</para>
+      <screen>$ stop-ds
+Stopping Server...
+
+[13/Jun/2011:15:44:06 +0200] category=BACKEND severity=NOTICE msgID=9896306
+ msg=The backend userRoot is now taken offline
+[13/Jun/2011:15:44:06 +0200] category=CORE severity=NOTICE msgID=458955
+ msg=The Directory Server is now stopped
+$ restore --backupDirectory /path/to/opendj/bak --listBackups
+Backup ID:          20110613080032
+Backup Date:        13/Jun/2011:08:00:45 +0200
+Is Incremental:     false
+Is Compressed:      false
+Is Encrypted:       false
+Has Unsigned Hash:  false
+Has Signed Hash:    false
+Dependent Upon:     none
+$ restore --backupDirectory /path/to/opendj/bak --backupID 20110613080032
+[13/Jun/2011:15:47:41 +0200] category=JEB severity=NOTICE msgID=8847445
+ msg=Restored: 00000000.jdb (size 341835)
+$ start-ds
+... The Directory Server has started successfully</screen>
+     </step>
+     <step>
+      <para>Schedule the restore as a task to begin immediately.</para>
+
+      <para>The following example requests an online restore task, scheduled
+      to start immediately.</para>
+      <screen>$ restore
+ --port 4444
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --backupDirectory /path/to/opendj/bak
+ --backupID 20110613080032
+ --start 0
+Restore task 20110613155052932 scheduled to start Jun 13, 2011 3:50:52 PM CEST</screen>
+     </step>
+    </stepalternatives>
+   </step>
+  </procedure>
+  
+  <procedure xml:id="restore-replica">
+   <title>To Restore a Replica</title>
+   <indexterm>
+    <primary>Replication</primary>
+    <secondary>Restoring from backup</secondary>
+   </indexterm>
+   
+   <para>After you restore a replica from backup, replication brings the replica
+   up to date with changes that happened after you created the backup. In order
+   to bring the replica up to date, replication must apply changes that
+   happened after the backup was made. Replication uses internal change log
+   records to determine what changes to apply.</para>
+
+   <para>Internal change log records are not kept forever, though. Replication
+   is configured to purge the change log of old changes, preventing the log
+   from growing indefinitely. Yet, for replication to determine what changes
+   to apply to a restored replica, it must find change log records dating back
+   at least to the last change in the backup. In other words, replication can
+   bring the restored replica up to date <emphasis>as long as the change log
+   records used to determine which changes to apply have not been
+   purged</emphasis>.</para>
+
+   <para>Therefore, when you restore a replicated server from backup, make sure
+   the backup you use is newer than the last purge of the replication change
+   log (default: 3 days). If all your backups are older than the replication
+   purge delay, do not restore from a backup, but instead initialize a new
+   replica as described in <link xlink:href="admin-guide#init-repl"
+   xlink:role="http://docbook.org/xlink/role/olink"><citetitle>Initializing
+   Replicas</citetitle></link>.</para>
+
+   <step>
+    <para>Restore the server database from the backup archive that you are
+    sure is newer than the last purge of the replication change log.</para>
+
+    <screen>$ stop-ds
+Stopping Server...
+
+[13/Jun/2011:15:44:06 +0200] category=BACKEND severity=NOTICE msgID=9896306
+ msg=The backend userRoot is now taken offline
+[13/Jun/2011:15:44:06 +0200] category=CORE severity=NOTICE msgID=458955
+ msg=The Directory Server is now stopped
+$ restore --backupDirectory /path/to/opendj/bak --listBackups
+Backup ID:          20110613080032
+Backup Date:        13/Jun/2011:08:00:45 +0200
+Is Incremental:     false
+Is Compressed:      false
+Is Encrypted:       false
+Has Unsigned Hash:  false
+Has Signed Hash:    false
+Dependent Upon:     none
+$ restore --backupDirectory /path/to/opendj/bak --backupID 20110613080032
+[13/Jun/2011:15:47:41 +0200] category=JEB severity=NOTICE msgID=8847445
+ msg=Restored: 00000000.jdb (size 341835)
+$ start-ds
+... The Directory Server has started successfully</screen>
+   </step>
+
+  </procedure>
+ </section>
+</chapter>

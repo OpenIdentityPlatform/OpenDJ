@@ -1,0 +1,56 @@
+dn: uid=bjensen,ou=People,dc=example,dc=com
+ou: Product Development
+ou: People
+sn: Jensen
+facsimileTelephoneNumber: +1 408 555 1992
+objectClass: person
+objectClass: inetOrgPerson
+objectClass: top
+objectClass: organizationalPerson
+roomnumber: 787878
+userPassword: {SSHA}E67PSVsljn4LWHey7aeAAVy08uzS29pyzqZpsA==
+l: Cupertino
+cn: Barbara Jensen
+cn: Babs Jensen
+telephoneNumber: +1 408 555 1862
+uid: bjensen
+givenName: Barbara
+mail: bjensen@example.com
+
+
+dn: uid=mwhite,ou=People,dc=example,dc=com
+ou: Accounting
+ou: People
+sn: White
+facsimileTelephoneNumber: +1 408 555 4661
+objectClass: person
+objectClass: inetOrgPerson
+objectClass: top
+objectClass: organizationalPerson
+roomnumber: 898989
+userPassword: {SSHA}E67PSVsljn4LWHey7aeAAVy08uzS29pyzqZpsA==
+l: Cupertino
+cn: Morgan White
+telephoneNumber: +1 408 555 9620
+uid: mwhite
+givenName: Morgan
+mail: mwhite@example.com
+
+
+dn: uid=mtalbot,ou=People,dc=example,dc=com
+ou: Product Development
+ou: People
+sn: Talbot
+facsimileTelephoneNumber: +1 408 555 8473
+objectClass: person
+objectClass: inetOrgPerson
+objectClass: top
+objectClass: organizationalPerson
+roomnumber: 101010
+userPassword: {SSHA}E67PSVsljn4LWHey7aeAAVy08uzS29pyzqZpsA==
+l: Cupertino
+cn: Martin Talbot
+telephoneNumber: +1 408 555 9228
+uid: mtalbot
+givenName: Martin
+mail: mtalbot@example.com

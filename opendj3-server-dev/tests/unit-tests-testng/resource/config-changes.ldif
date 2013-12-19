@@ -1,0 +1,1443 @@
+dn: cn=config
+changetype: modify
+replace: ds-cfg-notify-abandoned-operations
+ds-cfg-notify-abandoned-operations: true
+-
+
+dn: cn=LDAP Connection Handler,cn=Connection Handlers,cn=config
+changeType: modify
+replace: ds-cfg-listen-port
+ds-cfg-listen-port: #ldapport#
+-
+replace: ds-cfg-allow-start-tls
+ds-cfg-allow-start-tls: true
+-
+replace: ds-cfg-key-manager-provider
+ds-cfg-key-manager-provider: cn=JKS,cn=Key Manager Providers,cn=config
+-
+replace: ds-cfg-trust-manager-provider
+ds-cfg-trust-manager-provider: cn=JKS,cn=Trust Manager Providers,cn=config
+
+dn: cn=Administration Connector,cn=config
+changeType: modify
+replace: ds-cfg-listen-port
+ds-cfg-listen-port: #adminport#
+
+dn: cn=LDAPS Connection Handler,cn=Connection Handlers,cn=config
+changeType: modify
+replace: ds-cfg-enabled
+ds-cfg-enabled: true
+-
+replace: ds-cfg-listen-port
+ds-cfg-listen-port: #ldapsport#
+-
+replace: ds-cfg-key-manager-provider
+ds-cfg-key-manager-provider: cn=JKS,cn=Key Manager Providers,cn=config
+-
+replace: ds-cfg-trust-manager-provider
+ds-cfg-trust-manager-provider: cn=JKS,cn=Trust Manager Providers,cn=config
+
+dn: cn=Access Control Handler,cn=config
+changeType: modify
+add: ds-cfg-global-aci
+ds-cfg-global-aci: (targetcontrol="*") (version 3.0; acl "Anonymous control access"; allow(read) userdn="ldap:///anyone";)
+ds-cfg-global-aci: (extop="*") (version 3.0; acl "Anonymous extended op access"; allow(read) userdn="ldap:///anyone";)
+
+dn: cn=JMX Connection Handler,cn=Connection Handlers,cn=config
+changeType: modify
+replace: ds-cfg-listen-port
+ds-cfg-listen-port: #jmxport#
+
+dn: cn=File-Based Access Logger,cn=Loggers,cn=config
+changetype: modify
+replace: ds-cfg-suppress-internal-operations
+ds-cfg-suppress-internal-operations: false
+
+dn: cn=File-Based Audit Logger,cn=Loggers,cn=config
+changetype: modify
+replace: ds-cfg-enabled
+ds-cfg-enabled: true
+-
+replace: ds-cfg-suppress-internal-operations
+ds-cfg-suppress-internal-operations: false
+
+dn: cn=Test Password Validator,cn=Password Validators,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-password-validator
+cn: Test Password Validator
+ds-cfg-java-class: org.opends.server.extensions.TestPasswordValidator
+ds-cfg-enabled: true
+
+dn: cn=Default Password Policy,cn=Password Policies,cn=config
+changetype: modify
+add: ds-cfg-password-validator
+ds-cfg-password-validator: cn=Test Password Validator,cn=Password Validators,cn=config
+
+dn: cn=SSHA512 UserPassword Policy,cn=Password Policies,cn=config
+changetype: add
+objectClass: ds-cfg-authentication-policy
+objectClass: ds-cfg-password-policy
+objectClass: top
+ds-cfg-java-class: org.opends.server.core.PasswordPolicyFactory
+cn: SSHA512 UserPassword Policy
+ds-cfg-password-attribute: userPassword
+ds-cfg-default-password-storage-scheme: cn=Salted SHA-512,cn=Password Storage Schemes,cn=config
+ds-cfg-allow-expired-password-changes: false
+ds-cfg-allow-multiple-password-values: false
+ds-cfg-allow-pre-encoded-passwords: false
+ds-cfg-allow-user-password-changes: true
+ds-cfg-expire-passwords-without-warning: false
+ds-cfg-force-change-on-add: false
+ds-cfg-force-change-on-reset: false
+ds-cfg-grace-login-count: 0
+ds-cfg-idle-lockout-interval: 0 seconds
+ds-cfg-lockout-failure-count: 0
+ds-cfg-lockout-duration: 0 seconds
+ds-cfg-lockout-failure-expiration-interval: 0 seconds
+ds-cfg-min-password-age: 0 seconds
+ds-cfg-max-password-age: 0 seconds
+ds-cfg-max-password-reset-age: 0 seconds
+ds-cfg-password-expiration-warning-interval: 5 days
+ds-cfg-password-generator: cn=Random Password Generator,cn=Password Generators,cn=config
+ds-cfg-password-change-requires-current-password: false
+ds-cfg-require-secure-authentication: false
+ds-cfg-require-secure-password-changes: false
+ds-cfg-skip-validation-for-administrators: false
+ds-cfg-password-validator: cn=Test Password Validator,cn=Password Validators,cn=config
+
+dn: cn=SHA1 AuthPassword Policy,cn=Password Policies,cn=config
+changetype: add
+objectClass: ds-cfg-authentication-policy
+objectClass: ds-cfg-password-policy
+objectClass: top
+ds-cfg-java-class: org.opends.server.core.PasswordPolicyFactory
+cn: SHA1 AuthPassword Policy
+ds-cfg-password-attribute: authPassword
+ds-cfg-default-password-storage-scheme: cn=Salted SHA-1,cn=Password Storage Schemes,cn=config
+ds-cfg-allow-expired-password-changes: false
+ds-cfg-allow-multiple-password-values: false
+ds-cfg-allow-pre-encoded-passwords: false
+ds-cfg-allow-user-password-changes: true
+ds-cfg-expire-passwords-without-warning: false
+ds-cfg-force-change-on-add: false
+ds-cfg-force-change-on-reset: false
+ds-cfg-grace-login-count: 0
+ds-cfg-idle-lockout-interval: 0 seconds
+ds-cfg-lockout-failure-count: 0
+ds-cfg-lockout-duration: 0 seconds
+ds-cfg-lockout-failure-expiration-interval: 0 seconds
+ds-cfg-min-password-age: 0 seconds
+ds-cfg-max-password-age: 0 seconds
+ds-cfg-max-password-reset-age: 0 seconds
+ds-cfg-password-expiration-warning-interval: 5 days
+ds-cfg-password-generator: cn=Random Password Generator,cn=Password Generators,cn=config
+ds-cfg-password-change-requires-current-password: false
+ds-cfg-require-secure-authentication: false
+ds-cfg-require-secure-password-changes: false
+ds-cfg-skip-validation-for-administrators: false
+ds-cfg-password-validator: cn=Test Password Validator,cn=Password Validators,cn=config
+
+dn: cn=Clear UserPassword Policy,cn=Password Policies,cn=config
+changetype: add
+objectClass: ds-cfg-authentication-policy
+objectClass: ds-cfg-password-policy
+objectClass: top
+ds-cfg-java-class: org.opends.server.core.PasswordPolicyFactory
+cn: Test AuthPassword Policy
+ds-cfg-password-attribute: userPassword
+ds-cfg-default-password-storage-scheme: cn=CLEAR,cn=Password Storage Schemes,cn=config
+ds-cfg-allow-expired-password-changes: false
+ds-cfg-allow-multiple-password-values: false
+ds-cfg-allow-pre-encoded-passwords: false
+ds-cfg-allow-user-password-changes: true
+ds-cfg-expire-passwords-without-warning: false
+ds-cfg-force-change-on-add: false
+ds-cfg-force-change-on-reset: false
+ds-cfg-grace-login-count: 0
+ds-cfg-idle-lockout-interval: 0 seconds
+ds-cfg-lockout-failure-count: 0
+ds-cfg-lockout-duration: 0 seconds
+ds-cfg-lockout-failure-expiration-interval: 0 seconds
+ds-cfg-min-password-age: 0 seconds
+ds-cfg-max-password-age: 0 seconds
+ds-cfg-max-password-reset-age: 0 seconds
+ds-cfg-password-expiration-warning-interval: 5 days
+ds-cfg-password-generator: cn=Random Password Generator,cn=Password Generators,cn=config
+ds-cfg-password-change-requires-current-password: false
+ds-cfg-require-secure-authentication: false
+ds-cfg-require-secure-password-changes: false
+ds-cfg-skip-validation-for-administrators: false
+ds-cfg-password-validator: cn=Test Password Validator,cn=Password Validators,cn=config
+
+dn: cn=Delay PreOperation Plugin,cn=Plugins,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-plugin
+cn: Delay PreOperation Plugin
+ds-cfg-java-class: org.opends.server.plugins.DelayPreOpPlugin
+ds-cfg-enabled: true
+ds-cfg-plugin-type: preOperationAdd
+ds-cfg-plugin-type: preOperationBind
+ds-cfg-plugin-type: preOperationCompare
+ds-cfg-plugin-type: preOperationDelete
+ds-cfg-plugin-type: preOperationExtended
+ds-cfg-plugin-type: preOperationModify
+ds-cfg-plugin-type: preOperationModifyDN
+ds-cfg-plugin-type: preOperationSearch
+ds-cfg-invoke-for-internal-operations: true
+
+dn: cn=Disconnect Client Plugin,cn=Plugins,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-plugin
+cn: Disconnect Client Plugin
+ds-cfg-java-class: org.opends.server.plugins.DisconnectClientPlugin
+ds-cfg-enabled: true
+ds-cfg-plugin-type: preParseAbandon
+ds-cfg-plugin-type: preParseAdd
+ds-cfg-plugin-type: preParseBind
+ds-cfg-plugin-type: preParseCompare
+ds-cfg-plugin-type: preParseDelete
+ds-cfg-plugin-type: preParseExtended
+ds-cfg-plugin-type: preParseModify
+ds-cfg-plugin-type: preParseModifyDN
+ds-cfg-plugin-type: preParseSearch
+ds-cfg-plugin-type: preParseUnbind
+ds-cfg-plugin-type: preOperationAdd
+ds-cfg-plugin-type: preOperationBind
+ds-cfg-plugin-type: preOperationCompare
+ds-cfg-plugin-type: preOperationDelete
+ds-cfg-plugin-type: preOperationExtended
+ds-cfg-plugin-type: preOperationModify
+ds-cfg-plugin-type: preOperationModifyDN
+ds-cfg-plugin-type: preOperationSearch
+ds-cfg-plugin-type: postOperationAbandon
+ds-cfg-plugin-type: postOperationAdd
+ds-cfg-plugin-type: postOperationBind
+ds-cfg-plugin-type: postOperationCompare
+ds-cfg-plugin-type: postOperationDelete
+ds-cfg-plugin-type: postOperationExtended
+ds-cfg-plugin-type: postOperationModify
+ds-cfg-plugin-type: postOperationModifyDN
+ds-cfg-plugin-type: postOperationSearch
+ds-cfg-plugin-type: postOperationUnbind
+ds-cfg-plugin-type: postResponseAdd
+ds-cfg-plugin-type: postResponseBind
+ds-cfg-plugin-type: postResponseCompare
+ds-cfg-plugin-type: postResponseDelete
+ds-cfg-plugin-type: postResponseExtended
+ds-cfg-plugin-type: postResponseModify
+ds-cfg-plugin-type: postResponseModifyDN
+ds-cfg-plugin-type: postResponseSearch
+ds-cfg-invoke-for-internal-operations: true
+
+dn: cn=Invocation Counter Plugin,cn=Plugins,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-plugin
+cn: Invocation Counter Plugin
+ds-cfg-java-class: org.opends.server.plugins.InvocationCounterPlugin
+ds-cfg-enabled: true
+ds-cfg-plugin-type: preParseAbandon
+ds-cfg-plugin-type: preParseAdd
+ds-cfg-plugin-type: preParseBind
+ds-cfg-plugin-type: preParseCompare
+ds-cfg-plugin-type: preParseDelete
+ds-cfg-plugin-type: preParseExtended
+ds-cfg-plugin-type: preParseModify
+ds-cfg-plugin-type: preParseModifyDN
+ds-cfg-plugin-type: preParseSearch
+ds-cfg-plugin-type: preParseUnbind
+ds-cfg-plugin-type: preOperationAdd
+ds-cfg-plugin-type: preOperationBind
+ds-cfg-plugin-type: preOperationCompare
+ds-cfg-plugin-type: preOperationDelete
+ds-cfg-plugin-type: preOperationExtended
+ds-cfg-plugin-type: preOperationModify
+ds-cfg-plugin-type: preOperationModifyDN
+ds-cfg-plugin-type: preOperationSearch
+ds-cfg-plugin-type: postOperationAbandon
+ds-cfg-plugin-type: postOperationAdd
+ds-cfg-plugin-type: postOperationBind
+ds-cfg-plugin-type: postOperationCompare
+ds-cfg-plugin-type: postOperationDelete
+ds-cfg-plugin-type: postOperationExtended
+ds-cfg-plugin-type: postOperationModify
+ds-cfg-plugin-type: postOperationModifyDN
+ds-cfg-plugin-type: postOperationSearch
+ds-cfg-plugin-type: postOperationUnbind
+ds-cfg-plugin-type: postResponseAdd
+ds-cfg-plugin-type: postResponseBind
+ds-cfg-plugin-type: postResponseCompare
+ds-cfg-plugin-type: postResponseDelete
+ds-cfg-plugin-type: postResponseExtended
+ds-cfg-plugin-type: postResponseModify
+ds-cfg-plugin-type: postResponseModifyDN
+ds-cfg-plugin-type: postResponseSearch
+ds-cfg-plugin-type: postSynchronizationAdd
+ds-cfg-plugin-type: postSynchronizationModify
+ds-cfg-plugin-type: postSynchronizationModifyDN
+ds-cfg-plugin-type: searchResultEntry
+ds-cfg-plugin-type: searchResultReference
+ds-cfg-plugin-type: subordinateModifyDN
+ds-cfg-plugin-type: intermediateResponse
+ds-cfg-plugin-type: postConnect
+ds-cfg-plugin-type: postDisconnect
+ds-cfg-plugin-type: ldifImport
+ds-cfg-plugin-type: ldifExport
+ds-cfg-plugin-type: startup
+ds-cfg-plugin-type: shutdown
+ds-cfg-invoke-for-internal-operations: true
+
+dn: cn=Short Circuit Plugin,cn=Plugins,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-plugin
+cn: Short Circuit Plugin
+ds-cfg-java-class: org.opends.server.plugins.ShortCircuitPlugin
+ds-cfg-enabled: true
+ds-cfg-plugin-type: preParseAbandon
+ds-cfg-plugin-type: preParseAdd
+ds-cfg-plugin-type: preParseBind
+ds-cfg-plugin-type: preParseCompare
+ds-cfg-plugin-type: preParseDelete
+ds-cfg-plugin-type: preParseExtended
+ds-cfg-plugin-type: preParseModify
+ds-cfg-plugin-type: preParseModifyDN
+ds-cfg-plugin-type: preParseSearch
+ds-cfg-plugin-type: preParseUnbind
+ds-cfg-plugin-type: preOperationAdd
+ds-cfg-plugin-type: preOperationBind
+ds-cfg-plugin-type: preOperationCompare
+ds-cfg-plugin-type: preOperationDelete
+ds-cfg-plugin-type: preOperationExtended
+ds-cfg-plugin-type: preOperationModify
+ds-cfg-plugin-type: preOperationModifyDN
+ds-cfg-plugin-type: preOperationSearch
+ds-cfg-invoke-for-internal-operations: true
+
+dn: cn=Update PreOperation Plugin,cn=Plugins,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-plugin
+cn: Update PreOperation Plugin
+ds-cfg-java-class: org.opends.server.plugins.UpdatePreOpPlugin
+ds-cfg-enabled: true
+ds-cfg-plugin-type: preOperationAdd
+ds-cfg-plugin-type: preOperationModify
+ds-cfg-invoke-for-internal-operations: true
+
+dn: cn=UID Unique Attribute ,cn=Plugins,cn=config
+changeType: modify
+replace: ds-cfg-enabled
+ds-cfg-enabled: true
+-
+replace: ds-cfg-type
+ds-cfg-type: oncRpcNumber
+
+dn: cn=Referential Integrity,cn=Plugins,cn=config
+changeType: modify
+replace: ds-cfg-enabled
+ds-cfg-enabled: true
+-
+add: ds-cfg-base-dn
+ds-cfg-base-dn: dc=does,dc=not,dc=exist
+
+dn: cn=Test Unique Attribute,cn=Plugins,cn=config
+changeType: add
+objectClass: top
+objectClass: ds-cfg-plugin
+objectClass: ds-cfg-unique-attribute-plugin
+cn: Test Unique Attribute
+ds-cfg-java-class: org.opends.server.plugins.UniqueAttributePlugin
+ds-cfg-enabled: true
+ds-cfg-plugin-type: preOperationAdd
+ds-cfg-plugin-type: preOperationModify
+ds-cfg-plugin-type: preOperationModifyDN
+ds-cfg-plugin-type: postSynchronizationAdd
+ds-cfg-plugin-type: postSynchronizationModify
+ds-cfg-plugin-type: postSynchronizationModifyDN
+ds-cfg-type: bootParameter
+
+dn: cn=JKS,cn=Key Manager Providers,cn=config
+changetype: modify
+replace: ds-cfg-enabled
+ds-cfg-enabled: true
+-
+replace: ds-cfg-key-store-file
+ds-cfg-key-store-file: config/server.keystore
+-
+replace: ds-cfg-key-store-pin
+ds-cfg-key-store-pin: password
+-
+replace: ds-cfg-key-store-pin-file
+
+dn: cn=Crypto Manager,cn=config
+changetype: modify
+replace: ds-cfg-ssl-cert-nickname
+ds-cfg-ssl-cert-nickname: server-cert
+-
+
+dn: ds-cfg-backend-id=ads-truststore,cn=Backends,cn=config
+changetype: modify
+replace: ds-cfg-enabled
+ds-cfg-enabled: true
+-
+replace: ds-cfg-trust-store-file
+ds-cfg-trust-store-file: config/server.keystore
+-
+replace: ds-cfg-trust-store-pin
+ds-cfg-trust-store-pin: password
+-
+replace: ds-cfg-trust-store-pin-file
+
+dn: cn=PKCS12,cn=Key Manager Providers,cn=config
+changetype: modify
+replace: ds-cfg-enabled
+ds-cfg-enabled: true
+-
+replace: ds-cfg-key-store-file
+ds-cfg-key-store-file: config/server-cert.p12
+-
+replace: ds-cfg-key-store-pin
+ds-cfg-key-store-pin: password
+-
+replace: ds-cfg-key-store-pin-file
+
+dn: cn=JKS,cn=Trust Manager Providers,cn=config
+changetype: modify
+replace: ds-cfg-enabled
+ds-cfg-enabled: true
+-
+replace: ds-cfg-trust-store-file
+ds-cfg-trust-store-file: config/server.truststore
+-
+replace: ds-cfg-trust-store-pin
+ds-cfg-trust-store-pin: password
+-
+replace: ds-cfg-key-store-pin-file
+
+dn: ds-cfg-backend-id=unindexedRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-backend
+objectClass: ds-cfg-local-db-backend
+ds-cfg-enabled: false
+ds-cfg-java-class: org.opends.server.backends.jeb.BackendImpl
+ds-cfg-backend-id: unindexedRoot
+ds-cfg-writability-mode: enabled
+ds-cfg-base-dn: dc=unindexed,dc=jeb
+ds-cfg-db-directory: db_unindexed
+ds-cfg-db-directory-permissions: 700
+ds-cfg-index-entry-limit: 1
+ds-cfg-preload-time-limit: 0 seconds
+ds-cfg-entries-compressed: false
+ds-cfg-db-cache-percent: 2
+ds-cfg-db-run-cleaner: false
+
+dn: ds-cfg-attribute=oncRpcNumber,cn=Index,ds-cfg-backend-id=userRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: oncRpcNumber
+ds-cfg-index-type: equality
+
+dn: ds-cfg-attribute=bootParameter,cn=Index,ds-cfg-backend-id=userRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: bootParameter
+ds-cfg-index-type: equality
+
+dn: ds-cfg-attribute=employeeNumber,cn=Index,ds-cfg-backend-id=userRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: employeeNumber
+ds-cfg-index-type: equality
+
+dn: ds-cfg-attribute=ds-certificate-subject-dn,cn=Index,ds-cfg-backend-id=userRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: ds-certificate-subject-dn
+ds-cfg-index-type: equality
+
+dn: ds-cfg-attribute=ds-certificate-fingerprint,cn=Index,ds-cfg-backend-id=userRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: ds-certificate-fingerprint
+ds-cfg-index-type: equality
+
+dn: ds-cfg-attribute=manager,cn=Index,ds-cfg-backend-id=userRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: manager
+ds-cfg-index-type: equality
+
+dn: ds-cfg-attribute=o,cn=Index,ds-cfg-backend-id=userRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: o
+ds-cfg-index-type: equality
+
+dn: ds-cfg-attribute=seeAlso,cn=Index,ds-cfg-backend-id=userRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: seeAlso
+ds-cfg-index-type: equality
+
+dn: ds-cfg-attribute=mobile,cn=Index,ds-cfg-backend-id=userRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: mobile
+ds-cfg-index-type: equality
+
+dn: ds-cfg-attribute=facsimileTelephoneNumber,cn=Index,ds-cfg-backend-id=userRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: facsimileTelephoneNumber
+ds-cfg-index-type: equality
+
+dn: ds-cfg-attribute=pager,cn=Index,ds-cfg-backend-id=userRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: pager
+ds-cfg-index-type: equality
+
+dn: cn=Index,ds-cfg-backend-id=unindexedRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-branch
+cn: Index
+
+dn: ds-cfg-attribute=mail,cn=Index,ds-cfg-backend-id=unindexedRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: mail
+ds-cfg-index-type: presence
+ds-cfg-index-type: equality
+ds-cfg-index-type: substring
+ds-cfg-index-type: ordering
+ds-cfg-index-type: approximate
+
+dn: ds-cfg-attribute=oncRpcNumber,cn=Index,ds-cfg-backend-id=unindexedRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: oncRpcNumber
+ds-cfg-index-type: equality
+
+dn: ds-cfg-attribute=bootParameter,cn=Index,ds-cfg-backend-id=unindexedRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: bootParameter
+ds-cfg-index-type: equality
+
+dn: ds-cfg-attribute=employeeNumber,cn=Index,ds-cfg-backend-id=unindexedRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: employeeNumber
+ds-cfg-index-type: equality
+
+dn: ds-cfg-attribute=ds-certificate-subject-dn,cn=Index,ds-cfg-backend-id=unindexedRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: ds-certificate-subject-dn
+ds-cfg-index-type: equality
+
+dn: ds-cfg-attribute=ds-certificate-fingerprint,cn=Index,ds-cfg-backend-id=unindexedRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: ds-certificate-fingerprint
+ds-cfg-index-type: equality
+
+dn: ds-cfg-attribute=manager,cn=Index,ds-cfg-backend-id=unindexedRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: manager
+ds-cfg-index-type: equality
+
+dn: ds-cfg-attribute=o,cn=Index,ds-cfg-backend-id=unindexedRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: o
+ds-cfg-index-type: equality
+
+dn: ds-cfg-attribute=seeAlso,cn=Index,ds-cfg-backend-id=unindexedRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: seeAlso
+ds-cfg-index-type: equality
+
+dn: ds-cfg-attribute=mobile,cn=Index,ds-cfg-backend-id=unindexedRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: mobile
+ds-cfg-index-type: equality
+
+dn: ds-cfg-attribute=facsimileTelephoneNumber,cn=Index,ds-cfg-backend-id=unindexedRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: facsimileTelephoneNumber
+ds-cfg-index-type: equality
+
+dn: ds-cfg-attribute=pager,cn=Index,ds-cfg-backend-id=unindexedRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: pager
+ds-cfg-index-type: equality
+
+dn: ds-cfg-attribute=cn,cn=Index,ds-cfg-backend-id=unindexedRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: cn
+ds-cfg-index-type: equality
+
+dn: ds-cfg-attribute=sn,cn=Index,ds-cfg-backend-id=unindexedRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: sn
+ds-cfg-index-type: equality
+
+dn: ds-cfg-attribute=member,cn=Index,ds-cfg-backend-id=unindexedRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: member
+ds-cfg-index-type: equality
+
+dn: ds-cfg-attribute=uniuqeMember,cn=Index,ds-cfg-backend-id=unindexedRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: uniqueMember
+ds-cfg-index-type: equality
+
+dn: ds-cfg-attribute=telephoneNumber,cn=Index,ds-cfg-backend-id=unindexedRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: telephoneNumber
+ds-cfg-index-type: equality
+
+dn: ds-cfg-attribute=uid,cn=Index,ds-cfg-backend-id=unindexedRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: uid
+ds-cfg-index-type: equality
+
+dn: ds-cfg-backend-id=rebuildRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-backend
+objectClass: ds-cfg-local-db-backend
+ds-cfg-enabled: false
+ds-cfg-java-class: org.opends.server.backends.jeb.BackendImpl
+ds-cfg-backend-id: rebuildRoot
+ds-cfg-writability-mode: enabled
+ds-cfg-base-dn: dc=rebuild, dc=jeb
+ds-cfg-db-directory: db_rebuild
+ds-cfg-db-directory-permissions: 700
+ds-cfg-index-entry-limit: 10
+ds-cfg-preload-time-limit: 0 seconds
+ds-cfg-entries-compressed: false
+ds-cfg-db-cache-percent: 2
+ds-cfg-db-run-cleaner: false
+
+dn: cn=VLV Index,ds-cfg-backend-id=rebuildRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-branch
+cn: VLV Index
+
+dn: ds-cfg-name=testvlvindex,cn=VLV Index,ds-cfg-backend-id=rebuildRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-vlv-index
+ds-cfg-name: testvlvindex
+ds-cfg-base-dn: dc=rebuild, dc=jeb
+ds-cfg-scope: whole-subtree
+ds-cfg-filter: (objectClass=*)
+ds-cfg-sort-order: givenname -sn +uid
+
+dn: cn=Index,ds-cfg-backend-id=rebuildRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-branch
+cn: Index
+
+dn: ds-cfg-attribute=mail,cn=Index,ds-cfg-backend-id=rebuildRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: mail
+ds-cfg-index-type: presence
+ds-cfg-index-type: equality
+ds-cfg-index-type: substring
+ds-cfg-index-type: ordering
+ds-cfg-index-type: approximate
+
+dn: ds-cfg-attribute=oncRpcNumber,cn=Index,ds-cfg-backend-id=rebuildRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: oncRpcNumber
+ds-cfg-index-type: equality
+
+dn: ds-cfg-attribute=bootParameter,cn=Index,ds-cfg-backend-id=rebuildRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: bootParameter
+ds-cfg-index-type: equality
+
+dn: ds-cfg-attribute=employeeNumber,cn=Index,ds-cfg-backend-id=rebuildRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: employeeNumber
+ds-cfg-index-type: equality
+
+dn: ds-cfg-attribute=ds-certificate-subject-dn,cn=Index,ds-cfg-backend-id=rebuildRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: ds-certificate-subject-dn
+ds-cfg-index-type: equality
+
+dn: ds-cfg-attribute=ds-certificate-fingerprint,cn=Index,ds-cfg-backend-id=rebuildRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: ds-certificate-fingerprint
+ds-cfg-index-type: equality
+
+dn: ds-cfg-attribute=manager,cn=Index,ds-cfg-backend-id=rebuildRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: manager
+ds-cfg-index-type: equality
+
+dn: ds-cfg-attribute=o,cn=Index,ds-cfg-backend-id=rebuildRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: o
+ds-cfg-index-type: equality
+
+dn: ds-cfg-attribute=seeAlso,cn=Index,ds-cfg-backend-id=rebuildRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: seeAlso
+ds-cfg-index-type: equality
+
+dn: ds-cfg-attribute=mobile,cn=Index,ds-cfg-backend-id=rebuildRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: mobile
+ds-cfg-index-type: equality
+
+dn: ds-cfg-attribute=facsimileTelephoneNumber,cn=Index,ds-cfg-backend-id=rebuildRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: facsimileTelephoneNumber
+ds-cfg-index-type: equality
+
+dn: ds-cfg-attribute=pager,cn=Index,ds-cfg-backend-id=rebuildRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: pager
+ds-cfg-index-type: equality
+
+dn: ds-cfg-attribute=uid,cn=Index,ds-cfg-backend-id=rebuildRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: uid
+ds-cfg-index-type: equality
+
+dn: ds-cfg-attribute=cn,cn=Index,ds-cfg-backend-id=rebuildRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: cn
+ds-cfg-index-type: equality
+
+dn: ds-cfg-attribute=sn,cn=Index,ds-cfg-backend-id=rebuildRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: sn
+ds-cfg-index-type: equality
+
+dn: ds-cfg-attribute=member,cn=Index,ds-cfg-backend-id=rebuildRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: member
+ds-cfg-index-type: equality
+
+dn: ds-cfg-attribute=uniuqeMember,cn=Index,ds-cfg-backend-id=rebuildRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: uniqueMember
+ds-cfg-index-type: equality
+
+dn: ds-cfg-attribute=telephoneNumber,cn=Index,ds-cfg-backend-id=rebuildRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: telephoneNumber
+ds-cfg-index-type: equality
+
+dn: ds-cfg-backend-id=importRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-backend
+objectClass: ds-cfg-local-db-backend
+ds-cfg-enabled: false
+ds-cfg-java-class: org.opends.server.backends.jeb.BackendImpl
+ds-cfg-backend-id: importRoot
+ds-cfg-writability-mode: enabled
+ds-cfg-base-dn: dc=importtest, dc=com
+ds-cfg-base-dn: dc=importtest1, dc=com
+ds-cfg-db-directory: db_import_test
+ds-cfg-db-directory-permissions: 700
+ds-cfg-index-entry-limit: 10
+ds-cfg-preload-time-limit: 0 seconds
+ds-cfg-entries-compressed: false
+ds-cfg-db-cache-percent: 2
+ds-cfg-db-run-cleaner: false
+
+dn: cn=VLV Index,ds-cfg-backend-id=importRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-branch
+cn: VLV Index
+
+dn: ds-cfg-name=testvlvindex,cn=VLV Index,ds-cfg-backend-id=importRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-vlv-index
+ds-cfg-name: testvlvindex
+ds-cfg-base-dn: dc=com
+ds-cfg-scope: whole-subtree
+ds-cfg-filter: (objectClass=*)
+ds-cfg-sort-order: givenname -sn +uid
+
+dn: cn=Index,ds-cfg-backend-id=importRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-branch
+cn: Index
+
+dn: ds-cfg-attribute=oncRpcNumber,cn=Index,ds-cfg-backend-id=importRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: oncRpcNumber
+ds-cfg-index-type: equality
+
+dn: ds-cfg-attribute=bootParameter,cn=Index,ds-cfg-backend-id=importRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: bootParameter
+ds-cfg-index-type: equality
+
+dn: ds-cfg-attribute=employeeNumber,cn=Index,ds-cfg-backend-id=importRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: employeeNumber
+ds-cfg-index-type: equality
+
+dn: ds-cfg-attribute=mail,cn=Index,ds-cfg-backend-id=importRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: mail
+ds-cfg-index-type: equality
+
+dn: ds-cfg-attribute=ds-certificate-subject-dn,cn=Index,ds-cfg-backend-id=importRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: ds-certificate-subject-dn
+ds-cfg-index-type: equality
+
+dn: ds-cfg-attribute=ds-certificate-fingerprint,cn=Index,ds-cfg-backend-id=importRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: ds-certificate-fingerprint
+ds-cfg-index-type: equality
+
+dn: ds-cfg-attribute=manager,cn=Index,ds-cfg-backend-id=importRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: manager
+ds-cfg-index-type: equality
+
+dn: ds-cfg-attribute=o,cn=Index,ds-cfg-backend-id=importRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: o
+ds-cfg-index-type: equality
+
+dn: ds-cfg-attribute=seeAlso,cn=Index,ds-cfg-backend-id=importRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: seeAlso
+ds-cfg-index-type: equality
+
+dn: ds-cfg-attribute=mobile,cn=Index,ds-cfg-backend-id=importRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: mobile
+ds-cfg-index-type: equality
+
+dn: ds-cfg-attribute=facsimileTelephoneNumber,cn=Index,ds-cfg-backend-id=importRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: facsimileTelephoneNumber
+ds-cfg-index-type: equality
+
+dn: ds-cfg-attribute=pager,cn=Index,ds-cfg-backend-id=importRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: pager
+ds-cfg-index-type: equality
+
+dn: ds-cfg-attribute=cn,cn=Index,ds-cfg-backend-id=importRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: cn
+ds-cfg-index-type: equality
+
+dn: ds-cfg-attribute=sn,cn=Index,ds-cfg-backend-id=importRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: sn
+ds-cfg-index-type: equality
+
+dn: ds-cfg-attribute=member,cn=Index,ds-cfg-backend-id=importRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: member
+ds-cfg-index-type: equality
+
+dn: ds-cfg-attribute=uniuqeMember,cn=Index,ds-cfg-backend-id=importRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: uniqueMember
+ds-cfg-index-type: equality
+
+dn: ds-cfg-attribute=telephoneNumber,cn=Index,ds-cfg-backend-id=importRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: telephoneNumber
+ds-cfg-index-type: equality
+
+dn: ds-cfg-attribute=uid,cn=Index,ds-cfg-backend-id=importRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: uid
+ds-cfg-index-type: equality
+
+dn: ds-cfg-backend-id=verifyRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-backend
+objectClass: ds-cfg-local-db-backend
+ds-cfg-enabled: false
+ds-cfg-java-class: org.opends.server.backends.jeb.BackendImpl
+ds-cfg-backend-id: verifyRoot
+ds-cfg-writability-mode: enabled
+ds-cfg-base-dn: dc=verify, dc=jeb
+ds-cfg-db-directory: db_verify
+ds-cfg-db-directory-permissions: 700
+ds-cfg-index-entry-limit: 10
+ds-cfg-preload-time-limit: 0 seconds
+ds-cfg-entries-compressed: false
+ds-cfg-db-cache-percent: 2
+ds-cfg-db-run-cleaner: false
+
+dn: cn=VLV Index,ds-cfg-backend-id=verifyRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-branch
+cn: VLV Index
+
+dn: ds-cfg-name=testvlvindex,cn=VLV Index,ds-cfg-backend-id=verifyRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-vlv-index
+ds-cfg-name: testvlvindex
+ds-cfg-base-dn: dc=verify, dc=jeb
+ds-cfg-scope: whole-subtree
+ds-cfg-filter: (objectClass=*)
+ds-cfg-sort-order: givenname -sn +uid
+
+dn: cn=Index,ds-cfg-backend-id=verifyRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-branch
+cn: Index
+
+dn: ds-cfg-attribute=cn,cn=Index,ds-cfg-backend-id=verifyRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: cn
+ds-cfg-index-type: presence
+ds-cfg-index-type: equality
+ds-cfg-index-type: substring
+
+dn: ds-cfg-attribute=givenName,cn=Index,ds-cfg-backend-id=verifyRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: givenName
+ds-cfg-index-type: presence
+ds-cfg-index-type: equality
+ds-cfg-index-type: substring
+
+dn: ds-cfg-attribute=mail,cn=Index,ds-cfg-backend-id=verifyRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: mail
+ds-cfg-index-type: presence
+ds-cfg-index-type: equality
+ds-cfg-index-type: substring
+ds-cfg-index-type: ordering
+
+dn: ds-cfg-attribute=member,cn=Index,ds-cfg-backend-id=verifyRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: member
+ds-cfg-index-type: equality
+
+dn: ds-cfg-attribute=uniqueMember,cn=Index,ds-cfg-backend-id=verifyRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: uniqueMember
+ds-cfg-index-type: equality
+
+dn: ds-cfg-attribute=sn,cn=Index,ds-cfg-backend-id=verifyRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: sn
+ds-cfg-index-type: presence
+ds-cfg-index-type: equality
+ds-cfg-index-type: substring
+
+dn: ds-cfg-attribute=telephoneNumber,cn=Index,ds-cfg-backend-id=verifyRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: telephoneNumber
+ds-cfg-index-type: presence
+ds-cfg-index-type: equality
+ds-cfg-index-type: substring
+
+dn: ds-cfg-attribute=uid,cn=Index,ds-cfg-backend-id=verifyRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: uid
+ds-cfg-index-type: equality
+
+dn: ds-cfg-attribute=ds-sync-hist,cn=Index,ds-cfg-backend-id=verifyRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: ds-sync-hist
+ds-cfg-index-type: ordering
+
+dn: ds-cfg-attribute=entryuuid,cn=Index,ds-cfg-backend-id=verifyRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: entryuuid
+ds-cfg-index-type: equality
+
+dn: ds-cfg-attribute=oncRpcNumber,cn=Index,ds-cfg-backend-id=verifyRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: oncRpcNumber
+ds-cfg-index-type: equality
+
+dn: ds-cfg-attribute=bootParameter,cn=Index,ds-cfg-backend-id=verifyRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: bootParameter
+ds-cfg-index-type: equality
+
+dn: ds-cfg-attribute=employeeNumber,cn=Index,ds-cfg-backend-id=verifyRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: employeeNumber
+ds-cfg-index-type: equality
+
+dn: ds-cfg-attribute=ds-certificate-subject-dn,cn=Index,ds-cfg-backend-id=verifyRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: ds-certificate-subject-dn
+ds-cfg-index-type: equality
+
+dn: ds-cfg-attribute=ds-certificate-fingerprint,cn=Index,ds-cfg-backend-id=verifyRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: ds-certificate-fingerprint
+ds-cfg-index-type: equality
+
+dn: ds-cfg-attribute=manager,cn=Index,ds-cfg-backend-id=verifyRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: manager
+ds-cfg-index-type: equality
+
+dn: ds-cfg-attribute=o,cn=Index,ds-cfg-backend-id=verifyRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: o
+ds-cfg-index-type: equality
+
+dn: ds-cfg-attribute=seeAlso,cn=Index,ds-cfg-backend-id=verifyRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: seeAlso
+ds-cfg-index-type: equality
+
+dn: ds-cfg-attribute=mobile,cn=Index,ds-cfg-backend-id=verifyRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: mobile
+ds-cfg-index-type: equality
+
+dn: ds-cfg-attribute=facsimileTelephoneNumber,cn=Index,ds-cfg-backend-id=verifyRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: facsimileTelephoneNumber
+ds-cfg-index-type: equality
+
+dn: ds-cfg-attribute=pager,cn=Index,ds-cfg-backend-id=verifyRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: pager
+ds-cfg-index-type: equality
+
+dn: ds-cfg-backend-id=indexRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-backend
+objectClass: ds-cfg-local-db-backend
+ds-cfg-enabled: false
+ds-cfg-java-class: org.opends.server.backends.jeb.BackendImpl
+ds-cfg-backend-id: indexRoot
+ds-cfg-writability-mode: enabled
+ds-cfg-base-dn: dc=test,dc=com
+ds-cfg-base-dn: dc=test1,dc=com
+ds-cfg-base-dn: dc=vlvtest,dc=com
+ds-cfg-db-directory: db_index_test
+ds-cfg-db-directory-permissions: 700
+ds-cfg-index-entry-limit: 13
+ds-cfg-preload-time-limit: 0 seconds
+ds-cfg-entries-compressed: false
+ds-cfg-db-cache-percent: 2
+ds-cfg-db-run-cleaner: false
+
+dn: cn=VLV Index,ds-cfg-backend-id=indexRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-branch
+cn: VLV Index
+
+dn: ds-cfg-name=testvlvindex,cn=VLV Index,ds-cfg-backend-id=indexRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-vlv-index
+ds-cfg-name: testvlvindex
+ds-cfg-base-dn: dc=vlvtest,dc=com
+ds-cfg-scope: whole-subtree
+ds-cfg-filter: (objectClass=*)
+ds-cfg-sort-order: givenname -sn +uid
+ds-cfg-max-block-size: 7
+
+dn: cn=Index,ds-cfg-backend-id=indexRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-branch
+cn: Index
+
+dn: ds-cfg-attribute=name,cn=Index,ds-cfg-backend-id=indexRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: name
+ds-cfg-index-type: presence
+ds-cfg-index-type: equality
+ds-cfg-index-type: substring
+ds-cfg-index-type: ordering
+ds-cfg-index-type: approximate
+ds-cfg-index-entry-limit: 4000
+
+dn: ds-cfg-attribute=cn,cn=Index,ds-cfg-backend-id=indexRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: cn
+ds-cfg-index-type: presence
+ds-cfg-index-type: equality
+ds-cfg-index-type: substring
+ds-cfg-index-type: ordering
+ds-cfg-index-type: approximate
+
+dn: ds-cfg-attribute=employeeNumber,cn=Index,ds-cfg-backend-id=indexRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: employeeNumber
+ds-cfg-index-type: presence
+ds-cfg-index-type: equality
+ds-cfg-index-type: substring
+ds-cfg-index-type: ordering
+
+dn: ds-cfg-attribute=title,cn=Index,ds-cfg-backend-id=indexRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: title
+ds-cfg-index-type: presence
+ds-cfg-index-type: equality
+ds-cfg-index-type: substring
+ds-cfg-index-type: ordering
+
+dn: ds-cfg-attribute=givenName,cn=Index,ds-cfg-backend-id=indexRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: givenName
+ds-cfg-index-type: presence
+ds-cfg-index-type: equality
+ds-cfg-index-type: substring
+ds-cfg-index-type: ordering
+
+dn: ds-cfg-attribute=mail,cn=Index,ds-cfg-backend-id=indexRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: mail
+ds-cfg-index-type: presence
+ds-cfg-index-type: equality
+ds-cfg-index-type: substring
+ds-cfg-index-type: ordering
+ds-cfg-index-type: approximate
+ds-cfg-index-entry-limit: 1
+
+dn: ds-cfg-attribute=member,cn=Index,ds-cfg-backend-id=indexRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: member
+ds-cfg-index-type: equality
+
+dn: ds-cfg-attribute=uniqueMember,cn=Index,ds-cfg-backend-id=indexRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: uniqueMember
+ds-cfg-index-type: equality
+
+dn: ds-cfg-attribute=sn,cn=Index,ds-cfg-backend-id=indexRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: sn
+ds-cfg-index-type: presence
+ds-cfg-index-type: equality
+ds-cfg-index-type: substring
+
+dn: ds-cfg-attribute=telephoneNumber,cn=Index,ds-cfg-backend-id=indexRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: telephoneNumber
+ds-cfg-index-type: presence
+ds-cfg-index-type: equality
+ds-cfg-index-type: substring
+
+dn: ds-cfg-attribute=uid,cn=Index,ds-cfg-backend-id=indexRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: uid
+ds-cfg-index-type: equality
+
+dn: ds-cfg-attribute=oncRpcNumber,cn=Index,ds-cfg-backend-id=indexRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: oncRpcNumber
+ds-cfg-index-type: equality
+
+dn: ds-cfg-attribute=bootParameter,cn=Index,ds-cfg-backend-id=indexRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: bootParameter
+ds-cfg-index-type: equality
+
+dn: ds-cfg-attribute=ds-certificate-subject-dn,cn=Index,ds-cfg-backend-id=indexRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: ds-certificate-subject-dn
+ds-cfg-index-type: equality
+
+dn: ds-cfg-attribute=ds-certificate-fingerprint,cn=Index,ds-cfg-backend-id=indexRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: ds-certificate-fingerprint
+ds-cfg-index-type: equality
+
+dn: ds-cfg-attribute=manager,cn=Index,ds-cfg-backend-id=indexRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: manager
+ds-cfg-index-type: equality
+
+dn: ds-cfg-attribute=o,cn=Index,ds-cfg-backend-id=indexRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: o
+ds-cfg-index-type: equality
+
+dn: ds-cfg-attribute=seeAlso,cn=Index,ds-cfg-backend-id=indexRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: seeAlso
+ds-cfg-index-type: equality
+
+dn: ds-cfg-attribute=mobile,cn=Index,ds-cfg-backend-id=indexRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: mobile
+ds-cfg-index-type: equality
+
+dn: ds-cfg-attribute=facsimileTelephoneNumber,cn=Index,ds-cfg-backend-id=indexRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: facsimileTelephoneNumber
+ds-cfg-index-type: equality
+
+dn: ds-cfg-attribute=pager,cn=Index,ds-cfg-backend-id=indexRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-local-db-index
+ds-cfg-attribute: pager
+ds-cfg-index-type: equality
+
+dn: cn=Virtual Static member,cn=Virtual Attributes,cn=config
+changetype: modify
+replace: ds-cfg-allow-retrieving-membership
+ds-cfg-allow-retrieving-membership: true
+
+dn: cn=Virtual Static uniqueMember,cn=Virtual Attributes,cn=config
+changetype: modify
+replace: ds-cfg-allow-retrieving-membership
+ds-cfg-allow-retrieving-membership: true
+
+dn: cn=Dummy Alert Handler,cn=Alert Handlers,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-alert-handler
+cn: Dummy Alert Handler
+ds-cfg-java-class: org.opends.server.extensions.DummyAlertHandler
+ds-cfg-enabled: true
+
+dn: ds-cfg-backend-id=ldifRoot,cn=Backends,cn=config
+changetype: add
+objectClass: top
+objectClass: ds-cfg-backend
+objectClass: ds-cfg-ldif-backend
+ds-cfg-backend-id: ldifRoot
+ds-cfg-enabled: true
+ds-cfg-java-class: org.opends.server.backends.LDIFBackend
+ds-cfg-writability-mode: enabled
+ds-cfg-base-dn: o=ldif
+ds-cfg-ldif-file: config/ldif-backend.ldif
+
+dn: cn=File-Based Debug Logger,cn=Loggers,cn=config
+changetype: modify
+replace: ds-cfg-enabled
+ds-cfg-enabled: true
+-
+replace: ds-cfg-default-include-throwable-cause
+ds-cfg-default-include-throwable-cause: true
+-
+replace: ds-cfg-default-throwable-stack-frames
+ds-cfg-default-throwable-stack-frames: 500

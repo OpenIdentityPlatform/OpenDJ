@@ -1,0 +1,4698 @@
+dn: ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: European Alphabet
+description: Root for French, German, and Spanish letters 
+
+dn: ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: Deutsch
+ou;lang-de: ÄÖÜäöüß
+description: German Alphabet
+
+dn: ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: Español
+ou;lang-es: á, é, í, ó, ü, ñ, Á, É, Í, Ó, Ú, Ü, Ñ
+description: Spanish Alphabet
+
+dn: ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: Français
+ou:lang-fr: àâçëèéêïîôüùûÀÂÇËÈÉÊÏÎÔÜÙÛ
+description: French 8Bit Alphabet
+
+dn: ou=ä, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: ä
+ou;lang-de: ä 
+description: ä
+
+dn: ou=ö, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: ö
+ou;lang-de: ö
+description: ö
+
+dn: ou=ü, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: ü
+ou;lang-de: ü
+description: ü
+
+dn: ou=ß, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: ß
+ou;lang-de: ß
+description: ß
+
+dn: ou=Ä_2, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: Ä_2
+ou;lang-de: Ä_2
+description: Ä_2
+
+dn: ou=Ö_2, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: Ö_2
+ou;lang-de: Ö_2
+description: Ö_2
+
+dn: ou=Ü_2, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: Ü_2
+ou;lang-de: Ü_2
+description: Ü_2
+
+dn: ou=á, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: á
+ou;lang-es: á
+description: á
+
+dn: ou=é, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: é
+ou;lang-es: é
+description: é
+
+dn: ou=í, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: í
+ou;lang-es: í
+description: í
+
+dn: ou=ó, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: ó
+ou;lang-es: ó
+description: ó
+
+dn: ou=ü, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: ü
+ou;lang-es: ü
+description: ü
+
+dn: ou=ñ, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: ñ
+ou;lang-es: ñ
+description: ñ
+
+dn: ou=Á_2, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: Á_2
+ou;lang-es:  Á_2
+description: Á_2
+
+dn: ou=É_2, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: É_2
+ou;lang-es: É_2
+description: É_2
+
+dn: ou=Í_2, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: Í_2
+ou;lang-es: Í_2
+description: Í_2
+
+dn: ou=Ó_2, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: Ó_2
+ou;lang-es: Ó_2
+description: Ó_2
+
+dn: ou=Ú_2, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: Ú_2
+ou;lang-es: Ú_2
+description: Ú_2
+
+dn: ou=Ü_2, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: Ü_2
+ou;lang-es: Ü_2
+description: Ü_2
+
+dn: ou=Ñ_2, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: Ñ_2
+ou;lang-es: Ñ_2
+description: Ñ_2
+
+dn: ou=à, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: à
+ou;lang-fr: à
+description: à
+
+dn: ou=â, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: â
+ou;lang-fr: â
+description: â
+
+dn: ou=ç, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: ç
+ou;lang-fr: ç
+description: ç
+
+dn: ou=ë, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: ë
+ou;lang-fr: ë
+description: ë
+
+dn: ou=è, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: è
+ou;lang-fr: è
+description: è
+
+dn: ou=é, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: é
+ou;lang-fr: é
+description: é
+
+dn: ou=ê, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: ê
+ou;lang-fr:  ê
+description: ê
+
+dn: ou=ï, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: ï
+ou;lang-fr: ï
+description: ï
+
+dn: ou=î, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: î
+ou;lang-fr: î
+description: î
+
+dn: ou=ô, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: ô
+ou;lang-fr: ô
+description: ô
+
+dn: ou=ü, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: ü
+ou;lang-fr: ü
+description: ü
+
+dn: ou=ù, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: ù
+ou;lang-fr: ù
+description: ù
+
+dn: ou=û, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: û
+ou;lang-fr: û
+description: û
+
+dn: ou=À_2, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: À_2
+ou;lang-fr: À_2
+description: À_2
+
+dn: ou=Â_2, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: Â_2
+ou;lang-fr: Â_2
+description: Â_2
+
+dn: ou=Ç_2, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: Ç_2
+ou;lang-fr: Ç_2
+description: Ç_2
+
+dn: ou=Ë_2, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: Ë_2
+ou;lang-fr: Ë_2
+description: Ë_2
+
+dn: ou=È_2, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: È_2
+ou;lang-fr: È_2
+description: È_2
+
+dn: ou=É_2, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: É_2
+ou;lang-fr: É_2
+description: É_2
+
+dn: ou=Ê_2, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: Ê_2
+ou;lang-fr:  Ê_2
+description: Ê_2
+
+dn: ou=Ï_2, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: Ï_2
+ou;lang-fr: Ï_2
+description: Ï_2
+
+dn: ou=Î_2, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: Î_2
+ou;lang-fr: Î_2
+description: Î_2
+
+dn: ou=Ô_2, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: Ô_2
+ou;lang-fr: Ô_2
+description: Ô_2
+
+dn: ou=Ü_2, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: Ü_2
+ou;lang-fr: Ü_2
+description: Ü_2
+
+dn: ou=Ù_2, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: Ù_2
+ou;lang-fr: Ù_2
+description: Ù_2
+
+dn: ou=Û_2, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: Û_2
+ou;lang-fr: Û_2
+description: Û_2
+
+dn: ou=A, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: A
+ou;lang-de: A
+description: A 
+
+dn: ou=B, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: B
+ou;lang-de: B
+description: B
+
+dn: ou=C, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: C
+ou;lang-de: C
+description: C
+
+dn: ou=D, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: D
+ou;lang-de: D
+description: D
+
+dn: ou=E, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: E
+ou;lang-de: E
+description: E
+
+dn: ou=F, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: F
+ou;lang-de: F
+description: F
+
+dn: ou=G, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: G
+ou;lang-de: G
+description: G
+
+dn: ou=H, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: H
+ou;lang-de: H
+description: H
+
+dn: ou=I, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: I
+ou;lang-de: I
+description: I
+
+dn: ou=J, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: J
+ou;lang-de: J
+description: J
+
+dn: ou=K, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: K
+ou;lang-de: K
+description: K 
+
+dn: ou=L, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: L
+ou;lang-de: L
+description: L
+
+dn: ou=M, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: M
+ou;lang-de: M
+description: M
+
+dn: ou=N, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: N
+ou;lang-de: N
+description: N
+
+dn: ou=O, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: O
+ou;lang-de: O
+description: O
+
+dn: ou=P, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: P
+ou;lang-de: P
+description: P
+
+dn: ou=Q, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: Q
+ou;lang-de: Q
+description: Q
+
+dn: ou=R, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: R
+ou;lang-de: R
+description: R
+
+dn: ou=S, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: S
+ou;lang-de: S
+description: S
+
+dn: ou=T, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: T
+ou;lang-de: T
+description: T
+
+dn: ou=U, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: U
+ou;lang-de: U
+description: U
+
+dn: ou=V, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: V
+ou;lang-de: V
+description: V
+
+dn: ou=W, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: W
+ou;lang-de: W
+description: W
+
+dn: ou=X, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: X
+ou;lang-de: X
+description: X
+
+dn: ou=Y, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: Y
+ou;lang-de: Y
+description: Y
+
+dn: ou=Z, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: Z
+ou;lang-de: Z
+description: Z
+
+dn: ou=A, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: A
+ou;lang-es: A
+description: A 
+
+dn: ou=B, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: B
+ou;lang-es: B
+description: B
+
+dn: ou=C, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: C
+ou;lang-es: C
+description: C
+
+dn: ou=D, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: D
+ou;lang-es: D
+description: D
+
+dn: ou=E, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: E
+ou;lang-es: E
+description: E
+
+dn: ou=F, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: F
+ou;lang-es: F
+description: F
+
+dn: ou=G, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: G
+ou;lang-es: G
+description: G
+
+dn: ou=H, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: H
+ou;lang-es: H
+description: H
+
+dn: ou=I, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: I
+ou;lang-es: I
+description: I
+
+dn: ou=J, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: J
+ou;lang-es: J
+description: J
+
+dn: ou=K, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: K
+ou;lang-es: K
+description: K 
+
+dn: ou=L, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: L
+ou;lang-es: L
+description: L
+
+dn: ou=M, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: M
+ou;lang-es: M
+description: M
+
+dn: ou=N, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: N
+ou;lang-es: N
+description: N
+
+dn: ou=O, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: O
+ou;lang-es: O
+description: O
+
+dn: ou=P, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: P
+ou;lang-es: P
+description: P
+
+dn: ou=Q, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: Q
+ou;lang-es: Q
+description: Q
+
+dn: ou=R, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: R
+ou;lang-es: R
+description: R
+
+dn: ou=S, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: S
+ou;lang-es: S
+description: S
+
+dn: ou=T, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: T
+ou;lang-es: T
+description: T
+
+dn: ou=U, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: U
+ou;lang-es: U
+description: U
+
+dn: ou=V, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: V
+ou;lang-es: V
+description: V
+
+dn: ou=W, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: W
+ou;lang-es: W
+description: W
+
+dn: ou=X, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: X
+ou;lang-es: X
+description: X
+
+dn: ou=Y, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: Y
+ou;lang-es: Y
+description: Y
+
+dn: ou=Z, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: Z
+ou;lang-es: Z
+description: Z
+
+dn: ou=A, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: A
+ou;lang-fr: A
+description: A 
+
+dn: ou=B, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: B
+ou;lang-fr: B
+description: B
+
+dn: ou=C, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: C
+ou;lang-fr: C
+description: C
+
+dn: ou=D, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: D
+ou;lang-fr: D
+description: D
+
+dn: ou=E, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: E
+ou;lang-fr: E
+description: E
+
+dn: ou=F, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: F
+ou;lang-fr: F
+description: F
+
+dn: ou=G, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: G
+ou;lang-fr: G
+description: G
+
+dn: ou=H, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: H
+ou;lang-fr: H
+description: H
+
+dn: ou=I, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: I
+ou;lang-fr: I
+description: I
+
+dn: ou=J, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: J
+ou;lang-fr: J
+description: J
+
+dn: ou=K, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: K
+ou;lang-fr: K
+description: K 
+
+dn: ou=L, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: L
+ou;lang-fr: L
+description: L
+
+dn: ou=M, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: M
+ou;lang-fr: M
+description: M
+
+dn: ou=N, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: N
+ou;lang-fr: N
+description: N
+
+dn: ou=O, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: O
+ou;lang-fr: O
+description: O
+
+dn: ou=P, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: P
+ou;lang-fr: P
+description: P
+
+dn: ou=Q, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: Q
+ou;lang-fr: Q
+description: Q
+
+dn: ou=R, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: R
+ou;lang-fr: R
+description: R
+
+dn: ou=S, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: S
+ou;lang-fr: S
+description: S
+
+dn: ou=T, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: T
+ou;lang-fr: T
+description: T
+
+dn: ou=U, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: U
+ou;lang-fr: U
+description: U
+
+dn: ou=V, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: V
+ou;lang-fr: V
+description: V
+
+dn: ou=W, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: W
+ou;lang-fr: W
+description: W
+
+dn: ou=X, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: X
+ou;lang-fr: X
+description: X
+
+dn: ou=Y, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: Y
+ou;lang-fr: Y
+description: Y
+
+dn: ou=Z, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: Z
+ou;lang-fr: Z
+description: Z
+
+dn: uid=de1, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de1
+givenname;lang-de: ä 
+sn;lang-de: ä
+cn;lang-de: ä ä
+preferredlanguage: de
+givenname: ä
+sn: ä
+cn: ä ä
+
+dn: uid=de2 , ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de2
+givenname;lang-de: ö 
+sn;lang-de: ö
+cn;lang-de: ö ö
+preferredlanguage: de
+givenname: ö
+sn: ö
+cn: ö ö
+
+dn: uid=de3 , ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de3
+givenname;lang-de: ü
+sn;lang-de: ü
+cn;lang-de: ü ü
+preferredlanguage: de
+givenname: ü
+sn: ü
+cn: ü ü
+
+dn: uid=de4 , ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de4
+givenname;lang-de: ß
+sn;lang-de: ß
+cn;lang-de: ß ß
+preferredlanguage: de
+givenname: ß
+sn: ß
+cn: ß ß
+
+dn: uid=de5 , ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de5
+givenname;lang-de: Ä
+sn;lang-de: Ä
+cn;lang-de: Ä Ä
+preferredlanguage: de
+givenname: Ä
+sn: Ä
+cn: Ä Ä
+
+dn: uid=de6 , ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de6
+givenname;lang-de: Ö
+sn;lang-de: Ö
+cn;lang-de: Ö Ö
+preferredlanguage: de
+givenname: Ö
+sn: Ö
+cn: Ö Ö
+
+dn: uid=de7 , ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de7
+givenname;lang-de: Ü
+sn;lang-de: Ü
+cn;lang-de: Ü Ü
+preferredlanguage: de
+givenname: Ü
+sn: Ü
+cn: Ü Ü
+
+dn: uid=es1 , ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es1
+givenname;lang-es: á
+sn;lang-es: á
+cn;lang-es: á á
+preferredlanguage: es
+givenname: á
+sn: á
+cn: á á
+
+dn: uid=es2 , ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es2
+givenname;lang-es: é
+sn;lang-es: é
+cn;lang-es: é é
+preferredlanguage: es
+givenname: é
+sn: é
+cn: é é
+
+dn: uid=es3 , ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es3
+givenname;lang-es: í
+sn;lang-es: í
+cn;lang-es: í í
+preferredlanguage: es
+givenname: í
+sn: í
+cn: í í
+
+dn: uid=es4 , ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es4
+givenname;lang-es: ó
+sn;lang-es: ó
+cn;lang-es: ó ó
+preferredlanguage: es
+givenname: ó
+sn: ó
+cn: ó ó
+
+dn: uid=es5 , ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es5
+givenname;lang-es: ú
+sn;lang-es: ú
+cn;lang-es: ú ú
+preferredlanguage: es
+givenname: ú
+sn: ú
+cn: ú ú
+
+dn: uid=es6 , ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es6
+givenname;lang-es: ü
+sn;lang-es: ü
+cn;lang-es: ü ü
+preferredlanguage: es
+givenname: ü
+sn: ü
+cn: ü ü
+
+dn: uid=es7 , ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es7
+givenname;lang-es: Á
+sn;lang-es: Á
+cn;lang-es: Á Á
+preferredlanguage: es
+givenname: Á
+sn: Á
+cn: Á Á
+
+dn: uid=es8 , ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es8
+givenname;lang-es: É
+sn;lang-es: É
+cn;lang-es: É É
+preferredlanguage: es
+givenname: É
+sn: É
+cn: É É
+
+dn: uid=es9 , ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es9
+givenname;lang-es: Í
+sn;lang-es: Í
+cn;lang-es: Í Í
+preferredlanguage: es
+givenname: Í
+sn: Í
+cn: Í Í
+
+dn: uid=es10 , ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es10
+givenname;lang-es: Ó
+sn;lang-es: Ó
+cn;lang-es: Ó Ó
+preferredlanguage: es
+givenname: Ó
+sn: Ó
+cn: Ó Ó
+
+dn: uid=es11 , ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es11
+givenname;lang-es: Ú
+sn;lang-es: Ú
+cn;lang-es: Ú Ú
+preferredlanguage: es
+givenname: Ú
+sn: Ú
+cn: Ú Ú
+
+dn: uid=es12 , ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es12
+givenname;lang-es: Ü
+sn;lang-es: Ü
+cn;lang-es: Ü Ü
+preferredlanguage: es
+givenname: Ü
+sn: Ü
+cn: Ü Ü
+
+dn: uid=es13 , ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es13
+givenname;lang-es: Ñ
+sn;lang-es: Ñ
+cn;lang-es: Ñ Ñ
+preferredlanguage: es
+givenname: Ñ
+sn: Ñ
+cn: Ñ Ñ
+
+dn: uid=es14 , ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es14
+givenname;lang-es: ñ
+sn;lang-es: ñ
+cn;lang-es: ñ ñ
+preferredlanguage: es
+givenname: ñ
+sn: ñ
+cn: ñ ñ
+
+dn: uid=fr1, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+cn: à à
+sn: à
+givenname: à
+cn;lang-fr: à à
+sn;lang-fr: à
+givenname;lang-fr: à
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+preferredlanguage: fr
+uid: fr1
+
+dn: uid=fr2, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+cn: â â
+sn: â
+givenname: â
+cn;lang-fr: â â
+sn;lang-fr: â
+givenname;lang-fr: â
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+preferredlanguage: fr
+uid: fr2
+
+dn: uid=fr3, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+cn: ç ç
+sn: ç
+givenname: ç
+cn;lang-fr: ç ç
+sn;lang-fr: ç
+givenname;lang-fr: ç
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+preferredlanguage: fr
+uid: fr3
+
+dn: uid=fr4, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+cn: ë ë
+sn: ë
+givenname: ë
+cn;lang-fr: ë ë
+sn;lang-fr: ë
+givenname;lang-fr: ë
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+preferredlanguage: fr
+uid: fr4
+
+dn: uid=fr5, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+cn: è è
+sn: è
+givenname: è
+cn;lang-fr: è è
+sn;lang-fr: è
+givenname;lang-fr: è
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+preferredlanguage: fr
+uid: fr5
+
+dn: uid=fr6, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+cn: é é
+sn: é
+givenname: é
+cn;lang-fr: é é
+sn;lang-fr: é
+givenname;lang-fr: é
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+preferredlanguage: fr
+uid: fr6
+
+dn: uid=fr7, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+cn: ê ê
+sn: ê
+givenname: ê
+cn;lang-fr: ê ê
+sn;lang-fr: ê
+givenname;lang-fr: ê
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+preferredlanguage: fr
+uid: fr7
+
+dn: uid=fr8, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+cn: ï ï
+sn: ï
+givenname: ï
+cn;lang-fr: ï ï
+sn;lang-fr: ï
+givenname;lang-fr: ï
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+preferredlanguage: fr
+uid: fr8
+
+dn: uid=fr9, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+cn: î î
+sn: î
+givenname: î
+cn;lang-fr: î î
+sn;lang-fr: î
+givenname;lang-fr: î
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+preferredlanguage: fr
+uid: fr9
+
+dn: uid=fr10, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+cn: ô ô
+sn: ô
+givenname: ô
+cn;lang-fr: ô ô
+sn;lang-fr: ô
+givenname;lang-fr: ô
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+preferredlanguage: fr
+uid: fr10
+
+dn: uid=fr12, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+cn: ü ü
+sn: ü
+givenname: ü
+cn;lang-fr: ü ü
+sn;lang-fr: ü
+givenname;lang-fr: ü
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+preferredlanguage: fr
+uid: fr12
+
+dn: uid=fr13, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+cn: ù ù
+sn: ù
+givenname: ù
+cn;lang-fr: ù ù
+sn;lang-fr: ù
+givenname;lang-fr: ù
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+preferredlanguage: fr
+uid: fr13
+
+dn: uid=fr14, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+cn: û û
+sn: û
+givenname: û
+cn;lang-fr: û û
+sn;lang-fr: û
+givenname;lang-fr: û
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+preferredlanguage: fr
+uid: fr14
+
+dn: uid=fr15, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+cn: À À
+sn: À
+givenname: À
+cn;lang-fr: À À
+sn;lang-fr: À
+givenname;lang-fr: À
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+preferredlanguage: fr
+uid: fr15
+
+dn: uid=fr16, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+cn: Â Â
+sn: Â
+givenname: Â
+cn;lang-fr: Â Â
+sn;lang-fr: Â
+givenname;lang-fr: Â
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+preferredlanguage: fr
+uid: fr16
+
+dn: uid=fr17, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+cn: Ç Ç
+sn: Ç
+givenname: Ç
+cn;lang-fr: Ç Ç
+sn;lang-fr: Ç
+givenname;lang-fr: Ç
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+preferredlanguage: fr
+uid: fr17
+
+dn: uid=fr18, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+cn: Ë Ë 
+sn: Ë
+givenname: Ë
+cn;lang-fr: Ë Ë
+sn;lang-fr: Ë
+givenname;lang-fr: Ë
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+preferredlanguage: fr
+uid: fr18
+
+dn: uid=fr19, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+cn: È È
+sn: È
+givenname: È
+cn;lang-fr: È È
+sn;lang-fr: È
+givenname;lang-fr: È
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+preferredlanguage: fr
+uid: fr19
+
+dn: uid=fr20, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+cn: É É
+sn: É
+givenname: É
+cn;lang-fr: É É
+sn;lang-fr: É
+givenname;lang-fr: É
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+preferredlanguage: fr
+uid: fr20
+
+dn: uid=fr21, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+cn: Ê Ê
+sn: Ê
+givenname: Ê
+cn;lang-fr: Ê Ê
+sn;lang-fr: Ê
+givenname;lang-fr: Ê
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+preferredlanguage: fr
+uid: fr21
+
+dn: uid=fr22, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+cn: Ï Ï
+sn: Ï
+givenname: Ï
+cn;lang-fr: Ï Ï
+sn;lang-fr: Ï
+givenname;lang-fr: Ï
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+preferredlanguage: fr
+uid: fr22
+
+dn: uid=fr23, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+cn: Î Î
+sn: Î
+givenname: Î
+cn;lang-fr: Î Î
+sn;lang-fr: Î
+givenname;lang-fr: Î
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+preferredlanguage: fr
+uid: fr23
+
+dn: uid=fr24, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+cn: Ô Ô
+sn: Ô
+givenname: Ô
+cn;lang-fr: Ô Ô
+sn;lang-fr: Ô
+givenname;lang-fr: Ô
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+preferredlanguage: fr
+uid: fr24
+
+dn: uid=fr26, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+cn: Ü Ü
+sn: Ü
+givenname: Ü
+cn;lang-fr: Ü Ü
+sn;lang-fr: Ü
+givenname;lang-fr: Ü
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+preferredlanguage: fr
+uid: fr26
+
+dn: uid=fr27, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+cn: Ù Ù
+sn: Ù
+givenname: Ù
+cn;lang-fr: Ù Ù
+sn;lang-fr: Ù
+givenname;lang-fr: Ù
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+preferredlanguage: fr
+uid: fr27
+
+dn: uid=fr28, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+cn: Û Û
+sn: Û
+givenname: Û
+cn;lang-fr: Û Û
+sn;lang-fr: Û
+givenname;lang-fr: Û
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+preferredlanguage: fr
+uid: fr28
+
+dn: uid=de100, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de100
+givenname;lang-de: a 
+sn;lang-de: a
+cn;lang-de: a a
+preferredlanguage: de
+givenname: a
+sn: a
+cn: a a
+
+dn: uid=de101 , ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de101
+givenname;lang-de: b
+sn;lang-de: b
+cn;lang-de: b b
+preferredlanguage: de
+givenname: b
+sn: b
+cn: b b
+
+dn: uid=de102 , ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de102
+givenname;lang-de: c
+sn;lang-de: c
+cn;lang-de: c c
+preferredlanguage: de
+givenname: c
+sn: c
+cn: c c
+
+dn: uid=de103 , ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de103
+givenname;lang-de: d
+sn;lang-de: d
+cn;lang-de: d d
+preferredlanguage: de
+givenname: d
+sn: d
+cn: d d
+
+dn: uid=de104, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de104
+givenname;lang-de: e
+sn;lang-de: e
+cn;lang-de: e e
+preferredlanguage: de
+givenname: e
+sn: e
+cn: e e
+
+dn: uid=de105, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de105
+givenname;lang-de: f
+sn;lang-de: f
+cn;lang-de: f f
+preferredlanguage: de
+givenname: f
+sn: f
+cn: f f
+
+dn: uid=de106, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de106
+givenname;lang-de: g
+sn;lang-de: g
+cn;lang-de: g g
+preferredlanguage: de
+givenname: g
+sn: g
+cn: g g
+
+dn: uid=de107, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de107
+givenname;lang-de: h
+sn;lang-de: h
+cn;lang-de: h h
+preferredlanguage: de
+givenname: h
+sn: h
+cn: h h
+
+dn: uid=de108, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de108
+givenname;lang-de: i
+sn;lang-de: i
+cn;lang-de: i i
+preferredlanguage: de
+givenname: i
+sn: i
+cn: i i
+
+dn: uid=de109 , ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de109
+givenname;lang-de: j
+sn;lang-de: j
+cn;lang-de: j j
+preferredlanguage: de
+givenname: j
+sn: j
+cn: j j
+
+dn: uid=de110 , ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de110
+givenname;lang-de: k
+sn;lang-de: k
+cn;lang-de: k k
+preferredlanguage: de
+givenname: k
+sn: k
+cn: k k
+
+dn: uid=de111 , ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de111
+givenname;lang-de: l
+sn;lang-de: l
+cn;lang-de: l l
+preferredlanguage: de
+givenname: l
+sn: l
+cn: l l
+
+dn: uid=de112, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de112
+givenname;lang-de: m
+sn;lang-de: m
+cn;lang-de: m m
+preferredlanguage: de
+givenname: m
+sn: m
+cn: m m
+
+dn: uid=de113 , ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de113
+givenname;lang-de: n
+sn;lang-de: n
+cn;lang-de: n n
+preferredlanguage: de
+givenname: n
+sn: n
+cn: n n
+
+dn: uid=de114 , ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de114
+givenname;lang-de: o
+sn;lang-de: o
+cn;lang-de: o o
+preferredlanguage: de
+givenname: o
+sn: o
+cn: o o
+
+dn: uid=de115, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de115
+givenname;lang-de: p
+sn;lang-de: p
+cn;lang-de: p p
+preferredlanguage: de
+givenname: p
+sn: p
+cn: p p
+
+dn: uid=de116 , ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de116
+givenname;lang-de: q
+sn;lang-de: q
+cn;lang-de: q q
+preferredlanguage: de
+givenname: q
+sn: q
+cn: q q
+
+dn: uid=de117, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de117
+givenname;lang-de: r
+sn;lang-de: r
+cn;lang-de: r r
+preferredlanguage: de
+givenname: r
+sn: r
+cn: r r
+
+dn: uid=de118 , ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de118
+givenname;lang-de: s
+sn;lang-de: s
+cn;lang-de: s s
+preferredlanguage: de
+givenname: s
+sn: s
+cn: s s
+
+dn: uid=de119 , ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de119
+givenname;lang-de: t
+sn;lang-de: t
+cn;lang-de: t t
+preferredlanguage: de
+givenname: t
+sn: t
+cn: t t
+
+dn: uid=de120 , ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de120
+givenname;lang-de: u
+sn;lang-de: u
+cn;lang-de: u u
+preferredlanguage: de
+givenname: u
+sn: u
+cn: u u
+
+dn: uid=de121, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de121
+givenname;lang-de: v
+sn;lang-de: v
+cn;lang-de: v v
+preferredlanguage: de
+givenname: v
+sn: v
+cn: v v
+
+dn: uid=de122 , ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de122
+givenname;lang-de: w
+sn;lang-de: w
+cn;lang-de: w w
+preferredlanguage: de
+givenname: w
+sn: w
+cn: w w
+
+dn: uid=de123 , ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de123
+givenname;lang-de: x
+sn;lang-de: x
+cn;lang-de: x x
+preferredlanguage: de
+givenname: x
+sn: x
+cn: x x
+
+dn: uid=de124, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de124
+givenname;lang-de: y
+sn;lang-de: y
+cn;lang-de: y y
+preferredlanguage: de
+givenname: y
+sn: y
+cn: y y
+
+dn: uid=de125, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de125
+givenname;lang-de: z
+sn;lang-de: z
+cn;lang-de: z z
+preferredlanguage: de
+givenname: z
+sn: z
+cn: z z
+
+dn: uid=de126, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de126
+givenname;lang-de: A
+sn;lang-de: A
+cn;lang-de: A A
+preferredlanguage: de
+givenname: A
+sn: A
+cn: A A
+
+dn: uid=de127, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de127
+givenname;lang-de: B
+sn;lang-de: B
+cn;lang-de: B B
+preferredlanguage: de
+givenname: B
+sn: B
+cn: B B
+
+dn: uid=de128, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de128
+givenname;lang-de: C
+sn;lang-de: C
+cn;lang-de: C C
+preferredlanguage: de
+givenname: C
+sn: C
+cn: C C
+
+dn: uid=de129 , ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de129
+givenname;lang-de: D
+sn;lang-de: D
+cn;lang-de: D D
+preferredlanguage: de
+givenname: D
+sn: D
+cn: D D
+
+dn: uid=de130 , ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de130
+givenname;lang-de: E
+sn;lang-de: E
+cn;lang-de: E E
+preferredlanguage: de
+givenname: E
+sn: E
+cn: E E
+
+dn: uid=de131 , ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de131
+givenname;lang-de: F
+sn;lang-de: F
+cn;lang-de: F F
+preferredlanguage: de
+givenname: F F
+sn: F
+cn: F F
+
+dn: uid=de132, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de132
+givenname;lang-de: G
+sn;lang-de: G
+cn;lang-de: G G
+preferredlanguage: de
+givenname: G
+sn: G
+cn: G G
+
+dn: uid=de133 , ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de133
+givenname;lang-de: H
+sn;lang-de: H
+cn;lang-de: H H
+preferredlanguage: de
+givenname: H
+sn: H
+cn: H H
+
+dn: uid=de134 , ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de134
+givenname;lang-de: I
+sn;lang-de: I
+cn;lang-de: I I
+preferredlanguage: de
+givenname: I
+sn: I
+cn: I I
+
+dn: uid=de135, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de135
+givenname;lang-de: J
+sn;lang-de: J
+cn;lang-de: J J
+preferredlanguage: de
+givenname: J
+sn: J
+cn: J J
+
+dn: uid=de136 , ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de136
+givenname;lang-de: K
+sn;lang-de: K
+cn;lang-de: K K
+preferredlanguage: de
+givenname: K
+sn: K
+cn: K K
+
+dn: uid=de137, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de137
+givenname;lang-de: L
+sn;lang-de: L
+cn;lang-de: L L
+preferredlanguage: de
+givenname: L
+sn: L
+cn: L L
+
+dn: uid=de138 , ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de138
+givenname;lang-de: M
+sn;lang-de: M
+cn;lang-de: M M
+preferredlanguage: de
+givenname: M
+sn: M
+cn: M M
+
+dn: uid=de139 , ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de139
+givenname;lang-de: N
+sn;lang-de: N
+cn;lang-de: N N
+preferredlanguage: de
+givenname: N
+sn: N
+cn: N N
+
+dn: uid=de140 , ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de140
+givenname;lang-de: O
+sn;lang-de: O
+cn;lang-de: O O
+preferredlanguage: de
+givenname: O
+sn: O
+cn: O O
+
+dn: uid=de141 , ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de141
+givenname;lang-de: P
+sn;lang-de: P
+cn;lang-de: P P
+preferredlanguage: de
+givenname: P
+sn: P
+cn: P P
+
+dn: uid=de142, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de142
+givenname;lang-de: Q
+sn;lang-de: Q
+cn;lang-de: Q Q
+preferredlanguage: de
+givenname: Q
+sn: Q
+cn: Q Q
+
+dn: uid=de143 , ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de143
+givenname;lang-de: R
+sn;lang-de: R
+cn;lang-de: R R
+preferredlanguage: de
+givenname: R
+sn: R
+cn: R R
+
+dn: uid=de144 , ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de144
+givenname;lang-de: S
+sn;lang-de: S
+cn;lang-de: S S
+preferredlanguage: de
+givenname: S
+sn: S
+cn: S S
+
+dn: uid=de145, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de145
+givenname;lang-de: T
+sn;lang-de: T
+cn;lang-de: T T
+preferredlanguage: de
+givenname: T
+sn: T
+cn: T T
+
+dn: uid=de146 , ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de146
+givenname;lang-de: U
+sn;lang-de: U
+cn;lang-de: U U
+preferredlanguage: de
+givenname: U
+sn: U
+cn: U U
+
+dn: uid=de147, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de147
+givenname;lang-de: V
+sn;lang-de: V
+cn;lang-de: V V
+preferredlanguage: de
+givenname: V
+sn: V
+cn: V V
+
+dn: uid=de148 , ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de148
+givenname;lang-de: W
+sn;lang-de: W
+cn;lang-de: W W
+preferredlanguage: de
+givenname: W
+sn: W
+cn: W W
+
+dn: uid=de149 , ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de149
+givenname;lang-de: X
+sn;lang-de: X
+cn;lang-de: X X
+preferredlanguage: de
+givenname: X
+sn: X
+cn: X X
+
+dn: uid=de150 , ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de150
+givenname;lang-de: Y
+sn;lang-de: Y
+cn;lang-de: Y Y
+preferredlanguage: de
+givenname: Y
+sn: Y
+cn: Y Y
+
+dn: uid=de151 , ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de151
+givenname;lang-de: Z
+sn;lang-de: Z
+cn;lang-de: Z Z
+preferredlanguage: de
+givenname: Z
+sn: Z
+cn: Z Z
+
+dn: uid=es100, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es100
+givenname;lang-es: a 
+sn;lang-es: a
+cn;lang-es: a a
+preferredlanguage: es
+givenname: a
+sn: a
+cn: a a
+
+dn: uid=es101 , ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es101
+givenname;lang-es: b
+sn;lang-es: b
+cn;lang-es: b b
+preferredlanguage: es
+givenname: b
+sn: b
+cn: b b
+
+dn: uid=es102 , ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es102
+givenname;lang-es: c
+sn;lang-es: c
+cn;lang-es: c c
+preferredlanguage: es
+givenname: c
+sn: c
+cn: c c
+
+dn: uid=es103 , ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es103
+givenname;lang-es: d
+sn;lang-es: d
+cn;lang-es: d d
+preferredlanguage: es
+givenname: d
+sn: d
+cn: d d
+
+dn: uid=es104, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es104
+givenname;lang-es: e
+sn;lang-es: e
+cn;lang-es: e e
+preferredlanguage: es
+givenname: e
+sn: e
+cn: e e
+
+dn: uid=es105, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es105
+givenname;lang-es: f
+sn;lang-es: f
+cn;lang-es: f f
+preferredlanguage: es
+givenname: f
+sn: f
+cn: f f
+
+dn: uid=es106, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es106
+givenname;lang-es: g
+sn;lang-es: g
+cn;lang-es: g g
+preferredlanguage: es
+givenname: g
+sn: g
+cn: g g
+
+dn: uid=es107, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es107
+givenname;lang-es: h
+sn;lang-es: h
+cn;lang-es: h h
+preferredlanguage: es
+givenname: h
+sn: h
+cn: h h
+
+dn: uid=es108, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es108
+givenname;lang-es: i
+sn;lang-es: i
+cn;lang-es: i i
+preferredlanguage: es
+givenname: i
+sn: i
+cn: i i
+
+dn: uid=es109 , ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es109
+givenname;lang-es: j
+sn;lang-es: j
+cn;lang-es: j j
+preferredlanguage: es
+givenname: j
+sn: j
+cn: j j
+
+dn: uid=es110 , ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es110
+givenname;lang-es: k
+sn;lang-es: k
+cn;lang-es: k k
+preferredlanguage: es
+givenname: k
+sn: k
+cn: k k
+
+dn: uid=es111 , ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es111
+givenname;lang-es: l
+sn;lang-es: l
+cn;lang-es: l l
+preferredlanguage: es
+givenname: l
+sn: l
+cn: l l
+
+dn: uid=es112, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es112
+givenname;lang-es: m
+sn;lang-es: m
+cn;lang-es: m m
+preferredlanguage: es
+givenname: m
+sn: m
+cn: m m
+
+dn: uid=es113 , ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es113
+givenname;lang-es: n
+sn;lang-es: n
+cn;lang-es: n n
+preferredlanguage: es
+givenname: n
+sn: n
+cn: n n
+
+dn: uid=es114 , ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es114
+givenname;lang-es: o
+sn;lang-es: o
+cn;lang-es: o o
+preferredlanguage: es
+givenname: o
+sn: o
+cn: o o
+
+dn: uid=es115, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es115
+givenname;lang-es: p
+sn;lang-es: p
+cn;lang-es: p p
+preferredlanguage: es
+givenname: p
+sn: p
+cn: p p
+
+dn: uid=es116 , ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es116
+givenname;lang-es: q
+sn;lang-es: q
+cn;lang-es: q q
+preferredlanguage: es
+givenname: q
+sn: q
+cn: q q
+
+dn: uid=es117, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es117
+givenname;lang-es: r
+sn;lang-es: r
+cn;lang-es: r r
+preferredlanguage: es
+givenname: r
+sn: r
+cn: r r
+
+dn: uid=es118 , ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es118
+givenname;lang-es: s
+sn;lang-es: s
+cn;lang-es: s s
+preferredlanguage: es
+givenname: s
+sn: s
+cn: s s
+
+dn: uid=es119 , ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es119
+givenname;lang-es: t
+sn;lang-es: t
+cn;lang-es: t t
+preferredlanguage: es
+givenname: t
+sn: t
+cn: t t
+
+dn: uid=es120 , ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es120
+givenname;lang-es: u
+sn;lang-es: u
+cn;lang-es: u u
+preferredlanguage: es
+givenname: u
+sn: u
+cn: u u
+
+dn: uid=es121, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es121
+givenname;lang-es: v
+sn;lang-es: v
+cn;lang-es: v v
+preferredlanguage: es
+givenname: v
+sn: v
+cn: v v
+
+dn: uid=es122 , ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es122
+givenname;lang-es: w
+sn;lang-es: w
+cn;lang-es: w w
+preferredlanguage: es
+givenname: w
+sn: w
+cn: w w
+
+dn: uid=es123 , ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es123
+givenname;lang-es: x
+sn;lang-es: x
+cn;lang-es: x x
+preferredlanguage: es
+givenname: x
+sn: x
+cn: x x
+
+dn: uid=es124, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es124
+givenname;lang-es: y
+sn;lang-es: y
+cn;lang-es: y y
+preferredlanguage: es
+givenname: y
+sn: y
+cn: y y
+
+dn: uid=es125, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es125
+givenname;lang-es: z
+sn;lang-es: z
+cn;lang-es: z z
+preferredlanguage: es
+givenname: z
+sn: z
+cn: z z
+
+dn: uid=es126, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es126
+givenname;lang-es: A
+sn;lang-es: A
+cn;lang-es: A A
+preferredlanguage: es
+givenname: A
+sn: A
+cn: A A
+
+dn: uid=es127, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es127
+givenname;lang-es: B
+sn;lang-es: B
+cn;lang-es: B B
+preferredlanguage: es
+givenname: B
+sn: B
+cn: B B
+
+dn: uid=es128, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es128
+givenname;lang-es: C
+sn;lang-es: C
+cn;lang-es: C C
+preferredlanguage: es
+givenname: C
+sn: C
+cn: C C
+
+dn: uid=es129 , ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es129
+givenname;lang-es: D
+sn;lang-es: D
+cn;lang-es: D D
+preferredlanguage: es
+givenname: D
+sn: D
+cn: D D
+
+dn: uid=es130 , ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es130
+givenname;lang-es: E
+sn;lang-es: E
+cn;lang-es: E E
+preferredlanguage: es
+givenname: E
+sn: E
+cn: E E
+
+dn: uid=es131 , ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es131
+givenname;lang-es: F
+sn;lang-es: F
+cn;lang-es: F F
+preferredlanguage: es
+givenname: F F
+sn: F
+cn: F F
+
+dn: uid=es132, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es132
+givenname;lang-es: G
+sn;lang-es: G
+cn;lang-es: G G
+preferredlanguage: es
+givenname: G
+sn: G
+cn: G G
+
+dn: uid=es133 , ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es133
+givenname;lang-es: H
+sn;lang-es: H
+cn;lang-es: H H
+preferredlanguage: es
+givenname: H
+sn: H
+cn: H H
+
+dn: uid=es134 , ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es134
+givenname;lang-es: I
+sn;lang-es: I
+cn;lang-es: I I
+preferredlanguage: es
+givenname: I
+sn: I
+cn: I I
+
+dn: uid=es135, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es135
+givenname;lang-es: J
+sn;lang-es: J
+cn;lang-es: J J
+preferredlanguage: es
+givenname: J
+sn: J
+cn: J J
+
+dn: uid=es136 , ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es136
+givenname;lang-es: K
+sn;lang-es: K
+cn;lang-es: K K
+preferredlanguage: es
+givenname: K
+sn: K
+cn: K K
+
+dn: uid=es137, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es137
+givenname;lang-es: L
+sn;lang-es: L
+cn;lang-es: L L
+preferredlanguage: es
+givenname: L
+sn: L
+cn: L L
+
+dn: uid=es138 , ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es138
+givenname;lang-es: M
+sn;lang-es: M
+cn;lang-es: M M
+preferredlanguage: es
+givenname: M
+sn: M
+cn: M M
+
+dn: uid=es139 , ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es139
+givenname;lang-es: N
+sn;lang-es: N
+cn;lang-es: N N
+preferredlanguage: es
+givenname: N
+sn: N
+cn: N N
+
+dn: uid=es140 , ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es140
+givenname;lang-es: O
+sn;lang-es: O
+cn;lang-es: O O
+preferredlanguage: es
+givenname: O
+sn: O
+cn: O O
+
+dn: uid=es141 , ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es141
+givenname;lang-es: P
+sn;lang-es: P
+cn;lang-es: P P
+preferredlanguage: es
+givenname: P
+sn: P
+cn: P P
+
+dn: uid=es142, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es142
+givenname;lang-es: Q
+sn;lang-es: Q
+cn;lang-es: Q Q
+preferredlanguage: es
+givenname: Q
+sn: Q
+cn: Q Q
+
+dn: uid=es143 , ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es143
+givenname;lang-es: R
+sn;lang-es: R
+cn;lang-es: R R
+preferredlanguage: es
+givenname: R
+sn: R
+cn: R R
+
+dn: uid=es144 , ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es144
+givenname;lang-es: S
+sn;lang-es: S
+cn;lang-es: S S
+preferredlanguage: es
+givenname: S
+sn: S
+cn: S S
+
+dn: uid=es145, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es145
+givenname;lang-es: T
+sn;lang-es: T
+cn;lang-es: T T
+preferredlanguage: es
+givenname: T
+sn: T
+cn: T T
+
+dn: uid=es146 , ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es146
+givenname;lang-es: U
+sn;lang-es: U
+cn;lang-es: U U
+preferredlanguage: es
+givenname: U
+sn: U
+cn: U U
+
+dn: uid=es147, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es147
+givenname;lang-es: V
+sn;lang-es: V
+cn;lang-es: V V
+preferredlanguage: es
+givenname: V
+sn: V
+cn: V V
+
+dn: uid=es148 , ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es148
+givenname;lang-es: W
+sn;lang-es: W
+cn;lang-es: W W
+preferredlanguage: es
+givenname: W
+sn: W
+cn: W W
+
+dn: uid=es149 , ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es149
+givenname;lang-es: X
+sn;lang-es: X
+cn;lang-es: X X
+preferredlanguage: es
+givenname: X
+sn: X
+cn: X X
+
+dn: uid=es150 , ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es150
+givenname;lang-es: Y
+sn;lang-es: Y
+cn;lang-es: Y Y
+preferredlanguage: es
+givenname: Y
+sn: Y
+cn: Y Y
+
+dn: uid=es151 , ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es151
+givenname;lang-es: Z
+sn;lang-es: Z
+cn;lang-es: Z Z
+preferredlanguage: es
+givenname: Z
+sn: Z
+cn: Z Z
+
+dn: uid=fr100, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr100
+givenname;lang-fr: a 
+sn;lang-fr: a
+cn;lang-fr: a a
+preferredlanguage: fr
+givenname: a
+sn: a
+cn: a a
+
+dn: uid=fr101 , ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr101
+givenname;lang-fr: b
+sn;lang-fr: b
+cn;lang-fr: b b
+preferredlanguage: fr
+givenname: b
+sn: b
+cn: b b
+
+dn: uid=fr102 , ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr102
+givenname;lang-fr: c
+sn;lang-fr: c
+cn;lang-fr: c c
+preferredlanguage: fr
+givenname: c
+sn: c
+cn: c c
+
+dn: uid=fr103 , ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr103
+givenname;lang-fr: d
+sn;lang-fr: d
+cn;lang-fr: d d
+preferredlanguage: fr
+givenname: d
+sn: d
+cn: d d
+
+dn: uid=fr104, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr104
+givenname;lang-fr: e
+sn;lang-fr: e
+cn;lang-fr: e e
+preferredlanguage: fr
+givenname: e
+sn: e
+cn: e e
+
+dn: uid=fr105, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr105
+givenname;lang-fr: f
+sn;lang-fr: f
+cn;lang-fr: f f
+preferredlanguage: fr
+givenname: f
+sn: f
+cn: f f
+
+dn: uid=fr106, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr106
+givenname;lang-fr: g
+sn;lang-fr: g
+cn;lang-fr: g g
+preferredlanguage: fr
+givenname: g
+sn: g
+cn: g g
+
+dn: uid=fr107, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr107
+givenname;lang-fr: h
+sn;lang-fr: h
+cn;lang-fr: h h
+preferredlanguage: fr
+givenname: h
+sn: h
+cn: h h
+
+dn: uid=fr108, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr108
+givenname;lang-fr: i
+sn;lang-fr: i
+cn;lang-fr: i i
+preferredlanguage: fr
+givenname: i
+sn: i
+cn: i i
+
+dn: uid=fr109 , ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr109
+givenname;lang-fr: j
+sn;lang-fr: j
+cn;lang-fr: j j
+preferredlanguage: fr
+givenname: j
+sn: j
+cn: j j
+
+dn: uid=fr110 , ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr110
+givenname;lang-fr: k
+sn;lang-fr: k
+cn;lang-fr: k k
+preferredlanguage: fr
+givenname: k
+sn: k
+cn: k k
+
+dn: uid=fr111 , ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr111
+givenname;lang-fr: l
+sn;lang-fr: l
+cn;lang-fr: l l
+preferredlanguage: fr
+givenname: l
+sn: l
+cn: l l
+
+dn: uid=fr112, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr112
+givenname;lang-fr: m
+sn;lang-fr: m
+cn;lang-fr: m m
+preferredlanguage: fr
+givenname: m
+sn: m
+cn: m m
+
+dn: uid=fr113 , ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr113
+givenname;lang-fr: n
+sn;lang-fr: n
+cn;lang-fr: n n
+preferredlanguage: fr
+givenname: n
+sn: n
+cn: n n
+
+dn: uid=fr114 , ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr114
+givenname;lang-fr: o
+sn;lang-fr: o
+cn;lang-fr: o o
+preferredlanguage: fr
+givenname: o
+sn: o
+cn: o o
+
+dn: uid=fr115, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr115
+givenname;lang-fr: p
+sn;lang-fr: p
+cn;lang-fr: p p
+preferredlanguage: fr
+givenname: p
+sn: p
+cn: p p
+
+dn: uid=fr116 , ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr116
+givenname;lang-fr: q
+sn;lang-fr: q
+cn;lang-fr: q q
+preferredlanguage: fr
+givenname: q
+sn: q
+cn: q q
+
+dn: uid=fr117, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr117
+givenname;lang-fr: r
+sn;lang-fr: r
+cn;lang-fr: r r
+preferredlanguage: fr
+givenname: r
+sn: r
+cn: r r
+
+dn: uid=fr118 , ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr118
+givenname;lang-fr: s
+sn;lang-fr: s
+cn;lang-fr: s s
+preferredlanguage: fr
+givenname: s
+sn: s
+cn: s s
+
+dn: uid=fr119 , ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr119
+givenname;lang-fr: t
+sn;lang-fr: t
+cn;lang-fr: t t
+preferredlanguage: fr
+givenname: t
+sn: t
+cn: t t
+
+dn: uid=fr120 , ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr120
+givenname;lang-fr: u
+sn;lang-fr: u
+cn;lang-fr: u u
+preferredlanguage: fr
+givenname: u
+sn: u
+cn: u u
+
+dn: uid=fr121, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr121
+givenname;lang-fr: v
+sn;lang-fr: v
+cn;lang-fr: v v
+preferredlanguage: fr
+givenname: v
+sn: v
+cn: v v
+
+dn: uid=fr122 , ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr122
+givenname;lang-fr: w
+sn;lang-fr: w
+cn;lang-fr: w w
+preferredlanguage: fr
+givenname: w
+sn: w
+cn: w w
+
+dn: uid=fr123 , ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr123
+givenname;lang-fr: x
+sn;lang-fr: x
+cn;lang-fr: x x
+preferredlanguage: fr
+givenname: x
+sn: x
+cn: x x
+
+dn: uid=fr124, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr124
+givenname;lang-fr: y
+sn;lang-fr: y
+cn;lang-fr: y y
+preferredlanguage: fr
+givenname: y
+sn: y
+cn: y y
+
+dn: uid=fr125, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr125
+givenname;lang-fr: z
+sn;lang-fr: z
+cn;lang-fr: z z
+preferredlanguage: fr
+givenname: z
+sn: z
+cn: z z
+
+dn: uid=fr126, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr126
+givenname;lang-fr: A
+sn;lang-fr: A
+cn;lang-fr: A A
+preferredlanguage: fr
+givenname: A
+sn: A
+cn: A A
+
+dn: uid=fr127, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr127
+givenname;lang-fr: B
+sn;lang-fr: B
+cn;lang-fr: B B
+preferredlanguage: fr
+givenname: B
+sn: B
+cn: B B
+
+dn: uid=fr128, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr128
+givenname;lang-fr: C
+sn;lang-fr: C
+cn;lang-fr: C C
+preferredlanguage: fr
+givenname: C
+sn: C
+cn: C C
+
+dn: uid=fr129 , ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr129
+givenname;lang-fr: D
+sn;lang-fr: D
+cn;lang-fr: D D
+preferredlanguage: fr
+givenname: D
+sn: D
+cn: D D
+
+dn: uid=fr130 , ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr130
+givenname;lang-fr: E
+sn;lang-fr: E
+cn;lang-fr: E E
+preferredlanguage: fr
+givenname: E
+sn: E
+cn: E E
+
+dn: uid=fr131 , ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr131
+givenname;lang-fr: F
+sn;lang-fr: F
+cn;lang-fr: F F
+preferredlanguage: fr
+givenname: F F
+sn: F
+cn: F F
+
+dn: uid=fr132, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr132
+givenname;lang-fr: G
+sn;lang-fr: G
+cn;lang-fr: G G
+preferredlanguage: fr
+givenname: G
+sn: G
+cn: G G
+
+dn: uid=fr133 , ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr133
+givenname;lang-fr: H
+sn;lang-fr: H
+cn;lang-fr: H H
+preferredlanguage: fr
+givenname: H
+sn: H
+cn: H H
+
+dn: uid=fr134 , ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr134
+givenname;lang-fr: I
+sn;lang-fr: I
+cn;lang-fr: I I
+preferredlanguage: fr
+givenname: I
+sn: I
+cn: I I
+
+dn: uid=fr135, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr135
+givenname;lang-fr: J
+sn;lang-fr: J
+cn;lang-fr: J J
+preferredlanguage: fr
+givenname: J
+sn: J
+cn: J J
+
+dn: uid=fr136 , ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr136
+givenname;lang-fr: K
+sn;lang-fr: K
+cn;lang-fr: K K
+preferredlanguage: fr
+givenname: K
+sn: K
+cn: K K
+
+dn: uid=fr137, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr137
+givenname;lang-fr: L
+sn;lang-fr: L
+cn;lang-fr: L L
+preferredlanguage: fr
+givenname: L
+sn: L
+cn: L L
+
+dn: uid=fr138 , ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr138
+givenname;lang-fr: M
+sn;lang-fr: M
+cn;lang-fr: M M
+preferredlanguage: fr
+givenname: M
+sn: M
+cn: M M
+
+dn: uid=fr139 , ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr139
+givenname;lang-fr: N
+sn;lang-fr: N
+cn;lang-fr: N N
+preferredlanguage: fr
+givenname: N
+sn: N
+cn: N N
+
+dn: uid=fr140 , ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr140
+givenname;lang-fr: O
+sn;lang-fr: O
+cn;lang-fr: O O
+preferredlanguage: fr
+givenname: O
+sn: O
+cn: O O
+
+dn: uid=fr141 , ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr141
+givenname;lang-fr: P
+sn;lang-fr: P
+cn;lang-fr: P P
+preferredlanguage: fr
+givenname: P
+sn: P
+cn: P P
+
+dn: uid=fr142, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr142
+givenname;lang-fr: Q
+sn;lang-fr: Q
+cn;lang-fr: Q Q
+preferredlanguage: fr
+givenname: Q
+sn: Q
+cn: Q Q
+
+dn: uid=fr143 , ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr143
+givenname;lang-fr: R
+sn;lang-fr: R
+cn;lang-fr: R R
+preferredlanguage: fr
+givenname: R
+sn: R
+cn: R R
+
+dn: uid=fr144 , ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr144
+givenname;lang-fr: S
+sn;lang-fr: S
+cn;lang-fr: S S
+preferredlanguage: fr
+givenname: S
+sn: S
+cn: S S
+
+dn: uid=fr145, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr145
+givenname;lang-fr: T
+sn;lang-fr: T
+cn;lang-fr: T T
+preferredlanguage: fr
+givenname: T
+sn: T
+cn: T T
+
+dn: uid=fr146 , ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr146
+givenname;lang-fr: U
+sn;lang-fr: U
+cn;lang-fr: U U
+preferredlanguage: fr
+givenname: U
+sn: U
+cn: U U
+
+dn: uid=fr147, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr147
+givenname;lang-fr: V
+sn;lang-fr: V
+cn;lang-fr: V V
+preferredlanguage: fr
+givenname: V
+sn: V
+cn: V V
+
+dn: uid=fr148 , ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr148
+givenname;lang-fr: W
+sn;lang-fr: W
+cn;lang-fr: W W
+preferredlanguage: fr
+givenname: W
+sn: W
+cn: W W
+
+dn: uid=fr149 , ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr149
+givenname;lang-fr: X
+sn;lang-fr: X
+cn;lang-fr: X X
+preferredlanguage: fr
+givenname: X
+sn: X
+cn: X X
+
+dn: uid=fr150 , ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr150
+givenname;lang-fr: Y
+sn;lang-fr: Y
+cn;lang-fr: Y Y
+preferredlanguage: fr
+givenname: Y
+sn: Y
+cn: Y Y
+
+dn: uid=fr151 , ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr151
+givenname;lang-fr: Z
+sn;lang-fr: Z
+cn;lang-fr: Z Z
+preferredlanguage: fr
+givenname: Z
+sn: Z
+cn: Z Z
+
+dn: cn=à , ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+cn: à
+cn;lang-fr: à
+cn;lang-en: à
+objectclass: top
+objectclass: groupOfUniqueNames
+uniquemember: uid=fr1, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+uniquemember: uid=fr10, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+uniquemember: uid=de7, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+uniquemember: uid=de4, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+uniquemember: uid=es2, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+uniquemember: uid=es4, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+uniquemember: uid=es6, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+
+dn: cn=â, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+cn: â
+cn;lang-fr: â
+cn;lang-en: â
+objectclass: top
+objectclass: groupOfUniqueNames
+uniquemember: uid=fr2, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+
+dn: cn=ç, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+cn: ç
+cn;lang-fr: ç
+cn;lang-en: ç
+objectclass: top
+objectclass: groupOfUniqueNames
+uniquemember: uid=fr3, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+
+dn: cn=ë, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+cn: ë
+cn;lang-fr: ë
+cn;lang-en: ë
+objectclass: top
+objectclass: groupOfUniqueNames
+uniquemember: uid=fr4, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+
+dn: cn=è, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+cn: è
+cn;lang-fr: è
+cn;lang-en: è
+objectclass: top
+objectclass: groupOfUniqueNames
+uniquemember: uid=fr5, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+
+dn: cn=é, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+cn: é
+cn;lang-fr: é
+cn;lang-en: é
+objectclass: top
+objectclass: groupOfUniqueNames
+uniquemember: uid=fr6, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+
+dn: cn=ê, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+cn: ê
+cn;lang-fr: ê
+cn;lang-en: ê
+objectclass: top
+objectclass: groupOfUniqueNames
+uniquemember: uid=fr7, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+
+dn: cn=ï, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+cn: ï
+cn;lang-fr: ï
+cn;lang-en: ï
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=î, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+cn: î
+cn;lang-fr: î
+cn;lang-en: î
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=ô, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+cn: ô
+cn;lang-fr: ô
+cn;lang-en: ô
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=ü, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+cn: ü
+cn;lang-fr: ü
+cn;lang-en: ü
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=ù, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+cn: ù
+cn;lang-fr: ù
+cn;lang-en: ù
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=û, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+cn: û
+cn;lang-fr: û
+cn;lang-en: û
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=À_2, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+cn: À_2
+cn;lang-fr: À_2
+cn;lang-en: À_2
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=Â_2, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+cn: Â_2
+cn;lang-fr: Â_2
+cn;lang-en: Â_2
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=Ç_2, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+cn: Ç_2
+cn;lang-fr: Ç_2
+cn;lang-en: Ç_2
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=Ë_2, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+cn: Ë_2
+cn;lang-fr: Ë_2
+cn;lang-en: Ë_2
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=È_2, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+cn: È_2
+cn;lang-fr: È_2
+cn;lang-en: È_2
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=É_2, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+cn: É_2
+cn;lang-fr: É_2
+cn;lang-en: É_2
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=Ê_2, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+cn: Ê_2
+cn;lang-fr: Ê_2
+cn;lang-en: Ê_2
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=Ï_2, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+cn: Ï_2
+cn;lang-fr: Ï_2
+cn;lang-en: Ï_2
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=Î_2, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+cn: Î_2
+cn;lang-fr: Î_2
+cn;lang-en: Î_2
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=Ô_2, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+cn: Ô_2
+cn;lang-fr: Ô_2
+cn;lang-en: Ô_2
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=Ü_2, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+cn: Ü_2
+cn;lang-fr: Ü_2
+cn;lang-en: Ü_2
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=Ù_2, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+cn: Ù_2
+cn;lang-fr: Ù_2
+cn;lang-en: Ù_2
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=Û_2, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+cn: Û_2
+cn;lang-fr: Û_2
+cn;lang-en: Û_2
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=ä, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: groupOfUniqueNames
+cn;lang-en: ä
+cn;lang-de: ä
+cn: ä
+
+dn: cn=ö, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: groupOfUniqueNames
+cn;lang-en: ö
+cn;lang-de: ö
+cn: ö
+
+dn: cn=ü, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: groupOfUniqueNames
+cn;lang-en: ü
+cn;lang-de: ü
+cn: ü
+
+dn: cn=ß , ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: groupOfUniqueNames
+cn;lang-en: ß
+cn;lang-de: ß
+cn: ß
+
+dn: cn=Ä_2, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: groupOfUniqueNames
+cn;lang-en: Ä_2
+cn;lang-de: Ä_2
+cn: Ä_2
+
+dn: cn=Ö_2, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: groupOfUniqueNames
+cn;lang-en: Ö_2
+cn;lang-de: Ö_2
+cn: Ö_2
+
+dn: cn=Ü_2, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: groupOfUniqueNames
+cn;lang-en: Ü_2
+cn;lang-de: Ü_2
+cn: Ü_2
+
+dn: cn=á, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: groupOfUniqueNames
+cn;lang-en: á
+cn;lang-es: á
+cn: á
+
+dn: cn=é, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: groupOfUniqueNames
+cn;lang-en: é
+cn;lang-es: é
+cn: é
+
+dn: cn=í, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: groupOfUniqueNames
+cn;lang-en: í 
+cn;lang-es: í
+cn: í
+
+dn: cn=ó, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: groupOfUniqueNames
+cn;lang-en: ó
+cn;lang-es: ó
+cn: ó
+
+dn: cn=ú , ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: groupOfUniqueNames
+cn;lang-en: ú
+cn;lang-es: ú
+cn: ú
+
+dn: cn=ü, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: groupOfUniqueNames
+cn;lang-en: ü
+cn;lang-es: ü
+cn: ü
+
+dn: cn=Á_2, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: groupOfUniqueNames
+cn;lang-en: Á_2
+cn;lang-es: Á_2
+cn: Á_2
+
+dn: cn=É_2, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: groupOfUniqueNames
+cn;lang-en: É_2
+cn;lang-es: É_2
+cn: É_2
+
+dn: cn=Í_2, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: groupOfUniqueNames
+cn;lang-en: Í_2
+cn;lang-es: Í_2
+cn: Í_2
+
+dn: cn=Ó_2, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: groupOfUniqueNames
+cn;lang-en: Ó_2
+cn;lang-es: Ó_2
+cn: Ó_2
+
+dn: cn=Ú_2, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: groupOfUniqueNames
+cn;lang-en: Ú_2
+cn;lang-es: Ú_2
+cn: Ú_2
+
+dn: cn=Ü_2, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: groupOfUniqueNames
+cn;lang-en: Ü_2
+cn;lang-es: Ü_2
+cn: Ü_2
+
+dn: cn=Ñ_2, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: groupOfUniqueNames
+cn;lang-en: Ñ_2
+cn;lang-es: Ñ_2
+cn: Ñ_2
+
+dn: cn=ñ, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: groupOfUniqueNames
+cn;lang-en: ñ 
+cn;lang-es: ñ
+cn: ñ
+
+dn: cn=A , ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+cn: A
+cn;lang-fr: A
+cn;lang-en: A
+objectclass: top
+objectclass: groupOfUniqueNames
+uniquemember: uid=fr111, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+uniquemember: uid=fr106, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+uniquemember: uid=de7, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+uniquemember: uid=de134, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+uniquemember: uid=es2, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+uniquemember: uid=es4, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+uniquemember: uid=es116, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+
+dn: cn=B, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+cn: B
+cn;lang-fr: B
+cn;lang-en: B
+objectclass: top
+objectclass: groupOfUniqueNames
+uniquemember: uid=fr2, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+
+dn: cn=C, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+cn: C
+cn;lang-fr: C
+cn;lang-en: C
+objectclass: top
+objectclass: groupOfUniqueNames
+uniquemember: uid=fr3, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+
+dn: cn=D, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+cn: D
+cn;lang-fr: D
+cn;lang-en: D
+objectclass: top
+objectclass: groupOfUniqueNames
+uniquemember: uid=fr4, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+
+dn: cn=E, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+cn: E
+cn;lang-fr: E
+cn;lang-en: E
+objectclass: top
+objectclass: groupOfUniqueNames
+uniquemember: uid=fr5, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+
+dn: cn=F, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+cn: F
+cn;lang-fr: F
+cn;lang-en: F
+objectclass: top
+objectclass: groupOfUniqueNames
+uniquemember: uid=fr6, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+
+dn: cn=G, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+cn: G
+cn;lang-fr: G
+cn;lang-en: G
+objectclass: top
+objectclass: groupOfUniqueNames
+uniquemember: uid=fr7, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+
+dn: cn=H, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+cn: H
+cn;lang-fr: H
+cn;lang-en: H
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=I, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+cn: I
+cn;lang-fr: I
+cn;lang-en: I
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=J, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+cn: J
+cn;lang-fr: J
+cn;lang-en: J
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=K, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+cn: K
+cn;lang-fr: K
+cn;lang-en: K
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=L, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+cn: L
+cn;lang-fr: L
+cn;lang-en: L
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=M, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+cn: M
+cn;lang-fr: M
+cn;lang-en: M
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=N, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+cn: N
+cn;lang-fr: N
+cn;lang-en: N
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=O, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+cn: O
+cn;lang-fr: O
+cn;lang-en: O
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=P, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+cn: P
+cn;lang-fr: P
+cn;lang-en: P
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=Q, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+cn: Q
+cn;lang-fr: Q
+cn;lang-en: Q
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=R, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+cn: R
+cn;lang-fr: R
+cn;lang-en: R
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=S, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+cn: S
+cn;lang-fr: S
+cn;lang-en: S
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=T, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+cn: T
+cn;lang-fr: T
+cn;lang-en: T
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=U, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+cn: U
+cn;lang-fr: U
+cn;lang-en: U
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=V, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+cn: V
+cn;lang-fr: V
+cn;lang-en: V
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=W, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+cn: W
+cn;lang-fr: W
+cn;lang-en: W
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=X, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+cn: X
+cn;lang-fr: X
+cn;lang-en: X
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=Y, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+cn: Y
+cn;lang-fr: Y
+cn;lang-en: Y
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=Z, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+cn: Z
+cn;lang-fr: Z
+cn;lang-en: Z
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=A , ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+cn: A
+cn;lang-de: A
+cn;lang-en: A
+objectclass: top
+objectclass: groupOfUniqueNames
+uniquemember: uid=fr111, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+uniquemember: uid=fr106, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+uniquemember: uid=de7, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+uniquemember: uid=de134, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+uniquemember: uid=es2, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+uniquemember: uid=es4, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+uniquemember: uid=es116, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+
+dn: cn=B, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+cn: B
+cn;lang-de: B
+cn;lang-en: B
+objectclass: top
+objectclass: groupOfUniqueNames
+uniquemember: uid=fr2, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+
+dn: cn=C, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+cn: C
+cn;lang-de: C
+cn;lang-en: C
+objectclass: top
+objectclass: groupOfUniqueNames
+uniquemember: uid=fr3, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+
+dn: cn=D, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+cn: D
+cn;lang-de: D
+cn;lang-en: D
+objectclass: top
+objectclass: groupOfUniqueNames
+uniquemember: uid=fr4, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+
+dn: cn=E, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+cn: E
+cn;lang-de: E
+cn;lang-en: E
+objectclass: top
+objectclass: groupOfUniqueNames
+uniquemember: uid=fr5, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+
+dn: cn=F, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+cn: F
+cn;lang-de: F
+cn;lang-en: F
+objectclass: top
+objectclass: groupOfUniqueNames
+uniquemember: uid=fr6, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+
+dn: cn=G, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+cn: G
+cn;lang-de: G
+cn;lang-en: G
+objectclass: top
+objectclass: groupOfUniqueNames
+uniquemember: uid=fr7, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+
+dn: cn=H, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+cn: H
+cn;lang-de: H
+cn;lang-en: H
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=I, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+cn: I
+cn;lang-de: I
+cn;lang-en: I
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=J, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+cn: J
+cn;lang-de: J
+cn;lang-en: J
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=K, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+cn: K
+cn;lang-de: K
+cn;lang-en: K
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=L, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+cn: L
+cn;lang-de: L
+cn;lang-en: L
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=M, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+cn: M
+cn;lang-de: M
+cn;lang-en: M
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=N, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+cn: N
+cn;lang-de: N
+cn;lang-en: N
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=O, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+cn: O
+cn;lang-de: O
+cn;lang-en: O
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=P, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+cn: P
+cn;lang-de: P
+cn;lang-en: P
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=Q, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+cn: Q
+cn;lang-de: Q
+cn;lang-en: Q
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=R, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+cn: R
+cn;lang-de: R
+cn;lang-en: R
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=S, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+cn: S
+cn;lang-de: S
+cn;lang-en: S
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=T, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+cn: T
+cn;lang-de: T
+cn;lang-en: T
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=U, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+cn: U
+cn;lang-de: U
+cn;lang-en: U
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=V, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+cn: V
+cn;lang-de: V
+cn;lang-en: V
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=W, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+cn: W
+cn;lang-de: W
+cn;lang-en: W
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=X, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+cn: X
+cn;lang-de: X
+cn;lang-en: X
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=Y, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+cn: Y
+cn;lang-de: Y
+cn;lang-en: Y
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=Z, ou=Deutsch, ou=European Alphabet, o=Çéliné Ändrè
+cn: Z
+cn;lang-de: Z
+cn;lang-en: Z
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=A , ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+cn: A
+cn;lang-es: A
+cn;lang-en: A
+objectclass: top
+objectclass: groupOfUniqueNames
+uniquemember: uid=fr111, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+uniquemember: uid=fr106, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+uniquemember: uid=de7, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+uniquemember: uid=de134, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+uniquemember: uid=es2, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+uniquemember: uid=es4, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+uniquemember: uid=es116, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+
+dn: cn=B, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+cn: B
+cn;lang-es: B
+cn;lang-en: B
+objectclass: top
+objectclass: groupOfUniqueNames
+uniquemember: uid=fr2, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+
+dn: cn=C, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+cn: C
+cn;lang-es: C
+cn;lang-en: C
+objectclass: top
+objectclass: groupOfUniqueNames
+uniquemember: uid=fr3, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+
+dn: cn=D, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+cn: D
+cn;lang-es: D
+cn;lang-en: D
+objectclass: top
+objectclass: groupOfUniqueNames
+uniquemember: uid=fr4, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+
+dn: cn=E, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+cn: E
+cn;lang-es: E
+cn;lang-en: E
+objectclass: top
+objectclass: groupOfUniqueNames
+uniquemember: uid=fr5, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+
+dn: cn=F, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+cn: F
+cn;lang-es: F
+cn;lang-en: F
+objectclass: top
+objectclass: groupOfUniqueNames
+uniquemember: uid=fr6, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+
+dn: cn=G, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+cn: G
+cn;lang-es: G
+cn;lang-en: G
+objectclass: top
+objectclass: groupOfUniqueNames
+uniquemember: uid=fr7, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+
+dn: cn=H, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+cn: H
+cn;lang-es: H
+cn;lang-en: H
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=I, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+cn: I
+cn;lang-es: I
+cn;lang-en: I
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=J, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+cn: J
+cn;lang-es: J
+cn;lang-en: J
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=K, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+cn: K
+cn;lang-es: K
+cn;lang-en: K
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=L, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+cn: L
+cn;lang-es: L
+cn;lang-en: L
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=M, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+cn: M
+cn;lang-es: M
+cn;lang-en: M
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=N, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+cn: N
+cn;lang-es: N
+cn;lang-en: N
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=O, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+cn: O
+cn;lang-es: O
+cn;lang-en: O
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=P, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+cn: P
+cn;lang-es: P
+cn;lang-en: P
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=Q, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+cn: Q
+cn;lang-es: Q
+cn;lang-en: Q
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=R, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+cn: R
+cn;lang-es: R
+cn;lang-en: R
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=S, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+cn: S
+cn;lang-es: S
+cn;lang-en: S
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=T, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+cn: T
+cn;lang-es: T
+cn;lang-en: T
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=U, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+cn: U
+cn;lang-es: U
+cn;lang-en: U
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=V, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+cn: V
+cn;lang-es: V
+cn;lang-en: V
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=W, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+cn: W
+cn;lang-es: W
+cn;lang-en: W
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=X, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+cn: X
+cn;lang-es: X
+cn;lang-en: X
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=Y, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+cn: Y
+cn;lang-es: Y
+cn;lang-en: Y
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=Z, ou=Español, ou=European Alphabet, o=Çéliné Ändrè
+cn: Z
+cn;lang-es: Z
+cn;lang-en: Z
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: o=àâçëèéêïîôüùûÀÂÇËÈÉÊÏÎÔÜÙÛ, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organization
+o: àâçëèéêïîôüùûÀÂÇËÈÉÊÏÎÔÜÙÛ
+description: French Organization
+businesscategory: àâçëèéêïîôüùûÀÂÇËÈÉÊÏÎÔÜÙÛ
+l: àâçëèéêïîôüùû$ÀÂÇËÈÉÊÏÎÔÜÙÛ
+postaladdress: àâçëèéêï$1234$îôüùû$ÀÂÇËÈÉÊÏÎÔÜÙÛ 123$France 1234
+seealso: cn=ç, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+seealso: uid=tbird, ou=People, o=Çéliné Ändrè
+seealso: ou=Bürger Preußens, ou=Çëû - Europé, o=Çéliné Ändrè
+
+dn: o=á é í ó ü ñ Á É Í Ó Ú Ü Ñ, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organization
+o: á é í ó ü ñ Á É Í Ó Ú Ü Ñ
+description: Spanish Organization
+businesscategory: á é í ó ü ñ Á É Í Ó Ú Ü Ñ
+l: á é í ó ü ñ Á É Í Ó Ú Ü Ñ$á é í ó ü ñ Á É Í Ó Ú Ü Ñ
+postaladdress: á é í ó ü ñ $1234$Á É Í Ó Ú Ü Ñ$Spain 54321
+seealso: cn=ç, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+seealso: uid=tbird, ou=People, o=Çéliné Ändrè
+seealso: ou=Bürger Preußens, ou=Çëû - Europé, o=Çéliné Ändrè
+
+dn: o=ÄÖÜäöüß, ou=European Alphabet, o=Çéliné Ändrè
+objectclass: top
+objectclass: organization
+o: ÄÖÜäöüß
+description: German Organization
+businesscategory: ÄÖÜäöüß
+l: ÄÖÜäöüß$ÄÖÜäöüß
+postaladdress: ÄÖÜäöüß$1234$ÄÖÜäöüß$Germany 12345
+seealso: cn=ç, ou=Français, ou=European Alphabet, o=Çéliné Ändrè
+

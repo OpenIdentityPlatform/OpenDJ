@@ -1,0 +1,7587 @@
+# PROPRIETARY/CONFIDENTIAL. Use of this product is subject to
+# license terms. Copyright (c) 2001 Sun Microsystems, Inc.
+# Some preexisting portions Copyright (c) 2001 Netscape Communications Corp.
+# All rights reserved.
+# 
+dn: o=Çéliné Ändrè
+objectClass: top
+objectClass: organization
+o: Çéliné Ändrè
+aci: (target="ldap:///o=Çéliné Ändrè")(targetattr="*")(version 3.0; acl "acl1"; allow(write) userdn = "ldap:///self";) 
+aci: (target="ldap:///o=Çéliné Ändrè")(targetattr="*")(version 3.0; acl "acl2"; allow(write) groupdn = "ldap:///cn=Directory Administrators, o=Çéliné Ändrè";)
+aci: (target="ldap:///o=Çéliné Ändrè")(targetattr="*")(version 3.0; acl "acl3"; allow(read, search, compare) userdn = "ldap:///anyone";)
+
+dn: ou=Çéliné Ändrè, o=Çéliné Ändrè
+objectClass: top
+objectClass: organizationalUnit
+ou: Çéliné Ändrè
+
+dn: ou=Ännheimè, o=Çéliné Ändrè
+objectClass: top
+objectClass: organizationalUnit
+ou: Ännheimè
+
+dn: ou=Çlose Crèkä, o=Çéliné Ändrè
+objectClass: top
+objectClass: organizationalUnit
+ou: Çlose Crèkä
+
+dn: ou=Sàn Fråncêscô, o=Çéliné Ändrè
+objectClass: top
+objectClass: organizationalUnit
+ou: Sàn Fråncêscô
+
+dn: uid=user0, ou=Ännheimè, o=Çéliné Ändrè
+uid: user0
+cn: Babette Ryndérs
+sn: Ryndérs
+givenName: Babette
+ou: Ännheimè
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Babette Ryndérs's description
+mail: user0@test.com
+telephoneNumber: +1 415 788-4115
+facsimileTelephoneNumber: +1 804 849-2367
+userPassword: user0
+cn;lang-es: Babette Ryndérs
+sn;lang-es: Ryndérs
+givenName;lang-es: Babette
+
+dn: uid=user1, ou=Sàn Fråncêscô, o=Çéliné Ändrè
+uid: user1
+cn: mÿrty DeCoùrsin
+sn: DeCoùrsin
+givenName: mÿrty
+ou: Sàn Fråncêscô
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is mÿrty DeCoùrsin's description
+mail: user1@test.com
+telephoneNumber: +1 408 689-8883
+facsimileTelephoneNumber: +1 408 747-7146
+userPassword: user1
+cn;lang-ie: mÿrty DeCoùrsin
+sn;lang-ie: DeCoùrsin
+givenName;lang-ie: mÿrty
+
+dn: uid=user2, ou=Çéliné Ändrè, o=Çéliné Ändrè
+uid: user2
+cn: Rôw O'Connér
+sn: O'Connér
+givenName: Rôw
+ou: Çéliné Ändrè
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Rôw O'Connér's description
+mail: user2@test.com
+telephoneNumber: +1 714 902-8784
+facsimileTelephoneNumber: +1 206 376-2654
+userPassword: user2
+cn;lang-it: Rôw O'Connér
+sn;lang-it: O'Connér
+givenName;lang-it: Rôw
+
+dn: uid=user3, ou=Sàn Fråncêscô, o=Çéliné Ändrè
+uid: user3
+cn: Kéñnon Fùndérbùrg
+sn: Fùndérbùrg
+givenName: Kéñnon
+ou: Sàn Fråncêscô
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Kéñnon Fùndérbùrg's description
+mail: user3@test.com
+telephoneNumber: +1 408 783-2318
+facsimileTelephoneNumber: +1 213 153-3897
+userPassword: user3
+cn;lang-it: Kéñnon Fùndérbùrg
+sn;lang-it: Fùndérbùrg
+givenName;lang-it: Kéñnon
+
+dn: uid=user4, ou=Çéliné Ändrè, o=Çéliné Ändrè
+uid: user4
+cn: Theadora Ebérle
+sn: Ebérle
+givenName: Theadora
+ou: Çéliné Ändrè
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Theadora Ebérle's description
+mail: user4@test.com
+telephoneNumber: +1 714 817-4739
+facsimileTelephoneNumber: +1 408 627-3928
+userPassword: user4
+cn;lang-de: Theadora Ebérle
+sn;lang-de: Ebérle
+givenName;lang-de: Theadora
+
+dn: uid=user5, ou=Sàn Fråncêscô, o=Çéliné Ändrè
+uid: user5
+cn: Dàsya Cozàrt
+sn: Cozàrt
+givenName: Dàsya
+ou: Sàn Fråncêscô
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Dàsya Cozàrt's description
+mail: user5@test.com
+telephoneNumber: +1 303 741-9413
+facsimileTelephoneNumber: +1 818 504-4394
+userPassword: user5
+cn;lang-be: Dàsya Cozàrt
+sn;lang-be: Cozàrt
+givenName;lang-be: Dàsya
+
+dn: uid=user6, ou=Çéliné Ändrè, o=Çéliné Ändrè
+uid: user6
+cn: mÿrv Callânân
+sn: Callânân
+givenName: mÿrv
+ou: Çéliné Ändrè
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is mÿrv Callânân's description
+mail: user6@test.com
+telephoneNumber: +1 510 577-5852
+facsimileTelephoneNumber: +1 213 755-9341
+userPassword: user6
+cn;lang-fr: mÿrv Callânân
+sn;lang-fr: Callânân
+givenName;lang-fr: mÿrv
+
+dn: uid=user7, ou=Çlose Crèkä, o=Çéliné Ändrè
+uid: user7
+cn: Ñäthan Ovâns
+sn: Ovâns
+givenName: Ñäthan
+ou: Çlose Crèkä
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Ñäthan Ovâns's description
+mail: user7@test.com
+telephoneNumber: +1 206 376-1666
+facsimileTelephoneNumber: +1 206 608-3694
+userPassword: user7
+cn;lang-be: Ñäthan Ovâns
+sn;lang-be: Ovâns
+givenName;lang-be: Ñäthan
+
+dn: uid=user8, ou=Ännheimè, o=Çéliné Ändrè
+uid: user8
+cn: Takehiko Pröblems
+sn: Pröblems
+givenName: Takehiko
+ou: Ännheimè
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Takehiko Pröblems's description
+mail: user8@test.com
+telephoneNumber: +1 213 155-3374
+facsimileTelephoneNumber: +1 510 297-8847
+userPassword: user8
+cn;lang-be: Takehiko Pröblems
+sn;lang-be: Pröblems
+givenName;lang-be: Takehiko
+
+dn: uid=user9, ou=Ännheimè, o=Çéliné Ändrè
+uid: user9
+cn: Bam Ålï
+sn: Ålï
+givenName: Bam
+ou: Ännheimè
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Bam Ålï's description
+mail: user9@test.com
+telephoneNumber: +1 213 213-4553
+facsimileTelephoneNumber: +1 303 273-8511
+userPassword: user9
+cn;lang-se: Bam Ålï
+sn;lang-se: Ålï
+givenName;lang-se: Bam
+
+dn: uid=user10, ou=Sàn Fråncêscô, o=Çéliné Ändrè
+uid: user10
+cn: Çándide Rùiz
+sn: Rùiz
+givenName: Çándide
+ou: Sàn Fråncêscô
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Çándide Rùiz's description
+mail: user10@test.com
+telephoneNumber: +1 818 774-5666
+facsimileTelephoneNumber: +1 818 281-1317
+userPassword: user10
+cn;lang-be: Çándide Rùiz
+sn;lang-be: Rùiz
+givenName;lang-be: Çándide
+
+dn: uid=user11, ou=Çéliné Ändrè, o=Çéliné Ändrè
+uid: user11
+cn: Rôséñe Tàrqùinio
+sn: Tàrqùinio
+givenName: Rôséñe
+ou: Çéliné Ändrè
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Rôséñe Tàrqùinio's description
+mail: user11@test.com
+telephoneNumber: +1 818 512-5483
+facsimileTelephoneNumber: +1 415 619-5503
+userPassword: user11
+cn;lang-ie: Rôséñe Tàrqùinio
+sn;lang-ie: Tàrqùinio
+givenName;lang-ie: Rôséñe
+
+dn: uid=user12, ou=Ännheimè, o=Çéliné Ändrè
+uid: user12
+cn: Dànte Petrèe
+sn: Petrèe
+givenName: Dànte
+ou: Ännheimè
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Dànte Petrèe's description
+mail: user12@test.com
+telephoneNumber: +1 804 242-5548
+facsimileTelephoneNumber: +1 206 386-8197
+userPassword: user12
+cn;lang-it: Dànte Petrèe
+sn;lang-it: Petrèe
+givenName;lang-it: Dànte
+
+dn: uid=user13, ou=Ännheimè, o=Çéliné Ändrè
+uid: user13
+cn: Chuck Geoffrîon
+sn: Geoffrîon
+givenName: Chuck
+ou: Ännheimè
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Chuck Geoffrîon's description
+mail: user13@test.com
+telephoneNumber: +1 303 258-9175
+facsimileTelephoneNumber: +1 714 158-4210
+userPassword: user13
+cn;lang-es: Chuck Geoffrîon
+sn;lang-es: Geoffrîon
+givenName;lang-es: Chuck
+
+dn: uid=user14, ou=Çéliné Ändrè, o=Çéliné Ändrè
+uid: user14
+cn: Elita Ållèën
+sn: Ållèën
+givenName: Elita
+ou: Çéliné Ändrè
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Elita Ållèën's description
+mail: user14@test.com
+telephoneNumber: +1 303 402-3263
+facsimileTelephoneNumber: +1 818 898-9817
+userPassword: user14
+cn;lang-ie: Elita Ållèën
+sn;lang-ie: Ållèën
+givenName;lang-ie: Elita
+
+dn: uid=user15, ou=Çlose Crèkä, o=Çéliné Ändrè
+uid: user15
+cn: Cloris Binda
+sn: Binda
+givenName: Cloris
+ou: Çlose Crèkä
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Cloris Binda's description
+mail: user15@test.com
+telephoneNumber: +1 303 480-6181
+facsimileTelephoneNumber: +1 206 546-2488
+userPassword: user15
+cn;lang-de: Cloris Binda
+sn;lang-de: Binda
+givenName;lang-de: Cloris
+
+dn: uid=user16, ou=Çlose Crèkä, o=Çéliné Ändrè
+uid: user16
+cn: Sue Bùschelmân
+sn: Bùschelmân
+givenName: Sue
+ou: Çlose Crèkä
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Sue Bùschelmân's description
+mail: user16@test.com
+telephoneNumber: +1 510 216-1496
+facsimileTelephoneNumber: +1 714 672-9915
+userPassword: user16
+cn;lang-se: Sue Bùschelmân
+sn;lang-se: Bùschelmân
+givenName;lang-se: Sue
+
+dn: uid=user17, ou=Çlose Crèkä, o=Çéliné Ändrè
+uid: user17
+cn: Lottîë Robértö
+sn: Robértö
+givenName: Lottîë
+ou: Çlose Crèkä
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Lottîë Robértö's description
+mail: user17@test.com
+telephoneNumber: +1 510 516-2779
+facsimileTelephoneNumber: +1 206 392-5788
+userPassword: user17
+cn;lang-be: Lottîë Robértö
+sn;lang-be: Robértö
+givenName;lang-be: Lottîë
+
+dn: uid=user18, ou=Çéliné Ändrè, o=Çéliné Ändrè
+uid: user18
+cn: Dupuy Meeks
+sn: Meeks
+givenName: Dupuy
+ou: Çéliné Ändrè
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Dupuy Meeks's description
+mail: user18@test.com
+telephoneNumber: +1 415 677-1437
+facsimileTelephoneNumber: +1 804 733-6498
+userPassword: user18
+cn;lang-ie: Dupuy Meeks
+sn;lang-ie: Meeks
+givenName;lang-ie: Dupuy
+
+dn: uid=user19, ou=Çlose Crèkä, o=Çéliné Ändrè
+uid: user19
+cn: Priscellà Kàrhùniemi
+sn: Kàrhùniemi
+givenName: Priscellà
+ou: Çlose Crèkä
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Priscellà Kàrhùniemi's description
+mail: user19@test.com
+telephoneNumber: +1 206 565-3949
+facsimileTelephoneNumber: +1 818 942-2120
+userPassword: user19
+cn;lang-se: Priscellà Kàrhùniemi
+sn;lang-se: Kàrhùniemi
+givenName;lang-se: Priscellà
+
+dn: uid=user20, ou=Sàn Fråncêscô, o=Çéliné Ändrè
+uid: user20
+cn: Ameliñé Fehr
+sn: Fehr
+givenName: Ameliñé
+ou: Sàn Fråncêscô
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Ameliñé Fehr's description
+mail: user20@test.com
+telephoneNumber: +1 510 476-6348
+facsimileTelephoneNumber: +1 510 214-2625
+userPassword: user20
+cn;lang-de: Ameliñé Fehr
+sn;lang-de: Fehr
+givenName;lang-de: Ameliñé
+
+dn: uid=user21, ou=Çéliné Ändrè, o=Çéliné Ändrè
+uid: user21
+cn: Mêrcedes Tùok
+sn: Tùok
+givenName: Mêrcedes
+ou: Çéliné Ändrè
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Mêrcedes Tùok's description
+mail: user21@test.com
+telephoneNumber: +1 206 956-7647
+facsimileTelephoneNumber: +1 510 206-6042
+userPassword: user21
+cn;lang-se: Mêrcedes Tùok
+sn;lang-se: Tùok
+givenName;lang-se: Mêrcedes
+
+dn: uid=user22, ou=Çéliné Ändrè, o=Çéliné Ändrè
+uid: user22
+cn: Drusîë Dynie
+sn: Dynie
+givenName: Drusîë
+ou: Çéliné Ändrè
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Drusîë Dynie's description
+mail: user22@test.com
+telephoneNumber: +1 303 520-7607
+facsimileTelephoneNumber: +1 303 594-6193
+userPassword: user22
+cn;lang-it: Drusîë Dynie
+sn;lang-it: Dynie
+givenName;lang-it: Drusîë
+
+dn: uid=user23, ou=Sàn Fråncêscô, o=Çéliné Ändrè
+uid: user23
+cn: Brigit Grèbil
+sn: Grèbil
+givenName: Brigit
+ou: Sàn Fråncêscô
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Brigit Grèbil's description
+mail: user23@test.com
+telephoneNumber: +1 213 681-1102
+facsimileTelephoneNumber: +1 213 251-1532
+userPassword: user23
+cn;lang-es: Brigit Grèbil
+sn;lang-es: Grèbil
+givenName;lang-es: Brigit
+
+dn: uid=user24, ou=Ännheimè, o=Çéliné Ändrè
+uid: user24
+cn: Bêrget Càrdèën
+sn: Càrdèën
+givenName: Bêrget
+ou: Ännheimè
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Bêrget Càrdèën's description
+mail: user24@test.com
+telephoneNumber: +1 804 718-4689
+facsimileTelephoneNumber: +1 303 409-8342
+userPassword: user24
+cn;lang-se: Bêrget Càrdèën
+sn;lang-se: Càrdèën
+givenName;lang-se: Bêrget
+
+dn: uid=user25, ou=Sàn Fråncêscô, o=Çéliné Ändrè
+uid: user25
+cn: Älka Màrzella
+sn: Màrzella
+givenName: Älka
+ou: Sàn Fråncêscô
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Älka Màrzella's description
+mail: user25@test.com
+telephoneNumber: +1 213 901-8363
+facsimileTelephoneNumber: +1 415 639-5063
+userPassword: user25
+cn;lang-es: Älka Màrzella
+sn;lang-es: Màrzella
+givenName;lang-es: Älka
+
+dn: uid=user26, ou=Çlose Crèkä, o=Çéliné Ändrè
+uid: user26
+cn: Äléña Newsom
+sn: Newsom
+givenName: Äléña
+ou: Çlose Crèkä
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Äléña Newsom's description
+mail: user26@test.com
+telephoneNumber: +1 714 841-7066
+facsimileTelephoneNumber: +1 714 901-6553
+userPassword: user26
+cn;lang-be: Äléña Newsom
+sn;lang-be: Newsom
+givenName;lang-be: Äléña
+
+dn: uid=user27, ou=Sàn Fråncêscô, o=Çéliné Ändrè
+uid: user27
+cn: Kaitlin Popp
+sn: Popp
+givenName: Kaitlin
+ou: Sàn Fråncêscô
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Kaitlin Popp's description
+mail: user27@test.com
+telephoneNumber: +1 818 694-8789
+facsimileTelephoneNumber: +1 804 926-6751
+userPassword: user27
+cn;lang-es: Kaitlin Popp
+sn;lang-es: Popp
+givenName;lang-es: Kaitlin
+
+dn: uid=user28, ou=Çéliné Ändrè, o=Çéliné Ändrè
+uid: user28
+cn: Sanae Wylïe
+sn: Wylïe
+givenName: Sanae
+ou: Çéliné Ändrè
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Sanae Wylïe's description
+mail: user28@test.com
+telephoneNumber: +1 303 566-6486
+facsimileTelephoneNumber: +1 714 294-8045
+userPassword: user28
+cn;lang-be: Sanae Wylïe
+sn;lang-be: Wylïe
+givenName;lang-be: Sanae
+
+dn: uid=user29, ou=Sàn Fråncêscô, o=Çéliné Ändrè
+uid: user29
+cn: Kaylil Hàrdérsèën
+sn: Hàrdérsèën
+givenName: Kaylil
+ou: Sàn Fråncêscô
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Kaylil Hàrdérsèën's description
+mail: user29@test.com
+telephoneNumber: +1 408 641-9726
+facsimileTelephoneNumber: +1 818 487-1903
+userPassword: user29
+cn;lang-fr: Kaylil Hàrdérsèën
+sn;lang-fr: Hàrdérsèën
+givenName;lang-fr: Kaylil
+
+dn: uid=user30, ou=Çlose Crèkä, o=Çéliné Ändrè
+uid: user30
+cn: Gêrm Scheér
+sn: Scheér
+givenName: Gêrm
+ou: Çlose Crèkä
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Gêrm Scheér's description
+mail: user30@test.com
+telephoneNumber: +1 408 612-2598
+facsimileTelephoneNumber: +1 303 748-7557
+userPassword: user30
+cn;lang-it: Gêrm Scheér
+sn;lang-it: Scheér
+givenName;lang-it: Gêrm
+
+dn: uid=user31, ou=Çéliné Ändrè, o=Çéliné Ändrè
+uid: user31
+cn: Kâty Woodhall
+sn: Woodhall
+givenName: Kâty
+ou: Çéliné Ändrè
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Kâty Woodhall's description
+mail: user31@test.com
+telephoneNumber: +1 510 625-3084
+facsimileTelephoneNumber: +1 415 605-5806
+userPassword: user31
+cn;lang-it: Kâty Woodhall
+sn;lang-it: Woodhall
+givenName;lang-it: Kâty
+
+dn: uid=user32, ou=Sàn Fråncêscô, o=Çéliné Ändrè
+uid: user32
+cn: Deât Livérmân
+sn: Livérmân
+givenName: Deât
+ou: Sàn Fråncêscô
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Deât Livérmân's description
+mail: user32@test.com
+telephoneNumber: +1 714 986-7403
+facsimileTelephoneNumber: +1 408 281-1121
+userPassword: user32
+cn;lang-it: Deât Livérmân
+sn;lang-it: Livérmân
+givenName;lang-it: Deât
+
+dn: uid=user33, ou=Çéliné Ändrè, o=Çéliné Ändrè
+uid: user33
+cn: Sallÿanñé Sivaji
+sn: Sivaji
+givenName: Sallÿanñé
+ou: Çéliné Ändrè
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Sallÿanñé Sivaji's description
+mail: user33@test.com
+telephoneNumber: +1 303 235-8018
+facsimileTelephoneNumber: +1 213 682-3120
+userPassword: user33
+cn;lang-ie: Sallÿanñé Sivaji
+sn;lang-ie: Sivaji
+givenName;lang-ie: Sallÿanñé
+
+dn: uid=user34, ou=Ännheimè, o=Çéliné Ändrè
+uid: user34
+cn: Jòò-Geok Rùdïåk
+sn: Rùdïåk
+givenName: Jòò-Geok
+ou: Ännheimè
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Jòò-Geok Rùdïåk's description
+mail: user34@test.com
+telephoneNumber: +1 510 930-3480
+facsimileTelephoneNumber: +1 510 917-2898
+userPassword: user34
+cn;lang-de: Jòò-Geok Rùdïåk
+sn;lang-de: Rùdïåk
+givenName;lang-de: Jòò-Geok
+
+dn: uid=user35, ou=Çlose Crèkä, o=Çéliné Ändrè
+uid: user35
+cn: Vasan Coxall
+sn: Coxall
+givenName: Vasan
+ou: Çlose Crèkä
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Vasan Coxall's description
+mail: user35@test.com
+telephoneNumber: +1 206 750-1454
+facsimileTelephoneNumber: +1 213 703-3700
+userPassword: user35
+cn;lang-ie: Vasan Coxall
+sn;lang-ie: Coxall
+givenName;lang-ie: Vasan
+
+dn: uid=user36, ou=Çlose Crèkä, o=Çéliné Ändrè
+uid: user36
+cn: Gêrîïånna Godo
+sn: Godo
+givenName: Gêrîïånna
+ou: Çlose Crèkä
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Gêrîïånna Godo's description
+mail: user36@test.com
+telephoneNumber: +1 804 198-6482
+facsimileTelephoneNumber: +1 408 838-9697
+userPassword: user36
+cn;lang-se: Gêrîïånna Godo
+sn;lang-se: Godo
+givenName;lang-se: Gêrîïånna
+
+dn: uid=user37, ou=Ännheimè, o=Çéliné Ändrè
+uid: user37
+cn: Elio Sattlér
+sn: Sattlér
+givenName: Elio
+ou: Ännheimè
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Elio Sattlér's description
+mail: user37@test.com
+telephoneNumber: +1 818 900-1660
+facsimileTelephoneNumber: +1 206 917-3195
+userPassword: user37
+cn;lang-es: Elio Sattlér
+sn;lang-es: Sattlér
+givenName;lang-es: Elio
+
+dn: uid=user38, ou=Çéliné Ändrè, o=Çéliné Ändrè
+uid: user38
+cn: Doc Stêklasa
+sn: Stêklasa
+givenName: Doc
+ou: Çéliné Ändrè
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Doc Stêklasa's description
+mail: user38@test.com
+telephoneNumber: +1 303 862-8846
+facsimileTelephoneNumber: +1 213 916-6247
+userPassword: user38
+cn;lang-it: Doc Stêklasa
+sn;lang-it: Stêklasa
+givenName;lang-it: Doc
+
+dn: uid=user39, ou=Ännheimè, o=Çéliné Ändrè
+uid: user39
+cn: Francisca O'Hàrä
+sn: O'Hàrä
+givenName: Francisca
+ou: Ännheimè
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Francisca O'Hàrä's description
+mail: user39@test.com
+telephoneNumber: +1 415 676-7596
+facsimileTelephoneNumber: +1 213 961-2275
+userPassword: user39
+cn;lang-be: Francisca O'Hàrä
+sn;lang-be: O'Hàrä
+givenName;lang-be: Francisca
+
+dn: uid=user40, ou=Çéliné Ändrè, o=Çéliné Ändrè
+uid: user40
+cn: Wâtwick McCàrrön
+sn: McCàrrön
+givenName: Wâtwick
+ou: Çéliné Ändrè
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Wâtwick McCàrrön's description
+mail: user40@test.com
+telephoneNumber: +1 804 259-9202
+facsimileTelephoneNumber: +1 714 591-9833
+userPassword: user40
+cn;lang-be: Wâtwick McCàrrön
+sn;lang-be: McCàrrön
+givenName;lang-be: Wâtwick
+
+dn: uid=user41, ou=Sàn Fråncêscô, o=Çéliné Ändrè
+uid: user41
+cn: Dollëy Bùhlér
+sn: Bùhlér
+givenName: Dollëy
+ou: Sàn Fråncêscô
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Dollëy Bùhlér's description
+mail: user41@test.com
+telephoneNumber: +1 714 884-5242
+facsimileTelephoneNumber: +1 818 205-8823
+userPassword: user41
+cn;lang-es: Dollëy Bùhlér
+sn;lang-es: Bùhlér
+givenName;lang-es: Dollëy
+
+dn: uid=user42, ou=Sàn Fråncêscô, o=Çéliné Ändrè
+uid: user42
+cn: Emÿd Artzér
+sn: Artzér
+givenName: Emÿd
+ou: Sàn Fråncêscô
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Emÿd Artzér's description
+mail: user42@test.com
+telephoneNumber: +1 415 382-3440
+facsimileTelephoneNumber: +1 408 862-4384
+userPassword: user42
+cn;lang-be: Emÿd Artzér
+sn;lang-be: Artzér
+givenName;lang-be: Emÿd
+
+dn: uid=user43, ou=Çéliné Ändrè, o=Çéliné Ändrè
+uid: user43
+cn: Feâtlëss Watérmân
+sn: Watérmân
+givenName: Feâtlëss
+ou: Çéliné Ändrè
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Feâtlëss Watérmân's description
+mail: user43@test.com
+telephoneNumber: +1 415 117-4653
+facsimileTelephoneNumber: +1 408 621-5937
+userPassword: user43
+cn;lang-ie: Feâtlëss Watérmân
+sn;lang-ie: Watérmân
+givenName;lang-ie: Feâtlëss
+
+dn: uid=user44, ou=Çéliné Ändrè, o=Çéliné Ändrè
+uid: user44
+cn: Base Frèiwald
+sn: Frèiwald
+givenName: Base
+ou: Çéliné Ändrè
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Base Frèiwald's description
+mail: user44@test.com
+telephoneNumber: +1 804 946-6912
+facsimileTelephoneNumber: +1 714 182-5600
+userPassword: user44
+cn;lang-se: Base Frèiwald
+sn;lang-se: Frèiwald
+givenName;lang-se: Base
+
+dn: uid=user45, ou=Çéliné Ändrè, o=Çéliné Ändrè
+uid: user45
+cn: Loay Trîpp
+sn: Trîpp
+givenName: Loay
+ou: Çéliné Ändrè
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Loay Trîpp's description
+mail: user45@test.com
+telephoneNumber: +1 818 236-3921
+facsimileTelephoneNumber: +1 303 474-8085
+userPassword: user45
+cn;lang-de: Loay Trîpp
+sn;lang-de: Trîpp
+givenName;lang-de: Loay
+
+dn: uid=user46, ou=Ännheimè, o=Çéliné Ändrè
+uid: user46
+cn: Tulip Seàrl
+sn: Seàrl
+givenName: Tulip
+ou: Ännheimè
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Tulip Seàrl's description
+mail: user46@test.com
+telephoneNumber: +1 303 496-1732
+facsimileTelephoneNumber: +1 206 100-8221
+userPassword: user46
+cn;lang-it: Tulip Seàrl
+sn;lang-it: Seàrl
+givenName;lang-it: Tulip
+
+dn: uid=user47, ou=Çlose Crèkä, o=Çéliné Ändrè
+uid: user47
+cn: Annalise Chrîstiân
+sn: Chrîstiân
+givenName: Annalise
+ou: Çlose Crèkä
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Annalise Chrîstiân's description
+mail: user47@test.com
+telephoneNumber: +1 415 448-5803
+facsimileTelephoneNumber: +1 213 836-8262
+userPassword: user47
+cn;lang-it: Annalise Chrîstiân
+sn;lang-it: Chrîstiân
+givenName;lang-it: Annalise
+
+dn: uid=user48, ou=Çéliné Ändrè, o=Çéliné Ändrè
+uid: user48
+cn: Hukam Tsonos
+sn: Tsonos
+givenName: Hukam
+ou: Çéliné Ändrè
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Hukam Tsonos's description
+mail: user48@test.com
+telephoneNumber: +1 510 725-4642
+facsimileTelephoneNumber: +1 408 154-3028
+userPassword: user48
+cn;lang-se: Hukam Tsonos
+sn;lang-se: Tsonos
+givenName;lang-se: Hukam
+
+dn: uid=user49, ou=Ännheimè, o=Çéliné Ändrè
+uid: user49
+cn: Samÿn Ålthérr
+sn: Ålthérr
+givenName: Samÿn
+ou: Ännheimè
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Samÿn Ålthérr's description
+mail: user49@test.com
+telephoneNumber: +1 206 952-1200
+facsimileTelephoneNumber: +1 714 601-1486
+userPassword: user49
+cn;lang-fr: Samÿn Ålthérr
+sn;lang-fr: Ålthérr
+givenName;lang-fr: Samÿn
+
+dn: uid=user50, ou=Sàn Fråncêscô, o=Çéliné Ändrè
+uid: user50
+cn: Bobette MacLàrèn
+sn: MacLàrèn
+givenName: Bobette
+ou: Sàn Fråncêscô
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Bobette MacLàrèn's description
+mail: user50@test.com
+telephoneNumber: +1 804 548-5417
+facsimileTelephoneNumber: +1 415 656-3674
+userPassword: user50
+cn;lang-be: Bobette MacLàrèn
+sn;lang-be: MacLàrèn
+givenName;lang-be: Bobette
+
+dn: uid=user51, ou=Çéliné Ändrè, o=Çéliné Ändrè
+uid: user51
+cn: Grîëtje Nérby
+sn: Nérby
+givenName: Grîëtje
+ou: Çéliné Ändrè
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Grîëtje Nérby's description
+mail: user51@test.com
+telephoneNumber: +1 714 751-9226
+facsimileTelephoneNumber: +1 408 231-4479
+userPassword: user51
+cn;lang-be: Grîëtje Nérby
+sn;lang-be: Nérby
+givenName;lang-be: Grîëtje
+
+dn: uid=user52, ou=Ännheimè, o=Çéliné Ändrè
+uid: user52
+cn: Lùrléñe Chrîstie
+sn: Chrîstie
+givenName: Lùrléñe
+ou: Ännheimè
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Lùrléñe Chrîstie's description
+mail: user52@test.com
+telephoneNumber: +1 818 301-7281
+facsimileTelephoneNumber: +1 408 971-9928
+userPassword: user52
+cn;lang-se: Lùrléñe Chrîstie
+sn;lang-se: Chrîstie
+givenName;lang-se: Lùrléñe
+
+dn: uid=user53, ou=Çéliné Ändrè, o=Çéliné Ändrè
+uid: user53
+cn: Izumi Tzùâng
+sn: Tzùâng
+givenName: Izumi
+ou: Çéliné Ändrè
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Izumi Tzùâng's description
+mail: user53@test.com
+telephoneNumber: +1 213 713-7080
+facsimileTelephoneNumber: +1 206 687-4878
+userPassword: user53
+cn;lang-it: Izumi Tzùâng
+sn;lang-it: Tzùâng
+givenName;lang-it: Izumi
+
+dn: uid=user54, ou=Ännheimè, o=Çéliné Ändrè
+uid: user54
+cn: Athât Armes
+sn: Armes
+givenName: Athât
+ou: Ännheimè
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Athât Armes's description
+mail: user54@test.com
+telephoneNumber: +1 206 821-9285
+facsimileTelephoneNumber: +1 510 232-9437
+userPassword: user54
+cn;lang-se: Athât Armes
+sn;lang-se: Armes
+givenName;lang-se: Athât
+
+dn: uid=user55, ou=Çlose Crèkä, o=Çéliné Ändrè
+uid: user55
+cn: Siüôx Cipolla
+sn: Cipolla
+givenName: Siüôx
+ou: Çlose Crèkä
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Siüôx Cipolla's description
+mail: user55@test.com
+telephoneNumber: +1 818 947-1439
+facsimileTelephoneNumber: +1 714 689-2821
+userPassword: user55
+cn;lang-es: Siüôx Cipolla
+sn;lang-es: Cipolla
+givenName;lang-es: Siüôx
+
+dn: uid=user56, ou=Çéliné Ändrè, o=Çéliné Ändrè
+uid: user56
+cn: Iain Hosking
+sn: Hosking
+givenName: Iain
+ou: Çéliné Ändrè
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Iain Hosking's description
+mail: user56@test.com
+telephoneNumber: +1 818 663-9142
+facsimileTelephoneNumber: +1 415 688-7595
+userPassword: user56
+cn;lang-de: Iain Hosking
+sn;lang-de: Hosking
+givenName;lang-de: Iain
+
+dn: uid=user57, ou=Çlose Crèkä, o=Çéliné Ändrè
+uid: user57
+cn: Ñelîë Backshall
+sn: Backshall
+givenName: Ñelîë
+ou: Çlose Crèkä
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Ñelîë Backshall's description
+mail: user57@test.com
+telephoneNumber: +1 415 915-2589
+facsimileTelephoneNumber: +1 714 359-6248
+userPassword: user57
+cn;lang-es: Ñelîë Backshall
+sn;lang-es: Backshall
+givenName;lang-es: Ñelîë
+
+dn: uid=user58, ou=Sàn Fråncêscô, o=Çéliné Ändrè
+uid: user58
+cn: Wéñxi Jùnkin
+sn: Jùnkin
+givenName: Wéñxi
+ou: Sàn Fråncêscô
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Wéñxi Jùnkin's description
+mail: user58@test.com
+telephoneNumber: +1 408 523-1466
+facsimileTelephoneNumber: +1 408 839-7614
+userPassword: user58
+cn;lang-ie: Wéñxi Jùnkin
+sn;lang-ie: Jùnkin
+givenName;lang-ie: Wéñxi
+
+dn: uid=user59, ou=Sàn Fråncêscô, o=Çéliné Ändrè
+uid: user59
+cn: Shanon Elsing
+sn: Elsing
+givenName: Shanon
+ou: Sàn Fråncêscô
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Shanon Elsing's description
+mail: user59@test.com
+telephoneNumber: +1 408 318-9017
+facsimileTelephoneNumber: +1 714 878-7761
+userPassword: user59
+cn;lang-be: Shanon Elsing
+sn;lang-be: Elsing
+givenName;lang-be: Shanon
+
+dn: uid=user60, ou=Sàn Fråncêscô, o=Çéliné Ändrè
+uid: user60
+cn: Shellÿ Gräùsso
+sn: Gräùsso
+givenName: Shellÿ
+ou: Sàn Fråncêscô
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Shellÿ Gräùsso's description
+mail: user60@test.com
+telephoneNumber: +1 213 112-4893
+facsimileTelephoneNumber: +1 206 144-2382
+userPassword: user60
+cn;lang-be: Shellÿ Gräùsso
+sn;lang-be: Gräùsso
+givenName;lang-be: Shellÿ
+
+dn: uid=user61, ou=Sàn Fråncêscô, o=Çéliné Ändrè
+uid: user61
+cn: Ñel Hairè
+sn: Hairè
+givenName: Ñel
+ou: Sàn Fråncêscô
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Ñel Hairè's description
+mail: user61@test.com
+telephoneNumber: +1 714 183-6682
+facsimileTelephoneNumber: +1 415 123-2391
+userPassword: user61
+cn;lang-es: Ñel Hairè
+sn;lang-es: Hairè
+givenName;lang-es: Ñel
+
+dn: uid=user62, ou=Çlose Crèkä, o=Çéliné Ändrè
+uid: user62
+cn: Güôtam Sawchùk
+sn: Sawchùk
+givenName: Güôtam
+ou: Çlose Crèkä
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Güôtam Sawchùk's description
+mail: user62@test.com
+telephoneNumber: +1 804 159-3054
+facsimileTelephoneNumber: +1 714 660-8227
+userPassword: user62
+cn;lang-es: Güôtam Sawchùk
+sn;lang-es: Sawchùk
+givenName;lang-es: Güôtam
+
+dn: uid=user63, ou=Çlose Crèkä, o=Çéliné Ändrè
+uid: user63
+cn: Çárëna Crùickshânk
+sn: Crùickshânk
+givenName: Çárëna
+ou: Çlose Crèkä
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Çárëna Crùickshânk's description
+mail: user63@test.com
+telephoneNumber: +1 415 409-9679
+facsimileTelephoneNumber: +1 804 917-2113
+userPassword: user63
+cn;lang-se: Çárëna Crùickshânk
+sn;lang-se: Crùickshânk
+givenName;lang-se: Çárëna
+
+dn: uid=user64, ou=Çéliné Ändrè, o=Çéliné Ändrè
+uid: user64
+cn: Wayñé Azàrî
+sn: Azàrî
+givenName: Wayñé
+ou: Çéliné Ändrè
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Wayñé Azàrî's description
+mail: user64@test.com
+telephoneNumber: +1 303 178-3864
+facsimileTelephoneNumber: +1 213 402-4145
+userPassword: user64
+cn;lang-ie: Wayñé Azàrî
+sn;lang-ie: Azàrî
+givenName;lang-ie: Wayñé
+
+dn: uid=user65, ou=Sàn Fråncêscô, o=Çéliné Ändrè
+uid: user65
+cn: Älëjandra Kräehèënbùehl
+sn: Kräehèënbùehl
+givenName: Älëjandra
+ou: Sàn Fråncêscô
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Älëjandra Kräehèënbùehl's description
+mail: user65@test.com
+telephoneNumber: +1 818 366-2521
+facsimileTelephoneNumber: +1 213 346-7450
+userPassword: user65
+cn;lang-se: Älëjandra Kräehèënbùehl
+sn;lang-se: Kräehèënbùehl
+givenName;lang-se: Älëjandra
+
+dn: uid=user66, ou=Çéliné Ändrè, o=Çéliné Ändrè
+uid: user66
+cn: Lujanka Mùllâney
+sn: Mùllâney
+givenName: Lujanka
+ou: Çéliné Ändrè
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Lujanka Mùllâney's description
+mail: user66@test.com
+telephoneNumber: +1 804 191-3099
+facsimileTelephoneNumber: +1 804 664-4612
+userPassword: user66
+cn;lang-it: Lujanka Mùllâney
+sn;lang-it: Mùllâney
+givenName;lang-it: Lujanka
+
+dn: uid=user67, ou=Çlose Crèkä, o=Çéliné Ändrè
+uid: user67
+cn: Rudîë Beehlér
+sn: Beehlér
+givenName: Rudîë
+ou: Çlose Crèkä
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Rudîë Beehlér's description
+mail: user67@test.com
+telephoneNumber: +1 206 629-8753
+facsimileTelephoneNumber: +1 303 182-9015
+userPassword: user67
+cn;lang-ie: Rudîë Beehlér
+sn;lang-ie: Beehlér
+givenName;lang-ie: Rudîë
+
+dn: uid=user68, ou=Ännheimè, o=Çéliné Ändrè
+uid: user68
+cn: Ñicholë Gùpta
+sn: Gùpta
+givenName: Ñicholë
+ou: Ännheimè
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Ñicholë Gùpta's description
+mail: user68@test.com
+telephoneNumber: +1 206 625-2732
+facsimileTelephoneNumber: +1 714 523-3570
+userPassword: user68
+cn;lang-se: Ñicholë Gùpta
+sn;lang-se: Gùpta
+givenName;lang-se: Ñicholë
+
+dn: uid=user69, ou=Çlose Crèkä, o=Çéliné Ändrè
+uid: user69
+cn: Icy Äbräms
+sn: Äbräms
+givenName: Icy
+ou: Çlose Crèkä
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Icy Äbräms's description
+mail: user69@test.com
+telephoneNumber: +1 213 733-2123
+facsimileTelephoneNumber: +1 510 576-6333
+userPassword: user69
+cn;lang-fr: Icy Äbräms
+sn;lang-fr: Äbräms
+givenName;lang-fr: Icy
+
+dn: uid=user70, ou=Ännheimè, o=Çéliné Ändrè
+uid: user70
+cn: Utillà Coddingtön
+sn: Coddingtön
+givenName: Utillà
+ou: Ännheimè
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Utillà Coddingtön's description
+mail: user70@test.com
+telephoneNumber: +1 714 487-4984
+facsimileTelephoneNumber: +1 206 740-8670
+userPassword: user70
+cn;lang-it: Utillà Coddingtön
+sn;lang-it: Coddingtön
+givenName;lang-it: Utillà
+
+dn: uid=user71, ou=Çlose Crèkä, o=Çéliné Ändrè
+uid: user71
+cn: Phöëbe Kérr
+sn: Kérr
+givenName: Phöëbe
+ou: Çlose Crèkä
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Phöëbe Kérr's description
+mail: user71@test.com
+telephoneNumber: +1 206 931-2018
+facsimileTelephoneNumber: +1 714 841-8782
+userPassword: user71
+cn;lang-es: Phöëbe Kérr
+sn;lang-es: Kérr
+givenName;lang-es: Phöëbe
+
+dn: uid=user72, ou=Sàn Fråncêscô, o=Çéliné Ändrè
+uid: user72
+cn: Loñée Sampaleânù
+sn: Sampaleânù
+givenName: Loñée
+ou: Sàn Fråncêscô
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Loñée Sampaleânù's description
+mail: user72@test.com
+telephoneNumber: +1 415 640-6581
+facsimileTelephoneNumber: +1 804 179-2375
+userPassword: user72
+cn;lang-fr: Loñée Sampaleânù
+sn;lang-fr: Sampaleânù
+givenName;lang-fr: Loñée
+
+dn: uid=user73, ou=Ännheimè, o=Çéliné Ändrè
+uid: user73
+cn: Euphemîïå Fùqùa
+sn: Fùqùa
+givenName: Euphemîïå
+ou: Ännheimè
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Euphemîïå Fùqùa's description
+mail: user73@test.com
+telephoneNumber: +1 714 145-6394
+facsimileTelephoneNumber: +1 714 102-6009
+userPassword: user73
+cn;lang-se: Euphemîïå Fùqùa
+sn;lang-se: Fùqùa
+givenName;lang-se: Euphemîïå
+
+dn: uid=user74, ou=Sàn Fråncêscô, o=Çéliné Ändrè
+uid: user74
+cn: Sallÿ Rossi
+sn: Rossi
+givenName: Sallÿ
+ou: Sàn Fråncêscô
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Sallÿ Rossi's description
+mail: user74@test.com
+telephoneNumber: +1 714 558-4165
+facsimileTelephoneNumber: +1 510 684-4013
+userPassword: user74
+cn;lang-de: Sallÿ Rossi
+sn;lang-de: Rossi
+givenName;lang-de: Sallÿ
+
+dn: uid=user75, ou=Çlose Crèkä, o=Çéliné Ändrè
+uid: user75
+cn: Aùrô Ingell
+sn: Ingell
+givenName: Aùrô
+ou: Çlose Crèkä
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Aùrô Ingell's description
+mail: user75@test.com
+telephoneNumber: +1 213 781-4916
+facsimileTelephoneNumber: +1 818 933-7641
+userPassword: user75
+cn;lang-ie: Aùrô Ingell
+sn;lang-ie: Ingell
+givenName;lang-ie: Aùrô
+
+dn: uid=user76, ou=Sàn Fråncêscô, o=Çéliné Ändrè
+uid: user76
+cn: Chûng-Cheûng Moghis
+sn: Moghis
+givenName: Chûng-Cheûng
+ou: Sàn Fråncêscô
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Chûng-Cheûng Moghis's description
+mail: user76@test.com
+telephoneNumber: +1 818 816-8335
+facsimileTelephoneNumber: +1 714 803-6378
+userPassword: user76
+cn;lang-de: Chûng-Cheûng Moghis
+sn;lang-de: Moghis
+givenName;lang-de: Chûng-Cheûng
+
+dn: uid=user77, ou=Çéliné Ändrè, o=Çéliné Ändrè
+uid: user77
+cn: Chloris Plmçoop
+sn: Plmçoop
+givenName: Chloris
+ou: Çéliné Ändrè
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Chloris Plmçoop's description
+mail: user77@test.com
+telephoneNumber: +1 408 918-4524
+facsimileTelephoneNumber: +1 303 650-4673
+userPassword: user77
+cn;lang-es: Chloris Plmçoop
+sn;lang-es: Plmçoop
+givenName;lang-es: Chloris
+
+dn: uid=user78, ou=Sàn Fråncêscô, o=Çéliné Ändrè
+uid: user78
+cn: Ñiñétte SonHing
+sn: SonHing
+givenName: Ñiñétte
+ou: Sàn Fråncêscô
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Ñiñétte SonHing's description
+mail: user78@test.com
+telephoneNumber: +1 510 576-5294
+facsimileTelephoneNumber: +1 213 617-5968
+userPassword: user78
+cn;lang-se: Ñiñétte SonHing
+sn;lang-se: SonHing
+givenName;lang-se: Ñiñétte
+
+dn: uid=user79, ou=Çlose Crèkä, o=Çéliné Ändrè
+uid: user79
+cn: Kaylëy Râçùsch
+sn: Râçùsch
+givenName: Kaylëy
+ou: Çlose Crèkä
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Kaylëy Râçùsch's description
+mail: user79@test.com
+telephoneNumber: +1 818 717-4144
+facsimileTelephoneNumber: +1 206 387-6331
+userPassword: user79
+cn;lang-se: Kaylëy Râçùsch
+sn;lang-se: Râçùsch
+givenName;lang-se: Kaylëy
+
+dn: uid=user80, ou=Çéliné Ändrè, o=Çéliné Ändrè
+uid: user80
+cn: mÿry-Jañé Lafòrge
+sn: Lafòrge
+givenName: mÿry-Jañé
+ou: Çéliné Ändrè
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is mÿry-Jañé Lafòrge's description
+mail: user80@test.com
+telephoneNumber: +1 408 517-7562
+facsimileTelephoneNumber: +1 415 771-8452
+userPassword: user80
+cn;lang-be: mÿry-Jañé Lafòrge
+sn;lang-be: Lafòrge
+givenName;lang-be: mÿry-Jañé
+
+dn: uid=user81, ou=Sàn Fråncêscô, o=Çéliné Ändrè
+uid: user81
+cn: Saba Ajérsch
+sn: Ajérsch
+givenName: Saba
+ou: Sàn Fråncêscô
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Saba Ajérsch's description
+mail: user81@test.com
+telephoneNumber: +1 303 878-3769
+facsimileTelephoneNumber: +1 303 420-4793
+userPassword: user81
+cn;lang-ie: Saba Ajérsch
+sn;lang-ie: Ajérsch
+givenName;lang-ie: Saba
+
+dn: uid=user82, ou=Çlose Crèkä, o=Çéliné Ändrè
+uid: user82
+cn: Achammÿ Blackweldér
+sn: Blackweldér
+givenName: Achammÿ
+ou: Çlose Crèkä
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Achammÿ Blackweldér's description
+mail: user82@test.com
+telephoneNumber: +1 714 491-6719
+facsimileTelephoneNumber: +1 206 839-3470
+userPassword: user82
+cn;lang-be: Achammÿ Blackweldér
+sn;lang-be: Blackweldér
+givenName;lang-be: Achammÿ
+
+dn: uid=user83, ou=Sàn Fråncêscô, o=Çéliné Ändrè
+uid: user83
+cn: Kishor Râçcz
+sn: Râçcz
+givenName: Kishor
+ou: Sàn Fråncêscô
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Kishor Râçcz's description
+mail: user83@test.com
+telephoneNumber: +1 415 191-2618
+facsimileTelephoneNumber: +1 818 171-3587
+userPassword: user83
+cn;lang-se: Kishor Râçcz
+sn;lang-se: Râçcz
+givenName;lang-se: Kishor
+
+dn: uid=user84, ou=Çéliné Ändrè, o=Çéliné Ändrè
+uid: user84
+cn: Sophi Hallïwill
+sn: Hallïwill
+givenName: Sophi
+ou: Çéliné Ändrè
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Sophi Hallïwill's description
+mail: user84@test.com
+telephoneNumber: +1 818 533-5665
+facsimileTelephoneNumber: +1 510 836-6345
+userPassword: user84
+cn;lang-se: Sophi Hallïwill
+sn;lang-se: Hallïwill
+givenName;lang-se: Sophi
+
+dn: uid=user85, ou=Çéliné Ändrè, o=Çéliné Ändrè
+uid: user85
+cn: Kätîë Gotch
+sn: Gotch
+givenName: Kätîë
+ou: Çéliné Ändrè
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Kätîë Gotch's description
+mail: user85@test.com
+telephoneNumber: +1 818 597-8603
+facsimileTelephoneNumber: +1 213 153-7022
+userPassword: user85
+cn;lang-be: Kätîë Gotch
+sn;lang-be: Gotch
+givenName;lang-be: Kätîë
+
+dn: uid=user86, ou=Sàn Fråncêscô, o=Çéliné Ändrè
+uid: user86
+cn: Rachelë Basco
+sn: Basco
+givenName: Rachelë
+ou: Sàn Fråncêscô
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Rachelë Basco's description
+mail: user86@test.com
+telephoneNumber: +1 510 824-6348
+facsimileTelephoneNumber: +1 818 221-7820
+userPassword: user86
+cn;lang-de: Rachelë Basco
+sn;lang-de: Basco
+givenName;lang-de: Rachelë
+
+dn: uid=user87, ou=Çéliné Ändrè, o=Çéliné Ändrè
+uid: user87
+cn: Jon Espàrza
+sn: Espàrza
+givenName: Jon
+ou: Çéliné Ändrè
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Jon Espàrza's description
+mail: user87@test.com
+telephoneNumber: +1 510 708-4813
+facsimileTelephoneNumber: +1 206 884-7493
+userPassword: user87
+cn;lang-se: Jon Espàrza
+sn;lang-se: Espàrza
+givenName;lang-se: Jon
+
+dn: uid=user88, ou=Çlose Crèkä, o=Çéliné Ändrè
+uid: user88
+cn: Rômmel Rembecki
+sn: Rembecki
+givenName: Rômmel
+ou: Çlose Crèkä
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Rômmel Rembecki's description
+mail: user88@test.com
+telephoneNumber: +1 818 220-4436
+facsimileTelephoneNumber: +1 213 879-1384
+userPassword: user88
+cn;lang-be: Rômmel Rembecki
+sn;lang-be: Rembecki
+givenName;lang-be: Rômmel
+
+dn: uid=user89, ou=Sàn Fråncêscô, o=Çéliné Ändrè
+uid: user89
+cn: ViDà Lacasse
+sn: Lacasse
+givenName: ViDà
+ou: Sàn Fråncêscô
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is ViDà Lacasse's description
+mail: user89@test.com
+telephoneNumber: +1 415 618-3243
+facsimileTelephoneNumber: +1 303 542-2997
+userPassword: user89
+cn;lang-de: ViDà Lacasse
+sn;lang-de: Lacasse
+givenName;lang-de: ViDà
+
+dn: uid=user90, ou=Çlose Crèkä, o=Çéliné Ändrè
+uid: user90
+cn: Fey Dowding
+sn: Dowding
+givenName: Fey
+ou: Çlose Crèkä
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Fey Dowding's description
+mail: user90@test.com
+telephoneNumber: +1 804 655-1902
+facsimileTelephoneNumber: +1 303 340-1322
+userPassword: user90
+cn;lang-de: Fey Dowding
+sn;lang-de: Dowding
+givenName;lang-de: Fey
+
+dn: uid=user91, ou=Sàn Fråncêscô, o=Çéliné Ändrè
+uid: user91
+cn: Kast Faùlknér
+sn: Faùlknér
+givenName: Kast
+ou: Sàn Fråncêscô
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Kast Faùlknér's description
+mail: user91@test.com
+telephoneNumber: +1 804 737-5478
+facsimileTelephoneNumber: +1 303 781-9716
+userPassword: user91
+cn;lang-be: Kast Faùlknér
+sn;lang-be: Faùlknér
+givenName;lang-be: Kast
+
+dn: uid=user92, ou=Çlose Crèkä, o=Çéliné Ändrè
+uid: user92
+cn: Georßànñé Kùrîo
+sn: Kùrîo
+givenName: Georßànñé
+ou: Çlose Crèkä
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Georßànñé Kùrîo's description
+mail: user92@test.com
+telephoneNumber: +1 408 831-7990
+facsimileTelephoneNumber: +1 206 620-5043
+userPassword: user92
+cn;lang-se: Georßànñé Kùrîo
+sn;lang-se: Kùrîo
+givenName;lang-se: Georßànñé
+
+dn: uid=user93, ou=Sàn Fråncêscô, o=Çéliné Ändrè
+uid: user93
+cn: Dolorës Màrkovic
+sn: Màrkovic
+givenName: Dolorës
+ou: Sàn Fråncêscô
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Dolorës Màrkovic's description
+mail: user93@test.com
+telephoneNumber: +1 408 374-9555
+facsimileTelephoneNumber: +1 206 879-3002
+userPassword: user93
+cn;lang-it: Dolorës Màrkovic
+sn;lang-it: Màrkovic
+givenName;lang-it: Dolorës
+
+dn: uid=user94, ou=Çéliné Ändrè, o=Çéliné Ändrè
+uid: user94
+cn: Pätti Hollïngwòrth
+sn: Hollïngwòrth
+givenName: Pätti
+ou: Çéliné Ändrè
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Pätti Hollïngwòrth's description
+mail: user94@test.com
+telephoneNumber: +1 303 896-3530
+facsimileTelephoneNumber: +1 714 945-1799
+userPassword: user94
+cn;lang-se: Pätti Hollïngwòrth
+sn;lang-se: Hollïngwòrth
+givenName;lang-se: Pätti
+
+dn: uid=user95, ou=Ännheimè, o=Çéliné Ändrè
+uid: user95
+cn: Gwéñdolÿn McCândless
+sn: McCândless
+givenName: Gwéñdolÿn
+ou: Ännheimè
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Gwéñdolÿn McCândless's description
+mail: user95@test.com
+telephoneNumber: +1 303 426-8725
+facsimileTelephoneNumber: +1 818 442-3609
+userPassword: user95
+cn;lang-ie: Gwéñdolÿn McCândless
+sn;lang-ie: McCândless
+givenName;lang-ie: Gwéñdolÿn
+
+dn: uid=user96, ou=Çlose Crèkä, o=Çéliné Ändrè
+uid: user96
+cn: Gusellà Rch
+sn: Rch
+givenName: Gusellà
+ou: Çlose Crèkä
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Gusellà Rch's description
+mail: user96@test.com
+telephoneNumber: +1 510 633-1074
+facsimileTelephoneNumber: +1 714 645-8397
+userPassword: user96
+cn;lang-fr: Gusellà Rch
+sn;lang-fr: Rch
+givenName;lang-fr: Gusellà
+
+dn: uid=user97, ou=Çéliné Ändrè, o=Çéliné Ändrè
+uid: user97
+cn: Lyndel Whâng
+sn: Whâng
+givenName: Lyndel
+ou: Çéliné Ändrè
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Lyndel Whâng's description
+mail: user97@test.com
+telephoneNumber: +1 818 581-4327
+facsimileTelephoneNumber: +1 510 738-8516
+userPassword: user97
+cn;lang-se: Lyndel Whâng
+sn;lang-se: Whâng
+givenName;lang-se: Lyndel
+
+dn: uid=user98, ou=Çéliné Ändrè, o=Çéliné Ändrè
+uid: user98
+cn: Cordelîïå Fatér
+sn: Fatér
+givenName: Cordelîïå
+ou: Çéliné Ändrè
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Cordelîïå Fatér's description
+mail: user98@test.com
+telephoneNumber: +1 303 251-4813
+facsimileTelephoneNumber: +1 510 263-8972
+userPassword: user98
+cn;lang-de: Cordelîïå Fatér
+sn;lang-de: Fatér
+givenName;lang-de: Cordelîïå
+
+dn: uid=user99, ou=Ännheimè, o=Çéliné Ändrè
+uid: user99
+cn: Cristöfâto Boivin
+sn: Boivin
+givenName: Cristöfâto
+ou: Ännheimè
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Cristöfâto Boivin's description
+mail: user99@test.com
+telephoneNumber: +1 804 792-5496
+facsimileTelephoneNumber: +1 206 573-1190
+userPassword: user99
+cn;lang-es: Cristöfâto Boivin
+sn;lang-es: Boivin
+givenName;lang-es: Cristöfâto
+
+dn: uid=user100, ou=Sàn Fråncêscô, o=Çéliné Ändrè
+uid: user100
+cn: Jûnina Khosräviâni
+sn: Khosräviâni
+givenName: Jûnina
+ou: Sàn Fråncêscô
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Jûnina Khosräviâni's description
+mail: user100@test.com
+telephoneNumber: +1 714 710-2753
+facsimileTelephoneNumber: +1 714 187-4444
+userPassword: user100
+cn;lang-fr: Jûnina Khosräviâni
+sn;lang-fr: Khosräviâni
+givenName;lang-fr: Jûnina
+
+dn: uid=user101, ou=Çlose Crèkä, o=Çéliné Ändrè
+uid: user101
+cn: Tushât Shackletön
+sn: Shackletön
+givenName: Tushât
+ou: Çlose Crèkä
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Tushât Shackletön's description
+mail: user101@test.com
+telephoneNumber: +1 206 135-1925
+facsimileTelephoneNumber: +1 206 197-1626
+userPassword: user101
+cn;lang-it: Tushât Shackletön
+sn;lang-it: Shackletön
+givenName;lang-it: Tushât
+
+dn: uid=user102, ou=Çlose Crèkä, o=Çéliné Ändrè
+uid: user102
+cn: Clovis Safah
+sn: Safah
+givenName: Clovis
+ou: Çlose Crèkä
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Clovis Safah's description
+mail: user102@test.com
+telephoneNumber: +1 415 964-2124
+facsimileTelephoneNumber: +1 415 141-3727
+userPassword: user102
+cn;lang-de: Clovis Safah
+sn;lang-de: Safah
+givenName;lang-de: Clovis
+
+dn: uid=user103, ou=Ännheimè, o=Çéliné Ändrè
+uid: user103
+cn: Xylina Hoyér
+sn: Hoyér
+givenName: Xylina
+ou: Ännheimè
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Xylina Hoyér's description
+mail: user103@test.com
+telephoneNumber: +1 303 107-8399
+facsimileTelephoneNumber: +1 804 145-4003
+userPassword: user103
+cn;lang-it: Xylina Hoyér
+sn;lang-it: Hoyér
+givenName;lang-it: Xylina
+
+dn: uid=user104, ou=Sàn Fråncêscô, o=Çéliné Ändrè
+uid: user104
+cn: Millâtd Colagrösso
+sn: Colagrösso
+givenName: Millâtd
+ou: Sàn Fråncêscô
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Millâtd Colagrösso's description
+mail: user104@test.com
+telephoneNumber: +1 804 756-6465
+facsimileTelephoneNumber: +1 804 636-9306
+userPassword: user104
+cn;lang-se: Millâtd Colagrösso
+sn;lang-se: Colagrösso
+givenName;lang-se: Millâtd
+
+dn: uid=user105, ou=Ännheimè, o=Çéliné Ändrè
+uid: user105
+cn: Kassandra Rollïns
+sn: Rollïns
+givenName: Kassandra
+ou: Ännheimè
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Kassandra Rollïns's description
+mail: user105@test.com
+telephoneNumber: +1 408 981-5317
+facsimileTelephoneNumber: +1 510 398-5322
+userPassword: user105
+cn;lang-fr: Kassandra Rollïns
+sn;lang-fr: Rollïns
+givenName;lang-fr: Kassandra
+
+dn: uid=user106, ou=Sàn Fråncêscô, o=Çéliné Ändrè
+uid: user106
+cn: Mêrrîëllë Itö
+sn: Itö
+givenName: Mêrrîëllë
+ou: Sàn Fråncêscô
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Mêrrîëllë Itö's description
+mail: user106@test.com
+telephoneNumber: +1 408 954-8385
+facsimileTelephoneNumber: +1 510 730-9253
+userPassword: user106
+cn;lang-de: Mêrrîëllë Itö
+sn;lang-de: Itö
+givenName;lang-de: Mêrrîëllë
+
+dn: uid=user107, ou=Sàn Fråncêscô, o=Çéliné Ändrè
+uid: user107
+cn: Annâtbor Seay
+sn: Seay
+givenName: Annâtbor
+ou: Sàn Fråncêscô
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Annâtbor Seay's description
+mail: user107@test.com
+telephoneNumber: +1 510 964-8926
+facsimileTelephoneNumber: +1 804 275-8841
+userPassword: user107
+cn;lang-de: Annâtbor Seay
+sn;lang-de: Seay
+givenName;lang-de: Annâtbor
+
+dn: uid=user108, ou=Çlose Crèkä, o=Çéliné Ändrè
+uid: user108
+cn: Sibellë Clegg
+sn: Clegg
+givenName: Sibellë
+ou: Çlose Crèkä
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Sibellë Clegg's description
+mail: user108@test.com
+telephoneNumber: +1 714 153-4454
+facsimileTelephoneNumber: +1 213 389-1302
+userPassword: user108
+cn;lang-be: Sibellë Clegg
+sn;lang-be: Clegg
+givenName;lang-be: Sibellë
+
+dn: uid=user109, ou=Ännheimè, o=Çéliné Ändrè
+uid: user109
+cn: Çáthlëéñ Brèedlove
+sn: Brèedlove
+givenName: Çáthlëéñ
+ou: Ännheimè
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Çáthlëéñ Brèedlove's description
+mail: user109@test.com
+telephoneNumber: +1 818 282-5480
+facsimileTelephoneNumber: +1 213 841-7668
+userPassword: user109
+cn;lang-es: Çáthlëéñ Brèedlove
+sn;lang-es: Brèedlove
+givenName;lang-es: Çáthlëéñ
+
+dn: uid=user110, ou=Çéliné Ändrè, o=Çéliné Ändrè
+uid: user110
+cn: Violëtte Ditko
+sn: Ditko
+givenName: Violëtte
+ou: Çéliné Ändrè
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Violëtte Ditko's description
+mail: user110@test.com
+telephoneNumber: +1 206 239-7182
+facsimileTelephoneNumber: +1 818 901-7049
+userPassword: user110
+cn;lang-be: Violëtte Ditko
+sn;lang-be: Ditko
+givenName;lang-be: Violëtte
+
+dn: uid=user111, ou=Çéliné Ändrè, o=Çéliné Ändrè
+uid: user111
+cn: Jany Magnùson
+sn: Magnùson
+givenName: Jany
+ou: Çéliné Ändrè
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Jany Magnùson's description
+mail: user111@test.com
+telephoneNumber: +1 804 139-1045
+facsimileTelephoneNumber: +1 818 338-3357
+userPassword: user111
+cn;lang-be: Jany Magnùson
+sn;lang-be: Magnùson
+givenName;lang-be: Jany
+
+dn: uid=user112, ou=Ännheimè, o=Çéliné Ändrè
+uid: user112
+cn: Grîëtje Bïålkèëniùs
+sn: Bïålkèëniùs
+givenName: Grîëtje
+ou: Ännheimè
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Grîëtje Bïålkèëniùs's description
+mail: user112@test.com
+telephoneNumber: +1 510 739-6583
+facsimileTelephoneNumber: +1 818 836-2896
+userPassword: user112
+cn;lang-se: Grîëtje Bïålkèëniùs
+sn;lang-se: Bïålkèëniùs
+givenName;lang-se: Grîëtje
+
+dn: uid=user113, ou=Sàn Fråncêscô, o=Çéliné Ändrè
+uid: user113
+cn: Mozellë Frènch
+sn: Frènch
+givenName: Mozellë
+ou: Sàn Fråncêscô
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Mozellë Frènch's description
+mail: user113@test.com
+telephoneNumber: +1 415 469-2172
+facsimileTelephoneNumber: +1 303 621-1839
+userPassword: user113
+cn;lang-de: Mozellë Frènch
+sn;lang-de: Frènch
+givenName;lang-de: Mozellë
+
+dn: uid=user114, ou=Çéliné Ändrè, o=Çéliné Ändrè
+uid: user114
+cn: Ñonna Yahyapoùr
+sn: Yahyapoùr
+givenName: Ñonna
+ou: Çéliné Ändrè
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Ñonna Yahyapoùr's description
+mail: user114@test.com
+telephoneNumber: +1 714 948-9261
+facsimileTelephoneNumber: +1 804 802-4813
+userPassword: user114
+cn;lang-it: Ñonna Yahyapoùr
+sn;lang-it: Yahyapoùr
+givenName;lang-it: Ñonna
+
+dn: uid=user115, ou=Ännheimè, o=Çéliné Ändrè
+uid: user115
+cn: Angelîë Mirände
+sn: Mirände
+givenName: Angelîë
+ou: Ännheimè
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Angelîë Mirände's description
+mail: user115@test.com
+telephoneNumber: +1 804 832-8156
+facsimileTelephoneNumber: +1 804 720-5542
+userPassword: user115
+cn;lang-ie: Angelîë Mirände
+sn;lang-ie: Mirände
+givenName;lang-ie: Angelîë
+
+dn: uid=user116, ou=Sàn Fråncêscô, o=Çéliné Ändrè
+uid: user116
+cn: ÇáRôl-jean Sainsbùry
+sn: Sainsbùry
+givenName: ÇáRôl-jean
+ou: Sàn Fråncêscô
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is ÇáRôl-jean Sainsbùry's description
+mail: user116@test.com
+telephoneNumber: +1 804 462-8515
+facsimileTelephoneNumber: +1 408 987-8524
+userPassword: user116
+cn;lang-it: ÇáRôl-jean Sainsbùry
+sn;lang-it: Sainsbùry
+givenName;lang-it: ÇáRôl-jean
+
+dn: uid=user117, ou=Çéliné Ändrè, o=Çéliné Ändrè
+uid: user117
+cn: Ting Uffnér
+sn: Uffnér
+givenName: Ting
+ou: Çéliné Ändrè
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Ting Uffnér's description
+mail: user117@test.com
+telephoneNumber: +1 818 276-1089
+facsimileTelephoneNumber: +1 415 895-7043
+userPassword: user117
+cn;lang-es: Ting Uffnér
+sn;lang-es: Uffnér
+givenName;lang-es: Ting
+
+dn: uid=user118, ou=Çlose Crèkä, o=Çéliné Ändrè
+uid: user118
+cn: Lil Sells
+sn: Sells
+givenName: Lil
+ou: Çlose Crèkä
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Lil Sells's description
+mail: user118@test.com
+telephoneNumber: +1 213 914-4404
+facsimileTelephoneNumber: +1 818 250-4206
+userPassword: user118
+cn;lang-se: Lil Sells
+sn;lang-se: Sells
+givenName;lang-se: Lil
+
+dn: uid=user119, ou=Çéliné Ändrè, o=Çéliné Ändrè
+uid: user119
+cn: Ñic Românchùck
+sn: Românchùck
+givenName: Ñic
+ou: Çéliné Ändrè
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Ñic Românchùck's description
+mail: user119@test.com
+telephoneNumber: +1 303 502-5442
+facsimileTelephoneNumber: +1 510 510-3084
+userPassword: user119
+cn;lang-es: Ñic Românchùck
+sn;lang-es: Românchùck
+givenName;lang-es: Ñic
+
+dn: uid=user120, ou=Sàn Fråncêscô, o=Çéliné Ändrè
+uid: user120
+cn: Violëtta Reinwald
+sn: Reinwald
+givenName: Violëtta
+ou: Sàn Fråncêscô
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Violëtta Reinwald's description
+mail: user120@test.com
+telephoneNumber: +1 206 422-8271
+facsimileTelephoneNumber: +1 408 532-1292
+userPassword: user120
+cn;lang-es: Violëtta Reinwald
+sn;lang-es: Reinwald
+givenName;lang-es: Violëtta
+
+dn: uid=user121, ou=Çlose Crèkä, o=Çéliné Ändrè
+uid: user121
+cn: Ramiz Systêst
+sn: Systêst
+givenName: Ramiz
+ou: Çlose Crèkä
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Ramiz Systêst's description
+mail: user121@test.com
+telephoneNumber: +1 206 972-5388
+facsimileTelephoneNumber: +1 206 497-7314
+userPassword: user121
+cn;lang-it: Ramiz Systêst
+sn;lang-it: Systêst
+givenName;lang-it: Ramiz
+
+dn: uid=user122, ou=Çéliné Ändrè, o=Çéliné Ändrè
+uid: user122
+cn: Pätching Diblér
+sn: Diblér
+givenName: Pätching
+ou: Çéliné Ändrè
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Pätching Diblér's description
+mail: user122@test.com
+telephoneNumber: +1 415 666-6668
+facsimileTelephoneNumber: +1 213 163-3483
+userPassword: user122
+cn;lang-ie: Pätching Diblér
+sn;lang-ie: Diblér
+givenName;lang-ie: Pätching
+
+dn: uid=user123, ou=Çlose Crèkä, o=Çéliné Ändrè
+uid: user123
+cn: Celÿñé Baskin
+sn: Baskin
+givenName: Celÿñé
+ou: Çlose Crèkä
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Celÿñé Baskin's description
+mail: user123@test.com
+telephoneNumber: +1 510 186-7577
+facsimileTelephoneNumber: +1 415 929-8591
+userPassword: user123
+cn;lang-fr: Celÿñé Baskin
+sn;lang-fr: Baskin
+givenName;lang-fr: Celÿñé
+
+dn: uid=user124, ou=Ännheimè, o=Çéliné Ändrè
+uid: user124
+cn: Janîë Pàrdi
+sn: Pàrdi
+givenName: Janîë
+ou: Ännheimè
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Janîë Pàrdi's description
+mail: user124@test.com
+telephoneNumber: +1 408 999-8165
+facsimileTelephoneNumber: +1 303 539-4548
+userPassword: user124
+cn;lang-de: Janîë Pàrdi
+sn;lang-de: Pàrdi
+givenName;lang-de: Janîë
+
+dn: uid=user125, ou=Sàn Fråncêscô, o=Çéliné Ändrè
+uid: user125
+cn: Aùrîë Brîsby
+sn: Brîsby
+givenName: Aùrîë
+ou: Sàn Fråncêscô
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Aùrîë Brîsby's description
+mail: user125@test.com
+telephoneNumber: +1 415 769-1594
+facsimileTelephoneNumber: +1 415 880-6179
+userPassword: user125
+cn;lang-be: Aùrîë Brîsby
+sn;lang-be: Brîsby
+givenName;lang-be: Aùrîë
+
+dn: uid=user126, ou=Çlose Crèkä, o=Çéliné Ändrè
+uid: user126
+cn: Livvyy Klùtts
+sn: Klùtts
+givenName: Livvyy
+ou: Çlose Crèkä
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Livvyy Klùtts's description
+mail: user126@test.com
+telephoneNumber: +1 818 397-4012
+facsimileTelephoneNumber: +1 408 728-8013
+userPassword: user126
+cn;lang-ie: Livvyy Klùtts
+sn;lang-ie: Klùtts
+givenName;lang-ie: Livvyy
+
+dn: uid=user127, ou=Sàn Fråncêscô, o=Çéliné Ändrè
+uid: user127
+cn: Sibillà Millspaùgh
+sn: Millspaùgh
+givenName: Sibillà
+ou: Sàn Fråncêscô
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Sibillà Millspaùgh's description
+mail: user127@test.com
+telephoneNumber: +1 818 204-6815
+facsimileTelephoneNumber: +1 714 990-5705
+userPassword: user127
+cn;lang-it: Sibillà Millspaùgh
+sn;lang-it: Millspaùgh
+givenName;lang-it: Sibillà
+
+dn: uid=user128, ou=Çlose Crèkä, o=Çéliné Ändrè
+uid: user128
+cn: Äléña Milân
+sn: Milân
+givenName: Äléña
+ou: Çlose Crèkä
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Äléña Milân's description
+mail: user128@test.com
+telephoneNumber: +1 303 570-2112
+facsimileTelephoneNumber: +1 206 896-6336
+userPassword: user128
+cn;lang-es: Äléña Milân
+sn;lang-es: Milân
+givenName;lang-es: Äléña
+
+dn: uid=user129, ou=Sàn Fråncêscô, o=Çéliné Ändrè
+uid: user129
+cn: Hêrve McDade
+sn: McDade
+givenName: Hêrve
+ou: Sàn Fråncêscô
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Hêrve McDade's description
+mail: user129@test.com
+telephoneNumber: +1 415 829-2873
+facsimileTelephoneNumber: +1 804 602-8199
+userPassword: user129
+cn;lang-be: Hêrve McDade
+sn;lang-be: McDade
+givenName;lang-be: Hêrve
+
+dn: uid=user130, ou=Sàn Fråncêscô, o=Çéliné Ändrè
+uid: user130
+cn: SayeeDà Emesh
+sn: Emesh
+givenName: SayeeDà
+ou: Sàn Fråncêscô
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is SayeeDà Emesh's description
+mail: user130@test.com
+telephoneNumber: +1 510 427-1290
+facsimileTelephoneNumber: +1 714 808-3656
+userPassword: user130
+cn;lang-se: SayeeDà Emesh
+sn;lang-se: Emesh
+givenName;lang-se: SayeeDà
+
+dn: uid=user131, ou=Sàn Fråncêscô, o=Çéliné Ändrè
+uid: user131
+cn: Ñeelÿ Tynân
+sn: Tynân
+givenName: Ñeelÿ
+ou: Sàn Fråncêscô
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Ñeelÿ Tynân's description
+mail: user131@test.com
+telephoneNumber: +1 818 260-4462
+facsimileTelephoneNumber: +1 213 705-2076
+userPassword: user131
+cn;lang-es: Ñeelÿ Tynân
+sn;lang-es: Tynân
+givenName;lang-es: Ñeelÿ
+
+dn: uid=user132, ou=Ännheimè, o=Çéliné Ändrè
+uid: user132
+cn: Ñaji Flòrès
+sn: Flòrès
+givenName: Ñaji
+ou: Ännheimè
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Ñaji Flòrès's description
+mail: user132@test.com
+telephoneNumber: +1 818 417-2310
+facsimileTelephoneNumber: +1 818 784-8714
+userPassword: user132
+cn;lang-es: Ñaji Flòrès
+sn;lang-es: Flòrès
+givenName;lang-es: Ñaji
+
+dn: uid=user133, ou=Ännheimè, o=Çéliné Ändrè
+uid: user133
+cn: mÿùrise Pùglïå
+sn: Pùglïå
+givenName: mÿùrise
+ou: Ännheimè
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is mÿùrise Pùglïå's description
+mail: user133@test.com
+telephoneNumber: +1 415 346-5688
+facsimileTelephoneNumber: +1 415 945-8392
+userPassword: user133
+cn;lang-es: mÿùrise Pùglïå
+sn;lang-es: Pùglïå
+givenName;lang-es: mÿùrise
+
+dn: uid=user134, ou=Çéliné Ändrè, o=Çéliné Ändrè
+uid: user134
+cn: Wañéta Vempati
+sn: Vempati
+givenName: Wañéta
+ou: Çéliné Ändrè
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Wañéta Vempati's description
+mail: user134@test.com
+telephoneNumber: +1 510 651-3623
+facsimileTelephoneNumber: +1 415 382-1034
+userPassword: user134
+cn;lang-it: Wañéta Vempati
+sn;lang-it: Vempati
+givenName;lang-it: Wañéta
+
+dn: uid=user135, ou=Çlose Crèkä, o=Çéliné Ändrè
+uid: user135
+cn: Lañéy Gröna
+sn: Gröna
+givenName: Lañéy
+ou: Çlose Crèkä
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Lañéy Gröna's description
+mail: user135@test.com
+telephoneNumber: +1 510 317-9705
+facsimileTelephoneNumber: +1 804 125-9224
+userPassword: user135
+cn;lang-it: Lañéy Gröna
+sn;lang-it: Gröna
+givenName;lang-it: Lañéy
+
+dn: uid=user136, ou=Çlose Crèkä, o=Çéliné Ändrè
+uid: user136
+cn: Muffin Bayér
+sn: Bayér
+givenName: Muffin
+ou: Çlose Crèkä
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Muffin Bayér's description
+mail: user136@test.com
+telephoneNumber: +1 818 514-6302
+facsimileTelephoneNumber: +1 303 383-3961
+userPassword: user136
+cn;lang-ie: Muffin Bayér
+sn;lang-ie: Bayér
+givenName;lang-ie: Muffin
+
+dn: uid=user137, ou=Sàn Fråncêscô, o=Çéliné Ändrè
+uid: user137
+cn: Lingyan Cottingham
+sn: Cottingham
+givenName: Lingyan
+ou: Sàn Fråncêscô
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Lingyan Cottingham's description
+mail: user137@test.com
+telephoneNumber: +1 818 529-3823
+facsimileTelephoneNumber: +1 510 177-7520
+userPassword: user137
+cn;lang-se: Lingyan Cottingham
+sn;lang-se: Cottingham
+givenName;lang-se: Lingyan
+
+dn: uid=user138, ou=Çlose Crèkä, o=Çéliné Ändrè
+uid: user138
+cn: Corrëna Träsmùndi
+sn: Träsmùndi
+givenName: Corrëna
+ou: Çlose Crèkä
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Corrëna Träsmùndi's description
+mail: user138@test.com
+telephoneNumber: +1 804 774-3146
+facsimileTelephoneNumber: +1 213 631-6660
+userPassword: user138
+cn;lang-be: Corrëna Träsmùndi
+sn;lang-be: Träsmùndi
+givenName;lang-be: Corrëna
+
+dn: uid=user139, ou=Çlose Crèkä, o=Çéliné Ändrè
+uid: user139
+cn: Ñeil Chérrîér
+sn: Chérrîér
+givenName: Ñeil
+ou: Çlose Crèkä
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Ñeil Chérrîér's description
+mail: user139@test.com
+telephoneNumber: +1 714 474-5839
+facsimileTelephoneNumber: +1 408 516-3260
+userPassword: user139
+cn;lang-it: Ñeil Chérrîér
+sn;lang-it: Chérrîér
+givenName;lang-it: Ñeil
+
+dn: uid=user140, ou=Sàn Fråncêscô, o=Çéliné Ändrè
+uid: user140
+cn: Älfonso Waltérs
+sn: Waltérs
+givenName: Älfonso
+ou: Sàn Fråncêscô
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Älfonso Waltérs's description
+mail: user140@test.com
+telephoneNumber: +1 714 607-3408
+facsimileTelephoneNumber: +1 408 233-3644
+userPassword: user140
+cn;lang-it: Älfonso Waltérs
+sn;lang-it: Waltérs
+givenName;lang-it: Älfonso
+
+dn: uid=user141, ou=Çlose Crèkä, o=Çéliné Ändrè
+uid: user141
+cn: Collëte Wàrfel
+sn: Wàrfel
+givenName: Collëte
+ou: Çlose Crèkä
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Collëte Wàrfel's description
+mail: user141@test.com
+telephoneNumber: +1 804 360-5788
+facsimileTelephoneNumber: +1 804 749-8263
+userPassword: user141
+cn;lang-es: Collëte Wàrfel
+sn;lang-es: Wàrfel
+givenName;lang-es: Collëte
+
+dn: uid=user142, ou=Ännheimè, o=Çéliné Ändrè
+uid: user142
+cn: Kishor McAdòrèy
+sn: McAdòrèy
+givenName: Kishor
+ou: Ännheimè
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Kishor McAdòrèy's description
+mail: user142@test.com
+telephoneNumber: +1 714 433-5127
+facsimileTelephoneNumber: +1 510 752-1955
+userPassword: user142
+cn;lang-fr: Kishor McAdòrèy
+sn;lang-fr: McAdòrèy
+givenName;lang-fr: Kishor
+
+dn: uid=user143, ou=Sàn Fråncêscô, o=Çéliné Ändrè
+uid: user143
+cn: Dûncan Schlïchting
+sn: Schlïchting
+givenName: Dûncan
+ou: Sàn Fråncêscô
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Dûncan Schlïchting's description
+mail: user143@test.com
+telephoneNumber: +1 804 717-9847
+facsimileTelephoneNumber: +1 804 474-1501
+userPassword: user143
+cn;lang-be: Dûncan Schlïchting
+sn;lang-be: Schlïchting
+givenName;lang-be: Dûncan
+
+dn: uid=user144, ou=Çlose Crèkä, o=Çéliné Ändrè
+uid: user144
+cn: Valéñtîïå Gräcey
+sn: Gräcey
+givenName: Valéñtîïå
+ou: Çlose Crèkä
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Valéñtîïå Gräcey's description
+mail: user144@test.com
+telephoneNumber: +1 206 284-2530
+facsimileTelephoneNumber: +1 206 909-3569
+userPassword: user144
+cn;lang-fr: Valéñtîïå Gräcey
+sn;lang-fr: Gräcey
+givenName;lang-fr: Valéñtîïå
+
+dn: uid=user145, ou=Ännheimè, o=Çéliné Ändrè
+uid: user145
+cn: Ällëgra Weisèënbérg
+sn: Weisèënbérg
+givenName: Ällëgra
+ou: Ännheimè
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Ällëgra Weisèënbérg's description
+mail: user145@test.com
+telephoneNumber: +1 415 348-1595
+facsimileTelephoneNumber: +1 804 623-1255
+userPassword: user145
+cn;lang-ie: Ällëgra Weisèënbérg
+sn;lang-ie: Weisèënbérg
+givenName;lang-ie: Ällëgra
+
+dn: uid=user146, ou=Ännheimè, o=Çéliné Ändrè
+uid: user146
+cn: LLoyd Majùry
+sn: Majùry
+givenName: LLoyd
+ou: Ännheimè
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is LLoyd Majùry's description
+mail: user146@test.com
+telephoneNumber: +1 213 109-3465
+facsimileTelephoneNumber: +1 213 515-2132
+userPassword: user146
+cn;lang-se: LLoyd Majùry
+sn;lang-se: Majùry
+givenName;lang-se: LLoyd
+
+dn: uid=user147, ou=Çlose Crèkä, o=Çéliné Ändrè
+uid: user147
+cn: Ellàdiñé Passin
+sn: Passin
+givenName: Ellàdiñé
+ou: Çlose Crèkä
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Ellàdiñé Passin's description
+mail: user147@test.com
+telephoneNumber: +1 510 570-9369
+facsimileTelephoneNumber: +1 408 482-2946
+userPassword: user147
+cn;lang-de: Ellàdiñé Passin
+sn;lang-de: Passin
+givenName;lang-de: Ellàdiñé
+
+dn: uid=user148, ou=Sàn Fråncêscô, o=Çéliné Ändrè
+uid: user148
+cn: Chantallë Secrèst
+sn: Secrèst
+givenName: Chantallë
+ou: Sàn Fråncêscô
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Chantallë Secrèst's description
+mail: user148@test.com
+telephoneNumber: +1 804 726-9344
+facsimileTelephoneNumber: +1 408 356-1611
+userPassword: user148
+cn;lang-it: Chantallë Secrèst
+sn;lang-it: Secrèst
+givenName;lang-it: Chantallë
+
+dn: uid=user149, ou=Çlose Crèkä, o=Çéliné Ändrè
+uid: user149
+cn: Dick Tsitsiòr
+sn: Tsitsiòr
+givenName: Dick
+ou: Çlose Crèkä
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+description: This is Dick Tsitsiòr's description
+mail: user149@test.com
+telephoneNumber: +1 804 768-4911
+facsimileTelephoneNumber: +1 303 253-4009
+userPassword: user149
+cn;lang-ie: Dick Tsitsiòr
+sn;lang-ie: Tsitsiòr
+givenName;lang-ie: Dick
+
+dn: ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: European Letters
+description: Root for Franch, German, and Spanish letters 
+
+dn: ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: Auf Deutsch
+ou;lang-de: ÄÖÜäöüß
+description: German Letters
+
+dn: ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: En Español
+ou;lang-es: á, é, í, ó, ü, ñ, Á, É, Í, Ó, Ú, Ü, Ñ
+description: Spanish Letters
+
+dn: ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: En Français
+ou:lang-fr: àâçëèéêïîôüùûÀÂÇËÈÉÊÏÎÔÜÙÛ
+description: French 8Bit Letters
+
+dn: ou=ä, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: ä
+ou;lang-de: ä 
+description: ä
+
+dn: ou=ö, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: ö
+ou;lang-de: ö
+description: ö
+
+dn: ou=ü, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: ü
+ou;lang-de: ü
+description: ü
+
+dn: ou=ß, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: ß
+ou;lang-de: ß
+description: ß
+
+dn: ou=Ä-2, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: Ä-2
+ou;lang-de: Ä-2
+description: Ä-2
+
+dn: ou=Ö-2, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: Ö-2
+ou;lang-de: Ö-2
+description: Ö-2
+
+dn: ou=Ü-2, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: Ü-2
+ou;lang-de: Ü-2
+description: Ü-2
+
+dn: ou=á, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: á
+ou;lang-es: á 
+description: á
+
+dn: ou=é, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: é
+ou;lang-es: é
+description: é
+
+dn: ou=í, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: í
+ou;lang-es: í
+description: í
+
+dn: ou=ó, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: ó
+ou;lang-es: ó
+description: ó
+
+dn: ou=ü, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: ü
+ou;lang-es: ü
+description: ü
+
+dn: ou=ñ, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: ñ
+ou;lang-es: ñ
+description: ñ
+
+dn: ou=Á-2, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: Á-2
+ou;lang-es:  Á-2
+description: Á-2
+
+dn: ou=É-2, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: É-2
+ou;lang-es: É-2 
+description: É-2
+
+dn: ou=Í-2, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: Í-2
+ou;lang-es: Í-2
+description: Í-2
+
+dn: ou=Ó-2, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: Ó-2
+ou;lang-es: Ó-2
+description: Ó-2
+
+dn: ou=Ú-2, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: Ú-2
+ou;lang-es: Ú-2
+description: Ú-2
+
+dn: ou=Ü-2, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: Ü-2
+ou;lang-es: Ü-2
+description: Ü-2
+
+dn: ou=Ñ-2, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: Ñ-2
+ou;lang-es: Ñ-2
+description: Ñ-2
+
+dn: ou=à, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: à
+ou;lang-fr: à
+description: à
+
+dn: ou=â, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: â
+ou;lang-fr: â
+description: â
+
+dn: ou=ç, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: ç
+ou;lang-fr: ç
+description: ç
+
+dn: ou=ë, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: ë
+ou;lang-fr: ë
+description: ë
+
+dn: ou=è, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: è
+ou;lang-fr: è
+description: è
+
+dn: ou=é, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: é
+ou;lang-fr: é
+description: é
+
+dn: ou=ê, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: ê
+ou;lang-fr:  ê
+description: ê
+
+dn: ou=ï, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: ï
+ou;lang-fr: ï
+description: ï
+
+dn: ou=î, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: î
+ou;lang-fr: î
+description: î
+
+dn: ou=ô, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: ô
+ou;lang-fr: ô
+description: ô
+
+dn: ou=ü, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: ü
+ou;lang-fr: ü
+description: ü
+
+dn: ou=ù, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: ù
+ou;lang-fr: ù
+description: ù
+
+dn: ou=û, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: û
+ou;lang-fr: û
+description: û
+
+dn: ou=À-2, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: À-2
+ou;lang-fr: À-2
+description: À-2
+
+dn: ou=Â-2, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: Â-2
+ou;lang-fr: Â-2
+description: Â-2
+
+dn: ou=Ç-2, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: Ç-2
+ou;lang-fr: Ç-2
+description: Ç-2
+
+dn: ou=Ë-2, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: Ë-2
+ou;lang-fr: Ë-2
+description: Ë-2
+
+dn: ou=È-2, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: È-2
+ou;lang-fr: È-2
+description: È-2
+
+dn: ou=É-2, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: É-2
+ou;lang-fr: É-2
+description: É-2
+
+dn: ou=Ê-2, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: Ê-2
+ou;lang-fr:  Ê-2
+description: Ê-2
+
+dn: ou=Ï-2, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: Ï-2
+ou;lang-fr: Ï-2
+description: Ï-2
+
+dn: ou=Î-2, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: Î-2
+ou;lang-fr: Î-2
+description: Î-2
+
+dn: ou=Ô-2, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: Ô-2
+ou;lang-fr: Ô-2
+description: Ô-2
+
+dn: ou=Ü-2, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: Ü-2
+ou;lang-fr: Ü-2
+description: Ü-2
+
+dn: ou=Ù-2, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: Ù-2
+ou;lang-fr: Ù-2
+description: Ù-2
+
+dn: ou=Û-2, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: Û-2
+ou;lang-fr: Û-2
+description: Û-2
+
+dn: ou=A, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: A
+ou;lang-de: A
+description: A 
+
+dn: ou=B, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: B
+ou;lang-de: B
+description: B
+
+dn: ou=C, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: C
+ou;lang-de: C
+description: C
+
+dn: ou=D, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: D
+ou;lang-de: D
+description: D
+
+dn: ou=E, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: E
+ou;lang-de: E
+description: E
+
+dn: ou=F, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: F
+ou;lang-de: F
+description: F
+
+dn: ou=G, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: G
+ou;lang-de: G
+description: G
+
+dn: ou=H, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: H
+ou;lang-de: H
+description: H
+
+dn: ou=I, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: I
+ou;lang-de: I
+description: I
+
+dn: ou=J, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: J
+ou;lang-de: J
+description: J
+
+dn: ou=K, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: K
+ou;lang-de: K
+description: K 
+
+dn: ou=L, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: L
+ou;lang-de: L
+description: L
+
+dn: ou=M, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: M
+ou;lang-de: M
+description: M
+
+dn: ou=N, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: N
+ou;lang-de: N
+description: N
+
+dn: ou=O, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: O
+ou;lang-de: O
+description: O
+
+dn: ou=P, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: P
+ou;lang-de: P
+description: P
+
+dn: ou=Q, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: Q
+ou;lang-de: Q
+description: Q
+
+dn: ou=R, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: R
+ou;lang-de: R
+description: R
+
+dn: ou=S, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: S
+ou;lang-de: S
+description: S
+
+dn: ou=T, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: T
+ou;lang-de: T
+description: T
+
+dn: ou=U, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: U
+ou;lang-de: U
+description: U
+
+dn: ou=V, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: V
+ou;lang-de: V
+description: V
+
+dn: ou=W, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: W
+ou;lang-de: W
+description: W
+
+dn: ou=X, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: X
+ou;lang-de: X
+description: X
+
+dn: ou=Y, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: Y
+ou;lang-de: Y
+description: Y
+
+dn: ou=Z, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: Z
+ou;lang-de: Z
+description: Z
+
+dn: ou=A, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: A
+ou;lang-es: A
+description: A 
+
+dn: ou=B, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: B
+ou;lang-es: B
+description: B
+
+dn: ou=C, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: C
+ou;lang-es: C
+description: C
+
+dn: ou=D, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: D
+ou;lang-es: D
+description: D
+
+dn: ou=E, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: E
+ou;lang-es: E
+description: E
+
+dn: ou=F, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: F
+ou;lang-es: F
+description: F
+
+dn: ou=G, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: G
+ou;lang-es: G
+description: G
+
+dn: ou=H, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: H
+ou;lang-es: H
+description: H
+
+dn: ou=I, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: I
+ou;lang-es: I
+description: I
+
+dn: ou=J, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: J
+ou;lang-es: J
+description: J
+
+dn: ou=K, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: K
+ou;lang-es: K
+description: K 
+
+dn: ou=L, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: L
+ou;lang-es: L
+description: L
+
+dn: ou=M, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: M
+ou;lang-es: M
+description: M
+
+dn: ou=N, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: N
+ou;lang-es: N
+description: N
+
+dn: ou=O, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: O
+ou;lang-es: O
+description: O
+
+dn: ou=P, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: P
+ou;lang-es: P
+description: P
+
+dn: ou=Q, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: Q
+ou;lang-es: Q
+description: Q
+
+dn: ou=R, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: R
+ou;lang-es: R
+description: R
+
+dn: ou=S, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: S
+ou;lang-es: S
+description: S
+
+dn: ou=T, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: T
+ou;lang-es: T
+description: T
+
+dn: ou=U, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: U
+ou;lang-es: U
+description: U
+
+dn: ou=V, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: V
+ou;lang-es: V
+description: V
+
+dn: ou=W, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: W
+ou;lang-es: W
+description: W
+
+dn: ou=X, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: X
+ou;lang-es: X
+description: X
+
+dn: ou=Y, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: Y
+ou;lang-es: Y
+description: Y
+
+dn: ou=Z, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: Z
+ou;lang-es: Z
+description: Z
+
+dn: ou=A, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: A
+ou;lang-fr: A
+description: A 
+
+dn: ou=B, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: B
+ou;lang-fr: B
+description: B
+
+dn: ou=C, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: C
+ou;lang-fr: C
+description: C
+
+dn: ou=D, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: D
+ou;lang-fr: D
+description: D
+
+dn: ou=E, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: E
+ou;lang-fr: E
+description: E
+
+dn: ou=F, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: F
+ou;lang-fr: F
+description: F
+
+dn: ou=G, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: G
+ou;lang-fr: G
+description: G
+
+dn: ou=H, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: H
+ou;lang-fr: H
+description: H
+
+dn: ou=I, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: I
+ou;lang-fr: I
+description: I
+
+dn: ou=J, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: J
+ou;lang-fr: J
+description: J
+
+dn: ou=K, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: K
+ou;lang-fr: K
+description: K 
+
+dn: ou=L, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: L
+ou;lang-fr: L
+description: L
+
+dn: ou=M, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: M
+ou;lang-fr: M
+description: M
+
+dn: ou=N, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: N
+ou;lang-fr: N
+description: N
+
+dn: ou=O, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: O
+ou;lang-fr: O
+description: O
+
+dn: ou=P, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: P
+ou;lang-fr: P
+description: P
+
+dn: ou=Q, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: Q
+ou;lang-fr: Q
+description: Q
+
+dn: ou=R, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: R
+ou;lang-fr: R
+description: R
+
+dn: ou=S, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: S
+ou;lang-fr: S
+description: S
+
+dn: ou=T, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: T
+ou;lang-fr: T
+description: T
+
+dn: ou=U, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: U
+ou;lang-fr: U
+description: U
+
+dn: ou=V, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: V
+ou;lang-fr: V
+description: V
+
+dn: ou=W, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: W
+ou;lang-fr: W
+description: W
+
+dn: ou=X, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: X
+ou;lang-fr: X
+description: X
+
+dn: ou=Y, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: Y
+ou;lang-fr: Y
+description: Y
+
+dn: ou=Z, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: organizationalUnit
+ou: Z
+ou;lang-fr: Z
+description: Z
+
+dn: uid=de1, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de1
+givenname;lang-de: ä 
+sn;lang-de: ä
+cn;lang-de: ä ä
+preferredlanguage: de
+givenname: ä
+sn: ä
+cn: ä ä
+
+dn: uid=de2 , ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de2
+givenname;lang-de: ö 
+sn;lang-de: ö
+cn;lang-de: ö ö
+preferredlanguage: de
+givenname: ö
+sn: ö
+cn: ö ö
+
+dn: uid=de3 , ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de3
+givenname;lang-de: ü
+sn;lang-de: ü
+cn;lang-de: ü ü
+preferredlanguage: de
+givenname: ü
+sn: ü
+cn: ü ü
+
+dn: uid=de4 , ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de4
+givenname;lang-de: ß
+sn;lang-de: ß
+cn;lang-de: ß ß
+preferredlanguage: de
+givenname: ß
+sn: ß
+cn: ß ß
+
+dn: uid=de5 , ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de5
+givenname;lang-de: Ä
+sn;lang-de: Ä
+cn;lang-de: Ä Ä
+preferredlanguage: de
+givenname: Ä
+sn: Ä
+cn: Ä Ä
+
+dn: uid=de6 , ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de6
+givenname;lang-de: Ö
+sn;lang-de: Ö
+cn;lang-de: Ö Ö
+preferredlanguage: de
+givenname: Ö
+sn: Ö
+cn: Ö Ö
+
+dn: uid=de7 , ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de7
+givenname;lang-de: Ü
+sn;lang-de: Ü
+cn;lang-de: Ü Ü
+preferredlanguage: de
+givenname: Ü
+sn: Ü
+cn: Ü Ü
+
+dn: uid=es1 , ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es1
+givenname;lang-es: á
+sn;lang-es: á
+cn;lang-es: á á
+preferredlanguage: es
+givenname: á
+sn: á
+cn: á á
+
+dn: uid=es2 , ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es2
+givenname;lang-es: é
+sn;lang-es: é
+cn;lang-es: é é
+preferredlanguage: es
+givenname: é
+sn: é
+cn: é é
+
+dn: uid=es3 , ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es3
+givenname;lang-es: í
+sn;lang-es: í
+cn;lang-es: í í
+preferredlanguage: es
+givenname: í
+sn: í
+cn: í í
+
+dn: uid=es4 , ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es4
+givenname;lang-es: ó
+sn;lang-es: ó
+cn;lang-es: ó ó
+preferredlanguage: es
+givenname: ó
+sn: ó
+cn: ó ó
+
+dn: uid=es5 , ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es5
+givenname;lang-es: ú
+sn;lang-es: ú
+cn;lang-es: ú ú
+preferredlanguage: es
+givenname: ú
+sn: ú
+cn: ú ú
+
+dn: uid=es6 , ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es6
+givenname;lang-es: ü
+sn;lang-es: ü
+cn;lang-es: ü ü
+preferredlanguage: es
+givenname: ü
+sn: ü
+cn: ü ü
+
+dn: uid=es7 , ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es7
+givenname;lang-es: Á
+sn;lang-es: Á
+cn;lang-es: Á Á
+preferredlanguage: es
+givenname: Á
+sn: Á
+cn: Á Á
+
+dn: uid=es8 , ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es8
+givenname;lang-es: É
+sn;lang-es: É
+cn;lang-es: É É
+preferredlanguage: es
+givenname: É
+sn: É
+cn: É É
+
+dn: uid=es9 , ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es9
+givenname;lang-es: Í
+sn;lang-es: Í
+cn;lang-es: Í Í
+preferredlanguage: es
+givenname: Í
+sn: Í
+cn: Í Í
+
+dn: uid=es10 , ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es10
+givenname;lang-es: Ó
+sn;lang-es: Ó
+cn;lang-es: Ó Ó
+preferredlanguage: es
+givenname: Ó
+sn: Ó
+cn: Ó Ó
+
+dn: uid=es11 , ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es11
+givenname;lang-es: Ú
+sn;lang-es: Ú
+cn;lang-es: Ú Ú
+preferredlanguage: es
+givenname: Ú
+sn: Ú
+cn: Ú Ú
+
+dn: uid=es12 , ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es12
+givenname;lang-es: Ü
+sn;lang-es: Ü
+cn;lang-es: Ü Ü
+preferredlanguage: es
+givenname: Ü
+sn: Ü
+cn: Ü Ü
+
+dn: uid=es13 , ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es13
+givenname;lang-es: Ñ
+sn;lang-es: Ñ
+cn;lang-es: Ñ Ñ
+preferredlanguage: es
+givenname: Ñ
+sn: Ñ
+cn: Ñ Ñ
+
+dn: uid=es14 , ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es14
+givenname;lang-es: ñ
+sn;lang-es: ñ
+cn;lang-es: ñ ñ
+preferredlanguage: es
+givenname: ñ
+sn: ñ
+cn: ñ ñ
+
+dn: uid=fr1, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+cn: à à
+sn: à
+givenname: à
+cn;lang-fr: à à
+sn;lang-fr: à
+givenname;lang-fr: à
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+preferredlanguage: fr
+uid: fr1
+
+dn: uid=fr2, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+cn: â â
+sn: â
+givenname: â
+cn;lang-fr: â â
+sn;lang-fr: â
+givenname;lang-fr: â
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+preferredlanguage: fr
+uid: fr2
+
+dn: uid=fr3, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+cn: ç ç
+sn: ç
+givenname: ç
+cn;lang-fr: ç ç
+sn;lang-fr: ç
+givenname;lang-fr: ç
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+preferredlanguage: fr
+uid: fr3
+
+dn: uid=fr4, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+cn: ë ë
+sn: ë
+givenname: ë
+cn;lang-fr: ë ë
+sn;lang-fr: ë
+givenname;lang-fr: ë
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+preferredlanguage: fr
+uid: fr4
+
+dn: uid=fr5, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+cn: è è
+sn: è
+givenname: è
+cn;lang-fr: è è
+sn;lang-fr: è
+givenname;lang-fr: è
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+preferredlanguage: fr
+uid: fr5
+
+dn: uid=fr6, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+cn: é é
+sn: é
+givenname: é
+cn;lang-fr: é é
+sn;lang-fr: é
+givenname;lang-fr: é
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+preferredlanguage: fr
+uid: fr6
+
+dn: uid=fr7, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+cn: ê ê
+sn: ê
+givenname: ê
+cn;lang-fr: ê ê
+sn;lang-fr: ê
+givenname;lang-fr: ê
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+preferredlanguage: fr
+uid: fr7
+
+dn: uid=fr8, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+cn: ï ï
+sn: ï
+givenname: ï
+cn;lang-fr: ï ï
+sn;lang-fr: ï
+givenname;lang-fr: ï
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+preferredlanguage: fr
+uid: fr8
+
+dn: uid=fr9, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+cn: î î
+sn: î
+givenname: î
+cn;lang-fr: î î
+sn;lang-fr: î
+givenname;lang-fr: î
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+preferredlanguage: fr
+uid: fr9
+
+dn: uid=fr10, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+cn: ô ô
+sn: ô
+givenname: ô
+cn;lang-fr: ô ô
+sn;lang-fr: ô
+givenname;lang-fr: ô
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+preferredlanguage: fr
+uid: fr10
+
+dn: uid=fr12, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+cn: ü ü
+sn: ü
+givenname: ü
+cn;lang-fr: ü ü
+sn;lang-fr: ü
+givenname;lang-fr: ü
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+preferredlanguage: fr
+uid: fr12
+
+dn: uid=fr13, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+cn: ù ù
+sn: ù
+givenname: ù
+cn;lang-fr: ù ù
+sn;lang-fr: ù
+givenname;lang-fr: ù
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+preferredlanguage: fr
+uid: fr13
+
+dn: uid=fr14, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+cn: û û
+sn: û
+givenname: û
+cn;lang-fr: û û
+sn;lang-fr: û
+givenname;lang-fr: û
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+preferredlanguage: fr
+uid: fr14
+
+dn: uid=fr15, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+cn: À À
+sn: À
+givenname: À
+cn;lang-fr: À À
+sn;lang-fr: À
+givenname;lang-fr: À
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+preferredlanguage: fr
+uid: fr15
+
+dn: uid=fr16, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+cn: Â Â
+sn: Â
+givenname: Â
+cn;lang-fr: Â Â
+sn;lang-fr: Â
+givenname;lang-fr: Â
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+preferredlanguage: fr
+uid: fr16
+
+dn: uid=fr17, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+cn: Ç Ç
+sn: Ç
+givenname: Ç
+cn;lang-fr: Ç Ç
+sn;lang-fr: Ç
+givenname;lang-fr: Ç
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+preferredlanguage: fr
+uid: fr17
+
+dn: uid=fr18, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+cn: Ë Ë 
+sn: Ë
+givenname: Ë
+cn;lang-fr: Ë Ë
+sn;lang-fr: Ë
+givenname;lang-fr: Ë
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+preferredlanguage: fr
+uid: fr18
+
+dn: uid=fr19, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+cn: È È
+sn: È
+givenname: È
+cn;lang-fr: È È
+sn;lang-fr: È
+givenname;lang-fr: È
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+preferredlanguage: fr
+uid: fr19
+
+dn: uid=fr20, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+cn: É É
+sn: É
+givenname: É
+cn;lang-fr: É É
+sn;lang-fr: É
+givenname;lang-fr: É
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+preferredlanguage: fr
+uid: fr20
+
+dn: uid=fr21, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+cn: Ê Ê
+sn: Ê
+givenname: Ê
+cn;lang-fr: Ê Ê
+sn;lang-fr: Ê
+givenname;lang-fr: Ê
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+preferredlanguage: fr
+uid: fr21
+
+dn: uid=fr22, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+cn: Ï Ï
+sn: Ï
+givenname: Ï
+cn;lang-fr: Ï Ï
+sn;lang-fr: Ï
+givenname;lang-fr: Ï
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+preferredlanguage: fr
+uid: fr22
+
+dn: uid=fr23, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+cn: Î Î
+sn: Î
+givenname: Î
+cn;lang-fr: Î Î
+sn;lang-fr: Î
+givenname;lang-fr: Î
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+preferredlanguage: fr
+uid: fr23
+
+dn: uid=fr24, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+cn: Ô Ô
+sn: Ô
+givenname: Ô
+cn;lang-fr: Ô Ô
+sn;lang-fr: Ô
+givenname;lang-fr: Ô
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+preferredlanguage: fr
+uid: fr24
+
+dn: uid=fr26, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+cn: Ü Ü
+sn: Ü
+givenname: Ü
+cn;lang-fr: Ü Ü
+sn;lang-fr: Ü
+givenname;lang-fr: Ü
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+preferredlanguage: fr
+uid: fr26
+
+dn: uid=fr27, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+cn: Ù Ù
+sn: Ù
+givenname: Ù
+cn;lang-fr: Ù Ù
+sn;lang-fr: Ù
+givenname;lang-fr: Ù
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+preferredlanguage: fr
+uid: fr27
+
+dn: uid=fr28, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+cn: Û Û
+sn: Û
+givenname: Û
+cn;lang-fr: Û Û
+sn;lang-fr: Û
+givenname;lang-fr: Û
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+preferredlanguage: fr
+uid: fr28
+
+dn: uid=de100, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de100
+givenname;lang-de: a 
+sn;lang-de: a
+cn;lang-de: a a
+preferredlanguage: de
+givenname: a
+sn: a
+cn: a a
+
+dn: uid=de101 , ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de101
+givenname;lang-de: b
+sn;lang-de: b
+cn;lang-de: b b
+preferredlanguage: de
+givenname: b
+sn: b
+cn: b b
+
+dn: uid=de102 , ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de102
+givenname;lang-de: c
+sn;lang-de: c
+cn;lang-de: c c
+preferredlanguage: de
+givenname: c
+sn: c
+cn: c c
+
+dn: uid=de103 , ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de103
+givenname;lang-de: d
+sn;lang-de: d
+cn;lang-de: d d
+preferredlanguage: de
+givenname: d
+sn: d
+cn: d d
+
+dn: uid=de104, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de104
+givenname;lang-de: e
+sn;lang-de: e
+cn;lang-de: e e
+preferredlanguage: de
+givenname: e
+sn: e
+cn: e e
+
+dn: uid=de105, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de105
+givenname;lang-de: f
+sn;lang-de: f
+cn;lang-de: f f
+preferredlanguage: de
+givenname: f
+sn: f
+cn: f f
+
+dn: uid=de106, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de106
+givenname;lang-de: g
+sn;lang-de: g
+cn;lang-de: g g
+preferredlanguage: de
+givenname: g
+sn: g
+cn: g g
+
+dn: uid=de107, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de107
+givenname;lang-de: h
+sn;lang-de: h
+cn;lang-de: h h
+preferredlanguage: de
+givenname: h
+sn: h
+cn: h h
+
+dn: uid=de108, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de108
+givenname;lang-de: i
+sn;lang-de: i
+cn;lang-de: i i
+preferredlanguage: de
+givenname: i
+sn: i
+cn: i i
+
+dn: uid=de109 , ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de109
+givenname;lang-de: j
+sn;lang-de: j
+cn;lang-de: j j
+preferredlanguage: de
+givenname: j
+sn: j
+cn: j j
+
+dn: uid=de110 , ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de110
+givenname;lang-de: k
+sn;lang-de: k
+cn;lang-de: k k
+preferredlanguage: de
+givenname: k
+sn: k
+cn: k k
+
+dn: uid=de111 , ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de111
+givenname;lang-de: l
+sn;lang-de: l
+cn;lang-de: l l
+preferredlanguage: de
+givenname: l
+sn: l
+cn: l l
+
+dn: uid=de112, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de112
+givenname;lang-de: m
+sn;lang-de: m
+cn;lang-de: m m
+preferredlanguage: de
+givenname: m
+sn: m
+cn: m m
+
+dn: uid=de113 , ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de113
+givenname;lang-de: n
+sn;lang-de: n
+cn;lang-de: n n
+preferredlanguage: de
+givenname: n
+sn: n
+cn: n n
+
+dn: uid=de114 , ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de114
+givenname;lang-de: o
+sn;lang-de: o
+cn;lang-de: o o
+preferredlanguage: de
+givenname: o
+sn: o
+cn: o o
+
+dn: uid=de115, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de115
+givenname;lang-de: p
+sn;lang-de: p
+cn;lang-de: p p
+preferredlanguage: de
+givenname: p
+sn: p
+cn: p p
+
+dn: uid=de116 , ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de116
+givenname;lang-de: q
+sn;lang-de: q
+cn;lang-de: q q
+preferredlanguage: de
+givenname: q
+sn: q
+cn: q q
+
+dn: uid=de117, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de117
+givenname;lang-de: r
+sn;lang-de: r
+cn;lang-de: r r
+preferredlanguage: de
+givenname: r
+sn: r
+cn: r r
+
+dn: uid=de118 , ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de118
+givenname;lang-de: s
+sn;lang-de: s
+cn;lang-de: s s
+preferredlanguage: de
+givenname: s
+sn: s
+cn: s s
+
+dn: uid=de119 , ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de119
+givenname;lang-de: t
+sn;lang-de: t
+cn;lang-de: t t
+preferredlanguage: de
+givenname: t
+sn: t
+cn: t t
+
+dn: uid=de120 , ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de120
+givenname;lang-de: u
+sn;lang-de: u
+cn;lang-de: u u
+preferredlanguage: de
+givenname: u
+sn: u
+cn: u u
+
+dn: uid=de121, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de121
+givenname;lang-de: v
+sn;lang-de: v
+cn;lang-de: v v
+preferredlanguage: de
+givenname: v
+sn: v
+cn: v v
+
+dn: uid=de122 , ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de122
+givenname;lang-de: w
+sn;lang-de: w
+cn;lang-de: w w
+preferredlanguage: de
+givenname: w
+sn: w
+cn: w w
+
+dn: uid=de123 , ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de123
+givenname;lang-de: x
+sn;lang-de: x
+cn;lang-de: x x
+preferredlanguage: de
+givenname: x
+sn: x
+cn: x x
+
+dn: uid=de124, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de124
+givenname;lang-de: y
+sn;lang-de: y
+cn;lang-de: y y
+preferredlanguage: de
+givenname: y
+sn: y
+cn: y y
+
+dn: uid=de125, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de125
+givenname;lang-de: z
+sn;lang-de: z
+cn;lang-de: z z
+preferredlanguage: de
+givenname: z
+sn: z
+cn: z z
+
+dn: uid=de126, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de126
+givenname;lang-de: A
+sn;lang-de: A
+cn;lang-de: A A
+preferredlanguage: de
+givenname: A
+sn: A
+cn: A A
+
+dn: uid=de127, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de127
+givenname;lang-de: B
+sn;lang-de: B
+cn;lang-de: B B
+preferredlanguage: de
+givenname: B
+sn: B
+cn: B B
+
+dn: uid=de128, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de128
+givenname;lang-de: C
+sn;lang-de: C
+cn;lang-de: C C
+preferredlanguage: de
+givenname: C
+sn: C
+cn: C C
+
+dn: uid=de129 , ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de129
+givenname;lang-de: D
+sn;lang-de: D
+cn;lang-de: D D
+preferredlanguage: de
+givenname: D
+sn: D
+cn: D D
+
+dn: uid=de130 , ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de130
+givenname;lang-de: E
+sn;lang-de: E
+cn;lang-de: E E
+preferredlanguage: de
+givenname: E
+sn: E
+cn: E E
+
+dn: uid=de131 , ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de131
+givenname;lang-de: F
+sn;lang-de: F
+cn;lang-de: F F
+preferredlanguage: de
+givenname: F F
+sn: F
+cn: F F
+
+dn: uid=de132, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de132
+givenname;lang-de: G
+sn;lang-de: G
+cn;lang-de: G G
+preferredlanguage: de
+givenname: G
+sn: G
+cn: G G
+
+dn: uid=de133 , ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de133
+givenname;lang-de: H
+sn;lang-de: H
+cn;lang-de: H H
+preferredlanguage: de
+givenname: H
+sn: H
+cn: H H
+
+dn: uid=de134 , ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de134
+givenname;lang-de: I
+sn;lang-de: I
+cn;lang-de: I I
+preferredlanguage: de
+givenname: I
+sn: I
+cn: I I
+
+dn: uid=de135, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de135
+givenname;lang-de: J
+sn;lang-de: J
+cn;lang-de: J J
+preferredlanguage: de
+givenname: J
+sn: J
+cn: J J
+
+dn: uid=de136 , ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de136
+givenname;lang-de: K
+sn;lang-de: K
+cn;lang-de: K K
+preferredlanguage: de
+givenname: K
+sn: K
+cn: K K
+
+dn: uid=de137, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de137
+givenname;lang-de: L
+sn;lang-de: L
+cn;lang-de: L L
+preferredlanguage: de
+givenname: L
+sn: L
+cn: L L
+
+dn: uid=de138 , ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de138
+givenname;lang-de: M
+sn;lang-de: M
+cn;lang-de: M M
+preferredlanguage: de
+givenname: M
+sn: M
+cn: M M
+
+dn: uid=de139 , ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de139
+givenname;lang-de: N
+sn;lang-de: N
+cn;lang-de: N N
+preferredlanguage: de
+givenname: N
+sn: N
+cn: N N
+
+dn: uid=de140 , ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de140
+givenname;lang-de: O
+sn;lang-de: O
+cn;lang-de: O O
+preferredlanguage: de
+givenname: O
+sn: O
+cn: O O
+
+dn: uid=de141 , ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de141
+givenname;lang-de: P
+sn;lang-de: P
+cn;lang-de: P P
+preferredlanguage: de
+givenname: P
+sn: P
+cn: P P
+
+dn: uid=de142, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de142
+givenname;lang-de: Q
+sn;lang-de: Q
+cn;lang-de: Q Q
+preferredlanguage: de
+givenname: Q
+sn: Q
+cn: Q Q
+
+dn: uid=de143 , ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de143
+givenname;lang-de: R
+sn;lang-de: R
+cn;lang-de: R R
+preferredlanguage: de
+givenname: R
+sn: R
+cn: R R
+
+dn: uid=de144 , ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de144
+givenname;lang-de: S
+sn;lang-de: S
+cn;lang-de: S S
+preferredlanguage: de
+givenname: S
+sn: S
+cn: S S
+
+dn: uid=de145, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de145
+givenname;lang-de: T
+sn;lang-de: T
+cn;lang-de: T T
+preferredlanguage: de
+givenname: T
+sn: T
+cn: T T
+
+dn: uid=de146 , ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de146
+givenname;lang-de: U
+sn;lang-de: U
+cn;lang-de: U U
+preferredlanguage: de
+givenname: U
+sn: U
+cn: U U
+
+dn: uid=de147, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de147
+givenname;lang-de: V
+sn;lang-de: V
+cn;lang-de: V V
+preferredlanguage: de
+givenname: V
+sn: V
+cn: V V
+
+dn: uid=de148 , ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de148
+givenname;lang-de: W
+sn;lang-de: W
+cn;lang-de: W W
+preferredlanguage: de
+givenname: W
+sn: W
+cn: W W
+
+dn: uid=de149 , ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de149
+givenname;lang-de: X
+sn;lang-de: X
+cn;lang-de: X X
+preferredlanguage: de
+givenname: X
+sn: X
+cn: X X
+
+dn: uid=de150 , ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de150
+givenname;lang-de: Y
+sn;lang-de: Y
+cn;lang-de: Y Y
+preferredlanguage: de
+givenname: Y
+sn: Y
+cn: Y Y
+
+dn: uid=de151 , ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: de151
+givenname;lang-de: Z
+sn;lang-de: Z
+cn;lang-de: Z Z
+preferredlanguage: de
+givenname: Z
+sn: Z
+cn: Z Z
+
+dn: uid=es100, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es100
+givenname;lang-es: a 
+sn;lang-es: a
+cn;lang-es: a a
+preferredlanguage: es
+givenname: a
+sn: a
+cn: a a
+
+dn: uid=es101 , ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es101
+givenname;lang-es: b
+sn;lang-es: b
+cn;lang-es: b b
+preferredlanguage: es
+givenname: b
+sn: b
+cn: b b
+
+dn: uid=es102 , ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es102
+givenname;lang-es: c
+sn;lang-es: c
+cn;lang-es: c c
+preferredlanguage: es
+givenname: c
+sn: c
+cn: c c
+
+dn: uid=es103 , ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es103
+givenname;lang-es: d
+sn;lang-es: d
+cn;lang-es: d d
+preferredlanguage: es
+givenname: d
+sn: d
+cn: d d
+
+dn: uid=es104, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es104
+givenname;lang-es: e
+sn;lang-es: e
+cn;lang-es: e e
+preferredlanguage: es
+givenname: e
+sn: e
+cn: e e
+
+dn: uid=es105, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es105
+givenname;lang-es: f
+sn;lang-es: f
+cn;lang-es: f f
+preferredlanguage: es
+givenname: f
+sn: f
+cn: f f
+
+dn: uid=es106, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es106
+givenname;lang-es: g
+sn;lang-es: g
+cn;lang-es: g g
+preferredlanguage: es
+givenname: g
+sn: g
+cn: g g
+
+dn: uid=es107, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es107
+givenname;lang-es: h
+sn;lang-es: h
+cn;lang-es: h h
+preferredlanguage: es
+givenname: h
+sn: h
+cn: h h
+
+dn: uid=es108, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es108
+givenname;lang-es: i
+sn;lang-es: i
+cn;lang-es: i i
+preferredlanguage: es
+givenname: i
+sn: i
+cn: i i
+
+dn: uid=es109 , ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es109
+givenname;lang-es: j
+sn;lang-es: j
+cn;lang-es: j j
+preferredlanguage: es
+givenname: j
+sn: j
+cn: j j
+
+dn: uid=es110 , ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es110
+givenname;lang-es: k
+sn;lang-es: k
+cn;lang-es: k k
+preferredlanguage: es
+givenname: k
+sn: k
+cn: k k
+
+dn: uid=es111 , ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es111
+givenname;lang-es: l
+sn;lang-es: l
+cn;lang-es: l l
+preferredlanguage: es
+givenname: l
+sn: l
+cn: l l
+
+dn: uid=es112, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es112
+givenname;lang-es: m
+sn;lang-es: m
+cn;lang-es: m m
+preferredlanguage: es
+givenname: m
+sn: m
+cn: m m
+
+dn: uid=es113 , ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es113
+givenname;lang-es: n
+sn;lang-es: n
+cn;lang-es: n n
+preferredlanguage: es
+givenname: n
+sn: n
+cn: n n
+
+dn: uid=es114 , ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es114
+givenname;lang-es: o
+sn;lang-es: o
+cn;lang-es: o o
+preferredlanguage: es
+givenname: o
+sn: o
+cn: o o
+
+dn: uid=es115, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es115
+givenname;lang-es: p
+sn;lang-es: p
+cn;lang-es: p p
+preferredlanguage: es
+givenname: p
+sn: p
+cn: p p
+
+dn: uid=es116 , ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es116
+givenname;lang-es: q
+sn;lang-es: q
+cn;lang-es: q q
+preferredlanguage: es
+givenname: q
+sn: q
+cn: q q
+
+dn: uid=es117, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es117
+givenname;lang-es: r
+sn;lang-es: r
+cn;lang-es: r r
+preferredlanguage: es
+givenname: r
+sn: r
+cn: r r
+
+dn: uid=es118 , ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es118
+givenname;lang-es: s
+sn;lang-es: s
+cn;lang-es: s s
+preferredlanguage: es
+givenname: s
+sn: s
+cn: s s
+
+dn: uid=es119 , ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es119
+givenname;lang-es: t
+sn;lang-es: t
+cn;lang-es: t t
+preferredlanguage: es
+givenname: t
+sn: t
+cn: t t
+
+dn: uid=es120 , ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es120
+givenname;lang-es: u
+sn;lang-es: u
+cn;lang-es: u u
+preferredlanguage: es
+givenname: u
+sn: u
+cn: u u
+
+dn: uid=es121, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es121
+givenname;lang-es: v
+sn;lang-es: v
+cn;lang-es: v v
+preferredlanguage: es
+givenname: v
+sn: v
+cn: v v
+
+dn: uid=es122 , ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es122
+givenname;lang-es: w
+sn;lang-es: w
+cn;lang-es: w w
+preferredlanguage: es
+givenname: w
+sn: w
+cn: w w
+
+dn: uid=es123 , ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es123
+givenname;lang-es: x
+sn;lang-es: x
+cn;lang-es: x x
+preferredlanguage: es
+givenname: x
+sn: x
+cn: x x
+
+dn: uid=es124, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es124
+givenname;lang-es: y
+sn;lang-es: y
+cn;lang-es: y y
+preferredlanguage: es
+givenname: y
+sn: y
+cn: y y
+
+dn: uid=es125, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es125
+givenname;lang-es: z
+sn;lang-es: z
+cn;lang-es: z z
+preferredlanguage: es
+givenname: z
+sn: z
+cn: z z
+
+dn: uid=es126, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es126
+givenname;lang-es: A
+sn;lang-es: A
+cn;lang-es: A A
+preferredlanguage: es
+givenname: A
+sn: A
+cn: A A
+
+dn: uid=es127, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es127
+givenname;lang-es: B
+sn;lang-es: B
+cn;lang-es: B B
+preferredlanguage: es
+givenname: B
+sn: B
+cn: B B
+
+dn: uid=es128, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es128
+givenname;lang-es: C
+sn;lang-es: C
+cn;lang-es: C C
+preferredlanguage: es
+givenname: C
+sn: C
+cn: C C
+
+dn: uid=es129 , ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es129
+givenname;lang-es: D
+sn;lang-es: D
+cn;lang-es: D D
+preferredlanguage: es
+givenname: D
+sn: D
+cn: D D
+
+dn: uid=es130 , ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es130
+givenname;lang-es: E
+sn;lang-es: E
+cn;lang-es: E E
+preferredlanguage: es
+givenname: E
+sn: E
+cn: E E
+
+dn: uid=es131 , ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es131
+givenname;lang-es: F
+sn;lang-es: F
+cn;lang-es: F F
+preferredlanguage: es
+givenname: F F
+sn: F
+cn: F F
+
+dn: uid=es132, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es132
+givenname;lang-es: G
+sn;lang-es: G
+cn;lang-es: G G
+preferredlanguage: es
+givenname: G
+sn: G
+cn: G G
+
+dn: uid=es133 , ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es133
+givenname;lang-es: H
+sn;lang-es: H
+cn;lang-es: H H
+preferredlanguage: es
+givenname: H
+sn: H
+cn: H H
+
+dn: uid=es134 , ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es134
+givenname;lang-es: I
+sn;lang-es: I
+cn;lang-es: I I
+preferredlanguage: es
+givenname: I
+sn: I
+cn: I I
+
+dn: uid=es135, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es135
+givenname;lang-es: J
+sn;lang-es: J
+cn;lang-es: J J
+preferredlanguage: es
+givenname: J
+sn: J
+cn: J J
+
+dn: uid=es136 , ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es136
+givenname;lang-es: K
+sn;lang-es: K
+cn;lang-es: K K
+preferredlanguage: es
+givenname: K
+sn: K
+cn: K K
+
+dn: uid=es137, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es137
+givenname;lang-es: L
+sn;lang-es: L
+cn;lang-es: L L
+preferredlanguage: es
+givenname: L
+sn: L
+cn: L L
+
+dn: uid=es138 , ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es138
+givenname;lang-es: M
+sn;lang-es: M
+cn;lang-es: M M
+preferredlanguage: es
+givenname: M
+sn: M
+cn: M M
+
+dn: uid=es139 , ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es139
+givenname;lang-es: N
+sn;lang-es: N
+cn;lang-es: N N
+preferredlanguage: es
+givenname: N
+sn: N
+cn: N N
+
+dn: uid=es140 , ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es140
+givenname;lang-es: O
+sn;lang-es: O
+cn;lang-es: O O
+preferredlanguage: es
+givenname: O
+sn: O
+cn: O O
+
+dn: uid=es141 , ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es141
+givenname;lang-es: P
+sn;lang-es: P
+cn;lang-es: P P
+preferredlanguage: es
+givenname: P
+sn: P
+cn: P P
+
+dn: uid=es142, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es142
+givenname;lang-es: Q
+sn;lang-es: Q
+cn;lang-es: Q Q
+preferredlanguage: es
+givenname: Q
+sn: Q
+cn: Q Q
+
+dn: uid=es143 , ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es143
+givenname;lang-es: R
+sn;lang-es: R
+cn;lang-es: R R
+preferredlanguage: es
+givenname: R
+sn: R
+cn: R R
+
+dn: uid=es144 , ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es144
+givenname;lang-es: S
+sn;lang-es: S
+cn;lang-es: S S
+preferredlanguage: es
+givenname: S
+sn: S
+cn: S S
+
+dn: uid=es145, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es145
+givenname;lang-es: T
+sn;lang-es: T
+cn;lang-es: T T
+preferredlanguage: es
+givenname: T
+sn: T
+cn: T T
+
+dn: uid=es146 , ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es146
+givenname;lang-es: U
+sn;lang-es: U
+cn;lang-es: U U
+preferredlanguage: es
+givenname: U
+sn: U
+cn: U U
+
+dn: uid=es147, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es147
+givenname;lang-es: V
+sn;lang-es: V
+cn;lang-es: V V
+preferredlanguage: es
+givenname: V
+sn: V
+cn: V V
+
+dn: uid=es148 , ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es148
+givenname;lang-es: W
+sn;lang-es: W
+cn;lang-es: W W
+preferredlanguage: es
+givenname: W
+sn: W
+cn: W W
+
+dn: uid=es149 , ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es149
+givenname;lang-es: X
+sn;lang-es: X
+cn;lang-es: X X
+preferredlanguage: es
+givenname: X
+sn: X
+cn: X X
+
+dn: uid=es150 , ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es150
+givenname;lang-es: Y
+sn;lang-es: Y
+cn;lang-es: Y Y
+preferredlanguage: es
+givenname: Y
+sn: Y
+cn: Y Y
+
+dn: uid=es151 , ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: es151
+givenname;lang-es: Z
+sn;lang-es: Z
+cn;lang-es: Z Z
+preferredlanguage: es
+givenname: Z
+sn: Z
+cn: Z Z
+
+dn: uid=fr100, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr100
+givenname;lang-fr: a 
+sn;lang-fr: a
+cn;lang-fr: a a
+preferredlanguage: fr
+givenname: a
+sn: a
+cn: a a
+
+dn: uid=fr101 , ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr101
+givenname;lang-fr: b
+sn;lang-fr: b
+cn;lang-fr: b b
+preferredlanguage: fr
+givenname: b
+sn: b
+cn: b b
+
+dn: uid=fr102 , ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr102
+givenname;lang-fr: c
+sn;lang-fr: c
+cn;lang-fr: c c
+preferredlanguage: fr
+givenname: c
+sn: c
+cn: c c
+
+dn: uid=fr103 , ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr103
+givenname;lang-fr: d
+sn;lang-fr: d
+cn;lang-fr: d d
+preferredlanguage: fr
+givenname: d
+sn: d
+cn: d d
+
+dn: uid=fr104, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr104
+givenname;lang-fr: e
+sn;lang-fr: e
+cn;lang-fr: e e
+preferredlanguage: fr
+givenname: e
+sn: e
+cn: e e
+
+dn: uid=fr105, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr105
+givenname;lang-fr: f
+sn;lang-fr: f
+cn;lang-fr: f f
+preferredlanguage: fr
+givenname: f
+sn: f
+cn: f f
+
+dn: uid=fr106, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr106
+givenname;lang-fr: g
+sn;lang-fr: g
+cn;lang-fr: g g
+preferredlanguage: fr
+givenname: g
+sn: g
+cn: g g
+
+dn: uid=fr107, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr107
+givenname;lang-fr: h
+sn;lang-fr: h
+cn;lang-fr: h h
+preferredlanguage: fr
+givenname: h
+sn: h
+cn: h h
+
+dn: uid=fr108, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr108
+givenname;lang-fr: i
+sn;lang-fr: i
+cn;lang-fr: i i
+preferredlanguage: fr
+givenname: i
+sn: i
+cn: i i
+
+dn: uid=fr109 , ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr109
+givenname;lang-fr: j
+sn;lang-fr: j
+cn;lang-fr: j j
+preferredlanguage: fr
+givenname: j
+sn: j
+cn: j j
+
+dn: uid=fr110 , ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr110
+givenname;lang-fr: k
+sn;lang-fr: k
+cn;lang-fr: k k
+preferredlanguage: fr
+givenname: k
+sn: k
+cn: k k
+
+dn: uid=fr111 , ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr111
+givenname;lang-fr: l
+sn;lang-fr: l
+cn;lang-fr: l l
+preferredlanguage: fr
+givenname: l
+sn: l
+cn: l l
+
+dn: uid=fr112, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr112
+givenname;lang-fr: m
+sn;lang-fr: m
+cn;lang-fr: m m
+preferredlanguage: fr
+givenname: m
+sn: m
+cn: m m
+
+dn: uid=fr113 , ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr113
+givenname;lang-fr: n
+sn;lang-fr: n
+cn;lang-fr: n n
+preferredlanguage: fr
+givenname: n
+sn: n
+cn: n n
+
+dn: uid=fr114 , ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr114
+givenname;lang-fr: o
+sn;lang-fr: o
+cn;lang-fr: o o
+preferredlanguage: fr
+givenname: o
+sn: o
+cn: o o
+
+dn: uid=fr115, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr115
+givenname;lang-fr: p
+sn;lang-fr: p
+cn;lang-fr: p p
+preferredlanguage: fr
+givenname: p
+sn: p
+cn: p p
+
+dn: uid=fr116 , ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr116
+givenname;lang-fr: q
+sn;lang-fr: q
+cn;lang-fr: q q
+preferredlanguage: fr
+givenname: q
+sn: q
+cn: q q
+
+dn: uid=fr117, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr117
+givenname;lang-fr: r
+sn;lang-fr: r
+cn;lang-fr: r r
+preferredlanguage: fr
+givenname: r
+sn: r
+cn: r r
+
+dn: uid=fr118 , ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr118
+givenname;lang-fr: s
+sn;lang-fr: s
+cn;lang-fr: s s
+preferredlanguage: fr
+givenname: s
+sn: s
+cn: s s
+
+dn: uid=fr119 , ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr119
+givenname;lang-fr: t
+sn;lang-fr: t
+cn;lang-fr: t t
+preferredlanguage: fr
+givenname: t
+sn: t
+cn: t t
+
+dn: uid=fr120 , ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr120
+givenname;lang-fr: u
+sn;lang-fr: u
+cn;lang-fr: u u
+preferredlanguage: fr
+givenname: u
+sn: u
+cn: u u
+
+dn: uid=fr121, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr121
+givenname;lang-fr: v
+sn;lang-fr: v
+cn;lang-fr: v v
+preferredlanguage: fr
+givenname: v
+sn: v
+cn: v v
+
+dn: uid=fr122 , ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr122
+givenname;lang-fr: w
+sn;lang-fr: w
+cn;lang-fr: w w
+preferredlanguage: fr
+givenname: w
+sn: w
+cn: w w
+
+dn: uid=fr123 , ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr123
+givenname;lang-fr: x
+sn;lang-fr: x
+cn;lang-fr: x x
+preferredlanguage: fr
+givenname: x
+sn: x
+cn: x x
+
+dn: uid=fr124, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr124
+givenname;lang-fr: y
+sn;lang-fr: y
+cn;lang-fr: y y
+preferredlanguage: fr
+givenname: y
+sn: y
+cn: y y
+
+dn: uid=fr125, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr125
+givenname;lang-fr: z
+sn;lang-fr: z
+cn;lang-fr: z z
+preferredlanguage: fr
+givenname: z
+sn: z
+cn: z z
+
+dn: uid=fr126, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr126
+givenname;lang-fr: A
+sn;lang-fr: A
+cn;lang-fr: A A
+preferredlanguage: fr
+givenname: A
+sn: A
+cn: A A
+
+dn: uid=fr127, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr127
+givenname;lang-fr: B
+sn;lang-fr: B
+cn;lang-fr: B B
+preferredlanguage: fr
+givenname: B
+sn: B
+cn: B B
+
+dn: uid=fr128, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr128
+givenname;lang-fr: C
+sn;lang-fr: C
+cn;lang-fr: C C
+preferredlanguage: fr
+givenname: C
+sn: C
+cn: C C
+
+dn: uid=fr129 , ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr129
+givenname;lang-fr: D
+sn;lang-fr: D
+cn;lang-fr: D D
+preferredlanguage: fr
+givenname: D
+sn: D
+cn: D D
+
+dn: uid=fr130 , ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr130
+givenname;lang-fr: E
+sn;lang-fr: E
+cn;lang-fr: E E
+preferredlanguage: fr
+givenname: E
+sn: E
+cn: E E
+
+dn: uid=fr131 , ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr131
+givenname;lang-fr: F
+sn;lang-fr: F
+cn;lang-fr: F F
+preferredlanguage: fr
+givenname: F F
+sn: F
+cn: F F
+
+dn: uid=fr132, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr132
+givenname;lang-fr: G
+sn;lang-fr: G
+cn;lang-fr: G G
+preferredlanguage: fr
+givenname: G
+sn: G
+cn: G G
+
+dn: uid=fr133 , ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr133
+givenname;lang-fr: H
+sn;lang-fr: H
+cn;lang-fr: H H
+preferredlanguage: fr
+givenname: H
+sn: H
+cn: H H
+
+dn: uid=fr134 , ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr134
+givenname;lang-fr: I
+sn;lang-fr: I
+cn;lang-fr: I I
+preferredlanguage: fr
+givenname: I
+sn: I
+cn: I I
+
+dn: uid=fr135, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr135
+givenname;lang-fr: J
+sn;lang-fr: J
+cn;lang-fr: J J
+preferredlanguage: fr
+givenname: J
+sn: J
+cn: J J
+
+dn: uid=fr136 , ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr136
+givenname;lang-fr: K
+sn;lang-fr: K
+cn;lang-fr: K K
+preferredlanguage: fr
+givenname: K
+sn: K
+cn: K K
+
+dn: uid=fr137, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr137
+givenname;lang-fr: L
+sn;lang-fr: L
+cn;lang-fr: L L
+preferredlanguage: fr
+givenname: L
+sn: L
+cn: L L
+
+dn: uid=fr138 , ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr138
+givenname;lang-fr: M
+sn;lang-fr: M
+cn;lang-fr: M M
+preferredlanguage: fr
+givenname: M
+sn: M
+cn: M M
+
+dn: uid=fr139 , ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr139
+givenname;lang-fr: N
+sn;lang-fr: N
+cn;lang-fr: N N
+preferredlanguage: fr
+givenname: N
+sn: N
+cn: N N
+
+dn: uid=fr140 , ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr140
+givenname;lang-fr: O
+sn;lang-fr: O
+cn;lang-fr: O O
+preferredlanguage: fr
+givenname: O
+sn: O
+cn: O O
+
+dn: uid=fr141 , ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr141
+givenname;lang-fr: P
+sn;lang-fr: P
+cn;lang-fr: P P
+preferredlanguage: fr
+givenname: P
+sn: P
+cn: P P
+
+dn: uid=fr142, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr142
+givenname;lang-fr: Q
+sn;lang-fr: Q
+cn;lang-fr: Q Q
+preferredlanguage: fr
+givenname: Q
+sn: Q
+cn: Q Q
+
+dn: uid=fr143 , ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr143
+givenname;lang-fr: R
+sn;lang-fr: R
+cn;lang-fr: R R
+preferredlanguage: fr
+givenname: R
+sn: R
+cn: R R
+
+dn: uid=fr144 , ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr144
+givenname;lang-fr: S
+sn;lang-fr: S
+cn;lang-fr: S S
+preferredlanguage: fr
+givenname: S
+sn: S
+cn: S S
+
+dn: uid=fr145, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr145
+givenname;lang-fr: T
+sn;lang-fr: T
+cn;lang-fr: T T
+preferredlanguage: fr
+givenname: T
+sn: T
+cn: T T
+
+dn: uid=fr146 , ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr146
+givenname;lang-fr: U
+sn;lang-fr: U
+cn;lang-fr: U U
+preferredlanguage: fr
+givenname: U
+sn: U
+cn: U U
+
+dn: uid=fr147, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr147
+givenname;lang-fr: V
+sn;lang-fr: V
+cn;lang-fr: V V
+preferredlanguage: fr
+givenname: V
+sn: V
+cn: V V
+
+dn: uid=fr148 , ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr148
+givenname;lang-fr: W
+sn;lang-fr: W
+cn;lang-fr: W W
+preferredlanguage: fr
+givenname: W
+sn: W
+cn: W W
+
+dn: uid=fr149 , ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr149
+givenname;lang-fr: X
+sn;lang-fr: X
+cn;lang-fr: X X
+preferredlanguage: fr
+givenname: X
+sn: X
+cn: X X
+
+dn: uid=fr150 , ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr150
+givenname;lang-fr: Y
+sn;lang-fr: Y
+cn;lang-fr: Y Y
+preferredlanguage: fr
+givenname: Y
+sn: Y
+cn: Y Y
+
+dn: uid=fr151 , ou=En Français, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: fr151
+givenname;lang-fr: Z
+sn;lang-fr: Z
+cn;lang-fr: Z Z
+preferredlanguage: fr
+givenname: Z
+sn: Z
+cn: Z Z
+
+dn: cn=à , ou=En Français, ou=European Letters, o=Çéliné Ändrè
+cn: à
+cn;lang-fr: à
+cn;lang-en: à
+objectclass: top
+objectclass: groupOfUniqueNames
+uniquemember: uid=fr1, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+uniquemember: uid=fr10, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+uniquemember: uid=de7, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+uniquemember: uid=de4, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+uniquemember: uid=es2, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+uniquemember: uid=es4, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+uniquemember: uid=es6, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+
+dn: cn=â, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+cn: â
+cn;lang-fr: â
+cn;lang-en: â
+objectclass: top
+objectclass: groupOfUniqueNames
+uniquemember: uid=fr2, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+
+dn: cn=ç, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+cn: ç
+cn;lang-fr: ç
+cn;lang-en: ç
+objectclass: top
+objectclass: groupOfUniqueNames
+uniquemember: uid=fr3, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+
+dn: cn=ë, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+cn: ë
+cn;lang-fr: ë
+cn;lang-en: ë
+objectclass: top
+objectclass: groupOfUniqueNames
+uniquemember: uid=fr4, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+
+dn: cn=è, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+cn: è
+cn;lang-fr: è
+cn;lang-en: è
+objectclass: top
+objectclass: groupOfUniqueNames
+uniquemember: uid=fr5, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+
+dn: cn=é, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+cn: é
+cn;lang-fr: é
+cn;lang-en: é
+objectclass: top
+objectclass: groupOfUniqueNames
+uniquemember: uid=fr6, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+
+dn: cn=ê, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+cn: ê
+cn;lang-fr: ê
+cn;lang-en: ê
+objectclass: top
+objectclass: groupOfUniqueNames
+uniquemember: uid=fr7, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+
+dn: cn=ï, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+cn: ï
+cn;lang-fr: ï
+cn;lang-en: ï
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=î, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+cn: î
+cn;lang-fr: î
+cn;lang-en: î
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=ô, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+cn: ô
+cn;lang-fr: ô
+cn;lang-en: ô
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=ü, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+cn: ü
+cn;lang-fr: ü
+cn;lang-en: ü
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=ù, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+cn: ù
+cn;lang-fr: ù
+cn;lang-en: ù
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=û, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+cn: û
+cn;lang-fr: û
+cn;lang-en: û
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=À-2, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+cn: À-2
+cn;lang-fr: À-2
+cn;lang-en: À-2
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=Â-2, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+cn: Â-2
+cn;lang-fr: Â-2
+cn;lang-en: Â-2
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=Ç-2, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+cn: Ç-2
+cn;lang-fr: Ç-2
+cn;lang-en: Ç-2
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=Ë-2, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+cn: Ë-2
+cn;lang-fr: Ë-2
+cn;lang-en: Ë-2
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=È-2, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+cn: È-2
+cn;lang-fr: È-2
+cn;lang-en: È-2
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=É-2, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+cn: É-2
+cn;lang-fr: É-2
+cn;lang-en: É-2
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=Ê-2, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+cn: Ê-2
+cn;lang-fr: Ê-2
+cn;lang-en: Ê-2
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=Ï-2, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+cn: Ï-2
+cn;lang-fr: Ï-2
+cn;lang-en: Ï-2
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=Î-2, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+cn: Î-2
+cn;lang-fr: Î-2
+cn;lang-en: Î-2
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=Ô-2, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+cn: Ô-2
+cn;lang-fr: Ô-2
+cn;lang-en: Ô-2
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=Ü-2, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+cn: Ü-2
+cn;lang-fr: Ü-2
+cn;lang-en: Ü-2
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=Ù-2, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+cn: Ù-2
+cn;lang-fr: Ù-2
+cn;lang-en: Ù-2
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=Û-2, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+cn: Û-2
+cn;lang-fr: Û-2
+cn;lang-en: Û-2
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=ä, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: groupOfUniqueNames
+cn;lang-en: ä
+cn;lang-de: ä
+cn: ä
+
+dn: cn=ö, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: groupOfUniqueNames
+cn;lang-en: ö
+cn;lang-de: ö
+cn: ö
+
+dn: cn=ü, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: groupOfUniqueNames
+cn;lang-en: ü
+cn;lang-de: ü
+cn: ü
+
+dn: cn=ß , ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: groupOfUniqueNames
+cn;lang-en: ß
+cn;lang-de: ß
+cn: ß
+
+dn: cn=Ä-2, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: groupOfUniqueNames
+cn;lang-en: Ä-2
+cn;lang-de: Ä-2
+cn: Ä-2
+
+dn: cn=Ö-2, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: groupOfUniqueNames
+cn;lang-en: Ö-2
+cn;lang-de: Ö-2
+cn: Ö-2
+
+dn: cn=Ü-2, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: groupOfUniqueNames
+cn;lang-en: Ü-2
+cn;lang-de: Ü-2
+cn: Ü-2
+
+dn: cn=á, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: groupOfUniqueNames
+cn;lang-en: á
+cn;lang-es: á
+cn: á
+
+dn: cn=é, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: groupOfUniqueNames
+cn;lang-en: é
+cn;lang-es: é
+cn: é
+
+dn: cn=í, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: groupOfUniqueNames
+cn;lang-en: í 
+cn;lang-es: í
+cn: í
+
+dn: cn=ó, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: groupOfUniqueNames
+cn;lang-en: ó
+cn;lang-es: ó
+cn: ó
+
+dn: cn=ú , ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: groupOfUniqueNames
+cn;lang-en: ú
+cn;lang-es: ú
+cn: ú
+
+dn: cn=ü, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: groupOfUniqueNames
+cn;lang-en: ü
+cn;lang-es: ü
+cn: ü
+
+dn: cn=Á-2, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: groupOfUniqueNames
+cn;lang-en: Á-2
+cn;lang-es: Á-2
+cn: Á-2
+
+dn: cn=É-2, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: groupOfUniqueNames
+cn;lang-en: É-2
+cn;lang-es: É-2
+cn: É-2
+
+dn: cn=Í-2, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: groupOfUniqueNames
+cn;lang-en: Í-2
+cn;lang-es: Í-2
+cn: Í-2
+
+dn: cn=Ó-2, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: groupOfUniqueNames
+cn;lang-en: Ó-2
+cn;lang-es: Ó-2
+cn: Ó-2
+
+dn: cn=Ú-2, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: groupOfUniqueNames
+cn;lang-en: Ú-2
+cn;lang-es: Ú-2
+cn: Ú-2
+
+dn: cn=Ü-2, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: groupOfUniqueNames
+cn;lang-en: Ü-2
+cn;lang-es: Ü-2
+cn: Ü-2
+
+dn: cn=Ñ-2, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: groupOfUniqueNames
+cn;lang-en: Ñ-2
+cn;lang-es: Ñ-2
+cn: Ñ-2
+
+dn: cn=ñ, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+objectclass: top
+objectclass: groupOfUniqueNames
+cn;lang-en: ñ 
+cn;lang-es: ñ
+cn: ñ
+
+dn: cn=A , ou=En Français, ou=European Letters, o=Çéliné Ändrè
+cn: A
+cn;lang-fr: A
+cn;lang-en: A
+objectclass: top
+objectclass: groupOfUniqueNames
+uniquemember: uid=fr111, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+uniquemember: uid=fr106, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+uniquemember: uid=de7, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+uniquemember: uid=de134, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+uniquemember: uid=es2, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+uniquemember: uid=es4, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+uniquemember: uid=es116, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+
+dn: cn=B, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+cn: B
+cn;lang-fr: B
+cn;lang-en: B
+objectclass: top
+objectclass: groupOfUniqueNames
+uniquemember: uid=fr2, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+
+dn: cn=C, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+cn: C
+cn;lang-fr: C
+cn;lang-en: C
+objectclass: top
+objectclass: groupOfUniqueNames
+uniquemember: uid=fr3, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+
+dn: cn=D, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+cn: D
+cn;lang-fr: D
+cn;lang-en: D
+objectclass: top
+objectclass: groupOfUniqueNames
+uniquemember: uid=fr4, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+
+dn: cn=E, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+cn: E
+cn;lang-fr: E
+cn;lang-en: E
+objectclass: top
+objectclass: groupOfUniqueNames
+uniquemember: uid=fr5, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+
+dn: cn=F, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+cn: F
+cn;lang-fr: F
+cn;lang-en: F
+objectclass: top
+objectclass: groupOfUniqueNames
+uniquemember: uid=fr6, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+
+dn: cn=G, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+cn: G
+cn;lang-fr: G
+cn;lang-en: G
+objectclass: top
+objectclass: groupOfUniqueNames
+uniquemember: uid=fr7, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+
+dn: cn=H, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+cn: H
+cn;lang-fr: H
+cn;lang-en: H
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=I, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+cn: I
+cn;lang-fr: I
+cn;lang-en: I
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=J, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+cn: J
+cn;lang-fr: J
+cn;lang-en: J
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=K, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+cn: K
+cn;lang-fr: K
+cn;lang-en: K
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=L, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+cn: L
+cn;lang-fr: L
+cn;lang-en: L
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=M, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+cn: M
+cn;lang-fr: M
+cn;lang-en: M
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=N, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+cn: N
+cn;lang-fr: N
+cn;lang-en: N
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=O, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+cn: O
+cn;lang-fr: O
+cn;lang-en: O
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=P, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+cn: P
+cn;lang-fr: P
+cn;lang-en: P
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=Q, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+cn: Q
+cn;lang-fr: Q
+cn;lang-en: Q
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=R, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+cn: R
+cn;lang-fr: R
+cn;lang-en: R
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=S, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+cn: S
+cn;lang-fr: S
+cn;lang-en: S
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=T, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+cn: T
+cn;lang-fr: T
+cn;lang-en: T
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=U, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+cn: U
+cn;lang-fr: U
+cn;lang-en: U
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=V, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+cn: V
+cn;lang-fr: V
+cn;lang-en: V
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=W, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+cn: W
+cn;lang-fr: W
+cn;lang-en: W
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=X, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+cn: X
+cn;lang-fr: X
+cn;lang-en: X
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=Y, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+cn: Y
+cn;lang-fr: Y
+cn;lang-en: Y
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=Z, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+cn: Z
+cn;lang-fr: Z
+cn;lang-en: Z
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=A , ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+cn: A
+cn;lang-de: A
+cn;lang-en: A
+objectclass: top
+objectclass: groupOfUniqueNames
+uniquemember: uid=fr111, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+uniquemember: uid=fr106, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+uniquemember: uid=de7, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+uniquemember: uid=de134, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+uniquemember: uid=es2, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+uniquemember: uid=es4, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+uniquemember: uid=es116, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+
+dn: cn=B, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+cn: B
+cn;lang-de: B
+cn;lang-en: B
+objectclass: top
+objectclass: groupOfUniqueNames
+uniquemember: uid=fr2, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+
+dn: cn=C, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+cn: C
+cn;lang-de: C
+cn;lang-en: C
+objectclass: top
+objectclass: groupOfUniqueNames
+uniquemember: uid=fr3, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+
+dn: cn=D, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+cn: D
+cn;lang-de: D
+cn;lang-en: D
+objectclass: top
+objectclass: groupOfUniqueNames
+uniquemember: uid=fr4, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+
+dn: cn=E, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+cn: E
+cn;lang-de: E
+cn;lang-en: E
+objectclass: top
+objectclass: groupOfUniqueNames
+uniquemember: uid=fr5, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+
+dn: cn=F, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+cn: F
+cn;lang-de: F
+cn;lang-en: F
+objectclass: top
+objectclass: groupOfUniqueNames
+uniquemember: uid=fr6, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+
+dn: cn=G, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+cn: G
+cn;lang-de: G
+cn;lang-en: G
+objectclass: top
+objectclass: groupOfUniqueNames
+uniquemember: uid=fr7, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+
+dn: cn=H, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+cn: H
+cn;lang-de: H
+cn;lang-en: H
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=I, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+cn: I
+cn;lang-de: I
+cn;lang-en: I
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=J, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+cn: J
+cn;lang-de: J
+cn;lang-en: J
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=K, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+cn: K
+cn;lang-de: K
+cn;lang-en: K
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=L, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+cn: L
+cn;lang-de: L
+cn;lang-en: L
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=M, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+cn: M
+cn;lang-de: M
+cn;lang-en: M
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=N, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+cn: N
+cn;lang-de: N
+cn;lang-en: N
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=O, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+cn: O
+cn;lang-de: O
+cn;lang-en: O
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=P, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+cn: P
+cn;lang-de: P
+cn;lang-en: P
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=Q, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+cn: Q
+cn;lang-de: Q
+cn;lang-en: Q
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=R, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+cn: R
+cn;lang-de: R
+cn;lang-en: R
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=S, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+cn: S
+cn;lang-de: S
+cn;lang-en: S
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=T, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+cn: T
+cn;lang-de: T
+cn;lang-en: T
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=U, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+cn: U
+cn;lang-de: U
+cn;lang-en: U
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=V, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+cn: V
+cn;lang-de: V
+cn;lang-en: V
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=W, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+cn: W
+cn;lang-de: W
+cn;lang-en: W
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=X, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+cn: X
+cn;lang-de: X
+cn;lang-en: X
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=Y, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+cn: Y
+cn;lang-de: Y
+cn;lang-en: Y
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=Z, ou=Auf Deutsch, ou=European Letters, o=Çéliné Ändrè
+cn: Z
+cn;lang-de: Z
+cn;lang-en: Z
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=A , ou=En Español, ou=European Letters, o=Çéliné Ändrè
+cn: A
+cn;lang-es: A
+cn;lang-en: A
+objectclass: top
+objectclass: groupOfUniqueNames
+uniquemember: uid=fr111, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+uniquemember: uid=fr106, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+uniquemember: uid=de7, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+uniquemember: uid=de134, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+uniquemember: uid=es2, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+uniquemember: uid=es4, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+uniquemember: uid=es116, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+
+dn: cn=B, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+cn: B
+cn;lang-es: B
+cn;lang-en: B
+objectclass: top
+objectclass: groupOfUniqueNames
+uniquemember: uid=fr2, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+
+dn: cn=C, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+cn: C
+cn;lang-es: C
+cn;lang-en: C
+objectclass: top
+objectclass: groupOfUniqueNames
+uniquemember: uid=fr3, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+
+dn: cn=D, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+cn: D
+cn;lang-es: D
+cn;lang-en: D
+objectclass: top
+objectclass: groupOfUniqueNames
+uniquemember: uid=fr4, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+
+dn: cn=E, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+cn: E
+cn;lang-es: E
+cn;lang-en: E
+objectclass: top
+objectclass: groupOfUniqueNames
+uniquemember: uid=fr5, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+
+dn: cn=F, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+cn: F
+cn;lang-es: F
+cn;lang-en: F
+objectclass: top
+objectclass: groupOfUniqueNames
+uniquemember: uid=fr6, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+
+dn: cn=G, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+cn: G
+cn;lang-es: G
+cn;lang-en: G
+objectclass: top
+objectclass: groupOfUniqueNames
+uniquemember: uid=fr7, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+
+dn: cn=H, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+cn: H
+cn;lang-es: H
+cn;lang-en: H
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=I, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+cn: I
+cn;lang-es: I
+cn;lang-en: I
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=J, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+cn: J
+cn;lang-es: J
+cn;lang-en: J
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=K, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+cn: K
+cn;lang-es: K
+cn;lang-en: K
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=L, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+cn: L
+cn;lang-es: L
+cn;lang-en: L
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=M, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+cn: M
+cn;lang-es: M
+cn;lang-en: M
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=N, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+cn: N
+cn;lang-es: N
+cn;lang-en: N
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=O, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+cn: O
+cn;lang-es: O
+cn;lang-en: O
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=P, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+cn: P
+cn;lang-es: P
+cn;lang-en: P
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=Q, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+cn: Q
+cn;lang-es: Q
+cn;lang-en: Q
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=R, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+cn: R
+cn;lang-es: R
+cn;lang-en: R
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=S, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+cn: S
+cn;lang-es: S
+cn;lang-en: S
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=T, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+cn: T
+cn;lang-es: T
+cn;lang-en: T
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=U, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+cn: U
+cn;lang-es: U
+cn;lang-en: U
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=V, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+cn: V
+cn;lang-es: V
+cn;lang-en: V
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=W, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+cn: W
+cn;lang-es: W
+cn;lang-en: W
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=X, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+cn: X
+cn;lang-es: X
+cn;lang-en: X
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=Y, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+cn: Y
+cn;lang-es: Y
+cn;lang-en: Y
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: cn=Z, ou=En Español, ou=European Letters, o=Çéliné Ändrè
+cn: Z
+cn;lang-es: Z
+cn;lang-en: Z
+objectclass: top
+objectclass: groupOfUniqueNames
+
+dn: o=àâçëèéêïîôüùûÀÂÇËÈÉÊÏÎÔÜÙÛ, o=Çéliné Ändrè
+objectclass: top
+objectclass: organization
+o: àâçëèéêïîôüùûÀÂÇËÈÉÊÏÎÔÜÙÛ
+description: French Organization
+telephonenumber: àâçëèéêïîôüùûÀÂÇËÈÉÊÏÎÔÜÙÛ
+businesscategory: àâçëèéêïîôüùûÀÂÇËÈÉÊÏÎÔÜÙÛ
+facsimiletelephonenumber: àâçëèéêïîôüùûÀÂÇËÈÉÊÏÎÔÜÙÛ
+l: àâçëèéêïîôüùû$ÀÂÇËÈÉÊÏÎÔÜÙÛ
+postaladdress: àâçëèéêï$1234$îôüùû$ÀÂÇËÈÉÊÏÎÔÜÙÛ 123$France 1234
+seealso: cn=ç, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+seealso: uid=tbird, ou=People, o=Çéliné Ändrè
+seealso: ou=Bürger Preußens, ou=Çëû - Europé, o=Çéliné Ändrè
+
+dn: o=á é í ó ü ñ Á É Í Ó Ú Ü Ñ, o=Çéliné Ändrè
+objectclass: top
+objectclass: organization
+o: á é í ó ü ñ Á É Í Ó Ú Ü Ñ
+description: Spanish Organization
+telephonenumber: á é í ó ü ñ Á É Í Ó Ú Ü Ñ
+businesscategory: á é í ó ü ñ Á É Í Ó Ú Ü Ñ
+facsimiletelephonenumber: á é í ó ü ñ Á É Í Ó Ú Ü Ñ
+l: á é í ó ü ñ Á É Í Ó Ú Ü Ñ$á é í ó ü ñ Á É Í Ó Ú Ü Ñ
+postaladdress: á é í ó ü ñ $1234$Á É Í Ó Ú Ü Ñ$Spain 54321
+seealso: cn=ç, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+seealso: uid=tbird, ou=People, o=Çéliné Ändrè
+seealso: ou=Bürger Preußens, ou=Çëû - Europé, o=Çéliné Ändrè
+
+dn: o=ÄÖÜäöüß, o=Çéliné Ändrè
+objectclass: top
+objectclass: organization
+o: ÄÖÜäöüß
+description: German Organization
+telephonenumber: ÄÖÜäöüß
+businesscategory: ÄÖÜäöüß
+facsimiletelephonenumber: ÄÖÜäöüß
+l: ÄÖÜäöüß$ÄÖÜäöüß
+postaladdress: ÄÖÜäöüß$1234$ÄÖÜäöüß$Germany 12345
+seealso: cn=ç, ou=En Français, ou=European Letters, o=Çéliné Ändrè
+

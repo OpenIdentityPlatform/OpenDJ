@@ -1,0 +1,370 @@
+/*
+ * CDDL HEADER START
+ *
+ * The contents of this file are subject to the terms of the
+ * Common Development and Distribution License, Version 1.0 only
+ * (the "License").  You may not use this file except in compliance
+ * with the License.
+ *
+ * You can obtain a copy of the license at legal-notices/CDDLv1_0.txt
+ * or http://forgerock.org/license/CDDLv1.0.html.
+ * See the License for the specific language governing permissions
+ * and limitations under the License.
+ *
+ * When distributing Covered Code, include this CDDL HEADER in each
+ * file and include the License file at legal-notices/CDDLv1_0.txt.
+ * If applicable, add the following below this CDDL HEADER, with the
+ * fields enclosed by brackets "[]" replaced with your own identifying
+ * information:
+ *      Portions Copyright [yyyy] [name of copyright owner]
+ *
+ * CDDL HEADER END
+ *
+ *
+ *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2011-2013 ForgeRock AS
+ */
+package org.opends.server.replication.common;
+
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.TreeMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ConcurrentSkipListMap;
+
+import org.opends.messages.Category;
+import org.opends.messages.Message;
+import org.opends.messages.Severity;
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.ResultCode;
+
+import static org.opends.messages.ReplicationMessages.*;
+
+/**
+ * This object is used to store a list of ServerState object, one by replication
+ * domain. Globally, it is the generalization of ServerState (that applies to
+ * one domain) to a list of domains.
+ * <p>
+ * MultiDomainServerState is also known as "cookie" and is used with the
+ * cookie-based changelog.
+ */
+public class MultiDomainServerState implements Iterable<DN>
+{
+  /**
+   * The list of (domain service id, ServerState).
+   */
+  private final ConcurrentMap<DN, ServerState> list;
+
+  /**
+   * Creates a new empty object.
+   */
+  public MultiDomainServerState()
+  {
+    list = new ConcurrentSkipListMap<DN, ServerState>();
+  }
+
+  /**
+   * Create an object from a string representation.
+   * @param mdss The provided string representation of the state.
+   * @throws DirectoryException when the string has an invalid format
+   */
+  public MultiDomainServerState(String mdss) throws DirectoryException
+  {
+    list = new ConcurrentSkipListMap<DN, ServerState>(
+        splitGenStateToServerStates(mdss));
+  }
+
+  /**
+   * Empty the object..
+   * After this call the object will be in the same state as if it
+   * was just created.
+   */
+  public void clear()
+  {
+    list.clear();
+  }
+
+  /**
+   * Update the ServerState of the provided baseDN with the replication
+   * {@link CSN} provided.
+   *
+   * @param baseDN       The provided baseDN.
+   * @param csn          The provided CSN.
+   *
+   * @return a boolean indicating if the update was meaningful.
+   */
+  public boolean update(DN baseDN, CSN csn)
+  {
+    if (csn == null)
+      return false;
+
+    ServerState serverState = list.get(baseDN);
+    if (serverState == null)
+    {
+      serverState = new ServerState();
+      final ServerState existingSS = list.putIfAbsent(baseDN, serverState);
+      if (existingSS != null)
+      {
+        serverState = existingSS;
+      }
+    }
+    return serverState.update(csn);
+  }
+
+  /**
+   * Update the ServerState of the provided baseDN with the provided server
+   * state.
+   *
+   * @param baseDN
+   *          The provided baseDN.
+   * @param serverState
+   *          The provided serverState.
+   */
+  public void update(DN baseDN, ServerState serverState)
+  {
+    for (CSN csn : serverState)
+    {
+      update(baseDN, csn);
+    }
+  }
+
+  /**
+   * Replace the ServerState of the provided baseDN with the provided server
+   * state. The provided server state will be owned by this instance, so care
+   * must be taken by calling code to duplicate it if needed.
+   *
+   * @param baseDN
+   *          The provided baseDN.
+   * @param serverState
+   *          The provided serverState.
+   */
+  public void replace(DN baseDN, ServerState serverState)
+  {
+    if (serverState == null)
+    {
+      throw new IllegalArgumentException("ServerState must not be null");
+    }
+    list.put(baseDN, serverState);
+  }
+
+  /**
+   * Update the current object with the provided multi domain server state.
+   *
+   * @param state
+   *          The provided multi domain server state.
+   */
+  public void update(MultiDomainServerState state)
+  {
+    for (Entry<DN, ServerState> entry : state.list.entrySet())
+    {
+      update(entry.getKey(), entry.getValue());
+    }
+  }
+
+  /**
+   * Returns a string representation of this object.
+   * @return The string representation.
+   */
+  @Override
+  public String toString()
+  {
+    final StringBuilder res = new StringBuilder();
+    if (list != null && !list.isEmpty())
+    {
+      for (Entry<DN, ServerState> entry : list.entrySet())
+      {
+        res.append(entry.getKey()).append(":")
+           .append(entry.getValue()).append(";");
+      }
+    }
+    return res.toString();
+  }
+
+  /**
+   * Dump a string representation in the provided buffer.
+   * @param buffer The provided buffer.
+   */
+  public void toString(StringBuilder buffer)
+  {
+    buffer.append(this);
+  }
+
+  /**
+   * Tests if the state is empty.
+   *
+   * @return True if the state is empty.
+   */
+  public boolean isEmpty()
+  {
+    return list.isEmpty();
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public Iterator<DN> iterator()
+  {
+    return list.keySet().iterator();
+  }
+
+  /**
+   * Returns the ServerState associated to the provided replication domain's
+   * baseDN.
+   *
+   * @param baseDN
+   *          the replication domain's baseDN
+   * @return the associated ServerState
+   */
+  public ServerState getServerState(DN baseDN)
+  {
+    return list.get(baseDN);
+  }
+
+  /**
+   * Returns the CSN associated to the provided replication domain's baseDN and
+   * serverId.
+   *
+   * @param baseDN
+   *          the replication domain's baseDN
+   * @param serverId
+   *          the serverId
+   * @return the associated CSN
+   */
+  public CSN getCSN(DN baseDN, int serverId)
+  {
+    final ServerState ss = list.get(baseDN);
+    if (ss != null)
+    {
+      return ss.getCSN(serverId);
+    }
+    return null;
+  }
+
+  /**
+   * Removes the mapping to the provided CSN if it is present in this
+   * MultiDomainServerState.
+   *
+   * @param baseDN
+   *          the replication domain's baseDN
+   * @param expectedCSN
+   *          the CSN to be removed
+   * @return true if the CSN could be removed, false otherwise.
+   */
+  public boolean removeCSN(DN baseDN, CSN expectedCSN)
+  {
+    ServerState ss = list.get(baseDN);
+    if (ss != null)
+    {
+      return ss.removeCSN(expectedCSN);
+    }
+    return false;
+  }
+
+  /**
+   * Test if this object equals the provided other object.
+   * @param other The other object with which we want to test equality.
+   * @return      Returns True if this equals other, else return false.
+   */
+  public boolean equalsTo(MultiDomainServerState other)
+  {
+    return cover(other) && other.cover(this);
+  }
+
+  /**
+   * Test if this object covers the provided covered object.
+   * @param  covered The provided object.
+   * @return true when this covers the provided object.
+   */
+  public boolean cover(MultiDomainServerState covered)
+  {
+    for (DN baseDN : covered.list.keySet())
+    {
+      ServerState state = list.get(baseDN);
+      ServerState coveredState = covered.list.get(baseDN);
+      if (state == null || coveredState == null || !state.cover(coveredState))
+      {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /**
+   * Test if this object covers the provided CSN for the provided baseDN.
+   *
+   * @param baseDN
+   *          The provided baseDN.
+   * @param csn
+   *          The provided CSN.
+   * @return true when this object covers the provided CSN for the provided
+   *         baseDN.
+   */
+  public boolean cover(DN baseDN, CSN csn)
+  {
+    final ServerState state = list.get(baseDN);
+    return state != null && state.cover(csn);
+  }
+
+  /**
+   * Splits the provided generalizedServerState being a String with the
+   * following syntax: "domain1:state1;domain2:state2;..." to a Map of (domain
+   * DN, domain ServerState).
+   *
+   * @param multiDomainServerState
+   *          the provided multi domain server state also known as cookie
+   * @exception DirectoryException
+   *              when an error occurs
+   * @return the split state.
+   */
+  public static Map<DN, ServerState> splitGenStateToServerStates(
+      String multiDomainServerState) throws DirectoryException
+  {
+    Map<DN, ServerState> startStates = new TreeMap<DN, ServerState>();
+    if (multiDomainServerState != null && multiDomainServerState.length() > 0)
+    {
+      try
+      {
+        // Split the provided multiDomainServerState into domains
+        String[] domains = multiDomainServerState.split(";");
+        for (String domain : domains)
+        {
+          // For each domain, split the CSNs by server
+          // and build a server state (SHOULD BE OPTIMIZED)
+          final ServerState serverStateByDomain = new ServerState();
+
+          final String[] fields = domain.split(":");
+          if (fields.length == 0)
+          {
+            throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
+                ERR_INVALID_COOKIE_SYNTAX.get(multiDomainServerState));
+          }
+          final String domainBaseDN = fields[0];
+          if (fields.length > 1)
+          {
+            final String serverStateStr = fields[1];
+            for (String csnStr : serverStateStr.split(" "))
+            {
+              final CSN csn = new CSN(csnStr);
+              serverStateByDomain.update(csn);
+            }
+          }
+          startStates.put(DN.decode(domainBaseDN), serverStateByDomain);
+        }
+      }
+      catch (DirectoryException de)
+      {
+        throw de;
+      }
+      catch (Exception e)
+      {
+        throw new DirectoryException(
+            ResultCode.PROTOCOL_ERROR,
+            Message.raw(Category.SYNC, Severity.INFORMATION,
+            "Exception raised: " + e),
+            e);
+      }
+    }
+    return startStates;
+  }
+}

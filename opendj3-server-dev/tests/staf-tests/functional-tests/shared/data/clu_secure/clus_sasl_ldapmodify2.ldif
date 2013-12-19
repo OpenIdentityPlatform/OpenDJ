@@ -1,0 +1,4 @@
+dn: uid=user.120,ou=people,dc=com
+changetype: modify
+replace: postalCode
+postalCode: 38000

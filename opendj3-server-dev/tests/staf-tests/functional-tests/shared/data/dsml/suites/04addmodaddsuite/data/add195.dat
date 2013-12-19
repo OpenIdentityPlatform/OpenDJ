@@ -1,0 +1,221 @@
+POST /dsml HTTP/1.1
+Host: Foo
+Connection: Close
+Content-Length: 6059
+SOAPAction: "#batchRequest"
+
+<?xml version='1.0' encoding='UTF-8'?>
+  <soap-env:Envelope
+      xmlns:xsd='http://www.w3.org/2001/XMLSchema'
+      xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+      xmlns:soap-env='http://schemas.xmlsoap.org/soap/envelope/'>
+    <soap-env:Body>
+      <batchRequest xmlns="urn:oasis:names:tc:DSML:2:0:core">
+        <addRequest dn="uid=foo37, ou=People, o=dsmlfe.com">
+        <attr name="mail">
+        <value>foo37@airius.com</value>
+        </attr>
+        <attr name="objectclass">
+        <value>top</value>
+        <value>person</value>
+        <value>organizationalPerson</value>
+        <value>inetOrgPerson</value>
+        </attr>
+        <attr name="pager">
+        <value>+1 999 555 1212</value>
+        </attr>
+        <attr name="givenname">
+        <value>foo</value>
+        </attr>
+        <attr name="telephonenumber">
+        <value>+1 408 555 1221</value>
+        </attr>
+        <attr name="cn">
+        <value>foo 37</value>
+        </attr>
+        <attr name="uid">
+        <value>foo37</value>
+        </attr>
+        <attr name="roomnumber">
+        <value>7t</value>
+        </attr>
+        <attr name="sn">
+        <value>37</value>
+        </attr>
+        <attr name="ou">
+        <value>People</value>
+        </attr>
+        <attr name="facsimiletelephonenumber">
+        <value>+ 1 408 555 1221</value>
+        </attr>
+        <attr name="l">
+        <value>foobar</value>
+        </attr>
+        </addRequest>
+        <addRequest dn="uid=foo38, ou=People, o=dsmlfe.com">
+        <attr name="mail">
+        <value>foo38@airius.com</value>
+        </attr>
+        <attr name="objectclass">
+        <value>top</value>
+        <value>person</value>
+        <value>organizationalPerson</value>
+        <value>inetOrgPerson</value>
+        </attr>
+        <attr name="pager">
+        <value>+1 999 555 1212</value>
+        </attr>
+        <attr name="givenname">
+        <value>foo</value>
+        </attr>
+        <attr name="telephonenumber">
+        <value>+1 408 555 1221</value>
+        </attr>
+        <attr name="cn">
+        <value>foo 38</value>
+        </attr>
+        <attr name="uid">
+        <value>foo38</value>
+        </attr>
+        <attr name="roomnumber">
+        <value>7t</value>
+        </attr>
+        <attr name="sn">
+        <value>38</value>
+        </attr>
+        <attr name="ou">
+        <value>People</value>
+        </attr>
+        <attr name="facsimiletelephonenumber">
+        <value>+ 1 408 555 1221</value>
+        </attr>
+        <attr name="l">
+        <value>foobar</value>
+        </attr>
+        </addRequest>
+        <addRequest dn="uid=foo39, ou=People, o=dsmlfe.com">
+        <attr name="mail">
+        <value>foo39@airius.com</value>
+        </attr>
+        <attr name="objectclass">
+        <value>top</value>
+        <value>person</value>
+        <value>organizationalPerson</value>
+        <value>inetOrgPerson</value>
+        </attr>
+        <attr name="pager">
+        <value>+1 999 555 1212</value>
+        </attr>
+        <attr name="givenname">
+        <value>foo39</value>
+        </attr>
+        <attr name="telephonenumber">
+        <value>+1 408 555 1221</value>
+        </attr>
+        <attr name="cn">
+        <value>foo39</value>
+        </attr>
+        <attr name="uid">
+        <value>foo39</value>
+        </attr>
+        <attr name="roomnumber">
+        <value>7t</value>
+        </attr>
+        <attr name="sn">
+        <value>39</value>
+        </attr>
+        <attr name="ou">
+        <value>People</value>
+        </attr>
+        <attr name="facsimiletelephonenumber">
+        <value>+ 1 408 555 1221</value>
+        </attr>
+        <attr name="l">
+        <value>foo39bar</value>
+        </attr>
+        </addRequest>
+        <addRequest dn="uid=foo40, ou=People, o=dsmlfe.com">
+        <attr name="mail">
+        <value>foo40@airius.com</value>
+        </attr>
+        <attr name="objectclass">
+        <value>top</value>
+        <value>person</value>
+        <value>organizationalPerson</value>
+        <value>inetOrgPerson</value>
+        </attr>
+        <attr name="pager">
+        <value>+1 999 555 1212</value>
+        </attr>
+        <attr name="givenname">
+        <value>foo40</value>
+        </attr>
+        <attr name="telephonenumber">
+        <value>+1 408 555 1221</value>
+        </attr>
+        <attr name="cn">
+        <value>foo40</value>
+        </attr>
+        <attr name="uid">
+        <value>foo40</value>
+        </attr>
+        <attr name="roomnumber">
+        <value>7t</value>
+        </attr>
+        <attr name="sn">
+        <value>40</value>
+        </attr>
+        <attr name="ou">
+        <value>People</value>
+        </attr>
+        <attr name="facsimiletelephonenumber">
+        <value>+ 1 408 555 1221</value>
+        </attr>
+        <attr name="l">
+        <value>foo40bar</value>
+        </attr>
+        </addRequest>
+        <addRequest dn="uid=foo41, ou=People, o=dsmlfe.com">
+        <attr name="mail">
+        <value>foo41@airius.com</value>
+        </attr>
+        <attr name="objectclass">
+        <value>top</value>
+        <value>person</value>
+        <value>organizationalPerson</value>
+        <value>inetOrgPerson</value>
+        </attr>
+        <attr name="pager">
+        <value>+1 999 555 1212</value>
+        </attr>
+        <attr name="givenname">
+        <value>foo41</value>
+        </attr>
+        <attr name="telephonenumber">
+        <value>+1 418 555 1221</value>
+        </attr>
+        <attr name="cn">
+        <value>foo41</value>
+        </attr>
+        <attr name="uid">
+        <value>foo41</value>
+        </attr>
+        <attr name="roomnumber">
+        <value>7t</value>
+        </attr>
+        <attr name="sn">
+        <value>41</value>
+        </attr>
+        <attr name="ou">
+        <value>People</value>
+        </attr>
+        <attr name="facsimiletelephonenumber">
+        <value>+ 1 418 555 1221</value>
+        </attr>
+        <attr name="l">
+        <value>foo41bar</value>
+        </attr>
+        </addRequest>
+      </batchRequest>
+    </soap-env:Body>
+  </soap-env:Envelope>

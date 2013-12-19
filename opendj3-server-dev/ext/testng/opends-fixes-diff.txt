@@ -1,0 +1,70 @@
+Index: src/main/org/testng/internal/MethodInheritance.java
+===================================================================
+--- src/main/org/testng/internal/MethodInheritance.java	(revision 502)
++++ src/main/org/testng/internal/MethodInheritance.java	(working copy)
+@@ -102,27 +102,19 @@
+         // Sort them
+         sortMethodsByInheritance(l, baseClassToChild);
+         
+-        // Set methodDependedUpon accordingly
+-        if (baseClassToChild) {
+-          for (int i = 1; i < l.size(); i++) {
+-            ITestNGMethod m1 = l.get(i - 1);
+-            ITestNGMethod m2 = l.get(i);
++        for (int i = 0; i < l.size(); i++) {
++          ITestNGMethod m1 = l.get(i);
++          // Look for any method further down that is a subclass of this one.
++          // This handles the case when there are multiple BeforeClass/AfterClass
++          // methods in the same class.
++          for (int j = i + 1; j < l.size(); j++) {
++            ITestNGMethod m2 = l.get(j);
+             if (! equalsEffectiveClass(m1, m2)) {
+               Utils.log("MethodInheritance", 4, m2 + " DEPENDS ON " + m1);
+               m2.addMethodDependedUpon(MethodHelper.calculateMethodCanonicalName(m1));
+             }
+           }
+         }
+-        else {
+-          for (int i = 0; i < l.size() - 1; i++) {
+-            ITestNGMethod m1 = l.get(i);
+-            ITestNGMethod m2 = l.get(i + 1);
+-            if (! equalsEffectiveClass(m1, m2)) {
+-              m2.addMethodDependedUpon(MethodHelper.calculateMethodCanonicalName(m1));
+-              Utils.log("MethodInheritance", 4, m2 + " DEPENDS ON " + m1);
+-            }
+-          }          
+-        }
+       }
+     }
+   }
+Index: src/main/org/testng/TestRunner.java
+===================================================================
+--- src/main/org/testng/TestRunner.java	(revision 502)
++++ src/main/org/testng/TestRunner.java	(working copy)
+@@ -536,9 +536,13 @@
+     List<ITestNGMethod> parallelList= new ArrayList<ITestNGMethod>();
+ 
+     computeTestLists(sequentialList, parallelList);
++
++    int sequentialSize = 0;
++    for (List<ITestNGMethod> methodList: sequentialList) {
++      sequentialSize += methodList.size();
++    }
++    log(3, "Found " + (sequentialSize + parallelList.size()) + " applicable methods");
+     
+-    log(3, "Found " + (sequentialList.size() + parallelList.size()) + " applicable methods");
+-    
+     //
+     // Create the workers
+     //
+@@ -753,7 +757,9 @@
+           findAnnotation(cls, org.testng.internal.annotations.ITest.class);
+       if (test != null) {
+         if (test.getSequential()) {
+-          String className = cls.getName();
++          // This must not be cls.getName() because that will sort methods in a super class together
++          // instead of with the instance class itself (i.e. the subclass).
++          String className = tm.getTestClass().getRealClass().getName();
+           List<ITestNGMethod> list = sequentialAttributeList.get(className);
+           if (list == null) {
+             list = new ArrayList<ITestNGMethod>();

@@ -1,0 +1,98 @@
+
+/* Our content renders in a div with id bodycol, so selectors are written on this to override the default styles in the inherited style sheets */
+#bodycol { font-size: 12px;}
+#bodycol table, #bodycol td, #bodycol th, #bodycol p, #bodycol div, #bodycol span, #bodycol li { font-size: 12px}
+#bodycol H1 {font-size:18px;color:#000}
+#bodycol H2 {font-size:16px;color:#000}
+#bodycol H3 {font-size:14px;color:#000;margin:15px 0px 3px;}
+#bodycol a:link {text-decoration:none !important } 
+#bodycol a:visited {color: #069;text-decoration:none !important } 
+#bodycol a:hover {text-decoration:underline; !important } 
+#bodycol a:hover img {text-decoration:none !important} 
+
+/* Table Style */
+#bodycol .info-table {border:solid 1px #000; border-collapse:collapse; font-size:12px; margin-top:10px;}
+#bodycol .info-table th {border: solid 1px #B5B5B5;padding:5px 10px;background-color:#EEEEEE;font-weight:bold;text-align:left;vertical-align:bottom; font-size:12px}
+#bodycol .info-table th.th-center { border: solid 1px #B5B5B5;padding:5px 10px;background-color:#EEEEEE;font-weight:bold;text-align:center;vertical-align:bottom; font-size:12px}
+#bodycol .info-table th.th-right {border: solid 1px #B5B5B5;padding:5px 10px;background-color:#EEEEEE;font-weight:bold;text-align:right;vertical-align:bottom; font-size:12px}
+#bodycol .info-table td {border: solid 1px #B5B5B5;padding:10px;vertical-align:top; font-size:12px}
+#bodycol .info-table td.td-center {border: solid 1px #B5B5B5;padding:10px;vertical-align:top; text-align:center; font-size:12px}
+
+/* Styles for Header Used in About, Community, Downloads and Contrib pages*/
+#bodycol .secmasttable {margin-top:10px;}
+#bodycol .secmasttable td { vertical-align:bottom }
+#bodycol .headlink { font-size:11px; margin:0px 5px; text-align:center }
+#bodycol .curheadlink { font-size:12px; font-weight:bold; margin:0px 5px; }
+#bodycol .highlightsdiv {border: 1px solid rgb(170, 170, 170); padding: 5px; background: rgb(238, 238, 238); margin:10px}
+#bodycol .highlightsheader {font-size:14px; font-weight:bold; }
+#bodycol .secpageheader {font-size:18px; font-weight:bold;margin:15px 0px; }
+
+/* Styles for Header Used in Individual Documents pages*/
+#bodycol .tertmasttable {margin-top:10px;}
+#bodycol .tertmasttable td { vertical-align:bottom }
+#bodycol .collectionheader {margin-bottom:5px;font-size:24px;color:#333; }
+
+/* Welcome Page */
+table.welcometable { }
+table.welcometable td.welcomelogo {text-align:left; vertical-align:middle; width:180px;padding:10px 0px 6px}
+table.welcometable td.welcometag {text-align: center; vertical-align:middle; padding:5px 10px; width:370px; background-color:#f5f5f5}
+table.welcometable td.welcomejavanet {text-align:left; vertical-align:middle; padding:10px; width:180px; background-color:#f5994f}
+table.welcometable td.welcomenarrowside {text-align:left; vertical-align:top; padding:5px 10px; width:180px; background-color:#BFEAFF}
+table.welcometable td.welcomeimage {text-align:left;vertical-align:middle; padding:0px; width:370px}
+table.welcometable td.welcomenarrowbot {text-align:left; vertical-align:top; padding:5px 10px; width:180px; background-color:#f5f5f5}
+.welcometagline {font-size:14px; font-weight:bold; color:#f5994f}
+.narrowbothead {font-weight:bold; margin:5px 0px 3px}
+.narrowbotitem {margin: 1px 0px 1px 10px}
+.dkgrey {color:#333}
+a.white {color:#fff !important}
+
+#bodycol a.buttonlink:link {padding:3px 12px 2px; background-image:url(../images/buttonlink_bk.png); background-position:bottom; background-repeat: repeat-x;background-color:#FFFFFF; border:solid 2px #008fcd; color:#000 !important; white-space:nowrap;text-decoration:none }
+#bodycol a.buttonlink:hover {padding:3px 12px 2px; background-image:url(../images/buttonlink_bk_over.png); background-position:bottom; background-repeat: repeat-x;background-color:#FFFFFF; border:solid 2px #008fcd; color:#000 !important; text-decoration:none !important}
+#bodycol a.buttonlink:active {padding:3px 12px 2px; background-image:url(../images/buttonlink_bk.png); background-position:bottom; background-repeat: repeat-x;background-color:#FFFFFF; border:solid 2px #008fcd; color:#000 !important; }
+#bodycol a.buttonlink:visited {padding:3px 12px 2px; background-image:url(../images/buttonlink_bk.png); background-position:bottom; background-repeat: repeat-x;background-color:#FFFFFF; border:solid 2px #008fcd; color:#000 !important; }
+#bodycol div.buttonlinkdiv {margin:10px 5px 15px 50px}
+
+.app H3 { clear: none;}
+.axial {display: none;}
+#apphead {display: none;}
+#subprojects {display: none;}
+
+
+
+/* STYLES REPEATED WITHOUT SELECTOR FOR NONAV BROWSING */
+ body, table,  td,  th,  p,  div,  span,  li { font-size: 12px}
+ H1 {font-size:18px;color:#000}
+ H2 {font-size:16px;color:#000}
+ H3 {font-size:14px;color:#000;margin:15px 0px 3px;}
+ a:link {text-decoration:none } 
+ a:visited {color: #069;text-decoration:none } 
+ a:hover {text-decoration:underline } 
+ a:hover img {text-decoration:none } 
+/* Table Style */
+ .info-table {border:solid 1px #000; border-collapse:collapse; font-size:12px; margin-top:10px;}
+ .info-table th {border: solid 1px #B5B5B5;padding:5px 10px;background-color:#EEEEEE;font-weight:bold;text-align:left;vertical-align:bottom; font-size:12px}
+ .info-table th.th-center { border: solid 1px #B5B5B5;padding:5px 10px;background-color:#EEEEEE;font-weight:bold;text-align:center;vertical-align:bottom; font-size:12px}
+ .info-table th.th-right {border: solid 1px #B5B5B5;padding:5px 10px;background-color:#EEEEEE;font-weight:bold;text-align:right;vertical-align:bottom; font-size:12px}
+ .info-table td {border: solid 1px #B5B5B5;padding:10px;vertical-align:top; font-size:12px}
+ .info-table td.td-center {border: solid 1px #B5B5B5;padding:10px;vertical-align:top; text-align:center; font-size:12px}
+/* Styles for Header Used in About, Community, Downloads and Contrib pages*/
+ .secmasttable {margin-top:10px;}
+ .secmasttable td { vertical-align:bottom }
+ .headlink { font-size:11px; margin:0px 5px; text-align:center }
+ .curheadlink { font-size:12px; font-weight:bold; margin:0px 5px; }
+ .highlightsdiv {border: 1px solid rgb(170, 170, 170); padding: 5px; background: rgb(238, 238, 238); margin:10px}
+ .highlightsheader {font-size:14px; font-weight:bold; }
+ .secpageheader {font-size:18px; font-weight:bold;margin:15px 0px; }
+/* Styles for Header Used in Individual Documents pages*/
+ .tertmasttable {margin-top:10px;}
+ .tertmasttable td { vertical-align:bottom }
+ .collectionheader {margin-bottom:5px;font-size:24px;color:#333; }
+
+/* Replace tigris css spec overridden by the above */
+ #navcol li, #navcol a, #navcol dd, #navcol dt, #navcol, #footer table, #footer td, #footer a, #footer p { 
+	font-family: Verdana, Helvetica, Arial, sans-serif;
+	font-size: xx-small;
+	voice-family: "\"}\"";
+	voice-family: inherit;
+	font-size: x-small;
+}

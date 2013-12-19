@@ -1,0 +1,200 @@
+'\" t
+.\"     Title: manage-tasks
+.\"    Author: 
+.\" Generator: DocBook XSL-NS Stylesheets v1.76.1 <http://docbook.sf.net/>
+.\"      Date: 03/21/2012
+.\"    Manual: Tools Reference
+.\"    Source: OpenDJ 2.5.0
+.\"  Language: English
+.\"
+.TH "MANAGE\-TASKS" "1" "03/21/2012" "OpenDJ 2\&.5\&.0" "Tools Reference"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+manage-tasks \- manage OpenDJ server administration tasks
+.SH "SYNOPSIS"
+.HP \w'\fBmanage\-tasks\fR\ 'u
+\fBmanage\-tasks\fR {options}
+.SH "DESCRIPTION"
+.PP
+This utility can be used to obtain a list of tasks scheduled to run within the directory server as well as information about individual tasks\&.
+.SH "OPTIONS"
+.PP
+The following options are supported\&.
+.PP
+\fB\-c, \-\-cancel {taskID}\fR
+.RS 4
+ID of a particular task to cancel
+.RE
+.PP
+\fB\-i, \-\-info {taskID}\fR
+.RS 4
+ID of a particular task about which this tool will display information
+.RE
+.PP
+\fB\-s, \-\-summary\fR
+.RS 4
+Print a summary of tasks
+.RE
+.SS "LDAP Connection Options"
+.PP
+\fB\-\-connectTimeout {timeout}\fR
+.RS 4
+Maximum length of time (in milliseconds) that can be taken to establish a connection\&. Use \*(Aq0\*(Aq to specify no time out\&.
+.sp
+Default value: 30000
+.RE
+.PP
+\fB\-D, \-\-bindDN {bindDN}\fR
+.RS 4
+DN to use to bind to the server
+.sp
+Default value: cn=Directory Manager
+.RE
+.PP
+\fB\-h, \-\-hostname {host}\fR
+.RS 4
+Directory server hostname or IP address
+.sp
+Default value: localhost\&.localdomain
+.RE
+.PP
+\fB\-j, \-\-bindPasswordFile {bindPasswordFile}\fR
+.RS 4
+Bind password file
+.RE
+.PP
+\fB\-K, \-\-keyStorePath {keyStorePath}\fR
+.RS 4
+Certificate key store path
+.RE
+.PP
+\fB\-N, \-\-certNickname {nickname}\fR
+.RS 4
+Nickname of certificate for SSL client authentication
+.RE
+.PP
+\fB\-o, \-\-saslOption {name=value}\fR
+.RS 4
+SASL bind options
+.RE
+.PP
+\fB\-p, \-\-port {port}\fR
+.RS 4
+Directory server administration port number
+.sp
+Default value: 4444
+.RE
+.PP
+\fB\-P, \-\-trustStorePath {trustStorePath}\fR
+.RS 4
+Certificate trust store path
+.RE
+.PP
+\fB\-T, \-\-trustStorePassword {trustStorePassword}\fR
+.RS 4
+Certificate trust store PIN
+.RE
+.PP
+\fB\-u, \-\-keyStorePasswordFile {keyStorePasswordFile}\fR
+.RS 4
+Certificate key store PIN file
+.RE
+.PP
+\fB\-U, \-\-trustStorePasswordFile {path}\fR
+.RS 4
+Certificate trust store PIN file
+.RE
+.PP
+\fB\-w, \-\-bindPassword {bindPassword}\fR
+.RS 4
+Password to use to bind to the server
+.RE
+.PP
+\fB\-W, \-\-keyStorePassword {keyStorePassword}\fR
+.RS 4
+Certificate key store PIN
+.RE
+.PP
+\fB\-X, \-\-trustAll\fR
+.RS 4
+Trust all server SSL certificates
+.RE
+.SS "Utility Input/Output Options"
+.PP
+\fB\-n, \-\-no\-prompt\fR
+.RS 4
+Use non\-interactive mode\&. If data in the command is missing, the user is not prompted and the tool will fail
+.RE
+.PP
+\fB\-\-noPropertiesFile\fR
+.RS 4
+No properties file will be used to get default command line argument values
+.RE
+.PP
+\fB\-\-propertiesFilePath {propertiesFilePath}\fR
+.RS 4
+Path to the file containing default property values used for command line arguments
+.RE
+.SS "General Options"
+.PP
+\fB\-V, \-\-version\fR
+.RS 4
+Display version information
+.RE
+.PP
+\fB\-?, \-H, \-\-help\fR
+.RS 4
+Display usage information
+.RE
+.SH "EXIT CODES"
+.PP
+0
+.RS 4
+The command completed successfully\&.
+.RE
+.PP
+> 0
+.RS 4
+An error occurred\&.
+.RE
+.SH "EXAMPLES"
+.PP
+The following example demonstrates use of the command with a server that does daily backups at 2:00 AM\&.
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+$ manage\-tasks \-p 4444 \-h opendj\&.example\&.com \-D "cn=Directory Manager"
+ \-w password \-s
+
+  ID                                Type    Status
+  \-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
+  example\-backup                    Backup  Recurring
+  example\-backup\-20110622020000000  Backup  Waiting on start time
+.fi
+.if n \{\
+.RE
+.\}
+.SH "COPYRIGHT"
+.br
+Copyright \(co 2011-2012 ForgeRock AS
+.br

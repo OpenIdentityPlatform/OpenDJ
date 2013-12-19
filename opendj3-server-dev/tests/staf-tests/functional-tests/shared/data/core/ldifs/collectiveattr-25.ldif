@@ -1,0 +1,8 @@
+dn: cn=Collective c-TelephoneNumber,dc=example,dc=com
+objectClass: top
+objectClass: subentry
+objectClass: collectiveAttributeSubentry
+objectClass: extensibleObject
+cn: Collective c-TelephoneNumber
+c-TelephoneNumber: +1 408 555 5555
+subtreeSpecification: {base "ou=people,o=collectiveattr tests", minimum 1, specificExclusions { chopBefore:"ou=America",chopAfter:"ou=Asia"}}

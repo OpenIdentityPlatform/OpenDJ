@@ -1,0 +1,25 @@
+POST /dsml HTTP/1.1
+Host: Foo
+Connection: Close
+Content-Length: 675
+SOAPAction: "#batchRequest"
+
+<?xml version='1.0' encoding='UTF-8'?>
+  <soap-env:Envelope
+      xmlns:xsd='http://www.w3.org/2001/XMLSchema'
+      xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+      xmlns:soap-env='http://schemas.xmlsoap.org/soap/envelope/'>
+    <soap-env:Body>
+      <batchRequest xmlns="urn:oasis:names:tc:DSML:2:0:core">
+        <searchRequest dn="ou=Help Desk, ou=IT, ou=Americas, ou=Search, o=IMC, c=US" scope="wholeSubtree" derefAliases="neverDerefAliases">
+        <filter>
+	   	<not>
+		<equalityMatch name="foo">
+			<value>bar</value>
+		</equalityMatch>
+		</not>
+        </filter>
+        </searchRequest>
+      </batchRequest>
+    </soap-env:Body>
+  </soap-env:Envelope>

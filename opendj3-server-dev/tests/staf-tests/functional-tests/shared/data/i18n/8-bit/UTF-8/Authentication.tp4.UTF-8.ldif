@@ -1,0 +1,5 @@
+dn: cn=Rôséñe, ou=Authentication Tests, o=Çándide Rùiz
+changetype: modify
+add: description
+description: Authentication with 8-bit data
+

@@ -1,0 +1,9 @@
+dn: cn=Collective c-PostalCode,dc=example,dc=com
+objectClass: top
+objectClass: subentry
+objectClass: collectiveAttributeSubentry
+objectClass: extensibleObject
+cn: Collective c-PostalCode
+c-PostalCode: 76800
+subtreeSpecification: {base "ou=people,o=collectiveattr tests", minimum 1}
+collectiveConflictBehavior: virtual-overrides-real

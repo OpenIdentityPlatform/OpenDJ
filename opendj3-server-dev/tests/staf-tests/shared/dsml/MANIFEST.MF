@@ -1,0 +1,6 @@
+Manifest-Version: 1.0
+
+Name: staf/service/info
+Service-Class: com.ibm.staf.service.opends.DSMLService
+Packaged-Jars: OpenDJ emma
+
