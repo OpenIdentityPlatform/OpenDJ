@@ -36,7 +36,7 @@ import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.responses.AbstractExtendedResult;
 
-import com.forgerock.opendj.util.Validator;
+import org.forgerock.util.Reject;
 
 /**
  * Get connection ID extended result.
@@ -56,7 +56,7 @@ public final class GetConnectionIDExtendedResult extends
      *             If {@code resultCode} was {@code null}.
      */
     public static GetConnectionIDExtendedResult newResult(final ResultCode resultCode) {
-        Validator.ensureNotNull(resultCode);
+        Reject.ifNull(resultCode);
         return new GetConnectionIDExtendedResult(resultCode);
     }
 

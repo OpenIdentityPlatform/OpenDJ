@@ -29,7 +29,7 @@ package org.opends.server.admin;
 import static com.forgerock.opendj.ldap.AdminMessages.*;
 import static com.forgerock.opendj.ldap.ExtensionMessages.*;
 import static com.forgerock.opendj.util.StaticUtils.*;
-import static com.forgerock.opendj.util.Validator.*;
+import org.forgerock.util.Reject;
 
 import java.io.ByteArrayOutputStream;
 import java.io.BufferedReader;
@@ -194,7 +194,7 @@ public final class ClassLoaderProvider {
      */
     public synchronized void addExtension(String... extensions) throws InitializationException, IllegalStateException,
             IllegalArgumentException {
-        ensureNotNull(extensions);
+        Reject.ifNull(extensions);
 
         if (loader == null) {
             throw new IllegalStateException("Class loader provider is disabled.");

@@ -30,7 +30,7 @@ package org.forgerock.opendj.ldap.responses;
 import java.util.LinkedList;
 import java.util.List;
 
-import com.forgerock.opendj.util.Validator;
+import org.forgerock.util.Reject;
 
 /**
  * Search result reference implementation.
@@ -51,7 +51,7 @@ final class SearchResultReferenceImpl extends AbstractResponseImpl<SearchResultR
 
     @Override
     public SearchResultReference addURI(final String uri) {
-        Validator.ensureNotNull(uri);
+        Reject.ifNull(uri);
         uris.add(uri);
         return this;
     }

@@ -33,7 +33,7 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.DecodeOptions;
 
-import com.forgerock.opendj.util.Validator;
+import org.forgerock.util.Reject;
 
 /**
  * The tree delete request control as defined in draft-armijo-ldap-treedelete.
@@ -75,7 +75,7 @@ public final class SubtreeDeleteRequestControl implements Control {
 
                 public SubtreeDeleteRequestControl decodeControl(final Control control,
                         final DecodeOptions options) throws DecodeException {
-                    Validator.ensureNotNull(control);
+                    Reject.ifNull(control);
 
                     if (control instanceof SubtreeDeleteRequestControl) {
                         return (SubtreeDeleteRequestControl) control;

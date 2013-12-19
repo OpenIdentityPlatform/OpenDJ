@@ -34,8 +34,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.forgerock.opendj.ldap.requests.BindRequest;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
-
-import com.forgerock.opendj.util.Validator;
+import org.forgerock.util.Reject;
 
 /**
  * This class contains methods for creating and manipulating connection
@@ -66,7 +65,8 @@ public final class Connections {
      */
     public static ConnectionFactory newAuthenticatedConnectionFactory(
             final ConnectionFactory factory, final BindRequest request) {
-        Validator.ensureNotNull(factory, request);
+        Reject.ifNull(factory);
+        Reject.ifNull(request);
 
         return new AuthenticatedConnectionFactory(factory, request);
     }
@@ -371,7 +371,7 @@ public final class Connections {
      */
     public static Connection newInternalConnection(
             final RequestHandler<RequestContext> requestHandler) {
-        Validator.ensureNotNull(requestHandler);
+        Reject.ifNull(requestHandler);
         return newInternalConnection(adaptRequestHandler(requestHandler));
     }
 
@@ -398,7 +398,7 @@ public final class Connections {
      *             If {@code serverConnection} was {@code null}.
      */
     public static Connection newInternalConnection(final ServerConnection<Integer> serverConnection) {
-        Validator.ensureNotNull(serverConnection);
+        Reject.ifNull(serverConnection);
         return new InternalConnection(serverConnection);
     }
 
@@ -427,7 +427,7 @@ public final class Connections {
      */
     public static ConnectionFactory newInternalConnectionFactory(
             final RequestHandler<RequestContext> requestHandler) {
-        Validator.ensureNotNull(requestHandler);
+        Reject.ifNull(requestHandler);
         return new InternalConnectionFactory<Void>(Connections
                 .<Void> newServerConnectionFactory(requestHandler), null);
     }
@@ -461,7 +461,7 @@ public final class Connections {
      */
     public static <C> ConnectionFactory newInternalConnectionFactory(
             final RequestHandlerFactory<C, RequestContext> factory, final C clientContext) {
-        Validator.ensureNotNull(factory);
+        Reject.ifNull(factory);
         return new InternalConnectionFactory<C>(newServerConnectionFactory(factory), clientContext);
     }
 
@@ -494,7 +494,7 @@ public final class Connections {
      */
     public static <C> ConnectionFactory newInternalConnectionFactory(
             final ServerConnectionFactory<C, Integer> factory, final C clientContext) {
-        Validator.ensureNotNull(factory);
+        Reject.ifNull(factory);
         return new InternalConnectionFactory<C>(factory, clientContext);
     }
 
@@ -531,7 +531,8 @@ public final class Connections {
      */
     public static ConnectionFactory newNamedConnectionFactory(final ConnectionFactory factory,
             final String name) {
-        Validator.ensureNotNull(factory, name);
+        Reject.ifNull(factory);
+        Reject.ifNull(name);
 
         return new ConnectionFactory() {
 
@@ -585,7 +586,7 @@ public final class Connections {
      */
     public static <C> ServerConnectionFactory<C, Integer> newServerConnectionFactory(
             final RequestHandler<RequestContext> requestHandler) {
-        Validator.ensureNotNull(requestHandler);
+        Reject.ifNull(requestHandler);
         return new RequestHandlerFactoryAdapter<C>(new RequestHandlerFactory<C, RequestContext>() {
             @Override
             public RequestHandler<RequestContext> handleAccept(final C clientContext) {
@@ -620,7 +621,7 @@ public final class Connections {
      */
     public static <C> ServerConnectionFactory<C, Integer> newServerConnectionFactory(
             final RequestHandlerFactory<C, RequestContext> factory) {
-        Validator.ensureNotNull(factory);
+        Reject.ifNull(factory);
         return new RequestHandlerFactoryAdapter<C>(factory);
     }
 

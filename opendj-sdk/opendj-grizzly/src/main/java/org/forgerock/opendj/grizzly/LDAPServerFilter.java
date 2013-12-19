@@ -83,7 +83,7 @@ import org.glassfish.grizzly.ssl.SSLEngineConfigurator;
 import org.glassfish.grizzly.ssl.SSLFilter;
 import org.glassfish.grizzly.ssl.SSLUtils;
 
-import com.forgerock.opendj.util.Validator;
+import org.forgerock.util.Reject;
 
 /**
  * Grizzly filter implementation for decoding LDAP requests and handling server
@@ -255,7 +255,7 @@ final class LDAPServerFilter extends LDAPBaseFilter {
 
         @Override
         public void disconnect(final ResultCode resultCode, final String message) {
-            Validator.ensureNotNull(resultCode);
+            Reject.ifNull(resultCode);
             final GenericExtendedResult notification =
                     Responses.newGenericExtendedResult(resultCode).setOID(
                             LDAP.OID_NOTICE_OF_DISCONNECTION).setDiagnosticMessage(message);
@@ -274,7 +274,7 @@ final class LDAPServerFilter extends LDAPBaseFilter {
         @Override
         public void enableTLS(final SSLContext sslContext, final String[] protocols,
                 final String[] suites, final boolean wantClientAuth, final boolean needClientAuth) {
-            Validator.ensureNotNull(sslContext);
+            Reject.ifNull(sslContext);
             synchronized (this) {
                 if (isTLSEnabled()) {
                     throw new IllegalStateException("TLS already enabled");

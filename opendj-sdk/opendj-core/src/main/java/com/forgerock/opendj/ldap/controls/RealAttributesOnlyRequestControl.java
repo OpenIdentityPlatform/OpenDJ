@@ -35,7 +35,7 @@ import org.forgerock.opendj.ldap.DecodeOptions;
 import org.forgerock.opendj.ldap.controls.Control;
 import org.forgerock.opendj.ldap.controls.ControlDecoder;
 
-import com.forgerock.opendj.util.Validator;
+import org.forgerock.util.Reject;
 
 /**
  * The Sun-defined real attributes only request control. The OID for this
@@ -62,7 +62,7 @@ public final class RealAttributesOnlyRequestControl implements Control {
 
                 public RealAttributesOnlyRequestControl decodeControl(final Control control,
                         final DecodeOptions options) throws DecodeException {
-                    Validator.ensureNotNull(control);
+                    Reject.ifNull(control);
 
                     if (control instanceof RealAttributesOnlyRequestControl) {
                         return (RealAttributesOnlyRequestControl) control;

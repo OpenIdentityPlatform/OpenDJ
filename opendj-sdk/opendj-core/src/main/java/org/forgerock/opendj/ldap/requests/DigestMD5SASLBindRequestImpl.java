@@ -53,9 +53,9 @@ import org.forgerock.opendj.ldap.ConnectionSecurityLayer;
 import org.forgerock.opendj.ldap.ErrorResultException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.responses.BindResult;
+import org.forgerock.util.Reject;
 
 import com.forgerock.opendj.util.StaticUtils;
-import com.forgerock.opendj.util.Validator;
 
 /**
  * Digest-MD5 SASL bind request implementation.
@@ -253,14 +253,16 @@ final class DigestMD5SASLBindRequestImpl extends AbstractSASLBindRequest<DigestM
     }
 
     DigestMD5SASLBindRequestImpl(final String authenticationID, final byte[] password) {
-        Validator.ensureNotNull(authenticationID, password);
+        Reject.ifNull(authenticationID);
+        Reject.ifNull(password);
         this.authenticationID = authenticationID;
         this.password = password;
     }
 
     @Override
     public DigestMD5SASLBindRequest addAdditionalAuthParam(final String name, final String value) {
-        Validator.ensureNotNull(name, value);
+        Reject.ifNull(name);
+        Reject.ifNull(value);
         additionalAuthParams.put(name, value);
         return this;
     }
@@ -268,7 +270,7 @@ final class DigestMD5SASLBindRequestImpl extends AbstractSASLBindRequest<DigestM
     @Override
     public DigestMD5SASLBindRequest addQOP(final String... qopValues) {
         for (final String qopValue : qopValues) {
-            this.qopValues.add(Validator.ensureNotNull(qopValue));
+            this.qopValues.add(Reject.checkNotNull(qopValue));
         }
         return this;
     }
@@ -335,7 +337,7 @@ final class DigestMD5SASLBindRequestImpl extends AbstractSASLBindRequest<DigestM
 
     @Override
     public DigestMD5SASLBindRequest setAuthenticationID(final String authenticationID) {
-        Validator.ensureNotNull(authenticationID);
+        Reject.ifNull(authenticationID);
         this.authenticationID = authenticationID;
         return this;
     }
@@ -366,14 +368,14 @@ final class DigestMD5SASLBindRequestImpl extends AbstractSASLBindRequest<DigestM
 
     @Override
     public DigestMD5SASLBindRequest setPassword(final byte[] password) {
-        Validator.ensureNotNull(password);
+        Reject.ifNull(password);
         this.password = password;
         return this;
     }
 
     @Override
     public DigestMD5SASLBindRequest setPassword(final char[] password) {
-        Validator.ensureNotNull(password);
+        Reject.ifNull(password);
         this.password = StaticUtils.getBytes(password);
         return this;
     }

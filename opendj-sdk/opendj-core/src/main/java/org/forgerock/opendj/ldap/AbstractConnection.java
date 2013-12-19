@@ -31,7 +31,6 @@ import static com.forgerock.opendj.ldap.CoreMessages.ERR_NO_SEARCH_RESULT_ENTRIE
 import static com.forgerock.opendj.ldap.CoreMessages.ERR_UNEXPECTED_SEARCH_RESULT_ENTRIES;
 import static com.forgerock.opendj.ldap.CoreMessages.ERR_UNEXPECTED_SEARCH_RESULT_ENTRIES_NO_COUNT;
 import static com.forgerock.opendj.ldap.CoreMessages.ERR_UNEXPECTED_SEARCH_RESULT_REFERENCES;
-
 import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
 
 import java.util.Collection;
@@ -56,8 +55,7 @@ import org.forgerock.opendj.ldap.responses.SearchResultReference;
 import org.forgerock.opendj.ldif.ChangeRecord;
 import org.forgerock.opendj.ldif.ChangeRecordVisitor;
 import org.forgerock.opendj.ldif.ConnectionEntryReader;
-
-import com.forgerock.opendj.util.Validator;
+import org.forgerock.util.Reject;
 
 /**
  * This class provides a skeletal implementation of the {@code Connection}
@@ -499,7 +497,8 @@ public abstract class AbstractConnection implements Connection {
     public Result search(final SearchRequest request,
             final Collection<? super SearchResultEntry> entries,
             final Collection<? super SearchResultReference> references) throws ErrorResultException {
-        Validator.ensureNotNull(request, entries);
+        Reject.ifNull(request);
+        Reject.ifNull(entries);
 
         // FIXME: does this need to be thread safe?
         final SearchResultHandler handler = new SearchResultHandler() {

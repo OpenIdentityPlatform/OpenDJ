@@ -37,7 +37,7 @@ import org.forgerock.opendj.ldap.schema.CoreSchema;
 
 import com.forgerock.opendj.util.Collections2;
 import com.forgerock.opendj.util.FutureResultTransformer;
-import com.forgerock.opendj.util.Validator;
+import org.forgerock.util.Reject;
 
 /**
  * The root DSE is a DSA-specific Entry (DSE) and not part of any naming context
@@ -206,7 +206,7 @@ public final class RootDSE {
      *             If {@code entry} was {@code null} .
      */
     public static RootDSE valueOf(Entry entry) {
-        Validator.ensureNotNull(entry);
+        Reject.ifNull(entry);
         return new RootDSE(entry);
     }
 

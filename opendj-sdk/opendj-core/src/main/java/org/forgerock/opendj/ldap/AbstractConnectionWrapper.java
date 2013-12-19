@@ -49,7 +49,7 @@ import org.forgerock.opendj.ldap.responses.SearchResultReference;
 import org.forgerock.opendj.ldif.ChangeRecord;
 import org.forgerock.opendj.ldif.ConnectionEntryReader;
 
-import com.forgerock.opendj.util.Validator;
+import org.forgerock.util.Reject;
 
 /**
  * An abstract base class from which connection wrappers may be easily
@@ -72,7 +72,7 @@ public abstract class AbstractConnectionWrapper<C extends Connection> implements
      *            The connection to be wrapped.
      */
     protected AbstractConnectionWrapper(final C connection) {
-        Validator.ensureNotNull(connection);
+        Reject.ifNull(connection);
         this.connection = connection;
     }
 

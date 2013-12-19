@@ -40,7 +40,7 @@ import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.DecodeOptions;
 
-import com.forgerock.opendj.util.Validator;
+import org.forgerock.util.Reject;
 
 /**
  * The simple paged results request and response control as defined in RFC 2696.
@@ -147,7 +147,7 @@ public final class SimplePagedResultsControl implements Control {
 
                 public SimplePagedResultsControl decodeControl(final Control control,
                         final DecodeOptions options) throws DecodeException {
-                    Validator.ensureNotNull(control);
+                    Reject.ifNull(control);
 
                     if (control instanceof SimplePagedResultsControl) {
                         return (SimplePagedResultsControl) control;
@@ -243,7 +243,7 @@ public final class SimplePagedResultsControl implements Control {
      */
     public static SimplePagedResultsControl newControl(final boolean isCritical, final int size,
             final ByteString cookie) {
-        Validator.ensureNotNull(cookie);
+        Reject.ifNull(cookie);
         return new SimplePagedResultsControl(isCritical, size, cookie);
     }
 

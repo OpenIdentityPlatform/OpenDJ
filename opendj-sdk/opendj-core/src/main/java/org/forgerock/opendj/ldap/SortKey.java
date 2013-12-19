@@ -40,8 +40,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.schema.Schema;
-
-import com.forgerock.opendj.util.Validator;
+import org.forgerock.util.Reject;
 
 /**
  * A search result sort key as defined in RFC 2891 is used to specify how search
@@ -192,8 +191,9 @@ public final class SortKey {
      *             If {@code schema} or {@code keys} was {@code null}.
      */
     public static Comparator<Entry> comparator(final Schema schema, final Collection<SortKey> keys) {
-        Validator.ensureNotNull(schema, keys);
-        Validator.ensureTrue(!keys.isEmpty(), "keys must not be empty");
+        Reject.ifNull(schema);
+        Reject.ifNull(keys);
+        Reject.ifFalse(!keys.isEmpty(), "keys must not be empty");
 
         final List<Comparator<Entry>> comparators = new ArrayList<Comparator<Entry>>(keys.size());
         for (final SortKey key : keys) {
@@ -263,7 +263,7 @@ public final class SortKey {
      *             If {@code sortKeys} was {@code null}.
      */
     public static Comparator<Entry> comparator(final String sortKeys) {
-        Validator.ensureNotNull(sortKeys);
+        Reject.ifNull(sortKeys);
 
         final List<Comparator<Entry>> comparators = new LinkedList<Comparator<Entry>>();
         final StringTokenizer tokenizer = new StringTokenizer(sortKeys, ",");
@@ -308,7 +308,7 @@ public final class SortKey {
      *             If {@code sortKey} was {@code null}.
      */
     public static final SortKey valueOf(String sortKey) {
-        Validator.ensureNotNull(sortKey);
+        Reject.ifNull(sortKey);
 
         boolean reverseOrder = false;
         if (sortKey.startsWith("-")) {
@@ -366,7 +366,7 @@ public final class SortKey {
      */
     public SortKey(final AttributeDescription attributeDescription, final boolean isReverseOrder,
             final MatchingRule orderingMatchingRule) {
-        Validator.ensureNotNull(attributeDescription);
+        Reject.ifNull(attributeDescription);
         this.attributeDescription = attributeDescription.toString();
         this.orderingMatchingRule =
                 orderingMatchingRule != null ? orderingMatchingRule.getNameOrOID() : null;
@@ -424,7 +424,7 @@ public final class SortKey {
      */
     public SortKey(final String attributeDescription, final boolean isReverseOrder,
             final String orderingMatchingRule) {
-        Validator.ensureNotNull(attributeDescription);
+        Reject.ifNull(attributeDescription);
         this.attributeDescription = attributeDescription;
         this.orderingMatchingRule = orderingMatchingRule;
         this.isReverseOrder = isReverseOrder;
@@ -462,7 +462,7 @@ public final class SortKey {
      *             If {@code schema} was {@code null}.
      */
     public Comparator<Entry> comparator(final Schema schema) {
-        Validator.ensureNotNull(schema);
+        Reject.ifNull(schema);
 
         final AttributeDescription ad = AttributeDescription.valueOf(attributeDescription, schema);
 

@@ -43,7 +43,7 @@ import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.DecodeOptions;
 
 import com.forgerock.opendj.util.StaticUtils;
-import com.forgerock.opendj.util.Validator;
+import org.forgerock.util.Reject;
 
 /**
  * The sub-entries request control as defined in RFC 3672. This control may be
@@ -115,7 +115,7 @@ public final class SubentriesRequestControl implements Control {
 
                 public SubentriesRequestControl decodeControl(final Control control,
                         final DecodeOptions options) throws DecodeException {
-                    Validator.ensureNotNull(control);
+                    Reject.ifNull(control);
 
                     if (control instanceof SubentriesRequestControl) {
                         return (SubentriesRequestControl) control;

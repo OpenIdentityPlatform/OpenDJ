@@ -26,7 +26,7 @@
 
 package org.forgerock.opendj.ldap;
 
-import com.forgerock.opendj.util.Validator;
+import org.forgerock.util.Reject;
 
 /**
  * A modification to be performed on an entry during a Modify operation.
@@ -53,7 +53,8 @@ public final class Modification {
      *            The the attribute containing the values to be modified.
      */
     public Modification(final ModificationType modificationType, final Attribute attribute) {
-        Validator.ensureNotNull(modificationType, attribute);
+        Reject.ifNull(modificationType);
+        Reject.ifNull(attribute);
         this.modificationType = modificationType;
         this.attribute = attribute;
     }

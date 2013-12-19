@@ -37,7 +37,7 @@ import org.forgerock.opendj.ldap.Modification;
 import org.forgerock.opendj.ldap.requests.ModifyRequest;
 import org.testng.Assert;
 
-import com.forgerock.opendj.util.Validator;
+import org.forgerock.util.Reject;
 
 /**
  * A mock LDAP connection which is used to verify that a modify operation was
@@ -74,8 +74,8 @@ public final class ModifyEntryMockLDAPConnection extends MockLDAPConnection {
      *            deleted).
      */
     public void addExpectedModification(String expectedName, String... expectedValues) {
-        Validator.ensureNotNull(expectedName);
-        Validator.ensureNotNull(expectedValues);
+        Reject.ifNull(expectedName);
+        Reject.ifNull(expectedValues);
         modifications.put(expectedName, Arrays.asList(expectedValues));
     }
 

@@ -43,10 +43,10 @@ import org.forgerock.opendj.ldap.schema.MatchingRule;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldap.schema.Syntax;
 import org.forgerock.opendj.ldap.schema.UnknownSchemaElementException;
+import org.forgerock.util.Reject;
 
 import com.forgerock.opendj.util.StaticUtils;
 import com.forgerock.opendj.util.SubstringReader;
-import com.forgerock.opendj.util.Validator;
 
 /**
  * A distinguished name (DN) as defined in RFC 4512 section 2.3 is the
@@ -117,7 +117,7 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
      *         string.
      */
     public static String escapeAttributeValue(final Object attributeValue) {
-        Validator.ensureNotNull(attributeValue);
+        Reject.ifNull(attributeValue);
         final String s = String.valueOf(attributeValue);
         final StringBuilder builder = new StringBuilder(s.length());
         AVA.escapeAttributeValue(s, builder);
@@ -237,7 +237,8 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
      * @see #format(String, Schema, Object...)
      */
     public static DN valueOf(final String dn, final Schema schema) {
-        Validator.ensureNotNull(dn, schema);
+        Reject.ifNull(dn);
+        Reject.ifNull(schema);
         if (dn.length() == 0) {
             return ROOT_DN;
         }
@@ -396,7 +397,7 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
      *             If {@code dn} was {@code null}.
      */
     public DN child(final DN dn) {
-        Validator.ensureNotNull(dn);
+        Reject.ifNull(dn);
 
         if (dn.isRootDN()) {
             return this;
@@ -433,7 +434,7 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
      * @see RDN#maxValue()
      */
     public DN child(final RDN rdn) {
-        Validator.ensureNotNull(rdn);
+        Reject.ifNull(rdn);
         return new DN(this, rdn, null);
     }
 
@@ -452,7 +453,7 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
      *             If {@code dn} was {@code null}.
      */
     public DN child(final String dn) {
-        Validator.ensureNotNull(dn);
+        Reject.ifNull(dn);
         return child(valueOf(dn));
     }
 
@@ -785,7 +786,7 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
      *             If {@code index} is less than zero.
      */
     public DN localName(final int index) {
-        Validator.ensureTrue(index >= 0, "index less than zero");
+        Reject.ifFalse(index >= 0, "index less than zero");
 
         if (index == 0) {
             return ROOT_DN;
@@ -838,7 +839,7 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
     public DN parent(final int index) {
         // We allow size + 1 so that we can return null as the parent of the
         // Root DN.
-        Validator.ensureTrue(index >= 0, "index less than zero");
+        Reject.ifFalse(index >= 0, "index less than zero");
 
         DN parentDN = this;
         for (int i = 0; parentDN != null && i < index; i++) {
@@ -871,7 +872,8 @@ public final class DN implements Iterable<RDN>, Comparable<DN> {
      *             If {@code fromDN} or {@code toDN} was {@code null}.
      */
     public DN rename(final DN fromDN, final DN toDN) {
-        Validator.ensureNotNull(fromDN, toDN);
+        Reject.ifNull(fromDN);
+        Reject.ifNull(toDN);
 
         if (!isSubordinateOrEqualTo(fromDN)) {
             return this;

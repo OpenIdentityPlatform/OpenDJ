@@ -44,7 +44,7 @@ import org.forgerock.opendj.ldap.DecodeOptions;
 import org.forgerock.opendj.ldap.schema.Schema;
 
 import com.forgerock.opendj.util.StaticUtils;
-import com.forgerock.opendj.util.Validator;
+import org.forgerock.util.Reject;
 
 /**
  * The proxy authorization v1 request control as defined in
@@ -78,7 +78,7 @@ public final class ProxiedAuthV1RequestControl implements Control {
 
                 public ProxiedAuthV1RequestControl decodeControl(final Control control,
                         final DecodeOptions options) throws DecodeException {
-                    Validator.ensureNotNull(control);
+                    Reject.ifNull(control);
 
                     if (control instanceof ProxiedAuthV1RequestControl) {
                         return (ProxiedAuthV1RequestControl) control;
@@ -147,7 +147,7 @@ public final class ProxiedAuthV1RequestControl implements Control {
      *             If {@code authorizationName} was {@code null}.
      */
     public static ProxiedAuthV1RequestControl newControl(final DN authorizationName) {
-        Validator.ensureNotNull(authorizationName);
+        Reject.ifNull(authorizationName);
         return new ProxiedAuthV1RequestControl(authorizationName);
     }
 
@@ -166,7 +166,7 @@ public final class ProxiedAuthV1RequestControl implements Control {
      *             If {@code authorizationName} was {@code null}.
      */
     public static ProxiedAuthV1RequestControl newControl(final String authorizationName) {
-        Validator.ensureNotNull(authorizationName);
+        Reject.ifNull(authorizationName);
         return new ProxiedAuthV1RequestControl(DN.valueOf(authorizationName));
     }
 

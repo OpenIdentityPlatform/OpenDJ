@@ -26,7 +26,7 @@
 
 package org.opends.server.admin;
 
-import static com.forgerock.opendj.util.Validator.*;
+import org.forgerock.util.Reject;
 
 import java.util.EnumSet;
 import java.util.Locale;
@@ -129,7 +129,7 @@ public abstract class RelationDefinition<C extends ConfigurationClient, S extend
          *            The relation option.
          */
         public final void setOption(RelationOption option) {
-            ensureNotNull(option);
+            Reject.ifNull(option);
             common.options.add(option);
         }
 

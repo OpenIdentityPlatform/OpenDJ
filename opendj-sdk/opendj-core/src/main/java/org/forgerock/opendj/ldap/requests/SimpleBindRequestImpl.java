@@ -31,7 +31,7 @@ import org.forgerock.opendj.io.LDAP;
 import org.forgerock.opendj.ldap.ErrorResultException;
 
 import com.forgerock.opendj.util.StaticUtils;
-import com.forgerock.opendj.util.Validator;
+import org.forgerock.util.Reject;
 
 /**
  * Simple bind request implementation.
@@ -74,21 +74,21 @@ final class SimpleBindRequestImpl extends AbstractBindRequest<SimpleBindRequest>
 
     @Override
     public SimpleBindRequest setName(final String name) {
-        Validator.ensureNotNull(name);
+        Reject.ifNull(name);
         this.name = name;
         return this;
     }
 
     @Override
     public SimpleBindRequest setPassword(final byte[] password) {
-        Validator.ensureNotNull(password);
+        Reject.ifNull(password);
         this.password = password;
         return this;
     }
 
     @Override
     public SimpleBindRequest setPassword(final char[] password) {
-        Validator.ensureNotNull(password);
+        Reject.ifNull(password);
         this.password = StaticUtils.getBytes(password);
         return this;
     }

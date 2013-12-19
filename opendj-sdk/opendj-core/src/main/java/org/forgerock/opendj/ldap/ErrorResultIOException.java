@@ -29,7 +29,7 @@ package org.forgerock.opendj.ldap;
 
 import java.io.IOException;
 
-import com.forgerock.opendj.util.Validator;
+import org.forgerock.util.Reject;
 
 /**
  * An {@code ErrorResultIOException} adapts an {@code ErrorResultException} to
@@ -49,7 +49,7 @@ public final class ErrorResultIOException extends IOException {
      *             If {@code cause} was {@code null}.
      */
     public ErrorResultIOException(final ErrorResultException cause) {
-        super(Validator.ensureNotNull(cause));
+        super(Reject.checkNotNull(cause));
 
         this.cause = cause;
     }

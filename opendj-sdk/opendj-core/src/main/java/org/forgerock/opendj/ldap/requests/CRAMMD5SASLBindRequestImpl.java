@@ -42,9 +42,9 @@ import org.forgerock.opendj.ldap.ErrorResultException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.responses.BindResult;
 import org.forgerock.opendj.ldap.responses.Responses;
+import org.forgerock.util.Reject;
 
 import com.forgerock.opendj.util.StaticUtils;
-import com.forgerock.opendj.util.Validator;
 
 /**
  * CRAM-MD5 SASL bind request implementation.
@@ -127,7 +127,8 @@ final class CRAMMD5SASLBindRequestImpl extends AbstractSASLBindRequest<CRAMMD5SA
     }
 
     CRAMMD5SASLBindRequestImpl(final String authenticationID, final byte[] password) {
-        Validator.ensureNotNull(authenticationID, password);
+        Reject.ifNull(authenticationID);
+        Reject.ifNull(password);
         this.authenticationID = authenticationID;
         this.password = password;
     }
@@ -154,21 +155,21 @@ final class CRAMMD5SASLBindRequestImpl extends AbstractSASLBindRequest<CRAMMD5SA
 
     @Override
     public CRAMMD5SASLBindRequest setAuthenticationID(final String authenticationID) {
-        Validator.ensureNotNull(authenticationID);
+        Reject.ifNull(authenticationID);
         this.authenticationID = authenticationID;
         return this;
     }
 
     @Override
     public CRAMMD5SASLBindRequest setPassword(final byte[] password) {
-        Validator.ensureNotNull(password);
+        Reject.ifNull(password);
         this.password = password;
         return this;
     }
 
     @Override
     public CRAMMD5SASLBindRequest setPassword(final char[] password) {
-        Validator.ensureNotNull(password);
+        Reject.ifNull(password);
         this.password = StaticUtils.getBytes(password);
         return this;
     }

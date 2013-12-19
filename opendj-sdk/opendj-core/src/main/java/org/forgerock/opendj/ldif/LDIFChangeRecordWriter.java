@@ -44,7 +44,7 @@ import org.forgerock.opendj.ldap.requests.DeleteRequest;
 import org.forgerock.opendj.ldap.requests.ModifyDNRequest;
 import org.forgerock.opendj.ldap.requests.ModifyRequest;
 
-import com.forgerock.opendj.util.Validator;
+import org.forgerock.util.Reject;
 
 /**
  * An LDIF change record writer writes change records using the LDAP Data
@@ -196,7 +196,7 @@ public final class LDIFChangeRecordWriter extends AbstractLDIFWriter implements 
      */
     public LDIFChangeRecordWriter setExcludeAttribute(
             final AttributeDescription attributeDescription) {
-        Validator.ensureNotNull(attributeDescription);
+        Reject.ifNull(attributeDescription);
         excludeAttributes.add(attributeDescription);
         return this;
     }
@@ -211,7 +211,7 @@ public final class LDIFChangeRecordWriter extends AbstractLDIFWriter implements 
      * @return A reference to this {@code LDIFChangeRecordWriter}.
      */
     public LDIFChangeRecordWriter setExcludeBranch(final DN excludeBranch) {
-        Validator.ensureNotNull(excludeBranch);
+        Reject.ifNull(excludeBranch);
         excludeBranches.add(excludeBranch);
         return this;
     }
@@ -227,7 +227,7 @@ public final class LDIFChangeRecordWriter extends AbstractLDIFWriter implements 
      */
     public LDIFChangeRecordWriter setIncludeAttribute(
             final AttributeDescription attributeDescription) {
-        Validator.ensureNotNull(attributeDescription);
+        Reject.ifNull(attributeDescription);
         includeAttributes.add(attributeDescription);
         return this;
     }
@@ -242,7 +242,7 @@ public final class LDIFChangeRecordWriter extends AbstractLDIFWriter implements 
      * @return A reference to this {@code LDIFChangeRecordWriter}.
      */
     public LDIFChangeRecordWriter setIncludeBranch(final DN includeBranch) {
-        Validator.ensureNotNull(includeBranch);
+        Reject.ifNull(includeBranch);
         includeBranches.add(includeBranch);
         return this;
     }
@@ -266,7 +266,7 @@ public final class LDIFChangeRecordWriter extends AbstractLDIFWriter implements 
      */
     @Override
     public LDIFChangeRecordWriter writeChangeRecord(final AddRequest change) throws IOException {
-        Validator.ensureNotNull(change);
+        Reject.ifNull(change);
 
         // Skip if branch containing the entry is excluded.
         if (isBranchExcluded(change.getName())) {
@@ -299,7 +299,7 @@ public final class LDIFChangeRecordWriter extends AbstractLDIFWriter implements 
      */
     @Override
     public LDIFChangeRecordWriter writeChangeRecord(final ChangeRecord change) throws IOException {
-        Validator.ensureNotNull(change);
+        Reject.ifNull(change);
 
         // Skip if branch containing the entry is excluded.
         if (isBranchExcluded(change.getName())) {
@@ -319,7 +319,7 @@ public final class LDIFChangeRecordWriter extends AbstractLDIFWriter implements 
      */
     @Override
     public LDIFChangeRecordWriter writeChangeRecord(final DeleteRequest change) throws IOException {
-        Validator.ensureNotNull(change);
+        Reject.ifNull(change);
 
         // Skip if branch containing the entry is excluded.
         if (isBranchExcluded(change.getName())) {
@@ -342,7 +342,7 @@ public final class LDIFChangeRecordWriter extends AbstractLDIFWriter implements 
     @Override
     public LDIFChangeRecordWriter writeChangeRecord(final ModifyDNRequest change)
             throws IOException {
-        Validator.ensureNotNull(change);
+        Reject.ifNull(change);
 
         // Skip if branch containing the entry is excluded.
         if (isBranchExcluded(change.getName())) {
@@ -380,7 +380,7 @@ public final class LDIFChangeRecordWriter extends AbstractLDIFWriter implements 
      */
     @Override
     public LDIFChangeRecordWriter writeChangeRecord(final ModifyRequest change) throws IOException {
-        Validator.ensureNotNull(change);
+        Reject.ifNull(change);
 
         // If there aren't any modifications, then there's nothing to do.
         if (change.getModifications().isEmpty()) {

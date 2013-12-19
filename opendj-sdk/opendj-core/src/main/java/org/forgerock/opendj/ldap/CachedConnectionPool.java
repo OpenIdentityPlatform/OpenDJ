@@ -44,6 +44,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+
 import org.forgerock.opendj.ldap.requests.AbandonRequest;
 import org.forgerock.opendj.ldap.requests.AddRequest;
 import org.forgerock.opendj.ldap.requests.BindRequest;
@@ -63,12 +64,12 @@ import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldap.responses.SearchResultReference;
 import org.forgerock.opendj.ldif.ChangeRecord;
 import org.forgerock.opendj.ldif.ConnectionEntryReader;
+import org.forgerock.util.Reject;
 
 import com.forgerock.opendj.util.AsynchronousFutureResult;
 import com.forgerock.opendj.util.CompletedFutureResult;
 import com.forgerock.opendj.util.ReferenceCountedObject;
 import com.forgerock.opendj.util.TimeSource;
-import com.forgerock.opendj.util.Validator;
 
 /**
  * A connection pool implementation which maintains a cache of pooled
@@ -160,7 +161,7 @@ final class CachedConnectionPool implements ConnectionPool {
 
         @Override
         public void addConnectionEventListener(final ConnectionEventListener listener) {
-            Validator.ensureNotNull(listener);
+            Reject.ifNull(listener);
             final boolean notifyClose;
             final boolean notifyErrorOccurred;
             synchronized (stateLock) {
@@ -443,7 +444,7 @@ final class CachedConnectionPool implements ConnectionPool {
 
         @Override
         public void removeConnectionEventListener(final ConnectionEventListener listener) {
-            Validator.ensureNotNull(listener);
+            Reject.ifNull(listener);
             synchronized (stateLock) {
                 if (listeners != null) {
                     listeners.remove(listener);
@@ -666,12 +667,12 @@ final class CachedConnectionPool implements ConnectionPool {
     CachedConnectionPool(final ConnectionFactory factory, final int corePoolSize,
             final int maximumPoolSize, final long idleTimeout, final TimeUnit unit,
             final ScheduledExecutorService scheduler) {
-        Validator.ensureNotNull(factory);
-        Validator.ensureTrue(corePoolSize >= 0, "corePoolSize < 0");
-        Validator.ensureTrue(maximumPoolSize > 0, "maxPoolSize <= 0");
-        Validator.ensureTrue(corePoolSize <= maximumPoolSize, "corePoolSize > maxPoolSize");
-        Validator.ensureTrue(idleTimeout >= 0, "idleTimeout < 0");
-        Validator.ensureTrue(idleTimeout == 0 || unit != null, "time unit is null");
+        Reject.ifNull(factory);
+        Reject.ifFalse(corePoolSize >= 0, "corePoolSize < 0");
+        Reject.ifFalse(maximumPoolSize > 0, "maxPoolSize <= 0");
+        Reject.ifFalse(corePoolSize <= maximumPoolSize, "corePoolSize > maxPoolSize");
+        Reject.ifFalse(idleTimeout >= 0, "idleTimeout < 0");
+        Reject.ifFalse(idleTimeout == 0 || unit != null, "time unit is null");
 
         this.factory = factory;
         this.corePoolSize = corePoolSize;

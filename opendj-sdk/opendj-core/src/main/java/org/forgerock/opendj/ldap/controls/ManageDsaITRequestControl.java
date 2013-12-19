@@ -33,7 +33,7 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.DecodeOptions;
 
-import com.forgerock.opendj.util.Validator;
+import org.forgerock.util.Reject;
 
 /**
  * The ManageDsaIT request control as defined in RFC 3296. This control allows
@@ -92,7 +92,7 @@ public final class ManageDsaITRequestControl implements Control {
 
                 public ManageDsaITRequestControl decodeControl(final Control control,
                         final DecodeOptions options) throws DecodeException {
-                    Validator.ensureNotNull(control);
+                    Reject.ifNull(control);
 
                     if (control instanceof ManageDsaITRequestControl) {
                         return (ManageDsaITRequestControl) control;

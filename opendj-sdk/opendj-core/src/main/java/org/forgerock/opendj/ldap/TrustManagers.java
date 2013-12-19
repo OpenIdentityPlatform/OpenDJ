@@ -46,8 +46,7 @@ import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
 
 import org.forgerock.opendj.ldap.schema.Schema;
-
-import com.forgerock.opendj.util.Validator;
+import org.forgerock.util.Reject;
 
 /**
  * This class contains methods for creating common types of trust manager.
@@ -291,7 +290,8 @@ public final class TrustManagers {
      */
     public static X509TrustManager checkHostName(final String hostNamePattern,
             final X509TrustManager trustManager) {
-        Validator.ensureNotNull(trustManager, hostNamePattern);
+        Reject.ifNull(trustManager);
+        Reject.ifNull(hostNamePattern);
         return new CheckHostName(trustManager, hostNamePattern);
     }
 
@@ -345,7 +345,7 @@ public final class TrustManagers {
      */
     public static X509TrustManager checkUsingTrustStore(final String file, final char[] password,
             final String format) throws GeneralSecurityException, IOException {
-        Validator.ensureNotNull(file);
+        Reject.ifNull(file);
 
         final File trustStoreFile = new File(file);
         final String trustStoreFormat = format != null ? format : KeyStore.getDefaultType();
@@ -397,7 +397,7 @@ public final class TrustManagers {
      *             If {@code trustManager} was {@code null}.
      */
     public static X509TrustManager checkValidityDates(final X509TrustManager trustManager) {
-        Validator.ensureNotNull(trustManager);
+        Reject.ifNull(trustManager);
         return new CheckValidatyDates(trustManager);
     }
 

@@ -48,8 +48,7 @@ import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.DecodeOptions;
 import org.forgerock.opendj.ldap.SortKey;
-
-import com.forgerock.opendj.util.Validator;
+import org.forgerock.util.Reject;
 
 /**
  * The server-side sort request control as defined in RFC 2891. This control may
@@ -114,7 +113,7 @@ public final class ServerSideSortRequestControl implements Control {
 
                 public ServerSideSortRequestControl decodeControl(final Control control,
                         final DecodeOptions options) throws DecodeException {
-                    Validator.ensureNotNull(control);
+                    Reject.ifNull(control);
 
                     if (control instanceof ServerSideSortRequestControl) {
                         return (ServerSideSortRequestControl) control;
@@ -195,8 +194,8 @@ public final class ServerSideSortRequestControl implements Control {
      */
     public static ServerSideSortRequestControl newControl(final boolean isCritical,
             final Collection<SortKey> keys) {
-        Validator.ensureNotNull(keys);
-        Validator.ensureTrue(!keys.isEmpty(), "keys must not be empty");
+        Reject.ifNull(keys);
+        Reject.ifFalse(!keys.isEmpty(), "keys must not be empty");
 
         return new ServerSideSortRequestControl(isCritical, Collections
                 .unmodifiableList(new ArrayList<SortKey>(keys)));
@@ -245,7 +244,7 @@ public final class ServerSideSortRequestControl implements Control {
      */
     public static ServerSideSortRequestControl newControl(final boolean isCritical,
             final String sortKeys) {
-        Validator.ensureNotNull(sortKeys);
+        Reject.ifNull(sortKeys);
 
         final List<SortKey> keys = new LinkedList<SortKey>();
         final StringTokenizer tokenizer = new StringTokenizer(sortKeys, ",");

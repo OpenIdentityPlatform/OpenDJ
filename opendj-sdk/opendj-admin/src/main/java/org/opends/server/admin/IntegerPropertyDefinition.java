@@ -26,7 +26,7 @@
 
 package org.opends.server.admin;
 
-import static com.forgerock.opendj.util.Validator.*;
+import org.forgerock.util.Reject;
 
 import java.util.EnumSet;
 import java.util.Locale;
@@ -230,7 +230,7 @@ public final class IntegerPropertyDefinition extends PropertyDefinition<Integer>
      */
     @Override
     public void validateValue(Integer value) throws IllegalPropertyValueException {
-        ensureNotNull(value);
+        Reject.ifNull(value);
 
         if (!allowUnlimited && value < lowerLimit) {
             throw new IllegalPropertyValueException(this, value);
@@ -250,7 +250,7 @@ public final class IntegerPropertyDefinition extends PropertyDefinition<Integer>
      */
     @Override
     public String encodeValue(Integer value) throws IllegalPropertyValueException {
-        ensureNotNull(value);
+        Reject.ifNull(value);
 
         // Make sure that we correctly encode negative values as "unlimited".
         if (allowUnlimited) {
@@ -267,7 +267,7 @@ public final class IntegerPropertyDefinition extends PropertyDefinition<Integer>
      */
     @Override
     public Integer decodeValue(String value) throws IllegalPropertyValueStringException {
-        ensureNotNull(value);
+        Reject.ifNull(value);
 
         if (allowUnlimited) {
             if (value.trim().equalsIgnoreCase(UNLIMITED)) {

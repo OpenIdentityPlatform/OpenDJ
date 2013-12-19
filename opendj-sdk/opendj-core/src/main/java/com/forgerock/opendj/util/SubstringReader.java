@@ -27,6 +27,8 @@
 
 package com.forgerock.opendj.util;
 
+import org.forgerock.util.Reject;
+
 /**
  * A sub-string reader.
  */
@@ -47,7 +49,7 @@ public class SubstringReader {
      *            the source of the reader.
      */
     public SubstringReader(final String s) {
-        Validator.ensureNotNull(s);
+        Reject.ifNull(s);
         source = s;
         length = s.length();
         pos = 0;

@@ -48,8 +48,7 @@ import org.forgerock.opendj.ldap.RDN;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldif.ChangeRecord;
 import org.forgerock.opendj.ldif.LDIFChangeRecordReader;
-
-import com.forgerock.opendj.util.Validator;
+import org.forgerock.util.Reject;
 
 /**
  * This class contains various methods for creating and manipulating requests.
@@ -413,7 +412,7 @@ public final class Requests {
      *             If {@code entry} was {@code null} .
      */
     public static AddRequest newAddRequest(final Entry entry) {
-        Validator.ensureNotNull(entry);
+        Reject.ifNull(entry);
         return new AddRequestImpl(entry);
     }
 
@@ -529,7 +528,9 @@ public final class Requests {
      */
     public static CompareRequest newCompareRequest(final DN name,
             final AttributeDescription attributeDescription, final Object assertionValue) {
-        Validator.ensureNotNull(name, attributeDescription, assertionValue);
+        Reject.ifNull(name);
+        Reject.ifNull(attributeDescription);
+        Reject.ifNull(assertionValue);
         return new CompareRequestImpl(name, attributeDescription, ByteString
                 .valueOf(assertionValue));
     }
@@ -557,7 +558,9 @@ public final class Requests {
      */
     public static CompareRequest newCompareRequest(final String name,
             final String attributeDescription, final Object assertionValue) {
-        Validator.ensureNotNull(name, attributeDescription, assertionValue);
+        Reject.ifNull(name);
+        Reject.ifNull(attributeDescription);
+        Reject.ifNull(assertionValue);
         return new CompareRequestImpl(DN.valueOf(name), AttributeDescription
                 .valueOf(attributeDescription), ByteString.valueOf(assertionValue));
     }
@@ -615,7 +618,7 @@ public final class Requests {
      *             If {@code name} was {@code null}.
      */
     public static DeleteRequest newDeleteRequest(final DN name) {
-        Validator.ensureNotNull(name);
+        Reject.ifNull(name);
         return new DeleteRequestImpl(name);
     }
 
@@ -633,7 +636,7 @@ public final class Requests {
      *             If {@code name} was {@code null}.
      */
     public static DeleteRequest newDeleteRequest(final String name) {
-        Validator.ensureNotNull(name);
+        Reject.ifNull(name);
         return new DeleteRequestImpl(DN.valueOf(name));
     }
 
@@ -705,7 +708,7 @@ public final class Requests {
      */
     public static GenericBindRequest newGenericBindRequest(final byte authenticationType,
             final byte[] authenticationValue) {
-        Validator.ensureNotNull(authenticationValue);
+        Reject.ifNull(authenticationValue);
         return new GenericBindRequestImpl("", authenticationType, authenticationValue);
     }
 
@@ -733,7 +736,8 @@ public final class Requests {
      */
     public static GenericBindRequest newGenericBindRequest(final String name,
             final byte authenticationType, final byte[] authenticationValue) {
-        Validator.ensureNotNull(name, authenticationValue);
+        Reject.ifNull(name);
+        Reject.ifNull(authenticationValue);
         return new GenericBindRequestImpl(name, authenticationType, authenticationValue);
     }
 
@@ -749,7 +753,7 @@ public final class Requests {
      *             If {@code requestName} was {@code null}.
      */
     public static GenericExtendedRequest newGenericExtendedRequest(final String requestName) {
-        Validator.ensureNotNull(requestName);
+        Reject.ifNull(requestName);
         return new GenericExtendedRequestImpl(requestName);
     }
 
@@ -773,7 +777,7 @@ public final class Requests {
      */
     public static GenericExtendedRequest newGenericExtendedRequest(final String requestName,
             final Object requestValue) {
-        Validator.ensureNotNull(requestName);
+        Reject.ifNull(requestName);
         return new GenericExtendedRequestImpl(requestName).setValue(requestValue);
     }
 
@@ -847,7 +851,8 @@ public final class Requests {
      *             If {@code name} or {@code newRDN} was {@code null}.
      */
     public static ModifyDNRequest newModifyDNRequest(final DN name, final RDN newRDN) {
-        Validator.ensureNotNull(name, newRDN);
+        Reject.ifNull(name);
+        Reject.ifNull(newRDN);
         return new ModifyDNRequestImpl(name, newRDN);
     }
 
@@ -867,7 +872,8 @@ public final class Requests {
      *             If {@code name} or {@code newRDN} was {@code null}.
      */
     public static ModifyDNRequest newModifyDNRequest(final String name, final String newRDN) {
-        Validator.ensureNotNull(name, newRDN);
+        Reject.ifNull(name);
+        Reject.ifNull(newRDN);
         return new ModifyDNRequestImpl(DN.valueOf(name), RDN.valueOf(newRDN));
     }
 
@@ -881,7 +887,7 @@ public final class Requests {
      *             If {@code name} was {@code null}.
      */
     public static ModifyRequest newModifyRequest(final DN name) {
-        Validator.ensureNotNull(name);
+        Reject.ifNull(name);
         return new ModifyRequestImpl(name);
     }
 
@@ -931,7 +937,7 @@ public final class Requests {
      *             If {@code name} was {@code null}.
      */
     public static ModifyRequest newModifyRequest(final String name) {
-        Validator.ensureNotNull(name);
+        Reject.ifNull(name);
         return new ModifyRequestImpl(DN.valueOf(name));
     }
 
@@ -1036,7 +1042,9 @@ public final class Requests {
      */
     public static SearchRequest newSearchRequest(final DN name, final SearchScope scope,
             final Filter filter, final String... attributeDescriptions) {
-        Validator.ensureNotNull(name, scope, filter);
+        Reject.ifNull(name);
+        Reject.ifNull(scope);
+        Reject.ifNull(filter);
         final SearchRequest request = new SearchRequestImpl(name, scope, filter);
         for (final String attributeDescription : attributeDescriptions) {
             request.addAttribute(attributeDescription);
@@ -1069,7 +1077,9 @@ public final class Requests {
      */
     public static SearchRequest newSearchRequest(final String name, final SearchScope scope,
             final String filter, final String... attributeDescriptions) {
-        Validator.ensureNotNull(name, scope, filter);
+        Reject.ifNull(name);
+        Reject.ifNull(scope);
+        Reject.ifNull(filter);
         final SearchRequest request =
                 new SearchRequestImpl(DN.valueOf(name), scope, Filter.valueOf(filter));
         for (final String attributeDescription : attributeDescriptions) {
@@ -1161,7 +1171,8 @@ public final class Requests {
      *             If {@code name} or {@code password} was {@code null}.
      */
     public static SimpleBindRequest newSimpleBindRequest(final String name, final byte[] password) {
-        Validator.ensureNotNull(name, password);
+        Reject.ifNull(name);
+        Reject.ifNull(password);
         return new SimpleBindRequestImpl(name, password);
     }
 
@@ -1187,7 +1198,8 @@ public final class Requests {
      *             If {@code name} or {@code password} was {@code null}.
      */
     public static SimpleBindRequest newSimpleBindRequest(final String name, final char[] password) {
-        Validator.ensureNotNull(name, password);
+        Reject.ifNull(name);
+        Reject.ifNull(password);
         return new SimpleBindRequestImpl(name, getBytes(password));
     }
 

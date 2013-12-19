@@ -40,7 +40,7 @@ import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.Matcher;
 
-import com.forgerock.opendj.util.Validator;
+import org.forgerock.util.Reject;
 
 /**
  * An LDIF entry writer writes attribute value records (entries) using the LDAP
@@ -171,7 +171,7 @@ public final class LDIFEntryWriter extends AbstractLDIFWriter implements EntryWr
      * @return A reference to this {@code LDIFEntryWriter}.
      */
     public LDIFEntryWriter setExcludeAttribute(final AttributeDescription attributeDescription) {
-        Validator.ensureNotNull(attributeDescription);
+        Reject.ifNull(attributeDescription);
         excludeAttributes.add(attributeDescription);
         return this;
     }
@@ -186,7 +186,7 @@ public final class LDIFEntryWriter extends AbstractLDIFWriter implements EntryWr
      * @return A reference to this {@code LDIFEntryWriter}.
      */
     public LDIFEntryWriter setExcludeBranch(final DN excludeBranch) {
-        Validator.ensureNotNull(excludeBranch);
+        Reject.ifNull(excludeBranch);
         excludeBranches.add(excludeBranch);
         return this;
     }
@@ -201,7 +201,7 @@ public final class LDIFEntryWriter extends AbstractLDIFWriter implements EntryWr
      * @return A reference to this {@code LDIFEntryWriter}.
      */
     public LDIFEntryWriter setExcludeFilter(final Matcher excludeFilter) {
-        Validator.ensureNotNull(excludeFilter);
+        Reject.ifNull(excludeFilter);
         excludeFilters.add(excludeFilter);
         return this;
     }
@@ -216,7 +216,7 @@ public final class LDIFEntryWriter extends AbstractLDIFWriter implements EntryWr
      * @return A reference to this {@code LDIFEntryWriter}.
      */
     public LDIFEntryWriter setIncludeAttribute(final AttributeDescription attributeDescription) {
-        Validator.ensureNotNull(attributeDescription);
+        Reject.ifNull(attributeDescription);
         includeAttributes.add(attributeDescription);
         return this;
     }
@@ -231,7 +231,7 @@ public final class LDIFEntryWriter extends AbstractLDIFWriter implements EntryWr
      * @return A reference to this {@code LDIFEntryWriter}.
      */
     public LDIFEntryWriter setIncludeBranch(final DN includeBranch) {
-        Validator.ensureNotNull(includeBranch);
+        Reject.ifNull(includeBranch);
         includeBranches.add(includeBranch);
         return this;
     }
@@ -246,7 +246,7 @@ public final class LDIFEntryWriter extends AbstractLDIFWriter implements EntryWr
      * @return A reference to this {@code LDIFEntryWriter}.
      */
     public LDIFEntryWriter setIncludeFilter(final Matcher includeFilter) {
-        Validator.ensureNotNull(includeFilter);
+        Reject.ifNull(includeFilter);
         includeFilters.add(includeFilter);
         return this;
     }
@@ -279,7 +279,7 @@ public final class LDIFEntryWriter extends AbstractLDIFWriter implements EntryWr
      */
     @Override
     public LDIFEntryWriter writeEntry(final Entry entry) throws IOException {
-        Validator.ensureNotNull(entry);
+        Reject.ifNull(entry);
 
         // Skip if branch containing the entry is excluded.
         if (isBranchExcluded(entry.getName())) {

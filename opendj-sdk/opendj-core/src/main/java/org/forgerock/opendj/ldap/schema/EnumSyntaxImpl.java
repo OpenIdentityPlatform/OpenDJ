@@ -43,8 +43,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
-
-import com.forgerock.opendj.util.Validator;
+import org.forgerock.util.Reject;
 
 /**
  * This class provides an enumeration-based mechanism where a new syntax and its
@@ -57,7 +56,8 @@ final class EnumSyntaxImpl extends AbstractSyntaxImpl {
     private final List<String> entries;
 
     EnumSyntaxImpl(final String oid, final List<String> entries) {
-        Validator.ensureNotNull(oid, entries);
+        Reject.ifNull(oid);
+        Reject.ifNull(entries);
         this.oid = oid;
         final List<String> entryStrings = new ArrayList<String>(entries.size());
 

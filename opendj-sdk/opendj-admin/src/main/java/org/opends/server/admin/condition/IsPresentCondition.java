@@ -35,7 +35,7 @@ import org.opends.server.admin.client.ManagementContext;
 import org.opends.server.admin.server.ServerManagedObject;
 import org.opends.server.config.ConfigException;
 
-import com.forgerock.opendj.util.Validator;
+import org.forgerock.util.Reject;
 
 /**
  * A condition which evaluates to <code>true</code> if and only if a particular
@@ -56,7 +56,7 @@ public final class IsPresentCondition implements Condition {
      *            The property name.
      */
     public IsPresentCondition(String propertyName) {
-        Validator.ensureNotNull(propertyName);
+        Reject.ifNull(propertyName);
         this.propertyName = propertyName;
     }
 

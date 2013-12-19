@@ -36,7 +36,7 @@ import java.util.Map;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.MatchingRule;
 
-import com.forgerock.opendj.util.Validator;
+import org.forgerock.util.Reject;
 
 /**
  * This class provides a skeletal implementation of the {@code Attribute}
@@ -165,7 +165,7 @@ public abstract class AbstractAttribute extends AbstractSet<ByteString> implemen
      * {@inheritDoc}
      */
     public boolean add(final Object... values) {
-        Validator.ensureNotNull(values);
+        Reject.ifNull(values);
         boolean modified = false;
         for (final Object value : values) {
             modified |= add(ByteString.valueOf(value));

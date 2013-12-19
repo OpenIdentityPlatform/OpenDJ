@@ -34,8 +34,7 @@ import java.util.Collections;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
-
-import com.forgerock.opendj.util.Validator;
+import org.forgerock.util.Reject;
 
 /**
  * This exception is thrown when the client or server refuses to create, delete,
@@ -77,8 +76,8 @@ public class OperationRejectedException extends AdminClientException {
 
     // Gets the default message.
     private static LocalizableMessage getDefaultMessage(Collection<LocalizableMessage> messages) {
-        Validator.ensureNotNull(messages);
-        Validator.ensureTrue(!messages.isEmpty(), "Messages should not be empty");
+        Reject.ifNull(messages);
+        Reject.ifFalse(!messages.isEmpty(), "Messages should not be empty");
 
         if (messages.size() == 1) {
             return ERR_OPERATION_REJECTED_EXCEPTION_SINGLE.get(messages.iterator().next());

@@ -45,7 +45,7 @@ import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.DecodeOptions;
 import org.forgerock.opendj.ldap.Filter;
 
-import com.forgerock.opendj.util.Validator;
+import org.forgerock.util.Reject;
 
 /**
  * The assertion request control as defined in RFC 4528. The Assertion control
@@ -91,7 +91,7 @@ public final class AssertionRequestControl implements Control {
 
                 public AssertionRequestControl decodeControl(final Control control,
                         final DecodeOptions options) throws DecodeException {
-                    Validator.ensureNotNull(control);
+                    Reject.ifNull(control);
 
                     if (control instanceof AssertionRequestControl) {
                         return (AssertionRequestControl) control;
@@ -149,7 +149,7 @@ public final class AssertionRequestControl implements Control {
 
     // Prevent direct instantiation.
     private AssertionRequestControl(final boolean isCritical, final Filter filter) {
-        Validator.ensureNotNull(filter);
+        Reject.ifNull(filter);
         this.isCritical = isCritical;
         this.filter = filter;
     }

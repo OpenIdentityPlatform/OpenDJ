@@ -33,7 +33,7 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.DecodeOptions;
 
-import com.forgerock.opendj.util.Validator;
+import org.forgerock.util.Reject;
 
 /**
  * The Netscape password expired response control as defined in
@@ -89,7 +89,7 @@ public final class PasswordExpiredResponseControl implements Control {
 
                 public PasswordExpiredResponseControl decodeControl(final Control control,
                         final DecodeOptions options) throws DecodeException {
-                    Validator.ensureNotNull(control);
+                    Reject.ifNull(control);
 
                     if (control instanceof PasswordExpiredResponseControl) {
                         return (PasswordExpiredResponseControl) control;

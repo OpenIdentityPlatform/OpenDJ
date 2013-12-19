@@ -36,8 +36,7 @@ import org.forgerock.opendj.ldap.LinkedAttribute;
 import org.forgerock.opendj.ldap.Modification;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldif.ChangeRecordVisitor;
-
-import com.forgerock.opendj.util.Validator;
+import org.forgerock.util.Reject;
 
 /**
  * Modify request implementation.
@@ -70,7 +69,7 @@ final class ModifyRequestImpl extends AbstractRequestImpl<ModifyRequest> impleme
 
     @Override
     public ModifyRequest addModification(final Modification change) {
-        Validator.ensureNotNull(change);
+        Reject.ifNull(change);
         changes.add(change);
         return this;
     }
@@ -78,7 +77,9 @@ final class ModifyRequestImpl extends AbstractRequestImpl<ModifyRequest> impleme
     @Override
     public ModifyRequest addModification(final ModificationType type,
             final String attributeDescription, final Object... values) {
-        Validator.ensureNotNull(type, attributeDescription, values);
+        Reject.ifNull(type);
+        Reject.ifNull(attributeDescription);
+        Reject.ifNull(values);
         changes.add(new Modification(type, new LinkedAttribute(attributeDescription, values)));
         return this;
     }
@@ -95,14 +96,14 @@ final class ModifyRequestImpl extends AbstractRequestImpl<ModifyRequest> impleme
 
     @Override
     public ModifyRequest setName(final DN dn) {
-        Validator.ensureNotNull(dn);
+        Reject.ifNull(dn);
         this.name = dn;
         return this;
     }
 
     @Override
     public ModifyRequest setName(final String dn) {
-        Validator.ensureNotNull(dn);
+        Reject.ifNull(dn);
         this.name = DN.valueOf(dn);
         return this;
     }

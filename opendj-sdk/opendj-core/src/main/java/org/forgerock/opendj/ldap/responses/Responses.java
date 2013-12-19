@@ -34,7 +34,7 @@ import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.LinkedHashMapEntry;
 import org.forgerock.opendj.ldap.ResultCode;
 
-import com.forgerock.opendj.util.Validator;
+import org.forgerock.util.Reject;
 
 /**
  * This class contains various methods for creating and manipulating responses.
@@ -194,7 +194,7 @@ public final class Responses {
      *             If {@code resultCode} was {@code null}.
      */
     public static BindResult newBindResult(final ResultCode resultCode) {
-        Validator.ensureNotNull(resultCode);
+        Reject.ifNull(resultCode);
         return new BindResultImpl(resultCode);
     }
 
@@ -208,7 +208,7 @@ public final class Responses {
      *             If {@code resultCode} was {@code null}.
      */
     public static CompareResult newCompareResult(final ResultCode resultCode) {
-        Validator.ensureNotNull(resultCode);
+        Reject.ifNull(resultCode);
         return new CompareResultImpl(resultCode);
     }
 
@@ -222,7 +222,7 @@ public final class Responses {
      *             If {@code resultCode} was {@code null}.
      */
     public static GenericExtendedResult newGenericExtendedResult(final ResultCode resultCode) {
-        Validator.ensureNotNull(resultCode);
+        Reject.ifNull(resultCode);
         return new GenericExtendedResultImpl(resultCode);
     }
 
@@ -269,7 +269,7 @@ public final class Responses {
      */
     public static PasswordModifyExtendedResult newPasswordModifyExtendedResult(
             final ResultCode resultCode) {
-        Validator.ensureNotNull(resultCode);
+        Reject.ifNull(resultCode);
         return new PasswordModifyExtendedResultImpl(resultCode);
     }
 
@@ -283,7 +283,7 @@ public final class Responses {
      *             If {@code resultCode} was {@code null}.
      */
     public static Result newResult(final ResultCode resultCode) {
-        Validator.ensureNotNull(resultCode);
+        Reject.ifNull(resultCode);
         return new ResultImpl(resultCode);
     }
 
@@ -315,7 +315,7 @@ public final class Responses {
      *             If {@code entry} was {@code null} .
      */
     public static SearchResultEntry newSearchResultEntry(final Entry entry) {
-        Validator.ensureNotNull(entry);
+        Reject.ifNull(entry);
         return new SearchResultEntryImpl(entry);
     }
 
@@ -367,7 +367,7 @@ public final class Responses {
      *             If {@code uri} was {@code null}.
      */
     public static SearchResultReference newSearchResultReference(final String uri) {
-        Validator.ensureNotNull(uri);
+        Reject.ifNull(uri);
         return new SearchResultReferenceImpl(uri);
     }
 
@@ -382,7 +382,7 @@ public final class Responses {
      *             If {@code resultCode} was {@code null} .
      */
     public static WhoAmIExtendedResult newWhoAmIExtendedResult(final ResultCode resultCode) {
-        Validator.ensureNotNull(resultCode);
+        Reject.ifNull(resultCode);
         return new WhoAmIExtendedResultImpl(ResultCode.SUCCESS);
     }
 

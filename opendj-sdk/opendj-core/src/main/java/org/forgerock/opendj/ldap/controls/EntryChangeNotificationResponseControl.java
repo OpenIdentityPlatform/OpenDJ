@@ -42,9 +42,9 @@ import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.DecodeOptions;
 import org.forgerock.opendj.ldap.schema.Schema;
+import org.forgerock.util.Reject;
 
 import com.forgerock.opendj.util.StaticUtils;
-import com.forgerock.opendj.util.Validator;
 
 /**
  * The entry change notification response control as defined in
@@ -107,7 +107,8 @@ public final class EntryChangeNotificationResponseControl implements Control {
 
                 public EntryChangeNotificationResponseControl decodeControl(final Control control,
                         final DecodeOptions options) throws DecodeException {
-                    Validator.ensureNotNull(control, options);
+                    Reject.ifNull(control);
+                    Reject.ifNull(options);
 
                     if (control instanceof EntryChangeNotificationResponseControl) {
                         return (EntryChangeNotificationResponseControl) control;
@@ -262,7 +263,7 @@ public final class EntryChangeNotificationResponseControl implements Control {
     private EntryChangeNotificationResponseControl(final boolean isCritical,
             final PersistentSearchChangeType changeType, final DN previousName,
             final long changeNumber) {
-        Validator.ensureNotNull(changeType);
+        Reject.ifNull(changeType);
         this.isCritical = isCritical;
         this.changeType = changeType;
         this.previousName = previousName;

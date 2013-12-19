@@ -35,8 +35,7 @@ import org.forgerock.opendj.ldap.DecodeOptions;
 import org.forgerock.opendj.ldap.controls.Control;
 import org.forgerock.opendj.ldap.controls.ControlDecoder;
 import org.forgerock.opendj.ldap.controls.GenericControl;
-
-import com.forgerock.opendj.util.Validator;
+import org.forgerock.util.Reject;
 
 /**
  * Modifiable response implementation.
@@ -65,7 +64,7 @@ abstract class AbstractResponseImpl<S extends Response> implements Response {
     }
 
     AbstractResponseImpl(final Response response) {
-        Validator.ensureNotNull(response);
+        Reject.ifNull(response);
         for (final Control control : response.getControls()) {
             // Create defensive copy.
             controls.add(GenericControl.newControl(control));
@@ -74,7 +73,7 @@ abstract class AbstractResponseImpl<S extends Response> implements Response {
 
     @Override
     public final S addControl(final Control control) {
-        Validator.ensureNotNull(control);
+        Reject.ifNull(control);
         controls.add(control);
         return getThis();
     }
@@ -87,7 +86,8 @@ abstract class AbstractResponseImpl<S extends Response> implements Response {
     @Override
     public final <C extends Control> C getControl(final ControlDecoder<C> decoder,
             final DecodeOptions options) throws DecodeException {
-        Validator.ensureNotNull(decoder, options);
+        Reject.ifNull(decoder);
+        Reject.ifNull(options);
         final Control control = getControl(controls, decoder.getOID());
         return control != null ? decoder.decodeControl(control, options) : null;
     }

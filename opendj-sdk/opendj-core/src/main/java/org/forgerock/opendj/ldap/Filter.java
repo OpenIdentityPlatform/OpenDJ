@@ -41,9 +41,9 @@ import java.util.List;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.schema.Schema;
+import org.forgerock.util.Reject;
 
 import com.forgerock.opendj.util.StaticUtils;
-import com.forgerock.opendj.util.Validator;
 
 /**
  * A search filter as defined in RFC 4511. In addition this class also provides
@@ -469,12 +469,12 @@ public final class Filter {
             return alwaysTrue();
         } else if (subFilters.size() == 1) {
             final Filter subFilter = subFilters.iterator().next();
-            Validator.ensureNotNull(subFilter);
+            Reject.ifNull(subFilter);
             return new Filter(new AndImpl(Collections.singletonList(subFilter)));
         } else {
             final List<Filter> subFiltersList = new ArrayList<Filter>(subFilters.size());
             for (final Filter subFilter : subFilters) {
-                Validator.ensureNotNull(subFilter);
+                Reject.ifNull(subFilter);
                 subFiltersList.add(subFilter);
             }
             return new Filter(new AndImpl(Collections.unmodifiableList(subFiltersList)));
@@ -496,12 +496,12 @@ public final class Filter {
             // RFC 4526 - TRUE filter.
             return alwaysTrue();
         } else if (subFilters.length == 1) {
-            Validator.ensureNotNull(subFilters[0]);
+            Reject.ifNull(subFilters[0]);
             return new Filter(new AndImpl(Collections.singletonList(subFilters[0])));
         } else {
             final List<Filter> subFiltersList = new ArrayList<Filter>(subFilters.length);
             for (final Filter subFilter : subFilters) {
-                Validator.ensureNotNull(subFilter);
+                Reject.ifNull(subFilter);
                 subFiltersList.add(subFilter);
             }
             return new Filter(new AndImpl(Collections.unmodifiableList(subFiltersList)));
@@ -522,7 +522,8 @@ public final class Filter {
      * @return The newly created {@code approximate match} filter.
      */
     public static Filter approx(final String attributeDescription, final Object assertionValue) {
-        Validator.ensureNotNull(attributeDescription, assertionValue);
+        Reject.ifNull(attributeDescription);
+        Reject.ifNull(assertionValue);
         return new Filter(new ApproxMatchImpl(attributeDescription, ByteString
                 .valueOf(assertionValue)));
     }
@@ -541,7 +542,8 @@ public final class Filter {
      * @return The newly created {@code equality match} filter.
      */
     public static Filter equality(final String attributeDescription, final Object assertionValue) {
-        Validator.ensureNotNull(attributeDescription, assertionValue);
+        Reject.ifNull(attributeDescription);
+        Reject.ifNull(assertionValue);
         return new Filter(new EqualityMatchImpl(attributeDescription, ByteString
                 .valueOf(assertionValue)));
     }
@@ -583,7 +585,7 @@ public final class Filter {
      * @see #format(String, Object...)
      */
     public static String escapeAssertionValue(final Object assertionValue) {
-        Validator.ensureNotNull(assertionValue);
+        Reject.ifNull(assertionValue);
         final ByteString bytes = ByteString.valueOf(assertionValue);
         final StringBuilder builder = new StringBuilder(bytes.length());
         valueToFilterString(builder, bytes);
@@ -610,9 +612,9 @@ public final class Filter {
      */
     public static Filter extensible(final String matchingRule, final String attributeDescription,
             final Object assertionValue, final boolean dnAttributes) {
-        Validator.ensureTrue((matchingRule != null) || (attributeDescription != null),
-                "matchingRule and/or " + "attributeDescription must not be null");
-        Validator.ensureNotNull(assertionValue);
+        Reject.ifFalse(matchingRule != null || attributeDescription != null,
+                "matchingRule and/or attributeDescription must not be null");
+        Reject.ifNull(assertionValue);
         return new Filter(new ExtensibleMatchImpl(matchingRule, attributeDescription, ByteString
                 .valueOf(assertionValue), dnAttributes));
     }
@@ -632,7 +634,8 @@ public final class Filter {
      */
     public static Filter greaterOrEqual(final String attributeDescription,
             final Object assertionValue) {
-        Validator.ensureNotNull(attributeDescription, assertionValue);
+        Reject.ifNull(attributeDescription);
+        Reject.ifNull(assertionValue);
         return new Filter(new GreaterOrEqualImpl(attributeDescription, ByteString
                 .valueOf(assertionValue)));
     }
@@ -676,7 +679,8 @@ public final class Filter {
      * @return The newly created {@code less or equal} filter.
      */
     public static Filter lessOrEqual(final String attributeDescription, final Object assertionValue) {
-        Validator.ensureNotNull(attributeDescription, assertionValue);
+        Reject.ifNull(attributeDescription);
+        Reject.ifNull(assertionValue);
         return new Filter(new LessOrEqualImpl(attributeDescription, ByteString
                 .valueOf(assertionValue)));
     }
@@ -714,7 +718,7 @@ public final class Filter {
      * @return The newly created {@code not} filter.
      */
     public static Filter not(final Filter subFilter) {
-        Validator.ensureNotNull(subFilter);
+        Reject.ifNull(subFilter);
         return new Filter(new NotImpl(subFilter));
     }
 
@@ -750,12 +754,12 @@ public final class Filter {
             return alwaysFalse();
         } else if (subFilters.size() == 1) {
             final Filter subFilter = subFilters.iterator().next();
-            Validator.ensureNotNull(subFilter);
+            Reject.ifNull(subFilter);
             return new Filter(new OrImpl(Collections.singletonList(subFilter)));
         } else {
             final List<Filter> subFiltersList = new ArrayList<Filter>(subFilters.size());
             for (final Filter subFilter : subFilters) {
-                Validator.ensureNotNull(subFilter);
+                Reject.ifNull(subFilter);
                 subFiltersList.add(subFilter);
             }
             return new Filter(new OrImpl(Collections.unmodifiableList(subFiltersList)));
@@ -777,12 +781,12 @@ public final class Filter {
             // RFC 4526 - FALSE filter.
             return alwaysFalse();
         } else if (subFilters.length == 1) {
-            Validator.ensureNotNull(subFilters[0]);
+            Reject.ifNull(subFilters[0]);
             return new Filter(new OrImpl(Collections.singletonList(subFilters[0])));
         } else {
             final List<Filter> subFiltersList = new ArrayList<Filter>(subFilters.length);
             for (final Filter subFilter : subFilters) {
-                Validator.ensureNotNull(subFilter);
+                Reject.ifNull(subFilter);
                 subFiltersList.add(subFilter);
             }
             return new Filter(new OrImpl(Collections.unmodifiableList(subFiltersList)));
@@ -798,7 +802,7 @@ public final class Filter {
      * @return The newly created {@code present} filter.
      */
     public static Filter present(final String attributeDescription) {
-        Validator.ensureNotNull(attributeDescription);
+        Reject.ifNull(attributeDescription);
         if (toLowerCase(attributeDescription).equals("objectclass")) {
             return OBJECT_CLASS_PRESENT;
         }
@@ -830,8 +834,8 @@ public final class Filter {
     public static Filter substrings(final String attributeDescription,
             final Object initialSubstring, final Collection<?> anySubstrings,
             final Object finalSubstring) {
-        Validator.ensureNotNull(attributeDescription);
-        Validator.ensureTrue((initialSubstring != null) || (finalSubstring != null)
+        Reject.ifNull(attributeDescription);
+        Reject.ifFalse((initialSubstring != null) || (finalSubstring != null)
                 || ((anySubstrings != null) && (anySubstrings.size() > 0)),
                 "at least one substring (initial, any or final)" + " must be specified");
 
@@ -840,12 +844,12 @@ public final class Filter {
             anySubstringList = Collections.emptyList();
         } else if (anySubstrings.size() == 1) {
             final Object anySubstring = anySubstrings.iterator().next();
-            Validator.ensureNotNull(anySubstring);
+            Reject.ifNull(anySubstring);
             anySubstringList = Collections.singletonList(ByteString.valueOf(anySubstring));
         } else {
             anySubstringList = new ArrayList<ByteString>(anySubstrings.size());
             for (final Object anySubstring : anySubstrings) {
-                Validator.ensureNotNull(anySubstring);
+                Reject.ifNull(anySubstring);
 
                 anySubstringList.add(ByteString.valueOf(anySubstring));
             }
@@ -870,7 +874,7 @@ public final class Filter {
      * @return The newly created {@code unrecognized} filter.
      */
     public static Filter unrecognized(final byte filterTag, final ByteString filterBytes) {
-        Validator.ensureNotNull(filterBytes);
+        Reject.ifNull(filterBytes);
         return new Filter(new UnrecognizedImpl(filterTag, filterBytes));
     }
 
@@ -887,7 +891,7 @@ public final class Filter {
      * @see #format(String, Object...)
      */
     public static Filter valueOf(final String string) {
-        Validator.ensureNotNull(string);
+        Reject.ifNull(string);
 
         // If the filter is enclosed in a pair of single quotes it
         // is invalid (issue #1024).

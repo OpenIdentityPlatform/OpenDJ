@@ -62,7 +62,7 @@ import org.forgerock.opendj.ldap.responses.Result;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldap.responses.SearchResultReference;
 
-import com.forgerock.opendj.util.Validator;
+import org.forgerock.util.Reject;
 
 /**
  * An adapter which converts a {@code RequestHandlerFactory} into a
@@ -160,7 +160,7 @@ final class RequestHandlerFactoryAdapter<C> implements ServerConnectionFactory<C
          */
         @Override
         public void addCancelRequestListener(final CancelRequestListener listener) {
-            Validator.ensureNotNull(listener);
+            Reject.ifNull(listener);
 
             boolean invokeImmediately = false;
             synchronized (stateLock) {
@@ -275,7 +275,7 @@ final class RequestHandlerFactoryAdapter<C> implements ServerConnectionFactory<C
          */
         @Override
         public void removeCancelRequestListener(final CancelRequestListener listener) {
-            Validator.ensureNotNull(listener);
+            Reject.ifNull(listener);
 
             synchronized (stateLock) {
                 if (cancelRequestListeners != null) {
@@ -287,7 +287,7 @@ final class RequestHandlerFactoryAdapter<C> implements ServerConnectionFactory<C
         private <R extends ExtendedResult> void cancel(final LocalizableMessage reason,
                 final ExtendedRequest<R> cancelRequest, final ResultHandler<R> cancelResultHandler,
                 final boolean sendResult) {
-            Validator.ensureNotNull(reason);
+            Reject.ifNull(reason);
 
             if (!isCancelSupported) {
                 if (cancelResultHandler != null) {

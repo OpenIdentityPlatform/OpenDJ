@@ -45,8 +45,7 @@ import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.DecodeOptions;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.Schema;
-
-import com.forgerock.opendj.util.Validator;
+import org.forgerock.util.Reject;
 
 /**
  * The server-side sort response control as defined in RFC 2891. This control is
@@ -97,7 +96,8 @@ public final class ServerSideSortResponseControl implements Control {
 
                 public ServerSideSortResponseControl decodeControl(final Control control,
                         final DecodeOptions options) throws DecodeException {
-                    Validator.ensureNotNull(control, options);
+                    Reject.ifNull(control);
+                    Reject.ifNull(options);
 
                     if (control instanceof ServerSideSortResponseControl) {
                         return (ServerSideSortResponseControl) control;
@@ -174,7 +174,7 @@ public final class ServerSideSortResponseControl implements Control {
      *             If {@code result} was {@code null}.
      */
     public static ServerSideSortResponseControl newControl(final ResultCode result) {
-        Validator.ensureNotNull(result);
+        Reject.ifNull(result);
 
         return new ServerSideSortResponseControl(false, result, null);
     }
@@ -200,7 +200,7 @@ public final class ServerSideSortResponseControl implements Control {
      */
     public static ServerSideSortResponseControl newControl(final ResultCode result,
             final AttributeDescription attributeDescription) {
-        Validator.ensureNotNull(result);
+        Reject.ifNull(result);
 
         return new ServerSideSortResponseControl(false, result, attributeDescription);
     }
@@ -230,7 +230,7 @@ public final class ServerSideSortResponseControl implements Control {
      */
     public static ServerSideSortResponseControl newControl(final ResultCode result,
             final String attributeDescription) {
-        Validator.ensureNotNull(result);
+        Reject.ifNull(result);
 
         if (attributeDescription != null) {
             return new ServerSideSortResponseControl(false, result, AttributeDescription

@@ -39,7 +39,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.opendj.ldap.ByteSequence;
 
-import com.forgerock.opendj.util.Validator;
+import org.forgerock.util.Reject;
 
 /**
  * This class defines a data structure for storing and interacting with an LDAP
@@ -77,7 +77,7 @@ public final class Syntax extends SchemaElement {
                 Collections.singletonList(schema.getDefaultSyntax().getOID())),
                 null);
 
-        Validator.ensureNotNull(oid);
+        Reject.ifNull(oid);
         this.oid = oid;
         this.schema = schema;
         this.impl = schema.getDefaultSyntax().impl;
@@ -88,7 +88,7 @@ public final class Syntax extends SchemaElement {
             final SyntaxImpl implementation) {
         super(description, extraProperties, definition);
 
-        Validator.ensureNotNull(oid);
+        Reject.ifNull(oid);
         this.oid = oid;
         this.impl = implementation;
     }

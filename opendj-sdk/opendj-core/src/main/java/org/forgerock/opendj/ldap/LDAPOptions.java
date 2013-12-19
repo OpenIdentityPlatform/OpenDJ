@@ -33,7 +33,7 @@ import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.SSLContext;
 
-import com.forgerock.opendj.util.Validator;
+import org.forgerock.util.Reject;
 
 /**
  * Common options for LDAP client connections.
@@ -141,7 +141,7 @@ public final class LDAPOptions {
      *             If {@code decodeOptions} was {@code null}.
      */
     public final LDAPOptions setDecodeOptions(final DecodeOptions decodeOptions) {
-        Validator.ensureNotNull(decodeOptions);
+        Reject.ifNull(decodeOptions);
         this.decodeOptions = decodeOptions;
         return this;
     }
@@ -229,7 +229,7 @@ public final class LDAPOptions {
      */
     public final LDAPOptions addEnabledProtocol(String... protocols) {
         for (final String protocol : protocols) {
-            enabledProtocols.add(Validator.ensureNotNull(protocol));
+            enabledProtocols.add(Reject.checkNotNull(protocol));
         }
         return this;
     }
@@ -249,7 +249,7 @@ public final class LDAPOptions {
      */
     public final LDAPOptions addEnabledCipherSuite(String... suites) {
         for (final String suite : suites) {
-            enabledCipherSuites.add(Validator.ensureNotNull(suite));
+            enabledCipherSuites.add(Reject.checkNotNull(suite));
         }
         return this;
     }

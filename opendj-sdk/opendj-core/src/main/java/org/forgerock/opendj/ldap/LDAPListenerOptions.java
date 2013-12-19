@@ -27,7 +27,7 @@
 
 package org.forgerock.opendj.ldap;
 
-import com.forgerock.opendj.util.Validator;
+import org.forgerock.util.Reject;
 
 /**
  * Common options for LDAP listeners.
@@ -125,7 +125,7 @@ public final class LDAPListenerOptions {
      *             If {@code decodeOptions} was {@code null}.
      */
     public LDAPListenerOptions setDecodeOptions(final DecodeOptions decodeOptions) {
-        Validator.ensureNotNull(decodeOptions);
+        Reject.ifNull(decodeOptions);
         this.decodeOptions = decodeOptions;
         return this;
     }

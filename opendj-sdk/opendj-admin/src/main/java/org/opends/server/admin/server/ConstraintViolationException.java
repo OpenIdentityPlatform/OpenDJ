@@ -26,7 +26,7 @@
 package org.opends.server.admin.server;
 
 import static com.forgerock.opendj.ldap.AdminMessages.*;
-import static com.forgerock.opendj.util.Validator.*;
+import org.forgerock.util.Reject;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -52,8 +52,8 @@ public class ConstraintViolationException extends DecodingException {
 
     // Gets the default message.
     private static LocalizableMessage getDefaultMessage(Collection<LocalizableMessage> messages) {
-        ensureNotNull(messages);
-        ensureTrue(!messages.isEmpty(), "messages should not be empty");
+        Reject.ifNull(messages);
+        Reject.ifFalse(!messages.isEmpty(), "messages should not be empty");
 
         if (messages.size() == 1) {
             return ERR_CONSTRAINT_VIOLATION_EXCEPTION_SINGLE.get(messages.iterator().next());

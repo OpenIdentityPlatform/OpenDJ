@@ -51,7 +51,7 @@ import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.DecodeOptions;
 
 import com.forgerock.opendj.util.StaticUtils;
-import com.forgerock.opendj.util.Validator;
+import org.forgerock.util.Reject;
 
 /**
  * The pre-read request control as defined in RFC 4527. This control allows the
@@ -109,7 +109,7 @@ public final class PreReadRequestControl implements Control {
 
                 public PreReadRequestControl decodeControl(final Control control,
                         final DecodeOptions options) throws DecodeException {
-                    Validator.ensureNotNull(control);
+                    Reject.ifNull(control);
 
                     if (control instanceof PreReadRequestControl) {
                         return (PreReadRequestControl) control;
@@ -186,7 +186,7 @@ public final class PreReadRequestControl implements Control {
      */
     public static PreReadRequestControl newControl(final boolean isCritical,
             final Collection<String> attributes) {
-        Validator.ensureNotNull(attributes);
+        Reject.ifNull(attributes);
 
         if (attributes.isEmpty()) {
             return isCritical ? CRITICAL_EMPTY_INSTANCE : NONCRITICAL_EMPTY_INSTANCE;
@@ -217,7 +217,7 @@ public final class PreReadRequestControl implements Control {
      */
     public static PreReadRequestControl newControl(final boolean isCritical,
             final String... attributes) {
-        Validator.ensureNotNull((Object) attributes);
+        Reject.ifNull((Object) attributes);
 
         if (attributes.length == 0) {
             return isCritical ? CRITICAL_EMPTY_INSTANCE : NONCRITICAL_EMPTY_INSTANCE;

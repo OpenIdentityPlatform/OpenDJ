@@ -84,7 +84,7 @@ import org.forgerock.opendj.ldap.schema.SchemaValidationPolicy;
 import org.forgerock.opendj.ldap.schema.Syntax;
 import org.forgerock.opendj.ldap.schema.UnknownSchemaElementException;
 
-import com.forgerock.opendj.util.Validator;
+import org.forgerock.util.Reject;
 
 /**
  * An LDIF change record reader reads change records using the LDAP Data
@@ -298,7 +298,7 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader implements 
      */
     public LDIFChangeRecordReader setExcludeAttribute(
             final AttributeDescription attributeDescription) {
-        Validator.ensureNotNull(attributeDescription);
+        Reject.ifNull(attributeDescription);
         excludeAttributes.add(attributeDescription);
         return this;
     }
@@ -313,7 +313,7 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader implements 
      * @return A reference to this {@code LDIFChangeRecordReader}.
      */
     public LDIFChangeRecordReader setExcludeBranch(final DN excludeBranch) {
-        Validator.ensureNotNull(excludeBranch);
+        Reject.ifNull(excludeBranch);
         excludeBranches.add(excludeBranch);
         return this;
     }
@@ -329,7 +329,7 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader implements 
      */
     public LDIFChangeRecordReader setIncludeAttribute(
             final AttributeDescription attributeDescription) {
-        Validator.ensureNotNull(attributeDescription);
+        Reject.ifNull(attributeDescription);
         includeAttributes.add(attributeDescription);
         return this;
     }
@@ -344,7 +344,7 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader implements 
      * @return A reference to this {@code LDIFChangeRecordReader}.
      */
     public LDIFChangeRecordReader setIncludeBranch(final DN includeBranch) {
-        Validator.ensureNotNull(includeBranch);
+        Reject.ifNull(includeBranch);
         includeBranches.add(includeBranch);
         return this;
     }
@@ -374,7 +374,7 @@ public final class LDIFChangeRecordReader extends AbstractLDIFReader implements 
      * @return A reference to this {@code LDIFChangeRecordReader}.
      */
     public LDIFChangeRecordReader setSchema(final Schema schema) {
-        Validator.ensureNotNull(schema);
+        Reject.ifNull(schema);
         this.schema = schemaValidationPolicy.adaptSchemaForValidation(schema);
         return this;
     }

@@ -26,7 +26,7 @@
 
 package org.opends.server.admin;
 
-import static com.forgerock.opendj.util.Validator.*;
+import org.forgerock.util.Reject;
 
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -120,7 +120,7 @@ public final class BooleanPropertyDefinition extends
   @Override
   public void validateValue(Boolean value)
       throws IllegalPropertyValueException {
-    ensureNotNull(value);
+    Reject.ifNull(value);
 
     // No additional validation required.
   }
@@ -133,7 +133,7 @@ public final class BooleanPropertyDefinition extends
   @Override
   public Boolean decodeValue(String value)
       throws IllegalPropertyValueStringException {
-    ensureNotNull(value);
+    Reject.ifNull(value);
 
     String nvalue = value.trim().toLowerCase();
     Boolean b = VALUE_MAP.get(nvalue);

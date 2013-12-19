@@ -26,7 +26,7 @@
 
 package org.opends.server.admin;
 
-import static com.forgerock.opendj.util.Validator.*;
+import org.forgerock.util.Reject;
 
 import java.util.EnumSet;
 import java.util.Locale;
@@ -171,7 +171,7 @@ public final class StringPropertyDefinition extends PropertyDefinition<String> {
      */
     @Override
     public String decodeValue(String value) throws IllegalPropertyValueStringException {
-        ensureNotNull(value);
+        Reject.ifNull(value);
 
         try {
             validateValue(value);
@@ -256,7 +256,7 @@ public final class StringPropertyDefinition extends PropertyDefinition<String> {
      */
     @Override
     public String normalizeValue(String value) throws IllegalPropertyValueException {
-        ensureNotNull(value);
+        Reject.ifNull(value);
 
         if (isCaseInsensitive()) {
             return value.trim().toLowerCase();
@@ -270,7 +270,7 @@ public final class StringPropertyDefinition extends PropertyDefinition<String> {
      */
     @Override
     public void validateValue(String value) throws IllegalPropertyValueException {
-        ensureNotNull(value);
+        Reject.ifNull(value);
 
         if (pattern != null) {
             Matcher matcher = pattern.matcher(value);

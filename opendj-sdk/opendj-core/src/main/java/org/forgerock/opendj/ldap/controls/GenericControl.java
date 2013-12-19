@@ -29,7 +29,7 @@ package org.forgerock.opendj.ldap.controls;
 import org.forgerock.opendj.ldap.ByteString;
 
 import com.forgerock.opendj.util.StaticUtils;
-import com.forgerock.opendj.util.Validator;
+import org.forgerock.util.Reject;
 
 /**
  * A generic control which can be used to represent arbitrary raw request and
@@ -48,7 +48,7 @@ public final class GenericControl implements Control {
      *             If {@code control} was {@code null}.
      */
     public static GenericControl newControl(final Control control) {
-        Validator.ensureNotNull(control);
+        Reject.ifNull(control);
 
         if (control instanceof GenericControl) {
             return (GenericControl) control;
@@ -122,7 +122,7 @@ public final class GenericControl implements Control {
 
     // Prevent direct instantiation.
     private GenericControl(final String oid, final boolean isCritical, final ByteString value) {
-        Validator.ensureNotNull(oid);
+        Reject.ifNull(oid);
         this.oid = oid;
         this.isCritical = isCritical;
         this.value = value;

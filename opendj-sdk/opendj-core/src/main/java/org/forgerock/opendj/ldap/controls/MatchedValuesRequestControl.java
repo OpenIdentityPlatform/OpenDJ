@@ -49,9 +49,9 @@ import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.DecodeOptions;
 import org.forgerock.opendj.ldap.Filter;
+import org.forgerock.util.Reject;
 
 import com.forgerock.opendj.util.StaticUtils;
-import com.forgerock.opendj.util.Validator;
 
 /**
  * The matched values request control as defined in RFC 3876. The matched values
@@ -163,7 +163,7 @@ public final class MatchedValuesRequestControl implements Control {
 
                 public MatchedValuesRequestControl decodeControl(final Control control,
                         final DecodeOptions options) throws DecodeException {
-                    Validator.ensureNotNull(control);
+                    Reject.ifNull(control);
 
                     if (control instanceof MatchedValuesRequestControl) {
                         return (MatchedValuesRequestControl) control;
@@ -244,8 +244,8 @@ public final class MatchedValuesRequestControl implements Control {
      */
     public static MatchedValuesRequestControl newControl(final boolean isCritical,
             final Collection<Filter> filters) {
-        Validator.ensureNotNull(filters);
-        Validator.ensureTrue(filters.size() > 0, "filters is empty");
+        Reject.ifNull(filters);
+        Reject.ifFalse(filters.size() > 0, "filters is empty");
 
         List<Filter> copyOfFilters;
         if (filters.size() == 1) {
@@ -283,7 +283,7 @@ public final class MatchedValuesRequestControl implements Control {
      */
     public static MatchedValuesRequestControl newControl(final boolean isCritical,
             final String... filters) {
-        Validator.ensureTrue(filters.length > 0, "filters is empty");
+        Reject.ifFalse(filters.length > 0, "filters is empty");
 
         final List<Filter> parsedFilters = new ArrayList<Filter>(filters.length);
         for (final String filter : filters) {

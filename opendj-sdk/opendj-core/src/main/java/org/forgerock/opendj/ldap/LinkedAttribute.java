@@ -37,7 +37,7 @@ import java.util.NoSuchElementException;
 
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 
-import com.forgerock.opendj.util.Validator;
+import org.forgerock.util.Reject;
 
 /**
  * An implementation of the {@code Attribute} interface with predictable
@@ -498,7 +498,7 @@ public final class LinkedAttribute extends AbstractAttribute {
      *             If {@code attributeDescription} was {@code null}.
      */
     public LinkedAttribute(final AttributeDescription attributeDescription) {
-        Validator.ensureNotNull(attributeDescription);
+        Reject.ifNull(attributeDescription);
         this.attributeDescription = attributeDescription;
     }
 
@@ -658,7 +658,7 @@ public final class LinkedAttribute extends AbstractAttribute {
      */
     @Override
     public boolean add(final ByteString value) {
-        Validator.ensureNotNull(value);
+        Reject.ifNull(value);
         return pimpl.add(this, value);
     }
 
@@ -675,7 +675,7 @@ public final class LinkedAttribute extends AbstractAttribute {
      */
     @Override
     public boolean contains(final Object value) {
-        Validator.ensureNotNull(value);
+        Reject.ifNull(value);
         return pimpl.contains(this, ByteString.valueOf(value));
     }
 
@@ -684,7 +684,7 @@ public final class LinkedAttribute extends AbstractAttribute {
      */
     @Override
     public boolean containsAll(final Collection<?> values) {
-        Validator.ensureNotNull(values);
+        Reject.ifNull(values);
         return pimpl.containsAll(this, values);
     }
 
@@ -717,7 +717,7 @@ public final class LinkedAttribute extends AbstractAttribute {
      */
     @Override
     public boolean remove(final Object value) {
-        Validator.ensureNotNull(value);
+        Reject.ifNull(value);
         return pimpl.remove(this, ByteString.valueOf(value));
     }
 
@@ -727,7 +727,7 @@ public final class LinkedAttribute extends AbstractAttribute {
     @Override
     public <T> boolean retainAll(final Collection<T> values,
             final Collection<? super T> missingValues) {
-        Validator.ensureNotNull(values);
+        Reject.ifNull(values);
         return pimpl.retainAll(this, values, missingValues);
     }
 

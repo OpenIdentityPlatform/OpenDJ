@@ -30,7 +30,7 @@ package org.forgerock.opendj.ldap.requests;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldif.ChangeRecordVisitor;
 
-import com.forgerock.opendj.util.Validator;
+import org.forgerock.util.Reject;
 
 /**
  * Delete request implementation.
@@ -59,14 +59,14 @@ final class DeleteRequestImpl extends AbstractRequestImpl<DeleteRequest> impleme
 
     @Override
     public DeleteRequest setName(final DN dn) {
-        Validator.ensureNotNull(dn);
+        Reject.ifNull(dn);
         this.name = dn;
         return this;
     }
 
     @Override
     public DeleteRequest setName(final String dn) {
-        Validator.ensureNotNull(dn);
+        Reject.ifNull(dn);
         this.name = DN.valueOf(dn);
         return this;
     }

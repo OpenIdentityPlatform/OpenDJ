@@ -43,7 +43,7 @@ import org.forgerock.opendj.ldap.responses.ExtendedResultDecoder;
 import org.forgerock.opendj.ldap.responses.GenericExtendedResult;
 import org.forgerock.opendj.ldap.responses.Responses;
 
-import com.forgerock.opendj.util.Validator;
+import org.forgerock.util.Reject;
 
 /**
  * Start TLS extended request implementation.
@@ -99,7 +99,7 @@ final class StartTLSExtendedRequestImpl extends
     private SSLContext sslContext;
 
     StartTLSExtendedRequestImpl(final SSLContext sslContext) {
-        Validator.ensureNotNull(sslContext);
+        Reject.ifNull(sslContext);
         this.sslContext = sslContext;
     }
 
@@ -118,7 +118,7 @@ final class StartTLSExtendedRequestImpl extends
     @Override
     public StartTLSExtendedRequest addEnabledCipherSuite(final String... suites) {
         for (final String suite : suites) {
-            this.enabledCipherSuites.add(Validator.ensureNotNull(suite));
+            this.enabledCipherSuites.add(Reject.checkNotNull(suite));
         }
         return this;
     }
@@ -126,7 +126,7 @@ final class StartTLSExtendedRequestImpl extends
     @Override
     public StartTLSExtendedRequest addEnabledProtocol(final String... protocols) {
         for (final String protocol : protocols) {
-            this.enabledProtocols.add(Validator.ensureNotNull(protocol));
+            this.enabledProtocols.add(Reject.checkNotNull(protocol));
         }
         return this;
     }
@@ -168,7 +168,7 @@ final class StartTLSExtendedRequestImpl extends
 
     @Override
     public StartTLSExtendedRequest setSSLContext(final SSLContext sslContext) {
-        Validator.ensureNotNull(sslContext);
+        Reject.ifNull(sslContext);
         this.sslContext = sslContext;
         return this;
     }

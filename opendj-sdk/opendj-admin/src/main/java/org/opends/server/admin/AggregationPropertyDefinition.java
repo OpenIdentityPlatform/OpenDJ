@@ -27,7 +27,7 @@ package org.opends.server.admin;
 
 import static com.forgerock.opendj.ldap.AdminMessages.*;
 import static com.forgerock.opendj.util.StaticUtils.*;
-import static com.forgerock.opendj.util.Validator.*;
+import org.forgerock.util.Reject;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -804,7 +804,7 @@ public final class AggregationPropertyDefinition<C extends ConfigurationClient, 
      */
     @Override
     public String decodeValue(String value) throws IllegalPropertyValueStringException {
-        ensureNotNull(value);
+        Reject.ifNull(value);
 
         try {
             validateValue(value);

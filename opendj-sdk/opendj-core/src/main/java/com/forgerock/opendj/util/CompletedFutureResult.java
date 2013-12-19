@@ -32,6 +32,7 @@ import java.util.concurrent.TimeoutException;
 
 import org.forgerock.opendj.ldap.ErrorResultException;
 import org.forgerock.opendj.ldap.FutureResult;
+import org.forgerock.util.Reject;
 
 /**
  * An implementation of {@code FutureResult} which can be used in cases where
@@ -73,7 +74,7 @@ public final class CompletedFutureResult<S> implements FutureResult<S> {
      *             If {@code errorResult} was {@code null}.
      */
     public CompletedFutureResult(final ErrorResultException errorResult, final int requestID) {
-        Validator.ensureNotNull(errorResult);
+        Reject.ifNull(errorResult);
         this.result = null;
         this.errorResult = errorResult;
         this.requestID = requestID;

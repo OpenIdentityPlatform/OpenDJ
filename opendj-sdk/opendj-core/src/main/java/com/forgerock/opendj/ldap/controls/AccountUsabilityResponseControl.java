@@ -47,7 +47,7 @@ import org.forgerock.opendj.ldap.controls.Control;
 import org.forgerock.opendj.ldap.controls.ControlDecoder;
 
 import com.forgerock.opendj.util.StaticUtils;
-import com.forgerock.opendj.util.Validator;
+import org.forgerock.util.Reject;
 
 /**
  * The Sun-defined account usability response control. The OID for this control
@@ -84,7 +84,7 @@ public final class AccountUsabilityResponseControl implements Control {
 
                 public AccountUsabilityResponseControl decodeControl(final Control control,
                         final DecodeOptions options) throws DecodeException {
-                    Validator.ensureNotNull(control);
+                    Reject.ifNull(control);
 
                     if (control instanceof AccountUsabilityResponseControl) {
                         return (AccountUsabilityResponseControl) control;

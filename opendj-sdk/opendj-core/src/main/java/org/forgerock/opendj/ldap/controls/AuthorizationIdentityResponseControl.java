@@ -34,7 +34,7 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.DecodeOptions;
 
-import com.forgerock.opendj.util.Validator;
+import org.forgerock.util.Reject;
 
 /**
  * The authorization response control as defined in RFC 3829. The authorization
@@ -110,7 +110,7 @@ public final class AuthorizationIdentityResponseControl implements Control {
 
                 public AuthorizationIdentityResponseControl decodeControl(final Control control,
                         final DecodeOptions options) throws DecodeException {
-                    Validator.ensureNotNull(control);
+                    Reject.ifNull(control);
 
                     if (control instanceof AuthorizationIdentityResponseControl) {
                         return (AuthorizationIdentityResponseControl) control;
@@ -140,7 +140,7 @@ public final class AuthorizationIdentityResponseControl implements Control {
     // Prevent direct instantiation.
     private AuthorizationIdentityResponseControl(final boolean isCritical,
             final String authorizationID) {
-        Validator.ensureNotNull(authorizationID);
+        Reject.ifNull(authorizationID);
         this.isCritical = isCritical;
         this.authorizationID = authorizationID;
     }

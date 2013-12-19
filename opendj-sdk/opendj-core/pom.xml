@@ -49,6 +49,10 @@
       <artifactId>slf4j-api</artifactId>
     </dependency>
     <dependency>
+      <groupId>org.forgerock.commons</groupId>
+      <artifactId>forgerock-util</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.forgerock</groupId>
       <artifactId>forgerock-build-tools</artifactId>
       <version>${forgerockBuildToolsVersion}</version>

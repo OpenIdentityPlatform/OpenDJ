@@ -26,7 +26,7 @@
 
 package org.opends.server.admin;
 
-import static com.forgerock.opendj.util.Validator.*;
+import org.forgerock.util.Reject;
 
 import java.util.Comparator;
 import java.util.EnumSet;
@@ -109,7 +109,7 @@ public abstract class PropertyDefinition<T> implements Comparator<T>, Comparable
          *            The administrator action.
          */
         public final void setAdministratorAction(AdministratorAction adminAction) {
-            ensureNotNull(adminAction);
+            Reject.ifNull(adminAction);
             this.adminAction = adminAction;
         }
 
@@ -120,7 +120,7 @@ public abstract class PropertyDefinition<T> implements Comparator<T>, Comparable
          *            The default behavior provider.
          */
         public final void setDefaultBehaviorProvider(DefaultBehaviorProvider<T> defaultBehavior) {
-            ensureNotNull(defaultBehavior);
+            Reject.ifNull(defaultBehavior);
             this.defaultBehavior = defaultBehavior;
         }
 
@@ -131,7 +131,7 @@ public abstract class PropertyDefinition<T> implements Comparator<T>, Comparable
          *            The property option.
          */
         public final void setOption(PropertyOption option) {
-            ensureNotNull(option);
+            Reject.ifNull(option);
             options.add(option);
         }
 
@@ -193,8 +193,12 @@ public abstract class PropertyDefinition<T> implements Comparator<T>, Comparable
      */
     protected PropertyDefinition(AbstractManagedObjectDefinition<?, ?> d, Class<T> theClass, String propertyName,
             EnumSet<PropertyOption> options, AdministratorAction adminAction, DefaultBehaviorProvider<T> defaultBehavior) {
-        ensureNotNull(d, theClass, propertyName);
-        ensureNotNull(options, adminAction, defaultBehavior);
+        Reject.ifNull(d);
+        Reject.ifNull(theClass);
+        Reject.ifNull(propertyName);
+        Reject.ifNull(options);
+        Reject.ifNull(adminAction);
+        Reject.ifNull(defaultBehavior);
 
         this.definition = d;
         this.theClass = theClass;
@@ -282,7 +286,8 @@ public abstract class PropertyDefinition<T> implements Comparator<T>, Comparable
      *         argument is less than, equal to, or greater than the second.
      */
     public int compare(T o1, T o2) {
-        ensureNotNull(o1, o2);
+        Reject.ifNull(o1);
+        Reject.ifNull(o2);
 
         String s1 = normalizeValue(o1);
         String s2 = normalizeValue(o2);
@@ -337,7 +342,7 @@ public abstract class PropertyDefinition<T> implements Comparator<T>, Comparable
      *             If the property value is invalid.
      */
     public String encodeValue(T value) throws IllegalPropertyValueException {
-        ensureNotNull(value);
+        Reject.ifNull(value);
 
         return value.toString();
     }
@@ -522,7 +527,7 @@ public abstract class PropertyDefinition<T> implements Comparator<T>, Comparable
      *             If the property value is invalid.
      */
     public String normalizeValue(T value) throws IllegalPropertyValueException {
-        ensureNotNull(value);
+        Reject.ifNull(value);
 
         return encodeValue(value);
     }

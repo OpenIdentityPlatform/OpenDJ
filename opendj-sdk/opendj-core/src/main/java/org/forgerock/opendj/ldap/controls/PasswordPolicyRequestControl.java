@@ -33,7 +33,7 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.DecodeOptions;
 
-import com.forgerock.opendj.util.Validator;
+import org.forgerock.util.Reject;
 
 /**
  * The password policy request control as defined in
@@ -107,7 +107,7 @@ public final class PasswordPolicyRequestControl implements Control {
 
                 public PasswordPolicyRequestControl decodeControl(final Control control,
                         final DecodeOptions options) throws DecodeException {
-                    Validator.ensureNotNull(control);
+                    Reject.ifNull(control);
 
                     if (control instanceof PasswordPolicyRequestControl) {
                         return (PasswordPolicyRequestControl) control;

@@ -79,10 +79,10 @@ import org.forgerock.opendj.ldif.TemplateTag.StaticTextTag;
 import org.forgerock.opendj.ldif.TemplateTag.TagResult;
 import org.forgerock.opendj.ldif.TemplateTag.UnderscoreDNTag;
 import org.forgerock.opendj.ldif.TemplateTag.UnderscoreParentDNTag;
+import org.forgerock.util.Reject;
 
 import com.forgerock.opendj.util.Pair;
 import com.forgerock.opendj.util.StaticUtils;
-import com.forgerock.opendj.util.Validator;
 
 /**
  * A template file allow to generate entries from a collection of constant
@@ -202,7 +202,8 @@ final class TemplateFile {
      */
     TemplateFile(Schema schema, Map<String, String> constants, String resourcePath, Random random)
             throws IOException {
-        Validator.ensureNotNull(schema, random);
+        Reject.ifNull(schema);
+        Reject.ifNull(random);
         this.schema = schema;
         this.constants = constants != null ? constants : new HashMap<String, String>();
         this.resourcePath = resourcePath;

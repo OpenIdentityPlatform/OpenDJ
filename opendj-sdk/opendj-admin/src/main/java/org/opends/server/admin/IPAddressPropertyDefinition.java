@@ -26,7 +26,7 @@
 
 package org.opends.server.admin;
 
-import static com.forgerock.opendj.util.Validator.*;
+import org.forgerock.util.Reject;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -86,7 +86,7 @@ public final class IPAddressPropertyDefinition extends PropertyDefinition<InetAd
      */
     @Override
     public void validateValue(InetAddress value) throws IllegalPropertyValueException {
-        ensureNotNull(value);
+        Reject.ifNull(value);
 
         // No additional validation required.
     }
@@ -96,7 +96,7 @@ public final class IPAddressPropertyDefinition extends PropertyDefinition<InetAd
      */
     @Override
     public InetAddress decodeValue(String value) throws IllegalPropertyValueStringException {
-        ensureNotNull(value);
+        Reject.ifNull(value);
 
         try {
             return InetAddress.getByName(value);

@@ -43,7 +43,7 @@ import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.schema.Schema;
 
-import com.forgerock.opendj.util.Validator;
+import org.forgerock.util.Reject;
 
 /**
  * A template driven entry generator, as used by the make-ldif tool.
@@ -130,7 +130,7 @@ public final class EntryGenerator implements EntryReader {
      *            Path of the template file.
      */
     public EntryGenerator(final String  templatePath) {
-        Validator.ensureNotNull(templatePath);
+        Reject.ifNull(templatePath);
         this.templatePath = templatePath;
     }
 
@@ -141,7 +141,7 @@ public final class EntryGenerator implements EntryReader {
      *            Lines defining the template file.
      */
     public EntryGenerator(final String... templateLines) {
-        Validator.ensureNotNull((Object[]) templateLines);
+        Reject.ifNull(templateLines);
         this.templateLines = templateLines;
     }
 
@@ -152,7 +152,7 @@ public final class EntryGenerator implements EntryReader {
      *            Lines defining the template file.
      */
     public EntryGenerator(final List<String> templateLines) {
-        Validator.ensureNotNull(templateLines);
+        Reject.ifNull(templateLines);
         this.templateLines = templateLines.toArray(new String[templateLines.size()]);
     }
 
@@ -163,7 +163,7 @@ public final class EntryGenerator implements EntryReader {
      *            Input stream to read the template file.
      */
     public EntryGenerator(final InputStream templateStream) {
-        Validator.ensureNotNull(templateStream);
+        Reject.ifNull(templateStream);
         this.templateStream = templateStream;
     }
 
@@ -188,7 +188,7 @@ public final class EntryGenerator implements EntryReader {
      * @return A reference to this {@code EntryGenerator}.
      */
     public EntryGenerator setResourcePath(final String path) {
-        Validator.ensureNotNull(path);
+        Reject.ifNull(path);
         resourcePath = path;
         return this;
     }

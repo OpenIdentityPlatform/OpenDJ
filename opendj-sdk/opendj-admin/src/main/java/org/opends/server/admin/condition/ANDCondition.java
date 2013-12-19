@@ -35,7 +35,7 @@ import org.opends.server.admin.client.ManagementContext;
 import org.opends.server.admin.server.ServerManagedObject;
 import org.opends.server.config.ConfigException;
 
-import com.forgerock.opendj.util.Validator;
+import org.forgerock.util.Reject;
 
 /**
  * A condition which evaluates to <code>true</code> if and only if all of its
@@ -53,7 +53,7 @@ public final class ANDCondition implements Condition {
      *            The sub-conditions which will be combined using a logical AND.
      */
     public ANDCondition(Condition... conditions) {
-        Validator.ensureNotNull(conditions);
+        Reject.ifNull(conditions);
         this.conditions = Arrays.asList(conditions);
     }
 

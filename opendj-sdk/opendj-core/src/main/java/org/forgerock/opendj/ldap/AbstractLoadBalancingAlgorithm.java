@@ -38,9 +38,11 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+
+import org.forgerock.util.Reject;
+
 import com.forgerock.opendj.util.AsynchronousFutureResult;
 import com.forgerock.opendj.util.ReferenceCountedObject;
-import com.forgerock.opendj.util.Validator;
 
 /**
  * An abstract load balancing algorithm providing monitoring and failover
@@ -280,7 +282,8 @@ abstract class AbstractLoadBalancingAlgorithm implements LoadBalancingAlgorithm 
     AbstractLoadBalancingAlgorithm(final Collection<? extends ConnectionFactory> factories,
             final LoadBalancerEventListener listener, final long interval, final TimeUnit unit,
             final ScheduledExecutorService scheduler) {
-        Validator.ensureNotNull(factories, unit);
+        Reject.ifNull(factories);
+        Reject.ifNull(unit);
 
         this.monitoredFactories = new ArrayList<MonitoredConnectionFactory>(factories.size());
         int i = 0;

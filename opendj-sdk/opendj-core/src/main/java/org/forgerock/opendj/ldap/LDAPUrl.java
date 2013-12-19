@@ -42,9 +42,9 @@ import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.opendj.ldap.schema.Schema;
+import org.forgerock.util.Reject;
 
 import com.forgerock.opendj.util.StaticUtils;
-import com.forgerock.opendj.util.Validator;
 
 /**
  * An LDAP URL as defined in RFC 4516. In addition, the secure ldap (ldaps://)
@@ -266,7 +266,8 @@ public final class LDAPUrl {
      *             If {@code url} or {@code schema} was {@code null}.
      */
     public static LDAPUrl valueOf(final String url, final Schema schema) {
-        Validator.ensureNotNull(url, schema);
+        Reject.ifNull(url);
+        Reject.ifNull(schema);
         return new LDAPUrl(url, schema);
     }
 
@@ -285,7 +286,8 @@ public final class LDAPUrl {
 
     private static void percentDecoder(final String urlString, final int index, final String s,
             final StringBuilder decoded) {
-        Validator.ensureNotNull(s, decoded);
+        Reject.ifNull(s);
+        Reject.ifNull(decoded);
         decoded.append(s);
 
         int srcPos = 0, dstPos = 0;
@@ -318,7 +320,7 @@ public final class LDAPUrl {
      *            The buffer that contains the final percent encoded value.
      */
     private static void percentEncoder(final String urlElement, final StringBuilder encodedBuffer) {
-        Validator.ensureNotNull(urlElement);
+        Reject.ifNull(urlElement);
         for (int count = 0; count < urlElement.length(); count++) {
             final char c = urlElement.charAt(count);
             if (VALID_CHARS.contains(c)) {
@@ -735,7 +737,9 @@ public final class LDAPUrl {
 
     private int parseHostPort(final String urlString, final String hostAndPort,
             final StringBuilder host) {
-        Validator.ensureNotNull(hostAndPort, port, host);
+        Reject.ifNull(hostAndPort);
+        Reject.ifNull((Object) port);
+        Reject.ifNull(host);
         int urlPort = isSecured ? DEFAULT_SSL_PORT : DEFAULT_PORT;
         if (hostAndPort.length() == 0) {
             host.append(DEFAULT_HOST);

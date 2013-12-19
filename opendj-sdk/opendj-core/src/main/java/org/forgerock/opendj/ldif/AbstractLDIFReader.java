@@ -68,7 +68,7 @@ import org.forgerock.opendj.ldap.schema.SchemaValidationPolicy;
 import org.forgerock.opendj.ldap.schema.Syntax;
 import org.forgerock.opendj.ldap.schema.UnknownSchemaElementException;
 
-import com.forgerock.opendj.util.Validator;
+import org.forgerock.util.Reject;
 
 /**
  * Common LDIF reader functionality.
@@ -186,7 +186,7 @@ abstract class AbstractLDIFReader extends AbstractLDIFStream {
     }
 
     AbstractLDIFReader(final List<String> ldifLines) {
-        Validator.ensureNotNull(ldifLines);
+        Reject.ifNull(ldifLines);
         this.impl = new LDIFReaderListImpl(ldifLines);
     }
 

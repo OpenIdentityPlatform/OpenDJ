@@ -33,7 +33,7 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.DecodeOptions;
 
-import com.forgerock.opendj.util.Validator;
+import org.forgerock.util.Reject;
 
 /**
  * The Microsoft defined permissive modify request control. The OID for this
@@ -90,7 +90,7 @@ public final class PermissiveModifyRequestControl implements Control {
 
                 public PermissiveModifyRequestControl decodeControl(final Control control,
                         final DecodeOptions options) throws DecodeException {
-                    Validator.ensureNotNull(control);
+                    Reject.ifNull(control);
 
                     if (control instanceof PermissiveModifyRequestControl) {
                         return (PermissiveModifyRequestControl) control;

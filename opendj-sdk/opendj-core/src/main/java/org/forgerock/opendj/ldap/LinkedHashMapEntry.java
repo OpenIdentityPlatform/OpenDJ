@@ -32,7 +32,7 @@ import java.util.LinkedHashMap;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.requests.Requests;
 
-import com.forgerock.opendj.util.Validator;
+import org.forgerock.util.Reject;
 
 /**
  * An implementation of the {@code Entry} interface which uses a
@@ -113,7 +113,7 @@ public final class LinkedHashMapEntry extends AbstractMapEntry {
      *             If {@code name} was {@code null}.
      */
     public LinkedHashMapEntry(final DN name) {
-        super(Validator.ensureNotNull(name), new LinkedHashMap<AttributeDescription, Attribute>());
+        super(Reject.checkNotNull(name), new LinkedHashMap<AttributeDescription, Attribute>());
     }
 
     /**

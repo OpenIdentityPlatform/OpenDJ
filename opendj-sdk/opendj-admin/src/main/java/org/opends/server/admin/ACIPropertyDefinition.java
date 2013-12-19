@@ -26,7 +26,7 @@
 
 package org.opends.server.admin;
 
-import static com.forgerock.opendj.util.Validator.*;
+import org.forgerock.util.Reject;
 
 import org.opends.server.authorization.dseecompat.Aci;
 import org.opends.server.authorization.dseecompat.AciException;
@@ -102,7 +102,7 @@ public class ACIPropertyDefinition extends PropertyDefinition<Aci> {
   @Override
   public void validateValue(Aci value)
       throws IllegalPropertyValueException {
-    ensureNotNull(value);
+    Reject.ifNull(value);
 
     // No additional validation required.
   }
@@ -113,7 +113,7 @@ public class ACIPropertyDefinition extends PropertyDefinition<Aci> {
   @Override
   public Aci decodeValue(String value)
       throws IllegalPropertyValueStringException {
-    ensureNotNull(value);
+    Reject.ifNull(value);
 
     try {
       return Aci.decode(ByteString.valueOf(value), DN.rootDN());

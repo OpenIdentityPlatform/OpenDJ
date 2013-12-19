@@ -54,7 +54,7 @@ import org.forgerock.opendj.ldap.ResultHandler;
 
 import com.forgerock.opendj.util.FutureResultTransformer;
 import com.forgerock.opendj.util.StaticUtils;
-import com.forgerock.opendj.util.Validator;
+import org.forgerock.util.Reject;
 
 /**
  * This class defines a data structure that holds information about the
@@ -1328,7 +1328,7 @@ public final class Schema {
      *            The default schema which should be used by this application.
      */
     public static void setDefaultSchema(final Schema schema) {
-        Validator.ensureNotNull(schema);
+        Reject.ifNull(schema);
         DefaultSchema.schema = schema;
     }
 

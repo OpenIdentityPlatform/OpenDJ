@@ -43,8 +43,7 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.DecodeOptions;
-
-import com.forgerock.opendj.util.Validator;
+import org.forgerock.util.Reject;
 
 /**
  * The virtual list view request control as defined in
@@ -145,7 +144,7 @@ public final class VirtualListViewRequestControl implements Control {
 
                 public VirtualListViewRequestControl decodeControl(final Control control,
                         final DecodeOptions options) throws DecodeException {
-                    Validator.ensureNotNull(control);
+                    Reject.ifNull(control);
 
                     if (control instanceof VirtualListViewRequestControl) {
                         return (VirtualListViewRequestControl) control;
@@ -258,9 +257,9 @@ public final class VirtualListViewRequestControl implements Control {
     public static VirtualListViewRequestControl newAssertionControl(final boolean isCritical,
             final ByteString assertionValue, final int beforeCount, final int afterCount,
             final ByteString contextID) {
-        Validator.ensureNotNull(assertionValue);
-        Validator.ensureTrue(beforeCount >= 0, "beforeCount is less than 0");
-        Validator.ensureTrue(afterCount >= 0, "afterCount is less than 0");
+        Reject.ifNull(assertionValue);
+        Reject.ifFalse(beforeCount >= 0, "beforeCount is less than 0");
+        Reject.ifFalse(afterCount >= 0, "afterCount is less than 0");
 
         return new VirtualListViewRequestControl(isCritical, beforeCount, afterCount, -1, -1,
                 assertionValue, contextID);
@@ -301,10 +300,10 @@ public final class VirtualListViewRequestControl implements Control {
     public static VirtualListViewRequestControl newOffsetControl(final boolean isCritical,
             final int offset, final int contentCount, final int beforeCount, final int afterCount,
             final ByteString contextID) {
-        Validator.ensureTrue(beforeCount >= 0, "beforeCount is less than 0");
-        Validator.ensureTrue(afterCount >= 0, "afterCount is less than 0");
-        Validator.ensureTrue(offset > 0, "beforeCount is less than 1");
-        Validator.ensureTrue(contentCount >= 0, "afterCount is less than 0");
+        Reject.ifFalse(beforeCount >= 0, "beforeCount is less than 0");
+        Reject.ifFalse(afterCount >= 0, "afterCount is less than 0");
+        Reject.ifFalse(offset > 0, "beforeCount is less than 1");
+        Reject.ifFalse(contentCount >= 0, "afterCount is less than 0");
 
         return new VirtualListViewRequestControl(isCritical, beforeCount, afterCount, offset,
                 contentCount, null, contextID);

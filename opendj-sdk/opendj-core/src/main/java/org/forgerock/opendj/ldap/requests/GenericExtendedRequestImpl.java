@@ -39,7 +39,7 @@ import org.forgerock.opendj.ldap.responses.GenericExtendedResult;
 import org.forgerock.opendj.ldap.responses.Responses;
 
 import com.forgerock.opendj.util.StaticUtils;
-import com.forgerock.opendj.util.Validator;
+import org.forgerock.util.Reject;
 
 /**
  * Generic extended request implementation.
@@ -136,7 +136,7 @@ final class GenericExtendedRequestImpl extends
 
     @Override
     public GenericExtendedRequest setOID(final String oid) {
-        Validator.ensureNotNull(oid);
+        Reject.ifNull(oid);
         this.requestName = oid;
         return this;
     }

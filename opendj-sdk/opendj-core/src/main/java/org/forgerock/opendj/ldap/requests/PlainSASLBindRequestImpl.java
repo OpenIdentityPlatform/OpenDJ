@@ -40,9 +40,9 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ErrorResultException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.responses.BindResult;
+import org.forgerock.util.Reject;
 
 import com.forgerock.opendj.util.StaticUtils;
-import com.forgerock.opendj.util.Validator;
 
 /**
  * Plain SASL bind request implementation.
@@ -115,7 +115,8 @@ final class PlainSASLBindRequestImpl extends AbstractSASLBindRequest<PlainSASLBi
     }
 
     PlainSASLBindRequestImpl(final String authenticationID, final byte[] password) {
-        Validator.ensureNotNull(authenticationID, password);
+        Reject.ifNull(authenticationID);
+        Reject.ifNull(password);
         this.authenticationID = authenticationID;
         this.password = password;
     }
@@ -147,7 +148,7 @@ final class PlainSASLBindRequestImpl extends AbstractSASLBindRequest<PlainSASLBi
 
     @Override
     public PlainSASLBindRequest setAuthenticationID(final String authenticationID) {
-        Validator.ensureNotNull(authenticationID);
+        Reject.ifNull(authenticationID);
         this.authenticationID = authenticationID;
         return this;
     }
@@ -160,14 +161,14 @@ final class PlainSASLBindRequestImpl extends AbstractSASLBindRequest<PlainSASLBi
 
     @Override
     public PlainSASLBindRequest setPassword(final byte[] password) {
-        Validator.ensureNotNull(password);
+        Reject.ifNull(password);
         this.password = password;
         return this;
     }
 
     @Override
     public PlainSASLBindRequest setPassword(final char[] password) {
-        Validator.ensureNotNull(password);
+        Reject.ifNull(password);
         this.password = StaticUtils.getBytes(password);
         return this;
     }

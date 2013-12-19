@@ -34,8 +34,7 @@ import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.opendj.ldap.SearchScope;
-
-import com.forgerock.opendj.util.Validator;
+import org.forgerock.util.Reject;
 
 /**
  * Search request implementation.
@@ -71,7 +70,7 @@ final class SearchRequestImpl extends AbstractRequestImpl<SearchRequest> impleme
     @Override
     public SearchRequest addAttribute(final String... attributeDescriptions) {
         for (final String attributeDescription : attributeDescriptions) {
-            attributes.add(Validator.ensureNotNull(attributeDescription));
+            attributes.add(Reject.checkNotNull(attributeDescription));
         }
         return this;
     }
@@ -123,7 +122,7 @@ final class SearchRequestImpl extends AbstractRequestImpl<SearchRequest> impleme
 
     @Override
     public SearchRequest setDereferenceAliasesPolicy(final DereferenceAliasesPolicy policy) {
-        Validator.ensureNotNull(policy);
+        Reject.ifNull(policy);
 
         this.dereferenceAliasesPolicy = policy;
         return this;
@@ -131,7 +130,7 @@ final class SearchRequestImpl extends AbstractRequestImpl<SearchRequest> impleme
 
     @Override
     public SearchRequest setFilter(final Filter filter) {
-        Validator.ensureNotNull(filter);
+        Reject.ifNull(filter);
 
         this.filter = filter;
         return this;
@@ -145,7 +144,7 @@ final class SearchRequestImpl extends AbstractRequestImpl<SearchRequest> impleme
 
     @Override
     public SearchRequest setName(final DN dn) {
-        Validator.ensureNotNull(dn);
+        Reject.ifNull(dn);
 
         this.name = dn;
         return this;
@@ -153,7 +152,7 @@ final class SearchRequestImpl extends AbstractRequestImpl<SearchRequest> impleme
 
     @Override
     public SearchRequest setName(final String dn) {
-        Validator.ensureNotNull(dn);
+        Reject.ifNull(dn);
 
         this.name = DN.valueOf(dn);
         return this;
@@ -161,7 +160,7 @@ final class SearchRequestImpl extends AbstractRequestImpl<SearchRequest> impleme
 
     @Override
     public SearchRequest setScope(final SearchScope scope) {
-        Validator.ensureNotNull(scope);
+        Reject.ifNull(scope);
 
         this.scope = scope;
         return this;
@@ -169,7 +168,7 @@ final class SearchRequestImpl extends AbstractRequestImpl<SearchRequest> impleme
 
     @Override
     public SearchRequest setSizeLimit(final int limit) {
-        Validator.ensureTrue(limit >= 0, "negative size limit");
+        Reject.ifFalse(limit >= 0, "negative size limit");
 
         this.sizeLimit = limit;
         return this;
@@ -177,7 +176,7 @@ final class SearchRequestImpl extends AbstractRequestImpl<SearchRequest> impleme
 
     @Override
     public SearchRequest setTimeLimit(final int limit) {
-        Validator.ensureTrue(limit >= 0, "negative time limit");
+        Reject.ifFalse(limit >= 0, "negative time limit");
 
         this.timeLimit = limit;
         return this;

@@ -31,7 +31,7 @@ import java.io.IOException;
 
 import org.forgerock.opendj.ldap.responses.SearchResultReference;
 
-import com.forgerock.opendj.util.Validator;
+import org.forgerock.util.Reject;
 
 /**
  * Thrown when an iteration over a set of search results using a
@@ -52,7 +52,7 @@ public final class SearchResultReferenceIOException extends IOException {
      *             If {@code reference} was {@code null}.
      */
     public SearchResultReferenceIOException(final SearchResultReference reference) {
-        super(Validator.ensureNotNull(reference).toString());
+        super(Reject.checkNotNull(reference).toString());
         this.reference = reference;
     }
 

@@ -26,7 +26,7 @@
  */
 package org.forgerock.opendj.ldap;
 
-import static com.forgerock.opendj.util.Validator.ensureNotNull;
+import org.forgerock.util.Reject;
 import static com.forgerock.opendj.ldap.CoreMessages.ERR_BASE64_DECODE_INVALID_CHARACTER;
 import static com.forgerock.opendj.ldap.CoreMessages.ERR_BASE64_DECODE_INVALID_LENGTH;
 
@@ -64,7 +64,7 @@ final class Base64 {
      *             If {@code base64} was {@code null}.
      */
     static ByteString decode(final String base64) {
-        ensureNotNull(base64);
+        Reject.ifNull(base64);
 
         // The encoded value must have length that is a multiple of four
         // bytes.
@@ -318,7 +318,7 @@ final class Base64 {
      *             If {@code bytes} was {@code null}.
      */
     static String encode(final ByteSequence bytes) {
-        ensureNotNull(bytes);
+        Reject.ifNull(bytes);
 
         final StringBuilder buffer = new StringBuilder(4 * bytes.length() / 3);
 

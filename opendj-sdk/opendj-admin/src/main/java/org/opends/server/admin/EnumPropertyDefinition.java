@@ -26,7 +26,7 @@
 
 package org.opends.server.admin;
 
-import static com.forgerock.opendj.util.Validator.*;
+import org.forgerock.util.Reject;
 
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -152,7 +152,7 @@ public final class EnumPropertyDefinition<E extends Enum<E>> extends PropertyDef
      */
     @Override
     public E decodeValue(String value) throws IllegalPropertyValueStringException {
-        ensureNotNull(value);
+        Reject.ifNull(value);
 
         String nvalue = value.trim().toLowerCase();
         E eValue = decodeMap.get(nvalue);
@@ -211,7 +211,7 @@ public final class EnumPropertyDefinition<E extends Enum<E>> extends PropertyDef
      */
     @Override
     public String normalizeValue(E value) throws IllegalPropertyValueException {
-        ensureNotNull(value);
+        Reject.ifNull(value);
 
         return value.toString().trim().toLowerCase();
     }
@@ -221,7 +221,7 @@ public final class EnumPropertyDefinition<E extends Enum<E>> extends PropertyDef
      */
     @Override
     public void validateValue(E value) throws IllegalPropertyValueException {
-        ensureNotNull(value);
+        Reject.ifNull(value);
 
         // No additional validation required.
     }

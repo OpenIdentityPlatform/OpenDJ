@@ -46,6 +46,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.AbstractQueuedSynchronizer;
+
 import org.forgerock.opendj.ldap.requests.AbandonRequest;
 import org.forgerock.opendj.ldap.requests.AddRequest;
 import org.forgerock.opendj.ldap.requests.BindRequest;
@@ -65,6 +66,7 @@ import org.forgerock.opendj.ldap.responses.Result;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldap.responses.SearchResultReference;
 import org.forgerock.opendj.ldap.spi.ConnectionState;
+import org.forgerock.util.Reject;
 
 import com.forgerock.opendj.util.AsynchronousFutureResult;
 import com.forgerock.opendj.util.CompletedFutureResult;
@@ -72,7 +74,6 @@ import com.forgerock.opendj.util.FutureResultTransformer;
 import com.forgerock.opendj.util.RecursiveFutureResult;
 import com.forgerock.opendj.util.ReferenceCountedObject;
 import com.forgerock.opendj.util.TimeSource;
-import com.forgerock.opendj.util.Validator;
 
 /**
  * An heart beat connection factory can be used to create connections that sends
@@ -1173,9 +1174,10 @@ final class HeartBeatConnectionFactory implements ConnectionFactory {
     HeartBeatConnectionFactory(final ConnectionFactory factory, final long interval,
             final long timeout, final TimeUnit unit, final SearchRequest heartBeat,
             final ScheduledExecutorService scheduler) {
-        Validator.ensureNotNull(factory, unit);
-        Validator.ensureTrue(interval >= 0, "negative interval");
-        Validator.ensureTrue(timeout >= 0, "negative timeout");
+        Reject.ifNull(factory);
+        Reject.ifNull(unit);
+        Reject.ifFalse(interval >= 0, "negative interval");
+        Reject.ifFalse(timeout >= 0, "negative timeout");
 
         this.heartBeatRequest = heartBeat != null ? heartBeat : DEFAULT_SEARCH;
         this.interval = interval;

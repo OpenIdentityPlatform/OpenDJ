@@ -38,8 +38,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
-
-import com.forgerock.opendj.util.Validator;
+import org.forgerock.util.Reject;
 
 /**
  * This class defines a DIT structure rule, which is used to indicate the types
@@ -75,7 +74,9 @@ public final class DITStructureRule extends SchemaElement {
             final Map<String, List<String>> extraProperties, final String definition) {
         super(description, extraProperties, definition);
 
-        Validator.ensureNotNull(ruleID, nameFormOID, superiorRuleIDs);
+        Reject.ifNull(ruleID);
+        Reject.ifNull(nameFormOID);
+        Reject.ifNull(superiorRuleIDs);
         this.ruleID = ruleID;
         this.names = names;
         this.isObsolete = obsolete;

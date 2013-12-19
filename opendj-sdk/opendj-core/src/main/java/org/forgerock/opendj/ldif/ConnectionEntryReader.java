@@ -48,7 +48,7 @@ import org.forgerock.opendj.ldap.responses.Result;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldap.responses.SearchResultReference;
 
-import com.forgerock.opendj.util.Validator;
+import org.forgerock.util.Reject;
 
 /**
  * A {@code ConnectionEntryReader} is a bridge from {@code Connection}s to
@@ -210,7 +210,7 @@ public class ConnectionEntryReader implements EntryReader {
      */
     public ConnectionEntryReader(final Connection connection, final SearchRequest searchRequest,
             final BlockingQueue<Response> entries) {
-        Validator.ensureNotNull(connection);
+        Reject.ifNull(connection);
         buffer = new BufferHandler(entries);
         future = connection.searchAsync(searchRequest, null, buffer);
     }

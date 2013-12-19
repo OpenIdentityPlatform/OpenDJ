@@ -37,7 +37,7 @@ import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.DecodeOptions;
 
 import com.forgerock.opendj.util.StaticUtils;
-import com.forgerock.opendj.util.Validator;
+import org.forgerock.util.Reject;
 
 /**
  * The Netscape password expiring response control as defined in
@@ -83,7 +83,7 @@ public final class PasswordExpiringResponseControl implements Control {
 
                 public PasswordExpiringResponseControl decodeControl(final Control control,
                         final DecodeOptions options) throws DecodeException {
-                    Validator.ensureNotNull(control);
+                    Reject.ifNull(control);
 
                     if (control instanceof PasswordExpiringResponseControl) {
                         return (PasswordExpiringResponseControl) control;

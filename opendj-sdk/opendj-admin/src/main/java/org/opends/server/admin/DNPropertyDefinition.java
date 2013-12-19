@@ -26,7 +26,7 @@
 
 package org.opends.server.admin;
 
-import static com.forgerock.opendj.util.Validator.*;
+import org.forgerock.util.Reject;
 
 import java.util.EnumSet;
 
@@ -135,7 +135,7 @@ public final class DNPropertyDefinition extends PropertyDefinition<DN> {
      */
     @Override
     public void validateValue(DN value) throws IllegalPropertyValueException {
-        ensureNotNull(value);
+        Reject.ifNull(value);
 
         if (baseDN != null) {
             DN parent = value.parent();
@@ -155,7 +155,7 @@ public final class DNPropertyDefinition extends PropertyDefinition<DN> {
      */
     @Override
     public DN decodeValue(String value) throws IllegalPropertyValueStringException {
-        ensureNotNull(value);
+        Reject.ifNull(value);
 
         try {
             // TODO: is it correct to replace server DN.decode by SDK valueOf ?

@@ -36,7 +36,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.forgerock.opendj.util.Validator;
+import org.forgerock.util.Reject;
 
 /**
  * An abstract base class for LDAP schema definitions which contain an
@@ -210,7 +210,8 @@ abstract class SchemaElement {
 
     SchemaElement(final String description, final Map<String, List<String>> extraProperties,
             final String definition) {
-        Validator.ensureNotNull(description, extraProperties);
+        Reject.ifNull(description);
+        Reject.ifNull(extraProperties);
         this.description = description;
         this.extraProperties = extraProperties; // Should already be unmodifiable.
         this.definition = definition;

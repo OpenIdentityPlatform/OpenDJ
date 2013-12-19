@@ -90,7 +90,7 @@ import org.glassfish.grizzly.ssl.SSLEngineConfigurator;
 import org.glassfish.grizzly.ssl.SSLFilter;
 
 import com.forgerock.opendj.util.CompletedFutureResult;
-import com.forgerock.opendj.util.Validator;
+import org.forgerock.util.Reject;
 
 /**
  * LDAP connection implementation.
@@ -239,7 +239,7 @@ final class GrizzlyLDAPConnection extends AbstractAsynchronousConnection impleme
 
     @Override
     public void addConnectionEventListener(final ConnectionEventListener listener) {
-        Validator.ensureNotNull(listener);
+        Reject.ifNull(listener);
         final boolean notifyClose;
         final boolean notifyErrorOccurred;
         synchronized (stateLock) {
@@ -334,7 +334,7 @@ final class GrizzlyLDAPConnection extends AbstractAsynchronousConnection impleme
     @Override
     public void close(final UnbindRequest request, final String reason) {
         // FIXME: I18N need to internationalize this message.
-        Validator.ensureNotNull(request);
+        Reject.ifNull(request);
         close(request, false, Responses.newResult(ResultCode.CLIENT_SIDE_USER_CANCELLED)
                 .setDiagnosticMessage(reason != null ? reason : "Connection closed by client"));
     }
@@ -536,7 +536,7 @@ final class GrizzlyLDAPConnection extends AbstractAsynchronousConnection impleme
 
     @Override
     public void removeConnectionEventListener(final ConnectionEventListener listener) {
-        Validator.ensureNotNull(listener);
+        Reject.ifNull(listener);
         synchronized (stateLock) {
             if (listeners != null) {
                 listeners.remove(listener);
