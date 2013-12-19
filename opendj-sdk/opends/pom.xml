@@ -109,7 +109,7 @@
     <pubDate />
     <publicationDate>${pubDate}</publicationDate>
     <checkstyleHeaderLocation>org/forgerock/checkstyle/opendj-java-header</checkstyleHeaderLocation>
-    <frDocPluginVersion>2.0.0-SNAPSHOT</frDocPluginVersion>
+    <frDocPluginVersion>2.0.0</frDocPluginVersion>
 
     <!-- Permit doc build to override relative locations of non DocBook content -->
     <coreDocBase>http://opendj.forgerock.org/doc/</coreDocBase>
