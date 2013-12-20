@@ -110,10 +110,9 @@ public class MultimasterReplication
      * Don't run the special replication code on Operation that are
      * specifically marked as don't synchronize.
      */
-    if (pluginOp != null && pluginOp instanceof Operation)
+    if (pluginOp instanceof Operation)
     {
-        Operation op = ((Operation) pluginOp);
-
+        final Operation op = (Operation) pluginOp;
         if (op.dontSynchronize())
           return null;
 
@@ -131,7 +130,7 @@ public class MultimasterReplication
         for (Iterator<Control> iter = controls.iterator(); iter.hasNext();)
         {
           Control c = iter.next();
-          if (c.getOID().equals(OID_REPLICATION_REPAIR_CONTROL))
+          if (OID_REPLICATION_REPAIR_CONTROL.equals(c.getOID()))
           {
             op.setSynchronizationOperation(true);
             op.setDontSynchronize(true);
@@ -233,9 +232,7 @@ public class MultimasterReplication
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void initializeSynchronizationProvider(
       ReplicationSynchronizationProviderCfg configuration)
@@ -270,7 +267,7 @@ public class MultimasterReplication
      */
     List<Modification> offlineSchemaChanges =
          DirectoryServer.getOfflineSchemaChanges();
-    if ((offlineSchemaChanges != null) && (! offlineSchemaChanges.isEmpty()))
+    if (offlineSchemaChanges != null && !offlineSchemaChanges.isEmpty())
     {
       processSchemaChange(offlineSchemaChanges);
     }
@@ -287,7 +284,7 @@ public class MultimasterReplication
   /**
    * Create the threads that will wait for incoming update messages.
    */
-  private synchronized static void createReplayThreads()
+  private static synchronized void createReplayThreads()
   {
     replayThreads.clear();
 
@@ -302,7 +299,7 @@ public class MultimasterReplication
   /**
    * Stop the threads that are waiting for incoming update messages.
    */
-  private synchronized static void stopReplayThreads()
+  private static synchronized void stopReplayThreads()
   {
     //  stop the replay threads
     for (ReplayThread replayThread : replayThreads)
@@ -324,9 +321,7 @@ public class MultimasterReplication
     replayThreads.clear();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationAddAcceptable(
       ReplicationDomainCfg configuration, List<Message> unacceptableReasons)
@@ -335,9 +330,7 @@ public class MultimasterReplication
       configuration, unacceptableReasons);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationAdd(
      ReplicationDomainCfg configuration)
@@ -358,9 +351,7 @@ public class MultimasterReplication
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void doPostOperation(PostOperationAddOperation addOperation)
   {
@@ -369,9 +360,7 @@ public class MultimasterReplication
   }
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void doPostOperation(PostOperationDeleteOperation deleteOperation)
   {
@@ -379,9 +368,7 @@ public class MultimasterReplication
     genericPostOperation(deleteOperation, dn);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void doPostOperation(PostOperationModifyDNOperation modifyDNOperation)
   {
@@ -389,9 +376,7 @@ public class MultimasterReplication
     genericPostOperation(modifyDNOperation, dn);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void doPostOperation(PostOperationModifyOperation modifyOperation)
   {
@@ -399,9 +384,7 @@ public class MultimasterReplication
     genericPostOperation(modifyOperation, dn);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public SynchronizationProviderResult handleConflictResolution(
       PreOperationModifyOperation modifyOperation)
@@ -414,9 +397,7 @@ public class MultimasterReplication
     return domain.handleConflictResolution(modifyOperation);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public SynchronizationProviderResult handleConflictResolution(
       PreOperationAddOperation addOperation) throws DirectoryException
@@ -429,9 +410,7 @@ public class MultimasterReplication
     return domain.handleConflictResolution(addOperation);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public SynchronizationProviderResult handleConflictResolution(
       PreOperationDeleteOperation deleteOperation) throws DirectoryException
@@ -444,9 +423,7 @@ public class MultimasterReplication
     return domain.handleConflictResolution(deleteOperation);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public SynchronizationProviderResult handleConflictResolution(
       PreOperationModifyDNOperation modifyDNOperation) throws DirectoryException
@@ -459,9 +436,7 @@ public class MultimasterReplication
     return domain.handleConflictResolution(modifyDNOperation);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public SynchronizationProviderResult
          doPreOperation(PreOperationModifyOperation modifyOperation)
@@ -469,8 +444,10 @@ public class MultimasterReplication
     DN operationDN = modifyOperation.getEntryDN();
     LDAPReplicationDomain domain = findDomain(operationDN, modifyOperation);
 
-    if ((domain == null) || (!domain.solveConflict()))
+    if (domain == null || !domain.solveConflict())
+    {
       return new SynchronizationProviderResult.ContinueProcessing();
+    }
 
     EntryHistorical historicalInformation = (EntryHistorical)
       modifyOperation.getAttachment(EntryHistorical.HISTORICAL);
@@ -499,9 +476,7 @@ public class MultimasterReplication
     return new SynchronizationProviderResult.ContinueProcessing();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public SynchronizationProviderResult doPreOperation(
          PreOperationDeleteOperation deleteOperation) throws DirectoryException
@@ -509,9 +484,7 @@ public class MultimasterReplication
     return new SynchronizationProviderResult.ContinueProcessing();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public SynchronizationProviderResult doPreOperation(
          PreOperationModifyDNOperation modifyDNOperation)
@@ -545,9 +518,7 @@ public class MultimasterReplication
     return new SynchronizationProviderResult.ContinueProcessing();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public SynchronizationProviderResult doPreOperation(
          PreOperationAddOperation addOperation)
@@ -568,10 +539,7 @@ public class MultimasterReplication
     return new SynchronizationProviderResult.ContinueProcessing();
   }
 
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void finalizeSynchronizationProvider()
   {
@@ -616,9 +584,7 @@ public class MultimasterReplication
       domain.synchronizeModifications(modifications);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void processBackupBegin(Backend backend, BackupConfig config)
   {
@@ -630,9 +596,7 @@ public class MultimasterReplication
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void processBackupEnd(Backend backend, BackupConfig config,
                                boolean successful)
@@ -645,9 +609,7 @@ public class MultimasterReplication
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void processRestoreBegin(Backend backend, RestoreConfig config)
   {
@@ -659,9 +621,7 @@ public class MultimasterReplication
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void processRestoreEnd(Backend backend, RestoreConfig config,
                                 boolean successful)
@@ -674,9 +634,7 @@ public class MultimasterReplication
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void processImportBegin(Backend backend, LDIFImportConfig config)
   {
@@ -688,9 +646,7 @@ public class MultimasterReplication
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void processImportEnd(Backend backend, LDIFImportConfig config,
                                boolean successful)
@@ -703,9 +659,7 @@ public class MultimasterReplication
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void processExportBegin(Backend backend, LDIFExportConfig config)
   {
@@ -717,9 +671,7 @@ public class MultimasterReplication
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void processExportEnd(Backend backend, LDIFExportConfig config,
                                boolean successful)
@@ -732,9 +684,7 @@ public class MultimasterReplication
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationDelete(
       ReplicationDomainCfg configuration)
@@ -744,9 +694,7 @@ public class MultimasterReplication
     return new ConfigChangeResult(ResultCode.SUCCESS, false);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationDeleteAcceptable(
       ReplicationDomainCfg configuration, List<Message> unacceptableReasons)
@@ -778,9 +726,7 @@ public class MultimasterReplication
     return replicationServerListener;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
       ReplicationSynchronizationProviderCfg configuration,
@@ -789,9 +735,7 @@ public class MultimasterReplication
     return true;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
       ReplicationSynchronizationProviderCfg configuration)
@@ -812,9 +756,7 @@ public class MultimasterReplication
     return new ConfigChangeResult(ResultCode.SUCCESS, false);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void completeSynchronizationProvider()
   {
@@ -837,19 +779,42 @@ public class MultimasterReplication
   }
 
   /**
-   * Gets the baseDn of the domains that have a private backend.
-   * @return The private baseDN.
+   * Gets the Set of baseDN of the domains which are disabled for the external
+   * changelog.
+   *
+   * @return The Set of baseDNs which are disabled for the external changelog.
    */
   public static Set<String> getECLDisabledDomains()
   {
-    Set<String> disabledBaseDNs = new HashSet<String>();
-
+    final Set<String> disabledBaseDNs = new HashSet<String>(domains.size());
     for (LDAPReplicationDomain domain : domains.values())
     {
       if (!domain.isECLEnabled())
+      {
         disabledBaseDNs.add(domain.getBaseDN().toNormalizedString());
+      }
     }
     return disabledBaseDNs;
+  }
+
+  /**
+   * Returns whether the provided baseDN is disabled for the external changelog.
+   *
+   * @param baseDN
+   *          the domain to check
+   * @return true if the provided baseDN is disabled for the external changelog,
+   *         false otherwise
+   */
+  public static boolean isECLDisabledDomain(DN baseDN)
+  {
+    for (LDAPReplicationDomain domain : domains.values())
+    {
+      if (!domain.isECLEnabled() && domain.getBaseDN().equals(baseDN))
+      {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**

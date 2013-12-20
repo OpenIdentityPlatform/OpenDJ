@@ -176,7 +176,7 @@ public class ChangeNumberIndexer extends DirectoryThread
    */
   public void publishHeartbeat(DN baseDN, CSN heartbeatCSN)
   {
-    if (isExcludedFromECL(baseDN))
+    if (MultimasterReplication.isECLDisabledDomain(baseDN))
     {
       return;
     }
@@ -198,7 +198,7 @@ public class ChangeNumberIndexer extends DirectoryThread
   public void publishUpdateMsg(DN baseDN, UpdateMsg updateMsg)
       throws ChangelogException
   {
-    if (isExcludedFromECL(baseDN))
+    if (MultimasterReplication.isECLDisabledDomain(baseDN))
     {
       return;
     }
@@ -208,12 +208,6 @@ public class ChangeNumberIndexer extends DirectoryThread
     // only keep the oldest CSN that will be the new cursor's starting point
     newCursors.putIfAbsent(Pair.of(baseDN, csn.getServerId()), csn);
     tryNotify(baseDN);
-  }
-
-  private boolean isExcludedFromECL(DN baseDN)
-  {
-    Set<String> excludedDNs = MultimasterReplication.getECLDisabledDomains();
-    return excludedDNs.contains(baseDN.toNormalizedString());
   }
 
   /**
