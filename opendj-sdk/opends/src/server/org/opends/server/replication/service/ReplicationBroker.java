@@ -162,7 +162,7 @@ public class ReplicationBroker
   /**
    * String reported under CSN=monitor when there is no connected RS.
    */
-  public final static String NO_CONNECTED_SERVER = "Not connected";
+  public static final String NO_CONNECTED_SERVER = "Not connected";
   private final ServerState state;
   private Semaphore sendWindow;
   private int maxSendWindow;
@@ -1020,8 +1020,7 @@ public class ReplicationBroker
 
       if (domain != null)
       {
-        domain.sessionInitiated(initStatus, rsInfo.getServerState(),
-            rsInfo.getGenerationId(), rs.session);
+        domain.sessionInitiated(initStatus, rsInfo.getServerState());
       }
 
       final byte groupId = getGroupId();
@@ -1500,13 +1499,11 @@ public class ReplicationBroker
     @Override
     public String toString()
     {
-      return new StringBuilder()
-          .append("Current best replication server Ids: ").append(
-              this.bestRSs.keySet()).append(
-              ", Evaluation of connected replication servers").append(
-              " (ServerId => Evaluation): ").append(this.rsEvals.keySet())
-          .append(", Any replication server not appearing here").append(
-              " could not be contacted.").toString();
+      return "Current best replication server Ids: " + bestRSs.keySet()
+          + ", Evaluation of connected replication servers"
+          + " (ServerId => Evaluation): " + rsEvals.keySet()
+          + ", Any replication server not appearing here"
+          + " could not be contacted.";
     }
   }
 
@@ -2166,16 +2163,8 @@ public class ReplicationBroker
           arrived on the new RS. But we should disconnect if we reach the
           perfect balance (both values are 0).
           */
-          MathContext roundMc = new MathContext(6, RoundingMode.DOWN);
-          BigDecimal potentialCurrentRsNewLoadDistanceBdRounded =
-            potentialCurrentRsNewLoadDistanceBd.round(roundMc);
-          BigDecimal potentialNewSumOfLoadDistancesOfOtherRSsBdRounded =
-            potentialNewSumOfLoadDistancesOfOtherRSsBd.round(roundMc);
-
-          if ((potentialCurrentRsNewLoadDistanceBdRounded.compareTo(
-            BigDecimal.ZERO) != 0)
-            && (potentialCurrentRsNewLoadDistanceBdRounded.equals(
-            potentialNewSumOfLoadDistancesOfOtherRSsBdRounded.negate())))
+          if (mustAvoidYoyoEffect(potentialCurrentRsNewLoadDistanceBd,
+              potentialNewSumOfLoadDistancesOfOtherRSsBd))
           {
             // Avoid the yoyo effect, and keep the local DS connected to its
             // current RS
@@ -2217,6 +2206,18 @@ public class ReplicationBroker
           NOTE_DO_NOT_DISCONNECT_DS_FROM_ACCEPTABLE_LOAD_RS.get(localServerId,
               currentRsServerId));
     }
+  }
+
+  private static boolean mustAvoidYoyoEffect(BigDecimal rsNewLoadDistance,
+      BigDecimal otherRSsNewSumOfLoadDistances)
+  {
+    final MathContext roundCtx = new MathContext(6, RoundingMode.DOWN);
+    final BigDecimal rsLoadDistance = rsNewLoadDistance.round(roundCtx);
+    final BigDecimal otherRSsSumOfLoadDistances =
+        otherRSsNewSumOfLoadDistances.round(roundCtx);
+
+    return rsLoadDistance.compareTo(BigDecimal.ZERO) != 0
+        && rsLoadDistance.compareTo(otherRSsSumOfLoadDistances.negate()) == 0;
   }
 
   /**
