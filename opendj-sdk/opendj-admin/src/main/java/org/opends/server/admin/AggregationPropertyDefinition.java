@@ -348,7 +348,7 @@ public final class AggregationPropertyDefinition<C extends ConfigurationClient, 
         public boolean isUsable(ServerManagedObject<?> managedObject, Collection<LocalizableMessage> unacceptableReasons)
                 throws ConfigException {
             SortedSet<String> names = managedObject.getPropertyValues(AggregationPropertyDefinition.this);
-            ServerManagementContext context = ServerManagementContext.getInstance();
+            ServerManagementContext context = managedObject.getServerContext();
             LocalizableMessage thisUFN = managedObject.getManagedObjectDefinition().getUserFriendlyName();
             String thisDN = managedObject.getDN().toString();
             LocalizableMessage thatUFN = getRelationDefinition().getUserFriendlyName();
@@ -404,7 +404,7 @@ public final class AggregationPropertyDefinition<C extends ConfigurationClient, 
 
             // Delete listeners need to be registered against the parent
             // entry of the referenced components.
-            ServerManagementContext context = ServerManagementContext.getInstance();
+            ServerManagementContext context = managedObject.getServerContext();
             ManagedObjectPath<?, ?> parentPath = getParentPath();
             ServerManagedObject<?> parent = context.getManagedObject(parentPath);
 
@@ -443,7 +443,7 @@ public final class AggregationPropertyDefinition<C extends ConfigurationClient, 
         @Override
         public void performPostDelete(ServerManagedObject<?> managedObject) throws ConfigException {
             // Remove any registered delete and change listeners.
-            ServerManagementContext context = ServerManagementContext.getInstance();
+            ServerManagementContext context = managedObject.getServerContext();
             DN dn = managedObject.getDN();
 
             // Delete listeners need to be deregistered against the parent

@@ -25,47 +25,41 @@
  */
 package org.opends.server.admin.server;
 
-
-
 import java.util.Collection;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
-
-
 
 /**
  * Common features of config listener adaptors.
  */
 abstract class AbstractConfigListenerAdaptor {
 
-  /**
-   * Create a new config listener adaptor.
-   */
-  protected AbstractConfigListenerAdaptor() {
-    // No implementation required.
-  }
-
-
-
-  /**
-   * Concatenate a list of messages into a single message.
-   *
-   * @param reasons
-   *          The list of messages to concatenate.
-   * @param unacceptableReason
-   *          The single message to which messages should be appended.
-   */
-  protected final void generateUnacceptableReason(Collection<LocalizableMessage> reasons,
-      LocalizableMessageBuilder unacceptableReason) {
-    boolean isFirst = true;
-    for (LocalizableMessage reason : reasons) {
-      if (isFirst) {
-        isFirst = false;
-      } else {
-        unacceptableReason.append("  ");
-      }
-      unacceptableReason.append(reason);
+    /**
+     * Create a new config listener adaptor.
+     */
+    protected AbstractConfigListenerAdaptor() {
+        // No implementation required.
     }
-  }
+
+    /**
+     * Concatenate a list of messages into a single message.
+     *
+     * @param reasons
+     *            The list of messages to concatenate.
+     * @param unacceptableReason
+     *            The single message to which messages should be appended.
+     */
+    protected final void generateUnacceptableReason(Collection<LocalizableMessage> reasons,
+            LocalizableMessageBuilder unacceptableReason) {
+        boolean isFirst = true;
+        for (LocalizableMessage reason : reasons) {
+            if (isFirst) {
+                isFirst = false;
+            } else {
+                unacceptableReason.append("  ");
+            }
+            unacceptableReason.append(reason);
+        }
+    }
 }

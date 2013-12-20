@@ -25,13 +25,10 @@
  */
 package org.opends.server.core;
 
-import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.ldap.schema.ObjectClass;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldap.schema.UnknownSchemaElementException;
-import org.opends.server.config.ConfigEntry;
-import org.opends.server.config.ConfigException;
 
 /**
  * TODO : this is a stub, with some default implementations for some methods,
@@ -114,10 +111,6 @@ public class DirectoryServer {
      */
     public static ObjectClass getDefaultObjectClass(String name) {
         return getObjectClass(name);
-    }
-
-    public static ConfigEntry getConfigEntry(DN dn) throws ConfigException {
-        throw new RuntimeException("Not implemented");
     }
 
 }

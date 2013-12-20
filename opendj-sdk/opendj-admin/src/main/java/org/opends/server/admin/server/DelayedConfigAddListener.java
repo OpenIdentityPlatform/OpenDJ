@@ -27,13 +27,13 @@ package org.opends.server.admin.server;
 
 import org.opends.server.api.ConfigAddListener;
 import org.opends.server.api.ConfigDeleteListener;
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
-import org.opends.server.core.DirectoryServer;
+import org.opends.server.config.ConfigurationRepository;
 import org.opends.server.types.ConfigChangeResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 
@@ -62,6 +62,8 @@ final class DelayedConfigAddListener implements ConfigAddListener {
     // registered).
     private final ConfigDeleteListener delayedDeleteListener;
 
+    private final ConfigurationRepository configRepository;
+
     /**
      * Create a new delayed add listener which will register an add listener
      * with the specified entry when it is added.
@@ -72,12 +74,14 @@ final class DelayedConfigAddListener implements ConfigAddListener {
      * @param addListener
      *            The add listener to be added to the subordinate entry when it
      *            is added.
+     * @param configRepository TODO
      */
-    public DelayedConfigAddListener(DN child, ConfigAddListener addListener) {
+    public DelayedConfigAddListener(DN child, ConfigAddListener addListener, ConfigurationRepository configRepository) {
         this.parent = child.parent();
         this.child = child;
         this.delayedAddListener = addListener;
         this.delayedDeleteListener = null;
+        this.configRepository = configRepository;
     }
 
     /**
@@ -90,34 +94,35 @@ final class DelayedConfigAddListener implements ConfigAddListener {
      * @param deleteListener
      *            The delete listener to be added to the subordinate entry when
      *            it is added.
+     * @param configRepository TODO
      */
-    public DelayedConfigAddListener(DN child, ConfigDeleteListener deleteListener) {
+    public DelayedConfigAddListener(DN child, ConfigDeleteListener deleteListener, ConfigurationRepository configRepository) {
         this.parent = child.parent();
         this.child = child;
         this.delayedAddListener = null;
+        this.configRepository = configRepository;
         this.delayedDeleteListener = deleteListener;
     }
 
     /**
      * {@inheritDoc}
      */
-    public ConfigChangeResult applyConfigurationAdd(ConfigEntry configEntry) {
-        if (configEntry.getDN().equals(child)) {
+    public ConfigChangeResult applyConfigurationAdd(Entry configEntry) {
+        if (configEntry.getName().equals(child)) {
             // The subordinate entry matched our criteria so register the
             // listener(s).
             if (delayedAddListener != null) {
-                configEntry.registerAddListener(delayedAddListener);
+                configRepository.registerAddListener(configEntry.getName(), delayedAddListener);
             }
 
             if (delayedDeleteListener != null) {
-                configEntry.registerDeleteListener(delayedDeleteListener);
+                configRepository.registerDeleteListener(configEntry.getName(), delayedDeleteListener);
             }
 
-            // We are no longer needed.
             try {
-                ConfigEntry myEntry = DirectoryServer.getConfigEntry(parent);
-                if (myEntry != null) {
-                    myEntry.deregisterAddListener(this);
+                // We are no longer needed.
+                if (configRepository.hasEntry(parent)) {
+                    configRepository.deregisterAddListener(parent, this);
                 }
             } catch (ConfigException e) {
                 debugLogger.trace("Unable to deregister add listener", e);
@@ -132,7 +137,7 @@ final class DelayedConfigAddListener implements ConfigAddListener {
     /**
      * {@inheritDoc}
      */
-    public boolean configAddIsAcceptable(ConfigEntry configEntry, LocalizableMessageBuilder unacceptableReason) {
+    public boolean configAddIsAcceptable(Entry configEntry, LocalizableMessageBuilder unacceptableReason) {
         // Always acceptable.
         return true;
     }
