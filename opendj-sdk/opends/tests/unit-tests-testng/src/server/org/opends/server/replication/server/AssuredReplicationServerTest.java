@@ -478,19 +478,6 @@ public class AssuredReplicationServerTest
       return nWrongReceivedUpdates;
     }
 
-    /**
-     * To get the session reference to be able to send our own acks
-     */
-    @Override
-    public void sessionInitiated(
-      ServerStatus initStatus,
-      ServerState replicationServerState,
-      long generationId,
-      Session session)
-    {
-      super.sessionInitiated(initStatus, replicationServerState, generationId, session);
-    }
-
     @Override
     public long countEntries() throws DirectoryException
     {
