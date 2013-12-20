@@ -28,15 +28,19 @@
 package org.forgerock.opendj.ldap;
 
 import static org.forgerock.opendj.ldap.AttributeDescription.objectClass;
+
 import static com.forgerock.opendj.ldap.CoreMessages.*;
+
 import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -48,6 +52,7 @@ import org.forgerock.opendj.ldap.schema.ObjectClassType;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldap.schema.SchemaValidationPolicy;
 import org.forgerock.opendj.ldap.schema.UnknownSchemaElementException;
+import org.forgerock.opendj.ldif.LDIF;
 import org.forgerock.util.Reject;
 
 import com.forgerock.opendj.util.Iterables;
@@ -578,6 +583,58 @@ public final class Entries {
      */
     public static ObjectClass getStructuralObjectClass(final Entry entry) {
         return getStructuralObjectClass(entry, Schema.getDefaultSchema());
+    }
+
+    /**
+     * Builds an entry from the provided lines of LDIF.
+     * <p>
+     * Sample usage:
+     * <pre>
+     * Entry john = makeEntry(
+     *   "dn: cn=John Smith,dc=example,dc=com",
+     *   "objectclass: inetorgperson",
+     *   "cn: John Smith",
+     *   "sn: Smith",
+     *   "givenname: John");
+     * </pre>
+     *
+     * @param ldifLines
+     *          LDIF lines that contains entry definition.
+     * @return an entry
+     * @throws IOException
+     *          If an error occurs.
+     */
+    public static Entry makeEntry(String... ldifLines) throws IOException {
+        return LDIF.makeEntry(ldifLines);
+    }
+
+    /**
+     * Builds a list of entries from the provided lines of LDIF.
+     * <p>
+     * Sample usage:
+     * <pre>
+     * List<Entry> smiths = TestCaseUtils.makeEntries(
+     *   "dn: cn=John Smith,dc=example,dc=com",
+     *   "objectclass: inetorgperson",
+     *   "cn: John Smith",
+     *   "sn: Smith",
+     *   "givenname: John",
+     *   "",
+     *   "dn: cn=Jane Smith,dc=example,dc=com",
+     *   "objectclass: inetorgperson",
+     *   "cn: Jane Smith",
+     *   "sn: Smith",
+     *   "givenname: Jane");
+     * </pre>
+     * @param ldifLines
+     *          LDIF lines that contains entries definition.
+     *          Entries are separated by an empty string: {@code ""}.
+     * @return a list of entries
+     * @throws IOException
+     *          If an error occurs.
+     */
+    public static List<Entry> makeEntries(String... ldifLines) throws IOException {
+        return LDIF.makeEntries(ldifLines);
     }
 
     /**
