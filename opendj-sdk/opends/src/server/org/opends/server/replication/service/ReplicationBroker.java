@@ -81,6 +81,7 @@ public class ReplicationBroker
 
     /** The info of the RS we are connected to. */
     private final ReplicationServerInfo rsInfo;
+    /** Contains a connected session to the RS if any exist, null otherwise. */
     private final Session session;
     private final String replicationServer;
 
@@ -982,7 +983,7 @@ public class ReplicationBroker
     final DN baseDN = getBaseDN();
     final ReplicationServerInfo rsInfo = rs.rsInfo;
 
-    boolean connectSuccessful = false;
+    boolean connectCompleted = false;
     try
     {
       maxSendWindow = rsInfo.getWindowSize();
@@ -1042,8 +1043,7 @@ public class ReplicationBroker
       {
         startChangeTimeHeartBeatPublishing(rs);
       }
-      setConnectedRS(rs);
-      connectSuccessful = true;
+      connectCompleted = true;
     }
     catch (Exception e)
     {
@@ -1053,7 +1053,7 @@ public class ReplicationBroker
     }
     finally
     {
-      if (!connectSuccessful)
+      if (!connectCompleted)
       {
         setConnectedRS(ConnectedRS.noConnectedRS());
       }
@@ -1349,6 +1349,7 @@ public class ReplicationBroker
 
       // Alright set the timeout to the desired value
       session.setSoTimeout(timeout);
+      setConnectedRS(electedRS);
       return topologyMsg;
     }
     catch (Exception e)
