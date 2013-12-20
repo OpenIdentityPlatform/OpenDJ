@@ -345,9 +345,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
           + ") state checkpointer for domain \"" + getBaseDNString() + "\"");
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public void run()
     {
@@ -400,9 +398,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       this.startCSN = replServerMaxCSN;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public void run()
     {
@@ -510,7 +506,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     catch (DirectoryException e)
     {
       logError(ERR_LOADING_GENERATION_ID.get(
-          getBaseDNString(), e.getLocalizedMessage()));
+          getBaseDNString(), stackTraceToSingleLineString(e)));
     }
 
     /*
@@ -665,9 +661,8 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       // Should not happen as normally already called without problem in
       // isConfigurationChangeAcceptable or isConfigurationAcceptable
       // if we come up to this method
-      Message message = NOTE_ERR_FRACTIONAL.get(getBaseDNString(),
-        e.getLocalizedMessage());
-      logError(message);
+      logError(NOTE_ERR_FRACTIONAL.get(getBaseDNString(),
+          stackTraceToSingleLineString(e)));
       return;
     }
 
@@ -685,9 +680,8 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     catch  (ConfigException e)
     {
       // Should not happen
-      Message message = NOTE_ERR_FRACTIONAL.get(getBaseDNString(),
-        e.getLocalizedMessage());
-      logError(message);
+      logError(NOTE_ERR_FRACTIONAL.get(getBaseDNString(),
+          stackTraceToSingleLineString(e)));
       return;
     }
 
@@ -875,9 +869,9 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     {
       // Should not happen as configuration in domain root entry is flushed
       // from valid configuration in local variables
-      Message message = NOTE_ERR_FRACTIONAL.get(
-        fractionalConfig.getBaseDn().toString(), e.getLocalizedMessage());
-      logError(message);
+      logError(NOTE_ERR_FRACTIONAL.get(
+          fractionalConfig.getBaseDn().toString(),
+          stackTraceToSingleLineString(e)));
       return false;
     }
 
@@ -909,9 +903,9 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       // Should not happen as configuration in domain root entry is flushed
       // from valid configuration in local variables so both should have already
       // been checked
-      Message message = NOTE_ERR_FRACTIONAL.get(
-        fractionalConfig.getBaseDn().toString(), e.getLocalizedMessage());
-      logError(message);
+      logError(NOTE_ERR_FRACTIONAL.get(
+          fractionalConfig.getBaseDn().toString(),
+          stackTraceToSingleLineString(e)));
       return false;
     }
   }
@@ -934,27 +928,21 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       this.attrValIt = attrValIt;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean hasNext()
     {
       return attrValIt.hasNext();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public String next()
     {
       return attrValIt.next().getValue().toString();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     // Should not be needed anyway
     @Override
     public void remove()
@@ -1526,9 +1514,8 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     }
     catch(DirectoryException e)
     {
-      Message message = NOTE_ERR_FRACTIONAL.get(getBaseDNString(),
-        e.getLocalizedMessage());
-      logError(message);
+      logError(NOTE_ERR_FRACTIONAL.get(getBaseDNString(),
+          stackTraceToSingleLineString(e)));
       return FRACTIONAL_HAS_NO_FRACTIONAL_FILTERED_ATTRIBUTES;
     }
     Set<ObjectClass> entryClasses = entryToModify.getObjectClasses().keySet();
@@ -2797,20 +2784,16 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       {
         AttributeType modAttrType = mod.getAttribute().getAttributeType();
         if ((mod.getModificationType() == ModificationType.DELETE
-            || mod.getModificationType() == ModificationType.REPLACE)
+              || mod.getModificationType() == ModificationType.REPLACE)
             && currentRDN.hasAttributeType(modAttrType))
         {
-          if (currentRDN.hasAttributeType(modAttrType))
-          {
-            // the attribute can't be deleted because it is used
-            // in the RDN, turn this operation is a replace with the
-            // current RDN value(s);
-            mod.setModificationType(ModificationType.REPLACE);
-            Attribute newAttribute = mod.getAttribute();
-            AttributeBuilder attrBuilder = new AttributeBuilder(newAttribute);
-            attrBuilder.add(currentRDN.getAttributeValue(modAttrType));
-            mod.setAttribute(attrBuilder.toAttribute());
-          }
+          // the attribute can't be deleted because it is used in the RDN,
+          // turn this operation is a replace with the current RDN value(s);
+          mod.setModificationType(ModificationType.REPLACE);
+          Attribute newAttribute = mod.getAttribute();
+          AttributeBuilder attrBuilder = new AttributeBuilder(newAttribute);
+          attrBuilder.add(currentRDN.getAttributeValue(modAttrType));
+          mod.setAttribute(attrBuilder.toAttribute());
         }
       }
       msg.setMods(mods);
@@ -3188,7 +3171,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       mb.append(" ");
       mb.append(String.valueOf(conflictOp));
       mb.append(" ");
-      mb.append(e.getLocalizedMessage());
+      mb.append(stackTraceToSingleLineString(e));
       logError(mb.toMessage());
     }
 
@@ -3423,7 +3406,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
        * should we stop the modifications ?
        */
       logError(ERR_LOADING_GENERATION_ID.get(
-          getBaseDNString(), e.getLocalizedMessage()));
+          getBaseDNString(), stackTraceToSingleLineString(e)));
       return;
     }
 
@@ -3448,9 +3431,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     return genId;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public long getGenerationID()
   {
@@ -3600,9 +3581,8 @@ private boolean solveNamingConflict(ModifyDNOperation op,
             }
             catch(Exception e)
             {
-              Message message = ERR_LOADING_GENERATION_ID.get(
-                getBaseDNString(), e.getLocalizedMessage());
-              logError(message);
+              logError(ERR_LOADING_GENERATION_ID.get(
+                  getBaseDNString(), stackTraceToSingleLineString(e)));
             }
           }
         }
@@ -3690,16 +3670,15 @@ private boolean solveNamingConflict(ModifyDNOperation op,
         Message message = ERR_LDIFEXPORT_CANNOT_LOCK_BACKEND.get(
             backend.getBackendID(), String.valueOf(failureReason));
         logError(message);
-        throw new DirectoryException(ResultCode.OTHER, message, null);
+        throw new DirectoryException(ResultCode.OTHER, message);
       }
     }
     catch (Exception e)
     {
-      Message message =
-          ERR_LDIFEXPORT_CANNOT_LOCK_BACKEND.get(
-                  backend.getBackendID(), e.getLocalizedMessage());
+      Message message = ERR_LDIFEXPORT_CANNOT_LOCK_BACKEND.get(
+          backend.getBackendID(), stackTraceToSingleLineString(e));
       logError(message);
-      throw new DirectoryException(ResultCode.OTHER, message, null);
+      throw new DirectoryException(ResultCode.OTHER, message);
     }
 
     long numberOfEntries = backend.numSubordinates(getBaseDN(), true) + 1;
@@ -3762,7 +3741,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
         Message message =
             ERR_LDIFEXPORT_ERROR_DURING_EXPORT.get(de.getMessageObject());
         logError(message);
-        throw new DirectoryException(ResultCode.OTHER, message, null);
+        throw new DirectoryException(ResultCode.OTHER, message);
       }
     }
     catch (Exception e)
@@ -3770,7 +3749,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       Message message = ERR_LDIFEXPORT_ERROR_DURING_EXPORT.get(
           stackTraceToSingleLineString(e));
       logError(message);
-      throw new DirectoryException(ResultCode.OTHER, message, null);
+      throw new DirectoryException(ResultCode.OTHER, message);
     }
     finally
     {
@@ -3793,7 +3772,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
           Message message = WARN_LDIFEXPORT_CANNOT_UNLOCK_BACKEND.get(
               backend.getBackendID(), String.valueOf(failureReason));
           logError(message);
-          throw new DirectoryException(ResultCode.OTHER, message, null);
+          throw new DirectoryException(ResultCode.OTHER, message);
         }
       }
       catch (Exception e)
@@ -3801,7 +3780,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
         Message message = WARN_LDIFEXPORT_CANNOT_UNLOCK_BACKEND.get(
             backend.getBackendID(), stackTraceToSingleLineString(e));
         logError(message);
-        throw new DirectoryException(ResultCode.OTHER, message, null);
+        throw new DirectoryException(ResultCode.OTHER, message);
       }
     }
     return genID;
@@ -3862,10 +3841,8 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     {
       if (!backend.supportsLDIFImport())
       {
-        Message message = ERR_INIT_IMPORT_NOT_SUPPORTED.get(
-            backend.getBackendID());
-        if (ieContext.getException() == null)
-          ieContext.setException(new DirectoryException(OTHER, message));
+        ieContext.setExceptionIfNoneSet(new DirectoryException(OTHER,
+            ERR_INIT_IMPORT_NOT_SUPPORTED.get(backend.getBackendID())));
       }
       else
       {
@@ -3898,10 +3875,8 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     }
     catch(Exception e)
     {
-      if (ieContext.getException() == null)
-        ieContext.setException(new DirectoryException(
-            ResultCode.OTHER,
-            ERR_INIT_IMPORT_FAILURE.get(e.getLocalizedMessage())));
+      ieContext.setExceptionIfNoneSet(new DirectoryException(ResultCode.OTHER,
+          ERR_INIT_IMPORT_FAILURE.get(stackTraceToSingleLineString(e))));
     }
     finally
     {
@@ -3933,10 +3908,9 @@ private boolean solveNamingConflict(ModifyDNOperation op,
         // so we don't bother about the new Exception.
         // However if there was no Exception before we want
         // to return this Exception to the task creator.
-        if (ieContext.getException() == null)
-          ieContext.setException(new DirectoryException(
-              ResultCode.OTHER,
-              ERR_INIT_IMPORT_FAILURE.get(fe.getLocalizedMessage())));
+        ieContext.setExceptionIfNoneSet(new DirectoryException(
+            ResultCode.OTHER,
+            ERR_INIT_IMPORT_FAILURE.get(stackTraceToSingleLineString(fe))));
       }
     }
 
@@ -3983,7 +3957,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     for (SynchronizationProvider<?> provider :
       DirectoryServer.getSynchronizationProviders())
     {
-      if (!( provider instanceof MultimasterReplication))
+      if (!(provider instanceof MultimasterReplication))
       {
         Message message = ERR_INVALID_PROVIDER.get();
         throw new DirectoryException(ResultCode.OTHER, message);
@@ -4071,16 +4045,14 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     LDAPReplicationDomain domain = MultimasterReplication.findDomain(dn, null);
     if (domain != null && domain.getBaseDN().equals(dn))
     {
-      Message message = ERR_SYNC_INVALID_DN.get();
-      unacceptableReasons.add(message);
+      unacceptableReasons.add(ERR_SYNC_INVALID_DN.get());
       return false;
     }
 
     // Check that the base DN is configured as a base-dn of the directory server
     if (retrievesBackend(dn) == null)
     {
-      Message message = ERR_UNKNOWN_DN.get(dn.toString());
-      unacceptableReasons.add(message);
+      unacceptableReasons.add(ERR_UNKNOWN_DN.get(dn.toString()));
       return false;
     }
 
@@ -4097,9 +4069,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     return true;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
          ReplicationDomainCfg configuration)
@@ -4125,9 +4095,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     return new ConfigChangeResult(ResultCode.SUCCESS, false);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
          ReplicationDomainCfg configuration, List<Message> unacceptableReasons)
@@ -4153,9 +4121,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public Map<String, String> getAlerts()
   {
@@ -4166,9 +4132,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     return alerts;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String getClassName()
   {
@@ -4176,9 +4140,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
 
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public DN getComponentEntryDN()
   {
@@ -4214,10 +4176,8 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     catch(Exception e)
     {
       TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      MessageBuilder mb = new MessageBuilder();
-      mb.append(e.getMessage());
-      Message msg = ERR_CHECK_CREATE_REPL_BACKEND_FAILED.get(mb.toString());
-      logError(msg);
+      logError(ERR_CHECK_CREATE_REPL_BACKEND_FAILED.get(
+          stackTraceToSingleLineString(e)));
     }
   }
 
@@ -4279,11 +4239,11 @@ private boolean solveNamingConflict(ModifyDNOperation op,
         eclDomain = new ExternalChangelogDomain(this, eclDomCfg);
       }
     }
-    catch (Exception de)
+    catch (Exception e)
     {
       throw new ConfigException(NOTE_ERR_UNABLE_TO_ENABLE_ECL.get(
           "Replication Domain on " + getBaseDNString(),
-          de.getMessage() + " " + de.getCause().getMessage()), de);
+          stackTraceToSingleLineString(e)), e);
     }
   }
 
@@ -4298,9 +4258,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     return buffer.toString();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void sessionInitiated(
       ServerStatus initStatus,
@@ -4330,10 +4288,9 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       }
       catch (DirectoryException de)
       {
-        Message message = NOTE_ERR_UNABLE_TO_ENABLE_ECL.get(
+        logError(NOTE_ERR_UNABLE_TO_ENABLE_ECL.get(
             "Replication Domain on " + getBaseDNString(),
-            de.getMessage() + " " + de.getCause().getMessage());
-        logError(message);
+            stackTraceToSingleLineString(de)));
         // and go on
       }
     }
@@ -4344,9 +4301,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       // Go into bad data set status
       setNewStatus(StatusMachineEvent.TO_BAD_GEN_ID_STATUS_EVENT);
       broker.signalStatusChange(status);
-      Message message = NOTE_FRACTIONAL_BAD_DATA_SET_NEED_RESYNC.get(
-        getBaseDNString());
-      logError(message);
+      logError(NOTE_FRACTIONAL_BAD_DATA_SET_NEED_RESYNC.get(getBaseDNString()));
       return; // Do not send changes to the replication server
     }
 
@@ -4384,9 +4339,8 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       }
     } catch (Exception e)
     {
-      Message message = ERR_PUBLISHING_FAKE_OPS.get(getBaseDNString(),
-          e.getLocalizedMessage() + " " + stackTraceToSingleLineString(e));
-      logError(message);
+      logError(ERR_PUBLISHING_FAKE_OPS.get(getBaseDNString(),
+          stackTraceToSingleLineString(e)));
     }
   }
 
@@ -4592,18 +4546,15 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     Backend backend = retrievesBackend(getBaseDN());
     if (!backend.supportsLDIFExport())
     {
-      Message message = ERR_INIT_EXPORT_NOT_SUPPORTED.get(
-                          backend.getBackendID());
-      logError(message);
-      throw new DirectoryException(ResultCode.OTHER, message);
+      Message msg = ERR_INIT_EXPORT_NOT_SUPPORTED.get(backend.getBackendID());
+      logError(msg);
+      throw new DirectoryException(ResultCode.OTHER, msg);
     }
 
     return backend.numSubordinates(getBaseDN(), true) + 1;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean processUpdate(UpdateMsg updateMsg, AtomicBoolean shutdown)
   {
@@ -4685,8 +4636,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
    */
   public int decodeSource(String sourceString) throws DirectoryException
   {
-    int  source = 0;
-    Throwable cause = null;
+    int source = 0;
     try
     {
       source = Integer.decode(sourceString);
@@ -4698,22 +4648,17 @@ private boolean solveNamingConflict(ModifyDNOperation op,
         return source;
       }
     }
-    catch(Exception e)
-    {
-      cause = e;
-    }
-
-    ResultCode resultCode = ResultCode.OTHER;
-    if (cause != null)
+    catch (Exception e)
     {
       Message message = ERR_INVALID_IMPORT_SOURCE.get(
           getBaseDNString(), Integer.toString(getServerId()),
-          Integer.toString(source), "Details: " + cause.getLocalizedMessage());
-      throw new DirectoryException(resultCode, message, cause);
+          sourceString, stackTraceToSingleLineString(e));
+      throw new DirectoryException(ResultCode.OTHER, message, e);
     }
+
     Message message = ERR_INVALID_IMPORT_SOURCE.get(getBaseDNString(),
         Integer.toString(getServerId()), Integer.toString(source), "");
-    throw new DirectoryException(resultCode, message);
+    throw new DirectoryException(ResultCode.OTHER, message);
   }
 
   /**
@@ -5081,13 +5026,10 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       Map<String, Set<String>> fractionalSpecificClassesAttributes,
       Set<String> fractionalAllClassesAttributes) throws ConfigException
     {
-      int fractionalMode;
-
       // Determine if fractional-exclude or fractional-include property is used:
       // only one of them is allowed
+      int fractionalMode;
       Iterator<String> iterator;
-
-      // Deduce the wished fractional mode
       if (exclIt != null && exclIt.hasNext())
       {
         if (inclIt != null && inclIt.hasNext())
@@ -5189,8 +5131,8 @@ private boolean solveNamingConflict(ModifyDNOperation op,
         return false;
 
       // Compare modes
-      if ((cfg1.isFractional() != cfg2.isFractional())
-          || (cfg1.isFractionalExclusive() != cfg2.isFractionalExclusive()))
+      if (cfg1.isFractional() != cfg2.isFractional()
+          || cfg1.isFractionalExclusive() != cfg2.isFractionalExclusive())
         return false;
 
       // Compare all classes attributes
