@@ -28,7 +28,10 @@ package org.opends.server.replication.plugin;
 
 import java.io.IOException;
 import java.net.SocketTimeoutException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.opends.messages.Category;
@@ -228,7 +231,8 @@ public class StateMachineTest extends ReplicationTestCase
     fakeCfg.setHeartbeatInterval(0);
     fakeCfg.setChangetimeHeartbeatInterval(500);
     ReplSessionSecurity security = new ReplSessionSecurity(null, null, null, true);
-    ReplicationBroker broker = new ReplicationBroker(null, state, fakeCfg, generationId, security);
+    ReplicationBroker broker = new ReplicationBroker(
+        new DummyReplicationDomain(generationId), state, fakeCfg, generationId, security);
     broker.start();
     checkConnection(30, broker, rs1Port);
     return broker;
