@@ -37,6 +37,7 @@ import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.MultiDomainServerState;
 import org.opends.server.replication.common.ServerState;
+import org.opends.server.replication.plugin.MultimasterReplication;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.ChangelogState;
 import org.opends.server.replication.server.changelog.api.*;
@@ -175,6 +176,11 @@ public class ChangeNumberIndexer extends DirectoryThread
    */
   public void publishHeartbeat(DN baseDN, CSN heartbeatCSN)
   {
+    if (isExcludedFromECL(baseDN))
+    {
+      return;
+    }
+
     lastAliveCSNs.update(baseDN, heartbeatCSN);
     tryNotify(baseDN);
   }
@@ -192,11 +198,22 @@ public class ChangeNumberIndexer extends DirectoryThread
   public void publishUpdateMsg(DN baseDN, UpdateMsg updateMsg)
       throws ChangelogException
   {
+    if (isExcludedFromECL(baseDN))
+    {
+      return;
+    }
+
     final CSN csn = updateMsg.getCSN();
     lastAliveCSNs.update(baseDN, csn);
     // only keep the oldest CSN that will be the new cursor's starting point
     newCursors.putIfAbsent(Pair.of(baseDN, csn.getServerId()), csn);
     tryNotify(baseDN);
+  }
+
+  private boolean isExcludedFromECL(DN baseDN)
+  {
+    Set<String> excludedDNs = MultimasterReplication.getECLDisabledDomains();
+    return excludedDNs.contains(baseDN.toNormalizedString());
   }
 
   /**
