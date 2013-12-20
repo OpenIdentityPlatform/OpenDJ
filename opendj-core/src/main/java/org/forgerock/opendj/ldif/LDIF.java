@@ -70,6 +70,8 @@ import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.opendj.ldap.schema.AttributeUsage;
 import org.forgerock.opendj.ldap.schema.Schema;
 
+import com.forgerock.opendj.util.StaticUtils;
+
 /**
  * This class contains common utility methods for creating and manipulating
  * readers and writers.
@@ -238,6 +240,69 @@ public final class LDIF {
                 return null;
             }
         };
+    }
+
+    /**
+     * Builds an entry from the provided lines of LDIF.
+     * <p>
+     * Sample usage:
+     * <pre>
+     * Entry john = makeEntry(
+     *   "dn: cn=John Smith,dc=example,dc=com",
+     *   "objectclass: inetorgperson",
+     *   "cn: John Smith",
+     *   "sn: Smith",
+     *   "givenname: John");
+     * </pre>
+     *
+     * @param ldifLines
+     *          LDIF lines that contains entry definition.
+     * @return an entry, or {@code null} if no ldif line is provided
+     * @throws IOException
+     *          If an error occurs.
+     */
+    public static Entry makeEntry(String... ldifLines) throws IOException {
+        List<Entry> entries = makeEntries(ldifLines);
+        return entries.isEmpty() ? null : entries.get(0);
+    }
+
+    /**
+     * Builds a list of entries from the provided lines of LDIF.
+     * <p>
+     * Sample usage:
+     * <pre>
+     * List<Entry> smiths = TestCaseUtils.makeEntries(
+     *   "dn: cn=John Smith,dc=example,dc=com",
+     *   "objectclass: inetorgperson",
+     *   "cn: John Smith",
+     *   "sn: Smith",
+     *   "givenname: John",
+     *   "",
+     *   "dn: cn=Jane Smith,dc=example,dc=com",
+     *   "objectclass: inetorgperson",
+     *   "cn: Jane Smith",
+     *   "sn: Smith",
+     *   "givenname: Jane");
+     * </pre>
+     * @param ldifLines
+     *          LDIF lines that contains entries definition.
+     *          Entries are separated by an empty string: {@code ""}.
+     * @return a list of entries
+     * @throws IOException
+     *          If an error occurs.
+     */
+    public static List<Entry> makeEntries(String... ldifLines) throws IOException {
+        List<Entry> entries = new ArrayList<Entry>();
+        LDIFEntryReader reader = null;
+        try {
+            reader = new LDIFEntryReader(ldifLines);
+            while (reader.hasNext()) {
+                entries.add(reader.readEntry());
+            }
+        } finally {
+            StaticUtils.closeSilently(reader);
+        }
+        return entries;
     }
 
     /**
