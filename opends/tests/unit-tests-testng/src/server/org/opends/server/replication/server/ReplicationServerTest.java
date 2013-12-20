@@ -195,6 +195,15 @@ public class ReplicationServerTest extends ReplicationTestCase
     }
   }
 
+  @Override
+  protected ReplicationBroker openReplicationSession(final DN baseDN,
+      int serverId, int windowSize, int port, int timeout) throws Exception
+  {
+    ReplicationBroker broker = super.openReplicationSession(baseDN, serverId, windowSize, port, timeout);
+    assertTrue(broker.isConnected());
+    return broker;
+  }
+
   /**
    * Basic test of the replicationServer code :
    *  Connect 2 clients to the replicationServer and exchange messages
@@ -214,13 +223,8 @@ public class ReplicationServerTest extends ReplicationTestCase
       /*
        * Open a sender session and a receiver session to the replicationServer
        */
-      server1 = openReplicationSession(TEST_ROOT_DN,
-          1, 100, replicationServerPort, 1000, false);
-      server2 = openReplicationSession(TEST_ROOT_DN,
-          2, 100, replicationServerPort, 1000, false);
-
-      assertTrue(server1.isConnected());
-      assertTrue(server2.isConnected());
+      server1 = openReplicationSession(TEST_ROOT_DN, 1, 100, replicationServerPort, 1000);
+      server2 = openReplicationSession(TEST_ROOT_DN, 2, 100, replicationServerPort, 1000);
 
       /*
        * Create CSNs for the messages sent from server 1 with current time
@@ -247,14 +251,10 @@ public class ReplicationServerTest extends ReplicationTestCase
       unknownCSNServer1 = new CSN(time + 1, 1, 1);
 
       sendAndReceiveDeleteMsg(server1, server2, EXAMPLE_DN, firstCSNServer1, "uid");
-
-      // Send and receive a second Delete Msg
       sendAndReceiveDeleteMsg(server1, server2, TEST_ROOT_DN, secondCSNServer1, "uid");
 
       // Send and receive a Delete Msg from server 2 to server 1
       sendAndReceiveDeleteMsg(server2, server1, EXAMPLE_DN, firstCSNServer2, "other-uid");
-
-      // Send and receive a second Delete Msg
       sendAndReceiveDeleteMsg(server2, server1, TEST_ROOT_DN, secondCSNServer2, "uid");
 
       debugInfo("Ending changelogBasic");
@@ -331,9 +331,7 @@ public class ReplicationServerTest extends ReplicationTestCase
     ReplicationBroker broker = null;
 
     try {
-      broker = openReplicationSession(TEST_ROOT_DN,
-          3, 100, replicationServerPort, 1000, false);
-      assertTrue(broker.isConnected());
+      broker = openReplicationSession(TEST_ROOT_DN, 3, 100, replicationServerPort, 1000);
 
       ReplicationMsg receivedMsg = broker.receive();
       broker.updateWindowAfterReplay();
@@ -496,10 +494,7 @@ public class ReplicationServerTest extends ReplicationTestCase
       /*
        * Open a sender session
        */
-      server = openReplicationSession(TEST_ROOT_DN,
-          5, 100, replicationServerPort, 100000, false);
-      assertTrue(server.isConnected());
-
+      server = openReplicationSession(TEST_ROOT_DN, 5, 100, replicationServerPort, 100000);
       reader = new BrokerReader(server, TOTAL_MSG);
 
       /*
@@ -508,8 +503,7 @@ public class ReplicationServerTest extends ReplicationTestCase
       for (int i =0; i< CLIENT_THREADS; i++)
       {
         clientBroker[i] = openReplicationSession(TEST_ROOT_DN,
-            (100+i), 100, replicationServerPort, 1000, true);
-        assertTrue(clientBroker[i].isConnected());
+            (100+i), 100, replicationServerPort, 1000);
         client[i] = new BrokerReader(clientBroker[i], TOTAL_MSG);
       }
 
@@ -582,8 +576,7 @@ public class ReplicationServerTest extends ReplicationTestCase
         int serverId = 10 + i;
         CSNGenerator gen = new CSNGenerator(serverId , 0);
         broker[i] = openReplicationSession(TEST_ROOT_DN,
-            serverId, 100, replicationServerPort, 3000, true);
-        assertTrue(broker[i].isConnected());
+            serverId, 100, replicationServerPort, 3000);
 
         producer[i] = new BrokerWriter(broker[i], gen, TOTAL_MSG/THREADS);
         reader[i] = new BrokerReader(broker[i], (TOTAL_MSG/THREADS)*(THREADS-1));
@@ -652,7 +645,6 @@ public class ReplicationServerTest extends ReplicationTestCase
 
     {
       ReplicationBroker broker2 = null;
-      boolean emptyOldChanges = true;
 
       // - Create 2 connected replicationServer
       ReplicationServer[] changelogs = new ReplicationServer[2];
@@ -679,12 +671,8 @@ public class ReplicationServerTest extends ReplicationTestCase
       try
       {
         // create and connect client1 to changelog1 and client2 to changelog2
-        broker1 = openReplicationSession(TEST_ROOT_DN,
-             brokerIds[0], 100, changelogPorts[0], 1000, !emptyOldChanges);
-        assertTrue(broker1.isConnected());
-        broker2 = openReplicationSession(TEST_ROOT_DN, brokerIds[1], 100,
-             changelogPorts[0], 1000, !emptyOldChanges);
-        assertTrue(broker2.isConnected());
+        broker1 = openReplicationSession(TEST_ROOT_DN, brokerIds[0], 100, changelogPorts[0], 1000);
+        broker2 = openReplicationSession(TEST_ROOT_DN, brokerIds[1], 100, changelogPorts[0], 1000);
 
         // - Test messages between clients by publishing now
 
@@ -755,7 +743,6 @@ public class ReplicationServerTest extends ReplicationTestCase
 
     {
       ReplicationBroker broker2 = null;
-      boolean emptyOldChanges = true;
 
       // - Create 2 connected replicationServer
       ReplicationServer[] changelogs = new ReplicationServer[2];
@@ -778,9 +765,7 @@ public class ReplicationServerTest extends ReplicationTestCase
       try
       {
         // only create and connect client1 to changelog1 client2 will be created later
-        broker1 = openReplicationSession(TEST_ROOT_DN,
-             brokerIds[0], 100, changelogPorts[0], 1000, !emptyOldChanges);
-        assertTrue(broker1.isConnected());
+        broker1 = openReplicationSession(TEST_ROOT_DN, brokerIds[0], 100, changelogPorts[0], 1000);
 
         // - Test messages between clients by publishing now
 
@@ -827,8 +812,7 @@ public class ReplicationServerTest extends ReplicationTestCase
 
         // Connect broker 2 to changelog2
         broker2 = openReplicationSession(TEST_ROOT_DN,
-            brokerIds[1], 100, changelogPorts[1], 2000, !emptyOldChanges);
-        assertTrue(broker2.isConnected());
+            brokerIds[1], 100, changelogPorts[1], 2000);
 
         // - Check msg receives by broker, through changeLog2
         List<ReplicationMsg> msgs = receiveReplicationMsgs(broker2, 4);
@@ -1127,13 +1111,9 @@ public class ReplicationServerTest extends ReplicationTestCase
 
     try
     {
-        server1 = openReplicationSession(TEST_ROOT_DN,
-            1, 100, replicationServerPort, 1000, true);
-        server2 = openReplicationSession(DN.decode("dc=domain2,dc=com"),
-            2, 100, replicationServerPort, 1000, true);
-
-        assertTrue(server1.isConnected());
-        assertTrue(server2.isConnected());
+      final DN baseDN2 = DN.decode("dc=domain2,dc=com");
+      server1 = openReplicationSession(TEST_ROOT_DN, 1, 100, replicationServerPort, 1000);
+      server2 = openReplicationSession(baseDN2, 2, 100, replicationServerPort, 1000);
 
         debugInfo("Publish changes");
         publishAll(server1, createChanges(TEST_ROOT_DN_STRING,  1));
@@ -1309,11 +1289,7 @@ public class ReplicationServerTest extends ReplicationTestCase
        LDIFWriter ldifWriter = new LDIFWriter(exportConfig);
 
        debugInfo("Create broker");
-
-       server1 = openReplicationSession(TEST_ROOT_DN,
-           1, 100, replicationServerPort, 1000, true);
-
-       assertTrue(server1.isConnected());
+       server1 = openReplicationSession(TEST_ROOT_DN, 1, 100, replicationServerPort, 1000);
 
        debugInfo("Publish changes");
        List<UpdateMsg> msgs = createChanges(TEST_ROOT_DN_STRING, 1);
@@ -1542,7 +1518,6 @@ public class ReplicationServerTest extends ReplicationTestCase
       debugInfo("Starting replicationServerConnected");
       ReplicationBroker broker1 = null;
       ReplicationBroker broker2 = null;
-      boolean emptyOldChanges = true;
 
        // - Create 2 connected replicationServer
        ReplicationServer[] changelogs = new ReplicationServer[2];
@@ -1571,13 +1546,8 @@ public class ReplicationServerTest extends ReplicationTestCase
     {
          // Create and connect client1 to changelog1
          // and client2 to changelog2
-         broker1 = openReplicationSession(TEST_ROOT_DN,
-              brokerIds[0], 100, changelogPorts[0], 1000, emptyOldChanges);
-         broker2 = openReplicationSession(TEST_ROOT_DN,
-              brokerIds[1], 100, changelogPorts[1], 1000, emptyOldChanges);
-
-         assertTrue(broker1.isConnected());
-         assertTrue(broker2.isConnected());
+         broker1 = openReplicationSession(TEST_ROOT_DN, brokerIds[0], 100, changelogPorts[0], 1000);
+         broker2 = openReplicationSession(TEST_ROOT_DN, brokerIds[1], 100, changelogPorts[1], 1000);
 
          // - Test messages between clients by publishing now
          CSNGenerator csnGen = new CSNGenerator(brokerIds[0], TimeThread.getTime());

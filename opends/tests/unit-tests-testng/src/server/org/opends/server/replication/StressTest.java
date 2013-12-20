@@ -85,7 +85,7 @@ public class StressTest extends ReplicationTestCase
     final int TOTAL_MESSAGES = 1000;
 
     ReplicationBroker broker =
-      openReplicationSession(baseDN, 18, 100, replServerPort, 5000, true);
+      openReplicationSession(baseDN, 18, 100, replServerPort, 5000);
     Monitor monitor = new Monitor();
     DirectoryServer.registerMonitorProvider(monitor);
 

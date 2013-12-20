@@ -277,7 +277,7 @@ public class UpdateOperationTest extends ReplicationTestCase
      */
     final int serverId = 2;
     ReplicationBroker broker =
-      openReplicationSession(baseDN, serverId, 100, replServerPort, 1000, true);
+      openReplicationSession(baseDN, serverId, 100, replServerPort, 1000);
 
     try
     {
@@ -339,7 +339,7 @@ public class UpdateOperationTest extends ReplicationTestCase
      */
     int serverId = 2;
     ReplicationBroker broker =
-      openReplicationSession(baseDN, serverId, 100, replServerPort, 1000, true);
+      openReplicationSession(baseDN, serverId, 100, replServerPort, 1000);
 
     try
     {
@@ -416,7 +416,7 @@ public class UpdateOperationTest extends ReplicationTestCase
      * This must use a different serverId to that of the directory server.
      */
     ReplicationBroker broker =
-        openReplicationSession(baseDN, 2, 100, replServerPort, 1000, true);
+        openReplicationSession(baseDN, 2, 100, replServerPort, 1000);
 
     try
     {
@@ -552,7 +552,7 @@ public class UpdateOperationTest extends ReplicationTestCase
      */
     final int serverId = 2;
     ReplicationBroker broker =
-        openReplicationSession(baseDN, serverId, 100, replServerPort, 1000, true);
+        openReplicationSession(baseDN, serverId, 100, replServerPort, 1000);
     try
     {
       CSNGenerator gen = new CSNGenerator(serverId, 0);
@@ -1118,7 +1118,7 @@ public class UpdateOperationTest extends ReplicationTestCase
 
     final int serverId = 27;
     ReplicationBroker broker =
-        openReplicationSession(baseDN, serverId, 100, replServerPort, 2000, true);
+        openReplicationSession(baseDN, serverId, 100, replServerPort, 2000);
     try {
       CSNGenerator gen = new CSNGenerator(serverId, 0);
 
@@ -1290,7 +1290,7 @@ public class UpdateOperationTest extends ReplicationTestCase
 
     int serverId = 11;
     ReplicationBroker broker =
-        openReplicationSession(baseDN, serverId, 100, replServerPort, 1000, true);
+        openReplicationSession(baseDN, serverId, 100, replServerPort, 1000);
     try
     {
       CSNGenerator gen = new CSNGenerator(serverId, 0);
@@ -1394,7 +1394,7 @@ public class UpdateOperationTest extends ReplicationTestCase
      */
     final int serverId = 88;
     ReplicationBroker broker =
-        openReplicationSession(baseDN, serverId, 100, replServerPort, 1000, true);
+        openReplicationSession(baseDN, serverId, 100, replServerPort, 1000);
     consumeAllMessages(broker); // clean leftover messages from lostHeartbeatFailover()
     try
     {

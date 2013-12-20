@@ -415,17 +415,15 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     try
     {
       // Create 3 ECL broker
+      final DN changelogDN = DN.decode("cn=changelog");
       brokers[0] = openReplicationSession(
-          DN.decode("cn=changelog"), 1111,
-          100, replicationServerPort, brokerSessionTimeout, false);
+          changelogDN, 1111, 100, replicationServerPort, brokerSessionTimeout);
       assertTrue(brokers[0].isConnected());
       brokers[1] = openReplicationSession(
-          DN.decode("cn=changelog"), 2222,
-          100, replicationServerPort,brokerSessionTimeout, false);
+          changelogDN, 2222, 100, replicationServerPort, brokerSessionTimeout);
       assertTrue(brokers[1].isConnected());
       brokers[2] = openReplicationSession(
-          DN.decode("cn=changelog"), 3333,
-          100, replicationServerPort,brokerSessionTimeout, false);
+          changelogDN, 3333, 100, replicationServerPort, brokerSessionTimeout);
       assertTrue(brokers[2].isConnected());
 
       assertOnlyDoneMsgReceived(tn, brokers[0]);
@@ -474,10 +472,10 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     {
       // create 2 regular brokers on the 2 suffixes
       server01 = openReplicationSession(TEST_ROOT_DN, SERVER_ID_1,
-          100, replicationServerPort, brokerSessionTimeout, true);
+          100, replicationServerPort, brokerSessionTimeout);
 
       server02 = openReplicationSession(TEST_ROOT_DN2, SERVER_ID_2,
-          100, replicationServerPort, brokerSessionTimeout, true, EMPTY_DN_GENID);
+          100, replicationServerPort, brokerSessionTimeout, EMPTY_DN_GENID);
 
       // create and publish 1 change on each suffix
       long time = TimeThread.getTime();
@@ -497,8 +495,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
       // open ECL broker
       serverECL = openReplicationSession(
-          DN.decode("cn=changelog"), 10,
-          100, replicationServerPort, brokerSessionTimeout, false);
+          DN.decode("cn=changelog"), 10, 100, replicationServerPort, brokerSessionTimeout);
       assertTrue(serverECL.isConnected());
 
       // receive change 1 from suffix 1
@@ -595,7 +592,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     try
     {
       server01 = openReplicationSession(TEST_ROOT_DN, SERVER_ID_1,
-          100, replicationServerPort, brokerSessionTimeout, true);
+          100, replicationServerPort, brokerSessionTimeout);
 
       // create and publish 1 change on each suffix
       long time = TimeThread.getTime();
@@ -667,10 +664,10 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       backend2 = initializeTestBackend(true, TEST_BACKEND_ID2);
 
       s1test = openReplicationSession(TEST_ROOT_DN, SERVER_ID_1,
-          100, replicationServerPort, brokerSessionTimeout, true);
+          100, replicationServerPort, brokerSessionTimeout);
 
       s2test2 = openReplicationSession(TEST_ROOT_DN2, SERVER_ID_2,
-          100, replicationServerPort, brokerSessionTimeout, true, EMPTY_DN_GENID);
+          100, replicationServerPort, brokerSessionTimeout, EMPTY_DN_GENID);
       Thread.sleep(500);
 
       // Produce updates
@@ -724,10 +721,9 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       // Test startState ("first cookie") of the ECL
       // --
       s1test2 = openReplicationSession(TEST_ROOT_DN2,  1203,
-          100, replicationServerPort, brokerSessionTimeout, true, EMPTY_DN_GENID);
-
+          100, replicationServerPort, brokerSessionTimeout, EMPTY_DN_GENID);
       s2test = openReplicationSession(TEST_ROOT_DN,  1204,
-          100, replicationServerPort, brokerSessionTimeout, true);
+          100, replicationServerPort, brokerSessionTimeout);
       Thread.sleep(500);
 
       time = TimeThread.getTime();
@@ -916,7 +912,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
       // Creates broker on o=test
       server01 = openReplicationSession(TEST_ROOT_DN, SERVER_ID_1,
-          100, replicationServerPort, brokerSessionTimeout, true);
+          100, replicationServerPort, brokerSessionTimeout);
 
       final CSN[] csns = generateCSNs(3, SERVER_ID_1);
       publishDeleteMsgInOTest(server01, csns[0], tn, 1);
@@ -1014,13 +1010,11 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     ReplicationBroker server02 = null;
     try
     {
-      // Creates broker on o=test
+      // Creates brokers on o=test and o=test2
       server01 = openReplicationSession(TEST_ROOT_DN, SERVER_ID_1,
-          100, replicationServerPort, brokerSessionTimeout, true);
-
-      // Creates broker on o=test2
+          100, replicationServerPort, brokerSessionTimeout);
       server02 = openReplicationSession(TEST_ROOT_DN2, SERVER_ID_2,
-          100, replicationServerPort, brokerSessionTimeout, true);
+          100, replicationServerPort, brokerSessionTimeout);
 
       String user1entryUUID = "11111111-1111-1111-1111-111111111111";
       String baseUUID       = "22222222-2222-2222-2222-222222222222";
@@ -1273,7 +1267,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     {
       // Create broker on suffix
       ReplicationBroker server01 = openReplicationSession(TEST_ROOT_DN, SERVER_ID_1,
-          100, replicationServerPort, brokerSessionTimeout, true);
+          100, replicationServerPort, brokerSessionTimeout);
 
       CSN[] csns = generateCSNs(2, SERVER_ID_1);
 
@@ -1540,13 +1534,13 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       DomainFakeCfg config1 = newFakeCfg(TEST_ROOT_DN, SERVER_ID_1, replicationServerPort);
       config1.setChangetimeHeartbeatInterval(100); // ms
       server01 = openReplicationSession(config1, replicationServerPort,
-              brokerSessionTimeout, true, getGenerationId(TEST_ROOT_DN));
+              brokerSessionTimeout, getGenerationId(TEST_ROOT_DN));
 
       // Create broker on o=test2
       DomainFakeCfg config2 = newFakeCfg(TEST_ROOT_DN2, SERVER_ID_2, replicationServerPort);
       config2.setChangetimeHeartbeatInterval(100); //ms
       server02 = openReplicationSession(config2, replicationServerPort,
-              brokerSessionTimeout, true, EMPTY_DN_GENID);
+              brokerSessionTimeout, EMPTY_DN_GENID);
 
       int ts = 1;
       // Produce update 1
@@ -2043,10 +2037,9 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
       // --
       s1test = openReplicationSession(TEST_ROOT_DN, SERVER_ID_1,
-          100, replicationServerPort, brokerSessionTimeout, true);
-
+          100, replicationServerPort, brokerSessionTimeout);
       s2test2 = openReplicationSession(TEST_ROOT_DN2, SERVER_ID_2,
-          100, replicationServerPort, brokerSessionTimeout, true, EMPTY_DN_GENID);
+          100, replicationServerPort, brokerSessionTimeout, EMPTY_DN_GENID);
       Thread.sleep(500);
 
       // Produce updates
@@ -2067,10 +2060,9 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
       // --
       s1test2 = openReplicationSession(TEST_ROOT_DN2,  1203,
-          100, replicationServerPort, brokerSessionTimeout, true, EMPTY_DN_GENID);
-
+          100, replicationServerPort, brokerSessionTimeout, EMPTY_DN_GENID);
       s2test = openReplicationSession(TEST_ROOT_DN,  1204,
-          100, replicationServerPort, brokerSessionTimeout, true);
+          100, replicationServerPort, brokerSessionTimeout);
       Thread.sleep(500);
 
       // Test startState ("first cookie") of the ECL
@@ -2134,7 +2126,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     {
       // Creates broker on o=test
       ReplicationBroker server01 = openReplicationSession(TEST_ROOT_DN, SERVER_ID_1,
-          100, replicationServerPort, brokerSessionTimeout, true);
+          100, replicationServerPort, brokerSessionTimeout);
 
       String user1entryUUID = "11111111-1112-1113-1114-111111111115";
       String baseUUID       = "22222222-2222-2222-2222-222222222222";
@@ -2278,7 +2270,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
     // Creates broker on o=test
     ReplicationBroker server01 = openReplicationSession(TEST_ROOT_DN, SERVER_ID_1,
-            100, replicationServerPort, brokerSessionTimeout, true);
+            100, replicationServerPort, brokerSessionTimeout);
 
     String user1entryUUID = "11111111-1112-1113-1114-111111111115";
 
@@ -2311,7 +2303,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
     // Creates broker on o=test
     ReplicationBroker server01 = openReplicationSession(TEST_ROOT_DN, SERVER_ID_1, 100,
-            replicationServerPort, brokerSessionTimeout, true);
+            replicationServerPort, brokerSessionTimeout);
 
     String filter = "(changenumber=" + firstChangeNumber + ")";
     InternalSearchOperation searchOp = searchOnChangelog(filter, 1, tn, SUCCESS);
@@ -2577,7 +2569,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
     // Creates broker on o=test
     ReplicationBroker server01 = openReplicationSession(TEST_ROOT_DN, SERVER_ID_1, 100,
-            replicationServerPort, brokerSessionTimeout, true);
+            replicationServerPort, brokerSessionTimeout);
 
     String user1entryUUID = "11111111-1112-1113-1114-111111111115";
 

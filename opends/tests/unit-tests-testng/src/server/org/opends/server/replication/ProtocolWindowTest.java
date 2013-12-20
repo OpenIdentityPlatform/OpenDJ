@@ -113,7 +113,7 @@ public class ProtocolWindowTest extends ReplicationTestCase
     configEntriesToCleanup.add(repDomainEntry.getDN());
 
     ReplicationBroker broker = openReplicationSession(baseDN, 12,
-        WINDOW_SIZE, replServerPort, 1000, true);
+        WINDOW_SIZE, replServerPort, 1000);
 
     try {
 

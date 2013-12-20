@@ -237,7 +237,7 @@ public class HistoricalTest extends ReplicationTestCase
      * This must use a different serverId to that of the directory server.
      */
     ReplicationBroker broker =
-      openReplicationSession(baseDN, 2, 100, replServerPort, 1000, true);
+      openReplicationSession(baseDN, 2, 100, replServerPort, 1000);
 
 
     // Clear the backend and create top entrye

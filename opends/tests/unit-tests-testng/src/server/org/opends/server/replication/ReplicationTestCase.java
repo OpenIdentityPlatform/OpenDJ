@@ -191,11 +191,10 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
    * does not exist, take the 'empty backend' generationID.
    */
   protected ReplicationBroker openReplicationSession(final DN baseDN,
-      int serverId, int windowSize, int port, int timeout,
-      boolean emptyOldChanges) throws Exception
+      int serverId, int windowSize, int port, int timeout) throws Exception
   {
     return openReplicationSession(baseDN, serverId, windowSize,
-        port, timeout, emptyOldChanges, getGenerationId(baseDN));
+        port, timeout, getGenerationId(baseDN));
   }
 
   /**
@@ -204,23 +203,19 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
    */
   protected ReplicationBroker openReplicationSession(final DN baseDN,
       int serverId, int windowSize, int port, int timeout,
-      boolean emptyOldChanges, long generationId) throws Exception
+      long generationId) throws Exception
   {
     DomainFakeCfg config = newFakeCfg(baseDN, serverId, port);
     config.setWindowSize(windowSize);
-    return openReplicationSession(config, port, timeout, emptyOldChanges, generationId);
+    return openReplicationSession(config, port, timeout, generationId);
   }
 
   protected ReplicationBroker openReplicationSession(ReplicationDomainCfg config,
-      int port, int timeout, boolean emptyOldChanges, long generationId) throws Exception
+      int port, int timeout, long generationId) throws Exception
   {
-    ServerState state = new ServerState();
-
-    if (emptyOldChanges)
-      new PersistentServerState(config.getBaseDN(), config.getServerId(), new ServerState());
-
     final ReplicationBroker broker = new ReplicationBroker(
-        new DummyReplicationDomain(generationId), state, config, generationId, getReplSessionSecurity());
+        new DummyReplicationDomain(generationId), new ServerState(),
+        config, generationId, getReplSessionSecurity());
     connect(broker, port, timeout);
     return broker;
   }
