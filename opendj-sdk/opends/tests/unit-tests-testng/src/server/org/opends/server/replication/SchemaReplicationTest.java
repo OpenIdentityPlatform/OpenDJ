@@ -118,7 +118,7 @@ public class SchemaReplicationTest extends ReplicationTestCase
     final DN baseDN = DN.decode("cn=schema");
 
     ReplicationBroker broker =
-      openReplicationSession(baseDN, 2, 100, replServerPort, 5000, true);
+      openReplicationSession(baseDN, 2, 100, replServerPort, 5000);
 
     try
     {
@@ -186,7 +186,7 @@ public class SchemaReplicationTest extends ReplicationTestCase
     final DN baseDN = DN.decode("cn=schema");
 
     ReplicationBroker broker =
-      openReplicationSession(baseDN,  2, 100, replServerPort, 5000, true);
+      openReplicationSession(baseDN, 2, 100, replServerPort, 5000);
 
     try
     {
@@ -223,7 +223,7 @@ public class SchemaReplicationTest extends ReplicationTestCase
     final DN baseDN = DN.decode("cn=schema");
 
     ReplicationBroker broker =
-      openReplicationSession(baseDN,  3, 100, replServerPort, 5000, true);
+      openReplicationSession(baseDN, 3, 100, replServerPort, 5000);
 
     try
     {

@@ -93,7 +93,6 @@ public class GenerationIdTest extends ReplicationTestCase
   private ReplicationServer replServer1;
   private ReplicationServer replServer2;
   private ReplicationServer replServer3;
-  private boolean emptyOldChanges = true;
   private Entry taskInitRemoteS2;
   private String[] updatedEntries;
   private static int[] replServerPort;
@@ -641,12 +640,12 @@ public class GenerationIdTest extends ReplicationTestCase
       debugInfo(testCase + " ** TEST ** DS2 connection to RS1 with bad genID");
 
       broker2 = openReplicationSession(baseDN, server2ID, 100,
-          replServer1.getReplicationPort(), 1000, !emptyOldChanges, dsGenId+1);
+          replServer1.getReplicationPort(), 1000, dsGenId+1);
 
       //===========================================================
       debugInfo(testCase + " ** TEST ** DS3 connection to RS1 with good genID");
       broker3 = openReplicationSession(baseDN, server3ID, 100,
-          replServer1.getReplicationPort(), 1000, !emptyOldChanges, dsGenId);
+          replServer1.getReplicationPort(), 1000, dsGenId);
 
       //===========================================================
       debugInfo(testCase + " ** TEST ** DS2 (bad genID) changes must be ignored.");
@@ -708,12 +707,12 @@ public class GenerationIdTest extends ReplicationTestCase
           " spread a new gen ID on the topology, verify DS1 and RS1");
       debugInfo("Create again broker2");
       broker2 = openReplicationSession(baseDN,
-          server2ID, 100, replServer1.getReplicationPort(), 1000, emptyOldChanges, dsGenId);
+          server2ID, 100, replServer1.getReplicationPort(), 1000, dsGenId);
       assertTrue(broker2.isConnected(), "Broker2 failed to connect to replication server");
 
       debugInfo("Create again broker3");
       broker3 = openReplicationSession(baseDN,
-          server3ID, 100, replServer1.getReplicationPort(), 1000, emptyOldChanges, dsGenId);
+          server3ID, 100, replServer1.getReplicationPort(), 1000, dsGenId);
       assertTrue(broker3.isConnected(), "Broker3 failed to connect to replication server");
 
 
@@ -803,12 +802,12 @@ public class GenerationIdTest extends ReplicationTestCase
       // Simulates the broker restart at the end of the import
       broker2.stop();
       broker2 = openReplicationSession(baseDN,
-          server2ID, 100, replServer1.getReplicationPort(), 1000, emptyOldChanges, dsGenId);
+          server2ID, 100, replServer1.getReplicationPort(), 1000, dsGenId);
 
       // Simulates the broker restart at the end of the import
       broker3.stop();
       broker3 = openReplicationSession(baseDN,
-          server3ID, 100, replServer1.getReplicationPort(), 1000, emptyOldChanges, dsGenId);
+          server3ID, 100, replServer1.getReplicationPort(), 1000, dsGenId);
 
       debugInfo("Adding reset task to DS1");
       executeTask(createSetGenerationIdTask(null, ""), 20000);
@@ -954,7 +953,7 @@ public class GenerationIdTest extends ReplicationTestCase
 
       debugInfo("Connecting broker2 to replServer3 with a good genId");
       broker2 = openReplicationSession(baseDN, server2ID, 100,
-          replServer3.getReplicationPort(), 1000, !emptyOldChanges, genId);
+          replServer3.getReplicationPort(), 1000, genId);
       Thread.sleep(1000);
 
       debugInfo("Expecting that broker2 is not in bad gen id since it has a correct genId");
@@ -970,7 +969,7 @@ public class GenerationIdTest extends ReplicationTestCase
       debugInfo("Connecting broker3 to replServer1 with a bad genId");
       long badGenId = 1;
       broker3 = openReplicationSession(baseDN, server3ID, 100,
-          replServer1.getReplicationPort(), 1000, !emptyOldChanges, badGenId);
+          replServer1.getReplicationPort(), 1000, badGenId);
       Thread.sleep(1000);
 
       debugInfo("Expecting that broker3 is in bad gen id since it has a bad genId");
@@ -1117,7 +1116,7 @@ public class GenerationIdTest extends ReplicationTestCase
       {
         long generationId = 1000+i;
         broker = openReplicationSession(baseDN, server2ID, 100,
-            replServer1.getReplicationPort(), 1000, !emptyOldChanges, generationId);
+            replServer1.getReplicationPort(), 1000, generationId);
         debugInfo(testCase + " Expect genId to be set in memory on the replication " +
           " server side even if not wrote on disk/db since no change occurred.");
         rsGenId = replServer1.getGenerationId(baseDN);

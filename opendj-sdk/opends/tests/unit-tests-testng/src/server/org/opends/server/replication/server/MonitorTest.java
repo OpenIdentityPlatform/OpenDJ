@@ -312,13 +312,11 @@ public class MonitorTest extends ReplicationTestCase
       debugInfo("Connecting DS to replServer1");
       connectServer1ToChangelog(changelog1ID);
 
-      boolean emptyOldChanges = true;
       try
       {
         debugInfo("Connecting broker2 to replServer1");
         broker2 = openReplicationSession(baseDN,
-          server2ID, 100, getChangelogPort(changelog1ID),
-          1000, !emptyOldChanges);
+          server2ID, 100, getChangelogPort(changelog1ID), 1000);
         Thread.sleep(1000);
       } catch (SocketException se)
       {
@@ -329,8 +327,7 @@ public class MonitorTest extends ReplicationTestCase
       {
         debugInfo("Connecting broker3 to replServer2");
         broker3 = openReplicationSession(baseDN,
-          server3ID, 100, getChangelogPort(changelog2ID),
-          1000, !emptyOldChanges);
+          server3ID, 100, getChangelogPort(changelog2ID), 1000);
         Thread.sleep(1000);
       } catch (SocketException se)
       {
@@ -341,8 +338,7 @@ public class MonitorTest extends ReplicationTestCase
       {
         debugInfo("Connecting broker4 to replServer2");
         broker4 = openReplicationSession(baseDN,
-          server4ID, 100, getChangelogPort(changelog2ID),
-          1000, !emptyOldChanges);
+          server4ID, 100, getChangelogPort(changelog2ID), 1000);
         Thread.sleep(1000);
       } catch (SocketException se)
       {
@@ -354,10 +350,7 @@ public class MonitorTest extends ReplicationTestCase
 
       for (int i = 0; i < 200; i++)
       {
-        String ent1[] = {
-          createEntry(UUID.randomUUID())
-        };
-        addTestEntriesToDB(ent1);
+        addTestEntriesToDB(createEntry(UUID.randomUUID()));
       }
 
       /*

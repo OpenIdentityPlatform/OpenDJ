@@ -72,8 +72,7 @@ public class ReplicationServerDynamicConfTest extends ReplicationTestCase
       replicationServer.applyConfigurationChange(newconf);
 
       ReplicationBroker broker = openReplicationSession(
-          DN.decode(TEST_ROOT_DN_STRING), 1, 10, ports[1],
-          1000, false);
+          DN.decode(TEST_ROOT_DN_STRING), 1, 10, ports[1], 1000);
 
       // check that the sendWindow is not null to make sure that the
       // broker did connect successfully.

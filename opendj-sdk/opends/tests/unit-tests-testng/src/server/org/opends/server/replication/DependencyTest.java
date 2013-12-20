@@ -135,9 +135,8 @@ public class DependencyTest extends ReplicationTestCase
                                         AddSequenceLength*5+100, null);
       replServer = new ReplicationServer(conf);
 
-      ReplicationBroker broker =
-        openReplicationSession(baseDN, brokerId, 1000, replServerPort, 1000,
-                               false, CLEAN_DB_GENERATION_ID);
+      ReplicationBroker broker = openReplicationSession(
+          baseDN, brokerId, 1000, replServerPort, 1000, CLEAN_DB_GENERATION_ID);
 
       Thread.sleep(2000);
       // send a sequence of add operation
@@ -282,9 +281,8 @@ public class DependencyTest extends ReplicationTestCase
       domain = MultimasterReplication.createNewDomain(domainConf);
       domain.start();
 
-      ReplicationBroker broker =
-        openReplicationSession(baseDN, brokerId, 1000, replServerPort, 1000,
-                               false, CLEAN_DB_GENERATION_ID);
+      ReplicationBroker broker = openReplicationSession(
+          baseDN, brokerId, 1000, replServerPort, 1000, CLEAN_DB_GENERATION_ID);
 
       // add an entry to play with.
       entry.removeAttribute(uidType);
@@ -405,9 +403,8 @@ public class DependencyTest extends ReplicationTestCase
                                         0, 5*AddSequenceLength+100, null);
       replServer = new ReplicationServer(conf);
 
-      ReplicationBroker broker =
-        openReplicationSession(baseDN, brokerId, 100, replServerPort, 1000,
-                               false, CLEAN_DB_GENERATION_ID);
+      ReplicationBroker broker = openReplicationSession(
+          baseDN, brokerId, 100, replServerPort, 1000, CLEAN_DB_GENERATION_ID);
 
       // send a sequence of add/del/add operations
       CSNGenerator gen = new CSNGenerator(brokerId, 0L);
@@ -525,9 +522,8 @@ public class DependencyTest extends ReplicationTestCase
                                         0, 5*AddSequenceLength+100, null);
       replServer = new ReplicationServer(conf);
 
-      ReplicationBroker broker =
-        openReplicationSession(baseDN, brokerId, 100, replServerPort, 1000,
-                               false, CLEAN_DB_GENERATION_ID);
+      ReplicationBroker broker = openReplicationSession(
+          baseDN, brokerId, 100, replServerPort, 1000, CLEAN_DB_GENERATION_ID);
 
 
       DN addDN = TEST_ROOT_DN;
