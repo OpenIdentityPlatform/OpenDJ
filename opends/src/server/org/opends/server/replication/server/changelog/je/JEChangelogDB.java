@@ -540,7 +540,7 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
         return results.duplicate();
       }
     }
-    return null;
+    return new ServerState();
   }
 
   /** {@inheritDoc} */
@@ -808,9 +808,11 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
   @Override
   public void replicaOffline(DN baseDN, CSN offlineCSN)
   {
-    // TODO implement this when the changelogDB will be responsible for
-    // maintaining the medium consistency point
-    // TODO make sure that this operation will not lose changes
+    final ChangeNumberIndexer indexer = cnIndexer.get();
+    if (indexer != null)
+    {
+      indexer.replicaOffline(baseDN, offlineCSN);
+    }
     // TODO save this state in the changelogStateDB?
   }
 }

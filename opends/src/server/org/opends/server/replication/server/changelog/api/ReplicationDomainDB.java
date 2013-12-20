@@ -76,9 +76,7 @@ public interface ReplicationDomainDB
    *
    * @param baseDN
    *          the replication domain baseDN
-   * @return a new ServerState object holding the {serverId => CSN} Map. Can be
-   *         null if the config that computes change numbers is set to false or
-   *         if domain is not replicated.
+   * @return a non null new ServerState object holding the {serverId => CSN} Map
    */
   ServerState getDomainLastAliveCSNs(DN baseDN);
 
