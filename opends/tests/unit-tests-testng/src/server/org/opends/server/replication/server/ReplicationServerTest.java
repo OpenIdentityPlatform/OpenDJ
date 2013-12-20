@@ -46,6 +46,7 @@ import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.CSNGenerator;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.common.ServerStatus;
+import org.opends.server.replication.plugin.DummyReplicationDomain;
 import org.opends.server.replication.plugin.MultimasterReplication;
 import org.opends.server.replication.plugin.ReplicationServerListener;
 import org.opends.server.replication.protocol.*;
@@ -355,8 +356,10 @@ public class ReplicationServerTest extends ReplicationTestCase
 
     // Connect to the replicationServer using the state created above.
     try {
-      broker = new ReplicationBroker(null, state, newFakeCfg(TEST_ROOT_DN, 3, replicationServerPort),
-          getGenerationId(TEST_ROOT_DN), getReplSessionSecurity());
+      final long generationId = getGenerationId(TEST_ROOT_DN);
+      broker = new ReplicationBroker(new DummyReplicationDomain(generationId),
+          state, newFakeCfg(TEST_ROOT_DN, 3, replicationServerPort),
+          generationId, getReplSessionSecurity());
       connect(broker, replicationServerPort, 5000);
 
       ReplicationMsg receivedMsg = broker.receive();

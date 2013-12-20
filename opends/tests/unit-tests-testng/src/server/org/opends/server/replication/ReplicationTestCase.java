@@ -52,7 +52,6 @@ import org.opends.server.replication.protocol.Session;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.server.changelog.je.JEChangelogDB;
 import org.opends.server.replication.service.ReplicationBroker;
-import org.opends.server.replication.service.ReplicationDomain;
 import org.opends.server.schema.IntegerSyntax;
 import org.opends.server.types.*;
 import org.testng.annotations.AfterClass;
@@ -196,7 +195,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
       boolean emptyOldChanges) throws Exception
   {
     return openReplicationSession(baseDN, serverId, windowSize,
-        port, timeout, emptyOldChanges, getGenerationId(baseDN), null);
+        port, timeout, emptyOldChanges, getGenerationId(baseDN));
   }
 
   /**
@@ -207,36 +206,21 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
       int serverId, int windowSize, int port, int timeout,
       boolean emptyOldChanges, long generationId) throws Exception
   {
-    return openReplicationSession(baseDN, serverId, windowSize,
-        port, timeout, emptyOldChanges, generationId, null);
-  }
-
-  /**
-   * Open a replicationServer session to the local ReplicationServer
-   * providing the generationId.
-   */
-  protected ReplicationBroker openReplicationSession(final DN baseDN,
-      int serverId, int windowSize, int port, int timeout,
-      boolean emptyOldChanges, long generationId,
-      ReplicationDomain replicationDomain) throws Exception
-  {
     DomainFakeCfg config = newFakeCfg(baseDN, serverId, port);
     config.setWindowSize(windowSize);
-    return openReplicationSession(config, port, timeout, emptyOldChanges,
-        generationId, replicationDomain);
+    return openReplicationSession(config, port, timeout, emptyOldChanges, generationId);
   }
 
   protected ReplicationBroker openReplicationSession(ReplicationDomainCfg config,
-      int port, int timeout, boolean emptyOldChanges, long generationId,
-      ReplicationDomain replicationDomain) throws Exception
+      int port, int timeout, boolean emptyOldChanges, long generationId) throws Exception
   {
     ServerState state = new ServerState();
 
     if (emptyOldChanges)
       new PersistentServerState(config.getBaseDN(), config.getServerId(), new ServerState());
 
-    ReplicationBroker broker = new ReplicationBroker(replicationDomain, state,
-        config, generationId, getReplSessionSecurity());
+    final ReplicationBroker broker = new ReplicationBroker(
+        new DummyReplicationDomain(generationId), state, config, generationId, getReplSessionSecurity());
     connect(broker, port, timeout);
     return broker;
   }

@@ -359,11 +359,7 @@ public class ReplicationBroker
    */
   private long getGenerationID()
   {
-    if (domain != null)
-    {
-      // Update the generation id
-      generationID = domain.getGenerationID();
-    }
+    generationID = domain.getGenerationID();
     return generationID;
   }
 
@@ -842,15 +838,12 @@ public class ReplicationBroker
    */
   private void connectAsDataServer()
   {
-    if (domain != null)
-    {
-      /*
-      If a first connect or a connection failure occur, we go through here.
-      force status machine to NOT_CONNECTED_STATUS so that monitoring can
-      see that we are not connected.
-      */
-      domain.toNotConnectedStatus();
-    }
+    /*
+     * If a first connect or a connection failure occur, we go through here.
+     * force status machine to NOT_CONNECTED_STATUS so that monitoring can see
+     * that we are not connected.
+     */
+    domain.toNotConnectedStatus();
 
     /*
     Stop any existing heartbeat monitor and changeTime publisher
@@ -1019,10 +1012,7 @@ public class ReplicationBroker
       sendWindow = new Semaphore(maxSendWindow);
       rcvWindow = getMaxRcvWindow();
 
-      if (domain != null)
-      {
-        domain.sessionInitiated(initStatus, rsInfo.getServerState());
-      }
+      domain.sessionInitiated(initStatus, rsInfo.getServerState());
 
       final byte groupId = getGroupId();
       if (rs.getGroupId() != groupId)
@@ -1318,23 +1308,15 @@ public class ReplicationBroker
     {
       // Send our StartSessionMsg.
       final StartSessionMsg startSessionMsg;
-      if (domain != null)
-      {
-        startSessionMsg = new StartSessionMsg(
+      startSessionMsg = new StartSessionMsg(
           initStatus,
           domain.getRefUrls(),
           domain.isAssured(),
           domain.getAssuredMode(),
           domain.getAssuredSdLevel());
-        startSessionMsg.setEclIncludes(
-            domain.getEclIncludes(domain.getServerId()),
-            domain.getEclIncludesForDeletes(domain.getServerId()));
-      }
-      else
-      {
-        startSessionMsg =
-          new StartSessionMsg(initStatus, new ArrayList<String>());
-      }
+      startSessionMsg.setEclIncludes(
+          domain.getEclIncludes(domain.getServerId()),
+          domain.getEclIncludesForDeletes(domain.getServerId()));
       final Session session = electedRS.session;
       session.publish(startSessionMsg);
 
@@ -3094,13 +3076,10 @@ public class ReplicationBroker
     // Remove any replication server that may have disappeared from the topology
     replicationServerInfos.keySet().retainAll(rssToKeep);
 
-    if (domain != null)
+    for (DSInfo info : dsList)
     {
-      for (DSInfo info : dsList)
-      {
-        domain.setEclIncludes(info.getDsId(), info.getEclIncludes(),
-            info.getEclIncludesForDeletes());
-      }
+      domain.setEclIncludes(info.getDsId(), info.getEclIncludes(),
+          info.getEclIncludesForDeletes());
     }
   }
 

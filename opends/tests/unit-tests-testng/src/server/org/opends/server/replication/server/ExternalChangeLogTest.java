@@ -1540,13 +1540,13 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       DomainFakeCfg config1 = newFakeCfg(TEST_ROOT_DN, SERVER_ID_1, replicationServerPort);
       config1.setChangetimeHeartbeatInterval(100); // ms
       server01 = openReplicationSession(config1, replicationServerPort,
-          brokerSessionTimeout, true, getGenerationId(TEST_ROOT_DN), null);
+              brokerSessionTimeout, true, getGenerationId(TEST_ROOT_DN));
 
       // Create broker on o=test2
       DomainFakeCfg config2 = newFakeCfg(TEST_ROOT_DN2, SERVER_ID_2, replicationServerPort);
       config2.setChangetimeHeartbeatInterval(100); //ms
       server02 = openReplicationSession(config2, replicationServerPort,
-          brokerSessionTimeout, true, EMPTY_DN_GENID, null);
+              brokerSessionTimeout, true, EMPTY_DN_GENID);
 
       int ts = 1;
       // Produce update 1
