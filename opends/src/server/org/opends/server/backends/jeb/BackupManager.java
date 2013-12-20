@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2013 ForgeRock AS.
  */
 package org.opends.server.backends.jeb;
 import org.opends.messages.Message;
@@ -45,14 +46,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.security.MessageDigest;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.zip.Deflater;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -152,17 +146,13 @@ public class BackupManager
     boolean         signHash        = backupConfig.signHash();
 
 
-    // Create a hash map that will hold the extra backup property information
-    // for this backup.
     HashMap<String,String> backupProperties = new HashMap<String,String>();
-
 
     // Get the crypto manager and use it to obtain references to the message
     // digest and/or MAC to use for hashing and/or signing.
     CryptoManager cryptoManager   = DirectoryServer.getCryptoManager();
     Mac           mac             = null;
     MessageDigest digest          = null;
-    String        digestAlgorithm = null;
     String        macKeyID    = null;
 
     if (hash)
@@ -191,7 +181,7 @@ public class BackupManager
       }
       else
       {
-        digestAlgorithm = cryptoManager.getPreferredMessageDigestAlgorithm();
+        String digestAlgorithm = cryptoManager.getPreferredMessageDigestAlgorithm();
         backupProperties.put(BACKUP_PROPERTY_DIGEST_ALGORITHM, digestAlgorithm);
 
         try
@@ -220,15 +210,7 @@ public class BackupManager
     // If this is an incremental, determine the base backup for this backup.
     HashSet<String> dependencies = new HashSet<String>();
     BackupInfo baseBackup = null;
-/*
-    FilenameFilter backupTagFilter = new FilenameFilter()
-    {
-      public boolean accept(File dir, String name)
-      {
-        return name.startsWith(BackupInfo.PROPERTY_BACKUP_ID);
-      }
-    };
-*/
+
     if (incremental)
     {
       if (incrBaseID == null)
@@ -239,34 +221,6 @@ public class BackupManager
           incrBaseID = backupDir.getLatestBackup().getBackupID();
         }
       }
-
-      // Get the set of possible base backups from the current database.
-/*
-      String[] files = backendDir.list(backupTagFilter);
-      if (files == null || files.length == 0)
-      {
-        // Incremental not allowed until after a full.
-        Message msg = ERR_JEB_INCR_BACKUP_REQUIRES_FULL.get();
-        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     msg);
-      }
-      HashSet<String> backups = new HashSet<String>();
-      int prefixLen = BackupInfo.PROPERTY_BACKUP_ID.length()+1;
-      for (String s : files)
-      {
-        String actualBaseID = s.substring(prefixLen);
-        backups.add(actualBaseID);
-      }
-
-      // Check that it makes sense to do this incremental.
-      if (incrBaseID == null || !backups.contains(incrBaseID))
-      {
-        Message msg =
-            ERR_JEB_INCR_BACKUP_FROM_WRONG_BASE.get(backups.toString());
-        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                     msg);
-      }
-*/
 
       if (incrBaseID == null)
       {
@@ -294,12 +248,14 @@ public class BackupManager
            properties.get(PROPERTY_LAST_LOGFILE_SIZE));
     }
 
-    // Create an output stream that will be used to write the archive file.  At
-    // its core, it will be a file output stream to put a file on the disk.  If
-    // we are to encrypt the data, then that file output stream will be wrapped
-    // in a cipher output stream.  The resulting output stream will then be
-    // wrapped by a zip output stream (which may or may not actually use
-    // compression).
+    /*
+    Create an output stream that will be used to write the archive file.  At
+    its core, it will be a file output stream to put a file on the disk.  If
+    we are to encrypt the data, then that file output stream will be wrapped
+    in a cipher output stream.  The resulting output stream will then be
+    wrapped by a zip output stream (which may or may not actually use
+    compression).
+    */
     String archiveFilename = null;
     OutputStream outputStream;
     File archiveFile;
@@ -343,7 +299,6 @@ public class BackupManager
                                    message, e);
     }
 
-
     // If we should encrypt the data, then wrap the output stream in a cipher
     // output stream.
     if (encrypt)
@@ -384,24 +339,6 @@ public class BackupManager
     {
       zipStream.setLevel(Deflater.NO_COMPRESSION);
     }
-
-    // Record this backup in the database itself.
-/*
-    String backupTag = BackupInfo.PROPERTY_BACKUP_ID + "_" + backupID;
-    File tagFile = new File(backendDir, backupTag);
-    try
-    {
-      tagFile.createNewFile();
-    }
-    catch (IOException e)
-    {
-      assert debugException(CLASS_NAME, "createBackup", e);
-      Message msg = ERR_JEB_CANNOT_CREATE_BACKUP_TAG_FILE.get(
-          backupTag, backendDir.getPath());
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   msg);
-    }
-*/
 
     // Get a list of all the log files comprising the database.
     FilenameFilter filenameFilter = new FilenameFilter()
@@ -459,29 +396,6 @@ public class BackupManager
 
     try
     {
-      // Archive the backup tag files.
-/*
-      File[] tagFiles = backendDir.listFiles(backupTagFilter);
-      if (tagFiles != null)
-      {
-        for (File f : tagFiles)
-        {
-          try
-          {
-            archiveFile(zipStream, mac, digest, f);
-          }
-          catch (IOException e)
-          {
-            assert debugException(CLASS_NAME, "createBackup", e);
-            Message message = ERR_JEB_BACKUP_CANNOT_WRITE_ARCHIVE_FILE.get(
-                backupTag, stackTraceToSingleLineString(e));
-            throw new DirectoryException(
-                 DirectoryServer.getServerErrorResultCode(), message, e);
-          }
-        }
-      }
-*/
-
       // Process log files that are unchanged from the base backup.
       int indexCurrent = 0;
       if (latestFileName != null)
@@ -578,22 +492,13 @@ public class BackupManager
 
         if (deletedFiles)
         {
-          // The cleaner is active and has deleted one or more of the log files
-          // since we started.  The in-use data from those log files will have
-          // been written to new log files, so we must include those new files.
+          /*
+          The cleaner is active and has deleted one or more of the log files
+          since we started.  The in-use data from those log files will have
+          been written to new log files, so we must include those new files.
+          */
           final String latest = logFiles[logFiles.length-1].getName();
-          final long latestSize = latestFileSize;
-          FilenameFilter filter = new FilenameFilter()
-          {
-            public boolean accept(File d, String name)
-            {
-              if (!name.endsWith(".jdb")) return false;
-              int compareTo = name.compareTo(latest);
-              if (compareTo > 0) return true;
-              if (compareTo == 0 && d.length() > latestSize) return true;
-              return false;
-            }
-          };
+          FilenameFilter filter = new JELatestFileFilter(latest, latestFileSize);
 
           try
           {
@@ -633,6 +538,8 @@ public class BackupManager
       while (true);
 
     }
+    // FIXME: The handling of exception below, plus the lack of finally block
+    // to close the zipStream is clumsy. Needs cleanup and best practice.
     catch (DirectoryException e)
     {
       if (debugEnabled())
@@ -743,14 +650,8 @@ public class BackupManager
     File restoreDir = new File(backendDir.getPath() + "-restore-" + backupID);
     if (!verifyOnly)
     {
-      File[] files = restoreDir.listFiles();
-      if (files != null)
-      {
-        for (File f : files)
-        {
-          f.delete();
-        }
-      }
+      // FIXME: It's odd that we try to clean the directory before creating it
+      cleanup(restoreDir);
       restoreDir.mkdir();
     }
 
@@ -813,14 +714,7 @@ public class BackupManager
     // Delete the current backend directory and rename the restore directory.
     if (!verifyOnly)
     {
-      File[] files = backendDir.listFiles();
-      if (files != null)
-      {
-        for (File f : files)
-        {
-          f.delete();
-        }
-      }
+      cleanup(backendDir);
       backendDir.delete();
       if (!restoreDir.renameTo(backendDir))
       {
@@ -828,6 +722,17 @@ public class BackupManager
             restoreDir.getPath(), backendDir.getPath());
         throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                      msg);
+      }
+    }
+  }
+
+  private void cleanup(File directory) {
+    File[] files = directory.listFiles();
+    if (files != null)
+    {
+      for (File f : files)
+      {
+        f.delete();
       }
     }
   }
@@ -848,13 +753,6 @@ public class BackupManager
                            String backupID)
          throws DirectoryException
   {
-    BackupInfo backupInfo = getBackupInfo(backupDir, backupID);
-    HashMap<String,String> backupProperties = backupInfo.getBackupProperties();
-
-    String archiveFilename =
-         backupProperties.get(BACKUP_PROPERTY_ARCHIVE_FILENAME);
-    File archiveFile = new File(backupDir.getPath(), archiveFilename);
-
     try
     {
       backupDir.removeBackup(backupID);
@@ -887,10 +785,19 @@ public class BackupManager
     }
 
     // Remove the archive file.
+    BackupInfo backupInfo = getBackupInfo(backupDir, backupID);
+    File archiveFile = getArchiveFile(backupDir, backupInfo);
     archiveFile.delete();
 
   }
 
+  private File getArchiveFile(BackupDirectory backupDir, BackupInfo backupInfo) {
+    Map<String,String> backupProperties = backupInfo.getBackupProperties();
+
+    String archiveFilename =
+         backupProperties.get(BACKUP_PROPERTY_ARCHIVE_FILENAME);
+    return new File(backupDir.getPath(), archiveFilename);
+  }
 
 
   /**
@@ -935,12 +842,10 @@ public class BackupManager
     CryptoManager cryptoManager   = DirectoryServer.getCryptoManager();
     Mac           mac             = null;
     MessageDigest digest          = null;
-    String        digestAlgorithm = null;
-    String        macKeyID        = null;
 
     if (signHash != null)
     {
-      macKeyID = backupProperties.get(BACKUP_PROPERTY_MAC_KEY_ID);
+      String macKeyID = backupProperties.get(BACKUP_PROPERTY_MAC_KEY_ID);
 
       try
       {
@@ -962,7 +867,7 @@ public class BackupManager
 
     if (hash != null)
     {
-      digestAlgorithm = backupProperties.get(BACKUP_PROPERTY_DIGEST_ALGORITHM);
+      String digestAlgorithm = backupProperties.get(BACKUP_PROPERTY_DIGEST_ALGORITHM);
 
       try
       {
@@ -1301,11 +1206,7 @@ public class BackupManager
 
     boolean         encrypt         = backupInfo.isEncrypted();
 
-    HashMap<String,String> backupProperties = backupInfo.getBackupProperties();
-
-    String archiveFilename =
-         backupProperties.get(BACKUP_PROPERTY_ARCHIVE_FILENAME);
-    File archiveFile = new File(backupDir.getPath(), archiveFilename);
+    File archiveFile = getArchiveFile(backupDir, backupInfo);
 
     InputStream inputStream = new FileInputStream(archiveFile);
 
@@ -1409,5 +1310,22 @@ public class BackupManager
                                    message);
     }
     return backupInfo;
+  }
+
+  private static class JELatestFileFilter implements FilenameFilter {
+    private final String latest;
+    private final long latestSize;
+
+    public JELatestFileFilter(String latest, long latestSize) {
+      this.latest = latest;
+      this.latestSize = latestSize;
+    }
+
+    public boolean accept(File d, String name)
+    {
+      if (!name.endsWith(".jdb")) return false;
+      int compareTo = name.compareTo(latest);
+      return compareTo > 0 || compareTo == 0 && d.length() > latestSize;
+    }
   }
 }
