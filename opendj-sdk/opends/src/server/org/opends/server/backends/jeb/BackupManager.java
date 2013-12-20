@@ -181,7 +181,8 @@ public class BackupManager
       }
       else
       {
-        String digestAlgorithm = cryptoManager.getPreferredMessageDigestAlgorithm();
+        String digestAlgorithm = cryptoManager
+            .getPreferredMessageDigestAlgorithm();
         backupProperties.put(BACKUP_PROPERTY_DIGEST_ALGORITHM, digestAlgorithm);
 
         try
@@ -498,7 +499,8 @@ public class BackupManager
           been written to new log files, so we must include those new files.
           */
           final String latest = logFiles[logFiles.length-1].getName();
-          FilenameFilter filter = new JELatestFileFilter(latest, latestFileSize);
+          FilenameFilter filter = new JELatestFileFilter(latest,
+              latestFileSize);
 
           try
           {
@@ -791,7 +793,8 @@ public class BackupManager
 
   }
 
-  private File getArchiveFile(BackupDirectory backupDir, BackupInfo backupInfo) {
+  private File getArchiveFile(BackupDirectory backupDir,
+                              BackupInfo backupInfo) {
     Map<String,String> backupProperties = backupInfo.getBackupProperties();
 
     String archiveFilename =
@@ -867,7 +870,8 @@ public class BackupManager
 
     if (hash != null)
     {
-      String digestAlgorithm = backupProperties.get(BACKUP_PROPERTY_DIGEST_ALGORITHM);
+      String digestAlgorithm = backupProperties.get(
+          BACKUP_PROPERTY_DIGEST_ALGORITHM);
 
       try
       {
@@ -1312,6 +1316,10 @@ public class BackupManager
     return backupInfo;
   }
 
+  /**
+   * This class implements a FilenameFilter to detect the last file
+   * from a JE database.
+   */
   private static class JELatestFileFilter implements FilenameFilter {
     private final String latest;
     private final long latestSize;
