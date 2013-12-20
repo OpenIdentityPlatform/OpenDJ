@@ -1254,18 +1254,6 @@ public final class ReplicationServer
   }
 
   /**
-   * Create a new session to get the ECL.
-   * @param msg The message that specifies the ECL request.
-   * @return Returns the created session.
-   * @throws DirectoryException When an error occurs.
-   */
-  public ExternalChangeLogSession createECLSession(StartECLSessionMsg msg)
-  throws DirectoryException
-  {
-    return new ExternalChangeLogSessionImpl(this, msg);
-  }
-
-  /**
    * Getter on the server URL.
    * @return the server URL.
    */
