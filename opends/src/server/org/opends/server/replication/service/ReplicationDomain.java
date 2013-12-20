@@ -379,31 +379,23 @@ public abstract class ReplicationDomain
    * that don't need to perform additional computing.
    *
    * @param initStatus              The status to enter the state machine with.
-   * @param replicationServerState  The ServerState of the ReplicationServer
+   * @param rsState                 The ServerState of the ReplicationServer
    *                                with which the session was established.
-   * @param generationID            The current generationID of the
-   *                                ReplicationServer with which the session
-   *                                was established.
-   * @param session                 The Session that is currently used.
    */
-  public void sessionInitiated(
-      ServerStatus initStatus,
-      ServerState replicationServerState,
-      long generationID,
-      Session session)
+  public void sessionInitiated(ServerStatus initStatus, ServerState rsState)
   {
     // Sanity check: is it a valid initial status?
     if (!isValidInitialStatus(initStatus))
     {
-      Message msg = ERR_DS_INVALID_INIT_STATUS.get(initStatus.toString(),
-          getBaseDNString(), Integer.toString(serverID));
-      logError(msg);
-    } else
+      logError(ERR_DS_INVALID_INIT_STATUS.get(initStatus.toString(),
+          getBaseDNString(), Integer.toString(serverID)));
+    }
+    else
     {
       status = initStatus;
     }
     generator.adjust(state);
-    generator.adjust(replicationServerState);
+    generator.adjust(rsState);
   }
 
   /**
@@ -424,9 +416,8 @@ public abstract class ReplicationDomain
     StatusMachineEvent event = StatusMachineEvent.statusToEvent(reqStatus);
     if (event == StatusMachineEvent.INVALID_EVENT)
     {
-      Message msg = ERR_DS_INVALID_REQUESTED_STATUS.get(reqStatus.toString(),
-          getBaseDNString(), Integer.toString(serverID));
-      logError(msg);
+      logError(ERR_DS_INVALID_REQUESTED_STATUS.get(reqStatus.toString(),
+          getBaseDNString(), Integer.toString(serverID)));
       return;
     }
 
@@ -958,10 +949,9 @@ public abstract class ReplicationDomain
         Some problems detected: message did not correctly reach every
         requested servers. Log problem
         */
-        Message errorMsg = NOTE_DS_RECEIVED_ACK_ERROR.get(
+        logError(NOTE_DS_RECEIVED_ACK_ERROR.get(
             getBaseDNString(), Integer.toString(serverID),
-            update.toString(), ack.errorsToString());
-        logError(errorMsg);
+            update.toString(), ack.errorsToString()));
 
         List<Integer> failedServers = ack.getFailedServers();
 
@@ -1428,9 +1418,8 @@ public abstract class ReplicationDomain
 
     if (serverToInitialize == RoutableMsg.ALL_SERVERS)
     {
-      Message msg = NOTE_FULL_UPDATE_ENGAGED_FOR_REMOTE_START_ALL.get(
-          countEntries(), getBaseDNString(), serverID);
-      logError(msg);
+      logError(NOTE_FULL_UPDATE_ENGAGED_FOR_REMOTE_START_ALL.get(
+          countEntries(), getBaseDNString(), serverID));
 
       for (DSInfo dsi : getReplicasList())
       {
@@ -1448,9 +1437,8 @@ public abstract class ReplicationDomain
     }
     else
     {
-      Message msg = NOTE_FULL_UPDATE_ENGAGED_FOR_REMOTE_START.get(
-          countEntries(), getBaseDNString(), serverID, serverToInitialize);
-      logError(msg);
+      logError(NOTE_FULL_UPDATE_ENGAGED_FOR_REMOTE_START.get(
+          countEntries(), getBaseDNString(), serverID, serverToInitialize));
 
       ieContext.startList.add(serverToInitialize);
 
@@ -2294,9 +2282,8 @@ public abstract class ReplicationDomain
     try
     {
       // Log starting
-      Message msg = NOTE_FULL_UPDATE_ENGAGED_FROM_REMOTE_START.get(
-          getBaseDNString(), initTargetMsgReceived.getSenderID(), serverID);
-      logError(msg);
+      logError(NOTE_FULL_UPDATE_ENGAGED_FROM_REMOTE_START.get(
+          getBaseDNString(), initTargetMsgReceived.getSenderID(), serverID));
 
       // Go into full update status
       setNewStatus(StatusMachineEvent.TO_FULL_UPDATE_STATUS_EVENT);
@@ -2468,14 +2455,11 @@ public abstract class ReplicationDomain
    */
   protected void setNewStatus(StatusMachineEvent event)
   {
-    ServerStatus newStatus =
-      StatusMachine.computeNewStatus(status, event);
-
+    ServerStatus newStatus = StatusMachine.computeNewStatus(status, event);
     if (newStatus == ServerStatus.INVALID_STATUS)
     {
-      Message msg = ERR_DS_CANNOT_CHANGE_STATUS.get(getBaseDNString(),
-          Integer.toString(serverID), status.toString(), event.toString());
-      logError(msg);
+      logError(ERR_DS_CANNOT_CHANGE_STATUS.get(getBaseDNString(),
+          Integer.toString(serverID), status.toString(), event.toString()));
       return;
     }
 
@@ -3251,10 +3235,8 @@ public abstract class ReplicationDomain
       }
       else if (assuredMode != AssuredMode.SAFE_DATA_MODE)
       {
-        Message errorMsg =
-            ERR_DS_UNKNOWN_ASSURED_MODE.get(Integer.toString(serverID),
-                msgAssuredMode.toString(), getBaseDNString(), msg.toString());
-        logError(errorMsg);
+        logError(ERR_DS_UNKNOWN_ASSURED_MODE.get(Integer.toString(serverID),
+            msgAssuredMode.toString(), getBaseDNString(), msg.toString()));
       }
         // Nothing to do in Assured safe data mode, only RS ack updates.
     }
@@ -3455,17 +3437,15 @@ public abstract class ReplicationDomain
     try
     {
       /*
-      If assured replication is enabled, this will wait for the matching
-      ack or time out. If assured replication is disabled, this returns
-      immediately
+      If assured replication is enabled, this will wait for the matching ack or
+      time out. If assured replication is disabled, this returns immediately
       */
       waitForAckIfAssuredEnabled(update);
     } catch (TimeoutException ex)
     {
       // This exception may only be raised if assured replication is enabled
-      Message errorMsg = NOTE_DS_ACK_TIMEOUT.get(getBaseDNString(),
-          Long.toString(assuredTimeout), update.toString());
-      logError(errorMsg);
+      logError(NOTE_DS_ACK_TIMEOUT.get(getBaseDNString(),
+          Long.toString(assuredTimeout), update.toString()));
     }
   }
 

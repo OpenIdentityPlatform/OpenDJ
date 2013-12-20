@@ -753,11 +753,10 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     if (search.getResultCode() != ResultCode.SUCCESS
         && search.getResultCode() != ResultCode.NO_SUCH_OBJECT)
     {
-      Message message = ERR_SEARCHING_GENERATION_ID.get(
+      logError(ERR_SEARCHING_GENERATION_ID.get(
         search.getResultCode().getResultCodeName() + " " +
         search.getErrorMessage(),
-        getBaseDNString());
-      logError(message);
+        getBaseDNString()));
       return false;
     }
 
@@ -807,10 +806,9 @@ public final class LDAPReplicationDomain extends ReplicationDomain
         }
         if (attr.size() > 1)
         {
-          Message message = ERR_LOADING_GENERATION_ID.get(getBaseDNString(),
+          logError(ERR_LOADING_GENERATION_ID.get(getBaseDNString(),
               "#Values=" + attr.size() + " Must be exactly 1 in entry "
-              + resultEntry.toLDIFString());
-          logError(message);
+              + resultEntry.toLDIFString()));
         }
       }
     }
@@ -2109,9 +2107,8 @@ public final class LDAPReplicationDomain extends ReplicationDomain
         }
         catch  (NoSuchElementException e)
         {
-          Message message = ERR_OPERATION_NOT_FOUND_IN_PENDING.get(
-              op.toString(), curCSN.toString());
-          logError(message);
+          logError(ERR_OPERATION_NOT_FOUND_IN_PENDING.get(
+              op.toString(), curCSN.toString()));
           return;
         }
       }
@@ -2128,9 +2125,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
           * It should never happen.
           */
           pendingChanges.remove(curCSN);
-          Message message =
-              ERR_UNKNOWN_TYPE.get(op.getOperationType().toString());
-          logError(message);
+          logError(ERR_UNKNOWN_TYPE.get(op.getOperationType().toString()));
           return;
         }
 
@@ -2154,11 +2149,10 @@ public final class LDAPReplicationDomain extends ReplicationDomain
         {
           // will be caught at publish time.
         }
-        catch  (NoSuchElementException e)
+        catch (NoSuchElementException e)
         {
-          Message message = ERR_OPERATION_NOT_FOUND_IN_PENDING.get(
-              op.toString(), curCSN.toString());
-          logError(message);
+          logError(ERR_OPERATION_NOT_FOUND_IN_PENDING.get(
+              op.toString(), curCSN.toString()));
           return;
         }
         // If assured replication is enabled, this will wait for the matching
@@ -2169,11 +2163,9 @@ public final class LDAPReplicationDomain extends ReplicationDomain
           waitForAckIfAssuredEnabled(msg);
         } catch (TimeoutException ex)
         {
-          // This exception may only be raised if assured replication is
-          // enabled
-          Message errorMsg = NOTE_DS_ACK_TIMEOUT.get(getBaseDNString(),
-              Long.toString(getAssuredTimeout()), msg.toString());
-          logError(errorMsg);
+          // This exception may only be raised if assured replication is enabled
+          logError(NOTE_DS_ACK_TIMEOUT.get(getBaseDNString(),
+              Long.toString(getAssuredTimeout()), msg.toString()));
         }
       }
 
@@ -2274,9 +2266,8 @@ public final class LDAPReplicationDomain extends ReplicationDomain
        ResultCode res = newOp.getResultCode();
        if (res != ResultCode.SUCCESS)
        {
-         Message message =
-           ERR_COULD_NOT_SOLVE_CONFLICT.get(entryDN.toString(), res.toString());
-           logError(message);
+        logError(ERR_COULD_NOT_SOLVE_CONFLICT.get(
+            entryDN.toString(), res.toString()));
        }
      }
    }
@@ -2804,10 +2795,9 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     {
       // The other type of errors can not be caused by naming conflicts.
       // Log a message for the repair tool.
-      Message message = ERR_ERROR_REPLAYING_OPERATION.get(
+      logError(ERR_ERROR_REPLAYING_OPERATION.get(
           op.toString(), ctx.getCSN().toString(),
-          result.toString(), op.getErrorMessage().toString());
-      logError(message);
+          result.toString(), op.getErrorMessage().toString()));
       return true;
     }
   }
@@ -2874,10 +2864,9 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    {
      // The other type of errors can not be caused by naming conflicts.
      // Log a message for the repair tool.
-     Message message = ERR_ERROR_REPLAYING_OPERATION.get(
+     logError(ERR_ERROR_REPLAYING_OPERATION.get(
          op.toString(), ctx.getCSN().toString(),
-         result.toString(), op.getErrorMessage().toString());
-     logError(message);
+         result.toString(), op.getErrorMessage().toString()));
      return true;
    }
  }
@@ -2995,10 +2984,9 @@ private boolean solveNamingConflict(ModifyDNOperation op,
   {
     // The other type of errors can not be caused by naming conflicts.
     // Log a message for the repair tool.
-    Message message = ERR_ERROR_REPLAYING_OPERATION.get(
+    logError(ERR_ERROR_REPLAYING_OPERATION.get(
         op.toString(), ctx.getCSN().toString(),
-        result.toString(), op.getErrorMessage().toString());
-    logError(message);
+        result.toString(), op.getErrorMessage().toString()));
     return true;
   }
 }
@@ -3094,10 +3082,9 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     {
       // The other type of errors can not be caused by naming conflicts.
       // log a message for the repair tool.
-      Message message = ERR_ERROR_REPLAYING_OPERATION.get(
+      logError(ERR_ERROR_REPLAYING_OPERATION.get(
           op.toString(), ctx.getCSN().toString(),
-          result.toString(), op.getErrorMessage().toString());
-      logError(message);
+          result.toString(), op.getErrorMessage().toString()));
       return true;
     }
   }
@@ -3544,12 +3531,11 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     if (search.getResultCode() != ResultCode.SUCCESS)
     {
       if (search.getResultCode() != ResultCode.NO_SUCH_OBJECT)
-      { // This is an error.
-        Message message = ERR_SEARCHING_GENERATION_ID.get(
+      {
+        logError(ERR_SEARCHING_GENERATION_ID.get(
             search.getResultCode().getResultCodeName() + " " +
             search.getErrorMessage(),
-            getBaseDNString());
-        logError(message);
+            getBaseDNString()));
       }
     }
     else
@@ -3567,14 +3553,13 @@ private boolean solveNamingConflict(ModifyDNOperation op,
           Attribute attr = attrs.get(0);
           if (attr.size()>1)
           {
-            Message message = ERR_LOADING_GENERATION_ID.get(
+            logError(ERR_LOADING_GENERATION_ID.get(
                 getBaseDNString(), "#Values=" + attr.size() +
-                " Must be exactly 1 in entry " + resultEntry.toLDIFString());
-            logError(message);
+                " Must be exactly 1 in entry " + resultEntry.toLDIFString()));
           }
           else if (attr.size() == 1)
           {
-            found=true;
+            found = true;
             try
             {
               aGenerationId = Long.decode(attr.iterator().next().toString());
@@ -4260,18 +4245,13 @@ private boolean solveNamingConflict(ModifyDNOperation op,
 
   /** {@inheritDoc} */
   @Override
-  public void sessionInitiated(
-      ServerStatus initStatus,
-      ServerState replicationServerState,
-      long generationID,
-      Session session)
+  public void sessionInitiated(ServerStatus initStatus, ServerState rsState)
   {
     // Check domain fractional configuration consistency with local
     // configuration variables
     forceBadDataSet = !isBackendFractionalConfigConsistent();
 
-    super.sessionInitiated(
-        initStatus, replicationServerState,generationID, session);
+    super.sessionInitiated(initStatus, rsState);
 
     // Now that we are connected , we can enable ECL if :
     // 1/ RS must in the same JVM and created an ECL_WORKFLOW_ELEMENT
@@ -4314,7 +4294,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
        * Check that the ReplicationServer has seen all our previous
        * changes.
        */
-      CSN replServerMaxCSN = replicationServerState.getCSN(getServerId());
+      CSN replServerMaxCSN = rsState.getCSN(getServerId());
 
       // we don't want to update from here (a DS) an empty RS because
       // normally the RS should have been updated by other RSes except for
