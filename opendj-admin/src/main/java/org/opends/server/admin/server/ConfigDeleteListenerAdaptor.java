@@ -43,10 +43,10 @@ import org.opends.server.admin.OptionalRelationDefinition;
 import org.opends.server.admin.SetRelationDefinition;
 import org.opends.server.admin.DefinitionDecodingException.Reason;
 import org.opends.server.api.ConfigDeleteListener;
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.ConfigChangeResult;
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.Entry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.forgerock.opendj.ldap.ResultCode;
@@ -81,10 +81,14 @@ final class ConfigDeleteListenerAdaptor<S extends Configuration> extends Abstrac
     // The managed object path of the parent.
     private final ManagedObjectPath<?, ?> path;
 
+    private final ServerManagementContext serverContext;
+
     /**
      * Create a new configuration delete listener adaptor for an instantiable
      * relation.
      *
+     * @param serverContext
+     *            The server context.
      * @param path
      *            The managed object path of the parent.
      * @param relation
@@ -92,8 +96,9 @@ final class ConfigDeleteListenerAdaptor<S extends Configuration> extends Abstrac
      * @param listener
      *            The underlying delete listener.
      */
-    public ConfigDeleteListenerAdaptor(ManagedObjectPath<?, ?> path, InstantiableRelationDefinition<?, S> relation,
-            ServerManagedObjectDeleteListener<S> listener) {
+    public ConfigDeleteListenerAdaptor(ServerManagementContext serverContext, ManagedObjectPath<?, ?> path,
+            InstantiableRelationDefinition<?, S> relation, ServerManagedObjectDeleteListener<S> listener) {
+        this.serverContext = serverContext;
         this.path = path;
         this.optionalRelation = null;
         this.instantiableRelation = relation;
@@ -105,7 +110,7 @@ final class ConfigDeleteListenerAdaptor<S extends Configuration> extends Abstrac
     /**
      * Create a new configuration delete listener adaptor for an optional
      * relation.
-     *
+     * @param serverContext TODO
      * @param path
      *            The managed object path of the parent.
      * @param relation
@@ -113,8 +118,9 @@ final class ConfigDeleteListenerAdaptor<S extends Configuration> extends Abstrac
      * @param listener
      *            The underlying delete listener.
      */
-    public ConfigDeleteListenerAdaptor(ManagedObjectPath<?, ?> path, OptionalRelationDefinition<?, S> relation,
-            ServerManagedObjectDeleteListener<S> listener) {
+    public ConfigDeleteListenerAdaptor(ServerManagementContext serverContext, ManagedObjectPath<?, ?> path,
+            OptionalRelationDefinition<?, S> relation, ServerManagedObjectDeleteListener<S> listener) {
+        this.serverContext = serverContext;
         this.path = path;
         this.optionalRelation = relation;
         this.instantiableRelation = null;
@@ -125,7 +131,7 @@ final class ConfigDeleteListenerAdaptor<S extends Configuration> extends Abstrac
 
     /**
      * Create a new configuration delete listener adaptor for an set relation.
-     *
+     * @param serverContext TODO
      * @param path
      *            The managed object path of the parent.
      * @param relation
@@ -133,8 +139,9 @@ final class ConfigDeleteListenerAdaptor<S extends Configuration> extends Abstrac
      * @param listener
      *            The underlying delete listener.
      */
-    public ConfigDeleteListenerAdaptor(ManagedObjectPath<?, ?> path, SetRelationDefinition<?, S> relation,
-            ServerManagedObjectDeleteListener<S> listener) {
+    public ConfigDeleteListenerAdaptor(ServerManagementContext serverContext, ManagedObjectPath<?, ?> path,
+            SetRelationDefinition<?, S> relation, ServerManagedObjectDeleteListener<S> listener) {
+        this.serverContext = serverContext;
         this.path = path;
         this.optionalRelation = null;
         this.instantiableRelation = null;
@@ -146,14 +153,15 @@ final class ConfigDeleteListenerAdaptor<S extends Configuration> extends Abstrac
     /**
      * {@inheritDoc}
      */
-    public ConfigChangeResult applyConfigurationDelete(ConfigEntry configEntry) {
+    @Override
+    public ConfigChangeResult applyConfigurationDelete(Entry configEntry) {
         if (optionalRelation != null) {
             // Optional managed objects are located directly beneath the
             // parent and have a well-defined name. We need to make sure
             // that we are handling the correct entry.
             ManagedObjectPath<?, ?> childPath = path.child(optionalRelation);
             DN expectedDN = DNBuilder.create(childPath);
-            if (!configEntry.getDN().equals(expectedDN)) {
+            if (!configEntry.getName().equals(expectedDN)) {
                 // Doesn't apply to us.
                 return new ConfigChangeResult(ResultCode.SUCCESS, false);
             }
@@ -183,8 +191,8 @@ final class ConfigDeleteListenerAdaptor<S extends Configuration> extends Abstrac
     /**
      * {@inheritDoc}
      */
-    public boolean configDeleteIsAcceptable(ConfigEntry configEntry, LocalizableMessageBuilder unacceptableReason) {
-        DN dn = configEntry.getDN();
+    public boolean configDeleteIsAcceptable(Entry configEntry, LocalizableMessageBuilder unacceptableReason) {
+        DN dn = configEntry.getName();
         String name = dn.rdn().getFirstAVA().getAttributeValue().toString().trim();
 
         try {
@@ -210,8 +218,7 @@ final class ConfigDeleteListenerAdaptor<S extends Configuration> extends Abstrac
                 }
             }
 
-            ServerManagementContext context = ServerManagementContext.getInstance();
-            cachedManagedObject = context.decode(childPath, configEntry);
+            cachedManagedObject = serverContext.decode(childPath, configEntry);
         } catch (DecodingException e) {
             unacceptableReason.append(e.getMessageObject());
             return false;

@@ -25,50 +25,39 @@
  */
 package org.opends.server.api;
 
-
-
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.types.ConfigChangeResult;
 import org.forgerock.i18n.LocalizableMessageBuilder;
-
+import org.forgerock.opendj.ldap.Entry;
 
 /**
- * This interface defines the methods that a Directory Server
- * component should implement if it wishes to be able to receive
- * notification if entries below a configuration entry are removed.
+ * This interface defines the methods that a Directory Server component should
+ * implement if it wishes to be able to receive notification if entries below a
+ * configuration entry are removed.
  */
-public interface ConfigDeleteListener
-{
-  /**
-   * Indicates whether it is acceptable to remove the provided
-   * configuration entry.
-   *
-   * @param  configEntry         The configuration entry that will be
-   *                             removed from the configuration.
-   * @param  unacceptableReason  A buffer to which this method can
-   *                             append a human-readable message
-   *                             explaining why the proposed delete is
-   *                             not acceptable.
-   *
-   * @return  {@code true} if the proposed entry may be removed from
-   *          the configuration, or {@code false} if not.
-   */
-  public boolean configDeleteIsAcceptable(ConfigEntry configEntry,
-                      LocalizableMessageBuilder unacceptableReason);
+public interface ConfigDeleteListener {
+    /**
+     * Indicates whether it is acceptable to remove the provided configuration
+     * entry.
+     *
+     * @param configEntry
+     *            The configuration entry that will be removed from the
+     *            configuration.
+     * @param unacceptableReason
+     *            A buffer to which this method can append a human-readable
+     *            message explaining why the proposed delete is not acceptable.
+     * @return {@code true} if the proposed entry may be removed from the
+     *         configuration, or {@code false} if not.
+     */
+    public boolean configDeleteIsAcceptable(Entry configEntry, LocalizableMessageBuilder unacceptableReason);
 
-
-
-  /**
-   * Attempts to apply a new configuration based on the provided
-   * deleted entry.
-   *
-   * @param  configEntry  The new configuration entry that has been
-   *                      deleted.
-   *
-   * @return  Information about the result of processing the
-   *          configuration change.
-   */
-  public ConfigChangeResult applyConfigurationDelete(
-                                 ConfigEntry configEntry);
+    /**
+     * Attempts to apply a new configuration based on the provided deleted
+     * entry.
+     *
+     * @param configEntry
+     *            The new configuration entry that has been deleted.
+     * @return Information about the result of processing the configuration
+     *         change.
+     */
+    public ConfigChangeResult applyConfigurationDelete(Entry configEntry);
 }
-

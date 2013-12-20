@@ -71,14 +71,15 @@ import org.opends.server.admin.RelativeInheritedDefaultBehaviorProvider;
 import org.opends.server.admin.UndefinedDefaultBehaviorProvider;
 import org.opends.server.admin.UnknownPropertyDefinitionException;
 import org.opends.server.admin.DefinitionDecodingException.Reason;
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
+import org.opends.server.config.ConfigurationRepository;
 import org.opends.server.core.DirectoryServer;
 import org.forgerock.opendj.admin.meta.RootCfgDefn;
 import org.forgerock.opendj.admin.server.RootCfg;
 import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.opends.server.util.DynamicConstants;
 import org.slf4j.Logger;
@@ -104,7 +105,7 @@ public final class ServerManagementContext {
 
         // Optional new configuration entry which does not yet exist in
         // the configuration back-end.
-        private final ConfigEntry newConfigEntry;
+        private final Entry newConfigEntry;
 
         // The path of the managed object containing the next property.
         private ManagedObjectPath<?, ?> nextPath = null;
@@ -113,7 +114,7 @@ public final class ServerManagementContext {
         private PropertyDefinition<T> nextProperty = null;
 
         // Private constructor.
-        private DefaultValueFinder(ConfigEntry newConfigEntry) {
+        private DefaultValueFinder(Entry newConfigEntry) {
             this.newConfigEntry = newConfigEntry;
         }
 
@@ -197,7 +198,7 @@ public final class ServerManagementContext {
 
         // Get an inherited property value.
         @SuppressWarnings("unchecked")
-        private Collection<T> getInheritedProperty(ManagedObjectPath target,
+        private Collection<T> getInheritedProperty(ManagedObjectPath<?,?> target,
                 AbstractManagedObjectDefinition<?, ?> definition, String propertyName)
                         throws DefaultBehaviorException {
             // First check that the requested type of managed object
@@ -214,8 +215,8 @@ public final class ServerManagementContext {
             try {
                 // Get the actual managed object definition.
                 DN dn = DNBuilder.create(target);
-                ConfigEntry configEntry;
-                if (newConfigEntry != null && newConfigEntry.getDN().equals(dn)) {
+                Entry configEntry;
+                if (newConfigEntry != null && newConfigEntry.getName().equals(dn)) {
                     configEntry = newConfigEntry;
                 } else {
                     configEntry = getManagedObjectConfigEntry(dn);
@@ -273,10 +274,10 @@ public final class ServerManagementContext {
     private class MyDefinitionResolver implements DefinitionResolver {
 
         // The config entry.
-        private final ConfigEntry entry;
+        private final Entry entry;
 
         // Private constructor.
-        private MyDefinitionResolver(ConfigEntry entry) {
+        private MyDefinitionResolver(Entry entry) {
             this.entry = entry;
         }
 
@@ -285,7 +286,15 @@ public final class ServerManagementContext {
          */
         public boolean matches(AbstractManagedObjectDefinition<?, ?> d) {
             String oc = LDAPProfile.getInstance().getObjectClass(d);
-            return entry.hasObjectClass(oc);
+         // TODO : use the schema to get object class and check it in the entry
+         // Commented because reject any config entry without proper schema loading
+         // Previous code was
+//            ObjectClass oc = DirectoryServer.getObjectClass(name.toLowerCase());
+//            if (oc == null) {
+//              oc = DirectoryServer.getDefaultObjectClass(name);
+//            }
+//            return Entries.containsObjectClass(entry, oc);
+            return entry.containsAttribute("objectClass", oc);
         }
     }
 
@@ -347,28 +356,22 @@ public final class ServerManagementContext {
 
     private static final Logger debugLogger = LoggerFactory.getLogger(ServerManagementContext.class);
 
-    /** The singleton instance. **/
-    private final static ServerManagementContext INSTANCE = new ServerManagementContext();
-
     /**
-     * The root server managed object.
+     * The root server managed object, lazily initialized.
      */
-    private static final ServerManagedObject<RootCfg> ROOT = new ServerManagedObject<RootCfg>(
-            ManagedObjectPath.emptyPath(), RootCfgDefn.getInstance(),
-            Collections.<PropertyDefinition<?>, SortedSet<?>> emptyMap(), null);
+    private volatile ServerManagedObject<RootCfg> root;
+
+    /** Repository of configuration entries */
+    private final ConfigurationRepository configRepository;
 
     /**
-     * Get the single server-side management context.
+     * Creates a context from the provided configuration repository.
      *
-     * @return Returns the single server-side management context.
+     * @param repository
+     *          The repository of configuration entries.
      */
-    public static ServerManagementContext getInstance() {
-        return INSTANCE;
-    }
-
-    // Private constructor.
-    private ServerManagementContext() {
-        // No implementation required.
+    ServerManagementContext(ConfigurationRepository repository) {
+        configRepository = repository;
     }
 
     /**
@@ -397,7 +400,7 @@ public final class ServerManagementContext {
 
         // Get the configuration entry.
         DN targetDN = DNBuilder.create(path);
-        ConfigEntry configEntry = getManagedObjectConfigEntry(targetDN);
+        Entry configEntry = getManagedObjectConfigEntry(targetDN);
         try {
             ServerManagedObject<? extends S> managedObject;
             managedObject = decode(path, configEntry);
@@ -496,7 +499,7 @@ public final class ServerManagementContext {
         // Determine the exact type of managed object referenced by the
         // path.
         DN dn = DNBuilder.create(path);
-        ConfigEntry configEntry = getManagedObjectConfigEntry(dn);
+        Entry configEntry = getManagedObjectConfigEntry(dn);
 
         DefinitionResolver resolver = new MyDefinitionResolver(configEntry);
         ManagedObjectDefinition<? extends C, ? extends S> managedObjDef;
@@ -520,7 +523,7 @@ public final class ServerManagementContext {
      * Get the root configuration manager associated with this management
      * context.
      *
-     * @return Returns the root configuration manager associated with this
+     * @return the root configuration manager associated with this
      *         management context.
      */
     public RootCfg getRootConfiguration() {
@@ -531,11 +534,22 @@ public final class ServerManagementContext {
      * Get the root configuration server managed object associated with this
      * management context.
      *
-     * @return Returns the root configuration server managed object associated
-     *         with this management context.
+     * @return the root configuration server managed object
      */
     public ServerManagedObject<RootCfg> getRootConfigurationManagedObject() {
-        return ROOT;
+        // Use lazy initialisation because it needs a reference to this server context.
+        ServerManagedObject<RootCfg> rootObject = root;
+        if (rootObject == null) {
+            synchronized(this) {
+                rootObject = root;
+                if (rootObject == null) {
+                    root = rootObject = new ServerManagedObject<RootCfg>(ManagedObjectPath.emptyPath(),
+                            RootCfgDefn.getInstance(), Collections.<PropertyDefinition<?>, SortedSet<?>> emptyMap(),
+                            null, this);
+                }
+            }
+        }
+        return rootObject;
     }
 
     /**
@@ -562,19 +576,12 @@ public final class ServerManagementContext {
 
         // Get the target entry.
         DN targetDN = DNBuilder.create(parent, relationDef);
-        ConfigEntry configEntry;
+        Set<DN> children;
         try {
-            configEntry = DirectoryServer.getConfigEntry(targetDN);
+            children = configRepository.getChildren(targetDN);
         } catch (ConfigException e) {
             return new String[0];
         }
-
-        if (configEntry == null) {
-            return new String[0];
-        }
-
-        // Retrieve the children.
-        Set<DN> children = configEntry.getChildren();
         List<String> names = new ArrayList<String>(children.size());
         for (DN child : children) {
             // Assume that RDNs are single-valued and can be trimmed.
@@ -627,7 +634,7 @@ public final class ServerManagementContext {
      *             be decoded.
      */
     <C extends ConfigurationClient, S extends Configuration> ServerManagedObject<? extends S> decode(
-            ManagedObjectPath<C, S> path, ConfigEntry configEntry) throws DefinitionDecodingException,
+            ManagedObjectPath<C, S> path, Entry configEntry) throws DefinitionDecodingException,
             ServerManagedObjectDecodingException {
         return decode(path, configEntry, null);
     }
@@ -659,7 +666,7 @@ public final class ServerManagementContext {
      *             be decoded.
      */
     <C extends ConfigurationClient, S extends Configuration> ServerManagedObject<? extends S> decode(
-            ManagedObjectPath<C, S> path, ConfigEntry configEntry, ConfigEntry newConfigEntry)
+            ManagedObjectPath<C, S> path, Entry configEntry, Entry newConfigEntry)
             throws DefinitionDecodingException, ServerManagedObjectDecodingException {
         // First determine the correct definition to use for the entry.
         // This could either be the provided definition, or one of its
@@ -683,25 +690,25 @@ public final class ServerManagementContext {
 
         // If there were no decoding problems then return the managed
         // object, otherwise throw an operations exception.
-        ServerManagedObject<? extends S> mo = decodeAux(path, mod, properties, configEntry);
+        ServerManagedObject<? extends S> managedObject = decodeAux(path, mod, properties, configEntry.getName());
         if (exceptions.isEmpty()) {
-            return mo;
+            return managedObject;
         } else {
-            throw new ServerManagedObjectDecodingException(mo, exceptions);
+            throw new ServerManagedObjectDecodingException(managedObject, exceptions);
         }
     }
 
     // Decode helper method required to avoid generics warning.
     private <C extends ConfigurationClient, S extends Configuration> ServerManagedObject<S> decodeAux(
             ManagedObjectPath<? super C, ? super S> path, ManagedObjectDefinition<C, S> d,
-            Map<PropertyDefinition<?>, SortedSet<?>> properties, ConfigEntry configEntry) {
+            Map<PropertyDefinition<?>, SortedSet<?>> properties, DN configDN) {
         ManagedObjectPath<C, S> newPath = path.asSubType(d);
-        return new ServerManagedObject<S>(newPath, d, properties, configEntry);
+        return new ServerManagedObject<S>(newPath, d, properties, configDN, this);
     }
 
     // Create a property using the provided string values.
     private <T> SortedSet<T> decodeProperty(ManagedObjectPath<?, ?> path, PropertyDefinition<T> propertyDef,
-            Iterable<Attribute> attributes, ConfigEntry newConfigEntry) throws PropertyException {
+            Iterable<Attribute> attributes, Entry newConfigEntry) throws PropertyException {
         PropertyException exception = null;
         SortedSet<T> pvalues = new TreeSet<T>(propertyDef);
 
@@ -748,28 +755,50 @@ public final class ServerManagementContext {
 
     // Gets the attribute associated with a property from a ConfigEntry.
     private Iterable<Attribute> getAttribute(ManagedObjectDefinition<?, ?> d, PropertyDefinition<?> pd,
-            ConfigEntry configEntry) {
+            Entry configEntry) {
         // TODO: we create a default attribute type if it is
         // undefined. We should log a warning here if this is the case
         // since the attribute should have been defined.
         String attrID = LDAPProfile.getInstance().getAttributeName(d, pd);
         AttributeType type = DirectoryServer.getAttributeType(attrID, true);
-        return configEntry.getEntry().getAllAttributes(AttributeDescription.create(type));
+        return configEntry.getAllAttributes(AttributeDescription.create(type));
     }
 
     // Get the default values for the specified property.
     private <T> Collection<T> getDefaultValues(ManagedObjectPath<?, ?> p, PropertyDefinition<T> pd,
-            ConfigEntry newConfigEntry) throws DefaultBehaviorException {
+            Entry newConfigEntry) throws DefaultBehaviorException {
         DefaultValueFinder<T> v = new DefaultValueFinder<T>(newConfigEntry);
         return v.find(p, pd);
     }
 
+    /**
+     * Retrieves a configuration entry corresponding to the provided DN.
+     *
+     * @param dn
+     *            DN of the configuration entry.
+     * @return the configuration entry
+     * @throws ConfigException
+     *             If a problem occurs.
+     */
+    public Entry getConfigEntry(DN dn) throws ConfigException {
+        return configRepository.getEntry(dn);
+    }
+
+    /**
+     * Returns the repository containing all configuration entries.
+     *
+     * @return the repository
+     */
+    public ConfigurationRepository getConfigRepository() {
+        return configRepository;
+    }
+
     // Gets a config entry required for a managed object and throws a
     // config exception on failure.
-    private ConfigEntry getManagedObjectConfigEntry(DN dn) throws ConfigException {
-        ConfigEntry configEntry;
+    private Entry getManagedObjectConfigEntry(DN dn) throws ConfigException {
+        Entry configEntry;
         try {
-            configEntry = DirectoryServer.getConfigEntry(dn);
+            configEntry = configRepository.getEntry(dn);
         } catch (ConfigException e) {
             debugLogger.trace("Unable to perform post add", e);
 

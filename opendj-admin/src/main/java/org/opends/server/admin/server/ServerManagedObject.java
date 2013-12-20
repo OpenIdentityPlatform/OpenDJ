@@ -27,7 +27,6 @@
 package org.opends.server.admin.server;
 
 import static com.forgerock.opendj.ldap.AdminMessages.*;
-import static com.forgerock.opendj.util.StaticUtils.*;
 
 import java.util.Collections;
 import java.util.LinkedList;
@@ -52,12 +51,12 @@ import org.opends.server.admin.SingletonRelationDefinition;
 import org.opends.server.api.ConfigAddListener;
 import org.opends.server.api.ConfigChangeListener;
 import org.opends.server.api.ConfigDeleteListener;
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
-import org.opends.server.core.DirectoryServer;
-import org.opends.server.util.DynamicConstants;
+import org.opends.server.config.ConfigurationRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.forgerock.opendj.util.Pair;
 
 
 /**
@@ -71,21 +70,21 @@ public final class ServerManagedObject<S extends Configuration> implements Prope
 
     private static final Logger logger = LoggerFactory.getLogger(ServerManagedObject.class);
 
-    // The configuration entry associated with this server managed
-    // object (null if root).
-    private ConfigEntry configEntry;
+    /**
+     * The DN of configuration entry associated with this server managed object,
+     * which is {@code null} for root.
+     */
+    private DN configDN;
 
-    // The management context.
-    private final ServerManagementContext context = ServerManagementContext.getInstance();
+    private final ServerManagementContext serverContext;
 
-    // The managed object's definition.
+    private final ConfigurationRepository configRepository;
+
     private final ManagedObjectDefinition<?, S> definition;
 
-    // The managed object path identifying this managed object's
-    // location.
+    /** The managed object path identifying this managed object's location */
     private final ManagedObjectPath<?, S> path;
 
-    // The managed object's properties.
     private final Map<PropertyDefinition<?>, SortedSet<?>> properties;
 
     /**
@@ -97,15 +96,20 @@ public final class ServerManagedObject<S extends Configuration> implements Prope
      *            The managed object definition.
      * @param properties
      *            The managed object's properties.
-     * @param configEntry
+     * @param configDN
      *            The configuration entry associated with the managed object.
+     * @param context
+     *            The server management context.
      */
-    ServerManagedObject(ManagedObjectPath<?, S> path, ManagedObjectDefinition<?, S> d,
-            Map<PropertyDefinition<?>, SortedSet<?>> properties, ConfigEntry configEntry) {
+    ServerManagedObject(final ManagedObjectPath<?, S> path, final ManagedObjectDefinition<?, S> d,
+            final Map<PropertyDefinition<?>, SortedSet<?>> properties, final DN configDN,
+            final ServerManagementContext context) {
         this.definition = d;
         this.path = path;
         this.properties = properties;
-        this.configEntry = configEntry;
+        this.configDN = configDN;
+        this.serverContext = context;
+        this.configRepository = context.getConfigRepository();
     }
 
     /**
@@ -124,7 +128,6 @@ public final class ServerManagedObject<S extends Configuration> implements Prope
     public <M extends Configuration> void deregisterAddListener(InstantiableRelationDefinition<?, M> d,
             ConfigurationAddListener<M> listener) throws IllegalArgumentException {
         validateRelationDefinition(d);
-
         DN baseDN = DNBuilder.create(path, d);
         deregisterAddListener(baseDN, listener);
     }
@@ -145,7 +148,6 @@ public final class ServerManagedObject<S extends Configuration> implements Prope
     public <M extends Configuration> void deregisterAddListener(InstantiableRelationDefinition<?, M> d,
             ServerManagedObjectAddListener<M> listener) throws IllegalArgumentException {
         validateRelationDefinition(d);
-
         DN baseDN = DNBuilder.create(path, d);
         deregisterAddListener(baseDN, listener);
     }
@@ -166,7 +168,6 @@ public final class ServerManagedObject<S extends Configuration> implements Prope
     public <M extends Configuration> void deregisterAddListener(OptionalRelationDefinition<?, M> d,
             ConfigurationAddListener<M> listener) throws IllegalArgumentException {
         validateRelationDefinition(d);
-
         DN baseDN = DNBuilder.create(path, d).parent();
         deregisterAddListener(baseDN, listener);
     }
@@ -187,7 +188,6 @@ public final class ServerManagedObject<S extends Configuration> implements Prope
     public <M extends Configuration> void deregisterAddListener(OptionalRelationDefinition<?, M> d,
             ServerManagedObjectAddListener<M> listener) throws IllegalArgumentException {
         validateRelationDefinition(d);
-
         DN baseDN = DNBuilder.create(path, d).parent();
         deregisterAddListener(baseDN, listener);
     }
@@ -208,7 +208,6 @@ public final class ServerManagedObject<S extends Configuration> implements Prope
     public <M extends Configuration> void deregisterAddListener(SetRelationDefinition<?, M> d,
             ConfigurationAddListener<M> listener) throws IllegalArgumentException {
         validateRelationDefinition(d);
-
         DN baseDN = DNBuilder.create(path, d);
         deregisterAddListener(baseDN, listener);
     }
@@ -229,7 +228,6 @@ public final class ServerManagedObject<S extends Configuration> implements Prope
     public <M extends Configuration> void deregisterAddListener(SetRelationDefinition<?, M> d,
             ServerManagedObjectAddListener<M> listener) throws IllegalArgumentException {
         validateRelationDefinition(d);
-
         DN baseDN = DNBuilder.create(path, d);
         deregisterAddListener(baseDN, listener);
     }
@@ -241,7 +239,7 @@ public final class ServerManagedObject<S extends Configuration> implements Prope
      *            The configuration change listener.
      */
     public void deregisterChangeListener(ConfigurationChangeListener<? super S> listener) {
-        for (ConfigChangeListener l : configEntry.getChangeListeners()) {
+        for (ConfigChangeListener l : configRepository.getChangeListeners(configDN)) {
             if (l instanceof ConfigChangeListenerAdaptor) {
                 ConfigChangeListenerAdaptor<?> adaptor = (ConfigChangeListenerAdaptor<?>) l;
                 ServerManagedObjectChangeListener<?> l2 = adaptor.getServerManagedObjectChangeListener();
@@ -249,7 +247,7 @@ public final class ServerManagedObject<S extends Configuration> implements Prope
                     ServerManagedObjectChangeListenerAdaptor<?> adaptor2 = (ServerManagedObjectChangeListenerAdaptor<?>) l2;
                     if (adaptor2.getConfigurationChangeListener() == listener) {
                         adaptor.finalizeChangeListener();
-                        configEntry.deregisterChangeListener(adaptor);
+                        configRepository.deregisterChangeListener(configDN, adaptor);
                     }
                 }
             }
@@ -263,12 +261,12 @@ public final class ServerManagedObject<S extends Configuration> implements Prope
      *            The server managed object change listener.
      */
     public void deregisterChangeListener(ServerManagedObjectChangeListener<? super S> listener) {
-        for (ConfigChangeListener l : configEntry.getChangeListeners()) {
+        for (ConfigChangeListener l : configRepository.getChangeListeners(configDN)) {
             if (l instanceof ConfigChangeListenerAdaptor) {
                 ConfigChangeListenerAdaptor<?> adaptor = (ConfigChangeListenerAdaptor<?>) l;
                 if (adaptor.getServerManagedObjectChangeListener() == listener) {
                     adaptor.finalizeChangeListener();
-                    configEntry.deregisterChangeListener(adaptor);
+                    configRepository.deregisterChangeListener(configDN, adaptor);
                 }
             }
         }
@@ -421,7 +419,7 @@ public final class ServerManagedObject<S extends Configuration> implements Prope
     public <M extends Configuration> ServerManagedObject<? extends M> getChild(InstantiableRelationDefinition<?, M> d,
             String name) throws IllegalArgumentException, ConfigException {
         validateRelationDefinition(d);
-        return context.getManagedObject(path.child(d, name));
+        return serverContext.getManagedObject(path.child(d, name));
     }
 
     /**
@@ -443,7 +441,7 @@ public final class ServerManagedObject<S extends Configuration> implements Prope
     public <M extends Configuration> ServerManagedObject<? extends M> getChild(OptionalRelationDefinition<?, M> d)
             throws IllegalArgumentException, ConfigException {
         validateRelationDefinition(d);
-        return context.getManagedObject(path.child(d));
+        return serverContext.getManagedObject(path.child(d));
     }
 
     /**
@@ -470,7 +468,7 @@ public final class ServerManagedObject<S extends Configuration> implements Prope
             String name) throws IllegalArgumentException, ConfigException {
         validateRelationDefinition(d);
 
-        return context.getManagedObject(path.child(d, name));
+        return serverContext.getManagedObject(path.child(d, name));
     }
 
     /**
@@ -492,7 +490,16 @@ public final class ServerManagedObject<S extends Configuration> implements Prope
     public <M extends Configuration> ServerManagedObject<? extends M> getChild(SingletonRelationDefinition<?, M> d)
             throws IllegalArgumentException, ConfigException {
         validateRelationDefinition(d);
-        return context.getManagedObject(path.child(d));
+        return serverContext.getManagedObject(path.child(d));
+    }
+
+    /**
+     * Returns the server management context used by this object.
+     *
+     * @return the context
+     */
+    public ServerManagementContext getServerContext() {
+        return serverContext;
     }
 
     /**
@@ -511,8 +518,8 @@ public final class ServerManagedObject<S extends Configuration> implements Prope
      *         managed object, or an null DN if this is the root managed object.
      */
     public DN getDN() {
-        if (configEntry != null) {
-            return configEntry.getDN();
+        if (configDN != null) {
+            return configDN;
         } else {
             return DN.rootDN();
         }
@@ -600,7 +607,7 @@ public final class ServerManagedObject<S extends Configuration> implements Prope
      */
     public boolean hasChild(OptionalRelationDefinition<?, ?> d) throws IllegalArgumentException {
         validateRelationDefinition(d);
-        return context.managedObjectExists(path.child(d));
+        return serverContext.managedObjectExists(path.child(d));
     }
 
     /**
@@ -616,7 +623,7 @@ public final class ServerManagedObject<S extends Configuration> implements Prope
      */
     public String[] listChildren(InstantiableRelationDefinition<?, ?> d) throws IllegalArgumentException {
         validateRelationDefinition(d);
-        return context.listManagedObjects(path, d);
+        return serverContext.listManagedObjects(path, d);
     }
 
     /**
@@ -632,7 +639,7 @@ public final class ServerManagedObject<S extends Configuration> implements Prope
      */
     public String[] listChildren(SetRelationDefinition<?, ?> d) throws IllegalArgumentException {
         validateRelationDefinition(d);
-        return context.listManagedObjects(path, d);
+        return serverContext.listManagedObjects(path, d);
     }
 
     /**
@@ -678,7 +685,7 @@ public final class ServerManagedObject<S extends Configuration> implements Prope
             ServerManagedObjectAddListener<M> listener) throws IllegalArgumentException, ConfigException {
         validateRelationDefinition(d);
         DN baseDN = DNBuilder.create(path, d);
-        ConfigAddListener adaptor = new ConfigAddListenerAdaptor<M>(path, d, listener);
+        ConfigAddListener adaptor = new ConfigAddListenerAdaptor<M>(serverContext, path, d, listener);
         registerAddListener(baseDN, adaptor);
     }
 
@@ -725,7 +732,7 @@ public final class ServerManagedObject<S extends Configuration> implements Prope
             ServerManagedObjectAddListener<M> listener) throws IllegalArgumentException, ConfigException {
         validateRelationDefinition(d);
         DN baseDN = DNBuilder.create(path, d).parent();
-        ConfigAddListener adaptor = new ConfigAddListenerAdaptor<M>(path, d, listener);
+        ConfigAddListener adaptor = new ConfigAddListenerAdaptor<M>(serverContext, path, d, listener);
         registerAddListener(baseDN, adaptor);
     }
 
@@ -772,7 +779,7 @@ public final class ServerManagedObject<S extends Configuration> implements Prope
             ServerManagedObjectAddListener<M> listener) throws IllegalArgumentException, ConfigException {
         validateRelationDefinition(d);
         DN baseDN = DNBuilder.create(path, d);
-        ConfigAddListener adaptor = new ConfigAddListenerAdaptor<M>(path, d, listener);
+        ConfigAddListener adaptor = new ConfigAddListenerAdaptor<M>(serverContext, path, d, listener);
         registerAddListener(baseDN, adaptor);
     }
 
@@ -793,8 +800,9 @@ public final class ServerManagedObject<S extends Configuration> implements Prope
      *            The server managed object change listener.
      */
     public void registerChangeListener(ServerManagedObjectChangeListener<? super S> listener) {
-        ConfigChangeListener adaptor = new ConfigChangeListenerAdaptor<S>(path, listener);
-        configEntry.registerChangeListener(adaptor);
+
+        ConfigChangeListener adaptor = new ConfigChangeListenerAdaptor<S>(serverContext, path, listener);
+        configRepository.registerChangeListener(configDN, adaptor);
 
         // TODO : go toward this
         // Entry entry;
@@ -860,7 +868,7 @@ public final class ServerManagedObject<S extends Configuration> implements Prope
             ServerManagedObjectDeleteListener<M> listener) throws IllegalArgumentException, ConfigException {
         validateRelationDefinition(d);
         DN baseDN = DNBuilder.create(path, d);
-        ConfigDeleteListener adaptor = new ConfigDeleteListenerAdaptor<M>(path, d, listener);
+        ConfigDeleteListener adaptor = new ConfigDeleteListenerAdaptor<M>(serverContext, path, d, listener);
         registerDeleteListener(baseDN, adaptor);
     }
 
@@ -907,7 +915,7 @@ public final class ServerManagedObject<S extends Configuration> implements Prope
             ServerManagedObjectDeleteListener<M> listener) throws IllegalArgumentException, ConfigException {
         validateRelationDefinition(d);
         DN baseDN = DNBuilder.create(path, d).parent();
-        ConfigDeleteListener adaptor = new ConfigDeleteListenerAdaptor<M>(path, d, listener);
+        ConfigDeleteListener adaptor = new ConfigDeleteListenerAdaptor<M>(serverContext, path, d, listener);
         registerDeleteListener(baseDN, adaptor);
     }
 
@@ -954,7 +962,7 @@ public final class ServerManagedObject<S extends Configuration> implements Prope
             ServerManagedObjectDeleteListener<M> listener) throws IllegalArgumentException, ConfigException {
         validateRelationDefinition(d);
         DN baseDN = DNBuilder.create(path, d);
-        ConfigDeleteListener adaptor = new ConfigDeleteListenerAdaptor<M>(path, d, listener);
+        ConfigDeleteListener adaptor = new ConfigDeleteListenerAdaptor<M>(serverContext, path, d, listener);
         registerDeleteListener(baseDN, adaptor);
     }
 
@@ -1012,30 +1020,29 @@ public final class ServerManagedObject<S extends Configuration> implements Prope
     }
 
     /**
-     * Update the config entry associated with this server managed object. This
+     * Update the config DN associated with this server managed object. This
      * is only intended to be used by change listener call backs in order to
-     * update the managed object with the correct config entry.
+     * update the managed object with the correct config DN.
      *
-     * @param configEntry
-     *            The configuration entry.
+     * @param configDN
+     *            The DN of the underlying configuration entry.
      */
-    void setConfigEntry(ConfigEntry configEntry) {
-        this.configEntry = configEntry;
+    void setConfigDN(DN configDN) {
+        this.configDN = configDN;
     }
 
     // Deregister an add listener.
     private <M extends Configuration> void deregisterAddListener(DN baseDN, ConfigurationAddListener<M> listener) {
         try {
-            ConfigEntry configEntry = getListenerConfigEntry(baseDN);
-            if (configEntry != null) {
-                for (ConfigAddListener l : configEntry.getAddListeners()) {
-                    if (l instanceof ConfigAddListenerAdaptor) {
-                        ConfigAddListenerAdaptor<?> adaptor = (ConfigAddListenerAdaptor<?>) l;
-                        ServerManagedObjectAddListener<?> l2 = adaptor.getServerManagedObjectAddListener();
-                        if (l2 instanceof ServerManagedObjectAddListenerAdaptor<?>) {
-                            ServerManagedObjectAddListenerAdaptor<?> adaptor2 = (ServerManagedObjectAddListenerAdaptor<?>) l2;
+            if (configRepository.hasEntry(baseDN)) {
+                for (ConfigAddListener configListener : configRepository.getAddListeners(baseDN)) {
+                    if (configListener instanceof ConfigAddListenerAdaptor) {
+                        ConfigAddListenerAdaptor<?> adaptor = (ConfigAddListenerAdaptor<?>) configListener;
+                        ServerManagedObjectAddListener<?> smoListener = adaptor.getServerManagedObjectAddListener();
+                        if (smoListener instanceof ServerManagedObjectAddListenerAdaptor<?>) {
+                            ServerManagedObjectAddListenerAdaptor<?> adaptor2 = (ServerManagedObjectAddListenerAdaptor<?>) smoListener;
                             if (adaptor2.getConfigurationAddListener() == listener) {
-                                configEntry.deregisterAddListener(adaptor);
+                                configRepository.deregisterAddListener(baseDN, adaptor);
                             }
                         }
                     }
@@ -1054,13 +1061,12 @@ public final class ServerManagedObject<S extends Configuration> implements Prope
     // Deregister an add listener.
     private <M extends Configuration> void deregisterAddListener(DN baseDN, ServerManagedObjectAddListener<M> listener) {
         try {
-            ConfigEntry configEntry = getListenerConfigEntry(baseDN);
-            if (configEntry != null) {
-                for (ConfigAddListener l : configEntry.getAddListeners()) {
-                    if (l instanceof ConfigAddListenerAdaptor) {
-                        ConfigAddListenerAdaptor<?> adaptor = (ConfigAddListenerAdaptor<?>) l;
+            if (configRepository.hasEntry(baseDN)) {
+                for (ConfigAddListener configListener : configRepository.getAddListeners(baseDN)) {
+                    if (configListener instanceof ConfigAddListenerAdaptor) {
+                        ConfigAddListenerAdaptor<?> adaptor = (ConfigAddListenerAdaptor<?>) configListener;
                         if (adaptor.getServerManagedObjectAddListener() == listener) {
-                            configEntry.deregisterAddListener(adaptor);
+                            configRepository.deregisterAddListener(baseDN, adaptor);
                         }
                     }
                 }
@@ -1075,19 +1081,62 @@ public final class ServerManagedObject<S extends Configuration> implements Prope
         }
     }
 
+    /**
+     * Convenience method to retrieve the initial listener and its intermediate
+     * adaptor from the provided configListener.
+     *
+     * @param <T>
+     *            Type of the configuration.
+     * @param configListener
+     *            Listener from wich to extract the initial listener.
+     * @return a pair of (intermediate adaptor, intermediate listener) or
+     *         {@code Pair.EMPTY} if listener can't be extracted
+     */
+    static <T extends Configuration> Pair<ConfigAddListenerAdaptor<T>, ConfigurationAddListener<T>>
+        extractInitialListener(ConfigAddListener configListener) {
+        Pair<ConfigAddListenerAdaptor<T>, ServerManagedObjectAddListener<T>> pair =
+                extractIntermediateListener(configListener);
+        if (!pair.equals(Pair.EMPTY) && pair.getSecond() instanceof ServerManagedObjectAddListenerAdaptor) {
+            ServerManagedObjectAddListenerAdaptor<T> adaptor2 = (ServerManagedObjectAddListenerAdaptor<T>)
+                    pair.getSecond();
+            return Pair.of(pair.getFirst(), adaptor2.getConfigurationAddListener());
+        }
+        return Pair.empty();
+    }
+
+    /**
+     * Convenience method to retrieve the intermediate listener and its
+     * intermediate adaptor from the provided configListener.
+     *
+     * @param <T>
+     *            Type of the configuration.
+     * @param configListener
+     *            Listener from wich to extract the initial listener.
+     * @return a pair of (intermediate adaptor, initial listener) or
+     *         {@code Pair.EMPTY} if listener can't be extracted
+     */
+    @SuppressWarnings("unchecked")
+    static <T extends Configuration> Pair<ConfigAddListenerAdaptor<T>, ServerManagedObjectAddListener<T>>
+        extractIntermediateListener(ConfigAddListener configListener) {
+        if (configListener instanceof ConfigAddListenerAdaptor) {
+            ConfigAddListenerAdaptor<T> adaptor = ((ConfigAddListenerAdaptor<T>) configListener);
+            return Pair.of(adaptor, adaptor.getServerManagedObjectAddListener());
+        }
+        return Pair.empty();
+    }
+
     // Deregister a delete listener.
     private <M extends Configuration> void deregisterDeleteListener(DN baseDN, ConfigurationDeleteListener<M> listener) {
         try {
-            ConfigEntry configEntry = getListenerConfigEntry(baseDN);
-            if (configEntry != null) {
-                for (ConfigDeleteListener l : configEntry.getDeleteListeners()) {
+            if (configRepository.hasEntry(baseDN)) {
+                for (ConfigDeleteListener l : configRepository.getDeleteListeners(baseDN)) {
                     if (l instanceof ConfigDeleteListenerAdaptor) {
                         ConfigDeleteListenerAdaptor<?> adaptor = (ConfigDeleteListenerAdaptor<?>) l;
                         ServerManagedObjectDeleteListener<?> l2 = adaptor.getServerManagedObjectDeleteListener();
                         if (l2 instanceof ServerManagedObjectDeleteListenerAdaptor<?>) {
                             ServerManagedObjectDeleteListenerAdaptor<?> adaptor2 = (ServerManagedObjectDeleteListenerAdaptor<?>) l2;
                             if (adaptor2.getConfigurationDeleteListener() == listener) {
-                                configEntry.deregisterDeleteListener(adaptor);
+                                configRepository.deregisterDeleteListener(baseDN, adaptor);
                             }
                         }
                     }
@@ -1107,13 +1156,12 @@ public final class ServerManagedObject<S extends Configuration> implements Prope
     private <M extends Configuration> void deregisterDeleteListener(DN baseDN,
             ServerManagedObjectDeleteListener<M> listener) {
         try {
-            ConfigEntry configEntry = getListenerConfigEntry(baseDN);
-            if (configEntry != null) {
-                for (ConfigDeleteListener l : configEntry.getDeleteListeners()) {
+            if (configRepository.hasEntry(baseDN)) {
+                for (ConfigDeleteListener l : configRepository.getDeleteListeners(baseDN)) {
                     if (l instanceof ConfigDeleteListenerAdaptor) {
                         ConfigDeleteListenerAdaptor<?> adaptor = (ConfigDeleteListenerAdaptor<?>) l;
                         if (adaptor.getServerManagedObjectDeleteListener() == listener) {
-                            configEntry.deregisterDeleteListener(adaptor);
+                            configRepository.deregisterDeleteListener(baseDN, adaptor);
                         }
                     }
                 }
@@ -1128,34 +1176,15 @@ public final class ServerManagedObject<S extends Configuration> implements Prope
         }
     }
 
-    // Gets a config entry required for a listener and throws a config
-    // exception on failure or returns null if the entry does not exist.
-    private ConfigEntry getListenerConfigEntry(DN dn) throws ConfigException {
-        // Attempt to retrieve the listener base entry.
-        ConfigEntry configEntry;
-        try {
-            configEntry = DirectoryServer.getConfigEntry(dn);
-        } catch (ConfigException e) {
-            logger.trace("Unable to get listener base entry", e);
-            LocalizableMessage message = ERR_ADMIN_CANNOT_GET_LISTENER_BASE.get(String.valueOf(dn),
-                    stackTraceToSingleLineString(e, DynamicConstants.DEBUG_BUILD));
-            throw new ConfigException(message, e);
-        }
-
-        return configEntry;
-    }
-
     // Register an instantiable or optional relation add listener.
     private void registerAddListener(DN baseDN, ConfigAddListener adaptor) throws IllegalArgumentException,
             ConfigException {
-        ConfigEntry relationEntry = getListenerConfigEntry(baseDN);
-
-        if (relationEntry != null) {
-            relationEntry.registerAddListener(adaptor);
+        if (configRepository.hasEntry(baseDN)) {
+            configRepository.registerAddListener(baseDN, adaptor);
         } else {
-            // The relation entry does not exist yet so register a delayed
-            // add listener.
-            ConfigAddListener delayedListener = new DelayedConfigAddListener(baseDN, adaptor);
+            // The relation entry does not exist yet
+            // so register a delayed add listener.
+            ConfigAddListener delayedListener = new DelayedConfigAddListener(baseDN, adaptor, configRepository);
             registerDelayedListener(baseDN, delayedListener);
         }
     }
@@ -1163,14 +1192,15 @@ public final class ServerManagedObject<S extends Configuration> implements Prope
     // Register a delayed listener with the nearest existing parent
     // entry to the provided base DN.
     private void registerDelayedListener(DN baseDN, ConfigAddListener delayedListener) throws ConfigException {
-        DN parentDN = baseDN.parent();
-        while (parentDN != null) {
-            ConfigEntry relationEntry = getListenerConfigEntry(parentDN);
-            if (relationEntry == null) {
-                delayedListener = new DelayedConfigAddListener(parentDN, delayedListener);
-                parentDN = parentDN.parent();
+        DN currentDN = baseDN.parent();
+        DN previousDN = currentDN;
+        while (currentDN != null) {
+            if (!configRepository.hasEntry(currentDN)) {
+                delayedListener = new DelayedConfigAddListener(currentDN, delayedListener, configRepository);
+                previousDN = currentDN;
+                currentDN = currentDN.parent();
             } else {
-                relationEntry.registerAddListener(delayedListener);
+                configRepository.registerAddListener(previousDN, delayedListener);
                 return;
             }
         }
@@ -1187,30 +1217,28 @@ public final class ServerManagedObject<S extends Configuration> implements Prope
         DN parentDN = baseDN.parent();
         int delayWrappers = 0;
         while (parentDN != null) {
-            ConfigEntry relationEntry = getListenerConfigEntry(parentDN);
-            if (relationEntry == null) {
+            if (!configRepository.hasEntry(parentDN)) {
                 parentDN = parentDN.parent();
                 delayWrappers++;
             } else {
-                for (ConfigAddListener l : relationEntry.getAddListeners()) {
-                    if (l instanceof DelayedConfigAddListener) {
-                        DelayedConfigAddListener delayListener = (DelayedConfigAddListener) l;
+                for (ConfigAddListener configListener : configRepository.getAddListeners(parentDN)) {
+                    if (configListener instanceof DelayedConfigAddListener) {
+                        DelayedConfigAddListener delayListener = (DelayedConfigAddListener) configListener;
                         ConfigAddListener wrappedListener;
 
                         int i = delayWrappers;
                         for (; i > 0; i--) {
                             wrappedListener = delayListener.getDelayedAddListener();
                             if (wrappedListener != null && wrappedListener instanceof DelayedConfigAddListener) {
-                                delayListener = (DelayedConfigAddListener) l;
+                                delayListener = (DelayedConfigAddListener) configListener;
                             } else {
                                 break;
                             }
                         }
 
                         if (i > 0) {
-                            // There are not enough level of wrapping so this
-                            // can't be
-                            // the listener we are looking for.
+                            // There are not enough level of wrapping
+                            // so this can't be the listener we are looking for.
                             continue;
                         }
 
@@ -1222,7 +1250,7 @@ public final class ServerManagedObject<S extends Configuration> implements Prope
                             if (l2 instanceof ServerManagedObjectAddListenerAdaptor<?>) {
                                 ServerManagedObjectAddListenerAdaptor<?> adaptor2 = (ServerManagedObjectAddListenerAdaptor<?>) l2;
                                 if (adaptor2.getConfigurationAddListener() == listener) {
-                                    relationEntry.deregisterAddListener(l);
+                                    configRepository.deregisterAddListener(parentDN, configListener);
                                 }
                             }
                         }
@@ -1240,12 +1268,11 @@ public final class ServerManagedObject<S extends Configuration> implements Prope
         DN parentDN = baseDN.parent();
         int delayWrappers = 0;
         while (parentDN != null) {
-            ConfigEntry relationEntry = getListenerConfigEntry(parentDN);
-            if (relationEntry == null) {
+            if (!configRepository.hasEntry(parentDN)) {
                 parentDN = parentDN.parent();
                 delayWrappers++;
             } else {
-                for (ConfigAddListener l : relationEntry.getAddListeners()) {
+                for (ConfigAddListener l : configRepository.getAddListeners(parentDN)) {
                     if (l instanceof DelayedConfigAddListener) {
                         DelayedConfigAddListener delayListener = (DelayedConfigAddListener) l;
                         ConfigAddListener wrappedListener;
@@ -1261,9 +1288,8 @@ public final class ServerManagedObject<S extends Configuration> implements Prope
                         }
 
                         if (i > 0) {
-                            // There are not enough level of wrapping so this
-                            // can't be
-                            // the listener we are looking for.
+                            // There are not enough level of wrapping
+                            // so this can't be the listener we are looking for.
                             continue;
                         }
 
@@ -1275,7 +1301,7 @@ public final class ServerManagedObject<S extends Configuration> implements Prope
                             if (l2 instanceof ServerManagedObjectDeleteListenerAdaptor<?>) {
                                 ServerManagedObjectDeleteListenerAdaptor<?> adaptor2 = (ServerManagedObjectDeleteListenerAdaptor<?>) l2;
                                 if (adaptor2.getConfigurationDeleteListener() == listener) {
-                                    relationEntry.deregisterAddListener(l);
+                                    configRepository.deregisterAddListener(parentDN, l);
                                 }
                             }
                         }
@@ -1293,30 +1319,28 @@ public final class ServerManagedObject<S extends Configuration> implements Prope
         DN parentDN = baseDN.parent();
         int delayWrappers = 0;
         while (parentDN != null) {
-            ConfigEntry relationEntry = getListenerConfigEntry(parentDN);
-            if (relationEntry == null) {
+            if (!configRepository.hasEntry(parentDN)) {
                 parentDN = parentDN.parent();
                 delayWrappers++;
             } else {
-                for (ConfigAddListener l : relationEntry.getAddListeners()) {
-                    if (l instanceof DelayedConfigAddListener) {
-                        DelayedConfigAddListener delayListener = (DelayedConfigAddListener) l;
+                for (ConfigAddListener configListener : configRepository.getAddListeners(parentDN)) {
+                    if (configListener instanceof DelayedConfigAddListener) {
+                        DelayedConfigAddListener delayListener = (DelayedConfigAddListener) configListener;
                         ConfigAddListener wrappedListener;
 
                         int i = delayWrappers;
                         for (; i > 0; i--) {
                             wrappedListener = delayListener.getDelayedAddListener();
                             if (wrappedListener != null && wrappedListener instanceof DelayedConfigAddListener) {
-                                delayListener = (DelayedConfigAddListener) l;
+                                delayListener = (DelayedConfigAddListener) configListener;
                             } else {
                                 break;
                             }
                         }
 
                         if (i > 0) {
-                            // There are not enough level of wrapping so this
-                            // can't be
-                            // the listener we are looking for.
+                            // There are not enough level of wrapping
+                            // so this can't be the listener we are looking for.
                             continue;
                         }
 
@@ -1325,7 +1349,7 @@ public final class ServerManagedObject<S extends Configuration> implements Prope
                         if (delayedListener != null && delayedListener instanceof ConfigAddListenerAdaptor) {
                             ConfigAddListenerAdaptor<?> adaptor = (ConfigAddListenerAdaptor<?>) delayedListener;
                             if (adaptor.getServerManagedObjectAddListener() == listener) {
-                                relationEntry.deregisterAddListener(l);
+                                configRepository.deregisterAddListener(parentDN, configListener);
                             }
                         }
                     }
@@ -1342,30 +1366,28 @@ public final class ServerManagedObject<S extends Configuration> implements Prope
         DN parentDN = baseDN.parent();
         int delayWrappers = 0;
         while (parentDN != null) {
-            ConfigEntry relationEntry = getListenerConfigEntry(parentDN);
-            if (relationEntry == null) {
+            if (!configRepository.hasEntry(parentDN)) {
                 parentDN = parentDN.parent();
                 delayWrappers++;
             } else {
-                for (ConfigAddListener l : relationEntry.getAddListeners()) {
-                    if (l instanceof DelayedConfigAddListener) {
-                        DelayedConfigAddListener delayListener = (DelayedConfigAddListener) l;
+                for (ConfigAddListener configListener : configRepository.getAddListeners(parentDN)) {
+                    if (configListener instanceof DelayedConfigAddListener) {
+                        DelayedConfigAddListener delayListener = (DelayedConfigAddListener) configListener;
                         ConfigAddListener wrappedListener;
 
                         int i = delayWrappers;
                         for (; i > 0; i--) {
                             wrappedListener = delayListener.getDelayedAddListener();
                             if (wrappedListener != null && wrappedListener instanceof DelayedConfigAddListener) {
-                                delayListener = (DelayedConfigAddListener) l;
+                                delayListener = (DelayedConfigAddListener) configListener;
                             } else {
                                 break;
                             }
                         }
 
                         if (i > 0) {
-                            // There are not enough level of wrapping so this
-                            // can't be
-                            // the listener we are looking for.
+                            // There are not enough level of wrapping
+                            // so this can't be the listener we are looking for.
                             continue;
                         }
 
@@ -1374,7 +1396,7 @@ public final class ServerManagedObject<S extends Configuration> implements Prope
                         if (delayedListener != null && delayedListener instanceof ConfigDeleteListenerAdaptor) {
                             ConfigDeleteListenerAdaptor<?> adaptor = (ConfigDeleteListenerAdaptor<?>) delayedListener;
                             if (adaptor.getServerManagedObjectDeleteListener() == listener) {
-                                relationEntry.deregisterAddListener(l);
+                                configRepository.deregisterAddListener(parentDN, configListener);
                             }
                         }
                     }
@@ -1386,14 +1408,12 @@ public final class ServerManagedObject<S extends Configuration> implements Prope
 
     // Register an instantiable or optional relation delete listener.
     private void registerDeleteListener(DN baseDN, ConfigDeleteListener adaptor) throws ConfigException {
-        ConfigEntry relationEntry = getListenerConfigEntry(baseDN);
-
-        if (relationEntry != null) {
-            relationEntry.registerDeleteListener(adaptor);
+        if (configRepository.hasEntry(baseDN)) {
+            configRepository.registerDeleteListener(baseDN, adaptor);
         } else {
-            // The relation entry does not exist yet so register a delayed
-            // add listener.
-            ConfigAddListener delayedListener = new DelayedConfigAddListener(baseDN, adaptor);
+            // The relation entry does not exist yet
+            // so register a delayed add listener.
+            ConfigAddListener delayedListener = new DelayedConfigAddListener(baseDN, adaptor, configRepository);
             registerDelayedListener(baseDN, delayedListener);
         }
     }
