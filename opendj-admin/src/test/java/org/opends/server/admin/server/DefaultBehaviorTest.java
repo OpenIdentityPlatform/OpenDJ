@@ -26,6 +26,7 @@
 package org.opends.server.admin.server;
 
 import static org.fest.assertions.Assertions.*;
+import static org.forgerock.opendj.ldif.LDIF.*;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
@@ -37,7 +38,6 @@ import java.util.SortedSet;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
-import org.forgerock.opendj.admin.server.RootCfg;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.ResultCode;
@@ -131,10 +131,10 @@ public final class DefaultBehaviorTest extends AdminTestCase {
         "ds-cfg-attribute-type: description",
         "ds-cfg-conflict-behavior: virtual-overrides-real");
 
-    static final Entry TEST_PARENT_1 = makeEntry(LDIF_TEST_PARENT_1);
+    static final Entry TEST_PARENT_1 = LDIF.makeEntry(LDIF_TEST_PARENT_1);
 
     // Parent 2 - overrides default values for optional-multi-valued-dn-property.
-    static final Entry TEST_PARENT_2 = makeEntry(
+    static final Entry TEST_PARENT_2 = LDIF.makeEntry(
         "dn: cn=test parent 2,cn=test parents,cn=config",
         "objectclass: top",
         "objectclass: ds-cfg-test-parent-dummy",
@@ -298,19 +298,19 @@ public final class DefaultBehaviorTest extends AdminTestCase {
     Object[][] childConfigurationsValuesForChangeListener() {
         return new Object[][] {
             // new entry after change, expected first dn property values, expected second dn property values
-            { makeEntry(LDIF_TEST_CHILD_1, NEW_ATTRS_1),
+            { makeEntryFrom(LDIF_TEST_CHILD_1, NEW_ATTRS_1),
               Arrays.asList("dc=new value 1,dc=com", "dc=new value 2,dc=com"),
               Arrays.asList("dc=new value 3,dc=com", "dc=new value 4,dc=com") },
 
-            { makeEntry(LDIF_TEST_CHILD_1, NEW_ATTRS_2),
+            { makeEntryFrom(LDIF_TEST_CHILD_1, NEW_ATTRS_2),
               Arrays.asList("dc=new value 1,dc=com", "dc=new value 2,dc=com"),
               Arrays.asList("dc=new value 1,dc=com", "dc=new value 2,dc=com") },
 
-            { makeEntry(LDIF_TEST_CHILD_1, NEW_ATTRS_3),
+            { makeEntryFrom(LDIF_TEST_CHILD_1, NEW_ATTRS_3),
               Arrays.asList("dc=domain1,dc=com", "dc=domain2,dc=com", "dc=domain3,dc=com"),
               Arrays.asList("dc=new value 1,dc=com", "dc=new value 2,dc=com") },
 
-            { makeEntry(LDIF_TEST_PARENT_1, NEW_ATTRS_2),
+            { makeEntryFrom(LDIF_TEST_PARENT_1, NEW_ATTRS_2),
               Arrays.asList("dc=new value 1,dc=com", "dc=new value 2,dc=com"),
               Arrays.asList("dc=new value 1,dc=com", "dc=new value 2,dc=com") }
         };
@@ -365,17 +365,7 @@ public final class DefaultBehaviorTest extends AdminTestCase {
         assertDNSetEquals(parent.getOptionalMultiValuedDNProperty(), valuesForOptionalDNProperty);
     }
 
-    /**
-     * Create a mock of ConfigurationRepository with provided entries registered.
-     */
-    private ConfigurationRepository createConfigRepositoryWithEntries(Entry...entries) throws Exception {
-        ConfigurationRepository configRepository = mock(ConfigurationRepository.class);
-        for (Entry entry : entries) {
-            when(configRepository.getEntry(entry.getName())).thenReturn(entry);
-            when(configRepository.hasEntry(entry.getName())).thenReturn(true);
-        }
-        return configRepository;
-    }
+
 
     /**
      * Simulate an entry add by triggering configAddIsAcceptable method of last registered add listener.
@@ -419,35 +409,8 @@ public final class DefaultBehaviorTest extends AdminTestCase {
         assertThat(actualStrings).containsOnly(expectedDNs.toArray(new Object[expectedDNs.size()]));
     }
 
-    /** Returns the name used for this entry (the value of the cn attribute) */
-    private String entryName(Entry entry) {
-        return entry.getName().rdn().getFirstAVA().getAttributeValue().toString();
-    }
-
-    /** Gets the named parent configuration corresponding to the entry */
-    private TestParentCfg getParentCfg(Entry entry, ServerManagementContext serverContext) throws Exception {
-        String name = entryName(entry);
-        ServerManagedObject<RootCfg> root = serverContext.getRootConfigurationManagedObject();
-        TestParentCfg parent = root.getChild(TestCfg.getTestOneToManyParentRelationDefinition(), name)
-                .getConfiguration();
-        return parent;
-    }
-
-    /** Make an entry without throwing an exception */
-    static Entry makeEntry(String...ldif) {
-        try {
-            return LDIF.makeEntry(ldif);
-        } catch (Exception e) {
-            return null;
-        }
-    }
-
-    static Entry makeEntry(List<String> ldif) {
-        return makeEntry(ldif.toArray(new String[ldif.size()]));
-    }
-
     /** Make an entry by combining two lists */
-    static Entry makeEntry(List<String> base, List<String> attrs) {
+    static Entry makeEntryFrom(List<String> base, List<String> attrs) {
         List<String> ldif = new ArrayList<String>(base);
         ldif.addAll(attrs);
         return makeEntry(ldif.toArray(new String[0]));
