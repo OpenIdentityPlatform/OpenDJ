@@ -33,7 +33,6 @@ import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.util.*;
 import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.opends.messages.Category;
 import org.opends.messages.Message;
@@ -57,7 +56,6 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import static java.util.Arrays.*;
-
 import static org.assertj.core.api.Assertions.*;
 import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.loggers.ErrorLogger.*;
@@ -504,7 +502,7 @@ public class AssuredReplicationServerTest
     }
 
     @Override
-    public boolean processUpdate(UpdateMsg updateMsg, AtomicBoolean shutdown)
+    public boolean processUpdate(UpdateMsg updateMsg)
     {
       checkUpdateAssuredParameters(updateMsg);
       nReceivedUpdates++;

@@ -27,7 +27,6 @@ package org.opends.server.replication.plugin;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.common.ServerStatus;
@@ -88,7 +87,7 @@ public class DummyReplicationDomain extends ReplicationDomain
   }
 
   @Override
-  public boolean processUpdate(UpdateMsg updateMsg, AtomicBoolean shutdown)
+  public boolean processUpdate(UpdateMsg updateMsg)
   {
     return false;
   }

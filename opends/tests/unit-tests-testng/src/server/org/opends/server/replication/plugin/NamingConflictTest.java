@@ -121,7 +121,7 @@ public class NamingConflictTest extends ReplicationTestCase
       "uid=simultaneous2");
 
       // Put the message in the replay queue
-      domain.processUpdate(modDnMsg, SHUTDOWN);
+      domain.processUpdate(modDnMsg);
 
       // Make the domain replay the change from the replay queue
       domain.replay(queue.take().getUpdateMessage(), SHUTDOWN);
@@ -135,7 +135,7 @@ public class NamingConflictTest extends ReplicationTestCase
       "uid=simulatneouswrong");
 
       // Put the message in the replay queue
-      domain.processUpdate(modDnMsg, SHUTDOWN);
+      domain.processUpdate(modDnMsg);
 
       // Make the domain replay the change from the replay queue
       // and resolve conflict
@@ -210,7 +210,7 @@ public class NamingConflictTest extends ReplicationTestCase
             null);
 
       // Put the message in the replay queue
-      domain.processUpdate(addMsg, SHUTDOWN);
+      domain.processUpdate(addMsg);
 
       // Make the domain replay the change from the replay queue
       domain.replay(queue.take().getUpdateMessage(), SHUTDOWN);
@@ -294,7 +294,7 @@ public class NamingConflictTest extends ReplicationTestCase
             null);
 
       // Put the message in the replay queue
-      domain.processUpdate(addMsg, SHUTDOWN);
+      domain.processUpdate(addMsg);
 
       // Make the domain replay the change from the replay queue
       domain.replay(queue.take().getUpdateMessage(), SHUTDOWN);
@@ -399,7 +399,7 @@ public class NamingConflictTest extends ReplicationTestCase
       delMsg.setSubtreeDelete(true);
 
       // Put the message in the replay queue
-      domain.processUpdate(delMsg, SHUTDOWN);
+      domain.processUpdate(delMsg);
       // Make the domain replay the change from the replay queue
       domain.replay(queue.take().getUpdateMessage(), SHUTDOWN);
 
@@ -474,7 +474,7 @@ public class NamingConflictTest extends ReplicationTestCase
       // NOT SUBTREE
 
       // Put the message in the replay queue
-      domain.processUpdate(delMsg, SHUTDOWN);
+      domain.processUpdate(delMsg);
       // Make the domain replay the change from the replay queue
       domain.replay(queue.take().getUpdateMessage(), SHUTDOWN);
 
@@ -557,7 +557,7 @@ public class NamingConflictTest extends ReplicationTestCase
           new ArrayList<Attribute>());
 
       // Put the message in the replay queue
-      domain.processUpdate(addMsg, SHUTDOWN);
+      domain.processUpdate(addMsg);
       // Make the domain replay the change from the replay queue
       domain.replay(queue.take().getUpdateMessage(), SHUTDOWN);
 
