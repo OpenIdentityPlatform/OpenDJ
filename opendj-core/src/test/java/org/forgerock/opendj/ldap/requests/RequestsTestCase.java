@@ -102,14 +102,8 @@ public abstract class RequestsTestCase extends ForgeRockTestCase {
      */
     protected abstract Request unmodifiableOf(final Request original);
 
-    /**
-     * Request data to be validated.
-     *
-     * @return An array of requests.
-     * @throws Exception
-     */
     @DataProvider(name = "createModifiableInstance")
-    Object[][] createModifiableInstance() throws Exception {
+    final Object[][] createModifiableInstance() throws Exception {
         final Request[] requestArray = newInstance();
         final Object[][] objectArray = new Object[requestArray.length][1];
 

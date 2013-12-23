@@ -732,12 +732,6 @@ final class TemplateFile {
      *            template lines appears.
      * @param templateLines
      *            The set of lines containing the template definition.
-     * @param tags
-     *            The set of defined tags from the template file. Note that this
-     *            does not include the tags that are always registered by
-     *            default.
-     * @param definedTemplates
-     *            The set of templates already defined in the template file.
      * @param warnings
      *            A list into which any warnings identified may be placed.
      * @return The decoded template definition.
@@ -1237,8 +1231,6 @@ final class TemplateFile {
      * <p>
      * Use {@code readFile()} method to avoid caching.
      *
-     * @param label
-     *            Label used as identifier to cache the line read.
      * @param reader
      *            Reader to parse for lines.
      * @return a list of lines
