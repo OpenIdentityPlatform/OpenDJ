@@ -4535,7 +4535,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
 
   /** {@inheritDoc} */
   @Override
-  public boolean processUpdate(UpdateMsg updateMsg, AtomicBoolean shutdown)
+  public boolean processUpdate(UpdateMsg updateMsg)
   {
     // Ignore message if fractional configuration is inconsistent and
     // we have been passed into bad data set status
@@ -4569,7 +4569,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       // Put update message into the replay queue
       // (block until some place in the queue is available)
       final UpdateToReplay updateToReplay = new UpdateToReplay(msg, this);
-      while (!shutdown.get())
+      while (!isListenerShuttingDown())
       {
         // loop until we can offer to the queue or shutdown was initiated
         try

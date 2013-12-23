@@ -32,7 +32,6 @@ import java.io.OutputStream;
 import java.util.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.opends.messages.Category;
 import org.opends.messages.Message;
@@ -632,7 +631,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
     }
 
     @Override
-    public boolean processUpdate(UpdateMsg updateMsg, AtomicBoolean shutdown)
+    public boolean processUpdate(UpdateMsg updateMsg)
     {
       if (queue != null)
         queue.add(updateMsg);

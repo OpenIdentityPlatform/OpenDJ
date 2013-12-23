@@ -31,7 +31,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.SortedSet;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.opends.server.config.ConfigException;
 import org.opends.server.replication.plugin.DomainFakeCfg;
@@ -151,7 +150,7 @@ public class FakeReplicationDomain extends ReplicationDomain
   }
 
   @Override
-  public boolean processUpdate(UpdateMsg updateMsg, AtomicBoolean shutdown)
+  public boolean processUpdate(UpdateMsg updateMsg)
   {
     if (queue != null)
       queue.add(updateMsg);
