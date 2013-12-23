@@ -25,9 +25,7 @@
 
 package org.forgerock.opendj.ldif;
 
-import static com.forgerock.opendj.ldap.CoreMessages.REJECTED_CHANGE_FAIL_DELETE;
-import static com.forgerock.opendj.ldap.CoreMessages.REJECTED_CHANGE_FAIL_MODIFY;
-import static com.forgerock.opendj.ldap.CoreMessages.REJECTED_CHANGE_FAIL_MODIFYDN;
+import static com.forgerock.opendj.ldap.CoreMessages.*;
 import static com.forgerock.opendj.util.StaticUtils.getBytes;
 
 import java.io.IOException;
@@ -42,6 +40,7 @@ import java.util.NoSuchElementException;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.io.ASN1;
 import org.forgerock.opendj.io.LDAP;
 import org.forgerock.opendj.ldap.AVA;
@@ -257,13 +256,40 @@ public final class LDIF {
      *
      * @param ldifLines
      *          LDIF lines that contains entry definition.
-     * @return an entry, or {@code null} if no ldif line is provided
-     * @throws IOException
-     *          If an error occurs.
+     * @return an entry
+     * @throws LocalizedIllegalArgumentException
+     *            If {@code ldifLines} did not contain an LDIF entry, or
+     *            contained multiple entries, or contained malformed LDIF, or
+     *            if the entry could not be decoded using the default schema.
+     * @throws NullPointerException
+     *             If {@code ldifLines} was {@code null}.
      */
-    public static Entry makeEntry(String... ldifLines) throws IOException {
+    public static Entry makeEntry(String... ldifLines) {
+        // returns a non-empty list
         List<Entry> entries = makeEntries(ldifLines);
-        return entries.isEmpty() ? null : entries.get(0);
+        if (entries.size() > 1) {
+            throw new LocalizedIllegalArgumentException(
+                WARN_READ_LDIF_ENTRY_MULTIPLE_ENTRIES_FOUND.get(entries.size()));
+        }
+        return entries.get(0);
+    }
+
+    /**
+     * Builds an entry from the provided lines of LDIF.
+     *
+     * @param ldifLines
+     *            LDIF lines that contains entry definition.
+     * @return an entry
+     * @throws LocalizedIllegalArgumentException
+     *             If {@code ldifLines} did not contain an LDIF entry, or
+     *             contained multiple entries, or contained malformed LDIF, or
+     *             if the entry could not be decoded using the default schema.
+     * @throws NullPointerException
+     *             If {@code ldifLines} was {@code null}.
+     * @see {@code LDIF#makeEntry(String...)}
+     */
+    public static Entry makeEntry(List<String> ldifLines) {
+        return makeEntry(ldifLines.toArray(new String[ldifLines.size()]));
     }
 
     /**
@@ -287,22 +313,53 @@ public final class LDIF {
      * @param ldifLines
      *          LDIF lines that contains entries definition.
      *          Entries are separated by an empty string: {@code ""}.
-     * @return a list of entries
-     * @throws IOException
-     *          If an error occurs.
+     * @return a non empty list of entries
+     * @throws LocalizedIllegalArgumentException
+     *             If {@code ldifLines} did not contain LDIF entries,
+     *             or contained malformed LDIF, or if the entries
+     *             could not be decoded using the default schema.
+     * @throws NullPointerException
+     *             If {@code ldifLines} was {@code null}.
      */
-    public static List<Entry> makeEntries(String... ldifLines) throws IOException {
+    public static List<Entry> makeEntries(String... ldifLines) {
         List<Entry> entries = new ArrayList<Entry>();
-        LDIFEntryReader reader = null;
+        LDIFEntryReader reader = new LDIFEntryReader(ldifLines);
         try {
-            reader = new LDIFEntryReader(ldifLines);
             while (reader.hasNext()) {
                 entries.add(reader.readEntry());
             }
+        } catch (final DecodeException e) {
+            // Badly formed LDIF.
+            throw new LocalizedIllegalArgumentException(e.getMessageObject());
+        } catch (final IOException e) {
+            // This should never happen for a String based reader.
+            throw new LocalizedIllegalArgumentException(WARN_READ_LDIF_RECORD_UNEXPECTED_IO_ERROR.get(e.getMessage()));
         } finally {
             StaticUtils.closeSilently(reader);
         }
+        if (entries.isEmpty()) {
+            throw new LocalizedIllegalArgumentException(WARN_READ_LDIF_ENTRY_NO_ENTRY_FOUND.get());
+        }
         return entries;
+    }
+
+    /**
+     * Builds a list of entries from the provided lines of LDIF.
+     *
+     * @param ldifLines
+     *            LDIF lines that contains entries definition. Entries are
+     *            separated by an empty string: {@code ""}.
+     * @return a non empty list of entries
+     * @throws LocalizedIllegalArgumentException
+     *             If {@code ldifLines} did not contain LDIF entries, or
+     *             contained malformed LDIF, or if the entries could not be
+     *             decoded using the default schema.
+     * @throws NullPointerException
+     *             If {@code ldifLines} was {@code null}.
+     * @see {@code LDIF#makeEntries(String...)}
+     */
+    public static List<Entry> makeEntries(List<String> ldifLines) {
+        return makeEntries(ldifLines.toArray(new String[ldifLines.size()]));
     }
 
     /**

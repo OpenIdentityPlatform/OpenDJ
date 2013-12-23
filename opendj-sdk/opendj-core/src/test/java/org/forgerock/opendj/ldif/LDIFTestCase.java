@@ -32,6 +32,7 @@ import static org.fest.assertions.Assertions.assertThat;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
@@ -56,6 +57,8 @@ import org.forgerock.opendj.ldap.schema.CoreSchema;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldap.schema.SchemaBuilder;
 import org.testng.annotations.Test;
+
+import com.forgerock.opendj.ldap.CoreMessages;
 
 /**
  * This class tests the LDIF functionality.
@@ -2745,75 +2748,108 @@ public class LDIFTestCase extends AbstractLDIFTestCase {
         LDIF.patch(null, null);
     }
 
+    // @formatter:off
+    private static final List<String> LDIF_ONE_ENTRY = Arrays.asList(
+        "dn: uid=user.1,ou=People,dc=example,dc=com",
+        "objectClass: top",
+        "objectClass: person",
+        "objectClass: organizationalperson",
+        "objectClass: inetorgperson",
+        "givenName: Eniko",
+        "sn: Atpco",
+        "cn: Eniko Atpco",
+        "uid: user.1");
+    // @formatter:on
+
+    // @formatter:off
+    private static final List<String> LDIF_TWO_ENTRIES = Arrays.asList(
+        "dn: uid=user.1,ou=People,dc=example,dc=com",
+        "objectClass: top",
+        "objectClass: person",
+        "objectClass: organizationalperson",
+        "objectClass: inetorgperson",
+        "givenName: Eniko",
+        "sn: Atpco",
+        "uid: user.1",
+        "",
+        "dn: uid=user.2,ou=People,dc=example,dc=com",
+        "objectClass: top",
+        "objectClass: person",
+        "objectClass: organizationalperson",
+        "objectClass: inetorgperson",
+        "givenName: Aaaron",
+        "sn: Atp",
+        "uid: user.2");
+
     @Test
     public void testMakeEntry() throws Exception {
-        // @formatter:off
-        final Entry entry = LDIF.makeEntry(
-            "dn: uid=user.1,ou=People,dc=example,dc=com",
-            "objectClass: top",
-            "objectClass: person",
-            "objectClass: organizationalperson",
-            "objectClass: inetorgperson",
-            "givenName: Eniko",
-            "sn: Atpco",
-            "cn: Eniko Atpco",
-            "uid: user.1"
-        );
-        // @formatter:on
+        final Entry entry = LDIF.makeEntry(LDIF_ONE_ENTRY);
+        final Entry entry2 = LDIF.makeEntry(LDIF_ONE_ENTRY.toArray(new String[0]));
+
         assertThat(entry.getName().toString()).isEqualTo("uid=user.1,ou=People,dc=example,dc=com");
         assertThat(entry.getAttribute("objectClass").firstValueAsString()).isEqualTo("top");
         assertThat(entry.getAttribute("uid").firstValueAsString()).isEqualTo("user.1");
         assertThat(entry.getAttribute("givenName").firstValueAsString()).isEqualTo("Eniko");
         assertThat(entry.getAttribute("sn").firstValueAsString()).isEqualTo("Atpco");
+        assertThat(entry2).isEqualTo(entry);
     }
 
     @Test
     public void testMakeEntries() throws Exception {
         // @formatter:off
-        final List<Entry> entries = LDIF.makeEntries(
-            "dn: uid=user.1,ou=People,dc=example,dc=com",
-            "objectClass: top",
-            "objectClass: person",
-            "objectClass: organizationalperson",
-            "objectClass: inetorgperson",
-            "givenName: Eniko",
-            "sn: Atpco",
-            "uid: user.1",
-            "",
-            "dn: uid=user.2,ou=People,dc=example,dc=com",
-            "objectClass: top",
-            "objectClass: person",
-            "objectClass: organizationalperson",
-            "objectClass: inetorgperson",
-            "givenName: Aaaron",
-            "sn: Atp",
-            "uid: user.2"
-        );
+        final List<Entry> entries = LDIF.makeEntries(LDIF_TWO_ENTRIES);
+        final List<Entry> entries2 = LDIF.makeEntries(LDIF_TWO_ENTRIES.toArray(new String[0]));
+
         // @formatter:on
         assertThat(entries).hasSize(2);
         assertThat(entries.get(0).getName().toString()).isEqualTo("uid=user.1,ou=People,dc=example,dc=com");
         assertThat(entries.get(1).getName().toString()).isEqualTo("uid=user.2,ou=People,dc=example,dc=com");
+        assertThat(entries2).isEqualTo(entries);
     }
 
     @Test
     public void testMakeEntryEmpty() throws Exception {
-        final Entry entry = LDIF.makeEntry();
-        assertThat(entry).isNull();
+        try {
+            LDIF.makeEntry();
+            failWasExpected(LocalizedIllegalArgumentException.class);
+        } catch (LocalizedIllegalArgumentException e) {
+            assertThat(e.getMessageObject()).isEqualTo(CoreMessages.WARN_READ_LDIF_ENTRY_NO_ENTRY_FOUND.get());
+        }
     }
 
-    @Test(expectedExceptions = DecodeException.class)
+    @Test
+    public void testMakeEntryWithMultipleEntries() throws Exception {
+        try {
+            LDIF.makeEntry(LDIF_TWO_ENTRIES);
+            failWasExpected(LocalizedIllegalArgumentException.class);
+        } catch (LocalizedIllegalArgumentException e) {
+            assertThat(e.getMessageObject()).isEqualTo(
+                CoreMessages.WARN_READ_LDIF_ENTRY_MULTIPLE_ENTRIES_FOUND.get(2));
+        }
+    }
+
+    @Test(expectedExceptions = LocalizedIllegalArgumentException.class)
     public void testMakeEntryBadLDif() throws Exception {
         LDIF.makeEntry("dummy: uid=user.1,ou=People,dc=example,dc=com");
     }
 
     @Test
     public void testMakeEntriesEmpty() throws Exception {
-        final List<Entry> entries = LDIF.makeEntries();
-        assertThat(entries).hasSize(0);
+        try {
+            LDIF.makeEntries();
+            failWasExpected(LocalizedIllegalArgumentException.class);
+        } catch (LocalizedIllegalArgumentException e) {
+            assertThat(e.getMessageObject()).isEqualTo(CoreMessages.WARN_READ_LDIF_ENTRY_NO_ENTRY_FOUND.get());
+        }
     }
 
-    @Test(expectedExceptions = DecodeException.class)
+    @Test(expectedExceptions = LocalizedIllegalArgumentException.class)
     public void testMakeEntriesBadLDif() throws Exception {
         LDIF.makeEntries("dummy: uid=user.1,ou=People,dc=example,dc=com");
+    }
+
+    @Test(expectedExceptions = NullPointerException.class)
+    public void testMakeEntriesNull() throws Exception {
+        LDIF.makeEntries((String[]) null);
     }
 }
