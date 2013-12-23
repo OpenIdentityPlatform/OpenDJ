@@ -296,6 +296,8 @@ public class ChangeNumberIndexer extends DirectoryThread
       // restore the mediumConsistencyRUV from DB
       mediumConsistencyRUV.update(
           new MultiDomainServerState(newestRecord.getPreviousCookie()));
+      // Do not update with the newestRecord CSN
+      // as it will be used for a sanity check later in the same method
     }
 
     // initialize the DB cursor and the last seen updates
@@ -313,7 +315,7 @@ public class ChangeNumberIndexer extends DirectoryThread
       for (Integer serverId : entry.getValue())
       {
         final CSN csn = mediumConsistencyRUV.getCSN(baseDN, serverId);
-        ensureCursorExists(baseDN, serverId, csn);
+        ensureCursorExists(baseDN, serverId, csn, false);
       }
 
       ServerState latestKnownState = domainDB.getDomainNewestCSNs(baseDN);
@@ -325,12 +327,15 @@ public class ChangeNumberIndexer extends DirectoryThread
     {
       // restore the "previousCookie" state before shutdown
       final UpdateMsg record = nextChangeForInsertDBCursor.getRecord();
+      // sanity check: ensure that when initializing the cursors at the previous
+      // cookie, the next change we find is the newest record in the CNIndexDB
       if (!record.getCSN().equals(newestRecord.getCSN()))
       {
         throw new ChangelogException(
             ERR_CHANGE_NUMBER_INDEXER_INCONSISTENT_CSN_READ.get(newestRecord
                 .getCSN().toStringUI(), record.getCSN().toStringUI()));
       }
+      // Now we can update the mediumConsistencyRUV
       mediumConsistencyRUV.update(newestRecord.getBaseDN(), record.getCSN());
       nextChangeForInsertDBCursor.next();
     }
@@ -357,8 +362,8 @@ public class ChangeNumberIndexer extends DirectoryThread
     nextChangeForInsertDBCursor = result;
   }
 
-  private boolean ensureCursorExists(DN baseDN, Integer serverId, CSN csn)
-      throws ChangelogException
+  private boolean ensureCursorExists(DN baseDN, Integer serverId, CSN csn,
+      boolean startFromPrecedingCSN) throws ChangelogException
   {
     Map<Integer, DBCursor<UpdateMsg>> map = allCursors.get(baseDN);
     if (map == null)
@@ -370,9 +375,11 @@ public class ChangeNumberIndexer extends DirectoryThread
     if (cursor == null)
     {
       final ReplicationDomainDB domainDB = changelogDB.getReplicationDomainDB();
-      // use an older CSN because getCursorFrom() starts after the given CSN
-      final CSN anOlderCSN = getPrecedingCSN(csn);
-      cursor = domainDB.getCursorFrom(baseDN, serverId, anOlderCSN);
+      // start from preceding CSN for publishUpdateMsg(),
+      // or from the actual CSN when initializing from the previous cookie
+      final CSN startAfterCSN =
+          startFromPrecedingCSN ? getPrecedingCSN(csn) : csn;
+      cursor = domainDB.getCursorFrom(baseDN, serverId, startAfterCSN);
       map.put(serverId, cursor);
       return false;
     }
@@ -595,7 +602,7 @@ public class ChangeNumberIndexer extends DirectoryThread
         final Entry<Pair<DN, Integer>, CSN> entry = iter.next();
         final DN baseDN = entry.getKey().getFirst();
         final CSN csn = entry.getValue();
-        if (!ensureCursorExists(baseDN, csn.getServerId(), csn))
+        if (!ensureCursorExists(baseDN, csn.getServerId(), csn, true))
         {
           newCursorAdded = true;
         }
