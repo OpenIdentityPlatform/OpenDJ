@@ -33,7 +33,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -78,6 +77,7 @@ import org.forgerock.opendj.admin.meta.RootCfgDefn;
 import org.forgerock.opendj.admin.server.RootCfg;
 import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.AttributeDescription;
+import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.schema.AttributeType;
@@ -236,11 +236,11 @@ public final class ServerManagementContext {
                     throw new PropertyNotFoundException(propertyName);
                 }
 
-                Iterable<Attribute> attributes = getAttribute(mod, propDef2, configEntry);
-                if (attributes.iterator().hasNext()) {
+                List<String> attributeValues = getAttributeValues(mod, propDef2, configEntry);
+                if (attributeValues.size() > 0) {
                     Collection<T> pvalues = new ArrayList<T>();
-                    for (Attribute attribute : attributes) {
-                        pvalues.add(ValueDecoder.decode(propDef1, attribute));
+                    for (String value : attributeValues) {
+                        pvalues.add(ValueDecoder.decode(propDef1, value));
                     }
                     return pvalues;
                 } else {
@@ -310,16 +310,15 @@ public final class ServerManagementContext {
          *            The type of the property.
          * @param propertyDef
          *            The property definition.
-         * @param attribute
+         * @param value
          *            The LDAP string representation.
          * @return Returns the decoded LDAP value.
          * @throws IllegalPropertyValueStringException
          *             If the property value could not be decoded because it was
          *             invalid.
          */
-        public static <PD> PD decode(PropertyDefinition<PD> propertyDef, Attribute attribute)
+        public static <PD> PD decode(PropertyDefinition<PD> propertyDef, String value)
                 throws IllegalPropertyValueStringException {
-            String value = attribute.firstValueAsString();
             return propertyDef.castValue(propertyDef.accept(new ValueDecoder(), value));
         }
 
@@ -515,8 +514,8 @@ public final class ServerManagementContext {
         // definition.
         propertyDef = (PropertyDefinition<PD>) managedObjDef.getPropertyDefinition(propertyDef.getName());
 
-        Iterable<Attribute> attributes = getAttribute(managedObjDef, propertyDef, configEntry);
-        return decodeProperty(path.asSubType(managedObjDef), propertyDef, attributes, null);
+        List<String> attributeValues = getAttributeValues(managedObjDef, propertyDef, configEntry);
+        return decodeProperty(path.asSubType(managedObjDef), propertyDef, attributeValues, null);
     }
 
     /**
@@ -679,9 +678,9 @@ public final class ServerManagementContext {
         List<PropertyException> exceptions = new LinkedList<PropertyException>();
         Map<PropertyDefinition<?>, SortedSet<?>> properties = new HashMap<PropertyDefinition<?>, SortedSet<?>>();
         for (PropertyDefinition<?> propertyDef : mod.getAllPropertyDefinitions()) {
-            Iterable<Attribute> attributes = getAttribute(mod, propertyDef, configEntry);
+            List<String> attributeValues = getAttributeValues(mod, propertyDef, configEntry);
             try {
-                SortedSet<?> pvalues = decodeProperty(path, propertyDef, attributes, newConfigEntry);
+                SortedSet<?> pvalues = decodeProperty(path, propertyDef, attributeValues, newConfigEntry);
                 properties.put(propertyDef, pvalues);
             } catch (PropertyException e) {
                 exceptions.add(e);
@@ -706,18 +705,17 @@ public final class ServerManagementContext {
         return new ServerManagedObject<S>(newPath, d, properties, configDN, this);
     }
 
-    // Create a property using the provided string values.
+    /** Decode a property using the provided attribute values. */
     private <T> SortedSet<T> decodeProperty(ManagedObjectPath<?, ?> path, PropertyDefinition<T> propertyDef,
-            Iterable<Attribute> attributes, Entry newConfigEntry) throws PropertyException {
+            List<String> attributeValues, Entry newConfigEntry) throws PropertyException {
         PropertyException exception = null;
         SortedSet<T> pvalues = new TreeSet<T>(propertyDef);
 
-        Iterator<Attribute> attributesIt = attributes.iterator();
-        if (attributesIt.hasNext()) {
+        if (attributeValues.size() > 0) {
             // The property has values defined for it.
-            for (Attribute attr : attributes) {
+            for (String value : attributeValues) {
                 try {
-                    pvalues.add(ValueDecoder.decode(propertyDef, attr));
+                    pvalues.add(ValueDecoder.decode(propertyDef, value));
                 } catch (IllegalPropertyValueStringException e) {
                     exception = e;
                 }
@@ -753,15 +751,22 @@ public final class ServerManagementContext {
         }
     }
 
-    // Gets the attribute associated with a property from a ConfigEntry.
-    private Iterable<Attribute> getAttribute(ManagedObjectDefinition<?, ?> d, PropertyDefinition<?> pd,
+    /** Gets the attribute values associated with a property from a ConfigEntry */
+    private List<String> getAttributeValues(ManagedObjectDefinition<?, ?> d, PropertyDefinition<?> pd,
             Entry configEntry) {
-        // TODO: we create a default attribute type if it is
-        // undefined. We should log a warning here if this is the case
+        // TODO: we create a default attribute type if it is undefined.
+        // We should log a warning here if this is the case
         // since the attribute should have been defined.
         String attrID = LDAPProfile.getInstance().getAttributeName(d, pd);
         AttributeType type = DirectoryServer.getAttributeType(attrID, true);
-        return configEntry.getAllAttributes(AttributeDescription.create(type));
+        Iterable<Attribute> attributes = configEntry.getAllAttributes(AttributeDescription.create(type));
+        List<String> values = new ArrayList<String>();
+        for (Attribute attribute : attributes) {
+            for (ByteString byteValue : attribute) {
+                values.add(byteValue.toString());
+            }
+        }
+        return values;
     }
 
     // Get the default values for the specified property.

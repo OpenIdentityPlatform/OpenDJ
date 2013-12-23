@@ -92,7 +92,7 @@ public final class ServerManagedObject<S extends Configuration> implements Prope
      *
      * @param path
      *            The managed object path.
-     * @param d
+     * @param definition
      *            The managed object definition.
      * @param properties
      *            The managed object's properties.
@@ -101,10 +101,10 @@ public final class ServerManagedObject<S extends Configuration> implements Prope
      * @param context
      *            The server management context.
      */
-    ServerManagedObject(final ManagedObjectPath<?, S> path, final ManagedObjectDefinition<?, S> d,
+    ServerManagedObject(final ManagedObjectPath<?, S> path, final ManagedObjectDefinition<?, S> definition,
             final Map<PropertyDefinition<?>, SortedSet<?>> properties, final DN configDN,
             final ServerManagementContext context) {
-        this.definition = d;
+        this.definition = definition;
         this.path = path;
         this.properties = properties;
         this.configDN = configDN;
