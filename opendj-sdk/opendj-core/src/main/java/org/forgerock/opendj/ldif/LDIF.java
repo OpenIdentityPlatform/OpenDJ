@@ -286,7 +286,7 @@ public final class LDIF {
      *             if the entry could not be decoded using the default schema.
      * @throws NullPointerException
      *             If {@code ldifLines} was {@code null}.
-     * @see {@code LDIF#makeEntry(String...)}
+     * @see LDIF#makeEntry(String...)
      */
     public static Entry makeEntry(List<String> ldifLines) {
         return makeEntry(ldifLines.toArray(new String[ldifLines.size()]));
@@ -356,7 +356,7 @@ public final class LDIF {
      *             decoded using the default schema.
      * @throws NullPointerException
      *             If {@code ldifLines} was {@code null}.
-     * @see {@code LDIF#makeEntries(String...)}
+     * @see LDIF#makeEntries(String...)
      */
     public static List<Entry> makeEntries(List<String> ldifLines) {
         return makeEntries(ldifLines.toArray(new String[ldifLines.size()]));
