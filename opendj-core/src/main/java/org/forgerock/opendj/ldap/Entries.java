@@ -33,7 +33,6 @@ import static com.forgerock.opendj.ldap.CoreMessages.*;
 
 import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -44,6 +43,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.controls.PermissiveModifyRequestControl;
 import org.forgerock.opendj.ldap.requests.ModifyRequest;
 import org.forgerock.opendj.ldap.requests.Requests;
@@ -601,10 +601,14 @@ public final class Entries {
      * @param ldifLines
      *          LDIF lines that contains entry definition.
      * @return an entry
-     * @throws IOException
-     *          If an error occurs.
+     * @throws LocalizedIllegalArgumentException
+     *            If {@code ldifLines} did not contain an LDIF entry, or
+     *            contained multiple entries, or contained malformed LDIF, or
+     *            if the entry could not be decoded using the default schema.
+     * @throws NullPointerException
+     *             If {@code ldifLines} was {@code null}.
      */
-    public static Entry makeEntry(String... ldifLines) throws IOException {
+    public static Entry makeEntry(String... ldifLines) {
         return LDIF.makeEntry(ldifLines);
     }
 
@@ -629,11 +633,15 @@ public final class Entries {
      * @param ldifLines
      *          LDIF lines that contains entries definition.
      *          Entries are separated by an empty string: {@code ""}.
-     * @return a list of entries
-     * @throws IOException
-     *          If an error occurs.
+     * @return a non empty list of entries
+     * @throws LocalizedIllegalArgumentException
+     *             If {@code ldifLines} did not contain LDIF entries,
+     *             or contained malformed LDIF, or if the entries
+     *             could not be decoded using the default schema.
+     * @throws NullPointerException
+     *             If {@code ldifLines} was {@code null}.
      */
-    public static List<Entry> makeEntries(String... ldifLines) throws IOException {
+    public static List<Entry> makeEntries(String... ldifLines) {
         return LDIF.makeEntries(ldifLines);
     }
 

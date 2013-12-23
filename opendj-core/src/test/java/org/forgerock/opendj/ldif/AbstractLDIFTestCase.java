@@ -26,7 +26,7 @@
  */
 package org.forgerock.opendj.ldif;
 
-import org.forgerock.testng.ForgeRockTestCase;
+import org.forgerock.opendj.ldap.SdkTestCase;
 import org.testng.annotations.Test;
 
 /**
@@ -35,7 +35,7 @@ import org.testng.annotations.Test;
  */
 
 @Test(groups = { "precommit", "types", "sdk" })
-public abstract class AbstractLDIFTestCase extends ForgeRockTestCase {
+public abstract class AbstractLDIFTestCase extends SdkTestCase {
 }
 
 
