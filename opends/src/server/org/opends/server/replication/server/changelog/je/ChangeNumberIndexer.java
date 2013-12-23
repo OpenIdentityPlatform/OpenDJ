@@ -176,7 +176,7 @@ public class ChangeNumberIndexer extends DirectoryThread
    */
   public void publishHeartbeat(DN baseDN, CSN heartbeatCSN)
   {
-    if (MultimasterReplication.isECLDisabledDomain(baseDN))
+    if (!isECLEnabledDomain(baseDN))
     {
       return;
     }
@@ -198,7 +198,7 @@ public class ChangeNumberIndexer extends DirectoryThread
   public void publishUpdateMsg(DN baseDN, UpdateMsg updateMsg)
       throws ChangelogException
   {
-    if (MultimasterReplication.isECLDisabledDomain(baseDN))
+    if (!isECLEnabledDomain(baseDN))
     {
       return;
     }
@@ -208,6 +208,23 @@ public class ChangeNumberIndexer extends DirectoryThread
     // only keep the oldest CSN that will be the new cursor's starting point
     newCursors.putIfAbsent(Pair.of(baseDN, csn.getServerId()), csn);
     tryNotify(baseDN);
+  }
+
+  /**
+   * Returns whether the provided baseDN represents a replication domain enabled
+   * for the external changelog.
+   * <p>
+   * This method is a test seam that break the dependency on a static method.
+   *
+   * @param baseDN
+   *          the replication domain to check
+   * @return true if the provided baseDN is enabled for the external changelog,
+   *         false if the provided baseDN is disabled for the external changelog
+   *         or unknown to multimaster replication.
+   */
+  protected boolean isECLEnabledDomain(DN baseDN)
+  {
+    return MultimasterReplication.isECLEnabledDomain(baseDN);
   }
 
   /**
@@ -288,6 +305,11 @@ public class ChangeNumberIndexer extends DirectoryThread
         : changelogState.getDomainToServerIds().entrySet())
     {
       final DN baseDN = entry.getKey();
+      if (!isECLEnabledDomain(baseDN))
+      {
+        continue;
+      }
+
       for (Integer serverId : entry.getValue())
       {
         final CSN csn = mediumConsistencyRUV.getCSN(baseDN, serverId);

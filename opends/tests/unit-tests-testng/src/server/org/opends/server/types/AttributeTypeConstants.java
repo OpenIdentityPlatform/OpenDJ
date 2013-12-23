@@ -47,6 +47,12 @@ public interface AttributeTypeConstants
       null, null, OID_SYNTAX, AttributeUsage.USER_APPLICATIONS,
       false, false, false, false);
 
+  AttributeType COMMON_NAME = new AttributeType(
+      "( 2.5.4.3 NAME ( 'cn' 'commonName' ) SUP name X-ORIGIN 'RFC 4519' )",
+      "commonName", Arrays.asList("cn", "commonName"), "2.5.4.3",
+      null, null, OID_SYNTAX, AttributeUsage.USER_APPLICATIONS,
+      false, false, false, false);
+
   AttributeType ORGANIZATION_NAME = new AttributeType(
       "( 2.5.4.10 NAME ( 'o' 'organizationName' ) SUP name X-ORIGIN 'RFC 4519' )",
       "organizationName", Arrays.asList("o", "organizationName"), "2.5.4.10",
@@ -67,7 +73,7 @@ public interface AttributeTypeConstants
       null, null, OID_SYNTAX, AttributeUsage.USER_APPLICATIONS,
       false, false, false, false);
 
-  AttributeType[] ALL = { OBJECT_CLASS, ORGANIZATION_NAME,
+  AttributeType[] ALL = { OBJECT_CLASS, COMMON_NAME, ORGANIZATION_NAME,
     ORGANIZATIONAL_UNIT_NAME, DOMAIN_COMPONENT, };
 
 }

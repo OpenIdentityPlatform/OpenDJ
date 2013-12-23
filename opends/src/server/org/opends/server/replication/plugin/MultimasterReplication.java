@@ -222,9 +222,10 @@ public class MultimasterReplication
   public static void deleteDomain(DN dn)
   {
     LDAPReplicationDomain domain = domains.remove(dn);
-
     if (domain != null)
+    {
       domain.delete();
+    }
 
     // No replay threads running if no replication need
     if (domains.size() == 0) {
@@ -257,8 +258,7 @@ public class MultimasterReplication
     //  Create the list of domains that are already defined.
     for (String name : configuration.listReplicationDomains())
     {
-      ReplicationDomainCfg domain = configuration.getReplicationDomain(name);
-      createNewDomain(domain);
+      createNewDomain(configuration.getReplicationDomain(name));
     }
 
     /*
@@ -458,9 +458,7 @@ public class MultimasterReplication
       modifyOperation.setAttachment(EntryHistorical.HISTORICAL,
           historicalInformation);
     }
-
     historicalInformation.setPurgeDelay(domain.getHistoricalPurgeDelay());
-
     historicalInformation.setHistoricalAttrToOperation(modifyOperation);
 
     if (modifyOperation.getModifications().isEmpty())
@@ -509,7 +507,6 @@ public class MultimasterReplication
       modifyDNOperation.setAttachment(EntryHistorical.HISTORICAL,
           historicalInformation);
     }
-
     historicalInformation.setPurgeDelay(domain.getHistoricalPurgeDelay());
 
     // Add to the operation the historical attribute : "dn:changeNumber:moddn"
@@ -798,18 +795,20 @@ public class MultimasterReplication
   }
 
   /**
-   * Returns whether the provided baseDN is disabled for the external changelog.
+   * Returns whether the provided baseDN represents a replication domain enabled
+   * for the external changelog.
    *
    * @param baseDN
-   *          the domain to check
-   * @return true if the provided baseDN is disabled for the external changelog,
-   *         false otherwise
+   *          the replication domain to check
+   * @return true if the provided baseDN is enabled for the external changelog,
+   *         false if the provided baseDN is disabled for the external changelog
+   *         or unknown to multimaster replication.
    */
-  public static boolean isECLDisabledDomain(DN baseDN)
+  public static boolean isECLEnabledDomain(DN baseDN)
   {
     for (LDAPReplicationDomain domain : domains.values())
     {
-      if (!domain.isECLEnabled() && domain.getBaseDN().equals(baseDN))
+      if (domain.isECLEnabled() && domain.getBaseDN().equals(baseDN))
       {
         return true;
       }
