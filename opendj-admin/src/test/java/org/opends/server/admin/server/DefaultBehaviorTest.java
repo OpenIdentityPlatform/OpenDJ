@@ -25,687 +25,431 @@
  */
 package org.opends.server.admin.server;
 
+import static org.fest.assertions.Assertions.*;
+import static org.mockito.Matchers.*;
+import static org.mockito.Mockito.*;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.SortedSet;
 
-import javax.naming.ldap.LdapName;
-
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.opendj.admin.server.RootCfg;
+import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.Entry;
+import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.schema.Schema;
+import org.forgerock.opendj.ldif.LDIF;
+import org.mockito.ArgumentCaptor;
 import org.opends.server.admin.AdminTestCase;
 import org.opends.server.admin.TestCfg;
 import org.opends.server.admin.TestChildCfg;
 import org.opends.server.admin.TestParentCfg;
-import org.opends.server.config.ConfigException;
-import org.opends.server.core.DirectoryServer;
+import org.opends.server.api.ConfigAddListener;
+import org.opends.server.api.ConfigChangeListener;
+import org.opends.server.config.ConfigurationRepository;
 import org.opends.server.types.ConfigChangeResult;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+@SuppressWarnings("javadoc")
 /**
- * Test cases for default behavior on the server-side.
+ * Test default behavior on the server side, by checking values of configuration objects.
  */
 public final class DefaultBehaviorTest extends AdminTestCase {
 
-    /**
-     * A test child add listener.
-     */
-    private static class AddListener implements ConfigurationAddListener<TestChildCfg> {
+    private static class TestConfigurationAddListener implements ConfigurationAddListener<TestChildCfg> {
 
-        // The child configuration that was added.
-        private TestChildCfg child;
+        private TestChildCfg childCfg;
 
-        /**
-         * Creates a new add listener.
-         */
-        public AddListener() {
-            // No implementation required.
-        }
-
-        /**
-         * {@inheritDoc}
-         */
         public ConfigChangeResult applyConfigurationAdd(TestChildCfg configuration) {
             return new ConfigChangeResult(ResultCode.SUCCESS, false);
         }
 
-        /**
-         * Gets the child configuration checking that it has the expected name.
-         *
-         * @param expectedName
-         *            The child's expected name.
-         * @return Returns the child configuration.
-         */
-        public TestChildCfg getChild(String expectedName) {
-            Assert.assertNotNull(child);
-            Assert.assertEquals(child.dn().getRDN().getAttributeValue(0).getValue().toString(), expectedName);
-            return child;
+        /** Gets the child configuration checking that it has the expected name. */
+        public TestChildCfg getChildCfg(String expectedName) {
+            Assert.assertNotNull(childCfg);
+            Assert.assertEquals(childCfg.dn().rdn().getFirstAVA().getAttributeValue().toString(), expectedName);
+            return childCfg;
         }
 
-        /**
-         * {@inheritDoc}
-         */
-        public boolean isConfigurationAddAcceptable(TestChildCfg configuration, List<Message> unacceptableReasons) {
-            child = configuration;
+        public boolean isConfigurationAddAcceptable(TestChildCfg configuration,
+                List<LocalizableMessage> unacceptableReasons) {
+            childCfg = configuration;
             return true;
         }
-
     }
 
-    /**
-     * A test child change listener.
-     */
-    private static class ChangeListener implements ConfigurationChangeListener<TestChildCfg> {
+    private static class TestConfigurationChangeListener implements ConfigurationChangeListener<TestChildCfg> {
 
-        // The child configuration that was changed.
-        private TestChildCfg child;
+        private TestChildCfg childCfg;
 
-        /**
-         * Creates a new change listener.
-         */
-        public ChangeListener() {
-            // No implementation required.
-        }
-
-        /**
-         * {@inheritDoc}
-         */
         public ConfigChangeResult applyConfigurationChange(TestChildCfg configuration) {
             return new ConfigChangeResult(ResultCode.SUCCESS, false);
         }
 
-        /**
-         * Gets the child configuration checking that it has the expected name.
-         *
-         * @param expectedName
-         *            The child's expected name.
-         * @return Returns the child configuration.
-         */
-        public TestChildCfg getChild(String expectedName) {
-            Assert.assertNotNull(child);
-            Assert.assertEquals(child.dn().getRDN().getAttributeValue(0).getValue().toString(), expectedName);
-            return child;
+        /** Gets the child configuration checking that it has the expected name. */
+        public TestChildCfg getChildCfg(String expectedName) {
+            Assert.assertNotNull(childCfg);
+            Assert.assertEquals(childCfg.dn().rdn().getFirstAVA().getAttributeValue().toString(), expectedName);
+            return childCfg;
         }
 
-        /**
-         * {@inheritDoc}
-         */
-        public boolean isConfigurationChangeAcceptable(TestChildCfg configuration, List<Message> unacceptableReasons) {
-            child = configuration;
+        public boolean isConfigurationChangeAcceptable(TestChildCfg configuration,
+                List<LocalizableMessage> unacceptableReasons) {
+            childCfg = configuration;
             return true;
         }
-
     }
 
-    // Test child 1 LDIF.
-    private static final String[] TEST_CHILD_1 = new String[] {
-            "dn: cn=test child 1,cn=test children,cn=test parent 1,cn=test parents,cn=config", "objectclass: top",
-            "objectclass: ds-cfg-test-child-dummy", "cn: test child 1", "ds-cfg-enabled: true",
-            "ds-cfg-java-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
-            "ds-cfg-attribute-type: description", "ds-cfg-conflict-behavior: virtual-overrides-real" };
+    static final Entry CONFIG = makeEntry(
+        "dn: cn=config",
+        "objectClass: top",
+        "objectClass: ds-cfg-root-config",
+        "cn: config");
 
-    // Test child 2 LDIF.
-    private static final String[] TEST_CHILD_2 = new String[] {
-            "dn: cn=test child 2,cn=test children,cn=test parent 1,cn=test parents,cn=config", "objectclass: top",
-            "objectclass: ds-cfg-test-child-dummy", "cn: test child 2", "ds-cfg-enabled: true",
-            "ds-cfg-java-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
-            "ds-cfg-attribute-type: description", "ds-cfg-conflict-behavior: virtual-overrides-real",
-            "ds-cfg-base-dn: dc=default value c2v1,dc=com", "ds-cfg-base-dn: dc=default value c2v2,dc=com" };
+    static final Entry TEST_PARENTS = makeEntry(
+        "dn: cn=test parents,cn=config",
+        "objectclass: top",
+        "objectclass: ds-cfg-branch",
+        "cn: test parents");
 
-    // Test child 3 LDIF.
-    private static final String[] TEST_CHILD_3 = new String[] {
-            "dn: cn=test child 3,cn=test children,cn=test parent 1,cn=test parents,cn=config", "objectclass: top",
-            "objectclass: ds-cfg-test-child-dummy", "cn: test child 3", "ds-cfg-enabled: true",
-            "ds-cfg-java-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
-            "ds-cfg-attribute-type: description", "ds-cfg-conflict-behavior: virtual-overrides-real",
-            "ds-cfg-base-dn: dc=default value c3v1,dc=com", "ds-cfg-base-dn: dc=default value c3v2,dc=com",
-            "ds-cfg-group-dn: dc=default value c3v3,dc=com", "ds-cfg-group-dn: dc=default value c3v4,dc=com" };
+    // Parent 1 - uses default values for optional-multi-valued-dn-property.
+    static final List<String> LDIF_TEST_PARENT_1 = Arrays.asList(
+        "dn: cn=test parent 1,cn=test parents,cn=config",
+        "objectclass: top",
+        "objectclass: ds-cfg-test-parent-dummy",
+        "cn: test parent 1",
+        "ds-cfg-enabled: true",
+        "ds-cfg-java-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
+        "ds-cfg-attribute-type: description",
+        "ds-cfg-conflict-behavior: virtual-overrides-real");
 
-    // Test child 4 LDIF.
-    private static final String[] TEST_CHILD_4 = new String[] {
-            "dn: cn=test child 4,cn=test children,cn=test parent 2,cn=test parents,cn=config", "objectclass: top",
-            "objectclass: ds-cfg-test-child-dummy", "cn: test child 4", "ds-cfg-enabled: true",
-            "ds-cfg-java-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
-            "ds-cfg-attribute-type: description", "ds-cfg-conflict-behavior: virtual-overrides-real" };
+    static final Entry TEST_PARENT_1 = makeEntry(LDIF_TEST_PARENT_1);
 
-    // Test LDIF.
-    private static final String[] TEST_LDIF = new String[] {
-            // Base entries.
-            "dn: cn=test parents,cn=config",
-            "objectclass: top",
-            "objectclass: ds-cfg-branch",
-            "cn: test parents",
-            "",
-            // Parent 1 - uses default values for
-            // optional-multi-valued-dn-property.
-            "dn: cn=test parent 1,cn=test parents,cn=config",
-            "objectclass: top",
-            "objectclass: ds-cfg-test-parent-dummy",
-            "cn: test parent 1",
-            "ds-cfg-enabled: true",
-            "ds-cfg-java-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
-            "ds-cfg-attribute-type: description",
-            "ds-cfg-conflict-behavior: virtual-overrides-real",
-            "",
-            // Parent 2 - overrides default values for
-            // optional-multi-valued-dn-property.
-            "dn: cn=test parent 2,cn=test parents,cn=config", "objectclass: top",
-            "objectclass: ds-cfg-test-parent-dummy", "cn: test parent 2", "ds-cfg-enabled: true",
-            "ds-cfg-java-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
-            "ds-cfg-attribute-type: description", "ds-cfg-conflict-behavior: virtual-overrides-real",
-            "ds-cfg-base-dn: dc=default value p2v1,dc=com",
-            "ds-cfg-base-dn: dc=default value p2v2,dc=com",
-            "",
-            // Child base entries.
-            "dn:cn=test children,cn=test parent 1,cn=test parents,cn=config", "objectclass: top",
-            "objectclass: ds-cfg-branch", "cn: test children", "",
-            "dn:cn=test children,cn=test parent 2,cn=test parents,cn=config", "objectclass: top",
-            "objectclass: ds-cfg-branch", "cn: test children", "" };
+    // Parent 2 - overrides default values for optional-multi-valued-dn-property.
+    static final Entry TEST_PARENT_2 = makeEntry(
+        "dn: cn=test parent 2,cn=test parents,cn=config",
+        "objectclass: top",
+        "objectclass: ds-cfg-test-parent-dummy",
+        "cn: test parent 2",
+        "ds-cfg-enabled: true",
+        "ds-cfg-java-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
+        "ds-cfg-attribute-type: description",
+        "ds-cfg-conflict-behavior: virtual-overrides-real",
+        "ds-cfg-base-dn: dc=default value p2v1,dc=com",
+        "ds-cfg-base-dn: dc=default value p2v2,dc=com");
 
-    // JNDI LDAP context.
-    private JNDIDirContextAdaptor adaptor = null;
+    static final Entry TEST_CHILD_BASE_1 = makeEntry(
+        "dn:cn=test children,cn=test parent 1,cn=test parents,cn=config",
+        "objectclass: top",
+        "objectclass: ds-cfg-branch",
+        "cn: test children");
 
-    /**
-     * Sets up tests
-     *
-     * @throws Exception
-     *             If the server could not be initialized.
-     */
+    static final Entry TEST_CHILD_BASE_2 = makeEntry(
+        "dn:cn=test children,cn=test parent 2,cn=test parents,cn=config",
+        "objectclass: top",
+        "objectclass: ds-cfg-branch",
+        "cn: test children");
+
+    private static final List<String> LDIF_TEST_CHILD_1 = Arrays.asList(
+        "dn: cn=test child 1,cn=test children,cn=test parent 1,cn=test parents,cn=config",
+        "objectclass: top",
+        "objectclass: ds-cfg-test-child-dummy",
+        "cn: test child 1",
+        "ds-cfg-enabled: true",
+        "ds-cfg-java-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
+        "ds-cfg-attribute-type: description",
+        "ds-cfg-conflict-behavior: virtual-overrides-real");
+
+    private static final Entry TEST_CHILD_1 = makeEntry(LDIF_TEST_CHILD_1);
+
+    private static final List<String> NEW_ATTRS_1 = Arrays.asList(
+        "ds-cfg-base-dn: dc=new value 1,dc=com",
+        "ds-cfg-base-dn: dc=new value 2,dc=com",
+        "ds-cfg-group-dn: dc=new value 3,dc=com",
+        "ds-cfg-group-dn: dc=new value 4,dc=com");
+
+    private static final List<String> NEW_ATTRS_2 = Arrays.asList(
+        "ds-cfg-base-dn: dc=new value 1,dc=com",
+        "ds-cfg-base-dn: dc=new value 2,dc=com");
+
+    private static final List<String> NEW_ATTRS_3 = Arrays.asList(
+        "ds-cfg-group-dn: dc=new value 1,dc=com",
+        "ds-cfg-group-dn: dc=new value 2,dc=com");
+
+    private static final Entry TEST_CHILD_2 = makeEntry(
+        "dn: cn=test child 2,cn=test children,cn=test parent 1,cn=test parents,cn=config",
+        "objectclass: top",
+        "objectclass: ds-cfg-test-child-dummy",
+        "cn: test child 2",
+        "ds-cfg-enabled: true",
+        "ds-cfg-java-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
+        "ds-cfg-attribute-type: description",
+        "ds-cfg-conflict-behavior: virtual-overrides-real",
+        "ds-cfg-base-dn: dc=default value c2v1,dc=com",
+        "ds-cfg-base-dn: dc=default value c2v2,dc=com");
+
+    private static final Entry TEST_CHILD_3 = makeEntry(
+        "dn: cn=test child 3,cn=test children,cn=test parent 1,cn=test parents,cn=config",
+        "objectclass: top",
+        "objectclass: ds-cfg-test-child-dummy",
+        "cn: test child 3",
+        "ds-cfg-enabled: true",
+        "ds-cfg-java-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
+        "ds-cfg-attribute-type: description",
+        "ds-cfg-conflict-behavior: virtual-overrides-real",
+        "ds-cfg-base-dn: dc=default value c3v1,dc=com",
+        "ds-cfg-base-dn: dc=default value c3v2,dc=com",
+        "ds-cfg-group-dn: dc=default value c3v3,dc=com",
+        "ds-cfg-group-dn: dc=default value c3v4,dc=com");
+
+    private static final Entry TEST_CHILD_4 = makeEntry(
+        "dn: cn=test child 4,cn=test children,cn=test parent 2,cn=test parents,cn=config",
+        "objectclass: top",
+        "objectclass: ds-cfg-test-child-dummy",
+        "cn: test child 4",
+        "ds-cfg-enabled: true",
+        "ds-cfg-java-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
+        "ds-cfg-attribute-type: description",
+        "ds-cfg-conflict-behavior: virtual-overrides-real");
+
     @BeforeClass
     public void setUp() throws Exception {
-        // This test suite depends on having the schema available, so
-        // we'll start the server.
-        TestCaseUtils.startServer();
+        disableClassValidationForProperties();
         TestCfg.setUp();
-
-        // Add test managed objects.
-        TestCaseUtils.addEntries(TEST_LDIF);
     }
 
-    /**
-     * Tears down test environment.
-     *
-     * @throws Exception
-     *             If the test entries could not be removed.
-     */
     @AfterClass
     public void tearDown() throws Exception {
         TestCfg.cleanup();
+    }
 
-        // Remove test entries.
-        deleteSubtree("cn=test parents,cn=config");
+    @DataProvider
+    Object[][] childConfigurationsValues() {
+        return new Object[][] {
+            // parent entry, child base entry, child entry,
+            // expected first dn property values,
+            // expected second dn property values
+            { TEST_PARENT_1, TEST_CHILD_BASE_1, TEST_CHILD_1,
+              Arrays.asList("dc=domain1,dc=com", "dc=domain2,dc=com", "dc=domain3,dc=com"),
+              Arrays.asList("dc=domain1,dc=com", "dc=domain2,dc=com", "dc=domain3,dc=com") },
+
+            { TEST_PARENT_1, TEST_CHILD_BASE_1, TEST_CHILD_2,
+              Arrays.asList("dc=default value c2v1,dc=com", "dc=default value c2v2,dc=com"),
+              Arrays.asList("dc=default value c2v1,dc=com", "dc=default value c2v2,dc=com") },
+
+            { TEST_PARENT_1, TEST_CHILD_BASE_1, TEST_CHILD_3,
+              Arrays.asList("dc=default value c3v1,dc=com", "dc=default value c3v2,dc=com"),
+              Arrays.asList("dc=default value c3v3,dc=com", "dc=default value c3v4,dc=com") },
+
+            { TEST_PARENT_2, TEST_CHILD_BASE_2, TEST_CHILD_4,
+              Arrays.asList("dc=default value p2v1,dc=com", "dc=default value p2v2,dc=com"),
+              Arrays.asList("dc=default value p2v1,dc=com", "dc=default value p2v2,dc=com") }
+            };
     }
 
     /**
-     * Tests that children have correct values when accessed through an add
-     * listener.
-     *
-     * @throws Exception
-     *             If the test unexpectedly fails.
+     * Test that a child config have correct values when accessed from its parent config.
      */
-    @Test
-    public void testAddListenerChildValues1() throws Exception {
-        TestParentCfg parent = getParent("test parent 1");
-        AddListener listener = new AddListener();
-        parent.addTestChildAddListener(listener);
+    @Test(dataProvider = "childConfigurationsValues")
+    public void testChildValues(Entry testParent, Entry testBaseChild, Entry testChild,
+            List<String> valuesForOptionalDNProperty1, List<String> valuesForOptionalDNProperty2) throws Exception {
+        // arrange
+        ConfigurationRepository configRepository = createConfigRepositoryWithEntries(
+                testParent, testBaseChild, testChild);
+        ServerManagementContext context = new ServerManagementContext(configRepository);
+        TestParentCfg parentCfg = getParentCfg(testParent, context);
 
-        try {
-            // Add the entry.
-            TestCaseUtils.addEntry(TEST_CHILD_1);
-            try {
-                assertChild1(listener.getChild("test child 1"));
-            } finally {
-                deleteSubtree("cn=test child 1,cn=test children,cn=test parent 1,cn=test parents,cn=config");
-            }
-        } finally {
-            parent.removeTestChildAddListener(listener);
-        }
+        // assert
+        assertChildHasCorrectValues(parentCfg.getTestChild(entryName(testChild)), valuesForOptionalDNProperty1,
+            valuesForOptionalDNProperty2);
     }
 
     /**
-     * Tests that children have correct values when accessed through an add
-     * listener.
-     *
-     * @throws Exception
-     *             If the test unexpectedly fails.
+     * Test that a child config have correct values when accessed through an add listener.
      */
-    @Test
-    public void testAddListenerChildValues2() throws Exception {
-        TestParentCfg parent = getParent("test parent 1");
-        AddListener listener = new AddListener();
-        parent.addTestChildAddListener(listener);
+    @Test(dataProvider = "childConfigurationsValues")
+    public void testAddListenerChildValues(Entry testParent, Entry testBaseChild, Entry testChild,
+            List<String> valuesForOptionalDNProperty1, List<String> valuesForOptionalDNProperty2) throws Exception {
+        // arrange
+        ConfigurationRepository configRepository = createConfigRepositoryWithEntries(
+                testParent, testBaseChild, testChild);
+        ServerManagementContext context = new ServerManagementContext(configRepository);
+        TestParentCfg parentCfg = getParentCfg(testParent, context);
+        TestConfigurationAddListener addListener = new TestConfigurationAddListener();
+        parentCfg.addTestChildAddListener(addListener);
 
-        try {
-            // Add the entry.
-            TestCaseUtils.addEntry(TEST_CHILD_2);
-            try {
-                assertChild2(listener.getChild("test child 2"));
-            } finally {
-                deleteSubtree("cn=test child 2,cn=test children,cn=test parent 1,cn=test parents,cn=config");
-            }
-        } finally {
-            parent.removeTestChildAddListener(listener);
-        }
+        // act
+        simulateEntryAdd(testChild, configRepository);
+
+        // assert
+        assertChildHasCorrectValues(addListener.getChildCfg(entryName(testChild)), valuesForOptionalDNProperty1,
+            valuesForOptionalDNProperty2);
+    }
+
+    @DataProvider
+    Object[][] childConfigurationsValuesForChangeListener() {
+        return new Object[][] {
+            // new entry after change, expected first dn property values, expected second dn property values
+            { makeEntry(LDIF_TEST_CHILD_1, NEW_ATTRS_1),
+              Arrays.asList("dc=new value 1,dc=com", "dc=new value 2,dc=com"),
+              Arrays.asList("dc=new value 3,dc=com", "dc=new value 4,dc=com") },
+
+            { makeEntry(LDIF_TEST_CHILD_1, NEW_ATTRS_2),
+              Arrays.asList("dc=new value 1,dc=com", "dc=new value 2,dc=com"),
+              Arrays.asList("dc=new value 1,dc=com", "dc=new value 2,dc=com") },
+
+            { makeEntry(LDIF_TEST_CHILD_1, NEW_ATTRS_3),
+              Arrays.asList("dc=domain1,dc=com", "dc=domain2,dc=com", "dc=domain3,dc=com"),
+              Arrays.asList("dc=new value 1,dc=com", "dc=new value 2,dc=com") },
+
+            { makeEntry(LDIF_TEST_PARENT_1, NEW_ATTRS_2),
+              Arrays.asList("dc=new value 1,dc=com", "dc=new value 2,dc=com"),
+              Arrays.asList("dc=new value 1,dc=com", "dc=new value 2,dc=com") }
+        };
     }
 
     /**
-     * Tests that children have correct values when accessed through an add
-     * listener.
-     *
-     * @throws Exception
-     *             If the test unexpectedly fails.
+     * Tests that a child config have correct values when accessed through an change listener.
+     * The defaulted properties are replaced with some real values.
      */
-    @Test
-    public void testAddListenerChildValues3() throws Exception {
-        TestParentCfg parent = getParent("test parent 1");
-        AddListener listener = new AddListener();
-        parent.addTestChildAddListener(listener);
+    @Test(dataProvider = "childConfigurationsValuesForChangeListener")
+    public void testChangeListenerChildValues(Entry newEntry, List<String> valuesForOptionalDNProperty1,
+            List<String> valuesForOptionalDNProperty2) throws Exception {
+        // arrange
+        ConfigurationRepository configRepository = createConfigRepositoryWithEntries(
+                TEST_PARENT_1, TEST_CHILD_BASE_1, TEST_CHILD_1);
+        ServerManagementContext context = new ServerManagementContext(configRepository);
+        TestParentCfg parentCfg = getParentCfg(TEST_PARENT_1, context);
+        TestChildCfg childCfg = parentCfg.getTestChild(entryName(TEST_CHILD_1));
+        TestConfigurationChangeListener changeListener = new TestConfigurationChangeListener();
+        childCfg.addChangeListener(changeListener);
 
-        try {
-            // Add the entry.
-            TestCaseUtils.addEntry(TEST_CHILD_3);
-            try {
-                assertChild3(listener.getChild("test child 3"));
-            } finally {
-                deleteSubtree("cn=test child 3,cn=test children,cn=test parent 1,cn=test parents,cn=config");
-            }
-        } finally {
-            parent.removeTestChildAddListener(listener);
-        }
+        // act
+        simulateEntryChange(newEntry, configRepository);
+
+        // assert
+        assertChildHasCorrectValues(changeListener.getChildCfg(entryName(TEST_CHILD_1)), valuesForOptionalDNProperty1,
+            valuesForOptionalDNProperty2);
+    }
+
+    @DataProvider
+    Object[][] parentConfigurationsValues() {
+        return new Object[][] {
+            // parent entry, expected first dn property values, expected second dn property values
+            { TEST_PARENT_1, Arrays.asList("dc=domain1,dc=com", "dc=domain2,dc=com", "dc=domain3,dc=com") },
+            { TEST_PARENT_2, Arrays.asList("dc=default value p2v1,dc=com", "dc=default value p2v2,dc=com") }
+        };
     }
 
     /**
-     * Tests that children have correct values when accessed through an add
-     * listener.
-     *
-     * @throws Exception
-     *             If the test unexpectedly fails.
+     * Tests that parent configuration has correct values.
      */
-    @Test
-    public void testAddListenerChildValues4() throws Exception {
-        TestParentCfg parent = getParent("test parent 2");
-        AddListener listener = new AddListener();
-        parent.addTestChildAddListener(listener);
+    @Test(dataProvider = "parentConfigurationsValues")
+    public void testParentValues(Entry parentEntry, List<String> valuesForOptionalDNProperty) throws Exception {
+        ConfigurationRepository configRepository = createConfigRepositoryWithEntries(parentEntry);
+        ServerManagementContext context = new ServerManagementContext(configRepository);
+        TestParentCfg parent = getParentCfg(parentEntry, context);
 
-        try {
-            // Add the entry.
-            TestCaseUtils.addEntry(TEST_CHILD_4);
-            try {
-                assertChild4(listener.getChild("test child 4"));
-            } finally {
-                deleteSubtree("cn=test child 4,cn=test children,cn=test parent 2,cn=test parents,cn=config");
-            }
-        } finally {
-            parent.removeTestChildAddListener(listener);
-        }
-    }
-
-    /**
-     * Tests that children have correct values when accessed through a change
-     * listener. This test replaces the defaulted properties with real values.
-     *
-     * @throws Exception
-     *             If the test unexpectedly fails.
-     */
-    @Test
-    public void testChangeListenerChildValues1() throws Exception {
-        TestParentCfg parent = getParent("test parent 1");
-
-        try {
-            // Add the entry.
-            TestCaseUtils.addEntry(TEST_CHILD_1);
-            TestChildCfg child = parent.getTestChild("test child 1");
-            ChangeListener listener = new ChangeListener();
-            child.addChangeListener(listener);
-
-            // Now modify it.
-            String[] changes = new String[] {
-                    "dn: cn=test child 1,cn=test children,cn=test parent 1,cn=test parents,cn=config",
-                    "changetype: modify", "replace: ds-cfg-base-dn", "ds-cfg-base-dn: dc=new value 1,dc=com",
-                    "ds-cfg-base-dn: dc=new value 2,dc=com", "-", "replace: ds-cfg-group-dn",
-                    "ds-cfg-group-dn: dc=new value 3,dc=com", "ds-cfg-group-dn: dc=new value 4,dc=com" };
-            TestCaseUtils.applyModifications(true, changes);
-
-            // Make sure that the change listener was notified and the
-            // modified child contains the correct values.
-            child = listener.getChild("test child 1");
-
-            Assert.assertEquals(child.getMandatoryClassProperty(),
-                    "org.opends.server.extensions.UserDefinedVirtualAttributeProvider");
-            Assert.assertEquals(child.getMandatoryReadOnlyAttributeTypeProperty(),
-                    DirectoryServer.getAttributeType("description"));
-            assertDNSetEquals(child.getOptionalMultiValuedDNProperty1(), "dc=new value 1,dc=com",
-                    "dc=new value 2,dc=com");
-            assertDNSetEquals(child.getOptionalMultiValuedDNProperty2(), "dc=new value 3,dc=com",
-                    "dc=new value 4,dc=com");
-        } finally {
-            deleteSubtree("cn=test child 1,cn=test children,cn=test parent 1,cn=test parents,cn=config");
-        }
-    }
-
-    /**
-     * Tests that children have correct values when accessed through a change
-     * listener. This test makes sure that default values inherited from within
-     * the modified component itself behave as expected.
-     *
-     * @throws Exception
-     *             If the test unexpectedly fails.
-     */
-    @Test
-    public void testChangeListenerChildValues2() throws Exception {
-        TestParentCfg parent = getParent("test parent 1");
-
-        try {
-            // Add the entry.
-            TestCaseUtils.addEntry(TEST_CHILD_1);
-            TestChildCfg child = parent.getTestChild("test child 1");
-            ChangeListener listener = new ChangeListener();
-            child.addChangeListener(listener);
-
-            // Now modify it.
-            String[] changes = new String[] {
-                    "dn: cn=test child 1,cn=test children,cn=test parent 1,cn=test parents,cn=config",
-                    "changetype: modify", "replace: ds-cfg-base-dn", "ds-cfg-base-dn: dc=new value 1,dc=com",
-                    "ds-cfg-base-dn: dc=new value 2,dc=com" };
-            TestCaseUtils.applyModifications(true, changes);
-
-            // Make sure that the change listener was notified and the
-            // modified child contains the correct values.
-            child = listener.getChild("test child 1");
-
-            Assert.assertEquals(child.getMandatoryClassProperty(),
-                    "org.opends.server.extensions.UserDefinedVirtualAttributeProvider");
-            Assert.assertEquals(child.getMandatoryReadOnlyAttributeTypeProperty(),
-                    DirectoryServer.getAttributeType("description"));
-            assertDNSetEquals(child.getOptionalMultiValuedDNProperty1(), "dc=new value 1,dc=com",
-                    "dc=new value 2,dc=com");
-            assertDNSetEquals(child.getOptionalMultiValuedDNProperty2(), "dc=new value 1,dc=com",
-                    "dc=new value 2,dc=com");
-        } finally {
-            deleteSubtree("cn=test child 1,cn=test children,cn=test parent 1,cn=test parents,cn=config");
-        }
-    }
-
-    /**
-     * Tests that children have correct values when accessed through a change
-     * listener. This test makes sure that default values inherited from outside
-     * the modified component behave as expected.
-     *
-     * @throws Exception
-     *             If the test unexpectedly fails.
-     */
-    @Test
-    public void testChangeListenerChildValues3() throws Exception {
-        TestParentCfg parent = getParent("test parent 1");
-
-        try {
-            // Add the entry.
-            TestCaseUtils.addEntry(TEST_CHILD_1);
-            TestChildCfg child = parent.getTestChild("test child 1");
-            ChangeListener listener = new ChangeListener();
-            child.addChangeListener(listener);
-
-            // Now modify it.
-            String[] changes = new String[] {
-                    "dn: cn=test child 1,cn=test children,cn=test parent 1,cn=test parents,cn=config",
-                    "changetype: modify", "replace: ds-cfg-group-dn", "ds-cfg-group-dn: dc=new value 1,dc=com",
-                    "ds-cfg-group-dn: dc=new value 2,dc=com" };
-            TestCaseUtils.applyModifications(true, changes);
-
-            // Make sure that the change listener was notified and the
-            // modified child contains the correct values.
-            child = listener.getChild("test child 1");
-
-            Assert.assertEquals(child.getMandatoryClassProperty(),
-                    "org.opends.server.extensions.UserDefinedVirtualAttributeProvider");
-            Assert.assertEquals(child.getMandatoryReadOnlyAttributeTypeProperty(),
-                    DirectoryServer.getAttributeType("description"));
-            assertDNSetEquals(child.getOptionalMultiValuedDNProperty1(), "dc=domain1,dc=com", "dc=domain2,dc=com",
-                    "dc=domain3,dc=com");
-            assertDNSetEquals(child.getOptionalMultiValuedDNProperty2(), "dc=new value 1,dc=com",
-                    "dc=new value 2,dc=com");
-        } finally {
-            deleteSubtree("cn=test child 1,cn=test children,cn=test parent 1,cn=test parents,cn=config");
-        }
-    }
-
-    /**
-     * Tests that children have correct values when accessed through a change
-     * listener. This test makes sure that a component is notified when the
-     * default values it inherits from another component are modified.
-     *
-     * @throws Exception
-     *             If the test unexpectedly fails.
-     */
-    @Test
-    public void testChangeListenerChildValues4() throws Exception {
-        TestParentCfg parent = getParent("test parent 1");
-
-        try {
-            // Add the entry.
-            TestCaseUtils.addEntry(TEST_CHILD_1);
-            TestChildCfg child = parent.getTestChild("test child 1");
-            ChangeListener listener = new ChangeListener();
-            child.addChangeListener(listener);
-
-            // Now modify the parent.
-            String[] changes = new String[] { "dn: cn=test parent 1,cn=test parents,cn=config", "changetype: modify",
-                    "replace: ds-cfg-base-dn", "ds-cfg-base-dn: dc=new value 1,dc=com",
-                    "ds-cfg-base-dn: dc=new value 2,dc=com" };
-            TestCaseUtils.applyModifications(true, changes);
-
-            // Make sure that the change listener was notified and the
-            // modified child contains the correct values.
-            child = listener.getChild("test child 1");
-
-            Assert.assertEquals(child.getMandatoryClassProperty(),
-                    "org.opends.server.extensions.UserDefinedVirtualAttributeProvider");
-            Assert.assertEquals(child.getMandatoryReadOnlyAttributeTypeProperty(),
-                    DirectoryServer.getAttributeType("description"));
-            assertDNSetEquals(child.getOptionalMultiValuedDNProperty1(), "dc=new value 1,dc=com",
-                    "dc=new value 2,dc=com");
-            assertDNSetEquals(child.getOptionalMultiValuedDNProperty2(), "dc=new value 1,dc=com",
-                    "dc=new value 2,dc=com");
-        } finally {
-            deleteSubtree("cn=test child 1,cn=test children,cn=test parent 1,cn=test parents,cn=config");
-
-            // Undo the modifications.
-            String[] changes = new String[] { "dn: cn=test parent 1,cn=test parents,cn=config", "changetype: modify",
-                    "delete: ds-cfg-base-dn" };
-            TestCaseUtils.applyModifications(true, changes);
-        }
-    }
-
-    /**
-     * Tests that children have correct values.
-     *
-     * @throws Exception
-     *             If the test unexpectedly fails.
-     */
-    @Test
-    public void testChildValues1() throws Exception {
-        // Add the entry.
-        TestCaseUtils.addEntry(TEST_CHILD_1);
-
-        try {
-            TestParentCfg parent = getParent("test parent 1");
-            assertChild1(parent.getTestChild("test child 1"));
-        } finally {
-            deleteSubtree("cn=test child 1,cn=test children,cn=test parent 1,cn=test parents,cn=config");
-        }
-    }
-
-    /**
-     * Tests that children have correct values.
-     *
-     * @throws Exception
-     *             If the test unexpectedly fails.
-     */
-    @Test
-    public void testChildValues2() throws Exception {
-        // Add the entry.
-        TestCaseUtils.addEntry(TEST_CHILD_2);
-
-        try {
-            TestParentCfg parent = getParent("test parent 1");
-            assertChild2(parent.getTestChild("test child 2"));
-        } finally {
-            deleteSubtree("cn=test child 2,cn=test children,cn=test parent 1,cn=test parents,cn=config");
-        }
-    }
-
-    /**
-     * Tests that children have correct values.
-     *
-     * @throws Exception
-     *             If the test unexpectedly fails.
-     */
-    @Test
-    public void testChildValues3() throws Exception {
-        // Add the entry.
-        TestCaseUtils.addEntry(TEST_CHILD_3);
-
-        try {
-            TestParentCfg parent = getParent("test parent 1");
-            assertChild3(parent.getTestChild("test child 3"));
-        } finally {
-            deleteSubtree("cn=test child 3,cn=test children,cn=test parent 1,cn=test parents,cn=config");
-        }
-    }
-
-    /**
-     * Tests that children have correct values.
-     *
-     * @throws Exception
-     *             If the test unexpectedly fails.
-     */
-    @Test
-    public void testChildValues4() throws Exception {
-        // Add the entry.
-        TestCaseUtils.addEntry(TEST_CHILD_4);
-
-        try {
-            TestParentCfg parent = getParent("test parent 2");
-            assertChild4(parent.getTestChild("test child 4"));
-        } finally {
-            deleteSubtree("cn=test child 4,cn=test children,cn=test parent 2,cn=test parents,cn=config");
-        }
-    }
-
-    /**
-     * Tests that parent 1 has correct values.
-     *
-     * @throws Exception
-     *             If the test unexpectedly fails.
-     */
-    @Test
-    public void testParentValues1() throws Exception {
-        TestParentCfg parent = getParent("test parent 1");
-
-        Assert.assertEquals(parent.getMandatoryClassProperty(),
+        assertThat(parent.getMandatoryClassProperty()).isEqualTo(
                 "org.opends.server.extensions.UserDefinedVirtualAttributeProvider");
-        Assert.assertEquals(parent.getMandatoryReadOnlyAttributeTypeProperty(),
-                DirectoryServer.getAttributeType("description"));
-        assertDNSetEquals(parent.getOptionalMultiValuedDNProperty(), "dc=domain1,dc=com", "dc=domain2,dc=com",
-                "dc=domain3,dc=com");
+        assertThat(parent.getMandatoryReadOnlyAttributeTypeProperty()).isEqualTo(
+                Schema.getDefaultSchema().getAttributeType("description"));
+        assertDNSetEquals(parent.getOptionalMultiValuedDNProperty(), valuesForOptionalDNProperty);
     }
 
     /**
-     * Tests that parent 2 has correct values.
-     *
-     * @throws Exception
-     *             If the test unexpectedly fails.
+     * Create a mock of ConfigurationRepository with provided entries registered.
      */
-    @Test
-    public void testParentValues2() throws Exception {
-        TestParentCfg parent = getParent("test parent 2");
-
-        Assert.assertEquals(parent.getMandatoryClassProperty(),
-                "org.opends.server.extensions.UserDefinedVirtualAttributeProvider");
-        Assert.assertEquals(parent.getMandatoryReadOnlyAttributeTypeProperty(),
-                DirectoryServer.getAttributeType("description"));
-        assertDNSetEquals(parent.getOptionalMultiValuedDNProperty(), "dc=default value p2v1,dc=com",
-                "dc=default value p2v2,dc=com");
+    private ConfigurationRepository createConfigRepositoryWithEntries(Entry...entries) throws Exception {
+        ConfigurationRepository configRepository = mock(ConfigurationRepository.class);
+        for (Entry entry : entries) {
+            when(configRepository.getEntry(entry.getName())).thenReturn(entry);
+            when(configRepository.hasEntry(entry.getName())).thenReturn(true);
+        }
+        return configRepository;
     }
 
-    // Assert that the values of child 1 are correct.
-    private void assertChild1(TestChildCfg child) {
-        Assert.assertEquals(child.getMandatoryClassProperty(),
-                "org.opends.server.extensions.UserDefinedVirtualAttributeProvider");
-        Assert.assertEquals(child.getMandatoryReadOnlyAttributeTypeProperty(),
-                DirectoryServer.getAttributeType("description"));
-        assertDNSetEquals(child.getOptionalMultiValuedDNProperty1(), "dc=domain1,dc=com", "dc=domain2,dc=com",
-                "dc=domain3,dc=com");
-        assertDNSetEquals(child.getOptionalMultiValuedDNProperty2(), "dc=domain1,dc=com", "dc=domain2,dc=com",
-                "dc=domain3,dc=com");
+    /**
+     * Simulate an entry add by triggering configAddIsAcceptable method of last registered add listener.
+     */
+    private void simulateEntryAdd(Entry entry, ConfigurationRepository configRepository) throws IOException {
+        // use argument capture to retrieve the actual listener
+        ArgumentCaptor<ConfigAddListener> registeredListener = ArgumentCaptor.forClass(ConfigAddListener.class);
+        verify(configRepository).registerAddListener(eq(entry.getName().parent()), registeredListener.capture());
+
+        registeredListener.getValue().configAddIsAcceptable(entry, new LocalizableMessageBuilder());
     }
 
-    // Assert that the values of child 2 are correct.
-    private void assertChild2(TestChildCfg child) {
-        Assert.assertEquals(child.getMandatoryClassProperty(),
-                "org.opends.server.extensions.UserDefinedVirtualAttributeProvider");
-        Assert.assertEquals(child.getMandatoryReadOnlyAttributeTypeProperty(),
-                DirectoryServer.getAttributeType("description"));
-        assertDNSetEquals(child.getOptionalMultiValuedDNProperty1(), "dc=default value c2v1,dc=com",
-                "dc=default value c2v2,dc=com");
-        assertDNSetEquals(child.getOptionalMultiValuedDNProperty2(), "dc=default value c2v1,dc=com",
-                "dc=default value c2v2,dc=com");
+    /**
+     * Simulate an entry change by triggering configChangeIsAcceptable method on last registered change listener.
+     */
+    private void simulateEntryChange(Entry newEntry, ConfigurationRepository configRepository) {
+        // use argument capture to retrieve the actual listener
+        ArgumentCaptor<ConfigChangeListener> registeredListener = ArgumentCaptor.forClass(ConfigChangeListener.class);
+        verify(configRepository).registerChangeListener(eq(newEntry.getName()), registeredListener.capture());
+
+        registeredListener.getValue().configChangeIsAcceptable(newEntry, new LocalizableMessageBuilder());
     }
 
-    // Assert that the values of child 3 are correct.
-    private void assertChild3(TestChildCfg child) {
-        Assert.assertEquals(child.getMandatoryClassProperty(),
+    private void assertChildHasCorrectValues(TestChildCfg child, List<String> dnProperty1, List<String> dnProperty2) {
+        assertThat(child.getMandatoryClassProperty()).isEqualTo(
                 "org.opends.server.extensions.UserDefinedVirtualAttributeProvider");
-        Assert.assertEquals(child.getMandatoryReadOnlyAttributeTypeProperty(),
-                DirectoryServer.getAttributeType("description"));
-        assertDNSetEquals(child.getOptionalMultiValuedDNProperty1(), "dc=default value c3v1,dc=com",
-                "dc=default value c3v2,dc=com");
-        assertDNSetEquals(child.getOptionalMultiValuedDNProperty2(), "dc=default value c3v3,dc=com",
-                "dc=default value c3v4,dc=com");
+        assertThat(child.getMandatoryReadOnlyAttributeTypeProperty()).isEqualTo(
+                Schema.getDefaultSchema().getAttributeType("description"));
+        assertDNSetEquals(child.getOptionalMultiValuedDNProperty1(), dnProperty1);
+        assertDNSetEquals(child.getOptionalMultiValuedDNProperty2(), dnProperty2);
     }
 
-    // Assert that the values of child 4 are correct.
-    private void assertChild4(TestChildCfg child) {
-        Assert.assertEquals(child.getMandatoryClassProperty(),
-                "org.opends.server.extensions.UserDefinedVirtualAttributeProvider");
-        Assert.assertEquals(child.getMandatoryReadOnlyAttributeTypeProperty(),
-                DirectoryServer.getAttributeType("description"));
-        assertDNSetEquals(child.getOptionalMultiValuedDNProperty1(), "dc=default value p2v1,dc=com",
-                "dc=default value p2v2,dc=com");
-        assertDNSetEquals(child.getOptionalMultiValuedDNProperty2(), "dc=default value p2v1,dc=com",
-                "dc=default value p2v2,dc=com");
-    }
-
-    // Asserts that the actual set of DNs contains the expected values.
-    private void assertDNSetEquals(SortedSet<DN> actual, String... expected) {
-        String[] actualStrings = new String[actual.size()];
+    /** Asserts that the actual set of DNs contains the expected values */
+    private void assertDNSetEquals(SortedSet<DN> actualDNs, List<String> expectedDNs) {
+        String[] actualStrings = new String[actualDNs.size()];
         int i = 0;
-        for (DN dn : actual) {
+        for (DN dn : actualDNs) {
             actualStrings[i] = dn.toString();
             i++;
         }
-        Assert.assertEqualsNoOrder(actualStrings, expected);
+        assertThat(actualStrings).containsOnly(expectedDNs.toArray(new Object[expectedDNs.size()]));
     }
 
-    // Deletes the named sub-tree.
-    private void deleteSubtree(String dn) throws Exception {
-        getAdaptor().deleteSubtree(new LdapName(dn));
+    /** Returns the name used for this entry (the value of the cn attribute) */
+    private String entryName(Entry entry) {
+        return entry.getName().rdn().getFirstAVA().getAttributeValue().toString();
     }
 
-    // Gets the JNDI connection for the test server instance.
-    private synchronized JNDIDirContextAdaptor getAdaptor() throws Exception {
-        if (adaptor == null) {
-            adaptor = JNDIDirContextAdaptor.simpleSSLBind("127.0.0.1", TestCaseUtils.getServerAdminPort(),
-                    "cn=directory manager", "password");
-        }
-        return adaptor;
-    }
-
-    // Gets the named parent configuration.
-    private TestParentCfg getParent(String name) throws IllegalArgumentException, ConfigException {
+    /** Gets the named parent configuration corresponding to the entry */
+    private TestParentCfg getParentCfg(Entry entry, ServerManagementContext serverContext) throws Exception {
+        String name = entryName(entry);
         ServerManagedObject<RootCfg> root = serverContext.getRootConfigurationManagedObject();
         TestParentCfg parent = root.getChild(TestCfg.getTestOneToManyParentRelationDefinition(), name)
                 .getConfiguration();
         return parent;
+    }
+
+    /** Make an entry without throwing an exception */
+    static Entry makeEntry(String...ldif) {
+        try {
+            return LDIF.makeEntry(ldif);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    static Entry makeEntry(List<String> ldif) {
+        return makeEntry(ldif.toArray(new String[ldif.size()]));
+    }
+
+    /** Make an entry by combining two lists */
+    static Entry makeEntry(List<String> base, List<String> attrs) {
+        List<String> ldif = new ArrayList<String>(base);
+        ldif.addAll(attrs);
+        return makeEntry(ldif.toArray(new String[0]));
     }
 }

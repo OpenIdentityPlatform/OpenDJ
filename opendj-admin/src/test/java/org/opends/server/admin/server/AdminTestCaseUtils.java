@@ -72,12 +72,12 @@ public final class AdminTestCaseUtils {
     public static <S extends Configuration> S getConfiguration(ServerManagementContext context,
             AbstractManagedObjectDefinition<?, S> definition, Entry entry) throws ConfigException {
         try {
-            ServerManagedObject<? extends S> mo = context.decode(getPath(definition), entry);
+            ServerManagedObject<? extends S> managedObject = context.decode(getPath(definition), entry);
 
             // Ensure constraints are satisfied.
-            mo.ensureIsUsable();
+            managedObject.ensureIsUsable();
 
-            return mo.getConfiguration();
+            return managedObject.getConfiguration();
         } catch (DefinitionDecodingException e) {
             throw ConfigExceptionFactory.getInstance().createDecodingExceptionAdaptor(entry.getName(), e);
         } catch (ServerManagedObjectDecodingException e) {

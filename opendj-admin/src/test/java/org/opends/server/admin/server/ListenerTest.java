@@ -26,13 +26,14 @@
 package org.opends.server.admin.server;
 
 import static org.fest.assertions.Assertions.*;
+import static org.forgerock.opendj.ldif.LDIF.*;
 import static org.mockito.Mockito.*;
 
 import java.util.Arrays;
+
 import org.forgerock.opendj.admin.server.RootCfg;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.Entry;
-import org.forgerock.opendj.ldap.TestCaseUtils;
 import org.mockito.ArgumentCaptor;
 import org.opends.server.admin.AdminTestCase;
 import org.opends.server.admin.TestCfg;
@@ -65,7 +66,7 @@ public class ListenerTest extends AdminTestCase {
     }
 
     private Entry getTestParentEntry() throws Exception {
-        return TestCaseUtils.makeEntry(
+        return makeEntry(
             "dn: cn=test parents,cn=config",
             "objectclass: top",
             "objectclass: ds-cfg-branch",

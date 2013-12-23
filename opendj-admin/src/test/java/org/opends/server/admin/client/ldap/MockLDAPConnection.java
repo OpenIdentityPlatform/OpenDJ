@@ -26,6 +26,7 @@
 package org.opends.server.admin.client.ldap;
 
 import static org.fest.assertions.Assertions.*;
+import static org.forgerock.opendj.ldif.LDIF.*;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -45,7 +46,6 @@ import org.forgerock.opendj.ldap.ErrorResultException;
 import org.forgerock.opendj.ldap.LinkedHashMapEntry;
 import org.forgerock.opendj.ldap.RDN;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.TestCaseUtils;
 import org.forgerock.opendj.ldap.controls.Control;
 import org.forgerock.opendj.ldap.controls.ControlDecoder;
 import org.forgerock.opendj.ldap.requests.ModifyRequest;
@@ -143,7 +143,7 @@ public class MockLDAPConnection extends LDAPConnection {
      */
     public final void importLDIF(String... lines) {
         try {
-            for (Entry entry : TestCaseUtils.makeEntries(lines)) {
+            for (Entry entry : makeEntries(lines)) {
                 addEntry(entry);
             }
         } catch (Exception e) {
