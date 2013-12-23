@@ -45,7 +45,7 @@ public final class MockConstraint extends Constraint {
     /**
      * Mock server constraint handler.
      */
-    private class Handler extends ServerConstraintHandler {
+    private class MockConstraintHandler extends ServerConstraintHandler {
 
         /**
          * {@inheritDoc}
@@ -140,7 +140,7 @@ public final class MockConstraint extends Constraint {
      * {@inheritDoc}
      */
     public Collection<ServerConstraintHandler> getServerConstraintHandlers() {
-        return Collections.<ServerConstraintHandler> singleton(new Handler());
+        return Collections.<ServerConstraintHandler> singleton(new MockConstraintHandler());
     }
 
 }

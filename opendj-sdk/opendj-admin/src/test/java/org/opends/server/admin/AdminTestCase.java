@@ -25,7 +25,14 @@
  */
 package org.opends.server.admin;
 
+import static org.mockito.Mockito.*;
+
+import org.forgerock.opendj.admin.server.RootCfg;
 import org.forgerock.opendj.config.ConfigTestCase;
+import org.forgerock.opendj.ldap.Entry;
+import org.opends.server.admin.server.ServerManagedObject;
+import org.opends.server.admin.server.ServerManagementContext;
+import org.opends.server.config.ConfigurationRepository;
 import org.testng.annotations.Test;
 
 /**
@@ -33,6 +40,36 @@ import org.testng.annotations.Test;
  */
 @Test(groups = { "precommit", "admin" }, singleThreaded = true)
 public abstract class AdminTestCase extends ConfigTestCase {
-  // No implementation required.
-  // TODO : merge with ConfigTestCase ?
+
+    /**
+     * Create a mock of ConfigurationRepository with provided entries registered.
+     */
+    protected final ConfigurationRepository createConfigRepositoryWithEntries(final Entry...entries) throws Exception {
+        ConfigurationRepository configRepository = mock(ConfigurationRepository.class);
+        for (Entry entry : entries) {
+            when(configRepository.getEntry(entry.getName())).thenReturn(entry);
+            when(configRepository.hasEntry(entry.getName())).thenReturn(true);
+        }
+        return configRepository;
+    }
+
+    /** Returns the name used for this entry (the value of the cn attribute) */
+    protected final String entryName(final Entry entry) {
+        return entry.getName().rdn().getFirstAVA().getAttributeValue().toString();
+    }
+
+    /** Gets the named parent configuration corresponding to the entry */
+    protected final TestParentCfg getParentCfg(final Entry entry, final ServerManagementContext serverContext)
+            throws Exception {
+        return getParentCfg(entryName(entry), serverContext);
+    }
+
+    /** Gets the named parent configuration corresponding to provided name. */
+    protected final TestParentCfg getParentCfg(final String name, final ServerManagementContext serverContext)
+            throws Exception {
+        ServerManagedObject<RootCfg> root = serverContext.getRootConfigurationManagedObject();
+        TestParentCfg parent = root.getChild(TestCfg.getTestOneToManyParentRelationDefinition(), name)
+                .getConfiguration();
+        return parent;
+    }
 }
